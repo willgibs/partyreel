@@ -1,6 +1,6 @@
 ---
 track: reel-refresh-cut
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "74794b60"            # the launch-prep SHA the branch was cut from
 board: reel-front
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -100,24 +100,52 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The guest-facing noun.** Every string a guest reads should say "clip" (his own tile copy) or keep "cut"? Taken: clip, everywhere a guest reads it (the finish header, both mark lines, the blocked toast and tooltip, the wait stack, the export modal, every `CutStill` alt); "cut" stays the board's own name, the folder and every identifier, unchanged, since nothing here asks which word to use. Recorded on the board itself too (`reel-cut`'s own `carried`). Overrule: if "cut" should stay the guest-facing word too, the touched strings revert; nothing structural moves.
+- **`reel-story.teaser`'s recommendation.** Flipped from `engine` (the live canvas) to the new `crossfade` option, since the album's own tile settled on exactly that treatment (reel-front, ruled) and a live engine mount now doubles a cost the shipped product declined to pay. Overrule: if the section is closer to a hero moment than a proof point, `film` (the graded produced asset) reads more cinematic than any crossfade of stills.
+- **`reel-story.help`'s recommendation.** Flipped from `the-reel` to the new `highlight-reel` option: today's shipped name, now doubly reinforced as the album tile's own heading. Overrule: if a reader's first confusion is mixing the always-on reel up with a personal cut, `live-reel` heads that off explicitly.
+- **`reel-front.signature`'s recommendation.** A new ask, no prior pick to weigh against: recommended `graded` (a held-back wash and a thin letterbox over the take's own stills) as the cheapest way to say "footage from the reel", never another album photo. Overrule: if the album's own material alone should carry the whole difference, `plain` (the take's own crossfade, undressed) is the honest baseline.
+- **`reel-front.badge`'s recommendation.** Recommended `none`, matching the manifest's own given (the tile draws bare there) over `live` or `glyph`: the heading already says "Highlight reel", so a corner chip repeats work the card already does. Overrule: if the corner should still say the one thing a badge always could, that this updates on its own, `live` is the smallest true upgrade over silence.
+- **Retiring reel-front's live-canvas engine.** `engine.ts`, `propsFor` and every `buildReelProps` fixture that fed it are deleted (git holds them): round one's `tile=crossfade` verdict means nothing left open on this board ever needs a live frame again, and carrying a dead module for a settled question is what "the board only carries what is still open" (the `profile-page` precedent) means literally. Overrule: a future round that wants to re-litigate crossfade against a live mount rebuilds it from git history rather than reopening this one on a guess.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- None: no `docs/systems/` fact lives inside this lane's owned paths.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **Now:** once `reel-story.help` lands (Highlight reel vs the-reel), recheck `site-chrome`'s own footer/nav link wording for the reel against whichever name won.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commit: `dd3dc19a` — "reel-refresh-cut: re-cut reel-cut and reel-story, open reel-front round 2". No sync commit: `origin/launch-prep` had not moved (still `0ab6b0fe`, this lane's own cut point, confirmed by `git merge-base --is-ancestor origin/launch-prep HEAD` at hand-off).
+- Every claim below names its artifact.
+- Gates on the synced tree (== this tree; `launch-prep` unmoved), each its own exit code, all green:
+  - `pnpm design:rules` — exit 0; no diff (`rules.generated.json`, `docs/design/library.md` unchanged — no contract, policy or `touchpoints.ts` line this round touched).
+  - `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` — exit 0; no diff (`specimens.generated.json` unchanged).
+  - `pnpm typecheck` — exit 0.
+  - `pnpm lint` — exit 0, 0 errors; 7 warnings, all pre-existing in files this lane never touched (confirmed by re-diffing the warning list before and after).
+  - `pnpm test` — exit 0; 431 files, 4700 passed, 1 pre-existing skip.
+  - `pnpm build` — exit 0.
+  - `pnpm lab:smoke --base http://localhost:3134` — 502 checks, 0 failing.
+  - `pnpm lab:demo --board reel-cut --base http://localhost:3134` — 9 steps, 0 failing.
+  - `pnpm lab:demo --board reel-story --base http://localhost:3134` — 7 steps, 0 failing (one advisory: `steps`' `grow-cut`/`grow-clip` read as the same picture — expected, a deliberate one-word A/B the ask's own `means` text names).
+  - `pnpm lab:demo --board reel-front --base http://localhost:3134` — 2 steps, 0 failing (one advisory: `badge`'s `live`/`glyph` marks read as the same picture at full-page diff scale, both being small quiet marks by design; `signature`'s own three-way "same picture" on the FIRST run was a real bug — `stacked`'s decorative layers were fully hidden behind a larger, later front layer — fixed in the same commit and reverified clean, 0 "same picture" notes).
+  - Captures: 59 PNGs at 1440 (every option, every ask, all three boards) via `lab:demo --save-shots`, in this lane's scratch `captures/` directory; several spot-checked directly (the "Save to Photos" finish, the `stacked`/`graded`/`frame` signature treatments, the "Highlight reel" teaser crossfade) and read correctly.
+  - The stacking rule: `node usher/kit/board-card.mjs --desk` plus a per-board read on `reel-screen`, `reel-host`, `media-viewer`, `help-center` and `site-chrome` (the nearest open asks in each surface this round touches) found no repeat: none of them ask the view's own chrome, the tile's signature or corner mark, the reel's guest-facing noun, or the reel category's name.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the three owned folders only (`src/app/(dev)/design/sandbox/{reel-cut,reel-front,reel-story}/*`, 15 files); no exceptions, pasted in this session's own record.
+- The items, one line each:
+  - `reel-cut.entry`: both doors named in the ask's own words; `beneath` annotated as the tile's own door.
+  - `reel-cut.noencode`: redrawn on the weighted dock's now-empty primary slot AND the album tile's own description line (a second `Scene`, `TileDescriptionEcho`).
+  - `reel-cut.finish`: Save reads "Save to Photos" in all three shapes (`four`, `share`, `save`).
+  - `reel-cut`'s `ReelView`: wears the decided chrome (six-icon weighted dock, top-left arrival chip, bottom-right code plate, no event name) instead of a neutral placeholder.
+  - `reel-cut` noun sweep: every guest-facing string says "clip"; the board, the folder and every identifier keep "cut".
+  - `reel-story.help`: gains "Highlight reel", now recommended.
+  - `reel-story.steps` / `.pricing`: gain a "clip" sibling option beside the existing "cut" one.
+  - `reel-story.teaser`: gains the album tile's own crossfade, now recommended.
+  - `reel-story`: every "third photo" is "second" (fixtures, spec and surfaces).
+  - `reel-front` round two: `signature` (four options: `plain`, `graded`, `stacked`, `frame`) and `badge` (`none`, `live`, `glyph`) open; round one's seven asks retired to the ledger, carried as ground on `TileCard`.
+  - `reel-front`: `engine.ts` and its dead fixtures deleted with round one's own crossfade verdict.
+- Assets requested from Will: none.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule, one line each: the five recommendation flips and the engine deletion, each listed under Questions above.
+- Look at first: `reel-front.signature` (the four new tile treatments over the take's own stills, the round's most visual ask) and `reel-cut.entry`/`.noencode` (the two-door chrome).
