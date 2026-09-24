@@ -10,8 +10,7 @@ silent on good work. Many refusals would mean the design upstream of the scripts
 
 ## Session start
 
-1. Read `docs/tracks/orchestrator.md` (the pickup: in flight, next, waiting on Will), then `docs/STATUS.md`, then
-   "Habits for my own hands" below (the lessons no script can hold).
+1. Read `docs/tracks/orchestrator.md` (the pickup: in flight, next, waiting on Will), then `docs/STATUS.md`.
 2. `git status --short` (empty), `git worktree list`, the ports 3130 to 3139 (`lsof -nP -iTCP:<p> -sTCP:LISTEN`),
    `memory_pressure`. A dev server whose lane is gone is killed by port.
 3. A lane that was mid-work when its session died (a restart, a kill, a usage limit) is resumed by SendMessage to its
@@ -101,23 +100,11 @@ silent on good work. Many refusals would mean the design upstream of the scripts
   touchpoints, so a half retirement breaks the typecheck); a lane that retires its own board is released those lines.
 - A `git add` naming a path already removed aborts the whole add: never hide its stderr, and read
   `git show --stat HEAD` before a push.
+- Board lanes cut in parallel cannot see each other's new asks (each checks only the desk as it stood), so after they
+  land and before the `[preview]` for Will's sitting, read every new ask side by side (`board-card.mjs --desk`) and
+  merge any two that ask one decision, every option kept (his rule, 2026-09-24).
 - The kit's gate runs on :3130, never a lane's port; six lanes at once on this machine (36 GB: a dev server holds 3 to
   9 GB, a build is the spike).
-
-## Habits for my own hands
-
-The kit refuses on behalf of the paths it owns, but my own ad-hoc shell has no gate in front of it, and a model change
-resets habit. So these stay in prose, each with its reason, read at session start:
-
-- **Never name a zsh variable `path`** (or `cdpath`, `fpath`, `manpath`): zsh ties it to `PATH`, and a loop
-  `for path in ...` makes `curl`, `sed` and `head` vanish mid-loop. Use `pg`.
-- **Never start a word with `=`** in a zsh command: `=foo` expands to the path of command `foo`, so an echoed rule of
-  equals signs errors out. Separate with `----`.
-- **A verify is one literal command per challenge**: zsh does not split an unquoted variable, so a loop sends an empty
-  answer (`../moltbook/README.md`).
-- **The auto-mode classifier's refusal is final for the session**: never re-route the refused action through another
-  tool, reword it, or bank instructions that would have a later session do it; write down what was tried and why and
-  ask Will, whose one-line yes clears it.
 
 ## The scripts
 

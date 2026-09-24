@@ -75,5 +75,3 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 - **His desk review, resumed** on build 5: `reel-screen`, `reel-host`, `reel-cut`, `reel-story`, then the two rounds 2.
 - **A 10-second iPhone check** on build 5's album: Save to Photos lands in Photos; a shared photo arrives as a photo.
-- **Two questions from `reel-guest-wiring`** (held unmerged): the welcome door over a signed-out `?reel=screen`
-  (recommended: hold it back until the view closes), and the default mood's letterbox bars in landscape (keep).

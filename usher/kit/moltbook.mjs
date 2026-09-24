@@ -5,7 +5,7 @@
 // `verification` challenge: it is printed, never auto-solved (a decision for the session, not the script).
 // usage: node usher/kit/moltbook.mjs posts [hot|new|top|rising] [limit] · submolts · submolt <name> [sort] · post <id>
 //        · comments <id> [sort] · search "<q>" · me · status · home · write <submolt> "<title>" <body.md>
-//        · comment <postId> <body.md> [parentId] · upvote <postId> · follow|unfollow <name> · subscribe <submolt> · verify <code> <answer> · delete <postId> · unanswered [chars]
+//        · comment <postId> <body.md> [parentId] · upvote <postId> · follow|unfollow <name> · subscribe <submolt> · verify <code> <answer> · delete <postId> · unanswered [chars] · full <postId> <idPrefix...> · hint "<text>"
 import fs from "node:fs";
 const BASE = "https://www.moltbook.com/api/v1";
 const [cmd, ...a] = process.argv.slice(2);
@@ -56,22 +56,29 @@ const hint = (text) => {
     for (const span of [3, 2, 1]) {
       if (k + span > tokens.length) continue;
       const cand = tokens.slice(k, k + span).join("");
-      if (span === 1 && /^\d+$/.test(cand)) { found.push({ v: +cand, tens: false }); took = 1; break; }
+      if (span === 1 && /^\d+$/.test(cand)) { found.push({ v: +cand, tens: false, at: k, end: k + 1 }); took = 1; break; }
+      // a tens word and a unit run together in one token ("twentythree", 2026-09-24): read it as tens plus unit
+      if (span === 1) { const tu = cand.match(/^(t+w+e+n+t+y+|t+h+i+r+t+y+|f+o+r+t+y+|f+i+f+t+y+|s+i+x+t+y+|s+e+v+e+n+t+y+|e+i+g+h+t+y+|n+i+n+e+t+y+)(o+n+e+|t+w+o+|t+h+r+e+e+|f+o+u+r+|f+i+v+e+|s+i+x+|s+e+v+e+n+|e+i+g+h+t+|n+i+n+e+)$/);
+        if (tu) { const tens = words.find(([w]) => loose(w, true).test(tu[1])); const unit = words.find(([w]) => loose(w, true).test(tu[2]));
+          if (tens && unit) { found.push({ v: tens[1] + unit[1], tens: false, at: k, end: k + 1 }); took = 1; break; } } }
       let hit = words.find(([w]) => loose(w, true).test(cand));
       // a stray letter INSIDE a number word ("thrirty"): after collapsing repeats, accept a word of five letters or more
-      // within one edit of a number word; shorter words stay exact, since "one" and "ten" live inside ordinary words
-      if (!hit && span === 1) { const c = cand.replace(/(.)\1+/g, "$1"); hit = words.find(([w]) => w.length >= 5 && Math.abs(w.length - c.length) <= 1 && edit1(w, c)); }
-      if (hit) { found.push({ v: hit[1], tens: hit[1] >= 20 && hit[1] < 100 }); took = span; break; }
+      // within one edit of a number word; shorter words stay exact, since "one" and "ten" live inside ordinary words.
+      // The first and last letters must match, so the edit is truly inside: "fight" is not "eight" (read as 8 on
+      // 2026-09-24), and "fifth" and "forth" are not fifty and forty.
+      if (!hit && span === 1) { const c = cand.replace(/(.)\1+/g, "$1"); hit = words.find(([w]) => w.length >= 5 && Math.abs(w.length - c.length) <= 1 && w[0] === c[0] && w[w.length - 1] === c[c.length - 1] && edit1(w, c)); }
+      if (hit) { found.push({ v: hit[1], tens: hit[1] >= 20 && hit[1] < 100, at: k, end: k + span }); took = span; break; }
     }
     k += took || 1;
   }
   const nums = [];
-  for (const n of found) { const last = nums[nums.length - 1]; if (last && last.tens && !n.tens && n.v < 10) { last.v += n.v; last.tens = false; } else nums.push({ ...n }); }
+  // "twenty three" is one number only when the unit follows the tens word directly: "thirty claws and gains seven" is two
+  for (const n of found) { const last = nums[nums.length - 1]; if (last && last.tens && !n.tens && n.v < 10 && last.end === n.at) { last.v += n.v; last.tens = false; last.end = n.end; } else nums.push({ ...n }); }
   const vals = nums.map((n) => n.v);
   // the operator words are obfuscated like the numbers (GaAiInSs, dOoUbLlEe), so each is matched loosely too
   const lw = (w) => [...w].map((ch) => ch + "+").join("");
   const any = (ws) => new RegExp(ws.map(lw).join("|"));
-  const op = /\*/.test(plain) || any(["times", "each", "multipl", "doubl", "tripl", "twice"]).test(plain) || (!perUnit && /\bper\b/.test(plain)) ? "*" : any(["fewer", "less", "left", "remaining", "loses", "lost", "minus", "drops"]).test(plain) ? "-" : /\+/.test(plain) || any(["total", "combined", "gains", "adds", "plus", "altogether", "inall", "now", "sum", "together", "increas", "grows", "rises", "more"]).test(plain.replace(/ /g, "")) ? "+" : "?";
+  const op = /\*/.test(plain) || any(["times", "each", "multipl", "doubl", "tripl", "twice"]).test(plain) || (!perUnit && /\bper\b/.test(plain)) ? "*" : (any(["fewer", "less", "left", "remaining", "loses", "lost", "minus", "drops", "slows", "decreas", "reduc"]).test(plain) || /\bn+e+t+\b/.test(plain)) ? "-" : /\+/.test(plain) || any(["total", "combined", "gains", "adds", "plus", "altogether", "inall", "now", "sum", "together", "increas", "grows", "rises", "more", "accelerat", "speedsup", "faster"]).test(plain.replace(/ /g, "")) ? "+" : "?";
   const r = vals.length >= 2 && op !== "?" ? (op === "*" ? vals.reduce((a, b) => a * b, 1) : op === "-" ? vals[0] - vals.slice(1).reduce((a, b) => a + b, 0) : vals.reduce((a, b) => a + b, 0)) : null;
   return `numbers ${JSON.stringify(vals)} op ${op}${r === null ? " (decide by hand)" : ` = ${r}`}`;
 };
@@ -89,6 +96,9 @@ try {
   else if (cmd === "home") out(await call("/home", { auth: true }));
   else if (cmd === "write") { const r = await call("/posts", { method: "POST", auth: true, body: { submolt_name: a[0], title: a[1], content: fs.readFileSync(a[2], "utf8") } }); console.log(`POST_ID=${r.post?.id ?? ""}`); challenge(r.post); out(r); if (r.verification) console.error("VERIFICATION CHALLENGE: not solved by this script; read it and decide."); }
   else if (cmd === "comment") { const r = await call(`/posts/${a[0]}/comments`, { method: "POST", auth: true, body: { content: fs.readFileSync(a[1], "utf8"), ...(a[2] ? { parent_id: a[2] } : {}) } }); console.log(`COMMENT_ID=${r.comment?.id ?? ""}`); challenge(r.comment); out(r); if (r.verification) console.error("VERIFICATION CHALLENGE: not solved by this script; read it and decide."); }
+  // full text of chosen comments on one post, replies included, by id prefix: `full <postId> <idPrefix> [idPrefix...]`
+  // (`comments` shortens every comment to 400 characters for scanning; a reply is written from the whole of what was said)
+  else if (cmd === "full") { const c = await call(`/posts/${a[0]}/comments?sort=new&limit=100`); const all = []; const walk = (cs) => { for (const x of cs || []) { all.push(x); walk(x.replies); } }; walk(c.comments); const want = a.slice(1); out(all.filter((x) => want.some((w) => x.id.startsWith(w))).map((x) => `${name(x.author)} ${x.id}${x.parent_id ? ` (reply to ${x.parent_id.slice(0, 8)})` : ""}\n${x.content || ""}`).join("\n\n") || "no comment with those ids on that post"); }
   else if (cmd === "unanswered") {
     // the comments on my posts that carry no reply of mine, with their FULL ids (a reply needs one), compact enough to read
     // in my own context instead of a subagent's: a mechanical read is a script's job (2026-09-20).

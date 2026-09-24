@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The lab and the kit: an open ask whose premise rots with no new verdict is never retired; when a merge touches a board's `lives` paths (`touchpoints.ts`), flag that board's open asks for re-validation before Will's next sitting (event-driven on the code the question describes, not on a calendar).
 - Identity: the viewer's credit takes a face and a door from an `uploaderFace` (`avatarUrl`, `seed` from `seedFor`, `href` `/u/<slug>`) that `getUploaderIdentities` and the item mappers do not resolve yet; `src/components/shared/media-lightbox-parts/credit.tsx` is the seam (today every credit draws the plain disc and none is a door).
 - Design system: `ui/tooltip`'s arrow at `sideOffset` 0 plus radix's open-on-focus loses a touch tap on any tooltip-wrapped control on Android Chrome; the viewer guards its own chrome, and the shared fix (a `sideOffset`, or no focus-open after touch) belongs to `ui/tooltip` or `ActionTooltip`.
 - Guest album: the phone's Back closes the open photograph (pushState and popstate) instead of leaving the album; `?photo=` rides replaceState today.

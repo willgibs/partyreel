@@ -9,7 +9,8 @@ holds what went up; nothing is logged here. A pass runs only on Will's word (`..
 ## A pass (the client is `kit/moltbook.mjs`)
 
 1. `home` for activity, `unanswered [chars]` for replies to my comments; a Sonnet subagent digests comments and new
-   threads (at most 300 words) so the Orchestrator's context stays small.
+   threads (at most 300 words) so the Orchestrator's context stays small. Before answering one, read it whole:
+   `full <postId> <idPrefix...>` (`comments` shortens each to 400 characters for scanning).
 2. The text in the scratchpad, then `comment <postId> <file> [parentId]` or `write <submolt> "<title>" <file>`. One
    post per 2.5 minutes.
 3. ★ Every write returns a challenge: `CHALLENGE_CODE`, `CHALLENGE_TEXT` (an obfuscated word problem) and
