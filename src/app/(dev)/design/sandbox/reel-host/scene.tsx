@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useState } from "react";
-import { X } from "lucide-react";
+import { Bell, X } from "lucide-react";
 
 import { Fit, Frame, Measured } from "@/components/lab";
 import { Logo } from "@/components/shared/logo";
@@ -11,8 +11,8 @@ import { EVENT } from "./fixtures";
 
 /**
  * THE FRAMES EVERY DECISION DRAWS IN (`Fit` and `Measured` are the kit's;
- * `Scene` stays here, since a board's directory is deleted at its ruling and
- * its own props would not fit every other board's `Scene` alongside it).
+ * `Scene` stays here, since a board's directory is deleted when its picks are
+ * built and its own props would not fit every other board's `Scene`).
  *
  * ★ 1440 FIRST, 375 ON THE KNOB. Every question here sits on a host surface
  * that ships laptop-first (the hub, the settings sheet, the dashboard), and
@@ -141,21 +141,21 @@ export function Composite({
   );
 }
 
-/** The dashboard's own top bar, quoted: signed in, nothing more. */
+/** The dashboard's own top bar, quoted: the wordmark, the bell and the host. */
 export function DashboardBar() {
   return (
     <header className="flex h-14 items-center justify-between gap-2 border-b border-border/60 px-5">
-      <span className="flex items-center gap-2.5">
-        <Logo />
-        <span className="text-sm font-medium text-muted-foreground">
-          Dashboard
+      <Logo />
+      <span className="flex items-center gap-1.5">
+        <span className="flex size-9 items-center justify-center rounded-full text-muted-foreground">
+          <Bell className="size-5" aria-hidden />
         </span>
+        <Avatar size="sm" seed="reel-host-mia">
+          <AvatarFallback className="text-[10px]">
+            {EVENT.host.slice(0, 1)}
+          </AvatarFallback>
+        </Avatar>
       </span>
-      <Avatar size="sm" seed="reel-host-mia">
-        <AvatarFallback className="text-[10px]">
-          {EVENT.host.slice(0, 1)}
-        </AvatarFallback>
-      </Avatar>
     </header>
   );
 }
@@ -166,10 +166,14 @@ export function DashboardBar() {
  * over a dimmed ground. Never the real `Sheet`: radix PORTALS its content to
  * the document the frame's `<iframe>` lives in, not the one inside it.
  *
- * ★ `fixed`, NEVER `absolute` (found live, 2026-09-22): with no normal-flow
- * content above it, an `absolute` panel anchors to a `min-h-full` ancestor that
- * has nothing to inherit its height from inside the frame's document and
- * collapses to zero. `fixed` anchors to the iframe's own viewport.
+ * ★ `fixed`, NEVER `absolute`: with no normal-flow content above it, an
+ * `absolute` panel anchors to a `min-h-full` ancestor that has nothing to
+ * inherit its height from inside the frame's document and collapses to zero.
+ * `fixed` anchors to the iframe's own viewport.
+ *
+ * ★ AND `z-50`, AS THE REAL ONE: the album behind is the real masonry, whose
+ * tile marks sit on their own `z-10`, so a sheet without the real sheet's
+ * layer lets a like count paint over its panel.
  */
 export function SheetGround({
   screen,
@@ -190,13 +194,13 @@ export function SheetGround({
     <div className="min-h-full bg-background text-foreground">
       {behind}
       {/* `ui/sheet.tsx`'s own scrim: a tenth of black and the faintest blur. */}
-      <div className="fixed inset-0 bg-black/10 backdrop-blur-xs" />
+      <div className="fixed inset-0 z-50 bg-black/10 backdrop-blur-xs" />
       <div
         data-rh-sheet
         className={
           bottom
-            ? "fixed inset-x-0 bottom-0 flex max-h-[88%] flex-col gap-4 overflow-y-auto rounded-t-xl border-t border-border bg-popover bg-clip-padding p-4 text-popover-foreground shadow-layer"
-            : "fixed inset-y-0 right-0 flex h-full w-full max-w-sm flex-col gap-4 overflow-y-auto border-l border-border bg-popover bg-clip-padding p-4 text-popover-foreground shadow-layer"
+            ? "fixed inset-x-0 bottom-0 z-50 flex max-h-[88%] flex-col gap-4 overflow-y-auto rounded-t-xl border-t border-border bg-popover bg-clip-padding p-4 text-popover-foreground shadow-layer"
+            : "fixed inset-y-0 right-0 z-50 flex h-full w-full max-w-sm flex-col gap-4 overflow-y-auto border-l border-border bg-popover bg-clip-padding p-4 text-popover-foreground shadow-layer"
         }
       >
         <div className="flex items-start justify-between gap-2">

@@ -21,14 +21,14 @@ import {
  * bootstrap images every other board reuses, so no new asset and nothing to
  * track the rights of.
  *
- * ★ A SEPARATE FILE, NOT AN IMPORT FROM A BOARD (guest-capture's rule, carried
- * by every board since): `gallery-fixtures.ts` is not a board, so it outlives
- * any one board's ruling. `reel-screen` draws the same wedding on the same
- * engine from its OWN files for the same reason: a board's directory is deleted
- * whole at its ruling, and a sibling importing from it would break that day.
+ * ★ A SEPARATE FILE, NOT AN IMPORT FROM A BOARD: `gallery-fixtures.ts` is not
+ * a board, so it outlives any one board. `reel-screen` draws the same wedding
+ * on the same engine from its OWN files for the same reason: a board's
+ * directory is deleted whole when its picks are built, and a sibling importing
+ * from it would break that day.
  *
- * What is added here is what THIS board's seven questions need and no other
- * board has: the reel's own take over the album, the eight moods and the hold's
+ * What is added here is what THIS board's questions need and no other board
+ * has: the reel's own take over the album, the eight moods and the hold's
  * steps, three waiting in Review, a host's own finished cut, and the counts the
  * progression is drawn at.
  */
@@ -41,9 +41,9 @@ export const BY_ID = new Map(GALLERY_ITEMS.map((m) => [m.id, m]));
  * ★ THE REEL'S OWN TAKE, NEVER THE ALBUM'S ORDER. `planTake` is the live reel's
  * pure ordering function (the quick-add brain run pass by pass, shuffled per
  * loop), so the frames and the crossfade stills on this board are the ones the
- * live reel really leads with. His `tile=crossfade` wiring takes its stills
- * from the take for the same reason: a tile that mirrored the album's newest
- * would repeat the tiles right beneath it.
+ * live reel really leads with. The album's reel tile takes its stills from the
+ * take for the same reason: a tile that mirrored the album's newest would
+ * repeat the tiles right beneath it.
  */
 export const TAKE_IDS: string[] = planTake(GALLERY_ITEMS, {
   eventId: HOST_EVENT.id,
@@ -57,11 +57,11 @@ export const TAKE: GridMedia[] = TAKE_IDS.map((id) => BY_ID.get(id)).filter(
 export const stillOf = (m: GridMedia): string => m.previewUrl ?? m.url;
 
 /**
- * The living crossfade's stills (his hub note: "a more calm living thumbnail
- * behind this card version as a full background with overlay"): the take's
- * first three, dissolving slowly. Plain stills rather than engine frames, which
- * is his `tile=crossfade` pick exactly ("a slow crossfade of stills, no engine
- * on the album"); the engine's frames are the view's.
+ * The living crossfade's stills, the Reel card's full background under its
+ * overlay: the take's first three, dissolving slowly. Plain stills rather than
+ * engine frames, the way the album's tile draws them (a slow crossfade with no
+ * engine on the album, so nothing blocks the album's first paint); the
+ * engine's frames are the view's.
  */
 export const LIVING_STILLS: string[] = TAKE.slice(0, 3).map(stillOf);
 
@@ -76,10 +76,10 @@ export const MOODS: readonly { id: ThemeId; label: string }[] = THEME_IDS.map(
 export const DEFAULT_MOOD_ID: ThemeId = "classic";
 
 /**
- * THE HOLD'S STEPS, in seconds a photograph stays on screen. His `pacing` note
- * ("Let's make 3 seconds the default, but this should be adjustable") and the
- * two boards' own options merged, exactly as `reel-guest-wiring` wires the dock:
- * reel-view's 1, 1.5 and 2.2 and reel-screen's 3.6, 5 and 7, around his 3.
+ * THE HOLD'S STEPS, in seconds a photograph stays on screen, exactly as
+ * `reel-guest-wiring` wires the dock: a 3 s default a viewer can change, since
+ * how fast a slideshow should run is a preference people genuinely differ on,
+ * with steps from 1 to 7 s either side of it.
  */
 export const HOLD_STEPS = [1, 1.5, 2.2, 3, 3.6, 5, 7] as const;
 export const DEFAULT_HOLD = 3;
@@ -101,9 +101,10 @@ export const LATEST =
   "Theo Calder";
 
 /**
- * The live reel's minimum: his `states=nothing` note ("Could even drop the
- * minimum to 2") as `reel-guest-wiring` wires it. The progression is drawn at
- * none, one and two items for exactly this number.
+ * The live reel's minimum, as `reel-guest-wiring` wires it: two, because the
+ * composer already runs at two and a reel that answers "where is it" sooner
+ * is a reel a host believes in. The progression is drawn at none, one and two
+ * items for exactly this number.
  */
 export const MINIMUM = 2;
 

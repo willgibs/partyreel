@@ -34,20 +34,20 @@ import {
 import { EngineStill, useStills } from "./stills";
 
 /**
- * THE VIEW, AS HE RULED IT, WITH ONE HOST-SIDE THING MOVING AT A TIME.
+ * THE VIEW AS `reel-guest-wiring` BUILDS IT, WITH ONE HOST-SIDE THING MOVING
+ * AT A TIME.
  *
- * `reel-view` round one is answered and `reel-guest-wiring` builds the real
- * view, so this is not a second opinion about it: it is his answers drawn as
- * furniture, so a host-side question is judged on the view that will exist.
- *   - `chrome=thin`: a slim glass bar at the foot at rest, morphing into the
- *     dock; Close shows and hides with the dock; every control has a tooltip.
- *   - `controls=weighted`, amended: ONE top row of icons (play/pause, Include
- *     videos, Style, Hold, Show the code, Add yours as an icon) and "Make your
- *     own" as the single primary beneath.
- *   - `arrival=chip`: a top-left chip that stacks into a short feed ("+2").
- *   - `posture=follow`: full bleed, landscape at a laptop, portrait in a hand.
- *   - `pacing=unhurried`, amended: the Hold control reads his 3 s default.
- *   - `name=none`: no event name anywhere on the picture.
+ * This is not a second opinion about the view: it is the view that will ship,
+ * drawn as furniture, so a host-side question is judged on the view that will
+ * exist rather than on one that will not.
+ *   - A slim glass bar at the foot at rest, morphing into the dock; Close shows
+ *     and hides with the dock; every control has a tooltip.
+ *   - ONE top row of icons (play/pause, Include videos, Style, Hold, Show the
+ *     code, Add yours) and "Make your own" as the single primary beneath.
+ *   - A top-left arrival chip that stacks into a short feed ("+2").
+ *   - Full bleed, landscape at a laptop, portrait in a hand.
+ *   - The Hold control at its 3 s default.
+ *   - No event name anywhere on the picture: the photographs are the show.
  *
  * ★ A DEVICE PROP, NEVER A BREAKPOINT. The same view is drawn in a real 375
  * frame and inside a 375 box of the review question's 1440 composite, where a
@@ -137,7 +137,7 @@ function Icon({
   );
 }
 
-/** The dock's top row: his six icons, and whatever one host-side extra adds. */
+/** The dock's top row: its six icons, and whatever one host-side extra adds. */
 function IconRow({
   device,
   extra,
@@ -212,7 +212,12 @@ function HostSwitch({ pill = false }: { pill?: boolean }) {
       )}
     >
       <TipBubble>Guests see the reel. Off hides it everywhere.</TipBubble>
-      <Switch size="sm" defaultChecked aria-label="Show the reel" tabIndex={-1} />
+      <Switch
+        size="sm"
+        defaultChecked
+        aria-label="Show the reel"
+        tabIndex={-1}
+      />
       Show the reel
     </span>
   );
@@ -258,7 +263,8 @@ function StylePopover({
               <span
                 className={cn(
                   "relative block aspect-video w-full overflow-hidden rounded-[var(--radius-tile)] bg-[#07080a]",
-                  on && "ring-2 ring-foreground ring-offset-2 ring-offset-popover",
+                  on &&
+                    "ring-2 ring-foreground ring-offset-2 ring-offset-popover",
                 )}
               >
                 {src ? (
@@ -320,17 +326,20 @@ function Primary({ device }: { device: Device }) {
 }
 
 /**
- * THE ARRIVAL FEED, his `arrival=chip` taken to his own note: the newest name
- * in front, the one before it peeking behind, and the burst collapsed into a
- * count ("feed could be not just names, but even 'X +12'"). `waiting` adds the
- * host's own line under it, which only the host's device ever draws.
+ * THE ARRIVAL FEED: the newest name in front, the one before it peeking
+ * behind, and a burst collapsed into a count ("Theo +2"), so a flurry of
+ * uploads reads as one live beat rather than a queue of names. `waiting` adds
+ * the host's own line under it, which only the host's device ever draws.
  */
 function Feed({ device, feed }: { device: Device; feed: ViewFeed }) {
   if (feed === "none") return null;
   return (
     <div
       data-rh-feed={feed}
-      className={cn("absolute z-30 flex flex-col items-start gap-2", M[device].edge)}
+      className={cn(
+        "absolute z-30 flex flex-col items-start gap-2",
+        M[device].edge,
+      )}
     >
       <span className="relative">
         <span
@@ -372,7 +381,7 @@ function Feed({ device, feed }: { device: Device; feed: ViewFeed }) {
   );
 }
 
-/** The event's code as his white plate, bottom right: "Scan to add yours" and the address. */
+/** The event's code on its white plate, bottom right: "Scan to add yours" and the address. */
 export function CodePlate({ device }: { device: Device }) {
   const big = device === "laptop";
   return (
@@ -533,13 +542,20 @@ export const measureView = (root: HTMLElement): string | null => {
   const said: string[] = [];
   const popover = view.querySelector<HTMLElement>("[data-rh-default-line]");
   if (popover)
-    said.push(`the Style popover says "${popover.innerText.trim().replace(/\s+/g, " ")}"`);
+    said.push(
+      `the Style popover says "${popover.innerText.trim().replace(/\s+/g, " ")}"`,
+    );
   if (view.querySelector("[data-rh-host-switch]"))
     said.push("a host-only Show the reel switch closes the row");
   if (view.querySelector('[data-rh-control="Play on a screen"]'))
     said.push("Play on a screen is the row's seventh icon");
-  else if (view.dataset.rhExtra === "none" && view.closest("[data-rh-open-view]"))
+  else if (
+    view.dataset.rhExtra === "none" &&
+    view.closest("[data-rh-open-view]")
+  )
     said.push("a phone's dock carries no screen control");
-  const row = controls.length ? `${controls.length} icons in the top row` : "the dock at rest";
+  const row = controls.length
+    ? `${controls.length} icons in the top row`
+    : "the dock at rest";
   return `Measured: ${row}${said.length ? `; ${said.join("; ")}` : ""}.`;
 };

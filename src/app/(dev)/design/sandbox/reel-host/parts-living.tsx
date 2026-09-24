@@ -7,16 +7,18 @@ import { cn } from "@/lib/utils";
 import { LIVING_STILLS } from "./fixtures";
 
 /**
- * THE LIVING THUMBNAIL: his hub note ("a more calm living thumbnail behind
- * this card version as a full background with overlay") and his album tile's
- * `crossfade`, one mechanism wherever the reel shows its face on the host's
- * side: the Reel card, the reel's own card on the page, the progression's band
- * and the dashboard's cover.
+ * THE LIVING THUMBNAIL: a calm crossfade of the reel's own stills as a full
+ * background under an overlay, the album tile's own mechanism, used wherever the
+ * reel shows its face on the host's side: the Reel card, the reel's own card on
+ * the page, the progression's band and the dashboard's cover. It makes the one
+ * room whose contents move look alive beside the rooms whose contents sit
+ * still.
  *
  * ★ CALM IS A NUMBER HERE. Four and a half seconds on each still and a 1.4
  * second dissolve, on the custom ease: ambient media motion, the rare kind the
  * craft bar allows to breathe (bible 5), never the 200 ms a control gets. A
- * tile that changed every second would be the busy version he turned down.
+ * tile that changed every second would be busy enough to distract from the
+ * very album it sits above.
  *
  * ★ REDUCED MOTION HOLDS THE FIRST STILL, AND NOTHING ELSE CHANGES. The layers
  * stay mounted and the clock never starts (bible 5), so a reader who asked for
