@@ -1,6 +1,6 @@
 ---
 track: rowcap-cron
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "30c3fecd"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -110,24 +110,55 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+None open. The calls taken inside the brief, each built as its recommended answer (his to overrule):
+- **"Stopped early" is `attention`** (the manifest's "your call"): a finished `ok` run carrying `stopped_early: true` reads "Needs a look", so the band and the bell show a backlog that outlasts a night; a failure, a pause or a missed run still outranks it. Recommended: keep.
+- **Where a rotating sweep resumes** (`expired_passes`, `over_capacity`, `renewal_nudges`, `inactive_free_events`, which examine accounts and would re-read the same head every night): `resume_after` on its own `job_runs` counts (the parent's nested tally for the two that ride it), read back by `readSweepCursor`; no table, no migration; an unreadable cursor restarts from the beginning with a `sweep_cursor_unreadable` warning. The draining sweeps keep no cursor. Recommended: keep.
+- **The budget's numbers**: `SWEEP_WINDOW_MS` 42 s of `maxDuration` 60, shared equally among what is left by the nine budgeted sweeps as they start (a paused sub-sweep's share rolls down); a batch is never cut mid-flight. Recommended: keep; revisit once real backlogs exist.
+- **A parent-row sweep's failed rows now fail the parent run**: `renewal_nudges` and the newly isolated `expired_passes` ride the parent row, whose card prints no nested tally, so their failed accounts were visible only in Sentry; the parent closes `error` with "Rows failed in: ...". Recommended: keep (isolation never buys silence).
+- **The parent's counts drop each nested tally's `rows_note` / `stopped_note`**: a failed row's first message can quote an address; the note column says which sweep failed or stopped. Recommended: keep.
+- **The inactivity candidates also filter the host's `last_active_at`** in SQL: the freshness clock is a max, so no event outside it can be due; it keeps an active free host's old events out of every night's list. Recommended: keep.
+- **The deletion queue lost its 100-a-run cap**: it pages oldest request first until the deadline, so accounts held at the head (a held account never leaves the queue) cannot starve the requests behind them. Recommended: keep.
+- **The event-level purges ask the holds again** right before the event rows go, and their media reads leave held rows out, so a hold placed mid-sweep keeps its row and its event (the old path could cascade it). Recommended: keep.
+- **H17's pre-read is chunked by id**, not a keyset scan of `media`: the listing names the exact ids, and a scan reads the whole table for a narrowed prefix. The script keeps a local `inChunks` (`IN_CHUNK` 150 restated) because Node's type stripping cannot resolve `read-all.ts`'s `@/` import. Recommended: keep.
+- **The orphan sweep still does not resume** (ROADMAP QA #37/#38 stands): it now says when the page cap or its deadline stops it (`stopped_early`, its own note: "starts again from the top"), so a bucket past 20 pages reads `attention` every night until #37/#38 lands. Recommended: keep the task where it is.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `lifecycle-recovery.md`: the daily cron (the sweeps' homes, the budget and its share, draining vs rotating vs the orphan sweep, per-row isolation's `stopWhen` and parent-run failure, `purge_media_rows` through `reclaimMedia` at most `MAX_ROWS` ids a call); the standby budget (`standby_hosts`, the whole bin, withdrawals never counted nor evicted, the meter reading higher); the hold invariant (`held_event_ids`, asked again); over-capacity (the aggregate, whole and rotated, the chunked reduce); inactivity (the pre-filter, keyset and rotated).
+- `admin-observability.md`: per-row isolation fails the parent run for a sweep riding it; "A run that stopped early reads Needs a look" (the flag, `remaining`, the note, one warning, the cursor never printed).
+- `trust-safety-forensics.md`: where the hold exclusions live (the sweeps, `readHeldEventIds`); the invariant's one-answer rule and the re-ask before the event rows go.
+- Out of the lane, one line for the Orchestrator: `durability-backups.md:17` "wired into `sweepOrphans` in [`/api/cron/purge`](../../src/app/api/cron/purge/route.ts)" now reads "in [`lifecycle/sweeps/orphans.ts`](../../src/lib/lifecycle/sweeps/orphans.ts)". `ROADMAP.md:32` (the over-cap sweep) retires at this merge; QA #39 ("POST id batches") is done for the cron's sites.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now · Lifecycle: over-capacity's auto-reduce reads a lapsed host's whole active set before it acts (whole, but not budgeted inside one account), so past roughly 100,000 active items one account could spend the sweep's share; page the reduce itself.
+- Now · Admin: an orphan circuit-breaker trip closes its run `ok` (the Sentry error and the email fire), so the Orphan sweep card reads Healthy beside it; read `breaker_tripped` as `attention` in `jobHealth`.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits:** the work `5c4469cb`; the sync merge `29ea538c` (origin/launch-prep at `90e170f2`, rowcap-guest merged; no file in this lane's `reads` changed). Both pushed; the head is in the chat line.
+- **Gates on the synced tree (`29ea538c`), each on its own exit code** (logs `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/rowcap-cron/synced/`): `pnpm design:rules` 0 (no generated file changed) · `collect-specimens.mjs` 0 · `pnpm typecheck` 0 · `pnpm lint` 0 (7 warnings, all in 6 files outside the lane, all pre-existing; the one in a lane file, the unused `JobRunInsert` in `queries/jobs.ts`, is removed) · `pnpm test` 0 (404 files, 4,487 passed, 1 skipped) · `pnpm build` 0 · `pnpm lab:smoke --base http://localhost:3134` 0 (521 checks, 0 failing). No board, so no `lab:demo`.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = 47 paths, every one under `owns` (the three system docs, `scripts/backfill-strip-exif.mjs`, `src/app/admin/jobs/`, `src/app/api/cron/`, `src/app/api/internal/`, `mutations/account(.test).ts`, `queries/jobs(.test).ts`, `forensics/legal-hold(.test).ts`, `src/lib/jobs/`, `src/lib/lifecycle/`) + this file. No exception.
+- **Markers:** `git grep -n "row-cap-todo" -- <owns>` lists nothing; the policy test is green with no `// row-cap:` added.
+- **The items:**
+  - Structure: the sweeps moved into `src/lib/lifecycle/sweeps/` (the route keeps auth, surface, kill switch, heartbeat, order); each tested on the clamping fake through `lifecycle/testing/cron-fake.ts` (SQL twins of `purge_media_rows`, `held_event_ids`, `standby_hosts`, `host_storage_summary`).
+  - Every sweep: keyset batches under a deadline (`lifecycle/sweep-budget.ts`); a stop returns `stopped_early` + counted `remaining`, one `sweep_stopped_early` warning (`jobs/purge-sweeps.ts`), `attention` (`catalog.ts` `STOPPED_EARLY_KEY`, `jobHealth`), the parent's note and `sweeps_stopped_early` (`purgeRunVerdict`); the card leads with `remaining` (`page.tsx`). Tests: `sweep-budget`, `purge-sweeps`, `sweep-tally`, `catalog`, `queries/jobs`, `cron/purge/route` tests.
+  - H8 `removed_media`: oldest `purge_at` first on the `(purge_at, id)` cursor (proved live, `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/rowcap-cron/probe-cursor.log`), budgeted, withdrawals still purge on their own `purge_at` (`removed-media.test.ts`: 2,500 rows, a tie block across the page boundary, order asserted).
+  - H9/H10 `over_capacity`: candidates whole and rotated, active bytes from `readHostStorageSummary`, the reduce over the whole active set, the soft-remove chunked (`over-capacity.test.ts`: 1,299 candidates, a 2,500-item reduce in 17 chunked PATCHes).
+  - H11 `inactive_free_events`: keyset batches from the resume cursor, budgeted (`inactivity.test.ts`: 2,100 candidates; a stop at 1,200 leaves the cursor and 900 counted; the next run finishes).
+  - H12 `standby_budget`: `standby_hosts` pages, the bin read only over budget and whole, oldest-first across it, a withdrawal never counted nor evicted (`standby-budget.test.ts`: 1,202 hosts, the 2,100 oldest evicted from the highest ids, 1,500 withdrawals untouched, a withdrawals-only host never listed).
+  - H13 `expired_passes`: both lists whole, one failing account isolated, rotated (`passes.test.ts`: 2,000 candidates). M15 `renewal_nudges` the same (2,100 nudged).
+  - H14 legal hold: `held_event_ids` through `readHeldEventIds` in `expired_events`, `purgeAccount`, `getAccountDeletionState`; asked again before the event rows go (`reclaim.test.ts` and `expired-events.test.ts`: 1,500 held rows in one event plus one held row past them keep both held; a hold placed mid-sweep keeps its event and row; `account-deletion.test.ts` the same for accounts).
+  - H15/M15 `expired_events`: event batches of `IN_CHUNK` by keyset, each batch's media in keyset pages (the offset loop gone), the delete chunked and only after the media (`expired-events.test.ts`: 2,500 media, 320 empty events, a deadline mid-event resumes next run).
+  - M14/N2 account deletion: events whole by keyset, the queue by `(deletion_requested_at, id)`, media pages per chunk, the event count a head count, an `unfinished` outcome (`account-deletion.test.ts`: a 1,200-event account, a 250-account queue behind 120 held accounts).
+  - M16: `purge_media_rows` at most `MAX_ROWS` ids a call, one at a time (`reclaim.test.ts`: calls of 1,000, 1,000, 500; every sweep test asserts the max).
+  - M17: the orphan check chunked with the R2 page pinned (`ORPHAN_LIST_PAGE` = `MAX_ROWS`, `orphans.test.ts`); the backup-prune confirm chunked, `MAX_BATCH` = `MAX_ROWS`, fail-closed on any chunk (`backup-prune/route.test.ts`; live: `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/rowcap-cron/synced/prune-confirm-check.log`).
+  - N1 `binHostedEvents`: the self arm whole by keyset, the operator arm's write-count kept with its comment (`account.test.ts`: 1,200 events binned).
+  - H17 the backfill: every listed original's row and host read chunked BEFORE any R2 write (`node --check` clean; the policy walker passes it).
+- **Assets requested from Will:** none.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule** (each with its reason under Questions): stopped early reads `attention` · the resume cursor rides `job_runs.counts` · 42 s shared equally · a parent-row sweep's failed rows fail the parent run · note text out of the parent's counts · inactivity filters `last_active_at` too · no deletion-queue cap · holds asked again before the event delete · H17 chunked by id with a local `inChunks` · the orphan sweep still restarts from the top (QA #37/#38).
+- **Look at first:**
+  - The dry numbers against the live data (every sweep's READ half on the service-role client wrapped to refuse any write; script `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/rowcap-cron/dry/sweeps.dry.test.ts`, output `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/rowcap-cron/synced/dry-run.json`): `standby_hosts` lists one host, willg97 at 46,619 bytes = the hand tally of 2,539,281 minus the 9 withdrawals' 2,492,662; the bin read whole is 31 rows and 46,619 bytes, and none of the probe's 5 withdrawals (nor any of the 9) is in it. The held events: 8 events scanned, none held, 0 held rows. Every other sweep has 0 candidates live today (no expired event, due removal, deletion request, pass holder, over-cap or inactive candidate).
+  - ★ **Prod will fail its orphan sub-sweep until this ships**: from the first run after the probe's 1,200 objects pass 24 h (2026-09-25 04:00 UTC), a 1,000-object R2 page yields about 1,000 candidate ids in one `.in()`, which the live API refuses (one unchunked 1,000-id read answered 400: `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/rowcap-cron/unchunked-in-check.log`). It fails closed (throws before deleting) and shows red on `/admin/jobs` nightly until milestone 28 or the probe's removal.
+  - `/admin/jobs` could not be viewed locally (admin plus AAL2 complete only on a real host); its one change (the Reported line leads with `remaining`, never prints `resume_after`) is test-pinned, not eyed; worth a glance on the alias.
