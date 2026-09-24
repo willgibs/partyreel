@@ -45,7 +45,9 @@ Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyre
    guidance (the Library's recipe, the ten, production as a working version) for more open, bolder options, since
    many were narrowed by old rules and past picks. The audit (scratch `board-audit.md`) grades each board; lanes by
    surface, the reel boards first (they gate the reel round), each owning its boards' folders and rewriting their
-   comments; his notes on record travel as direction. His desk sitting waits for the refreshed boards.
+   comments. A refresh improves on what the board has: the strong options stay and get better, bolder ones join, his
+   notes on record travel as direction. He runs through the refreshed boards once, the picks are wired so the lab is
+   current with the Library, and later rounds may revisit any covered surface with fresh ideas.
 2. **The mandate sweep** (Sonnet) after `library-lean` merges, outside the boards (the refresh lanes take theirs): Will's overhaul (2026-09-24), whose one home is
    CLAUDE.md "Keeping the docs healthy" (guidance with its reason, never a mandate; synthesized, never quoted; one
    home). About 250 comment and lab lines in `src/` cite a pick as authority or frame a design choice as law ("Will

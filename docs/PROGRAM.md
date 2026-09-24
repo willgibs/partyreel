@@ -28,8 +28,8 @@ carries every back-and-forth and lands everything.
    lane at a time, with one alias build per round.
 3. **Will reviews on the desk** (`/design/lab?key=`), one question at a time; the Orchestrator transcribes his answers.
 4. **Picks are built**: the wiring round lands each in production, a refined pick refined inside the wiring, with
-   its red-team. The board retires with its losing options and its ledger; nothing records a pick as a rule. Another
-   exploration of the same surface comes when he asks for one and starts from production with his notes as direction
+   its red-team. The board retires with its losing options and its ledger; nothing records a pick as a rule. A covered surface stays
+   open: a later round may explore it again with fresh ideas, starting from production with his notes as direction
    (`registry.test.ts` checks that a board past round 1 has them).
 
 ## Agent boot
