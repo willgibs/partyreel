@@ -26,6 +26,7 @@ import { REEL_CUT } from "./reel-cut/spec";
 import { PRESS_PAGE } from "./press-page/spec";
 import { CONTACT_PAGE } from "./contact-page/spec";
 import { ALBUM_MOTION } from "./album-motion/spec";
+import { ALBUM_COLUMNS } from "./album-columns/spec";
 
 import { LOOSE_ENDS } from "./loose-ends/spec";
 import { PRIVACY_HERO } from "./privacy-hero/spec";
@@ -85,6 +86,7 @@ const REGISTERED: readonly BoardSpec[] = [
   PROFILE_PAGE,
   PRIVACY_HERO,
   ALBUM_MOTION,
+  ALBUM_COLUMNS,
   LOOSE_ENDS,
   CONTACT_PAGE,
   PRESS_PAGE,

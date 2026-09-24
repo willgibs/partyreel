@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**10 laws · 19 policies · 1379 contracts on 173 components · 26 standing boards.**
+**10 laws · 19 policies · 1379 contracts on 173 components · 27 standing boards.**
 
 ## What binds you
 
@@ -436,6 +436,7 @@ An open question and its candidates, in the lab. Nothing on a board binds anyone
 | `press-page` | marketing | Seven decisions, every option drawn on the real PageHero, PressSection, PressSheet and copy buttons at 1440 and 375: who the page is for, what the asset sheet shows, how the words are handed over, how checkable the fact sheet is, whether anyone is named, how the page closes, and how it all reads top to bottom |
 | `contact-page` | marketing | Six decisions on the real desk (PageHero, ContactForm, ContactFacts, the self-serve directory), drawn on a host mid-event, a planner weighing a plan and a reporter on background: the way in, the receipt, an urgent path, the topic picker, the page's identity against the rest of the site, and what stands beside the form |
 | `album-motion` | marketing | One decision, three whole variations of the falling-in drawn on the LIVE /features/album hero at 1440 and 375 (the shipped one among them): a pair sliding under the album's edge, a pair born large and dissolving into it, and singles landing on it; every number under a tile measured off the engine against the home hero's |
+| `album-columns` | shared | Five decisions, no page: the album's own width, what the biggest screens do once columns would climb forever, what a bigger phone earns, whether hosting and guesting share one tile-size preference, and the control's own form; every option is the real fixture album on the real masonry grid, at the width where it shows. |
 | `privacy-hero` | marketing | Four decisions, no page: the spirals' pace against the home hero's, the gap between frames, the trail each arm leaves, and what a phone draws; every option is the live privacy page's first screen at 1440 and 375 |
 | `loose-ends` | shared | Seven asks, no page: the chart ramp's cast (light and dark, chosen separately) on the real MetricsCharts; one FAQ look on both the pricing and the album page's FAQ; the home hero's geometry at a real 900 px tablet width; and the album page's three ambient pieces (the phone's screen cycle, the Live \| Review photograph, the lightbox pill), each on its real section at 1440 and 375 |
 
