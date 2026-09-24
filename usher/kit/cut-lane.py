@@ -66,7 +66,7 @@ working.
 
 - The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
 - Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
+- Gates on the synced tree, each on its own exit code, and the sha they ran on
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
 - The items, one line each
 - Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`

@@ -76,7 +76,10 @@ Read the Handoff, the lane check and the captures, never the whole diff.
 1. The lane's chat line names its head: `git rev-parse origin/lp/<track>` must match it (never the commit its Handoff
    names).
 2. The lane check, `git diff --name-only launch-prep...origin/lp/<track>`: every line inside `owns`, the manifest, or a
-   system doc listed under its System-doc edits; anything else is handed back or decided.
+   system doc listed under its System-doc edits; anything else is handed back or decided. The gate trusts the lane's
+   own gate for its code, so the sha the Handoff's gates ran on reaches the head by docs alone
+   (`git diff --name-only <gated> origin/lp/<track> | zsh usher/kit/scope.sh code` prints nothing), or the
+   integration takes `FULL=1`.
 3. The merge message in `$S/msg-<track>.txt`: what the lane does, its calls his to overrule, its look-at-first, and the
    `Co-Authored-By` trailer of the model you run on. The merge commit is the lane's permanent record.
 4. With a clean tree (the kit refuses a dirty one, so commit record edits first; the day's first integration runs
