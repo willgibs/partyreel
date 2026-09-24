@@ -26,7 +26,8 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   become one question, every option kept), with the rounds he asked for; the plan is the plan file's head.
 - **The lean round**: the boot-time docs sharpened (a lane reads
   about 1,800 words at boot, from 5,400), the bible to ten principles, the Library to the brand kit, the catalog and
-  the ten with the look tests gone, and a root `kit/` brand kit Will can copy for outside agents.
+  the ten with the look tests gone, the system docs cut to how the systems work and their gotchas, and a root `kit/`
+  brand kit Will can copy for outside agents.
 - **Since milestone 28 (`clocks-and-counts`):** counts grouped, chart ticks that fit, the admin's times in UTC, one Link
   visits figure, the host's dashboard on the viewer's own day (`x-vercel-ip-timezone`), the backup's CLI pinned.
 
