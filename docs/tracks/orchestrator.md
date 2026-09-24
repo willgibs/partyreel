@@ -34,6 +34,7 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `docs-sharpen` | the boot-time workflow docs sharpened on Will's word (one-offs, history, repeats cut; his rulings and the guardrails kept) | running | Opus, :3131 | review the cut table; apply its `CLAUDE.md` and `PROGRAM.md` copies from the lane's scratch |
 | `reel-guest-wiring` | the live reel's guest side: the seam fix, minimum 2, the provider lift, the Highlight reel tile, the view that is also the wall, the toast, the cut's seam, the photo link card | handed off at `c3d2dfde` (every guest count through `formatCount`); HELD unmerged | Opus, :3132 | integrate with the cut and host lanes in one stretch; the reel picture, the Start's fullscreen and wake lock and the toast prove on that alias build (R2 answers CORS only for the alias and prod) |
 
 ## Next, in order
