@@ -2,18 +2,11 @@
 track: orchestrator
 status: open
 cut: "4c70fd4e"          # the launch-prep SHA this state was written at
-owns:                    # the standing claims no lane touches (a new board adds only its own lines to the two board lists)
-  - src/app/(dev)/design/rules/bible.ts
-  - src/app/(dev)/design/rules/bible.test.ts
-  - src/app/globals.css
-  - src/app/theme.css
-  - src/app/(marketing)/marketing.css
+owns:                    # the standing claims no lane touches; bible.ts, bible.test.ts, globals.css, theme.css, marketing.css, registry.ts and boards.ts are released to bible-ten and return at its merge
   - src/lib/design-gate/
   - src/app/api/design-gate/
   - scripts/vercel-ignore-build.mjs
   - .github/workflows/ci.yml
-  - src/app/(dev)/design/sandbox/registry.ts
-  - src/app/(dev)/design/(shell)/lab/boards.ts
 reads:
   - CLAUDE.md
   - docs/PROGRAM.md
@@ -34,6 +27,7 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `bible-ten` | the bible consolidated to Will's ten (2026-09-24) and every citation made to agree | running | Sonnet, :3132 | apply its CLAUDE.md and PROGRAM.md citation lines; send the guest lane its eight; return the released claims to `owns` |
 | `docs-sharpen` | the boot-time workflow docs sharpened on Will's word (one-offs, history, repeats cut; his rulings and the guardrails kept) | running | Opus, :3131 | review the cut table; apply its `CLAUDE.md` and `PROGRAM.md` copies from the lane's scratch |
 | `reel-guest-wiring` | the live reel's guest side: the seam fix, minimum 2, the provider lift, the Highlight reel tile, the view that is also the wall, the toast, the cut's seam, the photo link card | handed off at `0384a77b` (Will's morning rulings built: the welcome comes first everywhere, landscape fills; a portrait photo on a landscape screen sits whole on its own blur, his to overrule); HELD unmerged | Opus, :3132 | integrate with the cut and host lanes in one stretch; the reel picture, the Start's fullscreen and wake lock and the toast prove on that alias build (R2 answers CORS only for the alias and prod) |
 
