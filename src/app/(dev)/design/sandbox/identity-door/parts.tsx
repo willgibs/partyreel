@@ -112,6 +112,99 @@ function EmailField({ autoFocus = false }: { autoFocus?: boolean }) {
   );
 }
 
+/* ── `walk`: whether the welcome deserves its own screen at all ──────────── */
+
+/** The welcome's own two lines, exactly as `entry-modal.tsx`'s `WelcomeStep`
+ *  reads them (no sign-in row: `nudge`'s own question, held at nowhere for
+ *  this ask). Shared by `walk`'s `separate` and `combined`: the words never
+ *  change, only what stands beside them. */
+function WelcomeLines() {
+  return (
+    <div data-id-welcome-lines className="flex flex-col">
+      <p className="text-label font-medium text-muted-foreground uppercase">
+        You&rsquo;re invited to
+      </p>
+      <p className="mt-1.5 font-heading text-page text-balance">
+        {EVENT.name}
+      </p>
+      <p className="mt-2 flex items-center gap-1.5 text-working text-muted-foreground">
+        <Avatar seed={HOST.seed} size="sm">
+          <AvatarFallback className="text-[10px]">
+            {HOST.displayName.slice(0, 1)}
+          </AvatarFallback>
+        </Avatar>
+        <span>
+          Hosted by{" "}
+          <span className="font-medium text-foreground">
+            {HOST.displayName}
+          </span>
+        </span>
+        <span aria-hidden className="text-faint">
+          ·
+        </span>
+        <span>{EVENT.date}</span>
+      </p>
+    </div>
+  );
+}
+
+function WelcomeBenefits() {
+  return (
+    <div className="flex flex-col gap-3.5">
+      <p className="flex items-start gap-3 text-base leading-relaxed">
+        <Camera
+          className="mt-0.5 size-4.5 shrink-0 text-muted-foreground"
+          aria-hidden
+        />
+        Add your photos and videos in seconds. No app required.
+      </p>
+      <p className="flex items-start gap-3 text-base leading-relaxed">
+        <Images
+          className="mt-0.5 size-4.5 shrink-0 text-muted-foreground"
+          aria-hidden
+        />
+        {`Everyone's shots land in one album. ${EVENT.approvedTotal} are already inside.`}
+      </p>
+    </div>
+  );
+}
+
+/** As shipped: the welcome stands alone, once; Continue reveals the name step
+ *  (held behind this frame, `field`'s and `nudge`'s own territory). */
+export function WalkSeparate() {
+  return (
+    <div data-id-walk="separate" className="flex flex-col gap-5">
+      <WelcomeLines />
+      <WelcomeBenefits />
+      <div className="mt-auto flex flex-col gap-1">
+        <Button type="button" size="cta" className="w-full" tabIndex={-1}>
+          Continue
+        </Button>
+        <LegalConsentLine newTab className="mt-2 text-center" />
+      </div>
+    </div>
+  );
+}
+
+/** The same two lines, now sitting above the name field itself: one screen,
+ *  one Continue, on a first visit alone (a returning device already skips to
+ *  the plain name step today, unchanged either way). */
+export function WalkCombined() {
+  return (
+    <div data-id-walk="combined" className="flex flex-col gap-5">
+      <WelcomeLines />
+      <WelcomeBenefits />
+      <div className="flex flex-col gap-4 border-t border-border/60 pt-4">
+        <NameField />
+        <EmailField />
+        <Button type="button" size="cta" className="w-full" tabIndex={-1}>
+          Continue
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 /* ── `field`: how the optional email sits against the name ───────────────── */
 
 /** As shipped: both fields open together, one Continue for both. */

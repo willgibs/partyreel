@@ -74,10 +74,11 @@ export const RULINGS: Ruling[] = [
     title: "Asking for an email at the door",
     surface: "guest",
     asks:
-      "where the optional email sits against the name, where a member's sign-in lives, how the verified gate frames its benefit, what the guest's own menu says, and where undoing an email lives",
+      "whether the welcome deserves its own screen, where the optional email sits against the name, where a member's sign-in lives, how the verified gate frames its benefit, what the guest's own menu says, and where undoing an email lives",
     why: "The email at the door, the trust levels, the verified gate and the guest menu are live; this board redesigns them on the shipped pieces.",
     lives: [
       "docs/systems/guest-flow.md",
+      "src/components/guest/entry-modal.tsx",
       "src/components/guest/guest-name-step.tsx",
       "src/components/guest/enter-event-prompt.tsx",
       "src/components/guest/guest-name-menu.tsx",
@@ -86,8 +87,9 @@ export const RULINGS: Ruling[] = [
       "src/components/shared/unverified-mark.tsx",
     ],
     board: {
-      note: "Five decisions on the shipped door's real pieces, over Priya, guest-capture's own guest, one step earlier than that board finds her: where the optional email sits against her name, where a member's sign-in path lives, how the verified gate frames its benefit, what her own menu says, and where undoing an email lives",
+      note: "Six decisions on the shipped door's real pieces, over Priya, guest-capture's own guest, one step earlier than that board finds her: whether the welcome earns its own screen, where the optional email sits against her name, where a member's sign-in path lives, how the verified gate frames its benefit, what her own menu says, and where undoing an email lives",
       variants: [
+        "The welcome step",
         "The field",
         "The sign-in nudge",
         "The gate's framing",
@@ -126,7 +128,7 @@ export const RULINGS: Ruling[] = [
     title: "Setting up a page",
     surface: "guest",
     asks:
-      "how a verified guest sets up her page, how she chooses what shows, when the app offers the setup, and what an empty page says to a visitor",
+      "how a verified guest sets up her page, how she chooses what shows, whether that choice should even default to hidden, when the app offers the setup, and what an empty page says to a visitor",
     why: "A profile publishes nothing until its owner chooses, so the setup is how a page fills; drawn on the account page's real cards and the public page.",
     lives: [
       "docs/systems/profiles-social.md",
@@ -135,10 +137,11 @@ export const RULINGS: Ruling[] = [
       "src/app/(app)/account/page.tsx",
     ],
     board: {
-      note: "Four decisions on the account page's real cards and the public profile page, over Priya, verified, with photos added to three events and none shown: how setup itself happens, how she chooses what shows, when the app ever invites the setup, and what an empty claimed page says to a visitor",
+      note: "Five decisions on the account page's real cards and the public profile page, over Priya, verified, with photos added to three events and none shown: how setup itself happens, how she chooses what shows, whether that choice should even default to hidden, when the app ever invites the setup, and what an empty claimed page says to a visitor",
       variants: [
         "How it's set up",
         "What shows",
+        "The starting default",
         "When it's offered",
         "The empty page",
       ],

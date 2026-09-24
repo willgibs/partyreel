@@ -78,8 +78,8 @@ export const IMPOSTOR_PHOTOS = Array.from(
 );
 
 /** The one event already on Priya's dashboard: the wedding, a live guest event
- *  the moment her confirmed upload counted her (tonight's ruling: a person is
- *  a guest through an upload alone, never a save). */
+ *  the moment her confirmed upload counted her (a person is a guest through
+ *  an upload alone, never a save). */
 export const CURRENT_EVENT_COVER = MARKETING_IMAGES[3].src;
 
 /** A newly-claimed cover for the `after=strip` option: Tom's leaving do, once it is hers. */

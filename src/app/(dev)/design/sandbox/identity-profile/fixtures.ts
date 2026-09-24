@@ -7,7 +7,7 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
  * two older events out of her inbox. THIS BOARD'S PRIYA IS PAST BOTH: a
  * verified account, three events she's added photos to (Maya and Jay's among
  * them, so a reader who has met her twice already recognises the wedding), and
- * `docs/tracks/identity-profile.md`'s own line, verbatim: "none shown yet."
+ * none shown yet.
  *
  * ★ A SEPARATE FILE, NOT AN IMPORT (guest-capture's own rule, carried here): a
  * board's directory is deleted the moment its ruling lands (registry.ts), so
@@ -32,12 +32,13 @@ export type AttendedEvent = {
   date: string;
   host: string;
   cover: string;
-  /** Off by default (`profile_shown_events` is opt-in, the guest identity
-   *  round, 2026-09-22): this is the state every option opens on. */
+  /** Off by default (`profile_shown_events` is opt-in): the state every
+   *  option opens on, except `default`'s own three, which is the one ask
+   *  that varies this starting value on purpose. */
   shown: boolean;
-  /** Require an upload to view (tonight's ruling): this event's own "guest
-   *  at" line hides from a viewer who has not passed its door, so `page`'s
-   *  own count has to hide behind the same door too, never just a raw total. */
+  /** Require an upload to view: this event's own "guest at" line hides from
+   *  a viewer who has not passed its door, so `page`'s own count has to hide
+   *  behind the same door too, never just a raw total. */
   requireUpload?: boolean;
 };
 
