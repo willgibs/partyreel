@@ -10,10 +10,12 @@ import { describe, expect, it, vi } from "vitest";
 
 import { createBitmapCache } from "@/lib/reel/engine/asset-cache";
 import type { CanvasImage } from "@/lib/reel/engine/canvas2d";
+import { THEME_IDS } from "@/lib/reel/engine/themes";
+import { frameStateAt } from "@/lib/reel/engine/timeline";
 
 import type { LiveMediaItem } from "./items";
 import { createClipSource } from "./source";
-import type { ReelLook } from "./window";
+import type { ReelLook, ReelWindow } from "./window";
 
 const LOOK: ReelLook = { styleId: "classic", surface: "hand" };
 const NEEDS = { washes: false };
@@ -126,17 +128,24 @@ describe("the windows", () => {
   it("roll into a new loop with a fresh take, carrying the clip on screen", () => {
     const { source: s } = source(album(7));
     let last = s.windowAt(0, LOOK)!;
+    let before: typeof last | null = null;
     let rolled: typeof last | null = null;
     for (let i = 1; i < 6 && !rolled; i++) {
       const win = s.windowAt(i, LOOK)!;
-      if (win.loopIndex !== last.loopIndex) rolled = win;
+      if (win.loopIndex !== last.loopIndex) {
+        rolled = win;
+        before = last;
+      }
       last = win;
     }
     expect(rolled).not.toBeNull();
     expect(rolled!.loopIndex).toBe(1);
-    expect(rolled!.startIndex).toBe(0);
-    // The new loop still opens on the clip the old one ended with, so the swap lands mid-hold.
-    expect(rolled!.ids[0]).toBeDefined();
+    // The new loop opens on the clip the old one ended with, AT THAT CLIP'S OWN ORDINAL: the
+    // ordinal never re-zeroes at a boundary, which is what keeps the carried clip's plan.
+    expect(rolled!.ids[0]).toBe(before!.ids[before!.ids.length - 1]);
+    expect(rolled!.startIndex).toBe(
+      before!.startIndex + before!.ids.length - 1,
+    );
     expect(s.stats().loopIndex).toBe(1);
   });
 
@@ -154,6 +163,120 @@ describe("the windows", () => {
     const { source: s } = source([]);
     expect(s.windowAt(0, LOOK)).toBeNull();
     expect(s.eligibleCount()).toBe(0);
+  });
+});
+
+/**
+ * ★ THE SMALL-ALBUM SEAM (reel-guest-wiring, 2026-09-24). With the shipped window of six, an album
+ * of six or fewer makes EVERY handover a loop boundary, and a boundary used to re-plan the carried
+ * clip from the new loop's seed: its pan and zoom jumped (~5%) mid-hold, every few seconds, on
+ * exactly the albums the reel meets first (it exists from the SECOND item). At one clip the move
+ * snapped back to its start every hold. These walk the real chain at exactly 1, 2 and 6 clips and
+ * hold the handover to what it claims: the same clip, the same plan, the same frame.
+ */
+describe("the small-album seam", () => {
+  const DEFAULT_SIZE = { windowSize: 6 };
+
+  /** The picture at the swap, on both sides: the leaving window at its handover frame, and the
+   *  incoming one at the frame the player resumes it on (window.ts's `handoverOf`). */
+  function expectSeamless(a: ReelWindow, b: ReelWindow, label: string) {
+    const lastA = a.plan.clips.length - 1;
+    expect(b.ids[0], `${label}: the carried clip`).toBe(a.ids[lastA]);
+    expect(b.startIndex, `${label}: its ordinal`).toBe(a.startIndex + lastA);
+    expect(b.plan.clips[0].motion, `${label}: its Ken-Burns`).toEqual(
+      a.plan.clips[lastA].motion,
+    );
+    expect(
+      b.plan.clips[0].durationInFrames,
+      `${label}: the hold the motion is a fraction of`,
+    ).toBe(a.plan.clips[lastA].durationInFrames);
+    if (lastA >= 1) {
+      const out = frameStateAt(a.plan, a.handoverFrame);
+      const into = frameStateAt(b.plan, a.handoverOffset);
+      expect(into.top.clipIndex, `${label}: resumes on clip 0`).toBe(0);
+      expect(into.top.localFrame, `${label}: at the frame it was on`).toBe(
+        out.top.localFrame,
+      );
+      expect(into.transition, `${label}: with nothing in flight`).toBeNull();
+    }
+  }
+
+  function walk(n: number, look: ReelLook, windows = 8) {
+    const { source: s } = source(album(n), DEFAULT_SIZE);
+    const seen: ReelWindow[] = [];
+    for (let i = 0; i < windows; i++) {
+      const win = s.windowAt(i, look);
+      if (!win) break;
+      seen.push(win);
+    }
+    return { s, seen };
+  }
+
+  it("at 6 clips: every handover is a boundary, and every one is seamless", () => {
+    for (const styleId of THEME_IDS) {
+      const { seen } = walk(6, { styleId, surface: "hand" });
+      expect(seen.length).toBe(8);
+      for (let i = 1; i < seen.length; i++) {
+        // Each window is a whole loop (six clips in a window of six), so each handover rolls one.
+        expect(seen[i].loopIndex).toBe(seen[i - 1].loopIndex + 1);
+        expectSeamless(seen[i - 1], seen[i], `${styleId} #${i}`);
+      }
+    }
+  });
+
+  it("at 2 clips: the two alternate, and the carried one never re-plans", () => {
+    for (const surface of ["hand", "wall"] as const) {
+      const { seen } = walk(2, { styleId: "classic", surface });
+      expect(seen.length).toBe(8);
+      for (let i = 1; i < seen.length; i++) {
+        expect(seen[i].ids).toHaveLength(2);
+        // It bounces between the two: whatever closed a window opens the next.
+        expect(seen[i].ids[1]).toBe(seen[i - 1].ids[0]);
+        expectSeamless(seen[i - 1], seen[i], `${surface} #${i}`);
+      }
+    }
+  });
+
+  it("at 1 clip: it plays its move once and holds, never snapping back", () => {
+    const { s, seen } = walk(1, LOOK, 3);
+    const first = seen[0];
+    expect(first.ids).toEqual(["m0"]);
+    // The album's only clip never hands over: every window after it is the same plan, and handing
+    // over to it restarted the move. It rests on its last frame until an upload splices in.
+    expect(first.handoverFrame).toBe(Number.POSITIVE_INFINITY);
+    for (let i = 1; i < seen.length; i++) {
+      expectSeamless(seen[i - 1], seen[i], `#${i}`);
+    }
+    // And the moment a second one arrives, the reel splices it in behind the clip on screen,
+    // without moving the clip.
+    s.setCurrentWindow(0);
+    s.setItems([...album(1), item(9, { id: "second" })]);
+    const rebuilt = s.rewindowAt(first, "m0", LOOK)!;
+    expect(rebuilt.ids).toEqual(["m0", "second"]);
+    expect(rebuilt.plan.clips[0].motion).toEqual(first.plan.clips[0].motion);
+    expect(Number.isFinite(rebuilt.handoverFrame)).toBe(true);
+  });
+
+  it("carries the plan across a boundary for a bigger album too", () => {
+    const { seen } = walk(9, LOOK, 12);
+    let boundaries = 0;
+    for (let i = 1; i < seen.length; i++) {
+      if (seen[i].loopIndex !== seen[i - 1].loopIndex) boundaries += 1;
+      expectSeamless(seen[i - 1], seen[i], `#${i}`);
+    }
+    expect(boundaries).toBeGreaterThan(1);
+  });
+
+  it("keeps the chain by id when a played clip leaves (the order shifts under it)", () => {
+    const { source: s } = source(album(20));
+    const w0 = s.windowAt(0, LOOK)!;
+    s.setCurrentWindow(0);
+    const w1 = s.windowAt(1, LOOK)!;
+    s.setCurrentWindow(1);
+    // A clip that already PLAYED leaves: every position in the loop behind it shifts by one.
+    s.drop([w0.ids[0]]);
+    const w2 = s.windowAt(2, LOOK)!;
+    expectSeamless(w1, w2, "after a drop behind the screen");
   });
 });
 
@@ -258,14 +381,35 @@ describe("a drop", () => {
     expect(cut.resumeFrame).toBeGreaterThan(0);
   });
 
-  it("tops the cutaway up from the loop when the window had nothing after it", () => {
+  it("tops the cutaway up from what comes NEXT when the window had nothing after it", () => {
     const { source: s } = source(album(20));
     const current = s.windowAt(0, LOOK)!;
+    s.setCurrentWindow(0);
+    const upNext = s.windowAt(1, LOOK)!; // opens on current's last clip, then what follows it
     const onScreen = current.ids[3]; // the last clip of the window
     s.drop([onScreen]);
     const cut = s.cutawayFrom(current, onScreen, LOOK)!;
     expect(cut.ids[0]).toBe(onScreen);
     expect(cut.ids.length).toBeGreaterThan(1);
+    // Never the loop's opening photographs again: the clip that was coming next.
+    expect(cut.ids[1]).toBe(upNext.ids[1]);
+    expect(current.ids).not.toContain(cut.ids[1]);
+  });
+
+  it("makes the cutaway the chain, so the next window opens on the clip it hands over on", () => {
+    const { source: s } = source(album(20));
+    const current = s.windowAt(0, LOOK)!;
+    s.setCurrentWindow(0);
+    s.windowAt(1, LOOK); // a prefetch from the order before the drop
+    const onScreen = current.ids[1];
+    s.drop([onScreen]);
+    const cut = s.cutawayFrom(current, onScreen, LOOK)!;
+    const next = s.windowAt(1, LOOK)!;
+    expect(next.ids[0]).toBe(cut.ids[cut.ids.length - 1]);
+    expect(next.startIndex).toBe(cut.startIndex + cut.ids.length - 1);
+    expect(next.plan.clips[0].motion).toEqual(
+      cut.plan.clips[cut.plan.clips.length - 1].motion,
+    );
   });
 });
 

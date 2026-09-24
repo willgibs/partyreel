@@ -182,7 +182,10 @@ describe("the handover", () => {
     ).not.toBeNull();
   });
 
-  it("a one-clip window holds to the end and shares nothing", () => {
+  it("a one-clip window hands over at once, resuming on the frame it is on", () => {
+    // Its clip is the next window's clip 0 at the same ordinal (the source carries it), so the two
+    // plans agree at every frame of its hold. Holding to the end and handing the next window frame
+    // 0 restarted the same photograph's move: at one clip the motion snapped back every hold.
     const win = buildWindow({
       index: 0,
       loopIndex: 0,
@@ -194,7 +197,22 @@ describe("the handover", () => {
     })!;
     expect(win.overlapIndex).toBeNull();
     expect(win.handoverOffset).toBe(0);
-    expect(win.handoverFrame).toBe(win.plan.totalFrames - 1);
+    expect(win.handoverFrame).toBe(0);
+  });
+
+  it("the album's ONLY clip never hands over at all (it rests on its last frame)", () => {
+    const win = buildWindow({
+      index: 0,
+      loopIndex: 0,
+      startIndex: 0,
+      ids: ["m0"],
+      itemFor,
+      seed: 1,
+      look: LOOK,
+      alone: true,
+    })!;
+    expect(win.handoverFrame).toBe(Number.POSITIVE_INFINITY);
+    expect(win.handoverOffset).toBe(0);
   });
 });
 

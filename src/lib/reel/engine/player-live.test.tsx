@@ -23,6 +23,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createBitmapCache } from "./asset-cache";
 import type { CanvasImage } from "./canvas2d";
 import { FPS } from "./constants";
+import { frameStateAt } from "./timeline";
 
 // ── The mocks ──────────────────────────────────────────────────────────────
 const log = vi.hoisted(() => {
@@ -357,6 +358,87 @@ describe("LiveReelPlayer", () => {
     expect(windows.length).toBeGreaterThan(1);
     expect(windows).toEqual([...windows].sort((a, b) => a - b));
     expect(monotonic(seen)).toBe(true);
+  });
+
+  it("★ a handover keeps the SAME clip at the SAME frame (the seam is invisible)", async () => {
+    // The player used to resume the incoming window at ITS OWN handoverOffset (the entering gap of
+    // a clip one window further on) instead of the leaving window's: every handover moved the
+    // shared clip by the difference between two transition lengths. Read the clip-local frame off
+    // the window the player reports, tick by tick, and it must run on through every swap. Six clips
+    // in windows of six is the small album, where every handover is also a loop boundary.
+    // Moods whose palettes mix transition LENGTHS (a fade beside a cut or a slide): with one length
+    // the old bug was invisible, since both offsets were the same number.
+    for (const [styleId, n] of [
+      ["classic", 2],
+      ["warm", 2],
+      ["warm", 6],
+      ["punchy", 6],
+      ["warm", 24],
+    ] as const) {
+      const look = { styleId, surface: "hand" as const };
+      const source = createClipSource({
+        eventId: "e1",
+        items: album(n),
+        windowSize: 6,
+        cache: createBitmapCache(async (url) => fakeImage(url), 64),
+        load: (async (clips: readonly { url: string }[]) => ({
+          clips: clips.map((clip) =>
+            clip.url
+              ? {
+                  image: fakeImage(clip.url),
+                  width: 4,
+                  height: 4,
+                  wash: null,
+                  halo: null,
+                }
+              : null,
+          ),
+          failures: 0,
+          grain: null,
+        })) as never,
+      });
+      const clipLocal: { window: number; clip: string | null; at: number }[] =
+        [];
+      const view = render(
+        <LiveReelPlayer
+          source={source}
+          styleId={look.styleId}
+          surface={look.surface}
+          paused={false}
+          onFrame={(state) => {
+            const win = source.windowAt(state.windowIndex, look);
+            if (!win) return;
+            // The TOP clip's own frame: during a transition that is the entering clip, which is
+            // exactly the one a handover carries (the swap lands the frame its entrance ends).
+            clipLocal.push({
+              window: state.windowIndex,
+              clip: state.clipId,
+              at: frameStateAt(win.plan, state.localFrame).top.localFrame,
+            });
+          }}
+        />,
+      );
+      await act(async () => {});
+      await tickFrames(420, 1000 / 24);
+      let swaps = 0;
+      for (let i = 1; i < clipLocal.length; i++) {
+        const [a, b] = [clipLocal[i - 1], clipLocal[i]];
+        if (a.window === b.window) continue;
+        swaps += 1;
+        expect(b.clip, `${styleId} n=${n}: the clip across swap ${swaps}`).toBe(
+          a.clip,
+        );
+        // One tick is one frame at this step; the clip's own frame steps by exactly that.
+        expect(
+          Math.abs(b.at - a.at - 1),
+          `${styleId} n=${n}: the clip's frame across swap ${swaps} (${a.at} -> ${b.at})`,
+        ).toBeLessThanOrEqual(1);
+      }
+      expect(swaps, `${styleId} n=${n}: no handover happened`).toBeGreaterThan(
+        0,
+      );
+      view.unmount();
+    }
   });
 
   it("★ a throwing draw reports and the tick keeps running", async () => {

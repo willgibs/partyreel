@@ -640,10 +640,23 @@ export function LiveReelPlayer({
         if (next) {
           state.ahead.delete(state.index + 1);
           const previous = state.index;
+          const leaving = state.active.window;
+          // ★ THE RESUME FRAME IS THE LEAVING WINDOW'S (the small-album seam, 2026-09-24): its
+          // `handoverOffset` is how far into the shared clip its entering transition ended, plus
+          // however far past the handover this tick landed (never past the frame actually drawn,
+          // which a late prefetch holds at the window's last). It used to read the INCOMING
+          // window's offset, which is the entering gap of a clip one window further on: every
+          // handover moved the shared clip by the difference between two transition lengths.
+          const drawn = Math.min(
+            local,
+            Math.max(0, leaving.plan.totalFrames - 1),
+          );
+          const resume =
+            leaving.handoverOffset + Math.max(0, drawn - leaving.handoverFrame);
           // The window we are leaving keeps no readers: the incoming one cues its own.
           state.active.playback?.dispose();
           state.index = next.window.index;
-          state.frameOffset = globalFrame - next.window.handoverOffset;
+          state.frameOffset = globalFrame - resume;
           state.active = next;
           source.setCurrentWindow(state.index);
           if (previous >= 1) source.release(previous - 1);

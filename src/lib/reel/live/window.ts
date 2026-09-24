@@ -13,12 +13,13 @@
  * two-layer resolver is never asked to hold three), and the clip on screen is the SAME clip before
  * and after, so the swap has nothing to hide.
  *
- * ★ AND IT IS SEAMLESS, because the windows share the loop's seed and differ only by
- * `indexOffset` (layout.ts): window N+1's clip 0 is the loop's clip k, exactly as window N's last
- * clip was, with the same hold, the same Ken-Burns and the same entering gap. The next window
- * resumes at `handoverOffset`, the phase that clip had already reached, so the picture does not move
- * at all across the swap. Seeding each window independently instead would re-roll `panFrac`, and
- * `baseZoom` is `1 + 2 * panFrac + 0.015`: a ~5% scale jump every window, forever.
+ * ★ AND IT IS SEAMLESS, because every window shares the SESSION's motion seed (take.ts's
+ * `motionSeed`) and differs only by `indexOffset` (layout.ts), a clip ORDINAL that never resets:
+ * window N+1's clip 0 is ordinal k, exactly as window N's last clip was, with the same hold and the
+ * same Ken-Burns. The next window resumes at `handoverOffset`, the phase that clip had already
+ * reached, so the picture does not move at all across the swap. Seeding each window (or each LOOP)
+ * independently instead would re-roll `panFrac`, and `baseZoom` is `1 + 2 * panFrac + 0.015`: a ~5%
+ * scale jump at every boundary, which for an album of six or fewer is every handover.
  *
  * Pure: no DOM, no React, no clock.
  */
@@ -64,7 +65,11 @@ export type ReelWindow = {
   /** Monotonic across the whole session, never reset (loop boundaries included). */
   index: number;
   loopIndex: number;
-  /** This window's first clip as an index into its loop's take (== the plan's `indexOffset`). */
+  /**
+   * This window's first clip as a session ORDINAL (== the plan's `indexOffset`): how many clips
+   * played before it, never reset at a loop boundary, so the clip a boundary carries keeps its
+   * motion (the header, and take.ts's `motionSeed`).
+   */
   startIndex: number;
   ids: string[];
   props: PlanProps;
@@ -118,9 +123,15 @@ export type BuildWindowArgs = {
   startIndex: number;
   ids: readonly string[];
   itemFor: (id: string) => LiveMediaItem | undefined;
-  /** The LOOP's seed (never a per-window one: see the header). */
+  /** The SESSION's motion seed (never a per-window or per-loop one: see the header). */
   seed: number;
   look: ReelLook;
+  /**
+   * The album has exactly one playable item: a one-clip window then HOLDS (it never hands over),
+   * because every window after it would be the same clip at the same ordinal, and handing over to
+   * an identical plan once a tick is work for nothing. See `handoverOf`.
+   */
+  alone?: boolean;
 };
 
 /** Plan one window. Null when nothing in `ids` still resolves to a drawable item. */
@@ -138,7 +149,9 @@ export function buildWindow(args: BuildWindowArgs): ReelWindow | null {
     indexOffset: args.startIndex,
   };
   const plan = planReel(props);
-  const { handoverFrame, handoverOffset } = handoverOf(plan);
+  const { handoverFrame, handoverOffset } = handoverOf(plan, {
+    alone: args.alone,
+  });
 
   return {
     index: args.index,
@@ -161,17 +174,29 @@ export function buildWindow(args: BuildWindowArgs): ReelWindow | null {
  * without compositing two of them. Earliest on purpose: the longer the reel waits, the more of the
  * overlap clip's hold is spent twice over in two plans that must agree about it.
  *
- * A window of one clip has nobody to share: it hands over at the end of its own hold and the next
- * window starts fresh at frame 0 (`overlapIndex` null tells the source so).
+ * ★ THE PLAYER RESUMES AT `handoverOffset` PLUS HOWEVER FAR PAST `handoverFrame` IT SWAPPED, both
+ * read off the window it is LEAVING: the next window's clip 0 is this window's last clip at the
+ * same ordinal, so the local frame into that clip is the one number both plans share.
+ *
+ * ★ A WINDOW OF ONE CLIP (the small-album seam, 2026-09-24). Its clip is also the next window's clip
+ * 0 (the source carries it by id, at the same ordinal), so the two plans agree at EVERY frame of its
+ * hold and it hands over at once (`handoverFrame` 0, resuming at the frame it was on). It used to
+ * hold to its last frame and hand the next window frame 0, which restarted the same photograph's
+ * Ken-Burns: at one clip the motion snapped back every hold. And when it is the album's ONLY clip
+ * (`alone`) it never hands over at all, since every window after it is the same plan: it plays its
+ * move once and rests on its last frame until an upload splices in.
  */
-export function handoverOf(plan: ReelPlan): {
+export function handoverOf(
+  plan: ReelPlan,
+  opts: { alone?: boolean } = {},
+): {
   handoverFrame: number;
   handoverOffset: number;
 } {
   const m = plan.clips.length - 1;
   if (m < 1) {
     return {
-      handoverFrame: Math.max(0, plan.totalFrames - 1),
+      handoverFrame: opts.alone ? Number.POSITIVE_INFINITY : 0,
       handoverOffset: 0,
     };
   }

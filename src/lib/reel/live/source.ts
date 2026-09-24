@@ -33,7 +33,7 @@ import {
 import type { CanvasImage } from "@/lib/reel/engine/canvas2d";
 
 import { isReelEligible, type LiveMediaItem } from "./items";
-import { planTake, takeSeed } from "./take";
+import { motionSeed, planTake } from "./take";
 import {
   buildCutaway,
   buildWindow,
@@ -138,9 +138,21 @@ export type ClipSourceOptions = {
   load?: typeof loadReelAssets;
 };
 
+/**
+ * One planned stretch of the chain.
+ *
+ * ★ TWO NUMBERS THAT USED TO BE ONE (the small-album seam, 2026-09-24). `pos` is where the slot
+ * starts in its loop's ORDER (what `loopIds` is sliced by); `startIndex` is its first clip's session
+ * ORDINAL (what the motion is seeded by, take.ts's `motionSeed`). They were one index, re-zeroed at
+ * every loop boundary, so the clip a boundary carries was re-planned from a new stream: its pan and
+ * zoom jumped (~5%) mid-hold, at every handover for an album of six or fewer. The ordinal now only
+ * ever grows, and the position is found by the carried clip's id (a drop shifts `loopIds` under a
+ * stored position; an id cannot be shifted).
+ */
 type Slot = {
   index: number;
   loopIndex: number;
+  pos: number;
   startIndex: number;
   ids: string[];
 };
@@ -153,6 +165,9 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
   const cache = opts.cache ?? sharedBitmapCache;
   const load = opts.load ?? loadReelAssets;
   const size = Math.max(2, opts.windowSize ?? DEFAULT_WINDOW_SIZE);
+  /** ONE motion stream for the whole session (take.ts's `motionSeed`): the order reshuffles per
+   *  loop, the film never restarts. */
+  const seed = motionSeed(eventId);
 
   let items = new Map<string, LiveMediaItem>();
   let ownIds: ReadonlySet<string> | null = opts.ownIds ?? null;
@@ -196,21 +211,27 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
   }
 
   function nextSlotAfter(prev: Slot): Slot | null {
-    // Overlap by ONE: the next window opens on this one's LAST clip (window.ts's handover). A
-    // one-clip window has nobody to share with, so it steps past itself.
-    const nextStart = prev.startIndex + Math.max(1, prev.ids.length - 1);
+    // Overlap by ONE: the next window opens on this one's LAST clip (window.ts's handover), at that
+    // clip's own ORDINAL, so its hold and motion are the ones already on screen. A one-clip window
+    // carries its one clip the same way (its handover is immediate: window.ts's `handoverOf`).
     const carryId = prev.ids[prev.ids.length - 1] ?? null;
+    const startIndex = prev.startIndex + Math.max(0, prev.ids.length - 1);
+    // By id, never by stored position: a drop shifts `loopIds` under any number we kept.
+    const found = carryId ? loopIds.indexOf(carryId) : -1;
+    const pos =
+      found >= 0 ? found : prev.pos + Math.max(0, prev.ids.length - 1);
 
-    if (nextStart >= loopIds.length - 1) {
-      // The loop is spent: a fresh take, carrying the clip on screen so the plan swap still lands
-      // mid-hold on a clip both plans hold.
+    if (pos >= loopIds.length - 1) {
+      // The loop is spent: a fresh take, carrying the clip on screen at its own ordinal, so the plan
+      // swap lands mid-hold on a clip both plans hold identically.
       loopIndex += 1;
       newLoop(carryId);
       if (loopIds.length === 0) return null;
       return {
         index: prev.index + 1,
         loopIndex,
-        startIndex: 0,
+        pos: 0,
+        startIndex,
         ids: loopIds.slice(0, size),
       };
     }
@@ -219,13 +240,14 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
     if (arrivals.length > 0) {
       // Right after the overlap clip: an arrival is on screen within a clip or two, and never in
       // the middle of the hold a viewer is already watching.
-      loopIds.splice(nextStart + 1, 0, ...arrivals);
+      loopIds.splice(pos + 1, 0, ...arrivals);
     }
     return {
       index: prev.index + 1,
       loopIndex,
-      startIndex: nextStart,
-      ids: loopIds.slice(nextStart, nextStart + size),
+      pos,
+      startIndex,
+      ids: loopIds.slice(pos, pos + size),
     };
   }
 
@@ -240,6 +262,7 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
       const first: Slot = {
         index: 0,
         loopIndex,
+        pos: 0,
         startIndex: 0,
         ids: loopIds.slice(0, size),
       };
@@ -467,8 +490,10 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
         startIndex: slot.startIndex,
         ids: slot.ids,
         itemFor: (id) => items.get(id),
-        seed: takeSeed(eventId, slot.loopIndex),
+        seed,
         look,
+        // The album's only clip holds rather than handing over to an identical plan every tick.
+        alone: slot.ids.length === 1 && eligibleItems().length <= 1,
       });
       if (!built) return null;
       windows.set(key, built);
@@ -494,11 +519,11 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
       const built = buildWindow({
         index: from.index,
         loopIndex: from.loopIndex,
-        // The on-screen clip's own offset: its plan does not change underneath it.
+        // The on-screen clip's own ordinal: its plan does not change underneath it.
         startIndex: from.startIndex + at,
         ids,
         itemFor: (id) => items.get(id),
-        seed: takeSeed(eventId, from.loopIndex),
+        seed,
         look,
       });
       if (!built) return null;
@@ -508,6 +533,7 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
       const slot: Slot = {
         index: from.index,
         loopIndex: from.loopIndex,
+        pos: posInLoop >= 0 ? posInLoop : 0,
         startIndex: built.startIndex,
         ids: built.ids,
       };
@@ -526,17 +552,24 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
       const at = from.ids.indexOf(clipId);
       const tail = at >= 0 ? from.ids.slice(at) : [clipId, ...from.ids];
       // Everything from the departing clip onward, minus whatever else has left since. The tail is
-      // topped up from the loop when the window has nothing after it, so the reel has somewhere to
-      // cut TO.
+      // topped up when the window has nothing after it, so the reel has somewhere to cut TO.
       const ids = tail.filter((id) => id === clipId || items.has(id));
       if (ids.length < 2) {
-        const after = loopIds
-          .filter((id) => !ids.includes(id))
-          .slice(0, size - 1);
-        ids.push(...after);
+        // ★ FROM WHAT COMES NEXT, NEVER FROM THE LOOP'S HEAD. The departing clip has already left
+        // `loopIds`, so "next" is whatever follows the last clip of this window still in the order
+        // (the clip before the departing one, usually). Topping up from the head replayed the
+        // loop's opening photographs and handed the next window a clip the cutaway never showed.
+        const anchor = [...from.ids.slice(0, Math.max(0, at))]
+          .reverse()
+          .find((id) => loopIds.includes(id));
+        const from0 = anchor ? loopIds.indexOf(anchor) + 1 : 0;
+        const upcoming = [...loopIds.slice(from0), ...loopIds.slice(0, from0)];
+        ids.push(
+          ...upcoming.filter((id) => !ids.includes(id)).slice(0, size - 1),
+        );
       }
       if (ids.length === 0) return null;
-      return buildCutaway({
+      const cut = buildCutaway({
         index: from.index,
         loopIndex: from.loopIndex,
         startIndex: from.startIndex + Math.max(0, at),
@@ -544,9 +577,32 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
         // The departing clip has already left `items`, so it is served from the last thing we knew
         // about it — otherwise there would be nothing to transition away from.
         itemFor: (id) => items.get(id) ?? departed.get(id),
-        seed: takeSeed(eventId, from.loopIndex),
+        seed,
         look,
       });
+      if (!cut) return null;
+
+      // ★ THE CUTAWAY IS THE CHAIN NOW, as a rewindow is. The next window must open on the clip
+      // this one hands over on (its last), or the handover lands on a different photograph mid-
+      // hold. So the slot at this index becomes the cutaway's own order, and everything planned
+      // after it (from the order before the drop) goes.
+      const last = cut.ids[cut.ids.length - 1];
+      const lastPos = last ? loopIds.indexOf(last) : -1;
+      const slot: Slot = {
+        index: from.index,
+        loopIndex: from.loopIndex,
+        pos: Math.max(0, lastPos - (cut.ids.length - 1)),
+        startIndex: cut.startIndex,
+        ids: cut.ids,
+      };
+      slots.set(from.index, slot);
+      lastBuilt = slot;
+      for (const [index] of slots) if (index > from.index) slots.delete(index);
+      for (const key of [...windows.keys()]) {
+        if (Number(key.split("~")[0]) >= from.index) windows.delete(key);
+      }
+      rev += 1;
+      return cut;
     },
 
     async prepare(window, { needs, frame, signal }) {
