@@ -102,8 +102,9 @@ export function AlbumHeader() {
 
 /** The guest album's own ground for the `pointer` ask: the confirmed header,
  *  then whatever the decision draws where the moment card lives. No gallery
- *  strip beneath it: the album's own shape belongs to `guest-shape` and
- *  `gallery-width`, worn here as law rather than redrawn. */
+ *  strip beneath it: the album's own shape is `guest-shape` and
+ *  `album-columns`' own question, drawn here as production has it rather
+ *  than redrawn. */
 export function AlbumGround({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-full bg-background text-foreground">
@@ -134,10 +135,10 @@ export function Thumb({ url, size = 40 }: { url: string; size?: number }) {
 }
 
 /**
- * A TOAST, QUOTED (the toasts board's own ruling, wired: the Toaster sits at
- * the top under the bar). `fixed`, never `absolute`, for the reason every
- * quoted floating surface here is: the frame is the viewport regardless of
- * what an ancestor's height resolves to.
+ * A TOAST, QUOTED (the shipped Toaster sits at the top under the bar).
+ * `fixed`, never `absolute`, for the reason every quoted floating surface
+ * here is: the frame is the viewport regardless of what an ancestor's height
+ * resolves to.
  */
 export function ToastVisual({ lines }: { lines: ReactNode[] }) {
   return (

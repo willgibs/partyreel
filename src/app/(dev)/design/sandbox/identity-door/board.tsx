@@ -15,6 +15,8 @@ import {
   NudgeWelcome,
   QuotedConfirmDialog,
   QuotedNameMenu,
+  WalkCombined,
+  WalkSeparate,
 } from "./parts";
 import { AlbumGround, DoorFrame, screenOf, type ScreenId, Scene } from "./scene";
 import { IDENTITY_DOOR } from "./spec";
@@ -22,14 +24,16 @@ import { IDENTITY_DOOR } from "./spec";
 /**
  * THE PREVIEWS, AND NOTHING ELSE (`guest-capture/board.tsx`'s own discipline,
  * carried here). Every option is Priya's own screen, held at today's shape
- * everywhere but the one thing its decision asks: `field`'s three vary only
- * how the email sits against the name; `nudge`'s vary only where a sign-in
- * path appears (the name step is held at ITS OWN today, both fields open,
- * for every `nudge` option, since `field`'s round is a different question);
- * `gate`'s vary only the eyebrow and whether a benefit list follows the one
- * ruled sentence; `menu`'s vary only the dropdown's own shape; `remove`'s
- * vary only where a control to undo an email lives, on the SAME menu shape
- * (`rows`, both shipped and this board's own recommendation for `menu`).
+ * everywhere but the one thing its decision asks: `walk`'s three vary only
+ * whether the welcome stands on its own screen or folds into the name step;
+ * `field`'s three vary only how the email sits against the name; `nudge`'s
+ * vary only where a sign-in path appears (the name step is held at ITS OWN
+ * today, both fields open, for every `nudge` option, since `field`'s round is
+ * a different question); `gate`'s vary only the eyebrow and whether a benefit
+ * list follows the one shipped sentence; `menu`'s vary only the dropdown's
+ * own shape; `remove`'s vary only where a control to undo an email lives, on
+ * the SAME menu shape (`rows`, both shipped and this board's own
+ * recommendation for `menu`).
  *
  * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED (the same discipline
  * `guest-capture` and `media-viewer` hold every number to): a field count,
@@ -40,6 +44,46 @@ import { IDENTITY_DOOR } from "./spec";
 
 type Reader = (root: HTMLElement, win: Window) => string | null;
 const screen = (s: BoardState): ScreenId => screenOf(s.screen as string);
+
+/* ── walk: whether the welcome's own words share this screen with the name ─── */
+
+const measureWalk: Reader = (root) => {
+  const sheet = root.querySelector("[data-door-sheet]");
+  if (!sheet) return null;
+  const hasWelcome = Boolean(sheet.querySelector("[data-id-welcome-lines]"));
+  const hasName = Boolean(sheet.querySelector("#id-door-name"));
+  if (hasWelcome && hasName) {
+    return "Measured: the welcome's own words and the name field share one screen.";
+  }
+  if (hasWelcome) {
+    return "Measured: the welcome's own words alone fill this screen; the name field is a tap away.";
+  }
+  return "Measured: no welcome copy on this screen, only the name field, exactly a returning device's own screen today.";
+};
+
+function walkScreen(id: "separate" | "combined" | "gone", s: BoardState) {
+  const sc = screen(s);
+  const content =
+    id === "separate" ? (
+      <WalkSeparate />
+    ) : id === "combined" ? (
+      <WalkCombined />
+    ) : (
+      <div data-id-walk="gone">
+        <FieldShown />
+      </div>
+    );
+  return (
+    <Scene
+      id={`walk-${id}`}
+      screen={sc}
+      title="The welcome step"
+      measure={measureWalk}
+    >
+      <DoorFrame screen={sc}>{content}</DoorFrame>
+    </Scene>
+  );
+}
 
 /* ── field: how many inputs stand before Continue, and whether one is closed ─ */
 
@@ -216,6 +260,10 @@ function removeScreen(
 /* ── the map the step draws from ─────────────────────────────────────────── */
 
 const PREVIEWS: PreviewsFor<typeof IDENTITY_DOOR> = {
+  "walk.separate": (s) => walkScreen("separate", s),
+  "walk.combined": (s) => walkScreen("combined", s),
+  "walk.gone": (s) => walkScreen("gone", s),
+
   "field.shown": (s) => fieldScreen("shown", s),
   "field.ghost": (s) => fieldScreen("ghost", s),
   "field.step": (s) => fieldScreen("step", s),
