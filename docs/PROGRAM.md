@@ -21,16 +21,18 @@ carries every back-and-forth and lands everything.
 
 ## The round
 
-1. **Will asks**; the Orchestrator asks him the two or three questions that branch the work (a one-way door always
-   waits for his answer, which then lives in its system doc), then cuts one lane per board.
+1. **A board opens** on Will's ask, or on an improvement the Orchestrator or a lane sees, even on a surface just
+   explored: the idea is reason enough. For his asks the Orchestrator asks him the two or three questions that branch
+   the work (a one-way door always waits for his answer, which then lives in its system doc), then cuts one lane per
+   board.
 2. **The lane returns DECISIONS** at `/design/lab/<board>` (below) and hands off; an exploration ships no production
    byte and verifies light (the board at 1440 and 375, reduced motion, the gate). The Orchestrator integrates one
    lane at a time, with one alias build per round.
 3. **Will reviews on the desk** (`/design/lab?key=`), one question at a time; the Orchestrator transcribes his answers.
 4. **Picks are built**: the wiring round lands each in production, a refined pick refined inside the wiring, with
-   its red-team. The board retires with its losing options and its ledger; nothing records a pick as a rule. A covered surface stays
-   open: a later round may explore it again with fresh ideas, starting from production with his notes as direction
-   (`registry.test.ts` checks that a board past round 1 has them).
+   its red-team. The board retires with its losing options and its ledger; nothing records a pick as a rule, and a
+   later board on the same surface starts from production with his notes as direction (`registry.test.ts` checks
+   that a board past round 1 has them).
 
 ## Agent boot
 

@@ -102,6 +102,7 @@ on, local and live.
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
 - The items, one line each
 - Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
