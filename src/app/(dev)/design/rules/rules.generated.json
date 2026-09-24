@@ -19045,6 +19045,13 @@
       "line": 1
     },
     {
+      "file": "src/lib/db/row-cap-policy.test.ts",
+      "scope": "engineering",
+      "title": "Every read reaches its last row",
+      "summary": "an unbounded PostgREST read, an unchunked .in() list, an unpaged set-returning RPC, a MAX_ROWS off config.toml, and a row-cap marker over a statement that no longer offends.",
+      "line": 1
+    },
+    {
       "file": "src/lib/elevation-policy.test.ts",
       "scope": "engineering",
       "title": "Two shadows, each declared by its role",

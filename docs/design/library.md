@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**22 laws · 18 policies · 1299 contracts on 168 components · 26 standing boards.**
+**22 laws · 19 policies · 1299 contracts on 168 components · 26 standing boards.**
 
 ## What binds you
 
@@ -218,6 +218,7 @@ A design-scoped policy that no bible rule cites fails `rules-registry.test.ts`.
 | --- | --- | --- |
 | Keyframe names are unique | a second @keyframes of the same name in any stylesheet, which shadows the first for the rest of the session. | `src/app/keyframe-uniqueness.test.ts:1` |
 | Bible 15: one floating layer, read from one contract | a floating primitive that spells its own corner, entrance or clock instead of reading floating-layer.ts, a fourth clock rung, and any translucency on a panel while the Glass exploration is banked. | `src/components/ui/floating-layer.test.ts:1` |
+| Every read reaches its last row | an unbounded PostgREST read, an unchunked .in() list, an unpaged set-returning RPC, a MAX_ROWS off config.toml, and a row-cap marker over a statement that no longer offends. | `src/lib/db/row-cap-policy.test.ts:1` |
 | Two shadows, each declared by its role | a stock Tailwind shadow, a hand-typed box-shadow or the retired shadow-float name on a production surface, and a ground that re-declares the theme without both shadows. | `src/lib/elevation-policy.test.ts:1` |
 | The record is a snapshot; git is the history | a docs/CHANGELOG.md (what shipped is the merge commits and git log), a STATUS over 80 lines or without its current round, a CLAUDE.md over 150 lines. | `src/lib/record-depth-policy.test.ts:1` |
 | One name, one module | the same UPPER_SNAKE constant exported from two modules under src/lib, which two green branches can each introduce. | `src/lib/single-source-policy.test.ts:1` |

@@ -17,6 +17,12 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Albums: the host's and the guest's album, and the guest poll, read every row on each load (a round trip per 1,000 and three presigns per item); past a few thousand items a paged album (cursor pages in display order, a virtualised grid, a delta poll) replaces the whole read.
+- Guest: the gallery poll's 304 still reads the whole album and the uploader-identity sweep before it compares the ETag; a per-event change signal (a version bumped by the triggers that ring the doorbell) makes a quiet poll one query.
+- Performance: a presign cache keyed on (key, disposition, 30-minute bucket): each bucket roll re-presigns every album for every poller.
+- Profile: My uploads and My likes stop at 200 with an honest note (`get_my_uploads`, `get_my_likes`); a cursor and a load-more.
+- Engineering: `partyreel/no-swallowed-db-error` misses an array destructure off `Promise.all` (`render-service.ts:177`, `forensics.ts:85`, `admin/forensics/export/route.ts:101`); teach it array patterns once stage 2 binds the three.
+- Engineering: one drop-aware migration reader shared by `row-cap-policy.test.ts`, `row-cap-sql.test.ts` and `migration-guards.test.ts` (each has its own; `latestDefinition` sees creates only).
 - Code hygiene: `src/lib/db/queries/storage.ts`'s `tallyStorageRows` and its header (lines 8, 39, 47, 51) still define standby as "everything not active" with no `removed_by_uploader` and no caller: retire it, or carry the marker.
 - Host: `restore_event`'s `media_still_removed` (20260729190000, line 441) counts a guest's withdrawals too; no screen shows it today, and a future "N items stay in Deleted" line must count `removed_by_uploader = false` only.
 - Tests: `src/app/(guest)/u/[slug]/owner-mode.test.ts`'s allowed-reader list could name `listEvents` (the owner-RLS read `owner-sections.tsx` now makes; its regexes catch only `get*` names).
