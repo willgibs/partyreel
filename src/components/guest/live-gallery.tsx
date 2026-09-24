@@ -365,22 +365,36 @@ function LiveGalleryView({
         // Likes: anonymous guests get the like button -> the create-account flow;
         // signed-in guests toggle in place. Counts stay host-only.
         <LikesProvider mediaIds={items.map((m) => m.id)}>
-          {/* A subtle gallery-level "Download all" (the album doubles as the shareable copy) beside the
-              ONE View menu (`controls-home=view-menu`; `theirs=mark`'s own note against a spread of
-              configs). Both hidden in demo mode (simulated tiles aren't real downloads; there is no
-              cookie to persist) + on a locked gallery. The download modal's summary re-derives the real
-              downloadable set server-side (a teaser downloads exactly its visible set). */}
-          {!isDemo && access !== "none" && items.length > 0 && (
-            <div className="mb-3 flex flex-wrap items-center justify-end gap-1.5">
-              <ExportDialog scope="guest" albumKey={qrToken}>
-                <button
-                  type="button"
-                  className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:text-save active:scale-[0.98]"
-                >
-                  <Download className="size-4" /> Download all
-                </button>
-              </ExportDialog>
-              <ViewMenu groups={viewGroups} />
+          {/* THE ALBUM'S OWN COUNT (Will, `reel-front` r1: the reel tile shows no number of moments,
+              "the album beneath can have a subtle total items number label"). It is the header's
+              number, `count` (albumCount over the payload's approvedTotal), worded with the header's
+              and the CTA's always-both-nouns rule, so the page never counts one album two ways; the
+              demo shows it too (its tiles are the demo's album).
+
+              Beside it, a subtle gallery-level "Download all" (the album doubles as the shareable copy)
+              and the ONE View menu (`controls-home=view-menu`; `theirs=mark`'s own note against a
+              spread of configs). Both hidden in demo mode (simulated tiles aren't real downloads; there
+              is no cookie to persist) + on a locked gallery. The download modal's summary re-derives
+              the real downloadable set server-side (a teaser downloads exactly its visible set). */}
+          {access !== "none" && items.length > 0 && (
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-1.5">
+              <p className="px-0.5 text-working text-muted-foreground tabular-nums">
+                {count} {count === 1 ? "photo" : "photos"}
+                {" & videos"}
+              </p>
+              {!isDemo && (
+                <div className="ml-auto flex items-center gap-1.5">
+                  <ExportDialog scope="guest" albumKey={qrToken}>
+                    <button
+                      type="button"
+                      className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:text-save active:scale-[0.98]"
+                    >
+                      <Download className="size-4" /> Download all
+                    </button>
+                  </ExportDialog>
+                  <ViewMenu groups={viewGroups} />
+                </div>
+              )}
             </div>
           )}
           {/* THE YOURS LINE (`theirs=mark`, Will 2026-09-20). A LINE and not a

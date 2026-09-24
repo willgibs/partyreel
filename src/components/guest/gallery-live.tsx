@@ -3,15 +3,14 @@
 /**
  * ★ ONE LIVE SOURCE FOR THE ALBUM AND THE REEL (reel-guest-wiring, 2026-09-24).
  *
- * The live gallery's state used to live inside `LiveGallery`, which is exactly why the shipped reel
- * was static: the reel card read the SEED promise (`galleryPromise`), the one thing on the page that
- * never changes, while the doorbell and the poll kept only the grid current. So the state is lifted
- * here, into a provider mounted above BOTH the album and the reel (the tile, the full-screen view,
- * the toast): the refreshed item list, the arrival ids, this device's own ids, the optimistic tiles
- * of its approved uploads, and everything that keeps them current (`refresh`, the doorbell,
- * `useLivePoll`, the ETag, the stricter-drift guard). The album draws what it reads here; the reel
- * reads the same list, so an upload that reaches the grid reaches the reel in the same breath and a
- * hidden photograph leaves both at once.
+ * The live gallery's state lives here, in a provider mounted above BOTH the album and the reel (the
+ * tile, the full-screen view, the toast), because a reel that read the SEED promise
+ * (`galleryPromise`) would be static: the seed is the one thing on the page that never changes, while
+ * the doorbell and the poll keep this list current. It holds the refreshed item list, the arrival
+ * ids, this device's own ids, the optimistic tiles of its approved uploads, and everything that keeps
+ * them current (`refresh`, the doorbell, `useLivePoll`, the ETag, the stricter-drift guard). The
+ * album draws what it reads here; the reel reads the same list, so an upload that reaches the grid
+ * reaches the reel in the same breath and a hidden photograph leaves both at once.
  *
  * ★ URLS ARE LOOKED UP BY ID, NEVER HELD. Every consumer reads a presigned url from the LATEST item
  * at the moment it needs one (the reel's source does, live/items.ts), and the poll re-presigns on
