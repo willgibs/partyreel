@@ -35,6 +35,8 @@ through `scripts/build-lock.sh` (the kit's gate takes it itself).
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `refresh-reel-host` | `reel-screen` and `reel-host` refreshed under the new guidance (strong options kept and improved, bolder directions added, nothing fenced by a past pick) | running (agent `ae61fe3e9bbb13c94`), cut at `75631277` | Opus, :3131 | integrate as it lands; its boards into their leverage places; one `[preview]` when the wave is in |
+| `refresh-pages` | `help-center`, `emails`, `contact-page` and `press-page` refreshed | running (agent `a265e63ffcfab973f`), cut at `011d1f52` | Sonnet, :3132 | integrate; then the wave's `[preview]` for Will's sitting |
+| `mandate-sweep` | the comments and lab text outside the boards (172 files) state their reason, never a pick, a ruling or a law; the docs lanes' pointer repairs | running (agent `ac7728734ce8ddfb8`), cut at `011d1f52` | Sonnet, :3133 | integrate; return marketing.css, globals.css and theme.css to `owns` |
 | `reel-guest-wiring` | the live reel's guest side: the seam fix, minimum 2, the provider lift, the Highlight reel tile, the view that is also the wall, the toast, the cut's seam, the photo link card | handed off at `0384a77b` (Will's morning rulings built: the welcome comes first everywhere, landscape fills; a portrait photo on a landscape screen sits whole on its own blur, his to overrule); handed off again at `f3aa612c`, synced past the lean round (directives stripped, comments synthesized, the entry-modal flake fixed); HELD unmerged (agent `a744f57e3c4cbd81f`) | Opus, :3137 | integrate with the cut and host lanes in one stretch; the reel picture, the Start's fullscreen and wake lock and the toast prove on that alias build (R2 answers CORS only for the alias and prod) |
 
 ## Next, in order
@@ -42,22 +44,14 @@ through `scripts/build-lock.sh` (the kit's gate takes it itself).
 The lean round's rest (Will's words drive it; everything is guidance, one home, nothing treated as finished).
 Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/`.
 
-1. **The rest of the refresh wave** as memory frees (held at six lanes while about 10 GB sat compressed): `refresh-pages`
-   (spec ready in `specs/`), then
-   **the mandate sweep**: `python3 $S/make-sweep-spec.py` computes its owns at the cut (the files outside every live
-   lane and the boards that frame a choice as authority), `sweep-brief.md` and `sweep-pointers.md` beside it.
-2. **`reel-guest-wiring`, one message** (sent 2026-09-24 with the wave; it hands off again, still held): sync; strip `@contract-for`, `@policy` and `@refuses`
-   from its 22 test headers; its comments keep their reason and drop authority ("bible N", "Will ruled", "law");
-   `guest-flow.md`'s "bible 4 refuses" names the bible's seventh principle; `entry-modal.test.tsx`'s Radix focus-scope
-   timer throws after teardown under load (four unhandled errors in gate 158, green on rerun); re-gate; hand off again.
-3. **When the wave is in**: one `[preview]` for Will's sitting (`album-columns` first; build 6, `d3135de`, already
+1. **When the wave is in**: one `[preview]` for Will's sitting (`album-columns` first; build 6, `d3135de`, already
    serves the new Library and that board, and its Vercel log confirms the source-map upload).
-4. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
+2. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
    self-registering folder, its metadata in its spec, lab checks scoped to the lane's own boards, the authoring API
    trimmed, a fresh agent proving it; with library-lean's board ideas (a `Surfaces` family of live frames per route
    with guest entries, the Library's sidebar open by default, a plain-text view of Library pages, and a
    retire-or-reuse call on `anonymous-info.tsx` and `floating-add-button.tsx`).
-5. **The reel round**, after Will's desk review (the plan file's batch-1 and reel sections).
+3. **The reel round**, after Will's desk review (the plan file's batch-1 and reel sections).
 
 ## Waiting on Will
 
