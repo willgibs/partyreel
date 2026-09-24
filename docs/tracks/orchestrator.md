@@ -35,7 +35,6 @@ model Will seats (Fable or Opus); nothing here depends on which.
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `reel-guest-wiring` | the live reel's guest side: the seam fix, minimum 2, the provider lift, the Highlight reel tile, the view that is also the wall, the toast, the cut's seam, the photo link card | running | Opus, :3132 | HOLD unmerged until the cut and host lanes are ready (one alias build replaces the stored reel) |
-| `reel-refresh-host` | `reel-screen` round 2 (the reel on a big screen) and `reel-host` re-cut with the merged `open` and `review` and the progression ask | running | Opus, :3133 | integrate; then the `[preview]` for his sitting once all three lab lanes land |
 
 ## Next, in order
 
@@ -52,8 +51,8 @@ milestone and a destructive migration each still need his yes.
 1. **The scale probe stays** as a standing large-album fixture (event "Scale probe" `14bb4318-80cd-4eed-b219-92c097ee16c7`,
    qr `d02631f1bfb3455188d224e41bf9510f`; 1,145 approved, 20 pending, 30 host-removed, 5 withdrawn; Review ON since the
    red-team). Its removed rows purge on 2026-10-23.
-2. **Desk review batch 1** (2026-09-24; the plan file's head): the five lanes in flight; the lab lanes integrate as
-   they land, then one `[preview]` for his next sitting (with `media-viewer-wiring` if it has merged).
+2. **Desk review batch 1** (2026-09-24; the plan file's head): the three lab lanes and `media-viewer-wiring` merged
+   (gates 148 to 151); build 5 (`[preview]`) carries them for his next sitting.
    `reel-guest-wiring` waits handed off, unmerged, until the cut and host lanes are ready: one alias build replaces the
    stored reel. The drop (`20260924110000_live_reel_drop.sql`, on the tree, unapplied) follows that build's red-team,
    on his yes (destructive).
