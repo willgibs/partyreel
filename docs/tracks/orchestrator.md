@@ -56,22 +56,11 @@ here"); work inside this round is fixed near-term, larger work goes to the ROADM
      host-removed, five guest-owned withdrawn among p0051-p0056, the three oldest approved liked by willg97 and
      hi@willgibs (1,145 approved; the oldest approved is p0053). ★ Prod's orphan sub-sweep fails closed from
      2026-09-25 04:00 UTC (the probe's objects past 24 h meet the unchunked `.in()`) until milestone 28 ships.
-2. **Alias build 4** after stage 2 (`[preview]` on the record; `alias-ensure.mjs`; the prune), then the red-team in
-   Will's Chrome (the chooser only; clear the alias's `pr_session_*` first if a test needs a fresh door):
-   - `upload-owner`, on ONE browser: account A uploads to a names-mode event (`guest-view-menu QA`,
-     `13513a6555214314b6eeac64232b541a`); A signs out (once through the guest page's account menu, once through the
-     app's); B signs in and uploads: B's own row, B's address under it in the host's viewer and Guests room; B signs
-     out; a signed-out upload meets the door with an empty name field; as B, restoring A's `pr_session_<qr>` then adding
-     a photo shows presign 403 `session_other_account`, the re-join, presign 200, the photo as B; a signed-out presign
-     with a confirmed row's ticket on a verified-emails event answers 403.
-   - `delete-final`: the guest's own delete confirm reads "deleted from the event right away and can't be recovered";
-     the item appears on no host surface; the host's "in Recently deleted" figure moves only for a host removal.
-   - The probe, as willg97: the hub's count, Review's 20 oldest, the Deleted bin's 30 (never the five withdrawn), the
-     oldest photo reachable, the three old likes counted, Download all's summary whole (read from the response), the
-     dashboard card's count and a cover on EVERY card, the pulse's today; as a guest: the header equals the approved
-     total, the oldest photo reachable, the poll 200 then 304, the export's summary whole; as partyr33l: `/admin`
-     metrics, the probe's moderation album whole, `/admin/jobs` showing the purge run's counts; no `db/row_cap_hit` in
-     Sentry.
+2. **Done: alias build 4** (`6e67494b`) red-teamed 2026-09-24 in Will's Chrome (the probe whole for the host and a
+   guest, upload-owner's tickets, delete-final's copy and host invisibility; results in STATUS). The Scale probe's Review
+   was turned ON for the queue check (left on). Open: the admin portal's live look (`/admin`, `/admin/metrics`,
+   `/admin/jobs`, `/admin/albums/<probe>`) needs Will's TOTP; the lanes pinned those pages in tests and the snapshot's
+   figures equal a SQL hand count.
 3. **Milestone 28** (approved): the full gate on `launch-prep` (`rm -rf .next/dev`; typecheck, lint, test, build,
    `lab:smoke`, `lab:demo`), `git checkout main && git merge --no-ff launch-prep` with the message in a file written by
    a QUOTED heredoc (`<<'EOF'`: an unquoted one ran a backticked word as a command in milestone 27's message), an

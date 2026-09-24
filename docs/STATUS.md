@@ -43,9 +43,12 @@ order: `media-viewer`, `reel-view`, `reel-front`, `reel-screen`, `reel-cut`, `re
   the dashboard renders again, `/account` and profiles, the demo reads "from 3 guests", a real upload held for review
   on a verified-emails event, the lab 404s without its key, no runtime error since the deploy. `admin.partyreel.com`
   is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `a760b998` (build 3), red-teamed
-  2026-09-23 in Will's Chrome; the red-team found a kept ticket crediting the next person's uploads to a confirmed
-  guest (`upload-owner`). No push deploys; each `[preview]` record gets one build by API
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `6e67494b` (build 4), red-teamed
+  2026-09-24 in Will's Chrome: the scale probe whole for the host (1,145 on the card, the hub and Download all; Review's
+  20 oldest; the bin's 30, no withdrawal) and for a guest (the poll 1,145 then 304); a kept ticket never credits the next
+  account (a planted foreign ticket re-joined as the signer; signed-out presigns with confirmed tickets 403); a guest's
+  own delete reads "deleted from the event right away and can't be recovered" and reaches no host surface. The admin
+  portal's live look waits on Will's TOTP. No push deploys; each `[preview]` record gets one build by API
   ([`usher/kit/README.md`](../usher/kit/README.md)).
 - **Data:** disposable test data only; the accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md). The disposable events stay in the states the
