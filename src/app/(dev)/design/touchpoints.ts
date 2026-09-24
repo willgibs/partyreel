@@ -259,7 +259,7 @@ export const RULINGS: Ruling[] = [
     surface: "marketing",
     asks:
       "the footer beneath a page's own closing call to action: its register, a page with none above it, and the phone",
-    why: "Most pages close on a call to action, so the footer's demo invitation has to work beneath one rather than repeat it; the rest of the chrome is ruled.",
+    why: "Most pages close on a call to action, so the footer's demo invitation has to work beneath one rather than repeat it; the rest of the chrome is built.",
     lives: [
       "docs/systems/marketing-content.md",
       "src/components/marketing/chrome/marketing-header.tsx",
@@ -297,7 +297,7 @@ export const RULINGS: Ruling[] = [
       "src/components/social/profile-slug-control.tsx",
     ],
     board: {
-      note: "Three decisions on the shipped guest list and profile, phone first at 375 with 1440 on the knob, a 240-name fixture beside round one's 24 (Will's own edge case, a quarter of his imagined thousand): how the full list opens from the faces row, what a name opens first, and how a profile keeps the scanned event reachable",
+      note: "Three decisions on the shipped guest list and profile, phone first at 375 with 1440 on the knob, a 240-name fixture beside a 24-name one: how the full list opens from the faces row, what a name opens first, and how a profile keeps the scanned event reachable",
       variants: ["View all", "Quick-look", "Way back"],
     },
   },
