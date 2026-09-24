@@ -49,8 +49,8 @@ Google, and a password as a quiet second door; passkeys wait behind a flag. `get
   try/catch (`localStorage` throws when site data is blocked), shown masked, and written only where the address is
   known before the door is left. The guest gate and the confirm door never read it, so a phone passed around a party
   never shows the last guest's address; no address ever goes in a URL.
-- **Passkeys** turn on with `NEXT_PUBLIC_PASSKEYS=1`, which opts the browser client into auth-js's experimental
-  passkey API (2.106 throws without it) and shows the button, the post-code offer and the account card. ★ Enable
+- **Passkeys** wait behind `NEXT_PUBLIC_PASSKEYS=1`, which also opts the browser client into auth-js's experimental
+  passkey API (2.106 throws without it). ★ Enable
   passkeys in the Supabase dashboard with the WebAuthn Relying Party id set to the apex BEFORE the flag ships: a
   passkey registered against the wrong RP id is a credential the door can never see again. The button comes from a
   device hint (`pr_passkey_hint`), never a load-time browser prompt, which would throw a system sheet at a

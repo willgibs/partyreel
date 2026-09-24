@@ -11,13 +11,12 @@ conventions ([database-security.md](database-security.md)).
 
 ## What each upload captures
 
-Every completed upload writes one deny-all `upload_forensics` row at the complete seam: raw IP, timestamp, the full
-user agent, the `sec-ch-*` client hints, Vercel's coarse geo, the uploader linkage the seam already holds (the host
-id; or the guest id, user id and email, the typed `guest_display_name` and the unproved `guest_pending_email`,
-denormalized at upload, which for a guest who proved no email are the whole identity on record), and a durable
-first-party device UUID (`pr_device_id` in localStorage, sent with the complete request, indexed for cross-event abuse
-correlation). The row lives exactly as long as its media (`on delete cascade`). The privacy policy and the Terms
-disclose this capture, so a new column changes their words too.
+Every completed upload writes one deny-all `upload_forensics` row at the complete seam: the network and device facts
+(raw IP, user agent and client hints, Vercel's coarse geo, a first-party device UUID, `pr_device_id`, indexed for
+cross-event abuse correlation) and the uploader linkage the seam already holds, denormalized at upload (for a guest who
+proved no email, the typed `guest_display_name` and the unproved `guest_pending_email` are the whole identity on
+record). The row lives exactly as long as its media (`on delete cascade`). The privacy policy and the Terms disclose
+this capture, so a new column changes their words too.
 - ★ **The device UUID, and every forensic column, is capture-only:** never product logic, never a gate, never shown to
   a host or a guest. The readers are `/admin/forensics` and a lawful-process response: the guest's typed name and
   unproved address appear only on the `?what=record` export, and no page renders either.
