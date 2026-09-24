@@ -1,6 +1,6 @@
 ---
 track: rowcap-host
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "30c3fecd"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -154,24 +154,128 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- None new: no fix needed a new SQL shape. Every call taken on the brief's recommendation is under "Calls his to overrule" below.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/profiles-social.md`: the data layer's read rules (keyset pages, `inChunks`, `social.test.ts` past 2,000 rows); profile cards through `inChunks`; the attended covers' gates never put the attended list in one URL; every card cover is `event_covers`, the preview when there is one; the graph's only readers (no followers list, no followed-hosts feed).
+- Lines for other lanes' docs, the Orchestrator's to place:
+  - `host-app.md`, the "Just arrived" bullet, after "captioned with the window it settled on ([`arrivals.ts`](...))": "; the window's number is a HEAD count over every approved upload of the host's live events, never a read's length, and the row view's newest four are read per event (one row per event, the four embedded), so every event has its strip".
+  - `host-app.md`, the "Your events" bullet, append: "The cards' counts are `event_card_stats` and their covers `event_covers` (one jsonb each for any number of events, the ids in the POST body); \"X of N used\" is `countActiveEvents()`, a head count."
+  - `host-app.md`, the Guest cards sentence: "a cover (the newest approved photograph, `adminCoverUrls`)" becomes "a cover (the newest approved photograph through `event_covers`, its preview when it has one)".
+  - `admin-observability.md`, Support / Applicants, append: "Each inbox shows its newest 50 and says so under the list; Show 50 more deepens it through the URL's `?show=` (`lib/admin/list-depth.ts`, `ShowMoreLine`), which every row link carries."
+  - `admin-observability.md`, Reports, append: "Each arm shows its newest 50 with the same line (one `?show=` for both arms); its event, media and profile lookups ride `inChunks` and its presigns run at once."
+  - `admin-observability.md`, Albums, append: "The drill-in reads the album whole and its status line is four HEAD counts."
+  - `admin-observability.md`, Overview, append: "The four figures are `admin_metrics_snapshot()`'s counted fortnight (the operator left out in SQL); each inbox's age is one row, oldest first, and a failed read throws to the portal's error screen, never an undated row."
+  - `admin-observability.md`, Metrics: "The migration-free service-role aggregator" becomes "The service-role aggregator (`admin_metrics_snapshot()`, one jsonb, plus HEAD counts)", and after "read LIVE (`getPlatformRevenue`": "over every active subscription (`for await`)".
+  - `trust-safety-forensics.md`, the Admin bullet, after "reads in [`db/queries/forensics.ts`](...)": " (every hold read whole, its lookups chunked; a failed count or lookup throws, and the record export fails with an error audit row when its media or event read fails)".
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- The lab and the kit: `fake-postgrest` reads a dotted filter on a TO-MANY embed (`media.status` on `events -> media`) as a filter on the parent and drops the row; teach it to filter the embedded rows, so the pulse's strip read can take the plain `.eq("media.status", ...)` form (`pulse.ts` writes one `media.or=` logic tree today).
+- Admin: the album drill-in (`/admin/albums/[eventId]`) reads and presigns every item (2,500 tiles for 2,500 items); a paged drill-in past a few thousand, beside the Albums line.
+- ROADMAP lines this lane settles, the Orchestrator's to edit: delete "Code hygiene: `src/lib/db/queries/storage.ts`'s `tallyStorageRows` ..." (retired) and "Social: `adminCoverUrls` (`queries/social.ts`) reads every approved photo ..." (it reads `event_covers`); drop `getFollowedHostEventCards` from "Housekeeping: more files with no importer ..." (deleted); "The follow graph has no consumer worth the graph: ..." becomes "the Following chip left the dashboard and no query reads your followers or the events of the hosts you follow; a followed-hosts feed is new work"; "Engineering: `partyreel/no-swallowed-db-error` misses an array destructure ...": `forensics.ts:85` and `admin/forensics/export/route.ts:101` are bound, `render-service.ts:177` is rowcap-album's.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits:** work `bfd74371`, sync merge `0f3f4a99` (origin/launch-prep moved: `rowcap-guest` merged at `04ef2e02`; only the two generated Library files conflicted, on counts, and `pnpm design:rules` regenerated both on the merged tree). Both pushed.
+- **Gates on the synced tree**, each on its own exit code (logs: `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/rowcap-host/synced/`): `pnpm design:rules` 0 · `collect-specimens.mjs` 0 · `pnpm typecheck` 0 · `pnpm lint` 0 (8 warnings, none in a touched file) · `pnpm test` 0 (404 files, 4,488 passed, 1 skipped) · `pnpm build` 0 · `pnpm lab:smoke --base http://localhost:3133` 0 (521 checks, 0 failing). No board, so no `lab:demo`.
+- **Lane check**, `git diff --name-only origin/launch-prep...HEAD` pasted (plus this file, committed with the handoff):
+
+  ```
+  docs/design/library.md
+  docs/systems/profiles-social.md
+  src/app/(app)/dashboard/new/page.tsx
+  src/app/(app)/dashboard/page.tsx
+  src/app/(dev)/design/rules/rules.generated.json
+  src/app/admin/applicants/page.tsx
+  src/app/admin/forensics/export/route.test.ts
+  src/app/admin/forensics/export/route.ts
+  src/app/admin/page.tsx
+  src/app/admin/reports/page.tsx
+  src/app/admin/support/page.tsx
+  src/lib/admin/kpi.test.ts
+  src/lib/admin/kpi.ts
+  src/lib/admin/list-depth.test.ts
+  src/lib/admin/list-depth.ts
+  src/lib/admin/queue-data.test.ts
+  src/lib/admin/queue-data.ts
+  src/lib/admin/show-more.test.tsx
+  src/lib/admin/show-more.tsx
+  src/lib/billing/storage-summary.test.ts
+  src/lib/dashboard/arrivals.test.ts
+  src/lib/dashboard/arrivals.ts
+  src/lib/dashboard/card-facts.ts
+  src/lib/db/queries/analytics.test.ts
+  src/lib/db/queries/analytics.ts
+  src/lib/db/queries/applications.test.ts
+  src/lib/db/queries/applications.ts
+  src/lib/db/queries/claims.test.ts
+  src/lib/db/queries/claims.ts
+  src/lib/db/queries/events.test.ts
+  src/lib/db/queries/events.ts
+  src/lib/db/queries/forensics.test.ts
+  src/lib/db/queries/forensics.ts
+  src/lib/db/queries/guest-addresses.test.ts
+  src/lib/db/queries/guest-addresses.ts
+  src/lib/db/queries/likes.test.ts
+  src/lib/db/queries/likes.ts
+  src/lib/db/queries/media.test.ts
+  src/lib/db/queries/metrics.test.ts
+  src/lib/db/queries/metrics.ts
+  src/lib/db/queries/moderation.test.ts
+  src/lib/db/queries/moderation.ts
+  src/lib/db/queries/pulse.test.ts
+  src/lib/db/queries/pulse.ts
+  src/lib/db/queries/reports.test.ts
+  src/lib/db/queries/reports.ts
+  src/lib/db/queries/social.guest-identity.test.ts
+  src/lib/db/queries/social.test.ts
+  src/lib/db/queries/social.ts
+  src/lib/db/queries/storage.ts
+  src/lib/db/queries/support.test.ts
+  src/lib/db/queries/support.ts
+  src/lib/metrics/aggregate.test.ts
+  src/lib/metrics/aggregate.ts
+  src/lib/stripe/revenue.test.ts
+  src/lib/stripe/revenue.ts
+  ```
+
+  **Exceptions:** `docs/design/library.md` and `rules.generated.json` are generated by `pnpm design:rules` (the contract counts of `arrivals.ts` and `claims.ts` moved); `src/lib/db/queries/media.test.ts` (rowcap-album's) loses only the two cases that exercised `getPulse`, `getEventCardStats` and `getEventCoverUrls`, their imports and the then-unused `WITHDRAWN`, and its header names the new homes (`pulse.test.ts`, `events.test.ts`, where the counts and covers are SQL): their fake cannot answer an RPC or a dotted embed filter, and at merge their version plus these subtractions is the resolution; `src/lib/billing/storage-summary.test.ts` (no stage-2 lane's) loses the retired `tallyStorageRows`' import and its 35-line "definitions, in code" block, nothing added.
+- **Markers:** `git grep -n "row-cap-todo" -- <owns>` lists none. Two permanent markers: `moderation.ts:47` (unchanged: a feed page's host labels, at most 60 ids) and `forensics.ts:117` (new: `upload_forensics.media_id` is unique, `upload_forensics_media_idx`, so a chunk of 150 media ids reads at most 150 rows).
+- **The items:**
+  - C12: `likes.ts` pages `get_event_like_counts(p_event_id, p_after, p_limit)` on `media_id`; confirmed every reader defaults an absent id to 0 (`gallery-items.ts:72` is the one path; `quick-add.ts` reads `likeCount ?? 0`; `reel-builder.tsx:84` and `studio-moments-picker.tsx:66` pass the gallery item's already-defaulted count). `likes.test.ts`: 2,500 liked items in three pages.
+  - C13 + M3: `getEventCardStats` through `event_card_stats(uuid[])`, every asked-for event present, a drifted shape throws (`lib/dashboard/card-facts.ts`); the cards, the "N to review" chip and the next-step band keep their shape. `events.test.ts`: 2,500 ids in one POST, a 1,500-item album counts 1,500.
+  - C15 + N3 + M3: `pulse.ts` counts "N in the last hour" and "N today" as HEAD counts (`arrivals.ts` picks the window from `{ inHour, inToday }`, its contract updated), the strip is the newest twelve, each event's newest four are one row per event with the four embedded (per-parent `media.limit=4`), and every read names the host through `events!inner`; the header's settings-page claim and the "nothing downstream is a COUNT" comment are gone. `pulse.test.ts`: 2,500 in the last hour read 2,500; 2,500 events each get four in chunks under the URL limit, each tile presigned once; the reels read whole.
+  - H2 + H3: covers through `event_covers(uuid[])` (`readCoverUrls`, `events.ts`), shared by the dashboard and `social.ts`' `adminCoverUrls`, the preview when there is one (the /u/ grid and Guest cards drew the full original before).
+  - H4: `getPlatformDbMetrics` reads `admin_metrics_snapshot(30, 14)` beside the unchanged head counts; `lib/metrics/aggregate.ts` parses the jsonb (zod, a drifted shape throws) and folds tiers (`toBillingTier`), sources (`countBySource`'s rule, now over counts) and zero-filled UTC days; `kpi.ts` takes the counted fortnight; `/admin` draws the fortnight line from the same snapshot; `/admin/metrics` unchanged. `metrics.test.ts` pins the snapshot's SQL keys and its operator exclusion.
+  - H5: the album drill-in whole on (created_at desc, id desc); the four status counts are HEAD counts from the generated enum.
+  - H6 + M10: the report arms and both inboxes read the newest `?show=` (50, `lib/admin/list-depth.ts`) and know whether there is more; `ShowMoreLine` ("Showing the newest N. Show 50 more") under each list; `?show=` rides every row link; report lookups through `inChunks`; presigns in parallel.
+  - H7: `queue-data.ts` asks `oldestContactAt`, `oldestApplicationAt` and `oldestOpenReportAt` (one row, oldest first, the report age now across both arms, matching the count); no `.catch(() => [])`.
+  - H16: `revenue.ts` walks `for await` over every active subscription. `revenue.test.ts`: 2,500 subscriptions, 25 pages.
+  - M1: `listEvents` whole on (created_at desc, id desc); `/dashboard`'s "X of N used" and welcome gate read `countActiveEvents()`; `/dashboard/new` decides the door on the count and reads names only at the cap; `owner-sections.tsx` unchanged (same shape).
+  - M2: the bin whole on (deleted_at desc, id desc).
+  - M4: `analytics.ts` reads `event_link_totals(uuid)`, still best-effort.
+  - M5: follows and blocks whole on (created_at desc, the other id desc), shown events on `event_id`; `getMyFollowers` and `getFollowedHostEventCards` (+ `FollowedEventCard`) deleted: no caller, and git keeps them.
+  - M6: the Guest cards' events and hosts and the attended events through `inChunks` (the attended list sorted newest event first in memory).
+  - M7: `claims.ts` pages `list_guest_rows_by_email` on the last row's (`last_upload_at`, `guest_id`); a row without a last upload throws rather than restarting the read.
+  - M11 + the two swallowed errors: `listHeldMedia` whole on (legal_hold_at desc, id desc), lookups through `inChunks` and `mustQuery` (`forensics.ts:85`'s destructure gone); `export/route.ts` binds both record reads, so a failed read is a 500 with an error audit row (`route.test.ts` runs the handler); the four health counts are `mustCount` (a failed count read as a healthy zero).
+  - N4: the attended covers' gates 1 and 4 ride `inChunks` (gate 4 pages inside each chunk); gate 3 reads the owner's choices by user id and intersects.
+  - Helper convergence: `social.ts`' offset `readAll` and `guest-addresses.ts`' count loop are `readAllPages`; `social.ts:163`'s hand chunking is `inChunks` (its marker gone). `guest-addresses.test.ts`' sub-cap paging pin became a 2,500-row pin on `fake-postgrest`.
+  - `tallyStorageRows` retired with its row type; `storage.ts`' header states the delete-final standby rule.
+- **Assets requested from Will:** none.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:**
+  - The pulse's strip filter is one logic tree on the embed, `.or("and(status.eq.approved,removed_at.is.null)", { referencedTable: "media" })`, not `.eq("media.status", ...)`: identical in PostgREST (proved live, below), and the only form `fake-postgrest` can run (Deferred line).
+  - The operator lists read the newest 50 and deepen by 50 through `?show=`; one depth serves both report arms; the line says "Showing the newest N." and appears only when there is more.
+  - A failed "oldest waiting" read now throws to the admin error screen (the rail's head counts beside it already did), instead of a row with no age.
+  - `getMyFollowers` and `getFollowedHostEventCards` deleted rather than fixed (no caller; the profiles doc says a followed-hosts feed is new work).
+  - `/dashboard/new` reads event names only at the cap: one more round trip for an at-cap host, none for a host with room.
+  - The widest arrivals window returns today's count (never shown; the caption dates the newest).
+  - Beyond the brief, in owned files: the four forensics health counts throw on failure (M11's class); the admin home's "2 news this fortnight" reads "2 new this fortnight" (`kpi.ts`).
+  - The two out-of-lane subtractions above (`media.test.ts`, `storage-summary.test.ts`).
+- **Look at first** (all read-only; the host and operator pages need a sign-in the local server cannot do, so their figures are proved on the admin client and in SQL):
+  - Card stats and covers (script and log: `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/rowcap-host/probe-host-reads.{mjs,log}`): the probe's card reads `{"approved":1145,"pending":20}`, equal to the table's own HEAD counts (1,145 and 20); willg97's 7 live events: every one with an approved photo has a cover (3 draw their preview, 3 their original because their newest approved photo has no preview, the probe's 320x240 set among them); "Ghost check (disposable)" has 0 approved items and so no cover, correctly. The strips: one row per event, each at most four tiles, all approved and live, newest first, and the probe's strip equals its own newest four approved read directly. The pulse's count across willg97's events: 1,223 approved, 1,158 in the last 24 hours (the old read said at most 240).
+  - Like counts: `get_event_like_counts(probe, null, 1000)` as willg97 (claims local to a rolled-back transaction) answers exactly the three liked items, 2 likes each, equal to a hand count of `media_likes`.
+  - `/admin` and `/admin/metrics`: `admin_metrics_snapshot(30, 14)` answers accounts total 2, paid 1, storage 50,489,180 bytes, tiers pro 1 and free 1, active in 30 days 2, new 0, QR scans 1,287, album views 25, newsletter none; a plain SQL hand count gives the same eleven figures, the one operator left out.
+  - Locally: `/u/willg` (the one public profile with a shown event) renders its hosted card at 1440 and 375 with `.../preview.webp` presigned through `event_covers` on the admin client, where it drew the original.
