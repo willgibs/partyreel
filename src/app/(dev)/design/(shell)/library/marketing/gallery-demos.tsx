@@ -228,13 +228,13 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     badge: "new",
     family: "marketing",
     section: "Shells",
-    lede: "The Aurora at chapter scale, composed for the place. The register and the clock are fixed (the accent register, three laps slower than a lamp); the geometry is the call site's: which edges carry the light, how deep a band reaches, where a cast starts. There is no default placement on purpose, and two sections on one page never take the same composition. Dark grounds only, by construction.",
+    lede: "The Aurora at chapter scale, composed for the place. The register and the clock are shared (the accent register, three laps slower than a lamp); the geometry is the call site's: which edges carry the light, how deep a band reaches, where a cast starts. There is no default placement, so each section composes its own, and it lives on dark grounds.",
     variants: [
       {
         prop: "placement",
         source: "prop",
         options: ["both", "top", "bottom", "room"],
-        note: "Required, with no default: Will ruled the placement a mix, custom to each place. `middle` and `behind` are not values: the copy then sits IN the light instead of in the clean band beside it, which is the half of the grammar a call site is most likely to get wrong.",
+        note: "Required, with no default: each place composes its own placement. `middle` and `behind` are not values: the copy then sits IN the light instead of in the clean band beside it, which is the half of the grammar a call site is most likely to get wrong.",
       },
       {
         prop: "from",

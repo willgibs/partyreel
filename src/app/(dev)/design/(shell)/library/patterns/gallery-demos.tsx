@@ -403,7 +403,7 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
     badge: "new",
     family: "patterns",
     section: "Surfaces",
-    lede: "One loading.tsx shape, wired to exactly the three routes with a real pre-paint wait (`app-vocabulary` r1, `loading=asneeded`): the dashboard and the event hub mirror the page they precede byte for byte; the Studio gets its first skeleton here, on its own real shape rather than a rough sketch.",
+    lede: "One loading.tsx shape, wired to exactly the three routes with a real pre-paint wait: the dashboard and the event hub mirror the page they precede byte for byte, and the Studio's skeleton is its own real shape rather than a rough sketch.",
     specimens: [
       {
         label: "The three shapes",
@@ -420,7 +420,7 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
     badge: "new",
     family: "patterns",
     section: "Surfaces",
-    lede: "The gallery's tile-size cluster (`app-vocabulary` r1, `gallery-controls-home=cluster`): three steps setting --album-column, plus two reserved, non-interactive slots naming Sort and Filter so the row already reads as a group of controls before either exists.",
+    lede: "The gallery's first tile-size cluster: three steps setting --album-column, plus two reserved, non-interactive slots naming Sort and Filter so the row reads as a group of controls.",
     specimens: [
       {
         label: "TileSizeControl",

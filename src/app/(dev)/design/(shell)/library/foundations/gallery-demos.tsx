@@ -40,7 +40,7 @@ export const FOUNDATION_ENTRIES: GalleryEntry[] = [
     badge: "updated",
     family: "foundations",
     section: "Light",
-    lede: "The coloured light of the house, in three kept forms: the SEAM, a band where two grounds meet; the THROW, cast from a point on an object; the FIELD, a whole chapter lit at its own edges. Two marks are kept beside them: the BLOOM, a one-time glow that rests lit, and the HALO, which lights an object from behind and never wraps a button. One engine, the same five hues, one clock. Never on a light ground, and composed for each place rather than stamped.",
+    lede: "The coloured light of the house, in three forms: the SEAM, a band where two grounds meet; the THROW, cast from a point on an object; the FIELD, a whole chapter lit at its own edges. Two marks sit beside them: the BLOOM, a one-time glow that rests lit, and the HALO, which lights an object from behind. One engine, the same five hues, one clock; it lives on dark grounds, and each place composes its own.",
     play: "glow",
     variants: [
       {

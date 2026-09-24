@@ -105,9 +105,9 @@ describe("the page as markdown", () => {
   it("puts a marked row on one line", () => {
     expect(
       md(
-        "<div data-copy-row><div><p>14</p><p>policies</p></div><div><p>31</p><p>landmines</p></div></div>",
+        "<div data-copy-row><div><p>33</p><p>components</p></div><div><p>16</p><p>patterns</p></div></div>",
       ),
-    ).toBe("14 policies · 31 landmines");
+    ).toBe("33 components · 16 patterns");
   });
 
   it("quotes a blockquote and rules a hr", () => {
@@ -125,13 +125,11 @@ describe("the page's own facts", () => {
   it("open with the title the page passed, then the trail and the url", () => {
     expect(
       factsToMarkdown({
-        title: "Policies and landmines",
-        breadcrumbs: ["Library", "Rules", "Policies and landmines"],
-        url: "https://x.dev/design/library/policies",
+        title: "Aurora",
+        breadcrumbs: ["Library", "Brand kit", "Aurora"],
+        url: "https://x.dev/design/library/glow",
       }),
-    ).toBe(
-      "# Policies and landmines\n\nLibrary > Rules · https://x.dev/design/library/policies",
-    );
+    ).toBe("# Aurora\n\nLibrary > Brand kit · https://x.dev/design/library/glow");
   });
 
   it("say only the title when there is no trail", () => {

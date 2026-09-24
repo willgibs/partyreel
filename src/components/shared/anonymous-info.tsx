@@ -18,8 +18,8 @@ import {
  * popover says the same kind of thing about a fact that still exists.
  *
  * A wiring lane never deletes a module the lab imports, so the DELETE is the
- * Library's own (its entry, its `for` line in `rules/component-notes.ts`, and
- * this file, in one change) rather than this lane's.
+ * Library's own (its catalog entry and this file, in one change) rather than
+ * this lane's.
  */
 
 // The "(i)" explainer beside an "Anonymous" attribution caption in the lightbox. A TAP-to-open

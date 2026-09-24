@@ -337,7 +337,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     // brings its own heading.
     section: "The operations portal",
     title: "Table",
-    lede: "The portal's dense row, and the one thing it adds to shadcn's: `tone` as a data attribute, so a failed run tints its own row and takes a leading edge (`colour=rows`, Will 2026-09-20, with his note: \"Makes it a bit harder to miss\"). The same rules ride an <li> in the inbox list and the home's queue, which is why they are scoped by data value rather than split into four class strings.",
+    lede: "The portal's dense row, and the one thing it adds to shadcn's: `tone` as a data attribute, so a failed run tints its own row and takes a leading edge, which makes it harder to miss. The same rules ride an <li> in the inbox list and the home's queue, which is why they are scoped by data value rather than split into four class strings.",
     specimens: [
       {
         label: "Recent runs",
@@ -373,7 +373,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     family: "components",
     section: "The operations portal",
     title: "DestructiveSheet",
-    lede: "One panel for every destructive act in the portal, sized to the damage (`destructive=sheet`, Will 2026-09-20). It had four grammars and the severity did not line up with the friction: a typed dialog for an account, a plain one for a photograph, an arm-then-confirm for a legal hold, and a bare switch for the purge sweep. Every act now lists what it touches before it happens, and only the permanent one makes you type.",
+    lede: "One panel for every destructive act in the portal, sized to the damage: every act lists what it touches before it happens, and only the permanent one makes you type, so the friction follows the severity.",
     specimens: [
       {
         label: "Reversible, and permanent",
@@ -393,7 +393,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     badge: "new",
     family: "components",
     section: "Surfaces",
-    lede: "Photographs falling out of the room around a hero's words and into the album beneath it, and the album they fall into: the live guest masonry under the host's own header, its foot dissolving, lit from behind by the Glow halo. Will ruled both on the album page (visual=live, motion=stream, light=halo, 2026-09-19).",
+    lede: "Photographs falling out of the room around a hero's words and into the album beneath it, and the album they fall into: the live guest masonry under the host's own header, its foot dissolving, lit from behind by the Glow halo.",
     specimens: [
       {
         label: "The album, at the scale's 896 step",
@@ -440,7 +440,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     badge: "new",
     family: "components",
     section: "Surfaces",
-    lede: "Photographs laid down behind a moving point, each sliding after it and then fading and shrinking away where it lies. Will ruled its look and its home on 2026-09-19: 140 px of travel between photographs, three seconds to go, thrown the way the hand went, 180 px and 100 at a phone, and the root 404 as the page it lives on. It is decorative, it takes no pointer, and it never lays anything over the words: inside their own box a photograph yields instead, which is what keeps the type the loudest thing on the screen.",
+    lede: "Photographs laid down behind a moving point, each sliding after it and then fading and shrinking away where it lies, thrown the way the hand went; the root 404 is where it lives today. It is decorative, it takes no pointer, and it never lays anything over the words: inside their own box a photograph yields instead, which keeps the type the loudest thing on the screen.",
     specimens: [
       {
         label: "On paper, under a cursor",
@@ -493,7 +493,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     family: "components",
     section: "Surfaces",
     title: "The QR door's picture",
-    lede: "The album pouring out of a real scannable code, which is what fills the QR feature door. Will ruled the pair on river-card (2026-09-19): the code a tenth of the way down the tall door, the whole card streaming behind the copy, no label at all, and /demo as what it opens. Every length is a fraction of the door's width, so the code, the birth point and the flow agree at any size with nothing measured and no resize listener.",
+    lede: "The album pouring out of a real scannable code, which is what fills the QR feature door: the code near the top of the tall door, the whole card streaming behind the copy, and /demo as what it opens. Every length is a fraction of the door's width, so the code, the birth point and the flow agree at any size with nothing measured and no resize listener.",
     specimens: [
       // The two widths the door is really drawn at: (1024 - 32) / 3 in the
       // /features grid at 1440, and 375 minus the site's gutters on a phone.
@@ -734,7 +734,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     badge: "new",
     family: "components",
     section: "Inputs",
-    lede: "The switch that asks first (`app-vocabulary` r1, `confirm-switch=primitive`): one component owns the glyph beside the label and the deferred-open confirm dance, so a consequential switch never flips silently and the setTimeout dodge for radix's dismissable layer is written once. uploads-section.tsx's two hand-rolled pairs retired into it.",
+    lede: "The switch that asks first: one component owns the glyph beside the label and the deferred-open confirm dance, so a consequential switch never flips silently and the setTimeout dodge for radix's dismissable layer is written once.",
     specimens: [
       {
         label: "Turn it off to see the ask",
@@ -951,7 +951,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     badge: "new",
     family: "components",
     section: "Surfaces",
-    lede: "A section that stands on a full-bleed photograph and switches it as the reader moves, with its copy on a glass plate. Will ruled it a PAGE device on 2026-09-18: a full-image section can close a chapter, open one, or separate two, used sometimes and never at every cut, so a page turns through a picture instead of over a hairline. Its first home closes the home page's first chapter.",
+    lede: "A section that stands on a full-bleed photograph and switches it as the reader moves, with its copy on a glass plate. It is a page device: a full-image section can close a chapter, open one, or separate two, so a page turns through a picture instead of over a hairline. Today it closes the home page's first chapter.",
     specimens: [
       {
         label: "The room, under a cursor",
