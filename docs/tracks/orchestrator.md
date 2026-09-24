@@ -36,7 +36,6 @@ model Will seats (Fable or Opus); nothing here depends on which.
 | `media-viewer-wiring` | the media viewer as ruled (grow, face credit, floating capsule, peek + desktop filmstrip, pinch, video with a scrubber, swipe-down and blank-tap close, `?photo=`, Share the file, Save to Photos first) | running | Opus, :3131 | integrate first; apply its Lightbox lines to `guest-flow.md`; announce `origin`/`startAt` |
 | `reel-guest-wiring` | the live reel's guest side: the seam fix, minimum 2, the provider lift, the Highlight reel tile, the view that is also the wall, the toast, the cut's seam, the photo link card | running | Opus, :3132 | HOLD unmerged until the cut and host lanes are ready (one alias build replaces the stored reel) |
 | `reel-refresh-host` | `reel-screen` round 2 (the reel on a big screen) and `reel-host` re-cut with the merged `open` and `review` and the progression ask | running | Opus, :3133 | integrate; then the `[preview]` for his sitting once all three lab lanes land |
-| `reel-refresh-cut` | `reel-cut` and `reel-story` re-cut; `reel-front` round 2 (`signature`, `badge`) | running | Sonnet, :3134 | integrate (run `lab:demo` on all three boards) |
 | `desk-refresh-standing` | the standing boards batch 1 reaches (the tracker ask on `guest-capture`, `host-curation.count` merged away, Save to Photos, the second photo) and `media-viewer` round 2 (`mine`) | running | Sonnet, :3135 | integrate (run `lab:demo` on every touched board) |
 
 ## Next, in order
