@@ -1,6 +1,6 @@
 /**
- * Marketing mocks are hand-authored to QUOTE the shipped app's copy verbatim
- * (never invent UI strings; see CLAUDE.md's copy laws). Nothing at the type
+ * Marketing mocks are hand-authored to QUOTE the shipped app's copy verbatim,
+ * so a mock never shows a string the product does not have. Nothing at the type
  * level enforces that though: the app is free to rename a button or a chip
  * and the marketing quote just... strands, silently, with nobody the wiser
  * until a human eyeballs both surfaces side by side.

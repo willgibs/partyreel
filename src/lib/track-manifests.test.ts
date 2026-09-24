@@ -16,7 +16,8 @@ import { describe, expect, it } from "vitest";
 
 const DIR = join(process.cwd(), "docs", "tracks");
 const STATUSES = ["open", "handed-off", "integrated"];
-// Nobody claims these: the Orchestrator alone edits them (CLAUDE.md "Git").
+// Nobody claims these: the Orchestrator alone edits them, so a lane that
+// claimed one would be writing records beside the one writer they have.
 // The Orchestrator's records and the generated types: no track claims them (one is released to a lane only
 // when that doc is the lane's whole job, and returns here at its merge).
 const NEVER_OWNED = [

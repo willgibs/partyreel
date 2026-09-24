@@ -4,7 +4,7 @@ Look up the task in hand; each section stands alone. The scripts run from the re
 
 ## Seat in (every session start, compaction or restart)
 
-1. `export S=<this session's scratchpad>` (every script takes it). Read `docs/tracks/orchestrator.md` (in flight,
+1. `export S=<this session's scratchpad>` (every script requires it and writes its logs there). Read `docs/tracks/orchestrator.md` (in flight,
    next, waiting on Will), then `docs/STATUS.md`.
 2. `git status --short` (empty), `git worktree list`, the ports 3130 to 3139, `memory_pressure`; kill by port a dev
    server whose lane is gone.
@@ -23,26 +23,28 @@ through); only a lane that handed off is integrated as it stands.
 
 ## Run a round
 
-- **His ask** (one line in chat, or `redesign` on a Library entry) gets the two or three questions that branch the
-  work, as a short options message, never a report; then one lane per board.
+- **A board opens** on his ask (one line in chat, or `redesign` on a catalog entry) or on an improvement the
+  Orchestrator or a lane sees; his asks get the two or three questions that branch the work, as a short options
+  message, never a report; then one lane per board.
 - **No two asks repeat.** An exploration's brief names the open asks nearest its surface on the standing boards and
   asks nothing they ask (checked at the cut). Board lanes cut in parallel cannot see each other's new asks, so after
   they land and before the `[preview]` for his sitting, read every new ask side by side (`board-card.mjs --desk`) and
-  merge any two that ask one decision, every option kept (Will).
-- **The desk is ordered by leverage** (Will): a board whose answer changes another's question sits above it,
+  merge any two that ask one decision, every option kept.
+- **The desk is ordered by leverage**: a board whose answer changes another's question sits above it,
   independent boards at the foot in any order. Keep `DESK_ORDER` in `touchpoints.ts`, move a new board into its place
   at the record, and tell him which board to open first when the order changed.
 - **His sitting** walks one step per question, each answered from its dock with a note where the pick is not enough,
   and ends in one paste. Read the paste beside the boards it answers (`review-sheet.mjs`), transcribe it with
   `pnpm lab:review` on STDIN (`--dry` first), and ask the follow-ups in chat.
-- **A ruling that reaches a question still open on another board** is judged (Will's decision outcomes): a question
-  whose options still hold an idea that could beat the current path, even one his pick diverged from, is adapted to the
-  current context with that road kept open; only a question already solved at its best is removed.
-- **After the pick** the next round is the wiring, unless he asks for another exploration by name. A board retires
-  once its winners are working versions, in one commit across `touchpoints.ts`, `registry.ts` and `boards.ts` (a lane
-  retiring its own board is released those lines); a board whose product no longer exists retires unreviewed, its live
-  questions reshaped into the boards that replace it.
-- **The lab workflow rides rising tides** (Will): a note that would make a sitting faster, a board truer or a handoff
+- **An answer that reaches a question still open on another board** is judged: a question whose options still hold
+  an idea that could beat the current path, even one his pick diverged from, is adapted to the current context with
+  that road kept open; only a question already solved at its best is removed.
+- **After the pick** the next round is the wiring, and any surface stays open to a new board when someone sees a
+  better idea. A board retires once its picks are built, in one commit across `touchpoints.ts`, `registry.ts` and
+  `boards.ts` (a lane retiring its own board is released those lines), and its `docs/reviews/` ledger goes at the same
+  record (yours to delete, since that directory is yours); a board whose product no longer exists retires unreviewed,
+  its live questions reshaped into the boards that replace it.
+- **The lab workflow rides rising tides**: a note that would make a sitting faster, a board truer or a handoff
   cleaner goes to the ROADMAP's "The lab and the kit", and a lab lane is cut on those notes whenever a seat is free,
   without asking; a lab lane is sized in days and never delays a board.
 - **A clean close**: every handed-off lane integrated and its manifest deleted; STATUS rewritten; `orchestrator.md`
@@ -56,13 +58,15 @@ through); only a lane that handed off is integrated as it stands.
      returns at the lane's merge.
    - `reads`: paths that exist and stay; never another lane's manifest (it dies at that lane's merge), its board's
      `spec.ts` instead.
-   - `brief`: what the lane cannot find itself, Will's words for the task included; a new board names the neighbour it
-     registers after. A lab lane's brief stays light on rules, so its creative energy goes to the board (Will).
+   - `brief`: the task's intent, synthesized (his exact words only where the wording itself is the point); a new board
+     names the neighbour it registers after. A lab lane's brief stays light on rules, so its creative energy goes to
+     the board.
 2. `python3 usher/kit/cut-lane.py <launch-prep-sha8> $S/specs/<track>.json`, then
    `pnpm vitest run src/lib/track-manifests.test.ts` and `zsh usher/kit/negative.sh`.
 3. Commit the manifests alone; push; add the lane's In-flight row to `orchestrator.md` (its agent id, model and port).
 4. Spawn with the Agent tool: `spawn-prompt.txt` filled (`{track}`, `{port}`, `{scratch}`), one port each from 3131 to
-   3139, at most six lanes at once (`memory_pressure` first). The model is your call on every spawn (Will): Opus for
+   3139, at most eight lanes at once (`memory_pressure` first), their production builds taking turns through
+   `scripts/build-lock.sh`. The model is your call on every spawn: Opus for
    big, ambiguous, multi-file work, Sonnet for fast, direct UI work.
 
 ## Integrate a handoff (one lane on the tree at a time)
@@ -72,7 +76,7 @@ Read the Handoff, the lane check and the captures, never the whole diff.
 1. The lane's chat line names its head: `git rev-parse origin/lp/<track>` must match it (never the commit its Handoff
    names).
 2. The lane check, `git diff --name-only launch-prep...origin/lp/<track>`: every line inside `owns`, the manifest, or a
-   system doc listed under its System-doc edits; anything else is handed back or ruled.
+   system doc listed under its System-doc edits; anything else is handed back or decided.
 3. The merge message in `$S/msg-<track>.txt`: what the lane does, its calls his to overrule, its look-at-first, and the
    `Co-Authored-By` trailer of the model you run on. The merge commit is the lane's permanent record.
 4. With a clean tree (the kit refuses a dirty one, so commit record edits first), run
@@ -80,14 +84,15 @@ Read the Handoff, the lane check and the captures, never the whole diff.
    background: the `--no-ff` merge with the manifest deleted, then the gate. Read `INTEGRATE DONE green merged=<m>
    gate=<N>` and `<n> checks, 0 failing` before anything depends on them, and every result from its own exit code,
    never through a pipe to `grep`.
-5. **MERGE RED on a registry file** (`touchpoints.ts`, `registry.ts`, `boards.ts`), where two new entries on one spot
-   lose their closing braces: `hand-merge.sh` with `closer.py` repairs the usual case; otherwise rebuild the block from
-   both sides. Then the three lab tests (`touchpoints.test.ts`, `sandbox/registry.test.ts`,
+5. **MERGE RED on a registry file** (`touchpoints.ts`, `registry.ts`, `boards.ts`), where two lanes touched one spot:
+   `hand-merge.sh` repairs the usual case (the registrations' intersection, the board rows' union); otherwise rebuild
+   the block from both sides. Then the three lab tests (`touchpoints.test.ts`, `sandbox/registry.test.ts`,
    `(shell)/lab/_desk/queue.test.ts`), `git commit -F $S/msg-<track>.txt`, and
    `zsh usher/kit/gate-lane.sh <N> <board> > $S/gate<N>.log`, read by its `EXIT[...]` lines.
 6. **The record**, its edits and its commit under one `set -e`: each listed system-doc edit read by eye, fact against
    code; `python3 usher/kit/record.py $S/record-<track>.json` for the In-flight row and the lane's Deferred lines into
-   their ROADMAP buckets; its asset asks into `docs/ASSETS.md`; a ruling of Will's into the rule it made; STATUS
+   their ROADMAP buckets; its asset asks into `docs/ASSETS.md`; its "Board ideas" lines read, and the promising ones
+   opened as boards; a one-way-door answer of Will's into the invariant it made; STATUS
    rewritten by hand where the lane changed what is true now; a new board into its leverage place; the three lab
    tests; stage by name; commit `record: <track> ... [skip ci]`; push.
 7. Prune only after the lane's final line (a lane asked for more work after its handoff is still working):
@@ -134,7 +139,7 @@ by a true hotfix: fixed on `main`, verified, back-merged to `launch-prep` the sa
 ## Verify
 
 - The built-in browser pane is shared with every running lane: never click in it while lanes run, and never click a
-  Copy button there (it writes Will's clipboard, where a stray paste reads as a ruling).
+  Copy button there (it writes Will's clipboard, where a stray paste reads as an answer).
 - A keyed alias page opens in the pane or headless (`page-console.mjs`).
 - A gate's `lab:demo` is read per step: a step that reads FROZEN only because its options differ inside stacked
   `srcdoc` iframes, and that the lane proves by hand, is not a bar.
@@ -142,22 +147,22 @@ by a true hotfix: fixed on `main`, verified, back-merged to `launch-prep` the sa
 ## The scripts
 
 - `integrate.sh <track> <sha> <board|none> <msgfile>`: `merge-lane.sh` (the `--no-ff` merge, the manifest deleted,
-  the registry files and generated artifacts resolved, typecheck and the registry tests before the commit), then
+  the registry files resolved and the specimen code regenerated, typecheck and the registry tests before the commit), then
   `gate-lane.sh <N> <board>` (the gate on :3130, never a lane's port, each step on its own exit code, a negative
   control first, `lab:demo` retried once warm), one chain gated on exits; ends `INTEGRATE DONE green|red`.
-- `hand-merge.sh` + `closer.py`: the merge for registry conflicts; the closer puts back the braces a union drops.
+- `hand-merge.sh`: the merge for registry conflicts (the registrations' intersection, the board rows' union).
 - `record.py`: the In-flight row and ROADMAP lines (its docstring); it refuses a changelog and a STATUS row.
 - `cut-lane.py`: a manifest from a spec. `spawn-prompt.txt`: the spawn prompt.
 - `negative.sh`: every refusal fed its known-bad input, after any kit change and before a day's first integration
   (`cost-readings.mjs` re-reads the cost each refusal was written for).
 - `alias-ensure.mjs` (with `vercel-lib.mjs`): the alias deployment; `DRY=1` reports without creating.
 - `page-console.mjs <base> [path]`: one page in headless Chrome, its console errors, the key redacted.
-- `board-card.mjs <board...>|--desk`: one screen per board (ruling, `lives`, asks, answers); `desk-check.mjs` and
+- `board-card.mjs <board...>|--desk`: one screen per board (what it asks, `lives`, the asks, the answers); `desk-check.mjs` and
   `desk-sections.mjs`: the served desk per section.
 - `review-sheet.mjs <batch.txt>` (with `batch-reader.mjs`): his paste beside the boards it answers, each verdict
   beside its drawing; `capture.sh <board> <dir>` and `capture-all.sh` feed it the pictures.
 - `demo-rerun.sh <board>`: `lab:demo` alone on a warm :3130, for a gate whose only red is a demo timeout.
 - `test-delta.sh <base-sha>`: the tests at HEAD against a base by name, for a count that moved with no test file in the
   diff.
-- `wave6-check.mjs`: a served page checked against ruled lines through its HTML, no key.
+- `wave6-check.mjs`: a served page checked line by line through its HTML, no key.
 - `moltbook.mjs`: the Moltbook client (`../moltbook/README.md`).

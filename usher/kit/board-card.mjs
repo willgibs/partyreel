@@ -5,7 +5,7 @@
  *   node PartyreelAI/kit/board-card.mjs guest-shape media-viewer   # the cards
  *   node PartyreelAI/kit/board-card.mjs --desk                     # every standing board in desk order, one line each
  *
- * Reads touchpoints.ts (the RULINGS row: title, surface, ruled, lives; DESK_ORDER), the spec (its asks and
+ * Reads touchpoints.ts (the board's row: title, surface, asks, lives; DESK_ORDER), the spec (its asks and
  * recommendations, via batch-reader's parser), and the ledger (what he has answered). Read-only; TypeScript parsed, never imported.
  */
 import { readFileSync, existsSync } from "node:fs";
@@ -30,7 +30,7 @@ const walk = (n) => {
         const lives = prop(o, "lives"); const board = prop(o, "board");
         rows.set(str(prop(o, "id")), {
           id: str(prop(o, "id")), title: str(prop(o, "title")), surface: str(prop(o, "surface")),
-          ruled: str(prop(o, "ruled")), shipped: str(prop(o, "shipped")),
+          asks: str(prop(o, "asks")),
           lives: lives && ts.isArrayLiteralExpression(lives) ? lives.elements.map(str).filter(Boolean) : [],
           onDesk: !!board,
           variants: board && ts.isObjectLiteralExpression(board) && prop(board, "variants") && ts.isArrayLiteralExpression(prop(board, "variants")) ? prop(board, "variants").elements.map(str) : [],
@@ -67,8 +67,7 @@ for (const id of args) {
   const r = rows.get(id); const spec = readSpec(id); const led = ledger(id);
   console.log(`\n${"=".repeat(96)}\n${id}${r ? ` · ${r.title} · surface ${r.surface} · desk #${deskOrder.indexOf(id) + 1 || "off"}` : " · no RULINGS row"}`);
   if (r) {
-    console.log(`  ruled: ${r.ruled?.slice(0, 220)}${r.ruled && r.ruled.length > 220 ? "…" : ""}`);
-    if (r.shipped) console.log(`  shipped: ${r.shipped}`);
+    console.log(`  asks: ${r.asks?.slice(0, 220)}${r.asks && r.asks.length > 220 ? "…" : ""}`);
     console.log(`  lives (the wiring's owns start here):`);
     for (const l of r.lives) console.log(`    - ${l}${existsSync(join(ROOT, l)) ? "" : "  (MISSING on this tree)"}`);
   }

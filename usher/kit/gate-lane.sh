@@ -1,20 +1,21 @@
 #!/bin/zsh
-# usage: gate-lane.sh <N> <board>   (the Orchestrator's own dev server on :3130)
+# usage: S=<scratchpad> gate-lane.sh <N> <board>   (the Orchestrator's own dev server on :3130)
 N="$1"; BOARD="$2"
+: "${S:?set S to this session's scratchpad (every kit script writes its logs there)}"
 cd /Users/gibby/local/ai/partyreel
 source ~/.nvm/nvm.sh >/dev/null 2>&1; nvm use >/dev/null 2>&1
-S=${S:-/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/924675e3-0148-4e81-9dca-d9c2f1952d0a/scratchpad}
 export DESIGN_PREVIEW_KEY="$(grep '^DESIGN_PREVIEW_KEY=' .env.local | cut -d= -f2- | tr -d '"')"
 echo "GATE$N on $(git rev-parse --short HEAD) $(date -u)"
 # the contention nobody's manifest names (siliconsadie, m/builds, 2026-09-20): the load beside the exit codes, so a
 # timed-out step can be read against what the machine was doing (gate 62's two timeouts sat under a load of seven).
 echo "LOAD $(uptime | sed -E 's/.*load averages?: //')"
-# the generator first (gate 37, 2026-09-19: a touchpoints change left the rules artifact and docs/design/library.md stale, and pnpm test found it late)
-pnpm -s design:rules >/dev/null 2>&1; echo "EXIT[design:rules]=$?"
+# the catalog's specimen code first: a gallery-demos.tsx change leaves specimens.generated.json stale, and pnpm test
+# would only say so late
 node "src/app/(dev)/design/gallery/collect-specimens.mjs" >/dev/null 2>&1; echo "EXIT[specimens]=$?"
 pnpm lint; echo "EXIT[pnpm lint]=$?"
 pnpm -s vitest run 2>&1 | tail -15; echo "EXIT[pnpm test]=${pipestatus[1]}"
-pnpm build 2>&1 | tail -12; echo "EXIT[pnpm build]=${pipestatus[1]}"
+# production builds take turns across every lane on the machine (dev servers and tests stay parallel)
+zsh scripts/build-lock.sh pnpm build 2>&1 | tail -12; echo "EXIT[pnpm build]=${pipestatus[1]}"
 lsof -ti tcp:3130 | xargs -r kill 2>/dev/null; sleep 1
 (pnpm dev -p 3130 >"$S/dev3130.log" 2>&1 &)
 for i in $(seq 1 60); do curl -s -o /dev/null -w '%{http_code}' http://localhost:3130/ 2>/dev/null | grep -q '^[23]' && break; sleep 2; done

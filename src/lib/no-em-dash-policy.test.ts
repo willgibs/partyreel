@@ -4,8 +4,8 @@ import { join, relative } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
-// Project-wide guard for the no-em-dash copy policy (CLAUDE.md "Working conventions"):
-// user-facing copy must never contain an em-dash (U+2014) — it reads as an "AI tell".
+// Project-wide guard for the no-em-dash copy rule: user-facing copy must never contain
+// an em-dash (U+2014) — it reads as an "AI tell".
 // Code COMMENTS are exempt, so we parse each file's TypeScript AST and inspect ONLY
 // string/template literals + JSX text (comments are trivia, not AST nodes). That means a
 // `// foo <emdash> bar` comment never trips this, but a rendered `<p>foo <emdash> bar</p>`

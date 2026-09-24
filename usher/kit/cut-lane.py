@@ -14,10 +14,8 @@ if len(sys.argv) < 3:
 cut = sys.argv[1][:8]
 LAB_VERIFY = ("The board at 1440 and 375 with reduced motion honoured; `pnpm lab:smoke --base http://localhost:<port>` whole; "
               "`pnpm lab:demo --board <board> --base http://localhost:<port>` pressing every step.")
-PROD_VERIFY = ("The gate on the synced tree, each step on its own exit code: `pnpm design:rules`, "
-               "`node \"src/app/(dev)/design/gallery/collect-specimens.mjs\"`, `pnpm typecheck`, `pnpm lint`, `pnpm test`, "
-               "`pnpm build`, `pnpm lab:smoke --base http://localhost:<port>`; the surfaces the Handoff is judged on, local at "
-               "1440 and 375.")
+PROD_VERIFY = ("The gate on the synced tree (CLAUDE.md, \"The gate and git\"), each step on its own exit code, and "
+               "the surfaces the Handoff is judged on, local and live.")
 
 for arg in sys.argv[2:]:
     s = json.loads(pathlib.Path(arg).read_text())
@@ -44,11 +42,8 @@ reads:                  # single-sources you depend on: never duplicate, never e
 
 {s["brief"].strip()}
 
-**Binds.** The bible and the policies (`/design/library`), the contracts of every component under a path you own, and
-CLAUDE.md's working loop. A record doc
-(`docs/STATUS.md`, `docs/ROADMAP.md`, `docs/PROGRAM.md`, `CLAUDE.md`, `docs/ASSETS.md`, `docs/tracks/orchestrator.md`,
-`docs/reviews/`) is edited only when your `owns` names it. Stage explicitly; never `--no-verify` or force-push; every commit ends
-with the `Co-Authored-By` line naming the model you actually run on.
+**Starts from.** CLAUDE.md's working loop, the bible's ten and production as it is; the tests say what has to keep
+working.
 
 **Verify on.** {verify}
 
@@ -72,6 +67,7 @@ with the `Co-Authored-By` line naming the model you actually run on.
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
 - The items, one line each
 - Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
+- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
 - Proposed migrations / Worker / Vercel / Stripe / env changes: none
 - Calls his to overrule, one line each
 - Look at first: ...
