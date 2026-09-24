@@ -29,6 +29,8 @@ import {
   EVENT,
   JOIN_LABEL,
   JOIN_URL,
+  LIVE_ALBUM_COUNT,
+  LIVING_STILLS,
   MINIMUM,
   QR_STYLE,
   stillOf,
@@ -112,6 +114,18 @@ export function AppBar({
 
 /* ── the header: the live code, the name, the numbers, the link ─────────── */
 
+/**
+ * The guests an album of `items` photographs has: one each while the album is
+ * this small (a photograph is a guest, by upload), the shared event's 34 once
+ * it is full. A hub at two photographs claiming 34 guests is a hub nobody has.
+ */
+const guestsAt = (items: number): number =>
+  items >= LIVE_ALBUM_COUNT ? EVENT.guests : items;
+
+/** The stills the Reel card crossfades: only the photographs the reel has. */
+const livingAt = (items: number): string[] =>
+  items >= LIVE_ALBUM_COUNT ? LIVING_STILLS : albumAt(items).map(stillOf);
+
 function HubHeader({ device, items }: { device: Device; items: number }) {
   const phone = device === "phone";
   return (
@@ -144,7 +158,7 @@ function HubHeader({ device, items }: { device: Device; items: number }) {
           </span>
           <span className="flex items-center gap-1.5">
             <Users className="size-3.5" aria-hidden />
-            {items < MINIMUM ? items : EVENT.guests}
+            {guestsAt(items)}
           </span>
           <span className="flex items-center gap-1.5">
             <Eye className="size-3.5" aria-hidden />
@@ -232,7 +246,7 @@ export function ReelCard({
         data-rh-reel-card="living"
         className={cn(shell, "border-transparent text-white")}
       >
-        <Living />
+        <Living stills={livingAt(items)} />
         {/* His "overlay": heavier at the foot where the words sit, so the
             card reads at a glance over the brightest photograph in the take. */}
         <div
@@ -332,7 +346,7 @@ function CardsRow({
   door?: ReactNode;
   waiting: number;
 }) {
-  const guests = items < MINIMUM ? items : EVENT.guests;
+  const guests = guestsAt(items);
   return (
     <div
       role="group"
