@@ -1,6 +1,6 @@
 ---
 track: brand-kit
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "a5691d3b"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -45,24 +45,68 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **q1 "the pricing section" = which page?** The brief names hero, live album demo and
+  pricing as three homepage-narrative sections, but pricing also has its own dedicated
+  `/pricing` route with fuller cards. Took: the `/pricing` page's fold (both plan cards,
+  the monthly/yearly toggle, both CTA buttons), not the homepage's compact dark
+  `pricing-teaser` section, because it's the literal richer surface for the outside ask
+  ("match button shapes, corner radii, and spacing"). His to overrule: swap the capture to
+  the homepage's `pricing-teaser` section instead if he wants all three shots from the same
+  page/surface.
+- **q2 does "the symbol" belong in the kit yet?** `src/components/shared/logo.tsx` calls
+  the Aperture glyph behind its `markOnly` prop "a STAND-IN... nothing in production mounts
+  it" (the real v1 icon hasn't landed). But the identical glyph independently IS live
+  production today as the actual favicon, apple-touch-icon and PWA home-screen icon
+  (`src/app/icon.svg`, `public/icons/`, `manifest.ts`: "the icons are the ink aperture
+  mark"). Took: include it in `kit/logo/` (copied from the existing `public/press/`
+  exports, never redrawn), described as the current favicon/app icon and explicitly NOT a
+  lockup partner for the wordmark (the product never pairs them). His to overrule: pull the
+  symbol from the kit and ship wordmark-only until the real v1 icon replaces the stand-in.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (no `docs/systems/` doc is in this track's `owns`)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **Now:** when Will's real v1 icon lands (replacing the Aperture stand-in per
+  `logo.tsx`), regenerate `kit/logo/`'s three symbol files from it and re-derive
+  `kit/README.md`'s symbol row and usage note.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commit `d8dc21e4` (the 14 `kit/` files); sync commit `ad2c3a85` (merge
+  `origin/launch-prep`, no conflicts — brought in `bible-ten`/`docs-sharpen`/`library-lean`;
+  diffed the touched `reads` files first, comment/citation renumbering only, no token
+  values changed); both pushed on `lp/brand-kit`. This manifest commit is on top; its head
+  is in the chat line.
+- Gates on the synced tree, each its own exit code, all 0: `pnpm design:rules` (no diff —
+  `rules.generated.json`/`docs/design/library.md` regenerated identical to the merged
+  state), `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` (no diff),
+  `pnpm typecheck`, `pnpm lint` (0 errors, 8 pre-existing warnings, none in a file this
+  track touched), `pnpm test` (434 test files, 4781 passed + 1 skipped), `pnpm build`,
+  `pnpm lab:smoke --base http://localhost:3133` (488 checks, 0 failing).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the 14 files under
+  `kit/README.md` + `kit/logo/` + `kit/screens/` (this track's whole `owns`), plus this
+  manifest file on the handoff commit. Nothing else.
+- The items, one line each:
+  - `kit/README.md`: what Partyreel is, the achromatic look, the logo files and when to
+    use each, type (families/weights/Google Fonts links), color hex (light+dark), radius
+    and spacing, the screenshots, and a "where this comes from" section for whoever
+    updates the kit next.
+  - `kit/logo/`: the real v1 wordmark baked into standalone ink + white SVG/PNG
+    (`src/lib/brand/wordmark.ts`'s own path, 2464x512, never retyped), and the circular
+    aperture symbol in ink/white/mono SVG/PNG (copied byte-for-byte from the existing
+    `public/press/` exports — the same files the live favicon and PWA icons use).
+  - `kit/screens/`: three JPEGs at 1440px wide off a local production build (hero,
+    the live-demo section fully filled, the `/pricing` page's two plan cards), 49 to 87 KB
+    each.
+- Assets requested from Will: none. Everything is derived from what's already in the repo
+  and already live in production; no new drawing or asset work was needed.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule, one line each: q1 (pricing page vs. homepage teaser); q2 (ship the
+  Aperture symbol now, labeled as the current favicon, vs. wordmark-only until v1 lands).
+- Look at first: `kit/README.md` end to end, then `kit/logo/partyreel-wordmark-dark.png`
+  and `kit/logo/partyreel-mark-dark.png` (the two real marks), then
+  `kit/screens/partyreel-pricing.jpg` (the richest of the three captures). There is no live
+  page for this track (board: none) — the kit's files are the surface to review, not a URL.
