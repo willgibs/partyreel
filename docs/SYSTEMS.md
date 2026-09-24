@@ -1,40 +1,24 @@
-# Partyreel — Systems index
+# Systems index
 
-> ROLE: the router — find the system your task touches, follow it to its deep doc. Skim this when a goal lands.
-> BELONGS HERE: one short "what it is" line per system + its `systems/` doc. · NOT HERE: the depth/gotchas (→ the linked `systems/<x>.md`), how-we-work (→ [`../CLAUDE.md`](../CLAUDE.md)), current state (→ [`STATUS.md`](STATUS.md)), what's next (→ [`ROADMAP.md`](ROADMAP.md)).
-> GROWS BY: integrate-in-place (one row per system; when a new system ships, add a row + its deep doc).
+> One line per system doc: open the one your task touches before you touch it. Each opens with the questions it
+> answers and keeps what the code cannot tell you: the invariants, the ★ landmines, the project's own facts. How we
+> work is [`../CLAUDE.md`](../CLAUDE.md); where things stand, [`STATUS.md`](STATUS.md).
 
-The deep docs live in [`systems/`](systems); each is one Read with what-it-does · where-it-lives ·
-invariants · gotchas. (This table IS the router — there is no separate folder README.)
-
-## Shape
-
-One **Next.js 16** app (App Router, `src/`, TS, Tailwind v4) on **one domain**. Route groups:
-`(marketing)` public site · `(auth)` login/callback · `(app)` the gated host app · `(print)` the host's
-print pages · `(guest)` the `/e/[token]` event link and the `/u/[slug]` profile · `(dev)` the design lab ·
-`admin/` the ops portal (on `admin.partyreel.com`) · `api/` route handlers. Data in **Supabase** (Postgres +
-RLS + capability RPCs); media bytes in **Cloudflare R2**; payments **Stripe**; email **Resend**; errors
-**Sentry**. The whole-picture data flow (two stores of truth, the media/DB write·read·delete·backup·restore
-pathways, the 3 staggered daily jobs) is in [`systems/architecture.md`](systems/architecture.md).
-
-## The systems
-
-| System | What it is | Deep doc |
-| --- | --- | --- |
-| **Architecture** | The whole-picture mental model: route groups, the two stores of truth, data flows, the 3 daily jobs | [architecture.md](systems/architecture.md) |
-| **Auth & accounts** | Host/operator auth (email+password · OTP/magic-link · Google), identity linking, the name gate, avatars, display names, the `profiles` column-lock | [auth-accounts.md](systems/auth-accounts.md) |
-| **Guest flow** | The `/e/[token]` event page: who a guest is (an upload of theirs, and only that), 3-state visibility, capability tokens, password/unlock, the door (a name, an optional email, the host's gates), the confirm doors and the return after one, the live gallery, demo mode, the guest reel | [guest-flow.md](systems/guest-flow.md) |
-| **Host app** | The host's surfaces: the dashboard (with the Guest cards for the events an account added to), the create flow, the QR designer and print, custom slug, first-time welcome, the event page and settings (the one guest count), host-side moderation/curation, the host-upload entry | [host-app.md](systems/host-app.md) |
-| **Highlight reel** | The shipped reel: host curation, the canvas engine (`src/lib/reel/engine/`: one draw function for the live `CanvasReelPlayer` and the on-device WebCodecs `.mp4` export; $0 at any scale), the 14-style catalog + orientation, the Studio, guest surfacing + download behind a host publish switch, tier-capped length | [host-app.md](systems/host-app.md) "Reel curation, the live composer, and the .mp4 export" + [guest-flow.md](systems/guest-flow.md) "The guest reel" |
-| **Uploads & R2 (media)** | The media system: presign/complete (guest + host), the `create_media*` write path, R2 config, keys/delete, galleries, the lightbox, downloads, the video poster | [uploads-and-r2.md](systems/uploads-and-r2.md) |
-| **Billing & caps** | The entitlement engine: the storage-cap model (`host_active_bytes`, monthly ingress), video gating, Stripe checkout/portal/webhook + provisioning, the Event Pass ledger (stacking + prorated Pro credit) | [billing-caps.md](systems/billing-caps.md) |
-| **Lifecycle & recovery** | The daily purge cron (12 sweeps), the 30-day recovery window (restore/purge RPCs, the Deleted filters), `sendOnce`/Resend lifecycle email | [lifecycle-recovery.md](systems/lifecycle-recovery.md) |
-| **Durability & backups** | The orphan-sweep circuit-breaker, the media-backup Worker (→ locked 2nd R2 bucket), the off-site DB backup, the restore (DR) procedure, the deletion-aware backup prune | [durability-backups.md](systems/durability-backups.md) |
-| **Admin & observability** | The `admin.partyreel.com` portal (the `requireAdmin` seam + MFA + every surface), the reports/safety queue, backend jobs, Sentry | [admin-observability.md](systems/admin-observability.md) |
-| **Marketing & content** | The `(marketing)` site + nav, the frame library, the MDX help/blog pipeline, SEO/OG, the 404 boundaries, the demo env wiring | [marketing-content.md](systems/marketing-content.md) |
-| **Notifications · analytics · growth** | The derive-on-read host bell, `link_stats` (aggregate, no PII), the marketing web analytics, guest email capture and the newsletter opt-in | [notifications-analytics-growth.md](systems/notifications-analytics-growth.md) |
-| **Profiles & social** | Public creator profiles (`/u/[slug]`) and their owner mode, the follow/block graph, the host-controlled guest list, notification-pref storage | [profiles-social.md](systems/profiles-social.md) |
-| **Database & security** | The cross-cutting security model: RLS shapes, the capability-RPC inventory, the advisor 0028/0029 split, the column-grant lockdown rules, the migrations workflow | [database-security.md](systems/database-security.md) |
-| **Trust & safety (forensics)** | Per-upload forensic capture (`upload_forensics`), legal hold + purge exclusions, the evidence-preservation store, `/admin/forensics`, the CSAM incident runbook + NCMEC prep | [trust-safety-forensics.md](systems/trust-safety-forensics.md) |
-| **Design system** | The visual system: cool-grey tokens (media is the colour), the heading face and the tiered scale, rounding/elevation/motion contracts, the error taxonomy + render boundaries, the craft guidance stack, the `/design` lab (the Library at `/design/library`, the Lab at `/design/lab`); the authority model of everything that binds design work is [design/README.md](design/README.md) | [design-system.md](systems/design-system.md) |
-| **Testing & verification** | Cross-cutting: the gate, the test accounts + fixtures, the live-testing tool blind spots (Chrome-MCP `sonner`/isolated-world DOM, the Vercel dev Toolbar overlay) + the "hand the human the look" pattern. The local-first-then-live POLICY itself stays in [`../CLAUDE.md`](../CLAUDE.md). | [testing-verification.md](systems/testing-verification.md) |
+| Open | when you are about to |
+| --- | --- |
+| [architecture.md](systems/architecture.md) | work across systems (the route groups, the two stores of truth, the data flows, the scheduled jobs), revalidate a path, or chase a host page that renders but never hydrates |
+| [auth-accounts.md](systems/auth-accounts.md) | change sign-in (the one account door, codes, passwords, Google, passkeys) or a Supabase Auth dashboard setting, a display name, an avatar, the `/welcome` gate or account deletion |
+| [guest-flow.md](systems/guest-flow.md) | change the event link `/e/[token]`: who counts as a guest, visibility and the password gate, the door and the confirm doors, the live gallery, demo mode, the guest's reel |
+| [host-app.md](systems/host-app.md) | change a host surface: the dashboard, creating an event, the QR designer and print, the custom link, the welcome, the event page and its settings, moderation, the reel and its export |
+| [uploads-and-r2.md](systems/uploads-and-r2.md) | touch the upload pipeline, an R2 key, client or presign, the EXIF strip, or how media renders (tiles, previews, posters, the viewer) and downloads (Save, Download all) |
+| [billing-caps.md](systems/billing-caps.md) | change a price or a limit, anything that decides whether an upload, a restore or a plan change fits, Stripe checkout, change-plan or the webhook, or the in-app pricing surface and the Plan card |
+| [lifecycle-recovery.md](systems/lifecycle-recovery.md) | add or change a purge-cron sweep, touch deleting and restoring (the 30-day window, the standby budget, the Deleted filters) or the over-cap, lapsed-pass and inactivity sweeps, or send an email |
+| [durability-backups.md](systems/durability-backups.md) | touch anything that deletes R2 objects, the backup Worker and its prune, or the DB backup; restore from backup; reason about R2 cost and scale |
+| [admin-observability.md](systems/admin-observability.md) | change the admin portal (its seam, MFA, the two-deployment perimeter, a surface), add a backend job or a kill switch that must report its health, or add a Sentry capture |
+| [trust-safety-forensics.md](systems/trust-safety-forensics.md) | touch a hard-delete path (legal holds) or the forensic capture, or handle a report, a hold or a CSAM incident |
+| [database-security.md](systems/database-security.md) | add or change an RPC, a column, a table or a grant, read more than 1,000 rows, rate-limit a route, or write a migration |
+| [profiles-social.md](systems/profiles-social.md) | change who is listed or counted as a guest, `/u/[slug]`, follows, blocks, reporting a person, handles, bios or email preferences |
+| [notifications-analytics-growth.md](systems/notifications-analytics-growth.md) | feed the host's bell, touch the QR-scan counts, instrument the marketing site, or touch the newsletter opt-in |
+| [marketing-content.md](systems/marketing-content.md) | change the marketing site and its nav, the help and blog pipeline, SEO and OG images, the 404 pages or the demo's wiring |
+| [design-system.md](systems/design-system.md) | change the look: tokens, type, rounding, elevation, light and glass, motion, the error taxonomy, the `/design` lab (how design guidance is levelled: [design/README.md](design/README.md)) |
+| [testing-verification.md](systems/testing-verification.md) | verify anything: a browser check that disagrees with you, the test accounts and fixtures, the gate, CI and deploys, stale dev CSS |
