@@ -103,6 +103,12 @@ export type LiveReelProps = {
   addCutToAlbum?: ((file: File, poster: Blob) => void) | null;
   /** This device's upload queue: the toast reads its held items. */
   queue: readonly QueueItem[];
+  /**
+   * ★ THE WELCOME COMES FIRST (Will, 2026-09-24): this visitor still owes the door (the page's
+   * EntryModal says so, and a page that has not heard from it yet assumes so). While it is owed an
+   * address's reel waits, under nothing and over nothing, and opens the moment they are through.
+   */
+  welcomePending?: boolean;
   children: ReactNode;
 };
 
@@ -116,6 +122,7 @@ export function LiveReel({
   onAddYours,
   addCutToAlbum = null,
   queue,
+  welcomePending = false,
   children,
 }: LiveReelProps) {
   const live = useGalleryLive();
@@ -131,21 +138,29 @@ export function LiveReel({
   const creator =
     !isDemo && REEL_CREATOR && live.reel?.cut ? REEL_CREATOR : null;
 
-  // ★ WHAT AN ADDRESS ASKING FOR THE REEL GETS. At full access the answer is final: the view, the
-  // screen's idle state below the minimum, or (the reel off, or a phone view below the minimum) the
-  // plain album, the parameter quietly dropped so a refresh does not ask again. Below full access
-  // it is left alone: the door comes first, and a guest who passes it lands in the reel they were
-  // sent to (the refresh remounts this provider, and the address still asks).
+  // ★ THE WELCOME COMES FIRST (Will, 2026-09-24, his words: "In my head, a host would login to a
+  // venue computer or send that laptop a link as guest to play the reel from event page after going
+  // through the welcome flow"). A visitor who still owes the door meets it first, with no reel
+  // under it or over it; the moment they are through, the reel their link asked for opens. The
+  // owner never owes it. The screen posture is no exception: a wall is set up by someone who has
+  // been through the door on that device, like any guest.
+  //
+  // ★ WHAT AN ADDRESS ASKING FOR THE REEL GETS, once the door is behind them. At full access the
+  // answer is final: the view, the screen's idle state below the minimum, or (the reel off, or a
+  // phone view below the minimum) the plain album, the parameter quietly dropped so a refresh does
+  // not ask again. Below full access, or while the door is owed, it is left alone: a guest who
+  // passes the door lands in the reel they were sent to (the address still asks).
   const reelOn = Boolean(
     live.reel && live.reel.showReel && live.reel.liveReelEnabled,
   );
   const screenIdle = mode === "screen" && reelOn && !available;
-  const viewOpen = mode !== null && (available || screenIdle);
+  const viewOpen =
+    !welcomePending && mode !== null && (available || screenIdle);
   useEffect(() => {
-    if (mode === null || live.access !== "full") return;
+    if (welcomePending || mode === null || live.access !== "full") return;
     if (available || screenIdle) return;
     close();
-  }, [mode, live.access, available, screenIdle, close]);
+  }, [welcomePending, mode, live.access, available, screenIdle, close]);
 
   const open = useCallback(
     (next: ReelMode = "hand") => {

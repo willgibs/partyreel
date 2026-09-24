@@ -121,6 +121,16 @@ export const EntryModal = forwardRef<
      *  mounted header/gallery wait at their pre-entrance state while the
      *  beat holds, then rise AS the sheet exits (event-experience). */
     onHoldingChange?: (holding: boolean) => void;
+    /**
+     * ★ THE WELCOME COMES FIRST (Will, 2026-09-24: "Doesn't everyone without a guest name
+     * (unverified events) or confirmed email (verified events) get routed through the welcome
+     * flow? Then the welcome flow approves the guest and drops them off on the event page").
+     * Whether this visitor still owes the door (a step pending, or the "You're in" beat still
+     * holding), reported once hydrated and again on every change, so what an address asks for
+     * (the reel's `?reel` and `?reel=screen`) waits until they are through. The owner never owes
+     * it. Until the first report the page treats the door as owed.
+     */
+    onPendingChange?: (pending: boolean) => void;
     /** This device's guest capability, needed only to RENAME its row. */
     sessionToken?: string | null;
     /** The name this device already typed at this event (the step's prefill). */
@@ -180,6 +190,7 @@ export const EntryModal = forwardRef<
     hostAvatarUrl,
     hostSeed,
     onHoldingChange,
+    onPendingChange,
     sessionToken,
     storedName,
     onNamed,
@@ -273,6 +284,14 @@ export const EntryModal = forwardRef<
   useEffect(() => {
     onHoldingChange?.(holding);
   }, [holding, onHoldingChange]);
+  // And whether the door is still owed (see the prop's own note). Hydrated only: before it, `seen`
+  // is the server's optimistic `true`, and a first report of "clear" would let a `?reel` open
+  // under a welcome that arrives a frame later.
+  const pending = current !== null || holding;
+  useEffect(() => {
+    if (!hydrated) return;
+    onPendingChange?.(pending);
+  }, [hydrated, pending, onPendingChange]);
   // And mirror which surface owns a run's failures (see the prop's own note). Same shape.
   const uploadStepShowing = current === "upload" && !holding;
   useEffect(() => {

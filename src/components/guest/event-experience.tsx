@@ -537,6 +537,11 @@ export function EventExperience({
   // releases the attribute drops and everything rises AS the sheet exits,
   // instead of playing invisibly behind it during the refresh roundtrip.
   const [holdCurtain, setHoldCurtain] = useState(false);
+  // ★ THE WELCOME COMES FIRST (Will, 2026-09-24): whether this visitor still owes the door, as the
+  // door itself reports it (EntryModal's `onPendingChange`). OWED until its first report, because
+  // the door is a lazy chunk and a hydrating page cannot know yet: a `?reel` waits a beat for the
+  // owner rather than opening under a welcome that is about to arrive for a guest.
+  const [welcomePending, setWelcomePending] = useState(true);
 
   // Upload bridge: completions route to LiveGallery's imperative handle. The
   // gallery streams in async, so anything finishing before it mounts (rare —
@@ -775,6 +780,7 @@ export function EventExperience({
           hostAvatarUrl={hostAvatarUrl}
           hostSeed={hostSeed}
           onHoldingChange={setHoldCurtain}
+          onPendingChange={setWelcomePending}
           sessionToken={sessionToken}
           storedName={storedName}
           onNamed={({
@@ -1123,6 +1129,7 @@ export function EventExperience({
                 onAddYours={canUpload ? openAdd : undefined}
                 addCutToAlbum={canUpload ? addCutToAlbum : null}
                 queue={queue}
+                welcomePending={welcomePending}
               >
                 {/* THE HIGHLIGHT REEL TILE: its own slot directly above the demo's one slot and the
                     album (never a fourth arm of `pickAboveAlbumState`), on the words' column so it

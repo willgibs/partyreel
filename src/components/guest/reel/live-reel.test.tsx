@@ -77,12 +77,14 @@ async function mount({
   access = "full" as const,
   queue = [] as QueueItem[],
   moderated = false,
+  welcomePending = false,
 }: {
   items?: GalleryItem[];
   reel?: GalleryReel | null;
   access?: "full" | "teaser";
   queue?: QueueItem[];
   moderated?: boolean;
+  welcomePending?: boolean;
 } = {}) {
   const payload: GalleryPayload = {
     items,
@@ -92,7 +94,7 @@ async function mount({
     etag: "e1",
   };
   const galleryPromise = Promise.resolve(payload);
-  const tree = (q: QueueItem[]) => (
+  const tree = (q: QueueItem[], pending = welcomePending) => (
     <Suspense fallback={<div>loading</div>}>
       <GalleryLiveProvider
         galleryPromise={galleryPromise}
@@ -109,6 +111,7 @@ async function mount({
           isDemo={false}
           moderated={moderated}
           queue={q}
+          welcomePending={pending}
         >
           <LiveReelTile />
         </LiveReel>
@@ -120,7 +123,16 @@ async function mount({
     utils = render(tree(queue));
     await galleryPromise;
   });
-  return { ...utils, rerenderWith: (q: QueueItem[]) => utils.rerender(tree(q)) };
+  return {
+    ...utils,
+    rerenderWith: (q: QueueItem[]) => utils.rerender(tree(q)),
+    /** The door reports the visitor through (EntryModal's `onPendingChange(false)`). */
+    passWelcome: async () => {
+      await act(async () => {
+        utils.rerender(tree(queue, false));
+      });
+    },
+  };
 }
 
 /** Let the lazy view's chunk resolve inside act, so its boundary's retry is flushed. */
@@ -284,6 +296,56 @@ describe("the view's address", () => {
     await mount({ items: [item(1)], reel: { ...REEL, showReel: false } });
     expect(screen.queryByTestId("reel-view")).toBeNull();
     expect(window.location.search).toBe("");
+  });
+});
+
+describe("the welcome comes first (Will, 2026-09-24)", () => {
+  it("?reel waits for the welcome: nothing under it or over it, the address still asks, then the view", async () => {
+    window.history.replaceState(null, "", "/e/qr-token?reel");
+    const { passWelcome } = await mount({ welcomePending: true });
+    await settle();
+    expect(screen.queryByTestId("reel-view")).toBeNull();
+    expect(window.location.search).toBe("?reel");
+    await passWelcome();
+    await settle();
+    expect(screen.getByTestId("reel-view")).toHaveAttribute("data-mode", "hand");
+  });
+
+  it("?reel=screen waits the same way (no special case for a wall)", async () => {
+    window.history.replaceState(null, "", "/e/qr-token?reel=screen");
+    const { passWelcome } = await mount({ welcomePending: true });
+    await settle();
+    expect(screen.queryByTestId("reel-view")).toBeNull();
+    await passWelcome();
+    await settle();
+    expect(screen.getByTestId("reel-view")).toHaveAttribute("data-mode", "screen");
+  });
+
+  it("the screen's idle state waits too, and so does the answer below the minimum", async () => {
+    window.history.replaceState(null, "", "/e/qr-token?reel=screen");
+    const idle = await mount({ items: [item(1)], welcomePending: true });
+    await settle();
+    expect(screen.queryByTestId("reel-view")).toBeNull();
+    await idle.passWelcome();
+    await settle();
+    expect(screen.getByTestId("reel-view")).toHaveAttribute("data-idle", "true");
+    idle.unmount();
+
+    // A phone link below the minimum keeps asking while the door stands (the album may grow
+    // meanwhile), and is dropped only once the visitor is through and it still cannot play.
+    window.history.replaceState(null, "", "/e/qr-token?reel");
+    const phone = await mount({ items: [item(1)], welcomePending: true });
+    expect(window.location.search).toBe("?reel");
+    await phone.passWelcome();
+    expect(window.location.search).toBe("");
+    expect(screen.queryByTestId("reel-view")).toBeNull();
+  });
+
+  it("the owner, who never owes it, gets the reel at once", async () => {
+    window.history.replaceState(null, "", "/e/qr-token?reel");
+    await mount({ welcomePending: false });
+    await settle();
+    expect(screen.getByTestId("reel-view")).toHaveAttribute("data-mode", "hand");
   });
 });
 

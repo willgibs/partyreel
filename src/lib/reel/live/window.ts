@@ -88,13 +88,49 @@ export function resolveLiveStyleId(styleId: string | null | undefined): string {
   return entry.kind === "mood" ? entry.id : DEFAULT_STYLE_ID;
 }
 
-/** The theme a look plays: the mood's kit, scaled by the surface's one pacing factor. */
+/** The theme a look plays: the mood's kit, scaled by the surface's one pacing factor, filled edge to
+ *  edge in a landscape composition (`fillLandscape`). */
 export function themeFor(look: ReelLook): ReelTheme {
-  return pacedTheme(
-    resolveTheme(resolveLiveStyleId(look.styleId)),
-    look.surface,
-    look.holdScale,
+  return fillLandscape(
+    pacedTheme(
+      resolveTheme(resolveLiveStyleId(look.styleId)),
+      look.surface,
+      look.holdScale,
+    ),
+    look.orientation,
   );
+}
+
+/**
+ * ★ FILL IN LANDSCAPE (Will, 2026-09-24, his answer to the default mood's bars on a laptop): when
+ * the reel's composition is landscape (a laptop, an event screen) every mood fills the frame edge to
+ * edge, because the reel "should feel like a full-screen experience so that, if used on big screens
+ * at events, it fills them" (`posture=follow`). Three things in the kits keep a landscape frame
+ * from filling, and all three are set aside here, for the live reel only (a cut and the export keep
+ * their moods whole):
+ *
+ * - Cinematic's LETTERBOX bars (13% top and bottom, drawn in landscape only);
+ * - Editorial's INSET paper card (an 8% margin on every side);
+ * - the flat negative space around MISMATCHED media (a portrait photograph in a landscape frame
+ *   draws contained, `framing.ts`'s `fit`, on the theme's colour or paper). It becomes the
+ *   photograph's own darkened blur instead (`backdrop: "blur"`, the look Noir and Float already
+ *   wear, which he liked), so the frame is filled by the picture while the picture itself is
+ *   never cropped: a phone's portrait shot of a table of guests keeps every head.
+ *
+ * Portrait is unchanged: a phone keeps every mood exactly as it was designed.
+ */
+export function fillLandscape(
+  theme: ReelTheme,
+  orientation: Orientation | undefined,
+): ReelTheme {
+  if (orientation !== "landscape") return theme;
+  const { inset: _inset, paper: _paper, ...signature } = theme.signature ?? {};
+  return {
+    ...theme,
+    overlays: (theme.overlays ?? []).filter((kind) => kind !== "letterbox"),
+    backdrop: "blur",
+    ...(theme.signature ? { signature } : {}),
+  };
 }
 
 /** The clips for a run of ids, read from the LATEST items (a missing id simply drops out). */

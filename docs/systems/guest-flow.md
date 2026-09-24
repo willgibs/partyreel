@@ -887,6 +887,14 @@ creator's (below).
   behind a door, there is no tile, no view and no `?reel` (a `?reel` below the minimum is dropped quietly; one
   behind a door waits for the door). The reel plays the SERVER's approved list, never an optimistic blob; the
   demo plays its optimistic tiles too, since its uploads never reach a server.
+- ★ **THE WELCOME COMES FIRST, EVERYWHERE** (Will, 2026-09-24: "In my head, a host would login to a venue
+  computer or send that laptop a link as guest to play the reel from event page after going through the
+  welcome flow"). A visitor who still owes the door meets it with no reel under it or over it, for `?reel`
+  and `?reel=screen` alike (the screen posture is no exception); the moment they are through, the reel
+  their link asked for opens. The door says so itself (EntryModal's `onPendingChange`: a step pending or
+  the "You're in" beat holding, reported once hydrated), and the page treats it as owed until that first
+  report. The owner never owes it and gets the reel at once. A `?reel` that cannot play is dropped only once
+  the door is behind the visitor.
 - **The Highlight reel tile** (`LiveReelTile`, [`reel/live-reel.tsx`](../../src/components/guest/reel/live-reel.tsx))
   sits in its own slot directly above `aboveAlbum`, on the words' column, never a fourth arm of
   `pickAboveAlbumState`. A slow crossfade of six stills from the reel's own take (`planTake`, via
@@ -897,7 +905,11 @@ creator's (below).
   closed.
 - **The view** ([`reel/live-reel-view.tsx`](../../src/components/guest/reel/live-reel-view.tsx), `React.lazy`,
   ONE import promise shared by the warm-up and the lazy boundary) is a full-bleed Radix dialog over the
-  player in `fill` (cover), following the viewport's orientation. ★ **`?reel` is its address**
+  player in `fill` (cover), following the viewport's orientation. ★ **In a landscape composition every mood
+  fills the frame edge to edge** (Will, 2026-09-24; `fillLandscape`, `lib/reel/live/window.ts`):
+  Cinematic's letterbox bars and Editorial's inset card are set aside, and a mismatched photograph (a
+  portrait shot on a laptop or a screen) stays whole on its own darkened blur rather than a flat colour.
+  Portrait keeps every mood as designed. ★ **`?reel` is its address**
   ([`reel-url.ts`](../../src/lib/guest/reel-url.ts)): opening PUSHES an entry marked in its own history state
   (`prReelPushed`), so a phone's back gesture closes the view; closing an entry the page pushed goes back,
   and closing a deep link's view REPLACES the address, so closing never leaves the page. Every other
