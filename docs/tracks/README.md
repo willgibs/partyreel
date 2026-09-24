@@ -79,8 +79,8 @@ board registers after.
 working.
 
 **Verify on.** For a board: 1440 and 375 with reduced motion honoured, `pnpm lab:smoke` whole, `pnpm lab:demo --board
-<board>` pressing every step. For a wiring lane: the gate on the synced tree and the surfaces the Handoff is judged
-on, local and live.
+<board>` pressing every step. For a wiring lane: the gate on the synced tree, `pnpm lab:smoke` whole when it changes anything under `src/`
+but tests, and the surfaces the Handoff is judged on, local and live.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
@@ -98,7 +98,7 @@ on, local and live.
 
 - The work commit and the sync commit, pushed (or: launch-prep had not moved)
 - Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
+- Gates on the synced tree, each on its own exit code, and the sha they ran on
 - Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
 - The items, one line each
 - Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`

@@ -74,6 +74,8 @@ TC=0; T0=$SECONDS
 if [ -n "$CODE" ] || [ "${FULL:-}" = 1 ]; then
   rm -rf .next/dev
   pnpm typecheck >"$S/$TRACK-typecheck.log" 2>&1 || TC=$?
+  # A green typecheck stamps the staged tree, so the gate's build of that exact tree skips its own type pass.
+  [ "$TC" = 0 ] && touch "$S/typechecked-$(git write-tree)"
   if [ -n "$CODE" ]; then echo "typecheck: $(print -r -- "$CODE" | wc -l | tr -d ' ') code path(s) the lane never gated, first $(print -r -- "$CODE" | head -1) ($(( SECONDS - T0 ))s)"
   else echo "typecheck: forced (FULL=1) ($(( SECONDS - T0 ))s)"; fi
 else echo "typecheck: skipped, the merge differs from the lane's head only in docs"; fi

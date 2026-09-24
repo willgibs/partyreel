@@ -50,7 +50,10 @@ else
   run lint "pnpm lint" 40 pnpm lint
   run test "pnpm test" 15 pnpm -s vitest run
   # production builds take turns across every lane on the machine (dev servers and tests stay parallel)
-  run build "pnpm build" 12 zsh scripts/build-lock.sh pnpm build
+  # A tree merge-lane.sh typechecked green skips the build's second type pass (next.config.ts reads GATE_TYPECHECKED);
+  # any other tree, a record committed before the gate included, keeps it.
+  if [ -f "$S/typechecked-$(git rev-parse 'HEAD^{tree}')" ]; then run build "pnpm build" 12 env GATE_TYPECHECKED=1 zsh scripts/build-lock.sh pnpm build
+  else run build "pnpm build" 12 zsh scripts/build-lock.sh pnpm build; fi
   grep -q '^build-lock: waiting' "$S/gate$N-build.log" && echo "(the build's seconds include a wait for the build lock)"
   grep -hE 'Compiled successfully in|Finished TypeScript in' "$S/gate$N-build.log" | sed -E 's/^[^A-Za-z]*/build: /'
   case "$LABS" in
