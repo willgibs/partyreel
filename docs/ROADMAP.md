@@ -47,7 +47,7 @@ below hold the rest by surface.
 - Help: `reporting-and-safety.mdx` names "suspended accounts" (line 36), and no suspension exists.
 - Security: changing an event's password evicts nobody already unlocked for up to 12 hours (the unlock cookie signs `{eid, exp}`, not the password); bind it to a password version so a change signs everyone out.
 - Billing follow-ons: `host-storage`'s wiring needs a per-account, per-item size query (today's `getHostStorageSummary` is an aggregate and `listEventMedia` is per event) and the plan sheet's refusal face on the trigger the board picks.
-- The voice: after the guest journey's board (`voice-guest`), the host app's lines, then marketing's main lines, each won one line at a time in its real place (Will, 2026-09-22: "nail our voice in the lab, across all main and micro copy").
+- The voice: after the guest journey's board (`voice-guest`), the host app's lines, then marketing's main lines, each won one line at a time in its real place, across all main and micro copy.
 - Help: `your-dashboard-explained.mdx` carries the stale `<Path>Account menu › Dashboard</Path>` breadcrumb (the account menu has no Dashboard item; the logo is the door), beside its own billing help-sync line.
 - Marketing: `faq-data.ts`'s "How long do you keep my photos?" answer reconciles only the Event Pass exception; the Free plan's inactivity removal (the help guide's rule 7) is missing from it.
 - Marketing: `/events/weddings` and `/events/trips` still say "no expiry clock counting down" on the memories (`src/lib/constants/events.ts`, four lines), with no word of the Free plan's inactivity removal.
@@ -93,7 +93,7 @@ The lab and the kit:
 - A `Frame` seeds its state from the parent's first render, before `useBoardState` reads the URL, and the correcting `lab:set` lands before the frame has hydrated (a board opened at `?ground=cinema` painted every card on the app's dark).
 - `lab:demo` reads a step FROZEN when its options differ only inside grid-stacked, visibility-toggled `srcdoc` iframes (the captures come back byte-identical); capture each frame on its own.
 - The pinned stage head crushes at 375 when a step has one config row: the recommended line and the knob strip share a line and the label truncates.
-- A fully ruled ask is unreachable by `?session=<board>.<ask>` even by a direct link (`_desk/queue.ts`'s `boardWork` walks only asks with no ledger answer), against `lab-demo.mjs`'s claim that a ruled step stays measurable.
+- A fully answered ask is unreachable by `?session=<board>.<ask>` even by a direct link (`_desk/queue.ts`'s `boardWork` walks only asks with no ledger answer), against `lab-demo.mjs`'s claim that an answered step stays measurable.
 - `BoardSection` hands its board one unkeyed child, so a board effect keyed on a module constant freezes when the board's own control swaps the drawn option; the kit keys the child, or every measuring board threads a change token.
 - A production hero mounted on a board arrives invisible until `Reveal` sees it (`PageHero`'s subhead and actions hold `data-mkt-cut`'s backwards state); the kit owes boards a settled-state rule.
 - The dock draws every control as a pill row; above about eight options a select gives the dock back a screen (`ControlKnobs`, `board-state.tsx`).
@@ -123,7 +123,7 @@ The lab and the kit:
 
 Marketing:
 - The feature pages after the album one (curation, guests, privacy, QR, sharing), one ground-up round each in nav order, the album page as the model; the privacy hero's round three is on the desk.
-- Marketing glass: the header's `GlassLayer`, the overlays and the set-pieces over photographs, onto the app's ruled material (the banked Glass exploration across marketing and app); until then the nav labels sit at `text-muted-foreground` under the transparent bar and are hard to read over a bright cinema hero.
+- Marketing glass: the header's `GlassLayer`, the overlays and the set-pieces over photographs, onto the app's glass material (the banked Glass exploration across marketing and app); until then the nav labels sit at `text-muted-foreground` under the transparent bar and are hard to read over a bright cinema hero.
 - `ScreenLamp` casts a full-bleed seam under the sharing and guests heroes where a screen's light is a pool; compose each its own light.
 - Brand: the day the v1 icon lands (ASSETS row 19), one pass: `Logo`'s `markOnly` branch (a placeholder tile with no production caller), `src/app/icon.svg`, `favicon.ico`, `apple-icon.png` and `manifest.ts`, the reel watermark's badge and wordmark in `src/lib/reel/engine/canvas2d.ts` (its REAL-LOGO seam; the wordmark path can ride a `Path2D`), and the press kit (`scripts/build-press-kit.mjs` rebuilds the committed zip: the marks and the app icon, which show the retired Aperture glyph today, plus the wordmark in white and in ink, which the kit has never carried).
 - A partners page and program for planners, with `/press` growing into the partnerships kit; until then planners read the site as hosts.
@@ -282,7 +282,7 @@ The app:
   - AI-referral analytics (UA-tagged hits on `/llms.txt`).
   - `FAQPage` JSON-LD per help article (each is a clean question-and-answer pair).
 - **Billing follow-ons:**
-  - Grandfathering at the first price change: the policy is ruled in [`PRICING.md`](PRICING.md) "Grandfathering"; the build maps several historical Price IDs per plan in `planForPriceId`, the newest being the public offer.
+  - Grandfathering at the first price change: the policy is in [`PRICING.md`](PRICING.md) "Grandfathering"; the build maps several historical Price IDs per plan in `planForPriceId`, the newest being the public offer.
   - Per-pass dashboard management: which stacked pass a renewal extends, per-pass expiry rows in the storage meter (today the soonest-expiring one renews, billing-caps.md).
   - Revoke the latent table-level TRUNCATE, REFERENCES and TRIGGER grants `anon` and `authenticated` hold on all 22 public tables (Supabase's default grant; PostgREST issues none of them, so none is reachable) in the next security pass.
   - Revoke the PUBLIC EXECUTE `get_event_by_qr_token` carries through its recreates (anon, authenticated and service_role hold it explicitly), in the same pass.
@@ -291,7 +291,7 @@ The app:
   - Card presets (minimal ink and photo-backed), and stock cover images per common event type plus generic sets (hosts rarely have a cover before the event).
   - Toggles for the link, the date and the cover; phone and story formats beside printable ones; several file types; drag-and-drop placement as the stretch goal.
   - The share sheet grows sections for posters and an invite when they exist.
-- **Event safety** (Will, 2026-09-23): a host blocks a person from an event, and keeps an event closed. His answers: a block is "Out, uploads removed" (no join, upload, album, like or claim; their uploads removed in the same step and restorable from Deleted; a plain closed door, never the word blocked); the closed doors are approve newcomers, close to newcomers and an invite list; all "free on every plan". The `event-safety` board draws it; the wiring follows his review, keyed on the account (every device) or one row (one browser), never a device id or an IP.
+- **Event safety**: a host blocks a person from an event, and keeps an event closed. A block puts the person out and removes their uploads (no join, upload, album, like or claim; the uploads removed in the same step and restorable from Deleted; a plain closed door, never the word blocked); the closed doors are approve newcomers, close to newcomers and an invite list; all free on every plan. The `event-safety` board draws it; the wiring follows his review, keyed on the account (every device) or one row (one browser), never a device id or an IP.
 - **The reel:** the round's wiring waits on Will's desk review of the six reel boards (`reel-view`, `reel-front`, `reel-screen`, `reel-cut`, `reel-host`, `reel-story`); the approved plan named in [`tracks/orchestrator.md`](tracks/orchestrator.md) runs the guest, cut, host, teardown and sweep lanes on the expand migration (live since 2026-09-24), one alias build replacing the stored reel, and the drop migration and a one-shot R2 sweep of the stored reel files after its red-team (the demo's `events/2485e1e6-12b1-4d02-aee3-1e2bb5d38d4f/reel/reel.mp4` among them, and its copy in the backup bucket, which no prune reaches). Ideas at zero storage, since a reel is a recipe:
   - A host featuring one cut on the album, and a shareable cut link.
   - Host pins that open each loop.
@@ -299,7 +299,7 @@ The app:
   - A screen link that bypasses the host sign-in (a capability of its own).
   - A counted client event for cuts made per event (no server write exists, by design).
   - Drop the dormant `media.highlight_score` and `clip_*` once the round settles (their names sit in the host's column-scoped select list, so the drop edits that list in the same commit).
-- **User profiles and social discovery** (not launch-gating; the consent one-way door is ruled in [`systems/profiles-social.md`](systems/profiles-social.md)):
+- **User profiles and social discovery** (not launch-gating; the consent one-way door is decided in [`systems/profiles-social.md`](systems/profiles-social.md)):
   - The social feed and discovery (depends on the Notification system).
   - Guest-list sort by upload count (a nudge to contribute).
   - The follow graph has no consumer worth the graph: the Following chip left the dashboard and no query reads your followers or the events of the hosts you follow; a followed-hosts feed is new work.

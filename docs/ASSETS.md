@@ -13,7 +13,7 @@ by `marketing-media.ts`), then mark the row `delivered` here or say so in chat; 
 Will's edits to this file are safe beside the Orchestrator's (it stages explicitly and reads the file before every
 edit); no agent edits it (asks go in the manifest's Handoff, one bullet per asset).
 
-**Status:** `requested` → `delivered` → wired (the row leaves); `parked` when the round that asked was not ruled in
+**Status:** `requested` → `delivered` → wired (the row leaves); `parked` when the round that asked was not picked
 but the asset still serves a queued idea (the reason rides the status).
 
 **The source:** every image and every video on the site is generated in one Higgsfield month once more of the site
