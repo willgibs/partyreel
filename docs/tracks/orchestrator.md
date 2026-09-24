@@ -42,8 +42,8 @@ through `scripts/build-lock.sh` (the kit's gate takes it itself).
 The lean round's rest (Will's words drive it; everything is guidance, one home, nothing treated as finished).
 Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/`.
 
-1. **When the wave is in**: one `[preview]` for Will's sitting (`album-columns` first; build 6, `d3135de`, already
-   serves the new Library and that board, and its Vercel log confirms the source-map upload).
+1. **Build 7** (the refreshed desk) for Will's sitting, `album-columns` first; then `mandate-sweep`'s merge (comments
+   only, so no build of its own).
 2. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
    self-registering folder, its metadata in its spec, lab checks scoped to the lane's own boards, the authoring API
    trimmed, a fresh agent proving it; with library-lean's board ideas (a `Surfaces` family of live frames per route
