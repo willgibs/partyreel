@@ -43,9 +43,10 @@ Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyre
 
 1. **The board refresh** after `library-lean` merges (Will, 2026-09-24): every open board re-cut under the new
    guidance (the Library's recipe, the ten, production as a working version) for more open, bolder options, since
-   many were narrowed by old rules and past picks. The audit (scratch `board-audit.md`) grades each board; lanes by
-   surface, the reel boards first (they gate the reel round), each owning its boards' folders and rewriting their
-   comments. A refresh improves on what the board has: the strong options stay and get better, bolder ones join, his
+   many were narrowed by old rules and past picks. Seven specs are ready (scratch `specs/refresh-*.json`, each with
+   its boards' audit lines from `board-audit.md`); cut in this order as seats free: `refresh-reel-host` (Opus),
+   `refresh-reel-cut`, `refresh-host`, `refresh-site`, then `refresh-guest`, `refresh-identity`, `refresh-pages`
+   (Sonnet). Each owns its boards' folders and rewrites their comments. A refresh improves on what the board has: the strong options stay and get better, bolder ones join, his
    notes on record travel as direction. He runs through the refreshed boards once, the picks are wired so the lab is
    current with the Library, and later rounds may revisit any covered surface with fresh ideas.
 2. **The mandate sweep** (Sonnet) after `library-lean` merges, outside the boards (the refresh lanes take theirs): Will's overhaul (2026-09-24), whose one home is
