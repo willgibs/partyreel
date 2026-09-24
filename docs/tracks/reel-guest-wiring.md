@@ -1,6 +1,6 @@
 ---
 track: reel-guest-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "74794b60"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -170,24 +170,66 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+The ◇ calls, taken exactly as the brief wrote them (his to overrule):
+- ◇ The tile's stills are the reel's own take (`planTake`): six previews on a slow crossfade (3.2 s a still), never the album's newest. Recommended: keep.
+- ◇ No chip on the tile until `reel-front` round 2's winner replaces "The reel" chip. Recommended: keep until that winner lands.
+- ◇ Hold steps 1, 1.5, 2.2, 3, 3.6, 5 and 7 s, 3 by default. Recommended: keep.
+- ◇ `?reel=screen` is the screen posture. Recommended: keep (one view, one parameter).
+- ◇ The Start plate is `frame` (the first frame behind a dimmed play mark). Recommended: keep until his re-cut `reel-screen` verdicts restyle it.
+- ◇ Below the minimum the screen's idle state is `code` (the code and the address alone). Recommended: keep. The host's Start there is a quiet button under the address: the plate's scrim over the code dimmed the one thing a guest must scan (found in this lane's captures, fixed in 4800b595).
+- ◇ The toast never plays while no reel is showing. Recommended: keep.
+
+Calls this lane took (his to overrule):
+- The album's count label reads "N photos & videos" (the stats line's and the teaser CTA's always-both-nouns wording), left of Download all and View, the demo included. Recommended: keep; the alternative is a bare number.
+- The reel plays the SERVER's approved list, so a photograph joins the loop when the album confirms it (a completion refetches at once), never as an optimistic full-size blob; the demo plays its optimistic tiles too, since its uploads never reach a server. Recommended: keep.
+- Style is remembered per event on the device; Hold and Include videos per device, across events. Recommended: keep.
+- The toast counts reel-eligible items only (a cut the host approves never toasts), once per visit. Recommended: keep.
+- One Sentry report per view at twelve failed frames or stills (the brief's "a loop whose failure count crosses a threshold reports once", read the quieter way); every failure also asks the presign watchdog. Recommended: keep.
+- The bar-to-dock morph is a `clip-path` inset morph with the icons arriving on a short stagger (GPU-cheap on a phone, instant under reduced motion), not an SVG gooey filter. Recommended: keep; a gooey pass is a lab exploration if he wants the goo.
+- The dock settles back after 2.4 s of a resting pointer (4.2 s after a touch), never while paused, focused or a menu is open. Recommended: keep.
+- The viewer opened from the reel holds the album's whole approved list in album order (its counter reads the album, "Photo 5 of 14"), not the reel's take. Recommended: keep.
+- The event's link card moved from the file-based `opengraph-image.tsx` to the route `/e/<token>/card`, because a file-based image outranks `generateMetadata` and the `?photo=` card depends on the query; the pixels are unchanged. Recommended: keep.
+- NEW, not built: a signed-out device that opens `?reel` or `?reel=screen` meets the welcome door first, over the reel (the owner never meets the door, so the host's own "Play on a screen" is unaffected; a guest's shared `?reel` link is an arrival). Recommended: keep the door for `?reel`; for `?reel=screen` on a signed-out wall device, hold the door until the view closes. Left for his ruling: the door's auto-open is the page's most-tested logic.
+- NEW, a look: the default mood (Cinematic, id `classic`) draws its letterbox bars in landscape, so a laptop or an event screen shows bars inside a full-bleed picture (`posture=follow` fills the screen; the mood then frames it). Recommended: keep (the mood's signature, and the host picks the mood); the alternative is the live view dropping the letterbox on the wall surface.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/guest-flow.md`: the BELONGS HERE line; "Stats" (the album's own count label, the provider's `onCountChange`); the column list; `open` plus "The link's image" (the card route; `?photo=` read with `readPhotoParam`); "Live gallery" (the one live source, the presign watchdog, the reel facts in the ETag, `reelEligible` outside it, the provider's handle); "One true count" and "The flip and the drift" (the provider); "Demo mode" (the reel in the demo); "The guest reel" replaced by "The live reel (the guest half)". The Lightbox bullet is untouched (the Orchestrator's, from `media-viewer-wiring`).
+- For the Orchestrator, outside this lane's owns: `docs/systems/host-app.md`'s sentence "The motion-video engine (`engine/video/`, `lib/reel/live/`, `player-live.tsx`) is on the tree, but only the lab harnesses ... drive it: the production reel never passes a video source" goes stale at this merge, since the guest album's live reel drives all three in production (video windows under Include videos). Proposed: "... drive the guest album's live reel ([guest-flow.md](guest-flow.md), "The live reel"), with the lab harnesses (`/design/lab/tools/reel-video`, `/design/lab/tools/reel-live`) beside it."
+- For the Orchestrator: `docs/systems/uploads-and-r2.md` (the complete route) gains one fact: the guest complete body takes an optional `reel_eligible` (false for a cut), carried by the pipeline for both strategies into `create_media*`'s `p_reel_eligible` (database-security.md already states the column's write-once rule).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: the host strategy of the complete route sends `reel_eligible` once the creator lets a host save a cut (the pipeline carries it for both strategies; only the guest queue's `addCut` sends it today).
+- Now: the Library entries for the new components: `for` lines in `component-notes.ts` and `@contract-for` headers for `reel/live-reel.tsx`, `reel/live-reel-view.tsx`, `gallery-live.tsx` and `player-live.tsx` (their tests are plain component tests today, since a contract needs a `for` line outside this lane), and `live-gallery.tsx`'s `for` line refreshed now that its state lives in the provider.
+- Now: `/admin` toggles `ops_flags.live_reel_enabled` and shows the "live reel: frames failing" reports (this lane reads the lever; nothing writes it yet).
+- Now: the approval toast's server half, so a held upload approved after the visit that made it is told on the next visit (the queue lives in memory).
+- Now: the door on `?reel=screen` for a signed-out wall device, once he rules (Questions).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, all pushed to `origin/lp/reel-guest-wiring`.** Work: `66a09fba` (the seam), `edac46b8` (the data through), `d88742fc` (the cut's seam), `e8ffbe21` (the guest side), `f2f91f1b` (the album's count label; guest-flow.md), `b6dc9f28` (the viewer's origin and moment, the card's reader, the address rule), and the last work commit `4800b595` (the idle wall's Start). Sync merges: `96442f54` (desk-refresh-standing, reel-refresh-cut), `60ea19a4` (media-viewer-wiring), `59d89808` (reel-refresh-host).
+- **Gates on the synced tree (`59d89808`), each on its own exit code** (logs `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/reel-guest-wiring/g4-*.log`): `pnpm design:rules` 0 (no artifact drift) · `collect-specimens.mjs` 0 (no drift) · `pnpm typecheck` 0 · `pnpm lint` 0 (7 warnings, none in a touched file) · `pnpm test` 0 (443 files, 4890 passed, 1 skipped) · `pnpm build` 0 · `pnpm lab:smoke --base http://localhost:3132` 0 (498 checks, 0 failing).
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` is 54 paths plus this file, every one under `owns` but `src/lib/db/mutations/guest.ts`: two lines (`createMedia` takes `reelEligible` and passes `p_reel_eligible`), because it is the only door to `create_media` and the cut's seam must reach it. The rename `src/app/(guest)/e/[token]/opengraph-image.tsx` to `card/route.tsx` stays inside `owns`; nothing in the lab imports it.
+- **Items:**
+  1. The seam: one motion stream per session (`motionSeed`); the carried clip keeps its plan and ordinal across a loop boundary; one clip holds without snapping; the handover resumes on the leaving window's frame. Pinned at 1, 2 and 6 clips (`source.test.ts`, "the small-album seam"), in `window.test.ts`, and by `player-live.test.tsx`'s handover continuity across warm and punchy, which fails on the old code.
+  2. Minimum two: `LIVE_REEL_MINIMUM` and `liveReelAvailable` (`gallery-reel.ts`): approved, reel-eligible and drawable; below it, with the switch or the lever off, or short of full access, no tile, no view, no `?reel`.
+  3. The data: `reelEligible` on every album item (grid items, the RPC mapping, the unlock and teaser reads); `GalleryReel` on the page and every poll's 200, tier facts derived on the server, hashed in the ETag (`g6-`).
+  4. One live source: `GalleryLiveProvider` above the album and the reel; the presign watchdog (one forced refetch a minute at most).
+  5. The tile: "Highlight reel", six previews of the reel's own take, its own slot above `aboveAlbum`, "Make your own clip to share" only with a creator; the album's own count label.
+  6. The view (`?reel`): full-bleed, the bar that grows into the dock, tooltips, Space, Escape and the arrows, Style, Hold and Include videos kept on the device, the code plate, the arrival feed ("Theo +3", depth 3), a tap into the shared viewer grown out of the frame with a video's `startAt`, reduced motion paused with the dock up, one Sentry report.
+  7. The screen (`?reel=screen`): the Start plate, fullscreen and the wake lock (re-taken on return, released on close), the plate back when fullscreen is left, the idle wall (the code, the address, a quiet Start).
+  8. The toast: "The host added your uploads" with "Watch reel", once per visit, moderated events only, never a cut.
+  9. The cut's seam: `addCutToAlbum(file, poster)` into the queue's `addCut` (`reelEligible: false`, the poster as its preview), through the complete route and the pipeline to `create_media(p_reel_eligible => false)`; `creator-seam.ts`'s `REEL_CREATOR` is the creator's one plug.
+  10. The link card: `?photo=<id>` (read with `readPhotoParam`) on an album anyone may open unfurls as that photograph; everything else keeps the event card at `/e/<token>/card`.
+  11. The demo: the tile and the view; Add yours is the demo's simulated add; no creator, no toast.
+  12. The stored reel's guest card and overlay no longer render, and the page reads no stored reel (`getGuestReelContext` is not called); the files stay for the teardown.
+- **Assets requested from Will:** none.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:** the Questions above, one line each.
+- **Look at first:**
+  - The seam: `src/lib/reel/live/source.test.ts` ("the small-album seam", 1, 2 and 6 clips) and `src/lib/reel/engine/player-live.test.tsx` ("★ a handover keeps the SAME clip at the SAME frame").
+  - The tile at two and absent at one: the disposable events "Reel lane probe (disposable)" (`aefb1f5d-1a6b-461a-949f-aabe44ea79a0`, 14 approved, built through real uploads) and "Reel lane probe one (disposable)" (`7a6eb647-312e-4254-ab30-4d256cf63a32`, 1 approved).
+  - Captures at 1440 and 375, `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/reel-guest-wiring/captures/` (local headless Chrome, web security off only so the canvas can read R2): `*-01-album` (the tile and the count label), `*-02-view-open`, `*-03-view-rest`, the morph as nine close-ups of the dock (`*-04-morph-0..8`), `*-05-dock-paused`, `*-06-hold-menu`, `*-07-code`, reduced motion (`*-rm-*`), and the screen (`1440-screen-01-plate`, `-02-playing`, `-03-rest`, `-04-idle`).
+  - On the alias, the first place the reel draws for real (R2's CORS allows partyreel.com and the alias only, so localhost's canvas is black without a relay): the view at 1440 and 375, the Start's fullscreen and wake lock on a real screen, and the toast on a moderated disposable event (a host approval), which only `live-reel.test.tsx` ("the approval toast") covers so far.
+  - The card on the alias: `/e/<token>?photo=<approved id>` unfurls as that photograph; a gated album keeps `/e/<token>/card`.
