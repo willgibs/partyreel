@@ -18,6 +18,7 @@ reads:
   - CLAUDE.md
   - docs/PROGRAM.md
 announces:
+  - "media-viewer-wiring merged at 7eb190de (2026-09-24): `MediaLightbox`/`MediaLightboxLazy` take `origin={{ kind: \"reel\", rect }}` (rect null fades in; omit `returnTo` so the way out lands in the frame) and `startAt` (a clip's seconds); `ViewerOrigin` is exported from `@/components/shared/media-lightbox`; the photo parameter is `PHOTO_PARAM` with `readPhotoParam` in `@/lib/media/share-save`. The Orchestrator replaced guest-flow.md's Lightbox bullet. `reel-guest-wiring` syncs past it and passes both from the view's tap."
   - "lab-scene-kit merged at bff618d4 (2026-09-23): `Fit` and `Measured` live in `@/components/lab` (`scene.tsx`); `kit-discipline.test.ts` refuses a registered board that declares either. `event-safety` syncs past it and imports the two."
   - "The reshape (Will, 2026-09-22): the docs carry rules, never history. `docs/CHANGELOG.md` is gone (the merge commit carries a lane's summary), `usher/kit/cut-lane.py` cuts manifests from a spec, and four lanes run on disjoint files: `docs-rules` retires `docs/design/rulings.md` and the Library's rulings page, `systems-trim` trims `docs/systems/`, `roadmap-lean` rewrites `docs/ROADMAP.md` and `docs/ASSETS.md`, `pointer-sweep` rewrites code comments that point at the retired docs. None changes behavior."
 ---
@@ -33,7 +34,6 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `media-viewer-wiring` | the media viewer as ruled (grow, face credit, floating capsule, peek + desktop filmstrip, pinch, video with a scrubber, swipe-down and blank-tap close, `?photo=`, Share the file, Save to Photos first) | running | Opus, :3131 | integrate first; apply its Lightbox lines to `guest-flow.md`; announce `origin`/`startAt` |
 | `reel-guest-wiring` | the live reel's guest side: the seam fix, minimum 2, the provider lift, the Highlight reel tile, the view that is also the wall, the toast, the cut's seam, the photo link card | running | Opus, :3132 | HOLD unmerged until the cut and host lanes are ready (one alias build replaces the stored reel) |
 | `reel-refresh-host` | `reel-screen` round 2 (the reel on a big screen) and `reel-host` re-cut with the merged `open` and `review` and the progression ask | running | Opus, :3133 | integrate; then the `[preview]` for his sitting once all three lab lanes land |
 

@@ -52,13 +52,21 @@
 // the host could not reach it, which is exactly what `landing=sweep` refused.
 import "./arrival.css";
 
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { Play } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
 import { TileLikeMark } from "@/components/likes/like-button";
+import type { ViewerOrigin } from "@/components/shared/media-lightbox";
 import {
   MediaLightboxLazy,
   preloadMediaLightbox,
@@ -66,6 +74,7 @@ import {
 import { GLASS, GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 // The tile aspect-ratio math lives in a pure module (node-unit tested + reusable
 // by host grids without pulling this client component's lightbox graph in).
+import { readPhotoParam, withPhotoParam } from "@/lib/media/share-save";
 import { tileAspect, UNIFORM_TILE_ASPECT } from "@/lib/media/tile-aspect";
 import { useLongPress } from "@/lib/shared/use-long-press";
 import { cn } from "@/lib/utils";
@@ -122,6 +131,54 @@ export const GALLERY_UNIFORM_COLUMNS =
 const PHONE_COLUMNS = 2;
 const PHONE_MAX = 640;
 const COLUMN_FLOOR = 220;
+
+/**
+ * THE PHOTOGRAPH'S OWN ADDRESS (media-viewer r1, the brief's `?photo=`).
+ * Opening a photograph writes `?photo=<id>` beside the page's other params, so
+ * a refresh comes back to it; the grid reads it once, on mount, and opens that
+ * item. ★ ACCESS STAYS EXACTLY AS IT WAS: the address opens only an item
+ * already in this viewer's payload (the server decided that list), so an
+ * unknown, held or hidden id matches nothing and the album simply opens, with
+ * no error and no sign the item exists. Behind a door the payload is the door's
+ * (nothing at a password, the teaser at a gate), and the viewer waits for any
+ * dialog already open (the door) to close before it opens over the album.
+ *
+ * ★ ONE GRID CLAIMS IT. A page can mount two grids (the profile's uploads and
+ * likes; the host's album beside its bin), and a photograph in both must open
+ * once. The claim is released when its grid unmounts, so the album a door
+ * remounts at `full` can take it.
+ */
+let addressClaim: string | null = null;
+
+/** Write the open photograph into the address (null clears it), history untouched. */
+function writeAddress(id: string | null) {
+  if (typeof window === "undefined") return;
+  try {
+    const next = withPhotoParam(window.location.href, id);
+    const here = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    // `null` state: Next's patched replaceState copies its own history state
+    // in and tells the router, so useSearchParams sees the new address.
+    if (next !== here) window.history.replaceState(null, "", next);
+  } catch {
+    // An address the browser will not rewrite leaves the viewer working.
+  }
+}
+
+/** A dialog someone else opened (the album's door), which the address waits behind. */
+function foreignDialogOpen() {
+  return !!document.querySelector(
+    "[role='dialog']:not([data-lightbox-content]), [role='alertdialog']",
+  );
+}
+
+/** A tile's box by the id of the photograph in it. */
+function tileFor(root: HTMLElement | null, id: string): HTMLElement | null {
+  if (!root) return null;
+  const safe = id.replace(/["\\]/g, "\\$&");
+  return root.querySelector<HTMLElement>(
+    `[data-media-tile][data-media-id="${safe}"]`,
+  );
+}
 
 /**
  * The subtle corner play marker for video tiles (one of Will's three permitted
@@ -430,6 +487,7 @@ export function MasonryColumns<T extends GridMedia>({
   mineIds,
   onSelectMine,
   mineSelected,
+  photoAddress = true,
 }: {
   items: T[];
   /** Surfaces the lightbox Delete (the personal Uploads feed); omitted = read-only. */
@@ -494,6 +552,11 @@ export function MasonryColumns<T extends GridMedia>({
   shareUrl?: string;
   onSetStatus?: (item: GridMedia, status: "approved" | "hidden") => void;
   onRemove?: (item: GridMedia) => void;
+  /**
+   * The open photograph rides the page's address as `?photo=<id>` (on by default; see
+   * `writeAddress`). Off for a grid that is not the page's subject.
+   */
+  photoAddress?: boolean;
 }) {
   /**
    * ★ THE OPEN ITEM IS AN ID, NEVER A POSITION. `items` mutates under an open
@@ -504,6 +567,10 @@ export function MasonryColumns<T extends GridMedia>({
    * now that it IS the guest album.
    */
   const [openId, setOpenId] = useState<string | null>(null);
+  // Where the open photograph grew from (`opening=grow`): the tile's rect at
+  // the tap. None when it opened from the address (its tile may be far down
+  // the page), so it fades in, and still drops back into its tile.
+  const [origin, setOrigin] = useState<ViewerOrigin | undefined>(undefined);
   const openAt = openId ? items.findIndex((m) => m.id === openId) : -1;
   // -1 covers both "closed" and "the open item just vanished", which the
   // lightbox reads as closed.
@@ -521,6 +588,91 @@ export function MasonryColumns<T extends GridMedia>({
   // height and the swap is a re-balance rather than a jump.
   const [cols, setCols] = useState<number | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
+  // The grid's root in every layout (the uniform grid has no measured box).
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const itemsRef = useRef(items);
+  useEffect(() => {
+    itemsRef.current = items;
+  });
+
+  /**
+   * The tile of the photograph showing at close, brought on screen if the
+   * viewer walked it out of view, so the photograph drops into ITS tile.
+   */
+  const returnTo = useCallback((item: GridMedia) => {
+    const tile = tileFor(rootRef.current, item.id);
+    if (!tile) return null;
+    const r = tile.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > window.innerHeight)
+      tile.scrollIntoView({ block: "center" });
+    return tile;
+  }, []);
+
+  const openItem = (id: string, tile: Element | null) => {
+    setOpenId(id);
+    setOrigin(
+      tile
+        ? { kind: "tile", rect: tile.getBoundingClientRect(), returnTo }
+        : undefined,
+    );
+    if (photoAddress) writeAddress(id);
+  };
+
+  const closeItem = () => {
+    setOpenId(null);
+    if (photoAddress) writeAddress(null);
+  };
+
+  // The address, read once on mount (see `writeAddress`). Async on purpose: a
+  // frame lets the page settle and a door open first, and a door that is
+  // open is waited out.
+  const claimId = useId();
+  useEffect(() => {
+    if (!photoAddress) return;
+    const id = readPhotoParam(window.location.search);
+    if (!id) return;
+    let observer: MutationObserver | null = null;
+    let raf = 0;
+    const tryOpen = () => {
+      if (addressClaim && addressClaim !== claimId) return;
+      if (!itemsRef.current.some((m) => m.id === id)) return;
+      if (foreignDialogOpen()) {
+        if (!observer && typeof MutationObserver !== "undefined") {
+          observer = new MutationObserver(() => {
+            if (!foreignDialogOpen()) {
+              observer?.disconnect();
+              observer = null;
+              tryOpen();
+            }
+          });
+          observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ["role", "data-state"],
+          });
+        }
+        return;
+      }
+      addressClaim = claimId;
+      setOpenId(id);
+      // It did not grow from anywhere on screen (its tile may be far down the
+      // page), so it fades in; it still drops back into its tile.
+      setOrigin({ kind: "tile", rect: null, returnTo });
+    };
+    raf = requestAnimationFrame(tryOpen);
+    return () => {
+      cancelAnimationFrame(raf);
+      observer?.disconnect();
+      if (addressClaim === claimId) addressClaim = null;
+    };
+  }, [photoAddress, claimId, returnTo]);
+
+  // The open photograph vanished under the viewer (removed, filtered away):
+  // the address stops naming it.
+  useEffect(() => {
+    if (photoAddress && openId && openAt < 0) writeAddress(null);
+  }, [photoAddress, openId, openAt]);
   const measure = useCallback(() => {
     const el = boxRef.current;
     if (!el) return;
@@ -548,6 +700,8 @@ export function MasonryColumns<T extends GridMedia>({
       data-arrived={arrivedIds?.has(item.id) ? "" : undefined}
       data-landed={landedIds?.has(item.id) ? "" : undefined}
       data-mine={mineIds?.has(item.id) ? "" : undefined}
+      // The lightbox finds a photograph's tile by it, to drop back into.
+      data-media-id={item.id}
       // The bright edge (globals.css, [data-lit]): this div owns the tile
       // radius and clips the photo, so the hook sits here and nowhere
       // above it. No value: a tile has no border for the light to land on.
@@ -576,11 +730,11 @@ export function MasonryColumns<T extends GridMedia>({
       <button
         type="button"
         {...longPress.bind(item.id)}
-        onClick={() => {
+        onClick={(e) => {
           // Suppress the click the browser synthesizes after a long-press (else the hold that
           // entered select mode would also open the lightbox).
           if (longPress.consumeClick()) return;
-          setOpenId(item.id);
+          openItem(item.id, e.currentTarget.closest("[data-media-tile]"));
         }}
         aria-label={item.type === "photo" ? "View photo" : "Play video"}
         className={`size-full cursor-pointer transition-[transform,opacity] duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset active:scale-[0.98]${
@@ -619,7 +773,10 @@ export function MasonryColumns<T extends GridMedia>({
     <>
       {columns ? (
         <div
-          ref={boxRef}
+          ref={(el) => {
+            boxRef.current = el;
+            rootRef.current = el;
+          }}
           data-album-grid
           className="flex w-full items-start gap-[var(--gap-gallery)]"
           onPointerEnter={preloadMediaLightbox}
@@ -634,7 +791,10 @@ export function MasonryColumns<T extends GridMedia>({
         </div>
       ) : (
         <div
-          ref={uniform ? undefined : boxRef}
+          ref={(el) => {
+            if (!uniform) boxRef.current = el;
+            rootRef.current = el;
+          }}
           data-album-grid
           className={uniform ? GALLERY_UNIFORM_COLUMNS : GALLERY_COLUMNS}
           onPointerEnter={preloadMediaLightbox}
@@ -648,10 +808,15 @@ export function MasonryColumns<T extends GridMedia>({
       <MediaLightboxLazy
         items={items}
         index={openIndex}
-        onClose={() => setOpenId(null)}
+        origin={origin}
+        onClose={closeItem}
         // Swipe/arrow navigation still speaks in positions; translate straight
         // back to the id so the next mutation can't shift it either.
-        onIndexChange={(i) => setOpenId(items[i]?.id ?? null)}
+        onIndexChange={(i) => {
+          const id = items[i]?.id ?? null;
+          setOpenId(id);
+          if (photoAddress) writeAddress(id);
+        }}
         viewerIsHost={viewerIsHost}
         shareUrl={shareUrl}
         onSetStatus={onSetStatus}
@@ -659,7 +824,7 @@ export function MasonryColumns<T extends GridMedia>({
         onDeleteCurrent={
           onDeleteItem
             ? (item) => {
-                setOpenId(null);
+                closeItem();
                 onDeleteItem(item.id);
               }
             : undefined
@@ -668,7 +833,7 @@ export function MasonryColumns<T extends GridMedia>({
         onRemove={
           onRemove
             ? (item) => {
-                setOpenId(null);
+                closeItem();
                 onRemove(item);
               }
             : undefined
