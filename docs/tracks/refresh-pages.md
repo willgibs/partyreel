@@ -1,6 +1,6 @@
 ---
 track: refresh-pages
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "ce9c13df"            # the launch-prep SHA the branch was cut from
 board: help-center
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -48,17 +48,23 @@ working.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Lab kit: `DialogTitle`/`DialogDescription` (radix) throw with no `Dialog.Root` above them, not just styled divs; a board quoting the Dialog family (this lane's `contact-page/receipt.tsx`, its `modal` receipt option) has to rebuild the header/title/description/footer as plain elements carrying the same classNames. `profile-page`'s landmine comment names only `DialogContent`/`Portal`/`Overlay` as the parts a board can't mount for real; this is the same landmine one layer wider. Caught live before the commit, not by the gate. Bucket: lab-authoring gotchas.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commit `a0f03f6d` on `lp/refresh-pages`, pushed. `origin/launch-prep` moved to `8f531c6b` (a one-line `docs/tracks/orchestrator.md` record) since this lane's cut; no sync commit made, per PROGRAM.md ("record commits... never need one").
+- Gates, all on `a0f03f6d`: `pnpm typecheck` clean; `pnpm lint` 0 errors (7 pre-existing warnings, none in a touched file); `pnpm test` 4580/4580 green; `zsh scripts/build-lock.sh pnpm build` compiled, typechecked and generated all 257 routes; `pnpm lab:smoke --base http://localhost:3132` 314 checks/0 failing; `pnpm lab:demo --base http://localhost:3132 --board <id>` for all four, 0 failing each (help-center 7 steps, emails 8, contact-page 6, press-page 7; the script's own reduced-motion emulation covers that half of "Verify on"). 1440/375 and reduced motion also eyeballed live in the Chrome pane for every changed ask.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` is exactly the 14 files under the four `owns` prefixes; this manifest is the one line outside them.
+- The items:
+  - `help-center`: `hub` and `feedback` re-argued on help's own two-visitor traffic (who-first's own phone-scanned-a-code / laptop-from-the-host's-menu split) and its own content-maintenance need, dropping the app-pricing/admin citations the audit flagged. Both picks (`hybrid`, `beacon`) unchanged; only the reasoning moved.
+  - `emails`: `code` gains the real third direction the audit asked for, `copy` — no button; the digits themselves sit in a highlighted block captioned for the tap-and-hold gesture every mail client already supports (no client can wire a real one-tap copy, so the caption asks for the gesture that actually works). Now recommended over `continue`/`promise`, which were stuck arguing about a tap this mail can't itself resolve.
+  - `contact-page`: `receipt` gains the fourth option its own prior `overrule` named and left undrawn, `modal`, quoting `welcome-to-pro.tsx`'s dialog mechanism as plain markup, never the real `Dialog` family (see Deferred). Deliberately no confetti: it borrows the mechanism, not the celebration. `card` stays recommended; the modal is the honest answer to "if a note ever deserves that weight," not a claim that it does.
+  - `press-page`: `the-sheet` re-judges the inherited 2026-08-28 brand-guidelines cut on its own case rather than carrying it forward unexamined. The audience-mismatch reasoning in `press/page.tsx`'s own comment still holds (clear space and minimum size are a design team's business, not a press reader's), so the internal plates stay off. What doesn't hold: nothing on the sheet today tells a publication what it may actually DO with the marks. `usage-note` (the eight plates plus one permission line) is the new, one-line-cheap, genuinely press-relevant answer, now recommended over `eight-plates`.
+- Assets requested from Will: none.
+- Board ideas: none beyond this lane's own four boards.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule, one line each:
+  - `emails.code`: recommendation moved from `continue` to `copy`; the ask's own `overrule` names what flips it back (most people reading the code on a different device than the one waiting for it).
+  - `press-page.the-sheet`: recommendation moved from `eight-plates` to `usage-note`; its own `overrule` names the flip condition (even one line reading as a brand book creeping onto the page).
+  - `contact-page.receipt`: `modal` is drawn but deliberately NOT recommended; his own note (quoted in the ask's context) pointed at the precedent existing, not at a note deserving it.
+- Look at first: `press-page.the-sheet` (the brand-guidelines reconsideration carries the most judgment) and `emails.code` (the new no-button direction).
