@@ -29,19 +29,27 @@ import { defineExploration } from "@/components/lab/exploration";
  * "cut" as the internal name throughout, unchanged: nothing here asks which
  * word to use, so only what a guest actually reads moved.
  *
- * ★ WHAT IS DELIBERATELY NOT ASKED. That cuts leave on devices; that the
- * fourteen looks are the cut's while the eight moods roll in the live reel;
- * that the free levers are the mark and the length and never the quality;
- * no music, no end card, no timeline and no per-clip editing; that Share is
- * its own tap and "Add to the album" rides the ordinary upload queue on a
- * paid event. All ruled. The reel view's own chrome is DECIDED now
- * (`reel-view` round one, verbatim in `reel-refresh-cut`'s manifest: a
- * weighted dock, "Add yours" an icon, "Make your own" the one primary
- * beneath it, the arrival chip top left, the event's code a plate bottom
- * right, no event name on screen), so `ReelView` below wears it as ground
- * rather than drawing it neutrally; only `entry` and `noencode` still touch
- * the one slot this board owns. `guest-capture.follow` and
- * `guest-capture.landing` are that board's; nothing here asks them.
+ * ★ WHAT STAYS GROUND, AND THE ONE AXIS THIS ROUND REOPENS. Ground, none of
+ * it a question below: that cuts leave on devices; that the fourteen looks
+ * are the cut's while the eight moods roll in the live reel; that the free
+ * levers are the mark and the length, never the quality; that a cut is
+ * auto-timed rather than edited frame by frame, so no timeline and no
+ * per-clip trim; that Share is its own tap and "Add to the album" rides the
+ * ordinary upload queue on a paid event; no end card. The reel view's own
+ * chrome stays exactly as `reel-view` round one drew it (a weighted dock,
+ * "Add yours" an icon, "Make your own" the one primary beneath it, the
+ * arrival chip top left, the event's code a plate bottom right, no event
+ * name on screen), so `ReelView` below wears it as ground rather than
+ * drawing it neutrally; only `entry` and `noencode` still touch the one slot
+ * this board owns. `guest-capture.follow` and `guest-capture.landing` are
+ * that board's; nothing here asks them.
+ *
+ * Reopened: whether a cut ever carries sound at all. The engine already
+ * decodes a video moment's own frames for motion (`ReelClip.video`,
+ * `reel-types.ts`); it has never decoded that same clip's audio, so every
+ * cut renders silent today no matter what it is built from, and nothing
+ * about that has actually been looked at since the reel round first shaped
+ * the creator. `sound` below asks it as a real question, never a given.
  */
 
 /**
@@ -101,7 +109,7 @@ const DRAFT = defineExploration({
     n: 1,
     date: "2026-09-24",
     changed:
-      "Re-cut under his batch-1 answers: entry now names both doors in (the view's primary and the tile's own line); noencode redrawn on the weighted dock's empty primary slot and the tile's description; finish's Save reads Save to Photos; the guest-facing word is clip throughout.",
+      "Widened the same day: `sound` reopens whether a cut ever carries audio, since the engine already decodes a video moment's frames and has never unlocked its track; every ask keeping its earlier answers, argued on its own case.",
   },
   context:
     "Priya is at Maya and Jay's wedding, watching the event's live reel, and she has tapped Make your own. Her cut renders on her phone and leaves as a file: nothing is stored and nothing is written. The album holds 26 items, one of them a cut Theo already added, so her pool is 25. Every frame of a cut here is the real engine over those photographs, at 375 with 1440 on the knob.",
@@ -119,7 +127,7 @@ const DRAFT = defineExploration({
       question:
         "Do orientation, cover and length still get controls in the creator?",
       taken:
-        "Yes: the shipped tray of five, drawn but not asked. Curated randomness is ruled, so nothing here edits a clip.",
+        "Yes: the shipped tray of five, drawn but not asked. Curated randomness stays the engine's own approach, so nothing here edits a clip.",
       overrule:
         "If a cut should offer fewer knobs than the Studio did, say which chip goes and the tray loses it.",
     },
@@ -138,6 +146,15 @@ const DRAFT = defineExploration({
         "Clip, following his own copy on the tile; cut stays the board's, the folder's and every identifier's internal name.",
       overrule:
         "If cut should stay the guest-facing word too, revert the strings this round touched; nothing structural moves.",
+    },
+    {
+      id: "mute",
+      question:
+        "Does every sound option carry its own mute control, or only native's?",
+      taken:
+        "Only native's: a mute switch is the difference between hearing the moment and turning it off. An ambient bed is muted the same way, by picking silent instead.",
+      overrule:
+        "If the ambient bed should also carry a standing mute rather than a re-pick, say so and the room gains one more control regardless of which wins.",
     },
   ],
   asks: [
@@ -194,7 +211,7 @@ const DRAFT = defineExploration({
           id: "float",
           label: "The cut fills the room, the work floats",
           means:
-            "Both caps off: the cut takes the room and the header, the dock and the sheet float over it on the one ruled glass.",
+            "Both caps off: the cut takes the room and the header, the dock and the sheet float over it on the one shared glass surface.",
         },
         {
           id: "bench",
@@ -207,7 +224,7 @@ const DRAFT = defineExploration({
       because:
         "Every control here covers the thing it changes, which only a hand has to forgive. At a laptop the work goes beside the cut, and picking a look means watching it change rather than remembering it. In a hand this is honestly today's room, and the caption says so.",
       overrule:
-        "If the creator must read as one room at every size, the cut taking the room on the ruled glass is most of the win and no second layout.",
+        "If the creator must read as one room at every size, the cut taking the room on the shared glass surface is most of the win and no second layout.",
       lands:
         "The creator's shape at each size, and whether a control may ever cover the cut it is changing.",
       configs: [LOOK],
@@ -221,7 +238,7 @@ const DRAFT = defineExploration({
       options: [
         {
           id: "wall",
-          label: "The four column wall, in the ruled sheet",
+          label: "The four column wall, in the shared sheet",
           means:
             "Fourteen at once: a panel beside the cut at a desk, where it covers nothing, and the same wall over it in a hand.",
         },
@@ -240,7 +257,7 @@ const DRAFT = defineExploration({
       ],
       recommended: "wall",
       because:
-        "Every tile is her own clips drawn by the engine, so the wall does not need the cut behind it: each tile is the preview. Fourteen at once beats five in a row that hides nine, and at a desk the ruled panel stands beside the cut rather than over it.",
+        "Every tile is her own clips drawn by the engine, so the wall does not need the cut behind it: each tile is the preview. Fourteen at once beats five in a row that hides nine, and at a desk the shared panel stands beside the cut rather than over it.",
       overrule:
         "If a look can only be judged in motion, the rail is the one posture that keeps the cut playing while she picks.",
       lands:
@@ -259,7 +276,7 @@ const DRAFT = defineExploration({
           id: "sheet",
           label: "The sheet over the cut, as the Studio ships",
           means:
-            "The pool in the ruled sheet: a column beside the cut at a desk, and a tall sheet over it in a hand.",
+            "The pool in the shared sheet: a column beside the cut at a desk, and a tall sheet over it in a hand.",
         },
         {
           id: "pool",
@@ -278,7 +295,7 @@ const DRAFT = defineExploration({
       because:
         "The three fills do most of the work, so whoever opens the pool is actually changing something, and for her the whole case is that the cut answers every tap. A band under it keeps the cut visible in a hand too, which a sheet cannot; at a desk the two are one column.",
       overrule:
-        "If a hand cannot spare the height for both, the ruled sheet is what every other dialog does and the fills carry the rest.",
+        "If a hand cannot spare the height for both, the shared sheet is the pattern every other dialog uses, and the fills carry the rest.",
       lands:
         "Where a cut's membership is chosen, whether the cut is visible while it is, and how loudly the fills lead.",
       after: { ask: "room" },
@@ -305,7 +322,7 @@ const DRAFT = defineExploration({
         },
         {
           id: "tooltip",
-          label: "The ruled tooltip, and nothing else",
+          label: "The standard tooltip, and nothing else",
           means:
             "The tile is disabled and the reason lives in the tooltip a pointer gets instantly. A thumb taps and nothing answers.",
         },
@@ -425,6 +442,42 @@ const DRAFT = defineExploration({
         "If a standing line reads as a pitch inside a guest's own creation, the bare mark says everything the file will and no more.",
       lands:
         "Whether a free cut ever names the paid plan, and where an upgrade door sits in a guest's room.",
+      tile: "phone",
+      configs: [SCREEN],
+    },
+    {
+      id: "sound",
+      label: "The cut's sound",
+      question: "Should a cut ever carry sound, and if so, whose?",
+      context:
+        "The engine draws pixels only: a video moment's own captured audio (`ReelClip.video`) is decoded for motion, never for sound, so every cut renders silent today no matter what it is built from.",
+      options: [
+        {
+          id: "silent",
+          label: "Silent, as it renders today",
+          means:
+            "No audio track at all, from a photo or a video moment alike: the motion and the look carry the moment, exactly as every cut has so far.",
+        },
+        {
+          id: "native",
+          label: "Each video keeps its own captured sound",
+          means:
+            "A video moment plays its own captured sound on screen; a photo stays quiet under it. One mute covers the clip: nothing licensed, just what the phone recorded.",
+        },
+        {
+          id: "bed",
+          label: "One ambient bed under the whole cut",
+          means:
+            "A single soft track plays under every look, chosen once for the event rather than per clip: a more produced feel, at the cost of a track library and its rights.",
+        },
+      ],
+      recommended: "native",
+      because:
+        "The engine already decodes a video moment's frames; unlocking that same clip's audio costs nothing, since it is the guest's own recording, not a licensed track. It is truer to the moment too, and a cut built only from photographs still renders silent, which the option says plainly.",
+      overrule:
+        "If a produced, radio-ready result matters more than staying free of a music library and its rights, the ambient bed is the direction that actually delivers it.",
+      lands:
+        "Whether the engine's video decode ever unlocks an audio track, and whether a cut ever asks anyone to license music.",
       tile: "phone",
       configs: [SCREEN],
     },

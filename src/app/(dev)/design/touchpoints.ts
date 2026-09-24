@@ -595,7 +595,7 @@ export const RULINGS: Ruling[] = [
     title: "From the reel to a cut",
     surface: "guest",
     asks:
-      "the creator a guest meets from the reel: the way in, the room, the fourteen looks, the moments, a hidden tile, the export's wait, the finish, the free mark, and a device that cannot encode",
+      "the creator a guest meets from the reel: the way in, the room, the fourteen looks, the moments, a hidden tile, the export's wait, the finish, the free mark, whether it carries sound, and a device that cannot encode",
     why: "A cut is anyone's, made on the device from the live reel, saved or shared as a file and never stored; this board is the creator that replaces the Studio.",
     lives: [
       "docs/systems/host-app.md",
@@ -607,7 +607,7 @@ export const RULINGS: Ruling[] = [
       "src/lib/reel/engine/registry.ts",
     ],
     board: {
-      note: "Nine decisions on the creator a guest meets after tapping Make your own, over the album media-viewer already draws: the way in from the reel, the room at both sizes, the fourteen looks, the moments as a local pick with three fills, a hidden tile only the host meets, the export's minute, the finish, the free mark and a device that cannot encode",
+      note: "Ten decisions on the creator a guest meets after tapping Make your own, over the album media-viewer already draws: the way in from the reel, the room at both sizes, the fourteen looks, the moments as a local pick with three fills, a hidden tile only the host meets, the export's minute, the finish, the free mark, whether a cut ever carries sound, and a device that cannot encode",
       variants: [
         "The way in",
         "The room",

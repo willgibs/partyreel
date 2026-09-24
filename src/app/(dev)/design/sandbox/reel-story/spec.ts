@@ -3,41 +3,47 @@ import type { Control } from "@/components/lab/board-spec";
 
 /**
  * THE MARKETING STORY OF THE REEL (THE REEL ROUND, wave 2; Will, 2026-09-22;
- * "the reel, reconceived"). Every marketing surface today sells a
- * host-made, post-event, stored reel: "Every event ends with a reel.", "From
- * the first scan to the final cut", "Pick a style. The reel cuts itself,
- * ready to share.", "Every guest can take the reel home." None of that is
- * true any more. The reel is alive from the second photo (dropped from three,
- * ruled), on the venue's wall as a first-class screen, and a cut is anyone's,
- * made on-device, never stored. Seven asks retell it: the thesis line, the
- * /reel page's arc, the home's teaser and the hero film's role, the pricing
- * rows' words, the how-it-works steps, the event pages' reel column, and the
- * help category's name.
+ * "the reel, reconceived"), REFRESHED (2026-09-24). Every marketing surface
+ * still sells a host-made, post-event, stored reel: "Every event ends with a
+ * reel.", "From the first scan to the final cut", "Pick a style. The reel
+ * cuts itself, ready to share.", "Every guest can take the reel home." None
+ * of that is true any more. The reel is alive from the second photo (dropped
+ * from three), on the venue's wall as a first-class screen, and a cut is
+ * anyone's, made on-device, never stored. Seven asks retell it: the thesis
+ * line, the /reel page's arc, the home's teaser and the hero film's role, the
+ * pricing rows' words, the how-it-works steps, the event pages' reel column,
+ * and the help category's name. `help` already offers "Highlight reel" (also
+ * the album tile's own heading); `steps` and `pricing` already draw his
+ * "clip" beside "cut", never replacing it; `teaser` already carries the
+ * tile's own crossfade as one of its four, over the tile's live take, not a
+ * recorded stand-in.
  *
- * ★ RE-CUT UNDER BATCH ONE (2026-09-24): `help` gains "Highlight reel" as an
- * option, since it is now also the album tile's own heading and was missing
- * from the three; `steps` and `pricing` draw his "clip" beside "cut", never
- * replacing it; `teaser` gains the tile's own crossfade as a fourth option,
- * over the tile's live take, not a recorded stand-in.
+ * ★ THIS PASS ARGUES EACH ASK ON ITS OWN CASE. `teaser` and `help` both leaned
+ * their recommendation on "reel-front" as though a sibling board's pick
+ * settled a marketing question by itself. Both are rewritten below to argue
+ * what a homepage section and a help category each need in their own right;
+ * the picks are unchanged because the case still holds, not because the
+ * citation did.
  *
- * DECIDED, NOT ASKED (this board takes them as given): the /reel page's live
- * style switcher stays, as the engine's proof; the tier rows become the cut's
- * length and mark, never the live reel's; the words below are the seven
- * asks' to settle, and nothing here pins a final string. His standing site
- * rulings bind throughout: no page ends the same way with the reel ("that
- * will feel incredibly repetitive"), no centred portrait video leaving blank
- * space on a desktop, the demo door as the event pages' own proof, the hero
- * film parked (ASSETS row 1).
+ * WHAT THIS BOARD TAKES AS GROUND, since a fact still needs one home: the
+ * /reel page's live style switcher stays, as the engine's proof; the tier
+ * rows become the cut's length and mark, never the live reel's; no page ends
+ * the same way with the reel (a homepage, a feature hub and a pricing page
+ * all closing on one repeated beat reads as one page copied three times); no
+ * centred portrait video leaves blank space on a desktop; the demo door is
+ * the event pages' own proof and stays exactly as it draws; the hero film is
+ * parked (ASSETS row 1). The words below are the seven asks' to settle;
+ * nothing here pins a final string.
  *
  * ★ EVERY OPTION IS THE REAL COPY, IN THE REAL PIECE. Nothing here is
  * described in the abstract: the close is the real CtaBand under the real
  * SectionLight, the feature entry wears the real card scrim and the real
  * poster, the pricing rows read MAX_REEL_SECONDS off tiers.ts, the steps
  * borrow the walkthrough's own numbered rail, and the events column stands
- * beside the real demo door (event-door.tsx), unchanged, exactly as ruled.
- * The `teaser` ask's "real engine" option plays gallery-fixtures.ts's shared
- * wedding album (the same stand-in every reel-round board plays) through the
- * same `buildReelProps` the shipped Studio and the live player call.
+ * beside the real demo door (event-door.tsx), unchanged. The `teaser` ask's
+ * "real engine" option plays gallery-fixtures.ts's shared wedding album (the
+ * same stand-in every reel-round board plays) through the same
+ * `buildReelProps` the shipped Studio and the live player call.
  *
  * Nothing here overlaps `site-chrome` (the nav and footer's structure) or
  * `press-page` (the fact sheet is the sweep's alone).
@@ -60,7 +66,7 @@ const DRAFT = defineExploration({
     n: 1,
     date: "2026-09-24",
     changed:
-      "Re-cut under his batch-1 answers: help gains Highlight reel as an option; steps and pricing draw clip beside cut; teaser gains the tile's own crossfade; the minimum drops to two, so every third photo becomes second.",
+      "Widened the same day: teaser and help now argue their own case for the crossfade and for keeping \"Highlight reel\", rather than pointing at reel-front's pick; every such citation in this board's own comments is rewritten the same way.",
   },
   context:
     "The reel is reconceived: live from the second photo, a first-class screen, a cut anyone renders on-device. Every marketing surface still sells the old host-made, stored reel. Seven asks retell it; nothing here pins a final word, and nothing wires production.",
@@ -152,14 +158,14 @@ const DRAFT = defineExploration({
         {
           id: "crossfade",
           label: "The album tile's own crossfade",
-          means: "The same slow, gentle cycle the album's own tile wears now (ruled): no canvas, no lazy chunk, one motion language between the marketing site and the product.",
+          means: "The same slow, gentle cycle the album's own tile wears: no canvas, no lazy chunk, and the same motion a visitor meets again as a host on their own album.",
         },
       ],
       recommended: "crossfade",
       because:
-        "The album's own tile settled on exactly this (reel-front, ruled): no canvas, no lazy chunk, one consistent motion language between the marketing site and the product a guest actually uses.",
+        "It costs nothing the page does not already spend (no canvas, no lazy chunk), and it puts the same motion in front of a visitor here and a guest on their own album later: bible 8's one system is exactly this seam, and a section proving the reel is alive should not teach a second way motion moves.",
       overrule:
-        "If the section is closer to a hero moment than a proof point, the graded film reads more cinematic than any crossfade of stills, live engine included.",
+        "If the section is a hero moment more than a proof point, the graded film reads more cinematic than any crossfade, live engine included.",
       lands: "Whether the home ships a second live engine mount, or keeps the section to a produced asset and zero extra bytes.",
       configs: [SCREEN],
     },
@@ -240,7 +246,7 @@ const DRAFT = defineExploration({
       label: "The events pages' reel column",
       question: "What should the event pages' reel column say and show now?",
       context:
-        "event-door.tsx pairs the ruled demo door with a column naming each type's own angle (\"cut into one highlight reel you can send the same night\") beside a stored poster. The door stays exactly as ruled.",
+        "event-door.tsx pairs its own demo door with a column naming each type's own angle (\"cut into one highlight reel you can send the same night\") beside a stored poster. The door itself is unchanged either way.",
       options: [
         {
           id: "wall",
@@ -255,7 +261,7 @@ const DRAFT = defineExploration({
         {
           id: "gone",
           label: "The column gone; the demo door stands alone",
-          means: "The section keeps only the ruled door, centred and widened; nothing about the reel runs beside it.",
+          means: "The section keeps only the demo door, centred and widened; nothing about the reel runs beside it.",
         },
       ],
       recommended: "wall",
@@ -296,7 +302,7 @@ const DRAFT = defineExploration({
       ],
       recommended: "highlight-reel",
       because:
-        "It is already live as the tile's own heading (reel-front, ruled) as well as the footer, so keeping it doubles as the clearest thread from the album to a help article.",
+        "A guest meets this exact phrase on the album tile before they ever open help, so the category a search or footer link lands on reads as the same feature, not a second name; \"the reel\" alone is plainer, but this board already has reel and cut to keep straight, and a third name would not help.",
       overrule:
         "If a reader's first confusion is mixing the always-on reel up with a personal cut, naming the live reel explicitly heads that off before the first article does.",
       lands: "The slug redirect (highlight-reel to its successor), the strip label, and the header panel's entry text.",

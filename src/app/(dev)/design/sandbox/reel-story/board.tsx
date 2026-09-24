@@ -128,7 +128,7 @@ function eventsScreen(id: "wall" | "cut" | "gone", s: BoardState) {
       id={`events-${id}`}
       screen={screen}
       h={id === "gone" ? (phone ? 680 : 620) : phone ? 1200 : 760}
-      caption="event-door.tsx's own door, unchanged (the ruled proof); only the reel column beside it (or its absence) changes."
+      caption="event-door.tsx's own door, unchanged; only the reel column beside it (or its absence) changes."
     >
       <EventsPreview variant={id} phone={phone} />
     </Screen>

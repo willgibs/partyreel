@@ -35,9 +35,10 @@ import type { AlbumItem } from "./fixtures";
  * ★ THE ROOM'S THREE SHAPES, WHICH IS WHAT `room` ASKS. `capped` is the Studio
  * as it ships: stacked bands, the cut capped at the player's own 360 px, every
  * sheet over it. `float` gives the cut the whole room and floats the chrome on
- * the ruled glass it is already standing on. `bench` splits a laptop in two,
- * the cut on the left and whatever is open a column beside it, and is today's
- * room in a hand. What each costs is MEASURED on the stage, never asserted.
+ * the shared glass surface it is already standing on. `bench` splits a laptop
+ * in two, the cut on the left and whatever is open a column beside it, and is
+ * today's room in a hand. What each costs is MEASURED on the stage, never
+ * asserted.
  */
 
 export const SCREENS = {
@@ -231,8 +232,9 @@ export function Dock({
 
 /**
  * The five controls, in the shipped tray's own order and words. A cut keeps
- * exactly these (style, cover, length, layout and the dock's order): "curated
- * randomness, never a timeline" is ruled, so nothing here edits a clip.
+ * exactly these (style, cover, length, layout and the dock's order): the
+ * engine picks its own curated randomness rather than a timeline, so nothing
+ * here edits a clip.
  */
 export const TRAY = ["Moments", "Style", "Cover", "Length", "Layout"] as const;
 export type TrayId = (typeof TRAY)[number];
