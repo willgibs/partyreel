@@ -1309,6 +1309,10 @@ export type Database = {
         Returns: Json
       }
       add_to_reel: { Args: { p_media_id: string }; Returns: Json }
+      admin_metrics_snapshot: {
+        Args: { p_fortnight_days?: number; p_window_days?: number }
+        Returns: Json
+      }
       block_user: { Args: { p_blocked: string }; Returns: undefined }
       capture_guest_email: {
         Args: {
@@ -1379,6 +1383,9 @@ export type Database = {
         Args: { p_event_ids: string[] }
         Returns: number
       }
+      event_card_stats: { Args: { p_event_ids: string[] }; Returns: Json }
+      event_covers: { Args: { p_event_ids: string[] }; Returns: Json }
+      event_link_totals: { Args: { p_event_id: string }; Returns: Json }
       follow_user: { Args: { p_followee: string }; Returns: undefined }
       get_event_by_qr_token: {
         Args: { p_qr_token: string }
@@ -1400,14 +1407,19 @@ export type Database = {
         }[]
       }
       get_event_like_counts: {
-        Args: { p_event_id: string }
+        Args: { p_after?: string; p_event_id: string; p_limit?: number }
         Returns: {
           like_count: number
           media_id: string
         }[]
       }
       get_event_media_by_qr_token: {
-        Args: { p_qr_token: string }
+        Args: {
+          p_before_created_at?: string
+          p_before_id?: string
+          p_limit?: number
+          p_qr_token: string
+        }
         Returns: {
           created_at: string
           duration_seconds: number
@@ -1491,6 +1503,7 @@ export type Database = {
         Returns: Json
       }
       has_password: { Args: never; Returns: boolean }
+      held_event_ids: { Args: { p_event_ids: string[] }; Returns: string[] }
       host_active_bytes: { Args: { p_host_id: string }; Returns: number }
       host_storage_summary: {
         Args: { p_host_id: string }
@@ -1501,7 +1514,7 @@ export type Database = {
       }
       like_media: { Args: { p_media_id: string }; Returns: Json }
       list_guest_rows_by_email: {
-        Args: never
+        Args: { p_after_at?: string; p_after_id?: string; p_limit?: number }
         Returns: {
           display_name: string
           event_date: string
@@ -1521,6 +1534,7 @@ export type Database = {
         }
         Returns: number
       }
+      my_liked_media_ids: { Args: { p_media_ids: string[] }; Returns: string[] }
       purge_media_now: { Args: { p_media_ids: string[] }; Returns: Json }
       purge_media_rows: {
         Args: { p_media_ids: string[] }
@@ -1566,6 +1580,13 @@ export type Database = {
       set_reel_guest_visible: {
         Args: { p_event_id: string; p_visible: boolean }
         Returns: Json
+      }
+      standby_hosts: {
+        Args: { p_after?: string; p_limit?: number }
+        Returns: {
+          host_id: string
+          standby_bytes: number
+        }[]
       }
       tier_limits: {
         Args: { p_tier: Database["public"]["Enums"]["tier_type"] }

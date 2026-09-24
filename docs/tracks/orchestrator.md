@@ -33,7 +33,6 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `rowcap-sql` | every SQL shape the fixes need, in `20260924010000_row_cap_album.sql`, `..020000_row_cap_host.sql`, `..030000_row_cap_sweeps.sql`, backward compatible, each ending in a rolled-back check on the scale probe; `row-cap-sql.test.ts` | building (agent a82acf51bb5d1123f) | Opus, :3132 | apply the three files in order by the protocol; regenerate `types.ts`; then cut stage 2 |
 
 ## Next, in order
 
