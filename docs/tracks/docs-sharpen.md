@@ -106,13 +106,16 @@ Every call below is built as recommended and is Will's to overrule.
 
 ## Handoff (replaces the chat report)
 
-- **Commits:** work `0e172f04` (the five usher files); sync `d7f10487` (`origin/launch-prep` at `6fb45435`, the
-  bible-ten cut, merged in). The head is in the chat line.
+- **Commits:** work `0e172f04` (the five usher files). Syncs: `d7f10487` (`origin/launch-prep` at `6fb45435`, the
+  bible-ten cut) and `be58c4b3` (at `44711e29`: the brand-kit cut and the pickup, records only). The head is in the
+  chat line.
 - **The two copies to apply at the merge** (your files) are in
   `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/docs-sharpen/`:
   `CLAUDE.md` (125 lines, md5 `e17df7fefefe276fa59965e1a74fb72f`) and `PROGRAM.md` (md5
-  `30995a176df4da6e6a75668d8b852033`). Apply them in the same merge: the new spawn prompt relies on CLAUDE.md's gate
-  and on PROGRAM.md "Agent boot" 5 and 6.
+  `30995a176df4da6e6a75668d8b852033`). Apply them in the same merge, because the new spawn prompt relies on
+  CLAUDE.md's gate and on PROGRAM.md "Agent boot" 5 and 6. Apply them before the `bible-ten` and `library-lean`
+  lines for these two files: the copies cite the bible by name, never by number, and carry no `design:rules`,
+  contract, policy or doctrine-page line, so most of those lines will find nothing to change.
 - **Swap test** on the final copies (the md5s above in the tree, then restored with
   `git checkout -- CLAUDE.md docs/PROGRAM.md`):
   - record-depth-policy, docs, influences, links and track-manifests tests: EXIT 0 (5 files, 72 tests;
@@ -121,10 +124,10 @@ Every call below is built as recommended and is Will's to overrule.
   - full `pnpm test`: EXIT 0 (434 files, 4,779 passed; `swap-test-final.log`);
   - `/design/library/doctrine/program` and `/doctrine/agent-guide`: 0 console errors and 0 exceptions
     (`console-final-*.log`), captured at 1440 and 375 with scrollWidth equal to clientWidth (`cap-*.png`).
-- **Gates on the synced tree `d7f10487`**, each on its own exit code: design:rules 0 · collect-specimens 0 (no
-  artifact change) · typecheck 0 · lint 0 (7 warnings, none in a file this lane touched) · test 0 (434 files, 4,781
-  passed, 1 skipped) · build 0 · `lab:smoke --base http://localhost:3131` 0 ("503 checks, 0 failing"). Logs:
-  `<scratch>/gate-*.log`.
+- **Gates on the synced tree `be58c4b3`**, each on its own exit code: design:rules 0 · collect-specimens 0 (no
+  artifact change) · typecheck 0 · lint 0 (7 warnings, none in a file this lane touched) · test 0 (434 files, 4,783
+  passed, 1 skipped) · build 0 · `lab:smoke --base http://localhost:3131` 0 ("504 checks, 0 failing"). Logs:
+  `<scratch>/gate2-*.log`; the same gate was green on `d7f10487` too (`<scratch>/gate-*.log`).
 - **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): `usher/HEARTBEAT.md`, `usher/README.md`,
   `usher/kit/README.md`, `usher/kit/spawn-prompt.txt`, `usher/moltbook/README.md`, plus this manifest; no
   exceptions.
