@@ -1,7 +1,7 @@
 /**
  * THE BIBLE (Will's ruling, "less is more", 2026-09-12; second edition after
  * his rule-by-rule review, 2026-09-14). The whole of Partyreel's design law:
- * twenty-two rules, hand-authored, ratified by Will, rendered on
+ * twenty-five rules, hand-authored, ratified by Will, rendered on
  * /design/rules. A component's functional contract lives on the component (a
  * test tagged `@contract-for`); everything else on the site is precedent an
  * agent may break in a better exploration.
@@ -28,7 +28,8 @@ export type BibleGroup =
   | "motion"
   | "surfaces"
   | "copy"
-  | "rising tides";
+  | "rising tides"
+  | "experience";
 
 export const BIBLE_GROUPS: BibleGroup[] = [
   "identity",
@@ -39,6 +40,7 @@ export const BIBLE_GROUPS: BibleGroup[] = [
   "surfaces",
   "copy",
   "rising tides",
+  "experience",
 ];
 
 /** Where a rule stands after a review. Absent reads as "ruled". */
@@ -326,11 +328,44 @@ export const BIBLE: BibleRule[] = [
     n: 22,
     group: "rising tides",
     statement:
-      "Rising tides. Nothing is protected: judge every section, component, flow and line from the ground up, asking what the perfect version would be if it did not exist yet, then build that: elevate what already points there, rework what does not, and raise the global system as you go.",
-    why: "No round can know the finished bar in advance, so the program is an iterative flow that keeps raising it. A page with a weak layout is torn down and rebuilt rather than pushed a little further, and big swings that can be reverted beat small cautious steps; but always reworking loses what we like and always polishing makes no progress, so the call is the agent's, each time, from the ground up, and it may push past today's systems, components and rules to set a new peak.",
+      "Rising tides: the goal is always the whole platform, never only the task at hand, and nothing is protected or finished. Judge every section, component, flow and line from the ground up, ask what the perfect version would be, build that, and send the improvements you see in the systems around your task to the Lab, the risk-free road to better ideas.",
+    why: "Will (2026-09-24): \"A rising tide lifts all boats ... Not a single aspect of Partyreel is perfect; consider the current state of everything as progress, not end goals.\" No round can know the finished bar in advance, so the program is an iterative flow that keeps raising it, and relitigating a settled decision for a better answer is welcome. A page with a weak layout is torn down and rebuilt rather than pushed a little further, and big swings that can be reverted beat small cautious steps; but always reworking loses what we like and always polishing makes no progress, so the call is the agent's, each time, from the ground up, and it may push past today's systems, components and rules to set a new peak.",
     enforcedBy: "review",
     ruledBy: "Will",
     ruledOn: REVIEWED,
+  },
+  {
+    id: "elegant-simplicity",
+    n: 23,
+    group: "rising tides",
+    statement:
+      "Between otherwise equal systems, elegant simplicity with less risk surface wins over complexity that adds no value.",
+    why: "Will (2026-09-24): \"For otherwise equal systems, elegant simplicity with less risk surface area tends to win over complexity that adds no value.\" Every added part is one more thing to maintain, secure and explain, and the program's own docs obey the same rule: every added line dilutes the rest.",
+    enforcedBy: "review",
+    ruledBy: "Will",
+    ruledOn: "2026-09-24",
+  },
+  {
+    id: "dont-make-me-think",
+    n: 24,
+    group: "experience",
+    statement:
+      "Don't make me think: every flow streamlines its friction away, a problem arrives with an actionable fix or help, anything unclear carries a tooltip or points to help, and nothing is a dead end.",
+    why: "Will (2026-09-24): flows are roads; features that point to each other are intersections; the end of a flow returns smoothly, like a cul-de-sac, rather than stopping at \"done\"; smaller features ride on-ramps nested under bigger ones, so the product feels feature-rich without crowding and every flow stays clean and focused. \"We win with intuitive flows designed to be beautiful and engaging.\"",
+    enforcedBy: "review",
+    ruledBy: "Will",
+    ruledOn: "2026-09-24",
+  },
+  {
+    id: "premium-is-the-floor",
+    n: 25,
+    group: "experience",
+    statement:
+      "Premium is the floor: the app should feel like magic, the way Apple's platforms do, with every feature beautiful in itself, motion that shows state or earns attention, transitions that connect one flow to the next, and interactions that answer instantly, can be interrupted and never err.",
+    why: "Will (2026-09-24): \"Features feel beautiful within themselves, inspiring more usage. Motion visualizes state or gets user attention, occasionally surprising with delights that sell the whole experience. Fluid transitions help connect flows and make the user experience feel seamless. Interruptibility offers instant feedback for fast-paced usage while remaining error-free.\" How often each motion runs (instant, standard, delightful) is rule 12's.",
+    enforcedBy: "review",
+    ruledBy: "Will",
+    ruledOn: "2026-09-24",
   },
 ];
 
@@ -343,4 +378,5 @@ export const BIBLE_GROUP_LABEL: Record<BibleGroup, string> = {
   surfaces: "Surfaces",
   copy: "Copy",
   "rising tides": "Rising tides",
+  experience: "Experience",
 };
