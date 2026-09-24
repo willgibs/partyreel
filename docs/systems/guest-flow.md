@@ -932,7 +932,8 @@ creator's (below).
   it and a wake lock ([`screen-posture.ts`](../../src/lib/guest/screen-posture.ts)), re-taken on every return
   to visible and released on close; leaving fullscreen brings the plate back. The host's Start overrides
   reduced motion. Below the minimum (switch and lever on) the screen shows its idle state, the code and the
-  address alone.
+  address alone, with the host's Start as a quiet button under the address until it is taken (never the
+  plate's scrim over a code a guest has to scan).
 - **The approval toast** (moderated events only): once per visit, when the first of this device's held
   uploads shows up approved while the reel is showing, "The host added your uploads" with "Watch reel",
   which opens the view. No numbers; never for a cut. The queue lives in memory, so it plays only within the

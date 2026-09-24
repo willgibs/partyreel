@@ -486,8 +486,21 @@ export function LiveReelView({
             </div>
           )}
 
-          {/* ON A SCREEN, BELOW THE MINIMUM: the code and the address alone (reel-screen `code`). */}
-          {idle && <IdleCode joinUrl={joinUrl} address={displayAddress} qrStyle={qrStyle} size={qr.idle} />}
+          {/* ON A SCREEN, BELOW THE MINIMUM: the code and the address alone (reel-screen `code`). The
+              host's one tap still matters here (a wall set up before anyone arrives needs the
+              fullscreen and the wake lock most), so its Start sits BELOW the address instead of the
+              plate's scrim and play mark over the code, which would dim the one thing on the wall a
+              guest has to scan. */}
+          {idle && (
+            <IdleCode
+              joinUrl={joinUrl}
+              address={displayAddress}
+              qrStyle={qrStyle}
+              size={qr.idle}
+              onStart={plateUp ? () => void start() : undefined}
+              fullscreen={canFullscreen()}
+            />
+          )}
 
           {/* The top edge's legibility: a whisper, only while chrome or a chip is up. */}
           <div
@@ -501,8 +514,9 @@ export function LiveReelView({
           {/* THE ARRIVALS, top left. */}
           {!plateUp && !idle && <ArrivalFeed rows={rows} screen={screen} />}
 
-          {/* CLOSE, top right: shows and hides with the dock. */}
-          {!plateUp && (
+          {/* CLOSE, top right: shows and hides with the dock (and on the idle wall, whose Start
+              covers nothing). */}
+          {(!plateUp || idle) && (
             <div
               className="lr-follow absolute top-[calc(0.75rem+env(safe-area-inset-top))] right-3 z-30"
               data-state={chromeUp ? "up" : "rest"}
@@ -586,7 +600,7 @@ export function LiveReelView({
           )}
 
           {/* ON A SCREEN: the one-tap Start (reel-screen `frame`): the reel behind a dimmed play mark. */}
-          {plateUp && (
+          {plateUp && !idle && (
             <StartPlate
               onStart={() => void start()}
               fullscreen={canFullscreen()}
@@ -932,11 +946,16 @@ function IdleCode({
   address,
   qrStyle,
   size,
+  onStart,
+  fullscreen,
 }: {
   joinUrl: string;
   address: string;
   qrStyle: string;
   size: number;
+  /** The host's one tap, until it is taken (then the wall is the code alone). */
+  onStart?: () => void;
+  fullscreen: boolean;
 }) {
   return (
     <div
@@ -947,6 +966,32 @@ function IdleCode({
       <p className="max-w-[90vw] text-center text-copy break-all text-white/80">
         {address}
       </p>
+      {onStart && (
+        <div className="mt-2 flex flex-col items-center gap-2" data-reel-idle-start>
+          <button
+            type="button"
+            onClick={onStart}
+            autoFocus
+            aria-label={
+              fullscreen
+                ? "Start on this screen (fills the screen and keeps it awake)"
+                : "Start on this screen (keeps it awake)"
+            }
+            className={cn(
+              "flex h-11 items-center gap-2 rounded-full border border-white/25 px-5 text-working font-medium text-white outline-none",
+              "transition-transform duration-150 ease-emphasis active:scale-[0.97] motion-reduce:active:scale-100",
+              "focus-visible:ring-4 focus-visible:ring-white/60",
+              GLASS_MARK,
+            )}
+          >
+            <Play className="size-4 fill-white" aria-hidden />
+            Start on this screen
+          </button>
+          <p className="text-caption text-white/60">
+            The reel starts with the second photo or video.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

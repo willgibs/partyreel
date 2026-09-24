@@ -442,6 +442,22 @@ describe("on a screen (the view is the wall)", () => {
     expect(screen.queryByTestId("player")).toBeNull();
     expect(screen.getByText("partyreel.com/e/party")).toBeInTheDocument();
   });
+
+  it("the idle wall's Start never covers the code, and still takes fullscreen and the wake lock", async () => {
+    renderView({ mode: "screen", idle: true });
+    // No plate (its scrim would dim the code a guest has to scan): the Start sits below it.
+    expect(document.querySelector("[data-reel-start]")).toBeNull();
+    const start = screen.getByRole("button", { name: /Start on this screen/ });
+    await act(async () => {
+      fireEvent.click(start);
+    });
+    expect(h.enterFullscreen).toHaveBeenCalled();
+    expect(h.wake.acquire).toHaveBeenCalled();
+    // Taken: the wall is the code alone, and the view can still be closed.
+    expect(screen.queryByRole("button", { name: /Start on this screen/ })).toBeNull();
+    expect(document.querySelector("[data-reel-idle]")).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument();
+  });
 });
 
 describe("never silent", () => {
