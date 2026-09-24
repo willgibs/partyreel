@@ -1,6 +1,6 @@
 ---
 track: clocks-and-counts
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "3bbb0dbc"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -120,24 +120,44 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The date-only admin formatter also says "UTC" (e.g. "Sep 23, 2026 UTC"), not just the full timestamp form.** The brief's example only showed the label on the datetime form ("Sep 23, 2026, 04:48 UTC") and left the date-only form open. Recommendation: keep the label on both — "Pass expires", "Last seen" and "Over-cap grace until" are exactly the kind of bare date an operator could otherwise misread as their own zone's, and the admin's own rule is "UTC, labeled" everywhere. His to overrule if he'd rather the date-only form stayed bare.
+- **The Supabase CLI pin (`2.117.0`) is reconstructed, not read verbatim from the run log.** `gh run view 35849733290 --log` never prints a resolved version — the action installs silently (confirmed by reading its source at the exact commit SHA the run used, `ab058987d8...`: it downloads a GitHub release by version string with no version echoed to stdout). I cross-referenced two independent live sources instead: GitHub's own `/repos/supabase/cli/releases/latest` (`tag_name: v2.117.0`, `created_at: 2026-09-07`) and npm's `supabase` package `dist-tags.latest` (`2.117.0`, unchanged since 2026-09-07) — both agree, and neither has moved since before the failing run (2026-09-22) through today (2026-09-24). Recommendation: trust the pin; to re-verify or bump later, either source's current answer should still agree with the other.
+- **A few more raw-count spots got fixed rather than deferred.** Beyond the brief's named list: `src/components/admin/admin-rail.tsx` (the nav badge counts), `src/components/admin/sparkline.tsx` (the aria-label total), `src/lib/dashboard/next-step.ts` (the pending-count phrases in the "waiting" step's label/short), and `src/app/(app)/account/page.tsx` (the follower count). Each was a one-line wrap in a file already open in these owns for another reason, and all are covered by the existing test suite. Recommendation: keep; a few lower-value/bounded ones went to Deferred below instead of a blanket fix-everything pass.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `admin-observability.md`: the "Locale/tz renders need `suppressHydrationWarning`" gotcha refined in place — every admin timestamp now renders through the shared `formatAdminTimestamp`/`formatAdminDate` (UTC + `en-US` explicit), so the workaround is gone from the admin's own surfaces; the underlying SSR/hydration mismatch mechanism stays documented for the next ad-hoc locale value someone adds.
+- `host-app.md`: added, in the Dashboard landing section, that "today" is the viewer's own calendar day (resolved from `x-vercel-ip-timezone`, DST-safe, `lib/dashboard/viewer-day.ts`), never the server's UTC clock — covering the pulse's "today" count, the next-step rule's "day before", and the Event Pass/grace-deadline dates; and that the zone is rendering-only, never stored or logged.
+- `durability-backups.md`: added, under Invariants/gotchas, that the DB-backup Action's Supabase CLI version is pinned (never `"latest"`) and why, pointing at the workflow's own comment for how to bump it.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- **[one-count-format]** `src/app/admin/accounts/[id]/delete-account-control.tsx:41,48` — the delete-confirmation copy's `eventCount`/`heldEventCount` print raw; bounded to one account's own binned/held events, so low urgency, but not yet routed through `formatCount`.
+- **[one-count-format]** `src/components/app/dashboard/claims-card.tsx` (several lines: `uploadCount`, `totalPhotos`, `leftoverPhotos`, the "Added N photo(s)" toast) — print raw; bounded to one guest's uploads at one event before their email was confirmed, realistically small.
+- **[one-count-format]** `src/components/app/dashboard/filter-chips.tsx:73` — `trashCount` prints raw; the component itself is lab-only today (`FilterChips` has no production importer per `host-app.md`), so no live surface currently shows it.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Work commit:** `a99390dd` — the six items (charts, count format, UTC admin time, link visits, viewer's day, backup CLI pin), plus the two new pure-lib test suites and the design-rules regeneration.
+- **Sync commit:** `66387dc9` — merged `origin/launch-prep` (it had moved to `04396e29`: the `reel-migration` cut and a STATUS/orchestrator record, docs only, no conflict). The head (this manifest commit) is in the chat line.
+- **Gates, on the synced tree, each its own exit code:** `pnpm design:rules` 0 · `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` 0 · `pnpm typecheck` 0 · `pnpm lint` 0 (7 pre-existing warnings, none in a file this lane touched) · `pnpm test` 0 (4667 passed, 1 pre-existing skip) · `pnpm build` 0 (no warnings) · `pnpm lab:smoke --base http://localhost:3132` 0 (524 checks, 0 failing).
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = every owned path touched, plus five documented exceptions: `src/components/app/report-review.tsx` (one timestamp swapped to the shared formatter, matching `person-report-list.tsx`'s fix to the same Reports surface); `src/lib/db/queries/pulse.test.ts` (two assertions updated for the comma `arrivals.ts`'s caption now carries); `src/app/(dev)/design/rules/component-notes.ts` (four new `for` lines the new contract-tested pure-lib files need, or `gallery.test.ts` fails); `src/app/(dev)/design/rules/rules.generated.json` and `docs/design/library.md` (mechanically regenerated by `pnpm design:rules`, per CLAUDE.md, after the contract/`for`-line changes).
+- **The items, one line each:**
+  1. Chart axes never clip — `metrics-charts.tsx`'s two `YAxis`es now format with `formatCompactNumber` and size with `compactAxisWidth` (`lib/format/count.ts`); verified at 1440 and 375 against four-to-seven-digit fixture data in a throwaway route (deleted, never committed) — screenshots in scratch (`chart-probe-1440.png`, `chart-probe-375.png`).
+  2. One count format — `formatCount`/`formatSignedCount` (`lib/format/count.ts`) route every named surface plus a few more (see Questions); pure-tested.
+  3. Admin times say UTC — `formatAdminTimestamp`/`formatAdminDate` (`lib/format/admin-time.ts`) replace every `toLocaleString()`/`suppressHydrationWarning` pair across jobs, forensics, accounts, exports, reels, reports, support, applicants, announcements, the drill-in; pure-tested.
+  4. Link visits, one figure — `aggregate.ts`'s `summarizeEngagement`/`buildEngagementTrend` fold `qr_scans + album_views` into `linkVisits`; the metrics page shows one card + one chart line with the "scanned or shared, bots filtered" line; the SQL snapshot's shape is untouched.
+  5. The viewer's own day — `lib/dashboard/viewer-day.ts` (`resolveViewerZone`, `calendarDayInZone`, DST-safe) replaces the dashboard's server-clock read; `lib/format/date-in-zone.ts` renders the Event Pass expiry/grace deadline (dashboard) and the pass expiry (account page) in that zone; pure-tested at both 2026 DST days, Kolkata, Kiritimati, Honolulu, a missing/garbage header, and the evening-before "Print the code" scenario end to end with `next-step.ts`.
+  6. Backup CLI pinned — `db-backup.yml` pins `2.117.0` (see Questions for how it was derived) with a comment naming the failure and the bump procedure; never triggered the workflow.
+- **Assets requested from Will:** none.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule, one line each:**
+  - Date-only admin formatter says "UTC" too, not just the datetime form (Questions).
+  - Backup CLI pin (`2.117.0`) reconstructed from two live sources, not the run log itself (Questions).
+  - A few extra raw-count spots fixed instead of deferred: admin rail badges, sparkline aria-label, next-step.ts's pending phrases, account page's follower count (Questions).
+  - `compactAxisWidth`'s pixel formula (`max(28, widest*8+10)`) is a hand-tuned heuristic, not derived from measured text — verified clean at 1440/375 with the probe fixture, revisit only if a real board shows a wider label clipping.
+- **Look at first:**
+  - `src/lib/dashboard/viewer-day.test.ts` — the zone table (both DST days, Kolkata, Kiritimati, Honolulu, missing/garbage header) and the evening-before "Print the code" integration test against `next-step.ts`.
+  - The chart fix: `chart-probe-1440.png` / `chart-probe-375.png` in this lane's scratch directory (the harness page itself was deleted, never committed).
+  - `src/lib/format/count.test.ts` and `src/lib/format/admin-time.test.ts` — the two new formatters' pure tests.
+  - The lane-check exceptions above, especially `report-review.tsx` and `pulse.test.ts` (outside `owns`, minimal and mechanical).
