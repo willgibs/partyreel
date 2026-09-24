@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GridMedia } from "@/components/app/media-grid";
 import {
+  albumCount,
   buildGuestViewGroups,
   LiveGallery,
   type GalleryPayload,
@@ -90,6 +91,9 @@ async function mount(
   const galleryPromise: Promise<GalleryPayload> = Promise.resolve({
     items: [makeItem("m1"), makeItem("m2")],
     teaserTotal: null,
+    // No head count unless a test gives one: the earlier suites below pin the
+    // fallback rule (a payload from an older server), C9's suite the live one.
+    approvedTotal: null,
     etag: "etag-1",
     ...payload,
   });
@@ -123,6 +127,7 @@ function pollResponse({
   gate = null,
   items = [],
   teaserTotal = null,
+  approvedTotal,
   etag = "etag-2",
   guestCount,
 }: {
@@ -130,6 +135,8 @@ function pollResponse({
   gate?: string | null;
   items?: GridMedia[];
   teaserTotal?: number | null;
+  /** The album's head count; absent, the response reads as an older server's. */
+  approvedTotal?: number | null;
   etag?: string;
   guestCount?: number;
 }) {
@@ -143,6 +150,7 @@ function pollResponse({
       access,
       gate,
       teaserTotal,
+      ...(approvedTotal === undefined ? {} : { approvedTotal }),
       ...(guestCount === undefined ? {} : { guestCount }),
     }),
   };
@@ -641,5 +649,182 @@ describe("LiveGallery: the header's guest count comes from the server", () => {
     });
     await poll();
     expect(onGuestCountChange).not.toHaveBeenCalled();
+  });
+});
+
+/* ── C9 (the 1,000-row round): THE HEADER'S COUNT, EXACT AND LIVE AT EVERY
+   LEVEL. A count is counted, never a list's length: the payload (the render's
+   and every poll's 200) carries the album's head count, and the header shows
+   it plus whatever this device changed since (an optimistic tile in, the
+   guest's own removal out). ── */
+
+describe("albumCount: the header's number, as arithmetic (C9)", () => {
+  it("is the server's head count plus what this device changed since", () => {
+    const server = { total: 1145, loaded: 9 };
+    expect(
+      albumCount({ access: "teaser", server, shown: 9, teaserTotal: 1100 }),
+    ).toBe(1145);
+    // An approved upload's optimistic tile is on screen before the server has it.
+    expect(
+      albumCount({ access: "teaser", server, shown: 10, teaserTotal: 1100 }),
+    ).toBe(1146);
+    // The guest's own removal, taken off the screen before the next 200.
+    expect(
+      albumCount({
+        access: "full",
+        server: { total: 1145, loaded: 1145 },
+        shown: 1144,
+        teaserTotal: null,
+      }),
+    ).toBe(1144);
+  });
+
+  it("wins over the page's fallback and the photo-only total when the payload carried it", () => {
+    expect(
+      albumCount({
+        access: "teaser",
+        server: { total: 50, loaded: 2 },
+        shown: 2,
+        fallbackTotal: 48,
+        teaserTotal: 44,
+      }),
+    ).toBe(50);
+  });
+
+  it("without a head count keeps the earlier rule (an older server's payload)", () => {
+    const server = { total: null, loaded: 2 };
+    expect(
+      albumCount({ access: "full", server, shown: 2, teaserTotal: null }),
+    ).toBe(2);
+    expect(
+      albumCount({
+        access: "teaser",
+        server,
+        shown: 2,
+        fallbackTotal: 48,
+        teaserTotal: 44,
+      }),
+    ).toBe(48);
+    expect(
+      albumCount({ access: "teaser", server, shown: 2, teaserTotal: 44 }),
+    ).toBe(44);
+  });
+
+  it("never goes below zero", () => {
+    expect(
+      albumCount({
+        access: "full",
+        server: { total: 0, loaded: 1 },
+        shown: 0,
+        teaserTotal: null,
+      }),
+    ).toBe(0);
+  });
+});
+
+describe("LiveGallery: the header's count, exact and live (C9)", () => {
+  it("at full, reports the payload's head count, never the list's length", async () => {
+    const onCountChange = vi.fn();
+    // Two items loaded, but the server counted 1,145: the count is the server's.
+    await mount({ access: "full", onCountChange }, { approvedTotal: 1145 });
+    expect(onCountChange).toHaveBeenLastCalledWith(1145);
+  });
+
+  it("at teaser, a poll moves the count when only the album behind the nine grew (a video landed)", async () => {
+    const onCountChange = vi.fn();
+    await mount(
+      { access: "teaser", approvedTotal: 48, onCountChange },
+      { items: [makeItem("m1")], teaserTotal: 40, approvedTotal: 48 },
+    );
+    expect(onCountChange).toHaveBeenLastCalledWith(48);
+    expect(
+      screen.getByRole("button", { name: "See all 48 photos & videos" }),
+    ).toBeInTheDocument();
+
+    // Same nine (here one) photographs, same photo-only total: only the head count moved.
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+      pollResponse({
+        access: "teaser",
+        gate: "account",
+        items: [makeItem("m1")],
+        teaserTotal: 40,
+        approvedTotal: 49,
+      }),
+    );
+    await poll();
+
+    expect(onCountChange).toHaveBeenLastCalledWith(49);
+    expect(
+      screen.getByRole("button", { name: "See all 49 photos & videos" }),
+    ).toBeInTheDocument();
+  });
+
+  it("an approved upload counts the instant its tile lands, and the next 200 settles it", async () => {
+    const onCountChange = vi.fn();
+    const ref = createRef<LiveGalleryHandle>();
+    await mount(
+      { access: "full", ref, onCountChange },
+      { approvedTotal: 2 },
+    );
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      status: 304,
+      ok: false,
+      headers: { get: () => null },
+      json: async () => ({}),
+    });
+    await act(async () => {
+      ref.current!.notifyUploaded({
+        mediaId: "m9",
+        queueId: "q1",
+        file: new File(["x"], "x.jpg", { type: "image/jpeg" }),
+        kind: "photo",
+        status: "approved",
+      });
+    });
+    expect(onCountChange).toHaveBeenLastCalledWith(3);
+
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+      pollResponse({
+        access: "full",
+        items: [makeItem("m9"), makeItem("m1"), makeItem("m2")],
+        approvedTotal: 3,
+        etag: "etag-3",
+      }),
+    );
+    await poll();
+    expect(onCountChange).toHaveBeenLastCalledWith(3);
+  });
+
+  it("the guest's own removal leaves the count at once", async () => {
+    vi.mocked(removeMyUploadGuestAction).mockResolvedValue({ ok: true });
+    const onCountChange = vi.fn();
+    await mount(
+      { access: "full", isAuthed: true, canDeleteIds: ["m1"], onCountChange },
+      { approvedTotal: 2 },
+    );
+    await act(async () => {
+      lastMasonry().onDeleteItem?.("m1");
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(onCountChange).toHaveBeenLastCalledWith(1);
+  });
+
+  it("a stricter drift holds the count with the album (the rows and the count move together)", async () => {
+    const onCountChange = vi.fn();
+    await mount(
+      { access: "full", onCountChange, onAccessDrift: vi.fn() },
+      { approvedTotal: 2 },
+    );
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
+      pollResponse({
+        access: "teaser",
+        gate: "upload",
+        items: [makeItem("m1")],
+        teaserTotal: 1,
+        approvedTotal: 7,
+      }),
+    );
+    await poll();
+    expect(onCountChange.mock.calls.every(([n]) => n === 2)).toBe(true);
   });
 });

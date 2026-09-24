@@ -1,5 +1,5 @@
 /**
- * THE ALBUM'S FULLNESS, AS THE PAGE READS IT.
+ * THE ALBUM'S FULLNESS, AS THE PAGE READS IT; AND THE ALBUM'S SIZE, AS EVERY PAYLOAD CARRIES IT.
  *
  * `resolveViewerDecision` answers the page, the poll, the export and the reel download. The page
  * alone also needs to know whether the album can take another upload: on a Require-an-upload-to-
@@ -7,17 +7,29 @@
  * the lightbox must not say it does. The gate reads the caps only for a viewer who has not
  * contributed, so for a contributor the page asks by name (`withAlbumFull`) and pays one
  * identity-less read; nobody else pays anything.
+ *
+ * `loadGalleryRowsForAccess` carries the album's head count beside the rows at `teaser` and `full`
+ * (the 1,000-row round's C9), and `galleryEtagFor` hashes it, so the header's number is live even
+ * where the loaded items are the nine-photo teaser.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
+const getEventMediaByQrToken = vi.fn();
 vi.mock("@/lib/db/queries/guest-events", () => ({
-  getEventMediaByQrToken: vi.fn(),
+  getEventMediaByQrToken: (...args: unknown[]) =>
+    getEventMediaByQrToken(...args),
 }));
+const countApprovedMedia = vi.fn();
+const getApprovedMediaForUnlock = vi.fn();
+const getApprovedPhotoTeaser = vi.fn();
 vi.mock("@/lib/db/queries/guest-events-admin", () => ({
-  getApprovedMediaForUnlock: vi.fn(),
-  getApprovedPhotoTeaser: vi.fn(),
-  getUploaderIdentities: vi.fn(),
+  countApprovedMedia: (...args: unknown[]) => countApprovedMedia(...args),
+  getApprovedMediaForUnlock: (...args: unknown[]) =>
+    getApprovedMediaForUnlock(...args),
+  getApprovedPhotoTeaser: (...args: unknown[]) =>
+    getApprovedPhotoTeaser(...args),
+  getUploaderIdentities: vi.fn().mockResolvedValue(new Map()),
 }));
 vi.mock("@/lib/r2/grid-items", () => ({ toGridItems: vi.fn() }));
 vi.mock("@/lib/r2/presign-bucket", () => ({ presignBucketId: () => "b1" }));
@@ -28,7 +40,7 @@ vi.mock("@/lib/db/queries/guest-gate", () => ({
   getUploadGate: (...args: unknown[]) => getUploadGate(...args),
 }));
 
-const { resolveViewerDecision } =
+const { galleryEtagFor, loadGalleryRowsForAccess, resolveViewerDecision } =
   await import("@/lib/events/gallery-access.server");
 
 type Event = Parameters<typeof resolveViewerDecision>[0];
@@ -134,5 +146,70 @@ describe("resolveViewerDecision: albumFull", () => {
       gate: "upload",
       albumFull: false,
     });
+  });
+});
+
+const row = (id: string) => ({
+  id,
+  type: "photo" as const,
+  original_key: `k/${id}`,
+  preview_key: null,
+  width: null,
+  height: null,
+  duration_seconds: null,
+  created_at: "2026-09-23T23:13:38.122749+00:00",
+});
+
+describe("loadGalleryRowsForAccess: the album's size rides beside the rows (C9)", () => {
+  beforeEach(() => {
+    countApprovedMedia.mockReset().mockResolvedValue(1145);
+    getEventMediaByQrToken.mockReset().mockResolvedValue([row("a"), row("b")]);
+    getApprovedMediaForUnlock.mockReset().mockResolvedValue([row("c")]);
+    getApprovedPhotoTeaser
+      .mockReset()
+      .mockResolvedValue({ rows: [row("a")], total: 1100 });
+  });
+
+  it("at full: the whole album and the head count, never the list's length", async () => {
+    const gallery = await loadGalleryRowsForAccess(EVENT, "full");
+    expect(gallery.rows.map((r) => r.id)).toEqual(["a", "b"]);
+    expect(gallery.approvedTotal).toBe(1145);
+    expect(countApprovedMedia).toHaveBeenCalledWith(EVENT);
+  });
+
+  it("at teaser: the nine, the photo-only teaser total, and the album's true size", async () => {
+    const gallery = await loadGalleryRowsForAccess(EVENT, "teaser");
+    expect(gallery).toMatchObject({ teaserTotal: 1100, approvedTotal: 1145 });
+  });
+
+  it("an unlocked password album reads the admin arm and still carries the count", async () => {
+    const gallery = await loadGalleryRowsForAccess(
+      { ...EVENT, visibility: "password" } as Event,
+      "full",
+    );
+    expect(gallery.rows.map((r) => r.id)).toEqual(["c"]);
+    expect(gallery.approvedTotal).toBe(1145);
+    expect(getEventMediaByQrToken).not.toHaveBeenCalled();
+  });
+
+  it("at none: nothing read, nothing counted", async () => {
+    const gallery = await loadGalleryRowsForAccess(EVENT, "none");
+    expect(gallery).toEqual({
+      rows: [],
+      identities: undefined,
+      teaserTotal: null,
+      approvedTotal: null,
+    });
+    expect(countApprovedMedia).not.toHaveBeenCalled();
+  });
+
+  it("the ETag moves with the count alone, the rows held still", async () => {
+    const decision = { access: "teaser" as const, gate: "account" as const };
+    const gallery = await loadGalleryRowsForAccess(EVENT, "teaser");
+    const before = galleryEtagFor(decision, gallery);
+    expect(
+      galleryEtagFor(decision, { ...gallery, approvedTotal: 1146 }),
+    ).not.toBe(before);
+    expect(galleryEtagFor(decision, { ...gallery })).toBe(before);
   });
 });

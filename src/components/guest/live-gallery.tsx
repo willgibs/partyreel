@@ -72,8 +72,50 @@ import { useMediaQuery } from "@/lib/use-media-query";
 export type GalleryPayload = {
   items: GridMedia[];
   teaserTotal: number | null;
+  /**
+   * The album's size, photos and videos: the server's HEAD count (`countApprovedMedia`), carried
+   * by the render's payload and by every poll's 200 at `teaser` and `full`, and hashed into the
+   * ETag. The header's count is this number plus what this device changed since it arrived, never
+   * a list's length. Null where it was not read (a locked gallery).
+   */
+  approvedTotal: number | null;
   etag: string;
 };
+
+/**
+ * THE HEADER'S "N PHOTOS & VIDEOS", AS ARITHMETIC (the 1,000-row round, C9). Pure and exported so
+ * the rule is pinnable without the whole live gallery.
+ *
+ * `server` is the last payload's own pair: the album's head count (`total`) and how many items it
+ * sent (`loaded`). What this device has done SINCE that payload (an approved upload's optimistic
+ * tile added, the guest's own removal taken off the screen) is exactly the difference between the
+ * grid it draws (`shown`) and what the server sent, so the count moves the instant the grid moves
+ * and settles back onto the server's number when the next 200 lands. At `full` the server sent the
+ * whole album, so this equals the grid; at `teaser` it sent nine photographs and says how big the
+ * album behind them is.
+ *
+ * A payload with no head count (an older server during a deploy, or a test's fixture) keeps the
+ * earlier rule: the grid's own length at `full`, and at `teaser` the page's `fallbackTotal`, then
+ * the photo-only `teaserTotal`, then the grid.
+ */
+export function albumCount({
+  access,
+  server,
+  shown,
+  fallbackTotal,
+  teaserTotal,
+}: {
+  access: GalleryAccess;
+  server: { total: number | null; loaded: number };
+  shown: number;
+  fallbackTotal?: number;
+  teaserTotal: number | null;
+}): number {
+  if (server.total !== null)
+    return Math.max(0, server.total + (shown - server.loaded));
+  if (access === "teaser") return fallbackTotal ?? teaserTotal ?? shown;
+  return shown;
+}
 
 /**
  * HOW OPEN EACH LEVEL IS, FOR THE STRICTER/LOOSER COMPARISON BELOW (DEFECT 1, `door-fixes`,
@@ -236,11 +278,14 @@ export function LiveGallery({
   /**
    * `getGalleryStats`'s own admin-read total (photos AND videos), threaded
    * down from the shell's `stats` prop (POLISH 1, the identity red-team,
-   * 2026-09-21). At `teaser` access the loaded `items` are capped AND
-   * photo-only (the withheld set never reaches the browser), so neither
-   * `items.length` nor the teaser's own `teaserTotal` is the number to show
-   * anywhere outside the grid itself — this is. Omitted, the teaser falls
-   * back to the photo-only `teaserTotal` exactly as before.
+   * 2026-09-21): the FALLBACK now. The gallery payload carries the album's
+   * head count itself (`GalleryPayload.approvedTotal`, on the render and every
+   * poll's 200), and that live number wins; this one is read only at `teaser`
+   * when a payload arrives without it (an older server mid-deploy). At
+   * `teaser` the loaded `items` are capped AND photo-only (the withheld set
+   * never reaches the browser), so neither `items.length` nor `teaserTotal` is
+   * the album's size. Omitted too, the teaser falls back to the photo-only
+   * `teaserTotal` exactly as before.
    */
   approvedTotal?: number;
   /**
@@ -291,6 +336,18 @@ export function LiveGallery({
      ──────────────────────────────────────────────────────────────────────── */
   const [arrivals, setArrivals] = useState<string[]>([]);
   const [ownLandings, setOwnLandings] = useState<string[]>([]);
+  // The album's size as the last applied payload said it, beside how many items
+  // that payload sent: `albumCount` turns the pair and the grid into the header's
+  // number. Moved only where `serverItems` is REPLACED by a payload (the seed and
+  // a poll's 200), never by this device's own edits, so the difference between
+  // the grid and `loaded` is exactly what this device did since.
+  const [serverCount, setServerCount] = useState<{
+    total: number | null;
+    loaded: number;
+  }>(() => ({
+    total: seed.approvedTotal ?? null,
+    loaded: seed.items.length,
+  }));
   // The current conditional-request validator: sent as If-None-Match so an
   // unchanged gallery answers a bare 304 (no payload, no presigns server-side).
   const etagRef = useRef<string | null>(seed.etag);
@@ -316,6 +373,7 @@ export function LiveGallery({
         items?: GridMedia[];
         access?: GalleryAccess;
         gate?: string | null;
+        approvedTotal?: number | null;
         guestCount?: number;
       };
       if (!body.ok || !body.items) return;
@@ -367,6 +425,13 @@ export function LiveGallery({
       const reconciled = reconcileGalleryItems(previous, items);
       serverItemsRef.current = reconciled;
       setServerItems(reconciled);
+      // The album's size moves with the list it arrived with, in the same batch,
+      // so the header never draws one payload's count beside another's grid.
+      setServerCount({
+        total:
+          typeof body.approvedTotal === "number" ? body.approvedTotal : null,
+        loaded: reconciled.length,
+      });
       // ★ THE ARRIVAL, READ OFF THIS POLL AND NOTHING ELSE. What is new is what
       // was not on screen a moment ago — the only definition that catches every
       // route a photograph takes into the album (another guest's upload through
@@ -728,21 +793,25 @@ export function LiveGallery({
 
   const items = mergeGalleryItems(optimistic, serverItems);
 
-  // THE ALBUM'S TRUE SIZE (POLISH 1, the identity red-team, 2026-09-21). At
-  // `full` access `items.length` already IS the whole approved set — live,
-  // even, since an arrival bumps it instantly. At `teaser` it is capped at
-  // nine photos AND photo-only (videos are withheld entirely, by design), so
-  // it is the wrong number for anything OUTSIDE the grid itself: the shell's
-  // header used to show this capped count while the CTA below showed a
-  // DIFFERENT, photo-only total, and the gate a THIRD number — three reads of
-  // one album. `approvedTotal` (the RSC's own admin-read total) is the one
-  // true count now; a caller that has not been updated to pass it still gets
-  // the photo-only `teaserTotal` exactly as before, never a regression.
+  // THE ALBUM'S TRUE SIZE, EXACT AND LIVE AT EVERY LEVEL (POLISH 1, the
+  // identity red-team, 2026-09-21; the 1,000-row round's C9). A count is
+  // counted, never a list's length: at `teaser` the grid is nine photographs
+  // and no video, and at `full` a list's length is exactly as trustworthy as
+  // the read behind it. So the header's number is the SERVER's head count, the
+  // one every payload carries (the render's and each poll's 200, which the ETag
+  // rolls for), plus what this device changed since (`albumCount`): a guest's
+  // own upload counts the instant its tile lands, their own removal the instant
+  // it leaves, and the next 200 settles both onto the server's number. The CTA
+  // below says the same number, so the header, the CTA and the door never read
+  // an album three ways.
   const rawCount = items.length;
-  const count =
-    access === "teaser"
-      ? (approvedTotal ?? seed.teaserTotal ?? rawCount)
-      : rawCount;
+  const count = albumCount({
+    access,
+    server: serverCount,
+    shown: rawCount,
+    fallbackTotal: approvedTotal,
+    teaserTotal: seed.teaserTotal,
+  });
   // The header owns the visible count line (Phase 4); keep it current. It is
   // the WHOLE album's count and stays that way under the Yours filter: the
   // event's line says how big the album is, never how much of it is on screen.

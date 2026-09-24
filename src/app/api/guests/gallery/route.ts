@@ -42,7 +42,9 @@ export const dynamic = "force-dynamic";
  *
  * CONDITIONAL (Phase 3): the response carries a strong ETag (content + decision + presign bucket,
  * gallery-fingerprint.ts); a matching If-None-Match answers a bare 304 BEFORE any presigning, so
- * the steady-state poll costs one rows query and ~0 bytes. SECURITY: the access level AND the gate
+ * the steady-state poll costs the reads that build the fingerprint (the album and its identity
+ * sweep, each read whole in keyset pages, and the album's head count) and ~0 bytes on the wire.
+ * SECURITY: the access level AND the gate
  * are part of the fingerprint -- an ETag can never validate across either (red-teamed). The
  * not-found/private early return deliberately carries NO ETag (it must never 304-validate a real
  * payload). ★ A PENDING HEAL CARRIES NO ETAG (the door re-check's follow-up, `heal-validator`,
@@ -67,6 +69,12 @@ export const dynamic = "force-dynamic";
  * pays nothing for it; the change that moves it (an approved upload, a removal, a name, a
  * confirmation) changes the payload the ETag hashes, so it arrives on the same 200. Never on a
  * locked page (`none`), which reveals the name and the count of photographs only.
+ *
+ * ★ THE ALBUM'S SIZE RIDES EVERY 200, AND THE VALIDATOR TOO (the 1,000-row round). `approvedTotal`
+ * is the head count behind the header's "N photos & videos", read with the rows at `teaser` and
+ * `full` (null at `none`, which mounts no gallery). Unlike the guest count it is IN the hash: the
+ * teaser's nine photographs can hold still while a video lands behind them, and only the count
+ * would say so.
  */
 const bodySchema = z.object({
   qr_token: z.string().min(1),
@@ -102,6 +110,7 @@ export async function POST(request: Request) {
       access: "none",
       gate: null,
       teaserTotal: null,
+      approvedTotal: null,
     });
   }
 
@@ -192,6 +201,7 @@ export async function POST(request: Request) {
       access,
       gate: decision.gate,
       teaserTotal: gallery.teaserTotal,
+      approvedTotal: gallery.approvedTotal,
       ...(guestCount === undefined ? {} : { guestCount }),
     },
     { headers },
