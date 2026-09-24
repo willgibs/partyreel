@@ -83,9 +83,9 @@ line beside the answers, in any order:
 In the ledger the round grows a `calls` array beside `answers`, `items` and `notes`: one entry per call per round,
 `{ call, answer, note?, by, at }`, replaced when the same call is answered again, exactly as an ask is.
 
-`review library: <entry-id>=keep|redesign|retire "an optional note"` rules on a LIBRARY entry and
+`review library: <entry-id>=keep|redesign|retire "an optional note"` gives a verdict on a catalog entry and
 lands in `_library.json`, whose shape is `{ "entries": [{ entry, verdict, note?, by, at }] }` with no
-rounds: the Library is not explored in rounds, so there is one ruling per entry and the newest
-overwrites. An `<entry-id>` is a component id from `rules.generated.json`, which is the last segment
+rounds: the Library is not explored in rounds, so there is one verdict per entry and the newest
+overwrites. An `<entry-id>` is a catalog entry's id, the last segment
 of its `/design/library` URL. The desk reads the `redesign` and `retire` ones as "Redesigns you asked
 for", which is the queue the Orchestrator cuts tracks from.

@@ -92,7 +92,9 @@ Read the Handoff, the lane check and the captures, never the whole diff.
 6. **The record**, its edits and its commit under one `set -e`: each listed system-doc edit read by eye, fact against
    code; `python3 usher/kit/record.py $S/record-<track>.json` for the In-flight row and the lane's Deferred lines into
    their ROADMAP buckets; its asset asks into `docs/ASSETS.md`; its "Board ideas" lines read, and the promising ones
-   opened as boards; a one-way-door answer of Will's into the invariant it made; STATUS
+   opened as boards; a one-way-door answer of Will's into the invariant it made; a change to the brand (tokens, the logo, type, or the
+   hero, demo and pricing pages) refreshes `kit/` from its README's Sources, the screens by `usher/kit/kit-capture.mjs`
+   from partyreel.com; STATUS
    rewritten by hand where the lane changed what is true now; a new board into its leverage place; the three lab
    tests; stage by name; commit `record: <track> ... [skip ci]`; push.
 7. Prune only after the lane's final line (a lane asked for more work after its handoff is still working):

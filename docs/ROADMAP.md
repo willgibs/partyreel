@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Code hygiene: `GLASS_TOKENS` and `NOT_GLASS` in `src/lib/glass.ts` are read by nothing since the glass look tests went.
+- The lab and the kit: seven catalog entry pages log next/image dev warnings from their specimens (`loading="eager"` on an LCP image; `sizes="100vw"` on a `fill` image narrower than the viewport), and the components family page scrolls sideways at 1440 (its `w-screen` breakouts).
 - The lab and the kit: an open ask whose premise rots with no new verdict is never retired; when a merge touches a board's `lives` paths (`touchpoints.ts`), flag that board's open asks for re-validation before Will's next sitting (event-driven on the code the question describes, not on a calendar).
 - Identity: the viewer's credit takes a face and a door from an `uploaderFace` (`avatarUrl`, `seed` from `seedFor`, `href` `/u/<slug>`) that `getUploaderIdentities` and the item mappers do not resolve yet; `src/components/shared/media-lightbox-parts/credit.tsx` is the seam (today every credit draws the plain disc and none is a door).
 - Design system: `ui/tooltip`'s arrow at `sideOffset` 0 plus radix's open-on-focus loses a touch tap on any tooltip-wrapped control on Android Chrome; the viewer guards its own chrome, and the shared fix (a `sideOffset`, or no focus-open after touch) belongs to `ui/tooltip` or `ActionTooltip`.
@@ -41,7 +43,6 @@ below hold the rest by surface.
 - Host: `restore_event`'s `media_still_removed` (20260729190000, line 441) counts a guest's withdrawals too; no screen shows it today, and a future "N items stay in Deleted" line must count `removed_by_uploader = false` only.
 - Tests: `src/app/(guest)/u/[slug]/owner-mode.test.ts`'s allowed-reader list could name `listEvents` (the owner-RLS read `owner-sections.tsx` now makes; its regexes catch only `get*` names).
 - Guest: the next person on a shared phone skips the welcome, and with it the legal consent line (`pr_welcome_<qr>` survives every sign-out and the ticket drop); decide whether it goes with the tickets.
-- The lab and the kit: promote `upload-owner`'s plain pins to contract lines (the queue's recovery, both sign-outs, the name step's and the add-email dialog's `session_other_account`) in a lane that may regenerate `rules.generated.json` and `docs/design/library.md`.
 - Billing: the webhook keys a downgrade on the customer alone, so a second subscription's `incomplete_expired` or deletion (two Checkout tabs, a stale session) would put a host whose other subscription is active on Free; downgrade only when the event's subscription is the profile's `stripe_subscription_id` (or the profile holds none).
 - Legal: the Terms say a profile block "removes each of you from the other's social surfaces" (`legal-terms.tsx:427`) while a block covers following only; the event-safety wiring rewrites the section.
 - Help: `reporting-and-safety.mdx` names "suspended accounts" (line 36), and no suspension exists.
@@ -77,7 +78,6 @@ below hold the rest by surface.
 - Help: `ArticleFeedback` records nothing (it calls no endpoint); a per-article count in `/admin` answers which articles fail (the `help-center` board's `feedback` ask shapes it).
 - Help: `defaultAudience` (`lib/content/help.ts`) guesses host for two categories where most articles override it; a per-article audience pass.
 - Design: teach `cn()` the two shadow utilities (one `theme: { shadow: [...] }` line in `src/lib/utils.ts`): tailwind-merge files them under shadow colour, so `cn("shadow-layer", "shadow-none")` keeps both.
-- Design: `elevation-policy.test.ts` scans `.ts`, `.tsx` and `.mdx` only, so a component stylesheet's `box-shadow` escapes it: `cinema-hero.css`'s `.hhs-card` hand-types `0 18px 46px -16px` rather than reading `--shadow-lift`; widen the scan to `.css` under `src/components/` and tokenise or allow-list it.
 - Design: `use-sortable-grid.ts` sets a hand-typed pick-up `box-shadow` from JS during a drag (allow-listed by name); it reads `var(--shadow-layer)`.
 - Design: the surviving `text-[10px]` sites move to `text-micro` in any lane that opens their files (naming, not sizing).
 - Design: the app's light mode owes its own answer for lit surfaces before any dark-versus-light work (the Aurora is dark-ground only).
@@ -101,10 +101,7 @@ The lab and the kit:
 - The lab imports production modules the wiring lanes reshape (`git grep -l 'from "@/' 'src/app/(dev)'` lists them); boards on lab fixtures free a wiring lane to reshape them.
 - No standing board draws `SpotCompare`, `CompareTwo`, `FrameRow`, `Loupe` or `TrueFit`, and `scripts/new-board.mjs` still scaffolds three of them: keep them for a board that needs one, or retire them (their open refinements wait for a consumer: `SpotCompare`'s per-spot differs line, `CompareTwo` squeezing a fixed-width child, `Frame`'s `onApproach` on a row that clips).
 - Every standing board carries a spec, so `_desk/sample-spec.ts` and the desk's dry run can go (keep `/design/lab/sample`'s responsive-variant proof, or move it).
-- Index the kit as a component family in the Library's collector and delete `lab/kit/notes.ts`.
-- `pnpm design:specimens` beside `design:rules`, so `specimens.generated.json` regenerates by name (today `node "src/app/(dev)/design/gallery/collect-specimens.mjs"`).
-- The collector's id collision: a contract target whose file stem matches a Library component's forces renaming both files.
-- `// @policy:` on the remaining tree-reading tests, so `/design/library/policies` lists every line the gate holds.
+- `pnpm design:specimens`, so `specimens.generated.json` regenerates by name (today `node "src/app/(dev)/design/gallery/collect-specimens.mjs"`).
 - Mount `ItemVerdictRow` with `LIBRARY_VERDICTS` on a Library entry's page, so a scroll through the components fills `docs/reviews/_library.json`.
 - Fold the gallery's `RefSection` into the shell's `Section` (one anchor shape).
 - No Library specimen for `HowItWorksStepper` (a full-width section; a `gallery-demos` entry shows it) or `ui/toggle-group.tsx` (one product call site).
@@ -147,7 +144,6 @@ Marketing:
 - `live-demo.tsx`'s mock panel wears a literal `rounded-[14px]`; the token its role calls for.
 - `MediaTile` serves the marketing stand-ins' source files (about 2 MB each into a 287 px tile, 16.8 MB for the album hero), so marketing stills want a derivative.
 - `HERO_FIXTURES`, `HERO_FRAME_H` and `HERO_SEED_COUNT` (`album-fill-fixtures.ts`) serve only tests: fold them into the tests or delete them.
-- `glow-placement.test.ts` refuses `overflow-hidden` on a lamp's wrapper while a halo must clip to its object: exempt `shape="halo"`, or name `clip-path` (which satisfies both) in its message.
 - The home's how-it-works passage renders as `id="how-it-works"` while `section-ids.ts` and its file still call the slot `film-strip`; rename both, with `index.ts` and `home-sections.test.ts`.
 - The cinema and paper 404s (a `notFound()` inside a marketing route) render in a fixed `min-h-[60vh]` box with the tile strip while the root 404 fills the screen with the trail; one grammar, or rule the root the only one with the trail.
 - A 404 reached through a dynamic marketing route (`/help/nope`) carries the bare `Partyreel` title while the root and paper 404s say Page not found.

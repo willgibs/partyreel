@@ -2,7 +2,12 @@
 track: orchestrator
 status: open
 cut: "4c70fd4e"          # the launch-prep SHA this state was written at
-owns:                    # the standing claims no lane touches; bible.ts, bible.test.ts, marketing.css, registry.ts and boards.ts are released to library-lean and return at its merge
+owns:                    # the standing claims no lane touches
+  - src/app/(dev)/design/rules/bible.ts
+  - src/app/(dev)/design/rules/bible.test.ts
+  - src/app/(marketing)/marketing.css
+  - src/app/(dev)/design/sandbox/registry.ts
+  - src/app/(dev)/design/(shell)/lab/boards.ts
   - src/app/globals.css
   - src/app/theme.css
   - src/lib/design-gate/
@@ -32,7 +37,6 @@ through `scripts/build-lock.sh` (run `integrate.sh` under it until `library-lean
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `library-lean` | the Library as the brand kit, the catalog and the ten; the rules machinery retired; the look tests deleted (Will, 2026-09-24); the recipe proved by a fresh agent | running (agent `a1d746afe297ea42a`), cut at `d1f59826` from `specs/library-lean.json` | Opus, :3131 | hand-merge in the order its handoff gives (the merge, then its `package.json`, `.prettierignore`, CLAUDE.md, PROGRAM.md and `docs/reviews/README.md` lines, then its new gate: the old merge script calls `design:rules`); return bible.ts, bible.test.ts, registry.ts, boards.ts and marketing.css to `owns`; a `[preview]` for Will; the bible's ten go in synthesized (`bible-synth/bible.ts`, sent; check the /rules page reads them); then one message to `reel-guest-wiring`: sync, apply bible-ten's eight guest lines (listed in the scratch `bible-ten/manifest-final.md`, its Handoff), strip the `@contract-for`, `@policy` and `@refuses` headers in its owns, reword any comment there that cites a pick as a rule (Will's working-versions note, CLAUDE.md "Rising tides"), re-gate, hand off again |
 | `reel-guest-wiring` | the live reel's guest side: the seam fix, minimum 2, the provider lift, the Highlight reel tile, the view that is also the wall, the toast, the cut's seam, the photo link card | handed off at `0384a77b` (Will's morning rulings built: the welcome comes first everywhere, landscape fills; a portrait photo on a landscape screen sits whole on its own blur, his to overrule); HELD unmerged (agent `a744f57e3c4cbd81f`) | Opus, :3132 | integrate with the cut and host lanes in one stretch; the reel picture, the Start's fullscreen and wake lock and the toast prove on that alias build (R2 answers CORS only for the alias and prod) |
 
 ## Next, in order
