@@ -30,9 +30,12 @@ const resolveViewerDecision = vi.fn();
 vi.mock("@/lib/events/gallery-access.server", () => ({
   resolveViewerDecision: (...a: unknown[]) => resolveViewerDecision(...a),
   isEventOwner: vi.fn().mockResolvedValue(false),
-  loadGalleryRowsForAccess: vi
-    .fn()
-    .mockResolvedValue({ rows: [], identities: undefined, teaserTotal: 9 }),
+  loadGalleryRowsForAccess: vi.fn().mockResolvedValue({
+    rows: [],
+    identities: undefined,
+    teaserTotal: 9,
+    approvedTotal: 48,
+  }),
   galleryEtagFor: vi.fn(() => '"g3-stub"'),
   presignGalleryRows: vi.fn().mockResolvedValue([]),
 }));
@@ -201,6 +204,26 @@ describe("the guest count (the header's 'from M guests')", () => {
     >;
     expect(body).not.toHaveProperty("guestCount");
     expect(getGuestCount).not.toHaveBeenCalled();
+  });
+});
+
+describe("the album's size (the header's 'N photos & videos', C9)", () => {
+  it("rides every 200 as the loader's head count, beside the photo-only teaser total", async () => {
+    const res = await post({ qr_token: QR });
+    expect(await res.json()).toMatchObject({
+      ok: true,
+      teaserTotal: 9,
+      approvedTotal: 48,
+    });
+  });
+
+  it("is null on a private or missing event, where nothing is counted", async () => {
+    getEventByQrToken.mockResolvedValue({ ok: false });
+    const body = (await (await post({ qr_token: QR })).json()) as Record<
+      string,
+      unknown
+    >;
+    expect(body.approvedTotal).toBeNull();
   });
 });
 

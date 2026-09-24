@@ -2,8 +2,8 @@
  * Gallery ETag fingerprint (Phase 3). Hashes everything that determines a
  * gallery poll response EXCEPT the volatile presigned URLs, plus the presign
  * signing-bucket id, so a conditional request can be answered 304 (skipping
- * the ~120 presigns + the full payload) exactly when the viewer would receive
- * an identical gallery.
+ * every presign, up to three an item, + the full payload) exactly when the
+ * viewer would receive an identical gallery.
  *
  * SECURITY INVARIANT: the ETag must never validate across access levels, nor
  * across the GATE behind one level. The access level, the gate and the teaser
@@ -11,6 +11,11 @@
  * per level, so a teaser viewer's ETag can never 304 a full payload
  * (red-teamed in the route's verification) and a guest whose gate moved from
  * `account` to `upload` can never 304 onto the step they already passed.
+ *
+ * THE ALBUM'S SIZE IS IN THE HASH (the 1,000-row round): the payload carries
+ * `approvedTotal`, the header's live count, and the teaser's nine photos can
+ * stay the same while the album grows (a video, or a photograph removed from
+ * deeper in the album), so the count has to move the validator by itself.
  *
  * The bucket id makes the ETag roll when the presign bucket rolls (~30 min),
  * capping any 304 streak so clients re-pull fresh URLs before old ones expire.
@@ -39,6 +44,8 @@ export function galleryEtag(input: {
   /** Which door stands in front of this viewer, or null at full access. */
   gate: string | null;
   teaserTotal: number | null;
+  /** The album's head count (photos and videos) the payload carries; null at `none`. */
+  approvedTotal: number | null;
   bucketId: string;
   items: GalleryFingerprintItem[];
 }): string {
@@ -47,6 +54,7 @@ export function galleryEtag(input: {
     input.access,
     input.gate,
     input.teaserTotal,
+    input.approvedTotal,
     input.bucketId,
     input.items.map((i) => [
       i.id,
@@ -61,8 +69,9 @@ export function galleryEtag(input: {
     .digest("base64url")
     .slice(0, 27);
   // Strong, quoted, version-prefixed: a shape change bumps the version so stale clients can never
-  // false-match. The item tuple is (id, type, name, host, verified): any change to what it carries
-  // bumps this, so a client holding an older validator re-pulls rather than 304s past a change it
-  // cannot see. g4: the tuple lost the retired nameless-legacy flag (the identity contract).
-  return `"g4-${hash}"`;
+  // false-match. The item tuple is (id, type, name, host, verified): any change to what it carries,
+  // or to the payload fields beside it, bumps this, so a client holding an older validator re-pulls
+  // rather than 304s past a change it cannot see. g5: the payload carries the album's head count
+  // (`approvedTotal`), and a g4 validator knows nothing of it.
+  return `"g5-${hash}"`;
 }
