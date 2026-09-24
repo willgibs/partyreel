@@ -2,14 +2,11 @@
 track: orchestrator
 status: open
 cut: "4c70fd4e"          # the launch-prep SHA this state was written at
-owns:                    # the standing claims no lane touches
+owns:                    # the standing claims no lane touches; marketing.css, globals.css, theme.css released to mandate-sweep and return at its merge
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
-  - src/app/(marketing)/marketing.css
   - src/app/(dev)/design/sandbox/registry.ts
   - src/app/(dev)/design/(shell)/lab/boards.ts
-  - src/app/globals.css
-  - src/app/theme.css
   - src/lib/design-gate/
   - src/app/api/design-gate/
   - scripts/vercel-ignore-build.mjs
