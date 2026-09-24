@@ -258,9 +258,13 @@ beneath, newest first. (`event-filter-pills.tsx` has no importer.)
 
 ## Reel curation, the live composer, and the .mp4 export
 
-★ **This is the stored reel, and the reel round replaces it** with the live reel: the event's own looping montage of the
-album, spliced by the doorbell, its cuts made on the viewer's device and never stored. Every table, route and job built
-only for the stored reel goes when that lands, so build nothing new on it.
+★ **This is the stored reel, and the reel round replaces it.** The live reel is the event's own: a looping montage of
+what the album shows from its third reel-eligible item, spliced within seconds by the doorbell, in the host's mood by
+default with a viewer's own style switch, with a first-class screen mode and a per-event switch, on by default. A cut is
+anyone's, made on the device from the reel and never stored (on a paid event, Add to the album sends it through the
+ordinary upload queue as the uploader's video, which the live reel skips). Video plays a range-fetched window of the
+original, decoded on the viewer's device behind Include videos, the poster covering every failure. Every table, route
+and job built only for the stored reel goes when one alias build replaces it, so build nothing new on it.
 
 **The product shape.** The reel is the core loop's last step and the product's North Star: the host curates the best
 moments and gets a shareable highlight video, the "wow in between" (not a pro editor, not a toy: an everyone tool, low
@@ -271,7 +275,8 @@ savvy hosts and old devices included).
 - **No music and no beat-sync**: music is too personal to guess, and people add trending audio when they post.
 - **Generation is free on every tier, and the free export is full quality**: the free levers are the watermark and the
   shorter length (`MAX_REEL_SECONDS`), never the quality, and the watermark doubles as a nudge and free marketing. A paid
-  reel carries no Partyreel branding, and no reel has an end card.
+  reel carries no Partyreel branding (the guest page's header keeps its logo and call to action on every tier), and no
+  reel has an end card: it is not a growth lever to revisit.
 - **Video in the reel is self-bounding**: only paid tiers upload video; a video item draws its poster still.
 - **The style catalog is product data with one source**, the pure `lib/reel/engine/style-registry.ts` (moods that are
   their own theme, treatments that resolve to one); a new style is a catalog entry plus its draw path.
