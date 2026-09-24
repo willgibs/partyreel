@@ -37,47 +37,34 @@ through `scripts/build-lock.sh` (run `integrate.sh` under it until `library-lean
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `refresh-reel-host` | `reel-screen` and `reel-host` refreshed under the new guidance (strong options kept and improved, bolder directions added, nothing fenced by a past pick) | running (agent `ae61fe3e9bbb13c94`), cut at `75631277` | Opus, :3131 | integrate as it lands; its boards into their leverage places; one `[preview]` when the wave is in |
+| `refresh-reel-cut` | `reel-front`, `reel-cut` and `reel-story` refreshed the same way | running (agent `a93a816e4ff303150`), cut at `75631277` | Sonnet, :3132 | integrate as it lands; its boards into their leverage places; one `[preview]` when the wave is in |
+| `refresh-host` | `export-flow`, `admin-triage`, `host-curation`, `host-storage` and `event-safety` refreshed | running (agent `a8844c85921d92ea8`), cut at `75631277` | Sonnet, :3133 | integrate as it lands; its boards into their leverage places; one `[preview]` when the wave is in |
+| `refresh-site` | `site-chrome`, `privacy-hero`, `profile-page`, `album-motion` and `loose-ends` refreshed | running (agent `a9d0a115ec18ff8cd`), cut at `75631277` | Sonnet, :3134 | integrate as it lands; its boards into their leverage places; one `[preview]` when the wave is in |
+| `refresh-guest` | `voice-guest`, `guest-capture` and `media-viewer` refreshed | running (agent `a16dadac85ed2007d`), cut at `75631277` | Sonnet, :3135 | integrate as it lands; its boards into their leverage places; one `[preview]` when the wave is in |
+| `kit-streamline` | the kit does each check once: an integration gates only what the lane never gated, lab steps only when the lab could change | running (agent `afe6fdd1370fd5aaf`), cut at `75631277` | Opus, :3136 | integrate; the kit changes, so `negative.sh` once |
 | `reel-guest-wiring` | the live reel's guest side: the seam fix, minimum 2, the provider lift, the Highlight reel tile, the view that is also the wall, the toast, the cut's seam, the photo link card | handed off at `0384a77b` (Will's morning rulings built: the welcome comes first everywhere, landscape fills; a portrait photo on a landscape screen sits whole on its own blur, his to overrule); HELD unmerged (agent `a744f57e3c4cbd81f`) | Opus, :3132 | integrate with the cut and host lanes in one stretch; the reel picture, the Start's fullscreen and wake lock and the toast prove on that alias build (R2 answers CORS only for the alias and prod) |
 
 ## Next, in order
 
-The morning of 2026-09-24 (Will's words drive all of it; the plan file's head, "The lean Library", is approved):
-the docs lean, the bible to ten principles (his Rising Tides writeup inside it), the Library to three parts.
-Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/`
-(`specs/`, `bible-ten/`, `library-lean/`).
+The lean round's rest (Will's words drive it; everything is guidance, one home, nothing treated as finished).
+Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/`.
 
-1. **The board refresh** after `library-lean` merges (Will, 2026-09-24): every open board re-cut under the new
-   guidance (the Library's recipe, the ten, production as a working version) for more open, bolder options, since
-   many were narrowed by old rules and past picks. Seven specs are ready (scratch `specs/refresh-*.json`, each with
-   its boards' audit lines from `board-audit.md`); cut in this order as seats free: `refresh-reel-host` (Opus),
-   `refresh-reel-cut`, `refresh-host`, `refresh-site`, then `refresh-guest`, `refresh-identity`, `refresh-pages`
-   (Sonnet). Each owns its boards' folders and rewrites their comments. A refresh improves on what the board has: the strong options stay and get better, bolder ones join, his
-   notes on record travel as direction. He runs through the refreshed boards once, the picks are wired so the lab is
-   current with the Library, and later rounds may revisit any covered surface with fresh ideas.
-2. **`kit-streamline`** (Opus) after `library-lean` (Will: cut every needless bottleneck; keep what protects):
-   `specs/kit-streamline.json` is ready. It makes an integration gate only what the lane never gated (light for
-   docs-only), run the lab steps only when the lab could change, keep one typecheck, and run `negative.sh` only
-   after a kit change.
-3. **The mandate sweep** (Sonnet) after `library-lean` merges, outside the boards (the refresh lanes take theirs): Will's overhaul (2026-09-24), whose one home is
-   CLAUDE.md "Keeping the docs healthy" (guidance with its reason, never a mandate; synthesized, never quoted; one
-   home). About 250 comment and lab lines in `src/` cite a pick as authority or frame a design choice as law ("Will
-   ruled", "law", "binds", "worn here rather than re-judged", "interim law", "precedent", dated provenance; re-grep at
-   the cut): each keeps its WHY and drops the authority, and a line that is only authority goes; firm words stay where
-   something breaks. The desk's "ruling" vocabulary and `docs/reviews/README.md`'s grammar words change together.
-   Owns: the prefixes the grep finds, outside the held guest lane (its own lines ride its sync message), with
-   `globals.css` and `theme.css` released from this file.
-4. **The brand kit stays current** (`kit/`, merged at `0cbc5bd6`, Will copies it for outside agents): at
-   `library-lean`'s merge, add one clause to the runbook's record step: a change to the brand (tokens, logo, type,
-   or the hero, demo and pricing pages) refreshes `kit/` from its README's Sources; the screens come from
-   partyreel.com by the scratch `kit-capture.mjs` (it wheels to the demo so its reveal fires), which moves into
-   `usher/kit/` at the same merge.
-5. **At the next `[preview]`**, confirm on Sentry that the Vercel build uploaded its source maps (`894501ad` gated
-   the upload on `VERCEL`; local builds verified silent).
-6. **The lab revamp**, once the desk's open boards close and before new explorations open (Will: lanes should spend
-   their context building for the lab, not learning it): a board as one self-registering folder (no shared
-   registries, so no merge repairs), its metadata in its spec, lab checks scoped to the lane's own boards, the
-   authoring API trimmed to what a board needs, and a fresh agent proving it can build a board from the recipe alone.
-7. **The reel round**, after Will's desk review on build 5 (the plan file's batch-1 and reel sections).
+1. **The rest of the refresh wave** as seats free: `refresh-identity`, `refresh-pages` (specs ready in `specs/`), then
+   **the mandate sweep**: `python3 $S/make-sweep-spec.py` computes its owns at the cut (the files outside every live
+   lane and the boards that frame a choice as authority), `sweep-brief.md` and `sweep-pointers.md` beside it.
+2. **`reel-guest-wiring`, one message** (sent with the wave): sync; strip `@contract-for`, `@policy` and `@refuses`
+   from its 22 test headers; its comments keep their reason and drop authority ("bible N", "Will ruled", "law");
+   `guest-flow.md`'s "bible 4 refuses" names the bible's seventh principle; `entry-modal.test.tsx`'s Radix focus-scope
+   timer throws after teardown under load (four unhandled errors in gate 158, green on rerun); re-gate; hand off again.
+3. **When the wave is in**: one `[preview]` for Will's sitting (`album-columns` first), and confirm on Sentry that
+   the Vercel build uploaded its source maps (`894501ad` gated the upload on `VERCEL`).
+4. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
+   self-registering folder, its metadata in its spec, lab checks scoped to the lane's own boards, the authoring API
+   trimmed, a fresh agent proving it; with library-lean's board ideas (a `Surfaces` family of live frames per route
+   with guest entries, the Library's sidebar open by default, a plain-text view of Library pages, and a
+   retire-or-reuse call on `anonymous-info.tsx` and `floating-add-button.tsx`).
+5. **The reel round**, after Will's desk review (the plan file's batch-1 and reel sections).
 
 ## Waiting on Will
 
