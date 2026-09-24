@@ -18,12 +18,18 @@ import { defineExploration } from "@/components/lab/exploration";
  * its context is already solved at its best). Two newer rounds are the ground
  * the answers stand on, never walls:
  *  - THE REEL. The live reel and the venue wall play only what is approved, so
- *    on a moderated event the queue is what keeps them thin. That reaches three
- *    questions here: what the queue does when one lands (`arrivals`), how many
- *    places say the count (`count`, beside the wall's own `reel-screen.review`
- *    and the reel view's `reel-host.review`, which are theirs and never asked
- *    here), and whether a refused guest is told, now the album may tell her
- *    when one of hers is in (`reel-front.yours`).
+ *    on a moderated event the queue is what keeps them thin. That reaches two
+ *    questions here: what the queue does when one lands (`arrivals`), and
+ *    whether a refused guest is told, now the album may tell her when one of
+ *    hers is in (`reel-front.yours`). ★ `count` LEFT (the desk re-cut,
+ *    2026-09-24): how many places say the waiting count is now one merged
+ *    question on `reel-host` (its `review`), with this board's three options
+ *    carried into it rather than repeated here.
+ *  - THE VIEWER. `media-viewer` r1 redrew the shared lightbox (a face-led
+ *    credit, the floating pill capsule, neighbours peeking); `peek.viewer`
+ *    wears those picks now, and `verb.chip`'s own mark moved off the corner
+ *    his r1 note singled out ("Don't love our 'own photo' marker or
+ *    placement"), which `media-viewer` round 2 asks about directly.
  *  - IDENTITY. Every uploader passed a door that asked a name, so a credit is a
  *    name, with the Unverified mark where nobody proved it, and the host never
  *    sees an unproved address (`peek`). A typed name has no profile, and a
@@ -78,9 +84,9 @@ const DRAFT = defineExploration({
   title: "Reviewing what guests send",
   round: {
     n: 1,
-    date: "2026-09-22",
+    date: "2026-09-24",
     changed:
-      "Rechecked against the identity and reel rounds: an arrival and the count are asked with the reel and the wall they now reach, the refused guest beside the album's own good news, and the peek's credit and ground as they ship.",
+      "The desk re-cut: count leaves for reel-host's merged review question; told names her tracker; peek.viewer wears media-viewer r1; verb.chip's mark clears the own-item corner.",
   },
   context:
     "A host turned on \"Review uploads before they appear\". Every upload now waits in a queue above their album until they approve it or put it down, and nothing waiting reaches the live reel or the venue wall. Every option is the shipped review surface with one thing changed, over one wedding's seven waiting uploads, at 1440 with 375 on the knob. Nothing here approves, hides or removes anything: the triage machine is forked so its two Server Functions are a resolved promise.",
@@ -126,7 +132,7 @@ const DRAFT = defineExploration({
       label: "The verb",
       question: "What should the button that refuses an upload be called?",
       context:
-        "It says Hide, and so does the chip on an album tile: one word for refusing what nobody has seen and for taking down what everyone has. A tile carries a fourth mark now, so a Hidden chip has a precedent and a place to sit.",
+        "It says Hide, and so does the chip on an album tile: one word for refusing what nobody has seen and for taking down what everyone has. The tile's own corner mark is under review (media-viewer r2); a Hidden chip stands clear of it.",
       options: [
         {
           id: "today",
@@ -144,14 +150,14 @@ const DRAFT = defineExploration({
           id: "chip",
           label: "One word, and the tile says",
           means:
-            "Hide everywhere, plus a Hidden chip beside the own-tile mark, so the state carries the meaning the word drops.",
+            "Hide everywhere, and the amber corner grows a Hidden label of its own, clear of the own-item mark's corner.",
         },
       ],
       recommended: "reject",
       because:
         "Hide reads as taking something down. In a queue of photographs nobody has seen it describes a thing that has not happened, and the host is left guessing what it will do.",
       overrule:
-        "If one verb across the product beats two precise ones, the chip does the same work without a second word, on a tile that carries marks already.",
+        "If one verb across the product beats two precise ones, the chip does the same work without a second word, and costs the tile no corner but its own.",
       lands:
         "The word on the review bar, the lightbox and the settings line. The row state never changes.",
       configs: [SCREEN],
@@ -179,7 +185,7 @@ const DRAFT = defineExploration({
           id: "viewer",
           label: "The media viewer, curating",
           means:
-            "The look becomes the product's one viewer: arrows, who sent it, and the verdict on its pill, which is what a phone gets already.",
+            "The look becomes the product's one viewer: a face-led credit, neighbours peeking, the verdict in its own pill, what a phone gets already.",
         },
       ],
       recommended: "verdict",
@@ -300,42 +306,6 @@ const DRAFT = defineExploration({
       configs: [SCREEN],
     },
     {
-      id: "count",
-      label: "The count",
-      question:
-        "How many places should say how many uploads are waiting, now that the wall and the host's reel view may say it too?",
-      context:
-        "Three say it today: the header bell, the event card's amber chip and the live Review header. They disagree and none leads to the work. Whether the wall and the reel view say it is reel-screen.review's and reel-host.review's.",
-      options: [
-        {
-          id: "three",
-          label: "All three, as wired",
-          means:
-            "The pulse on the dashboard, a per-event chip and a live header count, disagreeing quietly, and any count on the wall or the reel view one more.",
-        },
-        {
-          id: "deeplink",
-          label: "Three that agree, and lead somewhere",
-          means:
-            "The bell names the event and opens its queue, and every place that says the count, the wall and the reel view included, reads one number.",
-        },
-        {
-          id: "one",
-          label: "One count, on the card",
-          means:
-            "The chip on the event card is the only one. The bell drops its review row; the header keeps the queue.",
-        },
-      ],
-      recommended: "deeplink",
-      because:
-        "A count is a call to action, and with a wall and a reel view that may say it too, five places disagreeing is worse than none. The bell's is the only one a host meets away from the event, so it should land on the queue, and every count should read one number.",
-      overrule:
-        "He refuses a single event's prompt on the dashboard. If the bell is one of those, the card's chip is the count a host decides from.",
-      lands:
-        "Where a waiting count is said beside the pulse, what it links to, and that every surface saying it reads one number.",
-      configs: [SCREEN],
-    },
-    {
       id: "told",
       label: "The guest",
       question:
@@ -351,9 +321,9 @@ const DRAFT = defineExploration({
         },
         {
           id: "line",
-          label: "A quiet line in her own uploads",
+          label: "A quiet line in her tracker",
           means:
-            "The photograph stays hers, dimmed on her own tiles and marked not in the album. No reason, no appeal, and nobody else sees it.",
+            "The photograph stays hers, marked not in the album in her tracker (guest-capture's ask). No reason, no appeal, nobody else sees it.",
         },
         {
           id: "message",
@@ -368,7 +338,7 @@ const DRAFT = defineExploration({
       overrule:
         "If a refusal should stay the host's private judgement, as the FAQ promises in public, never keeps curation from becoming a social event at a wedding.",
       lands:
-        "A public FAQ answer, what a guest's own tiles and uploads show, and whether a refusal ever sends anything.",
+        "A public FAQ answer, what a guest's own tracker shows, and whether a refusal ever sends anything.",
       configs: [SCREEN],
     },
   ],

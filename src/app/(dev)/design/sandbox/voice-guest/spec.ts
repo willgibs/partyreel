@@ -51,9 +51,9 @@ export const VOICE_GUEST = defineExploration({
   title: "The voice of the guest journey",
   round: {
     n: 1,
-    date: "2026-09-23",
+    date: "2026-09-24",
     changed:
-      "New board, the voice's first, on his word to nail the voice in the lab starting with the guest journey: seven real lines, each in its real place on a phone, with today's words beside three registers.",
+      "The desk re-cut: waiting and landed now name guest-capture's tracker and reel-front's toast as neighbours; landed's overrule drops the rejected \"Yours is in it\" badge. No line changed.",
   },
   context:
     "Will, 2026-09-22: \"Still need to nail our voice in the lab, across all main and micro copy.\" The guest journey first: seven lines Priya reads between scanning Maya and Jay's code and keeping her photos, each set where it lives on a 375 phone, today's words beside plain and warm, bright and playful, quiet and exact. The lines he picks build the voice one won line at a time, and each option says what its register sounds like on another of the seven, so a pick carries to the host app's board and marketing's after it.",
@@ -176,7 +176,7 @@ export const VOICE_GUEST = defineExploration({
       question:
         "When the last of her photos lands, should the stack tile say so, and in which words?",
       context:
-        "Priya sent six. The stack at the album's head counts \"N to go\"; today it leaves as the last lands, with a pass of light, and the others hold it a beat with a line. Tom is signed in; his may name his account. The reel's chip is reel-front's.",
+        "Priya sent six. The stack at the album's head counts \"N to go\"; today it leaves as the last lands, with a light. Tom is signed in; his may name his account. Reel-front's toast and guest-capture's tracker are its neighbours.",
       options: [
         {
           id: "today",
@@ -208,7 +208,7 @@ export const VOICE_GUEST = defineExploration({
       because:
         "Words reach the guests the light never does (reduced motion, a screen reader), and this line fits the tile's width in one line, in the verb the welcome already uses for the album. Tom's \"Yours to keep\" is the capture card's offer, already true for him.",
       overrule:
-        "If the reel's \"Yours is in it\" lands in the same second, two lines saying one thing is one too many, and today's silence is right.",
+        "If the reel's one-time toast lands in the same second, two lines saying one thing is one too many, and today's silence is right.",
       lands:
         "Whether the guest's main act is answered in words, and whether a member ever hears that uploading saved the event.",
     },
@@ -303,7 +303,7 @@ export const VOICE_GUEST = defineExploration({
       question:
         "On a photo the host is holding for review, what should its tile say to the guest who sent it?",
       context:
-        "Uploads held for review: Priya's two sit dimmed at the album's head with a clock, seen by her phone alone until Maya lets them in. The line sits on a pane about 150px wide. Whether a refusal is ever told is host-curation's.",
+        "Uploads held for review: Priya's two sit dimmed at the album's head with a clock, on a pane about 150px wide. Whether a refusal is told is host-curation's; guest-capture's tracker may reuse this line inline.",
       options: [
         {
           id: "today",

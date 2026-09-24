@@ -86,7 +86,7 @@ export const CATEGORIES: FixtureCategory[] = [
     slug: "highlight-reel",
     stripLabel: "Reel",
     title: "The reel",
-    blurb: "Live from the third photo, on a screen, and yours to cut.",
+    blurb: "Live from the second photo, on a screen, and yours to cut.",
     count: 5,
     feature: { href: "/reel", label: "The reel" },
   },

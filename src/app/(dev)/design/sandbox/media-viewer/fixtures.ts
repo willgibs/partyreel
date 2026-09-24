@@ -139,7 +139,9 @@ export const LANDSCAPE_AT = 7;
 /** The clip's place in the album, so the same album answers `video` too. */
 export const CLIP_AT = 20;
 
-/** The one this device added, so `who` can be asked on a guest's own photograph. */
+/** The one this device added: media-viewer round 2's `mine` ask marks every
+ *  tile this guest added (`MINE_IDS`, below `ALBUM`), the own-item mark's
+ *  own ground. */
 export const MINE_AT = 5;
 
 export const CLIP_SRC = "/lab/media-viewer/clip.mp4";
@@ -170,6 +172,16 @@ export const ALBUM: GridMedia[] = [...ROLL].map((letter, i) => {
     isVerified: who.isHost || !UNPROVEN.has(who.uploaderName ?? ""),
   } satisfies GridMedia;
 });
+
+/**
+ * ROUND 2'S `mine`: every tile `MINE_AT`'s own guest added, the device's own
+ * uploads a real "Yours" filter would mark. Three of the twenty-six (indices
+ * 5, 14 and 23), the same spread `isUnproven`'s own reader already produces.
+ */
+export const MINE_NAME = WHO[MINE_AT % WHO.length].uploaderName;
+export const MINE_IDS: ReadonlySet<string> = new Set(
+  ALBUM.filter((m) => m.uploaderName === MINE_NAME).map((m) => m.id),
+);
 
 /** When each item was sent, for the chrome that says WHEN as well as who. */
 export const SENT_AT: string[] = ALBUM.map(

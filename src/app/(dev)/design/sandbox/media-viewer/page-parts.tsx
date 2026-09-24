@@ -7,6 +7,7 @@ import { MediaTile, type GridMedia } from "@/components/app/media-grid";
 import { CornerPlayBadge, GALLERY_COLUMNS } from "@/components/shared/masonry";
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
+import { GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 import { cn, formatEventDate } from "@/lib/utils";
 
 import { ALBUM, EVENT, OPENED } from "./fixtures";
@@ -58,39 +59,93 @@ export const screenOf = (v: string | undefined): ScreenId =>
 
 /* ── the album ───────────────────────────────────────────────────────────── */
 
+/** Today's own-item mark, quoted at rest (`masonry.tsx`'s `MineMark`, its
+ *  unlabeled glass dot, top-left, the `dot` option). */
+function MineDot() {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "absolute top-1.5 left-1.5 z-10 flex size-5 items-center justify-center rounded-full",
+        GLASS_MARK,
+      )}
+    >
+      <span className={cn("size-1.5 rounded-full bg-white", GLASS_MARK_LIT)} />
+    </span>
+  );
+}
+
+/** The same corner, worded (the `label` option): legible cold, no tap or
+ *  tooltip needed to learn what the dot never says. */
+function MineLabel() {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "absolute top-1.5 left-1.5 z-10 flex h-5 items-center rounded-full px-2 text-[10px] font-semibold text-white",
+        GLASS_MARK,
+      )}
+    >
+      Yours
+    </span>
+  );
+}
+
 /**
  * The album, laid out by the ruled column rule with the shipped tile. `lit`
  * marks the tile a tap opened: `opening`'s growing photograph flies out of its
  * box and `wayout`'s swipe down puts it back, so both need to know where it is
  * and both MEASURE it rather than assuming.
+ *
+ * `mineIds`/`mineStyle` are round 2's `mine`: every other ask leaves both
+ * unset, so nothing here changes for them. `ring` wears no corner glyph at
+ * all (a soft accent ring round the whole tile instead); `none` marks the
+ * `data-mv-mine` attribute for measurement but draws nothing.
  */
 export function LabMasonry({
   items = ALBUM,
   lit,
+  mineIds,
+  mineStyle,
 }: {
   items?: GridMedia[];
   /** The index whose tile the viewer came out of. */
   lit?: number;
+  /** The tiles this device added, for `mine`'s own-item mark. */
+  mineIds?: ReadonlySet<string>;
+  /** Which of `mine`'s four treatments a marked tile wears. */
+  mineStyle?: "dot" | "label" | "ring" | "none";
 }) {
   return (
     <div className={GALLERY_COLUMNS}>
-      {items.map((item, i) => (
-        <div
-          key={item.id}
-          data-media-tile
-          data-mv-lit={i === lit ? "" : undefined}
-          style={
-            {
-              aspectRatio: `${item.width} / ${item.height}`,
-              borderRadius: "var(--radius-tile)",
-            } as CSSProperties
-          }
-          className="group relative mb-[var(--gap-gallery)] w-full break-inside-avoid overflow-hidden bg-black/10"
-        >
-          <MediaTile item={item} playBadge="none" />
-          {item.type === "video" && <CornerPlayBadge />}
-        </div>
-      ))}
+      {items.map((item, i) => {
+        const mine = mineIds?.has(item.id) ?? false;
+        return (
+          <div
+            key={item.id}
+            data-media-tile
+            data-mv-lit={i === lit ? "" : undefined}
+            data-mv-mine={mine ? (mineStyle ?? "none") : undefined}
+            style={
+              {
+                aspectRatio: `${item.width} / ${item.height}`,
+                borderRadius: "var(--radius-tile)",
+              } as CSSProperties
+            }
+            className={cn(
+              "group relative mb-[var(--gap-gallery)] w-full break-inside-avoid overflow-hidden bg-black/10",
+              mine &&
+                mineStyle === "ring" &&
+                "ring-2 ring-brand ring-offset-2 ring-offset-background",
+            )}
+          >
+            <MediaTile item={item} playBadge="none" />
+            {item.type === "video" && <CornerPlayBadge />}
+            {mine && mineStyle === "dot" && <MineDot />}
+            {mine && mineStyle === "label" && <MineLabel />}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -110,6 +165,12 @@ export function AlbumPage({
   browser,
   /** `mv-returning` lights the tile a dismissing photograph is heading for. */
   pageClass,
+  /** `mine`'s own two: the tiles this device added, and their treatment. */
+  mineIds,
+  mineStyle,
+  /** False shows the page from its own top (`mine`'s ground: the grid is the
+   *  whole question, so the header stands rather than scrolling off). */
+  scrolled = true,
 }: {
   screen: ScreenId;
   lit?: number;
@@ -117,6 +178,9 @@ export function AlbumPage({
   /** Whatever stands over the album: the viewer, in one of its shapes. */
   children?: ReactNode;
   browser?: ReactNode;
+  mineIds?: ReadonlySet<string>;
+  mineStyle?: "dot" | "label" | "ring" | "none";
+  scrolled?: boolean;
 }) {
   const phone = screen === "375";
   return (
@@ -126,14 +190,17 @@ export function AlbumPage({
         pageClass,
       )}
     >
-      {/* The page, scrolled to the album. A negative margin on the scroller is
-          how a frame shows the MIDDLE of a page without a script: the header is
-          above the fold and the album fills the screen, exactly as it does when
-          a guest taps a tile. */}
+      {/* The page, scrolled to the album by default. A negative margin on the
+          scroller is how a frame shows the MIDDLE of a page without a script:
+          the header is above the fold and the album fills the screen, exactly
+          as it does when a guest taps a tile. `mine` turns it off: the grid
+          is the whole question, so its own header stands rather than
+          scrolling away. */}
       <div
         className={cn(
           "px-5",
-          phone ? "-mt-[212px]" : "mx-auto -mt-[184px] max-w-[1180px]",
+          scrolled && (phone ? "-mt-[212px]" : "mx-auto -mt-[184px] max-w-[1180px]"),
+          !scrolled && !phone && "mx-auto max-w-[1180px]",
         )}
       >
         <header className="flex items-center justify-between gap-2 py-3">
@@ -154,7 +221,7 @@ export function AlbumPage({
         <p className="mt-1 mb-4 text-xs text-muted-foreground">
           {ALBUM.length} photos &amp; videos from {EVENT.guests} guests
         </p>
-        <LabMasonry lit={lit} />
+        <LabMasonry lit={lit} mineIds={mineIds} mineStyle={mineStyle} />
       </div>
       {browser}
       {children}
