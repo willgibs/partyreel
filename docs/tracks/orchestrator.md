@@ -49,7 +49,8 @@ through `scripts/build-lock.sh` (the kit's gate takes it itself).
 The lean round's rest (Will's words drive it; everything is guidance, one home, nothing treated as finished).
 Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/`.
 
-1. **The rest of the refresh wave** as seats free: `refresh-pages` (spec ready in `specs/`), then
+1. **The rest of the refresh wave** as memory frees (held at six lanes while about 10 GB sat compressed): `refresh-pages`
+   (spec ready in `specs/`), then
    **the mandate sweep**: `python3 $S/make-sweep-spec.py` computes its owns at the cut (the files outside every live
    lane and the boards that frame a choice as authority), `sweep-brief.md` and `sweep-pointers.md` beside it.
 2. **`reel-guest-wiring`, one message** (sent 2026-09-24 with the wave; it hands off again, still held): sync; strip `@contract-for`, `@policy` and `@refuses`
