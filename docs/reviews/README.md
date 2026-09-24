@@ -1,7 +1,7 @@
 # The review ledgers
 
 > **ROLE:** Will's answers and notes on the boards, one JSON file per board plus `_window.json` for
-> a round's notes that bind every board and `_library.json` for his verdicts on Library entries.
+> a round's notes that apply to every board and `_library.json` for his verdicts on Library entries.
 > **BELONGS HERE:** ask ids, choices (an option id, or `null` for "not clear to me"), catalog item
 > verdicts (`keep | refine | kill`), Library entry verdicts (`keep | redesign | retire`), notes, who and when.
 > **NOT HERE:** the questions themselves (a board's `spec.ts` is the one home; a ledger stores ask
@@ -68,8 +68,8 @@ An option is its id (one token); the board's spec carries the label and the mean
 `item:<id>=keep|refine|kill` rules on ONE card of a board's catalog, where
 `<id>` is a candidate id from the board's spec. The `item:` prefix keeps the two namespaces apart: an
 ask id and a candidate id are both one token and a board may use the same word for both. A board that
-declares no `catalog` has no items, and a ruling on one is refused. One verdict per item per round;
-ruling again in the same round overwrites, exactly as answering an ask again does, and a round gains
+declares no `catalog` has no items, and a verdict on one is refused. One verdict per item per round;
+answering again in the same round overwrites, exactly as answering an ask again does, and a round gains
 `items: [{ item, verdict, note?, by, at }]` beside its `answers`.
 
 `call:<id>=yes|no "a note"` -- a call the lane CARRIED, answered. A lane that meets a question its goal left open

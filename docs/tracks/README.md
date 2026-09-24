@@ -75,8 +75,8 @@ Everything the lane cannot find itself: the task's intent, synthesized (Will's e
 the point), the calls already made, what to read, the neighbour a new
 board registers after.
 
-**Binds.** CLAUDE.md's working loop and the bible's ten (`/design/library`); the tests are the real rules, and
-everything else is precedent you may break.
+**Starts from.** CLAUDE.md's working loop, the bible's ten and production as it is; the tests say what has to keep
+working.
 
 **Verify on.** For a board: 1440 and 375 with reduced motion honoured, `pnpm lab:smoke` whole, `pnpm lab:demo --board
 <board>` pressing every step. For a wiring lane: the gate on the synced tree and the surfaces the Handoff is judged

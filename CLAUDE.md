@@ -10,10 +10,9 @@ and upload photos and videos from their phones with no app required (an account,
 asks for one); the host curates; the link doubles as the shareable album. It is live at partyreel.com with zero real
 users (Stripe in TEST mode, the launch switches unspent), in the **elevation program** ([`docs/PROGRAM.md`](docs/PROGRAM.md)).
 
-**Rising tides** (the bible, `/design/library`, which only Will changes): the whole platform is the goal, nothing is
-protected or finished, and relitigating any decision for a better answer is welcome. Will's pick in an exploration
-is the best of what was drawn, never the perfect answer or a rule: what ships is a working version, and a new
-exploration ignores how we got here and hunts for the perfect solution, improving on it or trying something new.
+**Rising tides**, the bible's first principle (`/design/library`; Will owns the ten): nothing is protected or
+finished, what ships is a working version (a pick was the best of what was drawn, never the perfect answer), and
+reopening anything for a better answer is welcome.
 
 ## Sessions & roles
 
@@ -118,11 +117,12 @@ tooling. The lab's `?key=` is a light guard, not a secret (it may appear in a lo
 
 ## Keeping the docs healthy
 
-A doc carries only what a strong model cannot find or infer (Will): never a framework or platform rule that current
-docs give, a design rule that production or the Library shows, or a decision's history. Every change passes the
-Orchestrator's review and design passes the lab, so rules stay few. **Every fact has one home**, the doc whose
-question it answers, **edited in place, never appended**: a new note, Will's included, is synthesized into the line
-it refines rather than quoted beside it, a stale line is deleted, a shipped narrative goes in the
-merge commit, a deferred task is one ROADMAP line; nothing under `docs/` is history. Every added line dilutes the
-rest: a one-off mistake is fixed and left in git, and only a recurring one becomes a written rule or a tool's refusal,
-encoded by its shape. A new gotcha goes in its `docs/systems/` doc, never here.
+Everything here, in the Library and in the lab is guidance with its reason, never a mandate, a ruling or a law: when
+something better comes it changes in one edit, and a past decision is never a reason to leave something unimproved.
+Firm words are for what actually breaks (security, data, a real technical constraint). A doc carries only what a
+strong model cannot find or infer: no framework rule that current docs give, no design rule that production or the
+Library shows, no decision history. **Every fact has one home**, the doc whose question it answers, **edited in
+place**: a new note, Will's included, is synthesized into the line it refines rather than quoted beside it; a stale
+line is deleted; what shipped lives in its merge commit; a deferred task is one ROADMAP line. Every added line dilutes
+the rest, so a one-off mistake is fixed and left in git, and only a recurring one earns a line or a tool's refusal. A
+new gotcha goes in its `docs/systems/` doc.

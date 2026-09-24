@@ -18,13 +18,13 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 - **Milestone 28 is live** (`1076d3d7`, 2026-09-24): no read stops at 1,000 rows (every list reads whole, every count
   counts, every id list chunks, every set-returning RPC pages, every sweep reports what it left; `row-cap-policy.test.ts`
   and a Sentry tripwire keep it so); a claimed guest ticket uploads only for its owner; a guest's own delete is final.
-- **A block for bad actors** (his concept): the `event-safety` board on his three answers (a block puts the person out
+- **A block for bad actors**: the `event-safety` board (a block puts the person out
   and removes their uploads; approve newcomers, close to newcomers and an invite list; all free on every plan).
 - **Desk review batch 1** (2026-09-24): `media-viewer`, `reel-view` and `reel-front` answered, `reel-screen` stopped on
-  two repeats; the view is the wall (his ruling). Wiring: the media viewer and the reel's guest side (held unmerged until
-  the cut and host lanes, so one alias build replaces the stored reel); the desk re-cut under his merge rule (repeats
+  two repeats; the reel's view is also the wall. Wiring: the media viewer and the reel's guest side (held unmerged until
+  the cut and host lanes, so one alias build replaces the stored reel); the desk re-cut (repeats
   become one question, every option kept), with the rounds he asked for; the plan is the plan file's head.
-- **The lean round** (Will, 2026-09-24: every added line dilutes the rest): the boot-time docs sharpened (a lane reads
+- **The lean round**: the boot-time docs sharpened (a lane reads
   about 1,800 words at boot, from 5,400), the bible to ten principles, the Library to the brand kit, the catalog and
   the ten with the look tests gone, and a root `kit/` brand kit Will can copy for outside agents.
 - **Since milestone 28 (`clocks-and-counts`):** counts grouped, chart ticks that fit, the admin's times in UTC, one Link
