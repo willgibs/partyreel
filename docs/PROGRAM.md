@@ -22,7 +22,8 @@ carries every back-and-forth and lands everything.
 ## The round
 
 1. **A board opens** on Will's ask, or on an improvement the Orchestrator or a lane sees, even on a surface just
-   explored: the idea is reason enough. For his asks the Orchestrator asks him the two or three questions that branch
+   explored: the idea is reason enough, and it reaches production only through the lab, where his review keeps it on
+   the product's vision (a fix or plumbing goes straight). For his asks the Orchestrator asks him the two or three questions that branch
    the work (a one-way door always waits for his answer, which then lives in its system doc), then cuts one lane per
    board.
 2. **The lane returns DECISIONS** at `/design/lab/<board>` (below) and hands off; an exploration ships no production
