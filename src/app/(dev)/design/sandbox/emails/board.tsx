@@ -416,6 +416,7 @@ function footScreen(shape: FootShape, s: BoardState) {
 const CODE_CAPTION: Record<CodeShape, string> = {
   continue: "The digits lead; a plain Continue carries the link path beneath them.",
   promise: "The digits lead; the button echoes the gate's own line instead.",
+  copy: "No button: the digits sit in a highlighted block, captioned to copy.",
 };
 
 const codeRead: Reader = (root, win) => {
@@ -605,6 +606,7 @@ const PREVIEWS: PreviewsFor<typeof EMAILS> = {
 
   "code.continue": (s) => codeScreen("continue", s),
   "code.promise": (s) => codeScreen("promise", s),
+  "code.copy": (s) => codeScreen("copy", s),
 
   "moments.shipped": (s) => momentsScreen("shipped", s),
   "moments.retired": (s) => momentsScreen("retired", s),

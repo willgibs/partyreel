@@ -57,7 +57,7 @@ const DRAFT = defineExploration({
       question:
         "Should every Partyreel email share one wrapper, now a repeated control is ruled into one component elsewhere?",
       context:
-        "App-vocabulary r1 turns a repeated control into one component with props, though his note leaves unifying discretionary for genuinely different purposes. Mail's four alerts hand-roll the same div, the case the ruling was written for.",
+        "App-vocabulary r1 turns a repeated control into one component with props, leaving unifying discretionary for genuinely different purposes. Mail's four alerts hand-roll the same div, exactly the case that decision was written for.",
       options: [
         {
           id: "today",
@@ -202,9 +202,9 @@ const DRAFT = defineExploration({
       id: "code",
       label: "The code",
       question:
-        "Now the verified-required gate itself promises \"One tap and you're in,\" what should the mail's own button say?",
+        "Now the verified-required gate itself promises \"One tap and you're in,\" what should the mail actually ask her to tap?",
       context:
-        "App-door r1 makes the code the way in for everybody, and a tapped link still strands an iPhone PWA, so digits lead with a button beneath. What's open is only the button's word, now the gate has already promised \"one tap.\"",
+        "App-door r1 makes the code the way in for everybody, and a tapped link still strands an iPhone PWA, so digits lead with a way to continue beneath them. They are also the one thing she can act on without leaving her inbox.",
       options: [
         {
           id: "continue",
@@ -217,13 +217,20 @@ const DRAFT = defineExploration({
           means:
             "The same button, reading \"One tap, you're in\" instead, echoing the line she just read on the gate.",
         },
+        {
+          id: "copy",
+          label: "No button: the digits themselves",
+          means:
+            "The code sits in a highlighted block, captioned for a tap-and-hold copy; a small text link beneath covers the PWA-stranded fallback.",
+        },
       ],
-      recommended: "continue",
+      recommended: "copy",
       because:
-        "\"Continue\" is honest about what the tap actually does (it still has to land her back in the browser); the gate's own line already told her how it will feel, and repeating it here turns a promise into a claim the button has to live up to a second time.",
+        "Both button labels argue about a tap this mail rarely resolves alone: \"Continue\" undersells it, the gate's words repeat a promise this inbox can't keep. No client can wire a real one-tap copy, but her app has an input waiting for six digits, and captioning the code for it needs no button at all.",
       overrule:
-        "If the mail should carry the same voice the gate just used, echoing it here is one word away and costs nothing the layout doesn't already have room for.",
-      lands: "What the dashboard template's button could say, if it's ever redrawn; nothing here is wired.",
+        "If most people read this on a different device than the one waiting for it, a Continue button that jumps straight to the browser is the safer default.",
+      lands:
+        "What the dashboard template's tap target could be, if it's ever redrawn; nothing here is wired.",
       tile: "phone",
       configs: [SCREEN],
     },
@@ -270,7 +277,7 @@ const DRAFT = defineExploration({
       question:
         "Should a guest ever get a mail from Partyreel, now confirming an email makes the account?",
       context:
-        "Guest-shape r1 takes the address on a promise to keep the album. Will's identity ruling (2026-09-22): a names-mode door captures an optional unconfirmed email, never mailed on its own; a one-shot album mail only after a completed upload.",
+        "Guest-shape r1 takes the address on a promise to keep the album. The identity round (2026-09-22): a names-mode door captures an optional unconfirmed email, never mailed alone; a one-shot album mail only after a completed upload.",
       options: [
         {
           id: "none",
