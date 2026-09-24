@@ -29,33 +29,49 @@ const code = (rel: string) =>
 
 const base = {
   eventId: "e1",
+  album: 2,
   pending: 0,
-  items: [
-    { id: "a", status: "approved" },
-    { id: "b", status: "approved" },
-  ],
+  newestUpdatedAt: "2026-09-23T12:00:00.123456+00:00",
 };
 
 describe("the host fingerprint", () => {
   it("is stable for an unchanged album", () => {
-    expect(hostEtag(base)).toBe(hostEtag({ ...base, items: [...base.items] }));
+    expect(hostEtag(base)).toBe(hostEtag({ ...base }));
   });
 
   it("moves when a photograph arrives", () => {
+    // An arrival is a new row: the album count moves, and so does the newest write.
     expect(
-      hostEtag({ ...base, items: [{ id: "c", status: "approved" }, ...base.items] }),
+      hostEtag({
+        ...base,
+        album: 3,
+        newestUpdatedAt: "2026-09-23T12:00:05.000001+00:00",
+      }),
     ).not.toBe(hostEtag(base));
   });
 
   it("moves when a photograph leaves", () => {
-    expect(hostEtag({ ...base, items: [base.items[0]] })).not.toBe(hostEtag(base));
+    expect(hostEtag({ ...base, album: 1 })).not.toBe(hostEtag(base));
   });
 
-  it("moves when one is hidden from a second tab", () => {
+  it("moves when one is hidden from a second tab, though no count moves", () => {
+    // A hide keeps the row in the album (approved + hidden), so both counts hold still. What moves
+    // is the row's updated_at: media_set_updated_at stamps every write, a status flip included.
     expect(
       hostEtag({
         ...base,
-        items: [{ id: "a", status: "hidden" }, base.items[1]],
+        newestUpdatedAt: "2026-09-23T12:01:00.000000+00:00",
+      }),
+    ).not.toBe(hostEtag(base));
+  });
+
+  it("moves when an arrival and a removal cancel in the counts", () => {
+    // One in, one out between two polls: the album count is back where it was, but the arrival is
+    // the newest write, so a hash of the counts alone would 304 a stale album here.
+    expect(
+      hostEtag({
+        ...base,
+        newestUpdatedAt: "2026-09-23T12:02:00.000000+00:00",
       }),
     ).not.toBe(hostEtag(base));
   });
@@ -67,13 +83,28 @@ describe("the host fingerprint", () => {
     expect(hostEtag({ ...base, pending: 1 })).not.toBe(hostEtag(base));
   });
 
+  it("hashes an empty event, and moves when its first photograph lands", () => {
+    const empty = {
+      eventId: "e1",
+      album: 0,
+      pending: 0,
+      newestUpdatedAt: null,
+    };
+    expect(hostEtag(empty)).toBe(hostEtag({ ...empty }));
+    expect(
+      hostEtag({ ...empty, album: 1, newestUpdatedAt: base.newestUpdatedAt }),
+    ).not.toBe(hostEtag(empty));
+  });
+
   it("never validates across two events", () => {
     expect(hostEtag({ ...base, eventId: "e2" })).not.toBe(hostEtag(base));
   });
 
   it("carries a version prefix, quoted and strong", () => {
     const tag = hostEtag(base);
-    expect(tag.startsWith('"h1-')).toBe(true);
+    // h2: the shape moved from the item list to the counts, so an h1 validator a tab still
+    // holds can never match (it cannot anyway, being a hash of different input; the prefix says so).
+    expect(tag.startsWith('"h2-')).toBe(true);
     expect(tag.endsWith('"')).toBe(true);
     expect(tag.startsWith("W/")).toBe(false);
   });
@@ -112,10 +143,24 @@ describe("the live route", () => {
 
   it("presigns nothing", () => {
     // The whole point of this route is that it is cheap: the expensive work —
-    // eleven queries and three presigns an item — belongs to the page render it
+    // a dozen queries and three presigns an item — belongs to the page render it
     // triggers, and only when something actually changed.
     const src = code(ROUTE);
     expect(/presign/i.test(src)).toBe(false);
+  });
+
+  it("counts the album and lists none of it", () => {
+    // A list read ends at PostgREST's 1,000 rows, so a validator built from one
+    // stops seeing an album's oldest photographs; counts and a one-row read never
+    // do, and cost the same at any size (the 1,000-row round).
+    const src = code(ROUTE);
+    expect(
+      /readAlbumCounts\(/.test(src) && /readNewestAlbumUpdate\(/.test(src),
+    ).toBe(true);
+    expect(
+      /listEventMedia|readEventMedia/.test(src),
+      "the poll went back to reading the album to hash it",
+    ).toBe(false);
   });
 
   it("is never cached", () => {

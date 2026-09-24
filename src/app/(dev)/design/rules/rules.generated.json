@@ -696,7 +696,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 40
+          "line": 38
         },
         {
           "title": "moves when a photograph arrives",
@@ -704,7 +704,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 44
+          "line": 42
         },
         {
           "title": "moves when a photograph leaves",
@@ -712,15 +712,23 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 50
+          "line": 53
         },
         {
-          "title": "moves when one is hidden from a second tab",
+          "title": "moves when one is hidden from a second tab, though no count moves",
           "suite": [
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 54
+          "line": 57
+        },
+        {
+          "title": "moves when an arrival and a removal cancel in the counts",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 68
         },
         {
           "title": "moves when something lands in Review, which the doorbell never reports",
@@ -728,7 +736,15 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 63
+          "line": 79
+        },
+        {
+          "title": "hashes an empty event, and moves when its first photograph lands",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 86
         },
         {
           "title": "never validates across two events",
@@ -736,7 +752,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 70
+          "line": 99
         },
         {
           "title": "carries a version prefix, quoted and strong",
@@ -744,7 +760,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 74
+          "line": 103
         },
         {
           "title": "cannot be confused with the guest gallery's validator",
@@ -752,7 +768,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 81
+          "line": 112
         },
         {
           "title": "re-verifies the caller rather than trusting the cookie",
@@ -760,7 +776,7 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 89
+          "line": 120
         },
         {
           "title": "reads the event through the RLS-scoped query, never by host_id in a filter",
@@ -768,7 +784,7 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 98
+          "line": 129
         },
         {
           "title": "answers 304 when nothing moved",
@@ -776,7 +792,7 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 107
+          "line": 138
         },
         {
           "title": "presigns nothing",
@@ -784,7 +800,15 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 113
+          "line": 144
+        },
+        {
+          "title": "counts the album and lists none of it",
+          "suite": [
+            "the live route"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 152
         },
         {
           "title": "is never cached",
@@ -792,7 +816,7 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 121
+          "line": 166
         }
       ]
     },
@@ -1708,7 +1732,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 146
+          "line": 150
         },
         {
           "title": "re-verifies the caller inside the bin's action, not only in RLS",
@@ -1716,7 +1740,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 158
+          "line": 162
         },
         {
           "title": "opens over the album from a deep link, and keeps the form single-sourced",
@@ -1724,7 +1748,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 174
+          "line": 178
         },
         {
           "title": "confirms before discarding unsaved edits, whichever way it is closed",
@@ -1732,7 +1756,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 188
+          "line": 192
         }
       ]
     },
@@ -1800,7 +1824,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 146
+          "line": 150
         },
         {
           "title": "re-verifies the caller inside the bin's action, not only in RLS",
@@ -1808,7 +1832,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 158
+          "line": 162
         },
         {
           "title": "opens over the album from a deep link, and keeps the form single-sourced",
@@ -1816,7 +1840,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 174
+          "line": 178
         },
         {
           "title": "confirms before discarding unsaved edits, whichever way it is closed",
@@ -1824,7 +1848,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 188
+          "line": 192
         }
       ]
     },
@@ -2006,7 +2030,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 146
+          "line": 150
         },
         {
           "title": "re-verifies the caller inside the bin's action, not only in RLS",
@@ -2014,7 +2038,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 158
+          "line": 162
         },
         {
           "title": "opens over the album from a deep link, and keeps the form single-sourced",
@@ -2022,7 +2046,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 174
+          "line": 178
         },
         {
           "title": "confirms before discarding unsaved edits, whichever way it is closed",
@@ -2030,7 +2054,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 188
+          "line": 192
         }
       ]
     },
@@ -2205,7 +2229,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 146
+          "line": 150
         },
         {
           "title": "re-verifies the caller inside the bin's action, not only in RLS",
@@ -2213,7 +2237,7 @@
             "the album, and the bin as its filter"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 158
+          "line": 162
         },
         {
           "title": "opens over the album from a deep link, and keeps the form single-sourced",
@@ -2221,7 +2245,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 174
+          "line": 178
         },
         {
           "title": "confirms before discarding unsaved edits, whichever way it is closed",
@@ -2229,7 +2253,7 @@
             "the settings sheet"
           ],
           "file": "src/components/app/event-feed/event-hub.test.tsx",
-          "line": 188
+          "line": 192
         }
       ]
     },
@@ -17644,7 +17668,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 40
+          "line": 38
         },
         {
           "title": "moves when a photograph arrives",
@@ -17652,7 +17676,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 44
+          "line": 42
         },
         {
           "title": "moves when a photograph leaves",
@@ -17660,15 +17684,23 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 50
+          "line": 53
         },
         {
-          "title": "moves when one is hidden from a second tab",
+          "title": "moves when one is hidden from a second tab, though no count moves",
           "suite": [
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 54
+          "line": 57
+        },
+        {
+          "title": "moves when an arrival and a removal cancel in the counts",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 68
         },
         {
           "title": "moves when something lands in Review, which the doorbell never reports",
@@ -17676,7 +17708,15 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 63
+          "line": 79
+        },
+        {
+          "title": "hashes an empty event, and moves when its first photograph lands",
+          "suite": [
+            "the host fingerprint"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 86
         },
         {
           "title": "never validates across two events",
@@ -17684,7 +17724,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 70
+          "line": 99
         },
         {
           "title": "carries a version prefix, quoted and strong",
@@ -17692,7 +17732,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 74
+          "line": 103
         },
         {
           "title": "cannot be confused with the guest gallery's validator",
@@ -17700,7 +17740,7 @@
             "the host fingerprint"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 81
+          "line": 112
         },
         {
           "title": "re-verifies the caller rather than trusting the cookie",
@@ -17708,7 +17748,7 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 89
+          "line": 120
         },
         {
           "title": "reads the event through the RLS-scoped query, never by host_id in a filter",
@@ -17716,7 +17756,7 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 98
+          "line": 129
         },
         {
           "title": "answers 304 when nothing moved",
@@ -17724,7 +17764,7 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 107
+          "line": 138
         },
         {
           "title": "presigns nothing",
@@ -17732,7 +17772,15 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 113
+          "line": 144
+        },
+        {
+          "title": "counts the album and lists none of it",
+          "suite": [
+            "the live route"
+          ],
+          "file": "src/lib/events/host-fingerprint.test.ts",
+          "line": 152
         },
         {
           "title": "is never cached",
@@ -17740,7 +17788,7 @@
             "the live route"
           ],
           "file": "src/lib/events/host-fingerprint.test.ts",
-          "line": 121
+          "line": 166
         }
       ]
     },

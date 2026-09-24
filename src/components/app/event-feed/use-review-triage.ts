@@ -8,6 +8,7 @@ import {
   hideBulkAction,
 } from "@/app/(app)/dashboard/[eventId]/actions";
 import { type GridMedia } from "@/components/app/media-grid";
+import { inBulkBatches } from "@/lib/event/bulk-selection";
 import { readCssMs } from "@/lib/shared/read-css-ms";
 
 import { useSelection } from "./use-selection";
@@ -110,11 +111,14 @@ export function useReviewTriage({
     setBusy(true);
     sel.clear();
 
-    // Fire the action NOW so the server roundtrip overlaps the exit + beat motion.
-    const action =
+    // Fire the action NOW so the server roundtrip overlaps the exit + beat motion. In batches of
+    // MAX_BULK_ITEMS, the most one action takes: Approve all hands over the WHOLE queue (Review reads
+    // it whole), and a held queue is whatever the guests sent, so its size can never be a refusal.
+    const action = inBulkBatches(ids, (batch) =>
       kind === "approve"
-        ? approveBulkAction(eventId, ids)
-        : hideBulkAction(eventId, ids);
+        ? approveBulkAction(eventId, batch)
+        : hideBulkAction(eventId, batch),
+    );
 
     if (kind === "approve") {
       preloadPhotos(snapshot.filter((p) => idSet.has(p.id)));

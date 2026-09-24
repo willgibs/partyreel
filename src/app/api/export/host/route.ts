@@ -7,12 +7,18 @@
  * — for bulk "Download selected" — narrowed to the selected ids (a foreign id simply can't match,
  * since listEventMedia already scopes to this event). The shared service does the kill-switch +
  * limiter + cap + token sign + log.
+ *
+ * ★ THE ALBUM IS READ WHOLE (the 1,000-row round): `listEventMedia` pages to the last row, so the
+ * summary counts every item and the manifest's MAX_EXPORT_ITEMS (2,000) refuses an album past it
+ * with a 413. Through one PostgREST request a 2,500-item album would arrive as its newest 1,000: the
+ * summary would under-count, and the zip would silently leave out the oldest 1,500.
  */
 import { NextResponse } from "next/server";
 
 import { z } from "zod";
 
 import { listEventMedia } from "@/lib/db/queries/media";
+import { BULK_LIMIT_MESSAGE } from "@/lib/event/bulk-selection";
 import {
   type ExportMediaRow,
   MAX_EXPORT_ITEMS,
@@ -37,8 +43,17 @@ const bodySchema = z.object({
   ids: z.array(z.uuid()).min(1).max(MAX_EXPORT_ITEMS).optional(),
 });
 
-function bad() {
-  return NextResponse.json({ ok: false, code: "bad_request" }, { status: 400 });
+function bad(message?: string) {
+  return NextResponse.json(
+    { ok: false, code: "bad_request", ...(message ? { message } : {}) },
+    { status: 400 },
+  );
+}
+
+/** A "Download selected" past the cap: the one bad body a host makes by hand (Select all). */
+function overSelected(body: unknown): boolean {
+  const ids = (body as { ids?: unknown } | null)?.ids;
+  return Array.isArray(ids) && ids.length > MAX_EXPORT_ITEMS;
 }
 
 export async function POST(request: Request) {
@@ -49,7 +64,9 @@ export async function POST(request: Request) {
     return bad();
   }
   const parsed = bodySchema.safeParse(body);
-  if (!parsed.success) return bad();
+  // The bar's other bulk verbs refuse the same selection in the same words (bulk-selection.ts).
+  if (!parsed.success)
+    return bad(overSelected(body) ? BULK_LIMIT_MESSAGE : undefined);
   const { step, event_id, types, include_hidden, ids } = parsed.data;
 
   const supabase = await createClient();

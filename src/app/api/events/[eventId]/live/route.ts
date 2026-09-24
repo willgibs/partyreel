@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 
 import { getEvent } from "@/lib/db/queries/events";
-import { listEventMedia } from "@/lib/db/queries/media";
+import { readAlbumCounts, readNewestAlbumUpdate } from "@/lib/db/queries/media";
 import { hostEtag } from "@/lib/events/host-fingerprint";
 import { createClient } from "@/lib/supabase/server";
 
-// Reads auth cookies and runs an RLS-scoped select (Node).
+// Reads auth cookies and runs RLS-scoped reads (Node).
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -19,11 +19,13 @@ export const dynamic = "force-dynamic";
  * set (`20260611220000_gallery_doorbell.sql`, lines 28-45), so on a moderated
  * event a guest's upload lands in Review and rings nobody. The host is the one
  * person who needs to hear that. This route is the second channel, and it is
- * deliberately the cheapest thing in the product that can answer: ONE select,
- * no presigns, and a 304 with no body at all when nothing moved.
+ * deliberately the cheapest thing in the product that can answer: two head
+ * counts and a one-row read (the host fingerprint says why those three), no
+ * presigns, and a 304 with no body at all when nothing moved. Its cost does not
+ * grow with the album: nothing here lists media, so no read can stop at 1,000.
  *
  * ★ AND WHY IT ANSWERS A QUESTION RATHER THAN RETURNING AN ALBUM. The hub page
- * is eleven queries plus three presigns per item. A poll that fetched the album
+ * is a dozen queries plus three presigns per item. A poll that fetched the album
  * would be the most expensive poll in the product and would still not update
  * the page, which is server-rendered. So the client asks this, and only a
  * CHANGED answer spends a `router.refresh()`. Nothing refreshes on a timer.
@@ -59,18 +61,19 @@ export async function GET(
     );
   }
 
-  const media = await listEventMedia(event.id);
   // The same split the hub page makes: pending lives in the Review room,
-  // approved and hidden are the album, and `listEventMedia` has already dropped
-  // everything removed (the bin).
-  let pending = 0;
-  const items = [];
-  for (const row of media) {
-    if (row.status === "pending") pending++;
-    else items.push({ id: row.id, status: row.status });
-  }
+  // approved and hidden are the album, and removed (the bin) is in neither.
+  const [{ album, pending }, newestUpdatedAt] = await Promise.all([
+    readAlbumCounts(supabase, event.id),
+    readNewestAlbumUpdate(supabase, event.id),
+  ]);
 
-  const etag = hostEtag({ eventId: event.id, pending, items });
+  const etag = hostEtag({
+    eventId: event.id,
+    album,
+    pending,
+    newestUpdatedAt,
+  });
   const headers = {
     ETag: etag,
     // A validator is only ever useful against the origin: a shared cache must
@@ -83,7 +86,7 @@ export async function GET(
   }
 
   return NextResponse.json(
-    { ok: true, etag, pending, count: items.length },
+    { ok: true, etag, pending, count: album },
     { headers },
   );
 }

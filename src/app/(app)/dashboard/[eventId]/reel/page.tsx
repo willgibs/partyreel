@@ -58,23 +58,25 @@ export default async function ReelStudioPage({ params }: PageProps) {
 
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
 
+  // Both lists are read WHOLE: the album slice (approved + hidden; pending
+  // uploads live in the review queue, never in the reel) and every reel member.
+  // The Studio's reorder set is their intersection, so a member missing from
+  // either would hand `reorder_reel` a partial set it refuses as `stale`.
   const [media, uploaderIdentities, likeCounts, reelIds, reelConfig] =
     await Promise.all([
-      listEventMedia(event.id),
+      listEventMedia(event.id, "album"),
       getUploaderIdentities(event.id),
       getEventLikeCounts(event.id),
       listReelItems(event.id),
       getReelConfig(event.id),
     ]);
 
-  const galleryItems = await toHostGalleryItems({
+  const visibleItems = await toHostGalleryItems({
     media,
     eventName: event.name,
     uploaderIdentities,
     likeCounts,
   });
-  // Pending uploads live in the review queue, never in the reel.
-  const visibleItems = galleryItems.filter((m) => m.status !== "pending");
 
   const crumbs = (
     <SetCrumbs
