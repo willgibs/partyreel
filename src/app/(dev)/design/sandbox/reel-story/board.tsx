@@ -1,5 +1,7 @@
 "use client";
 
+import "./reel-story.css";
+
 import { ExplorationBoard } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
@@ -68,7 +70,7 @@ function arcScreen(id: string, s: BoardState) {
   );
 }
 
-function teaserScreen(id: "engine" | "film" | "poster", s: BoardState) {
+function teaserScreen(id: "engine" | "film" | "poster" | "crossfade", s: BoardState) {
   const screen = screenOf(s.screen);
   const phone = phoneOf(screen);
   return (
@@ -83,7 +85,10 @@ function teaserScreen(id: "engine" | "film" | "poster", s: BoardState) {
   );
 }
 
-function pricingScreen(id: "renamed" | "one-row" | "footnote", s: BoardState) {
+function pricingScreen(
+  id: "renamed" | "clip-renamed" | "one-row" | "footnote",
+  s: BoardState,
+) {
   const screen = screenOf(s.screen);
   return (
     <Screen
@@ -97,7 +102,10 @@ function pricingScreen(id: "renamed" | "one-row" | "footnote", s: BoardState) {
   );
 }
 
-function stepsScreen(id: "grow-cut" | "screen-step" | "folded", s: BoardState) {
+function stepsScreen(
+  id: "grow-cut" | "grow-clip" | "screen-step" | "folded",
+  s: BoardState,
+) {
   const screen = screenOf(s.screen);
   const phone = phoneOf(screen);
   return (
@@ -127,7 +135,10 @@ function eventsScreen(id: "wall" | "cut" | "gone", s: BoardState) {
   );
 }
 
-function helpScreen(id: "the-reel" | "reels-cuts" | "live-reel", s: BoardState) {
+function helpScreen(
+  id: "highlight-reel" | "the-reel" | "reels-cuts" | "live-reel",
+  s: BoardState,
+) {
   const screen = screenOf(s.screen);
   return (
     <Screen
@@ -154,12 +165,15 @@ const PREVIEWS: PreviewsFor<typeof REEL_STORY> = {
   "teaser.engine": (s) => teaserScreen("engine", s),
   "teaser.film": (s) => teaserScreen("film", s),
   "teaser.poster": (s) => teaserScreen("poster", s),
+  "teaser.crossfade": (s) => teaserScreen("crossfade", s),
 
   "pricing.renamed": (s) => pricingScreen("renamed", s),
+  "pricing.clip-renamed": (s) => pricingScreen("clip-renamed", s),
   "pricing.one-row": (s) => pricingScreen("one-row", s),
   "pricing.footnote": (s) => pricingScreen("footnote", s),
 
   "steps.grow-cut": (s) => stepsScreen("grow-cut", s),
+  "steps.grow-clip": (s) => stepsScreen("grow-clip", s),
   "steps.screen-step": (s) => stepsScreen("screen-step", s),
   "steps.folded": (s) => stepsScreen("folded", s),
 
@@ -167,6 +181,7 @@ const PREVIEWS: PreviewsFor<typeof REEL_STORY> = {
   "events.cut": (s) => eventsScreen("cut", s),
   "events.gone": (s) => eventsScreen("gone", s),
 
+  "help.highlight-reel": (s) => helpScreen("highlight-reel", s),
   "help.the-reel": (s) => helpScreen("the-reel", s),
   "help.reels-cuts": (s) => helpScreen("reels-cuts", s),
   "help.live-reel": (s) => helpScreen("live-reel", s),

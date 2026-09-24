@@ -1,0 +1,49 @@
+/* THE HOME TEASER'S CROSSFADE OPTION, PLAIN CSS OVER PLAIN <img> TAGS.
+   The same slow, gentle cycle the album's own tile wears (reel-front, ruled),
+   redrawn locally rather than imported: a board's directory dies at its
+   ruling (guest-capture's own rule, carried across every reel-round board),
+   so this file never reaches into reel-front's. Six images, one keyframe, a
+   negative per-image delay phase-shifts each into its own sixth of the cycle
+   (the `rs-` prefix keeps this board's class and keyframe names apart from
+   reel-front's identical `rf-` ones, in case a page ever mounts both). */
+.rs-crossfade-img {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  opacity: 0;
+  animation-name: rs-crossfade;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  /* --rs-hold (seconds, one image's slot) and --rs-delay (seconds, negative)
+     are set inline per image by the component. */
+  animation-duration: calc(var(--rs-hold) * 6 * 1s);
+  animation-delay: calc(var(--rs-delay) * 1s);
+}
+@keyframes rs-crossfade {
+  0% {
+    opacity: 0;
+  }
+  2% {
+    opacity: 1;
+  }
+  14.6667% {
+    opacity: 1;
+  }
+  16.6667% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rs-crossfade-img {
+    animation: none;
+    opacity: 0;
+  }
+  .rs-crossfade-img[data-rs-hero] {
+    opacity: 1;
+  }
+}

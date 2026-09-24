@@ -26,7 +26,12 @@ import { MAX_REEL_SECONDS } from "@/lib/constants/tiers";
 import { CanvasReelPlayer } from "@/lib/reel/engine/player";
 import { cn } from "@/lib/utils";
 
-import { DEMO_REEL_LANDSCAPE, DEMO_REEL_PORTRAIT, type ScreenId } from "./fixtures";
+import {
+  DEMO_REEL_LANDSCAPE,
+  DEMO_REEL_PORTRAIT,
+  TEASER_STILLS,
+  type ScreenId,
+} from "./fixtures";
 
 /**
  * THE BOARD'S OWN PIECES: real components and real single-sources wherever one
@@ -200,7 +205,7 @@ const ARC_CHAPTER: Record<ArcKey, { eyebrow: string; heading: string; body: stri
   live: {
     eyebrow: "Alive now",
     heading: "The reel",
-    body: "A looping montage of everything the album shows right now, alive from the third photo. No file, no download, spliced within seconds of a new upload.",
+    body: "A looping montage of everything the album shows right now, alive from the second photo. No file, no download, spliced within seconds of a new upload.",
   },
   screen: {
     eyebrow: "The flagship moment",
@@ -278,10 +283,39 @@ export function ArcPreview({
 
 /* ── 3. the home's teaser ────────────────────────────────────────────────── */
 
-export type TeaserVariant = "engine" | "film" | "poster";
+export type TeaserVariant = "engine" | "film" | "poster" | "crossfade";
+
+/** The `crossfade` option's own cycle: the album's stills, never the album's
+ *  newest (that undid the very differentiation reel-front's own tile was
+ *  ruled to answer), one shared keyframe (reel-story.css), phase-shifted by a
+ *  negative per-image delay so each gets its own sixth of the cycle. */
+function TeaserCrossfade({ images }: { images: readonly string[] }) {
+  const n = images.length || 1;
+  const total = 3.2 * n;
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      {images.map((src, i) => (
+        // eslint-disable-next-line @next/next/no-img-element -- a local fixture still
+        <img
+          key={src + i}
+          src={src}
+          alt=""
+          data-rs-hero={i === 0 ? "" : undefined}
+          className="rs-crossfade-img"
+          style={
+            {
+              "--rs-hold": 3.2,
+              "--rs-delay": i * 3.2 - total,
+            } as React.CSSProperties
+          }
+        />
+      ))}
+    </div>
+  );
+}
 
 const TEASER_SUBHEAD =
-  "Alive from the third photo, styled by the host, yours to switch. Every guest can make their own cut.";
+  "Alive from the second photo, styled by the host, yours to switch. Every guest can make their own cut.";
 
 export function TeaserPreview({
   variant,
@@ -328,10 +362,16 @@ export function TeaserPreview({
               </span>
             </div>
           )}
+          {variant === "crossfade" && (
+            <div className="relative aspect-video w-full overflow-hidden rounded-2xl border bg-black ring-1 ring-foreground/5">
+              <TeaserCrossfade images={TEASER_STILLS} />
+            </div>
+          )}
           <Caption className="mt-4 text-center tabular-nums">
             {variant === "engine" && "Playing live · the demo album's own reel"}
             {variant === "film" && `A real render · ${formatDuration(filmReel.durationSeconds)}`}
             {variant === "poster" && "A still frame, until you tap it"}
+            {variant === "crossfade" && "The album tile's own crossfade · no engine"}
           </Caption>
         </div>
       </SectionShell>
@@ -341,7 +381,7 @@ export function TeaserPreview({
 
 /* ── 4. the pricing rows ─────────────────────────────────────────────────── */
 
-export type PricingVariant = "renamed" | "one-row" | "footnote";
+export type PricingVariant = "renamed" | "clip-renamed" | "one-row" | "footnote";
 
 function PriceRow({ label, values }: { label: string; values: [string, string, string] }) {
   return (
@@ -375,6 +415,12 @@ export function PricingPreview({ variant }: { variant: PricingVariant }) {
             <PriceRow label="Cut watermark" values={["Small mark", "None", "None"]} />
           </>
         )}
+        {variant === "clip-renamed" && (
+          <>
+            <PriceRow label="Clip length" values={[`${free}s`, `${pass}s`, `${pro}s`]} />
+            <PriceRow label="Clip watermark" values={["Small mark", "None", "None"]} />
+          </>
+        )}
         {variant === "one-row" && (
           <PriceRow
             label="Your reel"
@@ -399,7 +445,7 @@ export function PricingPreview({ variant }: { variant: PricingVariant }) {
 
 /* ── 5. the how-it-works steps ───────────────────────────────────────────── */
 
-export type StepsVariant = "grow-cut" | "screen-step" | "folded";
+export type StepsVariant = "grow-cut" | "grow-clip" | "screen-step" | "folded";
 
 type StepCopy = { title: string; body: string };
 
@@ -408,16 +454,26 @@ const CUT_STEP: StepCopy = {
   body: "Tap Make your own on the reel: pick a look and a length, and it renders free, right on your phone.",
 };
 
+/** The same step, his own guest-facing word: a clip, never a second body of
+ *  copy to keep in sync (`steps` draws clip beside cut, never past it). */
+const CLIP_STEP: StepCopy = { title: "Make your clip", body: CUT_STEP.body };
+
+const GROW_HOST: StepCopy = {
+  title: "Watch the reel grow",
+  body: "The reel is already playing by the second photo, restyled anytime from the hub. Nothing to publish, nothing to manage.",
+};
+
 const STEPS_COPY: Record<
   StepsVariant,
   { host: StepCopy | null; guest: StepCopy; foldedNote?: string }
 > = {
   "grow-cut": {
-    host: {
-      title: "Watch the reel grow",
-      body: "The reel is already playing by the third photo, restyled anytime from the hub. Nothing to publish, nothing to manage.",
-    },
+    host: GROW_HOST,
     guest: CUT_STEP,
+  },
+  "grow-clip": {
+    host: GROW_HOST,
+    guest: CLIP_STEP,
   },
   "screen-step": {
     host: {
@@ -580,9 +636,14 @@ export function EventsPreview({ variant, phone }: { variant: EventsVariant; phon
 
 /* ── 7. the help category's name ─────────────────────────────────────────── */
 
-export type HelpVariant = "the-reel" | "reels-cuts" | "live-reel";
+export type HelpVariant =
+  | "highlight-reel"
+  | "the-reel"
+  | "reels-cuts"
+  | "live-reel";
 
 const HELP_LABEL: Record<HelpVariant, string> = {
+  "highlight-reel": "Highlight reel",
   "the-reel": "The reel",
   "reels-cuts": "Reels and cuts",
   "live-reel": "The live reel",
