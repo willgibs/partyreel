@@ -34,6 +34,7 @@ model Will seats (Fable or Opus); nothing here depends on which.
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `clocks-and-counts` | counts grouped and chart ticks that fit; admin times in UTC; one Link visits figure; the host's dashboard on the viewer's own day; the backup CLI pinned | running | Sonnet, :3132 | integrate, then one manual `db-backup` dispatch on `launch-prep` to prove the pin |
+| `reel-migration` | the live reel's data model: the expand file (events' default mood and off switch, `reel_eligible` live and backfilled, `create_media` and the guest reads carrying it, `live_reel_enabled`) and the drop file, guarded; cut ahead of the verdicts since no board changes it | running | Opus, :3137 | review the SQL; apply the expand and regenerate types when the reel verdicts land; the drop waits for the red-team and Will's yes |
 
 ## Next, in order
 
@@ -45,18 +46,13 @@ migrations applied; stage 2 `rowcap-guest`, `rowcap-host`, `rowcap-cron`, `rowca
 **Will's standing approvals:** pushes to `launch-prep` and anything around branching; he tests by click whenever asked. A
 milestone and a destructive migration each still need his yes.
 
-1. **The purge cron's 04:00 UTC run on 2026-09-24**, the FIRST on milestone 28's sweeps (only production runs crons):
-   read `job_runs` after 04:50 (Vercel Hobby fires a cron within its hour: the purge runs at 04:48 UTC daily): every
-   sweep `ok`, `stopped_early` false, the standby budget listing willg97 at its restorable bytes with the withdrawals
-   out, no held event.
-2. **The scale probe stays** as a standing large-album fixture (event "Scale probe" `14bb4318-80cd-4eed-b219-92c097ee16c7`,
+1. **The scale probe stays** as a standing large-album fixture (event "Scale probe" `14bb4318-80cd-4eed-b219-92c097ee16c7`,
    qr `d02631f1bfb3455188d224e41bf9510f`; 1,145 approved, 20 pending, 30 host-removed, 5 withdrawn; Review ON since the
    red-team). Its removed rows purge on 2026-10-23.
-3. **The reel round's wiring**, after his desk review of the six reel boards: the plan's reel section (A to G).
-4. **The event-safety wiring**, after his review of that board (his three answers; ROADMAP's event-safety line).
+2. **The reel round's wiring**, after his desk review of the six reel boards: the plan's reel section (A to G).
+3. **The event-safety wiring**, after his review of that board (his three answers; ROADMAP's event-safety line).
 
 ## Waiting on Will
 
 - **His desk review** on the alias (`/design/lab?key=`, the value in `.env.local`): 26 boards, the six reel boards
   first, the harnesses `/design/lab/tools/reel-live` and `/design/lab/tools/reel-video`, and the new `event-safety`.
-- **A look at the admin portal** (TOTP): `/admin`, `/admin/metrics`, `/admin/jobs`, the probe's `/admin/albums` drill-in.
