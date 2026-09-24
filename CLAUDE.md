@@ -121,7 +121,8 @@ tooling. The lab's `?key=` is a light guard, not a secret (it may appear in a lo
 A doc carries only what a strong model cannot find or infer (Will): never a framework or platform rule that current
 docs give, a design rule that production or the Library shows, or a decision's history. Every change passes the
 Orchestrator's review and design passes the lab, so rules stay few. **Every fact has one home**, the doc whose
-question it answers, **edited in place, never appended**: a stale line is deleted, a shipped narrative goes in the
+question it answers, **edited in place, never appended**: a new note, Will's included, is synthesized into the line
+it refines rather than quoted beside it, a stale line is deleted, a shipped narrative goes in the
 merge commit, a deferred task is one ROADMAP line; nothing under `docs/` is history. Every added line dilutes the
 rest: a one-off mistake is fixed and left in git, and only a recurring one becomes a written rule or a tool's refusal,
 encoded by its shape. A new gotcha goes in its `docs/systems/` doc, never here.

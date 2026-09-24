@@ -69,11 +69,10 @@ manifest alone; push; report one line in chat: "handed off at <sha>".
 
 ### A round returns DECISIONS
 
-An exploration is a list of decisions, not a page. Will's bar is a minute each: "Read a question, worded in clean
-natural language, that clearly asks me to make one decision (winner) within the group · Preview each option fully,
-visuals-forward where possible, to quickly find a favorite or request refinements, with any relevant configs included
-· Select my winner, leave optional notes, and onto the next." Never a page with argument, a verdict essay or keep /
-refine / kill over N cards: "Simply designing a few variations will always beat a mountain of research text."
+An exploration is a list of decisions, not a page, each worth about a minute of Will's time: one question in plain
+words asking for one winner, every option previewed whole on the real surface with its configs beside it, then his
+pick and an optional note. A few designed variations beat any amount of argument: no verdict essays, no keep / refine
+/ kill over N cards.
 
 - Author with `defineExploration` (`src/components/lab/exploration.ts`) and nothing else; the newest board built on
   it is the worked example.
@@ -104,8 +103,7 @@ iterate rather than perfect.
 
 ### Before launch there are no real users
 
-Will: "Don't have to dance around anything like save tables in the database before launch." No migration carries
-compatibility work to keep test data, and a migration's contract (the drop) lands as soon as the alias's build no
+No migration carries compatibility work to keep test data: a migration's contract (the drop) lands as soon as the alias's build no
 longer calls what it drops (after that build's red-team), even before the milestone that ships it; the report names
 what partyreel.com loses meanwhile.
 

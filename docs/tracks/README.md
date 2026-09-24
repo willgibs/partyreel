@@ -71,7 +71,8 @@ in this lane.
 
 ## The brief
 
-Everything the lane needs: Will's words for the task, the calls already made, what to read, the neighbour a new
+Everything the lane cannot find itself: the task's intent, synthesized (Will's exact words only where the wording is
+the point), the calls already made, what to read, the neighbour a new
 board registers after.
 
 **Binds.** CLAUDE.md's working loop and the bible's ten (`/design/library`); the tests are the real rules, and
