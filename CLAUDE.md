@@ -41,9 +41,8 @@ at boot from `origin/launch-prep` ([`docs/PROGRAM.md`](docs/PROGRAM.md) "Agent b
 
 1. **Orient**: STATUS, then the system doc the task touches.
 2. **Doc-check**: CURRENT docs via the Context7 MCP (Next 16, Tailwind v4, zod v4 and Supabase SSR drift in ways that look like your code is wrong).
-3. **Plan, asking hard**: surface every open product, UX or scope decision before building (an agent writes them in
-   its manifest under "Questions" with a recommended answer; the Orchestrator asks Will). The expensive failure is
-   a confident agent executing the wrong strategy.
+3. **Plan, asking hard**: surface every open product, UX or scope decision before building (an agent writes them in its
+   manifest under "Questions" with a recommended answer; the Orchestrator asks Will). The expensive failure is a confident agent executing the wrong strategy.
 4. **Build** from the Library (`/design/library`: the working rules; the kit at `src/components/lab` for a board;
    `src/components/ui` and `src/components/shared` for the product). The bible (22 rules, Will's), a component's
    contracts and the policies are followed by default and reshaped deliberately when a better solution needs them
@@ -104,9 +103,7 @@ helper); `wrangler` → the P3 Cloudflare team, `wrangler whoami` before any Wor
   middleware is `src/proxy.ts` exporting `proxy` on the Node runtime (no `runtime` config).
 - **Supabase / auth**: ★ authorize with `supabase.auth.getUser()`, never `getSession()` (the proxy refreshes cookies and
   is not a security boundary); `@supabase/ssr` with `getAll` / `setAll`; clients in `src/lib/supabase/{client,server,middleware,admin}.ts`.
-- **The row cap**: ★ PostgREST cuts every read and set-returning RPC at 1,000 rows with no error: read a list through
-  `readAllPages`, count with `head: true`, chunk an `.in()` list through `inChunks` (`src/lib/db/read-all.ts`, whose
-  header holds the rules); `row-cap-policy.test.ts` refuses the rest.
+  ★ PostgREST cuts every read at 1,000 rows silently: `readAllPages`, `inChunks`, `head: true` counts (`src/lib/db/read-all.ts`).
 - **Tailwind v4**: CSS-first; tokens in `@theme` and the dark variant in `src/app/theme.css`; no `tailwind.config.js`; the
   lab compiles its own utilities from `src/app/(dev)/design/design.css`; translate utilities set the standalone `translate` property.
 - **zod v4**: `z.url()`, `error.issues`. **Postgres**: ★ integer literals are int4; write `2::bigint * …`. **pnpm**:
