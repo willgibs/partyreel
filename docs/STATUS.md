@@ -42,14 +42,11 @@ order: `reel-screen`, `reel-host`, `reel-cut`, `reel-story`, `reel-front` (r2), 
   review), `/account`, a real upload through production's pipeline, the lab 404s without its key, the admin door
   redirects, no new runtime error or Sentry issue. `admin.partyreel.com` is served by `partyreel-admin`
   (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `6e67494b` (build 4), red-teamed
-  2026-09-24 in Will's Chrome: the scale probe whole for the host (1,145 on the card, the hub and Download all; Review's
-  20 oldest; the bin's 30, no withdrawal) and for a guest (the poll 1,145 then 304); a kept ticket never credits the next
-  account (a planted foreign ticket re-joined as the signer; signed-out presigns with confirmed tickets 403); a guest's
-  own delete reads "deleted from the event right away and can't be recovered" and reaches no host surface. The admin
-  portal was reviewed on `admin.partyreel.com` in Will's session (2026-09-24): every figure right at scale; its display
-  fixes ride `clocks-and-counts`. No push deploys; each `[preview]` record gets one build by API
-  ([`usher/kit/README.md`](../usher/kit/README.md)).
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `3e4261f5` (build 5, 2026-09-24):
+  batch 1's re-cut desk and the media viewer, checked live in Will's Chrome (it grows from its tile, the face credit,
+  the capsule, the peek and the desk filmstrip, the arrows, `?photo=`, a blank tap closes; every re-cut board loads with
+  no console error). The stored reel stays until the reel round's own build. No push deploys; each `[preview]` record
+  gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
 - **Data:** disposable test data only; the accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md). The disposable events stay in the states the
   last red-teams left until Will says restore.
@@ -76,4 +73,7 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **His desk review, resumed** once the re-cut boards land on the next alias build: the reel boards first.
+- **His desk review, resumed** on build 5: `reel-screen`, `reel-host`, `reel-cut`, `reel-story`, then the two rounds 2.
+- **A 10-second iPhone check** on build 5's album: Save to Photos lands in Photos; a shared photo arrives as a photo.
+- **Two questions from `reel-guest-wiring`** (held unmerged): the welcome door over a signed-out `?reel=screen`
+  (recommended: hold it back until the view closes), and the default mood's letterbox bars in landscape (keep).

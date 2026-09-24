@@ -34,7 +34,7 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `reel-guest-wiring` | the live reel's guest side: the seam fix, minimum 2, the provider lift, the Highlight reel tile, the view that is also the wall, the toast, the cut's seam, the photo link card | running | Opus, :3132 | HOLD unmerged until the cut and host lanes are ready (one alias build replaces the stored reel) |
+| `reel-guest-wiring` | the live reel's guest side: the seam fix, minimum 2, the provider lift, the Highlight reel tile, the view that is also the wall, the toast, the cut's seam, the photo link card | handed off at `06b75a5b` (a header count follow-up in flight); HELD unmerged | Opus, :3132 | integrate with the cut and host lanes in one stretch; the reel picture, the Start's fullscreen and wake lock and the toast prove on that alias build (R2 answers CORS only for the alias and prod) |
 
 ## Next, in order
 
@@ -60,5 +60,9 @@ milestone and a destructive migration each still need his yes.
 
 ## Waiting on Will
 
-- **His desk review, resumed** on the next alias build (`/design/lab?key=`, the value in `.env.local`): the re-cut reel
-  boards first (`reel-screen`, `reel-host`, `reel-cut`, `reel-story`), then `reel-front` r2 and `media-viewer` r2.
+- **His desk review, resumed** on build 5 (`/design/lab?key=`, the value in `.env.local`): the re-cut reel boards first
+  (`reel-screen`, `reel-host`, `reel-cut`, `reel-story`), then `reel-front` r2 and `media-viewer` r2.
+- **A 10-second iPhone check** on build 5: Save to Photos lands in Photos, and a shared photo arrives as a photograph.
+- **`reel-guest-wiring`'s two questions:** the welcome door over a signed-out `?reel=screen` (recommended: held back until
+  the view closes) and the default mood's letterbox bars in landscape (recommended: keep). The viewer's calls to overrule
+  ride merge commit `7eb190de`.
