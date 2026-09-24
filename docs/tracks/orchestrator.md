@@ -65,7 +65,9 @@ Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyre
    or the hero, demo and pricing pages) refreshes `kit/` from its README's Sources; the screens come from
    partyreel.com by the scratch `kit-capture.mjs` (it wheels to the demo so its reveal fires), which moves into
    `usher/kit/` at the same merge.
-4. **The reel round**, after Will's desk review on build 5 (the plan file's batch-1 and reel sections).
+4. **At the next `[preview]`**, confirm on Sentry that the Vercel build uploaded its source maps (`894501ad` gated
+   the upload on `VERCEL`; local builds verified silent).
+5. **The reel round**, after Will's desk review on build 5 (the plan file's batch-1 and reel sections).
 
 ## Waiting on Will
 
