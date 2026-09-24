@@ -80,9 +80,9 @@ export const CATEGORIES: FixtureCategory[] = [
   {
     // THE REEL ROUND (2026-09-22): the host-made, published, stored mp4 is
     // gone. Title and feature.label follow reel-story.help's recommended
-    // "the-reel" option as a stand-in — Will has not ruled that board yet,
-    // so this is provisional, not a final name. slug/stripLabel are
-    // untouched: "Reel" already reads as the plain name that option asks for.
+    // "the-reel" option as a stand-in — that board is still open, so this is
+    // provisional, not a final name. slug/stripLabel are untouched: "Reel"
+    // already reads as the plain name that option asks for.
     slug: "highlight-reel",
     stripLabel: "Reel",
     title: "The reel",

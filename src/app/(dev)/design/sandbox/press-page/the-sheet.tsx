@@ -15,11 +15,10 @@ import { FixtureNote } from "./shared";
 
 /**
  * DECISION 2: WHAT THE SHEET SHOWS. `eight-plates` renders the real,
- * unedited PressSheet (the option this decision recommends changes nothing
- * about). `marks-only` and `brand-in-use` are new small compositions on the
- * same real kit files and plate-ground rule (a plate is the artwork's own
- * ground, literal colour, never a theme utility), never edits to
- * press-sheet.tsx itself.
+ * unedited PressSheet. `marks-only` and `brand-in-use` are new small
+ * compositions on the same real kit files and plate-ground rule (a plate is
+ * the artwork's own ground, literal colour, never a theme utility), never
+ * edits to press-sheet.tsx itself.
  *
  * ★ THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21). `brand-in-use` gains a
  * second addendum: the app now prints its own stock (`venue=sheet`,
@@ -30,6 +29,16 @@ import { FixtureNote } from "./shared";
  * would print a poster on the screen), not the production `PrintStock`
  * component itself, which lays out at real print size for an actual sheet
  * and has no reason to run inside a press-kit card.
+ *
+ * ★ THE REFRESH (2026-09-24) DRAWS `usage-note`, THIS DECISION'S OWN
+ * RECOMMENDATION NOW. The production page keeps the internal brand book
+ * (clear space, minimum size, misuse) off `/press` for a reason that still
+ * holds: those plates serve a design team, not a reporter. What they were
+ * never asked to answer is whether a publication may recolour or stretch
+ * the mark it just downloaded, and nothing on the sheet says so today. This
+ * option is the eight plates plus that one line, real body copy rather than
+ * a `FixtureNote` (a `FixtureNote` still follows it, explaining the
+ * distinction to the reviewer).
  */
 
 function findAsset(id: string) {
@@ -138,10 +147,28 @@ function BrandInUse() {
   );
 }
 
+function UsageNote() {
+  return (
+    <div className="flex flex-col gap-5">
+      <PressSheet />
+      <p className="mx-auto max-w-lg text-center text-sm text-pretty text-muted-foreground">
+        Use these as provided: no recolouring, no stretching, no effects
+        added to the mark.
+      </p>
+      <FixtureNote className="mx-auto max-w-md text-center">
+        One line added under the eight plates, nothing else changed: not the
+        internal brand book (clear space and minimum size stay off a press
+        page, unreached by this option), the one narrow slice of it a
+        publication downloading these marks can actually use.
+      </FixtureNote>
+    </div>
+  );
+}
+
 export function SheetPreview({
   variant,
 }: {
-  variant: "eight-plates" | "marks-only" | "brand-in-use";
+  variant: "eight-plates" | "marks-only" | "brand-in-use" | "usage-note";
 }) {
   return (
     <Container className="py-10">
@@ -149,6 +176,8 @@ export function SheetPreview({
         <MarksOnly />
       ) : variant === "brand-in-use" ? (
         <BrandInUse />
+      ) : variant === "usage-note" ? (
+        <UsageNote />
       ) : (
         <PressSheet />
       )}
