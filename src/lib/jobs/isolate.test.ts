@@ -125,4 +125,37 @@ describe("forEachIsolated", () => {
     expect(tallyIsClean(tally)).toBe(true);
     expect(tallyNote("accounts", tally)).toBeNull();
   });
+
+  it("stops where stopWhen says, and counts what it left as unreached, which is not a failure", async () => {
+    // The purge sweeps pass their deadline here: a budget that runs out is a backlog to report
+    // (`stopped_early`), never a failed run.
+    const seen: number[] = [];
+    let budget = 3;
+    const tally = await forEachIsolated(
+      [1, 2, 3, 4, 5],
+      async (n) => {
+        seen.push(n);
+      },
+      { onError: noop, stopWhen: () => budget-- <= 0 },
+    );
+    expect(seen).toEqual([1, 2, 3]);
+    expect(tally).toMatchObject({
+      processed: 3,
+      failed: 0,
+      skipped: 0,
+      unreached: 2,
+    });
+    expect(tallyIsClean(tally)).toBe(true);
+    expect(tallyNote("accounts", tally)).toBeNull();
+  });
+
+  it("asks stopWhen before the first row too, so no time at all attempts nothing", async () => {
+    const body = vi.fn(async () => {});
+    const tally = await forEachIsolated([1, 2], body, {
+      onError: noop,
+      stopWhen: () => true,
+    });
+    expect(body).not.toHaveBeenCalled();
+    expect(tally.unreached).toBe(2);
+  });
 });

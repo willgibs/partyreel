@@ -9,9 +9,15 @@
  * The enumerated hard-delete paths and how each excludes holds:
  *   - removed_media sweep + standby eviction + purgeMediaNow → filter `legal_hold_at is null`
  *     on the candidate query (these helpers back the pure part).
- *   - expired_events sweep → an event containing ANY held media is SKIPPED WHOLE (deleting the
- *     event row would FK-CASCADE the held media rows away, and its R2 enumeration would delete
- *     the held objects). The event stays soft-deleted in the bin until the hold releases.
+ *   - expired_events sweep + account deletion → an event containing ANY held media is SKIPPED
+ *     WHOLE (deleting the event row would FK-CASCADE the held media rows away, and its R2
+ *     enumeration would delete the held objects). The event stays soft-deleted in the bin until
+ *     the hold releases. WHICH events hold anything is ONE answer per candidate set, the
+ *     `held_event_ids(uuid[])` function's uuid[] (`readHeldEventIds`,
+ *     `src/lib/lifecycle/reclaim.ts`), never a list of held rows: a row list stops at PostgREST's
+ *     1,000, and an event whose held rows fell past the cut read as purgeable (the 1,000-row
+ *     round). Both callers ask again right before the event-row delete, so a hold placed mid-sweep
+ *     keeps its event.
  *   - orphan sweep → needs no change: held media HAS a row, so it is never an orphan; the
  *     preservation prefix isn't under `events/` and its keys parse to null ("not ours").
  *   - backup-prune Worker → naturally safe: its dual-gate reclaims a backup object only when the
@@ -34,15 +40,16 @@ export function excludeHeld<T extends LegalHoldRow>(rows: T[]): T[] {
 }
 
 /**
- * Split expired-event ids into purgeable vs hold-blocked given the held media found among them.
- * Blocked events keep their ENTIRE media set (FK cascade is all-or-nothing) and re-enter the
- * sweep on a later run once the hold releases.
+ * Split candidate event ids into purgeable vs hold-blocked, given the ids among them that hold ANY
+ * held media (`held_event_ids`' answer). Blocked events keep their ENTIRE media set (FK cascade is
+ * all-or-nothing) and re-enter the sweep on a later run once the hold releases. An id in the held
+ * set that is not a candidate changes nothing.
  */
 export function partitionEventsByHold(
-  eventIds: string[],
-  heldMedia: { event_id: string }[],
+  eventIds: readonly string[],
+  heldEventIds: readonly string[],
 ): { purgeable: string[]; blocked: string[] } {
-  const blockedSet = new Set(heldMedia.map((m) => m.event_id));
+  const blockedSet = new Set(heldEventIds);
   const purgeable: string[] = [];
   const blocked: string[] = [];
   for (const id of eventIds) {

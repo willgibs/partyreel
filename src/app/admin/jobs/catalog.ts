@@ -121,6 +121,25 @@ export const DEPTH_AGE_COUNT_KEYS = {
  */
 export const QUEUE_BACKLOG_ATTENTION = 500;
 
+/**
+ * THE "STOPPED EARLY" FLAG, a top-level `counts` key (the 1,000-row round, 2026-09-23). A purge
+ * sweep works in batches under a time budget (`src/lib/lifecycle/sweep-budget.ts`); one that runs
+ * out of time with work left sets this `true` on its tally, beside a `remaining` count where it can
+ * take one, and the parent purge run sets it when any sweep did. Named HERE because the sweeps write
+ * it and the console reads it back (the depth keys' reason above). A run that stopped early reads as
+ * `attention`: it did nothing wrong, but a backlog that outlasts one night is exactly what used to
+ * grow without a word.
+ */
+export const STOPPED_EARLY_KEY = "stopped_early";
+
+/** Did the run whose `counts` these are stop early? Only an explicit `true` says so. */
+export function countsStoppedEarly(counts: unknown): boolean {
+  if (!counts || typeof counts !== "object" || Array.isArray(counts)) {
+    return false;
+  }
+  return (counts as Record<string, unknown>)[STOPPED_EARLY_KEY] === true;
+}
+
 export const JOBS: JobDef[] = [
   {
     id: "purge_cron",
@@ -137,7 +156,7 @@ export const JOBS: JobDef[] = [
     canRunNow: true,
   },
   // --- the purge cron's sub-sweeps -------------------------------------------------------------
-  // Each opens and closes its own row inside the parent run. WHY these four and not the other seven:
+  // Each opens and closes its own row inside the parent run. WHY these four and not the other eight:
   // they are the sweeps that loop over ACCOUNTS and either send email or delete bytes, so they are
   // where one bad row used to cost every row behind it, and where an operator might want to stop one
   // thing overnight without giving up storage reclamation.
@@ -357,6 +376,8 @@ export type JobRunSummary = {
   status: "running" | "ok" | "error" | "skipped";
   startedAtMs: number;
   finishedAtMs: number | null;
+  /** The run's `counts` carried `STOPPED_EARLY_KEY`: it ran out of time with work left. */
+  stoppedEarly?: boolean;
 };
 
 /** A `signal` job's rolling window: what succeeded, and what did not. */
@@ -464,6 +485,9 @@ export function jobHealth(input: {
     return overdue ? "missed" : "running";
   }
   if (lastRun.status === "error") return "failed";
+  // A run that finished but ran out of time with work left: nothing failed, and the next run
+  // resumes, but a backlog that outlasts a night is the thing this console exists to show.
+  if (lastRun.stoppedEarly) return "attention";
   return "ok";
 }
 
