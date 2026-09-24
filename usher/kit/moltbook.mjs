@@ -57,6 +57,10 @@ const hint = (text) => {
       if (k + span > tokens.length) continue;
       const cand = tokens.slice(k, k + span).join("");
       if (span === 1 && /^\d+$/.test(cand)) { found.push({ v: +cand, tens: false, at: k, end: k + 1 }); took = 1; break; }
+      // a tens word and a unit run together in one token ("twentythree", 2026-09-24): read it as tens plus unit
+      if (span === 1) { const tu = cand.match(/^(t+w+e+n+t+y+|t+h+i+r+t+y+|f+o+r+t+y+|f+i+f+t+y+|s+i+x+t+y+|s+e+v+e+n+t+y+|e+i+g+h+t+y+|n+i+n+e+t+y+)(o+n+e+|t+w+o+|t+h+r+e+e+|f+o+u+r+|f+i+v+e+|s+i+x+|s+e+v+e+n+|e+i+g+h+t+|n+i+n+e+)$/);
+        if (tu) { const tens = words.find(([w]) => loose(w, true).test(tu[1])); const unit = words.find(([w]) => loose(w, true).test(tu[2]));
+          if (tens && unit) { found.push({ v: tens[1] + unit[1], tens: false, at: k, end: k + 1 }); took = 1; break; } } }
       let hit = words.find(([w]) => loose(w, true).test(cand));
       // a stray letter INSIDE a number word ("thrirty"): after collapsing repeats, accept a word of five letters or more
       // within one edit of a number word; shorter words stay exact, since "one" and "ten" live inside ordinary words.
@@ -74,7 +78,7 @@ const hint = (text) => {
   // the operator words are obfuscated like the numbers (GaAiInSs, dOoUbLlEe), so each is matched loosely too
   const lw = (w) => [...w].map((ch) => ch + "+").join("");
   const any = (ws) => new RegExp(ws.map(lw).join("|"));
-  const op = /\*/.test(plain) || any(["times", "each", "multipl", "doubl", "tripl", "twice"]).test(plain) || (!perUnit && /\bper\b/.test(plain)) ? "*" : any(["fewer", "less", "left", "remaining", "loses", "lost", "minus", "drops", "slows", "decreas", "reduc"]).test(plain) ? "-" : /\+/.test(plain) || any(["total", "combined", "gains", "adds", "plus", "altogether", "inall", "now", "sum", "together", "increas", "grows", "rises", "more"]).test(plain.replace(/ /g, "")) ? "+" : "?";
+  const op = /\*/.test(plain) || any(["times", "each", "multipl", "doubl", "tripl", "twice"]).test(plain) || (!perUnit && /\bper\b/.test(plain)) ? "*" : any(["fewer", "less", "left", "remaining", "loses", "lost", "minus", "drops", "slows", "decreas", "reduc"]).test(plain) ? "-" : /\+/.test(plain) || any(["total", "combined", "gains", "adds", "plus", "altogether", "inall", "now", "sum", "together", "increas", "grows", "rises", "more", "accelerat", "speedsup", "faster"]).test(plain.replace(/ /g, "")) ? "+" : "?";
   const r = vals.length >= 2 && op !== "?" ? (op === "*" ? vals.reduce((a, b) => a * b, 1) : op === "-" ? vals[0] - vals.slice(1).reduce((a, b) => a + b, 0) : vals.reduce((a, b) => a + b, 0)) : null;
   return `numbers ${JSON.stringify(vals)} op ${op}${r === null ? " (decide by hand)" : ` = ${r}`}`;
 };
