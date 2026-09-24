@@ -67,4 +67,4 @@ buttons, corners and spacing. The kit carries no marketing photography and no fo
 Kept current from the Partyreel repo: the wordmark from `src/lib/brand/wordmark.ts`, the symbol from
 `src/app/icon.svg`, the colors from `src/app/globals.css` (`:root`, `.dark`) and `BRAND_HEX` in
 `src/lib/constants/site.ts`, the type from `src/app/layout.tsx`, the radii from `globals.css`; the screens are retaken
-when those pages change.
+from partyreel.com when those pages change.

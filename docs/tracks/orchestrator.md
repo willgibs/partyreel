@@ -48,7 +48,9 @@ Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyre
    message), with `globals.css` and `theme.css` released from this file.
 2. **The brand kit stays current** (`kit/`, merged at `0cbc5bd6`, Will copies it for outside agents): at
    `library-lean`'s merge, add one clause to the runbook's record step: a change to the brand (tokens, logo, type,
-   or the hero, demo and pricing pages) refreshes `kit/` from its README's Sources.
+   or the hero, demo and pricing pages) refreshes `kit/` from its README's Sources; the screens come from
+   partyreel.com by the scratch `kit-capture.mjs` (it wheels to the demo so its reveal fires), which moves into
+   `usher/kit/` at the same merge.
 3. **The design docs' pass** after `library-lean` merges (`design-system.md`, `marketing-content.md`, `host-app.md`), the same guideline and brief shape as `systems-lean` (`specs/systems-lean.json`).
 4. **The reel round**, after Will's desk review on build 5 (the plan file's batch-1 and reel sections).
 
