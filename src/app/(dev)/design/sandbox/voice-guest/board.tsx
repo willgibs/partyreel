@@ -72,6 +72,7 @@ const SHORT: Record<Register, string> = {
   warm: "Plain and warm",
   bright: "Bright",
   exact: "Quiet and exact",
+  tender: "Soft and tender",
 };
 
 /* ── the grounds the decisions share ──────────────────────────────────────── */
@@ -379,36 +380,43 @@ const PREVIEWS: PreviewsFor<typeof VOICE_GUEST> = {
   "welcome.warm": <WelcomeScene register="warm" />,
   "welcome.bright": <WelcomeScene register="bright" />,
   "welcome.exact": <WelcomeScene register="exact" />,
+  "welcome.tender": <WelcomeScene register="tender" />,
 
   "ask.today": <AskScene register="today" />,
   "ask.warm": <AskScene register="warm" />,
   "ask.bright": <AskScene register="bright" />,
   "ask.exact": <AskScene register="exact" />,
+  "ask.tender": <AskScene register="tender" />,
 
   "landed.today": <LandedPreview register="today" />,
   "landed.warm": <LandedPreview register="warm" />,
   "landed.bright": <LandedPreview register="bright" />,
   "landed.exact": <LandedPreview register="exact" />,
+  "landed.tender": <LandedPreview register="tender" />,
 
   "failed.today": <FailedScene register="today" />,
   "failed.warm": <FailedScene register="warm" />,
   "failed.bright": <FailedScene register="bright" />,
   "failed.exact": <FailedScene register="exact" />,
+  "failed.tender": <FailedScene register="tender" />,
 
   "empty.today": <EmptyScene register="today" />,
   "empty.warm": <EmptyScene register="warm" />,
   "empty.bright": <EmptyScene register="bright" />,
   "empty.exact": <EmptyScene register="exact" />,
+  "empty.tender": <EmptyScene register="tender" />,
 
   "waiting.today": <WaitingScene register="today" />,
   "waiting.warm": <WaitingScene register="warm" />,
   "waiting.bright": <WaitingScene register="bright" />,
   "waiting.exact": <WaitingScene register="exact" />,
+  "waiting.tender": <WaitingScene register="tender" />,
 
   "keep.today": <KeepPreview register="today" />,
   "keep.warm": <KeepPreview register="warm" />,
   "keep.bright": <KeepPreview register="bright" />,
   "keep.exact": <KeepPreview register="exact" />,
+  "keep.tender": <KeepPreview register="tender" />,
 };
 
 export function VoiceGuestBoard() {
