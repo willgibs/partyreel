@@ -86,8 +86,8 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Handoff (replaces the chat report)
 
-- **Commits, pushed on `lp/systems-lean`:** the work `690567f0` (the twelve docs and the index) and `9db2f0e8` (two trims); the syncs `3e8ca3d4` (`origin/launch-prep` at `fbc1e512`: brand-kit merged, album-columns cut, CLAUDE.md's docs guidance) and `e5e51ad8` (at `7336788a`: the refresh wave's specs, the Handoff template's board-ideas line). The branch was cut at `45087a69` and fast-forwarded to `91e3696b` before any work (CLAUDE.md, a read, had changed).
-- **Gates on the synced tree (`e5e51ad8`), each on its own exit code:** `pnpm typecheck` 0, `pnpm lint` 0 (8 warnings, none in a changed file: only markdown changed), `pnpm test` 0 (434 files, 4,776 passed, 1 skipped), `pnpm build` 0.
+- **Commits, pushed on `lp/systems-lean`:** the work `690567f0` (the twelve docs and the index) and `9db2f0e8` (two trims); the syncs `3e8ca3d4` (`origin/launch-prep` at `fbc1e512`: brand-kit merged, album-columns cut, CLAUDE.md's docs guidance) `e5e51ad8` (at `7336788a`: the refresh wave's specs, the Handoff template's board-ideas line) and `62226441` (at `38246c39`: PROGRAM.md's lab-first line). The branch was cut at `45087a69` and fast-forwarded to `91e3696b` before any work (CLAUDE.md, a read, had changed).
+- **Gates on the synced tree (`62226441`), each on its own exit code:** `pnpm typecheck` 0, `pnpm lint` 0 (8 warnings, none in a changed file: only markdown changed), `pnpm test` 0 (434 files, 4,776 passed, 1 skipped), `pnpm build` 0.
 - **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = the thirteen owned docs, plus this file at the handoff commit. No exception.
 - **Links:** every relative link in the thirteen docs resolves (91 checked by script: each `](target)` joined to its file's directory and tested for existence).
 
