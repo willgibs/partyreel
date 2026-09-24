@@ -1,16 +1,25 @@
 // @contract-for: src/components/shared/masonry.tsx
 import { Download, EyeOff } from "lucide-react";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 
 import type { GridMedia } from "@/components/app/media-grid";
 import { LikesProvider } from "@/components/likes/likes-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   columnsFor,
   distributeColumns,
   MasonryColumns,
   type TileAction,
 } from "@/components/shared/masonry";
+
+// The lazy wrapper is next/dynamic, which resolves after the pin is over; the
+// address pins need the real viewer, so it mounts synchronously here (closed, it
+// renders nothing, so every other pin in this file sees the grid it always saw).
+vi.mock("@/components/shared/media-lightbox.lazy", async () => {
+  const { MediaLightbox } = await import("@/components/shared/media-lightbox");
+  return { MediaLightboxLazy: MediaLightbox, preloadMediaLightbox: () => {} };
+});
 
 /**
  * THE ONE ALBUM TILE'S CONTRACT (Will, `tiles`, 2026-09-20, in his own words:
@@ -420,5 +429,103 @@ describe("columnsFor counts on the gap the box resolves", () => {
     vi.stubGlobal("getComputedStyle", () => albumBoxStyle);
     expect(columnsFor(boxAt(335))).toBe(2);
     expect(columnsFor(boxAt(0))).toBe(0);
+  });
+});
+
+/**
+ * THE PHOTOGRAPH'S OWN ADDRESS (media-viewer r1: `?photo=<id>`). Opening writes
+ * it beside the page's other params (a refresh comes back), the grid reads it
+ * once on mount, and ACCESS STAYS EXACTLY AS IT WAS: it opens only an item this
+ * viewer already holds, so an unknown, held or hidden id opens the album
+ * plainly with no error and no sign the item exists.
+ */
+describe("the open photograph rides the address", () => {
+  const TooltipWrap = ({ children }: { children: React.ReactNode }) => (
+    <TooltipProvider>{children}</TooltipProvider>
+  );
+  const frame = () =>
+    act(async () => {
+      await new Promise((r) => setTimeout(r, 40));
+    });
+  const here = () => `${window.location.pathname}${window.location.search}`;
+
+  beforeEach(() => window.history.replaceState(null, "", "/e/tok?reel"));
+  afterEach(() => window.history.replaceState(null, "", "/"));
+
+  it("carries each photograph's id on its tile, for the way back", () => {
+    const { container } = render(<MasonryColumns items={items} />);
+    const tiles = container.querySelectorAll("[data-media-tile]");
+    expect(tiles[0].getAttribute("data-media-id")).toBe("a");
+    expect(tiles[1].getAttribute("data-media-id")).toBe("b");
+  });
+
+  it("writes ?photo= beside the page's other params on open, and clears it on close", async () => {
+    render(<MasonryColumns items={items} />, { wrapper: TooltipWrap });
+    fireEvent.click(screen.getByLabelText("View photo"));
+    expect(here()).toBe("/e/tok?reel&photo=a");
+    await frame();
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(here()).toBe("/e/tok?reel");
+  });
+
+  it("follows the viewer as it steps, so a refresh returns to where it is", async () => {
+    render(<MasonryColumns items={items} />, { wrapper: TooltipWrap });
+    fireEvent.click(screen.getByLabelText("View photo"));
+    await frame();
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(here()).toBe("/e/tok?reel&photo=b");
+  });
+
+  it("opens the photograph a refresh lands on", async () => {
+    window.history.replaceState(null, "", "/e/tok?photo=b");
+    render(<MasonryColumns items={items} />, { wrapper: TooltipWrap });
+    await frame();
+    expect(screen.getByRole("dialog", { name: "Video 2 of 2" })).toBeTruthy();
+  });
+
+  it("opens the album plainly on an id this viewer does not hold: no viewer, no error, no trace", async () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    window.history.replaceState(null, "", "/e/tok?photo=held-or-hidden");
+    render(<MasonryColumns items={items} />, { wrapper: TooltipWrap });
+    await frame();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(errors).not.toHaveBeenCalled();
+    errors.mockRestore();
+  });
+
+  it("is claimed by one grid when two could open it", async () => {
+    window.history.replaceState(null, "", "/e/tok?photo=a");
+    render(
+      <>
+        <MasonryColumns items={items} />
+        <MasonryColumns items={items} />
+      </>,
+      { wrapper: TooltipWrap },
+    );
+    await frame();
+    expect(screen.getAllByRole("dialog")).toHaveLength(1);
+  });
+
+  it("waits behind a door that is already open, then opens", async () => {
+    window.history.replaceState(null, "", "/e/tok?photo=a");
+    const door = document.createElement("div");
+    door.setAttribute("role", "dialog");
+    document.body.appendChild(door);
+    render(<MasonryColumns items={items} />, { wrapper: TooltipWrap });
+    await frame();
+    expect(document.querySelector("[data-lightbox-content]")).toBeNull();
+    await act(async () => {
+      door.remove();
+      await new Promise((r) => setTimeout(r, 40));
+    });
+    expect(screen.getByRole("dialog", { name: "Photo 1 of 2" })).toBeTruthy();
+  });
+
+  it("leaves the address alone on a grid that is not the page's subject", () => {
+    render(<MasonryColumns items={items} photoAddress={false} />, {
+      wrapper: TooltipWrap,
+    });
+    fireEvent.click(screen.getByLabelText("View photo"));
+    expect(here()).toBe("/e/tok?reel");
   });
 });

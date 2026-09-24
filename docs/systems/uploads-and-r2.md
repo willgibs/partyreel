@@ -131,9 +131,11 @@ items / ~20 GB per export; per-export rows in `export_log` and the `export_enabl
   `Vary: Origin`), so the browser caches that ACAO-less response under the SAME URL the stable-bucket
   scheme deliberately shares. A later `fetch(mode: "cors")` of that URL reads the poisoned entry and fails
   with a bare "Failed to fetch", nulling every clip with zero console errors. The reel engine's asset loader
-  ([`engine/assets.ts`](../../src/lib/reel/engine/assets.ts)) and its video
-  [`window-reader.ts`](../../src/lib/reel/engine/video/window-reader.ts) fetch with `cache: "no-store"`: keep
-  it, and give any NEW CORS consumer of gallery presigns the same treatment. R2 403s omit CORS headers too,
+  ([`engine/assets.ts`](../../src/lib/reel/engine/assets.ts)), its video
+  [`window-reader.ts`](../../src/lib/reel/engine/video/window-reader.ts) and the viewer's Share and Save to
+  Photos ([`media/share-save.ts`](../../src/lib/media/share-save.ts), which fetches the original on the tap)
+  fetch with `cache: "no-store"`: keep it, and give any NEW CORS consumer of gallery presigns the same
+  treatment. R2 403s omit CORS headers too,
   so an EXPIRED presign probed via CORS fetch masquerades as a CORS failure.
 - **Never expose raw R2 keys/URLs to the browser** — presign server-side via the shared `toGridItems`; the
   render routes are `force-dynamic`. **Gallery read presigns are STABLE:** `presignDownload({ stable: true })`

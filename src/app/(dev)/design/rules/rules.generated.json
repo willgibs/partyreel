@@ -12725,7 +12725,7 @@
             "a tile carries MARKS, and a phone carries nothing else"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 56
+          "line": 65
         },
         {
           "title": "gives a video its play mark and a photograph none",
@@ -12733,7 +12733,7 @@
             "a tile carries MARKS, and a phone carries nothing else"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 63
+          "line": 72
         },
         {
           "title": "shows the like mark for a count, and nothing at zero",
@@ -12741,7 +12741,7 @@
             "a tile carries MARKS, and a phone carries nothing else"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 71
+          "line": 80
         },
         {
           "title": "suppresses the like mark where every tile is liked (the Likes feed)",
@@ -12749,7 +12749,7 @@
             "a tile carries MARKS, and a phone carries nothing else"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 79
+          "line": 88
         },
         {
           "title": "draws every action of the set inside a single bar",
@@ -12757,7 +12757,7 @@
             "the desk's hover set is ONE pane, declared per surface"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 95
+          "line": 104
         },
         {
           "title": "keeps a control's tap off the lightbox",
@@ -12765,7 +12765,7 @@
             "the desk's hover set is ONE pane, declared per surface"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 116
+          "line": 125
         },
         {
           "title": "renders one overlay per tile, as a sibling of the open-lightbox button",
@@ -12773,7 +12773,7 @@
             "renderOverlay stays the per-surface chrome slot"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 131
+          "line": 140
         },
         {
           "title": "renderOverlay is optional — a tile renders without it and still opens",
@@ -12781,7 +12781,7 @@
             "renderOverlay stays the per-surface chrome slot"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 157
+          "line": 166
         },
         {
           "title": "seats the prefix before the first tile (the pending uploads' slot)",
@@ -12789,7 +12789,7 @@
             "renderOverlay stays the per-surface chrome slot"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 163
+          "line": 172
         },
         {
           "title": "marks exactly the ids the surface names, and no tile without them",
@@ -12797,7 +12797,7 @@
             "the yours mark rides only a viewer's own tiles"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 184
+          "line": 193
         },
         {
           "title": "is a MARKER with no tap, and a button only where a filter exists",
@@ -12805,7 +12805,7 @@
             "the yours mark rides only a viewer's own tiles"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 201
+          "line": 210
         },
         {
           "title": "fires the filter without opening the lightbox underneath it",
@@ -12813,7 +12813,7 @@
             "the yours mark rides only a viewer's own tiles"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 221
+          "line": 230
         },
         {
           "title": "carries the filter's state, so the mark is never a one-way door",
@@ -12821,7 +12821,7 @@
             "the yours mark rides only a viewer's own tiles"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 240
+          "line": 249
         },
         {
           "title": "leaves the other three marks exactly as they were",
@@ -12829,7 +12829,7 @@
             "the yours mark rides only a viewer's own tiles"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 265
+          "line": 274
         },
         {
           "title": "writes data-arrived on exactly the ids the surface names",
@@ -12837,7 +12837,7 @@
             "the arrival marks ride the tile box"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 292
+          "line": 301
         },
         {
           "title": "writes data-landed on exactly the ids the surface names",
@@ -12845,7 +12845,7 @@
             "the arrival marks ride the tile box"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 301
+          "line": 310
         },
         {
           "title": "draws neither when a surface names neither",
@@ -12853,7 +12853,7 @@
             "the arrival marks ride the tile box"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 310
+          "line": 319
         },
         {
           "title": "leaves every existing tile where it was when a newer one is prepended",
@@ -12861,7 +12861,7 @@
             "distributeColumns keeps an album still when one lands"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 340
+          "line": 349
         },
         {
           "title": "balances: no column runs away from the shortest",
@@ -12869,7 +12869,7 @@
             "distributeColumns keeps an album still when one lands"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 359
+          "line": 368
         },
         {
           "title": "puts a newly landed photograph at the HEAD of the column it joins",
@@ -12877,7 +12877,7 @@
             "distributeColumns keeps an album still when one lands"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 368
+          "line": 377
         },
         {
           "title": "lays the rule's count, just past a boundary too",
@@ -12885,7 +12885,7 @@
             "columnsFor counts on the gap the box resolves"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 410
+          "line": 419
         },
         {
           "title": "keeps a phone at two, and an unmeasured box unknown",
@@ -12893,7 +12893,71 @@
             "columnsFor counts on the gap the box resolves"
           ],
           "file": "src/components/shared/masonry.test.tsx",
-          "line": 419
+          "line": 428
+        },
+        {
+          "title": "carries each photograph's id on its tile, for the way back",
+          "suite": [
+            "the open photograph rides the address"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 455
+        },
+        {
+          "title": "writes ?photo= beside the page's other params on open, and clears it on close",
+          "suite": [
+            "the open photograph rides the address"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 462
+        },
+        {
+          "title": "follows the viewer as it steps, so a refresh returns to where it is",
+          "suite": [
+            "the open photograph rides the address"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 471
+        },
+        {
+          "title": "opens the photograph a refresh lands on",
+          "suite": [
+            "the open photograph rides the address"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 479
+        },
+        {
+          "title": "opens the album plainly on an id this viewer does not hold: no viewer, no error, no trace",
+          "suite": [
+            "the open photograph rides the address"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 486
+        },
+        {
+          "title": "is claimed by one grid when two could open it",
+          "suite": [
+            "the open photograph rides the address"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 496
+        },
+        {
+          "title": "waits behind a door that is already open, then opens",
+          "suite": [
+            "the open photograph rides the address"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 509
+        },
+        {
+          "title": "leaves the address alone on a grid that is not the page's subject",
+          "suite": [
+            "the open photograph rides the address"
+          ],
+          "file": "src/components/shared/masonry.test.tsx",
+          "line": 524
         }
       ]
     },
@@ -12911,11 +12975,566 @@
       "id": "media-lightbox",
       "file": "src/components/shared/media-lightbox.tsx",
       "names": [
-        "MediaLightbox"
+        "CreditFace",
+        "MediaLightbox",
+        "ViewerMedia"
       ],
       "specimens": [],
       "indexed": true,
-      "contracts": []
+      "contracts": [
+        {
+          "title": "renders centered: the track sits at -100% with zero offset",
+          "suite": [
+            "MediaLightbox: gesture gating"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 183
+        },
+        {
+          "title": "mouse pointers never engage the finger-follow",
+          "suite": [
+            "MediaLightbox: gesture gating"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 188
+        },
+        {
+          "title": "a sub-10px wiggle stays unlocked (tap territory)",
+          "suite": [
+            "MediaLightbox: gesture gating"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 200
+        },
+        {
+          "title": "a vertical move locks to the way out, and the track never moves",
+          "suite": [
+            "MediaLightbox: gesture gating"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 209
+        },
+        {
+          "title": "a horizontal lock engages: data-dragging + 1:1 follow",
+          "suite": [
+            "MediaLightbox: gesture gating"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 221
+        },
+        {
+          "title": "clamps a long pull toward a real neighbor to one slide width",
+          "suite": [
+            "MediaLightbox: friction at the edges"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 232
+        },
+        {
+          "title": "damps the pull past the FIRST item (no prev)",
+          "suite": [
+            "MediaLightbox: friction at the edges"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 239
+        },
+        {
+          "title": "slow short drag springs back (200ms settle, no index change)",
+          "suite": [
+            "MediaLightbox: release outcomes"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 251
+        },
+        {
+          "title": "a long slow drag commits by DISTANCE (20% of width)",
+          "suite": [
+            "MediaLightbox: release outcomes"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 262
+        },
+        {
+          "title": "a quick flick commits by VELOCITY regardless of distance",
+          "suite": [
+            "MediaLightbox: release outcomes"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 276
+        },
+        {
+          "title": "a commit toward a missing neighbor cannot happen at the END of the set",
+          "suite": [
+            "MediaLightbox: release outcomes"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 285
+        },
+        {
+          "title": "pointercancel snaps back to center",
+          "suite": [
+            "MediaLightbox: release outcomes"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 294
+        },
+        {
+          "title": "reduced motion: a commit lands INSTANTLY, no transition round-trip",
+          "suite": [
+            "MediaLightbox: release outcomes"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 303
+        },
+        {
+          "title": "arrow keys step through the set within bounds",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 316
+        },
+        {
+          "title": "arrow keys at the edges do nothing",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 324
+        },
+        {
+          "title": "a CENTER tap on the letterbox closes; the click trailing a drag does NOT",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 330
+        },
+        {
+          "title": "a tap on blank space closes the viewer, wherever it lands",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 345
+        },
+        {
+          "title": "blank space beside the first photograph closes too: there is no side zone",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 358
+        },
+        {
+          "title": "a tap on a peeking neighbour steps to it, and never closes",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 368
+        },
+        {
+          "title": "a tap on the photograph itself neither closes nor steps",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 381
+        },
+        {
+          "title": "draws no counter; the dialog's name still says where it is",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 390
+        },
+        {
+          "title": "the scrubber is its own control: a drag on it seeks and never swipes",
+          "suite": [
+            "MediaLightbox: video behavior"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 403
+        },
+        {
+          "title": "a drag on the clip swipes, playing or paused",
+          "suite": [
+            "MediaLightbox: video behavior"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 422
+        },
+        {
+          "title": "plays muted and looping the moment it is on screen, and stops when the viewer moves on",
+          "suite": [
+            "MediaLightbox: video behavior"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 440
+        },
+        {
+          "title": "under reduced motion it waits for Play",
+          "suite": [
+            "MediaLightbox: video behavior"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 462
+        },
+        {
+          "title": "keeps its sound in the capsule, one tap away, out of the credit's corner",
+          "suite": [
+            "MediaLightbox: video behavior"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 469
+        },
+        {
+          "title": "opened from the reel, it carries on from the reel's moment",
+          "suite": [
+            "MediaLightbox: video behavior"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 486
+        },
+        {
+          "title": "the GUEST pill carries NO curate controls, even with a status",
+          "suite": [
+            "MediaLightbox: host curate actions (3c.2)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 515
+        },
+        {
+          "title": "an APPROVED host item shows Hide + Remove (not Approve/Show)",
+          "suite": [
+            "MediaLightbox: host curate actions (3c.2)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 525
+        },
+        {
+          "title": "a PENDING host item shows Approve + Hide; Approve sets approved",
+          "suite": [
+            "MediaLightbox: host curate actions (3c.2)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 536
+        },
+        {
+          "title": "a HIDDEN host item shows Show (not Hide/Approve); Show sets approved",
+          "suite": [
+            "MediaLightbox: host curate actions (3c.2)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 545
+        },
+        {
+          "title": "host Remove is behind a modal confirm (no accidental delete)",
+          "suite": [
+            "MediaLightbox: host curate actions (3c.2)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 555
+        },
+        {
+          "title": "shows the Trash on the item it allows and never on another",
+          "suite": [
+            "canDelete gates the personal Delete per item"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 577
+        },
+        {
+          "title": "a guest's own delete promises no window and no place it waits, and still deletes",
+          "suite": [
+            "the uploader's own delete says what it does"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 641
+        },
+        {
+          "title": "a host's own upload keeps the host's words: Deleted, and the window off the constant",
+          "suite": [
+            "the uploader's own delete says what it does"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 650
+        },
+        {
+          "title": "the album's consequence line still follows the final sentence",
+          "suite": [
+            "the uploader's own delete says what it does"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 656
+        },
+        {
+          "title": "draws the album on its own element, with the media never inside it",
+          "suite": [
+            "the lightbox's ground is separate from the photograph"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 677
+        },
+        {
+          "title": "wears the ONE material on the credit, the capsule and the close",
+          "suite": [
+            "the lightbox's ground is separate from the photograph"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 700
+        },
+        {
+          "title": "a confirmed name stands plain, with no mark",
+          "suite": [
+            "MediaLightbox: the uploader's credit"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 741
+        },
+        {
+          "title": "a name nobody proved is named AND marked",
+          "suite": [
+            "MediaLightbox: the uploader's credit"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 747
+        },
+        {
+          "title": "a row with no name names nobody: no credit, no stand-in, no mark",
+          "suite": [
+            "MediaLightbox: the uploader's credit"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 756
+        },
+        {
+          "title": "the mark offers the way out on the viewer's OWN upload only",
+          "suite": [
+            "MediaLightbox: the uploader's credit"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 763
+        },
+        {
+          "title": "says nothing about proof it was never given: an item with no flag is plain",
+          "suite": [
+            "MediaLightbox: the uploader's credit"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 786
+        },
+        {
+          "title": "leads with a disc and the name, in its own pane at the top",
+          "suite": [
+            "MediaLightbox: the face-led credit (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 803
+        },
+        {
+          "title": "reads You on the viewer's own upload, and keeps the way out beside it",
+          "suite": [
+            "MediaLightbox: the face-led credit (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 814
+        },
+        {
+          "title": "shows the host the proved address under the name, and marks the host's own",
+          "suite": [
+            "MediaLightbox: the face-led credit (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 828
+        },
+        {
+          "title": "opens a door only where a page exists, and never behind a typed name",
+          "suite": [
+            "MediaLightbox: the face-led credit (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 843
+        },
+        {
+          "title": "names the event instead on the personal feed, whose items name no uploader",
+          "suite": [
+            "MediaLightbox: the face-led credit (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 861
+        },
+        {
+          "title": "copies the PUBLIC album link that opens on this photograph, never the page's own address",
+          "suite": [
+            "MediaLightbox: share, copy link and save (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 907
+        },
+        {
+          "title": "offers Copy link only on an approved photograph, and only with an album link",
+          "suite": [
+            "MediaLightbox: share, copy link and save (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 923
+        },
+        {
+          "title": "Share hands the system sheet the picture itself",
+          "suite": [
+            "MediaLightbox: share, copy link and save (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 935
+        },
+        {
+          "title": "turns Share into a one-tap Ready when the tap lapsed while the file loaded",
+          "suite": [
+            "MediaLightbox: share, copy link and save (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 951
+        },
+        {
+          "title": "saves with the plain download on a desk and on Android",
+          "suite": [
+            "MediaLightbox: share, copy link and save (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 972
+        },
+        {
+          "title": "offers Save to Photos first and the file second on iOS",
+          "suite": [
+            "MediaLightbox: share, copy link and save (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 978
+        },
+        {
+          "title": "scales in place under two fingers, and the neighbours step aside",
+          "suite": [
+            "MediaLightbox: the close-up (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1041
+        },
+        {
+          "title": "goes home when let go under fit",
+          "suite": [
+            "MediaLightbox: the close-up (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1049
+        },
+        {
+          "title": "pans with one finger while close, and never swipes to the next photograph",
+          "suite": [
+            "MediaLightbox: the close-up (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1058
+        },
+        {
+          "title": "zooms a clip never: two fingers on a video do nothing",
+          "suite": [
+            "MediaLightbox: the close-up (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1075
+        },
+        {
+          "title": "leaves past the line",
+          "suite": [
+            "MediaLightbox: the pull down (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1090
+        },
+        {
+          "title": "leaves on a flick, even a short one",
+          "suite": [
+            "MediaLightbox: the pull down (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1099
+        },
+        {
+          "title": "comes back from a short slow pull, and the chrome with it",
+          "suite": [
+            "MediaLightbox: the pull down (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1107
+        },
+        {
+          "title": "never eats the click after a pull: the trailing click does not close twice",
+          "suite": [
+            "MediaLightbox: the pull down (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1118
+        },
+        {
+          "title": "grows out of the tile it was tapped on, the chrome waiting until it lands",
+          "suite": [
+            "MediaLightbox: grow out of the tile, drop back in (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1169
+        },
+        {
+          "title": "under reduced motion it fades as it always has: no flight",
+          "suite": [
+            "MediaLightbox: grow out of the tile, drop back in (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1192
+        },
+        {
+          "title": "drops back into the tile of the photograph showing at close, then gives it focus",
+          "suite": [
+            "MediaLightbox: grow out of the tile, drop back in (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1206
+        },
+        {
+          "title": "with nowhere to land, it closes at once",
+          "suite": [
+            "MediaLightbox: grow out of the tile, drop back in (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1234
+        },
+        {
+          "title": "opened from the address (no rect), it fades in and still returns",
+          "suite": [
+            "MediaLightbox: grow out of the tile, drop back in (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1247
+        },
+        {
+          "title": "stands each neighbour off toward the photograph, and holds the photograph at its place",
+          "suite": [
+            "MediaLightbox: the neighbours peek (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1263
+        },
+        {
+          "title": "stays today's full-width swipe when a photograph's size is unknown",
+          "suite": [
+            "MediaLightbox: the neighbours peek (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1280
+        }
+      ]
     },
     {
       "id": "not-found-screen",
@@ -14926,7 +15545,7 @@
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 141
+          "line": 183
         },
         {
           "title": "mouse pointers never engage the finger-follow",
@@ -14934,7 +15553,7 @@
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 146
+          "line": 188
         },
         {
           "title": "a sub-10px wiggle stays unlocked (tap territory)",
@@ -14942,15 +15561,15 @@
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 158
+          "line": 200
         },
         {
-          "title": "a vertical move releases the gesture to the browser",
+          "title": "a vertical move locks to the way out, and the track never moves",
           "suite": [
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 165
+          "line": 209
         },
         {
           "title": "a horizontal lock engages: data-dragging + 1:1 follow",
@@ -14958,7 +15577,7 @@
             "MediaLightbox: gesture gating"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 175
+          "line": 221
         },
         {
           "title": "clamps a long pull toward a real neighbor to one slide width",
@@ -14966,7 +15585,7 @@
             "MediaLightbox: friction at the edges"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 186
+          "line": 232
         },
         {
           "title": "damps the pull past the FIRST item (no prev)",
@@ -14974,7 +15593,7 @@
             "MediaLightbox: friction at the edges"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 193
+          "line": 239
         },
         {
           "title": "slow short drag springs back (200ms settle, no index change)",
@@ -14982,7 +15601,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 205
+          "line": 251
         },
         {
           "title": "a long slow drag commits by DISTANCE (20% of width)",
@@ -14990,7 +15609,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 216
+          "line": 262
         },
         {
           "title": "a quick flick commits by VELOCITY regardless of distance",
@@ -14998,7 +15617,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 230
+          "line": 276
         },
         {
           "title": "a commit toward a missing neighbor cannot happen at the END of the set",
@@ -15006,7 +15625,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 239
+          "line": 285
         },
         {
           "title": "pointercancel snaps back to center",
@@ -15014,7 +15633,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 248
+          "line": 294
         },
         {
           "title": "reduced motion: a commit lands INSTANTLY, no transition round-trip",
@@ -15022,7 +15641,7 @@
             "MediaLightbox: release outcomes"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 257
+          "line": 303
         },
         {
           "title": "arrow keys step through the set within bounds",
@@ -15030,7 +15649,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 270
+          "line": 316
         },
         {
           "title": "arrow keys at the edges do nothing",
@@ -15038,7 +15657,7 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 278
+          "line": 324
         },
         {
           "title": "a CENTER tap on the letterbox closes; the click trailing a drag does NOT",
@@ -15046,63 +15665,95 @@
             "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 284
-        },
-        {
-          "title": "a clean CENTER-third tap on the letterbox closes the viewer",
-          "suite": [
-            "MediaLightbox: chrome contracts"
-          ],
-          "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 296
-        },
-        {
-          "title": "a LEFT-third letterbox tap steps to the previous item (no close)",
-          "suite": [
-            "MediaLightbox: chrome contracts"
-          ],
-          "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 306
-        },
-        {
-          "title": "a RIGHT-third letterbox tap steps to the next item (no close)",
-          "suite": [
-            "MediaLightbox: chrome contracts"
-          ],
-          "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 314
-        },
-        {
-          "title": "a side tap at an edge is a NO-OP (never an accidental close)",
-          "suite": [
-            "MediaLightbox: chrome contracts"
-          ],
-          "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 322
-        },
-        {
-          "title": "the position counter reflects the controlled index (pill format)",
-          "suite": [
-            "MediaLightbox: chrome contracts"
-          ],
-          "file": "src/components/shared/media-lightbox.test.tsx",
           "line": 330
         },
         {
-          "title": "a drag starting in a PLAYING video's scrubber strip never swipes",
+          "title": "a tap on blank space closes the viewer, wherever it lands",
           "suite": [
-            "MediaLightbox: video behavior"
+            "MediaLightbox: chrome contracts"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 337
+          "line": 345
         },
         {
-          "title": "the same drag swipes once the video is PAUSED",
+          "title": "blank space beside the first photograph closes too: there is no side zone",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 358
+        },
+        {
+          "title": "a tap on a peeking neighbour steps to it, and never closes",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 368
+        },
+        {
+          "title": "a tap on the photograph itself neither closes nor steps",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 381
+        },
+        {
+          "title": "draws no counter; the dialog's name still says where it is",
+          "suite": [
+            "MediaLightbox: chrome contracts"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 390
+        },
+        {
+          "title": "the scrubber is its own control: a drag on it seeks and never swipes",
           "suite": [
             "MediaLightbox: video behavior"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 353
+          "line": 403
+        },
+        {
+          "title": "a drag on the clip swipes, playing or paused",
+          "suite": [
+            "MediaLightbox: video behavior"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 422
+        },
+        {
+          "title": "plays muted and looping the moment it is on screen, and stops when the viewer moves on",
+          "suite": [
+            "MediaLightbox: video behavior"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 440
+        },
+        {
+          "title": "under reduced motion it waits for Play",
+          "suite": [
+            "MediaLightbox: video behavior"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 462
+        },
+        {
+          "title": "keeps its sound in the capsule, one tap away, out of the credit's corner",
+          "suite": [
+            "MediaLightbox: video behavior"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 469
+        },
+        {
+          "title": "opened from the reel, it carries on from the reel's moment",
+          "suite": [
+            "MediaLightbox: video behavior"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 486
         },
         {
           "title": "the GUEST pill carries NO curate controls, even with a status",
@@ -15110,7 +15761,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 391
+          "line": 515
         },
         {
           "title": "an APPROVED host item shows Hide + Remove (not Approve/Show)",
@@ -15118,7 +15769,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 401
+          "line": 525
         },
         {
           "title": "a PENDING host item shows Approve + Hide; Approve sets approved",
@@ -15126,7 +15777,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 412
+          "line": 536
         },
         {
           "title": "a HIDDEN host item shows Show (not Hide/Approve); Show sets approved",
@@ -15134,7 +15785,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 421
+          "line": 545
         },
         {
           "title": "host Remove is behind a modal confirm (no accidental delete)",
@@ -15142,7 +15793,7 @@
             "MediaLightbox: host curate actions (3c.2)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 431
+          "line": 555
         },
         {
           "title": "shows the Trash on the item it allows and never on another",
@@ -15150,7 +15801,7 @@
             "canDelete gates the personal Delete per item"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 453
+          "line": 577
         },
         {
           "title": "a guest's own delete promises no window and no place it waits, and still deletes",
@@ -15158,7 +15809,7 @@
             "the uploader's own delete says what it does"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 515
+          "line": 641
         },
         {
           "title": "a host's own upload keeps the host's words: Deleted, and the window off the constant",
@@ -15166,7 +15817,7 @@
             "the uploader's own delete says what it does"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 524
+          "line": 650
         },
         {
           "title": "the album's consequence line still follows the final sentence",
@@ -15174,7 +15825,7 @@
             "the uploader's own delete says what it does"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 530
+          "line": 656
         },
         {
           "title": "draws the album on its own element, with the media never inside it",
@@ -15182,15 +15833,15 @@
             "the lightbox's ground is separate from the photograph"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 550
+          "line": 677
         },
         {
-          "title": "wears the ONE material on the pill, the capsule and the close",
+          "title": "wears the ONE material on the credit, the capsule and the close",
           "suite": [
             "the lightbox's ground is separate from the photograph"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 571
+          "line": 700
         },
         {
           "title": "a confirmed name stands plain, with no mark",
@@ -15198,7 +15849,7 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 612
+          "line": 741
         },
         {
           "title": "a name nobody proved is named AND marked",
@@ -15206,15 +15857,15 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 620
+          "line": 747
         },
         {
-          "title": "a row with no name names nobody: no stand-in, no mark, the counter alone",
+          "title": "a row with no name names nobody: no credit, no stand-in, no mark",
           "suite": [
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 628
+          "line": 756
         },
         {
           "title": "the mark offers the way out on the viewer's OWN upload only",
@@ -15222,7 +15873,7 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 637
+          "line": 763
         },
         {
           "title": "says nothing about proof it was never given: an item with no flag is plain",
@@ -15230,7 +15881,215 @@
             "MediaLightbox: the uploader's credit"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 657
+          "line": 786
+        },
+        {
+          "title": "leads with a disc and the name, in its own pane at the top",
+          "suite": [
+            "MediaLightbox: the face-led credit (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 803
+        },
+        {
+          "title": "reads You on the viewer's own upload, and keeps the way out beside it",
+          "suite": [
+            "MediaLightbox: the face-led credit (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 814
+        },
+        {
+          "title": "shows the host the proved address under the name, and marks the host's own",
+          "suite": [
+            "MediaLightbox: the face-led credit (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 828
+        },
+        {
+          "title": "opens a door only where a page exists, and never behind a typed name",
+          "suite": [
+            "MediaLightbox: the face-led credit (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 843
+        },
+        {
+          "title": "names the event instead on the personal feed, whose items name no uploader",
+          "suite": [
+            "MediaLightbox: the face-led credit (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 861
+        },
+        {
+          "title": "copies the PUBLIC album link that opens on this photograph, never the page's own address",
+          "suite": [
+            "MediaLightbox: share, copy link and save (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 907
+        },
+        {
+          "title": "offers Copy link only on an approved photograph, and only with an album link",
+          "suite": [
+            "MediaLightbox: share, copy link and save (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 923
+        },
+        {
+          "title": "Share hands the system sheet the picture itself",
+          "suite": [
+            "MediaLightbox: share, copy link and save (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 935
+        },
+        {
+          "title": "turns Share into a one-tap Ready when the tap lapsed while the file loaded",
+          "suite": [
+            "MediaLightbox: share, copy link and save (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 951
+        },
+        {
+          "title": "saves with the plain download on a desk and on Android",
+          "suite": [
+            "MediaLightbox: share, copy link and save (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 972
+        },
+        {
+          "title": "offers Save to Photos first and the file second on iOS",
+          "suite": [
+            "MediaLightbox: share, copy link and save (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 978
+        },
+        {
+          "title": "scales in place under two fingers, and the neighbours step aside",
+          "suite": [
+            "MediaLightbox: the close-up (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1041
+        },
+        {
+          "title": "goes home when let go under fit",
+          "suite": [
+            "MediaLightbox: the close-up (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1049
+        },
+        {
+          "title": "pans with one finger while close, and never swipes to the next photograph",
+          "suite": [
+            "MediaLightbox: the close-up (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1058
+        },
+        {
+          "title": "zooms a clip never: two fingers on a video do nothing",
+          "suite": [
+            "MediaLightbox: the close-up (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1075
+        },
+        {
+          "title": "leaves past the line",
+          "suite": [
+            "MediaLightbox: the pull down (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1090
+        },
+        {
+          "title": "leaves on a flick, even a short one",
+          "suite": [
+            "MediaLightbox: the pull down (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1099
+        },
+        {
+          "title": "comes back from a short slow pull, and the chrome with it",
+          "suite": [
+            "MediaLightbox: the pull down (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1107
+        },
+        {
+          "title": "never eats the click after a pull: the trailing click does not close twice",
+          "suite": [
+            "MediaLightbox: the pull down (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1118
+        },
+        {
+          "title": "grows out of the tile it was tapped on, the chrome waiting until it lands",
+          "suite": [
+            "MediaLightbox: grow out of the tile, drop back in (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1169
+        },
+        {
+          "title": "under reduced motion it fades as it always has: no flight",
+          "suite": [
+            "MediaLightbox: grow out of the tile, drop back in (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1192
+        },
+        {
+          "title": "drops back into the tile of the photograph showing at close, then gives it focus",
+          "suite": [
+            "MediaLightbox: grow out of the tile, drop back in (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1206
+        },
+        {
+          "title": "with nowhere to land, it closes at once",
+          "suite": [
+            "MediaLightbox: grow out of the tile, drop back in (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1234
+        },
+        {
+          "title": "opened from the address (no rect), it fades in and still returns",
+          "suite": [
+            "MediaLightbox: grow out of the tile, drop back in (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1247
+        },
+        {
+          "title": "stands each neighbour off toward the photograph, and holds the photograph at its place",
+          "suite": [
+            "MediaLightbox: the neighbours peek (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1263
+        },
+        {
+          "title": "stays today's full-width swipe when a photograph's size is unknown",
+          "suite": [
+            "MediaLightbox: the neighbours peek (r1)"
+          ],
+          "file": "src/components/shared/media-lightbox.test.tsx",
+          "line": 1280
         },
         {
           "title": "reads \"Unverified\", never a claim that a name was checked",
