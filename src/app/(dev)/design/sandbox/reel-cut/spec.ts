@@ -24,13 +24,23 @@ import { defineExploration } from "@/components/lab/exploration";
  * failure the house already names: a board showing a look production never
  * had.
  *
+ * ★ THE GUEST-FACING WORD IS "CLIP" NOW (his own copy, on the album tile:
+ * "Make your own clip to share"). This board, its folder and its files keep
+ * "cut" as the internal name throughout, unchanged: nothing here asks which
+ * word to use, so only what a guest actually reads moved.
+ *
  * ★ WHAT IS DELIBERATELY NOT ASKED. That cuts leave on devices; that the
  * fourteen looks are the cut's while the eight moods roll in the live reel;
  * that the free levers are the mark and the length and never the quality;
  * no music, no end card, no timeline and no per-clip editing; that Share is
  * its own tap and "Add to the album" rides the ordinary upload queue on a
- * paid event. All ruled. The reel view's own chrome is `reel-view`'s round
- * and is drawn neutrally here. `guest-capture.follow` and
+ * paid event. All ruled. The reel view's own chrome is DECIDED now
+ * (`reel-view` round one, verbatim in `reel-refresh-cut`'s manifest: a
+ * weighted dock, "Add yours" an icon, "Make your own" the one primary
+ * beneath it, the arrival chip top left, the event's code a plate bottom
+ * right, no event name on screen), so `ReelView` below wears it as ground
+ * rather than drawing it neutrally; only `entry` and `noencode` still touch
+ * the one slot this board owns. `guest-capture.follow` and
  * `guest-capture.landing` are that board's; nothing here asks them.
  */
 
@@ -89,9 +99,9 @@ const DRAFT = defineExploration({
   title: "From the reel to a cut",
   round: {
     n: 1,
-    date: "2026-09-22",
+    date: "2026-09-24",
     changed:
-      "New board, wave 2 of the reel round: the Studio's room, looks, moments, blocked tile and wait reshaped for a guest making her own cut, plus the finish, the free mark and the device that cannot encode.",
+      "Re-cut under his batch-1 answers: entry now names both doors in (the view's primary and the tile's own line); noencode redrawn on the weighted dock's empty primary slot and the tile's description; finish's Save reads Save to Photos; the guest-facing word is clip throughout.",
   },
   context:
     "Priya is at Maya and Jay's wedding, watching the event's live reel, and she has tapped Make your own. Her cut renders on her phone and leaves as a file: nothing is stored and nothing is written. The album holds 26 items, one of them a cut Theo already added, so her pool is 25. Every frame of a cut here is the real engine over those photographs, at 375 with 1440 on the knob.",
@@ -122,32 +132,40 @@ const DRAFT = defineExploration({
       overrule:
         "Any of the three can be renamed without moving a pixel of the surfaces they sit on.",
     },
+    {
+      id: "noun",
+      question: "Should every guest-facing string say clip, or keep cut?",
+      taken:
+        "Clip, following his own copy on the tile; cut stays the board's, the folder's and every identifier's internal name.",
+      overrule:
+        "If cut should stay the guest-facing word too, revert the strings this round touched; nothing structural moves.",
+    },
   ],
   asks: [
     {
       id: "entry",
       label: "The way in",
-      question: 'How should "Make your own" open from the reel?',
+      question: 'How should "Make your own" open, from either of its doors?',
       context:
-        "Priya is watching the reel full screen and taps the verb. Getting from watching to working is the one transition the whole creator hangs off, and the reel she liked is the thing she is about to cut.",
+        "Priya meets this from either of two doors now: the view's own primary \"Make your own\" beneath its dock, or the album tile's \"Make your own clip to share\" line, tapped straight from the page she is scrolling.",
       options: [
         {
           id: "sheet",
           label: "A sheet over the reel, becoming the creator",
           means:
-            "The reel keeps playing behind; a panel rises holding her picks and grows into the whole creator as she works.",
+            "The view's own door: the reel keeps playing behind; a panel rises holding her picks and grows into the whole creator as she works.",
         },
         {
           id: "room",
           label: "A room of its own, the reel sliding in",
           means:
-            "The view hands off: the cut arrives in its own frame with its own controls under it, and Back returns to the reel.",
+            "The view's own door: it hands off, the cut arrives in its own frame with its own controls under it, and Back returns to the reel.",
         },
         {
           id: "beneath",
           label: "Back to the album, the creator beneath",
           means:
-            "The view closes to the album she came from and the creator opens under the reel's tile, in the page itself.",
+            "The tile's own door already opens this way: no view to leave, so the creator opens right under \"Highlight reel\" in the page itself.",
         },
       ],
       recommended: "room",
@@ -156,7 +174,7 @@ const DRAFT = defineExploration({
       overrule:
         "If leaving the reel to cut it reads as losing your place, only the sheet keeps the thing she liked on screen the whole way.",
       lands:
-        "Whether a cut is made inside the reel's view or in a place of its own, and what Back does mid-cut.",
+        "Whether the view's own door opens a sheet or a room, whether the tile's door still lands beneath, and what Back does mid-cut.",
       tile: "phone",
       configs: [SCREEN],
     },
@@ -344,7 +362,7 @@ const DRAFT = defineExploration({
       label: "The finish",
       question: "How should the finish screen offer what a cut can do next?",
       context:
-        "The file is on her device and nothing has been uploaded. Save, Share as a file, Add to the album on a paid event, Make another. Share is its own tap, never chained off the encode, because iOS spends the tap during the render.",
+        "The file is on her device and nothing has been uploaded. Save to Photos, Share as a file, Add to the album on a paid event, Make another. Share is its own tap, never chained off the encode, because iOS spends the tap during the render.",
       options: [
         {
           id: "four",
@@ -416,13 +434,13 @@ const DRAFT = defineExploration({
       label: "No encoder here",
       question: "What should the reel show on a device that cannot cut?",
       context:
-        "Some browsers have no encoder. The reel plays anywhere, so only the cut is impossible, and the concept already rules the button absent rather than dead. What stands in its place is open.",
+        "Some browsers have no encoder. The reel plays anywhere, so only the clip is impossible. This shows in two places now: the view's own weighted dock, where removing the primary empties its slot, and the album tile's own description line.",
       options: [
         {
           id: "line",
           label: "One honest line where the button was",
           means:
-            "Make your own is gone and a quiet sentence in its place says a cut needs a newer browser, and the reel plays either way.",
+            "Make your own is gone and a quiet sentence in its place says a clip needs a newer browser, and the reel plays either way.",
         },
         {
           id: "greyed",
@@ -443,7 +461,7 @@ const DRAFT = defineExploration({
       overrule:
         "If the view's chrome must stay clean while the reel plays, the absent control is cleanest and the help article can carry the reason.",
       lands:
-        "What a device with no encoder is told, and whether a dead control ever ships in the reel's chrome.",
+        "What a device with no encoder is told, on the view's own dock and the tile's description, and whether either ever ships a dead control.",
       tile: "phone",
       configs: [SCREEN],
     },

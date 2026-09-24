@@ -55,3 +55,24 @@
     opacity: 1;
   }
 }
+
+/* ROUND TWO'S `signature=frame` OPTION: a quiet pulse on the recording dot,
+   the universal cue for footage rather than a photograph. Off under reduced
+   motion (bible 14), same as the crossfade above. */
+.rf-rec-dot {
+  animation: rf-rec-pulse 1.6s ease-in-out infinite;
+}
+@keyframes rf-rec-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rf-rec-dot {
+    animation: none;
+  }
+}
