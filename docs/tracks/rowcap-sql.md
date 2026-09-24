@@ -1,6 +1,6 @@
 ---
 track: rowcap-sql
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "2429807e"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -125,24 +125,135 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- None open. Every call the brief left to me was taken as its recommended answer (or the one the evidence
+  pointed to) and is listed, one line each, under "Calls his to overrule" below.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/database-security.md`: the accepted advisor set's counts (15 / 5 / 32, `get_advisors` on
+  2026-09-24); the claim by address under its new signature (the three parameters a cursor and a page size,
+  never an address); the Likes paragraph (liked-only counts paged on media_id; the heart state through
+  `my_liked_media_ids(uuid[])`); a new bullet placing the seven SECURITY INVOKER helpers and their grants; the
+  new section "Set-returning functions and the row cap" beside the Workflow (the convention, the null-limit
+  rule, INVOKER first, the grant rule, the ★ `max_rows` of at least 1,000, the three files).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Speculative / longer-horizon backlog: `standby_hosts`, like the removed_media sweep, scans every removed row
+  platform-wide on each page; past about a million media rows, a partial index on removed media
+  (`where status = 'removed'`) keeps the nightly host discovery an index scan.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+`$S` below is this session's scratchpad, `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad`;
+every artifact named is under `$S/rowcap-sql/`.
+
+- **Commits.** Work `dcd6d47c`; sync `58430d37` (merged `origin/launch-prep` at `3b44ff40`, which touched only
+  `docs/STATUS.md` and `docs/tracks/orchestrator.md`); both pushed. The head is in the chat line.
+- **Gates on the synced tree `58430d37`**, each on its own exit code (logs `synced-*.log`): `pnpm design:rules` 0 ·
+  `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` 0 · `pnpm typecheck` 0 · `pnpm lint` 0 (8 warnings,
+  none in a touched file) · `pnpm test` 0 (383 files, 4,284 passed, 1 skipped) · `pnpm build` 0 ·
+  `pnpm lab:smoke --base http://localhost:3132` 0 (520 checks, 0 failing). No board, so no `lab:demo`; port 3132
+  freed after.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`; this file joins it in the handoff commit), no
+  exception:
+  ```
+  docs/systems/database-security.md
+  src/lib/db/migration-guards.test.ts
+  src/lib/db/row-cap-sql.test.ts
+  supabase/migrations/20260924010000_row_cap_album.sql
+  supabase/migrations/20260924020000_row_cap_host.sql
+  supabase/migrations/20260924030000_row_cap_sweeps.sql
+  ```
+- **The final signatures** (the contract stage 2 compiles against; every function pins `search_path = ''`; a
+  paged function's null `p_limit` reads everything, a given one is clamped to 1,000, and a page ends the read
+  when it comes back short):
+
+  | function | returns | security | EXECUTE | page or shape |
+  | --- | --- | --- | --- | --- |
+  | `get_event_media_by_qr_token(p_qr_token text, p_before_created_at timestamptz = null, p_before_id uuid = null, p_limit integer = null)` | table (id, type, original_key, preview_key, width, height, duration_seconds, created_at), unchanged | DEFINER | anon, authenticated | `created_at desc, id desc`; pass the last row's `created_at` and `id`; rows strictly after |
+  | `get_event_like_counts(p_event_id uuid, p_after uuid = null, p_limit integer = null)` | table (media_id, like_count), LIKED media only | DEFINER, host-gated | authenticated | `media_id` ascending; pass the last `media_id` |
+  | `my_liked_media_ids(p_media_ids uuid[])` | uuid[]: the caller's own likes among the ids, sorted, `{}` for none | INVOKER | authenticated | one value |
+  | `event_card_stats(p_event_ids uuid[])` | jsonb `{ "<event id>": { "approved": n, "pending": n } }`, every non-null input id | INVOKER | authenticated | one value |
+  | `event_covers(p_event_ids uuid[])` | jsonb `{ "<event id>": { "preview_key": text or null, "original_key": text } }`, an event with no approved photo absent | INVOKER | authenticated, service_role | one value |
+  | `event_link_totals(p_event_id uuid)` | jsonb `{ "qr_scans": n, "album_views": n }`, zeros for a non-host | INVOKER | authenticated | one value |
+  | `list_guest_rows_by_email(p_after_at timestamptz = null, p_after_id uuid = null, p_limit integer = null)` | table unchanged (guest_id, event_id, event_name, event_date, display_name, upload_count, last_upload_at, pending_email_at) | DEFINER | authenticated | `coalesce(last_at, created_at) desc, guest_id desc`; pass the last row's `last_upload_at` and `guest_id` (never null: every listed row has a live upload) |
+  | `admin_metrics_snapshot(p_window_days integer = 30, p_fortnight_days integer = 14)` | jsonb: `as_of`, `window_days`, `fortnight_days`; `accounts.{total, new_in_window, active_in_window, new_in_fortnight, new_in_prior_fortnight, active_in_fortnight, active_in_prior_fortnight, paid, storage_used_bytes, by_tier {raw tier: n}, signups_by_day {YYYY-MM-DD: n}}`; `engagement.{qr_scans, album_views, by_day {YYYY-MM-DD: {qr_scans, album_views}}}`; `newsletter.by_source [{source (raw, nullable), count}]` | INVOKER | service_role | one value; a window under 1 raises 22023 |
+  | `held_event_ids(p_event_ids uuid[])` | uuid[]: the input ids holding any held media, sorted, `{}` for none | INVOKER | service_role | one value |
+  | `standby_hosts(p_after uuid = null, p_limit integer = null)` | table (host_id uuid, standby_bytes bigint), hosts with more than zero | INVOKER | service_role | `host_id` ascending; pass the last `host_id` |
+
+  Plus `media_event_created_id_idx on public.media (event_id, created_at desc, id desc)`. `purge_media_rows` is
+  unchanged. The authenticated-granted functions also keep service_role's default EXECUTE, as every existing one does.
+- **Apply order:** 1 `20260924010000_row_cap_album.sql`, 2 `20260924020000_row_cap_host.sql`,
+  3 `20260924030000_row_cap_sweeps.sql` (independent; this is the order proved). Each header carries its
+  protocol: the drift md5s (live on 2026-09-24, each equal to its newest file: `get_event_media_by_qr_token(text)`
+  `04252d11838c2d273461ac0fe8e33d68`, `get_event_like_counts(uuid)` `c2ca518640ae248c451a7263d7490600`,
+  `list_guest_rows_by_email()` `efba056af25969e1ec9f2caa0956d9db`), the post-apply md5 of every new body (read
+  off the pre-flight's `pg_proc`), the grants, the advisor delta (none: 15 / 5 / 32; the three replaced
+  functions show their new argument lists), the rolled-back check at the foot, and `types.ts` regenerated. The
+  deployed calls still type-check against it: with the three new `Args` shapes typed into `types.ts` for one
+  run and reverted (no diff left), `tsc --noEmit` exited 0 (`tsc-with-regen-types.log`), the no-argument
+  claim-card call included.
+- **What each check needs from the live data** (all present on 2026-09-24): the scale probe (qr
+  `d02631f1bfb3455188d224e41bf9510f`, more than 1,000 approved); a second profile; a confirmed account; at least
+  three name-only guest rows with a live upload (15 today); three events, two of them with media (8 today); a live
+  upload on an unclaimed guest row with its session token (the probe's guests). Each check writes only inside
+  its own block (1,100 likes, a forced timestamp tie, pending addresses, the confirmed account briefly
+  unconfirmed, 1,100 holds, a real `remove_my_upload_by_session`, a host and a system removal, a soft-delete)
+  and ends in its raise.
+- **Items:**
+  - `20260924010000_row_cap_album.sql`: the album paged on (created_at, id), the event resolved as a scalar
+    subquery so the index walks from the cursor (pre-flight, 51,210 rows in one event: a page of 1,000 read
+    1,000 index entries, against all 51,210 rows and a sort through the join); the index; like counts liked-only
+    on media_id; `my_liked_media_ids`.
+  - `20260924020000_row_cap_host.sql`: card stats, covers and link totals as one jsonb each; the claim card
+    paged; the operator's metrics as one jsonb, keys named from what `/admin` and `/admin/metrics` render.
+  - `20260924030000_row_cap_sweeps.sql`: `held_event_ids`; `standby_hosts` with delete-final's rule in (a
+    guest's own withdrawal never counts in the host's budget).
+  - `src/lib/db/row-cap-sql.test.ts`: a drop-aware reader of every winning definition; each set-returning
+    function pages (a keyset cursor, `p_limit`, the clamp equal to `supabase/config.toml`'s `max_rows`, the
+    null-limit case) or sits on `SINGLE_ROW` or `CALLER_BOUNDED` with its reason; a stale entry fails.
+  - `src/lib/db/migration-guards.test.ts`: pin group 12 (each new or replaced function's signature, security,
+    search_path, grants and load-bearing clauses); the claim card's no-oracle pin moved to the new signature
+    (no text parameter), its grants and its no-anon pin with it.
+  - The deployed like-count readers all default a missing id to 0: `gallery-items.ts:72` (`?? 0`) is the only
+    path from `getEventLikeCounts` to the three host pages, the reel builder (`reel-builder.tsx:84`) and the
+    studio picker (`studio-moments-picker.tsx:66`; `:191` reads `?? 0`); `quick-add.ts:204, 233, 237` read `?? 0`.
+  - **Local pre-flight** (Homebrew PG 17.10; a stand-in with the live column types, constraints, RLS policies,
+    grants, default privileges and triggers, and the CURRENT bodies loaded verbatim, their md5s equal to live):
+    each file applied verbatim and its check green (`check-{1,2,3}.local.log`); the deployed calls through
+    `anon`/`authenticated` before and after (`deployed-calls-{1,2}.{before,after}.log`: the same album order, the
+    same liked counts, the same claim-card set); `pg_get_functiondef` before and after (`functiondef/`). 29
+    mutations of the SQL: 28 caught by the checks (the album tiebreak and the unconfirmed gate only after I
+    strengthened the checks), the survivor an equivalent mutant (dropping the claim card's session gate changes
+    nothing, the confirmation gate returns anyway); the Vitest pins fail on a dropped tiebreak, a bare `least`
+    and a dropped withdrawal filter.
+  - **Live rolled-back probe** (one `execute_sql`, `begin; … rollback;`, the files' executable statements
+    verbatim through EXECUTE in exception blocks): all three applied; the deployed calls unchanged (the album
+    1,145 rows in the same order; like counts 1,200 rows to 3, the same 6 likes and the same liked counts; the
+    claim card the same 15 rows in the same order); every check "ROLLED BACK: every … check held"; the live
+    catalog unchanged afterwards (`live-probe.result.log`, script `live-probe.ran-2026-09-24.sql`).
+- **Assets requested from Will:** none.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** the three migrations above, applied at the
+  merge by the protocol; no Worker, Vercel, Stripe or env change.
+- **Calls his to overrule:**
+  - `admin_metrics_snapshot` takes the two windows as optional parameters (defaults 30 and 14, the pages'
+    WINDOW_DAYS and FORTNIGHT_DAYS), so the windows keep one home in TypeScript; `admin_metrics_snapshot()` still works.
+  - `by_tier` and `newsletter.by_source` carry RAW values; the reader folds them with `toBillingTier` and
+    `countBySource`'s rule, so neither mapping gets a second home in SQL.
+  - `getLinkStats` gets its own function, `event_link_totals(uuid)` (INVOKER over the host's RLS), not a fold.
+  - A null `p_limit` reads everything on EVERY paged function, the new `standby_hosts` included: one rule (the
+    bare `least` would give a new function a silent 1,000 in SQL).
+  - The album resolves its event as a scalar subquery instead of the join (identical gates), for the index walk.
+  - `event_card_stats` answers every non-null input id, zeros where nothing counts (the TypeScript's seeding),
+    so another host's or an unknown id reads zeros rather than going absent.
+  - The service-role-only helpers are SECURITY INVOKER, not DEFINER.
+  - `my_liked_media_ids` takes any number of ids: it is owner-RLS scoped and the ids are the browser's visible set.
+  - `row-cap-sql.test.ts` puts `get_event_by_qr_token` on SINGLE_ROW (qr_token is unique), keeps a
+    CALLER_BOUNDED list for the two 200-item feeds, and asks for a keyset cursor beside `p_limit`.
+  - The claim card's grant block revokes from `public, anon, authenticated` and grants back to authenticated
+    (the drop-and-create form) where the old file revoked from `public, anon`.
+- **Look at first:** `live-probe.result.log`, then each file's APPLY PROTOCOL header. At the apply: the
+  performance advisor will likely list `media_event_created_id_idx` as unused (unused_index 7 to 8) until the
+  album lanes page on it. For the cron lane: when it moves to `standby_hosts`, withdrawals leave the budget
+  (the TypeScript bin counts them today, which the dashboard's over-budget warning already disagrees with).
