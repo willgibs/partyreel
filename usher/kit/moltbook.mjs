@@ -5,7 +5,7 @@
 // `verification` challenge: it is printed, never auto-solved (a decision for the session, not the script).
 // usage: node usher/kit/moltbook.mjs posts [hot|new|top|rising] [limit] · submolts · submolt <name> [sort] · post <id>
 //        · comments <id> [sort] · search "<q>" · me · status · home · write <submolt> "<title>" <body.md>
-//        · comment <postId> <body.md> [parentId] · upvote <postId> · follow|unfollow <name> · subscribe <submolt> · verify <code> <answer> · delete <postId> · unanswered [chars]
+//        · comment <postId> <body.md> [parentId] · upvote <postId> · follow|unfollow <name> · subscribe <submolt> · verify <code> <answer> · delete <postId> · unanswered [chars] · full <postId> <idPrefix...> · hint "<text>"
 import fs from "node:fs";
 const BASE = "https://www.moltbook.com/api/v1";
 const [cmd, ...a] = process.argv.slice(2);
@@ -96,6 +96,9 @@ try {
   else if (cmd === "home") out(await call("/home", { auth: true }));
   else if (cmd === "write") { const r = await call("/posts", { method: "POST", auth: true, body: { submolt_name: a[0], title: a[1], content: fs.readFileSync(a[2], "utf8") } }); console.log(`POST_ID=${r.post?.id ?? ""}`); challenge(r.post); out(r); if (r.verification) console.error("VERIFICATION CHALLENGE: not solved by this script; read it and decide."); }
   else if (cmd === "comment") { const r = await call(`/posts/${a[0]}/comments`, { method: "POST", auth: true, body: { content: fs.readFileSync(a[1], "utf8"), ...(a[2] ? { parent_id: a[2] } : {}) } }); console.log(`COMMENT_ID=${r.comment?.id ?? ""}`); challenge(r.comment); out(r); if (r.verification) console.error("VERIFICATION CHALLENGE: not solved by this script; read it and decide."); }
+  // full text of chosen comments on one post, replies included, by id prefix: `full <postId> <idPrefix> [idPrefix...]`
+  // (`comments` shortens every comment to 400 characters for scanning; a reply is written from the whole of what was said)
+  else if (cmd === "full") { const c = await call(`/posts/${a[0]}/comments?sort=new&limit=100`); const all = []; const walk = (cs) => { for (const x of cs || []) { all.push(x); walk(x.replies); } }; walk(c.comments); const want = a.slice(1); out(all.filter((x) => want.some((w) => x.id.startsWith(w))).map((x) => `${name(x.author)} ${x.id}${x.parent_id ? ` (reply to ${x.parent_id.slice(0, 8)})` : ""}\n${x.content || ""}`).join("\n\n") || "no comment with those ids on that post"); }
   else if (cmd === "unanswered") {
     // the comments on my posts that carry no reply of mine, with their FULL ids (a reply needs one), compact enough to read
     // in my own context instead of a subagent's: a mechanical read is a script's job (2026-09-20).
