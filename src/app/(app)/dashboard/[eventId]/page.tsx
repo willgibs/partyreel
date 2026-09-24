@@ -32,9 +32,9 @@ import { getLinkStats } from "@/lib/db/queries/analytics";
 import { getEvent } from "@/lib/db/queries/events";
 import { getUploaderIdentities } from "@/lib/db/queries/guest-events-admin";
 import { getEventLikeCounts } from "@/lib/db/queries/likes";
-import { listEventMedia } from "@/lib/db/queries/media";
+import { countEventMedia, listEventMedia } from "@/lib/db/queries/media";
 import { getProfile } from "@/lib/db/queries/profile";
-import { getReelConfig, listReelItems } from "@/lib/db/queries/reel";
+import { countReelItems, getReelConfig } from "@/lib/db/queries/reel";
 import {
   getEventGuests,
   getEventSocialSettings,
@@ -128,23 +128,31 @@ export default async function EventDetailPage({
     customSlug: event.custom_slug,
   });
 
+  // ★ THE ALBUM IS READ WHOLE AND ITS NUMBERS ARE COUNTED (the 1,000-row round):
+  // `listEventMedia` pages to the album's last photograph, and every number on
+  // this page is a head count (`countEventMedia`, `countReelItems`), never the
+  // length of a list. The page reads the `album` slice alone (approved +
+  // hidden): pending lives in the Review room, which reads its own queue, and
+  // 'removed' lives in the bin, the album's Deleted filter.
   const [
-    media,
+    visibleMedia,
+    counts,
     linkStats,
     uploaderIdentities,
     likeCounts,
-    reelIds,
+    reelClipCount,
     reelConfig,
     guests,
     socialSettings,
     myProfileSlug,
     jar,
   ] = await Promise.all([
-    listEventMedia(event.id),
+    listEventMedia(event.id, "album"),
+    countEventMedia(event.id),
     getLinkStats(event.id),
     getUploaderIdentities(event.id),
     getEventLikeCounts(event.id),
-    listReelItems(event.id),
+    countReelItems(event.id),
     getReelConfig(event.id),
     getEventGuests(event.id),
     getEventSocialSettings(event.id),
@@ -155,18 +163,18 @@ export default async function EventDetailPage({
   // r1, `gallery-controls-persistence`; events-view.ts's own precedent).
   const tileSize = resolveTileSize(jar.get(TILE_SIZE_COOKIE)?.value);
 
-  const galleryItems = await toHostGalleryItems({
-    media,
+  // hold_for_approval uploads arrive as 'pending' and live in the Review ROOM;
+  // approved + hidden are the album, the only slice this page presigns.
+  const visibleItems = await toHostGalleryItems({
+    media: visibleMedia,
     eventName: event.name,
     uploaderIdentities,
     likeCounts,
   });
-
-  // hold_for_approval uploads arrive as 'pending' and live in the Review ROOM;
-  // approved + hidden are the album. 'removed' never reaches here (listEventMedia
-  // filters it) and lives in the bin, which is the album's Deleted filter.
-  const pendingItems = galleryItems.filter((m) => m.status === "pending");
-  const visibleItems = galleryItems.filter((m) => m.status !== "pending");
+  // The album's count and the Review queue's, counted: approved + hidden, and
+  // pending. The bin's items are in neither (a host reading "48 photos" is
+  // reading the photographs their guests can see or they have tucked away).
+  const { album: itemCount, pending: pendingCount } = counts;
 
   const isModerationOn = event.moderation_mode === "hold_for_approval";
   const views = linkStats.qrScans + linkStats.albumViews;
@@ -178,8 +186,6 @@ export default async function EventDetailPage({
   // It is read for the host directly, not through getGalleryStats (which zeroes
   // a private event's counts as a GUEST privacy guard), so a host always sees
   // the real number on their OWN event, whatever its visibility.
-  const visibleMedia = media.filter((m) => m.status !== "pending");
-  const itemCount = visibleMedia.length;
   const guestsCount = guestCount(guests);
 
   // ★ Visibility left the header's chip row for the Settings card's value line
@@ -199,19 +205,19 @@ export default async function EventDetailPage({
     {
       id: "review" as const,
       value: isModerationOn
-        ? pendingItems.length > 0
-          ? `${pendingItems.length} waiting`
+        ? pendingCount > 0
+          ? `${pendingCount} waiting`
           : "All caught up"
         : "Off",
-      amber: isModerationOn && pendingItems.length > 0,
-      count: isModerationOn && pendingItems.length > 0 ? pendingItems.length : undefined,
+      amber: isModerationOn && pendingCount > 0,
+      count: isModerationOn && pendingCount > 0 ? pendingCount : undefined,
     },
     {
       id: "reel" as const,
       // The card reads "Create reel" until one exists; the room holds the
       // builder before birth and the studio after it.
       value: reelConfig
-        ? `${reelIds.length} ${reelIds.length === 1 ? "clip" : "clips"}`
+        ? `${reelClipCount} ${reelClipCount === 1 ? "clip" : "clips"}`
         : "Create reel",
     },
     {
@@ -312,7 +318,7 @@ export default async function EventDetailPage({
             <EventCardsRow eventId={event.id} cards={cards} />
             <EventGallery
               eventId={event.id}
-              albumCount={visibleItems.length}
+              albumCount={itemCount}
               launchCount={launch.length}
               videosAllowed={videosAllowedForTier(tier)}
               initialTileSize={tileSize}
@@ -320,7 +326,7 @@ export default async function EventDetailPage({
               <EventUploads
                 eventId={event.id}
                 items={visibleItems}
-                pendingCount={pendingItems.length}
+                pendingCount={pendingCount}
                 shareUrl={eventLink}
                 launchList={
                   <LaunchList
@@ -337,7 +343,7 @@ export default async function EventDetailPage({
         <EventSheets
           event={event}
           tier={tier}
-          pendingCount={pendingItems.length}
+          pendingCount={pendingCount}
           social={
             socialSettings
               ? {

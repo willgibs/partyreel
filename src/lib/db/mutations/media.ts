@@ -14,10 +14,21 @@
  * Phase-3 `purgeMediaNow` (host "permanent delete now") — it deletes R2 then calls the
  * `purge_media_now` RPC (rows + profiles.storage_used_bytes). See
  * src/app/api/cron/purge/route.ts.
+ *
+ * ★ A SELECTION RIDES THE URL IN CHUNKS (the 1,000-row round, 2026-09-23). A bulk write's
+ * `.in("id", selection)` puts every id in the request URL (about 39 characters an id), so an
+ * unchunked "Select all" on a big album would outgrow postgrest-js's 8,000-character limit and fail
+ * whole. Every selection here goes through `inChunks` (150 ids a request), and the counts are the
+ * rows the writes returned (a write's answer is never capped). Chunks are separate requests, so a
+ * failure part-way leaves the earlier chunks written: each write is an idempotent state change,
+ * the action reports the failure, and the hub's live poll sees the rows that did move. The actions
+ * refuse a selection past `MAX_BULK_ITEMS` before any of this runs.
  */
 import "server-only";
 
+import { mustQuery } from "@/lib/db/must-query";
 import { type MutationResult } from "@/lib/db/mutations/events";
+import { inChunks } from "@/lib/db/read-all";
 import { deleteR2Objects } from "@/lib/r2/delete";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -171,16 +182,24 @@ async function bulkSetFromPending(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  // row-cap-todo: M13 a bulk selection of any size rides one URL: Select all on a big album fails
-  const { data, error } = await supabase
-    .from("media")
-    .update({ status })
-    .eq("event_id", eventId)
-    .in("id", mediaIds)
-    .eq("status", "pending")
-    .select("id");
-
-  if (error) {
+  try {
+    const rows = await inChunks(
+      "media: bulk from pending",
+      mediaIds,
+      async (chunk) =>
+        (await mustQuery(
+          supabase
+            .from("media")
+            .update({ status })
+            .eq("event_id", eventId)
+            .in("id", chunk)
+            .eq("status", "pending")
+            .select("id"),
+          "media: bulk from pending",
+        )) ?? [],
+    );
+    return { ok: true, data: { count: rows.length } };
+  } catch {
     return {
       ok: false,
       code: "unknown",
@@ -190,7 +209,6 @@ async function bulkSetFromPending(
           : "Couldn't hide those items. Please try again.",
     };
   }
-  return { ok: true, data: { count: data?.length ?? 0 } };
 }
 
 export function approveBulk(eventId: string, mediaIds: string[]) {
@@ -222,16 +240,24 @@ export async function setMediaStatusBulk(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  // row-cap-todo: M13 a bulk selection of any size rides one URL
-  const { data, error } = await supabase
-    .from("media")
-    .update({ status })
-    .eq("event_id", eventId)
-    .in("id", mediaIds)
-    .neq("status", "removed")
-    .select("id");
-
-  if (error) {
+  try {
+    const rows = await inChunks(
+      "media: bulk status",
+      mediaIds,
+      async (chunk) =>
+        (await mustQuery(
+          supabase
+            .from("media")
+            .update({ status })
+            .eq("event_id", eventId)
+            .in("id", chunk)
+            .neq("status", "removed")
+            .select("id"),
+          "media: bulk status",
+        )) ?? [],
+    );
+    return { ok: true, data: { count: rows.length } };
+  } catch {
     return {
       ok: false,
       code: "unknown",
@@ -241,7 +267,6 @@ export async function setMediaStatusBulk(
           : "Couldn't show those items. Please try again.",
     };
   }
-  return { ok: true, data: { count: data?.length ?? 0 } };
 }
 
 /**
@@ -261,23 +286,33 @@ export async function removeMediaBulk(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  // row-cap-todo: M13 a bulk selection of any size rides one URL
-  const { data, error } = await supabase
-    .from("media")
-    .update({ status: "removed", removed_at: new Date().toISOString() })
-    .eq("event_id", eventId)
-    .in("id", mediaIds)
-    .neq("status", "removed")
-    .select("id");
-
-  if (error) {
+  // ONE removal stamp for the whole selection, however many chunks carry it, so the bin keeps it
+  // together (its keyset walks the shared timestamp by id).
+  const removedAt = new Date().toISOString();
+  try {
+    const rows = await inChunks(
+      "media: bulk remove",
+      mediaIds,
+      async (chunk) =>
+        (await mustQuery(
+          supabase
+            .from("media")
+            .update({ status: "removed", removed_at: removedAt })
+            .eq("event_id", eventId)
+            .in("id", chunk)
+            .neq("status", "removed")
+            .select("id"),
+          "media: bulk remove",
+        )) ?? [],
+    );
+    return { ok: true, data: { count: rows.length } };
+  } catch {
     return {
       ok: false,
       code: "unknown",
       message: "Couldn't remove those items. Please try again.",
     };
   }
-  return { ok: true, data: { count: data?.length ?? 0 } };
 }
 
 /**
@@ -419,14 +454,25 @@ export async function purgeMediaNow(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  // row-cap-todo: M13 the purge selection rides one URL
-  const { data: rows, error: readErr } = await supabase
-    .from("media")
-    .select("id, original_key, preview_key")
-    .eq("event_id", eventId)
-    .in("id", mediaIds)
-    .eq("status", "removed");
-  if (readErr) {
+  // The caller's own removed media among the selection: every row, in chunks, because the R2 delete
+  // below frees exactly these keys and a row missed here would keep its objects forever.
+  let owned: { id: string; original_key: string; preview_key: string | null }[];
+  try {
+    owned = await inChunks(
+      "media: purge selection",
+      mediaIds,
+      async (chunk) =>
+        (await mustQuery(
+          supabase
+            .from("media")
+            .select("id, original_key, preview_key")
+            .eq("event_id", eventId)
+            .in("id", chunk)
+            .eq("status", "removed"),
+          "media: purge selection",
+        )) ?? [],
+    );
+  } catch {
     return {
       ok: false,
       code: "unknown",
@@ -441,26 +487,33 @@ export async function purgeMediaNow(
   // invisible to the investigated party; referencing it through the RLS client would error). The
   // RLS read above already proved every id is the caller's own removed media, so this is a pure
   // held-id subtraction, never an authz widening. (`.filter` because legal_hold_at isn't in the
-  // generated types until the orchestrator regenerates post-apply.)
-  let owned = rows ?? [];
+  // generated types until the orchestrator regenerates post-apply.) Chunked like the read above:
+  // a hold the check never asked about would be a held object deleted.
   if (owned.length > 0) {
-    // row-cap-todo: M13 the purge selection's hold check rides one URL
-    const { data: held, error: holdErr } = await createAdminClient()
-      .from("media")
-      .select("id")
-      .in(
-        "id",
+    const admin = createAdminClient();
+    let held: { id: string }[];
+    try {
+      held = await inChunks(
+        "media: purge hold check",
         owned.map((r) => r.id),
-      )
-      .filter("legal_hold_at", "not.is", null);
-    if (holdErr) {
+        async (chunk) =>
+          (await mustQuery(
+            admin
+              .from("media")
+              .select("id")
+              .in("id", chunk)
+              .filter("legal_hold_at", "not.is", null),
+            "media: purge hold check",
+          )) ?? [],
+      );
+    } catch {
       return {
         ok: false,
         code: "unknown",
         message: "Couldn't delete those items. Please try again.",
       };
     }
-    const heldIds = new Set((held ?? []).map((r) => r.id));
+    const heldIds = new Set(held.map((r) => r.id));
     owned = owned.filter((r) => !heldIds.has(r.id));
   }
   if (owned.length > 0) {

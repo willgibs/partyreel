@@ -36,8 +36,9 @@ export async function toHostGalleryItems({
 }): Promise<GridMedia[]> {
   return Promise.all(
     media.map(async (m) => {
-      // Two presigned URLs per item from one key: an INLINE url the grid/lightbox
-      // render, and a forced-download (`attachment`) url the lightbox's Save uses.
+      // Up to three presigned URLs per item: an INLINE url the grid/lightbox render
+      // and a forced-download (`attachment`) url the lightbox's Save uses, both
+      // from the original's key, and the tile's small preview when it has one.
       const [url, downloadUrl, previewUrl] = await Promise.all([
         presignDownload({ key: m.original_key, stable: true }),
         presignDownload({

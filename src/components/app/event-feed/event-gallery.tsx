@@ -324,12 +324,12 @@ const SLOW_POLL_MS = 60_000;
  * mounts it exactly once.
  *
  * ★ NOTHING HERE RUNS ON A TIMER EXCEPT THE CHEAP QUESTION. The hub page is
- * eleven queries plus three presigns per item, so refreshing it on a clock would
+ * a dozen queries plus three presigns per item, so refreshing it on a clock would
  * be the most expensive poll in the product and would spend most of its money
  * re-rendering an album nobody added to. Exactly two signals spend a refresh:
  * the Realtime doorbell rings, or `/api/events/<id>/live` answers with a
- * fingerprint that is not the one we hold. That route is one select, no
- * presigns, and a bodiless 304 when nothing moved.
+ * fingerprint that is not the one we hold. That route is two head counts and a
+ * one-row read, no presigns, and a bodiless 304 when nothing moved.
  *
  * ★ THE TWO SIGNALS ARE NOT REDUNDANT, AND THAT IS WHY THE POLL SURVIVES BESIDE
  * THE SOCKET. The doorbell's DB trigger fires on the APPROVED-VISIBLE set

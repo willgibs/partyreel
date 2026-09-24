@@ -7,6 +7,11 @@
  * — for bulk "Download selected" — narrowed to the selected ids (a foreign id simply can't match,
  * since listEventMedia already scopes to this event). The shared service does the kill-switch +
  * limiter + cap + token sign + log.
+ *
+ * ★ THE ALBUM IS READ WHOLE (the 1,000-row round): `listEventMedia` pages to the last row, so the
+ * summary counts every item and the manifest's MAX_EXPORT_ITEMS (2,000) refuses an album past it
+ * with a 413. Through one PostgREST request a 2,500-item album would arrive as its newest 1,000: the
+ * summary would under-count, and the zip would silently leave out the oldest 1,500.
  */
 import { NextResponse } from "next/server";
 

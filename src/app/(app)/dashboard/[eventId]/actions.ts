@@ -3,6 +3,8 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 
+import { z } from "zod";
+
 import { type ActionResult } from "@/app/(app)/dashboard/actions";
 import {
   approveAllPending,
@@ -18,6 +20,7 @@ import {
   type SettableMediaStatus,
 } from "@/lib/db/mutations/media";
 import { listRecentlyDeletedMedia } from "@/lib/db/queries/media";
+import { BULK_LIMIT_MESSAGE, MAX_BULK_ITEMS } from "@/lib/event/bulk-selection";
 import { captureError } from "@/lib/observability/sentry";
 import { presignDownload } from "@/lib/r2/presign";
 import { createClient } from "@/lib/supabase/server";
@@ -38,6 +41,24 @@ const SETTABLE_STATUSES: readonly SettableMediaStatus[] = [
 
 function isSettableStatus(value: string): value is SettableMediaStatus {
   return (SETTABLE_STATUSES as readonly string[]).includes(value);
+}
+
+const mediaIdList = z.array(z.uuid());
+
+/**
+ * Every bulk verb's id list, checked HERE, at the action boundary: a Server Function is a public
+ * endpoint and the list is a raw client value. Past `MAX_BULK_ITEMS` (the export's 2,000) the
+ * host is told the limit in words; the length is checked BEFORE the ids are parsed, so an
+ * oversized list costs nothing. Returns the refusal, or null when the list may run.
+ */
+function refuseSelection(mediaIds: unknown): ActionResult | null {
+  if (Array.isArray(mediaIds) && mediaIds.length > MAX_BULK_ITEMS) {
+    return { ok: false, code: "validation", message: BULK_LIMIT_MESSAGE };
+  }
+  if (!mediaIdList.safeParse(mediaIds).success) {
+    return { ok: false, code: "validation", message: "Unsupported selection." };
+  }
+  return null;
 }
 
 export async function setMediaStatusAction(
@@ -79,11 +100,15 @@ export async function approveAllPendingAction(
 
 // Bulk approve / hide SELECTED pending items from the review surface (S3·3b·D).
 // Mirror purgeMediaNowAction's array shape: the wrapper is scoped to pending +
-// RLS-gated to the host's event; revalidate on success.
+// RLS-gated to the host's event; revalidate on success. The Review room's
+// Approve all reaches past MAX_BULK_ITEMS by batching (`inBulkBatches`).
 export async function approveBulkAction(
   eventId: string,
   mediaIds: string[],
 ): Promise<ActionResult> {
+  const refused = refuseSelection(mediaIds);
+  if (refused) return refused;
+
   const result = await approveBulk(eventId, mediaIds);
   if (!result.ok) return result;
 
@@ -95,6 +120,9 @@ export async function hideBulkAction(
   eventId: string,
   mediaIds: string[],
 ): Promise<ActionResult> {
+  const refused = refuseSelection(mediaIds);
+  if (refused) return refused;
+
   const result = await hideBulk(eventId, mediaIds);
   if (!result.ok) return result;
 
@@ -113,6 +141,8 @@ export async function setMediaStatusBulkAction(
   if (!isSettableStatus(status)) {
     return { ok: false, code: "validation", message: "Unsupported status." };
   }
+  const refused = refuseSelection(mediaIds);
+  if (refused) return refused;
 
   const result = await setMediaStatusBulk(eventId, mediaIds, status);
   if (!result.ok) return result;
@@ -125,6 +155,9 @@ export async function removeMediaBulkAction(
   eventId: string,
   mediaIds: string[],
 ): Promise<ActionResult> {
+  const refused = refuseSelection(mediaIds);
+  if (refused) return refused;
+
   const result = await removeMediaBulk(eventId, mediaIds);
   if (!result.ok) return result;
 
@@ -201,6 +234,9 @@ export async function purgeMediaNowAction(
   eventId: string,
   mediaIds: string[],
 ): Promise<ActionResult> {
+  const refused = refuseSelection(mediaIds);
+  if (refused) return refused;
+
   const result = await purgeMediaNow(eventId, mediaIds);
   if (!result.ok) {
     if (result.code === "unknown") {
@@ -304,14 +340,15 @@ export async function setReelGuestVisibleAction(
  * the album as a filter").
  *
  * ★ WHY AN ACTION AND NOT A PROP ON THE PAGE. Every bin item needs its own
- * presigned URL, and presigning is a per-request round trip each. Folding the
- * bin into the hub's payload would buy N presigns on EVERY render of the event
- * page — for a drawer most hosts open once, to recover one photograph, weeks
- * after they deleted it. The filter is the moment to pay for it.
+ * presigned URL, a signature computed on the request that renders it. Folding
+ * the bin into the hub's payload would buy N presigns on EVERY render of the
+ * event page — for a drawer most hosts open once, to recover one photograph,
+ * weeks after they deleted it. The filter is the moment to pay for it.
  *
- * RLS scopes `listRecentlyDeletedMedia` to the host's own event, and the
- * presigns are INLINE-only (no download url), so the lightbox hides Save on a
- * binned item exactly as it does on the retired settings route.
+ * RLS scopes `listRecentlyDeletedMedia` to the host's own event and reads the
+ * whole bin (a keyset, never the first 1,000), and the presigns are
+ * INLINE-only (no download url), so the lightbox hides Save on a binned item
+ * exactly as it does on the retired settings route.
  */
 export type BinItem = {
   id: string;

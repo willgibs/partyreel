@@ -234,6 +234,39 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY, {
 const fmt = (n) => n.toLocaleString("en-US");
 const mb = (n) => `${(n / 1024 / 1024).toFixed(2)} MB`;
 
+/**
+ * PostgREST's `max_rows` on this project (1,000): read-all.ts's MAX_ROWS, pinned there to
+ * supabase/config.toml. One read never returns more, and it cuts with no error, so every list below
+ * pages, and every id list handed to purge_media_rows stops at it too.
+ */
+const PAGE = 1000;
+
+/**
+ * Read a list to its last row, one keyset page at a time: `readAllPages` (src/lib/db/read-all.ts)
+ * in miniature, because that module imports `@/lib/db/must-query` at runtime, which plain Node cannot
+ * resolve (the note on the single-sources above). Its rules, kept: `page(after)` builds a FRESH query
+ * ending in `.limit(PAGE)`, a page shorter than PAGE is the last, and an error, an over-long page or a
+ * cursor that did not advance stops the run rather than reading on or looping.
+ */
+async function readAllRows(label, page, keyOf) {
+  const rows = [];
+  let after = null;
+  for (;;) {
+    const { data, error } = await page(after);
+    if (error) fail(`${label}: ${error.message}`);
+    const batch = data ?? [];
+    if (batch.length > PAGE)
+      fail(
+        `${label}: a page returned ${batch.length} rows for a limit of ${PAGE}`,
+      );
+    rows.push(...batch);
+    if (batch.length < PAGE) return rows;
+    const next = keyOf(batch[batch.length - 1]);
+    if (next === after) fail(`${label}: the cursor did not advance`);
+    after = next;
+  }
+}
+
 /** Write in-memory bytes to a path ffmpeg can read. */
 async function writeBytes(path, bytes) {
   await writeFile(
@@ -526,13 +559,24 @@ async function listEventMediaObjects(eventId) {
  * profiles.storage_used_bytes is decremented, which a direct delete would silently skip.
  */
 async function wipeExistingMedia(eventId) {
-  // row-cap-todo: M18 the event's media is cut at 1,000, so a reseed over a bigger album leaves the rest
-  const { data: rows, error } = await supabase
-    .from("media")
-    .select("id, original_key, preview_key, legal_hold_at")
-    .eq("event_id", eventId);
-  if (error) fail(`Couldn't read the event's media: ${error.message}`);
-  const existing = rows ?? [];
+  // EVERY row, held ones included, paged on id: `keepKeys` below is built from this list, and the R2
+  // sweep deletes every object under the event that is not in it, so a held row this read missed
+  // would lose its files (an unpaged read ends at 1,000 rows, and every row past it would also
+  // survive the purge).
+  const existing = await readAllRows(
+    "Couldn't read the event's media",
+    (after) => {
+      let q = supabase
+        .from("media")
+        .select("id, original_key, preview_key, legal_hold_at")
+        .eq("event_id", eventId)
+        .order("id", { ascending: true })
+        .limit(PAGE);
+      if (after) q = q.gt("id", after);
+      return q;
+    },
+    (r) => r.id,
+  );
   if (existing.length === 0) {
     console.log("  no existing media to replace");
     return;
@@ -567,15 +611,17 @@ async function wipeExistingMedia(eventId) {
   }
   console.log(`  deleted ${fmt(deleted)} R2 object(s)`);
 
-  const { data: freed, error: purgeErr } = await supabase.rpc(
-    "purge_media_rows",
-    { p_media_ids: purgeable.map((r) => r.id) },
-  );
-  if (purgeErr) fail(`purge_media_rows failed: ${purgeErr.message}`);
-  const freedBytes = (freed ?? []).reduce(
-    (sum, r) => sum + Number(r.freed_bytes ?? 0),
-    0,
-  );
+  // At most PAGE ids a call: purge_media_rows answers one row per host among its input (the policy
+  // test's SINGLE_ROW note), and every caller holds its input to PAGE so the answer is never cut.
+  let freedBytes = 0;
+  for (let i = 0; i < purgeable.length; i += PAGE) {
+    const { data: freed, error: purgeErr } = await supabase.rpc(
+      "purge_media_rows",
+      { p_media_ids: purgeable.slice(i, i + PAGE).map((r) => r.id) },
+    );
+    if (purgeErr) fail(`purge_media_rows failed: ${purgeErr.message}`);
+    for (const r of freed ?? []) freedBytes += Number(r.freed_bytes ?? 0);
+  }
   console.log(
     `  purged ${fmt(purgeable.length)} row(s), freed ${mb(freedBytes)} of the host's storage`,
   );
