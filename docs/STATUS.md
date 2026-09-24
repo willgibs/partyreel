@@ -13,16 +13,16 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoin
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: the loose ends, milestone 27, and the event-safety board
+## The current round: no read stops at 1,000 rows, then milestone 28
 
-Will's message of 2026-09-23 (the plan: `~/.claude/plans/great-work-however-1-dapper-twilight.md`, its top section):
-- **The rulings round's loose ends are merged**: a one-field event save writes only its field (it had opened password
-  and private albums and approved held uploads), the Guests room shows a confirmed guest's address to the host alone
-  (his ruling), the round's Now lines, and `host_storage_summary` (applied).
-- **Milestone 27 is live** (`546e2489`); the identity contract applied after it (Will's approval), and the Stripe TEST
-  walk passed on partyreel.com (Checkout to Pro 100 GB, Change plan to 500 GB, the $10.00 proration).
-- **Next, before milestone 28** (approved): `upload-owner` merged (a claimed guest row uploads only for its signed-in
-  owner); `delete-final` building (a guest's own delete final, and said so); the 1,000-row audit, then its fixes.
+Will's asks of 2026-09-23 (the plan: `~/.claude/plans/great-work-however-1-dapper-twilight.md`, its top section):
+- **Milestone 27 is live** (`546e2489`) with the identity contract applied after it; the Stripe TEST walk passed on
+  partyreel.com; `upload-owner` and `delete-final` are merged (a claimed guest row uploads only for its owner; a guest's
+  own delete is final and says so), their migrations applied.
+- **The 1,000-row round** ("Let's ensure we will not face any of those issues here"): PostgREST's `max_rows` (live:
+  1,000, verified on a 1,200-photo scale probe; write responses are not capped) silently clips 50 audited reads.
+  Stage 1 builds the helper, the guards and the SQL (`rowcap-kit`, `rowcap-sql`); stage 2's four lanes fix the sites;
+  then alias build 4, its red-team and milestone 28 (approved).
 - **A block for bad actors** (his concept): the `event-safety` board on his three answers (a block puts the person out
   and removes their uploads; approve newcomers, close to newcomers and an invite list; all free on every plan).
 - **The reel round** waits on his desk review: the rolling live composer and the video window reader are on the tree
