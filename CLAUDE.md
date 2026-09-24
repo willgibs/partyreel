@@ -62,7 +62,8 @@ Clarify hard up front, then execute boldly; stop only for a genuinely new decisi
 ## The gate and git
 
 The gate, each step on its own exit code: `pnpm typecheck`, `pnpm lint` (a warning in a file you touched is yours),
-`pnpm test`, `pnpm build`, then `pnpm lab:smoke --base <your dev server>` and, for a board,
+`pnpm test`, `zsh scripts/build-lock.sh pnpm build` (builds take turns across lanes; parallel builds strain the
+machine), then `pnpm lab:smoke --base <your dev server>` and, for a board,
 `pnpm lab:demo --board <id> --base <your dev server>`. Typecheck, lint and test before every commit; the whole gate
 before a handoff. CI is not the gate.
 

@@ -27,6 +27,9 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## In flight
 
+Up to eight lanes at once (Will, 2026-09-24); every production build, a lane's or the kit's gate, takes turns
+through `scripts/build-lock.sh` (run `integrate.sh` under it until `library-lean` wraps `gate-lane.sh`'s build step).
+
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `library-lean` | the Library as the brand kit, the catalog and the ten; the rules machinery retired; the look tests deleted (Will, 2026-09-24); the recipe proved by a fresh agent | running (agent `a1d746afe297ea42a`), cut at `d1f59826` from `specs/library-lean.json` | Opus, :3131 | hand-merge in the order its handoff gives (the merge, then its `package.json`, `.prettierignore`, CLAUDE.md, PROGRAM.md and `docs/reviews/README.md` lines, then its new gate: the old merge script calls `design:rules`); return bible.ts, bible.test.ts, registry.ts, boards.ts and marketing.css to `owns`; a `[preview]` for Will; the bible's ten go in synthesized (`bible-synth/bible.ts`, sent; check the /rules page reads them); then one message to `reel-guest-wiring`: sync, apply bible-ten's eight guest lines (listed in the scratch `bible-ten/manifest-final.md`, its Handoff), strip the `@contract-for`, `@policy` and `@refuses` headers in its owns, reword any comment there that cites a pick as a rule (Will's working-versions note, CLAUDE.md "Rising tides"), re-gate, hand off again |
