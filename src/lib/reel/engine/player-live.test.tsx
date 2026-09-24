@@ -479,6 +479,19 @@ describe("LiveReelPlayer", () => {
     expect(monotonic(seen)).toBe(true);
   });
 
+  it("names the clip on screen for the view's tap, and a photograph has no video moment", async () => {
+    const handle = createRef<LiveReelPlayerHandle>();
+    const { seen } = await mountPlayer({ ref: handle });
+    await tickFrames(30, 1000 / 24);
+    expect(handle.current!.moment()).toEqual({
+      clipId: seen.at(-1)!.clipId,
+      videoSec: null,
+    });
+    // It follows a step at once, before the next tick has drawn anything.
+    await act(async () => handle.current!.step(1));
+    expect(handle.current!.moment()?.clipId).not.toBe(seen.at(-1)!.clipId);
+  });
+
   it("★ a throwing draw reports and the tick keeps running", async () => {
     const failures: number[] = [];
     const { seen } = await mountPlayer({ onFailure: (n) => failures.push(n) });

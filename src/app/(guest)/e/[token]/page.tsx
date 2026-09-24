@@ -47,6 +47,7 @@ import {
   eventCardPath,
 } from "@/lib/guest/event-card";
 import { readGuestSessionCookie } from "@/lib/guest/session-cookie";
+import { PHOTO_PARAM, readPhotoParam } from "@/lib/media/share-save";
 import { presignDownload } from "@/lib/r2/presign";
 import { resolveTileSize, TILE_SIZE_COOKIE } from "@/lib/shared/tile-size-cookie";
 import { getSiteUrl } from "@/lib/site-url";
@@ -108,7 +109,7 @@ export async function generateMetadata({
   // where it happens, at the entry modal's account step.
   const description = "Photos and videos from the day. Add yours.";
 
-  const photo = await photoCard(event, (await searchParams).photo);
+  const photo = await photoCard(event, (await searchParams)[PHOTO_PARAM]);
   if (photo) {
     const title = `A photo from ${event.name}`;
     return {
@@ -172,7 +173,14 @@ async function photoCard(
   event: GuestEvent,
   raw: string | string[] | undefined,
 ): Promise<{ url: string; width?: number; height?: number; alt: string } | null> {
-  const parsed = photoIdSchema.safeParse(Array.isArray(raw) ? raw[0] : raw);
+  // The viewer's own reading of the address (share-save.ts), so the card and the viewer answer the
+  // same links; then the column's own type, since a malformed id must never reach the query as an
+  // error (every media id is a uuid).
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  const shaped = value
+    ? readPhotoParam(`?${PHOTO_PARAM}=${encodeURIComponent(value)}`)
+    : null;
+  const parsed = photoIdSchema.safeParse(shaped);
   if (!parsed.success) return null;
   const anonymous = resolveGalleryDecision(event, {
     isOwner: false,

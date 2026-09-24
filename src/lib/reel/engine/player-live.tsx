@@ -99,10 +99,18 @@ export type LiveFrameState = {
  * hands over to the next window at once when that window is ready. Back restarts the photograph on
  * screen, or, pressed again within its first half-second, goes to the one before it in this window.
  * A window already released is gone for good, so the first photograph of a window only restarts.
+ *
+ * `moment()` is the view's tap: the clip on screen and, for a video playing its motion window, how
+ * far into the file the reel has reached, so the media viewer carries on from that moment rather than
+ * the start. A video drawn as its poster (videos off, over budget, a poster pass) has no moment.
  */
 export type LiveReelPlayerHandle = {
   step: (delta: 1 | -1) => void;
+  moment: () => LiveReelMoment | null;
 };
+
+/** The clip on screen, and a playing video's position in its own file (seconds), else null. */
+export type LiveReelMoment = { clipId: string; videoSec: number | null };
 
 export type LiveReelPlayerProps = {
   ref?: Ref<LiveReelPlayerHandle>;
@@ -470,6 +478,28 @@ export function LiveReelPlayer({
         const intoTop = local - cleanStart(top);
         const target = top > 0 && intoTop < FPS / 2 ? top - 1 : top;
         state.frameOffset = globalFrame - cleanStart(target);
+      },
+      moment() {
+        const state = rt.current;
+        const active = state.active;
+        if (!active) return null;
+        const plan = active.window.plan;
+        // The frame the tick last drew, by the same arithmetic (the clock and the offset).
+        const local = Math.min(
+          Math.max(0, plan.totalFrames - 1),
+          Math.max(0, Math.floor(state.elapsedSec * FPS) - state.frameOffset),
+        );
+        const top = frameStateAt(plan, local).top;
+        const clipId = active.window.ids[top.clipIndex];
+        if (!clipId) return null;
+        // A video's motion is the file from its in-point (0 on the live reel: `live/items.ts`) at
+        // the clip's own local time, and it holds its last frame once the fetched window runs out,
+        // so the moment is capped there too. A clip the ladder sent to its poster has none.
+        const decision = active.playback?.decisions().get(top.clipIndex);
+        const videoSec = decision?.motion
+          ? Math.min(top.localFrame / FPS, decision.plan.windowSec)
+          : null;
+        return { clipId, videoSec };
       },
     }),
     [swapTo],

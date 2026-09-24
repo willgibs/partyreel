@@ -12,8 +12,10 @@
  * album entry beneath it. A view opened from a deep link has no album entry beneath it, so closing
  * that one REPLACES the address instead: closing a reel must never navigate off the page.
  *
- * ★ EVERY OTHER PARAMETER SURVIVES. The demo's `?pair=` and the viewer's `?photo=` ride the same
- * address; only `reel` is ever written here.
+ * ★ EVERY OTHER PARAMETER SURVIVES, AS WRITTEN. The demo's `?pair=`, the viewer's `?photo=` and
+ * anything a campaign added ride the same address, and only the `reel` segment is ever touched here:
+ * the rest is kept byte for byte, never re-serialised through URLSearchParams (which would rewrite
+ * `%20` as `+`). The viewer's `withPhotoParam` (lib/media/share-save.ts) is the mirror.
  *
  * `window.location` is the one source of truth, read through `useSyncExternalStore` (the server
  * snapshot is null, so the first client render matches the HTML), with `popstate` and this module's
@@ -33,16 +35,27 @@ export function readReelParam(search: string): ReelMode | null {
   return params.get(REEL_PARAM) === "screen" ? "screen" : "hand";
 }
 
-/** The same address with the reel parameter set to `mode`, or removed (null). */
+/** The same address with the reel parameter set to `mode` (the bare `?reel` for the view), or
+ *  removed (null); every other segment kept as written. */
 export function withReelParam(href: string, mode: ReelMode | null): string {
-  const url = new URL(href);
-  if (mode === null) url.searchParams.delete(REEL_PARAM);
-  else url.searchParams.set(REEL_PARAM, mode === "screen" ? "screen" : "");
-  // `?reel=` reads as `?reel` to every reader here; keep the bare form in the address bar.
-  const search = url.searchParams
-    .toString()
-    .replace(new RegExp(`(^|&)${REEL_PARAM}=(?=&|$)`), `$1${REEL_PARAM}`);
-  return `${url.pathname}${search ? `?${search}` : ""}${url.hash}`;
+  const url = new URL(href, "http://localhost");
+  const keyOf = (part: string) => {
+    const key = part.split("=")[0] ?? "";
+    try {
+      return decodeURIComponent(key);
+    } catch {
+      return key;
+    }
+  };
+  const kept = url.search
+    .replace(/^\?/, "")
+    .split("&")
+    .filter((part) => part !== "" && keyOf(part) !== REEL_PARAM);
+  if (mode !== null) {
+    kept.push(mode === "screen" ? `${REEL_PARAM}=screen` : REEL_PARAM);
+  }
+  const search = kept.length ? `?${kept.join("&")}` : "";
+  return `${url.pathname}${search}${url.hash}`;
 }
 
 const CHANGE = "pr:reel-param";

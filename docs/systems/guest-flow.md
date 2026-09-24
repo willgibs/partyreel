@@ -248,7 +248,8 @@ phone half becoming vaul-backed for every consumer, never a per-dialog exception
   branded dark surface; a private or unknown event draws the generic card) and named by `generateMetadata`
   from [`event-card.ts`](../../src/lib/guest/event-card.ts). ★ It is a route, not an `opengraph-image`
   file, because a file-based image outranks `generateMetadata` and the image depends on the query:
-  `/e/<token>?photo=<id>` unfurls as THAT photograph, titled "A photo from <event name>" (its preview, or a
+  `/e/<token>?photo=<id>` (the viewer's own address, read with its own `readPhotoParam`, so the card and
+  the viewer answer the same links) unfurls as THAT photograph, titled "A photo from <event name>" (its preview, or a
   photo's original where it has none, presigned server-side; a video unfurls as its poster), but only on an
   album ANYONE may open (`resolveGalleryDecision` for an identity-less visitor is `full`) and only for an
   approved item of this event (`getOpenAlbumItemForCard`). A gated album, a malformed, unknown, held, hidden,
@@ -900,7 +901,8 @@ creator's (below).
   ([`reel-url.ts`](../../src/lib/guest/reel-url.ts)): opening PUSHES an entry marked in its own history state
   (`prReelPushed`), so a phone's back gesture closes the view; closing an entry the page pushed goes back,
   and closing a deep link's view REPLACES the address, so closing never leaves the page. Every other
-  parameter survives.
+  parameter survives AS WRITTEN (only the `reel` segment is touched, never a re-serialised query; the
+  viewer's `withPhotoParam` is the mirror).
   - **The chrome**: at rest a slim glass bar at the foot (play and progress); pointer movement, or a tap on
     the bar on touch, grows it into the dock (a `clip-path` morph, [`live-reel.css`](../../src/components/guest/reel/live-reel.css),
     instant under reduced motion); a resting pointer settles it back (2.4 s; 4.2 s after a touch). Close shows
@@ -919,7 +921,10 @@ creator's (below).
   - **The code** (`Show the code`): a white plate bottom right, the event's QR in the host's preset,
     "Scan to add yours" and the readable address (the custom slug's, when there is one). No event name on
     screen.
-  - A tap on the picture pauses and opens the item in the shared media viewer. Reduced motion holds the
+  - A tap on the picture pauses and opens the item in the shared media viewer, grown out of the FRAME
+    (`origin` of kind `reel` with the picture's rect and no `returnTo`, so the way out lands back in the
+    frame), a playing video carrying on from the reel's moment (`startAt`, from the player's `moment()`;
+    a video drawn as its poster starts at the top). Reduced motion holds the
     first frame with the dock up. The loop never announces its seam. Twelve failed frames or stills send ONE
     Sentry report per view, and every failure also feeds the provider's watchdog.
 - ★ **THE VIEW IS THE WALL: `?reel=screen`** is the same view in its screen posture: the code on and a one-tap

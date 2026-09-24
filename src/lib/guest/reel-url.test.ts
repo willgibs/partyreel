@@ -34,4 +34,18 @@ describe("withReelParam", () => {
     );
     expect(withReelParam(`${base}?reel`, null)).toBe("/e/tok");
   });
+
+  it("keeps the others as written, never re-serialised, and moves between postures", () => {
+    // URLSearchParams would hand back `utm=a+b`: the address is every lane's, so only the reel
+    // segment changes.
+    expect(withReelParam(`${base}?utm=a%20b&photo=m1`, "hand")).toBe(
+      "/e/tok?utm=a%20b&photo=m1&reel",
+    );
+    expect(withReelParam(`${base}?reel&utm=a%20b`, "screen")).toBe(
+      "/e/tok?utm=a%20b&reel=screen",
+    );
+    expect(withReelParam(`${base}?reel=screen&utm=a%20b`, null)).toBe(
+      "/e/tok?utm=a%20b",
+    );
+  });
 });

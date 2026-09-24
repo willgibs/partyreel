@@ -59,6 +59,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { StyledQr } from "@/components/app/styled-qr";
 import { useGalleryLive } from "@/components/guest/gallery-live";
 import { LikesProvider } from "@/components/likes/likes-provider";
+import type { ViewerOrigin } from "@/components/shared/media-lightbox";
 import { MediaLightboxLazy } from "@/components/shared/media-lightbox.lazy";
 import {
   DropdownMenu,
@@ -206,6 +207,11 @@ export function LiveReelView({
   const [menuOpen, setMenuOpen] = useState(false);
   const [dockFocus, setDockFocus] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  // Where the viewer opened from: the frame it grows out of and a video's moment (see openLightbox).
+  const [viewerFrom, setViewerFrom] = useState<{
+    origin: ViewerOrigin;
+    startAt?: number;
+  } | null>(null);
   const [creatorOpen, setCreatorOpen] = useState(false);
   // Never settles BY ITSELF while it is being used, while the reel is paused (a paused reel shows
   // its controls), or under reduced motion ("a control that vanishes unasked is exactly the motion
@@ -339,14 +345,34 @@ export function LiveReelView({
 
   /* ── the lightbox (a tap on the picture) ─────────────────────────────────── */
   const pausedBeforeRef = useRef(false);
+  const pictureRef = useRef<HTMLDivElement>(null);
   const lightboxItems = playable as GalleryItem[];
+  /**
+   * The viewer grows the photograph out of the FRAME (the picture's own box, `kind: "reel"`) and,
+   * with no `returnTo`, lands back in it on the way out; a video carries on from the reel's moment
+   * (`startAt`) rather than its first frame. The player answers which clip is on screen and where
+   * a playing video has reached (`moment()`); the caption's last report is the fallback.
+   */
   const openLightbox = useCallback(() => {
-    const item = onScreenRef.current;
-    if (!item) return;
-    const index = lightboxItems.findIndex((m) => m.id === item.id);
+    const moment = playerRef.current?.moment() ?? null;
+    const id = moment?.clipId ?? onScreenRef.current?.id;
+    if (!id) return;
+    const index = lightboxItems.findIndex((m) => m.id === id);
     if (index < 0) return;
+    const box = pictureRef.current?.getBoundingClientRect() ?? null;
+    const videoSec =
+      lightboxItems[index].type === "video" && moment?.clipId === id
+        ? moment.videoSec
+        : null;
     pausedBeforeRef.current = paused;
     setPaused(true);
+    setViewerFrom({
+      origin: {
+        kind: "reel",
+        rect: box && box.width > 0 && box.height > 0 ? box : null,
+      },
+      ...(videoSec !== null ? { startAt: videoSec } : {}),
+    });
     setLightboxIndex(index);
   }, [lightboxItems, paused]);
   const closeLightbox = useCallback(() => {
@@ -436,6 +462,7 @@ export function LiveReelView({
           {/* THE PICTURE. Full-bleed, the viewport's own orientation; a tap opens the photograph. */}
           {!idle && (
             <div
+              ref={pictureRef}
               className="absolute inset-0"
               onClick={plateUp ? undefined : openLightbox}
               data-reel-picture
@@ -566,8 +593,8 @@ export function LiveReelView({
             />
           )}
 
-          {/* THE MEDIA VIEWER, for a tapped photograph (its current API; `origin`/`startAt` arrive
-              with media-viewer-wiring). Its own likes, since the album's provider sits in the grid. */}
+          {/* THE MEDIA VIEWER, for a tapped photograph: grown out of the frame, a video carrying on
+              from the reel's moment. Its own likes, since the album's provider sits in the grid. */}
           {lightboxIndex !== null && (
             <LikesProvider mediaIds={lightboxItems.map((m) => m.id)}>
               <MediaLightboxLazy
@@ -576,6 +603,8 @@ export function LiveReelView({
                 onClose={closeLightbox}
                 onIndexChange={setLightboxIndex}
                 shareUrl={joinUrl}
+                origin={viewerFrom?.origin}
+                startAt={viewerFrom?.startAt}
               />
             </LikesProvider>
           )}

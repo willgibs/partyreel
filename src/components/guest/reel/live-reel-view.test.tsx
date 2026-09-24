@@ -32,6 +32,7 @@ const h = vi.hoisted(() => ({
   live: null as unknown,
   player: null as null | Record<string, unknown>,
   step: vi.fn(),
+  moment: vi.fn((): unknown => null),
   captureWarning: vi.fn(),
   enterFullscreen: vi.fn(async () => true),
   exitFullscreen: vi.fn(async () => {}),
@@ -47,7 +48,10 @@ vi.mock("@/components/guest/gallery-live", () => ({
 vi.mock("@/lib/reel/engine/player-live", () => ({
   LiveReelPlayer: (props: Record<string, unknown>) => {
     h.player = props;
-    useImperativeHandle(props.ref as never, () => ({ step: h.step }));
+    useImperativeHandle(props.ref as never, () => ({
+      step: h.step,
+      moment: h.moment,
+    }));
     const onClipChange = props.onClipChange as (i: LiveMediaItem) => void;
     const first = (props.source as { itemFor: (id: string) => LiveMediaItem })
       .itemFor("m1");
@@ -164,6 +168,8 @@ beforeEach(() => {
   h.player = null;
   h.lightbox = null;
   h.step.mockClear();
+  h.moment.mockReset();
+  h.moment.mockReturnValue(null);
   h.captureWarning.mockClear();
   h.enterFullscreen.mockClear();
   h.wake.acquire.mockClear();
@@ -305,6 +311,60 @@ describe("a tap on the picture (tap=lightbox)", () => {
     expect(screen.getByTestId("lightbox")).toBeInTheDocument();
     expect(h.lightbox?.index).toBe(0);
     expect(h.player?.paused).toBe(true);
+  });
+
+  it("opens the clip the player says is on screen", () => {
+    renderView();
+    h.moment.mockReturnValue({ clipId: "m2", videoSec: null });
+    fireEvent.click(document.querySelector("[data-reel-picture]")!);
+    expect(h.lightbox?.index).toBe(1);
+  });
+
+  it("grows the viewer out of the frame, and a video carries on from the reel's moment", () => {
+    h.live = live({ items: [item(1, { type: "video" }), item(2), item(3)] });
+    renderView();
+    const picture = document.querySelector<HTMLElement>("[data-reel-picture]")!;
+    vi.spyOn(picture, "getBoundingClientRect").mockReturnValue({
+      x: 0,
+      y: 0,
+      left: 0,
+      top: 0,
+      right: 1440,
+      bottom: 900,
+      width: 1440,
+      height: 900,
+      toJSON: () => ({}),
+    } as DOMRect);
+    h.moment.mockReturnValue({ clipId: "m1", videoSec: 2.5 });
+    fireEvent.click(picture);
+    expect(h.lightbox?.origin).toEqual({
+      kind: "reel",
+      rect: expect.objectContaining({ width: 1440, height: 900 }),
+    });
+    // No `returnTo`: the way out lands back in the frame.
+    expect(h.lightbox?.origin).not.toHaveProperty("returnTo");
+    expect(h.lightbox?.startAt).toBe(2.5);
+  });
+
+  it("a photograph carries no moment, and a frame with no size fades in", () => {
+    renderView();
+    const picture = document.querySelector<HTMLElement>("[data-reel-picture]")!;
+    // A frame not laid out yet is no box to grow from.
+    vi.spyOn(picture, "getBoundingClientRect").mockReturnValue({
+      x: 0,
+      y: 0,
+      left: 0,
+      top: 0,
+      right: 0,
+      bottom: 0,
+      width: 0,
+      height: 0,
+      toJSON: () => ({}),
+    } as DOMRect);
+    h.moment.mockReturnValue({ clipId: "m1", videoSec: null });
+    fireEvent.click(picture);
+    expect(h.lightbox?.origin).toEqual({ kind: "reel", rect: null });
+    expect(h.lightbox?.startAt).toBeUndefined();
   });
 });
 
