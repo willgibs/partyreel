@@ -33,7 +33,7 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 ## The desk
 
-26 standing boards at `/design/lab?key=`, in leverage order: `reel-screen`, `reel-host`, `reel-cut`, `reel-story`, `reel-front` (r2), `media-viewer` (r2), `reel-view`, `identity-door`,
+27 standing boards at `/design/lab?key=`, in leverage order: `album-columns`, `reel-screen`, `reel-host`, `reel-cut`, `reel-story`, `reel-front` (r2), `media-viewer` (r2), `reel-view`, `identity-door`,
 `identity-claims`, `identity-profile`, `guest-capture`, `voice-guest`, `host-curation`, `host-storage`, `event-safety`, `export-flow`,
 `admin-triage`, `help-center`, `emails`, `site-chrome`, `profile-page`, `privacy-hero`, `album-motion`, `loose-ends`,
 `contact-page`, `press-page`.

@@ -19,6 +19,6 @@
 | [database-security.md](systems/database-security.md) | add or change an RPC, a column, a table or a grant, read more than 1,000 rows, rate-limit a route, or write a migration |
 | [profiles-social.md](systems/profiles-social.md) | change who is listed or counted as a guest, `/u/[slug]`, follows, blocks, reporting a person, handles, bios or email preferences |
 | [notifications-analytics-growth.md](systems/notifications-analytics-growth.md) | feed the host's bell, touch the QR-scan counts, instrument the marketing site, or touch the newsletter opt-in |
-| [marketing-content.md](systems/marketing-content.md) | change the marketing site and its nav, the help and blog pipeline, SEO and OG images, the 404 pages or the demo's wiring |
-| [design-system.md](systems/design-system.md) | change the look: tokens, type, rounding, elevation, light and glass, motion, the error taxonomy, the `/design` lab (how design guidance is levelled: [design/README.md](design/README.md)) |
+| [marketing-content.md](systems/marketing-content.md) | change the marketing site and its nav, the help and blog pipeline, a public form, SEO and OG images, the 404 pages or the demo's wiring |
+| [design-system.md](systems/design-system.md) | change the look: colour and the theme sets, light, type, corners, shadows and glass, motion, a floating panel or a toast, the album tile, a marketing page's chapters, the error taxonomy, the `/design` lab |
 | [testing-verification.md](systems/testing-verification.md) | verify anything: a browser check that disagrees with you, the test accounts and fixtures, the gate, CI and deploys, stale dev CSS |

@@ -49,6 +49,7 @@ export type SandboxId =
   | "press-page"
   | "contact-page"
   | "album-motion"
+  | "album-columns"
   | "loose-ends"
   | "privacy-hero";
 
@@ -685,6 +686,31 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
+    id: "album-columns",
+    title: "The album's column rule",
+    surface: "shared",
+    asks:
+      "whether masonry is the right layout at all, how wide the album runs, what the biggest screens do once columns would climb forever, what a bigger phone earns, whether hosting and guesting share one tile-size preference, and the control's own form",
+    why: "Masonry sets the album's columns by a declared width across the middle of the range; both ends, and the layout itself, are open, and this board looks at all three.",
+    lives: [
+      "src/components/shared/masonry.tsx",
+      "src/lib/shared/tile-size-cookie.ts",
+      "src/components/guest/live-gallery.tsx",
+      "src/components/app/event-feed/event-gallery.tsx",
+    ],
+    board: {
+      note: "Six decisions, no page: whether masonry is even the right layout (beside justified rows, the uniform grid and a mosaic), the album's own width, what the biggest screens do once columns would climb forever, what a bigger phone earns, whether hosting and guesting share one tile-size preference, and the control's own form; every option is the real fixture album on the real masonry grid (or its own algorithm, honestly quoted), at the width where it shows.",
+      variants: [
+        "The layout itself",
+        "Album width",
+        "The scale ceiling",
+        "The phone's columns",
+        "One preference, or two",
+        "The control's form",
+      ],
+    },
+  },
+  {
     id: "privacy-hero",
     title: "The privacy page's hero",
     surface: "marketing",
@@ -744,6 +770,7 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
+  "album-columns",
   "reel-screen",
   "reel-host",
   "reel-cut",
