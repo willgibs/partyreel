@@ -45,11 +45,11 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   review), `/account`, a real upload through production's pipeline, the lab 404s without its key, the admin door
   redirects, no new runtime error or Sentry issue. `admin.partyreel.com` is served by `partyreel-admin`
   (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `3e4261f5` (build 5, 2026-09-24):
-  batch 1's re-cut desk and the media viewer, checked live in Will's Chrome (it grows from its tile, the face credit,
-  the capsule, the peek and the desk filmstrip, the arrows, `?photo=`, a blank tap closes; every re-cut board loads with
-  no console error). The stored reel stays until the reel round's own build. No push deploys; each `[preview]` record
-  gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `d3135de` (build 6, 2026-09-24):
+  the new Library (the brand kit, the catalog under the design recipe, the ten) and `album-columns` at the head of
+  the desk, every Library page and the board loading with no console error; the refreshed boards follow in the next
+  build. The stored reel stays until the reel round's own build. No push deploys; each `[preview]` record gets one
+  build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
 - **Data:** disposable test data only; the accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md). The disposable events stay in the states the
   last red-teams left until Will says restore.

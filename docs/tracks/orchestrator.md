@@ -57,8 +57,8 @@ Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyre
    from its 22 test headers; its comments keep their reason and drop authority ("bible N", "Will ruled", "law");
    `guest-flow.md`'s "bible 4 refuses" names the bible's seventh principle; `entry-modal.test.tsx`'s Radix focus-scope
    timer throws after teardown under load (four unhandled errors in gate 158, green on rerun); re-gate; hand off again.
-3. **When the wave is in**: one `[preview]` for Will's sitting (`album-columns` first), and confirm on Sentry that
-   the Vercel build uploaded its source maps (`894501ad` gated the upload on `VERCEL`).
+3. **When the wave is in**: one `[preview]` for Will's sitting (`album-columns` first; build 6, `d3135de`, already
+   serves the new Library and that board, and its Vercel log confirms the source-map upload).
 4. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
    self-registering folder, its metadata in its spec, lab checks scoped to the lane's own boards, the authoring API
    trimmed, a fresh agent proving it; with library-lean's board ideas (a `Surfaces` family of live frames per route
