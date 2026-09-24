@@ -410,6 +410,7 @@ export async function createMedia(input: {
   durationSeconds?: number | null;
   width?: number | null;
   height?: number | null;
+  reelEligible?: boolean; // the live reel: false only for a cut added to the album
 }): Promise<CreateMediaResult> {
   // Server-mediated (H1): create_media is service-role-only (revoked from anon/authenticated), so it can't
   // be called directly via PostgREST with a spoofed size — the complete-upload route HEADs R2 for the real
@@ -425,6 +426,7 @@ export async function createMedia(input: {
     p_duration_seconds: input.durationSeconds ?? undefined,
     p_width: input.width ?? undefined,
     p_height: input.height ?? undefined,
+    p_reel_eligible: input.reelEligible,
   });
 
   if (error) {

@@ -94,7 +94,7 @@ function callerIs(userId: string | null) {
   getUser.mockResolvedValue({ data: { user: userId ? { id: userId } : null } });
 }
 
-async function complete() {
+async function complete(extra: Record<string, unknown> = {}) {
   const res = await POST(
     new Request("https://partyreel.com/api/r2/complete-upload", {
       method: "POST",
@@ -107,6 +107,7 @@ async function complete() {
         size_bytes: 1000,
         upload_id: null,
         parts: [],
+        ...extra,
       }),
     }),
   );
@@ -200,5 +201,27 @@ describe("the ladder around it", () => {
     expect(status).toBe(403);
     expect(body.code).toBe("unauthorized");
     expect(rowRead).not.toHaveBeenCalled();
+  });
+});
+
+describe("the live reel's one field (a cut added to the album)", () => {
+  it("writes a cut as not reel-eligible, so the live reel never plays a reel", async () => {
+    const { status } = await complete({ reel_eligible: false });
+    expect(status).toBe(200);
+    expect(createMedia).toHaveBeenCalledWith(
+      expect.objectContaining({ reelEligible: false }),
+    );
+  });
+
+  it("says nothing for every other upload (the column's default decides)", async () => {
+    await complete();
+    expect(createMedia.mock.calls[0][0].reelEligible).toBeUndefined();
+  });
+
+  it("refuses a malformed flag rather than guessing", async () => {
+    const { status, body } = await complete({ reel_eligible: "no" });
+    expect(status).toBe(400);
+    expect(body.code).toBe("bad_request");
+    expect(createMedia).not.toHaveBeenCalled();
   });
 });

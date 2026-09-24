@@ -64,6 +64,15 @@ export type QueueItem = {
    * `classifyRefusal` reads as "worth another go".
    */
   errorCode?: string;
+  /**
+   * A CUT the on-device creator is adding to the album (the live reel's seam, 2026-09-24): the row
+   * is written `reel_eligible = false`, so the live reel never plays a reel. Absent for every other
+   * file. It rides the queue like any upload (one at a time, the silent join, retry, the failure
+   * sheet), because a cut added to the album IS an upload like any other (guest-flow.md).
+   */
+  reelEligible?: false;
+  /** The cut's poster, drawn by its creator: the album's preview for it (uploader.ts). */
+  poster?: Blob;
 };
 
 export type UploadedItem = {
@@ -160,6 +169,8 @@ export function useUploadQueue({
   }, [sessionToken]);
   // Files picked before a session exists — uploaded once the session is created.
   const pendingFilesRef = useRef<File[]>([]);
+  // The same stash for a cut (it carries its poster and its reel flag with it).
+  const pendingCutsRef = useRef<{ file: File; poster: Blob }[]>([]);
   // One silent re-join per run at most: a signed-in guest whose row predates the
   // host's flip gets a fresh, verified row and carries on. Without the guard a
   // route that keeps refusing would have this loop minting rows forever.
@@ -293,6 +304,8 @@ export function useUploadQueue({
                 },
                 identity: { session_token: token },
                 onProgress,
+                reelEligible: next.reelEligible,
+                poster: next.poster,
               });
         } catch (e) {
           console.error("upload queue: unexpected failure", e);
@@ -428,13 +441,14 @@ export function useUploadQueue({
   }, [sessionToken]);
 
   const enqueue = useCallback(
-    (files: File[]) => {
+    (files: File[], extra: Pick<QueueItem, "reelEligible" | "poster"> = {}) => {
       const additions: QueueItem[] = files.map((file) => ({
         id: crypto.randomUUID(),
         file,
         kind: file.type.startsWith("video/") ? "video" : "photo",
         status: "queued",
         progress: 0,
+        ...extra,
       }));
       sync([...itemsRef.current, ...additions]);
       void runQueue();
@@ -449,6 +463,11 @@ export function useUploadQueue({
       const stashed = pendingFilesRef.current;
       pendingFilesRef.current = [];
       if (stashed.length) enqueue(stashed);
+      const cuts = pendingCutsRef.current;
+      pendingCutsRef.current = [];
+      for (const cut of cuts) {
+        enqueue([cut.file], { reelEligible: false, poster: cut.poster });
+      }
     },
     [onSession, enqueue],
   );
@@ -475,6 +494,7 @@ export function useUploadQueue({
     const joined = await joinEvent({ qrToken });
     if (!joined.ok) {
       pendingFilesRef.current = [];
+      pendingCutsRef.current = [];
       if (joined.refusal.kind === "verification_required") {
         // The host requires a confirmed email and this device cannot satisfy
         // it. The gate says that far better than a toast can. Nothing was ever
@@ -499,6 +519,26 @@ export function useUploadQueue({
       }
       // No session yet → silent join (account-required events are gated at the page).
       pendingFilesRef.current = files;
+      void joinSilently();
+    },
+    [enqueue, joinSilently],
+  );
+
+  /**
+   * ★ THE CUT'S SEAM (the live reel, 2026-09-24): `addCutToAlbum(file, poster)` for the on-device
+   * creator. The cut goes through the ORDINARY queue, one at a time behind whatever else is going,
+   * with the same join, retry and failure sheet as a photograph; the only differences are that its
+   * row is written `reel_eligible = false` (the live reel never plays a reel) and that its album
+   * preview is the poster the creator drew. A cut is a video, so `create_media`'s paid-only video
+   * gate decides whether this album takes one; the creator reads the same fact (`CutFacts`) first.
+   */
+  const addCut = useCallback(
+    (file: File, poster: Blob) => {
+      if (sessionRef.current) {
+        enqueue([file], { reelEligible: false, poster });
+        return;
+      }
+      pendingCutsRef.current = [...pendingCutsRef.current, { file, poster }];
       void joinSilently();
     },
     [enqueue, joinSilently],
@@ -553,5 +593,5 @@ export function useUploadQueue({
     [sync],
   );
 
-  return { items, addFiles, retry, dismiss };
+  return { items, addFiles, addCut, retry, dismiss };
 }

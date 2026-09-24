@@ -294,3 +294,62 @@ describe("the ticket is read per file, never once per run", () => {
     expect(q.onVerificationRequired).not.toHaveBeenCalled();
   });
 });
+
+describe("the cut's seam (addCutToAlbum)", () => {
+  it("sends a cut through the ordinary queue, not reel-eligible, with its poster as the preview", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: true,
+      status: "approved",
+      mediaId: "cut-1",
+      kind: "video",
+    });
+    const cut = new File([new Uint8Array([1, 2, 3])], "cut.mp4", {
+      type: "video/mp4",
+    });
+    const poster = new Blob([new Uint8Array([9])], { type: "image/png" });
+    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+
+    act(() => q.result.current.addCut(cut, poster));
+
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    const sent = mockUploadFile.mock.calls[0][0];
+    expect(sent.file).toBe(cut);
+    expect(sent.reelEligible).toBe(false);
+    expect(sent.poster).toBe(poster);
+    expect(q.items()).toEqual([
+      expect.objectContaining({ status: "done", kind: "video", reelEligible: false }),
+    ]);
+  });
+
+  it("an ordinary add says nothing about the reel", async () => {
+    mockUploadFile.mockResolvedValue(landed("med-2"));
+    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+    act(() => q.result.current.addFiles([makeFile()]));
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(mockUploadFile.mock.calls[0][0].reelEligible).toBeUndefined();
+    expect(mockUploadFile.mock.calls[0][0].poster).toBeUndefined();
+  });
+
+  it("waits for the silent join like any file when the device holds no ticket yet", async () => {
+    localStorage.clear();
+    answer({
+      "/api/guests": [
+        { ok: true, body: { ok: true, session_token: "fresh-token" } },
+      ],
+    });
+    mockUploadFile.mockResolvedValue({
+      ok: true,
+      status: "approved",
+      mediaId: "cut-2",
+      kind: "video",
+    });
+    const cut = new File([new Uint8Array([1])], "cut.webm", {
+      type: "video/webm",
+    });
+    const q = mountQueue({ sessionToken: null, isVerified: false });
+    act(() => q.result.current.addCut(cut, new Blob([new Uint8Array([1])])));
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(sentOn(0)).toBe("fresh-token");
+    expect(mockUploadFile.mock.calls[0][0].reelEligible).toBe(false);
+  });
+});
