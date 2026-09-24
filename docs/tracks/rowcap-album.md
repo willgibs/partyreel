@@ -1,6 +1,6 @@
 ---
 track: rowcap-album
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "30c3fecd"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -109,24 +109,62 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+No open question and no new SQL shape: every call below was taken on the brief's recommended answer or the rules.
+- **M8, the swallowed error.** Taken: a failed read still answers an empty list (the guest page never fails, or fails open, on it) and is now CAPTURED (`captureError("media", ..., { seam: "guest_media_ids_fail_closed" })` inside `mediaIdsForGuests`), `guest-gate.ts`'s "fail open, loudly" precedent. That puts one Sentry call in `src/lib/db/`, which `read-all.ts`'s header keeps out; the alternative (throw, let the caller capture) would 500 the guest page, whose callers are rowcap-guest's. Recommended: keep.
+- **M13, the Review room's Approve all.** Taken: it hands the whole queue's ids to `approveBulkAction` in consecutive batches of 2,000 (`inBulkBatches`), so it approves exactly the uploads the host saw, at any queue size. Not `approveAllPending` (no id list, but it would approve arrivals the host never saw). Recommended: keep.
+- **M13, the cap's reach.** Taken: all five bulk actions (approve, hide, show/hide, delete, Delete forever) refuse more than 2,000 ids, and non-uuid lists, before any write; the export route answers an oversized "Download selected" in the same sentence, so one selection meets one limit said one way. Recommended: keep.
+- **C2, the Reel card.** Taken: its "N clips" is a head count too (`countReelItems`, the membership predicate), though C2's line list did not name it: the hub no longer reads the whole membership to say its size. Recommended: keep.
+- **C6, what the newest `updated_at` covers.** Taken: the event's non-removed media only, so a write to a bin row never refreshes the hub (the bin loads on demand, never with the page). The prefix moved `h1-` to `h2-`. Recommended: keep.
+- **C14 and M9, a tiebreak.** Taken: both the membership read and the render timeline order `(position, added_at, media_id)`: a bulk add ties positions, and the render hash must see one order on every phase. The open event's guest RPC still orders without `media_id` (a Deferred line). Recommended: keep.
+- **The cursor's quoting.** Taken: this lane's composite cursors double-quote the timestamp and id (PostgREST's URL grammar reserves `.` and `:` in a value); rowcap-guest's `olderThan` writes them bare. Both parse live (my script: "cursor parse: bin ok, reel ok"; rowcap-guest read 1,145 in two pages). Recommended: keep; one form could be chosen in `read-all.ts`'s header.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+`docs/systems/host-app.md`, in work commit `2a9a4d34`:
+- The live hub: the poll is two RLS-scoped head counts and a one-row read, no list; the fingerprint (`h2-`) is the event id, the album count, the pending count and the newest `updated_at` among non-removed media; "a dozen queries plus three presigns an item".
+- The album: the bin reads whole on `(removed_at desc, id desc)`.
+- A new bullet: the hub reads the `album` slice whole and counts every number (`countEventMedia`, `countReelItems`); the slices `pending` (Review) and `live` (Download all, its 413 past 2,000).
+- The Review room reads and presigns its `pending` slice alone.
+- Approve all's real path (the queue's ids through `approveBulkAction` in batches of 2,000); the doc named `approveAllPending`, which is the moderation-off switch's path.
+- The bulk mutations: selections through `inChunks`, and the 2,000 refusal (`MAX_BULK_ITEMS`).
+- Reel reorder: both of the room's reads are whole, the members paged on `(position, added_at, media_id)`.
+- The mint's render context: the timeline through a `media!inner` embed filtered to approved before the 150-clip bound, `media_id` breaking a tie.
+
+Outside my doc: `docs/systems/uploads-and-r2.md` "Download all" may add "the host mint reads the album whole, so the ≤2000 cap refuses past it with a 413, and a Download selected past 2,000 answers 'Select up to 2,000 items at a time.'" (true now; optional). No other doc states a fact my files changed.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: "Reel: `get_event_reel_by_qr_token` orders its item ids by `(position, added_at)` with no `media_id` tiebreak, where `listReelItems` and `resolveReelRenderContext` break the tie by `media_id`, so a bulk add's tied members can play in a different order on an open event's guest reel; add `r.media_id` to its `array_agg(... order by ...)` (moot if the reel round drops the stored reel first)."
+- Now: "Performance: the hub's live poll reads the newest `updated_at` among an event's non-removed media with no `(event_id, updated_at)` index, a top-1 sort over the event's rows on every poll; past tens of thousands of items per event, `media (event_id, updated_at desc)` makes it an index walk."
+- Now: "Engineering: `scripts/seed-demo-event.mjs` carries `readAllPages` in miniature (`readAllRows`) because `read-all.ts` imports `must-query` through the `@/` alias, which plain Node cannot resolve; a relative import there (or `QueryFailedError` in a leaf module) lets the scripts import the one helper."
+- ROADMAP lines this lane moves (for the Orchestrator's fold): "Host: no test covers `useReviewTriage` or the bulk mutations" becomes "... `useReviewTriage`" (`src/lib/db/mutations/media.test.ts` covers the bulk mutations); the `no-swallowed-db-error` line's `render-service.ts:177` site is bound (`mustQuery` on both reads, `2a9a4d34`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed to `lp/rowcap-album`:** work `2a9a4d34` (the lane) and `b18827a3` (the export route's refusal wording); sync `a4eb7b8b` (merge of `origin/launch-prep` at `8c7f8f15`, the stage-2 building record) and `b413ffa0` (merge at `90e170f2`, rowcap-guest merged: `docs/design/library.md` conflicted on its generated guard counts, resolved by `pnpm design:rules` on the merged tree). None of the merged changes touches my `reads`.
+- **Gates on the synced tree (`b413ffa0`), each on its own exit code** (logs in the scratchpad, `gate3/`): `pnpm design:rules` 0 · `collect-specimens.mjs` 0 · the tree clean after both generators · `pnpm typecheck` 0 · `pnpm lint` 0 (8 warnings, none in a touched file) · `pnpm test` 0 (397 files, 4,473 passed, 1 skipped) · `pnpm build` 0 · `pnpm lab:smoke --base http://localhost:3132` 0 (521 checks, 0 failing). No board, so no `lab:demo`. The dev server is stopped (port 3132 free).
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`, this file aside): `docs/design/library.md`, `docs/systems/host-app.md`, `scripts/seed-demo-event.mjs`, `src/app/(app)/dashboard/[eventId]/actions.test.ts`, `src/app/(app)/dashboard/[eventId]/actions.ts`, `src/app/(app)/dashboard/[eventId]/page.tsx`, `src/app/(app)/dashboard/[eventId]/reel/page.tsx`, `src/app/(app)/dashboard/[eventId]/review/page.tsx`, `src/app/(dev)/design/rules/rules.generated.json`, `src/app/api/events/[eventId]/live/route.test.ts`, `src/app/api/events/[eventId]/live/route.ts`, `src/app/api/export/host/route.test.ts`, `src/app/api/export/host/route.ts`, `src/components/app/event-feed/event-gallery.tsx`, `src/components/app/event-feed/event-hub.test.tsx`, `src/components/app/event-feed/use-review-triage.ts`, `src/components/app/host-media-grid.tsx`, `src/components/reel/use-reel-config.test.tsx`, `src/lib/db/mutations/guest-media.test.ts`, `src/lib/db/mutations/guest-media.ts`, `src/lib/db/mutations/media.test.ts`, `src/lib/db/mutations/media.ts`, `src/lib/db/queries/media.test.ts`, `src/lib/db/queries/media.ts`, `src/lib/db/queries/reel.test.ts`, `src/lib/db/queries/reel.ts`, `src/lib/event/bulk-selection.test.ts`, `src/lib/event/bulk-selection.ts`, `src/lib/event/gallery-items.ts`, `src/lib/events/host-fingerprint.test.ts`, `src/lib/events/host-fingerprint.ts`, `src/lib/reel/render-service.test.ts`, `src/lib/reel/render-service.ts`. **Exceptions:** `docs/design/library.md` and `rules.generated.json`, regenerated by the gate's `pnpm design:rules` because two `@contract-for` tests in my owns changed their guard counts (`host-fingerprint.test.ts`, the live route and the fingerprint 13 -> 16 each); generated, never hand-edited. `src/components/app/host-media-grid.tsx` (no lane's file), ONE statement: the bulk Delete's failure toast shows the action's message (`res.message || ...`, as the Hide/Show toast beside it already does), so the 2,000 refusal reads as a sentence and not "Please try again"; prettier wraps it to three lines.
+- **Markers:** `git grep -n "row-cap-todo" -- <owns>` lists nothing (C1, H1, C14, M9, M8, M13, M18 removed); the two permanent `// row-cap:` lines in `guest-media.ts` (a session token's one guest row, an account's handful) were the kit's and stay. `row-cap-policy.test.ts` green.
+- **C1:** `readEventMedia(client, eventId, slice)` pages `(created_at desc, id desc)` through `readAllPages` (the raw timestamp and id, quoted), sliced `live` / `album` / `pending`; `listEventMedia` is it on the request's client. The five callers: the hub `album`, Review `pending`, the reel room `album`, the export `live`, the live poll none (counts). Live: 1,165 rows in display order.
+- **C2:** the header, the Review card, the album's count, `EventUploads` and `EventSheets` read `countEventMedia` (two head counts), the Reel card `countReelItems`; the hub presigns the album slice alone. Contract `event-hub.test.tsx` reshaped: it pins the counted number, never a `.length`.
+- **C3:** Review reads and presigns the `pending` slice alone, whole.
+- **C4:** confirmed by `src/components/reel/use-reel-config.test.tsx`: the real controller over 2,222 items and 1,300 members, the reel's first slots the album's OLDEST photographs, yields all 1,300 and commits all 1,300 to `reorder_reel`; plus a source pin that the room feeds both whole reads unfiltered. (The component project cannot import `server-only`, so the reads' own wholeness is pinned in `media.test.ts` / `reel.test.ts`.)
+- **C5:** the export reads the album whole; `route.test.ts`: a 2,500-item summary counts every item, 2,300 approved answers the 413, 1,999 mints all 1,999, a selection reaching past the newest 1,000 mints whole, 2,001 ids are refused in words.
+- **C6:** `hostEtag({ eventId, album, pending, newestUpdatedAt })`, `h2-`; the route reads two head counts and one row and keeps `{ ok, etag, pending, count }` (no client change). `live/route.test.ts` on the fake: the oldest photograph hidden moves it, a held upload moves it, an arrival plus a removal moves it, a bin write does not, 304 otherwise. Contract `host-fingerprint.test.ts` reshaped to the counts, plus "counts the album and lists none of it".
+- **C14:** `resolveReelRenderContext` reads `reel_items` with `media!reel_items_media_id_fkey!inner(status)`, `.eq("media.status","approved")`, `(position, added_at, media_id)`, `.limit(150)`; both reads through `mustQuery` (the destructure is gone); `ctx.approved` removed. `render-service.test.ts`: a 1,300-member reel whose first 400 are one approved in four fills all 150 from further down (slicing first would leave 38), one request of 150 rows, no media read, errors throw. The password arm of the guest reel (rowcap-guest's C10) reads its ids through this.
+- **H1:** the bin pages `(removed_at desc, id desc)`; `media.test.ts` walks a 1,150-row shared bulk-Delete stamp and 2,150 host removals whole, withdrawals and aged rows out.
+- **M8:** `mediaIdsForGuests` pages on `id` inside `inChunks` over the guest rows; a failure is `[]` plus a capture. `guest-media.test.ts`: 2,160 and 2,250 live uploads whole, the failure captured.
+- **M9:** `listReelItems` pages `(position, added_at, media_id)` and throws on a failed read; `add_to_reel` caps nothing, so it pages. `reel.test.ts`: ghosts dropped, hidden kept, 2,300 members across a full (position, added_at) tie at the boundary, the error.
+- **M13:** every bulk write and Delete forever's two reads go through `inChunks` (one removal stamp across chunks); the five actions refuse > 2,000 or non-uuid lists in words (`src/lib/event/bulk-selection.ts`); Review batches at 2,000. `mutations/media.test.ts` (2,500-id selections in 17 chunks under 8,000 characters, the pending predicate, held objects kept, a failed hold check deleting nothing), `actions.test.ts`, `bulk-selection.test.ts`.
+- **M18:** the wipe reads every row on an `id` keyset (`readAllRows`, `readAllPages` in miniature: the script cannot import the TS helper), so `keepKeys` holds every held object; `purge_media_rows` gets at most 1,000 ids a call.
+- **Stale comments made true:** `gallery-items.ts` (three presigns), the bin action's "round trip", `EventLive`'s and the live route's "one select" and "eleven queries", `reel.ts`'s header (the reel room seeds the provider, the hub counts).
+- **Assets requested from Will:** none.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none (the `updated_at` index is a Deferred line, not needed at today's sizes).
+- **Calls his to overrule:** the seven under Questions; and the contract reshapes named in C2 and C6.
+- **Look at first:** the probe, read by this lane's functions on the admin client (scratch script `look/probe.look.ts`, run 2026-09-24T01:53Z; the read part re-run on the final tree at 02:18Z, same numbers):
+  - `listEventMedia (live): 1165 rows (1145 approved + 20 pending + 0 hidden), unique 1165, display order true`
+  - `readEventMedia (album slice): 1145` · `Review (pending slice): 20` · `Deleted bin: 30 (withdrawn in it: 0)`
+  - `export summary: shown photo 1145 (750731 B); Include hidden adds 20` · `hub counts (head counts): album 1145, pending 20`
+  - the live poll, through the real `GET` handler: `poll 1: 200 {"pending":20,"count":1145}` · `poll 2 (If-None-Match): 304` · the oldest pending item `fd853738-d18d-4893-9833-e2e04ea02da8` flipped pending -> hidden: `poll 3: 200 {"pending":19,"count":1146}` (moved) · restored to pending: `poll 4: 200 {"pending":20,"count":1145}`, the etag still differs from poll 1 (the write moved `updated_at` with the counts back where they were) · `poll 5: 304`.
+  - The one live write: that item's status, hidden and back, twice (two runs of the script), restored both times and checked by SQL (pending 20, approved 1,145, removed 30 + 5 withdrawn); pending and hidden are both invisible to guests, so the guest album never changed. Its `updated_at` advanced.
+  - The host pages themselves render behind a sign-in the local server cannot do (`/dashboard/<probe>` answers 307 to `/login` signed out); nothing on them changed visually (the same numbers, the same components).
