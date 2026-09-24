@@ -21,10 +21,14 @@ bands, in this order (notices and storage, the most global, sit above the events
 - **The storage line** — the ambient `StorageMeter`, UNCONDITIONAL: a host with no events still has a plan and a
   shelf. The over-cap grace banner is its own red top alert, never inside the meter.
 - **Your events** — the events you host and the events you added photos to (Guest cards), by recency, in two views
-  (the events-list bullet under "Events & the create flow").
+  (the events-list bullet under "Events & the create flow"). The cards' counts are `event_card_stats` and their covers
+  `event_covers` (one jsonb each for any number of events, the ids in the POST body); "X of N used" is
+  `countActiveEvents()`, a head count.
 - **Just arrived** — the newest approved uploads in a window that WIDENS until it holds twelve (the last hour, then
   today, then the newest across events), captioned with the window it settled on
-  ([`arrivals.ts`](../../src/lib/dashboard/arrivals.ts)); with nothing approved it renders nothing. ★ These tiles are
+  ([`arrivals.ts`](../../src/lib/dashboard/arrivals.ts)); the window's number is a HEAD count over every approved upload
+  of the host's live events, never a read's length, and the row view's newest four are read per event (one row per
+  event, the four embedded), so every event has its strip. With nothing approved it renders nothing. ★ These tiles are
   the ONE host surface that keeps the `[data-media-tile]` arrival fade (no `data-static`): they literally just arrived.
   Reads + presigns live in [`pulse.ts`](../../src/lib/db/queries/pulse.ts), apart from `events.ts` on purpose: every
   event room and the settings sheet share `events.ts`, and the home's reads there would tie them to the dashboard.
@@ -124,7 +128,7 @@ stays the guard behind the door (the wizard toasts on `limit_reached`).
   `EventCard`'s `guest` variant wears the profile's own Guest marker (`RoleMarker`, shared with `/u/[slug]`) and a
   "Hosted by" byline, with no per-row action. Masked by the album's rules
   ([`guest-events.ts`](../../src/lib/dashboard/guest-events.ts)): a private album blank and locked, a password album
-  linked with no cover, a cover (the newest approved photograph, `adminCoverUrls`) only for an open one; newest first
+  linked with no cover, a cover (the newest approved photograph through `event_covers`, its preview when it has one) only for an open one; newest first
   by the account's own latest upload there.
   ★ **The view is a cookie set by a Server Action, not localStorage, and that is load-bearing**: the
   server has to know the view before the first byte or every cold load paints cards and swaps to rows

@@ -19,10 +19,10 @@ Will's asks of 2026-09-23 (the plan: `~/.claude/plans/great-work-however-1-dappe
 - **Milestone 27 is live** (`546e2489`) with the identity contract applied after it; the Stripe TEST walk passed on
   partyreel.com; `upload-owner` and `delete-final` are merged (a claimed guest row uploads only for its owner; a guest's
   own delete is final and says so), their migrations applied.
-- **The 1,000-row round** ("Let's ensure we will not face any of those issues here"): PostgREST's `max_rows` (live:
-  1,000, verified on a 1,200-photo scale probe; write responses are not capped) silently clips 50 audited reads.
-  Stage 1 builds the helper, the guards and the SQL (`rowcap-kit`, `rowcap-sql`); stage 2's four lanes fix the sites;
-  then alias build 4, its red-team and milestone 28 (approved).
+- **The 1,000-row round is merged** ("Let's ensure we will not face any of those issues here"): PostgREST's
+  `max_rows` (live: 1,000; write responses uncapped) had silently clipped 50 audited reads. Every list now reads whole
+  (`readAllPages`), every count counts, every id list chunks, every set-returning RPC pages, every sweep reports what it
+  left; `row-cap-policy.test.ts` and a Sentry tripwire keep it so. Next: alias build 4, its red-team, milestone 28.
 - **A block for bad actors** (his concept): the `event-safety` board on his three answers (a block puts the person out
   and removes their uploads; approve newcomers, close to newcomers and an invite list; all free on every plan).
 - **The reel round** waits on his desk review: the rolling live composer and the video window reader are on the tree
@@ -50,7 +50,7 @@ order: `media-viewer`, `reel-view`, `reel-front`, `reel-screen`, `reel-cut`, `re
 - **Data:** disposable test data only; the accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md). The disposable events stay in the states the
   last red-teams left until Will says restore.
-- **Tests:** about 4,150 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
+- **Tests:** about 4,640 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
 - **Jobs:** the daily purge cron, the media-backup Worker and the daily DB-backup Action are live; the deletion-aware
   backup prune runs dry (`PRUNE_MODE=live` is a launch flip).
 - **The repo is public for the interim** (GitHub Actions minutes); private again when the budget clears.

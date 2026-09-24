@@ -13,7 +13,10 @@ import nextTs from "eslint-config-next/typescript";
  * watermark on a paying host's video.
  *
  * The rule flags any `data`/`count` destructure off an `await` that does not
- * also bind `error`. Fix by wrapping the query in `mustQuery`/`mustCount`
+ * also bind `error`, including each element of an array destructure
+ * (`const [{ data: a }, { data: b }] = await Promise.all([...])`: each result is
+ * its own query and answers for its own `error`; the 1,000-row round found three
+ * such swallows the object-only rule could not see). Fix by wrapping the query in `mustQuery`/`mustCount`
  * (src/lib/db/must-query.ts), or bind `error` and handle it. A deliberate
  * swallow (an authz probe that must fail CLOSED) stays legal via an
  * `eslint-disable-next-line partyreel/no-swallowed-db-error` + a one-line WHY,
@@ -44,23 +47,34 @@ const noSwallowedDbError = {
     },
   },
   create(context) {
+    // One object pattern: `data` / `count` bound without `error` is a swallow.
+    const check = (pattern) => {
+      const props = pattern.properties.filter((p) => p.type === "Property");
+      if (props.some((p) => p.key?.name === "error")) return;
+      const target = props.find(
+        (p) =>
+          (p.key?.name === "data" && p.value?.type !== "ObjectPattern") ||
+          p.key?.name === "count",
+      );
+      if (!target) return;
+      context.report({
+        node: target,
+        messageId: "swallowed",
+        data: { name: target.key.name },
+      });
+    };
     return {
       VariableDeclarator(node) {
         if (node.init?.type !== "AwaitExpression") return;
-        if (node.id?.type !== "ObjectPattern") return;
-        const props = node.id.properties.filter((p) => p.type === "Property");
-        if (props.some((p) => p.key?.name === "error")) return;
-        const target = props.find(
-          (p) =>
-            (p.key?.name === "data" && p.value?.type !== "ObjectPattern") ||
-            p.key?.name === "count",
-        );
-        if (!target) return;
-        context.report({
-          node: target,
-          messageId: "swallowed",
-          data: { name: target.key.name },
-        });
+        if (node.id?.type === "ObjectPattern") {
+          check(node.id);
+          return;
+        }
+        if (node.id?.type === "ArrayPattern") {
+          for (const element of node.id.elements) {
+            if (element?.type === "ObjectPattern") check(element);
+          }
+        }
       },
     };
   },

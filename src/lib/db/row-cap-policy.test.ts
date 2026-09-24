@@ -42,25 +42,19 @@ import { MAX_ROWS } from "@/lib/db/read-all";
  * callback it is the callback's own statement):
  *
  *     // row-cap: <why this read is bounded>                 permanent, reviewed at the merge
- *     // row-cap-todo: <ID...> <why>                          stage 2's work: ids from TODO_IDS
+ *     // row-cap-todo: <ID...> <why>                          a tracked fix: ids from TODO_IDS
  *
  * A marker whose statement no longer offends FAILS, so a fix removes its marker in the same
- * change; a todo marker must name ids from `TODO_IDS`, which the Orchestrator empties at the last
- * stage-2 record, after which any leftover todo fails. Every failure prints `file:line rule hint`.
+ * change; a todo marker must name ids from `TODO_IDS`, which is empty while no fix is outstanding,
+ * so today any todo marker fails. Every failure prints `file:line rule hint`.
  */
 
 /**
- * The stage-2 work list: the audit's ids (at `5b4c9ce5`, re-verified at `2429807e`) plus the
- * offenders the walker found that the audit lacked (N-numbered). A todo marker names only these.
- * One line per stage-2 lane, so the list reads by lane.
+ * Offenders tracked for a fix, by audit id. EMPTY: every read reaches its last row or carries a
+ * reviewed `// row-cap:` why. A future audit lists its ids here while its fixes land, and empties
+ * it with the last one.
  */
-// prettier-ignore
-const TODO_IDS: readonly string[] = [
-  /* guest */ "C7", "C8", "C11", "M12",
-  /* album */ "C1", "H1", "C14", "M9", "M8", "M13", "M18",
-  /* host  */ "C12", "C13", "H2", "M1", "M2", "M3", "H3", "M5", "M6", "N4", "H4", "H5", "H6", "M4", "M7", "M10", "M11",
-  /* cron  */ "H8", "H9", "H10", "H11", "H12", "H13", "H14", "H15", "M14", "M15", "M17", "H17", "N1", "N2",
-];
+const TODO_IDS: readonly string[] = [];
 
 /**
  * Set-returning by signature, one row by construction: each with the reason it cannot be cut.

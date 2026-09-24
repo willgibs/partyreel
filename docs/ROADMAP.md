@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Reel: `get_event_reel_by_qr_token` orders its item ids by `(position, added_at)` with no `media_id` tiebreak, where `listReelItems` and `resolveReelRenderContext` break the tie by `media_id`, so a bulk add's tied members can play in a different order on an open event's guest reel; add `r.media_id` to its `array_agg(... order by ...)` (moot if the reel round drops the stored reel first).
+- Performance: the hub's live poll reads the newest `updated_at` among an event's non-removed media with no `(event_id, updated_at)` index, a top-1 sort per poll; past tens of thousands of items per event, `media (event_id, updated_at desc)` makes it an index walk.
+- Engineering: `scripts/seed-demo-event.mjs` and `scripts/backfill-strip-exif.mjs` carry `readAllPages` and `inChunks` in miniature because `read-all.ts` imports `must-query` through the `@/` alias plain Node cannot resolve; a relative import there lets the scripts import the one helper.
 - Lifecycle: over-capacity's auto-reduce reads a lapsed host's whole active set before it acts (whole, but not budgeted inside one account), so past roughly 100,000 active items one account could spend the sweep's share; page the reduce itself.
 - Admin: an orphan circuit-breaker trip closes its run `ok` (the Sentry error and the email fire), so the Orphan sweep card reads Healthy beside it; read `breaker_tripped` as `attention` in `jobHealth`.
 - The lab and the kit: `fake-postgrest` reads a dotted filter on a to-many embed (`media.status` on `events -> media`) as a filter on the parent and drops the row; teach it to filter the embedded rows, so `pulse.ts`' strip read can take the plain `.eq("media.status", ...)` form.
@@ -27,7 +30,6 @@ below hold the rest by surface.
 - Guest: the gallery poll's 304 still reads the whole album and the uploader-identity sweep before it compares the ETag; a per-event change signal (a version bumped by the triggers that ring the doorbell) makes a quiet poll one query.
 - Performance: a presign cache keyed on (key, disposition, 30-minute bucket): each bucket roll re-presigns every album for every poller.
 - Profile: My uploads and My likes stop at 200 with an honest note (`get_my_uploads`, `get_my_likes`); a cursor and a load-more.
-- Engineering: `partyreel/no-swallowed-db-error` misses an array destructure off `Promise.all` (the last one, `render-service.ts:177`, is rowcap-album's); teach it array patterns once that one is bound.
 - Engineering: one drop-aware migration reader shared by `row-cap-policy.test.ts`, `row-cap-sql.test.ts` and `migration-guards.test.ts` (each has its own; `latestDefinition` sees creates only).
 - Host: `restore_event`'s `media_still_removed` (20260729190000, line 441) counts a guest's withdrawals too; no screen shows it today, and a future "N items stay in Deleted" line must count `removed_by_uploader = false` only.
 - Tests: `src/app/(guest)/u/[slug]/owner-mode.test.ts`'s allowed-reader list could name `listEvents` (the owner-RLS read `owner-sections.tsx` now makes; its regexes catch only `get*` names).
@@ -162,7 +164,7 @@ The app:
 - Host: the hidden-media dim never renders: `shared/masonry.tsx` appends `opacity-30` to `active:scale-[0.98]` with no space, so Tailwind never emits it and a hidden photograph sits in the host album at full brightness (`host-app.md` describes a 30 percent dim; no test covers it).
 - Host: dead curation code: `ApproveAllPendingButton` (`host-media-grid.tsx`) has no caller, and the lightbox's pending Approve branch can never render.
 - Host: the Review peek (`selectable-media-grid.tsx`), a third full-bleed viewer, promises an Escape in a comment and never listens for it.
-- Host: no test covers `useReviewTriage` or the bulk mutations.
+- Host: no test covers `useReviewTriage`.
 - Host: the gallery doorbell rings only when the approved-visible set changes, so a pending upload never wakes the host; the hub bridges it with a host fingerprint route (`/api/events/[eventId]/live`) polled on the guest cadence, which a host channel rung on every arrival (a migration on `media_gallery_doorbell`) would retire.
 - Host: the album keeps its own arrival timers (`host-media-grid.tsx`'s `useArrivedIds`) beside the shared `useArrivalMarks` (`lib/shared/arrival.ts`); fold it onto the hook so both surfaces hold an arrival for one length.
 - Host: the View menu's Sort ships disabled because the hub gallery's client holds one page, not the whole approved list; it switches on when the list is whole or the sort moves server-side, and a size sort (largest or smallest first) joins it then, the host's way to the heaviest files (Will, 2026-09-22).
@@ -228,7 +230,6 @@ The app:
 - **QA hardening: the remaining fix queue.**
   - #13 a `presign` abuse kind (`action_attempts` is kind-generic; it needs the `Retry-After`/429 vocabulary the pipeline lacks).
   - #37/#38 persist the pagination cursor for the backup reconcile and the orphan sweep: both restart at the bucket head every run, so nothing past the per-run cap is ever examined.
-  - #39 POST id batches: supabase-js renders `.in()` into the URL, and several sites can reach 1,000 to 2,000 UUIDs.
   - Replay a dead letter from `/admin/jobs` (the DLQ has no consumer, and adding one in `wrangler.jsonc` changes delivery semantics).
   - A per-day `job_signals` aggregate once `sent_emails` outgrows a 24-hour head-count (the `sent_at` index first).
   - A dedicated `JOB_API_SECRET` instead of reusing `PRUNE_API_SECRET` as the internal-jobs bearer (three env homes, a Worker secret and a GitHub secret).

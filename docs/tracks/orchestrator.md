@@ -33,7 +33,6 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `rowcap-album` | the host's album whole: hub counts, Review, the Deleted bin, the reel studio, the host export (`over_cap` past 2,000), the live poll, bulk actions chunked, the seed's wipe held-safe (C1 to C6, C14, H1, M8, M9, M13, M18) | building (agent ac621107f3c7db805) | Opus, :3132 | its markers gone; the probe read by script |
 
 ## Next, in order
 
@@ -47,21 +46,16 @@ Pro 500 GB on `sub_1UIxUp…`, customer `cus_Ubm3ANAZmqMfDB`).
 host everywhere. His ask: no silent 1,000-row clipping anywhere ("Let's ensure we will not face any of those issues
 here"); work inside this round is fixed near-term, larger work goes to the ROADMAP.
 
-1. **The 1,000-row round.** The audit `$S/row-cap-audit.md`; every site re-verified with file:line and each lane's
-   semantic items in `$S/rowcap-stage2-notes.md` (`$S` = this session's scratchpad).
+1. **Done: the 1,000-row round.** Stage 1 (`rowcap-kit` `060ece99`, `rowcap-sql` `b77d7879`, the three row-cap files
+   applied, types regenerated) and stage 2 (`rowcap-guest` `04ef2e02`, `rowcap-host` `b95e5028`, `rowcap-cron`
+   `745d77b5`, `rowcap-album` `76ce4492`; gates 142 to 145) are merged. No `row-cap-todo` marker is left, `TODO_IDS` is
+   empty (a new todo fails), ten permanent `// row-cap:` whys stand, and `partyreel/no-swallowed-db-error` now reads
+   array destructures. The live cap is 1,000 and write responses are not capped (both measured on the probe).
    - **The scale probe** (disposable, on willg97): event "Scale probe" `14bb4318-80cd-4eed-b219-92c097ee16c7`, qr
-     `d02631f1bfb3455188d224e41bf9510f`, 1,200 photos `p0001` (oldest) to `p1200` (host, Ana P., Ben K., Cal M. in turn),
-     seeded through the real write path; by SQL the oldest 20 pending, the next 30 host-removed, five guest-owned
-     withdrawn, the three oldest approved liked by willg97 and hi@willgibs (1,145 approved). **The live cap is 1,000**
-     (an unbounded select answered `Content-Range: 0-999/*`); **write responses are not capped** (a PATCH over 1,040
-     rows returned 1,040).
-   - **Stage 1 is done:** `rowcap-kit` merged at `060ece99` (gate 140) and `rowcap-sql` at `b77d7879` (gate 141); the
-     three row-cap files applied by the protocol (no drift, every md5 equal, advisors 15 / 5 / 32, each check held,
-     nothing persisted) and `types.ts` regenerated (`30c3fecd`).
-   - **Stage 2 in flight:** `rowcap-guest`, `rowcap-album`, `rowcap-host`, `rowcap-cron` (the In flight table), cut at
-     `30c3fecd`, each emptying its `row-cap-todo` markers. At the last stage-2 record: empty `TODO_IDS` in
-     `row-cap-policy.test.ts`, and teach `partyreel/no-swallowed-db-error` array patterns once the three `Promise.all`
-     destructures are bound (retire its ROADMAP line).
+     `d02631f1bfb3455188d224e41bf9510f`, 1,200 photos `p0001` (oldest) to `p1200`; p0001-p0020 pending, p0021-p0050
+     host-removed, five guest-owned withdrawn among p0051-p0056, the three oldest approved liked by willg97 and
+     hi@willgibs (1,145 approved; the oldest approved is p0053). ★ Prod's orphan sub-sweep fails closed from
+     2026-09-25 04:00 UTC (the probe's objects past 24 h meet the unchunked `.in()`) until milestone 28 ships.
 2. **Alias build 4** after stage 2 (`[preview]` on the record; `alias-ensure.mjs`; the prune), then the red-team in
    Will's Chrome (the chooser only; clear the alias's `pr_session_*` first if a test needs a fresh door):
    - `upload-owner`, on ONE browser: account A uploads to a names-mode event (`guest-view-menu QA`,
