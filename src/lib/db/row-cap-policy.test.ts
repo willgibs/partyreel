@@ -1,5 +1,3 @@
-// @policy: engineering · Every read reaches its last row
-// @refuses: an unbounded PostgREST read, an unchunked .in() list, an unpaged set-returning RPC, a MAX_ROWS off config.toml, and a row-cap marker over a statement that no longer offends.
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 

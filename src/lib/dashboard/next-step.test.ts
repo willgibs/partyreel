@@ -1,4 +1,3 @@
-// @contract-for: src/lib/dashboard/next-step.ts
 import { describe, expect, it } from "vitest";
 
 import {

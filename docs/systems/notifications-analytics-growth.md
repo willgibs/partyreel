@@ -1,112 +1,76 @@
 # Notifications, analytics & growth
 
-> ROLE: the host notification bell, link analytics, the marketing web analytics, and guest email capture — the engagement + growth surfaces.
-> BELONGS HERE: the derive-on-read bell, `link_stats`, the Vercel WA/Speed-Insights marketing layer (`analytics/events.ts` + `analytics/web.ts`), `capture_guest_email` and the newsletter opt-in. · NOT HERE: the guest page's confirm doors and the offer card that carries the opt-in (→ [guest-flow.md](guest-flow.md)), how a guest's events reach their dashboard (→ [host-app.md](host-app.md)), the operator announcement compose UI (→ [admin-observability.md](admin-observability.md)), the lifecycle nudges that some alerts mirror (→ [lifecycle-recovery.md](lifecycle-recovery.md)).
-> GROWS BY: integrate-in-place.
+Open this before you:
+- build a host surface that should reach the host's bell;
+- touch the QR-scan counts;
+- instrument the marketing site, or swap the analytics vendor;
+- touch the newsletter opt-in or anywhere a guest's address is stored.
 
-## Notification center (derive-on-read)
+Elsewhere: the guest's offer card and confirm doors ([guest-flow.md](guest-flow.md)), the operator's announcement compose
+([admin-observability.md](admin-observability.md)), the lifecycle nudges some alerts mirror ([lifecycle-recovery.md](lifecycle-recovery.md)).
 
-An in-app bell ([`notification-bell.tsx`](../../src/components/app/notification-bell.tsx)) in the `(app)`
-header, with **no feed table**. `getNotificationData` ([`queries/notifications.ts`](../../src/lib/db/queries/notifications.ts))
-gathers signals on every host page load → the **pure** `buildNotifications`
-([`notifications/build.ts`](../../src/lib/notifications/build.ts)) → badge + panel. The bell mounts in the
-layout's `headerActions` before `UserMenu`.
+## The host's bell
 
-- **Extension point (keep it this small):** add a signal = ONE read in `getNotificationData` + ONE case in
-  `buildNotifications`. **When building ANY new host surface, ask whether it should feed the bell** (capture
-  the signal at the source).
-- **Two kinds, different semantics:** derived **alerts** are STATE: they persist in the badge until the
-  condition resolves and are NOT dismissed by viewing (uploads-to-review = `media.status='pending'`;
-  over-capacity = `storage_grace_until`; pass-expiry = `tier_expires_at` within `RENEWAL_NUDGE_DAYS`;
-  recovery-clearing = the soonest `purge_at` within `RECOVERY_PURGE_NUDGE_DAYS`=7, bell-only, never emailed).
-  **Announcements** are operator broadcasts with per-host read state (unread until the host opens the panel,
-  which advances `profiles.announcements_seen_at`; the bell also optimistically drops their contribution).
-  Badge = active alerts + unread announcements.
-- Pass-expiry reuses `RENEWAL_NUDGE_DAYS` ([`lifecycle/renewal.ts`](../../src/lib/lifecycle/renewal.ts)),
-  the single source shared with the cron's renewal nudge; never re-hardcode it.
+The bell is derived on read, with no feed table: `getNotificationData` gathers the signals on every host page load and
+the pure `buildNotifications` turns them into the badge and the panel.
+- **A new signal is one read in `getNotificationData` and one case in `buildNotifications`;** building any new host
+  surface, it is worth asking whether it should feed the bell, and capturing the signal at its source.
+- **Alerts are state:** they stay in the badge until their condition resolves, and viewing never dismisses one. The
+  soonest `purge_at` within 7 days is bell-only, never emailed. Pass expiry reuses `RENEWAL_NUDGE_DAYS`, the single
+  source the cron's nudge reads.
+- **Announcements are operator broadcasts with per-host read state:** unread until the host opens the panel, which
+  advances `profiles.announcements_seen_at`, one of the two columns a host may write. `announcements` has a SELECT
+  policy for `authenticated` and no write policy, so a host insert is refused (a 42501 contract check proves it); the
+  operator publishes from `/admin` through the service role.
+- Nothing pushes in real time: the badge refreshes on navigation, and the cron's signals move daily.
 
-**Invariants:** `announcements` is operator-write-only (RLS: a SELECT policy for `authenticated`, NO write
-policy, so host inserts are RLS-denied, proven by a 42501 contract check; the operator publishes via the
-`/admin` compose UI → [admin-observability.md](admin-observability.md)). `announcements_seen_at` is one of the
-two host-writable columns on the `profiles` grant allowlist (with `welcomed_at`; the host self-bumps it via the RLS
-`markAnnouncementsSeen`); `tier`/`storage_*`/`is_admin` stay off it. **No real-time push**: the badge
-refreshes on navigation/page-load (cron signals are daily). There is no per-item feed and no per-item
-announcement un-read.
+## QR-scan counts
 
-## Link analytics
+`link_stats` holds per-event, per-day aggregate counts and nothing about a visitor: no IP, user agent or identity is
+ever stored. Only `qr_scan` is recorded; `album_view` stays in the enum because counts the admin metrics read are typed
+by it, and a Postgres enum value cannot be dropped.
+- **Bots are filtered at ingest** (`isLikelyBot`), because an aggregate counter cannot be cleaned afterwards.
+- **`record_link_hit` is service-role only,** called best-effort from the guest page's `after()` on the admin client,
+  never blocking the guest; hosts read their own events' counts through RLS.
+- **A hit is recorded in the page body's success branch, never in `generateMetadata`,** which also runs for
+  unfurls and prefetches and would double-count. "Scans" are visits to the join link, the host's own included, an
+  honest label.
 
-Per-event-per-day **aggregate counts, NO PII** (`link_stats`: `event_id, kind, day, count`; `kind` ∈
-`qr_scan | album_view`). No IP / user-agent / visitor identity is EVER stored. Only `qr_scan` is recorded
-(one link per event); `album_view` stays in the enum because existing counts the admin metrics read are
-typed by it, and a Postgres enum value cannot be dropped.
+## Marketing web analytics
 
-- **Bots are filtered AT INGEST** ([`analytics/bots.ts`](../../src/lib/analytics/bots.ts) `isLikelyBot`)
-  because aggregate counters can't be cleaned retroactively.
-- **`record_link_hit` is service-role-only**: REVOKED from anon/authenticated, and it must NEVER appear in
-  the anon advisor list (the same locked-down class as `purge_media_rows`). Recording happens server-side in
-  the guest page's `after()` via the admin client ([`mutations/analytics.ts`](../../src/lib/db/mutations/analytics.ts)),
-  best-effort, never blocking the guest. Hosts READ via the `link_stats_host_select` RLS policy (own events only).
-- **Record ONLY in the page-body success branch, NEVER in `generateMetadata`** (which runs for
-  unfurls/prefetch → double-count). "Scans" = join-link visits; the host's own "Open"/re-visits count too
-  (an honest label).
+Vercel Web Analytics and Speed Insights, scoped to marketing by placement: the one client island mounts in
+`(marketing)/layout.tsx`, so the app, guest and admin surfaces stay untracked until that becomes its own decision (the
+root `not-found.tsx`, outside the group, is untracked too).
+- **Two files are the seam:** `lib/analytics/events.ts` (pure: the event taxonomy, test-pinned and append-only,
+  because a rename splits a dashboard's history, and `trackAttrs()`) and `lib/analytics/web.ts` (the client: a
+  silent-safe `track()` and the `pr-no-track` localStorage opt-out, wired to both products). A vendor swap rewrites
+  `web.ts` alone.
+- **Server components instrument by attributes:** spread `trackAttrs(event, props)` on the clickable element and the
+  island's delegated capture-phase listener does the rest (capture, because Radix chrome can swallow a bubbling click;
+  a middle-click is a known gap). Attributes fire only where the island exists, which keeps app-surface checkouts
+  silent by construction: the shared `CheckoutButton` carries no analytics import.
+- **On the Hobby plan custom events do not collect,** so the taxonomy is wired and dormant; pageviews, referrers, UTM,
+  paths and the Speed Insights vitals do. The vendor choice at the Pro cutover is on the ROADMAP.
+- **Event properties are single lowercase words** (the listener round-trips them through the camel-cased DOM
+  dataset), few and short (Pro keeps two per event).
+- **Test traffic:** a red-team browser profile sets `localStorage["pr-no-track"]` first, which mutes both products on
+  that device. Collection is verified by the network beacons (`/_vercel/insights/script.js` and the `view` posts),
+  never by dashboard latency; dev never sends. The numbers read on the Vercel dashboard, through the Vercel MCP's
+  pageview and event tools (the P3 team) or the REST API.
+- **`/privacy`'s "what we collect" names cookieless, first-party counting,** so a new vendor means re-checking its "no
+  cookies, never identifies you, no cross-site" sentences.
 
-## Web analytics (marketing site)
+## The newsletter opt-in and a guest's address
 
-**Vercel Web Analytics + Speed Insights, MARKETING-SCOPED:** the one client island
-[`marketing/system/web-analytics.tsx`](../../src/components/marketing/system/web-analytics.tsx) mounts in
-`(marketing)/layout.tsx`, and that placement IS the scoping: app/guest/admin surfaces stay untracked until
-that becomes its own deliberate decision (the root `not-found.tsx` sits outside the group, so it is
-untracked too). Both products are ON project-side and installed (`@vercel/analytics` /
-`@vercel/speed-insights` v2).
-
-- **The wrapper pair is the DRY seam.** [`lib/analytics/events.ts`](../../src/lib/analytics/events.ts)
-  (pure, dependency-free): the 7-event taxonomy (`cta_click · demo_open · reel_play · checkout_start ·
-  contact_submit · careers_apply · assistant_click`, Vitest-pinned, append-only: a rename splits its
-  dashboard history) plus `trackAttrs()`. [`lib/analytics/web.ts`](../../src/lib/analytics/web.ts)
-  (client): silent-safe `track()` + the `pr-no-track` localStorage opt-out (`beforeSendDrop`, wired to
-  BOTH products). Swapping vendors means rewriting `web.ts` alone; the taxonomy + attributes carry over.
-- **Server components instrument by ATTRIBUTES, not islands**: spread `trackAttrs(event, props)` on
-  the clickable element; the island's delegated capture-phase click listener does the rest (capture
-  because Radix chrome can swallow bubble-phase clicks; known gap: middle-click/auxclick). That is why
-  `footer-qr.tsx` stays server-rendered and why the shared `CheckoutButton` passes rest props through
-  but carries NO analytics import: attributes only fire where the island exists, which keeps
-  app-surface checkouts silent by construction.
-- **Hobby-plan reality: custom events are Pro-only.** The taxonomy is wired but dormant; what collects is
-  pageviews/referrers/UTM/paths + Speed Insights vitals. Quotas: WA 50k events/mo, 1-month data window,
-  hard-pauses at cap (NO overage billing on Hobby); SI is free for one project, 10k data points/mo, 7-day
-  window. The vendor decision at the Hobby → Pro cutover waits for observed volume (a launch-checkpoint item).
-- **Props discipline**: single lowercase words only (the listener round-trips them through the
-  camelCased DOM dataset), few and short (Pro caps custom events at 2 props, 255 chars each; 8 with
-  the paid add-on).
-- **Test traffic**: red-team browser profiles set `localStorage["pr-no-track"]` FIRST; it mutes both
-  products on that device. Verify collection by the NETWORK beacons (the script at
-  `/_vercel/insights/script.js` + the `view` beacons; v2 also posts to a per-deployment unique path),
-  not by dashboard latency. Dev never sends (the package no-ops off Vercel).
-- **Reading the numbers**: the Vercel dashboard (vercel.com/partyreel/partyreel/analytics), the Vercel MCP's
-  pageview and event tools (`count_pageviews`, `aggregate_pageviews`, `count_events`; on the P3 team) or
-  the REST `$VERCEL_TOKEN` path. The proxy skips `/_vercel/*`, so
-  beacons never cost a Supabase `getUser` round-trip.
-- **Privacy-claim coupling**: `/privacy` "what we collect" discloses the cookieless, first-party
-  counting; if the vendor ever changes, re-verify its "no cookies / never identifies you / no
-  cross-site" sentences still hold.
-
-## Guest email capture
-
-The newsletter opt-in ("Send me occasional Partyreel updates") is a switch inside the confirm door of the
-post-upload offer card, `<SaveAccountPrompt>` ([`save-account-prompt.tsx`](../../src/components/guest/save-account-prompt.tsx),
-rendered by [`guest-upload.tsx`](../../src/components/guest/guest-upload.tsx)), its one place in the product, and it
-posts only on an in-page confirmation. Opt-in POSTs to
-[`/api/guests/capture-email`](../../src/app/api/guests/capture-email), which requires a session whose
-email is CONFIRMED (`email_confirmed_at`; an unconfirmed sign-up gets 401), derives the address from that
-session (never the request body: no victim-address poisoning), applies a per-IP abuse limit (fail-open),
-and calls the service-role-only **`capture_guest_email`** RPC through the admin client: it sets
-`guests.email` only if null and only on a row whose own account is the confirmed owner of that address, and upserts the durable **`newsletter_signups`** table (RLS deny-all).
-`newsletter_signups` is standalone (NOT a `guests` column) so the marketing list survives event/guest
-deletion (`event_id` is `on delete set null`). A TYPED address never reaches `guests.email`: it lives
-in `guests.pending_email` (written only by the join's `create_guest` and by `set_guest_pending_email`
-through `/api/guests/email`) until a confirmed account claims it
-(→ [guest-flow.md](guest-flow.md)). No "email me the album link" send exists (it would reuse `sendOnce`).
-
-## See also
-
-[guest-flow.md](guest-flow.md) (the offer card and its confirm door) · [admin-observability.md](admin-observability.md) (announcement publishing) · [lifecycle-recovery.md](lifecycle-recovery.md) (the nudges some alerts mirror) · [database-security.md](database-security.md).
+The opt-in ("Send me occasional Partyreel updates") is a switch inside the confirm door of the post-upload offer card
+(`SaveAccountPrompt`), its one place in the product, and it posts only after an in-page confirmation.
+- **`/api/guests/capture-email` takes the address from a session whose email is CONFIRMED** (`email_confirmed_at`; an
+  unconfirmed sign-up gets 401), never from the request body, which would let anyone subscribe a victim. It is
+  abuse-limited per IP (failing open) and calls the service-role `capture_guest_email`, which fills `guests.email` only
+  when empty and only on a row whose own account confirmed-owns the address, then upserts `newsletter_signups`
+  (deny-all).
+- **`newsletter_signups` stands alone,** not a `guests` column, so the list outlives an event or a guest
+  (`event_id` is `on delete set null`); deleting an account removes its address.
+- A typed, unproved address never reaches `guests.email`: it waits in `guests.pending_email` until a confirmed account
+  claims it ([database-security.md](database-security.md), "two email columns"). No "email me the album link" send exists; one would go through
+  `sendOnce`.

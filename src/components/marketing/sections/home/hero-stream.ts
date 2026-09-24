@@ -24,7 +24,7 @@
  * answer plus a margin. So "no photograph is ever under a word" is the
  * condition the composition is drawn from rather than a hope about it, and
  * retuning a number re-solves it instead of breaking it. There is no darkening
- * layer anywhere over a photograph, which is the argument (bible 1).
+ * layer anywhere over a photograph, which is the argument (bible 6).
  *
  * ★ THE ENGINE IS A CLOSED FORM OF THE CLOCK. A frame's progress is
  * `((its launch time * reveal + elapsed) mod cycle) / flight`, so recycling
@@ -106,7 +106,7 @@ export type Geo = {
    * two lines, plus headroom), at `base` the sentence does (it fills its whole
    * 343 measure over three lines while the headline's widest is 225). It is the
    * column the band's reach is measured at, so re-measure it if the ruled copy
-   * changes: copy is open (bible 21), and this is the one number a rewrite can
+   * changes: copy is open (bible 10), and this is the one number a rewrite can
    * invalidate. The height is the block's own, gaps included, and at `base` it
    * carries the action row WRAPPED, because two buttons do not fit on a 375
    * line and pretending otherwise costs 57px of fold.
@@ -201,7 +201,7 @@ const ASPECTS = [
 /**
  * THE STAND-IN FRAMES: the twelve manifest images, sequenced so neighbours vary
  * in palette and subject. Every id is resolved through the media manifest,
- * which is the only source of a path (bible 18), and `hero-stream.test.ts`
+ * which is the only source of a path (bible 9), and `hero-stream.test.ts`
  * holds each one to it. Will's 34-square set (ASSETS row 2) replaces them by
  * id and nothing else changes: the stream needs 18 for no photograph to be on
  * screen twice, and these twelve repeat until it lands.

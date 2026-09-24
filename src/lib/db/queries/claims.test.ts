@@ -1,6 +1,4 @@
 /**
- * @contract-for: src/lib/db/queries/claims.ts
- *
  * THE GROUPING, PINNED. `list_guest_rows_by_email` returns one tuple per
  * GUEST ROW, and the same address can carry more than one row at the same
  * event (a second device, a second visit before signing in) — the claim and

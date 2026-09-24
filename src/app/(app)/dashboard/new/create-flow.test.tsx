@@ -1,7 +1,3 @@
-// @contract-for: src/components/app/create-event-wizard.tsx
-// @contract-for: src/components/app/qr-preset-picker.tsx
-// @contract-for: src/app/(print)/dashboard/[eventId]/print/page.tsx
-
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 

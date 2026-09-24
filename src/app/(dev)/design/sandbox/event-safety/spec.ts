@@ -101,7 +101,6 @@ export const EVENT_SAFETY = defineExploration({
   },
   context:
     "Will, 2026-09-23: a bad actor with a verified email can be hidden photo by photo but never stopped. His three answers bound the board: a block puts the person out with their uploads; approve newcomers, close to newcomers and an invite list keep an event closed; all free on every plan. Drawn on Maya and Jay's wedding at 375, 1440 on the knob. Asked elsewhere, never here: the credit's shape (media-viewer.who), identity-door's five, host-curation's bulk act, undo, count and arrivals, profile-page.view-all, and voice-guest's seven lines.",
-  bible: [1, 4, 12, 15, 19, 21, 22],
   carried: [
     {
       id: "phone-first",

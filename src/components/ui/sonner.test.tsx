@@ -1,4 +1,3 @@
-// @contract-for: src/components/ui/sonner.tsx
 import { act } from "react";
 
 import { render, screen } from "@testing-library/react";

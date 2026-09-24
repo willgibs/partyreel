@@ -7,8 +7,8 @@
  * merged and deleted weeks earlier, 76 were canceled or errored, and 176 were `launch-prep`
  * previews of which only the newest is ever opened. Retention was already set to 30 days and
  * working; the program simply produced deployments faster than the window cleared them. Deleting a
- * branch now deletes its deployments too: this runs as the last step of the per-track integration
- * checklist in docs/PROGRAM.md.
+ * branch now deletes its deployments too: this runs after each alias build (usher/kit/README.md,
+ * "Deploy to the alias").
  *
  * Usage (dry run prints the full classification and changes nothing):
  *

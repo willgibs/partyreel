@@ -1,4 +1,3 @@
-// @contract-for: src/lib/avatar/gradient.ts
 import { randomUUID } from "node:crypto";
 
 import { describe, expect, it } from "vitest";
@@ -43,9 +42,7 @@ import {
  * clears the letter floor, not the `contrast(orb.ink, orb.body)` proxy below,
  * which is a promise about `fitBody`'s own fitted window and holds for every
  * look by construction but is not what a reader's eye meets at the centre of
- * four blended layers. It is a separate file, not a describe block here,
- * because the design-rules collector only tracks `measure.ts` as a component
- * when its own `@contract-for:` marker names it.
+ * four blended layers.
  */
 
 /** A crowd big enough to find a hole in: a thousand real account-id-shaped seeds. */

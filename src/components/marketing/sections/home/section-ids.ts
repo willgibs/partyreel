@@ -52,7 +52,7 @@ export type HomeSectionId = (typeof HOME_SECTION_IDS)[number];
  * the chapter after." `live-demo` is the only id that changed register, so the
  * ORDER is byte-for-byte what it was and the page re-chunks itself: chapter 1
  * now ends on full-quality's photograph, and the demo's stage, the loudest
- * visual on the page after the hero, is the paper chapter's opener (bible 17:
+ * visual on the page after the hero, is the paper chapter's opener (bible 9:
  * a chapter opens on a bespoke device, and a lit stage is one of the ruled
  * ones). The pair was already neighbours, so nothing came between them or was
  * pushed apart; only the ground under the demo changed, and the crossing from

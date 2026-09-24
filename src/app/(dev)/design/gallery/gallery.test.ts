@@ -4,31 +4,28 @@ import { join } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
-import { COMPONENT_DIRS } from "../../../../../scripts/design-rules/collect.mjs";
-import { COMPONENT_NOTES } from "../rules/component-notes";
-import { COMPONENTS, INDEXED } from "../rules/rules";
+import { readLibraryEntries } from "../../../../../scripts/lab-review.mjs";
 
 /**
- * THE GALLERY'S GUARD (the gallery round, 2026-09-12). Three jobs, and the
- * third is the one that makes the library worth pulling from:
+ * THE CATALOG'S GUARD: every entry tells the truth about the component it
+ * shows.
  *
- *   COVERAGE   every component the library renders is declared in the gallery,
- *              and every component in the index carries a `for` line. Silence
- *              is what the old hand-written pages allowed, and it is how the
- *              library drifted out of the product.
+ *   LINKS      every entry names a file that exists, and a `test` that exists
+ *              when it names one, so the entry page's one meta line never
+ *              points at nothing.
  *   WIRING     every `play` names a config panel that exists, and every panel
  *              is reached by exactly one entry.
- *   DRIFT      every variant the gallery DECLARES is a variant the component
+ *   DRIFT      every variant the catalog DECLARES is a variant the component
  *              actually has. A cva axis is compared key for key against the
  *              component's own `variants` block and its `defaultVariants`, so
- *              adding `size: "xl"` to Button and not to the gallery fails here.
+ *              adding `size: "xl"` to Button and not to the catalog fails here.
  *              A prop or declared axis is weaker but still real: every option
  *              must appear as a string literal in the component's source, so a
  *              renamed or deleted value fails.
  *
  * It reads the entry files as SOURCE rather than importing them: the entries
  * are TSX that pulls in the whole component library, and this belongs in the
- * fast node project beside the other design guards.
+ * fast node project beside the other catalog checks.
  */
 
 const ROOT = process.cwd();
@@ -51,6 +48,7 @@ type Entry = {
   family: string;
   section: string;
   file?: string;
+  test?: string;
   play?: string;
   specimens: number;
   variants: Axis[];
@@ -152,6 +150,7 @@ function readEntries(): Entry[] {
             family: str(prop(el, "family")) ?? "",
             section: str(prop(el, "section")) ?? "",
             file: str(prop(el, "file")),
+            test: str(prop(el, "test")),
             play: str(prop(el, "play")),
             specimens:
               specimensNode && ts.isArrayLiteralExpression(specimensNode)
@@ -285,40 +284,6 @@ function literals(rel: string): Set<string> {
 
 const ENTRIES = readEntries();
 const PLAYGROUNDS = readPlaygrounds();
-const BY_ID = new Map(COMPONENTS.map((c) => [c.id, c]));
-const fileOf = (e: Entry) => BY_ID.get(e.id)?.file ?? e.file;
-
-describe("the gallery covers the library", () => {
-  it("declares every component the library renders", () => {
-    const declared = new Set(ENTRIES.map((e) => e.id));
-    const missing = INDEXED.filter(
-      (c) => !declared.has(c.id) && !COMPONENT_NOTES[c.file]?.unspecimened,
-    ).map((c) => c.file);
-    expect(
-      missing,
-      "a library component with no gallery entry (add one, or record why it cannot be mounted in COMPONENT_NOTES)",
-    ).toEqual([]);
-  });
-
-  it("gives every component in the index a `for` line", () => {
-    const silent = COMPONENTS.filter((c) => !COMPONENT_NOTES[c.file]?.for).map(
-      (c) => c.file,
-    );
-    expect(
-      silent,
-      "a component with no `for` line in COMPONENT_NOTES: it is the one line the library index shows",
-    ).toEqual([]);
-  });
-
-  it("keeps COMPONENT_DIRS as the definition of the library", () => {
-    // A guard on the guard: if the collector's directory list grows, the two
-    // coverage checks above silently cover more, which is the intent.
-    expect(COMPONENT_DIRS.length).toBeGreaterThanOrEqual(6);
-    for (const dir of COMPONENT_DIRS) {
-      expect(existsSync(join(ROOT, dir)), dir).toBe(true);
-    }
-  });
-});
 
 describe("every gallery entry", () => {
   it("has a unique id", () => {
@@ -332,25 +297,28 @@ describe("every gallery entry", () => {
     }
   });
 
-  it("names a component that exists", () => {
+  it("names a file that exists, and a test that exists when it names one", () => {
     for (const e of ENTRIES) {
-      const record = BY_ID.get(e.id);
-      if (record) {
-        expect(
-          e.file,
-          `${e.id} is in the design-rules artifact, so it must not declare its own file`,
-        ).toBeUndefined();
-      } else {
-        expect(
-          e.file,
-          `${e.id} is outside the six indexed directories, so it must declare its file`,
-        ).toBeTruthy();
-        expect(
-          existsSync(join(ROOT, e.file!)),
-          `${e.id}: ${e.file} is gone`,
-        ).toBe(true);
-      }
+      expect(e.file, `${e.id} declares no file`).toBeTruthy();
+      expect(existsSync(join(ROOT, e.file!)), `${e.id}: ${e.file} is gone`).toBe(
+        true,
+      );
+      if (e.test === undefined) continue;
+      expect(e.test, `${e.id}: its test is not a test file`).toMatch(
+        /\.test\.tsx?$/,
+      );
+      expect(existsSync(join(ROOT, e.test)), `${e.id}: ${e.test} is gone`).toBe(
+        true,
+      );
     }
+  });
+
+  it("is the same list lab:review checks a `review library:` line against", () => {
+    // lab-review.mjs reads the ids with a regex (node builtins only, no build
+    // step); this holds that reader to the TypeScript parse above.
+    expect([...(readLibraryEntries(ROOT) ?? [])].sort()).toEqual(
+      ENTRIES.map((e) => e.id).sort(),
+    );
   });
 
   it("sits in the family whose page mounts it, and in a named section", () => {
@@ -382,7 +350,7 @@ describe("every gallery entry", () => {
 describe("the declared variants match the component", () => {
   it("matches a cva axis key for key, default included", () => {
     for (const e of ENTRIES) {
-      const file = fileOf(e);
+      const file = e.file;
       if (!file) continue;
       for (const axis of e.variants.filter((a) => a.source === "cva")) {
         const found = cvaAxes(file).get(axis.prop);
@@ -406,7 +374,7 @@ describe("the declared variants match the component", () => {
 
   it("only offers option values the component's source actually contains", () => {
     for (const e of ENTRIES) {
-      const file = fileOf(e);
+      const file = e.file;
       if (!file) continue;
       const inSource = literals(file);
       for (const axis of e.variants) {

@@ -1,17 +1,17 @@
-// @contract-for: src/components/marketing/system/page-hero.tsx
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 /**
- * The hero lockup's source contract. Every line here is something that fails
- * SILENTLY: a heading that stops being an h1 costs the page its document
- * outline with no visual change at all, and the display step's trim is
- * asymmetric on purpose in a way that reads like a bug.
+ * The hero lockup's mechanisms, each of which fails SILENTLY: a heading that
+ * stops being an h1 costs the page its document outline with no visual change
+ * at all, a gated h1 delays the largest paint, a clipping ancestor eats the
+ * display step's descenders without its padding, and a stage mounted inside
+ * the lockup waits on the lockup's observer. How the hero looks (its steps,
+ * its spacing, its entrances) is the Library's to show and tuned freely.
  *
- * Source-scanned rather than rendered, the footer-contract.test.ts precedent:
- * these are authoring rules about the file, not behaviour of the component.
+ * Source-scanned rather than rendered, the footer-contract.test.ts precedent.
  */
 const source = readFileSync(
   join(process.cwd(), "src/components/marketing/system/page-hero.tsx"),
@@ -31,118 +31,21 @@ describe("the page hero lockup", () => {
     expect(code).not.toMatch(/<h2\b/);
   });
 
-  it("never puts a reveal-hidden state on the h1 (the LCP rule)", () => {
-    // The h1 is the LCP element on a type-led hero, so an in-view gate plus a
-    // transition delays the largest paint for nothing. The slots around it do
-    // the arriving. Same note on qr-hero, attribution-hero, album-link-hero.
+  it("never puts a reveal-hidden or animated state on the h1 (the LCP rule)", () => {
+    // The h1 is the LCP element on a type-led hero, so an in-view gate, a line
+    // reveal or a transition on it delays the largest paint for nothing. The
+    // slots around it do the arriving, under every entrance the hero offers.
     const h1 = code.slice(code.indexOf("<h1"), code.indexOf("</h1>"));
     expect(h1).not.toContain("mark()");
     expect(h1).not.toContain("data-mkt-reveal");
-  });
-
-  it("keeps one shared gap for every scale", () => {
-    // The grammar is the shared part (Will, 2026-08-28: "share grammar, page
-    // picks scale"). A per-scale gap would re-open the drift this closes.
-    expect(code).toContain("flex flex-col gap-6");
-    expect(code.match(/gap-6/g)).toHaveLength(1);
-  });
-
-  it("trims the display step's TOP only, never its bottom", () => {
-    // The box overstates the ink above the cap (the step's tight leading + py)
-    // and UNDERSTATES it below (the descender hangs past the box). Trimming
-    // both ends is the intuitive move and it tightens the one end already tight.
-    expect(code).toMatch(/\bmt-\[calc\(/);
-    expect(code).not.toMatch(/-mb-\[|\bmb-\[calc/);
-  });
-
-  it("trims by the leading it is cancelling, with the sign that trims MORE at a phone", () => {
-    // Will's `display-trim=clamped` (2026-09-18). The overhang is minus the
-    // half-leading, which follows the step's own clamped line height, plus a
-    // constant in em; the constant is fitted so 1440 keeps its -0.12em. The
-    // board's tile had the half-leading's sign backwards, `(1lh - 1em) / 2`,
-    // which trims LESS at a phone where the leading is looser: the exact
-    // opposite of the words it was picked on, and the easiest regression to
-    // type. A flat em value is the other one: right at one width only.
-    expect(code).toContain("mt-[calc((1em-1lh)/2-0.19em)]");
-    expect(code).not.toContain("(1lh-1em)");
-    expect(code).not.toMatch(/-mt-\[[\d.]+em\]/);
+    expect(h1).not.toContain("mkt-line");
+    expect(h1).not.toContain("lineClass");
   });
 
   it("keeps the display step's descender padding", () => {
     // py-[0.08em] is what stops an overflow-hidden ancestor clipping the "y".
     // The trim removes the distance from LAYOUT; the glyph keeps its room.
     expect(code).toContain("py-[0.08em]");
-  });
-
-  it("takes every size from the ladder, never from a number here", () => {
-    // Will's type ruling (2026-09-17): one nine-step set in theme.css, each
-    // step a clamp through (375, phone) and (1440, desktop) carrying its own
-    // line-height and letter-spacing. The ambiguity the old rule guarded (v4
-    // cannot tell a clamp() in `text-*` from a color and guesses silently) went
-    // with the arbitrary value: a named step cannot be misread. What replaces
-    // it is the rule that actually matters — no hero invents a size, a leading
-    // or a tracking of its own, at any breakpoint.
-    const table = code.slice(
-      code.indexOf("const HERO_SCALE"),
-      code.indexOf("export type HeroEntrance"),
-    );
-    for (const step of ["text-display", "text-hero", "text-title"])
-      expect(table).toContain(step);
-    expect(table).not.toMatch(/text-\[/);
-    expect(table).not.toMatch(/\b(sm|md|lg|xl):text-/);
-    expect(table).not.toMatch(/\bleading-/);
-    expect(table).not.toMatch(/\btracking-/);
-  });
-
-  it("puts the subhead on the ladder's own step, never a stock size", () => {
-    // Will, 2026-09-19 (`the-ladder=reading`): "On desktop, hero sub maybe
-    // 20-22 and opening stays 18." The slot was a flat `text-lg`, the same 18
-    // pixels at 375 and at 1440 under an h1 that clamps from 34 to 80, so the
-    // lockup's proportion came apart as the window grew and nothing about it
-    // looked broken at either end on its own. The NUMBERS are not pinned (he
-    // retunes a step without asking a test, and said so: "not a strict hard
-    // ruling"); what is pinned is that the slot reads a step at all, which is
-    // the thing a later edit would quietly undo by typing `text-lg` back.
-    const subhead = code.slice(code.indexOf("{subhead && ("));
-    const p = subhead.slice(0, subhead.indexOf("</p>"));
-    expect(p).toContain("text-subhead");
-    expect(p).not.toMatch(/text-(xs|sm|base|lg|xl|[2-9]xl)\b/);
-    expect(p).not.toMatch(/text-\[/);
-    expect(p).not.toMatch(/\b(sm|md|lg|xl|2xl):text-/);
-  });
-
-  it("keeps every scale in the table rather than inline", () => {
-    for (const step of ["display:", "xl:", "lg:"]) expect(code).toContain(step);
-  });
-
-  it("keeps the side bearing out of the heading class, gated on align", () => {
-    // The vertical trim holds at any alignment; the horizontal one only means
-    // something against a column edge. Folded into `heading` it drags a CENTRED
-    // masthead off centre by half its value, which reads as "the hero is
-    // slightly wrong" and nothing more. /press found it at 3.6px.
-    const table = code.slice(code.indexOf("const HERO_SCALE"));
-    const displayHeading = table.slice(
-      table.indexOf("display:"),
-      table.indexOf("leadIn:"),
-    );
-    expect(displayHeading).not.toContain("margin-inline-start");
-    expect(code).toMatch(/align === "left" && HERO_SCALE\[scale\]\.leadIn/);
-  });
-
-  it("offers three named entrances, and the blur-rise never touches the h1", () => {
-    // rise for the identity pages, cut for the cinema family (2026-09-01), and
-    // blur for the utility trio (Will's hero ruling, 2026-09-02: few named
-    // registers, no unnamed variants). The texts-reveal line rests at opacity
-    // 0, which is the LCP hole above, so the h1 is the one slot that is never
-    // a `.mkt-line`; the blur register wraps in the class-keyed island.
-    expect(code).toMatch(/type HeroEntrance = "rise" \| "cut" \| "blur"/);
-    expect(code).toContain('"data-mkt-cut"');
-    expect(code).toContain('"data-mkt-reveal"');
-    expect(code).toContain("TextsReveal");
-    const h1 = code.slice(code.indexOf("<h1"), code.indexOf("</h1>"));
-    expect(h1).not.toContain("mkt-line");
-    expect(h1).not.toContain("lineClass");
-    expect(h1).not.toContain("mark()");
   });
 
   it("renders the stage AFTER the lockup, inside the same Container", () => {
@@ -155,13 +58,5 @@ describe("the page hero lockup", () => {
     const container = code.indexOf("</Container>");
     expect(stage).toBeGreaterThan(reveal);
     expect(stage).toBeLessThan(container);
-  });
-
-  it("keeps the tracking squeeze on the display step itself", () => {
-    // `.mkt-name` belongs to the STEP, not to /about (Will, 2026-08-29): a page
-    // taking `display` gets the masthead entrance without knowing the recipe
-    // exists. It composes with the reveal because it animates a different
-    // property (letter-spacing, not opacity or transform).
-    expect(code).toMatch(/display:\s*\{\s*heading:\s*\n?\s*"mkt-name /);
   });
 });

@@ -94,7 +94,7 @@ function DropdownMenuContent({
         sideOffset={sideOffset}
         align={align}
         className={cn(
-          // The panel's 4px of padding IS the row's corner offset (bible 9).
+          // The panel's 4px of padding IS the row's corner offset.
           // Move it and `floatingRow` is wrong by the difference.
           "z-50 max-h-(--radix-dropdown-menu-content-available-height) w-(--radix-dropdown-menu-trigger-width) min-w-32 origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto p-1 data-[state=closed]:overflow-hidden",
           floatingPanel,

@@ -1,4 +1,3 @@
-// @contract-for: src/lib/format/date-in-zone.ts
 import { describe, expect, it } from "vitest";
 
 import { formatDateInZone } from "./date-in-zone";

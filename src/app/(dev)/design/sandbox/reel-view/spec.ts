@@ -44,7 +44,6 @@ const DRAFT = defineExploration({
   },
   context:
     "Every option plays the same wedding album (gallery-fixtures.ts, Mia & Theo's) through the real drawReelFrame engine, at 1440 with 375 on the knob. Two items are re-typed to video so Include videos has something to toggle. No option presigns, uploads or writes anything; the mood shown throughout is Cinematic, a stand-in for the loop-tuned default mood no board has designed yet.",
-  bible: [1, 12, 14, 15, 22],
   asks: [
     {
       id: "chrome",

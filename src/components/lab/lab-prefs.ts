@@ -14,9 +14,10 @@
  *  - fit: "true" renders every Stage at the canvas's real pixels (a 1440
  *    canvas is 1440 CSS pixels wide, scrolling sideways if the column is
  *    narrower) and lifts a wide page's max-width; "zoom" is the old fit.
- *  - sidebar: "collapsed" hides the shell's sidebar on a WIDE page (a board)
- *    so a 1440 canvas has the room at 1:1; the top bar's toggle and the dock's
- *    control bring it back. The library pages keep their sidebar regardless.
+ *  - sidebar: "collapsed" hides the shell's sidebar at `lg` and up on every
+ *    page, so a board's 1440 canvas has the room at 1:1; the top bar's toggle
+ *    and the dock's control bring it back, and the choice holds on the next
+ *    page (design.css: one preference, one meaning, everywhere).
  *  - editorRoot: the absolute path of the repo on the reader's machine, so a
  *    source reference can open in the editor from a Vercel alias as well as
  *    from localhost (empty: no editor link, GitHub only).

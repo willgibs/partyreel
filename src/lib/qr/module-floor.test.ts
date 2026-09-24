@@ -1,7 +1,3 @@
-// @contract-for: src/lib/qr/module-floor.ts
-// @contract-for: src/lib/qr/stock.ts
-// @contract-for: src/components/app/print/print-stock.tsx
-
 import { describe, expect, it } from "vitest";
 
 import { QR_STYLE_KEYS } from "@/lib/constants/qr-presets";

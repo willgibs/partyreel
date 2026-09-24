@@ -31,7 +31,8 @@
  *
  * Every board, round, ask, option, item and verdict is validated against the
  * board's own spec (src/app/(dev)/design/sandbox/<board>/spec.ts), and every
- * Library entry against rules.generated.json, before anything is written,
+ * Library entry against the catalog's own declarations (the five families'
+ * `gallery-demos.tsx`), before anything is written,
  * and a refusal names the line and column of the token it refused. The whole
  * message is all-or-nothing: one bad token writes nothing at all, so a paste is
  * never half-applied.
@@ -60,13 +61,14 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const SANDBOX = ["src", "app", "(dev)", "design", "sandbox"];
 const REVIEWS = ["docs", "reviews"];
-const RULES = [
-  "src",
-  "app",
-  "(dev)",
-  "design",
-  "rules",
-  "rules.generated.json",
+/** Where the catalog's five families declare their entries. */
+const CATALOG = ["src", "app", "(dev)", "design", "(shell)", "library"];
+const FAMILIES = [
+  "components",
+  "patterns",
+  "compositions",
+  "foundations",
+  "marketing",
 ];
 
 /** The two ladders, mirrored from board-spec.ts's ITEM_VERDICTS / LIBRARY_VERDICTS. */
@@ -762,21 +764,26 @@ export function buildDrift(text, root) {
 const list = (xs) => xs.join(", ");
 
 /**
- * Every Library entry id, from the committed rules artifact. Null when the
- * artifact is missing, which is a refusal rather than a free pass: an
- * unvalidated entry id is a redesign request nobody can open.
+ * Every catalog entry id, read from the five families' `gallery-demos.tsx`:
+ * an entry opens `    id: "<id>",` at the entries' own indent, which no
+ * nested object (a specimen, an axis) shares. Null when no family module is
+ * on disk, which is a refusal rather than a free pass: an unvalidated entry id
+ * is a redesign request nobody can open. gallery.test.ts holds this reader to
+ * the TypeScript parse of the same files.
  */
 export function readLibraryEntries(root) {
-  const file = join(root, ...RULES);
-  if (!existsSync(file)) return null;
-  try {
-    const artifact = JSON.parse(readFileSync(file, "utf8"));
-    return new Set((artifact.components ?? []).map((c) => c.id));
-  } catch {
-    throw new ReviewError(
-      `${file} is not the rules artifact (pnpm design:rules)`,
-    );
+  const ids = new Set();
+  let modules = 0;
+  for (const family of FAMILIES) {
+    const file = join(root, ...CATALOG, family, "gallery-demos.tsx");
+    if (!existsSync(file)) continue;
+    modules++;
+    for (const m of readFileSync(file, "utf8").matchAll(
+      /^ {4}id: "([^"]+)",$/gm,
+    ))
+      ids.add(m[1]);
   }
+  return modules === 0 ? null : ids;
 }
 
 /* ── A RE-SEND THAT CHANGES NOTHING ──────────────────────────────────────────
@@ -1049,14 +1056,14 @@ function validateCalls(e, spec, at, echoCall = () => false) {
   );
 }
 
-/** A `review library:` line against the committed component index. */
+/** A `review library:` line against the catalog's entries. */
 function validateLibrary(e, library, at) {
   for (const r of e.entries) {
     if (library === null) {
       at(
         e.line,
         r.entryAt,
-        "there is no rules artifact to check an entry against; run pnpm design:rules",
+        "there is no catalog to check an entry against (no gallery-demos.tsx under src/app/(dev)/design/(shell)/library)",
       );
       continue;
     }

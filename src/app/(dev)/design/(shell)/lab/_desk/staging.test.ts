@@ -1,4 +1,3 @@
-// @contract-for: src/app/(dev)/design/(shell)/lab/_desk/session-step.ts
 import { describe, expect, it } from "vitest";
 
 import type { BoardSpec } from "@/components/lab/board-spec";

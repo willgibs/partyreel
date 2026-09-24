@@ -1,4 +1,3 @@
-// @contract-for: src/lib/shared/sampled-palette.ts
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -78,16 +77,6 @@ describe("spill sampling (law 3)", () => {
     expect(arc).toBeGreaterThan(180);
   });
 
-  it("carries a lighter, calmer register for paper", () => {
-    // On a dark ground light ADDS; over near-white the same wash darkens and
-    // reads as stain. The paper register sits near the paper's own lightness.
-    const hues = pickSpillHues(pixels([[200, 40, 40]]));
-    const dark = huesToSpillColors(hues, "dark");
-    const paper = huesToSpillColors(hues, "paper");
-    expect(dark[0]).toMatch(/^oklch\(0\.72 0\.15 /);
-    expect(paper[0]).toMatch(/^oklch\(0\.88 0\.08 /);
-  });
-
   it("ignores near-black, near-white and grey pixels", () => {
     // These are the pixels whose hue is numerically unstable: letting them vote
     // is how a night photograph produces a muddy, arbitrary palette.
@@ -113,13 +102,24 @@ describe("spill sampling (law 3)", () => {
     expect(sorted[sorted.length - 1] - sorted[0]).toBeGreaterThan(180);
   });
 
-  it("normalises every sampled colour into the atmosphere register", () => {
-    // Hue-only sampling is what makes the central experiment readable: the two
-    // palettes then differ in exactly one variable. It also stops a dark photo
-    // from producing a spill that is not light.
-    for (const c of huesToSpillColors(pickSpillHues(pixels([[200, 40, 40]])))) {
-      expect(c).toMatch(/^oklch\(0\.72 0\.15 \d+(\.\d+)?\)$/);
-    }
+  it("normalises every sampled colour into one register, whatever the photograph's own", () => {
+    // Hue-only sampling: a dark photo and a bright one yield the same
+    // lightness and chroma, so a spill is always light and the palettes differ
+    // in hue alone. The register's own numbers are the brand kit's to tune.
+    const parts = (c: string) => c.match(/^oklch\(([\d.]+) ([\d.]+) [\d.]+\)$/);
+    const colours = [
+      ...huesToSpillColors(pickSpillHues(pixels([[200, 40, 40]]))),
+      ...huesToSpillColors(pickSpillHues(pixels([[40, 20, 20]]))),
+      ...huesToSpillColors(pickSpillHues(pixels([[240, 220, 120]]))),
+    ];
+    const registers = new Set(
+      colours.map((c) => {
+        const m = parts(c);
+        expect(m, c).not.toBeNull();
+        return `${m![1]} ${m![2]}`;
+      }),
+    );
+    expect(registers.size, [...registers].join(" | ")).toBe(1);
   });
 });
 

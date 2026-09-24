@@ -562,7 +562,7 @@ export function ProfilePage({
   menuOpen?: boolean;
   /** ROUND TWO's slot (2026-09-19): `way-back`'s pill lands between the header
    *  and the name, the one place a "back to the album" line can sit without
-   *  moving `Identity` (bible 9's centring ruling keeps the avatar aligned to
+   *  moving `Identity` (a centring rule keeps the avatar aligned to
    *  the name, not the page). Undefined renders nothing, so every round-one
    *  call site is byte-identical. */
   belowHead?: ReactNode;

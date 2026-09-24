@@ -24,7 +24,7 @@ import { useSampledPaletteFromDom } from "@/lib/shared/sampled-palette";
  * a mechanic) and shows the album ITSELF, which is what the page is about.
  *
  * ★ IT IS THE SHIPPED COMPONENT, COMPOSED, NOT A MOCK. The masonry is
- * `GuestMasonry`, the real guest album, under the host's own header (bible 4: a
+ * `GuestMasonry`, the real guest album, under the host's own header (bible 7: a
  * guest surface is the host's, so no Partyreel mark inside the frame). Its
  * column count is set from OUTSIDE, through a variable the sheet reads, so the
  * product is never forked for a marketing stage.
@@ -48,7 +48,7 @@ import { useSampledPaletteFromDom } from "@/lib/shared/sampled-palette";
  *
  * ★ THE MEDIA IS A SLOT (his note: "We will replace the album media before
  * launch, likely with Higgsfield generations", ASSETS row 22). Every frame is
- * resolved through the media manifest by id (bible 18), so the swap is a data
+ * resolved through the media manifest by id (bible 9), so the swap is a data
  * change and nothing here names a picture.
  */
 

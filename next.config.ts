@@ -126,10 +126,15 @@ const nextConfig: NextConfig = {
 // just skips the upload (so the app builds without creds, like the assert*Env vars).
 // useRunAfterProductionCompileHook = the Turbopack-compatible post-build source-map upload
 // (needs @sentry/nextjs >= 10.13.0); excludeServerRoutes is intentionally NOT used (Turbopack).
+// Only a Vercel build uploads source maps: `.env.local` carries the token, so without this every
+// local and lane build (several a day, one at a time through scripts/build-lock.sh) spent time
+// and CPU uploading maps for a build that never deploys.
 export default withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
   authToken: process.env.SENTRY_AUTH_TOKEN,
+  sourcemaps: { disable: !process.env.VERCEL },
+  telemetry: false,
   silent: !process.env.CI,
   useRunAfterProductionCompileHook: true,
   widenClientFileUpload: true,

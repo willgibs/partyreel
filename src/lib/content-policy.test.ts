@@ -1,6 +1,3 @@
-// @policy: marketing · MDX prose obeys the copy rules
-// @refuses: an em-dash or a broken internal link in the MDX reading surfaces, which the TypeScript AST guard cannot see.
-
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -213,8 +210,8 @@ describe("content policy", () => {
     ).toEqual([]);
   });
 
-  it('never promises "no account" (bible 20: a host may require one)', () => {
-    // Will's account rule (2026-09-19, `voice` r1 `absence=named`; bible 20 ruled
+  it('never promises "no account" (bible 10: a host may require one)', () => {
+    // Will's account rule (2026-09-19, `voice` r1 `absence=named`; bible 10 ruled
     // PERMISSIVE, ruling in marketing-voice.ts's head comment). Require verified
     // emails defaults ON for a new event, so a line promising "no app" AND "no
     // account" together is false on most events; "No app required." is the

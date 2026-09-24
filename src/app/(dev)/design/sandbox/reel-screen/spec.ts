@@ -65,7 +65,6 @@ export const REEL_SCREEN = defineExploration({
   },
   context:
     "Play on a screen opens the reel's own full-screen view on the venue's television: the code in its corner, no name, the viewer's hold. Two decisions are left that only a big screen asks: what it shows before the reel starts at the second photo, and what the host presses to start it. Drawn at 1440 by 810 with a real 1920 on the knob, every reel frame the real engine.",
-  bible: [1, 4, 12, 14, 20, 22],
   carried: [
     {
       id: "look",

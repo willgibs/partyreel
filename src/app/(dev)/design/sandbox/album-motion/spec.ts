@@ -44,7 +44,6 @@ export const ALBUM_MOTION = defineExploration({
   },
   context:
     "The album page's hero now stands on the live guest album with photographs falling out of the room around the words and into its top edge, which you ruled in (`motion=stream`). This asks the one thing that was left open: which fall.",
-  bible: [1, 13, 14, 22],
   asks: [
     {
       id: "fall",

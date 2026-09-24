@@ -4,12 +4,9 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { BIBLE } from "@/app/(dev)/design/rules/bible";
-import { COMPONENTS } from "@/app/(dev)/design/rules/rules";
 import { RULINGS, SANDBOX } from "@/app/(dev)/design/touchpoints";
 
 import {
-  DOC_FILES,
-  POLICY_TESTS,
   editorFor,
   fileFor,
   githubFor,
@@ -20,11 +17,10 @@ import {
 } from "./links";
 
 /**
- * THE LINK GRAMMAR'S CONTRACT: every string the registries already use parses
- * to a ref the shell can render, and every file a ref names is on disk. The
- * two registry sweeps (the rulings' `lives`, the bible's `enforcedBy`) are the
- * point: a registry entry that drifts from the grammar fails here, not on a
- * reader's click.
+ * THE LINK GRAMMAR: every string the registries already use parses to a ref
+ * the shell can render, and every file a ref names is on disk. The registry
+ * sweep (the boards' `lives`) is the point: an entry that drifts from the
+ * grammar fails here, not on a reader's click.
  */
 const ROOT = process.cwd();
 const onDisk = (file: string) => existsSync(join(ROOT, file));
@@ -76,7 +72,7 @@ describe("parseRef: the boards and the bible", () => {
     });
   });
 
-  it("reads bible 8 as the eighth rule, in every spelling", () => {
+  it("reads bible 8 as the eighth principle, in every spelling", () => {
     const eighth = BIBLE[7].id;
     expect(parseRef("bible 8")).toEqual({ kind: "rule", id: eighth });
     expect(parseRef("bible-8")).toEqual({ kind: "rule", id: eighth });
@@ -85,7 +81,7 @@ describe("parseRef: the boards and the bible", () => {
     expect(parseRef(`rule:${eighth}`)).toEqual({ kind: "rule", id: eighth });
   });
 
-  it("names a rule by its number", () => {
+  it("names a principle by its number", () => {
     expect(labelFor(parseRef("bible 8"))).toBe("bible 8");
     expect(labelFor({ kind: "rule", id: "not-a-rule" })).toBe(
       "rule not-a-rule",
@@ -93,40 +89,15 @@ describe("parseRef: the boards and the bible", () => {
   });
 });
 
-describe("parseRef: code paths and policies", () => {
-  it("reads src/components/ui/button.tsx as the button component", () => {
-    const record = COMPONENTS.find(
-      (c) => c.file === "src/components/ui/button.tsx",
-    );
-    expect(record, "the artifact indexes the button").toBeDefined();
+describe("parseRef: paths", () => {
+  it("keeps a component, a test, a directory and a doc as source", () => {
     expect(parseRef("src/components/ui/button.tsx")).toEqual({
-      kind: "component",
-      id: record!.id,
-    });
-    expect(parseRef("src/components/ui/button.tsx#contracts")).toEqual({
-      kind: "component",
-      id: record!.id,
-      anchor: "contracts",
-    });
-  });
-
-  it("reads src/lib/no-em-dash-policy.test.ts as a policy", () => {
-    expect(parseRef("src/lib/no-em-dash-policy.test.ts")).toEqual({
-      kind: "policy",
-      id: "no-em-dash-policy",
-    });
-    expect(parseRef("policy:no-em-dash-policy")).toEqual({
-      kind: "policy",
-      id: "no-em-dash-policy",
-    });
-  });
-
-  it("keeps a contract test, a directory and an unknown file as source", () => {
-    expect(
-      parseRef("src/components/marketing/chrome/footer-contract.test.ts"),
-    ).toEqual({
       kind: "source",
-      file: "src/components/marketing/chrome/footer-contract.test.ts",
+      file: "src/components/ui/button.tsx",
+    });
+    expect(parseRef("src/lib/no-em-dash-policy.test.ts")).toEqual({
+      kind: "source",
+      file: "src/lib/no-em-dash-policy.test.ts",
     });
     expect(parseRef("src/components/ui/")).toEqual({
       kind: "source",
@@ -149,8 +120,6 @@ describe("parseRef: code paths and policies", () => {
       file: "src/app/globals.css",
       line: 12,
     });
-    // A line means a place in the file, so a component file with a line is a
-    // source ref too (the component page has no line to jump to).
     expect(parseRef("src/components/ui/button.tsx:40")).toEqual({
       kind: "source",
       file: "src/components/ui/button.tsx",
@@ -160,31 +129,7 @@ describe("parseRef: code paths and policies", () => {
 });
 
 describe("parseRef: the documents", () => {
-  it("reads the five doctrine files as docs, with their anchors", () => {
-    expect(parseRef("docs/systems/design-system.md#the-shipped-light")).toEqual(
-      {
-        kind: "doc",
-        doc: "design-system",
-        anchor: "the-shipped-light",
-      },
-    );
-    expect(parseRef("docs/systems/marketing-content.md")).toEqual({
-      kind: "doc",
-      doc: "marketing-content",
-    });
-    expect(parseRef("docs/PROGRAM.md#gates")).toEqual({
-      kind: "doc",
-      doc: "program",
-      anchor: "gates",
-    });
-    expect(parseRef("CLAUDE.md")).toEqual({ kind: "doc", doc: "agent-guide" });
-    expect(parseRef(".agents/skills/emil-design-eng/SKILL.md")).toEqual({
-      kind: "doc",
-      doc: "craft",
-    });
-  });
-
-  it("reads proposals, tracks and the guidance", () => {
+  it("reads proposals and tracks, and any other doc as source", () => {
     expect(parseRef("docs/specs/palette.md#the-model")).toEqual({
       kind: "proposal",
       slug: "palette",
@@ -198,11 +143,10 @@ describe("parseRef: the documents", () => {
       kind: "source",
       file: "docs/tracks/README.md",
     });
-    expect(parseRef("docs/design/guidance.md#boards")).toEqual({
-      kind: "guidance",
-      anchor: "boards",
+    expect(parseRef("docs/PROGRAM.md#the-round")).toEqual({
+      kind: "source",
+      file: "docs/PROGRAM.md",
     });
-    expect(parseRef("docs/design/guidance.md")).toEqual({ kind: "guidance" });
   });
 
   it("reads a URL as external and trims the text", () => {
@@ -215,36 +159,23 @@ describe("parseRef: the documents", () => {
 
 describe("hrefFor", () => {
   const routed: LabRef[] = [
-    { kind: "rule", id: "tokens-never-literals" },
+    { kind: "rule", id: "media-is-the-color" },
     { kind: "board", id: "palette", anchor: "pal-02" },
-    { kind: "doc", doc: "design-system", anchor: "x" },
     { kind: "proposal", slug: "palette" },
     { kind: "track", name: "palette" },
   ];
 
-  it("routes a rule, board, doc, proposal and track under /design/", () => {
+  it("routes a principle, board, proposal and track under /design/", () => {
     for (const ref of routed) {
       expect(hrefFor(ref), ref.kind).toMatch(/^\/design\//);
     }
+    // A principle is an anchor on the ten's one page.
     expect(hrefFor(routed[0])).toBe(
-      "/design/library/rules/tokens-never-literals",
+      "/design/library/rules#media-is-the-color",
     );
     expect(hrefFor(routed[1])).toBe("/design/lab/palette#pal-02");
-    expect(hrefFor(routed[2])).toBe("/design/library/doctrine/design-system#x");
-    expect(hrefFor(routed[3])).toBe("/design/lab/proposals/palette");
-    expect(hrefFor(routed[4])).toBe("/design/lab/tracks/palette");
-  });
-
-  it("anchors a component, a policy and the guidance", () => {
-    expect(
-      hrefFor({ kind: "component", id: "button", anchor: "variants" }),
-    ).toBe("/design/library/button#variants");
-    expect(hrefFor({ kind: "policy", id: "content-policy" })).toBe(
-      "/design/library/policies#content-policy",
-    );
-    expect(hrefFor({ kind: "guidance", anchor: "boards" })).toBe(
-      "/design/library/guidance#boards",
-    );
+    expect(hrefFor(routed[2])).toBe("/design/lab/proposals/palette");
+    expect(hrefFor(routed[3])).toBe("/design/lab/tracks/palette");
   });
 
   it("has no route for a source file or a URL", () => {
@@ -275,15 +206,10 @@ describe("githubFor, editorFor and fileFor", () => {
     expect(githubFor({ kind: "track", name: "palette" })).toBe(
       "https://github.com/willgibs/partyreel/blob/launch-prep/docs/tracks/palette.md",
     );
-    expect(githubFor({ kind: "policy", id: "content-policy" })).toBe(
-      "https://github.com/willgibs/partyreel/blob/launch-prep/src/lib/content-policy.test.ts",
-    );
   });
 
   it("offers no blob for a ref whose lab page is the destination", () => {
-    expect(githubFor({ kind: "rule", id: "two-faces" })).toBeNull();
-    expect(githubFor({ kind: "component", id: "button" })).toBeNull();
-    expect(githubFor({ kind: "board", id: "palette" })).toBeNull();
+    expect(githubFor({ kind: "rule", id: "one-token-set" })).toBeNull();
     expect(githubFor({ kind: "board", id: "palette" })).toBeNull();
     expect(githubFor({ kind: "external", url: "https://x.y" })).toBeNull();
   });
@@ -292,11 +218,8 @@ describe("githubFor, editorFor and fileFor", () => {
     expect(editorFor(source, "/root")).toBe(
       "vscode://file/root/src/app/globals.css:12",
     );
-    expect(editorFor({ kind: "rule", id: "two-faces" }, "/root/")).toBe(
+    expect(editorFor({ kind: "rule", id: "one-token-set" }, "/root/")).toBe(
       "vscode://file/root/src/app/(dev)/design/rules/bible.ts",
-    );
-    expect(editorFor({ kind: "component", id: "button" }, "/root")).toBe(
-      "vscode://file/root/src/components/ui/button.tsx",
     );
     expect(
       editorFor({ kind: "page", href: "/design/lab" }, "/root"),
@@ -304,57 +227,27 @@ describe("githubFor, editorFor and fileFor", () => {
   });
 
   it("names the file behind every kind that has one", () => {
-    expect(fileFor({ kind: "doc", doc: "craft" })).toBe(DOC_FILES.craft);
     expect(fileFor({ kind: "proposal", slug: "light" })).toBe(
       "docs/specs/light.md",
     );
-    expect(fileFor({ kind: "guidance" })).toBe("docs/design/guidance.md");
-    expect(fileFor({ kind: "component", id: "no-such-component" })).toBeNull();
-    expect(fileFor({ kind: "policy", id: "no-such-policy" })).toBeNull();
+    expect(fileFor({ kind: "track", name: "palette" })).toBe(
+      "docs/tracks/palette.md",
+    );
     expect(fileFor({ kind: "board", id: "palette" })).toBeNull();
   });
 });
 
 describe("the registries resolve through the grammar", () => {
-  it("parses every ruling's lives entry to a lab ref with a real file", () => {
-    for (const ruling of RULINGS) {
-      for (const text of ruling.lives) {
+  it("parses every board's lives entry to a lab ref with a real file", () => {
+    for (const board of RULINGS) {
+      for (const text of board.lives) {
         const ref = parseRef(text);
-        expect(ref.kind, `${ruling.id}: ${text}`).not.toBe("external");
+        expect(ref.kind, `${board.id}: ${text}`).not.toBe("external");
         const file = fileFor(ref);
         if (file !== null) {
-          expect(onDisk(file), `${ruling.id}: ${text} -> ${file}`).toBe(true);
+          expect(onDisk(file), `${board.id}: ${text} -> ${file}`).toBe(true);
         }
       }
-    }
-  });
-
-  it("parses every bible rule's enforcedBy as a policy or an existing file", () => {
-    for (const rule of BIBLE) {
-      if (rule.enforcedBy === "review") continue;
-      for (const text of rule.enforcedBy) {
-        const ref = parseRef(text);
-        expect(
-          ["policy", "component", "source"],
-          `${rule.id}: ${text}`,
-        ).toContain(ref.kind);
-        const file = fileFor(ref);
-        expect(file, `${rule.id}: ${text}`).not.toBeNull();
-        expect(onDisk(file!), `${rule.id}: ${text} -> ${file}`).toBe(true);
-      }
-    }
-  });
-
-  it("names a policy test that exists, for every known policy", () => {
-    for (const [id, file] of Object.entries(POLICY_TESTS)) {
-      expect(onDisk(file), `${id} -> ${file}`).toBe(true);
-      expect(parseRef(file)).toEqual({ kind: "policy", id });
-    }
-  });
-
-  it("names a doctrine file that exists, for every doc", () => {
-    for (const [doc, file] of Object.entries(DOC_FILES)) {
-      expect(onDisk(file), `${doc} -> ${file}`).toBe(true);
     }
   });
 });

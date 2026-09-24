@@ -88,7 +88,6 @@ const DRAFT = defineExploration({
   },
   context:
     "One surface serves both sides of the album. A host taps Download in the Gallery header; a guest taps Download all above the tiles. Both get Download album, three chips with live counts, a size, and a button that mints a signed token and hands it to a Worker that streams a zip. It is drawn here as the one responsive sheet the guest's dialogs are ruled onto, at 375 by 812 with 1440 by 900 on the knob, over one wedding of 148 items. Every count and size is the real arithmetic over a fixture summary. Nothing here mints, signs, logs or reaches the Worker.",
-  bible: [1, 15, 21, 22],
   asks: [
     {
       id: "means",

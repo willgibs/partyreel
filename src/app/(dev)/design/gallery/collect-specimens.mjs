@@ -8,9 +8,8 @@
 // declaration: this collector lifts each specimen's `node` expression out of
 // the entry module's source, and the gallery renders that.
 //
-// Why a committed artifact and not a read at request time: exactly the reason
-// scripts/design-rules/collect.mjs gives. The lab pages are dynamic and the
-// Vercel bundle only traces files an import can see, so a request-time
+// Why a committed artifact and not a read at request time: the lab pages are
+// dynamic and the Vercel bundle only traces files an import can see, so a request-time
 // readFileSync over the entry modules would ENOENT on the preview (the one
 // place Will reviews). The JSON is imported, so it always ships.
 //

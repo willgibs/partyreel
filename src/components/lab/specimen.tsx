@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
  */
 
 /** The per-cell label: one step under the lab's caption atom, in the body face
- *  with tabular figures (there is no mono face in the product, bible 7). */
+ *  with tabular figures (there is no mono face in the product, bible 8). */
 export function CellLabel({
   children,
   className,

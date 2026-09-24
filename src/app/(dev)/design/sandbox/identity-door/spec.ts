@@ -53,7 +53,6 @@ const DRAFT = defineExploration({
   },
   context:
     "Every option is Priya at Maya and Jay's wedding, the world guest-capture already uses, one step earlier: the held door sheet before she has typed a name. The optional email shipped under the name this morning; this board asks where it sits, whether a member gets a way to sign in instead, how the verified gate sells itself, and what her own menu offers once she is inside.",
-  bible: [4, 12, 14, 15, 19, 22],
   asks: [
     {
       id: "field",

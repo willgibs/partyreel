@@ -75,7 +75,6 @@ const DRAFT = defineExploration({
   },
   context:
     "A host near a cap cannot find what is filling it: sizes are stored but no screen shows one. Five decisions, drawn over one wedding videographer's account at 110.8 GB across four events, on the shipped Plan card, storage meter, grace banner, View menu and pricing sheet.",
-  bible: [1, 7, 12, 15, 21, 22],
   carried: [
     {
       id: "row-contents",

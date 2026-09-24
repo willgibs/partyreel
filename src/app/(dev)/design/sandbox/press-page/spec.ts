@@ -42,7 +42,6 @@ export const PRESS_PAGE = defineExploration({
   },
   context:
     "Will's stacking steer (2026-09-19): /press is unprotected, open to relitigate from the ground up. Seven decisions on PageHero, PressSection, PressSheet and the copy buttons. Not in this round: any production byte, the kit's build script, or the killed sitewide media kit.",
-  bible: [6, 16, 18, 19, 21, 22],
   asks: [
     /* ── 1. Who the page is for ─────────────────────────────────────────── */
     {

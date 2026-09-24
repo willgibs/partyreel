@@ -1,8 +1,3 @@
-// @contract-for: src/components/app/event-feed/event-cards-row.tsx
-// @contract-for: src/components/app/event-feed/event-gallery.tsx
-// @contract-for: src/components/app/event-feed/review-room.tsx
-// @contract-for: src/components/app/event-settings/event-settings-sheet.tsx
-
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 

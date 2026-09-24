@@ -22,7 +22,7 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
  * life to a folder it does not own. Priya's name and seed are retyped, not
  * imported, so her avatar wears the same colour a reader has already seen.
  *
- * ★ THE SAME TWELVE MARKETING STILLS EVERY BOARD REUSES (bible 18: no new
+ * ★ THE SAME TWELVE MARKETING STILLS EVERY BOARD REUSES (bible 9: no new
  * asset, nothing to track the rights of).
  */
 

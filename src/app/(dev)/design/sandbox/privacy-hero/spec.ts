@@ -48,7 +48,6 @@ export const PRIVACY_HERO = defineExploration({
     changed:
       "The overtaken audit's reshape adds a fourth concept, sweep: the access grid cleared by the product's own arrival sweep (guest-upload r1) rather than a bespoke crossfade, now recommended over access. The three from 19 Sep stand; none of them flew photographs.",
   },
-  bible: [1, 13, 14, 22],
   context:
     "Round one (a turning nozzle) answered none; round two (two spiralling arms with a trail) answered a question mark on its arrival. The page ships PageHero with no backdrop on purpose, the site's quietest: a concept has to earn its place against that, so every one here sits still, or nearly still, and the thing that moves is each one's own visibility rather than its position.",
   asks: [

@@ -1,4 +1,3 @@
-// @contract-for: src/components/shared/logo.tsx
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 

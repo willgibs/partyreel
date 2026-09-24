@@ -336,7 +336,7 @@ export function HelpPaletteProvider({
               )}
             </div>
 
-            {/* ★ THE FLOATING FAMILY'S RAIL (bible 15; the corner ladder,
+            {/* ★ THE FLOATING FAMILY'S RAIL (the corner ladder,
                 2026-09-18): `p-1` with every row on `floatingRow`, the panel's
                 corner minus this 4px, so the row's arc shares the panel's
                 centre and a retune of --radius-float moves both. The rows were

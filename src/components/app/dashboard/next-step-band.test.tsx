@@ -1,4 +1,3 @@
-// @contract-for: src/components/app/dashboard/next-step-band.tsx
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";

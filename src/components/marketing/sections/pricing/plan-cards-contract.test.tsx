@@ -1,4 +1,3 @@
-// @contract-for: src/components/marketing/sections/pricing/plan-cards.tsx
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -31,7 +30,7 @@ import { PlanPair } from "./plan-cards";
  *     "This keeps the monthly/yearly toggle above, which feels more
  *     intuitive/natural." Pinned as DOM ORDER, so any look may change.
  *
- * Copy is never pinned here (bible 21): every control is found by role and by
+ * Copy is never pinned here (bible 10): every control is found by role and by
  * a number that comes out of tiers.ts.
  */
 

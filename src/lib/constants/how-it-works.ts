@@ -26,7 +26,7 @@ import { Images, QrCode, Sparkles, type LucideIcon } from "lucide-react";
  * short phrases a reader can hold in their head, the two sides ending on the
  * same object from opposite ends: the host CUTS the reel, the guest GETS it.
  *
- * Copy is open (bible 21) and lives here alone: a rewrite is one edit, never a
+ * Copy is open (bible 10) and lives here alone: a rewrite is one edit, never a
  * hunt through three surfaces.
  */
 

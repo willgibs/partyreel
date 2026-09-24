@@ -1,14 +1,12 @@
 /**
- * THE WORDS THIS APP USES (the Library x Lab round, 2026-09-15), and the ones
- * it retired. Six words used to name three things (library, reference,
- * sandbox, lab, desk, board/touchpoint/ruling); these are the ones that stay,
- * each with the one sentence that tells it from its neighbours. Rendered at
- * /design/library/glossary and searched by the sidebar.
+ * THE WORDS THIS APP USES, and the ones it retired: each with the one sentence
+ * that tells it from its neighbours. Rendered at /design/library/glossary and
+ * searched by the palette.
  *
  * A term leads with the word a STRANGER would use and names the code's word
- * after it (the sweep, 2026-09-16): the ids in board-spec.ts stay `candidates`,
- * `asks` and `departures` whatever the surface calls them, and a reader who
- * meets either word here finds the other.
+ * after it: the ids in board-spec.ts stay `candidates`, `asks` and
+ * `departures` whatever the surface calls them, and a reader who meets either
+ * word here finds the other.
  */
 export type Term = {
   term: string;
@@ -21,67 +19,48 @@ export const GLOSSARY: Term[] = [
   {
     term: "Library",
     meaning:
-      "Everything that binds or informs design work: the rules, the policies and landmines, the guidance, the rulings, the doctrine, the components with their contracts.",
+      "What exists, and what design starts from: the brand kit, the component catalog and the bible's ten principles.",
     href: "/design/library",
   },
   {
     term: "Lab",
     meaning:
-      "Everything exploratory: the desk, the boards, the proposals, the tracks, the kit, the tools. Nothing here binds anyone.",
+      "Everything exploratory: the desk, the boards, the proposals, the tracks, the kit, the tools.",
     href: "/design/lab",
   },
   {
-    term: "Rule",
+    term: "Brand kit",
     meaning:
-      "One of the bible's rules, Will's and global: a working rule every exploration follows by default. The bible changes only by his word, so a better answer against a rule goes to him.",
-    href: "/design/library/rules",
+      "The live tokens (colour, type, radius, motion, elevation and light), each rendered from the variable every surface reads.",
+    href: "/design/library/foundations",
   },
   {
-    term: "Contract",
+    term: "Catalog",
     meaning:
-      "A component's functional guard (a test that opens with @contract-for): structure, accessibility, single sources, its engine; never its look. Component-exclusive: it holds for the components under a path you own, and changes deliberately with its test, never silently.",
+      "Every component with a specimen: its file, what it is for, its variants and config panel, and the test that pins its behavior.",
     href: "/design/library",
   },
   {
-    term: "Policy",
+    term: "Principle",
     meaning:
-      "An agent-written test that holds a line across the tree (no em-dashes, one source of truth, the CSS layers). The gate is red without it; provisional, so a policy no bible rule cites is a finding.",
-    href: "/design/library/policies",
+      "One of the bible's ten: a statement and its reason, the guidance every design starts from. Will owns the wording, so an idea that would change one is raised with him.",
+    href: "/design/library/rules",
   },
   {
-    term: "Landmine",
+    term: "Test",
     meaning:
-      "A ★ in a doc: a silent breakage if reverted. Know it before you touch its surface; it is never a design rule.",
-    href: "/design/library/policies#landmines",
-  },
-  {
-    term: "Guidance",
-    meaning:
-      "The craft stack and the skills: the default you leave on purpose, never a wall.",
-    href: "/design/library/guidance",
-  },
-  {
-    term: "Ruling",
-    meaning:
-      "What Will ruled for one component or page, kept as the rule it holds today and why (touchpoints.ts). It informs: an exploration may reopen it and says so.",
-    href: "/design/library/rules#rulings",
-  },
-  {
-    term: "Doctrine",
-    meaning:
-      "The system docs' chapters, rendered: what exists and why. Precedent, which a better exploration may rebuild.",
-    href: "/design/library/doctrine/design-system",
+      "What has to keep working: data, privacy, accessibility, performance, security, the CSS and the build, content links, the lab boundary, copy without em-dashes. A failing test names what broke; a look is shown by the Library and production, never pinned by a test.",
   },
   {
     term: "Proposal",
     meaning:
-      "A standing board's argument: its asks and the answer it recommends for each. Not law until Will rules on it.",
+      "A standing board's argument: its asks and the answer it recommends for each.",
     href: "/design/lab",
   },
   {
     term: "Component, family, specimen, variant",
     meaning:
-      "A component is a production file the library indexes; a family is the gallery it belongs to; a specimen is one rendered instance; a variant is an axis the component exposes.",
+      "A component is a production file the catalog shows; a family is the gallery it sits in; a specimen is one rendered instance; a variant is an axis the component exposes.",
     href: "/design/library",
   },
   {
@@ -93,7 +72,7 @@ export const GLOSSARY: Term[] = [
   {
     term: "Idea, question, departure, asset",
     meaning:
-      "An idea (the code calls it a candidate) is one answer the board argues; a question (an ask) is one Will answers in a word; a departure is a rule or a ruling the idea breaks, and what that costs; an asset is what the design needs Will to make.",
+      "An idea (the code calls it a candidate) is one answer the board argues; a question (an ask) is one Will answers in a word; a departure is a principle or a shipped decision the idea departs from, and what that costs; an asset is what the design needs Will to make.",
   },
   {
     term: "The desk",
@@ -122,21 +101,21 @@ export const GLOSSARY: Term[] = [
   {
     term: "Stage",
     meaning:
-      "The kit's viewport: a real viewport's pixels on a real ground, 1:1 by default. Only the kit's; the gallery's frame is a specimen.",
+      "The kit's viewport: a real viewport's pixels on a real ground, 1:1 by default. Only the kit's; the catalog's frame is a specimen.",
   },
 ];
 
-/** Words retired with the round; a page or a doc that uses one is stale. */
+/** Words that left the Library; older comments may still use them. */
 export const RETIRED: { term: string; now: string }[] = [
   {
     term: "Reference",
-    now: "the Library (the live components and the tokens)",
+    now: "the Library (the catalog and the brand kit)",
   },
   {
     term: "Workbench",
     now: "the shell (the top bar, the sidebar, the content column)",
   },
-  { term: "Sandbox", now: "the Lab; the directory keeps its name this round" },
+  { term: "Sandbox", now: "the Lab; the directory keeps its name" },
   {
     term: "Touchpoint",
     now: "a board (in the UI); the registry file keeps its name",
@@ -145,5 +124,18 @@ export const RETIRED: { term: string; now: string }[] = [
   {
     term: "The mono sheet",
     now: "the real tokens; there is one design language",
+  },
+  { term: "Foundations", now: "the brand kit (the route keeps its name)" },
+  {
+    term: "Contract, policy",
+    now: "a test: the tests say what has to keep working, and a catalog entry names the one that pins its behavior",
+  },
+  {
+    term: "Ruling",
+    now: "a pick: the best of what one round drew, built into production as a working version",
+  },
+  {
+    term: "Guidance, doctrine, landmine",
+    now: "the design recipe on the Library's home, the system docs under docs/systems, and a note beside the code it guards",
   },
 ];

@@ -17,7 +17,7 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
  * `propsFor` and every `buildReelProps` fixture that fed it are gone with it
  * (git holds them): nothing still open here ever needs a live frame again.
  *
- * ★ THE STILLS ARE THE FOURTEEN MARKETING IMAGES EVERY BOARD REUSES (bible 18:
+ * ★ THE STILLS ARE THE FOURTEEN MARKETING IMAGES EVERY BOARD REUSES (bible 9:
  * no new asset, nothing to track the rights of).
  */
 

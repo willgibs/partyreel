@@ -1,4 +1,3 @@
-// @contract-for: src/lib/shared/arrival.ts
 import { describe, expect, it } from "vitest";
 
 import { arrivalMarks } from "@/lib/shared/arrival";

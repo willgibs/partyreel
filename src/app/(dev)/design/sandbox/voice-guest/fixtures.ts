@@ -26,7 +26,7 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
  * account the moment one lands. He appears only where a line differs for
  * him (`landed`), beside Priya, never instead of her.
  *
- * ★ THE STILLS ARE THE TWELVE MARKETING IMAGES EVERY BOARD REUSES (bible 18:
+ * ★ THE STILLS ARE THE TWELVE MARKETING IMAGES EVERY BOARD REUSES (bible 9:
  * no new asset, nothing to track the rights of).
  */
 

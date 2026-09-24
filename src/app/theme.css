@@ -15,7 +15,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  /* --font-mono left the theme at the review wave (2026-09-14, bible 7):
+  /* --font-mono left the theme at the review wave (2026-09-14, bible 8):
      there is no mono face in the product. Never re-add. */
 
   /* Headings: the brand face is Urbanist (the font-heading utility bakes its own
@@ -149,7 +149,7 @@
   heads at 375. The first wiring moved every marketing step exactly four rungs
   instead, which put the paper h2 (`prose`) a size UNDER its own sub-head at a
   phone, and Will: "We should have a very clear heading hierarchy on mobile as
-  well." Marketing still travels further than the app (bible 2, "marketing may
+  well." Marketing still travels further than the app (bible 8, "marketing may
   be louder, scale included"), only as far as the order allows, and
   type-ladder-policy.test.ts reads the paper stack (title > prose > subhead)
   off these tokens at both ends.
@@ -186,8 +186,8 @@
   print each step's own numbers, and a token that exists only when some page
   happens to wear it is not a token. 30 declarations is a rounding error.
 
-  The steps' one home for WHAT WEARS WHAT is docs/systems/design-system.md; the
-  Library draws them at true size at /design/library/foundations#type.
+  The brand kit draws the steps at true size; a grep of `text-<step>` finds what
+  wears each.
 */
 @theme static {
   /* ★ THE CHART ALIASES ARE STATIC, NOT INLINE (2026-09-18). Tailwind emits a

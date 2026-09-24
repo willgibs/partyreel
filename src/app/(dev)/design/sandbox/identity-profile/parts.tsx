@@ -405,7 +405,7 @@ export function AttendedPicker() {
               event.shown && "ring-2 ring-inset ring-brand",
             )}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element -- stand-in still, bible 18 */}
+            {/* eslint-disable-next-line @next/next/no-img-element -- stand-in still, bible 9 */}
             <img src={event.cover} alt="" className="size-full object-cover" />
             {event.shown && (
               <span className="absolute top-2 right-2 flex size-6 items-center justify-center rounded-full bg-brand text-brand-foreground">
@@ -435,7 +435,7 @@ export function AttendedGuestMenu({ event = EVENT }: { event?: AttendedEvent }) 
     <div className="p-4">
       <div className="overflow-hidden rounded-xl border border-border/60">
         <div className="relative aspect-video w-full bg-black/10">
-          {/* eslint-disable-next-line @next/next/no-img-element -- stand-in still, bible 18 */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- stand-in still, bible 9 */}
           <img src={event.cover} alt="" className="size-full object-cover" />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3">
             <p className="text-sm font-medium text-white">{event.name}</p>

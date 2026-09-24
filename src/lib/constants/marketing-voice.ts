@@ -14,7 +14,7 @@
  * pins make any rewrite a deliberate act, never drift.
  *
  * ───────────────────────────────────────────────────────────────────────────────────────────────
- * ★ THE ACCOUNT RULE (Will, 2026-09-19, `voice` r1 `absence=named`; bible 20 ruled PERMISSIVE).
+ * ★ THE ACCOUNT RULE (Will, 2026-09-19, `voice` r1 `absence=named`; bible 10 ruled PERMISSIVE).
  *
  * NEVER PROMISE "NO ACCOUNT" ANYWHERE. A host may require one, and Require verified emails
  * DEFAULTS ON for a new event, so "No app, no account." was a promise the product breaks on most

@@ -1,11 +1,12 @@
 # The review ledgers
 
 > **ROLE:** Will's answers and notes on the boards, one JSON file per board plus `_window.json` for
-> a round's notes that bind every board and `_library.json` for his verdicts on Library entries.
+> a round's notes that apply to every board and `_library.json` for his verdicts on Library entries.
 > **BELONGS HERE:** ask ids, choices (an option id, or `null` for "not clear to me"), catalog item
 > verdicts (`keep | refine | kill`), Library entry verdicts (`keep | redesign | retire`), notes, who and when.
 > **NOT HERE:** the questions themselves (a board's `spec.ts` is the one home; a ledger stores ask
-> ids, never the text), the rulings once they land (the rule each made: the bible, the Library, a system doc).
+> ids, never the text), and his picks once built: production is their only record, and a pick is never kept as a
+> rule.
 > **GROWS BY:** Will answers on the board (the panel composes one message he pastes into chat); the
 > Orchestrator runs `pnpm lab:review "<the line>"` which validates every ask and option against the
 > board's spec and appends here; the Orchestrator's own notes carry `by: "ai:orchestrator"`. The
@@ -38,7 +39,7 @@ and the board rewrites it before he is asked again.
 A new round is opened by the Orchestrator when it spawns it. `_window.json` holds notes whose `on`
 is a board id or `null` for the whole window. The desk derives "Waiting on Will" as every ask on a
 standing board with no answer in its latest round; a board whose asks are all answered shows its
-ruling draft. When a board leaves the lab (its ruling landed) its ledger is deleted with it.
+ruling draft. When a board leaves the lab (its picks built) its ledger is deleted with it.
 
 ## The message grammar
 
@@ -67,8 +68,8 @@ An option is its id (one token); the board's spec carries the label and the mean
 `item:<id>=keep|refine|kill` rules on ONE card of a board's catalog, where
 `<id>` is a candidate id from the board's spec. The `item:` prefix keeps the two namespaces apart: an
 ask id and a candidate id are both one token and a board may use the same word for both. A board that
-declares no `catalog` has no items, and a ruling on one is refused. One verdict per item per round;
-ruling again in the same round overwrites, exactly as answering an ask again does, and a round gains
+declares no `catalog` has no items, and a verdict on one is refused. One verdict per item per round;
+answering again in the same round overwrites, exactly as answering an ask again does, and a round gains
 `items: [{ item, verdict, note?, by, at }]` beside its `answers`.
 
 `call:<id>=yes|no "a note"` -- a call the lane CARRIED, answered. A lane that meets a question its goal left open
@@ -82,9 +83,9 @@ line beside the answers, in any order:
 In the ledger the round grows a `calls` array beside `answers`, `items` and `notes`: one entry per call per round,
 `{ call, answer, note?, by, at }`, replaced when the same call is answered again, exactly as an ask is.
 
-`review library: <entry-id>=keep|redesign|retire "an optional note"` rules on a LIBRARY entry and
+`review library: <entry-id>=keep|redesign|retire "an optional note"` gives a verdict on a catalog entry and
 lands in `_library.json`, whose shape is `{ "entries": [{ entry, verdict, note?, by, at }] }` with no
-rounds: the Library is not explored in rounds, so there is one ruling per entry and the newest
-overwrites. An `<entry-id>` is a component id from `rules.generated.json`, which is the last segment
+rounds: the Library is not explored in rounds, so there is one verdict per entry and the newest
+overwrites. An `<entry-id>` is a catalog entry's id, the last segment
 of its `/design/library` URL. The desk reads the `redesign` and `retire` ones as "Redesigns you asked
 for", which is the queue the Orchestrator cuts tracks from.

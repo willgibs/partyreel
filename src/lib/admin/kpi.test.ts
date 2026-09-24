@@ -1,4 +1,3 @@
-// @contract-for: src/lib/admin/kpi.ts
 import { describe, expect, it } from "vitest";
 
 import {

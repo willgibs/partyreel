@@ -7,7 +7,8 @@
 # and a lane's branch pruned before the merge line was read.
 set -u
 TRACK="$1"; HSHA="${2:0:8}"; BOARD="$3"; MSG="$4"
-S=${S:-/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/924675e3-0148-4e81-9dca-d9c2f1952d0a/scratchpad}
+# S is this session's scratchpad, required: a default would write one session's logs into another's.
+: "${S:?set S to this session's scratchpad}"
 KIT="$(cd "$(dirname "$0")" && pwd)"
 cd /Users/gibby/local/ai/partyreel
 [ -z "$(git status --short)" ] || { echo "tree not clean:"; git status --short | head -5; echo "INTEGRATE DONE red"; exit 1; }

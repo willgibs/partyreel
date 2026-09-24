@@ -1,6 +1,3 @@
-// @policy: engineering · Keyframe names are unique
-// @refuses: a second @keyframes of the same name in any stylesheet, which shadows the first for the rest of the session.
-
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 

@@ -13,7 +13,6 @@ import {
   optionId,
 } from "@/components/lab/board-spec";
 
-import { COMPONENTS } from "@/app/(dev)/design/rules/rules";
 import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
 
 import {
@@ -28,6 +27,14 @@ import {
   windowNotesFor,
 } from "./ledger";
 import { boardStatus } from "./status";
+
+// The catalog's entry ids, read the way lab:review reads them (the TS parse
+// of the same files holds that reader in gallery.test.ts): importing the
+// registry itself would mount every production component in a node test.
+const { readLibraryEntries } = (await import(
+  "../../../../../scripts/lab-review.mjs"
+)) as { readLibraryEntries: (root: string) => Set<string> | null };
+const CATALOG_IDS = readLibraryEntries(process.cwd()) ?? new Set<string>();
 
 /**
  * THE LEDGER READER'S GUARD. The ledgers are written by the Orchestrator from
@@ -83,7 +90,7 @@ describe("the review ledgers", () => {
     ).toEqual([]);
     for (const r of libraryRulings()) {
       expect(
-        COMPONENTS.some((c) => c.id === r.entry),
+        CATALOG_IDS.has(r.entry),
         `_library.json rules on "${r.entry}", which is not a library entry`,
       ).toBe(true);
       expect(

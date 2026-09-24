@@ -29,7 +29,6 @@ export const LOOSE_ENDS = defineExploration({
     changed:
       "The overtaken audit's reshape: the chart casts now name the portal's daily read (admin r1); faq-look notes pricing's FAQ folded and closing last; review-photo's queue box redrawn with the real waiting tile's dim and clock mark; everywhere-pill drops hover for the product's own sweep.",
   },
-  bible: [1, 5, 12, 14],
   context:
     "Six ROADMAP one-liners nobody could pick from, each drawn on its own real surface rather than argued in prose: the admin chart ramp, one FAQ look, the home hero at a tablet width, and the album page's three ambient pieces.",
   asks: [

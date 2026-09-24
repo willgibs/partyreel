@@ -2,18 +2,18 @@
 track: orchestrator
 status: open
 cut: "4c70fd4e"          # the launch-prep SHA this state was written at
-owns:                    # the standing claims no lane touches (a new board adds only its own lines to the two board lists)
+owns:                    # the standing claims no lane touches
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
+  - src/app/(marketing)/marketing.css
+  - src/app/(dev)/design/sandbox/registry.ts
+  - src/app/(dev)/design/(shell)/lab/boards.ts
   - src/app/globals.css
   - src/app/theme.css
-  - src/app/(marketing)/marketing.css
   - src/lib/design-gate/
   - src/app/api/design-gate/
   - scripts/vercel-ignore-build.mjs
   - .github/workflows/ci.yml
-  - src/app/(dev)/design/sandbox/registry.ts
-  - src/app/(dev)/design/(shell)/lab/boards.ts
 reads:
   - CLAUDE.md
   - docs/PROGRAM.md
@@ -32,35 +32,42 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## In flight
 
+Up to eight lanes at once (Will, 2026-09-24); every production build, a lane's or the kit's gate, takes turns
+through `scripts/build-lock.sh` (run `integrate.sh` under it until `library-lean` wraps `gate-lane.sh`'s build step).
+
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `docs-sharpen` | the boot-time workflow docs sharpened on Will's word (one-offs, history, repeats cut; his rulings and the guardrails kept) | running | Opus, :3131 | review the cut table; apply its `CLAUDE.md` and `PROGRAM.md` copies from the lane's scratch |
-| `reel-guest-wiring` | the live reel's guest side: the seam fix, minimum 2, the provider lift, the Highlight reel tile, the view that is also the wall, the toast, the cut's seam, the photo link card | handed off at `c3d2dfde` (every guest count through `formatCount`); HELD unmerged | Opus, :3132 | integrate with the cut and host lanes in one stretch; the reel picture, the Start's fullscreen and wake lock and the toast prove on that alias build (R2 answers CORS only for the alias and prod) |
+| `refresh-reel-host` | `reel-screen` and `reel-host` refreshed under the new guidance (strong options kept and improved, bolder directions added, nothing fenced by a past pick) | running (agent `ae61fe3e9bbb13c94`), cut at `75631277` | Opus, :3131 | integrate as it lands; its boards into their leverage places; one `[preview]` when the wave is in |
+| `refresh-reel-cut` | `reel-front`, `reel-cut` and `reel-story` refreshed the same way | running (agent `a93a816e4ff303150`), cut at `75631277` | Sonnet, :3132 | integrate as it lands; its boards into their leverage places; one `[preview]` when the wave is in |
+| `refresh-host` | `export-flow`, `admin-triage`, `host-curation`, `host-storage` and `event-safety` refreshed | running (agent `a8844c85921d92ea8`), cut at `75631277` | Sonnet, :3133 | integrate as it lands; its boards into their leverage places; one `[preview]` when the wave is in |
+| `refresh-site` | `site-chrome`, `privacy-hero`, `profile-page`, `album-motion` and `loose-ends` refreshed | running (agent `a9d0a115ec18ff8cd`), cut at `75631277` | Sonnet, :3134 | integrate as it lands; its boards into their leverage places; one `[preview]` when the wave is in |
+| `refresh-guest` | `voice-guest`, `guest-capture` and `media-viewer` refreshed | running (agent `a16dadac85ed2007d`), cut at `75631277` | Sonnet, :3135 | integrate as it lands; its boards into their leverage places; one `[preview]` when the wave is in |
+| `kit-streamline` | the kit does each check once: an integration gates only what the lane never gated, lab steps only when the lab could change | running (agent `afe6fdd1370fd5aaf`), cut at `75631277` | Opus, :3136 | integrate; the kit changes, so `negative.sh` once |
+| `reel-guest-wiring` | the live reel's guest side: the seam fix, minimum 2, the provider lift, the Highlight reel tile, the view that is also the wall, the toast, the cut's seam, the photo link card | handed off at `0384a77b` (Will's morning rulings built: the welcome comes first everywhere, landscape fills; a portrait photo on a landscape screen sits whole on its own blur, his to overrule); HELD unmerged; syncing past the lean round (the directives, comments, the entry-modal flake) (agent `a744f57e3c4cbd81f`) | Opus, :3137 | integrate with the cut and host lanes in one stretch; the reel picture, the Start's fullscreen and wake lock and the toast prove on that alias build (R2 answers CORS only for the alias and prod) |
 
 ## Next, in order
 
-Milestone 28 is live (`1076d3d7`, 2026-09-24): the 1,000-row round (stage 1 `rowcap-kit`, `rowcap-sql` with three row-cap
-migrations applied; stage 2 `rowcap-guest`, `rowcap-host`, `rowcap-cron`, `rowcap-album`; gates 140 to 146),
-`upload-owner` and `delete-final`, alias build 4 red-teamed in Will's Chrome, the partyreel.com pass green. The plan file
-(`~/.claude/plans/great-work-however-1-dapper-twilight.md`) keeps only the reel section live.
-Since it: `reel-migration` merged at `de355bd1` (gate 146), its expand applied on Will's yes (2026-09-24) and the types
-regenerated at `7f4b5b45`; `clocks-and-counts` merged at `4c70fd4e` (gate 147). The alias still serves build 4.
+The lean round's rest (Will's words drive it; everything is guidance, one home, nothing treated as finished).
+Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/`.
 
-**Will's standing approvals:** pushes to `launch-prep` and anything around branching; he tests by click whenever asked. A
-milestone and a destructive migration each still need his yes.
-
-1. **The scale probe stays** as a standing large-album fixture (event "Scale probe" `14bb4318-80cd-4eed-b219-92c097ee16c7`,
-   qr `d02631f1bfb3455188d224e41bf9510f`; 1,145 approved, 20 pending, 30 host-removed, 5 withdrawn; Review ON since the
-   red-team). Its removed rows purge on 2026-10-23.
-2. **Desk review batch 1** (2026-09-24; the plan file's head): the three lab lanes and `media-viewer-wiring` merged
-   (gates 148 to 151); build 5 (`[preview]`) carries them for his next sitting.
-   `reel-guest-wiring` waits handed off, unmerged, until the cut and host lanes are ready: one alias build replaces the
-   stored reel. The drop (`20260924110000_live_reel_drop.sql`, on the tree, unapplied) follows that build's red-team,
-   on his yes (destructive).
-3. **The event-safety wiring**, after his review of that board (his three answers; ROADMAP's event-safety line).
+1. **The rest of the refresh wave** as seats free: `refresh-identity`, `refresh-pages` (specs ready in `specs/`), then
+   **the mandate sweep**: `python3 $S/make-sweep-spec.py` computes its owns at the cut (the files outside every live
+   lane and the boards that frame a choice as authority), `sweep-brief.md` and `sweep-pointers.md` beside it.
+2. **`reel-guest-wiring`, one message** (sent 2026-09-24 with the wave; it hands off again, still held): sync; strip `@contract-for`, `@policy` and `@refuses`
+   from its 22 test headers; its comments keep their reason and drop authority ("bible N", "Will ruled", "law");
+   `guest-flow.md`'s "bible 4 refuses" names the bible's seventh principle; `entry-modal.test.tsx`'s Radix focus-scope
+   timer throws after teardown under load (four unhandled errors in gate 158, green on rerun); re-gate; hand off again.
+3. **When the wave is in**: one `[preview]` for Will's sitting (`album-columns` first), and confirm on Sentry that
+   the Vercel build uploaded its source maps (`894501ad` gated the upload on `VERCEL`).
+4. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
+   self-registering folder, its metadata in its spec, lab checks scoped to the lane's own boards, the authoring API
+   trimmed, a fresh agent proving it; with library-lean's board ideas (a `Surfaces` family of live frames per route
+   with guest entries, the Library's sidebar open by default, a plain-text view of Library pages, and a
+   retire-or-reuse call on `anonymous-info.tsx` and `floating-add-button.tsx`).
+5. **The reel round**, after Will's desk review (the plan file's batch-1 and reel sections).
 
 ## Waiting on Will
 
-- **His desk review, resumed** on build 5 (`/design/lab?key=`, the value in `.env.local`): the re-cut reel boards first
-  (`reel-screen`, `reel-host`, `reel-cut`, `reel-story`), then `reel-front` r2 and `media-viewer` r2.
+- **His desk review**, on the refreshed boards once the refresh wave lands (build 5's boards are superseded), with
+  `album-columns` at the head.
 - **A 10-second iPhone check** on build 5: Save to Photos lands in Photos, and a shared photo arrives as a photograph.

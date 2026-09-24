@@ -26,14 +26,15 @@ import { REEL_CUT } from "./reel-cut/spec";
 import { PRESS_PAGE } from "./press-page/spec";
 import { CONTACT_PAGE } from "./contact-page/spec";
 import { ALBUM_MOTION } from "./album-motion/spec";
+import { ALBUM_COLUMNS } from "./album-columns/spec";
 
 import { LOOSE_ENDS } from "./loose-ends/spec";
 import { PRIVACY_HERO } from "./privacy-hero/spec";
 
 /**
- * THE BOARD REGISTRY (the Library x Lab round, 2026-09-15): every standing
- * board's spec, imported here and nowhere else, so the desk, the board page,
- * the record route and the review ledger read one list.
+ * THE BOARD REGISTRY: every standing board's spec, imported here and nowhere
+ * else, so the desk, the board page, the record route and the review ledger
+ * read one list.
  *
  * ★ SERVER-SAFE BY CONSTRUCTION. A spec is pure data (registry.test.ts refuses
  * one that imports React, a stylesheet or its own board), so this module never
@@ -41,18 +42,18 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
  * reads the question for its header from here; the component comes from
  * `(shell)/lab/boards.ts`, which is the client half.
  *
- * ★ A BOARD LEAVES THIS LIST WHEN ITS WINNER IS WIRED, and its directory goes
- * with it: the rule it became lives in the Library (its RULINGS row in
- * touchpoints.ts, the component's contract) and the board in git. A lane adds or
- * removes ONLY its own board's lines here (the registration and retirement
- * exceptions): a new board directly after the neighbour its manifest names, never
- * at the head of the list, moved into its leverage place by the Orchestrator.
+ * A board leaves this list when its picks are built, and its directory and its
+ * touchpoints.ts row go with it: the answer lives in production (and in the
+ * Library's catalog when it is a component), the board in git. A lane adds or
+ * removes only its own board's lines here (the registration and retirement
+ * exceptions): a new board directly after the neighbour its brief names, never
+ * at the head of the list, because two boards on one spot mangle the merge; the
+ * Orchestrator moves it to its leverage place.
  */
 /**
  * ★ ORDERED BY LEVERAGE AT EXPORT. The one home of the desk's order is
- * `DESK_ORDER` in touchpoints.ts (Will, 2026-09-19: the earlier influence
- * first); the literal below is the REGISTRATION list, where a lane adds a new
- * board at the head so merges stay line-disjoint, and `BOARDS` is that list
+ * `DESK_ORDER` in touchpoints.ts, the boards whose answers shape others first;
+ * the literal below is the registration list, and `BOARDS` is that list
  * sorted by `DESK_ORDER` so the desk, the paging and every walk agree. A board
  * missing from `DESK_ORDER` sorts to the foot until the Orchestrator places it.
  */
@@ -85,6 +86,7 @@ const REGISTERED: readonly BoardSpec[] = [
   PROFILE_PAGE,
   PRIVACY_HERO,
   ALBUM_MOTION,
+  ALBUM_COLUMNS,
   LOOSE_ENDS,
   CONTACT_PAGE,
   PRESS_PAGE,

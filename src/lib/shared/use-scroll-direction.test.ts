@@ -1,4 +1,3 @@
-// @contract-for: src/lib/shared/use-scroll-direction.ts
 import { describe, expect, it } from "vitest";
 
 import { seedFrom, step, type ScrollState } from "./use-scroll-direction";
@@ -74,7 +73,7 @@ describe("the scroll-direction machine", () => {
 
   it("seeds SHOWN even on a page that loads already deep", () => {
     // An anchored link, a bfcache restore, a throttled tab. The visible state
-    // is the default (bible 13); the first real gesture corrects it.
+    // is the default (bible 5); the first real gesture corrects it.
     expect(seedFrom(4000).direction).toBe("up");
     expect(seedFrom(0).direction).toBe("top");
   });

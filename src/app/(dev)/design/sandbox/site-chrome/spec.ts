@@ -60,7 +60,6 @@ export const SITE_CHROME = defineExploration({
   },
   context:
     'Will, round one (the fourth batch): he kept the sign-off over a bigger close because most pages now end on a CtaBand "in the same rough shape", and back to back "would feel very repetitive, would rather them work together"; his ask was "a couple additional explorations of footers that work well with that closing CTA pattern above". Three decisions, drawn under a real close and under a real page with none.',
-  bible: [2, 8, 11, 16, 21, 22],
   asks: [
     {
       id: "foot-after",

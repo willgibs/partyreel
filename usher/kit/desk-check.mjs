@@ -9,4 +9,4 @@ console.log("page serves", (html.match(/sentry-release=([0-9a-f]{8})/) || [])[1]
 const seen = []; for (const m of html.matchAll(/\/design\/lab\/([a-z0-9-]+)/g)) if (!seen.includes(m[1])) seen.push(m[1]);
 console.log(seen.length, "boards ->", seen.join(" > "));
 const lib = await (await fetch(`https://${ALIAS}/design/library?key=${KEY}`, { headers: { "Cache-Control": "no-cache" } })).text();
-console.log("library mentions gradient.ts:", lib.includes("seed-avatar/gradient.ts"), "| header:", (lib.match(/(\d+) contracts on (\d+) components/) || []).slice(1).join(" contracts on "));
+console.log("library:", /The design recipe/.test(lib) ? "the recipe is served" : "NO RECIPE on the served Library", "| catalog:", (lib.match(/(\d+) of (\d+)/) || [])[0] ?? "no index count");

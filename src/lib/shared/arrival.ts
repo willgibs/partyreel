@@ -34,7 +34,7 @@ import { useEffect, useRef, useState } from "react";
 /**
  * Two seconds for the glow: long enough for a guest whose eye is somewhere else
  * on a busy album to catch it, short enough that a lively party is not a page of
- * blinking rims. It sits deliberately outside bible 12's ~300ms interaction
+ * blinking rims. It sits deliberately outside bible 5's ~300ms interaction
  * ceiling, which governs a control answering a tap; this is an ambient mark on
  * content that arrived by itself.
  */

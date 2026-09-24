@@ -1,6 +1,3 @@
-// @contract-for: src/lib/events/host-fingerprint.ts
-// @contract-for: src/app/api/events/[eventId]/live/route.ts
-
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 

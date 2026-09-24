@@ -358,7 +358,7 @@ ${catalog ? CATALOG_CONTROLS : PLAIN_CONTROLS}
     { section: "${catalog ? "catalog" : "TODO"}", note: "TODO: where to look first, and why." },
   ],
 
-  links: { bible: [] },
+  links: {},
 });
 `;
 

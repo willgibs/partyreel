@@ -661,7 +661,7 @@ export function VideoMedia({
         ref={probe}
         className="relative flex h-full max-h-full items-center"
       >
-        {/* ★ REDUCED MOTION IS HONOURED BY NOT PLAYING (bible 14), and a still
+        {/* ★ REDUCED MOTION IS HONOURED BY NOT PLAYING (bible 5), and a still
             that claims to be playing has to say where it is: the held frame
             keeps the mute chip and draws the line the clip has reached. A
             <video> cannot be paused from a stylesheet, so this is the one

@@ -29,7 +29,7 @@ import { formatBytes } from "@/lib/utils";
  * down its whole left edge, so it is the same family and unmistakably its own
  * object. It also costs the card nothing in height: the frame is the card's
  * height, never an added band, because the plans block above is already tall.
- * Bible 1 (media is the color) and 18 (a page argues in photographs) both land
+ * The media-is-the-color and every-frame-is-ours rules both land
  * on the same decision, and the picture is a real event, the thing one pass
  * covers.
  *

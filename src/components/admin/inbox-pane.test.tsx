@@ -1,4 +1,3 @@
-// @contract-for: src/components/admin/inbox-pane.tsx
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 

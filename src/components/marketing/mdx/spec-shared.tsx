@@ -60,7 +60,8 @@ import { EVENT_PASSWORD_MIN_LENGTH } from "@/lib/validation/event";
 // Components available to every MDX article (help now, blog later). next-mdx-remote v6
 // strips {expressions} (blockJS, on by default) but PRESERVES JSX components — so the
 // inline "spec" components below are how articles reference live limits/tiers numbers
-// (never hard-code a cap; CLAUDE.md). Everything else is prose, styled by `prose-help`.
+// (a hard-coded cap goes stale the day the tier changes). Everything else is prose,
+// styled by `prose-help`.
 //
 // ★ BOUNDARY RULE: this module imports slugify from help.ts, which reaches
 // node:fs through the collection loader — NOTHING client-side may ever import
@@ -409,7 +410,7 @@ function H3({ children }: { children?: ReactNode }) {
 
 // ── Steps — numbered procedures with a tabular numeral rail ─────────────────────
 // Numerals stay on the UI (sans) face with tabular-nums for alignment; no mono
-// anywhere (bible 7). Steps injects the index so authors never hand-number.
+// anywhere (bible 8). Steps injects the index so authors never hand-number.
 type StepProps = { index?: number; title: string; children?: ReactNode };
 
 export function Step({ index = 1, title, children }: StepProps) {
