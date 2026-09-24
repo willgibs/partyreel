@@ -18,6 +18,7 @@ import {
   GuestsSection,
   MomentCard,
   NameStepCard,
+  NameToldNotice,
   OfferCaption,
   OfferCard,
   OfferSheet,
@@ -35,8 +36,8 @@ import { GUEST_CAPTURE } from "./spec";
  * today's shape everywhere but the one thing its decision asks (`media-viewer`'s
  * own rule, carried here): the `moment` options vary only the trigger and the
  * count it counts; the `shape` options vary only how the ask is built; `follow`
- * varies only where the follow of Maya lives; `name` varies only what stands
- * where the moment card would be.
+ * varies only where the follow of Maya lives; `name` varies what stands where
+ * the moment card would be, or adds a toast beside it.
  *
  * ★ EVERY SCENE IS THE WHOLE PAGE IN ITS REAL ORDER: the post-upload slot in
  * the words column, the reel's tile at the album's head, the album, and, where
@@ -242,16 +243,28 @@ function followScreen(id: "card" | "list" | "jump", s: BoardState) {
 
 const measureName: Reader = (root) => {
   const fields = root.querySelectorAll("input").length;
-  return `Measured: ${fields} field${fields === 1 ? "" : "s"} to fill before she reaches the moment card.`;
+  const base = `Measured: ${fields} field${fields === 1 ? "" : "s"} to fill before she reaches the moment card`;
+  const notice = root.querySelector<HTMLElement>("[data-gc-name-notice]");
+  if (!notice) return `${base}.`;
+  const words = (notice.textContent ?? "").trim();
+  const card = root.querySelector<HTMLElement>("[data-gc-moment]");
+  const overlap = card
+    ? Math.round(
+        notice.getBoundingClientRect().bottom - card.getBoundingClientRect().top,
+      )
+    : 0;
+  if (overlap > 0)
+    return `${base}; a toast reads "${words}", covering the card's own top ${overlap}px while it is up.`;
+  return `${base}; a toast reads "${words}".`;
 };
 
-function nameScreen(id: "silent" | "confirm", s: BoardState) {
+function nameScreen(id: "silent" | "confirm" | "told", s: BoardState) {
   const sc = screen(s);
   const content =
-    id === "silent" ? (
-      <MomentCard count={4} hostFollow="card" />
-    ) : (
+    id === "confirm" ? (
       <NameStepCard />
+    ) : (
+      <MomentCard count={4} hostFollow="card" />
     );
   return (
     <Scene
@@ -261,6 +274,7 @@ function nameScreen(id: "silent" | "confirm", s: BoardState) {
       measure={measureName}
     >
       <Ground header="confirmed" action={content} items={ALBUM} />
+      {id === "told" && <NameToldNotice />}
     </Scene>
   );
 }
@@ -344,6 +358,7 @@ const PREVIEWS: PreviewsFor<typeof GUEST_CAPTURE> = {
 
   "name.silent": (s) => nameScreen("silent", s),
   "name.confirm": (s) => nameScreen("confirm", s),
+  "name.told": (s) => nameScreen("told", s),
 
   "tracker.button": () => trackerScreen("button"),
   "tracker.menu": () => trackerScreen("menu"),

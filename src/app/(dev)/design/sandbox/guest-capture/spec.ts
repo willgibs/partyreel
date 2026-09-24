@@ -39,15 +39,15 @@ import { defineExploration } from "@/components/lab/exploration";
  * scene, wearing that board's recommendations, and never asked about.
  *
  * ★ WHAT IS DELIBERATELY NOT ASKED. Whether an event requires a verified
- * email at all is ruled; a name-only guest existing is the premise this board
- * stands on, not a question inside it. The Unverified mark's own material,
- * the album's column rule and the guest header's shell are
- * `guest-shape`/`gallery-width`'s and worn here as law. The claim's mechanics
- * (the claim by capability session, the claim by a confirmed address per
- * event, one email one identity) are unmoved; every option changes only what
- * a screen says and where it says it. And what confirming keeps is not a
- * question either: the event and every photograph, in her account; nothing
- * reaches a profile until she chooses it.
+ * email at all is already settled; a name-only guest existing is the premise
+ * this board stands on, not a question inside it. The Unverified mark's own
+ * material, the album's column rule and the guest header's shell belong to
+ * `guest-shape`/`gallery-width`, held steady here rather than re-asked. The
+ * claim's mechanics (the claim by capability session, the claim by a
+ * confirmed address per event, one email one identity) are unmoved; every
+ * option changes only what a screen says and where it says it. And what
+ * confirming keeps is not a question either: the event and every
+ * photograph, in her account; nothing reaches a profile until she chooses it.
  */
 
 const SCREEN: Control = {
@@ -67,7 +67,7 @@ const DRAFT = defineExploration({
     n: 1,
     date: "2026-09-24",
     changed:
-      "The desk re-cut: a new ask, tracker, for his own idea on a moderated event; moment drops the rejected \"Yours is in it\" badge and every scene's tile now wears reel-front's r1 look.",
+      "The refresh: name gains a third path, told (write silently, then say so in a toast), now the recommendation, so the ask is not silent-or-confirm. No other line changed.",
   },
   context:
     "Every option is the same guest at the same wedding, Priya at Maya and Jay's, a names-mode party, with only the piece being asked moved. The door already offered her an optional email under her name (identity-door); this board asks about the second ask, once her first photographs land: when it reaches her, what it looks like, where she is offered a follow of Maya once she confirms, and what becomes of the name she typed. Confirming keeps the event and every photo in her account; nothing reaches a profile until she chooses it. The reel's tile sits at the album's head throughout (reel-front).",
@@ -189,11 +189,11 @@ const DRAFT = defineExploration({
       question:
         "When the name Priya typed becomes her account's name, should she get one look at it first?",
       context:
-        "The shipped write is silent: Will's identity ruling names a nameless profile from the claimed row, editable from Account. That name then credits her wherever she adds photos. Her handle is identity-profile.setup's question.",
+        "The shipped write is silent: the identity round's decision names a nameless profile from the claimed row, editable from Account. That name then credits her wherever she adds photos. Her handle is identity-profile.setup's question.",
       options: [
         {
           id: "silent",
-          label: "Silent, as ruled and shipped",
+          label: "Silent, as shipped",
           means:
             "Named the instant she confirms, from whatever she typed at the door; she can change it from Account later.",
         },
@@ -203,12 +203,18 @@ const DRAFT = defineExploration({
           means:
             '"Is this right?", one editable field, stands between confirming and the name being written anywhere.',
         },
+        {
+          id: "told",
+          label: "Named silently, then told",
+          means:
+            'Writes it at once, like silent, then a toast names it: "You\'re on as Priya. Change it in Account." Nothing blocks her, nothing goes unsaid.',
+        },
       ],
-      recommended: "silent",
+      recommended: "told",
       because:
-        "The name has credited her all evening already and the ruling keeps it editable; asking again at the moment of success is a second question whose answer is almost always the same.",
+        "A confirm step is a second question whose answer is almost always the same, and silence leaves a wrong nickname for her to stumble on later; a toast keeps the instant write and still tells her where to fix it.",
       overrule:
-        'If a name typed for one party (a nickname, "Priya from work") is often wrong everywhere else, one field now is cheaper than an edit she never finds.',
+        "If a toast covering the card's own heading for its first moment reads as clutter rather than care, silence costs her nothing to notice at all.",
       lands:
         "Whether a guest's name at every party after this one is ever chosen on purpose, or carried over from one door.",
       tile: "phone",

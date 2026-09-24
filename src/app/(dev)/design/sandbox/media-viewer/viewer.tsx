@@ -126,7 +126,7 @@ export function CloseCircle() {
 
 /* ── the actions ─────────────────────────────────────────────────────────── */
 
-/** The icon set, at the shipped 20 px, with the ruled per-action hues. */
+/** The icon set, at the shipped 20 px, with the shipped per-action hues. */
 function Actions({ host }: { host?: boolean }) {
   return (
     <>
@@ -959,7 +959,7 @@ export function Viewer({
       data-mv-ground
       className={cn(
         "mv-open fixed inset-0 z-50 flex flex-col",
-        // ★ THE GROUND IS RULED, AND IT IS THE SAME UNDER EVERY OPENING AND
+        // ★ THE GROUND IS SHIPPED, AND IT IS THE SAME UNDER EVERY OPENING AND
         // FROM EITHER ORIGIN. `glass` r1 `behind=album` shipped: what stands
         // behind a photograph is the page it opened out of, blurred at half
         // brightness, which is the album for a tile and the paused reel for a
