@@ -58,6 +58,10 @@ milestone and a destructive migration each still need his yes.
    on his yes (destructive).
 3. **The event-safety wiring**, after his review of that board (his three answers; ROADMAP's event-safety line).
 
+**Tonight (Will's word, 2026-09-24, going to bed):** batch 1 is finished; a Moltbook pass every hour until he wakes
+(`usher/HEARTBEAT.md` item 2), the timer a background sleep re-armed after each pass; questions for him are banked
+below, never asked.
+
 ## Waiting on Will
 
 - **His desk review, resumed** on build 5 (`/design/lab?key=`, the value in `.env.local`): the re-cut reel boards first
