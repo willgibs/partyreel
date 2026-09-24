@@ -1,353 +1,220 @@
-# Database & security model
+# Database & security
 
-> ROLE: the data-layer security model + the DB workflow every schema change follows.
-> BELONGS HERE: RLS shapes, the capability-token RPC inventory, the advisor 0028/0029 split + expected set, the column-grant lockdown pattern + its lessons, the migrations workflow, rate-limiting. · NOT HERE: a single feature's own RPC details (→ that feature's doc).
-> GROWS BY: integrate-in-place.
+Open this before you:
+- add or change an RPC: its class, its grants, the advisor set it must leave intact;
+- add a column or a table, or touch a grant;
+- write a read or a function that can pass 1,000 rows;
+- limit a route against abuse;
+- write, prove or apply a migration.
 
-## What it does
+The model is [CLAUDE.md](../../CLAUDE.md)'s: RLS is the boundary, every Server Function and route re-checks `getUser()`, and a guest
+without an account holds capability tokens (the event link's `qr_token`, a guest's `session_token`) that SECURITY
+DEFINER RPCs validate inside; `anon` never touches a table. A feature's own RPC semantics live in its doc.
 
-**RLS is the security boundary.** The proxy ([`../../src/proxy.ts`](../../src/proxy.ts)) only refreshes
-cookies, it does **not** authorize. Every Server Function / route handler re-verifies authz with
-`getUser()` (→ [auth-accounts.md](auth-accounts.md)) AND relies on RLS policies / SECURITY DEFINER RPCs
-at the DB. Guests without an account have no JWT: they authorize via **capability tokens** validated INSIDE
-SECURITY DEFINER RPCs; `anon` never gets direct table access. Privileged writes go through the
-service-role admin client (`server-only`).
+## The RPC inventory and the advisor set
 
-## Where it lives
+`get_advisors` (security) after every schema change reads 15 `rls_enabled_no_policy`, 5 in lint `0028` and 32 in
+`0029`; the live reel's drop (`20260924110000`, held for the reel lane's alias build) takes them to 14, 4 and 27.
+Leaked Password Protection is on, so its WARN never shows. A function in the wrong list means a grant slipped.
 
-- Schema = Supabase-native SQL migrations + RLS + generated types (no ORM) in [`../../supabase/migrations/`](../../supabase/migrations).
-- Clients: [`../../src/lib/supabase/`](../../src/lib/supabase) — `client` (browser/anon), `server`
-  (RSC/route handlers, async), `middleware` (proxy refresh), `admin` (service-role, `server-only`, bypasses RLS).
-- Data access only via [`../../src/lib/db/`](../../src/lib/db) (queries/mutations) — never inline SQL in components.
-- Generated types: [`../../src/lib/db/types.ts`](../../src/lib/db/types.ts) — **do not hand-edit** (`.prettierignore`d so regen stays churn-free).
-- Migration guards: [`db/migration-guards.test.ts`](../../src/lib/db/migration-guards.test.ts) + [`forensics/migration-guards.test.ts`](../../src/lib/forensics/migration-guards.test.ts) pin the load-bearing SQL facts below, latest-wins across the migration files (a body is the last definition; a grant or a policy is replayed statement by statement, since a table-level revoke cascades), so a later `create or replace` that drops one fails the gate.
-- Rate-limiters: [`unlock-rate-limit.ts`](../../src/lib/security/unlock-rate-limit.ts) (album-password unlock) + [`abuse-rate-limit.ts`](../../src/lib/security/abuse-rate-limit.ts) (guest write endpoints; cross-event breadth) + [`public-form-limit.ts`](../../src/lib/security/public-form-limit.ts) (the marketing forms; the ONE that fails closed).
+- **Anon capability reads (`0028`, and `0029` too; by design, never revoke):** `get_event_by_qr_token`,
+  `get_event_media_by_qr_token`, `get_upload_context`, `get_public_profile`, and the stored reel's
+  `get_event_reel_by_qr_token` until the drop. Each only READS visibility-gated state, the opaque token being the
+  authorization. `get_upload_context` stays anon because every guest presign calls it.
+  - ★ **An anon read never discloses more than the page it backs.** `get_event_by_qr_token` redacts the
+    description, date, custom slug and host name (the name too, for `private`) from a non-owner of a gated event;
+    an unlocked viewer's fields come back through a self-guarded admin re-read inside `getEventByQrToken`. Its
+    switches (`accepting_uploads`, `require_verified_email`, `require_upload_to_view`, `show_reel`,
+    `reel_style_id`) come back unredacted, as presentation settings. A leak is fixed in the payload, never by
+    revoking the grant. `get_public_profile`'s attended arm applies the album's own gates ([profiles-social.md](profiles-social.md)).
+  - ★ **A RETURNS TABLE is the allow-list, and changing one is DROP + CREATE, which drops the grants:** re-grant
+    `anon` and `authenticated` explicitly. `get_event_by_qr_token` also keeps the PUBLIC EXECUTE its recreates
+    inherited.
+- ★ **Server-mediated RPCs (service-role only, in neither list).** An anon EXECUTE on a write RPC is the attack
+  surface itself: PostgREST calls it directly, past every route guard, which buys cap evasion, an unthrottled
+  password oracle and victim-email poisoning. So each revokes EXECUTE from `public`, `anon` and `authenticated`, and
+  its route calls it on the admin client with server-derived values (the R2-HEAD size, the `getUser()` id, the
+  confirmed address from `auth.users`): `create_media`, `create_media_as_host`, `create_guest`,
+  `verify_event_password`, `create_report`, `capture_guest_email`, `remove_my_upload_by_session`,
+  `set_guest_display_name` and `set_guest_pending_email` (their routes are part of the gate: profanity and reserved
+  names cannot be checked in SQL, and `attach_email` is limited), and `get_upload_gate`, a read kept here so no token
+  can be probed through it (only `resolveViewerDecision` calls it).
+  - **The upload's size is the R2 HEAD's, never the client's.** The complete seam passes the HEAD size, and
+    because `create_media*` are service-role only, nobody can call them with a spoofed one: a PUT-big-claim-tiny
+    upload would beat the cap. `media.file_size_bytes` mirrors the stored object and every storage meter derives
+    from it (the pipeline: [uploads-and-r2.md](uploads-and-r2.md)).
+- **Authenticated-only (`0029`, never `0028`: that split is the security property).** SECURITY DEFINER with
+  `revoke … from public, anon` and `grant … to authenticated`, authorizing inside on `auth.uid()` and ownership:
+  `get_host_upload_context`, `set_event_password` / `clear_event_password`, `set_event_slug` / `clear_event_slug`,
+  `check_slug_available`, `has_password` / `verify_current_password` / `mark_password_set`, `get_my_uploads` /
+  `remove_my_upload`, `claim_anonymous_uploads`, `list_guest_rows_by_email` / `claim_guest_rows_by_email` /
+  `disown_guest_rows_by_email`, `restore_media` / `restore_event` / `purge_media_now`, `like_media` /
+  `get_my_likes` / `get_event_like_counts`, `follow_user` / `block_user`, and the stored reel's `add_to_reel`,
+  `reorder_reel`, `upsert_reel_config` and `set_reel_guest_visible` until the drop.
+  - `claim_anonymous_uploads` stays browser-callable because nothing in it is spoofable: the held `session_token`s
+    authorize it and `user_id is null` guards against theft.
+  - ★ **The claim by address never takes an address.** The three `*_guest_rows_by_email` functions key on the
+    caller's own CONFIRMED address, read from `auth.users` under definer privilege, so nothing can answer "is this
+    address a Partyreel guest?", and an unconfirmed caller gets an empty set even for their own address.
+  - **A like is only as visible as its media.** `like_media` accepts media the caller can see; `get_my_likes`
+    re-applies that predicate, so a like on media that has since closed never presigns; `get_event_like_counts` is
+    host-gated and the only count path, so no count reaches a guest.
+  - ★ **The stored reel keeps two predicates** until the drop: membership (host UI, counts, `reorder_reel`'s guard)
+    is `status in ('approved','hidden')`; the timeline, guests and publishing are `approved` only. An approved-only
+    reorder guard would brick a reel holding hidden items.
+- **SECURITY INVOKER is the default for a new read** (in neither list): a grant that reached the wrong role reads
+  only that role's own rows, where a DEFINER body would read everyone's.
+- **Service-role only, never in either list:** the server-mediated set above, `action_rate`, `purge_media_rows`,
+  `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `monthly_ingress_cap`, and the trigger functions,
+  whose EXECUTE is revoked from the client roles and which still fire (EXECUTE is checked when a trigger is
+  created, never when it fires).
+- ★ **Every SECURITY DEFINER function pins `set search_path = ''` and fully qualifies every name** (`public.events`,
+  `auth.users`, `extensions.crypt`): an unpinned path lets a caller shadow a name and run it as the owner. No
+  DEFINER body uses dynamic SQL.
+- **Deny-all tables** (RLS on, no policy, service role only: the accepted `rls_enabled_no_policy` set): `guests`,
+  `reports`, `sent_emails`, `newsletter_signups`, `unlock_attempts`, `action_attempts`, `contact_submissions`,
+  `job_applications`, `event_passes`, `job_runs`, `export_log` (an HMAC of the IP, never the IP), `ops_flags` (the
+  kill switches), `upload_forensics` and `forensic_audit_log` (raw IP by design; the deny-all is the containment:
+  [trust-safety-forensics.md](trust-safety-forensics.md)), and `reel_render_log` until the drop.
 
-## The advisor model (`get_advisors` — run after EVERY schema change)
+## Grants
 
-The expected, accepted set (`get_advisors` security, 2026-09-24: 15 `rls_enabled_no_policy`, 5 in `0028`, 32 in `0029`;
-the live reel's expand, `20260924100000`, leaves all three unchanged, and its drop, `20260924110000`, takes them to 14,
-4 and 27: `reel_render_log`, then `get_event_reel_by_qr_token`, then it and the four stored-reel RPCs):
+Host table writes are column-locked ([CLAUDE.md](../../CLAUDE.md)): RLS gates the row, Supabase's default grant gives `authenticated`
+every column, so a host-writable table revokes at the table level and re-grants only its columns (the traps are
+under Gotchas).
 
-- **5 anon capability RPCs (lint `0028`, SECURITY DEFINER, executable by `anon` — by design, DO NOT
-  revoke), READS ONLY:** `get_event_by_qr_token`, `get_event_media_by_qr_token`, `get_upload_context`,
-  `get_public_profile`, `get_event_reel_by_qr_token`. The opaque token IS the authorization for the
-  token-keyed ones and each only READS visibility-gated state, so anon EXECUTE is safe (0029 lists these
-  five too: `authenticated` can call them). `get_event_media_by_qr_token` is the open album; from the live
-  reel's expand each row also carries `reel_eligible`. `get_event_reel_by_qr_token` (the stored reel's; the
-  live reel's drop removes it, leaving four) returns an OPEN event's published
-  reel only (`guest_visible=true`; anything else is zero rows, so there is no publish-state oracle); its
-  **RETURNS TABLE IS the allow-list** (8 keys, pinned by [`guest-reel-contract.test.ts`](../../src/lib/reel/guest-reel-contract.test.ts)
-  against the generated type, so no render internal, timestamp or tier ever rides it), the length is
-  tier-DERIVED via `tier_limits()` and the watermark from the tier, and `item_ids` are `status='approved'`
-  only. ★ Changing a RETURNS TABLE means DROP+CREATE, which drops the grants:
-  re-grant anon + authenticated explicitly. Password events ride the self-guarded admin arm inside
-  `getGuestReelContext` instead (an RPC cannot see the unlock cookie). `get_public_profile(p_slug)` reads
-  the public-by-existence `/u/[slug]` payload (the profile card, the events the host chose to display, the
-  OPEN-only attended arm): never follow data, never an attended event's capability link.
-  → [profiles-social.md](profiles-social.md).
-  ★ **An anon READ must never disclose more than the PAGE it backs.** `get_event_by_qr_token` redacts the
-  description, date, custom slug and host name (plus the NAME for `private`) from a non-owner of a gated
-  event, matching the locked `/e/` payload; an UNLOCKED viewer's fields come back through a self-guarded
-  admin re-read inside `getEventByQrToken`. Its switches (`accepting_uploads`, `require_verified_email`,
-  `require_upload_to_view`) and, from the live reel's expand, `show_reel` and `reel_style_id` come back
-  unredacted: presentation settings like `qr_style`, never the identifying metadata the redaction withholds.
-  It keeps the PUBLIC EXECUTE its recreates inherited, beside anon, authenticated and service_role. `get_public_profile`'s attended arm applies the album's own
-  gates, mirroring `resolveGalleryDecision`: on a `require_verified_email` event only the event's host or a
-  viewer whose `auth.users.email_confirmed_at` is set passes (the page's `isAuthed`), because the album holds
-  anyone else at the teaser, which never renders its Guests list; and on a `require_upload_to_view` event with
-  uploads open, only the host or a signed-in viewer whose own row there carries an upload they did not remove
-  themselves (deliberately stricter than the album where the album fails open on a full album, and blind to a
-  cookie-only name: it sees `auth.uid()`, never a session token). The confirmed-viewer gate carries QA #36
-  (an anonymous viewer has no uid to pass it); the identity contract
-  (`20260923150000_identity_contract.sql`, applied after milestone 27) drops the legacy clause on
-  `allow_anonymous_uploads` that it implies. Both keep their anon grant: the fix is the payload, not the
-  grant.
-- **★ Server-mediated write/password RPCs (service-role-only — in NEITHER 0028 nor 0029):** an anon
-  EXECUTE grant on a write RPC IS the attack surface, not the route wrapping it: PostgREST calls it
-  directly, past every route guard (the R2-HEAD size authority, the unlock and abuse limiters), which buys
-  cap-evasion cost bombs, an unthrottled password oracle and victim-email poisoning. So each is
-  `revoke execute … from public, anon, authenticated`, called by the Next routes on the **service-role
-  admin client** with **server-derived trusted values** (the R2-HEAD size, the `getUser()` ids, the
-  verified email from `auth.users`; never the client): `create_media`, `create_media_as_host`,
-  `create_guest`, `verify_event_password`, `create_report`, `capture_guest_email`; `get_upload_gate` (the
-  upload-to-view gate's one READ: does this session token or account hold an upload on this event that still
-  counts, any status but one the guest removed themselves, and is the album full by the presign's own two caps; reached only through `resolveViewerDecision`, which
-  answers the guest page's render, the gallery poll, `/api/export/guest` and `/api/reel/download`, so a
-  token can never be probed through it); `remove_my_upload_by_session` (a guest-without-an-account's
-  own-photo removal, the token validated against the media's guest row, a claimed row never touched; only
-  via `POST /api/guests/remove`); `set_guest_display_name` (names a name-only guest by session token; its
-  route is part of the gate because profanity and reserved names cannot be checked in SQL, the obscenity
-  matcher never shipping to a browser, as `updateDisplayNameAction` is for a profile name);
-  `set_guest_pending_email` (attaches, changes or DETACHES a guest row's unproved address by session
-  token, only via `POST /api/guests/email`, whose `attach_email` limiter is part of the gate; a VERIFIED
-  row is refused, a blank address detaches).
-- **Authenticated-only RPCs (lint `0029`):** `get_host_upload_context`,
-  `set_event_password`/`clear_event_password`, `set_event_slug`/`clear_event_slug`, `check_slug_available`,
-  `has_password`/`verify_current_password`/`mark_password_set`,
-  `get_my_uploads`/`remove_my_upload`, `claim_anonymous_uploads`,
-  `list_guest_rows_by_email`/`claim_guest_rows_by_email`/`disown_guest_rows_by_email`,
-  `restore_media`/`restore_event`/`purge_media_now`, `like_media`/`get_my_likes`/`get_event_like_counts`,
-  `add_to_reel`/`reorder_reel`/`upsert_reel_config`/`set_reel_guest_visible` (the publish switch: UPSERTs
-  the reel row, refuses `empty` at 0 approved items; no mp4 required; the four leave with the stored reel at
-  the live reel's drop).
-  ★ The reel has TWO deliberate predicates: MEMBERSHIP (host UI/counts/`reorder_reel`'s guard) =
-  `status in ('approved','hidden')` vs TIMELINE/guest/publish = `approved` only, commented at every
-  site; an approved-only reorder guard would brick reels holding hidden items.
-  The social pair `follow_user`/`block_user` is in this class too (block-silent follow + atomic two-way
-  severance; → [profiles-social.md](profiles-social.md)). Each is SECURITY DEFINER with
-  `revoke … from public, anon` + `grant … to authenticated` and authorizes internally via `auth.uid()` +
-  ownership; they appear ONLY in 0029, **never 0028**, and that split IS the security property.
-  `claim_anonymous_uploads(text[])` stamps `guests.user_id = auth.uid()` onto a browser's still-unclaimed
-  anonymous uploads, authorized by the held `session_token` capabilities + the `user_id IS NULL` no-theft
-  guard (no client-spoofable value, so it stays browser-callable); for a CONFIRMED caller it also stamps
-  `verified_at` and `email` and clears `pending_email`, and the count it returns is the claimed rows that carry a
-  LIVE upload (→ [guest-flow.md](guest-flow.md)).
-  **The claim by address** (`list_guest_rows_by_email(timestamptz, uuid, integer)`, whose three parameters
-  are a keyset cursor and a page size, `claim_guest_rows_by_email(uuid[])`,
-  `disown_guest_rows_by_email(uuid[])`) is keyed on the CALLER'S OWN CONFIRMED address, read from
-  `auth.users` under definer privilege. ★ The address is never a parameter, which is the whole oracle gate:
-  nothing can answer "is this address a Partyreel guest?", and an UNCONFIRMED caller gets an empty set even
-  for their own address, because confirming it IS the authorization. Only a row carrying a LIVE upload is
-  listed, and Claim all (a null set) claims only such rows, because a row with nothing on it makes nobody a
-  guest. The claim stamps `user_id`, `verified_at` and `email` and clears `pending_email`; the disown removes the
-  rows' media through the uploader path and detaches the address. `get_my_uploads(integer)` returns the caller's
-  OWN media across events (host + guest; the app reads 200), reading the name/date of events they don't own
-  (→ [profiles-social.md](profiles-social.md)'s owner mode); `remove_my_upload(uuid)` re-checks the SAME ownership and marks
-  a guest's self-deletion `removed_by_uploader=true`, private to the host (→ [lifecycle-recovery.md](lifecycle-recovery.md)).
-  **Likes:** `like_media(uuid)` favorites media the caller can SEE (host of its event, a guest of it, or
-  an OPEN album; a password/private PURE viewer who never joined cannot like, by design);
-  `get_my_likes(integer)` RE-APPLIES that predicate, so a now-inaccessible like never leaks its presigned
-  key; `get_event_like_counts(uuid, uuid, integer)` is HOST-GATED (zero rows to a non-host) and the ONLY
-  count path, so a like count NEVER reaches a guest; it answers only LIKED media, paged on media_id, and a
-  reader maps an absent id to 0. Unlike is an owner-RLS delete from the browser, and the heart state is
-  owner-RLS too, read through `my_liked_media_ids(uuid[])` (SECURITY INVOKER, one uuid[], the ids in the
-  POST body rather than a URL).
-- **SECURITY INVOKER read helpers (in NEITHER list by construction; the caller's own RLS and column
-  grants scope them):** `my_liked_media_ids(uuid[])`, `event_card_stats(uuid[])` and
-  `event_link_totals(uuid)` are authenticated-only; `event_covers(uuid[])` is authenticated and
-  service_role (the dashboard on the user's client, the profile cards on the admin client);
-  `admin_metrics_snapshot(integer, integer)`, `held_event_ids(uuid[])` and `standby_hosts(uuid, integer)`
-  are service_role only. INVOKER is the default for a new read: a grant that ever reached the wrong role
-  would read only that role's own rows, where a DEFINER body would read everyone's.
-- **Service-role-only (must NEVER appear in either advisor list):** the server-mediated RPCs above, plus
-  `action_rate`, `purge_media_rows`, `record_link_hit`, `host_active_bytes`, `host_storage_summary` (the storage
-  meter's and the storage guard's active and Deleted bytes in one aggregate, called on the admin client after
-  `getUser()`), `monthly_ingress_cap` and the
-  trigger-only functions (`set_media_purge_at`, `set_event_purge_at`, `set_updated_at`,
-  `enforce_event_limit`, `handle_new_user`, `enforce_follow_not_blocked`, `notify_gallery_change` [the
-  gallery doorbell], `set_media_removal_provenance`, `guard_media_privileged_transitions`,
-  `guard_event_privileged_transitions` [the transition guards, see Invariants],
-  `sync_event_verified_email_flags` [the legacy twin-keeper; no code reads or writes its twin
-  `allow_anonymous_uploads`, and the identity contract, applied after milestone 27, drops the trigger, this
-  function and the column]). If one shows up in
-  either list, an over-broad grant slipped in. The trigger-only functions keep EXECUTE **revoked from `anon`/`authenticated`** and still fire: EXECUTE on a
-  trigger function is checked when the trigger is created, never when it fires.
-- **Realtime gotcha (the doorbell):** `realtime.send()` swallows its own insert failures into a WARNING,
-  and `realtime.messages` has NO day-partitions until the first client channel subscription creates them,
-  so on a project that never had a realtime connection a DB-trigger broadcast silently no-ops: verify with
-  a real subscription, not just SQL. The doorbell trigger also wraps `realtime.send` in its own exception
-  guard, so a Realtime outage never fails a media write.
-- **Deny-all tables** = the accepted `rls_enabled_no_policy` INFO, all operator/service-role-only:
-  `guests` (written only by its RPCs, read only by the service-role client and SECURITY DEFINER
-  functions; → its bullet under Invariants), `reports`, `sent_emails`, `newsletter_signups`, `unlock_attempts`, `action_attempts`,
-  `contact_submissions`, `job_applications`, `event_passes` (the Event Pass purchase ledger), `job_runs`
-  (the `/admin/jobs` run log), `reel_render_log` (the `/admin/reels` render log, until the live reel's
-  drop), `export_log` (per-attempt
-  "Download all" log: HMAC-of-IP, never a raw IP), `ops_flags` (the kill switches: `export_enabled`, one
-  per backend job, and `live_reel_enabled`, the live reel's platform lever from its expand;
-  `reel_render_enabled` until the drop deletes it), `upload_forensics` + `forensic_audit_log` (raw IP by design,
-  plus the uploader identity denormalized at capture, `guest_display_name` included since a name-only
-  guest's typed name IS the identity a lawful-process response needs; deny-all is the containment →
-  [trust-safety-forensics.md](trust-safety-forensics.md)). The "Download all" export has NO SECURITY
-  DEFINER RPC (the mint routes are server-mediated; the Worker authorizes nothing); its limiter kind
-  `"export"` is scoped to (IP, event) and breadth-guarded like `join`. The guest reel download's
-  `"reel_guest_download"` kind: breadth 15 events / 60 min (the cross-event HARVESTER guard) over a
-  venue-generous 100 / 15 min per (IP, event); fails OPEN with an armed `captureWarning`.
-- **Leaked Password Protection (HaveIBeenPwned) is ENABLED**, so that WARN never shows: Supabase rejects a
-  pwned ACCOUNT password at set/change, and the account-security form surfaces it from the `updateUser`
-  error. It covers `auth.users` passwords ONLY, never event passwords (those keep the 4-character minimum
-  and the strength-meter guidance).
+- **`profiles`:** hosts write `announcements_seen_at` and `welcomed_at`, nothing else, so a new column is
+  fail-closed. Never grant `email` (every transactional email goes there, so a client write is a mail-redirect
+  primitive), `display_name` or `bio` (public text, written on the admin client after validation and the profanity
+  check: [auth-accounts.md](auth-accounts.md)), `deletion_requested_at` (no un-request path exists), or `slug`, `tier*`, `event_slots`,
+  `storage_*`, `is_admin`, `stripe_*`, `avatar_updated_at`, `password_set_at`.
+- **`events`:** hosts write the settings columns and `insert(host_id)`, and `update(deleted_at)` for a soft delete
+  only. `event_password_hash`, `custom_slug`, `qr_token` and `purge_at` are RPC, trigger or default only. SELECT is
+  table-level (RLS scopes the rows), so a new column reads with no grant.
+- **`media`:** UPDATE `status` and `removed_at` only; `purge_at` comes from a trigger; the removal provenance
+  (`removed_by_uploader`, `removed_by_system`, `removed_by_admin`, `status_before_removed`) is RPC, trigger or
+  service role only; `reel_eligible` is readable and written once, by `create_media*`. **SELECT is column-scoped
+  too:** the hold columns and the provenance are not granted, so a host cannot detect a legal hold, an
+  `authenticated` `select("*")` on media ERRORS, host reads enumerate `MEDIA_HOST_COLUMNS` (a parity test pins it
+  to the grant), and a new column stays invisible to hosts until it joins both.
+- **`guests`:** no client role reads or writes it; every reader is the service role or a definer function, because
+  it holds `session_token` (the plaintext upload capability) and both addresses. The token also rides the
+  `pr_guest_<eventId>` cookie ([guest-flow.md](guest-flow.md)), ★ as a READ capability only: every write route takes it from the body
+  (`session-cookie.test.ts`), so the cookie adds no CSRF surface.
+- **`media_likes`:** owner RLS on select and delete; `like_media` is the only write (a raw insert would let a user
+  like, then presign through `get_my_likes`, media they cannot see).
+- **`reel_items`** (until the drop): host RLS on select and delete; `add_to_reel` and `reorder_reel` (the ids must
+  equal the reel's set exactly, else `stale`) are the only writes.
+- ★ **TWO EMAIL COLUMNS, AND ONLY `verified_at` IS PROOF.** `guests.email` is only ever a confirmed address of the
+  row's own account: `create_guest` copies the session's address only beside its `email_confirmed_at`, the claims
+  write the caller's confirmed address as they stamp its `user_id`, and `capture_guest_email` fills an empty one only
+  when the row's own account is the confirmed owner (it reads `auth.users` itself: a session token names a row, and
+  on a shared phone that is whoever joined last). `guests.pending_email` is only ever a typed, unproved address:
+  never shown, attributed, mailed on its own or expired. Only a claim that proves it moves an address across. The
+  code holds the same line: `resolveUploaderIdentity` returns no address for an unverified row, `getEventGuestList`
+  selects neither column, and the capture route requires `email_confirmed_at` (a bare `user.email` is satisfied by
+  an unconfirmed sign-up). The one exception, `upload_forensics.guest_pending_email`, is capture-only.
+- ★ **A grant cannot express a transition, so BEFORE triggers refuse the two dangerous ones.** `update(status)` would
+  also buy un-remove, and `update(deleted_at)` un-delete, past the restore RPCs' guards. The triggers tell a direct
+  PostgREST write (`current_user` is `authenticated` or `anon`) from an RPC or the service role (inside a DEFINER
+  body it is the owner) and refuse leaving `status = 'removed'` (use `restore_media`) and clearing `deleted_at` (use
+  `restore_event`); the undelete re-fires the event limit. Prefer this shape to a revoke whenever a column's
+  legitimate writers are RPCs. A held row is skipped, never refused ([trust-safety-forensics.md](trust-safety-forensics.md)).
+- **Value gates are CHECKs and triggers:** `events_password_requires_hash` (no `password` visibility without a hash)
+  and `enforce_event_limit` (the tier's `MAX_EVENTS`, or `event_slots` when set; raises 23514). The paid gates on the
+  event password and custom slug live inside their setter RPCs.
+- ★ **Every capacity decision locks the host's `profiles` row `for update` first.** The cap, ingress and event-slot
+  checks are check-then-act over aggregates no row lock can hold, so two concurrent uploads, restores or creates
+  would each read N-1 and both admit. `create_media`, `create_media_as_host`, `restore_media`, `restore_event` and
+  `enforce_event_limit` each take exactly ONE profiles lock, the host's, as their first lock, so no deadlock is
+  constructible; never lock a second host's row in these bodies.
+- **The guest write path inherits the read gate:** `create_guest` refuses a `private` event and requires
+  `p_unlock_proven` for `password` (the server derives it: the database cannot read the unlock cookie), and
+  `get_upload_context` returns `visibility` so presign and complete re-check it per request ([uploads-and-r2.md](uploads-and-r2.md)).
 
-## Invariants (don't break)
+## Gotchas
 
-- ★ **Every SECURITY DEFINER function pins `set search_path = ''` and fully-qualifies every object
-  name** (`public.events`, `auth.users`, `extensions.crypt`). The function runs as its owner, so an
-  unpinned `search_path` lets a caller shadow an unqualified name with their own object and execute it
-  with owner privileges. An authoritative function scan is part of every security pass; a new RPC
-  without the pin is the one that breaks it. No SECURITY DEFINER body uses dynamic SQL.
-- **Host table writes are COLUMN-locked, not just row-locked.** RLS gates the ROW (ownership); Supabase's
-  default grant gives `authenticated` UPDATE/INSERT/DELETE on EVERY column. So host-writable tables must
-  `revoke insert,update,delete … from authenticated` (and `anon`) and re-grant ONLY the legit columns:
-  - **`profiles`** — writable: `announcements_seen_at`, `welcomed_at`; every other column is service-role-only (a new one is fail-closed). Never grant: `email` (the recipient of EVERY transactional email, so a client-writable value is a mail-redirect primitive), `display_name` and `bio` (public text, written by `updateDisplayNameAction` / `setProfileBioAction` on the admin client after the validation + profanity checks; the claim RPCs also copy an already-filtered typed name onto a NAMELESS profile, and account deletion nulls it), `deletion_requested_at` (a client write would be an un-request path), `slug`, `tier`, `tier_expires_at`, `event_slots`, `storage_*`, `is_admin`, `stripe_*`, `avatar_updated_at`, `password_set_at`.
-  - **`media`** — UPDATE `status`, `removed_at` only (no insert/delete). `purge_at` is set by a BEFORE trigger (`set_media_purge_at`): never grant `update(purge_at)`. Also write-ungranted: `removed_by_uploader` (owner-context `remove_my_upload`: a guest's private self-deletion), `removed_by_system` (the cron's auto-reduce marker), `removed_by_admin` + `status_before_removed` (operator provenance + the pre-removal status, trigger/service-role-written). **SELECT is column-scoped too**: `legal_hold_at`/`legal_hold_reason` are NOT granted, so the owning host (who may BE the investigated uploader) can't detect a legal hold via PostgREST, and neither are `removed_by_system`, `removed_by_admin`, `status_before_removed`. So an authenticated `select("*")` on media ERRORS: the host reads enumerate `MEDIA_HOST_COLUMNS` (`src/lib/db/queries/media.ts`; a Vitest parity test pins that list to the grant and `MediaRow` to strip every ungranted column); a WHERE on a hold column errors from the RLS client too (`purgeMediaNow`'s held-filter runs on the admin client); and a new media column is FAIL-CLOSED (invisible to hosts) until added to BOTH the grant and `MEDIA_HOST_COLUMNS`. `reel_eligible` ("plays in the live reel": default true from the live reel's expand, false only for a cut saved to the album) is SELECT-granted and WRITE-ONCE: `create_media`/`create_media_as_host` write it from `p_reel_eligible` (default true) and no client role can UPDATE it, so it rides outside the gallery ETag fingerprint.
-  - **`guests`** — NO client role reads it: `authenticated` and `anon` hold no SELECT on any column, and the table has no policy (RLS stays ENABLED, so it rides the deny-all set and a grant that ever came back would still read no row). Every reader on both codebases is the service-role client or a SECURITY DEFINER function, and a new one joins them, never a grant: the table holds `session_token`, the PLAINTEXT guest upload capability, and both addresses. ★ **THE TOKEN ALSO RIDES A COOKIE**: `pr_guest_<eventId>` carries it raw, beside the signed `pr_unlock_<eventId>`, because Require an upload to view is resolved in an RSC and localStorage is invisible there. HttpOnly (LESS reachable than the localStorage copy), Secure in production, SameSite=Lax, path `/`, 60 days, shape-guarded `/^[0-9a-f]{64}$/` on read, and UNSIGNED on purpose: the database checks it against this column's unique index, so a forged value resolves to no row. Written only by `POST /api/guests` (a mint), `POST /api/guests/name`, `POST /api/guests/email`, `POST /api/r2/complete-upload` (a created row) and the gallery poll's heal; expired by `POST /api/guests/leave` (one event's, or every one the request carried with `{ all: true }`, which the guest page's sign-out sends) and by the account sign-out's `signOutAction` on its own response, so a shared phone does not open the full album on the last contributor's ticket. ★ **It is a READ capability only**: every WRITE route takes the token from the request BODY (pinned in `session-cookie.test.ts`), so the cookie adds no CSRF surface. → [guest-flow.md](guest-flow.md). Writes are fully revoked (RPC-only); the guest list and the credit are built on the admin client. ★ **TWO EMAIL COLUMNS, AND ONLY `verified_at` IS PROOF.** `guests.email` is only ever a CONFIRMED address of the row's own account: `create_guest` copies the minting session's `auth.users` address only beside its `email_confirmed_at`, the value it stamps as `verified_at` (an unconfirmed sign-up's row keeps its `user_id` and typed name and carries no address), the two claims write the caller's confirmed address as they stamp the caller's `user_id`, and `capture_guest_email` fills an EMPTY one only when the row's own `user_id` is the confirmed account that owns the address (it reads `auth.users` itself rather than trusting its route: a session token names a row, and on a shared phone that is whoever joined last). That last one can land on an unverified row (one minted before its account confirmed), so nothing attributes an address without `verified_at`. `guests.pending_email` is ONLY EVER an address a guest TYPED and nobody proved: outside every grant, never shown to the host or another guest, never attributed to an account, never mailed on its own, never expiring. The ONLY path from the second to the first is a claim that PROVES it (`claim_guest_rows_by_email`, or `claim_anonymous_uploads` under a confirmed session), and the code holds the same line: `resolveUploaderIdentity` case 3 returns no address at all, `getEventGuestList` selects neither column, and `POST /api/guests/capture-email` requires `email_confirmed_at` before it writes `guests.email` (a bare `user.email` is satisfied by an unconfirmed sign-up). The one exception, `upload_forensics.guest_pending_email`, is deny-all + service-role: capture-only, lawful process, never rendered.
-  - **`media_likes`** — owner-RLS (SELECT + DELETE where `auth.uid()=user_id`); INSERT/UPDATE REVOKED, so the ONLY write path is the access-checking `like_media` RPC (a raw insert would let a user like, then via `get_my_likes` presign, media they can't see).
-  - **`reel_items`** — HOST-RLS (SELECT + DELETE on the host's own event); INSERT/UPDATE REVOKED, so the ONLY add path is the access-checked `add_to_reel` RPC (host-owned event + media `approved` + not removed) and the ONLY position-update path is `reorder_reel(p_event_id, p_media_ids)` (host-owns + a set-equality guard: the ids must EXACTLY equal the event's current reel set, else `stale`). Un-reel is the host-RLS delete from the browser. The live reel's drop removes the table and both RPCs.
-  - **`events`** — writable: `name`, `description`, `event_date`, `visibility`, `accepting_uploads`, `moderation_mode`, `qr_style`, `max_upload_bytes`, `display_in_profile`, `show_guest_list`, `require_verified_email` (free on every tier, default ON; the app writes it alone, and its legacy twin `allow_anonymous_uploads` leaves with the identity contract), `require_upload_to_view` (default off), and from the live reel's expand `show_reel` (the reel's off switch, default ON) and `reel_style_id` (the host's default mood, NULL = the default one; no CHECK or enum, app-validated like `qr_style`), + `insert(host_id)` and `update(deleted_at)` (SOFT-DELETE ONLY; a trigger refuses the un-delete, see below). RPC/trigger/default-only: `event_password_hash`, `custom_slug`, `qr_token`, `purge_at`. SELECT is table-level (RLS scopes it to the host's rows), so a new column reads with no grant.
-- ★ **A column grant can't express a TRANSITION, so the dangerous ones are refused by BEFORE triggers.**
-  A column-scoped grant says *which* column may change, never *from what to what*: `update(status)` would
-  also buy "un-remove" and `update(deleted_at)` "un-delete", past every guard the restore RPCs carry, yet
-  the host moderation paths and `softDeleteEvent` legitimately write both columns. So `current_user` tells
-  a direct PostgREST write (`authenticated`/`anon`) from an RPC or the service role (inside a SECURITY
-  DEFINER function it is the OWNER, `postgres`), and two BEFORE triggers refuse exactly the two
-  transitions: `media_guard_privileged_transitions` (leaving `status='removed'` → use `restore_media`) and
-  `events_guard_privileged_transitions` (clearing `deleted_at` → use `restore_event`);
-  `events_enforce_limit_on_undelete` re-fires the tier ceiling on that same update. Prefer this shape over
-  a revoke whenever a column's legitimate writers are RPCs.
-  ★ The media guard's LEGAL-HOLD branch SKIPS the row (`return null`) instead of raising: raising would
-  abort a whole bulk statement AND make "Approve all suddenly fails" a hold oracle. The skip yields
-  PGRST116, the same "That item is no longer available." copy a missing row produces. Keep it silent.
-- **Value-gates a bare grant can't express are triggers/CHECK:** the `events_password_requires_hash` CHECK
-  (no `visibility='password'` without a hash) + `enforce_event_limit` (the tier's `MAX_EVENTS`, or the
-  host's `event_slots` when set; raises 23514). The paid-tier gates on the password and custom slug live
-  inside `set_event_password`/`set_event_slug`, not a table trigger.
-- ★ **Every capacity decision takes the host's `profiles` row `for update` FIRST (Pattern D).** The cap /
-  ingress / event-slot checks are check-then-act, so without serialization two concurrent uploads (or
-  restores, or event creates) for one host each read N-1 and both admit. The `profiles` row is the
-  per-host mutex (exactly one per host, always present); the aggregates themselves (`host_active_bytes`,
-  the event `count(*)`) cannot be row-locked. Carried by `create_media`, `create_media_as_host`,
-  `restore_media`, `restore_event` and the `enforce_event_limit` trigger. **Lock-ordering rule: each takes
-  exactly ONE profiles lock, the host's, as its first lock**, so no deadlock is constructible;
-  `restore_event`'s un-delete re-fires `enforce_event_limit`, which re-locks the SAME row in the SAME
-  transaction (a no-op). Never lock a second host's row inside these bodies.
-- **The guest WRITE path inherits the READ gate**: `create_guest` refuses a `private`
-  event outright and requires `p_unlock_proven` for `password`, and `get_upload_context` returns
-  `visibility` so presign/complete re-check per request. `get_upload_context` therefore stays one of the
-  FIVE anon 0028 RPCs — service-role-ing it would break every guest presign. → [uploads-and-r2.md](uploads-and-r2.md).
-- **Never expose raw R2 keys/URLs to the browser** — presign server-side. → [uploads-and-r2.md](uploads-and-r2.md).
-- **The Stripe webhook (plus the pass recompute, `recomputePassEntitlement`, which the webhook and the cron's `sweepExpiredPasses` call) is the SOLE writer of `tier`/`storage_cap_bytes`** — never trust the client for entitlements. → [billing-caps.md](billing-caps.md).
-- **The service-role / secret key is server-only** (behind `import "server-only"`); never `NEXT_PUBLIC_`.
-- **Events have no end date** — deletion is the only lifecycle exit (the anti-abuse core).
+- **A column-level `revoke update(col)` is a silent no-op while a table-level grant stands:** revoke insert, update
+  and delete on the TABLE first, then grant the columns; verify with `has_column_privilege`.
+- ★ **And a table-level revoke cascades to every column grant.** Right when you re-grant the whole list; a loaded gun
+  when you mean to add one column, because every write naming another column then fails with "permission denied
+  for table" and the host app is down. Adding a column is a bare additive `grant insert (col), update (col)`.
+- **An RPC created through the Supabase MCP inherits an anon EXECUTE** (the MCP default-grant landmine) that a bare
+  `revoke … from public` leaves behind. Every grant block revokes from `public` and from each client role the
+  function must not keep, then grants exactly; a drop-and-recreate re-inherits the default, so it restates its
+  grants in full.
+- ★ **A new junction table silently breaks PostgREST embeds (PGRST201).** Two FKs to already-related tables make
+  PostgREST infer a second path, and an existing bare `events!inner(...)` embed between them throws at runtime,
+  invisible to typecheck, lint and build. Pin every cross-table embed to its FK
+  (`events!media_event_id_fkey!inner(...)`; filters still say `events.col`); adding a table with two FKs, grep the
+  embeds between those tables and check one against live PostgREST.
+- ★ **A trigger's Realtime broadcast can no-op silently.** `realtime.send()` swallows its insert failure into a
+  WARNING, and `realtime.messages` has no partitions until a client first subscribes, so on a project that never had
+  a realtime connection a trigger's broadcast does nothing: verify with a real subscription, not SQL. The gallery
+  doorbell wraps `realtime.send` in its own exception guard so a Realtime outage never fails a media write.
 
-## Gotchas (why it's like this — don't revert)
+## Rate limits
 
-- **A column-level `revoke update(col)` is a SILENT NO-OP while a TABLE-level grant stands** (with the
-  table grant standing, a free host can PATCH `event_password_hash`/`custom_slug` straight past the
-  paid-tier gates). You MUST `revoke insert,update,delete … from authenticated` at the TABLE level FIRST,
-  then `grant (cols)`. Verify with `has_column_privilege`, then re-run `get_advisors`.
-- ★ **And the mirror: a TABLE-level `revoke` CASCADES TO THE COLUMN GRANTS and wipes them all.** "Revoke
-  the table first" is right when you re-grant the whole column list, and a loaded gun when you only mean
-  to ADD one column: a belt `revoke insert, update, delete on public.events from authenticated, anon`
-  leaves only the new column granted, and every `authenticated` write naming another column
-  (`require_verified_email`, say) fails with "permission denied for table events", the whole host app
-  down. **Adding a column = a bare additive `grant insert (col), update (col)`, nothing else.**
-- **RPCs created via the Supabase MCP `apply_migration` inherit a default privilege that GRANTS EXECUTE to
-  `anon`.** A bare `revoke … from public` does NOT remove it. Any host-only RPC created via the MCP must
-  explicitly `revoke execute … from anon` (a service-role-only one, from `authenticated` too), a
-  drop-and-recreate re-inherits the default (re-state its grants in full), and `get_advisors` confirms
-  anon vs authenticated placement.
-- **Postgres integer literals are int4**, so `2 * 1024 * 1024 * 1024` (2 GB) overflows int4 even when
-  assigned to a `bigint` constant, during DECLARE init before the body runs. Force `2::bigint * 1024 * 1024 * 1024`.
-- ★ **A NEW junction table silently breaks PostgREST embeds between the two tables it links (PGRST201).**
-  FKs to two already-related tables (especially a composite PK of exactly those FKs, as `reel_items` has:
-  `reel_items(event_id, media_id)`) make PostgREST infer an extra many-to-many, so an existing bare
-  `tableB!inner(...)` embed between them becomes AMBIGUOUS and throws at runtime; typecheck, lint and
-  build never catch it, and it stays latent until a page (`/dashboard`, the admin views, the purge cron)
-  hits the embed. **Always PIN cross-table embeds to the FK constraint:** `events!media_event_id_fkey!inner(...)`,
-  never `events!inner(...)`. The embedded resource keeps its table name (`events`), so `.eq("events.col", …)`
-  filters are unchanged. Adding ANY table with two FKs: grep for embeds between those tables, and verify a
-  hinted embed against live PostgREST (a green build proves nothing here).
-- **Upload size-spoof:** the complete seam ([`server-pipeline.ts`](../../src/lib/upload/server-pipeline.ts))
-  re-derives the real size from an R2 HEAD (`headObjectSize`, [`presign.ts`](../../src/lib/r2/presign.ts))
-  and hands that to `create_media`/`_as_host`; the CLIENT `file_size_bytes` is advisory (trusting it lets
-  a PUT-big-claim-tiny upload beat the cap), so `media.file_size_bytes` mirrors the stored object and the
-  storage meters derive from it. → [uploads-and-r2.md](uploads-and-r2.md).
-- **Rate limits must be ABUSE-focused, NOT volume-focused: an event concentrates guests behind ONE
-  venue/CGNAT IP**, so a naive per-IP volume cap 429s a *crowd*. Two venue-safe limiters: the
-  album-password unlock (count failures + clear-on-success, deny-all `unlock_attempts`) and the
-  **abuse-focused limiter** (the guest join, rename, attach-email, report and capture writes, the exports,
-  the reel routes): deny-all `action_attempts` + the `action_rate` RPC, keyed on cross-event BREADTH (one
-  IP touching many DISTINCT events = a scraper; a venue is ONE event, so it never trips) + a high
-  per-(IP,event) backstop ([`abuse-rate-limit.ts`](../../src/lib/security/abuse-rate-limit.ts)). Both
-  fail OPEN (the real gate stands behind each: the password check behind the unlock limiter, the capability
-  or session behind the abuse limiter), and a failing limiter records into its own signal
-  (`unlock_limiter`, `abuse_limiter`) so a dead one never looks idle. Raw volumetric DoS is the Vercel edge
-  firewall's job, and the app project carries no custom firewall configuration yet (the Vercel API answers
-  "not found"; a launch task); the guest OTP
-  "Enter event" path is throttled only by Supabase Auth (per IP, under a project-wide email-send cap a large
-  verified-email door can reach: [auth-accounts.md](auth-accounts.md)).
-- ★ **The public marketing forms are the ONE limiter that fails CLOSED** (`contact` + `careers`). Everywhere
-  else the limiter sits behind a capability token or a verified session, so an outage degrades to "the
-  real gate still holds" and the route fails OPEN by design. /contact and /careers have NOTHING behind
-  them (unauthenticated, one service-role insert + one Resend send per accepted submission), so failing
-  open turns a counter outage into an open pipe to the monthly email quota, which the orphan-sweep and
-  prune BREAKER alerts also send on. Neither form is event-shaped, so breadth is off and the scope is the
-  bare IP (like `capture`); `action_attempts.kind` is generic, so a new kind needs no migration. The gate
-  runs AFTER the honeypot (a bot caught free must not spend a real person's budget on a shared office
-  address) and BEFORE the insert and the send. ★ And the swallow is captured at the swallow point: a dead
-  limiter otherwise looks exactly like a healthy one.
+- **Limit abuse, never volume.** An event puts a crowd behind one venue or CGNAT IP, so a per-IP volume cap 429s the
+  party. The album-password unlock counts failures and clears on success (`unlock_attempts`); every other guest
+  write, the exports and the reel routes ride the abuse limiter (`action_attempts` through `action_rate`), keyed on
+  cross-event BREADTH (one IP touching many distinct events is a scraper; a venue is one event) with a high
+  per-(IP, event) backstop. `action_attempts.kind` is free text, so a new kind needs no migration.
+- **Both fail OPEN,** because a real gate stands behind each (the password; the capability or the session), and a
+  failing limiter records into its own signal (`unlock_limiter`, `abuse_limiter`) so a dead one never looks idle.
+- ★ **The public forms (`/contact`, `/careers`) are the one limiter that fails CLOSED:** nothing stands behind them,
+  so failing open would open a pipe to the monthly email quota the breaker alerts also send on. Their scope is the
+  bare IP; the check runs after the honeypot (a caught bot must not spend a shared office's budget) and before the
+  insert and the send, and the swallowed error is captured where it is swallowed.
+- Volumetric DoS is the Vercel edge firewall's job, not the app's; the guest OTP door is throttled only by Supabase
+  Auth ([auth-accounts.md](auth-accounts.md)).
 
 ## Set-returning functions and the row cap
 
-PostgREST cuts every table read and every set-returning RPC at `max_rows` (1,000 on this project, the
-`[api]` value in [`supabase/config.toml`](../../supabase/config.toml)) with no error and no flag; writes are
-not capped (a `PATCH … Prefer: return=representation` over 1,040 rows returned all 1,040).
-- A set-returning function pages on a keyset cursor (`p_after…`/`p_before…`: the last row's key on a total
-  order) and `p_limit`, clamped in SQL to 1,000, or returns one row: a scalar, a `jsonb` or a `uuid[]`.
-  ★ A null `p_limit` reads everything, spelled `limit case when p_limit is null then null else
-  least(p_limit, 1000) end`: `least` ignores a null, so the bare `least(p_limit, 1000)` would silently cap
-  a call without it at 1,000 inside the database. [`row-cap-sql.test.ts`](../../src/lib/db/row-cap-sql.test.ts)
-  holds every function's winning definition to this (drop-aware), with each exception's reason on its
-  `SINGLE_ROW` or `CALLER_BOUNDED` list.
+PostgREST cuts every table read and every set-returning RPC at `max_rows` (1,000, `[api]` in `supabase/config.toml`)
+with no error; writes are not cut. The TypeScript side is `src/lib/db/read-all.ts`.
+- A set-returning function pages on a keyset cursor (`p_after…` / `p_before…` on a total order) and a `p_limit`
+  clamped in SQL to 1,000, or returns one row (a scalar, a `jsonb`, a `uuid[]`). ★ A null `p_limit` reads everything,
+  written `limit case when p_limit is null then null else least(p_limit, 1000) end`: `least` ignores a null, so a bare
+  `least(p_limit, 1000)` silently caps the unbounded call. `row-cap-sql.test.ts` holds every winning definition to
+  this, each exception on its `SINGLE_ROW` or `CALLER_BOUNDED` list with its reason.
 - Prefer SECURITY INVOKER; a new DEFINER function is service-role only, so the advisor lists never grow.
-- An MCP-created function inherits an anon EXECUTE grant that a bare `revoke … from public` leaves behind,
-  so every grant block names the client roles: it revokes from `public` and from each client role the
-  function must not keep, then grants exactly; a drop-and-create restates its grants in full.
-- ★ The TypeScript reader (`readAllPages`) takes a page shorter than it asked for as the end, so the live
-  `max_rows` must never go below 1,000: verified 2026-09-23, an unbounded read of the 1,200-photo scale probe
-  answered 1,000 rows with `Content-Range: 0-999/*`.
-- The shapes the 1,000-row fixes read live in `20260924010000_row_cap_album.sql` (the guest album paged on
-  `(created_at, id)` with its index `media_event_created_id_idx`, whose paging the live reel's expand carries
-  unchanged when it appends `reel_eligible`; the like counts, the hearts),
-  `20260924020000_row_cap_host.sql` (the card counts, the covers, an event's link totals, the claim card,
-  the operator's metrics) and `20260924030000_row_cap_sweeps.sql` (the legal-hold partition, the standby
-  budget's hosts); each file's header carries its keys and its rolled-back check.
+- ★ `readAllPages` takes a short page as the end, so the live `max_rows` must never go below 1,000.
+- The shapes the row-cap fixes read, with their keys and their rolled-back checks, are in `20260924010000_row_cap_album`,
+  `20260924020000_row_cap_host` and `20260924030000_row_cap_sweeps`.
 
 ## Workflow (every schema change)
 
-1. Write the migration (no Supabase CLI locally → apply via the **Supabase MCP** `apply_migration`;
-   keep the repo file = applied version). 2. Run `get_advisors` and confirm the expected set above (esp.
-   anon vs authenticated placement of any new RPC). 3. Regenerate `types.ts`. 4. Add a rolled-back
-   Supabase-MCP RPC contract check (run the RPCs inside a `DO $$ … RAISE EXCEPTION $$` block so nothing persists).
+1. Write the migration. It lands through the Supabase MCP's `apply_migration` (no local CLI), and the repo file is the
+   applied SQL: never edit an applied migration, add a new one. `apply_migration` stamps its own version, so match a
+   live migration to its file by name.
+2. `get_advisors` against the set above, above all a new RPC's anon or authenticated placement.
+3. Regenerate `src/lib/db/types.ts`.
+4. A rolled-back RPC contract check: the RPCs inside a `DO $$ … RAISE EXCEPTION $$` block, so nothing persists.
 
-**Migrations are immutable history**: never edit one that has been applied, add a new one. The repo file
-IS the applied SQL, which keeps the repo and the live schema comparable; `apply_migration` stamps its own
-version timestamp, so match a live migration to its file by name.
+`db/migration-guards.test.ts` and `forensics/migration-guards.test.ts` pin the load-bearing SQL facts, latest wins
+across the files (a body is its last definition; grants and policies replay statement by statement), so a later
+`create or replace` that drops one fails the gate. A new load-bearing fact earns a guard there.
 
-★ **Pre-flight a migration on a throwaway local cluster before handing it off** (Homebrew
-`postgresql@17` is installed; `initdb` into a scratch dir, socket under `/private/tmp` because a
-scratchpad path blows the 103-byte socket limit, `LC_ALL=C` or the postmaster dies "multithreaded
-during startup"). Load a stand-in carrying the REAL column types/defaults/constraints of the tables
-you touch, the Supabase roles, an `auth.uid()`/`auth.users` stub, the CURRENT bodies of every
-function you replace and the touched grant state; apply the migration VERBATIM; run the contract
-check; then run a second probe that drives the DEPLOYED build's paths through `set local role
-authenticated` / `anon`. It cannot see live DRIFT (step 1 still stands), but it is the only thing that
-catches a wrong GRANT (the table-revoke cascade above) before production, and `pg_get_functiondef`
-before/after is then a real diff to hand over rather than a claim.
-
-Workflow lessons:
-- **★ Apply BEFORE push when an RPC signature changes.** PostgREST resolves RPCs by argument NAME, so
-  code that passes a new arg before the migration lands fails EVERY call. Migration first, then the code
-  push, in one sitting.
-- **Verify a hand-passed migration payload, don't trust it**: after applying, hash-compare every live
-  `prosrc` to the repo file. ★ Postgres `btrim(text)` trims SPACES only — it leaves the body's
-  leading/trailing newlines so every hash looks wrong by +2 chars; collapse whitespace THEN trim.
-- ★ **A backfill must fire no row trigger that writes another column.** `media_set_updated_at` stamps
-  `updated_at = now()` on EVERY update, and the gallery ETag and the host's recency reads key on it. Pause
-  exactly the triggers that would write (`alter table … disable trigger <name>`), run the one statement,
-  re-enable them in the same file, and prove it with a before/after fingerprint of the rows' untouched
-  columns (the live reel's expand). A guard fails any migration that disables a trigger without enabling it.
-- **A rolled-back contract check must ride EXISTING events** — creating an event inside the txn trips
-  `enforce_event_limit`; get a locked event by UPDATE-ing one (set `event_password_hash` alongside,
-  per the `events_password_requires_hash` CHECK). PEOPLE it may make: an `auth.users` insert inside the
-  txn fires `handle_new_user`, which is how a check gets an UNCONFIRMED account the project may not have.
-- **An UNAPPLIED migration is proved on the live schema inside `begin; … rollback;` in ONE `execute_sql`
-  call**: its statements run between fixtures and assertions, and the call returns the LAST row-returning
-  statement's result even after the trailing `rollback`, so a temp `proof` table carries every step to a
-  final `select`. Each `DO` block traps its own failure into that table: an error mid-script would skip
-  the `rollback`.
-
-## See also
-
-[auth-accounts.md](auth-accounts.md) · [uploads-and-r2.md](uploads-and-r2.md) · [billing-caps.md](billing-caps.md).
+- ★ **Pre-flight on a throwaway local cluster before handing off.** Homebrew `postgresql@17`: `initdb` into a scratch
+  dir, the socket under `/private/tmp` (a scratchpad path passes the 103-byte socket limit), and `LC_ALL=C` or the
+  postmaster dies "multithreaded during startup". Load a stand-in with the real column types, defaults and
+  constraints of the touched tables, the Supabase roles, an `auth.uid()` / `auth.users` stub, the CURRENT bodies of
+  every replaced function and the touched grants; apply the file verbatim; run the contract check, then a probe of
+  the deployed build's paths under `set local role authenticated` / `anon`. It cannot see live drift, but it is the
+  only thing that catches a wrong GRANT before production, and `pg_get_functiondef` before and after is a real diff to
+  hand over.
+- ★ **Apply before push when an RPC signature changes:** PostgREST resolves an RPC by argument NAME, so code passing a
+  new argument before the migration lands fails every call.
+- **Verify a hand-passed payload:** hash-compare each live `prosrc` with the repo file, collapsing whitespace before
+  trimming (★ `btrim(text)` trims spaces only, so the body's edge newlines make every hash differ).
+- ★ **A backfill fires no row trigger that writes another column.** `media_set_updated_at` stamps `updated_at` on
+  every update, and the gallery ETag and the host's recency reads key on it: disable exactly the writing triggers,
+  run the one statement, re-enable them in the same file, and prove it with a before-and-after fingerprint of the
+  untouched columns. A guard fails a migration that disables a trigger without enabling it.
+- **A rolled-back check rides EXISTING events:** creating one trips `enforce_event_limit`, so lock one by UPDATE,
+  setting `event_password_hash` alongside for the CHECK. An `auth.users` insert inside it fires `handle_new_user`,
+  which is how a check gets an unconfirmed account.
+- **An unapplied migration is proved on the live schema inside `begin; … rollback;` in ONE `execute_sql` call:** the
+  call returns the LAST row-returning statement's result even after the rollback, so a temp `proof` table carries
+  every step to a final `select`, and each `DO` block traps its own failure (an error would skip the rollback).
