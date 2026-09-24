@@ -55,6 +55,8 @@ export async function listEventMedia(eventId: string): Promise<MediaRow[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
+  // row-cap-todo: C1 the host's live album is cut at 1,000: the oldest drop from the grid, Review and
+  // Download all
   const { data, error } = await supabase
     .from("media")
     .select(MEDIA_HOST_COLUMNS)
@@ -98,6 +100,7 @@ export async function listRecentlyDeletedMedia(
     now - RECENTLY_DELETED_WINDOW_DAYS * 86_400_000,
   ).toISOString();
 
+  // row-cap-todo: H1 the Recently deleted bin is cut at 1,000 rows
   const { data, error } = await supabase
     .from("media")
     .select(MEDIA_HOST_COLUMNS)

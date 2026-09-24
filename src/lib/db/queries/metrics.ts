@@ -109,6 +109,7 @@ export async function getPlatformDbMetrics(): Promise<PlatformDbMetrics> {
       .is("events.deleted_at", null)
       .neq("status", "removed");
 
+  // row-cap-todo: H4 all profiles, all link_stats and all newsletter sources, each read cut at 1,000
   const [
     profilesRes,
     linkStatsRes,

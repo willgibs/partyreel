@@ -386,6 +386,7 @@ async function sweepExpiredEvents(
     now.getTime() - RECENTLY_DELETED_WINDOW_DAYS * 86_400_000,
   ).toISOString();
 
+  // row-cap-todo: M15 every expired event in one read, cut at 1,000: the sweep needs a budget and a resume
   const { data: events, error } = await admin
     .from("events")
     .select("id")
@@ -412,6 +413,8 @@ async function sweepExpiredEvents(
   // all-or-nothing, so the safe unit is the event. It stays soft-deleted in the bin and
   // re-enters this sweep once the hold releases. (`.filter` — legal_hold_at isn't in the
   // generated types until the orchestrator regenerates post-apply.)
+  // row-cap-todo: H14 H15 one row per HELD photo, cut at 1,000 (past it a held event reads as purgeable),
+  // and every expired event id rides one URL
   const { data: heldMedia, error: holdErr } = await admin
     .from("media")
     .select("event_id")
@@ -445,6 +448,7 @@ async function sweepExpiredEvents(
   // than PAGE would make a "short" first page look like the last one and re-open the very orphan
   // bug this loop closes. An empty page is the only unambiguous end-of-list signal.
   for (let from = 0; ; ) {
+    // row-cap-todo: H15 every purgeable event id rides this URL on every page
     const { data: page, error: mErr } = await admin
       .from("media")
       .select("id, original_key, preview_key")
@@ -471,6 +475,7 @@ async function sweepExpiredEvents(
 
   // Now safe to drop the event rows — their media is gone, so the FK cascade has
   // nothing of value left to destroy.
+  // row-cap-todo: H15 the event delete puts every purgeable event id in one URL
   const { error: delErr } = await admin
     .from("events")
     .delete()
@@ -500,6 +505,7 @@ async function sweepRemovedMedia(
   // purge_at is trigger-derived (= removed_at + RECENTLY_DELETED_WINDOW_DAYS); reclaim once it passes.
   // LEGAL HOLD (trust-safety-forensics.md): held rows are excluded HERE, before the R2-first delete — the SQL guard
   // in purge_media_rows protects only the row; this filter is what protects the OBJECT.
+  // row-cap-todo: H8 every removed row past its grace, platform-wide, in one read cut at 1,000
   const { data: media, error } = await admin
     .from("media")
     .select("id, original_key, preview_key")
@@ -562,6 +568,7 @@ async function sweepOrphans(admin: AdminClient, now: Date) {
 
     const candidateIds = [...keysByMediaId.keys()];
     if (candidateIds.length > 0) {
+      // row-cap-todo: M17 up to a thousand ids from one R2 listing page ride one URL
       const { data: existing, error } = await admin
         .from("media")
         .select("id")
@@ -671,6 +678,7 @@ async function sweepOrphans(admin: AdminClient, now: Date) {
  * only reclaimed if the host later deletes events (the purge sweeps).
  */
 async function sweepExpiredPasses(admin: AdminClient, now: Date) {
+  // row-cap-todo: H13 every Event Pass holder and every unconsumed pass, each read cut at 1,000
   const [labelled, owners] = await Promise.all([
     admin.from("profiles").select("id").eq("tier", "event_pass"),
     admin.from("event_passes").select("profile_id").is("consumed_at", null),
@@ -720,6 +728,7 @@ async function sweepOverCapacity(admin: AdminClient, now: Date) {
   // and the smallest cap is Free's 2 GB, so ≤ 2 GB used can't be over any cap. An account
   // in grace is always over cap → used > 2 GB until its removed media purges (grace is
   // cleared by then), so this floor also covers in-grace rows.
+  // row-cap-todo: H9 every profile past the Free cap in one read, cut at 1,000
   const { data: candidates, error } = await admin
     .from("profiles")
     .select("id, email, tier, storage_cap_bytes, storage_grace_until")
@@ -748,6 +757,7 @@ async function sweepOverCapacity(admin: AdminClient, now: Date) {
       if (cap === null) return; // unlimited tier — not subject to the cap
 
       // ACTIVE bytes = non-removed media in non-deleted events.
+      // row-cap-todo: H10 a host's active bytes summed from a list cut at 1,000: past it they read under cap
       const { data: media, error: mErr } = await admin
         .from("media")
         .select(
@@ -811,6 +821,7 @@ async function sweepOverCapacity(admin: AdminClient, now: Date) {
       if (now >= graceUntil) {
         const ids = selectForAutoReduce(rows, cap);
         if (ids.length) {
+          // row-cap-todo: H10 every auto-reduce id rides one URL
           const { error: rmErr } = await admin
             .from("media")
             .update({
@@ -901,6 +912,7 @@ async function sweepRenewalNudges(admin: AdminClient, now: Date) {
   const cutoff = new Date(
     now.getTime() + RENEWAL_NUDGE_DAYS * 86_400_000,
   ).toISOString();
+  // row-cap-todo: M15 every pass expiring inside the nudge window in one read, cut at 1,000
   const { data, error } = await admin
     .from("profiles")
     .select("id, email, tier_expires_at")
@@ -963,6 +975,7 @@ async function sweepInactiveFreeEvents(admin: AdminClient, now: Date) {
     nowMs - (INACTIVE_DAYS - WARN_BEFORE_DAYS) * 86_400_000,
   ).toISOString();
 
+  // row-cap-todo: H11 every stale Free event in one read, cut at 1,000
   const { data: events, error } = await admin
     .from("events")
     .select(
@@ -1103,11 +1116,13 @@ async function sweepStandbyBudget(
 ) {
   // Candidate hosts: anyone with binned bytes — (a) >=1 removed media (via the event join), (b) >=1
   // soft-deleted event. Union, then load just those profiles' cap inputs (no full-profiles scan).
+  // row-cap-todo: H12 one row per removed photo platform-wide, only to find its hosts, cut at 1,000
   const { data: removedHosts, error: rhErr } = await admin
     .from("media")
     .select("events!media_event_id_fkey!inner(host_id)")
     .eq("status", "removed");
   if (rhErr) throw new Error(`standby removed hosts: ${rhErr.message}`);
+  // row-cap-todo: H12 every soft-deleted event platform-wide, cut at 1,000
   const { data: deletedHosts, error: dhErr } = await admin
     .from("events")
     .select("host_id")
@@ -1129,6 +1144,7 @@ async function sweepStandbyBudget(
     };
   }
 
+  // row-cap-todo: H12 every candidate host id rides one URL
   const { data: profiles, error: pErr } = await admin
     .from("profiles")
     .select("id, tier, storage_cap_bytes")
@@ -1167,6 +1183,7 @@ async function sweepStandbyBudget(
     // rows land in the bin seconds later, blow the budget on their own (they routinely exceed it —
     // that is what over-cap means), and get HARD-DELETED with their R2 objects. They still purge on
     // schedule at purge_at. The 24h age gate in selectForStandbyEviction is the second belt.
+    // row-cap-todo: H12 a host's removed bin, cut at 1,000: past it the standby budget undercounts
     const { data: removedRows, error: rErr } = await admin
       .from("media")
       .select(BIN_SELECT)
@@ -1175,6 +1192,7 @@ async function sweepStandbyBudget(
       .eq("removed_by_system", false)
       .filter("legal_hold_at", "is", null);
     if (rErr) throw new Error(`standby removed bin: ${rErr.message}`);
+    // row-cap-todo: H12 a host's deleted-event bin, cut at 1,000
     const { data: deletedRows, error: dErr } = await admin
       .from("media")
       .select(BIN_SELECT)

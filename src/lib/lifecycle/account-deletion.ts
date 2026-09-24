@@ -228,6 +228,7 @@ export async function purgeAccount(
 
   await reanonymise(admin, userId);
 
+  // row-cap-todo: M14 every hosted event, cut at 1,000
   const events =
     (await mustQuery(
       // EVERY event the account hosts, soft-deleted or not: the request already
@@ -239,6 +240,8 @@ export async function purgeAccount(
 
   if (events.length > 0) {
     const eventIds = events.map((e) => e.id);
+    // row-cap-todo: H14 one row per HELD photo, cut at 1,000 (past it a held event reads as purgeable),
+    // and every event id rides one URL
     const heldMedia = await mustQuery(
       // ★ The hold filter runs BEFORE any key list is built. The SQL guard in
       // purge_media_rows would save only the ROW; every R2 delete is R2-first,
@@ -264,6 +267,7 @@ export async function purgeAccount(
       // unbounded select would leave the tail of a large album as permanent
       // orphans once the event-row delete cascades their rows away.
       for (let from = 0; ; ) {
+        // row-cap-todo: N2 every purgeable event id rides this URL on every page
         const page = await mustQuery(
           admin
             .from("media")
@@ -308,6 +312,7 @@ export async function purgeAccount(
 
       // Safe now: the media is gone, so the FK cascade has nothing of value
       // left to destroy.
+      // row-cap-todo: M14 the event delete puts every purgeable event id in one URL
       const { error: delErr } = await admin
         .from("events")
         .delete()
@@ -470,6 +475,7 @@ export async function getAccountDeletionState(
     if (!isDeletionSchemaMissing(error)) throw error;
   }
 
+  // row-cap-todo: M14 every hosted event, cut at 1,000, and the event count is that list's length
   const events =
     (await mustQuery(
       admin.from("events").select("id").eq("host_id", userId),
@@ -480,6 +486,7 @@ export async function getAccountDeletionState(
     return { requestedAt, eventCount: 0, heldEventCount: 0 };
   }
 
+  // row-cap-todo: H14 one row per HELD photo, cut at 1,000, and every event id rides one URL
   const heldMedia = await mustQuery(
     admin
       .from("media")

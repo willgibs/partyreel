@@ -526,6 +526,7 @@ async function listEventMediaObjects(eventId) {
  * profiles.storage_used_bytes is decremented, which a direct delete would silently skip.
  */
 async function wipeExistingMedia(eventId) {
+  // row-cap-todo: M18 the event's media is cut at 1,000, so a reseed over a bigger album leaves the rest
   const { data: rows, error } = await supabase
     .from("media")
     .select("id, original_key, preview_key, legal_hold_at")

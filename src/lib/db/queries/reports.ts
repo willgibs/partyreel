@@ -44,6 +44,7 @@ export async function listReports(
   // no media and nothing to presign: listProfileReports below is their read and
   // the page renders them in their own section. Filtering here rather than
   // letting a null event_id fall through keeps this function's shape honest.
+  // row-cap-todo: H6 every album report, cut at 1,000
   let query = admin
     .from("reports")
     .select("id, reason, created_at, status, resolved_at, event_id, media_id")
@@ -68,6 +69,7 @@ export async function listReports(
     ),
   ];
 
+  // row-cap-todo: H6 every reported event id rides one URL
   const { data: events, error: eErr } = await admin
     .from("events")
     .select("id, name")
@@ -80,6 +82,7 @@ export async function listReports(
     { id: string; type: "photo" | "video"; url: string }
   >();
   if (mediaIds.length > 0) {
+    // row-cap-todo: H6 every reported media id rides one URL
     const { data: media, error: mErr } = await admin
       .from("media")
       .select("id, type, original_key")
@@ -147,6 +150,7 @@ export async function listProfileReports(
 ): Promise<ReviewProfileReport[]> {
   const admin = createAdminClient();
 
+  // row-cap-todo: H6 every person report, cut at 1,000
   let query = admin
     .from("reports")
     .select("id, reason, created_at, status, resolved_at, profile_id")
@@ -166,6 +170,7 @@ export async function listProfileReports(
   }[];
   if (reports.length === 0) return [];
 
+  // row-cap-todo: H6 every reported profile id rides one URL
   const { data: profiles, error: pErr } = await admin
     .from("profiles")
     .select("id, display_name, slug")

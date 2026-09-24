@@ -62,6 +62,24 @@ becomes one iteration (a curl of a three-line "URL" returns 0 bytes); pipe into 
   (`create_guest`, reused by name on every re-run) and its files through `create_media` under that row's
   session token; it refuses an event that is not name-only, live, open and taking uploads. The demo's
   own reseed is the Orchestrator's (the demo is shared by partyreel.com and the alias).
+- **The scale probe, for anything that can outgrow PostgREST's 1,000 rows:** event "Scale probe"
+  `14bb4318-80cd-4eed-b219-92c097ee16c7`, hosted by willg97, name-only, live and open (its guest
+  token is on the event row, never in a doc: the link takes uploads). 1,200 photos, `p0001` (the
+  oldest) to `p1200`, 320x240 with no preview, seeded through the real write path by
+  `node scripts/seed-demo-event.mjs <folder of the 1,200> --host willg97@gmail.com --name "Scale probe"
+  --guests "Ana P.,Ben K.,Cal M."` (300 each, the host first). Its OLDEST items carry disposable
+  states set by SQL: the first 20 pending, the next 30 removed the way a host's Remove writes them,
+  the five guest-owned items after those withdrawn by their guest (`removed_by_uploader`), and three
+  liked by willg97 and hi@willgibs. What it measures: an unbounded read answers 1,000 rows with
+  `Content-Range: 0-999/*` and no error; a `count=exact` HEAD answers `206` with the true total
+  (`0-999/1200`, the range clamped too, which is why the row-cap tripwire ignores a HEAD); a write
+  returns every row it touched.
+- **`fake-postgrest`** (`src/lib/db/testing/fake-postgrest.ts`), the in-memory PostgREST for a unit
+  test of any read that can outgrow 1,000 rows: it clamps every read at `MAX_ROWS` as the platform
+  does (a write is never clamped), fails a request whose URL passes 8,000 characters the way
+  postgrest-js resolves a failed fetch, and records every request (filters, limit, URL length).
+  `asSupabase(fake)` stands in for the client a module builds, so a 2,500-row fixture read back
+  whole proves the paging and a run with no failed request proves the chunking.
 
 ## Chrome MCP blind spots
 

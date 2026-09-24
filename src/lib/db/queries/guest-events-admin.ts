@@ -34,6 +34,7 @@ export async function getApprovedMediaForUnlock(
 ): Promise<GuestMediaRow[]> {
   if (!(await isUnlocked(eventId))) return [];
 
+  // row-cap-todo: C8 an unlocked password album is cut at 1,000 items
   const { data, error } = await createAdminClient()
     .from("media")
     .select("id, type, original_key, preview_key, width, height, duration_seconds")

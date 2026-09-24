@@ -160,6 +160,7 @@ async function getProfileCards(
   const admin = createAdminClient();
   const pages = await Promise.all(
     batches.map(async (batch) => {
+      // row-cap: chunked by hand at PROFILE_CARD_BATCH (150 ids), one profile an id
       const { data, error } = await admin
         .from("profiles")
         .select("id, display_name, slug, avatar_updated_at")
@@ -195,6 +196,7 @@ export async function getMyFollowing(): Promise<FollowEntry[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
+  // row-cap-todo: M5 the people I follow, cut at 1,000
   const { data, error } = await supabase
     .from("user_follows")
     .select("followee_id, created_at")
@@ -218,6 +220,7 @@ export async function getMyFollowers(): Promise<FollowEntry[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
+  // row-cap-todo: M5 my followers, cut at 1,000
   const { data, error } = await supabase
     .from("user_follows")
     .select("follower_id, created_at")
@@ -294,6 +297,7 @@ export async function getMyBlocks(): Promise<BlockEntry[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
+  // row-cap-todo: M5 the people I blocked, cut at 1,000
   const { data, error } = await supabase
     .from("user_blocks")
     .select("blocked_id, created_at")
@@ -346,6 +350,7 @@ export async function getMyShownEventIds(): Promise<string[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
+  // row-cap-todo: M5 the events I chose to show, cut at 1,000
   const { data, error } = await supabase
     .from("profile_shown_events")
     .select("event_id")
@@ -476,6 +481,7 @@ export async function getPublicProfileAttendedCoverUrls(
   const admin = createAdminClient();
   try {
     // Gates 1 and 2: the host's key is still on and the album is still open.
+    // row-cap-todo: N4 every attended event id from get_public_profile rides one URL
     const { data: open, error } = await admin
       .from("events")
       .select("id")
@@ -493,6 +499,7 @@ export async function getPublicProfileAttendedCoverUrls(
     // default for someone who has chosen nothing. Scoped to THIS profile's rows, never the viewer's
     // (the viewer may be anonymous; the choice belongs to the page's owner). Admin read:
     // profile_shown_events RLS is owner-only.
+    // row-cap-todo: N4 every still-allowed event id rides one URL
     const { data: shown, error: shownError } = await admin
       .from("profile_shown_events")
       .select("event_id")
@@ -506,6 +513,7 @@ export async function getPublicProfileAttendedCoverUrls(
     // Gate 4: the owner is a guest there, as the public line requires: an APPROVED upload of theirs
     // on a PROVED row (`verified_at`, never a bare user id). A choice survives the owner's last
     // removal (profile_shown_events keeps it), and this gate is what hides the picture meanwhile.
+    // row-cap-todo: N4 every still-allowed event id rides the URL of every page
     const attended = await readAll<{ event_id: string }>(
       (from, to) =>
         admin
@@ -538,6 +546,8 @@ async function adminCoverUrls(
   const urls = new Map<string, string>();
   if (eventIds.length === 0) return urls;
 
+  // row-cap-todo: H3 one row per approved photo across every event, cut at 1,000 (past it older events lose
+  // their cover), and every event id rides one URL
   const { data, error } = await createAdminClient()
     .from("media")
     .select("event_id, original_key")
@@ -714,6 +724,7 @@ export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
     ];
     if (eventIds.length === 0) return [];
 
+    // row-cap-todo: M6 every attended event id rides one URL
     const eventsRes = await admin
       .from("events")
       .select("id, name, event_date, host_id")
@@ -761,6 +772,7 @@ export async function getMyGuestEventCards(): Promise<GuestEventCardData[]> {
     }
     if (latest.size === 0) return [];
 
+    // row-cap-todo: M6 every event I added to rides one URL
     const eventsRes = await admin
       .from("events")
       .select("id, name, event_date, visibility, qr_token, host_id")
@@ -772,6 +784,7 @@ export async function getMyGuestEventCards(): Promise<GuestEventCardData[]> {
     if (events.length === 0) return [];
 
     const hostIds = [...new Set(events.map((e) => e.host_id))];
+    // row-cap-todo: M6 every host id rides one URL
     const [hostsRes, covers] = await Promise.all([
       admin.from("profiles").select("id, display_name").in("id", hostIds),
       adminCoverUrls(
@@ -1084,6 +1097,7 @@ export async function getFollowedHostEventCards(): Promise<
   const hostNames = new Map(following.map((f) => [f.id, f.displayName]));
 
   try {
+    // row-cap-todo: M5 the followed hosts' events, cut at 1,000, and every followed host id rides one URL
     const { data, error } = await createAdminClient()
       .from("events")
       .select(

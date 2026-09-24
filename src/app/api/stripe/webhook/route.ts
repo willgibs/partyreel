@@ -112,6 +112,7 @@ async function applyEntitlement(
     );
   }
 
+  // row-cap: by the primary key or stripe_customer_id's partial unique index: at most one profile
   const { data: existing, error: lookupError } = await admin
     .from("profiles")
     .select("id")

@@ -20,6 +20,7 @@ export async function listJobApplications(
   status?: TriageStatus,
 ): Promise<JobApplication[]> {
   const admin = createAdminClient();
+  // row-cap-todo: M10 every application, cut at 1,000
   let query = admin
     .from("job_applications")
     .select("*")

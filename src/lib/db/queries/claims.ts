@@ -55,6 +55,7 @@ export async function getMyClaimableGuestRows(): Promise<ClaimableEventRow[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
+  // row-cap-todo: M7 the claim list is cut at 1,000 rows
   const { data, error } = await supabase.rpc("list_guest_rows_by_email");
   if (error) throw error;
 

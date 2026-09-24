@@ -16,6 +16,7 @@ import { cookies } from "next/headers";
 
 import type { Database } from "@/lib/db/types";
 import { env } from "@/lib/env";
+import { withRowCapTripwire } from "@/lib/supabase/row-cap-tripwire";
 
 export async function createClient() {
   const cookieStore = await cookies();
@@ -39,6 +40,8 @@ export async function createClient() {
           }
         },
       },
+      // A read clipped at PostgREST's 1,000 rows warns in Sentry once (row-cap-tripwire.ts).
+      global: { fetch: withRowCapTripwire() },
     },
   );
 }

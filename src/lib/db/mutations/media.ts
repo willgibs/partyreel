@@ -171,6 +171,7 @@ async function bulkSetFromPending(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
+  // row-cap-todo: M13 a bulk selection of any size rides one URL: Select all on a big album fails
   const { data, error } = await supabase
     .from("media")
     .update({ status })
@@ -221,6 +222,7 @@ export async function setMediaStatusBulk(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
+  // row-cap-todo: M13 a bulk selection of any size rides one URL
   const { data, error } = await supabase
     .from("media")
     .update({ status })
@@ -259,6 +261,7 @@ export async function removeMediaBulk(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
+  // row-cap-todo: M13 a bulk selection of any size rides one URL
   const { data, error } = await supabase
     .from("media")
     .update({ status: "removed", removed_at: new Date().toISOString() })
@@ -416,6 +419,7 @@ export async function purgeMediaNow(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
+  // row-cap-todo: M13 the purge selection rides one URL
   const { data: rows, error: readErr } = await supabase
     .from("media")
     .select("id, original_key, preview_key")
@@ -440,6 +444,7 @@ export async function purgeMediaNow(
   // generated types until the orchestrator regenerates post-apply.)
   let owned = rows ?? [];
   if (owned.length > 0) {
+    // row-cap-todo: M13 the purge selection's hold check rides one URL
     const { data: held, error: holdErr } = await createAdminClient()
       .from("media")
       .select("id")

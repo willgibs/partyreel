@@ -14,6 +14,8 @@ export async function getEventLikeCounts(
   const { supabase, user } = await getRequestAuth();
   if (!user) return new Map();
 
+  // row-cap-todo: C12 one row per media of the event, liked or not, cut at 1,000: past it the rest read as
+  // unliked
   const { data, error } = await supabase.rpc("get_event_like_counts", {
     p_event_id: eventId,
   });

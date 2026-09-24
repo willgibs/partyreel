@@ -172,6 +172,7 @@ export async function getEventMediaByQrToken(
   qrToken: string,
 ): Promise<GuestMediaRow[]> {
   const supabase = await createClient();
+  // row-cap-todo: C7 the guest album is cut at 1,000 items: the oldest never show
   const { data, error } = await supabase.rpc("get_event_media_by_qr_token", {
     p_qr_token: qrToken,
   });
