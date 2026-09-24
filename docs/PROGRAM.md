@@ -21,14 +21,19 @@ carries every back-and-forth and lands everything.
 
 ## The round
 
-1. **Will asks**; the Orchestrator asks him the two or three questions that branch the work, then cuts one lane per
+1. **A board opens** on Will's ask, or on an improvement the Orchestrator or a lane sees, even on a surface just
+   explored: the idea is reason enough, and it reaches production only through the lab, where his review keeps it on
+   the product's vision (a fix or plumbing goes straight). For his asks the Orchestrator asks him the two or three questions that branch
+   the work (a one-way door always waits for his answer, which then lives in its system doc), then cuts one lane per
    board.
-2. **The lane returns DECISIONS** at `/design/lab/<board>` (below) and hands off; the Orchestrator integrates one lane
-   at a time, with one alias build per round.
+2. **The lane returns DECISIONS** at `/design/lab/<board>` (below) and hands off; an exploration ships no production
+   byte and verifies light (the board at 1440 and 375, reduced motion, the gate). The Orchestrator integrates one
+   lane at a time, with one alias build per round.
 3. **Will reviews on the desk** (`/design/lab?key=`), one question at a time; the Orchestrator transcribes his answers.
-4. **Winners are promoted**: the wiring round lands each as a working version in production and the Library, and a
-   refined pick is refined inside the wiring. The board retires with its losing options; a later exploration
-   branches from what shipped.
+4. **Picks are built**: the wiring round lands each in production, a refined pick refined inside the wiring, with
+   its red-team. The board retires with its losing options and its ledger; nothing records a pick as a rule, and a
+   later board on the same surface starts from production with his notes as direction (`registry.test.ts` checks
+   that a board past round 1 has them).
 
 ## Agent boot
 
@@ -55,25 +60,19 @@ change touching one of your `reads`.
 **Handoff:** fill the manifest's Handoff (every claim names its artifact); set `status: handed-off`; commit the
 manifest alone; push; report one line in chat: "handed off at <sha>".
 
-## The hard gates (no exceptions)
+## Launch switches
 
-1. **Lab-validate before shipping creative magic**: a catalog in the lab, Will's verdicts, then the wiring round. An
-   exploration ships no production byte and verifies light (the board at 1440 and 375, reduced motion, the gate); the
-   red-team lands with the wiring.
-2. **One-way doors get an options message and wait for Will's ruling**, recorded as an invariant in the owning
-   `docs/systems/` doc.
-3. **No launch switches** (Stripe live, the real `/privacy`, secrets → Sensitive, `PRUNE_MODE=live`, the test-data
-   reset): they gather in ROADMAP's launch checkpoint and never execute mid-program.
+Stripe live, the real `/privacy`, secrets to Sensitive, `PRUNE_MODE=live` and the test-data reset gather in ROADMAP's
+launch checkpoint and run only in the launch round: each is public or hard to undo.
 
 ## Program principles
 
 ### A round returns DECISIONS
 
-An exploration is a list of decisions, not a page. Will's bar is a minute each: "Read a question, worded in clean
-natural language, that clearly asks me to make one decision (winner) within the group · Preview each option fully,
-visuals-forward where possible, to quickly find a favorite or request refinements, with any relevant configs included
-· Select my winner, leave optional notes, and onto the next." Never a page with argument, a verdict essay or keep /
-refine / kill over N cards: "Simply designing a few variations will always beat a mountain of research text."
+An exploration is a list of decisions, not a page, each worth about a minute of Will's time: one question in plain
+words asking for one winner, every option previewed whole on the real surface with its configs beside it, then his
+pick and an optional note. A few designed variations beat any amount of argument: no verdict essays, no keep / refine
+/ kill over N cards.
 
 - Author with `defineExploration` (`src/components/lab/exploration.ts`) and nothing else; the newest board built on
   it is the worked example.
@@ -91,21 +90,14 @@ refine / kill over N cards: "Simply designing a few variations will always beat 
 - A new board registers its own lines in `registry.ts`, `boards.ts` and `touchpoints.ts` directly after the neighbour
   its brief names, never at the head of a list (two boards on one spot mangle the merge).
 
-### Every round gets Will's notes
-
-No second round of the same work is cut without his notes on the first (`registry.test.ts` refuses a board past round
-1 with no `docs/reviews/<id>.json`). The next brief quotes them and is the wiring, not another exploration, unless he
-asks for one by name.
-
 ### Fast, focused rounds
 
-Fast iterative rounds beat slow meticulous ones (Will): focused per-dimension rounds rather than mega-plans, and
+Fast iterative rounds beat slow meticulous ones: focused per-dimension rounds rather than mega-plans, and
 iterate rather than perfect.
 
 ### Before launch there are no real users
 
-Will: "Don't have to dance around anything like save tables in the database before launch." No migration carries
-compatibility work to keep test data, and a migration's contract (the drop) lands as soon as the alias's build no
+No migration carries compatibility work to keep test data: a migration's contract (the drop) lands as soon as the alias's build no
 longer calls what it drops (after that build's red-team), even before the milestone that ships it; the report names
 what partyreel.com loses meanwhile.
 

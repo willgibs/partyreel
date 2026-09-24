@@ -4,7 +4,47 @@ status: open            # open -> handed-off; deleted in the merge commit that i
 cut: "cd3532fb"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/app/(dev)/
+  - src/app/(dev)/design/(shell)/
+  - src/app/(dev)/design/_data/
+  - src/app/(dev)/design/design.css
+  - src/app/(dev)/design/gallery/
+  - src/app/(dev)/design/layout.tsx
+  - src/app/(dev)/design/reference/
+  - src/app/(dev)/design/review/
+  - src/app/(dev)/design/rules/
+  - src/app/(dev)/design/sandbox/admin-triage/
+  - src/app/(dev)/design/sandbox/album-motion/
+  - src/app/(dev)/design/sandbox/contact-page/
+  - src/app/(dev)/design/sandbox/emails/
+  - src/app/(dev)/design/sandbox/event-safety/
+  - src/app/(dev)/design/sandbox/export-flow/
+  - src/app/(dev)/design/sandbox/gallery-fixtures.ts
+  - src/app/(dev)/design/sandbox/guest-capture/
+  - src/app/(dev)/design/sandbox/help-center/
+  - src/app/(dev)/design/sandbox/home-hero/
+  - src/app/(dev)/design/sandbox/host-curation/
+  - src/app/(dev)/design/sandbox/host-storage/
+  - src/app/(dev)/design/sandbox/identity-claims/
+  - src/app/(dev)/design/sandbox/identity-door/
+  - src/app/(dev)/design/sandbox/identity-profile/
+  - src/app/(dev)/design/sandbox/loose-ends/
+  - src/app/(dev)/design/sandbox/media-viewer/
+  - src/app/(dev)/design/sandbox/press-page/
+  - src/app/(dev)/design/sandbox/privacy-hero/
+  - src/app/(dev)/design/sandbox/profile-page/
+  - src/app/(dev)/design/sandbox/reel-cut/
+  - src/app/(dev)/design/sandbox/reel-front/
+  - src/app/(dev)/design/sandbox/reel-host/
+  - src/app/(dev)/design/sandbox/reel-screen/
+  - src/app/(dev)/design/sandbox/reel-story/
+  - src/app/(dev)/design/sandbox/reel-view/
+  - src/app/(dev)/design/sandbox/registry.test.ts
+  - src/app/(dev)/design/sandbox/registry.ts
+  - src/app/(dev)/design/sandbox/site-chrome/
+  - src/app/(dev)/design/sandbox/voice-guest/
+  - src/app/(dev)/design/theme-toggle.tsx
+  - src/app/(dev)/design/touchpoints.test.ts
+  - src/app/(dev)/design/touchpoints.ts
   - src/components/lab/
   - scripts/build-design-rules.mjs
   - scripts/design-rules/
