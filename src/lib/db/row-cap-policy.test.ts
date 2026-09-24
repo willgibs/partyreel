@@ -64,7 +64,6 @@ const TODO_IDS: readonly string[] = [];
 const SINGLE_ROW: Readonly<Record<string, string>> = {
   get_event_by_qr_token:
     "its body ends in `limit 1`: one event per token or custom slug",
-  get_event_reel_by_qr_token: "one reel per event: 0 or 1 row",
   host_storage_summary: "one aggregate row per host asked",
   tier_limits: "one row: the limits of the one tier asked",
   purge_media_rows:

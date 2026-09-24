@@ -261,7 +261,7 @@ describe("a guest's own withdrawal never reaches a host read", () => {
       .sort()
       .map((file) => readFileSync(join(dir, file), "utf8"))
       .filter((sql) =>
-        /function public\.get_event_reel_by_qr_token\s*\(/i.test(sql),
+        /create (?:or replace )?function public\.get_event_reel_by_qr_token\s*\(/i.test(sql),
       )
       .at(-1);
     expect(

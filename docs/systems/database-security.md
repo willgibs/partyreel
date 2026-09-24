@@ -25,13 +25,17 @@ service-role admin client (`server-only`).
 
 ## The advisor model (`get_advisors` — run after EVERY schema change)
 
-The expected, accepted set (`get_advisors` security, 2026-09-24: 15 `rls_enabled_no_policy`, 5 in `0028`, 32 in `0029`):
+The expected, accepted set (`get_advisors` security, 2026-09-24: 15 `rls_enabled_no_policy`, 5 in `0028`, 32 in `0029`;
+the live reel's expand, `20260924100000`, leaves all three unchanged, and its drop, `20260924110000`, takes them to 14,
+4 and 27: `reel_render_log`, then `get_event_reel_by_qr_token`, then it and the four stored-reel RPCs):
 
 - **5 anon capability RPCs (lint `0028`, SECURITY DEFINER, executable by `anon` — by design, DO NOT
   revoke), READS ONLY:** `get_event_by_qr_token`, `get_event_media_by_qr_token`, `get_upload_context`,
   `get_public_profile`, `get_event_reel_by_qr_token`. The opaque token IS the authorization for the
   token-keyed ones and each only READS visibility-gated state, so anon EXECUTE is safe (0029 lists these
-  five too: `authenticated` can call them). `get_event_reel_by_qr_token` returns an OPEN event's published
+  five too: `authenticated` can call them). `get_event_media_by_qr_token` is the open album; from the live
+  reel's expand each row also carries `reel_eligible`. `get_event_reel_by_qr_token` (the stored reel's; the
+  live reel's drop removes it, leaving four) returns an OPEN event's published
   reel only (`guest_visible=true`; anything else is zero rows, so there is no publish-state oracle); its
   **RETURNS TABLE IS the allow-list** (8 keys, pinned by [`guest-reel-contract.test.ts`](../../src/lib/reel/guest-reel-contract.test.ts)
   against the generated type, so no render internal, timestamp or tier ever rides it), the length is
@@ -45,7 +49,10 @@ The expected, accepted set (`get_advisors` security, 2026-09-24: 15 `rls_enabled
   ★ **An anon READ must never disclose more than the PAGE it backs.** `get_event_by_qr_token` redacts the
   description, date, custom slug and host name (plus the NAME for `private`) from a non-owner of a gated
   event, matching the locked `/e/` payload; an UNLOCKED viewer's fields come back through a self-guarded
-  admin re-read inside `getEventByQrToken`. `get_public_profile`'s attended arm applies the album's own
+  admin re-read inside `getEventByQrToken`. Its switches (`accepting_uploads`, `require_verified_email`,
+  `require_upload_to_view`) and, from the live reel's expand, `show_reel` and `reel_style_id` come back
+  unredacted: presentation settings like `qr_style`, never the identifying metadata the redaction withholds.
+  It keeps the PUBLIC EXECUTE its recreates inherited, beside anon, authenticated and service_role. `get_public_profile`'s attended arm applies the album's own
   gates, mirroring `resolveGalleryDecision`: on a `require_verified_email` event only the event's host or a
   viewer whose `auth.users.email_confirmed_at` is set passes (the page's `isAuthed`), because the album holds
   anyone else at the teaser, which never renders its Guests list; and on a `require_upload_to_view` event with
@@ -82,7 +89,8 @@ The expected, accepted set (`get_advisors` security, 2026-09-24: 15 `rls_enabled
   `list_guest_rows_by_email`/`claim_guest_rows_by_email`/`disown_guest_rows_by_email`,
   `restore_media`/`restore_event`/`purge_media_now`, `like_media`/`get_my_likes`/`get_event_like_counts`,
   `add_to_reel`/`reorder_reel`/`upsert_reel_config`/`set_reel_guest_visible` (the publish switch: UPSERTs
-  the reel row, refuses `empty` at 0 approved items; no mp4 required).
+  the reel row, refuses `empty` at 0 approved items; no mp4 required; the four leave with the stored reel at
+  the live reel's drop).
   ★ The reel has TWO deliberate predicates: MEMBERSHIP (host UI/counts/`reorder_reel`'s guard) =
   `status in ('approved','hidden')` vs TIMELINE/guest/publish = `approved` only, commented at every
   site; an approved-only reorder guard would brick reels holding hidden items.
@@ -144,9 +152,11 @@ The expected, accepted set (`get_advisors` security, 2026-09-24: 15 `rls_enabled
   `guests` (written only by its RPCs, read only by the service-role client and SECURITY DEFINER
   functions; → its bullet under Invariants), `reports`, `sent_emails`, `newsletter_signups`, `unlock_attempts`, `action_attempts`,
   `contact_submissions`, `job_applications`, `event_passes` (the Event Pass purchase ledger), `job_runs`
-  (the `/admin/jobs` run log), `reel_render_log` (the `/admin/reels` render log), `export_log` (per-attempt
-  "Download all" log: HMAC-of-IP, never a raw IP), `ops_flags` (the kill switches: `export_enabled`,
-  `reel_render_enabled`, one per backend job), `upload_forensics` + `forensic_audit_log` (raw IP by design,
+  (the `/admin/jobs` run log), `reel_render_log` (the `/admin/reels` render log, until the live reel's
+  drop), `export_log` (per-attempt
+  "Download all" log: HMAC-of-IP, never a raw IP), `ops_flags` (the kill switches: `export_enabled`, one
+  per backend job, and `live_reel_enabled`, the live reel's platform lever from its expand;
+  `reel_render_enabled` until the drop deletes it), `upload_forensics` + `forensic_audit_log` (raw IP by design,
   plus the uploader identity denormalized at capture, `guest_display_name` included since a name-only
   guest's typed name IS the identity a lawful-process response needs; deny-all is the containment →
   [trust-safety-forensics.md](trust-safety-forensics.md)). The "Download all" export has NO SECURITY
@@ -170,11 +180,11 @@ The expected, accepted set (`get_advisors` security, 2026-09-24: 15 `rls_enabled
   default grant gives `authenticated` UPDATE/INSERT/DELETE on EVERY column. So host-writable tables must
   `revoke insert,update,delete … from authenticated` (and `anon`) and re-grant ONLY the legit columns:
   - **`profiles`** — writable: `announcements_seen_at`, `welcomed_at`; every other column is service-role-only (a new one is fail-closed). Never grant: `email` (the recipient of EVERY transactional email, so a client-writable value is a mail-redirect primitive), `display_name` and `bio` (public text, written by `updateDisplayNameAction` / `setProfileBioAction` on the admin client after the validation + profanity checks; the claim RPCs also copy an already-filtered typed name onto a NAMELESS profile, and account deletion nulls it), `deletion_requested_at` (a client write would be an un-request path), `slug`, `tier`, `tier_expires_at`, `event_slots`, `storage_*`, `is_admin`, `stripe_*`, `avatar_updated_at`, `password_set_at`.
-  - **`media`** — UPDATE `status`, `removed_at` only (no insert/delete). `purge_at` is set by a BEFORE trigger (`set_media_purge_at`): never grant `update(purge_at)`. Also write-ungranted: `removed_by_uploader` (owner-context `remove_my_upload`: a guest's private self-deletion), `removed_by_system` (the cron's auto-reduce marker), `removed_by_admin` + `status_before_removed` (operator provenance + the pre-removal status, trigger/service-role-written). **SELECT is column-scoped too**: `legal_hold_at`/`legal_hold_reason` are NOT granted, so the owning host (who may BE the investigated uploader) can't detect a legal hold via PostgREST, and neither are `removed_by_system`, `removed_by_admin`, `status_before_removed`. So an authenticated `select("*")` on media ERRORS: the host reads enumerate `MEDIA_HOST_COLUMNS` (`src/lib/db/queries/media.ts`; a Vitest parity test pins that list to the grant and `MediaRow` to strip every ungranted column); a WHERE on a hold column errors from the RLS client too (`purgeMediaNow`'s held-filter runs on the admin client); and a new media column is FAIL-CLOSED (invisible to hosts) until added to BOTH the grant and `MEDIA_HOST_COLUMNS`.
+  - **`media`** — UPDATE `status`, `removed_at` only (no insert/delete). `purge_at` is set by a BEFORE trigger (`set_media_purge_at`): never grant `update(purge_at)`. Also write-ungranted: `removed_by_uploader` (owner-context `remove_my_upload`: a guest's private self-deletion), `removed_by_system` (the cron's auto-reduce marker), `removed_by_admin` + `status_before_removed` (operator provenance + the pre-removal status, trigger/service-role-written). **SELECT is column-scoped too**: `legal_hold_at`/`legal_hold_reason` are NOT granted, so the owning host (who may BE the investigated uploader) can't detect a legal hold via PostgREST, and neither are `removed_by_system`, `removed_by_admin`, `status_before_removed`. So an authenticated `select("*")` on media ERRORS: the host reads enumerate `MEDIA_HOST_COLUMNS` (`src/lib/db/queries/media.ts`; a Vitest parity test pins that list to the grant and `MediaRow` to strip every ungranted column); a WHERE on a hold column errors from the RLS client too (`purgeMediaNow`'s held-filter runs on the admin client); and a new media column is FAIL-CLOSED (invisible to hosts) until added to BOTH the grant and `MEDIA_HOST_COLUMNS`. `reel_eligible` ("plays in the live reel": default true from the live reel's expand, false only for a cut saved to the album) is SELECT-granted and WRITE-ONCE: `create_media`/`create_media_as_host` write it from `p_reel_eligible` (default true) and no client role can UPDATE it, so it rides outside the gallery ETag fingerprint.
   - **`guests`** — NO client role reads it: `authenticated` and `anon` hold no SELECT on any column, and the table has no policy (RLS stays ENABLED, so it rides the deny-all set and a grant that ever came back would still read no row). Every reader on both codebases is the service-role client or a SECURITY DEFINER function, and a new one joins them, never a grant: the table holds `session_token`, the PLAINTEXT guest upload capability, and both addresses. ★ **THE TOKEN ALSO RIDES A COOKIE**: `pr_guest_<eventId>` carries it raw, beside the signed `pr_unlock_<eventId>`, because Require an upload to view is resolved in an RSC and localStorage is invisible there. HttpOnly (LESS reachable than the localStorage copy), Secure in production, SameSite=Lax, path `/`, 60 days, shape-guarded `/^[0-9a-f]{64}$/` on read, and UNSIGNED on purpose: the database checks it against this column's unique index, so a forged value resolves to no row. Written only by `POST /api/guests` (a mint), `POST /api/guests/name`, `POST /api/guests/email`, `POST /api/r2/complete-upload` (a created row) and the gallery poll's heal; expired by `POST /api/guests/leave` (one event's, or every one the request carried with `{ all: true }`, which the guest page's sign-out sends) and by the account sign-out's `signOutAction` on its own response, so a shared phone does not open the full album on the last contributor's ticket. ★ **It is a READ capability only**: every WRITE route takes the token from the request BODY (pinned in `session-cookie.test.ts`), so the cookie adds no CSRF surface. → [guest-flow.md](guest-flow.md). Writes are fully revoked (RPC-only); the guest list and the credit are built on the admin client. ★ **TWO EMAIL COLUMNS, AND ONLY `verified_at` IS PROOF.** `guests.email` is only ever a CONFIRMED address of the row's own account: `create_guest` copies the minting session's `auth.users` address only beside its `email_confirmed_at`, the value it stamps as `verified_at` (an unconfirmed sign-up's row keeps its `user_id` and typed name and carries no address), the two claims write the caller's confirmed address as they stamp the caller's `user_id`, and `capture_guest_email` fills an EMPTY one only when the row's own `user_id` is the confirmed account that owns the address (it reads `auth.users` itself rather than trusting its route: a session token names a row, and on a shared phone that is whoever joined last). That last one can land on an unverified row (one minted before its account confirmed), so nothing attributes an address without `verified_at`. `guests.pending_email` is ONLY EVER an address a guest TYPED and nobody proved: outside every grant, never shown to the host or another guest, never attributed to an account, never mailed on its own, never expiring. The ONLY path from the second to the first is a claim that PROVES it (`claim_guest_rows_by_email`, or `claim_anonymous_uploads` under a confirmed session), and the code holds the same line: `resolveUploaderIdentity` case 3 returns no address at all, `getEventGuestList` selects neither column, and `POST /api/guests/capture-email` requires `email_confirmed_at` before it writes `guests.email` (a bare `user.email` is satisfied by an unconfirmed sign-up). The one exception, `upload_forensics.guest_pending_email`, is deny-all + service-role: capture-only, lawful process, never rendered.
   - **`media_likes`** — owner-RLS (SELECT + DELETE where `auth.uid()=user_id`); INSERT/UPDATE REVOKED, so the ONLY write path is the access-checking `like_media` RPC (a raw insert would let a user like, then via `get_my_likes` presign, media they can't see).
-  - **`reel_items`** — HOST-RLS (SELECT + DELETE on the host's own event); INSERT/UPDATE REVOKED, so the ONLY add path is the access-checked `add_to_reel` RPC (host-owned event + media `approved` + not removed) and the ONLY position-update path is `reorder_reel(p_event_id, p_media_ids)` (host-owns + a set-equality guard: the ids must EXACTLY equal the event's current reel set, else `stale`). Un-reel is the host-RLS delete from the browser.
-  - **`events`** — writable: `name`, `description`, `event_date`, `visibility`, `accepting_uploads`, `moderation_mode`, `qr_style`, `max_upload_bytes`, `display_in_profile`, `show_guest_list`, `require_verified_email` (free on every tier, default ON; the app writes it alone, and its legacy twin `allow_anonymous_uploads` leaves with the identity contract), `require_upload_to_view` (default off), + `insert(host_id)` and `update(deleted_at)` (SOFT-DELETE ONLY; a trigger refuses the un-delete, see below). RPC/trigger/default-only: `event_password_hash`, `custom_slug`, `qr_token`, `purge_at`.
+  - **`reel_items`** — HOST-RLS (SELECT + DELETE on the host's own event); INSERT/UPDATE REVOKED, so the ONLY add path is the access-checked `add_to_reel` RPC (host-owned event + media `approved` + not removed) and the ONLY position-update path is `reorder_reel(p_event_id, p_media_ids)` (host-owns + a set-equality guard: the ids must EXACTLY equal the event's current reel set, else `stale`). Un-reel is the host-RLS delete from the browser. The live reel's drop removes the table and both RPCs.
+  - **`events`** — writable: `name`, `description`, `event_date`, `visibility`, `accepting_uploads`, `moderation_mode`, `qr_style`, `max_upload_bytes`, `display_in_profile`, `show_guest_list`, `require_verified_email` (free on every tier, default ON; the app writes it alone, and its legacy twin `allow_anonymous_uploads` leaves with the identity contract), `require_upload_to_view` (default off), and from the live reel's expand `show_reel` (the reel's off switch, default ON) and `reel_style_id` (the host's default mood, NULL = the default one; no CHECK or enum, app-validated like `qr_style`), + `insert(host_id)` and `update(deleted_at)` (SOFT-DELETE ONLY; a trigger refuses the un-delete, see below). RPC/trigger/default-only: `event_password_hash`, `custom_slug`, `qr_token`, `purge_at`. SELECT is table-level (RLS scopes it to the host's rows), so a new column reads with no grant.
 - ★ **A column grant can't express a TRANSITION, so the dangerous ones are refused by BEFORE triggers.**
   A column-scoped grant says *which* column may change, never *from what to what*: `update(status)` would
   also buy "un-remove" and `update(deleted_at)` "un-delete", past every guard the restore RPCs carry, yet
@@ -288,7 +298,8 @@ not capped (a `PATCH … Prefer: return=representation` over 1,040 rows returned
   `max_rows` must never go below 1,000: verified 2026-09-23, an unbounded read of the 1,200-photo scale probe
   answered 1,000 rows with `Content-Range: 0-999/*`.
 - The shapes the 1,000-row fixes read live in `20260924010000_row_cap_album.sql` (the guest album paged on
-  `(created_at, id)` with its index `media_event_created_id_idx`, the like counts, the hearts),
+  `(created_at, id)` with its index `media_event_created_id_idx`, whose paging the live reel's expand carries
+  unchanged when it appends `reel_eligible`; the like counts, the hearts),
   `20260924020000_row_cap_host.sql` (the card counts, the covers, an event's link totals, the claim card,
   the operator's metrics) and `20260924030000_row_cap_sweeps.sql` (the legal-hold partition, the standby
   budget's hosts); each file's header carries its keys and its rolled-back check.
@@ -322,6 +333,11 @@ Workflow lessons:
 - **Verify a hand-passed migration payload, don't trust it**: after applying, hash-compare every live
   `prosrc` to the repo file. ★ Postgres `btrim(text)` trims SPACES only — it leaves the body's
   leading/trailing newlines so every hash looks wrong by +2 chars; collapse whitespace THEN trim.
+- ★ **A backfill must fire no row trigger that writes another column.** `media_set_updated_at` stamps
+  `updated_at = now()` on EVERY update, and the gallery ETag and the host's recency reads key on it. Pause
+  exactly the triggers that would write (`alter table … disable trigger <name>`), run the one statement,
+  re-enable them in the same file, and prove it with a before/after fingerprint of the rows' untouched
+  columns (the live reel's expand). A guard fails any migration that disables a trigger without enabling it.
 - **A rolled-back contract check must ride EXISTING events** — creating an event inside the txn trips
   `enforce_event_limit`; get a locked event by UPDATE-ing one (set `event_password_hash` alongside,
   per the `events_password_requires_hash` CHECK). PEOPLE it may make: an `auth.users` insert inside the

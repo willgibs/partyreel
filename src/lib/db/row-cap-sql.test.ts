@@ -45,8 +45,6 @@ const MAX_ROWS = (() => {
 const SINGLE_ROW: Record<string, string> = {
   get_event_by_qr_token:
     "keyed on events.qr_token, which is UNIQUE: zero rows or one",
-  get_event_reel_by_qr_token:
-    "one reel per event, keyed on the unique qr_token: zero rows or one",
   host_storage_summary: "one aggregate row (two SUMs, no GROUP BY)",
   tier_limits: "one row: the tier's limits, a constant per tier",
   purge_media_rows:
@@ -152,14 +150,21 @@ const clamps = (d: Definition) => d.sql.includes(`least(p_limit, ${MAX_ROWS})`);
 
 describe("the reader replays the set the way the database does", () => {
   it("is drop-aware: a function a later file drops is not live", () => {
-    // 20260923130000_drop_saves.sql drops get_saved_events and save_event after an earlier file made them.
+    // 20260923130000_drop_saves.sql drops get_saved_events and save_event after an earlier file made them,
+    // and the live reel's drop (20260924110000) takes the stored reel's one-row guest read.
     expect(LIVE.has("get_saved_events")).toBe(false);
     expect(LIVE.has("save_event")).toBe(false);
+    expect(LIVE.has("get_event_reel_by_qr_token")).toBe(false);
   });
 
   it("sees the round's functions under their final signatures", () => {
+    // The live reel's expand (20260924100000) recreated the album with reel_eligible appended to
+    // its RETURNS TABLE and the row cap's four parameters untouched.
     expect(LIVE.get("get_event_media_by_qr_token")?.params).toBe(
       "p_qr_token text, p_before_created_at timestamptz default null, p_before_id uuid default null, p_limit integer default null",
+    );
+    expect(LIVE.get("get_event_media_by_qr_token")?.returns).toMatch(
+      /^table\( id uuid, .*, created_at timestamptz, reel_eligible boolean \)$/,
     );
     expect(LIVE.get("list_guest_rows_by_email")?.params).toBe(
       "p_after_at timestamptz default null, p_after_id uuid default null, p_limit integer default null",
