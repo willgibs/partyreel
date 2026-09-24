@@ -71,8 +71,8 @@ const RECIPE: Step[] = [
   },
   {
     title: "Your creative shot",
-    href: "/design/lab",
-    body: "take it in the lab, where an idea is drawn beside what ships and costs nothing to try.",
+    href: "/design/lab/kit",
+    body: "take it in the lab, where an idea is drawn beside what ships and costs nothing to try; the kit shows how.",
   },
 ];
 

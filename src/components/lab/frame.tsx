@@ -218,7 +218,12 @@ export type FrameProps = {
   id: string;
   /** The route to load. Omit and pass `children` to portal a scene instead. */
   src?: string;
-  /** A composition with no route of its own, rendered INTO the frame document. */
+  /**
+   * A composition with no route of its own, rendered INTO the frame document.
+   * Its theme class rides a wrapper inside the frame's body, not the frame's
+   * <html>, so the body's own background shows wherever the composition ends:
+   * give its root `min-h-screen` (the frame's height) to cover it.
+   */
   children?: React.ReactNode;
   w: number;
   /**

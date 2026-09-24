@@ -136,6 +136,15 @@ export default async function KitPage({
             </p>
           </div>
         </div>
+        <p className="mt-3 text-sm text-muted-foreground">
+          A quick exploration needs none of this: a <code>page.tsx</code> in{" "}
+          <code>sandbox/&lt;name&gt;/</code> renders bare behind the lab&rsquo;s
+          key, and the kit&rsquo;s <code>Frame</code> and <code>FrameRow</code>{" "}
+          draw an idea at true widths beside what ships. A standing board, the
+          kind reviewed on the desk, is the two files above plus its lines in{" "}
+          <code>registry.ts</code>, <code>boards.ts</code> and{" "}
+          <code>touchpoints.ts</code>.
+        </p>
         <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
           <li>
             <code>
