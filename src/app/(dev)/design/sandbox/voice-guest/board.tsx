@@ -6,7 +6,6 @@ import { optionId, optionLabel } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
 import {
-  EVENT,
   HELD,
   LAST_OF_PICK,
   PICK,
@@ -91,9 +90,6 @@ const LAST: GridMedia = {
   width: LAST_OF_PICK.width,
   height: LAST_OF_PICK.height,
 };
-
-/** The reel counts the whole album, hers included once they are approved. */
-const AFTER_PICK = EVENT.approvedTotal + PICK;
 
 const priya = <GuestHeader who={{ kind: "named", name: PRIYA.name }} />;
 const tom = (
@@ -231,7 +227,6 @@ function LandedAlbum({
       // column (held at today's words: `keep` asks them); a signed-in member
       // has nothing to be offered.
       slot={member ? undefined : <OfferCard register="today" />}
-      reel={{ count: AFTER_PICK, yours: true }}
       prefix={
         line ? (
           <StackLastBeat key={runId} still={LAST_OF_PICK} line={line} />
@@ -288,7 +283,6 @@ function FailedScene({ register }: { register: Register }) {
       <AlbumGround
         header={priya}
         slot={<OfferCard register="today" />}
-        reel={{ count: AFTER_PICK, yours: true }}
         items={ALBUM}
         overlay={
           <BottomSheet>
@@ -334,9 +328,6 @@ function WaitingScene({ register }: { register: Register }) {
     >
       <AlbumGround
         header={priya}
-        // Held photographs are not in the approved take, so the reel's corner
-        // says nothing of hers yet.
-        reel={{ count: EVENT.approvedTotal, yours: false }}
         prefix={HELD.map((still) => (
           <HeldTile key={still.src} still={still} line={WAITING[register]} />
         ))}
@@ -353,7 +344,6 @@ function KeepPreview({ register }: { register: Register }) {
     <AlbumGround
       header={priya}
       slot={<OfferCard register={register} />}
-      reel={{ count: AFTER_PICK, yours: true }}
       items={ALBUM}
       overlay={overlay}
     />

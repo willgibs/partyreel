@@ -25,9 +25,9 @@ export const HELP_CENTER = defineExploration({
   title: "Where a problem lands",
   round: {
     n: 1,
-    date: "2026-09-21",
+    date: "2026-09-24",
     changed:
-      "The overtaken audit's reshape: five questions reframed with admin r1, app-pricing r1, first-event r1, app-door r2 and guest-shape r2 folded in; who-first and dead-end untouched, reached by nothing.",
+      "The desk re-cut: the reel category's blurb now says \"the second photo\", matching his dropped minimum of two; no ask changed.",
   },
   context:
     "Will (2026-09-19, the overnight round): the help center is unprotected like the rest, reconceived from the ground up, \"at worst, net neutral and fully deleted\". Seven decisions on the real hub, article and search pieces, drawn on three real articles.",

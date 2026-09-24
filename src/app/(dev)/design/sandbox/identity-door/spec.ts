@@ -47,9 +47,9 @@ const DRAFT = defineExploration({
   title: "Asking for an email at the door",
   round: {
     n: 1,
-    date: "2026-09-22",
+    date: "2026-09-24",
     changed:
-      "New board, cut once the identity foundation shipped whole on the alias, on his word to run the door's redesign through the lab.",
+      "The desk re-cut: menu's context now names guest-capture's new tracker ask as the sheet option's neighbour; no option changed.",
   },
   context:
     "Every option is Priya at Maya and Jay's wedding, the world guest-capture already uses, one step earlier: the held door sheet before she has typed a name. The optional email shipped under the name this morning; this board asks where it sits, whether a member gets a way to sign in instead, how the verified gate sells itself, and what her own menu offers once she is inside.",
@@ -172,7 +172,7 @@ const DRAFT = defineExploration({
       question:
         "Should Priya's own menu stay a plain list of rows, or say more about her state?",
       context:
-        'Today: her name, "Unverified" beneath it, then Add your email, Change name, a divider, Sign in. The mark\'s own popover already explains "Unverified" on tap, wherever her name is credited.',
+        'Today: her name, "Unverified" beneath it, then Add your email, Change name, a divider, Sign in. The mark\'s popover explains "Unverified" already. guest-capture\'s tracker ask may grow the sheet option into her batch status; not asked here.',
       options: [
         {
           id: "rows",
