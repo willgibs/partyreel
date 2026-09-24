@@ -29,32 +29,19 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `brand-kit` | the root `kit/` folder for outside agents (Will, 2026-09-24) | running | Sonnet, :3133 | review the README and the logo exports; merge |
-| `reel-guest-wiring` | the live reel's guest side: the seam fix, minimum 2, the provider lift, the Highlight reel tile, the view that is also the wall, the toast, the cut's seam, the photo link card | handed off at `0384a77b` (Will's morning rulings built: the welcome comes first everywhere, landscape fills; a portrait photo on a landscape screen sits whole on its own blur, his to overrule); HELD unmerged | Opus, :3132 | integrate with the cut and host lanes in one stretch; the reel picture, the Start's fullscreen and wake lock and the toast prove on that alias build (R2 answers CORS only for the alias and prod) |
+| `library-lean` | the Library as the brand kit, the catalog and the ten; the rules machinery retired; the look tests deleted (Will, 2026-09-24); the recipe proved by a fresh agent | running (agent `a1d746afe297ea42a`), cut at `d1f59826` from `specs/library-lean.json` | Opus, :3131 | hand-merge in the order its handoff gives (the merge, then its `package.json`, `.prettierignore`, CLAUDE.md, PROGRAM.md and `docs/reviews/README.md` lines, then its new gate: the old merge script calls `design:rules`); return bible.ts, bible.test.ts, registry.ts, boards.ts and marketing.css to `owns`; a `[preview]` for Will; then one message to `reel-guest-wiring`: sync, apply bible-ten's eight guest lines (listed in the scratch `bible-ten/manifest-final.md`, its Handoff), strip the `@contract-for`, `@policy` and `@refuses` headers in its owns, re-gate, hand off again |
+| `brand-kit` | the root `kit/` folder for outside agents (Will, 2026-09-24) | running (agent `aa3f24656b73c5a5a`) | Sonnet, :3133 | review the README and the logo exports; merge |
+| `reel-guest-wiring` | the live reel's guest side: the seam fix, minimum 2, the provider lift, the Highlight reel tile, the view that is also the wall, the toast, the cut's seam, the photo link card | handed off at `0384a77b` (Will's morning rulings built: the welcome comes first everywhere, landscape fills; a portrait photo on a landscape screen sits whole on its own blur, his to overrule); HELD unmerged (agent `a744f57e3c4cbd81f`) | Opus, :3132 | integrate with the cut and host lanes in one stretch; the reel picture, the Start's fullscreen and wake lock and the toast prove on that alias build (R2 answers CORS only for the alias and prod) |
 
 ## Next, in order
 
 The morning of 2026-09-24 (Will's words drive all of it; the plan file's head, "The lean Library", is approved):
 the docs lean, the bible to ten principles (his Rising Tides writeup inside it), the Library to three parts.
 Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/`
-(`specs/`, `docs-sharpen/`, `bible-ten/`).
+(`specs/`, `bible-ten/`, `library-lean/`).
 
-1. **Cut `library-lean`** (Opus) from the ready spec `specs/library-lean.json` (brief in `specs/library-lean-brief.md`;
-   44 owns covering the directive strip, all outside the held guest lane): the Library as brand kit, catalog and the
-   ten; the rules machinery retired; the look tests deleted (Will's answer); the recipe proved by a fresh agent. Hand-merge
-   it in the order its handoff gives (the merge, then its `package.json`, `.prettierignore`, CLAUDE.md, PROGRAM.md and
-   `docs/reviews/README.md` lines, then its new gate), since the old merge script calls `design:rules`. Then a
-   `[preview]` for Will, and one message to `reel-guest-wiring`: sync, apply its eight bible lines, strip the
-   `@contract-for`, `@policy` and `@refuses` headers in its owns, re-gate, hand off again.
-2. **A root `kit/` folder** (Will, 2026-09-24): a hand-off brand kit for outside agents, kept current by the
-   Orchestrator, which Will copies for outside work (an intro video agent went off brand and asked for: logo files as SVG
-   and transparent PNG incl. a dark-background version; the font families and weights for headlines, body and buttons;
-   hex values for background, text, accent and button fill; desktop captures of the hero, the live album demo and the
-   pricing section). A short README that points to partyreel.com and gives the essentials, broad enough for any
-   Partyreel task. No duplicate media in git (marketing photos stay where they are; placeholders today; a CDN later).
-   A small lane (Sonnet); a root folder's owns are its paths (`kit/README.md`, `kit/logo/`, `kit/screens/`).
-3. **The systems-docs pass** under the same guideline (`design-system.md`, `marketing-content.md` first).
-4. **The reel round**, after Will's desk review on build 5 (the plan file's batch-1 and reel sections).
+1. **The systems-docs pass** under the same guideline (`design-system.md`, `marketing-content.md` first).
+2. **The reel round**, after Will's desk review on build 5 (the plan file's batch-1 and reel sections).
 
 ## Waiting on Will
 
