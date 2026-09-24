@@ -43,7 +43,7 @@ through `scripts/build-lock.sh` (run `integrate.sh` under it until `library-lean
 | `refresh-site` | `site-chrome`, `privacy-hero`, `profile-page`, `album-motion` and `loose-ends` refreshed | running (agent `a9d0a115ec18ff8cd`), cut at `75631277` | Sonnet, :3134 | integrate as it lands; its boards into their leverage places; one `[preview]` when the wave is in |
 | `refresh-guest` | `voice-guest`, `guest-capture` and `media-viewer` refreshed | running (agent `a16dadac85ed2007d`), cut at `75631277` | Sonnet, :3135 | integrate as it lands; its boards into their leverage places; one `[preview]` when the wave is in |
 | `kit-streamline` | the kit does each check once: an integration gates only what the lane never gated, lab steps only when the lab could change | running (agent `afe6fdd1370fd5aaf`), cut at `75631277` | Opus, :3136 | integrate; the kit changes, so `negative.sh` once |
-| `reel-guest-wiring` | the live reel's guest side: the seam fix, minimum 2, the provider lift, the Highlight reel tile, the view that is also the wall, the toast, the cut's seam, the photo link card | handed off at `0384a77b` (Will's morning rulings built: the welcome comes first everywhere, landscape fills; a portrait photo on a landscape screen sits whole on its own blur, his to overrule); HELD unmerged (agent `a744f57e3c4cbd81f`) | Opus, :3132 | integrate with the cut and host lanes in one stretch; the reel picture, the Start's fullscreen and wake lock and the toast prove on that alias build (R2 answers CORS only for the alias and prod) |
+| `reel-guest-wiring` | the live reel's guest side: the seam fix, minimum 2, the provider lift, the Highlight reel tile, the view that is also the wall, the toast, the cut's seam, the photo link card | handed off at `0384a77b` (Will's morning rulings built: the welcome comes first everywhere, landscape fills; a portrait photo on a landscape screen sits whole on its own blur, his to overrule); HELD unmerged; syncing past the lean round (the directives, comments, the entry-modal flake) (agent `a744f57e3c4cbd81f`) | Opus, :3137 | integrate with the cut and host lanes in one stretch; the reel picture, the Start's fullscreen and wake lock and the toast prove on that alias build (R2 answers CORS only for the alias and prod) |
 
 ## Next, in order
 
@@ -53,7 +53,7 @@ Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyre
 1. **The rest of the refresh wave** as seats free: `refresh-identity`, `refresh-pages` (specs ready in `specs/`), then
    **the mandate sweep**: `python3 $S/make-sweep-spec.py` computes its owns at the cut (the files outside every live
    lane and the boards that frame a choice as authority), `sweep-brief.md` and `sweep-pointers.md` beside it.
-2. **`reel-guest-wiring`, one message** (sent with the wave): sync; strip `@contract-for`, `@policy` and `@refuses`
+2. **`reel-guest-wiring`, one message** (sent 2026-09-24 with the wave; it hands off again, still held): sync; strip `@contract-for`, `@policy` and `@refuses`
    from its 22 test headers; its comments keep their reason and drop authority ("bible N", "Will ruled", "law");
    `guest-flow.md`'s "bible 4 refuses" names the bible's seventh principle; `entry-modal.test.tsx`'s Radix focus-scope
    timer throws after teardown under load (four unhandled errors in gate 158, green on rerun); re-gate; hand off again.
