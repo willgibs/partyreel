@@ -1,5 +1,4 @@
 import type { GridMedia } from "@/components/app/media-grid";
-import { buildNotifications } from "@/lib/notifications/build";
 
 import {
   BIN_ITEMS,
@@ -23,9 +22,10 @@ import {
  *
  * What is added here is what this round's act needs and no other board has:
  * a SECOND batch that lands mid-visit, an album with three tiles really hidden,
- * three events with different queues so the dashboard's counts have something
- * to disagree about, the one upload the peek credits on the identity model, and
- * the guest's own feed without the host's like counts.
+ * the one upload the peek credits on the identity model, and the guest's own
+ * feed without the host's like counts. `EVENTS`/`BELL`/`PENDING_TOTAL`, built
+ * for the dashboard's three-events count comparison, left with `count` (the
+ * desk re-cut): reel-host's merged `review` question carries that ground now.
  */
 export {
   BIN_ITEMS,
@@ -62,53 +62,6 @@ export const JUST_LANDED: GridMedia[] = [10, 11, 12].map((i) => ({
 export const ALBUM_WITH_HIDDEN: GridMedia[] = GALLERY_ITEMS.map((m, i) =>
   i === 2 || i === 5 || i === 9 ? { ...m, status: "hidden" as const } : m,
 );
-
-/** The host's three events, with three different queues (the dashboard's row). */
-export const EVENTS = [
-  {
-    id: "e1",
-    name: EVENT.name,
-    cover: GALLERY_ITEMS[0].url,
-    dateLabel: "15 Aug 2026",
-    items: "214 items",
-    pending: QUEUE.length,
-  },
-  {
-    id: "e2",
-    name: "Ruby's 30th",
-    cover: GALLERY_ITEMS[4].url,
-    dateLabel: "2 Jul 2026",
-    items: "88 items",
-    pending: 0,
-  },
-  {
-    id: "e3",
-    name: "The Calder family reunion",
-    cover: GALLERY_ITEMS[8].url,
-    dateLabel: "11 Jun 2026",
-    items: "41 items",
-    pending: 2,
-  },
-] as const;
-
-/** Every event's queue added up, which is the number the bell carries. */
-export const PENDING_TOTAL = EVENTS.reduce((n, e) => n + e.pending, 0);
-
-/**
- * THE BELL'S ITEMS FROM THE REAL BUILDER, never typed by hand: `buildNotifications`
- * is pure and node-safe, so the panel below draws exactly the copy and the href
- * a host gets (`href: "/dashboard"` is the finding the `count` decision is about).
- */
-export const BELL = buildNotifications({
-  pendingCount: PENDING_TOTAL,
-  storageGraceUntil: null,
-  tier: "pro",
-  tierExpiresAt: null,
-  recoverySoonestPurgeAt: null,
-  announcements: [],
-  announcementsSeenAt: "2026-09-19T00:00:00.000Z",
-  now: new Date("2026-08-15T21:20:00.000Z"),
-});
 
 /**
  * This guest's own cross-event feed, with one of hers refused by the host.

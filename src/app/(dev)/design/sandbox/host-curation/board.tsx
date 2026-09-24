@@ -21,8 +21,6 @@ import { HostGround, Scene, screenOf, type ScreenId } from "./scene";
 import {
   ArrivalsShowcase,
   type ArrivalOption,
-  CountShowcase,
-  type CountOption,
   ToldShowcase,
   type ToldOption,
   UndoShowcase,
@@ -193,14 +191,6 @@ const arrivals = (s: BoardState, option: ArrivalOption) => (
   </Scene>
 );
 
-const count = (s: BoardState, option: CountOption) => (
-  <Scene id={`count-${option}`} screen={screen(s)} title="The count">
-    <HostGround screen={screen(s)}>
-      <CountShowcase option={option} screen={screen(s)} />
-    </HostGround>
-  </Scene>
-);
-
 const told = (s: BoardState, option: ToldOption) => (
   <Scene id={`told-${option}`} screen={screen(s)} title="The guest" short>
     <HostGround screen={screen(s)}>
@@ -228,9 +218,6 @@ const PREVIEWS: PreviewsFor<typeof HOST_CURATION> = {
   "arrivals.silence": (s) => arrivals(s, "silence"),
   "arrivals.prompt": (s) => arrivals(s, "prompt"),
   "arrivals.live": (s) => arrivals(s, "live"),
-  "count.three": (s) => count(s, "three"),
-  "count.deeplink": (s) => count(s, "deeplink"),
-  "count.one": (s) => count(s, "one"),
   "told.never": (s) => told(s, "never"),
   "told.line": (s) => told(s, "line"),
   "told.message": (s) => told(s, "message"),

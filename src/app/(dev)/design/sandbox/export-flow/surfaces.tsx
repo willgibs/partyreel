@@ -7,6 +7,7 @@ import {
   Check,
   Download,
   Folder,
+  Image as ImageIcon,
   Loader2,
   Share2,
   Smartphone,
@@ -326,25 +327,51 @@ export function IosBar({ lit }: { lit?: boolean }) {
   );
 }
 
-export function ShareSheet({ size }: { size: string }) {
-  const rows = ["AirDrop", "Messages", "Save to Files"];
+/**
+ * THE SYSTEM SHARE SHEET, quoted. `photos` (the `batch` and `both` answers to
+ * `phone`) shares that many image files rather than one zip: the header names
+ * the batch instead of a filename, and its own "Save N Photos" leads the rows
+ * — the native path into the phone's library a zip can never reach. Omitted,
+ * this is the zip's own sheet, unchanged.
+ */
+export function ShareSheet({
+  size,
+  photos,
+}: {
+  size: string;
+  photos?: number;
+}) {
+  const rows = photos
+    ? [`Save ${photos} Photos`, "AirDrop", "Messages"]
+    : ["AirDrop", "Messages", "Save to Files"];
   return (
-    <div className="xf-sheet" data-xf-sheet>
+    <div className="xf-sheet" data-xf-sheet={photos ? "photos" : "zip"}>
       <div className="flex items-center gap-2.5 border-b border-border pb-3">
-        <Folder className="size-8 shrink-0 text-muted-foreground" aria-hidden />
+        {photos ? (
+          <ImageIcon
+            className="size-8 shrink-0 text-muted-foreground"
+            aria-hidden
+          />
+        ) : (
+          <Folder className="size-8 shrink-0 text-muted-foreground" aria-hidden />
+        )}
         <div className="min-w-0">
           <p className="truncate text-sm font-medium">
-            mia-and-theos-wedding.zip
+            {photos ? `${photos} Photos` : "mia-and-theos-wedding.zip"}
           </p>
           <p className="text-xs tabular-nums text-muted-foreground">{size}</p>
         </div>
         <Share2 className="ml-auto size-4 text-muted-foreground" aria-hidden />
       </div>
       <div className="flex flex-col pt-1">
-        {rows.map((r) => (
+        {rows.map((r, i) => (
           <span
             key={r}
-            className="border-b border-border/60 py-2.5 text-sm last:border-0"
+            data-xf-lead={photos && i === 0 ? "" : undefined}
+            className={cn(
+              "border-b border-border/60 py-2.5 text-sm last:border-0",
+              photos && i === 0 && "font-medium text-save",
+            )}
           >
             {r}
           </span>
