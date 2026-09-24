@@ -1,6 +1,6 @@
 ---
 track: rowcap-kit
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "2429807e"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -223,24 +223,61 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **A real bug beyond row caps, listed and not fixed: three swallowed errors the lint rule cannot see.** `src/lib/reel/render-service.ts:177`, `src/lib/db/queries/forensics.ts:85` and `src/app/admin/forensics/export/route.ts:101` destructure `{ data }` out of `Promise.all([...])` and never read `error`. A failed `highlight_reels` read renders the reel on the default style, seed and length with no cover; a failed `reel_items` read hashes an empty reel; a failed read on the held-media page shows every item unpreserved and unnamed; a failed read in the evidence export ships an evidence record without its media row. `partyreel/no-swallowed-db-error` (`eslint.config.mjs`) inspects object-pattern declarators only, so an array of results slips past it. Recommended: the album lane binds the errors in render-service (its statement carries M9 C14), the host lane in forensics.ts (M11), and one small separate change teaches the rule array patterns and fixes the export route.
+- **`get_event_by_qr_token` joins `SINGLE_ROW`.** It is set-returning by signature and its latest body (`20260923150000_identity_contract.sql`) ends in `limit 1`: one event per token or custom slug. The brief's list named four functions. Recommended: keep it; `rowcap-sql`'s `row-cap-sql.test.ts` needs the same entry, or its own guard fails on it.
+- **Rule A reads `.in("id", <a fixed list or the inChunks chunk>)` as a bound** (one row an id, from a bounded list), so the canonical chunked read (`inChunks(..., (chunk) => q.in("id", chunk))`, read-all.ts's own example) needs no `.limit` and no marker. A chunk of parents (`.in("event_id", chunk)`) still offends. Recommended: keep.
+- **Two small extensions of the brief's rules.** Rule A also flags a literal `.limit(n)` above `MAX_ROWS`, and rule B also covers `.not(col, "in", ...)` and `.filter(col, "in", ...)` with a computed list; neither exists today. Recommended: keep; both are the same silent failure.
+- **The tripwire's reading of "bounded."** A `limit` query parameter above `MAX_ROWS` is no bound (PostgREST clips it all the same), a `p_limit` in a GET function call's query is one, and a `p_limit: null` in a POST body is none (rowcap-sql's null limit keeps today's unlimited read). Recommended: keep.
+- **The tripwire imports Sentry lazily** (a dynamic `import()` on the first hit), and `withRowCapTripwire()` with no `inner` calls the global `fetch` at request time (supabase-js's own default does the same) instead of capturing `inner: typeof fetch = fetch` at construction. The three clients are imported across the app and about 4,300 tests; a static import would put `@sentry/nextjs` in every one of those module graphs. Recommended: keep.
+- **`readAllPages` throws on two caller bugs:** a page longer than it asked for (the page forgot `.limit(limit)`) and a cursor that did not advance (the page ignored `after`), which would otherwise overshoot a budget or loop forever. Its callers annotate `after` (`string | null`, or `{ at: string; id: string } | null`): `keyOf` follows `page` in the brief's signature, so TypeScript cannot infer the cursor and types `after` as `{}` without it (the JSDoc says so). Recommended: keep both.
+- **Nine permanent markers, each for your review:** `src/app/api/stripe/webhook/route.ts:115` (the primary key or `stripe_customer_id`'s partial unique index), `src/lib/db/mutations/guest-media.ts:96` (a unique session token) and `:118` (one account's guest rows in one event), `src/lib/db/queries/event-passes.ts:18` (one profile's unconsumed passes), `exports.ts:39` and `reel-renders.ts:40` (at most `limit` ids, 50 from the one caller), `jobs.ts:95` (the JOBS registry's kill switches), `moderation.ts:45` (at most FEED_LIMIT, 60, host ids), `social.ts:163` (hand-chunked at PROFILE_CARD_BATCH, 150). Recommended: keep all nine; social.ts:163 can become an `inChunks` call whenever the host lane is in the file.
+- **No `@policy` header on `row-cap-policy.test.ts` yet.** A header lists the test among the Library's policies, and `pnpm design:rules` then rewrites `src/app/(dev)/design/rules/rules.generated.json` and `docs/design/library.md`, both outside this lane. Recommended: at the merge, add `// @policy: engineering · Every read reaches its last row` and `// @refuses: an unbounded PostgREST read, an unchunked .in() list, an unpaged set-returning RPC, a MAX_ROWS off config.toml, and a row-cap marker over a statement that no longer offends.` as its first lines, then re-run `pnpm design:rules`.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/testing-verification.md`, "Test accounts + fixtures": the scale probe (the event and its id, the seeding command, what its oldest items hold, what it measures, the HEAD's clamped range among it) and `fake-postgrest` (what it clamps, fails and records; `asSupabase`). The probe's guest token stays out of the doc: the link takes uploads, and the repo is public for the interim.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Engineering: one drop-aware migration reader shared by `row-cap-policy.test.ts` and `row-cap-sql.test.ts` (the two stage-1 lanes each wrote their own, in parallel).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, both pushed:** the work `6c535b4a`; the sync `3c0e83f6` (merged `origin/launch-prep` at `3b44ff40`, which touched records only). The head is in the chat line.
+- **Gates on the synced tree (`3c0e83f6`), each on its own exit code** (logs in the scratch directory, `rowcap-kit/synced/`): `pnpm design:rules` 0 (no generated drift) · `node "src/app/(dev)/design/gallery/collect-specimens.mjs"` 0 · `pnpm typecheck` 0 · `pnpm lint` 0 (8 warnings, none new; the one in a touched file, `src/lib/db/queries/jobs.ts:52` `JobRunInsert` unused, predates the lane and stays because that file takes comment lines alone) · `pnpm test` 0 (386 files, 4,305 passed, 1 skipped) · `pnpm build` 0 · `pnpm lab:smoke --base http://localhost:3131` 0 (520 checks, 0 failing). No board, so no `lab:demo`. One flake before the sync: the first full run timed out `src/components/social/guest-list.test.tsx` "opens IN PLACE, one page at a time" at 6.5 s under load (that run took 53 s against the usual 17 s); it passes alone and on every run since.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = the 44 paths below plus this manifest, each under `owns`; no exception.
+  `docs/systems/testing-verification.md` `scripts/backfill-strip-exif.mjs` `scripts/seed-demo-event.mjs` `src/app/api/cron/purge/route.ts` `src/app/api/export/guest/route.ts` `src/app/api/internal/backup-prune/route.ts` `src/app/api/stripe/webhook/route.ts` `src/components/likes/likes-provider.tsx` `src/lib/db/mutations/account.ts` `src/lib/db/mutations/guest-media.ts` `src/lib/db/mutations/media.ts` `src/lib/db/queries/analytics.ts` `src/lib/db/queries/applications.ts` `src/lib/db/queries/claims.ts` `src/lib/db/queries/event-passes.ts` `src/lib/db/queries/events.ts` `src/lib/db/queries/exports.ts` `src/lib/db/queries/forensics.ts` `src/lib/db/queries/guest-events-admin.ts` `src/lib/db/queries/guest-events.ts` `src/lib/db/queries/jobs.ts` `src/lib/db/queries/likes.ts` `src/lib/db/queries/media.ts` `src/lib/db/queries/metrics.ts` `src/lib/db/queries/moderation.ts` `src/lib/db/queries/pulse.ts` `src/lib/db/queries/reel-renders.ts` `src/lib/db/queries/reel.ts` `src/lib/db/queries/reports.ts` `src/lib/db/queries/social.ts` `src/lib/db/queries/support.ts` `src/lib/db/read-all.test.ts` `src/lib/db/read-all.ts` `src/lib/db/row-cap-policy.test.ts` `src/lib/db/testing/fake-postgrest.test.ts` `src/lib/db/testing/fake-postgrest.ts` `src/lib/lifecycle/account-deletion.ts` `src/lib/observability/sentry.ts` `src/lib/reel/render-service.ts` `src/lib/supabase/admin.ts` `src/lib/supabase/client.ts` `src/lib/supabase/row-cap-tripwire.test.ts` `src/lib/supabase/row-cap-tripwire.ts` `src/lib/supabase/server.ts`
+- **Items:**
+  - `src/lib/db/read-all.ts` (+ 17 tests): `MAX_ROWS` 1000, `IN_CHUNK` 150, `readAllPages` and `inChunks` to the brief's signatures; the header holds the six rules and the short-page caveat.
+  - `src/lib/db/testing/fake-postgrest.ts` (+ 25 tests): the clamp, the 8,000-character failure shaped as postgrest-js's failed fetch, the request log, `asSupabase`; it also speaks writes (unclamped, as the probe measured, so a write chain's URL can be tested), `like`, `ilike`, `match`, `throwOnError`, SQL's NULL logic and PostgREST's codes (PGRST100, 116, 202, 205).
+  - `src/lib/supabase/row-cap-tripwire.ts` (+ 15 tests), wired into `server.ts`, `admin.ts` and `client.ts` (one options object, the passkey flag kept, the singleton default unchanged); `"db"` added to `SentryArea`, the only edit in sentry.ts; `middleware.ts` untouched.
+  - `src/lib/db/row-cap-policy.test.ts` (18 tests: the four rules on the tree, plus fixtures for every rule, the markers and both readers): green with every offender marked.
+  - 83 markers, comment lines only (every added line in a marker file is a `//` line, checked on the diff): 74 `row-cap-todo` over 42 ids, 9 permanent `row-cap`.
+  - `docs/systems/testing-verification.md`: the scale probe and `fake-postgrest`.
+- **Markers by id (74):** C1 1 · C7 1 · C8 1 · C11 1 · C12 1 · C13 1 · C14 1 · H1 1 · H2 1 · H3 1 · H4 1 · H5 1 · H6 5 · H8 1 · H9 1 · H10 2 · H11 1 · H12 5 · H13 1 · H14 3 · H15 3 · H17 2 · M1 1 · M2 1 · M3 4 · M4 1 · M5 5 · M6 3 · M7 1 · M8 1 · M9 2 · M10 2 · M11 2 · M12 1 · M13 5 · M14 3 · M15 2 · M17 2 · M18 1 · N1 1 · N2 1 · N4 3. Every audit id carries at least one; N3 carries none (the walker does not flag pulse.ts's strips), and M14's `account-deletion.ts:495` is the count taken off line 475's list, so that list's marker carries it. **N4, new:** `social.ts` `getPublicProfileAttendedCoverUrls`, whose three gate reads (markers at `:484`, `:502`, `:516`) put every attended event id from `get_public_profile` (an unbounded jsonb list) in one URL.
+- **The prefix map, for stage 2's owns** (every todo id lies in one lane; the test's `TODO_IDS` lines follow it):
+
+  | Lane | Files holding a marker (ids) |
+  |---|---|
+  | guest | `src/lib/db/queries/guest-events.ts` (C7), `src/lib/db/queries/guest-events-admin.ts` (C8), `src/app/api/export/guest/route.ts` (C11), `src/components/likes/likes-provider.tsx` (M12) |
+  | album | `src/lib/db/queries/media.ts` (C1, H1), `src/lib/db/queries/reel.ts` (M9), `src/lib/reel/render-service.ts` (M9 C14), `src/lib/db/mutations/media.ts` (M13 x5), `src/lib/db/mutations/guest-media.ts` (M8, plus two permanent), `scripts/seed-demo-event.mjs` (M18) |
+  | host | `src/lib/db/queries/events.ts` (M1, M2, H2 M3, C13 M3), `likes.ts` (C12), `pulse.ts` (M3 x2), `social.ts` (M5 x5, M6 x3, H3, N4 x3, plus one permanent), `metrics.ts` (H4), `moderation.ts` (H5, plus one permanent), `reports.ts` (H6 x5), `analytics.ts` (M4), `claims.ts` (M7), `support.ts` (M10), `applications.ts` (M10), `forensics.ts` (M11 x2) |
+  | cron | `src/app/api/cron/purge/route.ts` (H8, H9, H10 x2, H11, H12 x5, H13, H14 H15, H15 x2, M15 x2, M17), `src/lib/lifecycle/account-deletion.ts` (M14 x3, H14 x2, N2), `src/lib/db/mutations/account.ts` (N1), `src/app/api/internal/backup-prune/route.ts` (M17), `scripts/backfill-strip-exif.mjs` (H17 x2), `src/lib/db/queries/jobs.ts` (one permanent) |
+  | unassigned | permanent markers only, no stage-2 work: `src/app/api/stripe/webhook/route.ts:115`, `src/lib/db/queries/event-passes.ts:18`, `src/lib/db/queries/exports.ts:39`, `src/lib/db/queries/reel-renders.ts:40` |
+
+- **The guard, red and then green** (logs `rowcap-kit/red-*.log` in the scratch directory; each change reverted): the C1 marker removed gave `src/lib/db/queries/media.ts:59 A .from("media").select() has no bound: read it whole with readAllPages, count it with head: true, bound it with .limit/.range/.maybeSingle, or say why in a // row-cap: marker (its statement opens at line 58)`; a new read, list and call in analytics.ts gave `analytics.ts:36 A ...`, `:40 B .in("id", ids) takes a runtime list: ...` and `:42 C rpc("get_event_like_counts") is set-returning and passes no p_limit: ...`; a `.limit(1000)` added under C1's marker gave `media.ts:58 marker sits above no offending statement (fixed, or misplaced): ...`. Restored, 18 passed.
+- **The tripwire, live** (`rowcap-kit/live/live-tripwire.log`; the real module, the admin client wrapped, a capture that logs, reads of the probe only): `2026-09-24T00:14:43.474Z http GET /rest/v1/media -> 200 content-range=0-999/*` then `2026-09-24T00:14:43.474Z [row-cap-tripwire] row_cap_hit {"method":"GET","path":"/rest/v1/media"} (logged, not sent)`, 1,000 rows. The same read again logged no second warning; `.order("id").limit(1000)` logged none; the exact HEAD count answered `206 content-range=0-999/1200` (count 1,200) and passed through.
+- **Assets requested from Will:** none.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Proposed CLAUDE.md gotcha line** (yours to place): "★ PostgREST cuts every read at 1,000 rows with no error: read a list through `readAllPages`, count with `head: true`, chunk an `.in()` list through `inChunks` (`src/lib/db/read-all.ts`); `row-cap-policy.test.ts` refuses the rest."
+- **Calls his to overrule:**
+  - `get_event_by_qr_token` on `SINGLE_ROW` (its body ends in `limit 1`).
+  - `.in("id", <a fixed list or the inChunks chunk>)` counts as a bound in rule A.
+  - Rule A flags a literal `.limit(n)` above 1,000; rule B covers `.not` and `.filter` with `"in"`.
+  - The tripwire reads a `limit` above 1,000 as no bound and a null `p_limit` as none.
+  - Sentry imported lazily; the global `fetch` resolved at request time.
+  - `readAllPages` throws on an over-long page and a stuck cursor; callers annotate `after`.
+  - The nine permanent markers (listed under Questions).
+  - No `@policy` header yet (the generated Library files are outside the lane).
+  - The scale probe's guest token kept out of testing-verification.md.
+- **Look at first:** the three swallowed-error sites (Questions, the first item); then `src/lib/db/row-cap-policy.test.ts`'s rules against `src/lib/db/queries/social.ts`, which holds every kind of marker (single, multi-offence, permanent, the N4 set); then `readAllPages` in `src/lib/db/read-all.ts`.
