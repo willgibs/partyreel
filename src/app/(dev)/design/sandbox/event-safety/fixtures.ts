@@ -19,7 +19,7 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
  * `sandbox/gallery-fixtures.ts` is being reshaped by another lane this round.
  *
  * ★ THE ADDRESSES ARE `example.com` AND THE STILLS ARE THE TWELVE BOOTSTRAP
- * PHOTOGRAPHS every board reuses (bible 18: no new asset, nothing to track).
+ * PHOTOGRAPHS every board reuses (bible 9: no new asset, nothing to track).
  * Nothing here is a real person.
  */
 

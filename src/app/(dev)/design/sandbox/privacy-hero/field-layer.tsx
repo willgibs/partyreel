@@ -46,7 +46,7 @@ export const FieldPause = createContext<() => boolean>(() =>
 );
 
 /** The stand-in photograph for a card: the home hero's own twelve, through
- *  the media manifest (bible 18), so the three heroes share one set until the
+ *  the media manifest (bible 9), so the three heroes share one set until the
  *  Higgsfield month replaces it by id. */
 export const photoOf = (i: number) =>
   marketingImage(STREAM_FRAMES[i % STREAM_FRAMES.length]);

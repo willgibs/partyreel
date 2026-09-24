@@ -297,7 +297,7 @@ export const RULINGS: Ruling[] = [
     ruled:
       "open: seven lines a guest reads, each in its real place: the welcome, the password's ask, the landing, a failed upload, the empty album's button, a held photo, and the capture's words",
     shipped: null,
-    why: "The voice is built one won line at a time in its real place (bible 21); these seven are the guest's most-read words and where most of the asks live.",
+    why: "The voice is built one won line at a time in its real place (bible 10); these seven are the guest's most-read words and where most of the asks live.",
     lives: [
       "src/components/guest/entry-modal.tsx",
       "src/components/guest/password-gate.tsx",

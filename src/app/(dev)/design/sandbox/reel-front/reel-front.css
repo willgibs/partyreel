@@ -58,7 +58,7 @@
 
 /* ROUND TWO'S `signature=frame` OPTION: a quiet pulse on the recording dot,
    the universal cue for footage rather than a photograph. Off under reduced
-   motion (bible 14), same as the crossfade above. */
+   motion (bible 5), same as the crossfade above. */
 .rf-rec-dot {
   animation: rf-rec-pulse 1.6s ease-in-out infinite;
 }

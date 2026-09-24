@@ -36,7 +36,7 @@
    visual too tall, we can fade out the bottom. May look better either way." So
    the frame is clipped to a height and its last stretch fades to nothing, and
    the album reads as going on rather than as a box with a floor. A MASK, never
-   a scrim: nothing is laid over a photograph (bible 1). */
+   a scrim: nothing is laid over a photograph (bible 6). */
 .alb-clip {
   height: var(--alb-h);
   overflow: hidden;
@@ -60,7 +60,7 @@
    from behind so its rim and chrome glow while the photographs stay clean." The
    frame's own card is lifted off it and laid UNDER the wash, so the light
    climbs the rim, the window bar and the header type from behind while the
-   face of the thing, the photographs, stays exactly as it is (bible 1).
+   face of the thing, the photographs, stays exactly as it is (bible 6).
 
    ★ CLIPPED TO THE OBJECT, AND NOT WITH `overflow`. A halo is clipped to the
    thing it backlights (globals.css's halo block: rendered in a padded box AROUND

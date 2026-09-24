@@ -116,7 +116,7 @@ function ScanLine({
  * these read as objects. Every one of these still lifes stands on the cinema
  * ground, where `bg-card` is near-black: a "border" in it is a GAP, so six
  * prints in a row read as a thumbnail strip and the pile reads as a toolbar.
- * Paper is white in a dark room, the photograph is the colour (bible 1), and
+ * Paper is white in a dark room, the photograph is the colour (bible 6), and
  * the border is what says somebody held this. Same family as the white QR
  * plate beside it, which is white for the scanner's sake and lands as the other
  * piece of paper in the composition.

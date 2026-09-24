@@ -47,7 +47,7 @@ export const metadata: Metadata = {
  * switch from header into the plan was far too harsh, and a paper hero makes
  * the pro card feel more premium without the dark header just above it."
  *
- * ★ THE PAGE STAYS IN THE (cinema) GROUP, and that is bible 16 rather than
+ * ★ THE PAGE STAYS IN THE (cinema) GROUP, and that is deliberate rather than
  * inertia: a page cannot flip its header from inside, the group's layout picks
  * the skin, and the four chapters BELOW the plans are dark by his own answer
  * on `sheet`. Paper is a chapter here, not the ground. The one visible
@@ -76,7 +76,7 @@ export default function PricingPage() {
       <PricingJsonLd />
       <FaqPageJsonLd items={PRICING_FAQ_ITEMS} />
 
-      {/* The opening chapter. The h1 carries no entrance at all (bible 13,
+      {/* The opening chapter. The h1 carries no entrance at all (bible 5,
           "nothing gates an h1"): it is this page's LCP element and it now sits
           in the first screen of the document, so a reveal would delay the
           largest paint for theater. The cards below keep their stagger, which

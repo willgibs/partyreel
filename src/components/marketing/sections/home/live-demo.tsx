@@ -26,13 +26,13 @@ import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion
  * the ground under it turned to paper, which `section-ids.ts` does in one line.
  * The trade is a good one: the demo is the album FILLING, so it belongs to the
  * chapter about the album rather than to the chapter about the party, and a
- * paper ground makes the tiles pop harder than the cinema card did (bible 1,
- * the media is the colour). Everything the stage is built from is token-driven,
+ * paper ground makes the tiles pop harder than the cinema card did (the
+ * media-is-the-color rule). Everything the stage is built from is token-driven,
  * so nothing here had to change to cross the cut; `PaperChapter` re-declares
  * [data-mkt] for exactly this reason (the pulse ring is a color-mix over
  * --foreground and would otherwise stay pre-baked white).
  *
- * ★ IT IS A BESPOKE OPENER, WHICH IS WHAT BIBLE 17 ASKS FOR: a lit stage is
+ * ★ IT IS A BESPOKE OPENER, WHICH IS WHAT BIBLE 9 ASKS FOR: a lit stage is
  * one of the ruled chapter-opening devices, and it is a different one from
  * chapter 1's (the hero's stream) and chapter 3's (the reel). The air above it
  * is the opener's air; below lg PaperChapter compresses that to its own py-14,

@@ -409,7 +409,7 @@ function H3({ children }: { children?: ReactNode }) {
 
 // ── Steps — numbered procedures with a tabular numeral rail ─────────────────────
 // Numerals stay on the UI (sans) face with tabular-nums for alignment; no mono
-// anywhere (bible 7). Steps injects the index so authors never hand-number.
+// anywhere (bible 8). Steps injects the index so authors never hand-number.
 type StepProps = { index?: number; title: string; children?: ReactNode };
 
 export function Step({ index = 1, title, children }: StepProps) {

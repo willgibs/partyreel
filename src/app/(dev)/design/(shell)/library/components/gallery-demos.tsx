@@ -385,7 +385,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     specimens: [
       {
         label: "The album, at the scale's 896 step",
-        hint: "the halo lights the frame's rim, its window bar and the header type from BEHIND, so the photographs stay exactly as they are (bible 1); the foot dissolves under a mask rather than a scrim, so the album reads as going on",
+        hint: "the halo lights the frame's rim, its window bar and the header type from BEHIND, so the photographs stay exactly as they are (bible 6); the foot dissolves under a mask rather than a scrim, so the album reads as going on",
         node: <CinemaGround>{<LiveAlbumStage />}</CinemaGround>,
       },
       {
@@ -879,7 +879,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
         // that do not exist), NOT to the river. Everywhere else it pours at
         // full luminance, and a placement that wants it quiet filters its own
         // wrapper rather than dimming the component or laying a scrim over the
-        // photographs (bible 1).
+        // photographs (bible 6).
         label: "The river itself, unfaded",
         hint: "decorative, aria-hidden, nothing focusable; one rAF loop, paused off screen and under reduced motion",
         node: (

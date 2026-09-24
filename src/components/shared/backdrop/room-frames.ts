@@ -26,7 +26,7 @@ import { marketingImage } from "@/lib/constants/marketing-media";
  *
  * ★ THE FIRST ONE IS THE REST STATE. It is what a crawler, a throttled tab, a
  * reader with scripting off and a reader who asked for less motion all see, so
- * it carries the section on its own (bible 13, bible 14).
+ * it carries the section on its own (bible 5).
  *
  * ★ EVERY FRAME IS LANDSCAPE, and that is a requirement rather than an
  * accident: a portrait still (`wedding-petals`) cropped to a full-bleed band

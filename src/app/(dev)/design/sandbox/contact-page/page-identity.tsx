@@ -14,8 +14,8 @@ import { stopLinks } from "./pieces";
 /**
  * DECISION 5: THE PAGE. /contact is the last `(paper)` page, forced light
  * under the light header, while every sibling utility page (`/help`,
- * `/press`, `/careers`) opens on the dark hero bible 16 asks of a utility
- * page. `desk` is today's own chrome (`MarketingHeader` with no skin,
+ * `/press`, `/careers`) opens on the dark hero every utility page asks
+ * for. `desk` is today's own chrome (`MarketingHeader` with no skin,
  * `PageHero` unedited); `cinema` and `chapter` both wear the real dark hero
  * (`MarketingHeader skin="cinema" overlay`, the same PageHero at `entrance`
  * `cut`) and differ only in what opens the paper body underneath it: a plain

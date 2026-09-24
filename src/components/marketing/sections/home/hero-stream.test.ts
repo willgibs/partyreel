@@ -227,7 +227,7 @@ describe("nothing in the composition is dealt", () => {
   });
 
   it("takes every frame from the media manifest", () => {
-    // Bible 18: the manifest is the only source of a path, and an id that has
+    // Bible 9: the manifest is the only source of a path, and an id that has
     // drifted out of it would throw at render on the home page's first paint.
     expect(STREAM_FRAMES.length).toBeGreaterThan(0);
     for (const id of STREAM_FRAMES) {

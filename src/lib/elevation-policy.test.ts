@@ -21,7 +21,7 @@ import { describe, expect, it } from "vitest";
  *                 sheet, a toast, a bar floating over the gallery), and a
  *                 marketing mock that quotes one of those
  *   neither       a surface lying flat, in EITHER mode: it is its step and its
- *                 ring. A shadow under it is a smudge in dark (bible 10) and a
+ *                 ring. A shadow under it is a smudge in dark (bible 6) and a
  *                 fifth depth technique in light.
  *
  * ★ WHY A POLICY AND NOT A REVIEW NOTE. The sweep that landed this found 45 raw
@@ -50,7 +50,7 @@ import { describe, expect, it } from "vitest";
  *     6 percent of black over a dark slab is arithmetically nothing.
  *
  * SCOPED `engineering` FOR NOW, like the type ladder's policy: a design scope
- * has to be cited by a bible rule (rules-registry.test.ts), and bible 10 is the
+ * has to be cited by a bible rule (rules-registry.test.ts), and bible 6 is the
  * Orchestrator's to reword at the merge. When its `enforcedBy` names this file
  * the scope becomes `global`, which is what this is.
  *

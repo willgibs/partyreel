@@ -38,7 +38,7 @@ function PopoverContent({
           floatingEntrance,
           // A popover is asked for, not stumbled into: the storage meter's
           // explanation, the anonymous-upload note. Occasional, so it gets the
-          // beat a menu cannot afford (bible 12).
+          // beat a menu cannot afford (bible 5).
           floatingClock.standard,
           className
         )}

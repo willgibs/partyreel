@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
- * TWO FACES, AND ONLY TWO (bible 7, Will's ruling 2026-09-14: "kill mono
+ * TWO FACES, AND ONLY TWO (bible 8, Will's ruling 2026-09-14: "kill mono
  * entirely"; the kill-mono sweep). There is no mono face in the product: no
  * `font-mono` class anywhere in src, no `--font-mono` token in the theme, no
  * mono loader in the root layout. Comments may still say the word (this file

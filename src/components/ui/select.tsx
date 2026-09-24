@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/floating-layer"
 
 /**
- * ★ THE ONE MENU THAT WAS NEVER IN THE FAMILY. Bible 15 says every floating
- * surface rides one contract, and this primitive rode none of it: a
+ * ★ THE ONE MENU THAT WAS NEVER IN THE FAMILY. Every floating
+ * surface is meant to ride the floating-layer contract, and this primitive rode none of it: a
  * `rounded-md` panel (a step of the SURFACE corner, 1.6px then, which the
  * doctrine forbids on the floating layer) with a real `border` where the
  * family wears a ring, `rounded-sm` rows, and NO entrance clock at all, so it

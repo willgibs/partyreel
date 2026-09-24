@@ -60,7 +60,7 @@ function Wordmark({ aurora }: { aurora?: boolean }) {
 /**
  * The host card's real content, at one of the brand ladder's four rungs. `bare`
  * is today's shipped output, byte for byte; each rung after it changes exactly
- * one thing (bible 22, incrementally): the button's colour, then a wordmark,
+ * one thing (bible 1, incrementally): the button's colour, then a wordmark,
  * then the marketing site's aurora band.
  */
 export function HostCard({

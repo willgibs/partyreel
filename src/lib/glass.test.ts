@@ -111,7 +111,7 @@ const code = (src: string) =>
   src.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(^|\s)\/\/[^\n]*/g, " ");
 
 describe("glass is media chrome, never a popover", () => {
-  it("never reaches a floating primitive (bible 15's layer is opaque)", () => {
+  it("never reaches a floating primitive (the floating-layer contract's layer is opaque)", () => {
     // `floating-layer.test.ts` refuses a backdrop filter inside the panel block;
     // this is the same fence from the glass side, on the whole file, so the
     // material cannot arrive by a className a panel block scan does not read.
@@ -124,7 +124,7 @@ describe("glass is media chrome, never a popover", () => {
     }
     expect(
       hits,
-      "glass on a floating panel: bible 15's layer is an opaque surface with a step and a ring",
+      "glass on a floating panel: the floating-layer contract's layer is an opaque surface with a step and a ring",
     ).toEqual([]);
   });
 });

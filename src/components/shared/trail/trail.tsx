@@ -56,7 +56,7 @@ import { trailFrame } from "./trail-frames";
  * focusable, no link and no code, and the layer takes no pointer events: the
  * words a placement needs stand INSIDE the stage, over the photographs, and the
  * shy fade is what keeps them the loudest thing on the screen (never a scrim,
- * which bible 1 refuses).
+ * which bible 6 refuses).
  *
  * ★ IT COSTS NOTHING WHEN NOBODY IS LOOKING, four ways: one rAF loop, suspended
  * off screen (IntersectionObserver), suspended on a hidden tab, never started

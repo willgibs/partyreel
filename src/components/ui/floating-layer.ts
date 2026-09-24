@@ -1,8 +1,8 @@
 /**
- * THE FLOATING-LAYER CONTRACT, AS ONE MODULE (bible 15, wired 2026-09-17 from
+ * THE FLOATING-LAYER CONTRACT, AS ONE MODULE (bible 8, wired 2026-09-17 from
  * the `floating-surfaces` board's rulings).
  *
- * Bible 15 says every floating surface rides one contract: ONE RADIUS, ONE
+ * Bible 8 says every floating surface rides one contract: ONE RADIUS, ONE
  * ENTRANCE, ONE LIGHT. Until this file it was a sentence with `enforcedBy:
  * "review"` under it, and the family drifted exactly as you would expect: the
  * nav shipped `rounded-lg` and a stock shadow (fixed in the 2026-08-28 nav
@@ -35,7 +35,7 @@
 export const floatingCorner = "rounded-float"
 
 /**
- * THE ROW'S CORNER, DERIVED, NEVER TYPED. Bible 9 asks a nested corner to share
+ * THE ROW'S CORNER, DERIVED, NEVER TYPED. A nested corner shares
  * a centre with the one around it: inner = outer minus the gap. The gap is the
  * panel's 4px of padding, so the row is `--radius-float` minus 4px, which is
  * exactly the pair Will ruled. The rows before the floating wiring were
@@ -65,8 +65,8 @@ export const floatingPanel = `${floatingCorner} ${floatingSurface} shadow-layer`
  * middle of the screen: a fade, a hair of scale, and 8px of travel from the
  * side it is anchored to, all on `--ease-emphasis`.
  *
- * ★ THE LANGUAGE IS SHARED AND THE CLOCK IS NOT, which is how bible 15 and
- * bible 12 stop disagreeing. Read 15 as one entrance LANGUAGE with 12 setting
+ * ★ THE LANGUAGE IS SHARED AND THE CLOCK IS NOT, which is how bible 8 and
+ * bible 5 stop disagreeing. Read 8 as one entrance LANGUAGE with 5 setting
  * the speed inside it, and `entrance=by-frequency` (Will, 2026-09-17) is a
  * choice of clock per surface rather than a stray entrance. Every surface still
  * arrives the same WAY; the ones a host opens fifty times a night simply get
@@ -139,7 +139,7 @@ export const floatingEdgeEntranceResponsive = [
  * QR mini-modal (`share=room` with his note: "clicking it opens a view
  * transition animation-style mini-modal").
  *
- * ★ THIS IS A HOLE IN BIBLE 15, CUT DELIBERATELY AND EXACTLY ONCE. Every other
+ * ★ THIS IS A HOLE IN BIBLE 8, CUT DELIBERATELY AND EXACTLY ONCE. Every other
  * surface in the family arrives by animating ITSELF. This one arrives because
  * the header's small code and the modal's big code are THE SAME OBJECT
  * continuing across a state change: the View Transitions API tweens between the
@@ -177,7 +177,7 @@ export const floatingTransitionEntrance = [
  * "page side by side" recipe's literal 8px (`.claude/skills/transitions-dev/
  * 08-page-side-by-side.md`) — that skill is the PRECEDENT for the shape
  * (content slides past its neighbour rather than swapping in place), the nav
- * is the precedent for the NUMBERS, and bible 15 wants one family, not two.
+ * is the precedent for the NUMBERS, and bible 8 wants one family, not two.
  * `--ease-emphasis` is the family's own curve, not the skill's cubic-bezier.
  *
  * ★ A SECOND CONSUMER READS THIS, THE FIRST STILL SPELLS ITS OWN. The bulk
@@ -204,7 +204,7 @@ export const floatingCrossSlide = [
 ].join(" ")
 
 /**
- * THE THREE CLOCKS, CHOSEN BY HOW OFTEN A SURFACE IS OPENED (bible 12's
+ * THE THREE CLOCKS, CHOSEN BY HOW OFTEN A SURFACE IS OPENED (bible 5's
  * frequency law; `entrance=by-frequency`, Will 2026-09-17). Every exit is
  * faster than its entrance, which is the house rule the whole site already
  * keeps. Which surface takes which, and why, is written at each call site, so

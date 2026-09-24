@@ -24,13 +24,15 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   two repeats; the view is the wall (his ruling). Wiring: the media viewer and the reel's guest side (held unmerged until
   the cut and host lanes, so one alias build replaces the stored reel); the desk re-cut under his merge rule (repeats
   become one question, every option kept), with the rounds he asked for; the plan is the plan file's head.
+- **The lean round** (Will, 2026-09-24: every added line dilutes the rest): the boot-time docs sharpened (a lane reads
+  about 1,800 words at boot, from 5,400), the bible to ten principles, the Library to the brand kit, the catalog and
+  the ten with the look tests gone, and a root `kit/` brand kit Will can copy for outside agents.
 - **Since milestone 28 (`clocks-and-counts`):** counts grouped, chart ticks that fit, the admin's times in UTC, one Link
   visits figure, the host's dashboard on the viewer's own day (`x-vercel-ip-timezone`), the backup's CLI pinned.
 
 ## The desk
 
-26 standing boards at `/design/lab?key=` (a light guard, not a secret; the value is in `.env.local`), in leverage
-order: `reel-screen`, `reel-host`, `reel-cut`, `reel-story`, `reel-front` (r2), `media-viewer` (r2), `reel-view`, `identity-door`,
+26 standing boards at `/design/lab?key=`, in leverage order: `reel-screen`, `reel-host`, `reel-cut`, `reel-story`, `reel-front` (r2), `media-viewer` (r2), `reel-view`, `identity-door`,
 `identity-claims`, `identity-profile`, `guest-capture`, `voice-guest`, `host-curation`, `host-storage`, `event-safety`, `export-flow`,
 `admin-triage`, `help-center`, `emails`, `site-chrome`, `profile-page`, `privacy-hero`, `album-motion`, `loose-ends`,
 `contact-page`, `press-page`.
@@ -50,7 +52,7 @@ order: `reel-screen`, `reel-host`, `reel-cut`, `reel-story`, `reel-front` (r2), 
 - **Data:** disposable test data only; the accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md). The disposable events stay in the states the
   last red-teams left until Will says restore.
-- **Tests:** about 4,690 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
+- **Tests:** about 4,780 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
 - **Jobs:** the daily purge cron (Vercel Hobby fires it at 04:48 UTC; its first run on milestone 28's sweeps was green:
   every sweep ok, none stopped early, the orphan scan read 1,368 objects and deleted none, the standby budget's one host
   willg97 with the withdrawals out), the media-backup Worker and the daily DB-backup Action are live; the deletion-aware

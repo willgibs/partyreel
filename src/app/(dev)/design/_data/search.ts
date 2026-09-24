@@ -15,7 +15,7 @@
  * whole index rides the layout payload once per load.
  *
  * Scoring is `id exact > title prefix > word in title > keyword`, and the
- * results group by kind, so typing "22" lands on bible 22 and typing "glow"
+ * results group by kind, so typing "1" lands on bible 1 and typing "glow"
  * shows the component before the doc heading that mentions it.
  */
 

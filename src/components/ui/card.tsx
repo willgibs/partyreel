@@ -14,7 +14,7 @@ function Card({
       className={cn(
         // A card is a SURFACE, so it wears the surface token itself: `lg` is
         // --radius (8px under family C, Will's 2026-09-18 ruling, which is
-        // what "an 8px card" meant), bible 8's "surfaces take --radius". It
+        // what "an 8px card" meant): tokens, never literals. It
         // wore the generator's `rounded-xl`, a step off the token, which put
         // it at 2.8px under the old base. The parts' corners follow it.
         "group/card flex flex-col gap-4 overflow-hidden rounded-lg bg-card py-4 text-sm text-card-foreground ring-1 ring-foreground/10 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-lg *:[img:last-child]:rounded-b-lg",

@@ -57,7 +57,7 @@ export function CopyButton({
 
 /**
  * THE RULING AS A PASTE: the exact block a ruling would land, in the body face
- * (there is no mono face in the product, bible 7), with the copy button that
+ * (there is no mono face in the product, bible 8), with the copy button that
  * always takes the WHOLE block whether it is open or not.
  *
  * ★ COLLAPSED BY DEFAULT, AND THAT IS A JUDGEMENT ABOUT THE WALK. Nine of these

@@ -512,7 +512,7 @@ export function MediaLightbox({
 
   // `video=auto`: the clip plays muted and looping the moment it is centre
   // stage, and stops the moment it is not. Under reduced motion it waits for
-  // Play (bible 14: honoured by not playing). Opened from the reel, it carries
+  // Play (bible 5: honoured by not playing). Opened from the reel, it carries
   // on from the reel's moment.
   const clipKey = current?.type === "video" ? current.id : null;
   useEffect(() => {

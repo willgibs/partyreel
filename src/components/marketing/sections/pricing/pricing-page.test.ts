@@ -29,7 +29,7 @@ import { PRICING_FAQ_ITEMS } from "./pricing-faq-data";
  *    FAQPage that describes questions a visitor cannot see is the one thing
  *    structured data must never do).
  *
- * No copy is pinned (bible 21): not a heading, not a question, not an answer.
+ * No copy is pinned (bible 10): not a heading, not a question, not an answer.
  */
 
 const PAGE = readFileSync(

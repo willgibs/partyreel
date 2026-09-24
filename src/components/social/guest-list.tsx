@@ -116,7 +116,7 @@ const CHIP =
  * it: 20 + 16, 4px of padding and 1px of border above and below = 46px), and
  * its face moves in to 11px from the outer edge (10 of padding, 1 of border) so
  * the 24px avatar stays concentric with the capsule's end, 11px clear on every
- * side (bible 9: 23 = 12 + 11).
+ * side (23 = 12 + 11).
  */
 const CHIP_WITH_ADDRESS =
   "flex max-w-full items-center gap-2 rounded-full border border-border py-1 pr-4 pl-2.5 text-sm";

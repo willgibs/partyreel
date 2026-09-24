@@ -205,7 +205,7 @@ becomes one iteration (a curl of a three-line "URL" returns 0 bytes); pipe into 
   With `document.hidden === true`, anything revealed ON ARRIVAL stays at its hidden rest state forever: a
   hero's h1 reads `opacity: 0` with `.is-shown` absent, minutes after load, on a page that renders
   perfectly for a human. It is indistinguishable from the arrival-default bug
-  ([design-system.md](design-system.md), bible 13). **One scroll disproves it** (a scroll forces a
+  ([design-system.md](design-system.md), bible 5). **One scroll disproves it** (a scroll forces a
   delivery, and `.is-shown` lands immediately); reveals further down fire normally, because scrolling to
   them IS the nudge, which makes the symptom more convincing, not less. Check `document.hidden` before
   believing it or the suspended-rAF trap.
