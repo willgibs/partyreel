@@ -52,6 +52,12 @@ export const DEMO_REEL_PORTRAIT: ReelProps = buildReelProps({
 
 export { EVENT };
 
+/** The `teaser` ask's crossfade option: the album's own handful of stills, the
+ *  same fixture every reel-round board plays, never a second album. */
+export const TEASER_STILLS: string[] = GALLERY_ITEMS.slice(0, 6).map(
+  (m: GridMedia) => m.url,
+);
+
 /* ── the shared screen knob every ask carries (`configs: [SCREEN]` in spec.ts) ── */
 
 export type ScreenId = "1440" | "375";

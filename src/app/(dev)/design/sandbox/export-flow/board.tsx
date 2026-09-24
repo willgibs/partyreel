@@ -4,7 +4,7 @@ import "./export-flow.css";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
-import { Check, ListChecks } from "lucide-react";
+import { Check, Image as ImageIcon, ListChecks } from "lucide-react";
 
 import { ExplorationBoard, Frame } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
@@ -233,11 +233,19 @@ const objectRead: Reader = (root, win) => {
 
 const phoneRead: Reader = (root) => {
   const sheet = root.querySelector<HTMLElement>("[data-xf-sheet]");
+  if (sheet) {
+    const lead = root.querySelector("[data-xf-lead]");
+    return lead
+      ? `Measured: the phone's own share sheet takes over, its own top row already reading "${lead.textContent?.trim()}" before anything is saved.`
+      : `Measured: the phone's own sheet takes ${Math.round(sheet.getBoundingClientRect().height)} px, and the zip is named on it before anything is saved.`;
+  }
   const body = text(root);
-  const names = /Files/.test(body);
-  if (sheet)
-    return `Measured: the phone's own sheet takes ${Math.round(sheet.getBoundingClientRect().height)} px, and the zip is named on it before anything is saved.`;
-  return `Measured: ${names ? "the words on the screen name where the file lands" : "nothing on the screen names where the file lands"}, and the only sign of it is the browser's own arrow.`;
+  const photos = /Save to Photos/.test(body);
+  const files = /to Files/.test(body);
+  if (photos && files)
+    return "Measured: the foot offers both, Save to Photos first and the zip to Files second.";
+  if (photos) return "Measured: the foot's own button already says Save to Photos.";
+  return `Measured: ${files ? "the words on the screen name where the file lands" : "nothing on the screen names where the file lands"}, and the only sign of it is the browser's own arrow.`;
 };
 
 /* ── the frame ───────────────────────────────────────────────────────────── */
@@ -714,16 +722,56 @@ function ObjectScreen({ shape, s }: { shape: ObjectShape; s: BoardState }) {
 
 /* ── 8. where the file lands ─────────────────────────────────────────────── */
 
-type PhoneShape = "today" | "files" | "share";
+type PhoneShape = "zip" | "batch" | "both";
 
 const PHONE_CAPTION: Record<PhoneShape, string> = {
-  today:
-    "Today. The attachment goes to the browser and the only sign of it is Safari's own arrow, which no copy anywhere mentions.",
-  files:
-    "The button says where it is going before the tap, so the arrow is a confirmation rather than the whole story.",
-  share:
-    "The phone's own sheet takes the file. It can be saved, sent on, or dropped to a laptop, and it needs the whole zip in memory first.",
+  zip: "The zip lands in Files, exactly as it always has: the fastest single file, never the native library a phone expects.",
+  batch:
+    "Every file goes to the share sheet at once: its own Save leads straight into Photos, no zip involved, no button of ours at all.",
+  both: "The sheet's own button saves straight to Photos; a quieter line under it still offers the one zip, to Files.",
 };
+
+/**
+ * `both`'S OWN FOOT: Photos leads, Files stays one quiet tap away (his note:
+ * "not looking to reduce ways to download, just include the expected native
+ * way as the default"). A sibling of `Foot`, not a mode on it: the shared one
+ * answers every OTHER decision's own cap and wait states too, and none of
+ * them needs a second button.
+ */
+function PhoneBothFoot({
+  total,
+}: {
+  total: { count: number; bytes: number };
+}) {
+  return (
+    <div className="mt-1 flex flex-col items-end gap-1.5" data-xf-foot>
+      <div className="flex w-full items-center justify-between gap-3">
+        <div>
+          <span className="text-2xl font-medium tabular-nums" data-xf-size>
+            {formatBytes(total.bytes)}
+          </span>
+          <div
+            className="text-xs tabular-nums text-muted-foreground"
+            data-xf-count
+          >
+            {total.count.toLocaleString("en-US")}{" "}
+            {total.count === 1 ? "item" : "items"}
+          </div>
+        </div>
+        <Button type="button" data-xf-go tabIndex={-1}>
+          <ImageIcon /> Save to Photos
+        </Button>
+      </div>
+      <button
+        type="button"
+        className="text-xs text-muted-foreground underline underline-offset-4"
+        tabIndex={-1}
+      >
+        or the zip, to Files
+      </button>
+    </div>
+  );
+}
 
 function PhoneScreen({ shape, s }: { shape: PhoneShape; s: BoardState }) {
   // ★ ALWAYS 375. This decision is about what a phone does, so the board's
@@ -734,6 +782,10 @@ function PhoneScreen({ shape, s }: { shape: PhoneShape; s: BoardState }) {
   const album = albumFor(s);
   const total = totalFor(album.summary, "all", false);
   const object = objectOf(s.object);
+  // `batch` always jumps straight to the OS sheet, as the old `share` did;
+  // `both` does too once `object` leaves no dialog to hold its second button.
+  const toShareSheet =
+    shape === "batch" || (shape === "both" && object === "straight");
   return (
     <Screen
       id={`phone-${shape}`}
@@ -742,11 +794,11 @@ function PhoneScreen({ shape, s }: { shape: PhoneShape; s: BoardState }) {
       caption={PHONE_CAPTION[shape]}
     >
       <GuestAlbum screen={screen} count={total.count}>
-        {shape === "share" ? (
-          <ShareSheet size={formatBytes(total.bytes)} />
+        {toShareSheet ? (
+          <ShareSheet size={formatBytes(total.bytes)} photos={total.count} />
         ) : object === "straight" ? (
           <Toast screen={screen} tone="success">
-            {shape === "files"
+            {shape === "zip"
               ? "Saved to Files, in Downloads."
               : "Your download is starting."}
           </Toast>
@@ -754,14 +806,14 @@ function PhoneScreen({ shape, s }: { shape: PhoneShape; s: BoardState }) {
           <Shell>
             <Head />
             <ChipRow summary={album.summary} types="all" />
-            <Foot
-              summary={album.summary}
-              types="all"
-              saysWhere={shape === "files"}
-            />
+            {shape === "both" ? (
+              <PhoneBothFoot total={total} />
+            ) : (
+              <Foot summary={album.summary} types="all" saysWhere />
+            )}
           </Shell>
         )}
-        <IosBar lit={shape !== "share"} />
+        <IosBar lit={shape === "zip"} />
       </GuestAlbum>
     </Screen>
   );
@@ -790,9 +842,9 @@ const PREVIEWS: PreviewsFor<typeof EXPORT_FLOW> = {
   "object.zip": (s) => <ObjectScreen shape="zip" s={s} />,
   "object.straight": (s) => <ObjectScreen shape="straight" s={s} />,
 
-  "phone.today": (s) => <PhoneScreen shape="today" s={s} />,
-  "phone.files": (s) => <PhoneScreen shape="files" s={s} />,
-  "phone.share": (s) => <PhoneScreen shape="share" s={s} />,
+  "phone.zip": (s) => <PhoneScreen shape="zip" s={s} />,
+  "phone.batch": (s) => <PhoneScreen shape="batch" s={s} />,
+  "phone.both": (s) => <PhoneScreen shape="both" s={s} />,
 };
 
 export function ExportFlowBoard() {

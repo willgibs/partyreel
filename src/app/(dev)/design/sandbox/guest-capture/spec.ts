@@ -65,9 +65,9 @@ const DRAFT = defineExploration({
   title: "Keeping what she just added",
   round: {
     n: 1,
-    date: "2026-09-22",
+    date: "2026-09-24",
     changed:
-      "Rechecked against the identity and reel rounds: the offer is the second ask now (the door's optional email comes first), the reel's tile stands at the album's head, the copy promises her account, never a profile, the landing is gone, and the name keeps silent against confirm.",
+      "The desk re-cut: a new ask, tracker, for his own idea on a moderated event; moment drops the rejected \"Yours is in it\" badge and every scene's tile now wears reel-front's r1 look.",
   },
   context:
     "Every option is the same guest at the same wedding, Priya at Maya and Jay's, a names-mode party, with only the piece being asked moved. The door already offered her an optional email under her name (identity-door); this board asks about the second ask, once her first photographs land: when it reaches her, what it looks like, where she is offered a follow of Maya once she confirms, and what becomes of the name she typed. Confirming keeps the event and every photo in her account; nothing reaches a profile until she chooses it. The reel's tile sits at the album's head throughout (reel-front).",
@@ -79,7 +79,7 @@ const DRAFT = defineExploration({
       question:
         "The door already offered an optional email. When should the second ask, to keep what she added, first reach Priya?",
       context:
-        'Today it waits from the moment her first photo lands, in the door\'s sheet, so it meets her as the album opens. She skipped the door\'s optional email (typed, it prefills this door). The reel\'s tile below wears reel-front\'s "Yours is in it".',
+        "Today it waits from her first photo, in the door's sheet, meeting her as the album opens. She skipped the door's optional email. The reel's tile below wears his r1 look; its toast needs a moderated event, which this is not.",
       options: [
         {
           id: "first",
@@ -214,6 +214,42 @@ const DRAFT = defineExploration({
         "Whether a guest's name at every party after this one is ever chosen on purpose, or carried over from one door.",
       tile: "phone",
       configs: [SCREEN],
+    },
+    {
+      id: "tracker",
+      label: "Her tracker",
+      question:
+        "For a moderated event, should Priya get a way to track her own batch's status?",
+      context:
+        'His own idea, at a MODERATED event (Review on): guests "track their batch\'s progress or approval status, so they aren\'t left wondering". Every option marks four of her own uploads: sending, held, approved, refused.',
+      options: [
+        {
+          id: "button",
+          label: "A floating button beside Add photos",
+          means:
+            "A round icon rides beside Add photos; tapping it opens a sheet listing her batch, each row its own status.",
+        },
+        {
+          id: "menu",
+          label: "Grown inside her account menu",
+          means:
+            'identity-door.menu\'s single "Your photos" row opens the same list, so her status and her account share one sheet.',
+        },
+        {
+          id: "inline",
+          label: "The status rides each tile itself",
+          means:
+            "voice-guest.waiting's own words sit on her tiles directly: sending, held, approved, refused, no new surface at all.",
+        },
+      ],
+      recommended: "button",
+      because:
+        "It is his own first idea, verbatim, and a floating icon meets her exactly where she just tapped Add photos, rather than waiting for her to go looking in a menu she may never open.",
+      overrule:
+        "If one status surface beats two, identity-door.menu's sheet already exists: folding the tracker there keeps her surfaces to one.",
+      lands:
+        "Whether a moderated guest gets a dedicated tracker at all, and whether it is a new control or an existing surface grown.",
+      tile: "phone",
     },
   ],
 });

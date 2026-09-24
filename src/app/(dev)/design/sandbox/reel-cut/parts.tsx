@@ -10,9 +10,11 @@ import {
   EyeOff,
   Film,
   Heart,
+  Hourglass,
   Pause,
   Play,
   Plus,
+  QrCode,
   Share2,
   Sparkles,
   X,
@@ -56,8 +58,8 @@ import { CutStill } from "./stills";
 
 /* ── the reel's own view, which is where a cut begins ─────────────────────── */
 
-/** A round control in the view's chrome: the neutral shape, since the view's
- *  own chrome is `reel-view`'s question and this board asks nothing of it. */
+/** A round control in the view's weighted dock: the ruled shape (reel-view
+ *  round one), reused here as ground. */
 function ViewControl({
   label,
   children,
@@ -69,6 +71,7 @@ function ViewControl({
     <span
       data-rc-view-control
       aria-label={label}
+      title={label}
       className="flex size-10 items-center justify-center rounded-full border border-white/20 text-white/85 backdrop-blur-sm"
     >
       {children}
@@ -80,10 +83,13 @@ function ViewControl({
 export type MakeSlot = "line" | "greyed" | "none";
 
 /**
- * THE VIEW: the live reel full bleed, its chrome resting at the foot. Drawn
- * neutrally on purpose. `entry` asks what happens when "Make your own" is
- * tapped and `noencode` asks what stands there when it cannot be; neither
- * asks what the rest of this row is, which is `reel-view`'s round.
+ * THE VIEW: the live reel full bleed, its chrome DECIDED now (reel-view round
+ * one, carried here as ground): a top-left arrival chip, no event name on
+ * screen, a weighted dock (a slim utility row, "Add yours" an icon, "Make
+ * your own" the one primary beneath it) and the event's code as a plate
+ * bottom right. `entry` asks what happens when "Make your own" is tapped and
+ * `noencode` asks what stands in the primary's place when it cannot be;
+ * neither asks anything else about this row, which is `reel-view`'s round.
  */
 export function ReelView({
   still,
@@ -121,9 +127,11 @@ export function ReelView({
         />
       </div>
 
+      {/* No event name on screen (ruled): the arrival chip takes the
+          top-left corner instead, a live-feel beat rather than a label. */}
       <div className="relative flex items-start justify-between p-3">
         <span className="rounded-full bg-black/40 px-3 py-1.5 text-caption text-white/85 backdrop-blur-sm">
-          {EVENT.name}
+          Ruby just added a photo
         </span>
         <ViewControl label="Close">
           <X className="size-4" aria-hidden />
@@ -131,25 +139,6 @@ export function ReelView({
       </div>
 
       <div className="relative mt-auto flex flex-col items-center gap-3 px-4 pb-6">
-        {make === "greyed" ? (
-          <span
-            data-rc-make-own="greyed"
-            aria-disabled
-            className="flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-working font-medium text-white/35"
-          >
-            <Clapperboard className="size-4" aria-hidden />
-            Make your own
-          </span>
-        ) : null}
-        {make === "line" || make === "greyed" ? (
-          <p
-            data-rc-noencode-line
-            className="max-w-[46ch] text-center text-caption text-white/75"
-          >
-            Making your own cut needs a newer browser. The reel plays here
-            either way.
-          </p>
-        ) : null}
         <div
           className={cn(
             "flex items-center gap-2",
@@ -165,11 +154,49 @@ export function ReelView({
           <ViewControl label="Style">
             <Sparkles className="size-4" aria-hidden />
           </ViewControl>
+          <ViewControl label="Hold">
+            <Hourglass className="size-4" aria-hidden />
+          </ViewControl>
+          <ViewControl label="Show the code">
+            <QrCode className="size-4" aria-hidden />
+          </ViewControl>
           <ViewControl label="Add yours">
             <Plus className="size-4" aria-hidden />
           </ViewControl>
         </div>
+        {/* "Make your own" the one primary beneath the row (ruled): removing
+            it for `noencode` empties this slot rather than disabling one icon
+            among many. */}
+        {make === "greyed" ? (
+          <span
+            data-rc-make-own="greyed"
+            aria-disabled
+            className="flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-working font-medium text-white/35"
+          >
+            <Clapperboard className="size-4" aria-hidden />
+            Make your own
+          </span>
+        ) : null}
+        {make === "line" || make === "greyed" ? (
+          <p
+            data-rc-noencode-line
+            className="max-w-[46ch] text-center text-caption text-white/75"
+          >
+            Making your own clip needs a newer browser. The reel plays here
+            either way.
+          </p>
+        ) : null}
       </div>
+
+      {/* The event's code, a white plate bottom right (ruled): "Scan to add
+          yours" is the whole of it, so it never fights the centred dock for
+          width at 375. */}
+      <span
+        aria-label="Scan to add yours, at partyreel.com"
+        className="absolute right-3 bottom-3 z-10 flex size-9 items-center justify-center rounded-full bg-white text-zinc-900 shadow-lift"
+      >
+        <QrCode className="size-4" aria-hidden />
+      </span>
 
       {over}
     </div>
@@ -178,7 +205,9 @@ export function ReelView({
 
 /* ── the entry's third shape: the album's own page, the creator beneath ───── */
 
-/** The album page a guest came from, with the reel's living tile at its head. */
+/** The album page a guest came from, with the reel's living tile at its head:
+ *  headed "Highlight reel" and described "Make your own clip to share"
+ *  (ruled, reel-front round one) rather than the plain caption this replaced. */
 export function AlbumPage({
   still,
   children,
@@ -209,12 +238,49 @@ export function AlbumPage({
               />
             ) : null}
           </div>
-          <span className="absolute bottom-2 left-3 text-caption text-white/85">
-            The reel, playing now
+          <span
+            aria-hidden
+            className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/80 to-transparent"
+          />
+          <span className="absolute inset-x-3 bottom-2 flex flex-col gap-0.5">
+            <span className="font-heading text-working text-white">
+              Highlight reel
+            </span>
+            <span className="text-caption text-white/70">
+              Make your own clip to share
+            </span>
           </span>
         </div>
       </div>
       {children}
+    </div>
+  );
+}
+
+/**
+ * THE TILE'S OWN DESCRIPTION, ECHOED for `noencode`'s second surface: what
+ * "Make your own clip to share" becomes on a device that cannot cut, in the
+ * same three shapes the view's primary slot wears (`MakeSlot`), never a
+ * fourth vocabulary for the same question.
+ */
+export function TileDescriptionEcho({ make }: { make: MakeSlot }) {
+  return (
+    <div
+      data-rc-tile-echo
+      className="mx-auto w-full max-w-[320px] rounded-float border border-border bg-background p-4 text-foreground"
+    >
+      <p className="font-heading text-card-title">Highlight reel</p>
+      {make === "none" ? null : (
+        <p
+          data-rc-tile-echo-line
+          className={cn(
+            "mt-1 text-working",
+            make === "greyed" ? "text-muted-foreground/60" : "text-muted-foreground",
+          )}
+        >
+          Clips need a newer browser here.
+        </p>
+      )}
     </div>
   );
 }
@@ -447,7 +513,7 @@ export function PoolGrid({
                 role="tooltip"
                 className="absolute -top-1 left-1/2 z-10 w-max max-w-[22ch] -translate-x-1/2 -translate-y-full rounded-md bg-popover px-2 py-1 text-micro text-popover-foreground shadow-layer"
               >
-                Hidden moments cannot go in a cut. Show it first.
+                Hidden moments cannot go in a clip. Show it first.
               </span>
             ) : null}
           </span>
@@ -464,7 +530,7 @@ export function BlockedLine() {
       data-rc-blocked="toast"
       className="pointer-events-none absolute inset-x-3 bottom-3 z-30 flex items-center justify-between gap-3 rounded-float bg-popover px-3 py-2.5 text-caption text-popover-foreground shadow-layer"
     >
-      <span>That moment is hidden, so a cut cannot take it.</span>
+      <span>That moment is hidden, so a clip cannot take it.</span>
       <span className="shrink-0 font-medium underline">Show</span>
     </div>
   );
@@ -537,7 +603,7 @@ export function StackingFrame({
           {`${left} of ${total} moments left`}
         </p>
         <p className="max-w-[26ch] text-caption text-white/60">
-          Drawing your cut on this device. Keep this tab open.
+          Drawing your clip on this device. Keep this tab open.
         </p>
         <span className="mt-1 flex h-8 items-center rounded-full border border-white/25 px-3 text-caption font-medium text-white/85">
           Cancel
@@ -557,8 +623,8 @@ export function QuotedExportModal({ progress }: { progress: number }) {
       <div className="w-full max-w-sm rounded-float bg-popover p-6 text-popover-foreground shadow-layer">
         <p className="font-heading text-card-title">Creating your video</p>
         <p className="mt-1 text-working text-muted-foreground">
-          Your cut is encoding right here in your browser. This usually takes a
-          few seconds.
+          Your clip is encoding right here in your browser. This usually takes
+          a few seconds.
         </p>
         <div className="flex flex-col items-center gap-3 py-4">
           <span className="relative flex size-16 items-center justify-center">
@@ -658,7 +724,7 @@ export function Finish({
           <ArrowLeft className="size-4" aria-hidden />
         </span>
         <p className="text-micro font-medium tracking-[0.24em] text-white/50 uppercase">
-          Your cut is ready
+          Your clip is ready
         </p>
       </div>
       <div className="flex min-h-0 flex-1 items-center justify-center">
@@ -669,7 +735,7 @@ export function Finish({
       <div data-rc-doors className="pt-4">
         {shape === "four" ? (
           <div className="grid grid-cols-2 gap-2">
-            <Door icon={save} label="Save" />
+            <Door icon={save} label="Save to Photos" />
             <Door icon={share} label="Share" />
             {paid ? <Door icon={add} label="Add to the album" /> : null}
             <Door icon={again} label="Make another" />
@@ -679,7 +745,7 @@ export function Finish({
           <div className="flex flex-col gap-2">
             <Door icon={share} label="Share" loud wide />
             <div className="flex items-center justify-center gap-4 pt-1">
-              <Door icon={save} label="Save" quiet />
+              <Door icon={save} label="Save to Photos" quiet />
               {paid ? <Door icon={add} label="Add to the album" quiet /> : null}
               <Door icon={again} label="Make another" quiet />
             </div>
@@ -687,7 +753,7 @@ export function Finish({
         ) : null}
         {shape === "save" ? (
           <div className="flex flex-col gap-2">
-            <Door icon={save} label="Save" loud wide />
+            <Door icon={save} label="Save to Photos" loud wide />
             <div className="grid grid-cols-2 gap-2">
               <Door icon={share} label="Share" />
               {paid ? <Door icon={add} label="Add to the album" /> : null}
@@ -713,7 +779,7 @@ export function MarkLine() {
       data-rc-mark="line"
       className="mx-auto mt-2 max-w-[38ch] text-center text-micro text-white/50"
     >
-      Free cuts carry the small mark and run to 30 seconds. Pro removes both.
+      Free clips carry the small mark and run to 30 seconds. Pro removes both.
     </p>
   );
 }

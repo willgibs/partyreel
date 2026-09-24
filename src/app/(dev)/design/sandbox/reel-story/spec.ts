@@ -7,12 +7,18 @@ import type { Control } from "@/components/lab/board-spec";
  * host-made, post-event, stored reel: "Every event ends with a reel.", "From
  * the first scan to the final cut", "Pick a style. The reel cuts itself,
  * ready to share.", "Every guest can take the reel home." None of that is
- * true any more. The reel is alive from the third photo, on the venue's wall
- * as a first-class screen, and a cut is anyone's, made on-device, never
- * stored. Seven asks retell it: the thesis line, the /reel page's arc, the
- * home's teaser and the hero film's role, the pricing rows' words, the
- * how-it-works steps, the event pages' reel column, and the help category's
- * name.
+ * true any more. The reel is alive from the second photo (dropped from three,
+ * ruled), on the venue's wall as a first-class screen, and a cut is anyone's,
+ * made on-device, never stored. Seven asks retell it: the thesis line, the
+ * /reel page's arc, the home's teaser and the hero film's role, the pricing
+ * rows' words, the how-it-works steps, the event pages' reel column, and the
+ * help category's name.
+ *
+ * ★ RE-CUT UNDER BATCH ONE (2026-09-24): `help` gains "Highlight reel" as an
+ * option, since it is now also the album tile's own heading and was missing
+ * from the three; `steps` and `pricing` draw his "clip" beside "cut", never
+ * replacing it; `teaser` gains the tile's own crossfade as a fourth option,
+ * over the tile's live take, not a recorded stand-in.
  *
  * DECIDED, NOT ASKED (this board takes them as given): the /reel page's live
  * style switcher stays, as the engine's proof; the tier rows become the cut's
@@ -52,12 +58,12 @@ const DRAFT = defineExploration({
   title: "The marketing story of the reel",
   round: {
     n: 1,
-    date: "2026-09-22",
+    date: "2026-09-24",
     changed:
-      "A new board for wave 2 of THE REEL ROUND: the seven copy and arc asks the sweep will carry into marketing-voice.ts, features.ts, how-it-works.ts, events.ts and the pricing sections. Nothing here wires production.",
+      "Re-cut under his batch-1 answers: help gains Highlight reel as an option; steps and pricing draw clip beside cut; teaser gains the tile's own crossfade; the minimum drops to two, so every third photo becomes second.",
   },
   context:
-    "The reel is reconceived: live from the third photo, a first-class screen, a cut anyone renders on-device. Every marketing surface still sells the old host-made, stored reel. Seven asks retell it; nothing here pins a final word, and nothing wires production.",
+    "The reel is reconceived: live from the second photo, a first-class screen, a cut anyone renders on-device. Every marketing surface still sells the old host-made, stored reel. Seven asks retell it; nothing here pins a final word, and nothing wires production.",
   bible: [18, 19, 20, 21, 22],
   asks: [
     {
@@ -144,12 +150,17 @@ const DRAFT = defineExploration({
           label: "A still poster with a play mark",
           means: "One graded frame and a play affordance; no motion until a reader asks for it.",
         },
+        {
+          id: "crossfade",
+          label: "The album tile's own crossfade",
+          means: "The same slow, gentle cycle the album's own tile wears now (ruled): no canvas, no lazy chunk, one motion language between the marketing site and the product.",
+        },
       ],
-      recommended: "engine",
+      recommended: "crossfade",
       because:
-        "The section's job flipped from selling a style catalog to proving the reel is alive, and nothing proves that like the real engine running, the same draw a guest's own phone does tonight.",
+        "The album's own tile settled on exactly this (reel-front, ruled): no canvas, no lazy chunk, one consistent motion language between the marketing site and the product a guest actually uses.",
       overrule:
-        "If the section is closer to a hero moment than a proof point, the graded film reads more cinematic than anything the canvas engine draws today.",
+        "If the section is closer to a hero moment than a proof point, the graded film reads more cinematic than any crossfade of stills, live engine included.",
       lands: "Whether the home ships a second live engine mount, or keeps the section to a produced asset and zero extra bytes.",
       configs: [SCREEN],
     },
@@ -164,6 +175,11 @@ const DRAFT = defineExploration({
           id: "renamed",
           label: "Two rows, renamed to the cut",
           means: "\"Cut length\" and \"Cut watermark\" replace the old labels; same shape, same numbers, the right noun.",
+        },
+        {
+          id: "clip-renamed",
+          label: "Two rows, renamed to the clip",
+          means: "\"Clip length\" and \"Clip watermark\": the same two rows, his own word for the guest-facing object, never a second row beside cut's.",
         },
         {
           id: "one-row",
@@ -195,6 +211,11 @@ const DRAFT = defineExploration({
           id: "grow-cut",
           label: "\"Watch the reel grow\" / \"Make your cut\"",
           means: "The host's step turns ambient (nothing to do); the guest's step becomes the one real action left, a cut.",
+        },
+        {
+          id: "grow-clip",
+          label: "\"Watch the reel grow\" / \"Make your clip\"",
+          means: "The same shape as the option beside it, with his own guest-facing word: a clip, not a cut.",
         },
         {
           id: "screen-step",
@@ -254,6 +275,11 @@ const DRAFT = defineExploration({
         "Today's category is \"Highlight reel\" (strip label \"Reel\"); the header panel calls the same link \"The highlight reel\" while the footer already calls it \"The reel\": one feature, two names.",
       options: [
         {
+          id: "highlight-reel",
+          label: "Highlight reel",
+          means: "Today's shipped name, kept: it is now also the album tile's own heading, so a guest meets one word in both places.",
+        },
+        {
           id: "the-reel",
           label: "\"The reel\"",
           means: "The plainest name, already live in the footer today, folded across the category, its strip label and the header panel.",
@@ -269,9 +295,9 @@ const DRAFT = defineExploration({
           means: "Leads with the one word that changed, so a reader never mistakes the always-on reel for a personal cut.",
         },
       ],
-      recommended: "the-reel",
+      recommended: "highlight-reel",
       because:
-        "It is already live in the footer, so ruling it in moves one direction instead of two, and it is short enough to survive the strip label and a breadcrumb without wrapping.",
+        "It is already live as the tile's own heading (reel-front, ruled) as well as the footer, so keeping it doubles as the clearest thread from the album to a help article.",
       overrule:
         "If a reader's first confusion is mixing the always-on reel up with a personal cut, naming the live reel explicitly heads that off before the first article does.",
       lands: "The slug redirect (highlight-reel to its successor), the strip label, and the header panel's entry text.",

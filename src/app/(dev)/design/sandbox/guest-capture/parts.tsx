@@ -1,8 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import Link from "next/link";
-import { Mail, UserCheck, UserPlus } from "lucide-react";
+import {
+  Camera,
+  Check,
+  Clock,
+  ListChecks,
+  Loader2,
+  Mail,
+  UserCheck,
+  UserPlus,
+  XCircle,
+} from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -11,7 +21,16 @@ import { Label } from "@/components/ui/label";
 import { GLASS_MARK } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
-import { EVENT, GUESTS, HOST, PRIYA } from "./fixtures";
+import {
+  EVENT,
+  GUESTS,
+  HOST,
+  PRIYA,
+  TRACKER_ITEMS,
+  TRACKER_WORDS,
+  type TrackerItem,
+  type TrackerStatus,
+} from "./fixtures";
 import { HandleGlyph, SettledMark } from "./scene";
 
 /**
@@ -403,6 +422,176 @@ export function NameStepCard() {
       <Button size="default" className="w-full">
         Save and continue
       </Button>
+    </div>
+  );
+}
+
+/* ── the tracker: his own idea, on a MODERATED event (`tracker`) ─────────── */
+
+const TRACKER_ICON: Record<TrackerStatus, typeof Check> = {
+  uploading: Loader2,
+  held: Clock,
+  approved: Check,
+  refused: XCircle,
+};
+
+const TRACKER_TONE: Record<TrackerStatus, string> = {
+  uploading: "text-muted-foreground",
+  held: "text-warning",
+  approved: "text-success",
+  refused: "text-muted-foreground",
+};
+
+/** One row of her batch, the shape every sheet option lists it in. */
+export function TrackerRow({ item }: { item: TrackerItem }) {
+  const Icon = TRACKER_ICON[item.status];
+  return (
+    <div
+      className="flex items-center gap-3 py-2.5"
+      data-gc-tracker-row={item.status}
+    >
+      <div
+        className="size-11 shrink-0 overflow-hidden bg-black/10"
+        style={{ borderRadius: "var(--radius-tile)" }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- stand-in still */}
+        <img src={item.url} alt="" className="size-full object-cover" />
+      </div>
+      <p
+        className={cn(
+          "flex min-w-0 flex-1 items-center gap-1.5 text-sm",
+          TRACKER_TONE[item.status],
+        )}
+      >
+        <Icon
+          className={cn(
+            "size-4 shrink-0",
+            item.status === "uploading" && "animate-spin",
+          )}
+          aria-hidden
+        />
+        <span className="truncate text-foreground">
+          {TRACKER_WORDS[item.status]}
+        </span>
+      </p>
+    </div>
+  );
+}
+
+/** The sheet's own shell, quoted (a real Sheet would portal to the lab page,
+ *  `OfferSheet`'s own note above): `fixed`, never `absolute`, so it pins to
+ *  this frame's true foot rather than to wherever the album happens to end. */
+export function TrackerSheet({
+  title,
+  above,
+  children,
+}: {
+  title: string;
+  above?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div data-gc-tracker="sheet" className="fixed inset-0">
+      <div className="absolute inset-0 bg-black/10" />
+      <div className="fixed inset-x-0 bottom-0 flex max-h-[70vh] flex-col gap-1 overflow-y-auto border-t border-border bg-popover bg-clip-padding p-4 text-popover-foreground shadow-layer">
+        {above}
+        <p className="font-heading text-card-title font-medium text-foreground">
+          {title}
+        </p>
+        <div className="divide-y divide-border/60">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+/** The account menu's own header row, quoted (`identity-door.menu`'s "sheet"
+ *  option): her name and status, so the `menu` option can show the tracker's
+ *  list sharing the same sheet rather than a second surface. */
+export function TrackerAccountHeader() {
+  return (
+    <div className="mb-1 flex items-center gap-2.5 border-b border-border/60 pb-3">
+      <Avatar size="sm">
+        <AvatarFallback>{PRIYA.name.slice(0, 1)}</AvatarFallback>
+      </Avatar>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium">{PRIYA.name}</p>
+        <p className="text-xs text-muted-foreground">Unverified</p>
+      </div>
+    </div>
+  );
+}
+
+/** The `button` option's own new control: a round icon beside Add photos,
+ *  never a text label (the row beside it already carries one). */
+export function TrackerButton() {
+  return (
+    <button
+      type="button"
+      aria-label="Track your uploads"
+      data-gc-tracker="button"
+      className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-layer"
+    >
+      <ListChecks className="size-4" aria-hidden />
+    </button>
+  );
+}
+
+/** The album's own Add photos row, quoted at rest and never pressable, like
+ *  every other control this board draws: `tracker` sits beside it only for
+ *  the `button` option. */
+export function AddPhotosRow({ tracker }: { tracker?: ReactNode }) {
+  return (
+    <div className="flex items-center justify-end gap-2">
+      {tracker}
+      <span className="pointer-events-none inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-foreground">
+        <Camera className="size-4" aria-hidden />
+        Add photos
+      </span>
+    </div>
+  );
+}
+
+/** The `inline` option's own ground: no sheet, no new button, the status
+ *  rides each of her tiles directly (voice-guest.waiting's own words). */
+export function TrackerInlineStrip() {
+  return (
+    <div data-gc-tracker="inline" className="grid grid-cols-2 gap-3 px-4 pb-6">
+      {TRACKER_ITEMS.map((item) => {
+        const Icon = TRACKER_ICON[item.status];
+        return (
+          <div key={item.id} className="space-y-1.5">
+            <div
+              className="overflow-hidden bg-black/10"
+              style={{ aspectRatio: "4 / 5", borderRadius: "var(--radius-tile)" }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- stand-in still */}
+              <img
+                src={item.url}
+                alt=""
+                className={cn(
+                  "size-full object-cover",
+                  item.status !== "approved" && "opacity-60",
+                )}
+              />
+            </div>
+            <p
+              className={cn(
+                "flex items-center gap-1.5 text-xs",
+                TRACKER_TONE[item.status],
+              )}
+            >
+              <Icon
+                className={cn(
+                  "size-3.5 shrink-0",
+                  item.status === "uploading" && "animate-spin",
+                )}
+                aria-hidden
+              />
+              <span className="truncate">{TRACKER_WORDS[item.status]}</span>
+            </p>
+          </div>
+        );
+      })}
     </div>
   );
 }
