@@ -1,6 +1,6 @@
 ---
 track: refresh-guest
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "5b17e8f3"            # the launch-prep SHA the branch was cut from
 board: voice-guest
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -50,13 +50,63 @@ working.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- One round. Work commit `759b77fa` on `lp/refresh-guest`, pushed. No sync commit: `origin/launch-prep` moved five
+  commits (`75631277` → `b2ffc4eb`, all Orchestrator record/cut commits for other lanes) while this ran, but
+  `git diff --stat 75631277 origin/launch-prep -- src/app/\(dev\)/design/sandbox/voice-guest/
+  src/app/\(dev\)/design/sandbox/guest-capture/ src/app/\(dev\)/design/sandbox/media-viewer/
+  src/app/\(dev\)/design/sandbox/gallery-fixtures.ts src/app/\(dev\)/design/touchpoints.ts
+  src/app/\(dev\)/design/sandbox/registry.ts "src/app/(dev)/design/(shell)/lab/boards.ts"` is empty, so this hands
+  off on its base per the Orchestrator's sync rule.
+- Gates, all on `759b77fa`: `pnpm typecheck` clean; `pnpm lint` 0 errors (7 pre-existing warnings, none in this
+  lane's files); `pnpm test` 427 files / 4584 tests passing; `pnpm build` exit 0 (full route manifest generated,
+  no compile or type error); `pnpm lab:smoke --base http://localhost:3135` 313 checks, 0 failing (this lane's
+  reading, outside every closed fold: `guest-capture` 335/1200, `voice-guest` 616/1200, `media-viewer` 127/1200
+  words); `pnpm lab:demo --base http://localhost:3135` for all three: `voice-guest` 7 steps / 0 failing / 5
+  options on every ask (was 4); `guest-capture` 5 steps / 0 failing / `name` now 3 options (was 2); `media-viewer`
+  1 step / 0 failing / unchanged at 4 options.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = exactly the 11 files under `owns` (all three
+  board directories) plus `touchpoints.ts` (the one listed exception; both rows it touches, `guest-capture` and
+  `voice-guest`, are this lane's own).
+- The items, one line each:
+  - `voice-guest`: a fifth register, `tender` (soft and tender), added to all seven asks (`welcome`, `ask`,
+    `landed`, `failed`, `empty`, `waiting`, `keep`) in `lines.ts`, `spec.ts` and `board.tsx`, so the board is not
+    the same three tones reused seven times (the audit's own line). Every existing `recommended` left as is;
+    this only widens the range.
+  - `guest-capture`: `name` gains a third option, `told` (writes the name silently exactly as `silent` does, then
+    a toast says it: "You're on as Priya. Change it in Account."), now the ask's `recommended` over the
+    silent-or-confirm binary. The toast is a new component, `NameToldNotice` (`parts.tsx`), positioned at the
+    shipped Toaster's own offset (`ui/sonner.tsx`'s `top: 5rem`); `measureName` reports the toast's own words
+    AND, honestly, how many pixels of the moment card's own top it covers while it is up (45px at 375, measured
+    off the frame, not designed away).
+  - `media-viewer`: no new option on `mine`, on the audit's own read (already four real directions, "fine now,
+    watch this board running out of open questions"); comments only.
+  - All three boards: comments reworded to keep the same facts without "ruled"/"law" framing (`spec.ts`,
+    `lines.ts`, `scene.tsx` on `voice-guest`; `spec.ts`, `scene.tsx` on `guest-capture`; `page-parts.tsx`,
+    `viewer.tsx` on `media-viewer`). `media-viewer/board-r1.tsx` (round one's retired, unimported preview code,
+    kept as `site-chrome`'s own precedent for a round two) left untouched: it renders nowhere today, so it reads
+    as history rather than a live comment.
+  - `touchpoints.ts`: `guest-capture`'s row corrected from four decisions to five (`tracker` already existed in
+    `spec.ts` before this lane and was simply never added to the row; caught while updating the row for `told`)
+    and its `asks`/`note`/`variants` now name all five; `voice-guest`'s row names the fourth register.
+- Assets requested from Will: none (every new option reuses the existing fixtures; the toast is built from
+  `lucide-react`'s `Check`, already imported).
+- Board ideas: none beyond this lane's own three boards.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule, one line each:
+  - `voice-guest`: a fifth register on every one of the seven asks, not only the one line the audit's "worth
+    trying" asked for, on the read that a register only proves itself once it is tested across more than one
+    line. If that reads as diluting rather than widening, the four originals still stand on their own and
+    `tender` is one option to drop per ask, not a structural change to undo.
+  - `guest-capture.name`: `told` is now the recommendation over `silent`. If a toast covering the moment card's
+    own heading for a moment reads as clutter rather than care, `silent` costs her nothing to notice at all (the
+    ask's own `overrule`).
+  - `media-viewer.mine`: left at four options on the audit's "fine now". If a genuinely different fifth
+    direction is still wanted (not another shape variant: an interaction-revealed mark with nothing at rest,
+    which this static-preview board cannot picture honestly today), that is a real option this round skipped
+    rather than one that does not exist.
+- One doc-accuracy note outside every `owns`: CLAUDE.md's orientation table still points to
+  `docs/design/README.md` for "what guides design work"; `library-lean` retired that path and the fact now
+  opens `docs/systems/design-system.md`. CLAUDE.md is the Orchestrator's alone to edit, so this is a note, not a
+  fix made here.
+- Look at first: `voice-guest.welcome`'s fifth pill (`tender`), the clearest single read of the new register,
+  then `guest-capture.name`'s third pill (`told`), already the board's own recommendation.
