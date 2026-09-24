@@ -50,6 +50,9 @@ const nextConfig: NextConfig = {
   // `X-Powered-By: Next.js` tells an attacker the framework and narrows their exploit search for
   // free. Nothing reads it.
   poweredByHeader: false,
+  // The kit's gate sets GATE_TYPECHECKED only for a tree its `pnpm typecheck` already passed (usher/kit/gate-lane.sh),
+  // so the build does not check the same program twice. Vercel and every lane's own build never set it.
+  typescript: { ignoreBuildErrors: process.env.GATE_TYPECHECKED === "1" },
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },

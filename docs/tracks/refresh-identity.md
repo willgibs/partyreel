@@ -1,19 +1,19 @@
 ---
-track: refresh-guest
+track: refresh-identity
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "5b17e8f3"            # the launch-prep SHA the branch was cut from
-board: voice-guest
+cut: "516c6bb2"            # the launch-prep SHA the branch was cut from
+board: identity-door
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/app/(dev)/design/sandbox/voice-guest/
-  - src/app/(dev)/design/sandbox/guest-capture/
-  - src/app/(dev)/design/sandbox/media-viewer/
+  - src/app/(dev)/design/sandbox/identity-door/
+  - src/app/(dev)/design/sandbox/identity-claims/
+  - src/app/(dev)/design/sandbox/identity-profile/
 reads:                  # single-sources you depend on: never duplicate, never edit
   - src/app/(dev)/design/sandbox/gallery-fixtures.ts
 ---
 
-# lp/refresh-guest
+# lp/refresh-identity
 
-**Goal.** The guest's voice, capture and the media viewer. Each open board refreshed under the new guidance: its strong options kept and improved, bolder directions added, and nothing fenced by an earlier pick or rule.
+**Goal.** The guest's identity: the door, claims and the profile. Each open board refreshed under the new guidance: its strong options kept and improved, bolder directions added, and nothing fenced by an earlier pick or rule.
 
 ## The brief
 
@@ -27,14 +27,14 @@ reads:                  # single-sources you depend on: never duplicate, never e
 - **The one listed exception to your owns:** your board's row in `touchpoints.ts`, if what the board asks changed.
 
 **What an audit of your boards saw** (a starting point, not a rule):
-- `voice-guest` (7x4; range: same 3 tones reused 7x): "THE REGISTERS ARE THE SAME FOUR KEYS ON EVERY DECISION". Worth trying: Try a voice outside warm/bright/exact for at least one line.
-- `guest-capture` (5: 3,3,3,2,3; range: thin on "name"): guest-shape/gallery-width material "worn here as law"; name ask binary. Worth trying: Give "name" a genuine third path beyond silent or confirm.
-- `media-viewer` (1: 4; range: 4 real variants): scope cut to "the OTHER own-item mark"; shipped capsule untouchable. Worth trying: Fine now; watch this board running out of open questions.
+- `identity-door` (5x3; range: real variety): door-steps's "shipped shape... worn here as law, not reopened". Worth trying: Ask whether the 5-step door order itself still deserves law.
+- `identity-claims` (5x3; range: surface-only): "the model itself is ruled... every option here changes only what a screen says". Worth trying: Let one option touch the claim model, not only the screen.
+- `identity-profile` (4x3; range: real variety): "every event off by default" is "this board's floor". Worth trying: Test the default-off floor itself, not just its display.
 
 **Starts from.** CLAUDE.md's working loop, the bible's ten and production as it is; the tests say what has to keep
 working.
 
-**Verify on.** Each board at 1440 and 375 with reduced motion honoured; `pnpm lab:smoke` whole; `pnpm lab:demo --board <id>` pressing every step, for `voice-guest`, `guest-capture`, `media-viewer`.
+**Verify on.** Each board at 1440 and 375 with reduced motion honoured; `pnpm lab:smoke` whole; `pnpm lab:demo --board <id>` pressing every step, for `identity-door`, `identity-claims`, `identity-profile`.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 

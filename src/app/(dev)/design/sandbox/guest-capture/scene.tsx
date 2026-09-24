@@ -140,7 +140,7 @@ export function Header({ state }: { state: "cta" | "named" | "confirmed" }) {
   );
 }
 
-/** One photograph on the ruled column rule, in the shipped tile. */
+/** One photograph on the shipped column rule, in the shipped tile. */
 function StripTile({ item }: { item: GridMedia }) {
   return (
     <div
@@ -158,8 +158,9 @@ function StripTile({ item }: { item: GridMedia }) {
   );
 }
 
-/** The strip of tiles under the ask, laid out on the ruled column rule with
- *  the shipped tile — `gallery-width`'s law, worn here rather than re-judged.
+/** The strip of tiles under the ask, laid out on the shipped column rule with
+ *  the shipped tile: `gallery-width`'s own decision, held steady rather than
+ *  re-judged here.
  *
  *  ★ A CAPTION RIDES INSIDE ITS TILE'S OWN COLUMN BLOCK. The album is one CSS
  *  multi-column box, so "a line under one photograph" can only be drawn by

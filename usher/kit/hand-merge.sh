@@ -10,7 +10,7 @@
 # then typecheck and the registry tests on their own exit codes, and the commit with the lane's message. Any other
 # conflicted path stops the script with the merge left in progress for a human read. Never a force, never a rebase.
 set -u; setopt nonomatch pipefail
-TRACK="$1"; SHA="$2"; MSG="$3"; REPO=/Users/gibby/local/ai/partyreel; cd "$REPO"
+TRACK="$1"; SHA="$2"; MSG="$3"; REPO="$(cd "$(dirname "$0")/../.." && pwd)"; cd "$REPO"
 : "${S:?set S to this session's scratchpad}"
 [ -z "$(git status --short)" ] || { echo "REFUSED: tree not clean"; exit 2; }
 git fetch -q origin "lp/$TRACK" || { echo "REFUSED: no origin/lp/$TRACK"; exit 2; }

@@ -4,7 +4,7 @@ import { spawn } from "node:child_process";
 import { readFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-const base = process.argv[2] || "http://localhost:3137"; const path = process.argv[3] || "/design/library"; const probe = process.argv.includes("--probe");
+const base = process.argv[2] || "http://localhost:3140"; const path = process.argv[3] || "/design/library"; const probe = process.argv.includes("--probe");
 const env = readFileSync(".env.local", "utf8");
 const key = (env.match(/^DESIGN_PREVIEW_KEY=(.*)$/m)?.[1] ?? "").trim().replace(/^"|"$/g, "");
 if (!key) { console.error("no key in .env.local"); process.exit(2); }
