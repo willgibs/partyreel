@@ -52,7 +52,11 @@ Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyre
    (Sonnet). Each owns its boards' folders and rewrites their comments. A refresh improves on what the board has: the strong options stay and get better, bolder ones join, his
    notes on record travel as direction. He runs through the refreshed boards once, the picks are wired so the lab is
    current with the Library, and later rounds may revisit any covered surface with fresh ideas.
-2. **The mandate sweep** (Sonnet) after `library-lean` merges, outside the boards (the refresh lanes take theirs): Will's overhaul (2026-09-24), whose one home is
+2. **`kit-streamline`** (Opus) after `library-lean` (Will: cut every needless bottleneck; keep what protects):
+   `specs/kit-streamline.json` is ready. It makes an integration gate only what the lane never gated (light for
+   docs-only), run the lab steps only when the lab could change, keep one typecheck, and run `negative.sh` only
+   after a kit change.
+3. **The mandate sweep** (Sonnet) after `library-lean` merges, outside the boards (the refresh lanes take theirs): Will's overhaul (2026-09-24), whose one home is
    CLAUDE.md "Keeping the docs healthy" (guidance with its reason, never a mandate; synthesized, never quoted; one
    home). About 250 comment and lab lines in `src/` cite a pick as authority or frame a design choice as law ("Will
    ruled", "law", "binds", "worn here rather than re-judged", "interim law", "precedent", dated provenance; re-grep at
@@ -60,14 +64,14 @@ Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyre
    something breaks. The desk's "ruling" vocabulary and `docs/reviews/README.md`'s grammar words change together.
    Owns: the prefixes the grep finds, outside the held guest lane (its own lines ride its sync message), with
    `globals.css` and `theme.css` released from this file.
-3. **The brand kit stays current** (`kit/`, merged at `0cbc5bd6`, Will copies it for outside agents): at
+4. **The brand kit stays current** (`kit/`, merged at `0cbc5bd6`, Will copies it for outside agents): at
    `library-lean`'s merge, add one clause to the runbook's record step: a change to the brand (tokens, logo, type,
    or the hero, demo and pricing pages) refreshes `kit/` from its README's Sources; the screens come from
    partyreel.com by the scratch `kit-capture.mjs` (it wheels to the demo so its reveal fires), which moves into
    `usher/kit/` at the same merge.
-4. **At the next `[preview]`**, confirm on Sentry that the Vercel build uploaded its source maps (`894501ad` gated
+5. **At the next `[preview]`**, confirm on Sentry that the Vercel build uploaded its source maps (`894501ad` gated
    the upload on `VERCEL`; local builds verified silent).
-5. **The reel round**, after Will's desk review on build 5 (the plan file's batch-1 and reel sections).
+6. **The reel round**, after Will's desk review on build 5 (the plan file's batch-1 and reel sections).
 
 ## Waiting on Will
 
