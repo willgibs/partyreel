@@ -34,6 +34,7 @@ model Will seats (Fable or Opus); nothing here depends on which.
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `clocks-and-counts` | counts grouped and chart ticks that fit; admin times in UTC; one Link visits figure; the host's dashboard on the viewer's own day; the backup CLI pinned | running | Sonnet, :3132 | integrate, then one manual `db-backup` dispatch on `launch-prep` to prove the pin |
+| `reel-migration` | the live reel's data model: the expand file (events' default mood and off switch, `reel_eligible` live and backfilled, `create_media` and the guest reads carrying it, `live_reel_enabled`) and the drop file, guarded; cut ahead of the verdicts since no board changes it | running | Opus, :3137 | review the SQL; apply the expand and regenerate types when the reel verdicts land; the drop waits for the red-team and Will's yes |
 
 ## Next, in order
 
