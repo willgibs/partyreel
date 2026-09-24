@@ -206,7 +206,7 @@ export function BrightEdge() {
         <Surface
           width={220}
           name="The QR card."
-          note="The same: on the card's border, inside its outline, never a third line."
+          note="The same: on the card's border, inside its outline, rather than a third line."
         >
           <QrFrame />
         </Surface>
