@@ -143,10 +143,14 @@ report verdicts (Dismiss, Action) are direct buttons on the report.
   CHECK; reply-from-inbox `mailto`; `handled_by`/`handled_at`), written through `requireAdminAction` + the
   service-role client (deny-all tables) with the shared `TriageStatusControl` + `TriageFilter`. Both draw
   `InboxPane`: a list beside the message, the chosen row in the URL as `?id=` (linkable, survives a
-  triage write's revalidate, needs no client state).
+  triage write's revalidate, needs no client state). Each inbox shows its newest 50 and says so under the list;
+  Show 50 more deepens it through the URL's `?show=` ([`lib/admin/list-depth.ts`](../../src/lib/admin/list-depth.ts),
+  `ShowMoreLine`), which every row link carries.
 - **Reports** — the review queue, people first, then albums and items: Dismiss/Action on open reports, an
   Open/All history filter, resolved rows read-only. Actioning an item soft-removes it; a reported person
-  is actioned out of band, so marking one handled only closes the report.
+  is actioned out of band, so marking one handled only closes the report. Each arm shows its newest 50 with
+  the same line (one `?show=` for both arms); its event, media and profile lookups ride `inChunks` and its
+  presigns run at once.
 - **Accounts** — a read-only host browser (search by email/name, capped at 50): tier, subscription/Event-Pass
   state, ACTIVE storage (the over-capacity sweep's definition) vs effective cap, the raw
   `storage_used_bytes`, counts and a test/live-aware Stripe deep-link (`buildStripeCustomerUrl`,
@@ -157,7 +161,8 @@ report verdicts (Dismiss, Action) are direct buttons on the report.
 - **Albums** — proactive moderation: a recent-uploads feed across all events + an album drill-in, with
   direct soft-remove + restore within the grace. Service-role cross-host reads
   ([`queries/moderation.ts`](../../src/lib/db/queries/moderation.ts)), tiles through the shared grid-items
-  path (`toModerationFeedItems`) into `MediaTile`/`MediaLightbox`; it owns no migration, RPC or grant.
+  path (`toModerationFeedItems`) into `MediaTile`/`MediaLightbox`; it owns no migration, RPC or grant. The
+  drill-in reads the album whole and its status line is four HEAD counts.
 - **Reels** / **Exports** — each a recent log with a 24h health count (Reels: renders that FAILED; Exports:
   every attempt that did not mint, so kill-switch, cap, limiter and empty refusals count as "rejected")
   and a platform kill switch in `ops_flags`: reel video renders (`reel_render_log`, `reel_render_enabled` → [host-app.md](host-app.md));
@@ -167,12 +172,14 @@ report verdicts (Dismiss, Action) are direct buttons on the report.
   figures and their fortnight delta, a server-drawn sparkline carries the signups, and
   [`lib/admin/queue.ts`](../../src/lib/admin/queue.ts) ranks the queue. ★ **Paid subscribers carries no delta**: the
   webhook and the pass recompute are the only writers of `tier` and write no history, so `null` is the honest answer and a
-  plausible arrow would be a fabrication.
+  plausible arrow would be a fabrication. The four figures are `admin_metrics_snapshot()`'s counted fortnight (the
+  operator left out in SQL); each inbox's age is one row, oldest first, and a failed read throws to the portal's
+  error screen, never an undated row.
 - **Metrics** — platform KPIs (accounts / content / engagement / growth), live Stripe revenue, `recharts`
-  charts. The migration-free service-role aggregator
+  charts. The service-role aggregator (`admin_metrics_snapshot()`, one jsonb, plus HEAD counts)
   ([`queries/metrics.ts`](../../src/lib/db/queries/metrics.ts)) is SPLIT so the home never waits on
   Stripe: `getPlatformDbMetrics()` for what Postgres answers, `getPlatformMetrics()` for that plus
-  revenue, read LIVE (`getPlatformRevenue`, [`stripe/revenue.ts`](../../src/lib/stripe/revenue.ts); pure
+  revenue, read LIVE over every active subscription (`for await`; `getPlatformRevenue`, [`stripe/revenue.ts`](../../src/lib/stripe/revenue.ts); pure
   `computeMrrCents`, [`stripe/mrr.ts`](../../src/lib/stripe/mrr.ts)); pure reducers in
   [`metrics/aggregate.ts`](../../src/lib/metrics/aggregate.ts). The charts
   ([`metrics-charts.tsx`](../../src/components/admin/metrics-charts.tsx)) seed `ResponsiveContainer` with

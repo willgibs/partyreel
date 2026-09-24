@@ -37,7 +37,9 @@ preservation machinery serves EVERY abuse report, not only the CSAM case the run
 - Admin: [`/admin/forensics`](../../src/app/admin/forensics) (coverage signal, holds list,
   preserve form, audit log) + the export route
   [`/admin/forensics/export`](../../src/app/admin/forensics/export/route.ts); reads in
-  [`db/queries/forensics.ts`](../../src/lib/db/queries/forensics.ts).
+  [`db/queries/forensics.ts`](../../src/lib/db/queries/forensics.ts) (every hold read whole, its lookups chunked; a
+  failed count or lookup throws, and the record export fails with an error audit row when its media or event
+  read fails).
 
 ## Invariants (don't break)
 
