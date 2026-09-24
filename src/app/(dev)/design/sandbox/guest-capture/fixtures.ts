@@ -141,3 +141,42 @@ export const MINE = ALBUM[0];
  *  the take opens with, and a still stands in for it here (the board is not
  *  about the tile, `reel-front` is). */
 export const REEL_STILL = MARKETING_IMAGES[0].src;
+
+/* ── the tracker: his own idea, on a MODERATED event ─────────────────────── */
+
+/**
+ * EVERY OTHER SCENE ON THIS BOARD IS MAYA'S OPEN WEDDING (Review off), so
+ * nothing ever waits. His tracker idea is for a MODERATED one, which this
+ * board has none of, so its four rows are Priya's own batch at a second,
+ * moderated event: two sent seconds apart, one held, one approved, one
+ * refused — the whole range his words name ("track either their upload
+ * batch's progress or approval status").
+ */
+export type TrackerStatus = "uploading" | "held" | "approved" | "refused";
+
+export type TrackerItem = {
+  id: string;
+  url: string;
+  status: TrackerStatus;
+};
+
+export const TRACKER_ITEMS: readonly TrackerItem[] = (
+  ["uploading", "held", "approved", "refused"] as const
+).map((status, i) => ({
+  id: `tracker-${status}`,
+  url: STILL(i + 6),
+  status,
+}));
+
+/**
+ * THE WORDS EACH STATUS WEARS, BORROWED RATHER THAN INVENTED TWICE: `held`
+ * is voice-guest.waiting's own recommended line, `refused` is host-curation's
+ * `told=line` label, so a reader who meets either board again meets the same
+ * words. `uploading` and `approved` belong to no other ask.
+ */
+export const TRACKER_WORDS: Record<TrackerStatus, string> = {
+  uploading: "Sending…",
+  held: "The host sees it first",
+  approved: "In the album",
+  refused: "Not in the album",
+};

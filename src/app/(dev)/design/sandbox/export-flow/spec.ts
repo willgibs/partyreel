@@ -82,9 +82,9 @@ const DRAFT = defineExploration({
   title: "Getting everything out",
   round: {
     n: 1,
-    date: "2026-09-21",
+    date: "2026-09-24",
     changed:
-      "The overtaken audit: all eight questions reshaped with the rulings that reached them folded in, five dead options dropped (the third chip, the endless spinner, the silent hollow zip, the unsaid cap, the link-first lead), and the surface redrawn as the one ruled sheet.",
+      "The desk re-cut: phone re-argued from his Save-to-Photos note, since a zip can't reach it. Options: the share sheet's own batch, the zip to Files, or both, Photos first.",
   },
   context:
     "One surface serves both sides of the album. A host taps Download in the Gallery header; a guest taps Download all above the tiles. Both get Download album, three chips with live counts, a size, and a button that mints a signed token and hands it to a Worker that streams a zip. It is drawn here as the one responsive sheet the guest's dialogs are ruled onto, at 375 by 812 with 1440 by 900 on the knob, over one wedding of 148 items. Every count and size is the real arithmetic over a fixture summary. Nothing here mints, signs, logs or reaches the Worker.",
@@ -281,36 +281,37 @@ const DRAFT = defineExploration({
     {
       id: "phone",
       label: "Where the file lands",
-      question: "What should a phone do with the file?",
+      question:
+        "A zip can never enter Photos: what should a phone's Download reach for first?",
       context:
-        "The download is a top level form post that answers as an attachment, and no copy anywhere names where a guest should go looking. On the way IN he took our own sheet over the system's own chooser.",
+        "Only individual files reach the native Photos library, through the system share sheet's own Save; a zip can only ever reach Files. His note asks for the native way as the default, every existing way still offered.",
       options: [
         {
-          id: "today",
-          label: "The attachment, and whatever iOS does",
+          id: "zip",
+          label: "The zip to Files",
           means:
-            "The browser takes it. Where it went is the browser's business, and the album never mentions it again.",
+            "The button says it saves to Files before the tap, and the album says which folder it went to after. Never the native library.",
         },
         {
-          id: "files",
-          label: "The copy names where it lands",
+          id: "batch",
+          label: "Every file to the share sheet",
           means:
-            "The button says it saves to Files before the tap, and the album says which folder it went to after.",
+            "No zip at all: every file goes to the system sheet at once, whose own Save leads straight into Photos. Needs them all in memory first.",
         },
         {
-          id: "share",
-          label: "Hand it to the phone's share sheet",
+          id: "both",
+          label: "Both, Photos first",
           means:
-            "The zip goes to the system sheet, so it can be saved, sent on, or dropped to a laptop. It needs the file in memory first.",
+            "The sheet's own button saves straight to Photos; a quieter line under it still offers the one zip, to Files, for anyone who wants one.",
         },
       ],
-      recommended: "files",
+      recommended: "both",
       because:
-        "Naming the destination costs one line, removes the whole where did it go moment, and keeps the words ours, which is the lean he took on the way in. The share sheet needs the bytes client side, which no party phone has for an ordinary album.",
+        'His own note: the native library should lead, and "we\'re not looking to reduce ways to download, just include the expected native way as the default." Both keeps the zip and makes Photos the first tap.',
       overrule:
-        "If a guest's real intent is to send the album on rather than store it, only the system sheet serves that.",
+        "If holding every file in memory before the sheet opens is too slow on a party network, the zip alone is the safe default and Photos becomes the special case.",
       lands:
-        "What the download says on a phone, and whether the album ever tells a guest where their copy went.",
+        "Whether a phone's bulk download ever reaches the native Photos library, or stays inside Files.",
       after: { ask: "object" },
       // No screen knob: this one is only ever a phone, so the tile IS that column.
       tile: "phone",

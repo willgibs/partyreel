@@ -9,16 +9,23 @@ import {
   AFTER_TENTH,
   ALBUM,
   MINE,
+  TRACKER_ITEMS,
   YOURS_ALBUM_COUNT,
   YOURS_ONLY,
 } from "./fixtures";
 import {
+  AddPhotosRow,
   GuestsSection,
   MomentCard,
   NameStepCard,
   OfferCaption,
   OfferCard,
   OfferSheet,
+  TrackerAccountHeader,
+  TrackerButton,
+  TrackerInlineStrip,
+  TrackerRow,
+  TrackerSheet,
 } from "./parts";
 import { Ground, Header, Scene, screenOf, type ScreenId } from "./scene";
 import { GUEST_CAPTURE } from "./spec";
@@ -258,6 +265,68 @@ function nameScreen(id: "silent" | "confirm", s: BoardState) {
   );
 }
 
+/* ── tracker: his own idea, on a MODERATED event (`tracker`) ─────────────── */
+
+/** Whether a sheet opened, and from what: honest either way, never asserted. */
+const measureTracker: Reader = (root) => {
+  const rows = root.querySelectorAll("[data-gc-tracker-row]").length;
+  if (!rows) return null;
+  const sheet = root.querySelector('[data-gc-tracker="sheet"]');
+  const button = root.querySelector('[data-gc-tracker="button"]');
+  if (sheet) {
+    return `Measured: ${rows} of her own uploads listed in the open sheet${
+      button ? ", opened from a new button beside Add photos" : ""
+    }.`;
+  }
+  return `Measured: ${rows} of her own tiles, each carrying its own status inline, no new surface opened.`;
+};
+
+function trackerScreen(id: "button" | "menu" | "inline") {
+  if (id === "inline") {
+    return (
+      <Scene
+        id="tracker-inline"
+        screen="375"
+        title="Her tracker"
+        measure={measureTracker}
+      >
+        <div className="min-h-full bg-background text-foreground">
+          <Header state="named" />
+          <div className="mx-auto max-w-[640px] pt-5">
+            <TrackerInlineStrip />
+          </div>
+        </div>
+      </Scene>
+    );
+  }
+  return (
+    <Scene
+      id={`tracker-${id}`}
+      screen="375"
+      title="Her tracker"
+      measure={measureTracker}
+    >
+      <Ground
+        header="named"
+        action={
+          <AddPhotosRow
+            tracker={id === "button" ? <TrackerButton /> : undefined}
+          />
+        }
+        items={ALBUM}
+      />
+      <TrackerSheet
+        title={id === "menu" ? "Your photos" : "Your uploads"}
+        above={id === "menu" ? <TrackerAccountHeader /> : undefined}
+      >
+        {TRACKER_ITEMS.map((item) => (
+          <TrackerRow key={item.id} item={item} />
+        ))}
+      </TrackerSheet>
+    </Scene>
+  );
+}
+
 /* ── the map the step draws from ─────────────────────────────────────────── */
 
 const PREVIEWS: PreviewsFor<typeof GUEST_CAPTURE> = {
@@ -275,6 +344,10 @@ const PREVIEWS: PreviewsFor<typeof GUEST_CAPTURE> = {
 
   "name.silent": (s) => nameScreen("silent", s),
   "name.confirm": (s) => nameScreen("confirm", s),
+
+  "tracker.button": () => trackerScreen("button"),
+  "tracker.menu": () => trackerScreen("menu"),
+  "tracker.inline": () => trackerScreen("inline"),
 };
 
 export function GuestCaptureBoard() {
