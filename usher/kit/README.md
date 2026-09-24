@@ -100,8 +100,8 @@ Read the Handoff, the lane check and the captures, never the whole diff.
    hero, demo and pricing pages) refreshes `kit/` from its README's Sources, the screens by `usher/kit/kit-capture.mjs`
    from partyreel.com; STATUS
    rewritten by hand where the lane changed what is true now; a new board into its leverage place; the three lab
-   tests when the record touched the desk (`touchpoints.ts`, a registry file or `docs/reviews/`, the only things they
-   read); stage by name; commit `record: <track> ... [skip ci]`; push.
+   tests when the record touched the desk (`touchpoints.ts`, a registry file or `docs/reviews/`: nothing else a record
+   edits reaches them); stage by name; commit `record: <track> ... [skip ci]`; push.
 7. Prune only after the lane's final line (a lane asked for more work after its handoff is still working):
    `git worktree remove --force ../partyreel-wt/<track>`, `git branch -d lp/<track>`, `git worktree prune`; kill its
    port.
@@ -130,7 +130,8 @@ The admin portal's alias is `partyreel-admin-git-launch-prep-partyreel.vercel.ap
 ## Milestone (on Will's yes)
 
 `launch-prep` holds at most about two rounds of unmerged work. A milestone: the full gate on `launch-prep`
-(`rm -rf .next/dev`, then `FULL=1 zsh usher/kit/gate-lane.sh <N> none`); `git checkout main && git merge --no-ff launch-prep` (never squash; subject
+(`rm -rf .next/dev`, then `FULL=1 zsh usher/kit/gate-lane.sh <N> none`, since a merge at the tip would scope itself);
+`git checkout main && git merge --no-ff launch-prep` (never squash; subject
 `milestone-<n>: prod = <the three to five things>`); an annotated tag `milestone-<n>`; push `main`, then the tag;
 production READY at the merge SHA, then a verification pass on partyreel.com (what previews cannot prove);
 `git checkout launch-prep && git merge --ff-only main`; STATUS and the pickup rewritten. `main` moves only this way or
@@ -155,8 +156,8 @@ by a true hotfix: fixed on `main`, verified, back-merged to `launch-prep` the sa
 
 - `integrate.sh <track> <sha> <board|none> <msgfile>`: `merge-lane.sh` (the `--no-ff` merge, the manifest deleted,
   the registry files resolved and the specimen code regenerated, the registry tests and, when the merge adds code to
-  the lane's head, the integration's one typecheck before the commit), then `gate-lane.sh <N> <board>`, one chain gated
-  on exits; ends `INTEGRATE DONE green|red`.
+  the lane's head or on `FULL=1`, the integration's one typecheck before the commit), then `gate-lane.sh <N> <board>`,
+  one chain gated on exits; ends `INTEGRATE DONE green|red`.
 - `gate-lane.sh <N> <board>`: the gate on the merge at HEAD, on :3130 (never a lane's port), each step on its own exit
   code with its seconds. `pnpm test` alone when the merge adds only docs to the lane's head (the lane's gate ran on
   every code path in it); otherwise lint, `pnpm test` and the build, then the lab (`lab:smoke`, and `lab:demo` on the

@@ -2,7 +2,8 @@
 # integrate.sh <track> <handoff-sha> <board> <msgfile>: one lane's integration as ONE chain that cannot run past a red:
 # the merge (merge-lane.sh, gated on its exit AND its "MERGED <sha>" line; the sha shortened to 8 because the merge script
 # compares short shas), then the next gate number (from the highest gate<N>.log in $S), then every EXIT line read and
-# counted. The gate scopes itself from the merge's parents (gate-lane.sh; FULL=1 in the environment forces the full gate).
+# counted. The gate scopes itself from the merge's parents (gate-lane.sh); FULL=1 in the environment forces the full gate
+# and the merge's typecheck.
 # Run it detached and wait on "INTEGRATE DONE": (nohup zsh usher/kit/integrate.sh t sha board msg > $S/integrate-t.log 2>&1 &)
 # Born 2026-09-20 from two mistakes in one day: a gate started on the merge script's tail (a full sha aborted it silently),
 # and a lane's branch pruned before the merge line was read.
