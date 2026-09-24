@@ -18,10 +18,10 @@ import { EVENT } from "./fixtures";
  * face (`src/components/reel/poster-card.tsx`, this lane's own read): imported
  * directly, never re-typed, because it carries no hooks and no portal.
  *
- * ★ ROUND TWO'S OWN GROUND (carried from round one, ruled): the tile is
+ * ★ ROUND TWO'S OWN GROUND (carried from round one, answered): the tile is
  * headed "Highlight reel" and described "Make your own clip to share", no
- * style name, no moment count; its corner keeps the decided "Make your own"
- * icon (`verbs=watch-make`) always. `signature` varies only the MEDIA;
+ * style name, no moment count; its corner keeps round one's own "Make your
+ * own" icon (`verbs=watch-make`) always. `signature` varies only the MEDIA;
  * `badge` varies only the SECOND corner, the identity mark `TileCard` used
  * to draw unconditionally as "The reel" (round one's own `TileBadge`, gone
  * with it: a text chip repeating a heading now on the card is a fact this
@@ -45,11 +45,15 @@ export function Crossfade({
   holdSec,
   restIndex = 0,
   className,
+  instant,
 }: {
   images: readonly string[];
   holdSec: number;
   restIndex?: number;
   className?: string;
+  /** `signature=hardcut`'s own switch: the same keyframe, stepped rather than
+   *  eased, so each image jumps straight in rather than dissolving. */
+  instant?: boolean;
 }) {
   const n = images.length || 1;
   const total = holdSec * n;
@@ -66,7 +70,7 @@ export function Crossfade({
           src={src}
           alt=""
           data-rf-hero={i === restIndex ? "" : undefined}
-          className="rf-crossfade-img"
+          className={cn("rf-crossfade-img", instant && "rf-cut-img")}
           style={
             {
               "--rf-hold": holdSec,
@@ -190,6 +194,22 @@ export function SignatureFrame({ images }: { images: readonly string[] }) {
   );
 }
 
+/**
+ * `hardcut`: no dissolve at all, the take's own moments held full then cut
+ * straight to the next. The one option here that varies the CROSSFADE ITSELF
+ * rather than dressing it: a jump between held frames is something an album
+ * of photographs never does on its own, so the motion alone is the footage
+ * cue, wearing no wash, no letterbox and no mark. Same six-image cycle, same
+ * zero-canvas cost; only `Crossfade`'s `instant` swaps the timing function.
+ */
+export function SignatureHardcut({ images }: { images: readonly string[] }) {
+  return (
+    <div data-rf-signature="hardcut" className="absolute inset-0 bg-black">
+      <Crossfade images={images} holdSec={3.2} restIndex={0} instant />
+    </div>
+  );
+}
+
 /* ── badge: what replaces "The reel" chip, if anything ────────────────────── */
 
 /** `badge` ask's "live" option: the hub's own dot and word (bible 7: reuse
@@ -222,9 +242,23 @@ export function GlyphBadge() {
   );
 }
 
+/** `badge` ask's "duration" option: a short length mark, the convention a
+ *  phone's camera roll already uses on a video thumbnail, so the corner
+ *  promises a length rather than a status. */
+export function DurationBadge() {
+  return (
+    <span
+      data-rf-badge="duration"
+      className="flex items-center rounded-full bg-black/55 px-2 py-1 text-[11px] font-semibold text-white tabular-nums backdrop-blur-sm"
+    >
+      0:08
+    </span>
+  );
+}
+
 /* ── the living tile itself ───────────────────────────────────────────────── */
 
-/** The decided corner control (`verbs=watch-make`, ruled): every round-two
+/** Round one's own corner control (`verbs=watch-make`): every round-two
  *  preview wears it, since neither `signature` nor `badge` asks it again. */
 export function MakeYoursMark() {
   return (
@@ -242,7 +276,7 @@ export function MakeYoursMark() {
  * THE LIVING TILE: `PosterCard` reshaped horizontal (the shipped card is a 4:5
  * keepsake portrait; this slot is full-bleed above the album, the same box
  * `aboveAlbum` already owns). Headed "Highlight reel", described "Make your
- * own clip to share" (ruled, round one): neither is a prop here because
+ * own clip to share" (round one's own words): neither is a prop here because
  * neither is a question any more, only `media` (`signature`) and `badge`
  * (`badge`) still are.
  */
@@ -314,7 +348,7 @@ export function Ground({
   slot,
   items,
 }: {
-  /** The reel's own slot: its OWN box directly above the album (ruled). */
+  /** The reel's own slot: its OWN box directly above the album (round one). */
   slot: ReactNode;
   items: GridMedia[];
 }) {

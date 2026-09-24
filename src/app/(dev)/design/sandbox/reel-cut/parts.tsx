@@ -11,6 +11,7 @@ import {
   Film,
   Heart,
   Hourglass,
+  Music2,
   Pause,
   Play,
   Plus,
@@ -58,8 +59,8 @@ import { CutStill } from "./stills";
 
 /* ── the reel's own view, which is where a cut begins ─────────────────────── */
 
-/** A round control in the view's weighted dock: the ruled shape (reel-view
- *  round one), reused here as ground. */
+/** A round control in the view's weighted dock: reel-view round one's own
+ *  shape, reused here as ground. */
 function ViewControl({
   label,
   children,
@@ -127,8 +128,8 @@ export function ReelView({
         />
       </div>
 
-      {/* No event name on screen (ruled): the arrival chip takes the
-          top-left corner instead, a live-feel beat rather than a label. */}
+      {/* No event name on screen: the arrival chip takes the top-left corner
+          instead, a live-feel beat rather than a label. */}
       <div className="relative flex items-start justify-between p-3">
         <span className="rounded-full bg-black/40 px-3 py-1.5 text-caption text-white/85 backdrop-blur-sm">
           Ruby just added a photo
@@ -164,8 +165,8 @@ export function ReelView({
             <Plus className="size-4" aria-hidden />
           </ViewControl>
         </div>
-        {/* "Make your own" the one primary beneath the row (ruled): removing
-            it for `noencode` empties this slot rather than disabling one icon
+        {/* "Make your own" is the one primary beneath the row: removing it
+            for `noencode` empties this slot rather than disabling one icon
             among many. */}
         {make === "greyed" ? (
           <span
@@ -188,9 +189,9 @@ export function ReelView({
         ) : null}
       </div>
 
-      {/* The event's code, a white plate bottom right (ruled): "Scan to add
-          yours" is the whole of it, so it never fights the centred dock for
-          width at 375. */}
+      {/* The event's code, a white plate bottom right: "Scan to add yours"
+          is the whole of it, so it never fights the centred dock for width
+          at 375. */}
       <span
         aria-label="Scan to add yours, at partyreel.com"
         className="absolute right-3 bottom-3 z-10 flex size-9 items-center justify-center rounded-full bg-white text-zinc-900 shadow-lift"
@@ -207,7 +208,8 @@ export function ReelView({
 
 /** The album page a guest came from, with the reel's living tile at its head:
  *  headed "Highlight reel" and described "Make your own clip to share"
- *  (ruled, reel-front round one) rather than the plain caption this replaced. */
+ *  (reel-front round one's own line) rather than the plain caption this
+ *  replaced. */
 export function AlbumPage({
   still,
   children,
@@ -793,6 +795,38 @@ export function MarkChip() {
     >
       Free
       <ChevronRight className="size-3" aria-hidden />
+    </span>
+  );
+}
+
+/* ── the cut's sound ──────────────────────────────────────────────────────── */
+
+export type SoundShape = "silent" | "native" | "bed";
+
+/** The line under the cut that says how the audio behaves: `native`'s own
+ *  tell, since a mute control is a fact about playback, not a visible mark. */
+export function SoundLine() {
+  return (
+    <p
+      data-rc-sound="line"
+      className="mx-auto mt-2 max-w-[38ch] text-center text-micro text-white/50"
+    >
+      Video moments keep their own captured sound; a photo stretch stays
+      quiet under it. One mute control covers the whole clip.
+    </p>
+  );
+}
+
+/** The corner chip that names a chosen track: `bed`'s own tell, the same
+ *  slot `MarkChip` uses on the opposite corner so the two never collide. */
+export function SoundChip({ label = "Warm Piano" }: { label?: string }) {
+  return (
+    <span
+      data-rc-sound="chip"
+      className="absolute top-2 right-2 z-20 flex h-7 items-center gap-1 rounded-full bg-black/55 px-2.5 text-micro font-medium text-white/85 backdrop-blur-sm"
+    >
+      <Music2 className="size-3" aria-hidden />
+      {label}
     </span>
   );
 }

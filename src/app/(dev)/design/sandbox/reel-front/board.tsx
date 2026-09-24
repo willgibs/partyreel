@@ -10,10 +10,12 @@ import type { PreviewsFor } from "@/components/lab/exploration";
 import { ALBUM_IDS, mediaFor, TAKE_STILLS } from "./fixtures";
 import {
   Ground,
+  DurationBadge,
   GlyphBadge,
   LiveBadge,
   SignatureFrame,
   SignatureGraded,
+  SignatureHardcut,
   SignaturePlain,
   SignatureStacked,
   TileCard,
@@ -85,7 +87,9 @@ const measureSignature: Reader = (root) => {
   )}" treatment over ${count} of the reel's own take.`;
 };
 
-function signatureScreen(shape: "plain" | "graded" | "stacked" | "frame") {
+function signatureScreen(
+  shape: "plain" | "graded" | "stacked" | "frame" | "hardcut",
+) {
   const media =
     shape === "plain" ? (
       <SignaturePlain images={TAKE_STILLS} />
@@ -93,8 +97,10 @@ function signatureScreen(shape: "plain" | "graded" | "stacked" | "frame") {
       <SignatureGraded images={TAKE_STILLS} />
     ) : shape === "stacked" ? (
       <SignatureStacked images={TAKE_STILLS} />
-    ) : (
+    ) : shape === "frame" ? (
       <SignatureFrame images={TAKE_STILLS} />
+    ) : (
+      <SignatureHardcut images={TAKE_STILLS} />
     );
   return (
     <TilePair
@@ -117,9 +123,12 @@ const measureBadge: Reader = (root) => {
   }.`;
 };
 
-function badgeScreen(shape: "none" | "live" | "glyph") {
+function badgeScreen(shape: "none" | "live" | "glyph" | "duration") {
   const badge =
-    shape === "none" ? null : shape === "live" ? <LiveBadge /> : <GlyphBadge />;
+    shape === "none" ? null
+    : shape === "live" ? <LiveBadge />
+    : shape === "glyph" ? <GlyphBadge />
+    : <DurationBadge />;
   return (
     <TilePair
       id={`badge-${shape}`}
@@ -138,10 +147,12 @@ const PREVIEWS: PreviewsFor<typeof REEL_FRONT> = {
   "signature.graded": () => signatureScreen("graded"),
   "signature.stacked": () => signatureScreen("stacked"),
   "signature.frame": () => signatureScreen("frame"),
+  "signature.hardcut": () => signatureScreen("hardcut"),
 
   "badge.none": () => badgeScreen("none"),
   "badge.live": () => badgeScreen("live"),
   "badge.glyph": () => badgeScreen("glyph"),
+  "badge.duration": () => badgeScreen("duration"),
 };
 
 export function ReelFrontBoard() {

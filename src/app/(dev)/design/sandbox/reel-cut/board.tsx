@@ -22,6 +22,8 @@ import {
   QuotedExportModal,
   ReelView,
   SettingsRow,
+  SoundChip,
+  SoundLine,
   StackingFrame,
   TileDescriptionEcho,
   WAIT_NOTE,
@@ -34,6 +36,7 @@ import type {
   LooksShape,
   MakeSlot,
   MarkShape,
+  SoundShape,
 } from "./parts";
 import {
   Dock,
@@ -61,7 +64,7 @@ import { REEL_CUT } from "./spec";
  * once because that is its question; `looks`, `moments`, `blocked` and `wait`
  * are drawn INSIDE the room shape `room` landed on, because a question about
  * where a panel goes is meaningless in a room nobody has chosen; `finish`,
- * `mark` and `noencode` are roots and wear today's room.
+ * `mark`, `sound` and `noencode` are roots and wear today's room.
  *
  * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED (the discipline every
  * board over this album holds): a covered percentage, a count of looks
@@ -608,7 +611,55 @@ function MarkScene({ shape, s }: { shape: MarkShape; s: BoardState }) {
   );
 }
 
-/* ── 9. noencode: what stands where the verb was ─────────────────────────── */
+/* ── 9. sound: whether a cut carries audio at all, and whose ─────────────── */
+
+const measureSound: Reader = (root) => {
+  const drawn = root.querySelector("[data-rc-cut] img");
+  if (!drawn) return null;
+  const chip = root.querySelector<HTMLElement>('[data-rc-sound="chip"]');
+  const line = root.querySelector<HTMLElement>('[data-rc-sound="line"]');
+  return `Measured: the room ${
+    chip
+      ? `names a chosen track on the frame itself, "${chip.textContent?.trim()}"`
+      : line
+        ? `says ${words(line.textContent)} words about how the audio behaves`
+        : "says nothing about sound at all"
+  }.`;
+};
+
+function SoundScene({ shape, s }: { shape: SoundShape; s: BoardState }) {
+  const sc = screen(s);
+  const { byFill } = useStills();
+  const ids = fillIds(CUT.fill, GUEST_POOL);
+  return (
+    <Scene
+      id={`sound-${shape}`}
+      screen={sc}
+      title="The cut's sound"
+      measure={measureSound}
+    >
+      <Room
+        screen={sc}
+        shape={TODAY_ROOM}
+        cut={
+          <>
+            <CutStill
+              src={byFill.get(CUT.fill) ?? null}
+              label="Your clip, one frame"
+            />
+            {shape === "bed" ? <SoundChip /> : null}
+          </>
+        }
+        meta={cutMeta(CUT.styleId, ids.length)}
+        dock={ids}
+        tray={null}
+        underTray={shape === "native" ? <SoundLine /> : null}
+      />
+    </Scene>
+  );
+}
+
+/* ── 10. noencode: what stands where the verb was ────────────────────────── */
 
 const measureNoencode: Reader = (root) => {
   const own = root.querySelector<HTMLElement>("[data-rc-make-own]");
@@ -702,6 +753,10 @@ const PREVIEWS: PreviewsFor<typeof REEL_CUT> = {
   "mark.line": (s) => <MarkScene shape="line" s={s} />,
   "mark.bare": (s) => <MarkScene shape="bare" s={s} />,
   "mark.chip": (s) => <MarkScene shape="chip" s={s} />,
+
+  "sound.silent": (s) => <SoundScene shape="silent" s={s} />,
+  "sound.native": (s) => <SoundScene shape="native" s={s} />,
+  "sound.bed": (s) => <SoundScene shape="bed" s={s} />,
 
   "noencode.line": (s) => <NoencodeScene shape="line" s={s} />,
   "noencode.greyed": (s) => <NoencodeScene shape="greyed" s={s} />,

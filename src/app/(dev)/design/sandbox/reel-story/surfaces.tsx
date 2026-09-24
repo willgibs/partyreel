@@ -286,9 +286,9 @@ export function ArcPreview({
 export type TeaserVariant = "engine" | "film" | "poster" | "crossfade";
 
 /** The `crossfade` option's own cycle: the album's stills, never the album's
- *  newest (that undid the very differentiation reel-front's own tile was
- *  ruled to answer), one shared keyframe (reel-story.css), phase-shifted by a
- *  negative per-image delay so each gets its own sixth of the cycle. */
+ *  newest (that undid the very differentiation the album's own tile exists to
+ *  make), one shared keyframe (reel-story.css), phase-shifted by a negative
+ *  per-image delay so each gets its own sixth of the cycle. */
 function TeaserCrossfade({ images }: { images: readonly string[] }) {
   const n = images.length || 1;
   const total = 3.2 * n;

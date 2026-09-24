@@ -10,10 +10,10 @@
    the percentages below assume exactly six).
 
    Two paces share the one keyframe (only `--rf-hold` changes): FAST for the
-   living tile itself (the reel plays faster in the hand than on a wall, ruled);
-   SLOW for the no-engine alternative, which is explicitly a slower, gentler
-   cycle of the newest stills: the pace difference is real evidence for that
-   ask, not decoration. */
+   living tile itself (the reel plays faster in the hand than on a wall,
+   reel-screen's own finding); SLOW for the no-engine alternative, which is
+   explicitly a slower, gentler cycle of the newest stills: the pace
+   difference is real evidence for that ask, not decoration. */
 .rf-crossfade-img {
   position: absolute;
   inset: 0;
@@ -54,6 +54,14 @@
   .rf-crossfade-img[data-rf-hero] {
     opacity: 1;
   }
+}
+
+/* ROUND TWO'S `signature=hardcut` OPTION: the exact same keyframe and cycle as
+   the crossfade above, only stepped rather than eased, so each image jumps
+   straight in instead of dissolving. Two classes so specificity, not source
+   order, decides: this always wins over the plain crossfade timing. */
+.rf-crossfade-img.rf-cut-img {
+  animation-timing-function: steps(1, jump-end);
 }
 
 /* ROUND TWO'S `signature=frame` OPTION: a quiet pulse on the recording dot,

@@ -1,7 +1,7 @@
 /* THE HOME TEASER'S CROSSFADE OPTION, PLAIN CSS OVER PLAIN <img> TAGS.
-   The same slow, gentle cycle the album's own tile wears (reel-front, ruled),
-   redrawn locally rather than imported: a board's directory dies at its
-   ruling (guest-capture's own rule, carried across every reel-round board),
+   The same slow, gentle cycle the album's own tile wears, redrawn locally
+   rather than imported: a board's directory dies once it is merged
+   (guest-capture's own rule, carried across every reel-round board),
    so this file never reaches into reel-front's. Six images, one keyframe, a
    negative per-image delay phase-shifts each into its own sixth of the cycle
    (the `rs-` prefix keeps this board's class and keyframe names apart from
