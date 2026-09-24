@@ -4,7 +4,7 @@
 > [`systems/`](systems); what might be next is [`ROADMAP.md`](ROADMAP.md); what runs this minute is
 > [`tracks/orchestrator.md`](tracks/orchestrator.md); what shipped is `git log`.
 
-**Updated:** 2026-09-23
+**Updated:** 2026-09-24
 
 ## The era
 
@@ -13,21 +13,19 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoin
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: no read stops at 1,000 rows, then milestone 28
+## The current round: closed at milestone 28; next, Will's desk review
 
-Will's asks of 2026-09-23 (the plan: `~/.claude/plans/great-work-however-1-dapper-twilight.md`, its top section):
-- **Milestone 27 is live** (`546e2489`) with the identity contract applied after it; the Stripe TEST walk passed on
-  partyreel.com; `upload-owner` and `delete-final` are merged (a claimed guest row uploads only for its owner; a guest's
-  own delete is final and says so), their migrations applied.
-- **The 1,000-row round is merged** ("Let's ensure we will not face any of those issues here"): PostgREST's
-  `max_rows` (live: 1,000; write responses uncapped) had silently clipped 50 audited reads. Every list now reads whole
-  (`readAllPages`), every count counts, every id list chunks, every set-returning RPC pages, every sweep reports what it
-  left; `row-cap-policy.test.ts` and a Sentry tripwire keep it so. Next: alias build 4, its red-team, milestone 28.
+- **Milestone 28 is live** (`1076d3d7`, 2026-09-24): no read stops at 1,000 rows (PostgREST's live `max_rows` is 1,000,
+  write responses uncapped): every list reads whole (`readAllPages`), every count counts, every id list chunks, every
+  set-returning RPC pages, every sweep reports what it left, legal hold is decided in one answer; `row-cap-policy.test.ts`
+  and a Sentry tripwire keep it so. A claimed guest ticket uploads only for its signed-in owner, and a guest's own delete
+  is final and reaches no host surface.
 - **A block for bad actors** (his concept): the `event-safety` board on his three answers (a block puts the person out
   and removes their uploads; approve newcomers, close to newcomers and an invite list; all free on every plan).
 - **The reel round** waits on his desk review: the rolling live composer and the video window reader are on the tree
   (harnesses `/design/lab/tools/reel-live` and `/design/lab/tools/reel-video`), six boards on the desk; its plan is
-  the same file's reel section (the expand migration first, the drop migration after the red-team).
+  `~/.claude/plans/great-work-however-1-dapper-twilight.md`'s reel section (the expand migration first, the drop after
+  the red-team).
 
 ## The desk
 
@@ -39,10 +37,11 @@ order: `media-viewer`, `reel-view`, `reel-front`, `reel-screen`, `reel-cut`, `re
 
 ## Live state
 
-- **Prod:** partyreel.com is `main` at tag `milestone-27` (`546e2489`, 2026-09-23), both projects READY and passed:
-  the dashboard renders again, `/account` and profiles, the demo reads "from 3 guests", a real upload held for review
-  on a verified-emails event, the lab 404s without its key, no runtime error since the deploy. `admin.partyreel.com`
-  is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
+- **Prod:** partyreel.com is `main` at tag `milestone-28` (`1076d3d7`, 2026-09-24), both projects READY and passed: the
+  guest poll serves the scale probe's 1,145 photos (1,000 at milestone 27) then 304, the dashboard (1,145 items, 20 to
+  review), `/account`, a real upload through production's pipeline, the lab 404s without its key, the admin door
+  redirects, no new runtime error or Sentry issue. `admin.partyreel.com` is served by `partyreel-admin`
+  (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `6e67494b` (build 4), red-teamed
   2026-09-24 in Will's Chrome: the scale probe whole for the host (1,145 on the card, the hub and Download all; Review's
   20 oldest; the bin's 30, no withdrawal) and for a guest (the poll 1,145 then 304); a kept ticket never credits the next
@@ -75,3 +74,5 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 ## Waiting on Will
 
 - **His desk review**: 26 boards; the six reel boards first, and the new `event-safety`.
+- **A look at the admin portal** (it needs his TOTP): `/admin`, `/admin/metrics`, `/admin/jobs` and the scale probe's
+  album under `/admin/albums`, now reading whole.
