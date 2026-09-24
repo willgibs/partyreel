@@ -16370,20 +16370,20 @@
       "indexed": false,
       "contracts": [
         {
-          "title": "leaves the operator out of every one of them",
-          "suite": [
-            "the four figures"
-          ],
-          "file": "src/lib/admin/kpi.test.ts",
-          "line": 46
-        },
-        {
           "title": "counts a fortnight against the fortnight before it",
           "suite": [
             "the four figures"
           ],
           "file": "src/lib/admin/kpi.test.ts",
-          "line": 52
+          "line": 45
+        },
+        {
+          "title": "takes every account the database counted, past 1,000",
+          "suite": [
+            "the four figures"
+          ],
+          "file": "src/lib/admin/kpi.test.ts",
+          "line": 51
         },
         {
           "title": "reads 'active' as last seen, and says so",
@@ -16391,7 +16391,7 @@
             "the four figures"
           ],
           "file": "src/lib/admin/kpi.test.ts",
-          "line": 64
+          "line": 57
         },
         {
           "title": "takes uploads whole and by fortnight from the counts it is handed",
@@ -16399,7 +16399,7 @@
             "the four figures"
           ],
           "file": "src/lib/admin/kpi.test.ts",
-          "line": 74
+          "line": 64
         },
         {
           "title": "gives paid subscribers NO delta, because nothing remembers last fortnight",
@@ -16407,7 +16407,7 @@
             "the four figures"
           ],
           "file": "src/lib/admin/kpi.test.ts",
-          "line": 80
+          "line": 70
         },
         {
           "title": "says something true about an empty platform rather than dividing by zero",
@@ -16415,7 +16415,7 @@
             "the four figures"
           ],
           "file": "src/lib/admin/kpi.test.ts",
-          "line": 95
+          "line": 80
         },
         {
           "title": "draws one point per day, in order",
@@ -16423,7 +16423,7 @@
             "the sparkline"
           ],
           "file": "src/lib/admin/kpi.test.ts",
-          "line": 103
+          "line": 88
         },
         {
           "title": "puts the highest count at the top of the box and the lowest at the bottom",
@@ -16431,7 +16431,7 @@
             "the sparkline"
           ],
           "file": "src/lib/admin/kpi.test.ts",
-          "line": 110
+          "line": 95
         },
         {
           "title": "draws a flat fortnight flat instead of dividing by zero",
@@ -16439,7 +16439,7 @@
             "the sparkline"
           ],
           "file": "src/lib/admin/kpi.test.ts",
-          "line": 117
+          "line": 102
         },
         {
           "title": "draws nothing for no days at all",
@@ -16447,7 +16447,7 @@
             "the sparkline"
           ],
           "file": "src/lib/admin/kpi.test.ts",
-          "line": 125
+          "line": 110
         }
       ]
     },
@@ -17125,7 +17125,15 @@
             "the widening window"
           ],
           "file": "src/lib/dashboard/arrivals.test.ts",
-          "line": 25
+          "line": 34
+        },
+        {
+          "title": "says the whole count, past any read's length",
+          "suite": [
+            "the widening window"
+          ],
+          "file": "src/lib/dashboard/arrivals.test.ts",
+          "line": 41
         },
         {
           "title": "widens to today when the hour is short",
@@ -17133,7 +17141,7 @@
             "the widening window"
           ],
           "file": "src/lib/dashboard/arrivals.test.ts",
-          "line": 33
+          "line": 50
         },
         {
           "title": "takes the widest window when nothing fills the strip, and dates it",
@@ -17141,7 +17149,7 @@
             "the widening window"
           ],
           "file": "src/lib/dashboard/arrivals.test.ts",
-          "line": 47
+          "line": 60
         },
         {
           "title": "widens past today only when today is genuinely empty",
@@ -17149,7 +17157,15 @@
             "the widening window"
           ],
           "file": "src/lib/dashboard/arrivals.test.ts",
-          "line": 57
+          "line": 69
+        },
+        {
+          "title": "counts each window from where it starts: the last sixty minutes, and the host's midnight",
+          "suite": [
+            "the widening window"
+          ],
+          "file": "src/lib/dashboard/arrivals.test.ts",
+          "line": 73
         },
         {
           "title": "says which window it settled on, including how stale the newest is",
@@ -17157,7 +17173,7 @@
             "the widening window"
           ],
           "file": "src/lib/dashboard/arrivals.test.ts",
-          "line": 64
+          "line": 80
         },
         {
           "title": "never claims freshness it cannot back up",
@@ -17165,7 +17181,7 @@
             "the widening window"
           ],
           "file": "src/lib/dashboard/arrivals.test.ts",
-          "line": 75
+          "line": 91
         }
       ]
     },
@@ -17466,7 +17482,7 @@
             "signed out"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 59
+          "line": 69
         },
         {
           "title": "maps every field",
@@ -17474,7 +17490,7 @@
             "one row per event"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 67
+          "line": 77
         },
         {
           "title": "withholds nothing the RPC already withheld (a gated event's null date passes through)",
@@ -17482,7 +17498,7 @@
             "one row per event"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 82
+          "line": 92
         },
         {
           "title": "drops a blank or missing typed name rather than listing an empty string",
@@ -17490,7 +17506,7 @@
             "one row per event"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 88
+          "line": 98
         },
         {
           "title": "collapses into one entry: names collected, counts summed, the newer upload wins",
@@ -17498,7 +17514,7 @@
             "two guest rows at the same event"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 96
+          "line": 106
         },
         {
           "title": "never lets a null last_upload_at from one row erase a real one from another",
@@ -17506,7 +17522,7 @@
             "two guest rows at the same event"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 121
+          "line": 131
         },
         {
           "title": "dedupes an identical typed name across the group's rows",
@@ -17514,7 +17530,7 @@
             "two guest rows at the same event"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 130
+          "line": 140
         },
         {
           "title": "keeps the RPC's own order (most recently active first)",
@@ -17522,7 +17538,7 @@
             "several events"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 141
+          "line": 151
         },
         {
           "title": "keeps a group's rank at its best-placed row, even when its second row arrives later",
@@ -17530,7 +17546,7 @@
             "several events"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 150
+          "line": 160
         },
         {
           "title": "is never offered: an empty row alone carries no event onto the card",
@@ -17538,7 +17554,7 @@
             "an event with nothing to claim"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 170
+          "line": 180
         },
         {
           "title": "keeps an event whose second row is empty, counted by what is live",
@@ -17546,7 +17562,7 @@
             "an event with nothing to claim"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 184
+          "line": 194
         },
         {
           "title": "throws rather than swallowing it",
@@ -17554,7 +17570,15 @@
             "a real error"
           ],
           "file": "src/lib/db/queries/claims.test.ts",
-          "line": 196
+          "line": 206
+        },
+        {
+          "title": "★ groups 2,500 rows across 1,250 events, every row counted, the RPC's order kept",
+          "suite": [
+            "the claim card, read whole"
+          ],
+          "file": "src/lib/db/queries/claims.test.ts",
+          "line": 241
         }
       ]
     },

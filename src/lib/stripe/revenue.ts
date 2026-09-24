@@ -4,11 +4,17 @@
  * Pro plan), so we read it straight from Stripe: MRR from active subscriptions + the account balance.
  *
  * BEST-EFFORT: any failure returns null (the page renders a graceful "unavailable" card) and is logged
- * as a warning — revenue must never break the dashboard. The MRR math is the PURE `computeMrrCents`, so
- * it's unit-tested with fixtures (mirrors provision.ts; do NOT import this server-only file in Vitest —
- * import the pure fn's logic via fixtures instead). server-only keeps the secret key out of any bundle.
+ * as a warning — revenue must never break the dashboard. The MRR math is the PURE `computeMrrCents`,
+ * unit-tested with fixtures in mrr.test.ts; revenue.test.ts runs this read against a stubbed Stripe
+ * client. server-only keeps the secret key out of any bundle.
+ *
+ * ★ EVERY ACTIVE SUBSCRIPTION (the 1,000-row round, 2026-09-23). The list is walked with `for await`,
+ * which follows Stripe's pages to the last one, where `autoPagingToArray({ limit: 1000 })` stopped at
+ * the thousandth subscription and reported the MRR of the first thousand as the whole.
  */
 import "server-only";
+
+import type Stripe from "stripe";
 
 import { captureWarning } from "@/lib/observability/sentry";
 import { getStripe } from "@/lib/stripe/client";
@@ -35,10 +41,15 @@ function sumByCurrency(
 export async function getPlatformRevenue(): Promise<PlatformRevenue | null> {
   try {
     const stripe = getStripe();
-    // One aggregate read of all active subscriptions (auto-paginated; bounded for safety).
-    const subscriptions = await stripe.subscriptions
-      .list({ status: "active", expand: ["data.items.data.price"], limit: 100 })
-      .autoPagingToArray({ limit: 1000 });
+    // Every active subscription, a hundred a page (Stripe's largest), to the last page.
+    const subscriptions: Stripe.Subscription[] = [];
+    for await (const subscription of stripe.subscriptions.list({
+      status: "active",
+      expand: ["data.items.data.price"],
+      limit: 100,
+    })) {
+      subscriptions.push(subscription);
+    }
     const balance = await stripe.balance.retrieve();
 
     const currency =

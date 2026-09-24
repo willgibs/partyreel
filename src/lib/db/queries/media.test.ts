@@ -13,8 +13,6 @@
  *    two withdrawals beside a live album and a host's own removal. Withdrawn rows are built to be
  *    the easiest to leak: one is the NEWEST upload in the event (a read that forgot the rule would
  *    put it first), the other is the bin's SOONEST purge (a nudge that forgot it would fire on it).
- *    The rows carry the `events` embed and the fake answers `event_card_stats` / `event_covers` as
- *    their SQL does, so these pins hold whichever shape the dashboard's reads take.
  *
  * 2. EVERY LIST IS WHOLE AND EVERY COUNT COUNTED (the 1,000-row round, 2026-09-23). PostgREST ends a
  *    read at 1,000 rows with no error, so each read below is run against a fixture past 2,000 rows:
@@ -25,8 +23,9 @@
  * Pinned elsewhere, not repeated here: restore_media's refusal (forensics/migration-guards.test.ts),
  * the reel's membership (reel.test.ts), the reel's timeline (reel/render-service.test.ts), the guest
  * count and the Guests room (the approved-only read in social.guest-identity.test.ts), the zip's
- * manifest (export/build-manifest.test.ts) and the storage meter's Deleted figure
- * (billing/storage-summary.test.ts).
+ * manifest (export/build-manifest.test.ts), the storage meter's Deleted figure
+ * (billing/storage-summary.test.ts), and the dashboard's pulse and event cards (queries/pulse.test.ts
+ * and queries/events.test.ts, where the counts and covers are SQL).
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -77,9 +76,6 @@ const {
   listRecentlyDeletedMedia,
   readNewestAlbumUpdate,
 } = await import("@/lib/db/queries/media");
-const { getPulse } = await import("@/lib/db/queries/pulse");
-const { getEventCardStats, getEventCoverUrls } =
-  await import("@/lib/db/queries/events");
 const { getNotificationData } = await import("@/lib/db/queries/notifications");
 const { resolveReelRenderContext } = await import("@/lib/reel/render-service");
 
@@ -102,7 +98,7 @@ const EVENT = {
   purge_at: null,
 };
 
-/** A media row with its `events` embed read live from the events table, as PostgREST embeds it. */
+/** A media row, every column a host read selects. */
 function media(id: string, fields: FakeRow): FakeRow {
   const row: FakeRow = {
     id,
@@ -122,10 +118,6 @@ function media(id: string, fields: FakeRow): FakeRow {
     ...fields,
   };
   if (!("updated_at" in row)) row.updated_at = row.created_at;
-  Object.defineProperty(row, "events", {
-    enumerable: false,
-    get: () => fake.tables.events.find((e) => e.id === row.event_id) ?? null,
-  });
   return row;
 }
 
@@ -137,43 +129,6 @@ function reelItem(fields: FakeRow): FakeRow {
     get: () => fake.tables.media.find((m) => m.id === row.media_id) ?? null,
   });
   return row;
-}
-
-/** `event_card_stats` and `event_covers`, answered as their SQL answers (20260924020000). */
-function dashboardFunctions() {
-  const live = (eventId: string) =>
-    fake.tables.media.filter(
-      (m) => m.event_id === eventId && m.removed_at === null,
-    );
-  return {
-    event_card_stats: ({ p_event_ids }: Record<string, unknown>) =>
-      Object.fromEntries(
-        (p_event_ids as (string | null)[])
-          .filter((id): id is string => id !== null)
-          .map((id) => [
-            id,
-            {
-              approved: live(id).filter((m) => m.status === "approved").length,
-              pending: live(id).filter((m) => m.status === "pending").length,
-            },
-          ]),
-      ),
-    event_covers: ({ p_event_ids }: Record<string, unknown>) => {
-      const covers: Record<string, unknown> = {};
-      for (const id of p_event_ids as string[]) {
-        const newest = newestFirstRows(
-          live(id).filter((m) => m.status === "approved" && m.type === "photo"),
-        )[0];
-        if (newest) {
-          covers[id] = {
-            preview_key: newest.preview_key,
-            original_key: newest.original_key,
-          };
-        }
-      }
-      return covers;
-    },
-  };
 }
 
 /** Postgres's text order for these fixtures: by code unit, never the locale's collation. */
@@ -220,7 +175,6 @@ const WITHDRAWN_OLD = media("m-withdrawn-old", {
   purge_at: at(5 * DAY),
   removed_by_uploader: true,
 });
-const WITHDRAWN = new Set(["m-withdrawn-new", "m-withdrawn-old"]);
 
 const ids = (rows: readonly { id: string }[]) => rows.map((r) => r.id);
 
@@ -265,7 +219,6 @@ beforeEach(() => {
         }),
       ],
     },
-    rpc: dashboardFunctions(),
   });
 });
 
@@ -295,24 +248,6 @@ describe("a guest's own withdrawal never reaches a host read", () => {
     const bin = await listRecentlyDeletedMedia("ev-1");
     expect(ids(bin)).toEqual(["m-host-removed"]);
     expect(bin[0].countdownDays).toBe(28);
-  });
-
-  it("the home's Just arrived strip and every event's newest four never show it", async () => {
-    const startOfToday = Date.parse("2026-09-23T00:00:00.000Z");
-    const pulse = await getPulse(["ev-1"], NOW, startOfToday);
-    const shown = [
-      ...pulse.arrivals,
-      ...(pulse.newestByEvent.get("ev-1") ?? []),
-    ].map((tile) => tile.id);
-    expect(shown).toContain("m-live");
-    for (const id of shown) expect(WITHDRAWN.has(id), id).toBe(false);
-  });
-
-  it("the events list's counts and cover never count it", async () => {
-    const stats = await getEventCardStats(["ev-1"]);
-    expect(stats.get("ev-1")).toEqual({ approved: 1, pending: 1 });
-    const covers = await getEventCoverUrls(["ev-1"]);
-    expect(covers.get("ev-1")).toBe(`signed:${LIVE.original_key}`);
   });
 
   it("the reel's timeline, which the guest payload's items are, drops a withdrawn moment", async () => {

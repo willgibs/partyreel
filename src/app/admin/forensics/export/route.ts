@@ -98,7 +98,10 @@ export async function GET(request: Request): Promise<Response> {
 
     // what === "record": the DB evidence as a JSON attachment. Media/event rows may be gone for
     // an old export (the forensic row itself cascades with media, so usually both exist).
-    const [{ data: media }, { data: event }] = await Promise.all([
+    // ★ BOTH ERRORS ARE BOUND: a failed read must fail the export (the catch below writes its error
+    // audit row), never ship an evidence record whose media or event is null because a read failed,
+    // which reads exactly like a row that is genuinely gone.
+    const [mediaRes, eventRes] = await Promise.all([
       admin.from("media").select("*").eq("id", mediaId).maybeSingle(),
       forensics?.event_id
         ? admin
@@ -106,8 +109,12 @@ export async function GET(request: Request): Promise<Response> {
             .select("id, name, host_id, created_at")
             .eq("id", forensics.event_id)
             .maybeSingle()
-        : Promise.resolve({ data: null }),
+        : Promise.resolve({ data: null, error: null }),
     ]);
+    if (mediaRes.error) throw new Error(`media read: ${mediaRes.error.message}`);
+    if (eventRes.error) throw new Error(`event read: ${eventRes.error.message}`);
+    const media = mediaRes.data;
+    const event = eventRes.data;
     if (!forensics && !media) {
       await writeForensicAudit(admin, {
         admin_user_id: auth.ctx.userId,

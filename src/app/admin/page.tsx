@@ -4,11 +4,10 @@ import { MetricCard } from "@/components/admin/metric-card";
 import { QueueList } from "@/components/admin/queue-list";
 import { Sparkline } from "@/components/admin/sparkline";
 import { PageHeading } from "@/components/shared/page-heading";
-import { buildAdminKpis, FORTNIGHT_DAYS } from "@/lib/admin/kpi";
+import { buildAdminKpis } from "@/lib/admin/kpi";
 import { readOperatorQueue } from "@/lib/admin/queue-data";
 import { requireAdmin } from "@/lib/auth/admin-context";
 import { getPlatformDbMetrics } from "@/lib/db/queries/metrics";
-import { buildSignupTrend } from "@/lib/metrics/aggregate";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +26,8 @@ export const dynamic = "force-dynamic";
  * /admin/metrics also reads; the live Stripe call stays on that page. The
  * landing page of a console must not wait on a third party that is allowed to
  * be slow and allowed to fail, and revenue is not one of the four figures.
+ * Every figure is counted in the database (`admin_metrics_snapshot()` and head
+ * counts), never the length of a list PostgREST could have cut at 1,000 rows.
  */
 export default async function AdminHomePage() {
   const ctx = await requireAdmin();
@@ -37,14 +38,10 @@ export default async function AdminHomePage() {
     readOperatorQueue(),
   ]);
 
-  const kpis = buildAdminKpis(metrics.profileRows, metrics.uploads);
-  // The same reducer /admin/metrics uses over thirty days, asked for fourteen,
-  // so the line under the figure covers the span the figure's delta does.
-  const trend = buildSignupTrend(
-    metrics.profileRows,
-    new Date(),
-    FORTNIGHT_DAYS,
-  );
+  const kpis = buildAdminKpis(metrics.fortnight, metrics.uploads);
+  // The fortnight's signups, the same buckets /admin/metrics draws over thirty
+  // days, so the line under the figure covers the span the figure's delta does.
+  const trend = metrics.fortnight.signupTrend;
 
   return (
     <div className="space-y-6">

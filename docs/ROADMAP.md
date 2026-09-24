@@ -17,22 +17,22 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The lab and the kit: `fake-postgrest` reads a dotted filter on a to-many embed (`media.status` on `events -> media`) as a filter on the parent and drops the row; teach it to filter the embedded rows, so `pulse.ts`' strip read can take the plain `.eq("media.status", ...)` form.
+- Admin: the album drill-in (`/admin/albums/[eventId]`) reads and presigns every item; a paged drill-in past a few thousand items.
 - Likes: the album's bulk Like (`likeMany`, `likes-provider.tsx`) fires one `like_media` per selected id at once, so a whole large album selected is that many parallel requests; a `like_many(uuid[])` with the ids in the body.
 - Performance: `standby_hosts` (like the `removed_media` sweep) scans every removed row platform-wide on each page; past about a million media rows a partial index on removed media (`where status = 'removed'`) keeps the nightly host discovery an index scan.
 - Albums: the host's and the guest's album, and the guest poll, read every row on each load (a round trip per 1,000 and three presigns per item); past a few thousand items a paged album (cursor pages in display order, a virtualised grid, a delta poll) replaces the whole read.
 - Guest: the gallery poll's 304 still reads the whole album and the uploader-identity sweep before it compares the ETag; a per-event change signal (a version bumped by the triggers that ring the doorbell) makes a quiet poll one query.
 - Performance: a presign cache keyed on (key, disposition, 30-minute bucket): each bucket roll re-presigns every album for every poller.
 - Profile: My uploads and My likes stop at 200 with an honest note (`get_my_uploads`, `get_my_likes`); a cursor and a load-more.
-- Engineering: `partyreel/no-swallowed-db-error` misses an array destructure off `Promise.all` (`render-service.ts:177`, `forensics.ts:85`, `admin/forensics/export/route.ts:101`); teach it array patterns once stage 2 binds the three.
+- Engineering: `partyreel/no-swallowed-db-error` misses an array destructure off `Promise.all` (the last one, `render-service.ts:177`, is rowcap-album's); teach it array patterns once that one is bound.
 - Engineering: one drop-aware migration reader shared by `row-cap-policy.test.ts`, `row-cap-sql.test.ts` and `migration-guards.test.ts` (each has its own; `latestDefinition` sees creates only).
-- Code hygiene: `src/lib/db/queries/storage.ts`'s `tallyStorageRows` and its header (lines 8, 39, 47, 51) still define standby as "everything not active" with no `removed_by_uploader` and no caller: retire it, or carry the marker.
 - Host: `restore_event`'s `media_still_removed` (20260729190000, line 441) counts a guest's withdrawals too; no screen shows it today, and a future "N items stay in Deleted" line must count `removed_by_uploader = false` only.
 - Tests: `src/app/(guest)/u/[slug]/owner-mode.test.ts`'s allowed-reader list could name `listEvents` (the owner-RLS read `owner-sections.tsx` now makes; its regexes catch only `get*` names).
 - Guest: the next person on a shared phone skips the welcome, and with it the legal consent line (`pr_welcome_<qr>` survives every sign-out and the ticket drop); decide whether it goes with the tickets.
 - The lab and the kit: promote `upload-owner`'s plain pins to contract lines (the queue's recovery, both sign-outs, the name step's and the add-email dialog's `session_other_account`) in a lane that may regenerate `rules.generated.json` and `docs/design/library.md`.
 - Lifecycle: the over-cap sweep (`api/cron/purge/route.ts:750-764`) sums active bytes from an unpaged media read that PostgREST caps at 1,000 rows, so a lapsed account past a thousand items reads short (it can clear its own grace while still over the cap) and its auto-reduce chooses from the first thousand; read `host_storage_summary` there and page the reduce's candidates.
 - Billing: the webhook keys a downgrade on the customer alone, so a second subscription's `incomplete_expired` or deletion (two Checkout tabs, a stale session) would put a host whose other subscription is active on Free; downgrade only when the event's subscription is the profile's `stripe_subscription_id` (or the profile holds none).
-- Social: `adminCoverUrls` (`queries/social.ts`) reads every approved photo of the events it covers, newest first, in one read capped at 1,000 rows, so one busy album can leave the others' cards without a cover; take the newest per event (a limit-1 read each, or a DISTINCT ON function).
 - Legal: the Terms say a profile block "removes each of you from the other's social surfaces" (`legal-terms.tsx:427`) while a block covers following only; the event-safety wiring rewrites the section.
 - Help: `reporting-and-safety.mdx` names "suspended accounts" (line 36), and no suspension exists.
 - Security: changing an event's password evicts nobody already unlocked for up to 12 hours (the unlock cookie signs `{eid, exp}`, not the password); bind it to a password version so a change signs everyone out.
@@ -45,7 +45,7 @@ below hold the rest by surface.
 - The lab: `media-viewer`'s drawn chrome (both capsules, the strip, the face-led credit) wears a hand-copied `bg-black/55 backdrop-blur-sm`, a grade behind the shipped lightbox's Crystal (`GLASS`); a material pass before the board's next round.
 - The lab: `media-viewer.holds` still draws the `grow` opening caught mid-flight, where `who` and `wayout` draw it settled (`Viewer`'s `settled`); its next round passes `settled` there too.
 - Guest: the name step's field carries `autoFocus` (`guest-name-step.tsx:356`) though the password gate drops it for the iOS keyboard; check on a real iPhone.
-- Housekeeping: more files with no importer or Library-only, beyond the lines above: `getFollowedHostEventCards` (`queries/social.ts`), `features.ts` and `features-layout.ts` (read only by their tests), `anonymous-info.tsx` (Library only).
+- Housekeeping: more files with no importer or Library-only, beyond the lines above: `features.ts` and `features-layout.ts` (read only by their tests), `anonymous-info.tsx` (Library only).
 - Housekeeping: comments that state retired facts: `getHostAvatarUrl` (`lib/avatar/seed.ts`), `resolveGalleryAccess` (several), `body-token-source.test.ts` (`lib/guest/session-cookie.ts`, `api/guests/route.ts`; the pin is `session-cookie.test.ts`), `claim-handle-prompt.tsx` on what the claim writes, `profile-slug-control.tsx`'s "EVENT slugs stay Pro", the root `not-found.tsx`'s glow, `contact-sheet.tsx`'s deleted file, `workers/backup/src/index.ts:296`'s "Cost & scaling", `share-urls.ts`'s "database-security.md0", and comments citing numbered rulings no doc holds (`upload-lock.ts`, `entitlement.ts`, `tiers.ts:181`, `request-facts.ts`, `preserve.ts`).
 - Housekeeping: three applied migrations have no file in the repo (`reel_style_catalog`, `reel_style_catalog_drop_legacy_overload`, `reel_caps_ingress_multiplier_parity_reapply`): recover each from `supabase_migrations.schema_migrations` into `supabase/migrations/`.
 - Docs: three headings still carry a date or a status word (`admin-observability.md`'s "(Will, 2026-09-18 and 2026-09-20)", `durability-backups.md`'s "(BUILT — ships in dry-run)", two runbook headings in `trust-safety-forensics.md`): rename each with its anchors.
@@ -292,7 +292,7 @@ The app:
 - **User profiles and social discovery** (not launch-gating; the consent one-way door is ruled in [`systems/profiles-social.md`](systems/profiles-social.md)):
   - The social feed and discovery (depends on the Notification system).
   - Guest-list sort by upload count (a nudge to contribute).
-  - The follow graph has no consumer worth the graph: the Following chip left the dashboard and `getFollowedHostEventCards` (`queries/social.ts`) has no caller, so a followed-hosts feed uses it or it goes by launch.
+  - The follow graph has no consumer worth the graph: the Following chip left the dashboard and no query reads your followers or the events of the hosts you follow; a followed-hosts feed is new work.
 - **Lab explorations no board asks yet** (each is a board when a seat frees; its brief rechecks the desk for overlap first):
   - Finding one photograph in a thousand (sort, date, person, kind), in the guest album and the host gallery.
   - What an album becomes weeks after the party, since events never end (a keepsake, an anniversary, a nudge to export), narrowed away from `export-flow`.

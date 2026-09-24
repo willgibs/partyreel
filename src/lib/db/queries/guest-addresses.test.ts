@@ -6,13 +6,21 @@
  * the host's own, only for the people the room lists, and every row read even past PostgREST's row cap. Then the
  * one pin no fake can hold: the Guests room is the only file in the tree that imports it.
  *
- * The fake serves `guests` in id order and clamps every response to its own `maxRows` (smaller than the module's
- * page), the exact trap a loop that stopped on a short page would fall into.
+ * Two fakes: a recording builder that answers every row it holds WITHOUT applying the filters (so a row the database
+ * would have dropped reaches the module, and the module's own check is what those cases exercise), and, for the row
+ * cap, `fake-postgrest`, which clamps every read at 1,000 rows exactly as PostgREST does (the 1,000-row round,
+ * 2026-09-23: the read pages on `id` through `readAllPages`, whose short page is the end only while the live
+ * `max_rows` is at least 1,000, which `row-cap-policy.test.ts` pins).
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import {
+  asSupabase,
+  createFakePostgrest,
+} from "@/lib/db/testing/fake-postgrest";
 
 vi.mock("server-only", () => ({}));
 
@@ -91,11 +99,15 @@ function eventsBuilder() {
   return builder;
 }
 
+/** When set, the admin client is this instead of the recording builder (the row-cap cases). */
+let adminOverride: unknown = null;
+
 vi.mock("@/lib/supabase/admin", () => ({
-  createAdminClient: () => ({
-    from: (table: string) =>
-      table === "guests" ? guestsBuilder() : eventsBuilder(),
-  }),
+  createAdminClient: () =>
+    adminOverride ?? {
+      from: (table: string) =>
+        table === "guests" ? guestsBuilder() : eventsBuilder(),
+    },
 }));
 
 vi.mock("@/lib/supabase/request-auth", () => ({
@@ -123,6 +135,7 @@ function row(
 }
 
 beforeEach(() => {
+  adminOverride = null;
   signedInAs = HOST;
   eventRow = { host_id: HOST };
   guests = [];
@@ -248,18 +261,35 @@ describe("getConfirmedGuestAddresses: a PROVED address, and only the listed peop
 });
 
 describe("getConfirmedGuestAddresses: every row, past the row cap", () => {
-  it("pages to exhaustion when each response is clamped below the page size", async () => {
-    maxRows = 3;
-    guests = Array.from({ length: 10 }, (_, i) =>
-      row(i, `u${i}`, `guest${i}@example.com`),
-    );
+  it("★ reads 2,500 proved rows whole, in keyset pages that PostgREST's 1,000-row cap cannot cut", async () => {
+    const rows = Array.from({ length: 2500 }, (_, i) => ({
+      ...row(i, `u${i}`, `guest${i}@example.com`),
+      event_id: EVENT,
+    }));
+    const fake = createFakePostgrest({
+      tables: {
+        events: [{ id: EVENT, host_id: HOST, deleted_at: null }],
+        guests: [
+          ...rows,
+          // Filtered out by the database: unproved, the host's own, another event's.
+          { ...row(9000, "u-x", "x@example.com", null), event_id: EVENT },
+          { ...row(9001, HOST, "host@example.com"), event_id: EVENT },
+          { ...row(9002, "u-y", "y@example.com"), event_id: "another-event" },
+        ],
+      },
+    });
+    adminOverride = asSupabase(fake);
+
     const addresses = await getConfirmedGuestAddresses(
       EVENT,
-      guests.map((g) => g.user_id as string),
+      rows.map((g) => g.user_id as string),
     );
-    expect(addresses.size).toBe(10);
-    // Four clamped pages of three, stopping at the count rather than spending a fifth request on an empty page.
-    expect(guestRequests).toBe(4);
+
+    expect(addresses.size).toBe(2500);
+    expect(addresses.get("u2499")).toBe("guest2499@example.com");
+    const guestReads = fake.requests.filter((r) => r.name === "guests");
+    expect(guestReads.map((r) => r.returned)).toEqual([1000, 1000, 500]);
+    expect(guestReads.some((r) => r.filters.some((f) => f.op === "in"))).toBe(false);
   });
 
   it("answers an ordinary party in one request", async () => {
