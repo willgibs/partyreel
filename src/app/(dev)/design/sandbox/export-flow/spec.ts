@@ -3,7 +3,8 @@ import { defineExploration } from "@/components/lab/exploration";
 
 /**
  * GETTING EVERYTHING OUT, ROUND ONE (2026-09-19; reshaped by the overtaken
- * audit, 2026-09-21).
+ * audit, 2026-09-21; a genuine third added to every binary, boards refresh,
+ * 2026-09-24).
  *
  * Will (2026-09-19): the app and the guest pages are unprotected, "absolutely
  * everything is up for relitigation or reconcepting from the ground up".
@@ -15,7 +16,7 @@ import { defineExploration } from "@/components/lab/exploration";
  * the dialog; from there the browser's own download UI is the only thing that
  * knows anything. So a mint that never answers spins forever, a zip that comes
  * back with nothing in it says nothing, and a phone that puts the file
- * somewhere is never named. Three of the eight decisions are that one gap.
+ * somewhere is never named. Three of the seven decisions are that one gap.
  *
  * ★ THE PHONE LEADS. A guest at a party is holding one, and the guest half of
  * this flow has never been designed for anything else: 375 is the default on
@@ -24,16 +25,24 @@ import { defineExploration } from "@/components/lab/exploration";
  * ★ THE OVERTAKEN AUDIT (Will, 2026-09-21: "For any open questions that have
  * been 'overtaken', please evaluate whether they should be reshaped or
  * removed... I'd rather you lean into reshape if you aren't confident in
- * removal"). All eight of this board's questions were badged by that ruling;
- * seven were reshaped in place, five options a further ruling forbids outright
- * dropped from among them (`chips.three`, `stuck.forever`, `hollow.silence`,
- * `cap.bite`, `object.link`). The eighth, `chips`, is gone outright as of the
- * identity/reel recheck (2026-09-22): its only case was a teaser viewer, and
- * the door now holds her, backdrop and all, before she ever reaches the album,
- * let alone this sheet. The surface every remaining question is drawn on is
- * the one responsive sheet `guest-shape` r1 ruled every guest dialog onto: a
- * side panel at a desk, a bottom sheet in a hand. Nothing is answered; the
- * round is still round one.
+ * removal"). Seven of this board's eight questions were reshaped in place;
+ * five options that broke a hard requirement (a spinner nobody can end, a
+ * refusal that names no number, a hollow zip nobody is told about, a keepsake
+ * two other surfaces already carry) dropped from among them (`chips.three`,
+ * `stuck.forever`, `hollow.silence`, `cap.bite`, `object.link`). The eighth,
+ * `chips`, is gone outright as of the identity/reel recheck (2026-09-22): its
+ * only case was a teaser viewer, and the door now holds her, backdrop and all,
+ * before she ever reaches the album, let alone this sheet. The surface every
+ * remaining question is drawn on is the one responsive sheet `guest-shape` r1
+ * put every guest dialog onto: a side panel at a desk, a bottom sheet in a
+ * hand. Nothing is answered; the round is still round one.
+ *
+ * ★ THE BOARDS REFRESH (2026-09-24): every ask stands on its own case, so a
+ * drop from the overtaken audit is not treated as a wall against a NEW
+ * direction. `stuck`, `hollow`, `cap` and `object` each gain a genuine third
+ * door, none of them the option the hard requirement above dropped: a quiet
+ * retry, an offer to finish the job, an automatic trim, and a popover in place
+ * of the sheet.
  *
  * ★ WHAT IS DELIBERATELY NOT ASKED. No option re-encodes a byte or touches the
  * originals invariant (metadata is stripped at upload, never here). The bulk
@@ -84,10 +93,10 @@ const DRAFT = defineExploration({
     n: 1,
     date: "2026-09-24",
     changed:
-      "The desk re-cut: phone re-argued from his Save-to-Photos note, since a zip can't reach it. Options: the share sheet's own batch, the zip to Files, or both, Photos first.",
+      "The boards refresh: stuck, hollow, cap and object each gain a genuine third (a quiet retry, an offer to finish the job, an automatic trim, a popover), none of them the overtaken audit's own drop.",
   },
   context:
-    "One surface serves both sides of the album. A host taps Download in the Gallery header; a guest taps Download all above the tiles. Both get Download album, three chips with live counts, a size, and a button that mints a signed token and hands it to a Worker that streams a zip. It is drawn here as the one responsive sheet the guest's dialogs are ruled onto, at 375 by 812 with 1440 by 900 on the knob, over one wedding of 148 items. Every count and size is the real arithmetic over a fixture summary. Nothing here mints, signs, logs or reaches the Worker.",
+    "One surface serves both sides of the album. A host taps Download in the Gallery header; a guest taps Download all above the tiles. Both get Download album, three chips with live counts, a size, and a button that mints a signed token and hands it to a Worker that streams a zip. It is drawn here as the one responsive sheet the guest's dialogs now open on, at 375 by 812 with 1440 by 900 on the knob, over one wedding of 148 items. Every count and size is the real arithmetic over a fixture summary. Nothing here mints, signs, logs or reaches the Worker.",
   asks: [
     {
       id: "means",
@@ -129,7 +138,7 @@ const DRAFT = defineExploration({
       label: "The wait",
       question: "What should the album show while the zip is being made?",
       context:
-        "The tap raises a toast, mints a token, posts it to the Worker and closes the sheet. Bytes in flight are ruled to be narrated in place and silently, and a run that did not finish is read on one surface at its end.",
+        "The tap raises a toast, mints a token, posts it to the Worker and closes the sheet. Bytes in flight are narrated in place and silently, and a run that did not finish is read on one surface at its end.",
       options: [
         {
           id: "toast",
@@ -152,7 +161,7 @@ const DRAFT = defineExploration({
       ],
       recommended: "panel",
       because:
-        "The person is standing at the one surface that could tell them and it goes quiet at the exact moment they care. The sheet is where the end of a run is ruled to be said, and holding it gives cancelling, failing and a hollow file one home.",
+        "The person is standing at the one surface that could tell them and it goes quiet at the exact moment they care. The sheet is where the end of a run has to be said, and holding it gives cancelling, failing and a hollow file one home.",
       overrule:
         "If a zip can take minutes on a phone, a sheet over the album is a cage and the quiet line is the narration in place.",
       lands:
@@ -164,7 +173,7 @@ const DRAFT = defineExploration({
       label: "A tap with no answer",
       question: "What should happen when the mint never comes back?",
       context:
-        "The mint has no timeout and no cancel, so a request that hangs leaves the spinner going and the button dead. A failure is ruled to put its ways out on real buttons, so a spinner nobody can end is gone.",
+        "The mint has no timeout and no cancel, so a request that hangs leaves the spinner going and the button dead. A failure's way out belongs on a real button, so a spinner nobody can end is gone.",
       options: [
         {
           id: "timeout",
@@ -178,12 +187,18 @@ const DRAFT = defineExploration({
           means:
             "A Cancel sits beside the spinner from the moment it appears, so the way out never depends on a timer.",
         },
+        {
+          id: "retry",
+          label: "It tries twice more, quietly",
+          means:
+            "Two silent re-attempts before either the button or the spinner says anything; a third miss becomes the timeout.",
+        },
       ],
-      recommended: "timeout",
+      recommended: "retry",
       because:
-        "A mint normally answers in well under a second, so a Cancel is a control almost nobody will ever want and every host will see. A timeout costs nothing when it works and is the only thing that helps when it does not.",
+        "A party network drops a request far more often than a mint truly fails, so self-healing beats making every host read a spinner or reach for Cancel over a hiccup that fixes itself a second later.",
       overrule:
-        "If a mint on a party network really does take many seconds, Cancel is the control and the timeout is its backstop.",
+        "If a mint on a party network really does take many seconds, silent retries only delay the one control that actually helps: Cancel, from the first second.",
       lands:
         "Whether a hung download is recoverable, and what the button does while it waits.",
       after: { ask: "wait" },
@@ -194,7 +209,7 @@ const DRAFT = defineExploration({
       label: "A zip with nothing in it",
       question: "What should be said when the zip comes back hollow?",
       context:
-        "The Worker skips an object it cannot find, silently, so an album emptied between the mint and the stream downloads as a valid zip with nothing in it. He refuses a gap a person has to check for themselves.",
+        "The Worker skips an object it cannot find, silently, so an album emptied between the mint and the stream downloads as a valid zip with nothing in it, a gap nobody should have to notice for themselves.",
       options: [
         {
           id: "after",
@@ -208,14 +223,20 @@ const DRAFT = defineExploration({
           means:
             "A zip that would be empty is refused outright, and the album says it changed while the file was being made.",
         },
+        {
+          id: "offer",
+          label: "It says what's missing, and offers another go",
+          means:
+            "What made it and what did not, counted exactly as above, with a Try again beside it so finishing the job is one tap.",
+        },
       ],
-      recommended: "after",
+      recommended: "offer",
       because:
-        "Counting covers the whole range, including the common one where six of 148 are missing, which refusing would either ignore or turn into losing the other 142.",
+        "Counting the common case, six of 148 missing, is the truth; leaving a person to reopen the sheet for the rest is a second search for something the app already knows how to fetch again.",
       overrule:
-        "If the Worker cannot tell the page anything without holding the stream open, refusing an empty zip is the one case worth the seam.",
+        "If the count alone is what he wants on record, a bare 'after' keeps the sheet from ever looking like it is asking for a retry.",
       lands:
-        "Whether a download that quietly lost everything can ever be noticed.",
+        "Whether a download that quietly lost everything can ever be noticed, and whether finishing it is ever one tap.",
       after: { ask: "wait" },
       configs: [SCREEN, ALBUM, WHO],
     },
@@ -224,7 +245,7 @@ const DRAFT = defineExploration({
       label: "The limit",
       question: "What should the sheet do about the 2,000 item limit?",
       context:
-        "An album over 2,000 items cannot be sent at once. Marketing states the figure and the sheet never has. A refusal that names no number is ruled out, and the act states its terms before the files fly.",
+        "An album over 2,000 items cannot be sent at once. Marketing states the figure and the sheet never has. A refusal that names no number helps nobody, and the act states its terms before the files fly.",
       options: [
         {
           id: "near",
@@ -238,12 +259,18 @@ const DRAFT = defineExploration({
           means:
             "Over the limit the zip arrives in numbered parts, the foot says how many, and the button says so. No album is ever refused.",
         },
+        {
+          id: "auto",
+          label: "It keeps the newest 2,000, one zip",
+          means:
+            "No refusal and no parts: one zip holds the most recent 2,000 automatically, and the foot names how many it left out.",
+        },
       ],
       recommended: "split",
       because:
         "The refusal already tells the host exactly what to do, which means the product knows how to do it. Asking a person to hand simulate a batch loop is the defect; the limit is a Worker ceiling, not a promise to the host.",
       overrule:
-        "If parts arriving as several files is worse than one refusal, naming the number early is the honest middle.",
+        "If one zip beats several files even at the cost of leaving some behind, the automatic trim is the simpler build and still never refuses.",
       lands:
         "Whether a big album can be taken home at all, and what the marketing figure has to match.",
       configs: [SCREEN, ALBUM, WHO],
@@ -253,7 +280,7 @@ const DRAFT = defineExploration({
       label: "Whether it opens at all",
       question: "Should Download open a sheet of bundles, or simply start?",
       context:
-        "Download album offers a zip of the originals. The album's own address and its copy button are ruled onto the event page twice over, so this sheet no longer has to lead with the promise that it outlives a copy.",
+        "Download album offers a zip of the originals. The album's own address and its copy button now sit on the event page twice over, so this sheet no longer has to lead with the promise that it outlives a copy.",
       options: [
         {
           id: "zip",
@@ -267,14 +294,20 @@ const DRAFT = defineExploration({
           means:
             "Download takes everything immediately. Anyone who wants less uses select mode, where the chips would have to live.",
         },
+        {
+          id: "menu",
+          label: "A short menu, not a full sheet",
+          means:
+            "A small popover under Download: the same chips, size and button, anchored rather than taking over the screen.",
+        },
       ],
       recommended: "zip",
       because:
         "Everything else this board decides lives on that surface: the bundles, the chip that says why, the number before the limit bites, and the only place a hollow file or a hung mint could ever be said. Starting straight away has to find all four another home.",
       overrule:
-        "If the commonest tap is take the lot, the sheet is a toll on it and select mode can hold the chips.",
+        "If a sheet is heavier than a handful of chips and a button deserve, the popover keeps the same content without the takeover.",
       lands:
-        "Whether Download opens a surface at all, and where the chips and the wait live if it does not.",
+        "Whether Download opens a surface at all, and how much of the screen that surface is allowed to take.",
       configs: [SCREEN, ALBUM, WHO],
     },
     {

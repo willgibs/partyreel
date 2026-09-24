@@ -14,8 +14,8 @@ import { ALERTS, type NavEntry, surfaceGroups } from "./fixtures";
  * THE PORTAL AROUND EVERY PICTURE ON THIS BOARD, AND IT IS NOT A DECISION HERE.
  *
  * The `admin` board is asking Will for the portal's shape and is on the desk
- * unanswered, so this board WEARS its recommendations as settled law and never
- * re-asks them: the rail with its search row (`nav = rail-palette`, drawn
+ * unanswered, so this board WEARS its recommendations rather than re-asking
+ * them: the rail with its search row (`nav = rail-palette`, drawn
  * closed, because a palette is a thing you press and not a thing that is always
  * on screen), the 44 px devtool bar with a breadcrumb and a live tag
  * (`chrome = devtool`), and the four-hue state chip (`colour = badges`). What

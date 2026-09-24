@@ -163,7 +163,7 @@ const historyRead: Reader = (root, win) => {
     if (b.top < win.innerHeight && b.bottom > 0) seen += 1;
   });
   if (tall < 8) return null;
-  return `Measured: three answered reports stand ${tall} px in all, and ${seen} of the three are on this screen at once.`;
+  return `Measured: ${rows.length} answered reports stand ${tall} px in all, and ${seen} of the ${rows.length} are on this screen at once.`;
 };
 
 /**
@@ -325,7 +325,8 @@ const LOOK_CAPTION: Record<LookShape, string> = {
   frame:
     "The reported frame at the card's full width, the sentence under it, the verdict beneath that.",
   split:
-    "The ruled shape: a row each, the frame on the left at a size you can judge, the words and the verdict on the right.",
+    "One row each, admin r1's own shape: the frame on the left at a size you can judge, the words and the verdict on the right.",
+  grid: "Every waiting report as a thumbnail at once; the words and the verdict open beneath whichever is selected.",
 };
 
 function lookScreen(v: LookShape, s: BoardState) {
@@ -345,6 +346,8 @@ const REASON_CAPTION: Record<ReasonShape, string> = {
   chrono:
     "Nothing drawn where the reason would be, and no reordering: the wordless report keeps its place.",
   last: "The wordless report falls under both written ones and says why it is there.",
+  marked:
+    "Keeps its place in the queue, with a quiet 'No reason given' tag where the sentence would sit.",
 };
 
 function reasonScreen(v: ReasonShape, s: BoardState) {
@@ -415,6 +418,8 @@ function escalateScreen(v: EscalateShape, s: BoardState) {
 const VERDICT_CAPTION: Record<VerdictShape, string> = {
   two: "Today. Two presses, nothing typed, and the record is a status and a time.",
   note: "The same two verbs with Add a note beside them, open on the one being answered.",
+  always:
+    "The same field, required on both verbs now: nothing commits, Dismiss included, until a line is typed.",
 };
 
 function verdictScreen(v: VerdictShape, s: BoardState) {
@@ -434,6 +439,8 @@ function verdictScreen(v: VerdictShape, s: BoardState) {
 const CLOSED_CAPTION: Record<ClosedShape, string> = {
   line: "The three still open, then the answered ones as a log under them, on the table the portal already draws.",
   undo: "The same log, with a day's way back on the one removal that is not held.",
+  window:
+    "The same log, with a way back for as long as the item would exist anyway: the product's own 30-day Trash, not a second clock.",
 };
 
 function closedScreen(v: ClosedShape, s: BoardState) {
@@ -453,6 +460,7 @@ function closedScreen(v: ClosedShape, s: BoardState) {
 const PHONE_CAPTION: Record<PhoneShape, string> = {
   act: "The frame, the sentence and the one verb that cannot wait until morning.",
   all: "Everything the desk can do, in a column, typed with a thumb at a party.",
+  hold: "The one verb, plus a Preserve that starts the hold now; its note waits for a desk.",
 };
 
 function phoneScreen(v: PhoneShape) {
@@ -463,8 +471,8 @@ function phoneScreen(v: PhoneShape) {
       caption={PHONE_CAPTION[v]}
       read={queueRead}
     >
-      {/* Admin r1 already measures the shell for a thumb, so both options wear
-          the ruled bar rather than a folded desk page: neither depends on the
+      {/* Admin r1 already measures the shell for a thumb, so every option wears
+          that bar rather than a folded desk page: none of them depends on the
           board's live state any more. */}
       <PhonePortal active={REPORTS_SURFACE}>
         <PhoneQueue shape={v} />
@@ -530,15 +538,19 @@ function noticeScreen(v: NoticeShape, s: BoardState) {
 const PREVIEWS: PreviewsFor<typeof ADMIN_TRIAGE> = {
   "look.frame": (s) => lookScreen("frame", s),
   "look.split": (s) => lookScreen("split", s),
+  "look.grid": (s) => lookScreen("grid", s),
 
   "reason.chrono": (s) => reasonScreen("chrono", s),
   "reason.last": (s) => reasonScreen("last", s),
+  "reason.marked": (s) => reasonScreen("marked", s),
 
   "verdict.two": (s) => verdictScreen("two", s),
   "verdict.note": (s) => verdictScreen("note", s),
+  "verdict.always": (s) => verdictScreen("always", s),
 
   "closed.line": (s) => closedScreen("line", s),
   "closed.undo": (s) => closedScreen("undo", s),
+  "closed.window": (s) => closedScreen("window", s),
 
   "escalate.retype": (s) => escalateScreen("retype", s),
   "escalate.copy": (s) => escalateScreen("copy", s),
@@ -546,6 +558,7 @@ const PREVIEWS: PreviewsFor<typeof ADMIN_TRIAGE> = {
 
   "phone.act": () => phoneScreen("act"),
   "phone.all": () => phoneScreen("all"),
+  "phone.hold": () => phoneScreen("hold"),
 
   "idiom.three": (s) => idiomScreen("three", s),
   "idiom.shape": (s) => idiomScreen("shape", s),
