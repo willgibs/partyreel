@@ -42,7 +42,7 @@ carries every back-and-forth and lands everything.
 2. In a worktree (`git rev-parse --git-dir` contains `/worktrees/`): `git checkout -b lp/<track> origin/launch-prep`,
    then `git branch -d <birth branch>`. In the primary checkout (the Orchestrator's tree) never branch, commit or edit:
    `git worktree add ../partyreel-wt/<track> -b lp/<track> origin/launch-prep`, and work inside it.
-3. `nvm use && pnpm install --frozen-lockfile`; copy `.env.local` from the primary checkout;
+3. `nvm use && pnpm install --frozen-lockfile --prefer-offline`; copy `.env.local` from the primary checkout;
    `git push -u origin lp/<track>`. Push freely: no CI or Vercel runs on a lane push, and `[preview]` or `[ci]` in a
    commit message is the Orchestrator's to add.
 4. A committed manifest is filled in place; otherwise copy the template, fill `owns` and `reads`, commit it alone and
@@ -53,9 +53,10 @@ carries every back-and-forth and lands everything.
    line in another lane's file is an exception, listed with why. The Handoff's lane check
    (`git diff --name-only origin/launch-prep...HEAD`) shows it.
 
-**Sync** (merge, never rebase): before the handoff if `origin/launch-prep` moved (`git merge origin/launch-prep`, the
-gate again, the sync commit named in the Handoff), and mid-lane only when `tracks/orchestrator.md` announces a landed
-change touching one of your `reads`.
+**Sync** (merge, never rebase: `git merge origin/launch-prep`, the gate again, the sync commit named in the Handoff)
+only when code that touches your work landed since your base (a merge into one of your `reads`, announced in
+`tracks/orchestrator.md`) or your merge would conflict. Record commits (the Orchestrator's docs) never need one: the
+Orchestrator's merge gate checks the integration, so a sync that only brings records costs a full gate for nothing.
 
 **Handoff:** fill the manifest's Handoff (every claim names its artifact); set `status: handed-off`; commit the
 manifest alone; push; report one line in chat: "handed off at <sha>".
