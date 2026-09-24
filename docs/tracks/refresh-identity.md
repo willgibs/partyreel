@@ -1,6 +1,6 @@
 ---
 track: refresh-identity
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "516c6bb2"            # the launch-prep SHA the branch was cut from
 board: identity-door
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -50,13 +50,46 @@ working.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commit `d1c5b055` (the three boards refreshed); sync commit `4f9704e2` (merge of `origin/launch-prep`, which
+  had moved with `refresh-guest`'s landing: voice-guest, guest-capture and media-viewer, and a `touchpoints.ts` edit
+  that auto-merged clean, no conflict, against my two rows). Both pushed: `lp/refresh-identity` is at `4f9704e2`.
+- Gates on the synced tree: `pnpm typecheck` exit 0, `pnpm lint` exit 0 (0 errors, 7 warnings, all pre-existing in
+  files this lane never touched), `pnpm test` exit 0 (427 files, 4584 tests), `pnpm build` exit 0.
+- `pnpm lab:smoke --base http://localhost:3138`: 315 checks, 0 failing. `pnpm lab:demo --base http://localhost:3138
+  --board <id>`: identity-door 6/6 steps ok, identity-claims 5/5 steps ok (`pass` now carries 4 options), identity-
+  profile 5/5 steps ok (`default` is a new fifth ask); every step's stage moves, none frozen.
+- Every new option walked by hand in the browser too, at 375 and 1440 (identity-door's `walk` in both the sheet and
+  the side-panel posture). One live bug found and fixed this way: identity-profile's `default` measure read
+  `[data-checked]`, which is only a Tailwind custom variant name, never a real attribute; Radix's Switch actually
+  sets `data-state="checked"`, so the `on` option's count read "0 of 3" until the selector was fixed.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the three owned board directories, `touchpoints.ts`
+  (the listed exception: both boards' rows widened for a new question) and this manifest. Nothing else.
+- The items:
+  - `identity-door`: a sixth question, `walk`, asks whether the welcome deserves its own screen before the name
+    step at all (`door-steps`'s own order, previously "worn as law, not reopened"). Recommends folding it into the
+    name step's own screen on a first visit only; a returning device is untouched either way. The other five asks
+    keep their range; comments reworded (the gate no longer calls its own copy "the ruled line").
+  - `identity-claims`: `pass` widens from three options to four; the fourth decides by photograph instead of by
+    event, the one option that touches the claim model rather than only the screen (today's RPCs,
+    `claim_guest_rows_by_email` and `disown_guest_rows_by_email`, group by event only, by design; a real build of
+    this option needs a photograph's own id, not only an event's). The recommendation stays `rows`.
+  - `identity-profile`: a fifth question, `default`, tests "every event off by default" directly instead of holding
+    it as the board's own floor: off (as shipped), asked once and applied to all, or on by default. The
+    recommendation stays off, because `profiles-social.md` names `profile_shown_events`'s opt-in a one-way door
+    that `/privacy` and the Terms word too; the option to flip it is drawn for him, not ruled out beforehand.
+  - Every board's own comments reworded to drop "Will ruled", "verbatim", "law", "DECIDED ALREADY" framing while
+    keeping the reason underneath. A few purely mechanical uses of "ruling" survive (e.g. "a board's directory is
+    deleted the moment its ruling lands"): that names `PROGRAM.md`'s own lifecycle, not a fenced design call.
+- Assets requested from Will: none (every still is the existing twelve marketing images, bible 9).
+- Board ideas: none beyond this lane.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none. (If `identity-claims`'s `pass=photos` is
+  picked, its wiring round would need `claim_guest_rows_by_email` / `disown_guest_rows_by_email`, or a new RPC, to
+  accept a photograph id; that is a cost to weigh against the pick, not a proposal now.)
+- Calls his to overrule, one line each:
+  - `identity-door.walk`: recommends folding the welcome into the name step on a first visit (one fewer screen);
+    overrule if the arrival's own dedicated beat is worth the extra tap.
+  - `identity-profile.default`: recommends keeping off, since flipping it touches `/privacy` and the Terms, not
+    only this screen; overrule if most guests would show most events anyway, since asking once still never
+    publishes one she has not seen.
+- Look at first: `identity-door`'s `walk`, the lane's own headline question and the most structural of the three
+  reopened asks.
