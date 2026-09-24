@@ -14,6 +14,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/lib/db/types";
 import { env, serverEnv } from "@/lib/env";
+import { withRowCapTripwire } from "@/lib/supabase/row-cap-tripwire";
 
 export function createAdminClient() {
   if (!serverEnv.SUPABASE_SECRET_KEY) {
@@ -31,6 +32,8 @@ export function createAdminClient() {
         autoRefreshToken: false,
         persistSession: false,
       },
+      // A read clipped at PostgREST's 1,000 rows warns in Sentry once (row-cap-tripwire.ts).
+      global: { fetch: withRowCapTripwire() },
     },
   );
 }

@@ -108,6 +108,7 @@ export function LikesProvider({
         // DELIBERATE swallow: this only SEEDS which hearts start filled. A failed
         // read leaves them unfilled and the (idempotent) like RPC corrects it on
         // the next tap; the add-only merge means we never clobber real state.
+        // row-cap-todo: M12 every visible media id rides one browser URL, about 37 bytes an id
         // eslint-disable-next-line partyreel/no-swallowed-db-error
         const { data } = await supabase
           .from("media_likes")

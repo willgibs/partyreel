@@ -257,6 +257,7 @@ if (LIVE && dbFixes.length > 0) {
   );
 
   const ids = dbFixes.map((f) => f.mediaId);
+  // row-cap-todo: H17 every shrunk media id rides one URL, and the read is cut at 1,000
   const { data: rows, error } = await supabase
     .from("media")
     .select("id, event_id, file_size_bytes, created_at")
@@ -268,6 +269,7 @@ if (LIVE && dbFixes.length > 0) {
   const rowById = new Map((rows ?? []).map((r) => [r.id, r]));
 
   const eventIds = [...new Set((rows ?? []).map((r) => r.event_id))];
+  // row-cap-todo: H17 every event id rides one URL
   const { data: events, error: evErr } = await supabase
     .from("events")
     .select("id, host_id")

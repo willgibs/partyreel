@@ -17,6 +17,7 @@ export async function listContactSubmissions(
   status?: TriageStatus,
 ): Promise<ContactSubmission[]> {
   const admin = createAdminClient();
+  // row-cap-todo: M10 every contact submission, cut at 1,000
   let query = admin
     .from("contact_submissions")
     .select("*")

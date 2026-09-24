@@ -107,6 +107,7 @@ export async function POST(request: Request) {
     // 40 GB album summarised as "0 files, 0 bytes" (an empty-looking download to
     // the guest) AND sailed through the 20 GB ceiling in exportSummary. A failed
     // size read must abort the export, never approve an unmeasured one.
+    // row-cap-todo: C11 every gallery id rides one URL, which fails past about 200 ids
     const sizes = await mustQuery(
       createAdminClient()
         .from("media")

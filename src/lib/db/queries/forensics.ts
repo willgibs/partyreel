@@ -66,6 +66,7 @@ export type HeldMediaRow = {
 /** Every media row under an active legal hold, with its preservation state. */
 export async function listHeldMedia(): Promise<HeldMediaRow[]> {
   const admin = createAdminClient();
+  // row-cap-todo: M11 every held media row, cut at 1,000
   const { data, error } = await admin
     .from("media")
     .select("id, event_id, status, legal_hold_at, legal_hold_reason")
@@ -80,6 +81,7 @@ export async function listHeldMedia(): Promise<HeldMediaRow[]> {
     ...new Set(rows.map((r: { event_id: string }) => r.event_id)),
   ];
 
+  // row-cap-todo: M11 every held media id and its event ids ride two URLs
   const [{ data: forensics }, { data: events }] = await Promise.all([
     admin
       .from("upload_forensics")

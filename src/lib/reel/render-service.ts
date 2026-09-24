@@ -173,6 +173,7 @@ export async function resolveReelRenderContext(
   const watermark = tier === "free";
 
   // The curated reel: ordered ids + the approved media for the event.
+  // row-cap-todo: M9 C14 the reel's members and the event's approved media, each read cut at 1,000
   const [{ data: reelRows }, { data: mediaRows }, { data: reelRow }] =
     await Promise.all([
       admin

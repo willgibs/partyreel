@@ -93,6 +93,7 @@ export async function listSessionMediaIds(input: {
 }): Promise<string[]> {
   const token = input.sessionToken.trim();
   if (token.length < MIN_SESSION_TOKEN) return [];
+  // row-cap: a session token names one guest row (guests.session_token is unique)
   return mediaIdsForGuests(
     input.eventId,
     createAdminClient()
@@ -114,6 +115,7 @@ export async function listAccountMediaIds(input: {
   eventId: string;
   userId: string;
 }): Promise<string[]> {
+  // row-cap: one account's guest rows in one event: one per session it claimed, a handful
   return mediaIdsForGuests(
     input.eventId,
     createAdminClient()
@@ -142,6 +144,7 @@ async function mediaIdsForGuests(
   const { data: guests, error } = await guestQuery;
   if (error || !guests || guests.length === 0) return [];
 
+  // row-cap-todo: M8 a guest's media ids, cut at 1,000, over an unchunked list of their guest rows
   const { data: media, error: mediaError } = await createAdminClient()
     .from("media")
     .select("id")

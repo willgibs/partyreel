@@ -68,6 +68,7 @@ export async function POST(request: Request): Promise<Response> {
 
   // Which of the sent ids STILL have a media row? Anything not returned is gone (the DB half of the
   // dual-gate). Indexed PK lookup — cheap even at the max batch size.
+  // row-cap-todo: M17 the whole batch (up to MAX_BATCH ids) rides one URL
   const { data: existing, error: existErr } = await admin
     .from("media")
     .select("id")

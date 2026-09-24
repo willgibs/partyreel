@@ -228,6 +228,7 @@ async function binHostedEvents(
   }
 
   const supabase = await createClient();
+  // row-cap-todo: N1 the self-service deletion bins only the first 1,000 hosted events
   const live = await mustQuery(
     supabase
       .from("events")

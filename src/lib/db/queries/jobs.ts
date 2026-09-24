@@ -92,6 +92,7 @@ export async function getJobFlags(): Promise<Record<JobId, boolean>> {
   const keys = JOBS.map((j) => j.flagKey).filter(
     (k): k is string => k !== null,
   );
+  // row-cap: the kill switches of the JOBS registry: a fixed handful of config rows
   const rows = await mustQuery(
     admin.from("ops_flags").select("key, enabled").in("key", keys),
     "admin/jobs: kill switches",

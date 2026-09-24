@@ -29,6 +29,7 @@ import { createClient } from "@/lib/supabase/server";
  */
 export async function listReelItems(eventId: string): Promise<string[]> {
   const supabase = await createClient();
+  // row-cap-todo: M9 the reel's members, cut at 1,000
   const { data, error } = await supabase
     .from("reel_items")
     // The FK hint is explicit on purpose: `media!inner` alone is resolvable today, but reel_items

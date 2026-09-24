@@ -12,6 +12,7 @@ export type LinkStats = { qrScans: number; albumViews: number };
 
 export async function getLinkStats(eventId: string): Promise<LinkStats> {
   const supabase = await createClient();
+  // row-cap-todo: M4 lifetime totals summed from per-day rows cut at 1,000
   const { data, error } = await supabase
     .from("link_stats")
     .select("kind, count")

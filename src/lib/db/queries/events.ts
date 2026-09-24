@@ -49,6 +49,7 @@ export const listEvents = cache(async function listEvents(): Promise<
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
+  // row-cap-todo: M1 the host's event list, cut at 1,000
   const { data, error } = await supabase
     .from("events")
     .select("*")
@@ -110,6 +111,8 @@ export async function getEventCoverUrls(
   const { supabase, user } = await getRequestAuth();
   if (!user) return urls;
 
+  // row-cap-todo: H2 M3 one row per approved photo of every event, cut at 1,000 (past it older events lose
+  // their cover), and every event id rides one URL
   const { data, error } = await supabase
     .from("media")
     .select("event_id, original_key, preview_key")
@@ -163,6 +166,7 @@ export const listRecentlyDeletedEvents = cache(
       now - RECENTLY_DELETED_WINDOW_DAYS * 86_400_000,
     ).toISOString();
 
+    // row-cap-todo: M2 the Recently deleted events, cut at 1,000
     const { data, error } = await supabase
       .from("events")
       .select("*")
@@ -199,6 +203,8 @@ export async function getEventCardStats(
   const { supabase, user } = await getRequestAuth();
   if (!user) return stats;
 
+  // row-cap-todo: C13 M3 the card counts come from a list cut at 1,000 (a big album stops at 1,000 items),
+  // and every event id rides one URL
   const { data, error } = await supabase
     .from("media")
     .select("event_id, status")

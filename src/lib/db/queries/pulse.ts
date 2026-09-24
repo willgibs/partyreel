@@ -83,6 +83,7 @@ export const getPulse = cache(async function getPulse(
 
   // Approved only: a pending upload belongs in the review queue, which is band
   // one's job. Showing it here would tell the host it is already in the album.
+  // row-cap-todo: M3 every event id rides one URL
   const { data, error } = await supabase
     .from("media")
     .select("id, event_id, type, created_at, preview_key, original_key")
@@ -173,6 +174,7 @@ export const getEventsWithReels = cache(async function getEventsWithReels(
   const { supabase, user } = await getRequestAuth();
   if (!user) return new Set();
 
+  // row-cap-todo: M3 every event id rides one URL
   const { data, error } = await supabase
     .from("highlight_reels")
     .select("event_id")

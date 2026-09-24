@@ -42,6 +42,7 @@ async function fetchHostLabels(
   ids: string[],
 ): Promise<Map<string, string | null>> {
   if (ids.length === 0) return new Map();
+  // row-cap: host labels for one feed page (FEED_LIMIT, 60) or one album: at most 60 ids
   const { data, error } = await admin
     .from("profiles")
     .select("id, email, display_name")
@@ -120,6 +121,7 @@ export async function getAlbumForModeration(
   if (error) throw error;
   if (!event) return null;
 
+  // row-cap-todo: H5 the album drill-in and its per-status counts, cut at 1,000
   const { data: mediaRows, error: mErr } = await admin
     .from("media")
     .select("id, type, status, created_at, original_key")
