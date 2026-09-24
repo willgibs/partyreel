@@ -1,6 +1,6 @@
 ---
 track: rowcap-guest
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "30c3fecd"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -106,24 +106,43 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+No open question; every call below was taken on the brief's recommended answer or the rules, and none needed a new SQL shape.
+- **C9, how the header stays exact and live.** Taken: the album's head count (`countApprovedMedia`, request-scoped `cache()`) rides every gallery payload (the render's and each poll's 200, at `teaser` and `full`) and the ETag hashes it (`g4` -> `g5`); `LiveGallery` shows it plus this device's own changes since that payload (`albumCount`: an optimistic tile in, the guest's own removal out). Recommended: keep. The alternative (at `full`, `items.length` of a whole read) breaks rule 2 and cannot move a teaser.
+- **C9 at `none`.** Taken: the locked page's "N photos & videos inside" stays the render's exact head count, not live (a locked page mounts no gallery and runs no poll by design). Recommended: keep; live would put the doorbell on the lock screen for a tease.
+- **The door's count.** Taken: the entry sheet's `mediaTotal` is the header's live number (`mediaCount`), not the render's stats, so a door opened over the teaser never says a different size than the line beside it. Recommended: keep.
+- **C11, an id with no size.** Taken: it leaves the export (a row purged between the album read and the size read) instead of counting as zero bytes or failing the export. Recommended: keep; a failed chunk still aborts the whole export.
+- **M12, the seed.** Taken: only the ids not yet answered are asked (a poll's one new photograph asks one id); a failed seed goes to Sentry (`captureError("media", QueryFailedError)`) with no toast and the ids stay unasked for the next change. Recommended: keep.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+`docs/systems/guest-flow.md`, all in work commit `a8250063`:
+- "Stats": the media count is `countApprovedMedia`, shared by the stats and the gallery payload; N points at "One true count".
+- The like line: the hearts seed through `my_liked_media_ids` (ids in the POST body, only the unanswered ones, a failure reported).
+- "Gallery access", `full`: read whole, in one order, by either arm (the RPC's `(p_before_created_at, p_before_id, p_limit)`, the table's `olderThan`).
+- "One true count" rewritten: exact and live at `teaser` AND `full`, the ETag hashing it, the CTA and the door saying it, the fallback, and `none` staying the render's count.
+- "The conditional poll": a 304 still runs the fingerprint's reads; the ETag invariant lists `approvedTotal`.
+- Outside my doc, none: `database-security.md` already states `my_liked_media_ids`. One code comment outside my owns: `src/lib/event/gallery-items.ts:39` (rowcap-album's) says "Two presigned URLs per item from one key"; it mints three (the preview when the row has one).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: "Likes: the album's bulk Like (`likeMany`, `likes-provider.tsx`) fires one `like_media` per selected id, all at once, so a whole large album selected is that many parallel requests; a `like_many(uuid[])` with the ids in the body."
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed:** work `a8250063`; sync `2d0d26db` (merge of `origin/launch-prep` at `8c7f8f15`, the stage-2 building record, which touches none of my reads).
+- **Gates on the synced tree (`2d0d26db`), each on its own exit code:** `pnpm design:rules` 0 · `collect-specimens.mjs` 0 · `pnpm typecheck` 0 · `pnpm lint` 0 (8 warnings, none in a touched file) · `pnpm test` 0 (389 files, 4,405 passed, 1 skipped) · `pnpm build` 0 · `pnpm lab:smoke --base http://localhost:3131` 0 (522 checks, 0 failing). No board, so no `lab:demo`.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`, this file aside): `docs/design/library.md`, `docs/systems/guest-flow.md`, `src/app/(dev)/design/rules/rules.generated.json`, `src/app/(guest)/e/[token]/page.tsx`, `src/app/api/export/guest/route.test.ts`, `src/app/api/export/guest/route.ts`, `src/app/api/guests/gallery/route.test.ts`, `src/app/api/guests/gallery/route.ts`, `src/components/guest/event-experience.tsx`, `src/components/guest/live-gallery.test.tsx`, `src/components/guest/live-gallery.tsx`, `src/components/likes/likes-provider.test.tsx`, `src/components/likes/likes-provider.tsx`, `src/lib/db/queries/guest-events-admin.test.ts`, `src/lib/db/queries/guest-events-admin.ts`, `src/lib/db/queries/guest-events.test.ts`, `src/lib/db/queries/guest-events.ts`, `src/lib/events/gallery-access.server.test.ts`, `src/lib/events/gallery-access.server.ts`, `src/lib/events/gallery-fingerprint.test.ts`, `src/lib/events/gallery-fingerprint.ts`, `src/lib/r2/grid-items.ts`. **Exceptions:** `docs/design/library.md` and `rules.generated.json`, regenerated by the gate's `pnpm design:rules` because `live-gallery.test.tsx` (a `@contract-for` test in my owns) gained nine contract lines (27 -> 36 guards); generated, never hand-edited.
+- **Markers:** `git grep -n "row-cap-todo" -- <owns>` lists nothing (C7, C8, C11, M12 removed); `row-cap-policy.test.ts` green.
+- **C7:** `getEventMediaByQrToken` reads `get_event_media_by_qr_token` through `readAllPages` with `p_limit` and the raw `(created_at, id)` cursor (`albumCursorOf`); `GuestMediaRow` carries `created_at`. Live: the probe's poll went from 1,000 to 1,145 items.
+- **C8:** `getApprovedMediaForUnlock` pages the same order as a table read with `olderThan` (the composite `.or()`, the timestamp unquoted). Live, read-only, on the probe by script: 1,145 rows in two pages, the RPC's exact order.
+- **C9:** the head count on every payload and in the ETag (`g5`), `albumCount` on the client, the door on the header's number, the teaser's id tiebreak (above). Live: header "1145 photos & videos from 3 guests", the poll's `approvedTotal` 1,145, the door "1145 are already inside".
+- **C10:** open events are whole through C7 (the overlay's `byId` is the whole album). The password arm's reel ids come from `resolveReelRenderContext`, rowcap-album's C14, not merged at my sync: it waits; its `byId` side is whole through C8.
+- **C11:** sizes through `inChunks` (150 ids a request), an unmeasured id left out. Live: the probe's summary is 1,145 photos, 750,731 bytes, equal to a direct DB tally.
+- **M12:** `my_liked_media_ids` with the ids in the POST body, the error bound and reported, only unanswered ids asked. Live, read-only: anon is refused (42501); a 100,000-id body (3.9 MB) answers 200. ★ It must merge with rowcap-album's C1 (the host hub feeds `LikesProvider` a whole album).
+- **Helper convergence:** `getUploaderIdentities` onto `readAllPages` (`IDENTITY_PAGE` retired with its hand-rolled test).
+- **Stale comments:** `grid-items.ts:3-5`, `page.tsx:232-233`, the fingerprint's "~120 presigns", the poll route's "one rows query", `likes-provider.tsx`'s header; `gallery-items.ts:39` is listed above for rowcap-album.
+- **Tests (fake PostgREST, fixtures past 2,000):** `guest-events.test.ts` (C7: 2,400 and 2,100 rows, a tie across the page boundary, the raw cursor, the error), `guest-events-admin.test.ts` (C8 at 2,600 and a boundary tie, identities at 2,500, the head count at 2,400, the teaser), `export/guest/route.test.ts` (2,300 ids in 16 chunks under the URL limit, the unchunked shape failing, an unmeasured row, a failed chunk), `likes-provider.test.tsx` (2,500 ids in one body; the fake cannot answer a scalar `uuid[]`, so the mock routes by name), `live-gallery.test.tsx` (`albumCount` and the live count), `gallery-access.server.test.ts`, `gallery-fingerprint.test.ts`, the poll's `route.test.ts`.
+- **Assets requested from Will:** none.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:** the five under Questions.
+- **Look at first:** `pnpm dev -p 3131`, then `/e/d02631f1bfb3455188d224e41bf9510f` signed out (the door holds the album; its welcome says 1,145): the header reads 1,145, and the album's foot is the oldest approved photo, **p0053** (`075d11d2-0e13-4a46-8249-4d3c05e08a0b`; p0001-p0020 pending, p0021-p0050 host-removed, p0051, p0052 and p0054-p0056 the five withdrawn). Then `POST /api/guests/gallery {"qr_token":"d02631f1bfb3455188d224e41bf9510f"}`: 200 with 1,145 items and `approvedTotal` 1,145; the same with `If-None-Match` its `"g5-..."` ETag: 304, 0 bytes.
