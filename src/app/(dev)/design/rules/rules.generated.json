@@ -13396,7 +13396,7 @@
             "MediaLightbox: share, copy link and save (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 951
+          "line": 954
         },
         {
           "title": "saves with the plain download on a desk and on Android",
@@ -13404,7 +13404,7 @@
             "MediaLightbox: share, copy link and save (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 972
+          "line": 978
         },
         {
           "title": "offers Save to Photos first and the file second on iOS",
@@ -13412,7 +13412,7 @@
             "MediaLightbox: share, copy link and save (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 978
+          "line": 984
         },
         {
           "title": "scales in place under two fingers, and the neighbours step aside",
@@ -13420,7 +13420,7 @@
             "MediaLightbox: the close-up (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1041
+          "line": 1047
         },
         {
           "title": "goes home when let go under fit",
@@ -13428,7 +13428,7 @@
             "MediaLightbox: the close-up (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1049
+          "line": 1055
         },
         {
           "title": "pans with one finger while close, and never swipes to the next photograph",
@@ -13436,7 +13436,7 @@
             "MediaLightbox: the close-up (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1058
+          "line": 1064
         },
         {
           "title": "zooms a clip never: two fingers on a video do nothing",
@@ -13444,7 +13444,7 @@
             "MediaLightbox: the close-up (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1075
+          "line": 1081
         },
         {
           "title": "leaves past the line",
@@ -13452,7 +13452,7 @@
             "MediaLightbox: the pull down (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1090
+          "line": 1096
         },
         {
           "title": "leaves on a flick, even a short one",
@@ -13460,7 +13460,7 @@
             "MediaLightbox: the pull down (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1099
+          "line": 1105
         },
         {
           "title": "comes back from a short slow pull, and the chrome with it",
@@ -13468,7 +13468,7 @@
             "MediaLightbox: the pull down (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1107
+          "line": 1113
         },
         {
           "title": "never eats the click after a pull: the trailing click does not close twice",
@@ -13476,7 +13476,7 @@
             "MediaLightbox: the pull down (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1118
+          "line": 1124
         },
         {
           "title": "grows out of the tile it was tapped on, the chrome waiting until it lands",
@@ -13484,7 +13484,7 @@
             "MediaLightbox: grow out of the tile, drop back in (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1169
+          "line": 1175
         },
         {
           "title": "under reduced motion it fades as it always has: no flight",
@@ -13492,7 +13492,7 @@
             "MediaLightbox: grow out of the tile, drop back in (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1192
+          "line": 1198
         },
         {
           "title": "drops back into the tile of the photograph showing at close, then gives it focus",
@@ -13500,7 +13500,7 @@
             "MediaLightbox: grow out of the tile, drop back in (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1206
+          "line": 1212
         },
         {
           "title": "with nowhere to land, it closes at once",
@@ -13508,7 +13508,7 @@
             "MediaLightbox: grow out of the tile, drop back in (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1234
+          "line": 1240
         },
         {
           "title": "opened from the address (no rect), it fades in and still returns",
@@ -13516,7 +13516,7 @@
             "MediaLightbox: grow out of the tile, drop back in (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1247
+          "line": 1253
         },
         {
           "title": "stands each neighbour off toward the photograph, and holds the photograph at its place",
@@ -13524,7 +13524,7 @@
             "MediaLightbox: the neighbours peek (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1263
+          "line": 1269
         },
         {
           "title": "stays today's full-width swipe when a photograph's size is unknown",
@@ -13532,7 +13532,7 @@
             "MediaLightbox: the neighbours peek (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1280
+          "line": 1286
         }
       ]
     },
@@ -15953,7 +15953,7 @@
             "MediaLightbox: share, copy link and save (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 951
+          "line": 954
         },
         {
           "title": "saves with the plain download on a desk and on Android",
@@ -15961,7 +15961,7 @@
             "MediaLightbox: share, copy link and save (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 972
+          "line": 978
         },
         {
           "title": "offers Save to Photos first and the file second on iOS",
@@ -15969,7 +15969,7 @@
             "MediaLightbox: share, copy link and save (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 978
+          "line": 984
         },
         {
           "title": "scales in place under two fingers, and the neighbours step aside",
@@ -15977,7 +15977,7 @@
             "MediaLightbox: the close-up (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1041
+          "line": 1047
         },
         {
           "title": "goes home when let go under fit",
@@ -15985,7 +15985,7 @@
             "MediaLightbox: the close-up (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1049
+          "line": 1055
         },
         {
           "title": "pans with one finger while close, and never swipes to the next photograph",
@@ -15993,7 +15993,7 @@
             "MediaLightbox: the close-up (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1058
+          "line": 1064
         },
         {
           "title": "zooms a clip never: two fingers on a video do nothing",
@@ -16001,7 +16001,7 @@
             "MediaLightbox: the close-up (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1075
+          "line": 1081
         },
         {
           "title": "leaves past the line",
@@ -16009,7 +16009,7 @@
             "MediaLightbox: the pull down (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1090
+          "line": 1096
         },
         {
           "title": "leaves on a flick, even a short one",
@@ -16017,7 +16017,7 @@
             "MediaLightbox: the pull down (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1099
+          "line": 1105
         },
         {
           "title": "comes back from a short slow pull, and the chrome with it",
@@ -16025,7 +16025,7 @@
             "MediaLightbox: the pull down (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1107
+          "line": 1113
         },
         {
           "title": "never eats the click after a pull: the trailing click does not close twice",
@@ -16033,7 +16033,7 @@
             "MediaLightbox: the pull down (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1118
+          "line": 1124
         },
         {
           "title": "grows out of the tile it was tapped on, the chrome waiting until it lands",
@@ -16041,7 +16041,7 @@
             "MediaLightbox: grow out of the tile, drop back in (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1169
+          "line": 1175
         },
         {
           "title": "under reduced motion it fades as it always has: no flight",
@@ -16049,7 +16049,7 @@
             "MediaLightbox: grow out of the tile, drop back in (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1192
+          "line": 1198
         },
         {
           "title": "drops back into the tile of the photograph showing at close, then gives it focus",
@@ -16057,7 +16057,7 @@
             "MediaLightbox: grow out of the tile, drop back in (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1206
+          "line": 1212
         },
         {
           "title": "with nowhere to land, it closes at once",
@@ -16065,7 +16065,7 @@
             "MediaLightbox: grow out of the tile, drop back in (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1234
+          "line": 1240
         },
         {
           "title": "opened from the address (no rect), it fades in and still returns",
@@ -16073,7 +16073,7 @@
             "MediaLightbox: grow out of the tile, drop back in (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1247
+          "line": 1253
         },
         {
           "title": "stands each neighbour off toward the photograph, and holds the photograph at its place",
@@ -16081,7 +16081,7 @@
             "MediaLightbox: the neighbours peek (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1263
+          "line": 1269
         },
         {
           "title": "stays today's full-width swipe when a photograph's size is unknown",
@@ -16089,7 +16089,7 @@
             "MediaLightbox: the neighbours peek (r1)"
           ],
           "file": "src/components/shared/media-lightbox.test.tsx",
-          "line": 1280
+          "line": 1286
         },
         {
           "title": "reads \"Unverified\", never a claim that a name was checked",
