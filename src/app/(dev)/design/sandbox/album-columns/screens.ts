@@ -1,4 +1,5 @@
 import type { Control } from "@/components/lab/board-spec";
+import { TILE_SIZES, TILE_SIZE_LABEL } from "@/lib/shared/tile-size-cookie";
 
 /**
  * THE WIDTH KNOBS, AS PURE DATA — split from `canvas.tsx` (a client file) so
@@ -58,6 +59,45 @@ export const EDGE_SCREEN_W: Record<EdgeScreen, number> = {
   "375": 375,
   "1440": 1440,
   "2560": 2560,
+};
+
+/** `layout`'s own knob: the two widths the brief named, plus the big screen
+ *  "where it matters". Default 1440 — the primary check. */
+export const LAYOUT_SCREEN: Control = {
+  id: "layout-screen",
+  label: "Layout's screen",
+  options: [
+    { id: "375", label: "375, a phone" },
+    { id: "1440", label: "1440, a laptop" },
+    { id: "1920", label: "1920, a big monitor" },
+  ],
+  default: "1440",
+};
+export type LayoutScreen = "375" | "1440" | "1920";
+export const layoutScreenOf = (v: string | undefined): LayoutScreen =>
+  v === "375" || v === "1920" ? v : "1440";
+export const LAYOUT_SCREEN_W: Record<LayoutScreen, number> = {
+  "375": 375,
+  "1440": 1440,
+  "1920": 1920,
+};
+
+/**
+ * `layout`'s own reading of the tile-size control: the same three real steps
+ * (`TILE_SIZES`), reinterpreted per layout since a raw px means something
+ * different in each — the column floor for masonry and the uniform grid, the
+ * target row height for justified rows, the base cell for the mosaic. Real
+ * meaning everywhere, same three numbers everywhere.
+ */
+export const LAYOUT_SIZE: Control = {
+  id: "layout-size",
+  label: "Tile size",
+  options: TILE_SIZES.map((s) => ({ id: String(s), label: TILE_SIZE_LABEL[s] })),
+  default: "240",
+};
+export const layoutSizeOf = (v: string | undefined): number => {
+  const n = Number(v);
+  return (TILE_SIZES as readonly number[]).includes(n) ? n : 240;
 };
 
 /** `phone`'s own knob: three real device widths either side of where a third

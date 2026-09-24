@@ -1349,9 +1349,9 @@ export const RULINGS: Ruling[] = [
     title: "The album's column rule",
     surface: "shared",
     ruled:
-      "open: how wide the album runs, what the biggest screens do once columns would climb forever, what a bigger phone earns, whether hosting and guesting share one tile-size preference, and the control's own form",
+      "open: whether masonry is the right layout at all, how wide the album runs, what the biggest screens do once columns would climb forever, what a bigger phone earns, whether hosting and guesting share one tile-size preference, and the control's own form",
     shipped: null,
-    why: "`gallery-width` ruled the middle of the range and left both ends open; this board looks at the ends it never reached.",
+    why: "`gallery-width` ruled the middle of the range and left both ends, and the layout itself, open; this board looks at all three.",
     lives: [
       "src/components/shared/masonry.tsx",
       "src/lib/shared/tile-size-cookie.ts",
@@ -1359,8 +1359,9 @@ export const RULINGS: Ruling[] = [
       "src/components/app/event-feed/event-gallery.tsx",
     ],
     board: {
-      note: "Five decisions, no page: the album's own width, what the biggest screens do once columns would climb forever, what a bigger phone earns, whether hosting and guesting share one tile-size preference, and the control's own form; every option is the real fixture album on the real masonry grid, at the width where it shows.",
+      note: "Six decisions, no page: whether masonry is even the right layout (beside justified rows, the uniform grid and a mosaic), the album's own width, what the biggest screens do once columns would climb forever, what a bigger phone earns, whether hosting and guesting share one tile-size preference, and the control's own form; every option is the real fixture album on the real masonry grid (or its own algorithm, honestly quoted), at the width where it shows.",
       variants: [
+        "The layout itself",
         "Album width",
         "The scale ceiling",
         "The phone's columns",

@@ -10,18 +10,18 @@ import { tileAspect } from "@/lib/media/tile-aspect";
 import { Canvas, Ground } from "./canvas";
 import { phoneScreenOf, PHONE_SCREEN_W, type PhoneScreen } from "./screens";
 
-export type PhoneOption = "fixed-two" | "scales" | "step-three";
+export type PhoneOption = "fixed-two" | "scales" | "step-three" | "single-column";
 
 const GAP = 4;
 const PHONE_GUTTER = 40; // px-5 each side, same as every other surface
 
 /**
- * "scales" and "step-three" are NOT WIRED (masonry.tsx hardcodes two columns
- * under 640px, `PHONE_MAX`), so both are a local simulation rather than the
- * production component: the same balancing algorithm the shipped grid uses
- * (`distributeColumns`, imported, never re-implemented), fed a column count
- * this board computes instead of `columnsFor`'s. "fixed-two" is today, so it
- * is the real `MasonryColumns` untouched.
+ * Every option but "fixed-two" is NOT WIRED (masonry.tsx hardcodes two
+ * columns under 640px, `PHONE_MAX`), so each is a local simulation rather
+ * than the production component: the same balancing algorithm the shipped
+ * grid uses (`distributeColumns`, imported, never re-implemented), fed a
+ * column count this board computes instead of `columnsFor`'s. "fixed-two" is
+ * today, so it is the real `MasonryColumns` untouched.
  */
 const cols: Record<PhoneOption, (w: number) => number> = {
   "fixed-two": () => 2,
@@ -30,6 +30,8 @@ const cols: Record<PhoneOption, (w: number) => number> = {
     Math.max(2, Math.floor((w - PHONE_GUTTER + GAP) / (160 + GAP))),
   // One more explicit breakpoint: three from 480px, two below it.
   "step-three": (w) => (w >= 480 ? 3 : 2),
+  // A deliberate style, not a width fallback: always one, a feed.
+  "single-column": () => 1,
 };
 
 function SimulatedColumns({ items, n }: { items: GridMedia[]; n: number }) {
@@ -95,7 +97,10 @@ export function phonePreview(state: BoardState, option: PhoneOption) {
       title={`${option}, ${w}px`}
       caption={
         simulated
-          ? `${cols[option](w)} columns (simulated: not yet wired)`
+          ? (() => {
+              const n = cols[option](w);
+              return `${n} column${n === 1 ? "" : "s"} (simulated: not yet wired)`;
+            })()
           : undefined
       }
     >

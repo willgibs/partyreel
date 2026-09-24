@@ -1,9 +1,17 @@
 import { defineExploration } from "@/components/lab/exploration";
 
-import { BIG_SCREEN, EDGE_SCREEN, PHONE_SCREEN } from "./screens";
+import {
+  BIG_SCREEN,
+  EDGE_SCREEN,
+  LAYOUT_SCREEN,
+  LAYOUT_SIZE,
+  PHONE_SCREEN,
+} from "./screens";
 
 /**
- * THE ALBUM'S COLUMN RULE, EXPLORED AFRESH (2026-09-24).
+ * THE ALBUM'S COLUMN RULE, EXPLORED AFRESH (2026-09-24; widened the same day
+ * on the Orchestrator's own review: the layout question itself, first, and a
+ * real fourth direction wherever one exists).
  *
  * `gallery-width` (2026-09-19) ruled the shape every album grid still shares: a
  * declared column WIDTH, never a count, so a wider window shows more
@@ -14,14 +22,15 @@ import { BIG_SCREEN, EDGE_SCREEN, PHONE_SCREEN } from "./screens";
  * since has drawn the rule as finished, which is exactly why nobody has looked
  * at either end since.
  *
- * Five decisions, each a real fixture album (`sandbox/gallery-fixtures.ts`) on
- * the real `MasonryColumns`, at the widths where each one's difference shows:
- * how wide the album's own box runs, what the biggest screens do once the
- * column count would otherwise climb forever, what a phone bigger than an
- * iPhone earns, whether hosting and guesting should share one size preference,
- * and whether the control itself stays three steps. None of them touch the
- * balancing algorithm `gallery-width` ruled (oldest-first into the shortest
- * column): every option here is that same algorithm, fed a different width.
+ * Six decisions, each a real fixture album (`sandbox/gallery-fixtures.ts`) on
+ * the real `MasonryColumns`: whether masonry is even the right layout, how
+ * wide the album's own box runs, what the biggest screens do once the column
+ * count would otherwise climb forever, what a phone bigger than an iPhone
+ * earns, whether hosting and guesting should share one size preference, and
+ * whether the control itself stays three steps. Every option under `width`,
+ * `scale` and `phone` is the one balancing algorithm `gallery-width` ruled
+ * (oldest-first into the shortest column), fed a different width; `layout`
+ * is the one place that algorithm itself is a real, drawn alternative.
  */
 export const ALBUM_COLUMNS = defineExploration({
   id: "album-columns",
@@ -30,12 +39,54 @@ export const ALBUM_COLUMNS = defineExploration({
     n: 1,
     date: "2026-09-24",
     changed:
-      "First round: the column rule drawn fresh across five decisions, the width, the scale ceiling, the phone, the shared preference and the control's form, each on the real fixture album at the widths where it shows.",
+      "First round, widened same-day: the layout question itself now opens the board, and control/phone each carry the real fourth direction they had (pinch, a single-column feed).",
   },
   context:
-    "The shared masonry (`src/components/shared/masonry.tsx`) is one grid behind the guest album, the host's feed, the recovery bin and the personal feeds: a declared column width with a 220px floor above 640px, two fixed columns below it, and a three-step control that sets the floor. `gallery-width` ruled the middle of that range; this board treats nothing about it as decided and looks at the ends.",
+    "The shared masonry (`src/components/shared/masonry.tsx`) is one grid behind the guest album, the host's feed, the recovery bin and the personal feeds: a declared column width with a 220px floor above 640px, two fixed columns below it, and a three-step control that sets the floor. `gallery-width` ruled the middle of that range; this board treats nothing about it as decided, including the layout itself.",
   bible: [1, 2, 3, 6],
   asks: [
+    {
+      id: "layout",
+      label: "The layout itself",
+      question: "Should the album lay out in masonry columns, or a real different way?",
+      context:
+        "Masonry (today) balances natural-ratio photographs into height-matched columns. Three other real ways to fill a width exist: equal-height rows, a uniform grid (already built, for the Reel) and a mosaic that features a few.",
+      lands:
+        "The grid every album, host feed and marketing stage is built from, underneath every other decision here.",
+      configs: [LAYOUT_SCREEN, LAYOUT_SIZE],
+      options: [
+        {
+          id: "masonry",
+          label: "Masonry: natural columns",
+          means:
+            "Today. Real ratios, height-balanced columns, nothing cropped; the live arrival (a photo grows into its column, nothing else moves) depends on this shape.",
+        },
+        {
+          id: "justified",
+          label: "Justified: equal rows, nothing cropped",
+          means:
+            "Rows pack at one target height, each stretched to the exact width (Flickr's algorithm): a cleaner edge, but a new arrival reflows every row after it.",
+        },
+        {
+          id: "uniform",
+          label: "Uniform: one fixed shape, cropped",
+          means:
+            "The Reel and Review queue's own grid, real and already built; tried for the album once already and ruled out (`gallery`, 2026-09-19).",
+        },
+        {
+          id: "mosaic",
+          label: "Mosaic: a few photos get more room",
+          means:
+            "The three most-liked span a bigger cell, the rest pack in around them: lively, but it crops, and it plays favourites among a guest's own photographs.",
+        },
+      ],
+      recommended: "masonry",
+      today: "masonry",
+      because:
+        "The live-arrival grammar (a photograph grows into its own column and nothing else moves, ruled since guest-shape/guest-upload) is built on masonry's own column assignment; justified's row membership would reflow under it, and uniform was already tried and ruled out for this exact spot.",
+      overrule:
+        "If a cleaner right edge matters more than the arrival staying local, justified is the stronger look and the arrival grammar is the thing to redesign.",
+    },
     {
       id: "width",
       label: "Album width",
@@ -137,13 +188,19 @@ export const ALBUM_COLUMNS = defineExploration({
           means:
             "One more breakpoint rather than a continuous rule: two columns to 479px, three from 480 to 639.",
         },
+        {
+          id: "single-column",
+          label: "One column: a feed",
+          means:
+            "A deliberate style, not a width fallback: every phone, always one column, full-width photographs in a single scroll.",
+        },
       ],
       recommended: "fixed-two",
       today: "fixed-two",
       because:
         "A 160px tile is a small target mid-scroll, and the phone's whole case for two columns was a tile that reads at arm's length, not a grid that reads at a desk.",
       overrule:
-        "If a big-phone or small-tablet guest audience turns out to be real, a third column earns real space back, and step-three is the smaller, safer move of the two.",
+        "If a big-phone guest audience is real, step-three earns space back; if the album should read as a story rather than a grid, single-column is the bolder move.",
     },
     {
       id: "scope",
@@ -209,13 +266,19 @@ export const ALBUM_COLUMNS = defineExploration({
           means:
             "XS through XL: closer to the slider's range without giving up a nameable, reachable step.",
         },
+        {
+          id: "pinch",
+          label: "Pinch to resize (touch)",
+          means:
+            "The Photos app's gesture: two fingers on a touch album, or a trackpad pinch at a desk. No steps, no track to drag, just the size changing under your fingers.",
+        },
       ],
       recommended: "three-step",
       today: "three-step",
       because:
         "A photo grid barely feels different between two steps 20px apart, so the slider's extra precision buys little; three named sizes stay quick to reach for and easy to describe.",
       overrule:
-        "If reviewers keep landing between two steps wanting a size neither offers, five-step (or the slider) earns its keep.",
+        "Landing between two steps wanting a size neither offers earns five-step or the slider; a mostly-touch guest audience earns pinch, the more native gesture there.",
     },
   ],
 });
