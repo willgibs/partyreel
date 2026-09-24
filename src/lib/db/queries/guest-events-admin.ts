@@ -15,10 +15,19 @@
  */
 import "server-only";
 
+import { cache } from "react";
+
 import { seedFor } from "@/lib/avatar/seed";
-import { mustQuery } from "@/lib/db/must-query";
-import type { GuestEvent, GuestMediaRow } from "@/lib/db/queries/guest-events";
+import { mustQuery, QueryFailedError } from "@/lib/db/must-query";
+import {
+  albumCursorOf,
+  olderThan,
+  type AlbumCursor,
+  type GuestEvent,
+  type GuestMediaRow,
+} from "@/lib/db/queries/guest-events";
 import { getEventGuests } from "@/lib/db/queries/social";
+import { readAllPages } from "@/lib/db/read-all";
 import { guestCount } from "@/lib/events/event-guests";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -29,20 +38,38 @@ import {
   type UploaderRow,
 } from "@/lib/media/uploader-identity";
 
+/**
+ * The UNLOCKED password album: every approved item, NEWEST FIRST in the open album's exact order
+ * (`created_at desc, id desc`), read whole in keyset pages (the 1,000-row round: one unbounded read
+ * handed an album past a thousand items its newest 1,000). The cursor is `olderThan`, the table
+ * twin of the open album RPC's own, so the two arms of `loadGalleryRowsForAccess` can never page or
+ * order an album differently.
+ */
 export async function getApprovedMediaForUnlock(
   eventId: string,
 ): Promise<GuestMediaRow[]> {
   if (!(await isUnlocked(eventId))) return [];
 
-  // row-cap-todo: C8 an unlocked password album is cut at 1,000 items
-  const { data, error } = await createAdminClient()
-    .from("media")
-    .select("id, type, original_key, preview_key, width, height, duration_seconds")
-    .eq("event_id", eventId)
-    .eq("status", "approved")
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  return (data ?? []).map((m) => ({
+  const admin = createAdminClient();
+  const { rows } = await readAllPages(
+    "unlocked album: media",
+    (after: AlbumCursor | null, limit) => {
+      let page = admin
+        .from("media")
+        .select(
+          "id, type, original_key, preview_key, width, height, duration_seconds, created_at",
+        )
+        .eq("event_id", eventId)
+        .eq("status", "approved")
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+        .limit(limit);
+      if (after) page = page.or(olderThan(after));
+      return page;
+    },
+    albumCursorOf,
+  );
+  return rows.map((m) => ({
     id: m.id,
     type: m.type,
     original_key: m.original_key,
@@ -50,6 +77,7 @@ export async function getApprovedMediaForUnlock(
     width: m.width,
     height: m.height,
     duration_seconds: m.duration_seconds,
+    created_at: m.created_at,
   }));
 }
 
@@ -74,13 +102,18 @@ export async function getApprovedPhotoTeaser(
 
   const { data, count, error } = await createAdminClient()
     .from("media")
-    .select("id, type, original_key, preview_key, width, height, duration_seconds", {
-      count: "exact",
-    })
+    .select(
+      "id, type, original_key, preview_key, width, height, duration_seconds, created_at",
+      { count: "exact" },
+    )
     .eq("event_id", event.id)
     .eq("status", "approved")
     .eq("type", "photo")
+    // The album's own order, id as the tiebreak: two photographs sharing a timestamp must not
+    // trade places between polls, or the ETag (which hashes the ids in order) would roll for
+    // nothing and hand the teaser a full payload it already holds.
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .limit(limit);
   if (error) throw error;
   return {
@@ -92,10 +125,43 @@ export async function getApprovedPhotoTeaser(
       width: m.width,
       height: m.height,
       duration_seconds: m.duration_seconds,
+      created_at: m.created_at,
     })),
     total: count ?? 0,
   };
 }
+
+/**
+ * THE ALBUM'S SIZE: a HEAD count of its approved items, photos and videos, never the length of a
+ * list (read-all.ts, rule 2). The header's "N photos & videos" reads it at every access level:
+ * the page's stats seed it, and every gallery payload (the render's and each poll's 200) carries it
+ * again (`loadGalleryRowsForAccess`), so it stays exact and live even where the loaded items are the
+ * nine-photo teaser. Same visibility posture as the stats: an open or a password event (the locked
+ * page's count tease), never a private one.
+ */
+export async function countApprovedMedia(
+  event: Pick<GuestEvent, "id" | "visibility">,
+): Promise<number> {
+  if (!countsVisible(event)) return 0;
+  return approvedCount(event.id);
+}
+
+/**
+ * Request-scoped (`cache()`, keyed on the id string): the page asks twice in one render (its stats
+ * and its gallery payload), and one answer means the header's seed and the gallery's first report
+ * can never say two numbers. Outside a render (the poll route) it is a plain call.
+ */
+const approvedCount = cache(async function approvedCount(
+  eventId: string,
+): Promise<number> {
+  const { count, error } = await createAdminClient()
+    .from("media")
+    .select("id", { count: "exact", head: true })
+    .eq("event_id", eventId)
+    .eq("status", "approved");
+  if (error) throw new QueryFailedError("guest album: approved count", error);
+  return count ?? 0;
+});
 
 /**
  * Header stats for the guest page: the approved media count and how many GUESTS it came from
@@ -106,8 +172,8 @@ export async function getApprovedPhotoTeaser(
  * row. The host is no longer "one of the guests" here, which the old per-row count made them.
  * NUMBERS ONLY ever leave this function (no identities).
  *
- * The total is a HEAD count (`count: "exact"`), so an album past PostgREST's row cap still says its
- * real size.
+ * The total is `countApprovedMedia`, a HEAD count, so an album past PostgREST's row cap still says
+ * its real size.
  *
  * Visibility posture: open events are public; a LOCKED password event still gets counts — that's
  * the ratified entry tease ("N photos are waiting" over the ghosted river; cardinality only, zero
@@ -118,16 +184,11 @@ export async function getGalleryStats(
   event: Pick<GuestEvent, "id" | "visibility">,
 ): Promise<{ approvedTotal: number; guestCount: number }> {
   if (!countsVisible(event)) return { approvedTotal: 0, guestCount: 0 };
-  const [total, guests] = await Promise.all([
-    createAdminClient()
-      .from("media")
-      .select("id", { count: "exact", head: true })
-      .eq("event_id", event.id)
-      .eq("status", "approved"),
+  const [approvedTotal, guests] = await Promise.all([
+    countApprovedMedia(event),
     getGuestCount(event),
   ]);
-  if (total.error) throw total.error;
-  return { approvedTotal: total.count ?? 0, guestCount: guests };
+  return { approvedTotal, guestCount: guests };
 }
 
 /**
@@ -187,22 +248,14 @@ export async function getHostAvatarSeed(
 }
 
 /**
- * PostgREST answers at most `max_rows` rows per request (1000 on this project), silently, so a read
- * that can outgrow one page walks KEYSET pages ordered by id (storage.ts's shape): an offset would
- * skip a row whenever one is removed mid-read, and the first page asks for the exact count so the
- * common album (under a thousand items) is ONE round trip. Exported for the paging test.
- */
-export const IDENTITY_PAGE = 1000;
-
-/**
  * Per-media uploader identity for an event, keyed by media id (Phase 2 attribution). A server-only
  * ADMIN read because `profiles` is own-row-RLS (`profiles_select_own`) -> a host's normal client
  * can't read guests' names; the admin client is REQUIRED (mirrors getHostAvatarSeed). Returns the
  * full identity INCLUDING email; the GUEST call sites must copy only name/isHost/isVerified onto the
  * client (never email). The host's name (for host uploads), then every media row with the
- * uploader's guest + profile, read to exhaustion in keyset pages (an album past a thousand items
- * would otherwise lose the identities of everything past the first page). The CASE logic is the
- * pure resolveUploaderIdentity().
+ * uploader's guest + profile, read WHOLE through `readAllPages` in keyset pages on `id` (an album
+ * past a thousand items would otherwise lose the identities of everything past the first page; an
+ * offset would skip a row removed mid-read). The CASE logic is the pure resolveUploaderIdentity().
  */
 export async function getUploaderIdentities(
   eventId: string,
@@ -229,36 +282,34 @@ export async function getUploaderIdentities(
     hostName = hp?.display_name ?? null;
   }
 
-  // Every media row for the event with the uploader's guest + linked profile, in keyset pages. The
-  // loop never trusts a page's length against the page size (PostgREST clamps to its own max_rows,
-  // so a short page is not proof of the last one): it stops at the first page's count or at an
-  // empty page, whichever comes first.
-  const map = new Map<string, UploaderIdentity>();
-  let total: number | null = null;
-  let lastId: string | null = null;
-  for (;;) {
-    let query = admin
-      .from("media")
-      .select(
-        // The identity reshape (20260921150000): display_name + verified_at are what the one
-        // precedence rule reads. They are NOT granted to `authenticated` (guests SELECT is
-        // column-scoped, QA #41), which is exactly why this read is on the admin client.
-        "id, guest_id, guests!media_guest_id_fkey(user_id, email, display_name, verified_at, profiles!guests_user_id_fkey(display_name))",
-        lastId === null ? { count: "exact" } : undefined,
-      )
-      .eq("event_id", eventId)
-      .order("id", { ascending: true })
-      .limit(IDENTITY_PAGE);
-    if (lastId !== null) query = query.gt("id", lastId);
-    const { data, error, count } = await query;
-    if (error) throw error;
-    if (lastId === null) total = count ?? null;
+  // Every media row for the event with the uploader's guest + linked profile, read whole. A page
+  // shorter than it asked for is the last one (read-all.ts owns why that holds).
+  const { rows } = await readAllPages(
+    "attribution: media uploaders",
+    (after: string | null, limit) => {
+      let page = admin
+        .from("media")
+        .select(
+          // The identity reshape (20260921150000): display_name + verified_at are what the one
+          // precedence rule reads. They are NOT granted to `authenticated` (guests SELECT is
+          // column-scoped, QA #41), which is exactly why this read is on the admin client.
+          "id, guest_id, guests!media_guest_id_fkey(user_id, email, display_name, verified_at, profiles!guests_user_id_fkey(display_name))",
+        )
+        .eq("event_id", eventId)
+        .order("id", { ascending: true })
+        .limit(limit);
+      if (after !== null) page = page.gt("id", after);
+      // The embeds' shape is UploaderRow's (the one precedence rule reads it); replace, never
+      // merge, the inferred row, whose nested embed inference is not the contract.
+      return page.overrideTypes<
+        Array<UploaderRow & { id: string }>,
+        { merge: false }
+      >();
+    },
+    (row) => row.id,
+  );
 
-    const rows = (data ?? []) as unknown as Array<UploaderRow & { id: string }>;
-    if (rows.length === 0) break;
-    for (const row of rows) map.set(row.id, resolveUploaderIdentity(row, hostName));
-    lastId = rows[rows.length - 1].id;
-    if (total !== null && map.size >= total) break;
-  }
+  const map = new Map<string, UploaderIdentity>();
+  for (const row of rows) map.set(row.id, resolveUploaderIdentity(row, hostName));
   return map;
 }

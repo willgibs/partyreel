@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "1bab2537"          # the launch-prep SHA this state was written at
+cut: "b3172040"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches (a new board adds only its own lines to the two board lists)
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
@@ -33,6 +33,9 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `rowcap-album` | the host's album whole: hub counts, Review, the Deleted bin, the reel studio, the host export (`over_cap` past 2,000), the live poll, bulk actions chunked, the seed's wipe held-safe (C1 to C6, C14, H1, M8, M9, M13, M18) | building (agent ac621107f3c7db805) | Opus, :3132 | its markers gone; the probe read by script |
+| `rowcap-host` | the dashboard and the admin whole: like counts, cards, covers, the pulse, metrics, moderation, reports, the queue, MRR, event lists, follows, claims, forensics (C12, C13, C15, H2 to H7, H16, M1 to M7, M10, M11, N3, N4) | building (agent a973812f33dd6d60b) | Opus, :3133 | its markers gone; `tallyStorageRows` retired |
+| `rowcap-cron` | every sweep whole or reported: keyset batches in budget, legal hold through `held_event_ids`, the standby budget through `standby_hosts` without withdrawals, id lists chunked, a partial run on `/admin/jobs` (H8 to H15, H17, M14 to M17, N1, N2) | building (agent aadcca39bde280433) | Opus, :3134 | its markers gone; the over-cap ROADMAP line retires |
 
 ## Next, in order
 
@@ -54,13 +57,13 @@ here"); work inside this round is fixed near-term, larger work goes to the ROADM
      withdrawn, the three oldest approved liked by willg97 and hi@willgibs (1,145 approved). **The live cap is 1,000**
      (an unbounded select answered `Content-Range: 0-999/*`); **write responses are not capped** (a PATCH over 1,040
      rows returned 1,040).
-   - **Stage 1 in flight:** `rowcap-kit` and `rowcap-sql` (the In flight table). At the SQL merge: the three files in
-     order by the protocol (a drift md5 of `get_event_media_by_qr_token`, `get_event_like_counts` and
-     `list_guest_rows_by_email` against their newest files, apply verbatim, md5 and grants, `get_advisors` at 15 / 5 /
-     32, the foot's check, nothing persisted, `types.ts` regenerated). At the kit merge: CLAUDE.md's ★ gotcha line.
-   - **Stage 2 after both:** `rowcap-guest`, `rowcap-album`, `rowcap-host`, `rowcap-cron` (Opus, :3131 to :3134), owns
-     from the kit's prefix map, items from the markers plus the notes file's semantic ones; each empties its markers. At
-     the last stage-2 record the policy test's `TODO_IDS` empties.
+   - **Stage 1 is done:** `rowcap-kit` merged at `060ece99` (gate 140) and `rowcap-sql` at `b77d7879` (gate 141); the
+     three row-cap files applied by the protocol (no drift, every md5 equal, advisors 15 / 5 / 32, each check held,
+     nothing persisted) and `types.ts` regenerated (`30c3fecd`).
+   - **Stage 2 in flight:** `rowcap-guest`, `rowcap-album`, `rowcap-host`, `rowcap-cron` (the In flight table), cut at
+     `30c3fecd`, each emptying its `row-cap-todo` markers. At the last stage-2 record: empty `TODO_IDS` in
+     `row-cap-policy.test.ts`, and teach `partyreel/no-swallowed-db-error` array patterns once the three `Promise.all`
+     destructures are bound (retire its ROADMAP line).
 2. **Alias build 4** after stage 2 (`[preview]` on the record; `alias-ensure.mjs`; the prune), then the red-team in
    Will's Chrome (the chooser only; clear the alias's `pr_session_*` first if a test needs a fresh door):
    - `upload-owner`, on ONE browser: account A uploads to a names-mode event (`guest-view-menu QA`,

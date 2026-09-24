@@ -93,14 +93,15 @@ iPhone: if the keyboard covers the textarea, the fix is the Sheet's
 phone half becoming vaul-backed for every consumer, never a per-dialog exception.
 
 - **Stats**: `getGalleryStats(event)` ([`guest-events-admin.ts`](../../src/lib/db/queries/guest-events-admin.ts))
-  → `{approvedTotal, guestCount}`: a head count of approved media, and THE ONE COUNT of guests (`getEventGuests`,
-  the same function the host's hub reads, so the album and the hub never say two numbers for one party; never the
-  host). ★ **NUMBERS ONLY ever leave the server** (never a guest_id/identity). N goes live via `LiveGallery`'s
-  `onCountChange`; M is seeded by the page RSC and kept current by the gallery poll, which carries `guestCount` on
-  a 200 only (read after its 304 check, so the steady poll pays nothing, and never on a locked page) and hands it up
-  through `onGuestCountChange`: a guest's own first upload moves M without a reload, and only the server can tell a
-  first upload from a returning contributor's. It stays outside the ETag: whatever moves M changes the payload the
-  ETag already hashes.
+  → `{approvedTotal, guestCount}`: a head count of approved media (`countApprovedMedia`, request-scoped, so the
+  stats and the gallery payload share one answer), and THE ONE COUNT of guests (`getEventGuests`, the same
+  function the host's hub reads, so the album and the hub never say two numbers for one party; never the host).
+  ★ **NUMBERS ONLY ever leave the server** (never a guest_id/identity). N goes live via `LiveGallery`'s
+  `onCountChange` (the head count every gallery payload carries, "One true count" below); M is seeded by the page
+  RSC and kept current by the gallery poll, which carries `guestCount` on a 200 only (read after its 304 check, so
+  the steady poll pays nothing, and never on a locked page) and hands it up through `onGuestCountChange`: a guest's
+  own first upload moves M without a reload, and only the server can tell a first upload from a returning
+  contributor's. It stays outside the ETag: whatever moves M changes the payload the ETag already hashes.
 - **Masonry gallery** ([`guest-masonry.tsx`](../../src/components/guest/guest-masonry.tsx)): the SHARED
   column rule `GALLERY_COLUMNS` ([`shared/masonry.tsx`](../../src/components/shared/masonry.tsx)), read and
   never re-typed: a column WIDTH, never a count, so a wider window means MORE photographs, not bigger ones.
@@ -203,8 +204,11 @@ phone half becoming vaul-backed for every consumer, never a per-dialog exception
   a presigned media URL: the guest album and the host gallery pass it; the personal Uploads and the
   recovery bin omit it.
 - Each tile (desktop hover-reveal) + the lightbox carry a **like** button; a signed-out tap
-  opens the create-account dialog (a `LikesProvider` wraps the gallery, replaying after sign-in). Like
-  COUNTS are host-only → [host-app.md](host-app.md), [database-security.md](database-security.md).
+  opens the create-account dialog (a `LikesProvider` wraps the gallery, replaying after sign-in). The hearts are
+  seeded through `my_liked_media_ids` with the grid's ids in the POST BODY (never a URL, which a whole album
+  outgrows), asking only the ids not yet answered as the grid grows; a failed seed is reported (Sentry, `media`)
+  and the hearts simply start unfilled. Like COUNTS are host-only → [host-app.md](host-app.md),
+  [database-security.md](database-security.md).
 - **PWA (manifest only, no SW)**: [`manifest.ts`](../../src/app/manifest.ts) + the ink-aperture icon set
   make an event link installable to a home screen (standalone, paper/ink theme); static + global, leaks
   nothing event-specific.
@@ -251,6 +255,12 @@ does it call `getUploadGate` ([`guest-gate.ts`](../../src/lib/db/queries/guest-g
 `isAuthed` means a CONFIRMED email (`user.email_confirmed_at`), never a bare `user.id`.
 
 - **`full`** — the whole gallery: the owner (host), the demo, and any viewer past every gate that applies.
+  ★ **READ WHOLE, IN ONE ORDER, BY EITHER ARM** (the 1,000-row rule, `read-all.ts`): PostgREST cuts a read at
+  1,000 rows with no error, so both arms walk keyset pages on the display order (`created_at desc, id desc`) with
+  the last row's RAW `(created_at, id)` as the cursor: the open album through `get_event_media_by_qr_token`'s
+  `(p_before_created_at, p_before_id, p_limit)` ([`guest-events.ts`](../../src/lib/db/queries/guest-events.ts)),
+  the unlocked password album through the same cursor as a table `.or()` (`olderThan`, `getApprovedMediaForUnlock`).
+  The pages concatenate in order, which the grid, the reconcile and the ETag all keep.
 - **`teaser`** — the newest `TEASER_LIMIT` (9) approved PHOTOS + the true total; the rest withheld. Shown to
   a viewer with no confirmed email on a `require_verified_email` event (gate `account`), and to a guest who
   owes a first upload on a `require_upload_to_view` event (gate `upload`). The confirmed email, or the
@@ -293,12 +303,17 @@ self-guarded by visibility, photos-only, `count:'exact'` for the total), NOT a C
 gallery, so dev-tools or a direct poll call can't reveal it. ★ **The poll enforces the SAME decision**:
 gating only the RSC would be a trivial bypass. The guest-facing gate is the door (below).
 
-★ **ONE TRUE COUNT AT `teaser`, READ THE SAME WAY EVERYWHERE IT IS SAID.** The loaded teaser is capped and
-photo-only, so neither its count nor the photo-only `teaserTotal` is the album's size. `LiveGallery` reads
-`approvedTotal` (the shell's `stats`, i.e. `stats.approvedTotal`, photos and videos) and reports it to the
-header via `onCountChange` while `access === "teaser"` (never at `full`, where the loaded count is live and
-true); the CTA says the same number, "See all N photos & videos" ("Confirm your email to see everything"
-when nothing more is withheld). Without `approvedTotal` it falls back to the photo-only `teaserTotal`.
+★ **ONE TRUE COUNT, EXACT AND LIVE, READ THE SAME WAY EVERYWHERE IT IS SAID.** A count is counted, never a
+list's length: the loaded teaser is capped and photo-only, and neither its count nor the photo-only `teaserTotal`
+is the album's size. Every gallery payload (the render's and each poll's 200) carries `approvedTotal`,
+`countApprovedMedia`'s head count (photos and videos), and the ETag hashes it, since a video landing behind an
+unchanged nine moves nothing else. `LiveGallery` reports that number plus what this device changed since it
+arrived (an approved upload's optimistic tile in, the guest's own removal out: `albumCount`) through
+`onCountChange`, at `teaser` AND `full`; the CTA says the same number, "See all N photos & videos" ("Confirm your
+email to see everything" when nothing more is withheld), and so does the door (its `mediaTotal` is the header's
+live count). A payload without `approvedTotal` (an older server mid-deploy) falls back to the shell's
+`stats.approvedTotal` at `teaser`, then the photo-only `teaserTotal`. At `none` no gallery mounts and no poll
+runs: the lock line says the render's head count.
 
 ## The ARRIVAL (the door: one held sheet, then the album)
 
@@ -634,12 +649,14 @@ the field before they confirm.
 - **The conditional poll** (the shared [`use-live-poll.ts`](../../src/lib/shared/use-live-poll.ts)): the
   fallback cadence keys solely off the channel state — **60 s** while `SUBSCRIBED` (a safety net), **12 s**
   when the socket is down; it stops when the tab goes hidden and polls again when it is shown. Every poll sends
-  `If-None-Match`; the route answers an unchanged gallery with a **bare 304** (zero payload, zero presigns); see
+  `If-None-Match`; the route answers an unchanged gallery with a **bare 304** (zero payload, zero presigns, but
+  the reads that build the fingerprint still run: the whole album, its identity sweep and its head count); see
   the ETag invariant below.
 - ★ **The gallery ETag must never validate across access levels, nor across the gate behind one** — the
   fingerprint ([`gallery-fingerprint.ts`](../../src/lib/events/gallery-fingerprint.ts)) hashes `access` +
-  `gate` + `teaserTotal` + the item ids/attribution (the verified mark included) + the presign bucket id,
-  and the not-found/private early return carries NO ETag. A teaser validator replayed with full-access
+  `gate` + `teaserTotal` + `approvedTotal` (the album's head count, the header's live number) + the item
+  ids/attribution (the verified mark included) + the presign bucket id, and the not-found/private early return
+  carries NO ETag. A teaser validator replayed with full-access
   cookies must 200, and a guest whose gate moved from `account` to `upload` never 304s onto the step they
   passed. The bucket id rolls the ETag every 30 min so clients re-pull fresh URLs before old ones expire.
 - **Reconcile by id — do NOT `setState` the raw poll result:** `reconcileGalleryItems`
