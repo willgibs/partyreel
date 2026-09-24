@@ -37,8 +37,8 @@ import "./share.css";
  * reason `event-qr.tsx` has always stood its code on a solid white tile — so
  * the ink is spelled in neutrals here rather than in theme tokens that invert.
  *
- * ★ ITS ENTRANCE IS A HOLE IN BIBLE 15, CUT ONCE AND SANCTIONED IN THE
- * CONTRACT. The header's code and this one are one object continuing, so the
+ * ★ ITS ENTRANCE IS A SANCTIONED HOLE IN THE FLOATING-LAYER CONTRACT, CUT
+ * ONCE. The header's code and this one are one object continuing, so the
  * View Transitions API owns the arrival and `floatingTransitionEntrance`
  * declares no animation of its own — except under reduced motion, where it
  * falls back to the ordinary dialog fade. The corner, the material and the

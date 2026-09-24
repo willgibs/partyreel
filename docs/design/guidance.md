@@ -12,12 +12,12 @@
 
 ## The craft stack
 
-**Proactively propose creative DELIGHT (bible 22): make it feel like magic.** In all design and UI
+**Proactively propose creative DELIGHT (bible 1): make it feel like magic.** In all design and UI
 work, don't stop at "correct": surface a creative delight opportunity (a considered entrance, a
 satisfying micro-interaction, a rare-moment beat) and RECOMMEND it by default, rather than waiting to
 be asked. Beauty is leverage, the unseen details compound, and "feels like magic" is Partyreel's
 differentiator. The discipline that keeps delight from becoming noise is **animate by FREQUENCY**
-(bible 12): HIGH-frequency actions (a workspace opened many times a day, moderation and select
+(bible 5): HIGH-frequency actions (a workspace opened many times a day, moderation and select
 switches) stay INSTANT or minimal, never theater; OCCASIONAL surfaces (modals, takeovers, route
 navigation) get standard entrances (at most 300ms, custom easing, `@starting-style`, a reduced-motion
 fallback); RARE and first-time moments (empty states, a first action, celebrations) can carry real
@@ -105,7 +105,7 @@ system doc. Each is a default: an exploration may beat one, and says so.
   most of the section blank.
 - **Frames wait for real media.** A marketing visual is a frame (a browser window, a phone, a gallery
   grid, a QR card, a reel player) built so a real photograph or video drops in with no layout change.
-  Every frame is generated for its slot later (bible 18), so the layout must not depend on today's
+  Every frame is generated for its slot later (bible 9), so the layout must not depend on today's
   stand-in.
 - **A phone scrolls.** On a phone a row of cards stacks and scrolls; a swipe carousel is kept for
   gallery-type sections. Scrolling is far more common than swiping, and swipe cards get missed.

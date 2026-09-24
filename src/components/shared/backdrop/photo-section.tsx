@@ -47,11 +47,11 @@ import { ROOM_FRAMES, roomFrame, SCROLL_STEPS } from "./room-frames";
  * three things a pure module cannot: where the reader is, when a frame happens,
  * and what gets written onto a node.
  *
- * ★ FRAME ZERO IS VISIBLE WITH NO JAVASCRIPT AND NO STYLE FROM HERE (bible 13).
+ * ★ FRAME ZERO IS VISIBLE WITH NO JAVASCRIPT AND NO STYLE FROM HERE (bible 5).
  * The sheet hides every layer and shows the first; the loop writes inline
  * styles, which win over it. So a crawler, a throttled tab and a reader with
  * scripting off all get the section standing on one photograph, which is also
- * exactly what a reader who asked for less motion gets (bible 14: the loop
+ * exactly what a reader who asked for less motion gets (bible 5: the loop
  * never starts, no listener is attached, and nothing is observed).
  *
  * ★ IT COSTS NOTHING WHEN NOBODY IS MOVING. The loop runs only while a

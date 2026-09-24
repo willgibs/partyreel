@@ -29,7 +29,7 @@ import { recommendPlan } from "./recommend";
  *  4. THE DECK NEVER OVERDRAWS. The fan is derived from the stop, so an
  *     off-by-one would either hide the whole deck or index past it.
  *
- * Copy is never pinned (bible 21): every control is found by role, and every
+ * Copy is never pinned (bible 10): every control is found by role, and every
  * number comes back out of tiers.ts. The price is not asserted as a string at
  * all, because `PricePop` splits it across elements per digit.
  */

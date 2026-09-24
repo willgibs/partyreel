@@ -230,8 +230,8 @@ how-it-works pictures (`StepPicture` for `create`/`share`/`fill`, from
 minute looks like the site that sold them) under a copy plate, then closes on `ReelPicture` with "Create my first
 event" / "I'll look around first". Its one addition is motion: a slow 16s scale-only drift
 ([`welcome-flow.css`](../../src/components/app/welcome-flow.css)) whose only declaration lives inside the
-`prefers-reduced-motion: no-preference` block (bible 14), LINEAR on purpose (the house's ambient-drift rule, as
-`marketing.css`'s `mkt-kenburns`/`mkt-wall-drift`), a deliberate bible-12 exception: an ambient breath, not a
+`prefers-reduced-motion: no-preference` block (bible 5), LINEAR on purpose (the house's ambient-drift rule, as
+`marketing.css`'s `mkt-kenburns`/`mkt-wall-drift`), a deliberate exception to it: an ambient breath, not a
 control's feedback, so the 300ms ceiling does not bind it. Shown **once** via `profiles.welcomed_at` (null =
 unwelcomed): `/dashboard` redirects there while it is null ([`welcome.ts`](../../src/lib/welcome.ts)
 `resolveDashboardEntry`), and `/dashboard` and `/dashboard/new` redirect a nameless profile there too.
@@ -314,7 +314,7 @@ SHEETS; the album is the hub page itself.
   Exactly one of header / pill / modal carries the name at a time (a duplicate makes the browser skip the transition).
   On a phone it is the whole screen, white for scanner contrast, the code at `min(80vw, 260px)`, with Copy link, the
   native Share where the browser has one, and Everything (the share sheet). ★ Its entrance is the one **sanctioned
-  hole in bible 15**: `floatingTransitionEntrance` in [`floating-layer.ts`](../../src/components/ui/floating-layer.ts)
+  hole in the floating-layer contract**: `floatingTransitionEntrance` in [`floating-layer.ts`](../../src/components/ui/floating-layer.ts)
   declares no animation, because the transition IS the entrance, and falls back to the standard clock under reduced
   motion. `floating-layer.test.ts` lists it by name, since its family scan reads `ui/` only.
 - **Before the first photograph the album's room is a LAUNCH LIST**

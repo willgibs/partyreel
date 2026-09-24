@@ -220,7 +220,7 @@ export default async function RulePage({
       <Callout kind="will" className="mt-10">
         A bible rule always binds. It changes only by Will&apos;s ruling; a rule
         that blocks better work is a finding for your manifest, and the better
-        thing is built in the lab first (bible 22).
+        thing is built in the lab first (bible 1).
       </Callout>
 
       <Pager

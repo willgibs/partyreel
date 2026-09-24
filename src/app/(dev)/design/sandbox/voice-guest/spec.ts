@@ -14,7 +14,7 @@ import { defineExploration } from "@/components/lab/exploration";
  * the sake of the exploration", and asked instead for "tighter comparisons of
  * copy in real cases, one at a time", building the voice from the winners. So
  * every decision here is ONE real line in its real place (the phone, the
- * sheet, the tile it ships on), and bible 21 says why: "the voice is built one
+ * sheet, the tile it ships on), and bible 10 says why: "the voice is built one
  * won line at a time, in its real place".
  *
  * ★ THE REGISTERS ARE THE SAME FOUR KEYS ON EVERY DECISION: `today` (the
@@ -278,7 +278,7 @@ export const VOICE_GUEST = defineExploration({
           id: "bright",
           label: "Bright: \"Get it started\"",
           means:
-            "A party verb for the album's first moment, the rare beat bible 12 saves delight for. Elsewhere: \"Take it with you.\"",
+            "A party verb for the album's first moment, the rare beat bible 5 saves delight for. Elsewhere: \"Take it with you.\"",
         },
         {
           id: "exact",

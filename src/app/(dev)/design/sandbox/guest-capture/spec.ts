@@ -139,7 +139,7 @@ const DRAFT = defineExploration({
       ],
       recommended: "inline",
       because:
-        'A line under the photograph she just added says "this one" without new chrome, the restraint bible 4 asks of a guest surface, and it leaves the album\'s head to the reel\'s tile instead of stacking a second large object above it.',
+        'A line under the photograph she just added says "this one" without new chrome, the restraint bible 7 asks of a guest surface, and it leaves the album\'s head to the reel\'s tile instead of stacking a second large object above it.',
       overrule:
         "A caption in a grid she is scrolling past is the easiest of the three to miss; a card is the only shape certain to be seen once.",
       lands:

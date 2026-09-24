@@ -23,7 +23,7 @@ import { HelpLine, NotFoundScreen } from "@/components/shared/not-found-screen";
  * must not, which screens carry a correlation code and which cannot have one,
  * that a refused clipboard never becomes a thrown screen, that every failure
  * page offers a way to a person, and that the two session-less chromes stay
- * session-less. Not a single number, word or class is pinned here: bible 21
+ * session-less. Not a single number, word or class is pinned here: bible 10
  * keeps the copy open and Will retunes a look without asking a test.
  *
  * The source scans exist because the regressions they catch are SILENT. A

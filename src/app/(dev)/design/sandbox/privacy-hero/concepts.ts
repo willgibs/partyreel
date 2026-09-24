@@ -63,7 +63,7 @@ export const rectsClear = (a: Rect, b: Rect): boolean =>
  * "measured to the ink on the rendered `PageHero` (scale `lg`, `text-title`)
  * with the privacy page's own words"): unchanged, because the copy, the
  * scale and the component are all unchanged this round. Re-measure if the
- * copy changes (bible 21: copy is open).
+ * copy changes (bible 10: copy is open).
  */
 export const LOCKUP: Record<Mode, { w: number; h: number; cy: number }> = {
   desktop: { w: 706, h: 346, cy: 497 },

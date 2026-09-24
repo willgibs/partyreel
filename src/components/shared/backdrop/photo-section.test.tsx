@@ -19,7 +19,7 @@ import { ROOM_FRAMES, SCROLL_STEPS } from "./room-frames";
  *  2  it SAYS SOMETHING WHEN NOTHING CAN MOVE. Every photograph is in the first
  *     paint and the sheet stands the section on the first of them, so a reader
  *     with scripting off, a reader who asked for less motion and a crawler all
- *     get a room rather than a black box (bible 13, bible 14).
+ *     get a room rather than a black box (bible 5).
  *  3  it COSTS NOTHING WHEN NOBODY IS MOVING. No frame loop off screen, none
  *     under reduced motion, and none once a photograph has landed and the
  *     reader has stopped: the case Will asked the phone rule for, where someone
@@ -264,7 +264,7 @@ describe("it says something when nothing can move", () => {
       </PhotoSection>,
     );
     // No loop, no observer, no listener, nothing written: the sheet's first
-    // photograph carries the section on its own (bible 14).
+    // photograph carries the section on its own (bible 5).
     expect(asked).toBe(0);
     expect(TestIO.instances).toHaveLength(0);
     for (const frame of framesOf(container))

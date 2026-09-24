@@ -36,7 +36,7 @@ import {
  * purpose (`docs/systems/design-system.md`, "restraint is their identity").
  * None of the three concepts here is a lamp (no colour, no Aurora): the
  * chrome stays achromatic and the photographs are still the only colour
- * (bible 1), so the restraint holds even while the hero earns its place.
+ * (bible 6), so the restraint holds even while the hero earns its place.
  */
 export type HeroSpec = { mode: Mode; concept: ConceptId };
 

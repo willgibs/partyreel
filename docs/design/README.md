@@ -10,7 +10,7 @@
 
 The Library holds the working rules: the global ones and each component's own, stated as they stand
 today so that new work stays consistent with what is built. They are working guidelines, not hard
-rules. While the product is still being built everything is unprotected (bible 22, rising tides):
+rules. While the product is still being built everything is unprotected (the bible's Rising tides rule):
 any rule, and any past decision, may be reshaped when a better solution needs it. Follow a rule by
 default; reshape one deliberately, and say which and why in your Handoff. The Library hardens only
 as the marketing site and the app near their final production state.

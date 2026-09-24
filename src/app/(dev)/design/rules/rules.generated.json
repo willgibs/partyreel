@@ -868,7 +868,7 @@
           "line": 95
         },
         {
-          "title": "never reaches a floating primitive (bible 15's layer is opaque)",
+          "title": "never reaches a floating primitive (the floating-layer contract's layer is opaque)",
           "suite": [
             "glass is media chrome, never a popover"
           ],
@@ -18960,7 +18960,7 @@
           "line": 95
         },
         {
-          "title": "never reaches a floating primitive (bible 15's layer is opaque)",
+          "title": "never reaches a floating primitive (the floating-layer contract's layer is opaque)",
           "suite": [
             "glass is media chrome, never a popover"
           ],
@@ -20283,7 +20283,7 @@
     {
       "file": "src/components/ui/floating-layer.test.ts",
       "scope": "engineering",
-      "title": "Bible 15: one floating layer, read from one contract",
+      "title": "Bible 8: one floating layer, read from one contract",
       "summary": "a floating primitive that spells its own corner, entrance or clock instead of reading floating-layer.ts, a fourth clock rung, and any translucency on a panel while the Glass exploration is banked.",
       "line": 1
     },

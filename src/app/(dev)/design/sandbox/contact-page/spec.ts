@@ -78,7 +78,7 @@ export const CONTACT_PAGE = defineExploration({
       label: "The page's identity",
       question: "Should /contact leave paper for the site's cinema rhythm?",
       context:
-        "/contact is the last (paper) page, forced light, while /help, /press and /careers open dark (bible 16). pricing-page proved the fix the other way: a paper hero now opens above its own dark chapter (pricing-page r1, r2).",
+        "/contact is the last (paper) page, forced light, while /help, /press and /careers open dark. pricing-page proved the fix the other way: a paper hero now opens above its own dark chapter (pricing-page r1, r2).",
       options: [
         {
           id: "desk",

@@ -670,7 +670,7 @@ function mulberry(seed: number) {
 
 describe("the photographs", () => {
   it("names only ids the media manifest knows, never a path", () => {
-    // bible 18: nothing under public/marketing/ is referenced except through an
+    // bible 9: nothing under public/marketing/ is referenced except through an
     // entry in the manifest, so the generated set lands as a data change.
     for (const id of TRAIL_FRAMES) expect(isMarketingImageId(id)).toBe(true);
     expect(trailFrame(0).src).toBe(trailFrame(TRAIL_FRAMES.length).src);

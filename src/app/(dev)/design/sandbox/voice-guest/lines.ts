@@ -11,8 +11,8 @@
  * failed=warm, and so on. Each register is written for its place, never as
  * a costume: a line that could not ship where it is drawn is not a candidate.
  *
- * ★ EVERY LINE CLEARS THE FENCES BEFORE IT IS A CANDIDATE: no em-dash (bible
- * 19), never "no account" (bible 20), never "anonymous" (the identity rule),
+ * ★ EVERY LINE CLEARS THE FENCES BEFORE IT IS A CANDIDATE: no em-dash, never
+ * "no account", never "anonymous" (all the affirmative-only rule, bible 10),
  * the album is the noun, "in your account" and never "on your profile", no
  * promise of what the host will decide, and "night" never used as identity.
  * Lines Will ruled verbatim stay verbatim inside every candidate that carries

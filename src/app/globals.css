@@ -335,7 +335,7 @@
      rather than as merely lighter. The ladder is 0.105 -> 0.175 -> 0.225 ->
      0.27 -> 0.315: the first step is the big one, so a panel separates from the
      room and everything above it is a close ladder. Depth in dark is LIGHT
-     FIRST (bible 10): the surface steps and the hairlines carry it, and the two
+     FIRST: the surface steps and the hairlines carry it, and the two
      shadows below are for the two cases they cannot reach (an overlap, a
      layer), never for a flat surface. */
   --background: oklch(0.105 0.0053 286);
@@ -1003,7 +1003,7 @@
 
    ★ THE EDGES ARE INSET SHADOWS, NEVER A BORDER. A border changes the pane's
    size and would make every glass surface a different pane; an inset shadow
-   draws on the padding box at the surface's own radius, which is bible 9's
+   draws on the padding box at the surface's own radius, a
    concentric arc for free. The lip is offset down by 1px (light landing on the
    upper edge); the hairline is a 1px spread all the way round.
 
@@ -2627,15 +2627,15 @@
    NOT ELEVATION, AND NOT A LAMP: MATERIAL. One pixel of light catching the
    bevel of a surface that is lit from above, on exactly three kinds of
    surface: a photograph or a video, a framed screen, and the QR card. It is
-   the FOREGROUND colour at a low alpha, never one of the five lamp hues (bible
-   3: those are light in a room, this is the room's own surface), it does not
+   the FOREGROUND colour at a low alpha, never one of the five lamp hues
+   (those are light in a room, this is the room's own surface), it does not
    move, and it is absent under everything else. A card, a menu and a button
    already have their step and their ring; an edge on those is a third outline.
 
    ★ THE MISMATCH, AND WHY IT CANNOT COME BACK. The board drew the cue on a bare
    wrapper with a hand-typed radius, and laid it on the PADDING box while it
    inherited the BORDER box's radius, so on a bordered surface the edge and the
-   corner were two different arcs (bible 9: "a ring with a radius of its own
+   corner were two different arcs ("a ring with a radius of its own
    reads as a mistake"). Here the hook sits on THE BOX THAT OWNS THE RADIUS, the
    radius is inherited and never typed, and the pseudo-element is pushed out by
    the border's width so it covers the border box: same box, same radius,
