@@ -101,6 +101,9 @@ silent on good work. Many refusals would mean the design upstream of the scripts
   touchpoints, so a half retirement breaks the typecheck); a lane that retires its own board is released those lines.
 - A `git add` naming a path already removed aborts the whole add: never hide its stderr, and read
   `git show --stat HEAD` before a push.
+- Board lanes cut in parallel cannot see each other's new asks (each checks only the desk as it stood), so after they
+  land and before the `[preview]` for Will's sitting, read every new ask side by side (`board-card.mjs --desk`) and
+  merge any two that ask one decision, every option kept (his rule, 2026-09-24).
 - The kit's gate runs on :3130, never a lane's port; six lanes at once on this machine (36 GB: a dev server holds 3 to
   9 GB, a build is the spike).
 
