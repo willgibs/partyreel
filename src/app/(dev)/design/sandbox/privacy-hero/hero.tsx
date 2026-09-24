@@ -13,10 +13,10 @@ import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 
 import type { ConceptId } from "./concepts";
 import {
-  AccessConcept,
   ApertureConcept,
   SealConcept,
   SweepConcept,
+  VeilConcept,
 } from "./concepts-layer";
 
 /**
@@ -27,14 +27,14 @@ import {
  * at scale `lg` with the page's own eyebrow, headline, sentence and actions,
  * pulled up under the transparent header exactly as it ships. Only the
  * `backdrop` slot changes this round: round two's image-trail engine is gone
- * (`TrailLayer`, `paths.ts`, deleted), replaced by one of three still, or
+ * (`TrailLayer`, `paths.ts`, deleted), replaced by one of four still, or
  * nearly still, concepts (`concepts-layer.tsx`).
  *
  * ★ THE PAGE'S RESTRAINT IS OVERTURNED FOR ITS HERO, AND ONLY THERE (carried
  * from round two). The page shipped as the site's quietest, "no stage and no
  * lamp" in its hero, and the curation and privacy pages carry no LAMP on
  * purpose (`docs/systems/design-system.md`, "restraint is their identity").
- * None of the three concepts here is a lamp (no colour, no Aurora): the
+ * None of the four concepts here is a lamp (no colour, no Aurora): the
  * chrome stays achromatic and the photographs are still the only colour
  * (bible 6), so the restraint holds even while the hero earns its place.
  */
@@ -42,9 +42,9 @@ export type HeroSpec = { mode: Mode; concept: ConceptId };
 
 const BACKDROP: Record<ConceptId, (mode: Mode) => ReactNode> = {
   aperture: (mode) => <ApertureConcept mode={mode} />,
-  access: (mode) => <AccessConcept mode={mode} />,
-  seal: (mode) => <SealConcept mode={mode} />,
   sweep: (mode) => <SweepConcept mode={mode} />,
+  seal: (mode) => <SealConcept mode={mode} />,
+  veil: (mode) => <VeilConcept mode={mode} />,
 };
 
 export function PrivacyHero({ spec }: { spec: HeroSpec }) {

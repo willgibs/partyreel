@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 
 import { FooterDemo } from "@/components/marketing/chrome/footer-demo";
 import { FooterGlow } from "@/components/marketing/chrome/footer-glow";
@@ -23,25 +24,25 @@ import { cn } from "@/lib/utils";
 import type { FootAfter, FootPhone } from "./fixtures";
 
 /**
- * THE INK SLAB, ROUND TWO: register one re-forked on `FootAfter`.
+ * THE INK SLAB, ROUND TWO: register one re-forked on `FootAfter` and
+ * `FootAlone`.
  *
  * ★ THE SLAB IS `.surface-ink`, NOT A DARK BACKGROUND (unchanged from round
  * one; see the star below on `BoardFooter` for why the class is redeclared
  * rather than inherited).
  *
- * ★ FOOT-JOB AND FOOT-DOOR ARE RULED, NOT REOPENED. Round one's `job=three`
- * (this is the sign-off register, never the sitemap-alone or the closing-hero
- * shapes) and `door=always` (the code beside the CTA, never gated on
- * `DEMO_EVENT_URL`) are both decided and landing on the real footer via
+ * ★ FOOT-JOB AND FOOT-DOOR ARE SETTLED ELSEWHERE, NOT REOPENED HERE. Round
+ * one's `job=three` (this is the sign-off register, never the sitemap-alone or
+ * the closing-hero shapes) and `door=always` (the code beside the CTA, never
+ * gated on `DEMO_EVENT_URL`) already answered and land on the real footer via
  * `chrome-wiring` at the same time as this round. So every option below draws
  * a STAND-IN demo URL unconditionally (never a `demoSet` branch) and the CTA
  * is never hidden for want of one: that coupling is gone, not in question.
  *
- * ★ `text-section`, NOT `text-chapter` (Will, 2026-09-19, ruling the
- * walkthrough's close, fourth batch): "the footer
- * 'Explore a demo event.' should be a heading size down from these closing
- * section H2s to create hierarchy". `marketing-footer.tsx` carries the fix;
- * this fork did not until now.
+ * ★ `text-section`, NOT `text-chapter` (Will, 2026-09-19, the walkthrough's
+ * close, fourth batch): "the footer 'Explore a demo event.' should be a
+ * heading size down from these closing section H2s to create hierarchy".
+ * `marketing-footer.tsx` carries the fix; this fork did not until now.
  */
 
 const FOOTER_LINK =
@@ -53,6 +54,37 @@ const LEGAL_LINK =
 
 /** A stand-in URL so the frame and its code draw when the env has no demo. */
 const DEMO_URL = DEMO_EVENT_URL ?? "https://partyreel.com/e/demo";
+
+/**
+ * "REVEAL": the phone's own third path, judged fresh rather than inherited
+ * from "hidden" vs "small". A code on the screen showing it can never be
+ * scanned by that same screen, but a guest standing next to someone else is a
+ * real moment this footer can serve: a tap grows a real code, sized for
+ * another phone's camera, and the footer stays a plain link until asked.
+ */
+function FooterCodeReveal() {
+  const [open, setOpen] = useState(false);
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="mkt-learn -my-1 inline-flex items-center gap-1 py-2 text-[15px] font-medium text-foreground"
+      >
+        Show the code
+        <LearnChevron />
+      </button>
+    );
+  }
+  return (
+    <div className="flex flex-col items-start gap-3">
+      <FooterQr value={DEMO_URL} size={128} />
+      <p className="text-xs text-muted-foreground">
+        Hold this up to someone else&rsquo;s camera.
+      </p>
+    </div>
+  );
+}
 
 function StartFree({ className }: { className?: string }) {
   return (
@@ -113,6 +145,7 @@ function RegisterToday({
               <LearnChevron />
             </Link>
           ) : null}
+          {phone && frameMode === "reveal" ? <FooterCodeReveal /> : null}
         </div>
       </div>
       <StartFree className="hidden lg:inline-flex" />
@@ -132,6 +165,36 @@ function RegisterQuiet() {
       <p className="max-w-md text-[15px] text-pretty text-muted-foreground">
         {SITE_THESIS}
       </p>
+      <Link
+        href={DEMO_URL}
+        className="mkt-learn inline-flex shrink-0 items-center gap-3 text-[15px] font-medium text-foreground"
+      >
+        <FooterQr value={DEMO_URL} size={40} />
+        {DEMO_CTA_LABEL}
+        <LearnChevron />
+      </Link>
+    </div>
+  );
+}
+
+/**
+ * "LINE": a closing sentence built for the page that asked nothing else,
+ * judged on its own rather than borrowed from either extreme. Not the full
+ * register (no framed photograph, no section-sized heading) and not a
+ * footnote either (its own short heading, not a strip that reads as a
+ * follow-up to a close that, here, was never asked).
+ */
+function RegisterLine() {
+  return (
+    <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-2">
+        <h2 className="font-heading text-subsection text-foreground">
+          That&rsquo;s the whole page. Here&rsquo;s a real event.
+        </h2>
+        <p className="max-w-sm text-[15px] text-pretty text-muted-foreground">
+          {SITE_THESIS}
+        </p>
+      </div>
       <Link
         href={DEMO_URL}
         className="mkt-learn inline-flex shrink-0 items-center gap-3 text-[15px] font-medium text-foreground"
@@ -278,8 +341,9 @@ export function BoardFooter({
   phone = false,
   frameMode = "hidden",
 }: {
-  /** `foot-after`'s answer: what register one is, this round's whole subject. */
-  register: FootAfter;
+  /** `foot-after`'s answer, or `foot-alone`'s own "line": what register one
+   *  is. */
+  register: FootAfter | "line";
   phone?: boolean;
   /** `foot-phone`'s answer; only ever changes anything under `register="today"`. */
   frameMode?: FootPhone;
@@ -303,6 +367,7 @@ export function BoardFooter({
           <RegisterToday phone={phone} frameMode={frameMode} />
         ) : null}
         {register === "quiet" ? <RegisterQuiet /> : null}
+        {register === "line" ? <RegisterLine /> : null}
         <Index lead={noRegisterOne} />
         <LegalBar demoLink={register === "tucked"} />
       </Container>

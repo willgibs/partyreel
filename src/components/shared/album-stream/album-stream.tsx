@@ -198,6 +198,9 @@ function Layer({
     <div
       ref={ref}
       className={`als-layer ${at === "lg" ? "als-at-lg" : "als-at-base"}`}
+      // Read only by album-stream.css's own per-variant glow (bloom's), never
+      // by the loop above: a variant's LOOK stays declared in the sheet.
+      data-variant={variant}
       style={
         {
           // The album's top edge, measured UP from the hero's foot. One number,

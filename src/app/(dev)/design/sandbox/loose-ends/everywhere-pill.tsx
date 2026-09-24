@@ -30,9 +30,10 @@ import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion
  * own (frame.tsx), so `paused` is a flat `false` here rather than an
  * IntersectionObserver whose root would have to cross the board's own iframe.
  *
- * ★ "HOVER" IS GONE (the overtaken audit's reshape, 2026-09-21): ruled a
- * desk verb (app-vocabulary r1), a fiction on the phone half of this very
- * stage. `sweep` replaces it: the product's own arrival mark
+ * ★ "HOVER" IS GONE (the overtaken audit's reshape, 2026-09-21): a desk verb
+ * with no touch equivalent, a fiction on the phone half of this very stage
+ * (app-vocabulary r1's own finding). `sweep` replaces it: the product's own
+ * arrival mark
  * (`everywhere-pill.css`, quoting components/shared/arrival.css), looped
  * here rather than played once, because nothing on a demo stage ever really
  * lands. Looped is also why it needs no "shown revealed" workaround the way

@@ -262,7 +262,7 @@ export const RULINGS: Ruling[] = [
     title: "The marketing site's chrome",
     surface: "marketing",
     asks:
-      "the footer beneath a page's own closing call to action: its register, a page with none above it, and the phone",
+      "the footer beneath a page's own closing call to action: its register, a page with none above it, and how its code reaches a phone",
     why: "Most pages close on a call to action, so the footer's demo invitation has to work beneath one rather than repeat it; the rest of the chrome is built.",
     lives: [
       "docs/systems/marketing-content.md",
@@ -274,14 +274,11 @@ export const RULINGS: Ruling[] = [
       "src/lib/constants/marketing-nav.ts",
     ],
     board: {
-      note: "Round two, the footer alone: three decisions on what the footer's demo register should be right under a page's own closing CTA, whether a page with no CTA above it keeps the same footer, and how the invitation travels to a phone; every option drawn under a real CtaBand and under a real page with none, at 1440 and 375.",
+      note: "Round two, the footer alone: what the footer's demo register should be right under a page's own closing CTA, whether a page with no CTA above it gets the same footer or a closing line built for it, and how its code reaches a phone (hidden, revealed on a tap, always shown, or dropped); every option drawn under a real CtaBand and under a real page with none, at 1440 and 375.",
       variants: [
-        "The shape",
-        "What it holds",
-        "The returning host",
-        "The phone's menu",
-        "On scroll",
-        "The foot's job",
+        "The foot after a close",
+        "The foot where nothing closes the page",
+        "The phone's foot",
       ],
     },
   },
@@ -290,8 +287,8 @@ export const RULINGS: Ruling[] = [
     title: "What a person is here",
     surface: "guest",
     asks:
-      "how the full guest list opens from the faces row, what a name opens first, and how a profile keeps the scanned event reachable",
-    why: "A person's page ships; three pieces stay open: the whole list's shape, a quick look before the page, and the way back to the event.",
+      "how the full guest list opens from the faces row, what a name opens first, how a profile keeps the scanned event reachable, and what should stand above it now that it does",
+    why: "A person's page ships; three pieces stay open, and a fourth, the header, is asked again now way-back changes what it has to solve alone.",
     lives: [
       "docs/systems/profiles-social.md",
       "src/app/(guest)/u/[slug]/page.tsx",
@@ -301,8 +298,8 @@ export const RULINGS: Ruling[] = [
       "src/components/social/profile-slug-control.tsx",
     ],
     board: {
-      note: "Three decisions on the shipped guest list and profile, phone first at 375 with 1440 on the knob, a 240-name fixture beside a 24-name one: how the full list opens from the faces row, what a name opens first, and how a profile keeps the scanned event reachable",
-      variants: ["View all", "Quick-look", "Way back"],
+      note: "Four decisions on the shipped guest list and profile, phone first at 375 with 1440 on the knob, a 240-name fixture beside a 24-name one: how the full list opens from the faces row, what a name opens first, how a profile keeps the scanned event reachable, and, asked again now that it does, what should stand above the page at all",
+      variants: ["View all", "Quick-look", "Way back", "The head, asked again"],
     },
   },
   {
@@ -678,15 +675,15 @@ export const RULINGS: Ruling[] = [
     title: "The album's falling-in",
     surface: "marketing",
     asks:
-      "which way a photograph reaches the album on the /features/album hero: Glide, Gather or Cascade",
+      "which way a photograph reaches the album on the /features/album hero: Glide, Gather, Cascade or Bloom",
     why: "One decision, drawn on the wired hero so the pick is already built: the falling-in stays, and only its motion is asked.",
     lives: [
       "src/components/shared/album-stream/stream-engine.ts",
       "src/components/marketing/sections/features/album/arrivals-hero.tsx",
     ],
     board: {
-      note: "One decision, three whole variations of the falling-in drawn on the LIVE /features/album hero at 1440 and 375 (the shipped one among them): a pair sliding under the album's edge, a pair born large and dissolving into it, and singles landing on it; every number under a tile measured off the engine against the home hero's",
-      variants: ["Glide", "Gather", "Cascade"],
+      note: "One decision, four whole variations of the falling-in drawn on the LIVE /features/album hero at 1440 and 375 (the shipped one among them): a pair sliding under the album's edge, a pair born large and dissolving into it, singles landing on it, and singles arriving lit by the product's own glow; every number under a tile measured off the engine against the home hero's",
+      variants: ["Glide", "Gather", "Cascade", "Bloom"],
     },
   },
   {
@@ -719,15 +716,15 @@ export const RULINGS: Ruling[] = [
     title: "The privacy page's hero",
     surface: "marketing",
     asks:
-      "the privacy page's hero: a breathing aperture, a grid whose tiles take turns clearing, or sealed cards that lift",
-    why: "Three still concepts built on what privacy means rather than a figure in flight: one decision, drawn at 1440 and 375.",
+      "the privacy page's hero: a breathing aperture, a grid that hands a tile over, sealed cards that lift, or a clearing drifting across one photograph",
+    why: "Four still concepts built on what privacy means rather than a figure in flight: one decision, drawn at 1440 and 375.",
     lives: [
       "src/app/(marketing)/(cinema)/features/privacy/page.tsx",
       "src/components/marketing/system/page-hero.tsx",
     ],
     board: {
-      note: "Four decisions, no page: the spirals' pace against the home hero's, the gap between frames, the trail each arm leaves, and what a phone draws; every option is the live privacy page's first screen at 1440 and 375",
-      variants: ["The pace", "The gap", "The trail", "At a phone"],
+      note: "One decision, four concepts, no page: an aperture's breath, a grid that hands one tile over at a time, sealed photographs that lift, and a single photograph never wholly visible at once with a clearing drifting across it; every option is the live privacy page's first screen at 1440 and 375",
+      variants: ["The aperture", "The sweep", "The sealed cards", "The veil"],
       tracks: ["heroes"],
     },
   },

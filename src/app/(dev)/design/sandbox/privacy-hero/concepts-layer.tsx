@@ -10,7 +10,6 @@ import type { CSSProperties } from "react";
 import type { Mode } from "@/components/lab";
 
 import {
-  ACCESS,
   accessTiles,
   APERTURE,
   apertureCentre,
@@ -18,13 +17,16 @@ import {
   sealCards,
   sealStepMs,
   SWEEP,
+  VEIL,
 } from "./concepts";
 import { photoOf } from "./field-layer";
 
 /**
  * THE FOUR CONCEPTS' COMPONENTS (privacy-hero round three, 2026-09-19;
- * `SweepConcept` added by the overtaken audit's reshape, 2026-09-21): one
- * per `ConceptId`, each a `PageHero` `backdrop`. Pure CSS drives every
+ * `SweepConcept` added by the overtaken audit's reshape, 2026-09-21;
+ * `VeilConcept` by the refresh, 2026-09-24, in the slot `AccessConcept` left
+ * when its crossfade turned out to be `sweep` wearing a different transition):
+ * one per `ConceptId`, each a `PageHero` `backdrop`. Pure CSS drives every
  * picture (`concepts.css`); React's only job is to hand each element its own
  * position and timing as custom properties, which is also why none of these
  * needs the old engine's pause plumbing (`field-layer.tsx`'s `FieldPause`,
@@ -36,7 +38,9 @@ import { photoOf } from "./field-layer";
  * `sealCards` are pure functions of `mode`; nothing in here invents a
  * coordinate `concepts.ts` does not already own. `SweepConcept` reuses
  * `accessTiles` outright (`SWEEP.sizePx` is `ACCESS.sizePx`), because the
- * grid is not what it changes.
+ * grid is not what it changes; `VeilConcept` reuses `apertureCentre` and
+ * `APERTURE.washPx` outright for the same reason, one circle already proven
+ * clear of the lockup.
  */
 
 function px(n: number) {
@@ -74,40 +78,6 @@ export function ApertureConcept({ mode }: { mode: Mode }) {
       </div>
       <div className="apr-ring" />
       <div className="apr-scrim" />
-    </div>
-  );
-}
-
-export function AccessConcept({ mode }: { mode: Mode }) {
-  const tiles = accessTiles(mode);
-  const size = ACCESS.sizePx[mode];
-
-  return (
-    <div className="cpt-layer" aria-hidden>
-      {tiles.map((t, i) => (
-        <div
-          key={i}
-          className="acc-tile"
-          style={
-            {
-              "--acc-x": px(t.x),
-              "--acc-y": px(t.y),
-              "--acc-size": px(size),
-              "--acc-i": i,
-              "--acc-cycle": `${ACCESS.cycleMs}ms`,
-              "--acc-step": `${ACCESS.stepMs}ms`,
-            } as CSSProperties
-          }
-        >
-          <Image
-            src={photoOf(i).src}
-            alt=""
-            fill
-            sizes={px(size)}
-            className="object-cover"
-          />
-        </div>
-      ))}
     </div>
   );
 }
@@ -187,6 +157,55 @@ export function SealConcept({ mode }: { mode: Mode }) {
           <div className="seal-cover" />
         </div>
       ))}
+    </div>
+  );
+}
+
+/**
+ * A single photograph, blurred and dim underneath; a second copy of the same
+ * frame, sharp, masked to a small soft-edged circle that drifts across it
+ * (`.vl-clear`'s `mask-position`, animated in `concepts.css`). One photograph
+ * is never fully visible at once, which is what makes this concept read as
+ * privacy rather than as an ordinary blurred backdrop.
+ */
+export function VeilConcept({ mode }: { mode: Mode }) {
+  const { x, y } = apertureCentre(mode);
+  const size = VEIL.washPx[mode];
+  const vars = {
+    "--vl-cx": px(x),
+    "--vl-cy": px(y),
+    "--vl-size": px(size),
+    "--vl-base-o": VEIL.baseOpacity,
+    "--vl-porthole": px(VEIL.portholePx[mode]),
+    "--vl-cycle": `${VEIL.cycleMs}ms`,
+  } as CSSProperties;
+
+  return (
+    <div className="cpt-layer" aria-hidden style={vars}>
+      <div className="vl-wash">
+        <div
+          className="vl-blur"
+          style={{ filter: `blur(${VEIL.blurPx[mode]}px)` }}
+        >
+          <Image
+            src={photoOf(7).src}
+            alt=""
+            fill
+            sizes={px(size)}
+            className="object-cover"
+          />
+        </div>
+        <div className="vl-clear">
+          <Image
+            src={photoOf(7).src}
+            alt=""
+            fill
+            sizes={px(size)}
+            className="object-cover"
+          />
+        </div>
+      </div>
+      <div className="vl-scrim" />
     </div>
   );
 }

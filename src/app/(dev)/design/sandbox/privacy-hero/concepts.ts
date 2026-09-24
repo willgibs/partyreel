@@ -2,7 +2,9 @@ import { CANVAS, type Mode } from "@/components/lab";
 
 /**
  * THE PRIVACY HERO, ROUND THREE: THREE NEW CONCEPTS, PURE DATA (2026-09-19);
- * A FOURTH ADDED BY THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21).
+ * A FOURTH ADDED BY THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21); THE REFRESH'S
+ * OWN PASS (2026-09-24) MERGES TWO INTO ONE AND DRAWS A REAL FOURTH IN THE
+ * SPACE THAT FREES.
  *
  * Round two flew photographs through a figure (`paths.ts`, deleted with this
  * round: "I don't really like this arrival animation as part of the
@@ -12,17 +14,21 @@ import { CANVAS, type Mode } from "@/components/lab";
  *
  * ★ NOTHING HERE FLIES. Each concept sits still, or nearly still, and the
  * thing that moves is each one's own VISIBILITY: a breath, a turn taken, a
- * seal lifted, a pass of light handing a tile over. That is the theme in
+ * seal lifted, a clearing drifting across a photograph. That is the theme in
  * mechanism, not just in caption: privacy is who can see a thing right now,
  * not how fast it travels.
  *
- * ★ `sweep` IS THE RESHAPE'S OWN CONCEPT, NOT A FOURTH INVENTION. By the time
- * this round was reopened, the product had ruled its own arrival grammar
- * (`components/shared/arrival.css`, `landing=sweep`, guest-upload r1): a tile
- * is handed over with one pass of light, once. `access`'s grid already asked
- * the right question (who can see this right now); `sweep` answers it with
- * the mechanism the product itself now uses, rather than a bespoke crossfade
- * invented before that grammar existed.
+ * ★ ACCESS AND SWEEP WERE ONE CONCEPT WEARING TWO TRANSITIONS, NOT TWO IDEAS
+ * (the refresh, 2026-09-24). Both drew the exact same eight-and-six-tile grid
+ * at the same cycle; the only difference was how a tile cleared, a crossfade
+ * against the product's own pass of light. That is a finding, not a pair of
+ * contenders (`docs/PROGRAM.md`: two options that land on the same answer are
+ * a finding). `sweep` is the one that survives, because a tile handed over
+ * the way the product now hands one over (`components/shared/arrival.css`,
+ * `landing=sweep`, guest-upload r1) is more fitting for the theme than a
+ * crossfade invented before that grammar existed; `access`'s geometry lives
+ * on as `sweep`'s own (`accessTiles` below), and `veil` draws the fourth
+ * concept in the slot that opened up.
  *
  * `field.ts`, `field-layer.tsx` and `field.css` stay in this directory only
  * because `album-page` still imports them for its own margins and motion
@@ -35,12 +41,12 @@ import { CANVAS, type Mode } from "@/components/lab";
  * driving the picture rather than a hand-typed guess beside it.
  */
 
-export type ConceptId = "aperture" | "access" | "seal" | "sweep";
+export type ConceptId = "aperture" | "sweep" | "seal" | "veil";
 export const CONCEPTS: readonly ConceptId[] = [
   "aperture",
-  "access",
-  "seal",
   "sweep",
+  "seal",
+  "veil",
 ];
 
 /* ── A rectangle, and whether two of them miss ───────────────────────────── */
@@ -108,7 +114,10 @@ export const apertureCentre = (mode: Mode) => ({
   y: LOCKUP[mode].cy,
 });
 
-/* ── Access: a grid of tiles, one taking its turn to clear ───────────────── */
+/* ── The grid: eight (six at a phone) tiles, one taking its turn to clear.
+ * Kept as `ACCESS` for its geometry alone (`accessTiles` below): the concept
+ * built on a crossfade retired in the refresh (2026-09-24, see the file
+ * header), and `sweep` is now the only concept this grid carries. ───────── */
 
 export const ACCESS = {
   tiles: { desktop: 8, phone: 6 } as Record<Mode, number>,
@@ -220,3 +229,34 @@ export function sealCards(mode: Mode): { x: number; y: number }[] {
     y,
   }));
 }
+
+/**
+ * ── Veil: one photograph, mostly hidden, a soft clearing drifting across it
+ * (the refresh's own fourth concept, 2026-09-24) ────────────────────────────
+ *
+ * The other three all show a WHOLE tile or photograph and vary how much of it
+ * or how many of them: this is the one where a single photograph is never
+ * fully visible at once. It is blurred and dim everywhere, all the time, and
+ * a small soft-edged window of full clarity drifts slowly over it, never
+ * settling, never showing the whole picture. Where the grid asks "who can see
+ * this right now" of many tiles, veil asks it of ONE photograph's own
+ * surface: privacy as a clearing that moves rather than a door that opens.
+ *
+ * ★ THE SAME FOOTPRINT AS APERTURE, ON PURPOSE. `washPx` is `APERTURE.washPx`
+ * outright: both concepts are one circle centred on the lockup's own middle,
+ * so this needs no new collision math (`concepts.test.ts`'s aperture-ring
+ * check already holds the footprint clear of the words) and a scrim
+ * identical in shape to `.apr-scrim` keeps the words legible over it exactly
+ * the same way. What changes is what happens INSIDE that circle.
+ */
+export const VEIL = {
+  washPx: APERTURE.washPx,
+  blurPx: { desktop: 44, phone: 26 } as Record<Mode, number>,
+  /** The blurred base's own opacity: always partly visible, never fully. */
+  baseOpacity: 0.55,
+  /** The clear window's diameter, px: small enough that most of the
+   *  photograph stays hidden at any one instant. */
+  portholePx: { desktop: 230, phone: 140 } as Record<Mode, number>,
+  /** One full drift through every waypoint and back, ms. */
+  cycleMs: 9000,
+};
