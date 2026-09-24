@@ -9,11 +9,10 @@ import { EVENT_CARD_ALT, EVENT_CARD_SIZE } from "@/lib/guest/event-card";
  * with the real name. Private and missing events fall back to a generic card (no existence or name
  * leak, the same rule as the page's `generateMetadata`). One link per event (database-security.md).
  *
- * ★ A ROUTE, NOT THE `opengraph-image` FILE CONVENTION (reel-guest-wiring, 2026-09-24). A link to
- * one photograph (`?photo=<id>`) unfurls as THAT photograph on an album anyone may open (page.tsx),
- * and file-based metadata outranks `generateMetadata` (Next's own rule), so while this card was the
- * convention file no photograph could ever take its place. The page now names this route as the
- * image for every other link; the pixels are unchanged.
+ * ★ A ROUTE, NOT THE `opengraph-image` FILE CONVENTION. A link to one photograph (`?photo=<id>`)
+ * unfurls as THAT photograph on an album anyone may open (page.tsx), and file-based metadata
+ * outranks `generateMetadata` (Next's own rule), so no photograph could ever take the place of a
+ * convention-file card. The page names this route as the image for every other link.
  */
 export async function GET(
   _request: Request,

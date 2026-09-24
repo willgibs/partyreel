@@ -1,11 +1,11 @@
 /**
- * THE OPEN ALBUM, WHOLE (the 1,000-row round, C7). `getEventMediaByQrToken` is the one read behind
+ * THE OPEN ALBUM, WHOLE (the whole-album read). `getEventMediaByQrToken` is the one read behind
  * the guest album, the gallery poll and the guest export. A single call of the set-returning RPC
- * was cut at 1,000 rows with no error, so the probe's 1,145-photo album showed its newest 1,000 and
- * the oldest never appeared. These pin the fix on the fake PostgREST, which clamps where PostgREST
- * does: every approved item comes back past 2,000, in the album's display order (`created_at desc,
- * id desc`, the order the grid, the reconcile and the ETag keep), paged on the last row's RAW
- * `(created_at, id)` with `p_limit` on every page.
+ * is cut at 1,000 rows with no error, so a 1,145-photo album (the scale probe's) would show its
+ * newest 1,000 and never its oldest. These pin the paging on the fake PostgREST, which clamps where
+ * PostgREST does: every approved item comes back past 2,000, in the album's display order
+ * (`created_at desc, id desc`, the order the grid, the reconcile and the ETag keep), paged on the
+ * last row's RAW `(created_at, id)` with `p_limit` on every page.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -115,7 +115,7 @@ beforeEach(() => {
 });
 
 describe("getEventMediaByQrToken: the open album, read whole", () => {
-  it("the platform's own behaviour: one unpaged call is cut at 1,000 (the bug this fixes)", async () => {
+  it("the platform's own behaviour: one unpaged call is cut at 1,000 (why the read pages)", async () => {
     const { handler } = albumRpc(album(2345));
     fake = createFakePostgrest({
       rpc: { get_event_media_by_qr_token: handler },

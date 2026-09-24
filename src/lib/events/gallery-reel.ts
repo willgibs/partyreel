@@ -1,5 +1,5 @@
 /**
- * THE LIVE REEL'S FACTS ON THE GALLERY PAYLOAD (reel-guest-wiring, 2026-09-24).
+ * THE LIVE REEL'S FACTS ON THE GALLERY PAYLOAD.
  *
  * The live reel stores nothing: every viewer's device composes it from the album's own payload. So
  * the one thing the server must say is WHETHER this viewer's album has a reel, and the handful of
@@ -9,9 +9,8 @@
  * tier-shaped is derived HERE from the tier the server read, never on the client (CLAUDE.md:
  * never trust the client for tier or entitlements).
  *
- * ★ THE MINIMUM IS TWO, AND IT IS COUNTED ON THE DEVICE. Will (reel-front `states`, 2026-09-24):
- * "Could even drop the minimum to 2 so they bounce back and forth if that works with our engine."
- * It does (live/source.test.ts pins 2 clips alternating). The count is the payload's own
+ * ★ THE MINIMUM IS TWO, AND IT IS COUNTED ON THE DEVICE. Two items are enough: the engine bounces
+ * them back and forth (live/source.test.ts pins 2 clips alternating). The count is the payload's own
  * reel-eligible items (`isReelEligible`: approved, not a cut, something drawable), so a cut never
  * counts toward it and the tile appears the moment the doorbell delivers the second photograph.
  *
@@ -102,8 +101,8 @@ export function reelEligibleCount(items: readonly GalleryItem[]): number {
 /**
  * ★ WHETHER THE REEL EXISTS FOR THIS VIEWER, RIGHT NOW. Every gate in one place: full access (the
  * facts are null otherwise), the host's switch, the platform lever, and two reel-eligible items.
- * Below it there is no tile, no view and no `?reel` (Will's `states=nothing`: "It can simply be
- * missing/nothing until minimum reached").
+ * Below it there is no tile, no view and no `?reel`: the reel is simply absent until the minimum is
+ * reached, with no empty state of its own.
  */
 export function liveReelAvailable(
   reel: GalleryReel | null,

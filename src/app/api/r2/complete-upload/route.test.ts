@@ -1,5 +1,5 @@
 /**
- * THE GUEST COMPLETION, HELD TO THE TICKET'S OWNER (the upload-owner lane, 2026-09-23).
+ * THE GUEST COMPLETION, HELD TO THE TICKET'S OWNER.
  *
  * A presign outlives a sign-out by up to two hours, so the owner check is asked again at the write
  * that actually credits a photograph to a row. The REAL route, pipeline and owner check run here;

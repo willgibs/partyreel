@@ -9,7 +9,7 @@
  * identity-less read; nobody else pays anything.
  *
  * `loadGalleryRowsForAccess` carries the album's head count beside the rows at `teaser` and `full`
- * (the 1,000-row round's C9), and `galleryEtagFor` hashes it, so the header's number is live even
+ * (the exact, live count), and `galleryEtagFor` hashes it, so the header's number is live even
  * where the loaded items are the nine-photo teaser.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -169,7 +169,7 @@ const row = (id: string) => ({
   created_at: "2026-09-23T23:13:38.122749+00:00",
 });
 
-describe("loadGalleryRowsForAccess: the album's size rides beside the rows (C9)", () => {
+describe("loadGalleryRowsForAccess: the album's size rides beside the rows", () => {
   beforeEach(() => {
     countApprovedMedia.mockReset().mockResolvedValue(1145);
     getEventMediaByQrToken.mockReset().mockResolvedValue([row("a"), row("b")]);

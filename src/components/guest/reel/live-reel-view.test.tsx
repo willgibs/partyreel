@@ -1,17 +1,17 @@
 /**
- * THE REEL'S FULL-SCREEN VIEW, WHICH IS ALSO THE WALL: Will's `reel-view` picks as behaviour.
+ * THE REEL'S FULL-SCREEN VIEW, WHICH IS ALSO THE WALL, pinned as behaviour.
  *
- * - `chrome=thin`: the dock is up on arrival and settles to the slim bar at rest; a pointer's
+ * - The chrome: the dock is up on arrival and settles to the slim bar at rest; a pointer's
  *   movement, or a tap on the bar, brings it back; every control is labelled (the tooltips hang off
  *   those labels).
- * - `controls=weighted`, amended: one row of icon buttons, Add yours an icon, "Make your own" the one
- *   primary beneath, only with a creator AND the host's plan in hand; Include videos only where the
- *   album holds a video.
+ * - The controls: one row of icon buttons, Add yours an icon, "Make your own" the one primary
+ *   beneath, only with a creator AND the host's plan in hand; Include videos only where the album
+ *   holds a video.
  * - The keyboard: Space pauses, Escape closes, the arrows step.
  * - The hold (3 s default) and the style are the viewer's own, kept on this device and handed to the
  *   engine as a factor per mood.
- * - `arrival=chip`: an upload that arrives while the view is open names its uploader.
- * - `reduced=paused`: reduced motion starts on the first frame with the dock up.
+ * - The arrivals: an upload that arrives while the view is open names its uploader.
+ * - Reduced motion starts on the first frame with the dock up.
  * - On a screen: the Start plate, fullscreen and a wake lock on the one tap, and leaving fullscreen
  *   brings the plate back; below the minimum, the code and the address alone.
  * - Never silent: past a threshold of failed frames, one report, and the presign watchdog asked.
@@ -181,7 +181,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("the chrome (chrome=thin)", () => {
+describe("the chrome (the thin bar)", () => {
   it("arrives with the dock up, then settles to the bar; a pointer's movement brings it back", () => {
     vi.useFakeTimers();
     renderView();
@@ -299,12 +299,12 @@ describe("the viewer's own knobs", () => {
       "data-value",
       "https://partyreel.com/e/qr-token",
     );
-    // No event name, anywhere on the view (name=none).
+    // No event name, anywhere on the view.
     expect(document.body.textContent).not.toMatch(/Mia & Theo|Reel lane/);
   });
 });
 
-describe("a tap on the picture (tap=lightbox)", () => {
+describe("a tap on the picture (a tap opens the viewer)", () => {
   it("pauses and opens the photograph on screen in the media viewer", () => {
     renderView();
     fireEvent.click(document.querySelector("[data-reel-picture]")!);
@@ -368,7 +368,7 @@ describe("a tap on the picture (tap=lightbox)", () => {
   });
 });
 
-describe("the arrivals (arrival=chip)", () => {
+describe("the arrivals (the arrival chip)", () => {
   it("names who just added one, and never a cut", () => {
     const { rerender, props } = renderView();
     expect(document.querySelector("[data-reel-arrivals]")).toBeNull();
@@ -385,7 +385,7 @@ describe("the arrivals (arrival=chip)", () => {
   });
 });
 
-describe("reduced motion (reduced=paused)", () => {
+describe("reduced motion (reduced motion starts paused)", () => {
   it("starts on the first frame with the dock up, and the dock stays", () => {
     setReducedMotion(true);
     vi.useFakeTimers();

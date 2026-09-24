@@ -1,12 +1,12 @@
 /**
  * THE LIVE REEL ON THE ALBUM PAGE: the controller, the Highlight reel tile and the approval toast.
  *
- * What is pinned is Will's rulings, as behaviour: the reel exists from the SECOND reel-eligible item
- * and below it there is nothing (`states=nothing`); a cut never counts; the host's switch, the
- * platform lever and a door still standing each take it away; a tap (or `?reel`) opens the view;
- * the screen posture below the minimum is the code alone; the tile says "Make your own clip to
- * share" only with a creator to make one; and on a moderated event the toast "The host added your
- * uploads" with "Watch reel" plays once, when this device's held upload shows up approved.
+ * What is pinned is behaviour: the reel exists from the SECOND reel-eligible item and below it
+ * there is nothing; a cut never counts; the host's switch, the platform lever and a door still
+ * standing each take it away; a tap (or `?reel`) opens the view; the screen posture below the
+ * minimum is the code alone; the tile says "Make your own clip to share" only with a creator to
+ * make one; and on a moderated event the toast "The host added your uploads" with "Watch reel"
+ * plays once, when this device's held upload shows up approved.
  *
  * The view itself is stubbed (its own file pins it); the doorbell is the one seam driven by hand.
  */
@@ -299,7 +299,7 @@ describe("the view's address", () => {
   });
 });
 
-describe("the welcome comes first (Will, 2026-09-24)", () => {
+describe("the welcome comes first", () => {
   it("?reel waits for the welcome: nothing under it or over it, the address still asks, then the view", async () => {
     window.history.replaceState(null, "", "/e/qr-token?reel");
     const { passWelcome } = await mount({ welcomePending: true });
@@ -349,7 +349,7 @@ describe("the welcome comes first (Will, 2026-09-24)", () => {
   });
 });
 
-describe("the approval toast (yours=toast)", () => {
+describe("the approval toast", () => {
   const held: QueueItem = {
     id: "q1",
     file: new File([new Uint8Array([1])], "a.jpg", { type: "image/jpeg" }),

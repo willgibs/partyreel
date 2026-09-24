@@ -1,4 +1,3 @@
-// @contract-for: src/components/guest/guest-masonry.tsx
 import { render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it } from "vitest";
@@ -11,18 +10,17 @@ import {
 import { LikesProvider } from "@/components/likes/likes-provider";
 
 /**
- * THE ALBUM'S HEAD: what a guest's own device puts there, and what it refuses to
- * (the `guest-upload` board, ruled whole 2026-09-21).
+ * THE ALBUM'S HEAD: what a guest's own device puts there, and what it refuses to.
  *
  * FUNCTION ONLY. The two tiles' own drawings are `stack-tile.test.tsx`'s, and
  * the grid under them is `masonry.test.tsx`'s. What is held here is the SEAM: a
  * queue snapshot goes in, and exactly one stack plus one waiting tile per held
  * file comes out, with nothing at all for a file that did not go.
  *
- * ★ EVERY RULE BELOW REPLACED A SHIPPED ONE, WHICH IS WHY EACH IS WORTH A PIN.
- * Twelve files used to draw twelve tiles (`batch=one`), a held upload drew
- * nothing at all and read as a failure (`held=tile`), and a refused file turned
- * a perfectly good photograph into a button saying Tap to retry (`failed=sheet`).
+ * ★ EACH RULE BELOW STANDS AGAINST A FAILURE, WHICH IS WHY EACH IS WORTH A PIN:
+ * twelve files drawing twelve tiles, a held upload drawing nothing at all and
+ * reading as a failure, and a refused file turning a perfectly good photograph
+ * into a button saying Tap to retry.
  */
 const items: GridMedia[] = [
   { id: "a", type: "photo", url: "/a.jpg", width: 800, height: 1200 },

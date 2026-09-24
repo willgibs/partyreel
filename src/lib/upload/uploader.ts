@@ -55,11 +55,10 @@ export type UploadOutcome =
   // the two routes (absent for a local validation or a transport failure),
   // passed through verbatim from presign OR complete, since either can refuse.
   // The guest queue reads exactly two of them by name, both the SESSION's
-  // rather than the file's: `verification_required` (the identity reshape,
-  // 2026-09-21: a host who turns Require verified emails ON mid-party
-  // invalidates every name-only session mid-run) and `session_other_account`
-  // (the upload-owner lane, 2026-09-23: the ticket this device kept belongs to
-  // an account the viewer is not). The difference between "this file did not
+  // rather than the file's: `verification_required` (a host who turns Require
+  // verified emails ON mid-party invalidates every name-only session mid-run)
+  // and `session_other_account` (the ticket this device kept belongs to an
+  // account the viewer is not). The difference between "this file did not
   // go" and "your session is worth nothing now" is the difference between a
   // Retry that works and one that cannot.
   | { ok: false; code?: string; message: string };
@@ -69,7 +68,7 @@ function measureFile(file: File, kind: "photo" | "video"): Promise<Measured> {
     const url = URL.createObjectURL(file);
     // Measurement is best-effort and MUST settle: Chrome defers <video> metadata
     // loading in hidden tabs (backgrounded mid-queue = loadedmetadata never fires),
-    // which wedged the whole queue before its first network call. Same rationale as
+    // which would wedge the whole queue before its first network call. Same rationale as
     // preview.ts's waitEvent timeouts; the server re-validates size via R2 HEAD.
     let done = false;
     const settle = (m: Measured) => {
@@ -143,8 +142,8 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
     });
   } catch {
     // fetch REJECTS only on a genuine transport failure (venue WiFi dropping,
-    // a cell handoff, the tab going offline) and never on a 4xx/5xx. This is
-    // the blip that used to wedge the whole batch.
+    // a cell handoff, the tab going offline) and never on a 4xx/5xx. Uncaught,
+    // this blip would wedge the whole batch.
     throw new UploadError(
       "Your connection dropped. Check your signal and try again.",
     );
@@ -164,16 +163,15 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
  * THE CONTRACT: uploadFile ALWAYS RESOLVES an UploadOutcome, never rejects.
  *
  * The queue runner awaits this once per file in a sequential loop. A rejection
- * escaping here used to break out of that loop entirely: the file stayed at
- * status "uploading" forever (so it never got the errored tile's retry
- * affordance) and every file still queued behind it was silently abandoned.
- * One dropped request on venue WiFi therefore killed the whole batch.
+ * escaping here would break out of that loop entirely: the file would stay at
+ * status "uploading" forever (so it never gets the errored tile's retry
+ * affordance) and every file still queued behind it would be silently
+ * abandoned. One dropped request on venue WiFi would kill the whole batch.
  *
- * The R2 PUT was already guarded; the presign/complete round-trips were not,
- * and neither were the best-effort media helpers. Rather than chase each one,
- * the whole pipeline is wrapped so the contract holds by construction: a new
- * `await` added below cannot reintroduce the wedge. (The queue ALSO catches,
- * belt and braces.)
+ * Rather than guard each step (the R2 PUT, the presign/complete round-trips,
+ * the best-effort media helpers) one by one, the whole pipeline is wrapped so
+ * the contract holds by construction: a new `await` added below cannot wedge
+ * the queue. (The queue ALSO catches, belt and braces.)
  */
 export async function uploadFile(args: {
   file: File;
@@ -300,9 +298,9 @@ async function runUpload(args: {
         if (!eTag) {
           // A missing part ETag is a BUCKET MISCONFIGURATION (R2 CORS stopped exposing
           // the ETag header), never something a guest did or can fix — so it follows the
-          // uploadFile contract's rule below: the operator detail goes to the console for
-          // triage, the guest gets copy they can act on. It used to name the header and
-          // the bucket, which read like a broken app to the person holding the phone.
+          // uploadFile contract's rule above: the operator detail goes to the console for
+          // triage, the guest gets copy they can act on. Naming the header and the bucket
+          // to the guest would read like a broken app to the person holding the phone.
           console.error(
             "uploadFile: multipart part missing ETag (the R2 bucket CORS must expose the ETag header)",
             { partNumber: part.partNumber },

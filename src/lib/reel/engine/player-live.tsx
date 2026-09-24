@@ -1,8 +1,7 @@
 "use client";
 
 /**
- * THE LIVE REEL PLAYER — a sibling of CanvasReelPlayer for a SOURCE instead of a fixed cut
- * (the live reel, 2026-09-22).
+ * THE LIVE REEL PLAYER — a sibling of CanvasReelPlayer for a SOURCE instead of a fixed cut.
  *
  * Same engine, same `drawReelFrame`, same pixels. What changes is everything around the draw:
  *
@@ -118,12 +117,12 @@ export type LiveReelPlayerProps = {
   /** A MOOD id; a treatment falls back to the default mood (the loop is moods only). */
   styleId: string;
   surface?: Surface;
-  /** The board's pacing multiplier on top of the surface factor. */
+  /** The caller's pacing multiplier on top of the surface factor. */
   holdScale?: number;
   orientation?: Orientation;
   /** The live reel carries no mark on any tier; the knob exists for the harness. */
   watermark?: boolean;
-  /** Videos play their motion window (`reel-engine-video`); off, they hold their poster. */
+  /** Videos play their motion window (`engine/video/`); off, they hold their poster. */
   includeVideos?: boolean;
   /**
    * Controlled play state. OMITTED, reduced motion decides (paused where it is set), which is the
@@ -134,11 +133,11 @@ export type LiveReelPlayerProps = {
   /** Cap the canvas's longest backing-store dimension (the album tile's thumb). */
   maxDim?: number;
   /**
-   * FULL-BLEED (the view's `posture=follow`: "Reel media presentation should feel like a full-screen
-   * experience so that, if used on big screens at events, it fills them"). The canvas covers its box
-   * (`object-fit: cover`, no corner, no letterbox) instead of keeping its own aspect: the caller's
-   * box is the viewport, and the composition's orientation already follows it, so the crop is only
-   * ever the sliver between a screen's aspect and 9:16 or 16:9.
+   * FULL-BLEED (the picture follows the viewport): the reel should feel full-screen, so on a big
+   * screen at an event it fills that screen. The canvas covers its box (`object-fit: cover`, no
+   * corner, no letterbox) instead of keeping its own aspect: the caller's box is the viewport, and
+   * the composition's orientation already follows it, so the crop is only ever the sliver between a
+   * screen's aspect and 9:16 or 16:9.
    */
   fill?: boolean;
   className?: string;
@@ -271,8 +270,9 @@ export function LiveReelPlayer({
     needsAhead: false,
     generation: 0,
     // ★ ONE deck and ONE ledger for the whole session, across every window. The deck's ceiling of
-    // two live readers and the ledger's session byte cap are SESSION promises (reel-engine-video):
-    // per-window instances would multiply both by however many windows a night rolls through.
+    // two live readers and the ledger's session byte cap are SESSION promises (video/window-reader.ts
+    // and video/budget.ts): per-window instances would multiply both by however many windows a
+    // night rolls through.
     deck: null as ReaderDeck | null,
     ledger: null as ReturnType<typeof createVideoByteLedger> | null,
     disposed: false,
@@ -285,8 +285,8 @@ export function LiveReelPlayer({
   }, []);
 
   /**
-   * Hang the range-window reader's motion source on this window's video clips (reel-engine-video's
-   * `createVideoPlayback`), and hand it the surface's own window length so the ONE pacing factor
+   * Hang the range-window reader's motion source on this window's video clips (`createVideoPlayback`,
+   * video/prepare-frame.ts), and hand it the surface's own window length so the ONE pacing factor
    * reaches the video too. With videos off nothing is built and every video draws its poster, which
    * is also every failure's answer.
    */
@@ -400,8 +400,8 @@ export function LiveReelPlayer({
    *
    * ★ IT BUMPS A GENERATION. A load already in flight has ALREADY planned its window against the
    * order that just changed, and when it resolves it would quietly install that stale window as the
-   * prefetch — which is how a soak froze on one photograph for fifty-one seconds. The generation is
-   * what lets the resolver know it was overtaken. A stale window's retains are deliberately NOT
+   * prefetch, freezing the reel on one photograph. The generation is what lets the resolver know it
+   * was overtaken. A stale window's retains are deliberately NOT
    * given back here: its index will release in the ordinary course, and releasing now would free the
    * stills the REPLACEMENT window at that index has since pinned.
    */
@@ -744,9 +744,9 @@ export function LiveReelPlayer({
       //
       // But NOT while an arrival is queued: planning the next window is what CONSUMES the queue, so
       // a prefetch here would take the upload the rewindow above is about to put on screen and hide
-      // it a whole window away. Measured, when it did exactly that: 11.4 seconds and five clips,
-      // every time an upload happened to land during a transition (when the rewindow has to wait).
-      // The wait is bounded by a transition, which is under a second.
+      // it a whole window away: 11.4 seconds and five clips, measured, whenever an upload lands
+      // during a transition (when the rewindow has to wait). The wait is bounded by a transition,
+      // which is under a second.
       if (!state.splicing && source.pendingCount() === 0) {
         state.needsAhead = false;
         ensureAhead();
@@ -772,12 +772,12 @@ export function LiveReelPlayer({
         const next = state.ahead.get(state.index + 1);
         if (next) {
           const leaving = state.active.window;
-          // ★ THE RESUME FRAME IS THE LEAVING WINDOW'S (the small-album seam, 2026-09-24): its
+          // ★ THE RESUME FRAME IS THE LEAVING WINDOW'S (the small-album seam): its
           // `handoverOffset` is how far into the shared clip its entering transition ended, plus
           // however far past the handover this tick landed (never past the frame actually drawn,
-          // which a late prefetch holds at the window's last). It used to read the INCOMING
-          // window's offset, which is the entering gap of a clip one window further on: every
-          // handover moved the shared clip by the difference between two transition lengths.
+          // which a late prefetch holds at the window's last). Never the INCOMING window's offset,
+          // which is the entering gap of a clip one window further on: every handover would move
+          // the shared clip by the difference between two transition lengths.
           const drawn = Math.min(
             local,
             Math.max(0, leaving.plan.totalFrames - 1),
@@ -888,7 +888,7 @@ export function LiveReelPlayer({
   // studio's screen; the live reel is a tile at the head of an album, a full-bleed view and a wall,
   // and each of those frames it differently. So this renders the canvas and nothing else, and the
   // caller's `className` is the frame. The bright edge (`data-lit`, and its entry in
-  // shared/lit-edge-contract.test.ts) belongs to whichever surface the boards rule it onto.
+  // shared/lit-edge-contract.test.ts) belongs to whichever surface wears it.
   return (
     <div
       ref={wrapRef}

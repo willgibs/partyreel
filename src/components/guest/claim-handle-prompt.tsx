@@ -15,17 +15,15 @@ import { GUEST_NAME_PREFIX } from "@/lib/guest/use-stored-name";
 import { createClient } from "@/lib/supabase/client";
 
 /**
- * THE OFFER, AT THE ONE MOMENT ANYONE CARES (Will, `claim=after`, 2026-09-19:
- * "Amazing capture method without getting in the way of uploading photos. Great
- * idea here"). A guest who has just added photographs to a wedding is named on
- * that album from now on; until this round nothing anywhere told them a handle
- * existed, which is why most chips on a guest list go nowhere.
+ * THE OFFER, AT THE ONE MOMENT ANYONE CARES, which captures a guest without
+ * getting in the way of their uploading. A guest who has just added photographs
+ * to a wedding is named on that album from now on; this card is where they
+ * learn a handle exists at all, and without one most chips on a guest list go
+ * nowhere.
  *
- * ★ IT OWNS THE WHOLE POST-UPLOAD SLOT, one card at a time, and that is the
- * sequencing the round asked for. The identity reshape (2026-09-21) added the
- * middle beat, so the ladder is now:
- *   signed OUT              -> the offer card (keep your N photos), exactly as
- *                              `account=after` left it, now counting them.
+ * ★ IT OWNS THE WHOLE POST-UPLOAD SLOT, one card at a time, and the ladder is:
+ *   signed OUT              -> the offer card (keep your N photos), counting
+ *                              what they just added.
  *   just CONFIRMED          -> the follow moment: what they gained, the host to
  *                              follow, and the handle line folded in.
  *   signed IN, no handle    -> the handle card (a guest who was already signed
@@ -34,24 +32,23 @@ import { createClient } from "@/lib/supabase/client";
  *   signed IN, with handle  -> nothing. They already have the page; the album
  *                              is not the place to congratulate them about it.
  * Rendering two would stack growth cards under a gallery a guest came here to
- * look at, which is the opposite of "without getting in the way", so the offer
- * card arrives as a prop and this component decides which one stands.
+ * look at, which is exactly getting in the way, so the offer card arrives as a
+ * prop and this component decides which one stands.
  *
- * ★ "JUST CONFIRMED" IS THE ALBUM'S DECISION, HANDED IN (guest by upload,
- * 2026-09-22). Every confirm door writes `pr_pending_offer_<qr_token>` when it
- * OPENS, and the album page (`use-confirm-return.ts`) hears every claim made on
- * it: when a claim moved this album's own uploads and that marker was there, it
- * sets `moment`, and this card plays the moment exactly once, identically
- * whether the guest typed the code in place or came back from Google or a
- * magic link through a full reload, and with no upload needed this visit.
+ * ★ "JUST CONFIRMED" IS THE ALBUM'S DECISION, HANDED IN. Every confirm door
+ * writes `pr_pending_offer_<qr_token>` when it OPENS, and the album page
+ * (`use-confirm-return.ts`) hears every claim made on it: when a claim moved
+ * this album's own uploads and that marker was there, it sets `moment`, and
+ * this card plays the moment exactly once, identically whether the guest typed
+ * the code in place or came back from Google or a magic link through a full
+ * reload, and with no upload needed this visit.
  *
  * ★ AND THE TYPED NAME BECOMES THE PROFILE NAME, when the profile has none.
- * `claim_anonymous_uploads` was deliberately left unchanged by the reshape's
- * schema (wave 0's finding), so the claim stamps `user_id` onto the guest rows
+ * `claim_anonymous_uploads` deliberately stamps `user_id` onto the guest rows
  * and stops there; a brand-new account would otherwise land nameless while the
- * person is standing on an album that has been calling them Sam all evening. One
- * call to `updateDisplayNameAction` (the single, profanity-checked write path)
- * closes that, and it never overwrites a name that already exists.
+ * person is standing on an album that has been calling them Sam all evening.
+ * One call to `updateDisplayNameAction` (the single, profanity-checked write
+ * path) closes that, and it never overwrites a name that already exists.
  *
  * ★ RESOLVING RENDERS NOTHING, on purpose. getSession() is local (no network),
  * so the wait is a tick; drawing the offer card first and swapping it for the

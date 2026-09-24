@@ -1,11 +1,11 @@
 /**
- * THE VIEWER'S OWN REEL, KEPT ON THEIR DEVICE (reel-guest-wiring, 2026-09-24).
+ * THE VIEWER'S OWN REEL, KEPT ON THEIR DEVICE.
  *
- * Three knobs in the view's dock, each a preference with "a huge array of user preferences" behind
- * it (Will's `pacing=unhurried` note), and none of them anyone else's business: the HOLD (how long a
- * photograph stays), the STYLE (which of the eight moods) and whether VIDEOS play. All three live
- * in this browser's localStorage and never travel on the wire. The host's `reel_style_id` is only
- * the style's DEFAULT; a viewer's pick overrides it on their device and is never written back.
+ * Three knobs in the view's dock, each a matter of taste that varies widely from viewer to viewer,
+ * and none of them anyone else's business: the HOLD (how long a photograph stays), the STYLE (which
+ * of the eight moods) and whether VIDEOS play. All three live in this browser's localStorage and
+ * never travel on the wire. The host's `reel_style_id` is only the style's DEFAULT; a viewer's pick
+ * overrides it on their device and is never written back.
  *
  * ★ THE HOLD IS SECONDS, AND THE ENGINE TAKES A FACTOR. The dock says "3 s"; the engine's one pacing
  * knob is `holdScale`, which scales the MOOD's own hold (and its transitions and video window with
@@ -24,8 +24,8 @@ import { STYLE_CATALOG } from "@/lib/reel/engine/style-registry";
 import { resolveTheme } from "@/lib/reel/engine/themes";
 import { resolveLiveStyleId } from "@/lib/reel/live/window";
 
-/** The Hold control's steps, in seconds: both boards' options merged (reel-view's 1, 1.5 and 2.2;
- *  reel-screen's 3.6, 5 and 7), with Will's 3 s default among them. */
+/** The Hold control's steps, in seconds: brisk holds for a phone in the hand (1, 1.5 and 2.2) and
+ *  calmer ones for a wall (3.6, 5 and 7), with the 3 s default among them. */
 export const HOLD_STEPS_SEC = [1, 1.5, 2.2, 3, 3.6, 5, 7] as const;
 export const DEFAULT_HOLD_SEC = 3;
 

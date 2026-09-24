@@ -2,12 +2,12 @@
  * NAMING A GUEST WHO ARRIVED WITHOUT A NAME, AND RENAMING ONE. Body:
  * `{ qr_token, session_token, display_name }` → `{ ok: true, display_name }`.
  *
- * The identity reshape's second door (Will, 2026-09-21). The first is the join, which takes the
- * name a guest types before their first upload; this one covers everyone the join could not: a
- * guest whose row was minted before the reshape, one minted by a client that sent no name, and one
- * who simply wants to be called something else. `set_guest_display_name` is service-role-only like
- * every other guest WRITE (ADR-0016), so this route is not a wrapper over a public RPC — it IS the
- * gate, and it owns two things the database cannot:
+ * The second door to a guest's name. The first is the join, which takes the name a guest types
+ * before their first upload; this one covers everyone the join could not: a guest whose row was
+ * minted without a name, and one who simply wants to be called something else.
+ * `set_guest_display_name` is service-role-only like every other guest WRITE (database-security.md),
+ * so this route is not a wrapper over a public RPC — it IS the gate, and it owns two things the
+ * database cannot:
  *
  * ★ THE PROFANITY CHECK. The obscenity matcher must never ship to a browser, so it can live
  *   neither in a client form nor in a SQL CHECK. The route runs it, exactly as
@@ -28,8 +28,8 @@
  *   (403): their name is their profile's, and a row that carried two names could disagree with
  *   itself.
  *
- * ★ AND AN ACCOUNT'S ROW IS RENAMED ONLY BY THAT ACCOUNT (the upload-owner lane, 2026-09-23;
- *   lib/guest/session-owner.ts). A row claimed by an account that never confirmed keeps its typed
+ * ★ AND AN ACCOUNT'S ROW IS RENAMED ONLY BY THAT ACCOUNT
+ *   (lib/guest/session-owner.ts). A row claimed by an account that never confirmed keeps its typed
  *   name, so the RPC's "comes from your account" refusal does not cover it, and a browser that kept
  *   that account's ticket would otherwise let the next person on the phone rename it. 403
  *   `session_other_account`: the name step reads it by name, puts the ticket down and mints this
@@ -104,7 +104,7 @@ export async function POST(request: Request) {
     keys = null;
   }
 
-  // The write path inherits the read gate (QA #18), the same way the join does: a `private` event
+  // The write path inherits the read gate, the same way the join does: a `private` event
   // master-locks everyone, so nobody has a legitimate reason to be renaming a guest row on one. A
   // dead link answers 404. A `password` event is NOT re-gated here — the name is not the album, the
   // caller already holds a session token minted past that lock, and a guest correcting their name
@@ -187,11 +187,11 @@ export async function POST(request: Request) {
     { ok: true, display_name: result.data.display_name },
     { headers: { "Cache-Control": "private, no-store" } },
   );
-  /* ★ AND THE COOKIE HEALS HERE TOO (the door as three steps, 2026-09-21). A guest whose row was
-     minted before this round holds a token in localStorage and no cookie; renaming is the first
-     door many of them pass through, so it adopts the token the same way the join does. The RPC
-     just proved the token resolves to a live row of this event's, so nothing unverified is
-     written. Skipped when the request already carried it. */
+  /* ★ AND THE COOKIE HEALS HERE TOO. A guest whose row was minted before the cookie existed holds
+     a token in localStorage and no cookie; renaming is the first door many of them pass through,
+     so it adopts the token the same way the join does. The RPC just proved the token resolves to
+     a live row of this event's, so nothing unverified is written. Skipped when the request
+     already carried it. */
   applyGuestCookies(response, [
     await guestSessionCookieIfChanged(eventResult.data.id, session_token),
   ]);

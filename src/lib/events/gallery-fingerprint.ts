@@ -1,5 +1,5 @@
 /**
- * Gallery ETag fingerprint (Phase 3). Hashes everything that determines a
+ * Gallery ETag fingerprint. Hashes everything that determines a
  * gallery poll response EXCEPT the volatile presigned URLs, plus the presign
  * signing-bucket id, so a conditional request can be answered 304 (skipping
  * every presign, up to three an item, + the full payload) exactly when the
@@ -8,19 +8,19 @@
  * SECURITY INVARIANT: the ETag must never validate across access levels, nor
  * across the GATE behind one level. The access level, the gate and the teaser
  * total are part of the hash, and the item-id list is structurally different
- * per level, so a teaser viewer's ETag can never 304 a full payload
- * (red-teamed in the route's verification) and a guest whose gate moved from
- * `account` to `upload` can never 304 onto the step they already passed.
+ * per level, so a teaser viewer's ETag can never 304 a full payload and a
+ * guest whose gate moved from `account` to `upload` can never 304 onto the
+ * step they already passed.
  *
- * THE ALBUM'S SIZE IS IN THE HASH (the 1,000-row round): the payload carries
- * `approvedTotal`, the header's live count, and the teaser's nine photos can
- * stay the same while the album grows (a video, or a photograph removed from
- * deeper in the album), so the count has to move the validator by itself.
+ * THE ALBUM'S SIZE IS IN THE HASH: the payload carries `approvedTotal`, the
+ * header's live count, and the teaser's nine photos can stay the same while
+ * the album grows (a video, or a photograph removed from deeper in the
+ * album), so the count has to move the validator by itself.
  *
  * The bucket id makes the ETag roll when the presign bucket rolls (~30 min),
  * capping any 304 streak so clients re-pull fresh URLs before old ones expire.
  *
- * DELIBERATELY OUTSIDE the hash: width/height/durationSeconds (Phase 4 masonry
+ * DELIBERATELY OUTSIDE the hash: width/height/durationSeconds (masonry
  * data) and `reelEligible` (the live reel, `media.reel_eligible`: false only for
  * a cut added to the album). All four are write-once at create_media (mutations
  * only ever flip status fields, and no client role can update reel_eligible),
@@ -28,11 +28,11 @@
  * bytes without adding sensitivity. A field that can CHANGE for an existing id
  * must go INSIDE the hash (and bump the version).
  *
- * THE LIVE REEL'S FACTS ARE IN THE HASH (reel-guest-wiring, 2026-09-24): the
- * payload carries the host's switch and mood, the platform lever and what the
- * host's plan lets the cut creator do (`gallery-reel.ts`), and every one of
- * them can change with no media row moving. Outside the hash, a host turning
- * the reel off would 304 past every open album until the presign bucket rolled.
+ * THE LIVE REEL'S FACTS ARE IN THE HASH: the payload carries the host's switch
+ * and mood, the platform lever and what the host's plan lets the cut creator do
+ * (`gallery-reel.ts`), and every one of them can change with no media row
+ * moving. Outside the hash, a host turning the reel off would 304 past every
+ * open album until the presign bucket rolled.
  *
  * Pure module (node:crypto only) so the hash rules are Vitest-pinnable.
  */

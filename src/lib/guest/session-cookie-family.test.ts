@@ -1,6 +1,6 @@
 /**
- * THE GUEST TICKET COOKIE'S FAMILY (the upload-owner lane, 2026-09-23): which cookies are tickets,
- * and the account sign-out's expiry of every one of them on its own response.
+ * THE GUEST TICKET COOKIE'S FAMILY: which cookies are tickets, and the account sign-out's expiry of
+ * every one of them on its own response.
  */
 import { describe, expect, it } from "vitest";
 

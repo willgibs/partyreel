@@ -1,7 +1,7 @@
 /**
- * Pins for the arrival beat (Phase 4.5): the auto-open holds for the beat,
- * non-auto paths are instant, and reduced motion / 0ms skip the wait. Fake
- * timers drive the delay deterministically.
+ * Pins for the arrival beat: the auto-open holds for the beat, non-auto
+ * paths are instant, and reduced motion / 0ms skip the wait. Fake timers
+ * drive the delay deterministically.
  */
 import { act, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";

@@ -2,14 +2,14 @@
  * ATTACHING, CHANGING OR DETACHING THE UNPROVED ADDRESS. Body:
  * `{ qr_token, session_token, email | null }` → `{ ok: true, email_attached }`.
  *
- * The guest identity round's second door (Will, 2026-09-22, "guest identity: name only,
- * unconfirmed email, verified account"). The first is the join, which takes the OPTIONAL address a
- * guest types under their name; this one covers everyone the join could not: a guest who skipped the
- * field and wants back in, one who typed it wrong, one whose row was minted before this round, and
- * one who wants the address gone. `set_guest_pending_email` is service-role-only like every other
- * guest WRITE (ADR-0016), so this route is not a wrapper over a public RPC — it IS the gate.
+ * The second door to a guest's address (three identities: name only, unconfirmed email, verified
+ * account). The first is the join, which takes the OPTIONAL address a guest types under their name;
+ * this one covers everyone the join could not: a guest who skipped the field and wants back in, one
+ * who typed it wrong, one whose row was minted before the field existed, and one who wants the
+ * address gone. `set_guest_pending_email` is service-role-only like every other guest WRITE
+ * (database-security.md), so this route is not a wrapper over a public RPC — it IS the gate.
  *
- * ★ WHAT THE ADDRESS IS. His words: "a name with an invisible claim number (the email)". It is
+ * ★ WHAT THE ADDRESS IS: an invisible claim number on the guest's name. It is
  *   stored UNPROVED in `guests.pending_email`, inert by construction — never shown to the host or
  *   another guest, never attributed to any account, NEVER MAILED ON ITS OWN, never expiring. That
  *   last property is what makes accepting a stranger's address safe: there is no message to send, so
@@ -31,8 +31,8 @@
  *   mismatched `qr_token` cannot reach another event's guest; the token scopes the limiter and the
  *   visibility gate, nothing more. A VERIFIED guest is refused outright (403): their address is
  *   their account's, and a row carrying two could disagree with itself. And an account's row takes
- *   an address only from that signed-in account (the upload-owner lane, 2026-09-23;
- *   lib/guest/session-owner.ts): 403 `session_other_account` for anyone else holding its ticket,
+ *   an address only from that signed-in account
+ *   (lib/guest/session-owner.ts): 403 `session_other_account` for anyone else holding its ticket,
  *   which the add-email dialog reads by name and answers by putting the ticket down.
  *
  * ★ THE LIMITER (`attach_email`, abuse-rate-limit.ts) carries the rename's numbers for the rename's
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
     keys = null;
   }
 
-  // The write path inherits the read gate (QA #18), exactly as the name door does: a `private` event
+  // The write path inherits the read gate, exactly as the name door does: a `private` event
   // master-locks everyone, so nobody has a legitimate reason to be editing a guest row on one, and a
   // dead link answers 404. A `password` event is NOT re-gated — the address is not the album, the
   // caller already holds a token minted past that lock, and a guest fixing a typo from a re-opened

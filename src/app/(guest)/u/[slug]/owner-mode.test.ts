@@ -1,16 +1,15 @@
-// @contract-for: src/app/(guest)/u/[slug]/owner-sections.tsx
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 /**
- * THE OWNER MODE'S GATE (home-wiring, 2026-09-20).
+ * THE OWNER MODE'S GATE.
  *
  * `/u/[slug]` is a PUBLIC, INDEXABLE page that anonymous strangers read all
- * day, and this round hung three private feeds off it (`you=?`, Will: "Your
- * own photos, likes, connections, etc should be on your profile page"). The
- * gate is therefore worth a guard that cannot be refactored away by accident.
+ * day, and three private feeds hang off it (a person's own photos, likes and
+ * connections belong on their own profile page). The gate is therefore worth
+ * a guard that cannot be refactored away by accident.
  *
  * It is a SOURCE guard rather than a render test on purpose: `OwnerSections`
  * is an async Server Component reading three RPCs, so a render test would be
@@ -55,8 +54,8 @@ describe("the owner mode cannot be pointed at somebody else", () => {
 
   it("renders only for the person themselves", () => {
     // The page's own half of the gate: OwnerSections appears exactly once, and
-    // under isSelf. A visitor's render stays byte-identical to what it was and
-    // costs zero extra queries, because nothing below is constructed.
+    // under isSelf. A visitor's render carries none of it and costs zero extra
+    // queries, because nothing below is constructed.
     expect(page.match(/<OwnerSections/g) ?? []).toHaveLength(1);
     const guard = page.slice(0, page.indexOf("<OwnerSections"));
     expect(guard.slice(-400)).toContain("isSelf &&");

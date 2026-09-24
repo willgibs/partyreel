@@ -47,22 +47,22 @@ export type EntryModalHandle = {
   /** The teaser's "See all N" re-asserts the sheet at whatever step it is on. */
   openToGate: () => void;
   /**
-   * THE EDIT DOOR, and only that. The join/hold/profile modes are steps of the itinerary now (the
-   * door as three steps, 2026-09-21); "Change name" in the album's menu is the one name door that
-   * is still raised imperatively, and the one surface in this whole sheet that a guest may close.
+   * THE EDIT DOOR, and only that. The join/hold/profile modes are steps of the itinerary; "Change
+   * name" in the album's menu is the one name door raised imperatively, and the one surface in this
+   * whole sheet that a guest may close.
    */
   openToName: (mode: "edit") => void;
 };
 
 /**
- * THE GUEST DOOR: ONE HELD SHEET, THEN THE ALBUM (Will, 2026-09-21, "the door as three
- * steps"). The welcome, the password when the event has one, the name, the email held until it is
- * confirmed when the host requires verified emails, then the first upload asked actively inside
- * this same sheet. The nine-tile teaser sits blurred behind it the whole way, which is the point:
- * "we're simply teasing them with the album reward for their info and media".
+ * THE GUEST DOOR: ONE HELD SHEET, THEN THE ALBUM. The welcome, the password when the event has
+ * one, the name, the email held until it is confirmed when the host requires verified emails, then
+ * the first upload asked actively inside this same sheet. The nine-tile teaser sits blurred behind
+ * it the whole way, which is the point: the album is the reward held out for the guest's name or
+ * email and their media.
  *
- * ★ NO EXIT (his words, at the question about a "Just browsing" row: "Including 'just browsing'
- * defeats this entire purpose of using the album to justify the name or email friction. No exit.").
+ * ★ NO EXIT. A "Just browsing" row, or any other way around the door, would defeat the whole
+ * purpose of using the album to justify the name or email friction.
  * Every step is HELD: no X, no drag handle, Escape and the backdrop inert. The one dismissible door
  * left in this file is the album menu's "Change name", which is opened from an album the guest is
  * already standing in and posts nothing when it closes.
@@ -103,7 +103,7 @@ export const EntryModal = forwardRef<
     /** That account already has a profile display name (so the name is a fact, not a question). */
     hasProfileName: boolean;
     /** Approved media count (numbers only) — the gate steps' "N photos are
-     *  waiting" tease + the welcome's count proof (the ratified
+     *  waiting" tease + the welcome's count proof (a deliberate
      *  cardinality-only leak). */
     mediaTotal?: number;
     /** Welcome byline (null on locked pages: the redacted shellEvent). */
@@ -112,19 +112,18 @@ export const EntryModal = forwardRef<
     hostAvatarUrl?: string | null;
     /** `seedFor(host_id)`, computed server-side (page.tsx via
      *  `getHostAvatarSeed`) — never the raw host id itself. Paints the
-     *  byline's Avatar the same colour that host wears everywhere else
-     *  (the sixth batch, `seed=account`). Null exactly
-     *  where `hostAvatarUrl` is: a locked page's redacted shellEvent, or no
-     *  host on the event at all. */
+     *  byline's Avatar the same colour that host wears everywhere else.
+     *  Null exactly where `hostAvatarUrl` is: a locked page's redacted
+     *  shellEvent, or no host on the event at all. */
     hostSeed?: string | null;
     /** The success-hold signal for the page's REVEAL CURTAIN: the freshly
      *  mounted header/gallery wait at their pre-entrance state while the
      *  beat holds, then rise AS the sheet exits (event-experience). */
     onHoldingChange?: (holding: boolean) => void;
     /**
-     * ★ THE WELCOME COMES FIRST (Will, 2026-09-24: "Doesn't everyone without a guest name
-     * (unverified events) or confirmed email (verified events) get routed through the welcome
-     * flow? Then the welcome flow approves the guest and drops them off on the event page").
+     * ★ THE WELCOME COMES FIRST: everyone without a guest name (unverified events) or a confirmed
+     * email (verified events) is routed through the welcome flow, which approves the guest and only
+     * then drops them off on the event page.
      * Whether this visitor still owes the door (a step pending, or the "You're in" beat still
      * holding), reported once hydrated and again on every change, so what an address asks for
      * (the reel's `?reel` and `?reel=screen`) waits until they are through. The owner never owes
@@ -147,8 +146,8 @@ export const EntryModal = forwardRef<
       displayName: string;
       source: "step" | "edit" | "verified";
       /**
-       * The row also carries an UNCONFIRMED address (the door's optional field,
-       * 2026-09-22). `emailAttached` is the device flag the guest's own menu
+       * The row also carries an UNCONFIRMED address (the door's optional
+       * field). `emailAttached` is the device flag the guest's own menu
        * reads; `email` rides up IN MEMORY for this visit alone, to prefill the
        * offer card's door, and is never written to storage.
        */
@@ -204,8 +203,8 @@ export const EntryModal = forwardRef<
   ref,
 ) {
   const router = useRouter();
-  // The demo never persists "seen" (the door's first look, 2026-09-21): every visit is fresh,
-  // even a returning one, so the hook itself is told which visitor this is.
+  // The demo never persists "seen": every visit is fresh, even a returning one, so the hook
+  // itself is told which visitor this is.
   const [seen, markSeen] = useWelcomeSeen(qrToken, isDemo);
   // THE EDIT DOOR's own open state: a SECOND door through the same shell rather than a step, and
   // the only free surface here (see the handle's comment).
@@ -271,7 +270,7 @@ export const EntryModal = forwardRef<
         ? ARRIVAL_BEAT_MS.welcome
         : ARRIVAL_BEAT_MS.password,
   });
-  // THE SUCCESS HOLD (Phase 4.5 S5): the step whose exit is the album fires
+  // THE SUCCESS HOLD: the step whose exit is the album fires
   // onUnlocked() + router.refresh(); this holds the sheet on the "You're in"
   // beat (masking the refresh roundtrip) until the RSC drops the step, then
   // releases into the reveal. `holding` ORs into open so the derived close
@@ -315,11 +314,10 @@ export const EntryModal = forwardRef<
     // The edit door, ORed in: it opens over an album with no step pending at all.
     (hydrated && editOpen);
 
-  // THE BACK AFFORDANCE (Phase 4.5 S3, carried onto the itinerary): a transient client view OVER
-  // the derived machine. The password, the name and the email go back to the WELCOME (the guest can
-  // always re-read what this is); the upload goes back to the NAME, which is the step it followed.
-  // The machine never knows (markSeen/steps untouched). Both reset when the FLOW advances (the
-  // sanctioned adjust-state-during-render pattern).
+  // THE BACK AFFORDANCE: a transient client view OVER the derived machine. The password, the name
+  // and the email go back to the WELCOME (the guest can always re-read what this is); the upload
+  // goes back to the NAME, which is the step it followed. The machine never knows (markSeen/steps
+  // untouched). Both reset when the FLOW advances (the sanctioned adjust-state-during-render pattern).
   const [backView, setBackView] = useState<"welcome" | "name" | null>(null);
   const [direction, setDirection] = useState<"fwd" | "back">("fwd");
   const [prevStep, setPrevStep] = useState(current);
@@ -363,10 +361,10 @@ export const EntryModal = forwardRef<
   /* ────────────────────────────────────────────────────────────────────────
      WHAT HAPPENS THE INSTANT THE CODE CONFIRMS (verified mode).
 
-     `EnterEventPrompt` used to own this: it claimed, called back, and refreshed. It cannot own it
-     any more, because the door now holds a NAME that has never been sent anywhere, and the order
-     the four writes happen in is the whole difference between a guest who lands named and one whose
-     photographs carry no name. So the prompt is a plain callback and this sequence is the modal's:
+     `EnterEventPrompt` cannot own this: the door holds a NAME that has never been sent anywhere,
+     and the order the four writes happen in is the whole difference between a guest who lands
+     named and one whose photographs carry no name. So the prompt is a plain callback and this
+     sequence is the modal's:
 
        1. claim this browser's anonymous uploads onto the freshly confirmed account;
        2. join, VERIFIED and nameless (create_guest nulls a typed name beside a confirmed
@@ -377,7 +375,7 @@ export const EntryModal = forwardRef<
 
      ★ THE ACCOUNT'S NAME WINS. A confirmed viewer whose profile already says "Priya" is credited
      as Priya even if they typed "P" at the door a minute ago: one person, one name, and the email
-     step says so out loud above the field. (His to overrule.)
+     step says so out loud above the field.
 
      The whole sequence runs UNDER the hold, so a guest sees one beat rather than four flickers.
      ──────────────────────────────────────────────────────────────────────── */
@@ -437,13 +435,12 @@ export const EntryModal = forwardRef<
     router.refresh();
   }, [handleUnlocked, onNamed, qrToken, router, typedName]);
 
-  // THE HELD VIEW + EXIT LATCH (Phase 4.5 audit fixes): while a PASSWORD hold
-  // plays, the gate stays PLANTED and its own button morphs green (the
-  // ratified in-place success - no step swap); every other hold shows the
-  // SuccessStep. While the shell is closed/exiting, the LAST open-state view
-  // stays latched so the sheet never deflates to an empty strip mid-exit (the
-  // step content would otherwise unmount in the same commit that starts the
-  // close).
+  // THE HELD VIEW + EXIT LATCH: while a PASSWORD hold plays, the gate stays
+  // PLANTED and its own button morphs green (an in-place success - no step
+  // swap); every other hold shows the SuccessStep. While the shell is
+  // closed/exiting, the LAST open-state view stays latched so the sheet never
+  // deflates to an empty strip mid-exit (the step content would otherwise
+  // unmount in the same commit that starts the close).
   const stepKey = holding
     ? heldStep === "password"
       ? "password"
@@ -461,7 +458,7 @@ export const EntryModal = forwardRef<
   if (open && stepKey !== lastKey) setLastKey(stepKey);
   const displayKey = open ? stepKey : lastKey;
 
-  /* ★ THE DISMISSABILITY TABLE IS ONE ROW NOW. "No exit": every step of the door is HELD, so there
+  /* ★ THE DISMISSABILITY TABLE IS ONE ROW. "No exit": every step of the door is HELD, so there
      is no X, no handle, and Escape and the backdrop do nothing. The one free surface is the album
      menu's "Change name", which sits over an album the guest already reached and posts nothing when
      it closes. A closed/exiting shell is held too, so affordances cannot pop in mid-exit. */
@@ -538,10 +535,10 @@ export const EntryModal = forwardRef<
       dismissMode={dismissMode}
       onDismiss={handleDismiss}
       title={sheetCopy.title}
-      // ALBUM, NOT GALLERY (Will, 2026-09-17, the `noun=album` pick): the site,
-      // the app and the reel all say album, so the guest's phone says it too.
+      // ALBUM, NOT GALLERY: the site, the app and the reel all say album, so
+      // the guest's phone says it too.
       // One noun for one object, because a guest who becomes a host meets both
-      // words. The CODE noun deliberately did not move with it (/api/guests/
+      // words. The CODE noun deliberately stays "gallery" (/api/guests/
       // gallery, gallery-access, the RPCs): renaming a live route buys a guest
       // nothing and risks the one flow with no account behind it.
       description={sheetCopy.description}
@@ -569,7 +566,7 @@ export const EntryModal = forwardRef<
               }}
             />
           )}
-          {/* The chevron back to the step behind this one (R5: the guest can always re-read what
+          {/* The chevron back to the step behind this one (the guest can always re-read what
               this is) - hidden while the success beat plays, and on the edit door, which has a
               real X of its own. */}
           {backTarget && !reviewing && !holding && !editOpen && (
@@ -656,9 +653,9 @@ export const EntryModal = forwardRef<
                 /* ★ THE SKIP EXISTS ONLY IN THE OFF STATE, and it is a GHOST: a host who did not
                    ask for a photograph is not owed one, and a guest who came for the album gets
                    it. ON there is no skip at all, which is the switch's whole meaning. Never
-                   marks the welcome seen (the demo's own hook already never persists it, "the
-                   door's first look", 2026-09-21) — this used to call markSeen() for the demo
-                   specifically, which is exactly the "returning" state Will overruled. */
+                   marks the welcome seen (the demo's own hook already never persists it): a
+                   markSeen() here would turn a demo visitor into a "returning" one, when every
+                   demo visit is meant to start fresh. */
                 onSkip={
                   requireUpload
                     ? undefined
@@ -728,11 +725,10 @@ export function entrySheetCopy(input: {
       description: "Enter the event password to view it.",
     };
   }
-  // ★ THE GATE LINE, RESHAPED (2026-09-21) AND THEN REPHRASED (2026-09-22): an account is not what
-  // is being asked for, a confirmed address is, and what it opens is the album plus a keepsake. The
-  // second sentence is the guest's own benefit, which is the rule every line of this door now
-  // follows ("in the welcome flow, all of this should be framed as either a benefit to the guest or
-  // event host... never bland or regulatory", Will, 2026-09-22).
+  // ★ THE GATE LINE: an account is not what is being asked for, a confirmed address is, and what it
+  // opens is the album plus a keepsake. The second sentence is the guest's own benefit, because
+  // every line of this door is framed as a benefit to the guest or the event host, never as
+  // something bland or regulatory.
   return {
     title: "See all the photos",
     description:
@@ -740,7 +736,7 @@ export function entrySheetCopy(input: {
   };
 }
 
-// THE SUCCESS BEAT (Phase 4.5 S5): the held "You're in" view that masks the
+// THE SUCCESS BEAT: the held "You're in" view that masks the
 // refresh roundtrip. A --success green check (the system's sanctioned feedback
 // color), "You're in", and "Opening the album" once it runs slow. If the
 // refresh hangs past the watchdog, a Retry (the unlock cookie is already set,
@@ -788,25 +784,22 @@ function SuccessStep({
   );
 }
 
-// THE INVITATION (Phase 4.5): the warm front door. An eyebrow over the event
-// name as the Instrument Serif hero, the host's byline, the count as social
-// proof, then two reading rows in the host's event voice (minimal Partyreel
-// branding).
+// THE INVITATION: the warm front door. An eyebrow over the event name as the
+// Instrument Serif hero, the host's byline, the count as social proof, then two
+// reading rows in the host's event voice (minimal Partyreel branding).
 //
-// ★ ONE PRIMARY, AND IT IS ALWAYS "CONTINUE" (Will, 2026-09-21, "No exit"). The welcome had two
-// other exits: "View the album" when nothing followed, and a ghost "Just browsing" that dismissed
-// to the teaser. Both are gone, because there is always something behind the welcome now (a name
-// at the very least) and because the teaser is the reward being teased, not a lobby. His words:
-// "Including 'just browsing' defeats this entire purpose of using the album to justify the name or
-// email friction."
+// ★ ONE PRIMARY, AND IT IS ALWAYS "CONTINUE". No second exit ("View the album" when nothing
+// follows, or a ghost "Just browsing" that dismisses to the teaser): there is always something
+// behind the welcome (a name at the very least), and the teaser is the reward being teased, not a
+// lobby: a way to browse without giving a name or an email would defeat the purpose of using the
+// album to justify that friction.
 //
-// ★ STILL "CONTINUE" ON A REVISIT, NEVER "BACK" (Will, 2026-09-21, "the door's first look",
-// overruling a `door-steps` call that read "Back"/"Back to the password" here): "Don't make back
-// bidirectional. Keep 'Continue' for users to resume forward navigation clearly... Everyone is
-// super comfortable with a 'back/continue' working the same as 'prev/next'." The chevron that
-// brought the guest back to re-read this (its own aria-label: "Back to the welcome") is the one
-// place "back" belongs; this button only ever moves forward again, so it only ever says so. There
-// is no `continueLabel` prop any more — one button, one word, whichever step is behind it.
+// ★ STILL "CONTINUE" ON A REVISIT, NEVER "BACK" (nor "Back to the password"): "back" never points
+// both ways. Everyone reads back/continue exactly as they read prev/next, so "Continue" is the
+// word that clearly resumes forward navigation. The chevron that brought the guest back to re-read
+// this (its own aria-label: "Back to the welcome") is the one place "back" belongs; this button
+// only ever moves forward again, so it only ever says so. There is no `continueLabel` prop: one
+// button, one word, whichever step is behind it.
 //
 // The whole block staggers in on mount.
 function WelcomeStep({
@@ -831,7 +824,7 @@ function WelcomeStep({
   const count = mediaTotal ?? 0;
 
   return (
-    // data-welcome-step: the ratified "tall" presence (~55svh) applies ONLY
+    // data-welcome-step: the "tall" presence (~55svh) applies ONLY
     // inside the phone sheet, via [data-entry-drawer] [data-welcome-step] in
     // globals.css; the desktop dialog stays content-height. The CTA block's
     // mt-auto pins it to the sheet's foot when the minimum height engages.
@@ -847,11 +840,9 @@ function WelcomeStep({
           <p className="mt-2 flex items-center gap-1.5 text-working text-muted-foreground">
             {host && (
               <>
-                {/* Every host wears their seeded colour here now, photo or not
-                    (`the-crowd=full`, the sixth batch) — the raw <img> used to
-                    skip entirely without an
-                    avatar; the fallback initial means this byline is never
-                    bare again. */}
+                {/* Every host wears their seeded colour here, photo or not: a
+                    raw <img> would skip entirely without an avatar, and the
+                    fallback initial means this byline is never bare. */}
                 <Avatar seed={hostSeed ?? undefined} size="sm">
                   <AvatarImage src={hostAvatarUrl ?? undefined} alt="" />
                   <AvatarFallback>{initial(null, host)}</AvatarFallback>
@@ -889,30 +880,27 @@ function WelcomeStep({
         <Button onClick={onContinue} size="cta" className="w-full">
           Continue
         </Button>
-        {/* The acceptance line rides the door every guest passes once (the
-            legal round's ruling); links open in a new tab so the sheet the
-            guest is standing in survives the tap. */}
+        {/* The acceptance line rides the door every guest passes once; links
+            open in a new tab so the sheet the guest is standing in survives
+            the tap. */}
         <LegalConsentLine newTab className="mt-2 text-center" />
       </div>
     </div>
   );
 }
 
-// THE DEMO'S OWN ARRIVAL (Will, `arrival=role`, the sixth batch, 2026-09-20:
-// "the demo welcome feels more correct for this generic guest welcome").
-// `computeEntry` no longer special-cases the demo (entry-steps.ts) — it is
-// the SAME "welcome" step every guest gets, wearing different words, so its
-// DESIGN stays exactly WelcomeStep's (guest-shape round two redraws both
-// together; see spec.ts's own note that this board never touches it). Three
-// things a visitor here needs and the ordinary welcome's copy does not give
-// them: what this is (a real album, standing in for theirs), where they are
-// standing (in a guest's shoes, at somebody's party), and the one thing to
-// try. The two reading rows deliberately MIRROR WelcomeStep's own two
+// THE DEMO'S OWN ARRIVAL.
+// It is the SAME "welcome" step every guest gets (entry-steps.ts), wearing
+// different words, so its DESIGN stays exactly WelcomeStep's (a redesign
+// redraws both together). Three things a visitor here needs and the ordinary
+// welcome's copy does not give them: what this is (a real album, standing in
+// for theirs), where they are standing (in a guest's shoes, at somebody's
+// party), and the one thing to try. The two reading rows deliberately MIRROR WelcomeStep's own two
 // promises rather than inventing a second voice — the same measure, the same
-// order, said to a prospective HOST instead of a guest (bible 4 still holds
-// behind it: this sheet is the only place on the page that speaks as
-// Partyreel). No LegalConsentLine here — looking around a demo agrees to
-// nothing (the `PartyDoor` precedent in the board's own sandbox).
+// order, said to a prospective HOST instead of a guest (the guest surface
+// behind it still belongs to the host's event: this sheet is the only place
+// on the page that speaks as Partyreel). No LegalConsentLine here — looking
+// around a demo agrees to nothing.
 function RoleStep({
   eventName,
   hostName,
@@ -949,9 +937,9 @@ function RoleStep({
         </p>
       </div>
 
-      {/* ★ "LOOK AROUND" MOVED ONE STEP ON (the door as three steps, 2026-09-21): it is the
-          DEMO's own skip on the upload step now, where looking around is actually the alternative
-          being offered. Here the primary is the same "Continue" every guest's welcome carries. */}
+      {/* ★ NO "LOOK AROUND" HERE: it is the DEMO's own skip on the upload step, where looking
+          around is actually the alternative being offered. Here the primary is the same
+          "Continue" every guest's welcome carries. */}
       <div className="mt-auto flex flex-col gap-2">
         <Button onClick={onContinue} size="cta" className="w-full">
           Continue

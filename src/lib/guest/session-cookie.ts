@@ -1,18 +1,18 @@
 /**
- * THE GUEST SESSION COOKIE, `pr_guest_<eventId>` (the door as three steps, Will 2026-09-21).
+ * THE GUEST SESSION COOKIE, `pr_guest_<eventId>`.
  *
  * Require an upload to view is enforced SERVER-SIDE, in the RSC and in the poll, and both of them
- * have to know WHICH guest is asking. Until this cookie the answer lived only in the browser's
- * localStorage, which a server render cannot read: the page would have resolved every anonymous
- * contributor as "has not contributed" and held them at a step they had already passed.
+ * have to know WHICH guest is asking. The browser's localStorage alone cannot answer that, because a
+ * server render cannot read it: the page would resolve every anonymous contributor as "has not
+ * contributed" and hold them at a step they had already passed.
  *
- * ★ IT CARRIES THE RAW SESSION TOKEN, AND THAT IS THE CAPABILITY ITSELF (his to overrule). The same
- * 64-hex token the browser already holds in localStorage and posts on every upload, now also sent
- * by the browser automatically on a same-site navigation. It is UNSIGNED on purpose: the database
- * verifies it against `guests.session_token`'s unique index, so a forged value resolves to no row
- * and the shape guard below keeps anything that is not a token from ever reaching a query.
+ * ★ IT CARRIES THE RAW SESSION TOKEN, AND THAT IS THE CAPABILITY ITSELF. The same 64-hex token the
+ * browser already holds in localStorage and posts on every upload, also sent by the browser
+ * automatically on a same-site navigation. It is UNSIGNED on purpose: the database verifies it
+ * against `guests.session_token`'s unique index, so a forged value resolves to no row and the shape
+ * guard below keeps anything that is not a token from ever reaching a query.
  *
- * ★ HttpOnly, so the one new copy of the capability is strictly LESS reachable than the localStorage
+ * ★ HttpOnly, so this second copy of the capability is strictly LESS reachable than the localStorage
  * original (script cannot read it); Secure in production; SameSite=Lax so a scan from a messaging
  * app's in-app browser still carries it on the top-level navigation that matters, while a
  * cross-site POST does not. Path `/` because the poll (`/api/guests/gallery`) is not under `/e/`.
@@ -104,12 +104,12 @@ export function guestSessionCookieClear(eventId: string): GuestCookieWrite {
 }
 
 /**
- * THE EXPIRY WRITES FOR EVERY GUEST TICKET THIS REQUEST CARRIES (the upload-owner lane,
- * 2026-09-23), for `POST /api/guests/leave` `{ all: true }`. A sign-out puts down every event's
- * ticket, not only the album on screen: the next person on a shared phone should start clean
- * wherever they scan next. Only the names the browser actually sent are expired, so nothing is
- * invented and nothing another family owns is touched. (A Server Function, which has no
- * `NextResponse`, uses the family's `expireGuestSessionCookies` on its cookie store instead.)
+ * THE EXPIRY WRITES FOR EVERY GUEST TICKET THIS REQUEST CARRIES, for `POST /api/guests/leave`
+ * `{ all: true }`. A sign-out puts down every event's ticket, not only the album on screen: the
+ * next person on a shared phone should start clean wherever they scan next. Only the names the
+ * browser actually sent are expired, so nothing is invented and nothing another family owns is
+ * touched. (A Server Function, which has no `NextResponse`, uses the family's
+ * `expireGuestSessionCookies` on its cookie store instead.)
  */
 export async function guestSessionCookieClearAll(): Promise<
   GuestCookieWrite[]

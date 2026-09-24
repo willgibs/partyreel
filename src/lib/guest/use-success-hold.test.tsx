@@ -1,8 +1,8 @@
 /**
- * Pins for the success hold (Phase 4.5 S5): it holds until the beat AND the
- * refresh land, takes the lighter path on a gate-to-gate hop, flags slow, and
- * raises stalled on a hung refresh. Fake timers drive the beat/watchdog;
- * rerendering with a new `current` stands in for the RSC re-derive.
+ * Pins for the success hold: it holds until the beat AND the refresh land,
+ * takes the lighter path on a gate-to-gate hop, flags slow, and raises stalled
+ * on a hung refresh. Fake timers drive the beat/watchdog; rerendering with a
+ * new `current` stands in for the RSC re-derive.
  */
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";

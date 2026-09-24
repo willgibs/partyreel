@@ -186,7 +186,8 @@ phone half becoming vaul-backed for every consumer, never a per-dialog exception
   photographic promise, the RIVER (`shared/river`) in a square box the width of the reading column, the
   `public/guest-ghost` WebPs pouring under a centred `font-heading` title and CTA. The fade (85% grayscale,
   40% opacity) is a class on the WRAPPER, never a layer over the photographs, and NOTHING sits at the top of
-  the flow (a demo code in a host's own album is what bible 4 refuses). At 0 items the header and dock drop
+  the flow (the guest surface belongs to the host's event, so no Partyreel demo code sits in a host's own
+  album). At 0 items the header and dock drop
   their Add; the CTA owns it. ★ **That wrapper is `GhostRiver`, exported from this file and the ONE home of
   the depth**: the locked page draws the same picture, and two copies of a fade drift apart.
 - **Lightbox** (the SHARED [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx), its parts in
@@ -234,8 +235,7 @@ phone half becoming vaul-backed for every consumer, never a per-dialog exception
   picture at its own depth: one absence, one picture) + the real "N photos & videos inside" count tease
   (name shown: it's link-shared, not the secret) under the door's password step, until a signed unlock
   cookie is present; then the rest of the door. The river's frames are the local `guest-ghost` pack, never
-  this event's media. [`ghost-grid.tsx`](../../src/components/guest/ghost-grid.tsx) (`GhostGrid`) is dead
-  code: nothing imports it. ★ **The page passes a REDACTED `shellEvent` at access `none`**
+  this event's media. ★ **The page passes a REDACTED `shellEvent` at access `none`**
   (`host_display_name` + `description` + `event_date` blanked) so they never reach the RSC flight payload:
   a locked page leaks the event NAME + COUNT only, zero media URLs. The date is blanked too, because the
   welcome byline renders it.
@@ -297,8 +297,8 @@ does it call `getUploadGate` ([`guest-gate.ts`](../../src/lib/db/queries/guest-g
 where `albumFull` is exactly the pair the presign ladder refuses `cap_reached` on (the storage cap plus its 10%
 write headroom, or the monthly ingress cap), carried verbatim by `get_upload_gate`, so the gate never holds a guest
 the presign would refuse. An unreachable `get_upload_gate` resolves to `{contributed: false, albumFull: true}`
-with a captured warning, which opens the album. ★ **OWN DELETES CLOSE IT** (Will, 2026-09-22, re-ruling "any
-completed upload counts"): an upload counts whatever the host does to it (pending, approved, hidden, or removed by
+with a captured warning, which opens the album. ★ **OWN DELETES CLOSE IT**: an upload counts whatever the host
+does to it (pending, approved, hidden, or removed by
 the host, an admin or the system: a door that re-closed on the host's curation would leak it to the guest), and
 stops counting once the guest removes it themselves (`removed_by_uploader`, a disown at the claim ticket included).
 So a guest who uploads, looks and deletes has not contributed, and the door is theirs again. The EMPTY album still
@@ -447,10 +447,9 @@ through flags in the sheet. No step counter to desync.
 
 ## Invariants (don't break)
 
-- ★ **A PERSON IS A GUEST OF AN EVENT ONLY THROUGH AN UPLOAD OF THEIRS** (Will, 2026-09-22: "the only way to
-  be attached to an event as a guest should be via upload. Password entry, veryify account, but no upload? Not
-  listed as a guest. Delete all of your uploads? Removed as a guest. Uploaded 1 photo? You're a guest."). A LIVE
-  upload is one whose `media.status` is not `removed` (pending, approved or hidden), whoever removed it. What OTHER
+- ★ **A PERSON IS A GUEST OF AN EVENT ONLY THROUGH AN UPLOAD OF THEIRS**: a password entered or an account
+  confirmed without an upload lists nobody, one photograph makes a guest, and deleting every upload of theirs
+  removes them again. A LIVE upload is one whose `media.status` is not `removed` (pending, approved or hidden), whoever removed it. What OTHER
   people see needs an APPROVED one: the guest list, the Guests room, every guest count and a profile's "guest at"
   line, all read through ONE function (`getEventGuests`, [`event-guests.ts`](../../src/lib/events/event-guests.ts):
   a confirmed guest once per person, a named unconfirmed one once per row, never the host, never a nameless row).
@@ -463,13 +462,11 @@ through flags in the sheet. No step counter to desync.
   list and names panel (`GuestList`'s host-only `emails`, read by `getConfirmedGuestAddresses` in
   [`guest-addresses.ts`](../../src/lib/db/queries/guest-addresses.ts), which proves the host itself and reads
   `guests.email` on `verified_at` rows only; the room is its one importer and the album never passes `emails`, both
-  pinned). Will, 2026-09-22: "because this is the safety advantage when a host toggles on require verified accounts
-  for events. Otherwise, if we don't display verified emails, anyone could verify any email account, and there's no
-  real verified identity tied to the safety feature. If I'm a verified guest on 'fakeemail@domain.com' but the host
-  only sees a verified badge, it implies far more safety than it should." And 2026-09-23: "Guests should not see
-  other confirmed guests' emails, making them more comfortable knowing only the host sees it. Exposing emails
-  publicly would go from a safety feature to privacy concern - the host assumes responsibility of ensuring that
-  safety." A guest never sees another guest's address.
+  pinned). The address IS the safety feature Require verified emails promises: anyone can confirm any inbox, so a
+  bare "verified" badge would imply far more safety than it gives, and the host must see WHICH address was proved
+  (a guest confirmed on `fakeemail@domain.com` looks exactly like that). A guest never sees another guest's
+  address: exposing them would turn a safety feature into a privacy leak, and the host alone takes on vetting
+  them.
 - **The opaque token IS the authorization** — never give `anon` direct table access; the guest
   RPCs validate the token internally. → [database-security.md](database-security.md).
 - **A link, and an event password, are BEARER credentials.** Possession is the authorization, which is the
@@ -507,8 +504,8 @@ through flags in the sheet. No step counter to desync.
   that must stay true: `anon` never gets EXECUTE on `remove_my_upload_by_session` (service-role only, reached
   through `/api/guests/remove` behind the join limiter); a session token never travels in a URL; and a guest
   row with `user_id` set is untouchable by the session path, so a shared phone's stale token can never delete
-  a signed-in person's photograph. ★ **A withdrawal is final for the host** (`removed_by_uploader`; Will,
-  2026-09-23: "I want it gone everywhere, not still visible to the host as well"): no host surface shows or
+  a signed-in person's photograph. ★ **A withdrawal is final for the host** (`removed_by_uploader`: a guest who
+  takes a photograph back wants it gone everywhere, the host's view included): no host surface shows or
   restores it (the album and its viewer, Review, Deleted and `restore_media`, the home's pulse and the events
   list's counts and covers, the exports, the reel's timeline), `host_storage_summary`'s Deleted figure counts
   it in neither number, and the confirm says so with no window ("It's deleted from the event right away and
@@ -867,7 +864,7 @@ upload)"); there is no creator and no approval toast.
 ## The live reel (the guest half)
 
 A dynamically composed, looped slideshow of the album's current approved media, watchable at once, taking
-new uploads as they land and needing no host action (Will's concept). Nothing is stored and nothing is
+new uploads as they land and needing no host action. Nothing is stored and nothing is
 downloadable: the reel is the album's own live payload, composed on the device by the live composer
 (`lib/reel/live/`, `player-live.tsx`; the engine → [host-app.md](host-app.md)). A guest's own clip is the
 creator's (below).
@@ -887,11 +884,10 @@ creator's (below).
   behind a door, there is no tile, no view and no `?reel` (a `?reel` below the minimum is dropped quietly; one
   behind a door waits for the door). The reel plays the SERVER's approved list, never an optimistic blob; the
   demo plays its optimistic tiles too, since its uploads never reach a server.
-- ★ **THE WELCOME COMES FIRST, EVERYWHERE** (Will, 2026-09-24: "In my head, a host would login to a venue
-  computer or send that laptop a link as guest to play the reel from event page after going through the
-  welcome flow"). A visitor who still owes the door meets it with no reel under it or over it, for `?reel`
-  and `?reel=screen` alike (the screen posture is no exception); the moment they are through, the reel
-  their link asked for opens. The door says so itself (EntryModal's `onPendingChange`: a step pending or
+- ★ **THE WELCOME COMES FIRST, EVERYWHERE**: the door is how a guest reaches the event page, and a host who
+  plays the reel on a venue laptop or screen goes through it on that device like any guest. A visitor who
+  still owes the door meets it with no reel under it or over it, for `?reel` and `?reel=screen` alike (the
+  screen posture is no exception); the moment they are through, the reel their link asked for opens. The door says so itself (EntryModal's `onPendingChange`: a step pending or
   the "You're in" beat holding, reported once hydrated), and the page treats it as owed until that first
   report. The owner never owes it and gets the reel at once. A `?reel` that cannot play is dropped only once
   the door is behind the visitor.
@@ -906,8 +902,8 @@ creator's (below).
 - **The view** ([`reel/live-reel-view.tsx`](../../src/components/guest/reel/live-reel-view.tsx), `React.lazy`,
   ONE import promise shared by the warm-up and the lazy boundary) is a full-bleed Radix dialog over the
   player in `fill` (cover), following the viewport's orientation. ★ **In a landscape composition every mood
-  fills the frame edge to edge** (Will, 2026-09-24; `fillLandscape`, `lib/reel/live/window.ts`):
-  Cinematic's letterbox bars and Editorial's inset card are set aside, and a mismatched photograph (a
+  fills the frame edge to edge** (`fillLandscape`, `lib/reel/live/window.ts`), because a laptop or an event
+  screen is where the reel must fill the room: Cinematic's letterbox bars and Editorial's inset card are set aside, and a mismatched photograph (a
   portrait shot on a laptop or a screen) stays whole on its own darkened blur rather than a flat colour.
   Portrait keeps every mood as designed. ★ **`?reel` is its address**
   ([`reel-url.ts`](../../src/lib/guest/reel-url.ts)): opening PUSHES an entry marked in its own history state

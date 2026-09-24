@@ -1,5 +1,5 @@
 /**
- * PUTTING GUEST TICKETS DOWN ON THE DEVICE (the upload-owner lane, 2026-09-23).
+ * PUTTING GUEST TICKETS DOWN ON THE DEVICE.
  *
  * Two acts, one store. A SIGN-OUT puts down every ticket this browser holds, with the names and
  * address flags beside them and the name prefill, so the next person on a shared phone starts

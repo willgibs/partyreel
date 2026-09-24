@@ -42,10 +42,10 @@ import {
 
 /**
  * The UNLOCKED password album: every approved item, NEWEST FIRST in the open album's exact order
- * (`created_at desc, id desc`), read whole in keyset pages (the 1,000-row round: one unbounded read
- * handed an album past a thousand items its newest 1,000). The cursor is `olderThan`, the table
- * twin of the open album RPC's own, so the two arms of `loadGalleryRowsForAccess` can never page or
- * order an album differently.
+ * (`created_at desc, id desc`), read whole in keyset pages (one unbounded read would hand an album
+ * past a thousand items only its newest 1,000). The cursor is `olderThan`, the table twin of the
+ * open album RPC's own, so the two arms of `loadGalleryRowsForAccess` can never page or order an
+ * album differently.
  */
 export async function getApprovedMediaForUnlock(
   eventId: string,
@@ -169,18 +169,17 @@ const approvedCount = cache(async function approvedCount(
 
 /**
  * Header stats for the guest page: the approved media count and how many GUESTS it came from
- * ("N photos & videos from M guests"). ★ M is THE ONE COUNT (guest by upload, Will 2026-09-22:
- * "Uploaded 1 photo? You're a guest."), `getEventGuests` in queries/social.ts, the same function the
+ * ("N photos & videos from M guests"). ★ M is THE ONE COUNT (a guest is anyone who uploaded, even
+ * one photo), `getEventGuests` in queries/social.ts, the same function the
  * host's hub reads, so the album and the hub can never say two numbers for one party: a confirmed
  * guest once per person, a named unconfirmed one once per row, never the host and never a nameless
- * row. The host is no longer "one of the guests" here, which the old per-row count made them.
- * NUMBERS ONLY ever leave this function (no identities).
+ * row. NUMBERS ONLY ever leave this function (no identities).
  *
  * The total is `countApprovedMedia`, a HEAD count, so an album past PostgREST's row cap still says
  * its real size.
  *
  * Visibility posture: open events are public; a LOCKED password event still gets counts — that's
- * the ratified entry tease ("N photos are waiting" over the ghosted river; cardinality only, zero
+ * the entry tease ("N photos are waiting" over the ghosted river; cardinality only, zero
  * media URLs pre-unlock). Private never reaches here (the page early-returns), but returns zeros
  * defensively.
  */
@@ -218,14 +217,13 @@ function countsVisible(event: Pick<GuestEvent, "visibility">): boolean {
  * The host's avatar URL + seeded colour for an event's "Hosted by" byline, or null if the event has
  * no host. Server-only admin read (the guest page has no JWT): resolve events.host_id once, then the
  * host's profiles.avatar_updated_at (→ getAvatarUrl; a null marker → no photo) alongside `seedFor`
- * (→ the Avatar the byline now folds onto, the sixth batch, `seed=account`:
- * demo-wiring, "never the raw host id on the client"). The anon get_event_by_qr_token RPC stays
- * UNCHANGED (no contract change): host_id is never returned as a separate field, and never reaches
- * the browser itself — it appears only inside the avatar's stable public Storage URL PATH
- * (avatars/<host_id>/avatar.webp, a non-PII UUID embedded in a URL like any object id) and hashed,
- * one-way, inside `seed`. Callers gate the byline itself on a set host name (it hides without one),
- * but the seed/avatar pair is resolved whenever a host exists, matching `the-crowd=full`: an unnamed
- * event never shows the byline, but a NAMED one always gets its host's colour, photo or not.
+ * (→ the byline's Avatar, its colour seeded per account without the raw host id ever reaching the
+ * client). The anon get_event_by_qr_token RPC never returns host_id as a separate field, and it
+ * never reaches the browser itself — it appears only inside the avatar's stable public Storage URL
+ * PATH (avatars/<host_id>/avatar.webp, a non-PII UUID embedded in a URL like any object id) and
+ * hashed, one-way, inside `seed`. Callers gate the byline itself on a set host name (it hides
+ * without one), but the seed/avatar pair is resolved whenever a host exists: an unnamed event never
+ * shows the byline, but a NAMED one always gets its host's colour, photo or not.
  */
 export async function getHostAvatarSeed(
   eventId: string,
@@ -252,7 +250,7 @@ export async function getHostAvatarSeed(
 }
 
 /**
- * Per-media uploader identity for an event, keyed by media id (Phase 2 attribution). A server-only
+ * Per-media uploader identity for an event, keyed by media id, for attribution. A server-only
  * ADMIN read because `profiles` is own-row-RLS (`profiles_select_own`) -> a host's normal client
  * can't read guests' names; the admin client is REQUIRED (mirrors getHostAvatarSeed). Returns the
  * full identity INCLUDING email; the GUEST call sites must copy only name/isHost/isVerified onto the
@@ -294,9 +292,9 @@ export async function getUploaderIdentities(
       let page = admin
         .from("media")
         .select(
-          // The identity reshape (20260921150000): display_name + verified_at are what the one
-          // precedence rule reads. They are NOT granted to `authenticated` (guests SELECT is
-          // column-scoped, QA #41), which is exactly why this read is on the admin client.
+          // display_name + verified_at (migration 20260921150000) are what the one precedence rule
+          // reads. They are NOT granted to `authenticated` (guests SELECT is column-scoped), which
+          // is exactly why this read is on the admin client.
           "id, guest_id, guests!media_guest_id_fkey(user_id, email, display_name, verified_at, profiles!guests_user_id_fkey(display_name))",
         )
         .eq("event_id", eventId)
@@ -319,10 +317,10 @@ export async function getUploaderIdentities(
 }
 
 /**
- * THE TWO SERVER-ONLY FACTS BEHIND THE LIVE REEL (reel-guest-wiring, 2026-09-24): the platform lever
- * (`ops_flags.live_reel_enabled`) and the host's plan (which decides what the cut creator may do,
- * `cutFactsForTier`). Both are deny-all or host-private, so the admin client reads them; only the
- * derived booleans and one number ever reach a guest (`gallery-reel.ts`).
+ * THE TWO SERVER-ONLY FACTS BEHIND THE LIVE REEL: the platform lever (`ops_flags.live_reel_enabled`)
+ * and the host's plan (which decides what the cut creator may do, `cutFactsForTier`). Both are
+ * deny-all or host-private, so the admin client reads them; only the derived booleans and one
+ * number ever reach a guest (`gallery-reel.ts`).
  *
  * ★ CACHED FOR HALF A MINUTE, PER EVENT, PER PROCESS. The gallery poll asks on every call (the facts
  * ride the ETag, so a host's upgrade or an operator's lever reaches an open album on the next poll),
@@ -418,8 +416,8 @@ export function resetLiveReelServerFactsCache(): void {
 }
 
 /**
- * ONE PHOTOGRAPH, FOR ITS OWN LINK CARD (reel-guest-wiring, 2026-09-24): `/e/<token>?photo=<id>`
- * pasted into a chat unfurls as that photograph, on an album anyone with the link may open whole.
+ * ONE PHOTOGRAPH, FOR ITS OWN LINK CARD: `/e/<token>?photo=<id>` pasted into a chat unfurls as that
+ * photograph, on an album anyone with the link may open whole.
  *
  * SELF-GUARDED like every read here: an OPEN event only (a password or private event's media never
  * leaves through a card), and the row must be APPROVED and belong to THIS event, so an unknown,

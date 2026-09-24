@@ -1,19 +1,17 @@
-// @contract-for: src/components/guest/upload/failure-sheet.tsx
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { UploadFailureSheet } from "@/components/guest/upload/failure-sheet";
 
 /**
- * WHAT A GUEST READS WHEN SOMETHING WILL NOT GO (Will, `failed=sheet`,
- * 2026-09-21: "Don't want users to have to check the cards of their uploads to
- * ensure everything made it, very easy to miss. An upload failure should be
- * bubbled up clearly.").
+ * WHAT A GUEST READS WHEN SOMETHING WILL NOT GO. A guest should never have to
+ * check their upload cards to learn whether everything made it (a failure there
+ * is easy to miss), so a failure is brought up clearly, in one place.
  *
  * FUNCTION ONLY, and the function is: every refused file is NAMED, its reason is
  * the SERVER's own sentence rather than a house paraphrase, and every one of
  * them is one tap from going again. The words in the header and the order of the
- * buttons are Will's. WHEN the sheet opens (the end of a run, once) belongs to
+ * buttons are not pinned. WHEN the sheet opens (the end of a run, once) belongs to
  * the engine and is pinned in `guest-upload.test.tsx`.
  */
 const failure = (name: string, error?: string) => ({

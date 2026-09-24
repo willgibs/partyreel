@@ -1,5 +1,5 @@
 /**
- * The complete seam's key/kind/ext consistency check (QA #6) — pure, so it unit-tests without the
+ * The key/kind/ext binding, the complete seam's consistency check — pure, so it unit-tests without the
  * `server-only` pipeline (the gallery-access.ts / gallery-access.server.ts split).
  *
  * ★ THE KEY IS THE ISSUANCE RECORD. Presign minted both keys server-side as

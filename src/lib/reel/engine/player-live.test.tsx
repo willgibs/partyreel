@@ -1,11 +1,5 @@
 /**
- * THE LIVE PLAYER's contract, and it is one sentence: the clock only ever goes forward.
- *
- * ★ NO `@contract-for:` LINE YET, DELIBERATELY. The marker would put player-live.tsx in the
- * Library's index, which then owes it a `for` line in `rules/component-notes.ts` — and this lane
- * wires no production surface, so the Library would be advertising a component nothing mounts. The
- * wiring lane that gives the live reel its first surface adds both in one change; until then the
- * assertions below bind exactly as hard, they are just not advertised.
+ * THE LIVE PLAYER'S ONE PROMISE: the clock only ever goes forward.
  *
  * Everything the live reel does to itself while it plays — a viewer switching looks, an upload
  * splicing in, a host hiding the photograph on screen, a window handing over — is a moment where the
@@ -293,11 +287,11 @@ describe("LiveReelPlayer", () => {
   });
 
   it("★ an arrival lands in the window ON SCREEN, even arriving mid-transition", async () => {
-    // The case that shipped an eleven-second splice in the first soak: a rewindow has to wait for
-    // the transition to finish, and while it waits the PREFETCH must not eat the queue — planning
-    // the next window is what consumes it. The property is sharper than a stopwatch: the arrival
-    // belongs to the window already on screen, never to the one after it. A wide window (eight
-    // clips) is what makes the difference visible.
+    // The hard case: a rewindow has to wait for the transition to finish, and while it waits the
+    // PREFETCH must not eat the queue — planning the next window is what consumes it, and an eaten
+    // arrival lands a whole window (about eleven seconds) late. The property is sharper than a
+    // stopwatch: the arrival belongs to the window already on screen, never to the one after it. A
+    // wide window (eight clips) is what makes the difference visible.
     const source = createClipSource({
       eventId: "e1",
       items: album(60),
@@ -363,13 +357,13 @@ describe("LiveReelPlayer", () => {
   });
 
   it("★ a handover keeps the SAME clip at the SAME frame (the seam is invisible)", async () => {
-    // The player used to resume the incoming window at ITS OWN handoverOffset (the entering gap of
-    // a clip one window further on) instead of the leaving window's: every handover moved the
-    // shared clip by the difference between two transition lengths. Read the clip-local frame off
-    // the window the player reports, tick by tick, and it must run on through every swap. Six clips
-    // in windows of six is the small album, where every handover is also a loop boundary.
-    // Moods whose palettes mix transition LENGTHS (a fade beside a cut or a slide): with one length
-    // the old bug was invisible, since both offsets were the same number.
+    // Resuming the incoming window at ITS OWN handoverOffset (the entering gap of a clip one window
+    // further on) instead of the leaving window's would move the shared clip, at every handover, by
+    // the difference between two transition lengths. Read the clip-local frame off the window the
+    // player reports, tick by tick, and it must run on through every swap. Six clips in windows of
+    // six is the small album, where every handover is also a loop boundary. Moods whose palettes
+    // mix transition LENGTHS (a fade beside a cut or a slide): with one length that fault would be
+    // invisible, since both offsets would be the same number.
     for (const [styleId, n] of [
       ["classic", 2],
       ["warm", 2],

@@ -1,13 +1,12 @@
 "use client";
 
 /**
- * THE BEAT BETWEEN THE PICKER AND THE ALBUM (Will, `warning=both`, 2026-09-21,
- * verbatim: "It may be helpful to preview the photos before upload, just to
- * allow guests to catch an accidental selection").
+ * THE BEAT BETWEEN THE PICKER AND THE ALBUM: a guest previews the photos before
+ * they upload, to catch an accidental selection.
  *
  * A guest clearing the night off a camera roll picks twelve and two of them are
- * a screenshot and the inside of a pocket. Before this step those went to the
- * host's album and stayed there — the only way back was to find them again in a
+ * a screenshot and the inside of a pocket. Without this step those go to the
+ * host's album and stay there — the only way back is to find them again in a
  * grid of sixty and use Remove, which an anonymous guest can only do from the
  * device that sent them. One screen, one tap per mistake, and nothing has been
  * sent yet.
@@ -88,8 +87,8 @@ export function ReviewStep({
         >
           Send {formatCount(picks.length)}
         </Button>
-        {/* The facts, under the button that acts on them (`warning=both`), at
-            the reading rung like every other sentence this act says. */}
+        {/* The facts, under the button that acts on them, at the reading rung
+            like every other sentence this act says. */}
         <p
           data-upload-terms
           className="text-center text-reading text-muted-foreground"

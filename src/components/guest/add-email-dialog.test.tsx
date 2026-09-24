@@ -1,6 +1,5 @@
-// @contract-for: src/components/guest/add-email-dialog.tsx
 /**
- * THE SECOND CHANCE AT THE OPTIONAL ADDRESS (Will, 2026-09-22).
+ * THE SECOND CHANCE AT THE OPTIONAL ADDRESS.
  *
  * Four functions, none of them a look:
  *   1. IT SENDS THE ADDRESS AND THE TOKEN IN THE BODY, never a URL, over the

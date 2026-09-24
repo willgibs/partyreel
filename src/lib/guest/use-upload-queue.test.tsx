@@ -1,14 +1,14 @@
 /**
- * THE QUEUE'S RECOVERY FROM SOMEBODY ELSE'S TICKET (the upload-owner lane, 2026-09-23).
+ * THE QUEUE'S RECOVERY FROM SOMEBODY ELSE'S TICKET.
  *
- * The routes now refuse a ticket whose row belongs to an account the viewer is not
- * (`session_other_account`). These pin what the queue does about it, which is the half of the fix a
- * guest actually lives through: the ticket goes down (token, name, cookie), the viewer joins again
+ * The routes refuse a ticket whose row belongs to an account the viewer is not
+ * (`session_other_account`). These pin what the queue does about it, which is the half of that rule
+ * a guest actually lives through: the ticket goes down (token, name, cookie), the viewer joins again
  * as whoever the server says they are, and the SAME file goes up on the new ticket, so no photograph
  * is lost and none is credited to the ticket's owner. A confirmed account never notices; anyone else
  * is handed to the door while the files wait, never failed.
  *
- * The engine's older pins live in guest-upload.test.tsx (its contract file); these run the hook on
+ * The engine's other pins live in guest-upload.test.tsx (its test file); these run the hook on
  * its own, because what they pin is the queue's side of a server rule rather than a sheet.
  */
 import { act, renderHook, waitFor } from "@testing-library/react";
@@ -273,8 +273,8 @@ describe("a join nobody at the door could fix", () => {
 
 describe("the ticket is read per file, never once per run", () => {
   it("★ the verified re-join after a mid-run flip sends the refused file on the NEW ticket", async () => {
-    // Before this lane the run captured its ticket once, so this re-join re-sent the file on the
-    // SPENT ticket and failed the very run it was written to save.
+    // A run that captured its ticket once would re-send this file on the SPENT ticket and fail
+    // the very run the re-join exists to save.
     answer({
       "/api/guests": [
         { ok: true, body: { ok: true, session_token: "verified-token" } },

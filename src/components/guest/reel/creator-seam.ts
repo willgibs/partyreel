@@ -1,7 +1,7 @@
 /**
- * THE CUT CREATOR'S SEAM (reel-guest-wiring, 2026-09-24).
+ * THE CUT CREATOR'S SEAM.
  *
- * A cut, which Will calls "your own clip", is made on the viewer's device by the creator the cut
+ * A cut ("your own clip" to a viewer) is made on the viewer's device by the creator the cut
  * lane builds (`src/components/reel/`). This lane leaves the one place it plugs in, and a promise:
  * no build shows a dead end. The tile's description ("Make your own clip to share") and the view's
  * "Make your own" render ONLY when a creator is registered here AND the host's plan could be read

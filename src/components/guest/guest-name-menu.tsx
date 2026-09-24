@@ -20,40 +20,39 @@ import { markPendingOffer } from "@/lib/guest/album-return";
 import { requestNameDoor } from "@/lib/guest/name-door";
 
 /**
- * THE HEADER'S THIRD STATE (the identity reshape, 2026-09-21).
+ * THE HEADER'S THIRD STATE.
  *
- * The guest header knew two people: a stranger ("Start for free") and a
- * signed-in visitor (their account menu). The reshape made a third real, and
- * they are the commonest person at a name-only party: somebody who typed a name,
- * added photographs, and is now SOMEBODY on this album without holding an
- * account. Leaving them on the stranger's CTA meant the one surface that says
- * who you are said nothing about who they had just become, and gave them no way
- * to change a name they had mistyped in a dark room.
+ * The guest header knows three people: a stranger ("Start for free"), a
+ * signed-in visitor (their account menu), and the commonest person at a
+ * name-only party: somebody who typed a name, added photographs, and is now
+ * SOMEBODY on this album without holding an account. Left on the stranger's
+ * CTA, the one surface that says who you are would say nothing about who they
+ * had just become, and give them no way to change a name they had mistyped in a
+ * dark room.
  *
  * ★ FOUR ROWS, AND EACH IS A DIFFERENT PERSON'S NEXT MOVE. The label says the
  * name and marks it unconfirmed (the same words the mark uses, read from it, so
  * the two cannot drift). The email row is the capture door (`ConfirmEmailDialog`,
  * the `keep` wear), the same act the offer card under the album offers, with the
- * same result: the uploads claimed, and the event with them (guest by upload,
- * 2026-09-22: no save step any more). "Change name" reopens the
- * door in edit mode through `lib/guest/name-door.ts`, because this header is a
- * SIBLING island of the page that owns the modal. "Sign in" is the `signin`
- * wear, for the one person the others do not fit: somebody who already has an
- * account and wants tonight's photographs in it.
+ * same result: the uploads claimed, and the event with them, with no save step.
+ * "Change name" reopens the door in edit mode through `lib/guest/name-door.ts`,
+ * because this header is a SIBLING island of the page that owns the modal.
+ * "Sign in" is the `signin` wear, for the one person the others do not fit:
+ * somebody who already has an account and wants tonight's photographs in it.
  *
- * ★ THIS IS THE ONE SURFACE THAT KNOWS ABOUT THE UNCONFIRMED ADDRESS (Will,
- * 2026-09-22: publicly every unconfirmed guest is handled the same, so the mark
- * says "Unverified" whether or not an address was typed; "only the guest's own
- * menu says 'Email not confirmed'"). It reads the DEVICE FLAG, never an address
- * — nothing stores one — so the two states it draws are:
+ * ★ THIS IS THE ONE SURFACE THAT KNOWS ABOUT THE UNCONFIRMED ADDRESS. Publicly
+ * every unconfirmed guest is handled the same, so the mark says "Unverified"
+ * whether or not an address was typed, and only the guest's own menu says
+ * "Email not confirmed". It reads the DEVICE FLAG, never an address — nothing
+ * stores one — so the two states it draws are:
  *   name only        → "Unverified" under the name, and "Add your email"
  *                      (`add-email-dialog.tsx`), the second chance at the
  *                      door's optional field once the album has made its case.
  *   email attached   → "Email not confirmed" under the name, and "Confirm your
  *                      email" straight into the code door — which opens EMPTY,
  *                      because the address was never kept, and says so.
- * There is no "Remove your email" row this round: the detach exists on the RPC
- * for the dashboard's "Not mine", and the shape of a removal here is the lab's.
+ * There is no "Remove your email" row: the detach exists on the RPC for the
+ * dashboard's "Not mine", and the shape of a removal here is a lab question.
  *
  * ★ NO SIGN-OUT ROW, on purpose. There is no session to end: the capability is
  * a token in this browser's storage and the name beside it. Clearing them would

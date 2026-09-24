@@ -1,34 +1,32 @@
 "use client";
 
 /**
- * THE REEL'S FULL-SCREEN VIEW, WHICH IS ALSO THE WALL (reel-guest-wiring, 2026-09-24).
+ * THE REEL'S FULL-SCREEN VIEW, WHICH IS ALSO THE WALL.
  *
- * Will's `reel-view` picks as he amended them, and his ruling "The view is the wall": one view serves
- * a phone, a laptop and an event screen. What it is, top to bottom:
+ * The view is the wall: one view serves a phone, a laptop and an event screen. What it is, top to
+ * bottom:
  *
- * - THE PICTURE, full-bleed (`posture=follow`): the live composer over the album's own live payload,
- *   in the viewport's own orientation, covering it. A tap opens the photograph in the shared media
- *   viewer (`tap=lightbox`), pausing the reel behind it.
- * - THE CHROME (`chrome=thin`): at rest, one slim glass bar at the foot, play and progress, "to give
- *   users something to reach for when controls are hidden". A pointer's movement (or, on touch, a tap
+ * - THE PICTURE, full-bleed: the live composer over the album's own live payload, in the viewport's
+ *   own orientation, covering it. A tap opens the photograph in the shared media viewer, pausing
+ *   the reel behind it.
+ * - THE CHROME: at rest, one slim glass bar at the foot, play and progress, so a viewer always has
+ *   something to reach for while the controls are hidden. A pointer's movement (or, on touch, a tap
  *   on the bar itself) grows it into the full dock; a resting pointer lets it settle back. Close shows
  *   and hides with it, and every control carries a tooltip.
- * - THE DOCK (`controls=weighted`, amended): one row of icon buttons (play/pause, Include videos,
- *   Style, Hold, Show the code, Add yours), and beneath it "Make your own" as the single primary,
- *   only once a creator is registered.
- * - THE ARRIVALS (`arrival=chip`): a fresh upload names its uploader top left for one hold, a burst
- *   stacking into a short feed ("Theo +12").
- * - THE CODE (`qr=corner`, `name=none`): a white plate bottom right, "Scan to add yours" and the
- *   readable address. No event name on screen, ever.
+ * - THE DOCK: one row of icon buttons (play/pause, Include videos, Style, Hold, Show the code, Add
+ *   yours), and beneath it "Make your own" as the single primary, only once a creator is registered.
+ * - THE ARRIVALS: a fresh upload names its uploader top left for one hold, a burst stacking into a
+ *   short feed ("Theo +12").
+ * - THE CODE: a white plate bottom right, "Scan to add yours" and the readable address. No event
+ *   name on screen, ever.
  * - ON A SCREEN (`?reel=screen`): the code on, and a one-tap Start plate (the first frame behind a
  *   dimmed play mark) that takes fullscreen and keeps the screen awake. Leaving fullscreen brings the
  *   plate back rather than a half-dressed view. Below the minimum it is the code and the address
- *   alone (reel-screen's `code`).
+ *   alone.
  *
- * The hold (3 s by default, `pacing=unhurried`), the style and the video switch are the viewer's
- * own, kept on this device (lib/guest/reel-prefs.ts). The loop never announces its seam
- * (`loop=continues`). Reduced motion starts paused with the dock up (`reduced=paused`); a host's
- * explicit Start on a screen overrides it.
+ * The hold (3 s by default), the style and the video switch are the viewer's own, kept on this
+ * device (lib/guest/reel-prefs.ts). The loop never announces its seam. Reduced motion starts paused
+ * with the dock up; a host's explicit Start on a screen overrides it.
  *
  * LAZY (live-reel.tsx): this module reaches the whole canvas engine, and nobody who never opens the
  * view downloads it.
@@ -185,8 +183,8 @@ export function LiveReelView({
   );
 
   /* ── play state ──────────────────────────────────────────────────────────── */
-  // Reduced motion starts on the first frame with the dock up (`reduced=paused`); a screen starts
-  // behind its Start plate either way.
+  // Reduced motion starts on the first frame with the dock up; a screen starts behind its Start
+  // plate either way.
   const [paused, setPaused] = useState(
     () =>
       screen ||
@@ -214,8 +212,8 @@ export function LiveReelView({
   } | null>(null);
   const [creatorOpen, setCreatorOpen] = useState(false);
   // Never settles BY ITSELF while it is being used, while the reel is paused (a paused reel shows
-  // its controls), or under reduced motion ("a control that vanishes unasked is exactly the motion
-  // the setting exists to remove"). The viewer can still fold it away on purpose (the timeline).
+  // its controls), or under reduced motion (a control that vanishes unasked is exactly the motion
+  // the setting exists to remove). The viewer can still fold it away on purpose (the timeline).
   const pinned = paused || menuOpen || dockFocus || reduced;
   const chromeRef = useRef(chrome);
   const pinnedRef = useRef(pinned);
@@ -266,7 +264,7 @@ export function LiveReelView({
       onScreenRef.current = item;
       if (!item) return;
       // The timeline is the LOOP: how much of the album this take has shown. A new loop starts it
-      // over, silently (`loop=continues`: nothing marks the seam).
+      // over, silently (nothing marks the seam).
       const takeLength = Math.max(1, source.stats().takeLength);
       loopRef.current.seen = Math.min(takeLength, loopRef.current.seen + 1);
       setProgress(loopRef.current.seen / takeLength);
@@ -486,11 +484,11 @@ export function LiveReelView({
             </div>
           )}
 
-          {/* ON A SCREEN, BELOW THE MINIMUM: the code and the address alone (reel-screen `code`). The
-              host's one tap still matters here (a wall set up before anyone arrives needs the
-              fullscreen and the wake lock most), so its Start sits BELOW the address instead of the
-              plate's scrim and play mark over the code, which would dim the one thing on the wall a
-              guest has to scan. */}
+          {/* ON A SCREEN, BELOW THE MINIMUM: the code and the address alone. The host's one tap
+              still matters here (a wall set up before anyone arrives needs the fullscreen and the
+              wake lock most), so its Start sits BELOW the address instead of the plate's scrim and
+              play mark over the code, which would dim the one thing on the wall a guest has to
+              scan. */}
           {idle && (
             <IdleCode
               joinUrl={joinUrl}
@@ -529,7 +527,7 @@ export function LiveReelView({
             </div>
           )}
 
-          {/* THE CODE, bottom right (`qr=corner`): lifted above the dock when the dock is up. */}
+          {/* THE CODE, bottom right: lifted above the dock when the dock is up. */}
           {showCode && !idle && !plateUp && (
             <div
               className="pointer-events-none absolute right-3 z-20 transition-transform duration-200 ease-emphasis motion-reduce:transition-none sm:right-5"
@@ -599,7 +597,7 @@ export function LiveReelView({
             />
           )}
 
-          {/* ON A SCREEN: the one-tap Start (reel-screen `frame`): the reel behind a dimmed play mark. */}
+          {/* ON A SCREEN: the one-tap Start, the reel behind a dimmed play mark. */}
           {plateUp && !idle && (
             <StartPlate
               onStart={() => void start()}
@@ -689,8 +687,8 @@ function subscribeOrientation(onChange: () => void) {
   return () => mq.removeEventListener("change", onChange);
 }
 
-/** The composition follows the viewport (`posture=follow`): portrait on a phone, landscape at a
- *  laptop or a television. */
+/** The composition follows the viewport: portrait on a phone, landscape at a laptop or a
+ *  television. */
 function useViewportOrientation(): "portrait" | "landscape" {
   return useSyncExternalStore(
     subscribeOrientation,
@@ -869,8 +867,8 @@ function ArrivalFeed({ rows, screen }: { rows: ArrivalRow[]; screen: boolean }) 
 
 /* ── the code ──────────────────────────────────────────────────────────────── */
 
-/** INK: type over a photograph carries its own light (reel-screen's parts, the glass ruling's
- *  answer: a dark halo is invisible over a dark frame and the whole difference over a bright one). */
+/** INK: type over a photograph carries its own light (a dark halo is invisible over a dark frame
+ *  and the whole difference over a bright one). */
 const INK =
   "[text-shadow:0_1px_2px_rgb(0_0_0/0.55),0_2px_24px_rgb(0_0_0/0.45)]";
 
@@ -919,7 +917,7 @@ function CornerCode({
           className={cn(
             "font-heading font-semibold text-white",
             // A wall is read across a room: the page step there, a card title in the hand. (The
-            // section step broke "Scan to add yours" over two lines at a laptop's width.)
+            // section step would break "Scan to add yours" over two lines at a laptop's width.)
             screen ? "text-page" : "text-card-title",
             INK,
           )}

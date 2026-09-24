@@ -1,18 +1,18 @@
 "use client";
 
 /**
- * The LIVE gallery half of the guest page (Phase 3 streaming split): the album's own VIEW. The live
+ * The LIVE gallery half of the guest page (the streaming split): the album's own VIEW. The live
  * STATE it draws (the server item list and its conditional-poll ETag, the optimistic upload tiles,
  * the doorbell/poll refresh machine, this device's own ids) lives one level up, in
- * `GalleryLiveProvider` (gallery-live.tsx), since the reel reads the same list (reel-guest-wiring,
- * 2026-09-24: "one live source for album and reel"). What stays here is what only the album draws:
- * the two arrival marks, the pending tiles at its head, the likes context, the View menu and the
- * Yours filter, the delete consequence, and the teaser CTA.
+ * `GalleryLiveProvider` (gallery-live.tsx), since the reel reads the same list: one live source for
+ * album and reel. What stays here is what only the album draws: the two arrival marks, the pending
+ * tiles at its head, the likes context, the View menu and the Yours filter, the delete
+ * consequence, and the teaser CTA.
  *
  * Mounted under the page's provider (which carries key={access}, so an access flip re-seeds both
- * the album and the reel from the fresh promise). Standalone, with no provider above it (the
- * contract file, a Library specimen), it wraps itself in one built from its own props, so
- * `galleryPromise` and the handle `ref` still work exactly as they did.
+ * the album and the reel from the fresh promise). Standalone, with no provider above it (its test
+ * file), it wraps itself in one built from its own props, so `galleryPromise` and the handle `ref`
+ * work the same either way.
  */
 import { useMemo, useState } from "react";
 import type { CSSProperties, Ref } from "react";
@@ -57,19 +57,18 @@ import {
 import { useTileSize } from "@/lib/shared/use-tile-size";
 import { useMediaQuery } from "@/lib/use-media-query";
 
-// The payload, the header's arithmetic and the handle moved to the provider with the state they
+// The payload, the header's arithmetic and the handle live in the provider with the state they
 // describe; named again here so every importer of this module keeps its one import.
 export { albumCount } from "@/components/guest/gallery-live";
 export type GalleryPayload = LiveGalleryPayload;
 export type LiveGalleryHandle = LiveGalleryHandleType;
 
 /**
- * THE GUEST ALBUM'S VIEW MENU (`controls-home=view-menu`; `theirs=mark`'s own
- * note, Will 2026-09-20: "We could likely combine this new filter with the
- * tile size filter to create a new parent dropdown, rather than just adding
- * more and more configs here"). The host gallery passes tile size, sort and
- * filter (`event-gallery.tsx`); the guest album passes tile size and Yours —
- * `ViewMenu` itself already anticipated the shape (its own head comment).
+ * THE GUEST ALBUM'S ONE VIEW MENU: the Yours filter joins the tile size in one
+ * parent dropdown rather than adding more and more configs beside it. The host
+ * gallery passes tile size, sort and filter (`event-gallery.tsx`); the guest
+ * album passes tile size and Yours — `ViewMenu` itself already anticipated the
+ * shape (its own head comment).
  *
  * Pure, and exported, so the two gates (disabled below 640, present only with
  * something of the guest's own on the album) are unit-testable without
@@ -152,7 +151,8 @@ type LiveGalleryProps = {
   /**
    * What this DEVICE has sent that is not in the album yet: everything still in
    * flight, plus anything a hold-for-approval event is keeping back (the shell
-   * passes both; `failed=sheet` means a refused file is not among them).
+   * passes both; a refused file is not among them, because the failure sheet
+   * lists it).
    */
   pendingUploads?: QueueItem[];
   /** Present only when the viewer can upload — the empty-state CTA opens the ADD
@@ -175,9 +175,9 @@ type LiveGalleryProps = {
   /** The header's fallback total (see the provider's own note). */
   approvedTotal?: number;
   /**
-   * A Require-an-upload-to-view album with uploads open (guest by upload, Will 2026-09-22, "Own
-   * deletes close it"): a guest's own removal no longer opens the door, so removing their LAST
-   * upload closes the album until they add another. The lightbox's confirm says so first.
+   * A Require-an-upload-to-view album with uploads open: a guest's own removal no longer opens the
+   * door, so removing their LAST upload closes the album until they add another. The lightbox's
+   * confirm says so first.
    */
   closesOnLastRemoval?: boolean;
   /** The provider's (see gallery-live.tsx); passed through when standalone. */
@@ -189,9 +189,9 @@ type LiveGalleryProps = {
 export function LiveGallery({ ref, ...props }: LiveGalleryProps) {
   const live = useGalleryLive();
   if (live) return <LiveGalleryView live={live} {...props} />;
-  // STANDALONE (no provider above: the contract file, a Library specimen): the gallery brings its
-  // own, built from the same props it always took, so nothing that mounted it alone changes. The
-  // handle `ref` goes to the provider, which now owns what the handle does.
+  // STANDALONE (no provider above, as in its test file): the gallery brings its own, built from the
+  // same props, so a caller that mounts it alone needs nothing else. The handle `ref` goes to the
+  // provider, which owns what the handle does.
   return (
     <GalleryLiveProvider
       ref={ref}
@@ -278,17 +278,17 @@ function LiveGalleryView({
 
   /* ────────────────────────────────────────────────────────────────────────
      WHAT THIS DEVICE DRAWS AT THE ALBUM'S HEAD, and the three things it does
-     NOT (the `guest-upload` board, 2026-09-21).
+     NOT.
 
-     · A FAILURE draws nothing at all (`failed=sheet`): the run's end opens a
-       sheet listing every refusal with its own Retry, so a perfectly good
-       photograph is never labelled broken in somebody's album.
+     · A FAILURE draws nothing at all: the run's end opens a sheet listing
+       every refusal with its own Retry, so a perfectly good photograph is
+       never labelled broken in somebody's album.
      · AN APPROVED completion draws nothing either — it IS the album by then,
        through the optimistic prepend above.
-     · A HELD one draws a waiting tile (`held=tile`) until the host approves it,
-       which is the moment its media id turns up in the poll's own list. That is
-       the one comparison `QueueItem.mediaId` exists for; without it the waiting
-       tile would sit beside the real photograph it became.
+     · A HELD one draws a waiting tile until the host approves it, which is
+       the moment its media id turns up in the poll's own list. That is the one
+       comparison `QueueItem.mediaId` exists for; without it the waiting tile
+       would sit beside the real photograph it became.
      ──────────────────────────────────────────────────────────────────────── */
   const pendingTiles: PendingTile[] = pendingUploads.flatMap((q) => {
     const url = pendingUrls.get(q.id);
@@ -316,17 +316,18 @@ function LiveGalleryView({
   // same one, so the header, the CTA and the door never read an album three ways.
   const rawCount = items.length;
 
-  // THE YOURS FILTER (`theirs=mark`). The intent is this tab's alone (a filter
-  // is a way of looking, not a setting — `gallery-controls-persistence=device`
-  // stores what a HOST chooses, and a guest's album has no such row), and
-  // `yoursView` refuses to keep it live once the guest owns nothing here.
+  // THE YOURS FILTER, which the mark on a guest's own tiles toggles. The intent
+  // is this tab's alone (a filter is a way of looking, not a setting — the
+  // per-device gallery-controls preference stores what a HOST chooses, and a
+  // guest's album has no such row), and `yoursView` refuses to keep it live
+  // once the guest owns nothing here.
   const [showMine, setShowMine] = useState(false);
   const yours = yoursView(items, ownIds, showMine);
 
-  // THE VIEW MENU (`controls-home=view-menu`). Server-resolved so the first
-  // paint is already the size a returning guest picked (never a client-only
-  // cookie read) — the persisted write rides the guest page's own Server
-  // Action, `setTileSizeAction` (the host's `setTileSizeAction` precedent).
+  // THE ONE VIEW MENU. Server-resolved so the first paint is already the size
+  // a returning guest picked (never a client-only cookie read) — the persisted
+  // write rides the guest page's own Server Action, `setTileSizeAction` (the
+  // host's `setTileSizeAction` precedent).
   const { size: tileSize, setTileSize } = useTileSize(
     initialTileSize ?? DEFAULT_TILE_SIZE,
     setTileSizeAction,
@@ -366,17 +367,17 @@ function LiveGalleryView({
         // Likes: anonymous guests get the like button -> the create-account flow;
         // signed-in guests toggle in place. Counts stay host-only.
         <LikesProvider mediaIds={items.map((m) => m.id)}>
-          {/* THE ALBUM'S OWN COUNT (Will, `reel-front` r1: the reel tile shows no number of moments,
-              "the album beneath can have a subtle total items number label"). It is the header's
+          {/* THE ALBUM'S OWN COUNT: the reel tile shows no number of moments, so the album beneath
+              carries a subtle label with its total number of items. It is the header's
               number, `count` (albumCount over the payload's approvedTotal), worded with the header's
               and the CTA's always-both-nouns rule, so the page never counts one album two ways; the
               demo shows it too (its tiles are the demo's album).
 
               Beside it, a subtle gallery-level "Download all" (the album doubles as the shareable copy)
-              and the ONE View menu (`controls-home=view-menu`; `theirs=mark`'s own note against a
-              spread of configs). Both hidden in demo mode (simulated tiles aren't real downloads; there
-              is no cookie to persist) + on a locked gallery. The download modal's summary re-derives
-              the real downloadable set server-side (a teaser downloads exactly its visible set). */}
+              and the ONE View menu (one menu rather than a spread of configs). Both hidden in demo
+              mode (simulated tiles aren't real downloads; there is no cookie to persist) + on a
+              locked gallery. The download modal's summary re-derives the real downloadable set
+              server-side (a teaser downloads exactly its visible set). */}
           {access !== "none" && items.length > 0 && (
             <div className="mb-3 flex flex-wrap items-center justify-between gap-1.5">
               <p className="px-0.5 text-working text-muted-foreground tabular-nums">
@@ -398,14 +399,13 @@ function LiveGalleryView({
               )}
             </div>
           )}
-          {/* THE YOURS LINE (`theirs=mark`, Will 2026-09-20). A LINE and not a
-              chip, on his own note against the option he did not take: "rather
-              than just adding more and more configs here". It appears only
-              while the filter is live, so an album a guest has added nothing to
-              carries no extra chrome at all, and it is the filter's only exit
-              besides tapping a mark again. Yours also joins tile size inside
-              the View menu above (`controls-home=view-menu`), and this line
-              stays as the state's own receipt. */}
+          {/* THE YOURS LINE, for the filter the mark on a guest's own tiles
+              toggles. A LINE and not a chip, so the album does not keep adding
+              more and more configs. It appears only while the filter is live, so
+              an album a guest has added nothing to carries no extra chrome at
+              all, and it is the filter's only exit besides tapping a mark again.
+              Yours also joins tile size inside the one View menu above, and this
+              line stays as the state's own receipt. */}
           {yours.on && (
             <div className="mb-3 flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">
@@ -465,15 +465,15 @@ function LiveGalleryView({
         // a teaser viewer's CTA below owns the account path instead.
         //
         // ★ IT KEEPS THE READING COLUMN while the album around it runs to the
-        // window (Will's `width=full`, 2026-09-19). The promise is a SQUARE
-        // river that takes its width from its box, so at 1512 the box it must
-        // not have is the album's: a 1472 px square of ghosted photographs is a
-        // page of nothing, four screens tall. An album with no photographs in
-        // it has nothing to spread, so the promise stays the width of the words
-        // it sits under and the window opens up only once there is something to
-        // put in it. Pulled out by the album's gutter and padded back in (the
-        // board's own trick), so this is the page's reading column to the pixel
-        // rather than 40 px wider than the words it sits under.
+        // window. The promise is a SQUARE river that takes its width from its
+        // box, so at 1512 the box it must not have is the album's: a 1472 px
+        // square of ghosted photographs is a page of nothing, four screens
+        // tall. An album with no photographs in it has nothing to spread, so the
+        // promise stays the width of the words it sits under and the window
+        // opens up only once there is something to put in it. Pulled out by the
+        // album's gutter and padded back in, so this is the page's reading
+        // column to the pixel rather than 40 px wider than the words it sits
+        // under.
         <div className="-mx-5 max-w-2xl px-5">
           <GalleryEmptyState
             onAddFirst={access === "full" ? onAddFirst : undefined}
@@ -482,14 +482,13 @@ function LiveGalleryView({
       )}
       {access === "teaser" && (
         // The teaser boundary CTA: re-opens the entry modal to the account step
-        // (the soft paywall). ★ Its fallback line moved with the rest of the
-        // identity words (2026-09-21): an account is not what the host asked
-        // for, a confirmed email is, and that is what the door behind this
-        // button actually does. ★ ITS NUMBER AND NOUN NOW MATCH THE HEADER
-        // (POLISH 1, 2026-09-21): `count` is the same true total the header
-        // reads (his to overrule: counting videos together with the photos),
-        // worded with the header's own always-both-nouns rule rather than a
-        // new, unproven-for-this-album conditional one.
+        // (the soft paywall). ★ Its fallback line asks for a confirmed email,
+        // not an account: an account is not what the host asked for, a
+        // confirmed email is, and that is what the door behind this button
+        // actually does. ★ ITS NUMBER AND NOUN MATCH THE HEADER: `count` is the
+        // same true total the header reads (videos counted in with the photos),
+        // worded with the header's own always-both-nouns rule rather than a new,
+        // unproven-for-this-album conditional one.
         <div className="mt-5 flex justify-center">
           <Button onClick={onOpenGate} className="active:scale-[0.99]">
             {count > rawCount

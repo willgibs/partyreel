@@ -1,5 +1,5 @@
 /**
- * THE CLIP SOURCE — the live reel's view of an album that keeps changing (the live reel, 2026-09-22).
+ * THE CLIP SOURCE — the live reel's view of an album that keeps changing.
  *
  * One object holds everything the rolling composer needs and nothing it does not: the LATEST gallery
  * items by id, the loop's take, the windows planned so far, the arrivals waiting to be spliced in,
@@ -141,13 +141,13 @@ export type ClipSourceOptions = {
 /**
  * One planned stretch of the chain.
  *
- * ★ TWO NUMBERS THAT USED TO BE ONE (the small-album seam, 2026-09-24). `pos` is where the slot
- * starts in its loop's ORDER (what `loopIds` is sliced by); `startIndex` is its first clip's session
- * ORDINAL (what the motion is seeded by, take.ts's `motionSeed`). They were one index, re-zeroed at
- * every loop boundary, so the clip a boundary carries was re-planned from a new stream: its pan and
- * zoom jumped (~5%) mid-hold, at every handover for an album of six or fewer. The ordinal now only
- * ever grows, and the position is found by the carried clip's id (a drop shifts `loopIds` under a
- * stored position; an id cannot be shifted).
+ * ★ TWO NUMBERS, NEVER ONE (the small-album seam). `pos` is where the slot starts in its loop's
+ * ORDER (what `loopIds` is sliced by); `startIndex` is its first clip's session ORDINAL (what the
+ * motion is seeded by, take.ts's `motionSeed`). As one index, re-zeroed at every loop boundary, the
+ * clip a boundary carries would be re-planned from a new stream: its pan and zoom would jump (~5%)
+ * mid-hold, at every handover for an album of six or fewer. The ordinal only ever grows, and the
+ * position is found by the carried clip's id (a drop shifts `loopIds` under a stored position; an id
+ * cannot be shifted).
  */
 type Slot = {
   index: number;
@@ -287,9 +287,8 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
    * `lastBuilt` pointing at a slot that has been released is a DEADLOCK: every request at or below
    * its index answers null, nothing can ever be built again, and the player runs to the end of its
    * window and holds one photograph for ever. It is exactly what a prefetched window being thrown
-   * away (a splice, a look change) does, and it is what stalled two soaks — once at 51 seconds and
-   * once at 24 — before anyone could see the cause. So every deletion re-points the chain at the
-   * highest slot that is still there.
+   * away (a splice, a look change) does. So every deletion re-points the chain at the highest slot
+   * that is still there.
    */
   function dropChainTo(index: number) {
     if (!lastBuilt || lastBuilt.index !== index) return;
@@ -557,8 +556,8 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
       if (ids.length < 2) {
         // ★ FROM WHAT COMES NEXT, NEVER FROM THE LOOP'S HEAD. The departing clip has already left
         // `loopIds`, so "next" is whatever follows the last clip of this window still in the order
-        // (the clip before the departing one, usually). Topping up from the head replayed the
-        // loop's opening photographs and handed the next window a clip the cutaway never showed.
+        // (the clip before the departing one, usually). Topping up from the head would replay the
+        // loop's opening photographs and hand the next window a clip the cutaway never showed.
         const anchor = [...from.ids.slice(0, Math.max(0, at))]
           .reverse()
           .find((id) => loopIds.includes(id));
@@ -582,7 +581,7 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
       });
       if (!cut) return null;
 
-      // ★ THE CUTAWAY IS THE CHAIN NOW, as a rewindow is. The next window must open on the clip
+      // ★ THE CUTAWAY BECOMES THE CHAIN, as a rewindow does. The next window must open on the clip
       // this one hands over on (its last), or the handover lands on a different photograph mid-
       // hold. So the slot at this index becomes the cutaway's own order, and everything planned
       // after it (from the order before the drop) goes.

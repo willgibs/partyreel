@@ -1,8 +1,7 @@
 /**
- * THE VIEWER'S OWN REEL ON THEIR DEVICE: the Hold is absolute seconds on every mood (Will's
- * `pacing=unhurried`: "3 seconds the default, but this should be adjustable"), the style is per
- * event and the videos switch starts off only for a browser saving data, and storage that throws
- * never breaks the reel.
+ * THE VIEWER'S OWN REEL ON THEIR DEVICE: the Hold is absolute seconds on every mood (3 s by default,
+ * and the viewer's to adjust), the style is per event and the videos switch starts off only for a
+ * browser saving data, and storage that throws never breaks the reel.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -31,7 +30,7 @@ afterEach(() => {
 });
 
 describe("the Hold", () => {
-  it("offers both boards' steps with Will's 3 s default among them", () => {
+  it("offers both boards' steps with the 3 s default among them", () => {
     expect(HOLD_STEPS_SEC).toEqual([1, 1.5, 2.2, 3, 3.6, 5, 7]);
     expect(DEFAULT_HOLD_SEC).toBe(3);
     expect(holdLabel(3)).toBe("3 s");

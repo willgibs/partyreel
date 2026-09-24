@@ -1,7 +1,7 @@
 /**
- * THE REEL'S ARRIVAL FEED (Will's `arrival=chip`): one chip per person for one hold, a second
- * photograph from the same person counting on their chip ("Theo +2"), people stacking newest first,
- * and past the feed's depth the oldest folding into one line that counts ("+12 more").
+ * THE REEL'S ARRIVAL FEED: one chip per person for one hold, a second photograph from the same
+ * person counting on their chip ("Theo +2"), people stacking newest first, and past the feed's depth
+ * the oldest folding into one line that counts ("+12 more").
  */
 import { describe, expect, it } from "vitest";
 

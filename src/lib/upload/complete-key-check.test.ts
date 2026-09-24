@@ -1,7 +1,7 @@
 /**
- * QA #6 — the complete seam's key/kind/ext binding, tested through the pure checker (the
- * `server-only` pipeline calls it verbatim and maps any problem to a bad_key refusal). The keys
- * here are built with the real mediaObjectKey so the tests break if the layout ever drifts.
+ * The complete seam's key/kind/ext binding, tested through the pure checker (the `server-only`
+ * pipeline calls it verbatim and maps any problem to a bad_key refusal). The keys here are built
+ * with the real mediaObjectKey so the tests break if the layout ever drifts.
  */
 import { describe, expect, it } from "vitest";
 

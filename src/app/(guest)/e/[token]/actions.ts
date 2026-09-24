@@ -3,9 +3,9 @@
 /**
  * The guest event page's Server Functions.
  *
- * ONE until now: a SIGNED-IN guest removing a photograph they uploaded (Will,
- * `yours`, 2026-09-20 — "A guest can delete any photo they've personally
- * uploaded, ever"; final for the host too, his answer at approval).
+ * ONE: a SIGNED-IN guest removing a photograph they uploaded (a guest
+ * can delete any photo they personally uploaded, with no time limit, and the
+ * delete is final for the host too).
  *
  * The anonymous half of the same feature is `POST /api/guests/remove`, and the
  * split is not duplication: the two have different identities. Here the
@@ -26,7 +26,7 @@
  * poll (or the doorbell's ping) is the server agreeing. A `revalidatePath` on a
  * guest link would re-run the whole presign-heavy page for one removed tile.
  *
- * TWO, now: persisting the album's tile size (`controls-home=view-menu`), the
+ * TWO: persisting the album's tile size (set from the View menu), the
  * host's `setTileSizeAction` precedent (dashboard/[eventId]/actions.ts) on the
  * one shared cookie (`lib/shared/tile-size-cookie.ts`) so a guest and a host
  * picking "Large" both write the same name — the size itself is per-device,

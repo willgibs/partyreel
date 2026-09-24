@@ -1,9 +1,8 @@
-// @contract-for: src/components/guest/upload-step.tsx
 /**
- * THE DOOR'S THIRD STEP (Will, 2026-09-21, "the door as three steps"). What is pinned here is the
- * part of it that has no exit: a guest standing at this step cannot close the sheet, so every way
- * a run can end has to leave them somewhere they can act. The refusal ladder is the whole of that
- * decision, and it is pure, so it is pinned twice: once as the function, once as the surface.
+ * THE DOOR'S THIRD STEP. What is pinned here is the part of it that has no exit: a guest standing
+ * at this step cannot close the sheet, so every way a run can end has to leave them somewhere they
+ * can act. The refusal ladder is the whole of that decision, and it is pure, so it is pinned twice:
+ * once as the function, once as the surface.
  */
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
@@ -128,9 +127,9 @@ describe("the step's one sentence", () => {
     expect(lines.size).toBe(4);
   });
 
-  it("ON never names the host (Will, the door's first look)", () => {
-    // ★ Will, "the door's first look", 2026-09-21: "let's simply say 'The host has asked...'
-    // to account for long host names breaking good design." There is no hostName input at all.
+  it("ON never names the host", () => {
+    // ★ The line says "The host has asked..." so a long host name can never break the design.
+    // There is no hostName input at all.
     expect(uploadStepReason({ ...base, requireUpload: true })).toBe(
       "The host has asked everyone to add a photo before the album opens.",
     );

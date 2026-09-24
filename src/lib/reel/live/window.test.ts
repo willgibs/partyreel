@@ -186,7 +186,7 @@ describe("the handover", () => {
   it("a one-clip window hands over at once, resuming on the frame it is on", () => {
     // Its clip is the next window's clip 0 at the same ordinal (the source carries it), so the two
     // plans agree at every frame of its hold. Holding to the end and handing the next window frame
-    // 0 restarted the same photograph's move: at one clip the motion snapped back every hold.
+    // 0 would restart the same photograph's move: at one clip the motion would snap back every hold.
     const win = buildWindow({
       index: 0,
       loopIndex: 0,
@@ -272,7 +272,7 @@ describe("the cutaway (a drop is immediate)", () => {
   });
 });
 
-describe("fill in landscape (Will, 2026-09-24)", () => {
+describe("fill in landscape", () => {
   const landscape = (styleId: string): ReelLook => ({
     styleId,
     surface: "wall",

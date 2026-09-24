@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 export function FileDropzone({
   onFiles,
   disabled,
-  // Phase 2: when false (a free host's event), restrict the native picker to images
+  // When false (a free host's event), restrict the native picker to images
   // so the host can't even select a video. Guests always leave this true — they never
   // learn the host's tier, so a guest's video is rejected at presign instead (the
   // event-framed "photos only" message). Default true preserves the guest behavior.

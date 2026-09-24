@@ -1,7 +1,7 @@
 /**
- * THE WELCOME COMES FIRST (Will, 2026-09-24: "Doesn't everyone without a guest name (unverified
- * events) or confirmed email (verified events) get routed through the welcome flow? Then the
- * welcome flow approves the guest and drops them off on the event page").
+ * THE WELCOME COMES FIRST: everyone without a guest name (unverified events) or a confirmed email
+ * (verified events) is routed through the welcome, which approves the guest and then drops them
+ * off on the event page.
  *
  * The door's half of it: EntryModal tells the page whether this visitor still owes it
  * (`onPendingChange`), and the page holds anything an address asks for until they are through

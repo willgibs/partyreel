@@ -1,11 +1,10 @@
-// @contract-for: src/lib/guest/claim-uploads.ts
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * THE CLAIM SAYS WHERE IT CARRIED UPLOADS (guest by upload, 2026-09-22). On an album page the claim
- * is two calls, the album's own token first, so the album can tell its own uploads moving (the
- * follow moment) from other events' (the toast). What is pinned is that split, the silence the
- * album asks for, and that every caller's claim reaches whoever listens.
+ * THE CLAIM SAYS WHERE IT CARRIED UPLOADS. On an album page the claim is two calls, the album's own
+ * token first, so the album can tell its own uploads moving (the follow moment) from other events'
+ * (the toast). What is pinned is that split, the silence the album asks for, and that every
+ * caller's claim reaches whoever listens.
  */
 const rpc = vi.fn();
 const getSession = vi.fn();

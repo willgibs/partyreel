@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { computeDoor, contributionAnswered } from "@/lib/guest/entry-steps";
 
 /**
- * THE DOOR AS AN ITINERARY (Will, 2026-09-21, "the door as three steps"). Every permutation of his
- * ruling, read as the cases the sheet actually meets.
+ * THE DOOR AS AN ITINERARY. Every permutation of its rules, read as the cases the sheet actually
+ * meets.
  */
 // A first-time guest at a plain, name-only, upload-open event with no switch on.
 const base = {
@@ -237,11 +237,11 @@ describe("computeDoor", () => {
     ).toEqual({ steps: [], autoOpen: false });
   });
 
-  /* ── the affordance the exemption used to buy ───────────────────────── */
+  /* ── the sheet opens whenever a step exists ─────────────────────────── */
 
   it("autoOpen is TRUE whenever a step exists (the 'browse the teaser first' exemption is retired)", () => {
-    // The old machine opened for the welcome and the password only, and left a returning guest of
-    // an account-gated event to find "See all N". "No exit" retires that.
+    // The door has no exit, so the sheet opens for every step, never only the welcome and the
+    // password: a returning guest of an account-gated event is never left to find "See all N".
     const accountOnly = computeDoor({
       ...base,
       welcomeSeen: true,
@@ -261,11 +261,10 @@ describe("computeDoor", () => {
 });
 
 /**
- * UPLOADED, THEN REMOVED (guest by upload, Will 2026-09-22: "Own deletes close it"). On a
- * Require-an-upload-to-view event a guest's own delete takes their contribution back, and the page
- * must hand them the door WITH its upload step, never a teaser with no way through. The browser's
- * own half (`contributed`, true all visit) closes the step only until the server has answered since
- * it; the sequence below is the renders one visit actually meets.
+ * UPLOADED, THEN REMOVED. On a Require-an-upload-to-view event a guest's own delete takes their
+ * contribution back, and the page must hand them the door WITH its upload step, never a teaser with
+ * no way through. The browser's own half (`contributed`, true all visit) closes the step only until
+ * the server has answered since it; the sequence below is the renders one visit actually meets.
  */
 describe("contributionAnswered: the door comes back after your own last delete", () => {
   // A named, welcomed guest on a require-upload event whose uploads are open.

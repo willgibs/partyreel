@@ -28,11 +28,11 @@ export type GuestEvent = {
   visibility: Database["public"]["Enums"]["event_visibility"];
   has_password: boolean;
   accepting_uploads: boolean;
-  // ★ THE HOST'S SWITCH (the identity reshape, 2026-09-21). ON by default: a guest confirms an
-  // email before the full album and any upload. OFF: a guest types a display name at the door and
-  // uploads under it with an unverified mark. This is the flag every new read keys on.
+  // ★ THE HOST'S SWITCH. ON by default: a guest confirms an email before the full album and any
+  // upload. OFF: a guest types a display name at the door and uploads under it with an unverified
+  // mark. This is the flag every new read keys on.
   require_verified_email: boolean;
-  /** Require an upload to view (the door as three steps, 2026-09-21): ON, a guest sees the full album only once one upload of theirs completed; the gate fails open while uploads are closed or the album is full. */
+  /** Require an upload to view: ON, a guest sees the full album only once one upload of theirs completed; the gate fails open while uploads are closed or the album is full. */
   require_upload_to_view: boolean;
   event_date: string | null;
   // Cosmetic QR preset (for the in-page share QR). Plain text; resolveQrPreset()
@@ -58,13 +58,13 @@ export type GuestEventResult =
   | { ok: false; code: "not_found" };
 
 /**
- * The unlock-aware other half of the QA #40 redaction (migration 20260729180000).
+ * The unlock-aware other half of get_event_by_qr_token's redaction (migration 20260729180000).
  *
- * The RPC is anon-executable, so it now withholds `description` / `event_date` /
+ * The RPC is anon-executable, so it withholds `description` / `event_date` /
  * `host_display_name` from any NON-OWNER of a password or private event: a direct PostgREST call
- * with nothing but a link (or a guessed custom slug) used to return all three, which is strictly
- * more than the locked page ever renders. The RPC cannot see the unlock COOKIE, so it has to
- * assume "locked"; this restores the withheld fields once the password is actually proven.
+ * with nothing but a link (or a guessed custom slug) would otherwise return all three, which is
+ * strictly more than the locked page ever renders. The RPC cannot see the unlock COOKIE, so it has
+ * to assume "locked"; this restores the withheld fields once the password is actually proven.
  *
  * SELF-GUARDED on isUnlocked(), exactly like getApprovedMediaForUnlock — the privileged read
  * carries its own gate rather than trusting the caller. `private` is never re-hydrated (that page
@@ -134,10 +134,10 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
 
   // The generated types understate nullability (`description`/`event_date` are
   // typed non-null but the columns are nullable) — normalize defensively. `name` joins them
-  // for a second reason (QA #40): the RPC returns NULL for a PRIVATE event's name to a
-  // non-owner, matching the page, which reveals nothing for private. Every consumer already
-  // branches on `visibility === "private"` before reading the name (the page's lock return,
-  // generateMetadata, the OG image, both gated API routes), so "" is never rendered.
+  // for a second reason (the private-name redaction): the RPC returns NULL for a PRIVATE
+  // event's name to a non-owner, matching the page, which reveals nothing for private. Every
+  // consumer already branches on `visibility === "private"` before reading the name (the page's
+  // lock return, generateMetadata, the OG image, both gated API routes), so "" is never rendered.
   const event: GuestEvent = {
     id: row.id,
     qr_token: row.qr_token,
@@ -164,7 +164,7 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
 
 /**
  * The fields the gallery needs (keys stay server-side, uploads-and-r2.md). Dimensions +
- * duration feed the masonry tiles / video badges (Phase 4); they're WRITE-ONCE
+ * duration feed the masonry tiles / video badges; they're WRITE-ONCE
  * at create_media (mutations only ever flip status fields), so they're stable
  * per id. Nullable: pre-measure-era rows and failed client measures are null
  * (the grid falls back to 1:1).
@@ -210,8 +210,8 @@ export function albumCursorOf(row: {
  * older than its timestamp, or the same timestamp with a smaller id. The table-read twin of the
  * RPC's `(created_at, id) < (p_before_created_at, p_before_id)`, so an open album (the RPC) and an
  * unlocked password album (the table) page through one order. The timestamp rides unquoted, the
- * shape read-all.ts prescribes; on the scale probe (2026-09-24) it walked all 1,145 approved rows
- * in two pages, in the RPC's exact order.
+ * shape read-all.ts prescribes; measured on a 1,145-item album, it walks every approved row in two
+ * pages, in the RPC's exact order.
  */
 export function olderThan(after: AlbumCursor): string {
   return `created_at.lt.${after.at},and(created_at.eq.${after.at},id.lt.${after.id})`;
@@ -224,12 +224,12 @@ export function olderThan(after: AlbumCursor): string {
  * `loadGalleryRowsForAccess`. NOT cached: the poll wants fresh rows on every call, and within one
  * request there is a single caller.
  *
- * ★ READ WHOLE (the 1,000-row round). PostgREST cuts a set-returning RPC at 1,000 rows with no
- * error, so a single call handed the probe's 1,145-item album its newest 1,000 and the oldest
- * never showed. It pages through `readAllPages` on the album's own display order, the last row's
- * `(created_at, id)` as the cursor and `p_limit` on every page, and the pages concatenate in that
- * order. The ORDER is load-bearing: `mergeGalleryItems`, `reconcileGalleryItems` and toGridItems
- * keep server order, and the gallery ETag hashes the ids in order.
+ * ★ READ WHOLE. PostgREST cuts a set-returning RPC at 1,000 rows with no error, so a single call
+ * would hand a 1,145-item album its newest 1,000 and the oldest would never show. It pages through
+ * `readAllPages` on the album's own display order, the last row's `(created_at, id)` as the cursor
+ * and `p_limit` on every page, and the pages concatenate in that order. The ORDER is load-bearing:
+ * `mergeGalleryItems`, `reconcileGalleryItems` and toGridItems keep server order, and the gallery
+ * ETag hashes the ids in order.
  */
 export async function getEventMediaByQrToken(
   qrToken: string,

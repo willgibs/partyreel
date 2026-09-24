@@ -1,12 +1,12 @@
 /**
- * THE GUEST ALBUM'S ADMIN READS, PAST THE 1,000-ROW CAP (the 1,000-row round, 2026-09-23).
+ * THE GUEST ALBUM'S ADMIN READS, PAST THE 1,000-ROW CAP.
  *
  * PostgREST cuts every read at 1,000 rows with no error, so each read here is proved on the fake
  * PostgREST (`src/lib/db/testing/fake-postgrest.ts`), which clamps exactly where the platform does,
  * with fixtures past 2,000 rows:
  *
- *  - `getApprovedMediaForUnlock` (C8): the unlocked password album, every approved item in the
- *    open album's own order (`created_at desc, id desc`), paged on the composite cursor, a
+ *  - `getApprovedMediaForUnlock`: the unlocked password album, read whole, every approved item in
+ *    the open album's own order (`created_at desc, id desc`), paged on the composite cursor, a
  *    timestamp tie straddling a page boundary included;
  *  - `getUploaderIdentities`: the credits reach every item (the host's album, its review room, its
  *    reel pages and the guest album all read them), through `readAllPages` on `id`;
@@ -140,7 +140,7 @@ beforeEach(() => {
   seed([]);
 });
 
-describe("getApprovedMediaForUnlock: the unlocked password album, read whole (C8)", () => {
+describe("getApprovedMediaForUnlock: the unlocked password album, read whole", () => {
   it("returns every approved item of more than 2,000 in the open album's order, past the cap", async () => {
     isUnlocked.mockResolvedValue(true);
     // 2,600 rows: every tenth pending and every thirteenth removed, two ties, and another event's

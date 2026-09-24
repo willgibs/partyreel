@@ -1,18 +1,18 @@
-/* THE LIVE REEL'S OWN MOTION (reel-guest-wiring, 2026-09-24). Two pieces, both plain CSS so they run
-   off the main thread while the canvas engine owns it.
+/* THE LIVE REEL'S OWN MOTION. Two pieces, both plain CSS so they run off the main thread while the
+   canvas engine owns it.
 
-   1. THE TILE'S CROSSFADE (Will's `tile=crossfade`): six stills, one keyframe, each image phase-shifted
-      by a negative delay into its own sixth of the cycle (lib/guest/reel-tile.ts always hands six).
-      Slow on purpose: "less busy than a potentially super fast, distracting, overwhelming version".
+   1. THE TILE'S CROSSFADE: six stills, one keyframe, each image phase-shifted by a negative delay
+      into its own sixth of the cycle (lib/guest/reel-tile.ts always hands six). Slow on purpose:
+      a fast crossfade would be busy, distracting and overwhelming.
 
-   2. THE BAR THAT BECOMES THE DOCK (Will's `chrome=thin`: "a clean animation ... for when the timeline
-      opens to controls"). ONE glass pane whose final shape is the whole dock, clipped at rest to the
-      slim bar's pill (`clip-path: inset(... round ...)`) and unclipped when summoned, so the bar
-      visibly GROWS into the dock instead of one object swapping for another. clip-path and opacity
-      only: no layout, no width animation, nothing a phone pays for per frame beyond the pane's own
-      backdrop. Opening eases out on the drawer curve and takes its time (it is being watched);
-      closing is faster (the system is tidying up). A transition, not a keyframe, so a pointer that
-      twitches mid-morph retargets it rather than restarting it. Under reduced motion it is instant.
+   2. THE BAR THAT BECOMES THE DOCK, the timeline opening into the controls in one clean animation.
+      ONE glass pane whose final shape is the whole dock, clipped at rest to the slim bar's pill
+      (`clip-path: inset(... round ...)`) and unclipped when summoned, so the bar visibly GROWS into
+      the dock instead of one object swapping for another. clip-path and opacity only: no layout, no
+      width animation, nothing a phone pays for per frame beyond the pane's own backdrop. Opening
+      eases out on the drawer curve and takes its time (it is being watched); closing is faster (the
+      system is tidying up). A transition, not a keyframe, so a pointer that twitches mid-morph
+      retargets it rather than restarting it. Under reduced motion it is instant.
 
    The numbers the pane's two shapes need (the dock's size and the bar's) are custom properties set
    inline by the component, which measures nothing: the bar's pill is a fixed size, the dock's box is

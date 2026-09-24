@@ -1,7 +1,7 @@
 /**
- * ONE LIVE SOURCE FOR THE ALBUM AND THE REEL (gallery-live.tsx): the two things the provider added
- * when LiveGallery's state was lifted above the reel. The rest of its behaviour is LiveGallery's
- * contract file's (live-gallery.test.tsx drives the same state through the album).
+ * ONE LIVE SOURCE FOR THE ALBUM AND THE REEL (gallery-live.tsx): the provider holds LiveGallery's
+ * state above the reel, and these are the two things it adds. The rest of its behaviour is pinned
+ * in LiveGallery's test file (live-gallery.test.tsx drives the same state through the album).
  *
  * - The live reel's facts ride every poll's 200: a host turning the reel off reaches an open page.
  * - THE WATCHDOG: an image or reader failing the way an expired presign does drops the validator and

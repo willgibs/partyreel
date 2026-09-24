@@ -1,30 +1,29 @@
 /**
- * THE THREE CALLS THE DOOR MAKES (the identity reshape, 2026-09-21; the
- * optional address added by "guest identity: name only, unconfirmed email,
- * verified account", 2026-09-22).
+ * THE THREE CALLS THE DOOR MAKES.
  *
- * Anonymity left the product on Will's `address=none` and his note: a host's
- * switch is **Require verified emails**, and with it OFF a guest types a display
- * name at the door and uploads under it, marked until they confirm. That door
- * has three verbs, and they live here rather than inside a component so the
- * entry modal, the header's rename, the guest menu's add-email dialog and the
- * upload queue's silent join all speak to the routes through one shape.
+ * No guest is anonymous: a host's switch is **Require verified emails**,
+ * and with it OFF a guest types a display name at the door and uploads under
+ * it, marked until they confirm. That door has three verbs, and they live here
+ * rather than inside a component so the entry modal, the header's rename, the
+ * guest menu's add-email dialog and the upload queue's silent join all speak to
+ * the routes through one shape.
  *
  *   joinEvent({ qrToken, displayName?, email? })  -> POST /api/guests
  *   renameGuest({ qrToken, sessionToken, displayName }) -> POST /api/guests/name
  *   attachGuestEmail({ qrToken, sessionToken, email }) -> POST /api/guests/email
  *
- * ★ THE ADDRESS IS A CLAIM NUMBER, NOT AN IDENTITY (Will, 2026-09-22, verbatim:
- * a names-mode door entry without a login is "simply a name with an invisible
- * claim number (the email)"). It is stored UNCONFIRMED in `guests.pending_email`,
+ * ★ THE ADDRESS IS A CLAIM NUMBER, NOT AN IDENTITY: a names-mode door entry
+ * without a login is simply a name, and the email behind it is an invisible
+ * claim number. It is stored UNCONFIRMED in `guests.pending_email`,
  * never shown to the host or to another guest, never mailed on its own. Nothing
  * here ever reads one back: both routes answer with a BOOLEAN (`email_attached`)
  * and never the address, so no surface above this module can leak what it was
  * never handed.
  *
- * ★ THE NAME IS OPTIONAL HERE AND REQUIRED THERE. `create_guest` accepts a
- * nameless mint on purpose (wave 0's finding: production keeps working through
- * the flip), so the REQUIREMENT is the route's, returned as a 422 `name_required`.
+ * ★ THE NAME IS OPTIONAL HERE AND REQUIRED THERE. `create_guest` mints a
+ * confirmed joiner nameless on purpose (their profile is the identity), so the
+ * REQUIREMENT is the route's, returned as a 422 `name_required`; the database's
+ * own refusal of a nameless UNCONFIRMED mint is only the belt under it.
  * This module carries no policy of its own: it hands whatever it is given to the
  * route and translates the answer. The one thing it does locally is parse the
  * name through `displayNameSchema` (the single source, `lib/validation/profile.ts`),
@@ -50,12 +49,11 @@ import { parseGuestEmail } from "@/lib/validation/upload";
  * `unauthorized` is a VERIFIED row (their name is their profile's, so a rename
  * is refused outright) from that same route, or a private event from the join
  * route; `session_other_account` is a LIVE token whose row belongs to an account
- * the viewer is not (the upload-owner lane, 2026-09-23: the rename and attach
- * routes refuse it, and the caller puts the ticket down and joins as itself);
- * `email_invalid` is the optional address at the door, refused in the
- * same slot the name's refusals land in; `other` carries the server's own
- * sentence for everything else (rate limits, a dead link), which is always
- * better than a house paraphrase.
+ * the viewer is not (the rename and attach routes refuse it, and the caller puts
+ * the ticket down and joins as itself); `email_invalid` is the optional address
+ * at the door, refused in the same slot the name's refusals land in; `other`
+ * carries the server's own sentence for everything else (rate limits, a dead
+ * link), which is always better than a house paraphrase.
  */
 export type JoinRefusal = {
   kind:
@@ -206,8 +204,8 @@ export async function joinEvent(input: {
       ? {}
       : { display_name: input.displayName }),
     // Same rule for the address: the optional field's empty state sends no key
-    // at all, so the join body of a guest who declined is byte-for-byte the one
-    // the door sent before this field existed.
+    // at all, so the join body of a guest who declined is byte-for-byte the
+    // name-only one.
     ...(input.email === undefined ? {} : { email: input.email }),
   });
   if (!res) return { ok: false, refusal: OFFLINE };
@@ -282,7 +280,7 @@ export async function renameGuest(input: {
  * ★ IT IS THE SECOND WAY IN, NOT THE FIRST. The door's own field rides the join
  * in ONE post; this is for the two doors that come later: the guest menu's "Add
  * your email" on an album already entered, and the held-session path at the door
- * (a row minted before this round, renamed first, then given the address it was
+ * (a row this device already holds, renamed first, then given the address it was
  * never asked for).
  *
  * ★ AND IT NEVER HANDS THE ADDRESS BACK. The answer is `email_attached`, a

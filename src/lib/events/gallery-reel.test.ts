@@ -1,10 +1,10 @@
 /**
- * THE LIVE REEL'S FACTS AND THE ONE RULE THAT READS THEM (reel-guest-wiring, 2026-09-24).
+ * THE LIVE REEL'S FACTS AND THE ONE RULE THAT READS THEM.
  *
- * Will's `states=nothing` and his "could even drop the minimum to 2": the reel exists for a guest
- * from the SECOND reel-eligible item, and below it (or with the host's switch off, the platform
- * lever off, or a door still standing) there is no tile, no view and no `?reel`. A cut never counts
- * toward the two. And every tier-shaped fact is derived here from a tier the server read.
+ * The reel exists for a guest from the SECOND reel-eligible item, and below it (or with the host's
+ * switch off, the platform lever off, or a door still standing) there is no tile, no view and no
+ * `?reel`. A cut never counts toward the two. And every tier-shaped fact is derived here from a
+ * tier the server read.
  */
 import { describe, expect, it } from "vitest";
 

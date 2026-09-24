@@ -1,10 +1,9 @@
 /**
- * THE REEL'S ARRIVAL FEED, AS ARITHMETIC (reel-guest-wiring, 2026-09-24).
+ * THE REEL'S ARRIVAL FEED, AS ARITHMETIC.
  *
- * Will's `arrival=chip`, with his note: "By placing in the top left, it can be further refined into a
- * subtle feed with temporary stacking (limited depth) if high-frequency uploading leads to 2+
- * notifications at once before they disappear (feed could be not just names, but even 'X +12' or
- * something better). It also doesn't become a centerpiece of the reel."
+ * The arrival sits small in the top left, so it never becomes the reel's centerpiece, and from there
+ * it can grow into a subtle feed of limited depth when uploads land faster than their notices leave
+ * (a count such as "+12", not only names).
  *
  * So a fresh upload names its uploader in a small chip for ONE HOLD (the viewer's own hold setting,
  * so the chip lives exactly as long as a photograph does). A chip per person: a second photograph

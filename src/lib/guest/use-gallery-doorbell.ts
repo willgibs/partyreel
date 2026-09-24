@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * The gallery doorbell subscription (Phase 3): listens on the PUBLIC Realtime
+ * The gallery doorbell subscription: listens on the PUBLIC Realtime
  * broadcast channel `gallery:<qr_token>` for the contentless `ping` the
  * media_gallery_doorbell DB trigger sends, coalesces ping bursts, and reports
  * whether the socket is live so the caller can slow its fallback poll.

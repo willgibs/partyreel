@@ -31,14 +31,14 @@ describe("galleryEtag", () => {
   it("is stable for identical input and shaped as a strong validator", () => {
     const a = galleryEtag(base);
     expect(a).toBe(galleryEtag({ ...base, items: base.items.map((i) => ({ ...i })) }));
-    // g6 since the live reel: the payload carries the reel's facts, and a client holding an older
-    // ETag must re-pull rather than 304 past a change it cannot see.
+    // g6 because the payload carries the live reel's facts: a client holding an older ETag must
+    // re-pull rather than 304 past a change it cannot see.
     expect(a).toMatch(/^"g6-[A-Za-z0-9_-]{27}"$/);
   });
 
-  // THE LIVE REEL'S FACTS ARE IN THE HASH (reel-guest-wiring, 2026-09-24). A host turning the reel
-  // off, an operator's lever, a plan change: none moves a media row, so the validator has to move
-  // by itself, or an open album would 304 past the change until the presign bucket rolled.
+  // THE LIVE REEL'S FACTS ARE IN THE HASH. A host turning the reel off, an operator's lever, a plan
+  // change: none moves a media row, so the validator has to move by itself, or an open album would
+  // 304 past the change until the presign bucket rolled.
   it("changes with every live reel fact, and a null never collides with an off switch", () => {
     const reel = {
       showReel: true,
@@ -61,14 +61,14 @@ describe("galleryEtag", () => {
     ).not.toBe(on);
     expect(galleryEtag({ ...base, reel: { ...reel, cut: null } })).not.toBe(on);
     expect(galleryEtag({ ...base, reel: null })).not.toBe(on);
-    // Absent (every caller before the reel) hashes the same as null.
+    // Absent (a caller that passes no reel) hashes the same as null.
     expect(galleryEtag(base)).toBe(galleryEtag({ ...base, reel: null }));
   });
 
-  // THE ALBUM'S SIZE IS IN THE HASH (the 1,000-row round). The teaser's nine photographs can stay
-  // exactly the same while the album grows behind them (a video approved, a photograph removed
-  // from deeper in the album), and the header's live count rides this payload: a validator blind
-  // to it would 304 the guest past the new number for as long as the nine held still.
+  // THE ALBUM'S SIZE IS IN THE HASH. The teaser's nine photographs can stay exactly the same while
+  // the album grows behind them (a video approved, a photograph removed from deeper in the album),
+  // and the header's live count rides this payload: a validator blind to it would 304 the guest
+  // past the new number for as long as the nine held still.
   it("changes with approvedTotal alone, the items and the teaser total held still", () => {
     const teaser = { ...base, access: "teaser", gate: "account", teaserTotal: 9 };
     const before = galleryEtag({ ...teaser, approvedTotal: 48 });
@@ -107,10 +107,10 @@ describe("galleryEtag", () => {
     expect(galleryEtag({ ...base, bucketId: "991338" })).not.toBe(a);
   });
 
-  // THE GATE IS IN THE HASH (the door as three steps, 2026-09-21). `teaser` has two causes now,
-  // and the poll carries the gate to the client's step machine: two decisions that differ only in
-  // WHY must never validate each other, or a guest whose gate moved would 304 onto the step they
-  // already passed. Same items, same level, different door.
+  // THE GATE IS IN THE HASH. `teaser` has two causes, and the poll carries the gate to the client's
+  // step machine: two decisions that differ only in WHY must never validate each other, or a guest
+  // whose gate moved would 304 onto the step they already passed. Same items, same level, different
+  // door.
   it("never validates across the GATE behind one access level", () => {
     const teaser = { ...base, access: "teaser", teaserTotal: 9 };
     const account = galleryEtag({ ...teaser, gate: "account" });
@@ -130,8 +130,8 @@ describe("galleryEtag", () => {
   });
 
   it("the fingerprint input shape excludes dimensions BY DESIGN (write-once per id)", () => {
-    // Phase 4 threads width/height/durationSeconds through the payload for the
-    // masonry; they are immutable per media id, so they ride OUTSIDE the hash.
+    // The payload threads width/height/durationSeconds through for the masonry;
+    // they are immutable per media id, so they ride OUTSIDE the hash.
     // Extra unknown fields on input items must therefore never wobble the etag
     // (the canonical form picks named fields only).
     const a = galleryEtag(base);

@@ -1,7 +1,7 @@
 /**
- * THE REEL ON A SCREEN: FULLSCREEN AND A SCREEN THAT STAYS AWAKE (reel-guest-wiring, 2026-09-24).
+ * THE REEL ON A SCREEN: FULLSCREEN AND A SCREEN THAT STAYS AWAKE.
  *
- * Will's ruling, "The view is the wall": "Play on a screen" opens the same view with the event's code
+ * There is no separate wall view: "Play on a screen" opens the same view with the event's code
  * shown and a one-tap Start that takes fullscreen and keeps the screen awake. Both need a user
  * gesture in the tab that asks (the Fullscreen API and the Screen Wake Lock API alike), which is the
  * whole reason a Start exists; these helpers are what that one tap calls.

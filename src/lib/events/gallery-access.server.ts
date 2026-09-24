@@ -77,11 +77,11 @@ export async function isEventOwner(
 export type ViewerDecision = GalleryDecision & { albumFull: boolean };
 
 /**
- * THE ONE SERVER ENTRY FOR "WHAT DOES THIS VIEWER GET" (the door as three steps, 2026-09-21).
+ * THE ONE SERVER ENTRY FOR "WHAT DOES THIS VIEWER GET".
  *
- * The page RSC and the gallery poll used to carry the same eight lines of resolution each; the
- * upload gate would have made it eleven, in two places, with a service-role read in the middle. So
- * the block lives here once and both callers ask this.
+ * The page RSC and the gallery poll both ask this rather than each carrying the same resolution:
+ * with the upload gate it is eleven lines with a service-role read in the middle, which belongs in
+ * one place, not two.
  *
  * ★ IT RESOLVES TWICE, AND THE FIRST PASS IS THE CHEAP ONE. Assuming a contribution short-circuits
  * the upload clause, so the password and account gates answer with NO extra read at all: a locked
@@ -226,10 +226,9 @@ export async function loadGalleryRowsForAccess(
  * (`?? null/false`) or a 304 could hide an attribution change. Dimensions/duration are
  * deliberately NOT hashed (write-once per id - see gallery-fingerprint.ts).
  *
- * ★ THE GATE IS IN THE HASH, NOT JUST THE LEVEL (the door as three steps, 2026-09-21). `teaser`
- * has two causes now, and the poll carries the gate to the client's step machine: two decisions
- * that differ only in WHY must never validate each other, or a guest whose gate moved from
- * `account` to `upload` would 304 onto the wrong step.
+ * ★ THE GATE IS IN THE HASH, NOT JUST THE LEVEL. `teaser` has two causes, and the poll carries the
+ * gate to the client's step machine: two decisions that differ only in WHY must never validate each
+ * other, or a guest whose gate moved from `account` to `upload` would 304 onto the wrong step.
  */
 export function galleryEtagFor(
   decision: GalleryDecision,
@@ -265,11 +264,11 @@ export async function presignGalleryRows(
 }
 
 /**
- * THE LIVE REEL'S FACTS FOR THIS VIEWER (reel-guest-wiring, 2026-09-24): null below full access
- * (nothing is read at all), else the host's switch and mood off the event row this request already
- * holds, beside the platform lever and the host's plan (`getLiveReelServerFacts`, cached). The
- * page and the poll both carry the result, and the ETag hashes it, so a host's switch reaches an
- * open album on the next poll. The demo is full access and reads the same way.
+ * THE LIVE REEL'S FACTS FOR THIS VIEWER: null below full access (nothing is read at all), else the
+ * host's switch and mood off the event row this request already holds, beside the platform lever
+ * and the host's plan (`getLiveReelServerFacts`, cached). The page and the poll both carry the
+ * result, and the ETag hashes it, so a host's switch reaches an open album on the next poll. The
+ * demo is full access and reads the same way.
  */
 export async function loadGalleryReel(
   event: GuestEvent,

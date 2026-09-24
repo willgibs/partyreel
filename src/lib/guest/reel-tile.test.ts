@@ -1,7 +1,6 @@
 /**
- * THE HIGHLIGHT REEL TILE'S STILLS (Will's `tile=crossfade`, with the ◇ call that they come from
- * the reel's own take): six slots always, previews only, never a video's raw file, and the album's
- * newest are not simply echoed above the album.
+ * THE HIGHLIGHT REEL TILE'S STILLS, crossfaded from the reel's own take: six slots always, previews
+ * only, never a video's raw file, and the album's newest are not simply echoed above the album.
  */
 import { describe, expect, it } from "vitest";
 

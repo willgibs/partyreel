@@ -27,25 +27,21 @@ import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
 import { MAX_GUEST_EMAIL_LENGTH } from "@/lib/validation/upload";
 
 /**
- * THE DOOR, ON A NAME-ONLY EVENT (the identity reshape, 2026-09-21; the optional
- * address added by Will's ruling of 2026-09-22, "guest identity: name only,
- * unconfirmed email, verified account").
+ * THE DOOR, ON A NAME-ONLY EVENT.
  *
- * ★ AND IT ASKS FOR AN ADDRESS AGAIN, OPTIONALLY (Will, 2026-09-22, which
- * SUPERSEDES `address=none`): "Agree with you that an optional email field under
- * name for unverified events is more streamlined than its own screen." One
+ * ★ AND IT ASKS FOR AN ADDRESS, OPTIONALLY, because on an unverified event a
+ * field under the name is more streamlined than a screen of its own. One
  * compact field under the name, a benefit as its helper line, and nothing said
  * about proving anything: what is typed is stored UNCONFIRMED, shown to nobody,
  * mailed nothing, and exists so this guest can claim these photographs from any
  * device the day they confirm it. Skipping it costs the guest nothing at all,
  * which is why the field is last, unfocused and never prefilled.
  *
- * ★ IT IS ASKED BEFORE THE ALBUM NOW, NOT AT THE FIRST ADD (Will, 2026-09-21, "the door as three
- * steps", overruling the call this file used to carry): "if they can reach the album media without
- * entering their name, they're able to reap all the rewards of the album anonymously, then friction
- * occurs when they go to actually contribute. We should handle the friction as a quick gate to the
- * reward, so that uploading feels seamless once you're in the album." So the step is one of the
- * door's ordered steps with the album a step behind it, and the reward is what pays for the field.
+ * ★ IT IS ASKED BEFORE THE ALBUM, NOT AT THE FIRST ADD. A guest who can reach the album's
+ * media without entering a name reaps all of its rewards anonymously, and the friction then lands
+ * at the moment they go to contribute. As a quick gate in front of the reward it is paid once, and
+ * uploading feels seamless from inside the album. So the step is one of the door's ordered steps
+ * with the album a step behind it, and the reward is what pays for the field.
  *
  * ★ FOUR MODES, BECAUSE FOUR DOORS ASK THE SAME QUESTION, AND ONLY ONE OF THEM
  *   CARRIES THE ADDRESS FIELD:
@@ -53,7 +49,7 @@ import { MAX_GUEST_EMAIL_LENGTH } from "@/lib/validation/upload";
  *             its row (then attaches the address on a second call); otherwise the join mints one
  *             under the typed name and the address in ONE post. The machine advances to whatever
  *             is next.
- *   `edit`    the album menu's "Change name", unchanged, and the one dismissible door left.
+ *   `edit`    the album menu's "Change name", and the one dismissible door.
  *   `hold`    VERIFIED mode, before the confirmation. The join would answer 422 (nothing is
  *             proved yet), so nothing is sent: the name is validated locally, kept in the modal's
  *             own state as `typedName`, written to `pr_guest_name_last` ONLY (never the per-event
@@ -61,8 +57,7 @@ import { MAX_GUEST_EMAIL_LENGTH } from "@/lib/validation/upload";
  *             field here: the very next step asks for an address and PROVES it, so offering an
  *             unproven one a moment earlier would be asking the same question twice and meaning
  *             less by it.
- *   `profile` a CONFIRMED account with no profile name. `updateDisplayNameAction`, which is what
- *             the inline `SetNameStep` panel used to do further down the page. No field: a
+ *   `profile` a CONFIRMED account with no profile name: `updateDisplayNameAction`. No field: a
  *             confirmed account already has the only address that counts.
  *
  * ★ THE PREFILL IS THE LAST NAME THIS DEVICE TYPED, at any event
@@ -96,8 +91,8 @@ export function GuestNameStep({
   /** See the four modes in this file's head comment. */
   mode: GuestNameMode;
   /**
-   * Kept for the callers and the lab's fixtures, and no longer read: the lede
-   * says "the host" whoever they are (Will, 2026-09-22). See `guestNameCopy`.
+   * Kept for the callers and the lab's fixtures, and not read: the lede
+   * says "the host" whoever they are. See `guestNameCopy`.
    */
   hostName?: string | null;
   /** The name this device already typed at THIS event, if any. */
@@ -176,8 +171,7 @@ export function GuestNameStep({
 
     /* ★ AND A CONFIRMED ACCOUNT WITH NO PROFILE NAME WRITES THE PROFILE. Their identity is the
        account's, so there is no guest row to name: `create_guest` nulls a typed name beside a
-       confirmed session anyway. This replaces the inline SetNameStep panel that used to sit above
-       the upload area, so the question is asked once, at the door, like every other. */
+       confirmed session anyway. So the question is asked once, at the door, like every other. */
     if (mode === "profile") {
       startSave(async () => {
         setRefusal(null);
@@ -204,27 +198,25 @@ export function GuestNameStep({
       setRefusal(null);
       setEmailRefusal(null);
       /* ────────────────────────────────────────────────────────────────────
-         A HELD SESSION NAMES ITS ROW (DEFECT 2, the alias red-team,
-         2026-09-21). This used to gate on `editing && sessionToken`, so a
-         "join"-mode open on a device that already holds a session but no
-         LOCAL name (a row minted before the reshape, or by the queue's own
-         silent join) fell into the join branch below and minted a SECOND
+         A HELD SESSION NAMES ITS ROW. A device can hold a session but no
+         LOCAL name (an older nameless row, or one the queue's own silent join
+         minted). Were the rename gated on `editing`, a "join"-mode open on
+         that device would fall into the join branch below and mint a SECOND
          row for the same person, stranding the first one's photographs with
          no name. A session token means a row already exists to answer for,
          whichever door raised this step, so it is `renameGuest`'s to try
-         first now, regardless of mode.
+         first, regardless of mode.
 
          Only three of its refusals fall through to a fresh join: `invalid_session`
          (a genuinely DEAD token — the route's own "not found"),
          `unauthorized` (a VERIFIED row, which cannot happen for a nameless
          session in practice — this door never opens for one — but the route,
          not this component's assumption, is the truth, so it falls through
-         too rather than dead-ending), and `session_other_account` (the
-         upload-owner lane, 2026-09-23: a live ticket whose row is an
-         account's the viewer is not, which is put down first so nothing of its
-         owner's, the name or the address flag, outlives it on this device).
-         Every other refusal (a bad name, the limiter) is this step's to show,
-         exactly as before.
+         too rather than dead-ending), and `session_other_account` (a live
+         ticket whose row is an account's the viewer is not, which is put down
+         first so nothing of its owner's, the name or the address flag,
+         outlives it on this device). Every other refusal (a bad name, the
+         limiter) is this step's to show.
          ──────────────────────────────────────────────────────────────────── */
       if (sessionToken) {
         const renamed = await renameGuest({
@@ -279,8 +271,8 @@ export function GuestNameStep({
         // fresh join a session-less device takes.
       }
       /* ★ A FRESH JOIN IS ONE POST, name and address together. The key is absent
-         when nothing was typed, so a guest who declined the field sends exactly
-         the body this door sent before the field existed. */
+         when nothing was typed, so a guest who declined the field sends a
+         name-only body. */
       const joined = await joinEvent({
         qrToken,
         displayName: name,
@@ -347,10 +339,9 @@ export function GuestNameStep({
         </p>
       </div>
       <div className="space-y-1.5">
-        {/* ★ THE QUESTION IS THE HEADING NOW (the door as three steps, 2026-09-21). The step's
-            title used to be "Add your photos" and the field's label carried the question; the
-            title IS the question at the door, so a visible label would be the same eight words
-            twice in one sheet. The label stays for the a11y tree, naming the FIELD. */}
+        {/* ★ THE QUESTION IS THE HEADING. The title IS the question at the door, so a visible
+            label would ask it twice in one sheet. The label stays for the a11y tree, naming the
+            FIELD. */}
         <Label htmlFor="pr-guest-name" className="sr-only">
           Your name
         </Label>
@@ -375,10 +366,8 @@ export function GuestNameStep({
             {refusal.message}
           </p>
         ) : (
-          // Will's own drawn line on the board he ruled (`guest-verify` round
-          // two, the `none` door): the reassurance is that nothing is being
-          // proved, because every other door this guest has met asked them to
-          // prove something.
+          // The reassurance is that nothing is being proved, because every
+          // other door this guest has met asked them to prove something.
           <p
             id="pr-guest-name-hint"
             className="text-reading text-muted-foreground"
@@ -387,7 +376,7 @@ export function GuestNameStep({
           </p>
         )}
       </div>
-      {/* ★ THE OPTIONAL ADDRESS (Will, 2026-09-22). Under the name and its hint,
+      {/* ★ THE OPTIONAL ADDRESS. Under the name and its hint,
           one compact field with a VISIBLE label, because unlike the name this
           question is not the heading and "(optional)" is the most important
           word on the step: a guest must be able to see that skipping it is a
@@ -451,7 +440,7 @@ export function GuestNameStep({
  */
 export function guestNameCopy(
   mode: GuestNameMode,
-  /** Ignored since 2026-09-22 (see the `join` branch); kept so callers compile. */
+  /** Ignored (see the `join` branch); kept so callers compile. */
   _hostName?: string | null,
 ): { title: string; reason: string } {
   if (mode === "edit") {
@@ -468,11 +457,10 @@ export function guestNameCopy(
         "Your name goes on the photos you add. It becomes your Partyreel name too.",
     };
   }
-  /* ★ THE HOST GOES UNNAMED HERE NOW (Will, 2026-09-22, verbatim: "Let's lose
-     the lead on 'so Will Gibson knows who to thank' too. 'so the host knows who
-     to thank'."), which overrules the earlier call that named them with "the
-     host" only as a fallback. `hostName` stays in the signature, ignored, so
-     every caller and the lab's fixtures compile untouched. */
+  /* ★ THE HOST GOES UNNAMED HERE: the lede says "so the host knows who to
+     thank" on every event rather than the host's own name. `hostName` stays
+     in the signature, ignored, so every caller and the lab's fixtures compile
+     untouched. */
   return {
     title: "What should we call you?",
     reason: "Your name goes on the photos you add, so the host knows who to thank.",

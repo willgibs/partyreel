@@ -1,14 +1,12 @@
 "use client";
 
 /**
- * THE GUEST UPLOAD QUEUE (Phase 4 extraction - the reducer-hook rewrite the
- * behavior pins were built to survive). The machine moved VERBATIM from
- * GuestUpload: one-file-at-a-time uploads (robust on flaky mobile
+ * THE GUEST UPLOAD QUEUE: one-file-at-a-time uploads (robust on flaky mobile
  * connections), per-item progress patching, the just-in-time SILENT join
  * (no prompts - account-required events are gated at the page level), the
- * pending-files stash, demo simulation, and retry. GuestUpload is now a thin
- * engine over this hook; its UI subscribers (the in-gallery progress tiles,
- * the floating pill, the header Add) read the queue snapshot from above.
+ * pending-files stash, demo simulation, and retry. `event-experience.tsx`
+ * owns it, so the door's upload step and the album's `GuestUpload` both read
+ * one snapshot.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -22,15 +20,14 @@ import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
  * The two refusal codes this queue reads by name. Everything else is a file's
  * own problem and belongs to the failure sheet; these two are the SESSION's.
  *
- *   `verification_required` (the identity reshape, 2026-09-21): the host turned
- *   Require verified emails on under a name-only ticket, which invalidates every
- *   file still waiting behind it.
+ *   `verification_required`: the host turned Require verified emails on under a
+ *   name-only ticket, which invalidates every file still waiting behind it.
  *
- *   `session_other_account` (`SESSION_OTHER_ACCOUNT`, the upload-owner lane,
- *   2026-09-23): the ticket this device kept belongs to an account the viewer is
- *   not. The ticket goes down and the viewer joins as themselves, and the file
- *   is NOT failed: it waits and goes up on the new ticket, so no photograph is
- *   lost and none is credited to the ticket's owner.
+ *   `session_other_account` (`SESSION_OTHER_ACCOUNT`): the ticket this device
+ *   kept belongs to an account the viewer is not. The ticket goes down and the
+ *   viewer joins as themselves, and the file is NOT failed: it waits and goes up
+ *   on the new ticket, so no photograph is lost and none is credited to the
+ *   ticket's owner.
  */
 const VERIFICATION_REQUIRED = "verification_required";
 
@@ -56,19 +53,18 @@ export type QueueItem = {
   mediaId?: string;
   error?: string;
   /**
-   * THE SERVER'S OWN REFUSAL CODE, kept beside its sentence (the door as three steps,
-   * 2026-09-21). The album's failure sheet only ever needed the words, but the door's upload step
-   * has no exit, so what a guest can DO about a refusal has to be derivable: `uploads_closed` and
-   * `cap_reached` open the album (the fail-open), `invalid_session` goes back to the name, and
-   * only the rest may offer a Retry. Absent for a local validation or a transport failure, which
-   * `classifyRefusal` reads as "worth another go".
+   * THE SERVER'S OWN REFUSAL CODE, kept beside its sentence. The album's failure sheet needs only
+   * the words, but the door's upload step has no exit, so what a guest can DO about a refusal has
+   * to be derivable: `uploads_closed` and `cap_reached` open the album (the fail-open),
+   * `invalid_session` goes back to the name, and only the rest may offer a Retry. Absent for a
+   * local validation or a transport failure, which `classifyRefusal` reads as "worth another go".
    */
   errorCode?: string;
   /**
-   * A CUT the on-device creator is adding to the album (the live reel's seam, 2026-09-24): the row
-   * is written `reel_eligible = false`, so the live reel never plays a reel. Absent for every other
-   * file. It rides the queue like any upload (one at a time, the silent join, retry, the failure
-   * sheet), because a cut added to the album IS an upload like any other (guest-flow.md).
+   * A CUT the on-device creator is adding to the album: the row is written `reel_eligible = false`,
+   * so the live reel never plays a reel. Absent for every other file. It rides the queue like any
+   * upload (one at a time, the silent join, retry, the failure sheet), because a cut added to the
+   * album IS an upload like any other (guest-flow.md).
    */
   reelEligible?: false;
   /** The cut's poster, drawn by its creator: the album's preview for it (uploader.ts). */
@@ -141,19 +137,19 @@ export function useUploadQueue({
    * open for THIS refusal (a mid-run flip: `true`) or whether nothing was ever
    * queued (`joinSilently`'s own refusal: `false`, no sheet incoming) — the one
    * fact a caller cannot infer safely from its own React state at the instant
-   * this fires (DEFECT 1, the alias red-team, 2026-09-21: see
-   * guest-upload.tsx's own comment for why that matters).
+   * this fires (the refresh waits for the failure sheet: see
+   * event-experience.tsx's own note for why that matters).
    */
   onVerificationRequired?: (message: string, hadQueuedFiles: boolean) => void;
   /**
    * Files are waiting and this device holds no ticket the queue can mint on its
-   * own (the upload-owner lane, 2026-09-23): the viewer is signed out, or signed
-   * in without a confirmed email, so only the door can name them (a name in
-   * names mode, the email step in verified mode). The caller re-resolves who is
-   * here (the page refreshes, so a sign-out in another tab is seen too) and the
-   * door opens; the files stay `queued` and go up the moment its join hands a
-   * ticket down through `sessionToken`. Nothing is failed and nothing opens a
-   * failure sheet: from the guest's side the door simply asks their name.
+   * own: the viewer is signed out, or signed in without a confirmed email, so
+   * only the door can name them (a name in names mode, the email step in
+   * verified mode). The caller re-resolves who is here (the page refreshes, so a
+   * sign-out in another tab is seen too) and the door opens; the files stay
+   * `queued` and go up the moment its join hands a ticket down through
+   * `sessionToken`. Nothing is failed and nothing opens a failure sheet: from
+   * the guest's side the door simply asks their name.
    */
   onDoorNeeded?: () => void;
 }) {
@@ -223,7 +219,7 @@ export function useUploadQueue({
   );
 
   /* ──────────────────────────────────────────────────────────────────────────
-     A RUN WITH FILES WAITING AND NO TICKET (the upload-owner lane, 2026-09-23).
+     A RUN WITH FILES WAITING AND NO TICKET.
 
      The ticket went down under the run (a `session_other_account` below, or a
      Retry after one), so the viewer joins again AS WHOEVER IS HOLDING THE PHONE
@@ -279,9 +275,9 @@ export function useUploadQueue({
         if (!next) break;
         /* ★ THE TICKET IS READ PER FILE, NEVER ONCE PER RUN. Both re-joins
            below swap it mid-run, and the file after a swap must go up on the NEW
-           one. (It used to be read once at the top, so the verified re-join
-           after a mid-run flip re-sent the refused file on the SPENT ticket and
-           failed the run it was written to save.) */
+           one. (Read once at the top, the verified re-join after a mid-run flip
+           would re-send the refused file on the SPENT ticket and fail the run it
+           exists to save.) */
         const token = sessionRef.current ?? (await acquireTicket());
         if (!token) break;
         patch(next.id, { status: "uploading", progress: 0, error: undefined });
@@ -333,7 +329,7 @@ export function useUploadQueue({
           continue;
         }
         /* ──────────────────────────────────────────────────────────────────
-           SOMEBODY ELSE'S TICKET (the upload-owner lane, 2026-09-23).
+           SOMEBODY ELSE'S TICKET.
 
            This device kept a ticket whose row belongs to an account, and the
            viewer is not that account (signed out, or signed in as someone
@@ -354,7 +350,7 @@ export function useUploadQueue({
           continue;
         }
         /* ──────────────────────────────────────────────────────────────────
-           THE FLIP, MID-RUN (the identity reshape, 2026-09-21).
+           THE FLIP, MID-RUN.
 
            A host can turn Require verified emails ON while a guest is halfway
            through twelve files. The route answers 403 `verification_required`,
@@ -424,12 +420,12 @@ export function useUploadQueue({
     qrToken,
   ]);
 
-  /* ★ AND THE RUN RESUMES WHEN A TICKET ARRIVES FROM THE DOOR (the upload-owner
-     lane, 2026-09-23). Files left `queued` for `onDoorNeeded` wait for exactly
-     one thing: the name step's join (or the email step's confirmation) handing a
-     fresh ticket down through `sessionToken`. That is the moment to carry on.
-     Keyed on the ticket alone, through a ref to the live runner, so a re-render
-     never starts a run; the runner's own guard makes a second call a no-op. */
+  /* ★ AND THE RUN RESUMES WHEN A TICKET ARRIVES FROM THE DOOR. Files left
+     `queued` for `onDoorNeeded` wait for exactly one thing: the name step's join
+     (or the email step's confirmation) handing a fresh ticket down through
+     `sessionToken`. That is the moment to carry on. Keyed on the ticket alone,
+     through a ref to the live runner, so a re-render never starts a run; the
+     runner's own guard makes a second call a no-op. */
   const runQueueRef = useRef(runQueue);
   useEffect(() => {
     runQueueRef.current = runQueue;
@@ -473,7 +469,7 @@ export function useUploadQueue({
   );
 
   /**
-   * THE SILENT JOIN, AND IT STAYS NAMELESS (the identity reshape, 2026-09-21).
+   * THE SILENT JOIN, AND IT STAYS NAMELESS.
    *
    * This is the path for the two people who never meet the name door: a
    * SIGNED-IN guest (their profile name is the identity, and `create_guest`
@@ -483,8 +479,8 @@ export function useUploadQueue({
    * typed. So no name is passed here, deliberately, and `joinEvent` exists so
    * both callers speak to the route through one shape.
    *
-   * The JOIN's own failure still toasts, and it is now the only upload toast
-   * left: nothing was ever queued, so there is no failure sheet to carry it.
+   * The JOIN's own failure toasts, and it is the only upload toast: nothing
+   * was ever queued, so there is no failure sheet to carry it.
    */
   const joinSilently = useCallback(async () => {
     if (isDemo) {
@@ -525,12 +521,12 @@ export function useUploadQueue({
   );
 
   /**
-   * ★ THE CUT'S SEAM (the live reel, 2026-09-24): `addCutToAlbum(file, poster)` for the on-device
-   * creator. The cut goes through the ORDINARY queue, one at a time behind whatever else is going,
-   * with the same join, retry and failure sheet as a photograph; the only differences are that its
-   * row is written `reel_eligible = false` (the live reel never plays a reel) and that its album
-   * preview is the poster the creator drew. A cut is a video, so `create_media`'s paid-only video
-   * gate decides whether this album takes one; the creator reads the same fact (`CutFacts`) first.
+   * ★ THE CUT'S SEAM: `addCutToAlbum(file, poster)` for the on-device creator. The cut goes through
+   * the ORDINARY queue, one at a time behind whatever else is going, with the same join, retry and
+   * failure sheet as a photograph; the only differences are that its row is written
+   * `reel_eligible = false` (the live reel never plays a reel) and that its album preview is the
+   * poster the creator drew. A cut is a video, so `create_media`'s paid-only video gate decides
+   * whether this album takes one; the creator reads the same fact (`CutFacts`) first.
    */
   const addCut = useCallback(
     (file: File, poster: Blob) => {
@@ -545,11 +541,11 @@ export function useUploadQueue({
   );
 
   /**
-   * Reset an errored item and re-run the queue (identical to the old list
-   * Retry). A Retry is the guest's own fresh try, so it also gives the silent
-   * join back (a network blip may be what spent it). With no ticket on the
-   * device the run joins as the viewer first (`acquireTicket`); "Retry all"
-   * lands here once per file, and the runner's own guard keeps that to ONE join.
+   * Reset an errored item and re-run the queue. A Retry is the guest's own
+   * fresh try, so it also gives the silent join back (a network blip may be
+   * what spent it). With no ticket on the device the run joins as the viewer
+   * first (`acquireTicket`); "Retry all" lands here once per file, and the
+   * runner's own guard keeps that to ONE join.
    */
   const retry = useCallback(
     (id: string) => {
@@ -567,11 +563,11 @@ export function useUploadQueue({
 
   /**
    * Drop the named ERRORED items from the queue for good (the failure sheet's
-   * "Not now" and its own close, `failed=sheet` follow-up). Without this a
-   * dismissed failure just sat in `items` forever: the sheet's own list is a
-   * live filter over `items`, so the NEXT run's end saw the same old error
-   * still there and reopened on it (reproduced: refuse `notes.txt`, Not now,
-   * a clean twelve-file run still ended on "1 file did not go - notes.txt").
+   * "Not now" and its own close): a dismissed failure is gone. Without this it
+   * would sit in `items` forever: the sheet's own list is a live filter over
+   * `items`, so the NEXT run's end would see the same old error still there
+   * and reopen on it (refuse `notes.txt`, Not now, and a clean twelve-file run
+   * would still end on "1 file did not go - notes.txt").
    * ★ Status-gated, not id-alone: `retryAll` re-queues each listed id (flips
    * it to "queued" via `patch`, synchronously through the `itemsRef` mirror)
    * and THEN closes the sheet, which is the same `dismiss` call reaching the

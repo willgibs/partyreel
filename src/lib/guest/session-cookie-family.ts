@@ -1,6 +1,6 @@
 /**
  * THE GUEST TICKET COOKIE'S FAMILY: its name, the attributes every write of it shares, and how every
- * one of them is expired at once (the upload-owner lane, 2026-09-23).
+ * one of them is expired at once.
  *
  * `session-cookie.ts` is the server's reads and writes of `pr_guest_<eventId>`, behind the
  * `server-only` guard. This is the part of it that is not a read of anybody's request: a name, a set

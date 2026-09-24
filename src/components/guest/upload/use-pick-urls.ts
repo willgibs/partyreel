@@ -9,9 +9,8 @@
  * StrictMode the tree mounts, runs effects, unmounts (the cleanup REVOKES) and
  * mounts again with the same state — so the second mount paints a URL that has
  * already been revoked, every `<img>` fires `onError`, and every preview on the
- * add sheet draws the named stand-in instead of the photograph. Measured on
- * `pnpm dev` at 375 during this lane's own verification, and Will reviews on
- * his local dev as well as the alias.
+ * add sheet draws the named stand-in instead of the photograph. Dev-only still
+ * matters: local dev is a review surface as much as the alias is.
  *
  * So the ledger lives OUTSIDE the elements, in a ref, with the mint and the
  * revoke in the same effect: a StrictMode cleanup empties it and the re-run

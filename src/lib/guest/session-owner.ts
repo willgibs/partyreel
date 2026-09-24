@@ -1,19 +1,19 @@
 /**
- * WHOSE TICKET IS THIS? (the upload-owner lane, 2026-09-23.)
+ * WHOSE TICKET IS THIS?
  *
  * A guest session token names ONE `guests` row, and a browser keeps it in localStorage
  * (`pr_session_<qr_token>`) so a returning guest is the same guest. On a shared phone that is
- * whoever joined last. The alias red-team of 2026-09-23 found what that costs once the row belongs
- * to an ACCOUNT: a confirmed guest signed out, somebody else signed in on the same browser, added a
- * photograph, and it landed on the first person's row, credited to them, confirmed address and all;
+ * whoever joined last, and here is what that costs once the row belongs to an ACCOUNT: a confirmed
+ * guest signs out, somebody else signs in on the same browser and adds a photograph, and without
+ * this rule it would land on the first person's row, credited to them, confirmed address and all;
  * a signed-out visitor on that browser could do the same, past Require verified emails, because
- * `create_media` checks the ROW's `verified_at`. Will's safety model rests on a confirmed address
- * meaning the person, and a host blocking a guest would have blocked the wrong one.
+ * `create_media` checks the ROW's `verified_at`. The safety model rests on a confirmed address
+ * meaning the person, and a host blocking a guest would block the wrong one.
  *
  * ★ THE RULE, IN ONE LINE: a row that carries a `user_id` writes only for that signed-in account.
- * A name-only row (no `user_id`, no `verified_at`) stays the device's ticket, exactly as before: a
- * typed name is not an identity anybody proved, so whoever holds the device holds it, which is the
- * whole shared-phone bargain the names mode already makes.
+ * A name-only row (no `user_id`, no `verified_at`) stays the device's ticket: a typed name is not
+ * an identity anybody proved, so whoever holds the device holds it, which is the whole shared-phone
+ * bargain the names mode already makes.
  *
  * ★ AND A CONFIRMED ROW WHOSE ACCOUNT IS GONE WRITES FOR NOBODY. Deleting an account nulls
  * `guests.user_id` (the FK is `on delete set null`, so the photographs stay in other hosts' albums)

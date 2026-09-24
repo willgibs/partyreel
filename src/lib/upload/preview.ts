@@ -139,7 +139,7 @@ async function generateVideoPreview(
 }
 
 /**
- * THE CUT'S POSTER, AS ITS PREVIEW (the live reel's cut seam, 2026-09-24). The on-device creator
+ * THE CUT'S POSTER, AS ITS PREVIEW (the live reel's cut seam). The on-device creator
  * already holds the frame it wants the album to show for a cut (it drew it), so `addCutToAlbum`
  * hands that image in rather than asking this module to seek into a freshly encoded video, which a
  * browser that just encoded it may still be unable to decode. It is re-encoded to the preview's own

@@ -1,21 +1,19 @@
 "use client";
 
 /**
- * THE LIVE REEL ON THE ALBUM PAGE (reel-guest-wiring, 2026-09-24): the controller that decides
- * whether this viewer's album has a reel, opens and closes the full-screen view from the address
- * (`?reel`, `?reel=screen`), and hosts the three things that hang off it: the Highlight reel tile,
- * the view itself (lazy), and the one-time approval toast.
+ * THE LIVE REEL ON THE ALBUM PAGE: the controller that decides whether this viewer's album has a
+ * reel, opens and closes the full-screen view from the address (`?reel`, `?reel=screen`), and hosts
+ * the three things that hang off it: the Highlight reel tile, the view itself (lazy), and the
+ * one-time approval toast.
  *
- * Will's concept, verbatim: "The main reel is a dynamically created, faster-paced slideshow
- * (designed as somewhat of a clickable showpiece in the album) that randomizes all the
- * current/existing (not hidden) media in the event gallery for an immediately watchable reel
- * anytime ... Does not require any host action for main reel." So nothing here is stored and
- * nothing waits on the host: the reel is the album's own live payload (gallery-live.tsx),
- * composed on this device.
+ * The main reel is a faster-paced slideshow the album builds by itself: a clickable showpiece that
+ * shuffles every current (not hidden) photo and video in the event into a reel anyone can watch
+ * at any time, with nothing asked of the host. So nothing here is stored and nothing waits on the
+ * host: the reel is the album's own live payload (gallery-live.tsx), composed on this device.
  *
  * ★ IT EXISTS FROM THE SECOND ITEM, AND BELOW IT THERE IS NOTHING (`liveReelAvailable`): no tile, no
  * view, no `?reel`. With the host's switch off, the platform lever off, or a door still standing
- * (access short of `full`) there is nothing either. One exception, by ruling: the screen posture
+ * (access short of `full`) there is nothing either. One exception: the screen posture
  * below the minimum shows its idle state (the code and the address alone), because the host set a
  * screen up before anyone arrived, and a blank wall is the one place a code does its job best.
  *
@@ -104,9 +102,9 @@ export type LiveReelProps = {
   /** This device's upload queue: the toast reads its held items. */
   queue: readonly QueueItem[];
   /**
-   * ★ THE WELCOME COMES FIRST (Will, 2026-09-24): this visitor still owes the door (the page's
-   * EntryModal says so, and a page that has not heard from it yet assumes so). While it is owed an
-   * address's reel waits, under nothing and over nothing, and opens the moment they are through.
+   * ★ THE WELCOME COMES FIRST: this visitor still owes the door (the page's EntryModal says so,
+   * and a page that has not heard from it yet assumes so). While it is owed an address's reel
+   * waits, under nothing and over nothing, and opens the moment they are through.
    */
   welcomePending?: boolean;
   children: ReactNode;
@@ -138,12 +136,11 @@ export function LiveReel({
   const creator =
     !isDemo && REEL_CREATOR && live.reel?.cut ? REEL_CREATOR : null;
 
-  // ★ THE WELCOME COMES FIRST (Will, 2026-09-24, his words: "In my head, a host would login to a
-  // venue computer or send that laptop a link as guest to play the reel from event page after going
-  // through the welcome flow"). A visitor who still owes the door meets it first, with no reel
-  // under it or over it; the moment they are through, the reel their link asked for opens. The
-  // owner never owes it. The screen posture is no exception: a wall is set up by someone who has
-  // been through the door on that device, like any guest.
+  // ★ THE WELCOME COMES FIRST. A visitor who still owes the door meets it first, with no reel under
+  // it or over it; the moment they are through, the reel their link asked for opens. The owner
+  // never owes it. The screen posture is no exception: whoever sets up a wall (a host signed in on
+  // a venue computer, or a laptop sent the guest link) has been through the door on that device,
+  // like any guest.
   //
   // ★ WHAT AN ADDRESS ASKING FOR THE REEL GETS, once the door is behind them. At full access the
   // answer is final: the view, the screen's idle state below the minimum, or (the reel off, or a
@@ -221,13 +218,11 @@ const NO_ITEMS: readonly GalleryItem[] = [];
 const TILE_HOLD_SEC = 3.2;
 
 /**
- * THE HIGHLIGHT REEL TILE (Will's `tile=crossfade` and `verbs=watch-make`, as amended): its own
- * slot above the album, a slow crossfade of the reel's own stills, headed "Highlight reel". The
- * description "Make your own clip to share" appears only once a creator is registered, so no build
- * promises a clip it cannot make. No style name, no moment count, no corner badge (his `verbs`
- * note), and no chip until reel-front's second round names what replaces it. The album beneath it
- * carries the count. A tap opens the view. Absent below the minimum (`states=nothing`), and it
- * stays after uploads close (`closed=plays`).
+ * THE HIGHLIGHT REEL TILE: its own slot above the album, a slow crossfade of the reel's own stills,
+ * headed "Highlight reel". The description "Make your own clip to share" appears only once a
+ * creator is registered, so no build promises a clip it cannot make. No style name, no moment
+ * count, no corner badge, no chip. The album beneath it carries the count. A tap opens the view.
+ * Absent below the minimum, and it stays after uploads close.
  */
 export function LiveReelTile({ className }: { className?: string }) {
   const controller = useReelController();
@@ -310,11 +305,10 @@ export function LiveReelTile({ className }: { className?: string }) {
 /* ── the approval toast ──────────────────────────────────────────────────────── */
 
 /**
- * WILL'S `yours=toast`, verbatim: "should likely be a more clear 'The host added your uploads' with
- * a 'Watch reel' action if guests are deeper in the album but want to check it out immediately. The
- * more generic 'The host added your uploads' intentionally avoids numbers in case all weren't, and
- * to avoid having to update a live number in the toast so it simply appears once when at least 1+
- * guest media will be in the reel with moderation enabled."
+ * THE APPROVAL TOAST: "The host added your uploads", with a "Watch reel" action for a guest deep in
+ * the album who wants to see it now. It carries no number, because not every upload may have been
+ * approved and a live count would need updating in place; it simply appears once, when at least
+ * one of this guest's uploads will be in the reel on a moderated event.
  *
  * ★ ONCE PER VISIT, on a moderated event, the moment the first of this device's HELD uploads shows up
  * approved in the album (its media id reaches the live list) and would play (not a cut). Never

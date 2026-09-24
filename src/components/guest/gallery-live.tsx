@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * ★ ONE LIVE SOURCE FOR THE ALBUM AND THE REEL (reel-guest-wiring, 2026-09-24).
+ * ★ ONE LIVE SOURCE FOR THE ALBUM AND THE REEL.
  *
  * The live gallery's state lives here, in a provider mounted above BOTH the album and the reel (the
  * tile, the full-screen view, the toast), because a reel that read the SEED promise
@@ -19,13 +19,13 @@
  * `reportPossibleExpiry` is the watchdog: it drops the validator and forces one full refetch, at most
  * once a minute.
  *
- * ★ MOUNTED WITH key={access} by the page, like the gallery was: an access flip (teaser -> full
- * after a sign-in, via router.refresh()) is a clean remount that re-seeds from the fresh promise, no
- * resync effects. The seed arrives through React 19's `use()`, so this suspends behind the page's
- * <Suspense> and the presign-heavy payload never blocks the shell's paint.
+ * ★ MOUNTED WITH key={access} by the page: an access flip (teaser -> full after a sign-in, via
+ * router.refresh()) is a clean remount that re-seeds from the fresh promise, no resync effects. The
+ * seed arrives through React 19's `use()`, so this suspends behind the page's <Suspense> and the
+ * presign-heavy payload never blocks the shell's paint.
  *
- * `LiveGallery` still mounts on its own (it wraps itself in one of these when it finds none above
- * it), so its contract file drives it exactly as before.
+ * `LiveGallery` also mounts on its own (it wraps itself in one of these when it finds none above
+ * it), so its test file drives it standalone.
  */
 import {
   createContext,
@@ -75,7 +75,7 @@ export type GalleryPayload = {
 };
 
 /**
- * THE HEADER'S "N PHOTOS & VIDEOS", AS ARITHMETIC (the 1,000-row round, C9). Pure and exported so
+ * THE HEADER'S "N PHOTOS & VIDEOS", AS ARITHMETIC (the exact, live count). Pure and exported so
  * the rule is pinnable without the whole live gallery.
  *
  * `server` is the last payload's own pair: the album's head count (`total`) and how many items it
@@ -86,9 +86,9 @@ export type GalleryPayload = {
  * whole album, so this equals the grid; at `teaser` it sent nine photographs and says how big the
  * album behind them is.
  *
- * A payload with no head count (an older server during a deploy, or a test's fixture) keeps the
- * earlier rule: the grid's own length at `full`, and at `teaser` the page's `fallbackTotal`, then
- * the photo-only `teaserTotal`, then the grid.
+ * A payload with no head count (an older server during a deploy, or a test's fixture) falls back
+ * to the grid's own length at `full`, and at `teaser` to the page's `fallbackTotal`, then the
+ * photo-only `teaserTotal`, then the grid.
  */
 export function albumCount({
   access,
@@ -110,10 +110,10 @@ export function albumCount({
 }
 
 /**
- * HOW OPEN EACH LEVEL IS, FOR THE STRICTER/LOOSER COMPARISON BELOW (DEFECT 1, `door-fixes`,
- * 2026-09-21). `none` never mounts a gallery at all (`event-experience.tsx` renders the locked
- * river instead), but the rank stays total so a password appearing under an existing session — the
- * same family of drift — compares the same way as a upload/account gate appearing.
+ * HOW OPEN EACH LEVEL IS, FOR THE STRICTER/LOOSER COMPARISON BELOW (the stricter-drift guard).
+ * `none` never mounts a gallery at all (`event-experience.tsx` renders the locked river instead),
+ * but the rank stays total so a password appearing under an existing session — the same family of
+ * drift — compares the same way as a upload/account gate appearing.
  */
 const ACCESS_RANK: Record<GalleryAccess, number> = { none: 0, teaser: 1, full: 2 };
 
@@ -124,11 +124,11 @@ export type LiveGalleryHandle = {
   /** An upload finished: optimistic tile (approved only) + a refresh. */
   notifyUploaded: (u: UploadedItem) => void;
   /**
-   * A rename lands (POLISH 2, the identity red-team, 2026-09-21): patch this
-   * device's OWN credits in place — the tile/lightbox attribution for every
-   * item `ownIds` already knows is theirs — rather than waiting for the next
-   * poll tick. The server's own truth still arrives on schedule and simply
-   * confirms the same value, so this is never the last word, only the first.
+   * A rename lands (the rename patch): patch this device's OWN credits in
+   * place — the tile/lightbox attribution for every item `ownIds` already
+   * knows is theirs — rather than waiting for the next poll tick. The server's
+   * own truth still arrives on schedule and simply confirms the same value, so
+   * this is never the last word, only the first.
    */
   renameMine: (displayName: string) => void;
 };
@@ -189,14 +189,13 @@ export type GalleryLiveProviderProps = {
   access: GalleryAccess;
   isDemo: boolean;
   /**
-   * ★ THE POLL IS NOT THE FLIP (the door as three steps, 2026-09-21). The poll re-runs the whole
-   * decision server-side, so it is the first place a CHANGE of decision shows up: a contribution
-   * made in another tab (looser), or the host turning Require an upload to view on while this
-   * guest is inside (stricter). Fired once per CHANGED decision, never per poll, and what to do
-   * about it belongs to the page (which knows whether a thumb is on the album right now) — this
-   * provider does its own half of the same rule regardless (see `refresh`'s stricter check): a
-   * stricter payload never reaches `serverItems` here either, so the two hold together even before
-   * the page's own deferred refresh lands.
+   * ★ THE POLL IS NOT THE FLIP. The poll re-runs the whole decision server-side, so it is the
+   * first place a CHANGE of decision shows up: a contribution made in another tab (looser), or the
+   * host turning Require an upload to view on while this guest is inside (stricter). Fired once
+   * per CHANGED decision, never per poll, and what to do about it belongs to the page (which knows
+   * whether a thumb is on the album right now) — this provider does its own half of the same rule
+   * regardless (see `refresh`'s stricter check): a stricter payload never reaches `serverItems`
+   * here either, so the two hold together even before the page's own deferred refresh lands.
    */
   onAccessDrift?: (next: { access: GalleryAccess; gate: string | null }) => void;
   /** Keeps the shell header's live media count current (incl. optimistic tiles). */
@@ -204,7 +203,8 @@ export type GalleryLiveProviderProps = {
   /**
    * What this DEVICE has sent that is not in the album yet: everything still in
    * flight, plus anything a hold-for-approval event is keeping back (the shell
-   * passes both; `failed=sheet` means a refused file is not among them).
+   * passes both; a refused file is not among them, since the failure sheet
+   * holds it).
    */
   pendingUploads?: QueueItem[];
   /** The ids a SIGNED-IN viewer uploaded, resolved in the page RSC. */
@@ -217,10 +217,10 @@ export type GalleryLiveProviderProps = {
   sessionToken?: string | null;
   /**
    * `getGalleryStats`'s own admin-read total (photos AND videos), threaded
-   * down from the shell's `stats` prop (POLISH 1, the identity red-team,
-   * 2026-09-21): the FALLBACK now. The gallery payload carries the album's
-   * head count itself (`GalleryPayload.approvedTotal`, on the render and every
-   * poll's 200), and that live number wins; this one is read only at `teaser`
+   * down from the shell's `stats` prop (the one true count): the FALLBACK.
+   * The gallery payload carries the album's head count itself
+   * (`GalleryPayload.approvedTotal`, on the render and every poll's 200),
+   * and that live number wins; this one is read only at `teaser`
    * when a payload arrives without it (an older server mid-deploy).
    */
   approvedTotal?: number;
@@ -274,15 +274,15 @@ export function GalleryLiveProvider({
   // tile becomes the optimistic tile).
   const pendingBlobs = useRef(new Map<string, string>());
   /* ────────────────────────────────────────────────────────────────────────
-     THE ARRIVAL GRAMMAR, AS TWO LISTS (Will, `landing=sweep`, 2026-09-21: "This
-     should be consistent across guest and host arrival experiences"). Every id
+     THE ARRIVAL GRAMMAR, AS TWO LISTS, the same grammar a host's own arrivals
+     follow, so an arrival reads alike on either side of the album. Every id
      that has appeared in the album by itself, and every id THIS device landed;
      `lib/shared/arrival.ts` turns the pair into the two marks and holds each one
      for exactly as long as its keyframe runs. Both are plain append-only lists
      rather than timers and sets, because deciding WHICH mark an id takes is
-     arithmetic the host's own surfaces need too, and the timers are the part
-     that was replaying light on re-renders when it lived in a component. The
-     reel reads `arrivals` too: it is what names a fresh upload in the view.
+     arithmetic the host's own surfaces need too, and timers held in a
+     component replay the light on re-renders. The reel reads `arrivals` too:
+     it is what names a fresh upload in the view.
      ──────────────────────────────────────────────────────────────────────── */
   const [arrivals, setArrivals] = useState<string[]>([]);
   const [ownLandings, setOwnLandings] = useState<string[]>([]);
@@ -346,11 +346,11 @@ export function GalleryLiveProvider({
           onAccessDrift?.({ access: body.access, gate: body.gate ?? null });
         }
         /* ────────────────────────────────────────────────────────────────
-           ★ A STRICTER DRIFT NEVER YANKS AN OPEN ALBUM (DEFECT 1, the door
-           red-team, 2026-09-21). The host turning Require an upload to view
-           ON reaches THIS poll before the shell's own deferred refresh does
-           (`onAccessDrift` above only asks the shell to remember it for the
-           guest's next act — it does not itself hold anything back here).
+           ★ A STRICTER DRIFT NEVER YANKS AN OPEN ALBUM (the stricter-drift
+           guard). The host turning Require an upload to view ON reaches THIS
+           poll before the shell's own deferred refresh does (`onAccessDrift`
+           above only asks the shell to remember it for the guest's next act
+           — it does not itself hold anything back here).
            Applying the narrower payload in place would drop a guest from a
            54-tile album to 9 mid-scroll for a switch they never touched. So
            when the incoming decision is LESS open than the one this instance
@@ -361,7 +361,7 @@ export function GalleryLiveProvider({
            stricter state should 304 on the NEXT tick, not re-walk this same
            branch every cadence), and everything on screen holds until the
            remount the shell schedules. A LOOSER or EQUALLY-open drift (the
-           ordinary case) falls through and applies exactly as before.
+           ordinary case) falls through and applies as usual.
            ──────────────────────────────────────────────────────────────── */
         if (ACCESS_RANK[body.access] < ACCESS_RANK[access]) {
           etagRef.current = res.headers.get("etag");
@@ -371,8 +371,8 @@ export function GalleryLiveProvider({
       etagRef.current = res.headers.get("etag");
       const items = body.items;
       // Reconcile by id. This MUST adopt refreshed presigned URLs: keeping the
-      // already-rendered object forever (what this used to do) meant a gallery
-      // left open outlived its signatures and every tile 403'd at ~90 min.
+      // already-rendered object forever would let a gallery left open outlive
+      // its signatures, and every tile would 403 at ~90 min.
       // Identity is still preserved whenever the row is unchanged, so the
       // ordinary poll touches no <img>. See reconcile-gallery-items.ts.
       const previous = serverItemsRef.current;
@@ -432,16 +432,15 @@ export function GalleryLiveProvider({
 
   // The fallback poll, paused while the tab is hidden: the shared cadence
   // (`lib/shared/use-live-poll.ts`), a 60s safety net while the doorbell is live
-  // and the old 12s blind poll when the socket is down. In demo mode there is
+  // and a 12s blind poll when the socket is down. In demo mode there is
   // nothing to poll — the curated media is static and the simulated tiles are
   // local-only — so `liveEnabled` switches it off entirely.
   useLivePoll({ enabled: liveEnabled, live, onPoll: refresh });
 
-  /* ★ THE WATCHDOG (the reel's own, 2026-09-24). A presign that died answers a CORS-shaped failure
-     with no status, so a consumer cannot tell "expired" from "offline" and must not try: it reports,
-     and this drops the validator (a 304 would hand back nothing) and forces one full refetch, whose
-     fresh presigns every consumer then reads by id. Once a minute at most, however many images a
-     sleeping tab finds dead at once. */
+  /* ★ THE WATCHDOG. A presign that died answers a CORS-shaped failure with no status, so a consumer
+     cannot tell "expired" from "offline" and must not try: it reports, and this drops the validator
+     (a 304 would hand back nothing) and forces one full refetch, whose fresh presigns every consumer
+     then reads by id. Once a minute at most, however many images a sleeping tab finds dead at once. */
   const lastForcedRef = useRef(0);
   const reportPossibleExpiry = useCallback(() => {
     if (!liveEnabled) return;
@@ -453,7 +452,7 @@ export function GalleryLiveProvider({
   }, [liveEnabled, refresh]);
 
   // Revoke any lingering blob URLs on unmount (the arrival marks own their own
-  // timers now, inside lib/shared/arrival.ts).
+  // timers, inside lib/shared/arrival.ts).
   useEffect(() => {
     const blobs = blobUrls.current;
     const pending = pendingBlobs.current;
@@ -466,8 +465,8 @@ export function GalleryLiveProvider({
   }, []);
 
   /* ────────────────────────────────────────────────────────────────────────
-     A GUEST'S OWN PHOTOGRAPHS (Will, `yours`, 2026-09-20: "A guest can delete
-     any photo they've personally uploaded, ever"; final for the host too).
+     A GUEST'S OWN PHOTOGRAPHS: a guest can delete any photograph they uploaded
+     themselves, with no time limit, and the delete is final for the host too.
 
      TWO IDENTITIES, ONE CONTROL. Signed in, the account owns the rows and the
      page RSC already resolved them into `canDeleteIds`. Anonymous, the only
@@ -491,7 +490,7 @@ export function GalleryLiveProvider({
      server's own answer, `create_media` wrote the row under this identity) and one it just removed
      (the removal RPC said yes). Kept for BOTH identities: a signed-in guest's list is baked into a
      render and `removeMyUploadGuestAction` revalidates nothing, so without these their new photograph
-     had no Trash and no mark, and a removed one still counted toward "your last upload". */
+     would have no Trash and no mark, and a removed one would still count toward "your last upload". */
   const [addedMine, setAddedMine] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
@@ -540,11 +539,11 @@ export function GalleryLiveProvider({
    * How many LIVE uploads of this guest's the device knows of, leaving one out
    * (the one being removed): their own photographs here (the server's list,
    * plus what they added this visit), and any held file still waiting for the
-   * host, which counts toward the door just the same. Guest by upload, Will
-   * 2026-09-22: on a Require-an-upload-to-view album the LAST of them is the
-   * one whose removal closes the album again. The server has the final word
-   * (the page refreshes onto it); this only decides what the confirm says and
-   * whether that refresh is worth asking for.
+   * host, which counts toward the door just the same. When the host requires an
+   * upload to view the album, the LAST of them is the one whose removal closes
+   * it again. The server has the final word (the page refreshes onto it); this
+   * only decides what the confirm says and whether that refresh is worth asking
+   * for.
    */
   const liveOwnCount = useCallback(
     (leavingOut: string | null) => {
@@ -634,9 +633,9 @@ export function GalleryLiveProvider({
           { id: u.mediaId, type: u.kind, url, downloadUrl: url },
           ...prev.filter((m) => m.id !== u.mediaId),
         ]);
-        // YOURS IS IN (`landing=sweep`): newest first, because only the newest
-        // own tile takes the sweep — a batch of twelve is exactly the pile-up
-        // Will banked the shimmer to avoid.
+        // YOURS IS IN: newest first, because only the newest own tile takes the
+        // sweep — a batch of twelve is exactly the pile-up the shimmer is held
+        // back to avoid.
         setOwnLandings((prev) => [u.mediaId, ...prev]);
       }
       // A guest's own new photograph is removable (and marked) the instant it
@@ -649,12 +648,12 @@ export function GalleryLiveProvider({
       }
       if (!isDemo) void refresh();
     },
-    // POLISH 2 (the identity red-team, 2026-09-21): patch this device's own
-    // credits the instant a rename lands, in BOTH item lists — the confirmed
-    // server set and anything this device has in flight — rather than the
-    // guest reading their old name on their own photographs until the next
-    // poll tick. `ownIds` is the same server-truth set Remove and the Yours
-    // filter already gate on, never a client guess.
+    // The rename patch: the instant a rename lands, patch this device's own
+    // credits in BOTH item lists — the confirmed server set and anything this
+    // device has in flight — rather than the guest reading their old name on
+    // their own photographs until the next poll tick. `ownIds` is the same
+    // server-truth set Remove and the Yours filter already gate on, never a
+    // client guess.
     renameMine(displayName) {
       const patch = <T extends GridMedia>(m: T): T =>
         ownIds.has(m.id) ? { ...m, uploaderName: displayName } : m;
@@ -701,13 +700,13 @@ export function GalleryLiveProvider({
     [serverItems],
   );
 
-  // THE ALBUM'S TRUE SIZE, EXACT AND LIVE AT EVERY LEVEL (POLISH 1, the
-  // identity red-team, 2026-09-21; the 1,000-row round's C9). A count is
-  // counted, never a list's length: at `teaser` the grid is nine photographs
-  // and no video, and at `full` a list's length is exactly as trustworthy as
-  // the read behind it. So the header's number is the SERVER's head count, the
-  // one every payload carries (the render's and each poll's 200, which the ETag
-  // rolls for), plus what this device changed since (`albumCount`): a guest's
+  // THE ALBUM'S TRUE SIZE, EXACT AND LIVE AT EVERY LEVEL (the one true count,
+  // and the exact, live count). A count is counted, never a list's length: at
+  // `teaser` the grid is nine photographs and no video, and at `full` a list's
+  // length is exactly as trustworthy as the read behind it. So the header's
+  // number is the SERVER's head count, the one every payload carries (the
+  // render's and each poll's 200, which the ETag rolls for), plus what this
+  // device changed since (`albumCount`): a guest's
   // own upload counts the instant its tile lands, their own removal the instant
   // it leaves, and the next 200 settles both onto the server's number. The CTA
   // says the same number, so the header, the CTA and the door never read an
@@ -719,7 +718,7 @@ export function GalleryLiveProvider({
     fallbackTotal: approvedTotal,
     teaserTotal: seed.teaserTotal,
   });
-  // The header owns the visible count line (Phase 4); keep it current. It is
+  // The header owns the visible count line; keep it current. It is
   // the WHOLE album's count and stays that way under the Yours filter: the
   // event's line says how big the album is, never how much of it is on screen.
   useEffect(() => {

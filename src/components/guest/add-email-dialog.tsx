@@ -23,8 +23,8 @@ import { dropGuestTicket } from "@/lib/guest/use-stored-session";
 import { MAX_GUEST_EMAIL_LENGTH } from "@/lib/validation/upload";
 
 /**
- * THE SECOND CHANCE AT THE OPTIONAL ADDRESS (Will, 2026-09-22, "guest identity:
- * name only, unconfirmed email, verified account").
+ * THE SECOND CHANCE AT THE OPTIONAL ADDRESS: the unconfirmed email between a
+ * guest's name only and a verified account.
  *
  * The door asks for an address under the name, and most guests will skip it
  * there: they are three taps from an album full of a party they are standing
@@ -33,8 +33,7 @@ import { MAX_GUEST_EMAIL_LENGTH } from "@/lib/validation/upload";
  *
  * ★ A DIALOG, NOT A STEP. The door's steps are HELD and ordered, and a guest who
  * reaches this has already been through them; reopening the itinerary to add one
- * optional field would be re-gating an album they are already inside. (The call
- * is the lane's, his to overrule.)
+ * optional field would be re-gating an album they are already inside.
  *
  * ★ IT PROMISES ONLY WHAT IT DELIVERS. An unconfirmed address is inert: nothing
  * is sent to it, the host never sees it, and it does not make this guest
@@ -90,12 +89,12 @@ export function AddEmailDialog({
         email: address,
       });
       if (!put.ok) {
-        /* ★ EXCEPT A TICKET THAT WAS NOT THIS VIEWER'S (the upload-owner lane,
-           2026-09-23). The name in this menu belongs to a row an account owns,
-           kept by this device past that account's sign-out: nothing typed here
-           could fix that, so a sentence under the field would be a dead end. The
-           ticket goes down instead (its name with it, so this menu closes), and
-           the door asks the person actually holding the phone for their own. */
+        /* ★ EXCEPT A TICKET THAT WAS NOT THIS VIEWER'S. The name in this menu
+           belongs to a row an account owns, kept by this device past that
+           account's sign-out: nothing typed here could fix that, so a sentence
+           under the field would be a dead end. The ticket goes down instead (its
+           name with it, so this menu closes), and the door asks the person
+           actually holding the phone for their own. */
         if (put.refusal.kind === SESSION_OTHER_ACCOUNT) {
           await dropGuestTicket(qrToken);
           onOpenChange(false);

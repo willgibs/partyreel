@@ -1,20 +1,22 @@
-// @contract-for: src/components/guest/guest-name-step.tsx
-// @contract-for: src/components/guest/upload-step.tsx
 /**
- * Behavior pins for the guest DOOR (Will, 2026-09-21, "the door as three steps") and the flow
- * wiring that must survive the next shell swap. Pins run the DESKTOP Dialog branch (the setup's
- * matchMedia mock defaults to a 1024px viewport): vaul's drawer needs real layout/pointer
- * machinery jsdom lacks, so sheet physics are device-verified, never pinned. Behaviors only - no
- * classes, no animation timings.
+ * Behavior pins for the guest DOOR and the flow wiring that must survive the next shell swap.
+ * Pins run the DESKTOP Dialog branch (the setup's matchMedia mock defaults to a 1024px viewport):
+ * vaul's drawer needs real layout/pointer machinery jsdom lacks, so sheet physics are
+ * device-verified, never pinned. Behaviors only - no classes, no animation timings.
  *
- * ★ THE AFFORDANCE TABLE IS ONE ROW NOW. It used to have five: a welcome that was held before a
- * password and free before an account gate, a held password, a free account step, a free name
- * step. "No exit" collapsed all of it: every step of the door is held, and the one free surface
- * left is the album menu's "Change name".
+ * ★ THE AFFORDANCE TABLE IS ONE ROW: no exit. Every step of the door is held, and the one free
+ * surface is the album menu's "Change name".
  */
 import { createRef } from "react";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   EntryModal,
@@ -117,6 +119,17 @@ beforeEach(() => {
   global.fetch = vi.fn();
 });
 
+// Radix's FocusScope restores focus on unmount from a `setTimeout(0)` that dispatches on its
+// container. Unmount here and let that timer run while the document still exists: left pending, a
+// loaded run can reach it after jsdom is torn down, where `dispatchEvent` throws as an unhandled
+// error. (After hooks run in reverse order, so the setup file's own cleanup would come too late.)
+afterEach(async () => {
+  cleanup();
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+});
+
 describe("no exit: the affordance table is one row", () => {
   it("HOLDS the welcome, whatever follows it", () => {
     renderModal({ access: "none", gate: "password" });
@@ -149,7 +162,7 @@ describe("no exit: the affordance table is one row", () => {
     expect(screen.getByLabelText("Event password")).toBeInTheDocument();
   });
 
-  it("HOLDS the email step, which used to close to the teaser", () => {
+  it("HOLDS the email step: no close, and Escape leaves it standing", () => {
     seeWelcome();
     renderModal({ access: "teaser", gate: "account", storedName: "Priya" });
     expect(screen.getByTestId("email-sign-in")).toBeInTheDocument();
@@ -249,9 +262,9 @@ describe("the demo", () => {
     expect(screen.queryAllByText("Change your name")).toHaveLength(0);
   });
 
-  /* ── "the door's first look" (Will, 23:46 EDT, 2026-09-21): "it should treat each visit as a
-     fresh visit, even if it's returning. That way every demo is end-to-end." Two halves: the
-     welcome never trusts an old "seen" flag, and nothing along the way writes a new one. ── */
+  /* ── A demo treats every visit as a fresh one, even a returning one, so every demo runs end to
+     end. Two halves: the welcome never trusts an old "seen" flag, and nothing along the way
+     writes a new one. ── */
 
   it("shows the role welcome even when this browser's flag already says seen", () => {
     seeWelcome();
@@ -262,8 +275,8 @@ describe("the demo", () => {
   it("Continue, then Look around, persists nothing: the NEXT mount is fresh too", () => {
     renderModal({ isDemo: true });
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-    // The OLD bug: this skip used to call markSeen() for the demo specifically, which is
-    // exactly the "returning" state his override retires.
+    // The skip must never call markSeen() for the demo: that flag is exactly the "returning"
+    // state a demo must never reach.
     fireEvent.click(screen.getByRole("button", { name: "Look around" }));
     expect(localStorage.getItem(`pr_welcome_${QR}`)).toBeNull();
 
@@ -284,11 +297,11 @@ describe("the upload step", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("ON: there is no skip at all, and the line leaves the host unnamed (his 23:46 override)", () => {
+  it("ON: there is no skip at all, and the line leaves the host unnamed", () => {
     seeWelcome();
     // hostName is passed on purpose: even with a real name available, the ON line must not use it
-    // (long host names breaking good design, his words) - a regression here would still pass if
-    // the prop were simply missing.
+    // (a long host name breaks the design) - a regression here would still pass if the prop were
+    // simply missing.
     renderModal({
       storedName: "Priya",
       requireUpload: true,
@@ -428,10 +441,10 @@ describe("the name step", () => {
   });
 
   /* ────────────────────────────────────────────────────────────────────────
-     THE OPTIONAL ADDRESS (Will, 2026-09-22). The pins are rules, not a look:
-     the field exists in names mode and nowhere else; it is genuinely optional;
-     a typed address rides the SAME post as the name; and what the door believes
-     afterwards is the ROW's answer, never the form's.
+     THE OPTIONAL ADDRESS. The pins are rules, not a look: the field exists in
+     names mode and nowhere else; it is genuinely optional; a typed address rides
+     the SAME post as the name; and what the door believes afterwards is the
+     ROW's answer, never the form's.
      ──────────────────────────────────────────────────────────────────────── */
   it("offers the address as optional, unfocused, under the name", () => {
     seeWelcome();
@@ -560,7 +573,7 @@ describe("the name step", () => {
     );
   });
 
-  it("says 'the host', whoever the host is (Will, 2026-09-22)", () => {
+  it("says 'the host', whoever the host is", () => {
     seeWelcome();
     renderModal({ hostName: "Will Gibson" });
     expect(
@@ -740,13 +753,12 @@ describe("the confirmation sequence", () => {
 });
 
 describe("the back affordance", () => {
-  it('a step\'s chevron re-shows the welcome, whose own primary always reads "Continue" (his 23:46 override), and returns without touching the machine', () => {
-    // ★ "Don't make back bidirectional. Keep 'Continue' for users to resume forward navigation
-    // clearly... Everyone is super comfortable with a 'back/continue' working the same as
-    // 'prev/next'." (Will, "the door's first look", 2026-09-21, overruling a `door-steps` call
-    // that read "Back to the password" here.) The CHEVRON that brought the guest here keeps
-    // saying "Back to X" (its own affordance, pinned here and below) — only the reviewed sheet's
-    // own primary button changed, from "Back"/"Back to the password" to a flat "Continue".
+  it('a step\'s chevron re-shows the welcome, whose own primary always reads "Continue", and returns without touching the machine', () => {
+    // ★ Back is never bidirectional. The re-shown welcome keeps "Continue" as its primary so going
+    // forward again reads clearly, and back/continue works the way everyone already reads
+    // prev/next. The CHEVRON that brought the guest here keeps saying "Back to X" (its own
+    // affordance, pinned here and below); only the re-shown sheet's own primary button is a flat
+    // "Continue", never "Back" or "Back to the password".
     seeWelcome();
     renderModal({ access: "none", gate: "password" });
     fireEvent.click(screen.getByRole("button", { name: "Back to the welcome" }));

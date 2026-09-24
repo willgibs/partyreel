@@ -1,10 +1,9 @@
 "use client";
 
 /**
- * THE REEL'S ADDRESS (reel-guest-wiring, 2026-09-24): `?reel` opens the full-screen view, and
- * `?reel=screen` opens the same view in its screen posture (the code on, a one-tap Start). Will's
- * ruling: "The view is the wall" — one view for a phone, a laptop and an event screen, so one
- * parameter with one optional value, never a second route.
+ * THE REEL'S ADDRESS: `?reel` opens the full-screen view, and `?reel=screen` opens the same view in
+ * its screen posture (the code on, a one-tap Start). One view serves a phone, a laptop and an event
+ * screen alike, so one parameter with one optional value, never a second route.
  *
  * ★ OPENING PUSHES, CLOSING POPS. A phone's back gesture must close a full-screen view rather than
  * leave the album, so opening pushes a history entry (Next 16 integrates `history.pushState` with its

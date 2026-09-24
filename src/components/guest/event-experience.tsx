@@ -72,19 +72,19 @@ import { createClient } from "@/lib/supabase/client";
 import { cn, formatEventDate } from "@/lib/utils";
 
 /**
- * THE PAGE'S TWO BOXES (Will, 2026-09-19).
+ * THE PAGE'S TWO BOXES.
  *
- * `width=full`: "The album runs to 20 px from each edge: every window gets
- * every column it can hold." `words=edge`: "The logo, the name, the buttons and
- * the photographs share one left line, the way a photo app reads; the room to
- * the right of the words stays open."
+ * The album runs the window's width, to 20 px from each edge, so every window
+ * gets every column it can hold. The words sit on the left edge: the logo, the
+ * name, the buttons and the photographs share one left line, the way a photo
+ * app reads, and the room to the right of the words stays open.
  *
- * So the page root stops being a column: it carries no measure and no gutter of
- * its own, and each block declares which of the two it is. COLUMN is today's
- * 632 px of reading measure (42rem less its two 20 px gutters), pinned LEFT
- * rather than centred, so its first letter lands on the same 20 px line as the
- * header's logo above it and the album's first column below it. BLEED is the
- * album: the gutter alone, and the window decides the rest.
+ * So the page root is not a column: it carries no measure and no gutter of its
+ * own, and each block declares which of the two it is. COLUMN is the 632 px of
+ * reading measure (42rem less its two 20 px gutters), pinned LEFT rather than
+ * centred, so its first letter lands on the same 20 px line as the header's logo
+ * above it and the album's first column below it. BLEED is the album: the
+ * gutter alone, and the window decides the rest.
  *
  * ★ ONLY THE PHOTOGRAPHS LEAVE THE COLUMN. Everything the page SAYS — the name,
  * the byline, the buttons, the reel card, the upload panel, the guest list —
@@ -99,7 +99,7 @@ const BLEED = "px-5";
 // stable subscribe, never a resubscribe every render).
 const subscribeNoop = () => () => {};
 
-// Code split (Phase 3): the entry-modal tree (welcome/password/account steps)
+// Code split: the entry-modal tree (welcome/password/account steps)
 // only matters pre-gate; React.lazy (NOT next/dynamic - the modal is a
 // forwardRef and dynamic() doesn't forward refs) moves it out of first-load
 // JS. Its auto-open already waits for hydration, so the async chunk just
@@ -110,7 +110,7 @@ const EntryModalLazy = lazy(() =>
   })),
 );
 
-// The guest event SHELL (Phase 3 streaming split): header + entry modal +
+// The guest event SHELL (the streaming split): header + entry modal +
 // upload slot render immediately; the presign-heavy gallery streams in behind
 // <Suspense> as LiveGallery (which owns all gallery state + the doorbell/poll
 // machine). Only rendered when the event is public (the server gates that).
@@ -153,46 +153,43 @@ export function EventExperience({
    *  capped preview + a "See all" button that opens the modal's account step. `full` = full experience. */
   access: GalleryAccess;
   /**
-   * WHICH DOOR THE SERVER PUT IN FRONT OF THIS VIEWER (the door as three steps, 2026-09-21).
-   * `teaser` has two causes now — an unconfirmed email and an unmade contribution — and the
-   * door's step machine reads this rather than trying to infer it from the level.
+   * WHICH DOOR THE SERVER PUT IN FRONT OF THIS VIEWER. `teaser` has two causes — an unconfirmed
+   * email and an unmade contribution — and the door's step machine reads this rather than trying
+   * to infer it from the level.
    */
   gate: GalleryGate | null;
   /** Signed-in uploader without a public display name: the door asks for it as its NAME step, in
-   *  `profile` mode (it writes the account's own name). Phase 1's inline panel is retired. */
+   *  `profile` mode (it writes the account's own name). */
   needsName: boolean;
   /** Presigned host avatar URL for the "Hosted by" byline, or null (no photo — the seeded
-   *  initial fallback below carries it). Phase 3. */
+   *  initial fallback below carries it). */
   hostAvatarUrl: string | null;
   /** `seedFor(host_id)`, computed server-side (page.tsx via `getHostAvatarSeed`) — never the
-   *  raw host id itself. Null exactly where `hostAvatarUrl` is (the
-   *  sixth batch, `seed=account`). */
+   *  raw host id itself. Null exactly where `hostAvatarUrl` is. */
   hostSeed?: string | null;
-  /** Viewer is the event host -> the entry modal is suppressed (the owner bypasses the gate). Phase 2. */
+  /** Viewer is the event host -> the entry modal is suppressed (the owner bypasses the gate). */
   isOwner: boolean;
   /** The server-composed named Guests section (profiles-social.md) — non-null ONLY when the
    *  host enabled show_guest_list AND access is full (the page owns that gate). */
   guestListSlot?: React.ReactNode;
   /** The media ids in this album this SIGNED-IN viewer uploaded — resolved in the
-   *  page RSC, never asserted by the browser (Will, `yours`, 2026-09-20). Empty
-   *  for an anonymous guest, whose list comes from `/api/guests/mine` instead. */
+   *  page RSC, never asserted by the browser. Empty for an anonymous guest, whose
+   *  list comes from `/api/guests/mine` instead. */
   canDeleteIds: string[];
   /** Viewer holds an account -> the signed-in remove path (a Server Function on
    *  `remove_my_upload`); otherwise the anonymous one (the session token). */
   isAuthed: boolean;
   /**
    * Viewer holds a CONFIRMED account, which is a different question from
-   * `isAuthed` and the one identity keys on (wave 0's finding, the identity
-   * reshape 2026-09-21: an unconfirmed session carries a uid and still keeps a
-   * typed name, so `user_id` alone is never the test).
+   * `isAuthed` and the one identity keys on (an unconfirmed session carries a
+   * uid and still keeps a typed name, so `user_id` alone is never the test).
    */
   isVerified?: boolean;
   /** The event's host as a public card, for the capture flow's follow moment. */
   hostCard?: FollowMomentHost | null;
   /** Server-resolved from the `pr_tile_size` cookie (page.tsx) — threaded straight
-   *  through to LiveGallery's own View menu (`controls-home=view-menu`) and to
-   *  the streaming skeleton, so both lay out one column count; this shell holds
-   *  no tile-size state of its own. */
+   *  through to LiveGallery's one View menu and to the streaming skeleton, so both
+   *  lay out one column count; this shell holds no tile-size state of its own. */
   initialTileSize?: TileSize;
   /**
    * The album cannot take another upload (the presign's own caps, read off the
@@ -206,39 +203,39 @@ export function EventExperience({
   // ONE resolution of the size for both boxes the album occupies: the skeleton
   // while it streams and the gallery once it lands.
   const tileSize = initialTileSize ?? DEFAULT_TILE_SIZE;
-  /* ★ THE RETURN (guest by upload, 2026-09-22). This album claims the browser's
-     uploads at mount (a Google or magic-link confirmation comes back here signed
-     in) and hears every claim made on it, whichever door started it; `moment` is
-     true once a confirm door opened here AND a claim moved this album's own
-     uploads, and the post-upload slot then plays the follow moment with no
-     upload needed this visit. Never in the demo, never for the host.
-     (lib/guest/use-confirm-return.ts owns the rule.) */
+  /* ★ THE RETURN. This album claims the browser's uploads at mount (a Google or
+     magic-link confirmation comes back here signed in) and hears every claim
+     made on it, whichever door started it; `moment` is true once a confirm door
+     opened here AND a claim moved this album's own uploads, and the post-upload
+     slot then plays the follow moment with no upload needed this visit. Never in
+     the demo, never for the host. (lib/guest/use-confirm-return.ts owns the
+     rule.) */
   const moment = useConfirmReturn(qrToken, !isDemo && !isOwner);
   const [sessionToken, setSessionToken] = useStoredSession(qrToken);
-  // The name this device typed at this event (the identity reshape). Beside the
-  // session, never instead of it: the token is the capability, this is the label.
+  // The name this device typed at this event. Beside the session, never
+  // instead of it: the token is the capability, this is the label.
   const [storedName] = useStoredName(qrToken);
-  /* ★ THE ADDRESS TYPED AT THE DOOR, FOR THIS VISIT AND NO LONGER (the door's
-     optional field, 2026-09-22). It lives in React state on purpose: its ONE
-     job is to prefill the offer card's door, so a guest who has just typed it
-     under their name does not type it again three taps later. Writing it to
-     localStorage would hand it to the next person on a shared phone, which is
-     precisely what `lib/auth/remembered-email.ts` is `/login`-only to prevent;
-     a reload loses it and the door simply asks, which is the right cost. */
+  /* ★ THE ADDRESS TYPED AT THE DOOR, FOR THIS VISIT AND NO LONGER. It lives in
+     React state on purpose: its ONE job is to prefill the offer card's door, so
+     a guest who has just typed it under their name does not type it again three
+     taps later. Writing it to localStorage would hand it to the next person on a
+     shared phone, which is precisely what `lib/auth/remembered-email.ts` is
+     `/login`-only to prevent; a reload loses it and the door simply asks, which
+     is the right cost. */
   const [attachedEmail, setAttachedEmail] = useState<string | null>(null);
   const entryRef = useRef<EntryModalHandle>(null);
-  /* ★ "RETURNING", SNAPSHOTTED ONCE AT MOUNT (the door as three steps, 2026-09-21): did this
-     browser already hold a session for this event when the page loaded? It is what keeps the
-     OFF-state upload step from asking a guest who came back on Sunday to look at the album. A
-     lazy initializer rather than the live `sessionToken`, because the live value flips the
-     instant this visit's own join mints a row and would drop the step under a guest's thumb. It
-     reads storage during the hydration render and feeds only the lazily-loaded entry sheet, which
-     renders nothing until after hydration, so no server-rendered DOM depends on it. */
+  /* ★ "RETURNING", SNAPSHOTTED ONCE AT MOUNT: did this browser already hold a session for this
+     event when the page loaded? It is what keeps the OFF-state upload step from asking a guest
+     who came back on Sunday to look at the album. A lazy initializer rather than the live
+     `sessionToken`, because the live value flips the instant this visit's own join mints a row
+     and would drop the step under a guest's thumb. It reads storage during the hydration render
+     and feeds only the lazily-loaded entry sheet, which renders nothing until after hydration,
+     so no server-rendered DOM depends on it. */
   const [returning] = useState(() => Boolean(readStoredSession(qrToken)));
   // The live media count: seeded by the RSC stats' head count, then kept current
-  // by LiveGallery at `teaser` and `full` (the head count every gallery payload
-  // carries, plus this device's own optimistic tiles and removals; the 1,000-row
-  // round's C9). A locked page mounts no gallery and runs no poll, so there it
+  // by LiveGallery at `teaser` and `full` (the exact, live count: the head count
+  // every gallery payload carries, plus this device's own optimistic tiles and
+  // removals). A locked page mounts no gallery and runs no poll, so there it
   // stays the render's exact count. M (the guests) is the SERVER's count, seeded
   // by the RSC and refreshed by any gallery poll that changed something: a
   // guest's own first upload makes them one, and only the server can tell a
@@ -256,22 +253,22 @@ export function EventExperience({
   const uploadRef = useRef<GuestUploadHandle>(null);
 
   /* ────────────────────────────────────────────────────────────────────────
-     ONE QUEUE FOR BOTH DOORS (the door as three steps, 2026-09-21).
+     ONE QUEUE FOR BOTH DOORS.
 
-     The upload queue used to live inside `GuestUpload`, which only exists at FULL access and
-     inside the album. The door's third step asks for the first photograph BEFORE the album, from
-     a sheet that is not inside `GuestUpload` at all, and the run it starts has to keep going
-     after the door is gone: the first completion opens the album and the other eleven files
-     finish behind it, drawing their tiles at the album's head. So the queue is lifted here, where
-     both surfaces can reach it, and `GuestUpload` is handed the snapshot it used to own.
+     `GuestUpload` only exists at FULL access and inside the album. The door's third step asks for
+     the first photograph BEFORE the album, from a sheet that is not inside `GuestUpload` at all,
+     and the run it starts has to keep going after the door is gone: the first completion opens
+     the album and the other eleven files finish behind it, drawing their tiles at the album's
+     head. So the queue lives here, where both surfaces can reach it, and `GuestUpload` is handed
+     its snapshot.
 
-     `identity-fixes`' deferred-refresh wrapper moved up with it. A mid-run `verification_required`
-     must not `router.refresh()` while the guest is still reading the surface that explains it:
-     the refresh's access flip remounts the gallery-and-upload slot and tears that surface down
-     (measured on the alias at 503 ms). Which surface it is depends on where the run was started,
-     so the deferral asks: the ALBUM's failure sheet is inside the remounted slot and must be
-     waited for; the DOOR's own step is not (the entry sheet sits outside `key={access}`), and
-     re-gating it to the email step immediately is exactly the right answer there.
+     The deferred refresh lives here with it. A mid-run `verification_required` must not
+     `router.refresh()` while the guest is still reading the surface that explains it: the
+     refresh's access flip remounts the gallery-and-upload slot and tears that surface down.
+     Which surface it is depends on where the run was started, so the deferral asks: the ALBUM's
+     failure sheet is inside the remounted slot and must be waited for; the DOOR's own step is not
+     (the entry sheet sits outside `key={access}`), and re-gating it to the email step
+     immediately is exactly the right answer there.
      ──────────────────────────────────────────────────────────────────────── */
   const pendingVerificationRef = useRef<string | null>(null);
   // The door is showing its upload step right now: a ref so the queue's callback reads it
@@ -312,18 +309,18 @@ export function EventExperience({
       }
       router.refresh();
     },
-    /* ★ A TICKET THAT WAS NOT THIS VIEWER'S WENT DOWN, AND ONLY THE DOOR CAN MINT THEIR OWN (the
-       upload-owner lane, 2026-09-23). The queue has already put the ticket down (token, name,
-       address flag, cookie) and kept the files waiting; the refresh re-resolves who is here from
-       the server's side, so a sign-out in another tab is seen as one, and the door opens on the
-       step that names them (the name, or the email step on a verified event). Nothing is failed, so
-       there is no failure sheet to wait for, unlike the flip above. */
+    /* ★ A TICKET THAT WAS NOT THIS VIEWER'S WENT DOWN, AND ONLY THE DOOR CAN MINT THEIR OWN. The
+       queue has already put the ticket down (token, name, address flag, cookie) and kept the files
+       waiting; the refresh re-resolves who is here from the server's side, so a sign-out in
+       another tab is seen as one, and the door opens on the step that names them (the name, or
+       the email step on a verified event). Nothing is failed, so there is no failure sheet to wait
+       for, unlike the flip above. */
     onDoorNeeded: () => router.refresh(),
   });
   /* THIS DEVICE HAS PUT SOMETHING IN, this visit, before any refresh has landed. It is the client
      half of the server's `hasContributed`, and either one closes the door's upload step. */
   const contributed = queue.some((it) => it.status === "done");
-  /* ★ AND WHEN THAT HALF RETIRES (guest by upload, 2026-09-22: "Own deletes close it"). `contributed`
+  /* ★ AND WHEN THAT HALF RETIRES: a guest's own deletes can close the door again. `contributed`
      stays true all visit, but on a Require-an-upload-to-view event the server can take a
      contribution back: a guest who removes their only upload is a guest who owes one again. So the
      client's flag stands only until the server has answered since it (its gate moved off `upload`);
@@ -350,8 +347,8 @@ export function EventExperience({
     : false;
 
   // WHAT THE ALBUM'S HEAD STILL OWES THIS DEVICE: everything in flight, AND
-  // anything a hold-for-approval event finished but is keeping back (`held=tile`,
-  // 2026-09-21 — a completed upload used to vanish, which reads as a failure).
+  // anything a hold-for-approval event finished but is keeping back, as a
+  // waiting tile (a completed upload that vanished would read as a failure).
   // A held item stays here until the poll shows the host approved it, and its
   // object URL stays alive with it.
   const inFlightUploads = queue.filter(
@@ -360,15 +357,14 @@ export function EventExperience({
   const uploadingCount = queue.filter(
     (it) => it.status === "uploading" || it.status === "queued",
   ).length;
-  // `chrome=both` (Will, 2026-09-20): the row on landing, the DOCK once that
-  // row scrolls away — the same sentinel the floating pill used to read, now
-  // carrying both of a guest's actions instead of only Add.
+  // The row on landing, the DOCK once that row scrolls away: one sentinel
+  // decides which, and the dock carries both of a guest's actions, not only Add.
   const { sentinelRef, inView: headerActionsInView } =
     useInViewSentinel<HTMLDivElement>();
   const canUpload = access === "full" && event.accepting_uploads;
 
   /* ────────────────────────────────────────────────────────────────────────
-     A DRIFTING DECISION, AND WHICH WAY IT DRIFTED (the door as three steps, 2026-09-21).
+     A DRIFTING DECISION, AND WHICH WAY IT DRIFTED.
 
      The poll re-resolves the whole decision server-side, so it sees a change before this page
      does. What to do about one is not symmetrical:
@@ -408,15 +404,13 @@ export function EventExperience({
   }, [router]);
 
   /* ────────────────────────────────────────────────────────────────────────
-     EVERY ADD IS JUST AN ADD NOW (the door as three steps, 2026-09-21).
+     EVERY ADD IS JUST AN ADD.
 
-     The name used to be asked HERE, at the first Add, by whichever of the three affordances (the
-     row, the dock, the empty album's CTA) the guest reached first, and the tap had to be held
-     across the form so it could be finished afterwards. Will overruled that: "if they can reach
-     the album media without entering their name, they're able to reap all the rewards of the
-     album anonymously, then friction occurs when they go to actually contribute." The name is one
-     of the door's ordered steps now, a step BEFORE the album, so by the time any of these three
-     buttons exists this guest is already named and the Add is only ever an Add.
+     The name is one of the door's ordered steps, a step BEFORE the album, so by the time any of
+     the three affordances (the row, the dock, the empty album's CTA) exists this guest is already
+     named and the Add is only ever an Add. Asking for the name at the first Add instead would let
+     a guest reach the album's media without a name and reap all its rewards anonymously, meeting
+     friction only when they went to contribute.
      ──────────────────────────────────────────────────────────────────────── */
   const openAdd = useCallback(() => {
     // Their next act is where a remembered stricter drift is spent (see the drift's own note).
@@ -425,8 +419,7 @@ export function EventExperience({
   }, [spendStricterDrift]);
 
   /* ────────────────────────────────────────────────────────────────────────
-     REMOVING YOUR LAST UPLOAD CLOSES A REQUIRE-UPLOAD ALBUM AGAIN (Will, 2026-09-22,
-     "Own deletes close it").
+     REMOVING YOUR LAST UPLOAD CLOSES A REQUIRE-UPLOAD ALBUM AGAIN.
 
      While uploads are open on such an event, the door opens only for a guest with an upload that
      counts, and one they removed themselves no longer does. The lightbox's confirm says so before
@@ -472,17 +465,17 @@ export function EventExperience({
   // At 0 items the PHOTOGRAPHIC-PROMISE empty state owns the primary Add
   // (its centered CTA), so the header drops its Add to avoid two primaries.
   const galleryEmpty = mediaCount === 0;
-  /* ★ THE STORED REEL'S CARD AND OVERLAY NO LONGER RENDER (reel-guest-wiring, 2026-09-24). The reel
-     is live now: the Highlight reel tile sits in its own slot above the album and opens the
-     full-screen view (reel/live-reel.tsx), both reading the album's own live payload. The stored
-     reel's two components stay on disk for the teardown lane, which deletes them with the tables. */
+  /* ★ THE STORED REEL'S CARD AND OVERLAY DO NOT RENDER. The reel is live: the Highlight reel tile
+     sits in its own slot above the album and opens the full-screen view (reel/live-reel.tsx), both
+     reading the album's own live payload. The stored reel's two components stay on disk until the
+     teardown that deletes them with the tables. */
   const revealBase = 0;
   /* ────────────────────────────────────────────────────────────────────────
-     THE IMMEDIATE HEAL (the door as three steps, 2026-09-21).
+     THE IMMEDIATE HEAL.
 
      The server resolves Require an upload to view from the `pr_guest_<eventId>` cookie, because an
-     RSC cannot read localStorage. Every session minted before this round has the localStorage half
-     and not the cookie, so the first render of an ON event resolves those guests as
+     RSC cannot read localStorage. A session minted before the cookie existed has the localStorage
+     half and not the cookie, so the first render of an ON event resolves that guest as
      uncontributed and puts the upload step in front of somebody who already gave the host
      twenty photographs. That is the one case worth a round trip: when the RSC's gate is `upload`
      and this browser holds a stored token, POST the poll ONCE with it (no `If-None-Match`, so the
@@ -531,16 +524,16 @@ export function EventExperience({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [healing, qrToken]);
 
-  // THE REVEAL CURTAIN (Phase 4.5): while the entry sheet's success beat
-  // holds, the freshly mounted reveal targets + masonry tiles wait at their
-  // pre-entrance state (globals.css [data-reveal-curtain]); when the hold
-  // releases the attribute drops and everything rises AS the sheet exits,
-  // instead of playing invisibly behind it during the refresh roundtrip.
+  // THE REVEAL CURTAIN: while the entry sheet's success beat holds, the
+  // freshly mounted reveal targets + masonry tiles wait at their pre-entrance
+  // state (globals.css [data-reveal-curtain]); when the hold releases the
+  // attribute drops and everything rises AS the sheet exits, instead of
+  // playing invisibly behind it during the refresh roundtrip.
   const [holdCurtain, setHoldCurtain] = useState(false);
-  // ★ THE WELCOME COMES FIRST (Will, 2026-09-24): whether this visitor still owes the door, as the
-  // door itself reports it (EntryModal's `onPendingChange`). OWED until its first report, because
-  // the door is a lazy chunk and a hydrating page cannot know yet: a `?reel` waits a beat for the
-  // owner rather than opening under a welcome that is about to arrive for a guest.
+  // ★ THE WELCOME COMES FIRST: whether this visitor still owes the door, as the door itself reports
+  // it (EntryModal's `onPendingChange`). OWED until its first report, because the door is a lazy
+  // chunk and a hydrating page cannot know yet: a `?reel` waits a beat for the owner rather than
+  // opening under a welcome that is about to arrive for a guest.
   const [welcomePending, setWelcomePending] = useState(true);
 
   // Upload bridge: completions route to LiveGallery's imperative handle. The
@@ -570,11 +563,10 @@ export function EventExperience({
   }, []);
 
   /* ────────────────────────────────────────────────────────────────────────
-     `phone=pair` (Will, the sixth batch, 2026-09-20): "What the phone adds
-     appears on the laptop's album a second later and the laptop says where
-     it came from. One broadcast channel, no stored bytes." lib/demo.ts is
-     the single source for the channel naming + the two data-URL <-> File
-     conversions; everything below is the wiring.
+     THE PHONE PAIR: what the phone adds appears on the laptop's album a second
+     later, and the laptop says where it came from. One broadcast channel, no
+     stored bytes. lib/demo.ts is the single source for the channel naming +
+     the two data-URL <-> File conversions; everything below is the wiring.
 
      ★ TWO ROLES, NEVER BOTH. A tab that loaded with `?pair=<id>` in its URL
      (it was scanned off another screen) is THE PHONE: it never listens, it
@@ -689,10 +681,10 @@ export function EventExperience({
       ? `${joinUrl}?${DEMO_PAIR_PARAM}=${ownPairId}`
       : joinUrl;
 
-  /* ★ THE CUT'S SEAM (reel-guest-wiring, 2026-09-24): the on-device creator's finished cut goes
-     through this page's ONE queue like any upload, written `reel_eligible = false` so the live reel
-     never plays a reel (use-upload-queue.ts's `addCut`). The creator itself is the cut lane's
-     (reel/creator-seam.ts); this is only the door it will use. */
+  /* ★ THE CUT'S SEAM: the on-device creator's finished cut goes through this page's ONE queue like
+     any upload, written `reel_eligible = false` so the live reel never plays a reel
+     (use-upload-queue.ts's `addCut`). The creator itself sits behind reel/creator-seam.ts; this is
+     only the door it will use. */
   const addCutToAlbum = useCallback(
     (file: File, poster: Blob) => addCut(file, poster),
     [addCut],
@@ -709,9 +701,9 @@ export function EventExperience({
     }
   })();
 
-  // `try=turn`: the same upload, then one card. Paired, the two lines above
-  // say more (the SAME moment, worded for a second screen); unpaired, the
-  // plain turn card owns it. One slot, never stacked.
+  // THE DEMO'S TURN CARD: the same upload, then one card. Paired, the two
+  // lines above say more (the SAME moment, worded for a second screen);
+  // unpaired, the plain turn card owns it. One slot, never stacked.
   const demoUploaded = isDemo && contributed;
   const aboveAlbumState = pickAboveAlbumState({
     isDemo,
@@ -791,8 +783,7 @@ export function EventExperience({
             email,
           }) => {
             // The row carries a name now. Adopt the session this device just
-            // minted (a rename hands back the one it already had) and, if a tap
-            // on Add was what raised the door, finish that tap.
+            // minted (a rename hands back the one it already had).
             if (token) setSessionToken(token);
             /* The device flag and the in-memory address, in that order. The
                FLAG is what the header's menu island reads (it subscribes to the
@@ -806,28 +797,26 @@ export function EventExperience({
               setAttachedEmail(email);
             }
             /* ──────────────────────────────────────────────────────────────
-               POLISH 2 (the identity red-team, 2026-09-21): a rename used to
-               reach the loaded credits only on the next poll — "Change name"
-               updated the header chip and localStorage at once, but the
-               lightbox pill and the GUESTS list still read the old name until
-               a reload. `renameMine` patches THIS device's own tiles/credits
-               locally, no network round trip; the poll's truth replaces it on
-               the next tick, unchanged. The Guests list
-               (src/components/social/guest-list.tsx) is a plain, server-baked
-               ReactNode with no live subscription of its own and sits outside
-               every path this lane owns, so it cannot be patched the same
-               way; `router.refresh()` is the honest way to true it up
-               promptly instead of leaving it stale until a guest happens to
-               reload. It is safe here specifically because a rename never
-               changes `access`, so `key={access}` never remounts the gallery
-               (unlike DEFECT 1's flip, which does). */
+               THE RENAME PATCH: "Change name" updates the header chip and
+               localStorage at once, so the loaded credits follow at once too,
+               or the lightbox pill would read the old name until the next poll
+               and the GUESTS list until a reload. `renameMine` patches THIS
+               device's own tiles/credits locally, no network round trip; the
+               poll's truth replaces it on the next tick, unchanged. The Guests
+               list (src/components/social/guest-list.tsx) is a plain,
+               server-baked ReactNode with no live subscription of its own, so
+               it cannot be patched the same way; `router.refresh()` is the
+               honest way to true it up promptly instead of leaving it stale
+               until a guest happens to reload. It is safe here specifically
+               because a rename never changes `access`, so `key={access}` never
+               remounts the gallery (unlike a looser access flip, which does). */
             if (displayName) galleryRef.current?.renameMine(displayName);
-            /* ★ THE REFRESH IS ONLY THE RENAME'S (the door as three steps, 2026-09-21). The door's
-               own name STEP must not refresh: it hands forward to the next step in the same sheet,
-               and a refresh there would remount the gallery under an open door for nothing. A
-               rename from the album menu still needs one (the server-baked Guests list has no
-               live subscription of its own), and the CONFIRMATION sequence issues its own inside
-               the hold. So this only fires when there is no step behind the name. */
+            /* ★ THE REFRESH IS ONLY THE RENAME'S. The door's own name STEP must not refresh: it
+               hands forward to the next step in the same sheet, and a refresh there would remount
+               the gallery under an open door for nothing. A rename from the album menu still needs
+               one (the server-baked Guests list has no live subscription of its own), and the
+               CONFIRMATION sequence issues its own inside the hold. So this only fires when there
+               is no step behind the name. */
             if (source === "edit") router.refresh();
           }}
         />
@@ -836,14 +825,11 @@ export function EventExperience({
       {/* THE WORDS. One box, on the left line, holding everything above the
           album; the album is its own box below (see COLUMN / BLEED). */}
       <div className={COLUMN}>
-        {/* The old in-page banner ("You're trying a live demo...") is gone
-            (`framing=tag`, the sixth batch, 2026-09-20): a Demo mark now sits
-            beside the wordmark in
-            guest-header.tsx, pinned to the top, so it never scrolls away —
-            the whole reason the banner needed re-saying itself was that it
-            did. */}
-        {/* LEFT-EDITORIAL header (the ratified V1, per the lab demo composition):
-          identity title, one byline line, the stats line, then the action block.
+        {/* No in-page demo banner: a Demo mark sits beside the wordmark in
+            guest-header.tsx, pinned to the top, so it never scrolls away. A
+            banner here would scroll off and need re-saying itself. */}
+        {/* LEFT-EDITORIAL header: identity title, one byline line, the stats
+          line, then the action block.
           PRIVACY RULE: at `none` (locked password event) only the NAME renders —
           no byline/stats/avatar (matches the OG metadata; the entry sheet owns
           the count tease). "Hosted by" shows only when the host set a real name;
@@ -867,9 +853,8 @@ export function EventExperience({
                   {event.host_display_name?.trim() && (
                     <span className="flex items-center gap-1.5">
                       <span className="text-faint">Hosted by</span>
-                      {/* Seeded now, photo or not (`the-crowd=full`,
-                          the sixth batch) — this byline
-                          used to render nothing at all without an avatar. */}
+                      {/* Seeded, photo or not: without a photo the byline
+                          still draws the seeded initial rather than nothing. */}
                       <Avatar seed={hostSeed ?? undefined} size="sm">
                         <AvatarImage src={hostAvatarUrl ?? undefined} alt="" />
                         <AvatarFallback>
@@ -925,15 +910,12 @@ export function EventExperience({
           // Password not yet unlocked: the real COUNT tease over the ghosted
           // RIVER — shape and motion, zero pixels of this event's own media.
           //
-          // ★ ONE PICTURE FOR NOTHING, IN BOTH PLACES A GUEST MEETS IT (Will,
-          // `nothing=river`, 2026-09-20). This was `GhostGrid`, nine empty
-          // squares, while an empty album next door drew the flow: one absence
-          // with two pictures. The flow is the ruled one, at the empty album's
-          // own depth (`GhostRiver` owns that fade, so the two cannot drift
-          // apart again). The locked page still leaks exactly what it leaked
-          // before — the name, the count, and stand-in frames that are not this
-          // event's — because the river's pack is the local guest-ghost WebPs,
-          // never the album behind the lock.
+          // ★ ONE PICTURE FOR NOTHING, IN BOTH PLACES A GUEST MEETS IT: the
+          // locked page and the empty album both draw the flow, at the empty
+          // album's own depth (`GhostRiver` owns that fade, so the two cannot
+          // drift apart). The locked page leaks only the name, the count, and
+          // stand-in frames that are not this event's, because the river's pack
+          // is the local guest-ghost WebPs, never the album behind the lock.
           //
           // Act 1 "the stage": the lock line + the flow settle in (data-arrive)
           // under the planted name, instead of popping, before the sheet arrives.
@@ -958,30 +940,25 @@ export function EventExperience({
 
         {access !== "none" && (
           <>
-            {/* The action block (ratified header): a full-width primary Add (only when
+            {/* The action block: a full-width primary Add (only when
               the viewer can actually upload right now) over the secondary row.
               data-reveal: rises in last on the unlock reveal (the masonry's own
               seeded stagger carries from here).
 
-              ★ SAVE HAS LEFT THIS ROW (Will, `account=after`, 2026-09-20:
-              "Moving Save makes it feel more natural after upload rather than a
-              random button above an album for guests"). It was a growth lever
-              asking a stranger to keep an album they had not seen yet, one tap
-              from the event's own name; the offer now waits until a guest has
-              actually put something in the album, where the after-upload card
-              makes it (guest-upload.tsx -> ClaimHandlePrompt -> the save card),
-              in the door's own voice. Invite is what remains, and it takes the
-              width: a 2-col grid with one button in it is a row with a hole in
-              it. Where a guest's actions finally LIVE is `chrome` round two —
-              his "warrants a second round" — which draws this block with Save
-              already gone.
+              ★ NO SAVE IN THIS ROW: it feels natural after an upload, where
+              above an album it is a random button, a growth lever asking a
+              stranger to keep an album they have not seen yet, one tap from the
+              event's own name. The offer waits until a guest has actually put
+              something in the album, where the after-upload card makes it
+              (guest-upload.tsx -> ClaimHandlePrompt -> the save card), in the
+              door's own voice. Invite takes the width: a 2-col grid with one
+              button in it is a row with a hole in it.
 
-              ★ THE DEMO FILLS THE SAME HOLE DIFFERENTLY (`next=slot`, the
-              sixth batch, 2026-09-20): a real guest has nothing to put there
-              (Save already left for everyone), but a demo VISITOR does — the
-              conversion object the empty slot always was, on the same row as
-              Invite rather than replacing it (this lane's own visitor is a
-              prospective host, not a guest choosing whether to keep an
+              ★ THE DEMO FILLS THE SAME HOLE DIFFERENTLY, with its Start your
+              own button: a real guest has nothing to put there, but a demo
+              VISITOR does — the conversion object the empty slot always was, on
+              the same row as Invite rather than replacing it (the demo's visitor
+              is a prospective host, not a guest choosing whether to keep an
               album). */}
             <div
               className="mt-4"
@@ -1020,12 +997,11 @@ export function EventExperience({
             </div>
 
             {/* Upload area — only at `full` access (a `teaser` viewer is still at the door, which
-              owns every step in front of them now). Uploads off => a quiet view-only line.
+              owns every step in front of them). Uploads off => a quiet view-only line.
 
-              ★ THE INLINE "Add your name to upload" PANEL IS GONE (the door as three steps,
-              2026-09-21): a confirmed account with no profile name is asked at the DOOR, as its
-              name step in `profile` mode, like every other guest and before the album rather than
-              in a card halfway down it. */}
+              ★ NO INLINE "Add your name to upload" PANEL: a confirmed account with no profile name
+              is asked at the DOOR, as its name step in `profile` mode, like every other guest and
+              before the album rather than in a card halfway down it. */}
             {access === "full" &&
               (event.accepting_uploads ? (
                 <div className="mt-7">
@@ -1039,7 +1015,7 @@ export function EventExperience({
                     onRetry={retry}
                     onDismiss={dismiss}
                     // The door's own step is showing this run's failures; one run never gets two
-                    // surfaces (see the lifted queue's note above).
+                    // surfaces (see the one queue's note above).
                     suppressFailures={uploadStepActive}
                     onFailuresClosed={flushPendingVerification}
                     isDemo={isDemo}
@@ -1080,21 +1056,19 @@ export function EventExperience({
 
       {access !== "none" && (
         <>
-          {/* THE ALBUM, and nothing else, leaves the column (`width=full`). It
-              is a sibling of the words box now, not a block inside it, which is
-              the whole structural change on this page. */}
-          {/* ★ ONE LIVE SOURCE ABOVE THE ALBUM AND THE REEL (reel-guest-wiring, 2026-09-24). The
-              provider owns the gallery's live state (the refreshed list, the arrivals, this device's
-              own ids, the doorbell and the poll), so the Highlight reel tile, the full-screen view
-              and the album all read ONE list: an upload reaches the grid and the reel in the same
-              breath. The gallery streams in (the presign-heavy payload): the skeleton holds its
-              layout slot, and nothing above the album waits for it. key={access} makes an access
-              flip (teaser -> full after sign-in via router.refresh(), a transition - old UI holds)
-              a clean remount that re-seeds from the fresh promise. The fallback wears the SAME box
-              as the gallery, and the skeleton the same column rule AT THE SAME TILE SIZE, so the
-              swap is layout-stable at every window: a two-column placeholder under a six-column
-              album, or an eight-column one under seven, would flash the wrong layout on every
-              load. */}
+          {/* THE ALBUM, and nothing else, leaves the column to run the window's
+              width. It is a sibling of the words box, not a block inside it. */}
+          {/* ★ ONE LIVE SOURCE ABOVE THE ALBUM AND THE REEL. The provider owns the gallery's live
+              state (the refreshed list, the arrivals, this device's own ids, the doorbell and the
+              poll), so the Highlight reel tile, the full-screen view and the album all read ONE
+              list: an upload reaches the grid and the reel in the same breath. The gallery streams
+              in (the presign-heavy payload): the skeleton holds its layout slot, and nothing above
+              the album waits for it. key={access} makes an access flip (teaser -> full after
+              sign-in via router.refresh(), a transition - old UI holds) a clean remount that
+              re-seeds from the fresh promise. The fallback wears the SAME box as the gallery, and
+              the skeleton the same column rule AT THE SAME TILE SIZE, so the swap is layout-stable
+              at every window: a two-column placeholder under a six-column album, or an
+              eight-column one under seven, would flash the wrong layout on every load. */}
           <Suspense
             fallback={
               <div className={BLEED}>
@@ -1134,15 +1108,15 @@ export function EventExperience({
                 {/* THE HIGHLIGHT REEL TILE: its own slot directly above the demo's one slot and the
                     album (never a fourth arm of `pickAboveAlbumState`), on the words' column so it
                     reads as the page's showpiece rather than a banner the width of the window.
-                    Absent below the minimum (`states=nothing`). */}
+                    Absent below the minimum. */}
                 <LiveReelTile className={cn(COLUMN, "mt-7 mb-4")} />
-                {/* `try=turn` / `phone=pair`: one card directly above the album's
-                    first tile — the photograph a visitor just added IS that tile
-                    (the album is newest first), so whatever is said here is said
-                    right beside it. It keeps the ALBUM's own box (BLEED), not the
-                    words' column, so it lines up with the photographs under it;
-                    the album itself is one CSS multi-column box and nothing can be
-                    put in the middle of one. */}
+                {/* The demo's turn card or the phone pair: one card directly
+                    above the album's first tile — the photograph a visitor just
+                    added IS that tile (the album is newest first), so whatever is
+                    said here is said right beside it. It keeps the ALBUM's own box
+                    (BLEED), not the words' column, so it lines up with the
+                    photographs under it; the album itself is one CSS multi-column
+                    box and nothing can be put in the middle of one. */}
                 {aboveAlbum && (
                   <div className={cn(BLEED, "mb-4")}>{aboveAlbum}</div>
                 )}
@@ -1169,11 +1143,11 @@ export function EventExperience({
               It is words, so it keeps the column. */}
           {guestListSlot && <div className={COLUMN}>{guestListSlot}</div>}
 
-          {/* THE DOCK, the second half of `chrome=both`: the row's own two
-              actions, taking the row's place the moment it leaves the screen
-              (and mounted-but-inert until then, so it travels in rather than
-              appearing). It replaces the floating Add pill, which carried Add
-              alone and left Invite unreachable deep in an album. */}
+          {/* THE DOCK: the row sits on landing, and the dock takes its place the
+              moment it leaves the screen, with the row's own two actions (and
+              mounted-but-inert until then, so it travels in rather than
+              appearing). Both actions, because an Add alone would leave Invite
+              unreachable deep in an album. */}
           <GuestActionDock
             hidden={headerActionsInView}
             uploadingCount={uploadingCount}
@@ -1199,8 +1173,8 @@ export function EventExperience({
               <ReportDialog qrToken={qrToken} />
             </footer>
           )}
-          {/* `next=foot`: the closing card in the slot a real event gives the
-              report footer (hidden here — nothing to report in a demo) and,
+          {/* The demo's closing card at the foot, in the slot a real event gives
+              the report footer (hidden here — nothing to report in a demo) and,
               once uploads are ever closed, the reel. Below the whole album on
               purpose: the ask belongs after a visitor has actually seen what
               they came to see. */}
@@ -1215,8 +1189,9 @@ export function EventExperience({
   );
 }
 
-/** `next=foot`: "Yours would look like this" — the demo's second, patient
- *  conversion object, real numbers standing in for the fixture's. */
+/** The closing card at the demo's foot: "Yours would look like this" — the
+ *  demo's second, patient conversion object, real numbers standing in for the
+ *  fixture's. */
 function ClosingCard({ guestCount }: { guestCount: number }) {
   return (
     <div className="mt-8 flex flex-col items-center gap-3 rounded-xl border border-border bg-card px-6 py-8 text-center">
@@ -1237,7 +1212,7 @@ function ClosingCard({ guestCount }: { guestCount: number }) {
   );
 }
 
-/** `phone=pair`'s SENDING half, on the screen that scanned the code: the
+/** The phone pair's SENDING half, on the screen that scanned the code: the
  *  reassurance a "turn card" already gives every other demo upload, worded
  *  for the fact that this one travelled somewhere else. */
 function PairedPhoneLine() {
@@ -1255,7 +1230,7 @@ function PairedPhoneLine() {
   );
 }
 
-/** `phone=pair`'s RECEIVING half, on the screen that showed the code: where
+/** The phone pair's RECEIVING half, on the screen that showed the code: where
  *  the photograph at the top of the album — the one this tab never touched a
  *  file picker for — actually came from. */
 function PairedLaptopLine() {

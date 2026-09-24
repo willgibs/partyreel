@@ -1,7 +1,7 @@
 /**
  * THE CLIP SOURCE's pins: what a payload change does to a loop that is already playing.
  *
- * The three behaviours the wiring lanes will lean on: an arrival is spliced in RIGHT AFTER the clip
+ * The three behaviours the reel's surfaces lean on: an arrival is spliced in RIGHT AFTER the clip
  * on screen and never rewrites the window being watched; a departure is cut from every planned
  * window at once; and the retains stay flat no matter how long the reel runs, because that is what
  * keeps a 300-photograph album costing what a six-photograph one costs.
@@ -167,12 +167,12 @@ describe("the windows", () => {
 });
 
 /**
- * ★ THE SMALL-ALBUM SEAM (reel-guest-wiring, 2026-09-24). With the shipped window of six, an album
- * of six or fewer makes EVERY handover a loop boundary, and a boundary used to re-plan the carried
- * clip from the new loop's seed: its pan and zoom jumped (~5%) mid-hold, every few seconds, on
- * exactly the albums the reel meets first (it exists from the SECOND item). At one clip the move
- * snapped back to its start every hold. These walk the real chain at exactly 1, 2 and 6 clips and
- * hold the handover to what it claims: the same clip, the same plan, the same frame.
+ * ★ THE SMALL-ALBUM SEAM. With the shipped window of six, an album of six or fewer makes EVERY
+ * handover a loop boundary, and a boundary that re-planned the carried clip from the new loop's seed
+ * would jump its pan and zoom (~5%) mid-hold, every few seconds, on exactly the albums the reel
+ * meets first (it exists from the SECOND item). At one clip the move would snap back to its start
+ * every hold. These walk the real chain at exactly 1, 2 and 6 clips and hold the handover to what it
+ * claims: the same clip, the same plan, the same frame.
  */
 describe("the small-album seam", () => {
   const DEFAULT_SIZE = { windowSize: 6 };
@@ -242,7 +242,7 @@ describe("the small-album seam", () => {
     const first = seen[0];
     expect(first.ids).toEqual(["m0"]);
     // The album's only clip never hands over: every window after it is the same plan, and handing
-    // over to it restarted the move. It rests on its last frame until an upload splices in.
+    // over to it would restart the move. It rests on its last frame until an upload splices in.
     expect(first.handoverFrame).toBe(Number.POSITIVE_INFINITY);
     for (let i = 1; i < seen.length; i++) {
       expectSeamless(seen[i - 1], seen[i], `#${i}`);
@@ -474,10 +474,10 @@ describe("the retains", () => {
   });
 
   it("★ never deadlocks the chain when a PREFETCHED window is thrown away", async () => {
-    // The stall behind two soaks: `slotAt` walks forward from the last slot it built, so releasing a
-    // prefetched window (which a splice or a look change does) used to leave that pointer on a slot
-    // that no longer existed. Every request then answered null, the prefetch could never refill, and
-    // the reel held one photograph for ever.
+    // `slotAt` walks forward from the last slot it built, so releasing a prefetched window (which a
+    // splice or a look change does) could leave that pointer on a slot that no longer exists. Every
+    // request would then answer null, the prefetch could never refill, and the reel would hold one
+    // photograph for ever.
     const { source: s } = source(album(60));
     for (let i = 0; i <= 3; i++) {
       const win = s.windowAt(i, LOOK)!;

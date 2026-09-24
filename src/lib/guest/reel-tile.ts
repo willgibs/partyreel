@@ -1,12 +1,11 @@
 /**
- * THE HIGHLIGHT REEL TILE'S STILLS (reel-guest-wiring, 2026-09-24).
+ * THE HIGHLIGHT REEL TILE'S STILLS.
  *
- * Will's `tile=crossfade`: "This allows us to control the design and ensure it stays less busy than
- * a potentially super fast, distracting, overwhelming version. The different images differentiate
- * the reel vs album media stills." So the tile is a slow crossfade of STILLS (no engine on the
- * album, nothing blocking its first paint), and they are the REEL'S OWN TAKE (`planTake`, the order
- * the reel itself opens on), never the album's newest: the newest are exactly the tiles right beneath
- * the tile, and a crossfade of them would read as the album repeating itself.
+ * The tile is a slow crossfade of STILLS, which keeps its design in hand and calmer than a fast,
+ * distracting miniature reel (and puts no engine on the album, nothing blocking its first paint). The
+ * stills are the REEL'S OWN TAKE (`planTake`, the order the reel itself opens on), never the album's
+ * newest, so the tile's images stay distinct from the album's: the newest are exactly the tiles right
+ * beneath the tile, and a crossfade of them would read as the album repeating itself.
  *
  * ★ ALWAYS SIX SLOTS. The crossfade is one CSS keyframe shared by six images, each phase-shifted into
  * its own sixth of the cycle (live-reel.css). An album of two therefore cycles its two stills three

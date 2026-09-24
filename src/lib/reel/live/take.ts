@@ -1,10 +1,10 @@
 /**
- * THE TAKE — one seeded ORDER of the whole album, per loop (the live reel, 2026-09-22).
+ * THE TAKE — one seeded ORDER of the whole album, per loop.
  *
- * Will's shape: a reel that "randomizes all the current/existing (not hidden) media in the event
- * gallery", looped, "includes most or all media". The plan's word for the randomness is STRUCTURED:
- * "each loop is a new seeded take from the quick-add brain: uploader spread, photo and video mix,
- * the newest soon; deterministic per take."
+ * The reel loops the current (not hidden) media of the event's gallery in random order, and a loop
+ * includes most or all of it. The randomness is STRUCTURED: each loop is a new seeded take from
+ * the quick-add brain (uploader spread, photo and video mix, the newest soon), deterministic per
+ * take.
  *
  * ★ THE QUICK-ADD BRAIN IS THE ORDERING FUNCTION, NOT A SECOND ALGORITHM. `pickQuickAdd`
  * (src/lib/reel/quick-add.ts) already blends likes, recency, per-uploader coverage and the photo/
@@ -19,8 +19,8 @@
  * ★ AND THE PASS IS SHUFFLED, not chronological. The brain returns its pick in time order, because a
  * host's first cut should read as the night's story; a LOOP cannot. With no likes yet, the brain's
  * score is dominated by recency, which is the same number on every loop, so pass after pass would
- * pick the same twelve AND print them in the same order — Will asked for a reel that "randomizes all
- * the current media", and it would have played the identical film every time round. So each pass is
+ * pick the same twelve AND print them in the same order — a reel whose whole point is randomizing
+ * all the current media would have played the identical film every time round. So each pass is
  * shuffled on the loop's own seed and then de-clumped, which keeps the guarantee the shuffle would
  * otherwise spend: two photographs from the same guest do not sit next to each other while another
  * guest's is available.
@@ -64,8 +64,8 @@ export function takeSeed(eventId: string, loopIndex: number): number {
  * above); the motion (each clip's hold, Ken-Burns and the transition into the next) is drawn from
  * ONE stream for the whole session, indexed by a clip ORDINAL that never resets (source.ts's
  * `startIndex`). That is what lets the clip carried across a loop boundary keep the plan it was
- * already playing: re-seeding the motion per loop re-rolled its pan and zoom under the viewer (a
- * ~5% scale jump at every boundary, and at every handover for an album of six or fewer, where
+ * already playing: re-seeding the motion per loop would re-roll its pan and zoom under the viewer
+ * (a ~5% scale jump at every boundary, and at every handover for an album of six or fewer, where
  * every window IS a boundary). The order still changes every loop; the film simply never restarts.
  */
 export function motionSeed(eventId: string): number {
@@ -151,7 +151,7 @@ function spreadPass(
 }
 
 /**
- * "Yours first" (the plan): the guest's NEWEST approved item opens the loop on their own device.
+ * "Yours first": the guest's NEWEST approved item opens the loop on their own device.
  * Newest rather than any of theirs, because the beat it serves is "the photograph you just added is
  * in the reel"; an older one of theirs would read as coincidence.
  */

@@ -14,12 +14,10 @@ import { withAvatarUrls } from "@/lib/social/cards";
 /**
  * THE OWNER MODE: what only the person themselves sees on their own page.
  *
- * Will answered `you=?` in his own note (2026-09-20): "Your own photos, likes,
- * connections, etc should be on your profile page... However, plans, billing,
- * etc should live under an account page". So the three personal feeds left the
- * host's home — where they never belonged, since your own likes are not a
- * hosting job — and landed here, private, under the public page that is
- * already about this person.
+ * Your own photos, likes and connections belong on your profile page, while
+ * plans, billing and the like live under an account page. So the three personal
+ * feeds live here, private, under the public page that is already about this
+ * person, and not on the host's home: your own likes are not a hosting job.
  *
  * ★ THE GATE IS THE QUERY, NOT THE BOOLEAN. Every read below is an
  * `auth.uid()`-scoped RPC or an owner-RLS select: `get_my_uploads`,
@@ -32,13 +30,12 @@ import { withAvatarUrls } from "@/lib/social/cards";
  * kind worth putting in front of a growth surface that anonymous strangers
  * read all day.
  *
- * ★ AND FOLLOWERS ARE NEVER LISTED. "Connections" means the people you follow,
- * exactly as the dashboard's Following section meant. The graph is
- * owner-private by ruling (profiles-social.md) and there is still no public
- * count anywhere; this section is the owner reading their own half of it.
+ * ★ AND FOLLOWERS ARE NEVER LISTED. "Connections" means the people you follow.
+ * The graph is owner-private (profiles-social.md) and there is no public count
+ * anywhere; this section is the owner reading their own half of it.
  *
- * ★ YOUR UPLOADS SAY WHICH DELETES YOU CAN TAKE BACK (delete-final, Will
- * 2026-09-23: a guest's own delete is final, and says so). The feed holds two
+ * ★ YOUR UPLOADS SAY WHICH DELETES YOU CAN TAKE BACK (a guest's own delete is
+ * final, and says so). The feed holds two
  * kinds of upload that one Trash removes differently: one you added to
  * SOMEBODY ELSE's event is gone for good (`remove_my_upload`'s guest arm marks
  * it `removed_by_uploader`, which no host surface shows or restores), while one
