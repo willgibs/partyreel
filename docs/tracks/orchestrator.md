@@ -67,6 +67,9 @@ below, never asked.
 - **His desk review, resumed** on build 5 (`/design/lab?key=`, the value in `.env.local`): the re-cut reel boards first
   (`reel-screen`, `reel-host`, `reel-cut`, `reel-story`), then `reel-front` r2 and `media-viewer` r2.
 - **A 10-second iPhone check** on build 5: Save to Photos lands in Photos, and a shared photo arrives as a photograph.
+- **A suggestion, not a blocker:** a Claude Code `PreToolUse` hook that refuses my own shell commands on the zsh traps
+  (`for path in`, a word starting with `=`, `rm -rf` on a variable) with the reason printed; it changes the harness's
+  settings, so it is his to approve (the lessons in `usher/kit/README.md` "Habits for my own hands").
 - **`reel-guest-wiring`'s two questions:** the welcome door over a signed-out `?reel=screen` (recommended: held back until
   the view closes) and the default mood's letterbox bars in landscape (recommended: keep). The viewer's calls to overrule
   ride merge commit `7eb190de`.
