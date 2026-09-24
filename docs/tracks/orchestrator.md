@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "5b4c9ce5"          # the launch-prep SHA this state was written at
+cut: "1bab2537"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches (a new board adds only its own lines to the two board lists)
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
@@ -33,46 +33,38 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `rowcap-kit` | the 1,000-row round's helper (`readAllPages`, `inChunks`), the clamping PostgREST fake, the Sentry tripwire, the policy test and a `row-cap-todo` marker at every offender (stage 2's work list and prefix map) | building (agent a4e1eae9c83e0e7e2) | Opus, :3131 | the CLAUDE.md gotcha line; stage 2's owns from its prefix map |
+| `rowcap-sql` | every SQL shape the fixes need, in `20260924010000_row_cap_album.sql`, `..020000_row_cap_host.sql`, `..030000_row_cap_sweeps.sql`, backward compatible, each ending in a rolled-back check on the scale probe; `row-cap-sql.test.ts` | building (agent a82acf51bb5d1123f) | Opus, :3132 | apply the three files in order by the protocol; regenerate `types.ts`; then cut stage 2 |
 
 ## Next, in order
 
-The plan: `~/.claude/plans/great-work-however-1-dapper-twilight.md`, its top section (Will's message of 2026-09-23).
-Done today: the four follow-on lanes (gates 134 to 137), alias build 3 red-teamed, milestone 27 (`546e2489`, the
-partyreel.com pass green), the identity contract applied (Will's approval; the foot's check held; `types.ts`
-regenerated), the Stripe TEST walk with Will's clicks (willg97 is now Pro 500 GB on a real TEST subscription
-`sub_1UIxUp…`, customer `cus_Ubm3ANAZmqMfDB`), and `upload-owner` merged at `908cacf9` (gate 138).
+The plan: `~/.claude/plans/great-work-however-1-dapper-twilight.md`, its top section (the 1,000-row round, alias build
+4 and milestone 28). Done today: the follow-on lanes (gates 134 to 139), milestone 27 (`546e2489`), the identity
+contract and `20260923160000_withdrawn_out_of_standby.sql` applied, the Stripe TEST walk with Will's clicks (willg97 is
+Pro 500 GB on `sub_1UIxUp…`, customer `cus_Ubm3ANAZmqMfDB`).
 
-**Will's standing approvals (2026-09-23):** pushes to `launch-prep` and anything around branching; the identity
-contract (done); **milestone 28 "once you're fully ready"**; he tests by click whenever asked. His ruling on a guest's
-own delete: final, gone for the host everywhere, the guest copy "deleted immediately from event and cannot be
-recovered" (backups may keep their copy). His ask: no silent 1,000-row clipping anywhere ("Let's ensure we will not
-face any of those issues here"); work inside this round is fixed near-term, larger work goes to the ROADMAP.
+**Will's standing approvals (2026-09-23):** pushes to `launch-prep` and anything around branching; **milestone 28
+"once you're fully ready"**; he tests by click whenever asked. His ruling on a guest's own delete: final, gone for the
+host everywhere. His ask: no silent 1,000-row clipping anywhere ("Let's ensure we will not face any of those issues
+here"); work inside this round is fixed near-term, larger work goes to the ROADMAP.
 
-1. **Done:** `delete-final` merged at `e36776ee` (gate 139); `20260923160000_withdrawn_out_of_standby.sql` applied
-   (no drift; the live body md5 `027f9b30ac11e31b60c7f1153239cd60` equals the file's; its rolled-back check held on
-   two hosts; grants service-role only; no type change); the bell's nudge leak fixed and its tripwire made a plain
-   test; the album FAQ says a guest's delete is gone for good.
-2. **The 1,000-row fixes.** The audit is DONE and saved in full (every site, file:line, severity, fix code, the helper
-   and the policy test designs): `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/row-cap-audit.md`.
-   15 CRITICAL (a 1,500-photo wedding: the host's album, Review queue, counts, reel studio, host export and live poll
-   see only the newest 1,000; the guest album, its header count, the guest reel and the guest export likewise; like
-   counts, the dashboard cards and the pulse wrong), 17 HIGH (the Deleted bin, event covers, admin metrics, moderation,
-   reports, the operator queue, every purge sweep incl. a possible legal-hold breach past 1,000 held rows, MRR), 18
-   MEDIUM. The plan, in two stages, cut from that file:
-   - **`rowcap-foundation`** (Opus) first: `src/lib/db/read-all.ts` (`MAX_ROWS` pinned to `supabase/config.toml`, a
-     keyset `readAllPages` that stops only on an empty page, 150-id chunks, a budget for sweeps) with tests; the policy
-     test `src/lib/db/row-cap-policy.test.ts` with today's offenders as a baseline that may only shrink; and every SQL
-     file the fixes need (a paged guest-album RPC, like counts as one jsonb, per-event card stats, one cover per event
-     for the host and for a uuid[] of events, distinct held event ids, the standby host discovery aggregate,
-     `purge_media_rows` as a scalar sum, `list_guest_rows_by_email` paging, the admin metrics aggregates), each with a
-     rolled-back check. At its merge: apply each file by the protocol and regenerate `types.ts`, so the next lanes
-     compile against the new functions.
-   - **Then three TS lanes on disjoint owns**, each shrinking the baseline: the album (C1 to C11, C14, H1, M8, M9, M12,
-     M13, M18), the host and admin reads (C12, C13, C15, H2 to H7, H16, M1 to M7, M10, M11), and the cron and lifecycle
-     sweeps (H8 to H15, H17, M14 to M17, plus `delete-final`'s bin-budget rule: a guest-withdrawn row never counts in
-     the host's Recently deleted budget and purges on its own 30-day schedule).
-3. **Alias build 4** once 1 and 2 are merged (`[preview]` on the record; `alias-ensure.mjs`; the prune), then the
-   red-team in Will's Chrome (the chooser only; clear the alias's `pr_session_*` first if a test needs a fresh door):
+1. **The 1,000-row round.** The audit `$S/row-cap-audit.md`; every site re-verified with file:line and each lane's
+   semantic items in `$S/rowcap-stage2-notes.md` (`$S` = this session's scratchpad).
+   - **The scale probe** (disposable, on willg97): event "Scale probe" `14bb4318-80cd-4eed-b219-92c097ee16c7`, qr
+     `d02631f1bfb3455188d224e41bf9510f`, 1,200 photos `p0001` (oldest) to `p1200` (host, Ana P., Ben K., Cal M. in turn),
+     seeded through the real write path; by SQL the oldest 20 pending, the next 30 host-removed, five guest-owned
+     withdrawn, the three oldest approved liked by willg97 and hi@willgibs (1,145 approved). **The live cap is 1,000**
+     (an unbounded select answered `Content-Range: 0-999/*`); **write responses are not capped** (a PATCH over 1,040
+     rows returned 1,040).
+   - **Stage 1 in flight:** `rowcap-kit` and `rowcap-sql` (the In flight table). At the SQL merge: the three files in
+     order by the protocol (a drift md5 of `get_event_media_by_qr_token`, `get_event_like_counts` and
+     `list_guest_rows_by_email` against their newest files, apply verbatim, md5 and grants, `get_advisors` at 15 / 5 /
+     32, the foot's check, nothing persisted, `types.ts` regenerated). At the kit merge: CLAUDE.md's ★ gotcha line.
+   - **Stage 2 after both:** `rowcap-guest`, `rowcap-album`, `rowcap-host`, `rowcap-cron` (Opus, :3131 to :3134), owns
+     from the kit's prefix map, items from the markers plus the notes file's semantic ones; each empties its markers. At
+     the last stage-2 record the policy test's `TODO_IDS` empties.
+2. **Alias build 4** after stage 2 (`[preview]` on the record; `alias-ensure.mjs`; the prune), then the red-team in
+   Will's Chrome (the chooser only; clear the alias's `pr_session_*` first if a test needs a fresh door):
    - `upload-owner`, on ONE browser: account A uploads to a names-mode event (`guest-view-menu QA`,
      `13513a6555214314b6eeac64232b541a`); A signs out (once through the guest page's account menu, once through the
      app's); B signs in and uploads: B's own row, B's address under it in the host's viewer and Guests room; B signs
@@ -81,17 +73,22 @@ face any of those issues here"); work inside this round is fixed near-term, larg
      with a confirmed row's ticket on a verified-emails event answers 403.
    - `delete-final`: the guest's own delete confirm reads "deleted from the event right away and can't be recovered";
      the item appears on no host surface; the host's "in Recently deleted" figure moves only for a host removal.
-   - The 1,000-row lane: its own Look at first (large-album behaviour is pinned by tests; read-backs by SQL).
-4. **Milestone 28** (approved): the full gate on `launch-prep` (`rm -rf .next/dev`; typecheck, lint, test, build,
+   - The probe, as willg97: the hub's count, Review's 20 oldest, the Deleted bin's 30 (never the five withdrawn), the
+     oldest photo reachable, the three old likes counted, Download all's summary whole (read from the response), the
+     dashboard card's count and a cover on EVERY card, the pulse's today; as a guest: the header equals the approved
+     total, the oldest photo reachable, the poll 200 then 304, the export's summary whole; as partyr33l: `/admin`
+     metrics, the probe's moderation album whole, `/admin/jobs` showing the purge run's counts; no `db/row_cap_hit` in
+     Sentry.
+3. **Milestone 28** (approved): the full gate on `launch-prep` (`rm -rf .next/dev`; typecheck, lint, test, build,
    `lab:smoke`, `lab:demo`), `git checkout main && git merge --no-ff launch-prep` with the message in a file written by
    a QUOTED heredoc (`<<'EOF'`: an unquoted one ran a backticked word as a command in milestone 27's message), an
    annotated tag `milestone-28`, push `main` then the tag, both projects READY at the SHA
    (`scratchpad/wait-prod.mjs <sha>`), the partyreel.com pass (the dashboard, `/account`, a real upload, the demo, the
-   lab 404, runtime errors, Sentry), `git checkout launch-prep && git merge --ff-only main`, push, STATUS and this
-   pickup rewritten; the report to Will.
-5. **The purge cron's first scheduled run on the new code** (04:00 UTC 2026-09-24, only production runs crons): read
-   its heartbeat from the jobs console or `job_runs`.
-6. **The reel round's wiring**, after his desk review of the six reel boards: the plan's reel section (A to G).
+   probe album signed out, the lab 404, runtime errors, Sentry), `git checkout launch-prep && git merge --ff-only main`,
+   push, STATUS and this pickup rewritten; the report to Will.
+4. **The purge cron's 04:00 UTC run on 2026-09-24** (milestone 27's code; only production runs crons): read its
+   heartbeat from `job_runs` after 04:05.
+5. **The reel round's wiring**, after his desk review of the six reel boards: the plan's reel section (A to G).
 
 ## Waiting on Will
 
