@@ -21,10 +21,18 @@
  * capping any 304 streak so clients re-pull fresh URLs before old ones expire.
  *
  * DELIBERATELY OUTSIDE the hash: width/height/durationSeconds (Phase 4 masonry
- * data). They are write-once at create_media (mutations only ever flip status
- * fields), so they're a pure function of the already-hashed id - hashing them
- * would add bytes without adding sensitivity. A field that can CHANGE for an
- * existing id must go INSIDE the hash (and bump g1 -> g2).
+ * data) and `reelEligible` (the live reel, `media.reel_eligible`: false only for
+ * a cut added to the album). All four are write-once at create_media (mutations
+ * only ever flip status fields, and no client role can update reel_eligible),
+ * so they're a pure function of the already-hashed id - hashing them would add
+ * bytes without adding sensitivity. A field that can CHANGE for an existing id
+ * must go INSIDE the hash (and bump the version).
+ *
+ * THE LIVE REEL'S FACTS ARE IN THE HASH (reel-guest-wiring, 2026-09-24): the
+ * payload carries the host's switch and mood, the platform lever and what the
+ * host's plan lets the cut creator do (`gallery-reel.ts`), and every one of
+ * them can change with no media row moving. Outside the hash, a host turning
+ * the reel off would 304 past every open album until the presign bucket rolled.
  *
  * Pure module (node:crypto only) so the hash rules are Vitest-pinnable.
  */
@@ -46,6 +54,13 @@ export function galleryEtag(input: {
   teaserTotal: number | null;
   /** The album's head count (photos and videos) the payload carries; null at `none`. */
   approvedTotal: number | null;
+  /** The live reel's facts the payload carries (`gallery-reel.ts`); null below full access. */
+  reel?: {
+    showReel: boolean;
+    liveReelEnabled: boolean;
+    styleId: string | null;
+    cut: { videoAllowed: boolean; watermark: boolean; maxSeconds: number } | null;
+  } | null;
   bucketId: string;
   items: GalleryFingerprintItem[];
 }): string {
@@ -55,6 +70,20 @@ export function galleryEtag(input: {
     input.gate,
     input.teaserTotal,
     input.approvedTotal,
+    input.reel
+      ? [
+          input.reel.showReel,
+          input.reel.liveReelEnabled,
+          input.reel.styleId,
+          input.reel.cut
+            ? [
+                input.reel.cut.videoAllowed,
+                input.reel.cut.watermark,
+                input.reel.cut.maxSeconds,
+              ]
+            : null,
+        ]
+      : null,
     input.bucketId,
     input.items.map((i) => [
       i.id,
@@ -71,7 +100,7 @@ export function galleryEtag(input: {
   // Strong, quoted, version-prefixed: a shape change bumps the version so stale clients can never
   // false-match. The item tuple is (id, type, name, host, verified): any change to what it carries,
   // or to the payload fields beside it, bumps this, so a client holding an older validator re-pulls
-  // rather than 304s past a change it cannot see. g5: the payload carries the album's head count
-  // (`approvedTotal`), and a g4 validator knows nothing of it.
-  return `"g5-${hash}"`;
+  // rather than 304s past a change it cannot see. g6: the payload carries the live reel's facts
+  // (`reel`), and a g5 validator knows nothing of them.
+  return `"g6-${hash}"`;
 }

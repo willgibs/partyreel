@@ -63,6 +63,8 @@ function album(
     width: 320,
     height: 240,
     duration_seconds: i % 9 === 0 ? 4.5 : null,
+    // A cut saved to the album now and then (the live reel's `reel_eligible`).
+    reel_eligible: i % 7 !== 3,
     created_at: ties.has(i - 1) ? stamp(i - 1, 644108) : stamp(i, 644108),
     status:
       i < pending ? "pending" : i < pending + removed ? "removed" : "approved",
@@ -210,8 +212,32 @@ describe("getEventMediaByQrToken: the open album, read whole", () => {
       width: 320,
       height: 240,
       duration_seconds: null,
+      reel_eligible: true,
       created_at: stamp(4, 644108),
     });
+  });
+
+  it("carries reel_eligible through, and reads it as eligible when an older RPC omits it", async () => {
+    const media = album(5);
+    const { handler } = albumRpc(media);
+    fake = createFakePostgrest({
+      rpc: { get_event_media_by_qr_token: handler },
+    });
+    const rows = await getEventMediaByQrToken(OPEN_QR);
+    // uid(4) is index 3: the fixture's cut.
+    expect(rows.find((r) => r.id === uid(4))?.reel_eligible).toBe(false);
+
+    const bare = album(3).map((row) => {
+      const { reel_eligible: _dropped, ...rest } = row;
+      void _dropped;
+      return rest;
+    });
+    const older = albumRpc(bare);
+    fake = createFakePostgrest({
+      rpc: { get_event_media_by_qr_token: older.handler },
+    });
+    const legacy = await getEventMediaByQrToken(OPEN_QR);
+    expect(legacy.every((r) => r.reel_eligible === true)).toBe(true);
   });
 
   it("an album the RPC will not show (not open, deleted, a wrong token) is empty, in one request", async () => {

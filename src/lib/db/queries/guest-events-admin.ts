@@ -18,6 +18,7 @@ import "server-only";
 import { cache } from "react";
 
 import { seedFor } from "@/lib/avatar/seed";
+import { toBillingTier, type Tier } from "@/lib/constants/tiers";
 import { mustQuery, QueryFailedError } from "@/lib/db/must-query";
 import {
   albumCursorOf,
@@ -30,6 +31,7 @@ import { getEventGuests } from "@/lib/db/queries/social";
 import { readAllPages } from "@/lib/db/read-all";
 import { guestCount } from "@/lib/events/event-guests";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
+import { captureWarning } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 import {
@@ -57,7 +59,7 @@ export async function getApprovedMediaForUnlock(
       let page = admin
         .from("media")
         .select(
-          "id, type, original_key, preview_key, width, height, duration_seconds, created_at",
+          "id, type, original_key, preview_key, width, height, duration_seconds, reel_eligible, created_at",
         )
         .eq("event_id", eventId)
         .eq("status", "approved")
@@ -77,6 +79,7 @@ export async function getApprovedMediaForUnlock(
     width: m.width,
     height: m.height,
     duration_seconds: m.duration_seconds,
+    reel_eligible: m.reel_eligible,
     created_at: m.created_at,
   }));
 }
@@ -103,7 +106,7 @@ export async function getApprovedPhotoTeaser(
   const { data, count, error } = await createAdminClient()
     .from("media")
     .select(
-      "id, type, original_key, preview_key, width, height, duration_seconds, created_at",
+      "id, type, original_key, preview_key, width, height, duration_seconds, reel_eligible, created_at",
       { count: "exact" },
     )
     .eq("event_id", event.id)
@@ -125,6 +128,7 @@ export async function getApprovedPhotoTeaser(
       width: m.width,
       height: m.height,
       duration_seconds: m.duration_seconds,
+      reel_eligible: m.reel_eligible,
       created_at: m.created_at,
     })),
     total: count ?? 0,
@@ -312,4 +316,103 @@ export async function getUploaderIdentities(
   const map = new Map<string, UploaderIdentity>();
   for (const row of rows) map.set(row.id, resolveUploaderIdentity(row, hostName));
   return map;
+}
+
+/**
+ * THE TWO SERVER-ONLY FACTS BEHIND THE LIVE REEL (reel-guest-wiring, 2026-09-24): the platform lever
+ * (`ops_flags.live_reel_enabled`) and the host's plan (which decides what the cut creator may do,
+ * `cutFactsForTier`). Both are deny-all or host-private, so the admin client reads them; only the
+ * derived booleans and one number ever reach a guest (`gallery-reel.ts`).
+ *
+ * ★ CACHED FOR HALF A MINUTE, PER EVENT, PER PROCESS. The gallery poll asks on every call (the facts
+ * ride the ETag, so a host's upgrade or an operator's lever reaches an open album on the next poll),
+ * and a venue of phones polling is exactly the load that should not cost two admin reads apiece.
+ * Neither fact moves more than a few times a lifetime; thirty seconds of staleness is invisible. The
+ * host's own switch and mood are NOT cached: they ride `get_event_by_qr_token`, read fresh.
+ *
+ * ★ EACH FAILURE HAS ITS OWN HONEST ANSWER, NEVER A GUESS. The lever fails OPEN (a flaky read must
+ * not take the reel off every album; render-service.ts's own kill switch reads the same way). The
+ * plan fails to `null`, which drops the creator and keeps the reel: guessing "free" would stamp the
+ * mark on a paying host's cuts, guessing paid would lift it off a free one. Both are reported.
+ */
+export type LiveReelServerFacts = {
+  liveReelEnabled: boolean;
+  tier: Tier | null;
+};
+
+const REEL_FACTS_TTL_MS = 30_000;
+const REEL_FACTS_MAX = 500;
+const reelFactsCache = new Map<
+  string,
+  { at: number; value: LiveReelServerFacts }
+>();
+
+export async function getLiveReelServerFacts(
+  eventId: string,
+): Promise<LiveReelServerFacts> {
+  const now = Date.now();
+  const hit = reelFactsCache.get(eventId);
+  if (hit && now - hit.at < REEL_FACTS_TTL_MS) return hit.value;
+
+  const admin = createAdminClient();
+  const [flag, event] = await Promise.all([
+    admin
+      .from("ops_flags")
+      .select("enabled")
+      .eq("key", "live_reel_enabled")
+      .maybeSingle(),
+    admin.from("events").select("host_id").eq("id", eventId).maybeSingle(),
+  ]);
+
+  let liveReelEnabled = true;
+  if (flag.error) {
+    captureWarning("reel", "live reel: the platform lever could not be read", {
+      eventId,
+      code: flag.error.code,
+    });
+  } else {
+    // A genuinely absent row reads as the seeded default (on).
+    liveReelEnabled = flag.data?.enabled ?? true;
+  }
+
+  let tier: Tier | null = null;
+  if (event.error || !event.data?.host_id) {
+    if (event.error) {
+      captureWarning("reel", "live reel: the event's host could not be read", {
+        eventId,
+        code: event.error.code,
+      });
+    }
+  } else {
+    const profile = await admin
+      .from("profiles")
+      .select("tier")
+      .eq("id", event.data.host_id)
+      .maybeSingle();
+    if (profile.error || !profile.data) {
+      captureWarning("reel", "live reel: the host's plan could not be read", {
+        eventId,
+        code: profile.error?.code ?? "missing",
+      });
+    } else {
+      tier = toBillingTier(profile.data.tier);
+    }
+  }
+
+  const value = { liveReelEnabled, tier };
+  // A failed read is not remembered: the next poll asks again rather than serving a guess for the
+  // whole TTL.
+  if (!flag.error && tier !== null) {
+    if (reelFactsCache.size >= REEL_FACTS_MAX) {
+      const oldest = reelFactsCache.keys().next().value;
+      if (oldest !== undefined) reelFactsCache.delete(oldest);
+    }
+    reelFactsCache.set(eventId, { at: now, value });
+  }
+  return value;
+}
+
+/** Test seam: the per-process cache above, emptied. */
+export function resetLiveReelServerFactsCache(): void {
+  reelFactsCache.clear();
 }

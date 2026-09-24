@@ -40,6 +40,11 @@ export type GuestEvent = {
   qr_style: string;
   // Joined from profiles — null if the host hasn't set a display name.
   host_display_name: string | null;
+  /** The host's switch for the live reel on the album, default ON (the live reel's expand). */
+  show_reel: boolean;
+  /** The host's default mood for the live reel; null is the default mood. A viewer's own pick
+   *  overrides it on their device and is never written back. */
+  reel_style_id: string | null;
 };
 
 export type GuestEventResult =
@@ -141,6 +146,10 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
     event_date: row.event_date ?? null,
     qr_style: row.qr_style,
     host_display_name: row.host_display_name ?? null,
+    // The live reel's two event facts. `?? true` / `?? null`: an RPC from before the expand never
+    // returned them, and a missing switch must read as the default (on), never as off.
+    show_reel: row.show_reel ?? true,
+    reel_style_id: row.reel_style_id ?? null,
   };
 
   return { ok: true, data: await rehydrateUnlockedDetails(event) };
@@ -163,6 +172,12 @@ export type GuestMediaRow = {
   width: number | null;
   height: number | null;
   duration_seconds: number | null;
+  /**
+   * `media.reel_eligible`, "plays in the live reel": false only for a cut someone added to the album,
+   * so the live reel never plays a reel. WRITE-ONCE at create_media, so like the dimensions it rides
+   * outside the gallery ETag (gallery-fingerprint.ts).
+   */
+  reel_eligible: boolean;
   /**
    * The album's order key, and its keyset cursor: the RAW timestamp string Postgres returned
    * (`2026-09-23T23:31:24.644108+00:00`), never a `Date`, because microseconds decide ties and a
@@ -236,6 +251,8 @@ export async function getEventMediaByQrToken(
     width: m.width ?? null,
     height: m.height ?? null,
     duration_seconds: m.duration_seconds ?? null,
+    // Absent (an RPC from before the expand) reads as eligible: a stale shape must not empty the reel.
+    reel_eligible: m.reel_eligible ?? true,
     created_at: m.created_at,
   }));
 }

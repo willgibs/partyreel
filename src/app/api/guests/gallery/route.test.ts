@@ -27,8 +27,11 @@ vi.mock("@/lib/db/queries/guest-events-admin", () => ({
   getGuestCount: (...a: unknown[]) => getGuestCount(...a),
 }));
 const resolveViewerDecision = vi.fn();
+const loadGalleryReel = vi.fn();
+const galleryEtagFor = vi.fn((..._a: unknown[]) => '"g3-stub"');
 vi.mock("@/lib/events/gallery-access.server", () => ({
   resolveViewerDecision: (...a: unknown[]) => resolveViewerDecision(...a),
+  loadGalleryReel: (...a: unknown[]) => loadGalleryReel(...a),
   isEventOwner: vi.fn().mockResolvedValue(false),
   loadGalleryRowsForAccess: vi.fn().mockResolvedValue({
     rows: [],
@@ -36,7 +39,7 @@ vi.mock("@/lib/events/gallery-access.server", () => ({
     teaserTotal: 9,
     approvedTotal: 48,
   }),
-  galleryEtagFor: vi.fn(() => '"g3-stub"'),
+  galleryEtagFor: (...a: unknown[]) => galleryEtagFor(...a),
   presignGalleryRows: vi.fn().mockResolvedValue([]),
 }));
 vi.mock("@/lib/events/unlock-cookie", () => ({
@@ -75,6 +78,7 @@ beforeEach(() => {
   });
   resolveViewerDecision.mockResolvedValue({ access: "teaser", gate: "upload" });
   getGuestCount.mockResolvedValue(4);
+  loadGalleryReel.mockResolvedValue(null);
 });
 
 describe("the decision it answers", () => {
@@ -224,6 +228,47 @@ describe("the album's size (the header's 'N photos & videos', C9)", () => {
       unknown
     >;
     expect(body.approvedTotal).toBeNull();
+  });
+});
+
+describe("the live reel's facts (reel-guest-wiring)", () => {
+  const REEL = {
+    showReel: true,
+    liveReelEnabled: true,
+    styleId: "warm",
+    cut: { videoAllowed: true, watermark: false, maxSeconds: 60 },
+  };
+
+  it("ride every 200, read for the viewer's own access level", async () => {
+    resolveViewerDecision.mockResolvedValue({ access: "full", gate: null });
+    loadGalleryReel.mockResolvedValue(REEL);
+    const res = await post({ qr_token: QR });
+    expect(await res.json()).toMatchObject({ ok: true, reel: REEL });
+    expect(loadGalleryReel).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "evt-1" }),
+      "full",
+    );
+  });
+
+  it("are hashed into the validator, so a host's switch never 304s past an open album", async () => {
+    resolveViewerDecision.mockResolvedValue({ access: "full", gate: null });
+    loadGalleryReel.mockResolvedValue(REEL);
+    await post({ qr_token: QR });
+    expect(galleryEtagFor).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      REEL,
+    );
+  });
+
+  it("are null on a private or missing event", async () => {
+    getEventByQrToken.mockResolvedValue({ ok: false });
+    const body = (await (await post({ qr_token: QR })).json()) as Record<
+      string,
+      unknown
+    >;
+    expect(body.reel).toBeNull();
+    expect(loadGalleryReel).not.toHaveBeenCalled();
   });
 });
 

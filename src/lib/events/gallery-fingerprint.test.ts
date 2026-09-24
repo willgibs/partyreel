@@ -31,9 +31,38 @@ describe("galleryEtag", () => {
   it("is stable for identical input and shaped as a strong validator", () => {
     const a = galleryEtag(base);
     expect(a).toBe(galleryEtag({ ...base, items: base.items.map((i) => ({ ...i })) }));
-    // g5 since the 1,000-row round: the payload carries the album's head count, and a client
-    // holding an older ETag must re-pull rather than 304 past a change it cannot see.
-    expect(a).toMatch(/^"g5-[A-Za-z0-9_-]{27}"$/);
+    // g6 since the live reel: the payload carries the reel's facts, and a client holding an older
+    // ETag must re-pull rather than 304 past a change it cannot see.
+    expect(a).toMatch(/^"g6-[A-Za-z0-9_-]{27}"$/);
+  });
+
+  // THE LIVE REEL'S FACTS ARE IN THE HASH (reel-guest-wiring, 2026-09-24). A host turning the reel
+  // off, an operator's lever, a plan change: none moves a media row, so the validator has to move
+  // by itself, or an open album would 304 past the change until the presign bucket rolled.
+  it("changes with every live reel fact, and a null never collides with an off switch", () => {
+    const reel = {
+      showReel: true,
+      liveReelEnabled: true,
+      styleId: null as string | null,
+      cut: { videoAllowed: true, watermark: false, maxSeconds: 60 },
+    };
+    const on = galleryEtag({ ...base, reel });
+    expect(galleryEtag({ ...base, reel: { ...reel } })).toBe(on);
+    expect(galleryEtag({ ...base, reel: { ...reel, showReel: false } })).not.toBe(on);
+    expect(
+      galleryEtag({ ...base, reel: { ...reel, liveReelEnabled: false } }),
+    ).not.toBe(on);
+    expect(galleryEtag({ ...base, reel: { ...reel, styleId: "warm" } })).not.toBe(on);
+    expect(
+      galleryEtag({
+        ...base,
+        reel: { ...reel, cut: { ...reel.cut, watermark: true } },
+      }),
+    ).not.toBe(on);
+    expect(galleryEtag({ ...base, reel: { ...reel, cut: null } })).not.toBe(on);
+    expect(galleryEtag({ ...base, reel: null })).not.toBe(on);
+    // Absent (every caller before the reel) hashes the same as null.
+    expect(galleryEtag(base)).toBe(galleryEtag({ ...base, reel: null }));
   });
 
   // THE ALBUM'S SIZE IS IN THE HASH (the 1,000-row round). The teaser's nine photographs can stay

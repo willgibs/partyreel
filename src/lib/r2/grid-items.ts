@@ -10,6 +10,7 @@
 import "server-only";
 
 import type { GridMedia } from "@/components/app/media-grid";
+import type { GalleryItem } from "@/lib/events/gallery-reel";
 import { buildDownloadFilename } from "@/lib/media/download-filename";
 import type { MediaKind } from "@/lib/media/limits";
 import type { UploaderIdentity } from "@/lib/media/uploader-identity";
@@ -29,6 +30,9 @@ type MediaRow = {
   width?: number | null;
   height?: number | null;
   duration_seconds?: number | null;
+  /** `media.reel_eligible` (the live reel): false only for a cut added to the album. Absent reads
+   *  as eligible, so a caller that never selected it cannot empty a reel. */
+  reel_eligible?: boolean | null;
 };
 
 export async function toGridItems(
@@ -39,7 +43,7 @@ export async function toGridItems(
   // guest GridMedia can never carry an email (the host gallery builds its items separately, with
   // email).
   identities?: Map<string, UploaderIdentity>,
-): Promise<GridMedia[]> {
+): Promise<GalleryItem[]> {
   return Promise.all(
     media.map(async (m) => {
       const [url, downloadUrl, previewUrl] = await Promise.all([
@@ -83,6 +87,9 @@ export async function toGridItems(
         width: m.width ?? null,
         height: m.height ?? null,
         durationSeconds: m.duration_seconds ?? null,
+        // THE LIVE REEL reads the album's own payload (no second RPC, no second presign), so the
+        // one column it needs rides here. Write-once like the dimensions, so outside the ETag too.
+        reelEligible: m.reel_eligible ?? true,
       };
     }),
   );

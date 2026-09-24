@@ -8,6 +8,7 @@ import type { GalleryDecision } from "@/lib/events/gallery-access";
 import {
   galleryEtagFor,
   isEventOwner,
+  loadGalleryReel,
   loadGalleryRowsForAccess,
   presignGalleryRows,
   resolveViewerDecision,
@@ -75,6 +76,11 @@ export const dynamic = "force-dynamic";
  * `full` (null at `none`, which mounts no gallery). Unlike the guest count it is IN the hash: the
  * teaser's nine photographs can hold still while a video lands behind them, and only the count
  * would say so.
+ *
+ * ★ THE LIVE REEL'S FACTS RIDE EVERY 200, AND THE VALIDATOR TOO (reel-guest-wiring, 2026-09-24).
+ * `reel` is null below `full` and otherwise the host's switch and mood, the platform lever and what
+ * the host's plan lets the cut creator do (`gallery-reel.ts`, `loadGalleryReel`). None of them moves
+ * a media row, so they are hashed, or a host turning the reel off would 304 past every open album.
  */
 const bodySchema = z.object({
   qr_token: z.string().min(1),
@@ -111,6 +117,7 @@ export async function POST(request: Request) {
       gate: null,
       teaserTotal: null,
       approvedTotal: null,
+      reel: null,
     });
   }
 
@@ -155,8 +162,11 @@ export async function POST(request: Request) {
         sessionToken,
       });
   const access = decision.access;
-  const gallery = await loadGalleryRowsForAccess(event.data, access);
-  const etag = galleryEtagFor(decision, gallery);
+  const [gallery, reel] = await Promise.all([
+    loadGalleryRowsForAccess(event.data, access),
+    loadGalleryReel(event.data, access),
+  ]);
+  const etag = galleryEtagFor(decision, gallery, reel);
   const headers = new Headers({
     ETag: etag,
     "Cache-Control": "private, no-store",
@@ -202,6 +212,7 @@ export async function POST(request: Request) {
       gate: decision.gate,
       teaserTotal: gallery.teaserTotal,
       approvedTotal: gallery.approvedTotal,
+      reel,
       ...(guestCount === undefined ? {} : { guestCount }),
     },
     { headers },

@@ -5,7 +5,6 @@
  */
 import "server-only";
 
-import type { GridMedia } from "@/components/app/media-grid";
 import {
   getEventMediaByQrToken,
   type GuestEvent,
@@ -15,6 +14,7 @@ import {
   countApprovedMedia,
   getApprovedMediaForUnlock,
   getApprovedPhotoTeaser,
+  getLiveReelServerFacts,
   getUploaderIdentities,
 } from "@/lib/db/queries/guest-events-admin";
 import { getUploadGate } from "@/lib/db/queries/guest-gate";
@@ -26,6 +26,11 @@ import {
   type GalleryDecision,
 } from "@/lib/events/gallery-access";
 import { galleryEtag } from "@/lib/events/gallery-fingerprint";
+import {
+  reelFactsFor,
+  type GalleryItem,
+  type GalleryReel,
+} from "@/lib/events/gallery-reel";
 import type { UploaderIdentity } from "@/lib/media/uploader-identity";
 import { toGridItems } from "@/lib/r2/grid-items";
 import { presignBucketId } from "@/lib/r2/presign-bucket";
@@ -229,12 +234,14 @@ export async function loadGalleryRowsForAccess(
 export function galleryEtagFor(
   decision: GalleryDecision,
   gallery: GalleryRows,
+  reel: GalleryReel | null = null,
 ): string {
   return galleryEtag({
     access: decision.access,
     gate: decision.gate,
     teaserTotal: gallery.teaserTotal,
     approvedTotal: gallery.approvedTotal,
+    reel,
     bucketId: presignBucketId(Date.now()),
     items: gallery.rows.map((r) => {
       const who = gallery.identities?.get(r.id);
@@ -249,12 +256,34 @@ export function galleryEtagFor(
   });
 }
 
-/** Presign loaded rows into render-ready GridMedia (the expensive step a 304 skips). */
+/** Presign loaded rows into render-ready items (the expensive step a 304 skips). */
 export async function presignGalleryRows(
   event: GuestEvent,
   gallery: GalleryRows,
-): Promise<GridMedia[]> {
+): Promise<GalleryItem[]> {
   return toGridItems(gallery.rows, event.name, gallery.identities);
+}
+
+/**
+ * THE LIVE REEL'S FACTS FOR THIS VIEWER (reel-guest-wiring, 2026-09-24): null below full access
+ * (nothing is read at all), else the host's switch and mood off the event row this request already
+ * holds, beside the platform lever and the host's plan (`getLiveReelServerFacts`, cached). The
+ * page and the poll both carry the result, and the ETag hashes it, so a host's switch reaches an
+ * open album on the next poll. The demo is full access and reads the same way.
+ */
+export async function loadGalleryReel(
+  event: GuestEvent,
+  access: GalleryAccess,
+): Promise<GalleryReel | null> {
+  if (access !== "full") return null;
+  const facts = await getLiveReelServerFacts(event.id);
+  return reelFactsFor({
+    access,
+    showReel: event.show_reel,
+    liveReelEnabled: facts.liveReelEnabled,
+    styleId: event.reel_style_id,
+    tier: facts.tier,
+  });
 }
 
 /**
@@ -267,17 +296,22 @@ export async function loadGalleryForAccess(
   event: GuestEvent,
   decision: GalleryDecision,
 ): Promise<{
-  items: GridMedia[];
+  items: GalleryItem[];
   teaserTotal: number | null;
   approvedTotal: number | null;
+  reel: GalleryReel | null;
   etag: string;
 }> {
-  const gallery = await loadGalleryRowsForAccess(event, decision.access);
-  const etag = galleryEtagFor(decision, gallery);
+  const [gallery, reel] = await Promise.all([
+    loadGalleryRowsForAccess(event, decision.access),
+    loadGalleryReel(event, decision.access),
+  ]);
+  const etag = galleryEtagFor(decision, gallery, reel);
   return {
     items: await presignGalleryRows(event, gallery),
     teaserTotal: gallery.teaserTotal,
     approvedTotal: gallery.approvedTotal,
+    reel,
     etag,
   };
 }

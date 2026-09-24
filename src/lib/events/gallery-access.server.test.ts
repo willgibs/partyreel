@@ -23,8 +23,11 @@ vi.mock("@/lib/db/queries/guest-events", () => ({
 const countApprovedMedia = vi.fn();
 const getApprovedMediaForUnlock = vi.fn();
 const getApprovedPhotoTeaser = vi.fn();
+const getLiveReelServerFacts = vi.fn();
 vi.mock("@/lib/db/queries/guest-events-admin", () => ({
   countApprovedMedia: (...args: unknown[]) => countApprovedMedia(...args),
+  getLiveReelServerFacts: (...args: unknown[]) =>
+    getLiveReelServerFacts(...args),
   getApprovedMediaForUnlock: (...args: unknown[]) =>
     getApprovedMediaForUnlock(...args),
   getApprovedPhotoTeaser: (...args: unknown[]) =>
@@ -40,8 +43,12 @@ vi.mock("@/lib/db/queries/guest-gate", () => ({
   getUploadGate: (...args: unknown[]) => getUploadGate(...args),
 }));
 
-const { galleryEtagFor, loadGalleryRowsForAccess, resolveViewerDecision } =
-  await import("@/lib/events/gallery-access.server");
+const {
+  galleryEtagFor,
+  loadGalleryReel,
+  loadGalleryRowsForAccess,
+  resolveViewerDecision,
+} = await import("@/lib/events/gallery-access.server");
 
 type Event = Parameters<typeof resolveViewerDecision>[0];
 
@@ -59,6 +66,8 @@ const EVENT = {
   event_date: null,
   qr_style: "classic",
   host_display_name: null,
+  show_reel: true,
+  reel_style_id: null,
 } as unknown as Event;
 
 const GUEST = {
@@ -211,5 +220,35 @@ describe("loadGalleryRowsForAccess: the album's size rides beside the rows (C9)"
       galleryEtagFor(decision, { ...gallery, approvedTotal: 1146 }),
     ).not.toBe(before);
     expect(galleryEtagFor(decision, { ...gallery })).toBe(before);
+  });
+});
+
+describe("loadGalleryReel: the live reel's facts for one viewer", () => {
+  beforeEach(() => {
+    getLiveReelServerFacts.mockReset();
+    getLiveReelServerFacts.mockResolvedValue({
+      liveReelEnabled: true,
+      tier: "free",
+    });
+  });
+
+  it("reads nothing and says nothing below full access", async () => {
+    expect(await loadGalleryReel(EVENT, "teaser")).toBeNull();
+    expect(await loadGalleryReel(EVENT, "none")).toBeNull();
+    expect(getLiveReelServerFacts).not.toHaveBeenCalled();
+  });
+
+  it("joins the event's own switch and mood to the lever and the plan", async () => {
+    const reel = await loadGalleryReel(
+      { ...EVENT, show_reel: false, reel_style_id: "warm" } as Event,
+      "full",
+    );
+    expect(reel).toEqual({
+      showReel: false,
+      liveReelEnabled: true,
+      styleId: "warm",
+      cut: { videoAllowed: false, watermark: true, maxSeconds: 30 },
+    });
+    expect(getLiveReelServerFacts).toHaveBeenCalledWith("event-1");
   });
 });
