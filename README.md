@@ -48,4 +48,4 @@ pnpm db:types      # regenerate src/lib/db/types.ts from the linked Supabase pro
 
 Next.js 16 (App Router) · React 19 · Tailwind CSS v4 · shadcn/ui · Supabase
 (Postgres + RLS) · Cloudflare R2 (storage) · Stripe (billing) · Resend (email) · Sentry.
-Pinned versions and the per-library gotchas that matter live in [`CLAUDE.md`](CLAUDE.md).
+Pinned versions are `package.json`'s; the project's own traps live in [`CLAUDE.md`](CLAUDE.md).

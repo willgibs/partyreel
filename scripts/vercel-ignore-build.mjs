@@ -49,7 +49,7 @@
  *
  * vercel.json's "ignoreCommand" points here and overrides the project-settings field; keep the
  * policy in THIS file. Rollback: delete the vercel.json key (the dashboard field, if still set,
- * takes back over). See CLAUDE.md "Git" + docs/PROGRAM.md for the branch protocol this serves.
+ * takes back over). See CLAUDE.md "The gate and git" and docs/PROGRAM.md "Agent boot" for the branch protocol this serves.
  */
 
 const ref = process.env.VERCEL_GIT_COMMIT_REF ?? "";

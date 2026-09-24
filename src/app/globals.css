@@ -1139,7 +1139,7 @@
    (--foreground / --brand / --border / --gallery…), and those tokens already flip under
    `.dark` — so `prose prose-help` adapts to dark mode automatically, WITHOUT needing
    `dark:prose-invert`. Links use the brand accent; the blockquote rule is a brand hairline.
-   Keep the override surface small (CLAUDE.md: long-form inherits the one design system). */
+   Keep the override surface small (the bible's One system: long-form inherits it). */
 @utility prose-help {
   --tw-prose-body: var(--foreground);
   --tw-prose-headings: var(--foreground);
