@@ -52,6 +52,7 @@ else
   # production builds take turns across every lane on the machine (dev servers and tests stay parallel)
   run build "pnpm build" 12 zsh scripts/build-lock.sh pnpm build
   grep -q '^build-lock: waiting' "$S/gate$N-build.log" && echo "(the build's seconds include a wait for the build lock)"
+  grep -hE 'Compiled successfully in|Finished TypeScript in' "$S/gate$N-build.log" | sed -E 's/^[^A-Za-z]*/build: /'
   case "$LABS" in
     "") echo "LAB off: the lane brings nothing the lab renders" ;;
     "("*) echo "LAB on: $LABS" ;;

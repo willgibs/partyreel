@@ -70,14 +70,14 @@ PY2
 # instead of a bare STEP FAILED.
 UNGATED=$(git diff --cached --no-renames --name-only "lp/$TRACK")
 CODE=$(print -r -- "$UNGATED" | zsh "$KIT/scope.sh" code)
-TC=0
+TC=0; T0=$SECONDS
 if [ -n "$CODE" ]; then
-  echo "typecheck: $(print -r -- "$CODE" | wc -l | tr -d ' ') code path(s) the lane never gated, first $(print -r -- "$CODE" | head -1)"
   rm -rf .next/dev
   pnpm typecheck >"$S/$TRACK-typecheck.log" 2>&1 || TC=$?
+  echo "typecheck: $(print -r -- "$CODE" | wc -l | tr -d ' ') code path(s) the lane never gated, first $(print -r -- "$CODE" | head -1) ($(( SECONDS - T0 ))s)"
 else echo "typecheck: skipped, the merge differs from the lane's head only in docs"; fi
-RT=0; pnpm -s vitest run "src/app/(dev)/design/sandbox/registry.test.ts" "src/app/(dev)/design/touchpoints.test.ts" >"$S/$TRACK-registry-tests.log" 2>&1 || RT=$?
-echo "typecheck $TC registry-tests $RT"
+T0=$SECONDS; RT=0; pnpm -s vitest run "src/app/(dev)/design/sandbox/registry.test.ts" "src/app/(dev)/design/touchpoints.test.ts" >"$S/$TRACK-registry-tests.log" 2>&1 || RT=$?
+echo "typecheck $TC registry-tests $RT ($(( SECONDS - T0 ))s)"
 [ "$TC" = 0 ] && [ "$RT" = 0 ] || { echo "RED before commit; merge left staged"; [ "$TC" = 0 ] || grep -E "error TS" "$S/$TRACK-typecheck.log" | head -5; tail -30 "$S/$TRACK-registry-tests.log"; exit 1; }
 git commit -q -F "$MSG"
 echo "MERGED $(git rev-parse --short HEAD)"; git status --short | wc -l
