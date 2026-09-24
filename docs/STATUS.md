@@ -22,10 +22,11 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   is final and reaches no host surface.
 - **A block for bad actors** (his concept): the `event-safety` board on his three answers (a block puts the person out
   and removes their uploads; approve newcomers, close to newcomers and an invite list; all free on every plan).
-- **The reel round** waits on his desk review: the rolling live composer and the video window reader are on the tree
-  (harnesses `/design/lab/tools/reel-live` and `/design/lab/tools/reel-video`), six boards on the desk; its plan is
-  `~/.claude/plans/great-work-however-1-dapper-twilight.md`'s reel section (the expand migration first, the drop after
-  the red-team).
+- **The reel round** waits on his desk review: the live composer and the video window reader on the tree (harnesses
+  `/design/lab/tools/reel-live`, `/reel-video`), six boards on the desk, the data model live (the expand applied
+  2026-09-24; the drop waits for the red-team); the plan's reel section is `~/.claude/plans/great-work-however-1-dapper-twilight.md`.
+- **Since milestone 28 (`clocks-and-counts`):** counts grouped, chart ticks that fit, the admin's times in UTC, one Link
+  visits figure, the host's dashboard on the viewer's own day (`x-vercel-ip-timezone`), the backup's CLI pinned.
 
 ## The desk
 
@@ -53,7 +54,7 @@ order: `media-viewer`, `reel-view`, `reel-front`, `reel-screen`, `reel-cut`, `re
 - **Data:** disposable test data only; the accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md). The disposable events stay in the states the
   last red-teams left until Will says restore.
-- **Tests:** about 4,640 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
+- **Tests:** about 4,690 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
 - **Jobs:** the daily purge cron (Vercel Hobby fires it at 04:48 UTC; its first run on milestone 28's sweeps was green:
   every sweep ok, none stopped early, the orphan scan read 1,368 objects and deleted none, the standby budget's one host
   willg97 with the withdrawals out), the media-backup Worker and the daily DB-backup Action are live; the deletion-aware

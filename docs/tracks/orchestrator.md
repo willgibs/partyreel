@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "1076d3d7"          # the launch-prep SHA this state was written at
+cut: "4c70fd4e"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches (a new board adds only its own lines to the two board lists)
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
@@ -33,8 +33,6 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `clocks-and-counts` | counts grouped and chart ticks that fit; admin times in UTC; one Link visits figure; the host's dashboard on the viewer's own day; the backup CLI pinned | running | Sonnet, :3132 | integrate, then one manual `db-backup` dispatch on `launch-prep` to prove the pin |
-| `reel-migration` | the live reel's data model: the expand file (events' default mood and off switch, `reel_eligible` live and backfilled, `create_media` and the guest reads carrying it, `live_reel_enabled`) and the drop file, guarded; cut ahead of the verdicts since no board changes it | running | Opus, :3137 | review the SQL; apply the expand and regenerate types when the reel verdicts land; the drop waits for the red-team and Will's yes |
 
 ## Next, in order
 
@@ -42,6 +40,8 @@ Milestone 28 is live (`1076d3d7`, 2026-09-24): the 1,000-row round (stage 1 `row
 migrations applied; stage 2 `rowcap-guest`, `rowcap-host`, `rowcap-cron`, `rowcap-album`; gates 140 to 146),
 `upload-owner` and `delete-final`, alias build 4 red-teamed in Will's Chrome, the partyreel.com pass green. The plan file
 (`~/.claude/plans/great-work-however-1-dapper-twilight.md`) keeps only the reel section live.
+Since it: `reel-migration` merged at `de355bd1` (gate 146), its expand applied on Will's yes (2026-09-24) and the types
+regenerated at `7f4b5b45`; `clocks-and-counts` merged at `4c70fd4e` (gate 147). The alias still serves build 4.
 
 **Will's standing approvals:** pushes to `launch-prep` and anything around branching; he tests by click whenever asked. A
 milestone and a destructive migration each still need his yes.
@@ -49,7 +49,9 @@ milestone and a destructive migration each still need his yes.
 1. **The scale probe stays** as a standing large-album fixture (event "Scale probe" `14bb4318-80cd-4eed-b219-92c097ee16c7`,
    qr `d02631f1bfb3455188d224e41bf9510f`; 1,145 approved, 20 pending, 30 host-removed, 5 withdrawn; Review ON since the
    red-team). Its removed rows purge on 2026-10-23.
-2. **The reel round's wiring**, after his desk review of the six reel boards: the plan's reel section (A to G).
+2. **The reel round's wiring**, after his desk review of the six reel boards: the plan's reel section (A to G). The
+   expand is live (`20260924100000_live_reel_expand.sql`), so the wiring lanes cut from `launch-prep` as it stands; the
+   drop (`20260924110000_live_reel_drop.sql`, on the tree, unapplied) follows the wiring's red-team, on his yes.
 3. **The event-safety wiring**, after his review of that board (his three answers; ROADMAP's event-safety line).
 
 ## Waiting on Will
