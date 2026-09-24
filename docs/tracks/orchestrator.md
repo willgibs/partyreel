@@ -30,6 +30,7 @@ model Will seats (Fable or Opus); nothing here depends on which.
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `library-lean` | the Library as the brand kit, the catalog and the ten; the rules machinery retired; the look tests deleted (Will, 2026-09-24); the recipe proved by a fresh agent | running (agent `a1d746afe297ea42a`), cut at `d1f59826` from `specs/library-lean.json` | Opus, :3131 | hand-merge in the order its handoff gives (the merge, then its `package.json`, `.prettierignore`, CLAUDE.md, PROGRAM.md and `docs/reviews/README.md` lines, then its new gate: the old merge script calls `design:rules`); return bible.ts, bible.test.ts, registry.ts, boards.ts and marketing.css to `owns`; a `[preview]` for Will; then one message to `reel-guest-wiring`: sync, apply bible-ten's eight guest lines (listed in the scratch `bible-ten/manifest-final.md`, its Handoff), strip the `@contract-for`, `@policy` and `@refuses` headers in its owns, re-gate, hand off again |
+| `systems-lean` | the twelve system docs outside design and the guest surfaces, plus SYSTEMS.md, keep only what a strong model cannot find (invariants, ★ landmines, project facts, Will's rulings), organized for retrieval | running (agent `a59d7d88e9985c0bb`), cut at `f267086c` | Opus, :3132 | review the before-and-after table and the invariants kept; apply its pointer list; retire ROADMAP's "three headings still carry a date" line |
 | `brand-kit` | the root `kit/` folder for outside agents (Will, 2026-09-24) | running (agent `aa3f24656b73c5a5a`) | Sonnet, :3133 | review the README and the logo exports; merge |
 | `reel-guest-wiring` | the live reel's guest side: the seam fix, minimum 2, the provider lift, the Highlight reel tile, the view that is also the wall, the toast, the cut's seam, the photo link card | handed off at `0384a77b` (Will's morning rulings built: the welcome comes first everywhere, landscape fills; a portrait photo on a landscape screen sits whole on its own blur, his to overrule); HELD unmerged (agent `a744f57e3c4cbd81f`) | Opus, :3132 | integrate with the cut and host lanes in one stretch; the reel picture, the Start's fullscreen and wake lock and the toast prove on that alias build (R2 answers CORS only for the alias and prod) |
 
@@ -40,7 +41,7 @@ the docs lean, the bible to ten principles (his Rising Tides writeup inside it),
 Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/`
 (`specs/`, `bible-ten/`, `library-lean/`).
 
-1. **The systems-docs pass** under the same guideline (`design-system.md`, `marketing-content.md` first).
+1. **The design docs' pass** after `library-lean` merges (`design-system.md`, `marketing-content.md`, `host-app.md`), the same guideline and brief shape as `systems-lean` (`specs/systems-lean.json`).
 2. **The reel round**, after Will's desk review on build 5 (the plan file's batch-1 and reel sections).
 
 ## Waiting on Will
