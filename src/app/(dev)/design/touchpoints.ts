@@ -86,6 +86,7 @@ export type RulingId =
   | "demo-event"
   | "guest-shape"
   | "album-motion"
+  | "album-columns"
   | "app-shape"
   | "cursor-backdrop"
   | "image-trail"
@@ -137,6 +138,7 @@ export type SandboxId =
   | "press-page"
   | "contact-page"
   | "album-motion"
+  | "album-columns"
   | "loose-ends"
   | "privacy-hero";
 
@@ -1343,6 +1345,32 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
+    id: "album-columns",
+    title: "The album's column rule",
+    surface: "shared",
+    ruled:
+      "open: whether masonry is the right layout at all, how wide the album runs, what the biggest screens do once columns would climb forever, what a bigger phone earns, whether hosting and guesting share one tile-size preference, and the control's own form",
+    shipped: null,
+    why: "`gallery-width` ruled the middle of the range and left both ends, and the layout itself, open; this board looks at all three.",
+    lives: [
+      "src/components/shared/masonry.tsx",
+      "src/lib/shared/tile-size-cookie.ts",
+      "src/components/guest/live-gallery.tsx",
+      "src/components/app/event-feed/event-gallery.tsx",
+    ],
+    board: {
+      note: "Six decisions, no page: whether masonry is even the right layout (beside justified rows, the uniform grid and a mosaic), the album's own width, what the biggest screens do once columns would climb forever, what a bigger phone earns, whether hosting and guesting share one tile-size preference, and the control's own form; every option is the real fixture album on the real masonry grid (or its own algorithm, honestly quoted), at the width where it shows.",
+      variants: [
+        "The layout itself",
+        "Album width",
+        "The scale ceiling",
+        "The phone's columns",
+        "One preference, or two",
+        "The control's form",
+      ],
+    },
+  },
+  {
     id: "app-shape",
     title: "The host app's shape",
     surface: "host",
@@ -1659,6 +1687,7 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "profile-page",
   "privacy-hero",
   "album-motion",
+  "album-columns",
   "loose-ends",
   "contact-page",
   "press-page",
