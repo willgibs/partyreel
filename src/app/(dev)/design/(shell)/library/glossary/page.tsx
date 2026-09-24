@@ -16,7 +16,7 @@ export default async function GlossaryPage({
     <div className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6">
       <PageHeader
         title="Glossary"
-        description="The words this app uses, each told from its neighbours in one sentence, and the words it retired. A page or a doc that still uses a retired word is stale."
+        description="The words this app uses, each told from its neighbours in one sentence, and the words that left, with what they mean now."
       />
       <Section id="terms" title="The words">
         <dl className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
@@ -38,7 +38,7 @@ export default async function GlossaryPage({
           ))}
         </dl>
       </Section>
-      <Section id="retired" title="Retired words">
+      <Section id="retired" title="Words that left">
         <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card text-sm">
           {RETIRED.map((r) => (
             <li key={r.term} className="flex flex-wrap gap-x-2 px-4 py-2">

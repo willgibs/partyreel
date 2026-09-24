@@ -20,7 +20,7 @@ import { composeMessage } from "./review-message";
 import { SAMPLE_BOARD } from "./sample-spec";
 
 /**
- * THE TRANSCRIPT SCRIPT (the Library x Lab round, 2026-09-15). `pnpm lab:review`
+ * THE TRANSCRIPT SCRIPT. `pnpm lab:review`
  * reads a board's spec without importing it (node builtins only, no build
  * step), so the scanner needs a real spec file on disk to be held to: this test
  * copies `sample-spec.ts` into a scratch sandbox and asserts the scanner's
@@ -132,15 +132,26 @@ beforeAll(() => {
   copyFileSync(SPEC_FILE, join(sandbox, BOARD, "spec.ts"));
   // A directory with no spec must simply be skipped, not crash the read.
   mkdirSync(join(sandbox, "no-spec-here"), { recursive: true });
-  // The committed rules artifact, which is what a `review library:` line is
-  // checked against. Copied rather than stubbed: a hand-written fixture would
-  // stop proving that the real ids resolve.
-  const rules = join(root, "src", "app", "(dev)", "design", "rules");
-  mkdirSync(rules, { recursive: true });
-  copyFileSync(
-    join(process.cwd(), "src/app/(dev)/design/rules/rules.generated.json"),
-    join(rules, "rules.generated.json"),
-  );
+  // The catalog's five family modules, which is what a `review library:`
+  // line is checked against. Copied rather than stubbed: a hand-written
+  // fixture would stop proving that the real ids resolve.
+  for (const family of [
+    "components",
+    "patterns",
+    "compositions",
+    "foundations",
+    "marketing",
+  ]) {
+    const dir = join(root, "src", "app", "(dev)", "design", "(shell)", "library", family);
+    mkdirSync(dir, { recursive: true });
+    copyFileSync(
+      join(
+        process.cwd(),
+        `src/app/(dev)/design/(shell)/library/${family}/gallery-demos.tsx`,
+      ),
+      join(dir, "gallery-demos.tsx"),
+    );
+  }
 });
 
 afterAll(() => {
@@ -495,14 +506,14 @@ describe("the grammar", () => {
     );
   });
 
-  it("refuses a library line when there is no rules artifact to check it against", () => {
+  it("refuses a library line when there is no catalog to check it against", () => {
     expect(
       lab.validate(
         [lab.parseLine("review library: button=keep") as Entry],
         new Map(),
         null,
       )[0].message,
-    ).toContain("no rules artifact");
+    ).toContain("no catalog");
   });
 
   it("refuses a malformed line where it went wrong", () => {

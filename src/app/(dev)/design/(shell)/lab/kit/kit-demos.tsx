@@ -431,7 +431,7 @@ const DEMO_SPEC: BoardSpec = defineBoard({
       note: "Then the one it is arguing against, in the places the corner actually lands.",
     },
   ],
-  links: { bible: [] },
+  links: {},
 });
 
 const RADIUS: Record<string, number> = { square: 0, today: 2, soft: 8 };

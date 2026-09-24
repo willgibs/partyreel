@@ -1,5 +1,3 @@
-// @contract-for: src/components/lab/catalog.tsx
-// @contract-for: src/components/lab/before-after.tsx
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -49,7 +47,6 @@ const SPEC: BoardSpec = defineBoard({
       one: "What the second one is.",
       verdict: "kill",
       rationale: "Why the second might not.",
-      library: "not-a-component",
     },
   ],
   departures: [],
@@ -91,7 +88,7 @@ const SPEC: BoardSpec = defineBoard({
       default: "two",
     },
   ],
-  links: { bible: [] },
+  links: {},
 });
 
 function grid(
@@ -188,7 +185,7 @@ describe("the catalog", () => {
     ).toEqual({ verdict: "refine", note: "" });
   });
 
-  it("links a card to the Library only once its entry really exists", () => {
+  it("links a kept card to its catalog entry, and a card without one to nothing", () => {
     grid();
     const links = screen.getAllByRole("link", { name: "now in the Library" });
     expect(links).toHaveLength(1);

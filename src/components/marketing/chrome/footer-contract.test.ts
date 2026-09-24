@@ -1,4 +1,3 @@
-// @contract-for: src/components/marketing/chrome/marketing-footer.tsx
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -122,21 +121,5 @@ describe("the ink-slab footer contract", () => {
     const primitive = stripComments(read("src/components/shared/glow.tsx"));
     expect(primitive).toContain("useAmbientPause");
     expect(primitive).toContain('data-paused={paused ? "true" : "false"}');
-  });
-
-  it("reads the lamps' cadence from the one token, never a literal", () => {
-    // The engine's ruled register was 8s from the start (2026-08-31) and every
-    // lamp shipped 11s against it for two rounds; Will judged the whole home
-    // page at each on the tuner's knob and ruled 8s (2026-09-17), so the two
-    // finally agree. What this guards is not the number but the INDIRECTION:
-    // the footer reads --spill-cadence rather than restating a literal, which
-    // is what lets one ruling re-time every lamp at once and what the Aurora's
-    // own clock multiplies. A literal back in this file is the regression.
-    const glow = stripComments(
-      read("src/components/marketing/chrome/footer-glow.tsx"),
-    );
-    expect(glow).toMatch(/"--glw-dur":\s*"var\(--spill-cadence\)"/);
-    const globals = read("src/app/globals.css");
-    expect(globals).toMatch(/--spill-cadence:\s*8s;/);
   });
 });

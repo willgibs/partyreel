@@ -1,4 +1,3 @@
-// @contract-for: src/lib/shared/use-scroll-direction.ts
 import { describe, expect, it } from "vitest";
 
 import { seedFrom, step, type ScrollState } from "./use-scroll-direction";

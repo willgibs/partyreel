@@ -99,6 +99,7 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "event-card",
+    test: "src/components/app/event-card.test.tsx",
     family: "compositions",
     section: "Event card",
     file: "src/components/app/event-card.tsx",
@@ -248,6 +249,9 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "qr-preset-picker",
+    file: "src/components/app/qr-preset-picker.tsx",
+    for: "the four code styles as a choice rather than four thumbnails: a container-query grid, each swatch as big as its cell through CSS rather than a re-render, every preview drawn on this event's real join URL. Controlled: the parent owns the value and the saving",
+    test: "src/app/(app)/dashboard/new/create-flow.test.tsx",
     family: "compositions",
     section: "Share suite",
     title: "QrPresetPicker",
@@ -322,6 +326,9 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
 
   {
     id: "host-media-grid",
+    file: "src/components/app/host-media-grid.tsx",
+    for: "the host's album: the shared masonry with the host's three verbs as its per-surface actions, optimistic moderation shared by the tiles and the lightbox, and the ARRIVAL mark, which is an id in this render that was not in the last one. That one definition catches every route a photograph takes into a host's album without this component knowing about any of them",
+    test: "src/components/app/event-feed/launch-list.test.tsx",
     family: "compositions",
     section: "Moderation gallery",
     title: "HostMediaGrid",

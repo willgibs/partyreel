@@ -1,19 +1,12 @@
 /**
- * THE TOOLBOX, AS DATA (the revamp, 2026-09-16).
+ * THE TOOLBOX, AS DATA.
  *
  * One row per tool: what it is for, WHEN to reach for it, and the demo the page
- * mounts beside it. The "when" is the half that was missing: an agent arriving
- * with a board to build does not need a catalogue of nouns, it needs to know
- * which tool its evidence wants, and the alternative to answering that here is
- * the alternative the kit exists to end (a board building its own).
- *
- * ★ THIS IS A STAND-IN, AND IT SHOULD NOT SURVIVE. `for` lines belong in
- * `rules/component-notes.ts`, which the collector reads for every indexed
- * component, so the kit would be described in the same place and the same shape
- * as every other component in the library. When `src/components/lab` is in
- * COMPONENT_DIRS and these lines are in COMPONENT_NOTES, delete this file and
- * let the page read the index like every library page does. The `reach` and
- * `demo` halves would move with it.
+ * mounts beside it. The "when" is the half a catalogue of nouns lacks: an
+ * agent arriving with a board to build needs to know which tool its evidence
+ * wants, and the alternative to answering that here is a board building its
+ * own. The kit is a review instrument, not a catalog component, so its index
+ * lives here rather than in the Library.
  */
 export type KitPiece = {
   name: string;

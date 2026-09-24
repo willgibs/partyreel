@@ -90,7 +90,6 @@ const DRAFT = defineExploration({
   },
   context:
     "A host turned on \"Review uploads before they appear\". Every upload now waits in a queue above their album until they approve it or put it down, and nothing waiting reaches the live reel or the venue wall. Every option is the shipped review surface with one thing changed, over one wedding's seven waiting uploads, at 1440 with 375 on the knob. Nothing here approves, hides or removes anything: the triage machine is forked so its two Server Functions are a resolved promise.",
-  bible: [1, 4, 12, 21, 22],
   asks: [
     {
       id: "queue",

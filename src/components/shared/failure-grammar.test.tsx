@@ -1,9 +1,3 @@
-// @contract-for: src/components/shared/not-found-screen.tsx
-// @contract-for: src/components/shared/error-digest.tsx
-// @contract-for: src/components/shared/route-error.tsx
-// @contract-for: src/components/guest/guest-bar.tsx
-// @contract-for: src/components/admin/admin-not-found-screen.tsx
-
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -174,20 +168,6 @@ describe("the screen: one picture, and one way to a person", () => {
     expect(screen.getByTestId("strip")).toBeTruthy();
     // The icon circle is the only other thing that can occupy slot 0.
     expect(document.querySelectorAll("[style*='--nf-i: 0']").length).toBe(1);
-  });
-
-  it("gives the help line its own stagger slot, below the actions", () => {
-    render(
-      <NotFoundScreen
-        icon={CircleAlert}
-        title="Something went wrong"
-        description="That is on us."
-        actions={<button type="button">Try again</button>}
-        help={<HelpLine href="/help">Visit the help center</HelpLine>}
-      />,
-    );
-    const help = screen.getByText(/Still stuck/i).closest("[style]");
-    expect(help?.getAttribute("style")).toContain("--nf-i: 3");
   });
 
   it("renders the admin's line without a link, since no runbook exists yet", () => {

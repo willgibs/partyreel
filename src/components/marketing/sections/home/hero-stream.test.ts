@@ -1,4 +1,3 @@
-// @contract-for: src/components/marketing/sections/home/hero-stream.ts
 import { describe, expect, it } from "vitest";
 
 import qrcode from "qrcode-generator";

@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 
 import { Ref } from "@/app/(dev)/design/(shell)/_shell/ref";
 import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
-import type { ContractRecord } from "@/app/(dev)/design/rules/rules";
 
 import type { VariantAxis } from "./entry";
 import type { GalleryItem } from "./registry";
@@ -14,18 +13,17 @@ import { Specimen } from "./specimen";
 import { specimenCode } from "./specimen-code";
 
 /**
- * THE GALLERY CHROME (server): how one declared component reads on a page.
+ * THE GALLERY CHROME (server): how one catalog entry reads on a page.
  *
- * The same pieces render in two places, which is the whole point of the
- * gallery round: a family page shows every entry of its family through
- * `EntryBlock`, and /design/library/<id> composes the same variants,
- * specimens and contracts into the shell's own sections. Nothing here derives
- * a fact: the file, the names, the specimen routes, the contracts and each
- * specimen's source all come off the artifacts through the registry.
+ * The same pieces render in two places: a family page shows every entry of
+ * its family through `EntryBlock`, and /design/library/<id> composes the same
+ * variants and specimens into the shell's own sections. Nothing here derives
+ * a fact: the file, the `for` line, the test and each specimen's source all
+ * come off the entry (and specimens.generated.json) through the registry.
  *
- * Every block's heading carries `id="c-<id>"`, which is what puts every
- * component of a family in the table of contents (the Library x Lab round,
- * 2026-09-15) as well as giving the family page a deep link per component.
+ * Every block's heading carries `id="c-<id>"`, which puts every component of
+ * a family in the table of contents and gives the family page a deep link per
+ * component.
  */
 
 export function EntryBlock({
@@ -35,8 +33,7 @@ export function EntryBlock({
   item: GalleryItem;
   link: (href: string) => string;
 }) {
-  const { entry, record, note, title, file } = item;
-  const contracts = record?.contracts ?? [];
+  const { entry, title, file } = item;
 
   return (
     <section className="border-t border-border pt-6 first:border-t-0 first:pt-0">
@@ -59,22 +56,13 @@ export function EntryBlock({
         </Link>
       </div>
 
-      {(note?.for || entry.lede) && (
+      {(entry.for || entry.lede) && (
         <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          {entry.lede ?? note?.for}
+          {entry.lede ?? entry.for}
         </p>
       )}
 
-      {file && (
-        <p className="mt-1.5 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-          <Ref to={{ kind: "source", file }} quiet />
-          {record && record.names.length > 1 && (
-            <span className="text-muted-foreground/70">
-              {record.names.join(" · ")}
-            </span>
-          )}
-        </p>
-      )}
+      <FileLine file={file} test={entry.test} className="mt-1.5" />
 
       {entry.play && (
         <div className="mt-4">
@@ -91,18 +79,39 @@ export function EntryBlock({
       )}
 
       <SpecimenList item={item} className="mt-4" />
-
-      {contracts.length > 0 && (
-        <p className="mt-3 text-[11px]">
-          <Link
-            href={link(item.href)}
-            className="text-muted-foreground underline"
-          >
-            {contracts.length} contract{contracts.length === 1 ? "" : "s"}
-          </Link>
-        </p>
-      )}
     </section>
+  );
+}
+
+/**
+ * The entry's one meta line: the component's file and, when a test pins its
+ * behavior, that test. Both link to the source (the editor when the reader
+ * has set a root, GitHub always), because a test is read, not rendered.
+ */
+export function FileLine({
+  file,
+  test,
+  className,
+}: {
+  file: string;
+  test?: string;
+  className?: string;
+}) {
+  return (
+    <p
+      className={cn(
+        "flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[11px] text-muted-foreground",
+        className,
+      )}
+    >
+      <Ref to={{ kind: "source", file }} quiet />
+      {test && (
+        <span className="inline-flex flex-wrap items-baseline gap-x-1.5">
+          <span>behavior pinned by</span>
+          <Ref to={{ kind: "source", file: test }} quiet />
+        </span>
+      )}
+    </p>
   );
 }
 
@@ -181,37 +190,5 @@ export function VariantAxisRow({ axis }: { axis: VariantAxis }) {
         </div>
       )}
     </div>
-  );
-}
-
-/**
- * A component's contracts: the ONLY rules that bind this one file, each a link
- * to the `it()` that holds it. A contract guards a component's function
- * (structure, accessibility, single sources, its engine), never its look.
- */
-export function ContractList({ contracts }: { contracts: ContractRecord[] }) {
-  return (
-    <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
-      {contracts.map((k) => (
-        <li
-          key={`${k.file}:${k.line}`}
-          className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-4 py-2.5 text-sm"
-        >
-          <span className="min-w-0">
-            {k.suite.length > 0 && (
-              <span className="text-muted-foreground">
-                {k.suite.join(" > ")} ·{" "}
-              </span>
-            )}
-            {k.title}
-          </span>
-          <Ref
-            to={{ kind: "source", file: k.file, line: k.line }}
-            quiet
-            className="text-[11px]"
-          />
-        </li>
-      ))}
-    </ul>
   );
 }

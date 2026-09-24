@@ -1,4 +1,3 @@
-// @contract-for: src/components/marketing/sections/pricing/plan-cards.tsx
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 

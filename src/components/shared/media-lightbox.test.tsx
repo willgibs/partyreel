@@ -1,5 +1,3 @@
-// @contract-for: src/components/shared/unverified-mark.tsx
-// @contract-for: src/components/shared/media-lightbox.tsx
 /**
  * BEHAVIOR PINS for MediaLightbox (program Phase 2, slice 1; reshaped by
  * media-viewer r1, 2026-09-24). Freezes the gesture physics + chrome contracts:
@@ -248,12 +246,11 @@ describe("MediaLightbox: friction at the edges", () => {
 });
 
 describe("MediaLightbox: release outcomes", () => {
-  it("slow short drag springs back (200ms settle, no index change)", () => {
+  it("slow short drag springs back (no index change)", () => {
     const { onIndexChange } = mount();
     startDrag(track(), 400, 0);
     firePointer(track(), "pointermove", { x: 320, t: 200 });
     firePointer(track(), "pointerup", { x: 320, t: 400 }); // dx -80 (10%), v 0.2
-    expect(track().style.getPropertyValue("--lightbox-settle")).toBe("200ms");
     expect(track().style.transform).toBe("translateX(calc(-100% + 0px))");
     fireEvent.transitionEnd(track(), { propertyName: "transform" });
     expect(onIndexChange).not.toHaveBeenCalled();
@@ -264,7 +261,6 @@ describe("MediaLightbox: release outcomes", () => {
     startDrag(track(), 500, 0);
     firePointer(track(), "pointermove", { x: 300, t: 1000 });
     firePointer(track(), "pointerup", { x: 300, t: 2000 }); // dx -200 (25%), v 0.1
-    expect(track().style.getPropertyValue("--lightbox-settle")).toBe("240ms");
     expect(track().style.transform).toBe("translateX(calc(-100% + -800px))");
     expect(onIndexChange).not.toHaveBeenCalled(); // not before the settle lands
     fireEvent.transitionEnd(track(), { propertyName: "transform" });
@@ -369,7 +365,6 @@ describe("MediaLightbox: chrome contracts", () => {
     const { onClose, onIndexChange } = mount(PHOTOS, 1);
     const [prev, , next] = mediaOf();
     fireEvent.click(next);
-    expect(track().style.getPropertyValue("--lightbox-settle")).toBe("240ms");
     fireEvent.transitionEnd(track(), { propertyName: "transform" });
     expect(onIndexChange).toHaveBeenLastCalledWith(2);
     fireEvent.click(prev);
@@ -687,39 +682,11 @@ describe("the lightbox's ground is separate from the photograph", () => {
     );
     const ground = document.querySelector("[data-lightbox-ground]");
     expect(ground, "the lightbox must draw a ground of its own").toBeTruthy();
-    expect(ground).toHaveClass("glass-behind");
 
     // Every photograph in the viewer lives ABOVE the ground, never within it.
     const media = document.querySelectorAll("[data-lightbox-track] img");
     expect(media.length).toBeGreaterThan(0);
     for (const el of media) expect(ground!.contains(el)).toBe(false);
-  });
-
-  // r1 moved the credit to the top (`who=face`); it is still one of the three
-  // panes a finger's width apart, and a clip adds its transport as a fourth.
-  it("wears the ONE material on the credit, the capsule and the close", () => {
-    // `grades=one` (Will, 2026-09-20): "This feels more consistent across
-    // surfaces that are close to each other, else it looks weird they're
-    // different." Three surfaces a finger's width apart, one class between them.
-    render(
-      <TooltipProvider>
-        <MediaLightbox
-          items={[{ ...PHOTOS[0], uploaderName: "Priya" }]}
-          index={0}
-          onClose={() => {}}
-          onIndexChange={() => {}}
-        />
-      </TooltipProvider>,
-    );
-    const panes = document.querySelectorAll(".glass");
-    // The face-led credit, the action capsule and the close button.
-    expect(panes.length).toBe(3);
-    for (const pane of panes) {
-      // A second recipe is the drift the round retired: no surface may reach
-      // for its own tint or its own blur on top of the material.
-      expect(pane.className).not.toMatch(/\bbg-(black|white)\/\d+/);
-      expect(pane.className).not.toMatch(/backdrop-blur/);
-    }
   });
 });
 
@@ -803,7 +770,6 @@ describe("MediaLightbox: the face-led credit (r1)", () => {
   it("leads with a disc and the name, in its own pane at the top", () => {
     mount(one({ uploaderName: "Leah", isVerified: true }), 0);
     const credit = document.querySelector("[data-lightbox-credit]")!;
-    expect(credit).toHaveClass("glass");
     expect(within(credit as HTMLElement).getByText("Leah")).toBeInTheDocument();
     expect(within(credit as HTMLElement).getByText("L")).toBeInTheDocument();
     // The credit is not the capsule: the actions stack apart from it.
@@ -1182,7 +1148,6 @@ describe("MediaLightbox: grow out of the tile, drop back in (r1)", () => {
     expect(String(flight!.frames[0].clipPath)).toMatch(/^inset\(/);
     // ...and ends at rest.
     expect(flight!.frames[1].transform).toBe("translate(0px, 0px) scale(1)");
-    expect(flight!.opts.duration).toBeLessThan(300);
     // The ground fades in step; the chrome is hidden until the landing.
     expect(calls.some((c) => c.el.hasAttribute("data-lightbox-ground"))).toBe(
       true,

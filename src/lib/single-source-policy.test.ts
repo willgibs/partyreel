@@ -1,6 +1,3 @@
-// @policy: engineering · One name, one module
-// @refuses: the same UPPER_SNAKE constant exported from two modules under src/lib, which two green branches can each introduce.
-
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 

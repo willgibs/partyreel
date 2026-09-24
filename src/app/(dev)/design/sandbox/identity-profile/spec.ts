@@ -50,7 +50,6 @@ const DRAFT = defineExploration({
   },
   context:
     "Priya is verified, has added photos to three events (Maya and Jay's wedding among them, each one making her a guest of it), and has shown none of them: the guest identity round's own floor. This board asks four things left open once she is ready to make her page real: how setup actually happens, how she chooses what shows, when the app ever invites her to, and what a visitor meets if she claims a handle and stops there.",
-  bible: [1, 4, 12, 15, 19, 21, 22],
   asks: [
     {
       id: "setup",

@@ -221,8 +221,14 @@ export type FrameProps = {
   /** A composition with no route of its own, rendered INTO the frame document. */
   children?: React.ReactNode;
   w: number;
+  /**
+   * The frame document's viewport height: a `vh` or `min-h-screen` inside the
+   * frame resolves against it, so two chromes stacked in one frame, each with a
+   * `vh` minimum, compound into several screens (a chrome drawn more than once
+   * per frame takes a flag that drops its minimum).
+   */
   h: number;
-  /** The candidate, as the paste a ruling would land. Empty = the site as built. */
+  /** The candidate, as the paste an answer would land. Empty = the site as built. */
   css?: string;
   title: string;
   caption?: React.ReactNode;

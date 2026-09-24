@@ -1,5 +1,3 @@
-// @policy: engineering · The record is a snapshot; git is the history
-// @refuses: a docs/CHANGELOG.md (what shipped is the merge commits and git log), a STATUS over 80 lines or without its current round, a CLAUDE.md over 150 lines.
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 

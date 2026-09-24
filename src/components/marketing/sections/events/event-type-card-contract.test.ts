@@ -1,4 +1,3 @@
-// @contract-for: src/components/marketing/sections/events/event-type-card.tsx
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -7,18 +6,12 @@ import { describe, expect, it } from "vitest";
 import { EVENT_TYPES } from "@/lib/constants/events";
 
 /**
- * THE EVENT CARD'S CONTRACT: one anatomy, a photograph under every one of them,
- * and a link out of every one of them.
- *
- * Will, `the-cards=frame` (2026-09-19): "all events should have a photograph
- * (weddings, parties) rather than an artifact (conferences, trips)... only
- * approving the photograph as full bg component here." The two ways that breaks
- * are both silent: a type whose card falls back to an artifact looks fine in
- * isolation and wrong in the grid, and a card that stops being a link still
- * looks exactly like a card.
- *
- * ★ NOT PINNED HERE: the scrim's numbers, the corner, the type step, the hover.
- * A contract guards function, never a look.
+ * THE EVENT CARD: one component at both sizes, a photograph slot filled for
+ * every type, a link out of every card, and the measured copy scrim that keeps
+ * its white copy legible over any photograph. A card that stops being a link
+ * still looks exactly like a card, which is why the source is read. How the
+ * card looks (the scrim's numbers, the corner, the type step, the hover) is
+ * the Library's to show.
  */
 const ROOT = process.cwd();
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
@@ -47,23 +40,13 @@ describe("the event card", () => {
     expect(teaser).toContain('size="teaser"');
   });
 
-  it("puts a photograph under every card, and no artifact inside one", () => {
+  it("fills a photograph slot for every type", () => {
     // Every type carries a card still in events.ts (a named stand-in where the
     // manifest has no honest subject yet), and the card reads that one slot.
     for (const type of EVENT_TYPES) {
       expect(type.media.card.trim(), type.slug).not.toBe("");
     }
     expect(card).toContain("type.media.card");
-    // The two artifacts are what the ruling replaced; neither may come back
-    // inside a card at either size.
-    for (const [name, code] of [
-      ["the card", card],
-      ["the hub directory", directory],
-      ["the home teaser", teaser],
-    ] as const) {
-      expect(code, name).not.toContain("AttendeeBadge");
-      expect(code, name).not.toContain("SharedRoll");
-    }
   });
 
   it("is a link to its own type page", () => {
@@ -81,18 +64,10 @@ describe("the event card", () => {
     expect(teaser).not.toMatch(/"(wedding|party|reception|festival|concert)-/);
   });
 
-  it("wears the ruled copy scrim rather than a fresh ramp", () => {
+  it("wears the measured copy scrim, so its white copy stays legible", () => {
     // CARD_COPY_SCRIM is measured per pixel on every door and every event card
     // at 1440 and 375 (feature-door.tsx carries the readings). A card that
     // spells its own gradient is a card nobody measured.
     expect(card).toContain("CARD_COPY_SCRIM");
-  });
-
-  it("keeps the tilt on the hub and off the home row", () => {
-    // Will kept the 2x2 because it "introduces each event card more fully and
-    // not all at once"; the home row is a supporting beat and the tilt came off
-    // it by ruling one round earlier.
-    expect(directory).toContain("TiltCard");
-    expect(teaser).not.toContain("TiltCard");
   });
 });

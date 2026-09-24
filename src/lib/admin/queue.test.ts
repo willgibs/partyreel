@@ -1,4 +1,3 @@
-// @contract-for: src/lib/admin/queue.ts
 import { describe, expect, it } from "vitest";
 
 import { buildOperatorQueue, waitedLabel } from "@/lib/admin/queue";

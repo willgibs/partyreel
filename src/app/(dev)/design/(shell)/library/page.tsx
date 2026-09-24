@@ -2,64 +2,78 @@ import Link from "next/link";
 
 import { requireDesignKey, withDesignKey } from "@/lib/design-gate/server";
 
-import { Callout } from "@/app/(dev)/design/(shell)/_shell/callout";
-import { Markdown } from "@/app/(dev)/design/(shell)/_shell/markdown";
 import { PageHeader } from "@/app/(dev)/design/(shell)/_shell/page-header";
 import { Pager } from "@/app/(dev)/design/(shell)/_shell/pager";
-import { Ref } from "@/app/(dev)/design/(shell)/_shell/ref";
 import { Section } from "@/app/(dev)/design/(shell)/_shell/section";
-import { StatRow } from "@/app/(dev)/design/(shell)/_shell/stat-row";
-import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
-import { readDoc, sectionOf } from "@/app/(dev)/design/_data/docs";
-import { POLICY_TESTS } from "@/app/(dev)/design/_data/links";
-import { countSpecimenCode } from "@/app/(dev)/design/gallery/specimen-code";
 import {
+  CATALOG_FAMILIES,
   countVariants,
   FAMILY_LABEL,
   FAMILY_ROUTE,
   familyItems,
-  galleryHref,
-  ITEMS,
-  itemById,
   type GalleryFamily,
+  ITEMS,
 } from "@/app/(dev)/design/gallery/registry";
-import { BIBLE } from "@/app/(dev)/design/rules/bible";
-import { COMPONENT_NOTES } from "@/app/(dev)/design/rules/component-notes";
-import {
-  COMPONENTS,
-  componentTitle,
-  countContracts,
-} from "@/app/(dev)/design/rules/rules";
 import { Column } from "@/app/(dev)/design/reference/reference-ui";
 import { LibraryIndex, type LibraryRow } from "./index-list";
 
 /**
- * THE LIBRARY'S FRONT DOOR (the Library x Lab round, 2026-09-15).
+ * THE LIBRARY'S FRONT DOOR: the design recipe, then the catalog.
  *
- * Will's ruling that opened this round: "the goal is for the library to
- * represent our entire working rule set so that everything influencing new
- * agents' design work is visible". So this page is a READING ORDER rather than
- * a list. An agent landing here with a goal and no context reads three things
- * in order: what binds it (three things and nothing else), what changed since
- * the last window, and then the whole index of components with what each is
- * for.
+ * The recipe is the whole of what a design task needs before it starts: the
+ * brand kit, the bible's ten, production as it is, a visual pass, the tests,
+ * then a creative shot in the lab. It is short on purpose, because a long list
+ * of what not to do makes new work small; everything it points at is one
+ * click away, and nothing here repeats what those pages say.
  *
- * Nothing on the page is a second copy of a fact. The numbers come off the
- * artifacts (the collector's component index, the gallery registry, the
- * bible, the policy list); "what binds you" is rendered from
- * docs/design/README.md, which is the authority model's one home; the rows
- * are the artifact joined to the gallery entry.
- *
- * WHEN THE RULES TRACK'S `influences.ts` LANDS, the health strip's rule counts
- * and the levels should read from it instead of from the three registries
- * counted here.
+ * The index under it is every catalog entry, one row each, grouped by family
+ * and searchable by name, file and what it is for.
  */
-const FAMILIES: GalleryFamily[] = [
-  "components",
-  "patterns",
-  "compositions",
-  "marketing",
-  "foundations",
+
+/** The index's group order: the four catalog families, then the brand kit's own entries. */
+const INDEX_ORDER: GalleryFamily[] = [...CATALOG_FAMILIES, "foundations"];
+
+type Step = {
+  title: string;
+  /** A Library or lab route (keyed on render), or an external URL. */
+  href?: string;
+  body: React.ReactNode;
+};
+
+const RECIPE: Step[] = [
+  {
+    title: "The brand kit",
+    href: "/design/library/foundations",
+    body: "the live tokens every surface reads, so a new piece belongs from its first draft.",
+  },
+  {
+    title: "The ten",
+    href: "/design/library/rules",
+    body: "the principles every design starts from, each with its reason.",
+  },
+  {
+    title: "Production as it is",
+    href: "https://partyreel.com",
+    body: "open the live surface: it is the reference, a working version rather than a finished one.",
+  },
+  {
+    title: "A visual pass",
+    body: "capture the surface at 1440 and 375 before changing it, so the before is on record.",
+  },
+  {
+    title: "The tests",
+    body: (
+      <>
+        the real rules: run them (<code className="font-sans">pnpm test</code>
+        ), and a failure names what broke.
+      </>
+    ),
+  },
+  {
+    title: "Your creative shot",
+    href: "/design/lab",
+    body: "take it in the lab, where an idea is drawn beside what ships and costs nothing to try.",
+  },
 ];
 
 export default async function LibraryHomePage({
@@ -70,154 +84,58 @@ export default async function LibraryHomePage({
   const key = await requireDesignKey(searchParams);
   const link = (href: string) => withDesignKey(href, key);
 
-  const rows: LibraryRow[] = COMPONENTS.map((c) => {
-    const item = itemById(c.id);
-    const note = COMPONENT_NOTES[c.file];
-    return {
-      id: c.id,
-      title: item?.title ?? componentTitle(c).split(", ")[0],
-      href: link(galleryHref(c.id)),
-      file: c.file,
-      dir: c.file.slice(0, c.file.lastIndexOf("/")),
-      for: note?.for,
-      family: item?.entry.family,
-      specimens: item?.entry.specimens.length ?? 0,
-      variants: item ? countVariants(item.entry) : 0,
-      contracts: c.contracts.length,
-      play: Boolean(item?.entry.play),
-      badge: item?.entry.badge,
-      unspecimened: note?.unspecimened,
-    };
-  });
-
-  const counts = countContracts();
-  const changed = ITEMS.filter((i) => i.entry.badge);
-  const binds = sectionOf(
-    readDoc("docs/design/README.md").body,
-    "what-binds-you",
-  );
+  const rows: LibraryRow[] = INDEX_ORDER.flatMap((family) =>
+    ITEMS.filter((it) => it.entry.family === family),
+  ).map((it) => ({
+    id: it.entry.id,
+    title: it.title,
+    href: link(it.href),
+    file: it.file,
+    group: FAMILY_LABEL[it.entry.family],
+    for: it.entry.for,
+    specimens: it.entry.specimens.length,
+    variants: countVariants(it.entry),
+    play: Boolean(it.entry.play),
+    badge: it.entry.badge,
+  }));
 
   return (
     <Column>
       <PageHeader
-        title="The library"
-        description="Everything that binds or informs design work on Partyreel, in one place: the rules, the components with their contracts, the tokens, the rulings. If it influences what an agent builds, it is visible here."
-      />
-
-      <StatRow
-        stats={[
-          ["bible rules", BIBLE.length],
-          ["components", counts.components],
-          ["contracts", counts.contracts],
-          ["policies", Object.keys(POLICY_TESTS).length],
-          ["specimens", countSpecimenCode()],
-          ["changed this window", changed.length],
-        ]}
+        title="The Library"
+        description="What exists today, and what design starts from: the brand kit, the component catalog and the bible's ten principles."
       />
 
       <Section
-        id="binds"
-        title="What binds you"
-        blurb="Read this first. The working rules are short on purpose, and knowing where their edge is, is what lets you rebuild the rest."
+        id="recipe"
+        title="The design recipe"
+        blurb="For anything from a blog page to an eyebrow."
       >
-        {binds ? (
-          <Markdown
-            source={binds.replace(/^##[^\n]*\n/, "")}
-            from="docs/design/README.md"
-            designKey={key}
-          />
-        ) : (
-          <Callout kind="note">
-            docs/design/README.md no longer carries a &ldquo;What binds
-            you&rdquo; section; this page renders it, so restore it there rather
-            than repeating it here.
-          </Callout>
-        )}
-        <div className="mt-4 grid gap-2 sm:grid-cols-3">
-          <BindCard
-            title="The bible"
-            n={`${BIBLE.length} rules`}
-            href="/design/library/rules"
-            blurb="Will's global working rules, changed only by his word."
-          />
-          <BindCard
-            title="Contracts"
-            n={`${counts.contracts} on ${counts.contracted} components`}
-            href="/design/library/components"
-            blurb="Per component, on its own page; they guard function, never look."
-          />
-          <BindCard
-            title="Policies"
-            n={`${Object.keys(POLICY_TESTS).length} tests`}
-            href="/design/library/policies"
-            blurb="Lines held across the tree; the gate is red without them."
-          />
-        </div>
-        {/* Links only: the paragraph above already says what each level is
-            worth, and saying it twice would make the short law read long. */}
-        <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
-          The rest, when you need it:{" "}
-          <Ref to={{ kind: "page", href: "/design/library/guidance" }}>
-            guidance
-          </Ref>
-          ,{" "}
-          <Ref to={{ kind: "doc", doc: "design-system" }}>the system docs</Ref>,{" "}
-          and{" "}
-          <Ref to={{ kind: "page", href: "/design/library/rules#rulings" }}>
-            the rulings
-          </Ref>
-          .
-        </p>
+        <ol className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
+          {RECIPE.map((step, i) => (
+            <li key={step.title} className="flex gap-3 px-4 py-3">
+              <span
+                aria-hidden
+                className="w-4 shrink-0 text-[13px] text-muted-foreground tabular-nums"
+              >
+                {i + 1}
+              </span>
+              <p className="min-w-0 text-sm leading-relaxed">
+                <StepTitle step={step} link={link} />{" "}
+                <span className="text-muted-foreground">{step.body}</span>
+              </p>
+            </li>
+          ))}
+        </ol>
       </Section>
 
       <Section
-        id="changed"
-        title="What changed"
-        blurb="The components this window touched, marked on the entry itself so a dev server and a Vercel build print the same thing. The Orchestrator clears the marks when a window closes."
-        aside={
-          <span className="text-[11px] text-muted-foreground tabular-nums">
-            {changed.length}
-          </span>
-        }
+        id="catalog"
+        title="The catalog"
+        blurb="Every component with a specimen, from production source. Open one for its variants, its config panel and the test that pins its behavior."
       >
-        {changed.length > 0 ? (
-          <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
-            {changed.map((item) => (
-              <li key={item.entry.id}>
-                <Link
-                  href={link(item.href)}
-                  className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 px-4 py-2.5 transition-colors hover:bg-muted/50"
-                >
-                  <span className="text-[13px] font-medium">{item.title}</span>
-                  <Tag badge={item.entry.badge} />
-                  {item.note?.for && (
-                    <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-                      {item.note.for}
-                    </span>
-                  )}
-                  <span className="ml-auto text-[11px] text-muted-foreground">
-                    {FAMILY_LABEL[item.entry.family]}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
-            Nothing is marked. Set <code className="font-sans">badge</code> on a
-            gallery entry when your round adds or reworks a component, and it
-            appears here and in the sidebar until the window closes.
-          </p>
-        )}
-      </Section>
-
-      <Section
-        id="components"
-        title="Every component"
-        blurb="The whole library, one row each, with what it is for and everything the repo knows about it. Open one for its specimens, its variants, its config panel and its contracts."
-      >
-        <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
-          {FAMILIES.map((family) => {
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {CATALOG_FAMILIES.map((family) => {
             const items = familyItems(family);
             return (
               <Link
@@ -237,34 +155,40 @@ export default async function LibraryHomePage({
         </div>
         <LibraryIndex rows={rows} />
       </Section>
-      {/* Every other library page ends with prev and next; the front door was
-          the one that did not, while `[` and `]` worked on it anyway (the
-          sweep, 2026-09-16). */}
+
       <Pager />
     </Column>
   );
 }
 
-function BindCard({
-  title,
-  n,
-  href,
-  blurb,
+/** A step's name, linked when the step has a place to go. */
+function StepTitle({
+  step,
+  link,
 }: {
-  title: string;
-  n: string;
-  href: string;
-  blurb: string;
+  step: Step;
+  link: (href: string) => string;
 }) {
+  const label = <span className="font-medium">{step.title}:</span>;
+  if (!step.href) return label;
+  if (/^https?:\/\//.test(step.href)) {
+    return (
+      <a
+        href={step.href}
+        target="_blank"
+        rel="noreferrer"
+        className="underline-offset-2 hover:underline"
+      >
+        {label}
+      </a>
+    );
+  }
   return (
-    <div className="rounded-xl border border-border bg-card px-4 py-3">
-      <p className="text-[13px] font-medium">
-        <Ref to={{ kind: "page", href }}>{title}</Ref>
-      </p>
-      <p className="text-[11px] text-muted-foreground tabular-nums">{n}</p>
-      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-        {blurb}
-      </p>
-    </div>
+    <Link
+      href={link(step.href)}
+      className="underline-offset-2 hover:underline"
+    >
+      {label}
+    </Link>
   );
 }

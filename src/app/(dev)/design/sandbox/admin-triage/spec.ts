@@ -63,7 +63,6 @@ const DRAFT = defineExploration({
   },
   context:
     "Three reports are open on a Saturday night. Each is a card titled with the event's name, a status badge, a timestamp, a 160 px square of the thing that was flagged, and two buttons that write a status and nothing else. A column for the operator's reasoning has existed since the founding migration and has never been read or written; no id renders anywhere, so a legal hold means finding a UUID on two other surfaces. Every picture here is that portal on that night, with one thing changed.",
-  bible: [15, 19, 21, 22],
   asks: [
     {
       id: "look",

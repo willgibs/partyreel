@@ -73,8 +73,7 @@ export default async function BoardPage({
   const param = typeof session === "string" ? session : null;
   const ruling = getRuling(slug);
   const board = ruling?.board;
-  const entry =
-    ruling && board ? BOARD_COMPONENTS[ruling.id as SandboxId] : undefined;
+  const entry = ruling ? BOARD_COMPONENTS[ruling.id as SandboxId] : undefined;
   if (!ruling || !board || !entry) notFound();
 
   const spec = boardSpec(ruling.id);
@@ -100,8 +99,8 @@ export default async function BoardPage({
           id: r.id,
           title: r.title,
           surfaceLabel: SURFACE_LABEL[r.surface],
-          note: r.board?.note ?? r.why,
-          tracks: r.board?.tracks ?? [r.id],
+          note: r.board.note,
+          tracks: r.board.tracks ?? [r.id],
         })),
       )
     : null;
@@ -143,16 +142,12 @@ export default async function BoardPage({
             badges={
               <>
                 <Tag>{SURFACE_LABEL[ruling.surface]}</Tag>
-                {ruling.shipped ? (
-                  <Tag badge="shipped">Shipped: {ruling.shipped}</Tag>
-                ) : (
-                  <Tag badge="exploring" />
-                )}
+                <Tag badge="exploring" />
                 {entry.legacy && <Tag badge="legacy">legacy layout</Tag>}
               </>
             }
             meta={[
-              ["Ruled", ruling.ruled],
+              ["Asks", ruling.asks],
               [
                 "Track",
                 <span key="tracks" className="inline-flex flex-wrap gap-x-2">

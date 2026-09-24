@@ -1,4 +1,3 @@
-// @contract-for: src/lib/dashboard/events-view.ts
 import { describe, expect, it } from "vitest";
 
 import {

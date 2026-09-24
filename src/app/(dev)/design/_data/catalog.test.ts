@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { BIBLE, BIBLE_GROUP_LABEL, BIBLE_GROUPS } from "../rules/bible";
 import { FAMILY_LABEL } from "../gallery/entry";
-import { RULED, SANDBOX } from "../touchpoints";
+import { SANDBOX } from "../touchpoints";
 import {
   activeItem,
   areaOf,
@@ -42,13 +42,13 @@ vi.stubEnv("NEXT_PUBLIC_SITE_URL", "http://localhost:3000");
 const { buildNav, buildSearchIndex } = await import("./nav");
 
 /**
- * THE NAV, HELD AGAINST THE TREE (the Library x Lab round, 2026-09-15). The
- * sidebar is data; a link in it that lands on a 404, a board it forgot, or a
- * section a component id could shadow is a shell bug the smoke script would
- * find late. Held here at test time instead: every href resolves to a page
- * file, every standing board and family and tool is listed, no href repeats,
- * the reserved segments never collide with an id, and the helpers the chrome
- * relies on (the active item, the crumbs, the neighbours) behave.
+ * THE NAV, HELD AGAINST THE TREE. The sidebar is data; a link in it that lands
+ * on a 404, a board it forgot, or a section a catalog id could shadow is a
+ * shell bug the smoke script would find late. Held here at test time instead:
+ * every href resolves to a page file, every standing board and family and tool
+ * is listed, no href repeats, the reserved segments never collide with an id,
+ * and the helpers the chrome relies on (the active item, the crumbs, the
+ * neighbours) behave.
  */
 const SHELL = join(process.cwd(), "src/app/(dev)/design/(shell)");
 
@@ -60,8 +60,6 @@ function pageFor(href: string): string | null {
     .split("/")
     .filter(Boolean);
   const dynamic: Record<string, string> = {
-    "library/rules": "[id]",
-    "library/doctrine": "[doc]",
     "lab/proposals": "[slug]",
     "lab/tracks": "[track]",
     lab: "[board]",
@@ -84,6 +82,18 @@ const items = flatten(nav);
 describe("the nav", () => {
   it("has the two areas, in order", () => {
     expect(nav.map((a) => a.id)).toEqual(["library", "lab"]);
+  });
+
+  it("leads the Library with the brand kit, keeps the catalog open, and ends on the ten", () => {
+    const sections = nav[0].sections;
+    expect(sections[0].id).toBe("brand-kit");
+    expect(sections[0].items[0].href).toBe("/design/library/foundations");
+    expect(sections.at(-1)?.id).toBe("ten");
+    for (const family of ["components", "patterns", "compositions", "marketing"]) {
+      const section = sections.find((s) => s.id === `family-${family}`);
+      expect(section, family).toBeDefined();
+      expect(section?.collapsed, `${family} opens by default`).toBeFalsy();
+    }
   });
 
   it("links only to pages that exist", () => {
@@ -116,8 +126,8 @@ describe("the nav", () => {
     ])
       expect(hrefs.has(`/design/lab/tools/${tool}`), tool).toBe(true);
     expect(hrefs.has("/design/lab")).toBe(true);
+    expect(hrefs.has("/design/library")).toBe(true);
     expect(hrefs.has("/design/library/rules")).toBe(true);
-    expect(hrefs.has("/design/library/glossary")).toBe(true);
   });
 
   it("keeps every old route's destination in the nav or under a listed page", () => {
@@ -128,7 +138,7 @@ describe("the nav", () => {
     }
   });
 
-  it("names the bible's groups as keywords of the rules item", () => {
+  it("names the bible's groups as keywords of the ten's item", () => {
     const rules = items.find((it) => it.href === "/design/library/rules");
     expect(rules?.keywords?.length).toBe(BIBLE_GROUPS.length);
   });
@@ -138,13 +148,20 @@ describe("reserved segments", () => {
   it("never collide with a board id", () => {
     for (const r of SANDBOX) expect(RESERVED.lab).not.toContain(r.id);
   });
-  it("never collide with a component id", async () => {
-    const { COMPONENTS } = await import("../rules/rules");
-    for (const c of COMPONENTS) expect(RESERVED.library).not.toContain(c.id);
+  it("never collide with a catalog entry id", async () => {
+    const { GALLERY } = await import("../gallery/registry");
+    for (const e of GALLERY) expect(RESERVED.library).not.toContain(e.id);
   });
-  it("name a directory under the area (a page, or a dynamic child)", () => {
+  it("name a directory under the area, or a retired page's redirect", () => {
+    const redirected = (seg: string) =>
+      LAB_REDIRECTS.some((r) =>
+        new RegExp(`^/design/library/${seg}(/:\\w+)?$`).test(r.source),
+      );
     for (const seg of RESERVED.library)
-      expect(existsSync(join(SHELL, "library", seg)), seg).toBe(true);
+      expect(
+        existsSync(join(SHELL, "library", seg)) || redirected(seg),
+        seg,
+      ).toBe(true);
     for (const seg of RESERVED.lab)
       expect(existsSync(join(SHELL, "lab", seg)), seg).toBe(true);
   });
@@ -174,11 +191,11 @@ describe("the helpers", () => {
   });
 
   it("build crumbs area > section > item", () => {
-    const crumbs = breadcrumbs(nav, "/design/library/guidance");
+    const crumbs = breadcrumbs(nav, "/design/library/glow");
     expect(crumbs.map((c) => c.label)).toEqual([
       "Library",
-      "Rules",
-      "Guidance",
+      "Brand kit",
+      "Aurora",
     ]);
     expect(breadcrumbs(nav, "/design/lab")[0]?.label).toBe("Lab");
   });
@@ -190,13 +207,13 @@ describe("the helpers", () => {
   });
 
   it("give neighbours in section order", () => {
-    const { prev, next } = neighbours(nav, "/design/library/policies");
-    expect(prev?.href).toBe("/design/library/rules");
-    expect(next?.href).toBe("/design/library/guidance");
+    const { prev, next } = neighbours(nav, "/design/library/glow");
+    expect(prev?.href).toBe("/design/library/foundations");
+    expect(next).toBeUndefined();
   });
 
   it("filter by label, note, id and keyword", () => {
-    expect(flatten(filterNav(nav, "glossary")).length).toBeGreaterThan(0);
+    expect(flatten(filterNav(nav, "brand kit")).length).toBeGreaterThan(0);
     expect(flatten(filterNav(nav, "zzz-nothing")).length).toBe(0);
     const byGroup = flatten(filterNav(nav, BIBLE_GROUP_LABEL[BIBLE_GROUPS[0]]));
     expect(byGroup.some((it) => it.href === "/design/library/rules")).toBe(
@@ -213,10 +230,10 @@ describe("the glossary", () => {
 });
 
 /**
- * THE URL STATE (the Library x Lab round, 2026-09-15). A link is supposed to be
- * an exact view, which only holds if the sticky params ride every link, the
- * page-local ones never leave their page, and the query always lands BEFORE the
- * fragment (a key after a `#` is a 404 at the gate).
+ * THE URL STATE. A link is supposed to be an exact view, which only holds if
+ * the sticky params ride every link, the page-local ones never leave their
+ * page, and the query always lands BEFORE the fragment (a key after a `#` is a
+ * 404 at the gate).
  */
 describe("the lab's URL state", () => {
   it("splits the vocabulary into sticky and local, with nothing left over", () => {
@@ -331,10 +348,10 @@ describe("the keyboard contract", () => {
 });
 
 /**
- * THE SEARCH INDEX. The palette is the only place a rule, a landmine, a
- * component, a board, a doc heading and a glossary term are all reachable, so
- * a kind that silently stops being indexed is invisible until someone fails to
- * find something. Held against the real registries, like the nav above.
+ * THE SEARCH INDEX. The palette is the one place a principle, a component, a
+ * board and a glossary term are all reachable, so a kind that silently stops
+ * being indexed is invisible until someone fails to find something. Held
+ * against the real registries, like the nav above.
  */
 const index = buildSearchIndex(nav);
 
@@ -349,13 +366,9 @@ describe("the search index", () => {
       if (!optional.has(kind)) expect(kinds.has(kind), kind).toBe(true);
   });
 
-  it("indexes every ruled component or page as a ruling on the rules page", () => {
-    const rulings = index.filter((e) => e.kind === "ruling");
-    expect(rulings.map((e) => e.id).sort()).toEqual(
-      RULED.map((r) => r.id).sort(),
-    );
-    for (const e of rulings)
-      expect(e.href).toBe(`/design/library/rules#ruling-${e.id}`);
+  it("points every principle at its anchor on the ten's page", () => {
+    for (const e of index.filter((x) => x.kind === "rule"))
+      expect(e.href).toBe(`/design/library/rules#${e.id}`);
   });
 
   it("points every entry at a lab route", () => {
@@ -374,7 +387,7 @@ describe("the search index", () => {
     expect(hrefs.length).toBe(new Set(hrefs).size);
   });
 
-  it("lists every bible rule and every board", () => {
+  it("lists every principle and every board", () => {
     const ids = new Set(
       index.filter((e) => e.kind === "rule").map((e) => e.id),
     );
@@ -391,7 +404,7 @@ describe("the search index", () => {
       kind: "rule",
       id: "affirmative-only",
       title: "10. Say what we are",
-      href: "/design/library/rules/affirmative-only",
+      href: "/design/library/rules#affirmative-only",
       ...over,
     });
     const exact = scoreEntry(entry({}), "affirmative-only");
@@ -417,10 +430,10 @@ describe("the search index", () => {
   const has = (query: string, kind: string) =>
     searchLab(index, query).some((g) => g.kind === kind && g.entries.length);
 
-  it("finds a rule by its number, a glossary word and a policy", () => {
+  it("finds a principle by its number, a glossary word and a component", () => {
     expect(has("bible 1", "rule")).toBe(true);
-    expect(has("landmine", "glossary")).toBe(true);
-    expect(has("no-em-dash-policy", "policy")).toBe(true);
+    expect(has("brand kit", "glossary")).toBe(true);
+    expect(has("button", "component")).toBe(true);
   });
 
   // ★ NEVER A NAMED BOARD. The index holds the STANDING boards (touchpoints'

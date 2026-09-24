@@ -72,7 +72,6 @@ export const REEL_HOST = defineExploration({
   },
   context:
     "The reel makes itself from the second photo; a host has a few small acts left, spread over the hub, Settings and the dashboard. Seven decisions on those real surfaces over Mia and Theo's wedding, each drawn on his answers: the view's glass bar and dock, the living Reel card, a screen that carries only the code, a minimum of two.",
-  bible: [1, 4, 12, 14, 15, 19, 21, 22],
   carried: [
     {
       id: "look",

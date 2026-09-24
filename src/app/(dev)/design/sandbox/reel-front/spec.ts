@@ -53,7 +53,6 @@ const DRAFT = defineExploration({
   },
   context:
     "Round one settled what the tile IS; this round asks how it reads as the reel rather than the album, and what its other corner says. Every option plays the reel's own eight-moment take, at 375 and 1440, over the same album (twelve items, newest first) round one used.",
-  bible: [4, 12, 14, 18, 22],
   asks: [
     {
       id: "signature",

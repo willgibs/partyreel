@@ -57,7 +57,6 @@ export const VOICE_GUEST = defineExploration({
   },
   context:
     "Will, 2026-09-22: \"Still need to nail our voice in the lab, across all main and micro copy.\" The guest journey first: seven lines Priya reads between scanning Maya and Jay's code and keeping her photos, each set where it lives on a 375 phone, today's words beside plain and warm, bright and playful, quiet and exact. The lines he picks build the voice one won line at a time, and each option says what its register sounds like on another of the seven, so a pick carries to the host app's board and marketing's after it.",
-  bible: [4, 12, 14, 19, 20, 21, 22],
   carried: [
     {
       id: "world",

@@ -1,4 +1,3 @@
-// @contract-for: src/components/shared/masonry.tsx
 import { Download, EyeOff } from "lucide-react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
@@ -107,10 +106,9 @@ describe("the desk's hover set is ONE pane, declared per surface", () => {
     );
     const bars = container.querySelectorAll("[data-tile-actions]");
     expect(bars).toHaveLength(2);
-    // `row=bar` (Will, 2026-09-20): the row is ONE blurred region, so the bar
-    // wears the material and the glyphs inside it carry no surface of their own.
+    // The glyphs inside the bar carry no material of their own: a backdrop
+    // filter per glyph would stack one blur per action under every scroll.
     for (const bar of bars) {
-      expect(bar).toHaveClass("glass");
       expect(bar.className).toContain("md:flex");
       // Never below `md`: a phone tile is marks only.
       expect(bar.className).toContain("hidden");

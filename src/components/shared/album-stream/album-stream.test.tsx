@@ -1,5 +1,3 @@
-// @contract-for: src/components/shared/album-stream/album-stream.tsx
-
 import { render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 

@@ -1,6 +1,3 @@
-// @contract-for: src/components/shared/tile-size-control.tsx
-// @contract-for: src/lib/shared/use-tile-size.ts
-// @contract-for: src/lib/shared/tile-size-cookie.ts
 import {
   act,
   fireEvent,

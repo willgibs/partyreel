@@ -1,14 +1,9 @@
 /**
  * A STRING IN, A DETERMINISTIC COLOUR OUT: the seeded default avatar's generator.
  *
- * ★ HOME (2026-09-20, `avatar-wiring`, the sixth batch's `seed-avatar` r1 wired):
- * this module lived at `src/app/(dev)/design/sandbox/seed-avatar/gradient.ts`
- * while the board was exploring it; now that `look=diagonal` is ruled, the
- * generator moved here so `src/components/ui/avatar.tsx` can import it without
- * pulling a sandbox path into the production bundle. The board file at the old
- * path re-exports everything from here and keeps drawing (round two on `look`
- * is still open); its own `@contract-for` test moved to `gradient.test.ts`
- * beside this file.
+ * ★ HOME: the generator lives here so `src/components/ui/avatar.tsx` can import
+ * it without pulling a sandbox path into the production bundle; its test is
+ * `gradient.test.ts` beside this file.
  *
  * Will asked for this by name (2026-09-19): "seed-generated
  * dither avatars, which made new accounts feel way cooler than something generic

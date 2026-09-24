@@ -33,6 +33,9 @@ import type { GalleryEntry } from "@/app/(dev)/design/gallery/entry";
 export const FOUNDATION_ENTRIES: GalleryEntry[] = [
   {
     id: "glow",
+    file: "src/components/shared/glow.tsx",
+    for: "the light primitive; it takes no className, since one utility would erase the warp",
+    test: "src/components/shared/glow-contract.test.ts",
     title: "Aurora",
     badge: "updated",
     family: "foundations",

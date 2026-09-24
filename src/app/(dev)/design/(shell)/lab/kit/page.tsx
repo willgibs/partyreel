@@ -103,16 +103,11 @@ export default async function KitPage({
       />
 
       <Callout kind="note" className="mt-6" title="Adding a tool">
-        A new piece owes five things in the same commit, and the gate asks for
-        each: a <code>for</code> line in <code>rules/component-notes.ts</code>,
-        a row in <code>kit/notes.ts</code>, a live demo in{" "}
-        <code>kit/kit-demos.tsx</code>, a test opening{" "}
-        <code>{"// @contract-for"}</code> that guards its FUNCTION rather than
-        its
-        look, and its name on <code>kit-discipline.test.ts</code>&rsquo;s
-        owned
-        list, which is what stops a board re-declaring it. Then{" "}
-        <code>pnpm design:rules</code>, in that same commit.
+        A new piece arrives with a row in <code>kit/notes.ts</code>, a live
+        demo in <code>kit/kit-demos.tsx</code>, a test for what it does (its
+        function, never its look), and its name on{" "}
+        <code>kit-discipline.test.ts</code>&rsquo;s owned list, which is what
+        stops a board re-declaring it.
       </Callout>
 
       <Section

@@ -1,5 +1,3 @@
-// @contract-for: src/components/shared/album-stream/stream-engine.ts
-
 import { describe, expect, it } from "vitest";
 
 import {

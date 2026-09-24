@@ -154,7 +154,6 @@ const DRAFT = defineExploration({
   },
   context:
     "Maya hosts; Priya has a page and chose two events for it; Jay confirmed and never claimed a handle; Nina typed a name: a names-mode wedding, so most of its guest list is Unverified. Every option is the shipped guest list or the shipped profile with one thing changed, phone first with 1440 on the knob. view-all reads the list at 24 and at 240, a quarter of the thousand Will imagined. Nothing here reaches a Server Function or a row: the social controls stay forked to local state, as round one forked them.",
-  bible: [1, 4, 12, 15, 21, 22],
   asks: [
     {
       id: "view-all",

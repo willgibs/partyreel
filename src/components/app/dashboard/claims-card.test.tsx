@@ -1,4 +1,3 @@
-// @contract-for: src/components/app/dashboard/claims-card.tsx
 import {
   fireEvent,
   render,

@@ -1,6 +1,3 @@
-// @contract-for: src/components/shared/trail/trail-engine.ts
-// @contract-for: src/components/shared/trail/trail-frames.ts
-
 import { describe, expect, it } from "vitest";
 
 import { isMarketingImageId } from "@/lib/constants/marketing-media";

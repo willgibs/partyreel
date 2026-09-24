@@ -1,4 +1,3 @@
-// @contract-for: src/lib/format/count.ts
 import { describe, expect, it } from "vitest";
 
 import {

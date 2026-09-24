@@ -308,5 +308,5 @@ export const SAMPLE_BOARD = defineBoard({
       note: "Rule on the three, answer the three asks, then read the message the session composes.",
     },
   ],
-  links: { bible: [] },
+  links: {},
 });

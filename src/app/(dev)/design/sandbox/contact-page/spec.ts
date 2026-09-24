@@ -32,7 +32,6 @@ export const CONTACT_PAGE = defineExploration({
     changed:
       "The overtaken audit's reshape touches four of six: page cites pricing-page's own paper-hero precedent; topic cites first-event's style=step; urgency's premise is confirmed by the shipped failure sheet; receipt names the app's own modal precedent. reach and beside stand unbadged.",
   },
-  bible: [16, 19, 21, 22],
   context:
     "Will (2026-09-19, stack the lab): /contact is unprotected like the rest, a board that keeps nothing deleted at no cost. Six decisions on the real desk, drawn on a host mid-event, a planner weighing a plan, and a reporter on background.",
   asks: [

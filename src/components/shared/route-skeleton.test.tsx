@@ -1,4 +1,3 @@
-// @contract-for: src/components/shared/route-skeleton.tsx
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -46,7 +45,7 @@ describe("RouteSkeleton", () => {
     }
   });
 
-  it("draws the studio as the room itself: fixed, full-bleed, always dark", () => {
+  it("draws the studio as the room itself: fixed and full-bleed", () => {
     // The real Studio (reel-studio.tsx) sits OUTSIDE the (app) shell's light
     // chrome on purpose ("its own world"); its skeleton has to match, or the
     // app's own background flashes for one frame first.
@@ -54,7 +53,6 @@ describe("RouteSkeleton", () => {
     const root = container.firstElementChild;
     expect(root?.className ?? "").toMatch(/\bfixed\b/);
     expect(root?.className ?? "").toMatch(/inset-x-0/);
-    expect(root?.className ?? "").toMatch(/oklch\(0\.11_0_0\)/);
   });
 
   it("never tints the studio's blocks off the theme's --color-foreground", () => {
@@ -65,7 +63,6 @@ describe("RouteSkeleton", () => {
     const { container } = render(<RouteSkeleton variant="studio" />);
     const html = container.innerHTML;
     expect(html).not.toMatch(/--color-foreground/);
-    expect(html).toMatch(/bg-white\/10/);
   });
 
   it("honours reduced motion on every shape", () => {

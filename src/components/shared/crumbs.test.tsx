@@ -1,5 +1,3 @@
-// @contract-for: src/components/shared/crumbs.tsx
-
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 

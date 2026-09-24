@@ -1,4 +1,3 @@
-// @contract-for: src/lib/avatar/measure.ts
 import { randomUUID } from "node:crypto";
 
 import { describe, expect, it } from "vitest";
@@ -28,12 +27,6 @@ import { centreLuminance, contrastFromLuminance } from "./measure";
  * construction: a `background-image`'s centre sits at the same 50% mark
  * whatever the box's own pixel size, so one measurement covers the `Avatar`
  * contract's 24, 32 and 40px sizes and the identity row's 80px alike.
- *
- * ★ HOME (2026-09-20, `avatar-mesh-wiring`): this is its own file, not a
- * describe block inside `gradient.test.ts`, because the design-rules
- * collector (`scripts/design-rules/collect.mjs`) only tracks a file outside
- * the library's own directories when a `@contract-for:` marker names it —
- * `measure.ts` earns its `rules/component-notes.ts` line by having one.
  */
 
 /** A crowd big enough to find a hole in: a thousand real account-id-shaped

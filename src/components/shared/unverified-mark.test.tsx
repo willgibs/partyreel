@@ -1,4 +1,3 @@
-// @contract-for: src/components/shared/unverified-mark.tsx
 /**
  * THE ONE WORD, AND THE TWO SENTENCES UNDER IT (Will, 2026-09-22, relitigating
  * the mark himself).

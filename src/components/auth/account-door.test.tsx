@@ -1,4 +1,3 @@
-// @contract-for: src/components/auth/account-door.tsx
 import { act, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
