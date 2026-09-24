@@ -793,6 +793,11 @@ rest) lives in the lightbox, because icons on every tile crowd a phone immediate
 - **The open item is an ID, never a position.** `items` mutates under an open lightbox (a doorbell
   prepends, an upload prepends, a removal drops one) and a stored index silently starts pointing at a
   different photograph.
+- **A tap hands the viewer where the photograph came from.** The tile box carries `data-media-id`; a
+  tap passes the viewer its rect (`origin`, `opening=grow`) and a `returnTo` that finds the tile of
+  whichever photograph shows at close (scrolled into view first), so it drops into ITS tile and focus
+  returns there. The open photograph rides the address as `?photo=<id>` (`lib/media/share-save.ts`
+  owns the parameter), read once on mount and claimed by one grid per page.
 
 ## Motion
 
@@ -1106,11 +1111,17 @@ there; the exits-faster rule must override `animation-duration` (`!important`, s
 `data-state="closed"`). The drawer's TRANSITION only drives drag-release snap-back (under
 `data-state="open"`), so never touch it.
 
-**Two adjacent craft rules:** any full-width `inset-x-0` overlay floating above a GESTURE track needs
+**Three adjacent craft rules:** any full-width `inset-x-0` overlay floating above a GESTURE track needs
 `pointer-events-none` on the box + `pointer-events-auto` on just its controls (`items-center` centers
 children but the BOX stays edge-to-edge and eats pointerdown across its flanks, which kills swipe-nav on
-every shared-viewer surface at once). And the repo's react-hooks lint bans setState-in-effect sync
+every shared-viewer surface at once). The repo's react-hooks lint bans setState-in-effect sync
 resets, so use the adjust-state-during-render pattern (prev-state comparison) for transient view resets.
+★ And **a tap on a tooltip-wrapped control can lose its click**: a touch's compatibility mousedown
+focuses the button, radix opens a tooltip on focus (the provider's delay is 0), and `ui/tooltip`'s
+arrow, at `sideOffset` 0, lands under the finger and takes the click (measured on the viewer's capsule,
+where every Share tap went to the arrow). The viewer's chrome cancels a touch pointerdown in capture
+(`media-lightbox.tsx`), which drops the compatibility mouse events and keeps the click; a menu trigger
+(`aria-haspopup="menu"`) keeps its pointerdown, because radix opens a menu on it.
 
 ## The component index and the gallery
 
@@ -1184,9 +1195,12 @@ it). The perf baseline and its repeatable method are in git:
   spelling on every `/design` visit (`src/app/keyframe-uniqueness.test.ts` holds the count at zero). A
   board's own CSS lives beside the board under `sandbox/`, imported by it, so it leaves with it.
 - The behavior pins (`*.test.tsx`, the component vitest project) freeze MediaLightbox / GuestUpload /
-  LikesProvider behavior and never styles, so token/craft changes don't touch them. jsdom can't run the
-  lightbox pause-on-navigate effect (portal/commit timing); that one pin is dropped on purpose, so cover
-  it in live device passes.
+  LikesProvider behavior and never styles, so token/craft changes don't touch them. jsdom plays no
+  media and has no Web Animations, so the lightbox pins spy on `play`/`pause` (the pause on moving on is
+  pinned) and record `animate` calls (the grow and the drop are pinned as frames, never as a look).
+  ★ Radix's Portal renders its children one commit after it mounts, so an effect keyed on the dialog
+  opening meets no element: the viewer binds its stage, photograph and clip through callback refs held
+  in state, and every effect that drives them is keyed on those.
 - ★ **A page-level gate cannot close the lab, because the shell layout has already rendered the nav.**
   The shell layout builds the nav (every component, board, proposal and track by name) and a layout
   cannot read `searchParams`, so a page-level `notFound()` comes too late: a keyless request would

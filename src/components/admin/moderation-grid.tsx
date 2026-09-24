@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useCallback, useRef, useState, useTransition } from "react";
 import { Trash2, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -11,6 +11,7 @@ import {
 } from "@/app/admin/albums/actions";
 import { type ActionResult } from "@/app/(app)/dashboard/actions";
 import { MediaTile } from "@/components/app/media-grid";
+import type { ViewerOrigin } from "@/components/shared/media-lightbox";
 import {
   MediaLightboxLazy,
   preloadMediaLightbox,
@@ -39,7 +40,8 @@ function ModerationTile({
   item: ModerationGridItem;
   index: number;
   mode: "feed" | "album";
-  onOpen: (index: number) => void;
+  /** The tile's box rides along, so the viewer grows out of it (`opening=grow`). */
+  onOpen: (index: number, tile: Element | null) => void;
 }) {
   const [isPending, startTransition] = useTransition();
   const [asking, setAsking] = useState(false);
@@ -62,10 +64,14 @@ function ModerationTile({
   const isRemoved = item.status === "removed";
 
   return (
-    <li className="relative aspect-square overflow-hidden rounded-lg bg-black/10">
+    <li
+      data-media-tile
+      data-media-id={item.id}
+      className="relative aspect-square overflow-hidden rounded-lg bg-black/10"
+    >
       <button
         type="button"
-        onClick={() => onOpen(index)}
+        onClick={(e) => onOpen(index, e.currentTarget.closest("li"))}
         aria-label={item.type === "photo" ? "View photo" : "Play video"}
         className="size-full cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset"
       >
@@ -154,10 +160,23 @@ export function ModerationGrid({
   mode: "feed" | "album";
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [origin, setOrigin] = useState<ViewerOrigin | undefined>(undefined);
+  const listRef = useRef<HTMLUListElement | null>(null);
+
+  // The viewer drops back into the tile of whichever report it shows at close
+  // (it may have stepped on from the one tapped), and focus returns to it.
+  const returnTo = useCallback(
+    (item: { id: string }) =>
+      listRef.current?.querySelector<HTMLElement>(
+        `[data-media-tile][data-media-id="${item.id.replace(/["\\]/g, "\\$&")}"]`,
+      ) ?? null,
+    [],
+  );
 
   return (
     <>
       <ul
+        ref={listRef}
         className="grid grid-cols-2 gap-[var(--gap-gallery)] sm:grid-cols-3 lg:grid-cols-4"
         onPointerEnter={preloadMediaLightbox}
         onTouchStart={preloadMediaLightbox}
@@ -168,7 +187,18 @@ export function ModerationGrid({
             item={item}
             index={i}
             mode={mode}
-            onOpen={setOpenIndex}
+            onOpen={(i, tile) => {
+              setOpenIndex(i);
+              setOrigin(
+                tile
+                  ? {
+                      kind: "tile",
+                      rect: tile.getBoundingClientRect(),
+                      returnTo,
+                    }
+                  : undefined,
+              );
+            }}
           />
         ))}
       </ul>
@@ -176,6 +206,7 @@ export function ModerationGrid({
       <MediaLightboxLazy
         items={items}
         index={openIndex}
+        origin={origin}
         onClose={() => setOpenIndex(null)}
         onIndexChange={setOpenIndex}
       />

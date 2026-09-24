@@ -189,23 +189,33 @@ phone half becoming vaul-backed for every consumer, never a per-dialog exception
   the flow (a demo code in a host's own album is what bible 4 refuses). At 0 items the header and dock drop
   their Add; the CTA owns it. ★ **That wrapper is `GhostRiver`, exported from this file and the ONE home of
   the depth**: the locked page draws the same picture, and two copies of a fade drift apart.
-- **Lightbox** (the SHARED [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx)):
-  full-bleed media, a top-right close, a bottom ACTION PILL (Like / Save / Share / Delete) over an
-  ATTRIBUTION PILL ("[name] [mark] [Host] · i+1 of N"; the counter always renders). ★ **EVERY UPLOAD
-  CARRIES A NAME**: a confirmed guest's profile name stands plain, a typed one wears
-  [`unverified-mark.tsx`](../../src/components/shared/unverified-mark.tsx) (MineMark's material, tap to
-  open, one extra sentence for the host, and on YOUR OWN credit a "Confirm your email" opening the one confirm
-  door). A row with no name renders no credit at all, only the counter, never an invented stand-in: a row
-  minted before names were asked (`create_guest` refuses a new one) and a verified row whose account has no
-  profile name (a deleted account's surviving upload).
-  [`anonymous-info.tsx`](../../src/components/shared/anonymous-info.tsx) is residue only the Library
-  gallery mounts. ★ The mark carries its OWN door rather than a prop, because the credit sits three modules
-  deep under `shared/masonry.tsx`; "is this mine" is the existing `canDelete` seam, never a second one.
-  ~30% side tap zones NAVIGATE via thirds logic in `onBackdropClick` (left→prev, right→next, edge→no-op,
-  center→close); the whisper scrims are pointer-events-none so they never kill the swipe;
-  `media-lightbox.test.tsx` pins the gesture physics. ★ Share sends the event JOIN url (`shareUrl`), NEVER
-  a presigned media URL: the guest album and the host gallery pass it; the personal Uploads and the
-  recovery bin omit it.
+- **Lightbox** (the SHARED [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx), its parts in
+  `media-lightbox-parts/`): the photograph GROWS out of the tile it was tapped on (`origin`: the tile's rect and a
+  `returnTo` that finds the tile of whichever photograph shows at close; the live reel passes its frame's rect and a
+  clip's `startAt`) and drops back into it; a face-led CREDIT top left (the face or plain disc, the name, the mark,
+  "You" on your own upload, the host's proved address, a door to `/u/<slug>` only where the item carries one), the
+  close top right, the floating ACTION CAPSULE at the foot (Like / Save / Share / Copy link / Delete, a clip's sound,
+  the host's curate group behind a divider) and a clip's TRANSPORT (play, a scrubber, the time) above it. ★ **EVERY
+  UPLOAD CARRIES A NAME**: a confirmed guest's profile name stands plain, a typed one wears
+  [`unverified-mark.tsx`](../../src/components/shared/unverified-mark.tsx) (MineMark's material, tap to open, one
+  extra sentence for the host, and on YOUR OWN credit a "Confirm your email" opening the one confirm door). A row with
+  no name renders no credit at all, never an invented stand-in: a row minted before names were asked (`create_guest`
+  refuses a new one) and a verified row whose account has no profile name (a deleted account's surviving upload).
+  [`anonymous-info.tsx`](../../src/components/shared/anonymous-info.tsx) is residue only the Library gallery mounts. ★
+  The mark carries its OWN door rather than a prop, because the credit sits three modules deep under
+  `shared/masonry.tsx`; "is this mine" is the existing `canDelete` seam, never a second one. The neighbours PEEK at
+  the edges and a tap on one steps to it; a tap on BLANK space closes (no side zones); a pull DOWN at fit closes;
+  pinch, pan and double-tap zoom a photograph; a clip plays muted and looping and pauses when the viewer moves on; a
+  desk adds hover chevrons and a filmstrip. `media-lightbox.test.tsx` pins the physics, `geometry.test.ts` the
+  arithmetic. ★ **THE ADDRESS**: the open photograph rides the page as `?photo=<id>` (`PHOTO_PARAM`, written by
+  `shared/masonry.tsx` with replaceState, read once on mount), and it opens only an item already in the viewer's
+  payload: an unknown, held or hidden id opens the album plainly, and a door already open comes first. ★ **SHARE SENDS
+  THE FILE** (fetched on the tap with `cache: "no-store"`, never prefetched; over 100 MB it falls back), then the
+  link, then a copy; Copy link copies the PUBLIC album link (`shareUrl`, the event JOIN url, never a presigned media
+  URL or a dashboard URL) with `?photo=` on an approved item; Save offers Save to Photos first on iOS (the system
+  sheet with the file is the one web path into Photos) and the plain download elsewhere; a tap whose activation lapses
+  leaves a one-tap Ready. The guest album and the host gallery pass `shareUrl`; the personal Uploads and the recovery
+  bin omit it.
 - Each tile (desktop hover-reveal) + the lightbox carry a **like** button; a signed-out tap
   opens the create-account dialog (a `LikesProvider` wraps the gallery, replaying after sign-in). The hearts are
   seeded through `my_liked_media_ids` with the grid's ids in the POST BODY (never a URL, which a whole album
