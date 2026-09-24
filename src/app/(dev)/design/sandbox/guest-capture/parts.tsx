@@ -426,6 +426,36 @@ export function NameStepCard() {
   );
 }
 
+/**
+ * The `told` option's own addition: the moment card stands exactly as
+ * `silent` draws it, plus a toast naming the written name aloud. Quoted from
+ * sonner's own plain/info treatment (`ui/sonner.tsx`'s `--normal-*` vars):
+ * `bg-popover`, `shadow-layer`, `rounded-float`. `fixed`, never `absolute`
+ * (`OfferSheet`'s own note: the frame IS the viewport), pinned near the
+ * frame's true top rather than the page's, and drawn at rest rather than
+ * mid-toast, since every option on this board is judged at rest. `top-20`
+ * (5rem) is the shipped Toaster's own offset (`ui/sonner.tsx`), which clears
+ * every header in the product rather than just this one.
+ */
+export function NameToldNotice() {
+  return (
+    <div
+      aria-hidden
+      className="fixed inset-x-0 top-20 z-[70] flex justify-center px-4"
+    >
+      <div
+        data-gc-name-notice
+        className="flex items-center gap-2 rounded-float border border-border bg-popover px-4 py-2.5 text-sm text-popover-foreground shadow-layer"
+      >
+        <Check className="size-4 shrink-0 text-success" aria-hidden />
+        <span>
+          You&rsquo;re on as {PRIYA.name}. Change it in Account.
+        </span>
+      </div>
+    </div>
+  );
+}
+
 /* ── the tracker: his own idea, on a MODERATED event (`tracker`) ─────────── */
 
 const TRACKER_ICON: Record<TrackerStatus, typeof Check> = {

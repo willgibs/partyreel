@@ -17,10 +17,11 @@ import { ALBUM, EVENT, OPENED } from "./fixtures";
  *
  * Every picture on this board is one open wedding at a real screen with exactly
  * one thing changed, and that thing is always what a tap on a tile opened. The
- * page under it is NOT a variable here: the album is the ruled column rule
+ * page under it is NOT a variable here: the album is the shipped column rule
  * (`GALLERY_COLUMNS`) and the shipped `MediaTile`, and the header is the
  * shipped header's shape. `guest-shape` owns the chrome around the album and
- * `gallery-width` ruled the columns; both are worn here as settled law.
+ * `gallery-width` owns the columns; both are out of this board's scope and
+ * held here as shipped.
  *
  * ★ WHAT IS THE SHIPPED COMPONENT AND WHAT IS QUOTED. The tile (`MediaTile`),
  * the column rule (`GALLERY_COLUMNS`), the corner play marker
@@ -92,7 +93,7 @@ function MineLabel() {
 }
 
 /**
- * The album, laid out by the ruled column rule with the shipped tile. `lit`
+ * The album, laid out by the shipped column rule with the shipped tile. `lit`
  * marks the tile a tap opened: `opening`'s growing photograph flies out of its
  * box and `wayout`'s swipe down puts it back, so both need to know where it is
  * and both MEASURE it rather than assuming.

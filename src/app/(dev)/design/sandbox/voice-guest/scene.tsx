@@ -251,7 +251,7 @@ export function EventHead({
   );
 }
 
-/** One photograph on the ruled column rule, in the shipped tile. `landed`
+/** One photograph on the shipped column rule, in the shipped tile. `landed`
  *  writes the grid's own `data-landed`, so arrival.css (which the masonry
  *  import above brings in) plays its one pass of light across it. */
 function AlbumTile({ item, landed }: { item: GridMedia; landed: boolean }) {
@@ -273,7 +273,7 @@ function AlbumTile({ item, landed }: { item: GridMedia; landed: boolean }) {
 }
 
 /**
- * THE ALBUM, ON THE SHIPPED COLUMN RULE (`gallery-width`'s law, worn): a
+ * THE ALBUM, ON THE SHIPPED COLUMN RULE (`gallery-width`'s own decision): a
  * column WIDTH, so a 375 phone lays two columns. `prefix` is what stands at
  * the album's head before the first photograph (a stack in flight, a held
  * tile), exactly the seam `guest-masonry.tsx` renders it through.
