@@ -1,22 +1,22 @@
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * THE FALLING-IN, TWO OR THREE WAYS (2026-09-19).
+ * THE FALLING-IN, NOW FOUR WAYS (2026-09-19; a fourth added 2026-09-24).
  *
  * Will, on the album page's hero: "I love the images falling into the album. I
  * was just curious to see maybe two to three variations of this concept to get
  * an idea of what the best version is. No specific direction on what
  * improvement means here yet." So this is one decision and nothing else, drawn
  * on the WIRED hero rather than on a mock of it: the shipped version is one of
- * the three, and his pick is a one-word change to `SHIPPED` in
+ * the four, and his pick is a one-word change to `SHIPPED` in
  * `stream-engine.ts`.
  *
  * ★ EACH ONE IS A DIFFERENT ANSWER, NOT A DIFFERENT NUMBER. With no direction
- * on what improvement means, three options a notch apart would waste the
- * sitting, so each varies on several axes at once: the arc of the fall, the
- * size at birth against the size at the landing, how often a photograph arrives
- * and whether it comes alone, and what happens at the moment it meets the
- * album. `stream-engine.test.ts` refuses two that draw the same thing.
+ * on what improvement means, options a notch apart would waste the sitting, so
+ * each varies on several axes at once: the arc of the fall, the size at birth
+ * against the size at the landing, how often a photograph arrives and whether
+ * it comes alone, and what happens at the moment it meets the album.
+ * `stream-engine.test.ts` refuses two that draw the same thing.
  *
  * ★ EVERY NUMBER UNDER A TILE IS MEASURED, never claimed: the caption on each
  * frame is the engine's own reading of the composition it is drawing, against
@@ -25,33 +25,42 @@ import { defineExploration } from "@/components/lab/exploration";
  *
  * ★ THE OVERTAKEN AUDIT'S REDRAW (2026-09-21). The premise that motivated
  * `glide`'s recommendation ("the ALBUM is what acts") predates a fact the
- * product has since ruled TWICE (guest-shape r1, guest-upload r1): a real
+ * product has since answered TWICE (guest-shape r1, guest-upload r1): a real
  * arrival grows into its column under a glow that fades, everywhere a
- * photograph lands. None of the engine's numbers changed (still out of this
- * lane's owns) and no option was added; all three are re-argued against that
- * shipped truth instead, and the honest read moves the recommendation from
- * `glide` to `cascade`, the one whose own numbers already grow-then-fade in
- * place. His to overrule either way; `glide` still ships until he answers.
+ * photograph lands. The three original trips were re-argued against that
+ * shipped truth, and the honest read moved the recommendation from `glide` to
+ * `cascade`, the one whose own numbers already grow-then-fade in place.
+ *
+ * ★ THE REFRESH'S OWN PASS (2026-09-24): A FOURTH, DRAWN FOR THE FADE RULE
+ * RATHER THAN A RESCORE. Flipping the recommendation between three trips that
+ * all predate the fade rule answers "which reads truest of these three", not
+ * "what does a fall built for the rule actually look like". `bloom` is that
+ * build: born smaller and grown larger by its landing than any of the other
+ * three, on a slower beat that gives each arrival room to be noticed, holding
+ * longest before it fades, and lit by the same glow a real tile wears
+ * (`arrival.css`'s rim and wash, ridden on the frame's own opacity rather than
+ * animated a second time). His to overrule either way; `glide` still ships
+ * until he answers.
  */
 export const ALBUM_MOTION = defineExploration({
   id: "album-motion",
   title: "Album motion",
   round: {
     n: 1,
-    date: "2026-09-21",
+    date: "2026-09-24",
     changed:
-      "The overtaken audit's redraw: the same three trips, re-argued against the arrival the product has ruled since (a photograph grows into its column under a fading glow), not the album's own agency. Cascade, not glide, now tells it truest; glide is still what ships.",
+      "A fourth option, bloom, built for the fade rule rather than a rescore: born smaller and grown larger than any of the first three, holding longest, lit by the product's own arrival glow. Cascade stood truest among the first three; bloom now tells it fullest. glide is still what ships.",
   },
   context:
-    "The album page's hero now stands on the live guest album with photographs falling out of the room around the words and into its top edge, which you ruled in (`motion=stream`). This asks the one thing that was left open: which fall.",
+    "The album page's hero now stands on the live guest album with photographs falling out of the room around the words and into its top edge, which you asked for (`motion=stream`). This asks the one thing that was left open: which fall.",
   asks: [
     {
       id: "fall",
       label: "The fall",
       question:
-        "Which of the three tells the album's real arrival truly on the hero?",
+        "Which of the four tells the album's real arrival truly on the hero?",
       context:
-        "All three are the same idea at the home hero's own speed. Since, the product ruled its own arrival everywhere a photograph lands: it grows into its column under a glow that fades (guest-shape r1, guest-upload r1).",
+        "All four share the home hero's own speed. Since, a photograph's real arrival everywhere it lands grows into its column under a fading glow (guest-shape r1, guest-upload r1); bloom is drawn for that rule, not re-scored against it.",
       lands:
         "The album page's hero, and the engine's shipped default, which is the one line that changes.",
       options: [
@@ -71,14 +80,20 @@ export const ALBUM_MOTION = defineExploration({
           id: "cascade",
           label: "Cascade: one at a time, landing",
           means:
-            "One every 625ms, alone: born smallest (0.62), grows to its biggest (1.1) landing, holds on the edge, and fades there. The real arrival's own shape.",
+            "One every 625ms, alone: born smallest (0.62), grows to its biggest (1.1) landing, holds on the edge, and fades there. The truest of the first three.",
+        },
+        {
+          id: "bloom",
+          label: "Bloom: arriving, lit from within",
+          means:
+            "One every 1875ms, the slowest of the four: born and grown furthest of all (0.5 to 1.15), holding longest, glowing where it lands like a real tile.",
         },
       ],
-      recommended: "cascade",
+      recommended: "bloom",
       because:
-        "The ruled arrival grows into its column and fades under a glow, never slides away untouched. Cascade grows to its landing, alone, holds, and fades there: the truest telling; the other two either shrink or never fade in place.",
+        "The rule is grow into place under a glow that fades. Cascade already told the shape truest of the first three; bloom adds the glow itself plus the widest birth-to-landing growth and the longest hold, so the arrival reads as a moment, not a blip.",
       overrule:
-        "If the album's own AGENCY matters more than truthfulness to the real arrival, glide's own reading is what already ships today.",
+        "If the album's own agency matters more than the real arrival, glide already ships today; if a lit tile is too much, cascade keeps the growth with no glow.",
     },
   ],
 });

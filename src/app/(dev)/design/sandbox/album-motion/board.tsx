@@ -104,6 +104,7 @@ const PREVIEWS: PreviewsFor<typeof ALBUM_MOTION> = {
   "fall.glide": <HeroScreens variant="glide" />,
   "fall.gather": <HeroScreens variant="gather" />,
   "fall.cascade": <HeroScreens variant="cascade" />,
+  "fall.bloom": <HeroScreens variant="bloom" />,
 };
 
 export function AlbumMotionBoard() {

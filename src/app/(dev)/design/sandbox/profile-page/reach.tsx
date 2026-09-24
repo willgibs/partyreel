@@ -31,7 +31,16 @@ import {
   type Person,
   type Tapped,
 } from "./fixtures";
-import { Body, Foot, Head, Identity, Menu, MenuRow, ProfilePage } from "./profile";
+import {
+  Body,
+  Foot,
+  Head,
+  type HeadOption,
+  Identity,
+  Menu,
+  MenuRow,
+  ProfilePage,
+} from "./profile";
 import type { ScreenId } from "./scene";
 
 /**
@@ -518,6 +527,43 @@ export function WayBackShowcase({
           <BackPill event={EVENT.name} />
         ) : undefined
       }
+    />
+  );
+}
+
+/* ── head, asked again: what should stand above a person's page now that
+   way-back exists ────────────────────────────────────────────────────────── */
+
+export type HeadAgainOption = "today" | "quiet" | "bare";
+
+const HEAD_FOR: Record<HeadAgainOption, HeadOption> = {
+  today: "guest",
+  quiet: "quiet",
+  bare: "bare",
+};
+
+/**
+ * Drawn WITH way-back's own pill under every option, never without it: the
+ * whole case for reopening this is that the pill already exists, so judging
+ * the header alone, the way round one did, would be judging a world that no
+ * longer stands. `arrived="album"` throughout, the case the pill answers.
+ */
+export function HeadAgainShowcase({
+  option,
+  person,
+}: {
+  option: HeadAgainOption;
+  person: Person;
+}) {
+  return (
+    <ProfilePage
+      person={person}
+      head={HEAD_FOR[option]}
+      identity="line"
+      body="covers"
+      block="report"
+      viewer="stranger"
+      belowHead={<BackPill event={EVENT.name} />}
     />
   );
 }

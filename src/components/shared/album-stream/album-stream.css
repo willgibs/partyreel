@@ -56,6 +56,21 @@
   box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.1);
 }
 
+/* ★ BLOOM'S GLOW RIDES THE CARD'S OWN OPACITY, NOT A SECOND ANIMATED VALUE.
+   The rim and wash below are the same light `arrival.css` marks a real tile
+   with (`[data-arrived]`): a light, never a colour (bible 6). They are a
+   STATIC box-shadow, so nothing here is re-measured or re-painted on its own;
+   `.als-card`'s opacity, already written every tick for the fade the other
+   three variants also use, carries the glow's own visibility for free as it
+   composites the whole card. Scoped to this one variant so the other three
+   stay exactly as plain as `.als-photo` above. */
+.als-layer[data-variant="bloom"] .als-photo {
+  box-shadow:
+    inset 0 0 0 1px oklch(1 0 0 / 0.1),
+    inset 0 0 0 2px rgb(255 255 255 / 0.5),
+    inset 0 0 24px 4px rgb(255 255 255 / 0.3);
+}
+
 /* ★ TWO COMPOSITIONS, ONE SHOWN. They are different in KIND, not in degree (the
    component's header says why), so the swap is a media query rather than a
    stretched table. 1024 is `LG_MIN`, the home hero's own breakpoint, and this
