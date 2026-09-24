@@ -1,4 +1,3 @@
-// @contract-for: src/lib/admin/palette.ts
 import { describe, expect, it } from "vitest";
 
 import { NAV } from "@/lib/admin/nav";

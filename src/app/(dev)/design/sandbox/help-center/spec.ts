@@ -31,7 +31,6 @@ export const HELP_CENTER = defineExploration({
   },
   context:
     "Will (2026-09-19, the overnight round): the help center is unprotected like the rest, reconceived from the ground up, \"at worst, net neutral and fully deleted\". Seven decisions on the real hub, article and search pieces, drawn on three real articles.",
-  bible: [1, 4, 7, 21, 22],
   asks: [
     {
       id: "who-first",

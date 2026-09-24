@@ -1,4 +1,3 @@
-// @contract-for: src/lib/admin/tone.ts
 import { describe, expect, it } from "vitest";
 
 import { JOBS, jobHealth, type JobHealth } from "@/app/admin/jobs/catalog";

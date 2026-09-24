@@ -1,4 +1,3 @@
-// @contract-for: src/components/marketing/sections/shared/how-it-works-stepper.tsx
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 

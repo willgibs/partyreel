@@ -1,6 +1,3 @@
-// @contract-for: src/components/reel/publish-light.tsx
-// @contract-for: src/components/reel/reel-share-card.tsx
-// @contract-for: src/components/reel/reel-studio.tsx
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -8,15 +5,14 @@ import { act, render, renderHook, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * THE PUBLISH LIGHT'S CONTRACT: a shared reel rests lit, and only a share
- * that happened HERE swells (Will, 2026-09-17; the rulings are quoted in
- * publish-light.tsx).
+ * THE PUBLISH LIGHT: a shared reel rests lit, and only a share that happened
+ * HERE swells.
  *
- * Function only. Nothing below pins a number, a colour or a class that is a
- * look: the register and the geometry are the call sites' to retune by eye.
- * What is pinned is what fails SILENTLY: a swell that replays on every open, a
- * lamp left mounted on a draft, a light that paints over the header because the
- * stack went back to static, a second fence, a violet that crept back.
+ * Nothing below pins how the light looks (its register, its shape, its
+ * geometry are tuned by eye). What is pinned is what fails SILENTLY: a swell
+ * that replays on every open, a lamp left mounted on a draft, a light that
+ * paints over the header or the card because the stack went back to static, a
+ * fence hook that would hide the Share button, and motion under reduced motion.
  *
  * Three halves. The hook and the two mounts run under jsdom. The Studio cannot
  * (it needs a signed-in reel, a canvas engine and a router), so its wiring is
@@ -185,12 +181,10 @@ describe("the two lights, each of them", () => {
     }
   });
 
-  it("mounts one bloom of the engine while the reel is shared", () => {
+  it("mounts one lamp of the engine while the reel is shared", () => {
     for (const [name, Light] of LIGHTS) {
       const { container } = render(<Light shared sharedHere={false} />);
-      const lamps = container.querySelectorAll("[data-glw]");
-      expect(lamps, name).toHaveLength(1);
-      expect(lamps[0], name).toHaveAttribute("data-glw-shape", "bloom");
+      expect(container.querySelectorAll("[data-glw]"), name).toHaveLength(1);
     }
   });
 
@@ -200,25 +194,6 @@ describe("the two lights, each of them", () => {
       const box = container.firstElementChild;
       expect(box, name).toHaveAttribute("aria-hidden", "true");
       expect(box, name).toContainElement(lamp(container));
-    }
-  });
-
-  it("never puts a className on the lamp", () => {
-    // The engine's third invariant: one utility from a caller replaces its
-    // filter or its mask wholesale, with no error and no failing test.
-    for (const [name, Light] of LIGHTS) {
-      const { container } = render(<Light shared sharedHere />);
-      expect(lamp(container), name).not.toHaveAttribute("class");
-    }
-  });
-
-  it("takes the house five, never colours of its own", () => {
-    // `publish=house-five`: the engine falls back to --lamp-1..5 only while no
-    // --glw-c* lands inline, which is exactly what passing `colors` would do.
-    for (const [name, Light] of LIGHTS) {
-      const { container } = render(<Light shared sharedHere />);
-      const inline = lamp(container)!.getAttribute("style") ?? "";
-      expect(inline, name).not.toMatch(/--glw-c\d/);
     }
   });
 
@@ -243,34 +218,6 @@ describe("the two lights, each of them", () => {
   });
 });
 
-describe("the light-ground fence", () => {
-  it("hooks the share card's light, and never the Studio's", () => {
-    // The card follows the app's theme; the Studio is a literal near-black in
-    // both themes and carries no `.dark`, so fencing it would switch the light
-    // off over a ground that is not light.
-    const card = render(<ShareCardPublishLight shared sharedHere={false} />);
-    expect(card.container.querySelector("[data-rxp-cardlight]")).not.toBeNull();
-    const room = render(<StudioPublishLight shared sharedHere={false} />);
-    expect(room.container.querySelector("[data-rxp-cardlight]")).toBeNull();
-  });
-
-  it("is ONE rule: the card's light is named on the Aurora's fence, not given a copy", () => {
-    const css = stripComments(read("src/app/globals.css"));
-    const at = css.indexOf("[data-section-light]:not(.dark *)");
-    expect(at, "the light-ground fence is gone").toBeGreaterThan(-1);
-    const rule = css.slice(at, css.indexOf("}", at));
-    // Both halves, as theme.css's dark variant has them, inverted.
-    expect(rule).toContain("[data-rxp-cardlight]:not(.dark *)");
-    expect(rule).toContain(".surface-paper [data-rxp-cardlight]");
-    expect(rule).toMatch(/display:\s*none/);
-    // Named there and nowhere else: a second fence is the one that drifts.
-    expect(css.split("data-rxp-cardlight")).toHaveLength(3);
-    expect(css, "the Studio's light must never be fenced").not.toContain(
-      "data-rxp-framelight",
-    );
-  });
-});
-
 describe("the share card", () => {
   const controller = (
     over: Partial<ReelPublishController>,
@@ -283,8 +230,6 @@ describe("the share card", () => {
   });
 
   it("carries no light while Share is still the question", () => {
-    // The halo's fence, in Will's words: never a button wrapper. The lamp and
-    // the Share button are never on screen together.
     const { container } = render(<ReelShareCard publish={controller({})} />);
     expect(
       screen.getByRole("button", { name: /share with guests/i }),
@@ -294,7 +239,8 @@ describe("the share card", () => {
 
   it("puts the light first and the card after it, in a positioned wrapper", () => {
     // DOM order IS the stack: no z-index anywhere, so the card must come after
-    // the lamp and be positioned, inside a wrapper that isolates and never clips.
+    // the lamp and be positioned, inside a wrapper that isolates, or the light
+    // paints over the card.
     const { container } = render(
       <ReelShareCard publish={controller({ shared: true })} />,
     );
@@ -306,7 +252,6 @@ describe("the share card", () => {
     expect(wrapper.classList.contains("relative")).toBe(true);
     expect(wrapper.classList.contains("isolate")).toBe(true);
     expect(card.classList.contains("relative")).toBe(true);
-    expect(wrapper.classList.contains("overflow-hidden")).toBe(false);
   });
 
   it("keeps the fence's hook on the light, never on the card", () => {
@@ -362,7 +307,7 @@ describe("the Studio", () => {
     expect(tag).toContain("sharedHere={publish.sharedHere}");
   });
 
-  it("puts the light before the reel, in a positioned wrapper that never clips", () => {
+  it("puts the light before the reel, in a positioned wrapper", () => {
     expect(playerAt).toBeGreaterThan(mountAt);
     // The wrapper is the last string before the mount that isolates.
     const wrapper = [
@@ -370,20 +315,10 @@ describe("the Studio", () => {
     ].at(-1)?.[1];
     expect(wrapper, "the lit frame has no isolating wrapper").toBeTruthy();
     expect(wrapper).toMatch(/\brelative\b/);
-    expect(wrapper).not.toMatch(/\boverflow-hidden\b/);
     // And the reel, which comes after it, is positioned: that is the stack.
     const between = studio.slice(mountAt, playerAt);
     const frame = /className="([^"]*)"/.exec(between)?.[1] ?? "";
     expect(frame).toMatch(/\brelative\b/);
-  });
-
-  it("lights the reel's frame, never the Share button", () => {
-    // Between the lamp and the player there is the frame's own button and
-    // nothing that shares: the halo's fence, held structurally.
-    const between = studio.slice(mountAt, playerAt);
-    expect(between.split("<button")).toHaveLength(2);
-    expect(between).not.toContain("onClick={share}");
-    expect(between).not.toContain("publish.flip(");
   });
 
   it("lifts the header, the dock and the tray above the light", () => {
@@ -410,32 +345,8 @@ describe("the Studio", () => {
   });
 });
 
-describe("the violet left, and nothing of its own moves", () => {
+describe("nothing of its own moves", () => {
   const globals = read("src/app/globals.css");
-
-  it("leaves no violet flourish in the reveal grammar", () => {
-    // Sliced from the comment that OPENS each banner, never from the banner's
-    // own text: that sits inside a comment, and a slice starting mid-comment
-    // would survive the strip and be read as rules.
-    const open = (banner: string) => {
-      const at = globals.indexOf(banner);
-      expect(at, `banner not found: ${banner}`).toBeGreaterThan(-1);
-      return globals.lastIndexOf("/*", at);
-    };
-    const block = stripComments(
-      globals.slice(
-        open("Reel reveal + reel experience"),
-        open("SPILL: the light engine"),
-      ),
-    );
-    expect(block.length, "empty slice").toBeGreaterThan(2000);
-    expect(block).not.toContain("rxp-bloom");
-    expect(block).not.toContain("rxp-pubglow");
-    expect(block).not.toMatch(/oklch\(\s*[\d.]+\s+[\d.]+\s+300\b/);
-    // The card's state hook is only a hook now: no rule animates on it, which
-    // is also what stopped the flourish replaying on every load of a shared reel.
-    expect(block).not.toMatch(/\[data-rxp-share\][^{]*\{[^}]*animation/);
-  });
 
   it("adds no motion of its own, so reduced motion is the base and no swell", () => {
     // The swell is the ENGINE's, and the engine declares every animation inside

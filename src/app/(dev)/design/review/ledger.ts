@@ -93,15 +93,15 @@ export type Round = z.infer<typeof Round>;
 export type Ledger = z.infer<typeof LedgerSchema>;
 
 /**
- * THE LIBRARY'S OWN LEDGER (the revamp, 2026-09-16), which is how a scroll
- * through the live components turns into a redesign request. It is deliberately
- * NOT a board ledger: a Library entry is not being explored in rounds, so there
- * is nothing to number. One ruling per entry, the newest overwriting, and the
- * desk reads the `redesign` and `retire` ones as the queue the Orchestrator
- * cuts tracks from.
+ * THE LIBRARY'S OWN LEDGER, which is how a scroll through the live components
+ * turns into a redesign request. It is deliberately NOT a board ledger: a
+ * catalog entry is not being explored in rounds, so there is nothing to
+ * number. One verdict per entry, the newest overwriting, and the desk reads
+ * the `redesign` and `retire` ones as the queue the Orchestrator cuts tracks
+ * from.
  */
 const LibraryRuling = z.object({
-  /** A component id from rules.generated.json, which is also its library URL. */
+  /** A catalog entry id, the last segment of its Library URL. */
   entry: z.string().min(1),
   /** One of LIBRARY_VERDICTS: keep, redesign or retire. */
   verdict: z.string().min(1),

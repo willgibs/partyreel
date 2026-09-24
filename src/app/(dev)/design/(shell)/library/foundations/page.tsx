@@ -4,6 +4,7 @@ import { requireDesignKey, withDesignKey } from "@/lib/design-gate/server";
 import { PageHeader } from "@/app/(dev)/design/(shell)/_shell/page-header";
 import { Pager } from "@/app/(dev)/design/(shell)/_shell/pager";
 import { Section, Sub } from "@/app/(dev)/design/(shell)/_shell/section";
+import { LabLink } from "@/app/(dev)/design/(shell)/_shell/shell-context";
 import { Tag } from "@/app/(dev)/design/(shell)/_shell/tag";
 import { EntryBlock } from "@/app/(dev)/design/gallery/gallery-ui";
 import { itemById } from "@/app/(dev)/design/gallery/registry";
@@ -16,14 +17,15 @@ import { RadiusLadder } from "./radius-ladder";
 import { TypeLadder } from "./type-ladder";
 
 /**
- * THE TOKENS. Every swatch fills with the REAL CSS var and every specimen uses
+ * THE BRAND KIT: the design tokens, each rendered from the REAL CSS var and
  * the REAL utilities, so this page tracks the theme by construction: edit a
- * token, this updates. It inherits the root next-themes theme (the toggle is
- * in the top bar), and any block's split button shows light and dark at once.
+ * token and this updates. It describes what the product wears today, and it
+ * leads the Library's nav because every new piece starts from it. It inherits
+ * the root next-themes theme (the toggle is in the top bar), and any block's
+ * split button shows light and dark at once.
  *
- * Every token GROUP is a heading with an anchor (the Library x Lab round,
- * 2026-09-15), so the table of contents is a list of the token families and a
- * ruling can link straight at "the lamp set" rather than at the page.
+ * Every token GROUP is a heading with an anchor, so the table of contents is a
+ * list of the token families and a link can land straight on "the lamp set".
  */
 export default async function FoundationsPage({
   searchParams,
@@ -32,19 +34,30 @@ export default async function FoundationsPage({
 }) {
   const key = await requireDesignKey(searchParams);
   // Glow is the one COMPONENT on a page of tokens, so it is declared like every
-  // other library component (foundations/gallery-demos.tsx) and rendered here
-  // through the gallery block: its variants, its config panel and its permalink
-  // all come from that one entry.
+  // other catalog entry (foundations/gallery-demos.tsx) and rendered here
+  // through the gallery block: its variants, its config panel and its entry
+  // page all come from that one declaration.
   const glow = itemById("glow");
 
   return (
     <Column>
       <PageHeader
-        title="Foundations"
-        description="The design tokens, rendered from the real CSS variables. Everything here flips with the app because it IS the app: these are the same vars every surface reads."
+        title="The brand kit"
+        description="The design tokens, rendered from the real CSS variables every surface reads: edit a token, and this page, the app and the site change together."
         meta={[
           ["source", "src/app/theme.css"],
           ["themes", "light and dark, per block"],
+          [
+            "the mark",
+            <LabLink
+              key="logo"
+              href="/design/library/logo"
+              className="underline-offset-2 hover:underline"
+            >
+              Logo, in the catalog
+            </LabLink>,
+          ],
+          ["the voice", "src/lib/constants/marketing-voice.ts"],
         ]}
       />
 
@@ -86,7 +99,7 @@ export default async function FoundationsPage({
           <SwatchGroup
             id="state"
             caption="State"
-            blurb="Punctuation only, never a wash."
+            blurb="Punctuation (a mark, a word, an icon) rather than a filled area, so the media stays the colour."
             tokens={[
               ["Destructive", "--destructive"],
               ["Success", "--success"],
@@ -123,34 +136,27 @@ export default async function FoundationsPage({
       <Section
         id="type"
         title="Type"
-        blurb="Urbanist is the identity face and Inter carries everything functional. Two faces, no third, and one sixteen-step ladder under both halves of the site: ten heading steps, then six for the sentences under them."
+        blurb="Two faces: Urbanist for identity and headings, Inter for everything functional. One sixteen-step ladder serves both halves of the site: ten heading steps, then six for the sentences under them."
       >
         <Sub
           id="ladder"
           title="The ladder"
-          blurb="Sixteen steps, one set, and the law is the order: every heading stays above the one it heads and nothing goes under the floor, at a phone and at 1440. The desktop ends are the sizes Will ruled; each phone end is the rung that keeps the order, so marketing travels further than the app, the card step travels not at all, and of the six body steps only marketing's copy travels. Every line below is the real utility class at true size, and every number is read back off the live token, so this page cannot drift from theme.css. Resize the window and the last column moves."
+          blurb="Sixteen steps in one set, ordered so every heading sits above the one it heads, at a phone and at 1440. Each phone end is the rung that keeps that order, so marketing travels further than the app, the card step stays put, and of the six body steps only marketing's copy travels. Every line below is the real utility class at true size, and every number is read back off the live token, so this page always matches theme.css. Resize the window and the last column moves."
         >
           <TypeLadder />
           <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-            A dead link joins the set rather than sitting outside it: its title
-            takes the prose step on marketing and the page step inside the app.
-            Nothing in the heading face may wear a stock size (text-3xl) or an
-            arbitrary one, and the policy refuses both; a heading the ladder
-            cannot name is a heading whose role has not been decided yet. Under
-            the hairline the same law holds for sentences: a body size resolves
-            to 10, 12, 14 or 16 or it is off the ladder, an uppercase label
-            carries no tracking of its own because the label step carries it,
-            and marketing&rsquo;s 18 is reachable only through the copy step.
-            The only type set off all of it is drawn inside a picture (a phone,
-            a printed sign, an asset plate), sized in em to whatever it rides,
-            or named in the policy&rsquo;s own allow-list with a reason and a
-            count.
+            A dead link&rsquo;s title takes the prose step on marketing and the
+            page step inside the app. Under the hairline, sentences sit on the
+            body steps (10, 12, 14 and 16), an uppercase label takes its
+            tracking from the label step, and marketing&rsquo;s 18 comes through
+            the copy step. Type drawn inside a picture (a phone, a printed sign,
+            an asset plate) is sized in em to whatever it rides.
           </p>
         </Sub>
         <Sub
           id="faces"
           title="The two faces"
-          blurb="The ladder is the heading face only. Everything functional stays in Inter at the body sizes, which is most of the product."
+          blurb="Urbanist carries the headings; everything functional is Inter on the body steps, which is most of the product."
         >
           <div className="grid gap-3 sm:grid-cols-2">
             <Specimen label="Identity" hint="font-heading · Urbanist 700">
@@ -168,8 +174,8 @@ export default async function FoundationsPage({
               <div className="space-y-2">
                 <p className="text-sm font-semibold">Guest uploads</p>
                 <p className="text-sm text-muted-foreground">
-                  Body copy, labels, controls, and section headings stay in
-                  Inter. Only identity moments opt into the heading face.
+                  Body copy, labels, controls and section headings are Inter;
+                  identity moments use the heading face.
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Smaller supporting text, captions, and metadata.
@@ -183,7 +189,7 @@ export default async function FoundationsPage({
       <Section
         id="radius"
         title="Radius"
-        blurb="Family C (Will's ruling, 2026-09-18): a surface, a photograph, a floating layer and an action, one token each, and a control is still twice as round as the surface under it, so the contrast still says what is pressable. The derived steps climb in quarters of --radius, and the top two are dropped. Every number below is read off the specimen it captions, so the tuner's knobs move it live."
+        blurb="Four tokens: a surface, a photograph, a floating layer and an action. A control is twice as round as the surface under it, so the contrast says what is pressable, and the derived steps climb in quarters of --radius. Every number below is read off the specimen it captions, so the motion tuner's knobs move it live."
       >
         <RadiusLadder />
       </Section>
@@ -191,7 +197,7 @@ export default async function FoundationsPage({
       <Section
         id="motion"
         title="Motion"
-        blurb="Strong custom curves only (the built-ins are too weak). UI stays under 300ms; exits run faster than enters. Hover a track to play its curve."
+        blurb="Three custom curves, stronger than the built-ins. Interface motion runs under 300 ms and exits run faster than entrances, so the product answers quickly. Hover a track to play its curve."
       >
         <div className="grid gap-3 sm:grid-cols-3">
           <EaseDemo
@@ -238,9 +244,8 @@ export default async function FoundationsPage({
         aside={<Tag badge="updated" />}
         blurb="Four techniques, one per height, and one screen uses all of them at once: the lighter panel, the thin outline, a small shadow where one object really overlaps another, and a larger one under anything that floats. A surface lying flat takes neither shadow, in either mode. Split the block to read it in light and dark at once."
       >
-        {/* The legend Will said finally made the system legible (2026-09-17),
-            on the light board's own scene. A sibling client component in the
-            type-ladder pattern: the scene measures its room and prints the two
+        {/* The legend on its own scene: a sibling client component in the
+            type-ladder pattern, which measures its room and prints the two
             live tokens, so nothing here can drift from globals.css. */}
         <Specimen label="The four heights" hint="step · ring · lift · layer">
           <ElevationLegend />
@@ -266,10 +271,9 @@ export default async function FoundationsPage({
         id="bright-edge"
         title="The bright edge"
         aside={<Tag badge="new" />}
-        blurb="One pixel of light catching the bevel of a surface lit from above: brightest along the top, falling away down the sides, nothing at the foot. Three kinds of surface take it (a photograph or a video, a framed screen, the QR card) and nothing else does. It is material, not elevation and not a lamp, and it exists on dark grounds only. Each surface is at true size beside its own top left corner at four times the size. If it ever reads as a frame, it is too strong."
+        blurb="One pixel of light catching the bevel of a surface lit from above: brightest along the top, falling away down the sides, nothing at the foot. Three kinds of surface wear it (a photograph or a video, a framed screen, the QR card). It is material, not elevation and not a lamp, and it appears on dark grounds only. Each surface is at true size beside its own top-left corner at four times the size; the edge reads as light, and one that reads as a frame is too strong."
       >
-        {/* The light board's face step, kept and polished (Will, 2026-09-17).
-            The rule is [data-lit] in globals.css; bright-edge.tsx says why
+        {/* The edge is [data-lit] in globals.css; bright-edge.tsx says why
             this sheet forces its own two grounds instead of using the split. */}
         <BrightEdge />
       </Section>

@@ -1,4 +1,3 @@
-// @contract-for: src/lib/auth/door-failure.ts
 import { describe, expect, it } from "vitest";
 
 import {

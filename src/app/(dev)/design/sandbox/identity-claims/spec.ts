@@ -52,7 +52,6 @@ const IDENTITY_CLAIMS_DRAFT = defineExploration({
   },
   context:
     "Priya confirmed her email this morning at Maya and Jay's wedding (guest-capture's own world). Two older events wait under that address: Tom's leaving do, really hers, and a beach bonfire she never attended, uploaded under her email by someone else. Five decisions on the ticket that lets her sort the two: where it lives, how the album points to it, how she works through more than one, how she is warned before a deletion, and where Finish leaves her.",
-  bible: [4, 14, 15, 19, 22],
   asks: [
     {
       id: "ticket",

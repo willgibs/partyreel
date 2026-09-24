@@ -1,4 +1,3 @@
-// @contract-for: src/components/marketing/sections/pricing/configurator.tsx
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 

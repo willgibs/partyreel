@@ -1,4 +1,3 @@
-// @contract-for: src/components/marketing/chrome/session-hint.tsx
 import { render, screen } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it } from "vitest";

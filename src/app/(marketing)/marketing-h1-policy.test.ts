@@ -1,6 +1,3 @@
-// @policy: marketing · The marketing h1 never moves
-// @refuses: a reveal-hidden or animated state on a marketing h1, which delays the page's largest paint.
-
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 

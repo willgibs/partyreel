@@ -1,11 +1,7 @@
 /**
- * ONE SEARCH INDEX (the Library x Lab round, 2026-09-15). The sidebar's filter
- * only ever saw the sidebar: a rule's text, a landmine, a doc heading, a
- * glossary term and a component's contract were each findable only by knowing
- * which page held them, which is the opposite of "everything influencing new
- * agents' design work is visible". This builds ONE index over everything the
- * library and the lab render, beside the nav and from the same registries, and
- * the palette (⌘K) searches it.
+ * ONE SEARCH INDEX: the sidebar's filter only sees the sidebar, so this builds
+ * one index over everything the Library and the lab render, beside the nav and
+ * from the same registries, and the palette (⌘K) searches it.
  *
  * The index is built SERVER-SIDE (`buildSearchIndex`, beside `buildNav`) and
  * handed to the chrome as props, for the reason nav.ts states: the gallery
@@ -15,8 +11,8 @@
  * whole index rides the layout payload once per load.
  *
  * Scoring is `id exact > title prefix > word in title > keyword`, and the
- * results group by kind, so typing "1" lands on bible 1 and typing "glow"
- * shows the component before the doc heading that mentions it.
+ * results group by kind, so typing "1" lands on the first principle and typing
+ * "glow" shows the component before a page that mentions it.
  */
 
 export type SearchKind =
@@ -24,12 +20,8 @@ export type SearchKind =
   | "rule"
   | "component"
   | "board"
-  | "policy"
-  | "landmine"
-  | "doc"
   | "proposal"
   | "track"
-  | "ruling"
   | "glossary";
 
 export type SearchEntry = {
@@ -48,32 +40,24 @@ export type SearchEntry = {
 
 export type SearchIndex = SearchEntry[];
 
-/** The order the palette groups results in: what binds first, exploration after. */
+/** The order the palette groups results in: the Library first, the lab after. */
 export const KIND_ORDER: SearchKind[] = [
   "page",
   "rule",
   "component",
-  "policy",
-  "landmine",
   "board",
   "proposal",
-  "doc",
-  "ruling",
   "track",
   "glossary",
 ];
 
 export const KIND_LABEL: Record<SearchKind, string> = {
   page: "Pages",
-  rule: "Rules",
+  rule: "The ten",
   component: "Components",
   board: "Boards",
-  policy: "Policies",
-  landmine: "Landmines",
-  doc: "Doctrine",
   proposal: "Proposals",
   track: "Tracks",
-  ruling: "Rulings",
   glossary: "Glossary",
 };
 
@@ -127,7 +111,7 @@ export type SearchGroup = { kind: SearchKind; entries: SearchEntry[] };
 
 /**
  * Every hit, grouped by kind in KIND_ORDER, each group sorted by score.
- * `limit` caps the TOTAL, so a query matching two hundred doc headings still
+ * `limit` caps the TOTAL, so a query matching two hundred entries still
  * leaves room for the rule it was really after (the best of each kind is kept
  * first, then the rest by score).
  */

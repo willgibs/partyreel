@@ -218,11 +218,22 @@ export type FrameProps = {
   id: string;
   /** The route to load. Omit and pass `children` to portal a scene instead. */
   src?: string;
-  /** A composition with no route of its own, rendered INTO the frame document. */
+  /**
+   * A composition with no route of its own, rendered INTO the frame document.
+   * Its theme class rides a wrapper inside the frame's body, not the frame's
+   * <html>, so the body's own background shows wherever the composition ends:
+   * give its root `min-h-screen` (the frame's height) to cover it.
+   */
   children?: React.ReactNode;
   w: number;
+  /**
+   * The frame document's viewport height: a `vh` or `min-h-screen` inside the
+   * frame resolves against it, so two chromes stacked in one frame, each with a
+   * `vh` minimum, compound into several screens (a chrome drawn more than once
+   * per frame takes a flag that drops its minimum).
+   */
   h: number;
-  /** The candidate, as the paste a ruling would land. Empty = the site as built. */
+  /** The candidate, as the paste an answer would land. Empty = the site as built. */
   css?: string;
   title: string;
   caption?: React.ReactNode;

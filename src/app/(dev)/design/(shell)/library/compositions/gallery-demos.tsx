@@ -30,15 +30,9 @@ import {
  * rendered from the shared sample props (no DB, no R2), so this family is the
  * live app UI rather than a drawing of it.
  *
- * WHAT IS DIFFERENT ABOUT THIS FAMILY, and it shapes every entry below: these
- * files live under src/components/app, which scripts/design-rules/collect.mjs
- * does not index, so the artifact holds NO record for any of them. The fields an
- * entry elsewhere inherits have to be stated by hand here. Each one declares its
- * own `file` (gallery.test.ts checks the path exists) and its own `title` (there
- * is no exported-name list to fall back on), and its `lede` is the only
- * description it will ever get, because COMPONENT_NOTES is keyed by the files
- * the collector indexes. The old page carried those descriptions as section
- * blurbs; a gallery section is a heading only, so they moved onto the entries.
+ * Every entry declares its own `file` (gallery.test.ts checks the path exists)
+ * and its `title`, and its `lede` is its description: a gallery section is a
+ * heading only, so the descriptions live on the entries.
  *
  * Most of these components take DATA rather than variants, so most entries
  * declare no `variants` axis. Two do: the event card's chrome and the host
@@ -78,7 +72,7 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     section: "The operations portal",
     file: "src/components/admin/admin-rail.tsx",
     title: "The portal's shell",
-    lede: "The rail, the band and the queue the `admin` board ruled (Will, 2026-09-20: a rail with a command palette, a band under the bar that is gone on a good day, the numbers first with the queue beneath). Fed one Tuesday's fixtures, credential-free: the bar is left out because its operator menu holds a real sign-out form, and a gallery page does not get to end somebody's session.",
+    lede: "The portal's rail with its command palette, the band under the bar that is gone on a good day, and the numbers first with the queue beneath. Fed one Tuesday's fixtures, credential-free: the bar is left out because its operator menu holds a real sign-out form, and a gallery page does not get to end somebody's session.",
     specimens: [
       {
         label: "The rail",
@@ -99,11 +93,12 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "event-card",
+    test: "src/components/app/event-card.test.tsx",
     family: "compositions",
     section: "Event card",
     file: "src/components/app/event-card.tsx",
     title: "EventCard",
-    lede: "The dashboard's atomic unit (the ratified stat-forward V3), in each of its states.",
+    lede: "The dashboard's atomic unit, stat-forward, in each of its states.",
     variants: [
       {
         prop: "variant",
@@ -248,6 +243,9 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "qr-preset-picker",
+    file: "src/components/app/qr-preset-picker.tsx",
+    for: "the four code styles as a choice rather than four thumbnails: a container-query grid, each swatch as big as its cell through CSS rather than a re-render, every preview drawn on this event's real join URL. Controlled: the parent owns the value and the saving",
+    test: "src/app/(app)/dashboard/new/create-flow.test.tsx",
     family: "compositions",
     section: "Share suite",
     title: "QrPresetPicker",
@@ -322,6 +320,9 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
 
   {
     id: "host-media-grid",
+    file: "src/components/app/host-media-grid.tsx",
+    for: "the host's album: the shared masonry with the host's three verbs as its per-surface actions, optimistic moderation shared by the tiles and the lightbox, and the ARRIVAL mark, which is an id in this render that was not in the last one. That one definition catches every route a photograph takes into a host's album without this component knowing about any of them",
+    test: "src/components/app/event-feed/launch-list.test.tsx",
     family: "compositions",
     section: "Moderation gallery",
     title: "HostMediaGrid",

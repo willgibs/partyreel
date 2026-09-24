@@ -1,6 +1,3 @@
-// @contract-for: src/components/shared/backdrop/backdrop-engine.ts
-// @contract-for: src/components/shared/backdrop/room-frames.ts
-
 import { describe, expect, it } from "vitest";
 
 import {

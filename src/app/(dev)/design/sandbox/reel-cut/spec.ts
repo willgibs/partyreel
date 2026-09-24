@@ -105,7 +105,6 @@ const DRAFT = defineExploration({
   },
   context:
     "Priya is at Maya and Jay's wedding, watching the event's live reel, and she has tapped Make your own. Her cut renders on her phone and leaves as a file: nothing is stored and nothing is written. The album holds 26 items, one of them a cut Theo already added, so her pool is 25. Every frame of a cut here is the real engine over those photographs, at 375 with 1440 on the knob.",
-  bible: [1, 12, 15, 19, 22],
   carried: [
     {
       id: "world",

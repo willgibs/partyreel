@@ -6,8 +6,6 @@ import { Check } from "lucide-react";
 import { withDesignKey } from "@/lib/design-gate/links";
 import { cn } from "@/lib/utils";
 
-import { COMPONENTS } from "@/app/(dev)/design/rules/rules";
-
 import {
   type BoardSpec,
   type BoardState,
@@ -446,16 +444,15 @@ function SideButton({
 }
 
 /**
- * WHERE A KEPT IDEA WENT. A candidate that has been promoted to the Library
+ * WHERE A KEPT IDEA WENT. A candidate that has been built into the catalog
  * carries its entry id, and the card links it: a catalog that never says which
- * of its cards shipped is a museum. The link appears only once the entry really
- * exists in the committed artifact, so a `library` written ahead of the
- * promotion is silent rather than broken.
+ * of its cards shipped is a museum. `library` is written once the entry exists
+ * (sandbox/registry.test.ts holds each one to a real catalog entry).
  */
 function LibraryLink({ id }: { id?: string }) {
   // The gate key has to ride every lab link or it lands on the lab's 404.
   const key = useDesignKey();
-  if (!id || !COMPONENTS.some((c) => c.id === id)) return null;
+  if (!id) return null;
   return (
     <a
       href={withDesignKey(`/design/library/${id}`, key ?? null)}

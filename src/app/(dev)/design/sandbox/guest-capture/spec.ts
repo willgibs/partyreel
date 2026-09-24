@@ -71,7 +71,6 @@ const DRAFT = defineExploration({
   },
   context:
     "Every option is the same guest at the same wedding, Priya at Maya and Jay's, a names-mode party, with only the piece being asked moved. The door already offered her an optional email under her name (identity-door); this board asks about the second ask, once her first photographs land: when it reaches her, what it looks like, where she is offered a follow of Maya once she confirms, and what becomes of the name she typed. Confirming keeps the event and every photo in her account; nothing reaches a profile until she chooses it. The reel's tile sits at the album's head throughout (reel-front).",
-  bible: [4, 14, 15, 19, 22],
   asks: [
     {
       id: "moment",

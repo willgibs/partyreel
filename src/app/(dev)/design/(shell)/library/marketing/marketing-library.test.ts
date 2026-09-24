@@ -4,16 +4,12 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
- * The marketing library page is a specimen sheet of PRODUCTION imports, never a
- * board: it may import only production modules and the lab's reference kit,
- * declares no component of its own, and wears no lab-local treatment. Which
- * components it (and every other library page) renders is pinned by the
- * component index in ../rules/component-index.test.ts, derived from the
- * imports of this directory's page.tsx and its *-demos.tsx modules; a new
- * component gets a specimen or a reasoned entry in COMPONENT_NOTES, never
- * silence. Which is why the entry module is read here too: since the gallery
- * round the specimens live in gallery-demos.tsx, so an allow-list that only
- * covered page.tsx would have stopped guarding the imports that matter.
+ * The marketing catalog page is a specimen sheet of PRODUCTION imports, never
+ * a board: it may import only production modules and the lab's reference kit,
+ * declares no component of its own, and wears no lab-local treatment. The
+ * entry module is read too, because the specimens live in gallery-demos.tsx,
+ * so an allow-list that only covered page.tsx would stop guarding the imports
+ * that matter.
  */
 const ROOT = process.cwd();
 const DIR = "src/app/(dev)/design/(shell)/library/marketing";
@@ -79,7 +75,7 @@ describe("the marketing library page", () => {
   it("wears no lab-local treatment", () => {
     expect(
       SOURCE.includes("data-lit"),
-      "data-lit is a sandbox ruling, not a specimen",
+      "data-lit belongs to the surfaces that wear it, not to a specimen sheet",
     ).toBe(false);
   });
 });

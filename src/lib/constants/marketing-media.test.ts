@@ -1,6 +1,3 @@
-// @policy: marketing · One manifest gates the marketing media
-// @refuses: an asset in public/marketing with no manifest entry, or an entry pointing at a file that is not there.
-
 import { readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";

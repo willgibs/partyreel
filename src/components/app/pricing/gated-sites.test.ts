@@ -1,4 +1,3 @@
-// @contract-for: src/components/app/pricing/lock-chip.tsx
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 

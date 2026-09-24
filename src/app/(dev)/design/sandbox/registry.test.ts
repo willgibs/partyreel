@@ -1,9 +1,3 @@
-// Published contracts: the collector indexes every file a live @contract-for names, and each owes a
-// `for` line in rules/component-notes.ts (gallery.test.ts holds them). The marker publishes a contract,
-// it does not create one: the tests below run either way.
-// @contract-for: src/app/(dev)/design/sandbox/registry.ts
-// @contract-for: src/components/lab/board-spec.ts
-// @contract-for: src/components/lab/board-page.tsx
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
@@ -22,6 +16,12 @@ import { ITEMS_STEP } from "@/app/(dev)/design/(shell)/lab/_desk/step-id";
 
 import { BOARDS, boardSpec } from "./registry";
 import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
+
+// The catalog's entry ids, read the way lab:review reads them (gallery.test.ts
+// holds that reader to the TypeScript parse of the same files).
+const { readLibraryEntries } = (await import(
+  "../../../../../scripts/lab-review.mjs"
+)) as { readLibraryEntries: (root: string) => Set<string> | null };
 
 /**
  * THE BOARD REGISTRY'S CONTRACT.
@@ -157,6 +157,18 @@ describe("the board registry", () => {
       for (const l of b.lookFirst ?? [])
         under(`${b.id}.walk`, l.note, LIMITS.note);
     }
+  });
+
+  it("links a kept card only to a catalog entry that exists", () => {
+    // The card's "now in the Library" link renders whenever `library` is set,
+    // so a stale or mistyped id would be a link into a 404.
+    const ids = readLibraryEntries(process.cwd()) ?? new Set<string>();
+    for (const b of BOARDS)
+      for (const c of b.candidates)
+        if (c.library)
+          expect(ids.has(c.library), `${b.id}.${c.id}: ${c.library}`).toBe(
+            true,
+          );
   });
 
   it("points every ask, note and walk step at a section that exists", () => {

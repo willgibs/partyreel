@@ -43,7 +43,6 @@ export const ALBUM_COLUMNS = defineExploration({
   },
   context:
     "The shared masonry (`src/components/shared/masonry.tsx`) is one grid behind the guest album, the host's feed, the recovery bin and the personal feeds: a declared column width with a 220px floor above 640px, two fixed columns below it, and a three-step control that sets the floor. `gallery-width` ruled the middle of that range; this board treats nothing about it as decided, including the layout itself.",
-  bible: [1, 2, 3, 6],
   asks: [
     {
       id: "layout",

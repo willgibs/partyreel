@@ -1,26 +1,14 @@
 /**
- * THE GALLERY MODEL (the gallery round, 2026-09-12).
+ * THE CATALOG MODEL: a component is DECLARED once, in its family's
+ * `*-demos.tsx` module, and everything renders from that declaration: its
+ * family page, its entry page at /design/library/<id>, its variants, its
+ * config panel and its row in the searchable index.
  *
- * The library used to be about a hundred hand-written <Spec> blocks spread
- * across five page files: no permalink, no variants model, no way for an agent
- * to ask "what does this component accept" without reading the source. A
- * component is now DECLARED once, here's the shape, and everything renders from
- * that declaration: its family page (the organized gallery), its permalink at
- * /design/library/<id>, its variants, its config panel, and the contracts +
- * notes the existing artifact already holds.
- *
- * The join key is `id`: the SAME id the collector mints in
- * rules.generated.json (the file stem, or parent-stem when two collide). That
- * is what lets an entry carry no duplicate facts. A component's exported names,
- * its file path, its specimen routes and its contracts all come from the
- * artifact; its `for` line comes from COMPONENT_NOTES. This file adds only what
- * code cannot derive: how to render the thing, and what it accepts.
- *
- * WHERE ENTRIES LIVE, and why it matters: a family's entries sit in a
- * `*-demos.tsx` module INSIDE that family's directory, because
- * scripts/design-rules/collect.mjs derives a component's specimen route from
- * which library page (or `-demos.tsx` file) imports it. Move a specimen out of
- * `components/` and the index would start claiming it lives somewhere else.
+ * The entry carries every fact the catalog shows about the component (its
+ * file, the one line saying what it is for, the test that pins its behavior),
+ * so nothing is derived at build time and nothing is kept in a second file.
+ * gallery.test.ts holds each entry to the component it names: the file and
+ * the test exist, and every declared variant is one the source really has.
  */
 
 import type { NavBadge } from "@/app/(dev)/design/_data/catalog";
@@ -44,7 +32,8 @@ export const FAMILY_LABEL: Record<GalleryFamily, string> = {
   components: "Components",
   patterns: "Patterns",
   compositions: "Compositions",
-  foundations: "Foundations",
+  // The route keeps its name; the page is the brand kit.
+  foundations: "Brand kit",
   marketing: "Marketing",
 };
 
@@ -101,42 +90,43 @@ export type SpecimenDef = {
 };
 
 export type GalleryEntry = {
-  /** The artifact id: the join to the file, its contracts and its note. */
+  /** The entry's id: the last segment of its Library URL. */
   id: string;
+  /** The component's file, repo-relative (gallery.test.ts checks it exists). */
+  file: string;
   /**
    * The FAMILY PAGE this entry renders on, which is not always its directory:
-   * Glow is a shared component whose specimen belongs beside the light tokens
-   * on /design/foundations. The family decides the route the collector records
-   * as its specimen, so it must be the page that actually mounts it.
+   * Glow is a shared component whose specimen sits beside the light tokens on
+   * the brand kit (/design/library/foundations).
    */
   family: GalleryFamily;
   /** The heading this entry sits under on its family page. */
   section: string;
-  /** Overrides the artifact's exported names (Avatar, not all nine of them). */
+  /** The display name, when the file's name in PascalCase is not it. */
   title?: string;
   /**
-   * The component's file, repo-relative, for an entry the ARTIFACT does not
-   * know: the collector indexes only the six library directories, so the
-   * product components under src/components/app are off it. Required exactly
-   * then, and gallery.test.ts checks the file exists.
+   * One line: what the component is FOR in this product, not its category
+   * ("the app's one h1 source", never "a heading component"). The index and
+   * the sidebar show it, and search reads it.
    */
-  file?: string;
-  /** One line, only when COMPONENT_NOTES cannot say it better. */
+  for?: string;
+  /** The test file that pins the component's behavior, when one does. */
+  test?: string;
+  /** The entry page's description, when it needs more than the `for` line. */
   lede?: string;
   variants?: VariantAxis[];
   specimens: SpecimenDef[];
   /** The id of a config panel in playgrounds.tsx, mounted above the specimens. */
   play?: string;
   /**
-   * WHAT CHANGED, as data (the Library x Lab round, 2026-09-15). A reviewer's
-   * first question of a library this size is "what is new since I last
-   * looked", and a date cannot answer it: a Vercel build has no git, so
-   * anything derived from history prints differently there than on a dev
-   * server. So the mark is declared on the entry by the round that touched
-   * the component, read by the sidebar through `_data/nav.ts` and listed on
-   * the library's home, and CLEARED by the Orchestrator at a window's close.
-   * `new` means the component did not exist at the last close; `updated`
-   * means it was reworked.
+   * WHAT CHANGED, as data. A reviewer's first question of a catalog this size
+   * is "what is new since I last looked", and a date cannot answer it: a
+   * Vercel build has no git, so anything derived from history prints
+   * differently there than on a dev server. So the mark is declared on the
+   * entry by the round that touched the component, shown in the sidebar and
+   * on the entry's row in the index, and CLEARED by the Orchestrator at a
+   * window's close. `new` means the component did not exist at the last
+   * close; `updated` means it was reworked.
    */
   badge?: EntryBadge;
 };

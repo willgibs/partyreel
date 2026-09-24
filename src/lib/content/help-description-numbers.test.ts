@@ -15,9 +15,9 @@ import { formatBytes } from "@/lib/utils";
 import { getAllArticles } from "./help";
 
 /**
- * @refuses: a help article's frontmatter `description` naming a marketed number
- * (a size, a price, or a lifecycle window) that has drifted from the constant
- * it describes.
+ * Fails when a help article's frontmatter `description` names a marketed
+ * number (a size, a price, or a lifecycle window) that has drifted from the
+ * constant it describes.
  *
  * WHY: rule 4 of content/help/AUTHORING.md routes every marketed number in an
  * article BODY through a spec component (<UploadSize />, <RecoveryDays />, ...)
@@ -28,9 +28,9 @@ import { getAllArticles } from "./help";
  * it ties each typed number to the live constant, so a changed constant fails
  * HERE instead of quietly lying in search results and the ⌘K palette.
  *
- * This never pins the surrounding prose (CLAUDE.md: never pin copy with a
- * test) — only that the constant-derived substring appears somewhere in the
- * description. Rewording the sentence around a number is free; drifting the
+ * This never pins the surrounding prose, only that the constant-derived
+ * substring appears somewhere in the description: copy is judged where it
+ * reads, so rewording the sentence around a number is free, and drifting the
  * number from its constant is not.
  */
 describe("help article descriptions match their lifecycle/tier constants", () => {

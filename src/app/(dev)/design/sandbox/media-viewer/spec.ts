@@ -57,7 +57,6 @@ const DRAFT = defineExploration({
   ],
   context:
     "The grid behind the viewer, the same twenty-six item wedding, at 375 with 1440 on the knob. Every option marks the same three tiles this device added; the standing Yours filter and the viewer's own credit are unmoved by any of them.",
-  bible: [1, 4, 14, 15, 18],
   asks: [
     {
       id: "mine",

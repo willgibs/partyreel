@@ -49,7 +49,6 @@ const DRAFT = defineExploration({
   },
   context:
     "Ten templates ship today, all from one address, none to a guest, in two hand-maintained wrappers. Every option here is the real function in templates.ts, read inside an inbox mock at a phone's width and a laptop's.",
-  bible: [1, 2, 19, 21, 22],
   asks: [
     /* ── 1. One shell ────────────────────────────────────────────────── */
     {

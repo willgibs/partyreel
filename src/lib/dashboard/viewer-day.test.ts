@@ -1,4 +1,3 @@
-// @contract-for: src/lib/dashboard/viewer-day.ts
 import { describe, expect, it } from "vitest";
 
 import { nextStepForEvent } from "./next-step";

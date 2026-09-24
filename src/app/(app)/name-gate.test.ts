@@ -1,4 +1,3 @@
-// @contract-for: src/app/(app)/name-gate.ts
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 

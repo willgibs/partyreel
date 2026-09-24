@@ -46,13 +46,8 @@ import { Row } from "@/app/(dev)/design/reference/reference-ui";
  * are controlled). All imported from production source, so these are the live
  * components.
  *
- * Moved here from `reference/` in the gallery round (2026-09-12), and that move
- * was a bug fix: scripts/design-rules/collect.mjs derives a component's
- * specimen route from the DIRECTORY of the page or `-demos` file that imports
- * it, so every primitive demoed from `reference/` was being indexed at
- * /design/reference, a route that has never existed. Six components carried a
- * dead link on the index because of it. A demo module belongs in the family
- * directory whose page mounts it.
+ * A demo module belongs in the family directory whose page mounts it, beside
+ * that family's `gallery-demos.tsx`.
  *
  * Each demo returns bare content now: the Stage supplies the frame, the label
  * and the light-and-dark split.

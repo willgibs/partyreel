@@ -1,4 +1,3 @@
-// @contract-for: src/lib/format/admin-time.ts
 import { describe, expect, it } from "vitest";
 
 import { formatAdminDate, formatAdminTimestamp } from "./admin-time";

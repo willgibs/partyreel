@@ -1,4 +1,3 @@
-// @contract-for: src/lib/auth/remembered-email.ts
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {

@@ -1,4 +1,3 @@
-// @contract-for: src/components/lab/compare-two.tsx
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
@@ -50,7 +49,7 @@ const SPEC: BoardSpec = defineBoard({
       default: "two",
     },
   ],
-  links: { bible: [] },
+  links: {},
 });
 
 const SPOTS: readonly Spot[] = [

@@ -1,7 +1,3 @@
-// @contract-for: src/components/app/event-feed/launch-list.tsx
-// @contract-for: src/components/app/event-uploads.tsx
-// @contract-for: src/components/app/host-media-grid.tsx
-
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 

@@ -64,7 +64,6 @@ const DRAFT = defineExploration({
   },
   context:
     "The reel is reconceived: live from the second photo, a first-class screen, a cut anyone renders on-device. Every marketing surface still sells the old host-made, stored reel. Seven asks retell it; nothing here pins a final word, and nothing wires production.",
-  bible: [18, 19, 20, 21, 22],
   asks: [
     {
       id: "thesis",

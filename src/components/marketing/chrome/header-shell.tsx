@@ -101,7 +101,7 @@ function useMountScrolled(): boolean {
  *
  * ★ `transition-[translate]`, never `transition-transform`: Tailwind v4's
  * translate utilities set the STANDALONE `translate` property, so the
- * transform list would animate nothing (the v4 landmine, CLAUDE.md).
+ * transform list would animate nothing.
  * Literal clocks rather than `--mkt-*` tokens for the same reason the rest of
  * this file uses them: the root 404 renders this header WITHOUT marketing.css,
  * where a bare `--mkt-*` reference is silently unset.

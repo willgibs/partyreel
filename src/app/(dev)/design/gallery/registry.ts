@@ -1,10 +1,4 @@
-import { COMPONENT_NOTES, type ComponentNote } from "../rules/component-notes";
 import { groupByKey } from "./group-by";
-import {
-  COMPONENTS,
-  componentTitle,
-  type ComponentRecord,
-} from "../rules/rules";
 import {
   FAMILY_LABEL,
   FAMILY_ROUTE,
@@ -13,21 +7,11 @@ import {
 } from "./entry";
 
 /**
- * THE GALLERY REGISTRY (the gallery round, 2026-09-12): the one list every
- * gallery surface reads. It JOINS three things that already existed separately
- * and never had a seam between them:
- *
- *   the artifact   rules.generated.json: the file, its exported names, its
- *                  specimen routes, its contracts. Derived from code, never
- *                  re-derived here.
- *   the notes      component-notes.ts: the `for` line, and the reason a file
- *                  has no specimen.
- *   the entries    each family's `gallery-demos.tsx`: how to render it, and
- *                  what it accepts.
- *
- * A component with no entry is not an error (a root singleton has nothing to
- * render); a component with an entry the artifact has never heard of IS one,
- * and gallery.test.ts fails on it.
+ * THE CATALOG REGISTRY: the one list every catalog surface reads (the family
+ * pages, the entry pages, the index on the Library's home, the sidebar and
+ * the search). Each entry carries its own facts (entry.ts); this adds only
+ * the two things every reader would otherwise derive for itself, the display
+ * name and the URL.
  */
 
 import { COMPONENT_ENTRIES } from "@/app/(dev)/design/(shell)/library/components/gallery-demos";
@@ -45,19 +29,26 @@ export const GALLERY: GalleryEntry[] = [
 ];
 
 const BY_ID = new Map(GALLERY.map((e) => [e.id, e]));
-const RECORD_BY_ID = new Map(COMPONENTS.map((c) => [c.id, c]));
 
-/** An entry with everything the artifact and the notes know about it. */
+/**
+ * The catalog's families, in the order the sidebar and the index list them;
+ * the brand kit's own entries (`foundations`) sit on the brand kit's page.
+ */
+export const CATALOG_FAMILIES: GalleryFamily[] = [
+  "components",
+  "patterns",
+  "compositions",
+  "marketing",
+];
+
+/** An entry with its display name and its URL. */
 export type GalleryItem = {
   entry: GalleryEntry;
-  /** Undefined when the entry names a component outside the six library dirs. */
-  record?: ComponentRecord;
-  /** The component's file: the artifact's, else the entry's own. */
-  file?: string;
-  note?: ComponentNote;
-  /** The display name: the entry's own, else the first exported name. */
+  /** The component's file, repo-relative (the entry's own). */
+  file: string;
+  /** The entry's `title`, else its file's name in PascalCase. */
   title: string;
-  /** The permalink, unkeyed. */
+  /** The entry page, unkeyed. */
   href: string;
 };
 
@@ -65,17 +56,21 @@ export function galleryHref(id: string): string {
   return `/design/library/${id}`;
 }
 
+/** `dropdown-menu.tsx` reads DropdownMenu: the name its export almost always has. */
+export function titleFromFile(file: string): string {
+  const stem = (file.split("/").pop() ?? file).replace(/\.tsx?$/, "");
+  return stem
+    .split(/[-.]/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join("");
+}
+
 export function item(entry: GalleryEntry): GalleryItem {
-  const record = RECORD_BY_ID.get(entry.id);
-  const file = record?.file ?? entry.file;
   return {
     entry,
-    record,
-    file,
-    note: file ? COMPONENT_NOTES[file] : undefined,
-    title:
-      entry.title ??
-      (record ? componentTitle(record).split(", ")[0] : entry.id),
+    file: entry.file,
+    title: entry.title ?? titleFromFile(entry.file),
     href: galleryHref(entry.id),
   };
 }
@@ -98,7 +93,7 @@ export function familySections(
   // ★ BY SECTION IN FIRST-APPEARANCE ORDER, every entry of a section in its one
   // group wherever it sits: a lane adds at the head under a heading that already
   // exists further down (the disjoint-hunk convention), and a consecutive-run
-  // scan once made two "Surfaces" blocks with one key (2026-09-20).
+  // scan once made two "Surfaces" blocks with one key.
   return groupByKey(
     GALLERY.filter((entry) => entry.family === family),
     (entry) => entry.section,
@@ -109,7 +104,7 @@ export function familyItems(family: GalleryFamily): GalleryItem[] {
   return ITEMS.filter((i) => i.entry.family === family);
 }
 
-/** The entry before and after this one inside its family: the permalink's pager. */
+/** The entry before and after this one inside its family: the entry page's pager. */
 export function neighbours(id: string): {
   prev?: GalleryItem;
   next?: GalleryItem;

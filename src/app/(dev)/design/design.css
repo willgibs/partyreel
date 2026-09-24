@@ -34,9 +34,6 @@
    standing board draws and is a round of its own. */
 @import "tailwindcss/utilities.css" layer(utilities.lab) source(none);
 @source "./";
-/* The rules artifact quotes class names inside rule text ("bg-gallery",
-   "outline-ring/50"); scanning it would compile utilities out of prose. */
-@source not "./rules/rules.generated.json";
 
 /*
   THE LAB SHEET: the shell's grid, the boards' shared hooks, the shared motion.

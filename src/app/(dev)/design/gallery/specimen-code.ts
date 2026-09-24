@@ -6,7 +6,7 @@ import artifact from "./specimens.generated.json";
  * Every specimen's JSX exactly as the family's `gallery-demos.tsx` declares
  * it, derived by collect-specimens.mjs so the Code tab can never disagree with
  * the Preview beside it. Nothing here touches the filesystem: the artifact is
- * an import, so it ships with the bundle the way rules.generated.json does.
+ * an import, so it ships with the bundle.
  */
 type SpecimenArtifact = {
   version: number;

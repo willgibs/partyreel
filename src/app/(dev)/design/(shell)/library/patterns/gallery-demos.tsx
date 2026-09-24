@@ -46,6 +46,9 @@ import {
 export const PATTERN_ENTRIES: GalleryEntry[] = [
   {
     id: "logo",
+    file: "src/components/shared/logo.tsx",
+    for: "the brand: the v1 wordmark alone, in the colour of whatever ground it sits on",
+    test: "src/components/shared/logo.test.tsx",
     family: "patterns",
     section: "Brand",
     play: "logo",
@@ -93,6 +96,8 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
 
   {
     id: "play-badge",
+    file: "src/components/shared/play-badge.tsx",
+    for: "the this-is-a-video badge on a poster; pointer-transparent, so it never eats a swipe",
     family: "patterns",
     section: "Media affordances",
     play: "play-badge",
@@ -123,6 +128,9 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "masonry",
+    file: "src/components/shared/masonry.tsx",
+    for: "the shared masonry grid: true aspect ratios, space reserved before an image loads",
+    test: "src/components/shared/masonry.test.tsx",
     family: "patterns",
     section: "Media affordances",
     title: "CornerPlayBadge",
@@ -151,6 +159,8 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
 
   {
     id: "empty-state",
+    file: "src/components/shared/empty-state.tsx",
+    for: "the neutral placeholder for an empty gallery, dashboard or list",
     family: "patterns",
     section: "Empty states",
     play: "empty-state",
@@ -194,6 +204,9 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
 
   {
     id: "not-found-screen",
+    file: "src/components/shared/not-found-screen.tsx",
+    for: "the shared dead end for EVERY failure page, 404 and crash alike; content only, it wraps itself in nothing, and it carries no reporting",
+    test: "src/components/shared/failure-grammar.test.tsx",
     family: "patterns",
     section: "Dead ends",
     specimens: [
@@ -220,6 +233,9 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "route-error",
+    file: "src/components/shared/route-error.tsx",
+    for: "the route error boundary: the reporting effect, the digest and the per-surface help line around the shared dead-end screen",
+    test: "src/components/shared/failure-grammar.test.tsx",
     badge: "updated",
     family: "patterns",
     section: "Dead ends",
@@ -235,6 +251,8 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
 
   {
     id: "anonymous-info",
+    file: "src/components/shared/anonymous-info.tsx",
+    for: "unused in the product and drawn only by this gallery: the (i) beside an Anonymous credit; a marked name wears unverified-mark.tsx instead",
     family: "patterns",
     section: "Forms and info",
     specimens: [
@@ -262,6 +280,8 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "set-name-step",
+    file: "src/components/shared/set-name-step.tsx",
+    for: "the one required add-your-name step, reused at every gate that asks for one",
     family: "patterns",
     section: "Forms and info",
     specimens: [
@@ -274,6 +294,9 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "legal-consent-line",
+    file: "src/components/shared/legal-consent-line.tsx",
+    for: "the one acceptance line tying a sign-in or a guest's entry to Terms and Privacy",
+    test: "src/components/shared/legal-consent-line.test.tsx",
     family: "patterns",
     section: "Forms and info",
     specimens: [
@@ -287,6 +310,8 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
 
   {
     id: "page-heading",
+    file: "src/components/shared/page-heading.tsx",
+    for: "the app's one h1 source: the page tier of the heading scale, above CardTitle",
     family: "patterns",
     section: "App chrome atoms",
     specimens: [
@@ -299,6 +324,8 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "kbd",
+    file: "src/components/shared/kbd.tsx",
+    for: "the keyboard-key chip; dropped in a tooltip it picks that treatment up by data-slot",
     family: "patterns",
     section: "App chrome atoms",
     play: "kbd",
@@ -320,6 +347,8 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "container",
+    file: "src/components/shared/container.tsx",
+    for: "the centered page gutter: the single source of horizontal rhythm",
     family: "patterns",
     section: "App chrome atoms",
     specimens: [
@@ -340,6 +369,8 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
 
   {
     id: "action-tooltip",
+    file: "src/components/shared/action-tooltip.tsx",
+    for: "the lightbox's icon tooltips; never on the SSR'd gallery tiles, which use native title",
     family: "patterns",
     section: "Actions",
     specimens: [
@@ -352,6 +383,8 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "floating-add-button",
+    file: "src/components/shared/floating-add-button.tsx",
+    for: "the floating Add photos pill, unused in the product (the guest album's deep-scroll chrome is `guest/guest-action-dock.tsx`, which carries Invite beside Add); three lab surfaces still draw it",
     family: "patterns",
     section: "Actions",
     specimens: [
@@ -364,10 +397,13 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "route-skeleton",
+    file: "src/components/shared/route-skeleton.tsx",
+    for: "the one loading.tsx shape, wired to exactly the three routes with a real pre-paint wait (the dashboard, the event hub, the reel Studio); the pulse and the hub mirror their real page, the Studio is its own always-dark full-bleed room",
+    test: "src/components/shared/route-skeleton.test.tsx",
     badge: "new",
     family: "patterns",
     section: "Surfaces",
-    lede: "One loading.tsx shape, wired to exactly the three routes with a real pre-paint wait (`app-vocabulary` r1, `loading=asneeded`): the dashboard and the event hub mirror the page they precede byte for byte; the Studio gets its first skeleton here, on its own real shape rather than a rough sketch.",
+    lede: "One loading.tsx shape, wired to exactly the three routes with a real pre-paint wait: the dashboard and the event hub mirror the page they precede byte for byte, and the Studio's skeleton is its own real shape rather than a rough sketch.",
     specimens: [
       {
         label: "The three shapes",
@@ -378,10 +414,13 @@ export const PATTERN_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "tile-size-control",
+    file: "src/components/shared/tile-size-control.tsx",
+    for: "the gallery's first tile-size cluster: three steps setting --album-column, plus two reserved slots naming Sort and Filter. Production uses ViewMenu's Tile size group instead; this stays on disk, unmounted, for the lab. Controlled: the caller owns the persistence",
+    test: "src/components/shared/tile-size-control.test.tsx",
     badge: "new",
     family: "patterns",
     section: "Surfaces",
-    lede: "The gallery's tile-size cluster (`app-vocabulary` r1, `gallery-controls-home=cluster`): three steps setting --album-column, plus two reserved, non-interactive slots naming Sort and Filter so the row already reads as a group of controls before either exists.",
+    lede: "The gallery's first tile-size cluster: three steps setting --album-column, plus two reserved, non-interactive slots naming Sort and Filter so the row reads as a group of controls.",
     specimens: [
       {
         label: "TileSizeControl",

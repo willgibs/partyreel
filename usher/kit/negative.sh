@@ -10,9 +10,11 @@ cd "$REPO"
 S="$T" zsh "$KIT/integrate.sh" no-such-lane deadbeefcafe body-type /dev/null > "$T/integrate.out" 2>&1
 grep -q "^INTEGRATE DONE red" "$T/integrate.out" && ! ls "$T"/gate*.log >/dev/null 2>&1 && ok "integrate.sh refuses a missing lane and starts no gate" || bad "integrate.sh did not refuse a missing lane"
 # 1b. hand-merge.sh refuses a lane that does not exist and a head that is not the sha named, before touching the tree
-BEFORE=$(git -C "$REPO" status --short); zsh "$KIT/hand-merge.sh" no-such-lane deadbeef /dev/null > "$T/hm1.out" 2>&1; grep -q "^REFUSED" "$T/hm1.out" && [ "$(git -C "$REPO" status --short)" = "$BEFORE" ] && ok "hand-merge.sh refuses a missing lane and leaves the tree as it was" || bad "hand-merge.sh missing lane"
+BEFORE=$(git -C "$REPO" status --short); S="$T" zsh "$KIT/hand-merge.sh" no-such-lane deadbeef /dev/null > "$T/hm1.out" 2>&1; grep -q "^REFUSED" "$T/hm1.out" && [ "$(git -C "$REPO" status --short)" = "$BEFORE" ] && ok "hand-merge.sh refuses a missing lane and leaves the tree as it was" || bad "hand-merge.sh missing lane"
+# 1c. every merge and gate script refuses to run with no scratchpad, before it touches anything
+for script in integrate.sh merge-lane.sh hand-merge.sh gate-lane.sh; do env -u S zsh "$KIT/$script" no-such-lane deadbeef none /dev/null > "$T/nos.out" 2>&1; [ $? -ne 0 ] && grep -q "set S" "$T/nos.out" && ok "$script refuses to run without S" || bad "$script ran without S"; done
 # 2. merge-lane.sh refuses a full-length sha (it compares short ones) and leaves the tree untouched
-BEFORE="$(git status --short)"; zsh "$KIT/merge-lane.sh" no-such-lane deadbeefcafe0123456789deadbeefcafe01234567 /dev/null > "$T/merge.out" 2>&1; [ "$(git status --short)" = "$BEFORE" ] && ! grep -q "^MERGED" "$T/merge.out" && ok "merge-lane.sh refuses a bad lane and leaves the tree as it was" || bad "merge-lane.sh merged or changed the tree on a bad lane"
+BEFORE="$(git status --short)"; S="$T" zsh "$KIT/merge-lane.sh" no-such-lane deadbeefcafe0123456789deadbeefcafe01234567 /dev/null > "$T/merge.out" 2>&1; [ "$(git status --short)" = "$BEFORE" ] && ! grep -q "^MERGED" "$T/merge.out" && ok "merge-lane.sh refuses a bad lane and leaves the tree as it was" || bad "merge-lane.sh merged or changed the tree on a bad lane"
 # 3. record.py refuses a changelog and a STATUS row, and writes nothing: what shipped lives in the merge commit, STATUS is a snapshot
 mkdir -p "$T/docs"; echo '{"changelog": "x"}' > "$T/rec0.json"; echo '{"status": [{"id": "x", "state": "y"}]}' > "$T/rec1.json"
 (cd "$T" && python3 "$KIT/record.py" rec0.json > "$T/rec0.out" 2>&1); R0=$?; (cd "$T" && python3 "$KIT/record.py" rec1.json > "$T/rec1.out" 2>&1); R1=$?

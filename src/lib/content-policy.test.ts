@@ -1,6 +1,3 @@
-// @policy: marketing · MDX prose obeys the copy rules
-// @refuses: an em-dash or a broken internal link in the MDX reading surfaces, which the TypeScript AST guard cannot see.
-
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
