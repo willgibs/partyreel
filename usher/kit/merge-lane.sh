@@ -2,7 +2,7 @@
 # usage: merge-lane.sh <track> <handoff-sha> <merge-msg-file>
 set -e
 TRACK="$1"; HSHA="$2"; MSG="$3"
-cd /Users/gibby/local/ai/partyreel
+KIT="$(cd "$(dirname "$0")" && pwd)"; cd "$KIT/../.."
 trap 'echo "STEP FAILED"; exit 1' ERR
 source ~/.nvm/nvm.sh >/dev/null 2>&1; nvm use >/dev/null 2>&1
 : "${S:?set S to this session's scratchpad}"
@@ -62,12 +62,22 @@ missing=[i for i in ids if 'id: "%s"'%i not in tp]
 print("desk boards:",len(ids),"RULINGS rows missing:",missing)
 sys.exit(1 if missing else 0)
 PY2
-# a killed dev server leaves a truncated .next/dev/types/validator.ts that the typecheck reads (2026-09-20): clear it first;
-# and `cmd || VAR=$?` keeps zsh's ERR trap quiet so the RED line below prints the reason instead of a bare STEP FAILED.
-rm -rf .next/dev
-TC=0; pnpm typecheck >"$S/$TRACK-typecheck.log" 2>&1 || TC=$?
+# The integration's one typecheck, and only for code the lane never typechecked: the staged merge against the lane's
+# head (scope.sh). With docs alone between them, every code file is one the lane's own gate typechecked. The gate's
+# `next build` checks the same program again but drops test files' errors (next's runTypeCheck.js), so this is the one
+# that covers the other. A killed dev server leaves a truncated .next/dev/types/validator.ts that the typecheck reads
+# (2026-09-20): clear it first; and `cmd || VAR=$?` keeps zsh's ERR trap quiet so the RED line below prints the reason
+# instead of a bare STEP FAILED.
+UNGATED=$(git diff --cached --no-renames --name-only "lp/$TRACK")
+CODE=$(print -r -- "$UNGATED" | zsh "$KIT/scope.sh" code)
+TC=0
+if [ -n "$CODE" ]; then
+  echo "typecheck: $(print -r -- "$CODE" | wc -l | tr -d ' ') code path(s) the lane never gated, first $(print -r -- "$CODE" | head -1)"
+  rm -rf .next/dev
+  pnpm typecheck >"$S/$TRACK-typecheck.log" 2>&1 || TC=$?
+else echo "typecheck: skipped, the merge differs from the lane's head only in docs"; fi
 RT=0; pnpm -s vitest run "src/app/(dev)/design/sandbox/registry.test.ts" "src/app/(dev)/design/touchpoints.test.ts" >"$S/$TRACK-registry-tests.log" 2>&1 || RT=$?
 echo "typecheck $TC registry-tests $RT"
-[ "$TC" = 0 ] && [ "$RT" = 0 ] || { echo "RED before commit; merge left staged"; grep -E "error TS" "$S/$TRACK-typecheck.log" | head -5; tail -30 "$S/$TRACK-registry-tests.log"; exit 1; }
+[ "$TC" = 0 ] && [ "$RT" = 0 ] || { echo "RED before commit; merge left staged"; [ "$TC" = 0 ] || grep -E "error TS" "$S/$TRACK-typecheck.log" | head -5; tail -30 "$S/$TRACK-registry-tests.log"; exit 1; }
 git commit -q -F "$MSG"
 echo "MERGED $(git rev-parse --short HEAD)"; git status --short | wc -l

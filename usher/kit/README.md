@@ -62,7 +62,7 @@ through); only a lane that handed off is integrated as it stands.
      names the neighbour it registers after. A lab lane's brief stays light on rules, so its creative energy goes to
      the board.
 2. `python3 usher/kit/cut-lane.py <launch-prep-sha8> $S/specs/<track>.json`, then
-   `pnpm vitest run src/lib/track-manifests.test.ts` and `zsh usher/kit/negative.sh`.
+   `pnpm vitest run src/lib/track-manifests.test.ts`.
 3. Commit the manifests alone; push; add the lane's In-flight row to `orchestrator.md` (its agent id, model and port).
 4. Spawn with the Agent tool: `spawn-prompt.txt` filled (`{track}`, `{port}`, `{scratch}`), one port each from 3131 to
    3139, at most eight lanes at once (`memory_pressure` first), their production builds taking turns through
@@ -79,16 +79,20 @@ Read the Handoff, the lane check and the captures, never the whole diff.
    system doc listed under its System-doc edits; anything else is handed back or decided.
 3. The merge message in `$S/msg-<track>.txt`: what the lane does, its calls his to overrule, its look-at-first, and the
    `Co-Authored-By` trailer of the model you run on. The merge commit is the lane's permanent record.
-4. With a clean tree (the kit refuses a dirty one, so commit record edits first), run
+4. With a clean tree (the kit refuses a dirty one, so commit record edits first; the day's first integration runs
+   `zsh usher/kit/negative.sh` before it), run
    `S=$S zsh usher/kit/integrate.sh <track> <sha> <board|none> $S/msg-<track>.txt > $S/integrate-<track>.log` in the
-   background: the `--no-ff` merge with the manifest deleted, then the gate. Read `INTEGRATE DONE green merged=<m>
-   gate=<N>` and `<n> checks, 0 failing` before anything depends on them, and every result from its own exit code,
-   never through a pipe to `grep`.
+   background: the `--no-ff` merge with the manifest deleted, then the gate on what the lane never gated (its `SCOPE`
+   and `LAB` lines say which; `FULL=1` in front forces everything, for a lane whose own gate is in doubt or whose
+   manifest predates the lab crawl in a wiring lane's Verify line). Read `INTEGRATE DONE green merged=<m> gate=<N>`,
+   and `<n> checks, 0 failing` when the lab ran, before anything depends on them, and every result from its own exit
+   code, never through a pipe to `grep`.
 5. **MERGE RED on a registry file** (`touchpoints.ts`, `registry.ts`, `boards.ts`), where two lanes touched one spot:
-   `hand-merge.sh` repairs the usual case (the registrations' intersection, the board rows' union); otherwise rebuild
-   the block from both sides. Then the three lab tests (`touchpoints.test.ts`, `sandbox/registry.test.ts`,
-   `(shell)/lab/_desk/queue.test.ts`), `git commit -F $S/msg-<track>.txt`, and
-   `zsh usher/kit/gate-lane.sh <N> <board> > $S/gate<N>.log`, read by its `EXIT[...]` lines.
+   `hand-merge.sh` repairs the usual case (the registrations' intersection, the board rows' union) and commits it
+   behind its own typecheck and lab tests; otherwise rebuild the block from both sides, then the three lab tests
+   (`touchpoints.test.ts`, `sandbox/registry.test.ts`, `(shell)/lab/_desk/queue.test.ts`) and
+   `git commit -F $S/msg-<track>.txt`. Either way the gate follows: `zsh usher/kit/gate-lane.sh <N> <board> >
+   $S/gate<N>.log`, read by its `SCOPE` and `EXIT[...]` lines.
 6. **The record**, its edits and its commit under one `set -e`: each listed system-doc edit read by eye, fact against
    code; `python3 usher/kit/record.py $S/record-<track>.json` for the In-flight row and the lane's Deferred lines into
    their ROADMAP buckets; its asset asks into `docs/ASSETS.md`; its "Board ideas" lines read, and the promising ones
@@ -96,7 +100,8 @@ Read the Handoff, the lane check and the captures, never the whole diff.
    hero, demo and pricing pages) refreshes `kit/` from its README's Sources, the screens by `usher/kit/kit-capture.mjs`
    from partyreel.com; STATUS
    rewritten by hand where the lane changed what is true now; a new board into its leverage place; the three lab
-   tests; stage by name; commit `record: <track> ... [skip ci]`; push.
+   tests when the record touched the desk (`touchpoints.ts`, a registry file or `docs/reviews/`, the only things they
+   read); stage by name; commit `record: <track> ... [skip ci]`; push.
 7. Prune only after the lane's final line (a lane asked for more work after its handoff is still working):
    `git worktree remove --force ../partyreel-wt/<track>`, `git branch -d lp/<track>`, `git worktree prune`; kill its
    port.
@@ -125,7 +130,7 @@ The admin portal's alias is `partyreel-admin-git-launch-prep-partyreel.vercel.ap
 ## Milestone (on Will's yes)
 
 `launch-prep` holds at most about two rounds of unmerged work. A milestone: the full gate on `launch-prep`
-(`rm -rf .next/dev` first); `git checkout main && git merge --no-ff launch-prep` (never squash; subject
+(`rm -rf .next/dev`, then `FULL=1 zsh usher/kit/gate-lane.sh <N> none`); `git checkout main && git merge --no-ff launch-prep` (never squash; subject
 `milestone-<n>: prod = <the three to five things>`); an annotated tag `milestone-<n>`; push `main`, then the tag;
 production READY at the merge SHA, then a verification pass on partyreel.com (what previews cannot prove);
 `git checkout launch-prep && git merge --ff-only main`; STATUS and the pickup rewritten. `main` moves only this way or
@@ -149,9 +154,16 @@ by a true hotfix: fixed on `main`, verified, back-merged to `launch-prep` the sa
 ## The scripts
 
 - `integrate.sh <track> <sha> <board|none> <msgfile>`: `merge-lane.sh` (the `--no-ff` merge, the manifest deleted,
-  the registry files resolved and the specimen code regenerated, typecheck and the registry tests before the commit), then
-  `gate-lane.sh <N> <board>` (the gate on :3130, never a lane's port, each step on its own exit code, a negative
-  control first, `lab:demo` retried once warm), one chain gated on exits; ends `INTEGRATE DONE green|red`.
+  the registry files resolved and the specimen code regenerated, the registry tests and, when the merge adds code to
+  the lane's head, the integration's one typecheck before the commit), then `gate-lane.sh <N> <board>`, one chain gated
+  on exits; ends `INTEGRATE DONE green|red`.
+- `gate-lane.sh <N> <board>`: the gate on the merge at HEAD, on :3130 (never a lane's port), each step on its own exit
+  code with its seconds. `pnpm test` alone when the merge adds only docs to the lane's head (the lane's gate ran on
+  every code path in it); otherwise lint, `pnpm test` and the build, then the lab (`lab:smoke`, and `lab:demo` on the
+  lane's board, retried once warm, its HARNESS line read from its own moved steps) only when the lane's own diff holds
+  a path the lab renders. A HEAD with one parent, or `FULL=1`, takes everything.
+- `scope.sh code|lab`: which of the paths on stdin need more than `pnpm test`, and which the lab renders (its header
+  holds the classes); a path it does not know widens the gate.
 - `hand-merge.sh`: the merge for registry conflicts (the registrations' intersection, the board rows' union).
 - `record.py`: the In-flight row and ROADMAP lines (its docstring); it refuses a changelog and a STATUS row.
 - `cut-lane.py`: a manifest from a spec. `spawn-prompt.txt`: the spawn prompt.
