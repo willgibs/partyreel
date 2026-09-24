@@ -5,7 +5,7 @@ import { planReel } from "@/lib/reel/engine/layout";
 import type { ReelProps } from "@/lib/reel/engine/reel-types";
 import { planTake } from "@/lib/reel/live/take";
 
-import { GALLERY_ITEMS, HOST_EVENT } from "../gallery-fixtures";
+import { EVENT, GALLERY_ITEMS, HOST_EVENT } from "../gallery-fixtures";
 
 /**
  * ONE WEDDING ON ONE BIG SCREEN, AND NOT ONE BYTE OF PRODUCTION.
@@ -40,11 +40,26 @@ export const TAKE_IDS: string[] = planTake(GALLERY_ITEMS, {
  */
 export const FIRST_PHOTO: GridMedia = GALLERY_ITEMS[0];
 
+/** The photograph as a person sees it in a frame of the UI (a seat, a tile):
+ *  the preview every album surface draws, never an engine frame. */
+export const FIRST_STILL: string = FIRST_PHOTO.previewUrl ?? FIRST_PHOTO.url;
+
+/** The event's own name and day, for the one option that names the event on
+ *  the empty screen. The shared world's, so every board names the same party. */
+export const EVENT_NAME: string = EVENT.name;
+export const EVENT_DAY: string = new Intl.DateTimeFormat("en-GB", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+}).format(new Date(`${EVENT.date}T00:00:00Z`));
+
 /**
- * THE LOOK THE SCREEN WEARS while its plates are judged (the `look` call).
- * Sunset rather than the default Cinematic: Cinematic draws letterbox bars on a
- * 16:9 screen, and every corner would be judged over black instead of over a
- * photograph.
+ * THE LOOK THE SCREEN WEARS while its plates are judged: Sunset, full bleed.
+ * The engine on this tree still draws Cinematic's letterbox in landscape, which
+ * would put every corner over a black bar; the reel round's build fills every
+ * mood edge to edge in landscape, which is what Sunset already shows here.
  */
 const STYLE_ID = "golden";
 const SEED = 41_726;
@@ -74,7 +89,7 @@ export function screenProps(opts: { only?: GridMedia } = {}): ReelProps {
 /**
  * THE FRAME IN THE MIDDLE OF A CLIP'S HOLD, read off the engine's own plan.
  *
- * ★ A STILL PICKED BY THE CLOCK LANDS IN A DISSOLVE (round one's finding):
+ * ★ A STILL PICKED BY THE CLOCK LANDS IN A DISSOLVE:
  * clips overlap by their transition frames, so the middle of a hold is the
  * only place a single photograph is on screen alone.
  */

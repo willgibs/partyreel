@@ -12,10 +12,9 @@ import { EVENT, GALLERY_ITEMS, stillOf, WAITING } from "./fixtures";
 import { AppBar } from "./parts-hub";
 
 /**
- * THE COUNTS host-curation's `count` asked about, carried into this board's
- * merged `review` question (that board removes its copy): the header bell, the
- * dashboard card's amber chip and Review's own header. Drawn on the host's
- * phone, the device a host carries at their own party.
+ * THE COUNTS A WAITING QUEUE WEARS, for the merged `review` question: the
+ * header bell, the dashboard card's amber chip and Review's own header. Drawn
+ * on the host's phone, the device a host carries at their own party.
  *
  * ★ THE BELL'S ROW COMES FROM THE REAL BUILDER, never typed by hand:
  * `buildNotifications` is pure, so the panel draws exactly the copy a host gets
@@ -40,9 +39,14 @@ export function BellPanelAgree() {
   return (
     <div
       data-rh-bell-panel="agree"
-      className={cn("absolute top-full right-0 z-40 mt-2 w-72 p-1", floatingPanel)}
+      className={cn(
+        "absolute top-full right-0 z-40 mt-2 w-72 p-1",
+        floatingPanel,
+      )}
     >
-      <DropdownMenuHeader meta={`${WAITING} new`}>Notifications</DropdownMenuHeader>
+      <DropdownMenuHeader meta={`${WAITING} new`}>
+        Notifications
+      </DropdownMenuHeader>
       <div className={cn("flex items-start gap-2 px-2 py-2", floatingRow)}>
         <span
           className="mt-1.5 size-1.5 shrink-0 rounded-full bg-brand"
@@ -54,7 +58,10 @@ export function BellPanelAgree() {
           </p>
           <p className="text-xs text-muted-foreground">{EVENT.name}</p>
         </div>
-        <ChevronRight className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+        <ChevronRight
+          className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+          aria-hidden
+        />
       </div>
     </div>
   );
@@ -63,7 +70,10 @@ export function BellPanelAgree() {
 /** `review=card`: the dashboard, where the event card's chip is the only count. */
 export function PhoneDashboard() {
   return (
-    <div data-rh-dashboard="" className="min-h-full bg-background text-foreground">
+    <div
+      data-rh-dashboard=""
+      className="min-h-full bg-background text-foreground"
+    >
       <AppBar device="phone" bell={0} />
       <div className="space-y-3 px-4 py-5">
         <p className="text-label font-semibold text-muted-foreground uppercase">

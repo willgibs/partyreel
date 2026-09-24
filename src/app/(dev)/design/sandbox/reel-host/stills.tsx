@@ -22,26 +22,31 @@ import { BY_ID, MOODS, TAKE, TAKE_IDS } from "./fixtures";
  * EVERY REEL FRAME ON THIS BOARD IS THE REAL ENGINE'S, DRAWN ONCE.
  *
  * ★ REAL ENGINE PIXELS, NEVER A RETYPED RECIPE, AND NEVER A RAW PHOTOGRAPH
- * STANDING IN FOR A FRAME. The first cut of this board put an album photograph
- * behind the view's chrome, which is a picture of a slideshow, not of the reel:
- * no grade, no framing, no mood. Every view, screen and mood swatch here is
+ * STANDING IN FOR A FRAME. An album photograph behind the view's chrome is a
+ * picture of a slideshow, not of the reel: no grade, no framing, no mood.
+ * Every view, screen and mood swatch here is
  * `drawReelFrame` over the reel's own take (`TAKE_IDS`), the same draw the live
  * player runs.
  *
  * ★ DRAWN ONCE, OFF-DOM, HANDED ACROSS AS A STRING. A `Frame` portals its JSX
  * from THIS realm into the iframe's document, so a live canvas player reaching
  * for `document` or `IntersectionObserver` would attach to the lab page's
- * globals (reel-front's engine.ts carries the finding). A data url needs no
- * realm at all. The pass is a module singleton: seven questions and their
- * options draw the engine ten times between them, not ten times each.
+ * globals. A data url needs no realm at all. The pass is a module singleton:
+ * every question and option here draws the engine ten times between them, not
+ * ten times each.
  *
  * ★ THE MIDDLE OF A CLIP'S HOLD, NEVER A CLOCK TIME. A still picked by the clock
- * lands in a dissolve (reel-screen's own finding): clips overlap by their
+ * lands in a dissolve: clips overlap by their
  * transition frames, so the middle of a hold is the one place a single
  * photograph is on screen alone.
  */
 
-/** The look every view wears while its chrome is judged: see the `look` call. */
+/**
+ * The look every view wears while its chrome is judged: Sunset, full bleed. The
+ * engine on this tree still draws Cinematic's letterbox in landscape, which
+ * would put a laptop view's corners over black bars; the reel round's build
+ * fills every mood edge to edge in landscape, which Sunset already shows.
+ */
 export const VIEW_STYLE = "golden";
 const SEED = 41_726;
 

@@ -22,16 +22,13 @@ import { JOIN_LABEL, JOIN_URL, QR_STYLE } from "./fixtures";
  *
  * ★ `open`'s ONE VARYING THING. A "Play on a screen" block joins the code and
  * the readable link as a third door in the one sharing surface, never touching
- * the four-verb row itself (the row is truth this board reads, not a question
- * it is asking).
+ * the four-verb row itself (the row is what the sheet already is, not a
+ * question this board is asking).
  */
 export function ShareSheetWithScreen() {
   return (
     <div className="flex flex-col gap-5 px-1">
-      <div
-        className="w-full rounded-xl bg-white p-4"
-        style={{ lineHeight: 0 }}
-      >
+      <div className="w-full rounded-xl bg-white p-4" style={{ lineHeight: 0 }}>
         <StyledQr
           value={JOIN_URL}
           size={280}
@@ -64,8 +61,8 @@ export function ShareSheetWithScreen() {
           Play on a screen
         </h3>
         <p className="text-xs text-muted-foreground">
-          The reel full screen on a TV or a laptop by the door, with the code
-          in its corner so guests can scan and add their own.
+          The reel full screen on a TV or a laptop by the door, with the code in
+          its corner so guests can scan and add their own.
         </p>
         <Button variant="outline" size="sm" tabIndex={-1}>
           Open on this computer

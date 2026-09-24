@@ -6,16 +6,23 @@ import { StyledQr } from "@/components/app/styled-qr";
 import { GLASS, GLASS_MARK } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
-import { HOST_FIRST, JOIN_LABEL, JOIN_URL, QR_STYLE, WAITING } from "./fixtures";
+import {
+  HOST_FIRST,
+  JOIN_LABEL,
+  JOIN_URL,
+  QR_STYLE,
+  WAITING,
+} from "./fixtures";
 import { EngineStill } from "./stills";
 
 /**
- * THE BIG SCREEN, AS THE VIEW IS ON IT (his ruling: "The view is the wall").
+ * THE BIG SCREEN, AS THE VIEW IS ON IT: the screen is the view in another
+ * posture, not a mode of its own, so one set of answers serves every device.
  *
- * The same view in its screen posture: full bleed, the code on as his white
- * plate bottom right (`qr=corner`), the slim bar at rest, and no event name
- * (`name=none`). Drawn here only where a host-side question has to show what
- * each option puts in front of the room, which is the merged `review` ask.
+ * The same view in its screen posture: full bleed, the code on as a white
+ * plate bottom right, the slim bar at rest, and no event name over the reel.
+ * Drawn here only where a host-side question has to show what each option
+ * puts in front of the room, which is the merged `review` ask.
  *
  * ★ CONTAINER UNITS, SO A TELEVISION IS THE SAME TELEVISION AT ANY SIZE. The
  * review composite draws the screen at half a 1920 wall beside a phone, inside
@@ -33,7 +40,11 @@ import { EngineStill } from "./stills";
 const INK =
   "[text-shadow:0_1px_2px_rgb(0_0_0/0.55),0_2px_28px_rgb(0_0_0/0.45)]";
 
-export function Tv({ says = "nothing" }: { says?: "nothing" | "chip" | "room" }) {
+export function Tv({
+  says = "nothing",
+}: {
+  says?: "nothing" | "chip" | "room";
+}) {
   return (
     <div
       data-rh-tv={says}
@@ -60,13 +71,19 @@ export function Tv({ says = "nothing" }: { says?: "nothing" | "chip" | "room" })
           paddingInline: "0.8cqw",
         }}
       >
-        <Play className="fill-white/80" style={{ width: "0.9cqw", height: "0.9cqw" }} />
-        <span className="flex-1 overflow-hidden rounded-full bg-white/25" style={{ height: "0.25cqw" }}>
+        <Play
+          className="fill-white/80"
+          style={{ width: "0.9cqw", height: "0.9cqw" }}
+        />
+        <span
+          className="flex-1 overflow-hidden rounded-full bg-white/25"
+          style={{ height: "0.25cqw" }}
+        >
           <span className="block h-full w-2/5 rounded-full bg-white/80" />
         </span>
       </div>
 
-      {/* The code, his white plate: the only words a resting screen carries. */}
+      {/* The code on its white plate: the only words a resting screen carries. */}
       <div
         data-rh-tv-code=""
         className="absolute flex items-center"
