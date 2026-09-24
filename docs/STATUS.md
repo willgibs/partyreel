@@ -13,25 +13,24 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoin
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: closed at milestone 28; next, Will's desk review
+## The current round: Will's desk review, batch 1 wired and the desk re-cut
 
-- **Milestone 28 is live** (`1076d3d7`, 2026-09-24): no read stops at 1,000 rows (PostgREST's live `max_rows` is 1,000,
-  write responses uncapped): every list reads whole (`readAllPages`), every count counts, every id list chunks, every
-  set-returning RPC pages, every sweep reports what it left, legal hold is decided in one answer; `row-cap-policy.test.ts`
-  and a Sentry tripwire keep it so. A claimed guest ticket uploads only for its signed-in owner, and a guest's own delete
-  is final and reaches no host surface.
+- **Milestone 28 is live** (`1076d3d7`, 2026-09-24): no read stops at 1,000 rows (every list reads whole, every count
+  counts, every id list chunks, every set-returning RPC pages, every sweep reports what it left; `row-cap-policy.test.ts`
+  and a Sentry tripwire keep it so); a claimed guest ticket uploads only for its owner; a guest's own delete is final.
 - **A block for bad actors** (his concept): the `event-safety` board on his three answers (a block puts the person out
   and removes their uploads; approve newcomers, close to newcomers and an invite list; all free on every plan).
-- **The reel round** waits on his desk review: the live composer and the video window reader on the tree (harnesses
-  `/design/lab/tools/reel-live`, `/reel-video`), six boards on the desk, the data model live (the expand applied
-  2026-09-24; the drop waits for the red-team); the plan's reel section is `~/.claude/plans/great-work-however-1-dapper-twilight.md`.
+- **Desk review batch 1** (2026-09-24): `media-viewer`, `reel-view` and `reel-front` answered, `reel-screen` stopped on
+  two repeats; the view is the wall (his ruling). Wiring: the media viewer and the reel's guest side (held unmerged until
+  the cut and host lanes, so one alias build replaces the stored reel); the desk re-cut under his merge rule (repeats
+  become one question, every option kept), with the rounds he asked for; the plan is the plan file's head.
 - **Since milestone 28 (`clocks-and-counts`):** counts grouped, chart ticks that fit, the admin's times in UTC, one Link
   visits figure, the host's dashboard on the viewer's own day (`x-vercel-ip-timezone`), the backup's CLI pinned.
 
 ## The desk
 
 26 standing boards at `/design/lab?key=` (a light guard, not a secret; the value is in `.env.local`), in leverage
-order: `media-viewer`, `reel-view`, `reel-front`, `reel-screen`, `reel-cut`, `reel-host`, `reel-story`, `identity-door`,
+order: `reel-screen`, `reel-host`, `reel-cut`, `reel-story`, `reel-front` (r2), `media-viewer` (r2), `reel-view`, `identity-door`,
 `identity-claims`, `identity-profile`, `guest-capture`, `voice-guest`, `host-curation`, `host-storage`, `event-safety`, `export-flow`,
 `admin-triage`, `help-center`, `emails`, `site-chrome`, `profile-page`, `privacy-hero`, `album-motion`, `loose-ends`,
 `contact-page`, `press-page`.
@@ -77,4 +76,4 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **His desk review**: 26 boards; the six reel boards first, and the new `event-safety`.
+- **His desk review, resumed** once the re-cut boards land on the next alias build: the reel boards first.

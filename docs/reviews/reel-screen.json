@@ -1,0 +1,47 @@
+{
+  "board": "reel-screen",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-24",
+      "answers": [
+        {
+          "ask": "qr",
+          "choice": "corner",
+          "by": "Will",
+          "at": "2026-09-24T05:55:51Z"
+        },
+        {
+          "ask": "name",
+          "choice": "none",
+          "by": "Will",
+          "at": "2026-09-24T05:55:51Z"
+        },
+        {
+          "ask": "caption",
+          "choice": null,
+          "note": "We addressed what happens when media is added while the reel is open in a previous question already answered.",
+          "by": "Will",
+          "at": "2026-09-24T05:55:51Z"
+        },
+        {
+          "ask": "pacing",
+          "choice": null,
+          "note": "This was also addressed in the previous question. Noticing some repeats; calling an end to the review here",
+          "by": "Will",
+          "at": "2026-09-24T05:55:51Z"
+        }
+      ],
+      "notes": [
+        {
+          "on": null,
+          "text": "caption repeated reel-view arrival (same three shapes, another surface) and pacing asked the wall default the view hold now covers; merged per Will (2026-09-24): repeats become one question on the board that asks it best, every option kept. The view is the wall (his ruling): round 2 keeps idle and start; open and review move to reel-host as merged questions.",
+          "by": "ai:orchestrator",
+          "at": "2026-09-24T05:55:51Z"
+        }
+      ],
+      "items": [],
+      "calls": []
+    }
+  ]
+}
