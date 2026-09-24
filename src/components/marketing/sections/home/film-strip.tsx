@@ -26,7 +26,7 @@ import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
  *
  * ★ THE STRIP AND ITS LAMP STAY. His ruling was about the three cards, and the
  * conveyor is this section's identity: the site's own photographs running edge
- * to edge (bible 18) over one of the four shipped lamps (design-system.md, "the
+ * to edge (bible 9) over one of the four shipped lamps (design-system.md, "the
  * shipped light"), whose whole design is a strip of frames above and an object
  * below positioned to CATCH the light. The stepper is that object now.
  *

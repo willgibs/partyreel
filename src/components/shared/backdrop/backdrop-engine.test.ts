@@ -71,7 +71,7 @@ describe("the rest state", () => {
     expect(s.stack[0].t).toBe(1);
     // ★ And it is genuinely at rest, so the component never starts a loop for
     // a reader who has not moved. This is the whole no-JavaScript / crawler /
-    // reduced-motion picture (bible 13, bible 14).
+    // reduced-motion picture (bible 5).
     expect(atRest(s, POINTER, 0)).toBe(true);
     expect(atRest(s, SCROLL, 0)).toBe(true);
   });

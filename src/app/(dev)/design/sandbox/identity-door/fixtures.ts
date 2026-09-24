@@ -24,7 +24,7 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
  * host and the party stay the one world rather than inventing a second.
  *
  * ★ THE STILLS ARE THE SAME TWELVE MARKETING IMAGES EVERY BOARD REUSES
- * (bible 18: no new asset, nothing to track the rights of).
+ * (bible 9: no new asset, nothing to track the rights of).
  */
 
 export const EVENT = {

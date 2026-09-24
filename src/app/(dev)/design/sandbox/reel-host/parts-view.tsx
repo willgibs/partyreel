@@ -220,7 +220,7 @@ function HostSwitch({ pill = false }: { pill?: boolean }) {
 
 /**
  * THE STYLE POPOVER, the host's own, for the defaults question. Opaque, on the
- * floating-layer contract (bible 15: glass is media chrome, never a panel), the
+ * floating-layer contract (glass is media chrome, never a panel), the
  * eight moods as the ENGINE'S frames over one photograph, never gradients
  * standing in for a grade. The footer is the one thing `view` and `both` move.
  */

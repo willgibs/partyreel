@@ -165,7 +165,7 @@ export default async function RulesPage({
           ))}
         </ul>
         <Callout kind="will" className="mt-4">
-          Nothing here is protected while the product is being built (bible 22):
+          Nothing here is protected while the product is being built (bible 1):
           a bible rule that blocks better work is a question for Will, a policy
           that does is reshaped in the open (an agent wrote it), and everything
           below GUIDANCE exists to be read and rebuilt.
@@ -175,7 +175,7 @@ export default async function RulesPage({
       <Section
         id="law"
         title="The bible"
-        blurb="Will's twenty-two global working rules, each with why it holds, what checks it and where it stands. They change only by his word: a better answer against one is a question for him. A rule under exploration links the board writing what it inherits."
+        blurb="Will's ten global working rules, each with why it holds, what checks it and where it stands. They change only by his word: a better answer against one is a question for him. A rule under exploration links the board writing what it inherits."
         aside={
           <span className="text-[11px] text-muted-foreground">
             hand-authored, never derived

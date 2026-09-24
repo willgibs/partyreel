@@ -36,7 +36,7 @@ const ICON = {
  * only kind that carries weight is Will's: a solid left rule, because it is
  * the one kind that binds.
  *
- * Achromatic like everything else in the chrome (bible 1): the icon and the
+ * Achromatic like everything else in the chrome (bible 6): the icon and the
  * rule do the telling, never a colour.
  */
 export function Callout({

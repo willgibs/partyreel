@@ -37,7 +37,7 @@ import { EVENT } from "./fixtures";
  * against a live engine, only what dresses it.
  *
  * ★ `restIndex` IS NOT THE "HERO" FRAME: it is whichever image reduced motion
- * freezes on (bible 14: every animation lives inside that block). Every
+ * freezes on (bible 5: every animation lives inside that block). Every
  * caller here passes 0, the take's own first moment.
  */
 export function Crossfade({
@@ -192,7 +192,7 @@ export function SignatureFrame({ images }: { images: readonly string[] }) {
 
 /* ── badge: what replaces "The reel" chip, if anything ────────────────────── */
 
-/** `badge` ask's "live" option: the hub's own dot and word (bible 4: reuse
+/** `badge` ask's "live" option: the hub's own dot and word (bible 7: reuse
  *  before inventing), so a mark that returns says something a static label
  *  never could: this updates on its own. */
 export function LiveBadge() {

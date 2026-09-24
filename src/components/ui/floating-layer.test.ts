@@ -1,4 +1,4 @@
-// @policy: engineering · Bible 15: one floating layer, read from one contract
+// @policy: engineering · Bible 8: one floating layer, read from one contract
 // @refuses: a floating primitive that spells its own corner, entrance or clock instead of reading floating-layer.ts, a fourth clock rung, and any translucency on a panel while the Glass exploration is banked.
 
 import { readdirSync, readFileSync } from "node:fs"
@@ -15,7 +15,7 @@ import {
 } from "./floating-layer"
 
 /**
- * BIBLE 15'S FIRST TEST (the `floating-surfaces` wiring, 2026-09-17).
+ * BIBLE 8'S FIRST TEST (the `floating-surfaces` wiring, 2026-09-17).
  *
  * The rule has been ratified since the nav round and enforced by nothing:
  * "Every floating surface rides the floating-layer contract: one radius, one
@@ -45,7 +45,7 @@ import {
  * this guard when it lands; until then a red gate here is the ruling holding.
  *
  * SCOPED `engineering` FOR NOW, like the elevation policy: a design scope has
- * to be cited by a bible rule (rules-registry.test.ts), and bible 15's
+ * to be cited by a bible rule (rules-registry.test.ts), and bible 8's
  * `enforcedBy` is the Orchestrator's to point at this file. When it does, the
  * scope becomes `shared`, which is what this is.
  *
@@ -60,7 +60,7 @@ const CONTRACT = "floating-layer.ts"
 /**
  * THE FAMILY, AND WHAT EACH PANEL MUST READ FROM THE CONTRACT. One row per
  * floating SURFACE rather than per file, because two of them live in one file
- * and a panel is the unit bible 15 talks about.
+ * and a panel is the unit bible 8 talks about.
  *
  * `corner` is the constant that has to appear (`floatingPanel` carries the
  * corner, the material and the light; `floatingCorner` is for the tooltip,
@@ -155,7 +155,7 @@ const OUTSIDE: Record<string, string> = {
  * THE ONE SANCTIONED SURFACE OUTSIDE `ui/` (the hub's QR mini-modal,
  * hub-wiring 2026-09-20). It is a radix Dialog built in the app layer because
  * its entrance is a VIEW TRANSITION rather than an animation of its own, which
- * `ui/dialog.tsx` cannot express for its other callers. Bible 15 still binds
+ * `ui/dialog.tsx` cannot express for its other callers. Bible 8 still binds
  * it: it reads the corner, the material, the clock and its (deliberately
  * empty) entrance from the contract, and the block below proves it.
  *
@@ -195,7 +195,7 @@ function panelBlock(
   return src.slice(at, end > at ? end : at + 4000)
 }
 
-describe("bible 15: one floating layer, read from one contract", () => {
+describe("bible 8: one floating layer, read from one contract", () => {
   it("names every floating primitive in the tree, so a tenth cannot arrive unseen", () => {
     // A radix panel is a Portal plus a Content, which is what every surface in
     // the family is and what a new one would be. Anything in ui/ that portals
@@ -272,15 +272,15 @@ describe("bible 15: one floating layer, read from one contract", () => {
     // 8px rows under family C (2026-09-18), 8 and 4 before it. The VALUES are
     // globals.css's and no test here asserts them; what is pinned is that the
     // row is DERIVED from the panel's token, so retuning one token moves both
-    // (C's retune did exactly that) and bible 9's nested corner cannot drift.
+    // (C's retune did exactly that) and the nested corner cannot drift.
     expect(floatingCorner).toBe("rounded-float")
     // The row is a calc OFF the panel's token (the subtracted px is the panel's
-    // own padding, bible 9's gap), never a radius of its own.
+    // own padding, its inner gap), never a radius of its own.
     expect(floatingRow).toMatch(/^rounded-\[calc\(var\(--radius-float\)/)
 
     // Three rungs, like the elevation family's two shadows: with a short list
     // in reach the question a panel answers is "how often is this opened?"
-    // (bible 12), which has an answer. A scale invites picking by eye.
+    // (bible 5), which has an answer. A scale invites picking by eye.
     expect(Object.keys(floatingClock).sort()).toEqual([
       "edge",
       "instant",
@@ -292,7 +292,7 @@ describe("bible 15: one floating layer, read from one contract", () => {
       )
       // The house rule the whole site keeps: an exit is faster than its entrance.
       expect(exit, `${rung} exits no faster than it enters`).toBeLessThan(enter)
-      // Bible 12's ceiling for anything that is not a rare delight.
+      // Bible 5's ceiling for anything that is not a rare delight.
       expect(enter, `${rung} is over the 300ms ceiling`).toBeLessThanOrEqual(300)
     }
   })

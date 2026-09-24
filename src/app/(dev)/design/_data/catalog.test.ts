@@ -389,15 +389,15 @@ describe("the search index", () => {
     const entry = (over: Partial<SearchEntry>): SearchEntry => ({
       key: "k",
       kind: "rule",
-      id: "no-em-dashes",
-      title: "19. No em-dashes in copy",
-      href: "/design/library/rules/no-em-dashes",
+      id: "affirmative-only",
+      title: "10. Say what we are",
+      href: "/design/library/rules/affirmative-only",
       ...over,
     });
-    const exact = scoreEntry(entry({}), "no-em-dashes");
-    const prefix = scoreEntry(entry({ title: "no em" }), "no em");
-    const word = scoreEntry(entry({}), "em-dashes");
-    const keyword = scoreEntry(entry({ keywords: "bible 19" }), "bible 19");
+    const exact = scoreEntry(entry({}), "affirmative-only");
+    const prefix = scoreEntry(entry({ title: "say what" }), "say what");
+    const word = scoreEntry(entry({}), "are");
+    const keyword = scoreEntry(entry({ keywords: "bible 10" }), "bible 10");
     expect(exact).toBeGreaterThan(prefix);
     expect(prefix).toBeGreaterThan(word);
     expect(word).toBeGreaterThan(keyword);
@@ -418,7 +418,7 @@ describe("the search index", () => {
     searchLab(index, query).some((g) => g.kind === kind && g.entries.length);
 
   it("finds a rule by its number, a glossary word and a policy", () => {
-    expect(has("bible 22", "rule")).toBe(true);
+    expect(has("bible 1", "rule")).toBe(true);
     expect(has("landmine", "glossary")).toBe(true);
     expect(has("no-em-dash-policy", "policy")).toBe(true);
   });

@@ -9,7 +9,7 @@
 > **Why it exists:** the Library renders all of this at `/design/library`, behind a key and a dev
 > server. An agent in a worktree reads files. This is the same rule set, greppable.
 
-**25 laws · 19 policies · 1379 contracts on 173 components · 26 standing boards.**
+**10 laws · 19 policies · 1379 contracts on 173 components · 26 standing boards.**
 
 ## What binds you
 
@@ -32,173 +32,73 @@ agent that treats all of it as walls builds small. The nine levels, from [`READM
 
 ## The law
 
-### identity
-
-**1. Achromatic UI with one accent; the media is the color. Where there is no media, the accent carries state and UI color and marketing may carry color of its own (aurora, non-sampled spill): a section without a picture is still beautiful, never bare. The media is the motion too: photographs travel with weight from a source (out of the code, down through the frame, after a hand), while the words and controls around them stay where they are; the home hero's stream, the river and the image trail are the models.**
-
-The interface stays quiet so the pictures can carry the room, but quiet is not empty: a page is never forced to choose between having media and being boring. The ramp is Graphite with the accent off, and the Aurora carries the light where there is no picture. Media in motion is the foundation of the visual identity: the pieces that define it move the photographs, each from a source and with a weight, and leave the words and controls in place.
-
-<small>enforced by `src/app/(marketing)/marketing-css-policy.test.ts` · `/design/library/rules/media-is-the-color`</small>
-
-**2. Marketing and app share one token set. Marketing may be louder in most things (type, motion, color, scale, density); only the tokens are shared by law.**
-
-A visitor who becomes a host should feel no seam between the site and the product, but a marketing site that reads like the app reads bland.
-
-<small>enforced by `src/app/css-source-policy.test.ts`, `src/app/globals-theme-contract.test.ts` · `/design/library/rules/one-token-set`</small>
-
-**3. The five lamp hues are light, never UI: never a text, border, background, state or brand color.**
-
-The identity stays achromatic and media-forward; the hues exist so the light in a room can carry color while the room does not.
-
-<small>enforced by `src/app/globals-theme-contract.test.ts` · `/design/library/rules/lamps-are-light`</small>
-
-**4. A guest surface belongs to the host's event: minimal Partyreel branding, the host's name first.**
-
-Guests came for the event, not for us; the QR is the growth loop, and it works because the page feels like the host's. The capture is staged email for the guests who sign up (upload reminders, new-photo notifications), never the event page as a billboard.
-
-<small>held at review · `/design/library/rules/guest-surface-is-the-host`</small>
-
-### type
-
-**5. One heading face on one site ladder. Every heading sits on a step, and the steps keep their order at every width.**
-
-One ladder makes the pages read as one site; a page that needs its own scale has not been designed yet. The law is the ladder's order, never a one-off size: ten steps in theme.css, each with its own leading and tracking, and a phone end on each step that keeps every heading above the one it heads.
-
-<small>enforced by `src/app/(marketing)/marketing-h1-policy.test.ts`, `src/components/marketing/system/page-hero-contract.test.ts`, `src/lib/type-ladder-policy.test.ts` · `/design/library/rules/one-site-ladder`</small>
-
-**6. A masthead is one or two words, and at the display step the h1 is the nav label the reader just clicked.**
-
-A masthead is the loudest promise on the page, so it must be the word the reader chose; anything more specific goes in the eyebrow.
-
-<small>held at review · `/design/library/rules/masthead-is-the-nav-label`</small>
-
-**7. Two faces, and only two: Inter for everything a person reads, Urbanist for what the page says loudly. There is no mono face in the product; data sits on the body face with tabular figures, and every label, hint and descriptor is the Caption atom.**
-
-Mono is gone from the product: where it did semantic work, a number that is the subject takes the display face and a value that must look like a value takes a muted plate.
-
-<small>enforced by `src/app/two-faces-policy.test.ts` · `/design/library/rules/two-faces`</small>
-
-### shape
-
-**8. Sharp surfaces, round actions. Tokens, never literals: surfaces take --radius, floating layers --radius-float, media tiles --radius-tile, every lamp --spill-cadence.**
-
-One token each is what lets a round retune the whole product from one place; a literal is a value nobody can find later. The corners are family C in quarters (an 8px surface, a 12px floating layer with its rows at 8, a 4px photograph with the gallery gap pinned to it, a cta size for the 44px action), which keeps the pixel arithmetic clean.
-
-<small>enforced by `src/components/marketing/chrome/footer-contract.test.ts`, `src/lib/type-ladder-policy.test.ts` · `/design/library/rules/tokens-never-literals`</small>
-
-**9. Anything drawn around an object takes the object's radius plus its offset.**
-
-Nested corners that share a center read as one shape; a ring with a radius of its own reads as a mistake.
-
-<small>enforced by `src/components/dev/border-beam-vendor.test.ts` · `/design/library/rules/radius-plus-offset`</small>
-
-### light
-
-**10. In dark, depth is light first, and BOTH shadows are available: the layer under anything the page keeps living behind, the lift where one object really sits on another. A flat surface takes neither, in either mode.**
-
-A shadow on a flat dark ground is a smudge, but two photographs on top of each other need an edge; step, ring, lift and float work together, which gives dark and the ink slab a ramp of their own.
-
-<small>enforced by `src/lib/elevation-policy.test.ts` · `/design/library/rules/depth-in-dark`</small>
-
-**11. A lamp may light a section without media: the footer's seam is the model. The Aurora is the doctrine: one family, never on a light ground, composed for its place rather than repeated.**
-
-A light with a source and a direction keeps a monochrome identity from growing a second palette, yet the lamp that emits from nothing (the footer's seam) is the one Will likes most, so the Aurora allows it and composes each light for its place.
-
-<small>enforced by `src/components/shared/glow-placement.test.ts` · `/design/library/rules/lamps-without-media`</small>
-
-### motion
-
-**12. Animate by frequency: high-frequency instant, occasional standard and under 300 ms, rare delightful. Custom easing and press feedback on every control; no default or linear ease on anything a person touches.**
-
-Theater on a switch a host flips fifty times a night is friction; a first-time moment with no beat is a missed differentiator (the emil craft bar).
-
-<small>held at review · `/design/library/rules/animate-by-frequency`</small>
-
-**13. The visible state is the default; the hidden state belongs to the trigger, never to the element at rest. Nothing gates an h1.**
-
-An element that arrives hidden is invisible to anything that never fires its trigger: a throttled tab, a crawler, the LCP measurement, a reader who asked for less motion.
-
-<small>enforced by `src/app/(marketing)/marketing-h1-policy.test.ts`, `src/components/marketing/system/page-hero-contract.test.ts` · `/design/library/rules/visible-is-the-default`</small>
-
-**14. Every animation lives inside the reduced-motion preference block.**
-
-A visitor who asked for less motion gets none, and the design still stands at rest because of rule 13.
-
-<small>enforced by `src/components/shared/glow-contract.test.ts` · `/design/library/rules/reduced-motion`</small>
-
-**15. Every floating surface rides the floating-layer contract: one corner derived from one token, an entrance chosen by how often the surface opens, and the layer shadow. No surface spells its own.**
-
-Menus, dialogs, sheets and popovers are one family, and a stray one reads as a bug. The family is Card's anatomy, submenus at two levels and no more, the corner nested (the panel on the floating token, its rows 4px inside it), and entrances by frequency.
-
-<small>enforced by `src/components/ui/floating-layer.test.ts` · `/design/library/rules/floating-layer-contract`</small>
-
-### surfaces
-
-**16. Four grounds: cinema, the dark room every dark chapter sits on; paper, the light body; ink, the footer's darker leaf, never a page's chrome; and the muted panel, the set-apart block inside a paper body. A dark hero decides the route group, because the header's skin is chosen by the group's layout and no page can flip it from inside; a utility page runs cinema hero, paper body, ink footer.**
-
-The rhythm every marketing page shares is what makes the site one site; the panel is the one thing allowed to break the strict light-dark alternation, and a page cannot fake dark chrome from the paper side.
-
-<small>held at review · `/design/library/rules/four-grounds`</small>
-
-**17. A marketing page is chapters: each opens strong and bespoke, then ramps down through supporting sections until the next opener.**
-
-Visual attention is spent at the opener and earned back at the next; a page of equal-weight sections has no rhythm.
-
-<small>held at review · `/design/library/rules/chapters-open-strong`</small>
-
-**18. Every frame is ours: no stock photography on a marketing surface, and a page argues in photographs wherever it can.**
-
-Saying "here is a real event" over someone else's photograph reads false. No stock and no shoot: every frame is generated for the slot it fills, in one look, inside one Higgsfield month; an image we use is one we hold the rights to, so nothing tracks them.
-
-<small>enforced by `src/lib/constants/marketing-media.test.ts` · `/design/library/rules/every-frame-is-ours`</small>
-
-### copy
-
-**19. No em-dashes anywhere a person reads.**
-
-It reads as an AI tell; recast with a comma, a colon, parentheses or two sentences.
-
-<small>enforced by `src/lib/no-em-dash-policy.test.ts`, `src/lib/content-policy.test.ts` · `/design/library/rules/no-em-dashes`</small>
-
-**20. Say what we are, and name what a guest is spared: an absence a guest is wary of may be named ("No app required."); a sentence shaped as a denial of someone else ("we're not cloud storage") may not. Never promise "no account": a host may require one. The two fences that are product truth stand (no human-response or human-moderation promise, no automation absolutes).**
-
-This is about who we are, not who we are not: a fenced use case is a host we told to leave, and a rule of don'ts with no do's is messy. A real benefit may be named ("No app required."); defining the product by what it is not ("we're not cloud storage") may not, and since many events require an account, "no account" is never promised.
-
-<small>enforced by `src/lib/content-policy.test.ts` · `/design/library/rules/affirmative-only`</small>
-
-**21. Copy is open. Every heading, thesis and line may be rewritten by the round that touches its section; the voice is built one won line at a time, in its real place, and no copy is pinned by a test.**
-
-All copy is unprotected: the voice is won one line at a time, judged in its real place. marketing-voice.ts is the one home for the lines that ship, and no copy is pinned by a test.
-
-<small>held at review · `/design/library/rules/copy-is-open`</small>
-
 ### rising tides
 
-**22. Rising tides: the goal is always the whole platform, never only the task at hand, and nothing is protected or finished. Judge every section, component, flow and line from the ground up, ask what the perfect version would be, build that, and send the improvements you see in the systems around your task to the Lab, the risk-free road to better ideas.**
+**1. Rising tides: the goal is always the whole platform, never only the task at hand, and nothing is protected or finished. Judge every section, component, flow and line from the ground up, ask what the perfect version would be, build that, and send the improvements you see in the systems around your task to the Lab, the risk-free road to better ideas.**
 
 Will (2026-09-24): "A rising tide lifts all boats ... Not a single aspect of Partyreel is perfect; consider the current state of everything as progress, not end goals." No round can know the finished bar in advance, so the program is an iterative flow that keeps raising it, and relitigating a settled decision for a better answer is welcome. A page with a weak layout is torn down and rebuilt rather than pushed a little further, and big swings that can be reverted beat small cautious steps; but always reworking loses what we like and always polishing makes no progress, so the call is the agent's, each time, from the ground up, and it may push past today's systems, components and rules to set a new peak.
 
 <small>held at review · `/design/library/rules/rising-tides`</small>
 
-**23. Between otherwise equal systems, elegant simplicity with less risk surface wins over complexity that adds no value.**
+**2. Elegance wins: between otherwise equal options, the simpler one with less risk surface wins, and every addition, a rule included, must earn its place.**
 
-Will (2026-09-24): "For otherwise equal systems, elegant simplicity with less risk surface area tends to win over complexity that adds no value." Every added part is one more thing to maintain, secure and explain, and the program's own docs obey the same rule: every added line dilutes the rest.
+Will (2026-09-24): "For otherwise equal systems, elegant simplicity with less risk surface area tends to win over complexity that adds no value." Asked whether twenty-five rules beat a good ten, he ruled ten: every added part is one more thing to maintain, secure and explain, and every added line dilutes the rest.
 
 <small>held at review · `/design/library/rules/elegant-simplicity`</small>
 
 ### experience
 
-**24. Don't make me think: every flow streamlines its friction away, a problem arrives with an actionable fix or help, anything unclear carries a tooltip or points to help, and nothing is a dead end.**
+**3. Don't make me think: every flow streamlines its friction away, a problem arrives with an actionable fix or help, anything unclear carries a tooltip or points to help, and nothing is a dead end.**
 
 Will (2026-09-24): flows are roads; features that point to each other are intersections; the end of a flow returns smoothly, like a cul-de-sac, rather than stopping at "done"; smaller features ride on-ramps nested under bigger ones, so the product feels feature-rich without crowding and every flow stays clean and focused. "We win with intuitive flows designed to be beautiful and engaging."
 
 <small>held at review · `/design/library/rules/dont-make-me-think`</small>
 
-**25. Premium is the floor: the app should feel like magic, the way Apple's platforms do, with every feature beautiful in itself, motion that shows state or earns attention, transitions that connect one flow to the next, and interactions that answer instantly, can be interrupted and never err.**
+**4. Premium is the floor: the app should feel like magic, the way Apple's platforms do, with every feature beautiful in itself, motion that shows state or earns attention, transitions that connect one flow to the next, and interactions that answer instantly, can be interrupted and never err.**
 
-Will (2026-09-24): "Features feel beautiful within themselves, inspiring more usage. Motion visualizes state or gets user attention, occasionally surprising with delights that sell the whole experience. Fluid transitions help connect flows and make the user experience feel seamless. Interruptibility offers instant feedback for fast-paced usage while remaining error-free." How often each motion runs (instant, standard, delightful) is rule 12's.
+Will (2026-09-24): "Features feel beautiful within themselves, inspiring more usage. Motion visualizes state or gets user attention, occasionally surprising with delights that sell the whole experience. Fluid transitions help connect flows and make the user experience feel seamless. Interruptibility offers instant feedback for fast-paced usage while remaining error-free." How often each motion runs (instant, standard, delightful) is rule 5's.
 
 <small>held at review · `/design/library/rules/premium-is-the-floor`</small>
+
+**5. Motion by frequency: what happens constantly is instant, what happens occasionally is quick and under 300 ms, and what happens rarely may delight; the visible state is the default at rest, and every animation honors reduced motion.**
+
+Theater on a switch a host flips fifty times a night is friction, and a first-time moment with no beat is a missed differentiator. An element that arrives hidden is invisible to anything that never fires its trigger (a throttled tab, a crawler, a reader who asked for less motion), so the design stands at rest.
+
+<small>enforced by `src/app/(marketing)/marketing-h1-policy.test.ts`, `src/components/marketing/system/page-hero-contract.test.ts`, `src/components/shared/glow-contract.test.ts` · `/design/library/rules/animate-by-frequency`</small>
+
+### identity
+
+**6. The media is the color: an achromatic interface with one accent, where color comes from the photographs and from light (the lamps and the Aurora), never from UI paint.**
+
+The interface stays quiet so the pictures can carry the room, but quiet is not empty: where there is no photograph, light carries color with a source and a direction, and in dark, depth is light first. The lamp hues are light, never a text, border, background or brand color.
+
+<small>enforced by `src/app/(marketing)/marketing-css-policy.test.ts`, `src/app/globals-theme-contract.test.ts`, `src/lib/elevation-policy.test.ts`, `src/components/shared/glow-placement.test.ts` · `/design/library/rules/media-is-the-color`</small>
+
+**7. A guest surface belongs to the host's event: minimal Partyreel branding, the host's name first.**
+
+Guests came for the event, not for us; the QR is the growth loop, and it works because the page feels like the host's. The capture is staged email for the guests who sign up (upload reminders, new-photo notifications), never the event page as a billboard.
+
+<small>held at review · `/design/library/rules/guest-surface-is-the-host`</small>
+
+**8. One system: marketing and the app share one token set, one type ladder and two faces (Inter to read, Urbanist to be loud); tokens, never literals, and marketing may be louder, never different.**
+
+A visitor who becomes a host should feel no seam between the site and the product. One token each lets a round retune the whole product from one place, and one ladder makes the pages read as one site; the details (radii, elevation, the floating-layer family, the masthead) live in the Library's tokens and components, where they can be seen.
+
+<small>enforced by `src/app/css-source-policy.test.ts`, `src/app/globals-theme-contract.test.ts`, `src/app/(marketing)/marketing-h1-policy.test.ts`, `src/components/marketing/system/page-hero-contract.test.ts`, `src/lib/type-ladder-policy.test.ts`, `src/app/two-faces-policy.test.ts`, `src/components/marketing/chrome/footer-contract.test.ts`, `src/components/dev/border-beam-vendor.test.ts`, `src/components/ui/floating-layer.test.ts` · `/design/library/rules/one-token-set`</small>
+
+**9. Every frame is ours: a page argues in real photographs made for the slot they fill, never stock, and each marketing chapter opens strong before it ramps down.**
+
+Saying "here is a real event" over someone else's photograph reads false, and a page of equal-weight sections has no rhythm. The grounds each chapter sits on are the Library's.
+
+<small>enforced by `src/lib/constants/marketing-media.test.ts` · `/design/library/rules/every-frame-is-ours`</small>
+
+### copy
+
+**10. Say what we are: name what a guest is spared, never define us by denying someone else, never promise "no account", write no em-dashes, and treat every line as open to a better one.**
+
+This is about who we are, not who we are not: a real benefit may be named ("No app required."), and since many events require an account, "no account" is never promised. An em-dash reads as an AI tell. The voice is won one line at a time in its real place; marketing-voice.ts is the one home for the lines that ship, and no copy is pinned by a test.
+
+<small>enforced by `src/lib/no-em-dash-policy.test.ts`, `src/lib/content-policy.test.ts` · `/design/library/rules/affirmative-only`</small>
 
 ## The policies
 
@@ -237,7 +137,7 @@ A design-scoped policy that no bible rule cites fails `rules-registry.test.ts`.
 | policy | refuses | test |
 | --- | --- | --- |
 | Keyframe names are unique | a second @keyframes of the same name in any stylesheet, which shadows the first for the rest of the session. | `src/app/keyframe-uniqueness.test.ts:1` |
-| Bible 15: one floating layer, read from one contract | a floating primitive that spells its own corner, entrance or clock instead of reading floating-layer.ts, a fourth clock rung, and any translucency on a panel while the Glass exploration is banked. | `src/components/ui/floating-layer.test.ts:1` |
+| Bible 8: one floating layer, read from one contract | a floating primitive that spells its own corner, entrance or clock instead of reading floating-layer.ts, a fourth clock rung, and any translucency on a panel while the Glass exploration is banked. | `src/components/ui/floating-layer.test.ts:1` |
 | Every read reaches its last row | an unbounded PostgREST read, an unchunked .in() list, an unpaged set-returning RPC, a MAX_ROWS off config.toml, and a row-cap marker over a statement that no longer offends. | `src/lib/db/row-cap-policy.test.ts:1` |
 | Two shadows, each declared by its role | a stock Tailwind shadow, a hand-typed box-shadow or the retired shadow-float name on a production surface, and a ground that re-declares the theme without both shadows. | `src/lib/elevation-policy.test.ts:1` |
 | The record is a snapshot; git is the history | a docs/CHANGELOG.md (what shipped is the merge commits and git log), a STATUS over 80 lines or without its current round, a CLAUDE.md over 150 lines. | `src/lib/record-depth-policy.test.ts:1` |

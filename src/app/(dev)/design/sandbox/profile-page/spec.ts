@@ -262,7 +262,7 @@ const DRAFT = defineExploration({
       ],
       recommended: "pill",
       because:
-        "It is the only option that works whether or not the visitor is signed in: at a verified party every guest is, at a names-mode one most are not. It costs one line, and naming the host's event under the header is bible 4's own ask, not a new one.",
+        "It is the only option that works whether or not the visitor is signed in: at a verified party every guest is, at a names-mode one most are not. It costs one line, and naming the host's event under the header is bible 7's own ask, not a new one.",
       overrule:
         "If the chrome should stay quiet, the account menu reaches every guest at a verified party; at a names-mode party most keep only the browser's back.",
       lands:

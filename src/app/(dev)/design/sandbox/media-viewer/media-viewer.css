@@ -47,7 +47,7 @@
   animation: mv-flight 260ms var(--ease-emphasis, cubic-bezier(0.2, 0, 0, 1));
 }
 
-/* The sheet, on the floating-layer contract's own entrance (bible 15): a
+/* The sheet, on the floating-layer contract's own entrance: a
    surface that opens this often rises rather than scales. */
 @keyframes mv-sheet {
   from {
@@ -77,7 +77,7 @@
 }
 
 /* ── reduced motion ───────────────────────────────────────────────────────
-   Bible 14. Every entrance above settles instantly; the held gesture and the
+   Bible 5. Every entrance above settles instantly; the held gesture and the
    measured flight keep their geometry, because both are STATES rather than
    animations and removing them would delete the answer. */
 @media (prefers-reduced-motion: reduce) {

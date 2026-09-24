@@ -139,7 +139,7 @@ export type TrailSpec = {
    * The house answer to media under type is to MEASURE a clear lane and place
    * the words outside it (`hero-stream.ts`), and that answer is unavailable
    * here, because the lane is wherever the cursor is. The other reachable
-   * answer, a scrim over the photographs, is the one thing bible 1 refuses. So
+   * answer, a scrim over the photographs, is the one thing bible 6 refuses. So
    * the photograph yields instead: inside the words' own box a card fades to
    * `floor` and comes back over a soft edge, which reads as the trail passing
    * BEHIND the words rather than as anything being dimmed on top of them, and
@@ -788,7 +788,7 @@ const RULED = {
  * ★ THE SHY FADE, AND WHY IT IS A WINDOW RATHER THAN A DIMMER (the trail-wiring
  * lane, 2026-09-19). The mechanism is Will's and it is kept: a photograph goes
  * faint where it crosses the words and comes back over a soft edge, so the trail
- * reads as passing BEHIND them and never as a scrim laid on top (bible 1). What
+ * reads as passing BEHIND them and never as a scrim laid on top (bible 6). What
  * changed is where it is applied, and measurement is what changed it.
  *
  * The board dimmed each CARD by how much of its own area lay over the block.

@@ -60,7 +60,7 @@ follows the in-repo `emil-design-eng` skill). One `SITE_URL`/brand constant ([`s
 the rule: the /blog index's closing CtaBand ships "No app or account for your guests."
 **"No app"
 STAYS** as a benefit; the fence is only on defining Partyreel AGAINST another product ("we're not cloud
-storage"), never on naming an absence a guest is wary of (bible 20). A line that PROMISES a guest needs no account
+storage"), never on naming an absence a guest is wary of (bible 10). A line that PROMISES a guest needs no account
 goes; one that describes the per-event switch truthfully, or reports a different act (reporting is anonymous, the
 demo opens with no sign-up), stays. ★ The expensive case is a **suggested host announcement**: a help or blog
 line handing a host "no sign-up" becomes a support question a hundred times over once their event asks for an
@@ -185,7 +185,7 @@ Each entry below names a marketing page's copy single-source and the traps its l
   (the unlock tiles as its opener, the matrix, the FAQ, the band). ★ THE ORDER IS DELIBERATE: a reader sizes their
   event while the pair is still in their eye, and "Where Free ends and paid begins." opens the room that proves
   it; `pricing-page.test.ts` pins both halves. ★ It stays in **(cinema)** although it opens on paper, because a
-  page cannot flip its header from inside (bible 16) and globals.css refuses `.dark` inside `.surface-paper`: the
+  page cannot flip its header from inside and globals.css refuses `.dark` inside `.surface-paper`: the
   paper group would buy a white bar and cost every dark chapter below it. Pro's size is a **slider whose stops are
   `plansForTier("pro")`** (never a typed range) under the cadence toggle; the Pass is a wide **ticket** carrying
   the pair's own `StatRow` (imported from `plan-cards.tsx`, never copied). **The configurator**
@@ -232,21 +232,21 @@ Each entry below names a marketing page's copy single-source and the traps its l
   on exposition instead of a scene reads as rambling, and a fourth parallel failure turns the rhythm into a list.
   The six convictions land as the ANSWER, each linking to the page that proves it. The close points at careers, not
   signup, and there is **no CtaBand** (the footer is the paper lane's one conversion action).
-  **AFFIRMATIVE ONLY** (bible 20): the page says who we are, never who we are not; never enumerate what the product
+  **AFFIRMATIVE ONLY** (bible 10): the page says who we are, never who we are not; never enumerate what the product
   is not for, and never fence a use case. **The comparison stays CATEGORY-LEVEL** (the cross-platform album, the
   drip-fed thread, the account wall, the per-person rental), never a product name. **The zero-team rule is RELAXED
   here** for a first-person origin and a join-our-team close, but still no headcount and no founder biography.
-- **THE UTILITY-PAGE RHYTHM (bible 16): cinema hero, paper body, ink footer, on every utility page** (about, blog,
+- **THE UTILITY-PAGE RHYTHM: cinema hero, paper body, ink footer, on every utility page** (about, blog,
   careers, press, privacy, terms) but one: /contact opens on a paper `PageHero` inside `(paper)`, a route group that
   exists only for it. The dark ground BOOKENDS a short page rather than interrupting it, because it has
   too few sections to alternate chapters. **The paper/cinema split is per-CHAPTER, not per-page**: a page takes
   the rhythm by JOINING THE `(cinema)` GROUP and wrapping its body in ONE `PaperChapter` (as /help and the feature
   pages do), and the dark nav, dropdowns, overscroll and `#040405` browser chrome come with the group. Route groups
-  are not in URLs, so moving a page between them needs no redirect. **A DARK HERO DECIDES THE ROUTE GROUP** (bible
-  16): the header skin is chosen by the GROUP LAYOUT, which no page can override from inside. **Never build it from
+  are not in URLs, so moving a page between them needs no redirect. **A DARK HERO DECIDES THE ROUTE GROUP**: the
+  header skin is chosen by the GROUP LAYOUT, which no page can override from inside. **Never build it from
   the paper side**: a hand-assembled `--gallery*` set on a sticky header is always one token behind, and the
   omitted one paints the nav panels white-on-white (the landmine and its measurement live in
-  [design-system.md](design-system.md)). **A dark chapter never sits in the MIDDLE of these pages** (bible 16); a
+  [design-system.md](design-system.md)). **A dark chapter never sits in the MIDDLE of these pages**; a
   set-apart block inside a paper body takes the muted panel, `bg-muted/40` between hairlines (the /contact panel):
   **the fourth ground**, the one thing allowed to break the strict light-dark alternation. It ships at /30, /40
   and /50 (on paper /40 is a 1% step).
@@ -255,14 +255,14 @@ Each entry below names a marketing page's copy single-source and the traps its l
   step, never the Logo lockup). The gather carries the dark-to-paper cut, the album centred on it and arriving out
   of the event onto the desk (the /help strip idiom), **`sm:` and up only**: at three columns the album is four
   rows, so phones get the whole album on dark and a plain cut. **A beat whose CONCEPT is a change of arrangement
-  must not hide its starting arrangement** (bible 13): `[data-mkt-fly]` animates opacity 0 → 1, so reusing it
+  must not hide its starting arrangement** (bible 5): `[data-mkt-fly]` animates opacity 0 → 1, so reusing it
   would hide the scatter, while `.mkt-gather` never touches opacity, only position and angle. The scatter is an
   authored table (never `Math.random()`, which desyncs SSR), so the no-JS fallback is prints on a table. Eleven
   gather and a twelfth arrives late: a complete rectangle says "this is all of it", and there is always one more
   phone in the room.
 - **`/careers`**: in the **(cinema)** group; dark hero → ONE paper chapter carrying the whole body → the ink
-  footer (**one cut, not stripes**, bible 17: per-section alternation overwhelms a short page). **THE PAGE ARGUES
-  IN PHOTOGRAPHS** (bible 18): a "why it matters" pitch or a values list is a claim about ourselves to a reader who
+  footer (**one cut, not stripes**: per-section alternation overwhelms a short page). **THE PAGE ARGUES
+  IN PHOTOGRAPHS** (bible 9): a "why it matters" pitch or a values list is a claim about ourselves to a reader who
   has met the pitch twice, so the middle is **the roll → the selects → the reel**
   ([`careers-story.tsx`](../../src/components/marketing/sections/careers/careers-story.tsx)): the contact sheet
   with all but four frames dimmed (the dimming IS the argument), the survivors in the album chrome, then the real
@@ -278,10 +278,10 @@ Each entry below names a marketing page's copy single-source and the traps its l
   that lead the album a screen later. The two lists stay separate: the hero repeats the roll three times, so
   id-based selection would circle every keeper three times. The composition is this page's alone (the media
   doctrine in [`event-object.tsx`](../../src/components/marketing/sections/events/event-object.tsx)). Marks stay
-  ACHROMATIC (white pencil, never red): there is no brand hue (bible 1).
+  ACHROMATIC (white pencil, never red): there is no brand hue (bible 6).
   ★ **The careers hero's unique pass is never lazy-loaded.** The sheet fills the first screen, so one set of the
   unique frames loads eager (`eagerFrames`) and only the two repeats keep `loading="lazy"` (their images come from
-  cache); `priority` stays at six, since a preload per frame would fight the LCP element for bandwidth. The h1 takes the **site ladder** (bible 5) at the `lg` step, never a private ramp. The
+  cache); `priority` stays at six, since a preload per frame would fight the LCP element for bandwidth. The h1 takes the **site ladder** (bible 8) at the `lg` step, never a private ramp. The
   full-bleed glass wash follows the crossfade note in [design-system.md](design-system.md), and the scrim is tuned
   against PHOTOGRAPHY (density plus a uniform 0.8 dim on hero frames), so the type wins without crushing the
   images. The close is a small follow-up to **/contact** inside the roles section, never a CtaBand, whose heading
@@ -378,7 +378,7 @@ Each entry below names a marketing page's copy single-source and the traps its l
   margin. Shared help components live in [`components/marketing/help/`](../../src/components/marketing/help).
   ★ `[data-mkt] .mkt-line` forces `display:block` and silently kills flex utilities on the same element. It is the
   texts-reveal recipe, an unlayered rule in marketing.css that outranks any Tailwind utility, so center
-  constrained children with `mx-auto`, never a parent `justify-center`. TWO FACES, AND ONLY TWO (bible 7, full text
+  constrained children with `mx-auto`, never a parent `justify-center`. TWO FACES, AND ONLY TWO (bible 8, full text
   in [`design-system.md`](design-system.md)): no mono anywhere, data on the body face with tabular figures, and
   every label, hint and descriptor is the `Caption` atom. The authoring brief is
   [`content/help/AUTHORING.md`](../../content/help/AUTHORING.md); it names the fences by pointer only, because the
@@ -525,14 +525,14 @@ section is deliberate credibility: never "fix" it into pure praise. The press bo
 **`/press` = THE CONTACT SHEET.** In `(cinema)` on the utility-page rhythm: a masthead hero, then ONE
 `PaperChapter`. The page is titled **"Press"** everywhere (header panel, footer column, /contact directory, title,
 breadcrumb, H1, OG card), never "Press & brand", which is two labels for one page. The hero is `PageHero` at
-`scale="display"`, eyebrow "Media assets" over H1 "Press". **AT THE DISPLAY STEP, THE H1 MATCHES ITS NAV LABEL**
-(bible 6): a 160px masthead has to be the word the reader just clicked, and anything more specific belongs in the
+`scale="display"`, eyebrow "Media assets" over H1 "Press". **AT THE DISPLAY STEP, THE H1 MATCHES ITS NAV LABEL**:
+a 160px masthead has to be the word the reader just clicked, and anything more specific belongs in the
 EYEBROW, which carries no word limit (the H1 does: see page-hero.tsx).
 
 **The sheet** is the kit as a photographic proof sheet: eight numbered frames on the 3px `--gap-gallery` album
 grid, opening the paper body. The frames are deliberately NOT one kind of thing (artwork, an app icon, the share
 card, a working QR, the ink, the type), because a uniform grid of marks is a downloads table wearing a metaphor; do
-not "tidy" it. EVERY FRAME IS OURS (bible 18): no stock photos, and never media whose rights we do not hold. Plates
+not "tidy" it. EVERY FRAME IS OURS (bible 9): no stock photos, and never media whose rights we do not hold. Plates
 go by LEGIBILITY: white behind ink-drawn artwork, ink behind white-drawn artwork.
 ★ The press plates' two grounds are literal colours (`PLATE_PAPER` / `BRAND_HEX`), never theme utilities. A plate
 is the artwork's own ground, and following a token flip hides the artwork on it. THE REBATE: the grid paints

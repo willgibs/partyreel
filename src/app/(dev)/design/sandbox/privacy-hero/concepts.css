@@ -5,12 +5,12 @@
    carries its concept's prefix
    (src/app/keyframe-uniqueness.test.ts reads every sheet under the lab).
 
-   ★ THE REST STATE IS THE DEFAULT (bible 13: nothing gates an h1, and
+   ★ THE REST STATE IS THE DEFAULT (bible 5: nothing gates an h1, and
    nothing here is an h1's neighbour either). Every base class below is the
    picture a reader with scripting off, a crawler or reduced motion sees:
    the aperture at its dimmest breath, a tile frosted, a card sealed. The
    `animation` declaration itself lives ONLY inside
-   `@media (prefers-reduced-motion: no-preference)` (bible 14), so reduced
+   `@media (prefers-reduced-motion: no-preference)` (bible 5), so reduced
    motion is not a special case to remember, it is what happens when the
    block below simply does not apply. */
 
@@ -104,7 +104,7 @@
 /* ── Access grid ──────────────────────────────────────────────────────────
    Every tile wears the SAME keyframe; `--acc-i` (its index) staggers it via
    a negative delay, which is what turns one rule into a rotation (concepts.ts,
-   `accessTiles`). The rest state is frosted: bible 13's default is the
+   `accessTiles`). The rest state is frosted: bible 5's default is the
    picture a reader with scripting off sees, and it is also, here, an honest
    one (nothing is shared until its turn). */
 

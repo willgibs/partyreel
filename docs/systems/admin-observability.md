@@ -9,7 +9,7 @@
 The portal carries the platform's FOUNDATIONAL identity (the wordmark, `src/lib/brand/wordmark.ts` and
 `Logo`; the faces with their weights and spacing; the cool-grey Graphite base) and is otherwise free: an
 on-brand devtool, never a separate brand. Real colour is wanted (charts, state), density, tables and
-chrome are its own, and bible 1 and 2 bind it only as far as that foundation. The security seam
+chrome are its own, and bible 6 and 8 bind it only as far as that foundation. The security seam
 (`requireAdmin`, the host guard, AAL2) is never a design variable. Seven shape rules bind every surface:
 
 - **Numbers first:** the home opens on four figures and a fortnight's trend, with everything waiting on

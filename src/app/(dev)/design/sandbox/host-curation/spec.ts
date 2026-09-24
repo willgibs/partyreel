@@ -60,7 +60,7 @@ import { defineExploration } from "@/components/lab/exploration";
  *
  * ★ ONE DECISION RELITIGATES A RULING OF HIS OWN, and says so: the uniform
  * review grid is his (2026-06-22, "standardized selection hit-targets").
- * Bible 22 is what makes that legal and the context is what makes it honest.
+ * Bible 1 is what makes that legal and the context is what makes it honest.
  */
 
 /**

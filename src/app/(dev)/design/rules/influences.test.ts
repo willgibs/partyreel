@@ -124,7 +124,7 @@ describe("the influence registry", () => {
 
 describe("bindsFor", () => {
   // The marker can only be proven while some rule is under exploration; when
-  // none is (bible 20 was ruled 2026-09-19 and the voice board retires with its
+  // none is (bible 10 was ruled 2026-09-19 and the voice board retires with its
   // wiring), the proof waits for the next rule a board takes rather than failing.
   const exploring = BIBLE.find((r) =>
     r.status?.startsWith("under exploration: "),

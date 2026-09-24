@@ -213,7 +213,7 @@ function NavigationMenuLink({
       // default) is banned on primitives by the design system anyway.
       className={cn(
         // The corner is the contract's row, not `rounded-md`: a link IS a row
-        // inside the panel above it, and bible 9 asks the two to share a centre.
+        // inside the panel above it, and a nested corner shares a centre.
         "flex items-center gap-2 p-2 text-sm transition-[color,background-color] duration-[var(--mkt-dropdown-hover-out-ms,180ms)] ease-emphasis outline-none hover:bg-muted hover:duration-[var(--mkt-dropdown-hover-ms,90ms)] focus:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-1 data-active:bg-muted/50 data-active:hover:bg-muted data-active:focus:bg-muted [&_svg:not([class*='size-'])]:size-4",
         floatingRow,
         className

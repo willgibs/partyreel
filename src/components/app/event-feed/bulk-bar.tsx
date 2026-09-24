@@ -110,7 +110,7 @@ function useHydrated(): boolean {
 
 // The house press feedback for an icon-only control over a photograph's own
 // chrome (host-media-grid.tsx's tile overlay, like-button.tsx, the lightbox's
-// pill — bible 12): a stronger 10% squish than the shared <Button>'s own 3%,
+// pill — bible 5): a stronger 10% squish than the shared <Button>'s own 3%,
 // so it needs `!` to win against Button's baked-in active:not-aria-[haspopup]
 // rule (a plain class of the same specificity loses to that :not() selector).
 const ICON_BUTTON = cn(

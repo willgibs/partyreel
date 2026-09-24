@@ -11,17 +11,17 @@
    photograph drifts (`mkt-kenburns`, `mkt-wall-drift`) are already this exact
    shape - a slow alternating scale/position loop on a picture nobody
    touches - and its comment says why: "ambient, linear on purpose (constant
-   motion, the conveyor rule)". Bible 12 reserves custom eased curves for what
+   motion, the conveyor rule)". Bible 5 reserves custom eased curves for what
    a person TOUCHES; a passive breath behind a copy plate is scenery, not a
    control, so the constant-velocity drift that reads as film rather than UI
    is the house's answer, not a plain default that slipped past the rule.
 
-   ★ THE RARE, SLOW EXCEPTION BIBLE 12 NAMES BY HAND: "high-frequency instant,
+   ★ THE RARE, SLOW EXCEPTION BIBLE 5 NAMES BY HAND: "high-frequency instant,
    occasional standard and under 300ms, rare delightful." Sixteen seconds is
    the rare case, an ambient breath rather than a control's feedback, so the
    300ms ceiling for what a person touches does not bind it.
 
-   ★ GATED ON ITS OWN (bible 14: every animation lives inside the preference
+   ★ GATED ON ITS OWN (bible 5: every animation lives inside the preference
    block). Reduced motion drops the class's only declaration and the picture
    is simply still, never `none`d over the top of it. Small and slow on
    purpose (16s, 4.5 percent): a scale a host can feel and never quite catch

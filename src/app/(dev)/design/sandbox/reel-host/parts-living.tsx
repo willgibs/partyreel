@@ -15,11 +15,11 @@ import { LIVING_STILLS } from "./fixtures";
  *
  * ★ CALM IS A NUMBER HERE. Four and a half seconds on each still and a 1.4
  * second dissolve, on the custom ease: ambient media motion, the rare kind the
- * craft bar allows to breathe (bible 12), never the 200 ms a control gets. A
+ * craft bar allows to breathe (bible 5), never the 200 ms a control gets. A
  * tile that changed every second would be the busy version he turned down.
  *
  * ★ REDUCED MOTION HOLDS THE FIRST STILL, AND NOTHING ELSE CHANGES. The layers
- * stay mounted and the clock never starts (bible 14), so a reader who asked for
+ * stay mounted and the clock never starts (bible 5), so a reader who asked for
  * less motion still sees the card as a picture with its overlay, and the box a
  * decision is judged on never moves.
  */
