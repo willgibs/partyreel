@@ -11,12 +11,20 @@ import { defineExploration } from "@/components/lab/exploration";
  * reports are open" row is clicked, from a stranger tapping Report at a wedding
  * to the record the night leaves behind.
  *
- * ★ THE SHELL IS SETTLED LAW HERE, NOT A VARIABLE. Every picture wears the
- * `admin` board's own recommendations: the rail, the 44 px devtool bar, the
- * four-hue state chip. Nothing below re-asks them, and the health band is
- * absent because tonight the backend is fine and the reports are not (see
- * `shell.tsx`). The security seam is never a design variable either: no preview
- * imports a server action, mounts the admin shell or sits behind `requireAdmin`.
+ * ★ THE SHELL IS NOT A VARIABLE HERE: it is `admin`'s own board, asked and
+ * answered there. Every picture wears its recommendations: the rail, the 44 px
+ * devtool bar, the four-hue state chip. Nothing below re-asks them, and the
+ * health band is absent because tonight the backend is fine and the reports
+ * are not (see `shell.tsx`). The security seam is never a design variable
+ * either: no preview imports a server action, mounts the admin shell or sits
+ * behind `requireAdmin`.
+ *
+ * ★ THE BOARDS REFRESH (2026-09-24): five of the eight asks held one shape
+ * against a single alternative; each gains a genuine third, on its own case
+ * rather than as a wall the shell's own picks stand behind. `look` gains a bolder
+ * queue shape (many thumbnails, not another one-report layout); `reason`,
+ * `verdict`, `closed` and `phone` each gain the honest middle their own
+ * `overrule` line already named or implied.
  *
  * ★ THE STAGING IS TWO ROOTS AND TWO LOOSE PIECES. What a report IS on screen
  * unlocks three questions that only exist once it has a shape (a report with
@@ -59,7 +67,7 @@ const DRAFT = defineExploration({
     n: 1,
     date: "2026-09-21",
     changed:
-      "The overtaken audit's reshape: all eight questions reframed with admin r1, app-shape r2, guest-shape and guest-upload r1 folded in; reason narrows to the ranking half alone; notice now leans toward telling the host.",
+      "The boards refresh: look, reason, verdict, closed and phone each gain a genuine third (a thumbnail grid, a quiet tag, a required note, a 30-day window, a phone-side hold), none of them a wall against the shell's own picks.",
   },
   context:
     "Three reports are open on a Saturday night. Each is a card titled with the event's name, a status badge, a timestamp, a 160 px square of the thing that was flagged, and two buttons that write a status and nothing else. A column for the operator's reasoning has existed since the founding migration and has never been read or written; no id renders anywhere, so a legal hold means finding a UUID on two other surfaces. Every picture here is that portal on that night, with one thing changed.",
@@ -70,11 +78,11 @@ const DRAFT = defineExploration({
       question:
         "What should a report look like, the one inbox where the thing judged is a picture?",
       context:
-        "Admin r1 already draws every prose inbox as a list beside the message, a row each. Reports judges a picture, not prose, so what's open is whether it takes that ruled row, or breaks from it: a picture can lead a card full width.",
+        "Admin r1 already draws every prose inbox as a list beside the message, a row each. Reports judges a picture, not prose, so what's open is whether it takes that same row, breaks from it, or scans many at once.",
       options: [
         {
           id: "split",
-          label: "The ruled shape: a row each",
+          label: "One row each, as the other inboxes",
           means:
             "The frame on the left at a size you can judge, the words and the verdict on the right, the same row every prose inbox now wears.",
         },
@@ -84,14 +92,20 @@ const DRAFT = defineExploration({
           means:
             "The card becomes the reported frame with a caption. One report fills most of a screen, so the queue is scrolled rather than scanned.",
         },
+        {
+          id: "grid",
+          label: "A dense grid, one report open beneath it",
+          means:
+            "Every waiting report as a thumbnail at once; a tap opens the words and the verdict under the one selected.",
+        },
       ],
       recommended: "split",
       because:
-        "The portal's other inboxes already wear this row; a report reusing it costs nothing new and still puts the frame at a size an operator can judge, which is the one thing the ruling did not have to invent twice.",
+        "The portal's other inboxes already wear this row; a report reusing it costs nothing new and still puts the frame at a size an operator can judge, without inventing a second layout.",
       overrule:
-        "If a report is almost always decided on the picture alone, breaking from the ruled row for a full-width frame is the one inbox that earns it.",
+        "If a busy night means scanning matters more than judging any one picture closely, the grid gets an operator past the easy ones fastest.",
       lands:
-        "What /admin/reports draws, and whether Reports keeps the ruled row or becomes the one exception to it.",
+        "What /admin/reports draws, and whether judging one report or scanning many is the more common night.",
       configs: [SCREEN],
     },
     {
@@ -114,10 +128,16 @@ const DRAFT = defineExploration({
           means:
             "No reordering: a wordless report sits exactly where its timestamp puts it, same as one that said plenty.",
         },
+        {
+          id: "marked",
+          label: "Keeps its place, with a quiet mark",
+          means:
+            "No reordering, but a small 'No reason given' tag sits on the card so it is seen without teaching anyone to skip it.",
+        },
       ],
-      recommended: "chrono",
+      recommended: "marked",
       because:
-        "A report with nothing typed is not necessarily a lesser one; a panicked stranger often has no words at all, and sorting the queue on that risks teaching operators to skip past the report that needed the fastest look.",
+        "A report with nothing typed is not necessarily a lesser one; a panicked stranger often has no words at all. A quiet tag helps an operator notice without the queue teaching them a wordless report can wait.",
       overrule:
         "If wordless reports turn out to be mostly griefing, sorting them down is the cheapest triage the queue can do.",
       lands: "Whether OPEN_REPORTS ever reorders on whether a reason was typed.",
@@ -144,12 +164,18 @@ const DRAFT = defineExploration({
           means:
             "The same two verbs with Add a note beside them. Dismiss stays a press; Remove's own note lives in the sheet admin r1 already opens.",
         },
+        {
+          id: "always",
+          label: "A note every time, Dismiss included",
+          means:
+            "Both verbs open the same small field; nothing commits until a line is typed, so resolution_note is never empty.",
+        },
       ],
       recommended: "note",
       because:
         "Admin r1 already makes the destructive verb write a line before it commits, so this is really just Dismiss's question: an optional note costs nothing on the ones that took no thought and still fills resolution_note on the ones that do.",
       overrule:
-        "If even Dismiss should leave a record every time, require the line there too and let the sheet be the only place it was ever truly needed.",
+        "If even Dismiss should leave a record every time, 'always' requires the line there too, and the sheet is never the only place it was needed.",
       lands:
         "What Dismiss does, and whether resolution_note is ever written outside the destructive sheet.",
       configs: [SCREEN],
@@ -172,16 +198,22 @@ const DRAFT = defineExploration({
           id: "undo",
           label: "A line, and a way back for a day",
           means:
-            "The same log, with an Undo for twenty-four hours that restores the item and reopens the report. A held item has none, by law.",
+            "The same log, with an Undo for twenty-four hours that restores the item and reopens the report. A held item has none.",
+        },
+        {
+          id: "window",
+          label: "A line, undoable while the copy exists",
+          means:
+            "The same log, but Undo lasts as long as a removed item would anyway: the product's own 30-day Trash, not a separate clock.",
         },
       ],
-      recommended: "undo",
+      recommended: "window",
       because:
-        "A takedown reaches into a stranger's album, and the log admin r1 already gives history is the only place a day's way back could live.",
+        "A day is an arbitrary line the moment a removed item's real lifespan is 30 days elsewhere in the product; matching the two means one lifecycle rule instead of two clocks that can disagree.",
       overrule:
-        "If undoing a takedown must always be a deliberate second act on the Albums surface, the log alone is the whole gain.",
+        "If a portal-side act should always close faster than the product's own recovery window, a day keeps Undo tight and deliberate.",
       lands:
-        "The All view, whether the portal keeps an operator's own log, and where a misfire is fixed.",
+        "The All view, whether the portal keeps an operator's own log, and how long a misfire stays fixable.",
       after: { ask: "verdict" },
       configs: [SCREEN],
     },
@@ -242,13 +274,19 @@ const DRAFT = defineExploration({
           means:
             "Both verbs, the note, the ids and the hold door in a phone column. Everything the desk does, typed with a thumb.",
         },
+        {
+          id: "hold",
+          label: "Stop it, and flag it for the record",
+          means:
+            "The one verb of 'act', plus a single Preserve tap that opens the hold untyped; its note waits for a desk.",
+        },
       ],
       recommended: "act",
       because:
         "The only thing that cannot wait is a photograph that should not be up, and the only thing that should not be done at a party is writing a record somebody may read in a courtroom. One verb is the whole of what a phone is for here.",
       overrule:
-        "If the operator is as often on a phone as at a desk, a surface that can only half finish the job is a surface they will resent.",
-      lands: "Which acts a small screen is trusted with, now the shell itself is ruled.",
+        "If evidence a party keeps deleting cannot wait for a desk either, 'hold' starts the preservation now and leaves only its note for later.",
+      lands: "Which acts a small screen is trusted with, and whether preservation is one of them.",
       after: { ask: "look" },
     },
     {
@@ -261,7 +299,7 @@ const DRAFT = defineExploration({
       options: [
         {
           id: "three",
-          label: "Apart from the ruling: three controls",
+          label: "Keep Reports apart: three controls",
           means:
             "Reports keeps its own filter bar and badge, unlike the shared picker admin r1 already gives Support and Applicants. The one inbox that still looks apart.",
         },

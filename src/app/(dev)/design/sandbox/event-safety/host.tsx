@@ -75,7 +75,7 @@ export function Face({
 
 /* ── the album, as the hub and the viewer's ground draw it ───────────────── */
 
-/** The album on the shipped column rule (`gallery-width`'s law, worn). */
+/** The album on the shipped column rule (`gallery-width`'s own rule, worn). */
 export function AlbumGrid({
   items,
   dim,

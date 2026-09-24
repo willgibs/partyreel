@@ -135,6 +135,21 @@
   background: color-mix(in oklab, var(--background) 92%, var(--foreground));
   color: var(--muted-foreground);
 }
+/* `object=menu` (boards refresh, 2026-09-24): a small popover under Download,
+   never the responsive sheet's own scrim-and-takeover. `position: absolute` on
+   its own relative wrapper (`MenuDoor` in board.tsx), not `fixed`: it never has
+   to survive a scroll the way `.xf-dialog` does. */
+.xf-menu {
+  display: grid;
+  gap: 0.75rem;
+  width: 17rem;
+  padding: 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-float);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: var(--shadow-layer);
+}
 .xf-sheet {
   position: fixed;
   inset-inline: 0.5rem;

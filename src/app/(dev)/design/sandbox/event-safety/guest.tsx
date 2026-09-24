@@ -82,7 +82,7 @@ function EventHead({ byline = true }: { byline?: boolean }) {
   );
 }
 
-/** The album on the ruled column rule, as a guest holds it. */
+/** The album on the shipped column rule, as a guest holds it. */
 function Album({ items }: { items: readonly GridMedia[] }) {
   return (
     <div className={GALLERY_COLUMNS}>

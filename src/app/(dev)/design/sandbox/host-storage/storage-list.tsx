@@ -16,6 +16,7 @@ import {
   formatDuration,
   GAP_BYTES,
   groupedByEvent,
+  groupedByWorstFirst,
   largestFirst,
   TARGET_PLAN,
   totalBytes,
@@ -34,7 +35,7 @@ import type { ScreenId } from "./scene";
  *
  * ★ NOTHING HERE CALLS A SERVER FUNCTION. Selection, removal and the undo are
  * plain local state (`useStorageSelection`); "Remove to Deleted" and the toast
- * are host-curation's own ruled answer, carried rather than re-asked. Download
+ * are host-curation's own settled answer, carried rather than re-asked. Download
  * is drawn, never wired: the download itself is export-flow's.
  */
 
@@ -348,6 +349,29 @@ function BulkFooter({
   );
 }
 
+/**
+ * `goal=toast` (boards refresh, 2026-09-24): nothing running while a host
+ * selects, then this the moment enough is freed. Mutually exclusive with
+ * `ToastQuote` below (a fresh goal versus a just-committed Remove), so the two
+ * never fight for the same fixed corner.
+ */
+function GoalReachedToast({ screen }: { screen: ScreenId }) {
+  return (
+    <div className="hs-toast" data-screen={screen} data-hs-goal="ready">
+      <Check className="size-4 shrink-0 text-success" aria-hidden />
+      <div className="min-w-0 flex-1">
+        <span>You&rsquo;ve freed enough for {TARGET_PLAN.name}</span>
+        <span className="mt-0.5 block text-[11px] text-muted-foreground">
+          Switch now, or keep going first.
+        </span>
+      </div>
+      <Button type="button" size="sm">
+        Switch
+      </Button>
+    </div>
+  );
+}
+
 function ToastQuote({
   count,
   bytes,
@@ -402,7 +426,7 @@ export function StorageSurface({
   items: readonly StorageItem[];
   groups?: readonly EventGroup[];
   mode: "flat" | "grouped";
-  goal: "live" | "plain" | null;
+  goal: "live" | "plain" | "toast" | null;
   screen: ScreenId;
   showEvent?: boolean;
 }) {
@@ -413,27 +437,29 @@ export function StorageSurface({
 
   return (
     <div className="space-y-3">
-      {goal && (
+      {goal === "live" || goal === "plain" ? (
         <GoalStrip
           goal={goal}
           selectedBytes={selectedBytes}
           removedBytes={removedBytes}
         />
-      )}
+      ) : null}
       {mode === "flat" ? (
         <FlatList items={items} screen={screen} showEvent={showEvent} sel={sel} />
       ) : (
         <GroupedList groups={groups ?? []} screen={screen} sel={sel} />
       )}
       {sel.selected.size > 0 && <BulkFooter sel={sel} items={flat} />}
-      {sel.justRemoved && (
+      {sel.justRemoved ? (
         <ToastQuote
           count={sel.justRemoved.ids.length}
           bytes={sel.justRemoved.bytes}
           onUndo={sel.undo}
           screen={screen}
         />
-      )}
+      ) : goal === "toast" ? (
+        <GoalReachedToast screen={screen} />
+      ) : null}
       <DeletedShrinksNote />
     </div>
   );
@@ -446,8 +472,8 @@ export function AccountScope({
   goal,
   screen,
 }: {
-  order: "flat" | "grouped";
-  goal: "live" | "plain" | null;
+  order: "flat" | "grouped" | "hybrid";
+  goal: "live" | "plain" | "toast" | null;
   screen: ScreenId;
 }) {
   return (
@@ -466,8 +492,14 @@ export function AccountScope({
       </div>
       <StorageSurface
         items={order === "flat" ? largestFirst() : []}
-        groups={order === "grouped" ? groupedByEvent() : undefined}
-        mode={order}
+        groups={
+          order === "grouped"
+            ? groupedByEvent()
+            : order === "hybrid"
+              ? groupedByWorstFirst()
+              : undefined
+        }
+        mode={order === "flat" ? "flat" : "grouped"}
         goal={goal}
         screen={screen}
       />

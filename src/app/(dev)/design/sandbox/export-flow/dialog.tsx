@@ -50,7 +50,7 @@ import { type Album, EVENT, hasHidden, totalFor } from "./fixtures";
  * on this board says what the real foot would say for the same album.
  */
 
-/* ── the quoted shell, in the ruled sheet's posture ──────────────────────── */
+/* ── the quoted shell, in the responsive sheet's posture ──────────────────── */
 
 export function Shell({ children }: { children: ReactNode }) {
   return (
@@ -173,7 +173,7 @@ export function HiddenRow({
 
 /* ── the foot ────────────────────────────────────────────────────────────── */
 
-export type CapMode = "bite" | "near" | "split";
+export type CapMode = "bite" | "near" | "split" | "auto";
 
 const partsFor = (count: number) => Math.ceil(count / MAX_EXPORT_ITEMS);
 
@@ -204,7 +204,17 @@ export function Foot({
   // "Close" is the last tenth before the ceiling, which is where a line that
   // warns is still a warning rather than a refusal.
   const near = !over && result.count > MAX_EXPORT_ITEMS * 0.9;
-  const refuses = over && cap !== "split";
+  // `auto` never refuses either: over the ceiling it trims instead of splitting.
+  const refuses = over && cap !== "split" && cap !== "auto";
+  const trimmed = cap === "auto" && over;
+  const kept = trimmed ? MAX_EXPORT_ITEMS : result.count;
+  const left = result.count - kept;
+  // A summary has no per-item sizes, so a trimmed byte count is the same share
+  // of the total as the kept share of the count: a fixture's stand-in for real
+  // arithmetic the real manifest would do over actual objects, never shipped.
+  const shownBytes = trimmed
+    ? Math.round(result.bytes * (kept / result.count))
+    : result.bytes;
 
   return (
     <div className="mt-1 flex items-center justify-between gap-3" data-xf-foot>
@@ -217,7 +227,7 @@ export function Foot({
       ) : (
         <div>
           <span className="text-2xl font-medium tabular-nums" data-xf-size>
-            {loading ? "…" : formatBytes(result.bytes)}
+            {loading ? "…" : formatBytes(shownBytes)}
           </span>
           <div
             className="text-xs tabular-nums text-muted-foreground"
@@ -227,12 +237,14 @@ export function Foot({
               ? "Adding it up"
               : empty
                 ? "Nothing selected"
-                : `${result.count.toLocaleString("en-US")} ${result.count === 1 ? "item" : "items"}`}
+                : `${kept.toLocaleString("en-US")} ${kept === 1 ? "item" : "items"}`}
             {cap === "split" && over
               ? `, in ${parts} zips`
               : cap === "near" && near
                 ? `, near the ${MAX_EXPORT_ITEMS.toLocaleString("en-US")} limit`
-                : ""}
+                : trimmed
+                  ? `, newest first, ${left.toLocaleString("en-US")} left out`
+                  : ""}
           </div>
         </div>
       )}
@@ -368,11 +380,19 @@ export function WorkBody({
   types,
   percent,
   state,
+  /**
+   * Whether a non-working, non-done state offers a way to try again.
+   * `hollow=after` needs this false: it is information only, and without the
+   * flag it would read pixel-identical to `hollow=offer`, which adds the
+   * retry `after` deliberately withholds (boards refresh, 2026-09-24).
+   */
+  retry = true,
 }: {
   summary: ExportSummary;
   types: ExportTypeFilter;
   percent: number;
   state: "working" | "done" | "empty" | "partial" | "failed";
+  retry?: boolean;
 }) {
   const result = totalFor(summary, types, false);
   const kept = Math.max(0, result.count - 6);
@@ -432,11 +452,11 @@ export function WorkBody({
           <Button type="button" variant="outline" size="sm" tabIndex={-1}>
             Done
           </Button>
-        ) : (
+        ) : retry ? (
           <Button type="button" size="sm" tabIndex={-1}>
             Try again
           </Button>
-        )}
+        ) : null}
       </div>
     </div>
   );

@@ -38,7 +38,7 @@ import { defineExploration } from "@/components/lab/exploration";
  * ★ `peek` IS ASKED AT A DESK. It conceded once to the rule that every action
  * on a photograph lives in the lightbox's controls; he then narrowed that rule
  * to a phone in his own words ("Desktop should still support hover on cards").
- * So the phone's half is ruled, the desk's half never was, and the question is
+ * So the phone's half already has an answer, the desk's half never did, and the question is
  * asked on the half that is still open.
  *
  * ★ THE ORDER IS THE ACT. Six decisions are roots and can be taken in any
@@ -55,11 +55,11 @@ import { defineExploration } from "@/components/lab/exploration";
  * R2-first and irreversible. Nor is the vocabulary under it: the empty and
  * loading treatments, the two toolbars' grammar, the tile-action models, the
  * tile-size control and the confirm switch are `app-vocabulary`'s, cited here
- * and never re-judged; the event page's section order and chrome are
+ * cited here rather than reopened; the event page's section order and chrome are
  * `app-shape`'s; the media viewer's own shape is `media-viewer`'s.
  *
- * ★ ONE DECISION RELITIGATES A RULING OF HIS OWN, and says so: the uniform
- * review grid is his (2026-06-22, "standardized selection hit-targets").
+ * ★ ONE DECISION REOPENS AN EARLIER PICK OF HIS OWN, and says so: the uniform
+ * review grid was his (2026-06-22, "standardized selection hit-targets").
  * Bible 1 is what makes that legal and the context is what makes it honest.
  */
 
@@ -86,7 +86,7 @@ const DRAFT = defineExploration({
     n: 1,
     date: "2026-09-24",
     changed:
-      "The desk re-cut: count leaves for reel-host's merged review question; told names her tracker; peek.viewer wears media-viewer r1; verb.chip's mark clears the own-item corner.",
+      "The boards refresh: every ask re-argued on its own case; the uniform-grid reopen and the app-vocabulary citations reworded off authority ('ruled', 'never re-judged') and onto their own reasons.",
   },
   context:
     "A host turned on \"Review uploads before they appear\". Every upload now waits in a queue above their album until they approve it or put it down, and nothing waiting reaches the live reel or the venue wall. Every option is the shipped review surface with one thing changed, over one wedding's seven waiting uploads, at 1440 with 375 on the knob. Nothing here approves, hides or removes anything: the triage machine is forked so its two Server Functions are a resolved promise.",
@@ -121,7 +121,7 @@ const DRAFT = defineExploration({
       because:
         "Judging is looking, and a crop hides the part of a photograph a host would have refused it for. The uniform box was chosen for selection, the mode a host is in least, and it is the only grid in the product that crops now.",
       overrule:
-        "The uniform grid is his own ruling of 2026-06-22. If select mode is the real job it stands, and the exception is worth its code.",
+        "The uniform grid was his own pick, 2026-06-22. If select mode is the real job it stands, and the exception is worth its code.",
       lands:
         "What the review queue draws, and whether the one tile carries an exception for this room.",
       configs: [SCREEN],
@@ -166,7 +166,7 @@ const DRAFT = defineExploration({
       label: "The peek",
       question: "What should a tap on a waiting photograph open at a desk?",
       context:
-        "A full-bleed look with one close button and no verdict on it: close, find the tile, decide from the thumbnail you left. On a phone the verdict is ruled into the one viewer's controls; at a desk a card still takes hover actions.",
+        "A full-bleed look with one close button and no verdict on it: close, find the tile, decide from the thumbnail you left. On a phone the verdict already lives in the one viewer's controls; at a desk a card still takes hover actions.",
       options: [
         {
           id: "readonly",
@@ -189,7 +189,7 @@ const DRAFT = defineExploration({
       ],
       recommended: "verdict",
       because:
-        "The peek exists so a host can judge, and it is the only surface in the act where they cannot. The phone's answer is ruled; what a mouse gets is not, and two buttons there cost a row and close the loop the grid opened.",
+        "The peek exists so a host can judge, and it is the only surface in the act where they cannot. The phone's answer is already settled; what a mouse gets is not, and two buttons there cost a row and close the loop the grid opened.",
       overrule:
         "If there should be one viewer at every width, this is `media-viewer`'s question and not a second one.",
       lands:
