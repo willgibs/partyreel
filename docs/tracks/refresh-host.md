@@ -1,7 +1,7 @@
 ---
 track: refresh-host
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "5b17e8f3"            # the launch-prep SHA the branch was cut from
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
+cut: "75631277"            # the launch-prep SHA the branch was cut from
 board: export-flow
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/app/(dev)/design/sandbox/export-flow/
@@ -42,25 +42,31 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- none: the brief's own audit named the gap on each board (a genuine third per binary, host-curation's relitigation), so no new product ambiguity opened.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: every change is inside the five sandbox directories; no `docs/systems/` fact changed.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none: nothing here is product work waiting on a later round.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commit `d1d6b686` ("refresh-host: a genuine third on every flagged binary, and one relitigated door"), pushed to `origin/lp/refresh-host`. No sync commit: `git diff --name-only 75631277 origin/launch-prep` since the cut touches only `touchpoints.ts` (refresh-guest's and kit-streamline's own rows) and never my `owns` or my one `reads` (`gallery-fixtures.ts`), and a merge would not conflict, so PROGRAM.md's sync bar is not met.
+- Gates, all on this commit: `pnpm typecheck` clean; `pnpm lint` 0 errors (7 pre-existing warnings, none in files this lane touched); `pnpm test` 4,584 passed, 427 files; `pnpm build` clean (every route, including every `/design/lab/*`). `pnpm lab:smoke --base :3133`: 313 checks, 0 failing, every board's reading under its 1,200-word budget (`admin-triage` 640, `export-flow` 624, `event-safety` 815, the two others under 500). `pnpm lab:demo --base :3133 --board <id>` for all five: 0 failing on every step, including all ten new options; reduced motion honoured (the tool's own default).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` lists exactly the 22 files under the five owned directories, nothing else (`touchpoints.ts` correctly untouched: no board's ASK topics changed, only their options, so the brief's one listed exception never fires).
+- The items, one line each:
+  - `export-flow`: `stuck`, `hollow`, `cap`, `object` (its four binaries) each gain a real third (`retry`, `offer`, `auto`, `menu`); `stuck`'s recommendation moves to `retry` and `hollow`'s to `offer` (both reasoned in the board's own `because`/`overrule`, both real UI, not text-only).
+  - `admin-triage`: `look`, `reason`, `verdict`, `closed`, `phone` (its five true binaries, not six as the audit counted) each gain a real third (`grid`, `marked`, `always`, `window`, `hold`); `reason`'s recommendation moves to `marked` and `closed`'s to `window`. A fourth closed report ("Marlow Christening") was added to `fixtures.ts` so `undo` (24h) and `window` (30-day) pick out different rows; `historyRead`'s caption no longer hardcodes "three".
+  - `host-storage`: `order` gains `hybrid` (grouped, worst event first), `goal` gains `toast` (quiet until the goal is hit); both are its only two binaries, per the audit. Recommendations unchanged (`flat`, `live`).
+  - `event-safety`: `newcomer` (its one binary) gains `ask` (the honest line plus a way to reach the host), a different function from `same`/`honest`, not a wording variant. His three founding answers (the block, the three closed-door kinds, free on every plan) are kept exactly and only reframed off "the walls every option stands inside" to "the brief's own terms."
+  - `host-curation`: already three genuine, non-redundant options on all seven asks (confirmed by rereading each one), so no option was added; the `queue` ask's existing reopen of the 2026-06-22 uniform-grid pick stands, its own authority language (and the app-vocabulary/app-shape citations') reworded to state the reason without "ruled"/"never re-judged"/"by law".
+  - Comments swept for the same authority framing across all five directories (`grep -rniE "ruled|ruling|law|never re-judged"` now clean everywhere but one self-descriptive line in host-curation's own `round.changed`, quoting the words it removed).
+  - Known, not fixed (out of this board's ask, found while verifying): `event-safety.entry`'s `all` option (three stacked scenes) reads as a "same picture" against `credit` in `lab:demo`'s default capture, because the comparison window does not scroll the `Several` stack far enough to reach the second and third scenes. Pre-existing, not touched by `newcomer`'s change; a `Several`/`short`-scene reach fix would touch `door` and `unlisted` too, which also use it.
+- Assets requested from Will: none.
+- Board ideas: none beyond this lane's own five boards.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule, one line each: `stuck.retry`, `hollow.offer`, `reason.marked` and `closed.window` are now recommended over the board's earlier pick; each option tile carries its own `overrule` line back to the original if he prefers it.
+- Look at first: `export-flow` (the manifest's named board, and the most real UI variety: a quiet retry, an offer-and-retry, an automatic trim, a popover); then `admin-triage.look`'s `grid` (the boldest shape change); the other three read fast.
