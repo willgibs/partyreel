@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The lab and the kit: `album-motion`'s `bloom` recipe lives in the shared `AlbumStream` engine (`stream-engine.ts`, `album-stream.css`) because the board renders the production component; it leaves with the board unless Will picks it.
 - Code hygiene: `GLASS_TOKENS` and `NOT_GLASS` in `src/lib/glass.ts` are read by nothing since the glass look tests went.
 - The lab and the kit: seven catalog entry pages log next/image dev warnings from their specimens (`loading="eager"` on an LCP image; `sizes="100vw"` on a `fill` image narrower than the viewport), and the components family page scrolls sideways at 1440 (its `w-screen` breakouts).
 - The lab and the kit: an open ask whose premise rots with no new verdict is never retired; when a merge touches a board's `lives` paths (`touchpoints.ts`), flag that board's open asks for re-validation before Will's next sitting (event-driven on the code the question describes, not on a calendar).
