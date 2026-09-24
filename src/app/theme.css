@@ -186,8 +186,8 @@
   print each step's own numbers, and a token that exists only when some page
   happens to wear it is not a token. 30 declarations is a rounding error.
 
-  The steps' one home for WHAT WEARS WHAT is docs/systems/design-system.md; the
-  Library draws them at true size at /design/library/foundations#type.
+  The brand kit draws the steps at true size; a grep of `text-<step>` finds what
+  wears each.
 */
 @theme static {
   /* ★ THE CHART ALIASES ARE STATIC, NOT INLINE (2026-09-18). Tailwind emits a
