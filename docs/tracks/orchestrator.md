@@ -33,25 +33,28 @@ model Will seats (Fable or Opus); nothing here depends on which.
 
 ## Next, in order
 
-Milestone 28 is live (`1076d3d7`, 2026-09-24): the 1,000-row round (stage 1 `rowcap-kit`, `rowcap-sql` with three row-cap
-migrations applied; stage 2 `rowcap-guest`, `rowcap-host`, `rowcap-cron`, `rowcap-album`; gates 140 to 146),
-`upload-owner` and `delete-final`, alias build 4 red-teamed in Will's Chrome, the partyreel.com pass green. The plan file
-(`~/.claude/plans/great-work-however-1-dapper-twilight.md`) keeps only the reel section live.
-Since it: `reel-migration` merged at `de355bd1` (gate 146), its expand applied on Will's yes (2026-09-24) and the types
-regenerated at `7f4b5b45`; `clocks-and-counts` merged at `4c70fd4e` (gate 147). The alias still serves build 4.
+The morning of 2026-09-24 (Will's words drive all of it; the plan file's head, "The lean Library", is approved):
+the docs lean, the bible to ten principles (his Rising Tides writeup inside it), the Library to three parts.
+Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/`
+(`specs/`, `docs-sharpen/`, `bible-ten/`).
 
-**Will's standing approvals:** pushes to `launch-prep` and anything around branching; he tests by click whenever asked. A
-milestone and a destructive migration each still need his yes.
-
-1. **The scale probe stays** as a standing large-album fixture (event "Scale probe" `14bb4318-80cd-4eed-b219-92c097ee16c7`,
-   qr `d02631f1bfb3455188d224e41bf9510f`; 1,145 approved, 20 pending, 30 host-removed, 5 withdrawn; Review ON since the
-   red-team). Its removed rows purge on 2026-10-23.
-2. **Desk review batch 1** (2026-09-24; the plan file's head): the three lab lanes and `media-viewer-wiring` merged
-   (gates 148 to 151); build 5 (`[preview]`) carries them for his next sitting.
-   `reel-guest-wiring` waits handed off, unmerged, until the cut and host lanes are ready: one alias build replaces the
-   stored reel. The drop (`20260924110000_live_reel_drop.sql`, on the tree, unapplied) follows that build's red-team,
-   on his yes (destructive).
-3. **The event-safety wiring**, after his review of that board (his three answers; ROADMAP's event-safety line).
+1. **Integrate `docs-sharpen`** when it hands off: review its cut table; apply its scratch copies
+   `docs-sharpen/CLAUDE.md` and `docs-sharpen/PROGRAM.md` (the two are never lane-owned).
+2. **Integrate `bible-ten`**: apply its listed citation lines in CLAUDE.md and PROGRAM.md; send `reel-guest-wiring` its
+   eight guest-file lines; return the released claims (bible.ts, bible.test.ts, globals.css, theme.css, marketing.css,
+   registry.ts, boards.ts) to this file's `owns`.
+3. **Cut `library-lean`** (Opus) from `specs/library-lean-brief.md`: the Library as brand kit, catalog and the ten; the
+   rules machinery retired; the look tests deleted (Will's answer); the recipe proved by a fresh agent. Apply its
+   CLAUDE.md, PROGRAM.md and `package.json` lines at the merge. Then a `[preview]` for Will.
+4. **A root `kit/` folder** (Will, 2026-09-24): a hand-off brand kit for outside agents, kept current by the
+   Orchestrator, which Will copies for outside work (an intro video agent went off brand and asked for: logo files as SVG
+   and transparent PNG incl. a dark-background version; the font families and weights for headlines, body and buttons;
+   hex values for background, text, accent and button fill; desktop captures of the hero, the live album demo and the
+   pricing section). A short README that points to partyreel.com and gives the essentials, broad enough for any
+   Partyreel task. No duplicate media in git (marketing photos stay where they are; placeholders today; a CDN later).
+   A small lane (Sonnet); a root folder's owns are its paths (`kit/README.md`, `kit/logo/`, `kit/screens/`).
+5. **The systems-docs pass** under the same guideline (`design-system.md`, `marketing-content.md` first).
+6. **The reel round**, after Will's desk review on build 5 (the plan file's batch-1 and reel sections).
 
 ## Waiting on Will
 
