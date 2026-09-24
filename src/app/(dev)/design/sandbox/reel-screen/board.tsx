@@ -12,6 +12,8 @@ import {
   IdleSeats,
   IdleStills,
   IdleWelcome,
+  type SoundId,
+  SoundScreen,
   StartCountdown,
   StartFrame,
   StartPlain,
@@ -24,7 +26,7 @@ import { type ScreenId, screenOf, Wall } from "./wall";
 /**
  * THE PREVIEWS, AND NOTHING ELSE.
  *
- * ★ EVERY SCREEN IS THE VIEW. Both questions are states of the one full-screen
+ * ★ EVERY SCREEN IS THE VIEW. Every question is a state of the one full-screen
  * view on a television, drawn with the view's own code plate in its corner, so
  * each option is judged on a screen that can really exist rather than on a
  * mode of its own.
@@ -147,6 +149,41 @@ function startScene(id: StartId, s: BoardState) {
   );
 }
 
+/* ── sound: whether the screen ever plays a video's own sound ──────────── */
+
+const measureSound: Reader = (root) => {
+  const dock = root.querySelector("[data-rsc-dock]");
+  if (!dock) return null;
+  const n = dock.querySelectorAll("[data-rsc-control]").length;
+  const s =
+    root.querySelector<HTMLElement>("[data-rsc-sound]")?.dataset.rscSound;
+  const tip = (
+    root.querySelector<HTMLElement>("[data-rsc-tip]")?.innerText ?? ""
+  ).trim();
+  const sound =
+    s === "on"
+      ? `a speaker, on from the Start press ("${tip}")`
+      : s === "off"
+        ? `a speaker, off until pressed ("${tip}")`
+        : "no speaker, so every video moment plays muted";
+  return `Measured: the dock carries ${n} controls; ${sound}.`;
+};
+
+function soundScene(id: SoundId, s: BoardState) {
+  return (
+    <Wall
+      id={`sound-${id}`}
+      screen={screen(s)}
+      title="Sound on the screen"
+      measure={measureSound}
+    >
+      <WallRoot>
+        <SoundScreen sound={id} />
+      </WallRoot>
+    </Wall>
+  );
+}
+
 /* ── the map the step draws from ─────────────────────────────────────────── */
 
 const PREVIEWS: PreviewsFor<typeof REEL_SCREEN> = {
@@ -160,6 +197,10 @@ const PREVIEWS: PreviewsFor<typeof REEL_SCREEN> = {
   "start.button": (s) => startScene("button", s),
   "start.countdown": (s) => startScene("countdown", s),
   "start.window": (s) => startScene("window", s),
+
+  "sound.silent": (s) => soundScene("silent", s),
+  "sound.off": (s) => soundScene("off", s),
+  "sound.on": (s) => soundScene("on", s),
 };
 
 export function ReelScreenBoard() {

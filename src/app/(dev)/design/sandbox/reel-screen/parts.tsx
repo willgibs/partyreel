@@ -1,7 +1,20 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Maximize, Play, Plus } from "lucide-react";
+import {
+  ImagePlus,
+  Maximize,
+  Palette,
+  Pause,
+  Play,
+  Plus,
+  QrCode,
+  Timer,
+  Video,
+  Volume2,
+  VolumeX,
+  Wand2,
+} from "lucide-react";
 
 import { StyledQr } from "@/components/app/styled-qr";
 import { GLASS } from "@/lib/glass";
@@ -89,7 +102,13 @@ function Code({ width }: { width: string }) {
   );
 }
 
-/** The view's code plate: bottom right, the ask and the address beside it. */
+/**
+ * The view's code plate: bottom right, the ask and the address beside it, at
+ * the proportions the guest build's screen posture draws it (the ask a fiftieth
+ * of the screen's width, the address an eightieth), so every option here is
+ * judged beside the corner the room will really see, and the raised dock in the
+ * middle of the foot never runs into its words.
+ */
 export function CornerCode() {
   return (
     <div
@@ -99,7 +118,7 @@ export function CornerCode() {
       <div className="text-right">
         <p
           className={cn(
-            "font-heading text-section leading-none font-medium text-white",
+            "font-heading text-[2vw] leading-none font-medium text-white",
             INK,
           )}
         >
@@ -107,7 +126,7 @@ export function CornerCode() {
         </p>
         <p
           className={cn(
-            "mt-[0.4vw] text-prose text-white/75 tabular-nums",
+            "mt-[0.4vw] text-[1.25vw] text-white/75 tabular-nums",
             INK,
           )}
         >
@@ -416,6 +435,126 @@ export function StartWindow() {
         </span>
       </div>
       <RestBar />
+      <CornerCode />
+    </div>
+  );
+}
+
+/* ── sound on the screen ─────────────────────────────────────────────────── */
+
+export type SoundId = "silent" | "off" | "on";
+
+/**
+ * THE VIEW'S DOCK, RAISED, AT A TELEVISION'S SCALE: the one row of icons with
+ * Make your own beneath, as the view draws it when the host's pointer moves on
+ * the laptop driving the screen. `sound` adds the one control the question is
+ * about, at the row's end, with its tooltip open.
+ *
+ * ★ EVERY LENGTH IS A SHARE OF THE SCREEN, the same as the corner code's, so
+ * the 1920 television on the knob is this dock larger rather than a new one.
+ *
+ * ★ THE TOOLTIP IS THE PRODUCT'S OWN FACE ON A DARK ROOT (the inverted ink the
+ * view's tooltips wear), because the view is a cinema in both themes.
+ */
+const DOCK_ICON =
+  "flex size-[2.9vw] items-center justify-center rounded-full text-white/90 [&_svg]:size-[1.3vw]";
+
+function DockIcon({
+  label,
+  on,
+  children,
+}: {
+  label: string;
+  on?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <span
+      role="img"
+      aria-label={label}
+      data-rsc-control={label}
+      className={cn(DOCK_ICON, on && "bg-white/20 text-white")}
+    >
+      {children}
+    </span>
+  );
+}
+
+function ScreenDock({ sound }: { sound: SoundId }) {
+  return (
+    <div
+      data-rsc-dock=""
+      className="absolute bottom-[var(--pad)] left-1/2 flex -translate-x-1/2 flex-col items-center gap-[0.9vw]"
+    >
+      <div className="relative">
+        {sound !== "silent" ? (
+          <span
+            data-rsc-tip=""
+            className="pointer-events-none absolute right-0 bottom-full mb-[0.7vw] rounded-float bg-white px-[0.9vw] py-[0.45vw] text-[0.95vw] whitespace-nowrap text-black"
+          >
+            {sound === "on" ? "Mute the videos" : "Play the videos' sound"}
+          </span>
+        ) : null}
+        <div
+          className={cn(
+            "flex items-center gap-[0.3vw] rounded-full p-[0.45vw]",
+            GLASS,
+          )}
+        >
+          <DockIcon label="Pause">
+            <Pause aria-hidden />
+          </DockIcon>
+          <DockIcon label="Include videos" on>
+            <Video aria-hidden />
+          </DockIcon>
+          <DockIcon label="Style">
+            <Palette aria-hidden />
+          </DockIcon>
+          <span
+            role="img"
+            aria-label="Hold, 3 seconds"
+            data-rsc-control="Hold"
+            className="flex h-[2.9vw] items-center gap-[0.5vw] rounded-full px-[0.9vw] text-[1vw] font-medium text-white/90 tabular-nums"
+          >
+            <Timer className="size-[1.2vw]" aria-hidden />3 s
+          </span>
+          <DockIcon label="Show the code" on>
+            <QrCode aria-hidden />
+          </DockIcon>
+          <DockIcon label="Add yours">
+            <ImagePlus aria-hidden />
+          </DockIcon>
+          {sound !== "silent" ? (
+            <span data-rsc-sound={sound} className="flex">
+              <DockIcon label="Sound" on={sound === "on"}>
+                {sound === "on" ? (
+                  <Volume2 aria-hidden />
+                ) : (
+                  <VolumeX aria-hidden />
+                )}
+              </DockIcon>
+            </span>
+          ) : null}
+        </div>
+      </div>
+      <span className="flex items-center gap-[0.6vw] rounded-full bg-white px-[1.6vw] py-[0.8vw] text-[1.05vw] font-medium text-black">
+        <Wand2 className="size-[1.1vw]" aria-hidden />
+        Make your own
+      </span>
+    </div>
+  );
+}
+
+/**
+ * `sound=*`: the screen mid-reel with the dock raised. The three options move
+ * only the speaker: none, off until pressed, or on from the Start press.
+ */
+export function SoundScreen({ sound }: { sound: SoundId }) {
+  return (
+    <div data-rsc-sound-screen={sound} className="absolute inset-0">
+      <ScreenStill id="first" label="The reel, playing" />
+      <BottomScrim />
+      <ScreenDock sound={sound} />
       <CornerCode />
     </div>
   );

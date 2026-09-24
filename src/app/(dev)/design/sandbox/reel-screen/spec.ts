@@ -9,8 +9,10 @@ import { defineExploration } from "@/components/lab/exploration";
  * event's code on and one press that takes fullscreen. The questions a hand and
  * a screen share (how an arrival is announced, how long a photograph holds) are
  * the view's, and where the host's door sits and what a waiting queue says are
- * the host's (reel-host). Two are left that only a big screen asks: what it
- * shows before the reel starts, and what the host presses to start it.
+ * the host's (reel-host). Three are left that only a big screen asks: what it
+ * shows before the reel starts, what the host presses to start it, and whether
+ * it ever makes a sound (a video moment carries sound the reel does not play,
+ * and a room hears whatever a screen plays, over its own music).
  *
  * ★ WHAT EVERY DRAWING STANDS ON, AND WHY IT IS GROUND RATHER THAN A FENCE. The
  * picks already made are drawn as the surface is: the code in its corner while
@@ -52,10 +54,10 @@ export const REEL_SCREEN = defineExploration({
     n: 2,
     date: "2026-09-24",
     changed:
-      "Refreshed: before it starts gains a title card with the event's name and two seats that count to the reel, each trying an earlier pick on the empty screen's own case; the Start plate gains a way in with no plate at all.",
+      "Refreshed: before it starts gains a title card with the event's name and two seats that count to the reel, each trying an earlier pick on the empty screen's own case; the Start plate gains a way in with no plate at all; a new ask, whether the screen ever plays a video's sound.",
   },
   context:
-    "Play on a screen opens the reel's own full-screen view on the venue's television: the code in its corner, no name over the reel, the viewer's hold. Two decisions only a big screen asks: what it shows before the reel starts at the second photo, and what the host presses to start it. Drawn at 1440 by 810 with a real 1920 on the knob; every reel frame is the real engine's.",
+    "Play on a screen opens the reel's own full-screen view on the venue's television: the code in its corner, no name over the reel, the viewer's hold. Three decisions only a big screen asks: what it shows before the reel starts at the second photo, what the host presses to start it, and whether it ever makes a sound. Drawn at 1440 by 810 with a real 1920 on the knob; every reel frame is the real engine's.",
   carried: [
     {
       id: "plate-code",
@@ -170,6 +172,42 @@ export const REEL_SCREEN = defineExploration({
         "If a reel should never play inside the browser's own bars on a television, the first frame behind a play mark holds it until the press.",
       lands:
         "The first thing anyone sees of Play on a screen, and what the wall does when fullscreen is lost.",
+      configs: [SCREEN],
+    },
+    {
+      id: "sound",
+      label: "Sound on the screen",
+      question:
+        "Should the reel on a big screen ever play its video moments' own sound?",
+      context:
+        "Include videos plays a window of each video, and the reel decodes pictures only, so the screen is silent. A browser plays sound only after a press in the tab, which the host's Start already is, and the room usually has its own music.",
+      options: [
+        {
+          id: "silent",
+          label: "Silent, as built",
+          means:
+            "The screen never makes a sound: video moments play muted, the dock has no speaker, and the room keeps its own music.",
+        },
+        {
+          id: "off",
+          label: "A speaker in the dock, off to start",
+          means:
+            "A video moment can play its own sound once the host presses the speaker: a toast heard again in a quiet half hour, never a surprise in a loud one.",
+        },
+        {
+          id: "on",
+          label: "Sound on with the Start press",
+          means:
+            "The press that fills the screen also turns the moments' sound on, and the dock's speaker mutes it. A toast is heard the moment it plays.",
+        },
+      ],
+      recommended: "silent",
+      because:
+        "Silence is what the reel already is, it costs no audio path to build, and it never fights the DJ; a toast worth hearing again is one tap away in the album's viewer, where its sound already plays.",
+      overrule:
+        "If a screen's quiet half hour should hear its toasts again, a speaker off until the host presses it adds that without surprising the room.",
+      lands:
+        "Whether a big screen ever makes a sound, and whether the reel grows an audio path at all.",
       configs: [SCREEN],
     },
   ],

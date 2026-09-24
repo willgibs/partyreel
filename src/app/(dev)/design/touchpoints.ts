@@ -145,18 +145,19 @@ export const RULINGS: Ruling[] = [
     id: "reel-screen",
     title: "The reel on a big screen",
     surface: "guest",
-    asks: "the live reel on a venue's screen: what it shows before the reel starts at the second photo, and what the host presses to start it",
-    why: "Play on a screen puts the reel's own view on a television, and two questions only a big screen asks are left: the empty screen and the press.",
+    asks: "the live reel on a venue's screen: what it shows before the reel starts at the second photo, what the host presses to start it, and whether it ever plays a video's sound",
+    why: "Play on a screen puts the reel's own view on a television, and three questions only a big screen asks are left: the empty screen, the press, the sound.",
     lives: [
       "docs/systems/guest-flow.md",
       "content/help/show-the-album-live-on-a-screen.mdx",
       "src/lib/reel/engine/player-live.tsx",
+      "src/lib/reel/engine/video/window-reader.ts",
       "src/components/app/styled-qr.tsx",
       "src/lib/qr/stock.ts",
     ],
     board: {
-      note: "Two decisions on a television at 1440 by 810 with a real 1920 on the knob, over Mia and Theo's wedding, every reel frame the real engine's: what the screen shows before the reel starts at the second photo, a title card and two seats among the options, and what the host presses to start it, or whether the reel waits for a press at all",
-      variants: ["Before it starts", "The Start plate"],
+      note: "Three decisions on a television at 1440 by 810 with a real 1920 on the knob, over Mia and Theo's wedding, every reel frame the real engine's: what the screen shows before the reel starts at the second photo, a title card and two seats among the options; what the host presses to start it, or whether the reel waits for a press at all; and whether the screen ever plays a video moment's own sound",
+      variants: ["Before it starts", "The Start plate", "Sound on the screen"],
     },
   },
   {
