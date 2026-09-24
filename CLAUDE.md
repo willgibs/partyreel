@@ -117,11 +117,11 @@ tooling. The lab's `?key=` is a light guard, not a secret (it may appear in a lo
 
 ## Keeping the docs healthy
 
-Everything here, in the Library and in the lab is guidance with its reason, never a mandate, a ruling or a law: when
-something better comes it changes in one edit, and a past decision is never a reason to leave something unimproved.
-Firm words are for what actually breaks (security, data, a real technical constraint). A doc carries only what a
-strong model cannot find or infer: no framework rule that current docs give, no design rule that production or the
-Library shows, no decision history. **Every fact has one home**, the doc whose question it answers, **edited in
+Docs are for what a strong model cannot find or infer: security practice, data handling, user safety, how the
+systems work, and their gotchas. Design and past decisions are guidance with their reason, never a law: nothing is
+treated as perfect, a past decision is never a reason to leave something unimproved, and a change is one edit in its
+one home. No framework rule that current docs give, no design rule that production or the Library shows, no decision
+history. **Every fact has one home**, the doc whose question it answers, **edited in
 place**: a new note, Will's included, is synthesized into the line it refines rather than quoted beside it; a stale
 line is deleted; what shipped lives in its merge commit; a deferred task is one ROADMAP line. Every added line dilutes
 the rest, so a one-off mistake is fixed and left in git, and only a recurring one earns a line or a tool's refusal. A
