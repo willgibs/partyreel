@@ -1,19 +1,28 @@
 // @contract-for: src/components/shared/unverified-mark.tsx
+// @contract-for: src/components/shared/media-lightbox.tsx
 /**
- * BEHAVIOR PINS for MediaLightbox (program Phase 2, slice 1). Freezes the
- * gesture physics + chrome contracts before Phase 4 splits the file: touch
- * gating, the 10px axis lock, edge damping + neighbor clamping, the
+ * BEHAVIOR PINS for MediaLightbox (program Phase 2, slice 1; reshaped by
+ * media-viewer r1, 2026-09-24). Freezes the gesture physics + chrome contracts:
+ * touch gating, the 10px axis lock, edge damping + neighbor clamping, the
  * velocity/distance commit thresholds, settle durations + the reduced-motion
- * instant path, keyboard nav, drag-click suppression, and the video
- * scrubber-strip swipe exception. Pins read transforms/attributes/callbacks -
- * never theme styles.
+ * instant path, keyboard nav, drag-click suppression. Pins read
+ * transforms/attributes/callbacks - never theme styles.
+ *
+ * ★ WHAT r1 CHANGED, DELIBERATELY, AND WHY (Will's rulings, each pin below says
+ * which): a tap on blank space CLOSES wherever it lands (`wayout=down`, "clicking
+ * on any blank space around the media should close"), so the 30% side zones that
+ * stepped through the album went and a tap on a PEEKING NEIGHBOUR steps instead
+ * (`next=peek`); a vertical move is the way out, no longer the browser's; the
+ * "i of N" counter went (the neighbours say there is more); the browser's video
+ * bar went, and with it the strip a playing clip reserved from the swipe (the
+ * scrubber is its own control now).
  *
  * Geometry comes from the global getBoundingClientRect mock (800x600, bottom
  * 600). Velocity needs CONTROLLED timestamps, so gestures are dispatched as
  * hand-built PointerEvents with a defineProperty'd timeStamp.
  */
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GridMedia } from "@/components/app/media-grid";
 // The mark's one label constant, read rather than retyped (Will, 2026-09-22
@@ -25,7 +34,7 @@ import { DeleteConsequence } from "@/lib/guest/delete-consequence";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
 import { setReducedMotion } from "../../../vitest.setup";
-import { MediaLightbox } from "./media-lightbox";
+import { MediaLightbox, type ViewerMedia } from "./media-lightbox";
 
 const PHOTOS: GridMedia[] = [
   {
@@ -64,6 +73,39 @@ function track(): HTMLElement {
   if (!el) throw new Error("track not mounted");
   return el as HTMLElement;
 }
+
+function content(): HTMLElement {
+  return document.querySelector("[data-lightbox-content]") as HTMLElement;
+}
+
+/** The centre photograph's zoom layer (the close-up and the pull down write here). */
+function centerZoom(): HTMLElement {
+  return document.querySelector(
+    "[data-lightbox-slot][data-current] [data-lightbox-zoom]",
+  ) as HTMLElement;
+}
+
+/** Each slot's media box, in track order: [prev, current, next]. */
+function mediaOf(): HTMLElement[] {
+  return [...track().children].map(
+    (slot) => slot.querySelector("[data-lightbox-media]") as HTMLElement,
+  );
+}
+
+/* jsdom implements no media playback: the clip's play and pause are spies, so
+   a pin reads what the viewer asked of the element. */
+const media = {
+  play: vi.fn(() => Promise.resolve()),
+  pause: vi.fn(),
+};
+Object.defineProperty(HTMLMediaElement.prototype, "play", {
+  configurable: true,
+  value: media.play,
+});
+Object.defineProperty(HTMLMediaElement.prototype, "pause", {
+  configurable: true,
+  value: media.pause,
+});
 
 /* timeStamp is read-only and jsdom ignores per-instance defineProperty, so the
    prototype getter is patched once with a WeakMap override - only events this
@@ -162,12 +204,16 @@ describe("MediaLightbox: gesture gating", () => {
     expect(track().dataset.dragging).toBeUndefined();
   });
 
-  it("a vertical move releases the gesture to the browser", () => {
+  // r1 (`wayout=down`): a vertical move used to be released to the browser; it
+  // is the way out now. The track still never moves on a vertical lock.
+  it("a vertical move locks to the way out, and the track never moves", () => {
     mount();
     firePointer(track(), "pointerdown", { x: 400, t: 0 });
     firePointer(track(), "pointermove", { x: 403, y: 340, t: 20 });
     expect(track().dataset.dragging).toBeUndefined();
-    // And a later horizontal move does nothing - the gesture is gone.
+    expect(content().hasAttribute("data-dismissing")).toBe(true);
+    expect(centerZoom().style.transform).toMatch(/translate3d\(0, 40px, 0\)/);
+    // And a later horizontal move never reaches the track: the gesture is locked.
     firePointer(track(), "pointermove", { x: 500, t: 40 });
     expect(track().style.transform).toBe("translateX(calc(-100% + 0px))");
   });
@@ -293,84 +339,162 @@ describe("MediaLightbox: chrome contracts", () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it("a clean CENTER-third tap on the letterbox closes the viewer", () => {
-    // Phase 4: side thirds NAVIGATE, only the center third closes (geometry
-    // from the 800px-wide getBoundingClientRect mock → 400 is dead center).
-    const { onClose, onIndexChange } = mount();
+  // r1 (`wayout=down`, Will: "clicking on any blank space around the media
+  // should close... Feels weird when I tap the empty space expecting a close").
+  // This pin used to close on the CENTER third only.
+  it("a tap on blank space closes the viewer, wherever it lands", () => {
+    for (const clientX of [80, 400, 720]) {
+      const { onClose, onIndexChange, unmount } = mount(PHOTOS, 1);
+      const centerSlot = track().children[1] as HTMLElement;
+      fireEvent.click(centerSlot, { clientX });
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(onIndexChange).not.toHaveBeenCalled();
+      unmount();
+    }
+  });
+
+  // r1: the LEFT- and RIGHT-third taps used to step to the neighbours, and a
+  // side tap at an edge was a no-op. The side zones went: blank is blank.
+  it("blank space beside the first photograph closes too: there is no side zone", () => {
+    const { onClose, onIndexChange } = mount(PHOTOS, 0);
     const centerSlot = track().children[1] as HTMLElement;
-    fireEvent.click(centerSlot, { clientX: 400 });
+    fireEvent.click(centerSlot, { clientX: 80 });
+    expect(onIndexChange).not.toHaveBeenCalled();
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  // r1 (`next=peek`): the sliver of a neighbour is the tap target now, and it
+  // slides there the way a swipe would (the settle, then the swap).
+  it("a tap on a peeking neighbour steps to it, and never closes", () => {
+    const { onClose, onIndexChange } = mount(PHOTOS, 1);
+    const [prev, , next] = mediaOf();
+    fireEvent.click(next);
+    expect(track().style.getPropertyValue("--lightbox-settle")).toBe("240ms");
+    fireEvent.transitionEnd(track(), { propertyName: "transform" });
+    expect(onIndexChange).toHaveBeenLastCalledWith(2);
+    fireEvent.click(prev);
+    fireEvent.transitionEnd(track(), { propertyName: "transform" });
+    expect(onIndexChange).toHaveBeenLastCalledWith(0);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("a tap on the photograph itself neither closes nor steps", () => {
+    const { onClose, onIndexChange } = mount(PHOTOS, 1);
+    fireEvent.click(mediaOf()[1]);
+    expect(onClose).not.toHaveBeenCalled();
     expect(onIndexChange).not.toHaveBeenCalled();
   });
 
-  it("a LEFT-third letterbox tap steps to the previous item (no close)", () => {
-    const { onClose, onIndexChange } = mount(PHOTOS, 1);
-    const centerSlot = track().children[1] as HTMLElement;
-    fireEvent.click(centerSlot, { clientX: 80 }); // 0.1 → left third
-    expect(onIndexChange).toHaveBeenCalledWith(0);
-    expect(onClose).not.toHaveBeenCalled();
-  });
-
-  it("a RIGHT-third letterbox tap steps to the next item (no close)", () => {
-    const { onClose, onIndexChange } = mount(PHOTOS, 1);
-    const centerSlot = track().children[1] as HTMLElement;
-    fireEvent.click(centerSlot, { clientX: 720 }); // 0.9 → right third
-    expect(onIndexChange).toHaveBeenCalledWith(2);
-    expect(onClose).not.toHaveBeenCalled();
-  });
-
-  it("a side tap at an edge is a NO-OP (never an accidental close)", () => {
-    const { onClose, onIndexChange } = mount(PHOTOS, 0); // no prev
-    const centerSlot = track().children[1] as HTMLElement;
-    fireEvent.click(centerSlot, { clientX: 80 }); // left third, but at item 0
-    expect(onIndexChange).not.toHaveBeenCalled();
-    expect(onClose).not.toHaveBeenCalled();
-  });
-
-  it("the position counter reflects the controlled index (pill format)", () => {
+  // ◇ r1: the "i of N" counter went (the neighbours say there is more). The
+  // position survives as the dialog's accessible name, for a screen reader.
+  it("draws no counter; the dialog's name still says where it is", () => {
     mount(PHOTOS, 1);
-    expect(screen.getByText(/2 of 3/)).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Photo 2 of 3" })).toBeTruthy();
+    const title = screen.getByText("Photo 2 of 3");
+    expect(title).toHaveClass("sr-only");
+    expect(screen.queryAllByText(/\b2 of 3\b/)).toHaveLength(1);
   });
 });
 
 describe("MediaLightbox: video behavior", () => {
-  it("a drag starting in a PLAYING video's scrubber strip never swipes", () => {
+  // r1 (`video=auto`): the browser's bar is gone, and with it the 64px strip a
+  // PLAYING clip used to reserve from the swipe. The scrubber is its own
+  // control outside the track, so a drag on it seeks and never swipes...
+  it("the scrubber is its own control: a drag on it seeks and never swipes", () => {
     const { onIndexChange } = mount(WITH_VIDEO, 1);
     const video = document.querySelector(
       "video[data-center-media]",
     ) as HTMLVideoElement;
-    fireEvent.play(video); // isPlayingRef -> true
-
-    // bottom 600, strip = 64px -> y 580 is inside the reserved band.
-    firePointer(track(), "pointerdown", { x: 500, y: 580, t: 0 });
-    firePointer(track(), "pointermove", { x: 300, y: 580, t: 50 });
+    Object.defineProperty(video, "duration", { value: 10, configurable: true });
+    fireEvent.loadedMetadata(video);
+    const scrubber = screen.getByRole("slider", { name: "Seek" });
+    expect(track().contains(scrubber)).toBe(false);
+    firePointer(scrubber, "pointerdown", { x: 600, t: 0 });
+    firePointer(scrubber, "pointermove", { x: 300, t: 50 });
+    firePointer(scrubber, "pointerup", { x: 300, t: 100 });
     expect(track().dataset.dragging).toBeUndefined();
-    firePointer(track(), "pointerup", { x: 300, y: 580, t: 100 });
-    fireEvent.transitionEnd(track(), { propertyName: "transform" });
     expect(onIndexChange).not.toHaveBeenCalled();
+    // 300 of the (mocked) 800px bar = 3.75 of 10 seconds.
+    expect(video.currentTime).toBeCloseTo(3.75, 2);
   });
 
-  it("the same drag swipes once the video is PAUSED", () => {
-    const { onIndexChange } = mount(WITH_VIDEO, 1);
+  // ...and a drag on the clip itself swipes, whether it plays or not.
+  it("a drag on the clip swipes, playing or paused", () => {
+    for (const playing of [true, false]) {
+      const { onIndexChange, unmount } = mount(WITH_VIDEO, 1);
+      const video = document.querySelector(
+        "video[data-center-media]",
+      ) as HTMLVideoElement;
+      fireEvent.play(video);
+      if (!playing) fireEvent.pause(video);
+      firePointer(track(), "pointerdown", { x: 500, y: 580, t: 0 });
+      firePointer(track(), "pointermove", { x: 300, y: 580, t: 50 });
+      expect(track().dataset.dragging).toBe("true");
+      firePointer(track(), "pointerup", { x: 300, y: 580, t: 100 });
+      fireEvent.transitionEnd(track(), { propertyName: "transform" });
+      expect(onIndexChange).toHaveBeenCalledWith(2);
+      unmount();
+    }
+  });
+
+  it("plays muted and looping the moment it is on screen, and stops when the viewer moves on", () => {
+    const { rerender } = mount(WITH_VIDEO, 1);
     const video = document.querySelector(
       "video[data-center-media]",
     ) as HTMLVideoElement;
-    fireEvent.play(video);
-    fireEvent.pause(video);
-
-    firePointer(track(), "pointerdown", { x: 500, y: 580, t: 0 });
-    firePointer(track(), "pointermove", { x: 300, y: 580, t: 50 });
-    expect(track().dataset.dragging).toBe("true");
-    firePointer(track(), "pointerup", { x: 300, y: 580, t: 100 });
-    fireEvent.transitionEnd(track(), { propertyName: "transform" });
-    expect(onIndexChange).toHaveBeenCalledWith(2);
+    expect(media.play).toHaveBeenCalled();
+    expect(video.muted).toBe(true);
+    expect(video.loop).toBe(true);
+    media.pause.mockClear();
+    rerender(
+      <TooltipProvider>
+        <MediaLightbox
+          items={WITH_VIDEO}
+          index={2}
+          onClose={() => {}}
+          onIndexChange={() => {}}
+        />
+      </TooltipProvider>,
+    );
+    expect(media.pause).toHaveBeenCalled();
   });
 
-  // NOT PINNED HERE: "navigating away pauses the center video". The [index]
-  // effect's captured ref resolves null under jsdom's portal/commit timing
-  // (probed 2026-06-11), so the pin would test the harness, not the browser.
-  // Covered by the live device pass instead (play a video, swipe past it,
-  // confirm audio stops) - see the Phase 2 verification checklist.
+  it("under reduced motion it waits for Play", () => {
+    setReducedMotion(true);
+    mount(WITH_VIDEO, 1);
+    expect(media.play).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+  });
+
+  it("keeps its sound in the capsule, one tap away, out of the credit's corner", () => {
+    mount([{ ...WITH_VIDEO[1], uploaderName: "Priya" }], 0);
+    const capsule = document.querySelector(
+      "[data-lightbox-capsule]",
+    ) as HTMLElement;
+    const sound = within(capsule).getByRole("button", {
+      name: "Turn sound on",
+    });
+    const credit = document.querySelector("[data-lightbox-credit]")!;
+    expect(credit.contains(sound)).toBe(false);
+    fireEvent.click(sound);
+    const video = document.querySelector(
+      "video[data-center-media]",
+    ) as HTMLVideoElement;
+    expect(video.muted).toBe(false);
+  });
+
+  it("opened from the reel, it carries on from the reel's moment", () => {
+    mount(WITH_VIDEO, 1, { startAt: 2.4 });
+    const video = document.querySelector(
+      "video[data-center-media]",
+    ) as HTMLVideoElement;
+    Object.defineProperty(video, "readyState", {
+      value: 1,
+      configurable: true,
+    });
+    fireEvent.loadedMetadata(video);
+    expect(video.currentTime).toBeCloseTo(2.4, 5);
+  });
 });
 
 // 3c.2: the host curate group is gated by viewerIsHost && onSetStatus, so the
@@ -496,7 +620,9 @@ describe("the uploader's own delete says what it does", () => {
     const onDeleteCurrent = vi.fn();
     render(
       <TooltipProvider>
-        <DeleteConsequence.Provider value={consequence ? () => consequence : null}>
+        <DeleteConsequence.Provider
+          value={consequence ? () => consequence : null}
+        >
           <MediaLightbox
             items={[item]}
             index={0}
@@ -528,7 +654,8 @@ describe("the uploader's own delete says what it does", () => {
   });
 
   it("the album's consequence line still follows the final sentence", () => {
-    const line = "This is your last upload here, so the album closes until you add another.";
+    const line =
+      "This is your last upload here, so the album closes until you add another.";
     const { dialog } = openOwnDelete(PHOTOS[0], line);
     expect(dialog.textContent).toContain(line);
     expect(dialog.textContent).not.toContain(WINDOW);
@@ -568,14 +695,16 @@ describe("the lightbox's ground is separate from the photograph", () => {
     for (const el of media) expect(ground!.contains(el)).toBe(false);
   });
 
-  it("wears the ONE material on the pill, the capsule and the close", () => {
+  // r1 moved the credit to the top (`who=face`); it is still one of the three
+  // panes a finger's width apart, and a clip adds its transport as a fourth.
+  it("wears the ONE material on the credit, the capsule and the close", () => {
     // `grades=one` (Will, 2026-09-20): "This feels more consistent across
     // surfaces that are close to each other, else it looks weird they're
     // different." Three surfaces a finger's width apart, one class between them.
     render(
       <TooltipProvider>
         <MediaLightbox
-          items={PHOTOS}
+          items={[{ ...PHOTOS[0], uploaderName: "Priya" }]}
           index={0}
           onClose={() => {}}
           onIndexChange={() => {}}
@@ -583,7 +712,7 @@ describe("the lightbox's ground is separate from the photograph", () => {
       </TooltipProvider>,
     );
     const panes = document.querySelectorAll(".glass");
-    // The action pill, the attribution capsule and the close button.
+    // The face-led credit, the action capsule and the close button.
     expect(panes.length).toBe(3);
     for (const pane of panes) {
       // A second recipe is the drift the round retired: no surface may reach
@@ -612,9 +741,7 @@ describe("MediaLightbox: the uploader's credit", () => {
   it("a confirmed name stands plain, with no mark", () => {
     mount(credited({ uploaderName: "Priya", isVerified: true }), 0);
     expect(screen.getByText("Priya")).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: UNVERIFIED_LABEL }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: UNVERIFIED_LABEL })).toBeNull();
   });
 
   it("a name nobody proved is named AND marked", () => {
@@ -625,18 +752,20 @@ describe("MediaLightbox: the uploader's credit", () => {
     ).toBeInTheDocument();
   });
 
-  it("a row with no name names nobody: no stand-in, no mark, the counter alone", () => {
+  // r1: the counter went, so a nameless row now shows no credit at all.
+  it("a row with no name names nobody: no credit, no stand-in, no mark", () => {
     mount(credited({ uploaderName: null, isVerified: false }), 0);
     expect(screen.queryByText(/a guest/i)).toBeNull();
-    expect(
-      screen.queryByRole("button", { name: UNVERIFIED_LABEL }),
-    ).toBeNull();
-    expect(screen.getByText("1 of 1")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: UNVERIFIED_LABEL })).toBeNull();
+    expect(document.querySelector("[data-lightbox-credit]")).toBeNull();
   });
 
   it("the mark offers the way out on the viewer's OWN upload only", () => {
     // Somebody else's: the explanation, and no action.
-    const others = mount(credited({ uploaderName: "Sam", isVerified: false }), 0);
+    const others = mount(
+      credited({ uploaderName: "Sam", isVerified: false }),
+      0,
+    );
     fireEvent.click(screen.getByRole("button", { name: UNVERIFIED_LABEL }));
     expect(
       screen.queryByRole("button", { name: /confirm your email/i }),
@@ -657,8 +786,505 @@ describe("MediaLightbox: the uploader's credit", () => {
   it("says nothing about proof it was never given: an item with no flag is plain", () => {
     mount(credited({ uploaderName: "Priya" }), 0);
     expect(screen.getByText("Priya")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: UNVERIFIED_LABEL })).toBeNull();
+  });
+});
+
+/**
+ * THE FACE-LED CREDIT (`who=face`, r1). Top left, in the guest list's grammar:
+ * a disc and the name, the mark on a name nobody proved, "You" on your own
+ * upload, the proved address for the host, and a door only where a page exists.
+ */
+describe("MediaLightbox: the face-led credit (r1)", () => {
+  const one = (extra: Partial<ViewerMedia>): ViewerMedia[] => [
+    { ...PHOTOS[0], ...extra },
+  ];
+
+  it("leads with a disc and the name, in its own pane at the top", () => {
+    mount(one({ uploaderName: "Leah", isVerified: true }), 0);
+    const credit = document.querySelector("[data-lightbox-credit]")!;
+    expect(credit).toHaveClass("glass");
+    expect(within(credit as HTMLElement).getByText("Leah")).toBeInTheDocument();
+    expect(within(credit as HTMLElement).getByText("L")).toBeInTheDocument();
+    // The credit is not the capsule: the actions stack apart from it.
+    const capsule = document.querySelector("[data-lightbox-capsule]")!;
+    expect(capsule.contains(credit)).toBe(false);
+  });
+
+  it("reads You on the viewer's own upload, and keeps the way out beside it", () => {
+    mount(one({ uploaderName: "Sam", isVerified: false }), 0, {
+      canDelete: () => true,
+    });
+    const credit = document.querySelector(
+      "[data-lightbox-credit]",
+    ) as HTMLElement;
+    expect(within(credit).getByText("You")).toBeInTheDocument();
+    expect(within(credit).queryByText("Sam")).toBeNull();
     expect(
-      screen.queryByRole("button", { name: UNVERIFIED_LABEL }),
-    ).toBeNull();
+      within(credit).getByRole("button", { name: UNVERIFIED_LABEL }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the host the proved address under the name, and marks the host's own", () => {
+    mount(
+      one({
+        uploaderName: "Leah",
+        isVerified: true,
+        uploaderEmail: "leah@example.com",
+      }),
+      0,
+      { viewerIsHost: true },
+    );
+    expect(screen.getByText("leah@example.com")).toBeInTheDocument();
+    mount(one({ uploaderName: "Maya", isHost: true, isVerified: true }), 0);
+    expect(screen.getAllByText("Host").length).toBeGreaterThan(0);
+  });
+
+  it("opens a door only where a page exists, and never behind a typed name", () => {
+    const face = { avatarUrl: null, seed: "s", href: "/u/leah" };
+    const confirmed = mount(
+      one({ uploaderName: "Leah", isVerified: true, uploaderFace: face }),
+      0,
+    );
+    const door = screen.getByRole("link", { name: "Leah" });
+    expect(door).toHaveAttribute("href", "/u/leah");
+    confirmed.unmount();
+
+    mount(
+      one({ uploaderName: "Priya", isVerified: false, uploaderFace: face }),
+      0,
+    );
+    expect(screen.queryByRole("link", { name: "Priya" })).toBeNull();
+    expect(screen.getByText("Priya")).toBeInTheDocument();
+  });
+
+  it("names the event instead on the personal feed, whose items name no uploader", () => {
+    mount(
+      one({
+        uploaderName: null,
+        eventName: "Maya & Jay",
+        eventDateLabel: "Jun 14",
+        eventQrToken: "tok",
+      }),
+      0,
+    );
+    const link = screen.getByRole("link", { name: "Maya & Jay · Jun 14" });
+    expect(link).toHaveAttribute("href", "/e/tok");
+  });
+});
+
+/**
+ * THE CAPSULE'S SHARE, COPY LINK AND SAVE (`link=file` and his notes, r1). The
+ * decision tree is lib/media/share-save.ts (tested there over mocked
+ * navigators); these pin the WIRING: which control shows where, what address a
+ * link carries, and that Share hands the sheet the file.
+ */
+describe("MediaLightbox: share, copy link and save (r1)", () => {
+  const ALBUM = "https://partyreel.com/e/tok";
+  const nav = navigator as unknown as Record<string, unknown>;
+  const saved: Record<string, PropertyDescriptor | undefined> = {};
+  const stub = (key: string, value: unknown) => {
+    if (!(key in saved))
+      saved[key] = Object.getOwnPropertyDescriptor(navigator, key);
+    Object.defineProperty(navigator, key, { configurable: true, value });
+  };
+  /** A Response stand-in from jsdom's own realm (undici's Response cannot read a jsdom Blob). */
+  const jpegResponse = () => ({
+    ok: true,
+    status: 200,
+    headers: new Headers({ "content-type": "image/jpeg" }),
+    blob: async () => new Blob(["jpeg"], { type: "image/jpeg" }),
+  });
+  afterEach(() => {
+    for (const [key, d] of Object.entries(saved)) {
+      if (d) Object.defineProperty(navigator, key, d);
+      else delete nav[key];
+      delete saved[key];
+    }
+    vi.unstubAllGlobals();
+  });
+
+  it("copies the PUBLIC album link that opens on this photograph, never the page's own address", async () => {
+    window.history.replaceState(null, "", "/dashboard/evt?view=album");
+    const writeText = vi.fn(async () => {});
+    stub("clipboard", { writeText });
+    mount(PHOTOS, 1, {
+      shareUrl: ALBUM,
+      viewerIsHost: true,
+      onSetStatus: vi.fn(),
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Copy link" }));
+    });
+    expect(writeText).toHaveBeenCalledWith(`${ALBUM}?photo=p2`);
+    window.history.replaceState(null, "", "/");
+  });
+
+  it("offers Copy link only on an approved photograph, and only with an album link", () => {
+    const pending = mount([{ ...PHOTOS[0], status: "pending" }], 0, {
+      shareUrl: ALBUM,
+    });
+    expect(screen.queryByRole("button", { name: "Copy link" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Share" })).toBeInTheDocument();
+    pending.unmount();
+    mount(PHOTOS, 0);
+    expect(screen.queryByRole("button", { name: "Copy link" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Share" })).toBeNull();
+  });
+
+  it("Share hands the system sheet the picture itself", async () => {
+    const share = vi.fn(async () => {});
+    stub("share", share);
+    stub("canShare", () => true);
+    stub("userActivation", { isActive: true });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => jpegResponse()),
+    );
+    mount(PHOTOS, 1, { shareUrl: ALBUM });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Share" }));
+    });
+    await vi.waitFor(() => expect(share).toHaveBeenCalled());
+    const sent = (share.mock.calls[0] as unknown as [ShareData])[0];
+    expect(sent.files?.[0]).toBeInstanceOf(File);
+    expect(sent.url).toBeUndefined();
+  });
+
+  it("turns Share into a one-tap Ready when the tap lapsed while the file loaded", async () => {
+    const share = vi.fn(async () => {});
+    stub("share", share);
+    stub("canShare", () => true);
+    stub("userActivation", { isActive: false });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => jpegResponse()),
+    );
+    mount(PHOTOS, 1, { shareUrl: ALBUM });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Share" }));
+    });
+    const ready = await screen.findByRole("button", {
+      name: "Ready to share. Tap to share.",
+    });
+    expect(share).not.toHaveBeenCalled();
+    stub("userActivation", { isActive: true });
+    await act(async () => {
+      fireEvent.click(ready);
+    });
+    expect(share).toHaveBeenCalledTimes(1);
+  });
+
+  it("saves with the plain download on a desk and on Android", () => {
+    mount(PHOTOS, 1);
+    const save = screen.getByRole("link", { name: "Save" });
+    expect(save).toHaveAttribute("href", "https://r2.test/d2.jpg");
+  });
+
+  it("offers Save to Photos first and the file second on iOS", async () => {
+    stub(
+      "userAgent",
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1",
+    );
+    mount(PHOTOS, 1);
+    const save = screen.getByRole("button", { name: "Save" });
+    // Radix's menu opens on the pointer going down.
+    fireEvent.pointerDown(save, {
+      button: 0,
+      ctrlKey: false,
+      pointerType: "mouse",
+    });
+    const items = await screen.findAllByRole("menuitem");
+    expect(items.map((i) => i.textContent)).toEqual([
+      "Save to Photos",
+      "Download file",
+    ]);
+    expect(items[1].closest("a") ?? items[1]).toHaveAttribute(
+      "href",
+      "https://r2.test/d2.jpg",
+    );
+  });
+});
+
+/**
+ * CLOSE UP (`closeup=pinch`, r1): two fingers scale in place up to three times,
+ * one finger pans while close (never a swipe), letting go under fit goes home.
+ */
+describe("MediaLightbox: the close-up (r1)", () => {
+  const SIZED: GridMedia[] = PHOTOS.map((p) => ({
+    ...p,
+    width: 3000,
+    height: 4000,
+  }));
+
+  function pinch(from: number, to: number) {
+    firePointer(track(), "pointerdown", {
+      x: 400 - from / 2,
+      y: 300,
+      t: 0,
+      id: 1,
+    });
+    firePointer(track(), "pointerdown", {
+      x: 400 + from / 2,
+      y: 300,
+      t: 0,
+      id: 2,
+    });
+    firePointer(track(), "pointermove", {
+      x: 400 - to / 2,
+      y: 300,
+      t: 30,
+      id: 1,
+    });
+    firePointer(track(), "pointermove", {
+      x: 400 + to / 2,
+      y: 300,
+      t: 30,
+      id: 2,
+    });
+  }
+
+  it("scales in place under two fingers, and the neighbours step aside", () => {
+    mount(SIZED, 1);
+    pinch(100, 250);
+    expect(centerZoom().style.transform).toMatch(/scale\(2\.5\)/);
+    expect(track().hasAttribute("data-quiet")).toBe(true);
+    expect(track().style.transform).toBe("translateX(calc(-100% + 0px))");
+  });
+
+  it("goes home when let go under fit", () => {
+    mount(SIZED, 1);
+    pinch(200, 100);
+    firePointer(track(), "pointerup", { x: 350, y: 300, t: 60, id: 1 });
+    firePointer(track(), "pointerup", { x: 450, y: 300, t: 60, id: 2 });
+    expect(centerZoom().style.transform).toBe("");
+    expect(track().hasAttribute("data-quiet")).toBe(false);
+  });
+
+  it("pans with one finger while close, and never swipes to the next photograph", () => {
+    const { onIndexChange } = mount(SIZED, 1);
+    pinch(100, 300);
+    firePointer(track(), "pointerup", { x: 250, y: 300, t: 60, id: 1 });
+    firePointer(track(), "pointerup", { x: 550, y: 300, t: 60, id: 2 });
+    const zoomed = centerZoom().style.transform;
+    expect(zoomed).toMatch(/scale\(3\)/);
+    firePointer(track(), "pointerdown", { x: 400, y: 300, t: 100, id: 3 });
+    firePointer(track(), "pointermove", { x: 340, y: 300, t: 120, id: 3 });
+    firePointer(track(), "pointermove", { x: 300, y: 300, t: 140, id: 3 });
+    expect(centerZoom().style.transform).not.toBe(zoomed);
+    firePointer(track(), "pointerup", { x: 300, y: 300, t: 160, id: 3 });
+    fireEvent.transitionEnd(track(), { propertyName: "transform" });
+    expect(onIndexChange).not.toHaveBeenCalled();
+    expect(track().style.transform).toBe("translateX(calc(-100% + 0px))");
+  });
+
+  it("zooms a clip never: two fingers on a video do nothing", () => {
+    mount(
+      WITH_VIDEO.map((m) => ({ ...m, width: 1920, height: 1080 })),
+      1,
+    );
+    pinch(100, 250);
+    expect(centerZoom().style.transform).toBe("");
+  });
+});
+
+/**
+ * THE WAY OUT BY HAND (`wayout=down`, r1): the photograph follows a finger down
+ * and leaves past the line or on a flick; a short pull comes back.
+ */
+describe("MediaLightbox: the pull down (r1)", () => {
+  it("leaves past the line", () => {
+    const { onClose } = mount(PHOTOS, 1);
+    firePointer(track(), "pointerdown", { x: 400, y: 100, t: 0 });
+    firePointer(track(), "pointermove", { x: 402, y: 160, t: 100 });
+    firePointer(track(), "pointermove", { x: 404, y: 300, t: 400 });
+    firePointer(track(), "pointerup", { x: 404, y: 300, t: 500 });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves on a flick, even a short one", () => {
+    const { onClose } = mount(PHOTOS, 1);
+    firePointer(track(), "pointerdown", { x: 400, y: 100, t: 0 });
+    firePointer(track(), "pointermove", { x: 400, y: 130, t: 20 });
+    firePointer(track(), "pointerup", { x: 400, y: 150, t: 60 });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("comes back from a short slow pull, and the chrome with it", () => {
+    const { onClose } = mount(PHOTOS, 1);
+    firePointer(track(), "pointerdown", { x: 400, y: 100, t: 0 });
+    firePointer(track(), "pointermove", { x: 400, y: 130, t: 200 });
+    expect(content().hasAttribute("data-dismissing")).toBe(true);
+    firePointer(track(), "pointerup", { x: 400, y: 140, t: 600 });
+    expect(onClose).not.toHaveBeenCalled();
+    expect(content().hasAttribute("data-dismissing")).toBe(false);
+    expect(centerZoom().style.transform).toBe("");
+  });
+
+  it("never eats the click after a pull: the trailing click does not close twice", () => {
+    const { onClose } = mount(PHOTOS, 1);
+    firePointer(track(), "pointerdown", { x: 400, y: 100, t: 0 });
+    firePointer(track(), "pointermove", { x: 400, y: 130, t: 200 });
+    firePointer(track(), "pointerup", { x: 400, y: 140, t: 600 });
+    fireEvent.click(track().children[1] as HTMLElement, { clientX: 400 });
+    expect(onClose).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * THE GROWING PHOTOGRAPH AND THE DROP (`opening=grow` and `wayout=down`, r1).
+ * jsdom has no Web Animations, so `animate` is a recorder: the pins read the
+ * frames the viewer asked for, never a rendered look.
+ */
+describe("MediaLightbox: grow out of the tile, drop back in (r1)", () => {
+  const SIZED: GridMedia[] = PHOTOS.map((p) => ({
+    ...p,
+    width: 3000,
+    height: 4000,
+  }));
+  const TILE = { left: 20, top: 400, width: 160, height: 120 };
+  type Call = {
+    el: Element;
+    frames: Keyframe[];
+    opts: KeyframeAnimationOptions;
+    anim: { onfinish: (() => void) | null; oncancel: (() => void) | null };
+  };
+  let calls: Call[] = [];
+
+  beforeEach(() => {
+    calls = [];
+    Object.defineProperty(Element.prototype, "animate", {
+      configurable: true,
+      value(this: Element, frames: Keyframe[], opts: KeyframeAnimationOptions) {
+        const anim = { onfinish: null, oncancel: null, cancel() {} };
+        calls.push({ el: this, frames, opts, anim });
+        return anim;
+      },
+    });
+    Object.defineProperty(Element.prototype, "getAnimations", {
+      configurable: true,
+      value: () => [],
+    });
+  });
+  afterEach(() => {
+    delete (Element.prototype as unknown as Record<string, unknown>).animate;
+    delete (Element.prototype as unknown as Record<string, unknown>)
+      .getAnimations;
+  });
+
+  it("grows out of the tile it was tapped on, the chrome waiting until it lands", async () => {
+    mount(SIZED, 1, { origin: { kind: "tile", rect: TILE } });
+    await act(async () => {});
+    const flight = calls.find((c) => c.el.hasAttribute("data-lightbox-media"));
+    expect(flight, "the photograph flies").toBeTruthy();
+    // It starts on the tile: shrunk toward it, clipped to its crop...
+    expect(String(flight!.frames[0].transform)).toMatch(/scale\(0\.\d+\)/);
+    expect(String(flight!.frames[0].clipPath)).toMatch(/^inset\(/);
+    // ...and ends at rest.
+    expect(flight!.frames[1].transform).toBe("translate(0px, 0px) scale(1)");
+    expect(flight!.opts.duration).toBeLessThan(300);
+    // The ground fades in step; the chrome is hidden until the landing.
+    expect(calls.some((c) => c.el.hasAttribute("data-lightbox-ground"))).toBe(
+      true,
+    );
+    const chrome = document.querySelector("[data-lightbox-chrome]")!;
+    expect(chrome.hasAttribute("data-hidden")).toBe(true);
+    await act(async () => {
+      flight!.anim.onfinish?.();
+    });
+    expect(chrome.hasAttribute("data-hidden")).toBe(false);
+  });
+
+  it("under reduced motion it fades as it always has: no flight", async () => {
+    setReducedMotion(true);
+    mount(SIZED, 1, { origin: { kind: "tile", rect: TILE } });
+    await act(async () => {});
+    expect(
+      calls.filter((c) => c.el.hasAttribute("data-lightbox-media")),
+    ).toHaveLength(0);
+    expect(
+      document
+        .querySelector("[data-lightbox-chrome]")!
+        .hasAttribute("data-hidden"),
+    ).toBe(false);
+  });
+
+  it("drops back into the tile of the photograph showing at close, then gives it focus", async () => {
+    const tile = document.createElement("div");
+    tile.innerHTML = `<button type="button">View photo</button>`;
+    document.body.appendChild(tile);
+    const returnTo = vi.fn(() => tile);
+    const { onClose } = mount(SIZED, 1, {
+      origin: { kind: "tile", rect: TILE, returnTo },
+    });
+    await act(async () => {});
+    const grow = calls.find((c) => c.el.hasAttribute("data-lightbox-media"))!;
+    await act(async () => {
+      grow.anim.onfinish?.();
+    });
+    calls = [];
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(returnTo).toHaveBeenCalledWith(SIZED[1]);
+    const drop = calls.find((c) => c.el.hasAttribute("data-lightbox-media"));
+    expect(drop, "the photograph drops").toBeTruthy();
+    expect(drop!.opts.fill).toBe("forwards");
+    expect(String(drop!.frames[1].clipPath)).toMatch(/^inset\(/);
+    expect(onClose).not.toHaveBeenCalled(); // not before it lands
+    await act(async () => {
+      drop!.anim.onfinish?.();
+    });
+    expect(onClose).toHaveBeenCalledTimes(1);
+    tile.remove();
+  });
+
+  it("with nowhere to land, it closes at once", async () => {
+    const { onClose } = mount(SIZED, 1, {
+      origin: { kind: "tile", rect: TILE, returnTo: () => null },
+    });
+    await act(async () => {});
+    const grow = calls.find((c) => c.el.hasAttribute("data-lightbox-media"))!;
+    await act(async () => {
+      grow.anim.onfinish?.();
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("opened from the address (no rect), it fades in and still returns", async () => {
+    mount(SIZED, 1, {
+      origin: { kind: "tile", rect: null, returnTo: () => null },
+    });
+    await act(async () => {});
+    expect(
+      calls.filter((c) => c.el.hasAttribute("data-lightbox-media")),
+    ).toHaveLength(0);
+  });
+});
+
+/**
+ * THE PEEK (`next=peek`, r1): a sliver of each neighbour at the edges, which
+ * the geometry module proves in numbers; here, that the viewer applies it.
+ */
+describe("MediaLightbox: the neighbours peek (r1)", () => {
+  it("stands each neighbour off toward the photograph, and holds the photograph at its place", () => {
+    const SIZED: GridMedia[] = PHOTOS.map((p) => ({
+      ...p,
+      width: 4000,
+      height: 3000,
+    }));
+    mount(SIZED, 1);
+    const [prev, current, next] = mediaOf();
+    const shift = (el: HTMLElement) =>
+      parseFloat(
+        el.style.transform.match(/translateX\((-?[\d.]+)px\)/)?.[1] ?? "0",
+      );
+    expect(shift(prev)).toBeGreaterThan(0);
+    expect(shift(next)).toBeLessThan(0);
+    expect(current.style.transform).toBe("");
+  });
+
+  it("stays today's full-width swipe when a photograph's size is unknown", () => {
+    mount(PHOTOS, 1);
+    for (const el of mediaOf()) expect(el.style.transform).toBe("");
   });
 });
