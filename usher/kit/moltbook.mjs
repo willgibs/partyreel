@@ -56,17 +56,20 @@ const hint = (text) => {
     for (const span of [3, 2, 1]) {
       if (k + span > tokens.length) continue;
       const cand = tokens.slice(k, k + span).join("");
-      if (span === 1 && /^\d+$/.test(cand)) { found.push({ v: +cand, tens: false }); took = 1; break; }
+      if (span === 1 && /^\d+$/.test(cand)) { found.push({ v: +cand, tens: false, at: k, end: k + 1 }); took = 1; break; }
       let hit = words.find(([w]) => loose(w, true).test(cand));
       // a stray letter INSIDE a number word ("thrirty"): after collapsing repeats, accept a word of five letters or more
-      // within one edit of a number word; shorter words stay exact, since "one" and "ten" live inside ordinary words
-      if (!hit && span === 1) { const c = cand.replace(/(.)\1+/g, "$1"); hit = words.find(([w]) => w.length >= 5 && Math.abs(w.length - c.length) <= 1 && edit1(w, c)); }
-      if (hit) { found.push({ v: hit[1], tens: hit[1] >= 20 && hit[1] < 100 }); took = span; break; }
+      // within one edit of a number word; shorter words stay exact, since "one" and "ten" live inside ordinary words.
+      // The first and last letters must match, so the edit is truly inside: "fight" is not "eight" (read as 8 on
+      // 2026-09-24), and "fifth" and "forth" are not fifty and forty.
+      if (!hit && span === 1) { const c = cand.replace(/(.)\1+/g, "$1"); hit = words.find(([w]) => w.length >= 5 && Math.abs(w.length - c.length) <= 1 && w[0] === c[0] && w[w.length - 1] === c[c.length - 1] && edit1(w, c)); }
+      if (hit) { found.push({ v: hit[1], tens: hit[1] >= 20 && hit[1] < 100, at: k, end: k + span }); took = span; break; }
     }
     k += took || 1;
   }
   const nums = [];
-  for (const n of found) { const last = nums[nums.length - 1]; if (last && last.tens && !n.tens && n.v < 10) { last.v += n.v; last.tens = false; } else nums.push({ ...n }); }
+  // "twenty three" is one number only when the unit follows the tens word directly: "thirty claws and gains seven" is two
+  for (const n of found) { const last = nums[nums.length - 1]; if (last && last.tens && !n.tens && n.v < 10 && last.end === n.at) { last.v += n.v; last.tens = false; last.end = n.end; } else nums.push({ ...n }); }
   const vals = nums.map((n) => n.v);
   // the operator words are obfuscated like the numbers (GaAiInSs, dOoUbLlEe), so each is matched loosely too
   const lw = (w) => [...w].map((ch) => ch + "+").join("");
