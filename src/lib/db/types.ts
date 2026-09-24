@@ -180,9 +180,11 @@ export type Database = {
           purge_at: string | null
           qr_style: string
           qr_token: string
+          reel_style_id: string | null
           require_upload_to_view: boolean
           require_verified_email: boolean
           show_guest_list: boolean
+          show_reel: boolean
           updated_at: string
           visibility: Database["public"]["Enums"]["event_visibility"]
         }
@@ -203,9 +205,11 @@ export type Database = {
           purge_at?: string | null
           qr_style?: string
           qr_token?: string
+          reel_style_id?: string | null
           require_upload_to_view?: boolean
           require_verified_email?: boolean
           show_guest_list?: boolean
+          show_reel?: boolean
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
         }
@@ -226,9 +230,11 @@ export type Database = {
           purge_at?: string | null
           qr_style?: string
           qr_token?: string
+          reel_style_id?: string | null
           require_upload_to_view?: boolean
           require_verified_email?: boolean
           show_guest_list?: boolean
+          show_reel?: boolean
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
         }
@@ -1354,6 +1360,7 @@ export type Database = {
           p_media_id: string
           p_original_key: string
           p_preview_key?: string
+          p_reel_eligible?: boolean
           p_session_token: string
           p_type: Database["public"]["Enums"]["media_type"]
           p_width?: number
@@ -1370,6 +1377,7 @@ export type Database = {
           p_media_id: string
           p_original_key: string
           p_preview_key?: string
+          p_reel_eligible?: boolean
           p_type: Database["public"]["Enums"]["media_type"]
           p_width?: number
         }
@@ -1401,8 +1409,10 @@ export type Database = {
           name: string
           qr_style: string
           qr_token: string
+          reel_style_id: string
           require_upload_to_view: boolean
           require_verified_email: boolean
+          show_reel: boolean
           visibility: Database["public"]["Enums"]["event_visibility"]
         }[]
       }
@@ -1427,6 +1437,7 @@ export type Database = {
           id: string
           original_key: string
           preview_key: string
+          reel_eligible: boolean
           type: Database["public"]["Enums"]["media_type"]
           width: number
         }[]
