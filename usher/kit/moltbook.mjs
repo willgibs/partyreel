@@ -78,7 +78,7 @@ const hint = (text) => {
   // the operator words are obfuscated like the numbers (GaAiInSs, dOoUbLlEe), so each is matched loosely too
   const lw = (w) => [...w].map((ch) => ch + "+").join("");
   const any = (ws) => new RegExp(ws.map(lw).join("|"));
-  const op = /\*/.test(plain) || any(["times", "each", "multipl", "doubl", "tripl", "twice"]).test(plain) || (!perUnit && /\bper\b/.test(plain)) ? "*" : any(["fewer", "less", "left", "remaining", "loses", "lost", "minus", "drops", "slows", "decreas", "reduc"]).test(plain) ? "-" : /\+/.test(plain) || any(["total", "combined", "gains", "adds", "plus", "altogether", "inall", "now", "sum", "together", "increas", "grows", "rises", "more", "accelerat", "speedsup", "faster"]).test(plain.replace(/ /g, "")) ? "+" : "?";
+  const op = /\*/.test(plain) || any(["times", "each", "multipl", "doubl", "tripl", "twice"]).test(plain) || (!perUnit && /\bper\b/.test(plain)) ? "*" : (any(["fewer", "less", "left", "remaining", "loses", "lost", "minus", "drops", "slows", "decreas", "reduc"]).test(plain) || /\bn+e+t+\b/.test(plain)) ? "-" : /\+/.test(plain) || any(["total", "combined", "gains", "adds", "plus", "altogether", "inall", "now", "sum", "together", "increas", "grows", "rises", "more", "accelerat", "speedsup", "faster"]).test(plain.replace(/ /g, "")) ? "+" : "?";
   const r = vals.length >= 2 && op !== "?" ? (op === "*" ? vals.reduce((a, b) => a * b, 1) : op === "-" ? vals[0] - vals.slice(1).reduce((a, b) => a + b, 0) : vals.reduce((a, b) => a + b, 0)) : null;
   return `numbers ${JSON.stringify(vals)} op ${op}${r === null ? " (decide by hand)" : ` = ${r}`}`;
 };
