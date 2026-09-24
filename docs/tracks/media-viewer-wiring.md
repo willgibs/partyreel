@@ -1,6 +1,6 @@
 ---
 track: media-viewer-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "74794b60"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -127,24 +127,88 @@ with the `Co-Authored-By` line naming the model you actually run on.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Every call taken is built; none blocks the merge. ◇ = the Orchestrator's call inside his answers, ● = mine.
+- ◇ The "i of N" counter went; the neighbours say there is more (a screen reader still hears "Photo 2 of 3" as the dialog's name). Recommended: keep.
+- ◇ On your own upload the credit reads "You", with no separate mark in the viewer (the Unverified mark stays beside "You": it is your way out). Recommended: keep.
+- ◇ A subtle filmstrip at a desk: 15 small frames at the foot, below the capsule, the current one lifted; only for a fine pointer on a window of 1024+. Recommended: keep.
+- ◇ The sound toggle lives in the capsule (first, behind a hairline). ● The alternative is the clip's transport row, where every player keeps it and where a photograph-to-clip swipe would not change the capsule's width. Recommended: keep the capsule (his note asked it out of the credit's corner; both do that).
+- ◇ The 30% side zones went: next and previous are the swipe, a tap on a sliver, the arrows, and at a desk hover chevrons and the filmstrip. Recommended: keep.
+- ◇ The file is fetched on the tap, never prefetched; a lapsed tap leaves a one-tap "Ready"; ● the cap is 100 MB (the product's own multipart line): over it, Share falls back to the link and Save to Photos to the plain download. Recommended: keep 100 MB.
+- ● Double-tap (and double-click) zooms 2.5x at the point and back, and a trackpad's pinch (ctrl+wheel) zooms on a desk, beside the ruled two-finger pinch; a clip never zooms. Recommended: keep.
+- ● A tap on a clip plays or pauses it; Space or K does too. Recommended: keep.
+- ● The pull down leaves past 14% of the screen's height or on a flick (0.35 px/ms past 24 px); the photograph shrinks to 0.75 and the ground thins as it goes. Recommended: keep, tune on his phone.
+- ● `?photo=` uses replaceState (his brief): the phone's Back leaves the album rather than closing the viewer. Recommended: keep for now; Back-closes-the-viewer (pushState) is a Deferred line.
+- ● An open photograph wears `--radius-tile` (4 px, bible 8) instead of `rounded-md`, so the flight keeps one corner from tile to rest. Recommended: keep.
+- ● A small old file is still never enlarged past its own pixels (the shipped rule), so the scale probe's 320 px stills sit small at 1440. Recommended: keep.
+- ● The credit's face and door wait on data no payload carries (see Deferred): today every credit draws the plain disc, and no credit is a door yet. Recommended: a small data lane adds `uploaderFace` server-side.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/design-system.md` "The album tile": a new bullet, a tap hands the viewer the tile's rect and a way back (`data-media-id`), and the open photograph rides `?photo=`.
+- `docs/systems/design-system.md` craft rules: "Two" became "Three", the third being the tooltip-arrow tap loss and the chrome's touch-pointerdown guard.
+- `docs/systems/design-system.md` behaviour pins: the jsdom note rewritten (play/pause spies and `animate` recorders pin the pause on moving on, the grow and the drop), plus the radix Portal one-commit-late landmine.
+- `docs/systems/uploads-and-r2.md` no-store landmine: the viewer's Share and Save to Photos (`lib/media/share-save.ts`) named beside the reel engine's two CORS consumers.
+- `docs/systems/guest-flow.md` is `reel-guest-wiring`'s: its Lightbox bullet (`:189-203`) is replaced by the text in the Handoff below, for the Orchestrator to apply at the merge.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Identity: the viewer's credit takes a face and a door from `uploaderFace` (`avatarUrl`, `seed` from `seedFor`, `href` `/u/<slug>`), which `getUploaderIdentities` and the item mappers do not yet resolve; `media-lightbox-parts/credit.tsx` is the seam (its `ViewerMedia` type folds into GridMedia then).
+- Launch checks: Share the file and Save to Photos can only be proved on the alias or prod with a real iPhone: R2 answers CORS for `https://partyreel.com` and the alias, never localhost (measured with curl and an `Origin` header), so a local Share falls back to the link.
+- Design system: `ui/tooltip`'s arrow at `sideOffset` 0 plus radix's open-on-focus loses a touch tap on any tooltip-wrapped control on Android Chrome; the viewer guards its own chrome, a shared fix (a `sideOffset`, or no focus-open after touch) belongs to `ui/tooltip` or `ActionTooltip`.
+- Guest album: the phone's Back closes the open photograph (pushState and popstate) instead of leaving the album.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits:** the work `e71c872a`, the sync merge `4c0f5c56` (origin/launch-prep at `5e4f461e`: desk-refresh-standing and reel-refresh-cut merged, lab boards and manifests only, no conflict), and `efe73976` (the rules artifact regenerated on the synced tree: the pins' line numbers after formatting). All pushed.
+- **Gates on the synced tree** (logs in the scratch dir `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/media-viewer-wiring/gate-*.log`): `pnpm design:rules` 0 · `collect-specimens.mjs` 0 · `pnpm typecheck` 0 · `pnpm lint` 0 (7 warnings, none in a file this lane touched) · `pnpm test` 0 (434 files, 4781 passed, 1 skipped) · `pnpm build` 0 · `pnpm lab:smoke --base http://localhost:3131` 0 (501 checks, 0 failing). No board, so no `lab:demo`.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`):
+  ```
+  docs/design/library.md
+  docs/systems/design-system.md
+  docs/systems/uploads-and-r2.md
+  src/app/(dev)/design/rules/rules.generated.json
+  src/components/admin/moderation-grid.test.tsx
+  src/components/admin/moderation-grid.tsx
+  src/components/shared/masonry.test.tsx
+  src/components/shared/masonry.tsx
+  src/components/shared/media-lightbox-parts/actions.tsx
+  src/components/shared/media-lightbox-parts/credit.tsx
+  src/components/shared/media-lightbox-parts/filmstrip.tsx
+  src/components/shared/media-lightbox-parts/geometry.test.ts
+  src/components/shared/media-lightbox-parts/geometry.ts
+  src/components/shared/media-lightbox-parts/video.tsx
+  src/components/shared/media-lightbox.css
+  src/components/shared/media-lightbox.test.tsx
+  src/components/shared/media-lightbox.tsx
+  src/lib/media/share-save.test.ts
+  src/lib/media/share-save.ts
+  ```
+  Exceptions: `docs/design/library.md` and `rules.generated.json` are generated by the gate's `pnpm design:rules` (the lightbox and masonry contract titles changed; the lightbox test now names `media-lightbox.tsx` as a second `@contract-for` target, so its pins list under the viewer as well as the mark); the two `docs/systems/` files are listed above. New files live in `media-lightbox-parts/`, a subdirectory, so the component index needs no new `for` lines.
+- **Items:**
+  - Grow: the photograph flies out of its tile (WAAPI, the tile's crop and corner to rest, 280 ms on `--ease-drawer`, the ground fading in step, the chrome after the landing) and drops back into the tile of whichever photograph shows at close (220 ms, from wherever it is seen: mid-pull, pinched, mid-flight), scrolling that tile into view first; focus returns to it. Reduced motion fades. New optional prop `origin`.
+  - Credit: face-led, top left (`media-lightbox-parts/credit.tsx`): the disc and name, the mark, "You", the host's proved address, the Host badge, a door only where `uploaderFace.href` exists and never behind a typed name, the event line on the personal feed.
+  - Capsule (`actions.tsx`): Like, the host's count, Save, Share, Copy link, Delete, the curate group with Add to reel; a clip's sound first; an empty capsule hides.
+  - Peek: 28 px at 375, 96 at 1440, linear between (`geometry.ts`, proved in `geometry.test.ts`: the sliver, one-to-one follow, nothing moving at the swap, an even gap); unknown sizes keep today's full-width swipe (so the old physics pins hold untouched).
+  - Desk: hover chevrons and the filmstrip (`filmstrip.tsx`, a 15-frame window keyed by id).
+  - Close-up: two-finger pinch to 3x about the midpoint, pan with a rubber band, home under fit, double-tap and trackpad pinch; `touch-pan-y` replaced by `touch-none`.
+  - Video (`video.tsx`): muted, looping autoplay (paused under reduced motion), the transport with a frame-by-frame scrubber (a slider with keys), sound in the capsule, pause on moving on, new optional prop `startAt`.
+  - Way out: pull down at fit, a tap on blank space anywhere, the close circle, Escape.
+  - Address: `?photo=<id>` written by masonry with replaceState beside the other params (kept as written), read once on mount, opened only if in the payload, claimed by one grid, waiting behind an open door.
+  - Share and save (`lib/media/share-save.ts`, 25 unit tests over mocked navigators): the file, then the link, then a copy; Copy link's public link; Save to Photos first on iOS; Ready; the 100 MB cap; `cache: "no-store"`.
+  - The chrome cancels a touch pointerdown (menu triggers excepted): a focus-opened tooltip's arrow was taking every Share tap (measured: the mouseup landed on the arrow's span).
+  - Admin grid: the tile's rect and a way back (`moderation-grid.tsx`), with component tests.
+- **Pins changed deliberately** (each commented in `media-lightbox.test.tsx`): "a vertical move releases the gesture to the browser" became "locks to the way out, and the track never moves" (`wayout=down`); "a clean CENTER-third tap closes" became "a tap on blank space closes, wherever it lands", and the LEFT-third, RIGHT-third and edge no-op pins became "blank space beside the first photograph closes too" and "a tap on a peeking neighbour steps to it" (his note on the side zones); "the position counter reflects the index" became "draws no counter; the dialog's name still says where it is" (◇); the two scrubber-strip pins became "the scrubber is its own control" and "a drag on the clip swipes, playing or paused" (the browser's bar is gone); "wears the ONE material on the pill, the capsule and the close" became "on the credit, the capsule and the close"; "names nobody... the counter alone" became "no credit at all". Every physics pin (the lock, the clamp, the damping, the thresholds, the settles, reduced motion, the keys, the trailing click) holds as it was. The file goes from 39 pins to 69: new ones cover the credit, share and save, the close-up, the pull down, the grow and drop, the peek and the video; `masonry.test.tsx` goes from 22 to 30 (the address), and `geometry.test.ts` (19), `share-save.test.ts` (25) and `moderation-grid.test.tsx` (3) are new.
+- **Announce (the reel's tap passes them):** `MediaLightboxLazy` / `MediaLightbox` take `origin={{ kind: "reel", rect: <the frame's rect> }}` (omit `returnTo`: the way out lands back in the frame; `rect: null` fades in) and `startAt={<the clip's current seconds>}`. `ViewerOrigin` is exported from `@/components/shared/media-lightbox`. The unfurl's parameter name is `PHOTO_PARAM` in `@/lib/media/share-save` (with `readPhotoParam`).
+- **guest-flow.md, the Lightbox bullet (`:189-203`), to apply at the merge:**
+  > - **Lightbox** (the SHARED [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx), its parts in `media-lightbox-parts/`): the photograph GROWS out of the tile it was tapped on (`origin`: the tile's rect and a `returnTo` that finds the tile of whichever photograph shows at close; the live reel passes its frame's rect and a clip's `startAt`) and drops back into it; a face-led CREDIT top left (the face or plain disc, the name, the mark, "You" on your own upload, the host's proved address, a door to `/u/<slug>` only where the item carries one), the close top right, the floating ACTION CAPSULE at the foot (Like / Save / Share / Copy link / Delete, a clip's sound, the host's curate group behind a divider) and a clip's TRANSPORT (play, a scrubber, the time) above it. ★ **EVERY UPLOAD CARRIES A NAME**: a confirmed guest's profile name stands plain, a typed one wears [`unverified-mark.tsx`](../../src/components/shared/unverified-mark.tsx) (MineMark's material, tap to open, one extra sentence for the host, and on YOUR OWN credit a "Confirm your email" opening the one confirm door). A row with no name renders no credit at all, never an invented stand-in: a row minted before names were asked (`create_guest` refuses a new one) and a verified row whose account has no profile name (a deleted account's surviving upload). [`anonymous-info.tsx`](../../src/components/shared/anonymous-info.tsx) is residue only the Library gallery mounts. ★ The mark carries its OWN door rather than a prop, because the credit sits three modules deep under `shared/masonry.tsx`; "is this mine" is the existing `canDelete` seam, never a second one. The neighbours PEEK at the edges and a tap on one steps to it; a tap on BLANK space closes (no side zones); a pull DOWN at fit closes; pinch, pan and double-tap zoom a photograph; a clip plays muted and looping and pauses when the viewer moves on; a desk adds hover chevrons and a filmstrip. `media-lightbox.test.tsx` pins the physics, `geometry.test.ts` the arithmetic. ★ **THE ADDRESS**: the open photograph rides the page as `?photo=<id>` (`PHOTO_PARAM`, written by `shared/masonry.tsx` with replaceState, read once on mount), and it opens only an item already in the viewer's payload: an unknown, held or hidden id opens the album plainly, and a door already open comes first. ★ **SHARE SENDS THE FILE** (fetched on the tap with `cache: "no-store"`, never prefetched; over 100 MB it falls back), then the link, then a copy; Copy link copies the PUBLIC album link (`shareUrl`, the event JOIN url, never a presigned media URL or a dashboard URL) with `?photo=` on an approved item; Save offers Save to Photos first on iOS (the system sheet with the file is the one web path into Photos) and the plain download elsewhere; a tap whose activation lapses leaves a one-tap Ready. The guest album and the host gallery pass `shareUrl`; the personal Uploads and the recovery bin omit it.
+- **Assets requested from Will:** none.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none. (R2 CORS stays as it is: the product's origins are allowed, localhost is not, which is why the file path is a live check.)
+- **Calls his to overrule:** the ◇ and ● lines under Questions, one each.
+- **Look at first** (captures in the scratch dir above, taken locally in headless Chrome, iPhone UA at 375):
+  - The viewer on the scale probe (`/e/d02631f1bfb3455188d224e41bf9510f`): `final-375-open.png` (the credit with the mark, the slivers, the capsule), `final-1440-open.png` (the slivers at 96, the chevrons, the filmstrip); the grow `sheet-grow-375.png` and `sheet-grow-1440.png`, the drop `sheet-drop-1440.png`, the swipe and pull `sheet-pull-375.png` (slowed tenfold).
+  - A clip on the demo album: `sheet-final-video-375.png` (autoplay, the transport's played line, sound in the capsule), `finalvideo-1440-seek.png`; the close-up `sheet-zoom-375.png`.
+  - The save sheet: `sheet-final-look-375.png` (the iOS menu, Save to Photos first; "Ready"); the sheet itself was a stand-in with a stand-in file, because R2 refuses localhost's CORS (the real sheet is the live check).
+  - The address, in Chrome: a refresh on `?photo=` reopens it ("Photo 17 of 1145"), closing clears it and focuses its tile (scrolled into view), `?photo=` of an id the album does not hold opens the album plainly with no console error; under reduced motion no flight runs and a clip waits for Play. Pinned in `masonry.test.tsx` ("the open photograph rides the address").
+  - The share-save tests: `src/lib/media/share-save.test.ts`; the geometry: `media-lightbox-parts/geometry.test.ts`.
+  - The host feed and admin, proved in components: the host's viewer in `media-lightbox.test.tsx` (the curate group pins, "copies the PUBLIC album link... never the page's own address" from a dashboard URL, "shows the host the proved address"); the admin grid in `src/components/admin/moderation-grid.test.tsx` (grows out of the tile, drops into the tile of the report showing at close and focuses it, no Share or curate group).
+  - The live pass at the merge: Share and Save to Photos on Will's iPhone on the alias (the file reaches the sheet, "Save Image" lands in Photos), and a swipe, pinch and pull on a real phone.
