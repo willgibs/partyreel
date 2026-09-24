@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { requireAdmin } from "@/lib/auth/admin-context";
 import { accountTierLabel, searchAccounts } from "@/lib/db/queries/accounts";
+import { formatAdminDate } from "@/lib/format/admin-time";
 import { formatBytes } from "@/lib/utils";
 import { PageHeading } from "@/components/shared/page-heading";
 
@@ -118,11 +119,8 @@ export default async function AdminAccountsPage({
                     <TableCell className="text-right text-muted-foreground tabular-nums">
                       {cap === null ? "Unlimited" : formatBytes(cap)}
                     </TableCell>
-                    <TableCell
-                      suppressHydrationWarning
-                      className="text-right whitespace-nowrap text-muted-foreground"
-                    >
-                      {new Date(account.last_active_at).toLocaleDateString()}
+                    <TableCell className="text-right whitespace-nowrap text-muted-foreground">
+                      {formatAdminDate(account.last_active_at)}
                     </TableCell>
                   </TableRow>
                 );

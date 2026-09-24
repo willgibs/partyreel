@@ -41,6 +41,7 @@ import {
   getMyProfileSlug,
 } from "@/lib/db/queries/social";
 import { guestCount } from "@/lib/events/event-guests";
+import { formatCount } from "@/lib/format/count";
 import { toHostGalleryItems } from "@/lib/event/gallery-items";
 import { legacySectionRoom, resolveEventSheet } from "@/lib/event/sections";
 import { preferredEventUrl } from "@/lib/events/share-urls";
@@ -206,7 +207,7 @@ export default async function EventDetailPage({
       id: "review" as const,
       value: isModerationOn
         ? pendingCount > 0
-          ? `${pendingCount} waiting`
+          ? `${formatCount(pendingCount)} waiting`
           : "All caught up"
         : "Off",
       amber: isModerationOn && pendingCount > 0,
@@ -217,7 +218,7 @@ export default async function EventDetailPage({
       // The card reads "Create reel" until one exists; the room holds the
       // builder before birth and the studio after it.
       value: reelConfig
-        ? `${reelClipCount} ${reelClipCount === 1 ? "clip" : "clips"}`
+        ? `${formatCount(reelClipCount)} ${reelClipCount === 1 ? "clip" : "clips"}`
         : "Create reel",
     },
     {
@@ -226,7 +227,7 @@ export default async function EventDetailPage({
       // is on, so the card says the count when it can be opened onto, and the
       // one step it needs when it cannot.
       value: socialSettings?.showGuestList
-        ? `${guestsCount} ${guestsCount === 1 ? "guest" : "guests"}`
+        ? `${formatCount(guestsCount)} ${guestsCount === 1 ? "guest" : "guests"}`
         : "Turn on the list",
     },
     {
@@ -288,18 +289,18 @@ export default async function EventDetailPage({
                 title="Photos and videos in the album"
               >
                 <Images className="size-3.5" />
-                {itemCount}
+                {formatCount(itemCount)}
               </span>
               <span
                 className="flex items-center gap-1.5"
                 title={guestsCount === 1 ? "1 guest" : `${guestsCount} guests`}
               >
                 <Users className="size-3.5" />
-                {guestsCount}
+                {formatCount(guestsCount)}
               </span>
               <span className="flex items-center gap-1.5" title="Views">
                 <Eye className="size-3.5" />
-                {views}
+                {formatCount(views)}
               </span>
               {/* ★ THE PIP IS THE PAGE'S ONE LIVE ISLAND (`first=live`, Will
                   2026-09-21). It sits in the metadata row because that is where

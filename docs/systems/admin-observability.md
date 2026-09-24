@@ -103,11 +103,16 @@ points. **Never read `profiles.is_admin` directly**: this single seam is the swa
   (`https://admin.partyreel.com/auth/callback`) does NOT match a query-bearing URL, so Supabase silently
   falls back to the **Site URL** (apex) and the login lands on `partyreel.com/?code=…` (never exchanged →
   no session). Keep `redirectTo` query-free, or widen the allow-list entry to `…/auth/callback**`.
-- **Locale/tz renders need `suppressHydrationWarning`.** `new Date(x).toLocaleString()` (or any
-  `Intl`/locale/timezone formatting) renders in the server's tz/locale during SSR and the browser's on
-  hydration → a React **#418** text mismatch. Wrap those spans (the report timestamp in
-  [`report-review.tsx`](../../src/components/app/report-review.tsx) does). It only fires when such a value
-  actually renders, so an empty list hides it.
+- **Every admin timestamp renders through one shared, UTC-labelled formatter — never a bare
+  `toLocaleString()`.** `formatAdminTimestamp` / `formatAdminDate`
+  ([`format/admin-time.ts`](../../src/lib/format/admin-time.ts)) fix both the locale (`en-US`) and the
+  zone (`UTC`) explicitly, so the server's render and the browser's hydration produce the identical
+  string: no React **#418** mismatch, no `suppressHydrationWarning` needed on the spans they format. A
+  bare `new Date(x).toLocaleString()` (or any locale/timezone formatting with no explicit
+  locale/`timeZone`) still renders in the server's tz/locale during SSR and the browser's on hydration —
+  route a NEW admin timestamp through the shared formatter rather than reinventing the workaround. Every
+  admin surface already does: jobs, forensics, accounts, exports, reels, reports, support, applicants,
+  announcements, the drill-in.
 
 ## Surfaces
 

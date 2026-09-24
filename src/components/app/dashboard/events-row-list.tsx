@@ -6,6 +6,7 @@ import { ArrowRight, Images, ListChecks, Lock } from "lucide-react";
 import { MediaTile } from "@/components/app/media-grid";
 import type { EventListRow } from "@/lib/dashboard/events-view";
 import type { PulseTile } from "@/lib/db/queries/pulse";
+import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
 /**
@@ -67,7 +68,7 @@ function Row({
             {row.kind !== "guest" && (
               <span className={STAT}>
                 <Images className="size-3" aria-hidden />
-                {row.items}
+                {formatCount(row.items)}
               </span>
             )}
             {row.statusLabel && <span>{row.statusLabel}</span>}
@@ -112,7 +113,7 @@ function Row({
           ) : row.pending > 0 ? (
             <span className="flex items-center gap-1.5 rounded-full bg-warning/15 px-2.5 py-1 text-xs font-medium text-warning">
               <ListChecks className="size-3.5" aria-hidden />
-              {row.pending} to review
+              {formatCount(row.pending)} to review
             </span>
           ) : (
             <span className="flex items-center gap-1 text-xs text-muted-foreground">

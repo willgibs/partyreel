@@ -103,13 +103,26 @@ export function summarizeAccounts(
   };
 }
 
-export type EngagementMetrics = { qrScans: number; albumViews: number };
+export type EngagementMetrics = { linkVisits: number };
 
-/** Lifetime QR scans and album views across every event. */
+/**
+ * LINK VISITS, ONE HONEST FIGURE (the 1,000-row round's follow-on, 2026-09-24).
+ *
+ * `37707d80` ("one link per event") retired the separate album address and
+ * its `album_view` writer: every non-bot visit to an event's link records a
+ * `qr_scan` now, scanned or shared alike. The snapshot still counts the two
+ * SQL-side (`qr_scans`, `album_views`), because that shape is the row-cap
+ * migration's and stays put, but `album_views` has been frozen at whatever it
+ * held the day the writer retired — the metrics page showed it beside a live
+ * "QR scans" as if both still grew, and its own chart line has sat at zero
+ * for thirty days. Folding them here is the one figure a person should read,
+ * matching what the host's own event page already does
+ * (`dashboard/[eventId]/page.tsx`: `views = qrScans + albumViews`).
+ */
 export function summarizeEngagement(
   engagement: MetricsSnapshot["engagement"],
 ): EngagementMetrics {
-  return { qrScans: engagement.qr_scans, albumViews: engagement.album_views };
+  return { linkVisits: engagement.qr_scans + engagement.album_views };
 }
 
 // ---- Per-day trends (P6b charts) -------------------------------------------------------------
@@ -117,11 +130,7 @@ export function summarizeEngagement(
 // signups_by_day keys — so a signup and a scan on the same calendar day line up on the axis.
 
 export type DayCount = { day: string; count: number };
-export type EngagementDay = {
-  day: string;
-  qrScans: number;
-  albumViews: number;
-};
+export type EngagementDay = { day: string; linkVisits: number };
 
 /** UTC YYYY-MM-DD key for a Date. */
 function dayKey(d: Date): string {
@@ -157,7 +166,7 @@ export function buildSignupTrend(
   }));
 }
 
-/** Daily QR scans and album views over the last `days` UTC days ending on `now`'s, zero-filled. */
+/** Daily link visits (scans + the frozen legacy album-view count) over the last `days` UTC days ending on `now`'s, zero-filled. */
 export function buildEngagementTrend(
   byDay: MetricsSnapshot["engagement"]["by_day"],
   now: Date,
@@ -165,8 +174,7 @@ export function buildEngagementTrend(
 ): EngagementDay[] {
   return dayBuckets(now, days).map((day) => ({
     day,
-    qrScans: byDay[day]?.qr_scans ?? 0,
-    albumViews: byDay[day]?.album_views ?? 0,
+    linkVisits: (byDay[day]?.qr_scans ?? 0) + (byDay[day]?.album_views ?? 0),
   }));
 }
 

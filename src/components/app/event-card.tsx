@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Calendar, Image as ImageIcon, Images, Lock } from "lucide-react";
 
+import { formatCount } from "@/lib/format/count";
 import { GLASS_MARK } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
@@ -185,7 +186,7 @@ export function EventCard({
             color: "var(--warning-foreground)",
           }}
         >
-          {pendingCount} to review
+          {formatCount(pendingCount)} to review
         </div>
       )}
       {action ? (

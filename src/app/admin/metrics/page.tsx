@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import {
-  Eye,
+  Link as LinkIcon,
   HardDrive,
   Images,
   Mail,
-  QrCode,
   Users,
   Wallet,
 } from "lucide-react";
@@ -25,6 +24,7 @@ import {
 } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth/admin-context";
 import { getPlatformMetrics } from "@/lib/db/queries/metrics";
+import { formatCount } from "@/lib/format/count";
 import { formatBytes } from "@/lib/utils";
 import { PageHeading } from "@/components/shared/page-heading";
 
@@ -32,9 +32,9 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "Metrics" };
 
-// Explicit en-US locale so the number/currency render is deterministic across server + client (no React
-// #418 hydration mismatch — that bites only with locale-less toLocaleString).
-const num = (n: number) => n.toLocaleString("en-US");
+// The one count format (`lib/format/count.ts`): en-US grouping, single-sourced, so this page and the
+// rest of the admin never disagree on how a number reads.
+const num = formatCount;
 const plural = (n: number, singular: string) =>
   `${num(n)} ${n === 1 ? singular : `${singular}s`}`;
 function money(cents: number, currency: string): string {
@@ -79,9 +79,12 @@ function ChartCard({
 const SIGNUP_SERIES: TrendSeries[] = [
   { key: "count", label: "Signups", color: "var(--color-brand)" },
 ];
+// ONE HONEST FIGURE (the 1,000-row round's follow-on, 2026-09-24): "album views" retired as its own
+// writer when the album got one link (`37707d80`), so a separate line for it had sat flat at zero for
+// thirty days beside a "QR scans" that kept climbing. `linkVisits` folds both counts (aggregate.ts),
+// matching what the host's own event page already shows for one event.
 const ENGAGEMENT_SERIES: TrendSeries[] = [
-  { key: "qrScans", label: "QR scans", color: "var(--color-brand)" },
-  { key: "albumViews", label: "Album views", color: "var(--color-chart-3)" },
+  { key: "linkVisits", label: "Link visits", color: "var(--color-brand)" },
 ];
 
 export default async function AdminMetricsPage() {
@@ -160,19 +163,15 @@ export default async function AdminMetricsPage() {
 
       <Section title="Engagement">
         <MetricCard
-          label="QR scans"
-          value={num(engagement.qrScans)}
-          icon={QrCode}
-        />
-        <MetricCard
-          label="Album views"
-          value={num(engagement.albumViews)}
-          icon={Eye}
+          label="Link visits"
+          value={num(engagement.linkVisits)}
+          icon={LinkIcon}
+          sub="Every visit to an event's link, scanned or shared, bots filtered"
         />
       </Section>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <ChartCard title="Scans and views (30 days)">
+        <ChartCard title="Link visits (30 days)">
           <TrendChart data={engagement.trend} series={ENGAGEMENT_SERIES} />
         </ChartCard>
         <ChartCard title="Media by type">

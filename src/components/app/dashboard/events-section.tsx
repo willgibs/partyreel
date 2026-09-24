@@ -20,6 +20,7 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { setEventsViewAction } from "@/app/(app)/dashboard/actions";
 import { trackAttrs } from "@/lib/analytics/events";
+import { formatCount } from "@/lib/format/count";
 import {
   EVENTS_FILTER_OPTIONS,
   EVENTS_SORT_OPTIONS,
@@ -223,7 +224,7 @@ export function EventsSection({
                 dateLabel={row.dateLabel}
                 itemsLabel={
                   row.kind === "hosted"
-                    ? `${row.items} ${row.items === 1 ? "item" : "items"}`
+                    ? `${formatCount(row.items)} ${row.items === 1 ? "item" : "items"}`
                     : null
                 }
                 statusLabel={row.statusLabel}

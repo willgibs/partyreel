@@ -1,11 +1,15 @@
 import { ArrowDownRight, ArrowUpRight, type LucideIcon } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { formatCount, formatSignedCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
 // A single KPI tile for the admin metrics dashboard (P6a): label + big value + optional sub-line and
-// icon. Presentational + server-compatible (no client JS); the page formats the value (bytes/currency/
-// counts) before passing it in. P6b's charts sit alongside these in the page, not inside the card.
+// icon. Presentational + server-compatible (no client JS); the page pre-formats a value that ISN'T a
+// plain count (bytes, currency) before passing it in — a raw `number` is always a count and this card
+// is the one place it is grouped (`lib/format/count.ts`), so the overview's four figures format the
+// same way as every page that already calls `formatCount` itself. P6b's charts sit alongside these in
+// the page, not inside the card.
 //
 // ★ THE DELTA IS OPTIONAL AND `null` IS NOT ZERO (admin-wiring, 2026-09-20). The home's four figures
 // carry a fortnight's change (`home=kpi`), but one of them cannot: nothing in the database remembers
@@ -42,7 +46,7 @@ export function MetricCard({
         </div>
         <div className="mt-2 flex items-baseline gap-2">
           <span className="text-2xl font-semibold tracking-tight tabular-nums">
-            {value}
+            {typeof value === "number" ? formatCount(value) : value}
           </span>
           {showDelta ? (
             <span
@@ -60,7 +64,7 @@ export function MetricCard({
               ) : down ? (
                 <ArrowDownRight aria-hidden className="size-3" />
               ) : null}
-              {delta === 0 ? "No change" : `${up ? "+" : ""}${delta}`}
+              {delta === 0 ? "No change" : formatSignedCount(delta)}
               <span className="sr-only"> against the fortnight before</span>
             </span>
           ) : null}

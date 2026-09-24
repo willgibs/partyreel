@@ -13,6 +13,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { healthBadge, runBadge, runRow } from "@/lib/admin/tone";
+import { formatAdminTimestamp } from "@/lib/format/admin-time";
+import { formatCount } from "@/lib/format/count";
 import {
   Card,
   CardContent,
@@ -150,7 +152,7 @@ function summarizeCounts(counts: JobRunRow["counts"]): string | null {
   const parts: string[] = [];
   for (const [key, value] of entries) {
     if (typeof value === "number" && value > 0) {
-      parts.push(`${key.replaceAll("_", " ")} ${value}`);
+      parts.push(`${key.replaceAll("_", " ")} ${formatCount(value)}`);
     }
     if (typeof value === "string")
       parts.push(`${key.replaceAll("_", " ")} ${value}`);
@@ -392,7 +394,7 @@ export default async function JobsPage() {
                                 : undefined
                             }
                           >
-                            {reading.value} {readingWords?.unit ?? ""}
+                            {formatCount(reading.value)} {readingWords?.unit ?? ""}
                           </span>
                         )}
                       </dd>
@@ -401,9 +403,7 @@ export default async function JobsPage() {
                       <dt className="text-muted-foreground">Read</dt>
                       <dd>
                         {reading?.readAtMs ? (
-                          <span suppressHydrationWarning>
-                            {new Date(reading.readAtMs).toLocaleString()}
-                          </span>
+                          <span>{formatAdminTimestamp(reading.readAtMs)}</span>
                         ) : (
                           <span className="text-muted-foreground">Never</span>
                         )}
@@ -426,11 +426,7 @@ export default async function JobsPage() {
                     <dd>
                       {last ? (
                         <>
-                          {/* Locale/tz formatting differs between the server render and the browser
-                            (the React #418 trap in admin-observability.md), so suppress here. */}
-                          <span suppressHydrationWarning>
-                            {new Date(last.started_at).toLocaleString()}
-                          </span>{" "}
+                          <span>{formatAdminTimestamp(last.started_at)}</span>{" "}
                           <span className="text-muted-foreground">
                             {RUN_STATUS_LABEL[last.status] ?? last.status}
                             {last.duration_ms !== null && def.kind !== "signal"
@@ -508,11 +504,8 @@ export default async function JobsPage() {
                   // A failed run tints its own row and takes a leading edge, so
                   // a bad run is found by scrolling rather than by reading.
                   <TableRow key={r.id} tone={runRow(r.status)}>
-                    <TableCell
-                      className="whitespace-nowrap text-muted-foreground"
-                      suppressHydrationWarning
-                    >
-                      {new Date(r.started_at).toLocaleString()}
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
+                      {formatAdminTimestamp(r.started_at)}
                     </TableCell>
                     <TableCell>
                       {JOBS.find((j) => j.id === r.job)?.label ?? r.job}

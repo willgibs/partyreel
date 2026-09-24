@@ -19,6 +19,7 @@ import {
   TooltipSlide,
   TooltipSlideGroup,
 } from "@/components/shared/tooltip-slide";
+import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
 /**
@@ -272,7 +273,7 @@ export function BulkBar({
         {allSelected ? "Clear" : "All"}
       </Button>
       <span className="px-0.5 text-xs tabular-nums text-muted-foreground">
-        {count}
+        {formatCount(count)}
       </span>
       {actions.map((action, i) => (
         <BulkBarActionButton

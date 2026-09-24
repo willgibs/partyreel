@@ -376,6 +376,22 @@ export const COMPONENT_NOTES: Record<string, ComponentNote> = {
   "src/lib/dashboard/events-view.ts": {
     for: "whether your events draw as cover cards or rows, in what order and through which lens; the view is a cookie because the server has to know it before the first byte",
   },
+  "src/lib/dashboard/viewer-day.ts": {
+    for: "the viewer's own calendar day, resolved from the request's IANA zone (Vercel's x-vercel-ip-timezone, validated, falling back to the server's own) and read DST-safely: the pulse's 'today' and next-step.ts's 'the day before' both read this one day, never the server's UTC clock's",
+    unspecimened: "a pure resolver; viewer-day.test.ts is its demo",
+  },
+  "src/lib/format/count.ts": {
+    for: "the one count format: en-US grouping for a raw number, a signed delta, and the compact chart tick that keeps a YAxis from clipping at any magnitude",
+    unspecimened: "pure formatters; count.test.ts is their demo",
+  },
+  "src/lib/format/admin-time.ts": {
+    for: "every admin timestamp, in UTC and labelled: the server's render and the browser's hydration produce the identical string, so no suppressHydrationWarning is needed on the spans it formats",
+    unspecimened: "pure formatters; admin-time.test.ts is their demo",
+  },
+  "src/lib/format/date-in-zone.ts": {
+    for: "a date rendered in an explicit zone (the viewer's own, from viewer-day.ts): the Event Pass expiry and the over-cap grace deadline read as the day it is where the viewer stands, never the server's",
+    unspecimened: "a pure formatter; date-in-zone.test.ts is its demo",
+  },
   "src/lib/db/queries/claims.ts": {
     for: "the claim ticket's data (the guest identity round, 2026-09-22): list_guest_rows_by_email's rows GROUPED BY EVENT, since the same address can carry more than one guest row at one event and both the claim and the disown RPCs act per event, never per row",
     unspecimened:

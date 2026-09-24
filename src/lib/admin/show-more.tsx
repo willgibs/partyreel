@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { LIST_PAGE } from "@/lib/admin/list-depth";
+import { formatCount } from "@/lib/format/count";
 
 /**
  * The line under a bounded operator list (`list-depth.ts`): how deep it reads, and the link one
@@ -22,7 +23,7 @@ export function ShowMoreLine({
   if (!more) return null;
   return (
     <p className="text-caption text-muted-foreground">
-      Showing the newest {shown.toLocaleString("en-US")}.{" "}
+      Showing the newest {formatCount(shown)}.{" "}
       <Link
         href={href}
         scroll={false}

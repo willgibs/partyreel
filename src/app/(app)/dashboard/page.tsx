@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { CalendarPlus } from "lucide-react";
 
@@ -30,6 +30,12 @@ import {
   type EventListRow,
 } from "@/lib/dashboard/events-view";
 import { resolveNextSteps } from "@/lib/dashboard/next-step";
+import {
+  calendarDayInZone,
+  resolveViewerZone,
+  serverZone,
+  VIEWER_ZONE_HEADER,
+} from "@/lib/dashboard/viewer-day";
 import { getMyClaimableGuestRows } from "@/lib/db/queries/claims";
 import {
   countActiveEvents,
@@ -42,6 +48,7 @@ import { getEventsWithReels, getPulse } from "@/lib/db/queries/pulse";
 import { getProfile } from "@/lib/db/queries/profile";
 import { getMyGuestEventCards } from "@/lib/db/queries/social";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
+import { formatDateInZone } from "@/lib/format/date-in-zone";
 import { binCountdownLabel } from "@/lib/lifecycle/recently-deleted";
 import { overStandbyBudget } from "@/lib/lifecycle/recently-deleted";
 import { getSiteUrl } from "@/lib/site-url";
@@ -111,6 +118,7 @@ export default async function DashboardPage({
     storage,
     siteUrl,
     jar,
+    headerList,
   ] = await Promise.all([
     listEvents(),
     countActiveEvents(),
@@ -120,6 +128,7 @@ export default async function DashboardPage({
     getHostStorageSummary(),
     getSiteUrl(),
     cookies(),
+    headers(),
   ]);
 
   // Onboarding gate: every account must set a public display name (Phase 1) before reaching the
@@ -139,16 +148,27 @@ export default async function DashboardPage({
   // ONE clock reading for the whole render, taken HERE rather than inside any
   // component: a Date read during render is impure (react-hooks purity), and
   // two readings could straddle midnight and disagree about what "today" is.
-  // Local parts, not UTC — `events.event_date` is a date-only column the whole
-  // app already treats as the host's own calendar day (see formatEventDate).
-  const clock = new Date();
-  const now = clock.getTime();
-  const startOfToday = new Date(
-    clock.getFullYear(),
-    clock.getMonth(),
-    clock.getDate(),
-  ).getTime();
-  const today = `${clock.getFullYear()}-${String(clock.getMonth() + 1).padStart(2, "0")}-${String(clock.getDate()).padStart(2, "0")}`;
+  //
+  // ★ "TODAY" IS THE VIEWER'S OWN CALENDAR DAY, NEVER THE SERVER'S (the
+  // 1,000-row round's follow-on, 2026-09-24). The server's clock is UTC on
+  // Vercel, so from evening on in any zone west of UTC the server's "today"
+  // is already tomorrow: the pulse's "N today" undercounted a live evening,
+  // and "Print the code" (next-step.ts, an event dated tomorrow) disappeared
+  // the one evening before the event that it matters most. The viewer's own
+  // IANA zone comes from the request Vercel already carries
+  // (`x-vercel-ip-timezone`; validated, falling back to the server's own zone
+  // on a missing or bad value — never a guess), and `calendarDayInZone` reads
+  // that zone's calendar day DST-safely (`lib/dashboard/viewer-day.ts`). The
+  // zone is used only to render and is never stored or logged (host-app.md).
+  const viewerZone = resolveViewerZone(
+    headerList.get(VIEWER_ZONE_HEADER),
+    serverZone(),
+  );
+  const now = new Date().getTime();
+  const { today, startOfTodayMs: startOfToday } = calendarDayInZone(
+    now,
+    viewerZone,
+  );
 
   const eventIds = events.map((e) => e.id);
   // Cover art for the owned AND recently-deleted cards, per-event stats, which
@@ -190,20 +210,14 @@ export default async function DashboardPage({
   const hasBilling = Boolean(profile?.stripe_customer_id);
   const passExpiry =
     tier === "event_pass" && profile?.tier_expires_at
-      ? new Date(profile.tier_expires_at).toLocaleDateString(undefined, {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })
+      ? formatDateInZone(profile.tier_expires_at, viewerZone)
       : null;
   // Over-capacity grace (set by the lifecycle cron when a lapsed account is over cap). High-urgency
   // (its deadline costs the user data), so it stays a top-level red banner, NEVER inside the meter.
+  // Rendered in the VIEWER's own zone (above): a deadline is a day the host has to act by, and the
+  // server's UTC day can read as the wrong one from evening on anywhere west of it.
   const graceDeadline = profile?.storage_grace_until
-    ? new Date(profile.storage_grace_until).toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
+    ? formatDateInZone(profile.storage_grace_until, viewerZone)
     : null;
 
   // Band one: the rule, over the state above.

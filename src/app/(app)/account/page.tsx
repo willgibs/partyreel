@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { AccountAvatarForm } from "@/components/app/account-avatar-form";
@@ -48,6 +49,13 @@ import {
 import { hasPassword } from "@/lib/db/queries/account";
 import { getProfile } from "@/lib/db/queries/profile";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
+import {
+  resolveViewerZone,
+  serverZone,
+  VIEWER_ZONE_HEADER,
+} from "@/lib/dashboard/viewer-day";
+import { formatDateInZone } from "@/lib/format/date-in-zone";
+import { formatCount } from "@/lib/format/count";
 import { formatBytes } from "@/lib/utils";
 import {
   getMyAttendedEvents,
@@ -132,6 +140,7 @@ export default async function AccountPage({
     onNewsletterList,
     liveEventCount,
     storage,
+    headerList,
   ] = await Promise.all([
     getProfile(),
     hasPassword(),
@@ -148,8 +157,18 @@ export default async function AccountPage({
     isOnNewsletterList(),
     countMyLiveEvents(),
     getHostStorageSummary(),
+    headers(),
   ]);
   if (!profile) redirect("/login");
+
+  // The viewer's own zone (never stored or logged; rendering only — see the
+  // dashboard's own note, host-app.md), for the pass expiry below: the day a
+  // pass expires should read as the day it expires where the viewer is, not
+  // the server's UTC day.
+  const viewerZone = resolveViewerZone(
+    headerList.get(VIEWER_ZONE_HEADER),
+    serverZone(),
+  );
 
   const avatarUrl = await getAvatarUrl(profile.id, profile.avatar_updated_at);
   // Server-side SHA-256 of the account id (the sixth batch, `seed=account`):
@@ -183,11 +202,7 @@ export default async function AccountPage({
   const planCapacity = planCap ? friendlyCapacity(planCap) : null;
   const passExpiry =
     tier === "event_pass" && profile.tier_expires_at
-      ? new Date(profile.tier_expires_at).toLocaleDateString(undefined, {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })
+      ? formatDateInZone(profile.tier_expires_at, viewerZone)
       : null;
   const hasBilling = Boolean(profile.stripe_customer_id);
 
@@ -250,7 +265,7 @@ export default async function AccountPage({
               </dt>
               <dd className="text-sm">
                 {planCapacity
-                  ? `About ${planCapacity.photos.toLocaleString()} photos or ${planCapacity.videoMinutes.toLocaleString()} min of video`
+                  ? `About ${formatCount(planCapacity.photos)} photos or ${formatCount(planCapacity.videoMinutes)} min of video`
                   : `${formatBytes(planUsed)} used`}
               </dd>
             </div>
@@ -379,7 +394,7 @@ export default async function AccountPage({
               ? "No one follows you yet."
               : followCounts.followers === 1
                 ? "1 person follows you."
-                : `${followCounts.followers} people follow you.`}{" "}
+                : `${formatCount(followCounts.followers)} people follow you.`}{" "}
             Only you can see this.
           </CardDescription>
         </CardHeader>

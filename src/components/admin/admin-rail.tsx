@@ -11,6 +11,7 @@ import {
   pendingForHref,
   type PendingCounts,
 } from "@/lib/admin/nav";
+import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
 /**
@@ -84,7 +85,7 @@ export function AdminRail({
                   // The number, never a dot: "3" and "30" are different days
                   // and a dot says the same thing about both.
                   <span className="text-caption tabular-nums opacity-70">
-                    {count}
+                    {formatCount(count)}
                   </span>
                 ) : null}
               </Link>

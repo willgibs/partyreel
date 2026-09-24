@@ -104,7 +104,9 @@ describe("the arrivals: counted, never read", () => {
     const pulse = await getPulse([uuid("e", 0)], NOW, START_OF_TODAY);
 
     expect(pulse.window).toBe("hour");
-    expect(pulse.caption).toBe("2500 in the last hour, across your events");
+    // clocks-and-counts (outside this file's own lane, one line): every count
+    // groups now (`lib/format/count.ts`), arrivals.ts's caption included.
+    expect(pulse.caption).toBe("2,500 in the last hour, across your events");
     expect(pulse.arrivals.map((t) => t.id)).toEqual(
       live.slice(0, 12).map((m) => m.id),
     );
@@ -125,7 +127,7 @@ describe("the arrivals: counted, never read", () => {
     const pulse = await getPulse([uuid("e", 0)], NOW, START_OF_TODAY);
 
     expect(pulse.window).toBe("today");
-    expect(pulse.caption).toBe("1501 today, across your events");
+    expect(pulse.caption).toBe("1,501 today, across your events");
   });
 
   it("dates the newest when neither window fills the strip", async () => {

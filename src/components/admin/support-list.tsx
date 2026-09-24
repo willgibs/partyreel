@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { contactTopicLabel } from "@/lib/constants/contact";
 import { TRIAGE_STATUS_META, type TriageStatus } from "@/lib/constants/triage";
 import type { ContactSubmission } from "@/lib/db/queries/support";
+import { formatAdminTimestamp } from "@/lib/format/admin-time";
 
 /**
  * THE SUPPORT INBOX, AS A LIST BESIDE THE MESSAGE (`density=hybrid`, Will
@@ -84,14 +85,9 @@ export function SupportList({
               <p className="font-heading text-card-title font-medium">
                 {open.subject ?? "No subject"}
               </p>
-              {/* toLocaleString renders in the server tz on SSR + the browser tz on hydration
-                  (React #418) - suppress the mismatch; the viewer's local time wins. */}
-              <p
-                className="text-caption text-muted-foreground"
-                suppressHydrationWarning
-              >
+              <p className="text-caption text-muted-foreground">
                 {open.name}, {open.email},{" "}
-                {new Date(open.created_at).toLocaleString()}
+                {formatAdminTimestamp(open.created_at)}
                 {open.source ? `, via ${open.source}` : ""}
               </p>
             </div>

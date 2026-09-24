@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth/admin-context";
 import { getAlbumForModeration } from "@/lib/db/queries/moderation";
+import { formatAdminTimestamp } from "@/lib/format/admin-time";
+import { formatCount } from "@/lib/format/count";
 import { toModerationFeedItems } from "@/lib/r2/grid-items";
 import { PageHeading } from "@/components/shared/page-heading";
 
@@ -101,13 +103,13 @@ export default async function AdminAlbumDetailPage({
             {MODERATION_LABEL[event.moderation_mode]}
           </Row>
           <Row label="Media">
-            {counts.approved} approved, {counts.pending} pending,{" "}
-            {counts.hidden} hidden, {counts.removed} removed
+            {formatCount(counts.approved)} approved,{" "}
+            {formatCount(counts.pending)} pending,{" "}
+            {formatCount(counts.hidden)} hidden,{" "}
+            {formatCount(counts.removed)} removed
           </Row>
           <Row label="Created">
-            <span suppressHydrationWarning>
-              {new Date(event.created_at).toLocaleString()}
-            </span>
+            <span>{formatAdminTimestamp(event.created_at)}</span>
           </Row>
         </CardContent>
       </Card>
