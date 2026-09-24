@@ -5,7 +5,8 @@
 > **BELONGS HERE:** ask ids, choices (an option id, or `null` for "not clear to me"), catalog item
 > verdicts (`keep | refine | kill`), Library entry verdicts (`keep | redesign | retire`), notes, who and when.
 > **NOT HERE:** the questions themselves (a board's `spec.ts` is the one home; a ledger stores ask
-> ids, never the text), the rulings once they land (the rule each made: the bible, the Library, a system doc).
+> ids, never the text), and his picks once built: production is their only record, and a pick is never kept as a
+> rule.
 > **GROWS BY:** Will answers on the board (the panel composes one message he pastes into chat); the
 > Orchestrator runs `pnpm lab:review "<the line>"` which validates every ask and option against the
 > board's spec and appends here; the Orchestrator's own notes carry `by: "ai:orchestrator"`. The
@@ -38,7 +39,7 @@ and the board rewrites it before he is asked again.
 A new round is opened by the Orchestrator when it spawns it. `_window.json` holds notes whose `on`
 is a board id or `null` for the whole window. The desk derives "Waiting on Will" as every ask on a
 standing board with no answer in its latest round; a board whose asks are all answered shows its
-ruling draft. When a board leaves the lab (its ruling landed) its ledger is deleted with it.
+ruling draft. When a board leaves the lab (its picks built) its ledger is deleted with it.
 
 ## The message grammar
 

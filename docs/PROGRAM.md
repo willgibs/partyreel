@@ -26,9 +26,9 @@ carries every back-and-forth and lands everything.
 2. **The lane returns DECISIONS** at `/design/lab/<board>` (below) and hands off; the Orchestrator integrates one lane
    at a time, with one alias build per round.
 3. **Will reviews on the desk** (`/design/lab?key=`), one question at a time; the Orchestrator transcribes his answers.
-4. **Winners are promoted**: the wiring round lands each as a working version in production and the Library, and a
-   refined pick is refined inside the wiring. The board retires with its losing options; a later exploration
-   branches from what shipped.
+4. **Picks are built**: the wiring round lands each in production, a refined pick refined inside the wiring. The
+   board retires with its losing options and its ledger; nothing records a pick as a rule (CLAUDE.md, "Rising
+   tides"). A later exploration starts from production, with his notes (refinements, new ideas) as direction.
 
 ## Agent boot
 

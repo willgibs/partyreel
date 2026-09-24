@@ -11,7 +11,9 @@ asks for one); the host curates; the link doubles as the shareable album. It is 
 users (Stripe in TEST mode, the launch switches unspent), in the **elevation program** ([`docs/PROGRAM.md`](docs/PROGRAM.md)).
 
 **Rising tides** (the bible, `/design/library`, which only Will changes): the whole platform is the goal, nothing is
-protected or finished, and relitigating any decision for a better answer is welcome.
+protected or finished, and relitigating any decision for a better answer is welcome. Will's pick in an exploration
+is the best of what was drawn, never the perfect answer or a rule: what ships is a working version, and a new
+exploration ignores how we got here and hunts for the perfect solution, improving on it or trying something new.
 
 ## Sessions & roles
 
