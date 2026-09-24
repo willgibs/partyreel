@@ -13,8 +13,8 @@
  *
  *   2. THE SWEEP (here, called once from the daily purge cron) hard-deletes what
  *      the request only marked: R2 objects FIRST, then the media rows through
- *      `purge_media_rows`, then the event rows, and finally the auth.users row
- *      once the account has ZERO events left.
+ *      `purge_media_rows` (both through `reclaimMedia`), then the event rows, and
+ *      finally the auth.users row once the account has ZERO events left.
  *
  * ★ THE AUTH USER GOES LAST, AND ONLY AT ZERO EVENTS. Deleting auth.users
  * cascades profiles -> events -> media (every FK on that chain is ON DELETE
@@ -31,28 +31,51 @@
  * deleted when the hold lifts. The account is not told, and the hold columns are
  * not readable by it (database-security.md's column-scoped SELECT).
  *
- * Server-only: R2 + the service-role client. The pure parts are pinned by
- * account-deletion.test.ts, which reads this file as text because a runtime test
- * of a service-role sweep would need a live database.
+ * ★ WHOLE, AND WITHIN THE CRON'S BUDGET (the 1,000-row round, 2026-09-23). Every read here is
+ * complete: the account's events and the deletion queue by keyset (`readAllPages`), the hold
+ * question as ONE `held_event_ids` answer (`readHeldEventIds`; a row list of held photos stopped at
+ * 1,000 and could read a held event as purgeable), each event batch's media in keyset pages of
+ * `MAX_ROWS` reclaimed page by page, and every id list chunked (`inChunks`). A large account can take
+ * more than one night: the sweep stops at its deadline, an account caught mid-purge keeps its event
+ * rows and its auth user for the next run (`outcome: "unfinished"`), and the run says what it left.
+ *
+ * Server-only: R2 + the service-role client. `account-deletion.test.ts` pins the orders as text and
+ * runs the sweep against the clamping PostgREST fake (`src/lib/db/testing/fake-postgrest.ts`).
  */
 import "server-only";
 
-import { mustCount, mustQuery } from "@/lib/db/must-query";
+import { mustCount, mustQuery, QueryFailedError } from "@/lib/db/must-query";
+import {
+  IN_CHUNK,
+  inChunks,
+  MAX_ROWS,
+  readAllPages,
+  type AllPages,
+} from "@/lib/db/read-all";
 import { partitionEventsByHold } from "@/lib/forensics/legal-hold";
-import { forEachIsolated, tallyNote } from "@/lib/jobs/isolate";
+import {
+  emptyTally,
+  forEachIsolated,
+  tallyNote,
+  type IsolatedTally,
+} from "@/lib/jobs/isolate";
+import {
+  readHeldEventIds,
+  reclaimMedia,
+  type AdminClient,
+  type MediaKeyRow,
+} from "@/lib/lifecycle/reclaim";
+import {
+  NO_DEADLINE,
+  stoppedEarly,
+  type Deadline,
+  type StoppedEarly,
+} from "@/lib/lifecycle/sweep-budget";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
 import { deleteR2Objects } from "@/lib/r2/delete";
 import { reelOutputKey } from "@/lib/r2/keys";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { removeAvatar } from "@/lib/supabase/avatar-storage";
-
-type AdminClient = ReturnType<typeof createAdminClient>;
-
-type MediaKeyRow = {
-  id: string;
-  original_key: string;
-  preview_key: string | null;
-};
 
 /**
  * The columns the anonymisation clears, as one patch so the request path and the
@@ -103,14 +126,11 @@ export function isDeletionSchemaMissing(error: unknown): boolean {
 }
 
 /**
- * One invocation's candidate bound. Deletion is not urgent to the minute and the
- * cron is daily, so a backlog drains over consecutive runs rather than pushing
- * one invocation past its 60s budget.
+ * The deletion queue's page size. Not a per-run cap any more: the sweep reads the queue page by page,
+ * oldest request first, until its deadline, so a queue held at its head by forensic holds (a held
+ * account never leaves it) can never starve the requests behind it.
  */
-const ACCOUNT_SWEEP_LIMIT = 100;
-
-/** PostgREST caps a response at max_rows; page to exhaustion or lose media keys. */
-const MEDIA_PAGE = 1000;
+const QUEUE_PAGE = 100;
 
 export type AccountDeletionSweepResult = {
   /** Stamped accounts examined this run. */
@@ -119,6 +139,8 @@ export type AccountDeletionSweepResult = {
   accounts_deleted: number;
   /** Accounts left standing because a forensic hold still blocks an event. */
   accounts_held: number;
+  /** Accounts the deadline caught mid-purge: they finish on a later run. */
+  accounts_unfinished: number;
   events: number;
   hold_blocked_events: number;
   media_rows: number;
@@ -131,11 +153,14 @@ export type AccountDeletionSweepResult = {
   rows_failed?: number;
   rows_not_attempted?: number;
   rows_note?: string;
-};
+} & Partial<StoppedEarly>;
 
 export type AccountPurgeResult = {
-  /** "deleted" once the auth.users row is gone; "held" while anything blocks it. */
-  outcome: "deleted" | "held";
+  /**
+   * "deleted" once the auth.users row is gone; "held" while a hold blocks it; "unfinished" when the
+   * deadline stopped the purge before its event rows could go.
+   */
+  outcome: "deleted" | "held" | "unfinished";
   events: number;
   hold_blocked_events: number;
   media_rows: number;
@@ -149,6 +174,7 @@ function emptyResult(): AccountDeletionSweepResult {
     accounts: 0,
     accounts_deleted: 0,
     accounts_held: 0,
+    accounts_unfinished: 0,
     events: 0,
     hold_blocked_events: 0,
     media_rows: 0,
@@ -156,15 +182,6 @@ function emptyResult(): AccountDeletionSweepResult {
     r2_errored: 0,
     freed_bytes: 0,
   };
-}
-
-function keysOf(rows: MediaKeyRow[]): string[] {
-  const keys: string[] = [];
-  for (const r of rows) {
-    keys.push(r.original_key);
-    if (r.preview_key) keys.push(r.preview_key);
-  }
-  return keys;
 }
 
 /**
@@ -187,16 +204,26 @@ async function reanonymise(admin: AdminClient, userId: string): Promise<void> {
   if (error) throw new Error(`re-anonymise ${userId}: ${error.message}`);
 }
 
-/** The atomic R2-then-row reclaim + storage_used_bytes decrement (service-role-only). */
-async function purgeRows(
+/** EVERY event the account hosts, soft-deleted or not, whole, by keyset on id. */
+export async function readHostedEventIds(
   admin: AdminClient,
-  mediaIds: string[],
-): Promise<number> {
-  const { data, error } = await admin.rpc("purge_media_rows", {
-    p_media_ids: mediaIds,
-  });
-  if (error) throw new Error(`purge_media_rows: ${error.message}`);
-  return (data ?? []).reduce((sum, r) => sum + Number(r.freed_bytes ?? 0), 0);
+  userId: string,
+): Promise<string[]> {
+  const { rows } = await readAllPages(
+    "account deletion: hosted events",
+    (after: string | null, limit) => {
+      let query = admin
+        .from("events")
+        .select("id")
+        .eq("host_id", userId)
+        .order("id", { ascending: true })
+        .limit(limit);
+      if (after) query = query.gt("id", after);
+      return query;
+    },
+    (row) => row.id,
+  );
+  return rows.map((row) => row.id);
 }
 
 /**
@@ -215,6 +242,7 @@ export async function purgeAccount(
   admin: AdminClient,
   userId: string,
   handled?: Set<string>,
+  deadline: Deadline = NO_DEADLINE,
 ): Promise<AccountPurgeResult> {
   const result: AccountPurgeResult = {
     outcome: "held",
@@ -228,97 +256,109 @@ export async function purgeAccount(
 
   await reanonymise(admin, userId);
 
-  // row-cap-todo: M14 every hosted event, cut at 1,000
-  const events =
-    (await mustQuery(
-      // EVERY event the account hosts, soft-deleted or not: the request already
-      // binned them, and the ruling is immediate, so there is no 30-day wait
-      // here (that window is for a host who may want their event BACK).
-      admin.from("events").select("id").eq("host_id", userId),
-      "purgeAccount: events",
-    )) ?? [];
+  // EVERY event, soft-deleted or not: the request already binned them, and the
+  // ruling is immediate, so there is no 30-day wait here (that window is for a
+  // host who may want their event BACK).
+  const eventIds = await readHostedEventIds(admin, userId);
 
-  if (events.length > 0) {
-    const eventIds = events.map((e) => e.id);
-    // row-cap-todo: H14 one row per HELD photo, cut at 1,000 (past it a held event reads as purgeable),
-    // and every event id rides one URL
-    const heldMedia = await mustQuery(
-      // ★ The hold filter runs BEFORE any key list is built. The SQL guard in
-      // purge_media_rows would save only the ROW; every R2 delete is R2-first,
-      // so a held OBJECT is protected here or nowhere.
-      admin
-        .from("media")
-        .select("event_id")
-        .in("event_id", eventIds)
-        .filter("legal_hold_at", "not.is", null),
-      "purgeAccount: held media",
-    );
+  if (eventIds.length > 0) {
+    // ★ The hold check runs BEFORE any key list is built, and the media read below
+    // leaves held rows out too. The SQL guard in purge_media_rows would save only
+    // the ROW; every R2 delete is R2-first, so a held OBJECT is protected here or
+    // nowhere.
     const { purgeable, blocked } = partitionEventsByHold(
       eventIds,
-      heldMedia ?? [],
+      await readHeldEventIds(admin, eventIds),
     );
     result.hold_blocked_events = blocked.length;
 
-    if (purgeable.length > 0) {
-      const rows: MediaKeyRow[] = [];
-      // Page to exhaustion, advancing by what the server actually returned and
-      // stopping only on an empty page (PostgREST silently clamps to its own
-      // max_rows, so a short first page is not proof of the last one). An
-      // unbounded select would leave the tail of a large album as permanent
-      // orphans once the event-row delete cascades their rows away.
-      for (let from = 0; ; ) {
-        // row-cap-todo: N2 every purgeable event id rides this URL on every page
-        const page = await mustQuery(
-          admin
-            .from("media")
-            .select("id, original_key, preview_key")
-            .in("event_id", purgeable)
-            .order("id", { ascending: true })
-            .range(from, from + MEDIA_PAGE - 1),
-          "purgeAccount: media page",
-        );
-        const batch = (page ?? []) as MediaKeyRow[];
-        if (batch.length === 0) break;
-        rows.push(...batch);
-        from += batch.length;
-      }
+    const outcomes = await inChunks(
+      "account deletion: media",
+      purgeable,
+      async (chunk) => {
+        let after: string | null = null;
+        for (;;) {
+          if (deadline.passed()) return [false];
+          // Annotated: the loop feeds `page.after` back in, which TypeScript cannot infer through.
+          const page: AllPages<MediaKeyRow, string> = await readAllPages(
+            "account deletion: media page",
+            (cursor: string | null, limit) => {
+              let query = admin
+                .from("media")
+                .select("id, original_key, preview_key")
+                .in("event_id", chunk)
+                .filter("legal_hold_at", "is", null)
+                .order("id", { ascending: true })
+                .limit(limit);
+              if (cursor) query = query.gt("id", cursor);
+              return query;
+            },
+            (media) => media.id,
+            { budget: MAX_ROWS, after },
+          );
+          if (page.rows.length > 0) {
+            // R2 FIRST, then the rows (reclaimMedia does both, in that order).
+            const reclaimed = await reclaimMedia(admin, page.rows);
+            result.media_rows += reclaimed.media_rows;
+            result.r2_deleted += reclaimed.r2_deleted;
+            result.r2_errored += reclaimed.r2_errored;
+            result.freed_bytes += reclaimed.freed_bytes;
+            for (const media of page.rows) handled?.add(media.id);
+          }
+          if (!page.more) break;
+          after = page.after;
+        }
 
-      // R2 FIRST, always. The rendered reel .mp4 is a derived artifact with no
-      // media row and a non-media-shaped key, so the orphan sweep would never
-      // reclaim it; appending its deterministic key is safe whether or not a
-      // reel was ever rendered (deleting an absent key is a success).
-      const r2 = await deleteR2Objects([
-        ...keysOf(rows),
-        ...purgeable.map(reelOutputKey),
-      ]);
-      result.r2_deleted = r2.deleted;
-      result.r2_errored = r2.errored.length;
-      if (r2.errored.length > 0) {
-        // We still reclaim the rows (matching the expired-events sweep): the
-        // orphan sweep is the backstop for a stranded media object. Say so
-        // loudly, because a reel .mp4 that fails here leaks silently forever.
-        captureWarning("cron", "account_deletion_r2_partial", {
-          user_id: userId,
-          errored: r2.errored.length,
-        });
-      }
+        // Every unheld media row is gone. Ask the holds again: an event held since the partition
+        // keeps its row and its held media.
+        const stillHeld = new Set(await readHeldEventIds(admin, chunk));
+        const doomed = chunk.filter((id) => !stillHeld.has(id));
+        result.hold_blocked_events += chunk.length - doomed.length;
+        if (doomed.length === 0) return [true];
 
-      const mediaIds = rows.map((r) => r.id);
-      if (mediaIds.length > 0) {
-        result.freed_bytes = await purgeRows(admin, mediaIds);
-        result.media_rows = mediaIds.length;
-        for (const id of mediaIds) handled?.add(id);
-      }
+        // The rendered reel .mp4 is a derived artifact with no media row and a
+        // non-media-shaped key, so the orphan sweep would never reclaim it; its
+        // deterministic key is safe to delete whether or not a reel was ever
+        // rendered (deleting an absent key is a success).
+        const reels = await deleteR2Objects(doomed.map(reelOutputKey));
+        result.r2_deleted += reels.deleted;
+        result.r2_errored += reels.errored.length;
 
-      // Safe now: the media is gone, so the FK cascade has nothing of value
-      // left to destroy.
-      // row-cap-todo: M14 the event delete puts every purgeable event id in one URL
-      const { error: delErr } = await admin
-        .from("events")
-        .delete()
-        .in("id", purgeable);
-      if (delErr) throw new Error(`delete events: ${delErr.message}`);
-      result.events = purgeable.length;
+        // Safe now: the media is gone, so the FK cascade has nothing of value
+        // left to destroy.
+        const { error: delErr } = await admin
+          .from("events")
+          .delete()
+          .in(
+            "id",
+            chunk.filter((id) => !stillHeld.has(id)),
+          );
+        if (delErr) {
+          throw new QueryFailedError("account deletion: delete events", delErr);
+        }
+        result.events += doomed.length;
+        return [true];
+      },
+      // One chunk at a time, `IN_CHUNK` events each: the deletes are R2-first and ordered, and the
+      // deadline is checked between pages.
+      { size: IN_CHUNK, concurrency: 1 },
+    );
+
+    if (result.r2_errored > 0) {
+      // We still reclaim the rows (matching the expired-events sweep): the orphan sweep is the
+      // backstop for a stranded media object. Said loudly, because a reel .mp4 that fails here
+      // leaks silently forever.
+      captureWarning("cron", "account_deletion_r2_partial", {
+        user_id: userId,
+        errored: result.r2_errored,
+      });
+    }
+
+    if (!outcomes.every(Boolean)) {
+      // The deadline caught it mid-purge: its remaining events (and the auth user) wait for the
+      // next run, which re-reads them from scratch.
+      result.outcome = "unfinished";
+      return result;
     }
   }
 
@@ -356,17 +396,56 @@ export async function purgeAccount(
   return result;
 }
 
+/** A position in the deletion queue: the raw `deletion_requested_at` string and the id. */
+type QueueCursor = { at: string; id: string };
+type QueueRow = { id: string; deletion_requested_at: string | null };
+
+/** One page of the deletion queue, oldest request first. */
+export function deletionQueuePage(
+  admin: AdminClient,
+  after: QueueCursor | null,
+  limit: number,
+) {
+  let query = admin
+    .from("profiles")
+    .select("id, deletion_requested_at")
+    // The untyped `.filter` form, like the purge cron's own legal_hold_at
+    // predicate (the column is in the generated types since the apply).
+    .filter("deletion_requested_at", "not.is", null)
+    .order("deletion_requested_at", { ascending: true })
+    .order("id", { ascending: true })
+    .limit(limit);
+  if (after) {
+    query = query.or(
+      `deletion_requested_at.gt.${after.at},and(deletion_requested_at.eq.${after.at},id.gt.${after.id})`,
+    );
+  }
+  return query;
+}
+
+/** How many stamped accounts stand in the queue past `after` (all of them from null). */
+async function countQueueAfter(
+  admin: AdminClient,
+  after: QueueCursor | null,
+): Promise<number> {
+  let query = admin
+    .from("profiles")
+    .select("id", { count: "exact", head: true })
+    .filter("deletion_requested_at", "not.is", null);
+  if (after) {
+    query = query.or(
+      `deletion_requested_at.gt.${after.at},and(deletion_requested_at.eq.${after.at},id.gt.${after.id})`,
+    );
+  }
+  return mustCount(query, "sweepDeletedAccounts: queue left");
+}
+
 /**
- * Sweep the accounts that asked to be deleted: find them, then hand each to
- * purgeAccount.
- *
- * WIRING: the orchestrator adds ONE line to src/app/api/cron/purge/route.ts,
- * after `removed_media` so `handled` is populated and before the capacity
- * sweeps so they never act on bytes this run is about to reclaim:
- *
- *     await runSweep("deleted_accounts", () =>
- *       sweepDeletedAccounts(admin, now, handled),
- *     );
+ * Sweep the accounts that asked to be deleted: page through the queue, oldest
+ * request first, and hand each to purgeAccount until the deadline. Wired in
+ * src/app/api/cron/purge/route.ts after `removed_media` (so `handled` is
+ * populated) and before the capacity sweeps (so they never act on bytes this run
+ * is about to reclaim).
  *
  * `_now` is accepted for signature symmetry with the sibling sweeps (the cron
  * hands one `now` to all of them). This sweep has no time window: deletion is
@@ -376,64 +455,102 @@ export async function sweepDeletedAccounts(
   admin: AdminClient,
   _now: Date,
   handled?: Set<string>,
+  opts: { deadline?: Deadline } = {},
 ): Promise<AccountDeletionSweepResult> {
+  const deadline = opts.deadline ?? NO_DEADLINE;
   const result = emptyResult();
+  const total: IsolatedTally = emptyTally();
 
-  let candidates: { id: string }[];
-  try {
-    candidates =
-      (await mustQuery(
-        admin
-          .from("profiles")
-          .select("id")
-          // The untyped `.filter` form, like the purge cron's own legal_hold_at
-          // predicate (the column is in the generated types since the apply).
-          .filter("deletion_requested_at", "not.is", null)
-          .order("deletion_requested_at", { ascending: true })
-          .limit(ACCOUNT_SWEEP_LIMIT),
-        "sweepDeletedAccounts: candidates",
-      )) ?? [];
-  } catch (error) {
-    // Pre-apply the column does not exist. Report "nothing to do" rather than
-    // failing the sweep; the orchestrator applies the migration before wiring
-    // the call, so this branch should never fire in production.
-    if (isDeletionSchemaMissing(error)) {
-      return { ...result, skipped: "not_provisioned" };
+  let after: QueueCursor | null = null;
+  // Where the run stopped in the queue, when the deadline stopped it.
+  let stoppedAt: QueueCursor | null | undefined;
+  for (;;) {
+    if (deadline.passed()) {
+      stoppedAt = after;
+      break;
     }
-    throw error;
+    let page: AllPages<QueueRow, QueueCursor>;
+    try {
+      page = await readAllPages(
+        "sweepDeletedAccounts: candidates",
+        (cursor: QueueCursor | null, limit) =>
+          deletionQueuePage(admin, cursor, limit),
+        // `deletion_requested_at` is never null here: the page filters `not.is.null`.
+        (row) => ({ at: row.deletion_requested_at as string, id: row.id }),
+        { budget: QUEUE_PAGE, after },
+      );
+    } catch (error) {
+      // Pre-apply the column does not exist. Report "nothing to do" rather than
+      // failing the sweep; the orchestrator applies the migration before wiring
+      // the call, so this branch should never fire in production.
+      if (isDeletionSchemaMissing(error)) {
+        return { ...result, skipped: "not_provisioned" };
+      }
+      throw error;
+    }
+    if (page.rows.length === 0) break;
+
+    // ★ PER-ROW ISOLATION (QA #27). One account whose R2 delete or auth delete threw used to abort
+    // the whole sweep, so every account BEHIND it waited another day, for a deletion that is
+    // immediate by ruling. Each account is isolated; `rows_failed` travels with the tally so the
+    // sweep's own run still closes RED (src/lib/jobs/purge-sweeps.ts reads it), and the next run
+    // retries the failed ones.
+    const tally = await forEachIsolated(
+      page.rows,
+      async ({ id: userId }) => {
+        result.accounts += 1;
+        const one = await purgeAccount(admin, userId, handled, deadline);
+        result.events += one.events;
+        result.hold_blocked_events += one.hold_blocked_events;
+        result.media_rows += one.media_rows;
+        result.r2_deleted += one.r2_deleted;
+        result.r2_errored += one.r2_errored;
+        result.freed_bytes += one.freed_bytes;
+        if (one.outcome === "deleted") result.accounts_deleted += 1;
+        else if (one.outcome === "held") result.accounts_held += 1;
+        else result.accounts_unfinished += 1;
+      },
+      {
+        onError: (row, e) =>
+          captureError("cron", e, {
+            sweep: "deleted_accounts",
+            user_id: row.id,
+          }),
+        stopWhen: () => deadline.passed(),
+      },
+    );
+    total.processed += tally.processed;
+    total.failed += tally.failed;
+    total.skipped += tally.skipped;
+    total.aborted ||= tally.aborted;
+    total.firstError ??= tally.firstError;
+
+    const attempted = tally.processed + tally.failed;
+    if (tally.unreached > 0) {
+      const last = attempted > 0 ? page.rows[attempted - 1] : null;
+      stoppedAt = last
+        ? { at: last.deletion_requested_at as string, id: last.id }
+        : after;
+      break;
+    }
+    if (tally.skipped > 0) break; // aborted: a failure, reported as one
+    if (!page.more) break;
+    after = page.after;
   }
 
-  // ★ PER-ROW ISOLATION (QA #27). One account whose R2 delete or auth delete threw used to abort
-  // the whole sweep, so every account BEHIND it in the queue waited another day — for a deletion
-  // that is immediate by ruling, and with nothing but one `{ error }` on the run to show for it.
-  // Each account is isolated now; `rows_failed` travels with the tally so the sweep's own run still
-  // closes RED (src/lib/jobs/purge-sweeps.ts reads it), and the next run retries the failed ones.
-  const tally = await forEachIsolated(
-    candidates,
-    async ({ id: userId }) => {
-      result.accounts += 1;
-      const one = await purgeAccount(admin, userId, handled);
-      result.events += one.events;
-      result.hold_blocked_events += one.hold_blocked_events;
-      result.media_rows += one.media_rows;
-      result.r2_deleted += one.r2_deleted;
-      result.r2_errored += one.r2_errored;
-      result.freed_bytes += one.freed_bytes;
-      if (one.outcome === "deleted") result.accounts_deleted += 1;
-      else result.accounts_held += 1;
-    },
-    {
-      onError: (row, e) =>
-        captureError("cron", e, {
-          sweep: "deleted_accounts",
-          user_id: row.id,
-        }),
-    },
-  );
+  result.rows_failed = total.failed;
+  result.rows_not_attempted = total.skipped;
+  result.rows_note = tallyNote("accounts", total) ?? undefined;
 
-  result.rows_failed = tally.failed;
-  result.rows_not_attempted = tally.skipped;
-  result.rows_note = tallyNote("accounts", tally) ?? undefined;
+  // Work left: the accounts the deadline never reached, plus any it caught mid-purge.
+  if (stoppedAt !== undefined || result.accounts_unfinished > 0) {
+    const unreached =
+      stoppedAt === undefined ? 0 : await countQueueAfter(admin, stoppedAt);
+    return {
+      ...result,
+      ...stoppedEarly(unreached + result.accounts_unfinished),
+    };
+  }
   return result;
 }
 
@@ -451,6 +568,8 @@ export type AccountDeletionState = {
  * account asked to be deleted, and is anything holding it open? Service-role
  * (there is no cross-host profile read elsewhere) and READ-ONLY. Degrades to
  * "not requested" before the migration lands rather than 500-ing the page.
+ * The event count is COUNTED (a head count, never a list's length), and the held
+ * count is `held_event_ids`' answer over the account's events read whole.
  */
 export async function getAccountDeletionState(
   userId: string,
@@ -475,31 +594,22 @@ export async function getAccountDeletionState(
     if (!isDeletionSchemaMissing(error)) throw error;
   }
 
-  // row-cap-todo: M14 every hosted event, cut at 1,000, and the event count is that list's length
-  const events =
-    (await mustQuery(
-      admin.from("events").select("id").eq("host_id", userId),
-      "getAccountDeletionState: events",
-    )) ?? [];
-  const eventIds = events.map((e) => e.id);
-  if (eventIds.length === 0) {
+  const eventCount = await mustCount(
+    admin
+      .from("events")
+      .select("id", { count: "exact", head: true })
+      .eq("host_id", userId),
+    "getAccountDeletionState: events",
+  );
+  if (eventCount === 0) {
     return { requestedAt, eventCount: 0, heldEventCount: 0 };
   }
 
-  // row-cap-todo: H14 one row per HELD photo, cut at 1,000, and every event id rides one URL
-  const heldMedia = await mustQuery(
-    admin
-      .from("media")
-      .select("event_id")
-      .in("event_id", eventIds)
-      .filter("legal_hold_at", "not.is", null),
-    "getAccountDeletionState: held media",
+  const eventIds = await readHostedEventIds(admin, userId);
+  const { blocked } = partitionEventsByHold(
+    eventIds,
+    await readHeldEventIds(admin, eventIds),
   );
-  const { blocked } = partitionEventsByHold(eventIds, heldMedia ?? []);
 
-  return {
-    requestedAt,
-    eventCount: eventIds.length,
-    heldEventCount: blocked.length,
-  };
+  return { requestedAt, eventCount, heldEventCount: blocked.length };
 }

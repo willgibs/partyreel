@@ -6,6 +6,8 @@ import {
   JOBS,
   MISSED_GRACE_MULTIPLIER,
   QUEUE_BACKLOG_ATTENTION,
+  STOPPED_EARLY_KEY,
+  countsStoppedEarly,
   isJobMissed,
   isUnhealthy,
   jobById,
@@ -274,6 +276,69 @@ describe("jobHealth", () => {
         nowMs: NOW,
       }),
     ).toBe("missed");
+  });
+
+  it("reports attention for a run that finished but stopped early with work left", () => {
+    // The 1,000-row round: a sweep that ran out of time did nothing wrong, and the next run carries
+    // on, but a backlog that outlasts a night is exactly what used to grow without a word.
+    expect(
+      jobHealth({
+        def,
+        enabled: true,
+        lastRun: { ...run("ok", 60_000, 60_000), stoppedEarly: true },
+        lastFinishedAtMs: NOW - 60_000,
+        nowMs: NOW,
+      }),
+    ).toBe("attention");
+    expect(isUnhealthy("attention")).toBe(true);
+  });
+
+  it("lets a failure, a pause and a missed run outrank stopping early", () => {
+    const stopped = (status: JobRunSummary["status"], agoMs: number) => ({
+      ...run(status, agoMs, agoMs),
+      stoppedEarly: true,
+    });
+    expect(
+      jobHealth({
+        def,
+        enabled: true,
+        lastRun: stopped("error", 60_000),
+        lastFinishedAtMs: NOW - 60_000,
+        nowMs: NOW,
+      }),
+    ).toBe("failed");
+    expect(
+      jobHealth({
+        def,
+        enabled: false,
+        lastRun: stopped("ok", 60_000),
+        lastFinishedAtMs: NOW - 60_000,
+        nowMs: NOW,
+      }),
+    ).toBe("paused");
+    expect(
+      jobHealth({
+        def,
+        enabled: true,
+        lastRun: stopped("ok", 4 * DAY),
+        lastFinishedAtMs: NOW - 4 * DAY,
+        nowMs: NOW,
+      }),
+    ).toBe("missed");
+  });
+});
+
+describe("countsStoppedEarly", () => {
+  it("reads the flag only as an explicit true at the top of the counts", () => {
+    expect(
+      countsStoppedEarly({ [STOPPED_EARLY_KEY]: true, remaining: 3 }),
+    ).toBe(true);
+    expect(countsStoppedEarly({ [STOPPED_EARLY_KEY]: "true" })).toBe(false);
+    expect(
+      countsStoppedEarly({ removed_media: { [STOPPED_EARLY_KEY]: true } }),
+    ).toBe(false);
+    expect(countsStoppedEarly(null)).toBe(false);
+    expect(countsStoppedEarly([true])).toBe(false);
   });
 });
 

@@ -30,6 +30,7 @@ import {
   type JobSignals,
   type JobState,
 } from "@/lib/db/queries/jobs";
+import { RESUME_KEY } from "@/lib/jobs/sweep-tally";
 
 import {
   JOBS,
@@ -130,13 +131,24 @@ function formatMinutes(minutes: number): string {
   return `${Math.round(hours / 24)} days`;
 }
 
+/**
+ * What a run that stopped early LEFT leads the line (the 1,000-row round: a sweep's time budget ran
+ * out, and the backlog it left is the thing to see), ahead of the six-part cut below.
+ */
+const LEAD_COUNT_KEYS = ["remaining", "sweeps_stopped_early"];
+
 /** A compact one-line rendering of a run's counts, so the card says what the run DID, not just that it ran. */
 function summarizeCounts(counts: JobRunRow["counts"]): string | null {
   if (!counts || typeof counts !== "object" || Array.isArray(counts)) {
     return null;
   }
+  const lead = (key: string) => (LEAD_COUNT_KEYS.includes(key) ? 0 : 1);
+  const entries = Object.entries(counts)
+    // A rotating sweep's resume cursor is bookkeeping for its next run, not a fact for the card.
+    .filter(([key]) => key !== RESUME_KEY)
+    .sort(([a], [b]) => lead(a) - lead(b));
   const parts: string[] = [];
-  for (const [key, value] of Object.entries(counts)) {
+  for (const [key, value] of entries) {
     if (typeof value === "number" && value > 0) {
       parts.push(`${key.replaceAll("_", " ")} ${value}`);
     }

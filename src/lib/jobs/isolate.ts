@@ -31,6 +31,11 @@ export type IsolatedTally = {
   aborted: boolean;
   /** The first failure's message, for the run's one-line note. Never the whole list. */
   firstError: string | null;
+  /**
+   * Rows `stopWhen` left for the next run (a time budget ran out). NOT a failure, so it never makes
+   * a tally unclean: the sweep reports it as `stopped_early` with a `remaining` count instead.
+   */
+  unreached: number;
 };
 
 export type IsolateOptions<T> = {
@@ -45,6 +50,12 @@ export type IsolateOptions<T> = {
    * costing queries almost immediately.
    */
   abortAfterConsecutive?: number;
+  /**
+   * Asked before each row: `true` stops the loop THERE and counts the rest as `unreached`. The purge
+   * sweeps pass their deadline (`src/lib/lifecycle/sweep-budget.ts`), so one slow account can never
+   * run the invocation past its 60 seconds and cost every sweep behind it.
+   */
+  stopWhen?: () => boolean;
 };
 
 const DEFAULT_ABORT_AFTER = 5;
@@ -56,6 +67,7 @@ export function emptyTally(): IsolatedTally {
     skipped: 0,
     aborted: false,
     firstError: null,
+    unreached: 0,
   };
 }
 
@@ -88,6 +100,10 @@ export async function forEachIsolated<T>(
   let consecutive = 0;
 
   for (let i = 0; i < rows.length; i++) {
+    if (options.stopWhen?.()) {
+      tally.unreached = rows.length - i;
+      break;
+    }
     const row = rows[i] as T;
     try {
       await body(row, i);

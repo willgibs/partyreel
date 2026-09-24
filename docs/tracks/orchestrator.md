@@ -34,7 +34,6 @@ model Will seats (Fable or Opus); nothing here depends on which.
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `rowcap-album` | the host's album whole: hub counts, Review, the Deleted bin, the reel studio, the host export (`over_cap` past 2,000), the live poll, bulk actions chunked, the seed's wipe held-safe (C1 to C6, C14, H1, M8, M9, M13, M18) | building (agent ac621107f3c7db805) | Opus, :3132 | its markers gone; the probe read by script |
-| `rowcap-cron` | every sweep whole or reported: keyset batches in budget, legal hold through `held_event_ids`, the standby budget through `standby_hosts` without withdrawals, id lists chunked, a partial run on `/admin/jobs` (H8 to H15, H17, M14 to M17, N1, N2) | building (agent aadcca39bde280433) | Opus, :3134 | its markers gone; the over-cap ROADMAP line retires |
 
 ## Next, in order
 
