@@ -38,6 +38,9 @@ import {
   sortGuestEventCards,
   type GuestEventCardData,
 } from "@/lib/dashboard/guest-events";
+import { mustQuery } from "@/lib/db/must-query";
+import { readCoverUrls } from "@/lib/db/queries/events";
+import { inChunks, readAllPages } from "@/lib/db/read-all";
 import type { Database } from "@/lib/db/types";
 import {
   resolveEventGuests,
@@ -50,7 +53,6 @@ import {
   type NotificationPrefsRow,
 } from "@/lib/social/notification-prefs";
 import { captureError } from "@/lib/observability/sentry";
-import { presignDownload } from "@/lib/r2/presign";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
@@ -86,33 +88,13 @@ export function isSocialSchemaMissing(error: unknown): boolean {
 }
 
 /**
- * PostgREST clamps every response to `max_rows` (1000 on this project), so a list that can outgrow
- * one page is read to exhaustion. The first page asks for an exact count, which makes the common
- * case (everything fits) a single round trip; a longer set pages on by what actually came back, in
- * a stable order the caller's query sets.
+ * ★ EVERY LIST HERE IS READ WHOLE, EVERY ID LIST CHUNKED (the 1,000-row round, 2026-09-23; the rules
+ * are `read-all.ts`' header). PostgREST answers at most 1,000 rows a request with no error, so each
+ * list pages on a keyset through `readAllPages` (its display order, else its key), and every runtime
+ * id list rides `inChunks` (at most 150 ids a URL). The offset reader this module had before asked
+ * for an exact count on every page and paged by position, which a row written mid-read could shift.
  */
-const PAGE = 1000;
-type Page<T> = PromiseLike<{
-  data: T[] | null;
-  count?: number | null;
-  error: unknown;
-}>;
-async function readAll<T>(
-  page: (from: number, to: number) => Page<T>,
-): Promise<T[]> {
-  const first = await page(0, PAGE - 1);
-  if (first.error) throw first.error;
-  const rows = [...(first.data ?? [])];
-  const total = first.count ?? rows.length;
-  while (rows.length < total) {
-    const next = await page(rows.length, rows.length + PAGE - 1);
-    if (next.error) throw next.error;
-    const batch = next.data ?? [];
-    if (batch.length === 0) break;
-    rows.push(...batch);
-  }
-  return rows;
-}
+type NewestFirst = { at: string; id: string } | null;
 
 /** The public-by-existence card fields (profiles-social.md point 3). */
 export type SocialProfileCard = {
@@ -127,13 +109,6 @@ export type FollowEntry = SocialProfileCard & { followedAt: string };
 export type BlockEntry = SocialProfileCard & { blockedAt: string };
 
 /**
- * At most this many ids ride one `.in()`. The list travels in the request URL (a uuid is 36 characters plus its
- * comma), so 150 keeps a read near 5.5 KB, well inside every proxy's URL limit, and far below PostgREST's 1,000-row
- * cap, which would otherwise answer a long list short without a word.
- */
-const PROFILE_CARD_BATCH = 150;
-
-/**
  * Hydrate profile cards for an id list via the ADMIN client. WHY admin:
  * profiles RLS is deliberately own-row (`profiles_select_own`), and these card
  * fields (name/slug/avatar marker) are public by existence per profiles-social.md, so
@@ -143,98 +118,72 @@ const PROFILE_CARD_BATCH = 150;
  * Explicit id-list join (not a PostgREST embed): user_follows/user_blocks carry
  * TWO profiles FKs, so a bare embed would be PGRST201-ambiguous anyway.
  *
- * ★ IN BATCHES, IN PARALLEL: a wedding with four hundred confirmed guests is four hundred ids, so the list is deduped
- * and read `PROFILE_CARD_BATCH` at a time, every batch at once, into the one map. ★ AND THE COLUMN LIST IS THE
- * ALLOW-LIST: `profiles` carries the account's email, tier and storage beside these four, and
+ * ★ IN CHUNKS (`inChunks`: deduped, at most 150 ids a request, four at a time): a wedding with four hundred confirmed
+ * guests is four hundred ids, and one `.in()` of them rides a URL that grows with the party. ★ AND THE COLUMN LIST IS
+ * THE ALLOW-LIST: `profiles` carries the account's email, tier and storage beside these four, and
  * social.guest-identity.test.ts pins the SELECT to exactly them.
  */
 async function getProfileCards(
   ids: string[],
 ): Promise<Map<string, SocialProfileCard>> {
-  const unique = [...new Set(ids)];
-  if (unique.length === 0) return new Map();
-  const batches: string[][] = [];
-  for (let i = 0; i < unique.length; i += PROFILE_CARD_BATCH) {
-    batches.push(unique.slice(i, i + PROFILE_CARD_BATCH));
-  }
+  if (ids.length === 0) return new Map();
   const admin = createAdminClient();
-  const pages = await Promise.all(
-    batches.map(async (batch) => {
-      // row-cap: chunked by hand at PROFILE_CARD_BATCH (150 ids), one profile an id
-      const { data, error } = await admin
+  const rows = await inChunks("social: profile cards", ids, async (chunk) =>
+    (await mustQuery(
+      admin
         .from("profiles")
         .select("id, display_name, slug, avatar_updated_at")
-        .in("id", batch);
-      if (error) throw error;
-      return data ?? [];
-    }),
+        .in("id", chunk),
+      "social: profile cards",
+    )) ?? [],
   );
   return new Map(
-    pages
-      .flat()
-      .map(
-        (p: {
-          id: string;
-          display_name: string | null;
-          slug: string | null;
-          avatar_updated_at: string | null;
-        }) => [
-          p.id,
-          {
-            id: p.id,
-            displayName: p.display_name,
-            slug: p.slug,
-            avatarMarker: p.avatar_updated_at,
-          },
-        ],
-      ),
+    rows.map((p) => [
+      p.id,
+      {
+        id: p.id,
+        displayName: p.display_name,
+        slug: p.slug,
+        avatarMarker: p.avatar_updated_at,
+      },
+    ]),
   );
 }
 
-/** Profiles I follow, newest first. Owner-private: [] when signed out. */
+/** Profiles I follow, newest first, every one of them. Owner-private: [] when signed out. */
 export async function getMyFollowing(): Promise<FollowEntry[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
-  // row-cap-todo: M5 the people I follow, cut at 1,000
-  const { data, error } = await supabase
-    .from("user_follows")
-    .select("followee_id, created_at")
-    .eq("follower_id", user.id)
-    .order("created_at", { ascending: false });
-  if (error) {
+  let rows: { followee_id: string; created_at: string }[];
+  try {
+    ({ rows } = await readAllPages(
+      "social: following",
+      (after: NewestFirst, limit) => {
+        let q = supabase
+          .from("user_follows")
+          .select("followee_id, created_at")
+          .eq("follower_id", user.id)
+          .order("created_at", { ascending: false })
+          .order("followee_id", { ascending: false })
+          .limit(limit);
+        if (after) {
+          q = q.or(
+            `created_at.lt.${after.at},and(created_at.eq.${after.at},followee_id.lt.${after.id})`,
+          );
+        }
+        return q;
+      },
+      (row) => ({ at: row.created_at, id: row.followee_id }),
+    ));
+  } catch (error) {
     if (isSocialSchemaMissing(error)) return []; // pre-apply
     throw error;
   }
 
-  const rows = (data ?? []) as { followee_id: string; created_at: string }[];
   const cards = await getProfileCards(rows.map((r) => r.followee_id));
   return rows.flatMap((r) => {
     const card = cards.get(r.followee_id);
-    return card ? [{ ...card, followedAt: r.created_at }] : [];
-  });
-}
-
-/** Profiles following me, newest first. Owner-private: [] when signed out. */
-export async function getMyFollowers(): Promise<FollowEntry[]> {
-  const { supabase, user } = await getRequestAuth();
-  if (!user) return [];
-
-  // row-cap-todo: M5 my followers, cut at 1,000
-  const { data, error } = await supabase
-    .from("user_follows")
-    .select("follower_id, created_at")
-    .eq("followee_id", user.id)
-    .order("created_at", { ascending: false });
-  if (error) {
-    if (isSocialSchemaMissing(error)) return []; // pre-apply
-    throw error;
-  }
-
-  const rows = (data ?? []) as { follower_id: string; created_at: string }[];
-  const cards = await getProfileCards(rows.map((r) => r.follower_id));
-  return rows.flatMap((r) => {
-    const card = cards.get(r.follower_id);
     return card ? [{ ...card, followedAt: r.created_at }] : [];
   });
 }
@@ -292,23 +241,37 @@ export async function isFollowing(profileId: string): Promise<boolean> {
   return (count ?? 0) > 0;
 }
 
-/** Profiles I blocked, newest first. Blocker-private. */
+/** Profiles I blocked, newest first, every one of them. Blocker-private. */
 export async function getMyBlocks(): Promise<BlockEntry[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
-  // row-cap-todo: M5 the people I blocked, cut at 1,000
-  const { data, error } = await supabase
-    .from("user_blocks")
-    .select("blocked_id, created_at")
-    .eq("blocker_id", user.id)
-    .order("created_at", { ascending: false });
-  if (error) {
+  let rows: { blocked_id: string; created_at: string }[];
+  try {
+    ({ rows } = await readAllPages(
+      "social: blocks",
+      (after: NewestFirst, limit) => {
+        let q = supabase
+          .from("user_blocks")
+          .select("blocked_id, created_at")
+          .eq("blocker_id", user.id)
+          .order("created_at", { ascending: false })
+          .order("blocked_id", { ascending: false })
+          .limit(limit);
+        if (after) {
+          q = q.or(
+            `created_at.lt.${after.at},and(created_at.eq.${after.at},blocked_id.lt.${after.id})`,
+          );
+        }
+        return q;
+      },
+      (row) => ({ at: row.created_at, id: row.blocked_id }),
+    ));
+  } catch (error) {
     if (isSocialSchemaMissing(error)) return []; // pre-apply
     throw error;
   }
 
-  const rows = (data ?? []) as { blocked_id: string; created_at: string }[];
   const cards = await getProfileCards(rows.map((r) => r.blocked_id));
   return rows.flatMap((r) => {
     const card = cards.get(r.blocked_id);
@@ -350,16 +313,26 @@ export async function getMyShownEventIds(): Promise<string[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
-  // row-cap-todo: M5 the events I chose to show, cut at 1,000
-  const { data, error } = await supabase
-    .from("profile_shown_events")
-    .select("event_id")
-    .eq("user_id", user.id);
-  if (error) {
+  try {
+    const { rows } = await readAllPages(
+      "social: my shown events",
+      (after: string | null, limit) => {
+        let q = supabase
+          .from("profile_shown_events")
+          .select("event_id")
+          .eq("user_id", user.id)
+          .order("event_id")
+          .limit(limit);
+        if (after) q = q.gt("event_id", after);
+        return q;
+      },
+      (row) => row.event_id,
+    );
+    return rows.map((r) => r.event_id);
+  } catch (error) {
     if (isSocialSchemaMissing(error)) return []; // pre-apply
     throw error;
   }
-  return ((data ?? []) as { event_id: string }[]).map((r) => r.event_id);
 }
 
 // ── The public profile (/u/[slug]) ───────────────────────────────────────────
@@ -467,8 +440,11 @@ export async function getPublicProfileCoverUrls(
  * doors) are the RPC's alone: this read takes no viewer, so the covers inherit
  * them through the ids the RPC returned.
  *
- * Cheap by construction: every read is an id-scoped lookup on the set the RPC
- * already narrowed, and an empty set short-circuits before the next.
+ * Cheap by construction: every read is scoped to the set the RPC already narrowed, and an empty
+ * set short-circuits before the next. ★ AND NO READ PUTS THE WHOLE SET IN ONE URL (the 1,000-row
+ * round, 2026-09-23): the attended list is an unbounded jsonb list, so gates 1 and 4 ride `inChunks`
+ * (at most 150 ids a request), and gate 3 reads the owner's own choices by their user id (a parent
+ * filter, no id list at all) and intersects them here.
  * Admin client because the viewer may be anonymous (events RLS is host-only).
  */
 export async function getPublicProfileAttendedCoverUrls(
@@ -481,16 +457,22 @@ export async function getPublicProfileAttendedCoverUrls(
   const admin = createAdminClient();
   try {
     // Gates 1 and 2: the host's key is still on and the album is still open.
-    // row-cap-todo: N4 every attended event id from get_public_profile rides one URL
-    const { data: open, error } = await admin
-      .from("events")
-      .select("id")
-      .in("id", ids)
-      .eq("show_guest_list", true)
-      .eq("visibility", "open")
-      .is("deleted_at", null);
-    if (error) throw error;
-    const allowed = new Set((open ?? []).map((e) => e.id));
+    const open = await inChunks(
+      "social: attended covers, open events",
+      ids,
+      async (chunk) =>
+        (await mustQuery(
+          admin
+            .from("events")
+            .select("id")
+            .in("id", chunk)
+            .eq("show_guest_list", true)
+            .eq("visibility", "open")
+            .is("deleted_at", null),
+          "social: attended covers, open events",
+        )) ?? [],
+    );
+    const allowed = new Set(open.map((e) => e.id));
     if (allowed.size === 0) return new Map();
 
     // Gate 3: the guest's own CHOICE. Inverted by the guest identity round (2026-09-22): an event
@@ -499,35 +481,53 @@ export async function getPublicProfileAttendedCoverUrls(
     // default for someone who has chosen nothing. Scoped to THIS profile's rows, never the viewer's
     // (the viewer may be anonymous; the choice belongs to the page's owner). Admin read:
     // profile_shown_events RLS is owner-only.
-    // row-cap-todo: N4 every still-allowed event id rides one URL
-    const { data: shown, error: shownError } = await admin
-      .from("profile_shown_events")
-      .select("event_id")
-      .eq("user_id", profileId)
-      .in("event_id", [...allowed]);
-    if (shownError) throw shownError;
-    const chosen = new Set((shown ?? []).map((row) => row.event_id));
+    const { rows: shown } = await readAllPages(
+      "social: attended covers, the owner's choices",
+      (after: string | null, limit) => {
+        let q = admin
+          .from("profile_shown_events")
+          .select("event_id")
+          .eq("user_id", profileId)
+          .order("event_id")
+          .limit(limit);
+        if (after) q = q.gt("event_id", after);
+        return q;
+      },
+      (row) => row.event_id,
+    );
+    const chosen = new Set(shown.map((row) => row.event_id));
     for (const id of [...allowed]) if (!chosen.has(id)) allowed.delete(id);
     if (allowed.size === 0) return new Map();
 
     // Gate 4: the owner is a guest there, as the public line requires: an APPROVED upload of theirs
     // on a PROVED row (`verified_at`, never a bare user id). A choice survives the owner's last
     // removal (profile_shown_events keeps it), and this gate is what hides the picture meanwhile.
-    // row-cap-todo: N4 every still-allowed event id rides the URL of every page
-    const attended = await readAll<{ event_id: string }>(
-      (from, to) =>
-        admin
-          .from("media")
-          .select(
-            "event_id, guests!media_guest_id_fkey!inner(user_id, verified_at)",
-            { count: "exact" },
+    // A chunk of events can hold more than 1,000 of the owner's uploads, so each chunk pages.
+    const attended = await inChunks(
+      "social: attended covers, the owner's uploads",
+      [...allowed],
+      async (chunk) =>
+        (
+          await readAllPages(
+            "social: attended covers, the owner's uploads",
+            (after: string | null, limit) => {
+              let q = admin
+                .from("media")
+                .select(
+                  "id, event_id, guests!media_guest_id_fkey!inner(user_id, verified_at)",
+                )
+                .in("event_id", chunk)
+                .eq("status", "approved")
+                .eq("guests.user_id", profileId)
+                .not("guests.verified_at", "is", null)
+                .order("id")
+                .limit(limit);
+              if (after) q = q.gt("id", after);
+              return q;
+            },
+            (row) => row.id,
           )
-          .in("event_id", [...allowed])
-          .eq("status", "approved")
-          .eq("guests.user_id", profileId)
-          .not("guests.verified_at", "is", null)
-          .order("id", { ascending: true })
-          .range(from, to) as unknown as Page<{ event_id: string }>,
+        ).rows,
     );
     const proved = new Set(attended.map((row) => row.event_id));
     for (const id of [...allowed]) if (!proved.has(id)) allowed.delete(id);
@@ -540,36 +540,18 @@ export async function getPublicProfileAttendedCoverUrls(
   }
 }
 
+/**
+ * Cover URLs for events a caller has already gated, on the admin client: `event_covers` (one jsonb
+ * for any number of events, the newest approved photo of each, the ids in the POST body), presigned
+ * here, the small preview when there is one (`readCoverUrls`, queries/events.ts). It used to read
+ * every approved photo of every event newest first and keep the first per event, so past 1,000
+ * photos one big album filled the page and the older events lost their cover, and it presigned the
+ * full-size original for a thumbnail.
+ */
 async function adminCoverUrls(
   eventIds: string[],
 ): Promise<Map<string, string>> {
-  const urls = new Map<string, string>();
-  if (eventIds.length === 0) return urls;
-
-  // row-cap-todo: H3 one row per approved photo across every event, cut at 1,000 (past it older events lose
-  // their cover), and every event id rides one URL
-  const { data, error } = await createAdminClient()
-    .from("media")
-    .select("event_id, original_key")
-    .in("event_id", eventIds)
-    .eq("status", "approved")
-    .eq("type", "photo")
-    .is("removed_at", null)
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-
-  const coverKey = new Map<string, string>();
-  for (const row of data ?? []) {
-    if (!coverKey.has(row.event_id))
-      coverKey.set(row.event_id, row.original_key);
-  }
-  const entries = await Promise.all(
-    [...coverKey].map(
-      async ([id, key]) => [id, await presignDownload({ key })] as const,
-    ),
-  );
-  for (const [id, url] of entries) urls.set(id, url);
-  return urls;
+  return readCoverUrls(createAdminClient(), eventIds, "social: event covers");
 }
 
 /**
@@ -660,27 +642,23 @@ type MyLiveUpload = {
  * at all, and `media` is host-scoped RLS. The caller passes the id `getUser()` verified.
  */
 async function myLiveUploads(userId: string): Promise<MyLiveUpload[]> {
-  const rows = await readAll<{
-    event_id: string;
-    status: MediaStatus;
-    created_at: string;
-    guests: { verified_at: string | null } | null;
-  }>((from, to) =>
-    createAdminClient()
-      .from("media")
-      .select(
-        "event_id, status, created_at, guests!media_guest_id_fkey!inner(user_id, verified_at)",
-        { count: "exact" },
-      )
-      .eq("guests.user_id", userId)
-      .neq("status", "removed")
-      .order("id", { ascending: true })
-      .range(from, to) as unknown as Page<{
-      event_id: string;
-      status: MediaStatus;
-      created_at: string;
-      guests: { verified_at: string | null } | null;
-    }>,
+  const admin = createAdminClient();
+  const { rows } = await readAllPages(
+    "social: my live uploads",
+    (after: string | null, limit) => {
+      let q = admin
+        .from("media")
+        .select(
+          "id, event_id, status, created_at, guests!media_guest_id_fkey!inner(user_id, verified_at)",
+        )
+        .eq("guests.user_id", userId)
+        .neq("status", "removed")
+        .order("id", { ascending: true })
+        .limit(limit);
+      if (after) q = q.gt("id", after);
+      return q;
+    },
+    (row) => row.id,
   );
   return rows.map((r) => ({
     eventId: r.event_id,
@@ -724,22 +702,32 @@ export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
     ];
     if (eventIds.length === 0) return [];
 
-    // row-cap-todo: M6 every attended event id rides one URL
-    const eventsRes = await admin
-      .from("events")
-      .select("id, name, event_date, host_id")
-      .in("id", eventIds)
-      .neq("host_id", user.id)
-      .is("deleted_at", null)
-      .order("created_at", { ascending: false });
-    if (eventsRes.error) throw eventsRes.error;
-    const shown = new Set(await getMyShownEventIds());
-    return (eventsRes.data ?? []).map((e) => ({
-      id: e.id,
-      name: e.name,
-      event_date: e.event_date,
-      shownOnProfile: shown.has(e.id),
-    }));
+    // At most 150 ids a request (`inChunks`), newest event first once the chunks are joined.
+    const [events, shownIds] = await Promise.all([
+      inChunks("social: attended events", eventIds, async (chunk) =>
+        (await mustQuery(
+          admin
+            .from("events")
+            .select("id, name, event_date, host_id, created_at")
+            .in("id", chunk)
+            .neq("host_id", user.id)
+            .is("deleted_at", null),
+          "social: attended events",
+        )) ?? [],
+      ),
+      getMyShownEventIds(),
+    ]);
+    const shown = new Set(shownIds);
+    return events
+      .sort((a, b) =>
+        a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0,
+      )
+      .map((e) => ({
+        id: e.id,
+        name: e.name,
+        event_date: e.event_date,
+        shownOnProfile: shown.has(e.id),
+      }));
   } catch (error) {
     if (isSocialSchemaMissing(error)) return [];
     throw error;
@@ -772,28 +760,40 @@ export async function getMyGuestEventCards(): Promise<GuestEventCardData[]> {
     }
     if (latest.size === 0) return [];
 
-    // row-cap-todo: M6 every event I added to rides one URL
-    const eventsRes = await admin
-      .from("events")
-      .select("id, name, event_date, visibility, qr_token, host_id")
-      .in("id", [...latest.keys()])
-      .neq("host_id", user.id)
-      .is("deleted_at", null);
-    if (eventsRes.error) throw eventsRes.error;
-    const events = eventsRes.data ?? [];
+    // Every id list rides `inChunks` (at most 150 ids a request): a keen guest's events, and
+    // their hosts, grow without bound.
+    const events = await inChunks(
+      "social: guest cards, events",
+      [...latest.keys()],
+      async (chunk) =>
+        (await mustQuery(
+          admin
+            .from("events")
+            .select("id, name, event_date, visibility, qr_token, host_id")
+            .in("id", chunk)
+            .neq("host_id", user.id)
+            .is("deleted_at", null),
+          "social: guest cards, events",
+        )) ?? [],
+    );
     if (events.length === 0) return [];
 
-    const hostIds = [...new Set(events.map((e) => e.host_id))];
-    // row-cap-todo: M6 every host id rides one URL
-    const [hostsRes, covers] = await Promise.all([
-      admin.from("profiles").select("id, display_name").in("id", hostIds),
+    const [hosts, covers] = await Promise.all([
+      inChunks(
+        "social: guest cards, hosts",
+        events.map((e) => e.host_id),
+        async (chunk) =>
+          (await mustQuery(
+            admin.from("profiles").select("id, display_name").in("id", chunk),
+            "social: guest cards, hosts",
+          )) ?? [],
+      ),
       adminCoverUrls(
         events.filter((e) => e.visibility === "open").map((e) => e.id),
       ),
     ]);
-    if (hostsRes.error) throw hostsRes.error;
     const hostNames = new Map(
-      (hostsRes.data ?? []).map((h) => [h.id, h.display_name] as const),
+      hosts.map((h) => [h.id, h.display_name] as const),
     );
 
     return sortGuestEventCards(
@@ -830,7 +830,8 @@ export async function getMyGuestEventCards(): Promise<GuestEventCardData[]> {
  *
  * ★ TWO QUERIES KEYED ON `event_id`, NEVER AN `.in()` OF GUEST IDS: a party's row count is
  * unbounded, and an id list rides the URL, so the old shape (rows first, then their media by id)
- * grew its request with the party. Both sets are read to exhaustion past PostgREST's row cap.
+ * grew its request with the party. Both sets are read whole, in keyset pages on `id`
+ * (`readAllPages`), past PostgREST's row cap.
  * Admin client: `guests` has no client grant and `media` is host-scoped RLS; every caller runs this
  * AFTER its own access gate (the hub's ownership, the album's resolved access), and only numbers or
  * names the album already shows ever leave it. An event that is missing or deleted has no guests.
@@ -841,44 +842,55 @@ export const getEventGuests = cache(async function getEventGuests(
   // cache(): request-scoped, because the album page asks twice in one render (its header's count
   // and its guest list), and the answer cannot change between them.
   const admin = createAdminClient();
-  const [eventRes, approved, rows] = await Promise.all([
+  const [eventRes, approved, guestRows] = await Promise.all([
     admin
       .from("events")
       .select("host_id")
       .eq("id", eventId)
       .is("deleted_at", null)
       .maybeSingle(),
-    readAll<{ guest_id: string | null }>(
-      (from, to) =>
-        admin
+    readAllPages(
+      "social: event guests, approved uploads",
+      (after: string | null, limit) => {
+        let q = admin
           .from("media")
-          .select("guest_id", { count: "exact" })
+          .select("id, guest_id")
           .eq("event_id", eventId)
           .eq("status", "approved")
           .not("guest_id", "is", null)
           .order("id", { ascending: true })
-          .range(from, to) as unknown as Page<{ guest_id: string | null }>,
+          .limit(limit);
+        if (after) q = q.gt("id", after);
+        return q;
+      },
+      (row) => row.id,
     ),
     // ★ `verified_at` and `display_name` are NOT granted to `authenticated` (guests has no client
     // grant at all), which is why this read is on the admin client; and the SELECT names its four
     // columns and no address (social.guest-identity.test.ts pins it).
-    readAll<GuestRowFacts>(
-      (from, to) =>
-        admin
+    readAllPages(
+      "social: event guests, guest rows",
+      (after: string | null, limit) => {
+        let q = admin
           .from("guests")
-          .select("id, user_id, display_name, verified_at", { count: "exact" })
+          .select("id, user_id, display_name, verified_at")
           .eq("event_id", eventId)
           .order("id", { ascending: true })
-          .range(from, to) as unknown as Page<GuestRowFacts>,
+          .limit(limit);
+        if (after) q = q.gt("id", after);
+        return q;
+      },
+      (row) => row.id,
     ),
   ]);
+  const rows: GuestRowFacts[] = guestRows.rows;
   if (eventRes.error) throw eventRes.error;
   if (!eventRes.data) return { verifiedUserIds: [], unverifiedRows: [] };
 
   return resolveEventGuests({
     hostId: eventRes.data.host_id,
     approvedGuestIds: new Set(
-      approved.flatMap((m) => (m.guest_id ? [m.guest_id] : [])),
+      approved.rows.flatMap((m) => (m.guest_id ? [m.guest_id] : [])),
     ),
     rows,
   });
@@ -1065,72 +1077,4 @@ export async function getEventSocialSettings(eventId: string): Promise<{
     displayInProfile: row.display_in_profile,
     showGuestList: row.show_guest_list,
   };
-}
-
-// ── The dashboard Following section ──────────────────────────────────────────
-
-export type FollowedEventCard = {
-  eventId: string;
-  name: string;
-  event_date: string | null;
-  hostName: string | null;
-  /** /e/<custom_slug ?? qr_token> — present because the host PUBLISHED the
-   *  event to their profile (display_in_profile); private/password still gate
-   *  at the /e/ page, mirroring the public-profile hosted arm. */
-  href: string;
-  coverUrl: string | null;
-};
-
-/**
- * Events by hosts I follow, for the dashboard "Following" chip: the union of my
- * followees' PUBLISHED events (display_in_profile on, not deleted), newest
- * first. The exact set each host's /u/ page shows, so following someone is
- * "their profile, delivered". Covers follow the same open-only masking as the
- * profile grid. Owner-private input (my follow rows) + published-only output,
- * so nothing leaks that /u/ doesn't already show.
- */
-export async function getFollowedHostEventCards(): Promise<
-  FollowedEventCard[]
-> {
-  const following = await getMyFollowing();
-  if (following.length === 0) return [];
-  const hostNames = new Map(following.map((f) => [f.id, f.displayName]));
-
-  try {
-    // row-cap-todo: M5 the followed hosts' events, cut at 1,000, and every followed host id rides one URL
-    const { data, error } = await createAdminClient()
-      .from("events")
-      .select(
-        "id, name, event_date, visibility, qr_token, custom_slug, host_id, created_at",
-      )
-      .in("host_id", [...hostNames.keys()])
-      .eq("display_in_profile", true)
-      .is("deleted_at", null)
-      .order("created_at", { ascending: false });
-    if (error) throw error;
-
-    const rows = (data ?? []) as {
-      id: string;
-      name: string;
-      event_date: string | null;
-      visibility: Database["public"]["Enums"]["event_visibility"];
-      qr_token: string;
-      custom_slug: string | null;
-      host_id: string;
-    }[];
-    const covers = await adminCoverUrls(
-      rows.filter((r) => r.visibility === "open").map((r) => r.id),
-    );
-    return rows.map((r) => ({
-      eventId: r.id,
-      name: r.name,
-      event_date: r.event_date,
-      hostName: hostNames.get(r.host_id) ?? null,
-      href: `/e/${r.custom_slug ?? r.qr_token}`,
-      coverUrl: covers.get(r.id) ?? null,
-    }));
-  } catch (error) {
-    if (isSocialSchemaMissing(error)) return [];
-    throw error;
-  }
 }

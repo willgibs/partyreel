@@ -6,7 +6,9 @@
  */
 import "server-only";
 
-import type { Tables } from "@/lib/db/types";
+import { mustCount } from "@/lib/db/must-query";
+import { readAllPages } from "@/lib/db/read-all";
+import { Constants, type Tables } from "@/lib/db/types";
 import {
   type AlbumFilter,
   type ModerationMediaItem,
@@ -106,7 +108,17 @@ export type AlbumDetail = {
   counts: Record<MediaStatus, number>;
 };
 
-/** One album (event) with its host + full media list + per-status counts, for the drill-in. */
+/** Every status a media row can hold, from the generated enum, so a new one is counted the day it lands. */
+const MEDIA_STATUSES: readonly MediaStatus[] = Constants.public.Enums.media_status;
+
+/**
+ * One album (event) with its host + full media list + per-status counts, for the drill-in.
+ *
+ * ★ THE ALBUM WHOLE, THE COUNTS COUNTED (the 1,000-row round, 2026-09-23). The list pages on its own
+ * display order, (created_at desc, id desc), the cursor the last row's raw timestamp string, so a
+ * 1,500-item album shows all 1,500 and none twice; the "N approved, N pending" line is four HEAD
+ * counts, never the length of a list PostgREST could have cut at 1,000.
+ */
 export async function getAlbumForModeration(
   eventId: string,
 ): Promise<AlbumDetail | null> {
@@ -121,25 +133,45 @@ export async function getAlbumForModeration(
   if (error) throw error;
   if (!event) return null;
 
-  // row-cap-todo: H5 the album drill-in and its per-status counts, cut at 1,000
-  const { data: mediaRows, error: mErr } = await admin
-    .from("media")
-    .select("id, type, status, created_at, original_key")
-    .eq("event_id", eventId)
-    .order("created_at", { ascending: false });
-  if (mErr) throw mErr;
+  const [{ rows }, statusCounts, hostLabels] = await Promise.all([
+    readAllPages(
+      "admin album: media",
+      (after: { at: string; id: string } | null, limit) => {
+        let q = admin
+          .from("media")
+          .select("id, type, status, created_at, original_key")
+          .eq("event_id", eventId)
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false })
+          .limit(limit);
+        if (after) {
+          q = q.or(
+            `created_at.lt.${after.at},and(created_at.eq.${after.at},id.lt.${after.id})`,
+          );
+        }
+        return q;
+      },
+      (row) => ({ at: row.created_at, id: row.id }),
+    ),
+    Promise.all(
+      MEDIA_STATUSES.map((status) =>
+        mustCount(
+          admin
+            .from("media")
+            .select("id", { count: "exact", head: true })
+            .eq("event_id", eventId)
+            .eq("status", status),
+          `admin album: ${status} count`,
+        ),
+      ),
+    ),
+    fetchHostLabels(admin, [event.host_id]),
+  ]);
 
-  const hostLabel =
-    (await fetchHostLabels(admin, [event.host_id])).get(event.host_id) ?? null;
-
-  const rows = mediaRows ?? [];
-  const counts: Record<MediaStatus, number> = {
-    pending: 0,
-    approved: 0,
-    hidden: 0,
-    removed: 0,
-  };
-  for (const m of rows) counts[m.status] += 1;
+  const hostLabel = hostLabels.get(event.host_id) ?? null;
+  const counts = Object.fromEntries(
+    MEDIA_STATUSES.map((status, i) => [status, statusCounts[i]]),
+  ) as Record<MediaStatus, number>;
 
   const media: ModerationMediaItem[] = rows.map((m) => ({
     id: m.id,

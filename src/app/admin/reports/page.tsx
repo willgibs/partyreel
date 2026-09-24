@@ -9,6 +9,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  hrefWith,
+  LIST_PAGE,
+  parseShow,
+} from "@/lib/admin/list-depth";
+import { ShowMoreLine } from "@/lib/admin/show-more";
 import { requireAdmin } from "@/lib/auth/admin-context";
 import {
   listProfileReports,
@@ -30,20 +36,30 @@ const FILTERS: { key: ReportFilter; label: string; href: string }[] = [
 export default async function AdminReportsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; show?: string }>;
 }) {
   const ctx = await requireAdmin();
   // Don't fetch + presign reported media until MFA is satisfied. The layout shows
   // the gate at AAL1; this guards the data path as its own entry point.
   if (ctx.aal !== "aal2") return null;
 
-  const { status } = await searchParams;
+  const { status, show: showRaw } = await searchParams;
   const filter: ReportFilter = status === "all" ? "all" : "open";
+  // Each arm reads its newest `show` reports (the 1,000-row round, 2026-09-23);
+  // the line under an arm says how deep it reads and offers one page more, and
+  // one depth serves both arms, so the queue deepens as one.
+  const show = parseShow(showRaw);
   // Two arms of one queue (20260919130000): albums and items, and people.
-  const [reports, personReports] = await Promise.all([
-    listReports(filter),
-    listProfileReports(filter),
+  const [albumQueue, personQueue] = await Promise.all([
+    listReports(filter, show),
+    listProfileReports(filter, show),
   ]);
+  const reports = albumQueue.reports;
+  const personReports = personQueue.reports;
+  const deeper = hrefWith("/admin/reports", {
+    status: filter === "all" ? "all" : null,
+    show: show + LIST_PAGE,
+  });
 
   return (
     <div className="space-y-6">
@@ -84,6 +100,11 @@ export default async function AdminReportsPage({
             </span>
           </h2>
           <PersonReportList reports={personReports} />
+          <ShowMoreLine
+            shown={personReports.length}
+            more={personQueue.more}
+            href={deeper}
+          />
         </section>
       )}
 
@@ -97,6 +118,11 @@ export default async function AdminReportsPage({
             </h2>
           )}
           <ReportReviewList reports={reports} />
+          <ShowMoreLine
+            shown={reports.length}
+            more={albumQueue.more}
+            href={deeper}
+          />
         </section>
       ) : (
         personReports.length === 0 && (

@@ -5,15 +5,16 @@
  *   - activeBytes  = what the cap actually ENFORCES = non-removed media in NON-deleted events.
  *                    Since Recovery Phase 1 the cap reads THIS (not the physical
  *                    storage_used_bytes), so the meter must too — deleting now visibly frees room.
- *   - standbyBytes = the "Recently deleted" footprint = removed media OR (any) media in a
- *                    soft-deleted event — the same bin the cron's sweepStandbyBudget bounds.
+ *   - standbyBytes = the "Recently deleted" footprint = what the host can RESTORE: a host's
+ *                    removal, or any live media in a soft-deleted event, and never a guest's own
+ *                    withdrawal (`removed_by_uploader`, delete-final: it counts in neither number).
  *                    Shown as a secondary "+ X in Recently deleted" line.
  *
- * ★ ONE AGGREGATE, `public.host_storage_summary(uuid)` (20260923140000): a SUM each in SQL, so the meter and the guard
- * read one row whatever the album's size, where a read of the rows pages 1,000 at a time past PostgREST's cap (a
- * 35,000-item account would be 35 round trips on every dashboard load). Its active filter is `host_active_bytes`'s,
- * the one SQL definition every upload function enforces, and storage-summary.test.ts reads both migrations to hold
- * that.
+ * ★ ONE AGGREGATE, `public.host_storage_summary(uuid)` (20260923140000, its Deleted figure narrowed by 20260923160000):
+ * a SUM each in SQL, so the meter and the guard read one row whatever the album's size, where a read of the rows pages
+ * 1,000 at a time past PostgREST's cap (a 35,000-item account would be 35 round trips on every dashboard load). The
+ * definitions live there alone: its active filter is `host_active_bytes`'s, the one SQL definition every upload
+ * function enforces, and storage-summary.test.ts reads the migrations to hold both.
  *
  * ★ IT IS ALSO THE STORAGE GUARD'S NUMBER (billing-caps.md, "no plan change leaves a host storing
  * more than the new cap"): the checkout and change-plan routes refuse a smaller plan off
@@ -35,34 +36,6 @@ export type HostStorageSummary = {
   activeBytes: number;
   standbyBytes: number;
 };
-
-type SummaryRow = {
-  id: string;
-  file_size_bytes: number;
-  status: string;
-  events: { deleted_at: string | null } | null;
-};
-
-/**
- * The two definitions in TypeScript, over rows: every media row is exactly one of active or standby, the split the
- * aggregate makes in SQL. No read here sums rows (the aggregate does); this is the definition in code, for anything
- * that holds rows, and storage-summary.test.ts states it over fixtures.
- */
-export function tallyStorageRows(
-  totals: HostStorageSummary,
-  rows: readonly SummaryRow[],
-): HostStorageSummary {
-  let { activeBytes, standbyBytes } = totals;
-  for (const row of rows) {
-    const inLiveEvent = row.events != null && row.events.deleted_at == null;
-    if (row.status !== "removed" && inLiveEvent) {
-      activeBytes += row.file_size_bytes;
-    } else {
-      standbyBytes += row.file_size_bytes;
-    }
-  }
-  return { activeBytes, standbyBytes };
-}
 
 /**
  * One host's two numbers from the aggregate. Service-role, so the CALLER proves the id: never pass one that did not

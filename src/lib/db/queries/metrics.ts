@@ -1,9 +1,17 @@
 /**
  * Operator-internal platform metrics for the admin dashboard (P6a). SERVICE-ROLE admin client — these
- * are cross-host aggregate reads (RLS scopes every table to its owner). The /admin/metrics page gates on
- * requireAdmin() first. READ-ONLY. Everything is computed from EXISTING tables (no migration): cheap
- * `head:true` counts + a few small column fetches rolled up by the pure reducers in lib/metrics, plus a
- * best-effort live Stripe revenue read. Revenue may be null (Stripe down/slow); the page degrades.
+ * are cross-host aggregate reads (RLS scopes every table to its owner). The /admin pages gate on
+ * requireAdmin() first. READ-ONLY. Every figure is counted in the database: `head:true` counts for the
+ * content, and ONE jsonb, `admin_metrics_snapshot()`, for everything that used to be rolled up from
+ * whole-table reads, plus a best-effort live Stripe revenue read. Revenue may be null (Stripe
+ * down/slow); the page degrades.
+ *
+ * ★ NO FIGURE IS DERIVED FROM A LIST (the 1,000-row round, 2026-09-23). The accounts, engagement and
+ * newsletter figures came from three unordered whole-table reads (every profile, every link_stats row,
+ * every newsletter source), each cut at PostgREST's 1,000 rows, so every one of them went quietly
+ * wrong at the 1,001st account or stats row. The snapshot counts them in SQL
+ * (`20260924020000_row_cap_host.sql`) and `lib/metrics/aggregate.ts` folds what has a TypeScript
+ * home (the tier mapping, the source rule, the zero-filled day buckets).
  *
  * ★ THE DATABASE HALF AND THE STRIPE HALF ARE TWO FUNCTIONS (admin-wiring, 2026-09-20). The portal's
  * home opens on four figures and a fortnight's trend (`home=kpi`), which are all rows in Postgres, and
@@ -14,25 +22,26 @@
  */
 import "server-only";
 
+import { FORTNIGHT_DAYS, type FortnightAccounts } from "@/lib/admin/kpi";
+import { mustCount, QueryFailedError } from "@/lib/db/must-query";
 import {
   buildEngagementTrend,
   buildSignupTrend,
   countBySource,
-  summarizeLinkStats,
-  summarizeProfiles,
+  parseMetricsSnapshot,
+  summarizeAccounts,
+  summarizeEngagement,
   type AccountMetrics,
   type DayCount,
   type EngagementDay,
   type EngagementMetrics,
-  type ProfileMetricRow,
   type SourceCount,
 } from "@/lib/metrics/aggregate";
 import { getPlatformRevenue, type PlatformRevenue } from "@/lib/stripe/revenue";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+/** The metrics page's window: new and active accounts, the signup and engagement charts. */
 const WINDOW_DAYS = 30;
-/** The home's window (`home=kpi`): the figures' delta and the sparkline share one span. */
-const FORTNIGHT_DAYS = 14;
 
 export type ContentMetrics = {
   events: number;
@@ -57,14 +66,12 @@ export type UploadCounts = {
 
 /** Everything the portal's own database can answer, with no third party in front of it. */
 export type PlatformDbMetrics = {
-  /**
-   * The profile rows themselves, so a caller can roll them up its own way. The home reduces them
-   * into four figures over a fortnight; /admin/metrics takes the thirty-day summary beside them.
-   * One fetch, two reductions, never two fetches.
-   */
-  profileRows: ProfileMetricRow[];
-  /** KPIs + the daily signup trend (zero-filled over the window) for the chart. */
+  /** The database clock the figures were counted on. */
+  asOf: string;
+  /** The metrics page's KPIs + the daily signup trend over its thirty days (zero-filled). */
   accounts: AccountMetrics & { signupTrend: DayCount[] };
+  /** The home's four figures' accounts over a fortnight + the fortnight's signup line. */
+  fortnight: FortnightAccounts & { signupTrend: DayCount[] };
   content: ContentMetrics;
   uploads: UploadCounts;
   /** Totals + the daily scans/views trend for the chart. */
@@ -76,18 +83,6 @@ export type PlatformMetrics = PlatformDbMetrics & {
   /** null = the live Stripe read failed (best-effort); the dashboard shows "unavailable". */
   revenue: PlatformRevenue | null;
 };
-
-/** Await a PostgREST head-count query → its count (a failed count is a real error worth surfacing). */
-async function headCount(
-  query: PromiseLike<{
-    count: number | null;
-    error: { message: string } | null;
-  }>,
-): Promise<number> {
-  const { count, error } = await query;
-  if (error) throw new Error(error.message);
-  return count ?? 0;
-}
 
 export async function getPlatformDbMetrics(): Promise<PlatformDbMetrics> {
   const admin = createAdminClient();
@@ -109,11 +104,8 @@ export async function getPlatformDbMetrics(): Promise<PlatformDbMetrics> {
       .is("events.deleted_at", null)
       .neq("status", "removed");
 
-  // row-cap-todo: H4 all profiles, all link_stats and all newsletter sources, each read cut at 1,000
   const [
-    profilesRes,
-    linkStatsRes,
-    sourcesRes,
+    snapshotRes,
     events,
     media,
     photos,
@@ -124,60 +116,83 @@ export async function getPlatformDbMetrics(): Promise<PlatformDbMetrics> {
     newsletterLast30,
     emailsLast30,
   ] = await Promise.all([
-    admin
-      .from("profiles")
-      .select(
-        "tier, created_at, last_active_at, storage_used_bytes, stripe_subscription_id, is_admin",
-      ),
-    admin.from("link_stats").select("kind, day, count"),
-    admin.from("newsletter_signups").select("source"),
-    headCount(
+    admin.rpc("admin_metrics_snapshot", {
+      p_window_days: WINDOW_DAYS,
+      p_fortnight_days: FORTNIGHT_DAYS,
+    }),
+    mustCount(
       admin
         .from("events")
         .select("*", { count: "exact", head: true })
         .is("deleted_at", null),
+      "admin metrics: events",
     ),
     // "Active" media = non-removed AND in a non-deleted event (the events!inner + deleted_at filter),
     // so the count stays consistent with the active-events count above (and the P5/accounts definition).
-    headCount(activeMedia()),
-    headCount(activeMedia().eq("type", "photo")),
-    headCount(activeMedia().eq("type", "video")),
+    mustCount(activeMedia(), "admin metrics: media"),
+    mustCount(activeMedia().eq("type", "photo"), "admin metrics: photos"),
+    mustCount(activeMedia().eq("type", "video"), "admin metrics: videos"),
     // The home's Uploads delta: this fortnight against the one before it.
-    headCount(activeMedia().gte("created_at", fortnight)),
-    headCount(
-      activeMedia().gte("created_at", twoFortnights).lt("created_at", fortnight),
+    mustCount(
+      activeMedia().gte("created_at", fortnight),
+      "admin metrics: uploads this fortnight",
     ),
-    headCount(
+    mustCount(
+      activeMedia().gte("created_at", twoFortnights).lt("created_at", fortnight),
+      "admin metrics: uploads the fortnight before",
+    ),
+    mustCount(
       admin
         .from("newsletter_signups")
         .select("*", { count: "exact", head: true }),
+      "admin metrics: newsletter signups",
     ),
-    headCount(
+    mustCount(
       admin
         .from("newsletter_signups")
         .select("*", { count: "exact", head: true })
         .gte("created_at", since),
+      "admin metrics: newsletter signups (30d)",
     ),
-    headCount(
+    mustCount(
       admin
         .from("sent_emails")
         .select("*", { count: "exact", head: true })
         .gte("sent_at", since),
+      "admin metrics: emails sent (30d)",
     ),
   ]);
 
-  if (profilesRes.error) throw profilesRes.error;
-  if (linkStatsRes.error) throw linkStatsRes.error;
-  if (sourcesRes.error) throw sourcesRes.error;
-
-  const profileRows = profilesRes.data ?? [];
-  const linkRows = linkStatsRes.data ?? [];
+  if (snapshotRes.error) {
+    throw new QueryFailedError("admin metrics: snapshot", snapshotRes.error);
+  }
+  const snapshot = parseMetricsSnapshot(snapshotRes.data);
+  const asOf = new Date(snapshot.as_of);
 
   return {
-    profileRows,
+    asOf: snapshot.as_of,
     accounts: {
-      ...summarizeProfiles(profileRows),
-      signupTrend: buildSignupTrend(profileRows),
+      ...summarizeAccounts(snapshot.accounts),
+      signupTrend: buildSignupTrend(
+        snapshot.accounts.signups_by_day,
+        asOf,
+        snapshot.window_days,
+      ),
+    },
+    fortnight: {
+      total: snapshot.accounts.total,
+      newAccounts: snapshot.accounts.new_in_fortnight,
+      newAccountsBefore: snapshot.accounts.new_in_prior_fortnight,
+      active: snapshot.accounts.active_in_fortnight,
+      activeBefore: snapshot.accounts.active_in_prior_fortnight,
+      paid: snapshot.accounts.paid,
+      // The same buckets as the thirty-day chart, asked for the fortnight, so the line under the
+      // home's first figure covers the span its delta does.
+      signupTrend: buildSignupTrend(
+        snapshot.accounts.signups_by_day,
+        asOf,
+        snapshot.fortnight_days,
+      ),
     },
     content: { events, media, photos, videos },
     uploads: {
@@ -186,13 +201,17 @@ export async function getPlatformDbMetrics(): Promise<PlatformDbMetrics> {
       previous: uploadsPrevious,
     },
     engagement: {
-      ...summarizeLinkStats(linkRows),
-      trend: buildEngagementTrend(linkRows),
+      ...summarizeEngagement(snapshot.engagement),
+      trend: buildEngagementTrend(
+        snapshot.engagement.by_day,
+        asOf,
+        snapshot.window_days,
+      ),
     },
     growth: {
       newsletterTotal,
       newsletterLast30,
-      bySource: countBySource(sourcesRes.data ?? []),
+      bySource: countBySource(snapshot.newsletter.by_source),
       emailsLast30,
     },
   };

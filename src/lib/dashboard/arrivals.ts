@@ -12,9 +12,15 @@
  * of three-day-old photographs presented as "the last hour" is a lie the host
  * will catch the first time they look.
  *
+ * ★ THE WINDOW IS CHOSEN FROM TWO COUNTS, NEVER FROM ROWS (the 1,000-row round,
+ * 2026-09-23). It used to count the timestamps of the newest 240 rows the pulse
+ * read, so "N in the last hour" and "N today" could never say more than 240: a
+ * wedding's first busy hour read as 240. The pulse now asks the database for
+ * both numbers as head counts (`db/queries/pulse.ts`), and this picks from them.
+ *
  * Pure + node-safe: the picking is here and testable, the reading and the
- * presigning are in `db/queries/pulse.ts`. `now` and `startOfToday` are passed
- * in, never read here (no clock in a pure function, and none in RSC render).
+ * presigning are in `db/queries/pulse.ts`. `now` is passed in, never read here
+ * (no clock in a pure function, and none in RSC render).
  */
 
 /** The strip holds twelve at a desk, eight in a hand; twelve is what we seek. */
@@ -25,21 +31,42 @@ export type ArrivalWindow = "hour" | "today" | "recent";
 const HOUR_MS = 60 * 60 * 1000;
 
 /**
- * The narrowest window that holds `ARRIVALS_TARGET`, else the widest available.
- * `createdAts` arrives newest-first (the query's own order).
+ * Where each counted window starts, as the timestamps the counts filter on (`created_at >= start`):
+ * the last hour is the sixty minutes before `now`, and today starts at the host's own midnight,
+ * which the page computes once for the whole render.
  */
-export function pickArrivalWindow(
-  createdAts: string[],
+export function arrivalWindowStarts(
   now: number,
   startOfToday: number,
-): { window: ArrivalWindow; count: number } {
-  const times = createdAts.map((iso) => Date.parse(iso));
+): { hour: string; today: string } {
+  return {
+    hour: new Date(now - HOUR_MS).toISOString(),
+    today: new Date(startOfToday).toISOString(),
+  };
+}
 
-  const inHour = times.filter((t) => now - t <= HOUR_MS).length;
-  if (inHour >= ARRIVALS_TARGET) return { window: "hour", count: inHour };
+/** The two exact counts the window is chosen from: approved uploads, across the host's live events. */
+export type ArrivalCounts = {
+  /** In the last hour. */
+  inHour: number;
+  /** Since the start of the host's day. */
+  inToday: number;
+};
 
-  const inToday = times.filter((t) => t >= startOfToday).length;
-  if (inToday >= ARRIVALS_TARGET) return { window: "today", count: inToday };
+/**
+ * The narrowest window that holds `ARRIVALS_TARGET`, else the widest available.
+ * The count is the window's own, exact however many arrived; for the widest
+ * window it is today's, which the caption never shows (it dates the newest
+ * instead, below).
+ */
+export function pickArrivalWindow(counts: ArrivalCounts): {
+  window: ArrivalWindow;
+  count: number;
+} {
+  if (counts.inHour >= ARRIVALS_TARGET)
+    return { window: "hour", count: counts.inHour };
+  if (counts.inToday >= ARRIVALS_TARGET)
+    return { window: "today", count: counts.inToday };
 
   // ★ NEITHER WINDOW FILLS THE STRIP, SO TAKE THE WIDEST, AND SAY THE AGE.
   // The first version of this kept the narrow label whenever the narrow window
@@ -50,7 +77,7 @@ export function pickArrivalWindow(
   // under a fresher-sounding label is not a better band. Freshness still
   // reaches the host, through the caption: "Newest, 10 min ago" says the same
   // thing "3 in the last hour" was trying to.
-  return { window: "recent", count: times.length };
+  return { window: "recent", count: counts.inToday };
 }
 
 /**
