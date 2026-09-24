@@ -41,7 +41,12 @@ the docs lean, the bible to ten principles (his Rising Tides writeup inside it),
 Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/`
 (`specs/`, `bible-ten/`, `library-lean/`).
 
-1. **The mandate sweep** (Sonnet) after `library-lean` merges: Will's overhaul (2026-09-24), whose one home is
+1. **The board refresh** after `library-lean` merges (Will, 2026-09-24): every open board re-cut under the new
+   guidance (the Library's recipe, the ten, production as a working version) for more open, bolder options, since
+   many were narrowed by old rules and past picks. The audit (scratch `board-audit.md`) grades each board; lanes by
+   surface, the reel boards first (they gate the reel round), each owning its boards' folders and rewriting their
+   comments; his notes on record travel as direction. His desk sitting waits for the refreshed boards.
+2. **The mandate sweep** (Sonnet) after `library-lean` merges, outside the boards (the refresh lanes take theirs): Will's overhaul (2026-09-24), whose one home is
    CLAUDE.md "Keeping the docs healthy" (guidance with its reason, never a mandate; synthesized, never quoted; one
    home). About 250 comment and lab lines in `src/` cite a pick as authority or frame a design choice as law ("Will
    ruled", "law", "binds", "worn here rather than re-judged", "interim law", "precedent", dated provenance; re-grep at
@@ -49,16 +54,16 @@ Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyre
    something breaks. The desk's "ruling" vocabulary and `docs/reviews/README.md`'s grammar words change together.
    Owns: the prefixes the grep finds, outside the held guest lane (its own lines ride its sync message), with
    `globals.css` and `theme.css` released from this file.
-2. **The brand kit stays current** (`kit/`, merged at `0cbc5bd6`, Will copies it for outside agents): at
+3. **The brand kit stays current** (`kit/`, merged at `0cbc5bd6`, Will copies it for outside agents): at
    `library-lean`'s merge, add one clause to the runbook's record step: a change to the brand (tokens, logo, type,
    or the hero, demo and pricing pages) refreshes `kit/` from its README's Sources; the screens come from
    partyreel.com by the scratch `kit-capture.mjs` (it wheels to the demo so its reveal fires), which moves into
    `usher/kit/` at the same merge.
-3. **The design docs' pass** after `library-lean` merges (`design-system.md`, `marketing-content.md`, `host-app.md`), the brief shape of `systems-lean` (`specs/systems-lean.json`) under the overhaul's rule (CLAUDE.md "Keeping the docs healthy").
-4. **The reel round**, after Will's desk review on build 5 (the plan file's batch-1 and reel sections).
+4. **The design docs' pass** after `library-lean` merges (`design-system.md`, `marketing-content.md`, `host-app.md`), the brief shape of `systems-lean` (`specs/systems-lean.json`) under the overhaul's rule (CLAUDE.md "Keeping the docs healthy").
+5. **The reel round**, after Will's desk review on build 5 (the plan file's batch-1 and reel sections).
 
 ## Waiting on Will
 
-- **His desk review, resumed** on build 5 (`/design/lab?key=`, the value in `.env.local`): the re-cut reel boards first
-  (`reel-screen`, `reel-host`, `reel-cut`, `reel-story`), then `reel-front` r2 and `media-viewer` r2.
+- **His desk review**, on the refreshed boards once the refresh wave lands (build 5's boards are superseded), with
+  `album-columns` at the head.
 - **A 10-second iPhone check** on build 5: Save to Photos lands in Photos, and a shared photo arrives as a photograph.
