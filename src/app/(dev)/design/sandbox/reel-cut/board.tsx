@@ -23,11 +23,18 @@ import {
   ReelView,
   SettingsRow,
   StackingFrame,
+  TileDescriptionEcho,
   WAIT_NOTE,
   WaitNote,
   hostPool,
 } from "./parts";
-import type { BlockedShape, FinishShape, LooksShape, MarkShape } from "./parts";
+import type {
+  BlockedShape,
+  FinishShape,
+  LooksShape,
+  MakeSlot,
+  MarkShape,
+} from "./parts";
 import {
   Dock,
   MakeControl,
@@ -173,7 +180,7 @@ function EntryScene({
         <Room
           screen={sc}
           shape={TODAY_ROOM}
-          cut={<CutStill src={still} label="Your cut, one frame" />}
+          cut={<CutStill src={still} label="Your clip, one frame" />}
           meta={cutMeta(CUT.styleId, ids.length)}
           dock={ids}
           tray="Moments"
@@ -189,7 +196,7 @@ function EntryScene({
                 Your cut
               </p>
               <div className="mx-auto max-w-[190px]">
-                <CutStill src={still} label="Your cut, one frame" />
+                <CutStill src={still} label="Your clip, one frame" />
               </div>
               <div className="pt-3">
                 <StartingPicks ids={ids} />
@@ -238,7 +245,7 @@ function RoomBody({
       cut={
         <CutStill
           src={byStyle.get(styleId) ?? byFill.get(CUT.fill) ?? null}
-          label="Your cut, one frame"
+          label="Your clip, one frame"
         />
       }
       meta={cutMeta(styleId, ids.length)}
@@ -308,7 +315,7 @@ function LooksScene({ shape, s }: { shape: LooksShape; s: BoardState }) {
         cut={
           <CutStill
             src={byStyle.get(styleId) ?? byFill.get(CUT.fill) ?? null}
-            label="Your cut, one frame"
+            label="Your clip, one frame"
           />
         }
         meta={cutMeta(styleId, ids.length)}
@@ -375,7 +382,7 @@ function MomentsScene({ shape, s }: { shape: MomentsShape; s: BoardState }) {
           </div>
           <div className="fixed inset-x-0 bottom-0 flex items-center gap-3 border-t border-white/10 bg-[oklch(0.13_0_0)] px-3 py-2.5">
             <div className="w-14 shrink-0">
-              <CutStill src={still} label="Your cut, one frame" />
+              <CutStill src={still} label="Your clip, one frame" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-caption text-white/80">
@@ -392,7 +399,7 @@ function MomentsScene({ shape, s }: { shape: MomentsShape; s: BoardState }) {
         <Room
           screen={sc}
           shape={roomIn(s)}
-          cut={<CutStill src={still} label="Your cut, one frame" />}
+          cut={<CutStill src={still} label="Your clip, one frame" />}
           meta={cutMeta(CUT.styleId, ids.length)}
           dock={shape === "pool" ? null : ids}
           tray="Moments"
@@ -456,7 +463,7 @@ function BlockedScene({ shape, s }: { shape: BlockedShape; s: BoardState }) {
         cut={
           <CutStill
             src={byFill.get(CUT.fill) ?? null}
-            label="Your cut, one frame"
+            label="Your clip, one frame"
           />
         }
         meta={cutMeta(CUT.styleId, ids.length)}
@@ -511,7 +518,7 @@ function WaitScene({ shape, s }: { shape: WaitShape; s: BoardState }) {
           shape === "stack" ? (
             <StackingFrame src={still} left={3} total={ids.length} />
           ) : (
-            <CutStill src={still} label="Your cut, one frame" />
+            <CutStill src={still} label="Your clip, one frame" />
           )
         }
         meta={cutMeta(CUT.styleId, ids.length)}
@@ -554,7 +561,7 @@ function FinishScene({ shape, s }: { shape: FinishShape; s: BoardState }) {
       <Finish shape={shape} paid={paid}>
         <CutStill
           src={byFill.get(CUT.fill) ?? null}
-          label="Your finished cut, one frame"
+          label="Your finished clip, one frame"
         />
       </Finish>
     </Scene>
@@ -588,7 +595,7 @@ function MarkScene({ shape, s }: { shape: MarkShape; s: BoardState }) {
         shape={TODAY_ROOM}
         cut={
           <>
-            <CutStill src={marked} label="Your cut, with the free mark" />
+            <CutStill src={marked} label="Your clip, with the free mark" />
             {shape === "chip" ? <MarkChip /> : null}
           </>
         }
@@ -615,6 +622,13 @@ const measureNoencode: Reader = (root) => {
   }, and ${line ? `${words(line.textContent)} words say why` : "nothing says why"}.`;
 };
 
+const measureTileEcho: Reader = (root) => {
+  const line = root.querySelector<HTMLElement>("[data-rc-tile-echo-line]");
+  return `Measured: the tile's own description ${
+    line ? `now reads "${line.textContent}"` : "is blank"
+  }.`;
+};
+
 function NoencodeScene({
   shape,
   s,
@@ -624,21 +638,33 @@ function NoencodeScene({
 }) {
   const sc = screen(s);
   const { byFill } = useStills();
+  const make: MakeSlot =
+    shape === "nothing" ? "none" : shape === "line" ? "line" : "greyed";
   return (
-    <Scene
-      id={`noencode-${shape}`}
-      screen={sc}
-      title="No encoder here"
-      measure={measureNoencode}
-    >
-      <ReelView
-        still={byFill.get("all") ?? byFill.get(CUT.fill) ?? null}
-        make={
-          shape === "nothing" ? "none" : shape === "line" ? "line" : "greyed"
-        }
+    <div className="flex flex-wrap items-start gap-6">
+      <Scene
+        id={`noencode-${shape}`}
         screen={sc}
-      />
-    </Scene>
+        title="No encoder here, the view"
+        measure={measureNoencode}
+      >
+        <ReelView
+          still={byFill.get("all") ?? byFill.get(CUT.fill) ?? null}
+          make={make}
+          screen={sc}
+        />
+      </Scene>
+      <Scene
+        id={`noencode-tile-${shape}`}
+        screen={sc}
+        title="No encoder here, the album's tile"
+        measure={measureTileEcho}
+      >
+        <div className="flex min-h-full items-center justify-center bg-muted/30 p-6">
+          <TileDescriptionEcho make={make} />
+        </div>
+      </Scene>
+    </div>
   );
 }
 

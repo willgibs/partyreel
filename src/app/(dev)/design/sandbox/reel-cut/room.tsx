@@ -135,7 +135,7 @@ function Head({
       </span>
       <span className="min-w-0 text-center">
         <span className="block text-micro font-medium tracking-[0.24em] text-white/50 uppercase">
-          Your cut
+          Your clip
         </span>
         <span className="block truncate text-caption text-white/40">
           {meta}
