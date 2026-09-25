@@ -1,0 +1,87 @@
+{
+  "board": "reel-cut",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-25",
+      "answers": [
+        {
+          "ask": "entry",
+          "choice": "room",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "room",
+          "choice": "bench",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "looks",
+          "choice": "wall",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "moments",
+          "choice": "pool",
+          "note": "The media selection and reel style selector should both be redesigned into the previously selected workbench idea, not feel like completely detached config experiences on the same clip.",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "blocked",
+          "choice": "caption",
+          "note": "I love showing it's hidden and giving the option to show to include, rather than some complex logic around a way to include hidden media in rules. Follows our 'elegant' guideline well.",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "wait",
+          "choice": "stack",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "finish",
+          "choice": "save",
+          "note": "I like this button design more than three text links in a row. However, let's swap 'Save' and 'Share' to make 'Share' primary. Make 'Save to Photos' simply 'Save' with options when clicked (native photos, files etc) and 'Add to the album' simply 'Add to event' with a confirm-esuqe modal so they know what they're doing and don't accidentally click, similar to the host confirm. If a user clicks one of these options, they shouldn't leave this screen so they're able to perform another as well. eg. save then share, or add then share, etc.",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "mark",
+          "choice": "line",
+          "note": "The note could be made more subtle yet discoverable, but I do like including it so free users (or guests of free events) don't assume pro accounts do that as well. They should want to get rid of it with a clear way to, not think it's a bad feature globally.",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "sound",
+          "choice": "silent",
+          "note": "It'll feel jarring if it's dead quiet with photos then sound plays out of nowhere for videos. Better to go silent and allow users to add their own music on social posts, that's already common practice.",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "noencode",
+          "choice": "greyed",
+          "note": "Rather than including a chunk of text, I'd rather show the disbaled button and bubble up why it's disabled on a button click. That way we aren't layering tons of text over the reel, but we make the feature known if they'd like to try on another device.",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        }
+      ],
+      "notes": [
+        {
+          "on": null,
+          "text": "The noun is clip from now on. Round 2 asks only the bench: moments and looks inside the workbench rather than detached panels. finish (Share primary, Save with the platform's options, Add to event behind a confirm, the finish screen staying put), mark (quieter) and noencode (the greyed button explains itself on a tap) are built as he amended them.",
+          "by": "ai:orchestrator",
+          "at": "2026-09-25T04:15:30Z"
+        }
+      ],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

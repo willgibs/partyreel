@@ -42,6 +42,42 @@
       ],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-25",
+      "answers": [
+        {
+          "ask": "start",
+          "choice": "window",
+          "note": "Side note in case it isn't a question - only desktop reel controls should have the QR toggle, mobile doesn't need it.",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "sound",
+          "choice": "silent",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "idle",
+          "choice": "code",
+          "note": "Resolved by Will's reframe, his to overrule: the reel exists from the second photo and the host is guided there from the event page's Reel card, so the view, the screen and ?reel open only once the reel is live. The code alone remains only for a screen whose album drops under two while playing (or reloads there).",
+          "by": "ai:orchestrator",
+          "at": "2026-09-25T04:15:30Z"
+        }
+      ],
+      "notes": [
+        {
+          "on": null,
+          "text": "I do understand the question, but I wanted to ask: is this the best way to handle the host starting their reel? I know we removed the separate wall view, so the reel is effectively a fullscreen experience for everyone with conditional visibility controls. Would it be more beneficial to guide hosts through uploading their first 2 photos to the album within their event page to start the reel, as opposed to them opening the reel in a new album and thinking this is part of the experience? I'm worried this just becomes another thing we have to guide them through, as opposed to helping them simply get the first 2 images in the album, which doubles to get the reel going and show them how to use the product itself.",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        }
+      ],
+      "items": [],
+      "calls": []
     }
   ]
 }

@@ -1,0 +1,75 @@
+{
+  "board": "reel-host",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-25",
+      "answers": [
+        {
+          "ask": "progress",
+          "choice": "card",
+          "note": "If clicked, it should also offer clear guidance on the upload progress still needed to be created.",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "home",
+          "choice": "view",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "open",
+          "choice": "view",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "review",
+          "choice": "agree",
+          "note": "With the reel playing at an event in front of a live crowd, we don't want a moderation queue building up for everyone to see. This should stay behind the reel, so when presenting it's a clean experience. Hosts could play off their laptop while moderating on their phone.",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "style",
+          "choice": "both",
+          "note": "This is a great example of making a feature visible, where a user may first find it in the reel or in settings, but both instances make the feature known & clear, with settings effectively acting as a billboard for the feature itself if not discovered in usage. Clever dual usage.",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "switch",
+          "choice": "guestlist",
+          "note": "I'd like to alter this selection a bit: rather than beside the guest list switch, reel (and maybe media in general) could use its own settings section, especially with the previous reel style selection landing a version in settings now too.",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "pulse",
+          "choice": "band",
+          "note": "However, event cards having a crossfade background would be a cool effect. However, running that on every event card on every transition would be really annoying. It'd be cool if they went in order one at a time, where each beat the next event cycled a card, going first to last and starting back with the first again. Would add some calm motion to the host dash. Feels like a design tie-in to the host event reel card crossfade.",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "cut",
+          "choice": "confirm",
+          "note": "I'd rather use the term 'clip' instead of 'cut', far more common term. However, I like this confirm sheet so they don't think this is just a regular download flow.",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        }
+      ],
+      "notes": [
+        {
+          "on": null,
+          "text": "switch amended as he asked: its own Highlight reel section in Settings (Show the reel, the default look, the default hold), which also holds style=both's card; the default hold is a new column, events.reel_hold_sec. The owner's view is the guest page's ?reel with the owner's extras, so the Studio route redirects there. cut becomes clip everywhere a person reads it.",
+          "by": "ai:orchestrator",
+          "at": "2026-09-25T04:15:30Z"
+        }
+      ],
+      "items": [],
+      "calls": []
+    }
+  ]
+}
