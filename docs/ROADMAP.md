@@ -32,7 +32,6 @@ below hold the rest by surface.
 - Guest: `src/components/guest/yours-filter.ts` moves into `src/lib/guest/` beside the other gallery arithmetic (`merge-gallery-items`, `reconcile-gallery-items`).
 - Guest: the approval toast's server half, so an upload approved after the visit that made it is told on the next visit (the queue lives in memory).
 - Album: switch each surface to `layout="rows"` once the reel lanes owning the pages merge (the guest album, the host feed, bulk select through `AlbumRows`, the bin, the profile feeds, the skeletons, the five steps in `pr_tile_size` and the View menu, a jump-free first paint), with `album-columns` r2's picks; the needs list is lp/album-rows' Handoff (merged at `30ac9b74`).
-- Album: pause the tile shimmer off screen: a thousand-photo album keeps about 1,100 skeleton animations restyling every frame until each tile nears the viewport (measured in Chrome at 1,145 photos; masonry pays the same with real photo URLs).
 - The lab and the kit: the lab shell's `:has()` rule invalidates the whole page subtree on any DOM insertion (about 7,800 elements restyled per album arrival inside a board, masonry and rows alike); scope it.
 - Album: a photo that wraps from the end of one row to the start of the next glides diagonally across the album; a crossfade at both ends may read calmer (an `album-columns` arrival refinement, from `album-rows`).
 - The lab and the kit: `lab:demo --save-shots` keeps only a stage's largest frame, so a board that draws a laptop and phones per option reaches the review sheet without its phones; save every frame, named by its title (from `clip-bench`).
@@ -56,7 +55,7 @@ below hold the rest by surface.
 - Admin: the album drill-in (`/admin/albums/[eventId]`) reads and presigns every item; a paged drill-in past a few thousand items.
 - Likes: the album's bulk Like (`likeMany`, `likes-provider.tsx`) fires one `like_media` per selected id at once, so a whole large album selected is that many parallel requests; a `like_many(uuid[])` with the ids in the body.
 - Performance: `standby_hosts` (like the `removed_media` sweep) scans every removed row platform-wide on each page; past about a million media rows a partial index on removed media (`where status = 'removed'`) keeps the nightly host discovery an index scan.
-- Albums: the host's and the guest's album, and the guest poll, read every row on each load (a round trip per 1,000 and three presigns per item); past a few thousand items a paged album (cursor pages in display order, a virtualised grid, a delta poll) replaces the whole read.
+- Albums: the host's and the guest's album, and the guest poll, read every row on each load (a round trip per 1,000 and three presigns per item); past a few thousand items a paged album (a manifest with links by window, and a delta poll, built; the surfaces wire it) replaces the whole read.
 - Guest: the gallery poll's 304 still reads the whole album and the uploader-identity sweep before it compares the ETag; a per-event change signal (a version bumped by the triggers that ring the doorbell) makes a quiet poll one query.
 - Performance: a presign cache keyed on (key, disposition, 30-minute bucket): each bucket roll re-presigns every album for every poller.
 - Profile: My uploads and My likes stop at 200 with an honest note (`get_my_uploads`, `get_my_likes`); a cursor and a load-more.
