@@ -39,17 +39,16 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `album-docs` | `album-guest-wiring`'s doc lines into `guest-flow.md`, `reel.md` and `testing-verification.md` | building (agent `a1ad73033e1e9da3e`) | Sonnet, docs only | the three docs owned; the Orchestrator reviews the diff |
 
 Merged tonight (their records carry the rest): reel-guest-wiring, reel-host-wiring, mark-r3, story-r2, door-r2,
 album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hardening, reel-sweep, door-flow,
-retire-reel-boards, crumbs, album-host-wiring, album-guest-wiring, crumbs-2, retire-album-columns, save-sheet.
+retire-reel-boards, crumbs, album-host-wiring, album-guest-wiring, crumbs-2, retire-album-columns, save-sheet,
+album-docs.
 
 ## Next, in order
 
 1. **Build 10 is live** (`43b82591`, both aliases, the desk and the album's pages clean) and Will's sitting is on it.
-   `save-sheet` and `retire-album-columns` are merged and ride build 11; `album-docs` (with save-sheet's two lines for
-   `guest-flow.md` and `reel.md`) lands when its lane hands off.
+   `crumbs-2`, `save-sheet`, `retire-album-columns` and `album-docs` are merged and ride build 11.
 2. **Build 10's red-team** (agent `ac1c3dea4e483fefc`, Opus; its brief in `../partyreel-wt/_scratch/redteam-10/brief.md`;
    the pane for a guest, Chrome's account chooser for the host), which also finishes
    build 9's walk (it stopped at the usage limit with its first six journeys passing):
