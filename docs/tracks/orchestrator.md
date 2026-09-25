@@ -39,18 +39,22 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `owner-album` | build 10's blocker: the host's own password event's guest page crashes (`albumReadable` refuses the owner, who holds no unlock cookie); one owner across the page and the three guest album routes, nobody else widened | building (agent `a633bc3c36feefa0e`) | Opus, :3131 | blocks milestone 29 |
+| `album-fixes` | a hide above the view holds it (the anchor an arrival keeps); the phone bin's viewer takes Restore and Delete permanently (his question's recommended answer) | building (agent `afb8597496829d3c7`) | Opus, :3132 | its guest-flow, host-app and design-system lines through the Handoff |
 
 Merged tonight (their records carry the rest): reel-guest-wiring, reel-host-wiring, mark-r3, story-r2, door-r2,
 album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hardening, reel-sweep, door-flow,
 retire-reel-boards, crumbs, album-host-wiring, album-guest-wiring, crumbs-2, retire-album-columns, save-sheet,
-album-docs.
+album-docs, reel-and-copy.
 
 ## Next, in order
 
 1. **Build 10 is live** (`43b82591`, both aliases, the desk and the album's pages clean) and Will's sitting is on it.
    `crumbs-2`, `save-sheet`, `retire-album-columns` and `album-docs` are merged and ride build 11.
-2. **Build 10's red-team** (agent `ac1c3dea4e483fefc`, Opus; its brief in `../partyreel-wt/_scratch/redteam-10/brief.md`;
-   the pane for a guest, Chrome's account chooser for the host), which also finishes
+2. **Build 10's red-team reported** (every journey passes but one; the 100-minute soak clean; the hub's HTML 76% lighter):
+   one blocker, the host's own password album crashing (`owner-album`), and four minors (`album-fixes`,
+   `reel-and-copy`). Build 11 goes out once `owner-album` merges; its check is that page as the owner. What it walked
+   (this list stays the scope of the next full red-team), which also finished
    build 9's walk (it stopped at the usage limit with its first six journeys passing):
    - the reel on the album's new data path: the tile, the view, clips, access, the password event, the demo;
    - `?reel=screen` soaked headless at 1920x1080 for 100 minutes (a hidden pane throttles the page);

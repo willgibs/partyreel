@@ -343,7 +343,7 @@ unchanged nine moves nothing else. `GalleryLiveProvider` reports that number plu
 arrived (an approved upload's optimistic tile in, the guest's own removal out: `albumCount`) through
 `onCountChange`, at `teaser` AND `full`; the CTA says the same number, "See all N photos & videos" ("Confirm your
 email to see everything" when nothing more is withheld), and so does the door (its `mediaTotal` is the header's
-live count). A payload without `approvedTotal` (an older server mid-deploy) falls back to the shell's
+live count); one item reads "1 photo or video" (`formatMediaCount`), never a "photo" that may be a video. A payload without `approvedTotal` (an older server mid-deploy) falls back to the shell's
 `stats.approvedTotal` at `teaser`, then the photo-only `teaserTotal`. At `none` no gallery mounts and no poll
 runs: the lock line says the render's head count.
 

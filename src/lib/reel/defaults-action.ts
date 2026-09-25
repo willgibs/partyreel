@@ -22,8 +22,18 @@
  * and a `revalidatePath` would make the action re-render the page that called it, which from the
  * view is the whole presign-heavy album under a playing reel. Each caller keeps what it just set
  * from the answer below, which is what the row now holds.
+ *
+ * ★ A PICK THAT LANDS ON THE PLATFORM'S OWN DEFAULT IS STORED AS NULL, NOT THE MATCHING VALUE
+ * (build 9 and 10's red-teams: choosing the default hold or look wrote `3` / `'classic'`, so the
+ * event stopped following the platform default the moment it moved). Neither control offers a
+ * separate "Default" option — a host simply picks the look or step that happens to BE the default
+ * today — so this is the one seam that can tell "chose the default" from "chose to pin a value",
+ * and it normalizes each column on its own: `resolveHoldSec` already treats NULL as "the default",
+ * so a value that already equals it is redundant to store literally.
  */
 import { updateEvent } from "@/lib/db/mutations/events";
+import { DEFAULT_HOLD_SEC } from "@/lib/reel/defaults";
+import { DEFAULT_STYLE_ID } from "@/lib/reel/engine/style-registry";
 import {
   reelDefaultsInputSchema,
   type ReelDefaultsInput,
@@ -67,8 +77,14 @@ export async function setReelDefaults(
   const { eventId, showReel, styleId, holdSec } = parsed.data;
   const values: UpdateEventValues = {};
   if (showReel !== undefined) values.show_reel = showReel;
-  if (styleId !== undefined) values.reel_style_id = styleId;
-  if (holdSec !== undefined) values.reel_hold_sec = holdSec;
+  // Each column's own default collapses to NULL (this module's header): the two never disagree on
+  // what "the default" is because both read it from the one home (`defaults.ts`, `style-registry.ts`).
+  if (styleId !== undefined) {
+    values.reel_style_id = styleId === DEFAULT_STYLE_ID ? null : styleId;
+  }
+  if (holdSec !== undefined) {
+    values.reel_hold_sec = holdSec === DEFAULT_HOLD_SEC ? null : holdSec;
+  }
   // A call that sets nothing is a caller's bug: refused here, before a session or a row is read.
   if (Object.keys(values).length === 0) {
     return { ok: false, code: "validation", message: "Nothing to save." };

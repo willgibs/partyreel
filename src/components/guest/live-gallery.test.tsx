@@ -501,13 +501,13 @@ describe("LiveGallery: the teaser's one true count", () => {
     ).toBeInTheDocument();
   });
 
-  it("says one photo in the singular", async () => {
+  it("reads a lone item as 'photo or video', never a lying 'photo' (build 9 and 10's red-teams)", async () => {
     await mount(
       {},
       teaserSeed({ items: [], teaserTotal: 0, approvedTotal: 1 }),
     );
     expect(
-      screen.getByRole("button", { name: "See all 1 photo & videos" }),
+      screen.getByRole("button", { name: "See all 1 photo or video" }),
     ).toBeInTheDocument();
   });
 });
