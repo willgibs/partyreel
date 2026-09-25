@@ -13,45 +13,54 @@ import {
 import type { ReelProps } from "@/lib/reel/engine/reel-types";
 import { cn } from "@/lib/utils";
 
-import { CUT, FILLS, fillIds, GUEST_POOL, propsFor, STYLES } from "./fixtures";
-import type { FillId } from "./fixtures";
+import { fillIds, propsFor, STYLES } from "./fixtures";
+import type { FillId, Maker } from "./fixtures";
 
 /**
- * EVERY REEL FRAME ON THIS BOARD IS THE REAL ENGINE, DRAWN ONCE.
+ * EVERY CLIP FRAME ON THIS BOARD IS THE REAL ENGINE, DRAWN ONCE PER KEY.
  *
  * ★ REAL PIXELS, NOT A RE-TYPED RECIPE. `drawReelFrame` over the fixture
- * clips: the same draw the live player runs and the encoder steps, so a look's
- * grade, its composition and its free mark are the engine's own and not a
- * specimen's idea of them. The mark in particular is stamped in the DISPATCH
- * layer (engine/registry.ts, "no style may ever export unmarked"), so the only
- * honest way to ask `mark` is to let the engine stamp it: every marked frame
- * here carries it exactly where the file will.
+ * moments: the draw the live player runs and the encoder steps, so a look's
+ * grade, its composition and the free mark are the engine's own. The mark is
+ * stamped in the DISPATCH layer (engine/registry.ts), so the only honest way to
+ * draw a free event's clip is to let the engine stamp it.
  *
- * ★ AND DRAWN ONCE FOR THE WHOLE BOARD, WHICH IS WHY IT IS A STILL. The step
- * MOUNTS every option of a decision at the same moment and hides all but one
- * (step.tsx), so `looks` alone would be three walls of fourteen live canvases
- * before the room's own player is counted. The shipped composer protects
- * itself by mounting its wall only while the sheet is open; a board cannot. So
- * the engine runs ONCE per artifact here, into an offscreen canvas, and every
- * option is handed the resulting image. It is what makes `lab:demo`
- * trustworthy too: a still stage compares as still, so the difference a
- * capture sees is the difference between two layouts.
+ * ★ A STILL, BECAUSE THE STEP MOUNTS EVERY OPTION AT ONCE (step.tsx). Three
+ * whole creators at two sizes, each with fourteen look tiles, would be dozens
+ * of live canvases; the shipped composer survives its own wall only by
+ * mounting it while the sheet is open, and a board cannot. So each distinct
+ * picture renders ONCE into an offscreen canvas and every frame that shows it
+ * is handed the image. A still stage also compares as still in `lab:demo`.
+ *
+ * ★ LAZY AND KEYED, WHERE ROUND ONE DREW ONE FIXED PASS. The knobs now move the
+ * picture itself (the look a clip wears, the fill it starts from, the free
+ * mark), so a still is keyed by what it shows and drawn the first time a frame
+ * asks for it. One queue, SEQUENTIAL on purpose: parallel decodes on one main
+ * thread are how a board arrives at its capture still blank. The shared bitmap
+ * cache makes every draw after the first cost a draw, not a decode.
  *
  * Nothing here decodes on a timer, plays a clock, presigns, uploads or encodes.
  */
 
 /** Frame 45, about 1.9s in: past the opening transition, so a still carries the
  *  look's grade AND its composition character (the shipped rail's own frame). */
-const THUMB_FRAME = 45;
+const FRAME = 45;
 const THUMB_CLIPS = 4;
 const THUMB_MAX = 320;
-/** The creator's own cut, big enough for a frame that grows to fill a laptop. */
+/** The clip's own frame, big enough to fill a laptop's height crisply. */
 const HERO_MAX = 760;
 
-/** One still: the engine's own frame, as a data url. */
+export type StillSpec = {
+  style: string;
+  fill: FillId;
+  maker?: Maker;
+  /** The free event's mark, stamped by the engine. */
+  mark?: boolean;
+  size: "thumb" | "hero";
+};
+
 async function renderStill(
   props: ReelProps,
-  frame: number,
   maxDim: number,
 ): Promise<string | null> {
   const composition = reelDimensions(props.orientation);
@@ -64,7 +73,6 @@ async function renderStill(
       ...resolveEngineStyle(props.styleId).assetNeeds(props),
       // A reduced frame normalizes its washes to itself, exactly as a thumb does.
       frame: { width: w, height: h },
-      // The shared cache: eighteen draws over one clip set cost one decode set.
       decode: sharedBitmapCache.decode,
     });
     const canvas = document.createElement("canvas");
@@ -73,11 +81,10 @@ async function renderStill(
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
     // The styles never learn they are small: the env reports COMPOSITION space
-    // and one pre-scale squeezes the draw onto the backing store (the player's
-    // own thumb path, copied because this one is offscreen).
+    // and one pre-scale squeezes the draw onto the backing store.
     const env = makeScaledDrawEnv(composition);
     ctx.setTransform(w / composition.width, 0, 0, h / composition.height, 0, 0);
-    drawReelFrame(ctx, frame, props, assets, env);
+    drawReelFrame(ctx, FRAME, props, assets, env);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     return canvas.toDataURL("image/webp", 0.86);
   } catch {
@@ -87,103 +94,114 @@ async function renderStill(
   }
 }
 
-export type Stills = {
-  /** styleId to a data url: the fourteen looks, each of HER clips. */
-  byStyle: ReadonlyMap<string, string>;
-  /** The cut at each fill, big: what the creator's own frame is showing. */
-  byFill: ReadonlyMap<FillId, string>;
-  /** The same cut with the free mark the engine stamps, for `mark`. */
-  marked: string | null;
-};
+/** Who is making it changes the members of "Only mine" and nothing else, so
+ *  every other fill shares one picture between the guest and the host. */
+const keyOf = (s: StillSpec) =>
+  `${s.size}:${s.style}:${s.fill}:${s.fill === "mine" ? (s.maker ?? "guest") : "any"}:${s.mark ? "mark" : "clean"}`;
 
-const EMPTY: Stills = {
-  byStyle: new Map(),
-  byFill: new Map(),
-  marked: null,
-};
+/** One promise per picture, for the whole session: every option and every
+ *  frame asking for the same still shares one draw. */
+const CACHE = new Map<string, Promise<string | null>>();
+let QUEUE: Promise<unknown> = Promise.resolve();
 
-/**
- * ★ ONE RENDER PASS PER SESSION, SHARED BY EVERY OPTION. The promise is a
- * module singleton, so nine decisions and their twenty-seven options draw the
- * engine eighteen times between them rather than eighteen times each.
- */
-let PASS: Promise<Stills> | null = null;
-
-function startPass(): Promise<Stills> {
-  if (PASS) return PASS;
-  PASS = (async () => {
-    const byStyle = new Map<string, string>();
-    // Sequential on purpose: eighteen parallel decodes on one main thread is
-    // how a board arrives at its capture still blank.
-    for (const style of STYLES) {
-      const url = await renderStill(
-        propsFor(style.id, { clips: THUMB_CLIPS }),
-        THUMB_FRAME,
-        THUMB_MAX,
-      );
-      if (url) byStyle.set(style.id, url);
-    }
-    const byFill = new Map<FillId, string>();
-    for (const fill of FILLS) {
-      const ids = fillIds(fill, GUEST_POOL);
-      const url = await renderStill(
-        propsFor(CUT.styleId, { ids }),
-        THUMB_FRAME,
-        HERO_MAX,
-      );
-      if (url) byFill.set(fill, url);
-    }
-    const marked = await renderStill(
-      propsFor(CUT.styleId, { watermark: true }),
-      THUMB_FRAME,
-      HERO_MAX,
-    );
-    return { byStyle, byFill, marked };
-  })();
-  return PASS;
+function request(spec: StillSpec): Promise<string | null> {
+  const key = keyOf(spec);
+  const hit = CACHE.get(key);
+  if (hit) return hit;
+  const ids = fillIds(spec.fill, spec.maker);
+  const job = QUEUE.then(() =>
+    renderStill(
+      spec.size === "thumb"
+        ? propsFor(spec.style, { ids, clips: THUMB_CLIPS })
+        : propsFor(spec.style, { ids, watermark: spec.mark }),
+      spec.size === "thumb" ? THUMB_MAX : HERO_MAX,
+    ),
+  );
+  QUEUE = job.catch(() => null);
+  CACHE.set(key, job);
+  return job;
 }
 
-/** Subscribes the board to the one pass. Empty until it lands; never throws. */
-export function useStills(): Stills {
-  const [stills, setStills] = useState<Stills>(EMPTY);
+/** One still, or null until it lands. Never throws. */
+export function useStill(spec: StillSpec): string | null {
+  const key = keyOf(spec);
+  const [got, setGot] = useState<{ key: string; src: string | null }>();
   useEffect(() => {
     let alive = true;
-    void startPass().then((s) => {
-      if (alive) setStills(s);
+    void request(spec).then((src) => {
+      if (alive) setGot({ key, src });
     });
     return () => {
       alive = false;
     };
-  }, []);
-  return stills;
+    // `spec` is fully described by `key`; a fresh object literal each render
+    // must not re-request the same picture.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+  return got?.key === key ? got.src : null;
 }
 
 /**
- * ONE CUT FRAME on the screen, at whatever box the caller gives it.
- *
- * The placeholder holds the exact geometry, so a still landing never shifts a
+ * The fourteen looks, each HER clip (the fill she is on) through that look,
+ * landing one by one in catalog order. A tile holds its box until its still
+ * arrives, so nothing shifts under a reader.
+ */
+export function useLookThumbs(
+  fill: FillId,
+  maker: Maker,
+): ReadonlyMap<string, string> {
+  const tag = `${fill}:${maker}`;
+  const [got, setGot] = useState<{
+    tag: string;
+    thumbs: ReadonlyMap<string, string>;
+  }>();
+  useEffect(() => {
+    let alive = true;
+    const thumbs = new Map<string, string>();
+    for (const s of STYLES) {
+      void request({ style: s.id, fill, maker, size: "thumb" }).then((src) => {
+        if (!alive || !src) return;
+        thumbs.set(s.id, src);
+        setGot({ tag, thumbs: new Map(thumbs) });
+      });
+    }
+    return () => {
+      alive = false;
+    };
+  }, [tag, fill, maker]);
+  return got?.tag === tag ? got.thumbs : EMPTY;
+}
+
+const EMPTY: ReadonlyMap<string, string> = new Map();
+
+/**
+ * ONE CLIP FRAME on the screen, at whatever box the caller gives it. The
+ * placeholder holds the exact geometry, so a still landing never shifts a
  * layout an option is being judged on (the shipped StyleThumb's own rule).
  */
-export function CutStill({
+export function ClipStill({
   src,
-  landscape,
   className,
   style,
   label,
+  rounded = "rounded-xl",
+  role = "hero",
 }: {
   src: string | null;
-  landscape?: boolean;
   className?: string;
   style?: CSSProperties;
   /** What this frame IS, for a reader with images off and for the tree. */
   label?: string;
+  rounded?: string;
+  /** The clip itself, or one look's tile: the readers measure only the clip. */
+  role?: "hero" | "look";
 }) {
   return (
     <div
-      data-rc-cut
+      data-rc-clip={role}
       className={cn(
-        "relative w-full overflow-hidden rounded-xl bg-[oklch(0.16_0_0)]",
-        landscape ? "aspect-[16/9]" : "aspect-[9/16]",
+        "relative aspect-[9/16] w-full overflow-hidden bg-[oklch(0.16_0_0)]",
+        rounded,
         className,
       )}
       style={style}

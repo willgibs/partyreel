@@ -4,763 +4,437 @@ import { ExplorationBoard } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
-import { CUT, EVENT, FILL_LABEL, GUEST_POOL, POOL, fillIds } from "./fixtures";
-import type { FillId } from "./fixtures";
+import { clipMeta, Head, LaptopBench, MarkLine } from "./bench";
 import {
-  AlbumPage,
-  BlockedLine,
-  CUTS_IN_ALBUM,
-  FIRST_HIDDEN,
-  HIDDEN_COUNT,
-  Fills,
-  Finish,
-  FrameProgress,
-  Looks,
-  MarkChip,
-  MarkLine,
-  PoolGrid,
-  QuotedExportModal,
-  ReelView,
-  SettingsRow,
-  SoundChip,
-  SoundLine,
-  StackingFrame,
-  TileDescriptionEcho,
-  WAIT_NOTE,
-  WaitNote,
-  hostPool,
-} from "./parts";
-import type {
-  BlockedShape,
-  FinishShape,
-  LooksShape,
-  MakeSlot,
-  MarkShape,
-  SoundShape,
-} from "./parts";
+  HAND_MOMENTS,
+  HandFor,
+  LaptopFor,
+  type Direction,
+  type World,
+} from "./directions";
+import { fillIds } from "./fixtures";
+import type { FillId, Maker } from "./fixtures";
 import {
-  Dock,
-  MakeControl,
-  Room,
-  TODAY_ROOM,
-  Tray,
-  cutMeta,
-  lookOf,
-  roomOf,
-  screenOf,
-  type RoomShape,
-  type ScreenId,
-} from "./room";
-import { Scene, TwoScreens, type Reader } from "./scene";
-import { CutStill, useStills } from "./stills";
+  AddConfirm,
+  FinishPanel,
+  FinishScreen,
+  NoEncoderView,
+  SaveMenu,
+} from "./ground";
+import { Scenes, type PhoneScene, type Reader } from "./scene";
+import { ClipStill, useStill } from "./stills";
 import { REEL_CUT } from "./spec";
 
 /**
- * THE PREVIEWS, AND NOTHING ELSE.
+ * THE PREVIEWS: one ask, three whole creators, and the ground each is walked
+ * through on the `stage` knob.
  *
- * ★ EVERY OPTION IS PRIYA'S OWN SCREEN, held at today's shape everywhere but
- * the one thing its decision asks. `entry`'s three vary only the transition
- * out of the reel; `room`'s only the creator's layout, drawn at both sizes at
- * once because that is its question; `looks`, `moments`, `blocked` and `wait`
- * are drawn INSIDE the room shape `room` landed on, because a question about
- * where a panel goes is meaningless in a room nobody has chosen; `finish`,
- * `mark`, `sound` and `noencode` are roots and wear today's room.
+ * ★ EVERY CAPTION IS READ OFF ITS OWN FRAME, NEVER ASSERTED (the discipline
+ * every board over this album holds): the clip's size in px, how many of the
+ * fourteen looks and of the pool's moments are actually in view (clipped by
+ * every scroll box they sit in), whether anything covers the clip, the doors
+ * a finish offers. If the words above a frame and the number under it
+ * disagree, the number is the truth.
  *
- * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED (the discipline every
- * board over this album holds): a covered percentage, a count of looks
- * actually on screen, a door count, a word count. If the words above a frame
- * and the number under it disagree, the number is the truth.
- *
- * ★ AND EVERY OPTION IS A COMPONENT, NEVER A CALL. `useStills` subscribes to
- * the one engine pass, so a preview that is a plain function invoked inside
- * the step's own render would hang its hook off whatever component happened to
- * be rendering. Each option below is JSX with a scope of its own.
+ * ★ AND EVERY OPTION IS A COMPONENT, NEVER A CALL. The stills are hooks, so a
+ * preview invoked as a plain function inside the step's own render would hang
+ * its hooks off whatever component happened to be rendering.
  */
 
-const screen = (s: BoardState): ScreenId => screenOf(s.screen as string);
-const roomIn = (s: BoardState): RoomShape => roomOf(s.room as string);
-const lookIn = (s: BoardState): string => lookOf(s.look as string);
+type Stage = "picking" | "making" | "finished" | "adding" | "noencode";
+
+const stageOf = (v: string | undefined): Stage =>
+  v === "making" || v === "finished" || v === "adding" || v === "noencode"
+    ? v
+    : "picking";
+
+const lookOf = (v: string | undefined) =>
+  v === "mono" || v === "polaroid" ? v : "classic";
 const fillOf = (v: string | undefined): FillId =>
   v === "mine" || v === "all" ? v : "reel";
+const makerOf = (v: string | undefined): Maker =>
+  v === "host" ? "host" : "guest";
 
-const pct = (part: number, whole: number) =>
-  whole > 0 ? Math.round((part * 100) / whole) : 0;
+const worldOf = (s: BoardState): World => ({
+  look: lookOf(s.look),
+  fill: fillOf(s.fill),
+  plan: s.plan === "free" ? "free" : "paid",
+  maker: makerOf(s.maker),
+});
 
-/** How much of the cut's own frame a panel is standing on. */
-function covered(frame: DOMRect, panel: DOMRect | null): number {
-  if (!panel) return 0;
-  const w = Math.max(
-    0,
-    Math.min(frame.right, panel.right) - Math.max(frame.left, panel.left),
-  );
-  const h = Math.max(
-    0,
-    Math.min(frame.bottom, panel.bottom) - Math.max(frame.top, panel.top),
-  );
-  return pct(w * h, frame.width * frame.height);
+/* ── what a reader can see: clipped by the frame and every scroll box ────── */
+
+type Box = { left: number; top: number; right: number; bottom: number };
+
+/** The part of an element's box actually on screen: the window and every
+ *  ancestor that clips (a scroll box, the room's own overflow) cut it. A
+ *  scrolled column's content reports a box far above its window, so nothing
+ *  is compared on its raw rect. */
+function shownBox(el: Element, win: Window): Box {
+  const r = el.getBoundingClientRect();
+  const box: Box = {
+    left: Math.max(r.left, 0),
+    top: Math.max(r.top, 0),
+    right: Math.min(r.right, win.innerWidth),
+    bottom: Math.min(r.bottom, win.innerHeight),
+  };
+  for (let p = el.parentElement; p; p = p.parentElement) {
+    const cs = win.getComputedStyle(p);
+    const cutX = cs.overflowX !== "visible";
+    const cutY = cs.overflowY !== "visible";
+    if (!cutX && !cutY) continue;
+    const b = p.getBoundingClientRect();
+    if (cutX) {
+      box.left = Math.max(box.left, b.left);
+      box.right = Math.min(box.right, b.right);
+    }
+    if (cutY) {
+      box.top = Math.max(box.top, b.top);
+      box.bottom = Math.min(box.bottom, b.bottom);
+    }
+  }
+  return box;
 }
 
-const panelOf = (root: HTMLElement): DOMRect | null => {
-  const el =
-    root.querySelector<HTMLElement>("[data-rc-sheet]") ??
-    root.querySelector<HTMLElement>("[data-rc-side]");
-  return el ? el.getBoundingClientRect() : null;
+const areaOf = (b: Box) =>
+  Math.max(0, b.right - b.left) * Math.max(0, b.bottom - b.top);
+
+/** The share of an element's box on screen. */
+function visible(el: Element, win: Window): number {
+  const r = el.getBoundingClientRect();
+  const area = r.width * r.height;
+  return area > 0 ? areaOf(shownBox(el, win)) / area : 0;
+}
+
+/** The clip itself, never one of the look tiles that also wear a frame. */
+const heroOf = (root: HTMLElement) =>
+  root.querySelector('[data-rc-clip="hero"]');
+
+/** How many of these are at least mostly in view, and of how many. */
+function inView(root: HTMLElement, win: Window, selector: string) {
+  const all = [...root.querySelectorAll(selector)];
+  return {
+    seen: all.filter((el) => visible(el, win) >= 0.6).length,
+    of: all.length,
+  };
+}
+
+/** How much of the clip's own frame something else is standing on, each
+ *  compared by the part of it a reader can actually see. */
+function covered(root: HTMLElement, win: Window): number {
+  const clip = heroOf(root);
+  if (!clip) return 0;
+  const c = clip.getBoundingClientRect();
+  const whole = c.width * c.height;
+  if (whole <= 0) return 0;
+  let worst = 0;
+  for (const el of root.querySelectorAll(
+    "[data-rc-column], [data-rc-pool], [data-rc-looks], [data-rc-foot], [data-rc-tray]",
+  )) {
+    if (clip.contains(el) || el.contains(clip)) continue;
+    const b = shownBox(el, win);
+    const over = areaOf({
+      left: Math.max(c.left, b.left),
+      top: Math.max(c.top, b.top),
+      right: Math.min(c.right, b.right),
+      bottom: Math.min(c.bottom, b.bottom),
+    });
+    worst = Math.max(worst, over / whole);
+  }
+  return Math.round(worst * 100);
+}
+
+const px = (el: Element | null) => {
+  const r = el?.getBoundingClientRect();
+  return r ? `${Math.round(r.width)} by ${Math.round(r.height)} px` : "";
 };
 
 const words = (text: string | null | undefined): number =>
   (text ?? "").trim().split(/\s+/).filter(Boolean).length;
 
-/* ── 1. entry: is the reel still the ground, or has the cut taken over? ──── */
-
-const measureEntry: Reader = (root, win) => {
-  const cut = root.querySelector<HTMLElement>("[data-rc-cut]");
-  if (!cut) return null;
-  const c = cut.getBoundingClientRect();
-  if (c.height < 8) return null;
-  const area = win.innerWidth * win.innerHeight;
-  const view = root.querySelector("[data-rc-view]");
-  const work = root.querySelector<HTMLElement>("[data-rc-entry-work]");
-  if (view && work) {
-    const w = work.getBoundingClientRect();
-    return `Measured: the reel's own view is still the ground, and the work over it takes ${pct(
-      w.width * w.height,
-      area,
-    )} percent of the screen.`;
+/** What the looks are, in this direction: tiles in view, or names on a dial. */
+function looksSaid(root: HTMLElement, win: Window): string {
+  if (root.querySelector('[data-rc-looks="dial"]')) {
+    const names = inView(root, win, "[data-rc-dial-name]");
+    return `the look is the clip itself, its name on a dial (${names.seen} names in view)`;
   }
-  return `Measured: the view is gone. The cut's frame is ${Math.round(
-    c.width,
-  )} by ${Math.round(c.height)} px, ${pct(
-    c.width * c.height,
-    area,
-  )} percent of the screen.`;
-};
-
-/** The creator's first panel, whichever surface it has risen into. */
-function StartingPicks({ ids }: { ids: readonly string[] }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <Fills fill={CUT.fill} />
-      <Dock ids={ids} note={null} />
-      <Tray open="Moments" />
-      <SettingsRow moments={ids.length} />
-    </div>
-  );
+  const looks = inView(root, win, "[data-rc-look]");
+  return `${looks.seen} of ${looks.of} looks in view`;
 }
 
-function EntryScene({
-  shape,
-  s,
-}: {
-  shape: "sheet" | "room" | "beneath";
-  s: BoardState;
-}) {
-  const sc = screen(s);
-  const { byFill } = useStills();
-  const still = byFill.get(CUT.fill) ?? null;
-  const ids = fillIds(CUT.fill, GUEST_POOL);
-  return (
-    <Scene
-      id={`entry-${shape}`}
-      screen={sc}
-      title="The way in"
-      measure={measureEntry}
-    >
-      {shape === "sheet" ? (
-        <ReelView
-          still={still}
-          make="none"
-          screen={sc}
-          over={
-            <div
-              data-rc-entry-work
-              className="absolute inset-x-0 bottom-0 z-20 rounded-t-float border-t border-white/10 bg-[oklch(0.13_0_0)] px-3 pt-3 pb-5"
-            >
-              <StartingPicks ids={ids} />
-            </div>
-          }
-        />
-      ) : shape === "room" ? (
-        <Room
-          screen={sc}
-          shape={TODAY_ROOM}
-          cut={<CutStill src={still} label="Your clip, one frame" />}
-          meta={cutMeta(CUT.styleId, ids.length)}
-          dock={ids}
-          tray="Moments"
-        />
-      ) : (
-        <AlbumPage still={still}>
-          <div className="px-4 pt-4 pb-8">
-            <div
-              data-rc-entry-work
-              className="rounded-float bg-[oklch(0.13_0_0)] px-3 pt-3 pb-4"
-            >
-              <p className="pb-2 text-micro font-medium tracking-[0.24em] text-white/50 uppercase">
-                Your cut
-              </p>
-              <div className="mx-auto max-w-[190px]">
-                <CutStill src={still} label="Your clip, one frame" />
-              </div>
-              <div className="pt-3">
-                <StartingPicks ids={ids} />
-              </div>
-            </div>
-          </div>
-        </AlbumPage>
-      )}
-    </Scene>
-  );
+/** And the moments: how many are in view, or that they wait behind a tap. */
+function momentsSaid(root: HTMLElement, win: Window): string {
+  const moments = inView(root, win, "[data-rc-moment]");
+  return moments.of === 0
+    ? "the moments wait behind the filmstrip's +"
+    : `${moments.seen} of ${moments.of} moments in view`;
 }
 
-/* ── 2. room: what the open panel costs the cut, at a laptop ─────────────── */
-
-const measureRoom: Reader = (root) => {
-  const frame = root.querySelector<HTMLElement>("[data-rc-frame]");
-  if (!frame) return null;
-  const f = frame.getBoundingClientRect();
-  if (f.height < 8) return null;
-  const over = covered(f, panelOf(root));
-  return `Measured at 1440: the cut is ${Math.round(f.width)} by ${Math.round(
-    f.height,
-  )} px, and the open panel covers ${over} percent of it.`;
-};
-
-function RoomBody({
-  shape,
-  sc,
-  s,
-}: {
-  shape: RoomShape;
-  sc: ScreenId;
-  s: BoardState;
-}) {
-  const { byFill, byStyle } = useStills();
-  const ids = fillIds(CUT.fill, GUEST_POOL);
-  const styleId = lookIn(s);
-  const panel = {
-    label: "Style",
-    body: <Looks shape="wall" byStyle={byStyle} picked={styleId} />,
+const readPicking =
+  (at: "laptop" | "hand"): Reader =>
+  (root, win) => {
+    const clip = heroOf(root);
+    if (!clip?.querySelector("img")) return null;
+    const over = covered(root, win);
+    const where = at === "laptop" ? "Measured at 1440" : "Measured at 375";
+    const cover =
+      over === 0 ? "nothing covers it" : `${over} percent of it is covered`;
+    return `${where}: the clip is ${px(clip)} and ${cover}; ${looksSaid(root, win)}, and ${momentsSaid(root, win)}.`;
   };
+
+const readMaking: Reader = (root) => {
+  const stack = root.querySelector('[data-rc-progress="stack"]');
+  if (!stack?.querySelector("img")) return null;
+  const counted = stack.querySelector("p")?.textContent?.trim();
+  const dimmed = root.querySelectorAll("[data-rc-inert]").length;
+  return `Measured: the clip's own frame stacks and counts ("${counted}"), and ${dimmed} ${dimmed === 1 ? "part of the bench dims" : "parts of the bench dim"} until it is done.`;
+};
+
+const readFinish: Reader = (root) => {
+  const doors = root.querySelectorAll("[data-rc-door]");
+  const clip = heroOf(root);
+  if (doors.length === 0 || !clip?.querySelector("img")) return null;
+  const loud = root.querySelector('[data-rc-door="loud"]');
+  const done = root.querySelectorAll("[data-rc-done]").length;
+  const menu = root.querySelector("[data-rc-save-menu]");
+  const confirm = root.querySelector("[data-rc-confirm]");
+  const parts = [
+    `${doors.length} doors, ${loud?.textContent?.trim()} leading at ${Math.round(
+      loud?.getBoundingClientRect().width ?? 0,
+    )} px`,
+  ];
+  if (menu)
+    parts.push(
+      `Save open on ${menu.querySelectorAll('[role="menuitem"]').length} options, ${menu
+        .querySelector('[role="menuitem"]')
+        ?.textContent?.trim()} first`,
+    );
+  if (confirm)
+    parts.push(
+      `a confirm of ${words(confirm.textContent)} words waits before anything is added`,
+    );
+  if (done > 0)
+    parts.push(`${done} done ${done === 1 ? "state" : "states"} beside Share`);
+  return `Measured: ${parts.join("; ")}; the clip stays on screen at ${px(clip)}.`;
+};
+
+const readNoEncoder: Reader = (root) => {
+  const own = root.querySelector("[data-rc-make-own]");
+  const bubble = root.querySelector("[data-rc-noencode-bubble]");
+  if (!own) return null;
+  return `Measured: Make your own still stands, disabled, and ${
+    bubble
+      ? `a tap bubbles up ${words(bubble.textContent)} words of why`
+      : "nothing says why"
+  }; nothing is written over the reel.`;
+};
+
+/* ── the ground stages, identical in every direction ─────────────────────── */
+
+function useHero(world: World) {
+  return useStill({
+    style: world.look,
+    fill: world.fill,
+    maker: world.maker,
+    mark: world.plan === "free",
+    size: "hero",
+  });
+}
+
+/** The finish at a laptop: the clip at full height, the panel its doors. */
+function FinishedLaptop({
+  world,
+  confirm,
+}: {
+  world: World;
+  confirm?: boolean;
+}) {
+  const hero = useHero(world);
+  const ids = fillIds(world.fill, world.maker);
+  const paid = world.plan === "paid";
   return (
-    <Room
-      screen={sc}
-      shape={shape}
-      cut={
-        <CutStill
-          src={byStyle.get(styleId) ?? byFill.get(CUT.fill) ?? null}
-          label="Your clip, one frame"
+    <LaptopBench
+      head={
+        <Head
+          meta={clipMeta(world.look, ids.length)}
+          right={<span className="w-[86px]" aria-hidden />}
         />
       }
-      meta={cutMeta(styleId, ids.length)}
-      dock={ids}
-      tray="Style"
-      sheet={panel}
-      side={panel}
+      clip={<ClipStill src={hero} label="Your finished clip, one frame" />}
+      underClip={
+        world.plan === "free" ? <MarkLine maker={world.maker} /> : null
+      }
+      column={<FinishPanel paid={paid} />}
+      overlay={confirm && paid ? <AddConfirm /> : null}
     />
   );
 }
 
-function RoomScene({ shape, s }: { shape: RoomShape; s: BoardState }) {
-  return (
-    <TwoScreens
-      id={`room-${shape}`}
-      title="The room"
-      measure={measureRoom}
-      phone={<RoomBody shape={shape} sc="375" s={s} />}
-      laptop={<RoomBody shape={shape} sc="1440" s={s} />}
-    />
-  );
-}
-
-/* ── 3. looks: how many of the fourteen are actually on screen ───────────── */
-
-const measureLooks: Reader = (root, win) => {
-  const tiles = root.querySelectorAll<HTMLElement>("[data-rc-look]");
-  if (tiles.length === 0) return null;
-  let seen = 0;
-  tiles.forEach((el) => {
-    const r = el.getBoundingClientRect();
-    if (
-      r.width > 2 &&
-      r.left < win.innerWidth &&
-      r.right > 0 &&
-      r.top < win.innerHeight &&
-      r.bottom > 0
-    )
-      seen++;
-  });
-  const frame = root.querySelector<HTMLElement>("[data-rc-frame]");
-  const over = frame
-    ? covered(frame.getBoundingClientRect(), panelOf(root))
-    : 0;
-  return `Measured: ${seen} of the ${tiles.length} looks drawn are on screen, and the panel covers ${over} percent of the cut.`;
-};
-
-function LooksScene({ shape, s }: { shape: LooksShape; s: BoardState }) {
-  const sc = screen(s);
-  const { byStyle, byFill } = useStills();
-  const styleId = lookIn(s);
-  const ids = fillIds(CUT.fill, GUEST_POOL);
-  const panel = {
-    label: "Style",
-    body: <Looks shape={shape} byStyle={byStyle} picked={styleId} />,
-  };
-  return (
-    <Scene
-      id={`looks-${shape}`}
-      screen={sc}
-      title="The looks"
-      measure={measureLooks}
-    >
-      <Room
-        screen={sc}
-        shape={roomIn(s)}
-        cut={
-          <CutStill
-            src={byStyle.get(styleId) ?? byFill.get(CUT.fill) ?? null}
-            label="Your clip, one frame"
-          />
-        }
-        meta={cutMeta(styleId, ids.length)}
-        dock={ids}
-        tray="Style"
-        sheet={panel}
-        side={panel}
-      />
-    </Scene>
-  );
-}
-
-/* ── 4. moments: what the pool offers, and what it costs the cut ─────────── */
-
-const measureMoments: Reader = (root) => {
-  const tiles = root.querySelectorAll("[data-rc-pool] [data-rc-tile]");
-  if (tiles.length === 0) return null;
-  const chosen = root.querySelectorAll('[data-rc-tile="in"]').length;
-  const frame = root.querySelector<HTMLElement>("[data-rc-cut]");
-  const over = frame
-    ? covered(frame.getBoundingClientRect(), panelOf(root))
-    : 0;
-  return `Measured: ${tiles.length} of the album's ${EVENT.items} items are offered. ${CUTS_IN_ALBUM} is a cut, which no cut may take, and ${HIDDEN_COUNT} are hidden, which a guest never sees at all. ${chosen} are in, and the pool covers ${over} percent of the cut.`;
-};
-
-type MomentsShape = "sheet" | "pool" | "tray";
-
-function MomentsScene({ shape, s }: { shape: MomentsShape; s: BoardState }) {
-  const sc = screen(s);
-  const { byFill } = useStills();
-  const fill = fillOf(s.fill as string);
-  const ids = fillIds(fill, GUEST_POOL);
-  const still = byFill.get(fill) ?? null;
-  const grid = (
-    <div className="flex flex-col">
-      <Fills fill={fill} />
-      <PoolGrid
-        items={GUEST_POOL}
-        selected={ids}
-        blocked="tooltip"
-        columns={4}
-      />
-    </div>
-  );
-  return (
-    <Scene
-      id={`moments-${shape}`}
-      screen={sc}
-      title="The moments"
-      measure={measureMoments}
-    >
-      {shape === "tray" ? (
-        <AlbumPage still={still}>
-          <div className="px-4 pt-4 pb-28">
-            <Fills fill={fill} />
-            <div className="rounded-float bg-[oklch(0.13_0_0)] p-2">
-              <PoolGrid
-                items={GUEST_POOL}
-                selected={ids}
-                blocked="tooltip"
-                columns={sc === "375" ? 3 : 5}
-              />
-            </div>
-          </div>
-          <div className="fixed inset-x-0 bottom-0 flex items-center gap-3 border-t border-white/10 bg-[oklch(0.13_0_0)] px-3 py-2.5">
-            <div className="w-14 shrink-0">
-              <CutStill src={still} label="Your clip, one frame" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-caption text-white/80">
-                {cutMeta(CUT.styleId, ids.length)}
-              </p>
-              <p className="truncate text-micro text-white/45">
-                {FILL_LABEL[fill]}
-              </p>
-            </div>
-            <MakeControl label="Open" />
-          </div>
-        </AlbumPage>
-      ) : (
-        <Room
-          screen={sc}
-          shape={roomIn(s)}
-          cut={<CutStill src={still} label="Your clip, one frame" />}
-          meta={cutMeta(CUT.styleId, ids.length)}
-          dock={shape === "pool" ? null : ids}
-          tray="Moments"
-          sheet={
-            shape === "sheet"
-              ? { label: "Moments", tall: true, body: grid }
-              : null
-          }
-          side={shape === "sheet" ? { label: "Moments", body: grid } : null}
-          foot={shape === "pool" ? grid : null}
-        />
-      )}
-    </Scene>
-  );
-}
-
-/* ── 5. blocked: does the reason reach a thumb at all? ───────────────────── */
-
-const measureBlocked: Reader = (root) => {
-  const blocked = root.querySelectorAll('[data-rc-tile="blocked"]').length;
-  if (blocked === 0) return null;
-  const said = root.querySelector<HTMLElement>("[data-rc-blocked]");
-  if (!said) {
-    return `Measured: ${blocked} blocked tiles, and nothing on the screen says why. A pointer gets the tooltip; a thumb gets nothing at all.`;
-  }
-  const kind = said.getAttribute("data-rc-blocked");
-  return `Measured: ${blocked} blocked tiles, and the reason is ${
-    kind === "caption"
-      ? `on the photograph itself, ${words(said.textContent)} words, before anyone taps`
-      : `${words(said.textContent)} words that arrive only after a tap or a pointer`
-  }.`;
-};
-
-function BlockedScene({ shape, s }: { shape: BlockedShape; s: BoardState }) {
-  const sc = screen(s);
-  const { byFill } = useStills();
-  const ids = fillIds(CUT.fill, POOL);
-  const grid = (
-    <div className="flex flex-col">
-      <Fills fill={CUT.fill} />
-      <PoolGrid
-        items={hostPool()}
-        selected={ids}
-        blocked={shape}
-        columns={4}
-        hovered={shape === "tooltip" ? FIRST_HIDDEN : undefined}
-      />
-    </div>
-  );
-  const asPool = (s.moments as string) !== "sheet";
-  return (
-    <Scene
-      id={`blocked-${shape}`}
-      screen={sc}
-      title="A tile no cut can take"
-      measure={measureBlocked}
-    >
-      <Room
-        screen={sc}
-        shape={roomIn(s)}
-        cut={
-          <CutStill
-            src={byFill.get(CUT.fill) ?? null}
-            label="Your clip, one frame"
-          />
-        }
-        meta={cutMeta(CUT.styleId, ids.length)}
-        dock={asPool ? null : ids}
-        tray="Moments"
-        sheet={asPool ? null : { label: "Moments", tall: true, body: grid }}
-        side={asPool ? null : { label: "Moments", body: grid }}
-        foot={asPool ? grid : null}
-        overlay={shape === "toast" ? <BlockedLine /> : null}
-      />
-    </Scene>
-  );
-}
-
-/* ── 6. wait: what the export's minute takes, and what it covers ─────────── */
-
-const measureWait: Reader = (root, win) => {
-  const cut = root.querySelector<HTMLElement>("[data-rc-cut]");
-  const run = root.querySelector<HTMLElement>("[data-rc-progress]");
-  if (!cut || !run) return null;
-  const c = cut.getBoundingClientRect();
-  if (c.height < 8) return null;
-  const r = run.getBoundingClientRect();
-  const kind = run.getAttribute("data-rc-progress");
-  const area = win.innerWidth * win.innerHeight;
-  return `Measured: the wait takes ${pct(
-    r.width * r.height,
-    area,
-  )} percent of the screen and covers ${
-    kind === "stack" ? 100 : covered(c, r)
-  } percent of the cut.`;
-};
-
-type WaitShape = "stack" | "bar" | "modal";
-
-function WaitScene({ shape, s }: { shape: WaitShape; s: BoardState }) {
-  const sc = screen(s);
-  const { byFill } = useStills();
-  const still = byFill.get(CUT.fill) ?? null;
-  const ids = fillIds(CUT.fill, GUEST_POOL);
-  return (
-    <Scene
-      id={`wait-${shape}`}
-      screen={sc}
-      title="The wait"
-      measure={measureWait}
-    >
-      <Room
-        screen={sc}
-        shape={roomIn(s)}
-        cut={
-          shape === "stack" ? (
-            <StackingFrame src={still} left={3} total={ids.length} />
-          ) : (
-            <CutStill src={still} label="Your clip, one frame" />
-          )
-        }
-        meta={cutMeta(CUT.styleId, ids.length)}
-        dock={null}
-        tray={null}
-        right={<MakeControl label="Making" />}
-        frameFoot={shape === "bar" ? <FrameProgress progress={62} /> : null}
-        overlay={shape === "modal" ? <QuotedExportModal progress={62} /> : null}
-        underTray={<WaitNote>{WAIT_NOTE}</WaitNote>}
-      />
-    </Scene>
-  );
-}
-
-/* ── 7. finish: how many doors, and which one leads ──────────────────────── */
-
-const measureFinish: Reader = (root) => {
-  const doors = root.querySelectorAll("[data-rc-door]");
-  if (doors.length === 0) return null;
-  const loud = root.querySelector<HTMLElement>('[data-rc-door="loud"]');
-  const equal = root.querySelectorAll('[data-rc-door="equal"]').length;
-  return loud
-    ? `Measured: ${doors.length} doors, and one leads: ${loud.textContent?.trim()}, ${Math.round(
-        loud.getBoundingClientRect().width,
-      )} px wide.`
-    : `Measured: ${doors.length} doors, ${equal} of them equal, and none of them leads.`;
-};
-
-function FinishScene({ shape, s }: { shape: FinishShape; s: BoardState }) {
-  const sc = screen(s);
-  const { byFill } = useStills();
-  const paid = (s.plan as string) !== "free";
-  return (
-    <Scene
-      id={`finish-${shape}`}
-      screen={sc}
-      title="The finish"
-      measure={measureFinish}
-    >
-      <Finish shape={shape} paid={paid}>
-        <CutStill
-          src={byFill.get(CUT.fill) ?? null}
-          label="Your finished clip, one frame"
-        />
-      </Finish>
-    </Scene>
-  );
-}
-
-/* ── 8. mark: the engine's own stamp, and what the room says about it ────── */
-
-const measureMark: Reader = (root) => {
-  const drawn = root.querySelector("[data-rc-cut] img");
-  if (!drawn) return null;
-  const said = root.querySelector<HTMLElement>("[data-rc-mark]");
-  return `Measured: the mark is in the frame the engine drew, where the file will carry it. The room adds ${
-    said ? `${words(said.textContent)} words about it` : "nothing about it"
-  }.`;
-};
-
-function MarkScene({ shape, s }: { shape: MarkShape; s: BoardState }) {
-  const sc = screen(s);
-  const { marked } = useStills();
-  const ids = fillIds(CUT.fill, GUEST_POOL);
-  return (
-    <Scene
-      id={`mark-${shape}`}
-      screen={sc}
-      title="The free mark"
-      measure={measureMark}
-    >
-      <Room
-        screen={sc}
-        shape={TODAY_ROOM}
-        cut={
-          <>
-            <CutStill src={marked} label="Your clip, with the free mark" />
-            {shape === "chip" ? <MarkChip /> : null}
-          </>
-        }
-        meta={cutMeta(CUT.styleId, ids.length)}
-        dock={ids}
-        tray={null}
-        underTray={shape === "line" ? <MarkLine /> : null}
-      />
-    </Scene>
-  );
-}
-
-/* ── 9. sound: whether a cut carries audio at all, and whose ─────────────── */
-
-const measureSound: Reader = (root) => {
-  const drawn = root.querySelector("[data-rc-cut] img");
-  if (!drawn) return null;
-  const chip = root.querySelector<HTMLElement>('[data-rc-sound="chip"]');
-  const line = root.querySelector<HTMLElement>('[data-rc-sound="line"]');
-  return `Measured: the room ${
-    chip
-      ? `names a chosen track on the frame itself, "${chip.textContent?.trim()}"`
-      : line
-        ? `says ${words(line.textContent)} words about how the audio behaves`
-        : "says nothing about sound at all"
-  }.`;
-};
-
-function SoundScene({ shape, s }: { shape: SoundShape; s: BoardState }) {
-  const sc = screen(s);
-  const { byFill } = useStills();
-  const ids = fillIds(CUT.fill, GUEST_POOL);
-  return (
-    <Scene
-      id={`sound-${shape}`}
-      screen={sc}
-      title="The cut's sound"
-      measure={measureSound}
-    >
-      <Room
-        screen={sc}
-        shape={TODAY_ROOM}
-        cut={
-          <>
-            <CutStill
-              src={byFill.get(CUT.fill) ?? null}
-              label="Your clip, one frame"
-            />
-            {shape === "bed" ? <SoundChip /> : null}
-          </>
-        }
-        meta={cutMeta(CUT.styleId, ids.length)}
-        dock={ids}
-        tray={null}
-        underTray={shape === "native" ? <SoundLine /> : null}
-      />
-    </Scene>
-  );
-}
-
-/* ── 10. noencode: what stands where the verb was ────────────────────────── */
-
-const measureNoencode: Reader = (root) => {
-  const own = root.querySelector<HTMLElement>("[data-rc-make-own]");
-  const line = root.querySelector<HTMLElement>("[data-rc-noencode-line]");
-  const controls = root.querySelectorAll("[data-rc-view-control]").length;
-  if (controls === 0) return null;
-  return `Measured: ${
-    own
-      ? "a disabled control still stands in the chrome"
-      : "no control stands here"
-  }, and ${line ? `${words(line.textContent)} words say why` : "nothing says why"}.`;
-};
-
-const measureTileEcho: Reader = (root) => {
-  const line = root.querySelector<HTMLElement>("[data-rc-tile-echo-line]");
-  return `Measured: the tile's own description ${
-    line ? `now reads "${line.textContent}"` : "is blank"
-  }.`;
-};
-
-function NoencodeScene({
-  shape,
-  s,
+function FinishedHand({
+  world,
+  moment,
 }: {
-  shape: "line" | "greyed" | "nothing";
-  s: BoardState;
+  world: World;
+  moment: "rest" | "save" | "confirm" | "done";
 }) {
-  const sc = screen(s);
-  const { byFill } = useStills();
-  const make: MakeSlot =
-    shape === "nothing" ? "none" : shape === "line" ? "line" : "greyed";
+  const hero = useHero(world);
+  const paid = world.plan === "paid";
   return (
-    <div className="flex flex-wrap items-start gap-6">
-      <Scene
-        id={`noencode-${shape}`}
-        screen={sc}
-        title="No encoder here, the view"
-        measure={measureNoencode}
-      >
-        <ReelView
-          still={byFill.get("all") ?? byFill.get(CUT.fill) ?? null}
-          make={make}
-          screen={sc}
-        />
-      </Scene>
-      <Scene
-        id={`noencode-tile-${shape}`}
-        screen={sc}
-        title="No encoder here, the album's tile"
-        measure={measureTileEcho}
-      >
-        <div className="flex min-h-full items-center justify-center bg-muted/30 p-6">
-          <TileDescriptionEcho make={make} />
-        </div>
-      </Scene>
+    <FinishScreen
+      src={hero}
+      paid={paid}
+      done={moment === "done" ? (paid ? ["save", "add"] : ["save"]) : undefined}
+      mark={
+        world.plan === "free" ? (
+          <MarkLine maker={world.maker} align="center" />
+        ) : null
+      }
+      overlay={moment === "save" ? <SaveMenu /> : null}
+    />
+  );
+}
+
+function ConfirmHand({ world }: { world: World }) {
+  const hero = useHero(world);
+  const paid = world.plan === "paid";
+  return (
+    <div className="relative h-dvh">
+      <FinishScreen src={hero} paid={paid} />
+      {paid ? <AddConfirm /> : null}
     </div>
   );
 }
 
-/* ── the map the step draws from ─────────────────────────────────────────── */
+function NoEncoderLaptop({ world }: { world: World }) {
+  const hero = useStill({ style: world.look, fill: "all", size: "hero" });
+  return <NoEncoderView still={hero} wide />;
+}
+
+function NoEncoderHand({ world }: { world: World }) {
+  const hero = useStill({ style: world.look, fill: "all", size: "hero" });
+  return <NoEncoderView still={hero} />;
+}
+
+/* ── one preview per direction ───────────────────────────────────────────── */
+
+const TITLE: Record<Direction, string> = {
+  column: "Both in the panel",
+  strip: "Moments on the strip, looks beside",
+  dial: "Looks on the clip, the album beside",
+};
+
+function BenchPreview({ dir, s }: { dir: Direction; s: BoardState }) {
+  const world = worldOf(s);
+  const stage = stageOf(s.stage);
+  const id = `bench-${dir}-${stage}`;
+
+  if (stage === "picking" || stage === "making") {
+    const making = stage === "making";
+    const [a, b] = HAND_MOMENTS[dir];
+    const phones: PhoneScene[] = making
+      ? [
+          {
+            title: "the clip stacks and counts",
+            measure: readMaking,
+            node: <HandFor dir={dir} world={world} at={a.at} making />,
+          },
+        ]
+      : [
+          {
+            title: a.title,
+            measure: readPicking("hand"),
+            node: <HandFor dir={dir} world={world} at={a.at} />,
+          },
+          {
+            title: b.title,
+            measure: readPicking("hand"),
+            node: <HandFor dir={dir} world={world} at={b.at} />,
+          },
+        ];
+    return (
+      <Scenes
+        id={id}
+        title={making ? `${TITLE[dir]}, making it` : TITLE[dir]}
+        laptop={<LaptopFor dir={dir} world={world} making={making} />}
+        measure={making ? readMaking : readPicking("laptop")}
+        phones={phones}
+      />
+    );
+  }
+
+  if (stage === "noencode") {
+    return (
+      <Scenes
+        id={id}
+        title="No encoder here, the reel's own view"
+        laptop={<NoEncoderLaptop world={world} />}
+        measure={readNoEncoder}
+        phones={[
+          {
+            title: "the greyed door, just tapped",
+            measure: readNoEncoder,
+            node: <NoEncoderHand world={world} />,
+          },
+        ]}
+      />
+    );
+  }
+
+  // A free event has no Add to event, so there is no confirm to draw: the
+  // stage says so and shows the finish with Save alone under Share.
+  const free = world.plan === "free";
+  const adding = stage === "adding";
+  return (
+    <Scenes
+      id={id}
+      title={
+        adding
+          ? free
+            ? "Add to event, which a free event does not offer"
+            : "Add to event, the confirm"
+          : "The finish"
+      }
+      laptop={<FinishedLaptop world={world} confirm={adding} />}
+      measure={readFinish}
+      phones={
+        adding
+          ? [
+              {
+                title: free
+                  ? "no Add to event, so nothing to confirm"
+                  : "the confirm before anything is added",
+                measure: readFinish,
+                node: <ConfirmHand world={world} />,
+              },
+              {
+                title: free
+                  ? "after Save, still on the finish"
+                  : "after Save and Add, still on the finish",
+                measure: readFinish,
+                node: <FinishedHand world={world} moment="done" />,
+              },
+            ]
+          : [
+              {
+                title: "the finish, as he amended it",
+                measure: readFinish,
+                node: <FinishedHand world={world} moment="rest" />,
+              },
+              {
+                title: "Save's options on iOS",
+                measure: readFinish,
+                node: <FinishedHand world={world} moment="save" />,
+              },
+            ]
+      }
+    />
+  );
+}
 
 const PREVIEWS: PreviewsFor<typeof REEL_CUT> = {
-  "entry.sheet": (s) => <EntryScene shape="sheet" s={s} />,
-  "entry.room": (s) => <EntryScene shape="room" s={s} />,
-  "entry.beneath": (s) => <EntryScene shape="beneath" s={s} />,
-
-  "room.capped": (s) => <RoomScene shape="capped" s={s} />,
-  "room.float": (s) => <RoomScene shape="float" s={s} />,
-  "room.bench": (s) => <RoomScene shape="bench" s={s} />,
-
-  "looks.wall": (s) => <LooksScene shape="wall" s={s} />,
-  "looks.rail": (s) => <LooksScene shape="rail" s={s} />,
-  "looks.three": (s) => <LooksScene shape="three" s={s} />,
-
-  "moments.sheet": (s) => <MomentsScene shape="sheet" s={s} />,
-  "moments.pool": (s) => <MomentsScene shape="pool" s={s} />,
-  "moments.tray": (s) => <MomentsScene shape="tray" s={s} />,
-
-  "blocked.caption": (s) => <BlockedScene shape="caption" s={s} />,
-  "blocked.toast": (s) => <BlockedScene shape="toast" s={s} />,
-  "blocked.tooltip": (s) => <BlockedScene shape="tooltip" s={s} />,
-
-  "wait.stack": (s) => <WaitScene shape="stack" s={s} />,
-  "wait.bar": (s) => <WaitScene shape="bar" s={s} />,
-  "wait.modal": (s) => <WaitScene shape="modal" s={s} />,
-
-  "finish.four": (s) => <FinishScene shape="four" s={s} />,
-  "finish.share": (s) => <FinishScene shape="share" s={s} />,
-  "finish.save": (s) => <FinishScene shape="save" s={s} />,
-
-  "mark.line": (s) => <MarkScene shape="line" s={s} />,
-  "mark.bare": (s) => <MarkScene shape="bare" s={s} />,
-  "mark.chip": (s) => <MarkScene shape="chip" s={s} />,
-
-  "sound.silent": (s) => <SoundScene shape="silent" s={s} />,
-  "sound.native": (s) => <SoundScene shape="native" s={s} />,
-  "sound.bed": (s) => <SoundScene shape="bed" s={s} />,
-
-  "noencode.line": (s) => <NoencodeScene shape="line" s={s} />,
-  "noencode.greyed": (s) => <NoencodeScene shape="greyed" s={s} />,
-  "noencode.nothing": (s) => <NoencodeScene shape="nothing" s={s} />,
+  "bench.column": (s) => <BenchPreview dir="column" s={s} />,
+  "bench.strip": (s) => <BenchPreview dir="strip" s={s} />,
+  "bench.dial": (s) => <BenchPreview dir="dial" s={s} />,
 };
 
 export function ReelCutBoard() {

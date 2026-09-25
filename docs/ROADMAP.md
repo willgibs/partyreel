@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The lab and the kit: `lab:demo --save-shots` keeps only a stage's largest frame, so a board that draws a laptop and phones per option reaches the review sheet without its phones; save every frame, named by its title (from `clip-bench`).
+- The reel: production's `StyleWall` groups the looks as "Looks" and "Layouts" while the creator's tray also has a "Layout" chip (the orientation); `reel-clip-wiring` names the treatments apart (the `reel-cut` r2 board says moods and treatments).
 - The voice: one line for the QR's ask across paper and screen (the printed sign's "Scan to add your photos" against the view's "Scan to add yours"), a `voice-guest` question.
 - The lab and the kit: `album-motion`'s `bloom` recipe lives in the shared `AlbumStream` engine (`stream-engine.ts`, `album-stream.css`) because the board renders the production component; it leaves with the board unless Will picks it.
 - Code hygiene: `GLASS_TOKENS` and `NOT_GLASS` in `src/lib/glass.ts` are read by nothing since the glass look tests went.

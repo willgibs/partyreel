@@ -8,15 +8,21 @@ import type { Control } from "@/components/lab/board-spec";
  * reel.", "From the first scan to the final cut", "Pick a style. The reel
  * cuts itself, ready to share.", "Every guest can take the reel home." None
  * of that is true any more. The reel is alive from the second photo (dropped
- * from three), on the venue's wall as a first-class screen, and a cut is
+ * from three), on the venue's wall as a first-class screen, and a clip is
  * anyone's, made on-device, never stored. Seven asks retell it: the thesis
  * line, the /reel page's arc, the home's teaser and the hero film's role, the
  * pricing rows' words, the how-it-works steps, the event pages' reel column,
  * and the help category's name. `help` already offers "Highlight reel" (also
- * the album tile's own heading); `steps` and `pricing` already draw his
- * "clip" beside "cut", never replacing it; `teaser` already carries the
- * tile's own crossfade as one of its four, over the tile's live take, not a
- * recorded stand-in.
+ * the album tile's own heading); `teaser` already carries the tile's own
+ * crossfade as one of its four, over the tile's live take, not a recorded
+ * stand-in.
+ *
+ * ★ THE NOUN IS "CLIP" (Will, 2026-09-25, on `reel-cut`). Every option that
+ * offered "cut" offers "clip"; `pricing` and `steps` had drawn clip beside
+ * cut as a pair, and each pair folded into its one option rather than stand
+ * as two contenders that land on the same answer. Nothing else moved. Where a
+ * line quotes production's own copy ("Cut the reel", "cut into one highlight
+ * reel"), the quote stays as production says it.
  *
  * ★ THIS PASS ARGUES EACH ASK ON ITS OWN CASE. `teaser` and `help` both leaned
  * their recommendation on "reel-front" as though a sibling board's pick
@@ -27,7 +33,7 @@ import type { Control } from "@/components/lab/board-spec";
  *
  * WHAT THIS BOARD TAKES AS GROUND, since a fact still needs one home: the
  * /reel page's live style switcher stays, as the engine's proof; the tier
- * rows become the cut's length and mark, never the live reel's; no page ends
+ * rows become the clip's length and mark, never the live reel's; no page ends
  * the same way with the reel (a homepage, a feature hub and a pricing page
  * all closing on one repeated beat reads as one page copied three times); no
  * centred portrait video leaves blank space on a desktop; the demo door is
@@ -64,42 +70,46 @@ const DRAFT = defineExploration({
   title: "The marketing story of the reel",
   round: {
     n: 1,
-    date: "2026-09-24",
+    date: "2026-09-25",
     changed:
-      "Widened the same day: teaser and help now argue their own case for the crossfade and for keeping \"Highlight reel\", rather than pointing at reel-front's pick; every such citation in this board's own comments is rewritten the same way.",
+      "The noun is clip now: every option that offered cut offers clip, and the two asks that drew clip beside cut (the pricing rows, the steps) fold each pair into one option. Nothing else moved, and it stays round one.",
   },
   context:
-    "The reel is reconceived: live from the second photo, a first-class screen, a cut anyone renders on-device. Every marketing surface still sells the old host-made, stored reel. Seven asks retell it; nothing here pins a final word, and nothing wires production.",
+    "The reel is reconceived: live from the second photo, a first-class screen, a clip anyone renders on-device. Every marketing surface still sells the old host-made, stored reel. Seven asks retell it; nothing here pins a final word, and nothing wires production.",
   asks: [
     {
       id: "thesis",
       label: "The thesis line",
-      question: "Which one line should replace \"Every event ends with a reel\"?",
+      question: 'Which one line should replace "Every event ends with a reel"?',
       context:
         "The retired line is drawn in two real places today: the home's own close (CinemaClose's subhead) and the feature hub's reel door (its line). Both read one constant; every option here is that one line, reused in both.",
       options: [
         {
           id: "grows",
-          label: "\"Every event has a reel.\"",
-          means: "Keeps the retired line's rhythm and swaps the one word that stopped being true: the reel no longer ends anything.",
+          label: '"Every event has a reel."',
+          means:
+            "Keeps the retired line's rhythm and swaps the one word that stopped being true: the reel no longer ends anything.",
         },
         {
           id: "verbs",
-          label: "\"Scan. Add. Watch it grow.\"",
-          means: "Three beats naming what a guest actually does, before the reel itself is mentioned at all.",
+          label: '"Scan. Add. Watch it grow."',
+          means:
+            "Three beats naming what a guest actually does, before the reel itself is mentioned at all.",
         },
         {
           id: "auto",
-          label: "\"The reel that makes itself.\"",
-          means: "Leads with the one fact that is entirely new: no host action creates it.",
+          label: '"The reel that makes itself."',
+          means:
+            "Leads with the one fact that is entirely new: no host action creates it.",
         },
       ],
       recommended: "grows",
       because:
-        "It keeps the site's one ratified rhythm and changes only the word that broke: \"ends\" promised a finish line the new reel does not have. The smallest true rewrite beats a fresh line for a fact this load-bearing.",
+        'It keeps the site\'s one ratified rhythm and changes only the word that broke: "ends" promised a finish line the new reel does not have. The smallest true rewrite beats a fresh line for a fact this load-bearing.',
       overrule:
         "If the round wants to sell the mechanism over the promise, the three-beat imperative names the guest's own act before the reel exists.",
-      lands: "The one sentence carried into marketing-voice.ts's GOLDEN_LINES and quoted on both surfaces.",
+      lands:
+        "The one sentence carried into marketing-voice.ts's GOLDEN_LINES and quoted on both surfaces.",
       configs: [SCREEN],
     },
     {
@@ -111,26 +121,30 @@ const DRAFT = defineExploration({
       options: [
         {
           id: "live-first",
-          label: "The live reel, the screen, then the cut",
-          means: "Opens on the thing that needs no action, builds to the wall, closes on the one personal step.",
+          label: "The live reel, the screen, then the clip",
+          means:
+            "Opens on the thing that needs no action, builds to the wall, closes on the one personal step.",
         },
         {
-          id: "cut-first",
-          label: "The cut first, as the thing people post",
-          means: "Opens on the shareable payoff, then explains the always-on reel and the screen as how it got made.",
+          id: "clip-first",
+          label: "The clip first, as the thing people post",
+          means:
+            "Opens on the shareable payoff, then explains the always-on reel and the screen as how it got made.",
         },
         {
           id: "screen-first",
           label: "The screen first, as the flagship moment",
-          means: "Opens on the boldest proof, a wall of guests watching live, before narrowing to the reel and a cut.",
+          means:
+            "Opens on the boldest proof, a wall of guests watching live, before narrowing to the reel and a clip.",
         },
       ],
       recommended: "live-first",
       because:
-        "It matches how a reader actually meets the product: the reel is alive before a host does anything, the screen is what a host adds, and a cut is the last, most personal step. Any other order explains an effect before its cause.",
+        "It matches how a reader actually meets the product: the reel is alive before a host does anything, the screen is what a host adds, and a clip is the last, most personal step. Any other order explains an effect before its cause.",
       overrule:
-        "If /reel exists mainly to be linked and shared, leading on the cut is the stronger hook for a reader arriving cold.",
-      lands: "The section order the sweep builds render-section.tsx, tier-section.tsx and guest-share-section.tsx into.",
+        "If /reel exists mainly to be linked and shared, leading on the clip is the stronger hook for a reader arriving cold.",
+      lands:
+        "The section order the sweep builds render-section.tsx, tier-section.tsx and guest-share-section.tsx into.",
       configs: [SCREEN],
     },
     {
@@ -143,22 +157,26 @@ const DRAFT = defineExploration({
         {
           id: "engine",
           label: "The demo album's live reel, real engine",
-          means: "The same canvas engine a guest's phone runs, over the shared album: the actual pixels, not a recorded stand-in.",
+          means:
+            "The same canvas engine a guest's phone runs, over the shared album: the actual pixels, not a recorded stand-in.",
         },
         {
           id: "film",
           label: "The hero film, landscape",
-          means: "The graded, produced film (hero-candidate-02) stays the section's centrepiece rather than the canvas engine.",
+          means:
+            "The graded, produced film (hero-candidate-02) stays the section's centrepiece rather than the canvas engine.",
         },
         {
           id: "poster",
           label: "A still poster with a play mark",
-          means: "One graded frame and a play affordance; no motion until a reader asks for it.",
+          means:
+            "One graded frame and a play affordance; no motion until a reader asks for it.",
         },
         {
           id: "crossfade",
           label: "The album tile's own crossfade",
-          means: "The same slow, gentle cycle the album's own tile wears: no canvas, no lazy chunk, and the same motion a visitor meets again as a host on their own album.",
+          means:
+            "The same slow, gentle cycle the album's own tile wears: no canvas, no lazy chunk, and the same motion a visitor meets again as a host on their own album.",
         },
       ],
       recommended: "crossfade",
@@ -166,35 +184,35 @@ const DRAFT = defineExploration({
         "It costs nothing the page does not already spend (no canvas, no lazy chunk), and it puts the same motion in front of a visitor here and a guest on their own album later: bible 8's one system is exactly this seam, and a section proving the reel is alive should not teach a second way motion moves.",
       overrule:
         "If the section is a hero moment more than a proof point, the graded film reads more cinematic than any crossfade, live engine included.",
-      lands: "Whether the home ships a second live engine mount, or keeps the section to a produced asset and zero extra bytes.",
+      lands:
+        "Whether the home ships a second live engine mount, or keeps the section to a produced asset and zero extra bytes.",
       configs: [SCREEN],
     },
     {
       id: "pricing",
       label: "The pricing rows",
-      question: "How should the pricing table talk about the reel now that it is free and unlimited everywhere?",
+      question:
+        "How should the pricing table talk about the reel now that it is free and unlimited everywhere?",
       context:
-        "comparison-table.tsx's \"The reel\" group carries Reel length and Reel watermark. Those numbers now describe the CUT alone; the live reel and the screen carry no cap or mark on any tier.",
+        'comparison-table.tsx\'s "The reel" group carries Reel length and Reel watermark. Those numbers now describe the CLIP alone; the live reel and the screen carry no cap or mark on any tier.',
       options: [
         {
           id: "renamed",
-          label: "Two rows, renamed to the cut",
-          means: "\"Cut length\" and \"Cut watermark\" replace the old labels; same shape, same numbers, the right noun.",
-        },
-        {
-          id: "clip-renamed",
           label: "Two rows, renamed to the clip",
-          means: "\"Clip length\" and \"Clip watermark\": the same two rows, his own word for the guest-facing object, never a second row beside cut's.",
+          means:
+            '"Clip length" and "Clip watermark" replace the old labels; same shape, same numbers, the right noun.',
         },
         {
           id: "one-row",
-          label: "\"Your reel\" as one combined row",
-          means: "One row states the cut's length and mark together per plan, since a host compares them as one lever.",
+          label: '"Your reel" as one combined row',
+          means:
+            "One row states the clip's length and mark together per plan, since a host compares them as one lever.",
         },
         {
           id: "footnote",
           label: "Off the table; the mark is a footnote",
-          means: "The group leaves the matrix entirely; the free cut's small mark becomes a footnote under it instead.",
+          means:
+            "The group leaves the matrix entirely; the free clip's small mark becomes a footnote under it instead.",
         },
       ],
       recommended: "renamed",
@@ -202,43 +220,44 @@ const DRAFT = defineExploration({
         "The two numbers still differ by plan, so a row still does work; only the noun was wrong. Renaming costs nothing and keeps every row's promise that it names a real difference.",
       overrule:
         "If a matrix exists to show what is gated, and nothing about the reel is gated any more, the footnote says that more honestly than two rows shaped like a limit.",
-      lands: "Whether \"the reel\" survives as a matrix group at all, and where the free cut's mark is read.",
+      lands:
+        'Whether "the reel" survives as a matrix group at all, and where the free clip\'s mark is read.',
       configs: [SCREEN],
     },
     {
       id: "steps",
       label: "The how-it-works steps",
-      question: "How should the loop's six-step walkthrough name the reel's two beats now?",
+      question:
+        "How should the loop's six-step walkthrough name the reel's two beats now?",
       context:
-        "how-it-works.ts's host step 6 is \"Cut the reel\" (one tap, publish); the guest step 6 is \"Get the reel\" (it lands in the album). Both describe an act that no longer exists.",
+        'how-it-works.ts\'s host step 6 is "Cut the reel" (one tap, publish); the guest step 6 is "Get the reel" (it lands in the album). Both describe an act that no longer exists.',
       options: [
         {
-          id: "grow-cut",
-          label: "\"Watch the reel grow\" / \"Make your cut\"",
-          means: "The host's step turns ambient (nothing to do); the guest's step becomes the one real action left, a cut.",
-        },
-        {
           id: "grow-clip",
-          label: "\"Watch the reel grow\" / \"Make your clip\"",
-          means: "The same shape as the option beside it, with his own guest-facing word: a clip, not a cut.",
+          label: '"Watch the reel grow" / "Make your clip"',
+          means:
+            "The host's step turns ambient (nothing to do); the guest's step becomes the one real action left, a clip.",
         },
         {
           id: "screen-step",
-          label: "\"Put it on a screen\" as the host's step",
-          means: "The host's one remaining lever is opening the venue screen, not making anything.",
+          label: '"Put it on a screen" as the host\'s step',
+          means:
+            "The host's one remaining lever is opening the venue screen, not making anything.",
         },
         {
           id: "folded",
           label: "Folded into the share step",
-          means: "The reel stops being its own numbered step on either side; it rides inside \"Take it all home\" instead.",
+          means:
+            'The reel stops being its own numbered step on either side; it rides inside "Take it all home" instead.',
         },
       ],
-      recommended: "grow-cut",
+      recommended: "grow-clip",
       because:
         "It keeps six steps on both sides, the contract loop-wiring built, and gives each side an honest verb: nothing is left for a host to DO, but a guest still has one real action.",
       overrule:
         "If the walkthrough should name the one real new lever, the screen is a truer sixth step than an ambient description of something already true by step three.",
-      lands: "Whether the host and guest walkthroughs keep six parallel steps or drop to five.",
+      lands:
+        "Whether the host and guest walkthroughs keep six parallel steps or drop to five.",
       configs: [SCREEN],
     },
     {
@@ -246,66 +265,76 @@ const DRAFT = defineExploration({
       label: "The events pages' reel column",
       question: "What should the event pages' reel column say and show now?",
       context:
-        "event-door.tsx pairs its own demo door with a column naming each type's own angle (\"cut into one highlight reel you can send the same night\") beside a stored poster. The door itself is unchanged either way.",
+        'event-door.tsx pairs its own demo door with a column naming each type\'s own angle ("cut into one highlight reel you can send the same night") beside a stored poster. The door itself is unchanged either way.',
       options: [
         {
           id: "wall",
           label: "The live reel, on the wall, for each type",
-          means: "The angle line describes the venue screen at that kind of event; the poster becomes the real engine over the shared album.",
+          means:
+            "The angle line describes the venue screen at that kind of event; the poster becomes the real engine over the shared album.",
         },
         {
-          id: "cut",
-          label: "The cut a guest posts",
-          means: "The angle line reframes around a guest's own shareable clip from that kind of event, kept personal and social.",
+          id: "clip",
+          label: "The clip a guest posts",
+          means:
+            "The angle line reframes around a guest's own shareable clip from that kind of event, kept personal and social.",
         },
         {
           id: "gone",
           label: "The column gone; the demo door stands alone",
-          means: "The section keeps only the demo door, centred and widened; nothing about the reel runs beside it.",
+          means:
+            "The section keeps only the demo door, centred and widened; nothing about the reel runs beside it.",
         },
       ],
       recommended: "wall",
       because:
         "It is the one new fact every type page can now say that was not true before, the reel playing AT this kind of event as it happens, and it keeps the section's two-object rhythm the door ruling protects.",
       overrule:
-        "If the column always existed to make the page personal rather than to describe the product, a guest's own cut keeps that register truer than a wall description.",
-      lands: "Whether all five reelAngle lines and the column's poster survive, change register, or retire.",
+        "If the column existed to make the page personal rather than to describe the product, a guest's own clip keeps that register truer than a wall description.",
+      lands:
+        "Whether all five reelAngle lines and the column's poster survive, change register, or retire.",
       configs: [SCREEN],
     },
     {
       id: "help",
       label: "The help category's name",
-      question: "What should the reel's help category and its nav entry be called?",
+      question:
+        "What should the reel's help category and its nav entry be called?",
       context:
-        "Today's category is \"Highlight reel\" (strip label \"Reel\"); the header panel calls the same link \"The highlight reel\" while the footer already calls it \"The reel\": one feature, two names.",
+        'Today\'s category is "Highlight reel" (strip label "Reel"); the header panel calls the same link "The highlight reel" while the footer already calls it "The reel": one feature, two names.',
       options: [
         {
           id: "highlight-reel",
           label: "Highlight reel",
-          means: "Today's shipped name, kept: it is now also the album tile's own heading, so a guest meets one word in both places.",
+          means:
+            "Today's shipped name, kept: it is now also the album tile's own heading, so a guest meets one word in both places.",
         },
         {
           id: "the-reel",
-          label: "\"The reel\"",
-          means: "The plainest name, already live in the footer today, folded across the category, its strip label and the header panel.",
+          label: '"The reel"',
+          means:
+            "The plainest name, already live in the footer today, folded across the category, its strip label and the header panel.",
         },
         {
-          id: "reels-cuts",
-          label: "\"Reels and cuts\"",
-          means: "Names both objects a reader meets in the category, at the cost of a longer label everywhere it appears.",
+          id: "reels-clips",
+          label: '"Reels and clips"',
+          means:
+            "Names both objects a reader meets in the category, at the cost of a longer label everywhere it appears.",
         },
         {
           id: "live-reel",
-          label: "\"The live reel\"",
-          means: "Leads with the one word that changed, so a reader never mistakes the always-on reel for a personal cut.",
+          label: '"The live reel"',
+          means:
+            "Leads with the one word that changed, so a reader never mistakes the always-on reel for a personal clip.",
         },
       ],
       recommended: "highlight-reel",
       because:
-        "A guest meets this exact phrase on the album tile before they ever open help, so the category a search or footer link lands on reads as the same feature, not a second name; \"the reel\" alone is plainer, but this board already has reel and cut to keep straight, and a third name would not help.",
+        'A guest meets this exact phrase on the album tile before they ever open help, so the category a search or footer link lands on reads as the same feature, not a second name; "the reel" alone is plainer, but this board already has reel and clip to keep straight, and a third name would not help.',
       overrule:
-        "If a reader's first confusion is mixing the always-on reel up with a personal cut, naming the live reel explicitly heads that off before the first article does.",
-      lands: "The slug redirect (highlight-reel to its successor), the strip label, and the header panel's entry text.",
+        "If a reader's first confusion is mixing up the always-on reel and a personal clip, naming the live reel explicitly heads that off before the first article does.",
+      lands:
+        "The slug redirect (highlight-reel to its successor), the strip label, and the header panel's entry text.",
       configs: [SCREEN],
     },
   ],
