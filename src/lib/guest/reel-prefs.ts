@@ -67,14 +67,23 @@ function write(key: string, value: string): void {
   }
 }
 
+/**
+ * The viewer's OWN hold for this event, or null (nothing stored: the host's default then decides,
+ * and — reel-and-copy — a view already open keeps following it live as long as this stays null).
+ * Mirrors `readStyleId`'s own null-signaling shape, one level down: that function already answers
+ * "has this device picked?" for the style; this is the same question for the hold.
+ */
+export function readOwnHoldSec(qrToken: string): number | null {
+  const raw = read(holdKey(qrToken));
+  return raw === null ? null : nearestHoldStep(Number(raw));
+}
+
 /** The viewer's hold for this event, else the host's default for it, else the 3 s default. */
 export function readHoldSec(
   qrToken: string,
   eventDefault: number | null = null,
 ): number {
-  const raw = read(holdKey(qrToken));
-  if (raw !== null) return nearestHoldStep(Number(raw));
-  return resolveHoldSec(eventDefault);
+  return readOwnHoldSec(qrToken) ?? resolveHoldSec(eventDefault);
 }
 
 export function writeHoldSec(qrToken: string, seconds: number): void {

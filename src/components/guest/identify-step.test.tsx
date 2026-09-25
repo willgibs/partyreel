@@ -15,7 +15,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { IdentifyStep } from "@/components/guest/identify-step";
+import { identifyCopy, IdentifyStep } from "@/components/guest/identify-step";
 
 const auth = vi.hoisted(() => ({
   signInWithOtp: vi.fn(),
@@ -208,5 +208,28 @@ describe("'the account you already had' speaks only when it guards something", (
     await typeCode();
     await waitFor(() => expect(onVerified).toHaveBeenCalled());
     expect(screen.queryByText(/already had\./)).toBeNull();
+  });
+});
+
+describe("identifyCopy: the door's title says the true count, worded like the album's own", () => {
+  it("reads a lone item as 'photo or video', never a lying 'photo' (build 9 and 10's red-teams)", () => {
+    expect(
+      identifyCopy({ verification: true, mediaTotal: 1 }),
+    ).toMatchObject({ title: "1 photo or video is waiting" });
+  });
+
+  it("reads several as 'photos & videos', grouped, and agrees the plural", () => {
+    expect(
+      identifyCopy({ verification: true, mediaTotal: 1249 }),
+    ).toMatchObject({ title: "1,249 photos & videos are waiting" });
+  });
+
+  it("falls back with nothing to count", () => {
+    expect(
+      identifyCopy({ verification: true, mediaTotal: 0 }),
+    ).toMatchObject({ title: "See all the photos" });
+    expect(identifyCopy({ verification: true })).toMatchObject({
+      title: "See all the photos",
+    });
   });
 });

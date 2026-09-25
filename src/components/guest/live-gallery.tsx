@@ -40,7 +40,7 @@ import {
   type ViewMenuDensityGroup,
   type ViewMenuGroup,
 } from "@/components/shared/view-menu";
-import { formatCount } from "@/lib/format/count";
+import { formatCount, formatMediaCount } from "@/lib/format/count";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 import { yoursView } from "@/lib/guest/yours-filter";
 import { LikesProvider } from "@/components/likes/likes-provider";
@@ -373,8 +373,7 @@ function LiveGalleryView({
           {access !== "none" && items.length > 0 && (
             <div className="mb-3 flex flex-wrap items-center justify-between gap-1.5">
               <p className="px-0.5 text-working text-muted-foreground tabular-nums">
-                {formatCount(count)} {count === 1 ? "photo" : "photos"}
-                {" & videos"}
+                {formatMediaCount(count)}
               </p>
               {!isDemo && (
                 <div className="ml-auto flex items-center gap-1.5">
@@ -457,7 +456,7 @@ function LiveGalleryView({
         <div className="mt-5 flex justify-center">
           <Button onClick={onOpenGate} className="active:scale-[0.99]">
             {count > rawCount
-              ? `See all ${formatCount(count)} ${count === 1 ? "photo" : "photos"} & videos`
+              ? `See all ${formatMediaCount(count)}`
               : "Confirm your email to see everything"}
           </Button>
         </div>

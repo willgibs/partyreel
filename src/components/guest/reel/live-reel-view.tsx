@@ -101,6 +101,7 @@ import {
   liveMoods,
   readHoldSec,
   readIncludeVideos,
+  readOwnHoldSec,
   readStyleId,
   writeHoldSec,
   writeIncludeVideos,
@@ -228,6 +229,26 @@ export function LiveReelView({
   const [styleId, setStyleId] = useState(
     () => readStyleId(qrToken) ?? resolveLiveStyleId(hostStyle),
   );
+  // ★ A VIEW THAT NEVER PICKED ITS OWN LOOK OR HOLD FOLLOWS THE EVENT'S LIVE (build 10's red-team:
+  // "Set for everyone" toasts "Everyone sees this look now" to the room, but a screen already open
+  // kept playing its mount-time look, though its next poll already carried the new one). The state
+  // above resolves once, at mount; this ADJUSTS it DURING RENDER (React's own pattern for state
+  // derived from a changing prop — never an effect, which costs an extra commit and trips
+  // `react-hooks/set-state-in-effect`) whenever `live.reel` — a fresh poll's answer — moves, for as
+  // long as this device has picked neither (`readStyleId` / `readOwnHoldSec`, both null; read fresh
+  // each time, since a pick can land between renders), and never touches a device's own pick. No
+  // reload: the state feeds the same player prop the dock's own Style/Hold controls already write
+  // live, so the new values simply carry into the window the player is about to draw, at the next hold.
+  const [prevHostStyle, setPrevHostStyle] = useState(hostStyle);
+  if (hostStyle !== prevHostStyle) {
+    setPrevHostStyle(hostStyle);
+    if (readStyleId(qrToken) === null) setStyleId(resolveLiveStyleId(hostStyle));
+  }
+  const [prevHostHold, setPrevHostHold] = useState(hostHold);
+  if (hostHold !== prevHostHold) {
+    setPrevHostHold(hostHold);
+    if (readOwnHoldSec(qrToken) === null) setHoldSec(resolveHoldSec(hostHold));
+  }
   const [includeVideos, setIncludeVideos] = useState(readIncludeVideos);
   const [showCode, setShowCode] = useState(screen);
   const holdScale = holdScaleFor(holdSec, styleId);

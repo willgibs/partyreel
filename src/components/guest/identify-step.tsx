@@ -8,7 +8,7 @@ import { AccountDoor, DOOR_WEAR } from "@/components/auth/account-door";
 import type { DoorVerified } from "@/components/auth/email-sign-in";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatCount } from "@/lib/format/count";
+import { formatMediaCount } from "@/lib/format/count";
 import { checkDisplayName, type JoinRefusal } from "@/lib/guest/join";
 import { collectStoredSessionTokens } from "@/lib/guest/session-tokens";
 import { readLastName, setLastName } from "@/lib/guest/use-stored-name";
@@ -197,7 +197,7 @@ export function identifyCopy(input: {
   return {
     title:
       mediaTotal && mediaTotal > 0
-        ? `${formatCount(mediaTotal)} ${mediaTotal === 1 ? "photo" : "photos"} & videos ${mediaTotal === 1 ? "is" : "are"} waiting`
+        ? `${formatMediaCount(mediaTotal)} ${mediaTotal === 1 ? "is" : "are"} waiting`
         : "See all the photos",
     reason: DOOR_WEAR.gate.reason,
   };
