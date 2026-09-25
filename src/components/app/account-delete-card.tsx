@@ -181,7 +181,8 @@ export function AccountDeleteCard({
                     <span className="text-foreground">
                       other people&rsquo;s events
                     </span>{" "}
-                    stay in those albums. Ask the host if you want them removed.
+                    stay in those albums, without your name or email. Ask the
+                    host if you want them removed.
                   </li>
                   <li>
                     Your account cannot be restored, and this email can start

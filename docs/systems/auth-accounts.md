@@ -3,6 +3,7 @@
 Open this before you:
 - change sign-in: the one account door, codes and links, passwords, Google, passkeys;
 - change a Supabase Auth dashboard setting (they move in lockstep with code);
+- change how an account's email changes, or what follows it;
 - touch a display name, an avatar or the `/welcome` gate;
 - touch account deletion.
 
@@ -71,15 +72,46 @@ Google, and a password as a quiet second door; passkeys wait behind a flag. `get
   current password with `verify_current_password`, a read-only RPC that disturbs no session; the hash never leaves
   the database (both RPCs return booleans).
 
+## Changing the email
+
+A confirmed address is changed, never removed (Will, identity-door round 1 `remove`); deleting the account is the
+way out. The row on `/account` is `email-section.tsx`, its machine is pure (`email-change.ts`) and its two Server
+Functions are `email-actions.ts`.
+- **Two codes, one per address.** `requestEmailChangeAction` re-checks `getUser()` and calls `updateUser({ email })`;
+  with Secure email change on, GoTrue mails a code (and a link) to the current address and one to the new address,
+  and the address moves once both are entered, in either order. `confirmEmailChangeAction` checks a code with
+  `verifyOtp({ type: "email_change" })` against the address that received it, read off the caller's own auth user
+  (`email` or `new_email`), never the request's: the first answers with no session, the second with the new one. A
+  resend starts both over (GoTrue mints two codes and zeroes the confirmation), and GoTrue answers a wrong code and an
+  expired one with the same `otp_expired`.
+- ★ **An address that already has an account is answered like a sent one** (`email_exists`), or the action is an
+  enumeration oracle; the row's help line covers the case for everyone. The account's own inbox staying silent still
+  tells, and only Supabase Auth's limits bound that probe.
+- ★ **The copies follow inside GoTrue's commit.** `handle_user_email_change` (AFTER UPDATE OF email ON `auth.users`,
+  when the address changed) writes it to `profiles.email` and to `guests.email` on the account's verified rows, except
+  for an account whose deletion is requested; past hosts see the new address, and `upload_forensics` keeps what each
+  upload captured. It runs in the Auth server's own transaction, so it stays trivial: a failure there blocks every
+  email change. The Stripe customer's copy follows after the response, best-effort (`syncBillingEmail`).
+- **A tapped link lands on `/account`, never on an expired link.** `emailRedirectTo` is
+  `/auth/callback?next=/account&flow=email_change` on the request's own host (the PKCE verifier cookie is
+  host-scoped). The first link carries no code (GoTrue's message rides the fragment), so it lands
+  `?email_change=half`; a code is issued only once the change has committed, so an exchange that works lands `done`
+  and one that fails (another browser, no PKCE verifier) lands on the plain page. The param picks a line of copy;
+  the row reads the truth from `getUser()`.
+- A change left waiting shows until its codes die (`EMAIL_CHANGE_TTL_MS`): GoTrue never clears `new_email`.
+
 ## Supabase Auth dashboard settings
 
 Dashboard state, held nowhere in the repo, that the code assumes:
 - "Secure password change" and "Require current password" OFF (the first forces a reauth nonce that breaks the
   `verify_current_password` design).
 - Minimum password length = `MIN_PASSWORD_LENGTH` (8); Email OTP length = `OTP_LENGTH` (6, `email-sign-in.tsx`);
-  leaked-password protection on.
+  Email OTP expiration = `EMAIL_CHANGE_TTL_MS` (3600 s, `email-change.ts`); leaked-password protection on.
 - The Magic Link and Confirm signup templates carry `{{ .Token }}` beside `{{ .ConfirmationURL }}`, or the code-first
-  flow mails no code.
+  flow mails no code; so does the Change Email Address template, worded for both of its recipients with
+  `{{ .Email }}` (the current address) and `{{ .NewEmail }}`.
+- "Confirm email" ON (off, `updateUser({ email })` swaps the address with no proof at all) and "Secure email change"
+  ON (off, the new inbox alone moves an account, so a borrowed session could take it).
 - "Allow new user signups" ON (account creation is the first code); the OAuth Server (project-as-IdP) OFF.
 - The redirect allow-list holds `https://partyreel.com/auth/callback**` (a guest's link carries `?next=/e/[token]`
   back) and the admin callbacks ([admin-observability.md](admin-observability.md)).
@@ -96,6 +128,11 @@ Dashboard state, held nowhere in the repo, that the code assumes:
   from the Google name or the newest claimable guest row's typed name). The one typed-name write is
   `updateDisplayNameAction` (`displayNameSchema`, then `containsProfanity`, tuned so real names pass, then the admin
   client); the claim copies an already-filtered name onto a nameless profile only.
+- **A guest's typed name survives the magic link.** The door passes it as `signInWithOtp` data under `DOOR_NAME_KEY`
+  (`door-name-key.ts`; GoTrue writes it only when that call creates the account), and `/auth/callback` runs
+  `adoptDoorName()` after the exchange when `next` is an album: a nameless profile only, `displayNameSchema` then
+  `containsProfanity` (the metadata is client-writable), the admin client, a write conditioned on the column still
+  being null, and the stored copy deleted either way. A plain server module, not a Server Function.
 - **A nameless account reaches no `(app)` route but `/welcome`:** `requireNamedProfile()` runs from
   `dashboard/layout.tsx` and `account/layout.tsx`, and `/welcome` never calls it, or a nameless account could never
   reach the one page that names it.
@@ -122,6 +159,14 @@ Dashboard state, held nowhere in the repo, that the code assumes:
   account's events outranks the request: that event is skipped whole and the account waits, anonymised, until the
   hold lifts. `guests.user_id` and `media.guest_id` are `on delete set null`, so uploads to other hosts' events
   survive unlinked: the FK keeps the promise `/privacy` makes.
+- ★ **Deletion takes the address with it.** The account's guest rows in other hosts' events lose `email`,
+  `pending_email` with its stamp, and a typed name (`SCRUBBED_GUEST_PATCH`) three times over: at the request
+  (isolated, so a failure costs neither the anonymisation nor the ban), in the sweep's re-anonymise (a failure stops
+  the purge before `deleteUser`; the one pass that reaches a held account), and in `scrub_account_guest_rows`, the
+  BEFORE DELETE trigger on `profiles` that the `auth.users` cascade fires (★ it returns `old`: a BEFORE trigger that
+  returns null silently skips the delete). `verified_at` stays. `resolveUploaderIdentity` names an address only while
+  the row's `user_id` stands, for rows orphaned before the scrub; clearing those in the table is
+  `20260926210000_identity_backfill.sql`, applied only on Will's yes.
 - **The re-verification lives in the server action,** which re-checks the password or a fresh email code itself: a
   server action is a public endpoint, and the attack re-verification stops is a borrowed session. The code goes to
   the caller's own address, read through `getUser()`, never from the request.
