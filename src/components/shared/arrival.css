@@ -122,6 +122,40 @@
   }
 }
 
+/* ── THE PUSH: A PHOTOGRAPH NEW TO THE ROWS OPENS ITS ROW (`album-columns` r2,
+   Will's `arrival=push`: "The row opens: the photo is revealed from its left
+   edge while its neighbours glide aside on the same beat. Nothing fades; it
+   reads as inserted."). The neighbours' glide is `AlbumRows`' own (`runFlip`),
+   on the same length and curve as this reveal, so the two are one motion.
+
+   ★ THE ROWS WRITE THE ATTRIBUTE, NOT THE SURFACE. `data-entering` rides the
+   very render that lands the photograph (the rows know what their reflow
+   brought in), so the wipe starts on its first frame; a mark set in an effect a
+   commit later would show the photograph whole for a frame, then hide it and
+   wipe it in. It lasts the glide and goes, so a tile scrolled out and back
+   never replays it.
+
+   A clip, never a scale, so the photograph is never squeezed; and the tile's
+   own entrance (globals.css, `[data-media-tile]`'s @starting-style rise) is
+   turned off under it, because a transition outranks an animation in the
+   cascade and the two would fight. The glow still marks whose it is. ── */
+@media (prefers-reduced-motion: no-preference) {
+  [data-album-layout="rows"] [data-media-tile][data-entering] {
+    transition: none;
+    animation: pr-arrival-push var(--arrival-glide-ms, 450ms)
+      var(--arrival-glide-ease, var(--ease-in-out-strong)) both;
+  }
+}
+
+@keyframes pr-arrival-push {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
 /* ── REDUCED MOTION: A PLAIN APPEARANCE (ruled). Not a slower light and not a
    static rim or band left burning on the tile — the photograph simply arrives,
    which is the whole information. The rules above already leave the glow at

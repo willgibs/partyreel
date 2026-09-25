@@ -77,7 +77,6 @@ const {
   readNewestAlbumUpdate,
 } = await import("@/lib/db/queries/media");
 const { getNotificationData } = await import("@/lib/db/queries/notifications");
-const { resolveReelRenderContext } = await import("@/lib/reel/render-service");
 
 const NOW = Date.parse("2026-09-23T12:00:00.000Z");
 const SECOND = 1000;
@@ -250,18 +249,19 @@ describe("a guest's own withdrawal never reaches a host read", () => {
     expect(bin[0].countdownDays).toBe(28);
   });
 
-  it("the reel's timeline, which the guest payload's items are, drops a withdrawn moment", async () => {
-    // The admin arm (a password event's guest payload, the host's own render) reads it in TS...
-    const ctx = await resolveReelRenderContext(asSupabase(fake), "ev-1");
-    expect(ctx?.orderedApprovedIds).toEqual(["m-live"]);
-    // ...and the open event's anon RPC in SQL: its items join media on approved alone.
+  it("the open event's anon RPC drops a withdrawn moment: its items join media on approved alone", async () => {
+    // reel-teardown deleted this pin's TS half (resolveReelRenderContext / render-service.ts, the
+    // stored reel's admin-arm reader): the live reel replaced it, and that invariant now lives in
+    // the live reel's own tests. The SQL half below is independent of that TS code and still holds.
     const dir = join(process.cwd(), "supabase", "migrations");
     const newest = readdirSync(dir)
       .filter((file) => file.endsWith(".sql"))
       .sort()
       .map((file) => readFileSync(join(dir, file), "utf8"))
       .filter((sql) =>
-        /create (?:or replace )?function public\.get_event_reel_by_qr_token\s*\(/i.test(sql),
+        /create (?:or replace )?function public\.get_event_reel_by_qr_token\s*\(/i.test(
+          sql,
+        ),
       )
       .at(-1);
     expect(

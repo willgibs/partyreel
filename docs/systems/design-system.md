@@ -32,9 +32,10 @@ the colour and only state and actions are coloured.
   retype or optimise the path: replace the whole string from the next export. The mark (`markOnly`) is a stand-in
   mounted nowhere until the v1 icon lands. `--brand` is an alias of `--primary` (ink).
 - **One colour per action, everywhere**: like rose (`--like`), save and download blue (`--save`), hide and show amber,
-  approve green, delete red, add-to-reel violet (`--reel`), on guest and host surfaces alike. An action icon is
-  monochrome at rest, takes its colour as a stroke on direct hover and a `/25` fill while active; an icon beside text is
-  muted unless it is the action.
+  approve green, delete red, on guest and host surfaces alike. Violet (`--reel`) marks the highlight reel itself (its
+  own calls to action, the style rail's active thumb), never a verb on a photograph: the live reel plays every approved
+  photo by itself, so no tile or bulk bar adds to it. An action icon is monochrome at rest, takes its colour as a stroke
+  on direct hover and a `/25` fill while active; an icon beside text is muted unless it is the action.
 - ★ **A `bg-gallery` on a dark leaf paints two registers too deep.** The well is the deepest ground (on OLED a
   photograph is the only light on it); a dark leaf on paper is the slab, which `.surface-ink` declares itself rather
   than deriving from `--gallery*` (derived, a footer sinks into the well and reads as a hole).
@@ -307,25 +308,41 @@ named in `lib/glass.ts`. `PosterCardChip` (the stored reel's poster) is the one 
 
 ## The album tile
 
-One tile, `shared/masonry.tsx` (`MasonryColumns`), draws every album grid: the guest album (`GuestMasonry` wraps it),
-the host's album, the bin and the personal feeds. The admin's `ModerationTile` stays its own: a report is not an album.
-It lays out as masonry (the default), uniform (a fixed aspect: the Reel and Review) or `rows`, the justified album
-(`AlbumRows`, opt-in until each surface switches).
+One tile, `shared/album-tile.tsx` (`AlbumTile`), draws every album grid, laid out by `shared/masonry.tsx`
+(`MasonryColumns`): the guest album (`GuestMasonry` wraps it), the host's album, the bin and the personal feeds. The
+admin's `ModerationTile` stays its own: a report is not an album. It lays out as masonry (the default), uniform (a
+fixed aspect: the Reel and Review) or `rows`, the justified album, windowed (`shared/album-window.tsx`, opt-in until
+each surface switches). `/design/album-scale` is the grid over 1,145 photographs and `scripts/album-perf.mjs` its
+harness (nodes, animations, a fling's frames, renders per like, tick and poll, a head arrival while deep), measured on
+a production build.
 
 - **A tile shows state, not controls**: at most an active like, a play mark, a like count and the guest's `MineMark`;
   on a phone that is the whole tile, and every action lives in the viewer. At a desk the surface's `tileActions` ride
-  one glass pane (the host's verbs: [host-app.md](host-app.md)).
-- ★ **`[data-reveal-chip]` needs its `!important`s**: it lives in `@layer base`, where the chips' own utilities outrank
-  it, so without them the collapse and slide die silently. It opens on `:hover`, `:focus-visible` and
-  `:has(:focus-visible)`, never `:focus-within`, so a click does not leave it stuck open.
-- ★ **A CSS-columns album re-flows every column when a photograph lands**, so items go to real columns:
+  one glass pane (the host's verbs: [host-app.md](host-app.md)), `display:none` until the tile is hovered or the
+  keyboard is inside it (`data-kbd-focus`, written by the grid, since `:has(:focus-visible)` does not reliably
+  repaint), sliding open on `@starting-style` and `allow-discrete` (`album-tile.css`). Collapsed to a zero width it
+  still composited one blur a photograph.
+- ★ **A tile renders only when what it draws changes**: it is memoized on data props compared by content (the item's
+  drawn fields, its box's values, each verb's everything but `onSelect`), holds no handler (the grid answers every
+  control from one delegated click and one long-press, reading the latest props), and reads its like per id
+  (`useIsLiked`: `LikesProvider` is a store, and its context value never changes). A per-tile closure or JSX prop
+  defeats it: `renderOverlay` is compared by identity, so a surface with an overlay re-renders its tiles with itself.
+- ★ **`[data-reveal-chip]` needs its `!important`s** (the bin's chips): it lives in `@layer base`, where the chips' own
+  utilities outrank it, so without them the collapse and slide die silently. It opens on `:hover`, `:focus-visible`
+  and `:has(:focus-visible)`, never `:focus-within`, so a click does not leave it stuck open.
+- ★ **A CSS-columns album re-flows every column when a photograph lands**, so items go to explicit columns:
   `distributeColumns` places oldest first into the shortest, walking backwards, so an arrival grows one column and no
-  tile on screen moves. It is pure, so strict mode and a poll's reconcile agree. `GALLERY_COLUMNS` stays the first
-  paint, since the column count needs a width the server lacks.
+  other tile moves. `GALLERY_COLUMNS` stays the first paint, since the count needs a width the server lacks.
+- ★ **The measured columns are places in the same box, never a wrapper per column** (`placeColumns`): a tile that
+  changes parent remounts, and wrappers remounted every tile at the first measure and on every filter. Each tile sits
+  absolutely at `calc()`s on `--col-w` (the box's `100cqw` shared out), so a resize re-places nothing; the head stands
+  at the first column's top and pushes it down by its measured `--head-h`.
 - **`rows` justifies like a typesetter** (`lib/shared/album-rows.ts`): optimal breaks over the whole album, so every row
   fills the width; the oldest row justifies too and alone may run past the soft band, up to a hard cap; an album too
-  small to fill a row at the cap sits centred at it. Steps are photos per row by the box's width (`ROW_CLASSES`),
-  never pixels, so all five stay distinct at any width. Extreme ratios clamp to 1:2..2.4:1 (`rowRatio`).
+  small to fill a row at the cap sits centred at it. Three steps, photos per row by the box's width (`ROW_CLASSES`:
+  1/2/3 under 480, 2/3/4, 3/4/6 from 900, 3/5/8 from 1280), never pixels; one index in the shared `pr_tile_size`
+  cookie (`resolveRowStep`, the legacy widths mapped across). The feature row never runs at one a row. Extreme ratios
+  clamp to 1:2..2.4:1 (`rowRatio`).
 - ★ **A full re-solve moves the whole album**, since paths from a new head need not merge with the old ones, so it runs
   only on load, a resize, a step change and a filter; an arrival re-solves the new photos plus the three rows beside
   them and a hide its row and neighbours, each window pinned at its edges and stretched by one row at most: never
@@ -333,17 +350,39 @@ It lays out as masonry (the default), uniform (a fixed aspect: the Reel and Revi
 - ★ **The rows are one flex container broken by hand, never a wrapper per row**: a tile that changes parent remounts,
   dropping its decoded image to the shimmer and replaying its entrance on every arrival. Each tile's whole-pixel width
   is its `flex-grow` over a zero basis, so it lands on its pixel at the laid width and still fills mid-resize.
+- ★ **The rows mount only around the view** (`lib/shared/album-window.ts`): row tops are a prefix sum of the engine's
+  heights, the rows in view a binary search, one viewport behind and two ahead, full-width spacers for the rest, and
+  the keyboard's row pinned. A scroll reads the view by arithmetic on a cached offset, never a rect: a rect read mid-
+  frame forced a layout every frame. The first paint draws the first 48 photographs and a spacer estimates the rest.
+- ★ **Nothing a reader is looking at moves**: `overflow-anchor: none` (the browser cannot anchor through a spacer, and
+  Safari has no anchoring), then a change is paid in its own layout effect by scrolling exactly as far as the first
+  photograph at the view's top (or under a pinch) moved: a difference of two album positions, so a view read a frame
+  late cannot throw it off. At the head nothing anchors, so the arrival is seen; on a touch screen a change that needs
+  a scroll waits until the scroll has been still 150ms, since a scroll written mid-flick stops the flick.
 - ★ **The rows' glide snapshots every tile in `getSnapshotBeforeUpdate`** (the only pre-commit DOM read React has; a
-  null class component): a rect remembered from the last glide is off by however far the reader scrolled since.
+  null class component): a rect remembered from the last glide is off by however far the reader scrolled since. The
+  anchor's scroll is paid before the glide runs, so every tile glides from where it stood on screen.
+- **An arrival pushes** (`arrival=push`): the rows write `data-entering` on what their reflow brought in, in the same
+  render (a surface's mark lands a commit later and would flash the tile whole), and `arrival.css` wipes it in from its
+  left edge on the glide's clock while the neighbours glide; it clears after the glide, so a remount never replays it.
+- **Density is the View menu's slider and a pinch** (`density-control.tsx`): the slider's stops are menu radio items
+  (a thumb inside a menu is unreachable by keyboard) and a pick keeps the menu open; a pinch, a trackpad pinch or
+  ctrl and the wheel over the grid (native non-passive listeners, `touch-action: pan-y`) steps, anchored on the photo
+  under the gesture.
 - **The open item is an ID, never a position**: items mutate under an open viewer, and a stored index silently points
   at another photograph.
 - **A tap hands the viewer its origin**: the viewer grows from the tile's rect (`data-media-id`) and drops back into the
-  tile showing at close, focus returning there. The open photograph rides `?photo=<id>` (`lib/media/share-save.ts`),
-  claimed by one grid per page.
-- **A tile shimmers until its photograph decodes, then fades it in**, so a cold presign never pops in black; the
-  shimmer is linear, because a strong curve stutters at the loop point.
-- **Only the guest album staggers, and only its seed render** (`stagger`, capped): the seed ids are a render-once set,
-  so a doorbell arrival lands at once.
+  tile showing at close (a windowed album scrolls to it and mounts it first, `scrollToId`), focus returning there. The
+  open photograph rides `?photo=<id>` (`lib/media/share-save.ts`), claimed by one grid per page.
+- **A tile shimmers until its photograph decodes, then fades it in**, only while on screen (`data-inview` from the
+  grid's one observer) and after a beat, so a cached photograph never flickers; the shimmer is linear, because a strong
+  curve stutters at the loop point. The first row loads eager and first, every photograph decodes async, and a mounted
+  tile keeps its URL across a presign rollover (the same object path), taking the fresh one only on an error.
+- ★ **The album grid is one placeholder in a session replay** (`data-sentry-block`): the replay buffers every session,
+  serialized every node the album mounted and measured every photograph (one forced layout each), the largest cost of
+  a throttled phone's fling; the photographs are blocked from replays anyway.
+- **Only the guest album staggers, and only its first paint**: `--tile-i` is the seed index, and whether a tile enters
+  is decided once, at mount, so a windowed row scrolled in later lands still.
 
 ## Motion
 

@@ -23,6 +23,8 @@
  * profile column); only the read/write MECHANISM changes.
  */
 
+import { DEFAULT_ROW_STEP, isRowStep, type RowStep } from "./album-rows";
+
 /** The cookie the control writes and the gallery reads. */
 export const TILE_SIZE_COOKIE = "pr_tile_size";
 
@@ -49,8 +51,47 @@ export const TILE_SIZE_LABEL: Record<TileSize, string> = {
   300: "Large",
 };
 
-export function resolveTileSize(raw: string | undefined | null): TileSize {
+/**
+ * THE ONE COOKIE NOW HOLDS A STEP INDEX (`album-columns` r2: three steps, one
+ * index shared by host and guest). The justified rows count photographs per
+ * row, never pixels, so what a returning viewer picked is "which of the three
+ * steps": 0 the largest photographs, 2 the densest. The three legacy widths map
+ * across by what they meant (300 loose is 0, 240 the wired default is 1, 180
+ * tight is 2), so nobody's pick is lost at the switch.
+ *
+ * ★ BOTH READERS UNDERSTAND BOTH SPELLINGS UNTIL THE SURFACES SWITCH. Masonry's
+ * surfaces still write and read widths (`setTileSizeAction`, `resolveTileSize`)
+ * while the rows' surfaces will write the index; a cookie either one wrote reads
+ * the same pick on the other, so the two never disagree about one device.
+ * `TILE_SIZES` and its kin retire with the last masonry surface.
+ */
+const LEGACY_STEP: Record<TileSize, RowStep> = { 300: 0, 240: 1, 180: 2 };
+const STEP_SIZE: Record<RowStep, TileSize> = { 0: 300, 1: 240, 2: 180 };
+
+/** The step a cookie names: an index, or a legacy width mapped across. */
+export function resolveRowStep(raw: string | undefined | null): RowStep {
+  if (raw === undefined || raw === null || raw.trim() === "")
+    return DEFAULT_ROW_STEP;
   const n = Number(raw);
+  if (isRowStep(n)) return n;
+  return (TILE_SIZES as readonly number[]).includes(n)
+    ? LEGACY_STEP[n as TileSize]
+    : DEFAULT_ROW_STEP;
+}
+
+/** Sentence-case labels for the three steps, largest photographs first. */
+export const ROW_STEP_LABEL: Record<RowStep, string> = {
+  0: "Large",
+  1: "Medium",
+  2: "Small",
+};
+
+export function resolveTileSize(raw: string | undefined | null): TileSize {
+  if (raw === undefined || raw === null || raw.trim() === "")
+    return DEFAULT_TILE_SIZE;
+  const n = Number(raw);
+  // A step index written by a rows surface reads as the width it stands for.
+  if (isRowStep(n)) return STEP_SIZE[n];
   return (TILE_SIZES as readonly number[]).includes(n)
     ? (n as TileSize)
     : DEFAULT_TILE_SIZE;

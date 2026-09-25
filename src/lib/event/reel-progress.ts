@@ -21,6 +21,7 @@
  *
  * Pure and client-safe: no DOM, no React, no server imports.
  */
+import { LIVE_REEL_MINIMUM } from "@/lib/events/gallery-reel";
 import {
   isReelEligible,
   stillUrlFor,
@@ -30,10 +31,11 @@ import { planTake } from "@/lib/reel/live/take";
 
 /**
  * The live reel exists from this many reel-eligible items (Will's "could even drop the minimum to
- * 2", `reel-front`; the engine alternates two clips cleanly). The guest album's gate is the same
- * number (`LIVE_REEL_MINIMUM`, `reel-guest-wiring`); the two fold into one home when both land.
+ * 2", `reel-front`; the engine alternates two clips cleanly). One number, one home
+ * (`LIVE_REEL_MINIMUM`, `gallery-reel.ts`, read-only here): the guest album's gate and the host's
+ * own card can never drift apart over how many photos start a reel.
  */
-export const REEL_MINIMUM = 2;
+export const REEL_MINIMUM = LIVE_REEL_MINIMUM;
 
 /** How many stills the Reel card dissolves through: enough to feel alive, few enough to stay calm. */
 export const REEL_CARD_STILLS = 4;
@@ -63,14 +65,21 @@ export function spreadSample<T>(items: readonly T[], max: number): T[] {
 export type ReelState = "off" | "counting" | "live";
 
 /**
- * The reel's state from the switch and a count of items that can play (a count capped anywhere at
- * or past the minimum is enough).
+ * The reel's state from the switch, the platform lever and a count of items that can play (a count
+ * capped anywhere at or past the minimum is enough).
+ *
+ * ★ THE LEVER OUTRANKS THE SWITCH, SILENTLY. `ops_flags.live_reel_enabled` (`reel-teardown`) is an
+ * operator's platform-wide pause, read the same way the guest payload reads it
+ * (`getLiveReelServerFacts`, `db/queries/guest-events-admin.ts`); off collapses straight to `off`
+ * whatever the host's OWN switch says, so the hub's Reel card, the "What needs you" band and the old
+ * `/reel` room's redirect can never disagree with the album the guest actually sees.
  */
 export function reelState(input: {
   showReel: boolean;
+  liveReelEnabled: boolean;
   playable: number;
 }): ReelState {
-  if (!input.showReel) return "off";
+  if (!input.showReel || !input.liveReelEnabled) return "off";
   return input.playable >= REEL_MINIMUM ? "live" : "counting";
 }
 
@@ -106,11 +115,13 @@ export type HubReel = {
 export function hubReel(input: {
   eventId: string;
   showReel: boolean;
+  liveReelEnabled: boolean;
   items: readonly LiveMediaItem[];
 }): HubReel {
   const playable = input.items.filter(isReelEligible);
   const state = reelState({
     showReel: input.showReel,
+    liveReelEnabled: input.liveReelEnabled,
     playable: playable.length,
   });
   const have = Math.min(playable.length, REEL_MINIMUM);
