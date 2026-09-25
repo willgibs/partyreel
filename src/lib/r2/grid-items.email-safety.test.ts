@@ -56,3 +56,36 @@ describe("email-safety: the guest-facing GridMedia builder never carries email",
     );
   });
 });
+
+/* ★ AND THE PAGED ALBUM'S GUEST LINKS (album-pages). A window's links carry attribution too, as a
+   tuple rather than named fields (`[name, flags]`), so the allow-list above cannot read it; this one
+   reads the tuple builder instead. The guest path never even fetches the address
+   (`readAlbumAttribution` with `withEmail: false`); this guard is what keeps the builder from ever
+   learning the word. The host's twin (`album-host-links.ts`) carries the proved address by design. */
+describe("email-safety: the paged album's guest links never carry an address", () => {
+  const src = readFileSync(
+    join(process.cwd(), "src/lib/events/album-guest-links.ts"),
+    "utf8",
+  ).replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, "");
+
+  it("never names an address in code, in any spelling", () => {
+    for (const forbidden of [
+      "email",
+      "Email",
+      "pending_email",
+      "pendingEmail",
+      "HostWhoTuple",
+    ]) {
+      expect(src, forbidden).not.toContain(forbidden);
+    }
+  });
+
+  it("builds the tuple from exactly the name and the two flags, never a spread", () => {
+    expect(src).not.toMatch(/\.\.\.who\b/);
+    expect(src).toContain("return [who.displayName, flags];");
+    const read = [...src.matchAll(/who\.(\w+)/g)].map(([, field]) => field);
+    expect(new Set(read)).toEqual(
+      new Set(["displayName", "isHost", "isVerified"]),
+    );
+  });
+});

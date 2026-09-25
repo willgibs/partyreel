@@ -13,8 +13,8 @@ DEFINER RPCs validate inside; `anon` never touches a table. A feature's own RPC 
 
 ## The RPC inventory and the advisor set
 
-`get_advisors` (security) after every schema change reads 15 `rls_enabled_no_policy`, 5 in lint `0028` and 32 in
-`0029`; the live reel's drop (`20260924110000`, held for the reel lane's alias build) takes them to 14, 4 and 27.
+`get_advisors` (security) after every schema change reads 17 `rls_enabled_no_policy`, 5 in lint `0028` and 32 in
+`0029`; the live reel's drop (`20260924110000`, held for the reel lane's alias build) takes them to 16, 4 and 27.
 Leaked Password Protection is on, so its WARN never shows. A function in the wrong list means a grant slipped.
 
 - **Anon capability reads (`0028`, and `0029` too; by design, never revoke):** `get_event_by_qr_token`,
@@ -67,9 +67,10 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   12 previewed, approved photos an event, one jsonb) is this shape, authenticated-only: another host's event is
   simply absent, and it may name only media columns the host's SELECT grant holds.
 - **Service-role only, never in either list:** the server-mediated set above, `action_rate`, `purge_media_rows`,
-  `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `monthly_ingress_cap`, and the trigger functions,
-  whose EXECUTE is revoked from the client roles and which still fire (EXECUTE is checked when a trigger is
-  created, never when it fires).
+  `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `monthly_ingress_cap`, the paged album's reader
+  `album_changes_since` (an INVOKER read the Next routes call after their own capability check), and the trigger
+  functions, whose EXECUTE is revoked from the client roles and which still fire (EXECUTE is checked when a trigger
+  is created, never when it fires).
 - ★ **Every SECURITY DEFINER function pins `set search_path = ''` and fully qualifies every name** (`public.events`,
   `auth.users`, `extensions.crypt`): an unpinned path lets a caller shadow a name and run it as the owner. No
   DEFINER body uses dynamic SQL.
@@ -77,7 +78,9 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   `reports`, `sent_emails`, `newsletter_signups`, `unlock_attempts`, `action_attempts`, `contact_submissions`,
   `job_applications`, `event_passes`, `job_runs`, `export_log` (an HMAC of the IP, never the IP), `ops_flags` (the
   kill switches), `upload_forensics` and `forensic_audit_log` (raw IP by design; the deny-all is the containment:
-  [trust-safety-forensics.md](trust-safety-forensics.md)), and `reel_render_log` until the drop.
+  [trust-safety-forensics.md](trust-safety-forensics.md)), `album_state` and `album_changes` (the paged album's
+  versions and change log: service_role SELECT only, written by the deferred triggers alone), and `reel_render_log`
+  until the drop.
 
 ## Grants
 
@@ -130,6 +133,15 @@ under Gotchas).
   would each read N-1 and both admit. `create_media`, `create_media_as_host`, `restore_media`, `restore_event` and
   `enforce_event_limit` each take exactly ONE profiles lock, the host's, as their first lock, so no deadlock is
   constructible; never lock a second host's row in these bodies.
+- ★ **An album's version row is every transaction's LAST lock** (`20260926100000_album_version`). A per-event
+  counter taken mid-transaction would sit between locks the writers already order differently (`purge_media_rows`
+  locks media before profiles, `create_media` profiles first, a multi-event disown, claim or sweep touches events in
+  row order) and could close a cycle. So the album's immediate triggers only note event ids in transaction-local
+  settings, and its DEFERRED constraint triggers write at COMMIT, the first bumping every event the transaction
+  touched in ONE pass in event-id order: a transaction holding an album row waits on nothing but album rows, and
+  every commit phase takes them in one order. Each table's note trigger sorts before its stamp by name
+  (`*_album_note` < `*_album_stamp`), which a `set constraints all immediate` path depends on. A new writer of
+  `album_state` or `album_changes` goes through that flush or not at all (a guard refuses any other writer).
 - **The guest write path inherits the read gate:** `create_guest` refuses a `private` event and requires
   `p_unlock_proven` for `password` (the server derives it: the database cannot read the unlock cookie), and
   `get_upload_context` returns `visibility` so presign and complete re-check it per request ([uploads-and-r2.md](uploads-and-r2.md)).

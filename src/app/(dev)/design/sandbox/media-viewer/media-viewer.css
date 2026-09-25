@@ -4,107 +4,112 @@
    author rule outranks every layered one, so these win over a shipped
    component's own class without !important and without a specificity war. */
 
-/* ── the three entrances ──────────────────────────────────────────────────
-   `opening` asks what a tap turns into, and two thirds of that answer is
-   MOTION. Each one plays once when its option is pressed, inside the frame,
-   at the motion budget (under 300ms) with the site's own easing. A reader who
-   has reduced motion on sees every one of them settled, which is also what
-   the stage under `lab:demo` measures. */
+/* ── THE OWN-ITEM MARK, ROUND 3 ─────────────────────────────────────────────
+   Three marks and nothing, each drawn on the real rows (album.tsx).
 
-@keyframes mv-open {
-  from {
-    opacity: 0;
-  }
+   ★ THE PAGE'S OWN TWO INKS, NEVER LIGHT. Every stroke here is a line of the
+   foreground laid on a band of the ground, from the tile's edge inward, so the
+   line always has the page on both sides of it: the gutter outside and the
+   band inside. That is what makes it read over a white sky and a black dance
+   floor alike, in either theme, and it keeps the mark a different material
+   from the arrival's white light (`shared/arrival.css` rims a new tile inside
+   its edge in white, and a white ring would read as "new" for ever). Bible 6:
+   the one accent is ink, so no colour is spent.
+
+   ★ INSIDE THE TILE, ALWAYS. Round 2's ring sat outside it and was exactly as
+   wide as the 4px gutter, so two neighbours' rings met. Every stroke here
+   starts at the tile's own edge and goes in; only a run's rule crosses a
+   gutter, and only the gutter between two of her own.
+
+   ★ A RUN IS TWO SELECTORS. The rows are one flex box broken into lines by
+   `[data-row-break]` elements, so a tile of hers whose next sibling is also
+   hers has a neighbour of hers in the same row (`:has(+ ...)`), and one whose
+   previous sibling is hers continues a run (`+`). No engine change, no
+   measuring, and a reflow that moves a break moves the run with it.
+
+   Static by construction: nothing here animates, so reduced motion has
+   nothing to take away (bible 5: the design stands complete at rest). ── */
+
+[data-mv-album] {
+  --mv-ink: var(--foreground);
+  --mv-mat: var(--background);
+  /* The line, then the band of ground between it and the photograph. */
+  --mv-line: 1.5px;
+  --mv-band: 1.5px;
 }
 
-/* ★ NO `both` ON ANY ENTRANCE, AND THAT IS A LAB LANDMINE, NOT A PREFERENCE.
-   A backwards fill holds the element at the keyframe's START until the
-   animation actually runs, and Chrome does not run an animation inside an
-   iframe that has never been on screen. A capture taken with
-   `captureBeyondViewport` therefore showed an album with no viewer on it at
-   all: the ground was still at `opacity: 0` because its animation had not
-   begun. With no fill, an entrance that never runs simply leaves the surface at
-   rest, which is what a still capture should show anyway. */
-.mv-open {
-  animation: mv-open 120ms ease-out;
-}
-
-/* The photograph coming out of the tile that was tapped. The start box is the
-   LIT TILE's, measured in the frame's own document (viewer.tsx, `useLitBox`),
-   and handed in as four custom properties: a keyframe cannot read a rect, and
-   a hard-coded one would be a drawing of the answer rather than the answer. */
-@keyframes mv-flight {
-  from {
-    left: var(--mv-x0);
-    top: var(--mv-y0);
-    width: var(--mv-w0);
-    height: var(--mv-h0);
-    border-radius: var(--radius-tile);
-  }
-}
-
-.mv-flight {
-  animation: mv-flight 260ms var(--ease-emphasis, cubic-bezier(0.2, 0, 0, 1));
-}
-
-/* The sheet, on the floating-layer contract's own entrance: a
-   surface that opens this often rises rather than scales. */
-@keyframes mv-sheet {
-  from {
-    transform: translateY(12%);
-    opacity: 0;
-  }
-}
-
-.mv-sheet {
-  animation: mv-sheet 240ms var(--ease-emphasis, cubic-bezier(0.2, 0, 0, 1));
-}
-
-/* ── the way out, held mid-gesture ────────────────────────────────────────
-   `down` is a finger halfway through putting the photograph back, so it is
-   drawn as a HELD state and never as an animation: what a reader judges is
-   how much album is back and whether the tile it is heading for is legible. */
-.mv-dismissing {
-  transform: translateY(184px) scale(0.84);
-  transform-origin: 50% 0;
-  border-radius: var(--radius-float);
-  overflow: hidden;
-}
-
-.mv-returning [data-mv-lit] {
-  outline: 2px solid rgb(255 255 255 / 0.9);
-  outline-offset: 2px;
-}
-
-/* ── reduced motion ───────────────────────────────────────────────────────
-   Bible 5. Every entrance above settles instantly; the held gesture and the
-   measured flight keep their geometry, because both are STATES rather than
-   animations and removing them would delete the answer. */
-@media (prefers-reduced-motion: reduce) {
-  .mv-open,
-  .mv-flight,
-  .mv-sheet {
-    animation: none;
-  }
-}
-
-/* The line a held frame draws to say it is playing, for the muted-autoplay
-   option under reduced motion (a still that claims to be moving has to say
-   where it is). How far is the option's own fact: the reel's moment when the
-   reel opened it, the clip's first breath when a tile did (`--mv-played`). */
-.mv-played {
+[data-mv-mark] {
   position: absolute;
-  inset-inline: 0;
-  bottom: 0;
-  height: 2px;
-  background: rgb(255 255 255 / 0.25);
+  inset: 0;
+  /* Over the photograph and its play mark, under anything a tile opens. */
+  z-index: 6;
+  pointer-events: none;
+  border-radius: var(--radius-tile);
+  /* Which ends of a run this tile is: 1 draws the side, 0 leaves it open. */
+  --mv-l: 1;
+  --mv-r: 1;
 }
 
-.mv-played::after {
-  content: "";
-  position: absolute;
-  inset-block: 0;
-  left: 0;
-  width: var(--mv-played, 38%);
-  background: rgb(255 255 255 / 0.9);
+/* A tile of hers with one of hers next in its row: its stroke reaches across
+   the gutter to meet the next one's, and its right end stays open. */
+[data-mv-album="run"] [data-mv-mine]:has(+ [data-mv-mine]) > [data-mv-mark],
+[data-mv-album="baseline"]
+  [data-mv-mine]:has(+ [data-mv-mine])
+  > [data-mv-mark] {
+  right: calc(-1 * var(--gap-gallery));
+  --mv-r: 0;
+}
+
+/* A tile of hers continuing a run: its left end stays open. */
+[data-mv-album="run"] [data-mv-mine] + [data-mv-mine] > [data-mv-mark],
+[data-mv-album="baseline"] [data-mv-mine] + [data-mv-mine] > [data-mv-mark] {
+  --mv-l: 0;
+}
+
+/* ── inset: each tile its own ring, inside its own edge. ── */
+[data-mv-album="inset"] [data-mv-mark] {
+  box-shadow:
+    inset 0 0 0 var(--mv-line) var(--mv-ink),
+    inset 0 0 0 calc(var(--mv-line) + var(--mv-band)) var(--mv-mat);
+}
+
+/* ── run: one outline round each run of hers in a row. The line is the
+   border (its open ends take no width and no corner); the band is four inset
+   shadows, top and bottom always and each end only where the run ends. ── */
+[data-mv-album="run"] [data-mv-mark] {
+  border-style: solid;
+  border-color: var(--mv-ink);
+  border-width: var(--mv-line) calc(var(--mv-line) * var(--mv-r)) var(--mv-line)
+    calc(var(--mv-line) * var(--mv-l));
+  border-radius: calc(var(--radius-tile) * var(--mv-l))
+    calc(var(--radius-tile) * var(--mv-r))
+    calc(var(--radius-tile) * var(--mv-r))
+    calc(var(--radius-tile) * var(--mv-l));
+  box-shadow:
+    inset 0 var(--mv-band) 0 0 var(--mv-mat),
+    inset 0 calc(-1 * var(--mv-band)) 0 0 var(--mv-mat),
+    inset calc(var(--mv-band) * var(--mv-l)) 0 0 0 var(--mv-mat),
+    inset calc(-1 * var(--mv-band) * var(--mv-r)) 0 0 0 var(--mv-mat);
+}
+
+/* ── baseline: an underline along the inside of the bottom edge, one line
+   under each run in a row. The same box as the tile, so the line tapers into
+   the tile's own bottom corners rather than squaring them off. ── */
+[data-mv-album="baseline"] {
+  /* One edge where the others draw four, so a heavier line: at the rings'
+     weight it vanished under a 300px desk photograph. */
+  --mv-line: 2px;
+  --mv-band: 2px;
+}
+
+[data-mv-album="baseline"] [data-mv-mark] {
+  border-bottom: var(--mv-line) solid var(--mv-ink);
+  border-radius: 0 0 calc(var(--radius-tile) * var(--mv-r))
+    calc(var(--radius-tile) * var(--mv-l));
+  box-shadow: inset 0 calc(-1 * var(--mv-band)) 0 0 var(--mv-mat);
+}
+
+/* ── none: the tile carries nothing; View's Showing finds hers. ── */
+[data-mv-album="none"] [data-mv-mark] {
+  display: none;
 }

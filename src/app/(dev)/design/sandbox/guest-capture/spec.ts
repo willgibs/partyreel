@@ -67,7 +67,7 @@ const DRAFT = defineExploration({
     n: 1,
     date: "2026-09-24",
     changed:
-      "The refresh: name gains a third path, told (write silently, then say so in a toast), now the recommendation, so the ask is not silent-or-confirm. No other line changed.",
+      "The refresh: name gains a third path, told (write silently, then say so in a toast), now the recommendation. Redrawn for the door's round two: tracker's menu option is a Your photos row under her menu's card, every option kept.",
   },
   context:
     "Every option is the same guest at the same wedding, Priya at Maya and Jay's, a names-mode party, with only the piece being asked moved. The door already offered her an optional email under her name (identity-door); this board asks about the second ask, once her first photographs land: when it reaches her, what it looks like, where she is offered a follow of Maya once she confirms, and what becomes of the name she typed. Confirming keeps the event and every photo in her account; nothing reaches a profile until she chooses it. The reel's tile sits at the album's head throughout (reel-front).",
@@ -84,7 +84,7 @@ const DRAFT = defineExploration({
           id: "first",
           label: "After the first photo, as shipped",
           means:
-            'The instant she has sent anything: the card waits as the album opens, a minute after the door\'s own ask, above the reel\'s "Yours is in it".',
+            "The instant she has sent anything: the card waits as the album opens, a minute after the door's own ask, above the reel's \"Yours is in it\".",
         },
         {
           id: "tenth",
@@ -138,7 +138,7 @@ const DRAFT = defineExploration({
       ],
       recommended: "inline",
       because:
-        'A line under the photograph she just added says "this one" without new chrome, the restraint bible 7 asks of a guest surface, and it leaves the album\'s head to the reel\'s tile instead of stacking a second large object above it.',
+        "A line under the photograph she just added says \"this one\" without new chrome, the restraint bible 7 asks of a guest surface, and it leaves the album's head to the reel's tile instead of stacking a second large object above it.",
       overrule:
         "A caption in a grid she is scrolling past is the easiest of the three to miss; a card is the only shape certain to be seen once.",
       lands:
@@ -226,7 +226,7 @@ const DRAFT = defineExploration({
       question:
         "For a moderated event, should Priya get a way to track her own batch's status?",
       context:
-        'His own idea, at a MODERATED event (Review on): guests "track their batch\'s progress or approval status, so they aren\'t left wondering". Every option marks four of her own uploads: sending, held, approved, refused.',
+        "His own idea, at a MODERATED event (Review on): guests \"track their batch's progress or approval status, so they aren't left wondering\". Every option marks four of her own uploads: sending, held, approved, refused.",
       options: [
         {
           id: "button",
@@ -236,9 +236,9 @@ const DRAFT = defineExploration({
         },
         {
           id: "menu",
-          label: "Grown inside her account menu",
+          label: "A Your photos row in her menu",
           means:
-            'identity-door.menu\'s single "Your photos" row opens the same list, so her status and her account share one sheet.',
+            "Her menu, her name over Unverified and the card that saves the event, gains a Your photos row under that card, opening the same list.",
         },
         {
           id: "inline",
@@ -251,7 +251,7 @@ const DRAFT = defineExploration({
       because:
         "It is his own first idea, verbatim, and a floating icon meets her exactly where she just tapped Add photos, rather than waiting for her to go looking in a menu she may never open.",
       overrule:
-        "If one status surface beats two, identity-door.menu's sheet already exists: folding the tracker there keeps her surfaces to one.",
+        "If one status surface beats two, her menu already opens from her name: a Your photos row under its card keeps her surfaces to one.",
       lands:
         "Whether a moderated guest gets a dedicated tracker at all, and whether it is a new control or an existing surface grown.",
       tile: "phone",
