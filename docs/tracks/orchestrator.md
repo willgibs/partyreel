@@ -3,7 +3,6 @@ track: orchestrator
 status: open
 cut: "e30aaada"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
-  - src/app/globals.css
   - src/app/theme.css
   - src/app/(marketing)/marketing.css
   - src/app/(dev)/design/rules/bible.ts
