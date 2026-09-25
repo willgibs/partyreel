@@ -107,7 +107,7 @@ const text = (el: Element | null | undefined) =>
 const measureDoor =
   (before: string): Reader =>
   (root) => {
-    const line = root.querySelector("[data-entry-drawer] [data-vg-line]");
+    const line = root.querySelector("[data-entry-sheet] [data-vg-line]");
     const n = lineCount(line);
     if (!line || !n) return null;
     return `Measured: ${lines(n)} and ${wordCount(text(line))} words at 375, before ${before}.`;
