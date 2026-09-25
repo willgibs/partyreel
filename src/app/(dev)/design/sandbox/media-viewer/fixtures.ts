@@ -29,7 +29,8 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
  * month keeps every id) changes the pictures and never this file.
  */
 
-export const EVENT = { name: "Maya & Jay", host: "Maya" } as const;
+/** The host, whose own uploads the album credits as the host's. */
+const HOST = "Maya";
 
 /** The guest looking at the album, whose own uploads carry the mark. */
 export const GUEST = "Priya";
@@ -55,7 +56,7 @@ type Row = {
 
 /**
  * NEWEST FIRST, as the album shows it. Priya's pick of five heads it; her
- * singles are the eighth, fifteenth and twenty-second tiles. No still sits
+ * singles are the seventh, fifteenth and twenty-second tiles. No still sits
  * beside or directly under a copy of itself at two a row or five.
  */
 const ROWS: readonly Row[] = [
@@ -108,7 +109,7 @@ export const ALBUM: GridMedia[] = ROWS.map((row, i) => {
     height: h * 400,
     durationSeconds: row.clip ? 6 : undefined,
     uploaderName: row.who,
-    isHost: row.who === EVENT.host,
+    isHost: row.who === HOST,
   } satisfies GridMedia;
 });
 
