@@ -82,7 +82,4 @@ retire-reel-boards, crumbs, album-host-wiring.
 ## Waiting on Will
 
 - **His sitting on build 9**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
-- **"Allow new users to sign up" is OFF** on the live project (`/auth/v1/settings` answers `disable_signup: true`),
-  against `auth-accounts.md`'s ON: no new account can be made (the door's Create account, a new address's code, a new
-  Google account). Nothing in the program's records turned it off; his call, recommended ON.
 - **A 10-second iPhone check**: a shared photo arrives as a photograph (Save opens the system sheet, his check).

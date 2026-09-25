@@ -113,7 +113,10 @@ Dashboard state, held nowhere in the repo, that the code assumes:
   `{{ .Email }}` (the current address) and `{{ .NewEmail }}`.
 - "Confirm email" ON (off, `updateUser({ email })` swaps the address with no proof at all) and "Secure email change"
   ON (off, the new inbox alone moves an account, so a borrowed session could take it).
-- "Allow new user signups" ON (account creation is the first code); the OAuth Server (project-as-IdP) OFF.
+- "Allow new user signups" OFF until launch (Will: only test accounts exist, so the product changes freely), then ON,
+  since account creation is the door's first code. While it is off, a new address's code, the door's Create account
+  and a first Google sign-in are refused, so a live walk of them uses an existing test account. The OAuth Server
+  (project-as-IdP) OFF.
 - The redirect allow-list holds `https://partyreel.com/auth/callback**` (a guest's link carries `?next=/e/[token]`
   back) and the admin callbacks ([admin-observability.md](admin-observability.md)).
 - Passkeys enabled with the RP id on the apex before `NEXT_PUBLIC_PASSKEYS=1` ships anywhere.

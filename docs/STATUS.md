@@ -45,9 +45,9 @@ once the album's surfaces are wired).
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 9 (the reel stretch, the
   album's engines, the identity and hardening lanes, and the three boards for his sitting). No push deploys; each
   `[preview]` record gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
-- **Data:** disposable test data only; the accounts and fixtures are in
-  [`systems/testing-verification.md`](systems/testing-verification.md). The disposable events stay in the states the
-  last red-teams left until Will says restore.
+- **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
+  signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
+  [`systems/testing-verification.md`](systems/testing-verification.md).
 - **Tests:** about 5,300 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
 - **Jobs:** the daily purge cron (Vercel Hobby fires it at 04:48 UTC; its first run on milestone 28's sweeps was green:
   every sweep ok, none stopped early, the orphan scan read 1,368 objects and deleted none, the standby budget's one host
@@ -63,7 +63,7 @@ Every backing service runs under the owner account **partyr33l@gmail.com ("P3")*
 **Sentry** org `partyreel`; **Resend** (`partyreel.com` verified; auth email rides Resend SMTP); **Google OAuth** P3 web
 client; the in-app operator `partyr33l@gmail.com` (`is_admin` and TOTP MFA); **Vercel** on the P3 team (two projects on one
 repo, `partyreel` and `partyreel-admin`; Hobby; the Pro cutover, DNS to Cloudflare and the repo transfer are launch
-cutovers). "Allow new signups" stays on; anonymous sign-ins stay off. Configured once, never redone: the R2 buckets,
+cutovers). "Allow new signups" is off until launch (his choice: the product changes freely); anonymous sign-ins off. Configured once, never redone: the R2 buckets,
 credentials, CORS and the abort-multipart rule; the apex domain; `CRON_SECRET`; `profiles.is_admin`; the Stripe TEST
 products, prices, webhook, Billing Portal and their env values; Supabase TOTP MFA with the admin callback in the redirect
 allow-list (break-glass: delete the factor in `auth.mfa_factors`); the Sentry project and its env; the backup Worker
@@ -72,5 +72,4 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 ## Waiting on Will
 
 - **His sitting on build 9**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
-- **His call on signups**: "Allow new users to sign up" is off on the live project, against the docs' on.
 - **A 10-second iPhone check** on the album: a shared photo arrives as a photograph.

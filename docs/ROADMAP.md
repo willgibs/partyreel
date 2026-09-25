@@ -337,7 +337,8 @@ without plan switching and the change-plan configuration re-created with its `pa
 10 env values, one real-card smoke) → Vercel Pro (the analytics vendor, the
 Spend cap, Cloudflare fronting and CSAM scanning at the DNS move, the Realtime quota) → secrets Sensitive,
 leaked-password protection, the Sentry alert rule, one DB-backup test-restore → the test-data reset, the demo token
-repointed, `PRUNE_MODE=live` → the program teardown.
+repointed, `PRUNE_MODE=live`, "Allow new users to sign up" back ON (off until launch, so only test accounts exist) →
+the program teardown.
 
 - A demo event set and ready on every environment: nothing guards `NEXT_PUBLIC_DEMO_QR_TOKEN` (inlined at build), so a deploy without it ships a footer without the code.
 - Enable leaked-password protection (HaveIBeenPwned) `[human]`: not Pro-gated, so it can flip any time; the long-standing advisor WARN.
