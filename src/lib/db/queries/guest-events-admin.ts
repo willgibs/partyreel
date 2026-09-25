@@ -7,8 +7,10 @@
  * SELF-GUARDED: the unlock-cookie check lives INSIDE this privileged path (not just
  * upstream of it), so a careless caller can't pass an arbitrary event id and dump a
  * locked album. Returns [] unless THIS request holds a valid unlock cookie for the
- * event. Mirrors the blessed admin-from-guest-page pattern (mutations/analytics.ts
- * `recordLinkHit`), but reads media, so it carries its own gate.
+ * event, or is its host (`isRequestOwner`, the album reads' own owner check: the host
+ * never meets the password door, so never holds the cookie). Mirrors the blessed
+ * admin-from-guest-page pattern (mutations/analytics.ts `recordLinkHit`), but reads
+ * media, so it carries its own gate.
  *
  * Only ever call this for a `password` event that resolved via the normal RPC; never
  * for `open` (use the anon RPC) or `private` (stays locked).
@@ -30,6 +32,7 @@ import {
 import { getEventGuests } from "@/lib/db/queries/social";
 import { readAllPages } from "@/lib/db/read-all";
 import { guestCount } from "@/lib/events/event-guests";
+import { isRequestOwner } from "@/lib/events/gallery-access-owner.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import { captureWarning } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -50,7 +53,8 @@ import {
 export async function getApprovedMediaForUnlock(
   eventId: string,
 ): Promise<GuestMediaRow[]> {
-  if (!(await isUnlocked(eventId))) return [];
+  if (!(await isUnlocked(eventId)) && !(await isRequestOwner(eventId)))
+    return [];
 
   const admin = createAdminClient();
   const { rows } = await readAllPages(

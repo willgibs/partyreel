@@ -30,6 +30,11 @@ const isUnlocked = vi.fn();
 vi.mock("@/lib/events/unlock-cookie", () => ({
   isUnlocked: (...args: unknown[]) => isUnlocked(...args),
 }));
+// The host of the event, as the album's reads ask it (gallery-access-owner.server.test.ts's own).
+const isRequestOwner = vi.fn();
+vi.mock("@/lib/events/gallery-access-owner.server", () => ({
+  isRequestOwner: (...args: unknown[]) => isRequestOwner(...args),
+}));
 vi.mock("@/lib/db/queries/social", () => ({
   getEventGuests: vi.fn().mockResolvedValue({
     verifiedUserIds: [],
@@ -137,6 +142,7 @@ function seed(media: FakeRow[]) {
 
 beforeEach(() => {
   isUnlocked.mockReset();
+  isRequestOwner.mockReset().mockResolvedValue(false);
   seed([]);
 });
 
@@ -208,6 +214,21 @@ describe("getApprovedMediaForUnlock: the unlocked password album, read whole", (
     seed(album(20));
     expect(await getApprovedMediaForUnlock(EVENT)).toEqual([]);
     expect(fake.requests).toHaveLength(0);
+    expect(isRequestOwner).toHaveBeenCalledWith(EVENT);
+  });
+
+  it("★ reads the whole album for its HOST, who never holds the cookie (their own Download all)", async () => {
+    isUnlocked.mockResolvedValue(false);
+    isRequestOwner.mockResolvedValue(true);
+    seed(album(20));
+    expect(await getApprovedMediaForUnlock(EVENT)).toHaveLength(20);
+  });
+
+  it("an unlocked guest never costs an owner check", async () => {
+    isUnlocked.mockResolvedValue(true);
+    seed(album(3));
+    expect(await getApprovedMediaForUnlock(EVENT)).toHaveLength(3);
+    expect(isRequestOwner).not.toHaveBeenCalled();
   });
 });
 

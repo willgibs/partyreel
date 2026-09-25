@@ -13,7 +13,9 @@
  * What is pinned, through the page's seed and all three routes: the host reads their password album
  * with no cookie; a signed-in stranger (a host, of another event), an anonymous viewer and a cookie
  * signed for another event are refused, and the service role never reads a media row for them; the
- * unlock cookie still opens it without an owner check; an open album is unchanged.
+ * unlock cookie still opens it without an owner check; an open album is unchanged. And the same page's
+ * "Download all" (`/api/export/guest`, over the real `getApprovedMediaForUnlock`) counts the host's
+ * own album and nobody else's.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -24,6 +26,7 @@ import {
   type FakeRow,
 } from "@/lib/db/testing/fake-postgrest";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
+import { summarizeMedia } from "@/lib/export/build-manifest";
 import { unlockCookieName } from "@/lib/events/unlock-token";
 
 const SECRET = "test-unlock-secret-please-rotate";
@@ -88,13 +91,33 @@ vi.mock("@/lib/db/queries/album-state", () => ({
   }),
   readAlbumAttribution: async () => new Map(),
 }));
-vi.mock("@/lib/db/queries/guest-events-admin", () => ({
-  getLiveReelServerFacts: async () => ({ liveReelEnabled: false, tier: "pro" }),
-  countApprovedMedia: async () => 1,
-  getGuestCount: async () => 0,
-  getApprovedPhotoTeaser: vi.fn(),
-  getUploaderIdentities: vi.fn(),
-  getApprovedMediaForUnlock: vi.fn(),
+// The admin reads stand in, but the password album's whole read (the export's) is the REAL one, with
+// its own gate. Its module's other imports stand in as its own tests stand them in.
+vi.mock("@/lib/db/queries/guest-events-admin", async (importOriginal) => {
+  const real =
+    await importOriginal<
+      typeof import("@/lib/db/queries/guest-events-admin")
+    >();
+  return {
+    getLiveReelServerFacts: async () => ({
+      liveReelEnabled: false,
+      tier: "pro",
+    }),
+    countApprovedMedia: async () => 1,
+    getGuestCount: async () => 0,
+    getApprovedPhotoTeaser: vi.fn(),
+    getUploaderIdentities: async () => new Map(),
+    getApprovedMediaForUnlock: real.getApprovedMediaForUnlock,
+  };
+});
+vi.mock("@/lib/db/queries/social", () => ({ getEventGuests: vi.fn() }));
+vi.mock("@/lib/supabase/avatar-storage", () => ({ getAvatarUrl: vi.fn() }));
+// "Download all"'s summary is the real one; nothing here mints.
+vi.mock("@/lib/export/export-service", () => ({
+  exportSummary: (rows: Parameters<typeof summarizeMedia>[0]) =>
+    summarizeMedia(rows),
+  mintExport: vi.fn(),
+  mintResponse: vi.fn(),
 }));
 const getUploadGate = vi.fn();
 vi.mock("@/lib/db/queries/guest-gate", () => ({
@@ -112,6 +135,7 @@ vi.mock("@/lib/observability/sentry", () => ({
 vi.mock("@/lib/demo", () => ({ isDemoToken: () => false }));
 
 const { POST: sync } = await import("@/app/api/album/guest/sync/route");
+const { POST: exportGuest } = await import("@/app/api/export/guest/route");
 const { POST: media } = await import("@/app/api/album/guest/media/route");
 const { POST: manifest } = await import("@/app/api/album/guest/manifest/route");
 const { resolveViewerDecision, streamGallerySeed } =
@@ -176,6 +200,7 @@ function photo(id: string, eventId: string): FakeRow {
     original_key: `events/${eventId}/photo/${id}/original.jpg`,
     reel_eligible: true,
     created_at: AT,
+    file_size_bytes: 1_234_567,
   };
 }
 
@@ -448,5 +473,43 @@ describe("the paths that already worked are unchanged", () => {
       links: [],
       missing: [OTHER_PHOTO],
     });
+  });
+});
+
+describe("the same page's Download all (the password album's whole read, `getApprovedMediaForUnlock`)", () => {
+  async function summary(token = "tok_pw") {
+    const res = await post(exportGuest, { step: "summary", qr_token: token });
+    return { status: res.status, body: await res.json() };
+  }
+
+  it("★ counts the host's own album, cookie or not", async () => {
+    asViewer(confirmed(HOST));
+    const { status, body } = await summary();
+    expect(status).toBe(200);
+    expect(body.summary.shown.photo).toEqual({ count: 1, bytes: 1_234_567 });
+  });
+
+  it.each([
+    ["a signed-in stranger", () => asViewer(confirmed(STRANGER))],
+    ["an anonymous viewer", () => asViewer(null)],
+  ])("refuses %s, reading no media at all", async (_label, as) => {
+    as();
+    expect(await summary()).toEqual({
+      status: 403,
+      body: { ok: false, code: "forbidden" },
+    });
+    expect(mediaReads()).toEqual([]);
+  });
+
+  it("refuses another event's cookie, and still counts for this event's own", async () => {
+    const other = await unlockCookie("tok_other");
+    asViewer(null, { [unlockCookieName(PW)]: other.value });
+    expect((await summary()).status).toBe(403);
+
+    const own = await unlockCookie("tok_pw");
+    asViewer(null, { [own.name]: own.value });
+    const { body } = await summary();
+    expect(body.summary.shown.photo.count).toBe(1);
+    expect(ownerReads()).toEqual([]);
   });
 });

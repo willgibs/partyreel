@@ -195,7 +195,7 @@ export async function loadGalleryRowsForAccess(
   const [identities, rows, approvedTotal] = await Promise.all([
     identitiesPromise,
     event.visibility === "password"
-      ? getApprovedMediaForUnlock(event.id) // self-guarded by the unlock cookie
+      ? getApprovedMediaForUnlock(event.id) // self-guarded: the unlock cookie, or the host
       : getEventMediaByQrToken(event.qr_token), // anon RPC, gates on visibility='open'
     approvedTotalPromise,
   ]);
