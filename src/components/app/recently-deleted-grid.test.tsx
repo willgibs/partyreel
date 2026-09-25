@@ -5,13 +5,18 @@
  * is read again each time it is chosen: a host who deletes from the album and then opens Deleted must
  * find what she just deleted there. The last list stays on screen while a new one is read, one read
  * runs at a time, and an item that leaves the bin during a read never comes back with that read.
+ * An open bin re-mints its aged links on a timer, since it has no poll to do it after.
  */
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { BinEntry, BinManifestBody } from "@/lib/event/bin";
 
-import { useHubBin } from "./recently-deleted-grid";
+import {
+  BIN_RELINK_MS,
+  useHubBin,
+  useRelinkWhileOpen,
+} from "./recently-deleted-grid";
 
 vi.mock("@/app/(app)/dashboard/[eventId]/actions", () => ({
   purgeMediaNowAction: vi.fn(),
@@ -131,5 +136,25 @@ describe("useHubBin", () => {
     await act(async () => reads[2].fail());
     await waitFor(() => expect(result.current.status).toBe("ready"));
     expect(ids(result.current.entries)).toEqual([id(1)]);
+  });
+});
+
+describe("useRelinkWhileOpen", () => {
+  it("asks the link store to re-mint what aged while the bin is on screen, and stops when it leaves", () => {
+    vi.useFakeTimers();
+    try {
+      const links = { refreshAged: vi.fn(async () => {}) };
+      const { unmount } = renderHook(() => useRelinkWhileOpen(links));
+      expect(links.refreshAged).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(BIN_RELINK_MS);
+      expect(links.refreshAged).toHaveBeenCalledTimes(1);
+      vi.advanceTimersByTime(BIN_RELINK_MS * 2);
+      expect(links.refreshAged).toHaveBeenCalledTimes(3);
+      unmount();
+      vi.advanceTimersByTime(BIN_RELINK_MS * 3);
+      expect(links.refreshAged).toHaveBeenCalledTimes(3);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

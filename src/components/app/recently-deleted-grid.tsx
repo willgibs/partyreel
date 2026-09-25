@@ -3,6 +3,7 @@
 import {
   type CSSProperties,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -371,6 +372,23 @@ const IDLE_BIN: BinList = {
   left: NONE_LEFT,
 };
 
+/** How often an open bin asks its link store to re-mint what aged (a no-op until a link has). */
+export const BIN_RELINK_MS = 5 * 60_000;
+
+/**
+ * AN OPEN BIN STAYS LIT. The album's store re-mints its aged links after every poll; the bin has no
+ * poll, and its windows ask for links only when they move, so a Deleted view left open past a link's
+ * life would draw dead originals. While the bin is on screen, the link store is asked on a timer.
+ */
+export function useRelinkWhileOpen(
+  links: Pick<LinkStore<null>, "refreshAged">,
+) {
+  useEffect(() => {
+    const timer = setInterval(() => void links.refreshAged(), BIN_RELINK_MS);
+    return () => clearInterval(timer);
+  }, [links]);
+}
+
 /** The bin's grid over its list and its windows' links. */
 export function HubBin({
   bin,
@@ -384,6 +402,7 @@ export function HubBin({
   onRestored?: () => void;
 }) {
   const { links, entries, drop } = bin;
+  useRelinkWhileOpen(links);
   const revision = useSyncExternalStore(
     links.subscribe,
     links.revision,
