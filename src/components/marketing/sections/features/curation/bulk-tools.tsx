@@ -12,7 +12,7 @@ import { SectionShell } from "@/components/marketing/system/section-shell";
  * Curation page section 5: the bulk sweep (copy absorbed from FEATURE_GROUPS
  * hosts "Approve in bulk"). The visual quotes the gallery selection state
  * (selectable-media-grid.tsx's scrim + corner check) AND the bar it summons
- * (event-feed-action-bar.tsx's floating pill wrapping gallery-actions.tsx's
+ * (the album header's bulk slot holding gallery-actions.tsx's
  * GalleryBulkBar). Static on purpose: the interactive triage lives in the
  * signature demo above; this one shows that selection scales to a batch, and
  * ends where the app ends it, on the actions.

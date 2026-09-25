@@ -1,6 +1,6 @@
 "use client";
 
-import { Clapperboard, Download, Eye, EyeOff, Heart, ListChecks, Trash2 } from "lucide-react";
+import { Download, Eye, EyeOff, Heart, ListChecks, Trash2 } from "lucide-react";
 
 import { useHostSelection } from "@/components/app/host-selection-provider";
 import { Button } from "@/components/ui/button";
@@ -11,10 +11,11 @@ import { BulkBar, type BulkBarAction } from "./bulk-bar";
 // the shared HostSelectionProvider:
 //   • GallerySelectButton → the browse affordance in the Gallery section header ("Select" → enter mode).
 //   • GalleryBulkBar      → the select-mode cluster, the shared BulkBar (`app-vocabulary` r1,
-//         `bulk-toolbar=icon`): All/Clear · N · Add to reel · Like · Hide|Show · Download · Delete
-//         (count-named confirm) · Cancel, ordered like the per-tile row (reel → like → hide/show →
-//         download, danger last), each in its state color (--reel / --like / --warning / --save /
-//         --destructive), icons with instant sliding tooltips.
+//         `bulk-toolbar=icon`): All/Clear · N · Like · Hide|Show · Download · Delete (count-named
+//         confirm) · Cancel, ordered like the per-tile row (like → hide/show → download, danger
+//         last), each in its state color (--like / --warning / --save / --destructive), icons with
+//         instant sliding tooltips. There is no Add to reel: the live reel plays every approved
+//         photo by itself (`reel-host`, 2026-09-25).
 
 export function GallerySelectButton() {
   const selection = useHostSelection();
@@ -42,14 +43,6 @@ export function GalleryBulkBar() {
     selected.size === 1 ? "Remove 1 item?" : `Remove ${selected.size} items?`;
 
   const actions: BulkBarAction[] = [
-    {
-      id: "reel",
-      label: "Add to reel",
-      icon: Clapperboard,
-      color: "reel",
-      disabled: busy || none,
-      onRun: () => run("reel"),
-    },
     {
       id: "like",
       label: "Like",

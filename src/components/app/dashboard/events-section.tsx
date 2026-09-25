@@ -1,10 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDownWideNarrow, LayoutGrid, ListFilter, Rows3 } from "lucide-react";
+import {
+  ArrowDownWideNarrow,
+  LayoutGrid,
+  ListFilter,
+  Rows3,
+} from "lucide-react";
 
 import { EventCard } from "@/components/app/event-card";
 import { EventCardQr } from "@/components/app/event-card-qr";
+import { EVENT_CARD_GRID } from "@/components/app/dashboard/event-card-grid";
 import { EventsEmptyTeaser } from "@/components/app/dashboard/events-empty-teaser";
 import { EventsRowList } from "@/components/app/dashboard/events-row-list";
 import { RestoreEventButton } from "@/components/app/restore-event-button";
@@ -213,7 +219,7 @@ export function EventsSection({
           actions={actions}
         />
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className={EVENT_CARD_GRID}>
           {shown.map((row) => (
             <li key={`${row.kind}-${row.id}`}>
               <EventCard

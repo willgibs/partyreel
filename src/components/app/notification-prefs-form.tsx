@@ -17,7 +17,7 @@ import type { NotificationPrefs } from "@/lib/social/notification-prefs";
  *
  * THE TIER MODEL (notification-prefs.ts, profiles-social.md point 6) is visible in what
  * is NOT here: tier 1 (sign-in codes, billing, storage and deletion warnings)
- * has no switch, because it is not a preference. The four tier-2 rows are
+ * has no switch, because it is not a preference. The tier-2 rows are
  * default-on with an opt-out; marketing is tier 3 and opt-in.
  *
  * ★ MARKETING OFF DOES TWO THINGS. It clears the account's own consent flag AND
@@ -36,11 +36,6 @@ type Row = {
 };
 
 const TIER_2_ROWS: Row[] = [
-  {
-    key: "notifyReelReady",
-    label: "Your highlight reel is ready",
-    hint: "When a reel you asked for has finished rendering.",
-  },
   {
     key: "notifyAlbumShared",
     label: "An album you joined was shared",

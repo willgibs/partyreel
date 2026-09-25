@@ -1,24 +1,49 @@
 /**
  * Notification center read (Phase 6 cut #4) — gathers the raw signals for the bell. All reads
- * are RLS-scoped to the signed-in host (the regular server client): `media_host_all` filters
- * pending media to the host's events, `profiles_select_own` → their row, `announcements_read`
- * → published rows. The pure `buildNotifications` turns this into the badge + panel.
+ * are RLS-scoped to the signed-in host (the request-cached `getUser()` client the layout already
+ * validated): `media_host_all` filters pending media to the host's events, `profiles_select_own`
+ * → their row, `announcements_read` → published rows. The pure `buildNotifications` turns this
+ * into the badge + panel.
  *
  * Runs in the `(app)` layout on every host page load (always-current, no cron). To add a
  * signal later (e.g. co-host invites — see ROADMAP), add a read here + a field on the result.
  */
 import "server-only";
 
+import { getEventCardStats, listEvents } from "@/lib/db/queries/events";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
-import type { NotificationSignals } from "@/lib/notifications/build";
-import { createClient } from "@/lib/supabase/server";
+import type {
+  NotificationSignals,
+  PendingEvent,
+} from "@/lib/notifications/build";
+import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 const ANNOUNCEMENT_LIMIT = 10;
 
 export type NotificationData = Omit<NotificationSignals, "now">;
 
+/**
+ * ★ THE BELL COUNTS THE QUEUE THE CARDS COUNT (`review=agree`): pending media outside the bin, on
+ * the host's LIVE events. The old head count read every pending row the host could see, a
+ * soft-deleted event's queue included, so the bell disagreed with every card on the page. The
+ * cheap head count runs on every host page; only when it finds a queue does the bell read which
+ * events hold it, through the cards' own `event_card_stats` over `listEvents` (request-cached, so
+ * the dashboard pays for it once), and then the rows and the badge both come from that one read.
+ */
+async function readPendingByEvent(): Promise<PendingEvent[]> {
+  const events = await listEvents();
+  const stats = await getEventCardStats(events.map((e) => e.id));
+  return events
+    .map((e) => ({
+      eventId: e.id,
+      eventName: e.name,
+      pending: stats.get(e.id)?.pending ?? 0,
+    }))
+    .filter((queue) => queue.pending > 0);
+}
+
 export async function getNotificationData(): Promise<NotificationData> {
-  const supabase = await createClient();
+  const { supabase, user } = await getRequestAuth();
 
   // Match the bin's recoverable window (listRecentlyDeleted*): only items still SHOWN in the bin
   // count toward the nudge, so the alert never points at an aged-out item the bin won't display
@@ -36,8 +61,14 @@ export async function getNotificationData(): Promise<NotificationData> {
   ] = await Promise.all([
     supabase
       .from("media")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "pending"),
+      .select("id, events!media_event_id_fkey!inner(host_id, deleted_at)", {
+        count: "exact",
+        head: true,
+      })
+      .eq("events.host_id", user?.id ?? "")
+      .is("events.deleted_at", null)
+      .eq("status", "pending")
+      .is("removed_at", null),
     supabase
       .from("profiles")
       .select(
@@ -83,8 +114,18 @@ export async function getNotificationData(): Promise<NotificationData> {
   const recoverySoonestPurgeAt =
     purgeDates.length > 0 ? purgeDates.reduce((a, b) => (a < b ? a : b)) : null;
 
+  const pendingCount = pending.count ?? 0;
+  // The bell rides every host page's layout, so it must never take one down: a failed breakdown
+  // falls back to the single row over the head count (the builder's no-`pendingByEvent` path),
+  // and the cards and Review, which read the same function on their own pages, say it loudly.
+  const pendingByEvent =
+    pendingCount > 0 && user
+      ? await readPendingByEvent().catch(() => undefined)
+      : [];
+
   return {
-    pendingCount: pending.count ?? 0,
+    pendingCount,
+    pendingByEvent,
     storageGraceUntil: profile?.storage_grace_until ?? null,
     tier: profile?.tier ?? "free",
     tierExpiresAt: profile?.tier_expires_at ?? null,

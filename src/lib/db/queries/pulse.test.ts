@@ -10,8 +10,7 @@
  *   - the strip is the newest twelve, never a pending item, a withdrawal, the bin, a deleted event's
  *     or another host's;
  *   - every one of 2,500 events gets its own newest four, read one row per event in chunks whose
- *     URLs stay under the limit, and each tile is presigned once however many strips show it;
- *   - which events have a reel is read whole through the host's own events, never an id list.
+ *     URLs stay under the limit, and each tile is presigned once however many strips show it.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -42,7 +41,7 @@ vi.mock("@/lib/supabase/request-auth", () => ({
   }),
 }));
 
-const { getEventsWithReels, getPulse } = await import("@/lib/db/queries/pulse");
+const { getPulse } = await import("@/lib/db/queries/pulse");
 
 const NOW = Date.parse("2026-09-23T20:00:00.000Z");
 const START_OF_TODAY = Date.parse("2026-09-23T00:00:00.000Z");
@@ -152,7 +151,9 @@ describe("the arrivals: counted, never read", () => {
   });
 
   it("names the host through events!inner, never an event id list", async () => {
-    fake = createFakePostgrest({ tables: { media: [media(0, 10)], events: [] } });
+    fake = createFakePostgrest({
+      tables: { media: [media(0, 10)], events: [] },
+    });
     await getPulse([uuid("e", 0)], NOW, START_OF_TODAY);
     for (const request of fake.requests.filter((r) => r.name === "media")) {
       expect(request.filters).toContainEqual({
@@ -181,13 +182,19 @@ describe("the row view's strips: every event gets its own", () => {
       })),
     }));
     // The newest upload overall is event 0's own strip head, so it is both an arrival and a tile.
-    const head = { ...events[0].media[0], status: "approved", removed_at: null, events: liveEvent };
+    const head = {
+      ...events[0].media[0],
+      status: "approved",
+      removed_at: null,
+      events: liveEvent,
+    };
     fake = createFakePostgrest({ tables: { media: [head], events } });
 
     const pulse = await getPulse(eventIds, NOW, START_OF_TODAY);
 
     expect(pulse.newestByEvent.size).toBe(2500);
-    for (const id of eventIds) expect(pulse.newestByEvent.get(id)).toHaveLength(4);
+    for (const id of eventIds)
+      expect(pulse.newestByEvent.get(id)).toHaveLength(4);
     expect(pulse.newestByEvent.get(eventIds[0])?.[0]).toEqual({
       id: uuid("s", 0),
       type: "photo",
@@ -206,7 +213,9 @@ describe("the row view's strips: every event gets its own", () => {
   });
 
   it("each strip asks for approved uploads outside the bin, the newest four, so no withdrawal can show", async () => {
-    fake = createFakePostgrest({ tables: { media: [media(0, 10)], events: [] } });
+    fake = createFakePostgrest({
+      tables: { media: [media(0, 10)], events: [] },
+    });
     await getPulse([uuid("e", 0)], NOW, START_OF_TODAY);
     const strip = fake.requests.find((r) => r.name === "events");
     // The embed's own filter: a withdrawal is `removed`, and the bin carries `removed_at`.
@@ -242,13 +251,19 @@ describe("the row view's strips: every event gets its own", () => {
         ],
       },
     });
-    const pulse = await getPulse([uuid("e", 0), uuid("e", 1)], NOW, START_OF_TODAY);
+    const pulse = await getPulse(
+      [uuid("e", 0), uuid("e", 1)],
+      NOW,
+      START_OF_TODAY,
+    );
     expect(pulse.newestByEvent.has(uuid("e", 0))).toBe(false);
     expect(pulse.newestByEvent.get(uuid("e", 1))).toHaveLength(1);
   });
 
   it("reads nothing for no events or a signed-out caller", async () => {
-    fake = createFakePostgrest({ tables: { media: [media(0, 10)], events: [] } });
+    fake = createFakePostgrest({
+      tables: { media: [media(0, 10)], events: [] },
+    });
     await expect(getPulse([], NOW, START_OF_TODAY)).resolves.toMatchObject({
       caption: "Nothing yet",
     });
@@ -262,30 +277,5 @@ describe("the row view's strips: every event gets its own", () => {
     await expect(getPulse([uuid("e", 0)], NOW, START_OF_TODAY)).rejects.toThrow(
       /dashboard: newest per event/,
     );
-  });
-});
-
-describe("getEventsWithReels: read whole through the host's own events", () => {
-  it("★ finds 2,500 reels across three pages, only the host's live events, no id list", async () => {
-    const eventIds = Array.from({ length: 2600 }, (_, i) => uuid("e", i));
-    const reels: FakeRow[] = eventIds.slice(0, 2500).map((id) => ({
-      event_id: id,
-      events: liveEvent,
-    }));
-    reels.push(
-      { event_id: uuid("x", 1), events: { host_id: "someone-else", deleted_at: null } },
-      { event_id: uuid("x", 2), events: { host_id: HOST, deleted_at: pgTime(5) } },
-    );
-    fake = createFakePostgrest({ tables: { highlight_reels: reels } });
-
-    const withReels = await getEventsWithReels(eventIds);
-
-    expect(withReels.size).toBe(2500);
-    expect(withReels.has(eventIds[2599])).toBe(false);
-    expect(fake.requests.map((r) => r.returned)).toEqual([1000, 1000, 500]);
-    for (const request of fake.requests) {
-      expect(request.filters.some((f) => f.op === "in")).toBe(false);
-      expect(request.urlLength).toBeLessThan(1000);
-    }
   });
 });

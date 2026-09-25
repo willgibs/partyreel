@@ -7,7 +7,6 @@ import { z } from "zod";
 
 import { type ActionResult } from "@/app/(app)/dashboard/actions";
 import {
-  approveAllPending,
   approveBulk,
   hideBulk,
   purgeMediaNow,
@@ -82,16 +81,6 @@ export async function removeMediaAction(
   mediaId: string,
 ): Promise<ActionResult> {
   const result = await removeMedia(eventId, mediaId);
-  if (!result.ok) return result;
-
-  revalidatePath(`/dashboard/${eventId}`);
-  return { ok: true };
-}
-
-export async function approveAllPendingAction(
-  eventId: string,
-): Promise<ActionResult> {
-  const result = await approveAllPending(eventId);
   if (!result.ok) return result;
 
   revalidatePath(`/dashboard/${eventId}`);

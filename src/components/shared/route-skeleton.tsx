@@ -1,3 +1,4 @@
+import { EVENT_CARD_GRID } from "@/components/app/dashboard/event-card-grid";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -19,11 +20,7 @@ export type RouteSkeletonVariant = "pulse" | "hub" | "studio";
  * ("nothing like this ships today, never a proposal for its exact layout" —
  * that file's own caption).
  */
-export function RouteSkeleton({
-  variant,
-}: {
-  variant: RouteSkeletonVariant;
-}) {
+export function RouteSkeleton({ variant }: { variant: RouteSkeletonVariant }) {
   if (variant === "pulse") return <PulseSkeleton />;
   if (variant === "hub") return <HubSkeleton />;
   return <StudioSkeleton />;
@@ -38,7 +35,8 @@ export function RouteSkeleton({
 // this returns a BARE root matching the page's own (<div className="space-y-6">).
 function PulseSkeleton() {
   return (
-    <div className="space-y-6" aria-busy>
+    // Wide like the page (`data-app-wide`), or it would paint at 1280 first.
+    <div data-app-wide className="space-y-6" aria-busy>
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <Skeleton className="h-8 w-44" />
@@ -72,7 +70,7 @@ function PulseSkeleton() {
           <Skeleton className="h-6 w-32" />
           <Skeleton className="h-8 w-40 rounded-lg" />
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className={EVENT_CARD_GRID}>
           {Array.from({ length: 3 }, (_, i) => (
             <Skeleton key={i} className="aspect-[16/10] w-full rounded-xl" />
           ))}
@@ -96,9 +94,12 @@ function PulseSkeleton() {
 // this returns a BARE root matching the page's own.
 function HubSkeleton() {
   return (
-    <div className="space-y-6" aria-busy>
+    // ★ WIDE BEFORE THE PAGE IS: the hub asks the shell for its wide width and
+    // gutter with `data-app-wide`, and a skeleton that did not would paint at
+    // 1280 and jump the moment the page streamed in.
+    <div data-app-wide className="space-y-6" aria-busy>
       {/* The code beside the title + metadata + link stack. */}
-      <div className="flex max-w-7xl items-center gap-4 sm:gap-5">
+      <div className="flex items-center gap-4 sm:gap-5">
         <Skeleton className="size-28 shrink-0 rounded-lg" />
         <div className="min-w-0 flex-1 space-y-2">
           <Skeleton className="h-8 w-64 max-w-full" />
@@ -106,17 +107,22 @@ function HubSkeleton() {
           <Skeleton className="h-4 w-56 max-w-full" />
         </div>
       </div>
-      {/* The cards row: four doors at their resting height. */}
-      <div className="flex gap-2 py-2">
+      {/* The cards row at rest: a phone's 2x2 grid, the row of tiles from
+          `sm` (event-feed/room-card.ts). */}
+      <div className="grid grid-cols-2 gap-2 py-2 sm:flex">
         {Array.from({ length: 4 }, (_, i) => (
-          <Skeleton key={i} className="h-24 w-36 shrink-0 rounded-xl sm:w-40" />
+          <Skeleton
+            key={i}
+            className="h-16 shrink-0 rounded-xl sm:h-24 sm:w-36 md:w-40"
+          />
         ))}
       </div>
-      {/* The album. */}
+      {/* The album: as many columns as the album's default tile size holds
+          at this width, so a wide window is not four giant squares. */}
       <div className="space-y-2.5">
         <Skeleton className="h-5 w-36" />
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-          {Array.from({ length: 8 }, (_, i) => (
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
+          {Array.from({ length: 12 }, (_, i) => (
             <Skeleton key={i} className="aspect-square rounded-lg" />
           ))}
         </div>

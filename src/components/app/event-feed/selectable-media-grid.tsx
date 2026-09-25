@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { Check, Play, X } from "lucide-react";
 
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
@@ -53,6 +53,27 @@ export function SelectableMediaGrid({
   // A lightweight peek overlay (browse mode only): inspect a photo/video before approving, without
   // pulling the full gallery lightbox graph onto this surface.
   const [preview, setPreview] = useState<GridMedia | null>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  // ★ THE PEEK IS A MODAL, SO IT BEHAVES AS ONE: Escape closes it, focus moves onto its close
+  // button when it opens (a keyboard host is inside it, not behind it), and returns to the tile
+  // that opened it when it closes, so the next Tab lands where the host was.
+  useEffect(() => {
+    if (!preview) return;
+    const opener =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPreview(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      opener?.focus();
+    };
+  }, [preview]);
 
   return (
     <>
@@ -152,6 +173,11 @@ export function SelectableMediaGrid({
           Rendered at the feed root (fixed), so it sits above the sticky pills + the floating bar. */}
       {enablePreview && preview && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={
+            preview.type === "video" ? "Video preview" : "Photo preview"
+          }
           className={cn(
             "fixed inset-0 z-50 flex items-center justify-center p-4",
             // The peek stands on the same ground the lightbox does (`behind=album`):
@@ -180,6 +206,7 @@ export function SelectableMediaGrid({
             />
           )}
           <button
+            ref={closeRef}
             type="button"
             onClick={() => setPreview(null)}
             aria-label="Close preview"

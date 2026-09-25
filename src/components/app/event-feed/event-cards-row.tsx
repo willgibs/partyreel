@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Clapperboard,
   ListChecks,
   QrCode,
   Settings,
@@ -16,16 +15,26 @@ import { EVENT_ROOMS, type EventRoomId } from "@/lib/event/sections";
 import { trackAttrs } from "@/lib/analytics/events";
 import { cn } from "@/lib/utils";
 
-const ICONS: Record<EventRoomId, LucideIcon> = {
+import { ReelCard, type ReelCardData } from "./reel-card";
+import {
+  ROOM_CARD_BASE,
+  ROOM_CARD_VALUE,
+  roomCardSize,
+  roomRowLayout,
+} from "./room-card";
+
+/** The cards the row draws itself; the Highlight reel draws its own (`reel-card.tsx`). */
+type PlainRoomId = Exclude<EventRoomId, "reel">;
+
+const ICONS: Record<PlainRoomId, LucideIcon> = {
   review: ListChecks,
-  reel: Clapperboard,
   guests: Users,
   settings: Settings,
 };
 
 export type RoomCard = {
-  id: EventRoomId;
-  /** The line under the label: "12 waiting", "8 clips", "Public". */
+  id: PlainRoomId;
+  /** The line under the label: "12 waiting", "12 guests", "Public". */
   value: string;
   /** Review only, and only while a queue waits: the needs-action colour. */
   amber?: boolean;
@@ -39,10 +48,10 @@ export type RoomCard = {
  * than the album-heavy page"), going sticky as the album scrolls (his `nav`
  * note: "Could pick up sticky-style from the cards below").
  *
- * ★ LINKS IN A GROUP, NEVER TABS. Three of the four are rooms you GO to and the
- * fourth opens a sheet; none of them switch a panel in place, which is the one
- * thing `role="tablist"` promises. `EventFilterPills` stays tabs-shaped for the
- * lab because it genuinely was a filter. This is a row of doors.
+ * ★ LINKS IN A GROUP, NEVER TABS. Two are rooms you GO to, one opens a sheet,
+ * and the Highlight reel opens the view the guests watch (or, before it plays,
+ * the guidance that says what is left); none of them switch a panel in place,
+ * which is the one thing `role="tablist"` promises. This is a row of doors.
  *
  * ★ SETTINGS STAYS AN `<a href="?room=settings">` EVEN THOUGH IT OPENS A SHEET.
  * The URL is real (a reload lands with the sheet open, server-rendered), so
@@ -62,9 +71,12 @@ export type RoomCard = {
 export function EventCardsRow({
   eventId,
   cards,
+  reel,
 }: {
   eventId: string;
   cards: RoomCard[];
+  /** The Highlight reel's card, in its slot in the row. */
+  reel: ReelCardData;
 }) {
   const { openSheet, headerCodeHidden, openCode, morphNameFor } =
     useEventShare();
@@ -89,17 +101,29 @@ export function EventCardsRow({
     <div
       ref={stickyRef}
       data-stuck={stuck || undefined}
-      className="sticky top-14 z-30 -mx-4 px-4 py-2 transition-[box-shadow,border-color,background-color] duration-200 data-[stuck]:border-b data-[stuck]:border-border data-[stuck]:bg-background/85 data-[stuck]:backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
+      // The band bleeds by the wide page's own gutter (12px, then 20px from
+      // `sm`: app-shell.tsx), so its stuck backdrop meets both window edges.
+      className="sticky top-14 z-30 -mx-3 px-3 py-2 transition-[box-shadow,border-color,background-color] duration-200 data-[stuck]:border-b data-[stuck]:border-border data-[stuck]:bg-background/85 data-[stuck]:backdrop-blur sm:-mx-5 sm:px-5"
     >
       <Scroller>
         <div
           role="group"
           aria-label="This event"
-          className="flex gap-2 py-0.5"
+          className={roomRowLayout(stuck)}
         >
-          {cards.map((card) => {
-            const room = EVENT_ROOMS.find((r) => r.id === card.id);
-            if (!room) return null;
+          {EVENT_ROOMS.map((room) => {
+            if (room.id === "reel") {
+              return (
+                <ReelCard
+                  key="reel"
+                  eventId={eventId}
+                  reel={reel}
+                  stuck={stuck}
+                />
+              );
+            }
+            const card = cards.find((c) => c.id === room.id);
+            if (!card) return null;
             const Icon = ICONS[card.id];
             const href = room.segment
               ? `/dashboard/${eventId}/${room.segment}`
@@ -113,18 +137,20 @@ export function EventCardsRow({
                     ? undefined
                     : (e) => {
                         // Let a modified click be a real navigation.
-                        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0)
+                        if (
+                          e.metaKey ||
+                          e.ctrlKey ||
+                          e.shiftKey ||
+                          e.button !== 0
+                        )
                           return;
                         e.preventDefault();
                         openSheet("settings");
                       }
                 }
                 className={cn(
-                  "group flex shrink-0 flex-col justify-between rounded-xl border outline-none transition-all duration-200 ease-emphasis",
-                  "focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.98] motion-reduce:active:scale-100",
-                  stuck
-                    ? "h-9 min-w-0 flex-row items-center gap-1.5 px-3"
-                    : "h-24 w-36 gap-1 p-3 sm:w-40",
+                  ROOM_CARD_BASE,
+                  roomCardSize(stuck),
                   card.amber
                     ? "border-warning/40 bg-warning/5 hover:border-warning/60"
                     : "border-border hover:border-foreground/25",
@@ -159,6 +185,7 @@ export function EventCardsRow({
                 <span
                   className={cn(
                     "truncate text-xs tabular-nums",
+                    ROOM_CARD_VALUE,
                     stuck && "hidden",
                     card.amber
                       ? "font-medium text-warning"
@@ -194,9 +221,13 @@ export function EventCardsRow({
               aria-label="Show the code for this event"
               style={{ viewTransitionName: morphNameFor("pill") }}
               className={cn(
-                "flex shrink-0 items-center gap-1.5 rounded-xl border border-border font-medium outline-none transition-all duration-200 ease-emphasis",
+                "flex shrink-0 items-center gap-1.5 rounded-xl border border-border font-medium transition-all duration-200 ease-emphasis outline-none",
                 "hover:border-foreground/25 focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.98] motion-reduce:active:scale-100",
-                stuck ? "h-9 px-3 text-xs" : "h-24 w-36 flex-col justify-center p-3 text-sm sm:w-40",
+                // A phone's resting grid holds exactly the four doors; the
+                // pill joins the row from `sm`, and on a phone once it is stuck.
+                stuck
+                  ? "h-9 px-3 text-xs"
+                  : "hidden h-24 w-36 flex-col justify-center p-3 text-sm sm:flex md:w-40",
               )}
               {...trackAttrs("cta_click", {
                 cta: "event-code",
@@ -249,7 +280,7 @@ function Scroller({ children }: { children: React.ReactNode }) {
     <div
       ref={ref}
       className={cn(
-        "-mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+        "-mx-1 [scrollbar-width:none] overflow-x-auto px-1 [&::-webkit-scrollbar]:hidden",
         // The fades are masks rather than overlaid gradients so they work on
         // any background the row is stuck over, light or dark.
         "[mask-image:none] data-[overflow-left]:[mask-image:linear-gradient(to_right,transparent,black_2rem)]",

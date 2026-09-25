@@ -3,9 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   EVENT_ROOMS,
   EVENT_ROOM_CRUMB,
-  EVENT_SECTIONS,
   legacySectionRoom,
-  orderedSections,
   resolveEventSheet,
   resolveInitialEventSection,
 } from "@/lib/event/sections";
@@ -34,41 +32,6 @@ describe("resolveInitialEventSection", () => {
   });
 });
 
-describe("orderedSections", () => {
-  it("floats review to the top when moderation is on AND a queue waits", () => {
-    expect(orderedSections({ moderationOn: true, hasPending: true })).toEqual([
-      "review",
-      "gallery",
-      "reel",
-      "guests",
-    ]);
-  });
-  it("sinks review to the bottom when caught up", () => {
-    expect(orderedSections({ moderationOn: true, hasPending: false })).toEqual([
-      "gallery",
-      "reel",
-      "guests",
-      "review",
-    ]);
-  });
-  it("sinks review to the bottom when moderation is off (the teaser), even with pending", () => {
-    expect(orderedSections({ moderationOn: false, hasPending: true })).toEqual([
-      "gallery",
-      "reel",
-      "guests",
-      "review",
-    ]);
-  });
-  it("always returns every section exactly once", () => {
-    for (const moderationOn of [true, false]) {
-      for (const hasPending of [true, false]) {
-        const order = orderedSections({ moderationOn, hasPending });
-        expect([...order].sort()).toEqual([...EVENT_SECTIONS].sort());
-      }
-    }
-  });
-});
-
 /* ── The hub's rooms and sheets (`event=hub`, `settings=sheet`, 2026-09-20) ── */
 
 describe("resolveEventSheet", () => {
@@ -91,16 +54,23 @@ describe("the cards row's model", () => {
     expect(EVENT_ROOMS.at(-1)?.id).toBe("settings");
     expect(EVENT_ROOMS.map((r) => r.id)).not.toContain("album");
   });
-  it("gives every room a segment and the sheet none, which is what tells them apart", () => {
+  it("gives every room a segment, and the two cards that are not routes none", () => {
+    // Settings is a sheet; the Highlight reel is a door to the view (or its
+    // guidance before the second photo), drawn by its own card. Neither may
+    // grow a segment the row would turn into a room link.
     for (const room of EVENT_ROOMS) {
-      if (room.id === "settings") expect(room.segment).toBeNull();
-      else expect(room.segment).toBe(room.id);
+      if (room.id === "settings" || room.id === "reel") {
+        expect(room.segment).toBeNull();
+      } else expect(room.segment).toBe(room.id);
     }
   });
   it("names a crumb for every room that is a route", () => {
     for (const room of EVENT_ROOMS) {
       if (!room.segment) continue;
-      expect(EVENT_ROOM_CRUMB[room.segment], `${room.id} has no crumb`).toBeTruthy();
+      expect(
+        EVENT_ROOM_CRUMB[room.segment],
+        `${room.id} has no crumb`,
+      ).toBeTruthy();
     }
   });
 });

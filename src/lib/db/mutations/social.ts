@@ -179,8 +179,6 @@ export async function setNotificationPrefs(
   if (!user) return UNAUTHORIZED;
 
   const patch: TablesUpdate<"notification_prefs"> = {};
-  if (prefs.notifyReelReady !== undefined)
-    patch.notify_reel_ready = prefs.notifyReelReady;
   if (prefs.notifyAlbumShared !== undefined)
     patch.notify_album_shared = prefs.notifyAlbumShared;
   if (prefs.notifyNewUploadsDigest !== undefined)

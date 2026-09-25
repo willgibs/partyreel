@@ -30,7 +30,6 @@ import { LaunchList, launchItems } from "./launch-list";
 // `server-only` through lib/db/mutations; Vite cannot resolve that outside
 // Next's own build, and this contract is about the pure diff beside them.
 vi.mock("@/app/(app)/dashboard/[eventId]/actions", () => ({
-  approveAllPendingAction: vi.fn(),
   removeMediaAction: vi.fn(),
   removeMediaBulkAction: vi.fn(),
   setMediaStatusAction: vi.fn(),
@@ -49,7 +48,9 @@ vi.mock("@/components/app/host-media-grid", async () => {
   };
 });
 vi.mock("@/components/likes/likes-provider", () => ({
-  LikesProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  LikesProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
 }));
 
 const EVENT_ID = "evt_1";
@@ -58,11 +59,18 @@ const list = (eventDate: string | null, description: string | null) =>
 
 describe("the launch list", () => {
   it("names everything the event is still missing", () => {
-    expect(list(null, null).map((i) => i.id)).toEqual(["date", "note", "print"]);
+    expect(list(null, null).map((i) => i.id)).toEqual([
+      "date",
+      "note",
+      "print",
+    ]);
   });
 
   it("drops an item the host has already done", () => {
-    expect(list("2026-10-11", null).map((i) => i.id)).toEqual(["note", "print"]);
+    expect(list("2026-10-11", null).map((i) => i.id)).toEqual([
+      "note",
+      "print",
+    ]);
     expect(list(null, "Bring your dancing shoes").map((i) => i.id)).toEqual([
       "date",
       "print",
@@ -83,7 +91,9 @@ describe("the launch list", () => {
 
   it("gives every item a real destination", () => {
     for (const item of list(null, null)) {
-      expect(item.href.startsWith(`/dashboard/${EVENT_ID}`), item.id).toBe(true);
+      expect(item.href.startsWith(`/dashboard/${EVENT_ID}`), item.id).toBe(
+        true,
+      );
     }
     // The two field rows land on the settings sheet, which the hub resolves
     // server-side from ?room=; the paper row opens the print route.
@@ -122,7 +132,12 @@ describe("the launch list", () => {
 
 describe("what the album's room holds", () => {
   const item = (id: string): GridMedia =>
-    ({ id, type: "photo", url: `https://r2/${id}`, status: "approved" }) as GridMedia;
+    ({
+      id,
+      type: "photo",
+      url: `https://r2/${id}`,
+      status: "approved",
+    }) as GridMedia;
 
   it("shows the launch list before the first photograph", () => {
     render(

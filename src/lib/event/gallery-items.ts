@@ -9,9 +9,9 @@ import { presignDownload } from "@/lib/r2/presign";
 /**
  * The HOST gallery item mapper: media rows → presigned GridMedia.
  *
- * Extracted out of the host event page (R3) because the Studio route needs the
- * exact same items. Two pages building "the same" item shape by hand is precisely
- * how a field goes missing on one of them: the quick-add signals (createdAt /
+ * One mapper for every host page that shows the album or its queue (the hub,
+ * Review). Two pages building "the same" item shape by hand is precisely how a
+ * field goes missing on one of them: the quick-add signals (createdAt /
  * uploaderKey) and the preview URL are all easy to forget, and a missing
  * previewUrl silently costs full-res tiles while a missing createdAt silently
  * turns quick-add's recency term into a tie-break.
@@ -20,6 +20,13 @@ import { presignDownload } from "@/lib/r2/presign";
  * the ONE surface that carries the uploader's email, and it carries host-only like
  * counts. Neither may ever reach a guest page.
  */
+
+/**
+ * A host album item: the grid's shape plus `media.reel_eligible` (false only for a
+ * clip someone added to the album), so the hub's Reel card counts exactly what the
+ * live reel would play (`hubReel`, `lib/event/reel-progress.ts`).
+ */
+export type HostGalleryItem = GridMedia & { reelEligible: boolean };
 
 export async function toHostGalleryItems({
   media,
@@ -33,7 +40,7 @@ export async function toHostGalleryItems({
   uploaderIdentities: Map<string, UploaderIdentity>;
   /** Host-only like counts (get_event_like_counts is gated to this host). */
   likeCounts: Map<string, number>;
-}): Promise<GridMedia[]> {
+}): Promise<HostGalleryItem[]> {
   return Promise.all(
     media.map(async (m) => {
       // Up to three presigned URLs per item: an INLINE url the grid/lightbox render
@@ -83,6 +90,8 @@ export async function toHostGalleryItems({
         width: m.width,
         height: m.height,
         durationSeconds: m.duration_seconds,
+        // Write-once at create_media*, so it rides outside any ETag like the geometry.
+        reelEligible: m.reel_eligible,
       };
     }),
   );

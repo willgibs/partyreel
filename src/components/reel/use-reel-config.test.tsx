@@ -7,16 +7,12 @@
  * members a read cut the same way, so on a big album a member outside that window vanished from the
  * set and every drag reverted.
  *
- * The chain has three links, each pinned: the reads are whole (`listEventMedia` in
- * lib/db/queries/media.test.ts, `listReelItems` in lib/db/queries/reel.test.ts, both on the clamping
- * fake); the room feeds them to the Studio unfiltered (the source pin below); and the REAL controller,
- * handed inputs of that size with the reel's oldest members far outside the newest 1,000, yields the
- * full set and commits it (rendered below). (This project cannot import the server reads themselves:
- * `server-only` resolves only in the node project.)
+ * The reads are whole (`listEventMedia` in lib/db/queries/media.test.ts, `listReelItems` in
+ * lib/db/queries/reel.test.ts, both on the clamping fake), and the REAL controller, handed inputs of
+ * that size with the reel's oldest members far outside the newest 1,000, yields the full set and
+ * commits it (rendered below). (The room that fed it is a redirect to the live reel's view now, so
+ * its source pin left with it.)
  */
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { act, render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -85,19 +81,6 @@ function Probe({
 }
 
 describe("the Studio's reorder set", () => {
-  it("is fed both reads whole: the album slice and every member, unfiltered", () => {
-    const code = readFileSync(
-      join(process.cwd(), "src/app/(app)/dashboard/[eventId]/reel/page.tsx"),
-      "utf8",
-    ).replace(/^\s*\/\/.*$/gm, "");
-    expect(code).toMatch(/listEventMedia\(event\.id, "album"\)/);
-    expect(code).toMatch(/listReelItems\(event\.id\)/);
-    expect(code).toMatch(/initialReelIds=\{reelIds\}/);
-    expect(code).toMatch(/items=\{visibleItems\}/);
-    // No second filter between the read and the Studio: the album slice IS the item set.
-    expect(code).not.toMatch(/visibleItems\s*=\s*\w+\.filter\(/);
-  });
-
   it("is every one of the reel's 1,300 members, the album's oldest included, and commits whole", async () => {
     expect(items.length).toBeGreaterThan(1000);
 

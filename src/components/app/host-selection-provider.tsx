@@ -4,15 +4,15 @@ import { createContext, useCallback, useContext, useState } from "react";
 
 import { useSelection } from "@/components/app/event-feed/use-selection";
 
-// Shares the GALLERY album bulk-select state across the two surfaces that drive it: the gallery grid
-// (the tiles + their checkmarks + long-press, owned by HostMediaGrid down in the feed's Gallery slot)
-// and the contextual floating action bar (the bulk cluster, up in EventFeed). It mirrors HostAddProvider:
-// a thin context that lifts ONLY the selection STATE — never the items, never the optimistic list. The
-// bulk HANDLERS (which need the gallery's useOptimistic + the reel/likes Sets) are owned by the grid and
-// REGISTERED here, so the bar can call selection.run(kind) and it delegates to the grid's handler —
-// exactly how the review bar calls triage.run without owning review's optimistic state.
+// Shares the album's bulk-select state across the two surfaces that drive it: the album grid (the
+// tiles + their checkmarks + long-press, owned by HostMediaGrid) and the bulk cluster in the album
+// header's action slot (GalleryBulkBar). It mirrors HostAddProvider: a thin context that lifts ONLY
+// the selection STATE — never the items, never the optimistic list. The bulk HANDLERS (which need the
+// grid's useOptimistic + the likes Set) are owned by the grid and REGISTERED here, so the bar can call
+// selection.run(kind) and it delegates to the grid's handler — exactly how the review bar calls
+// triage.run without owning review's optimistic state.
 
-export type BulkKind = "reel" | "like" | "hide" | "show" | "delete" | "download";
+export type BulkKind = "like" | "hide" | "show" | "delete" | "download";
 
 type MediaStatus = "pending" | "approved" | "hidden" | "removed" | undefined;
 
@@ -45,8 +45,8 @@ type HostSelectionValue = {
 
 const HostSelectionContext = createContext<HostSelectionValue | null>(null);
 
-// Null when no provider wraps the surface (the reel grid, guest galleries), so a consumer outside the
-// provider is a safe no-op — same opt-in contract as useHostAdd / useReel / useLikes.
+// Null when no provider wraps the surface (guest galleries, the Library's demos), so a consumer outside
+// the provider is a safe no-op — same opt-in contract as useHostAdd / useLikes.
 export function useHostSelection(): HostSelectionValue | null {
   return useContext(HostSelectionContext);
 }

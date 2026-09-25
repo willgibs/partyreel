@@ -22,6 +22,7 @@
  * TESTED in. The existing `listRecentlyDeletedEvents` sets the same precedent.
  */
 
+import { photosToGo, reelState } from "@/lib/event/reel-progress";
 import { formatCount } from "@/lib/format/count";
 
 export type NextStepKind = "review" | "paused" | "reel" | "print" | "storage";
@@ -50,10 +51,11 @@ export type NextStepEvent = {
   name: string;
   /** Media waiting on the host's review. */
   pending: number;
-  /** Approved items in the album (a reel needs something to cut). */
-  items: number;
   acceptingUploads: boolean;
-  hasReel: boolean;
+  /** The host's Show the reel switch (`events.show_reel`). */
+  showReel: boolean;
+  /** Items that can play in the live reel, counted to its minimum (`getReelProgress`). */
+  reelItems: number;
   /** `YYYY-MM-DD`, or null when the host never set one. */
   eventDate: string | null;
 };
@@ -63,12 +65,18 @@ export const STORAGE_STEP_PCT = 85;
 
 /**
  * ONE STEP PER EVENT, IN HIS ORDER: a queue waiting, then uploads paused, then
- * a live event with no reel, then an event dated tomorrow. First match wins,
+ * a reel one photo short, then an event dated tomorrow. First match wins,
  * because a host with four events and four steps each is back to an inbox.
  *
- * "Live with no reel" deliberately requires `items > 0`: offering "Make the
- * reel" for an album with no photographs in it is a step that cannot be taken,
- * which is worse than no step at all.
+ * ★ THE REEL STEP TELLS THE TRUTH AND THEN LEAVES (`reel-host`, Will
+ * 2026-09-25: `pulse=band`). The live reel makes itself from the second photo,
+ * so there is nothing to "make": the one thing worth a host's attention is the
+ * photo that starts it. The step says so while the reel is one photo short and
+ * is gone the moment it plays, and it never shows with the reel switched off
+ * (a reel the host turned off is not waiting for anything). At none it stays
+ * quiet: an event with no photographs has its launch list on its own page, and
+ * a step at none would push an event's "Print the code" out of the band the
+ * evening before it matters.
  */
 export function nextStepForEvent(
   event: NextStepEvent,
@@ -98,13 +106,18 @@ export function nextStepForEvent(
     };
   }
 
-  if (event.items > 0 && !event.hasReel) {
+  const reel = reelState({
+    showReel: event.showReel,
+    playable: event.reelItems,
+  });
+  if (reel === "counting" && photosToGo(event.reelItems) === 1) {
     return {
       kind: "reel",
       eventId: event.id,
-      label: `${event.name} has no reel yet`,
-      short: "Make the reel",
-      href: `${href}/reel`,
+      label: `1 more photo starts the reel on ${event.name}`,
+      short: "1 more photo",
+      // The event's page, where the Reel card counts to two and Add photos sits.
+      href,
       tone: "quiet",
     };
   }

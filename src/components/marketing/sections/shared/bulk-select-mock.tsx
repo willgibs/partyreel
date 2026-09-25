@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
  * THE SELECT-MODE MOCK, shared (2026-09-01). The app's bulk-select state,
  * quoted for marketing: a photo tile carrying the selection scrim + corner
  * check (selectable-media-grid.tsx) and the floating action pill the
- * selection summons (event-feed-action-bar.tsx wrapping gallery-actions.tsx's
+ * selection summons (the album header's bulk slot holding gallery-actions.tsx's
  * GalleryBulkBar). Two consumers: /features/curation's bulk-tools section (a
  * 4x2 sweep) and the home's curation section (a compact 2x2 beside the host's
  * three controls). Extracted rather than duplicated so the two can never
