@@ -1,6 +1,6 @@
 ---
 track: reel-and-copy
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "4840c3c6"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -36,25 +36,80 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- Brief item 3 (Set for everyone reaching a screen already open): recommended answer built. A
+  view/screen that picked neither its own style nor hold now follows `live.reel`'s next poll answer
+  (`readStyleId` / the new `readOwnHoldSec`, both null), taking effect at the next hold with no
+  reload; a device's own pick is never touched. The alternative I did not build: reload the page the
+  instant a poll carries a new default, which would cut whatever is on screen mid-hold and, on
+  `?reel=screen`, flash a loading state on a wall nobody is meant to be driving. His to overrule.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: `reel.md` and `guest-flow.md` are `reads` for this lane (never edited here); the lines they
+  need are below, in the Handoff, for the Orchestrator.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Host: `host-media-grid.tsx`'s bulk toasts ("Liked N photo(s)", and `event-feed/use-review-triage.ts`'s
+  "Approved N photo(s)") read "photo" for a selection that can hold a video, the same lying-singular
+  `formatMediaCount` (this lane) fixes on the guest side — spotted in passing, not confirmed a bug
+  worth fixing (the host may already read "photo" loosely there) nor built, and `host-media-grid.tsx`
+  is `album-fixes`'s own path (from `reel-and-copy`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commit `8fa943c4` on `lp/reel-and-copy`, pushed. No sync commit: this branch booted from
+  `origin/launch-prep` at `97f78ae8` (Agent boot's own checkout, later than the manifest's `cut`),
+  and a re-fetch right before committing showed `origin/launch-prep` still at that same sha.
+- Gates, all on `8fa943c4`'s tree (nothing changed after): `pnpm typecheck` clean; `pnpm lint` 0
+  errors (6 pre-existing warnings in 4 files this lane never touched: 5 `no-unused-vars`, 1 React
+  Compiler memoization skip note); `pnpm test` 5405 passed / 5405, 482 files, 0 failed (a scoped
+  re-run of just the 6 touched test files: 123 passed / 123); `zsh scripts/build-lock.sh pnpm build`
+  exit 0; `pnpm lab:smoke --base http://localhost:3133` 272 checks, 0 failing. A live curl of the
+  demo event's guest page (`GET /e/$NEXT_PUBLIC_DEMO_QR_TOKEN`, 9 approved items) confirmed
+  `formatMediaCount` renders in real SSR output: `9 photos &amp; videos`.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` lists exactly the 6 owned files (12
+  with their test files) plus one exception: `src/lib/guest/reel-prefs.ts` (+ its test file), not
+  under any `owns` prefix in flight (checked `album-fixes.md` and `owner-album.md`, neither claims
+  it). Why: `live-reel-view.tsx`'s brief-3 fix needs to know whether THIS device has its own stored
+  hold, the same signal `readStyleId` already gives for style by returning null; reel-prefs.ts got
+  one small addition, `readOwnHoldSec(qrToken): number | null`, mirroring that shape, plus a
+  one-line refactor of `readHoldSec` to call it (its own signature and behavior are unchanged, and
+  its existing tests pass untouched).
+- The items:
+  - The album's count reads "1 photo or video" at one item, "N photos & videos" otherwise, through
+    one new `formatMediaCount` (`src/lib/format/count.ts`, beside `formatCount`), replacing the
+    hand-rolled "photo"/"photos" + "& videos" splice at all five spots that shared the bug:
+    `live-gallery.tsx`'s header count AND its teaser CTA (that CTA is a fifth spot beyond the
+    brief's four, sharing the exact same bug — fixed too, since it sits right beside the header in a
+    file this lane owns), `event-experience.tsx`'s stats line and its locked page's "... inside"
+    tease, and `identify-step.tsx`'s door title ("... is/are waiting").
+  - `setReelDefaults` (`src/lib/reel/defaults-action.ts`) now writes NULL, not the matching literal,
+    when a host's pick equals the platform's own default (`DEFAULT_HOLD_SEC`, `DEFAULT_STYLE_ID`),
+    each column checked and written on its own.
+  - `live-reel-view.tsx`: a view/screen with no style or hold pick of its own now follows
+    `live.reel`'s next poll answer (adjusted during render, React's own pattern for state derived
+    from a changing prop — not a `useEffect`, which tripped `react-hooks/set-state-in-effect` for
+    this exact shape on the first pass); a device's own pick is never touched. See Questions.
+- Doc lines for the Orchestrator (this lane's `reads`, never edited here):
+  - `docs/systems/reel.md`, under "The defaults and the lever", the `setReelDefaults` bullet ("is
+    the one write, shared by the view's Set for everyone and Settings: it re-verifies the owner and
+    revalidates nothing, so the reel keeps playing.") — append: "A pick that lands on the platform's
+    own default (`DEFAULT_HOLD_SEC`, `DEFAULT_STYLE_ID`) is stored as NULL, not the matching value,
+    so the event keeps following the platform default if it ever moves."
+  - `docs/systems/reel.md`, under "The tile, the view and the screen", the "owner's extras" bullet
+    (ends "...and 'Everyone sees this look' once they match; Close goes back...") — insert before
+    "Close goes back": "A view or screen that has picked neither for itself follows the event's live
+    look and hold as a poll updates them, taking effect at the next hold with no reload; a device's
+    own pick is never overridden."
+  - `docs/systems/guest-flow.md`, under "ONE TRUE COUNT, EXACT AND LIVE...", the sentence "...the
+    CTA says the same number, 'See all N photos & videos' ... and so does the door (its `mediaTotal`
+    is the header's live count)." — append a clause: "(a lone item reads 'N photo or video' instead,
+    through `formatMediaCount`, never a lying 'photo')."
+- Assets requested from Will: none.
+- Board ideas: none beyond the Deferred line above.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule: brief item 3's shape (follow live at the next hold, own pick always wins)
+  — see Questions above for the alternative not built.
+- Look at first: the Questions entry (brief item 3's one real judgment call) and its test,
+  `live-reel-view.test.tsx`'s new `describe("a view already open follows the event going live...")`.
