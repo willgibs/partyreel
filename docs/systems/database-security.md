@@ -24,9 +24,9 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   - ★ **An anon read never discloses more than the page it backs.** `get_event_by_qr_token` redacts the
     description, date, custom slug and host name (the name too, for `private`) from a non-owner of a gated event;
     an unlocked viewer's fields come back through a self-guarded admin re-read inside `getEventByQrToken`. Its
-    switches (`accepting_uploads`, `require_verified_email`, `require_upload_to_view`, `show_reel`,
-    `reel_style_id`) come back unredacted, as presentation settings. A leak is fixed in the payload, never by
-    revoking the grant. `get_public_profile`'s attended arm applies the album's own gates ([profiles-social.md](profiles-social.md)).
+    switches and the reel's defaults (`accepting_uploads`, `require_verified_email`, `require_upload_to_view`,
+    `show_reel`, `reel_style_id`, `reel_hold_sec`) come back unredacted, as presentation settings. A leak is fixed
+    in the payload, never by revoking the grant. `get_public_profile`'s attended arm applies the album's own gates ([profiles-social.md](profiles-social.md)).
   - ★ **A RETURNS TABLE is the allow-list, and changing one is DROP + CREATE, which drops the grants:** re-grant
     `anon` and `authenticated` explicitly. `get_event_by_qr_token` also keeps the PUBLIC EXECUTE its recreates
     inherited.
@@ -63,7 +63,9 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
     is `status in ('approved','hidden')`; the timeline, guests and publishing are `approved` only. An approved-only
     reorder guard would brick a reel holding hidden items.
 - **SECURITY INVOKER is the default for a new read** (in neither list): a grant that reached the wrong role reads
-  only that role's own rows, where a DEFINER body would read everyone's.
+  only that role's own rows, where a DEFINER body would read everyone's. The dashboard cards' `event_stills` (up to
+  12 previewed, approved photos an event, one jsonb) is this shape, authenticated-only: another host's event is
+  simply absent, and it may name only media columns the host's SELECT grant holds.
 - **Service-role only, never in either list:** the server-mediated set above, `action_rate`, `purge_media_rows`,
   `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `monthly_ingress_cap`, and the trigger functions,
   whose EXECUTE is revoked from the client roles and which still fire (EXECUTE is checked when a trigger is

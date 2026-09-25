@@ -57,6 +57,9 @@
  *      backfill, create_media and create_media_as_host carrying every guard plus p_reel_eligible,
  *      the two guest reads' new keys beside their paging and redaction, the platform flag; and the
  *      drop removing exactly the stored reel, never reel_eligible or tier_limits.
+ *  14. The host's reel defaults (migration 20260925100000): the hold column with its envelope and
+ *      its bare column grant, get_event_by_qr_token carried from the expand with only the hold
+ *      appended, and event_stills' shape, scoping, clamp and grants.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -1642,15 +1645,16 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
       );
     });
 
-    it("get_event_by_qr_token returns show_reel and reel_style_id, last and unredacted", () => {
+    it("get_event_by_qr_token returns show_reel and reel_style_id unredacted, after the host's name", () => {
       // Presentation settings like qr_style, never the identifying metadata QA #40 withholds (the
-      // redaction itself is pinned above, latest-wins).
+      // redaction itself is pinned above, latest-wins). They were the last columns until the reel
+      // defaults (20260925100000) appended the hold after them; that tail is pinned there.
       const body = code("get_event_by_qr_token");
       expect(body).toContain(
-        "custom_slug text, host_display_name text, show_reel boolean, reel_style_id text)",
+        "custom_slug text, host_display_name text, show_reel boolean, reel_style_id text,",
       );
       expect(body).toContain(
-        "case when r.hide_meta then null else p.display_name end, e.show_reel, e.reel_style_id from public.events e",
+        "case when r.hide_meta then null else p.display_name end, e.show_reel, e.reel_style_id,",
       );
     });
 
@@ -1753,5 +1757,186 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
         expect(sql).not.toContain(kept);
       }
     }
+  });
+});
+
+describe("the host's reel defaults (20260925100000)", () => {
+  // Will, reel-host round 1 (2026-09-25): `style=both`, the reel's look and hold set for everyone
+  // from the view and from Settings, and `pulse`, the dashboard cards crossfading through their
+  // stills. Each pin reads CODE (comments stripped), so a comment that names a clause can never
+  // stand in for it.
+  const FILE = "20260925100000_reel_host_defaults.sql";
+  const executableOf = (file: string) =>
+    collapse(
+      readFileSync(join(MIGRATIONS_DIR, file), "utf8").replace(/--[^\n]*/g, ""),
+    );
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+  const grants = (name: string) =>
+    collapse(latestDefinition(name).file.replace(/--[^\n]*/g, ""));
+  /** One file's own definition of a function, from `create` to its closing dollar-quote. */
+  const definitionIn = (file: string, name: string) => {
+    const sql = executableOf(file);
+    const start = sql.indexOf(`create function public.${name}(`);
+    expect(start, `${file} defines no ${name}`).toBeGreaterThan(-1);
+    const tag = sql.slice(start).match(/ as (\$[a-z_]*\$)/)![1];
+    const open = sql.indexOf(` as ${tag}`, start) + ` as ${tag}`.length;
+    return sql.slice(start, sql.indexOf(`${tag};`, open) + tag.length + 1);
+  };
+  const sql = executableOf(FILE);
+
+  describe("events.reel_hold_sec: the host's default hold", () => {
+    it("adds a nullable numeric with no default, inside the envelope", () => {
+      // NULL is the default hold; the app validates the steps, the CHECK only refuses a flicker, a
+      // stall, NaN and Infinity (NaN sorts above every number, so the upper bound is load-bearing).
+      expect(sql).toContain(
+        "alter table public.events add column reel_hold_sec numeric constraint events_reel_hold_sec_range check (reel_hold_sec is null or (reel_hold_sec >= 0.5 and reel_hold_sec <= 30));",
+      );
+      expect(sql).toContain("comment on column public.events.reel_hold_sec is");
+    });
+
+    it("the host writes it by a bare additive column grant, and the file revokes nothing on events", () => {
+      expect(sql).toContain(
+        "grant insert (reel_hold_sec), update (reel_hold_sec) on public.events to authenticated;",
+      );
+      // ★ A table-level revoke cascades to every column grant on events and takes the host app
+      // down (database-security.md, Gotchas).
+      expect(sql).not.toMatch(/revoke [^;]* on (?:table )?public\.events\b/);
+      expect(sql).not.toMatch(/grant [^;]* on public\.events to [^;]*\banon\b/);
+    });
+  });
+
+  describe("get_event_by_qr_token: the hold, last and unredacted", () => {
+    it("is the expand's definition with only the hold appended (QA #40 and `limit 1` verbatim)", () => {
+      // Every other character is carried, so the redaction, the slug path and the one-row limit
+      // cannot drift in a recreate that was only meant to grow the RETURNS TABLE.
+      const carried = definitionIn(
+        "20260924100000_live_reel_expand.sql",
+        "get_event_by_qr_token",
+      )
+        .replace(
+          "show_reel boolean, reel_style_id text)",
+          "show_reel boolean, reel_style_id text, reel_hold_sec numeric)",
+        )
+        .replace(
+          "e.show_reel, e.reel_style_id from",
+          "e.show_reel, e.reel_style_id, e.reel_hold_sec from",
+        );
+      expect(code("get_event_by_qr_token")).toBe(carried);
+      expect(latestDefinition("get_event_by_qr_token").file).toContain(
+        "reel_hold_sec",
+      );
+    });
+
+    it("returns the hold after the reel's two settings, as a SECURITY DEFINER read with an empty search_path", () => {
+      const body = code("get_event_by_qr_token");
+      expect(body).toContain(
+        "show_reel boolean, reel_style_id text, reel_hold_sec numeric) language sql stable security definer set search_path to ''",
+      );
+      expect(body).toContain(
+        "e.show_reel, e.reel_style_id, e.reel_hold_sec from public.events e",
+      );
+      expect(body).toContain(
+        "order by (e.qr_token = p_qr_token) desc limit 1;",
+      );
+    });
+
+    it("drops the old signature first and restates the whole ACL (the client roles, PUBLIC and service_role)", () => {
+      const file = grants("get_event_by_qr_token");
+      const dropped = file.indexOf(
+        "drop function public.get_event_by_qr_token(text);",
+      );
+      expect(dropped).toBeGreaterThan(-1);
+      expect(dropped).toBeLessThan(
+        file.indexOf("create function public.get_event_by_qr_token("),
+      );
+      expect(file).toContain(
+        "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated;",
+      );
+      expect(file).toContain(
+        "grant execute on function public.get_event_by_qr_token(text) to public, service_role;",
+      );
+    });
+  });
+
+  describe("event_stills: the dashboard cards' stills, one jsonb", () => {
+    it("is SECURITY INVOKER with an empty search_path and answers one jsonb (the row cap cannot cut it)", () => {
+      expect(code("event_stills")).toContain(
+        "create function public.event_stills(p_event_ids uuid[], p_per_event integer) returns jsonb language sql stable security invoker set search_path = ''",
+      );
+      expect(code("event_stills")).not.toContain("security definer");
+    });
+
+    it("answers the newest approved, previewed photos outside the bin, clamped to 12 an event", () => {
+      const body = code("event_stills");
+      expect(body).toContain(
+        "select coalesce(jsonb_object_agg(e.id::text, s.preview_keys), '{}'::jsonb) from public.events e cross join lateral",
+      );
+      expect(body).toContain(
+        "jsonb_agg(newest.preview_key order by newest.created_at desc, newest.id desc) as preview_keys",
+      );
+      // ★ A null or non-positive N answers nothing: `greatest` ignores the null, so the limit is 0,
+      // never the unbounded read a null p_limit means on a paged function.
+      expect(body).toContain(
+        "where m.event_id = e.id and m.status = 'approved' and m.type = 'photo' and m.removed_at is null and m.preview_key is not null order by m.created_at desc, m.id desc limit least(greatest(p_per_event, 0), 12)",
+      );
+      // An event with no previewed photo is absent; the ids are the caller's, scoped by RLS.
+      expect(body).toContain(
+        "where e.id = any(p_event_ids) and s.preview_keys is not null;",
+      );
+    });
+
+    it("reads only media columns the host's SELECT grant holds (an invoker read of any other errors)", () => {
+      // The grant, replayed statement by statement: a table-level revoke empties it, a column-level
+      // grant adds its columns (database-security.md: SELECT on media is column-scoped).
+      let granted = new Set<string>();
+      const statement =
+        /\b(grant|revoke) ([a-z_, ]+?)(?: \(([^)]*)\))? on (?:table )?([^;]*?) (?:to|from) ([^;]*);/g;
+      for (const { sql: each } of executableMigrations()) {
+        for (const [
+          ,
+          verb,
+          privileges,
+          named,
+          objects,
+          grantees,
+        ] of each.matchAll(statement)) {
+          if (!/(?:^|[\s,])public\.media(?=$|[\s,])/.test(objects)) continue;
+          if (!grantees.split(",").some((g) => g.trim() === "authenticated"))
+            continue;
+          const privs = privileges.split(",").map((p) => p.trim());
+          if (
+            !privs.some((p) => ["select", "all", "all privileges"].includes(p))
+          )
+            continue;
+          const cols = named?.split(",").map((c) => c.trim());
+          if (verb === "revoke") {
+            if (cols) cols.forEach((c) => granted.delete(c));
+            else granted = new Set();
+          } else {
+            (cols ?? ["*"]).forEach((c) => granted.add(c));
+          }
+        }
+      }
+      expect(granted.has("*")).toBe(false);
+      const read = [
+        ...new Set(
+          [...code("event_stills").matchAll(/\bm\.([a-z_]+)/g)].map(
+            ([, c]) => c,
+          ),
+        ),
+      ];
+      expect(read.length).toBeGreaterThan(0);
+      for (const column of read) expect(granted, column).toContain(column);
+    });
+
+    it("is authenticated-only: every client role revoked, then one grant, and never anon anywhere", () => {
+      expect(grants("event_stills")).toContain(
+        "revoke all on function public.event_stills(uuid[], integer) from public, anon, authenticated; grant execute on function public.event_stills(uuid[], integer) to authenticated;",
+      );
+      expect(collapse(allMigrations().replace(/--[^\n]*/g, ""))).not.toMatch(
+        /grant execute on function public\.event_stills\(uuid\[\], integer\) to [^;]*\b(?:anon|public)\b/,
+      );
+    });
   });
 });

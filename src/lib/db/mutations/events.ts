@@ -163,6 +163,14 @@ export async function updateEvent(
   // (back to the universal 10 GB). No tier gate: it's available to every plan.
   if (values.max_upload_bytes !== undefined)
     patch.max_upload_bytes = values.max_upload_bytes;
+  // The reel's event-wide defaults (setReelDefaults, lib/reel/defaults-action.ts): bare
+  // granted-column writes, free on every tier. The schema checked the mood and the hold's step;
+  // null hands a setting back to the product's default.
+  if (values.show_reel !== undefined) patch.show_reel = values.show_reel;
+  if (values.reel_style_id !== undefined)
+    patch.reel_style_id = values.reel_style_id;
+  if (values.reel_hold_sec !== undefined)
+    patch.reel_hold_sec = values.reel_hold_sec;
 
   const { data, error } = await supabase
     .from("events")
