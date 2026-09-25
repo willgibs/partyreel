@@ -238,9 +238,16 @@ function CountingCard({
             aria-hidden
           />
           {/* The pips ride the value's line on a phone's two-line card (the
-              first line is full with the label) and the icon's row on a tile. */}
+              first line is full with the label) and the icon's row on a tile.
+              At none, a phone leaves them to the words: "Starts at 2 photos"
+              already says it, and a 320px card has no room for both. */}
           {!stuck && (
-            <span className="absolute right-2.5 bottom-3 sm:top-3.5 sm:right-3 sm:bottom-auto">
+            <span
+              className={cn(
+                "absolute right-2.5 bottom-4 sm:top-4 sm:right-3 sm:bottom-auto",
+                reel.have === 0 && "max-sm:hidden",
+              )}
+            >
               <ReelPips have={reel.have} of={reel.of} light={onPhoto} />
             </span>
           )}

@@ -175,10 +175,10 @@ export default async function DashboardPage({
   const eventIds = events.map((e) => e.id);
   // The hosted cards' covers and the stills they dissolve through in turn, the
   // binned cards' covers, per-event stats, how far each event's live reel is,
-  // the pulse's own strips, and the claim ticket's rows (the guest identity round, 2026-09-22): fetched HERE,
-  // after the nameless-profile redirect above, so a profile that is about to
-  // bounce to /welcome never pays for a query it will not render. Keys never
-  // reach the browser — everything is presigned server-side. In parallel.
+  // the pulse's own strips, and the claim ticket's rows: fetched HERE, after the
+  // nameless-profile redirect above, so a profile that is about to bounce to
+  // /welcome never pays for a query it will not render. Keys never reach the
+  // browser — everything is presigned server-side. In parallel.
   const [
     cardStills,
     binCovers,
