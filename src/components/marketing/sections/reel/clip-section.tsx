@@ -1,8 +1,9 @@
-import { ArrowLeft, Play } from "lucide-react";
+import { ArrowLeft, Download, Plus, Share2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
+import { EVENT_NAME } from "@/components/marketing/sections/how-it-works/picture-parts";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { MediaSplit } from "@/components/marketing/system/media-split";
 import { Reveal } from "@/components/marketing/system/reveal";
@@ -17,10 +18,11 @@ import { STYLE_CATALOG } from "@/lib/reel/engine/style-registry";
  * Make your own, saved or shared as a file, never stored, and on a paid event
  * added to the album as an ordinary video the reel never plays.
  *
- * The picture is the creator's finish as it sits at a laptop (the clip at full
- * height, the panel beside it holding Share, Save and Add to event under the
- * way back to editing), so a portrait clip never stands alone in a wide
- * column. Its words are the creator's.
+ * The picture is the creator's finish as it sits at a laptop (the room's head,
+ * the clip at full height, the panel beside it holding the finish's words and
+ * its doors, Share leading, under the way back to editing), so a portrait clip
+ * never stands alone in a wide column. Its words are the creator's
+ * (clip-room.tsx, clip-finish.tsx), pinned by mock-parity.
  *
  * The plan table is `reel-story` r1 `pricing=renamed`: the rows describe the
  * CLIP, never the live reel, which plays with no cap and no mark on any plan.
@@ -52,46 +54,74 @@ function FinishMock() {
       aria-hidden
       className="rounded-2xl border bg-card p-2 ring-1 ring-foreground/5 sm:p-2.5"
     >
-      <div className="grid grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-3 rounded-xl bg-gallery p-3 text-white sm:gap-5 sm:p-5">
-        <span
-          data-lit=""
-          className="relative block aspect-[9/16] overflow-hidden rounded-lg"
-        >
-          <Image
-            src={clip.src}
-            alt=""
-            fill
-            sizes="(min-width: 1024px) 220px, 38vw"
-            className="object-cover"
-          />
-          <span className="absolute inset-0 flex items-center justify-center">
-            <span className="flex size-10 items-center justify-center rounded-full bg-white/90 text-black">
-              <Play className="size-4 translate-x-px fill-current" />
-            </span>
+      {/* The room is always dark whatever the theme (clip-room.tsx's own
+          near-black and its one raised surface), so its fills are literal. */}
+      <div className="flex flex-col gap-3 rounded-xl bg-[oklch(0.11_0_0)] p-3 text-white sm:gap-4 sm:p-4">
+        {/* The room's head: the event, the object, the clip's own line. */}
+        <div className="text-center">
+          <p className="truncate text-[9px] font-medium tracking-[0.08em] text-white/45 uppercase sm:text-label">
+            {EVENT_NAME}
+          </p>
+          <p className="text-xs font-medium text-white/90 sm:text-sm">
+            Your clip
+          </p>
+          <p className="text-[10px] text-white/40 tabular-nums sm:text-micro">
+            {`0:30 \u00b7 ${look.label} \u00b7 8 moments`}
+          </p>
+        </div>
+        <div className="grid grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-3 sm:gap-4">
+          <span
+            data-lit=""
+            className="relative block aspect-[9/16] overflow-hidden rounded-lg"
+          >
+            <Image
+              src={clip.src}
+              alt=""
+              fill
+              sizes="(min-width: 1024px) 220px, 38vw"
+              className="object-cover"
+            />
           </span>
-        </span>
-        <div className="flex min-w-0 flex-col justify-center gap-3 sm:gap-4">
-          <span className="flex items-center gap-1.5 text-[11px] text-white/70 sm:text-xs">
-            <ArrowLeft className="size-3.5 shrink-0" />
-            <span className="truncate">Back to editing, your picks kept</span>
-          </span>
-          <span className="flex flex-col">
-            <span className="text-sm font-medium sm:text-base">Your clip</span>
-            <span className="text-[11px] text-white/70 tabular-nums sm:text-xs">
-              {`0:30 · ${look.label} · 8 moments`}
+          {/* The finish, sitting in the bench's panel (clip-finish.tsx's
+              FinishPanel): the way back, the words, the doors. */}
+          <div className="flex min-w-0 flex-col rounded-lg bg-[oklch(0.14_0_0)] p-3 ring-1 ring-white/[0.07] sm:p-4">
+            <span className="flex items-center gap-1.5 text-[10px] text-white/55 sm:text-caption">
+              <ArrowLeft className="size-3 shrink-0" />
+              <span className="truncate">Back to editing, your picks kept</span>
             </span>
-          </span>
-          <span className="flex flex-col gap-2">
-            <span className="flex h-9 items-center justify-center rounded-full bg-reel text-xs font-semibold sm:h-10 sm:text-sm">
-              Share
-            </span>
-            <span className="flex h-9 items-center justify-center rounded-full border border-white/25 text-xs font-medium sm:h-10 sm:text-sm">
-              Save
-            </span>
-            <span className="flex h-9 items-center justify-center rounded-full border border-white/25 text-xs font-medium sm:h-10 sm:text-sm">
-              Add to event
-            </span>
-          </span>
+            <div className="flex flex-1 flex-col justify-center gap-3 sm:gap-4">
+              <div className="flex flex-col gap-0.5">
+                <p className="text-[9px] font-semibold tracking-[0.08em] text-white/45 uppercase sm:text-label">
+                  Your clip is ready
+                </p>
+                <p className="font-heading text-sm font-semibold sm:text-xl">
+                  It&rsquo;s on this device.
+                </p>
+                <p className="text-xs text-white/55 max-sm:hidden">
+                  Nothing leaves it until you share it or add it.
+                </p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <span className="flex h-8 items-center justify-center gap-1.5 rounded-[var(--radius-action)] bg-reel text-[11px] font-medium text-white sm:h-10 sm:text-sm">
+                  <Share2 className="size-3.5" />
+                  Share
+                </span>
+                <span className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <span className="flex h-8 min-w-0 items-center justify-center gap-1.5 rounded-[var(--radius-action)] border border-white/20 text-[11px] font-medium text-white/90 sm:h-10 sm:text-sm">
+                    <Download className="size-3.5 shrink-0" />
+                    Save
+                  </span>
+                  <span className="flex h-8 min-w-0 items-center justify-center gap-1.5 rounded-[var(--radius-action)] border border-white/20 text-[11px] font-medium whitespace-nowrap text-white/90 sm:h-10 sm:text-sm">
+                    <Plus className="size-3.5 shrink-0" />
+                    Add to event
+                  </span>
+                </span>
+                <span className="pt-0.5 text-center text-[10px] text-white/60 underline decoration-white/25 underline-offset-4 sm:text-caption">
+                  Make another
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
