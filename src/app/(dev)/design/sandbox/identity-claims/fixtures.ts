@@ -84,3 +84,7 @@ export const CURRENT_EVENT_COVER = MARKETING_IMAGES[3].src;
 
 /** A newly-claimed cover for the `after=strip` option: Tom's leaving do, once it is hers. */
 export const CLAIMED_COVER = STILL(4);
+
+/** The wedding's album behind the door, for `pointer`'s door frame: she can
+ *  confirm there now, before any upload (the door's round two). */
+export const DOOR_ALBUM = Array.from({ length: 6 }, (_, i) => STILL(i + 1));

@@ -167,7 +167,11 @@ export function SetupWizard() {
               const active = n === step;
               const done = n < step;
               return (
-                <li key={label} data-ip-step className="flex items-center gap-2">
+                <li
+                  key={label}
+                  data-ip-step
+                  className="flex items-center gap-2"
+                >
                   <span
                     className={cn(
                       "flex size-5 items-center justify-center rounded-full text-micro font-medium",
@@ -424,8 +428,8 @@ export function DefaultAsked() {
         <CardHeader>
           <CardTitle>Show your events on your page?</CardTitle>
           <CardDescription>
-            Applies to all 3 events you&rsquo;ve added photos to; change any
-            one afterward.
+            Applies to all 3 events you&rsquo;ve added photos to; change any one
+            afterward.
           </CardDescription>
         </CardHeader>
         <CardFooter className="justify-end gap-2">
@@ -466,14 +470,14 @@ export function AttendedPicker() {
           aria-pressed={event.shown}
           onClick={() => toggle(event.id)}
           className={cn(
-            "relative flex flex-col overflow-hidden rounded-[var(--radius-tile)] text-left transition-transform duration-200 ease-emphasis focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 motion-reduce:transition-none",
+            "relative flex flex-col overflow-hidden rounded-[var(--radius-tile)] text-left transition-transform duration-200 ease-emphasis focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none motion-reduce:transition-none",
             event.shown ? "-translate-y-1 shadow-lift" : "shadow-layer",
           )}
         >
           <span
             className={cn(
               "relative aspect-[4/5] w-full overflow-hidden bg-black/10",
-              event.shown && "ring-2 ring-inset ring-brand",
+              event.shown && "ring-2 ring-brand ring-inset",
             )}
           >
             {/* eslint-disable-next-line @next/next/no-img-element -- stand-in still, bible 9 */}
@@ -500,7 +504,11 @@ export function AttendedPicker() {
 
 /* ── attended: each event's own album, once you are verified ────────────────── */
 
-export function AttendedGuestMenu({ event = EVENT }: { event?: AttendedEvent }) {
+export function AttendedGuestMenu({
+  event = EVENT,
+}: {
+  event?: AttendedEvent;
+}) {
   const [shown, setShown] = useState(event.shown);
   return (
     <div className="p-4">
@@ -524,7 +532,10 @@ export function AttendedGuestMenu({ event = EVENT }: { event?: AttendedEvent }) 
         <MenuRow label="Download my photos" />
         <div className="my-1 h-px bg-border/60" />
         <div className="flex items-center justify-between gap-3 rounded-md px-2 py-1.5">
-          <Label htmlFor="ip-menu-toggle" className="cursor-pointer text-sm font-normal">
+          <Label
+            htmlFor="ip-menu-toggle"
+            className="cursor-pointer text-sm font-normal"
+          >
             Show this on your page
           </Label>
           <Switch
@@ -551,9 +562,7 @@ export function PromptClaim() {
       <Card className="opacity-50">
         <CardHeader>
           <CardTitle>Photos waiting for you</CardTitle>
-          <CardDescription>
-            Claimed. Added photos to 3 events.
-          </CardDescription>
+          <CardDescription>Claimed. Added photos to 3 events.</CardDescription>
         </CardHeader>
       </Card>
       <Card
@@ -613,6 +622,75 @@ export function PromptFollow() {
           </Button>
         </CardFooter>
       </Card>
+    </div>
+  );
+}
+
+/**
+ * ★ THE SAME INVITATION AT THE DOOR (the door's round two): her email can now
+ * confirm at the door itself, before any upload (the verification door, Create
+ * account, Log in), so `follow` means right after it confirms WHEREVER that
+ * is, and the door's own "You're in" beat is its second place. Quoted: the
+ * held sheet over the blurred album, its own scrim element, the beat's check
+ * and two lines, then the invitation card under them.
+ */
+export function PromptFollowDoor({ desk }: { desk: boolean }) {
+  return (
+    <div className="relative min-h-full">
+      <div
+        className={cn("grid gap-1 p-4", desk ? "grid-cols-4" : "grid-cols-2")}
+      >
+        {ATTENDED.concat(ATTENDED).map((e, i) => (
+          <div
+            key={i}
+            className="aspect-[4/5] overflow-hidden bg-black/10"
+            style={{ borderRadius: "var(--radius-tile)" }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- a local fixture still */}
+            <img src={e.cover} alt="" className="size-full object-cover" />
+          </div>
+        ))}
+      </div>
+      <div
+        aria-hidden
+        className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[16px]"
+      />
+      <div
+        className={cn(
+          "fixed z-50 flex flex-col gap-4 bg-popover px-6 text-popover-foreground shadow-layer ring-1 ring-foreground/10",
+          desk
+            ? "inset-y-0 right-0 w-[448px] pt-24"
+            : "inset-x-0 bottom-0 rounded-t-float pt-5 pb-6",
+        )}
+      >
+        <div className="flex flex-col items-center gap-4 py-4 text-center">
+          <div className="flex size-14 items-center justify-center rounded-full bg-success text-success-foreground">
+            <Check className="size-7" aria-hidden />
+          </div>
+          <div>
+            <p className="font-heading text-page">You&rsquo;re in</p>
+            <p className="mt-1 text-base text-muted-foreground">
+              Welcome to the party
+            </p>
+          </div>
+        </div>
+        <Card
+          data-ip-prompt="the door's own You're in"
+          className="ring-1 ring-brand/40"
+        >
+          <CardHeader>
+            <CardTitle>Set up your page too</CardTitle>
+            <CardDescription>
+              Choose what {EVENT.name} shows before anyone visits.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Button type="button" size="sm" variant="outline">
+              Set up your page
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 }
@@ -696,7 +774,10 @@ export function PageCount() {
 
 export function PageNotFound() {
   return (
-    <div data-ip-404 className="flex flex-1 flex-col items-center justify-center px-5 py-16">
+    <div
+      data-ip-404
+      className="flex flex-1 flex-col items-center justify-center px-5 py-16"
+    >
       <NotFoundScreen
         icon={UserRoundSearch}
         eyebrow="Profile"

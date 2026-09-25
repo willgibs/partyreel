@@ -17,11 +17,18 @@ import {
   PromptAccountOnly,
   PromptClaim,
   PromptFollow,
+  PromptFollowDoor,
   SetupCards,
   SetupSheet,
   SetupWizard,
 } from "./parts";
-import { AppHeader, GuestHeader, Scene, screenOf, type ScreenId } from "./scene";
+import {
+  AppHeader,
+  GuestHeader,
+  Scene,
+  screenOf,
+  type ScreenId,
+} from "./scene";
 import { IDENTITY_PROFILE } from "./spec";
 
 /**
@@ -55,7 +62,11 @@ const measureSetup: Reader = (root) => {
 function setupScreen(id: "cards" | "wizard" | "sheet", s: BoardState) {
   const sc = screen(s);
   const label =
-    id === "cards" ? "Account" : id === "wizard" ? "Set up your page" : "Dashboard";
+    id === "cards"
+      ? "Account"
+      : id === "wizard"
+        ? "Set up your page"
+        : "Dashboard";
   const body =
     id === "cards" ? (
       <SetupCards />
@@ -87,7 +98,10 @@ const measureAttended: Reader = (root) => {
   return `Measured: ${rows} of 3 events showing their toggle here, ${images} with a cover photograph.`;
 };
 
-function attendedScreen(id: "switches" | "picker" | "guest-menu", s: BoardState) {
+function attendedScreen(
+  id: "switches" | "picker" | "guest-menu",
+  s: BoardState,
+) {
   const sc = screen(s);
   if (id === "guest-menu") {
     return (
@@ -142,7 +156,13 @@ const measureDefault: Reader = (root) => {
 function defaultScreen(id: "off" | "asked" | "on", s: BoardState) {
   const sc = screen(s);
   const body =
-    id === "off" ? <DefaultOff /> : id === "on" ? <DefaultOn /> : <DefaultAsked />;
+    id === "off" ? (
+      <DefaultOff />
+    ) : id === "on" ? (
+      <DefaultOn />
+    ) : (
+      <DefaultAsked />
+    );
   return (
     <Scene
       id={`default-${id}`}
@@ -173,18 +193,34 @@ const measurePrompt: Reader = (root) => {
 function promptScreen(id: "claim" | "follow" | "account", s: BoardState) {
   const sc = screen(s);
   if (id === "follow") {
+    // ★ BOTH PLACES HER EMAIL CAN CONFIRM (the door's round two): the album's
+    // follow moment, and the door's own "You're in". Stacked, so the option
+    // stays one phone wide on the step beside the other two.
     return (
-      <Scene
-        id="prompt-follow"
-        screen={sc}
-        title="When it's offered"
-        measure={measurePrompt}
-      >
-        <div className="min-h-full bg-background text-foreground">
-          <GuestHeader as="priya" />
-          <PromptFollow />
-        </div>
-      </Scene>
+      <div className="flex flex-col gap-6">
+        <Scene
+          id="prompt-follow"
+          screen={sc}
+          title="When it's offered"
+          measure={measurePrompt}
+        >
+          <div className="min-h-full bg-background text-foreground">
+            <GuestHeader as="priya" />
+            <PromptFollow />
+          </div>
+        </Scene>
+        <Scene
+          id="prompt-follow-door"
+          screen={sc}
+          title="When it's offered, at the door"
+          measure={measurePrompt}
+        >
+          <div className="min-h-full bg-background text-foreground">
+            <GuestHeader as="visitor" />
+            <PromptFollowDoor desk={sc === "1440"} />
+          </div>
+        </Scene>
+      </div>
     );
   }
   return (

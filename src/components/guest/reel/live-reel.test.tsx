@@ -4,9 +4,10 @@
  * What is pinned is behaviour: the reel exists from the SECOND reel-eligible item and below it
  * there is nothing; a clip never counts; the host's switch, the platform lever and a door still
  * standing each take it away; a tap (or `?reel`) opens the view; the screen posture below the
- * minimum is the code alone; the tile says "Make your own clip to share" only with a creator to
- * make one; and on a moderated event the toast "The host added your uploads" with "Watch reel"
- * plays once, when this device's held upload shows up approved.
+ * minimum is the code alone; the tile wears the reel's glyph and says "Make your own clip to share"
+ * only with a creator to make one, a line that opens the view with the creator asked for; and on a
+ * moderated event the toast "The host added your uploads" with "Watch reel" plays once, when this
+ * device's held upload shows up approved.
  *
  * The view itself is stubbed (its own file pins it); the doorbell is the one seam driven by hand.
  */
@@ -49,21 +50,28 @@ vi.mock("@/components/guest/reel/live-reel-view", () => ({
     mode: string;
     idle: boolean;
     isOwner?: boolean;
-    onSetForEveryone?: (look: { styleId: string; holdSec: number }) => Promise<boolean>;
+    eventName?: string;
+    creatorAsked?: boolean;
+    onSetForEveryone?: (look: {
+      styleId: string;
+      holdSec: number;
+    }) => Promise<boolean>;
     onClose: () => void;
   }) => {
     hooks.setForEveryone = props.onSetForEveryone;
     return (
-    <div
-      data-testid="reel-view"
-      data-mode={props.mode}
-      data-idle={String(props.idle)}
-      data-owner={String(Boolean(props.isOwner))}
-    >
-      <button type="button" onClick={props.onClose}>
-        Close the view
-      </button>
-    </div>
+      <div
+        data-testid="reel-view"
+        data-mode={props.mode}
+        data-idle={String(props.idle)}
+        data-owner={String(Boolean(props.isOwner))}
+        data-event-name={props.eventName}
+        data-creator-asked={String(Boolean(props.creatorAsked))}
+      >
+        <button type="button" onClick={props.onClose}>
+          Close the view
+        </button>
+      </div>
     );
   },
 }));
@@ -71,14 +79,14 @@ vi.mock("@/components/guest/reel/creator-seam", () => ({
   get REEL_CREATOR() {
     return hooks.creator;
   },
+  preloadReelCreator: () => {},
 }));
 
 const { GalleryLiveProvider } = await import("@/components/guest/gallery-live");
 // The lazy view's module, loaded once up front, so its chunk resolves at once when a test opens it.
 await import("@/components/guest/reel/live-reel-view");
-const { LiveReel, LiveReelTile } = await import(
-  "@/components/guest/reel/live-reel"
-);
+const { LiveReel, LiveReelTile } =
+  await import("@/components/guest/reel/live-reel");
 
 const REEL: GalleryReel = {
   showReel: true,
@@ -135,6 +143,7 @@ async function mount({
       >
         <LiveReel
           eventId="event-1"
+          eventName="Maya & Jay"
           joinUrl="https://partyreel.com/e/qr-token"
           displayAddress="partyreel.com/e/qr-token"
           qrStyle="classic"
@@ -206,21 +215,37 @@ afterEach(() => {
 });
 
 describe("the Highlight reel tile", () => {
+  /** The tile's own box: the heading, the glyph, the line and the watch layer across them. */
+  const theTile = (container: HTMLElement) =>
+    container.querySelector<HTMLElement>("[data-reel-tile]");
+
   it("is there at two reel-eligible items, headed Highlight reel", async () => {
-    await mount();
-    const tile = screen.getByRole("button", {
-      name: "Watch the highlight reel",
-    });
+    const { container } = await mount();
+    // The watch target is a layer across the whole card (a button cannot hold the line's button).
+    expect(
+      screen.getByRole("button", { name: "Watch the highlight reel" }),
+    ).toBeInTheDocument();
+    const tile = theTile(container);
     expect(tile).toHaveTextContent("Highlight reel");
     // No creator yet: no promise of a clip nobody can make.
     expect(tile).not.toHaveTextContent("Make your own clip to share");
-    // No style name, no moment count, no corner badge.
+    // No style name, no moment count, no text chip in the corner (the corner is a glyph).
     expect(tile).not.toHaveTextContent(/Cinematic|moments|The reel/);
+  });
+
+  it("wears the reel's glyph in its corner, a mark with no words (`badge=glyph`)", async () => {
+    const { container } = await mount();
+    const glyph = container.querySelector("[data-reel-glyph]");
+    expect(glyph).not.toBeNull();
+    expect(glyph?.textContent).toBe("");
+    expect(glyph?.querySelector("svg")).not.toBeNull();
   });
 
   it("is absent at one item, and a clip never counts toward the two", async () => {
     await mount({ items: [item(1)] });
-    expect(screen.queryByRole("button", { name: /highlight reel/i })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /highlight reel/i }),
+    ).toBeNull();
   });
 
   it("does not count a clip, a held item or one with nothing to draw", async () => {
@@ -232,7 +257,9 @@ describe("the Highlight reel tile", () => {
         item(4, { type: "video", previewUrl: null }),
       ],
     });
-    expect(screen.queryByRole("button", { name: /highlight reel/i })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /highlight reel/i }),
+    ).toBeNull();
   });
 
   it("is absent with the host's switch off, the lever off, or a door still standing", async () => {
@@ -242,7 +269,9 @@ describe("the Highlight reel tile", () => {
       null,
     ]) {
       const { unmount } = await mount({ reel });
-      expect(screen.queryByRole("button", { name: /highlight reel/i })).toBeNull();
+      expect(
+        screen.queryByRole("button", { name: /highlight reel/i }),
+      ).toBeNull();
       unmount();
     }
   });
@@ -251,13 +280,37 @@ describe("the Highlight reel tile", () => {
     hooks.creator = () => null;
     const { unmount } = await mount();
     expect(
-      screen.getByRole("button", { name: "Watch the highlight reel" }),
-    ).toHaveTextContent("Make your own clip to share");
+      screen.getByRole("button", { name: "Make your own clip to share" }),
+    ).toBeInTheDocument();
     unmount();
     await mount({ reel: { ...REEL, clip: null } });
     expect(
+      screen.queryByRole("button", { name: "Make your own clip to share" }),
+    ).toBeNull();
+  });
+
+  it("its line opens the view with the creator asked for, and a plain tap never asks", async () => {
+    hooks.creator = () => null;
+    await mount();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Make your own clip to share" }),
+    );
+    await settle();
+    const view = screen.getByTestId("reel-view");
+    expect(view).toHaveAttribute("data-creator-asked", "true");
+    expect(view).toHaveAttribute("data-event-name", "Maya & Jay");
+    expect(window.location.search).toBe("?reel");
+    // Closing spends the ask: the next open is the plain reel.
+    fireEvent.click(screen.getByRole("button", { name: "Close the view" }));
+    await settle();
+    fireEvent.click(
       screen.getByRole("button", { name: "Watch the highlight reel" }),
-    ).not.toHaveTextContent("Make your own clip to share");
+    );
+    await settle();
+    expect(screen.getByTestId("reel-view")).toHaveAttribute(
+      "data-creator-asked",
+      "false",
+    );
   });
 
   it("crossfades the reel's own stills: previews only, six slots", async () => {
@@ -271,7 +324,9 @@ describe("the Highlight reel tile", () => {
 
   it("appears the moment the doorbell brings the second photograph", async () => {
     await mount({ items: [item(1)] });
-    expect(screen.queryByRole("button", { name: /highlight reel/i })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /highlight reel/i }),
+    ).toBeNull();
     await pollWith([item(1), item(2)]);
     expect(
       screen.getByRole("button", { name: "Watch the highlight reel" }),
@@ -289,14 +344,20 @@ describe("the view's address", () => {
     });
     expect(window.location.search).toBe("?reel");
     await settle();
-    expect(screen.getByTestId("reel-view")).toHaveAttribute("data-mode", "hand");
+    expect(screen.getByTestId("reel-view")).toHaveAttribute(
+      "data-mode",
+      "hand",
+    );
   });
 
   it("?reel opens it on arrival (deep-linkable)", async () => {
     window.history.replaceState(null, "", "/e/qr-token?reel");
     await mount();
     await settle();
-    expect(screen.getByTestId("reel-view")).toHaveAttribute("data-mode", "hand");
+    expect(screen.getByTestId("reel-view")).toHaveAttribute(
+      "data-mode",
+      "hand",
+    );
   });
 
   it("?reel below the minimum is quietly dropped: no view, no parameter", async () => {
@@ -339,7 +400,10 @@ describe("the welcome comes first", () => {
     expect(window.location.search).toBe("?reel");
     await passWelcome();
     await settle();
-    expect(screen.getByTestId("reel-view")).toHaveAttribute("data-mode", "hand");
+    expect(screen.getByTestId("reel-view")).toHaveAttribute(
+      "data-mode",
+      "hand",
+    );
   });
 
   it("?reel=screen waits the same way (no special case for a wall)", async () => {
@@ -349,7 +413,10 @@ describe("the welcome comes first", () => {
     expect(screen.queryByTestId("reel-view")).toBeNull();
     await passWelcome();
     await settle();
-    expect(screen.getByTestId("reel-view")).toHaveAttribute("data-mode", "screen");
+    expect(screen.getByTestId("reel-view")).toHaveAttribute(
+      "data-mode",
+      "screen",
+    );
   });
 
   it("the screen's idle state waits too, and so does the answer below the minimum", async () => {
@@ -359,7 +426,10 @@ describe("the welcome comes first", () => {
     expect(screen.queryByTestId("reel-view")).toBeNull();
     await idle.passWelcome();
     await settle();
-    expect(screen.getByTestId("reel-view")).toHaveAttribute("data-idle", "true");
+    expect(screen.getByTestId("reel-view")).toHaveAttribute(
+      "data-idle",
+      "true",
+    );
     idle.unmount();
 
     // A phone link below the minimum keeps asking while the door stands (the album may grow
@@ -376,7 +446,10 @@ describe("the welcome comes first", () => {
     window.history.replaceState(null, "", "/e/qr-token?reel");
     await mount({ welcomePending: false });
     await settle();
-    expect(screen.getByTestId("reel-view")).toHaveAttribute("data-mode", "hand");
+    expect(screen.getByTestId("reel-view")).toHaveAttribute(
+      "data-mode",
+      "hand",
+    );
   });
 });
 
@@ -385,14 +458,23 @@ describe("a screen below two, and the owner's view", () => {
     window.history.replaceState(null, "", "/e/qr-token?reel=screen");
     await mount();
     await settle();
-    expect(screen.getByTestId("reel-view")).toHaveAttribute("data-idle", "false");
+    expect(screen.getByTestId("reel-view")).toHaveAttribute(
+      "data-idle",
+      "false",
+    );
     await pollWith([item(1)]);
     await settle();
-    expect(screen.getByTestId("reel-view")).toHaveAttribute("data-idle", "true");
+    expect(screen.getByTestId("reel-view")).toHaveAttribute(
+      "data-idle",
+      "true",
+    );
     expect(window.location.search).toBe("?reel=screen");
     await pollWith([item(1), item(3)]);
     await settle();
-    expect(screen.getByTestId("reel-view")).toHaveAttribute("data-idle", "false");
+    expect(screen.getByTestId("reel-view")).toHaveAttribute(
+      "data-idle",
+      "false",
+    );
   });
 
   it("a phone's view whose album drops under two returns to the plain album", async () => {
@@ -419,7 +501,9 @@ describe("a screen below two, and the owner's view", () => {
     await settle();
     // One playable item: the owner gets the plain album, like anyone else.
     expect(screen.queryByTestId("reel-view")).toBeNull();
-    expect(screen.queryByRole("button", { name: /highlight reel/i })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /highlight reel/i }),
+    ).toBeNull();
   });
 
   it("the owner's Close goes back where they came from, when there is somewhere to go", async () => {
@@ -427,7 +511,10 @@ describe("a screen below two, and the owner's view", () => {
     window.history.pushState(null, "", "/e/qr-token?reel");
     await mount({ isOwner: true });
     await settle();
-    expect(screen.getByTestId("reel-view")).toHaveAttribute("data-owner", "true");
+    expect(screen.getByTestId("reel-view")).toHaveAttribute(
+      "data-owner",
+      "true",
+    );
     const back = vi.spyOn(window.history, "back").mockImplementation(() => {});
     fireEvent.click(screen.getByRole("button", { name: "Close the view" }));
     expect(back).toHaveBeenCalledTimes(1);
