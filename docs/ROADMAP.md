@@ -17,6 +17,11 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Code hygiene: retire vaul; `src/components/ui/drawer.tsx` is drawn only by the Library's gallery demos since the door moved onto the Sheet (from `door-flow`).
+- Guest: `password-gate.tsx`'s Unlock could wear `floatingKeyboardFoot` (with `data-sheet-primary`), the door's one step whose primary does not stick while typing (it fits on an SE today).
+- Code hygiene: stale comments: `report-dialog.tsx` and `upload/intent-sheet.tsx` still call the responsive Sheet unproven under a keyboard; `guest-header.tsx:147` names `<EnterEventPrompt>`.
+- The lab: the `voice-guest` board quotes the door with `data-entry-drawer`, so its welcome frame lost the 55svh presence (`door.css` keys on `data-entry-sheet`).
+- The lab: the door board's keyboard (`KEYBOARD_H` 335 in `sandbox/identity-door/keyboard.tsx`) measured 337pt on the iPhone 17 (iOS 26.5; the email and code keyboards 310) and 227pt on the SE (iOS 17.5; 183); true it with the look's wiring.
 - Billing: a host who pays in both Checkout tabs holds two live subscriptions and the profile follows the last grant's, so cancelling that one drops them to Free while the other bills, and account deletion cancels only the followed one; on a downgrade of the followed subscription, list the customer's other live subscriptions (one Stripe read) and grant from one, and warn the operator when a grant re-points a profile away from a still-set subscription (from `hardening`).
 - Dates render in the runtime's locale (`formatEventDate` in `src/lib/utils.ts`, the claim card's `formatUploadTimestamp`, the profile's joined date), the SSR and hydration drift `formatCount` closed for counts; one pinned date formatter (from `hardening`).
 - The reel: once the drop migration lands (Will's yes) and `node scripts/sweep-reel-files.mjs --apply` has run and a dry run reports zero (it reports 1 stored file today), remove `reelOutputKey` (`src/lib/r2/keys.ts`), the purge cron's append and `account-deletion.ts`'s append (from `reel-teardown`).
@@ -26,7 +31,6 @@ below hold the rest by surface.
 - The reel: `buildReelProps` caps on the mood timeline, so a treatment runs past or short of its length; the lab's builders could share the clip's own-clock fit (`clip-selection.ts`).
 - Housekeeping: the Studio's reveal leftovers, unreferenced now: `globals.css`'s `--tune-rvl-*` and `--tune-rxp-*` block and its `[data-rvl-*]` rules, `src/lib/shared/use-reveal-acts.ts` with its test, and the comments naming `reveal-constants.ts` (`globals.css`, `motion-tuner-config.ts`, `design-system.md`).
 - Guest door: at a password event the winning `identity-door` look shows no photograph before the unlock (`peek` face-down prints, `ticket` the ghost river, `lit` the house five); the look's wiring carries it (from `door-r2`).
-- The lab: the door board's keyboard is drawn at 335pt, never measured; `door-flow`'s simulator walk trues `KEYBOARD_H` in `sandbox/identity-door/keyboard.tsx`.
 - Albums: prune `album_changes` tombstones (one row per item ever, a purged item's included) with a per-event watermark that answers resync below it, as a job with its `/admin` health signal (from `album-pages`).
 - Album: the count row could carry the guest's own share as a quiet phrase that is the filter ("28 photos & videos · 8 yours"), so Yours is in plain sight whichever mark wins (today it is two taps into View); from `mark-r3`.
 - Host: the lightbox's pending Approve branch can never render (`src/components/shared/media-lightbox`); remove it or give it a door (from `reel-host-wiring`).
@@ -198,7 +202,6 @@ The app:
 - Host: help deep links from the app (settings to their articles); the user menu and the 404 are its only `/help` links.
 - Account: the existing-account notice for a magic link (the other half of `existing=tell`): a one-line banner on `/dashboard` when Create account signed an existing address in (`checkExistingAccount`, `(auth)/actions.ts`, is the shared rule).
 - Account: the signup's Pick a password step (`password-sign-in.tsx`) has no strength meter while `/account`'s change form wears `PasswordStrengthMeter`.
-- Account: `EmailSignIn` takes class overrides rather than a Button `size`, so the guest gate's email button (`enter-event-prompt.tsx`) is a default Button forced to h-11; give it a size so it wears `cta`.
 - Routes: `/account`, `/welcome` and `/u/[slug]` carry no `loading.tsx` (the profile awaits an RPC and two presign rounds before it paints).
 - Profile: the event cards presign the cover's original (`queries/social.ts` reads `original_key`: 1920 wide, multi-megabyte, `loading="lazy"`), so a card paints black for seconds where the preview derivative the dashboard's cards read lands at once.
 - Profile: an attended card whose guest added only video draws `EventCard`'s lock fallback (`href: null`); it deserves its own empty face.
