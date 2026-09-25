@@ -40,7 +40,41 @@ describe("buildNotifications", () => {
         (i) => i.kind === "review",
       )?.title,
     ).toBe("1 upload to review");
-    expect(r.badgeCount).toBe(1);
+    // ONE NUMBER (`reel-host`, `review=agree`): the badge counts the uploads, so it
+    // reads the event card's "3 to review" and Review's own 3. Reshaped on purpose
+    // in reel-host-wiring: the badge used to count the review alert as one.
+    expect(r.badgeCount).toBe(3);
+  });
+
+  it("names each event with a queue and opens that event's Review room", () => {
+    const r = buildNotifications(
+      signals({
+        pendingCount: 5,
+        pendingByEvent: [
+          { eventId: "e1", eventName: "Mia & Theo's wedding", pending: 3 },
+          { eventId: "e2", eventName: "Ruby's 30th", pending: 2 },
+          { eventId: "e3", eventName: "Caught up", pending: 0 },
+        ],
+      }),
+    );
+    const rows = r.items.filter((i) => i.kind === "review");
+    expect(rows.map((i) => [i.title, i.body, i.href])).toEqual([
+      ["3 uploads to review", "Mia & Theo's wedding", "/dashboard/e1/review"],
+      ["2 uploads to review", "Ruby's 30th", "/dashboard/e2/review"],
+    ]);
+    // Keys stay unique per event, so two queues are two rows.
+    expect(new Set(rows.map((i) => i.key)).size).toBe(2);
+    expect(r.badgeCount).toBe(5);
+  });
+
+  it("an empty queue list draws no review row, whatever the head count said", () => {
+    // The per-event read is the one the rows and the badge share; a stale head
+    // count must not add a row the rows cannot back.
+    const r = buildNotifications(
+      signals({ pendingCount: 2, pendingByEvent: [] }),
+    );
+    expect(r.items.some((i) => i.kind === "review")).toBe(false);
+    expect(r.badgeCount).toBe(0);
   });
 
   it("over capacity → an alert linking to /pricing, carrying the deadline", () => {
@@ -119,7 +153,7 @@ describe("buildNotifications", () => {
     ).toBe(0);
   });
 
-  it("badge = active alerts + unread announcements", () => {
+  it("badge = uploads waiting + the other active alerts + unread announcements", () => {
     const r = buildNotifications(
       signals({
         pendingCount: 2,
@@ -135,8 +169,8 @@ describe("buildNotifications", () => {
         ],
       }),
     );
-    // over_capacity + review = 2 alerts, + 1 unread announcement = 3
-    expect(r.badgeCount).toBe(3);
+    // over_capacity (1) + the 2 uploads waiting + 1 unread announcement = 4
+    expect(r.badgeCount).toBe(4);
   });
 
   it("recovery alert fires only when the soonest purge is within the nudge window", () => {

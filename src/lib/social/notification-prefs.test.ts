@@ -4,8 +4,15 @@
  * to these constants; the two sources MUST agree or "no row" silently means the
  * wrong consent). Migration parsed as TEXT — the same style as the tiers.ts <->
  * tier_limits() guard and the forensics migration guards.
+ *
+ * ★ A COLUMN A LATER MIGRATION DROPS IS NOT A PREFERENCE. The live reel's drop
+ * (20260924110000) takes the reel-ready email's column with the stored reel, and
+ * the app stopped reading and writing it first, so the parity is the create's
+ * columns less every `drop column` any migration names: reshaped on purpose in
+ * reel-host-wiring (the reel-ready email left the product), the scar being that
+ * a new column still has to appear on both sides.
  */
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -26,6 +33,21 @@ const migration = readFileSync(
   "utf8",
 );
 
+/** Every column any migration drops from notification_prefs. */
+function droppedColumns(): string[] {
+  const dir = join(__dirname, "..", "..", "..", "supabase/migrations");
+  const dropped: string[] = [];
+  for (const file of readdirSync(dir).filter((f) => f.endsWith(".sql"))) {
+    const sql = readFileSync(join(dir, file), "utf8").replace(/--[^\n]*/g, "");
+    for (const m of sql.matchAll(
+      /alter table public\.notification_prefs drop column (?:if exists )?(\w+)/g,
+    )) {
+      dropped.push(m[1]);
+    }
+  }
+  return dropped;
+}
+
 /** The create table public.notification_prefs (...) block. */
 function prefsTableBlock(): string {
   const start = migration.indexOf("create table public.notification_prefs");
@@ -40,7 +62,6 @@ const COLUMN_FOR_FIELD: Record<
   keyof typeof NOTIFICATION_PREF_DEFAULTS,
   string
 > = {
-  notifyReelReady: "notify_reel_ready",
   notifyAlbumShared: "notify_album_shared",
   notifyNewUploadsDigest: "notify_new_uploads_digest",
   notifyNewFollower: "notify_new_follower",
@@ -64,9 +85,10 @@ describe("notification_prefs defaults parity (TS <-> migration SQL)", () => {
   });
 
   it("the table has no extra boolean pref columns the TS side doesn't know", () => {
-    const sqlBooleans = [...block.matchAll(/^\s+(\w+)\s+boolean/gm)].map(
-      (m) => m[1],
-    );
+    const dropped = new Set(droppedColumns());
+    const sqlBooleans = [...block.matchAll(/^\s+(\w+)\s+boolean/gm)]
+      .map((m) => m[1])
+      .filter((column) => !dropped.has(column));
     expect(sqlBooleans.sort()).toEqual(Object.values(COLUMN_FOR_FIELD).sort());
   });
 
@@ -93,14 +115,12 @@ describe("resolveNotificationPrefs", () => {
   it("a row maps 1:1 (snake_case -> camelCase)", () => {
     expect(
       resolveNotificationPrefs({
-        notify_reel_ready: false,
         notify_album_shared: true,
         notify_new_uploads_digest: false,
         notify_new_follower: true,
         marketing_opt_in: true,
       }),
     ).toEqual({
-      notifyReelReady: false,
       notifyAlbumShared: true,
       notifyNewUploadsDigest: false,
       notifyNewFollower: true,

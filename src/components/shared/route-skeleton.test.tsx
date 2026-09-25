@@ -78,16 +78,16 @@ describe("RouteSkeleton", () => {
     }
   });
 
-  it("is what all three loading.tsx files delegate to, on their own shape", () => {
+  it("is what both loading.tsx files delegate to, on their own shape", () => {
+    // The Studio's route became a redirect (`reel-host`, `home=view`) and lost
+    // its loading.tsx with it: a skeleton of a room that never renders would
+    // flash on the way to the view. The studio shape stays drawn in the
+    // Library until the Studio's own files leave.
     const cases: { rel: string; variant: string }[] = [
       { rel: "src/app/(app)/dashboard/loading.tsx", variant: "pulse" },
       {
         rel: "src/app/(app)/dashboard/[eventId]/loading.tsx",
         variant: "hub",
-      },
-      {
-        rel: "src/app/(app)/dashboard/[eventId]/reel/loading.tsx",
-        variant: "studio",
       },
     ];
     for (const { rel, variant } of cases) {
@@ -95,10 +95,9 @@ describe("RouteSkeleton", () => {
       expect(src, `${rel} stopped importing RouteSkeleton`).toMatch(
         /import \{ RouteSkeleton \} from "@\/components\/shared\/route-skeleton"/,
       );
-      expect(
-        src,
-        `${rel} stopped rendering the "${variant}" shape`,
-      ).toMatch(new RegExp(`variant="${variant}"`));
+      expect(src, `${rel} stopped rendering the "${variant}" shape`).toMatch(
+        new RegExp(`variant="${variant}"`),
+      );
     }
   });
 });

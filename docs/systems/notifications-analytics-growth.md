@@ -18,6 +18,11 @@ the pure `buildNotifications` turns them into the badge and the panel.
 - **Alerts are state:** they stay in the badge until their condition resolves, and viewing never dismisses one. The
   soonest `purge_at` within 7 days is bell-only, never emailed. Pass expiry reuses `RENEWAL_NUDGE_DAYS`, the single
   source the cron's nudge reads.
+- ★ **A waiting queue reads one number everywhere** (the badge, the event card's "N to review", Review's own header):
+  pending media outside the bin on the host's live events. The badge counts each waiting upload, and each event with a
+  queue is its own row, naming the event and opening its Review room; the breakdown is read (`listEvents` plus
+  `event_card_stats`) only when the head count finds a queue, and a failed breakdown falls back to one row rather than
+  taking a host page down.
 - **Announcements are operator broadcasts with per-host read state:** unread until the host opens the panel, which
   advances `profiles.announcements_seen_at`, one of the two columns a host may write. `announcements` has a SELECT
   policy for `authenticated` and no write policy, so a host insert is refused (a 42501 contract check proves it); the

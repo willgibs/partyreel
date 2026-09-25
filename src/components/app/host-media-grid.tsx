@@ -9,11 +9,10 @@ import {
   useState,
   useTransition,
 } from "react";
-import { Check, Download, Eye, EyeOff } from "lucide-react";
+import { Download, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 import {
-  approveAllPendingAction,
   removeMediaAction,
   removeMediaBulkAction,
   setMediaStatusAction,
@@ -25,9 +24,7 @@ import { useHostSelection } from "@/components/app/host-selection-provider";
 import { type GridMedia } from "@/components/app/media-grid";
 import { useLikeAction } from "@/components/likes/like-button";
 import { useLikes } from "@/components/likes/likes-provider";
-import { useReel } from "@/components/reel/reel-provider";
 import { MasonryColumns, type TileAction } from "@/components/shared/masonry";
-import { Button } from "@/components/ui/button";
 import { ARRIVAL_GLOW_MS } from "@/lib/shared/arrival";
 import { readCssMs } from "@/lib/shared/read-css-ms";
 
@@ -47,13 +44,12 @@ import { readCssMs } from "@/lib/shared/read-css-ms";
 //   state did not lose its marker: a hidden tile still dims to 30% at every width, which
 //   is the unmistakable signal, and Show is one tap away in the viewer.
 //
-//   ★ What is deliberately NOT here, and must not come back: ADD-TO-REEL and DELETE. A
-//   hover-revealed fan of five on a dense masonry grid is a misclick trap, and those two
-//   are the most consequential. They kept their homes: delete lives in the lightbox and
-//   gallery bulk-Select (hide already covers the urgent "get this off the album now" case,
-//   reversibly); add-to-reel lives in the lightbox, bulk-Select and the Studio's Moments
-//   picker. No per-tile Approve either: pending media lives in the review takeover above
-//   the feed, never in this album grid (the bulk Approve is ApproveAllPendingButton).
+//   ★ What is deliberately NOT here, and must not come back: DELETE. A hover-revealed fan
+//   on a dense masonry grid is a misclick trap, and delete is the consequential one; it
+//   lives in the lightbox and gallery bulk-Select (hide already covers the urgent "get this
+//   off the album now" case, reversibly). There is no add-to-reel anywhere any more: the
+//   live reel plays every approved photo by itself. No per-tile Approve either: pending
+//   media lives in the Review room, never in this album grid.
 // Moderation is OPTIMISTIC (instant tile + lightbox via useOptimistic; the action runs in
 // the background and reverts + toasts on failure) — no revalidation lag.
 
@@ -221,17 +217,14 @@ export function HostMediaGrid({
   items,
   shareUrl,
   selectable = false,
-  layout = "masonry",
 }: {
   eventId: string;
   items: GridMedia[];
   // The event JOIN url, for the lightbox Share — never a presigned media URL.
   shareUrl?: string;
-  // The GALLERY album opts into bulk-select (long-press + the floating bulk bar); the Reel grid
-  // does NOT (default false), so only one grid ever registers handlers / responds to select mode.
+  // The hub's album opts into bulk-select (long-press + the header's bulk bar); a grid shown
+  // anywhere else leaves it off (default false), so only one grid ever registers handlers.
   selectable?: boolean;
-  // The Gallery keeps the natural-ratio masonry; the Reel passes "uniform" (a fixed-aspect grid).
-  layout?: "masonry" | "uniform";
 }) {
   // ONE optimistic source over the server items, shared by the tiles AND the lightbox
   // (both render from optimisticItems), so a hide/approve/remove updates instantly with no
@@ -246,7 +239,6 @@ export function HostMediaGrid({
   const [exiting, setExiting] = useState<Set<string>>(new Set());
 
   const selection = useHostSelection();
-  const reel = useReel();
   const likes = useLikes();
   const likeAction = useLikeAction();
   const { startDownload } = useExportDownload();
@@ -330,26 +322,12 @@ export function HostMediaGrid({
     });
   };
 
-  // The five bulk handlers (closures over the freshest items + providers). Add-to-reel pre-filters to
-  // the optimistic-approved subset so the count is honest (the RPC refuses non-approved anyway); reel +
-  // like fire ONE summary toast each (the providers' bulk methods stay silent).
+  // The five bulk handlers (closures over the freshest items + providers). Like fires ONE summary
+  // toast (the provider's bulk method stays silent).
   const handlers = {
     hide: (ids: string[]) => setStatusBulk(ids, "hidden"),
     show: (ids: string[]) => setStatusBulk(ids, "approved"),
     delete: (ids: string[]) => removeBulk(ids),
-    reel: async (ids: string[]) => {
-      if (!reel) return;
-      const approved = ids.filter(
-        (id) => optimisticItems.find((m) => m.id === id)?.status === "approved",
-      );
-      if (approved.length === 0) {
-        toast.info("Only approved photos can be added to a reel.");
-        return;
-      }
-      const added = await reel.addMany(approved);
-      if (added > 0) toast.success(`Added ${added} to your reel`);
-      else toast.info("Already in your reel");
-    },
     like: async (ids: string[]) => {
       if (!likes) return;
       const added = await likes.likeMany(ids);
@@ -380,7 +358,6 @@ export function HostMediaGrid({
       hide: (ids: string[]) => handlersRef.current.hide(ids),
       show: (ids: string[]) => handlersRef.current.show(ids),
       delete: (ids: string[]) => handlersRef.current.delete(ids),
-      reel: (ids: string[]) => handlersRef.current.reel(ids),
       like: (ids: string[]) => handlersRef.current.like(ids),
       download: (ids: string[]) => handlersRef.current.download(ids),
     }),
@@ -453,7 +430,6 @@ export function HostMediaGrid({
       items={optimisticItems}
       viewerIsHost
       clampAspect
-      layout={layout}
       shareUrl={shareUrl}
       onSetStatus={setStatus}
       onRemove={remove}
@@ -468,36 +444,5 @@ export function HostMediaGrid({
       // the light without the album dealing itself out like a hand of cards.
       arrivedIds={arrivedIds}
     />
-  );
-}
-
-export function ApproveAllPendingButton({
-  eventId,
-  count,
-}: {
-  eventId: string;
-  count: number;
-}) {
-  const [isPending, startTransition] = useTransition();
-
-  function onApproveAll() {
-    startTransition(async () => {
-      const result = await approveAllPendingAction(eventId);
-      if (result.ok) {
-        toast.success(
-          count === 1 ? "Approved 1 item." : `Approved ${count} items.`,
-        );
-        return;
-      }
-      toast.error("Couldn't approve the pending items.", {
-        description: result.message,
-      });
-    });
-  }
-
-  return (
-    <Button type="button" size="sm" disabled={isPending} onClick={onApproveAll}>
-      <Check /> Approve all
-    </Button>
   );
 }

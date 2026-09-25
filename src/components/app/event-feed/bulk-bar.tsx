@@ -53,15 +53,9 @@ import { cn } from "@/lib/utils";
  * hydration pass itself — so it cannot repeat that regression.
  */
 
-export type BulkBarActionColor =
-  | "reel"
-  | "like"
-  | "warning"
-  | "save"
-  | "destructive";
+export type BulkBarActionColor = "like" | "warning" | "save" | "destructive";
 
 const COLOR_CLASS: Record<BulkBarActionColor, string> = {
-  reel: "text-reel",
   like: "text-like",
   warning: "text-warning",
   save: "text-save",
@@ -272,7 +266,7 @@ export function BulkBar({
       >
         {allSelected ? "Clear" : "All"}
       </Button>
-      <span className="px-0.5 text-xs tabular-nums text-muted-foreground">
+      <span className="px-0.5 text-xs text-muted-foreground tabular-nums">
         {formatCount(count)}
       </span>
       {actions.map((action, i) => (

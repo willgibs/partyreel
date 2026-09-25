@@ -14,7 +14,7 @@ import {
  * Three things are contract here and none of them is wording:
  *
  *   1. THE PRECEDENCE. Will's order is a queue waiting, then uploads paused,
- *      then a live event with no reel, then an event dated tomorrow. An event
+ *      then a reel one photo short, then an event dated tomorrow. An event
  *      that matches several offers only the FIRST, because a host with four
  *      events and four steps each is back at the inbox this page replaced.
  *   2. ONE STEP PER EVENT, AND THE STORAGE STEP LAST. The shelf is not a party
@@ -27,13 +27,14 @@ import {
  * every future wording ruling a red build (design law: never pin copy).
  */
 
+// A settled event: open, caught up, its reel live.
 const base: NextStepEvent = {
   id: "e1",
   name: "Rooftop Summer Party",
   pending: 0,
-  items: 40,
   acceptingUploads: true,
-  hasReel: true,
+  showReel: true,
+  reelItems: 2,
   eventDate: null,
 };
 
@@ -50,7 +51,7 @@ describe("the next best step, per event", () => {
         ...base,
         pending: 7,
         acceptingUploads: false,
-        hasReel: false,
+        reelItems: 1,
         eventDate: "2026-09-21",
       },
       TODAY,
@@ -60,21 +61,34 @@ describe("the next best step, per event", () => {
 
   it("falls to paused uploads once the queue is clear", () => {
     const step = nextStepForEvent(
-      { ...base, acceptingUploads: false, hasReel: false },
+      { ...base, acceptingUploads: false, reelItems: 1 },
       TODAY,
     );
     expect(step?.kind).toBe("paused");
   });
 
-  it("offers the reel only for a live album that has something to cut", () => {
+  it("says the reel is one photo short, and only then", () => {
+    // Reshaped with the live reel (reel-host-wiring, `pulse=band`): the stored
+    // reel's "Make the reel" is gone, since the live reel makes itself from the
+    // second photo. The step is the photo that starts it.
+    expect(nextStepForEvent({ ...base, reelItems: 1 }, TODAY)?.kind).toBe(
+      "reel",
+    );
+    // At two it plays, and the step leaves.
+    expect(nextStepForEvent({ ...base, reelItems: 2 }, TODAY)).toBeNull();
+    // At none the event's own launch list speaks, and the band stays quiet.
+    expect(nextStepForEvent({ ...base, reelItems: 0 }, TODAY)).toBeNull();
+  });
+
+  it("never waits on a reel the host turned off", () => {
     expect(
-      nextStepForEvent({ ...base, hasReel: false }, TODAY)?.kind,
-    ).toBe("reel");
-    // An album with no photographs in it cannot be cut into a reel, and a step
-    // the host cannot take is worse than no step at all.
-    expect(
-      nextStepForEvent({ ...base, hasReel: false, items: 0 }, TODAY),
+      nextStepForEvent({ ...base, showReel: false, reelItems: 1 }, TODAY),
     ).toBeNull();
+  });
+
+  it("names the event, since a host has several", () => {
+    const step = nextStepForEvent({ ...base, reelItems: 1 }, TODAY);
+    expect(step?.label).toContain(base.name);
   });
 
   it("offers the code the day before, and not on the day or after", () => {
@@ -93,20 +107,25 @@ describe("the next best step, per event", () => {
     expect(step?.kind).toBe("print");
   });
 
-  it("links the reel step at the reel, not at the event", () => {
-    const step = nextStepForEvent({ ...base, hasReel: false }, TODAY);
-    expect(step?.href).toBe("/dashboard/e1/reel");
+  it("links the reel step at the event's page, where the Reel card and Add photos sit", () => {
+    // The Studio's route is a redirect now; the step lands where the photo is added.
+    const step = nextStepForEvent({ ...base, reelItems: 1 }, TODAY);
+    expect(step?.href).toBe("/dashboard/e1");
   });
 });
 
 describe("the band as a whole", () => {
   const two: NextStepEvent[] = [
     { ...base, id: "a", name: "A", pending: 3 },
-    { ...base, id: "b", name: "B", hasReel: false },
+    { ...base, id: "b", name: "B", reelItems: 1 },
   ];
 
   it("gives each event exactly one step, in the order it was handed them", () => {
-    const steps = resolveNextSteps({ events: two, storagePct: 10, today: TODAY });
+    const steps = resolveNextSteps({
+      events: two,
+      storagePct: 10,
+      today: TODAY,
+    });
     expect(steps.map((s) => s.eventId)).toEqual(["a", "b"]);
   });
 

@@ -28,6 +28,7 @@ export function EventSheets({
   prettyUrl,
   siteUrl,
   slugLocked,
+  reelSample,
 }: {
   event: HostEvent;
   tier: Tier;
@@ -41,6 +42,8 @@ export function EventSheets({
   prettyUrl: string;
   siteUrl: string;
   slugLocked: boolean;
+  /** One of the event's photographs for Settings to show the reel's looks on, or null. */
+  reelSample: string | null;
 }) {
   const { sheet, closeSheet, openSheet } = useEventShare();
 
@@ -70,6 +73,7 @@ export function EventSheets({
         tier={tier}
         pendingCount={pendingCount}
         social={social}
+        reelSample={reelSample}
       />
     </>
   );

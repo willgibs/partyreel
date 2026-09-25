@@ -128,14 +128,17 @@ async function getProfileCards(
 ): Promise<Map<string, SocialProfileCard>> {
   if (ids.length === 0) return new Map();
   const admin = createAdminClient();
-  const rows = await inChunks("social: profile cards", ids, async (chunk) =>
-    (await mustQuery(
-      admin
-        .from("profiles")
-        .select("id, display_name, slug, avatar_updated_at")
-        .in("id", chunk),
-      "social: profile cards",
-    )) ?? [],
+  const rows = await inChunks(
+    "social: profile cards",
+    ids,
+    async (chunk) =>
+      (await mustQuery(
+        admin
+          .from("profiles")
+          .select("id, display_name, slug, avatar_updated_at")
+          .in("id", chunk),
+        "social: profile cards",
+      )) ?? [],
   );
   return new Map(
     rows.map((p) => [
@@ -291,7 +294,7 @@ export async function getNotificationPrefs(): Promise<NotificationPrefs> {
   const { data, error } = await supabase
     .from("notification_prefs")
     .select(
-      "notify_reel_ready, notify_album_shared, notify_new_uploads_digest, notify_new_follower, marketing_opt_in",
+      "notify_album_shared, notify_new_uploads_digest, notify_new_follower, marketing_opt_in",
     )
     .eq("user_id", user.id)
     .maybeSingle();
@@ -704,16 +707,19 @@ export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
 
     // At most 150 ids a request (`inChunks`), newest event first once the chunks are joined.
     const [events, shownIds] = await Promise.all([
-      inChunks("social: attended events", eventIds, async (chunk) =>
-        (await mustQuery(
-          admin
-            .from("events")
-            .select("id, name, event_date, host_id, created_at")
-            .in("id", chunk)
-            .neq("host_id", user.id)
-            .is("deleted_at", null),
-          "social: attended events",
-        )) ?? [],
+      inChunks(
+        "social: attended events",
+        eventIds,
+        async (chunk) =>
+          (await mustQuery(
+            admin
+              .from("events")
+              .select("id, name, event_date, host_id, created_at")
+              .in("id", chunk)
+              .neq("host_id", user.id)
+              .is("deleted_at", null),
+            "social: attended events",
+          )) ?? [],
       ),
       getMyShownEventIds(),
     ]);

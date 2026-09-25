@@ -1,14 +1,14 @@
 /**
- * THE PULSE'S OWN READS: the photographs that just arrived, the newest few per
- * event for the row view, and which events already have a reel.
+ * THE PULSE'S OWN READS: the photographs that just arrived and the newest few per
+ * event for the row view. (Whether each event's live reel plays yet is an event
+ * fact, `getReelProgress` in `events.ts`, which the old reel route reads too.)
  *
  * ★ ITS OWN FILE RATHER THAN MORE EXPORTS ON `events.ts`: these reads are the
  * home's alone, while `events.ts` holds the event rows every host page reads, so
  * the home can change shape without touching them.
  *
- * Everything here is RLS-scoped: `media_host_all`, `events_host_all` and
- * `highlight_reels_host_all` already limit these tables to the signed-in host's
- * own events, and we re-validate the user with `getRequestAuth()` (the
+ * Everything here is RLS-scoped: `media_host_all` and `events_host_all` already
+ * limit these tables to the signed-in host's own events, and we re-validate the user with `getRequestAuth()` (the
  * request-cached `getUser()`) before reading, because the proxy is not a
  * security boundary. Each read ALSO names the host through `events!inner`
  * (the 1,000-row round, 2026-09-23): a parent filter, where the old reads put
@@ -35,7 +35,7 @@ import {
   pickArrivalWindow,
 } from "@/lib/dashboard/arrivals";
 import { mustCount, mustQuery } from "@/lib/db/must-query";
-import { inChunks, readAllPages } from "@/lib/db/read-all";
+import { inChunks } from "@/lib/db/read-all";
 import { presignDownload } from "@/lib/r2/presign";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
 
@@ -132,22 +132,25 @@ export const getPulse = cache(async function getPulse(
     // limit per event, so the answer is as long as the chunk however big the albums are. The
     // filter is ONE logic tree on the embed (`media.or=`), which filters the embedded rows, never
     // the events: an event with nothing approved comes back with an empty strip.
-    inChunks("dashboard: newest per event", eventIds, async (chunk) =>
-      (await mustQuery(
-        supabase
-          .from("events")
-          .select(
-            "id, media!media_event_id_fkey(id, event_id, type, created_at, preview_key, original_key)",
-          )
-          .in("id", chunk)
-          .or("and(status.eq.approved,removed_at.is.null)", {
-            referencedTable: "media",
-          })
-          .order("created_at", { referencedTable: "media", ascending: false })
-          .order("id", { referencedTable: "media", ascending: false })
-          .limit(NEWEST_PER_EVENT, { referencedTable: "media" }),
-        "dashboard: newest per event",
-      )) ?? [],
+    inChunks(
+      "dashboard: newest per event",
+      eventIds,
+      async (chunk) =>
+        (await mustQuery(
+          supabase
+            .from("events")
+            .select(
+              "id, media!media_event_id_fkey(id, event_id, type, created_at, preview_key, original_key)",
+            )
+            .in("id", chunk)
+            .or("and(status.eq.approved,removed_at.is.null)", {
+              referencedTable: "media",
+            })
+            .order("created_at", { referencedTable: "media", ascending: false })
+            .order("id", { referencedTable: "media", ascending: false })
+            .limit(NEWEST_PER_EVENT, { referencedTable: "media" }),
+          "dashboard: newest per event",
+        )) ?? [],
     ),
   ]);
   const arrivalRows = arrivalRead ?? [];
@@ -205,43 +208,4 @@ export const getPulse = cache(async function getPulse(
       [...newestRows].map(([id, rs]) => [id, take(rs)] as const),
     ),
   };
-});
-
-/**
- * Which of these events already have a reel, for the next-best-step rule's
- * "a live event with no reel". A row's existence is the whole answer, so this
- * selects the event id and never the config: every reel of the host's live
- * events (one per event, `highlight_reels_one_per_event`), read whole on
- * `event_id` and narrowed to the asked-for events. `highlight_reels_host_all`
- * scopes it to the host's own events and `events!inner` names them, so no id
- * list rides the URL.
- */
-export const getEventsWithReels = cache(async function getEventsWithReels(
-  eventIds: string[],
-): Promise<Set<string>> {
-  if (eventIds.length === 0) return new Set();
-
-  const { supabase, user } = await getRequestAuth();
-  if (!user) return new Set();
-
-  const { rows } = await readAllPages(
-    "dashboard: events with a reel",
-    (after: string | null, limit) => {
-      let q = supabase
-        .from("highlight_reels")
-        .select(
-          "event_id, events!highlight_reels_event_id_fkey!inner(host_id, deleted_at)",
-        )
-        .eq("events.host_id", user.id)
-        .is("events.deleted_at", null)
-        .order("event_id")
-        .limit(limit);
-      if (after) q = q.gt("event_id", after);
-      return q;
-    },
-    (row) => row.event_id,
-  );
-
-  const wanted = new Set(eventIds);
-  return new Set(rows.map((r) => r.event_id).filter((id) => wanted.has(id)));
 });

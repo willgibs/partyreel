@@ -4,7 +4,10 @@ import { notFound, redirect } from "next/navigation";
 import { Eye, Images, Users } from "lucide-react";
 
 import { EventCardsRow } from "@/components/app/event-feed/event-cards-row";
-import { EventGallery, EventLive } from "@/components/app/event-feed/event-gallery";
+import {
+  EventGallery,
+  EventLive,
+} from "@/components/app/event-feed/event-gallery";
 import {
   LaunchList,
   launchItems,
@@ -34,7 +37,6 @@ import { getUploaderIdentities } from "@/lib/db/queries/guest-events-admin";
 import { getEventLikeCounts } from "@/lib/db/queries/likes";
 import { countEventMedia, listEventMedia } from "@/lib/db/queries/media";
 import { getProfile } from "@/lib/db/queries/profile";
-import { countReelItems, getReelConfig } from "@/lib/db/queries/reel";
 import {
   getEventGuests,
   getEventSocialSettings,
@@ -43,9 +45,13 @@ import {
 import { guestCount } from "@/lib/events/event-guests";
 import { formatCount } from "@/lib/format/count";
 import { toHostGalleryItems } from "@/lib/event/gallery-items";
+import { hubReel, REEL_MINIMUM } from "@/lib/event/reel-progress";
 import { legacySectionRoom, resolveEventSheet } from "@/lib/event/sections";
 import { preferredEventUrl } from "@/lib/events/share-urls";
-import { resolveTileSize, TILE_SIZE_COOKIE } from "@/lib/shared/tile-size-cookie";
+import {
+  resolveTileSize,
+  TILE_SIZE_COOKIE,
+} from "@/lib/shared/tile-size-cookie";
 import { getSiteUrl } from "@/lib/site-url";
 import { formatEventDate } from "@/lib/utils";
 import { VISIBILITY_LABELS } from "@/lib/events/visibility-labels";
@@ -131,18 +137,17 @@ export default async function EventDetailPage({
 
   // ★ THE ALBUM IS READ WHOLE AND ITS NUMBERS ARE COUNTED (the 1,000-row round):
   // `listEventMedia` pages to the album's last photograph, and every number on
-  // this page is a head count (`countEventMedia`, `countReelItems`), never the
-  // length of a list. The page reads the `album` slice alone (approved +
-  // hidden): pending lives in the Review room, which reads its own queue, and
-  // 'removed' lives in the bin, the album's Deleted filter.
+  // this page is a head count (`countEventMedia`), never the length of a list.
+  // The page reads the `album` slice alone (approved + hidden): pending lives in
+  // the Review room, which reads its own queue, and 'removed' lives in the bin,
+  // the album's Deleted filter. (The Reel card's pips are a threshold, not a
+  // number: `hubReel` reads them off this whole album with its stills.)
   const [
     visibleMedia,
     counts,
     linkStats,
     uploaderIdentities,
     likeCounts,
-    reelClipCount,
-    reelConfig,
     guests,
     socialSettings,
     myProfileSlug,
@@ -153,8 +158,6 @@ export default async function EventDetailPage({
     getLinkStats(event.id),
     getUploaderIdentities(event.id),
     getEventLikeCounts(event.id),
-    countReelItems(event.id),
-    getReelConfig(event.id),
     getEventGuests(event.id),
     getEventSocialSettings(event.id),
     getMyProfileSlug(),
@@ -214,14 +217,6 @@ export default async function EventDetailPage({
       count: isModerationOn && pendingCount > 0 ? pendingCount : undefined,
     },
     {
-      id: "reel" as const,
-      // The card reads "Create reel" until one exists; the room holds the
-      // builder before birth and the studio after it.
-      value: reelConfig
-        ? `${formatCount(reelClipCount)} ${reelClipCount === 1 ? "clip" : "clips"}`
-        : "Create reel",
-    },
-    {
       id: "guests" as const,
       // The room behind this card lists the guests only while the host's list
       // is on, so the card says the count when it can be opened onto, and the
@@ -236,12 +231,29 @@ export default async function EventDetailPage({
     },
   ];
 
+  // THE HIGHLIGHT REEL'S CARD (`reel-host`, `progress=card`): it counts to two
+  // off the album this page already holds, then opens the view the guests
+  // watch. The owner passes every gate at `/e/<token>?reel`.
+  const reelFace = hubReel({
+    eventId: event.id,
+    showReel: event.show_reel,
+    items: visibleItems,
+  });
+  const reel = {
+    ...reelFace,
+    of: REEL_MINIMUM,
+    viewHref: `/e/${event.qr_token}?reel`,
+    moderated: isModerationOn,
+    pending: pendingCount,
+  };
+
   return (
-    // ★ THE ONE WIDE PAGE IN THE HOST APP (Will's `host=same`, 2026-09-19): the
-    // host's album runs to the window's edges. `data-app-wide` is how a page
-    // asks the shell to drop its 1280 cap (app-shell.tsx), so the logo, the
+    // ★ A WIDE PAGE (Will's `host=same`, 2026-09-19): the host's album runs to
+    // the window's edges. `data-app-wide` is how a page asks the shell to drop
+    // its 1280 cap and take the album's gutter (app-shell.tsx), so the logo, the
     // code, the cards row and the album's first column all start on ONE left
-    // line. The words keep the app's measure, pinned left.
+    // line. The loading skeleton asks the same way, or the page would paint at
+    // 1280 and then jump.
     <div data-route-fade data-app-wide className="space-y-6">
       {/* app-pricing-wiring's one block on this page (`back=finish`, Will
           2026-09-20): Checkout returns a buyer to the very control that refused
@@ -252,7 +264,10 @@ export default async function EventDetailPage({
         <WelcomeToPro
           applied={tier !== "free"}
           planName={TIER_NAMES[tier]}
-          capBytes={effectiveStorageCap(tier, profile?.storage_cap_bytes ?? null)}
+          capBytes={effectiveStorageCap(
+            tier,
+            profile?.storage_cap_bytes ?? null,
+          )}
           nextUrl={`/dashboard/${event.id}${room ? `?room=${room}` : ""}`}
           door={{ label: "Back to what you were doing" }}
         />
@@ -267,8 +282,10 @@ export default async function EventDetailPage({
       <EventShareProvider initialSheet={resolveEventSheet(room)}>
         {/* THE HEADER AS ONE OBJECT: the code's height IS the title + metadata
             + link stack, so the two columns read as a single block rather than
-            a badge pinned beside a heading. */}
-        <div className="flex max-w-7xl items-center gap-4 sm:gap-5">
+            a badge pinned beside a heading. It runs as wide as the page (his
+            `album-columns` width note): a long name truncates at the window,
+            not at a 1280 column the album beneath it ignores. */}
+        <div className="flex items-center gap-4 sm:gap-5">
           <EventCodeDoor
             eventName={event.name}
             joinUrl={eventLink}
@@ -316,7 +333,7 @@ export default async function EventDetailPage({
 
         <HostAddProvider>
           <HostSelectionProvider>
-            <EventCardsRow eventId={event.id} cards={cards} />
+            <EventCardsRow eventId={event.id} cards={cards} reel={reel} />
             <EventGallery
               eventId={event.id}
               albumCount={itemCount}
@@ -358,6 +375,15 @@ export default async function EventDetailPage({
           prettyUrl={prettyUrl}
           siteUrl={siteUrl}
           slugLocked={isSettingLocked("custom_slug", tier)}
+          // Settings shows the reel's looks on one of this album's own
+          // photographs: the reel's opening still, else the newest photo.
+          reelSample={
+            reelFace.stills[0] ??
+            visibleItems.find(
+              (m) => m.status === "approved" && m.type === "photo",
+            )?.previewUrl ??
+            null
+          }
         />
       </EventShareProvider>
     </div>

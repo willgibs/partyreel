@@ -327,19 +327,10 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     section: "Moderation gallery",
     title: "HostMediaGrid",
     lede: "The host's moderation grid on the shared masonry (S3·3a): status-aware approve / hide / unhide / remove plus the host like-count, each control riding any tile ratio. Visual only here, since the actions point at a sample id.",
-    // The grid's other axis, `selectable`, is left undeclared: bulk select needs
+    // The grid's one axis, `selectable`, is left undeclared: bulk select needs
     // HostSelectionProvider (useHostSelection returns null without it), so an
     // option row here would advertise a mode the lab cannot actually enter. It
     // belongs with the deferred provider-bound set at the top of this file.
-    variants: [
-      {
-        prop: "layout",
-        source: "prop",
-        fallback: "masonry",
-        options: ["masonry", "uniform"],
-        note: "The gallery keeps the natural-ratio masonry; the reel grid asks for uniform, a fixed-aspect grid. No sample row: either option is a whole grid, and the specimen below is the shipped one.",
-      },
-    ],
     specimens: [
       {
         label: "Moderation grid",

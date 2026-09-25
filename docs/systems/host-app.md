@@ -8,7 +8,8 @@ Open this before you:
 - change the first-time welcome;
 - change the event page: its header, cards row, sheets, launch list, album or live refresh;
 - change host moderation, a tile verb or bulk select;
-- change the reel's curation, the Studio or the .mp4 export.
+- change the host's side of the highlight reel (the Reel card, the band's reel step, Settings' Highlight reel section),
+  or the stored reel's leftovers.
 
 The upload pipeline is [uploads-and-r2.md](uploads-and-r2.md)'s, the guest side [guest-flow.md](guest-flow.md)'s,
 caps and billing [billing-caps.md](billing-caps.md)'s, and operator moderation
@@ -19,14 +20,21 @@ caps and billing [billing-caps.md](billing-caps.md)'s, and operator moderation
 `/dashboard` is a pulse, not an inbox, in four bands: what needs you, the storage line, your events, just arrived. It
 has no filter chips and no personal feeds (those are the profile's owner mode, [profiles-social.md](profiles-social.md)).
 
-- **What needs you** is one next best step per event from a pure rule, first match wins (`lib/dashboard/next-step.ts`),
-  then the account's storage step. ★ It never renders as a void: a band wired to the review queue would be blank for
-  every up-to-date host, so an empty result renders "Nothing needs you". Past three steps it folds behind a "+N more"
-  chip, and a host with no events sees no band at all.
+- **What needs you** is one next best step per event from a pure rule, first match wins (`lib/dashboard/next-step.ts`:
+  a queue, paused uploads, a reel one photo short, an event dated tomorrow), then the account's storage step. ★ It
+  never renders as a void: a band wired to the review queue would be blank for every up-to-date host, so an empty
+  result renders "Nothing needs you". Past three steps it folds behind a "+N more" chip, and a host with no events sees
+  no band at all. ★ The reel step appears only at exactly one playable item with the switch on and leaves at two
+  (`getReelProgress`, the guest's `isReelEligible` spelled in SQL); at none the event's launch list speaks, and a step
+  there would push "Print the code" out the evening before.
 - **The storage line is unconditional** (a host with no events still has a plan); the over-cap grace banner is its own
   red alert, never inside the meter.
-- **Your events** counts through `event_card_stats` and covers through `event_covers` (one jsonb each for any number of
-  events); "X of N used" is `countActiveEvents()`, a head count.
+- **Your events** counts through `event_card_stats`, and each hosted card's cover and stills come from
+  `getEventCardStills` (`event_covers` and `event_stills` in one pass: the cover first, no photograph twice, four at
+  most); "X of N used" is `countActiveEvents()`, a head count. ★ The cards take turns (`dashboard/cover-cycle.tsx`):
+  every 3.5 s exactly one card dissolves to its next still, in reading order, wrapping; a card with one still or off
+  screen sits out, and nothing moves in a hidden tab or under reduced motion. The grid's columns live once
+  (`event-card-grid.ts`), shared with the loading skeleton.
 - **Just arrived** is the newest approved uploads in a window that widens until it holds twelve (`arrivals.ts`); its
   number is a head count, never a read's length. ★ These are the one host tiles that keep the `[data-media-tile]`
   arrival fade (no `data-static`): they literally just arrived. Their reads live in `db/queries/pulse.ts`, apart from
@@ -151,23 +159,25 @@ drift is linear and motion-gated, a breath rather than feedback, so the 300ms ce
 ## The event page
 
 `/dashboard/[eventId]` is a hub: a live code beside the title, a row of cards into the event's rooms, and the album
-beneath, newest first. (`event-filter-pills.tsx` has no importer.)
+beneath, newest first.
 
-- ★ **It is the ONE wide page in the host app**: it marks its root `data-app-wide` and `AppShell` answers in `:has()`
-  (a page cannot hand a prop up to its layout), dropping the 1280 cap so the logo, the code, the cards and the album
-  share one left line.
+- ★ **The hub and the dashboard home are the wide pages**: each marks its root `data-app-wide` and `AppShell` answers in
+  `:has()` (a page cannot hand a prop up to its layout), dropping the 1280 cap and taking the album's gutter (12px, 20px
+  from `sm`), so the logo, the code, the cards and the album share one left line. Their skeletons mark it too, or the
+  page paints at 1280 and jumps; the cards row's sticky band bleeds by exactly that gutter.
 - **The header is one object**: a scannable `StyledQr` in a button BESIDE the h1, never inside it (an h1 holding a
   control stops being the page's accessible name). ★ It carries no status chips: a paused event dims the code, and
   visibility rides the Settings card. The link row shows the readable URL and copies the permanent one, confirmed in
   place, never by a toast.
-- **The cards row** (Review, Reel, Guests, Settings last) is a group of links, never tabs, since nothing switches a
-  panel in place. ★ The Guests card and the header read THE ONE COUNT (`getEventGuests`, the album header's own
-  function), so the hub, the Guests room and the album say one number. The row is sticky and condenses in place, because
-  a remount would drop the QR pill's `view-transition-name` mid-morph. ★ Share's place in the row is a QR pill that
-  exists only while the header's code is off screen, carrying the morph's name while it is the code on screen.
-- **Review, Reel and Guests are rooms (routes with a crumb); Settings and Share are sheets.** ★ The crumb trail lands at
-  hydration (a page cannot hand a prop up, and CSS cannot carry an event's name); the bar's fixed height keeps it from
-  shifting anything.
+- **The cards row** (Review, Highlight reel, Guests, Settings last) is a group of links, never tabs, since nothing
+  switches a panel in place. ★ The Guests card and the header read THE ONE COUNT (`getEventGuests`, the album header's
+  own function), so the hub, the Guests room and the album say one number. The row is sticky and condenses in place,
+  because a remount would drop the QR pill's `view-transition-name` mid-morph. ★ Share's place in the row is a QR pill
+  that exists only while the header's code is off screen, carrying the morph's name while it is the code on screen. On
+  a phone at rest the row is a 2x2 grid of two-line cards (`event-feed/room-card.ts`), so all four doors show at 375.
+- **Review and Guests are rooms (routes with a crumb); Settings and Share are sheets; the Highlight reel is a door.**
+  ★ The crumb trail lands at hydration (a page cannot hand a prop up, and CSS cannot carry an event's name); the bar's
+  fixed height keeps it from shifting anything.
 - ★ **The two sheets ride `?room=`, and it IS the state** (`share/event-share-provider.tsx`, read from
   `useSearchParams` with no mirrored `useState`, so a `router.refresh()` after a settings action cannot close the
   panel). Opening pushes a history entry whose marker is a FIELD on the state Next merges: Next's patched `pushState`
@@ -176,8 +186,10 @@ beneath, newest first. (`event-filter-pills.tsx` has no importer.)
 - **Share is the one sharing surface** (`share/event-share-sheet.tsx`: the code, Copy link, Share, Open and Print, the
   downloads, the designer, the custom link). ★ Never draw the code in a second sharing surface, or a fix lands in only
   one of them. The dashboard card's QR chip is a plain link to `?room=share`.
-- **Settings** imports the settings form whole, with one unsaved-changes guard behind the scrim, Escape and the close
-  button, and `beforeunload` for a reload. `/settings` survives as a redirect: it is a published URL.
+- **Settings** imports the settings form whole (Details, Visibility, Guest uploads, one Save), with one unsaved-changes
+  guard behind the scrim, Escape and the close button, and `beforeunload` for a reload; then the instant-save cards, the
+  Highlight reel first, then Profile & guests, and the Danger zone last. `/settings` survives as a redirect: it is a
+  published URL.
 - **The QR mini-modal** (`share/event-code-modal.tsx`) takes no URL: a look at the code is a beat, not a destination. It
   grows out of the header's code on the native View Transitions API, name-scoped in `share/share.css`, and exactly one
   of the header, the pill and the modal carries the name at a time (a duplicate makes the browser skip the transition).
@@ -203,9 +215,9 @@ beneath, newest first. (`event-filter-pills.tsx` has no importer.)
   `getUser()`-gated Server Function), never with the page, because each item needs its own presign; it reads the whole
   bin, and bin items never count in the album.
 - ★ **The hub's album is read whole and its numbers are counted**: it presigns the `album` slice of `listEventMedia`
-  (approved and hidden) through `readAllPages`, and every number on the page is a head count (`countEventMedia`,
-  `countReelItems`), never a list's length. The `live` slice is Download all's, whose manifest refuses past 2,000
-  items with a 413.
+  (approved and hidden) through `readAllPages`, and every number on the page is a head count (`countEventMedia`), never
+  a list's length (the Reel card's pips are a threshold, read off that whole album with the stills they sit on). The
+  `live` slice is Download all's, whose manifest refuses past 2,000 items with a 413.
 - ★ **The View menu** (`shared/view-menu.tsx`) holds Tile size (the masonry's `--album-column`, in the per-device
   `pr_tile_size` cookie painted inline by the hub, never localStorage, which would repaint the columns after hydration),
   Sort (disabled: the album is a server-rendered slot, so a client sort could only reorder what is mounted) and Filter
@@ -234,9 +246,8 @@ beneath, newest first. (`event-filter-pills.tsx` has no importer.)
   other media. **Remove is soft** (`status='removed'` and `removed_at`): it frees storage at once, and the cron reclaims
   after the recovery window ([lifecycle-recovery.md](lifecycle-recovery.md)).
 - **The host's tile verbs are a fixed three: like, download, hide/show** (one slot whose glyph swaps in place; the pane
-  is [design-system.md](design-system.md)'s album tile). Add-to-reel and Delete are deliberately not tile verbs: a fan of
-  five on a dense grid is a misclick trap, and those two are the consequential ones. Delete lives in the viewer and bulk
-  select, add-to-reel in the reel room, approval in Review.
+  is [design-system.md](design-system.md)'s album tile). Delete is deliberately not a tile verb: a fan on a dense grid is
+  a misclick trap, and it is the consequential one. Delete lives in the viewer and bulk select, approval in Review.
 - **The viewer's pill groups "enjoy | curate"**, the curate group gated on `viewerIsHost && onSetStatus`, so the guest's
   pill is behaviour-identical; Remove confirms, the rest act directly. The tile row and the viewer share ONE
   `useModeration` hook (`host-media-grid.tsx`) over one `useOptimistic` list.
@@ -247,8 +258,8 @@ beneath, newest first. (`event-filter-pills.tsx` has no importer.)
   grid live in different subtrees.
 - ★ **The selection prunes to the surviving ids when the album changes, never resets** (`useSelection`), so a poll never
   wipes a selection in progress.
-- **Bulk Add to reel and Like loop their idempotent RPCs under ONE summary toast** (`addMany`, `likeMany`); Hide, Show and
-  Delete are the general `setMediaStatusBulk` and `removeMediaBulk` (plain RLS, no pending predicate).
+- **Bulk Like loops its idempotent RPC under ONE summary toast** (`likeMany`); Hide, Show and Delete are the general
+  `setMediaStatusBulk` and `removeMediaBulk` (plain RLS, no pending predicate).
 - ★ **Every bulk write, and Delete forever's reads, send the selection through `inChunks`** (an unchunked
   `.in('id', …)` over a big selection outgrew the URL and failed whole), and every bulk action refuses more than
   `MAX_BULK_ITEMS` (`lib/event/bulk-selection.ts`).
@@ -256,70 +267,52 @@ beneath, newest first. (`event-filter-pills.tsx` has no importer.)
 - **Host upload**: Add photos opens a dropzone (`host-upload.tsx`) straight into the album; its pipeline is
   [uploads-and-r2.md](uploads-and-r2.md)'s.
 
-## Reel curation, the live composer, and the .mp4 export
+## The highlight reel, the host's side
 
-★ **This is the stored reel, and the reel round replaces it.** The live reel is the event's own: a looping montage of
-what the album shows from its third reel-eligible item, spliced within seconds by the doorbell, in the host's mood by
-default with a viewer's own style switch, with a first-class screen mode and a per-event switch, on by default. A cut is
-anyone's, made on the device from the reel and never stored (on a paid event, Add to the album sends it through the
-ordinary upload queue as the uploader's video, which the live reel skips). Video plays a range-fetched window of the
-original, decoded on the viewer's device behind Include videos, the poster covering every failure. Every table, route
-and job built only for the stored reel goes when one alias build replaces it, so build nothing new on it.
+The live reel makes itself: every viewer's device composes it from the album's approved, reel-eligible items, from
+the SECOND one on, unless the host switched it off (the guest side, the view and the screen are
+[guest-flow.md](guest-flow.md)'s). A host has no reel to create, only a state to read and a few defaults to set.
 
-**The product shape.** The reel is the core loop's last step and the product's North Star: the host curates the best
-moments and gets a shareable highlight video, the "wow in between" (not a pro editor, not a toy: an everyone tool, low
-savvy hosts and old devices included).
-- **Customization is curated randomness, never a timeline**: style, orientation, cover and length beside the moments;
-  no sliders, no track, no per-clip editing. A style is a kit that the reel's seed samples deterministically, so another
-  seed is a genuinely different take, a re-view is stable, and the player and the encoder match by construction.
-- **No music and no beat-sync**: music is too personal to guess, and people add trending audio when they post.
-- **Generation is free on every tier, and the free export is full quality**: the free levers are the watermark and the
-  shorter length (`MAX_REEL_SECONDS`), never the quality, and the watermark doubles as a nudge and free marketing. A paid
-  reel carries no Partyreel branding (the guest page's header keeps its logo and call to action on every tier), and no
-  reel has an end card: it is not a growth lever to revisit.
-- **Video in the reel is self-bounding**: only paid tiers upload video; a video item draws its poster still.
+- ★ **One state, three answers** (`lib/event/reel-progress.ts`): `off` (the switch), `counting` (fewer than two items
+  that can play), `live`. The Reel card, the band's step and the old route's redirect all read it, and "can play" is
+  the guest's own `isReelEligible` (approved, not a clip added to the album, something drawable), so the card flips on
+  the photo that makes the guest's tile appear. The dashboard asks the same in SQL (`getReelProgress`: one row per
+  event, at most two media embedded).
+- **The Reel card counts to two** (`event-feed/reel-card.tsx`): dashed at none ("Starts at 2 photos"), the one photo
+  under an overlay at one, and the living card at two, dissolving through the reel's own take (`planTake`, never the
+  album's newest, which sit right beneath it). ★ The take is planned over a spread of the album (`TAKE_POOL`): the
+  brain is quadratic (a second at 6,000 items) and the hub renders on every arrival. Before two a press opens guidance (what is left, Add photos
+  into the album's upload panel, and on a moderated event that a guest's photo counts once approved); from two it opens
+  `/e/<token>?reel`, where the owner passes every gate; switched off it opens Settings.
+- **`/dashboard/<id>/reel` is a redirect for old links**: into the view once the reel plays, else back to the hub. It
+  never renders, so it keeps no skeleton.
+- **Settings' Highlight reel section is an instant-save card** (`event-settings/highlight-reel-card.tsx`): Show the
+  reel, the look every guest starts on and the hold, each saved the moment it changes through `setReelDefaults`, the one
+  write the view's Set for everyone shares; optimistic, put back with a sentence when refused, and a slow answer never
+  undoes a newer pick. Each look is the event's own photo under that mood's `grade` (the CSS filter the engine draws a
+  still with), a sample photo standing in before the first. The switch refreshes the hub, which reads it.
+- ★ **Nothing about review ever shows on a reel or a screen**: a room watching the reel never sees the host's queue.
+  The guidance names it only to the host, on the host's own page.
+- **A clip added to the album from the reel** passes `reel_eligible: false` through `/api/host/r2/complete-upload` to
+  `create_media_as_host`, so the reel never plays itself; every other host upload leaves the column's default.
+
+## The stored reel's leftovers: the Studio, curation, the .mp4 export
+
+★ **The stored reel is on its way out, and the host app no longer reaches it**: the reel route redirects, and the
+reel panel, the hub's reel reads and bulk Add to reel are gone. Its components under `components/reel/` leave with the
+clip lane, its tables with the drop migration after the reel's alias build; build nothing new on it. What it still
+holds that a later lane needs:
+
+- **The product rules the clip inherits**: customization is curated randomness, never a timeline (a style is a kit the
+  seed samples deterministically, so the player and the encoder match by construction); no music and no beat-sync
+  (music is too personal to guess, and people add trending audio when they post); making one is free on every tier and
+  the free export is full quality, the free levers being the watermark and the shorter length (`MAX_REEL_SECONDS`),
+  never the quality, and nothing reel-made carries an end card.
 - **The style catalog is product data with one source**, the pure `lib/reel/engine/style-registry.ts` (moods that are
-  their own theme, treatments that resolve to one); a new style is a catalog entry plus its draw path.
-
-**Curation.**
-- **Membership mirrors likes**: `reel_items`, with host-scoped SELECT and DELETE RLS, grant-locked, inserted ONLY by the
-  access-checked SECURITY DEFINER `add_to_reel`; a host-only `ReelProvider` (optimistic, an insertion-ordered Set); a
-  `ReelButton` in the viewer's curate group. `media.reel_eligible`, `highlight_score` and `clip_*` are dead scaffold
-  that nothing reads.
-- **The doors that write are the reel room's** (the Studio's Moments picker first, the builder's quick-add). Only the
-  reel room mounts a `ReelProvider`, so the hub viewer's `ReelButton` renders nothing and the album's bulk Add to reel
-  returns without writing.
-- **Likes are an input to quick-add, never membership.** One reel per event; only approved items play (the timeline
-  predicate), while membership for the host's UI, counts and reorder keeps hidden ones too
-  ([database-security.md](database-security.md)).
-- **Guests see the reel only after the host shares it**: `set_reel_guest_visible` flips
-  `highlight_reels.guest_visible` (refusing an empty reel; guests watch the live player, so no mp4 is needed). Every
-  share control calls this ONE seam (`publish-action.ts`); publishing sends no notification, and one would hook in here.
-  The guest side is [guest-flow.md](guest-flow.md)'s.
-- **Reorder is Studio-only**: the filmstrip dock reorders while the reel plays (`useSortableGrid`, the 450ms touch press
-  keeping a scroll from lifting a tile), over the FULL membership, hidden members dimmed and read whole. It persists
-  through `reorder_reel`, the second write path (`reel_items` UPDATE is revoked): host-owns plus a set-equality guard
-  that rejects a cross-event, partial, duplicate or stale list with `reason: 'stale'`, and the provider reverts on it.
-  ★ The optimistic path builds a NEW `Set` from the reordered array: re-adding into the old Set keeps the old order.
-
-**The reel room** (`/dashboard/[eventId]/reel`). With no `highlight_reels` row it renders `ReelPanel`: the builder, and
-after an in-session Create the marquee (a status chip, the Studio door, the `PosterCard`, `ReelShareCard`). Once the row
-exists, every visit renders the Studio. ★ The room never redirects: it can create the thing it is named after.
-- **Nothing else goes on the marquee**: every control lives in the Studio, and the marquee mounts no thumbnail canvas.
-- **The Studio is the one room for every control**: five slide-up sheets, one mounted at a time (Moments first, then
-  Style, Cover, Length with the free tier's upsell and Download, and Layout), plus the order-only dock.
-- **The Moments picker** (`studio-moments-picker.tsx`) is a bespoke dark-room grid (never `SelectableMediaGrid`, which
-  hard-codes the light palette) whose state IS membership, with no local selection and no Done: a tap writes, the dock
-  reshuffles, the player re-cuts, and its "suggested" hints are `pickQuickAdd`'s own pick, so it agrees with the builder.
-  Add goes through the silent `addMany([id])`, never `toggle`, which toasts on every add; a hidden member stays removable
-  but cannot be re-added (`lib/reel/moment-picker.ts`). The dock's trailing "+" sits outside the sortable container,
-  where it would be a phantom drop slot.
-- **The reel is born by an explicit Create, in two beats** (`reel-builder.tsx`): fill, then create, never one button,
-  which would fire the reveal off an empty reel. Quick-add (`lib/reel/quick-add.ts`) is pure and deterministic (seeded by
-  the reel, never `Math.random`), offered from one approved item. Create runs the reveal at once and persists
-  concurrently (the config upsert is the lazy create); a failed save still finishes the theater, then toasts and falls
-  back. ★ The panel swap waits for the theater, not the save: `markCreated()` fires from the settled card's exits, since
-  firing it when the RPC resolves kills the reveal mid-act.
+  their own theme, treatments that resolve to one); a new style is a catalog entry plus its draw path. The live reel
+  plays moods only.
+- **Membership** (`reel_items`, inserted only by `add_to_reel`, reordered only by `reorder_reel`) has no writer left in
+  the host app; the viewer's `ReelButton` renders nothing without a `ReelProvider`, which nothing mounts.
 
 **The config brain and the canvas engine.**
 - **There is no composer component**: config, persist and export live in `use-reel-config.ts`, mounted once per surface

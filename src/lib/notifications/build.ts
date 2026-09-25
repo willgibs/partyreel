@@ -12,6 +12,13 @@
  * Pure + deterministic (takes `now`) so the thresholds/counts are unit-tested. Date FORMATTING
  * is left to the component — items carry raw ISO strings.
  *
+ * ★ ONE NUMBER FOR A WAITING QUEUE (`reel-host`, Will 2026-09-25: `review=agree`). The bell's
+ * badge, the event card's "N to review" chip and Review's own header read the SAME count: the
+ * badge counts each waiting UPLOAD (not one per alert), each review row names its event and opens
+ * that event's queue, and every number comes from one definition (pending, outside the bin, on the
+ * host's live events). Nothing about review is ever drawn on a reel or a screen: a room watching
+ * the reel never sees the host's queue.
+ *
  * Adding a new signal later (e.g. co-host invites — see ROADMAP) = one new field here + one
  * read in `getNotificationData`. Keep it that simple.
  */
@@ -39,6 +46,14 @@ export type NotificationItem = {
   unread: boolean;
 };
 
+/** One event's waiting queue, as the bell names it. */
+export type PendingEvent = {
+  eventId: string;
+  eventName: string;
+  /** Uploads waiting on the host's review: the event card's chip and Review's header count. */
+  pending: number;
+};
+
 export type AnnouncementInput = {
   id: string;
   title: string;
@@ -48,8 +63,14 @@ export type AnnouncementInput = {
 };
 
 export type NotificationSignals = {
-  /** Count of media awaiting approval across the host's events (RLS-scoped upstream). */
+  /** Count of media awaiting approval across the host's live events (RLS-scoped upstream). */
   pendingCount: number;
+  /**
+   * The same queue per event, when the caller has it: one review row per event, naming it and
+   * opening its queue. Absent (a lab board, an older caller), the bell falls back to one row over
+   * `pendingCount` that lands on the dashboard.
+   */
+  pendingByEvent?: PendingEvent[];
   storageGraceUntil: string | null;
   /** DB `profiles.tier` value. */
   tier: string;
@@ -64,9 +85,16 @@ export type NotificationSignals = {
 
 export type NotificationSummary = {
   items: NotificationItem[];
-  /** Active alerts + unread announcements. Alerts persist; announcements clear on view. */
+  /**
+   * Uploads waiting + the other active alerts + unread announcements. Alerts persist;
+   * announcements clear on view. A waiting queue counts each upload, so a host with one event
+   * reads the same number on the bell as on the card and in Review.
+   */
   badgeCount: number;
 };
+
+const uploadsToReview = (n: number) =>
+  `${n} ${n === 1 ? "upload" : "uploads"} to review`;
 
 export function buildNotifications(
   signals: NotificationSignals,
@@ -123,16 +151,32 @@ export function buildNotifications(
     }
   }
 
-  if (signals.pendingCount > 0) {
+  // A waiting queue: one row per event when the caller knows them, each opening that event's
+  // Review room, the badge counting every upload so it reads the card's and the room's number.
+  let waitingUploads = 0;
+  if (signals.pendingByEvent) {
+    for (const queue of signals.pendingByEvent) {
+      if (queue.pending <= 0) continue;
+      items.push({
+        key: `review:${queue.eventId}`,
+        kind: "review",
+        title: uploadsToReview(queue.pending),
+        body: queue.eventName,
+        href: `/dashboard/${queue.eventId}/review`,
+        unread: true,
+      });
+      waitingUploads += queue.pending;
+    }
+  } else if (signals.pendingCount > 0) {
     items.push({
       key: "review",
       kind: "review",
-      title: `${signals.pendingCount} ${signals.pendingCount === 1 ? "upload" : "uploads"} to review`,
+      title: uploadsToReview(signals.pendingCount),
       body: "Guests are waiting for your approval.",
       href: "/dashboard",
       unread: true,
     });
-    alertCount++;
+    waitingUploads = signals.pendingCount;
   }
 
   // Announcements last (unread highlighted). Unread = published after the host's seen marker.
@@ -154,5 +198,8 @@ export function buildNotifications(
     });
   }
 
-  return { items, badgeCount: alertCount + unreadAnnouncements };
+  return {
+    items,
+    badgeCount: alertCount + waitingUploads + unreadAnnouncements,
+  };
 }

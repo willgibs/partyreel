@@ -22,7 +22,6 @@ vi.mock("@/lib/db/mutations/media", () => {
     return ok;
   };
   return {
-    approveAllPending: async () => ok,
     approveBulk: spy("approveBulk"),
     hideBulk: spy("hideBulk"),
     purgeMediaNow: spy("purgeMediaNow"),

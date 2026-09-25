@@ -17,8 +17,16 @@ type AppShellProps = {
  * Will's `host=same` (2026-09-19): "The host's album runs to the window's edges
  * and the page lines up the way the guest's does, so a host sees as many
  * photographs at once as a guest." That means the shell's own 1280 cap has to
- * let go on the event page — the LOGO shares the gallery's left line — while
- * every other host page keeps its centred column.
+ * let go on a wide page — the LOGO shares the gallery's left line — while every
+ * other host page keeps its centred column. The event page and the dashboard
+ * home are wide (his `album-columns` note: "it feels weird that the host dash
+ * is width constrained but the event album is wide").
+ *
+ * ★ AND A WIDE PAGE WEARS THE ALBUM'S GUTTER: 12px on a phone, 20px from `sm`
+ * up (the same note: "On mobile, we could likely reduce the gutter to 8-12px"),
+ * the guest album's own line, where a centred column keeps its roomier 16/24/32.
+ * The cards row's sticky band bleeds by exactly this gutter
+ * (`event-cards-row.tsx`), so the two change together.
  *
  * The shell is rendered by the `(app)` LAYOUT and the page is its grandchild,
  * so a page cannot hand a prop back up to it. `:has()` is the way the cascade
@@ -30,7 +38,10 @@ type AppShellProps = {
  * cap lives on the containers; the group is on the shell so the HEADER, which
  * is the page's sibling and not its ancestor, can read the same answer.
  */
-const WIDE_WHEN_ASKED = "group-has-[[data-app-wide]]/shell:max-w-none";
+const WIDE_WHEN_ASKED = cn(
+  "group-has-[[data-app-wide]]/shell:max-w-none",
+  "group-has-[[data-app-wide]]/shell:px-3 sm:group-has-[[data-app-wide]]/shell:px-5",
+);
 
 /**
  * Chrome for the authenticated host app (the `(app)` route group).

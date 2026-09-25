@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { Bell } from "lucide-react";
+import { Bell, ChevronRight } from "lucide-react";
 
 import { markAnnouncementsSeenAction } from "@/app/(app)/actions";
 import type { NotificationItem } from "@/lib/notifications/build";
@@ -28,7 +28,8 @@ function formatDate(iso: string): string {
 }
 
 // In-app alert aggregator (Phase 6 cut #4). Derived alerts (review/over-cap/pass-expiry) are
-// STATE — they persist in the badge until resolved. Announcements clear on view: opening the
+// STATE — they persist in the badge until resolved; a review queue counts each waiting upload, so
+// the badge reads the event card's and Review's own number (`review=agree`, notifications/build.ts). Announcements clear on view: opening the
 // panel persists the seen marker (server) AND optimistically drops their badge contribution
 // here, so the count updates instantly without a re-render.
 export function NotificationBell({ items, badgeCount }: NotificationBellProps) {
@@ -91,7 +92,7 @@ export function NotificationBell({ items, badgeCount }: NotificationBellProps) {
                     )}
                     aria-hidden
                   />
-                  <div className="space-y-0.5">
+                  <div className="min-w-0 flex-1 space-y-0.5">
                     <p className="text-sm leading-tight font-medium">
                       {item.title}
                     </p>
@@ -106,6 +107,14 @@ export function NotificationBell({ items, badgeCount }: NotificationBellProps) {
                       </p>
                     )}
                   </div>
+                  {/* A row that goes somewhere says so (`review=agree`: a
+                      queue's row opens that event's Review room). */}
+                  {item.href && (
+                    <ChevronRight
+                      className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                      aria-hidden
+                    />
+                  )}
                 </div>
               );
               return (

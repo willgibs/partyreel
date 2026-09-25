@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Calendar, Image as ImageIcon, Images, Lock } from "lucide-react";
 
+import { CycledCover } from "@/components/app/dashboard/cover-cycle";
 import { formatCount } from "@/lib/format/count";
 import { GLASS_MARK } from "@/lib/glass";
 import { cn } from "@/lib/utils";
@@ -74,6 +75,7 @@ export function EventCard({
   byline,
   qrSlot,
   action,
+  living,
 }: {
   href: string | null;
   name: string;
@@ -92,12 +94,22 @@ export function EventCard({
   qrSlot?: React.ReactNode;
   /** Top-right action: restore (trash), or a page's own marker (the profile's Host/Guest). */
   action?: React.ReactNode;
+  /**
+   * The dashboard's crossfade (`reel-host`, his `pulse` note): the stills this card dissolves
+   * through when its turn comes in the row's `CoverCycleProvider`, its cover first. Absent, or
+   * fewer than two, and the card holds its `coverUrl`, as every other page draws it.
+   */
+  living?: { id: string; stills: readonly string[] };
 }) {
   const locked = href === null;
 
+  const cycles = Boolean(living && living.stills.length > 1);
+
   const surface = (
     <>
-      {coverUrl ? (
+      {living && cycles ? (
+        <CycledCover id={living.id} stills={living.stills} />
+      ) : coverUrl ? (
         // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
         <img
           src={coverUrl}

@@ -189,7 +189,7 @@ export const floatingTransitionEntrance = [
  *
  * ★ THE BASELINE IS A FADE, ALWAYS, WHICH IS ALSO REDUCED MOTION'S WHOLE
  * STORY. The direction and the blur are `motion-safe:` only (the house
- * idiom, `event-feed-action-bar.tsx`'s own starting-style fade), so
+ * idiom, a starting-style fade), so
  * `prefers-reduced-motion: reduce` drops the travel and the blur and keeps
  * exactly the cross-fade every state already carries — never a translate at
  * zero distance, which would leave two motion declarations racing instead of

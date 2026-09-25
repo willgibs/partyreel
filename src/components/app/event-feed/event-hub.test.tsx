@@ -47,7 +47,9 @@ describe("the cards row", () => {
 
   it("is a group of links and never a tablist", () => {
     const src = code(CARDS);
-    expect(/role="group"/.test(src), "the row stopped being a group").toBe(true);
+    expect(/role="group"/.test(src), "the row stopped being a group").toBe(
+      true,
+    );
     expect(
       /role="tab(list)?"/.test(src),
       "the row became tabs: three of its four cards are rooms you navigate to",
@@ -61,8 +63,11 @@ describe("the cards row", () => {
       /const href = room\.segment[\s\S]{0,200}\?room=settings/.test(src),
       "the Settings card stopped carrying a real URL",
     ).toBe(true);
+    // Whitespace-tolerant: the formatter breaks the condition across lines once
+    // the row's JSX nests it deeper (reel-host-wiring), and a pin on a line
+    // break would fail on formatting rather than on the guard going.
     expect(
-      /e\.metaKey \|\| e\.ctrlKey \|\| e\.shiftKey/.test(src),
+      /e\.metaKey\s*\|\|\s*e\.ctrlKey\s*\|\|\s*e\.shiftKey/.test(src),
       "a modified click on Settings no longer falls through to a navigation",
     ).toBe(true);
   });
@@ -114,8 +119,13 @@ describe("the album, and the bin as its filter", () => {
     // and a "0" beside its name would be a count of the wrong thing). What is
     // still forbidden, and is what this guards, is the bin reaching that branch.
     const src = read(GALLERY);
-    const branch = /view === "album"\s*\?([\s\S]*?):\s*\(bin\?\.length/.exec(src);
-    expect(branch, "the count stopped branching on the view at all").toBeTruthy();
+    const branch = /view === "album"\s*\?([\s\S]*?):\s*\(bin\?\.length/.exec(
+      src,
+    );
+    expect(
+      branch,
+      "the count stopped branching on the view at all",
+    ).toBeTruthy();
     expect(
       /albumCount/.test(branch![1]),
       "the album's count stopped being the album's own length",
@@ -132,7 +142,9 @@ describe("the album, and the bin as its filter", () => {
     const hub = code(HUB);
     expect(
       /albumCount=\{itemCount\}/.test(hub) &&
-        /const \{ album: itemCount, pending: pendingCount \} = counts;/.test(hub) &&
+        /const \{ album: itemCount, pending: pendingCount \} = counts;/.test(
+          hub,
+        ) &&
         /countEventMedia\(event\.id\)/.test(hub),
       "the hub stopped passing the album's own counted number as the count",
     ).toBe(true);
@@ -149,7 +161,8 @@ describe("the album, and the bin as its filter", () => {
       "the bin stopped being cached, so flipping the filter re-presigns it",
     ).toBe(true);
     expect(
-      /listDeletedMediaAction/.test(src) && !/listDeletedMediaAction/.test(read(HUB)),
+      /listDeletedMediaAction/.test(src) &&
+        !/listDeletedMediaAction/.test(read(HUB)),
       "the hub started loading the bin on every render",
     ).toBe(true);
   });
@@ -158,7 +171,9 @@ describe("the album, and the bin as its filter", () => {
     // A Server Function is a public endpoint. RLS is the boundary and the
     // getUser() check is the defence in depth the security guardrails ask for.
     const actions = read("src/app/(app)/dashboard/[eventId]/actions.ts");
-    const fn = actions.slice(actions.indexOf("export async function listDeletedMediaAction"));
+    const fn = actions.slice(
+      actions.indexOf("export async function listDeletedMediaAction"),
+    );
     expect(/supabase\.auth\.getUser\(\)/.test(fn.slice(0, 1200))).toBe(true);
     expect(
       /getSession\(/.test(
@@ -171,24 +186,30 @@ describe("the album, and the bin as its filter", () => {
 
 describe("the settings sheet", () => {
   it("opens over the album from a deep link, and keeps the form single-sourced", () => {
-    const sheet = read("src/components/app/event-settings/event-settings-sheet.tsx");
+    const sheet = read(
+      "src/components/app/event-settings/event-settings-sheet.tsx",
+    );
     // The page of cards is not rebuilt: the shipped orchestrator is imported
     // whole, so the sheet and the retired route cannot disagree about what a
     // setting does.
     expect(/import \{ EventSettingsForm \}/.test(sheet)).toBe(true);
     // The retired route survives as a door to the sheet, so a bookmark to the
     // URL we published for months still lands somewhere.
-    const redirect = read("src/app/(app)/dashboard/[eventId]/settings/page.tsx");
-    expect(/redirect\(`\/dashboard\/\$\{eventId\}\?room=settings`\)/.test(redirect)).toBe(
-      true,
+    const redirect = read(
+      "src/app/(app)/dashboard/[eventId]/settings/page.tsx",
     );
+    expect(
+      /redirect\(`\/dashboard\/\$\{eventId\}\?room=settings`\)/.test(redirect),
+    ).toBe(true);
   });
 
   it("confirms before discarding unsaved edits, whichever way it is closed", () => {
     // The route guarded a hard nav and its back-LINK. A sheet has no back-link
     // and three ways out (the scrim, Escape, the close button), so all of them
     // land on one guarded close.
-    const sheet = read("src/components/app/event-settings/event-settings-sheet.tsx");
+    const sheet = read(
+      "src/components/app/event-settings/event-settings-sheet.tsx",
+    );
     expect(/onOpenChange=\{requestClose\}/.test(sheet)).toBe(true);
     expect(/if \(dirty\) \{\s*setConfirmOpen\(true\);/.test(sheet)).toBe(true);
     expect(/useUnsavedChangesGuard\(dirty\)/.test(sheet)).toBe(true);

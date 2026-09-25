@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { nextStepForEvent } from "./next-step";
-import {
-  calendarDayInZone,
-  resolveViewerZone,
-  serverZone,
-} from "./viewer-day";
+import { calendarDayInZone, resolveViewerZone, serverZone } from "./viewer-day";
 
 /**
  * THE VIEWER'S OWN CALENDAR DAY, PINNED AT THE EDGES THAT BREAK A NAIVE
@@ -40,7 +36,9 @@ describe("resolveViewerZone", () => {
 describe("serverZone", () => {
   it("answers a real IANA zone Intl itself accepts", () => {
     const zone = serverZone();
-    expect(() => new Intl.DateTimeFormat("en-US", { timeZone: zone })).not.toThrow();
+    expect(
+      () => new Intl.DateTimeFormat("en-US", { timeZone: zone }),
+    ).not.toThrow();
   });
 });
 
@@ -99,9 +97,9 @@ describe("the evening-before scenario: 'Print the code' must not disappear", () 
     id: "e1",
     name: "Rooftop Summer Party",
     pending: 0,
-    items: 40,
     acceptingUploads: true,
-    hasReel: true,
+    showReel: true,
+    reelItems: 2,
     eventDate: "2026-09-21",
   };
 
