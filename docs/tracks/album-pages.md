@@ -1,6 +1,6 @@
 ---
 track: album-pages
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "e13a98d6"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -93,25 +93,103 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The limiter.** The gallery poll has no limiter kind to reuse (`/api/guests/gallery` calls none). Recommended and
+  built: none on the album routes, like the poll they replace: reads behind the capability, and a limiter row per
+  poll would make a venue's phones write load ("Limit abuse, never volume"). If the edge firewall proves thin, a
+  breadth-only `album_read` kind on the links route alone, in `abuse-rate-limit.ts` (reel-teardown's file tonight).
+- **The first paint.** The manifest carries no links, so a page that renders it must also have its first window's.
+  Recommended (for the surface lanes, not built here): the page RSC embeds the manifest and the first window's links
+  server-side (`readGuestAlbumMedia` then `toGuestAlbumLinks`, the links route's own two calls), saving the round
+  trip on first paint.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `database-security.md`: the advisor set is 17, 5 and 32 (16, 4 and 27 after the reel drop); `album_changes_since`
+  joins the service-role-only list; `album_state` and `album_changes` join the deny-all tables; a new ★ under Grants,
+  the album row as every transaction's LAST lock (deferred stamps, one flush in event-id order, note before stamp by
+  name, no other writer).
+- `uploads-and-r2.md`: the album's two mappers join "raw keys never reach the browser"; a new bullet, links minted by
+  id per window with the bucket and the server clock, re-minted at an hour, and why no album validator carries the
+  bucket (the teaser's does); the album attributes only asked ids and its guest path never selects an address.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: prune `album_changes` tombstones (one row per item ever, a purged item's included) with a per-event
+  watermark that answers resync below it, a job with its `/admin` health signal.
+- Now: when the hub moves onto the paged album, the host's links carry like counts per window and the host manifest
+  its quick-add key (`guest_id` already rides the host-scope delta in `album_changes_since`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed:** the migration `4c07f452` (applied as `album_version`), the sync `ef554c01` (merged
+  `4698ad2b`, the regenerated types at `6063f1d8`), the work `2820ba8c`, this manifest on top. launch-prep has since
+  moved (`ed3ed826` mark-r3, records) without touching the lane's reads, so no second sync.
+- **Gates on `2820ba8c`'s tree, each on its own exit code:** `pnpm typecheck` 0; `pnpm lint` 0 (the 6 pre-existing
+  warnings, none in the lane's files); `pnpm test` 0 (465 files, 5,053 tests); `zsh scripts/build-lock.sh pnpm
+  build` 0 (the six `ƒ /api/album/...` routes); `pnpm lab:smoke --base http://localhost:3137` 0 (279 checks, 0
+  failing). No board, so no `lab:demo`.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` is the owned prefixes and this file, plus ONE
+  exception: `src/lib/r2/grid-items.email-safety.test.ts` (the brief's "extend the email-safety test": a second
+  describe reads `album-guest-links.ts`; no other lane owns the file).
+- **The migration** (`supabase/migrations/20260926100000_album_version.sql`): `album_state`, `album_changes`, the
+  immediate notes and DEFERRED stamps on media, guests and profiles, one flush per transaction in event-id order,
+  `album_changes_since` (one jsonb, one snapshot); the header carries the lock-order proof over every writer, read
+  from the live bodies; `migration-guards.test.ts` section 15 pins it (including "nothing but the flush and the
+  stamp writes an album table").
+- **Its proof on a throwaway Postgres 17** (the file verbatim over a stand-in of the touched tables and every
+  writer's live body; the harness is in the lane's scratch, never the repo): 43 contract checks (a transaction is one
+  version; a pending-to-hidden move leaves the guest's version alone; a purge of a removed row writes nothing; a
+  savepoint rollback leaves no trace; a hard delete of an event commits and takes its album rows); a stress of 14
+  writer shapes at once (uploads, moderation, multi-event and multi-table transactions, guest deletes, purges,
+  restores, renames) with two protocol readers paging at 7: about 9,600 deltas a run, 0 integrity mismatches, exact
+  convergence in both scopes, and across five runs no deadlock ever named an album table (every one was the
+  pre-existing purge-versus-restore cycle, 13 with the triggers dropped); the controls: immediate bumps deadlock on
+  the same interleaving, deferred-but-unsorted deadlocks at commit, the sorted flush with the same pause commits
+  both. Cost: about 20 microseconds a row (a 2,000-row bulk approve 29 ms to 72 ms, one bump).
+- **Its proof on live, before the apply:** the file's statements (its COMMENT ON FUNCTION lines aside) at the head
+  of one DO block ending in the deliberate raise: `ROLLED BACK: every album_version check held {...}` (the foot of the
+  migration quotes it); the catalog read no album object afterwards.
+- **The wire contract** (`src/lib/events/album-wire.ts`, `a1`): `[id, w, h, flags, t]` plus a video's duration, `t`
+  exact microseconds (`timestampToMicros`), the order, links `[id, tile, view|null, download, who]`, the poll's shapes.
+- **The server:** `album-sync.ts` (the pure planner the routes and the model share), `album-validator.ts`,
+  `album-viewer.server.ts` (the gallery poll's own resolution), `queries/album-{state,guest,host}.ts` (every guest read
+  self-guarded on visibility and the unlock cookie; the guest path never selects an address), `album-{guest,host}-
+  links.ts`, and the six routes under `src/app/api/album/` (the host's `manifest` added beside the brief's `sync` and
+  `media`, for an album past 3,000 items).
+- **The client** (`src/lib/album/`): `manifest.ts` (merge by id, copy on write), `links.ts` (coalesced, deduped in
+  flight, dated on the device's own clock, re-mint at an hour, missing, attribution), `resolver.ts` (the reel's
+  `{ get, ensure }` for `createClipSource`), `store.ts` (one serialized sync, adopt a manifest only whole, the
+  integrity check after every delta and its heal, catch-up bounded at four rounds), `transport.ts`.
+- **The integrity model** (`src/lib/db/album-version.test.ts`, `ALBUM_MODEL_REPORT=1` prints it): 10,000 seeded
+  schedules, 236,568 polls, 119,734 deltas, 46,082 manifests (resyncs included), 242,089 page reads, 70,752 304s, 0
+  integrity misses, 0 divergence at quiescence; a mutant that reads a manifest's version after its pages lost changes
+  in 1,001 of 2,000 schedules.
+- **Route and gate tests:** guest sync 17 (the one-row 304, locked and password answers with no validator, the heal,
+  never across levels or gates, no address or raw key in the teaser), guest media 15 (200 the cap, foreign and hidden
+  ids missing, nothing for teaser, upload-gated, password-without-cookie or unknown), guest manifest 8, host sync 9,
+  host media 3, host manifest 2, the viewer's resolution 6, the guest reads' own gate 5, validators 10, planner 10,
+  mappers 5, the store 11, the link store 13, the merge 9, the wire 17, email-safety +2.
+- **Measured at 1,145 on localhost** (the scale probe, the live database): the manifest 78,125 B raw, 33,471 B gzip,
+  26,636 B brotli (the brief estimated 25 to 35KB); today's gallery poll 1,537,696 B raw, 141,499 B gzip, 111,578 B
+  brotli; a 60-item window's links 69,528 B raw, 7,949 B gzip, 6,350 B brotli (200 ids: 231,543, 25,148, 19,849); the
+  quiet poll a 304 after one row (0.16 to 0.28 s on the dev server) where today's 304 re-reads the album (0.44 s).
+- **Walked on localhost against the live database:** a hide answered a 300-byte delta; a deep approval landed in
+  order; a rename moved only the attribution; the restore of all three in one transaction was one version; the real
+  store over the real transport (46 polls, 41 304s, 4 deltas, 0 integrity misses); a real id from another album
+  missing; the password album without its cookie locked, no validator, no links, no pages; the account and upload
+  gates answered the inline teaser with no address. The probe is back at 20 held, 1,145 approved, 35 removed.
+- **Not yet walked live on the alias:** the host routes need an allow-listed sign-in (localhost answered 401 as it
+  should), and no page calls the routes until the surface lanes wire them; their red-team rides the alias build that
+  first carries them.
+- Assets requested from Will: none.
+- Board ideas: `purge_media_rows` locks media before profiles while `restore_media` locks profiles first, so a restore
+  and a purge of the same removed row deadlock today (13 in the baseline stress): the purge could take the hosts'
+  profiles rows first, in id order. A per-uploader index on the guest manifest would give the reel's coverage term its
+  signal without exposing guest ids.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none beyond `album_version`, applied.
+- Calls his to overrule: no limiter on the album routes; the teaser's validator carries the presign bucket (its links
+  ride its payload); one version per transaction, and the guest's `album_max` its own counter so a guest never learns
+  how busy moderation is; the host's manifest carries held and hidden items with their status flags (one manifest for
+  the hub's grid and Review).
+- Look at first: the migration's header (the lock-order proof), `src/lib/events/album-sync.ts`,
+  `src/lib/album/store.ts`, then the integrity model.
