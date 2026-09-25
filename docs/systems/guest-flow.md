@@ -14,7 +14,7 @@ the host's configs drive. The opaque `qr_token` IS the authorization, and there 
 
 ★ **THE GUEST'S WORD IS "ALBUM", THE CODE'S WORD IS "GALLERY", AND THAT SPLIT IS DELIBERATE.** Every string
 a guest reads says album, the site's one noun, so a guest who becomes a host never meets two words. The
-CODE noun stays: `/api/guests/gallery`, `gallery-access*`, `getGalleryStats`, `LiveGallery`,
+CODE noun stays: `/api/album/guest/{sync,media,manifest}`, `gallery-access*`, `getGalleryStats`, `LiveGallery`,
 `GalleryPayload`, the RPCs and the columns keep their names, since renaming a live route buys a guest
 nothing and risks the one flow with no account behind it. Do not "fix" the mismatch in either direction:
 new guest copy says album, new code says whatever the neighbouring code says.
@@ -97,34 +97,34 @@ at the foot, so no dialog carries its own keyboard fix.
   function the host's hub reads, so the album and the hub never say two numbers for one party; never the host).
   ★ **NUMBERS ONLY ever leave the server** (never a guest_id/identity). N goes live via `GalleryLiveProvider`'s
   `onCountChange` (the head count every gallery payload carries, "One true count" below); M is seeded by the page
-  RSC and kept current by the gallery poll, which carries `guestCount` on a 200 only (read after its 304 check, so
-  the steady poll pays nothing, and never on a locked page) and hands it up through `onGuestCountChange`: a guest's
+  RSC and kept current by the album's sync (`/api/album/guest/sync`), which carries `guestCount` on a 200 only (read
+  after its 304 check, so the steady poll pays nothing, and never on a locked page) and hands it up through
+  `onGuestCountChange`: a guest's
   own first upload moves M without a reload, and only the server can tell a first upload from a returning
   contributor's. It stays outside the ETag: whatever moves M changes the payload the ETag already hashes.
   ★ The album carries the same N again as its own quiet label, left of "Download all" and the View menu
   (the Highlight reel tile shows no count), worded like the stats line and the teaser CTA, so the page never
   counts one album two ways.
-- **Masonry gallery** ([`guest-masonry.tsx`](../../src/components/guest/guest-masonry.tsx)): the SHARED
-  column rule `GALLERY_COLUMNS` ([`shared/masonry.tsx`](../../src/components/shared/masonry.tsx)), read and
-  never re-typed: a column WIDTH, never a count, so a wider window means MORE photographs, not bigger ones.
-  Two columns below 640 (`PHONE_MAX`), then as many as fit at `--album-column` (the album's tile size, see
-  "Live gallery"; 220px where no ancestor sets it; the skeleton lays out on the album's own tile size, `GallerySkeleton`'s
-  `tileSize`). `--gap-gallery` is pinned to `--radius-tile` (4px, 3px floor), the vertical gap being each tile's bottom
-  margin. ★ The JS column count reads the box's RESOLVED `column-gap`, never the `--gap-gallery` token: a custom property
-  computes to its `max()` text, which parses as no gap and lays one column too many. Tiles keep their
-  NATURAL aspect ratio (the plumbed `width`/`height`, 1:1 without dims; dims ride OUTSIDE the ETag hash,
-  write-once per id). A 45ms entrance stagger (capped at 540ms) plays on the SEED render only (`--tile-i`;
-  arrivals get 0). Videos wear a small CORNER play badge (`MediaTile`'s `playBadge="none"`; the centred
-  `PlayBadge` is for other surfaces).
+- **The album, in justified rows** ([`gallery-rows.tsx`](../../src/components/guest/gallery-rows.tsx) over the
+  SHARED `MasonryColumns` `layout="rows"` ([`shared/masonry.tsx`](../../src/components/shared/masonry.tsx)),
+  windowed by [`album-window.tsx`](../../src/components/shared/album-window.tsx)): `album-columns` r2's picks (an
+  arrival pushed in from its left edge while what it moved glides; three steps from View's slider, a pinch, or ctrl
+  and the wheel, kept in `pr_tile_size`; now and then a landscape leads a row at twice the height, the visit's seed
+  drawn on the server, never at one a row). Only the rows around the view are mounted; a photograph's link and heart
+  load when its row mounts, and a tile whose row leaves cancels its unfinished download (R2 answers over HTTP/1.1,
+  six connections). ★ The first paint is the server's: rows per width class at the width the album last laid them
+  (`pr_album_w`, path-scoped; nominal cold), links for exactly those photographs (`firstPaintIds`), and the
+  hydration draws the plan the server wrote on the grid (`data-rows-plan`), never its own (the engine's logs and
+  powers round differently in Node and a browser). The Yours filter runs over the manifest (the device's own ids met
+  with it; the count stays the album's). A photograph with no link yet is a loading tile, never a request. The
+  skeleton lays rows on `ROW_CLASSES` at the step, as the first paint does.
   ★ **The page root is two boxes, not a column**:
   [`event-experience.tsx`](../../src/components/guest/event-experience.tsx) carries `COLUMN` (632px of
   reading measure pinned LEFT, on the header logo's 20px line) and `BLEED` (the gutter alone: 12px under 640,
   where a phone's two columns want every pixel, 20px above), and the
   ALBUM ALONE takes the second; everything the page says (action block, upload panel, Highlight reel tile,
   guest list, locked river, empty state) keeps the column, the empty state because its square river would otherwise
-  draw a window-wide box of nothing. The streaming skeleton
-  ([`gallery-skeleton.tsx`](../../src/components/guest/gallery-skeleton.tsx)) reads the same rule and adds
-  12 tiles from 640 up, so a wide album never loads as one thin row.
+  draw a window-wide box of nothing.
 - **The upload act.** The queue ([`use-upload-queue.ts`](../../src/lib/guest/use-upload-queue.ts): one at a
   time, JIT silent join, demo sim, retry) is created ONCE in `event-experience.tsx` and shared by the
   album's Add and the door's upload step, so a run started at the door outlives it. `GuestUpload`
@@ -208,20 +208,27 @@ at the foot, so no dialog carries its own keyboard fix.
   the edges and a tap on one steps to it; a tap on BLANK space closes (no side zones); a pull DOWN at fit closes;
   pinch, pan and double-tap zoom a photograph; a clip plays muted and looping and pauses when the viewer moves on; a
   desk adds hover chevrons and a filmstrip. `media-lightbox.test.tsx` pins the physics, `geometry.test.ts` the
-  arithmetic. ★ **THE ADDRESS**: the open photograph rides the page as `?photo=<id>` (`PHOTO_PARAM`, written by
-  `shared/masonry.tsx` with replaceState, read once on mount), and it opens only an item already in the viewer's
-  payload: an unknown, held or hidden id opens the album plainly, and a door already open comes first. ★ **SHARE SENDS
+  arithmetic. ★ **ITS LIST IS THE WHOLE ALBUM**, the manifest, mostly unlinked: next and previous cross all of it and
+  "Photo k of N" is read over the album; it asks `onNeedLinks` for the photograph ±1 and the filmstrip's ±7
+  (`FILMSTRIP_REACH`), and an unlinked item is a placeholder at its own shape, never a request. ★ **THE ADDRESS**:
+  the open photograph rides the page as `?photo=<id>` (`PHOTO_PARAM`, written by `shared/masonry.tsx` with
+  replaceState, read once on mount), and it opens any item the manifest holds, loaded or not: an unknown, held or
+  hidden id still opens the album plainly, and a door already open comes first. A walk writes the address only once
+  it rests (300ms: the browsers' history APIs cap how fast it can move, Chrome past 200 calls in 10s and Safari past
+  100), an open and a close writing at once; the way back mounts the closed item's tile (`scrollToId`). ★ **SHARE SENDS
   THE FILE** (fetched on the tap with `cache: "no-store"`, never prefetched; over 100 MB it falls back), then the
   link, then a copy; Copy link copies the PUBLIC album link (`shareUrl`, the event JOIN url, never a presigned media
-  URL or a dashboard URL) with `?photo=` on an approved item; Save offers Save to Photos first on iOS (the system
-  sheet with the file is the one web path into Photos) and the plain download elsewhere; a tap whose activation lapses
+  URL or a dashboard URL) with `?photo=` on an approved item; Save offers the system sheet in one tap on iOS (its
+  Save Image or Save Video is the one web path into Photos, and the same sheet already carries Save to Files) and
+  the plain download elsewhere; a tap whose activation lapses
   leaves a one-tap Ready. The guest album and the host gallery pass `shareUrl`; the personal Uploads and the recovery
   bin omit it.
 - Each tile (desktop hover-reveal) + the lightbox carry a **like** button; a signed-out tap
   opens the create-account dialog (a `LikesProvider` wraps the gallery, replaying after sign-in). The hearts are
-  seeded through `my_liked_media_ids` with the grid's ids in the POST BODY (never a URL, which a whole album
-  outgrows), asking only the ids not yet answered as the grid grows; a failed seed is reported (Sentry, `media`)
-  and the hearts simply start unfilled. Like COUNTS are host-only → [host-app.md](host-app.md),
+  seeded through `my_liked_media_ids` with the window's ids in the POST BODY (never a URL, which a whole album
+  outgrows): the ids the rows mount and the viewer asks for, asking only the ones not yet answered as the window
+  moves; a failed seed is reported (Sentry, `media`) and the hearts simply start unfilled. Like COUNTS are
+  host-only → [host-app.md](host-app.md),
   [database-security.md](database-security.md).
 - **PWA (manifest only, no SW)**: [`manifest.ts`](../../src/app/manifest.ts) + the ink-aperture icon set
   make an event link installable to a home screen (standalone, paper/ink theme); static + global, leaks
@@ -311,7 +318,7 @@ free on every tier.
 read, unsigned (the database verifies it against `guests.session_token`'s unique index). It is written only
 when absent or different: by `POST /api/guests` (a mint), `POST /api/guests/name` and
 `POST /api/guests/email` (success), `POST /api/r2/complete-upload` (a created row, via
-`CreateRecordOutcome.setCookies`, applied to the 200 alone) and the gallery poll's heal (a differing body
+`CreateRecordOutcome.setCookies`, applied to the 200 alone) and the album's sync's heal (a differing body
 token), **only as a 200 with no ETag**, because Vercel's edge turns a validator-matching 200 into a 304
 and drops `Set-Cookie`. `POST /api/guests/leave` expires it (`{ qr_token }` one event's, `{ all: true }` every
 `pr_guest_*` the request carried); ★ **EVERY SIGN-OUT PUTS DOWN EVERY TICKET ON THE DEVICE**, the tokens, names,
@@ -663,20 +670,24 @@ had" holds only when this device holds a guest ticket a claim would move.
 - **Architecture: ONE live source for the album AND the reel.**
   [`gallery-live.tsx`](../../src/components/guest/gallery-live.tsx)'s `GalleryLiveProvider` owns all
   gallery state (the refreshed list, the arrival ids, this device's own ids and optimistic tiles, `refresh`,
-  the doorbell, the poll, the ETag, the stricter-drift guard, the live reel's facts) and hands it down
-  through `useGalleryLive()`. [`live-gallery.tsx`](../../src/components/guest/live-gallery.tsx) is the
+  the doorbell, the poll, the ETag, the stricter-drift guard, the live reel's facts) over the paged album's
+  client store ([`src/lib/album/store.ts`](../../src/lib/album/store.ts): the manifest, its version, and
+  links by id), and hands it down through `useGalleryLive()`; the doorbell and the fallback poll both call
+  its one `sync()`. [`live-gallery.tsx`](../../src/components/guest/live-gallery.tsx) is the
   album's VIEW over it (mounted with no provider above it, it brings its own), and the reel
   ([`reel/live-reel.tsx`](../../src/components/guest/reel/live-reel.tsx)) reads the same context, never the
   seed promise, so an upload that reaches the grid reaches the reel in the same breath.
   [`event-experience.tsx`](../../src/components/guest/event-experience.tsx) is the SHELL around both and
-  streams the provider in via `<Suspense>` (the RSC passes `loadGalleryForAccess` down UN-awaited; `use()`
-  resolves it behind [`gallery-skeleton.tsx`](../../src/components/guest/gallery-skeleton.tsx) so the
-  presign-heavy payload never blocks the shell's paint). `key={access}` remounts it on an access flip
-  (teaser → full) — a clean re-seed, no resync effects.
-- ★ **A presigned URL is read by id from the latest payload at the moment it is needed, never held**, and
-  the provider's watchdog (`reportPossibleExpiry`) treats any image or reader failure as a possible expired
-  presign (a tab asleep past the 90-minute expiry answers a CORS-shaped failure with no status): it drops
-  the validator and forces ONE full refetch, at most once a minute, never in the demo.
+  streams the seed in via `<Suspense>` (the RSC passes [`loadGallerySeed`](../../src/lib/events/gallery-seed.ts)
+  down UN-awaited; `use()` resolves it behind
+  [`gallery-skeleton.tsx`](../../src/components/guest/gallery-skeleton.tsx) so the presign-heavy payload
+  never blocks the shell's paint), and the store adopts it as its own first `sync()`, answered locally.
+  `key={access}` remounts it on an access flip (teaser → full) — a clean re-seed, no resync effects.
+- ★ **A link is read by id at the moment it is needed and re-minted before it ages** (`ensureLinks` for a
+  window, `onNeedLinks` for the viewer, `clips` for the reel), never held past its life; the provider's
+  watchdog (`reportPossibleExpiry`) treats any image or reader failure as a possible expired presign (a tab
+  asleep past the 90-minute expiry answers a CORS-shaped failure with no status) and re-mints only the ids
+  whose picture failed, at most once a minute each, never in the demo.
 - **The doorbell:** the `media_gallery_doorbell` DB trigger sends a contentless `ping` on the PUBLIC
   Realtime broadcast channel `gallery:<qr_token>` whenever the approved-visible set changes (uploads,
   moderation flips, restores, purges — pending/hidden-internal transitions stay silent). The token IS the
@@ -687,31 +698,36 @@ had" holds only when this device holds a guest ticket a claim would move.
 - **The conditional poll** (the shared [`use-live-poll.ts`](../../src/lib/shared/use-live-poll.ts)): the
   fallback cadence keys solely off the channel state — **60 s** while `SUBSCRIBED` (a safety net), **12 s**
   when the socket is down; it stops when the tab goes hidden and polls again when it is shown. Every poll sends
-  `If-None-Match`; the route answers an unchanged gallery with a **bare 304** (zero payload, zero presigns, but
-  the reads that build the fingerprint still run: the whole album, its identity sweep and its head count); see
-  the ETag invariant below.
+  `If-None-Match`; a quiet album answers a **bare 304** having read one row, its version; a change answers the
+  DELTA since the version this device holds, merged by id and checked against the server's count read in the
+  same snapshot (a mismatch heals at once with a fresh manifest, never drawn); see the ETag invariant below.
 - ★ **The gallery ETag must never validate across access levels, nor across the gate behind one** — the
-  fingerprint ([`gallery-fingerprint.ts`](../../src/lib/events/gallery-fingerprint.ts)) hashes `access` +
-  `gate` + `teaserTotal` + `approvedTotal` (the album's head count, the header's live number) + the item
-  ids/attribution (the verified mark included) + the presign bucket id + the live reel's facts (`reel`, so a
-  host's switch reaches an open page), and the not-found/private early return carries NO ETag. A teaser
-  validator replayed with full-access cookies must 200, and a guest whose gate moved from `account` to
-  `upload` never 304s onto the step they passed. The bucket id rolls the ETag every 30 min so clients re-pull
-  fresh URLs before old ones expire. An item's `reelEligible` rides OUTSIDE the hash like its dims: it is
-  write-once at `create_media*`.
-- **Reconcile by id — do NOT `setState` the raw poll result:** `reconcileGalleryItems`
-  ([`reconcile-gallery-items.ts`](../../src/lib/guest/reconcile-gallery-items.ts)) keeps an already-rendered
-  object whenever the incoming row is field-for-field equal (so the ordinary poll touches no `<img>`) and
-  adopts the incoming one whenever anything differs. Presigns are stable inside a 30-min bucket, so a URL
-  changes only when the bucket rolls, and adopting it then keeps a gallery left open all evening from
-  answering 403 at the 90-min URL expiry.
+  validator (`guestAlbumEtag`, [`album-validator.ts`](../../src/lib/events/album-validator.ts)) hashes
+  `access` + `gate` + the album's and the attribution's VERSIONS (never the item list itself, so a quiet
+  poll costs one row) + the live reel's facts (`reel`, so a host's switch reaches an open page); the
+  teaser's validator ALSO carries the presign bucket, since its nine photographs travel inline with their
+  links, but at full access there is none, since a link rides its own ask and re-mints itself before it
+  ages. The not-found/private early return carries NO ETag. A teaser validator replayed with full-access
+  cookies must 200, and a guest whose gate moved from `account` to `upload` never 304s onto the step they
+  passed.
+- **Reconcile by id — do NOT `setState` the raw sync result:**
+  [`reconcile-album-items.ts`](../../src/lib/guest/reconcile-album-items.ts) rebuilds an item only when
+  something it draws changed (its manifest entry, its link, its blob or its name), walking the manifest
+  once and handing back the SAME object for everything else, so the memoized tile of a photograph that did
+  not change skips its render and an ordinary sync touches no `<img>` it does not need to. A link is held
+  until it dies, not until the store forgets it (`expiresAt`, on this device's clock, `ALBUM_LINK_REMINT_MS`
+  an hour): a tile waiting on its re-mint keeps drawing the link it had rather than going blank.
 - **Optimistic tiles only for LIVE-approved media:** a completed upload prepends a local `createObjectURL`
-  tile (deduped by media id against the next refetch in [`merge-gallery-items.ts`](../../src/lib/guest/merge-gallery-items.ts),
-  then the blob is revoked) — but ONLY when `create_media` returned `approved`. Completions reach
-  the provider through a `LiveGalleryHandle` callback ref (with a pre-mount buffer, since the gallery streams
-  in async).
-- **What THIS DEVICE draws at the album's head**, in the grid's `prefix` slot
-  ([`guest-masonry.tsx`](../../src/components/guest/guest-masonry.tsx)), and nowhere else:
+  tile at the file's own measured shape, or a square if nothing measured it within 400 ms
+  (`MEASURE_TIMEOUT_MS`), so the row does not re-lay when the manifest brings the real entry — but ONLY
+  when `create_media` returned `approved`. Its object URL is the blob re-key's ("The upload act" above,
+  `UploadedItem.queueId` to the media id), read by
+  [`reconcile-album-items.ts`](../../src/lib/guest/reconcile-album-items.ts)'s own ledger, by media id;
+  `merge-gallery-items.ts` is gone. Completions reach the provider through a `LiveGalleryHandle` callback
+  ref (with a pre-mount buffer, since the gallery streams in async).
+- **What THIS DEVICE draws at the album's head**, in
+  [`gallery-rows.tsx`](../../src/components/guest/gallery-rows.tsx)'s own head slots, a square each, and
+  nowhere else:
   - ★ **ONE stack for a pick in flight**:
     [`upload/stack-tile.tsx`](../../src/components/guest/upload/stack-tile.tsx) draws the file actually in
     the air (the queue runs one at a time) with two ghost edges behind it and, at its foot, everything the
@@ -734,16 +750,17 @@ had" holds only when this device holds a guest ticket a claim would move.
   writes both from two sets the surface hands down, [`shared/arrival.css`](../../src/components/shared/arrival.css)
   draws both, and both read their life from [`lib/shared/arrival.ts`](../../src/lib/shared/arrival.ts),
   written onto the album box as `--arrival-glow-ms` / `--arrival-sweep-ms` so attribute and keyframe never
-  disagree. `newArrivalIds(prev, next)` ([`reconcile-gallery-items.ts`](../../src/lib/guest/reconcile-gallery-items.ts))
+  disagree. `newArrivalIds(prev, next)` ([`reconcile-album-items.ts`](../../src/lib/guest/reconcile-album-items.ts))
   reports the ids NOT on screen a moment ago (the only definition that catches every route in: a doorbell
   arrival, a held item approved an hour later, a burst after a hidden tab wakes), and `arrivalMarks()`
   (pure, contract-tested) takes one's OWN landings out of the glow and gives the NEWEST the sweep. ★ The
   glow holds PER ID (two guests a beat apart each get a full life); the sweep is EXCLUSIVE, so a fast batch
   never stacks light up the gallery. ★ Three things never glow: the SEED render (`prev` empty; the entrance
   stagger is that moment's motion), a rolled presign, and this guest's OWN upload (it sweeps). The GROWTH is
-  the `[data-media-tile]` entrance in `globals.css`, deliberately not re-declared, and the grid's explicit
-  columns (oldest first into the shortest column) keep an arrival local: every tile on screen keeps its
-  column. Reduced motion: a plain appearance, no mark.
+  the `[data-media-tile]` entrance in `globals.css`, deliberately not re-declared. The rows push an arrival
+  in from its left edge and glide what it moved; a head arrival while the reader is deep scrolls by exactly
+  how far the photograph at the view's top moved, so nothing they are looking at jumps. Reduced motion: a
+  plain appearance, no mark.
 - **A guest's own photographs, removable ever** (final for the host too): two identities, one control.
   SIGNED IN → `removeMyUploadGuestAction` ([`actions.ts`](<../../src/app/(guest)/e/[token]/actions.ts>)) on
   `remove_my_upload` (`auth.uid()`, any device, for ever); ANONYMOUS → `POST /api/guests/remove` → the
@@ -775,19 +792,19 @@ had" holds only when this device holds a guest ticket a claim would move.
   ONE grid ([`shared/masonry.tsx`](../../src/components/shared/masonry.tsx)) writes `data-mine` and gives
   each a FOURTH mark in the marks' material (`GLASS_MARK` + the `glass-mark-lit` halo) in the TOP-LEFT
   corner, the only one free at every width (play and like own the bottom corners, the desk's hover row the
-  top right). A tap toggles the **Yours filter** ([`yours-filter.ts`](../../src/components/guest/yours-filter.ts),
+  top right). A tap toggles the **Yours filter** ([`yours-filter.ts`](../../src/lib/guest/yours-filter.ts),
   pure): the album narrows under a "Showing yours · Show all" line, the count line keeps saying how big the
   WHOLE album is, and the filter cannot stay live once the guest owns nothing, so removing your last
   photograph never strands you in an empty view. The line is the filter's receipt and its only exit
   besides a mark; Yours also sits in the ONE View menu ([`view-menu.tsx`](../../src/components/shared/view-menu.tsx),
   the host gallery's own object) beside "Download all" in [`live-gallery.tsx`](../../src/components/guest/live-gallery.tsx):
-  a Showing group (Everyone's / Yours (n)) only while the guest owns something, and a Tile size group
-  (Small / Medium / Large, 180 / 240 / 300 px) disabled below 640 with the hint "Wider screens"
-  (`masonry.tsx`'s `PHONE_MAX` forces two columns there regardless of `--album-column`). ★ **THE SIZE ITSELF
-  IS SERVER-RESOLVED, NEVER A CLIENT-ONLY READ**: the page reads the shared `pr_tile_size` cookie the host
-  dashboard does ([`tile-size-cookie.ts`](../../src/lib/shared/tile-size-cookie.ts)'s `resolveTileSize`)
-  and threads it as `initialTileSize` through `EventExperience` to `LiveGallery`, so the first paint is the
-  size a returning guest picked; the write rides `setTileSizeAction`
+  a Showing group (Everyone's / Yours (n)) only while the guest owns something, and a Size group (`kind:
+  "density"`: `album-columns` r2's three steps, in their plain names before the album has measured its box
+  and in photographs a row after). ★ **THE STEP ITSELF IS SERVER-RESOLVED, NEVER A CLIENT-ONLY READ**: the
+  page reads the shared `pr_tile_size` cookie the host dashboard does
+  ([`tile-size-cookie.ts`](../../src/lib/shared/tile-size-cookie.ts)'s `resolveRowStep`, which also reads a
+  masonry surface's legacy width) and threads it as `initialRowStep` through `EventExperience` to
+  `LiveGallery`, so the first paint is the step a returning guest picked; the write rides `setRowStepAction`
   ([`actions.ts`](<../../src/app/(guest)/e/[token]/actions.ts>)), the host action's mirror. The marks are
   omitted wherever Remove is (the demo, a locked gallery).
 
