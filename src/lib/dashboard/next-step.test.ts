@@ -34,6 +34,7 @@ const base: NextStepEvent = {
   pending: 0,
   acceptingUploads: true,
   showReel: true,
+  liveReelEnabled: true,
   reelItems: 2,
   eventDate: null,
 };
@@ -83,6 +84,15 @@ describe("the next best step, per event", () => {
   it("never waits on a reel the host turned off", () => {
     expect(
       nextStepForEvent({ ...base, showReel: false, reelItems: 1 }, TODAY),
+    ).toBeNull();
+  });
+
+  it("never waits on a reel the platform lever paused, even with the switch on", () => {
+    expect(
+      nextStepForEvent(
+        { ...base, liveReelEnabled: false, reelItems: 1 },
+        TODAY,
+      ),
     ).toBeNull();
   });
 

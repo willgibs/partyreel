@@ -2,9 +2,10 @@
 
 import { Heart } from "lucide-react";
 
-import { useLikes } from "@/components/likes/likes-provider";
+import { useIsLiked, useLikes } from "@/components/likes/likes-provider";
 import { ActionTooltip } from "@/components/shared/action-tooltip";
-import type { TileAction } from "@/components/shared/masonry";
+import type { TileAction } from "@/components/shared/album-tile";
+import { probeAlbumRender } from "@/components/shared/album-tile-probe";
 import { GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +22,16 @@ import { cn } from "@/lib/utils";
  * of the one pane (`useLikeAction`, fed to `MasonryColumns`'s `tileActions`).
  * The old `variant="tile"` / `variant="row"` chips are gone with `row=bar`: a
  * chip of its own is exactly the second blurred region that ruling retired.
+ *
+ * ★ EACH READS ITS OWN ID'S HEART (`useIsLiked`), never the whole liked set, so
+ * a like re-renders the mark and the glyph of that one photograph and nothing
+ * else in the album (`likes-provider.tsx`'s head note has the measurement).
  */
+
+/** The like verb's words, by state: the bar's glyph and the viewer's button say the same. */
+export function likeLabel(liked: boolean): string {
+  return liked ? "Unlike" : "Like";
+}
 
 /**
  * ★ THE ROSE MARK CARRIES ITS OWN HAIRLINE, AND NO MATERIAL SAVES IT. Round two
@@ -39,8 +49,8 @@ export function TileLikeMark({
   /** HOST-ONLY (fed server-side by get_event_like_counts; never a guest surface). */
   count?: number;
 }) {
-  const likes = useLikes();
-  const liked = likes?.isLiked(item.id) ?? false;
+  const liked = useIsLiked(item.id);
+  probeAlbumRender("mark", item.id);
   const showCount = typeof count === "number" && count > 0;
   // Nothing to say: a fresh album stays clean, which is the whole point of the
   // rule (an unliked tile has no like affordance at all).
@@ -85,18 +95,22 @@ export function TileLikeMark({
  * hook called in it would change its call count with the album's length. The
  * surface calls this ONCE and closes over the context. Returns a function giving
  * null without a `LikesProvider`, so a surface with no likes has one fewer verb.
+ *
+ * ★ `like: true` AND NO STATE OF ITS OWN. The action says what it is, and the
+ * tile's glyph reads the heart live (`useIsLiked`), so the grid that declared
+ * it never re-renders for a like and the action's content never changes with
+ * one (which is what lets the memoized tile compare actions by content).
  */
 export function useLikeAction(): (item: { id: string }) => TileAction | null {
   const likes = useLikes();
   return (item) => {
     if (!likes) return null;
-    const liked = likes.isLiked(item.id);
     return {
       id: "like",
-      label: liked ? "Unlike" : "Like",
+      label: likeLabel(false),
       icon: Heart,
       tone: "like",
-      active: liked,
+      like: true,
       onSelect: () => likes.toggle(item.id),
     };
   };
@@ -109,15 +123,15 @@ export function useLikeAction(): (item: { id: string }) => TileAction | null {
  */
 export function LikeButton({ item }: { item: { id: string } }) {
   const likes = useLikes();
+  const liked = useIsLiked(item.id);
   if (!likes) return null;
-  const liked = likes.isLiked(item.id);
 
   return (
-    <ActionTooltip label={liked ? "Unlike" : "Like"}>
+    <ActionTooltip label={likeLabel(liked)}>
       <button
         type="button"
         aria-pressed={liked}
-        aria-label={liked ? "Unlike" : "Like"}
+        aria-label={likeLabel(liked)}
         onClick={() => likes.toggle(item.id)}
         className={cn(
           "text-white/80 transition-[color,transform] duration-150 ease-emphasis outline-none hover:text-like focus-visible:text-like active:scale-90 motion-reduce:active:scale-100",

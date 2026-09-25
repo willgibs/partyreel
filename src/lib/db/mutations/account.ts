@@ -16,7 +16,8 @@
  *   4. soft-delete every hosted event into the existing 30-day bin
  *   5. remove the address from the newsletter (BEFORE step 6 nulls it: the sweep
  *      cannot re-derive an address it can no longer read)
- *   6. remove the avatar object, then anonymise the profile
+ *   6. remove the avatar object, scrub the account's guest rows in other hosts'
+ *      events (their addresses and any typed name), then anonymise the profile
  *   7. ban the auth user so nobody can sign back into a half-deleted account
  *
  * ★ NOTHING HERE WRITES AN ENTITLEMENT COLUMN. `tier` / `storage_cap_bytes` /
@@ -37,6 +38,7 @@ import { readAllPages } from "@/lib/db/read-all";
 import {
   ANONYMISED_PROFILE_PATCH,
   isDeletionSchemaMissing,
+  scrubAccountGuestRows,
 } from "@/lib/lifecycle/account-deletion";
 import { captureError } from "@/lib/observability/sentry";
 import {
@@ -179,6 +181,19 @@ export async function requestAccountDeletion({
     eventsBinned = await binHostedEvents(userId, actor);
     newsletterRemoved = await deleteNewsletterSignups(profile.email);
     await removeAvatar(userId);
+    // The account's rows in other hosts' events lose its addresses (and a typed name) before the
+    // profile loses its own. ISOLATED: a failed scrub is captured and costs neither the
+    // anonymisation nor the ban below, because the sweep's re-anonymise repeats it and will not
+    // reach deleteUser until it succeeds (and the BEFORE DELETE trigger nets that delete anyway).
+    try {
+      await scrubAccountGuestRows(admin, userId);
+    } catch (error) {
+      captureError("account", error, {
+        step: "account_deletion_scrub",
+        user_id: userId,
+        actor,
+      });
+    }
     const { error: anonError } = await admin
       .from("profiles")
       .update(ANONYMISED_PROFILE_PATCH)

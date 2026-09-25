@@ -1,65 +1,72 @@
 import type { GridMedia } from "@/components/app/media-grid";
-import { buildReelProps } from "@/lib/reel/build-reel-props";
-import type { ReelProps } from "@/lib/reel/engine/reel-types";
+import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
+import { holdScaleFor } from "@/lib/guest/reel-prefs";
+import { DEFAULT_HOLD_SEC } from "@/lib/reel/defaults";
+import { DEFAULT_STYLE_ID } from "@/lib/reel/engine/style-registry";
+import type { LiveMediaItem } from "@/lib/reel/live/items";
 
 import { EVENT, GALLERY_ITEMS } from "../gallery-fixtures";
 
 /**
- * THE DEMO ALBUM'S OWN TAKE, DRAWN BY THE REAL ENGINE.
+ * THE DEMO ALBUM, AS THE LIVE REEL READS IT.
  *
  * ★ THE SAME STAND-IN EVERY REEL-ROUND BOARD PLAYS. `gallery-fixtures.ts` is
- * the one shared album (Mia & Theo's Wedding), never duplicated
- * (`reel-view`'s own fixtures.ts carries the identical note): eighteen
- * approved items, the same uploaders. This board's `teaser` and `events`
- * asks read it as the marketing site's own demo album, exactly the framing
- * `reel-teaser.tsx` and `event-door.tsx` already give a rendered stand-in
- * today.
+ * the one shared album (Mia & Theo's Wedding), never duplicated: eighteen
+ * approved items, the same four uploaders. This board draws it as the
+ * marketing site's demo album, the framing the event door and the home teaser
+ * already give a stand-in today.
  *
- * `buildReelProps` is the same pure builder the shipped Studio, the render
- * service and the live player all call: a `ReelProps` object built here is
- * drawn by the same `drawReelFrame` every other surface uses, so a specimen
- * mounted with it is not a picture of the engine, it is the engine.
+ * ★ THE REAL SHAPES, NOT THE MASONRY'S. The gallery fixture declares a tile
+ * RATIO per item (4:5, 16:10...) so a grid gets a mix of shapes out of twelve
+ * stills; the live reel frames each clip by its real shape (portrait or
+ * landscape decides how a mood places it), so this reads each still's own
+ * pixels off the manifest instead.
  *
- * The style is a stand-in, named as one: "Cinematic" (`classic`) is today's
- * default mood, the safest constant across boards; the ruling's own default
- * is "a new loop-tuned mood" nothing has designed yet. No ask on this board
- * is about which mood plays.
+ * ★ LOCAL STILLS, ON PURPOSE. The real demo album's photographs are presigned
+ * R2 urls, and R2 answers no CORS to localhost, so on a local lab its reel
+ * draws black (measured on /e/<demo>?reel, 2026-09-25). The manifest's stills
+ * are same-origin, so every frame here plays on the real engine anywhere.
+ *
+ * The look is the view's own default: the default mood at the default hold, on
+ * the wall surface the view plays at (`live-reel-view.tsx`).
  */
 
-const REEL_SEED = 240_926;
-const STYLE_ID = "classic";
+const BY_SRC = new Map(MARKETING_IMAGES.map((img) => [img.src, img]));
 
-const ORDERED_IDS = GALLERY_ITEMS.map((m: GridMedia) => m.id);
-const BY_ID = new Map(GALLERY_ITEMS.map((m: GridMedia) => [m.id, m]));
+/** An evening's uploads, newest first, one every twenty minutes. */
+const EVENT_START = Date.parse(`${EVENT.date}T18:00:00.000Z`);
 
-export const DEMO_REEL_LANDSCAPE: ReelProps = buildReelProps({
-  orderedIds: ORDERED_IDS,
-  byId: BY_ID,
-  styleId: STYLE_ID,
-  seed: REEL_SEED,
-  orientation: "landscape",
-  watermark: false,
-});
-
-export const DEMO_REEL_PORTRAIT: ReelProps = buildReelProps({
-  orderedIds: ORDERED_IDS,
-  byId: BY_ID,
-  styleId: STYLE_ID,
-  seed: REEL_SEED,
-  orientation: "portrait",
-  watermark: false,
-});
-
-export { EVENT };
-
-/** The `teaser` ask's crossfade option: the album's own handful of stills, the
- *  same fixture every reel-round board plays, never a second album. */
-export const TEASER_STILLS: string[] = GALLERY_ITEMS.slice(0, 6).map(
-  (m: GridMedia) => m.url,
+export const DEMO_ITEMS: LiveMediaItem[] = GALLERY_ITEMS.map(
+  (m: GridMedia, i) => {
+    const still = BY_SRC.get(m.url);
+    return {
+      id: m.id,
+      type: "photo",
+      url: m.url,
+      previewUrl: m.previewUrl ?? m.url,
+      width: still?.width ?? m.width ?? null,
+      height: still?.height ?? m.height ?? null,
+      status: "approved",
+      createdAt: new Date(
+        EVENT_START + (GALLERY_ITEMS.length - i) * 1_200_000,
+      ).toISOString(),
+      uploaderKey: m.uploaderKey ?? null,
+      uploaderName: m.uploaderName ?? null,
+      isHost: m.isHost ?? false,
+    };
+  },
 );
 
-/* ── the shared screen knob every ask carries (`configs: [SCREEN]` in spec.ts) ── */
+/** One event id for every source, so every option plays the same take. */
+export const DEMO_EVENT_ID = "demo-album";
 
-export type ScreenId = "1440" | "375";
-export const screenOf = (v?: string): ScreenId => (v === "375" ? "375" : "1440");
-export const phoneOf = (screen: ScreenId): boolean => screen === "375";
+export const LIVE_STYLE_ID = DEFAULT_STYLE_ID;
+export const LIVE_HOLD_SCALE = holdScaleFor(DEFAULT_HOLD_SEC, LIVE_STYLE_ID);
+
+/** The album's counts, read off the fixture (a caption quotes them). */
+export const DEMO_COUNTS = {
+  items: DEMO_ITEMS.length,
+  guests: new Set(DEMO_ITEMS.map((m) => m.uploaderKey)).size,
+};
+
+export { EVENT };

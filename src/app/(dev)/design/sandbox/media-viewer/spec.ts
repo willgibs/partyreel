@@ -2,32 +2,30 @@ import type { Control } from "@/components/lab/board-spec";
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * WHAT A PHOTOGRAPH OPENS AS, ROUND TWO: THE OWN-ITEM MARK.
+ * WHAT A PHOTOGRAPH OPENS AS, ROUND THREE: THE OWN-ITEM MARK, AGAIN.
  *
- * Round one's eight decisions are answered (`docs/reviews/media-viewer.json`,
- * 2026-09-24) and are landing on the real component via `media-viewer-wiring`
- * at the same time as this round: the opening grows out of where it was, the
- * credit is face-led, the actions sit in a floating capsule, the neighbours
- * peek at the edges, pinch reaches close, a video plays muted with a scrubber,
- * the way out is a swipe down or a blank tap, and Share sends the file with
- * Save reaching the phone's Photos library first. None of that is reopened
- * here; round one's own preview code stands, unimported, in `board-r1.tsx`
- * (`site-chrome`'s own precedent at its round two).
+ * Round one's eight are built (`media-viewer-wiring`), so its frames retired
+ * with this round; git has them. Round two asked `mine` alone and Will took
+ * the ring with a doubt of his own (`docs/reviews/media-viewer.json`): "I can
+ * already see that neighboring uploads from the same user would have
+ * overlapping rings, but this is far less intrusive than the glass dot or
+ * worded corner. Curious if you could solve it even better... If not, we'll
+ * scratch and go nothing at all. Simply use a filter to find yours."
  *
- * ★ ONE SURVIVING QUESTION, HIS OWN NOTE ON `holds`: "Don't love our 'own
- * photo' marker or placement." `mine` is that note, cut narrower than it
- * reads at first: not the floating action capsule (his own pick, shipped),
- * but the OTHER own-item mark, the one on the GRID (`masonry.tsx`'s
- * `MineMark`, the top-left glass dot that also toggles the Yours filter),
- * which the open viewer itself no longer carries at all — inside it, the
- * credit already reads "You" on your own item (`media-viewer-wiring`'s own
- * call), so this ask is the grid's mark alone.
+ * ★ HE WAS RIGHT, AND ROUND TWO COULD NOT HAVE SHOWN IT. Its ring was
+ * `ring-2 ring-offset-2`: a 2px band of the ground and 2px of ink OUTSIDE the
+ * tile, 4px in all, exactly the album's 4px gutter, so two neighbours' rings
+ * met in the middle of it. And the board spaced this guest's photographs
+ * every ninth tile, so no two ever stood side by side. Uploads arrive in
+ * bursts; round three draws one, on the real rows (the album's layout from
+ * here on, `album-columns`), and keeps every mark inside the tile.
+ *
+ * The standing filter (View's Showing: Everyone's / Yours) and the viewer's
+ * own "You" credit are unmoved by every option; only what a tile of hers
+ * wears at rest changes.
  */
 
-/**
- * THE SCREEN, the knob this round's one ask still shares. 375 by default,
- * everywhere: this is still the phone-first board.
- */
+/** The screen: phone first, as every round of this board. */
 const SCREEN: Control = {
   id: "screen",
   label: "Screen",
@@ -38,80 +36,106 @@ const SCREEN: Control = {
   default: "375",
 };
 
-const DRAFT = defineExploration({
+/**
+ * THE GROUND, forced inside the frame rather than left to the lab's theme: a
+ * mark drawn in the page's inks is a different line on paper than in the
+ * dark room, and both are asked about.
+ */
+const GROUND: Control = {
+  id: "ground",
+  label: "Ground",
+  options: [
+    { id: "light", label: "Light" },
+    { id: "dark", label: "Dark" },
+  ],
+  default: "light",
+};
+
+export const MEDIA_VIEWER = defineExploration({
   id: "media-viewer",
   title: "Opening a photograph",
   round: {
-    n: 2,
-    date: "2026-09-24",
+    n: 3,
+    date: "2026-09-25",
     changed:
-      "Round two: one ask, mine, the grid's own-item mark. Round one's eight are answered and landing via media-viewer-wiring; none reopened here.",
+      "Round three: mine again, on the real rows, with her photos arriving as uploads do, a pick of five side by side at the head. Round two's ring sat outside the tile, as wide as the gutter, so neighbours met; every mark here stays inside.",
   },
   history: [
+    {
+      n: 2,
+      date: "2026-09-24",
+      changed:
+        "One ask, mine, the grid's own-item mark; round one's eight answered and wired. He took the ring, doubting it: neighbours from one guest would run together.",
+    },
     {
       n: 1,
       date: "2026-09-22",
       changed:
-        "Rechecked against the identity and reel rounds: a photograph opens from a tile or the live reel, so the opening, a video and the way out are drawn from both; every credit is drawn on the identity model; the link is asked beside the reel's own address.",
+        "Eight decisions on the viewer, drawn from a tile and from the live reel: the opening, what it holds, the credit, the next one, close up, video, the way out, the link.",
     },
   ],
   context:
-    "The grid behind the viewer, the same twenty-six item wedding, at 375 with 1440 on the knob. Every option marks the same three tiles this device added; the standing Yours filter and the viewer's own credit are unmoved by any of them.",
+    "Maya and Jay's wedding as Priya sees it a moment after her pick of five landed: the album's head on the real rows at the middle step, three singles of hers further down, one of the five a clip. Every mark is a line of the page's ink on a band of its ground, so it reads over a white sky or a black dance floor, light and dark, and never as an arrival's white light. View's Yours filter is the same under all four.",
+  carried: [
+    {
+      id: "mark-ink",
+      question: "What is a mark drawn in?",
+      taken:
+        "The page's ink: a line on a band of the ground, inside the tile. It reads on any photo in both themes and is never the white light an arrival already means.",
+      overrule:
+        "White light with a halo, like the play mark, would match the tile's other marks and read as an arrival rim that never fades.",
+    },
+    {
+      id: "run-rows",
+      question: "When a burst wraps, one outline per row or one joined shape?",
+      taken:
+        "One per row: joined across the row break it becomes a staircase that reads as a selection, and each row still reads as part of one pick.",
+      overrule:
+        "Joined, a burst is one shape however it wraps, drawn the way a text selection crosses lines; the rows already know where every break falls.",
+    },
+  ],
   asks: [
     {
       id: "mine",
       label: "The own-item mark",
-      question: "What shape and place should the grid's own-item mark take?",
+      question: "How should the album mark the photos that are yours?",
       context:
-        'His note: "Don\'t love our own photo marker or placement." Today\'s is a top-left dot toggling Yours. The viewer already credits your item "You"; this is the grid\'s mark alone.',
+        "Your note on the ring: it intrudes least, but neighbouring uploads would run together. They do: uploads land in bursts, so five of hers stand side by side here and wrap. Every mark stays inside her tiles.",
       options: [
         {
-          id: "dot",
-          label: "The glass dot, as shipped",
+          id: "inset",
+          label: "A ring inside each tile",
           means:
-            "Unlabeled, top-left, a tap toggles the standing Yours filter. Legible only once a guest has already found and tried it.",
+            "Round two's ring moved inside the edge: each of hers framed on its own, two neighbours two rings with the 4px gutter between. The busiest on a burst.",
         },
         {
-          id: "label",
-          label: "The same corner, worded",
+          id: "run",
+          label: "One outline round each run",
           means:
-            'The same top-left slot, a small "Yours" pill in place of the dot: legible cold, no tap needed to learn what it means.',
+            "Hers side by side in a row share one outline, the gutters between them bridged: a burst reads as one group, a single as one framed photo.",
         },
         {
-          id: "ring",
-          label: "A ring round the whole tile",
+          id: "baseline",
+          label: "An underline under each run",
           means:
-            "No corner glyph at all: a soft accent ring on every tile that is yours. The standing Yours control keeps the filter.",
+            "A line along the bottom edge, joined under hers side by side. The lightest mark that still groups a burst; the top and sides stay clear.",
         },
         {
           id: "none",
-          label: "Nothing on the tile at all",
+          label: "Nothing on the tiles",
           means:
-            'The grid carries no mark; the standing Yours control still filters, and the viewer\'s own "You" still credits it once open.',
+            "No mark at all: View's Showing (Everyone's or Yours) finds them, drawn open here. Once open, the viewer still credits yours as You.",
         },
       ],
-      recommended: "ring",
+      recommended: "run",
       because:
-        "It answers both halves of his note at once: no ambiguous glyph to decode, and no corner at all, since the mark rides the whole tile rather than the corner he dislikes.",
+        "Uploads arrive in bursts, and a burst is one moment: one outline says so, where a ring apiece stacks frames side by side. A single still reads as one framed photo, and an outline never takes in a tile that is not hers.",
       overrule:
-        "If a guest scans a big album fast, the worded pill costs the least change from today's shape and still reads with no legend.",
+        "If one outline is still more than an album should carry, the underline groups a burst with a single line; nothing at all leaves it to View.",
       lands:
-        "Whether the grid keeps a per-tile mark at all, and if so, whether it lives in a corner or on the whole tile.",
+        "What a guest's own photos wear on the album she is a guest of; the host's grid keeps its own marks.",
       tile: "phone",
-      configs: [SCREEN],
+      configs: [SCREEN, GROUND],
     },
   ],
 });
-
-/**
- * ★ ONE KNOB PER ID, NOT ONE PER DECISION THAT USES IT.
- * `defineExploration` flattens every decision's `configs` into the board's
- * controls; one ask still means one declaration is enough, and the dedupe is
- * kept so a third ask never draws SCREEN twice by accident.
- */
-export const MEDIA_VIEWER: typeof DRAFT = {
-  ...DRAFT,
-  controls: DRAFT.controls?.filter(
-    (c, i, all) => all.findIndex((d) => d.id === c.id) === i,
-  ),
-};

@@ -66,11 +66,11 @@ export const PALETTE_ACTIONS: PaletteEntry[] = [
     keywords: ["kill switch", "zip", "export"],
   },
   {
-    id: "action-reels",
-    label: "Pause or resume reel videos",
-    href: "/admin/reels#reel-renders",
-    meta: "Reels",
-    keywords: ["kill switch", "render", "video"],
+    id: "action-live-reel",
+    label: "Pause or resume the live reel",
+    href: "/admin/exports#live-reel",
+    meta: "Exports",
+    keywords: ["kill switch", "highlight reel", "clip", "make your own"],
   },
   {
     id: "action-announce",

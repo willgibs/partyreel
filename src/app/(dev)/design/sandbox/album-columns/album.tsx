@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 
 import { GALLERY_ITEMS } from "@/app/(dev)/design/sandbox/gallery-fixtures";
 import type { GridMedia } from "@/components/app/media-grid";
-import { MasonryColumns, type RowRhythm } from "@/components/shared/masonry";
+import type { RowRhythm } from "@/components/shared/album-window";
+import { MasonryColumns } from "@/components/shared/masonry";
 import type { RowStep } from "@/lib/shared/album-rows";
 import { ARRIVAL_GLOW_MS } from "@/lib/shared/arrival";
 

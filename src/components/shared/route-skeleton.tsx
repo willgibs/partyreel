@@ -1,29 +1,24 @@
 import { EVENT_CARD_GRID } from "@/components/app/dashboard/event-card-grid";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 
-export type RouteSkeletonVariant = "pulse" | "hub" | "studio";
+export type RouteSkeletonVariant = "pulse" | "hub";
 
 /**
- * ONE ROUTE SKELETON, THREE SHAPES (`app-vocabulary` r1, `loading=asneeded`:
- * the dashboard, the event hub and the reel Studio share one real trait the
- * other four host routes do not — a genuine wait before first paint (all
- * three presign at least one URL before they can render anything), so one
- * shared primitive is wired to exactly those three, named as a rule rather
- * than spread to routes already instant (Settings, Account) or stripped from
- * where it is earned).
+ * ONE ROUTE SKELETON, TWO SHAPES (`app-vocabulary` r1, `loading=asneeded`:
+ * the dashboard and the event hub share one real trait the other host routes
+ * do not, a genuine wait before first paint (both presign URLs before they can
+ * render anything), so one shared primitive is wired to exactly those two,
+ * named as a rule rather than spread to routes already instant (Settings,
+ * Account) or stripped from where it is earned).
  *
  * `dashboard/loading.tsx` and `dashboard/[eventId]/loading.tsx` BECAME this
  * (their content moved here byte for byte, so nothing about either shape
- * changed); the Studio gets its FIRST skeleton here, on its real shape
- * (`reel-studio.tsx`) rather than the sandbox exploration's rough grid sketch
- * ("nothing like this ships today, never a proposal for its exact layout" —
- * that file's own caption).
+ * changed). The reel Studio's shape left with the Studio: the live reel makes
+ * itself, and a clip's room opens over the reel, never as a route.
  */
 export function RouteSkeleton({ variant }: { variant: RouteSkeletonVariant }) {
   if (variant === "pulse") return <PulseSkeleton />;
-  if (variant === "hub") return <HubSkeleton />;
-  return <StudioSkeleton />;
+  return <HubSkeleton />;
 }
 
 // The dashboard's pulse: header + the next-step band + the arrivals strip +
@@ -126,74 +121,6 @@ function HubSkeleton() {
             <Skeleton key={i} className="aspect-square rounded-lg" />
           ))}
         </div>
-      </div>
-    </div>
-  );
-}
-
-// A shimmer block for the Studio's always-dark room. The shared Skeleton's
-// gradient is tinted off --color-foreground (a THEME token), which on this
-// room's literal oklch(0.11 0 0) reads as a stray light patch on roughly half
-// of all visits (the room ignores the site's light/dark preference on
-// purpose, reel-studio.tsx's own words: "its own world"). White at low alpha
-// instead, the same shimmer sweep, hand-composed rather than overriding
-// Skeleton's own background classes (an arbitrary bg-[linear-gradient(...)]
-// beside another is the kind of override tailwind-merge is not guaranteed to
-// resolve the way a reader expects).
-function DarkSkeleton({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        "animate-shimmer rounded-md bg-white/10 bg-[linear-gradient(100deg,transparent_38%,rgba(255,255,255,0.14)_50%,transparent_62%)] bg-[length:200%_100%] motion-reduce:animate-none",
-        className,
-      )}
-    />
-  );
-}
-
-// The Studio's own shape (reel-studio.tsx): a fixed, full-bleed, always-dark
-// room — exit left, the room's name centered, one loud action right; the
-// canvas as the room, centred and capped at the player's own widths; the
-// filmstrip dock; the five-chip control tray. NOT a bare `space-y-6` div: the
-// real room sits OUTSIDE the (app) shell's light chrome entirely (`fixed
-// inset-x-0 top-0 z-40`), so a light skeleton in the normal flow would flash
-// the app's background for one frame before the room paints over it.
-function StudioSkeleton() {
-  return (
-    <div
-      aria-busy
-      className="fixed inset-x-0 top-0 z-40 flex h-dvh flex-col overflow-x-clip bg-[oklch(0.11_0_0)]"
-    >
-      {/* Header: exit left, the room's name, one loud action right. */}
-      <div className="relative z-10 flex items-center justify-between gap-2 px-3 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-2">
-        <DarkSkeleton className="size-9 shrink-0 rounded-full" />
-        <div className="flex min-w-0 flex-col items-center gap-1.5">
-          <DarkSkeleton className="h-2.5 w-20" />
-          <DarkSkeleton className="h-2 w-14" />
-        </div>
-        <DarkSkeleton className="h-9 w-20 shrink-0 rounded-action-sm" />
-      </div>
-
-      {/* The canvas: the reel's own frame, centred and capped exactly like
-          CanvasReelPlayer (portrait by default — most reels start there). */}
-      <div className="relative min-h-0 flex-1 px-6">
-        <div className="mx-auto aspect-[9/16] h-full max-w-full">
-          <DarkSkeleton className="mx-auto h-full w-full max-w-[360px] rounded-xl" />
-        </div>
-      </div>
-
-      {/* The dock: the filmstrip's thumbnails. */}
-      <div className="relative z-10 flex justify-center gap-1.5 px-3 pt-2">
-        {Array.from({ length: 5 }, (_, i) => (
-          <DarkSkeleton key={i} className="size-10 shrink-0 rounded-md" />
-        ))}
-      </div>
-
-      {/* The control tray: Moments, Style, Cover, Length, Layout. */}
-      <div className="relative z-10 flex justify-center gap-1.5 px-3 pt-2 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-        {["w-16", "w-12", "w-14", "w-16", "w-14"].map((w, i) => (
-          <DarkSkeleton key={i} className={cn("h-8 rounded-action-sm", w)} />
-        ))}
       </div>
     </div>
   );

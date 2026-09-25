@@ -15,7 +15,9 @@
  *   and hides with it, and every control carries a tooltip.
  * - THE DOCK: one row of icon buttons (play/pause, Include videos, Style, Hold, Show the code at a
  *   desk, Add yours; the event's owner also gets Play on a screen at a desk), and beneath it "Make
- *   your own" as the single primary, only once a creator is registered.
+ *   your own" as the single primary, only once a creator is registered. On a browser that cannot
+ *   encode it stays in its slot, greyed, and a tap bubbles up why (`noencode=greyed`): nothing is
+ *   ever written over the reel.
  * - THE ARRIVALS: a fresh upload names its uploader top left for one hold, a burst stacking into a
  *   short feed ("Theo +12").
  * - THE CODE: a white plate bottom right, "Scan to add yours" and the readable address. No event
@@ -49,6 +51,7 @@ import {
 } from "lucide-react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import {
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -56,7 +59,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, ReactNode, RefObject } from "react";
 import { toast } from "sonner";
 
 import { StyledQr } from "@/components/app/styled-qr";
@@ -128,17 +131,21 @@ import {
 import { isReelEligible, type LiveMediaItem } from "@/lib/reel/live/items";
 import { createClipSource, type ClipSource } from "@/lib/reel/live/source";
 import { resolveLiveStyleId } from "@/lib/reel/live/window";
+import { probeClipSupport, useClipSupport } from "@/lib/reel/clip-support";
+import { NO_ENCODER_WORDS } from "@/lib/reel/clip-words";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
 
-import type { ReelCreator } from "./creator-seam";
+import { preloadReelCreator, type ReelCreator } from "./creator-seam";
 
 export type ReelViewProps = {
   mode: ReelMode;
   /** The screen posture below the minimum: the code and the address alone. */
   idle: boolean;
   eventId: string;
+  /** The event's name, for the clip's room (never drawn on the reel itself). */
+  eventName: string;
   joinUrl: string;
   displayAddress: string;
   qrStyle: string;
@@ -148,13 +155,25 @@ export type ReelViewProps = {
   onAddYours?: () => void;
   creator: ReelCreator | null;
   addClipToAlbum: ((file: File, poster: Blob) => void) | null;
+  /** The album holds guests' uploads for the host's review (the creator's Add to event says so). */
+  moderated?: boolean;
+  /**
+   * The creator was asked for before the view opened (the tile's "Make your own clip to share"): it
+   * opens the moment this browser is known to make clips, or the greyed button explains why not.
+   */
+  creatorAsked?: boolean;
+  /** The ask is spent (read once, on arrival). */
+  onCreatorAskSpent?: () => void;
   /** The event's owner is watching (the host's extras: Play on a screen, Set for everyone). */
   isOwner?: boolean;
   /**
    * The owner's "Set for everyone": the look and hold this device shows become the event's defaults
    * (reel-defaults-migration's `setReelDefaults`, bound by the controller). Resolves whether it took.
    */
-  onSetForEveryone?: (look: { styleId: string; holdSec: number }) => Promise<boolean>;
+  onSetForEveryone?: (look: {
+    styleId: string;
+    holdSec: number;
+  }) => Promise<boolean>;
   onClose: () => void;
 };
 
@@ -172,6 +191,7 @@ export function LiveReelView({
   mode,
   idle,
   eventId,
+  eventName,
   joinUrl,
   displayAddress,
   qrStyle,
@@ -180,6 +200,9 @@ export function LiveReelView({
   onAddYours,
   creator,
   addClipToAlbum,
+  moderated = false,
+  creatorAsked = false,
+  onCreatorAskSpent,
   isOwner = false,
   onSetForEveryone,
   onClose,
@@ -232,10 +255,13 @@ export function LiveReelView({
     startAt?: number;
   } | null>(null);
   const [creatorOpen, setCreatorOpen] = useState(false);
+  // The greyed Make your own's reason (`noencode=greyed`), bubbled up for a few seconds.
+  const [whyNot, setWhyNot] = useState(false);
   // Never settles BY ITSELF while it is being used, while the reel is paused (a paused reel shows
-  // its controls), or under reduced motion (a control that vanishes unasked is exactly the motion
-  // the setting exists to remove). The viewer can still fold it away on purpose (the timeline).
-  const pinned = paused || menuOpen || dockFocus || reduced;
+  // its controls), under reduced motion (a control that vanishes unasked is exactly the motion
+  // the setting exists to remove), or while a reason is bubbled up from it. The viewer can still
+  // fold it away on purpose (the timeline).
+  const pinned = paused || menuOpen || dockFocus || reduced || whyNot;
   const chromeRef = useRef(chrome);
   const pinnedRef = useRef(pinned);
   const idleMsRef = useRef(IDLE_POINTER_MS);
@@ -356,7 +382,11 @@ export function LiveReelView({
   const pillUp = screen && !idle && (fullscreenable ? !filled : !pressed);
   // The owner's second tab: the same view in its screen posture, for the laptop on the wall.
   const openOnScreen = useCallback(() => {
-    window.open(withReelParam(window.location.href, "screen"), "_blank", "noopener");
+    window.open(
+      withReelParam(window.location.href, "screen"),
+      "_blank",
+      "noopener",
+    );
   }, []);
 
   /* ── the arrivals ────────────────────────────────────────────────────────── */
@@ -404,12 +434,70 @@ export function LiveReelView({
     setPaused(pausedBeforeRef.current);
   }, []);
 
-  /* ── the creator (the clip lane's) ────────────────────────────────────────── */
-  const openCreator = useCallback(() => {
+  /* ── the creator (the clip's own room, through the seam) ──────────────────── */
+  // The host's plan for a clip, the server's (null where it could not be read: no creator then).
+  const clipFacts = live?.reel?.clip ?? null;
+  const creatorOffered = Boolean(creator && clipFacts);
+  // Asked of the device once per page, and only when a clip could be offered at all.
+  const support = useClipSupport(creatorOffered);
+  // The greyed button's reason, bubbled up for a few seconds after a tap (never a paragraph over the
+  // reel). A tap while the probe is still out waits for its answer.
+  const whyNotTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const explainNoEncoder = useCallback(() => {
+    setWhyNot(true);
+    if (whyNotTimer.current) clearTimeout(whyNotTimer.current);
+    whyNotTimer.current = setTimeout(() => setWhyNot(false), 4200);
+  }, []);
+  useEffect(
+    () => () => {
+      if (whyNotTimer.current) clearTimeout(whyNotTimer.current);
+    },
+    [],
+  );
+  const enterCreator = useCallback(() => {
     pausedBeforeRef.current = paused;
     setPaused(true);
     setCreatorOpen(true);
   }, [paused]);
+  const openCreator = useCallback(() => {
+    if (support === "yes") {
+      enterCreator();
+      return;
+    }
+    if (support === "no") {
+      explainNoEncoder();
+      return;
+    }
+    void probeClipSupport().then((ok) => {
+      if (ok) enterCreator();
+      else explainNoEncoder();
+    });
+  }, [support, enterCreator, explainNoEncoder]);
+  // The tile's own line asked for the creator before the view existed: answered once the device
+  // has, with the dock up so a greyed door is where the explanation points. The ask is spent only
+  // when the answer lands, so a remount on the way (React's own double run) never drops it.
+  const askRef = useRef(creatorAsked);
+  useEffect(() => {
+    if (!askRef.current || !creatorOffered) return;
+    let alive = true;
+    void probeClipSupport().then((ok) => {
+      if (!alive || !askRef.current) return;
+      askRef.current = false;
+      onCreatorAskSpent?.();
+      if (ok) {
+        enterCreator();
+      } else {
+        setChrome("up");
+        explainNoEncoder();
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, [creatorOffered, enterCreator, explainNoEncoder, onCreatorAskSpent]);
+
+  // The dock's pane: the greyed door's reason is placed above it (the pane clips what it holds).
+  const dockRef = useRef<HTMLDivElement>(null);
 
   /* ── the keyboard ────────────────────────────────────────────────────────── */
   const contentRef = useRef<HTMLDivElement>(null);
@@ -445,12 +533,14 @@ export function LiveReelView({
     () => qrSizing({ joinUrl, qrStyle, viewport, screen }),
     [joinUrl, qrStyle, viewport, screen],
   );
-  const clipFacts = live?.reel?.clip ?? null;
 
   /* ── the owner's Set for everyone ────────────────────────────────────────── */
   // What everyone sees: the event's defaults, or what this device just set for everyone (the next
   // poll's facts say the same thing a moment later).
-  const [setLook, setSetLook] = useState<{ styleId: string; holdSec: number } | null>(null);
+  const [setLook, setSetLook] = useState<{
+    styleId: string;
+    holdSec: number;
+  } | null>(null);
   const everyoneLook = setLook ?? {
     styleId: resolveLiveStyleId(hostStyle),
     holdSec: resolveHoldSec(hostHold),
@@ -561,7 +651,9 @@ export function LiveReelView({
             aria-hidden
             className={cn(
               "pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/35 to-transparent transition-opacity duration-200 ease-emphasis",
-              chromeUp || rows.length > 0 || pillUp ? "opacity-100" : "opacity-0",
+              chromeUp || rows.length > 0 || pillUp
+                ? "opacity-100"
+                : "opacity-0",
             )}
           />
 
@@ -588,7 +680,7 @@ export function LiveReelView({
                 bottom: `calc(${screen ? "1.5rem" : "0.75rem"} + env(safe-area-inset-bottom))`,
                 transform:
                   chromeUp && viewport.w < 720
-                    ? `translateY(-${creator && clipFacts ? 150 : 104}px)`
+                    ? `translateY(-${creatorOffered ? 150 : 104}px)`
                     : undefined,
               }}
               data-reel-code
@@ -641,15 +733,26 @@ export function LiveReelView({
                 writeHoldSec(qrToken, sec);
               }}
               showCode={showCode}
-              onToggleCode={desktop ? () => setShowCode((on) => !on) : undefined}
+              onToggleCode={
+                desktop ? () => setShowCode((on) => !on) : undefined
+              }
               onPlayOnScreen={isOwner && desktop ? openOnScreen : undefined}
               styleFooter={styleFooter}
               onAddYours={onAddYours}
-              onMakeYourOwn={creator && clipFacts ? openCreator : undefined}
+              onMakeYourOwn={creatorOffered ? openCreator : undefined}
+              makeGreyed={support === "no"}
+              whyNot={whyNot}
+              paneRef={dockRef}
               onMenuOpenChange={setMenuOpen}
               onFocusWithin={setDockFocus}
               addLabel={isDemo ? "Add yours (a demo upload)" : "Add yours"}
             />
+          )}
+
+          {/* THE GREYED DOOR'S REASON (`noencode=greyed`): bubbled up over the dock for a few seconds
+              after a tap, never a paragraph standing over the reel. */}
+          {!idle && creatorOffered && support === "no" && whyNot && (
+            <WhyNotBubble anchor={dockRef} />
           )}
 
           {/* THE MEDIA VIEWER, for a tapped photograph: grown out of the frame, a video carrying on
@@ -668,9 +771,18 @@ export function LiveReelView({
             </LikesProvider>
           )}
 
-          {/* THE CREATOR (the clip lane's component, through the seam). */}
+          {/* THE CREATOR: the clip's own room, a dialog of its own over this one (so Escape, focus
+              and the reader's world are its own while it is open). The chunk arrives on the tap;
+              until it lands the room's ground covers the reel, so nothing flashes through. */}
           {creatorOpen && creator && clipFacts && (
-            <div className="absolute inset-0 z-40">
+            <Suspense
+              fallback={
+                <div
+                  aria-hidden
+                  className="absolute inset-0 z-40 bg-[oklch(0.11_0_0)]"
+                />
+              }
+            >
               {(() => {
                 const Creator = creator;
                 return (
@@ -678,8 +790,12 @@ export function LiveReelView({
                     items={playable}
                     styleId={styleId}
                     eventId={eventId}
+                    eventName={eventName}
                     facts={clipFacts}
                     addClipToAlbum={addClipToAlbum}
+                    isOwner={isOwner}
+                    moderated={moderated}
+                    ownIds={live?.ownIds ?? null}
                     onClose={() => {
                       setCreatorOpen(false);
                       setPaused(pausedBeforeRef.current);
@@ -687,7 +803,7 @@ export function LiveReelView({
                   />
                 );
               })()}
-            </div>
+            </Suspense>
           )}
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
@@ -711,9 +827,7 @@ function useLiveSource(
   items: readonly GalleryItem[],
   ownIds: ReadonlySet<string> | null,
 ): ClipSource {
-  const [source] = useState(() =>
-    createClipSource({ eventId, items, ownIds }),
-  );
+  const [source] = useState(() => createClipSource({ eventId, items, ownIds }));
   useEffect(() => {
     source.setItems(items);
   }, [source, items]);
@@ -882,7 +996,13 @@ function useArrivalFeed({
   return useMemo(() => arrivalRows(feed), [feed]);
 }
 
-function ArrivalFeed({ rows, screen }: { rows: ArrivalRow[]; screen: boolean }) {
+function ArrivalFeed({
+  rows,
+  screen,
+}: {
+  rows: ArrivalRow[];
+  screen: boolean;
+}) {
   if (rows.length === 0) return null;
   return (
     <ol
@@ -1063,7 +1183,9 @@ function SetForEveryoneFooter({
   return (
     <DropdownMenuFooter data-reel-set-everyone>
       <p className="px-2 pt-1 text-caption text-muted-foreground">
-        {isEveryones ? "Everyone sees this look" : "Only on this device, for now"}
+        {isEveryones
+          ? "Everyone sees this look"
+          : "Only on this device, for now"}
       </p>
       {!isEveryones && (
         <DropdownMenuItem
@@ -1130,7 +1252,9 @@ function ChromeButton({
       </TooltipTrigger>
       <TooltipContent side="top" sideOffset={8}>
         {label}
-        {shortcut ? <kbd className="ml-1 text-background/60">{shortcut}</kbd> : null}
+        {shortcut ? (
+          <kbd className="ml-1 text-background/60">{shortcut}</kbd>
+        ) : null}
       </TooltipContent>
     </Tooltip>
   );
@@ -1188,6 +1312,47 @@ function MenuButton({
   );
 }
 
+/**
+ * The greyed Make your own's reason, over the dock it points from. The dock's pane clips whatever
+ * it holds (its bar-to-dock morph is a clip-path), so the reason stands outside it, placed by the
+ * pane's own box: measured by a ResizeObserver, which also answers once as it starts watching.
+ */
+function WhyNotBubble({
+  anchor,
+}: {
+  anchor: RefObject<HTMLDivElement | null>;
+}) {
+  const [bottom, setBottom] = useState<number | null>(null);
+  useEffect(() => {
+    const pane = anchor.current;
+    if (!pane) return;
+    const place = () =>
+      setBottom(window.innerHeight - pane.getBoundingClientRect().top + 10);
+    const watch = new ResizeObserver(place);
+    watch.observe(pane);
+    window.addEventListener("resize", place);
+    return () => {
+      watch.disconnect();
+      window.removeEventListener("resize", place);
+    };
+  }, [anchor]);
+  return (
+    <span
+      id="lr-why-not"
+      data-reel-why-not
+      role="status"
+      style={bottom === null ? undefined : { bottom }}
+      className="absolute bottom-40 left-1/2 z-40 w-max max-w-[min(27ch,calc(100vw-2rem))] -translate-x-1/2 rounded-float bg-popover px-3 py-2 text-center text-caption text-popover-foreground shadow-layer ring-1 ring-foreground/10"
+    >
+      {NO_ENCODER_WORDS}
+      <span
+        aria-hidden
+        className="absolute -bottom-1 left-1/2 size-2 -translate-x-1/2 rotate-45 bg-popover"
+      />
+    </span>
+  );
+}
+
 function ReelDock({
   state,
   playing,
@@ -1209,6 +1374,9 @@ function ReelDock({
   styleFooter,
   onAddYours,
   onMakeYourOwn,
+  makeGreyed = false,
+  whyNot = false,
+  paneRef,
   onMenuOpenChange,
   onFocusWithin,
   addLabel,
@@ -1236,6 +1404,12 @@ function ReelDock({
   styleFooter?: ReactNode;
   onAddYours?: () => void;
   onMakeYourOwn?: () => void;
+  /** This browser cannot encode: the door stays, greyed, and a tap explains. */
+  makeGreyed?: boolean;
+  /** The greyed door's reason is bubbled up right now (drawn by the view, above the pane). */
+  whyNot?: boolean;
+  /** The pane itself, which the reason is placed above. */
+  paneRef?: RefObject<HTMLDivElement | null>;
   onMenuOpenChange: (open: boolean) => void;
   onFocusWithin: (focused: boolean) => void;
   addLabel: string;
@@ -1249,7 +1423,7 @@ function ReelDock({
           "lr-pane absolute bottom-[calc(0.75rem+env(safe-area-inset-bottom))] left-1/2 z-30 -translate-x-1/2 text-white",
           // As wide as its controls, never the screen: the bar grows about twice its size into a
           // capsule rather than into a banner, and the picture keeps the rest.
-          "w-max min-w-[15rem] max-w-[calc(100vw-1.5rem)]",
+          "w-max max-w-[calc(100vw-1.5rem)] min-w-[15rem]",
           GLASS,
         )}
         style={
@@ -1260,6 +1434,7 @@ function ReelDock({
             borderRadius: DOCK_R,
           } as CSSProperties
         }
+        ref={paneRef}
         data-state={state}
         data-reel-dock={state}
         onFocus={() => onFocusWithin(true)}
@@ -1270,10 +1445,7 @@ function ReelDock({
         }}
       >
         {/* THE DOCK'S CONTROLS (inert at rest, so a hidden control never takes a tab stop). */}
-        <div
-          className="lr-dock-content flex flex-col gap-2 p-2"
-          inert={!up}
-        >
+        <div className="lr-dock-content flex flex-col gap-2 p-2" inert={!up}>
           <div className="flex items-center justify-center gap-1">
             <ChromeButton
               label={playing ? "Pause" : "Play"}
@@ -1283,9 +1455,18 @@ function ReelDock({
               className=""
             >
               {playing ? (
-                <Pause className={cn("size-[18px] fill-white", GLASS_MARK_LIT)} aria-hidden />
+                <Pause
+                  className={cn("size-[18px] fill-white", GLASS_MARK_LIT)}
+                  aria-hidden
+                />
               ) : (
-                <Play className={cn("ml-0.5 size-[18px] fill-white", GLASS_MARK_LIT)} aria-hidden />
+                <Play
+                  className={cn(
+                    "ml-0.5 size-[18px] fill-white",
+                    GLASS_MARK_LIT,
+                  )}
+                  aria-hidden
+                />
               )}
             </ChromeButton>
             {hasVideo && (
@@ -1297,15 +1478,26 @@ function ReelDock({
                 className=""
               >
                 {includeVideos ? (
-                  <Video className={cn("size-[18px]", GLASS_MARK_LIT)} aria-hidden />
+                  <Video
+                    className={cn("size-[18px]", GLASS_MARK_LIT)}
+                    aria-hidden
+                  />
                 ) : (
-                  <VideoOff className={cn("size-[18px]", GLASS_MARK_LIT)} aria-hidden />
+                  <VideoOff
+                    className={cn("size-[18px]", GLASS_MARK_LIT)}
+                    aria-hidden
+                  />
                 )}
               </ChromeButton>
             )}
             <MenuButton
               label={`Style: ${styleLabel}`}
-              icon={<Palette className={cn("size-[18px]", GLASS_MARK_LIT)} aria-hidden />}
+              icon={
+                <Palette
+                  className={cn("size-[18px]", GLASS_MARK_LIT)}
+                  aria-hidden
+                />
+              }
               stagger={i++}
               onOpenChange={onMenuOpenChange}
               contentClassName={styleFooter ? "w-60" : undefined}
@@ -1322,7 +1514,12 @@ function ReelDock({
             </MenuButton>
             <MenuButton
               label={`Hold: ${holdLabel(holdSec)} a photo`}
-              icon={<Clock3 className={cn("size-[18px]", GLASS_MARK_LIT)} aria-hidden />}
+              icon={
+                <Clock3
+                  className={cn("size-[18px]", GLASS_MARK_LIT)}
+                  aria-hidden
+                />
+              }
               stagger={i++}
               onOpenChange={onMenuOpenChange}
             >
@@ -1351,7 +1548,10 @@ function ReelDock({
                 stagger={i++}
                 className=""
               >
-                <QrCode className={cn("size-[18px]", GLASS_MARK_LIT)} aria-hidden />
+                <QrCode
+                  className={cn("size-[18px]", GLASS_MARK_LIT)}
+                  aria-hidden
+                />
               </ChromeButton>
             )}
             {onAddYours && (
@@ -1361,7 +1561,10 @@ function ReelDock({
                 stagger={i++}
                 className=""
               >
-                <ImagePlus className={cn("size-[18px]", GLASS_MARK_LIT)} aria-hidden />
+                <ImagePlus
+                  className={cn("size-[18px]", GLASS_MARK_LIT)}
+                  aria-hidden
+                />
               </ChromeButton>
             )}
             {onPlayOnScreen && (
@@ -1371,7 +1574,10 @@ function ReelDock({
                 stagger={i++}
                 className=""
               >
-                <MonitorPlay className={cn("size-[18px]", GLASS_MARK_LIT)} aria-hidden />
+                <MonitorPlay
+                  className={cn("size-[18px]", GLASS_MARK_LIT)}
+                  aria-hidden
+                />
               </ChromeButton>
             )}
           </div>
@@ -1387,20 +1593,32 @@ function ReelDock({
           </button>
 
           {onMakeYourOwn && (
-            <button
-              type="button"
-              onClick={onMakeYourOwn}
-              data-lr-stagger=""
-              style={{ "--lr-i": i++ } as CSSProperties}
-              className={cn(
-                "flex h-10 items-center justify-center gap-2 rounded-full bg-reel text-sm font-semibold text-white outline-none",
-                "transition-transform duration-150 ease-emphasis active:scale-[0.98] motion-reduce:active:scale-100",
-                "focus-visible:ring-2 focus-visible:ring-white/70",
-              )}
-            >
-              <Wand2 className="size-4" aria-hidden />
-              Make your own
-            </button>
+            <div className="relative flex flex-col">
+              <button
+                type="button"
+                onClick={onMakeYourOwn}
+                onPointerEnter={makeGreyed ? undefined : preloadReelCreator}
+                onFocus={makeGreyed ? undefined : preloadReelCreator}
+                aria-disabled={makeGreyed || undefined}
+                aria-describedby={
+                  makeGreyed && whyNot ? "lr-why-not" : undefined
+                }
+                data-lr-stagger=""
+                data-reel-make={makeGreyed ? "greyed" : "ready"}
+                style={{ "--lr-i": i++ } as CSSProperties}
+                className={cn(
+                  "flex h-10 items-center justify-center gap-2 rounded-full text-sm font-semibold outline-none",
+                  "transition-transform duration-150 ease-emphasis active:scale-[0.98] motion-reduce:active:scale-100",
+                  "focus-visible:ring-2 focus-visible:ring-white/70",
+                  makeGreyed
+                    ? "border border-white/20 text-white/35"
+                    : "bg-reel text-white",
+                )}
+              >
+                <Wand2 className="size-4" aria-hidden />
+                Make your own
+              </button>
+            </div>
           )}
         </div>
 
@@ -1422,9 +1640,15 @@ function ReelDock({
           data-reel-bar
         >
           {playing ? (
-            <Pause className={cn("size-3 fill-white", GLASS_MARK_LIT)} aria-hidden />
+            <Pause
+              className={cn("size-3 fill-white", GLASS_MARK_LIT)}
+              aria-hidden
+            />
           ) : (
-            <Play className={cn("size-3 fill-white", GLASS_MARK_LIT)} aria-hidden />
+            <Play
+              className={cn("size-3 fill-white", GLASS_MARK_LIT)}
+              aria-hidden
+            />
           )}
           <Timeline progress={progress} />
         </button>
@@ -1442,7 +1666,9 @@ function Timeline({ progress }: { progress: number }) {
     >
       <span
         className="absolute inset-0 origin-left rounded-full bg-white/85 transition-transform duration-500 ease-emphasis motion-reduce:transition-none"
-        style={{ transform: `scaleX(${Math.max(0.04, Math.min(1, progress))})` }}
+        style={{
+          transform: `scaleX(${Math.max(0.04, Math.min(1, progress))})`,
+        }}
       />
     </span>
   );

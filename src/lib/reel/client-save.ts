@@ -1,31 +1,14 @@
 /**
- * Saving a reel VIDEO to the device. Two ways in, both anchor-click based, extracted verbatim out of
- * reel-composer so the Marquee, the Studio and the GUEST overlay can share one implementation instead
- * of each growing its own subtly different anchor dance.
+ * Saving a clip straight from memory: the clip creator's Save (the download on Android and at a
+ * desk, and iOS's Download file), and its fallback whenever the system sheet would save nothing.
  *
- * Not React: they touch nothing but the document, so they don't need to be hooks (and as plain module
- * functions they're stable references, which is one fewer thing in every caller's dependency array).
+ * Not React: it touches nothing but the document, so it needs no hook (and as a plain module
+ * function it is a stable reference, one fewer thing in every caller's dependency array).
  */
 
 /**
- * Save from a presigned URL. The url itself carries `Content-Disposition: attachment`, which is what
- * actually makes the browser save rather than navigate; the `download` attribute is only a hint and is
- * IGNORED cross-origin, so do not "simplify" by relying on it.
- */
-export function downloadReel(url: string): void {
-  const a = document.createElement("a");
-  a.href = url;
-  a.rel = "noopener";
-  a.download = "";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-}
-
-/**
- * Save a just-encoded blob straight from memory: no round-trip through R2 for the copy the person is
- * standing there waiting for. Called the moment the encode lands, BEFORE any upload, so a flaky
- * network can never take the video away after the work is done.
+ * Save a just-encoded blob from memory: no round trip through R2 for the copy the person is standing
+ * there waiting for, so a flaky network can never take the video away after the work is done.
  */
 export function saveBlobLocally(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);

@@ -2,6 +2,7 @@
 
 import { SlidersHorizontal } from "lucide-react";
 
+import { DensityMenuGroup } from "@/components/shared/density-control";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,6 +13,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { RowStep } from "@/lib/shared/album-rows";
 
 export type ViewMenuOption = {
   value: string;
@@ -19,7 +21,25 @@ export type ViewMenuOption = {
   disabled?: boolean;
 };
 
+/**
+ * THE ALBUM'S DENSITY, AS A GROUP (`album-columns` r2, `steps=both`): the
+ * three-stop slider, at every width (`density-control.tsx` draws it). Its value
+ * is the rows' step, 0 the largest photographs; `perRow` lets the stops speak in
+ * photographs a row when the caller knows the album's width.
+ */
+export type ViewMenuDensityGroup = {
+  kind: "density";
+  id: string;
+  label: string;
+  value: RowStep;
+  onChange: (step: RowStep) => void;
+  perRow?: (step: RowStep) => number;
+  disabled?: boolean;
+  hint?: string;
+};
+
 export type ViewMenuGroup = {
+  kind?: "radio";
   /** React's list key; never rendered. */
   id: string;
   /** The group's own label, and its accessible name (`role="group"`, via `aria-label`). */
@@ -73,7 +93,7 @@ export function ViewMenu({
   groups,
   trigger = "View",
 }: {
-  groups: readonly ViewMenuGroup[];
+  groups: readonly (ViewMenuGroup | ViewMenuDensityGroup)[];
   trigger?: string;
 }) {
   return (
@@ -84,33 +104,45 @@ export function ViewMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        {groups.map((group) => (
-          <DropdownMenuGroup key={group.id}>
-            <DropdownMenuLabel className="flex items-baseline justify-between gap-3">
-              <span>{group.label}</span>
-              {group.hint ? (
-                <span className="text-micro text-muted-foreground/70">
-                  {group.hint}
-                </span>
-              ) : null}
-            </DropdownMenuLabel>
-            <DropdownMenuRadioGroup
-              aria-label={group.label}
+        {groups.map((group) =>
+          group.kind === "density" ? (
+            <DensityMenuGroup
+              key={group.id}
+              label={group.label}
               value={group.value}
-              onValueChange={group.onChange}
-            >
-              {group.options.map((option) => (
-                <DropdownMenuRadioItem
-                  key={option.value}
-                  value={option.value}
-                  disabled={group.disabled || option.disabled}
-                >
-                  {option.label}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuGroup>
-        ))}
+              onChange={group.onChange}
+              perRow={group.perRow}
+              hint={group.hint}
+              disabled={group.disabled}
+            />
+          ) : (
+            <DropdownMenuGroup key={group.id}>
+              <DropdownMenuLabel className="flex items-baseline justify-between gap-3">
+                <span>{group.label}</span>
+                {group.hint ? (
+                  <span className="text-micro text-muted-foreground/70">
+                    {group.hint}
+                  </span>
+                ) : null}
+              </DropdownMenuLabel>
+              <DropdownMenuRadioGroup
+                aria-label={group.label}
+                value={group.value}
+                onValueChange={group.onChange}
+              >
+                {group.options.map((option) => (
+                  <DropdownMenuRadioItem
+                    key={option.value}
+                    value={option.value}
+                    disabled={group.disabled || option.disabled}
+                  >
+                    {option.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuGroup>
+          ),
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

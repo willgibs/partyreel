@@ -1,24 +1,20 @@
-import { Clapperboard, Play } from "lucide-react";
+import { Play } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 /**
- * THE reel poster card: the reel's face, host side and guest side.
+ * THE REEL'S FACE: the live Highlight reel tile above the album (`guest/reel/live-reel.tsx`), and
+ * the lab boards that draw it (`guest-capture`, `voice-guest`, `reel-cut`, `reel-front`).
  *
- * ONE component on purpose (R3). The host's Marquee card and the guest's /e/
- * card are the SAME frame, gradient, name treatment and violet meta line — that
- * continuity is the point ("what the host made is what the guest meets"), and a
- * second implementation is how the two drift. Only the `media` slot differs:
+ * One frame, gradient, name treatment and violet line wherever the reel shows its face; only the
+ * `media` slot differs (the tile's crossfade of the reel's own stills, a board's fixture frame).
+ * The formatters beside it state a clip's three facts the one way ("0:30 · Cinematic · 8
+ * moments"), which the clip creator's head reads.
  *
- *   host  → a live `CanvasReelPlayer showControls={false}` (the poster PLAYS)
- *   guest → the presigned cover still + `playBadge` (no engine on first paint)
- *
- * Presentational + deliberately NOT a client component: no state, no effects, no
- * hooks. It renders inside client islands (the Marquee) AND straight from a
- * server component (the guest card's shell), so it must stay usable from both.
- * Interactivity is the CALLER's job — wrap it in a button, or pass `media` a
- * player. That is also why there is no `onClick`: a whole-card button around a
- * live canvas is the caller's decision, not this component's.
+ * Presentational + deliberately NOT a client component: no state, no effects, no hooks, so a
+ * server component or a lab board can render it as readily as a client island. Interactivity is
+ * the CALLER's job: the tile lays its own watch layer across the card and hands `meta` a control
+ * of its own.
  */
 
 /** `0:30` from a second count (mm:ss, minutes uncapped). */
@@ -30,12 +26,10 @@ export function formatReelDuration(seconds: number): string {
 }
 
 /**
- * The violet meta line: `0:30 · Cinematic · 8 moments`. Exported (not inlined)
- * because the host card, the guest card and the Studio header all state the same
- * three facts, and Track C builds its half from a server payload — one formatter
- * keeps the separator, the pluralization and the ORDER identical everywhere.
- * Any part may be absent (an unknown style, a card with no count); absent parts
- * drop out rather than rendering an empty segment.
+ * A clip's line: `0:30 · Cinematic · 8 moments`. One formatter, so the clip creator's head and the
+ * lab boards that draw it keep the separator, the pluralization and the ORDER identical. Any part
+ * may be absent (an unknown style, a clip with no moments yet); absent parts drop out rather than
+ * rendering an empty segment.
  */
 export function formatReelMeta(parts: {
   durationLabel?: string | null;
@@ -64,8 +58,13 @@ export function PosterCard({
 }: {
   /** The event's name, in the display face over the gradient. */
   eventName: string;
-  /** The violet meta line (build it with formatReelMeta). Omitted → no line. */
-  meta?: string;
+  /**
+   * The violet meta line (build it with formatReelMeta), or a control of the caller's own in the
+   * line's place (the live tile's "Make your own clip to share", which lifts itself above the
+   * tile's watch layer and takes its own pointer events, since this block takes none). Omitted, no
+   * line.
+   */
+  meta?: React.ReactNode;
   /** The face: a live player (host) or a cover still (guest). */
   media: React.ReactNode;
   /** Optional top-left eyebrow chip (the guest card's "The reel" marker). */
@@ -127,26 +126,17 @@ export function PosterCard({
         >
           {eventName}
         </p>
-        {meta ? (
+        {typeof meta === "string" && meta ? (
           // The reel's identity hue (violet, ratified), lightened for contrast
           // against the gradient — --reel itself is tuned for ICONS on the app
           // background, not for small text on a photo.
           <p className="mt-0.5 text-micro font-medium text-[oklch(0.8_0.14_300)]">
             {meta}
           </p>
+        ) : meta ? (
+          <div className="mt-0.5">{meta}</div>
         ) : null}
       </div>
     </div>
-  );
-}
-
-/** The eyebrow chip the guest card wears (violet mark + "The reel"), so both
- *  sides name the thing the same way. */
-export function PosterCardChip({ label = "The reel" }: { label?: string }) {
-  return (
-    <span className="flex items-center gap-1.5 rounded-full bg-black/45 px-2 py-0.5 text-label font-semibold text-white uppercase backdrop-blur-sm">
-      <Clapperboard className="size-2.5 text-[oklch(0.8_0.14_300)]" />
-      {label}
-    </span>
   );
 }

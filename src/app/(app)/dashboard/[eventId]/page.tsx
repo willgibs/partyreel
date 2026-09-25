@@ -33,7 +33,10 @@ import {
 } from "@/lib/constants/tiers";
 import { getLinkStats } from "@/lib/db/queries/analytics";
 import { getEvent } from "@/lib/db/queries/events";
-import { getUploaderIdentities } from "@/lib/db/queries/guest-events-admin";
+import {
+  getLiveReelServerFacts,
+  getUploaderIdentities,
+} from "@/lib/db/queries/guest-events-admin";
 import { getEventLikeCounts } from "@/lib/db/queries/likes";
 import { countEventMedia, listEventMedia } from "@/lib/db/queries/media";
 import { getProfile } from "@/lib/db/queries/profile";
@@ -152,6 +155,7 @@ export default async function EventDetailPage({
     socialSettings,
     myProfileSlug,
     jar,
+    liveReelFacts,
   ] = await Promise.all([
     listEventMedia(event.id, "album"),
     countEventMedia(event.id),
@@ -162,6 +166,7 @@ export default async function EventDetailPage({
     getEventSocialSettings(event.id),
     getMyProfileSlug(),
     cookies(),
+    getLiveReelServerFacts(event.id),
   ]);
   // The gallery's tile size, painted inline from the cookie (`app-vocabulary`
   // r1, `gallery-controls-persistence`; events-view.ts's own precedent).
@@ -237,6 +242,7 @@ export default async function EventDetailPage({
   const reelFace = hubReel({
     eventId: event.id,
     showReel: event.show_reel,
+    liveReelEnabled: liveReelFacts.liveReelEnabled,
     items: visibleItems,
   });
   const reel = {
