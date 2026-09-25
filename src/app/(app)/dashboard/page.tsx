@@ -46,6 +46,7 @@ import {
   listEvents,
   listRecentlyDeletedEvents,
 } from "@/lib/db/queries/events";
+import { getLiveReelServerFacts } from "@/lib/db/queries/guest-events-admin";
 import { getPulse } from "@/lib/db/queries/pulse";
 import { getProfile } from "@/lib/db/queries/profile";
 import { getMyGuestEventCards } from "@/lib/db/queries/social";
@@ -186,6 +187,7 @@ export default async function DashboardPage({
     reelProgress,
     pulse,
     claimableRows,
+    liveReelFacts,
   ] = await Promise.all([
     getEventCardStills(eventIds),
     getEventCoverUrls(deletedEvents.map((e) => e.id)),
@@ -193,6 +195,13 @@ export default async function DashboardPage({
     getReelProgress(eventIds),
     getPulse(eventIds, now, startOfToday),
     getMyClaimableGuestRows(),
+    // reel-teardown: the platform lever (`ops_flags.live_reel_enabled`) is ONE global fact, not a
+    // per-event one — the function takes an eventId only because the guest-facing read it mirrors
+    // also derives that event's host tier (unused here), so any of the host's own events answers
+    // the same lever. `true` (fail open, matching the lever's own default) when the host has none.
+    eventIds.length > 0
+      ? getLiveReelServerFacts(eventIds[0])
+      : Promise.resolve({ liveReelEnabled: true, tier: null }),
   ]);
 
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
@@ -240,6 +249,7 @@ export default async function DashboardPage({
       pending: eventStats.get(e.id)?.pending ?? 0,
       acceptingUploads: e.accepting_uploads,
       showReel: e.show_reel,
+      liveReelEnabled: liveReelFacts.liveReelEnabled,
       reelItems: reelProgress.get(e.id) ?? 0,
       eventDate: e.event_date,
     })),

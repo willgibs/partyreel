@@ -2,7 +2,6 @@ import {
   Activity,
   BarChart3,
   Download,
-  Film,
   Fingerprint,
   Flag,
   Images,
@@ -74,12 +73,6 @@ export const NAV: NavItem[] = [
     href: "/admin/albums",
     label: "Albums",
     icon: Images,
-    group: "Accounts and content",
-  },
-  {
-    href: "/admin/reels",
-    label: "Reels",
-    icon: Film,
     group: "Accounts and content",
   },
   {
