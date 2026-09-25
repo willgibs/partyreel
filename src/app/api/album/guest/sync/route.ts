@@ -7,12 +7,11 @@ import {
   getGuestCount,
 } from "@/lib/db/queries/guest-events-admin";
 import {
-  readGuestAlbum,
+  ALBUM_REFUSED,
+  planGuestAlbumSync,
   readGuestAlbumVersions,
   readGuestAttribution,
-  readGuestManifestPage,
 } from "@/lib/db/queries/album-guest";
-import { planAlbumSync } from "@/lib/events/album-sync";
 import { guestAlbumEtag } from "@/lib/events/album-validator";
 import { resolveAlbumViewer } from "@/lib/events/album-viewer.server";
 import type {
@@ -21,7 +20,10 @@ import type {
   GuestTeaserSync,
 } from "@/lib/events/album-wire";
 import { TEASER_LIMIT } from "@/lib/events/gallery-access";
-import { loadGalleryReel } from "@/lib/events/gallery-access.server";
+import {
+  loadGalleryReel,
+  reportAlbumRefused,
+} from "@/lib/events/gallery-access.server";
 import { guestCookieHeaderValue } from "@/lib/guest/session-cookie";
 import { toGridItems } from "@/lib/r2/grid-items";
 import { presignBucketId } from "@/lib/r2/presign-bucket";
@@ -35,7 +37,9 @@ export const dynamic = "force-dynamic";
  *
  * WHAT IT ANSWERS, by the viewer's decision (resolved exactly as the gallery poll resolves it,
  * `resolveAlbumViewer`, so the gates are today's):
- *  - `locked` for a private, unknown or password-locked album: nothing, and no validator;
+ *  - `locked` for a private, unknown or password-locked album: nothing, and no validator. Also the
+ *    answer, behind the password, when the reads' own gate refuses a viewer the decision let in
+ *    (album-guest.ts: a refusal is a null, never a 500);
  *  - `teaser`: today's tiny inline payload (the newest nine photographs, links and all, the album's
  *    size and the photo total), because no link route serves a viewer still at the door;
  *  - `full`: the paged album (album-sync.ts): a MANIFEST on a first load or a resync, else the DELTA
@@ -101,9 +105,10 @@ export async function POST(request: Request) {
   if (decision.access === "none") return locked(decision.gate, headers);
 
   // Everything after the decision reads through the guarded queries: a null is the gate refusing
-  // (a password album without its cookie), which the decision should already have caught.
+  // (a password album without its cookie, and not its host), which the decision should already
+  // have caught. Answered locked, and reported.
   const versions = await readGuestAlbumVersions(event);
-  if (!versions) return locked(decision.gate, headers);
+  if (!versions) return refused(event.id, headers);
 
   if (decision.access === "teaser") {
     const etag = guestAlbumEtag({
@@ -162,22 +167,8 @@ export async function POST(request: Request) {
     return new Response(null, { status: 304, headers });
   }
 
-  const plan = await planAlbumSync({
-    scope: "album",
-    since,
-    read: async (after, limit) => {
-      const read = await readGuestAlbum(event, after, limit);
-      if (!read)
-        throw new Error("album: the guest read refused a full-access viewer");
-      return read;
-    },
-    page: async (after, budget) => {
-      const page = await readGuestManifestPage(event, after, budget);
-      if (!page)
-        throw new Error("album: the guest page refused a full-access viewer");
-      return page;
-    },
-  });
+  const plan = await planGuestAlbumSync(event, since);
+  if (!plan) return refused(event.id, headers);
   if (!heal) {
     headers.set(
       "ETag",
@@ -202,6 +193,12 @@ export async function POST(request: Request) {
     ...(guestCount === undefined ? {} : { guestCount }),
   };
   return NextResponse.json(payload, { headers });
+}
+
+/** The reads refused a viewer the decision let in: locked behind the password, and reported. */
+function refused(eventId: string, headers: Headers) {
+  reportAlbumRefused(eventId, "sync");
+  return locked(ALBUM_REFUSED.gate, headers);
 }
 
 /** A locked, private or unknown album: nothing at all, and never a validator. */
