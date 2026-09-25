@@ -1,5 +1,5 @@
 /**
- * The GUEST WRITE-PATH lock check (QA #18, host-app.md ruling 2) — the single policy source for
+ * The GUEST WRITE-PATH lock check (QA #18; uploads-and-r2.md, "A locked event gates UPLOADS, not just viewing") — the single policy source for
  * "may this request write past a password event's lock?", shared by all three guest write seams
  * (the /api/guests mint, presign, complete). Keep them on THIS helper: the read gate
  * (resolveGalleryAccess) grants `full` to an unlocked-cookie viewer OR the owner, and the write

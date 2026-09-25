@@ -42,12 +42,12 @@ export function isNavItemCurrent(item: NavItem, pathname: string): boolean {
 // The primary conversion CTA, single-sourced (Track B): the header, the mobile
 // sheet, and CtaBand all read THIS, so the label can never drift back to the
 // retired "Get started". No test pins it (the 2026-09-12 reset) and all copy is
-// open (bible 10, 2026-09-14): a change here is a ruling, made in one place.
+// open: a change here is made in one place.
 export const MARKETING_CTA: NavLink = { label: "Start free", href: "/login" };
 
 // Desktop header primary nav (between the logo and the CTAs). The 2026-08-26
 // expansion IA: Features is a PANEL group (the six feature pages + the reel,
-// per Will's nest-the-reel ruling; top-level Reel retired), Events stays the
+// per the nest-the-reel change; top-level Reel retired), Events stays the
 // use-cases panel, Resources is the reading panel. Panel descriptions are
 // PROVISIONAL copy (the registry pattern).
 //
@@ -235,7 +235,7 @@ export const FOOTER_NAV: FooterColumn[] = [
       { label: "Press", href: "/press" },
       { label: "Contact", href: "/contact" },
     ],
-    // About is FOOTER-ONLY by ruling (R5, 2026-08-26): quiet placement, no
+    // About is FOOTER-ONLY (R5): quiet placement, no
     // header-nav row. It leads the tail as the group's anchor.
     tail: [
       { label: "About", href: "/about" },

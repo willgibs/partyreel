@@ -117,8 +117,8 @@ describe("preservation keys (trust-safety-forensics.md)", () => {
 });
 
 /**
- * billing-caps.md ruling 3: rendered reel .mp4 bytes are DELIBERATELY exempt from the host's storage
- * meter, and that exemption is only safe because the artifact count is bounded at ONE PER EVENT.
+ * Rendered reel .mp4 bytes are DELIBERATELY exempt from the host's storage
+ * meter (billing-caps.md), and that exemption is only safe because the artifact count is bounded at ONE PER EVENT.
  * The bound is structural (a stable key, so a re-render overwrites in place) rather than metered,
  * so nothing else would notice if the key ever gained a hash, timestamp, or version segment: the
  * old objects would simply accumulate, uncharged and unswept, for as long as a host kept

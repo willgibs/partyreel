@@ -1,8 +1,8 @@
 /**
- * Pins the guest reel's anon allow-list (R3, guest-flow.md ruling 5).
+ * Pins the guest reel's anon allow-list (R3; guest-flow.md).
  *
  * The RETURNS TABLE of get_event_reel_by_qr_token IS the anon surface; guest-reel-payload.ts is its
- * TypeScript mirror. This test pins BOTH directions: the allow-list is exactly the 8 ruled keys, and
+ * TypeScript mirror. This test pins BOTH directions: the allow-list is exactly these 8 keys, and
  * none of the "never returned" names (render internals, timestamps, the tier) can sneak onto it or
  * onto the client payload. A future column added to the RPC by name lands on this tripwire.
  *
@@ -23,7 +23,7 @@ import {
 // COMPILE-TIME pin against the GENERATED RPC Returns (post-regen): the mirror and the live
 // function must carry the SAME key set, both directions. Key-level on purpose: the generator
 // cannot express a RETURNS TABLE column's runtime nullability (cover_media_id), so a full type
-// equality would be a lie; the ruling's allow-LIST is about NAMES.
+// equality would be a lie; the allow-LIST is about NAMES.
 type GeneratedReelRow =
   Database["public"]["Functions"]["get_event_reel_by_qr_token"]["Returns"][number];
 type AssertKeysEqual<A, B> = [keyof A] extends [keyof B]
@@ -64,7 +64,7 @@ const row: GuestReelRpcRow = {
 };
 
 describe("the guest reel anon allow-list", () => {
-  it("is exactly the 8 ruled keys (and mirrors the generated RPC type)", () => {
+  it("is exactly the 8 allowed keys (and mirrors the generated RPC type)", () => {
     expect([...GUEST_REEL_ALLOWED_KEYS].sort()).toEqual(
       Object.keys(EXHAUSTIVE).sort(),
     );
@@ -85,7 +85,7 @@ describe("the guest reel anon allow-list", () => {
   });
 
   it("keeps the forbidden list covering every render internal + timestamp + the tier", () => {
-    // The load-bearing names from the ruling, spelled out so a rename is a conscious edit here.
+    // The load-bearing names from the allow-list, spelled out so a rename is a conscious edit here.
     for (const name of [
       "output_key",
       "rendered_hash",

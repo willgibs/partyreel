@@ -76,8 +76,8 @@ export default function PricingPage() {
       <PricingJsonLd />
       <FaqPageJsonLd items={PRICING_FAQ_ITEMS} />
 
-      {/* The opening chapter. The h1 carries no entrance at all (bible 5,
-          "nothing gates an h1"): it is this page's LCP element and it now sits
+      {/* The opening chapter. The h1 carries no entrance at all
+          ("nothing gates an h1"): it is this page's LCP element and it now sits
           in the first screen of the document, so a reveal would delay the
           largest paint for theater. The cards below keep their stagger, which
           is what a paper opening wants: the words instant, the plans arriving. */}

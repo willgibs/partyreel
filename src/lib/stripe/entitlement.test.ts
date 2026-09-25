@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { resolveEntitlement } from "@/lib/stripe/entitlement";
 
-// billing-caps.md ruling 1 (one plan at a time) lives or dies on this function: the checkout route is a
+// billing-caps.md's rule (one plan at a time for Pro; passes stack) lives or dies on this function: the checkout route is a
 // thin gate over it, so every way it could answer "none" for a host who actually holds a plan is a
 // way back into QA #3 (a second Pro subscription, or an Event Pass collapsing a 2 TB cap to 75 GB
 // while Stripe keeps billing Pro, feeding the over-capacity sweep customer media to delete).

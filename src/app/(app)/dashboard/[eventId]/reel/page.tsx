@@ -32,8 +32,8 @@ export async function generateMetadata({
 }
 
 /**
- * THE REEL ROOM, as a route (ruled by Will, R3; one of the hub's cards since
- * `event=hub`, 2026-09-20).
+ * THE REEL ROOM, as a route (R3; one of the hub's cards since
+ * `event=hub`).
  *
  * A route and not a modal: the reel deserves a place you GO to, the room survives
  * a refresh, and the phone's back gesture means what it looks like it means.

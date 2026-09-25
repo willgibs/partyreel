@@ -7,7 +7,7 @@ import { marketingImage } from "@/lib/constants/marketing-media";
  * asks Will for a generated set built for exactly this job: distinct PORTRAIT
  * photographs, enough of them that the ring never shows the same one twice at
  * once. Until that lands the site's own stand-ins stand in, and the swap is a
- * data change here and nowhere else: no component names a picture (bible 9).
+ * data change here and nowhere else: no component names a picture.
  *
  * ★ NEIGHBOURS DIFFER, because the ring walks this list in order and a trail's
  * whole subject is the run of photographs a hand leaves behind it. Two weddings

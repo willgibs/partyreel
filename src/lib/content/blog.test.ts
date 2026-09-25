@@ -96,7 +96,7 @@ describe("blog content integrity", () => {
 
 describe("title layout contract", () => {
   it("every shipped title fits the card rhythm", () => {
-    // The cards clamp, so this can never break the page - it guards the RHYTHM Will ruled on
+    // The cards clamp, so this can never break the page - it guards the RHYTHM chosen
     // (featured ~3 lines, library cards 2), which clamping would silently destroy instead.
     for (const post of getAllPosts()) {
       expect(
@@ -121,7 +121,7 @@ describe("title layout contract", () => {
 
 describe("authors registry", () => {
   it("resolves the universal author and falls back for anything else", () => {
-    // ONE registered author by ruling (2026-08-28); see authors.ts. The contract that matters is
+    // ONE registered author, by design; see authors.ts. The contract that matters is
     // the fallback: an unknown id must resolve, never throw, so a stale frontmatter value can
     // never take a page down.
     expect(DEFAULT_AUTHOR_ID).toBe("partyreel-team");

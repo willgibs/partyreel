@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 /**
  * The acceptance line ("browsewrap"): the one sentence that ties a sign-in or
  * a guest's entry to /terms and /privacy. It shipped on /login alone; the
- * legal round put it on the guest door too (Will's ruling, 2026-09-01), so
+ * legal round put it on the guest door too, so
  * both surfaces read from one component and cannot drift.
  *
  * `newTab` is for the guest entry modal: a guest mid-entry who taps Terms must

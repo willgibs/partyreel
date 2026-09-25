@@ -34,7 +34,7 @@ export async function generateMetadata({
 }
 
 /**
- * THE ROLE PAGE - a SPEC SHEET (ruled 2026-08-29).
+ * THE ROLE PAGE - a SPEC SHEET.
  *
  *   CINEMA  the title block
  *   PAPER   the document: a reading column beside a sticky spec rail
@@ -54,7 +54,7 @@ export async function generateMetadata({
  *   otherwise collapses the aside to its content height and sticky gets zero
  *   travel, so the rail never tracks (live-caught on the help ToC).
  *
- * NO JobPosting JSON-LD while the listing is placeholder copy (Will's ruling):
+ * NO JobPosting JSON-LD while the listing is placeholder copy:
  * machine-readable structured data would publish a vacancy commitment we are
  * not ready to make, and stale postings are penalised.
  */
@@ -166,7 +166,7 @@ export default async function RolePage({
                     <SectionTitle>What we offer</SectionTitle>
                     {/* The page's one accent moment: green checks read as
                         "included" (a real state color, per the achromatic-
-                        plus-accents ruling). A different SHAPE from the ruled
+                        plus-accents approach). A different SHAPE from the other
                         lists above on purpose, so three sections in a row do
                         not read as one long undifferentiated column. */}
                     <ul className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -193,8 +193,8 @@ export default async function RolePage({
         {/* THE APPLICATION CHAPTER. Its own band so it reads as a separate
             room rather than the tail of the description, with the context a
             candidate wants at the moment of applying sitting beside the form
-            instead of buried above it. The desk structure is the contact
-            round's ruling; the figure/ground is inverted here (white card on
+            instead of buried above it. The desk structure matches the contact
+            round's; the figure/ground is inverted here (white card on
             the gray band rather than a gray card on paper) because this band
             IS the separator. */}
         <section

@@ -41,7 +41,7 @@ import { contactSchema, type ContactInput } from "@/lib/validation/contact";
 
 import { submitContactForm } from "./actions";
 
-// THE NOTE on THE DESK (Will's composite ruling, 2026-08-28 sitting): the V2
+// THE NOTE on THE DESK (the desk's composite, 2026-08-28 sitting): the V2
 // desk structure carries the form, dressed in V1's stationery identity (the
 // photo postage stamp + the letterhead line), on the Biograph gray panel so
 // the WHITE fields read against the card (his biograph.com/contact reference).
@@ -164,8 +164,8 @@ export function ContactForm({
   // Help handoff: prefill subject + topic from ?about=<slug>, allowlisted
   // against the build-time map so nothing attacker-controlled reaches a field.
   // Read in a mount effect (never useSearchParams: on this static route it
-  // would demand a Suspense boundary or deopt the page; the motion-tuner
-  // precedent). Server and first client render both produce "" — no mismatch.
+  // would demand a Suspense boundary or deopt the page; same as the
+  // motion-tuner). Server and first client render both produce "" — no mismatch.
   useEffect(() => {
     if (!helpSubjects) return;
     const slug = new URLSearchParams(window.location.search).get("about");
@@ -268,7 +268,7 @@ export function ContactForm({
             className="hidden"
             {...form.register("website")}
           />
-          {/* The topic router as ONE clean field (the sitting's ruling: seven
+          {/* The topic router as ONE clean field (from that sitting: seven
               open chips ate the form; a dropdown keeps the routing without the
               room). The portaled content must carry the paper skin itself
               (the portal rule, portal-skin.ts). */}

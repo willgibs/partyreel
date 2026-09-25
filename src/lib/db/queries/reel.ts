@@ -112,7 +112,7 @@ export type ReelConfig = {
   seed: number;
   lengthSeconds: number | null;
   coverMediaId: string | null;
-  /** guest-flow.md ruling 1: the publish switch. False until the host's explicit "Share with guests". */
+  /** guest-flow.md: the publish switch. False until the host's explicit "Share with guests". */
   guestVisible: boolean;
 };
 

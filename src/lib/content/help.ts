@@ -40,7 +40,7 @@ export type { ArticleHeading } from "./collection";
 // never imports it (it receives plain metadata via props). Round 7 (Blog) reuses this
 // same shape with a `content/blog` directory.
 
-// Closed, ordered category set — TAXONOMY v3 (R6, ruled by Will 2026-08-26):
+// Closed, ordered category set — TAXONOMY v3 (R6):
 // lifecycle-ordered (set up → invite → guests → album → out → reel → pay → trust →
 // fix), host-voiced except Guest experience, names concise with no leading "The".
 // The frontmatter `category` enum derives from these slugs (an unknown category

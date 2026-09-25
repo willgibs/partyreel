@@ -40,7 +40,7 @@ import { holdId, itemHoldId } from "./step-id";
  * one thing at a time: every open ask across every standing board, in board
  * order, with the case for the recommendation beside it and the evidence one
  * click away. At the end it composes ONE message in the ledger grammar for him
- * to paste into chat. The UI never writes the repo (his ruling the same day):
+ * to paste into chat. The UI never writes the repo directly:
  * `pnpm lab:review` is the only thing that touches docs/reviews/.
  *
  * The position lives in the URL as `?session=<board>.<ask>` (`end` is the

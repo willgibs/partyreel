@@ -24,7 +24,7 @@ import {
  * so these cases ARE the proof the refusal exists; the routes' own tests pin that
  * each door calls this and answers with what it returns.
  *
- * Copy is never pinned (bible 10): the sentence's NUMBERS and the size it names are
+ * Copy is never pinned: the sentence's NUMBERS and the size it names are
  * facts derived from tiers.ts, so those are what the cases read.
  */
 

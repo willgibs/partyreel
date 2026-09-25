@@ -11,12 +11,12 @@ import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 import { LiveAlbumStage } from "./live-album-stage";
 
 /**
- * /features/album's hero, from two ruled boards (the album-wiring lane,
+ * /features/album's hero, from two boards (the album-wiring lane,
  * 2026-09-19): the shared `PageHero` lockup at the `title` step, the LIVE guest
  * album under it, and photographs falling out of the empty space around the
  * words INTO the album's top edge.
  *
- * Will ruled every part of it. `album-width=w880` (the site's 896 step),
+ * Every part of it was chosen: `album-width=w880` (the site's 896 step),
  * `headline=lg`, `copy=page` and `no-script=settled` on the album hero's round
  * three; `visual=live`, `motion=stream` and `light=halo` on the album page's
  * round one. What it replaces is the album FILLING from the top, a
@@ -49,7 +49,7 @@ import { LiveAlbumStage } from "./live-album-stage";
 export function ArrivalsHero({
   /**
    * WHICH FALL THE STREAM DRAWS, forced. ★ PRODUCTION NEVER PASSES THIS: the
-   * engine's own `SHIPPED` is the answer, and Will's pick is a one-word change
+   * engine's own `SHIPPED` is the answer, and the demo override is a one-word change
    * there. It exists so the `album-motion` board can draw two or three
    * variations of the falling-in ON THE WIRED HERO rather than on a mock of it,
    * which is what he asked for ("I was just curious to see maybe two to three

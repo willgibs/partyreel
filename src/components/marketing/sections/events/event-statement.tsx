@@ -12,8 +12,8 @@ import { SharedRoll } from "./event-artifacts";
 /**
  * THE SECOND SECTION: ONE CLAIM, ONE VISUAL.
  *
- * Will ruled `second-section=statement` and condemned the drawing in the same
- * breath (2026-09-19, verbatim): "While this 'one claim, one visual' (doesn't
+ * `second-section=statement` was chosen, condemning the drawing in the same
+ * breath, verbatim: "While this 'one claim, one visual' (doesn't
  * *have* to be picture) section is the selection, the UI could be improved a
  * lot." And the thing it replaces, in his words: "I hate the 'A wedding is the
  * most photographed day of your life...' bland text just beneath the hero with
@@ -36,7 +36,7 @@ import { SharedRoll } from "./event-artifacts";
  *     claim has a real measure and the object is a companion rather than the
  *     other half of a split.
  *
- * ★ THE VISUAL NEED NOT BE A PHOTOGRAPH, and on two pages it is not. His pick
+ * ★ THE VISUAL NEED NOT BE A PHOTOGRAPH, and on two pages it is not. The design
  * says so out loud, and `events.ts` carries the call as data: `media.statement`
  * is a pair of stills on the types the manifest has honest subjects for, and
  * null on conferences and trips, where the PRODUCT stands there instead. That

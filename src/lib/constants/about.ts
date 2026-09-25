@@ -16,15 +16,15 @@
  * convictions then read as the answer to that story rather than as a list, and
  * the page closes by pointing at careers.
  *
- * ★ THE R5 ZERO-TEAM RULING IS RELAXED FOR THIS PAGE (Will, 2026-08-28). It
+ * ★ THE R5 ZERO-TEAM RULE IS RELAXED FOR THIS PAGE. It
  * banned all team/founder framing; this pass asks for both a first-person
  * origin ("We had this problem and wanted to solve it for everyone for any
- * event") and a "join our team" close. The ruling's intent (nothing that hints
+ * event") and a "join our team" close. The rule's intent (nothing that hints
  * at less than a stellar product) still holds: no headcount, no scrappiness, no
  * founder biography. Careers is where "small team" is allowed to live.
  *
  * ★ CATEGORY-LEVEL, NEVER BRAND NAMES. Will's raw notes named specific photo
- * and drive products; the 2026-08-28 AI-posture ruling keeps comparison content
+ * and drive products; the AI-posture rule keeps comparison content
  * brand-nameless, and category-level reads better anyway (naming products dates
  * the copy and sounds defensive). Every texture from his notes survives: the
  * cross-platform album, the drip-fed thread, the account wall, the per-person
@@ -45,7 +45,7 @@ export const ABOUT_META = {
 } as const;
 
 /**
- * The masthead. Will ruled the wordmark itself as the page title (plain text at
+ * The masthead. The wordmark itself is the page title (plain text at
  * display scale, NOT the Logo lockup): an About page is a title page, so the
  * header carries no argument and the story below does all the explaining.
  */

@@ -1,9 +1,9 @@
 /* The photograph section's sheet (the backdrop-wiring lane, 2026-09-18).
-   Class prefix: bkd-. The board's sheet, cut to the one ruled treatment: the
+   Class prefix: bkd-. The board's sheet, cut to the one chosen treatment: the
    plate, the rail and the rest state. Its scrim and half-and-half legibility
    options lost at the review and left with the board.
 
-   ★ FRAME ZERO IS THE REST STATE, IN CSS (bible 5). Every layer is hidden and
+   ★ FRAME ZERO IS THE REST STATE, IN CSS. Every layer is hidden and
    the FIRST is shown, so with no JavaScript, in a throttled tab, to a crawler
    and to a reader who asked for less motion the section stands on one
    photograph. The loop writes inline styles, which beat these rules, so nothing
@@ -66,15 +66,15 @@
 
 /* ── the plate ────────────────────────────────────────────────────────────
 
-   Will's `legibility=plate`: the photograph is left alone and the words sit on
-   a pane of the glass material, read through the `--glass-*` tokens so a ruling
-   there moves this with it. Crystal, and its double edge, since the material was
-   ruled (2026-09-20); the TINT stays this section's, measured, for the one
+   `legibility=plate`: the photograph is left alone and the words sit on
+   a pane of the glass material, read through the `--glass-*` tokens so a change
+   there moves this with it. Crystal, and its double edge, come from the material
+   itself; the TINT stays this section's, measured, for the one
    reason below. */
 
 .bkd-plate {
   /* ★ THE MATERIAL'S OWN NUMBERS, FROM THE ONE HOME. Fallbacks are Crystal's, so
-     a sheet that somehow loads without globals.css still draws the ruled pane
+     a sheet that somehow loads without globals.css still draws the intended pane
      rather than a clear sheet of nothing. */
   --bkd-blur: var(--glass-blur, 42px);
   --bkd-saturate: var(--glass-saturate, 2);
@@ -117,7 +117,7 @@
    chapter's ink sits at a relative luminance of 0.003, and a photograph with a
    black region under the words leaves it at 3.7:1 through a 0.42 veil and 7.0:1
    through a 0.60 one. Kept although the home's instance is on cinema: the
-   device is a page-level one now (Will's chapter-transition ruling) and the
+   device is a page-level one now (the chapter-transition change) and the
    next instance may open a paper chapter. */
 .surface-paper .bkd-plate {
   background-color: rgb(255 255 255 / 0.6);
@@ -127,7 +127,7 @@
 }
 
 /* ★ AND THIS IS NOT A SECOND MATERIAL, WHICH IS WHY `paper=dark` DOES NOT REACH
-   IT. That ruling is about CHROME over a photograph — a chip, a pill, a control
+   IT. That rule is about CHROME over a photograph — a chip, a pill, a control
    — and it says such chrome stays dark whatever the page is made of. This is a
    page's own reading surface, carrying dark ink, and dark ink over a darkened
    photograph is not a legibility argument anyone can win. The material's blur,
@@ -166,7 +166,7 @@
   height: 1px;
 }
 
-/* ── the index rail: the ruled delight ────────────────────────────────────
+/* ── the index rail: a small delight ────────────────────────────────────
 
    The band rule makes the section a thing you SCRUB, and nothing on screen says
    so. One hairline tick per photograph at the section's own foot, the live one
@@ -187,7 +187,7 @@
   pointer-events: none;
 }
 
-/* ★ THE RAIL IS ACHROMATIC, and that is bible 6 rather than a shortage of
+/* ★ THE RAIL IS ACHROMATIC, by design, rather than a shortage of
    ideas: the identity has no brand colour, the media is the colour, so the live
    tick is told apart by BRIGHTNESS and HEIGHT and not by a hue. Each tick
    carries a one-pixel dark halo so it survives a photograph that is white

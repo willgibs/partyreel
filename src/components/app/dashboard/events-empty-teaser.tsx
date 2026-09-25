@@ -37,8 +37,8 @@ export function EventsEmptyTeaser() {
       </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
         <div className="space-y-1.5">
-          {/* ★ RULED (Will, 2026-09-19, voice r1 `host-empty=album`): "Your
-              events land here" described the VOID and waited in it. His pick
+          {/* ★ CHANGED (`voice r1 host-empty=album`): "Your
+              events land here" described the VOID and waited in it. The new copy
               names the thing about to exist and puts the host at the start of
               it, and it is deliberately the same voice the guest's empty album
               took ("The album starts with you"): the album as the noun, "starts"

@@ -62,8 +62,8 @@ export async function generateMetadata({
  *   3. THE TURN. A photograph across the full width, and the ground has changed
  *      under the reader by the time they look up (`the-arc=chapter`: "paper
  *      chapter with photo transition").
- *   4. THE PLANNING CHAPTER, on paper, holding the benefits ALONE. Bible 9
- *      wants two openers rather than one, and the one thing on these pages a
+ *   4. THE PLANNING CHAPTER, on paper, holding the benefits ALONE: two openers
+ *      rather than one, and the one thing on these pages a
  *      reader studies rather than skims is what earns the light ground.
  *   5. THE PROOF, dark again: a door with photographs pouring through it, the
  *      reel beside it rather than under it (`the-proof=door`).

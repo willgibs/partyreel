@@ -17,8 +17,8 @@ import { HelpLine, NotFoundScreen } from "@/components/shared/not-found-screen";
  * must not, which screens carry a correlation code and which cannot have one,
  * that a refused clipboard never becomes a thrown screen, that every failure
  * page offers a way to a person, and that the two session-less chromes stay
- * session-less. Not a single number, word or class is pinned here: bible 10
- * keeps the copy open and Will retunes a look without asking a test.
+ * session-less. Not a single number, word or class is pinned here: copy
+ * stays open and a look can be retuned without asking a test.
  *
  * The source scans exist because the regressions they catch are SILENT. A
  * captureError that drifts down into the shared primitive files a Sentry issue
@@ -83,7 +83,7 @@ const NO_HELP_LINE = {
     "the help center is one of its two actions and contact is in its footnote",
   // The private lock and the admin host's refused path are dead ends for a
   // reader with no session and no event: each offers one way out and no
-  // support line, which is the shape Will ruled on both steps.
+  // support line, which is the shape chosen for both steps.
   "src/app/(guest)/e/[token]/page.tsx": "the private lock offers one way home",
   "src/components/admin/admin-not-found-screen.tsx":
     "a stranger on the admin host gets the portal and nothing else",

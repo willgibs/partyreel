@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { seedFrom, step, type ScrollState } from "./use-scroll-direction";
 
 /**
- * THE HIDE-AND-RETURN MACHINE, as arithmetic. What Will ruled is a BEHAVIOUR
- * ("Hides going down, returns coming up", `on-scroll=hide`, 2026-09-19), and
+ * THE HIDE-AND-RETURN MACHINE, as arithmetic. The BEHAVIOUR
+ * ("Hides going down, returns coming up", `on-scroll=hide`) is chosen, and
  * the behaviour is entirely in this reducer: the store around it is a passive
  * listener and a rAF, and the motion is CSS. So the rules get tested here,
  * where they are a pure function, rather than through a browser that would
@@ -73,7 +73,7 @@ describe("the scroll-direction machine", () => {
 
   it("seeds SHOWN even on a page that loads already deep", () => {
     // An anchored link, a bfcache restore, a throttled tab. The visible state
-    // is the default (bible 5); the first real gesture corrects it.
+    // is the default; the first real gesture corrects it.
     expect(seedFrom(4000).direction).toBe("up");
     expect(seedFrom(0).direction).toBe("top");
   });

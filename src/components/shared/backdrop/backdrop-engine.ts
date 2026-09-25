@@ -2,7 +2,7 @@
  * THE SWITCHING BACKDROP, AS ARITHMETIC (the backdrop-wiring lane, 2026-09-18).
  *
  * The production cut of the `cursor-backdrop` board's engine, trimmed to the
- * rules Will ruled on 2026-09-18 ("full-image sections are chapter
+ * rules settled on ("full-image sections are chapter
  * transitions"): the `band` trigger ("I absolutely love the rail of
  * the foot, and tracking the Cursor's position justifies this delight"), the
  * `slide` entrance ("This feels much more natural and fluid"), and at a phone
@@ -11,7 +11,7 @@
  * triggers and its `wipe` and `cut` entrances lost and left with it; git holds
  * them at 87581cc7 under `src/app/(dev)/design/sandbox/cursor-backdrop/`.
  *
- * ★ PURE, AND THAT IS LOAD-BEARING (the river's precedent). No React, no DOM,
+ * ★ PURE, AND THAT IS LOAD-BEARING (matching the river's approach). No React, no DOM,
  * no clock and no measuring: a position goes in, a stack of layers comes out.
  * That is what lets `backdrop-engine.test.ts` check the properties that are
  * impossible to see by eye (going back across a band returns the PREVIOUS
@@ -85,7 +85,7 @@ const STACK_CAP = 6;
 
 /**
  * THE SHIPPED RULE SET. `pool` and `steps` are the pool module's to state (it
- * owns the photographs); everything else is Will's ruling, in numbers.
+ * owns the photographs); everything else is fixed here, in numbers.
  */
 export const DEFAULTS: Omit<Config, "pool" | "steps"> = {
   source: "pointer",

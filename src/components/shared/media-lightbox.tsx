@@ -65,7 +65,7 @@ export type { CreditFace, ViewerMedia } from "./media-lightbox-parts/credit";
 // `index` is controlled by the grid so prev/next walks the whole set; null =
 // closed.
 //
-// ★ media-viewer r1, AS WILL RULED IT (2026-09-24): the photograph GROWS out of
+// ★ media-viewer r1 (2026-09-24): the photograph GROWS out of
 // the tile it was tapped on (or out of the reel's frame) and drops back into it
 // on the way out; a face-led credit at the top left; the floating action capsule
 // at the foot; the neighbours PEEK at the edges (a subtle filmstrip at a desk);
@@ -512,7 +512,7 @@ export function MediaLightbox({
 
   // `video=auto`: the clip plays muted and looping the moment it is centre
   // stage, and stops the moment it is not. Under reduced motion it waits for
-  // Play (bible 5: honoured by not playing). Opened from the reel, it carries
+  // Play (the reduced-motion rule: honoured by not playing). Opened from the reel, it carries
   // on from the reel's moment.
   const clipKey = current?.type === "video" ? current.id : null;
   useEffect(() => {

@@ -51,7 +51,7 @@
    the document than this sheet and therefore win, and cost a scripted reader
    nothing but the bytes. Nothing in the composition that carries meaning was
    ever gated: the h1, the code, the sentence and the two actions are plain
-   markup (bible 5). */
+   markup. */
 
 .hhs-hero {
   --hhs-axis-pct: var(--hhs-axis-pct-base);
@@ -168,7 +168,7 @@
      rides the element's own transform, so a far frame casts a small shadow and
      a near one a large one with no second curve to tune, and it darkens the
      frame BEHIND rather than the frame itself: nothing is laid over a
-     photograph (bible 6). */
+     photograph. */
   box-shadow: 0 18px 46px -16px rgb(0 0 0 / 0.66);
 }
 

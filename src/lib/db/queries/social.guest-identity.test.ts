@@ -223,8 +223,8 @@ describe("getEventGuestList: who counts as verified", () => {
   });
 
   /* ★ AND NOT ONE COLUMN MORE (the guest identity round, Will 2026-09-22). `guests` now carries
-     `pending_email`: an address a guest TYPED at the door that nobody has proved. His ruling makes
-     it inert — "there's no impersonation risk if the host can't see the attributed email of an
+     `pending_email`: an address a guest TYPED at the door that nobody has proved. It is kept
+     inert — "there's no impersonation risk if the host can't see the attributed email of an
      unconfirmed account" — and this read feeds the host's OWN album page. It is outside the host's
      PostgREST column grant as a belt, but this query runs on the ADMIN client, which the grant does
      not bind, so the SELECT above is the only thing standing between the column and the host. */

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { pickIndicatorTarget } from "./nav-indicator-target";
 
 /**
- * THE HEADER INDICATOR (2026-08-28 nav round, Will's ruling). One soft object
+ * THE HEADER INDICATOR (the nav round). One soft object
  * travels with the cursor across the primary nav and parks under whichever
  * trigger owns the open panel, so the bar answers a hover *before* the panel
  * has decided to open. Same measure-and-write technique as the reel's

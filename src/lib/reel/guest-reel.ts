@@ -12,7 +12,7 @@
  *                     privileged path (the getApprovedMediaForUnlock pattern) — not just upstream.
  *
  * The STRUCTURAL gate comes first: at anything below gallery access `full` the reel does not exist
- * for this viewer (ruled §5 — never a teaser bypass), before any read happens.
+ * for this viewer (never a teaser bypass), before any read happens.
  *
  * FRESHNESS (rendered_hash vs the current config) is deliberately NOT here: it can go stale
  * between paint and tap, so it is computed only in the download route at request time. This
@@ -45,7 +45,7 @@ export async function getGuestReelContext(
   event: GuestEvent,
   access: GalleryAccess,
 ): Promise<GuestReelPayload | null> {
-  // Ruled §5: the reel renders ONLY at gallery access `full` — enforced BEFORE any read so a
+  // The reel renders ONLY at gallery access `full` — enforced BEFORE any read so a
   // teaser/none viewer structurally cannot reach either arm.
   if (access !== "full") return null;
 

@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * The PUBLISH moment, as a persistent card under the poster (guest-flow.md d.1: the
- * moment is mandated LOUD, one tap, default OFF).
+ * The PUBLISH moment, as a persistent card under the poster (guest-flow.md: the
+ * moment is LOUD, one tap, default OFF).
  *
  * Two faces, one card. OFF is a violet call to action with the honest line about
  * who can see the reel; ON is a settled confirmation with a one-tap Unshare.
@@ -14,8 +14,8 @@
  * a CSS animation keyed on an attribute runs at first paint. The card now takes
  * the house light instead (publish-light.tsx): it pools under the card for as long
  * as the reel is shared, it swells once for the tap that shared it, and it goes
- * dark on Unshare. On a light ground there is no coloured light at all (his
- * ruling, fenced in globals.css), so the check and the words carry the moment.
+ * dark on Unshare. On a light ground there is no coloured light at all (fenced
+ * in globals.css), so the check and the words carry the moment.
  *
  * The STATE lives in useReelPublish, not in the card, because three surfaces have
  * to agree on it: this card, the section's status chip, and the reveal's settled
@@ -110,7 +110,7 @@ export function useReelPublish(
   return { shared, sharedHere, pending, flip };
 }
 
-/** The Draft / Shared status chip (guest_visible defaults OFF, guest-flow.md ruling 1).
+/** The Draft / Shared status chip (guest_visible defaults OFF; see guest-flow.md).
  *  Lives IN the panel, never in FeedSectionHeader: that header is ratified as a
  *  locked-height label row, and an extra chip would reintroduce the bounce. */
 export function ReelStatusChip({ shared }: { shared: boolean }) {

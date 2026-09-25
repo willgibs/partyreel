@@ -5,7 +5,7 @@
  *
  * This is the primary selection surface since host-app.md. The gallery tile used to carry a clapperboard
  * chip, so "add this to the reel" was a decision you made one card at a time, in a surface whose job is
- * moderation, next to four other chips. Will ruled that backwards: picking a cut is a MODE, and the
+ * moderation, next to four other chips. That was backwards: picking a cut is a MODE, and the
  * room you are in should carry the meaning instead of an icon repeated on every card. So membership is
  * chosen HERE, inside the room where the reel is playing two inches above the grid.
  *

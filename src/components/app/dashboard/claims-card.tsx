@@ -79,7 +79,7 @@ function confirmDeleteTitle(photos: number, events: number): string {
  * when `rows` is non-empty — a confirmed caller with events waiting under the
  * email on their account, from before it was confirmed.
  *
- * Deliberately plain: this is wave 1's wiring of a ruled model, not the
+ * Deliberately plain: this is wave 1's wiring of a settled model, not the
  * ticket's real shape ("The flows around the claim ticket ...
  * go to one identity-flows board once the foundation is on the tree"). One
  * card, one decision per EVENT (never per guest row: `getMyClaimableGuestRows`
@@ -89,8 +89,8 @@ function confirmDeleteTitle(photos: number, events: number): string {
  *     sends the RPC `null` ("every row of mine"), which needs no confirmation
  *     because nothing is being removed.
  *   - "Finish" reads the per-row picks: anything left NOT explicitly claimed
- *     (marked "Not mine", or simply never touched) is what Will's ruling
- *     calls "the guest effectively requesting 'get rid of that'" — so when
+ *     (marked "Not mine", or simply never touched) is treated as
+ *     "the guest effectively requesting 'get rid of that'" — so when
  *     that set is non-empty, a confirmation names the events and the count
  *     before anything is written; when every row was explicitly claimed,
  *     Finish commits at once.

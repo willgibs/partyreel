@@ -58,7 +58,7 @@
 
 /* ★ BLOOM'S GLOW RIDES THE CARD'S OWN OPACITY, NOT A SECOND ANIMATED VALUE.
    The rim and wash below are the same light `arrival.css` marks a real tile
-   with (`[data-arrived]`): a light, never a colour (bible 6). They are a
+   with (`[data-arrived]`): a light, never a colour. They are a
    STATIC box-shadow, so nothing here is re-measured or re-painted on its own;
    `.als-card`'s opacity, already written every tick for the fade the other
    three variants also use, carries the glow's own visibility for free as it

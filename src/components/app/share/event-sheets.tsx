@@ -13,7 +13,7 @@ import { useEventShare } from "./event-share-provider";
  * two sheets the URL can open; the code's mini-modal is the one that cannot.
  * They sit here, as siblings of the album rather than inside any of its
  * sections, for one reason: radix PORTALS them, so the album stays mounted and
- * scrolled behind whichever is open — which is the whole of his ruling ("the
+ * scrolled behind whichever is open — which is the whole of the requirement ("the
  * album stays behind it") and the thing a route change could not have given.
  *
  * Mounted unconditionally, opened by state: the sheets animate out as well as

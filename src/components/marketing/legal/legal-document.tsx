@@ -32,8 +32,8 @@ import { LegalBlocks } from "./legal-blocks";
  * one family and neither page carries layout of its own.
  *
  * ── THE ARC IS THE (cinema) GROUP'S ──
- * Cinema hero, paper body, ink footer: the utility-page rhythm (Will's ruling,
- * 2026-08-28, marketing-content.md). The page takes it by living in the
+ * Cinema hero, paper body, ink footer: the utility-page rhythm
+ * (marketing-content.md). The page takes it by living in the
  * (cinema) group and riding ONE PaperChapter, exactly as /help and /about do;
  * the dark overlay nav and the #040405 chrome arrive with the group. Nothing
  * here is built from the paper side (the (spotlight) lesson).
