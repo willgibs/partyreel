@@ -12,6 +12,8 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/admin/accounts/[id]/delete-account-control
   - src/components/app/dashboard/claims-card
   - src/components/app/dashboard/filter-chips
+  - src/lib/security/abuse-rate-limit
+  - src/app/(app)/account/email-actions
 reads:                  # single-sources you depend on: never duplicate, never edit
   - src/lib/format/count.ts
   - src/lib/env.ts
