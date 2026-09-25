@@ -494,8 +494,8 @@ describe("MediaLightbox: video behavior", () => {
 
 // 3c.2: the host curate group is gated by viewerIsHost && onSetStatus, so the
 // GUEST pill is unaffected (the shared lightbox is behavior-pinned). The buttons
-// read current.status; approve/hide/unhide are reversible (direct), remove is
-// behind a modal confirm.
+// read current.status; hide/show are reversible (direct), remove is behind a
+// modal confirm, and there is no Approve (pending media never reaches a grid).
 describe("MediaLightbox: host curate actions (3c.2)", () => {
   const hostItem = (status: GridMedia["status"]): GridMedia[] => [
     {
@@ -528,13 +528,18 @@ describe("MediaLightbox: host curate actions (3c.2)", () => {
     expect(onSetStatus).toHaveBeenCalledWith(items[0], "hidden");
   });
 
-  it("a PENDING host item shows Approve + Hide; Approve sets approved", () => {
+  // RESHAPED (album-guest-wiring): this pin read "a PENDING host item shows
+  // Approve + Hide; Approve sets approved". Pending media lives in the Review
+  // room and never reaches an album grid, so that Approve could never render in
+  // the product; the branch went (its ROADMAP line), and the pin now holds that
+  // it stays gone while Hide still acts on whatever the viewer is handed.
+  it("a PENDING item draws no Approve: pending media never reaches an album grid", () => {
     const onSetStatus = vi.fn();
     const items = hostItem("pending");
     mount(items, 0, { viewerIsHost: true, onSetStatus, onRemove: vi.fn() });
-    expect(screen.getByLabelText("Hide")).toBeInTheDocument();
-    fireEvent.click(screen.getByLabelText("Approve"));
-    expect(onSetStatus).toHaveBeenCalledWith(items[0], "approved");
+    expect(screen.queryByLabelText("Approve")).toBeNull();
+    fireEvent.click(screen.getByLabelText("Hide"));
+    expect(onSetStatus).toHaveBeenCalledWith(items[0], "hidden");
   });
 
   it("a HIDDEN host item shows Show (not Hide/Approve); Show sets approved", () => {
@@ -1224,6 +1229,37 @@ describe("MediaLightbox: grow out of the tile, drop back in (r1)", () => {
       calls.filter((c) => c.el.hasAttribute("data-lightbox-media")),
     ).toHaveLength(0);
   });
+
+  // album-guest-wiring: the paged album re-renders the viewer inside the flight
+  // as the neighbours' links land (they are asked for on open). The flight reads
+  // where it opened from AT THE OPEN, so a re-render there, even one handing a
+  // fresh `origin` object, never flies the photograph out of its tile again.
+  it("a re-render mid-flight (the neighbours' links landing) never restarts it", async () => {
+    const unlinked = SIZED.map((p, k) =>
+      k === 1 ? p : { ...p, url: "", downloadUrl: undefined },
+    );
+    const ui = (items: GridMedia[]) => (
+      <TooltipProvider>
+        <MediaLightbox
+          items={items}
+          index={1}
+          onClose={() => {}}
+          onIndexChange={() => {}}
+          onNeedLinks={() => {}}
+          // A fresh object on every render, as a careless caller would hand.
+          origin={{ kind: "tile", rect: { ...TILE } }}
+        />
+      </TooltipProvider>
+    );
+    const flights = () =>
+      calls.filter((c) => c.el.hasAttribute("data-lightbox-media"));
+    const { rerender } = render(ui(unlinked));
+    await act(async () => {});
+    expect(flights()).toHaveLength(1);
+    rerender(ui(SIZED));
+    await act(async () => {});
+    expect(flights()).toHaveLength(1);
+  });
 });
 
 /**
@@ -1251,5 +1287,370 @@ describe("MediaLightbox: the neighbours peek (r1)", () => {
   it("stays today's full-width swipe when a photograph's size is unknown", () => {
     mount(PHOTOS, 1);
     for (const el of mediaOf()) expect(el.style.transform).toBe("");
+  });
+});
+
+/**
+ * THE PAGED ALBUM (album-guest-wiring). A surface hands the viewer the WHOLE
+ * album with most of it unlinked (`url` "", no preview, no download link, no
+ * attribution; the id, type and size known), asks for links through
+ * `onNeedLinks`, and re-renders the viewer as they land. Pinned: an unlinked
+ * item never makes a request (an empty src resolves against the PAGE and fetches
+ * it); the ask covers exactly what is about to be drawn and never repeats for
+ * the same list; a landing swaps the picture in where it stands; the controls
+ * that send the file wait in place.
+ */
+describe("MediaLightbox: the paged album (links by id)", () => {
+  type Props = Parameters<typeof MediaLightbox>[0];
+
+  /** An item as the manifest knows it before its links land. */
+  const bare = (id: string, extra?: Partial<GridMedia>): GridMedia => ({
+    id,
+    type: "photo",
+    url: "",
+    width: 3000,
+    height: 4000,
+    ...extra,
+  });
+  /** The same item once its links, and its attribution, arrive. */
+  const lit = (item: GridMedia): GridMedia => ({
+    ...item,
+    url: `https://r2.test/${item.id}.jpg`,
+    previewUrl: `https://r2.test/${item.id}.webp`,
+    downloadUrl: `https://r2.test/d-${item.id}.jpg`,
+    uploaderName: "Priya",
+    isVerified: true,
+  });
+  const album = (n: number) =>
+    Array.from({ length: n }, (_, k) => bare(`m${k}`));
+
+  /** Mounts a viewer a test can re-render with new items, a new index or new props. */
+  function live(
+    items: GridMedia[],
+    index: number | null,
+    extra?: Partial<Props>,
+  ) {
+    const onNeedLinks = vi.fn();
+    const base = {
+      onClose: vi.fn(),
+      onIndexChange: vi.fn(),
+      onNeedLinks,
+      ...extra,
+    };
+    const ui = (
+      list: GridMedia[],
+      at: number | null,
+      over?: Partial<Props>,
+    ) => (
+      <TooltipProvider>
+        <MediaLightbox items={list} index={at} {...base} {...over} />
+      </TooltipProvider>
+    );
+    const utils = render(ui(items, index));
+    const update = (
+      list: GridMedia[],
+      at: number | null,
+      over?: Partial<Props>,
+    ) => utils.rerender(ui(list, at, over));
+    return { ...utils, onNeedLinks, update };
+  }
+
+  it("an unlinked photograph draws its placeholder at its own shape, and no <img> at all", () => {
+    live(album(3), 1);
+    const [, center] = mediaOf();
+    expect(center.querySelector("[data-lightbox-placeholder]")).not.toBeNull();
+    expect(document.querySelector("[data-lightbox-track] img")).toBeNull();
+    // The photograph's own fitted shape (3:4), not the whole media box.
+    const w = parseFloat(center.style.width);
+    const h = parseFloat(center.style.height);
+    expect(w / h).toBeCloseTo(0.75, 2);
+    // A close-up of a grey fill is nothing: it does not zoom.
+    fireEvent.doubleClick(center, { clientX: 400, clientY: 300 });
+    expect(centerZoom().style.transform).toBe("");
+  });
+
+  it("an unlinked photograph of unknown size waits as its tile did, square", () => {
+    live([bare("m0", { width: null, height: null })], 0);
+    const fill = mediaOf()[1].querySelector(
+      "[data-lightbox-placeholder]",
+    ) as HTMLElement;
+    expect(fill.style.width).not.toBe("");
+    expect(fill.style.width).toBe(fill.style.height);
+  });
+
+  it("a preview with no original yet is drawn alone", () => {
+    live([bare("m0", { previewUrl: "https://r2.test/m0.webp" })], 0);
+    const srcs = [...mediaOf()[1].querySelectorAll("img")].map((i) =>
+      i.getAttribute("src"),
+    );
+    expect(srcs).toEqual(["https://r2.test/m0.webp"]);
+    expect(document.querySelector("[data-lightbox-full]")).toBeNull();
+    expect(document.querySelector("[data-lightbox-placeholder]")).toBeNull();
+  });
+
+  it("an unlinked clip mounts no <video>: its poster, else the placeholder, and no transport", () => {
+    const withPoster = live(
+      [bare("v0", { type: "video", previewUrl: "https://r2.test/v0.webp" })],
+      0,
+    );
+    // Never `videoPosterSrc("")`, which is "#t=0.1": the page, fetched as a video.
+    expect(document.querySelector("video")).toBeNull();
+    expect(document.querySelector("[data-lightbox-poster]")).toHaveAttribute(
+      "src",
+      "https://r2.test/v0.webp",
+    );
+    expect(screen.queryByRole("slider", { name: "Seek" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Play" })).toBeNull();
+    expect(media.play).not.toHaveBeenCalled();
+    withPoster.unmount();
+
+    live([bare("v1", { type: "video" })], 0);
+    expect(document.querySelector("video")).toBeNull();
+    expect(document.querySelector("img")).toBeNull();
+    expect(
+      mediaOf()[1].querySelector("[data-lightbox-placeholder]"),
+    ).not.toBeNull();
+  });
+
+  it("the clip mounts, plays and gets its transport the moment its link lands", () => {
+    const clip = bare("v0", {
+      type: "video",
+      previewUrl: "https://r2.test/v0.webp",
+    });
+    const { update } = live([clip], 0);
+    update(
+      [
+        {
+          ...clip,
+          url: "https://r2.test/v0.mp4",
+          downloadUrl: "https://r2.test/dv0.mp4",
+        },
+      ],
+      0,
+    );
+    const video = document.querySelector(
+      "video[data-center-media]",
+    ) as HTMLVideoElement;
+    expect(video.getAttribute("src")).toBe("https://r2.test/v0.mp4#t=0.1");
+    expect(media.play).toHaveBeenCalled();
+    expect(screen.getByRole("slider", { name: "Seek" })).toBeInTheDocument();
+    expect(document.querySelector("[data-lightbox-poster]")).toBeNull();
+  });
+
+  it("an unlinked clip keeps its sound control, and the choice carries into the clip", () => {
+    const clip = bare("v0", { type: "video" });
+    const { update } = live([clip], 0);
+    const capsule = document.querySelector(
+      "[data-lightbox-capsule]",
+    ) as HTMLElement;
+    fireEvent.click(
+      within(capsule).getByRole("button", { name: "Turn sound on" }),
+    );
+    expect(
+      within(capsule).getByRole("button", { name: "Turn sound off" }),
+    ).toBeInTheDocument();
+    update([{ ...clip, url: "https://r2.test/v0.mp4" }], 0);
+    const video = document.querySelector(
+      "video[data-center-media]",
+    ) as HTMLVideoElement;
+    expect(video.muted).toBe(false);
+  });
+
+  it("asks for nothing while closed, then for the current ±1 on open", () => {
+    const items = album(3);
+    const { onNeedLinks, update } = live(items, null);
+    expect(onNeedLinks).not.toHaveBeenCalled();
+    update(items, 0);
+    expect(onNeedLinks).toHaveBeenCalledTimes(1);
+    expect(onNeedLinks).toHaveBeenLastCalledWith(["m0", "m1"]);
+  });
+
+  it("asks for the unlinked ids of the current ±1, nearest first, and again after a step", () => {
+    const items = album(6);
+    const { onNeedLinks, update } = live(items, 2);
+    expect(onNeedLinks).toHaveBeenCalledTimes(1);
+    expect(onNeedLinks).toHaveBeenLastCalledWith(["m2", "m3", "m1"]);
+    update(items, 3);
+    expect(onNeedLinks).toHaveBeenCalledTimes(2);
+    expect(onNeedLinks).toHaveBeenLastCalledWith(["m3", "m4", "m2"]);
+  });
+
+  it("never asks twice for the same list: a new array, new objects, another prop, a new callback", () => {
+    const items = album(5);
+    const { onNeedLinks, update } = live(items, 2);
+    expect(onNeedLinks).toHaveBeenCalledTimes(1);
+    update([...items], 2);
+    update(
+      items.map((m) => ({ ...m })),
+      2,
+    );
+    update(items, 2, { shareUrl: "https://partyreel.com/e/tok" });
+    expect(onNeedLinks).toHaveBeenCalledTimes(1);
+    // A caller's inline arrow is a new function on every render: still no ask.
+    const spy = vi.fn();
+    update(items, 2, { onNeedLinks: (ids) => spy(ids) });
+    update(items, 2, { onNeedLinks: (ids) => spy(ids) });
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("skips what is linked, and asks nothing when everything in reach is", () => {
+    const items = album(5).map((m, k) => (k === 3 ? m : lit(m)));
+    const { onNeedLinks, update } = live(items, 2);
+    expect(onNeedLinks).toHaveBeenLastCalledWith(["m3"]);
+    const all = items.map((m) => (m.url ? m : lit(m)));
+    update(all, 2);
+    update(all, 1);
+    expect(onNeedLinks).toHaveBeenCalledTimes(1);
+  });
+
+  it("at a desk it asks for the filmstrip's ±7 too, and those frames draw no picture yet", () => {
+    const real = window.matchMedia;
+    // The desk: a fine pointer (the mock's viewport is already 1024 wide).
+    window.matchMedia = ((q: string) => {
+      const m = real(q);
+      return q.includes("pointer: fine") ? { ...m, matches: true } : m;
+    }) as typeof window.matchMedia;
+    try {
+      const { onNeedLinks } = live(album(20), 10);
+      const nearest = ["m10"];
+      for (let d = 1; d <= 7; d++) nearest.push(`m${10 + d}`, `m${10 - d}`);
+      expect(onNeedLinks).toHaveBeenCalledTimes(1);
+      expect(onNeedLinks).toHaveBeenLastCalledWith(nearest);
+      const strip = document.querySelector("[data-lightbox-filmstrip]")!;
+      expect(strip.querySelectorAll("[data-lightbox-frame]")).toHaveLength(15);
+      expect(strip.querySelector("img")).toBeNull();
+    } finally {
+      window.matchMedia = real;
+    }
+  });
+
+  it("a landing link swaps the picture in over the placeholder, in the same slot", () => {
+    const items = album(3);
+    const { update } = live(items, 1);
+    const slot = mediaOf()[1];
+    update(
+      items.map((m, k) => (k === 1 ? lit(m) : m)),
+      1,
+    );
+    // The same element: nothing remounted, so nothing flies or resets.
+    expect(mediaOf()[1]).toBe(slot);
+    expect(slot.querySelector("[data-lightbox-full]")).toHaveAttribute(
+      "src",
+      "https://r2.test/m1.jpg",
+    );
+    // The fill holds until a picture has painted, then leaves.
+    expect(slot.querySelector("[data-lightbox-placeholder]")).not.toBeNull();
+    fireEvent.load(
+      slot.querySelector("img:not([data-lightbox-full])") as HTMLImageElement,
+    );
+    expect(slot.querySelector("[data-lightbox-placeholder]")).toBeNull();
+  });
+
+  it("keeps a close-up when the original lands under it", () => {
+    const items = album(3).map((m) => ({
+      ...m,
+      previewUrl: `https://r2.test/${m.id}.webp`,
+    }));
+    const { update } = live(items, 1);
+    fireEvent.doubleClick(mediaOf()[1], { clientX: 400, clientY: 300 });
+    const close = centerZoom().style.transform;
+    expect(close).toMatch(/scale\(2\.5\)/);
+    update(
+      items.map((m, k) => (k === 1 ? lit(m) : m)),
+      1,
+    );
+    expect(centerZoom().style.transform).toBe(close);
+    expect(track().hasAttribute("data-quiet")).toBe(true);
+  });
+
+  // The per-item reset is keyed on the photograph, not its index: an arrival at
+  // the head of a live album moves the photograph on screen to a new index.
+  it("keeps a close-up while the album grows under it, and a real step still starts at fit", () => {
+    const items = PHOTOS.map((p) => ({ ...p, width: 3000, height: 4000 }));
+    const { update } = live(items, 1);
+    fireEvent.doubleClick(mediaOf()[1], { clientX: 400, clientY: 300 });
+    const close = centerZoom().style.transform;
+    expect(close).toMatch(/scale\(2\.5\)/);
+    const arrival: GridMedia = { ...items[0], id: "p0" };
+    update([arrival, ...items], 2);
+    expect(centerZoom().style.transform).toBe(close);
+    update([arrival, ...items], 3);
+    expect(centerZoom().style.transform).toBe("");
+    const previous = mediaOf()[0].querySelector(
+      "[data-lightbox-zoom]",
+    ) as HTMLElement;
+    expect(previous.style.transform).toBe("");
+  });
+
+  // Found here, older than the paged album: the reset captured the photograph's
+  // element before radix's Portal had mounted it, so the FIRST step after
+  // opening left the photograph it replaced zoomed in its sliver.
+  it("the photograph a step leaves loses its close-up, on the first step after opening too", () => {
+    const items = PHOTOS.map((p) => ({ ...p, width: 3000, height: 4000 }));
+    const { update } = live(items, 1);
+    fireEvent.doubleClick(mediaOf()[1], { clientX: 400, clientY: 300 });
+    expect(centerZoom().style.transform).toMatch(/scale\(2\.5\)/);
+    update(items, 2);
+    const previous = mediaOf()[0].querySelector(
+      "[data-lightbox-zoom]",
+    ) as HTMLElement;
+    expect(previous.style.transform).toBe("");
+  });
+
+  it("Save, Share and Copy link wait for the link in place; Delete never waits", async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    try {
+      const one = bare("m0");
+      const { update } = live([one], 0, {
+        shareUrl: "https://partyreel.com/e/tok",
+        onDeleteCurrent: vi.fn(),
+      });
+      const capsule = document.querySelector(
+        "[data-lightbox-capsule]",
+      ) as HTMLElement;
+      const shape = capsule.childElementCount;
+      const share = within(capsule).getByRole("button", { name: "Share" });
+      expect(
+        within(capsule).getByRole("button", { name: "Save" }),
+      ).toBeDisabled();
+      expect(share).toBeDisabled();
+      expect(
+        within(capsule).getByRole("button", { name: "Copy link" }),
+      ).toBeDisabled();
+      expect(
+        within(capsule).getByRole("button", { name: "Delete" }),
+      ).toBeEnabled();
+      await act(async () => {
+        fireEvent.click(share);
+      });
+      expect(fetchSpy).not.toHaveBeenCalled();
+
+      update([lit(one)], 0);
+      expect(
+        within(capsule).getByRole("link", { name: "Save" }),
+      ).toHaveAttribute("href", "https://r2.test/d-m0.jpg");
+      expect(
+        within(capsule).getByRole("button", { name: "Share" }),
+      ).toBeEnabled();
+      expect(
+        within(capsule).getByRole("button", { name: "Copy link" }),
+      ).toBeEnabled();
+      // The capsule kept its shape: nothing was added under the thumb.
+      expect(capsule.childElementCount).toBe(shape);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("names nobody until the link carries the name, then credits it", () => {
+    const one = bare("m0");
+    const { update } = live([one], 0);
+    expect(document.querySelector("[data-lightbox-credit]")).toBeNull();
+    update([lit(one)], 0);
+    const credit = document.querySelector(
+      "[data-lightbox-credit]",
+    ) as HTMLElement;
+    expect(within(credit).getByText("Priya")).toBeInTheDocument();
   });
 });

@@ -14,7 +14,7 @@ import type { ViewMenuGroup } from "@/components/shared/view-menu";
 import { Button } from "@/components/ui/button";
 import { floatingPanel, floatingRow } from "@/components/ui/floating-layer";
 import { formatCount } from "@/lib/format/count";
-import { DEFAULT_TILE_SIZE } from "@/lib/shared/tile-size-cookie";
+import { DEFAULT_ROW_STEP } from "@/lib/shared/album-rows";
 import { cn } from "@/lib/utils";
 
 import { ALBUM, MINE_IDS } from "./fixtures";
@@ -105,8 +105,8 @@ function Tile({
  * THE VIEW MENU, DRAWN OPEN, for `none`. The real one is a radix dropdown,
  * which portals to the BOARD's body rather than the frame's, so it is drawn
  * here on the shipped panel's own parts (`floatingPanel`, `floatingRow`, the
- * group label's type) with the groups the guest's album really passes
- * (`buildGuestViewGroups`): Tile size, reserved below 640, and Showing.
+ * group label's type) with the radio groups the guest's album really passes
+ * (`buildGuestViewGroups`): Showing (its density slider is drawn by its own control).
  */
 function DrawnMenu({ groups }: { groups: readonly ViewMenuGroup[] }) {
   return (
@@ -159,14 +159,16 @@ function DrawnMenu({ groups }: { groups: readonly ViewMenuGroup[] }) {
  * View, quoted at rest; `open` draws View's panel under its button.
  */
 function CountRow({ screen, open }: { screen: ScreenId; open: boolean }) {
+  // The album's density slider is its own control (`density-control.tsx`); the drawn panel quotes
+  // the radio groups (Showing) the mark on this board is about.
   const groups = buildGuestViewGroups({
-    tileSize: DEFAULT_TILE_SIZE,
-    setTileSize: () => {},
-    wideEnough: screen !== "375",
+    step: DEFAULT_ROW_STEP,
+    setStep: () => {},
+    boxWidth: screen === "375" ? 351 : 1400,
     showingMine: false,
     setShowingMine: () => {},
     ownedCount: MINE_IDS.size,
-  });
+  }).filter((g): g is ViewMenuGroup => g.kind !== "density");
   const count = ALBUM.length;
   return (
     <div className="relative mb-3 flex flex-wrap items-center justify-between gap-1.5">

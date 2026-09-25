@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { yoursView } from "@/components/guest/yours-filter";
+import { yoursView } from "@/lib/guest/yours-filter";
 
 /**
  * THE YOURS FILTER'S CONTRACT.

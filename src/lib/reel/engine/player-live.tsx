@@ -149,6 +149,12 @@ export type LiveReelPlayerProps = {
   onFrame?: (state: LiveFrameState) => void;
   /** Capability gaps from the draw (deduplicated by the env). */
   onReport?: (message: string) => void;
+  /**
+   * A video window's reader failed the way an EXPIRED LINK does (`possibleExpiry`: no HTTP status
+   * reached us, which is how a dead presign answers through CORS), with that clip's id, so the page
+   * re-mints exactly that clip's links. Beside `onReport`, never instead of it.
+   */
+  onExpired?: (clipId: string) => void;
 };
 
 type Active = {
@@ -191,6 +197,7 @@ export function LiveReelPlayer({
   onFailure,
   onFrame,
   onReport,
+  onExpired,
 }: LiveReelPlayerProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -234,7 +241,13 @@ export function LiveReelPlayer({
   // Latest-refs for everything the rAF loop reads, synced in effects (never written during render),
   // so the loop is created ONCE and a re-render can never restart the clock.
   const lookRef = useRef(look);
-  const cbRef = useRef({ onClipChange, onFailure, onFrame, onReport });
+  const cbRef = useRef({
+    onClipChange,
+    onFailure,
+    onFrame,
+    onReport,
+    onExpired,
+  });
   const frameRef = useRef({ width, height, scaleX, scaleY });
   const playingRef = useRef(false);
 
@@ -242,8 +255,8 @@ export function LiveReelPlayer({
     lookRef.current = look;
   }, [look]);
   useEffect(() => {
-    cbRef.current = { onClipChange, onFailure, onFrame, onReport };
-  }, [onClipChange, onFailure, onFrame, onReport]);
+    cbRef.current = { onClipChange, onFailure, onFrame, onReport, onExpired };
+  }, [onClipChange, onFailure, onFrame, onReport, onExpired]);
   useEffect(() => {
     frameRef.current = { width, height, scaleX, scaleY };
   }, [width, height, scaleX, scaleY]);
@@ -276,6 +289,8 @@ export function LiveReelPlayer({
     deck: null as ReaderDeck | null,
     ledger: null as ReturnType<typeof createVideoByteLedger> | null,
     disposed: false,
+    /** Asks for the first window again while none has landed (the first-window effect's). */
+    loadFirst: null as (() => void) | null,
   });
 
   const bumpFailures = useCallback((n: number) => {
@@ -323,11 +338,15 @@ export function LiveReelPlayer({
           };
         },
         onFailure: (index, failure) => {
+          const clipId = win.ids[index];
           cbRef.current.onReport?.(
-            `video ${win.ids[index] ?? index}: ${failure.kind}${
+            `video ${clipId ?? index}: ${failure.kind}${
               failure.possibleExpiry ? " (possible expiry)" : ""
             }`,
           );
+          if (failure.possibleExpiry && clipId) {
+            cbRef.current.onExpired?.(clipId);
+          }
         },
       });
 
@@ -465,8 +484,7 @@ export function LiveReelPlayer({
           if (next && next.window.plan.clips.length > 1) {
             const nextStarts = clipStartFrames(next.window.plan);
             const resume =
-              nextStarts[1] +
-              (next.window.plan.gaps[0]?.durationInFrames ?? 0);
+              nextStarts[1] + (next.window.plan.gaps[0]?.durationInFrames ?? 0);
             swapTo(next, resume, globalFrame);
             return;
           }
@@ -506,25 +524,48 @@ export function LiveReelPlayer({
   );
 
   // ── The first window ─────────────────────────────────────────────────────
+  // ★ AND ITS RETRY. A window can answer null for a while (its stills' links still on their way:
+  // the source's bounded wait, live/source.ts), and an album can be empty when the player mounts. A
+  // first load that answered null used to be the end of it: no window, no clock, a black rectangle
+  // for the night. So the tick asks again (`state.loadFirst`) until one lands, one load at a time.
   useEffect(() => {
     const state = rt.current;
     state.disposed = false;
     let alive = true;
+    let loading = false;
     state.lookKey = lookKeyOf(lookRef.current);
-    void loadWindow(0, lookRef.current).then((first) => {
-      if (!alive || !first) return;
-      state.active = first;
-      state.index = 0;
-      state.frameOffset = 0;
-      state.revision = source.revision();
-      source.setCurrentWindow(0);
-      bumpFailures(first.assets.failures);
-      setStarted(true);
-      ensureAhead();
-    });
+    const loadFirst = () => {
+      if (!alive || loading) return;
+      loading = true;
+      const l = lookRef.current;
+      void loadWindow(0, l)
+        .then((first) => {
+          loading = false;
+          if (!alive || !first) return;
+          // The look moved while it loaded: the next tick asks again, in the look on screen now.
+          if (lookKeyOf(l) !== state.lookKey) {
+            first.playback?.dispose();
+            return;
+          }
+          state.active = first;
+          state.index = 0;
+          state.frameOffset = 0;
+          state.revision = source.revision();
+          source.setCurrentWindow(0);
+          bumpFailures(first.assets.failures);
+          setStarted(true);
+          ensureAhead();
+        })
+        .catch(() => {
+          loading = false;
+        });
+    };
+    state.loadFirst = loadFirst;
+    loadFirst();
     return () => {
       alive = false;
       state.disposed = true;
+      if (state.loadFirst === loadFirst) state.loadFirst = null;
     };
   }, [loadWindow, source, ensureAhead, bumpFailures]);
 
@@ -540,6 +581,9 @@ export function LiveReelPlayer({
       return;
     }
     state.lookKey = key;
+    // Nothing on screen yet: the first window's load (and its retry) reads the look as it is now.
+    // Installing one here would put a window up with no clock started under it.
+    if (!state.active) return;
     dropAhead();
 
     let alive = true;
@@ -694,7 +738,10 @@ export function LiveReelPlayer({
         state.elapsedSec += (now - lastTick) / 1000;
       }
       lastTick = now;
-      if (!state.active) return;
+      if (!state.active) {
+        state.loadFirst?.();
+        return;
+      }
 
       // A splice or a drop rewrote what is ahead: the prefetch is stale. Checked here rather than in
       // an effect because the source can change outside React's render (the album's doorbell).

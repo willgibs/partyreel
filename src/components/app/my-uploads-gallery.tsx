@@ -7,6 +7,7 @@ import { removeMyUploadAction } from "@/app/(app)/dashboard/actions";
 import { type GridMedia } from "@/components/app/media-grid";
 import { LikesProvider } from "@/components/likes/likes-provider";
 import { MasonryColumns } from "@/components/shared/masonry";
+import type { RowStep } from "@/lib/shared/album-rows";
 
 // The personal cross-event "Uploads" gallery (Phase 4): a flat, newest-first grid of the viewer's OWN
 // uploads (host + guest), rendered in the shared MasonryColumns. View + per-item download in the lightbox, plus the
@@ -21,9 +22,12 @@ import { MasonryColumns } from "@/components/shared/masonry";
 export function MyUploadsGallery({
   items,
   truncated,
+  rowStep,
 }: {
   items: GridMedia[];
   truncated: boolean;
+  /** The justified rows' step (the shared `pr_tile_size` cookie, read by the page). */
+  rowStep?: RowStep;
 }) {
   const [, startTransition] = useTransition();
   // Optimistic removal: the deleted item drops from the grid instantly. The action's
@@ -50,7 +54,12 @@ export function MyUploadsGallery({
     <div className="space-y-4">
       {/* Likes toggle in place here (mode "keep"); delete-your-own is the separate Trash action. */}
       <LikesProvider mediaIds={optimisticItems.map((m) => m.id)}>
-        <MasonryColumns items={optimisticItems} onDeleteItem={handleDelete} />
+        <MasonryColumns
+          items={optimisticItems}
+          onDeleteItem={handleDelete}
+          layout="rows"
+          rowStep={rowStep}
+        />
       </LikesProvider>
       {truncated && (
         <p className="text-center text-xs text-muted-foreground">

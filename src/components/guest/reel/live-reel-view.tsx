@@ -130,6 +130,7 @@ import {
 } from "@/lib/reel/engine/player-live";
 import { isReelEligible, type LiveMediaItem } from "@/lib/reel/live/items";
 import { createClipSource, type ClipSource } from "@/lib/reel/live/source";
+import type { ClipResolver } from "@/lib/album/resolver";
 import { resolveLiveStyleId } from "@/lib/reel/live/window";
 import { probeClipSupport, useClipSupport } from "@/lib/reel/clip-support";
 import { NO_ENCODER_WORDS } from "@/lib/reel/clip-words";
@@ -150,8 +151,8 @@ export type ReelViewProps = {
   displayAddress: string;
   qrStyle: string;
   isDemo: boolean;
-  /** The list the reel plays (the controller's; see live-reel.tsx). */
-  playable: readonly GalleryItem[];
+  /** The list the reel plays (the controller's; see live-reel.tsx): the manifest's items, no urls. */
+  playable: readonly LiveMediaItem[];
   onAddYours?: () => void;
   creator: ReelCreator | null;
   addClipToAlbum: ((file: File, poster: Blob) => void) | null;
@@ -186,6 +187,8 @@ const BAR_H = 34;
 const DOCK_R = 22;
 /** Past this many failed frames or stills, one report reaches Sentry (never silent, never a flood). */
 const FAILURE_REPORT_THRESHOLD = 12;
+/** The longest the creator's room waits on the album's links before it opens with what has landed. */
+const CREATOR_LINK_WAIT_MS = 5000;
 
 export function LiveReelView({
   mode,
@@ -208,6 +211,9 @@ export function LiveReelView({
   onClose,
 }: ReelViewProps) {
   const live = useGalleryLive();
+  // Links by id: the reel reads them at each window, the arrivals' names ride them, the creator's
+  // pool waits on them.
+  const clips = live?.clips ?? null;
   const reduced = usePrefersReducedMotion();
   const screen = mode === "screen";
   // A desk: the code toggle and the owner's Play on a screen live here and nowhere smaller (a phone
@@ -239,7 +245,18 @@ export function LiveReelView({
   );
 
   /* ── the source: the album's live list, fed as it changes ────────────────── */
-  const source = useLiveSource(eventId, playable, live?.ownIds ?? null);
+  // Stills that failed to decode are re-minted by id (the watchdog), never the whole album.
+  const reportExpiry = live?.reportPossibleExpiry;
+  const [onFailedIds] = useState(
+    () => (ids: readonly string[]) => reportExpiry?.(ids),
+  );
+  const source = useLiveSource(
+    eventId,
+    playable,
+    live?.ownIds ?? null,
+    live?.clips ?? null,
+    onFailedIds,
+  );
   const playerRef = useRef<LiveReelPlayerHandle>(null);
   const orientation = useViewportOrientation();
   const viewport = useViewportSize();
@@ -325,13 +342,13 @@ export function LiveReelView({
   }, []);
 
   /* ── never silent, never a flood (the watchdog and one Sentry report) ────── */
+  // ★ THE WATCHDOG RE-MINTS ONLY THE FAILING IDS: a still that fails to decode reaches the provider
+  // through the source (`onFailedIds`, above) and a video window whose reader failed the way an
+  // expired presign does through the player (`onExpired`), each by its own id; the count here only
+  // decides the one Sentry report.
   const reportedRef = useRef(false);
-  const reportPossibleExpiry = live?.reportPossibleExpiry;
   const onFailure = useCallback(
     (count: number) => {
-      // Any still that fails to decode may be an expired presign: the provider refetches, at most
-      // once a minute, and every url is read again by id.
-      reportPossibleExpiry?.();
       if (count >= FAILURE_REPORT_THRESHOLD && !reportedRef.current) {
         reportedRef.current = true;
         captureWarning("reel", "live reel: frames failing", {
@@ -341,13 +358,11 @@ export function LiveReelView({
         });
       }
     },
-    [reportPossibleExpiry, eventId, mode],
+    [eventId, mode],
   );
-  const onReport = useCallback(
-    (message: string) => {
-      if (message.includes("possible expiry")) reportPossibleExpiry?.();
-    },
-    [reportPossibleExpiry],
+  const onExpired = useCallback(
+    (clipId: string) => reportExpiry?.([clipId]),
+    [reportExpiry],
   );
 
   /* ── the screen posture: plays in the window, one press fills it ─────────── */
@@ -392,7 +407,9 @@ export function LiveReelView({
   /* ── the arrivals ────────────────────────────────────────────────────────── */
   const rows = useArrivalFeed({
     arrivals: live?.arrivals ?? EMPTY,
-    items: live?.items ?? EMPTY_ITEMS,
+    playable,
+    clips,
+    nameOf: live?.nameOf ?? null,
     holdMs: holdSec * 1000,
     enabled: !idle,
   });
@@ -400,7 +417,24 @@ export function LiveReelView({
   /* ── the lightbox (a tap on the picture) ─────────────────────────────────── */
   const pausedBeforeRef = useRef(false);
   const pictureRef = useRef<HTMLDivElement>(null);
-  const lightboxItems = playable as GalleryItem[];
+  // The viewer's reach: the photographs it is about to show get their links and their hearts.
+  const [viewerIds, setViewerIds] = useState<string[]>([]);
+  const ensureLinks = live?.ensureLinks;
+  const onViewerNeedLinks = useCallback(
+    (ids: readonly string[]) => {
+      setViewerIds([...ids]);
+      ensureLinks?.(ids);
+    },
+    [ensureLinks],
+  );
+  // The viewer walks the album's playable photographs as the grid draws them (every one an item,
+  // its links arriving by id: `onNeedLinks`).
+  const albumItems = live?.items;
+  const lightboxItems = useMemo(
+    () =>
+      (albumItems ?? EMPTY_ITEMS).filter((item) => item.reelEligible !== false),
+    [albumItems],
+  );
   /**
    * The viewer grows the photograph out of the FRAME (the picture's own box, `kind: "reel"`) and,
    * with no `returnTo`, lands back in it on the way out; a video carries on from the reel's moment
@@ -454,11 +488,34 @@ export function LiveReelView({
     },
     [],
   );
+  /* ★ THE CREATOR PICKS FROM THE WHOLE ALBUM, SO ITS LINKS COME FIRST. The room clips from every
+     playable photograph (its own pool, its own fills), and on the paged album most of them have no
+     link yet: the room opens on its dark ground while the album's playable links are minted
+     (batched, by id, through the same resolver the reel reads), and mounts once they are in or a
+     bounded wait has passed, so its first fill is chosen from the whole album, never from the
+     handful that happened to be on screen. */
+  const [creatorReady, setCreatorReady] = useState(false);
+  const creatorAsk = useRef(0);
   const enterCreator = useCallback(() => {
     pausedBeforeRef.current = paused;
     setPaused(true);
     setCreatorOpen(true);
-  }, [paused]);
+    setCreatorReady(false);
+    const ask = ++creatorAsk.current;
+    const ready = () => {
+      if (creatorAsk.current === ask) setCreatorReady(true);
+    };
+    const ids = playable.filter(isReelEligible).map((item) => item.id);
+    if (!clips || ids.length === 0) {
+      ready();
+      return;
+    }
+    const timer = setTimeout(ready, CREATOR_LINK_WAIT_MS);
+    void clips.ensure(ids).then(() => {
+      clearTimeout(timer);
+      ready();
+    });
+  }, [paused, playable, clips]);
   const openCreator = useCallback(() => {
     if (support === "yes") {
       enterCreator();
@@ -625,7 +682,7 @@ export function LiveReelView({
                 onClipChange={onClipChange}
                 onFrame={onFrame}
                 onFailure={onFailure}
-                onReport={onReport}
+                onExpired={onExpired}
               />
             </div>
           )}
@@ -758,7 +815,7 @@ export function LiveReelView({
           {/* THE MEDIA VIEWER, for a tapped photograph: grown out of the frame, a video carrying on
               from the reel's moment. Its own likes, since the album's provider sits in the grid. */}
           {lightboxIndex !== null && (
-            <LikesProvider mediaIds={lightboxItems.map((m) => m.id)}>
+            <LikesProvider mediaIds={viewerIds}>
               <MediaLightboxLazy
                 items={lightboxItems}
                 index={lightboxIndex}
@@ -767,6 +824,7 @@ export function LiveReelView({
                 shareUrl={joinUrl}
                 origin={viewerFrom?.origin}
                 startAt={viewerFrom?.startAt}
+                onNeedLinks={onViewerNeedLinks}
               />
             </LikesProvider>
           )}
@@ -774,7 +832,13 @@ export function LiveReelView({
           {/* THE CREATOR: the clip's own room, a dialog of its own over this one (so Escape, focus
               and the reader's world are its own while it is open). The chunk arrives on the tap;
               until it lands the room's ground covers the reel, so nothing flashes through. */}
-          {creatorOpen && creator && clipFacts && (
+          {creatorOpen && creator && clipFacts && !creatorReady && (
+            <div
+              aria-hidden
+              className="absolute inset-0 z-40 bg-[oklch(0.11_0_0)]"
+            />
+          )}
+          {creatorOpen && creator && clipFacts && creatorReady && (
             <Suspense
               fallback={
                 <div
@@ -787,7 +851,7 @@ export function LiveReelView({
                 const Creator = creator;
                 return (
                   <Creator
-                    items={playable}
+                    items={lightboxItems}
                     styleId={styleId}
                     eventId={eventId}
                     eventName={eventName}
@@ -797,7 +861,9 @@ export function LiveReelView({
                     moderated={moderated}
                     ownIds={live?.ownIds ?? null}
                     onClose={() => {
+                      creatorAsk.current += 1;
                       setCreatorOpen(false);
+                      setCreatorReady(false);
                       setPaused(pausedBeforeRef.current);
                     }}
                   />
@@ -824,10 +890,24 @@ const EMPTY_ITEMS: readonly GalleryItem[] = [];
  */
 function useLiveSource(
   eventId: string,
-  items: readonly GalleryItem[],
+  items: readonly LiveMediaItem[],
   ownIds: ReadonlySet<string> | null,
+  resolver: ClipResolver | null,
+  onFailedIds: (ids: readonly string[]) => void,
 ): ClipSource {
-  const [source] = useState(() => createClipSource({ eventId, items, ownIds }));
+  // ★ ON THE PAGED ALBUM THE SOURCE PLANS FROM THE MANIFEST AND READS LINKS BY ID: the items carry no
+  // urls, the resolver mints them a window or two ahead of each clip's turn and the source reads them
+  // at the moment it builds a window (live/source.ts). The watchdog (the provider's, one stable
+  // function for its life) hears exactly the ids whose stills failed.
+  const [source] = useState(() =>
+    createClipSource({
+      eventId,
+      items,
+      ownIds,
+      resolver: resolver ?? undefined,
+      onFailedIds,
+    }),
+  );
   useEffect(() => {
     source.setItems(items);
   }, [source, items]);
@@ -962,12 +1042,18 @@ function createFeedStore() {
  */
 function useArrivalFeed({
   arrivals,
-  items,
+  playable,
+  clips,
+  nameOf,
   holdMs,
   enabled,
 }: {
   arrivals: readonly string[];
-  items: readonly GalleryItem[];
+  /** The reel's items (the manifest's): an arrival that cannot play (a clip) names nobody. */
+  playable: readonly LiveMediaItem[];
+  /** The links by id: an arrival's name rides its link's attribution. */
+  clips: ClipResolver | null;
+  nameOf: ((id: string) => string | null) | null;
   holdMs: number;
   enabled: boolean;
 }): ArrivalRow[] {
@@ -983,15 +1069,32 @@ function useArrivalFeed({
     const fresh = arrivals.slice(seenRef.current);
     seenRef.current = arrivals.length;
     if (!enabled) return;
-    const byId = new Map(items.map((item) => [item.id, item]));
-    const named = fresh
-      .map((id) => byId.get(id))
-      .filter((item): item is GalleryItem =>
-        Boolean(item && isReelEligible(item)),
-      )
-      .map((item) => ({ id: item.id, name: item.uploaderName ?? null }));
-    if (named.length > 0) store.push(named, holdMs);
-  }, [arrivals, items, holdMs, enabled, store]);
+    const byId = new Map(playable.map((item) => [item.id, item]));
+    const eligible = fresh.filter((id) => {
+      const item = byId.get(id);
+      return Boolean(item && isReelEligible(item));
+    });
+    if (eligible.length === 0) return;
+    // ★ THE NAME RIDES THE LINK. On the paged album an arrival's attribution comes with its link, so
+    // the feed asks for the arrivals' links first (the reel is about to play them anyway) and names
+    // them when they land, a beat later, rather than naming nobody.
+    const push = () =>
+      store.push(
+        eligible.map((id) => ({ id, name: nameOf?.(id) ?? null })),
+        holdMs,
+      );
+    if (!clips) {
+      push();
+      return;
+    }
+    let active = true;
+    void clips.ensure(eligible).then(() => {
+      if (active) push();
+    });
+    return () => {
+      active = false;
+    };
+  }, [arrivals, playable, clips, nameOf, holdMs, enabled, store]);
   useEffect(() => () => store.dispose(), [store]);
   return useMemo(() => arrivalRows(feed), [feed]);
 }

@@ -7,6 +7,7 @@ import { type GridMedia } from "@/components/app/media-grid";
 import { LikesProvider } from "@/components/likes/likes-provider";
 import { MasonryColumns } from "@/components/shared/masonry";
 import { EmptyState } from "@/components/shared/empty-state";
+import type { RowStep } from "@/lib/shared/album-rows";
 
 // The personal cross-event "Likes" gallery (Phase 5): a flat, newest-LIKED-first grid of every photo/video
 // the viewer has liked, across all events, rendered in the shared MasonryColumns (view + per-item download in the
@@ -22,9 +23,12 @@ import { EmptyState } from "@/components/shared/empty-state";
 export function MyLikesGallery({
   items,
   truncated,
+  rowStep,
 }: {
   items: GridMedia[];
   truncated: boolean;
+  /** The justified rows' step (the shared `pr_tile_size` cookie, read by the page). */
+  rowStep?: RowStep;
 }) {
   // Confirmed-removed ids (post-unlike). Deriving the visible list from the prop + this set keeps it
   // correct even if `items` is re-provided. No useOptimistic here: unlike is a browser RLS delete with no
@@ -54,7 +58,12 @@ export function MyLikesGallery({
             like MARK: every tile here is liked by definition, so the mark would
             be wallpaper. The heart that unlikes is the lightbox's, at every
             width, which is exactly where `tiles` put it. */}
-        <MasonryColumns items={visible} hideLikeMark />
+        <MasonryColumns
+          items={visible}
+          hideLikeMark
+          layout="rows"
+          rowStep={rowStep}
+        />
       </LikesProvider>
       {truncated && (
         <p className="text-center text-xs text-muted-foreground">

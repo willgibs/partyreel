@@ -51,15 +51,12 @@ import {
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 import { formatCount } from "@/lib/format/count";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
-import {
-  DEFAULT_TILE_SIZE,
-  type TileSize,
-} from "@/lib/shared/tile-size-cookie";
+import { DEFAULT_ROW_STEP, type RowStep } from "@/lib/shared/album-rows";
 import { closesOnLastRemoval as lastRemovalCloses } from "@/lib/guest/delete-consequence";
 import { contributionAnswered } from "@/lib/guest/entry-steps";
 import { onNameDoorRequest } from "@/lib/guest/name-door";
 import { useConfirmReturn } from "@/lib/guest/use-confirm-return";
-import { useUploadQueue } from "@/lib/guest/use-upload-queue";
+import { useLiveQueue, useUploadQueue } from "@/lib/guest/use-upload-queue";
 import {
   setStoredEmailAttached,
   useStoredName,
@@ -132,14 +129,16 @@ export function EventExperience({
   isAuthed,
   isVerified = false,
   hostCard = null,
-  initialTileSize,
+  initialRowStep,
+  firstPaintWidth = null,
+  rhythmSeed = 0,
   albumFull = false,
 }: {
   event: GuestEvent;
   qrToken: string;
   joinUrl: string;
-  /** The RSC's gallery load, NOT awaited server-side — LiveGallery resolves it
-   *  via use() inside the Suspense boundary so the shell paints first. */
+  /** The page's album seed (the manifest and the first window's links), NOT awaited server-side:
+   *  the live gallery resolves it via use() inside the Suspense boundary so the shell paints first. */
   galleryPromise: Promise<GalleryPayload>;
   /** Header stats: numbers only, never identities. N goes live via
    *  LiveGallery's onCountChange; M is THE ONE COUNT of guests (getEventGuests,
@@ -187,10 +186,14 @@ export function EventExperience({
   isVerified?: boolean;
   /** The event's host as a public card, for the capture flow's follow moment. */
   hostCard?: FollowMomentHost | null;
-  /** Server-resolved from the `pr_tile_size` cookie (page.tsx) — threaded straight
-   *  through to LiveGallery's one View menu and to the streaming skeleton, so both
-   *  lay out one column count; this shell holds no tile-size state of its own. */
-  initialTileSize?: TileSize;
+  /** The album's density step, server-resolved from the shared `pr_tile_size` cookie (page.tsx):
+   *  threaded straight through to the album's View menu and to the streaming skeleton, so both lay
+   *  out one number of photographs a row; this shell holds no step of its own. */
+  initialRowStep?: RowStep;
+  /** The width the album last laid its rows at (the page's `pr_album_w` cookie; null cold). */
+  firstPaintWidth?: number | null;
+  /** The visit's seed for the rows' rhythm (drawn by the page once a visit). */
+  rhythmSeed?: number;
   /**
    * The album cannot take another upload (the presign's own caps, read off the
    * upload gate by the page: `resolveViewerDecision`'s `albumFull`). The gate
@@ -200,9 +203,13 @@ export function EventExperience({
   albumFull?: boolean;
 }) {
   const router = useRouter();
-  // ONE resolution of the size for both boxes the album occupies: the skeleton
+  // ONE resolution of the step for both boxes the album occupies: the skeleton
   // while it streams and the gallery once it lands.
-  const tileSize = initialTileSize ?? DEFAULT_TILE_SIZE;
+  const rowStep = initialRowStep ?? DEFAULT_ROW_STEP;
+  // The visit's rhythm seed, held for the visit: a same-access refresh (a rename,
+  // a claim) re-renders the page with a fresh seed, which must not re-pick the
+  // feature rows under a reader's eyes (an access flip remounts the album anyway).
+  const [visitSeed] = useState(rhythmSeed);
   /* ★ THE RETURN. This album claims the browser's uploads at mount (a Google or
      magic-link confirmation comes back here signed in) and hears every claim
      made on it, whichever door started it; `moment` is true once a confirm door
@@ -291,6 +298,7 @@ export function EventExperience({
   const handleUploadedRef = useRef<(u: UploadedItem) => void>(() => {});
   const {
     items: queue,
+    progress: uploadProgress,
     addFiles,
     addClip,
     retry,
@@ -317,6 +325,11 @@ export function EventExperience({
        for, unlike the flip above. */
     onDoorNeeded: () => router.refresh(),
   });
+  /* ★ A PROGRESS TICK RE-RENDERS NOTHING HERE. The queue's `items` change only on a status change;
+     each file's progress lives in its own store (`uploadProgress`), which the album's stack tile
+     reads for itself. The door's upload step draws a bar a pick off the items, so while it is on
+     screen (and only then) it gets the queue with live progress folded in. */
+  const doorQueue = useLiveQueue(queue, uploadProgress, uploadStepActive);
   /* THIS DEVICE HAS PUT SOMETHING IN, this visit, before any refresh has landed. It is the client
      half of the server's `hasContributed`, and either one closes the door's upload step. */
   const contributed = queue.some((it) => it.status === "done");
@@ -499,7 +512,9 @@ export function EventExperience({
         return;
       }
       try {
-        const res = await fetch("/api/guests/gallery", {
+        // The album's own poll, carrying the token in the BODY: it resolves the decision with that
+        // ticket and writes the cookie on its answer (the heal), with no validator to 304 against.
+        const res = await fetch("/api/album/guest/sync", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ qr_token: qrToken, session_token: token }),
@@ -759,7 +774,7 @@ export function EventExperience({
             // A confirmed account WITHOUT a profile name is the door's `profile` name step; with
             // one, the name is a fact about the person and is never asked for again.
             hasProfileName={!needsName}
-            queue={queue}
+            queue={doorQueue}
             onSend={addFiles}
             onRetry={retry}
             onDismissFailures={dismiss}
@@ -1077,7 +1092,7 @@ export function EventExperience({
           <Suspense
             fallback={
               <div className={BLEED}>
-                <GallerySkeleton tileSize={tileSize} />
+                <GallerySkeleton step={rowStep} />
               </div>
             }
           >
@@ -1091,6 +1106,7 @@ export function EventExperience({
               onAccessDrift={handleAccessDrift}
               onCountChange={setMediaCount}
               pendingUploads={inFlightUploads}
+              uploadProgress={uploadProgress}
               canDeleteIds={canDeleteIds}
               isAuthed={isAuthed}
               sessionToken={sessionToken}
@@ -1136,7 +1152,9 @@ export function EventExperience({
                     onOpenGate={() => entryRef.current?.openToGate()}
                     onAddFirst={canUpload ? openAdd : undefined}
                     joinUrl={joinUrl}
-                    initialTileSize={tileSize}
+                    initialRowStep={rowStep}
+                    firstPaintWidth={firstPaintWidth}
+                    rhythmSeed={visitSeed}
                     closesOnLastRemoval={closesOnLastRemoval}
                   />
                 </div>

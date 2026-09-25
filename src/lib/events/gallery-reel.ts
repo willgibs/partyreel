@@ -10,9 +10,9 @@
  * never trust the client for tier or entitlements).
  *
  * ★ THE MINIMUM IS TWO, AND IT IS COUNTED ON THE DEVICE. Two items are enough: the engine bounces
- * them back and forth (live/source.test.ts pins 2 clips alternating). The count is the payload's own
+ * them back and forth (live/source.test.ts pins 2 clips alternating). The count is the album's own
  * reel-eligible items (`isReelEligible`: approved, not a clip, something drawable), so a clip never
- * counts toward it and the tile appears the moment the doorbell delivers the second photograph.
+ * counts toward it and the tile appears the moment the doorbell's delta delivers the second photograph.
  *
  * ★ NOTHING BELOW `full`. A teaser or a locked viewer is still at the door; the reel is part of
  * the album the door is paying for, so the server sends no facts at all (`null`), and the host's
@@ -27,7 +27,7 @@ import {
   type Tier,
 } from "@/lib/constants/tiers";
 import type { GalleryAccess } from "@/lib/events/gallery-access";
-import { isReelEligible } from "@/lib/reel/live/items";
+import { isReelEligible, type LiveMediaItem } from "@/lib/reel/live/items";
 
 /**
  * An album item as the gallery payload carries it: the grid's own shape, plus
@@ -95,8 +95,11 @@ export function reelFactsFor(input: {
   };
 }
 
-/** How many items could play: the payload's approved, non-clip, drawable ones. */
-export function reelEligibleCount(items: readonly GalleryItem[]): number {
+/**
+ * How many items could play: the album's approved, non-clip, drawable ones. On the paged album these
+ * are the manifest's items, which say `drawable` from their flags and carry no url.
+ */
+export function reelEligibleCount(items: readonly LiveMediaItem[]): number {
   let n = 0;
   for (const item of items) if (isReelEligible(item)) n += 1;
   return n;
@@ -110,7 +113,7 @@ export function reelEligibleCount(items: readonly GalleryItem[]): number {
  */
 export function liveReelAvailable(
   reel: GalleryReel | null,
-  items: readonly GalleryItem[],
+  items: readonly LiveMediaItem[],
 ): boolean {
   if (!reel || !reel.showReel || !reel.liveReelEnabled) return false;
   return reelEligibleCount(items) >= LIVE_REEL_MINIMUM;

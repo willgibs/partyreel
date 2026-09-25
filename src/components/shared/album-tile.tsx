@@ -46,6 +46,7 @@ import { MediaTile, type GridMedia } from "@/components/app/media-grid";
 import { likeLabel, TileLikeMark } from "@/components/likes/like-button";
 import { useIsLiked } from "@/components/likes/likes-provider";
 import { probeAlbumRender } from "@/components/shared/album-tile-probe";
+import { Skeleton } from "@/components/ui/skeleton";
 import { GLASS, GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 import { tileAspect, UNIFORM_TILE_ASPECT } from "@/lib/media/tile-aspect";
 import { cn } from "@/lib/utils";
@@ -558,7 +559,18 @@ function AlbumTileBody({
           dimmed && "opacity-30",
         )}
       >
-        <MediaTile item={item} playBadge="none" eager={eager} />
+        {item.url || item.previewUrl ? (
+          <MediaTile item={item} playBadge="none" eager={eager} />
+        ) : (
+          // ★ A PHOTOGRAPH WHOSE LINK HAS NOT LANDED YET IS A LOADING TILE, NEVER A REQUEST. On the
+          // paged album the grid lays every photograph out from the manifest, and a tile's link
+          // arrives by id a beat after its row mounts; until then it is the shimmer MediaTile draws
+          // before a decode (the same skeleton, so the sheet's in-view rule runs it), and never an
+          // empty `src`, which a video would resolve against the page's own address.
+          <span aria-hidden className="relative block size-full">
+            <Skeleton className="absolute inset-0 size-full rounded-none" />
+          </span>
+        )}
       </button>
 
       {/* THE MARKS — state, never controls, and the whole of a phone tile. The

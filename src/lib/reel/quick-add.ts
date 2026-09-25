@@ -110,25 +110,9 @@ export function pickQuickAdd(
     Math.min(max, items.length),
   );
 
-  const entries: Entry[] = items.map((item, index) => {
-    const parsed = item.createdAt ? Date.parse(item.createdAt) : Number.NaN;
-    return {
-      item,
-      index,
-      score: 0,
-      time: Number.isFinite(parsed) ? parsed : Number.NaN,
-      taken: false,
-    };
-  });
-
-  const likeScores = rankNormalizedLikes(entries, seed);
-  const recencyScores = decayedRecency(entries);
-  for (const entry of entries) {
-    entry.score =
-      LIKE_WEIGHT * likeScores[entry.index] +
-      RECENCY_WEIGHT * recencyScores[entry.index] +
-      JITTER_WEIGHT * seeded(seed, entry.index, SALT_SCORE_JITTER);
-  }
+  const entries = toEntries(items);
+  const scores = scoreEntries(entries, seed);
+  for (const entry of entries) entry.score = scores[entry.index];
 
   const byScore = [...entries].sort(
     (a, b) => b.score - a.score || a.index - b.index,
@@ -149,7 +133,7 @@ export function pickQuickAdd(
     (a, b) => b[0].score - a[0].score || a[0].index - b[0].index,
   );
 
-  const videoCap = Math.max(1, Math.floor(count * VIDEO_SHARE));
+  const videoCap = quickAddVideoCap(count);
   const picked: Entry[] = [];
   let videos = 0;
 
@@ -218,6 +202,49 @@ export function pickQuickAdd(
     ids: ordered.map((e) => e.item.id),
     signals: { likes: likedInCut >= LIKES_SIGNAL_MIN },
   };
+}
+
+/**
+ * THE BRAIN'S SCORE for every candidate, parallel to `items`: likes (rank-normalized) + recency
+ * (decayed from the newest) + the seeded jitter, in the weights above. Exported for the live reel's
+ * take (src/lib/reel/live/take.ts), which scores a whole album ONCE per loop and walks it in passes
+ * rather than re-picking over what is left: one brain, never a second copy of these formulas.
+ * Deterministic per (items in that order, seed), like the pick.
+ */
+export function quickAddScores(
+  items: readonly QuickAddCandidate[],
+  seed: number,
+): number[] {
+  return scoreEntries(toEntries(items), seed);
+}
+
+/** The video ceiling for a pick of `count` (~1/3), never under 1 so a video always gets in. */
+export function quickAddVideoCap(count: number): number {
+  return Math.max(1, Math.floor(count * VIDEO_SHARE));
+}
+
+function toEntries(items: readonly QuickAddCandidate[]): Entry[] {
+  return items.map((item, index) => {
+    const parsed = item.createdAt ? Date.parse(item.createdAt) : Number.NaN;
+    return {
+      item,
+      index,
+      score: 0,
+      time: Number.isFinite(parsed) ? parsed : Number.NaN,
+      taken: false,
+    };
+  });
+}
+
+function scoreEntries(entries: Entry[], seed: number): number[] {
+  const likeScores = rankNormalizedLikes(entries, seed);
+  const recencyScores = decayedRecency(entries);
+  return entries.map(
+    (entry) =>
+      LIKE_WEIGHT * likeScores[entry.index] +
+      RECENCY_WEIGHT * recencyScores[entry.index] +
+      JITTER_WEIGHT * seeded(seed, entry.index, SALT_SCORE_JITTER),
+  );
 }
 
 /**

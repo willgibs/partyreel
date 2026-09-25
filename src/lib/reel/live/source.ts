@@ -12,15 +12,24 @@
  * refreshes the loop for free — a clip's url is read at the moment its window is built and never
  * held (uploads-and-r2.md).
  *
+ * ★ ON THE PAGED ALBUM THE LINKS COME BY ID (`resolver`, src/lib/album/resolver.ts). The items are
+ * then the manifest's (no urls; `drawable` says whether each has a still), the take is planned over
+ * all of them, and a clip's links are read from the resolver at the same moment a url would have
+ * been read off the payload: `itemFor` merges them in, fresh on every call. Every planned slot asks
+ * for its window's links and about two windows past it (`ensure`, fire and forget), so they land
+ * long before their turn, and a window whose stills are still coming waits for them, boundedly
+ * (`LINK_WAIT_MS`), rather than playing a theme-colour hold where a photograph should be.
+ *
  * ★ ONE CALL DOES THE RIGHT THING. `setItems` splices what arrived and drops what left; `splice` and
  * `drop` stay public for a harness that simulates them. The FIRST payload is the seed, never an
- * arrival — the rule `reconcile-gallery-items.ts` keeps for the album's own glow.
+ * arrival — the rule `reconcile-album-items.ts`'s `newArrivalIds` keeps for the album's own glow.
  *
  * No DOM and no React: the decode seam is injected, so this module runs in the node test project. It
  * deliberately does NOT import the style registry — a provider mounting a source must not drag
  * fourteen styles into the album's first paint, so the player passes the style's asset needs in.
  */
 
+import type { ClipResolver } from "@/lib/album/resolver";
 import {
   sharedBitmapCache,
   type BitmapCache,
@@ -32,7 +41,7 @@ import {
 } from "@/lib/reel/engine/assets";
 import type { CanvasImage } from "@/lib/reel/engine/canvas2d";
 
-import { isReelEligible, type LiveMediaItem } from "./items";
+import { isReelEligible, stillUrlFor, type LiveMediaItem } from "./items";
 import { motionSeed, planTake } from "./take";
 import {
   buildCutaway,
@@ -136,7 +145,30 @@ export type ClipSourceOptions = {
   cache?: BitmapCache;
   /** The asset loader seam (the pins hand in a synchronous fake). */
   load?: typeof loadReelAssets;
+  /**
+   * The paged album's links, by id. Absent, every url is read off the items themselves (a surface
+   * that still hands in linked items, the demo, the harness), exactly as before the paged album.
+   */
+  resolver?: ClipResolver;
+  /**
+   * The ids whose stills FAILED in a prepare (a url that would not load: an expired or revoked
+   * presign, a network drop), so the page's watchdog re-mints exactly those links and nothing else.
+   * Called once per prepare that had any; a still with no url at all is not a failure.
+   */
+  onFailedIds?: (ids: string[]) => void;
 };
+
+/**
+ * How long a window waits for its stills' links before it builds without them (a missing one then
+ * holds a theme colour, as a url-less clip always has). Long enough for a links request on a poor
+ * connection; short enough that a link that is never coming stalls nothing a viewer would notice,
+ * since a window is asked for about two windows before its turn.
+ */
+export const LINK_WAIT_MS = 3000;
+
+/** A monotonic clock for the waits (a wall clock set back an hour must not stall a window an hour). */
+const clock = () =>
+  typeof performance !== "undefined" ? performance.now() : Date.now();
 
 /**
  * One planned stretch of the chain.
@@ -155,6 +187,8 @@ type Slot = {
   pos: number;
   startIndex: number;
   ids: string[];
+  /** When its window was first asked for: the start of its bounded wait for stills. */
+  askedAt?: number;
 };
 
 /** How many just-departed items stay readable, so a cutaway has something to transition away FROM. */
@@ -164,6 +198,7 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
   const eventId = opts.eventId;
   const cache = opts.cache ?? sharedBitmapCache;
   const load = opts.load ?? loadReelAssets;
+  const resolver = opts.resolver ?? null;
   const size = Math.max(2, opts.windowSize ?? DEFAULT_WINDOW_SIZE);
   /** ONE motion stream for the whole session (take.ts's `motionSeed`): the order reshuffles per
    *  loop, the film never restarts. */
@@ -190,9 +225,89 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
   const grains = new Map<string, CanvasImage | null>();
   /** The most recent departures, by id, for the cutaway's leaving frame. */
   const departed = new Map<string, LiveMediaItem>();
+  /** When each waiting arrival was queued: the start of its bounded wait for a still. */
+  const queuedAt = new Map<string, number>();
 
   function eligibleItems(): LiveMediaItem[] {
     return [...items.values()].filter(isReelEligible);
+  }
+
+  /**
+   * The item with the resolver's links merged in, read NOW (a re-mint reaches the next build). A
+   * photograph's still is its tile; a video's tile is its poster only when it has one (a posterless
+   * video's tile is the raw file, which no image decoder can draw). An item the resolver holds
+   * nothing for keeps whatever urls it carries: the demo's optimistic tiles, a harness.
+   */
+  function withLinks(item: LiveMediaItem): LiveMediaItem {
+    const link = resolver?.get(item.id);
+    if (!link) return item;
+    const hasStill = item.drawable ?? Boolean(stillUrlFor(item));
+    return {
+      ...item,
+      url: link.view,
+      previewUrl:
+        item.type === "video" ? (hasStill ? link.tile : null) : link.tile,
+    };
+  }
+
+  function liveItem(id: string): LiveMediaItem | undefined {
+    const item = items.get(id);
+    return item ? withLinks(item) : undefined;
+  }
+
+  /** Playable, but its still's link has not landed yet. */
+  function stillPending(id: string): boolean {
+    const item = items.get(id);
+    return Boolean(
+      item && isReelEligible(item) && !stillUrlFor(withLinks(item)),
+    );
+  }
+
+  /** Ask for links, fire and forget: a failure only means the bounded wait runs out. */
+  function ensureLinks(ids: readonly string[]) {
+    if (!resolver || ids.length === 0) return;
+    const unique = [...new Set(ids)];
+    try {
+      void Promise.resolve(resolver.ensure(unique)).catch(() => {});
+    } catch {
+      // A resolver that throws is a resolver that did not answer: the same bounded wait covers it.
+    }
+  }
+
+  /**
+   * ★ ENSURE AHEAD: a planned window's ids and about two windows' worth of the order after it, so a
+   * window's links are in hand a window or two before its turn, not requested at it.
+   */
+  function ensurePlanned(pos: number, also: readonly string[] = []) {
+    if (!resolver) return;
+    const from = Math.max(0, pos);
+    ensureLinks([...also, ...loopIds.slice(from, from + size * 3)]);
+  }
+
+  /**
+   * ★ A WINDOW WAITS FOR ITS STILLS, BOUNDEDLY. While any of its clips is playable but has no still
+   * yet it is not built (the player asks again next tick), until `LINK_WAIT_MS` after it was first
+   * asked for; then it builds anyway, and a still that never came holds a theme colour exactly as a
+   * url-less clip always has. Never without a resolver: a linked payload has nothing to wait for.
+   */
+  function awaitingStills(slot: Slot): boolean {
+    if (!resolver) return false;
+    const now = clock();
+    slot.askedAt ??= now;
+    if (now - slot.askedAt >= LINK_WAIT_MS) return false;
+    return slot.ids.some(stillPending);
+  }
+
+  /** The same wait for an arrival about to be spliced on screen, from the moment it was queued. */
+  function arrivalsAwaitStills(): boolean {
+    if (!resolver) return false;
+    const now = clock();
+    return pending.some(
+      (id) =>
+        now - (queuedAt.get(id) ?? now) < LINK_WAIT_MS &&
+        !loopIds.includes(id) &&
+        stillPending(id),
+    );
   }
 
   function newLoop(carryId: string | null) {
@@ -208,6 +323,7 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
         : take;
     // A fresh take is built from the latest payload, so anything waiting is already in it.
     pending = [];
+    queuedAt.clear();
   }
 
   function nextSlotAfter(prev: Slot): Slot | null {
@@ -268,6 +384,7 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
       };
       slots.set(0, first);
       lastBuilt = first;
+      ensurePlanned(0);
       return first;
     }
     if (index <= lastBuilt.index) return null; // released; the player only ever walks forward
@@ -278,6 +395,7 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
       slots.set(next.index, next);
       cursor = next;
       lastBuilt = next;
+      ensurePlanned(next.pos);
     }
     return cursor;
   }
@@ -305,6 +423,7 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
       (id) => items.has(id) && !loopIds.includes(id),
     );
     pending = [];
+    queuedAt.clear();
     return fresh;
   }
 
@@ -377,6 +496,25 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
     }
   }
 
+  /**
+   * A departed clip, for the cutaway's leaving frame. ★ ON THE PAGED ALBUM ITS LINKS MAY ALREADY BE
+   * GONE (the album forgets an id's links the moment a delta removes it, before the reel hears of
+   * it), so its still falls back to the one the window on screen drew, which is decoded and pinned
+   * right now. Without that the photograph a host just hid would blink to a blank frame instead of
+   * leaving on the style's shortest transition.
+   */
+  function leavingItem(
+    id: string,
+    from: ReelWindow,
+  ): LiveMediaItem | undefined {
+    const gone = departed.get(id);
+    if (!gone) return undefined;
+    const linked = withLinks(gone);
+    if (stillUrlFor(linked)) return linked;
+    const drawn = from.props.clips[from.ids.indexOf(id)]?.url;
+    return drawn ? { ...linked, previewUrl: drawn } : linked;
+  }
+
   function remember(item: LiveMediaItem) {
     departed.set(item.id, item);
     while (departed.size > DEPARTED_KEPT) {
@@ -399,6 +537,7 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
     const keptPending = pending.filter((id) => !gone.has(id));
     if (keptPending.length !== pending.length) {
       pending = keptPending;
+      for (const id of gone) queuedAt.delete(id);
       touched = true;
     }
     // ★ EVERY PLANNED WINDOW, the one on screen included: the id is cut from its clip list so the
@@ -425,6 +564,10 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
     );
     if (fresh.length === 0) return;
     pending = [...pending, ...fresh];
+    const now = clock();
+    for (const id of fresh) queuedAt.set(id, now);
+    // An arrival is on screen within a clip or two: its links are asked for the moment it lands.
+    ensureLinks(fresh);
     invalidateAhead();
   }
 
@@ -449,7 +592,17 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
       }
 
       items = after;
-      if (dropped.length > 0) dropIds(dropped);
+      if (dropped.length > 0) {
+        // ★ THE LEAVER IS REMEMBERED AS IT WAS. An id gone from the payload is no longer in `items`
+        // by the time it is dropped, so without this the cutaway had nothing to leave FROM: it
+        // opened on the next clip mid-transition, instead of the one on screen leaving on the
+        // style's shortest transition (a guest's payload loses a hidden photograph exactly so).
+        for (const id of dropped) {
+          const was = before.get(id);
+          if (was) remember(was);
+        }
+        dropIds(dropped);
+      }
       // The SEED payload is the first one with anything in it: everything is new and none of it
       // arrived. A source built before the gallery has answered starts empty, and that emptiness is
       // not a moment the reel should splice its way out of.
@@ -465,7 +618,7 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
     },
     splice: spliceIds,
     drop: dropIds,
-    itemFor: (id) => items.get(id),
+    itemFor: liveItem,
     isLive(id) {
       const item = items.get(id);
       return Boolean(item && isReelEligible(item));
@@ -483,12 +636,13 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
       if (hit) return hit;
       const slot = slotAt(index);
       if (!slot) return null;
+      if (awaitingStills(slot)) return null;
       const built = buildWindow({
         index,
         loopIndex: slot.loopIndex,
         startIndex: slot.startIndex,
         ids: slot.ids,
-        itemFor: (id) => items.get(id),
+        itemFor: liveItem,
         seed,
         look,
         // The album's only clip holds rather than handing over to an identical plan every tick.
@@ -504,6 +658,10 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
     rewindowAt(from, clipId, look) {
       const at = from.ids.indexOf(clipId);
       if (at < 0) return null;
+      // ★ AN ARRIVAL IS SPLICED ON SCREEN WITH ITS STILL, not ahead of it: its links were asked for
+      // the moment it landed, and a rewindow is the frame after, so it waits (boundedly, the queue
+      // untouched; the player asks again next tick) rather than making the upload a blank hold.
+      if (arrivalsAwaitStills()) return null;
       const arrivals = takePending();
       const posInLoop = loopIds.indexOf(clipId);
       if (posInLoop >= 0 && arrivals.length > 0) {
@@ -521,11 +679,13 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
         // The on-screen clip's own ordinal: its plan does not change underneath it.
         startIndex: from.startIndex + at,
         ids,
-        itemFor: (id) => items.get(id),
+        itemFor: liveItem,
         seed,
         look,
       });
       if (!built) return null;
+      if (posInLoop >= 0) ensurePlanned(posInLoop);
+      else ensureLinks(built.ids);
 
       // This IS the current window now: the chain continues from it, and everything that was
       // planned after it belonged to an order that no longer exists.
@@ -575,7 +735,7 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
         ids,
         // The departing clip has already left `items`, so it is served from the last thing we knew
         // about it — otherwise there would be nothing to transition away from.
-        itemFor: (id) => items.get(id) ?? departed.get(id),
+        itemFor: (id) => liveItem(id) ?? leavingItem(id, from),
         seed,
         look,
       });
@@ -601,6 +761,11 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
         if (Number(key.split("~")[0]) >= from.index) windows.delete(key);
       }
       rev += 1;
+      // What plays next is re-planned from here (the next window opens on the cut's last clip): its
+      // links are asked for now, and never the leaver's.
+      const staying = cut.ids.filter((id) => items.has(id));
+      if (lastPos >= 0) ensurePlanned(lastPos, staying);
+      else ensureLinks(staying);
       return cut;
     },
 
@@ -640,17 +805,32 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
           signal,
         });
         built.clips.forEach((asset, i) => {
-          derived.set(`${key}|${missingIds[i]}`, asset);
+          // ★ ON THE PAGED ALBUM A STILL THAT DID NOT LOAD IS NOT REMEMBERED. Its link can land late
+          // or be re-minted (the watchdog `onFailedIds` feeds), so the next window holding the clip
+          // tries again with whatever url it reads then; a remembered null would keep it blank for
+          // as long as any window held it. A linked payload keeps the old rule: its url is its url.
+          if (asset || !resolver) derived.set(`${key}|${missingIds[i]}`, asset);
         });
         if (!grains.has(key)) grains.set(key, built.grain);
       }
 
       let failures = 0;
+      const failed: string[] = [];
       const clips = window.ids.map((id, i) => {
         const asset = derived.get(`${key}|${id}`) ?? null;
-        if (!asset && window.props.clips[i]?.url) failures += 1;
+        if (!asset && window.props.clips[i]?.url) {
+          failures += 1;
+          if (!failed.includes(id)) failed.push(id);
+        }
         return asset;
       });
+      if (failed.length > 0 && opts.onFailedIds) {
+        try {
+          opts.onFailedIds(failed);
+        } catch {
+          // The page's watchdog is never allowed to take the reel down with it.
+        }
+      }
       return { clips, failures, grain: grains.get(key) ?? null };
     },
 

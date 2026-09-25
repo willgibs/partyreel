@@ -187,8 +187,8 @@ export type GuestMediaRow = {
   duration_seconds: number | null;
   /**
    * `media.reel_eligible`, "plays in the live reel": false only for a clip someone added to the album,
-   * so the live reel never plays a reel. WRITE-ONCE at create_media, so like the dimensions it rides
-   * outside the gallery ETag (gallery-fingerprint.ts).
+   * so the live reel never plays a reel. WRITE-ONCE at create_media, like the dimensions (the paged
+   * album's manifest entries are write-once per id for the same reason, album-wire.ts).
    */
   reel_eligible: boolean;
   /**

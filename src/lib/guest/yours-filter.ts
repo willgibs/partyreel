@@ -11,7 +11,10 @@
  *
  * ★ AND THE COUNT IS OF THE WHOLE ALBUM, ALWAYS, not of what is on screen. The
  * line above the album says how many are yours while it is showing you exactly
- * those, so counting the filtered list would be counting its own output.
+ * those, so counting the filtered list would be counting its own output. On the
+ * paged album the list is the MANIFEST's (every photograph, whether its link has
+ * landed or not), so the own ids are intersected with the whole album, never
+ * with the window a reader happens to have mounted.
  */
 export type YoursView<T> = {
   /** What the album draws: this guest's own, or everything. */

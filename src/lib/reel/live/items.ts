@@ -45,6 +45,15 @@ export type LiveMediaItem = {
    * ABSENT means eligible — a payload from before the column exists must not empty the reel.
    */
   reelEligible?: boolean;
+  /**
+   * ★ WHETHER THE ITEM HAS A STILL, SAID BY THE MANIFEST RATHER THAN BY A URL. On the paged album an
+   * item's links arrive by id, a window or two ahead of its turn (`src/lib/album/resolver.ts`), so a
+   * take planned over the whole album cannot read "has a still" off a url most items do not hold
+   * yet. The manifest knows it outright: a photograph always has one (its preview, or the original),
+   * a video only when it has a preview (its poster; the raw file is no image). ABSENT falls back to
+   * the url, which is what a surface that still hands in linked items relies on.
+   */
+  drawable?: boolean;
 };
 
 /**
@@ -56,7 +65,7 @@ export type LiveMediaItem = {
 export function isReelEligible(item: LiveMediaItem): boolean {
   if (item.reelEligible === false) return false;
   if (item.status !== undefined && item.status !== "approved") return false;
-  return Boolean(stillUrlFor(item));
+  return item.drawable ?? Boolean(stillUrlFor(item));
 }
 
 /** The still the reel draws for this item: a photo's preview (original as the pre-preview fallback),

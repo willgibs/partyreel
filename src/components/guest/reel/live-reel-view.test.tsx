@@ -16,7 +16,8 @@
  * - Reduced motion starts on the first frame with the dock up.
  * - On a screen: the Start plate, fullscreen and a wake lock on the one tap, and leaving fullscreen
  *   brings the plate back; below the minimum, the code and the address alone.
- * - Never silent: past a threshold of failed frames, one report, and the presign watchdog asked.
+ * - Never silent: past a threshold of failed frames, one report; and the presign watchdog asked for
+ *   exactly the failing ids (a still through the source, a video window through the player).
  *
  * The canvas engine is stubbed (player-live.test.tsx pins it); the code's renderer too.
  */
@@ -129,16 +130,28 @@ function item(i: number, over: Partial<GalleryItem> = {}): GalleryItem {
 
 function live(over: Partial<GalleryLive> = {}): GalleryLive {
   const items = over.items ?? [item(1), item(2), item(3)];
+  const byId = new Map(items.map((m) => [m.id, m]));
   return {
     qrToken: "qr-token",
     access: "full",
     isDemo: false,
-    seed: { items, teaserTotal: null, approvedTotal: items.length, etag: "e" },
+    teaserTotal: null,
     serverItems: items,
     items,
     serverIds: new Set(items.map((m) => m.id)),
     count: items.length,
     reel: REEL,
+    reelItems: items,
+    // The links by id, as the provider's resolver answers them for what it holds.
+    clips: {
+      get: (id: string) => {
+        const m = byId.get(id);
+        return m ? { tile: m.previewUrl ?? m.url, view: m.url } : undefined;
+      },
+      ensure: async () => {},
+    },
+    ensureLinks: vi.fn(),
+    nameOf: (id: string) => byId.get(id)?.uploaderName ?? null,
     arrivals: [],
     ownLandings: [],
     ownIds: new Set(),
@@ -147,6 +160,7 @@ function live(over: Partial<GalleryLive> = {}): GalleryLive {
     removeOwn: async () => {},
     pendingUploads: [],
     pendingUrls: new Map(),
+    uploadProgress: null,
     reportPossibleExpiry: vi.fn(),
     ...over,
   };
@@ -251,10 +265,12 @@ describe("the chrome (the thin bar)", () => {
     );
   });
 
-  it("offers Make your own only with a creator AND the host's plan", () => {
+  it("offers Make your own only with a creator AND the host's plan", async () => {
     const Creator = () => <div data-testid="creator" />;
     const { unmount } = renderView({ creator: Creator });
-    fireEvent.click(screen.getByRole("button", { name: "Make your own" }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Make your own" }));
+    });
     expect(screen.getByTestId("creator")).toBeInTheDocument();
     // The reel waits behind the creator.
     expect(h.player?.paused).toBe(true);
@@ -264,7 +280,7 @@ describe("the chrome (the thin bar)", () => {
     expect(screen.queryByRole("button", { name: "Make your own" })).toBeNull();
   });
 
-  it("hands the creator the event's name, who is making it and the plan's facts", () => {
+  it("hands the creator the event's name, who is making it and the plan's facts", async () => {
     const seen: Record<string, unknown>[] = [];
     const Creator = (props: Record<string, unknown>) => {
       seen.push(props);
@@ -279,7 +295,9 @@ describe("the chrome (the thin bar)", () => {
       isOwner: true,
       moderated: true,
     });
-    fireEvent.click(screen.getByRole("button", { name: "Make your own" }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Make your own" }));
+    });
     const props = seen.at(-1)!;
     expect(props.eventName).toBe("Maya & Jay");
     expect(props.eventId).toBe("event-1");
@@ -288,6 +306,28 @@ describe("the chrome (the thin bar)", () => {
     expect(props.ownIds).toBe(ownIds);
     expect(props.addClipToAlbum).toBe(add);
     expect(props.facts).toEqual(REEL.clip);
+  });
+
+  it("opens the creator's room on the album's links: every playable photograph asked for first, the room mounting once they land", async () => {
+    const Creator = () => <div data-testid="creator" />;
+    let land!: () => void;
+    const ensure = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          land = resolve;
+        }),
+    );
+    const base = live();
+    h.live = { ...base, clips: { ...base.clips, ensure } };
+    renderView({ creator: Creator });
+    fireEvent.click(screen.getByRole("button", { name: "Make your own" }));
+    expect(ensure).toHaveBeenCalledWith(["m1", "m2", "m3"]);
+    // The room's dark ground covers the reel while the links come; the creator is not mounted yet.
+    expect(screen.queryByTestId("creator")).toBeNull();
+    await act(async () => {
+      land();
+    });
+    expect(screen.getByTestId("creator")).toBeInTheDocument();
   });
 
   it("keeps Make your own on a browser that cannot encode, greyed, and says why on a tap", () => {
@@ -467,7 +507,7 @@ describe("a tap on the picture (a tap opens the viewer)", () => {
 });
 
 describe("the arrivals (the arrival chip)", () => {
-  it("names who just added one, and never a clip", () => {
+  it("names who just added one, once its link (and the name riding it) has landed, and never a clip", async () => {
     const { rerender, props } = renderView();
     expect(document.querySelector("[data-reel-arrivals]")).toBeNull();
     const withTheo = [
@@ -475,8 +515,14 @@ describe("the arrivals (the arrival chip)", () => {
       item(9, { uploaderName: "Theo" }),
       item(10, { uploaderName: "Maya", reelEligible: false }),
     ];
-    h.live = live({ items: withTheo, arrivals: ["m9", "m10"] });
-    rerender(<LiveReelView {...props} playable={withTheo} />);
+    const ensure = vi.fn(async () => {});
+    const next = live({ items: withTheo, arrivals: ["m9", "m10"] });
+    h.live = { ...next, clips: { ...next.clips, ensure } };
+    await act(async () => {
+      rerender(<LiveReelView {...props} playable={withTheo} />);
+    });
+    // The arrival's link is asked for first: its attribution rides it.
+    expect(ensure).toHaveBeenCalledWith(["m9"]);
     const feed = document.querySelector("[data-reel-arrivals]");
     expect(feed).toHaveTextContent("Theo");
     expect(feed).not.toHaveTextContent("Maya");
@@ -673,7 +719,7 @@ describe("the desk's extras", () => {
 });
 
 describe("never silent", () => {
-  it("reports once past the failure threshold, and asks the presign watchdog every time", () => {
+  it("reports once past the failure threshold", () => {
     renderView();
     const onFailure = h.player?.onFailure as (n: number) => void;
     for (let n = 1; n <= 30; n++) act(() => onFailure(n));
@@ -683,8 +729,14 @@ describe("never silent", () => {
       "live reel: frames failing",
       expect.objectContaining({ eventId: "event-1", failures: 12 }),
     );
-    expect((h.live as GalleryLive).reportPossibleExpiry).toHaveBeenCalledTimes(
-      30,
-    );
+  });
+
+  it("asks the presign watchdog for exactly the failing clip, never the album", () => {
+    renderView();
+    const onExpired = h.player?.onExpired as (id: string) => void;
+    act(() => onExpired("m2"));
+    expect((h.live as GalleryLive).reportPossibleExpiry).toHaveBeenCalledWith([
+      "m2",
+    ]);
   });
 });

@@ -452,6 +452,16 @@ export function MasonryColumns<T extends GridMedia>(props: {
   rhythmSeed?: number;
   /** Rows only: the photographs the window mounts, whenever that changes (links and likes load per window). */
   onWindowChange?: (ids: readonly string[]) => void;
+  /** Rows only: the width the album last laid its rows at, remembered by the surface (`AlbumRows`). */
+  firstPaintWidth?: number | null;
+  /** Rows only: the width the rows are laid at, whenever it changes. */
+  onBoxWidth?: (width: number) => void;
+  /**
+   * THE VIEWER'S LINK SOURCE on a paged album: the grid holds every photograph, most without links
+   * yet, and the viewer asks for the ones it is about to show (the photograph and its neighbours,
+   * the filmstrip's reach). Omitted where every item carries its links already.
+   */
+  onViewerNeedLinks?: (ids: readonly string[]) => void;
   /** The album's handle (`scrollToId`, for a deep link). */
   albumRef?: Ref<AlbumHandle>;
   /** Threads to the lightbox (host viewer affordances). Default false (guest/read-only). */
@@ -510,6 +520,9 @@ export function MasonryColumns<T extends GridMedia>(props: {
     rowRhythm,
     rhythmSeed,
     onWindowChange,
+    firstPaintWidth,
+    onBoxWidth,
+    onViewerNeedLinks,
     albumRef,
     selection,
     arrivedIds,
@@ -850,6 +863,8 @@ export function MasonryColumns<T extends GridMedia>(props: {
           renderTile={rowTile}
           onStepChange={onRowStepChange}
           onWindowChange={onWindowChange}
+          firstPaintWidth={firstPaintWidth}
+          onBoxWidth={onBoxWidth}
           handleRef={handle}
           gridRef={(el) => {
             rootRef.current = el;
@@ -937,6 +952,7 @@ export function MasonryColumns<T extends GridMedia>(props: {
         }}
         viewerIsHost={viewerIsHost}
         shareUrl={shareUrl}
+        onNeedLinks={onViewerNeedLinks}
         onSetStatus={onSetStatus}
         canDelete={canDelete}
         onDeleteCurrent={

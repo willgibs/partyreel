@@ -1,3 +1,5 @@
+import { randomInt } from "node:crypto";
+
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import { z } from "zod";
@@ -7,6 +9,10 @@ import { after } from "next/server";
 import { Lock } from "lucide-react";
 
 import { EventExperience } from "@/components/guest/event-experience";
+import {
+  ALBUM_WIDTH_COOKIE,
+  parseAlbumWidth,
+} from "@/components/shared/album-window-plan";
 import { GuestHeader } from "@/components/guest/guest-header";
 import { NotFoundScreen } from "@/components/shared/not-found-screen";
 import {
@@ -37,7 +43,7 @@ import { isDemoToken } from "@/lib/demo";
 import { resolveGalleryDecision } from "@/lib/events/gallery-access";
 import {
   isEventOwner,
-  loadGalleryForAccess,
+  loadGallerySeed,
   resolveViewerDecision,
 } from "@/lib/events/gallery-access.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
@@ -49,7 +55,10 @@ import {
 import { readGuestSessionCookie } from "@/lib/guest/session-cookie";
 import { PHOTO_PARAM, readPhotoParam } from "@/lib/media/share-save";
 import { presignDownload } from "@/lib/r2/presign";
-import { resolveTileSize, TILE_SIZE_COOKIE } from "@/lib/shared/tile-size-cookie";
+import {
+  resolveRowStep,
+  TILE_SIZE_COOKIE,
+} from "@/lib/shared/tile-size-cookie";
 import { getSiteUrl } from "@/lib/site-url";
 import { createClient } from "@/lib/supabase/server";
 import { needsDisplayName } from "@/lib/welcome";
@@ -143,7 +152,12 @@ export async function generateMetadata({
       type: "website",
       images: [card],
     },
-    twitter: { card: "summary_large_image", title, description, images: [card] },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [card],
+    },
   };
 }
 
@@ -171,7 +185,12 @@ const photoIdSchema = z.uuid();
 async function photoCard(
   event: GuestEvent,
   raw: string | string[] | undefined,
-): Promise<{ url: string; width?: number; height?: number; alt: string } | null> {
+): Promise<{
+  url: string;
+  width?: number;
+  height?: number;
+  alt: string;
+} | null> {
   // The viewer's own reading of the address (share-save.ts), so the card and the viewer answer the
   // same links; then the column's own type, since a malformed id must never reach the query as an
   // error (every media id is a uuid).
@@ -257,7 +276,11 @@ export default async function GuestEventPage({
   if (event.visibility === "private") {
     return (
       <div className="flex min-h-full flex-1 flex-col">
-        <GuestHeader qrToken={event.qr_token} eventId={event.id} isDemo={isDemo} />
+        <GuestHeader
+          qrToken={event.qr_token}
+          eventId={event.id}
+          isDemo={isDemo}
+        />
         <main className="flex flex-1 flex-col items-center justify-center px-5 py-20">
           <NotFoundScreen
             icon={Lock}
@@ -283,7 +306,8 @@ export default async function GuestEventPage({
 
   // Open, or password + unlocked. Resolve this viewer's gallery ACCESS (none/teaser/full) and load
   // exactly that much media server-side, so the withheld set never reaches the browser (the gated-
-  // gallery security core). The client polls /api/guests/gallery, which enforces the SAME access.
+  // gallery security core). The album's routes (`/api/album/guest/{sync,media,manifest}`) re-resolve
+  // the SAME decision on every ask, so the poll and the links enforce what the page did.
   const siteUrl = await getSiteUrl();
   // Canonical (qr_token) link for the in-page share + the media poll, never the slug the guest may
   // have arrived on (the media RPC + downstream RPCs match qr_token only).
@@ -336,11 +360,28 @@ export default async function GuestEventPage({
         { withAlbumFull: true },
       );
   const access = decision.access;
-  // Deliberately NOT awaited: the gallery load reads the whole album in keyset
-  // pages and presigns up to three URLs per item (the inline, the download and
-  // the small preview), the slowest part of this page. The shell streams first;
-  // LiveGallery resolves this inside its Suspense boundary.
-  const galleryPromise = loadGalleryForAccess(event, decision);
+  /* ────────────────────────────────────────────────────────────────────────
+     THE ALBUM'S FIRST PAINT, DECIDED BEFORE ANY BYTE: the density step the
+     shared `pr_tile_size` cookie holds (a returning guest's pick), the width
+     the album last laid its rows at (`pr_album_w`, which makes that width's
+     class exact: nothing on the first screen moves at hydration), and the
+     visit's seed for the rhythm's feature rows (a fresh draw per visit, held
+     by the album for the visit). The seed loader lays the first paint with all
+     three, so the links it embeds are exactly the tiles the first paint draws.
+     ──────────────────────────────────────────────────────────────────────── */
+  const cookieJar = await cookies();
+  const rowStep = resolveRowStep(cookieJar.get(TILE_SIZE_COOKIE)?.value);
+  const albumWidth = parseAlbumWidth(cookieJar.get(ALBUM_WIDTH_COOKIE)?.value);
+  const rhythmSeed = randomInt(1_000_000);
+  // Deliberately NOT awaited: the album's seed (the manifest and the first
+  // paint's links) streams in behind the shell, which paints first; the live
+  // gallery resolves it inside its Suspense boundary.
+  const galleryPromise = loadGallerySeed(event, decision, {
+    step: rowStep,
+    rhythm: "double",
+    seed: rhythmSeed,
+    width: albumWidth,
+  });
 
   // Header stats: cheap awaited read (numbers only — never identities).
   // For a LOCKED password event this still returns counts: the entry tease
@@ -363,18 +404,12 @@ export default async function GuestEventPage({
   // identity is a session token in the browser's own storage, so LiveGallery
   // asks `/api/guests/mine` for it. Skipped at access `none` (there is nothing
   // rendered to remove) and in the demo (nothing there is real).
-  const [stats, canDeleteIds, cookieJar] = await Promise.all([
+  const [stats, canDeleteIds] = await Promise.all([
     getGalleryStats(event),
     userId && !isDemo && access !== "none"
       ? listAccountMediaIds({ eventId: event.id, userId })
       : Promise.resolve<string[]>([]),
-    cookies(),
   ]);
-  // The album's tile size (set from the View menu), painted inline from the
-  // cookie (the host page's `tileSize` precedent, dashboard/[eventId]/page.tsx)
-  // so the first paint is already the size a returning guest picked — never a
-  // client-only read, which would resize the whole album after hydration.
-  const tileSize = resolveTileSize(cookieJar.get(TILE_SIZE_COOKIE)?.value);
 
   // LOCKED REDACTION (the name-only rule): at access `none` the page must
   // reveal the event NAME + media COUNT only, and props serialize into the RSC
@@ -481,7 +516,11 @@ export default async function GuestEventPage({
           qr_token. Mismatched keys meant sign-out on a slug URL removed a key
           that was never written, leaving the previous guest's upload
           capability live on a shared phone. */}
-      <GuestHeader qrToken={event.qr_token} eventId={event.id} isDemo={isDemo} />
+      <GuestHeader
+        qrToken={event.qr_token}
+        eventId={event.id}
+        isDemo={isDemo}
+      />
       <EventExperience
         event={shellEvent}
         qrToken={event.qr_token}
@@ -501,12 +540,10 @@ export default async function GuestEventPage({
         // Identity keys on a CONFIRMED account, never a uid alone: an
         // unconfirmed session still carries a typed name.
         isVerified={isAuthed}
-        hostCard={
-          hostCard
-            ? { ...hostCard, seed: hostSeed }
-            : null
-        }
-        initialTileSize={tileSize}
+        hostCard={hostCard ? { ...hostCard, seed: hostSeed } : null}
+        initialRowStep={rowStep}
+        firstPaintWidth={albumWidth}
+        rhythmSeed={rhythmSeed}
         albumFull={decision.albumFull}
       />
     </div>

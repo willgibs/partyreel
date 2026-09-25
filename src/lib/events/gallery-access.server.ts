@@ -6,6 +6,17 @@
 import "server-only";
 
 import {
+  firstPaintIds,
+  type RowRhythm,
+} from "@/components/shared/album-window-plan";
+import {
+  readGuestAlbum,
+  readGuestAlbumMedia,
+  readGuestAlbumVersions,
+  readGuestAttribution,
+  readGuestManifestPage,
+} from "@/lib/db/queries/album-guest";
+import {
   getEventMediaByQrToken,
   type GuestEvent,
   type GuestMediaRow,
@@ -19,21 +30,23 @@ import {
 } from "@/lib/db/queries/guest-events-admin";
 import { getUploadGate } from "@/lib/db/queries/guest-gate";
 import { isDemoToken } from "@/lib/demo";
+import { toGuestAlbumLinks } from "@/lib/events/album-guest-links";
+import { planAlbumSync } from "@/lib/events/album-sync";
+import { guestAlbumEtag } from "@/lib/events/album-validator";
+import type { AlbumManifestPart } from "@/lib/events/album-wire";
 import {
   resolveGalleryDecision,
   TEASER_LIMIT,
   type GalleryAccess,
   type GalleryDecision,
 } from "@/lib/events/gallery-access";
-import { galleryEtag } from "@/lib/events/gallery-fingerprint";
-import {
-  reelFactsFor,
-  type GalleryItem,
-  type GalleryReel,
-} from "@/lib/events/gallery-reel";
+import { reelFactsFor, type GalleryReel } from "@/lib/events/gallery-reel";
+import type { GallerySeed } from "@/lib/events/gallery-seed";
 import type { UploaderIdentity } from "@/lib/media/uploader-identity";
 import { toGridItems } from "@/lib/r2/grid-items";
+import { presignDownload } from "@/lib/r2/presign";
 import { presignBucketId } from "@/lib/r2/presign-bucket";
+import type { RowStep } from "@/lib/shared/album-rows";
 
 // The exact type `createClient()` resolves to, with no top-level import (so generic arity can never
 // drift from the real server client).
@@ -160,22 +173,16 @@ export type GalleryRows = {
   rows: GuestMediaRow[];
   identities: Map<string, UploaderIdentity> | undefined;
   teaserTotal: number | null;
-  /**
-   * The album's size, photos and videos: `countApprovedMedia`'s head count, read beside the rows at
-   * `teaser` and `full` (null at `none`, where the locked page's own stats say it and no gallery
-   * mounts). It is the header's "N photos & videos" at every level the header shows it, so it
-   * rides every payload, and the ETag hashes it: a video approved behind a nine-photo teaser changes
-   * neither the rows nor `teaserTotal`, and without it in the hash that poll would 304 past the
-   * new number.
-   */
+  /** The album's size, photos and videos: `countApprovedMedia`'s head count (null at `none`). */
   approvedTotal: number | null;
 };
 
 /**
- * Fetch + cap the gallery ROWS for a resolved access level (no presigning -- the poll route
- * fingerprints these first and skips presigning entirely on a 304). The full set is NEVER fetched
- * for `teaser`; `none` fetches nothing. Identities, media and the album's head count load in
- * parallel (they're independent). Identity resolution skipped for the demo, matching the page.
+ * Fetch + cap the gallery ROWS for a resolved access level, WHOLE: the one reader that needs every
+ * row a viewer may have is "Download all" (`/api/export/guest`), which zips exactly what the album
+ * shows this viewer. The album itself pages (`loadGallerySeed`, then links by id). The full set is
+ * NEVER fetched for `teaser`; `none` fetches nothing. Identities, media and the album's head count
+ * load in parallel. Identity resolution skipped for the demo.
  */
 export async function loadGalleryRowsForAccess(
   event: GuestEvent,
@@ -220,50 +227,6 @@ export async function loadGalleryRowsForAccess(
 }
 
 /**
- * The conditional-request validator for a loaded gallery: hashes the viewer-visible content
- * (ids in order + attribution exactly as toGridItems would emit it + the album's size) + the whole
- * DECISION + the current presign bucket. MUST mirror toGridItems' identity fallbacks
- * (`?? null/false`) or a 304 could hide an attribution change. Dimensions/duration are
- * deliberately NOT hashed (write-once per id - see gallery-fingerprint.ts).
- *
- * ★ THE GATE IS IN THE HASH, NOT JUST THE LEVEL. `teaser` has two causes, and the poll carries the
- * gate to the client's step machine: two decisions that differ only in WHY must never validate each
- * other, or a guest whose gate moved from `account` to `upload` would 304 onto the wrong step.
- */
-export function galleryEtagFor(
-  decision: GalleryDecision,
-  gallery: GalleryRows,
-  reel: GalleryReel | null = null,
-): string {
-  return galleryEtag({
-    access: decision.access,
-    gate: decision.gate,
-    teaserTotal: gallery.teaserTotal,
-    approvedTotal: gallery.approvedTotal,
-    reel,
-    bucketId: presignBucketId(Date.now()),
-    items: gallery.rows.map((r) => {
-      const who = gallery.identities?.get(r.id);
-      return {
-        id: r.id,
-        type: r.type,
-        uploaderName: who?.displayName ?? null,
-        isHost: who?.isHost ?? false,
-        isVerified: who?.isVerified ?? false,
-      };
-    }),
-  });
-}
-
-/** Presign loaded rows into render-ready items (the expensive step a 304 skips). */
-export async function presignGalleryRows(
-  event: GuestEvent,
-  gallery: GalleryRows,
-): Promise<GalleryItem[]> {
-  return toGridItems(gallery.rows, event.name, gallery.identities);
-}
-
-/**
  * THE LIVE REEL'S FACTS FOR THIS VIEWER: null below full access (nothing is read at all), else the
  * host's switch and mood off the event row this request already holds, beside the platform lever
  * and the host's plan (`getLiveReelServerFacts`, cached). The page and the poll both carry the
@@ -287,31 +250,144 @@ export async function loadGalleryReel(
 }
 
 /**
- * The RSC composition: rows -> etag -> presigned items in one call, so the page and the poll
- * route share one source for "what media does THIS viewer get" (the route uses the split
- * phases directly to answer 304 before presigning). Takes the whole DECISION because the ETag
- * does: the first poll after the page must be able to 304 against what the page baked in.
+ * THE GUEST ALBUM'S SEED, FOR THE PAGE'S RENDER (the album-guest-wiring lane): exactly what the album's
+ * own routes would answer this viewer's first asks with, so the client store adopts it as its first
+ * sync (`gallery-seed.ts`) and the first screen paints with no round trip.
+ *
+ *  - `full`: the manifest's first answer, planned by the SAME function the sync route runs
+ *    (`planAlbumSync` with no version: the versions and the approved count in one snapshot, then the
+ *    first manifest page, read through the guest reads' own gate), its validator (the sync route's,
+ *    so the first real poll can 304), and the links of exactly the photographs the first paint draws
+ *    (`firstPaintIds`, the rows' own first-paint plan), minted the way the links route mints them.
+ *  - `teaser`: today's tiny inline teaser (the nine newest photographs, links and names, never an
+ *    address), with the teaser's rolling validator.
+ *  - `locked`: nothing; a locked page mounts no album.
+ *
+ * ★ THE PAGE PAYS FOR A SCREEN, NOT FOR THE ALBUM. The old seed read the whole album and presigned
+ * three links an item (about 2 MB for 1,145 photographs); this reads the album as light tuples and
+ * presigns only the first paint's photographs. The rest arrive by id, per window, from the browser.
  */
-export async function loadGalleryForAccess(
+export async function loadGallerySeed(
   event: GuestEvent,
   decision: GalleryDecision,
-): Promise<{
-  items: GalleryItem[];
-  teaserTotal: number | null;
-  approvedTotal: number | null;
-  reel: GalleryReel | null;
-  etag: string;
-}> {
-  const [gallery, reel] = await Promise.all([
-    loadGalleryRowsForAccess(event, decision.access),
-    loadGalleryReel(event, decision.access),
-  ]);
-  const etag = galleryEtagFor(decision, gallery, reel);
+  firstPaint: {
+    step: RowStep;
+    rhythm: RowRhythm;
+    seed: number;
+    /** The width the album last laid its rows at (`pr_album_w`), or null cold. */
+    width: number | null;
+  },
+): Promise<GallerySeed> {
+  if (decision.access === "none") return { kind: "locked" };
+  const isDemo = isDemoToken(event.qr_token);
+
+  if (decision.access === "teaser") {
+    const [versions, teaser, approvedTotal] = await Promise.all([
+      readGuestAlbumVersions(event),
+      getApprovedPhotoTeaser(event, TEASER_LIMIT),
+      countApprovedMedia(event),
+    ]);
+    // Attribution for the nine alone, and never an address (the paged album's by-id read).
+    const identities = isDemo
+      ? undefined
+      : ((await readGuestAttribution(
+          event,
+          teaser.rows.map((r) => r.id),
+        )) ?? undefined);
+    const items = await toGridItems(teaser.rows, event.name, identities);
+    return {
+      kind: "teaser",
+      sync: {
+        ok: true,
+        kind: "teaser",
+        access: "teaser",
+        gate: decision.gate,
+        items,
+        teaserTotal: teaser.total,
+        approvedTotal,
+      },
+      etag: versions
+        ? guestAlbumEtag({
+            eventId: event.id,
+            access: "teaser",
+            gate: decision.gate,
+            albumMax: versions.albumMax,
+            attrVersion: versions.attrVersion,
+            reel: null,
+            bucketId: presignBucketId(Date.now()),
+          })
+        : null,
+    };
+  }
+
+  const reelPromise = loadGalleryReel(event, "full");
+  const plan = await planAlbumSync({
+    scope: "album",
+    since: null,
+    read: async (after, limit) => {
+      const read = await readGuestAlbum(event, after, limit);
+      if (!read)
+        throw new Error("album: the guest read refused a full-access viewer");
+      return read;
+    },
+    page: async (after, budget) => {
+      const page = await readGuestManifestPage(event, after, budget);
+      if (!page)
+        throw new Error("album: the guest page refused a full-access viewer");
+      return page;
+    },
+  });
+  // No version was sent, so the plan is always a manifest (album-sync.ts, the first rule).
+  const part = plan.part as AlbumManifestPart;
+  const reel = await reelPromise;
+
+  // The first paint's photographs, and only those, get their links in the render.
+  const ids = firstPaintIds(
+    part.entries.map(([id, width, height]) => ({ id, width, height })),
+    firstPaint,
+  );
+  const bucket = Number(presignBucketId(Date.now()));
+  const now = Date.now();
+  const media =
+    ids.length > 0
+      ? await readGuestAlbumMedia(event, ids, { attribute: !isDemo })
+      : { rows: [], identities: null };
+  const links = media
+    ? await toGuestAlbumLinks(media.rows, {
+        eventName: event.name,
+        presign: (key, downloadFilename) =>
+          presignDownload({ key, stable: true, downloadFilename }),
+        identities: media.identities,
+      })
+    : [];
+  const found = new Set(links.map((l) => l[0]));
+
   return {
-    items: await presignGalleryRows(event, gallery),
-    teaserTotal: gallery.teaserTotal,
-    approvedTotal: gallery.approvedTotal,
-    reel,
-    etag,
+    kind: "full",
+    sync: {
+      ...part,
+      ok: true,
+      access: "full",
+      gate: null,
+      total: plan.read.approved,
+      reel,
+    },
+    etag: guestAlbumEtag({
+      eventId: event.id,
+      access: "full",
+      gate: null,
+      albumMax: plan.read.albumMax,
+      attrVersion: plan.read.attrVersion,
+      reel,
+    }),
+    links: {
+      ok: true,
+      access: "full",
+      gate: null,
+      b: bucket,
+      now,
+      links,
+      missing: ids.filter((id) => !found.has(id)),
+    },
   };
 }

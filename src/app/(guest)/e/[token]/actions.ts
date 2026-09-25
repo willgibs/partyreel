@@ -26,18 +26,18 @@
  * poll (or the doorbell's ping) is the server agreeing. A `revalidatePath` on a
  * guest link would re-run the whole presign-heavy page for one removed tile.
  *
- * TWO: persisting the album's tile size (set from the View menu), the
- * host's `setTileSizeAction` precedent (dashboard/[eventId]/actions.ts) on the
- * one shared cookie (`lib/shared/tile-size-cookie.ts`) so a guest and a host
- * picking "Large" both write the same name — the size itself is per-device,
- * never a profile column, on either surface.
+ * TWO: persisting the album's density step (set from View's slider, a pinch or
+ * ctrl and the wheel) on the one shared cookie (`lib/shared/tile-size-cookie.ts`,
+ * `album-columns` r2: one index shared by host and guest), so a guest and a host
+ * picking the largest photographs write the same pick. The step itself is
+ * per-device, never a profile column, on either surface.
  */
 import { cookies } from "next/headers";
 
 import { removeMyUpload } from "@/lib/db/mutations/my-uploads";
 import { captureError } from "@/lib/observability/sentry";
 import {
-  resolveTileSize,
+  resolveRowStep,
   TILE_SIZE_COOKIE,
   TILE_SIZE_COOKIE_MAX_AGE,
 } from "@/lib/shared/tile-size-cookie";
@@ -62,12 +62,11 @@ export async function removeMyUploadGuestAction(
   return { ok: false, message: result.message };
 }
 
-/** The guest album's View menu, Tile size group — re-validated through
- *  `resolveTileSize` rather than trusted raw off the client, exactly like the
- *  host action it mirrors. */
-export async function setTileSizeAction(size: number): Promise<void> {
+/** The guest album's density step, re-validated through `resolveRowStep`
+ *  rather than trusted raw off the client (an index, or the default). */
+export async function setRowStepAction(step: number): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.set(TILE_SIZE_COOKIE, String(resolveTileSize(String(size))), {
+  cookieStore.set(TILE_SIZE_COOKIE, String(resolveRowStep(String(step))), {
     maxAge: TILE_SIZE_COOKIE_MAX_AGE,
     sameSite: "lax",
     path: "/",
