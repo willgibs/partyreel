@@ -98,9 +98,6 @@
     "sheet": [
       "<Sheet>\n  <SheetTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Open sheet\n    </Button>\n  </SheetTrigger>\n  <SheetContent>\n    <SheetHeader>\n      <SheetTitle>Share this event</SheetTitle>\n      <SheetDescription>\n        Your guests scan one QR code to join and upload.\n      </SheetDescription>\n    </SheetHeader>\n  </SheetContent>\n</Sheet>"
     ],
-    "drawer": [
-      "<Drawer>\n  <DrawerTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Open drawer\n    </Button>\n  </DrawerTrigger>\n  <DrawerContent>\n    <DrawerHeader>\n      <DrawerTitle>Add to your event</DrawerTitle>\n      <DrawerDescription>\n        The mobile sheet pattern, with drag-to-dismiss.\n      </DrawerDescription>\n    </DrawerHeader>\n  </DrawerContent>\n</Drawer>"
-    ],
     "popover": [
       "<Popover>\n  <PopoverTrigger asChild>\n    <Button variant=\"outline\" size=\"sm\">\n      Open popover\n    </Button>\n  </PopoverTrigger>\n  <PopoverContent>\n    <p className=\"text-sm font-medium\">Storage</p>\n    <p className=\"mt-1 text-sm text-muted-foreground\">\n      1.2 GB of 5 GB used.\n    </p>\n  </PopoverContent>\n</Popover>"
     ],
