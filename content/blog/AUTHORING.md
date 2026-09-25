@@ -105,9 +105,9 @@ replaces them by id.
    Orchestrator promotes it to `mdx/spec-shared.tsx` at integration.
 4. **How-tos track shipped reality.** Only marketing pages present the product as-if-complete. If
    a post describes a flow, the flow has to exist today. Do not write about anything unshipped:
-   the screen is the reel's (say "put the reel on a screen"), and there is no slideshow editor,
-   no co-hosts, no custom branding, no comments, no native app, no email-the-album, no
-   upload-time scanning.
+   the screen is the reel's (say "put the reel on a screen"), and there is no video editor, no
+   co-hosts, no custom branding, no comments, no native app, no email-the-album, no upload-time
+   scanning.
 5. **Quote the app exactly.** A control is named by its shipped string inside `<UiLabel>`:
    "Require verified emails", "Approve all", "Download all", "Include hidden items". Verify in `src/components`
    and `src/app/(app)`; never invent UI.

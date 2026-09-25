@@ -19,8 +19,8 @@ import { cn } from "@/lib/utils";
  * The bar shows the three actions the copy names (like, hide, download) in the
  * app's own state hues (gallery-actions.tsx's GalleryBulkBar: `like`,
  * `warning`, `save`); the destructive Delete is left out rather than restated
- * in marketing, and nothing here invents a label. Add to reel left the host's
- * bar with the stored reel, so it left this mock too.
+ * in marketing, and nothing here invents a label. The reel action left the
+ * host's bar with the stored reel, so it left this mock too.
  */
 
 /** One icon action inside the mock bar (a resting shape, never a control). */

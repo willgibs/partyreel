@@ -298,8 +298,8 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/guest/reel/live-reel.tsx",
     literal: "Highlight reel",
   },
-  // The select mode's bar lost Add to reel with the stored reel; the mock's
-  // first action is the app's own first action now.
+  // The select mode's bar lost its reel action with the stored reel; the
+  // mock's first action is the app's own first action now.
   {
     label: "bulk select mock like action",
     marketingFile:
