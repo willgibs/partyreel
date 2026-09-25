@@ -25,7 +25,7 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   album's data half (`album_state` and `album_changes`, links by id, a delta poll); a confirmed email changed at both
   addresses and deletion taking the address with it; four correctness fixes (the billing downgrade, the unlock
   cookie bound to the password, the orphan breaker's health, counts past 999); the door's new flow (his chooser, a
-  keyboard-safe phone sheet). Building: the album's guest and host surfaces onto the paged rows, and the crumbs.
+  keyboard-safe phone sheet). Building: the album's guest and host surfaces onto the paged rows.
 
 ## The desk
 
@@ -48,7 +48,7 @@ once the album's surfaces are wired).
 - **Data:** disposable test data only; the accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md). The disposable events stay in the states the
   last red-teams left until Will says restore.
-- **Tests:** about 4,570 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
+- **Tests:** about 5,300 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
 - **Jobs:** the daily purge cron (Vercel Hobby fires it at 04:48 UTC; its first run on milestone 28's sweeps was green:
   every sweep ok, none stopped early, the orphan scan read 1,368 objects and deleted none, the standby budget's one host
   willg97 with the withdrawals out), the media-backup Worker and the daily DB-backup Action are live; the deletion-aware

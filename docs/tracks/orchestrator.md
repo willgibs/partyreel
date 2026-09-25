@@ -39,11 +39,10 @@ a lane").
 | --- | --- | --- | --- | --- |
 | `album-guest-wiring` | the guest album, viewer, reel and profile feeds onto the paged, windowed rows with r2's picks; `planTake` sub-quadratic; the perf harness's `--page` mode; build 9's two reel findings in its files (the view's scroll lock, the tile's hit area) | building (agent `a4f93b6854568e16f`) | Opus, :3131 | its `guest-flow.md` lines through the Handoff |
 | `album-host-wiring` | the hub's album onto the paged rows, select mode on the one grid, the bin on a manifest, Sort live, `like_many` (applied, types at `14359c94`) | building (agent `aca30254725561438`) | Opus, :3134 | syncs past `album-guest-wiring` if it lands first; `host-app.md` lines through the Handoff |
-| `crumbs` | tonight's deferred leftovers (the Studio's reveal CSS, vaul, stale comments, the voice board's door quote, the password step's sticky foot, one code length, the test setup's flush); holds `globals.css` until its merge | building (agent `a4599f1c56870a65b`) | Sonnet, :3135 | three root files as decided exceptions, and `ui/floating-layer.ts`'s drawer comment |
 
 Merged tonight (their records carry the rest): reel-guest-wiring, reel-host-wiring, mark-r3, story-r2, door-r2,
 album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hardening, reel-sweep, door-flow,
-retire-reel-boards.
+retire-reel-boards, crumbs.
 
 ## Next, in order
 
