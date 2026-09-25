@@ -43,7 +43,7 @@ const DRAFT = defineExploration({
     n: 1,
     date: "2026-09-24",
     changed:
-      "The refresh: a fifth question tests the default-off floor itself, asking whether an attended event should ever start shown or ask once up front; the rest keep their range, reworded without DECIDED-ALREADY framing.",
+      "The refresh: a fifth question tests the default-off floor itself. Redrawn for the door's round two: prompt's follow option also lands at the door's You're in, where her email can now confirm, every option kept.",
   },
   context:
     "Priya is verified, has added photos to three events (Maya and Jay's wedding among them, each one making her a guest of it), and has shown none of them. This board asks five things once she is ready to make her page real: whether that starting silence should even be the default, how setup actually happens, how she chooses what shows, when the app ever invites her to, and what a visitor meets if she claims a handle and stops there.",
@@ -115,7 +115,8 @@ const DRAFT = defineExploration({
         "A cover Priya recognizes at a glance is a faster, more honest decision than a row of names and dates, and it turns the choice into the same curatorial moment the profile page's own card grid already is.",
       overrule:
         "If the switch list's plain honesty (no cover means no photograph judgment at all) is worth more than the extra visual weight, the list costs nothing to keep.",
-      lands: "Whether choosing what shows is a settings decision or a visual one.",
+      lands:
+        "Whether choosing what shows is a settings decision or a visual one.",
       tile: "phone",
       configs: [SCREEN],
     },
@@ -171,9 +172,9 @@ const DRAFT = defineExploration({
         },
         {
           id: "follow",
-          label: "At the follow moment",
+          label: "Right after her email confirms",
           means:
-            "Right after her email confirms inside an album, alongside the offer to follow the host.",
+            "Inside the album beside the offer to follow the host, or at the door's You're in when she confirms there, before any upload.",
         },
         {
           id: "account",
