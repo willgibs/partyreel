@@ -631,247 +631,261 @@ export function LiveReelView({
       }}
     >
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Content
-          ref={contentRef}
-          tabIndex={-1}
-          aria-describedby={undefined}
-          data-live-reel-view={mode}
-          onOpenAutoFocus={(e) => {
-            // Focus lands on the view itself, so Space pauses at once and Tab walks the controls.
-            e.preventDefault();
-            contentRef.current?.focus();
-          }}
-          onEscapeKeyDown={(e) => {
-            // A layer above (the media viewer, the creator) closes first.
-            if (lightboxIndex !== null || creatorOpen) e.preventDefault();
-          }}
-          // ★ NOTHING OUTSIDE CLOSES IT. The view covers the screen, so "outside" is only ever another
-          // layer: a tooltip, a menu, the media viewer, or the add sheet "Add yours" opens (whose focus
-          // moving in would otherwise dismiss the reel under it). Close, Escape and Back close it.
-          onInteractOutside={(e) => e.preventDefault()}
-          onPointerMove={(e) => {
-            if (e.pointerType === "mouse" || e.pointerType === "pen") wake();
-          }}
-          onKeyDown={onKeyDown}
-          className="fixed inset-0 z-50 overflow-hidden bg-black text-white outline-none select-none"
+        {/* ★ THE OVERLAY IS THE PAGE'S SCROLL LOCK, AND IT HOLDS THE VIEW. Radix locks the page in the
+            Overlay (its RemoveScroll, which also takes the desk's scrollbar away), never in Content, so
+            a view with no Overlay left the album scrolling under it and a 15 px scrollbar strip down
+            the right of the picture (build 9's red-team). The view sits INSIDE it (Radix's scrollable
+            overlay shape) rather than beside it, so everything the view portals out (the dock's
+            Style and Hold menus) is still inside the lock by React's tree and keeps its own scroll. */}
+        <DialogPrimitive.Overlay
+          data-live-reel-overlay
+          className="fixed inset-0 z-50 bg-black"
         >
-          <DialogPrimitive.Title className="sr-only">
-            Highlight reel
-          </DialogPrimitive.Title>
-
-          {/* THE PICTURE. Full-bleed, the viewport's own orientation; a tap opens the photograph. */}
-          {!idle && (
-            <div
-              ref={pictureRef}
-              className="absolute inset-0"
-              // While the pill is up, a press anywhere is the press it asks for.
-              onClick={pillUp ? () => void fill() : openLightbox}
-              data-reel-picture
-            >
-              <LiveReelPlayer
-                ref={playerRef}
-                source={source}
-                styleId={styleId}
-                surface="wall"
-                holdScale={holdScale}
-                orientation={orientation}
-                includeVideos={includeVideos && hasVideo}
-                paused={effectivePaused}
-                fill
-                className="absolute inset-0"
-                onClipChange={onClipChange}
-                onFrame={onFrame}
-                onFailure={onFailure}
-                onExpired={onExpired}
-              />
-            </div>
-          )}
-
-          {/* ON A SCREEN, BELOW THE MINIMUM: the code and the address alone, until the reel returns
-              (a screen whose album drops under two while it plays, or reloads there). */}
-          {idle && (
-            <IdleCode
-              joinUrl={joinUrl}
-              address={displayAddress}
-              qrStyle={qrStyle}
-              size={qr.idle}
-            />
-          )}
-
-          {/* ON A SCREEN: the one press, asked for at the top while it is still owed. */}
-          {pillUp && (
-            <FillPill fullscreen={fullscreenable} onPress={() => void fill()} />
-          )}
-
-          {/* The top edge's legibility: a whisper, only while chrome or a chip is up. */}
-          <div
-            aria-hidden
-            className={cn(
-              "pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/35 to-transparent transition-opacity duration-200 ease-emphasis",
-              chromeUp || rows.length > 0 || pillUp
-                ? "opacity-100"
-                : "opacity-0",
-            )}
-          />
-
-          {/* THE ARRIVALS, top left. */}
-          {!idle && <ArrivalFeed rows={rows} screen={screen} />}
-
-          {/* CLOSE, top right: shows and hides with the dock. */}
-          <div
-            className="lr-follow absolute top-[calc(0.75rem+env(safe-area-inset-top))] right-3 z-30"
-            data-state={chromeUp || idle ? "up" : "rest"}
+          <DialogPrimitive.Content
+            ref={contentRef}
+            tabIndex={-1}
+            aria-describedby={undefined}
+            data-live-reel-view={mode}
+            onOpenAutoFocus={(e) => {
+              // Focus lands on the view itself, so Space pauses at once and Tab walks the controls.
+              e.preventDefault();
+              contentRef.current?.focus();
+            }}
+            onEscapeKeyDown={(e) => {
+              // A layer above (the media viewer, the creator) closes first.
+              if (lightboxIndex !== null || creatorOpen) e.preventDefault();
+            }}
+            // ★ NOTHING OUTSIDE CLOSES IT. The view covers the screen, so "outside" is only ever another
+            // layer: a tooltip, a menu, the media viewer, or the add sheet "Add yours" opens (whose focus
+            // moving in would otherwise dismiss the reel under it). Close, Escape and Back close it.
+            onInteractOutside={(e) => e.preventDefault()}
+            onPointerMove={(e) => {
+              if (e.pointerType === "mouse" || e.pointerType === "pen") wake();
+            }}
+            onKeyDown={onKeyDown}
+            className="fixed inset-0 z-50 overflow-hidden bg-black text-white outline-none select-none"
           >
-            <TooltipProvider delayDuration={350} skipDelayDuration={250}>
-              <ChromeButton label="Close" onClick={onClose} shortcut="Esc">
-                <X className={cn("size-4", GLASS_MARK_LIT)} aria-hidden />
-              </ChromeButton>
-            </TooltipProvider>
-          </div>
+            <DialogPrimitive.Title className="sr-only">
+              Highlight reel
+            </DialogPrimitive.Title>
 
-          {/* THE CODE, bottom right: lifted above the dock when the dock is up. */}
-          {showCode && !idle && (
-            <div
-              className="pointer-events-none absolute right-3 z-20 transition-transform duration-200 ease-emphasis motion-reduce:transition-none sm:right-5"
-              style={{
-                bottom: `calc(${screen ? "1.5rem" : "0.75rem"} + env(safe-area-inset-bottom))`,
-                transform:
-                  chromeUp && viewport.w < 720
-                    ? `translateY(-${creatorOffered ? 150 : 104}px)`
-                    : undefined,
-              }}
-              data-reel-code
-            >
-              <CornerCode
+            {/* THE PICTURE. Full-bleed, the viewport's own orientation; a tap opens the photograph. */}
+            {!idle && (
+              <div
+                ref={pictureRef}
+                className="absolute inset-0"
+                // While the pill is up, a press anywhere is the press it asks for.
+                onClick={pillUp ? () => void fill() : openLightbox}
+                data-reel-picture
+              >
+                <LiveReelPlayer
+                  ref={playerRef}
+                  source={source}
+                  styleId={styleId}
+                  surface="wall"
+                  holdScale={holdScale}
+                  orientation={orientation}
+                  includeVideos={includeVideos && hasVideo}
+                  paused={effectivePaused}
+                  fill
+                  className="absolute inset-0"
+                  onClipChange={onClipChange}
+                  onFrame={onFrame}
+                  onFailure={onFailure}
+                  onExpired={onExpired}
+                />
+              </div>
+            )}
+
+            {/* ON A SCREEN, BELOW THE MINIMUM: the code and the address alone, until the reel returns
+              (a screen whose album drops under two while it plays, or reloads there). */}
+            {idle && (
+              <IdleCode
                 joinUrl={joinUrl}
                 address={displayAddress}
                 qrStyle={qrStyle}
-                size={qr.corner}
-                screen={screen}
+                size={qr.idle}
               />
-            </div>
-          )}
+            )}
 
-          {/* THE BAR THAT BECOMES THE DOCK. */}
-          {!idle && (
-            <ReelDock
-              state={chromeUp ? "up" : "rest"}
-              playing={!effectivePaused}
-              progress={progress}
-              onTogglePlay={() => {
-                setPaused((p) => !p);
-                wake();
-              }}
-              onToggleDock={(touch) => {
-                if (chromeUp) {
-                  if (timerRef.current) clearTimeout(timerRef.current);
-                  setChrome("rest");
-                } else {
-                  wake(touch);
-                }
-              }}
-              includeVideos={includeVideos}
-              hasVideo={hasVideo}
-              onToggleVideos={() => {
-                const next = !includeVideos;
-                setIncludeVideos(next);
-                writeIncludeVideos(next);
-              }}
-              styleId={styleId}
-              styleLabel={styleLabel}
-              moods={moods}
-              onStyle={(id) => {
-                setStyleId(id);
-                writeStyleId(qrToken, id);
-              }}
-              holdSec={holdSec}
-              onHold={(sec) => {
-                setHoldSec(sec);
-                writeHoldSec(qrToken, sec);
-              }}
-              showCode={showCode}
-              onToggleCode={
-                desktop ? () => setShowCode((on) => !on) : undefined
-              }
-              onPlayOnScreen={isOwner && desktop ? openOnScreen : undefined}
-              styleFooter={styleFooter}
-              onAddYours={onAddYours}
-              onMakeYourOwn={creatorOffered ? openCreator : undefined}
-              makeGreyed={support === "no"}
-              whyNot={whyNot}
-              paneRef={dockRef}
-              onMenuOpenChange={setMenuOpen}
-              onFocusWithin={setDockFocus}
-              addLabel={isDemo ? "Add yours (a demo upload)" : "Add yours"}
-            />
-          )}
-
-          {/* THE GREYED DOOR'S REASON (`noencode=greyed`): bubbled up over the dock for a few seconds
-              after a tap, never a paragraph standing over the reel. */}
-          {!idle && creatorOffered && support === "no" && whyNot && (
-            <WhyNotBubble anchor={dockRef} />
-          )}
-
-          {/* THE MEDIA VIEWER, for a tapped photograph: grown out of the frame, a video carrying on
-              from the reel's moment. Its own likes, since the album's provider sits in the grid. */}
-          {lightboxIndex !== null && (
-            <LikesProvider mediaIds={viewerIds}>
-              <MediaLightboxLazy
-                items={lightboxItems}
-                index={lightboxIndex}
-                onClose={closeLightbox}
-                onIndexChange={setLightboxIndex}
-                shareUrl={joinUrl}
-                origin={viewerFrom?.origin}
-                startAt={viewerFrom?.startAt}
-                onNeedLinks={onViewerNeedLinks}
+            {/* ON A SCREEN: the one press, asked for at the top while it is still owed. */}
+            {pillUp && (
+              <FillPill
+                fullscreen={fullscreenable}
+                onPress={() => void fill()}
               />
-            </LikesProvider>
-          )}
+            )}
 
-          {/* THE CREATOR: the clip's own room, a dialog of its own over this one (so Escape, focus
-              and the reader's world are its own while it is open). The chunk arrives on the tap;
-              until it lands the room's ground covers the reel, so nothing flashes through. */}
-          {creatorOpen && creator && clipFacts && !creatorReady && (
+            {/* The top edge's legibility: a whisper, only while chrome or a chip is up. */}
             <div
               aria-hidden
-              className="absolute inset-0 z-40 bg-[oklch(0.11_0_0)]"
+              className={cn(
+                "pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/35 to-transparent transition-opacity duration-200 ease-emphasis",
+                chromeUp || rows.length > 0 || pillUp
+                  ? "opacity-100"
+                  : "opacity-0",
+              )}
             />
-          )}
-          {creatorOpen && creator && clipFacts && creatorReady && (
-            <Suspense
-              fallback={
-                <div
-                  aria-hidden
-                  className="absolute inset-0 z-40 bg-[oklch(0.11_0_0)]"
-                />
-              }
+
+            {/* THE ARRIVALS, top left. */}
+            {!idle && <ArrivalFeed rows={rows} screen={screen} />}
+
+            {/* CLOSE, top right: shows and hides with the dock. */}
+            <div
+              className="lr-follow absolute top-[calc(0.75rem+env(safe-area-inset-top))] right-3 z-30"
+              data-state={chromeUp || idle ? "up" : "rest"}
             >
-              {(() => {
-                const Creator = creator;
-                return (
-                  <Creator
-                    items={lightboxItems}
-                    styleId={styleId}
-                    eventId={eventId}
-                    eventName={eventName}
-                    facts={clipFacts}
-                    addClipToAlbum={addClipToAlbum}
-                    isOwner={isOwner}
-                    moderated={moderated}
-                    ownIds={live?.ownIds ?? null}
-                    onClose={() => {
-                      creatorAsk.current += 1;
-                      setCreatorOpen(false);
-                      setCreatorReady(false);
-                      setPaused(pausedBeforeRef.current);
-                    }}
+              <TooltipProvider delayDuration={350} skipDelayDuration={250}>
+                <ChromeButton label="Close" onClick={onClose} shortcut="Esc">
+                  <X className={cn("size-4", GLASS_MARK_LIT)} aria-hidden />
+                </ChromeButton>
+              </TooltipProvider>
+            </div>
+
+            {/* THE CODE, bottom right: lifted above the dock when the dock is up. */}
+            {showCode && !idle && (
+              <div
+                className="pointer-events-none absolute right-3 z-20 transition-transform duration-200 ease-emphasis motion-reduce:transition-none sm:right-5"
+                style={{
+                  bottom: `calc(${screen ? "1.5rem" : "0.75rem"} + env(safe-area-inset-bottom))`,
+                  transform:
+                    chromeUp && viewport.w < 720
+                      ? `translateY(-${creatorOffered ? 150 : 104}px)`
+                      : undefined,
+                }}
+                data-reel-code
+              >
+                <CornerCode
+                  joinUrl={joinUrl}
+                  address={displayAddress}
+                  qrStyle={qrStyle}
+                  size={qr.corner}
+                  screen={screen}
+                />
+              </div>
+            )}
+
+            {/* THE BAR THAT BECOMES THE DOCK. */}
+            {!idle && (
+              <ReelDock
+                state={chromeUp ? "up" : "rest"}
+                playing={!effectivePaused}
+                progress={progress}
+                onTogglePlay={() => {
+                  setPaused((p) => !p);
+                  wake();
+                }}
+                onToggleDock={(touch) => {
+                  if (chromeUp) {
+                    if (timerRef.current) clearTimeout(timerRef.current);
+                    setChrome("rest");
+                  } else {
+                    wake(touch);
+                  }
+                }}
+                includeVideos={includeVideos}
+                hasVideo={hasVideo}
+                onToggleVideos={() => {
+                  const next = !includeVideos;
+                  setIncludeVideos(next);
+                  writeIncludeVideos(next);
+                }}
+                styleId={styleId}
+                styleLabel={styleLabel}
+                moods={moods}
+                onStyle={(id) => {
+                  setStyleId(id);
+                  writeStyleId(qrToken, id);
+                }}
+                holdSec={holdSec}
+                onHold={(sec) => {
+                  setHoldSec(sec);
+                  writeHoldSec(qrToken, sec);
+                }}
+                showCode={showCode}
+                onToggleCode={
+                  desktop ? () => setShowCode((on) => !on) : undefined
+                }
+                onPlayOnScreen={isOwner && desktop ? openOnScreen : undefined}
+                styleFooter={styleFooter}
+                onAddYours={onAddYours}
+                onMakeYourOwn={creatorOffered ? openCreator : undefined}
+                makeGreyed={support === "no"}
+                whyNot={whyNot}
+                paneRef={dockRef}
+                onMenuOpenChange={setMenuOpen}
+                onFocusWithin={setDockFocus}
+                addLabel={isDemo ? "Add yours (a demo upload)" : "Add yours"}
+              />
+            )}
+
+            {/* THE GREYED DOOR'S REASON (`noencode=greyed`): bubbled up over the dock for a few seconds
+              after a tap, never a paragraph standing over the reel. */}
+            {!idle && creatorOffered && support === "no" && whyNot && (
+              <WhyNotBubble anchor={dockRef} />
+            )}
+
+            {/* THE MEDIA VIEWER, for a tapped photograph: grown out of the frame, a video carrying on
+              from the reel's moment. Its own likes, since the album's provider sits in the grid. */}
+            {lightboxIndex !== null && (
+              <LikesProvider mediaIds={viewerIds}>
+                <MediaLightboxLazy
+                  items={lightboxItems}
+                  index={lightboxIndex}
+                  onClose={closeLightbox}
+                  onIndexChange={setLightboxIndex}
+                  shareUrl={joinUrl}
+                  origin={viewerFrom?.origin}
+                  startAt={viewerFrom?.startAt}
+                  onNeedLinks={onViewerNeedLinks}
+                />
+              </LikesProvider>
+            )}
+
+            {/* THE CREATOR: the clip's own room, a dialog of its own over this one (so Escape, focus
+              and the reader's world are its own while it is open). The chunk arrives on the tap;
+              until it lands the room's ground covers the reel, so nothing flashes through. */}
+            {creatorOpen && creator && clipFacts && !creatorReady && (
+              <div
+                aria-hidden
+                className="absolute inset-0 z-40 bg-[oklch(0.11_0_0)]"
+              />
+            )}
+            {creatorOpen && creator && clipFacts && creatorReady && (
+              <Suspense
+                fallback={
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 z-40 bg-[oklch(0.11_0_0)]"
                   />
-                );
-              })()}
-            </Suspense>
-          )}
-        </DialogPrimitive.Content>
+                }
+              >
+                {(() => {
+                  const Creator = creator;
+                  return (
+                    <Creator
+                      items={lightboxItems}
+                      styleId={styleId}
+                      eventId={eventId}
+                      eventName={eventName}
+                      facts={clipFacts}
+                      addClipToAlbum={addClipToAlbum}
+                      isOwner={isOwner}
+                      moderated={moderated}
+                      ownIds={live?.ownIds ?? null}
+                      onClose={() => {
+                        creatorAsk.current += 1;
+                        setCreatorOpen(false);
+                        setCreatorReady(false);
+                        setPaused(pausedBeforeRef.current);
+                      }}
+                    />
+                  );
+                })()}
+              </Suspense>
+            )}
+          </DialogPrimitive.Content>
+        </DialogPrimitive.Overlay>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>
   );

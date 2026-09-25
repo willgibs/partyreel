@@ -10,6 +10,7 @@
  * - The creator: opened from Make your own, or on arrival when the tile's line asked for it, and
  *   handed everything it needs (the event's name, who is making it, the plan's facts).
  * - The keyboard: Space pauses, Escape closes, the arrows step.
+ * - The page under it cannot scroll while it is open.
  * - The hold (3 s default) and the style are the viewer's own, kept on this device and handed to the
  *   engine as a factor per mood.
  * - The arrivals: an upload that arrives while the view is open names its uploader.
@@ -399,6 +400,20 @@ describe("the keyboard", () => {
     expect(h.step.mock.calls).toEqual([[1], [-1]]);
     fireEvent.keyDown(content, { key: "Escape" });
     expect(props.onClose).toHaveBeenCalled();
+  });
+});
+
+describe("the page under it", () => {
+  it("cannot scroll while the view is open, and scrolls again once it closes", () => {
+    expect(document.body).not.toHaveAttribute("data-scroll-locked");
+    const { unmount } = renderView();
+    // Radix's lock (RemoveScroll, the desk's scrollbar taken away with it) is the Overlay's.
+    expect(document.body).toHaveAttribute("data-scroll-locked");
+    // The view sits inside it, so what it portals out (the dock's menus) is inside the lock too.
+    const view = document.querySelector("[data-live-reel-view]");
+    expect(view?.parentElement).toHaveAttribute("data-live-reel-overlay");
+    unmount();
+    expect(document.body).not.toHaveAttribute("data-scroll-locked");
   });
 });
 

@@ -196,6 +196,7 @@ async function mount({
   moderated = false,
   welcomePending = false,
   isOwner = false,
+  tileClassName,
 }: {
   items?: GalleryItem[];
   reel?: GalleryReel | null;
@@ -204,6 +205,8 @@ async function mount({
   moderated?: boolean;
   welcomePending?: boolean;
   isOwner?: boolean;
+  /** The box the page hands the tile (its column and margins). */
+  tileClassName?: string;
 } = {}) {
   latest = new Map(items.map((it) => [it.id, it]));
   nextSync = null;
@@ -260,7 +263,7 @@ async function mount({
           welcomePending={pending}
           isOwner={isOwner}
         >
-          <LiveReelTile />
+          <LiveReelTile className={tileClassName} />
         </LiveReel>
       </GalleryLiveProvider>
     </Suspense>
@@ -330,6 +333,26 @@ describe("the Highlight reel tile", () => {
     expect(tile).not.toHaveTextContent("Make your own clip to share");
     // No style name, no moment count, no text chip in the corner (the corner is a glyph).
     expect(tile).not.toHaveTextContent(/Cinematic|moments|The reel/);
+  });
+
+  it("takes a tap and a press on its card alone, never in the column's gutters the page hands it", async () => {
+    // The page's own box for it (event-experience.tsx: the words' column, and the tile's margins).
+    const COLUMN_BOX = "w-full max-w-2xl px-5 mt-7 mb-4";
+    const { container } = await mount({ tileClassName: COLUMN_BOX });
+    const tile = theTile(container)!;
+    // The caller's box stays the caller's: nothing in it takes a tap or moves on a press.
+    expect(tile.className).toBe(COLUMN_BOX);
+    const watch = screen.getByRole("button", {
+      name: "Watch the highlight reel",
+    });
+    // The watch layer (absolute, inset 0) spans its positioned parent, which is the card: the
+    // gutters' 20px are outside it, and the press's scale moves the card about its own centre.
+    const card = watch.parentElement!;
+    expect(card).toHaveAttribute("data-reel-card");
+    expect(card.parentElement).toBe(tile);
+    expect(card.className).toMatch(/(^|\s)relative(\s|$)/);
+    expect(card.className).toContain("scale-[0.99]");
+    expect(card.className).not.toMatch(/px-5|max-w-2xl|mt-7|mb-4/);
   });
 
   it("wears the reel's glyph in its corner, a mark with no words (`badge=glyph`)", async () => {

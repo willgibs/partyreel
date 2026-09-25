@@ -305,6 +305,11 @@ const TILE_HOLD_SEC = 3.2;
  * creator is registered, so no build promises a clip it cannot make. It is its own control, and
  * opens the creator directly (a call, his to overrule), so the watch target is a layer of its own
  * across the whole card rather than a button around it (a button cannot hold a button).
+ *
+ * ★ `className` IS THE CALLER'S BOX, NEVER THE CARD'S. The page hands the tile its column (the
+ * words' measure and its 20px gutters) and its margins; the watch layer and the press's scale live on
+ * the card inside that box, so a tap in the gutter stays the page's and the press shrinks the card
+ * about its own centre (build 9's red-team found the layer spanning the gutters).
  */
 export function LiveReelTile({ className }: { className?: string }) {
   const controller = useReelController();
@@ -351,82 +356,83 @@ export function LiveReelTile({ className }: { className?: string }) {
   const total = TILE_HOLD_SEC * Math.max(1, slots.length);
 
   return (
-    <div
-      className={cn(
-        "relative rounded-lg transition-transform duration-150 ease-emphasis",
-        "has-[[data-reel-watch]:active]:scale-[0.99] motion-reduce:has-[[data-reel-watch]:active]:scale-100",
-        className,
-      )}
-      data-reel-tile
-    >
-      <PosterCard
-        eventName="Highlight reel"
-        chip={
-          <span
-            data-reel-glyph
-            className={cn(
-              "flex size-6 items-center justify-center rounded-full text-white",
-              GLASS_MARK,
-            )}
-          >
-            <Clapperboard
-              className={cn("size-3", GLASS_MARK_LIT)}
-              aria-hidden
-            />
-          </span>
-        }
-        meta={
-          controller.creator ? (
-            <button
-              type="button"
-              onClick={controller.openCreator}
-              onPointerEnter={preloadCreatorDoor}
-              onFocus={preloadCreatorDoor}
-              data-reel-make
+    <div className={className} data-reel-tile>
+      <div
+        data-reel-card
+        className={cn(
+          "relative rounded-lg transition-transform duration-150 ease-emphasis",
+          "has-[[data-reel-watch]:active]:scale-[0.99] motion-reduce:has-[[data-reel-watch]:active]:scale-100",
+        )}
+      >
+        <PosterCard
+          eventName="Highlight reel"
+          chip={
+            <span
+              data-reel-glyph
               className={cn(
-                // Above the watch layer, and a finger's height without growing the line itself.
-                "pointer-events-auto relative z-[2] -mx-1 -my-2 rounded-sm px-1 py-2 text-left text-micro font-medium text-[oklch(0.8_0.14_300)] outline-none",
-                "hover:underline hover:underline-offset-2 focus-visible:underline focus-visible:ring-2 focus-visible:ring-white/70",
+                "flex size-6 items-center justify-center rounded-full text-white",
+                GLASS_MARK,
               )}
             >
-              Make your own clip to share
-            </button>
-          ) : undefined
-        }
-        media={
-          <div className="relative aspect-[2/1] w-full overflow-hidden bg-muted sm:aspect-[21/9]">
-            {slots.map(({ id, url }, i) => (
-              // eslint-disable-next-line @next/next/no-img-element -- a presigned preview (next/image would cache a url that expires)
-              <img
-                key={`${i}-${url.slice(-24)}`}
-                src={url}
-                alt=""
-                loading={i === 0 ? "eager" : "lazy"}
-                decoding="async"
-                data-rest={i === 0 ? "" : undefined}
-                // The watchdog, by id: only this still's link is re-minted.
-                onError={() => live.reportPossibleExpiry([id])}
-                className="lr-still"
-                style={
-                  {
-                    "--lr-hold": TILE_HOLD_SEC,
-                    "--lr-delay": i * TILE_HOLD_SEC - total,
-                  } as React.CSSProperties
-                }
+              <Clapperboard
+                className={cn("size-3", GLASS_MARK_LIT)}
+                aria-hidden
               />
-            ))}
-          </div>
-        }
-      />
-      <button
-        type="button"
-        onClick={() => controller.open("hand")}
-        onPointerEnter={preloadView}
-        onFocus={preloadView}
-        aria-label="Watch the highlight reel"
-        data-reel-watch
-        className="absolute inset-0 z-[1] rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-      />
+            </span>
+          }
+          meta={
+            controller.creator ? (
+              <button
+                type="button"
+                onClick={controller.openCreator}
+                onPointerEnter={preloadCreatorDoor}
+                onFocus={preloadCreatorDoor}
+                data-reel-make
+                className={cn(
+                  // Above the watch layer, and a finger's height without growing the line itself.
+                  "pointer-events-auto relative z-[2] -mx-1 -my-2 rounded-sm px-1 py-2 text-left text-micro font-medium text-[oklch(0.8_0.14_300)] outline-none",
+                  "hover:underline hover:underline-offset-2 focus-visible:underline focus-visible:ring-2 focus-visible:ring-white/70",
+                )}
+              >
+                Make your own clip to share
+              </button>
+            ) : undefined
+          }
+          media={
+            <div className="relative aspect-[2/1] w-full overflow-hidden bg-muted sm:aspect-[21/9]">
+              {slots.map(({ id, url }, i) => (
+                // eslint-disable-next-line @next/next/no-img-element -- a presigned preview (next/image would cache a url that expires)
+                <img
+                  key={`${i}-${url.slice(-24)}`}
+                  src={url}
+                  alt=""
+                  loading={i === 0 ? "eager" : "lazy"}
+                  decoding="async"
+                  data-rest={i === 0 ? "" : undefined}
+                  // The watchdog, by id: only this still's link is re-minted.
+                  onError={() => live.reportPossibleExpiry([id])}
+                  className="lr-still"
+                  style={
+                    {
+                      "--lr-hold": TILE_HOLD_SEC,
+                      "--lr-delay": i * TILE_HOLD_SEC - total,
+                    } as React.CSSProperties
+                  }
+                />
+              ))}
+            </div>
+          }
+        />
+        <button
+          type="button"
+          onClick={() => controller.open("hand")}
+          onPointerEnter={preloadView}
+          onFocus={preloadView}
+          aria-label="Watch the highlight reel"
+          data-reel-watch
+          className="absolute inset-0 z-[1] rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        />
+      </div>
     </div>
   );
 }
