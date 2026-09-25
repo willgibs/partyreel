@@ -1,10 +1,20 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  ENTRY_HIDDEN,
+  ENTRY_PENDING,
+  ENTRY_PREVIEW,
+  ENTRY_REEL,
+  ENTRY_VIDEO,
+  type ManifestEntry,
+} from "@/lib/events/album-wire";
 import type { LiveMediaItem } from "@/lib/reel/live/items";
 
 import {
   hubReel,
+  isPlayableEntry,
   photosToGo,
+  playableCount,
   REEL_CARD_STILLS,
   REEL_MINIMUM,
   reelState,
@@ -101,6 +111,8 @@ describe("hubReel: the Reel card's face", () => {
     expect(face.have).toBe(1);
     // The one photograph it has sits under the card's overlay.
     expect(face.stills).toEqual(["preview-5"]);
+    // And says whose it is, so the live card knows when the album takes it away.
+    expect(face.stillIds).toEqual(["m5"]);
   });
 
   it("draws a plain card with nothing yet", () => {
@@ -115,6 +127,7 @@ describe("hubReel: the Reel card's face", () => {
       state: "counting",
       have: 0,
       stills: [],
+      stillIds: [],
     });
   });
 
@@ -130,6 +143,10 @@ describe("hubReel: the Reel card's face", () => {
     expect(face.have).toBe(REEL_MINIMUM);
     expect(face.stills).toHaveLength(REEL_CARD_STILLS);
     expect(new Set(face.stills).size).toBe(REEL_CARD_STILLS);
+    // Each still names its item, in the same order.
+    expect(face.stillIds.map((id) => `preview-${id.slice(1)}`)).toEqual(
+      face.stills,
+    );
     // Deterministic per event: the same album opens the same way on every render.
     expect(
       hubReel({ eventId: "e1", showReel: true, liveReelEnabled: true, items })
@@ -160,6 +177,7 @@ describe("hubReel: the Reel card's face", () => {
       state: "off",
       have: 2,
       stills: [],
+      stillIds: [],
     });
   });
 
@@ -167,7 +185,7 @@ describe("hubReel: the Reel card's face", () => {
     const items = Array.from({ length: 12 }, (_, i) => photo(i));
     expect(
       hubReel({ eventId: "e1", showReel: true, liveReelEnabled: false, items }),
-    ).toEqual({ state: "off", have: 2, stills: [] });
+    ).toEqual({ state: "off", have: 2, stills: [], stillIds: [] });
   });
 });
 
@@ -200,5 +218,36 @@ describe("the take's pool: a spread of the whole album, never its head", () => {
     expect(face.state).toBe("live");
     expect(face.stills).toHaveLength(REEL_CARD_STILLS);
     for (const still of face.stills) expect(pool.has(still)).toBe(true);
+  });
+});
+
+/**
+ * THE MANIFEST'S RULE IS THE ITEMS' RULE (album-host-wiring). The hub no longer holds the album's
+ * items, so the card counts playable entries off the paged album's flags; the two readings of "can
+ * play" must agree on every case `isReelEligible` names, or the host's card and the guest's reel
+ * would disagree about whether a reel exists.
+ */
+describe("isPlayableEntry: the guest's rule, read off the manifest's flags", () => {
+  const entry = (flags: number): ManifestEntry => ["m", 4, 3, flags, 1];
+
+  it("plays an approved photograph, and an approved video with a poster", () => {
+    expect(isPlayableEntry(entry(ENTRY_REEL))).toBe(true);
+    expect(
+      isPlayableEntry(entry(ENTRY_REEL | ENTRY_VIDEO | ENTRY_PREVIEW)),
+    ).toBe(true);
+  });
+
+  it("never plays what is hidden, held, a clip someone added, or a video with nothing to draw", () => {
+    expect(isPlayableEntry(entry(ENTRY_REEL | ENTRY_HIDDEN))).toBe(false);
+    expect(isPlayableEntry(entry(ENTRY_REEL | ENTRY_PENDING))).toBe(false);
+    expect(isPlayableEntry(entry(ENTRY_PREVIEW))).toBe(false);
+    expect(isPlayableEntry(entry(ENTRY_REEL | ENTRY_VIDEO))).toBe(false);
+  });
+
+  it("counts no further than it is asked to", () => {
+    const album = Array.from({ length: 5000 }, () => entry(ENTRY_REEL));
+    expect(playableCount(album, REEL_MINIMUM)).toBe(REEL_MINIMUM);
+    expect(playableCount(album.slice(0, 1))).toBe(1);
+    expect(playableCount([entry(ENTRY_HIDDEN)], REEL_MINIMUM)).toBe(0);
   });
 });

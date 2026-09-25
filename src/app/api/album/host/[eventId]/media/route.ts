@@ -1,17 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { readHostAlbumMedia } from "@/lib/db/queries/album-host";
 import { getEvent } from "@/lib/db/queries/events";
-import { toHostAlbumLinks } from "@/lib/events/album-host-links";
-import {
-  ALBUM_MEDIA_MAX_IDS,
-  isAlbumId,
-  type AlbumLinksBody,
-  type HostWhoTuple,
-} from "@/lib/events/album-wire";
-import { presignDownload } from "@/lib/r2/presign";
-import { presignBucketId } from "@/lib/r2/presign-bucket";
+import { readHostLinksBody } from "@/lib/event/host-links.server";
+import { ALBUM_MEDIA_MAX_IDS, isAlbumId } from "@/lib/events/album-wire";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -21,9 +13,11 @@ export const dynamic = "force-dynamic";
  * LINKS BY ID, FOR THE HOST: the guest's links (album/guest/media) for the host's own album, which
  * includes what a guest never sees (held and hidden items), each with its uploader's PROVED email
  * where there is one (resolveUploaderIdentity's rule; the host's mapper is the only builder that
- * carries an address). Body: `{ ids }`, at most `ALBUM_MEDIA_MAX_IDS`. An id that is unknown, in the
- * bin or another event's comes back `missing`. Auth as the host's poll: `getUser()`, then the event
- * through RLS, a 404 for anything that is not the caller's.
+ * carries an address) and its like count (`likes`, host-only: the guest's answer has no place for
+ * one). Body: `{ ids }`, at most `ALBUM_MEDIA_MAX_IDS`. An id that is unknown, in the bin or another
+ * event's comes back `missing`. The answer's one builder is `readHostLinksBody`, which the hub page
+ * calls for its first window. Auth as the host's poll: `getUser()`, then the event through RLS, a 404
+ * for anything that is not the caller's.
  */
 const bodySchema = z.object({
   ids: z.array(z.string()).min(1).max(ALBUM_MEDIA_MAX_IDS),
@@ -64,29 +58,7 @@ export async function POST(
     );
   }
 
-  const bucket = Number(presignBucketId(Date.now()));
-  const now = Date.now();
-  const { rows, identities } = await readHostAlbumMedia(
-    supabase,
-    event.id,
-    ids,
-  );
-  const links = await toHostAlbumLinks(rows, {
-    eventName: event.name,
-    presign: (key, downloadFilename) =>
-      presignDownload({ key, stable: true, downloadFilename }),
-    identities,
-  });
-  const found = new Set(rows.map((r) => r.id));
-  const payload: AlbumLinksBody<HostWhoTuple> = {
-    ok: true,
-    access: "full",
-    gate: null,
-    b: bucket,
-    now,
-    links,
-    missing: ids.filter((id) => !found.has(id)),
-  };
+  const payload = await readHostLinksBody(supabase, event, ids);
   return NextResponse.json(payload, {
     headers: { "Cache-Control": "private, no-store" },
   });

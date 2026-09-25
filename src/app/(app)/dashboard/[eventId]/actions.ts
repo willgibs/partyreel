@@ -18,13 +18,17 @@ import {
   setMediaStatusBulk,
   type SettableMediaStatus,
 } from "@/lib/db/mutations/media";
-import { listRecentlyDeletedMedia } from "@/lib/db/queries/media";
+import { readHostManifestPage } from "@/lib/db/queries/album-host";
+import { getEvent } from "@/lib/db/queries/events";
+import { getLiveReelServerFacts } from "@/lib/db/queries/guest-events-admin";
 import { BULK_LIMIT_MESSAGE, MAX_BULK_ITEMS } from "@/lib/event/bulk-selection";
+import { readHubReel, readRestOfManifest } from "@/lib/event/host-album.server";
+import type { HubReel } from "@/lib/event/reel-progress";
+import { ALBUM_MANIFEST_PAGE } from "@/lib/events/album-wire";
 import { captureError } from "@/lib/observability/sentry";
-import { presignDownload } from "@/lib/r2/presign";
 import { createClient } from "@/lib/supabase/server";
 import {
-  resolveTileSize,
+  resolveRowStep,
   TILE_SIZE_COOKIE,
   TILE_SIZE_COOKIE_MAX_AGE,
 } from "@/lib/shared/tile-size-cookie";
@@ -60,6 +64,15 @@ function refuseSelection(mediaIds: unknown): ActionResult | null {
   return null;
 }
 
+/*
+ * ★ THE ALBUM'S OWN WRITES DO NOT REVALIDATE THE HUB (the album-host-wiring lane). A revalidation
+ * from a Server Function re-renders the page that called it in the same round trip (Next 16:
+ * "updates the UI immediately"), and the hub is a page of a dozen reads plus the album's manifest and
+ * links: one hide used to re-run all of it. The hub's album is the page's store now, and each write's
+ * caller asks it to catch up (`afterWrite`, one delta by id); the counts it shows ride the same poll.
+ * The Review room's two bulk verbs below still revalidate: that room renders its queue on the server.
+ * The same reason `clip-hidden-action.ts` gives for its own writes.
+ */
 export async function setMediaStatusAction(
   eventId: string,
   mediaId: string,
@@ -71,8 +84,6 @@ export async function setMediaStatusAction(
 
   const result = await setMediaStatus(eventId, mediaId, status);
   if (!result.ok) return result;
-
-  revalidatePath(`/dashboard/${eventId}`);
   return { ok: true };
 }
 
@@ -82,8 +93,6 @@ export async function removeMediaAction(
 ): Promise<ActionResult> {
   const result = await removeMedia(eventId, mediaId);
   if (!result.ok) return result;
-
-  revalidatePath(`/dashboard/${eventId}`);
   return { ok: true };
 }
 
@@ -121,7 +130,9 @@ export async function hideBulkAction(
 
 // GALLERY album bulk-select: set status (hide/show) or remove a SELECTED set of LIVE album items
 // (approved/hidden, not the pending review queue). Same allowlist guard as the single-item action —
-// the client passes a raw status we never trust. RLS scopes the write to the host's own event.
+// the client passes a raw status we never trust. RLS scopes the write to the host's own event. The
+// album sends a bigger selection in batches of MAX_BULK_ITEMS (`inBulkBatches`), and does not
+// revalidate (see above).
 export async function setMediaStatusBulkAction(
   eventId: string,
   mediaIds: string[],
@@ -135,8 +146,6 @@ export async function setMediaStatusBulkAction(
 
   const result = await setMediaStatusBulk(eventId, mediaIds, status);
   if (!result.ok) return result;
-
-  revalidatePath(`/dashboard/${eventId}`);
   return { ok: true };
 }
 
@@ -149,14 +158,13 @@ export async function removeMediaBulkAction(
 
   const result = await removeMediaBulk(eventId, mediaIds);
   if (!result.ok) return result;
-
-  revalidatePath(`/dashboard/${eventId}`);
   return { ok: true };
 }
 
 // --- Recovery (Phase 3) — restore + permanent-delete-now ---------------------------------
-// Mirror removeMediaAction: call the wrapper, return its result on failure, revalidate on
-// success. captureError ONLY on code 'unknown' — insufficient_space / event_limit /
+// Mirror removeMediaAction: call the wrapper, return its result on failure; the bin drops the item
+// and the album store catches up on success, so neither revalidates the hub (see above).
+// captureError ONLY on code 'unknown' — insufficient_space / event_limit /
 // event_deleted are EXPECTED refusals (the host hit a cap), not bugs. The wrappers own the
 // ownership + capacity gates (they call the SECURITY DEFINER RPCs). Area "media" — these are
 // media/event-recovery ops (no "dashboard" Sentry area exists).
@@ -176,8 +184,6 @@ export async function restoreMediaAction(
     }
     return result;
   }
-
-  revalidatePath(`/dashboard/${eventId}`);
   return { ok: true };
 }
 
@@ -237,87 +243,62 @@ export async function purgeMediaNowAction(
     }
     return result;
   }
-
-  revalidatePath(`/dashboard/${eventId}`);
   return { ok: true };
 }
 
 /**
- * THE BIN, LOADED ONLY WHEN ASKED (his `settings` note: "The photo bin joins
- * the album as a filter").
- *
- * ★ WHY AN ACTION AND NOT A PROP ON THE PAGE. Every bin item needs its own
- * presigned URL, a signature computed on the request that renders it. Folding
- * the bin into the hub's payload would buy N presigns on EVERY render of the
- * event page — for a drawer most hosts open once, to recover one photograph,
- * weeks after they deleted it. The filter is the moment to pay for it.
- *
- * RLS scopes `listRecentlyDeletedMedia` to the host's own event and reads the
- * whole bin (a keyset, never the first 1,000), and the presigns are
- * INLINE-only (no download url), so the lightbox hides Save on a binned item
- * exactly as it does on the retired settings route.
+ * The album's density step, in the gallery's one cookie (`album-columns` r2: three steps, one index
+ * shared by host and guest; `tile-size-cookie.ts` has why a cookie). A preference, not a trust
+ * boundary — no auth check, same as `setEventsViewAction` in `dashboard/actions.ts`, whose pattern
+ * this mirrors exactly. `resolveRowStep` narrows whatever arrives to the three steps (a legacy width
+ * maps across), so a hand-forged call can only ever set one of them.
  */
-export type BinItem = {
-  id: string;
-  type: string;
-  url: string;
-  status: string;
-  countdownDays: number;
-  width: number | null;
-  height: number | null;
-  durationSeconds: number | null;
-};
-
-export async function listDeletedMediaAction(
-  eventId: string,
-): Promise<{ ok: true; items: BinItem[] } | { ok: false; message: string }> {
-  // Re-verify the caller here as well as relying on RLS: a Server Function is a
-  // public endpoint, and the query below is only safe because the session it
-  // runs under is the host's (database-security.md).
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, message: "Please sign in again." };
-
-  try {
-    const rows = await listRecentlyDeletedMedia(eventId);
-    const items = await Promise.all(
-      rows.map(async (m) => ({
-        id: m.id,
-        type: m.type,
-        url: await presignDownload({ key: m.original_key, stable: true }),
-        status: m.status,
-        countdownDays: m.countdownDays,
-        width: m.width,
-        height: m.height,
-        durationSeconds: m.duration_seconds,
-      })),
-    );
-    return { ok: true, items };
-  } catch (error) {
-    captureError("media", error as Error, {
-      action: "list_deleted_media",
-      eventId,
-    });
-    return { ok: false, message: "Couldn't load deleted items." };
-  }
-}
-
-/**
- * The gallery's tile-size cookie (`app-vocabulary` r1,
- * `gallery-controls-persistence`, overruled to a cookie: `tile-size-cookie.ts`
- * has why). A preference, not a trust boundary — no auth check, same as
- * `setEventsViewAction` in `dashboard/actions.ts`, whose pattern this mirrors
- * exactly. `resolveTileSize` narrows whatever arrives to the three wired
- * steps, so a hand-forged call can only ever set one of them.
- */
-export async function setTileSizeAction(size: number): Promise<void> {
+export async function setRowStepAction(step: number): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.set(TILE_SIZE_COOKIE, String(resolveTileSize(String(size))), {
+  cookieStore.set(TILE_SIZE_COOKIE, String(resolveRowStep(String(step))), {
     maxAge: TILE_SIZE_COOKIE_MAX_AGE,
     sameSite: "lax",
     path: "/",
     httpOnly: false,
   });
+}
+
+/**
+ * THE HIGHLIGHT REEL CARD, READ AGAIN (the album-host-wiring lane). The hub's album is live, so the
+ * card's state and pips move with it on the client (`isPlayableEntry` over the manifest); what the
+ * client cannot make is the card's stills, which are the reel's own opening take over a spread of the
+ * album with its quick-add signals (who uploaded, how liked) and presigned. So when the card's state
+ * changes, or a still it shows leaves the album, it asks here: the page's own read (`readHubReel`),
+ * for this event alone. A public endpoint like every Server Function: the id is parsed, the session
+ * re-verified with `getUser()`, the event read through RLS.
+ */
+export async function refreshHubReelAction(
+  eventId: unknown,
+): Promise<{ ok: true; reel: HubReel } | { ok: false }> {
+  const parsed = z.uuid().safeParse(eventId);
+  if (!parsed.success) return { ok: false };
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false };
+  const event = await getEvent(parsed.data);
+  if (!event) return { ok: false };
+  try {
+    const [first, facts] = await Promise.all([
+      readHostManifestPage(supabase, event.id, null, ALBUM_MANIFEST_PAGE),
+      getLiveReelServerFacts(event.id),
+    ]);
+    const entries = await readRestOfManifest(supabase, event.id, first);
+    const reel = await readHubReel(
+      supabase,
+      { id: event.id, showReel: event.show_reel },
+      entries,
+      facts.liveReelEnabled,
+    );
+    return { ok: true, reel };
+  } catch (error) {
+    captureError("reel", error, { action: "hub_reel_refresh", eventId });
+    return { ok: false };
+  }
 }

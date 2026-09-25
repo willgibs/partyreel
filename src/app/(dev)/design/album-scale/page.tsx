@@ -2,6 +2,7 @@ import { requireDesignKey } from "@/lib/design-gate/server";
 import { isRowStep } from "@/lib/shared/album-rows";
 
 import { AlbumScale } from "./album-scale";
+import { HostScale } from "./host-surface";
 
 /**
  * THE ALBUM AT SCALE (the album-window lane): the real grid over 1,145
@@ -15,6 +16,8 @@ import { AlbumScale } from "./album-scale";
  *   ?n=1145                how many photographs (1 to 5,000)
  *   ?step=0|1|2            the density step (the middle by default)
  *   ?uploading=1           an upload in flight at the head, for progress ticks
+ *   ?surface=host          the host's album instead: the hub's own store, window, select mode and
+ *                          View menu over the same photographs (`host-surface.tsx`)
  */
 export default async function AlbumScalePage({
   searchParams,
@@ -27,6 +30,11 @@ export default async function AlbumScalePage({
     typeof params[k] === "string" ? (params[k] as string) : undefined;
   const n = Number(one("n") ?? 1145);
   const step = Number(one("step"));
+  const count = Number.isFinite(n) ? Math.min(5000, Math.max(1, n)) : 1145;
+  if (one("surface") === "host")
+    return (
+      <HostScale count={count} step={isRowStep(step) ? step : undefined} />
+    );
   return (
     <AlbumScale
       layout={one("layout") === "masonry" ? "masonry" : "rows"}

@@ -193,6 +193,15 @@ export function MediaTile({
     />
   );
 
+  /*
+   * ★ NO LINK YET, NO IMAGE. The paged album mints links per window (`lib/album/links.ts`), so a tile
+   * can mount a beat before its links land. It holds its skeleton until they do, rather than an
+   * `<img src="">`, which React refuses with an error and a browser answers with a failed load.
+   */
+  if (!src) {
+    return <span className="relative block size-full">{shimmer}</span>;
+  }
+
   const imgProps = {
     ref: imgRef,
     src,

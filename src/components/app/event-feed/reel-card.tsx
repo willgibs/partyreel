@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Clapperboard, ImagePlus } from "lucide-react";
 
@@ -14,7 +14,19 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { trackAttrs } from "@/lib/analytics/events";
-import { photosToGo, type ReelState } from "@/lib/event/reel-progress";
+import { refreshHubReelAction } from "@/app/(app)/dashboard/[eventId]/actions";
+import {
+  useHostAlbum,
+  useHubCounts,
+  useHubEntries,
+} from "@/components/app/event-feed/host-album";
+import {
+  isPlayableEntry,
+  photosToGo,
+  playableCount,
+  REEL_MINIMUM,
+  type ReelState,
+} from "@/lib/event/reel-progress";
 import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +46,8 @@ export type ReelCardData = {
   of: number;
   /** One still behind a card one photo short; the reel's opening stills once live. */
   stills: string[];
+  /** Whose stills they are: one that leaves the album sends the card for new ones. */
+  stillIds?: string[];
   /** The view the guests watch, which the owner opens with every gate passed: `/e/<token>?reel`. */
   viewHref: string;
   /** A moderated event: guests' photos count once the host approves them. */
@@ -43,6 +57,92 @@ export type ReelCardData = {
 };
 
 const LABEL = "Highlight reel";
+
+/**
+ * THE CARD FOLLOWS THE ALBUM (the album-host-wiring lane: the hub is never refreshed to show an
+ * arrival). Its state and pips are the album's playable count against the minimum, read live off the
+ * page's store (`isPlayableEntry`, the guest's own rule on the manifest's flags), so the card flips
+ * to live on the very photograph that makes the guest's reel appear. Its stills are the reel's own
+ * take, which only the server can plan (who uploaded, how liked) and presign, so when the state moves
+ * or a still it shows leaves the album, it asks once for that album version
+ * (`refreshHubReelAction`), drawing the new state plainly meanwhile. Off the hub, the page's face.
+ *
+ * ★ THE PAGE'S FACE WINS WHEN IT CHANGES. The switch and the platform's lever live in Settings,
+ * whose save re-renders the page and hands this a new face: a card that went live here and was then
+ * switched off must say Off, and a card switched back on wears the take the page just read. So a new
+ * face from the page replaces whatever this card worked out, and "off" is always the page's word.
+ */
+export function useLiveReel(eventId: string, reel: ReelCardData): ReelCardData {
+  const album = useHostAlbum();
+  const entries = useHubEntries(album);
+  const counts = useHubCounts(album);
+  const [face, setFace] = useState(() => servedFace(reel));
+  // A new face from the page (its object is new only when the page rendered again), adopted during
+  // render: React's own pattern for state that follows a prop.
+  const [served, setServed] = useState(reel);
+  if (served !== reel) {
+    setServed(reel);
+    setFace(servedFace(reel));
+  }
+  const playable = useMemo(
+    () => (entries ? playableCount(entries, REEL_MINIMUM) : null),
+    [entries],
+  );
+  const gone = useMemo(() => {
+    if (!entries || face.stillIds.length === 0) return false;
+    const still = new Set(face.stillIds);
+    let found = 0;
+    for (const e of entries)
+      if (still.has(e[0]) && isPlayableEntry(e)) found += 1;
+    return found < still.size;
+  }, [entries, face.stillIds]);
+
+  const want: ReelState =
+    reel.state === "off"
+      ? "off"
+      : playable === null
+        ? face.state
+        : playable >= REEL_MINIMUM
+          ? "live"
+          : "counting";
+  const stale = reel.state !== "off" && (want !== face.state || gone);
+
+  // One ask per album the card saw go stale: a late answer that still disagrees waits for the next
+  // change, never loops.
+  const asked = useRef<readonly unknown[] | null>(null);
+  useEffect(() => {
+    if (!stale || !entries || asked.current === entries) return;
+    asked.current = entries;
+    let live = true;
+    void refreshHubReelAction(eventId).then((res) => {
+      if (live && res.ok) setFace(res.reel);
+    });
+    return () => {
+      live = false;
+    };
+  }, [stale, entries, eventId]);
+
+  return {
+    ...reel,
+    state: want,
+    have: playable === null ? face.have : Math.min(playable, REEL_MINIMUM),
+    // Until the new take lands, a card whose state moved is drawn plain rather than on stills
+    // that belong to the state it left.
+    stills: want === face.state && !gone ? face.stills : [],
+    stillIds: face.stillIds,
+    pending: counts?.pending ?? reel.pending,
+  };
+}
+
+/** The part of the page's reel face the card can later work out, or ask for, on its own. */
+function servedFace(reel: ReelCardData) {
+  return {
+    state: reel.state,
+    have: reel.have,
+    stills: reel.stills,
+    stillIds: reel.stillIds ?? [],
+  };
+}
 
 /**
  * THE HIGHLIGHT REEL'S CARD (`reel-host`, Will 2026-09-25: `progress=card`, `home=view`).

@@ -70,12 +70,8 @@ vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
   recordAbuseEvent: async () => {},
 }));
 
-const {
-  countEventMedia,
-  listEventMedia,
-  listRecentlyDeletedMedia,
-  readNewestAlbumUpdate,
-} = await import("@/lib/db/queries/media");
+const { listEventMedia, listRecentlyDeletedMedia, readBinMediaByIds } =
+  await import("@/lib/db/queries/media");
 const { getNotificationData } = await import("@/lib/db/queries/notifications");
 
 const NOW = Date.parse("2026-09-23T12:00:00.000Z");
@@ -235,12 +231,38 @@ describe("a guest's own withdrawal never reaches a host read", () => {
       "m-hidden",
     ]);
     expect(ids(await listEventMedia("ev-1", "pending"))).toEqual(["m-pending"]);
+    // The clip creator's hidden moments: the hidden slice alone.
+    expect(ids(await listEventMedia("ev-1", "hidden"))).toEqual(["m-hidden"]);
   });
 
-  it("★ the hub's counts count neither the bin nor a withdrawal", async () => {
-    // Approved + hidden is the album and pending is Review; both withdrawals and the host's own
-    // removal are in neither.
-    expect(await countEventMedia("ev-1")).toEqual({ album: 2, pending: 1 });
+  // The hub's counts ("★ the hub's counts count neither the bin nor a withdrawal", countEventMedia)
+  // moved with the hub onto the paged album (album-host-wiring): they are `album_changes_since`'s,
+  // counted by status in the version's snapshot, so a removed row, the host's own or a guest's
+  // withdrawal, is in none of approved, hidden and pending by construction (migration-guards.test.ts,
+  // the paged album's section, pins the reader). The read retired with the host fingerprint route.
+
+  it("★ the bin's links never mint a withdrawal, an aged removal or anything not in the bin", async () => {
+    const rows = await readBinMediaByIds(
+      asSupabase(fake),
+      "ev-1",
+      [
+        "m-host-removed",
+        "m-withdrawn-new",
+        "m-withdrawn-old",
+        "m-live",
+        "m-hidden",
+      ],
+      NOW,
+    );
+    expect(ids(rows)).toEqual(["m-host-removed"]);
+    // Past the recovery window the row is the sweep's, not the bin's.
+    const later = await readBinMediaByIds(
+      asSupabase(fake),
+      "ev-1",
+      ["m-host-removed"],
+      NOW + 29 * DAY,
+    );
+    expect(later).toEqual([]);
   });
 
   it("★ Deleted lists the host's own removal and never a withdrawal", async () => {
@@ -406,40 +428,22 @@ describe("the host's album is read whole", () => {
   });
 });
 
-describe("the hub's numbers are counted", () => {
-  it("counts 2,400 album items and 300 waiting exactly, reading no rows at all", async () => {
-    useBigAlbum(bigAlbum(3000));
-
-    expect(await countEventMedia("ev-big")).toEqual({
-      album: 2400,
-      pending: 300,
-    });
-    expect(fake.requests.map((r) => r.method)).toEqual(["HEAD", "HEAD"]);
-    expect(fake.requests.every((r) => r.returned === 0)).toBe(true);
-  });
-
-  it("throws on a failed count rather than reading it as zero", async () => {
-    useBigAlbum([]);
-    delete fake.tables.media;
-    await expect(countEventMedia("ev-big")).rejects.toThrow(
-      /media: (album|pending) count/,
-    );
-  });
-
-  it("reads the newest write among the non-removed media, one row whatever the size", async () => {
-    const rows = bigAlbum(3000);
-    // A hide just now makes that row the newest write; a removal's later write never counts.
-    const hidden = rows.find((r) => r.status === "hidden");
-    const removed = rows.find((r) => r.status === "removed");
-    hidden!.updated_at = at(5 * SECOND);
-    removed!.updated_at = at(9 * SECOND);
+describe("the hidden slice is read whole", () => {
+  it("reads 300 hidden items of a 3,000-item album in one page, and nothing else", async () => {
+    // The clip creator used to read the whole album to find its hidden moments (the clip lane's
+    // deferral): the slice reads exactly them, however big the album around them grows.
+    const rows = bigAlbum(3000, statusOf, 3);
     useBigAlbum(rows);
-
-    expect(await readNewestAlbumUpdate(asSupabase(fake), "ev-big")).toBe(
-      at(5 * SECOND),
+    const hidden = await listEventMedia("ev-big", "hidden");
+    expect(ids(hidden)).toEqual(
+      newestFirst(rows.filter((r) => r.status === "hidden")),
     );
-    expect(fake.requests[0]).toMatchObject({ limit: 1, returned: 1 });
-    expect(await readNewestAlbumUpdate(asSupabase(fake), "ev-none")).toBe(null);
+    expect(fake.requests).toHaveLength(1);
+  });
+
+  it("reads 2,500 hidden items whole, through the pages", async () => {
+    useBigAlbum(bigAlbum(2500, () => ({ status: "hidden" })));
+    expect(await listEventMedia("ev-big", "hidden")).toHaveLength(2500);
   });
 });
 

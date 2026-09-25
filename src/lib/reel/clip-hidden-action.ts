@@ -56,9 +56,9 @@ export async function listClipHiddenAction(
     return { ok: false };
   }
   try {
-    // The album slice (approved and hidden), read whole: PostgREST ends a read at 1,000 rows, and
-    // a hidden photograph past the first thousand is still hers to show.
-    const rows = await readEventMedia(supabase, parsed.data, "album");
+    // The hidden slice alone, read whole: PostgREST ends a read at 1,000 rows, and a hidden
+    // photograph past the first thousand is still hers to show.
+    const rows = await readEventMedia(supabase, parsed.data, "hidden");
     const hidden = rows.filter(
       (m) =>
         m.status === "hidden" &&

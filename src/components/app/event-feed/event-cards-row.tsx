@@ -15,8 +15,14 @@ import { EVENT_ROOMS, type EventRoomId } from "@/lib/event/sections";
 import { trackAttrs } from "@/lib/analytics/events";
 import { cn } from "@/lib/utils";
 
-import { ReelCard, type ReelCardData } from "./reel-card";
 import {
+  useHostAlbum,
+  useHubCounts,
+} from "@/components/app/event-feed/host-album";
+
+import { ReelCard, useLiveReel, type ReelCardData } from "./reel-card";
+import {
+  reviewCardFace,
   ROOM_CARD_BASE,
   ROOM_CARD_VALUE,
   roomCardSize,
@@ -70,14 +76,30 @@ export type RoomCard = {
  */
 export function EventCardsRow({
   eventId,
-  cards,
-  reel,
+  cards: served,
+  reel: servedReel,
+  moderationOn = false,
 }: {
   eventId: string;
   cards: RoomCard[];
   /** The Highlight reel's card, in its slot in the row. */
   reel: ReelCardData;
+  /** Whether uploads wait in Review: the Review card's words follow the album's live count. */
+  moderationOn?: boolean;
 }) {
+  // ★ THE REVIEW CARD AND THE REEL CARD FOLLOW THE ALBUM (the album-host-wiring lane). The page is
+  // never refreshed to show an arrival, so what these two say is read off the page's album store:
+  // the held count the host's poll brings (a guest's upload to a moderated event rings no doorbell,
+  // so the poll is how it arrives), and the reel's playable count (`useLiveReel`).
+  const counts = useHubCounts(useHostAlbum());
+  const cards = counts
+    ? served.map((c) =>
+        c.id === "review"
+          ? { ...c, ...reviewCardFace(moderationOn, counts.pending) }
+          : c,
+      )
+    : served;
+  const reel = useLiveReel(eventId, servedReel);
   const { openSheet, headerCodeHidden, openCode, morphNameFor } =
     useEventShare();
   const [stuck, setStuck] = useState(false);
