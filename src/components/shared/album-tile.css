@@ -1,0 +1,96 @@
+/* ── THE ALBUM TILE'S OWN SHEET (the album-window lane): two things a tile
+   used to pay for on every photograph of an album, including the thousand
+   nobody could see. Plain CSS beside `album-tile.tsx` and imported by it;
+   unlayered, so it outranks the utilities it narrows (a Tailwind utility lives
+   in `@layer utilities`). ── */
+
+/* ── THE SHIMMER RUNS ONLY WHERE SOMEONE CAN SEE IT. A tile shimmers until its
+   photograph decodes, and a photograph below the fold is not fetched until it
+   nears the screen (`loading=lazy`), so every tile under the fold ran its
+   shimmer every frame for nobody: 1,110 running animations on the 1,145-tile
+   scale page, re-rasterised each frame. The grid's one IntersectionObserver
+   writes `data-inview` on the tiles on screen; only those shimmer.
+
+   ★ AFTER A BEAT. A photograph already in the cache decodes within a few
+   frames of its tile coming into view, and a shimmer that starts and is gone
+   again is a flicker, not a loading state: the delay lets it land first.
+
+   And never once its photograph has landed (`data-done`: the skeleton stays,
+   hidden, because removing it would be a layout change; `media-grid.tsx`).
+
+   Scoped to the album's own tiles (`[data-media-id]`): the upload stack, the
+   selection grid and the operator's report keep the skeleton's shimmer as it
+   always was. ── */
+[data-media-tile][data-media-id] [data-slot="skeleton"] {
+  animation-name: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-media-tile][data-media-id][data-inview]
+    [data-slot="skeleton"]:not([data-done]) {
+    animation-name: shimmer;
+    animation-delay: 200ms;
+  }
+}
+
+/* ── THE DESK'S ROW IS NOT DRAWN AT REST. The row is one glass pane, a
+   backdrop filter, on every tile of the album; collapsed to a zero width it was
+   still laid out and composited, one blurred layer per photograph (from 768px,
+   every tile of a 1,145-photograph album). So it is `display:none` until its
+   tile is hovered or the keyboard is inside it (`data-kbd-focus`, written by
+   the grid), and it still slides open: `@starting-style` gives the first frame
+   something to come from, and `transition-behavior: allow-discrete` (the
+   `display ... allow-discrete` below) holds it on screen for its exit. Never
+   below `md`: a phone tile is marks only (Will, `tiles`: "let's handle all
+   actions and controls... in the lightbox controls"). ── */
+[data-tile-actions] {
+  display: none;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  [data-media-tile]:hover [data-tile-actions],
+  [data-media-tile][data-kbd-focus] [data-tile-actions] {
+    display: flex;
+    max-width: var(--reveal-max, 2rem);
+    opacity: 1;
+  }
+}
+
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  [data-tile-actions] {
+    transition:
+      max-width 220ms var(--ease-emphasis),
+      opacity 150ms var(--ease-emphasis),
+      display 220ms allow-discrete;
+  }
+
+  [data-media-tile]:hover [data-tile-actions],
+  [data-media-tile][data-kbd-focus] [data-tile-actions] {
+    @starting-style {
+      max-width: 0;
+      opacity: 0;
+    }
+  }
+}
+
+/* Reduced motion: no slide. The row fades in at its natural width. */
+@media (min-width: 768px) and (prefers-reduced-motion: reduce) {
+  [data-tile-actions] {
+    max-width: none;
+    transition:
+      opacity 150ms linear,
+      display 150ms allow-discrete;
+  }
+
+  [data-media-tile]:hover [data-tile-actions],
+  [data-media-tile][data-kbd-focus] [data-tile-actions] {
+    max-width: none;
+
+    @starting-style {
+      opacity: 0;
+    }
+  }
+}

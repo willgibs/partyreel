@@ -86,13 +86,37 @@ export type GridMedia = {
 //
 // (This file also homes the GridMedia type. The legacy square-grid MediaGrid was
 // retired in S3·3a once every surface had moved to MasonryColumns.)
+/** The URL a tile draws for an item: the small preview, or the original when there is none (or it broke). */
+function tileSrc(
+  item: Pick<GridMedia, "url" | "previewUrl">,
+  previewFailed: boolean,
+): string {
+  return item.previewUrl && !previewFailed ? item.previewUrl : item.url;
+}
+
+/**
+ * Whether two presigned URLs name the same stored object: the same path, and
+ * any query at all. A presign rolls about every 30 minutes by rewriting only
+ * the query (its signature and expiry), so the path is the photograph.
+ */
+function sameObject(a: string, b: string): boolean {
+  return a.split("?")[0] === b.split("?")[0];
+}
+
 export function MediaTile({
   item,
   playBadge = "center",
+  eager = false,
 }: {
   item: Pick<GridMedia, "type" | "url" | "previewUrl">;
   /** "none" lets a caller (the guest masonry) supply its own corner badge. */
   playBadge?: "center" | "none";
+  /**
+   * The album's first row: fetched at once and first (`loading=eager`,
+   * `fetchpriority=high`), because it is the largest paint a guest waits for;
+   * everything else waits until it nears the screen.
+   */
+  eager?: boolean;
 }) {
   // Fade a photo in on load so presigned images don't pop in jarringly (opacity-only -> reduced-motion
   // safe). The `complete` check covers a cached image that finished loading before React attached onLoad,
@@ -104,15 +128,80 @@ export function MediaTile({
   // failing ORIGINAL can't loop.
   const [previewFailed, setPreviewFailed] = useState(false);
   const previewOk = !!item.previewUrl && !previewFailed;
+
+  /*
+   * ★ THE SRC A TILE MOUNTED WITH IS THE SRC IT KEEPS, UNTIL IT BREAKS (the
+   * album-window lane). The album re-reads its links about every half hour, and
+   * each re-read hands every tile a new URL for the same photograph (a new
+   * signature on the same object). Written straight through, that re-fetched
+   * and re-decoded every photograph on screen, and flashed the shimmer under
+   * each one, for nothing. So the drawn URL is state: a new link for the same
+   * object is remembered and used only when the drawn one fails (an expired
+   * signature is exactly such a failure), and a different object replaces it.
+   */
+  const latest = useRef(item);
+  useEffect(() => {
+    latest.current = item;
+  });
+  const [src, setSrc] = useState(() => tileSrc(item, false));
+  const wanted = tileSrc(item, previewFailed);
+  if (!sameObject(wanted, src)) {
+    setSrc(wanted);
+    setLoaded(false);
+  }
+
   useEffect(() => {
     if (imgRef.current?.complete) setLoaded(true);
   }, []);
 
   const onTileImgError = () => {
-    if (previewOk) {
-      setPreviewFailed(true);
+    const now = latest.current;
+    // A rolled link: the fresh one for the same photograph.
+    const fresh = tileSrc(now, previewFailed);
+    if (fresh !== src) {
+      setSrc(fresh);
       setLoaded(false);
+      return;
     }
+    // The preview itself is broken: the original.
+    if (!previewFailed && now.previewUrl) {
+      setPreviewFailed(true);
+      if (now.url !== src) {
+        setSrc(now.url);
+        setLoaded(false);
+      }
+    }
+  };
+
+  /*
+   * ★ THE SHIMMER IS HIDDEN WHEN THE PHOTOGRAPH LANDS, NEVER REMOVED. Taking a
+   * node out is a layout change, and a tile in a flex box is no layout boundary
+   * however contained it is, so every photograph that landed mid-scroll re-ran
+   * its whole album's flex layout (measured on a throttled phone's fling
+   * through 1,145 photographs). Hidden, the landing is a paint: the skeleton
+   * stays, invisible and still (`data-done` stops its shimmer in an album's
+   * sheet, `animate-none` everywhere else).
+   */
+  const shimmer = (
+    <Skeleton
+      data-done={loaded ? "" : undefined}
+      aria-hidden
+      className={cn(
+        "absolute inset-0 size-full rounded-none",
+        loaded && "invisible animate-none",
+      )}
+    />
+  );
+
+  const imgProps = {
+    ref: imgRef,
+    src,
+    loading: eager ? ("eager" as const) : ("lazy" as const),
+    fetchPriority: eager ? ("high" as const) : ("auto" as const),
+    // Decode off the main thread: a fling mounts dozens of photographs a second.
+    decoding: "async" as const,
+    onLoad: () => setLoaded(true),
+    onError: onTileImgError,
   };
 
   if (item.type === "photo") {
@@ -120,17 +209,11 @@ export function MediaTile({
     // skeleton fills the tile until it decodes, then it fades in (the parent clips with overflow-hidden).
     return (
       <span className="relative block size-full">
-        {!loaded && (
-          <Skeleton className="absolute inset-0 size-full rounded-none" />
-        )}
+        {shimmer}
         {/* eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable */}
         <img
-          ref={imgRef}
-          src={previewOk ? (item.previewUrl ?? undefined) : item.url}
+          {...imgProps}
           alt=""
-          loading="lazy"
-          onLoad={() => setLoaded(true)}
-          onError={onTileImgError}
           className={cn(
             "relative size-full object-cover transition-opacity duration-300 ease-out",
             loaded ? "opacity-100" : "opacity-0",
@@ -146,17 +229,11 @@ export function MediaTile({
     return (
       <>
         <span className="relative block size-full">
-          {!loaded && (
-            <Skeleton className="absolute inset-0 size-full rounded-none" />
-          )}
+          {shimmer}
           {/* eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable */}
           <img
-            ref={imgRef}
-            src={item.previewUrl ?? undefined}
+            {...imgProps}
             alt=""
-            loading="lazy"
-            onLoad={() => setLoaded(true)}
-            onError={onTileImgError}
             className={cn(
               "relative size-full bg-black object-cover transition-opacity duration-300 ease-out",
               loaded ? "opacity-100" : "opacity-0",
@@ -171,10 +248,12 @@ export function MediaTile({
     <>
       <video
         // iOS shows a black box without this poster fragment — see videoPosterSrc.
-        src={videoPosterSrc(item.url)}
+        // `src` is the kept URL (see above): a rolled link re-fetches nothing.
+        src={videoPosterSrc(src)}
         preload="metadata"
         muted
         playsInline
+        onError={onTileImgError}
         className="size-full bg-black object-cover"
       />
       {playBadge === "center" && <PlayBadge />}

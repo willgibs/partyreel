@@ -71,7 +71,7 @@ function album(n: number, r: () => number, prefix = "m"): RowItem[] {
   });
 }
 
-const STEPS: RowStep[] = [0, 1, 2, 3, 4];
+const STEPS: RowStep[] = [0, 1, 2];
 /** A phone, a big phone, a tablet, a laptop, a desk, a wide monitor. */
 const WIDTHS = [335, 390, 560, 728, 984, 1400, 1880, 2520];
 const GAP = 4;
@@ -91,9 +91,11 @@ const flat = (layout: RowsLayout) => layout.rows.flatMap((row) => row.ids);
 describe("no row ever leaves a gap at the right edge", () => {
   it("fills the box with every justified row, within half a pixel, at any width", () => {
     let rows = 0;
+    // Ten albums a step (six when there were five steps): the same few
+    // thousand rows checked, now over three steps.
     for (const width of [...WIDTHS, 333.5, 1399.25, 1917.75])
       for (const step of STEPS)
-        for (let s = 0; s < 6; s++) {
+        for (let s = 0; s < 10; s++) {
           const layout = layoutRows(
             album(60, rng(s * 31 + step), "a"),
             params(width, step),
@@ -176,24 +178,27 @@ describe("heights sit in a soft band around the target", () => {
 });
 
 describe("density steps are photographs per row, never pixels", () => {
-  it("keeps all five steps distinct at every width", () => {
+  it("keeps all three steps distinct at every width", () => {
     for (let width = 280; width <= 3440; width += 40) {
       const counts = STEPS.map((s) => perRowFor(width, s));
-      expect(new Set(counts).size, `${width}px`).toBe(5);
+      expect(new Set(counts).size, `${width}px`).toBe(3);
       // Largest photographs first: every step holds more than the one before.
       for (let i = 1; i < counts.length; i++)
         expect(counts[i]).toBeGreaterThan(counts[i - 1]);
     }
   });
 
-  it("puts about 2 a row on a phone, 3 through a tablet, and never more than 8 at a desk", () => {
+  it("puts 2 a row on a phone, 3 through a tablet, and never more than 8 at a desk", () => {
     expect(perRowFor(375, DEFAULT_ROW_STEP)).toBe(2);
     expect(perRowFor(480, DEFAULT_ROW_STEP)).toBe(3);
     expect(perRowFor(768, DEFAULT_ROW_STEP)).toBe(3);
+    expect(perRowFor(1440, DEFAULT_ROW_STEP)).toBe(5);
+    // His phone steps, whole: one, two or three a row (the round-two note).
+    expect(STEPS.map((s) => perRowFor(375, s))).toEqual([1, 2, 3]);
     // The ceiling: a wider screen grows the rows, it never adds photographs.
-    expect(perRowFor(1440, 4)).toBe(8);
-    expect(perRowFor(2560, 4)).toBe(8);
-    expect(perRowFor(3440, 4)).toBe(8);
+    expect(perRowFor(1440, 2)).toBe(8);
+    expect(perRowFor(2560, 2)).toBe(8);
+    expect(perRowFor(3440, 2)).toBe(8);
     const densest = Math.max(...ROW_CLASSES.flatMap((c) => c.perRow));
     expect(densest).toBe(8);
   });
@@ -306,9 +311,10 @@ describe("an arrival moves at most four rows", () => {
 describe("a hide re-solves only its window", () => {
   it("moves the hidden photograph's row and its neighbours, and nothing else", () => {
     let hides = 0;
+    // Five albums a step (three over five steps): the same hundreds of hides.
     for (const width of [335, 728, 1400, 2520])
       for (const step of STEPS)
-        for (let s = 0; s < 3; s++) {
+        for (let s = 0; s < 5; s++) {
           const r = rng(s * 7 + width + step);
           let items = album(80, r);
           let layout = layoutRows(items, params(width, step));
@@ -482,7 +488,7 @@ describe("the reflow knows when it is not local", () => {
     expect(reflowRows(layout, items, { ...p, width: 1300 }).reason).toBe(
       "params",
     );
-    expect(reflowRows(layout, items, params(1400, 4)).reason).toBe("params");
+    expect(reflowRows(layout, items, params(1400, 2)).reason).toBe("params");
     expect(reflowRows(null, items, p).reason).toBe("first");
   });
 
@@ -600,6 +606,9 @@ describe("the rhythm's feature rows", () => {
 
   it("turns itself off where every photograph is already alone (a phone's feed)", () => {
     const perRow = perRowFor(375, 0);
+    expect(perRow).toBe(1);
+    // By rule, not by arithmetic: one a row picks nobody at all.
+    expect(pickFeatures(album(400, rng(4)), 3, perRow).size).toBe(0);
     const items = withPicks(album(80, rng(4)), 3, perRow);
     const layout = layoutRows(items, { width: 335, gap: GAP, perRow });
     expect(layout.rows.some((row) => row.feature)).toBe(false);
@@ -620,7 +629,7 @@ describe("1,145 photographs lay out in a few milliseconds", () => {
       return runs.sort((a, b) => a - b)[4];
     };
     // Measured at about half a millisecond; a slow CI machine gets headroom.
-    expect(time(1400, 4)).toBeLessThan(10);
+    expect(time(1400, 2)).toBeLessThan(10);
     expect(time(335, 0)).toBeLessThan(10);
   });
 });

@@ -31,7 +31,7 @@
  * ★ STEPS ARE PHOTOS PER ROW, NEVER PIXELS (`control=slider`: "3-5 fixed
  * steps... a fine pixel slider means images may not cleanly fill the gallery
  * edge to edge"). A pixel height means a different number of photographs on
- * every screen, and two steps can collapse into one; a count keeps all five
+ * every screen, and two steps can collapse into one; a count keeps all three
  * distinct at any width (`ROW_CLASSES`). Past a desk, wider screens grow the
  * rows rather than add photographs (`scale=ceiling`).
  *
@@ -108,41 +108,46 @@ export type RowsLayout = {
 
 /* ── The steps ──────────────────────────────────────────────────────────── */
 
-export const ROW_STEP_COUNT = 5;
-export type RowStep = 0 | 1 | 2 | 3 | 4;
-/** The middle step: about 2 a row on a phone, 3 on a tablet, 5 at a desk. */
-export const DEFAULT_ROW_STEP: RowStep = 2;
+/**
+ * THREE STEPS, EVERYWHERE (his `steps` note on round two: "We could reduce the
+ * amount of steps on a phone to 3 max (effectively 1 item, 2 items, 3 items per
+ * row) so 4-5 items per row doesn't force us to load in a ton of media at
+ * once... This may even justify 3 steps max on desktop too, your call!"; the
+ * Orchestrator's call extended it to every width). Fewer, further-apart stops
+ * also read as a real choice on the slider rather than a nudge.
+ */
+export const ROW_STEP_COUNT = 3;
+export type RowStep = 0 | 1 | 2;
+/** The middle step: 2 a row on a phone, 3 on a tablet, 5 at a desk. */
+export const DEFAULT_ROW_STEP: RowStep = 1;
 
 /**
- * PHOTOGRAPHS PER ROW, BY THE ALBUM BOX'S OWN WIDTH, AT EACH OF THE FIVE STEPS
- * (largest photographs first). The box, never the window: the host's feed and
- * the guest's album sit in different chrome, and a count is only honest
- * against the width it is laid in.
+ * PHOTOGRAPHS PER ROW, BY THE ALBUM BOX'S OWN WIDTH, AT EACH OF THE THREE
+ * STEPS (largest photographs first). The box, never the window: the host's
+ * feed and the guest's album sit in different chrome, and a count is only
+ * honest against the width it is laid in.
  *
- * - Under 480, a phone: about 2 at the middle step.
- * - From 480 through a tablet, about 3 (`phone=step-three`, and his note:
+ * - Under 480, a phone: 1, 2 or 3 (his own three).
+ * - From 480 through a tablet: 2, 3 or 4 (`phone=step-three`, and his note:
  *   "The additional conditional third column would benefit tablet
  *   breakpoints").
- * - A tablet on its side or a small laptop, about 4, so the step from tablet
+ * - A tablet on its side or a small laptop: 3, 4 or 6, so the step from tablet
  *   to desk is never a jump from 3 straight to 5.
- * - From 1280, a desk: 5 at the middle and 8 at the densest, and that is the
- *   ceiling (`scale=ceiling`): a 2560 monitor shows the same eight, bigger.
- *
- * Fractional targets are real targets: 1.5 a row is a phone album that
- * alternates a landscape alone with a pair of portraits.
+ * - From 1280, a desk: 3, 5 or 8, and eight is the ceiling (`scale=ceiling`):
+ *   a 2560 monitor shows the same eight, bigger.
  */
 export const ROW_CLASSES: readonly {
   readonly min: number;
-  readonly perRow: readonly [number, number, number, number, number];
+  readonly perRow: readonly [number, number, number];
 }[] = [
-  { min: 0, perRow: [1, 1.5, 2, 3, 4] },
-  { min: 480, perRow: [2, 2.5, 3, 4, 5] },
-  { min: 900, perRow: [2.5, 3, 4, 5, 6.5] },
-  { min: 1280, perRow: [3, 4, 5, 6, 8] },
+  { min: 0, perRow: [1, 2, 3] },
+  { min: 480, perRow: [2, 3, 4] },
+  { min: 900, perRow: [3, 4, 6] },
+  { min: 1280, perRow: [3, 5, 8] },
 ];
 
 export function isRowStep(n: unknown): n is RowStep {
-  return n === 0 || n === 1 || n === 2 || n === 3 || n === 4;
+  return n === 0 || n === 1 || n === 2;
 }
 
 /** The step's photographs per row at this box width. */
@@ -845,14 +850,20 @@ function unit(seed: number, id: string): number {
  * step), and the picks nest: a photograph featured at a denser step is
  * featured at every sparser one. Never likes: a guest's payload
  * carries no like counts, and favourites were exactly what he refused.
+ *
+ * ★ NONE AT ONE A ROW. Every photograph is already alone there, so a feature
+ * row would be the same photograph drawn taller than its own neighbours for no
+ * reason (the band's `FEATURE_MIN_GAIN` quietly refused most of them already;
+ * this refuses them all, by rule rather than by arithmetic).
  */
 export function pickFeatures(
   items: readonly { id: string; ratio: number }[],
   seed: number,
   perRow: number,
 ): Set<string> {
-  const chance = Math.min(0.5, 0.48 / Math.max(1, perRow));
   const out = new Set<string>();
+  if (perRow <= 1) return out;
+  const chance = Math.min(0.5, 0.48 / perRow);
   for (const it of items)
     if (
       sanitizeRatio(it.ratio) >= FEATURE_MIN_RATIO &&
