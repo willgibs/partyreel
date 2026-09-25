@@ -54,6 +54,8 @@ export type NextStepEvent = {
   acceptingUploads: boolean;
   /** The host's Show the reel switch (`events.show_reel`). */
   showReel: boolean;
+  /** The platform lever (`ops_flags.live_reel_enabled`, `reel-teardown`); off outranks the switch. */
+  liveReelEnabled: boolean;
   /** Items that can play in the live reel, counted to its minimum (`getReelProgress`). */
   reelItems: number;
   /** `YYYY-MM-DD`, or null when the host never set one. */
@@ -72,8 +74,9 @@ export const STORAGE_STEP_PCT = 85;
  * 2026-09-25: `pulse=band`). The live reel makes itself from the second photo,
  * so there is nothing to "make": the one thing worth a host's attention is the
  * photo that starts it. The step says so while the reel is one photo short and
- * is gone the moment it plays, and it never shows with the reel switched off
- * (a reel the host turned off is not waiting for anything). At none it stays
+ * is gone the moment it plays, and it never shows with the reel off, by the
+ * host's own switch or the platform lever (`reel-teardown`; either way, an off
+ * reel is not waiting for anything). At none it stays
  * quiet: an event with no photographs has its launch list on its own page, and
  * a step at none would push an event's "Print the code" out of the band the
  * evening before it matters.
@@ -108,6 +111,7 @@ export function nextStepForEvent(
 
   const reel = reelState({
     showReel: event.showReel,
+    liveReelEnabled: event.liveReelEnabled,
     playable: event.reelItems,
   });
   if (reel === "counting" && photosToGo(event.reelItems) === 1) {

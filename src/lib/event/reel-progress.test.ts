@@ -34,15 +34,42 @@ const photo = (
 
 describe("reelState", () => {
   it("plays from the second item, with the switch on", () => {
-    expect(reelState({ showReel: true, playable: 0 })).toBe("counting");
-    expect(reelState({ showReel: true, playable: 1 })).toBe("counting");
-    expect(reelState({ showReel: true, playable: REEL_MINIMUM })).toBe("live");
-    expect(reelState({ showReel: true, playable: 400 })).toBe("live");
+    expect(
+      reelState({ showReel: true, liveReelEnabled: true, playable: 0 }),
+    ).toBe("counting");
+    expect(
+      reelState({ showReel: true, liveReelEnabled: true, playable: 1 }),
+    ).toBe("counting");
+    expect(
+      reelState({
+        showReel: true,
+        liveReelEnabled: true,
+        playable: REEL_MINIMUM,
+      }),
+    ).toBe("live");
+    expect(
+      reelState({ showReel: true, liveReelEnabled: true, playable: 400 }),
+    ).toBe("live");
   });
 
   it("is off whenever the host turned it off, whatever the album holds", () => {
-    expect(reelState({ showReel: false, playable: 0 })).toBe("off");
-    expect(reelState({ showReel: false, playable: 40 })).toBe("off");
+    expect(
+      reelState({ showReel: false, liveReelEnabled: true, playable: 0 }),
+    ).toBe("off");
+    expect(
+      reelState({ showReel: false, liveReelEnabled: true, playable: 40 }),
+    ).toBe("off");
+  });
+
+  it("the platform lever outranks the host's own switch, silently", () => {
+    // The switch is ON and the album is well past the minimum: the lever alone decides.
+    expect(
+      reelState({ showReel: true, liveReelEnabled: false, playable: 400 }),
+    ).toBe("off");
+    // Both off is still just "off" (no fourth state distinguishing who paused it).
+    expect(
+      reelState({ showReel: false, liveReelEnabled: false, playable: 400 }),
+    ).toBe("off");
   });
 
   it("counts down to zero and stops there", () => {
@@ -64,7 +91,12 @@ describe("hubReel: the Reel card's face", () => {
       photo(4, { type: "video", previewUrl: null }),
       photo(5),
     ];
-    const face = hubReel({ eventId: "e1", showReel: true, items });
+    const face = hubReel({
+      eventId: "e1",
+      showReel: true,
+      liveReelEnabled: true,
+      items,
+    });
     expect(face.state).toBe("counting");
     expect(face.have).toBe(1);
     // The one photograph it has sits under the card's overlay.
@@ -72,7 +104,14 @@ describe("hubReel: the Reel card's face", () => {
   });
 
   it("draws a plain card with nothing yet", () => {
-    expect(hubReel({ eventId: "e1", showReel: true, items: [] })).toEqual({
+    expect(
+      hubReel({
+        eventId: "e1",
+        showReel: true,
+        liveReelEnabled: true,
+        items: [],
+      }),
+    ).toEqual({
       state: "counting",
       have: 0,
       stills: [],
@@ -81,15 +120,21 @@ describe("hubReel: the Reel card's face", () => {
 
   it("goes live at two, dissolving through the reel's own opening stills", () => {
     const items = Array.from({ length: 12 }, (_, i) => photo(i));
-    const face = hubReel({ eventId: "e1", showReel: true, items });
+    const face = hubReel({
+      eventId: "e1",
+      showReel: true,
+      liveReelEnabled: true,
+      items,
+    });
     expect(face.state).toBe("live");
     expect(face.have).toBe(REEL_MINIMUM);
     expect(face.stills).toHaveLength(REEL_CARD_STILLS);
     expect(new Set(face.stills).size).toBe(REEL_CARD_STILLS);
     // Deterministic per event: the same album opens the same way on every render.
-    expect(hubReel({ eventId: "e1", showReel: true, items }).stills).toEqual(
-      face.stills,
-    );
+    expect(
+      hubReel({ eventId: "e1", showReel: true, liveReelEnabled: true, items })
+        .stills,
+    ).toEqual(face.stills);
   });
 
   it("draws a video's poster, never its original, which an <img> cannot show", () => {
@@ -97,18 +142,32 @@ describe("hubReel: the Reel card's face", () => {
       photo(1, { type: "video", previewUrl: "poster-1" }),
       photo(2, { type: "video", previewUrl: "poster-2" }),
     ];
-    const face = hubReel({ eventId: "e1", showReel: true, items });
+    const face = hubReel({
+      eventId: "e1",
+      showReel: true,
+      liveReelEnabled: true,
+      items,
+    });
     expect(face.state).toBe("live");
     expect([...face.stills].sort()).toEqual(["poster-1", "poster-2"]);
   });
 
   it("shows nothing behind an off card", () => {
     const items = Array.from({ length: 5 }, (_, i) => photo(i));
-    expect(hubReel({ eventId: "e1", showReel: false, items })).toEqual({
+    expect(
+      hubReel({ eventId: "e1", showReel: false, liveReelEnabled: true, items }),
+    ).toEqual({
       state: "off",
       have: 2,
       stills: [],
     });
+  });
+
+  it("goes off behind the platform lever too, whatever the switch or the album say", () => {
+    const items = Array.from({ length: 12 }, (_, i) => photo(i));
+    expect(
+      hubReel({ eventId: "e1", showReel: true, liveReelEnabled: false, items }),
+    ).toEqual({ state: "off", have: 2, stills: [] });
   });
 });
 
@@ -132,7 +191,12 @@ describe("the take's pool: a spread of the whole album, never its head", () => {
     const pool = new Set(
       spreadSample(items, TAKE_POOL).map((m) => `preview-${m.id.slice(1)}`),
     );
-    const face = hubReel({ eventId: "e1", showReel: true, items });
+    const face = hubReel({
+      eventId: "e1",
+      showReel: true,
+      liveReelEnabled: true,
+      items,
+    });
     expect(face.state).toBe("live");
     expect(face.stills).toHaveLength(REEL_CARD_STILLS);
     for (const still of face.stills) expect(pool.has(still)).toBe(true);

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import { getEvent, getReelProgress } from "@/lib/db/queries/events";
+import { getLiveReelServerFacts } from "@/lib/db/queries/guest-events-admin";
 import { reelState } from "@/lib/event/reel-progress";
 
 // The reel's state is the album's, read per request.
@@ -23,8 +24,9 @@ export const metadata: Metadata = { title: "Highlight reel" };
  *
  * Where it sends a host:
  *   - the reel is live: straight into the view;
- *   - anything short of that (the switch off, or fewer than two photos that can play): back to the
- *     event's page, where the Reel card says what is left, or that the reel is off.
+ *   - anything short of that (the switch off, the platform lever off, or fewer than two photos
+ *     that can play): back to the event's page, where the Reel card says what is left, or that
+ *     the reel is off.
  */
 export default async function ReelRedirectPage({ params }: PageProps) {
   const { eventId } = await params;
@@ -33,9 +35,13 @@ export default async function ReelRedirectPage({ params }: PageProps) {
   // redirect that would confirm it exists.
   if (!event) notFound();
 
-  const progress = await getReelProgress([event.id]);
+  const [progress, liveReelFacts] = await Promise.all([
+    getReelProgress([event.id]),
+    getLiveReelServerFacts(event.id),
+  ]);
   const state = reelState({
     showReel: event.show_reel,
+    liveReelEnabled: liveReelFacts.liveReelEnabled,
     playable: progress.get(event.id) ?? 0,
   });
   redirect(

@@ -30,6 +30,8 @@ import { formatCount } from "@/lib/format/count";
 import { formatBytes } from "@/lib/utils";
 
 import { ExportKillSwitch } from "./export-kill-switch";
+import { LiveReelKillSwitch } from "./live-reel-kill-switch";
+import { getLiveReelEnabled } from "./live-reel-status";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Exports" };
@@ -50,10 +52,11 @@ export default async function ExportsPage() {
   const ctx = await requireAdmin();
   if (ctx.aal !== "aal2") return null;
 
-  const [enabled, rejections, recent] = await Promise.all([
+  const [enabled, rejections, recent, liveReelEnabled] = await Promise.all([
     getExportEnabled(),
     countExportRejections24h(),
     listRecentExports(50),
+    getLiveReelEnabled(),
   ]);
 
   return (
@@ -83,6 +86,26 @@ export default async function ExportsPage() {
         </CardContent>
       </Card>
 
+      {/* The palette jumps here too (lib/admin/palette.ts's action-live-reel), so the id is part of
+          that contract, same as the card above. */}
+      <Card id="live-reel" className="scroll-mt-20">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Power className="size-5 text-foreground" />
+            <CardTitle>Live reel</CardTitle>
+          </div>
+          <CardDescription>
+            Pause to take the reel, the screen and Make your own off every event
+            platform-wide. Guest-side playback errors report to Sentry as
+            &ldquo;live reel: frames failing&rdquo; (area reel): check there
+            first if a host says the reel looks broken rather than off.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <LiveReelKillSwitch enabled={liveReelEnabled} />
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -100,7 +123,9 @@ export default async function ExportsPage() {
         </CardHeader>
         <CardContent className="px-0">
           {recent.length === 0 ? (
-            <p className="px-6 text-working text-muted-foreground">No exports yet.</p>
+            <p className="px-6 text-working text-muted-foreground">
+              No exports yet.
+            </p>
           ) : (
             <Table>
               <TableHeader>
@@ -128,7 +153,9 @@ export default async function ExportsPage() {
                     <TableCell>
                       {r.eventName ?? (
                         <span className="text-muted-foreground">
-                          {r.eventId ? `${r.eventId.slice(0, 8)}\u2026` : "unknown"}
+                          {r.eventId
+                            ? `${r.eventId.slice(0, 8)}\u2026`
+                            : "unknown"}
                         </span>
                       )}
                     </TableCell>
