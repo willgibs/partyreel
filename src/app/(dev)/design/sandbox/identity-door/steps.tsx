@@ -11,6 +11,7 @@ import {
   Mail,
   MailCheck,
   Pencil,
+  Plus,
   X,
 } from "lucide-react";
 
@@ -331,6 +332,12 @@ export function GhostTap() {
         Add an email to come back
         <span className="door-ghost-more"> anytime</span>
       </span>
+      {/* An add, said as one: the row is an action, not a caption. */}
+      <Plus
+        data-door-ghost-plus
+        className="ml-auto size-4 shrink-0 text-faint"
+        aria-hidden
+      />
     </span>
   );
 }
@@ -597,13 +604,17 @@ export function stepParts(step: DoorStep, slots: Slots): StepParts {
   }
 }
 
-/** Which keyboard a step raises, if any (the name field says "go"). */
+/**
+ * Which keyboard a step raises, if any. The name's Return says "next" (the
+ * door-flow lane's focus rule: Return on the name uses `enterKeyHint="next"`),
+ * an email's says "go", since Return there is the step's own primary.
+ */
 export function keyboardFor(
   step: DoorStep,
 ): { kind: "text" | "email" | "digits"; enter: string } | null {
   switch (step) {
     case "name":
-      return { kind: "text", enter: "go" };
+      return { kind: "text", enter: "next" };
     case "name-email":
     case "gate":
     case "login":

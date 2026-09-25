@@ -256,10 +256,15 @@ function scrimSaid(root: HTMLElement, win: Window): string | null {
   }`;
 }
 
+/** A sentence's first letter up: the direction's own words follow a full stop. */
+const cap = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
 /** What the direction itself put on this frame, read off it. */
 function lookSaid(look: Look, root: HTMLElement): string {
   const paper = root.querySelector("[data-door-paper]");
   const top = paper?.getBoundingClientRect().top ?? 0;
+  // In her menu the direction dresses the card, not a sheet.
+  const inMenu = Boolean(root.querySelector("[data-door-menu]"));
   if (look === "peek") {
     const fan = root.querySelector<HTMLElement>("[data-door-fan]");
     if (!fan) return "";
@@ -269,6 +274,8 @@ function lookSaid(look: Look, root: HTMLElement): string {
       ?.textContent?.trim();
     const where = fan.dataset.doorFan;
     const mode = fan.dataset.doorFanMode;
+    if (where === "card")
+      return " Three of the album's newest stand small on her card, a fan of their own.";
     const said =
       where === "edge"
         ? `${tiles.length} stills rise ${px(top - Math.min(...tiles.map((t) => t.getBoundingClientRect().top)))} above the sheet's edge`
@@ -283,7 +290,7 @@ function lookSaid(look: Look, root: HTMLElement): string {
           : mode === "landed"
             ? ", opened wide"
             : "";
-    return ` ${said}${state}${credit ? `, her name "${credit}" on the front tile` : ""}.`;
+    return ` ${cap(said)}${state}${credit ? `, her name "${credit}" on the front tile` : ""}.`;
   }
   if (look === "lit") {
     const lamp = root.querySelector<HTMLElement>("[data-door-lamp]");
@@ -293,13 +300,15 @@ function lookSaid(look: Look, root: HTMLElement): string {
         ? "sampled from the album"
         : "the house five, until the sample lands";
     const ticker = root.querySelector("[data-door-tick-settled]")?.textContent;
-    return ` The light holds hues ${lamp.dataset.doorHues}, ${from}${ticker ? `; the count settles on ${ticker}` : ""}.`;
+    return ` ${inMenu ? "Her card's edge is lit by hues" : "The light holds hues"} ${lamp.dataset.doorHues}, ${from}${ticker ? `; the count settles on ${ticker}` : ""}.`;
   }
   if (look === "ticket") {
     const card = root.querySelector('[data-door-ticket="card"]');
     const stub = root.querySelector('[data-door-ticket="stub"]');
     if (card)
       return ` The ticket is ${px(card.getBoundingClientRect().height)} tall.`;
+    if (stub && inMenu)
+      return " The ticket's stub heads her card, the event she can keep.";
     if (stub)
       return ` The stub rides at ${px(stub.getBoundingClientRect().height)}${
         root.querySelector("[data-door-stamp]") ? ", stamped" : ""
@@ -314,9 +323,10 @@ function lookSaid(look: Look, root: HTMLElement): string {
       : "she wrote none, so no greeting";
     return ` Her face at ${px(face?.getBoundingClientRect().width ?? 0)}; ${said}.`;
   }
-  return root.querySelector("[data-door-host-chip]")
-    ? " Her face rides the sheet's head."
-    : "";
+  if (!root.querySelector("[data-door-host-chip]")) return "";
+  return inMenu
+    ? " Her host's face heads her card."
+    : " Her face rides the sheet's head.";
 }
 
 /** The ghost tap, at 375 and in the 320 probe. */
@@ -324,10 +334,15 @@ function ghostSaid(root: HTMLElement): string {
   const ghost = root.querySelector<HTMLElement>("[data-door-ghost]");
   const line = ghost?.querySelector<HTMLElement>("[data-door-ghost-line]");
   if (!ghost || !line) return "";
-  const room = (g: HTMLElement, l: HTMLElement) =>
-    Math.round(
-      g.getBoundingClientRect().right - 12 - l.getBoundingClientRect().right,
-    );
+  // The room left between the line's last word and whatever ends the row: the
+  // trailing plus (less the row's 10 px gap), or the row's own padding.
+  const room = (g: HTMLElement, l: HTMLElement) => {
+    const plus = g.querySelector("[data-door-ghost-plus]");
+    const end = plus
+      ? plus.getBoundingClientRect().left - 10
+      : g.getBoundingClientRect().right - 12;
+    return Math.round(end - l.getBoundingClientRect().right);
+  };
   const probe = root.querySelector<HTMLElement>(
     "[data-door-probe-320] [data-door-ghost]",
   );
@@ -371,9 +386,12 @@ const readDoor =
       if (!focus || !body) return null;
       const f = focus.getBoundingClientRect();
       const shown = f.bottom <= body.bottom + 1;
+      const what = focus.hasAttribute("data-door-field")
+        ? "the focused field"
+        : "the code's focused slot";
       const fieldSaid = shown
-        ? `the focused field by ${px(kbTop - f.bottom)}`
-        : `the focused field is under the foot by ${px(f.bottom - body.bottom)}`;
+        ? `${what} by ${px(kbTop - f.bottom)}`
+        : `${what} is under the foot by ${px(f.bottom - body.bottom)}`;
       const primarySaid = primary
         ? `the primary action clears the keyboard by ${px(kbTop - primary.getBoundingClientRect().bottom)}`
         : "no button (the sixth digit submits)";

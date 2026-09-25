@@ -5,6 +5,10 @@ import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 import { KEYBOARD_H } from "./keyboard";
+import { PHONE } from "./scene";
+
+/** The visible area with the keyboard up, less the 12 px the rule keeps clear. */
+const KB_SHEET_MAX = PHONE.h - KEYBOARD_H - 12;
 
 /**
  * THE DOOR'S CHROME: the scrim behind it, the phone sheet's two postures and
@@ -16,11 +20,14 @@ import { KEYBOARD_H } from "./keyboard";
  * never a filter on an ancestor of the album: a backdrop filter blurs what is
  * BEHIND the element it sits on (`glass-behind`'s own rule for the lightbox).
  *
- * ★ THE KEYBOARD RULE production is adopting, drawn as ground: with a field
- * focused, the sheet's bottom sits ON the keyboard's top and its height is the
- * visible area minus 12 px, the primary action pinned at its foot and the body
- * scrolling above it. Without a keyboard it is the product sheet it is today: a
- * bottom sheet capped at 85 percent of the screen, sized to its content.
+ * ★ THE KEYBOARD RULE production is adopting, drawn as ground (`door-flow`'s
+ * own words: `bottom: var(--kb-inset)`, height at most `min(85svh, --vv-h minus
+ * 12px)`): with a field focused, the sheet's bottom sits ON the keyboard's top
+ * and it is as tall as its content up to the visible area minus 12 px, the
+ * primary action pinned at its foot and the body scrolling above it. So a tall
+ * step leaves 12 px of album and a short one (the code) leaves more, which is
+ * exactly what each caption measures. Without a keyboard it is the product
+ * sheet it is today: a bottom sheet capped at 85 percent, sized to its content.
  *
  * ★ A SHEET IS A POSITIONED BOX HOLDING A PAPER, never the paper itself, so a
  * direction can stand something BEHIND the paper's free edge (`peek`'s stills,
@@ -94,7 +101,9 @@ export function PhoneSheet({
         "fixed inset-x-0 z-50 flex flex-col",
         !keyboard && "bottom-0 max-h-[85%]",
       )}
-      style={keyboard ? { top: 12, bottom: KEYBOARD_H } : undefined}
+      style={
+        keyboard ? { bottom: KEYBOARD_H, maxHeight: KB_SHEET_MAX } : undefined
+      }
     >
       {behind}
       <div

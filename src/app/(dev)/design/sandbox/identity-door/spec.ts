@@ -137,7 +137,7 @@ const DRAFT = defineExploration({
       id: "ghost-line",
       question: "What does the ghost tap say, now that it holds one line?",
       taken:
-        'Add an email to come back anytime, at 14px; in a row under 16rem (a 320 phone) "anytime" steps aside, so it never wraps.',
+        'Add an email to come back anytime, at 14px with a trailing plus; on a phone narrower than about 360 (a 320) "anytime" steps aside, so it never wraps.',
       overrule:
         'If one string should hold everywhere, "Add an email to come back" is the one that fits a 320 phone.',
     },

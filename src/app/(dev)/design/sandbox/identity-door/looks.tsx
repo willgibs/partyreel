@@ -205,7 +205,7 @@ function FanTiles({
 }) {
   const poses = mode === "landed" ? POSES.landed : POSES.rest;
   const hers = mode !== "open";
-  const w = small ? 44 : 104;
+  const w = small ? 40 : 104;
   const tiles = [
     <Still key="a" src={NEWEST[1]} className="size-full" />,
     <Still key="b" src={NEWEST[2]} className="size-full" />,
@@ -334,7 +334,7 @@ function PeekFanCompact({ w }: { w: Where }) {
       data-door-fan="compact"
       data-door-fan-mode={mode}
       aria-hidden
-      className="relative mx-auto h-[62px] w-[132px]"
+      className="relative mx-auto h-[56px] w-[124px]"
     >
       <div className="absolute bottom-0 left-1/2 h-full w-0">
         {(mode === "bright" || mode === "landed") && (

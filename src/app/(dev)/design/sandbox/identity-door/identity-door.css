@@ -50,7 +50,10 @@
 .door-ghost-more {
   display: none;
 }
-@container (min-width: 16rem) {
+/* 18rem: the row's content box must hold the icon, the whole line and the
+   trailing plus (about 286 px, measured); a 375 phone gives it 303, a 320
+   phone 246, so "anytime" rides at 375 and steps aside at 320. */
+@container (min-width: 18rem) {
   .door-ghost-more {
     display: inline;
   }
