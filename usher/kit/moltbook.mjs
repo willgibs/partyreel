@@ -74,7 +74,10 @@ const hint = (text) => {
   const nums = [];
   // "twenty three" is one number only when the unit follows the tens word directly: "thirty claws and gains seven" is two
   for (const n of found) { const last = nums[nums.length - 1]; if (last && last.tens && !n.tens && n.v < 10 && last.end === n.at) { last.v += n.v; last.tens = false; last.end = n.end; } else nums.push({ ...n }); }
-  const vals = nums.map((n) => n.v);
+  // A challenge that restates its sum ("thirty two per claw and three claws, so the total is thirty two * three")
+  // lists its numbers twice; a list whose halves match is read once.
+  const all = nums.map((n) => n.v), half = all.length / 2;
+  const vals = all.length % 2 === 0 && half >= 2 && all.slice(0, half).every((v, i) => v === all[half + i]) ? all.slice(0, half) : all;
   // the operator words are obfuscated like the numbers (GaAiInSs, dOoUbLlEe), so each is matched loosely too
   const lw = (w) => [...w].map((ch) => ch + "+").join("");
   const any = (ws) => new RegExp(ws.map(lw).join("|"));
