@@ -44,7 +44,7 @@ const IDENTITY_CLAIMS_DRAFT = defineExploration({
     n: 1,
     date: "2026-09-24",
     changed:
-      "The refresh: pass gains a fourth option that decides by photograph instead of by event, the one place this board touches the claim model itself; every comment drops the earlier round's ruling and verbatim framing.",
+      "The refresh: pass gains a fourth option that decides by photograph instead of by event. Redrawn for the door's round two: pointer's moment can come at the door now, so every option is drawn at the album and at the door.",
   },
   context:
     "Priya confirmed her email this morning at Maya and Jay's wedding (guest-capture's own world). Two older events wait under that address: Tom's leaving do, really hers, and a beach bonfire she never attended, uploaded under her email by someone else. Five decisions on the ticket that lets her sort the two: where it lives, how the album points to it, how she works through more than one, how she is warned before a deletion, and where Finish leaves her.",
@@ -92,30 +92,30 @@ const IDENTITY_CLAIMS_DRAFT = defineExploration({
       question:
         "When Priya confirms and rows wait elsewhere, how should she learn about them?",
       context:
-        "Nothing at the album says anything today. She just confirmed at Maya and Jay's wedding; two older events wait under her now-proven email.",
+        "She confirms at the album's moment card, or now at the door itself before any upload (the verification door, Create account, Log in). Two older events wait under her email; each option is drawn in both places.",
       options: [
         {
           id: "quiet",
           label: "Nothing here, the dashboard's the one place",
           means:
-            "The moment card names only this event; what waits elsewhere stays a dashboard-only surface until she visits it.",
+            "The moment card and the door's You're in name only this event; what waits elsewhere stays on the dashboard until she visits it.",
         },
         {
           id: "line",
-          label: "A line on the moment card, with a link",
+          label: "A line where she lands, with a link",
           means:
-            "The moment card gains a line, six photos from two other events are waiting for you, linking to the dashboard.",
+            "The moment card, or the door's You're in, gains a line: six photos from two other events are waiting for you, linking to the dashboard.",
         },
         {
           id: "toast",
           label: "A toast right after confirming",
           means:
-            "A second toast surfaces once alongside the moment card; missed it, the dashboard still holds every row.",
+            "A second toast surfaces once, over the moment card or the door's You're in; missed, the dashboard still holds every row.",
         },
       ],
       recommended: "line",
       because:
-        "She is certainly reading the moment card already, so a line inside it costs nothing extra to notice, while a toast can be missed and leaves six photographs unmentioned.",
+        "She is certainly reading where she lands, the moment card or the door's You're in, so a line there costs nothing extra to notice; a toast can be missed and leaves six photographs unmentioned.",
       overrule:
         "If the moment should stay narrowly about this event, naming what waits elsewhere may dilute it.",
       lands:

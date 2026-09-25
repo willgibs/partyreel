@@ -8,7 +8,9 @@ import {
   Clock,
   ListChecks,
   Loader2,
+  LogIn,
   Mail,
+  Pencil,
   UserCheck,
   UserPlus,
   XCircle,
@@ -448,9 +450,7 @@ export function NameToldNotice() {
         className="flex items-center gap-2 rounded-float border border-border bg-popover px-4 py-2.5 text-sm text-popover-foreground shadow-layer"
       >
         <Check className="size-4 shrink-0 text-success" aria-hidden />
-        <span>
-          You&rsquo;re on as {PRIYA.name}. Change it in Account.
-        </span>
+        <span>You&rsquo;re on as {PRIYA.name}. Change it in Account.</span>
       </div>
     </div>
   );
@@ -534,18 +534,55 @@ export function TrackerSheet({
   );
 }
 
-/** The account menu's own header row, quoted (`identity-door.menu`'s "sheet"
- *  option): her name and status, so the `menu` option can show the tracker's
- *  list sharing the same sheet rather than a second surface. */
-export function TrackerAccountHeader() {
+/**
+ * HER MENU, OPEN, WITH THE TRACKER'S ROW (the `menu` option, redrawn for the
+ * door's round two). `identity-door.menu` was answered `card`, not `sheet`, so
+ * there is no single "Your photos" sheet to grow: the menu he amended is her
+ * name over one "Unverified", then a card reading "Save this event for later"
+ * with Add your email, then its rows. The tracker is one more row, under that
+ * card, opening the same list every option shows. Quoted markup, anchored under
+ * the header's trigger; a real DropdownMenu would portal to the lab page.
+ */
+export function TrackerMenu() {
   return (
-    <div className="mb-1 flex items-center gap-2.5 border-b border-border/60 pb-3">
-      <Avatar size="sm">
-        <AvatarFallback>{PRIYA.name.slice(0, 1)}</AvatarFallback>
-      </Avatar>
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium">{PRIYA.name}</p>
-        <p className="text-xs text-muted-foreground">Unverified</p>
+    <div
+      data-gc-tracker="menu"
+      className="absolute top-14 right-3 z-50 w-64 rounded-float bg-popover p-1 text-popover-foreground shadow-layer ring-1 ring-foreground/10"
+    >
+      <div className="flex flex-col gap-0.5 px-2 pt-1 pb-1.5">
+        <span className="truncate text-sm leading-tight font-medium">
+          {PRIYA.name}
+        </span>
+        <span className="truncate text-xs leading-tight text-muted-foreground">
+          Unverified
+        </span>
+      </div>
+      <div data-gc-menu-card className="m-1 rounded-lg bg-muted/60 p-3">
+        <p className="text-sm leading-snug font-medium text-foreground">
+          Save this event for later
+        </p>
+        <Button type="button" size="sm" className="mt-2.5 w-full" tabIndex={-1}>
+          <Mail /> Add your email
+        </Button>
+      </div>
+      <div
+        data-gc-tracker-entry
+        className="flex items-center gap-2 rounded-[calc(var(--radius-float)_-_4px)] bg-accent px-2 py-1.5 text-sm text-accent-foreground"
+      >
+        <ListChecks className="size-4 text-muted-foreground" aria-hidden />
+        Your photos
+        <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+          {TRACKER_ITEMS.length}
+        </span>
+      </div>
+      <div className="flex items-center gap-2 rounded-[calc(var(--radius-float)_-_4px)] px-2 py-1.5 text-sm">
+        <Pencil className="size-4 text-muted-foreground" aria-hidden />
+        Change name
+      </div>
+      <div className="-mx-1 my-1 h-px bg-border" />
+      <div className="flex items-center gap-2 rounded-[calc(var(--radius-float)_-_4px)] px-2 py-1.5 text-sm">
+        <LogIn className="size-4 text-muted-foreground" aria-hidden />
+        Log in
       </div>
     </div>
   );
@@ -592,7 +629,10 @@ export function TrackerInlineStrip() {
           <div key={item.id} className="space-y-1.5">
             <div
               className="overflow-hidden bg-black/10"
-              style={{ aspectRatio: "4 / 5", borderRadius: "var(--radius-tile)" }}
+              style={{
+                aspectRatio: "4 / 5",
+                borderRadius: "var(--radius-tile)",
+              }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- stand-in still */}
               <img

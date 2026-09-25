@@ -2,287 +2,205 @@ import type { Control } from "@/components/lab/board-spec";
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * THE DOOR SHEET, WITH AN EMAIL (the refresh, round one, 2026-09-24).
+ * THE DOOR'S LOOK, ROUND TWO (2026-09-25).
  *
- * The lab's own redesign of the guest door, once identity's foundation (the
- * schema, the wire, the door, the claim) stood whole on the alias: six
- * decisions on the shipped pieces a guest actually meets between her QR scan
- * and the album.
+ * Round one answered (docs/reviews/identity-door.json): the welcome keeps its
+ * own screen (`walk=separate`), the email is a ghost tap (`field=ghost`), the
+ * gate keeps its one line (`gate=line`), and her menu leads with a card
+ * (`menu=card`, amended: her name over "Unverified" above "Save this event for
+ * later"). Two answers were his own ideas instead: a chooser after the welcome
+ * (`nudge`), and a typed email that can only change once confirmed (`remove`).
+ * And the note under all of it: "I hate our welcome flow UI right now, doesn't
+ * feel alive or engaging, which is critical to making users want to continue,
+ * not just feel they have to for the sake of the host", with a blur and a soft
+ * overlay behind the welcome, and the sheets "bland".
  *
- * ★ ONE GUEST, THE WHOLE BOARD. Every option is Priya, `guest-capture`'s own
- * guest, at Maya and Jay's wedding, met a step earlier than that board finds
- * her: before her name is typed, before any photograph is sent. A reader who
- * has answered `guest-capture` meets her again here, at the door she walked
- * through to get there.
+ * ★ ONE ASK, `look`, DRAWN AS WHOLE WALKS THROUGH THE DOOR. Four directions,
+ * each borrowing a pattern he already picked (named in its label) so "alive" is
+ * graded against something he likes, each walked through his settled flow on
+ * the `stage` knob: one 1440 frame above three 375 frames, every phone frame
+ * with a field drawn with its keyboard up. Round one's six asks are gone from
+ * `asks` on purpose (a round replaces its questions rather than accreting
+ * them); the ledger keeps their answers.
  *
- * ★ THE ORDER IS HER OWN WALK THROUGH THE DOOR: whether the welcome earns its
- * own screen before her name does, the optional email under that name, a way
- * to sign in if she is already a member, the framing she would meet had Maya
- * asked for a confirmed email instead, then her own menu once she is inside
- * and where undoing an email lives. All six are roots: each holds the other
- * five at today's shape and moves only its own piece.
+ * ★ GROUND, NEVER ASKED, THE SAME IN ALL FOUR: the welcome at today's words
+ * (`voice-guest.welcome` owns them), his chooser, the name with the one-line
+ * ghost tap, the verification door under `DOOR_WEAR.gate` verbatim, the code,
+ * Log in and Create account, the "You're in" beat, her menu and the sheet to
+ * change or remove a typed email, the consent line, the back chevron, the held
+ * door with no close, and the album behind drawn from production components.
+ * The keyboard rule (the sheet on the keyboard at the visible height minus
+ * 12 px, its primary pinned at its foot) is the one production is adopting.
  *
- * ★ WHAT IS HELD STEADY, NOT ASKED HERE. Whether an event requires a
- * verified email at all, the three levels of trust, the claim per event, the
- * mark's word: all outside this board's six questions. The steps behind the
- * name field (the gate before the upload, the itinerary's "no exit") stay
- * put too; only whether the WELCOME half of the walk deserves its own screen
- * is open, in `walk` below. The flows around the claim ticket itself and the
- * profile it can lead to are the two boards beside this one,
- * `identity-claims` and `identity-profile`.
+ * The nearest open asks are `voice-guest.welcome` (the welcome's words) and
+ * `guest-capture.shape` (the ask after her first upload); nothing here asks
+ * either. `identity-claims.pointer`, `identity-profile.prompt` and
+ * `guest-capture.tracker` were redrawn inside their own round one for this
+ * flow, every option kept.
  */
 
-const SCREEN: Control = {
-  id: "screen",
-  label: "Screen",
+/** Where in her walk each direction is drawn. */
+const STAGE: Control = {
+  id: "stage",
+  label: "The door at",
   options: [
-    { id: "375", label: "375, a phone" },
-    { id: "1440", label: "1440, a laptop" },
+    { id: "arriving", label: "Arriving: welcome, chooser, name" },
+    { id: "typing", label: "Typing: the email, the gate, the code" },
+    { id: "accounts", label: "Accounts: Log in, Create, the beat" },
+    { id: "inside", label: "Inside: her menu and its sheet" },
   ],
-  default: "375",
+  default: "arriving",
+};
+
+/** The scrim behind the sheet: the direction's own, or today's to compare. */
+const SCRIM: Control = {
+  id: "scrim",
+  label: "Behind the sheet",
+  options: [
+    { id: "own", label: "The direction's own scrim" },
+    { id: "today", label: "Today's: 10% black, 4px blur" },
+  ],
+  default: "own",
+};
+
+/** Whether Maya wrote the event's description, which `host` quotes. */
+const GREETING: Control = {
+  id: "greeting",
+  label: "Maya's description",
+  options: [
+    { id: "written", label: "She wrote one" },
+    { id: "none", label: "She wrote none" },
+  ],
+  default: "written",
 };
 
 const DRAFT = defineExploration({
   id: "identity-door",
   title: "Asking for an email at the door",
   round: {
-    n: 1,
-    date: "2026-09-24",
+    n: 2,
+    date: "2026-09-25",
     changed:
-      "The refresh: a sixth question (`walk`) asks whether the welcome deserves its own screen at all; the gate's copy no longer leans on being 'the ruled line' to justify itself; every comment drops the earlier round's authority framing.",
+      "One ask, on his note that the door does not feel alive: four looks, each walked through his settled flow on the stage knob, a 1440 frame over three 375 frames with the keyboard up. Round one's answers are ground now, drawn as he amended them.",
   },
+  history: [
+    {
+      n: 1,
+      date: "2026-09-24",
+      changed:
+        "The refresh: a sixth question (`walk`) asked whether the welcome deserves its own screen at all; the gate's copy stopped leaning on being the ruled line.",
+    },
+  ],
   context:
-    "Every option is Priya at Maya and Jay's wedding, the world guest-capture already uses, met at the door she walks through to reach it. This board asks whether the welcome deserves its own screen, where the optional email sits against her name, whether a member gets a way to sign in instead, how the verified gate sells itself, and what her own menu offers once she is inside.",
+    "Priya is at Maya and Jay's wedding, off the code, the album blurred behind her. His flow is ground: the welcome alone, then his chooser and the name with its ghost tap, or on a verification event name and email under the gate's line, then the code; Log in, Create account, the \"You're in\" beat, and her menu with his card. Only the look is asked.",
+  carried: [
+    {
+      id: "google-under-login",
+      question: "Where do Google and the password link live now?",
+      taken:
+        "Under Log in only. The verification door asks a name and an email and sends a code, the same for new and returning guests.",
+      overrule:
+        "If a returning guest should see Google on the verification door too, it returns under that door's email field.",
+    },
+    {
+      id: "hold-with-uploads",
+      question: "When does the hold for an account she already had run?",
+      taken:
+        "Only when this device holds uploads a claim would move; with nothing to move there is nothing to protect, so no hold.",
+      overrule:
+        "If every create should say she signed into an account she had, the hold runs on every create.",
+    },
+    {
+      id: "typed-email",
+      question: "What can she do with an email she typed but never confirmed?",
+      taken:
+        "Change or remove it from her menu card. A confirmed one only changes, on the account page, confirmed at both addresses.",
+      overrule:
+        "If a typed address should only change too, the card's quiet link says Change it and remove goes.",
+    },
+    {
+      id: "one-sheet",
+      question: "Does the phone door stay on vaul?",
+      taken:
+        "No: the one responsive Sheet, keyboard-safe, sitting on the keyboard at the visible height minus 12 px.",
+      overrule:
+        "If vaul's drag and curve are worth keeping, the same keyboard rule is built into vaul instead.",
+    },
+    {
+      id: "log-in",
+      question: "Log in, or Sign in?",
+      taken:
+        "Log in on the chooser, and the menu's Sign in row becomes Log in too: one door, one word.",
+      overrule: "If Sign in is the word, the chooser and the menu both say it.",
+    },
+    {
+      id: "ghost-line",
+      question: "What does the ghost tap say, now that it holds one line?",
+      taken:
+        'Add an email to come back anytime, at 14px; in a row under 16rem (a 320 phone) "anytime" steps aside, so it never wraps.',
+      overrule:
+        'If one string should hold everywhere, "Add an email to come back" is the one that fits a 320 phone.',
+    },
+    {
+      id: "chooser-words",
+      question: "What does the chooser say above his three buttons?",
+      taken:
+        "How would you like to join? Then Continue as guest, Create account and Log in, full width, in his order.",
+      overrule:
+        "If the buttons say enough alone, the heading goes and the event's name heads the step.",
+    },
+  ],
   asks: [
     {
-      id: "walk",
-      label: "The welcome step",
+      id: "look",
+      label: "The door's look",
       question:
-        "Does the welcome deserve its own screen before Priya can even start typing her name?",
+        "Which direction makes the door feel alive enough that Priya wants to keep going, from the welcome to her menu?",
       context:
-        "Today a first-time visitor meets one screen alone (an eyebrow, the event's name, two benefit rows, one Continue) before the name step behind it ever shows; a returning device skips straight to the plain name step already.",
+        "Each is his flow, whole, on the stage knob: the same steps and words, only the look moving. Each borrows a pattern he picked, named in its label. The scrim knob sets each one's own against today's.",
       options: [
         {
-          id: "separate",
-          label: "Its own screen, once, as shipped",
+          id: "lit",
+          label: "Lit by the album, like the screen lamp",
           means:
-            "A first visit meets the welcome alone; Continue reveals the name step. A returning device skips straight to the name step, as today.",
+            "The album's own colour lights the sheet's edge, the name runs large beside Maya's face, and the count ticks as photos land.",
         },
         {
-          id: "combined",
-          label: "Combined, on a first visit only",
+          id: "peek",
+          label: "Its newest photos peek out, like the sleeve",
           means:
-            "The welcome's two lines sit above the name field itself, one screen, one Continue. A returning device meets exactly today's name step.",
+            "Three of the album's newest stand in the sheet's edge like prints in the trips page's sleeve; her name lands on the front one, and the code brightens them.",
         },
         {
-          id: "gone",
-          label: "Retired: every visit meets one screen",
+          id: "ticket",
+          label: "A ticket, like the reel tile's card",
           means:
-            "The dedicated welcome step goes; its two lines fold into the name step's own heading, so first-time and returning guests meet the same screen.",
+            "The welcome is the reel tile's living card; Continue tears it to a stub that rides every step, is stamped at You're in, and heads her menu card.",
+        },
+        {
+          id: "host",
+          label: "The host leads, like a profile's line",
+          means:
+            "Maya's face leads like a profile's identity line, and her own description greets Priya as a message; with none, the welcome's rows stand alone.",
         },
       ],
-      recommended: "combined",
+      recommended: "peek",
       because:
-        "The welcome's own words move above the field she is about to fill instead of behind a tap that reveals it: one fewer screen for a first look, with the return visit (already the common case) untouched.",
+        "It sells the reward, his own test: the photographs she is about to join are in view at every step, and each step answers her (her name on a tile, the code brightening them). The others dress the sheet; this one shows what is behind it.",
       overrule:
-        "If the arrival's own beat is worth an extra tap, the shipped two screens keep it dedicated rather than a field she reads past on her way in.",
+        "If a fan reads as clutter over a party's weaker photos, the ticket carries the same album more quietly and becomes her menu's header.",
       lands:
-        "Whether a guest's very first look at an event costs one screen or two before she can start typing her name.",
-      tile: "phone",
-      configs: [SCREEN],
-    },
-    {
-      id: "field",
-      label: "The field",
-      question:
-        "Where should the optional email sit against the name Priya is already typing?",
-      context:
-        'Today it is a second field, always open under the name, labelled "Email (optional)" with its own helper line. One held sheet, no exit; the nine-tile teaser sits blurred behind it the whole way.',
-      options: [
-        {
-          id: "shown",
-          label: "A second field, always open, as shipped",
-          means:
-            'Both fields stand open together: the name, then "Email (optional)" with its helper line beneath, one Continue for both.',
-        },
-        {
-          id: "ghost",
-          label: "A ghost line that opens on tap",
-          means:
-            'Only the name shows. A quiet line, "Add an email to come back anytime", stands where the field would be; a tap swaps it for the real input.',
-        },
-        {
-          id: "step",
-          label: "Its own soft step, with Skip",
-          means:
-            'The name step ends at Continue. A second screen in the same held sheet asks for the email alone, a "Skip for now" beside the button.',
-        },
-      ],
-      recommended: "ghost",
-      because:
-        "An always-open second field asks two things before Continue even though one is optional; a closed line reads as one question with an easy afterthought, which fits his 'fun, safe, easy and streamlined' bar better than a whole extra screen too.",
-      overrule:
-        "If a quiet line goes unnoticed entirely, the open field is the only one of the three that guarantees the email is even seen.",
-      lands:
-        "Whether the door ever asks two things before Continue, or teaches one question with an easy add-on.",
-      tile: "phone",
-      configs: [SCREEN],
-    },
-    {
-      id: "nudge",
-      label: "The sign-in nudge",
-      question:
-        "At a names-mode door, where should an existing member be offered a way to sign in instead?",
-      context:
-        'Today: nowhere on the door itself. A member typing a name here mints a fresh, unlinked guest row; her own account and its photographs are only "Sign in" away in the menu, once she is already inside and past the point of avoiding it.',
-      options: [
-        {
-          id: "underfield",
-          label: "A ghost link under the field",
-          means:
-            'Beneath the name and email fields, a quiet line: "Already on Partyreel? Sign in and your photos go with it."',
-        },
-        {
-          id: "welcome",
-          label: "A row on the welcome step",
-          means:
-            "The same sentence, as a third benefit row on the welcome screen itself, beside the two the invitation already carries.",
-        },
-        {
-          id: "none",
-          label: "Nothing new, as shipped",
-          means:
-            "The door stays as it is; the menu's own Sign in row, reachable only after she has already joined by name, is left to cover it.",
-        },
-      ],
-      recommended: "underfield",
-      because:
-        "It meets her exactly where the decision is being made, about to type a name, without adding a row to the welcome that almost nobody needs; the menu's Sign in only exists after she has already minted a fresh, unlinked guest.",
-      overrule:
-        "The welcome is the one screen every guest reads before deciding anything, so a row there reaches a member before she has typed a single character.",
-      lands:
-        "Whether a returning member ever learns she can skip the name and email entirely before she does the work, or only after.",
-      tile: "phone",
-      configs: [SCREEN],
-    },
-    {
-      id: "gate",
-      label: "The gate's framing",
-      question:
-        "On the verified-required gate, should the benefit framing stay the one shipped line, or say more?",
-      context:
-        'Today: "The host has asked guests to confirm an email for safety. One tap and you\'re in." An earlier draft paired it with a second benefit, saving the event; that half is gone now, leaving one true benefit: her photos stay in her account.',
-      options: [
-        {
-          id: "line",
-          label: "The one line, as shipped",
-          means:
-            "The shipped sentence alone, under the eyebrow 'Almost in': the ask, the reason, the cost, in one breath.",
-        },
-        {
-          id: "list",
-          label: "The line, plus what confirming buys her",
-          means:
-            'The same sentence, then one added line: "Every photo you add from here stays in your account."',
-        },
-        {
-          id: "eyebrow",
-          label: "The host named in the eyebrow",
-          means:
-            "\"Almost in\" becomes the host's own name (\"Maya's event\"); the shipped reason line stands unchanged beneath it.",
-        },
-      ],
-      recommended: "line",
-      because:
-        "The one truthful benefit left, a forward promise about photos she has not added yet, is thinner alone than the pair an earlier draft paired it with. The shipped line already carries the ask, the reason and the cost in one breath.",
-      overrule:
-        "If even one true benefit is worth surfacing at the gate, the added line costs nothing and answers the question she is about to ask herself anyway.",
-      lands:
-        "Whether the gate sells a guest on what confirming buys her, or leaves that to be discovered afterward.",
-      tile: "phone",
-      configs: [SCREEN],
-    },
-    {
-      id: "menu",
-      label: "The guest menu",
-      question:
-        "Should Priya's own menu stay a plain list of rows, or say more about her state?",
-      context:
-        'Today: her name, "Unverified" beneath it, then Add your email, Change name, a divider, Sign in. The mark\'s popover explains "Unverified" already. guest-capture\'s tracker ask may grow the sheet option into her batch status; not asked here.',
-      options: [
-        {
-          id: "rows",
-          label: "The label and rows, as shipped",
-          means:
-            "A plain list: the status label, then one action row per thing she can do, nothing explained twice.",
-        },
-        {
-          id: "card",
-          label: "A card explaining the state, with one action",
-          means:
-            'The menu opens on a small card, one sentence ("You\'re Unverified: anyone can type a name.") and one button, before the remaining rows.',
-        },
-        {
-          id: "sheet",
-          label: 'One "Your photos" row, opening a sheet',
-          means:
-            "The menu collapses to a single row; tapping it opens a bigger sheet holding her name, status and every action together.",
-        },
-      ],
-      recommended: "rows",
-      because:
-        "The label already says the state and the very next row is the one action that matters; a card repeats what the mark's popover already explains, and one generic row hides the state behind a tap instead of showing it.",
-      overrule:
-        "If the menu should teach what Unverified costs her, not just let her act on it, the card's sentence does that right where she is already looking.",
-      lands:
-        "Whether the menu stays a plain action list, or becomes a second place a guest reads what her own status means.",
-      tile: "phone",
-      configs: [SCREEN],
-    },
-    {
-      id: "remove",
-      label: "Removing the email",
-      question:
-        'For a guest who typed an email, where should "Remove your email" live?',
-      context:
-        "Today: nowhere. The row's own address can only be detached from a confirmed account's dashboard later; the menu offers Confirm your email and nothing to undo it before then.",
-      options: [
-        {
-          id: "menu-row",
-          label: "A row in the menu",
-          means:
-            'A persistent "Remove your email" row sits beside Confirm your email, reachable in one tap from the menu itself.',
-        },
-        {
-          id: "quiet-link",
-          label: "A quiet link inside the confirm door",
-          means:
-            'Opening "Confirm your email" shows its usual empty code door, with "Remove this email instead" as a quiet link beneath it.',
-        },
-        {
-          id: "nowhere",
-          label: "Nowhere yet, as shipped",
-          means:
-            "No control at all while the address is unconfirmed; undoing it waits for the dashboard's own tools once it is a real account.",
-        },
-      ],
-      recommended: "quiet-link",
-      because:
-        "It mirrors the shipped Add-email dialog's own idiom exactly, a quiet second path inside the primary door, rather than growing the menu with a row most guests never need and one could tap by mistake.",
-      overrule:
-        "A guest who wants out and nothing else has to open the confirm door first to find it; a menu row costs one line and reaches her without that detour.",
-      lands:
-        "Whether undoing an email costs a guest one extra door, or one more row she scans past every time.",
-      tile: "phone",
-      configs: [SCREEN],
+        "How every held sheet a guest meets feels, and whether the door shows her the album or describes it.",
+      configs: [STAGE, SCRIM, GREETING],
     },
   ],
 });
 
 /**
- * ONE KNOB PER ID (`media-viewer`'s own finding, carried by every board over
- * this world): every ask declares the same SCREEN control on its own strip,
- * so the constructor would draw it six times without this dedupe.
+ * ★ ONE KNOB PER ID. `defineExploration` already dedupes by id; this filter is
+ * the one every board over this world carries (deduping twice is deduping
+ * once), kept so the day the constructor's own filter moves, nothing here
+ * draws a knob twice.
  */
 export const IDENTITY_DOOR: typeof DRAFT = {
   ...DRAFT,
