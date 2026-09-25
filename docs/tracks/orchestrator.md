@@ -48,7 +48,10 @@ retire-reel-boards, crumbs, album-host-wiring.
 ## Next, in order
 
 1. **Integrate `album-guest-wiring`** as it lands (told to sync past `album-host-wiring`'s merge). Then build 10
-   (`[preview]`), which opens Will's next sitting; build 9 (`52a19853`) serves the alias until then.
+   (`[preview]`), which opens Will's next sitting on the desk; build 9 (`52a19853`) serves the alias until then. Cut
+   `save-sheet` after the guest lane's merge (it owns the viewer): on iOS, Save opens the system sheet in one tap in the
+   viewer and the clip finish, since the sheet already carries Save Image or Video and Save to Files (Will's iPhone
+   check), so the menu's Download file goes; elsewhere Save stays the plain download; the two help articles follow.
 2. **Build 10's red-team** (Opus; the pane for a guest, Chrome's account chooser for the host), which also finishes
    build 9's walk (it stopped at the usage limit with its first six journeys passing):
    - the reel on the album's new data path: the tile, the view, clips, access, the password event, the demo;
@@ -61,8 +64,10 @@ retire-reel-boards, crumbs, album-host-wiring.
 
    Afterwards the 15-photo probe's `reel_style_id` and `reel_hold_sec` go back to NULL. Journey 9's page checks passed
    on build 9 (both legal pages at 1.7, the retired help slugs 308, no stale reel claim on the marketing pages,
-   `/admin/reels` a 404). The drop migration is applied and the stored files are swept from both buckets; the stored
-   reel's last code (`reelOutputKey`, its two appends, the stale comments) is a ROADMAP line for a small lane.
+   `/admin/reels` a 404). The drop migration is applied and the stored files are swept from both buckets; `crumbs-2`
+   removes the stored reel's last code.
+   Then **milestone 29** (Will's yes, given): the full gate on `launch-prep`, merge to `main`, tag, verify partyreel.com
+   (the host dashboard stops erroring), back-merge.
 3. **Retire `album-columns`** once the surface lanes merge (the five reel boards retired at `0cbd5634`), atomically across
    `touchpoints.ts`, `registry.ts` and `boards.ts`, its ledger with it.
 4. **After his sitting on build 9**: `reel-marketing` (his `reel-story` r2), the door's look (his `identity-door` r2)
@@ -77,9 +82,7 @@ retire-reel-boards, crumbs, album-host-wiring.
 ## Waiting on Will
 
 - **His sitting on build 9**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
-- **Milestone 29's yes**, after build 10's red-team: since the drop, partyreel.com's host dashboard errors (milestone
-  28's `/dashboard` reads `highlight_reels`), and the milestone ships the code that no longer does.
-- **One dashboard minute** (no management token here): Supabase, Authentication, Templates, Change Email Address, add
-  `{{ .Token }}` beside `{{ .ConfirmationURL }}` (the wording is in lp/identity-email's Handoff, merged at `3248a785`);
-  until then an email change confirms by the link at both addresses.
-- **A 10-second iPhone check**: Save to Photos lands in Photos, and a shared photo arrives as a photograph.
+- **"Allow new users to sign up" is OFF** on the live project (`/auth/v1/settings` answers `disable_signup: true`),
+  against `auth-accounts.md`'s ON: no new account can be made (the door's Create account, a new address's code, a new
+  Google account). Nothing in the program's records turned it off; his call, recommended ON.
+- **A 10-second iPhone check**: a shared photo arrives as a photograph (Save opens the system sheet, his check).

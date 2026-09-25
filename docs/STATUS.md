@@ -72,7 +72,5 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 ## Waiting on Will
 
 - **His sitting on build 9**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
-- **Milestone 29's yes** after build 10's red-team (it ends partyreel.com's dashboard error since the drop).
-- **One dashboard minute**: Supabase's Change Email Address template gains `{{ .Token }}` (until then the change
-  confirms by the link at both addresses).
-- **A 10-second iPhone check** on the album: Save to Photos lands in Photos; a shared photo arrives as a photo.
+- **His call on signups**: "Allow new users to sign up" is off on the live project, against the docs' on.
+- **A 10-second iPhone check** on the album: a shared photo arrives as a photograph.
