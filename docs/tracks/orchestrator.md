@@ -38,8 +38,14 @@ in auto mode ("work through the night on all of this until fully complete"); the
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `reel-sweep` | the words everywhere but round 2's four, help, legal, docs, `reel.md` born | building (agent `a5e526adcff700214`) | Opus, :3133 | integrate last, synced; then build 9 |
-| `door-flow` | his chooser, identify and log-in steps, the keyboard-safe responsive Sheet replacing vaul, the focus rules, the menu card, the pending email's change or remove | building (agent `abd1aecbb0aafbb5c`) | Opus, :3139 | syncs past the clip lane and `identity-email` before it hands off |
+| `reel-sweep` | the words everywhere but round 2's four, help, legal, docs, `reel.md` born; identity-email's two help sentences | building (agent `a5e526adcff700214`) | Opus, :3133 | integrate last of the stretch, synced; then build 9 |
+| `door-flow` | his chooser, identify and log-in steps, the keyboard-safe responsive Sheet replacing vaul, the focus rules, the menu card, the pending email's change or remove; the measured keyboard height | building (agent `abd1aecbb0aafbb5c`) | Opus, :3139 | syncs past the clip lane and identity-email before it hands off |
+| `hardening` | the billing webhook's two-subscription downgrade, the unlock cookie bound to the password, the orphan breaker's health, counts past 999, and the `email_change` limiter kind | building (agent `a68068e5cb952cb28`) | Opus, :3137 | a migration only through the Orchestrator |
+| `album-guest-wiring` | the guest album, viewer, reel and profile feeds onto the paged, windowed rows with r2's picks; `planTake` sub-quadratic; the perf harness's `--page` mode | building (agent `a29a00be06c5e3b16`) | Opus, :3131 | its `guest-flow.md` lines through the Handoff |
+| `album-host-wiring` | the hub's album onto the paged rows, select mode on the one grid, the bin on a manifest, Sort live, `like_many` | building (agent `a54c6daada060d103`) | Opus, :3134 | ends a turn with "migration ready at <sha>" for `like_many`; `host-app.md` lines through the Handoff |
+
+Merged tonight (their records carry the rest): reel-guest-wiring, reel-host-wiring, mark-r3, story-r2, door-r2,
+album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window.
 
 ## Next, in order
 
