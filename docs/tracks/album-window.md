@@ -1,6 +1,6 @@
 ---
 track: album-window
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "e13a98d6"            # the launch-prep SHA the branch was cut from
 board: album-columns
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -105,25 +105,121 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+None is a one-way door; each is built as recommended and is one small change to take back.
+
+- **Does the density slider close the View menu on a pick?** Recommended: no, it stays open, so the album re-lays
+  behind it while you try the next step (the radio groups beside it still close on a pick).
+- **Is the album one placeholder in a session replay?** Sentry's replay buffers every session to send with an error;
+  in the windowed album it serialized every row mount and measured every photograph (one forced layout each, the
+  largest single cost of a 4x-throttled phone's fling: 1.4s of 10s). Recommended: yes, `data-sentry-block` on the
+  album grid; the photographs are blocked from replays already (`blockAllMedia`), and the album keeps its place and
+  size in the recording. Observability is yours to overrule.
+- **Which tiles take the album's opening entrance?** Recommended: only the first paint's (the screens at load); a row
+  the window mounts later lands still, and a new photograph pushes in.
+- **Masonry's keyboard order**: the measured masonry keeps every tile in the album's own newest-first order in the
+  DOM (the columns are an `order`, not a wrapper each), so Tab walks the album in order rather than column by column.
+  Recommended: keep.
+- **The host album's columns rebalance**: the balance read a clamped host tile as a square, so host columns balanced
+  on the wrong shapes; fixed, a host album re-arranges into evener columns. Recommended: keep.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/design-system.md`, "One colour per action": what `--reel` marks now (the reel itself, never a verb on
+  a photograph).
+- `docs/systems/design-system.md`, "The album tile": refined in place: the memoized tile and the grid's one click and
+  long-press, the desk row `display:none` at rest, the measured masonry as one box flowing in columns by `order`,
+  three steps and the one cookie index, the window (prefix sums, overscan, the first paint laid per width class,
+  arithmetic scroll reads), hand anchoring and the touch hold, the push, density, the shimmer gate and the kept
+  skeleton, the kept src, the session-replay block, the entrance decided once.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now (refines the line "Album: switch each surface to `layout="rows"`..."): the surfaces thread the step from
+  `resolveRowStep` into the server's first paint and a View menu `kind: "density"` group (with `perRow` words), hand
+  `onWindowChange` ids to the link store and the likes seed, open `?photo=` through `albumRef.scrollToId`, run host
+  select mode through `selection`, and retire `TILE_SIZES`/`resolveTileSize`/`useTileSize`/`TileSizeControl` with the
+  last masonry surface (three steps now, not five).
+- Now: the lab and the kit: `album-columns` draws on the windowed rows, so its captions read the mounted rows only;
+  retire the board at the surfaces' wiring.
+- Now: the perf harness gains a `--page` mode for the real guest and host pages (the scale probe's link is a
+  capability a lane cannot read), for the surface lanes to run before and after on the alias.
+- Done here, to drop: "Album: pause the tile shimmer off screen", and the "virtualised grid" of "Albums: ... a paged
+  album replaces the whole read".
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits** (pushed to `lp/album-window`): `55546374` the harness, the scale page and the render probe (baseline
+  measured on it); `69282ea0` the window, the memoized tile, the likes store, three steps, the push, the density
+  control; `86c7aa96` the first paint as the engine's rows, masonry flowing in columns, the board, the doc;
+  `034a48f2` the rows' box contract kept for `mark-r3`'s board; `e4126e42` **the sync** (merge of `origin/launch-prep`
+  at `bdba680e`: `album-pages`, `mark-r3`, `story-r2`, `door-r2`; clean); `d27750fb` the tile as a layout boundary and
+  the kept skeleton. The head is this manifest's commit.
+- **Gates on `d27750fb`, the synced tree, each on its own exit code**: `pnpm typecheck` 0; `pnpm lint` 0 (0 errors;
+  6 warnings, all pre-existing in other lanes' files); `pnpm test` 0 (470 files, 5,117 tests); `zsh
+  scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3136` 0 (282 checks); `pnpm lab:demo
+  --board album-columns --base http://localhost:3136` 0 but vacuous (round two is answered, so no open step): every
+  option of the three asks pressed by hand at 1440, 768 and 375 draws its album, no console error. Logs:
+  `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/album-window/gate2-*.log`.
+- **Lane check**: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file + one exception,
+  `src/app/(dev)/design/touchpoints.ts` (the `album-columns` row, granted by the brief).
+- **Before and after**, `scripts/album-perf.mjs` on a production build, 1,145 photographs (JSON:
+  `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/album-window/perf-baseline*.json` and `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/album-window/perf-after*.json`):
+
+  | | rows 1440 | rows 375 | masonry 1440 | masonry 375 | rows 375, 4x CPU |
+  | --- | --- | --- | --- | --- | --- |
+  | album nodes, load / fling max | 16,441 → 635 / 1,010 | 16,770 → 395 / 640 | 16,162 → 16,255 | 16,224 → 16,251 | 16,770 → 395 / 657 |
+  | running animations at rest | 1,110 → 0 | 1,122 → 0 | 1,051 → 0 | 1,117 → 0 | 1,122 → 0 |
+  | fling p95 / long frames | 33.4 / 0 → 16.8 / 0 | 33.3 / 0 → 16.8 / 0 | 33.3 / 0 → 16.7 / 0 | 16.8 / 0 → 16.7 / 0 | 100 / 47 → 33.4 / 0 |
+  | renders: like · tick · quiet poll | 1,145+1,145 · 1,260 · 1,145 → 0+2 marks · 0 · 0 | same → same | same → same | same → same | same → same |
+  | head arrival while deep: cost / moved | 26.6ms / 0 → 2.4ms / 0 | 27.8 / 0 → 2.3 / 0 | 23.3 / 345px → 8.1 / 345px | 22.9 / 265px → 6.9 / 265px | 133.5 / 0 → 11.5 / 0 |
+  | LCP / CLS | 2,016 / 0.43 → 256 / 0 | 1,572 / 0.81 → 216 / 0 | 3,016 / 0 → 968 / 0 | 1,780 / 0 → 1,036 / 0 | 260 (a text span) / 0.81 → 892 (a photograph) / 0 |
+  | heap, load style time | 27.2MB, 1,547ms → 8.4MB, 24ms | 27.6MB, 1,104ms → 8.1MB, 18ms | 27.4MB → 25.1MB, 1,492 → 447ms | 27.1 → 25.1MB, 899 → 474ms | 3,391 → 129ms |
+
+  **Budgets**: every one met by the windowed rows at 1440x900 and 375x812. Masonry, which the surfaces leave for the
+  rows, gets every shared fix and misses two budgets by construction: it mounts every tile (16k nodes) and a head
+  arrival grows its column (masonry at 4x CPU: fling long frames 42 → 0 to 12, p95 83 → 67 to 83, run to run).
+  Transfer is the same page's (3.9MB rows at 1440: the fixture stills are 90KB JPEGs, not the product's previews).
+- **The items**:
+  - The perf harness `scripts/album-perf.mjs` (nodes, layout and style counts and time, heap, running animations, a
+    fling's frame histogram and long animation frames, transfer, first-row image timing, CLS, LCP, renders off the
+    grid's probe, a head arrival while deep; `--budgets`, `--cpu`, `--profile` naming a native call by its caller)
+    and the tool page `/design/album-scale` (outside the shell; `?layout`, `?n`, `?step`, `?uploading=1`).
+  - `AlbumTile` (`album-tile.tsx`): memoized on data props compared by content, no handler (one delegated click and
+    one long-press on the grid, latest props from a ref), the like glyph and mark read per id, entering once, select
+    mode on the one grid, `contain: strict`.
+  - `LikesProvider` is a per-id store (`useIsLiked`, `useSyncExternalStore`; a stable context value);
+    `LocalLikesProvider` for the lab. Its pins were passing on a substring (`"liked"` matched `"unliked"`); exact now.
+  - The shimmer runs only in view, after a beat, and a landed photograph hides its skeleton rather than removing it;
+    the desk row is `display:none` at rest; upload progress reports once a frame (`perFrame`); the first row loads
+    eager and first, every tile decodes async; a mounted tile keeps its src across a link rollover (same object path).
+  - Masonry: the first measure and every filter restyle the same box (one flex box flowing in columns, each tile's
+    column its `order` counted from the column's oldest end), so nothing remounts and an arrival restyles no tile
+    already there; a clamped host album balances on its real shapes.
+  - Three steps everywhere (1/2/3, 2/3/4, 3/4/6, 3/5/8, the middle the default), one index in `pr_tile_size`
+    (`resolveRowStep`, the legacy widths mapped across and both readers reading both), `useRowStep`, no feature row
+    at one a row.
+  - The windowed rows (`album-window.tsx`, maths in `lib/shared/album-window.ts`): one viewport behind and two ahead,
+    spacers from the prefix sum, hand anchoring (`overflow-anchor: none`), the touch hold, `onWindowChange`,
+    `scrollToId`, the keyboard's row pinned, `aria-setsize`/`aria-posinset`, and a first paint that is already the
+    engine's rows per width class (CLS 0 on a throttled phone and desk, from 0.81 and 0.43).
+  - The push arrival (`data-entering`, written by the rows in the render that lands the photograph); the density
+    slider (`kind: "density"` in the View menu) and pinch and ctrl-wheel on the grid, anchored on the focal tile.
+  - Selection props on the one grid (`selection`); the album grid blocked from session replay.
+  - `album-columns` stays drawable (its arrival options outrank the production push; its steps on three), its
+    touchpoints row updated; `design-system.md` edited in place.
+- **Assets requested from Will**: none.
+- **Board ideas**: the album's opening entrance at scale (a stagger capped at 540ms reads the same on a 48-photo first
+  paint as on a 1,145 one; a first-screen-only cascade may read calmer); a pinch count while pinching (the board drew
+  one; production shows none).
+- **Proposed migrations / Worker / Vercel / Stripe / env changes**: none.
+- **Calls his to overrule**: the five Questions above; the slider's stops speak in "N a row" where the album's width is
+  known and "Large / Medium / Small" where it is not; the first paint lays each width class at a nominal album width
+  (351, 728, 984, 1,400); `contain: strict` on every album tile.
+- **Not verified live**: the alias builds from `launch-prep` only, and the scale probe's guest link is a capability I
+  may not read, so the shared masonry fixes were proven on the scale page, the Library's real `HostMediaGrid` under
+  the real `LikesProvider` (the row on hover, Hide reaching the host's handler and reverting on its refusal, Like
+  opening the account door, the viewer opening; no console error) and the suite. At the merge's `[preview]`, walk
+  the scale probe's guest album (scroll, a like signed in, an upload landing with its glow and sweep, the View menu)
+  and a host album (the hover row's verbs, long-press select, hide and show).
+- **Look at first**: `src/components/shared/album-window.tsx` (the window and the anchor), then
+  `src/components/shared/masonry.tsx` (`placeColumns`), then `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/album-window/perf-after.txt`.
