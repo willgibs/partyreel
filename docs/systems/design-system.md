@@ -426,8 +426,8 @@ primitives name their transition properties, never `transition-all`.
 - **The motion tuner** (`dev/motion-tuner.tsx`) writes CSS vars inline where they are declared (`<html>` for `--tune-*`
   and the radii, `[data-mkt]` for `--mkt-*`), so any var-backed timing tunes live on the real pages; its candidate
   block (`setCandidateCss` in `tuner-store.ts`) lets a board hand the site one CSS paste behind `?key=`. **A baked value
-  moves in three places together**: the CSS default, the tuner config's `default`, and any JS fallback
-  (`reel/reveal-constants.ts`).
+  moves in three places together**: the CSS default, the tuner config's `default`, and any JS fallback (the review
+  takeover's `use-review-triage.ts`, via `readCssMs`).
 
 ### The floating-layer contract
 
