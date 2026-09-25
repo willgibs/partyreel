@@ -39,6 +39,7 @@ in auto mode ("work through the night on all of this until fully complete"); the
 | --- | --- | --- | --- | --- |
 | `album-guest-wiring` | the guest album, viewer, reel and profile feeds onto the paged, windowed rows with r2's picks; `planTake` sub-quadratic; the perf harness's `--page` mode | building (agent `a29a00be06c5e3b16`) | Opus, :3131 | its `guest-flow.md` lines through the Handoff |
 | `album-host-wiring` | the hub's album onto the paged rows, select mode on the one grid, the bin on a manifest, Sort live, `like_many` | building (agent `a54c6daada060d103`) | Opus, :3134 | ends a turn with "migration ready at <sha>" for `like_many`; `host-app.md` lines through the Handoff |
+| `crumbs` | tonight's deferred leftovers (the Studio's reveal CSS, vaul, stale comments, the voice board's door quote, the password step's sticky foot, one code length, the test setup's flush); holds `globals.css` until its merge | building (agent `a353ac97661104821`) | Sonnet, :3135 | three root files as decided exceptions |
 
 Merged tonight (their records carry the rest): reel-guest-wiring, reel-host-wiring, mark-r3, story-r2, door-r2,
 album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hardening, reel-sweep, door-flow.
