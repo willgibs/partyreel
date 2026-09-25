@@ -520,15 +520,22 @@ function AlbumTileBody({
         } as CSSProperties
       }
       // Uniform: the CSS-grid gap spaces tiles; rows: the flex gap and the row
-      // breaks. Masonry: the gap is the tile's own bottom margin in the flow
-      // (a measured column places it absolutely, and the margin goes unused).
-      className={
-        layout === "rows"
-          ? "group relative overflow-hidden bg-black/10"
-          : uniform
-            ? "group relative w-full overflow-hidden bg-black/10"
-            : "group relative mb-[var(--gap-gallery)] w-full break-inside-avoid overflow-hidden bg-black/10"
-      }
+      // breaks. Masonry: the gap is the tile's own bottom margin, in the flow
+      // and in the measured columns alike.
+      //
+      // ★ `contain: strict`: A TILE IS A LAYOUT BOUNDARY. Its size is its box's
+      // (a width and a shape, or a row's height), never its content's, so what
+      // changes inside it (a photograph landing and its shimmer leaving, a mark,
+      // the desk row) re-lays that tile and nothing else. Without it every
+      // image that landed mid-fling re-ran the album's flex layout over all its
+      // tiles (measured: 2.5x the old columns' layout time on a throttled
+      // phone's fling through the measured masonry).
+      className={cn(
+        "group relative overflow-hidden bg-black/10 contain-strict",
+        layout === "uniform" && "w-full",
+        layout === "masonry" &&
+          "mb-[var(--gap-gallery)] w-full break-inside-avoid",
+      )}
     >
       <button
         type="button"

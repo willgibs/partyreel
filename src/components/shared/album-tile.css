@@ -15,6 +15,9 @@
    frames of its tile coming into view, and a shimmer that starts and is gone
    again is a flicker, not a loading state: the delay lets it land first.
 
+   And never once its photograph has landed (`data-done`: the skeleton stays,
+   hidden, because removing it would be a layout change; `media-grid.tsx`).
+
    Scoped to the album's own tiles (`[data-media-id]`): the upload stack, the
    selection grid and the operator's report keep the skeleton's shimmer as it
    always was. ── */
@@ -23,7 +26,8 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  [data-media-tile][data-media-id][data-inview] [data-slot="skeleton"] {
+  [data-media-tile][data-media-id][data-inview]
+    [data-slot="skeleton"]:not([data-done]) {
     animation-name: shimmer;
     animation-delay: 200ms;
   }

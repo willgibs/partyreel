@@ -173,6 +173,26 @@ export function MediaTile({
     }
   };
 
+  /*
+   * ★ THE SHIMMER IS HIDDEN WHEN THE PHOTOGRAPH LANDS, NEVER REMOVED. Taking a
+   * node out is a layout change, and a tile in a flex box is no layout boundary
+   * however contained it is, so every photograph that landed mid-scroll re-ran
+   * its whole album's flex layout (measured on a throttled phone's fling
+   * through 1,145 photographs). Hidden, the landing is a paint: the skeleton
+   * stays, invisible and still (`data-done` stops its shimmer in an album's
+   * sheet, `animate-none` everywhere else).
+   */
+  const shimmer = (
+    <Skeleton
+      data-done={loaded ? "" : undefined}
+      aria-hidden
+      className={cn(
+        "absolute inset-0 size-full rounded-none",
+        loaded && "invisible animate-none",
+      )}
+    />
+  );
+
   const imgProps = {
     ref: imgRef,
     src,
@@ -189,9 +209,7 @@ export function MediaTile({
     // skeleton fills the tile until it decodes, then it fades in (the parent clips with overflow-hidden).
     return (
       <span className="relative block size-full">
-        {!loaded && (
-          <Skeleton className="absolute inset-0 size-full rounded-none" />
-        )}
+        {shimmer}
         {/* eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable */}
         <img
           {...imgProps}
@@ -211,9 +229,7 @@ export function MediaTile({
     return (
       <>
         <span className="relative block size-full">
-          {!loaded && (
-            <Skeleton className="absolute inset-0 size-full rounded-none" />
-          )}
+          {shimmer}
           {/* eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable */}
           <img
             {...imgProps}

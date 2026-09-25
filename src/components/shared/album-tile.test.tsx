@@ -484,7 +484,7 @@ describe("the sheets say what jsdom cannot see", () => {
       /\[data-media-tile\]\[data-media-id\] \[data-slot="skeleton"\]\s*\{\s*animation-name:\s*none/,
     );
     const on = css.match(
-      /@media \(prefers-reduced-motion: no-preference\)\s*\{\s*\[data-media-tile\]\[data-media-id\]\[data-inview\] \[data-slot="skeleton"\]\s*\{([^}]*)\}/,
+      /@media \(prefers-reduced-motion: no-preference\)\s*\{\s*\[data-media-tile\]\[data-media-id\]\[data-inview\]\s+\[data-slot="skeleton"\]:not\(\[data-done\]\)\s*\{([^}]*)\}/,
     );
     expect(on).not.toBeNull();
     expect(on![1]).toMatch(/animation-name:\s*shimmer/);
