@@ -33,7 +33,7 @@ describe("galleryEtag", () => {
     expect(a).toBe(galleryEtag({ ...base, items: base.items.map((i) => ({ ...i })) }));
     // g6 because the payload carries the live reel's facts: a client holding an older ETag must
     // re-pull rather than 304 past a change it cannot see.
-    expect(a).toMatch(/^"g6-[A-Za-z0-9_-]{27}"$/);
+    expect(a).toMatch(/^"g7-[A-Za-z0-9_-]{27}"$/);
   });
 
   // THE LIVE REEL'S FACTS ARE IN THE HASH. A host turning the reel off, an operator's lever, a plan
@@ -53,6 +53,10 @@ describe("galleryEtag", () => {
       galleryEtag({ ...base, reel: { ...reel, liveReelEnabled: false } }),
     ).not.toBe(on);
     expect(galleryEtag({ ...base, reel: { ...reel, styleId: "warm" } })).not.toBe(on);
+    // The host's default hold (a host's "Set for everyone" must reach an open page too); absent
+    // hashes as the default it means.
+    expect(galleryEtag({ ...base, reel: { ...reel, holdSec: 5 } })).not.toBe(on);
+    expect(galleryEtag({ ...base, reel: { ...reel, holdSec: null } })).toBe(on);
     expect(
       galleryEtag({
         ...base,

@@ -59,10 +59,15 @@ describe("the Hold", () => {
     expect(nearestHoldStep(Number.NaN)).toBe(DEFAULT_HOLD_SEC);
   });
 
-  it("keeps the viewer's choice on the device, the default before one", () => {
-    expect(readHoldSec()).toBe(3);
-    writeHoldSec(5);
-    expect(readHoldSec()).toBe(5);
+  it("keeps the viewer's choice per event, the host's default before one, then 3 s", () => {
+    expect(readHoldSec("qr-a")).toBe(3);
+    expect(readHoldSec("qr-a", 5)).toBe(5);
+    writeHoldSec("qr-a", 2.2);
+    expect(readHoldSec("qr-a", 5)).toBe(2.2);
+    // Another party keeps its own pace.
+    expect(readHoldSec("qr-b", 7)).toBe(7);
+    // A host default off the steps lands on the nearest one.
+    expect(readHoldSec("qr-c", 2.9)).toBe(3);
   });
 });
 
@@ -107,9 +112,10 @@ describe("storage that throws", () => {
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
       throw new Error("blocked");
     });
-    expect(readHoldSec()).toBe(DEFAULT_HOLD_SEC);
+    expect(readHoldSec("qr")).toBe(DEFAULT_HOLD_SEC);
+    expect(readHoldSec("qr", 5)).toBe(5);
     expect(readStyleId("qr")).toBeNull();
-    expect(() => writeHoldSec(7)).not.toThrow();
+    expect(() => writeHoldSec("qr", 7)).not.toThrow();
     expect(() => writeStyleId("qr", "warm")).not.toThrow();
   });
 });

@@ -57,6 +57,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import type { CSSProperties, ReactNode } from "react";
+import { toast } from "sonner";
 
 import { StyledQr } from "@/components/app/styled-qr";
 import { useGalleryLive } from "@/components/guest/gallery-live";
@@ -66,6 +67,8 @@ import { MediaLightboxLazy } from "@/components/shared/media-lightbox.lazy";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuFooter,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -95,6 +98,7 @@ import {
   holdLabel,
   holdScaleFor,
   liveMoods,
+  nearestHoldStep,
   readHoldSec,
   readIncludeVideos,
   readStyleId,
@@ -144,6 +148,11 @@ export type ReelViewProps = {
   addClipToAlbum: ((file: File, poster: Blob) => void) | null;
   /** The event's owner is watching (the host's extras: Play on a screen, Set for everyone). */
   isOwner?: boolean;
+  /**
+   * The owner's "Set for everyone": the look and hold this device shows become the event's defaults
+   * (reel-defaults-migration's `setReelDefaults`, bound by the controller). Resolves whether it took.
+   */
+  onSetForEveryone?: (look: { styleId: string; holdSec: number }) => Promise<boolean>;
   onClose: () => void;
 };
 
@@ -170,6 +179,7 @@ export function LiveReelView({
   creator,
   addClipToAlbum,
   isOwner = false,
+  onSetForEveryone,
   onClose,
 }: ReelViewProps) {
   const live = useGalleryLive();
@@ -181,8 +191,9 @@ export function LiveReelView({
   const qrToken = live?.qrToken ?? "";
 
   /* ── the viewer's own knobs, kept on this device ─────────────────────────── */
-  const [holdSec, setHoldSec] = useState(readHoldSec);
   const hostStyle = live?.reel?.styleId ?? null;
+  const hostHold = live?.reel?.holdSec ?? null;
+  const [holdSec, setHoldSec] = useState(() => readHoldSec(qrToken, hostHold));
   const [styleId, setStyleId] = useState(
     () => readStyleId(qrToken) ?? resolveLiveStyleId(hostStyle),
   );
@@ -434,6 +445,35 @@ export function LiveReelView({
   );
   const clipFacts = live?.reel?.clip ?? null;
 
+  /* ── the owner's Set for everyone ────────────────────────────────────────── */
+  // What everyone sees: the event's defaults, or what this device just set for everyone (the next
+  // poll's facts say the same thing a moment later).
+  const [setLook, setSetLook] = useState<{ styleId: string; holdSec: number } | null>(null);
+  const everyoneLook = setLook ?? {
+    styleId: resolveLiveStyleId(hostStyle),
+    holdSec: hostHold === null ? DEFAULT_HOLD_SEC : nearestHoldStep(hostHold),
+  };
+  const lookIsEveryones =
+    everyoneLook.styleId === styleId && everyoneLook.holdSec === holdSec;
+  const setForEveryone = useCallback(async () => {
+    if (!onSetForEveryone) return;
+    const look = { styleId, holdSec };
+    const ok = await onSetForEveryone(look);
+    if (ok) {
+      setSetLook(look);
+      toast.success("Everyone sees this look now");
+    } else {
+      toast.error("Couldn't set it for everyone. Try again.");
+    }
+  }, [onSetForEveryone, styleId, holdSec]);
+  const styleFooter =
+    isOwner && onSetForEveryone ? (
+      <SetForEveryoneFooter
+        isEveryones={lookIsEveryones}
+        onSet={setForEveryone}
+      />
+    ) : undefined;
+
   return (
     <DialogPrimitive.Root
       open
@@ -596,11 +636,12 @@ export function LiveReelView({
               holdSec={holdSec}
               onHold={(sec) => {
                 setHoldSec(sec);
-                writeHoldSec(sec);
+                writeHoldSec(qrToken, sec);
               }}
               showCode={showCode}
               onToggleCode={desktop ? () => setShowCode((on) => !on) : undefined}
               onPlayOnScreen={isOwner && desktop ? openOnScreen : undefined}
+              styleFooter={styleFooter}
               onAddYours={onAddYours}
               onMakeYourOwn={creator && clipFacts ? openCreator : undefined}
               onMenuOpenChange={setMenuOpen}
@@ -998,6 +1039,45 @@ function FillPill({
         ? "Press anywhere to fill the screen"
         : "Press anywhere to keep the screen awake"}
     </button>
+  );
+}
+
+/* ── the owner's footer under the Style list ───────────────────────────────── */
+
+/**
+ * The look is the viewer's own until the host says otherwise: an owner who likes what this device
+ * shows can make it the event's default (the look and the hold), which every guest who has not
+ * picked their own then sees. When the device already shows the event's defaults there is nothing
+ * to set, and the footer says whose look this is.
+ */
+function SetForEveryoneFooter({
+  isEveryones,
+  onSet,
+}: {
+  isEveryones: boolean;
+  onSet: () => Promise<void>;
+}) {
+  const [saving, setSaving] = useState(false);
+  return (
+    <DropdownMenuFooter data-reel-set-everyone>
+      <p className="px-2 pt-1 text-caption text-muted-foreground">
+        {isEveryones ? "Everyone sees this look" : "Only on this device, for now"}
+      </p>
+      {!isEveryones && (
+        <DropdownMenuItem
+          disabled={saving}
+          onSelect={(e) => {
+            // Stay open: the answer lands in the footer (and a toast), not in a closed menu.
+            e.preventDefault();
+            setSaving(true);
+            void onSet().finally(() => setSaving(false));
+          }}
+          className="mx-1 mb-1 h-8 justify-center rounded-full border border-border font-medium"
+        >
+          {saving ? "Setting…" : "Set for everyone"}
+        </DropdownMenuItem>
+      )}
+    </DropdownMenuFooter>
   );
 }
 

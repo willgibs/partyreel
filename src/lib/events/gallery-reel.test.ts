@@ -56,12 +56,14 @@ describe("reelFactsFor", () => {
         showReel: false,
         liveReelEnabled: true,
         styleId: "warm",
+        holdSec: 5,
         tier: "free",
       }),
     ).toEqual({
       showReel: false,
       liveReelEnabled: true,
       styleId: "warm",
+      holdSec: 5,
       clip: { videoAllowed: false, watermark: true, maxSeconds: 30 },
     });
   });

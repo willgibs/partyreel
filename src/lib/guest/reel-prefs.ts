@@ -16,9 +16,10 @@
  * ★ STORAGE CAN THROW, AND THE REEL MUST NOT. A private window, blocked site data or a full quota
  * makes localStorage throw; every read and write here is wrapped, and a failed read is the default.
  *
- * ★ WHICH KEYS ARE PER EVENT. The style is per EVENT (a mood belongs to a party: a guest who picked
- * Noir at one wedding should meet the next host's own default), the hold and the videos switch are
- * the viewer's across events (a pace, and a data plan, are about the person).
+ * ★ WHICH KEYS ARE PER EVENT. The style and the hold are per EVENT (a look and a pace belong to a
+ * party: a guest who picked Noir at one wedding should meet the next host's own default, and a host
+ * can set both for everyone), each falling back to the host's default for that event; the videos
+ * switch is the viewer's across events (a data plan is about the person).
  */
 import { STYLE_CATALOG } from "@/lib/reel/engine/style-registry";
 import { resolveTheme } from "@/lib/reel/engine/themes";
@@ -29,9 +30,9 @@ import { resolveLiveStyleId } from "@/lib/reel/live/window";
 export const HOLD_STEPS_SEC = [1, 1.5, 2.2, 3, 3.6, 5, 7] as const;
 export const DEFAULT_HOLD_SEC = 3;
 
-const HOLD_KEY = "pr_reel_hold";
 const VIDEOS_KEY = "pr_reel_videos";
 const styleKey = (qrToken: string) => `pr_reel_style_${qrToken}`;
+const holdKey = (qrToken: string) => `pr_reel_hold_${qrToken}`;
 
 /** The step a stored or odd value belongs to (a future step list never strands an old choice). */
 export function nearestHoldStep(seconds: number): number {
@@ -80,13 +81,18 @@ function write(key: string, value: string): void {
   }
 }
 
-export function readHoldSec(): number {
-  const raw = read(HOLD_KEY);
-  return raw === null ? DEFAULT_HOLD_SEC : nearestHoldStep(Number(raw));
+/** The viewer's hold for this event, else the host's default for it, else the 3 s default. */
+export function readHoldSec(
+  qrToken: string,
+  eventDefault: number | null = null,
+): number {
+  const raw = read(holdKey(qrToken));
+  if (raw !== null) return nearestHoldStep(Number(raw));
+  return eventDefault === null ? DEFAULT_HOLD_SEC : nearestHoldStep(eventDefault);
 }
 
-export function writeHoldSec(seconds: number): void {
-  write(HOLD_KEY, String(nearestHoldStep(seconds)));
+export function writeHoldSec(qrToken: string, seconds: number): void {
+  write(holdKey(qrToken), String(nearestHoldStep(seconds)));
 }
 
 /** The viewer's own mood for this event, or null (the host's default then decides). */

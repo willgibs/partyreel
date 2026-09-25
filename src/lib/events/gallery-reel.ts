@@ -54,6 +54,8 @@ export type GalleryReel = {
   liveReelEnabled: boolean;
   /** The host's default mood; null is the default mood. A viewer's own pick overrides it locally. */
   styleId: string | null;
+  /** The host's default hold in seconds; null (or absent, from an older server) is the 3 s default. */
+  holdSec?: number | null;
   /** Null where the host's plan could not be read: the creator is then simply not offered. */
   clip: ClipFacts | null;
 };
@@ -80,6 +82,7 @@ export function reelFactsFor(input: {
   showReel: boolean;
   liveReelEnabled: boolean;
   styleId: string | null;
+  holdSec?: number | null;
   tier: Tier | null;
 }): GalleryReel | null {
   if (input.access !== "full") return null;
@@ -87,6 +90,7 @@ export function reelFactsFor(input: {
     showReel: input.showReel,
     liveReelEnabled: input.liveReelEnabled,
     styleId: input.styleId,
+    holdSec: input.holdSec ?? null,
     clip: input.tier ? clipFactsForTier(input.tier) : null,
   };
 }

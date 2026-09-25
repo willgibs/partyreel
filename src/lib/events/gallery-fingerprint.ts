@@ -59,6 +59,7 @@ export function galleryEtag(input: {
     showReel: boolean;
     liveReelEnabled: boolean;
     styleId: string | null;
+    holdSec?: number | null;
     clip: { videoAllowed: boolean; watermark: boolean; maxSeconds: number } | null;
   } | null;
   bucketId: string;
@@ -75,6 +76,7 @@ export function galleryEtag(input: {
           input.reel.showReel,
           input.reel.liveReelEnabled,
           input.reel.styleId,
+          input.reel.holdSec ?? null,
           input.reel.clip
             ? [
                 input.reel.clip.videoAllowed,
@@ -100,7 +102,7 @@ export function galleryEtag(input: {
   // Strong, quoted, version-prefixed: a shape change bumps the version so stale clients can never
   // false-match. The item tuple is (id, type, name, host, verified): any change to what it carries,
   // or to the payload fields beside it, bumps this, so a client holding an older validator re-pulls
-  // rather than 304s past a change it cannot see. g6: the payload carries the live reel's facts
-  // (`reel`), and a g5 validator knows nothing of them.
-  return `"g6-${hash}"`;
+  // rather than 304s past a change it cannot see. g7: the live reel's facts (`reel`) carry the
+  // host's default hold, which an older validator knows nothing of.
+  return `"g7-${hash}"`;
 }

@@ -284,8 +284,8 @@ describe("the viewer's own knobs", () => {
     expect(h.player?.styleId).toBe("mono");
   });
 
-  it("keeps a chosen hold on this device", () => {
-    localStorage.setItem("pr_reel_hold", "7");
+  it("keeps a chosen hold for this event on this device", () => {
+    localStorage.setItem("pr_reel_hold_qr-token", "7");
     renderView();
     expect(
       screen.getByRole("button", { name: "Hold: 7 s a photo" }),
@@ -470,6 +470,54 @@ describe("on a screen (the view is the wall)", () => {
     expect(screen.queryByRole("button", { name: /Start/ })).toBeNull();
     expect(document.querySelector("[data-reel-fill]")).toBeNull();
     expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument();
+  });
+});
+
+describe("the owner's Set for everyone", () => {
+  function openStyle() {
+    fireEvent.pointerDown(screen.getByRole("button", { name: /^Style: / }), {
+      ctrlKey: false,
+      button: 0,
+    });
+  }
+
+  it("says the look is this device's until set, and sets the look and the hold for everyone", async () => {
+    localStorage.setItem("pr_reel_style_qr-token", "mono");
+    localStorage.setItem("pr_reel_hold_qr-token", "5");
+    const onSetForEveryone = vi.fn(async () => true);
+    renderView({ isOwner: true, onSetForEveryone });
+    openStyle();
+    expect(screen.getByText("Only on this device, for now")).toBeInTheDocument();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("menuitem", { name: "Set for everyone" }));
+    });
+    expect(onSetForEveryone).toHaveBeenCalledWith({ styleId: "mono", holdSec: 5 });
+    expect(screen.getByText("Everyone sees this look")).toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "Set for everyone" })).toBeNull();
+  });
+
+  it("with the event's own defaults on screen there is nothing to set", () => {
+    renderView({ isOwner: true, onSetForEveryone: vi.fn(async () => true) });
+    openStyle();
+    expect(screen.getByText("Everyone sees this look")).toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "Set for everyone" })).toBeNull();
+  });
+
+  it("a refused set leaves the look this device's", async () => {
+    localStorage.setItem("pr_reel_style_qr-token", "mono");
+    renderView({ isOwner: true, onSetForEveryone: vi.fn(async () => false) });
+    openStyle();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("menuitem", { name: "Set for everyone" }));
+    });
+    expect(screen.getByText("Only on this device, for now")).toBeInTheDocument();
+  });
+
+  it("a guest's Style list carries no footer at all", () => {
+    localStorage.setItem("pr_reel_style_qr-token", "mono");
+    renderView({ onSetForEveryone: vi.fn(async () => true) });
+    openStyle();
+    expect(screen.queryByText("Only on this device, for now")).toBeNull();
   });
 });
 
