@@ -3,6 +3,8 @@
 import { useState } from "react";
 
 import { EventSettingsForm } from "@/components/app/event-settings-form";
+import { DangerZoneSection } from "@/components/app/event-settings/danger-zone-section";
+import { HighlightReelCard } from "@/components/app/event-settings/highlight-reel-card";
 import { ProfileSocialCard } from "@/components/app/event-settings/profile-social-card";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,6 +49,12 @@ import { useUnsavedChangesGuard } from "@/lib/use-unsaved-changes-guard";
  * ★ THE BIN IS NOT HERE. His `settings` note folded it into the album ("The
  * photo bin joins the album as a filter"), so "Deleted" names exactly one thing
  * in the product now and it is a view of the album.
+ *
+ * ★ THE ORDER: the form's cards (Details, Visibility, Guest uploads) and its one
+ * Save, then the instant cards, the Highlight reel first (`reel-host`, Will
+ * 2026-09-25: its own section, placed after Guest uploads), then Profile &
+ * guests, and the Danger zone LAST, so the one irreversible act on the sheet is
+ * never the thing between a host and a setting.
  */
 export function EventSettingsSheet({
   open,
@@ -55,6 +63,7 @@ export function EventSettingsSheet({
   tier,
   pendingCount,
   social,
+  reelSample,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -67,6 +76,8 @@ export function EventSettingsSheet({
     showGuestList: boolean;
     hostHasSlug: boolean;
   } | null;
+  /** One of the event's own photographs to show the reel's looks on, or null before the first. */
+  reelSample: string | null;
 }) {
   const [dirty, setDirty] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -104,6 +115,13 @@ export function EventSettingsSheet({
               pendingCount={pendingCount}
               onDirtyChange={setDirty}
             />
+            <HighlightReelCard
+              eventId={event.id}
+              showReel={event.show_reel}
+              styleId={event.reel_style_id}
+              holdSec={event.reel_hold_sec}
+              sampleStill={reelSample}
+            />
             {social && (
               <ProfileSocialCard
                 eventId={event.id}
@@ -112,6 +130,7 @@ export function EventSettingsSheet({
                 hostHasSlug={social.hostHasSlug}
               />
             )}
+            <DangerZoneSection eventId={event.id} eventName={event.name} />
           </div>
         </SheetContent>
       </Sheet>

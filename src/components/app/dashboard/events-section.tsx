@@ -10,6 +10,7 @@ import {
 
 import { EventCard } from "@/components/app/event-card";
 import { EventCardQr } from "@/components/app/event-card-qr";
+import { CoverCycleProvider } from "@/components/app/dashboard/cover-cycle";
 import { EVENT_CARD_GRID } from "@/components/app/dashboard/event-card-grid";
 import { EventsEmptyTeaser } from "@/components/app/dashboard/events-empty-teaser";
 import { EventsRowList } from "@/components/app/dashboard/events-row-list";
@@ -219,39 +220,48 @@ export function EventsSection({
           actions={actions}
         />
       ) : (
-        <ul className={EVENT_CARD_GRID}>
-          {shown.map((row) => (
-            <li key={`${row.kind}-${row.id}`}>
-              <EventCard
-                variant={row.kind === "deleted" ? "trash" : row.kind}
-                href={row.href}
-                name={row.name}
-                coverUrl={row.coverUrl}
-                dateLabel={row.dateLabel}
-                itemsLabel={
-                  row.kind === "hosted"
-                    ? `${formatCount(row.items)} ${row.items === 1 ? "item" : "items"}`
-                    : null
-                }
-                statusLabel={row.statusLabel}
-                pendingCount={row.kind === "hosted" ? row.pending : 0}
-                byline={row.byline}
-                qrSlot={
-                  row.qr ? (
-                    <EventCardQr
-                      eventId={row.id}
-                      eventName={row.name}
-                      qrToken={row.qr.token}
-                      qrStyle={row.qr.style}
-                      siteUrl={siteUrl}
-                    />
-                  ) : undefined
-                }
-                action={actions.get(`${row.kind}-${row.id}`)}
-              />
-            </li>
-          ))}
-        </ul>
+        // The hosted cards take turns dissolving to their next still, one per
+        // beat, in reading order (`cover-cycle.tsx`, his `pulse` note).
+        <CoverCycleProvider>
+          <ul className={EVENT_CARD_GRID}>
+            {shown.map((row) => (
+              <li key={`${row.kind}-${row.id}`}>
+                <EventCard
+                  variant={row.kind === "deleted" ? "trash" : row.kind}
+                  href={row.href}
+                  name={row.name}
+                  coverUrl={row.coverUrl}
+                  dateLabel={row.dateLabel}
+                  itemsLabel={
+                    row.kind === "hosted"
+                      ? `${formatCount(row.items)} ${row.items === 1 ? "item" : "items"}`
+                      : null
+                  }
+                  statusLabel={row.statusLabel}
+                  pendingCount={row.kind === "hosted" ? row.pending : 0}
+                  byline={row.byline}
+                  qrSlot={
+                    row.qr ? (
+                      <EventCardQr
+                        eventId={row.id}
+                        eventName={row.name}
+                        qrToken={row.qr.token}
+                        qrStyle={row.qr.style}
+                        siteUrl={siteUrl}
+                      />
+                    ) : undefined
+                  }
+                  action={actions.get(`${row.kind}-${row.id}`)}
+                  living={
+                    row.kind === "hosted"
+                      ? { id: row.id, stills: row.stills }
+                      : undefined
+                  }
+                />
+              </li>
+            ))}
+          </ul>
+        </CoverCycleProvider>
       )}
     </section>
   );

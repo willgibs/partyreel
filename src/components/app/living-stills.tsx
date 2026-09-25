@@ -19,10 +19,11 @@ import { cn } from "@/lib/utils";
  * it sits above.
  *
  * ★ THREE IMAGES AT MOST, NEVER THE WHOLE SET. Only the still going out, the still on screen and
- * the NEXT one are mounted, so the next is already decoding when its dissolve begins (no blank
- * frame at the handover) and a dashboard of twenty cards holds sixty images, not every still of
- * every event. Keyed by position, so the outgoing still keeps its node and fades rather than
- * vanishing.
+ * the NEXT one are mounted (before the first dissolve, only the first two), so the next is already
+ * decoding when its dissolve begins (no blank frame at the handover) and a dashboard of twenty
+ * cards holds forty images, not every still of every event; they load lazily, so a card below the
+ * fold fetches nothing until it nears the screen. Keyed by position, so the outgoing still keeps
+ * its node and fades rather than vanishing.
  *
  * The component is pure: who advances `at`, and when, is the caller's (`useLivingClock` for one
  * surface on its own clock, the dashboard's cover cycle for a row of cards taking turns).
@@ -40,10 +41,16 @@ export function LivingStills({
   const n = stills.length;
   if (n === 0) return null;
   const current = ((at % n) + n) % n;
+  const next = (current + 1) % n;
+  // Nothing is going out before the first dissolve, so the last still waits its turn.
   const mounted =
     n === 1
       ? [0]
-      : [...new Set([(current - 1 + n) % n, current, (current + 1) % n])];
+      : [
+          ...new Set(
+            at === 0 ? [current, next] : [(current - 1 + n) % n, current, next],
+          ),
+        ];
   return (
     <div
       aria-hidden
@@ -56,6 +63,7 @@ export function LivingStills({
           key={i}
           src={stills[i]}
           alt=""
+          loading="lazy"
           decoding="async"
           draggable={false}
           className={cn(

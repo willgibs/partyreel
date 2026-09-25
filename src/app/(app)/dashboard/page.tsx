@@ -40,6 +40,7 @@ import { getMyClaimableGuestRows } from "@/lib/db/queries/claims";
 import {
   countActiveEvents,
   getEventCardStats,
+  getEventCardStills,
   getEventCoverUrls,
   getReelProgress,
   listEvents,
@@ -172,20 +173,27 @@ export default async function DashboardPage({
   );
 
   const eventIds = events.map((e) => e.id);
-  // Cover art for the owned AND recently-deleted cards, per-event stats, how
-  // far each event's live reel is, the pulse's own strips, and the claim
-  // ticket's rows (the guest identity round, 2026-09-22): fetched HERE,
+  // The hosted cards' covers and the stills they dissolve through in turn, the
+  // binned cards' covers, per-event stats, how far each event's live reel is,
+  // the pulse's own strips, and the claim ticket's rows (the guest identity round, 2026-09-22): fetched HERE,
   // after the nameless-profile redirect above, so a profile that is about to
   // bounce to /welcome never pays for a query it will not render. Keys never
   // reach the browser — everything is presigned server-side. In parallel.
-  const [coverUrls, eventStats, reelProgress, pulse, claimableRows] =
-    await Promise.all([
-      getEventCoverUrls([...events, ...deletedEvents].map((e) => e.id)),
-      getEventCardStats(eventIds),
-      getReelProgress(eventIds),
-      getPulse(eventIds, now, startOfToday),
-      getMyClaimableGuestRows(),
-    ]);
+  const [
+    cardStills,
+    binCovers,
+    eventStats,
+    reelProgress,
+    pulse,
+    claimableRows,
+  ] = await Promise.all([
+    getEventCardStills(eventIds),
+    getEventCoverUrls(deletedEvents.map((e) => e.id)),
+    getEventCardStats(eventIds),
+    getReelProgress(eventIds),
+    getPulse(eventIds, now, startOfToday),
+    getMyClaimableGuestRows(),
+  ]);
 
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
   // Stacked Event Passes (billing-caps.md): event_slots is the webhook-derived concurrent-pass
@@ -255,7 +263,9 @@ export default async function DashboardPage({
         kind: "hosted",
         name: event.name,
         href: `/dashboard/${event.id}`,
-        coverUrl: coverUrls.get(event.id) ?? null,
+        // The cover the card paints first IS the first of its stills.
+        coverUrl: cardStills.get(event.id)?.[0] ?? null,
+        stills: cardStills.get(event.id) ?? [],
         dateLabel: event.event_date
           ? formatEventDate(event.event_date)
           : "No date set",
@@ -276,6 +286,7 @@ export default async function DashboardPage({
         name: card.name,
         href: card.href,
         coverUrl: card.coverUrl,
+        stills: [],
         dateLabel: card.dateLabel,
         sortDate: card.lastUploadAt,
         items: 0,
@@ -294,7 +305,8 @@ export default async function DashboardPage({
         kind: "deleted",
         name: event.name,
         href: null,
-        coverUrl: coverUrls.get(event.id) ?? null,
+        coverUrl: binCovers.get(event.id) ?? null,
+        stills: [],
         dateLabel: event.event_date
           ? formatEventDate(event.event_date)
           : "No date set",

@@ -27,9 +27,11 @@ import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import {
+  cardStillKeys,
   coverKey,
   parseEventCardStats,
   parseEventCovers,
+  parseEventStills,
   type EventCardStats,
 } from "@/lib/dashboard/card-facts";
 import { mustQuery, QueryFailedError } from "@/lib/db/must-query";
@@ -176,6 +178,72 @@ export async function getEventCoverUrls(
   if (!user) return new Map();
 
   return readCoverUrls(supabase, eventIds, "dashboard: event covers");
+}
+
+/** How many stills a dashboard card dissolves through: its cover and three more. */
+export const CARD_STILLS = 4;
+
+/**
+ * THE HOSTED CARDS' COVERS AND THEIR CROSSFADE (`reel-host`, Will 2026-09-25: `pulse`, his note:
+ * "event cards having a crossfade background would be a cool effect... if they went in order one
+ * at a time"). Per event, the stills its card shows in turn: the cover first (`event_covers`, the
+ * newest approved photo, its preview when it has one), then the newest previewed photos
+ * (`event_stills`), none twice, at most `CARD_STILLS` (`cardStillKeys`). An event with no approved
+ * photo is absent, and its card falls back to the no-cover surface.
+ *
+ * Two jsonb answers for any number of events, the ids in the POST body, run together; every key
+ * is presigned here, once (a cover and a still of the same photo are one key), and `stable`, so a
+ * refresh inside the half hour hands the card the same urls and the browser its cached images.
+ * Keys never reach the browser.
+ */
+export async function getEventCardStills(
+  eventIds: string[],
+): Promise<Map<string, string[]>> {
+  const out = new Map<string, string[]>();
+  if (eventIds.length === 0) return out;
+
+  const { supabase, user } = await getRequestAuth();
+  if (!user) return out;
+
+  const ids = [...new Set(eventIds)];
+  const [covers, stills] = await Promise.all([
+    supabase.rpc("event_covers", { p_event_ids: ids }),
+    supabase.rpc("event_stills", {
+      p_event_ids: ids,
+      p_per_event: CARD_STILLS,
+    }),
+  ]);
+  if (covers.error) {
+    throw new QueryFailedError("dashboard: event covers", covers.error);
+  }
+  if (stills.error) {
+    throw new QueryFailedError("dashboard: event stills", stills.error);
+  }
+  const coverKeys = parseEventCovers(covers.data);
+  const stillKeys = parseEventStills(stills.data);
+
+  const keysByEvent = new Map<string, string[]>();
+  for (const id of ids) {
+    const keys = cardStillKeys(
+      coverKeys.get(id),
+      stillKeys.get(id),
+      CARD_STILLS,
+    );
+    if (keys.length > 0) keysByEvent.set(id, keys);
+  }
+  const unique = [...new Set([...keysByEvent.values()].flat())];
+  const signed = new Map(
+    await Promise.all(
+      unique.map(
+        async (key) =>
+          [key, await presignDownload({ key, stable: true })] as const,
+      ),
+    ),
+  );
+  for (const [id, keys] of keysByEvent) {
+    out.set(id, keys.map((key) => signed.get(key) ?? "").filter(Boolean));
+  }
+  return out;
 }
 
 /**

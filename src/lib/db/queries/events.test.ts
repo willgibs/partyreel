@@ -45,7 +45,9 @@ vi.mock("@/lib/supabase/request-auth", () => ({
 }));
 
 const {
+  CARD_STILLS,
   getEventCardStats,
+  getEventCardStills,
   getEventCoverUrls,
   getReelProgress,
   listEvents,
@@ -321,6 +323,83 @@ function newestBody(fn: string): string {
     .replace(/\s+/g, " ")
     .toLowerCase();
 }
+
+describe("getEventCardStills: each hosted card's cover and the stills it dissolves through", () => {
+  it("★ asks both functions once for every event, in the body, and leads each list with its cover", async () => {
+    const ids = Array.from({ length: 2500 }, (_, i) => uuid("e", i));
+    fake = createFakePostgrest({
+      rpc: {
+        event_covers: () => ({
+          [ids[0]]: { preview_key: "p-new", original_key: "o-new" },
+          [ids[1]]: { preview_key: null, original_key: "o-only" },
+        }),
+        event_stills: (args: Record<string, unknown>) => {
+          // The card's own cap, asked of the function, which clamps it again in SQL.
+          expect(args.p_per_event).toBe(CARD_STILLS);
+          return {
+            [ids[0]]: ["p-new", "p-2", "p-3", "p-4"],
+            [ids[2]]: ["q-1"],
+          };
+        },
+      },
+    });
+
+    const stills = await getEventCardStills(ids);
+
+    // The cover once, then the others, capped: the cover's preview is never a second still.
+    expect(stills.get(ids[0])).toEqual([
+      "signed:p-new",
+      "signed:p-2",
+      "signed:p-3",
+      "signed:p-4",
+    ]);
+    // A photo with no preview keeps its original as the cover, and nothing else to show.
+    expect(stills.get(ids[1])).toEqual(["signed:o-only"]);
+    // Stills with no cover still make a card's list.
+    expect(stills.get(ids[2])).toEqual(["signed:q-1"]);
+    // An event with no photo is absent: its card keeps the no-cover surface.
+    expect(stills.has(ids[3])).toBe(false);
+    expect(fake.requests.map((r) => r.name).sort()).toEqual([
+      "event_covers",
+      "event_stills",
+    ]);
+    for (const request of fake.requests) {
+      expect(request.method).toBe("POST");
+      expect(request.urlLength).toBeLessThan(200);
+    }
+  });
+
+  it("throws on either failed read rather than showing cards with no covers", async () => {
+    fake = createFakePostgrest({
+      rpc: {
+        event_covers: () => ({}),
+        event_stills: () => {
+          throw new FakeRpcError("42501", "permission denied");
+        },
+      },
+    });
+    await expect(getEventCardStills(["a"])).rejects.toThrow(
+      /dashboard: event stills/,
+    );
+    fake = createFakePostgrest({
+      rpc: {
+        event_covers: () => ({}),
+        event_stills: () => ({ a: "not a list" }),
+      },
+    });
+    await expect(getEventCardStills(["a"])).rejects.toThrow(/event_stills/);
+  });
+
+  it("reads nothing for no events or a signed-out caller", async () => {
+    fake = createFakePostgrest({
+      rpc: { event_covers: () => ({}), event_stills: () => ({}) },
+    });
+    expect((await getEventCardStills([])).size).toBe(0);
+    signedIn = false;
+    expect((await getEventCardStills(["a"])).size).toBe(0);
+    expect(fake.requests).toEqual([]);
+  });
+});
 
 describe("getReelProgress: how far each event's live reel is, counted to two", () => {
   /** An event row with `n` playable media embedded, the way PostgREST answers the embed. */

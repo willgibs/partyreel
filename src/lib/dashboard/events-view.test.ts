@@ -34,6 +34,7 @@ const row = (over: Partial<EventListRow>): EventListRow => ({
   name: "Event",
   href: "/dashboard/e",
   coverUrl: null,
+  stills: [],
   dateLabel: "No date set",
   sortDate: "2026-09-01T00:00:00.000Z",
   items: 0,

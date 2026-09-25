@@ -375,6 +375,15 @@ export default async function EventDetailPage({
           prettyUrl={prettyUrl}
           siteUrl={siteUrl}
           slugLocked={isSettingLocked("custom_slug", tier)}
+          // Settings shows the reel's looks on one of this album's own
+          // photographs: the reel's opening still, else the newest photo.
+          reelSample={
+            reelFace.stills[0] ??
+            visibleItems.find(
+              (m) => m.status === "approved" && m.type === "photo",
+            )?.previewUrl ??
+            null
+          }
         />
       </EventShareProvider>
     </div>
