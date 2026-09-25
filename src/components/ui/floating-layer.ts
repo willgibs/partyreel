@@ -125,13 +125,58 @@ export const floatingEdgeEntrance = [
  * edge is the only edge of it that is not the viewport's, so that edge — and
  * only that edge — takes `--radius-float` through the same token `floatingCorner`
  * reads. A radius typed here would be the tenth className nobody can hold.
+ *
+ * ★ IT STANDS ON THE KEYBOARD (door-flow: the door's sheet "feels super buggy
+ * when the mobile keyboard opens to type"). The sheet writes `--kb-inset`,
+ * `--vv-h` and `--vv-top` on itself only while a text field inside it holds
+ * focus on a touch screen (`src/lib/use-keyboard-inset.ts`). The phone half's
+ * foot sits on the keyboard's top edge and its ceiling is the visible area less
+ * 12px; the desk half, which a landscape phone reaches by width, spans exactly
+ * the visible band between the top of the visual viewport and the keyboard.
+ * With no field focused every variable falls back to exactly the posture every
+ * sheet had before: `bottom: 0`, `85svh` (always the smaller of the two
+ * ceilings), and a panel from `top: 0` to `bottom: 0`.
+ *
+ * ★ THE LIFT GLIDES ON `bottom`, `top` AND `max-height` ALONE, together (the
+ * ceiling snapping while the foot glides would drop the sheet's top edge for a
+ * frame before it rose: measured on an iPhone SE), spelled as the whole
+ * `transition` shorthand on purpose. A `duration-*` or `ease-*` utility here
+ * would also set `--tw-duration` / `--tw-ease`, which the entrance KEYFRAMES
+ * read, and retime every sheet's arrival; the shorthand leaves both alone (the
+ * entrance never used a transition on this element, so nothing else is taken
+ * from it).
  */
 export const floatingEdgeEntranceResponsive = [
-  "data-[side=responsive]:max-sm:inset-x-0 data-[side=responsive]:max-sm:top-auto data-[side=responsive]:max-sm:bottom-0 data-[side=responsive]:max-sm:h-auto data-[side=responsive]:max-sm:max-h-[85svh] data-[side=responsive]:max-sm:w-full data-[side=responsive]:max-sm:border-t",
+  "data-[side=responsive]:max-sm:inset-x-0 data-[side=responsive]:max-sm:top-auto data-[side=responsive]:max-sm:bottom-[var(--kb-inset,0px)] data-[side=responsive]:max-sm:h-auto data-[side=responsive]:max-sm:max-h-[min(85svh,calc(var(--vv-h,100svh)_-_12px))] data-[side=responsive]:max-sm:w-full data-[side=responsive]:max-sm:border-t",
+  "data-[side=responsive]:[transition:bottom_200ms_var(--ease-emphasis),top_200ms_var(--ease-emphasis),max-height_200ms_var(--ease-emphasis)]",
   "data-[side=responsive]:max-sm:rounded-t-float",
-  "data-[side=responsive]:sm:inset-y-0 data-[side=responsive]:sm:right-0 data-[side=responsive]:sm:h-full data-[side=responsive]:sm:w-3/4 data-[side=responsive]:sm:max-w-md data-[side=responsive]:sm:border-l",
+  "data-[side=responsive]:sm:top-[var(--vv-top,0px)] data-[side=responsive]:sm:bottom-[var(--kb-inset,0px)] data-[side=responsive]:sm:right-0 data-[side=responsive]:sm:h-auto data-[side=responsive]:sm:w-3/4 data-[side=responsive]:sm:max-w-md data-[side=responsive]:sm:border-l",
   "data-[side=responsive]:max-sm:data-open:slide-in-from-bottom-10 data-[side=responsive]:max-sm:data-closed:slide-out-to-bottom-10",
   "data-[side=responsive]:sm:data-open:slide-in-from-right-10 data-[side=responsive]:sm:data-closed:slide-out-to-right-10",
+].join(" ")
+
+/**
+ * THE SHEET'S FOOT WHILE THE KEYBOARD IS UP: the primary action sticks to the
+ * bottom of the sheet's scrollport, on an opaque ground with a short fade above
+ * it, so the button that sends what is being typed never scrolls out of reach
+ * on a short phone. It reads the sheet's own `data-keyboard` through
+ * `in-data-keyboard:`, so anywhere else (a desk, a sheet nobody is typing in,
+ * `/login`) it is inert: the same button in the same place as before.
+ *
+ * Wear it on a wrapper around the primary, never the button itself (whose
+ * rounded corners would show the content scrolling behind them), marked
+ * `data-sheet-primary` so the keyboard hook knows where the foot begins when
+ * it scrolls a field into view above it. The foot carries its own bottom
+ * space (`pb-4`, on its opaque ground), because a sticky element stops at the
+ * scroller's padding edge and content would show through the padding under it:
+ * a sheet drops its own bottom padding while `data-keyboard="open"`. It stays
+ * in the flow under `data-keyboard="tight"` (a landscape phone, where a stuck
+ * foot would sit on the field itself). An `overflow: hidden` ancestor between
+ * the wrapper and the sheet defeats `sticky`; use `overflow: clip` there.
+ */
+export const floatingKeyboardFoot = [
+  "in-data-[keyboard=open]:sticky in-data-[keyboard=open]:bottom-0 in-data-[keyboard=open]:z-10 in-data-[keyboard=open]:bg-popover in-data-[keyboard=open]:pt-2 in-data-[keyboard=open]:pb-4",
+  "in-data-[keyboard=open]:before:pointer-events-none in-data-[keyboard=open]:before:absolute in-data-[keyboard=open]:before:inset-x-0 in-data-[keyboard=open]:before:bottom-full in-data-[keyboard=open]:before:h-4 in-data-[keyboard=open]:before:bg-linear-to-t in-data-[keyboard=open]:before:from-popover in-data-[keyboard=open]:before:to-transparent in-data-[keyboard=open]:before:content-['']",
 ].join(" ")
 
 /**

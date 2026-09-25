@@ -79,7 +79,7 @@ export const RULINGS: Ruling[] = [
       "docs/systems/guest-flow.md",
       "src/components/guest/entry-modal.tsx",
       "src/components/guest/guest-name-step.tsx",
-      "src/components/guest/enter-event-prompt.tsx",
+      "src/components/guest/identify-step.tsx",
       "src/components/guest/guest-name-menu.tsx",
       "src/components/guest/add-email-dialog.tsx",
       "src/components/auth/account-door.tsx",

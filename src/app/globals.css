@@ -723,14 +723,13 @@
     }
   }
 
-  /* The password sub-panel in event settings, the entry-modal steps (welcome/password/account, each
-     re-keyed so it crossfades on every step change), the OTP code-entry crossfade (email -> "enter your
+  /* The password sub-panel in event settings, the OTP code-entry crossfade (email -> "enter your
      code", in <EmailSignIn>), and the custom-link live availability status line (re-keyed per verdict in
      <EventSlugControl>) ease in when revealed: opacity + a small rise, @starting-style so it fires on
-     mount only. Never scale from 0. transform+opacity only; reduced motion gets no movement. */
+     mount only. Never scale from 0. transform+opacity only; reduced motion gets no movement. (The
+     guest door's steps ease in the same way from their own door.css.) */
   @media (prefers-reduced-motion: no-preference) {
     [data-settings-reveal],
-    [data-entry-step],
     [data-otp-entry],
     [data-slug-status] {
       transition:
@@ -828,88 +827,6 @@
       @starting-style {
         opacity: 0;
       }
-    }
-  }
-
-  /* The entry steps hand off DIRECTIONALLY inside one height-animated
-     container (entry-step-transition.tsx, Phase 4.5): forward enters from
-     the right, back from the left (overriding the shared rise above; the
-     first layer of a mount carries no data-dir and keeps the rise). The
-     outgoing step leaves a static clone that fades the OPPOSITE way - an
-     INVERTED @starting-style: it mounts visible and transitions to hidden.
-     Reduced motion simply never shows the exit clone. */
-  @media (prefers-reduced-motion: no-preference) {
-    [data-entry-step][data-dir="fwd"] {
-      @starting-style {
-        opacity: 0;
-        transform: translateX(16px);
-      }
-    }
-    [data-entry-step][data-dir="back"] {
-      @starting-style {
-        opacity: 0;
-        transform: translateX(-16px);
-      }
-    }
-    [data-entry-exit] {
-      opacity: 0;
-      transition:
-        opacity 160ms var(--ease-emphasis),
-        transform 160ms var(--ease-emphasis);
-      @starting-style {
-        opacity: 1;
-        transform: none;
-      }
-    }
-    [data-entry-exit][data-exit-dir="fwd"] {
-      transform: translateX(-16px);
-    }
-    [data-entry-exit][data-exit-dir="back"] {
-      transform: translateX(16px);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    [data-entry-exit] {
-      display: none;
-    }
-  }
-
-  /* The RATIFIED welcome presence ("tall ~55svh", the Calm arrival): inside
-     the phone sheet the invitation stands toward screen center instead of
-     hugging the bottom edge (Will's "eyes go to center"). Drawer-scoped: the
-     desktop dialog stays content-height. The step container's height
-     transition turns the welcome -> gate shrink into the same glide. */
-  [data-entry-drawer] [data-welcome-step] {
-    min-height: 55svh;
-  }
-
-  /* The guest entry SHEET (Vaul, Phase 4.5): vaul's 500ms iOS-curve motion
-     lives in its INJECTED STYLESHEET - and with no snapPoints the open/close
-     runs on KEYFRAME ANIMATIONS (slideToBottom / fadeOut), NOT the transition
-     (that drives drag-release snap-back, which happens under
-     data-state="open" and stays untouched here). So the exits-faster rule
-     must override animation-duration (transition-duration kept as
-     belt-and-braces); !important + the data-state="closed" scope keep it
-     surgical. The ENTER keeps vaul's native 500ms drawer curve: the arrival
-     is a sanctioned rare/first-time moment (the craft standard's exception
-     to the under-300ms rule). */
-  @media (prefers-reduced-motion: no-preference) {
-    [data-entry-drawer][data-state="closed"] {
-      animation-duration: 250ms !important;
-      transition-duration: 250ms !important;
-    }
-    [data-entry-overlay][data-state="closed"] {
-      animation-duration: 200ms !important;
-      transition-duration: 200ms !important;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    /* The global clamp already covers the keyframes; this adds the
-       transition side (drag-release) for the entry surface explicitly. */
-    [data-entry-drawer],
-    [data-entry-overlay] {
-      animation-duration: 0.01ms !important;
-      transition-duration: 0.01ms !important;
     }
   }
 

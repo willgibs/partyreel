@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 /**
  * THE CONTINUOUS STEP CONTAINER. Swapping the entry steps by bare key-remount
@@ -15,7 +15,7 @@ import { useEffect, useRef, useState } from "react";
  *   inside the overlay - the sanctioned exception to transform-only motion.
  * - DIRECTION: the incoming step enters from the side it narratively comes
  *   from (fwd = right, back = left) via the [data-entry-step][data-dir]
- *   @starting-style variants in globals.css. The FIRST layer of a mount gets
+ *   @starting-style variants in door.css. The FIRST layer of a mount gets
  *   no direction (the base rise) - nothing was there to hand off from.
  * - EXIT: the outgoing step leaves a STATIC clone of its final DOM behind
  *   (captured in the unmounting layer's effect cleanup, which runs before the
@@ -23,6 +23,17 @@ import { useEffect, useRef, useState } from "react";
  *   are stripped so it can never be focused, submitted, or matched by
  *   assistive tech or tests. It mounts visible and transitions to hidden
  *   ([data-entry-exit]'s INVERTED @starting-style), then removes itself.
+ *
+ * - CLIPPED, NOT A SCROLLER: the container clips with `overflow: clip`, which
+ *   establishes no scroll container, so a step's primary action can stick to
+ *   the SHEET's foot while the keyboard is up (`floatingKeyboardFoot`); an
+ *   `overflow: hidden` here would make this box its scrollport and the sticky
+ *   foot would never stick. `hidden` stays underneath as the class, for an
+ *   engine that has no `clip`.
+ * - A FOCUSED FIELD NEVER LEAVES WITH ITS STEP: the outgoing layer blurs one
+ *   before its node is removed (door-flow's focus rules). The steps let go of
+ *   focus themselves before they hand forward; this is the last resort, so a
+ *   removed input can never take the iOS keyboard down mid-transition.
  *
  * The container reads `direction` from a data attribute at cleanup time:
  * React commits the attribute update BEFORE running the old layer's cleanup,
@@ -62,10 +73,14 @@ export function EntryStepTransition({
     <div
       ref={containerRef}
       data-dir={direction}
-      className="relative overflow-hidden"
+      // shrink-0: the sheet around this is a flex column with a ceiling, and a flex item may shrink
+      // below its height; this box would then clip its own step instead of letting the SHEET scroll
+      // (measured with the keyboard up on an iPhone SE: the ghost line sat clipped and unreachable).
+      className="relative shrink-0 overflow-hidden"
       style={{
         height: height ?? undefined,
         transition: "height 300ms var(--ease-in-out-strong)",
+        overflow: "clip",
       }}
     >
       <div ref={innerRef}>
@@ -96,6 +111,18 @@ function StepLayer({
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
+  // The last resort for "never unmount a focused field": a layout effect's cleanup runs before
+  // React removes this layer's node, so a field still holding focus lets go while it is attached.
+  useLayoutEffect(() => {
+    const el = ref.current;
+    return () => {
+      const active = document.activeElement;
+      if (el && active instanceof HTMLElement && el.contains(active)) {
+        active.blur();
+      }
+    };
+  }, []);
+
   useEffect(() => {
     const el = ref.current;
     // The container div is identity-stable for the layer's whole life, so
@@ -108,8 +135,7 @@ function StepLayer({
       // captures its final DOM) from a dev StrictMode setup->cleanup->setup
       // cycle (the node is still live - cloning it would paint a ghost
       // duplicate over the real content on every step in dev).
-      if (!el || el.isConnected || !container || !container.isConnected)
-        return;
+      if (!el || el.isConnected || !container || !container.isConnected) return;
       const exitDir = container.dataset.dir ?? "fwd";
       const clone = el.cloneNode(true) as HTMLElement;
       clone.removeAttribute("data-entry-step");
