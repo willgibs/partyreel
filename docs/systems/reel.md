@@ -84,11 +84,11 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
   whose link is still on its way leaves the tile's own ground showing for a beat while the rest fade in over it. Its
   corner is a glyph (a 24px glass-mark disc holding a 12px clapperboard), and the violet "Make your own clip to
   share" under the heading renders only once a creator is registered AND the host's plan was read: a control of its
-  own, lifted above the tile's watch layer (a button cannot hold a button), that opens the creator directly. ★
-  **`className` IS THE CALLER'S BOX, NEVER THE CARD'S**: the page hands the tile its column (the words' measure) and
-  its margins, and the watch layer and the press's scale live on the card inside that box, so a tap in the gutter
-  stays the page's. A tap on the card opens the view (a pointer over it warms the view's chunk); it stays after
-  uploads close.
+  own, lifted above the tile's watch layer (a button cannot hold a button), that opens the creator directly.
+  ★ **`className` IS THE CALLER'S BOX, NEVER THE CARD'S**: the page hands the tile its column (the words'
+  measure) and its margins, and the watch layer and the press's scale live on the card inside that box, so a
+  tap in the gutter stays the page's. A tap on the card opens the view (a pointer over it warms the view's
+  chunk); it stays after uploads close.
 - **The view** ([`reel/live-reel-view.tsx`](../../src/components/guest/reel/live-reel-view.tsx), `React.lazy`, ONE
   import promise shared by the warm-up and the lazy boundary) is a full-bleed Radix dialog over the player in `fill`,
   following the viewport's orientation. ★ **HELD INSIDE THE OVERLAY, THE PAGE'S SCROLL LOCK**: Radix locks the page
