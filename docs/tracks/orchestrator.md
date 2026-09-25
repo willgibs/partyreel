@@ -37,7 +37,7 @@ through `scripts/build-lock.sh` (the kit's gate takes it itself). Batch 2 is cut
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `reel-host-wiring` | the host's reel side (the Reel card counting to two, one review number, the Highlight reel section, the band and the cards' crossfade, the Studio's host pieces out) and the wide host pages | working (agent `a7a1fff0cd8e82d51`); syncs past the migration lane when announced | Opus, :3133 | HOLD unmerged for the stretch |
+| `reel-host-wiring` | the host's reel side (the Highlight reel card counting to two with its guidance, one review number, the Highlight reel section in Settings, the band's reel step and the cards' crossfade, the Studio's host pieces out) and the wide host pages | handed off at `c8af4435`; HOLD unmerged (agent `a7a1fff0cd8e82d51`); its lane check names five comment-or-test exceptions outside its owns (the Library's `gallery-demos.tsx`, `use-reel-config.test.tsx`, three stale comments) | Opus, :3133 | integrate second in the stretch; its ten calls under Questions are Will's to overrule (the card's name and lines, the band's step at one photo, the bell's count, Settings' graded stills, the crossfade on every hosted card at 3.5 s, the 375 cards grid, the take over 96 items) |
 | `reel-guest-wiring` | the live reel's guest side with batch 2: the window start, the code toggle at 1024 and up, the view live only at two (the code on a drop), the owner's extras (Play on a screen, Set for everyone, Close back), the hold per event over the host's default, "clip", the 12px phone gutter | handed off at `7d5bfb32` (synced past the migration; gate green on `a3c4eb53`); HOLD unmerged (agent `a744f57e3c4cbd81f`) | Opus, :3137 | integrate first in the stretch; the owner's extras, fullscreen and the wake lock prove on its alias build; its two calls (the pill without fullscreen, "Everyone sees this look") are Will's to overrule |
 
 ## Next, in order
@@ -48,7 +48,8 @@ through `scripts/build-lock.sh` (the kit's gate takes it itself). Batch 2 is cut
 2. **After the sitting**: cut `reel-clip-wiring` (Opus; the creator, the bench as picked, the finish as amended, the
    Studio's `src/components/reel/` pieces out, the client adds), `reel-sweep` (Opus; the copy from `reel-story`, help,
    legal, admin, docs, `docs/systems/reel.md`) and `reel-teardown` (Sonnet; `reel_clip_add`; the stored files' end);
-   the guest lane's last re-open (`reel-front` r2, the creator seam). The stretch integrates guest, host, clip,
+   the guest lane's last re-open (`reel-front` r2, the creator seam, and the live take made sub-quadratic: the host lane
+   measured `planTake` at 48 ms for 1,200 items and a second at 6,000, so the hub reads a 96-item spread). The stretch integrates guest, host, clip,
    teardown, sweep, synced; one `[preview]` (build 9); the red-team; the drop migration on Will's yes; the one-shot
    R2 sweep; the reel boards and ledgers retire after their manifests close.
 3. **`album-rows-wiring`** (Opus): every surface to rows with `album-columns` r2's picks, the jump-free first paint,
