@@ -106,7 +106,7 @@ it rather than fork it.
   Origin, R2 answers without `Access-Control-Allow-Origin` (and without `Vary: Origin`), and the browser caches that
   under the SAME URL the stable scheme shares; a later `fetch(mode: "cors")` reads the poisoned entry and fails with a
   bare "Failed to fetch" and no console error. The reel engine's asset loader and video window reader, and the viewer's
-  Share and Save to Photos, fetch with `cache: "no-store"`, and so does any new CORS reader of gallery presigns. R2's
+  Share and Save, fetch with `cache: "no-store"`, and so does any new CORS reader of gallery presigns. R2's
   403s carry no CORS headers either, so an EXPIRED presign read by a CORS fetch looks like a CORS failure.
 
 ## Rendering media

@@ -71,4 +71,4 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 ## Waiting on Will
 
 - **His sitting on build 10**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
-- **A 10-second iPhone check** on the album: a shared photo arrives as a photograph.
+- **A 10-second iPhone check** on build 11: one tap on Save opens the system sheet; a shared photo arrives as one.
