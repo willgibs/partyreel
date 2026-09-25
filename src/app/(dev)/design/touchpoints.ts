@@ -225,7 +225,7 @@ export const RULINGS: Ruling[] = [
     lives: [
       "docs/systems/guest-flow.md",
       "src/components/guest/event-experience.tsx",
-      "src/components/guest/guest-reel-card.tsx",
+      "src/components/guest/reel/live-reel.tsx",
       "src/components/reel/poster-card.tsx",
       "src/components/guest/entry-shell.tsx",
       "src/app/(app)/dashboard/[eventId]/page.tsx",
@@ -424,7 +424,7 @@ export const RULINGS: Ruling[] = [
     why: "The view a tap on the album's tile or ?reel opens; its chrome fades until the pointer moves, with Include videos and the style switch beside it.",
     lives: [
       "docs/systems/guest-flow.md",
-      "src/components/guest/guest-reel-overlay.tsx",
+      "src/components/guest/reel/live-reel-view.tsx",
       "src/lib/reel/engine/player.tsx",
     ],
     board: {
@@ -577,11 +577,9 @@ export const RULINGS: Ruling[] = [
     why: "A clip is anyone's, made on the device from the live reel and never stored; round two designs its moments and looks into the bench he picked.",
     lives: [
       "docs/systems/host-app.md",
-      "src/components/reel/reel-studio.tsx",
-      "src/components/reel/studio-moments-picker.tsx",
-      "src/components/reel/style-rail.tsx",
-      "src/components/reel/reel-stitching-dialog.tsx",
-      "src/components/guest/guest-reel-overlay.tsx",
+      "src/components/reel/clip-creator.tsx",
+      "src/components/reel/clip-finish.tsx",
+      "src/components/guest/reel/creator-seam.ts",
       "src/lib/reel/engine/registry.ts",
     ],
     board: {

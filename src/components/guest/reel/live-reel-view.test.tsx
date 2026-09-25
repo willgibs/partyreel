@@ -5,8 +5,10 @@
  *   movement, or a tap on the bar, brings it back; every control is labelled (the tooltips hang off
  *   those labels).
  * - The controls: one row of icon buttons, Add yours an icon, "Make your own" the one primary
- *   beneath, only with a creator AND the host's plan in hand; Include videos only where the album
- *   holds a video.
+ *   beneath, only with a creator AND the host's plan in hand (on a browser that cannot encode it
+ *   stays, greyed, and a tap bubbles up why); Include videos only where the album holds a video.
+ * - The creator: opened from Make your own, or on arrival when the tile's line asked for it, and
+ *   handed everything it needs (the event's name, who is making it, the plan's facts).
  * - The keyboard: Space pauses, Escape closes, the arrows step.
  * - The hold (3 s default) and the style are the viewer's own, kept on this device and handed to the
  *   engine as a factor per mood.
@@ -39,8 +41,13 @@ const h = vi.hoisted(() => ({
   exitFullscreen: vi.fn(async () => {}),
   isFullscreen: vi.fn(() => true),
   fullscreenListeners: [] as (() => void)[],
-  wake: { acquire: vi.fn(async () => true), release: vi.fn(), wanted: vi.fn(() => true) },
+  wake: {
+    acquire: vi.fn(async () => true),
+    release: vi.fn(),
+    wanted: vi.fn(() => true),
+  },
   lightbox: null as null | Record<string, unknown>,
+  support: "yes" as "checking" | "yes" | "no",
 }));
 
 vi.mock("@/components/guest/gallery-live", () => ({
@@ -54,8 +61,9 @@ vi.mock("@/lib/reel/engine/player-live", () => ({
       moment: h.moment,
     }));
     const onClipChange = props.onClipChange as (i: LiveMediaItem) => void;
-    const first = (props.source as { itemFor: (id: string) => LiveMediaItem })
-      .itemFor("m1");
+    const first = (
+      props.source as { itemFor: (id: string) => LiveMediaItem }
+    ).itemFor("m1");
     useEffect(() => {
       if (first) onClipChange(first);
       // Once, as the first clip reaches the screen.
@@ -80,6 +88,11 @@ vi.mock("@/components/likes/likes-provider", () => ({
 }));
 vi.mock("@/lib/observability/sentry", () => ({
   captureWarning: (...args: unknown[]) => h.captureWarning(...args),
+}));
+// The device's answer, by hand: jsdom has no WebCodecs, and the probe itself is clip-support's own.
+vi.mock("@/lib/reel/clip-support", () => ({
+  useClipSupport: (enabled: boolean) => (enabled ? h.support : "checking"),
+  probeClipSupport: async () => h.support === "yes",
 }));
 vi.mock("@/lib/guest/screen-posture", () => ({
   canFullscreen: () => h.canFullscreen(),
@@ -147,6 +160,7 @@ function renderView(props: Partial<Props> = {}) {
     mode: "hand",
     idle: false,
     eventId: "event-1",
+    eventName: "Maya & Jay",
     joinUrl: "https://partyreel.com/e/qr-token",
     displayAddress: "partyreel.com/e/party",
     qrStyle: "classic",
@@ -177,6 +191,7 @@ beforeEach(() => {
   h.wake.acquire.mockClear();
   h.wake.release.mockClear();
   h.fullscreenListeners.length = 0;
+  h.support = "yes";
 });
 
 afterEach(() => {
@@ -199,7 +214,9 @@ describe("the chrome (the thin bar)", () => {
     vi.useFakeTimers();
     renderView();
     act(() => vi.advanceTimersByTime(2600));
-    fireEvent.click(screen.getByRole("button", { name: "Show the reel's controls" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Show the reel's controls" }),
+    );
     expect(dock()).toHaveAttribute("data-state", "up");
     fireEvent.click(screen.getByRole("button", { name: "Hide the controls" }));
     expect(dock()).toHaveAttribute("data-state", "rest");
@@ -246,12 +263,91 @@ describe("the chrome (the thin bar)", () => {
     renderView({ creator: Creator });
     expect(screen.queryByRole("button", { name: "Make your own" })).toBeNull();
   });
+
+  it("hands the creator the event's name, who is making it and the plan's facts", () => {
+    const seen: Record<string, unknown>[] = [];
+    const Creator = (props: Record<string, unknown>) => {
+      seen.push(props);
+      return <div data-testid="creator" />;
+    };
+    const ownIds = new Set(["m2"]);
+    h.live = live({ ownIds });
+    const add = vi.fn();
+    renderView({
+      creator: Creator,
+      addClipToAlbum: add,
+      isOwner: true,
+      moderated: true,
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Make your own" }));
+    const props = seen.at(-1)!;
+    expect(props.eventName).toBe("Maya & Jay");
+    expect(props.eventId).toBe("event-1");
+    expect(props.isOwner).toBe(true);
+    expect(props.moderated).toBe(true);
+    expect(props.ownIds).toBe(ownIds);
+    expect(props.addClipToAlbum).toBe(add);
+    expect(props.facts).toEqual(REEL.clip);
+  });
+
+  it("keeps Make your own on a browser that cannot encode, greyed, and says why on a tap", () => {
+    vi.useFakeTimers();
+    h.support = "no";
+    const Creator = () => <div data-testid="creator" />;
+    renderView({ creator: Creator });
+    const door = screen.getByRole("button", { name: "Make your own" });
+    expect(door).toHaveAttribute("aria-disabled", "true");
+    // Nothing over the reel until she asks.
+    expect(screen.queryByRole("status")).toBeNull();
+    fireEvent.click(door);
+    expect(screen.queryByTestId("creator")).toBeNull();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "This browser can't make clips. Open the album on another device to make one.",
+    );
+    // The reel keeps playing: a door that explains is not a door that opens.
+    expect(h.player?.paused).toBe(false);
+    act(() => {
+      vi.advanceTimersByTime(4300);
+    });
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+
+  it("opens the creator on arrival when the tile's line asked for it, once", async () => {
+    const Creator = () => <div data-testid="creator" />;
+    const spent = vi.fn();
+    renderView({
+      creator: Creator,
+      creatorAsked: true,
+      onCreatorAskSpent: spent,
+    });
+    await act(async () => {});
+    expect(screen.getByTestId("creator")).toBeInTheDocument();
+    expect(spent).toHaveBeenCalledTimes(1);
+  });
+
+  it("asked for on a browser that cannot encode, it opens on the reel with the door explaining", async () => {
+    h.support = "no";
+    const Creator = () => <div data-testid="creator" />;
+    renderView({
+      creator: Creator,
+      creatorAsked: true,
+      onCreatorAskSpent: vi.fn(),
+    });
+    await act(async () => {});
+    expect(screen.queryByTestId("creator")).toBeNull();
+    expect(dock()).toHaveAttribute("data-state", "up");
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "This browser can't make clips.",
+    );
+  });
 });
 
 describe("the keyboard", () => {
   it("Space pauses and plays, the arrows step, Escape closes", () => {
     const { props } = renderView();
-    const content = document.querySelector<HTMLElement>("[data-live-reel-view]")!;
+    const content = document.querySelector<HTMLElement>(
+      "[data-live-reel-view]",
+    )!;
     content.focus();
     expect(h.player?.paused).toBe(false);
     fireEvent.keyDown(content, { key: " " });
@@ -487,20 +583,31 @@ describe("the owner's Set for everyone", () => {
     const onSetForEveryone = vi.fn(async () => true);
     renderView({ isOwner: true, onSetForEveryone });
     openStyle();
-    expect(screen.getByText("Only on this device, for now")).toBeInTheDocument();
+    expect(
+      screen.getByText("Only on this device, for now"),
+    ).toBeInTheDocument();
     await act(async () => {
-      fireEvent.click(screen.getByRole("menuitem", { name: "Set for everyone" }));
+      fireEvent.click(
+        screen.getByRole("menuitem", { name: "Set for everyone" }),
+      );
     });
-    expect(onSetForEveryone).toHaveBeenCalledWith({ styleId: "mono", holdSec: 5 });
+    expect(onSetForEveryone).toHaveBeenCalledWith({
+      styleId: "mono",
+      holdSec: 5,
+    });
     expect(screen.getByText("Everyone sees this look")).toBeInTheDocument();
-    expect(screen.queryByRole("menuitem", { name: "Set for everyone" })).toBeNull();
+    expect(
+      screen.queryByRole("menuitem", { name: "Set for everyone" }),
+    ).toBeNull();
   });
 
   it("with the event's own defaults on screen there is nothing to set", () => {
     renderView({ isOwner: true, onSetForEveryone: vi.fn(async () => true) });
     openStyle();
     expect(screen.getByText("Everyone sees this look")).toBeInTheDocument();
-    expect(screen.queryByRole("menuitem", { name: "Set for everyone" })).toBeNull();
+    expect(
+      screen.queryByRole("menuitem", { name: "Set for everyone" }),
+    ).toBeNull();
   });
 
   it("a refused set leaves the look this device's", async () => {
@@ -508,9 +615,13 @@ describe("the owner's Set for everyone", () => {
     renderView({ isOwner: true, onSetForEveryone: vi.fn(async () => false) });
     openStyle();
     await act(async () => {
-      fireEvent.click(screen.getByRole("menuitem", { name: "Set for everyone" }));
+      fireEvent.click(
+        screen.getByRole("menuitem", { name: "Set for everyone" }),
+      );
     });
-    expect(screen.getByText("Only on this device, for now")).toBeInTheDocument();
+    expect(
+      screen.getByText("Only on this device, for now"),
+    ).toBeInTheDocument();
   });
 
   it("a guest's Style list carries no footer at all", () => {
@@ -524,7 +635,9 @@ describe("the owner's Set for everyone", () => {
 describe("the desk's extras", () => {
   it("the code toggle lives at a desk only", () => {
     const { unmount } = renderView();
-    expect(screen.getByRole("button", { name: "Show the code" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Show the code" }),
+    ).toBeInTheDocument();
     unmount();
     setViewportWidth(375);
     renderView();
@@ -546,11 +659,15 @@ describe("the desk's extras", () => {
 
   it("a guest never gets it, and neither does the owner on a phone", () => {
     const { unmount } = renderView();
-    expect(screen.queryByRole("button", { name: "Play on a screen" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Play on a screen" }),
+    ).toBeNull();
     unmount();
     setViewportWidth(375);
     renderView({ isOwner: true });
-    expect(screen.queryByRole("button", { name: "Play on a screen" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Play on a screen" }),
+    ).toBeNull();
     setViewportWidth(1024);
   });
 });
@@ -566,8 +683,8 @@ describe("never silent", () => {
       "live reel: frames failing",
       expect.objectContaining({ eventId: "event-1", failures: 12 }),
     );
-    expect(
-      (h.live as GalleryLive).reportPossibleExpiry,
-    ).toHaveBeenCalledTimes(30);
+    expect((h.live as GalleryLive).reportPossibleExpiry).toHaveBeenCalledTimes(
+      30,
+    );
   });
 });
