@@ -39,6 +39,7 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `album-guest-wiring` | the guest album, viewer, reel and profile feeds onto the paged, windowed rows with r2's picks; `planTake` sub-quadratic; the perf harness's `--page` mode; build 9's two reel findings in its files (the view's scroll lock, the tile's hit area) | building (agent `a4f93b6854568e16f`) | Opus, :3131 | its `guest-flow.md` lines through the Handoff |
+| `crumbs-2` | the stored reel's last code after the drop and the sweep (`reelOutputKey`, its two appends, the sweep script, stale comments and fixtures); the `voice-guest` board's door stylesheet | building (agent `af596085cbe6e2577`) | Sonnet, :3135 | rides the build after its merge; build 10 never waits for it |
 
 Merged tonight (their records carry the rest): reel-guest-wiring, reel-host-wiring, mark-r3, story-r2, door-r2,
 album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hardening, reel-sweep, door-flow,
