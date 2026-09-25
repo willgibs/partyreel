@@ -17,6 +17,10 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The album: the viewer asks the links route once per step (the link store batches per tick only, `src/lib/album/links.ts`), so a held arrow key walking the 1,145-photo probe made 1,092 asks and a photograph 100 steps on waited 1 to 6 s for its link on localhost's six connections; coalesce a burst's asks (from `album-guest-wiring`).
+- The album: the rows engine settles near-ties on the last bit of `Math.log` and `**`, which Node and a browser round differently (5 to 10% of inputs); the first paint hydrates with the server's plan, but a second laying of the same rows in another engine can still break differently; make `layoutRows`' cost comparisons tie-robust in `src/lib/shared/album-rows.ts` (from `album-guest-wiring`).
+- Code hygiene: `TILE_SIZES`, `resolveTileSize`, `useTileSize` and `TileSizeControl` serve only the Library's gallery demos now that every album is rows; retire them with the demos' control (from `album-guest-wiring`).
+- Code hygiene: `src/components/ui/dialog.tsx`'s `fullScreen` comment says Radix's scroll lock lives on Content; it lives on the Overlay, which `fullScreen` omits, so a takeover built on it scrolls the page under it and keeps a desk's scrollbar (no product surface uses it today; the reel view's fix is the shape) (from `album-guest-wiring`).
 - Host: at phone width Deleted offers no Restore or Delete permanently (the tile's pane is desk-only and the bin's viewer is read-only), so a host on her phone can open the bin and act on nothing in it; the bin's viewer takes the two verbs, as the album's viewer takes the album's (from `album-host-wiring`).
 - The lab: the `voice-guest` board's welcome frame still lacks the 55svh presence after `crumbs` keyed its quote to `data-entry-sheet`: `door.css` loads only with `entry-shell.tsx`, which the board never renders, so no stylesheet on the board carries the rule (measured at 375: the welcome step's min-height 0px); the board imports `@/components/guest/door.css`, and `scene.tsx`'s comment that door.css applies becomes true.
 - The lab: the door board's keyboard (`KEYBOARD_H` 335 in `sandbox/identity-door/keyboard.tsx`) measured 337pt on the iPhone 17 (iOS 26.5; the email and code keyboards 310) and 227pt on the SE (iOS 17.5; 183); true it with the look's wiring.
@@ -29,10 +33,7 @@ below hold the rest by surface.
 - Guest door: at a password event the winning `identity-door` look shows no photograph before the unlock (`peek` face-down prints, `ticket` the ghost river, `lit` the house five); the look's wiring carries it (from `door-r2`).
 - Albums: prune `album_changes` tombstones (one row per item ever, a purged item's included) with a per-event watermark that answers resync below it, as a job with its `/admin` health signal (from `album-pages`).
 - Album: the count row could carry the guest's own share as a quiet phrase that is the filter ("28 photos & videos · 8 yours"), so Yours is in plain sight whichever mark wins (today it is two taps into View); from `mark-r3`.
-- Host: the lightbox's pending Approve branch can never render (`src/components/shared/media-lightbox`); remove it or give it a door (from `reel-host-wiring`).
-- Guest: `src/components/guest/yours-filter.ts` moves into `src/lib/guest/` beside the other gallery arithmetic (`merge-gallery-items`, `reconcile-gallery-items`).
 - Guest: the approval toast's server half, so an upload approved after the visit that made it is told on the next visit (the queue lives in memory).
-- Album: switch each surface to `layout="rows"` once the reel lanes owning the pages merge (the guest album, the host feed, bulk select through `AlbumRows`, the bin, the profile feeds, the skeletons, the five steps in `pr_tile_size` and the View menu, a jump-free first paint), with `album-columns` r2's picks; the needs list is lp/album-rows' Handoff (merged at `30ac9b74`).
 - The lab and the kit: the lab shell's `:has()` rule invalidates the whole page subtree on any DOM insertion (about 7,800 elements restyled per album arrival inside a board, masonry and rows alike); scope it.
 - Album: a photo that wraps from the end of one row to the start of the next glides diagonally across the album; a crossfade at both ends may read calmer (an `album-columns` arrival refinement, from `album-rows`).
 - The lab and the kit: `lab:demo --save-shots` keeps only a stage's largest frame, so a board that draws a laptop and phones per option reaches the review sheet without its phones; save every frame, named by its title (from `clip-bench`).
@@ -52,9 +53,6 @@ below hold the rest by surface.
 - The lab and the kit: `fake-postgrest` reads a dotted filter on a to-many embed (`media.status` on `events -> media`) as a filter on the parent and drops the row; teach it to filter the embedded rows, so `pulse.ts`' strip read can take the plain `.eq("media.status", ...)` form.
 - Admin: the album drill-in (`/admin/albums/[eventId]`) reads and presigns every item; a paged drill-in past a few thousand items.
 - Performance: `standby_hosts` (like the `removed_media` sweep) scans every removed row platform-wide on each page; past about a million media rows a partial index on removed media (`where status = 'removed'`) keeps the nightly host discovery an index scan.
-- Albums: the host's and the guest's album, and the guest poll, read every row on each load (a round trip per 1,000 and three presigns per item); past a few thousand items a paged album (a manifest with links by window, and a delta poll, built; the surfaces wire it) replaces the whole read.
-- Guest: the gallery poll's 304 still reads the whole album and the uploader-identity sweep before it compares the ETag; a per-event change signal (a version bumped by the triggers that ring the doorbell) makes a quiet poll one query.
-- Performance: a presign cache keyed on (key, disposition, 30-minute bucket): each bucket roll re-presigns every album for every poller.
 - Profile: My uploads and My likes stop at 200 with an honest note (`get_my_uploads`, `get_my_likes`); a cursor and a load-more.
 - Engineering: one drop-aware migration reader shared by `row-cap-policy.test.ts`, `row-cap-sql.test.ts` and `migration-guards.test.ts` (each has its own; `latestDefinition` sees creates only).
 - Host: `restore_event`'s `media_still_removed` (20260729190000, line 441) counts a guest's withdrawals too; no screen shows it today, and a future "N items stay in Deleted" line must count `removed_by_uploader = false` only.
@@ -172,11 +170,9 @@ Marketing:
 
 The app:
 - Host: `lib/shared/use-active-section.ts` and `event-feed/event-filter-pills.tsx` lost their last importer with `event-feed.tsx`; delete them, and the comments that still name `event-feed-action-bar.tsx` (`bulk-tools.tsx`, `bulk-select-mock.tsx`, `floating-layer.ts`, `type-ladder-policy.test.ts`).
-- Guest: `get_event_media_by_qr_token` and `getApprovedMediaForUnlock` read an album unpaged, so past 1,000 approved items the guest album and its poll hold only the newest 1,000 (PostgREST's `max_rows`).
 - Guest: the last-removal line reads the album's fullness at render (`albumFull`, the page's second gate read); an album that fills or frees mid-visit keeps the old line until a refresh (the poll could carry it at one gate read per poll).
 - Social: `social/guest-list.tsx:216` draws "A guest" for a null `displayName`, a label the product retired (a nameless credit shows nothing).
 - Host: at 375 the hub's cards row runs past the phone's edge, so the third card (Guests) sits half off screen at rest (measured by the `event-safety` board's `queue` step, where a waiting count would live).
-- Host: dead curation code: `ApproveAllPendingButton` (`host-media-grid.tsx`) has no caller, and the lightbox's pending Approve branch can never render.
 - Host: the Review peek (`selectable-media-grid.tsx`), a third full-bleed viewer, promises an Escape in a comment and never listens for it.
 - Host: no test covers `useReviewTriage`.
 - Host: the gallery doorbell rings only when the approved-visible set changes, so a pending upload never wakes the host; the hub's store bridges it by polling the host's version (12s with the socket down, 60s up), which a host channel rung on every arrival (a migration on `media_gallery_doorbell`) would make instant.
