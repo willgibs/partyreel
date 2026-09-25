@@ -25,15 +25,13 @@ import { resolveQrPreset } from "@/lib/constants/qr-presets";
  * and gallery contiguous. The join link IS the capability: recipients land on
  * /e/[qr_token] and can view and add photos (whatever the configs allow).
  *
- * ★ IT WEARS THE ONE PRODUCT SHEET NOW (Will, `dialogs=stands`, 2026-09-20 —
- * "the earlier ruling stands", the earlier ruling being `settings=sheet`'s "we
- * likely want to apply this sheet concept everywhere"). It was a centred
- * Dialog, which on a phone is a box floating in the middle of the screen with
+ * ★ IT WEARS THE ONE PRODUCT SHEET: one sheet concept, applied everywhere. A
+ * centred Dialog on a phone is a box floating in the middle of the screen with
  * the album showing around it, while the host's sharing, the settings and the
- * guest's own gate all arrive from an edge. `responsive` is the whole change: a
+ * guest's own gate all arrive from an edge. `responsive` is the whole of it: a
  * side panel at a desk, a bottom sheet in a hand, one primitive. Nothing is
- * typed in here, so this migration carries none of the keyboard risk the
- * Report sheet next door does.
+ * typed in here, so it carries none of the keyboard risk the Report sheet next
+ * door does.
  */
 export function GuestShare({
   joinUrl,
@@ -44,7 +42,7 @@ export function GuestShare({
   joinUrl: string;
   qrStyle: string;
   eventName: string;
-  /** Lets the header action row size/stretch the trigger (Phase 4). */
+  /** Lets the header action row size/stretch the trigger. */
   triggerClassName?: string;
 }) {
   const style = resolveQrPreset(qrStyle);
@@ -105,7 +103,7 @@ export function GuestShare({
           </SheetDescription>
         </SheetHeader>
         {/* The body carries its own padding (SheetHeader owns the top): a panel
-            runs to its own edges, where the dialog box this replaced did not. */}
+            runs to its own edges, where a dialog box does not. */}
         <div className="flex flex-col items-center gap-4 px-4 pb-6">
           <div className="rounded-xl bg-white p-3">
             <StyledQr

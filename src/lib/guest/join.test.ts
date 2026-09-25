@@ -1,4 +1,3 @@
-// @contract-for: src/lib/guest/join.ts
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -10,8 +9,7 @@ import {
 } from "./join";
 
 /**
- * THE DOOR'S THREE CALLS (the identity reshape, 2026-09-21; the optional
- * address, 2026-09-22).
+ * THE DOOR'S THREE CALLS.
  *
  * What is pinned is the TRANSLATION, because every surface above this module
  * decides what to do from the refusal's KIND and nothing else: a name refused
@@ -115,8 +113,8 @@ describe("joinEvent", () => {
     });
   });
 
-  // The optional address (2026-09-22). Absent, not null: a guest who declined
-  // the field sends the body this door sent before the field existed.
+  // The optional address. Absent, not null: a guest who declined the field
+  // mentions no address at all, so the body carries no `email` key.
   it("omits `email` entirely when none was typed", async () => {
     respond(200, { ok: true, session_token: "tok", display_name: "Sam" });
     await joinEvent({ qrToken: "qr1", displayName: "Sam" });
@@ -259,11 +257,11 @@ describe("renameGuest", () => {
     if (!result.ok) expect(result.refusal.kind).toBe("name_invalid");
   });
 
-  // DEFECT 2 (the alias red-team, 2026-09-21): a dead token and a verified
-  // row both used to collapse into `other`, indistinguishable from a rate
-  // limit or a dropped link — which is exactly what let a nameless session's
-  // own rename attempt look identical to any other failure instead of the one
-  // case `guest-name-step.tsx` needs to fall back to a fresh join on.
+  // A held session names its row: a dead token and a verified row keep their
+  // own kinds, because collapsed into `other` they would be indistinguishable
+  // from a rate limit or a dropped link, and a nameless session's own rename
+  // attempt would look identical to any other failure instead of the one case
+  // `guest-name-step.tsx` needs to fall back to a fresh join on.
   it("keeps invalid_session and unauthorized as their own kinds, never collapsed to other", async () => {
     for (const [status, kind] of [
       [401, "invalid_session"],

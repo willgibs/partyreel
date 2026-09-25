@@ -1,4 +1,3 @@
-// @contract-for: src/components/guest/upload/stack-tile.tsx
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
@@ -8,15 +7,15 @@ import {
 } from "@/components/guest/upload/stack-tile";
 
 /**
- * THE TWO TILES THIS DEVICE DRAWS AT THE ALBUM'S HEAD (`batch=one` and
- * `held=tile`, Will 2026-09-21).
+ * THE TWO TILES THIS DEVICE DRAWS AT THE ALBUM'S HEAD: one stack per pick,
+ * and a waiting tile per held upload.
  *
  * FUNCTION ONLY. Nothing here reads an alpha, a blur or an offset: the scrim's
- * darkness and the ghost edges are Will's and he retunes them without asking a
- * test. What is held is what each tile SAYS and the one structural rule both
- * live under — the bright edge, because a photograph must not gain or lose an
- * edge at the moment it finishes uploading, and `lit-edge-contract.test.ts`
- * holds the other half of that from the closed list's side.
+ * darkness and the ghost edges are free to retune without asking a test. What
+ * is held is what each tile SAYS and the one structural rule both live under —
+ * the bright edge, because a photograph must not gain or lose an edge at the
+ * moment it finishes uploading, and `lit-edge-contract.test.ts` holds the other
+ * half of that from the closed list's side.
  */
 const file = (name = "a.jpg") =>
   new File([new Uint8Array([1])], name, { type: "image/jpeg" });
@@ -77,7 +76,7 @@ describe("a held photograph waits in place", () => {
   it("says what it is waiting for, and offers nothing to press", () => {
     render(<WaitingTile file={file()} url="blob:x" />);
     expect(screen.getByText("Waiting for the host")).toBeInTheDocument();
-    // "Clean, no button": there is nothing a guest can do about a host's queue,
+    // No button: there is nothing a guest can do about a host's queue,
     // and a control that does nothing is worse than none.
     expect(screen.queryByRole("button")).toBeNull();
   });

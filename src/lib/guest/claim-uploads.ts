@@ -7,7 +7,7 @@ import {
 } from "@/lib/guest/session-tokens";
 import { createClient } from "@/lib/supabase/client";
 
-// Claiming anonymous uploads (attribution P3). An anonymous upload is a guests row with user_id NULL; the
+// Claiming anonymous uploads. An anonymous upload is a guests row with user_id NULL; the
 // browser that made it still holds the session_token in localStorage under SESSION_PREFIX+{qr_token}. When
 // the visitor authenticates we hand those tokens to claim_anonymous_uploads, which stamps user_id =
 // auth.uid() onto the still-unclaimed matches only (never an owned row -> theft-proof + idempotent). The
@@ -15,14 +15,14 @@ import { createClient } from "@/lib/supabase/client";
 // capabilities, so there is no client-spoofable value for server-mediation to protect (cf. database-security.md). The
 // prefix + the pure token enumeration live in ./session-tokens (dependency-free + unit-tested).
 //
-// ★ THE CLAIM SAYS WHERE IT CARRIED UPLOADS (guest by upload, 2026-09-22). A person is a guest of an event
-// only through an upload of theirs, and the claim is what brings their events into the account (each
-// becomes a Guest card on the dashboard). The RPC's count is the claimed rows that carry a LIVE upload
-// (migration 20260923120000), and on an album page the claim is made in two calls, that album's own token
-// first and every other token after, so the result can say HERE and ELSEWHERE apart: the album plays the
-// follow moment only when its own uploads moved, and says "We added your uploads to your account." only
-// when the claim reached other events too (lib/guest/use-confirm-return.ts). Off an album (the (app)
-// layout) it is one call, and the toast fires whenever anything moved.
+// ★ THE CLAIM SAYS WHERE IT CARRIED UPLOADS. A person is a guest of an event only through an upload of
+// theirs, and the claim is what brings their events into the account (each becomes a Guest card on the
+// dashboard). The RPC's count is the claimed rows that carry a LIVE upload (migration 20260923120000),
+// and on an album page the claim is made in two calls, that album's own token first and every other token
+// after, so the result can say HERE and ELSEWHERE apart: the album plays the follow moment only when its
+// own uploads moved, and says "We added your uploads to your account." only when the claim reached other
+// events too (lib/guest/use-confirm-return.ts). Off an album (the (app) layout) it is one call, and the
+// toast fires whenever anything moved.
 
 /** The one line a claim that moved uploads says, wherever it is said. */
 export const CLAIMED_TOAST = "We added your uploads to your account.";

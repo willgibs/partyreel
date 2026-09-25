@@ -1,5 +1,3 @@
-// @contract-for: src/lib/guest/use-confirm-return.ts
-// @contract-for: src/lib/guest/album-return.ts
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -11,11 +9,11 @@ import {
 import type { ClaimResult } from "@/lib/guest/claim-uploads";
 
 /**
- * THE RETURN (guest by upload, 2026-09-22). Every confirm door on an album writes the album's
- * marker when it opens; the album hears every claim made on it and plays the follow moment when a
- * door was opened here AND the claim moved this album's own uploads, with no upload needed this
- * visit (a Google or magic-link return is exactly that). The toast is for other events' uploads
- * alone. What is pinned is that rule, never a card's look.
+ * THE RETURN. Every confirm door on an album writes the album's marker when it opens; the album
+ * hears every claim made on it and plays the follow moment when a door was opened here AND the
+ * claim moved this album's own uploads, with no upload needed this visit (a Google or magic-link
+ * return is exactly that). The toast is for other events' uploads alone. What is pinned is that
+ * rule, never a card's look.
  */
 const { listeners, claim, toastSuccess } = vi.hoisted(() => ({
   listeners: new Set<(r: ClaimResult) => void>(),

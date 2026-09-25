@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * THE CONTINUOUS STEP CONTAINER (Phase 4.5 S3). The entry steps used to swap
- * by bare key-remount: an instant content jump and a height snap between a
- * tall welcome and a short gate (the "disconnected steps" of Will's iPhone
- * pass). This container makes the handoff ONE motion:
+ * THE CONTINUOUS STEP CONTAINER. Swapping the entry steps by bare key-remount
+ * is an instant content jump and a height snap between a tall welcome and a
+ * short gate, which feels like disconnected steps on an iPhone. This container
+ * makes the handoff ONE motion:
  *
  * - HEIGHT: a ResizeObserver feeds the content's px height into a CSS height
  *   transition (300ms, the strong in-out "move" curve), so step swaps AND

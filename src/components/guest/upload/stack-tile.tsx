@@ -5,25 +5,23 @@
  * stand at the album's head and nowhere else. Neither is a photograph in the
  * album: both are this browser's own knowledge, drawn on this browser only.
  *
- * ★ ONE PICK IS ONE OBJECT (Will, `batch=one`, 2026-09-21). Twelve files used to
- * take twelve tiles at the head of the album while the queue ran ONE at a time,
- * so eleven bars sat at zero filling half a phone's screen with a state nobody
- * was in. The batch is a stack now: the file actually in the air on top, two
- * ghost edges for the rest, and each photograph leaving the stack for the album
- * as its bytes land, so the count falls to zero and the tile goes with it. A
- * single file is a stack of one and says no count at all.
+ * ★ ONE PICK IS ONE OBJECT. The queue runs ONE file at a time, so twelve tiles
+ * at the head of the album for twelve files would put eleven bars at zero across
+ * half a phone's screen, showing a state nobody is in. The batch is a stack: the
+ * file actually in the air on top, two ghost edges for the rest, and each
+ * photograph leaving the stack for the album as its bytes land, so the count
+ * falls to zero and the tile goes with it. A single file is a stack of one and
+ * says no count at all.
  *
- * ★ HIS NOTE WAS ABOUT READING IT, AND THE ANSWER IS THE STRIP, NOT A WASH.
- * "This upload status addresses my previous note well about needing progress UI.
- * However, this can be designed better, as the text is currently hard to read
- * with the contrast right now. Maybe a darker overlay". The board drew the count
- * centred under a wash over the whole photograph; here everything the tile SAYS
- * lives in one strip at its foot — the count and the bar on the pane, the
+ * ★ THE PROBLEM IS READING IT, AND THE ANSWER IS THE STRIP, NOT A WASH. Text
+ * over a photograph is hard to read without enough contrast. Rather than the
+ * count centred under a wash over the whole photograph, everything the tile
+ * SAYS lives in one strip at its foot — the count and the bar on the pane, the
  * photograph left alone above it — and the pane is dark enough to be read
  * (below).
  *
- * ★ THE EDGE IS TWO BOXES, NOT A SHADOW. Bible 10 gives the lift to one object
- * really sitting on another, and this IS eleven photographs sitting under one.
+ * ★ THE EDGE IS TWO BOXES, NOT A SHADOW. Lift is kept for one object really
+ * sitting on another, and this IS eleven photographs sitting under one.
  *
  * ★ BOTH TILES CARRY `data-lit`, AND THAT IS THE WHOLE POINT OF BINDING THEM TO
  * THE ALBUM'S RULE. A photograph must not gain or lose an edge at the moment it
@@ -34,6 +32,7 @@ import type { CSSProperties } from "react";
 import { Clock } from "lucide-react";
 
 import { PickPreview } from "@/components/guest/upload/pick-preview";
+import { formatCount } from "@/lib/format/count";
 import { GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
@@ -48,8 +47,8 @@ import { cn } from "@/lib/utils";
  * brightness(0.68) under a black tint at 0.34, over the brightest possible
  * photograph (a pure white frame), puts white at 4.78:1, clear of the 4.5:1
  * floor. At 0.04 (the material's own tint, for chrome you look THROUGH) the same
- * white reads 2.42:1, and the board's plain black/45 wash read 3.35:1 — which is
- * the number behind his note.
+ * white reads 2.42:1, and a plain black/45 wash reads 3.35:1 — which is why text
+ * on one is hard to read.
  *
  * This is not a second treatment: it re-points one token exactly as the
  * `glass-mark` utility itself re-points `--glass-blur`, so the tint, the edges
@@ -112,7 +111,7 @@ export function UploadStackTile({
                 "shrink-0 text-reading font-medium text-white tabular-nums",
               )}
             >
-              {remaining} to go
+              {formatCount(remaining)} to go
             </span>
           )}
           <span className="h-1 flex-1 overflow-hidden rounded-full bg-white/30">
@@ -129,24 +128,23 @@ export function UploadStackTile({
 }
 
 /**
- * A HELD PHOTOGRAPH THAT WAITS IN PLACE (Will, `held=tile`, 2026-09-21, with the
- * note: "This could use a clearer, more clean design").
+ * A HELD PHOTOGRAPH THAT WAITS IN PLACE, as clear and clean as it can be.
  *
- * Before this a finished upload on a hold-for-approval event drew NO tile at all
- * — one toast and the photograph was gone, which reads as a failure — under a
- * standing banner saying the same sentence whether or not anything of theirs was
- * waiting. Now it sits at the album's head until the host lets it in.
+ * A finished upload on a hold-for-approval event sits at the album's head until
+ * the host lets it in. Without the tile, one toast and the photograph is gone,
+ * which reads as a failure, and the standing banner says the same sentence
+ * whether or not anything of theirs is waiting.
  *
  * ★ ONLY THIS DEVICE EVER SEES IT. It is the guest's own pending row, which the
  * album's poll returns to nobody: the host's approval is what puts it in the
  * album for real, and the tile is replaced by the real one the moment the poll
  * carries it. Nothing here asserts anything to the server.
  *
- * ★ CLEANER IS: THE PHOTOGRAPH, LIGHTLY DIMMED, AND ONE LINE. The board covered
- * it with a wash and centred a clock on top. Here the picture stays a picture,
- * the clock is a mark like every other mark a tile carries, and the sentence is
- * on the same reading pane the stack uses — one grammar for everything a tile in
- * flight says. No button: there is nothing for a guest to do about it.
+ * ★ CLEANER IS: THE PHOTOGRAPH, LIGHTLY DIMMED, AND ONE LINE, rather than a wash
+ * with a clock centred on top. The picture stays a picture, the clock is a mark
+ * like every other mark a tile carries, and the sentence is on the same reading
+ * pane the stack uses — one grammar for everything a tile in flight says. No
+ * button: there is nothing for a guest to do about it.
  */
 export function WaitingTile({ file, url }: { file: File; url: string }) {
   return (

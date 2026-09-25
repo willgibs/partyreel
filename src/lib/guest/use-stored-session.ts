@@ -33,9 +33,9 @@ function emit() {
 // so the header's sign-out clears the very session the upload panel is reading.
 // EVERY localStorage touch is guarded. Blocking site data (Safari's "Block All
 // Cookies", a locked-down enterprise profile, some private modes) makes the
-// localStorage GETTER ITSELF throw a SecurityError, not just its methods. That
-// throw used to happen inside the useSyncExternalStore snapshot below, i.e.
-// during RENDER, which took the whole guest album down with it. A guest who
+// localStorage GETTER ITSELF throw a SecurityError, not just its methods.
+// Unguarded, that throw lands inside the useSyncExternalStore snapshot below,
+// i.e. during RENDER, and takes the whole guest album down with it. A guest who
 // can't persist a session should just be a guest who re-joins, never a guest
 // staring at a crashed page.
 function readStored(key: string): string | null {
@@ -70,7 +70,7 @@ export function setStoredSession(qrToken: string, value: string | null) {
 }
 
 /**
- * PUT THE WHOLE TICKET DOWN, both copies (the door as three steps, 2026-09-21).
+ * PUT THE WHOLE TICKET DOWN, both copies.
  *
  * The session has a SERVER-readable half, the `pr_guest_<eventId>` cookie, which is what lets an
  * RSC resolve Require an upload to view for the right guest. Clearing only the localStorage copy
@@ -101,12 +101,11 @@ function postLeave(body: { qr_token: string } | { all: true }): Promise<void> {
 }
 
 /**
- * PUT DOWN A TICKET THAT IS NOT THIS VIEWER'S (the upload-owner lane, 2026-09-23). The upload,
- * rename and attach routes answer `session_other_account` when this device's token for an event
- * names a row that belongs to an account the viewer is not (lib/guest/session-owner.ts), and every
- * client that hears it lands here before it joins again as whoever is holding the phone: the token,
- * the name and address flag beside it (and the prefill, when it is that same name), then the
- * server-readable cookie.
+ * PUT DOWN A TICKET THAT IS NOT THIS VIEWER'S. The upload, rename and attach routes answer
+ * `session_other_account` when this device's token for an event names a row that belongs to an
+ * account the viewer is not (lib/guest/session-owner.ts), and every client that hears it lands here
+ * before it joins again as whoever is holding the phone: the token, the name and address flag
+ * beside it (and the prefill, when it is that same name), then the server-readable cookie.
  *
  * ★ THE COOKIE IS AWAITED, unlike the sign-out's. The very next thing every caller does is a join,
  * whose response writes this event's cookie afresh; an expiry still in flight could land after it
@@ -119,12 +118,12 @@ export async function dropGuestTicket(qrToken: string): Promise<void> {
 }
 
 /**
- * THE DEVICE HALF OF A SIGN-OUT (the upload-owner lane, 2026-09-23): every guest ticket this
- * browser holds, for every event, with the names and address flags beside them and the name
- * prefill. Synchronous, so it runs to completion before the account's own sign-out navigates away
- * (the account menu calls it from its form's submit, ahead of `signOutAction`, which expires the
- * cookie half on its own response). A sign-out is an account's; a guest's photographs on a claimed
- * row stay theirs to manage from that account on any device.
+ * THE DEVICE HALF OF A SIGN-OUT: every guest ticket this browser holds, for every event, with the
+ * names and address flags beside them and the name prefill. Synchronous, so it runs to completion
+ * before the account's own sign-out navigates away (the account menu calls it from its form's
+ * submit, ahead of `signOutAction`, which expires the cookie half on its own response). A sign-out
+ * is an account's; a guest's photographs on a claimed row stay theirs to manage from that account
+ * on any device.
  */
 export function forgetGuestTickets(): void {
   try {

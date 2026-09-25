@@ -27,11 +27,11 @@ export function collectStoredSessionTokens(
 }
 
 /**
- * Every stored KEY under any of `prefixes`, collected before anything is removed (the upload-owner
- * lane, 2026-09-23: the sign-out puts down every guest ticket on the device). Collected first on
- * purpose: removing while walking `storage.key(i)` shifts the indices under the loop and skips every
- * other key. Pure and Node-testable like the enumeration above; the callers pass their OWN prefix
- * constants, so no family's literal is ever written twice.
+ * Every stored KEY under any of `prefixes`, collected before anything is removed (the sign-out puts
+ * down every guest ticket on the device). Collected first on purpose: removing while walking
+ * `storage.key(i)` shifts the indices under the loop and skips every other key. Pure and
+ * Node-testable like the enumeration above; the callers pass their OWN prefix constants, so no
+ * family's literal is ever written twice.
  */
 export function storedKeysWithPrefixes(
   prefixes: readonly string[],

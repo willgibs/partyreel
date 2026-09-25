@@ -1,5 +1,5 @@
 /**
- * WHAT A GALLERY ITEM IS TO THE LIVE REEL (the live reel, 2026-09-22).
+ * WHAT A GALLERY ITEM IS TO THE LIVE REEL.
  *
  * The live reel reads the SAME payload the album holds — no second RPC, no second presign — so this
  * module takes the album's own item shape rather than inventing a parallel one. `LiveMediaItem` is a
@@ -41,7 +41,7 @@ export type LiveMediaItem = {
   /** Host-only; where it is absent the take's likes term collapses to nothing, which is correct. */
   likeCount?: number;
   /**
-   * `media.reel_eligible`: false for a cut added to the album, so the live reel never plays a reel.
+   * `media.reel_eligible`: false for a clip added to the album, so the live reel never plays a reel.
    * ABSENT means eligible — a payload from before the column exists must not empty the reel.
    */
   reelEligible?: boolean;
@@ -49,7 +49,7 @@ export type LiveMediaItem = {
 
 /**
  * Whether an item may enter a take. Three gates, in the order they can fail:
- * a cut (`reelEligible === false`) is never in the order; a held, hidden or removed item is not part
+ * a clip (`reelEligible === false`) is never in the order; a held, hidden or removed item is not part
  * of the album the reel mirrors; and an item with nothing drawable would only buy a theme-colour
  * hold, which reads as a bug rather than as a photograph.
  */
@@ -71,9 +71,8 @@ export function stillUrlFor(item: LiveMediaItem): string {
  *
  * `videoWindowSec` is the ONE thing the Include-videos knob changes here: with videos off a video
  * holds exactly as long as a photograph (its poster is all there is to look at), and with them on it
- * holds the surface's window, which is the span `reel-engine-video`'s range reader decodes. Passing
- * the window before that lane lands is honest either way: the hold is real, the motion arrives with
- * the reader.
+ * holds the surface's window, which is the span the range reader (`engine/video/window-reader.ts`)
+ * decodes.
  */
 export function toReelClip(
   item: LiveMediaItem,

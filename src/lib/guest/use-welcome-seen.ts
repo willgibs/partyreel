@@ -21,14 +21,14 @@ function emit() {
  * never flashes before hydration; it resolves to the real localStorage value on the client. `markSeen`
  * persists the flag (once per device per event) and notifies same-tab subscribers.
  *
- * ★ THE DEMO NEVER PERSISTS "SEEN" ACROSS VISITS, BUT STILL ADVANCES WITHIN ONE (Will, 2026-09-21,
- * "the door's first look": "it should treat each visit as a fresh visit, even if it's returning.
- * That way every demo is end-to-end."). `isDemo` is a plain boolean, never an `isDemoToken` import
- * here: this module stays a dependency-free localStorage wrapper (unit-testable with no env/
- * `server-only` chain), same reasoning as `entry-steps.ts`'s own note about `entry-modal.tsx`.
+ * ★ THE DEMO NEVER PERSISTS "SEEN" ACROSS VISITS, BUT STILL ADVANCES WITHIN ONE: a demo treats every
+ * visit as a fresh one, even a returning one, so every demo runs end to end. `isDemo` is a plain
+ * boolean, never an `isDemoToken` import here: this module stays a dependency-free localStorage
+ * wrapper (unit-testable with no env/`server-only` chain), same reasoning as `entry-steps.ts`'s own
+ * note about `entry-modal.tsx`.
  *
- * A first cut of this fix made the demo's `seen` permanently false, which broke the demo ITSELF:
- * `markSeen()` (Continue on the role step) never advanced the itinerary past "welcome" any more,
+ * The demo's `seen` must not simply be permanently false, which would break the demo ITSELF:
+ * `markSeen()` (Continue on the role step) would never advance the itinerary past "welcome",
  * because `computeDoor` re-adds the step every time `!welcomeSeen`. What "fresh every visit" needs
  * is EPHEMERAL, per-mount state for the demo — Continue still moves this visit forward exactly
  * once, nothing is ever written to `localStorage`, and a fresh mount (a reload, a second tab, the

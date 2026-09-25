@@ -1,12 +1,11 @@
 "use client";
 
 /**
- * A PICKED FILE, DRAWN — AND NAMED WHEN IT CANNOT BE (Will, `warning=both`,
- * 2026-09-21: "a named stand-in for a file the browser cannot draw").
+ * A PICKED FILE, DRAWN — AND NAMED WHEN IT CANNOT BE.
  *
- * ★ THE FAILURE THIS EXISTS FOR IS SILENT AND SHIPPED. A pending tile renders an
- * `<img>` or a `<video>` straight off the object URL, so an iPhone `.mov` (and a
- * HEIC anywhere outside Safari) draws an EMPTY BLACK BOX for its whole upload:
+ * ★ THE FAILURE THIS EXISTS FOR IS SILENT. A pending tile renders an `<img>` or
+ * a `<video>` straight off the object URL, so an iPhone `.mov` (and a HEIC
+ * anywhere outside Safari) draws an EMPTY BLACK BOX for its whole upload:
  * the one file a guest is least sure about is the one the page shows them
  * nothing of. `shared/upload-thumbnail.tsx` answers the same moment by HIDING
  * the broken element, which is the same nothing with the space taken back. Here

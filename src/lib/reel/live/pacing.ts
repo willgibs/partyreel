@@ -1,12 +1,11 @@
 /**
- * THE SURFACE PACING — ONE factor, three effects (the live reel, 2026-09-22).
+ * THE SURFACE PACING — ONE factor, three effects.
  *
- * Will's shape: "faster-paced slideshow", and the reel plays in two places that want different
- * speeds — a phone in a hand, where a viewer is scrolling and a clip has seconds to land, and a
- * television across a room, where the same pacing reads as a strobe. The plan's call: "the hand
- * faster than the wall; the exact seconds are the reel-view and reel-screen boards' knobs,
- * prototyped, never planned." So this module owns the FACTOR and not the seconds: the boards tune
- * `holdScale` on top of it and their verdicts move the numbers here at the wiring.
+ * The reel is a faster-paced slideshow, and it plays in two places that want different speeds — a
+ * phone in a hand, where a viewer is scrolling and a clip has seconds to land, and a television
+ * across a room, where the same pacing reads as a strobe. The hand runs faster than the wall. This
+ * module owns the FACTOR and not the seconds: the viewer's Hold control sets `holdScale` on top of
+ * it (lib/guest/reel-prefs.ts's `holdScaleFor` turns the chosen seconds into that factor per mood).
  *
  * ★ ONE FACTOR, NOT THREE KNOBS. It scales the photo hold, EVERY transition's duration, and the
  * video window together. Scaling only the hold is what would break the engine: planReel's clamp
@@ -27,7 +26,7 @@ export type Surface = "hand" | "wall";
 /**
  * The surface factor. The wall is the kits' own pacing (1: ~2.5-2.9s holds, the moods as designed);
  * the hand runs at 0.7, which lands the default mood near 1.9s — quick enough to read as a montage
- * on a small screen without becoming a flicker book. Both are starting points for the boards.
+ * on a small screen without becoming a flicker book.
  */
 export const SURFACE_FACTORS: Record<Surface, number> = {
   hand: 0.7,
@@ -39,11 +38,19 @@ export const DEFAULT_SURFACE: Surface = "hand";
 /** The video window at factor 1 (the plan's six seconds); `reel-engine-video` reads it through here. */
 export const BASE_VIDEO_WINDOW_SEC = 6;
 
-/** The knob's safe range. Outside it the reel is either a slideshow of stills or a strobe. */
+/**
+ * The knob's safe range. Outside it the reel is either a slideshow of stills or a strobe.
+ *
+ * ★ THE CEILING IS SIX, NOT THREE. The view's Hold control takes ABSOLUTE seconds (3 s by default,
+ * and the viewer's to adjust), converted per mood into this factor (lib/guest/reel-prefs.ts's
+ * `holdScaleFor`), and the slowest step, 7 s, on the fastest mood (Kinetic holds 1.4 s) is a factor
+ * of 5. A ceiling of three would silently cap that viewer at 4.2 s. The edit keeps its proportions
+ * at any factor (the header), so a high factor is a slower film, never a broken one.
+ */
 const MIN_SCALE = 0.25;
-const MAX_SCALE = 3;
+const MAX_SCALE = 6;
 
-/** The one factor: the surface's own, times the board knob's multiplier (default 1). */
+/** The one factor: the surface's own, times the Hold control's multiplier (default 1). */
 export function pacingFactor(surface: Surface, holdScale = 1): number {
   const scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, holdScale));
   return (SURFACE_FACTORS[surface] ?? SURFACE_FACTORS.wall) * scale;

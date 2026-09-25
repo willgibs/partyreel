@@ -16,6 +16,7 @@ import {
   buildCutaway,
   buildWindow,
   cutawayTheme,
+  fillLandscape,
   resolveLiveStyleId,
   themeFor,
   type ReelLook,
@@ -182,7 +183,10 @@ describe("the handover", () => {
     ).not.toBeNull();
   });
 
-  it("a one-clip window holds to the end and shares nothing", () => {
+  it("a one-clip window hands over at once, resuming on the frame it is on", () => {
+    // Its clip is the next window's clip 0 at the same ordinal (the source carries it), so the two
+    // plans agree at every frame of its hold. Holding to the end and handing the next window frame
+    // 0 would restart the same photograph's move: at one clip the motion would snap back every hold.
     const win = buildWindow({
       index: 0,
       loopIndex: 0,
@@ -194,7 +198,22 @@ describe("the handover", () => {
     })!;
     expect(win.overlapIndex).toBeNull();
     expect(win.handoverOffset).toBe(0);
-    expect(win.handoverFrame).toBe(win.plan.totalFrames - 1);
+    expect(win.handoverFrame).toBe(0);
+  });
+
+  it("the album's ONLY clip never hands over at all (it rests on its last frame)", () => {
+    const win = buildWindow({
+      index: 0,
+      loopIndex: 0,
+      startIndex: 0,
+      ids: ["m0"],
+      itemFor,
+      seed: 1,
+      look: LOOK,
+      alone: true,
+    })!;
+    expect(win.handoverFrame).toBe(Number.POSITIVE_INFINITY);
+    expect(win.handoverOffset).toBe(0);
   });
 });
 
@@ -250,5 +269,63 @@ describe("the cutaway (a drop is immediate)", () => {
       look: LOOK,
     })!;
     expect(cut.resumeFrame).toBe(0);
+  });
+});
+
+describe("fill in landscape", () => {
+  const landscape = (styleId: string): ReelLook => ({
+    styleId,
+    surface: "wall",
+    orientation: "landscape",
+  });
+  const portrait = (styleId: string): ReelLook => ({
+    styleId,
+    surface: "hand",
+    orientation: "portrait",
+  });
+
+  it("every mood fills the frame edge to edge: no bars, no inset card, its own blur as the negative space", () => {
+    for (const id of THEME_IDS) {
+      const theme = themeFor(landscape(id));
+      expect(theme.overlays ?? [], id).not.toContain("letterbox");
+      expect(theme.signature?.inset ?? 0, id).toBe(0);
+      expect(theme.backdrop, id).toBe("blur");
+    }
+  });
+
+  it("drops only what keeps the frame from filling (Cinematic keeps its vignette, its grade, its beat)", () => {
+    const whole = themeFor(portrait("classic"));
+    const filled = themeFor(landscape("classic"));
+    expect(whole.overlays).toContain("letterbox");
+    expect(filled.overlays).toEqual(
+      (whole.overlays ?? []).filter((kind) => kind !== "letterbox"),
+    );
+    expect(filled.grade).toBe(whole.grade);
+    expect(filled.motionStyle).toBe(whole.motionStyle);
+  });
+
+  it("leaves portrait exactly as each mood was designed", () => {
+    for (const id of THEME_IDS) {
+      const theme = themeFor(portrait(id));
+      expect(fillLandscape(theme, "portrait"), id).toBe(theme);
+      expect(fillLandscape(theme, undefined), id).toBe(theme);
+    }
+    // Editorial's paper card, on a phone.
+    expect(themeFor(portrait("editorial")).signature?.inset).toBeGreaterThan(0);
+    expect(themeFor(portrait("editorial")).backdrop).toBe("paper");
+  });
+
+  it("reaches the plan every window draws (so the washes the blur needs are built)", () => {
+    const win = buildWindow({
+      index: 0,
+      loopIndex: 0,
+      startIndex: 0,
+      ids: ["m0", "m1", "m2"],
+      itemFor: (id) => BY_ID.get(id),
+      seed: 7,
+      look: landscape("classic"),
+    })!;
+    expect(win.props.theme.overlays ?? []).not.toContain("letterbox");
+    expect(win.props.theme.backdrop).toBe("blur");
   });
 });

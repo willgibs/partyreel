@@ -5,7 +5,6 @@
  */
 import "server-only";
 
-import type { GridMedia } from "@/components/app/media-grid";
 import {
   getEventMediaByQrToken,
   type GuestEvent,
@@ -15,6 +14,7 @@ import {
   countApprovedMedia,
   getApprovedMediaForUnlock,
   getApprovedPhotoTeaser,
+  getLiveReelServerFacts,
   getUploaderIdentities,
 } from "@/lib/db/queries/guest-events-admin";
 import { getUploadGate } from "@/lib/db/queries/guest-gate";
@@ -26,6 +26,11 @@ import {
   type GalleryDecision,
 } from "@/lib/events/gallery-access";
 import { galleryEtag } from "@/lib/events/gallery-fingerprint";
+import {
+  reelFactsFor,
+  type GalleryItem,
+  type GalleryReel,
+} from "@/lib/events/gallery-reel";
 import type { UploaderIdentity } from "@/lib/media/uploader-identity";
 import { toGridItems } from "@/lib/r2/grid-items";
 import { presignBucketId } from "@/lib/r2/presign-bucket";
@@ -72,11 +77,11 @@ export async function isEventOwner(
 export type ViewerDecision = GalleryDecision & { albumFull: boolean };
 
 /**
- * THE ONE SERVER ENTRY FOR "WHAT DOES THIS VIEWER GET" (the door as three steps, 2026-09-21).
+ * THE ONE SERVER ENTRY FOR "WHAT DOES THIS VIEWER GET".
  *
- * The page RSC and the gallery poll used to carry the same eight lines of resolution each; the
- * upload gate would have made it eleven, in two places, with a service-role read in the middle. So
- * the block lives here once and both callers ask this.
+ * The page RSC and the gallery poll both ask this rather than each carrying the same resolution:
+ * with the upload gate it is eleven lines with a service-role read in the middle, which belongs in
+ * one place, not two.
  *
  * ★ IT RESOLVES TWICE, AND THE FIRST PASS IS THE CHEAP ONE. Assuming a contribution short-circuits
  * the upload clause, so the password and account gates answer with NO extra read at all: a locked
@@ -221,20 +226,21 @@ export async function loadGalleryRowsForAccess(
  * (`?? null/false`) or a 304 could hide an attribution change. Dimensions/duration are
  * deliberately NOT hashed (write-once per id - see gallery-fingerprint.ts).
  *
- * ★ THE GATE IS IN THE HASH, NOT JUST THE LEVEL (the door as three steps, 2026-09-21). `teaser`
- * has two causes now, and the poll carries the gate to the client's step machine: two decisions
- * that differ only in WHY must never validate each other, or a guest whose gate moved from
- * `account` to `upload` would 304 onto the wrong step.
+ * ★ THE GATE IS IN THE HASH, NOT JUST THE LEVEL. `teaser` has two causes, and the poll carries the
+ * gate to the client's step machine: two decisions that differ only in WHY must never validate each
+ * other, or a guest whose gate moved from `account` to `upload` would 304 onto the wrong step.
  */
 export function galleryEtagFor(
   decision: GalleryDecision,
   gallery: GalleryRows,
+  reel: GalleryReel | null = null,
 ): string {
   return galleryEtag({
     access: decision.access,
     gate: decision.gate,
     teaserTotal: gallery.teaserTotal,
     approvedTotal: gallery.approvedTotal,
+    reel,
     bucketId: presignBucketId(Date.now()),
     items: gallery.rows.map((r) => {
       const who = gallery.identities?.get(r.id);
@@ -249,12 +255,35 @@ export function galleryEtagFor(
   });
 }
 
-/** Presign loaded rows into render-ready GridMedia (the expensive step a 304 skips). */
+/** Presign loaded rows into render-ready items (the expensive step a 304 skips). */
 export async function presignGalleryRows(
   event: GuestEvent,
   gallery: GalleryRows,
-): Promise<GridMedia[]> {
+): Promise<GalleryItem[]> {
   return toGridItems(gallery.rows, event.name, gallery.identities);
+}
+
+/**
+ * THE LIVE REEL'S FACTS FOR THIS VIEWER: null below full access (nothing is read at all), else the
+ * host's switch and mood off the event row this request already holds, beside the platform lever
+ * and the host's plan (`getLiveReelServerFacts`, cached). The page and the poll both carry the
+ * result, and the ETag hashes it, so a host's switch reaches an open album on the next poll. The
+ * demo is full access and reads the same way.
+ */
+export async function loadGalleryReel(
+  event: GuestEvent,
+  access: GalleryAccess,
+): Promise<GalleryReel | null> {
+  if (access !== "full") return null;
+  const facts = await getLiveReelServerFacts(event.id);
+  return reelFactsFor({
+    access,
+    showReel: event.show_reel,
+    liveReelEnabled: facts.liveReelEnabled,
+    styleId: event.reel_style_id,
+    holdSec: event.reel_hold_sec,
+    tier: facts.tier,
+  });
 }
 
 /**
@@ -267,17 +296,22 @@ export async function loadGalleryForAccess(
   event: GuestEvent,
   decision: GalleryDecision,
 ): Promise<{
-  items: GridMedia[];
+  items: GalleryItem[];
   teaserTotal: number | null;
   approvedTotal: number | null;
+  reel: GalleryReel | null;
   etag: string;
 }> {
-  const gallery = await loadGalleryRowsForAccess(event, decision.access);
-  const etag = galleryEtagFor(decision, gallery);
+  const [gallery, reel] = await Promise.all([
+    loadGalleryRowsForAccess(event, decision.access),
+    loadGalleryReel(event, decision.access),
+  ]);
+  const etag = galleryEtagFor(decision, gallery, reel);
   return {
     items: await presignGalleryRows(event, gallery),
     teaserTotal: gallery.teaserTotal,
     approvedTotal: gallery.approvedTotal,
+    reel,
     etag,
   };
 }

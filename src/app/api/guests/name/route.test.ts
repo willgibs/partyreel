@@ -1,5 +1,5 @@
 /**
- * THE RENAME DOOR (the identity reshape, 2026-09-21), on the `mine` route's pattern.
+ * THE RENAME DOOR, on the `mine` route's pattern.
  *
  * `set_guest_display_name` is service-role-only, so this route is not a thin wrapper over a public
  * RPC: it IS the gate for the two things SQL cannot do (the profanity list and the rate limiter),
@@ -35,15 +35,15 @@ vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
   recordAbuseEvent: (...args: unknown[]) => recordAbuseEvent(...args),
 }));
 vi.mock("@/lib/observability/sentry", () => ({ captureWarning: vi.fn() }));
-// The door's session COOKIE (the door as three steps, 2026-09-21) is `server-only` and reads
-// `next/headers`; neither exists in the unit world, so the module's two real dependencies are
-// stubbed and the route's own use of it is asserted on the response instead.
+// The door's session COOKIE is `server-only` and reads `next/headers`; neither exists in the unit
+// world, so the module's two real dependencies are stubbed and the route's own use of it is
+// asserted on the response instead.
 vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => undefined }),
 }));
-// Whose ticket is this (the upload-owner lane, 2026-09-23): the rule itself is pinned in
-// lib/guest/session-owner.test.ts against the real clients; here it is the route's gate.
+// Whose ticket is this: the rule itself is pinned in lib/guest/session-owner.test.ts against the
+// real clients; here it is the route's gate.
 const checkSessionOwner = vi.fn();
 vi.mock("@/lib/guest/session-owner.server", () => ({
   checkSessionOwner: (...args: unknown[]) => checkSessionOwner(...args),
@@ -85,7 +85,7 @@ beforeEach(() => {
   checkSessionOwner.mockResolvedValue({ ok: true });
 });
 
-describe("an account's row is renamed only by that account (upload-owner)", () => {
+describe("an account's row is renamed only by that account", () => {
   it("★ 403 session_other_account for a ticket whose row is someone else's, and the row is never touched", async () => {
     checkSessionOwner.mockResolvedValue({
       ok: false,

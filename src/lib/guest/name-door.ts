@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * ONE CHANNEL BETWEEN THE HEADER AND THE PAGE (the identity reshape, 2026-09-21).
+ * ONE CHANNEL BETWEEN THE HEADER AND THE PAGE.
  *
  * `GuestHeader` is a SIBLING island of `EventExperience` (the page RSC renders
  * both), so the header cannot reach the entry modal's imperative handle the way
@@ -18,10 +18,9 @@
  */
 
 /**
- * ★ "edit" IS THE ONLY MODE LEFT (the door as three steps, 2026-09-21). The join mode existed
- * because the name was asked at the first Add, from three different affordances; the name is one
- * of the door's ordered steps now and nothing outside the door raises it. The channel stays,
- * because the header's "Change name" row is still a sibling island of the sheet that answers it.
+ * ★ "edit" IS THE ONLY MODE. The name is one of the door's ordered steps and nothing outside the
+ * door raises it; the header's "Change name" row is the one request from outside, and it needs
+ * this channel because it is a sibling island of the sheet that answers it.
  */
 export type NameDoorMode = "edit";
 

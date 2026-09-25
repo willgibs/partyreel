@@ -1,17 +1,15 @@
-// @contract-for: src/components/guest/yours-filter.ts
 import { describe, expect, it } from "vitest";
 
 import { yoursView } from "@/components/guest/yours-filter";
 
 /**
- * THE YOURS FILTER'S CONTRACT (`theirs=mark`, Will 2026-09-20).
+ * THE YOURS FILTER'S CONTRACT.
  *
  * The filter's real risk is not the filtering: it is the DEAD END. A guest
  * turns it on from one of their own tiles and then removes that photograph for
- * ever (`yours`, wired), and an album still answering "Showing yours" over an
- * empty grid is a state whose only exit is a link the guest has to notice. So
- * `on` is derived here rather than trusted from the caller, and that is what
- * these pins hold.
+ * ever, and an album still answering "Showing yours" over an empty grid is a
+ * state whose only exit is a link the guest has to notice. So `on` is derived
+ * here rather than trusted from the caller, and that is what these pins hold.
  */
 const album = [{ id: "a" }, { id: "b" }, { id: "c" }, { id: "d" }, { id: "e" }];
 const mine = new Set(["b", "d"]);

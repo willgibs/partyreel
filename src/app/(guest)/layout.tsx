@@ -14,7 +14,7 @@ export default function GuestLayout({
       {children}
       {/* Key-gated (server-validated ?key=), inert for every guest: a board's
           candidate block and the rounding knobs reach the guest surface too,
-          so a sitting is judged on the demo album (the second round, 2026-09-15). */}
+          so a sitting is judged on the demo album. */}
       <AppDesignIsland />
     </div>
   );

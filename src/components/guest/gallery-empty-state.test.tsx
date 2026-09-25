@@ -1,6 +1,3 @@
-// @contract-for: src/components/guest/gallery-empty-state.tsx
-// @contract-for: src/components/shared/river/river.tsx
-
 import { act, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -10,15 +7,14 @@ import { GalleryEmptyState } from "@/components/guest/gallery-empty-state";
 /**
  * THE EMPTY GUEST ALBUM, and the river inside it.
  *
- * What this guards is the pair of rules the picture may never break, which
- * survived the picture changing from a 3 by 3 mosaic to the flow (Will,
- * `guest-photos=ghost`, 2026-09-18):
+ * What this guards is the pair of rules the picture may never break, whatever
+ * the picture is:
  *
  *  1  it is PURE ATMOSPHERE. A screen reader hears an empty album and a
  *     promise, never nine photographs from other people's events; a keyboard
  *     walks straight past it; and nothing in it is a door out of the host's
- *     album (bible 4: a guest surface belongs to the host's event, so no demo
- *     code and no link home, whatever the lab's version of the visual offers);
+ *     album (a guest surface belongs to the host's event, so no demo code and
+ *     no link home, whatever the lab's version of the visual offers);
  *  2  it COSTS NOTHING when nobody is looking, and it still SAYS something when
  *     nothing can move: the settled flow is in the server's own HTML, so
  *     reduced motion, scripting off and a crawler all get a picture rather than
@@ -91,10 +87,10 @@ describe("the empty album is decoration plus a promise, and nothing else", () =>
       expect(hidden!.contains(img)).toBe(true);
     }
     // The promise itself is NOT hidden: it is the only thing to hear. Asserted
-    // as a STRUCTURE, never as bytes (2026-09-19): this line used to pin the
-    // copy verbatim, so Will's ruled rewrite of the empty state (`empty=starts`)
-    // turned a contract about assistive tech into a copy diff. What the contract
-    // owes is that some readable text exists outside the aria-hidden subtree.
+    // as a STRUCTURE, never as bytes: pinning the copy verbatim would turn a
+    // contract about assistive tech into a copy diff at every rewrite of the
+    // empty state. What the contract owes is that some readable text exists
+    // outside the aria-hidden subtree.
     const promise = [...container.querySelectorAll("p")].filter(
       (el) => !hidden!.contains(el) && (el.textContent ?? "").trim().length > 0,
     );

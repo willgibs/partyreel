@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * THE POLL, AND THE THREE THINGS THE DOOR ROUND ADDED TO IT (Will, 2026-09-21, "the door as three
- * steps"): the decision it answers carries a GATE, a browser may heal its server-side identity
- * through it, and a pending heal can never carry a validator the browser might present back
- * (`heal-validator`, 2026-09-22: Vercel's EDGE, not the function, converts a 200 into a 304
- * whenever If-None-Match matches that 200's own ETag, and strips Set-Cookie doing it), so this
- * answers 200 with NO ETag at all while a heal is pending, until the cookie is confirmed written.
+ * THE POLL, AND THE THREE THINGS BESIDE THE ROWS: the decision it answers carries a GATE, a
+ * browser may heal its server-side identity through it, and a pending heal can never carry a
+ * validator the browser might present back (Vercel's EDGE, not the function, converts a 200 into
+ * a 304 whenever If-None-Match matches that 200's own ETag, and strips Set-Cookie doing it), so
+ * this answers 200 with NO ETag at all while a heal is pending, until the cookie is confirmed
+ * written.
  */
 vi.mock("server-only", () => ({}));
 
@@ -27,8 +27,11 @@ vi.mock("@/lib/db/queries/guest-events-admin", () => ({
   getGuestCount: (...a: unknown[]) => getGuestCount(...a),
 }));
 const resolveViewerDecision = vi.fn();
+const loadGalleryReel = vi.fn();
+const galleryEtagFor = vi.fn((..._a: unknown[]) => '"g3-stub"');
 vi.mock("@/lib/events/gallery-access.server", () => ({
   resolveViewerDecision: (...a: unknown[]) => resolveViewerDecision(...a),
+  loadGalleryReel: (...a: unknown[]) => loadGalleryReel(...a),
   isEventOwner: vi.fn().mockResolvedValue(false),
   loadGalleryRowsForAccess: vi.fn().mockResolvedValue({
     rows: [],
@@ -36,7 +39,7 @@ vi.mock("@/lib/events/gallery-access.server", () => ({
     teaserTotal: 9,
     approvedTotal: 48,
   }),
-  galleryEtagFor: vi.fn(() => '"g3-stub"'),
+  galleryEtagFor: (...a: unknown[]) => galleryEtagFor(...a),
   presignGalleryRows: vi.fn().mockResolvedValue([]),
 }));
 vi.mock("@/lib/events/unlock-cookie", () => ({
@@ -75,6 +78,7 @@ beforeEach(() => {
   });
   resolveViewerDecision.mockResolvedValue({ access: "teaser", gate: "upload" });
   getGuestCount.mockResolvedValue(4);
+  loadGalleryReel.mockResolvedValue(null);
 });
 
 describe("the decision it answers", () => {
@@ -127,7 +131,7 @@ describe("the identity, and the heal", () => {
     );
   });
 
-  it("★ A PENDING HEAL CARRIES NO ETAG (heal-validator, 2026-09-22): the response the browser must receive answers 200 with the cookie and nothing for Vercel's edge to match", async () => {
+  it("★ A PENDING HEAL CARRIES NO ETAG: the response the browser must receive answers 200 with the cookie and nothing for Vercel's edge to match", async () => {
     const res = await post({ qr_token: QR, session_token: TOKEN });
     expect(res.status).toBe(200);
     expect(res.headers.get("set-cookie")).toContain(`pr_guest_evt-1=${TOKEN}`);
@@ -207,7 +211,7 @@ describe("the guest count (the header's 'from M guests')", () => {
   });
 });
 
-describe("the album's size (the header's 'N photos & videos', C9)", () => {
+describe("the album's size (the header's 'N photos & videos')", () => {
   it("rides every 200 as the loader's head count, beside the photo-only teaser total", async () => {
     const res = await post({ qr_token: QR });
     expect(await res.json()).toMatchObject({
@@ -224,6 +228,47 @@ describe("the album's size (the header's 'N photos & videos', C9)", () => {
       unknown
     >;
     expect(body.approvedTotal).toBeNull();
+  });
+});
+
+describe("the live reel's facts", () => {
+  const REEL = {
+    showReel: true,
+    liveReelEnabled: true,
+    styleId: "warm",
+    clip: { videoAllowed: true, watermark: false, maxSeconds: 60 },
+  };
+
+  it("ride every 200, read for the viewer's own access level", async () => {
+    resolveViewerDecision.mockResolvedValue({ access: "full", gate: null });
+    loadGalleryReel.mockResolvedValue(REEL);
+    const res = await post({ qr_token: QR });
+    expect(await res.json()).toMatchObject({ ok: true, reel: REEL });
+    expect(loadGalleryReel).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "evt-1" }),
+      "full",
+    );
+  });
+
+  it("are hashed into the validator, so a host's switch never 304s past an open album", async () => {
+    resolveViewerDecision.mockResolvedValue({ access: "full", gate: null });
+    loadGalleryReel.mockResolvedValue(REEL);
+    await post({ qr_token: QR });
+    expect(galleryEtagFor).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      REEL,
+    );
+  });
+
+  it("are null on a private or missing event", async () => {
+    getEventByQrToken.mockResolvedValue({ ok: false });
+    const body = (await (await post({ qr_token: QR })).json()) as Record<
+      string,
+      unknown
+    >;
+    expect(body.reel).toBeNull();
+    expect(loadGalleryReel).not.toHaveBeenCalled();
   });
 });
 

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * THE GUEST ARRIVAL — what a guest meets when they tap the reel card on /e/ (R3, guest-flow.md ruling 2).
+ * THE GUEST ARRIVAL — what a guest meets when they tap the reel card on /e/.
  *
  * It is the composite reveal's BACK HALF, deliberately: the host's Create beat earns the full
  * assembly (tiles flying in from their own grid), while a guest has no tiles on screen to fly. So the
@@ -9,8 +9,8 @@
  * footprint, the screen expands to full bleed already breathing, the title names the event, then the
  * reel takes over and the take-away row arrives. Same closed grammar, one cut shorter.
  *
- * ALL motion lives in globals.css under `[data-rxp-g*]` (Track B owns that block). This component only
- * says which beat we are on (`data-act`) and hands the CSS the from-pose. Reduced motion skips the
+ * ALL motion lives in globals.css under `[data-rxp-g*]`. This component only says which beat we are
+ * on (`data-act`) and hands the CSS the from-pose. Reduced motion skips the
  * theater entirely and lands on `settled` with the player paused and its controls shown, so a guest
  * who asked for less movement gets the reel with play one tap away instead of an autoplaying canvas.
  *
@@ -52,7 +52,7 @@ type GuestAct = "flash" | "open" | "title" | "settled";
 /**
  * The card's footprint, as the screen's birth pose. An inline poster card is roughly this fraction of
  * the full-bleed screen, so the flash covers a near-same-size swap (the composite's grammar) rather
- * than a visible jump. Ratified with the cut; not a tuning knob.
+ * than a visible jump. Set with the cut; not a tuning knob.
  */
 const GUEST_FROM_POSE = "scale(0.42)";
 
@@ -120,11 +120,11 @@ export function GuestReelOverlay({
 
   // The cut plays once, when the reel can actually DRAW — which is the player's decode landing, not
   // the gallery promise resolving. The engine fetches its clips with `cache: "no-store"` (the CORS
-  // lesson), so a COLD open re-downloads and decodes everything, and running the choreography over
-  // that main-thread work is exactly the first-load jitter Will hit on device (2026-08-06; the
-  // second open was smooth because the shared bitmap cache was warm). So: wait for onAssetsReady,
-  // with a cap so a stalled network still gets the show over a still-loading canvas rather than a
-  // frozen cover. startedRef keeps the two triggers from ever running the script twice.
+  // note in the engine's assets.ts), so a COLD open re-downloads and decodes everything, and
+  // running the choreography over that main-thread work is a first-load jitter on a real device
+  // (only a second open is smooth, because the shared bitmap cache is warm). So: wait for
+  // onAssetsReady, with a cap so a stalled network still gets the show over a still-loading canvas
+  // rather than a frozen cover. startedRef keeps the two triggers from ever running the script twice.
   const startedRef = useRef(false);
   const begin = useCallback(() => {
     if (startedRef.current) return;
@@ -247,7 +247,7 @@ export function GuestReelOverlay({
     }
 
     // The self-encode rung: $0, on this device, of the cut on screen. NO mint, NO upload, no server
-    // call at all from here (a guest has no write path, ruling 4).
+    // call at all from here (a guest has no write path).
     const controller = new AbortController();
     abortRef.current = controller;
     setDownload({ phase: "encoding", progress: 0 });
@@ -382,8 +382,8 @@ export function GuestReelOverlay({
       </div>
 
       {/* The take-away row: the guest's two verbs, arriving as the title clears. Its rest state is
-          opacity-0 but still hit-testable AND focusable, so gate both until settled (the host
-          reveal's verify catch: an invisible button that eats real taps). */}
+          opacity-0 but still hit-testable AND focusable, so gate both until settled: otherwise an
+          invisible button eats real taps. */}
       <div
         data-rxp-gend
         inert={!settled || undefined}
@@ -406,17 +406,16 @@ export function GuestReelOverlay({
           </div>
         ) : null}
         {/* A 44px pair, so the 44px action's corner (ctaCorner, the `cta`
-            Button size's own): they wore the 40px button's, a size smaller. */}
+            Button size's own), not the 40px button's, a size smaller. */}
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={handleShare}
             className={cn(
-              // ★ ONE MATERIAL EVERYWHERE, IN HIS OWN WORDS. Round one picked the
-              // reel's white pane and asked the question round two answered: "I
-              // don't want to have separate glass treatments and would prefer to
-              // find a global that works everywhere." Crystal is that global, so
-              // the white class here is superseded by the ruling that followed it.
+              // ★ ONE MATERIAL EVERYWHERE: one global glass that works on every
+              // surface rather than a treatment per surface; Crystal is that
+              // global, so this button wears it rather than a reel-only white
+              // pane.
               "flex h-11 flex-1 items-center justify-center gap-1.5 text-sm font-medium text-white transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.98] motion-reduce:active:scale-100",
               GLASS,
               ctaCorner,
@@ -430,9 +429,9 @@ export function GuestReelOverlay({
             onClick={handleDownload}
             disabled={download.phase !== "idle"}
             className={cn(
-              // ★ AND DOWNLOAD LOSES ITS OPAQUE WHITE. A solid white slab beside a
-              // glass one was two materials in one row, which is the thing the
-              // ruling retired; the pair is now one pane split in two, and the
+              // ★ AND DOWNLOAD WEARS NO OPAQUE WHITE. A solid white slab beside a
+              // glass one would be two materials in one row, which one material
+              // everywhere rules out; the pair is one pane split in two, and the
               // primary reads as primary through its position and its glyph
               // rather than through a second treatment.
               "flex h-11 flex-1 items-center justify-center gap-1.5 text-sm font-medium text-white transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.98] disabled:opacity-70 motion-reduce:active:scale-100",

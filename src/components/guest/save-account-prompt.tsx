@@ -7,26 +7,24 @@ import { ConfirmEmailDialog } from "@/components/auth/confirm-email-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { formatCount } from "@/lib/format/count";
 import { markPendingOffer } from "@/lib/guest/album-return";
 import { createClient } from "@/lib/supabase/client";
 
 /**
- * THE OFFER, RIGHT AFTER A GUEST'S FIRST PHOTOGRAPHS LAND (Will, `account=after`,
- * 2026-09-20: "Moving Save makes it feel more natural after upload rather than a
- * random button above an album for guests"), reshaped into the CAPTURE FLOW at
- * the identity reshape (2026-09-21, his `collision=offer`: "a flow for us to
- * capture non-user guests after their uploads to save the event/uploads to a
- * profile, follow host/other guests").
+ * THE OFFER, RIGHT AFTER A GUEST'S FIRST PHOTOGRAPHS LAND, where it reads as the
+ * natural next step rather than a random Save button above an album. It opens
+ * the CAPTURE FLOW, which lets a guest with no account keep the event and their
+ * uploads on a profile and follow the host and the other guests.
  *
  * ★ IT COUNTS WHAT THEY JUST ADDED, and that is the whole difference between a
  * growth card and an offer: "Keep your 7 photos" is about the thing in front of
- * them, "create a free account" was about us.
+ * them, "create a free account" is about us.
  *
- * ★ CONFIRMING CLAIMS, AND THE CLAIM IS THE WHOLE KEEP (guest by upload, Will
- * 2026-09-22: "The new email capture after upload should incentivize the email
- * to save the event under the account for the future, but uploading to an event
- * is now effectively saving"). There is no save step behind this door any more:
- * the claim puts the photographs in the account, and the event comes with them
+ * ★ CONFIRMING CLAIMS, AND THE CLAIM IS THE WHOLE KEEP. What the address buys is
+ * the event, saved under the account for the future, and uploading to an event
+ * already amounts to saving it. There is no save step behind this door: the
+ * claim puts the photographs in the account, and the event comes with them
  * as a Guest card on the dashboard, which is exactly what the card promises.
  *
  * ★ IT MARKS THE DOOR'S OPENING (`pr_pending_offer_<qr_token>`, through
@@ -41,8 +39,9 @@ import { createClient } from "@/lib/supabase/client";
  * confirmation, through `/api/guests/capture-email`, which derives the address
  * from the confirmed session (never from this page).
  *
- * The file keeps its name (the lab's touchpoints list it, and the links test
- * checks it exists), though the thing it offers is a confirmation now.
+ * The file's name says "save", though the thing it offers is a confirmation:
+ * the lab's touchpoints list it by this name, and the links test checks it
+ * exists.
  */
 
 function promptKey(qrToken: string) {
@@ -92,8 +91,8 @@ export function SaveAccountPrompt({
   /** Photographs this guest added in this session (the sentence's number). */
   count?: number;
   /**
-   * The address typed at the DOOR this visit (the optional field, 2026-09-22),
-   * so the door behind this card opens on it. The card's own words do not
+   * The address typed at the DOOR this visit (the optional field), so the door
+   * behind this card opens on it. The card's own words do not
    * change: a guest who typed an address is being offered the same thing, one
    * tap cheaper. Null for everyone who skipped the field and on every later
    * visit, because the page holds it in memory alone.
@@ -156,9 +155,8 @@ export function SaveAccountPrompt({
       {/* A prompt tile's title: the app's quiet middle, `subsection`. The
           NUMBER rides the sentence under it, where it belongs: "Keep these
           photos" is the offer, "these 7" is what is in front of them. ★ THE
-          HEADING COUNTS TOO, for exactly one (POLISH 3, the identity
-          red-team, 2026-09-21): the body already says "it stays" in the
-          singular, so a heading that still said "photos" read as a mismatch
+          HEADING COUNTS TOO, for exactly one: the body says "it stays" in the
+          singular, so a heading that said "photos" would read as a mismatch
           beside its own sentence. Every other count keeps the constant
           plural a help article quotes
           (content/help/find-your-uploads-and-events.mdx). */}
@@ -170,7 +168,7 @@ export function SaveAccountPrompt({
           profile shows nothing until its owner chooses it (profiles-social.md). */}
       <p className="mx-auto mt-1 mb-4 max-w-xs text-reading text-muted-foreground">
         Confirm your email and{" "}
-        {count === 1 ? "it stays" : count > 1 ? `all ${count} stay` : "they stay"}{" "}
+        {count === 1 ? "it stays" : count > 1 ? `all ${formatCount(count)} stay` : "they stay"}{" "}
         with you: this event in your account, and everything you added to it.
       </p>
       <div className="flex justify-center">

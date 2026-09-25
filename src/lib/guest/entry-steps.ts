@@ -1,22 +1,19 @@
 /**
- * THE DOOR, AS AN ITINERARY (Will, 2026-09-21, "the door as three steps").
+ * THE DOOR, AS AN ITINERARY.
  *
  * Pure step-derivation for the guest entry sheet (`entry-modal.tsx`). Kept separate + pure so it is
  * unit-testable and has no client/server imports.
  *
- * The door is now ONE HELD SHEET WITH NO EXIT that a guest passes through BEFORE the album: the
+ * The door is ONE HELD SHEET WITH NO EXIT that a guest passes through BEFORE the album: the
  * welcome, the password when the event has one, the name, the email held until it is confirmed when
  * the host requires verified emails, and the first upload asked actively. The nine-tile teaser sits
- * blurred behind it the whole way. His words for why there is no way out: "Including 'just
- * browsing' defeats this entire purpose of using the album to justify the name or email friction.
- * No exit."
+ * blurred behind it the whole way. There is no way out because the album is what justifies the
+ * name and email friction, and a "just browsing" exit would defeat that purpose.
  *
  * ★ THE MACHINE IS HALF SERVER AND HALF CLIENT, AND THAT IS THE ONE STRUCTURAL FACT HERE. The
  * server knows the password and the email (they change `gate`, and the RSC drop re-derives); it
- * cannot know whether THIS BROWSER typed a name, and before the cookie it could not know whether
- * this browser had contributed either. So the ordered steps are derived from BOTH: the server's
- * decision, and the client's own facts. `computeEntry` was the old server-only shape and is gone
- * with the exemption it encoded.
+ * cannot know whether THIS BROWSER typed a name. So the ordered steps are derived from BOTH: the
+ * server's decision, and the client's own facts.
  */
 import type {
   GalleryAccess,
@@ -28,9 +25,9 @@ export type EntryStep = "welcome" | "password" | "name" | "email" | "upload";
 /**
  * Derive the ordered itinerary + whether the sheet should auto-open.
  *
- * The rules, in order, and each one is a line of his ruling:
+ * The rules, in order:
  *  - the owner gets no sheet at all (the host previewing their own event is not a guest);
- *  - the welcome comes first, once per browser per event (round one's `door=today` stands);
+ *  - the welcome comes first, once per browser per event;
  *  - `access === "none"` is the password, and nothing after it is knowable yet (the RSC is
  *    redacted), so the itinerary STOPS there and re-derives after the unlock's refresh;
  *  - the name, unless this browser already has one (a typed name, or a confirmed account's), and
@@ -41,9 +38,9 @@ export type EntryStep = "welcome" | "password" | "name" | "email" | "upload";
  *    the host requires one, and otherwise only for a guest who has neither skipped this pass nor
  *    come back to an album they already hold a session for.
  *
- * ★ `autoOpen` IS TRUE WHENEVER A STEP EXISTS. The account gate's old "browse the teaser first"
- * exemption (a returning guest met the sheet only via "See all N") is retired by "No exit": the
- * whole point of the teaser behind the sheet is that it is the reward being teased, not a lobby.
+ * ★ `autoOpen` IS TRUE WHENEVER A STEP EXISTS, with no "browse the teaser first" exemption for the
+ * account gate (a returning guest meeting the sheet only via "See all N"): the whole point of the
+ * teaser behind the sheet is that it is the reward being teased, not a lobby.
  *
  * ★ "RETURNING" IS SNAPSHOTTED AT HYDRATION, never re-read. It means "this browser already held a
  * session for this event when the page loaded", and it is what keeps the OFF-state upload step
@@ -71,7 +68,7 @@ export function computeDoor(input: {
   /** This browser already held a session when the page loaded (snapshotted at hydration). */
   returning: boolean;
   isOwner: boolean;
-  /** The demo: it asks no name (his answer, "No name, upload offered"), and offers the upload. */
+  /** The demo: it asks no name, and offers the upload. */
   isDemo: boolean;
 }): { steps: EntryStep[]; autoOpen: boolean } {
   const {
@@ -100,17 +97,16 @@ export function computeDoor(input: {
     return { steps, autoOpen: true };
   }
 
-  // ★ THE DEMO ASKS NO NAME (his answer at approval, "No name, upload offered (Recommended)").
-  // Nothing it adds is persisted, so there is no row to name and a form between the tap and the
-  // picture would be the one lie the demo tells. Its welcome is the role step, and its upload step
-  // wears "Look around" as the skip.
+  // ★ THE DEMO ASKS NO NAME. Nothing it adds is persisted, so there is no row to name and a form
+  // between the tap and the picture would be the one lie the demo tells. Its welcome is the role
+  // step, and its upload step wears "Look around" as the skip.
   if (!hasName && !isDemo) steps.push("name");
 
   // ★ A SERVER GATE IS TERMINAL FOR THE STEPS BEHIND IT, for the same reason the password is: the
   // resolver answers the FIRST unmet gate and never evaluates the ones after it, so behind an
   // unconfirmed email the server has no opinion at all about whether this guest has contributed.
-  // The itinerary stops here and re-derives on the confirmation's refresh, which is exactly his
-  // sequence: the email "would hold there for confirmation prior to the final upload step".
+  // The itinerary stops here and re-derives on the confirmation's refresh, so the email holds there
+  // for confirmation before the final upload step.
   if (gate === "account") {
     steps.push("email");
     return { steps, autoOpen: true };
@@ -133,13 +129,12 @@ export function computeDoor(input: {
 }
 
 /**
- * WHEN THE CLIENT'S HALF OF "HAS CONTRIBUTED" RETIRES (guest by upload, Will 2026-09-22: "Own deletes
- * close it").
+ * WHEN THE CLIENT'S HALF OF "HAS CONTRIBUTED" RETIRES.
  *
  * `computeDoor` closes the upload step on EITHER half: the server's `hasContributed`, or the
  * browser's own `contributed` (an upload completed this visit, before any refresh landed), because
  * right after a first upload the page still carries the server's stale `upload` gate and the step
- * must drop at once. But on a Require-an-upload-to-view event the server can now TAKE a contribution
+ * must drop at once. But on a Require-an-upload-to-view event the server can TAKE a contribution
  * back (a guest's own delete stops counting), and the browser's flag, true all visit, would then
  * hold the step shut against a server that says "upload": a guest who removed their only upload
  * would be stranded at the teaser with no door at all.

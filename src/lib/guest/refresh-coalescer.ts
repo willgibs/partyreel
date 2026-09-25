@@ -1,5 +1,5 @@
 /**
- * Leading-edge refresh coalescer for the gallery doorbell (Phase 3).
+ * Leading-edge refresh coalescer for the gallery doorbell.
  *
  * A doorbell ping should refetch IMMEDIATELY (sub-second doorbell-to-render),
  * but a burst of pings (approve-all rings once per row; a photo dump rings per

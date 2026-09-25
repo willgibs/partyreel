@@ -1,8 +1,6 @@
 /**
- * Pins for the welcome-seen flag: once per device per event for an ordinary guest, NEVER for the demo
- * (Will, 2026-09-21, "the door's first look": "it should treat each visit as a fresh visit, even if
- * it's returning. That way every demo is end-to-end."). `door-fixes`, added by his 23:46 EDT
- * override riding this lane.
+ * Pins for the welcome-seen flag: once per device per event for an ordinary guest, NEVER for the demo,
+ * which treats every visit as a fresh one, even a returning one, so every demo runs end to end.
  */
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -32,7 +30,7 @@ describe("useWelcomeSeen: an ordinary guest", () => {
   });
 });
 
-describe("useWelcomeSeen: the demo is never seen (door-fixes)", () => {
+describe("useWelcomeSeen: the demo is never seen", () => {
   it("reads unseen even when this device's flag is already set", () => {
     localStorage.setItem(`pr_welcome_${QR}`, "1");
     const { result } = renderHook(() => useWelcomeSeen(QR, true));
@@ -40,10 +38,10 @@ describe("useWelcomeSeen: the demo is never seen (door-fixes)", () => {
   });
 
   it("markSeen still advances THIS visit (ephemeral), but persists nothing for the next one", () => {
-    // A first cut of this fix made `seen` permanently false, which broke the demo itself: Continue
-    // never advanced the itinerary past "welcome" because computeDoor kept re-adding the step. The
-    // real contract is narrower: this MOUNT still moves forward once markSeen fires (or "Continue"
-    // would loop forever within a single visit); nothing about it ever reaches localStorage.
+    // A `seen` that stayed false for the whole visit would break the demo itself: Continue would
+    // never advance the itinerary past "welcome", because computeDoor would keep re-adding the
+    // step. So this MOUNT still moves forward once markSeen fires, and nothing about it ever
+    // reaches localStorage.
     const { result } = renderHook(() => useWelcomeSeen(QR, true));
     expect(result.current[0]).toBe(false);
     act(() => result.current[1]());

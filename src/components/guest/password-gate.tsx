@@ -18,10 +18,10 @@ type PasswordGateProps = {
   // The event's qr_token (the single link); the unlock cookie is event-scoped.
   token: string;
   eventName: string;
-  // Kept for the polished view-only redesign (Part 2); /e/ uses the default light.
+  // Kept for the polished view-only redesign; /e/ uses the default light.
   variant?: "light" | "dark";
   /** Fired the instant the unlock succeeds, so the entry surface can hold the
-   *  "You're in" beat over the router.refresh() roundtrip (Phase 4.5 S5). */
+   *  "You're in" beat over the router.refresh() roundtrip. */
   onUnlocked?: () => void;
   /** The held beat ran past the watchdog (the refresh hung): show Retry.
    *  The unlock cookie is set, so retrying always recovers. */
@@ -48,7 +48,7 @@ export function PasswordGate({
 
   // Client-side first barrier (cost/DDoS): after a burst of wrong guesses, impose a short cooldown
   // BEFORE the next server hit, so honest hammering doesn't cost a Vercel invocation per try. The
-  // server-side limiter (now the sole, unbypassable throttle once verify_event_password is
+  // server-side limiter (the sole, unbypassable throttle, since verify_event_password is
   // service-role-only) is the real guard; this just keeps honest-traffic load + cost down.
   const failsRef = useRef(0);
   const [cooldownLeft, setCooldownLeft] = useState(0);
@@ -94,8 +94,7 @@ export function PasswordGate({
     <div className="flex w-full flex-col gap-4">
       {/* Rendered as the entry modal's password STEP (the modal provides the
           surface + entrance + the back chevron); no full-screen wrapper. The
-          warm "almost in" framing: protection, not a wall. The form + the
-          5-wrong/20s cooldown + the unlock call are unchanged. */}
+          warm "almost in" framing: protection, not a wall. */}
       <div className="flex flex-col">
         <p
           className={cn(
@@ -117,7 +116,7 @@ export function PasswordGate({
             dark ? "text-white/60" : "text-muted-foreground",
           )}
         >
-          {/* album, not gallery: the `noun=album` pick (Will, 2026-09-17). */}
+          {/* album, not gallery: the site, the app and the reel all say album. */}
           The host keeps this album private for guests. Enter the password from
           your invite to come in.
         </p>
@@ -135,10 +134,10 @@ export function PasswordGate({
             disabled={done}
             placeholder="Password"
             autoComplete="off"
-            // NO autofocus (Phase 4.5 R3): on iOS the keyboard ambushed the
-            // mid-transition sheet and covered it. The keyboard now rises only
-            // on an intentional tap; the drawer's repositionInputs lifts the
-            // focused field above it.
+            // NO autofocus: on iOS the keyboard would ambush the mid-transition
+            // sheet and cover it. The keyboard rises only on an intentional
+            // tap; the drawer's repositionInputs lifts the focused field above
+            // it.
             aria-label="Event password"
             aria-invalid={error ? true : undefined}
             // Point at the message below so the failure is READ OUT, not just
@@ -151,7 +150,7 @@ export function PasswordGate({
                 : undefined
             }
             className={cn(
-              // h-11 + 16px text: the ratified gate input size (16px also
+              // h-11 + 16px text: the gate input size (16px also
               // stops the iOS focus auto-zoom).
               "h-11 pr-10 text-base",
               dark &&
@@ -176,7 +175,7 @@ export function PasswordGate({
           <p
             id="password-gate-error"
             // role="alert" so a wrong password is ANNOUNCED the moment it
-            // renders. Without it the only failure signal was colour.
+            // renders. Without it the only failure signal would be colour.
             role="alert"
             className={cn(
               "text-sm",
@@ -188,12 +187,11 @@ export function PasswordGate({
               : error}
           </p>
         )}
-        {/* THE RATIFIED SUCCESS MORPH (the lab pick Will judged): the gate
-            stays PLANTED and the Unlock button itself morphs to --success
-            green with a re-keyed check + "You're in" for the whole held beat;
-            the subtext says what's happening. If the refresh hangs past the
-            watchdog, the button becomes the Retry (the cookie is set, so it
-            always recovers; the form never re-enables). */}
+        {/* THE SUCCESS MORPH: the gate stays PLANTED and the Unlock button
+            itself morphs to --success green with a re-keyed check + "You're in"
+            for the whole held beat; the subtext says what's happening. If the
+            refresh hangs past the watchdog, the button becomes the Retry (the
+            cookie is set, so it always recovers; the form never re-enables). */}
         {done && stalled ? (
           <Button
             type="button"

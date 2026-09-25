@@ -1,9 +1,7 @@
-// @contract-for: src/components/guest/guest-header.tsx
-// @contract-for: src/components/guest/guest-name-menu.tsx
 /**
- * The one thing `framing=tag` (the sixth batch,
- * 2026-09-20) is a FUNCTION rather than a look: the Demo mark's PRESENCE, on
- * every guest screen of the demo, on the one header every such screen shares.
+ * The one part of the demo's framing that is a FUNCTION rather than a look: the
+ * Demo mark's PRESENCE, on every guest screen of the demo, on the one header
+ * every such screen shares.
  * The pin stops there — the header pinning itself to the top under it is a
  * layout treatment (verified live, `testing-verification.md`'s blind spot),
  * never a class name this file should freeze.
@@ -65,9 +63,9 @@ describe("GuestHeader: the Demo mark", () => {
 });
 
 /**
- * THE HEADER'S THIRD STATE (the identity reshape, 2026-09-21).
+ * THE HEADER'S THIRD STATE.
  *
- * The header knew a stranger and an account holder. The commonest person at a
+ * The header knows a stranger and an account holder. The commonest person at a
  * name-only party is neither, and what is pinned is that the header KNOWS them
  * (their name, marked) and offers the three moves that are actually theirs.
  * Which icons, which order and the words of the door are precedent.
@@ -104,11 +102,11 @@ describe("GuestHeader: a guest with a name and no account", () => {
   });
 
   /* ────────────────────────────────────────────────────────────────────────
-     THE TWO STATES OF A GUEST'S OWN MENU (Will, 2026-09-22). Publicly every
-     unconfirmed guest is one thing; here, and ONLY here, they are told whether
-     the address they typed is still unconfirmed. The pins are the two labels
-     and the two rows, both derived from one device flag and never from an
-     address, because no address is ever stored.
+     THE TWO STATES OF A GUEST'S OWN MENU. Publicly every unconfirmed guest is
+     one thing; here, and ONLY here, they are told whether the address they
+     typed is still unconfirmed. The pins are the two labels and the two rows,
+     both derived from one device flag and never from an address, because no
+     address is ever stored.
      ──────────────────────────────────────────────────────────────────────── */
   it("with no address: 'Unverified', and the row offers to ADD one", async () => {
     localStorage.setItem("pr_guest_name_tok-1", "Sam");
@@ -162,13 +160,12 @@ describe("GuestHeader: a guest with a name and no account", () => {
 });
 
 /**
- * CONFIRMING FROM THE MENU CLAIMS, AND LEAVES THE WAY BACK (guest by upload,
- * 2026-09-22). The email row is the offer card's act in its words: the uploads
- * claimed, and with them the event; there is no save step any more. Every door
- * here (the email row, and Sign in, whose claim carries the same photographs)
- * writes the album's return marker BEFORE it opens, because Google and a magic
- * link leave the page and the album's own claim on the way back is what plays
- * the follow moment.
+ * CONFIRMING FROM THE MENU CLAIMS, AND LEAVES THE WAY BACK. The email row is
+ * the offer card's act in its words: the uploads claimed, and with them the
+ * event; there is no save step. Every door here (the email row, and Sign in,
+ * whose claim carries the same photographs) writes the album's return marker
+ * BEFORE it opens, because Google and a magic link leave the page and the
+ * album's own claim on the way back is what plays the follow moment.
  */
 describe("GuestNameMenu: every door claims, and leaves the way back", () => {
   beforeEach(() => {

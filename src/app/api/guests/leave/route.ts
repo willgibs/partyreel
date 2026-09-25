@@ -2,19 +2,17 @@
  * PUTTING THE TICKET DOWN. Body: `{ qr_token }` -> `{ ok: true }` and that event's cookie expired,
  * or `{ all: true }` -> `{ ok: true }` and every guest-ticket cookie this browser sent expired.
  *
- * The door round (Will, 2026-09-21) gave the guest session a server-readable copy,
- * `pr_guest_<eventId>`, so an RSC can resolve WHICH guest is asking before it decides how much of
- * the album to send. That copy has to be droppable, and by the same acts that already drop the
- * localStorage one: the guest header's sign-out, and any leave path. Otherwise a phone passed
- * around a table would render the full album on the last contributor's ticket, which is precisely
- * the leak Require an upload to view exists to close.
+ * The guest session has a server-readable copy, `pr_guest_<eventId>`, so an RSC can resolve WHICH
+ * guest is asking before it decides how much of the album to send. That copy has to be droppable,
+ * and by the same acts that already drop the localStorage one: the guest header's sign-out, and any
+ * leave path. Otherwise a phone passed around a table would render the full album on the last
+ * contributor's ticket, which is precisely the leak Require an upload to view exists to close.
  *
- * ★ `{ all: true }` IS THE SIGN-OUT'S (the upload-owner lane, 2026-09-23). An account signing out
- * puts down every ticket on the device, not just the album on screen, so the next person on a shared
- * phone starts clean wherever they scan next. The browser cannot read an HttpOnly cookie to list
- * them, so it asks for all of them and the route expires exactly the names the request carried.
- * (The app's account menu signs out through `signOutAction`, which does the same on its own
- * response instead: `expireGuestSessionCookies`.)
+ * ★ `{ all: true }` IS THE SIGN-OUT'S. An account signing out puts down every ticket on the device,
+ * not just the album on screen, so the next person on a shared phone starts clean wherever they
+ * scan next. The browser cannot read an HttpOnly cookie to list them, so it asks for all of them and
+ * the route expires exactly the names the request carried. (The app's account menu signs out through
+ * `signOutAction`, which does the same on its own response instead: `expireGuestSessionCookies`.)
  *
  * ★ IT ASKS FOR NOTHING AND PROVES NOTHING, because expiring your own cookie needs no capability:
  * the worst a forged call can do is log the caller out of their own browser (and SameSite=Lax keeps

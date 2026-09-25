@@ -1,7 +1,7 @@
 /**
  * THE TAKE's pins. Deterministic per (items, eventId, loopIndex); every eligible item placed exactly
  * once; the quick-add brain's guarantees holding LOCALLY, in the part of the loop a viewer is
- * actually watching; cuts never in the order; "yours first" leading with the guest's newest.
+ * actually watching; clips never in the order; "yours first" leading with the guest's newest.
  */
 import { describe, expect, it } from "vitest";
 

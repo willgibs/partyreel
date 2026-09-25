@@ -32,17 +32,14 @@ type MenuData = {
 // CTA (the host paid for this — it's their event, not a loud Partyreel page); a LOGGED-IN visitor
 // sees their account menu instead, so they feel signed in and can jump back into the app.
 //
-// ★ IT RUNS WITHOUT AN EVENT TOO, and /u/[slug] is why (Will, `head=guest`,
-// 2026-09-19: "Is this the best complete solution? Seems like it'd be very easy to get far away
-// from the original event you scanned if you start clicking guests... I think this is the best
-// option across these three, but maybe not the best overall solution for our nav in general
-// here"). A public profile is a guest-side page with no event behind it, and it used to wear a
-// hand-rolled header of its own that dropped a signed-in visitor's account menu the moment they
-// tapped a name. With both props omitted this is the same header minus the things that need an
-// event: the ownership check (/api/me/menu already treats the param as optional) and the name
-// menu. The sign-out still puts down every guest ticket on the device, since it was never about
-// the page it happens on (the upload-owner lane, 2026-09-23). His worry about the way BACK to the
-// scanned event is round two's, on the profile-reach board.
+// ★ IT RUNS WITHOUT AN EVENT TOO, and /u/[slug] is why. A public profile is a guest-side page with
+// no event behind it, and a hand-rolled header of its own would drop a signed-in visitor's account
+// menu the moment they tapped a name. With both props omitted this is the same header minus the
+// things that need an event: the ownership check (/api/me/menu already treats the param as
+// optional) and the name menu. The sign-out still puts down every guest ticket on the device, since
+// it was never about the page it happens on. It is not yet the answer for guest navigation as a
+// whole: a guest who starts tapping names can end up far from the event they scanned, and the way
+// BACK to it is an open question.
 //
 // WHY a client island (not a server getUser() in the page RSC): the page is hit by anonymous
 // event crowds, often behind ONE venue-NAT IP with auth rate limits, so the page deliberately
@@ -62,16 +59,15 @@ export function GuestHeader({
   qrToken?: string;
   /** The event being viewed, omitted on an event-less page (/u/[slug]). */
   eventId?: string;
-  /** The demo event (Will, `framing=tag`, the sixth batch, 2026-09-20): a
-   *  Demo mark beside the wordmark, and the header pins to the top so the
-   *  mark stays on screen through the whole visit. Never true on `/u/[slug]`
-   *  (no event there to be a demo of). */
+  /** The demo event: a Demo mark beside the wordmark, and the header pins to
+   *  the top so the mark stays on screen through the whole visit. Never true
+   *  on `/u/[slug]` (no event there to be a demo of). */
   isDemo?: boolean;
 }) {
   // null = signed out (or not yet resolved) → render the CTA. Non-null → render the account menu.
   const [menu, setMenu] = useState<MenuData | null>(null);
   const router = useRouter();
-  // ★ THE THIRD STATE (the identity reshape, 2026-09-21): a name-only guest.
+  // ★ THE THIRD STATE: a name-only guest.
   // Read through the store's own hook rather than a prop, because the NAME is
   // written by the entry modal inside the SIBLING island next door and this one
   // has to notice (the same module-singleton subscription the guest session uses
@@ -143,18 +139,18 @@ export function GuestHeader({
     };
   }, [eventId]);
 
-  // Client-side sign out = the replacement for the old "Switch guest" button. Put every guest
+  // Client-side sign out, which is also how a shared device switches guests. Put every guest
   // ticket on the device down FIRST (sync, even on a flaky network — notifies EventExperience so the
   // next person on a shared device doesn't upload under this one's session_token, and expires the
   // server-readable cookie half beside it), collapse the menu back
   // to the CTA (router.refresh() re-runs only the SERVER tree, not this island's state), sign out
   // (shared-device bleed), then refresh so an account-required event re-gates to <EnterEventPrompt>.
   const handleSignOut = useCallback(async () => {
-    // ★ EVERY EVENT'S TICKET, NOT THIS ALBUM'S (the upload-owner lane, 2026-09-23). A confirmed
-    // guest's ticket at another album outlived this sign-out and credited the next person's
-    // photograph to them there; the upload routes now refuse that (the guarantee), and this is the
-    // courtesy: the tokens, the names and address flags beside them, the name prefill, and every
-    // `pr_guest_*` cookie. So it runs on an event-less page (/u/[slug]) too.
+    // ★ EVERY EVENT'S TICKET, NOT THIS ALBUM'S. A confirmed guest's ticket at another album would
+    // outlive a sign-out that put down only this one, and credit the next person's photograph to
+    // them there; the upload routes refuse that (the guarantee), and this is the courtesy: the
+    // tokens, the names and address flags beside them, the name prefill, and every `pr_guest_*`
+    // cookie. So it runs on an event-less page (/u/[slug]) too.
     leaveAllGuestSessions();
     setMenu(null);
     await createClient().auth.signOut();
@@ -165,10 +161,9 @@ export function GuestHeader({
     <header
       className={cn(
         "flex items-center justify-between gap-2 border-b border-border/60 px-5 py-3",
-        // `framing=tag`: pinned to the top so the Demo mark stays on every
+        // The demo's header is pinned to the top so the Demo mark stays on every
         // screen of the visit, not just the first one; a real event's header
-        // keeps its ordinary place in the flow (round two on the chrome is
-        // guest-shape's, not this lane's).
+        // keeps its ordinary place in the flow.
         isDemo && "sticky top-0 z-20 bg-background",
       )}
     >

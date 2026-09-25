@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * THE GUEST REEL CARD — the reel's face on /e/, and the door to the watch overlay (R3, guest-flow.md).
+ * THE GUEST REEL CARD — the reel's face on /e/, and the door to the watch overlay (guest-flow.md).
  *
  * The card IS the host's poster card (components/reel/poster-card): same frame, same gradient, same
  * name treatment, same violet meta line. That continuity is the product point ("what the host made is
@@ -13,7 +13,7 @@
  *   - the lazy boundary: the overlay (and through it the whole engine) loads on the FIRST TAP only
  *
  * Placement is the CALLER's decision, not this component's: EventExperience mounts it under the action
- * block while uploads are open, and above the header once they close (the ruled lifecycle promotion),
+ * block while uploads are open, and above the header once they close (the lifecycle promotion),
  * carrying its own data-reveal index there.
  */
 
@@ -76,7 +76,7 @@ export function GuestReelCard({
 
   // The overlay must not inherit a transformed ancestor (`position: fixed` is CONTAINED by one, and
   // the card sits inside a [data-reveal] element that transforms on entrance) and must out-stack the
-  // floating Add pill (z-40). Both are free at document.body.
+  // action dock (z-40). Both are free at document.body.
   const portalEl = useSyncExternalStore(
     subscribeNever,
     getPortalHost,

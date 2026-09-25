@@ -2,8 +2,8 @@
  * AN ANONYMOUS GUEST REMOVES THEIR OWN PHOTOGRAPH. Body:
  * `{ qr_token, session_token, media_id }`.
  *
- * Will, `yours`, 2026-09-20: "A guest can delete any photo they've personally
- * uploaded, ever." His answer at approval: final for the host too.
+ * A guest can delete any photo they personally uploaded, with no time limit,
+ * and the delete is final for the host too.
  *
  * A signed-in guest does NOT come through here — they have an account, so
  * `removeMyUploadGuestAction` (the page's Server Function) calls

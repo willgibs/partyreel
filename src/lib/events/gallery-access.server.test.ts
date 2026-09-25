@@ -9,7 +9,7 @@
  * identity-less read; nobody else pays anything.
  *
  * `loadGalleryRowsForAccess` carries the album's head count beside the rows at `teaser` and `full`
- * (the 1,000-row round's C9), and `galleryEtagFor` hashes it, so the header's number is live even
+ * (the exact, live count), and `galleryEtagFor` hashes it, so the header's number is live even
  * where the loaded items are the nine-photo teaser.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -23,8 +23,11 @@ vi.mock("@/lib/db/queries/guest-events", () => ({
 const countApprovedMedia = vi.fn();
 const getApprovedMediaForUnlock = vi.fn();
 const getApprovedPhotoTeaser = vi.fn();
+const getLiveReelServerFacts = vi.fn();
 vi.mock("@/lib/db/queries/guest-events-admin", () => ({
   countApprovedMedia: (...args: unknown[]) => countApprovedMedia(...args),
+  getLiveReelServerFacts: (...args: unknown[]) =>
+    getLiveReelServerFacts(...args),
   getApprovedMediaForUnlock: (...args: unknown[]) =>
     getApprovedMediaForUnlock(...args),
   getApprovedPhotoTeaser: (...args: unknown[]) =>
@@ -40,8 +43,12 @@ vi.mock("@/lib/db/queries/guest-gate", () => ({
   getUploadGate: (...args: unknown[]) => getUploadGate(...args),
 }));
 
-const { galleryEtagFor, loadGalleryRowsForAccess, resolveViewerDecision } =
-  await import("@/lib/events/gallery-access.server");
+const {
+  galleryEtagFor,
+  loadGalleryReel,
+  loadGalleryRowsForAccess,
+  resolveViewerDecision,
+} = await import("@/lib/events/gallery-access.server");
 
 type Event = Parameters<typeof resolveViewerDecision>[0];
 
@@ -59,6 +66,9 @@ const EVENT = {
   event_date: null,
   qr_style: "classic",
   host_display_name: null,
+  show_reel: true,
+  reel_style_id: null,
+  reel_hold_sec: null,
 } as unknown as Event;
 
 const GUEST = {
@@ -160,7 +170,7 @@ const row = (id: string) => ({
   created_at: "2026-09-23T23:13:38.122749+00:00",
 });
 
-describe("loadGalleryRowsForAccess: the album's size rides beside the rows (C9)", () => {
+describe("loadGalleryRowsForAccess: the album's size rides beside the rows", () => {
   beforeEach(() => {
     countApprovedMedia.mockReset().mockResolvedValue(1145);
     getEventMediaByQrToken.mockReset().mockResolvedValue([row("a"), row("b")]);
@@ -211,5 +221,36 @@ describe("loadGalleryRowsForAccess: the album's size rides beside the rows (C9)"
       galleryEtagFor(decision, { ...gallery, approvedTotal: 1146 }),
     ).not.toBe(before);
     expect(galleryEtagFor(decision, { ...gallery })).toBe(before);
+  });
+});
+
+describe("loadGalleryReel: the live reel's facts for one viewer", () => {
+  beforeEach(() => {
+    getLiveReelServerFacts.mockReset();
+    getLiveReelServerFacts.mockResolvedValue({
+      liveReelEnabled: true,
+      tier: "free",
+    });
+  });
+
+  it("reads nothing and says nothing below full access", async () => {
+    expect(await loadGalleryReel(EVENT, "teaser")).toBeNull();
+    expect(await loadGalleryReel(EVENT, "none")).toBeNull();
+    expect(getLiveReelServerFacts).not.toHaveBeenCalled();
+  });
+
+  it("joins the event's own switch and mood to the lever and the plan", async () => {
+    const reel = await loadGalleryReel(
+      { ...EVENT, show_reel: false, reel_style_id: "warm", reel_hold_sec: 5 } as Event,
+      "full",
+    );
+    expect(reel).toEqual({
+      showReel: false,
+      liveReelEnabled: true,
+      styleId: "warm",
+      holdSec: 5,
+      clip: { videoAllowed: false, watermark: true, maxSeconds: 30 },
+    });
+    expect(getLiveReelServerFacts).toHaveBeenCalledWith("event-1");
   });
 });

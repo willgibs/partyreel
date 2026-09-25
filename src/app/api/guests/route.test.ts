@@ -1,16 +1,16 @@
 /**
- * THE DOOR (the identity reshape, 2026-09-21). Every join now carries an identity, and which one
- * is the host's switch: ON, a confirmed email and nothing else; OFF, a typed name.
+ * THE DOOR. Every join carries an identity, and which one is the host's switch: ON, a confirmed
+ * email and nothing else; OFF, a typed name.
  *
  * Two things here are load-bearing beyond the happy path:
- *   ★ VERIFIED KEYS ON `email_confirmed_at`, NEVER ON A USER ID (wave 0's finding). An unconfirmed
- *     sign-up carries a perfectly real `user.id`, and a `user !== null` test would wave it through
- *     the gate this whole reshape exists to build.
- *   ★ THE NAME REQUIREMENT IS THIS ROUTE'S. The database deliberately still accepts a NAMELESS
- *     mint, because production had to survive wave 0's migration by hours; if this route stops
+ *   ★ VERIFIED KEYS ON `email_confirmed_at`, NEVER ON A USER ID. An unconfirmed sign-up carries a
+ *     perfectly real `user.id`, and a `user !== null` test would wave it through the very gate the
+ *     ON switch exists to hold.
+ *   ★ THE NAME REQUIREMENT IS THIS ROUTE'S. The database deliberately accepts a NAMELESS mint, so
+ *     production survives a migration that lands hours ahead of the route; if this route stops
  *     asking, nothing else does.
  *
- * And since the guest identity round (Will, 2026-09-22) the door also carries an OPTIONAL address:
+ * The door also carries an OPTIONAL address:
  *   ★ WHETHER, NEVER WHAT. The response says `email_attached` and must never carry the address
  *     itself — a host's own browser calls this route.
  *   ★ THE MINT SETTLES IT, NOT THE REQUEST. `email_attached` comes back from create_guest, which
@@ -41,9 +41,9 @@ vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
   recordAbuseEvent: () => Promise.resolve(undefined),
 }));
 vi.mock("@/lib/observability/sentry", () => ({ captureWarning: vi.fn() }));
-// The door's session COOKIE (the door as three steps, 2026-09-21) is `server-only` and reads
-// `next/headers`; neither exists in the unit world, so the module's two real dependencies are
-// stubbed and the route's own use of it is asserted on the response instead.
+// The door's session COOKIE is `server-only` and reads `next/headers`; neither exists in the unit
+// world, so the module's two real dependencies are stubbed and the route's own use of it is
+// asserted on the response instead.
 vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => undefined }),
@@ -243,7 +243,7 @@ describe("Require verified emails OFF: the name is the identity", () => {
   });
 
   /* ──────────────────────────────────────────────────────────────────────────
-     THE OPTIONAL ADDRESS UNDER THE NAME (the guest identity round, 2026-09-22).
+     THE OPTIONAL ADDRESS UNDER THE NAME.
      ────────────────────────────────────────────────────────────────────────── */
 
   it("★ passes the address to the mint LOWERCASED and trimmed (the claim finds rows by equality)", async () => {
@@ -381,7 +381,7 @@ describe("the mint's own refusals keep their statuses", () => {
   });
 });
 
-describe("the read gate the write inherits (QA #18) still comes first", () => {
+describe("the read gate the write inherits still comes first", () => {
   it("403s a private event before asking for any identity", async () => {
     event(false, "private");
     expect(await refusal({ qr_token: TOKEN })).toEqual({
@@ -402,7 +402,7 @@ describe("the read gate the write inherits (QA #18) still comes first", () => {
 });
 
 /* ────────────────────────────────────────────────────────────────────────────
-   THE SESSION COOKIE (the door as three steps, Will 2026-09-21).
+   THE SESSION COOKIE.
 
    Require an upload to view is resolved in the RSC and in the poll, and neither can read the
    localStorage copy of the session this route is about to hand back. The mint writes the

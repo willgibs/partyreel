@@ -1,32 +1,29 @@
-// @contract-for: src/components/guest/upload/intent-sheet.tsx
-// @contract-for: src/components/guest/upload/review-step.tsx
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { UploadIntentSheet } from "@/components/guest/upload/intent-sheet";
 
 /**
- * THE ADD SHEET AND ITS REVIEW STEP (Will, `tap=sheet` + `warning=both`,
- * 2026-09-21: "allows us a custom visual design to support anything across
- * operating systems"; "It may be helpful to preview the photos before upload,
- * just to allow guests to catch an accidental selection").
+ * THE ADD SHEET AND ITS REVIEW STEP. A sheet of our own carries one design across
+ * every operating system, and its review step lets a guest preview the photos and
+ * catch an accidental selection before anything uploads.
  *
  * FUNCTION ONLY, and every rule below is one whose breakage is INVISIBLE in a
  * screenshot:
  *
  *  · `capture` on the camera input and not on the album one is the entire
  *    difference between the two rows. Lose it and both rows open the same
- *    chooser, which looks identical and is the option Will did not take.
+ *    chooser, which looks identical and undoes the point of having two rows.
  *  · `multiple` on the album input and not on the camera one: iOS ignores
  *    `multiple` under `capture` anyway, and a camera row that claims to take
  *    several is a promise the platform breaks.
  *  · Nothing may reach `onSend` that a guest removed, and nothing may reach it
  *    at all before Send — the review step exists for exactly that.
  *
- * The WORDS on the two rows and the shape of the tiles are Will's and are not
- * pinned. Nor is the synchronous `.click()` (Safari drops a picker opened after
- * an `await`): jsdom has no gesture model, so that one is held by the source
- * itself and by a real iPhone.
+ * The WORDS on the two rows and the shape of the tiles are not pinned. Nor is
+ * the synchronous `.click()` (Safari drops a picker opened after an `await`):
+ * jsdom has no gesture model, so that one is held by the source itself and by a
+ * real iPhone.
  */
 const file = (name: string, type = "image/jpeg") =>
   new File([new Uint8Array([1])], name, { type });
@@ -144,15 +141,13 @@ describe("the terms line", () => {
 });
 
 /**
- * THE SHEET NEVER FLASHES THE TWO ROWS ON ITS OWN WAY OUT (the alias
- * red-team's POLISH item, 2026-09-21, captured in the pane at 375, 12:11
- * EDT). Send used to clear the picks in the same tick as the close call, so
- * the still-open (closing) sheet repainted "Take a photo / Choose from your
- * album" underneath itself for the rest of its own exit. The fix defers the
- * clear to the CONTENT's own animationend, which jsdom never fires on its
- * own - so a render straight after Send, with `open` still true (exactly the
- * moment the sheet is mid-exit in the real browser), is the whole test: the
- * review step must still be what is on screen.
+ * THE SHEET NEVER FLASHES THE TWO ROWS ON ITS OWN WAY OUT. Clearing the picks in
+ * the same tick as the close call would have the still-open (closing) sheet
+ * repaint "Take a photo / Choose from your album" underneath itself for the rest
+ * of its own exit. The clear waits for the CONTENT's own animationend, which
+ * jsdom never fires on its own - so a render straight after Send, with `open`
+ * still true (exactly the moment the sheet is mid-exit in the real browser), is
+ * the whole test: the review step must still be what is on screen.
  */
 describe("the review step survives its own sheet closing", () => {
   it("after Send, with open still true, the review step is still what renders", () => {
@@ -174,7 +169,7 @@ describe("the review step survives its own sheet closing", () => {
 
     expect(onOpenChange).toHaveBeenCalledWith(false);
     expect(onSend).toHaveBeenCalledWith([kept]);
-    // The two intent rows must NOT be back - that is the flash the fix kills.
+    // The two intent rows must NOT be back - that is the flash the deferred clear kills.
     expect(
       screen.queryByRole("button", { name: "Take a photo" }),
     ).not.toBeInTheDocument();

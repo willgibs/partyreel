@@ -18,6 +18,7 @@ import "server-only";
 import { cache } from "react";
 
 import { seedFor } from "@/lib/avatar/seed";
+import { toBillingTier, type Tier } from "@/lib/constants/tiers";
 import { mustQuery, QueryFailedError } from "@/lib/db/must-query";
 import {
   albumCursorOf,
@@ -30,6 +31,7 @@ import { getEventGuests } from "@/lib/db/queries/social";
 import { readAllPages } from "@/lib/db/read-all";
 import { guestCount } from "@/lib/events/event-guests";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
+import { captureWarning } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 import {
@@ -40,10 +42,10 @@ import {
 
 /**
  * The UNLOCKED password album: every approved item, NEWEST FIRST in the open album's exact order
- * (`created_at desc, id desc`), read whole in keyset pages (the 1,000-row round: one unbounded read
- * handed an album past a thousand items its newest 1,000). The cursor is `olderThan`, the table
- * twin of the open album RPC's own, so the two arms of `loadGalleryRowsForAccess` can never page or
- * order an album differently.
+ * (`created_at desc, id desc`), read whole in keyset pages (one unbounded read would hand an album
+ * past a thousand items only its newest 1,000). The cursor is `olderThan`, the table twin of the
+ * open album RPC's own, so the two arms of `loadGalleryRowsForAccess` can never page or order an
+ * album differently.
  */
 export async function getApprovedMediaForUnlock(
   eventId: string,
@@ -57,7 +59,7 @@ export async function getApprovedMediaForUnlock(
       let page = admin
         .from("media")
         .select(
-          "id, type, original_key, preview_key, width, height, duration_seconds, created_at",
+          "id, type, original_key, preview_key, width, height, duration_seconds, reel_eligible, created_at",
         )
         .eq("event_id", eventId)
         .eq("status", "approved")
@@ -77,6 +79,7 @@ export async function getApprovedMediaForUnlock(
     width: m.width,
     height: m.height,
     duration_seconds: m.duration_seconds,
+    reel_eligible: m.reel_eligible,
     created_at: m.created_at,
   }));
 }
@@ -103,7 +106,7 @@ export async function getApprovedPhotoTeaser(
   const { data, count, error } = await createAdminClient()
     .from("media")
     .select(
-      "id, type, original_key, preview_key, width, height, duration_seconds, created_at",
+      "id, type, original_key, preview_key, width, height, duration_seconds, reel_eligible, created_at",
       { count: "exact" },
     )
     .eq("event_id", event.id)
@@ -125,6 +128,7 @@ export async function getApprovedPhotoTeaser(
       width: m.width,
       height: m.height,
       duration_seconds: m.duration_seconds,
+      reel_eligible: m.reel_eligible,
       created_at: m.created_at,
     })),
     total: count ?? 0,
@@ -165,18 +169,17 @@ const approvedCount = cache(async function approvedCount(
 
 /**
  * Header stats for the guest page: the approved media count and how many GUESTS it came from
- * ("N photos & videos from M guests"). ★ M is THE ONE COUNT (guest by upload, Will 2026-09-22:
- * "Uploaded 1 photo? You're a guest."), `getEventGuests` in queries/social.ts, the same function the
+ * ("N photos & videos from M guests"). ★ M is THE ONE COUNT (a guest is anyone who uploaded, even
+ * one photo), `getEventGuests` in queries/social.ts, the same function the
  * host's hub reads, so the album and the hub can never say two numbers for one party: a confirmed
  * guest once per person, a named unconfirmed one once per row, never the host and never a nameless
- * row. The host is no longer "one of the guests" here, which the old per-row count made them.
- * NUMBERS ONLY ever leave this function (no identities).
+ * row. NUMBERS ONLY ever leave this function (no identities).
  *
  * The total is `countApprovedMedia`, a HEAD count, so an album past PostgREST's row cap still says
  * its real size.
  *
  * Visibility posture: open events are public; a LOCKED password event still gets counts — that's
- * the ratified entry tease ("N photos are waiting" over the ghosted river; cardinality only, zero
+ * the entry tease ("N photos are waiting" over the ghosted river; cardinality only, zero
  * media URLs pre-unlock). Private never reaches here (the page early-returns), but returns zeros
  * defensively.
  */
@@ -214,14 +217,13 @@ function countsVisible(event: Pick<GuestEvent, "visibility">): boolean {
  * The host's avatar URL + seeded colour for an event's "Hosted by" byline, or null if the event has
  * no host. Server-only admin read (the guest page has no JWT): resolve events.host_id once, then the
  * host's profiles.avatar_updated_at (→ getAvatarUrl; a null marker → no photo) alongside `seedFor`
- * (→ the Avatar the byline now folds onto, the sixth batch, `seed=account`:
- * demo-wiring, "never the raw host id on the client"). The anon get_event_by_qr_token RPC stays
- * UNCHANGED (no contract change): host_id is never returned as a separate field, and never reaches
- * the browser itself — it appears only inside the avatar's stable public Storage URL PATH
- * (avatars/<host_id>/avatar.webp, a non-PII UUID embedded in a URL like any object id) and hashed,
- * one-way, inside `seed`. Callers gate the byline itself on a set host name (it hides without one),
- * but the seed/avatar pair is resolved whenever a host exists, matching `the-crowd=full`: an unnamed
- * event never shows the byline, but a NAMED one always gets its host's colour, photo or not.
+ * (→ the byline's Avatar, its colour seeded per account without the raw host id ever reaching the
+ * client). The anon get_event_by_qr_token RPC never returns host_id as a separate field, and it
+ * never reaches the browser itself — it appears only inside the avatar's stable public Storage URL
+ * PATH (avatars/<host_id>/avatar.webp, a non-PII UUID embedded in a URL like any object id) and
+ * hashed, one-way, inside `seed`. Callers gate the byline itself on a set host name (it hides
+ * without one), but the seed/avatar pair is resolved whenever a host exists: an unnamed event never
+ * shows the byline, but a NAMED one always gets its host's colour, photo or not.
  */
 export async function getHostAvatarSeed(
   eventId: string,
@@ -248,7 +250,7 @@ export async function getHostAvatarSeed(
 }
 
 /**
- * Per-media uploader identity for an event, keyed by media id (Phase 2 attribution). A server-only
+ * Per-media uploader identity for an event, keyed by media id, for attribution. A server-only
  * ADMIN read because `profiles` is own-row-RLS (`profiles_select_own`) -> a host's normal client
  * can't read guests' names; the admin client is REQUIRED (mirrors getHostAvatarSeed). Returns the
  * full identity INCLUDING email; the GUEST call sites must copy only name/isHost/isVerified onto the
@@ -290,9 +292,9 @@ export async function getUploaderIdentities(
       let page = admin
         .from("media")
         .select(
-          // The identity reshape (20260921150000): display_name + verified_at are what the one
-          // precedence rule reads. They are NOT granted to `authenticated` (guests SELECT is
-          // column-scoped, QA #41), which is exactly why this read is on the admin client.
+          // display_name + verified_at (migration 20260921150000) are what the one precedence rule
+          // reads. They are NOT granted to `authenticated` (guests SELECT is column-scoped), which
+          // is exactly why this read is on the admin client.
           "id, guest_id, guests!media_guest_id_fkey(user_id, email, display_name, verified_at, profiles!guests_user_id_fkey(display_name))",
         )
         .eq("event_id", eventId)
@@ -312,4 +314,148 @@ export async function getUploaderIdentities(
   const map = new Map<string, UploaderIdentity>();
   for (const row of rows) map.set(row.id, resolveUploaderIdentity(row, hostName));
   return map;
+}
+
+/**
+ * THE TWO SERVER-ONLY FACTS BEHIND THE LIVE REEL: the platform lever (`ops_flags.live_reel_enabled`)
+ * and the host's plan (which decides what the clip creator may do, `clipFactsForTier`). Both are
+ * deny-all or host-private, so the admin client reads them; only the derived booleans and one
+ * number ever reach a guest (`gallery-reel.ts`).
+ *
+ * ★ CACHED FOR HALF A MINUTE, PER EVENT, PER PROCESS. The gallery poll asks on every call (the facts
+ * ride the ETag, so a host's upgrade or an operator's lever reaches an open album on the next poll),
+ * and a venue of phones polling is exactly the load that should not cost two admin reads apiece.
+ * Neither fact moves more than a few times a lifetime; thirty seconds of staleness is invisible. The
+ * host's own switch and mood are NOT cached: they ride `get_event_by_qr_token`, read fresh.
+ *
+ * ★ EACH FAILURE HAS ITS OWN HONEST ANSWER, NEVER A GUESS. The lever fails OPEN (a flaky read must
+ * not take the reel off every album; render-service.ts's own kill switch reads the same way). The
+ * plan fails to `null`, which drops the creator and keeps the reel: guessing "free" would stamp the
+ * mark on a paying host's clips, guessing paid would lift it off a free one. Both are reported.
+ */
+export type LiveReelServerFacts = {
+  liveReelEnabled: boolean;
+  tier: Tier | null;
+};
+
+const REEL_FACTS_TTL_MS = 30_000;
+const REEL_FACTS_MAX = 500;
+const reelFactsCache = new Map<
+  string,
+  { at: number; value: LiveReelServerFacts }
+>();
+
+export async function getLiveReelServerFacts(
+  eventId: string,
+): Promise<LiveReelServerFacts> {
+  const now = Date.now();
+  const hit = reelFactsCache.get(eventId);
+  if (hit && now - hit.at < REEL_FACTS_TTL_MS) return hit.value;
+
+  const admin = createAdminClient();
+  const [flag, event] = await Promise.all([
+    admin
+      .from("ops_flags")
+      .select("enabled")
+      .eq("key", "live_reel_enabled")
+      .maybeSingle(),
+    admin.from("events").select("host_id").eq("id", eventId).maybeSingle(),
+  ]);
+
+  let liveReelEnabled = true;
+  if (flag.error) {
+    captureWarning("reel", "live reel: the platform lever could not be read", {
+      eventId,
+      code: flag.error.code,
+    });
+  } else {
+    // A genuinely absent row reads as the seeded default (on).
+    liveReelEnabled = flag.data?.enabled ?? true;
+  }
+
+  let tier: Tier | null = null;
+  if (event.error || !event.data?.host_id) {
+    if (event.error) {
+      captureWarning("reel", "live reel: the event's host could not be read", {
+        eventId,
+        code: event.error.code,
+      });
+    }
+  } else {
+    const profile = await admin
+      .from("profiles")
+      .select("tier")
+      .eq("id", event.data.host_id)
+      .maybeSingle();
+    if (profile.error || !profile.data) {
+      captureWarning("reel", "live reel: the host's plan could not be read", {
+        eventId,
+        code: profile.error?.code ?? "missing",
+      });
+    } else {
+      tier = toBillingTier(profile.data.tier);
+    }
+  }
+
+  const value = { liveReelEnabled, tier };
+  // A failed read is not remembered: the next poll asks again rather than serving a guess for the
+  // whole TTL.
+  if (!flag.error && tier !== null) {
+    if (reelFactsCache.size >= REEL_FACTS_MAX) {
+      const oldest = reelFactsCache.keys().next().value;
+      if (oldest !== undefined) reelFactsCache.delete(oldest);
+    }
+    reelFactsCache.set(eventId, { at: now, value });
+  }
+  return value;
+}
+
+/** Test seam: the per-process cache above, emptied. */
+export function resetLiveReelServerFactsCache(): void {
+  reelFactsCache.clear();
+}
+
+/**
+ * ONE PHOTOGRAPH, FOR ITS OWN LINK CARD: `/e/<token>?photo=<id>` pasted into a chat unfurls as that
+ * photograph, on an album anyone with the link may open whole.
+ *
+ * SELF-GUARDED like every read here: an OPEN event only (a password or private event's media never
+ * leaves through a card), and the row must be APPROVED and belong to THIS event, so an unknown,
+ * held, hidden or foreign id answers null and the caller keeps the event's own card, with no sign
+ * the item exists. The caller also requires that an anonymous viewer would see the whole album (no
+ * email or upload gate), which this cannot know. Keys stay here; only the caller's presign leaves.
+ */
+export async function getOpenAlbumItemForCard(
+  event: Pick<GuestEvent, "id" | "visibility">,
+  mediaId: string,
+): Promise<{
+  type: "photo" | "video";
+  originalKey: string;
+  previewKey: string | null;
+  width: number | null;
+  height: number | null;
+} | null> {
+  if (event.visibility !== "open") return null;
+  const { data, error } = await createAdminClient()
+    .from("media")
+    .select("type, original_key, preview_key, width, height")
+    .eq("id", mediaId)
+    .eq("event_id", event.id)
+    .eq("status", "approved")
+    .maybeSingle();
+  // A failed read degrades to the event's own card (a link preview is cosmetic), reported.
+  if (error) {
+    captureWarning("media", "photo card: the item could not be read", {
+      code: error.code,
+    });
+    return null;
+  }
+  if (!data) return null;
+  return {
+    type: data.type,
+    originalKey: data.original_key,
+    previewKey: data.preview_key,
+    width: data.width,
+    height: data.height,
+  };
 }

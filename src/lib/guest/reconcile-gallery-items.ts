@@ -3,14 +3,14 @@ import type { GridMedia } from "@/components/app/media-grid";
 /**
  * Reconcile a gallery POLL response against what is already on screen.
  *
- * THE BUG THIS EXISTS TO PREVENT (the album that dies at ~90 minutes):
- * the old reconcile was `items.map((m) => prevById.get(m.id) ?? m)` — it kept
- * the already-rendered object for every known id and therefore DISCARDED the
- * refreshed presigned URLs on every single poll. The intent was right (a new
+ * THE BUG THIS EXISTS TO PREVENT (the album that dies at ~90 minutes): a
+ * reconcile of `items.map((m) => prevById.get(m.id) ?? m)` keeps the
+ * already-rendered object for every known id and therefore DISCARDS the
+ * refreshed presigned URLs on every single poll. The intent is right (a new
  * `url` would reload the <img>), but presigned URLs EXPIRE: after
  * STABLE_DOWNLOAD_TTL_SECONDS (90 min) every tile, lightbox and download in a
- * gallery left open on screen answers 403, which is exactly the scenario the
- * product is built for (a host leaving the album up for the evening).
+ * gallery left open on screen would answer 403, which is exactly the scenario
+ * the product is built for (a host leaving the album up for the evening).
  *
  * WHY A PLAIN "ALWAYS ADOPT" IS SAFE HERE, AND WHY WE STILL DON'T:
  * presigns are STABLE INSIDE A 30-MIN BUCKET (lib/r2/presign-bucket.ts) — the
@@ -28,7 +28,7 @@ import type { GridMedia } from "@/components/app/media-grid";
  * flip — is picked up too rather than being pinned to whatever the first render
  * happened to see.
  *
- * Removed items drop and order follows the server (newest-first), same as before.
+ * Removed items drop and order follows the server (newest-first).
  */
 export function reconcileGalleryItems(
   prev: GridMedia[],
@@ -42,8 +42,8 @@ export function reconcileGalleryItems(
 }
 
 /**
- * THE IDS THAT ARE NEW SINCE THE LAST SNAPSHOT — the arrival (Will, `live=land`,
- * 2026-09-20: "a new photograph grows into its column under a glow that fades").
+ * THE IDS THAT ARE NEW SINCE THE LAST SNAPSHOT — the arrival, where a new
+ * photograph grows into its column under a glow that fades.
  *
  * Pure, and deliberately the poll's OWN answer rather than a timestamp compare:
  * "new" on this page means "not on this screen a moment ago", which is the only

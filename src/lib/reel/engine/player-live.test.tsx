@@ -1,11 +1,5 @@
 /**
- * THE LIVE PLAYER's contract, and it is one sentence: the clock only ever goes forward.
- *
- * ★ NO `@contract-for:` LINE YET, DELIBERATELY. The marker would put player-live.tsx in the
- * Library's index, which then owes it a `for` line in `rules/component-notes.ts` — and this lane
- * wires no production surface, so the Library would be advertising a component nothing mounts. The
- * wiring lane that gives the live reel its first surface adds both in one change; until then the
- * assertions below bind exactly as hard, they are just not advertised.
+ * THE LIVE PLAYER'S ONE PROMISE: the clock only ever goes forward.
  *
  * Everything the live reel does to itself while it plays — a viewer switching looks, an upload
  * splicing in, a host hiding the photograph on screen, a window handing over — is a moment where the
@@ -17,12 +11,14 @@
  * The other half is that the tick cannot die: a throwing draw must report and keep running, because
  * a rAF that dies is a black rectangle for the rest of the night.
  */
+import { createRef } from "react";
 import { act, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createBitmapCache } from "./asset-cache";
 import type { CanvasImage } from "./canvas2d";
 import { FPS } from "./constants";
+import { frameStateAt } from "./timeline";
 
 // ── The mocks ──────────────────────────────────────────────────────────────
 const log = vi.hoisted(() => {
@@ -52,6 +48,7 @@ const { LiveReelPlayer } = await import("./player-live");
 const { createClipSource } = await import("@/lib/reel/live/source");
 type LiveMediaItem = import("@/lib/reel/live/items").LiveMediaItem;
 type LiveFrameState = import("./player-live").LiveFrameState;
+type LiveReelPlayerHandle = import("./player-live").LiveReelPlayerHandle;
 
 // ── A hand-driven rAF clock ────────────────────────────────────────────────
 // ★ `nowMs` is MODULE-level and only ever advances, because rAF timestamps do: a per-call counter
@@ -290,11 +287,11 @@ describe("LiveReelPlayer", () => {
   });
 
   it("★ an arrival lands in the window ON SCREEN, even arriving mid-transition", async () => {
-    // The case that shipped an eleven-second splice in the first soak: a rewindow has to wait for
-    // the transition to finish, and while it waits the PREFETCH must not eat the queue — planning
-    // the next window is what consumes it. The property is sharper than a stopwatch: the arrival
-    // belongs to the window already on screen, never to the one after it. A wide window (eight
-    // clips) is what makes the difference visible.
+    // The hard case: a rewindow has to wait for the transition to finish, and while it waits the
+    // PREFETCH must not eat the queue — planning the next window is what consumes it, and an eaten
+    // arrival lands a whole window (about eleven seconds) late. The property is sharper than a
+    // stopwatch: the arrival belongs to the window already on screen, never to the one after it. A
+    // wide window (eight clips) is what makes the difference visible.
     const source = createClipSource({
       eventId: "e1",
       items: album(60),
@@ -357,6 +354,136 @@ describe("LiveReelPlayer", () => {
     expect(windows.length).toBeGreaterThan(1);
     expect(windows).toEqual([...windows].sort((a, b) => a - b));
     expect(monotonic(seen)).toBe(true);
+  });
+
+  it("★ a handover keeps the SAME clip at the SAME frame (the seam is invisible)", async () => {
+    // Resuming the incoming window at ITS OWN handoverOffset (the entering gap of a clip one window
+    // further on) instead of the leaving window's would move the shared clip, at every handover, by
+    // the difference between two transition lengths. Read the clip-local frame off the window the
+    // player reports, tick by tick, and it must run on through every swap. Six clips in windows of
+    // six is the small album, where every handover is also a loop boundary. Moods whose palettes
+    // mix transition LENGTHS (a fade beside a cut or a slide): with one length that fault would be
+    // invisible, since both offsets would be the same number.
+    for (const [styleId, n] of [
+      ["classic", 2],
+      ["warm", 2],
+      ["warm", 6],
+      ["punchy", 6],
+      ["warm", 24],
+    ] as const) {
+      const look = { styleId, surface: "hand" as const };
+      const source = createClipSource({
+        eventId: "e1",
+        items: album(n),
+        windowSize: 6,
+        cache: createBitmapCache(async (url) => fakeImage(url), 64),
+        load: (async (clips: readonly { url: string }[]) => ({
+          clips: clips.map((clip) =>
+            clip.url
+              ? {
+                  image: fakeImage(clip.url),
+                  width: 4,
+                  height: 4,
+                  wash: null,
+                  halo: null,
+                }
+              : null,
+          ),
+          failures: 0,
+          grain: null,
+        })) as never,
+      });
+      const clipLocal: { window: number; clip: string | null; at: number }[] =
+        [];
+      const view = render(
+        <LiveReelPlayer
+          source={source}
+          styleId={look.styleId}
+          surface={look.surface}
+          paused={false}
+          onFrame={(state) => {
+            const win = source.windowAt(state.windowIndex, look);
+            if (!win) return;
+            // The TOP clip's own frame: during a transition that is the entering clip, which is
+            // exactly the one a handover carries (the swap lands the frame its entrance ends).
+            clipLocal.push({
+              window: state.windowIndex,
+              clip: state.clipId,
+              at: frameStateAt(win.plan, state.localFrame).top.localFrame,
+            });
+          }}
+        />,
+      );
+      await act(async () => {});
+      await tickFrames(420, 1000 / 24);
+      let swaps = 0;
+      for (let i = 1; i < clipLocal.length; i++) {
+        const [a, b] = [clipLocal[i - 1], clipLocal[i]];
+        if (a.window === b.window) continue;
+        swaps += 1;
+        expect(b.clip, `${styleId} n=${n}: the clip across swap ${swaps}`).toBe(
+          a.clip,
+        );
+        // One tick is one frame at this step; the clip's own frame steps by exactly that.
+        expect(
+          Math.abs(b.at - a.at - 1),
+          `${styleId} n=${n}: the clip's frame across swap ${swaps} (${a.at} -> ${b.at})`,
+        ).toBeLessThanOrEqual(1);
+      }
+      expect(swaps, `${styleId} n=${n}: no handover happened`).toBeGreaterThan(
+        0,
+      );
+      view.unmount();
+    }
+  });
+
+  it("★ a step moves the photograph, never the clock (the view's arrow keys)", async () => {
+    const handle = createRef<LiveReelPlayerHandle>();
+    const source = makeSource();
+    const { seen } = await mountPlayer({ source, ref: handle });
+    await tickFrames(12, 1000 / 24);
+    const before = seen.at(-1)!;
+
+    // Forward: the next photograph, at once, with the clock where it was.
+    await act(async () => handle.current!.step(1));
+    await tickFrames(1, 1000 / 24);
+    const forward = seen.at(-1)!;
+    expect(forward.clipId).not.toBe(before.clipId);
+    expect(forward.globalFrame).toBeGreaterThanOrEqual(before.globalFrame);
+
+    // Back, straight away: within its first half-second, so the photograph before it.
+    await act(async () => handle.current!.step(-1));
+    await tickFrames(1, 1000 / 24);
+    expect(seen.at(-1)!.clipId).toBe(before.clipId);
+    expect(monotonic(seen)).toBe(true);
+  });
+
+  it("★ a step past a window's last photograph hands over to the next window", async () => {
+    const handle = createRef<LiveReelPlayerHandle>();
+    const source = makeSource();
+    const { seen } = await mountPlayer({ source, ref: handle });
+    await tickFrames(4, 1000 / 24);
+    const windowAtStart = seen.at(-1)!.windowIndex;
+    // Four clips a window here: three steps reach its last photograph, the fourth leaves it.
+    for (let i = 0; i < 4; i++) {
+      await act(async () => handle.current!.step(1));
+      await tickFrames(1, 1000 / 24);
+    }
+    expect(seen.at(-1)!.windowIndex).toBeGreaterThan(windowAtStart);
+    expect(monotonic(seen)).toBe(true);
+  });
+
+  it("names the clip on screen for the view's tap, and a photograph has no video moment", async () => {
+    const handle = createRef<LiveReelPlayerHandle>();
+    const { seen } = await mountPlayer({ ref: handle });
+    await tickFrames(30, 1000 / 24);
+    expect(handle.current!.moment()).toEqual({
+      clipId: seen.at(-1)!.clipId,
+      videoSec: null,
+    });
+    // It follows a step at once, before the next tick has drawn anything.
+    await act(async () => handle.current!.step(1));
+    expect(handle.current!.moment()?.clipId).not.toBe(seen.at(-1)!.clipId);
   });
 
   it("★ a throwing draw reports and the tick keeps running", async () => {

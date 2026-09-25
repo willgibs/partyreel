@@ -1,4 +1,3 @@
-// @contract-for: src/components/guest/live-gallery.tsx
 import { createRef, Suspense } from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -16,22 +15,21 @@ import type { TileSize } from "@/lib/shared/tile-size-cookie";
 import { setViewportWidth } from "../../../vitest.setup";
 
 // Hoisted so the mock factory below (itself hoisted above the imports) can
-// close over it — POLISH 2's own seam: the stub renders nothing to read the
-// credit off, so a rename's patch is proven by inspecting the `items` prop
-// GuestMasonry was actually handed, never the DOM. `doorbellRefreshRef` is
-// DEFECT 1's own seam (door-fixes, 2026-09-21): the doorbell's `onRefresh` is
-// literally `() => void refresh()` (fire-and-forget by design — the hook
-// never awaits it), so capturing the closure IS the only way to drive a
-// "poll landed" tick from outside without standing up a real Realtime socket
-// or fake-timering the 12s/60s fallback cadence.
+// close over it — the rename suite's own seam: the stub renders nothing to read
+// the credit off, so a rename's patch is proven by inspecting the `items` prop
+// GuestMasonry was actually handed, never the DOM. `doorbellRefreshRef` is the
+// stricter-drift suite's own seam: the doorbell's `onRefresh` is literally
+// `() => void refresh()` (fire-and-forget by design — the hook never awaits
+// it), so capturing the closure IS the only way to drive a "poll landed" tick
+// from outside without standing up a real Realtime socket or fake-timering the
+// 12s/60s fallback cadence.
 const { guestMasonrySpy, doorbellRefreshRef } = vi.hoisted(() => ({
   guestMasonrySpy: vi.fn(),
   doorbellRefreshRef: { current: null as (() => void) | null },
 }));
 
 /**
- * THE GUEST ALBUM'S VIEW MENU, AND THE COOKIE BEHIND ITS TILE SIZE
- * (`controls-home=view-menu`, `theirs=mark`'s own note, 2026-09-20).
+ * THE GUEST ALBUM'S ONE VIEW MENU, AND THE COOKIE BEHIND ITS TILE SIZE.
  *
  * Two layers, on purpose. `buildGuestViewGroups` is pure arithmetic (the two
  * gates: disabled below 640, Showing present only with something owned) —
@@ -92,7 +90,8 @@ async function mount(
     items: [makeItem("m1"), makeItem("m2")],
     teaserTotal: null,
     // No head count unless a test gives one: the earlier suites below pin the
-    // fallback rule (a payload from an older server), C9's suite the live one.
+    // fallback rule (a payload from an older server), the exact-count suite the
+    // live one.
     approvedTotal: null,
     etag: "etag-1",
     ...payload,
@@ -118,9 +117,9 @@ async function mount(
 }
 
 /**
- * A canned `/api/guests/gallery` poll response (DEFECT 1's own fixture,
- * door-fixes 2026-09-21) — just enough of `fetch`'s Response shape for
- * `refresh()` to read: `.status`, `.ok`, `.headers.get("etag")`, `.json()`.
+ * A canned `/api/guests/gallery` poll response (the stricter-drift suite's
+ * fixture) — just enough of `fetch`'s Response shape for `refresh()` to read:
+ * `.status`, `.ok`, `.headers.get("etag")`, `.json()`.
  */
 function pollResponse({
   access,
@@ -182,11 +181,11 @@ function openViewMenu() {
 
 /**
  * jsdom has no IntersectionObserver; the empty state's river arms its pause
- * through one (`use-ambient-pause.ts`), which only POLISH 1's own `items: []`
- * fixture reaches in this file (every other test seeds two items and never
- * mounts the empty state at all). A minimal, inert stand-in — this suite never
- * asserts on the river's paused/visible state, only that the teaser CTA beside
- * it reads right.
+ * through one (`use-ambient-pause.ts`), which only the one-true-count suite's
+ * own `items: []` fixture reaches in this file (every other test seeds two
+ * items and never mounts the empty state at all). A minimal, inert stand-in —
+ * this suite never asserts on the river's paused/visible state, only that the
+ * teaser CTA beside it reads right.
  */
 class TestIntersectionObserver {
   observe = vi.fn();
@@ -349,15 +348,14 @@ describe("LiveGallery: Tile size reserved below 640", () => {
   });
 });
 
-/* ── POLISH 1 (the identity red-team, 2026-09-21): the teaser's one true
-   count. Three surfaces used to count three different things for the same
-   album — the header read the CAPPED, photo-only loaded count, the CTA read
-   the photo-only teaserTotal, and only the gate read the true approvedTotal
-   (photos and videos). `approvedTotal` is now the one number the header and
-   the CTA both read at teaser access; a caller that has not passed it still
-   gets the old photo-only teaserTotal, never a regression. ── */
+/* ── THE ONE TRUE COUNT: the teaser's header and its CTA read one number.
+   `approvedTotal` (photos and videos, the same number the gate reads) is what
+   the header and the CTA both read at teaser access, never the CAPPED,
+   photo-only loaded count or the photo-only teaserTotal, so no two surfaces
+   count different things for the same album. A caller that has not passed it
+   still gets the photo-only teaserTotal, never a regression. ── */
 
-describe("LiveGallery: the teaser's one true count (POLISH 1)", () => {
+describe("LiveGallery: the teaser's one true count", () => {
   it("reports the true approvedTotal to the header, and the CTA counts the same album", async () => {
     const onCountChange = vi.fn();
     await mount(
@@ -365,7 +363,7 @@ describe("LiveGallery: the teaser's one true count (POLISH 1)", () => {
       { teaserTotal: 44 },
     );
     // The fixture loads 2 items and the photo-only teaserTotal is 44 — 50
-    // (photos AND videos) is the number both surfaces read now.
+    // (photos AND videos) is the number both surfaces read.
     expect(onCountChange).toHaveBeenCalledWith(50);
     expect(
       screen.getByRole("button", { name: "See all 50 photos & videos" }),
@@ -403,14 +401,14 @@ describe("LiveGallery: the teaser's one true count (POLISH 1)", () => {
   });
 });
 
-/* ── POLISH 2 (the identity red-team, 2026-09-21): a rename patches this
-   device's own credits at once. "Change name" used to update the header chip
-   and localStorage immediately while the lightbox pill kept the old name
-   until the next poll tick. `renameMine` patches every item `ownIds` already
-   knows is this device's own, locally, with no network round trip; the poll's
-   own truth still lands on schedule and simply confirms the same value. ── */
+/* ── THE RENAME PATCH: a rename patches this device's own credits at once.
+   "Change name" updates the header chip and localStorage immediately, so
+   without the patch the lightbox pill would keep the old name until the next
+   poll tick. `renameMine` patches every item `ownIds` already knows is this
+   device's own, locally, with no network round trip; the poll's own truth
+   still lands on schedule and simply confirms the same value. ── */
 
-describe("LiveGallery: renameMine patches this device's own credits (POLISH 2)", () => {
+describe("LiveGallery: renameMine patches this device's own credits", () => {
   it("patches only the caller's own items, leaving everyone else's alone, no network call", async () => {
     const ref = createRef<LiveGalleryHandle>();
     await mount({ ref, canDeleteIds: ["m1"] });
@@ -448,18 +446,18 @@ describe("LiveGallery: renameMine patches this device's own credits (POLISH 2)",
   });
 });
 
-/* ── DEFECT 1 (the door red-team's follow-up, `door-fixes`, 2026-09-21): a
-   STRICTER drift never yanks an open album out from under a thumb. The
-   red-team walked a name-only guest into a full 54-tile album, then flipped
-   Require an upload to view ON by SQL; within one poll tick the grid held 9
-   tiles though no sheet had appeared and no act had been taken. The rule:
-   when a poll's decision is LESS open than the one this instance mounted
-   with, `refresh()` still tells the shell once (`onAccessDrift`, deduped by
-   signature as before) but never touches `serverItems`/count itself — the
-   shell spends the remembered drift on the guest's own next act instead. A
-   LOOSER (or equally-open) drift applies at once, exactly as before. ── */
+/* ── THE STRICTER-DRIFT GUARD: a STRICTER drift never yanks an open album out
+   from under a thumb. Without it, a name-only guest in a full 54-tile album
+   whose host turns Require an upload to view ON would see the grid hold 9
+   tiles within one poll tick, though no sheet had appeared and no act had been
+   taken. The rule: when a poll's decision is LESS open than the one this
+   instance mounted with, `refresh()` still tells the shell once
+   (`onAccessDrift`, deduped by signature) but never touches
+   `serverItems`/count itself — the shell spends the remembered drift on the
+   guest's own next act instead. A LOOSER (or equally-open) drift applies at
+   once. ── */
 
-describe("LiveGallery: a stricter drift never yanks an open album (DEFECT 1)", () => {
+describe("LiveGallery: a stricter drift never yanks an open album", () => {
   it("holds a full gallery's items and count against a narrower teaser poll, firing the drift once", async () => {
     const onAccessDrift = vi.fn();
     const onCountChange = vi.fn();
@@ -552,13 +550,12 @@ describe("LiveGallery: a stricter drift never yanks an open album (DEFECT 1)", (
   });
 });
 
-/* ── THIS VISIT'S OWN ADDS AND REMOVALS, ON EITHER IDENTITY (guest-followons,
-   2026-09-23). The server lists arrive once a render (`canDeleteIds`) or once a
-   mount (`/api/guests/mine`), so between them the gallery itself has to know
-   what this device just added and just removed: a signed-in guest's new
-   photograph had no Trash and no mark, and a removed one still counted toward
-   "your last upload", so the last-removal warning and the page's refresh read
-   one upload too many. ── */
+/* ── THIS VISIT'S OWN ADDS AND REMOVALS, ON EITHER IDENTITY. The server lists
+   arrive once a render (`canDeleteIds`) or once a mount (`/api/guests/mine`),
+   so between them the gallery itself has to know what this device just added
+   and just removed: otherwise a signed-in guest's new photograph has no Trash
+   and no mark, and a removed one still counts toward "your last upload", so
+   the last-removal warning and the page's refresh read one upload too many. ── */
 
 const { removeMyUploadGuestAction } = await import(
   "@/app/(guest)/e/[token]/actions"
@@ -652,13 +649,12 @@ describe("LiveGallery: the header's guest count comes from the server", () => {
   });
 });
 
-/* ── C9 (the 1,000-row round): THE HEADER'S COUNT, EXACT AND LIVE AT EVERY
-   LEVEL. A count is counted, never a list's length: the payload (the render's
-   and every poll's 200) carries the album's head count, and the header shows
-   it plus whatever this device changed since (an optimistic tile in, the
-   guest's own removal out). ── */
+/* ── THE EXACT, LIVE COUNT, AT EVERY LEVEL. A count is counted, never a list's
+   length: the payload (the render's and every poll's 200) carries the album's
+   head count, and the header shows it plus whatever this device changed since
+   (an optimistic tile in, the guest's own removal out). ── */
 
-describe("albumCount: the header's number, as arithmetic (C9)", () => {
+describe("albumCount: the header's number, as arithmetic", () => {
   it("is the server's head count plus what this device changed since", () => {
     const server = { total: 1145, loaded: 9 };
     expect(
@@ -722,7 +718,7 @@ describe("albumCount: the header's number, as arithmetic (C9)", () => {
   });
 });
 
-describe("LiveGallery: the header's count, exact and live (C9)", () => {
+describe("LiveGallery: the header's count, exact and live", () => {
   it("at full, reports the payload's head count, never the list's length", async () => {
     const onCountChange = vi.fn();
     // Two items loaded, but the server counted 1,145: the count is the server's.

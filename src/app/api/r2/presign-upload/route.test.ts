@@ -1,12 +1,12 @@
 /**
- * THE GUEST PRESIGN, HELD TO THE TICKET'S OWNER (the upload-owner lane, 2026-09-23).
+ * THE GUEST PRESIGN, HELD TO THE TICKET'S OWNER.
  *
- * The alias red-team: a browser that kept a confirmed guest's ticket credited the next person's
- * photograph to that guest (another account signed in, or anyone signed out, past Require verified
- * emails, because `create_media` reads the ROW's `verified_at`). The route now asks whose ticket it
- * is before a single byte is presigned. These run the REAL route, pipeline and owner check; only
- * the edges are stubbed (the RPC wrapper, R2, the two Supabase clients), so the row's account and
- * the caller are the two dials every case turns.
+ * A browser that kept a confirmed guest's ticket would credit the next person's photograph to that
+ * guest (another account signed in, or anyone signed out, past Require verified emails, because
+ * `create_media` reads the ROW's `verified_at`), so the route asks whose ticket it is before a
+ * single byte is presigned. These run the REAL route, pipeline and owner check; only the edges are
+ * stubbed (the RPC wrapper, R2, the two Supabase clients), so the row's account and the caller are
+ * the two dials every case turns.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -81,8 +81,8 @@ function context(over: Record<string, unknown> = {}) {
 }
 
 /**
- * The row the posted ticket names: `null` is a name-only row, an id is an account's (confirmed, as
- * the red-team's was). `verifiedAt` alone, with no account, is a deleted account's confirmed row.
+ * The row the posted ticket names: `null` is a name-only row, an id is an account's (confirmed).
+ * `verifiedAt` alone, with no account, is a deleted account's confirmed row.
  */
 function ticketBelongsTo(
   userId: string | null,
@@ -169,7 +169,7 @@ describe("an account's ticket presigns only for that account", () => {
     expect(getUser).not.toHaveBeenCalled();
   });
 
-  it("★ outranks the identity gate: a confirmed person's ticket no longer carries a signed-out visitor past Require verified emails", async () => {
+  it("★ outranks the identity gate: a confirmed person's ticket never carries a signed-out visitor past Require verified emails", async () => {
     // The row is the confirmed account's (guest_verified: true, as the RPC reports the ROW), so
     // the identity gate alone would wave this through. The owner check does not.
     getUploadContext.mockResolvedValue(

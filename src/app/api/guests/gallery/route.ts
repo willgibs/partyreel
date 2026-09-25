@@ -8,6 +8,7 @@ import type { GalleryDecision } from "@/lib/events/gallery-access";
 import {
   galleryEtagFor,
   isEventOwner,
+  loadGalleryReel,
   loadGalleryRowsForAccess,
   presignGalleryRows,
   resolveViewerDecision,
@@ -35,28 +36,25 @@ export const dynamic = "force-dynamic";
  *
  * ★ THE SESSION TOKEN IS OPTIONAL, AND IT IS THE HEAL. The server reads the identity from the
  * `pr_guest_<eventId>` cookie, which an RSC can see and localStorage is not. A browser that holds a
- * token from before this round (or on a second device, or after a cookie clear) sends it in the
- * BODY once and this route writes the cookie, so the next render resolves the same guest the
+ * token minted before the cookie existed (or on a second device, or after a cookie clear) sends it
+ * in the BODY once and this route writes the cookie, so the next render resolves the same guest the
  * browser thinks it is. Only a token that actually RESOLVED to this event's row is written: the
  * decision is made with it first, and nothing is set unless the gate read recognised it.
  *
- * CONDITIONAL (Phase 3): the response carries a strong ETag (content + decision + presign bucket,
+ * CONDITIONAL: the response carries a strong ETag (content + decision + presign bucket,
  * gallery-fingerprint.ts); a matching If-None-Match answers a bare 304 BEFORE any presigning, so
  * the steady-state poll costs the reads that build the fingerprint (the album and its identity
  * sweep, each read whole in keyset pages, and the album's head count) and ~0 bytes on the wire.
- * SECURITY: the access level AND the gate
- * are part of the fingerprint -- an ETag can never validate across either (red-teamed). The
- * not-found/private early return deliberately carries NO ETag (it must never 304-validate a real
- * payload). ★ A PENDING HEAL CARRIES NO ETAG (the door re-check's follow-up, `heal-validator`,
- * 2026-09-22): the earlier fix (DEFECT 2, `door-fixes`, 2026-09-21) believed the FUNCTION's own
- * `new Response(null, { status: 304, headers })` was the thing dropping `Set-Cookie`, and that
- * answering 200 instead dodged it. The re-check on the alias found the truth one step upstream:
+ * SECURITY: the access level AND the gate are part of the fingerprint -- an ETag can never validate
+ * across either. The not-found/private early return deliberately carries NO ETag (it must never
+ * 304-validate a real payload). ★ A PENDING HEAL CARRIES NO ETAG: answering 200 instead of the
+ * function's own `new Response(null, { status: 304, headers })` does NOT keep `Set-Cookie`.
  * VERCEL'S EDGE ITSELF converts a 200 into a 304 whenever the request's If-None-Match equals THAT
  * 200's own ETag, and it is the edge's conversion that drops `Set-Cookie`, whatever status the
  * function answered with (measured: an identical request with a non-matching validator got the
  * function's 200 intact with the cookie; the matching one got `HTTP/2 304` with the ETag echoed
  * and `Set-Cookie` gone, `x-vercel-cache: MISS` both times — the function ran both times). So the
- * function's status code was never the lever: a response the browser MUST receive can carry no
+ * function's status code is not the lever: a response the browser MUST receive can carry no
  * validator the browser might present back. While `bodyToken` differs from the cookie this
  * answers 200 with the real payload and deletes the ETag header entirely — one extra full
  * response per device per sixty days, with nothing left for the edge to match — and only a
@@ -70,11 +68,15 @@ export const dynamic = "force-dynamic";
  * confirmation) changes the payload the ETag hashes, so it arrives on the same 200. Never on a
  * locked page (`none`), which reveals the name and the count of photographs only.
  *
- * ★ THE ALBUM'S SIZE RIDES EVERY 200, AND THE VALIDATOR TOO (the 1,000-row round). `approvedTotal`
- * is the head count behind the header's "N photos & videos", read with the rows at `teaser` and
- * `full` (null at `none`, which mounts no gallery). Unlike the guest count it is IN the hash: the
- * teaser's nine photographs can hold still while a video lands behind them, and only the count
- * would say so.
+ * ★ THE ALBUM'S SIZE RIDES EVERY 200, AND THE VALIDATOR TOO. `approvedTotal` is the head count
+ * behind the header's "N photos & videos", read with the rows at `teaser` and `full` (null at
+ * `none`, which mounts no gallery). Unlike the guest count it is IN the hash: the teaser's nine
+ * photographs can hold still while a video lands behind them, and only the count would say so.
+ *
+ * ★ THE LIVE REEL'S FACTS RIDE EVERY 200, AND THE VALIDATOR TOO. `reel` is null below `full` and
+ * otherwise the host's switch and mood, the platform lever and what the host's plan lets the clip
+ * creator do (`gallery-reel.ts`, `loadGalleryReel`). None of them moves a media row, so they are
+ * hashed, or a host turning the reel off would 304 past every open album.
  */
 const bodySchema = z.object({
   qr_token: z.string().min(1),
@@ -111,6 +113,7 @@ export async function POST(request: Request) {
       gate: null,
       teaserTotal: null,
       approvedTotal: null,
+      reel: null,
     });
   }
 
@@ -155,8 +158,11 @@ export async function POST(request: Request) {
         sessionToken,
       });
   const access = decision.access;
-  const gallery = await loadGalleryRowsForAccess(event.data, access);
-  const etag = galleryEtagFor(decision, gallery);
+  const [gallery, reel] = await Promise.all([
+    loadGalleryRowsForAccess(event.data, access),
+    loadGalleryReel(event.data, access),
+  ]);
+  const etag = galleryEtagFor(decision, gallery, reel);
   const headers = new Headers({
     ETag: etag,
     "Cache-Control": "private, no-store",
@@ -176,7 +182,7 @@ export async function POST(request: Request) {
     // ★ NO ETAG ON A PENDING HEAL. Vercel's edge, not this function, is what turns a matching
     // conditional request into a 304 and strips Set-Cookie doing it — so the only response the
     // edge can never rewrite is one with no validator on it at all. Deleting it here, rather than
-    // returning a 304 ourselves, is the actual fix (see the head comment).
+    // only skipping our own 304, is what keeps the cookie (see the head comment).
     headers.delete("ETag");
   }
 
@@ -202,6 +208,7 @@ export async function POST(request: Request) {
       gate: decision.gate,
       teaserTotal: gallery.teaserTotal,
       approvedTotal: gallery.approvedTotal,
+      reel,
       ...(guestCount === undefined ? {} : { guestCount }),
     },
     { headers },

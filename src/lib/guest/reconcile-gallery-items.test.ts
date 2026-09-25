@@ -30,8 +30,8 @@ describe("reconcileGalleryItems", () => {
   });
 
   it("ADOPTS the refreshed URLs when the presign bucket rolls", () => {
-    // THE 90-MINUTE BUG: the old reconcile returned prev here, so the gallery
-    // kept signatures that were already counting down to expiry.
+    // THE 90-MINUTE BUG: returning prev here would leave the gallery holding
+    // signatures that are already counting down to expiry.
     const prev = [media("a", "s1")];
     const next = [media("a", "s2")];
     const out = reconcileGalleryItems(prev, next);
@@ -87,9 +87,8 @@ describe("reconcileGalleryItems", () => {
 });
 
 /**
- * THE ARRIVAL (Will, `live=land`, 2026-09-20). What the glow is allowed to mean:
- * this photograph was not on the screen a moment ago. Never "it is recent",
- * never "this tab uploaded it".
+ * THE ARRIVAL. What the glow is allowed to mean: this photograph was not on the
+ * screen a moment ago. Never "it is recent", never "this tab uploaded it".
  */
 describe("newArrivalIds", () => {
   it("reports exactly what was not on screen a moment ago", () => {

@@ -1,23 +1,22 @@
 "use client";
 
 /**
- * WHAT A GUEST SEES WHEN SOMETHING WILL NOT GO (Will, `failed=sheet`,
- * 2026-09-21, verbatim: "This is the most visible failure option, which is
- * important for one of our biggest potential event problems. Don't want users to
- * have to check the cards of their uploads to ensure everything made it, very
- * easy to miss. An upload failure should be bubbled up clearly.").
+ * WHAT A GUEST SEES WHEN SOMETHING WILL NOT GO. A failed upload is one of the
+ * biggest problems an event can have, so it is reported as visibly as anything
+ * can be: a guest should never have to check their upload cards to learn whether
+ * everything made it, because a failure there is easy to miss.
  *
  * Nothing interrupts while the files are going. When the RUN ENDS — the queue
  * empty of everything queued and uploading — and anything failed, this opens
  * itself once and says what did not make it and why, with the tap that fixes it
  * beside the reason.
  *
- * ★ NO TILE IS DRAWN FOR A FILE THAT DID NOT GO, AND NO TOAST FIRES. Both of
- * those were the "easy to miss" he named: the dimmed tile put the word BROKEN on
- * a perfectly good photograph and hid the reason in a toast that had usually
- * gone by the time it was read, and a toast at a party is a thing that happens
- * while a phone is in a pocket. A surface that waits for you is the only one
- * that cannot be missed.
+ * ★ NO TILE IS DRAWN FOR A FILE THAT DID NOT GO, AND NO TOAST FIRES. Both are
+ * easy to miss: a dimmed tile puts the word BROKEN on a perfectly good
+ * photograph and hides the reason in a toast that has usually gone by the time
+ * it is read, and a toast at a party is a thing that happens while a phone is
+ * in a pocket. A surface that waits for you is the only one that cannot be
+ * missed.
  *
  * ★ THE REASON IS THE SERVER'S OWN SENTENCE, NEVER A HOUSE PARAPHRASE. The
  * queue carries whatever the presign or the PUT answered ("Files for this event
@@ -39,6 +38,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { formatCount } from "@/lib/format/count";
 
 /** One file that did not go: the queue's id, its file, and the server's words. */
 export type UploadFailure = { id: string; file: File; error?: string };
@@ -47,13 +47,13 @@ export type UploadFailure = { id: string; file: File; error?: string };
 export function uploadFailureHeading(count: number): string {
   // Quoted verbatim by /features/album's cap mock (`how-much-fits.tsx`);
   // mock-parity.test.ts is the proof.
-  return count === 1 ? "1 file did not go" : `${count} files did not go`;
+  return count === 1 ? "1 file did not go" : `${formatCount(count)} files did not go`;
 }
 
 /**
- * ★ THE LIST IS ITS OWN EXPORT NOW (the door as three steps, 2026-09-21): the guest door's UPLOAD
- * step shows a failed run INSIDE the entry sheet, because a sheet over a sheet with no exit is a
- * trap rather than a surface. The album's sheet and the door's step render this one list.
+ * ★ THE LIST IS ITS OWN EXPORT: the guest door's UPLOAD step shows a failed run INSIDE the
+ * entry sheet, because a sheet over a sheet with no exit is a trap rather than a surface. The
+ * album's sheet and the door's step render this one list.
  */
 export function UploadFailureList({
   failures,
@@ -127,20 +127,20 @@ export function UploadFailureSheet({
   onOpenChange: (open: boolean) => void;
   failures: readonly UploadFailure[];
   hostName: string;
-  /** Re-queues one file (the queue's own `retry`, unchanged since Phase 4). */
+  /** Re-queues one file (the queue's own `retry`). */
   onRetry: (id: string) => void;
 }) {
   /* ────────────────────────────────────────────────────────────────────────
-     THE EXIT FLASH (found on the alias at 8d83ec75, red-teaming identity-fixes).
+     THE EXIT FLASH.
 
      "Not now" calls `onOpenChange(false)`, and the parent's own close handler
-     DISMISSES every listed failure in the same tick. The list therefore emptied
-     about 33 ms before the sheet left the DOM, so for the remaining ~200 ms of
-     the exit animation the panel read "0 files did not go" over a "Retry all"
-     with nothing to retry: the last thing a guest saw of a failure was a lie
-     about it.
+     DISMISSES every listed failure in the same tick. A live list would empty
+     about 33 ms before the sheet leaves the DOM, so for the remaining ~200 ms of
+     the exit animation the panel would read "0 files did not go" over a "Retry
+     all" with nothing to retry: the last thing a guest sees of a failure would
+     be a lie about it.
 
-     The fix is the intent sheet's own idiom, one floor down: the content LATCHES
+     The guard is the intent sheet's own idiom, one floor down: the content LATCHES
      while the surface is open and the latch is what renders while it closes, so
      the words a guest read on the way in are the words they see on the way out.
      Only a non-empty list ever latches, so the first open is never empty either.

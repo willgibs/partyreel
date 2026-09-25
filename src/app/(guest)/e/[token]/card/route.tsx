@@ -2,26 +2,28 @@ import { ImageResponse } from "next/og";
 
 import { BRAND_HEX } from "@/lib/constants/site";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
+import { EVENT_CARD_ALT, EVENT_CARD_SIZE } from "@/lib/guest/event-card";
 
-// Per-event share card: the event name on the branded dark surface, so a pasted
-// event link unfurls with the real name. Private/missing events fall back to a
-// generic card (no existence/name leak — same rule as generateMetadata). Overrides
-// the site-wide opengraph-image for /e/[token]. One link per event (database-security.md0).
-export const alt = "A Partyreel event";
-export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
-
-export default async function EventOgImage({
-  params,
-}: {
-  params: Promise<{ token: string }>;
-}) {
+/**
+ * THE EVENT'S SHARE CARD: the event name on the branded dark surface, so a pasted event link unfurls
+ * with the real name. Private and missing events fall back to a generic card (no existence or name
+ * leak, the same rule as the page's `generateMetadata`). One link per event (database-security.md).
+ *
+ * ★ A ROUTE, NOT THE `opengraph-image` FILE CONVENTION. A link to one photograph (`?photo=<id>`)
+ * unfurls as THAT photograph on an album anyone may open (page.tsx), and file-based metadata
+ * outranks `generateMetadata` (Next's own rule), so no photograph could ever take the place of a
+ * convention-file card. The page names this route as the image for every other link.
+ */
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ token: string }> },
+) {
   const { token } = await params;
   const result = await getEventByQrToken(token);
   const eventName =
     result.ok && result.data.visibility !== "private"
       ? result.data.name
-      : "A Partyreel event";
+      : EVENT_CARD_ALT;
   // Guard against pathological names blowing out the layout.
   const heading =
     eventName.length > 70 ? `${eventName.slice(0, 69)}…` : eventName;
@@ -92,6 +94,11 @@ export default async function EventOgImage({
         See the photos &amp; videos on Partyreel
       </div>
     </div>,
-    { ...size },
+    {
+      ...EVENT_CARD_SIZE,
+      // Unfurlers fetch this once per paste; an hour spares the render for a busy group chat
+      // without holding a renamed event's old card for long.
+      headers: { "Cache-Control": "public, max-age=3600" },
+    },
   );
 }

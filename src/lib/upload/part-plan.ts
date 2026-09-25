@@ -1,6 +1,6 @@
 /**
- * Multipart part-size planning (Phase 3) — the ONE source for the per-part
- * content lengths both presign routes previously duplicated inline. Each
+ * Multipart part-size planning — the ONE source for the per-part content
+ * lengths both presign routes use, so neither duplicates them inline. Each
  * part's EXACT size is bound into its presign signature, so R2 rejects (403)
  * any over-stuffed body at the edge: parts 1..N-1 carry the fixed part size,
  * the last part carries the remainder.

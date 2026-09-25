@@ -1,12 +1,11 @@
 /**
- * SOMEBODY ELSE'S TICKET, AT THE GUEST'S OWN DOORS, AND AT SIGN-OUT (the upload-owner lane,
- * 2026-09-23).
+ * SOMEBODY ELSE'S TICKET, AT THE GUEST'S OWN DOORS, AND AT SIGN-OUT.
  *
  * The rename and attach-address routes refuse a ticket whose row belongs to an account the viewer
  * is not (`session_other_account`), exactly as the upload routes do. What is pinned here is what the
  * two doors that post such a ticket do about it (put it down, never argue with it), and that both
  * sign-outs put down every ticket on the device so the next person on a shared phone starts clean.
- * Plain tests rather than contract lines: the doors' contracts are their own files'.
+ * The doors' other pins live in their own test files.
  */
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";

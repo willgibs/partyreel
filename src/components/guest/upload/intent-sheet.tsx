@@ -1,16 +1,14 @@
 "use client";
 
 /**
- * WHAT THE TAP OPENS (Will, `tap=sheet`, 2026-09-21, verbatim: "This focuses the
- * add options as opposed to option 3, but allows us a custom visual design to
- * support anything across operating systems, as opposed to option 1. Plus,
- * option one being native gives it a huge advantage.").
+ * WHAT THE TAP OPENS: a sheet of our own, which keeps the focus on the two ways
+ * to add and carries one custom design across every operating system.
  *
  * Every Add in the guest page — the row under the event's name, the dock, the
- * empty album's own CTA — opens THIS, on the one responsive Sheet (`dialogs=
- * stands`): a side panel at a desk, a bottom sheet in a hand. Two rows name the
- * two acts the phone's own chooser never distinguishes, and at a party the one
- * that matters most has not been taken yet.
+ * empty album's own CTA — opens THIS, on the one responsive Sheet: a side panel
+ * at a desk, a bottom sheet in a hand. Two rows name the two acts the phone's
+ * own chooser never distinguishes, and at a party the one that matters most has
+ * not been taken yet.
  *
  * ★ THE `.click()` IS SYNCHRONOUS WITH THE TAP, AND THAT IS NOT A STYLE CHOICE.
  * Safari only opens a file picker inside the gesture that asked for it, so ONE
@@ -47,15 +45,16 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { formatCount } from "@/lib/format/count";
 
 /**
- * ★ THE BODY IS ITS OWN EXPORT NOW (the door as three steps, 2026-09-21). The guest door's UPLOAD
- * step asks for the first photograph INSIDE the entry sheet, and a Radix dialog `aria-hidden`s
- * everything outside itself: an input parked in the page would be inert while the door is open, and
- * a second sheet over the first is two things to dismiss in the dark at a party. So the two inputs,
- * the two rows, the terms line and the review swap live in `UploadIntentBody`, which the album's
- * sheet wraps and the door's step renders directly. The Safari-synchronous `.click()` rule travels
- * with it unchanged, because the inputs travel with it.
+ * ★ THE BODY IS ITS OWN EXPORT. The guest door's UPLOAD step asks for the first photograph
+ * INSIDE the entry sheet, and a Radix dialog `aria-hidden`s everything outside itself: an input
+ * parked in the page would be inert while the door is open, and a second sheet over the first is
+ * two things to dismiss in the dark at a party. So the two inputs, the two rows, the terms line and
+ * the review swap live in `UploadIntentBody`, which the album's sheet wraps and the door's step
+ * renders directly. The Safari-synchronous `.click()` rule travels with it unchanged, because the
+ * inputs travel with it.
  *
  * The body owns no open state and no header: whoever mounts it owns the surface, and asks for the
  * heading with `headingFor(picks.length)` so the sheet's title and the step's own heading say the
@@ -70,7 +69,7 @@ export function uploadIntentHeading(pickCount: number): {
     return { title: "Add photos", description: "", reviewing: false };
   }
   return {
-    title: pickCount === 1 ? "Send this one?" : `Send these ${pickCount}?`,
+    title: pickCount === 1 ? "Send this one?" : `Send these ${formatCount(pickCount)}?`,
     description: "Tap the cross on anything you did not mean to pick.",
     reviewing: true,
   };
@@ -83,7 +82,6 @@ export function UploadIntentBody({
   capBytes,
   /** The door's step replaces the two rows' footer with its own (a skip, or the held line). */
   footer,
-  /** The primary's words on the pick view; the album's sheet keeps the two named acts alone. */
   className,
 }: {
   picks: readonly Pick[];
@@ -195,16 +193,15 @@ export function UploadIntentSheet({
         onAnimationEnd={(e) => {
           /**
            * The picks die with the sheet, but only once it has ACTUALLY
-           * closed — never in the same tick as the call that closes it. Send
-           * used to clear `picks` immediately, which flipped `reviewing` back
-           * to false while the sheet was still visibly playing its exit: the
-           * still-open panel repainted the two intent rows underneath itself
-           * for the rest of the close (captured in the pane at 375, 12:11
-           * EDT). A stale review from ten minutes ago reopening under "Add
-           * photos" would be its own small horror, so this still runs on
-           * every genuine close (Send, the X, Escape, the backdrop) — just
-           * on the CONTENT's own `animate-out` finishing rather than on the
-           * tap that started it.
+           * closed — never in the same tick as the call that closes it.
+           * Clearing `picks` on Send would flip `reviewing` back to false
+           * while the sheet is still visibly playing its exit: the still-open
+           * panel would repaint the two intent rows underneath itself for the
+           * rest of the close. A stale review from ten minutes ago reopening
+           * under "Add photos" would be its own small horror, so this still
+           * runs on every genuine close (Send, the X, Escape, the backdrop) —
+           * just on the CONTENT's own `animate-out` finishing rather than on
+           * the tap that started it.
            *
            * `e.target === e.currentTarget` skips a bubbled animation from a
            * child (there are none today, but the review grid is exactly the

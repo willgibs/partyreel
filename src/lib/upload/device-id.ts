@@ -1,9 +1,9 @@
 /**
- * The durable first-party device UUID (trust-safety-forensics.md A3-lite). A random UUID minted once per browser
+ * The durable first-party device UUID (trust-safety-forensics.md). A random UUID minted once per browser
  * and persisted in localStorage, sent with every upload COMPLETE request so `upload_forensics`
  * can correlate abuse across events even when session tokens rotate.
  *
- * ★ CAPTURE-ONLY, by ruling: this id must never feed product logic, gating, analytics, or any
+ * ★ CAPTURE-ONLY: this id must never feed product logic, gating, analytics, or any
  * host/guest-visible surface. It exists solely for the deny-all forensic record.
  *
  * Best-effort: blocked storage (private mode, iframe policies) or a non-browser context returns

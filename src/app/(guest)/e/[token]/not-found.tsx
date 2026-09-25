@@ -15,9 +15,8 @@ import { DEMO_EVENT_URL } from "@/lib/demo";
 // slug are the only three ways a link stops resolving. The help article
 // content/help/the-qr-wont-scan-or-the-link-wont-open.mdx quotes this sentence. Renders in
 // (guest)/layout.tsx (narrow mobile column); GuestHeader needs a real qrToken/eventId,
-// which a 404 has none of, so the session-less GuestBar stands in — lifted OUT of this
-// file in the errors wiring so the guest CRASH could wear the same row (Will,
-// `surround=shell`, 2026-09-19).
+// which a 404 has none of, so the session-less GuestBar stands in: its own module, so the
+// guest CRASH wears the same row.
 export const metadata: Metadata = {
   title: "Event not found",
   robots: { index: false, follow: false },
@@ -38,9 +37,9 @@ export default function GuestNotFound() {
               <Link href="/">What is Partyreel?</Link>
             </Button>
           }
-          // Will, `ways-out=guided` (2026-09-19). A guest holding a link that
-          // will not open is the reader most likely to want a person, and the
-          // help center's QR article is written for exactly this screen.
+          // A guest holding a link that will not open is the reader most likely
+          // to want a person, and the help center's QR article is written for
+          // exactly this screen.
           help={<HelpLine href="/help">Visit the help center</HelpLine>}
           footnote={
             DEMO_EVENT_URL ? (

@@ -1,7 +1,6 @@
-// @contract-for: src/components/guest/save-account-prompt.tsx
 /**
- * THE OFFER CARD'S CONTRACT (`account=after` 2026-09-20; the capture flow folded
- * in at the identity reshape, 2026-09-21).
+ * THE OFFER CARD'S CONTRACT: the account offer after the first upload, with the
+ * email capture flow folded into it.
  *
  * Five functions, none of them a look:
  *   1. IT COUNTS WHAT JUST LANDED. The offer is about the photographs in front
@@ -12,8 +11,8 @@
  *   3. OPENING THE DOOR LEAVES A MARKER. `pr_pending_offer_<qr_token>` is what
  *      makes a magic-link round trip land the same beat as the in-page code;
  *      without it a guest who left the page comes back to nothing.
- *   4. CONFIRMING CLAIMS, AND ONLY CLAIMS (guest by upload, 2026-09-22): the
- *      claim brings the event with the photographs, so there is no save step.
+ *   4. CONFIRMING CLAIMS, AND ONLY CLAIMS: the claim brings the event with the
+ *      photographs, so there is no save step.
  *   5. THE NEWSLETTER SWITCH RIDES THIS DOOR, and posts only when it is on.
  */
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -66,8 +65,8 @@ describe("SaveAccountPrompt", () => {
     expect(screen.getByText(/it stays with you/i)).toBeInTheDocument();
   });
 
-  // POLISH 3 (the identity red-team, 2026-09-21): the heading said "photos"
-  // for one file too, reading as a typo beside its own body's "it stays".
+  // A plural heading over one file reads as a typo beside its own body's "it
+  // stays", so the heading counts too.
   it("the heading counts too: singular for exactly one, plural otherwise", () => {
     const { unmount } = mount(7);
     expect(screen.getByText("Keep these photos")).toBeInTheDocument();
@@ -94,12 +93,12 @@ describe("SaveAccountPrompt", () => {
     expect(second.container).toBeEmptyDOMElement();
   });
 
-  /* ★ THE ADDRESS TYPED AT THE DOOR ARRIVES IN THE FIELD (2026-09-22), which
-     is the one thing the optional field buys a guest before they confirm: the
-     offer card is often minutes after the door, and typing the same address
-     twice in one visit is the friction the field was meant to remove. The
-     card's own words are unchanged, which is the point — the offer is the
-     same, one tap cheaper. */
+  /* ★ THE ADDRESS TYPED AT THE DOOR ARRIVES IN THE FIELD, which is the one
+     thing the optional field buys a guest before they confirm: the offer card
+     is often minutes after the door, and typing the same address twice in one
+     visit is the friction the field was meant to remove. The card's own words
+     do not change, which is the point — the offer is the same, one tap
+     cheaper. */
   it("opens its door on the address typed at the door", async () => {
     mount(3, "priya@example.com");
     fireEvent.click(screen.getByRole("button", { name: /confirm your email/i }));

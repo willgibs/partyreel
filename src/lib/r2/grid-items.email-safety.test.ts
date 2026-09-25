@@ -3,16 +3,16 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-// Email-safety invariant (Phase 2): uploader EMAIL is host-gallery-only. Every GUEST-facing
+// Email-safety invariant: uploader EMAIL is host-gallery-only. Every GUEST-facing
 // GridMedia is built by toGridItems (the SSR page, the live-poll route, and the password-unlock
 // path all funnel through it), which copies ONLY name/isHost/isVerified off the identities map
 // and NEVER the email. This standing guard fails if a future edit ever assigns an
 // email there, so a guest payload can never carry an uploader's email. (The host dashboard builds
 // its own items with email, separately, in lib/event/gallery-items.ts.)
 //
-// The identity reshape (2026-09-21) made the map WIDER, which is exactly when a guard like this
-// earns its keep: `isVerified` had to reach the guest tile, and the tempting way to add it is to
-// spread `who` instead of naming the fields, which would carry the email along with it.
+// The identities map carries more than a name (`isVerified` reaches the guest tile), which is
+// exactly when a guard like this earns its keep: the tempting way to add a field is to spread
+// `who` instead of naming the fields, which would carry the email along with it.
 describe("email-safety: the guest-facing GridMedia builder never carries email", () => {
   const src = readFileSync(
     join(process.cwd(), "src/lib/r2/grid-items.ts"),
@@ -30,11 +30,11 @@ describe("email-safety: the guest-facing GridMedia builder never carries email",
     expect(src).toContain("isVerified: who?.isVerified ?? false");
   });
 
-  /* ★ AND THE UNPROVED ADDRESS TOO (the guest identity round, Will 2026-09-22). `guests` now also
-     carries `pending_email`: an address a guest TYPED at the door that nobody has proved, stored as
-     an invisible claim number. It is inert by ruling — never shown to the host, never shown to
-     another guest — so it has even less business on a guest-facing payload than a proved one. The
-     builder must never learn the word in any spelling. */
+  /* ★ AND THE UNPROVED ADDRESS TOO. `guests` also carries `pending_email`: an address a guest
+     TYPED at the door that nobody has proved, stored as an invisible claim number. It is inert by
+     construction — never shown to the host, never shown to another guest — so it has even less
+     business on a guest-facing payload than a proved one. The builder must never learn the word in
+     any spelling. */
   it("★ never assigns pending_email, in any spelling", () => {
     for (const forbidden of [
       "pending_email",
