@@ -67,7 +67,16 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Does deletion also take a typed name off the account's rows?** The brief's scrub names the two addresses and the
+  stamp. Recommended, and built (both scrubs and the trigger): yes, `display_name` too. Only an unconfirmed account's
+  row carries one (a verified row's name is the profile's, which the request already anonymises); none exist today
+  and no current path mints one, and `upload_forensics` keeps the typed name as evidence. Without it, the help line
+  "your name and email come off photos in other hosts' events" is false for exactly those rows.
+- **Does the email change get its own abuse-limiter kind?** Supabase Auth's email limit binds only a send, and GoTrue
+  answers an address that already has an account (`email_exists`) before sending anything, so a signed-in account can
+  test addresses at the request rate while the action's generic sentence hides the answer from the screen (the
+  account's own inbox staying silent still tells). Recommended: yes, a per-ACCOUNT kind (`email_change`, about 5 an
+  hour), not venue-shaped like the guest kinds; not built, because `abuse-rate-limit.ts` is `reel-teardown`'s tonight.
 
 ## System-doc edits (in place, owned facts only)
 
