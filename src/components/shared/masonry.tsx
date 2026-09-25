@@ -76,6 +76,7 @@ import type { LucideIcon } from "lucide-react";
 
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
 import { TileLikeMark } from "@/components/likes/like-button";
+import { probeAlbumRender } from "@/components/shared/album-tile";
 import type { ViewerOrigin } from "@/components/shared/media-lightbox";
 import {
   MediaLightboxLazy,
@@ -1216,89 +1217,92 @@ export function MasonryColumns<T extends GridMedia>({
 
   // `box` is a justified row's size and the glide's key (`AlbumRows`); without
   // one the tile sizes itself by its aspect, as masonry and uniform always have.
-  const tileOf = (item: T, box?: RowTileBox) => (
-    <div
-      key={item.id}
-      data-rows-key={box?.rowsKey}
-      data-media-tile
-      data-arrived={arrivedIds?.has(item.id) ? "" : undefined}
-      data-landed={landedIds?.has(item.id) ? "" : undefined}
-      data-mine={mineIds?.has(item.id) ? "" : undefined}
-      // The lightbox finds a photograph's tile by it, to drop back into.
-      data-media-id={item.id}
-      // The bright edge (globals.css, [data-lit]): this div owns the tile
-      // radius and clips the photo, so the hook sits here and nowhere
-      // above it. No value: a tile has no border for the light to land on.
-      data-lit=""
-      // Host tiles (stagger off) opt out of the arrival fade-rise (emil: no
-      // entrance theater on host); the guest album (stagger on) keeps it.
-      data-static={stagger ? undefined : ""}
-      style={
-        {
-          // Rows = the engine's box. Uniform = the one fixed aspect (object-cover
-          // crops); masonry = natural ratio.
-          ...(box
-            ? box.style
-            : {
-                aspectRatio: uniform
-                  ? UNIFORM_TILE_ASPECT
-                  : tileAspect(item, clampAspect),
-              }),
-          borderRadius: "var(--radius-tile)",
-          ...(stagger ? { "--tile-i": seedIndex.get(item.id) ?? 0 } : {}),
-        } as CSSProperties
-      }
-      // Uniform: the CSS-grid gap spaces tiles; rows: the flex gap and the row
-      // breaks. Masonry: the gap is the tile's own bottom margin, because
-      // neither a `columns` box nor a column element has a row gap.
-      className={
-        box
-          ? "group relative overflow-hidden bg-black/10"
-          : uniform
-            ? "group relative w-full overflow-hidden bg-black/10"
-            : "group relative mb-[var(--gap-gallery)] w-full break-inside-avoid overflow-hidden bg-black/10"
-      }
-    >
-      <button
-        type="button"
-        {...longPress.bind(item.id)}
-        onClick={(e) => {
-          // Suppress the click the browser synthesizes after a long-press (else the hold that
-          // entered select mode would also open the lightbox).
-          if (longPress.consumeClick()) return;
-          openItem(item.id, e.currentTarget.closest("[data-media-tile]"));
-        }}
-        aria-label={item.type === "photo" ? "View photo" : "Play video"}
-        // ★ `cn`, never a template: the dim used to be glued straight onto
-        // `active:scale-[0.98]` with no space, one class nobody emits, so a
-        // hidden photograph sat in the host album at full brightness.
-        className={cn(
-          "size-full cursor-pointer transition-[transform,opacity] duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset active:scale-[0.98]",
-          dimItem?.(item) && "opacity-30",
-        )}
+  const tileOf = (item: T, box?: RowTileBox) => {
+    probeAlbumRender("tile", item.id);
+    return (
+      <div
+        key={item.id}
+        data-rows-key={box?.rowsKey}
+        data-media-tile
+        data-arrived={arrivedIds?.has(item.id) ? "" : undefined}
+        data-landed={landedIds?.has(item.id) ? "" : undefined}
+        data-mine={mineIds?.has(item.id) ? "" : undefined}
+        // The lightbox finds a photograph's tile by it, to drop back into.
+        data-media-id={item.id}
+        // The bright edge (globals.css, [data-lit]): this div owns the tile
+        // radius and clips the photo, so the hook sits here and nowhere
+        // above it. No value: a tile has no border for the light to land on.
+        data-lit=""
+        // Host tiles (stagger off) opt out of the arrival fade-rise (emil: no
+        // entrance theater on host); the guest album (stagger on) keeps it.
+        data-static={stagger ? undefined : ""}
+        style={
+          {
+            // Rows = the engine's box. Uniform = the one fixed aspect (object-cover
+            // crops); masonry = natural ratio.
+            ...(box
+              ? box.style
+              : {
+                  aspectRatio: uniform
+                    ? UNIFORM_TILE_ASPECT
+                    : tileAspect(item, clampAspect),
+                }),
+            borderRadius: "var(--radius-tile)",
+            ...(stagger ? { "--tile-i": seedIndex.get(item.id) ?? 0 } : {}),
+          } as CSSProperties
+        }
+        // Uniform: the CSS-grid gap spaces tiles; rows: the flex gap and the row
+        // breaks. Masonry: the gap is the tile's own bottom margin, because
+        // neither a `columns` box nor a column element has a row gap.
+        className={
+          box
+            ? "group relative overflow-hidden bg-black/10"
+            : uniform
+              ? "group relative w-full overflow-hidden bg-black/10"
+              : "group relative mb-[var(--gap-gallery)] w-full break-inside-avoid overflow-hidden bg-black/10"
+        }
       >
-        <MediaTile item={item} playBadge="none" />
-      </button>
+        <button
+          type="button"
+          {...longPress.bind(item.id)}
+          onClick={(e) => {
+            // Suppress the click the browser synthesizes after a long-press (else the hold that
+            // entered select mode would also open the lightbox).
+            if (longPress.consumeClick()) return;
+            openItem(item.id, e.currentTarget.closest("[data-media-tile]"));
+          }}
+          aria-label={item.type === "photo" ? "View photo" : "Play video"}
+          // ★ `cn`, never a template: the dim used to be glued straight onto
+          // `active:scale-[0.98]` with no space, one class nobody emits, so a
+          // hidden photograph sat in the host album at full brightness.
+          className={cn(
+            "size-full cursor-pointer transition-[transform,opacity] duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset active:scale-[0.98]",
+            dimItem?.(item) && "opacity-30",
+          )}
+        >
+          <MediaTile item={item} playBadge="none" />
+        </button>
 
-      {/* THE MARKS — state, never controls, and the whole of a phone tile. The
+        {/* THE MARKS — state, never controls, and the whole of a phone tile. The
           fourth ("yours") is the one exception his own ruling asked for: it is
           a mark that the guest album also makes tappable, because the filter it
           opens is the answer to "where are mine" at 68 photographs. */}
-      {item.type === "video" && <CornerPlayBadge />}
-      {!hideLikeMark && <TileLikeMark item={item} count={item.likeCount} />}
-      {mineIds?.has(item.id) && (
-        <MineMark onSelect={onSelectMine} selected={mineSelected} />
-      )}
+        {item.type === "video" && <CornerPlayBadge />}
+        {!hideLikeMark && <TileLikeMark item={item} count={item.likeCount} />}
+        {mineIds?.has(item.id) && (
+          <MineMark onSelect={onSelectMine} selected={mineSelected} />
+        )}
 
-      {/* The desk's hover row, as one pane. A sibling of the open button, so a
+        {/* The desk's hover row, as one pane. A sibling of the open button, so a
           control's tap is captured by the control and never opens the lightbox. */}
-      {tileActions && <TileActionBar actions={tileActions(item)} />}
+        {tileActions && <TileActionBar actions={tileActions(item)} />}
 
-      {/* Per-tile chrome LAST so it paints over everything; its own buttons
+        {/* Per-tile chrome LAST so it paints over everything; its own buttons
           capture the tap (the lightbox never opens behind them). */}
-      {renderOverlay?.(item)}
-    </div>
-  );
+        {renderOverlay?.(item)}
+      </div>
+    );
+  };
 
   const columns =
     uniform || rows || cols === null

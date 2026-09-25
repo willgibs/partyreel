@@ -4,6 +4,7 @@ import { Heart } from "lucide-react";
 
 import { useLikes } from "@/components/likes/likes-provider";
 import { ActionTooltip } from "@/components/shared/action-tooltip";
+import { probeAlbumRender } from "@/components/shared/album-tile";
 import type { TileAction } from "@/components/shared/masonry";
 import { GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,7 @@ export function TileLikeMark({
   count?: number;
 }) {
   const likes = useLikes();
+  probeAlbumRender("mark", item.id);
   const liked = likes?.isLiked(item.id) ?? false;
   const showCount = typeof count === "number" && count > 0;
   // Nothing to say: a fresh album stays clean, which is the whole point of the
