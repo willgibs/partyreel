@@ -21,6 +21,12 @@
  * lands identically whether validated on the client or re-parsed on the server.
  * `qr_token` is intentionally ABSENT — the DB generates it and the app must never
  * supply it.
+ *
+ * ★ THE REEL'S THREE DEFAULTS ARE UPDATE-ONLY (`reelFields`). A new event takes
+ * their column defaults (the reel on, the default mood, the default hold), so they
+ * join the update and never the create: a create that sent one has it stripped,
+ * as `z.object` strips an unknown key. Each is nullable, and null hands the
+ * setting back to the product's own default.
  */
 import { z } from "zod";
 
@@ -28,6 +34,7 @@ import { Constants } from "@/lib/db/types";
 import { QR_STYLE_KEYS } from "@/lib/constants/qr-presets";
 import { RESERVED_SLUGS } from "@/lib/constants/reserved-slugs";
 import { MAX_UPLOAD_BYTES, MIN_UPLOAD_CAP_BYTES } from "@/lib/media/limits";
+import { isHoldStep, isReelMoodId } from "@/lib/reel/defaults";
 
 // The FIELDS, with no defaults (see the header): the one place a field's shape is written.
 const eventFields = {
@@ -98,13 +105,47 @@ export const createEventSchema = z.object({
   qr_style: eventFields.qr_style.default("classic"),
 });
 
+// The reel's event-wide defaults (Will, reel-host `style=both`): what every viewer STARTS on, each
+// viewer's own change staying on their device. Update-only (see the header).
+const reelFields = {
+  // The host's switch for the reel everywhere it shows (the album's tile, the view, a screen).
+  show_reel: z.boolean(),
+  // One of the eight moods, or null for the default mood. The column carries no CHECK (a new mood
+  // needs no migration), so this refusal is the write's boundary.
+  reel_style_id: z
+    .string()
+    .refine(isReelMoodId, "Pick one of the reel's looks.")
+    .nullable(),
+  // Exactly one of the hold's steps, or null for the default hold. The database holds only an
+  // envelope around the steps (events_reel_hold_sec_range), so this is the step check.
+  reel_hold_sec: z
+    .number()
+    .refine(isHoldStep, "Pick one of the hold's steps.")
+    .nullable(),
+};
+
 /**
  * AN UPDATE: exactly the keys a caller sent, and nothing else. `updateEvent` patches every
  * defined key, so a default here would be a WRITE (the header's defect): a one-field save
  * (`{ qr_style }` from the QR designer, `{ moderation_mode }` from the review room) must parse to
  * that one field.
  */
-export const updateEventSchema = z.object(eventFields).partial();
+export const updateEventSchema = z
+  .object({ ...eventFields, ...reelFields })
+  .partial();
+
+/**
+ * `setReelDefaults`' input (lib/reel/defaults-action.ts), the one write both the view's "Set for
+ * everyone" and Settings' Highlight reel section call: the event, then any of the three defaults,
+ * each the update's own field. Unknown keys are stripped, so it can never carry another setting.
+ */
+export const reelDefaultsInputSchema = z.object({
+  eventId: z.uuid("Unknown event."),
+  showReel: reelFields.show_reel.optional(),
+  styleId: reelFields.reel_style_id.optional(),
+  holdSec: reelFields.reel_hold_sec.optional(),
+});
+export type ReelDefaultsInput = z.input<typeof reelDefaultsInputSchema>;
 
 // The create's input ≠ output because of its `.default()`s: the wizard's resolver works with
 // the INPUT type (booleans optional), the action consumes the OUTPUT type (applied). An update's
