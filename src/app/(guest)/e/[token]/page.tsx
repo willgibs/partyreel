@@ -41,10 +41,10 @@ import {
 import { splitGuestList, withAvatarUrls } from "@/lib/social/cards";
 import { isDemoToken } from "@/lib/demo";
 import { resolveGalleryDecision } from "@/lib/events/gallery-access";
+import { isRequestOwner } from "@/lib/events/gallery-access-owner.server";
 import {
-  isEventOwner,
-  loadGallerySeed,
   resolveViewerDecision,
+  streamGallerySeed,
 } from "@/lib/events/gallery-access.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import {
@@ -60,7 +60,7 @@ import {
   TILE_SIZE_COOKIE,
 } from "@/lib/shared/tile-size-cookie";
 import { getSiteUrl } from "@/lib/site-url";
-import { createClient } from "@/lib/supabase/server";
+import { getRequestAuth } from "@/lib/supabase/request-auth";
 import { needsDisplayName } from "@/lib/welcome";
 
 // Event state + gallery are read per request via the qr_token RPCs.
@@ -317,18 +317,19 @@ export default async function GuestEventPage({
   // run getUser() for EVERY non-private event (not just the accepting-uploads path): the gate must
   // know whether the viewer is signed in. For the anonymous majority it's a cheap local null, and the
   // owner select runs ONLY when signed in. Authorize with getUser(), never getSession().
+  //
+  // ★ THE OWNER IS ASKED THE WAY THE ALBUM'S READS ASK (`isRequestOwner`, one answer per render):
+  // the page and its seed can never disagree about the host. They did, and it crashed the host's
+  // own password album (build 10): the page let the owner in, the seed's cookie-only gate refused.
   let isAuthed = false;
   let isOwner = false;
   let userId: string | null = null;
   if (!isDemo) {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { user } = await getRequestAuth();
     if (user) {
       userId = user.id;
       isAuthed = Boolean(user.email_confirmed_at);
-      isOwner = await isEventOwner(event.id, user.id, supabase);
+      isOwner = await isRequestOwner(event.id);
     }
   }
   /* ──────────────────────────────────────────────────────────────────────
@@ -375,8 +376,10 @@ export default async function GuestEventPage({
   const rhythmSeed = randomInt(1_000_000);
   // Deliberately NOT awaited: the album's seed (the manifest and the first
   // paint's links) streams in behind the shell, which paints first; the live
-  // gallery resolves it inside its Suspense boundary.
-  const galleryPromise = loadGallerySeed(event, decision, {
+  // gallery resolves it inside its Suspense boundary. ★ Streamed through
+  // `streamGallerySeed`, never a bare `loadGallerySeed`: a seed that fails while
+  // the reads below are still awaited must never be an unhandled rejection.
+  const galleryPromise = streamGallerySeed(event, decision, {
     step: rowStep,
     rhythm: "double",
     seed: rhythmSeed,

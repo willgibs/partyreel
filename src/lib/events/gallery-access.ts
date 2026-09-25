@@ -3,8 +3,9 @@
  *
  * The gated-gallery security core: an account-required (or password) event must NOT hand the full
  * album to an unauthenticated viewer. We resolve a viewer to one of three levels and enforce it
- * IDENTICALLY in the RSC and the gallery poll (the only two media surfaces), so withheld media never
- * leaves the server (it survives dev-tools / direct API calls, not a CSS blur over a loaded gallery).
+ * IDENTICALLY in the RSC, the album's routes (`/api/album/guest/{sync,media,manifest}`) and the
+ * guest export, so withheld media never leaves the server (it survives dev-tools / direct API calls,
+ * not a CSS blur over a loaded gallery).
  *
  * This module is PURE (no `server-only` import) so it stays unit-testable; the data loaders that touch
  * the admin client live in `gallery-access.server.ts`.
@@ -36,10 +37,10 @@ export type GalleryDecision = {
 export const TEASER_LIMIT = 9;
 
 /**
- * Resolve a viewer's decision for an event's gallery. The SINGLE source of truth, reached by the RSC
- * and the poll through `resolveViewerDecision` (gallery-access.server.ts). `private` is handled by
- * the caller BEFORE this (the RSC master-lock early-return; the poll returns []), so this is only
- * ever called for `open` / `password`.
+ * Resolve a viewer's decision for an event's gallery. The SINGLE source of truth, reached by the RSC,
+ * the album's routes and the export through `resolveViewerDecision` (gallery-access.server.ts).
+ * `private` is handled by the caller BEFORE this (the RSC master-lock early-return; the routes answer
+ * a private album as gone), so this is only ever called for `open` / `password`.
  *
  * The order IS the door's order, and it is load-bearing:
  *   1. owner (the host) -> full. Everyone but the host is gated.
@@ -50,8 +51,8 @@ export const TEASER_LIMIT = 9;
  *
  * ★ THE CONTEXT REQUIRES `hasContributed` AND `canContribute`, deliberately without defaults, and
  * with no wrapper that supplies them, for the same reason: every caller is a TYPE ERROR until it
- * learns the gate. Two of them (`/api/export/guest` and `/api/reel/download`) hand a viewer the real
- * bytes, and a defaulted context would let a held guest zip every original.
+ * learns the gate. One of them (`/api/export/guest`) hands a viewer the real bytes, and a defaulted
+ * context would let a held guest zip every original.
  *
  * ★ `canContribute` IS THE FAIL-OPEN, AND IT IS THE SERVER'S. `accepting_uploads && !albumFull`: a
  * guest is never held at a step they could not pass, so an event with uploads closed, or a host

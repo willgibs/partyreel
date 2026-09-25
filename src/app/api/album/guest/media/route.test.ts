@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * LINKS BY ID FOR A GUEST: only a viewer let in whole gets any, at most 200 ids a call, anything not
- * approved in this album comes back missing, and no raw key or address ever rides the answer.
+ * approved in this album comes back missing, and no raw key or address ever rides the answer. A read
+ * the reads' own gate refuses answers locked behind the password, and is reported.
  */
 vi.mock("server-only", () => ({}));
 
@@ -12,7 +13,12 @@ vi.mock("@/lib/events/album-viewer.server", () => ({
 }));
 const readGuestAlbumMedia = vi.fn();
 vi.mock("@/lib/db/queries/album-guest", () => ({
+  ALBUM_REFUSED: { access: "none", gate: "password" },
   readGuestAlbumMedia: (...a: unknown[]) => readGuestAlbumMedia(...a),
+}));
+const reportAlbumRefused = vi.fn();
+vi.mock("@/lib/events/gallery-access.server", () => ({
+  reportAlbumRefused: (...a: unknown[]) => reportAlbumRefused(...a),
 }));
 vi.mock("@/lib/r2/presign", () => ({
   presignDownload: async ({
@@ -176,10 +182,23 @@ describe("nobody else gets a link", () => {
     });
   });
 
-  it("the gate inside the read refusing (null) answers none", async () => {
+  it("★ the gate inside the read refusing (null) answers locked behind the password, and is reported", async () => {
     readGuestAlbumMedia.mockResolvedValue(null);
-    const body = await (await post({ qr_token: "qr-1", ids: [id(1)] })).json();
-    expect(body.links).toEqual([]);
+    const res = await post({ qr_token: "qr-1", ids: [id(1), id(2)] });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      access: "none",
+      gate: "password",
+      links: [],
+      missing: [id(1), id(2)],
+    });
+    expect(reportAlbumRefused).toHaveBeenCalledWith(EVENT.id, "media");
+  });
+
+  it("a viewer the decision refused is never reported: that is the door working", async () => {
+    resolveAlbumViewer.mockResolvedValue(viewer("none", "password"));
+    await post({ qr_token: "qr-1", ids: [id(1)] });
+    expect(reportAlbumRefused).not.toHaveBeenCalled();
   });
 });
 

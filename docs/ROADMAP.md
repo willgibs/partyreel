@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Code hygiene: `mayUploadPastLock` (`src/lib/events/upload-lock.ts`) and `resolveAlbumViewer` (`src/lib/events/album-viewer.server.ts`) still ask the owner inline (`getUser()` and `isEventOwner`); moving both onto `isRequestOwner` (`gallery-access-owner.server.ts`) makes every gate on the guest page one owner answer (from `owner-album`).
 - Host: the bulk toasts (`host-media-grid.tsx`'s "Liked N photo(s)", `event-feed/use-review-triage.ts`'s "Approved N photo(s)") read "photo" for a selection that can hold a video; `formatMediaCount` (`src/lib/format/count.ts`) is the guest side's fix (from `reel-and-copy`).
 - Docs: `testing-verification.md`'s presign-roll soak still frames a refreshed link as "the 30-minute bucket rolls"; the guest album's links now re-mint per id at `ALBUM_LINK_REMINT_MS` (an hour) instead (the teaser still uses the bucket, and the host album's own timing is unverified); the section's opening wants its own pass (from `album-docs`).
 - The album: the viewer asks the links route once per step (the link store batches per tick only, `src/lib/album/links.ts`), so a held arrow key walking the 1,145-photo probe made 1,092 asks and a photograph 100 steps on waited 1 to 6 s for its link on localhost's six connections; coalesce a burst's asks (from `album-guest-wiring`).

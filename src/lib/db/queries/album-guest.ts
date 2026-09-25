@@ -1,14 +1,20 @@
 /**
- * THE GUEST'S PAGED ALBUM READS: the versions, the delta, the manifest pages and the rows behind a
- * window's links. The service role reads them (the change log is deny-all, and a password album's
- * media never flows through the anon RPC), so each one CARRIES ITS OWN GATE rather than trusting
- * its caller, exactly as `getApprovedMediaForUnlock` does: an open album reads, a password album
- * reads only for a request holding its signed unlock cookie, anything else (private, deleted,
- * unknown) reads nothing and answers null.
+ * THE GUEST'S PAGED ALBUM READS: the versions, the plan (a manifest or a delta), the manifest pages
+ * and the rows behind a window's links. The service role reads them (the change log is deny-all, and
+ * a password album's media never flows through the anon RPC), so each one CARRIES ITS OWN GATE rather
+ * than trusting its caller: an open album reads; a password album reads for a request holding its
+ * signed unlock cookie, or for its OWNER (the host never meets the password door, so never holds the
+ * cookie); anything else (private, deleted, unknown) reads nothing and answers null.
  *
- * The routes decide first (get_event_by_qr_token, then resolveViewerDecision: only `full` reaches
- * here), so this gate is the second line, there so a careless caller can never hand an arbitrary
- * event id to a service-role read and dump a locked album.
+ * The routes and the page decide first (get_event_by_qr_token, then resolveViewerDecision: only
+ * `teaser` and `full` reach here), so this gate is the second line, there so a careless caller can
+ * never hand an arbitrary event id to a service-role read and dump a locked album. Its idea of the
+ * owner is theirs (`isRequestOwner`: `getUser()`, then the explicit `host_id` match), so the two lines
+ * agree on who the host is.
+ *
+ * ★ A REFUSAL IS A NULL, NEVER AN EXCEPTION. A caller answers it as locked. The one refusal that
+ * threw (the plan's, when this gate was cookie-only) took down the host's own password album: the
+ * page let the owner in, this gate refused them, and the throw escaped the page's un-awaited seed.
  *
  * Every read is the album's approved items only, in its own order `(created_at desc, id desc)`, the
  * keyset `olderThan` shares with the gallery's two arms.
@@ -29,13 +35,18 @@ import {
 } from "@/lib/db/queries/album-state";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
 import { mustQuery } from "@/lib/db/must-query";
-import type { AlbumRead, ManifestPage } from "@/lib/events/album-sync";
+import {
+  planAlbumSync,
+  type ManifestPage,
+  type Plan,
+} from "@/lib/events/album-sync";
 import {
   microsToTimestamp,
   timestampToMicros,
   toManifestEntry,
   type AlbumCursor,
 } from "@/lib/events/album-wire";
+import { isRequestOwner } from "@/lib/events/gallery-access-owner.server";
 import { isUnlocked } from "@/lib/events/unlock-cookie";
 import type { UploaderIdentity } from "@/lib/media/uploader-identity";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -50,11 +61,22 @@ export type AlbumKeyRow = {
   preview_key: string | null;
 };
 
-/** THE GATE every read here carries: open reads, password reads with the unlock cookie, else nothing. */
+/**
+ * What a refused read's caller answers: the album locked behind its password, exactly the decision a
+ * viewer without the cookie gets. Only the password clause below ever refuses a caller (an open
+ * album always reads, and a private or unknown one never reaches a read).
+ */
+export const ALBUM_REFUSED = { access: "none", gate: "password" } as const;
+
+/**
+ * THE GATE every read here carries: open reads; password reads with the unlock cookie or for the
+ * event's owner; anything else, nothing. The cookie is asked first, so an unlocked guest never pays
+ * an auth read, and past the viewer decision only the host ever reaches the owner check.
+ */
 async function albumReadable(event: AlbumEvent): Promise<boolean> {
   if (event.visibility === "open") return true;
-  if (event.visibility === "password") return isUnlocked(event.id);
-  return false;
+  if (event.visibility !== "password") return false;
+  return (await isUnlocked(event.id)) || isRequestOwner(event.id);
 }
 
 /** The versions behind a guest's validator: one row. Null past the gate. */
@@ -65,14 +87,26 @@ export async function readGuestAlbumVersions(
   return readAlbumVersions(event.id);
 }
 
-/** The guest album's changes since `after` with its approved count, one snapshot. Null past the gate. */
-export async function readGuestAlbum(
+/**
+ * THE GUEST ALBUM'S PLAN (`album-sync.ts`): what a client holding `since` is sent, a manifest or a
+ * delta, with the snapshot it was read from. Null past the gate. The sync route and the page's seed
+ * both plan here, so both answer one refusal the same way.
+ *
+ * ★ ONE GATE FOR THE WHOLE PLAN, asked before its first read: the plan's reads (the snapshot, then a
+ * manifest's first page) are one answer, and a gate asked between them could refuse the second after
+ * letting the first through, with nothing left to answer but an exception.
+ */
+export async function planGuestAlbumSync(
   event: AlbumEvent,
-  after: number,
-  limit: number,
-): Promise<AlbumRead | null> {
+  since: number | null,
+): Promise<Plan | null> {
   if (!(await albumReadable(event))) return null;
-  return readAlbumChanges(event.id, "album", after, limit);
+  return planAlbumSync({
+    scope: "album",
+    since,
+    read: (after, limit) => readAlbumChanges(event.id, "album", after, limit),
+    page: (after, budget) => manifestPage(event.id, after, budget),
+  });
 }
 
 /**
@@ -86,6 +120,15 @@ export async function readGuestManifestPage(
   budget: number,
 ): Promise<ManifestPage | null> {
   if (!(await albumReadable(event))) return null;
+  return manifestPage(event.id, after, budget);
+}
+
+/** A manifest page's read, behind a gate its callers already asked. */
+async function manifestPage(
+  eventId: string,
+  after: AlbumCursor | null,
+  budget: number,
+): Promise<ManifestPage> {
   const admin = createAdminClient();
   const page = await readAllPages(
     "album: guest manifest",
@@ -95,7 +138,7 @@ export async function readGuestManifestPage(
         .select(
           "id, type, width, height, duration_seconds, preview_key, reel_eligible, created_at",
         )
-        .eq("event_id", event.id)
+        .eq("event_id", eventId)
         .eq("status", "approved")
         .order("created_at", { ascending: false })
         .order("id", { ascending: false })
