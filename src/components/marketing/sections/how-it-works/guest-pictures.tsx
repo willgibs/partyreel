@@ -1,13 +1,17 @@
 import {
   Camera,
   Check,
-  Clapperboard,
+  Clock3,
   Download,
   Heart,
+  ImagePlus,
   Images,
   ImageUp,
+  Palette,
+  Pause,
   Play,
   Share2,
+  Wand2,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -34,8 +38,9 @@ import {
  * Every screen quotes its real surface: entry-modal.tsx and email-sign-in.tsx
  * for the door, event-experience.tsx for the add action and the count line,
  * guest-masonry.tsx for the landed check and the save affordance,
- * media-lightbox.tsx for the pill, poster-card.tsx for the reel card. All six
- * are decorative; the spine marks them aria-hidden.
+ * media-lightbox.tsx for the pill, live-reel-view.tsx for the reel's view and
+ * the clip creator for the clip it makes. All six are decorative; the spine
+ * marks them aria-hidden.
  */
 
 /** The screen's own body padding, so six screens share one inner margin. */
@@ -451,70 +456,82 @@ export function SavePicture() {
   );
 }
 
-/* ── 06 · Get the reel ──────────────────────────────────────────────────── */
-
-const ARRIVED_CLIPS = [
-  "wedding-golden",
-  "party-balloons",
-  "festival-crowd",
-  "wedding-petals",
-];
+/* ── 06 · Make your clip ────────────────────────────────────────────────── */
 
 /**
- * The reel where a guest meets it: in the album they have been adding to, as
- * the poster card with its eyebrow chip and meta line (poster-card.tsx, the
- * ` · `-separated duration, style and moment count). The companion is what the
- * host cut it from, so the last guest picture closes the loop back onto the
- * last host picture.
+ * The reel's view, where a clip starts (reel/live-reel-view.tsx): the reel
+ * full-bleed on the phone, a fresh upload naming its uploader in the top-left
+ * chip the way the arrival feed counts a second photograph ("Theo +2"), and the
+ * dock drawn open, its row of glass controls over the violet Make your own that
+ * is the view's one primary. The companion is what that press makes: the clip
+ * itself, lying beside the phone as the file it becomes, headed the way the
+ * creator heads it.
  */
-export function ArrivesPicture() {
-  const poster = marketingImage("wedding-petals");
-  const style = STYLE_CATALOG[0];
+export function ClipPicture() {
+  const reel = marketingImage("wedding-petals");
+  const clip = marketingImage("wedding-toast");
+  const look = STYLE_CATALOG[0];
   return (
     <PhoneScene
       clear
       companion={
-        <div className="flex flex-col gap-2">
-          <div className="grid grid-cols-4 gap-1">
-            {ARRIVED_CLIPS.map((id) => (
-              <Tile key={id} id={id} className="aspect-[9/14]" sizes="56px" />
-            ))}
-          </div>
-          <p className="text-[10px] text-muted-foreground">
-            Cut from the album, by the host, after the last guest went home.
-          </p>
+        <div className="flex max-w-[9rem] flex-col gap-2">
+          <span className="relative block aspect-[9/16] overflow-hidden rounded-lg shadow-lift">
+            <Image
+              src={clip.src}
+              alt=""
+              fill
+              sizes="144px"
+              className="object-cover"
+            />
+            <span className="absolute inset-0 flex items-center justify-center">
+              <span className="flex size-8 items-center justify-center rounded-full bg-white/90 text-black">
+                <Play className="size-3.5 translate-x-px fill-current" />
+              </span>
+            </span>
+          </span>
+          <span className="flex flex-col">
+            <span className="text-[11px] font-medium">Your clip</span>
+            <span className="text-[10px] text-muted-foreground tabular-nums">
+              {`0:30 \u00b7 ${look.label} \u00b7 8 moments`}
+            </span>
+          </span>
         </div>
       }
     >
       <Phone>
-        <div className={cn(SCREEN, "pt-1")}>
-          <p className="truncate pb-2 text-[11px] font-semibold">
-            {EVENT_NAME}
-          </p>
-          <div className="relative aspect-[9/13] overflow-hidden rounded-xl">
-            <Image
-              src={poster.src}
-              alt=""
-              fill
-              sizes="220px"
-              className="object-cover"
-            />
-            <span className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
-            <span className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-black/45 px-1.5 py-0.5">
-              <Clapperboard className="size-2.5 text-reel" />
-              <span className="text-[9px] font-semibold tracking-[0.14em] text-white uppercase">
-                The reel
-              </span>
+        <div className="relative aspect-[9/15] overflow-hidden bg-black">
+          <Image
+            src={reel.src}
+            alt=""
+            fill
+            sizes="220px"
+            className="object-cover"
+          />
+          <span className="absolute top-2.5 left-2.5 rounded-full bg-black/45 px-2 py-0.5 text-[9px] font-medium text-white backdrop-blur-sm">
+            Theo +2
+          </span>
+          {/* The dock, drawn open: the controls' row, the timeline, and the
+              one primary under them. */}
+          <span className="absolute inset-x-2.5 bottom-2.5 flex flex-col gap-1.5 rounded-2xl bg-black/45 p-1.5 backdrop-blur-sm">
+            <span className="flex items-center justify-center gap-1 text-white">
+              {[Pause, Palette, Clock3, ImagePlus].map((Icon, i) => (
+                <span
+                  key={i}
+                  className="flex size-6 items-center justify-center rounded-full"
+                >
+                  <Icon className="size-3" />
+                </span>
+              ))}
             </span>
-            <span className="absolute inset-0 flex items-center justify-center">
-              <span className="flex size-9 items-center justify-center rounded-full bg-white/90 text-black">
-                <Play className="size-4 translate-x-px fill-current" />
-              </span>
+            <span className="mx-1 h-0.5 rounded-full bg-white/25">
+              <span className="block h-full w-2/5 rounded-full bg-white/85" />
             </span>
-            <span className="absolute inset-x-2 bottom-2 text-[9px] font-medium text-white tabular-nums">
-              {`0:30 \u00b7 ${style.label} \u00b7 8 moments`}
+            <span className="flex h-7 items-center justify-center gap-1.5 rounded-full bg-reel text-[10px] font-semibold text-white">
+              <Wand2 className="size-3" />
+              Make your own
             </span>
-          </div>
+          </span>
         </div>
       </Phone>
     </PhoneScene>

@@ -1,4 +1,4 @@
-import { Check, Clapperboard, Download, EyeOff, X } from "lucide-react";
+import { Check, Download, EyeOff, Heart, X } from "lucide-react";
 import Image from "next/image";
 import type { ReactNode } from "react";
 
@@ -16,9 +16,11 @@ import { cn } from "@/lib/utils";
  * drift, and so a change in the app's bar has one place to be mirrored.
  * Static on purpose: resting shapes, never controls.
  *
- * The bar shows the three actions the copy names (add to reel, hide,
- * download) in the app's own state hues; Like and the destructive Delete are
- * left out rather than restated in marketing, and nothing here invents a label.
+ * The bar shows the three actions the copy names (like, hide, download) in the
+ * app's own state hues (gallery-actions.tsx's GalleryBulkBar: `like`,
+ * `warning`, `save`); the destructive Delete is left out rather than restated
+ * in marketing, and nothing here invents a label. The reel action left the
+ * host's bar with the stored reel, so it left this mock too.
  */
 
 /** One icon action inside the mock bar (a resting shape, never a control). */
@@ -50,14 +52,14 @@ export function BulkBarMock({ count }: { count: number }) {
       <span className="px-0.5 text-xs text-muted-foreground tabular-nums">
         {count}
       </span>
-      <BarAction label="Add to reel">
-        <Clapperboard className="size-4 text-reel" />
+      <BarAction label="Like">
+        <Heart className="size-4 text-like" />
       </BarAction>
       <BarAction label="Hide">
         <EyeOff className="size-4 text-warning" />
       </BarAction>
       <BarAction label="Download">
-        <Download className="size-4 text-muted-foreground" />
+        <Download className="size-4 text-save" />
       </BarAction>
       <BarAction label="Cancel selection">
         <X className="size-4" />

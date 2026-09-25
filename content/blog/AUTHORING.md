@@ -105,8 +105,9 @@ replaces them by id.
    Orchestrator promotes it to `mdx/spec-shared.tsx` at integration.
 4. **How-tos track shipped reality.** Only marketing pages present the product as-if-complete. If
    a post describes a flow, the flow has to exist today. Do not write about anything unshipped:
-   there is no slideshow or projector mode (say "put the album on a screen"), no co-hosts, no
-   custom branding, no comments, no native app, no email-the-album, no upload-time scanning.
+   the screen is the reel's (say "put the reel on a screen"), and there is no video editor, no
+   co-hosts, no custom branding, no comments, no native app, no email-the-album, no upload-time
+   scanning.
 5. **Quote the app exactly.** A control is named by its shipped string inside `<UiLabel>`:
    "Require verified emails", "Approve all", "Download all", "Include hidden items". Verify in `src/components`
    and `src/app/(app)`; never invent UI.
@@ -173,8 +174,8 @@ here too; `../help/AUTHORING.md` lists them.
 | `<PlanPrice id="pro_100_yr" />` | a price label (`<EventPassPrice />` and `<ProPrice />` are aliases for the help center) |
 | `<EventPassRenewalPrice />` | the one-time renewal price |
 | `<EventLimit tier="free" />` | events a tier may hold (`pro` renders the unlimited word) |
-| `<ReelSeconds tier="free" />` | the reel ceiling in seconds for `free`, `pro`, `event_pass` |
-| `<ReelStyleCount />` | how many reel styles ship |
+| `<ReelSeconds tier="free" />` | a clip's length ceiling in seconds for `free`, `pro`, `event_pass` (the live reel has none) |
+| `<ReelStyleCount />` | how many looks a clip can wear (the reel plays the moods among them) |
 | `<CapacityEstimate plan="event_pass" />` | "19,200 photos or 9 hours of video" (photos only where the tier has no video, so `plan="free"` renders the photo count alone) |
 | `<PhotoAverageSize />`, `<VideoMinuteSize />` | the rule-of-thumb sizes behind the estimates |
 | `<RecoveryWindowDays />` | the recovery window a deleted item waits in |
@@ -195,12 +196,12 @@ here too; `../help/AUTHORING.md` lists them.
   plan, on by default); the host can allow a typed display name instead, shown with a small
   unverified mark, per event. The album fills live. The host approves, hides or removes
   anything, in review mode (uploads wait for approval) or live mode. The same link is the shared
-  album afterwards, and the event can end as a highlight reel.
+  album afterwards, and from its second photo the album plays as a live highlight reel.
 - **Quality.** Originals are stored as uploaded and never recompressed (the in-browser metadata
   strip aside). Tiles show a small preview for speed; the lightbox, the per-item save, and the zip
   all serve the original. Accepted: JPEG, PNG, WebP, HEIC/HEIF, AVIF; MP4, MOV, WebM. One per-file
   size ceiling (a host may set a lower one per event), no duration cap. No watermark on
-  photos or the album on any plan; only the free tier's reel carries a small mark.
+  photos, the album or the live reel on any plan; only a free event's clips carry a small mark.
 - **Privacy.** Location data is stripped in the browser before a photo ever uploads, for the
   common formats (JPEG, PNG and WebP photos, MP4 and MOV video; HEIC, HEIF, AVIF and WebM are
   stored as the phone sends them). Albums are open, password-locked (paid) or private (the app's
@@ -208,9 +209,9 @@ here too; `../help/AUTHORING.md` lists them.
   teaser access shows the newest few photos with a count. The host controls whether a guest list
   shows. View and scan counts are aggregate with no personal data. No ads; event media is never
   used to train models or sold.
-- **Plans.** Free: one event, photos only, the album, a short marked reel. Event Pass: one-time,
-  one event with video and every paid control for about a year, renewable, and passes stack.
-  Pro: monthly or yearly (two months free), unlimited events, video, the longer unmarked reel,
+- **Plans.** Free: one event, photos only, the album and its live reel, short marked clips. Event
+  Pass: one-time, one event with video and every paid control for about a year, renewable, and
+  passes stack. Pro: monthly or yearly (two months free), unlimited events, video, longer unmarked clips,
   password locks, custom links. No guest limit and no per-guest fee on any plan: pricing is by
   storage. Moving from a pass to Pro converts the unused part to credit. A handle and a public
   profile page (the events a host chooses to list on it included) are free on every plan.
@@ -226,13 +227,19 @@ here too; `../help/AUTHORING.md` lists them.
   account (a signed-out tap asks for an email first); the per-event like count is host-only.
   Profiles are free, and a guest's events reach their dashboard through their own uploads
   (there is no separate save).
-- **The reel.** Curated by the host from the album, in a catalog of styles, portrait or
-  landscape, rendered on the host's own device (no queue, no fee), shared to guests only once
-  the host publishes it. Videos contribute their poster frame.
+- **The reel.** Every album plays as a live highlight reel from its second photo, composed on
+  each viewer's own device and on any screen in the room (the host's Play on a screen), taking in
+  uploads as they land and dropping what the host hides. Nobody makes, renders or publishes it,
+  it obeys the album's gate, and it is never a file. It starts on the host's default mood and
+  hold, which any viewer can change on their own device. A **clip** is the viewer's own: anyone
+  with album access makes one from the reel (Make your own), picks moments, a look, a layout and
+  a length, and it renders on their device and saves or shares as a file, never stored; on a paid
+  event Add to event puts it in the album as an ordinary video the reel never plays. Free clips
+  carry a small mark and the shorter cap. No music, no beat-sync, no end card, never a timeline.
 
 Truth sources when in doubt: `src/lib/constants/tiers.ts`, `src/lib/media/limits.ts`,
 `src/lib/constants/features.ts`, `src/lib/constants/events.ts`, `src/lib/content/llms.ts`,
-and `docs/systems/{guest-flow,host-app,uploads-and-r2,lifecycle-recovery}.md`. Where a doc and
+and `docs/systems/{guest-flow,host-app,reel,uploads-and-r2,lifecycle-recovery}.md`. Where a doc and
 the code disagree, the code wins.
 
 ## The help center, for linking

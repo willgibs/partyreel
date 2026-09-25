@@ -76,6 +76,10 @@ routes.
 - **Comparisons stay category-level** (the cross-platform album, the account wall, the per-person rental); only the
   blog names incumbents (Google Photos, iCloud, WhatsApp, AirDrop, disposables), hedged, and a QR-app rival is never
   named.
+- ★ **The reel's nouns and its one mark.** A clip is what a viewer makes from the reel; an upload is a photo or a
+  video, never a "clip". The live reel and the screen carry no mark and no cap on any plan, so every watermark or
+  length claim names the clip ("30-second clips with a small mark"), never the reel, which carries neither
+  ([reel.md](reel.md)).
 - `content-policy.test.ts`'s header lists every fenced claim and the files it scans (`CLAIM_FILES`: the copy
   single-sources, the llms builders, the legal content); a copy source outside `(marketing)` joins that list.
 
@@ -92,7 +96,8 @@ routes.
 - ★ **`/features/album` keeps six product facts true to the shipped app**, each easy to get wrong: verified emails are
   required by default; every upload carries a name (with the switch off, a typed name with an unverified mark), so no
   surface calls an upload or a guest anonymous; a guest's own delete leaves the album at once; a private page shows no
-  name and no count (that tease is the password state); there is no big-screen mode; nothing locks or hides at lapse.
+  name and no count (that tease is the password state); the album has no big-screen mode of its own (the wall is the
+  reel's screen, [reel.md](reel.md)); nothing locks or hides at lapse.
   Every figure derives from `tiers.ts`, `limits.ts` and the lifecycle constants (`lifecycle/over-cap.ts`, whose grace
   numbers the cron reads too), and every quoted app string is pinned by `mock-parity.test.ts`.
 - ★ **The album page's fill grid** (`album/album-fill-grid.tsx` over `use-album-fill.ts`, one tick and a pure derivation
@@ -111,6 +116,10 @@ routes.
   never one visual reused; `QrFrame`'s `liveQrUrl` renders a real scannable code when the demo is set.
 - **`/how-it-works`**: `constants/how-it-works.ts` is the one source of both step sets, read by the page, the home's
   stepper and the app's welcome ([host-app.md](host-app.md)).
+- **`/reel`**: the live style switcher is the engine's proof (the canvas arrives only behind its lazy island), then the
+  live reel, the screen and the clip. The tile is the app's own `PosterCard` over `LivingStills`, so the motion a
+  visitor meets there is the one they meet on their album; the screen's corner code is the demo's real one and drops
+  with the demo; the clip table reads `MAX_REEL_SECONDS` and `TIER_NAMES`.
 - **`/pricing`**: one paper chapter (the Free and Pro pair, the Event Pass, the configurator closing it), then one dark
   room (the unlock tiles, the matrix, the FAQ). ★ The order is deliberate: a reader sizes their event while the pair is
   still in their eye, and the room proves where Free ends. ★ It stays in `(cinema)` although it opens on paper, because

@@ -35,7 +35,11 @@ export function tokenizeQuery(query: string): string[] {
 function bestTermScore(
   item: HelpSearchItem,
   term: string,
-): { score: number; headingOnly: boolean; heading: HelpSearchItem["headings"][number] | null } {
+): {
+  score: number;
+  headingOnly: boolean;
+  heading: HelpSearchItem["headings"][number] | null;
+} {
   const title = item.title.toLowerCase();
   let score = 0;
   if (title.startsWith(term)) score = WEIGHT.titlePrefix;
@@ -143,7 +147,15 @@ const DESTINATIONS: (HelpDestination & { keywords: string[] })[] = [
   {
     label: "Pricing",
     href: "/pricing",
-    keywords: ["pricing", "price", "cost", "plans", "billing", "pay", "upgrade"],
+    keywords: [
+      "pricing",
+      "price",
+      "cost",
+      "plans",
+      "billing",
+      "pay",
+      "upgrade",
+    ],
   },
   {
     label: "How it works",
@@ -156,9 +168,9 @@ const DESTINATIONS: (HelpDestination & { keywords: string[] })[] = [
     keywords: ["features", "feature"],
   },
   {
-    label: "The highlight reel",
+    label: "Highlight reel",
     href: "/reel",
-    keywords: ["reel", "highlight", "video", "montage"],
+    keywords: ["reel", "highlight", "clip", "screen", "video", "montage"],
   },
   {
     label: "Contact",

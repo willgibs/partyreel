@@ -49,6 +49,6 @@ export const ALBUM_FAQ: FaqItem[] = [
   },
   {
     q: "Can I put the album on a big screen?",
-    a: "Yes. Open the link in any browser on a laptop or TV and leave it up; it updates live, no refresh.",
+    a: "Yes, as its reel. Open the highlight reel on the laptop by the screen and press Play on a screen; new photos join it as they land.",
   },
 ];

@@ -49,7 +49,7 @@ const CLAIMS: { icon: LucideIcon; title: string; body: string }[] = [
   {
     icon: Video,
     title: "Video too",
-    body: "Clips upload the same way photos do, from the same sheet, into the same album.",
+    body: "Videos upload the same way photos do, from the same sheet, into the same album.",
   },
   {
     icon: Download,

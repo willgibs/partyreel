@@ -96,7 +96,8 @@ three definitions of healthy:
   not a fault, and never trips the missed-run alert.
 - **The kill switches fail differently on purpose.** The purge cron and its sub-sweeps fail CLOSED on an unreadable
   switch (they delete, and a skipped day costs nothing); the backup reconcile and the DB-backup Action fail OPEN (a
-  missing backup is worse than a missing log line); the prune fails CLOSED (it deletes from the last-resort copy).
+  missing backup is worse than a missing log line); the prune fails CLOSED (it deletes from the last-resort copy); the
+  live reel's platform lever fails OPEN (a flaky read must not take the reel off every album, [reel.md](reel.md)).
 - ★ **The missed-run signal rides the purge cron,** the only scheduled app-side code: each run checks every job for a
   terminal row within 1.5 times its cadence and raises one `job_missed_run` warning per silent job, judged by
   `jobHealth`. ★ **A freshness rule can page only on SILENCE,** so the kinds that are never silent alert at their

@@ -13,6 +13,7 @@ import Image from "next/image";
 
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { QR_PRESETS, QR_STYLE_KEYS } from "@/lib/constants/qr-presets";
+import { LIVE_REEL_MINIMUM } from "@/lib/events/gallery-reel";
 import { STYLE_CATALOG } from "@/lib/reel/engine/style-registry";
 import { cn } from "@/lib/utils";
 
@@ -340,59 +341,90 @@ export function KeepPicture() {
   );
 }
 
-/* ── 06 · Cut the reel ──────────────────────────────────────────────────── */
+/* ── 06 · Watch the reel grow ───────────────────────────────────────────── */
 
-const REEL_CLIP_IDS = [
-  "wedding-golden",
-  "party-balloons",
-  "festival-crowd",
-  "wedding-petals",
-  "party-dj",
-  "wedding-toast",
-];
+/** The one card, three moments of it: before any photo, one short, living. */
+const REEL_CARD_STATES = [
+  { still: null, value: `Starts at ${LIVE_REEL_MINIMUM} photos` },
+  { still: "party-balloons", value: "1 more photo" },
+  { still: "wedding-golden", value: "Live for guests" },
+] as const;
+
+/** The eight looks a host may set for everyone: the catalog's moods, in its order. */
+const MOODS = STYLE_CATALOG.filter((style) => style.kind === "mood");
 
 /**
- * The reel control the way the event page wears it: the section's own eyebrow,
- * the violet Create reel pill (reel-builder.tsx / the action bar, one label and
- * one colour in both places), the style rail's first four labels straight from
- * STYLE_CATALOG so a catalog change cannot strand a stale name here, and the
- * poster meta line in the format poster-card.tsx prints it.
+ * The reel makes itself, so the host's picture has nothing to press. It draws
+ * the hub's Highlight reel card (event-feed/reel-card.tsx) at the three moments
+ * a host meets it, counting to the reel's minimum and then living on the reel's
+ * own stills, with its words verbatim and the minimum read off
+ * LIVE_REEL_MINIMUM; and under it the one thing a host may set, the Look row of
+ * Settings' Highlight reel card (event-settings/highlight-reel-card.tsx), its
+ * moods straight from STYLE_CATALOG so a catalog change cannot strand a name.
  */
 export function ReelPicture() {
-  const styles = STYLE_CATALOG.slice(0, 4);
-  const rest = STYLE_CATALOG.length - styles.length;
+  const shown = MOODS.slice(0, 4);
   return (
     <Panel className="p-5">
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-          Reel
-        </span>
-        <span className="flex h-9 items-center gap-2 rounded-full bg-reel px-4 text-sm font-medium text-white">
-          <Clapperboard className="size-4" />
-          Create reel
-        </span>
-      </div>
-
-      {/* The cut itself: the moments in order, the way the strip under a
-          finished reel shows what went into it. */}
-      <div className="mt-4 grid grid-cols-6 gap-1">
-        {REEL_CLIP_IDS.map((id) => (
-          <Tile key={id} id={id} className="aspect-[9/14]" sizes="60px" />
+      <div className="grid grid-cols-3 gap-1.5">
+        {REEL_CARD_STATES.map(({ still, value }) => (
+          <span
+            key={value}
+            className={cn(
+              "relative flex aspect-[4/3] flex-col justify-end gap-0.5 overflow-hidden rounded-md p-2",
+              still
+                ? "text-white"
+                : "border border-dashed border-foreground/25 text-foreground",
+            )}
+          >
+            {still && (
+              <>
+                <Image
+                  src={marketingImage(still).src}
+                  alt=""
+                  fill
+                  sizes="110px"
+                  className="object-cover"
+                />
+                <span className="absolute inset-0 bg-linear-to-t from-black/80 via-black/45 to-black/25" />
+              </>
+            )}
+            <Clapperboard
+              className={cn(
+                "absolute top-2 left-2 size-3",
+                still ? "text-white/85" : "text-muted-foreground",
+              )}
+            />
+            <span className="relative truncate text-[10px] font-medium">
+              Highlight reel
+            </span>
+            <span
+              className={cn(
+                "relative truncate text-[9px]",
+                still ? "text-white/85" : "text-muted-foreground",
+              )}
+            >
+              {value}
+            </span>
+          </span>
         ))}
       </div>
-      <p className="mt-2 text-[11px] font-medium text-reel tabular-nums">
-        {`0:30 \u00b7 ${styles[0].label} \u00b7 ${REEL_CLIP_IDS.length} moments`}
-      </p>
 
-      <div className="mt-3 flex flex-wrap gap-1.5 border-t pt-3">
-        {styles.map((style, i) => (
-          <Chip key={style.id} on={i === 0}>
-            {style.label}
-          </Chip>
-        ))}
-        <span className="rounded-md border border-dashed px-2 py-1 text-[11px] font-medium text-muted-foreground">
-          +{rest} more
-        </span>
+      <div className="mt-4 border-t pt-3">
+        <p className="text-[11px] font-medium">Look</p>
+        <p className="mt-0.5 text-[10px] text-muted-foreground">
+          Where every guest starts. Anyone can pick their own on their device.
+        </p>
+        <div className="mt-2.5 flex flex-wrap gap-1.5">
+          {shown.map((mood, i) => (
+            <Chip key={mood.id} on={i === 0}>
+              {mood.label}
+            </Chip>
+          ))}
+          <span className="rounded-md border border-dashed px-2 py-1 text-[11px] font-medium text-muted-foreground">
+            +{MOODS.length - shown.length} more
+          </span>
+        </div>
       </div>
     </Panel>
   );

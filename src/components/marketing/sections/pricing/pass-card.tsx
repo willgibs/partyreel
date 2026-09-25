@@ -154,9 +154,11 @@ export function PassCard() {
           <ul className="flex flex-col gap-2.5">
             <PassPoint>Photos and video, like Pro</PassPoint>
             <PassPoint>
-              {MAX_REEL_SECONDS.event_pass}-second reels, no watermark
+              {MAX_REEL_SECONDS.event_pass}-second clips, no watermark
             </PassPoint>
-            <PassPoint>Password lock, custom link, no inactivity sweep</PassPoint>
+            <PassPoint>
+              Password lock, custom link, no inactivity sweep
+            </PassPoint>
             <PassPoint>
               Passes stack: each one adds an event and{" "}
               {formatBytes(pass.storageBytes)}

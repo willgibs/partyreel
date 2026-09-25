@@ -1,4 +1,4 @@
-# Host app: dashboard, events, QR and print, the event page, moderation, the reel
+# Host app: dashboard, events, QR and print, the event page, moderation
 
 Open this before you:
 - change the dashboard (its bands, the events list, the Guest cards, the claim ticket);
@@ -8,8 +8,8 @@ Open this before you:
 - change the first-time welcome;
 - change the event page: its header, cards row, sheets, launch list, album or live refresh;
 - change host moderation, a tile verb or bulk select;
-- change the host's side of the highlight reel (the Reel card, the band's reel step, Settings' Highlight reel section),
-  or the stored reel's leftovers.
+- change the hub's door into the highlight reel (the reel itself, the Reel card and Settings' Highlight reel section are
+  [reel.md](reel.md)'s).
 
 The upload pipeline is [uploads-and-r2.md](uploads-and-r2.md)'s, the guest side [guest-flow.md](guest-flow.md)'s,
 caps and billing [billing-caps.md](billing-caps.md)'s, and operator moderation
@@ -24,7 +24,7 @@ has no filter chips and no personal feeds (those are the profile's owner mode, [
   a queue, paused uploads, a reel one photo short, an event dated tomorrow), then the account's storage step. ★ It
   never renders as a void: a band wired to the review queue would be blank for every up-to-date host, so an empty
   result renders "Nothing needs you". Past three steps it folds behind a "+N more" chip, and a host with no events sees
-  no band at all. ★ The reel step appears only at exactly one playable item with the switch on and leaves at two
+  no band at all. ★ The reel step appears only at exactly one playable item with the switch and the lever on, and leaves at two
   (`getReelProgress`, the guest's `isReelEligible` spelled in SQL); at none the event's launch list speaks, and a step
   there would push "Print the code" out the evening before.
 - **The storage line is unconditional** (a host with no events still has a plan); the over-cap grace banner is its own
@@ -269,82 +269,7 @@ beneath, newest first.
 
 ## The highlight reel, the host's side
 
-The live reel makes itself: every viewer's device composes it from the album's approved, reel-eligible items, from
-the SECOND one on, unless the host switched it off (the guest side, the view and the screen are
-[guest-flow.md](guest-flow.md)'s). A host has no reel to create, only a state to read and a few defaults to set.
-
-- ★ **One state, three answers** (`lib/event/reel-progress.ts`): `off` (the switch), `counting` (fewer than two items
-  that can play), `live`. The Reel card, the band's step and the old route's redirect all read it, and "can play" is
-  the guest's own `isReelEligible` (approved, not a clip added to the album, something drawable), so the card flips on
-  the photo that makes the guest's tile appear. The dashboard asks the same in SQL (`getReelProgress`: one row per
-  event, at most two media embedded).
-- **The Reel card counts to two** (`event-feed/reel-card.tsx`): dashed at none ("Starts at 2 photos"), the one photo
-  under an overlay at one, and the living card at two, dissolving through the reel's own take (`planTake`, never the
-  album's newest, which sit right beneath it). ★ The take is planned over a spread of the album (`TAKE_POOL`): the
-  brain is quadratic (a second at 6,000 items) and the hub renders on every arrival. Before two a press opens guidance (what is left, Add photos
-  into the album's upload panel, and on a moderated event that a guest's photo counts once approved); from two it opens
-  `/e/<token>?reel`, where the owner passes every gate; switched off it opens Settings.
-- **`/dashboard/<id>/reel` is a redirect for old links**: into the view once the reel plays, else back to the hub. It
-  never renders, so it keeps no skeleton.
-- **Settings' Highlight reel section is an instant-save card** (`event-settings/highlight-reel-card.tsx`): Show the
-  reel, the look every guest starts on and the hold, each saved the moment it changes through `setReelDefaults`, the one
-  write the view's Set for everyone shares; optimistic, put back with a sentence when refused, and a slow answer never
-  undoes a newer pick. Each look is the event's own photo under that mood's `grade` (the CSS filter the engine draws a
-  still with), a sample photo standing in before the first. The switch refreshes the hub, which reads it.
-- ★ **Nothing about review ever shows on a reel or a screen**: a room watching the reel never sees the host's queue.
-  The guidance names it only to the host, on the host's own page.
-- **A clip added to the album from the reel** passes `reel_eligible: false` through `/api/host/r2/complete-upload` to
-  `create_media_as_host`, so the reel never plays itself; every other host upload leaves the column's default.
-
-## The stored reel's leftovers: the Studio, curation, the .mp4 export
-
-★ **The stored reel is on its way out, and the host app no longer reaches it**: the reel route redirects, and the
-reel panel, the hub's reel reads and bulk Add to reel are gone. Its components under `components/reel/` leave with the
-clip lane, its tables with the drop migration after the reel's alias build; build nothing new on it. What it still
-holds that a later lane needs:
-
-- **The product rules the clip inherits**: customization is curated randomness, never a timeline (a style is a kit the
-  seed samples deterministically, so the player and the encoder match by construction); no music and no beat-sync
-  (music is too personal to guess, and people add trending audio when they post); making one is free on every tier and
-  the free export is full quality, the free levers being the watermark and the shorter length (`MAX_REEL_SECONDS`),
-  never the quality, and nothing reel-made carries an end card.
-- **The style catalog is product data with one source**, the pure `lib/reel/engine/style-registry.ts` (moods that are
-  their own theme, treatments that resolve to one); a new style is a catalog entry plus its draw path. The live reel
-  plays moods only.
-- **Membership** (`reel_items`, inserted only by `add_to_reel`, reordered only by `reorder_reel`) has no writer left in
-  the host app; the viewer's `ReelButton` renders nothing without a `ReelProvider`, which nothing mounts.
-
-**The config brain and the canvas engine.**
-- **There is no composer component**: config, persist and export live in `use-reel-config.ts`, mounted once per surface
-  (two over one event would run two debounce timers against one row). Config persists through `upsert_reel_config`
-  (SECURITY DEFINER, host-owns) on a debounce skipped on the first run, so looking never writes.
-- **The preview pixels ARE the export pixels**: the set plays as a live `CanvasReelPlayer` through the same
-  `drawReelFrame` the encoder steps, and every control is client-side and $0 until Download. There is no shuffle: the
-  seed is the stored `seed`, first `defaultReelSeed(eventId)`.
-- ★ **The style dispatcher keeps a pure/rendering split**: `engine/style-registry.ts` is pure, so the server resolves a
-  style without a browser runtime, while `drawReelFrame` in the draw registry stamps the watermark in the dispatch layer,
-  so no style can export unmarked. `build-reel-props.ts` (pure) turns the order and the already-presigned media into
-  props with no second presign, carrying each clip's size so `fitClip` frames a mismatched orientation.
-
-**The .mp4 export** is an on-device WebCodecs encode, the only export path; nothing renders server-side.
-- **Support is probed up front** (`engine/encode-gate.ts`): a browser that cannot encode gets an honest notice instead of
-  Download, and the reel still plays.
-- **The encode** (`engine/encode.ts`, mediabunny h264) flushes the config first (the server hashes the stored config, so
-  a failed flush stops it), saves the file locally the moment it lands, then uploads to the stable `reelOutputKey`
-  through `POST /api/reel/upload` (begin, mint, finalize: `render-service.ts`).
-- **The mint is the abuse choke point**: host-authed (`getUser()`, `own-event.ts`), with the ENTIRE config re-derived
-  server-side (`resolveReelRenderContext`: the tier's watermark and length clamp, the timeline filtered to approved
-  BEFORE the 150-clip bound, the hash). The client's hash is an opaque echo compared at each phase, so a mid-encode
-  change 409s. The presign is a content-length-bound `video/mp4` capped at the length times a bitrate budget
-  (`client-encode-budget.ts`, parity-tested against the encoder), behind the `reel_render_enabled` kill switch and the
-  `reel_render` limiter; the finalize blesses only an object that landed after the mint's stamp and within the cap.
-- **An unchanged reel re-serves its mp4 for $0** (the stored `rendered_hash` covers media, style, orientation, config,
-  watermark and `RENDER_VERSION`). The watermark is server-tier-derived, never the client's flag. **An accepted caveat,
-  so build no detection**: the server never sees the encoded pixels, so a tampered self-encode can at worst upload a
-  watermark-free reel, defrauding a watermark and nothing else. The ops surface is `/admin/reels` over the deny-all
-  `reel_render_log`.
-- ★ **`sweepExpiredEvents` must also delete `reelOutputKey` for each purged event**: an event purge deletes R2 by
-  enumerated media keys and the orphan sweep ignores non-media keys, so the reel mp4, which has no media row, would leak
-  forever with nothing to say so (account deletion appends it the same way). The guest download presigns the same key.
-- **The motion-video engine** (`engine/video/`, `lib/reel/live/`, `player-live.tsx`) is on the tree, but only the lab
-  harnesses drive it: the production reel never passes a video source.
+The Reel card, the band's reel step, the old route's redirect and Settings' Highlight reel section are
+[reel.md](reel.md)'s, with the rest of the reel and the clip. What the hub owes it: the card rides the cards row
+(the Highlight reel is a door, never a room), the hub reads the album whole so the card's threshold and stills sit on
+it, and nothing about review shows anywhere a room could watch.
