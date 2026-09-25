@@ -152,7 +152,7 @@ export const RULINGS: Ruling[] = [
     why: "Play on a screen puts the reel's own view on a television, and three questions only a big screen asks are left: the empty screen, the press, the sound.",
     lives: [
       "docs/systems/guest-flow.md",
-      "content/help/show-the-album-live-on-a-screen.mdx",
+      "content/help/play-the-reel-on-a-screen.mdx",
       "src/lib/reel/engine/player-live.tsx",
       "src/lib/reel/engine/video/window-reader.ts",
       "src/components/app/styled-qr.tsx",

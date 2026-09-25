@@ -39,7 +39,7 @@ const pass = planById("event_pass");
 export const PRICING_FAQ_ITEMS: FaqItem[] = [
   {
     q: "Can I run one big event without a subscription?",
-    a: `Yes, that is exactly what the Event Pass is: ${pass.priceLabel.replace(" one-time", "")} once for ${formatBytes(pass.storageBytes)}, video, the ${MAX_REEL_SECONDS.event_pass}-second reel and every paid control, covering its event for about a year. Keep it live longer for ${EVENT_PASS_RENEWAL_PRICE_LABEL} a year.`,
+    a: `Yes, that is exactly what the Event Pass is: ${pass.priceLabel.replace(" one-time", "")} once for ${formatBytes(pass.storageBytes)}, video, ${MAX_REEL_SECONDS.event_pass}-second clips and every paid control, covering its event for about a year. Keep it live longer for ${EVENT_PASS_RENEWAL_PRICE_LABEL} a year.`,
   },
   {
     q: "What happens when I move from an Event Pass to Pro?",

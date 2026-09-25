@@ -43,7 +43,7 @@ export const STYLE_FACETS: StyleFacet[] = [
   },
 ];
 
-/** The full catalog size, for copy ("14 cinematic styles") that must track the registry. */
+/** The full catalog size, for copy ("14 looks") that must track the registry. */
 export const STYLE_COUNT = STYLE_CATALOG.length;
 
 /** The style the switcher opens on (the catalog's first mood — Cinematic). */
@@ -79,11 +79,5 @@ export function marketingReel(id: string): MarketingReel {
 /** The hero's portrait loop (also the switcher fallback's poster source). */
 export const HERO_REEL = marketingReel("hero-candidate-01");
 
-/** The guest-share section's landscape loop. */
-export const SHARE_REEL = marketingReel("hero-candidate-02");
-
-/** "0:13" from 13.08s: the caption format for loop durations. */
-export function formatReelSeconds(seconds: number): string {
-  const s = Math.round(seconds);
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-}
+/** The screen chapter's landscape loop: the reel as a wall plays it. */
+export const SCREEN_REEL = marketingReel("hero-candidate-02");

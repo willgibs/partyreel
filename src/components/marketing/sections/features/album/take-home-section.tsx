@@ -1,4 +1,4 @@
-import { Check, Download, Play } from "lucide-react";
+import { Check, Download, Wand2 } from "lucide-react";
 import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
 
@@ -17,8 +17,9 @@ import { TAKE_HOME } from "./album-copy";
  * EVERYONE LEAVES WITH EVERYTHING: three EQUAL photographic plates (the door
  * anatomy, no lamp), each carrying the real control the app draws: the Save
  * pill on a full-screen shot, the pinned "Download album" button over the
- * album with the export dialog's own count-and-size line, the reel poster
- * with its play badge and duration chip. Hover lifts the photograph a touch
+ * album with the export dialog's own count-and-size line, and the reel's frame
+ * under the violet Make your own that starts a clip (reel/live-reel-view.tsx's
+ * one primary, its label pinned by mock-parity). Hover lifts the photograph a touch
  * and swaps the pill's icon to a check (the icon-swap recipe), so "leaves
  * with" is felt rather than read. Below lg the plates go 2 + 1, never three
  * 170px columns.
@@ -96,7 +97,7 @@ const LIFT =
 export function TakeHomeSection() {
   const reel = MARKETING_REELS.find((r) => r.id === "hero-candidate-02");
   if (!reel) throw new Error("Unknown marketing reel id: hero-candidate-02");
-  const [save, all, keep] = TAKE_HOME.plates;
+  const [save, all, clip] = TAKE_HOME.plates;
 
   return (
     <SectionShell
@@ -146,7 +147,7 @@ export function TakeHomeSection() {
           </span>
         </Plate>
 
-        <Plate index={2} title={keep.title} body={keep.body}>
+        <Plate index={2} title={clip.title} body={clip.body}>
           <Image
             src={reel.poster}
             alt=""
@@ -154,13 +155,10 @@ export function TakeHomeSection() {
             sizes="(min-width: 1024px) 340px, 50vw"
             className={LIFT}
           />
-          <span className="absolute inset-0 flex items-center justify-center">
-            <span className="flex size-11 items-center justify-center rounded-full bg-white/15 backdrop-blur-sm">
-              <Play className="ml-0.5 size-4 fill-white text-white" />
+          <span className="absolute inset-x-0 bottom-3 flex justify-center">
+            <span className="inline-flex h-9 items-center gap-2 rounded-full bg-reel px-4 text-xs font-semibold text-white">
+              <Wand2 className="size-3.5" /> Make your own
             </span>
-          </span>
-          <span className="absolute top-3 left-3 inline-flex h-6 items-center rounded-full bg-black/55 px-2 text-micro font-medium text-white tabular-nums">
-            0:47
           </span>
         </Plate>
       </Reveal>

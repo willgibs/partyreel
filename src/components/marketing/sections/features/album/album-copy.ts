@@ -115,7 +115,7 @@ export const WHO_CAN_OPEN = {
 /** Taking it home: three plates, titles parallel, two rows each. */
 export const TAKE_HOME = {
   subhead:
-    "The album is the share. Save one shot, take the whole thing, and watch the reel.",
+    "The album is the share. Save one shot, take the whole thing, and clip the reel.",
   plates: [
     {
       title: "Save one",
@@ -126,8 +126,10 @@ export const TAKE_HOME = {
       body: `One zip of the originals: everything, photos, or videos. Up to ${MAX_EXPORT_ITEMS.toLocaleString("en-US")} items.`,
     },
     {
-      title: "Keep the reel",
-      body: "Publish it and it lands in the album. When uploads close, it takes the top.",
+      // The reel plays live at the album's head and is never a file; what a
+      // guest takes home from it is a clip they make on their own phone.
+      title: "Clip the reel",
+      body: "Make your own from the reel on your phone, then save it or send it on.",
     },
   ] satisfies CopyItem[],
 };

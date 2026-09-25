@@ -99,12 +99,16 @@ export const HELP_CATEGORIES = [
     feature: { href: "/features/sharing", label: "Sharing & downloads" },
   },
   {
+    // `reel-story` r1 `help=highlight-reel`: the album tile's own heading, so a
+    // guest meets one name before and after help, and the broader word holds
+    // clips for a reader who has not met them yet.
     slug: "highlight-reel",
     stripLabel: "Reel",
     title: "Highlight reel",
-    blurb: "Your event's best moments, cut into one shareable video.",
+    blurb:
+      "The reel that plays itself, on a screen too, and the clips you make.",
     icon: Film,
-    feature: { href: "/reel", label: "The highlight reel" },
+    feature: { href: "/reel", label: "Highlight reel" },
   },
   {
     slug: "plans-and-billing",
@@ -452,9 +456,10 @@ export function getHelpFacts(): {
       href: "/help/hide-remove-and-restore",
     },
     {
-      label: "Reel, free / paid",
+      // The CLIP's cap: the live reel itself runs uncapped on every plan.
+      label: "Clip, free / paid",
       value: `${MAX_REEL_SECONDS.free}s / ${MAX_REEL_SECONDS.pro}s`,
-      href: "/help/download-the-reel-as-a-video",
+      href: "/help/reel-styles-length-and-layout",
     },
     {
       label: "Event Pass storage",

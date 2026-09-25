@@ -108,8 +108,11 @@ file for limits. Field notes:
 One word per thing, so the palette's deep links and the reader's mental map
 stay whole: **Deleted** (the place removed items wait; never "trash" or "bin"
 in prose), **photo viewer** (the full-screen view; never "lightbox"), **the
-Studio** (the reel editor, glossed on first use in an article), **panel** (a
-Studio sub-view; never "sheet"), **event link** (the address guests open;
+highlight reel** (the album playing itself; "the reel" after first use, never
+a "slideshow" or a "video"), **clip** (what a viewer makes from the reel with
+Make your own; never a "cut", and never a word for a video upload, which is a
+"video"), **the screen** (the reel's screen mode, from Play on a screen),
+**event link** (the address guests open;
 "permanent link" only against a "custom link"), **share dialog** (the host's
 Share sheet; guests have the `Invite` button), the **Show** menu (the
 dashboard's All events, Guest and Deleted), the **View** menu (the event
@@ -149,6 +152,7 @@ the shared file or the blog's (each file's header says whose it is).
   Extend this family for new numbers. `<RecoveryDays />` and `<UnlockHours />`
   carry their unit ("30 days", "12 hours"), and `<InactivityMonths />` and
   `<EventPassTerm />` render a phrase ("about 6 months", "about a year").
+  `<ReelSeconds />` is a clip's length cap; the live reel itself has none.
 - `<AlbumShowcase label="..." caption="...">` for a decorative album moment:
   eight manifest photographs in a browser frame, never a screenshot of
   invented UI.
@@ -200,8 +204,7 @@ Ten categories in lifecycle order; the article order within each is the
 4. bulk-select-and-batch-actions
 5. add-your-own-photos
 6. turn-off-uploads-or-cap-file-size
-7. show-the-album-live-on-a-screen
-8. likes-and-what-they-do
+7. likes-and-what-they-do
 
 ### 05 Sharing & downloads
 
@@ -210,11 +213,14 @@ Ten categories in lifecycle order; the article order within each is the
 
 ### 06 Highlight reel
 
+Live-first: the reel, then the screen it plays on, then the clip a viewer
+makes from it.
+
 1. the-highlight-reel
-2. pick-and-reorder-reel-moments
-3. reel-styles-length-and-layout
-4. download-the-reel-as-a-video
-5. share-the-reel-with-guests
+2. play-the-reel-on-a-screen
+3. make-your-own-clip
+4. reel-styles-length-and-layout
+5. add-a-clip-to-the-event
 
 ### 07 Plans & billing
 
@@ -253,7 +259,7 @@ Ten categories in lifecycle order; the article order within each is the
 5. messages-guests-might-see
 6. the-qr-wont-scan-or-the-link-wont-open
 7. a-video-wont-play
-8. the-reel-wont-download
+8. a-clip-wont-finish-or-save
 
 ## Truth sources
 
@@ -261,8 +267,9 @@ Product numbers: `src/lib/media/limits.ts`, `src/lib/constants/tiers.ts`,
 `src/lib/lifecycle/*.ts` (always via components). App strings: the app
 source under `src/components` and `src/app/(app)` (hosts) and
 `src/components/guest` + `src/components/auth` (guests). Behavior:
-`docs/systems/host-app.md`, `guest-flow.md`, `billing-caps.md`,
-`lifecycle-recovery.md`, `profiles-social.md`, `uploads-and-r2.md`.
+`docs/systems/host-app.md`, `guest-flow.md`, `reel.md` (the reel, the screen
+and the clip), `billing-caps.md`, `lifecycle-recovery.md`,
+`profiles-social.md`, `uploads-and-r2.md`.
 Durability and moderation claims: reuse the shipped wording on the privacy
 feature page and in `constants/about.ts`. Never claim end-to-end encryption,
 point-in-time recovery, compliance certifications or multi-cloud storage: no

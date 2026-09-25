@@ -243,6 +243,70 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/app/event-settings/uploads-section.tsx",
     literal: "Require verified emails",
   },
+  // The live reel (`reel-sweep`, 2026-09-25): every surface that draws the reel
+  // quotes the reel's own words, so a rename in the tile, the view or the hub
+  // card strands no marketing picture of it.
+  {
+    label: "reel page live tile heading",
+    marketingFile: "src/components/marketing/sections/reel/live-tile.tsx",
+    appFile: "src/components/guest/reel/live-reel.tsx",
+    literal: "Highlight reel",
+  },
+  {
+    label: "reel page live tile clip line",
+    marketingFile: "src/components/marketing/sections/reel/live-tile.tsx",
+    appFile: "src/components/guest/reel/live-reel.tsx",
+    literal: "Make your own clip to share",
+  },
+  {
+    label: "reel page screen corner code line",
+    marketingFile: "src/components/marketing/sections/reel/screen-section.tsx",
+    appFile: "src/components/guest/reel/live-reel-view.tsx",
+    literal: "Scan to add yours",
+  },
+  {
+    label: "album take-home plate, the reel view's clip button",
+    marketingFile:
+      "src/components/marketing/sections/features/album/take-home-section.tsx",
+    appFile: "src/components/guest/reel/live-reel-view.tsx",
+    literal: "Make your own",
+  },
+  {
+    label: "how-it-works guest clip step, the reel view's clip button",
+    marketingFile:
+      "src/components/marketing/sections/how-it-works/guest-pictures.tsx",
+    appFile: "src/components/guest/reel/live-reel-view.tsx",
+    literal: "Make your own",
+  },
+  {
+    label: "how-it-works host reel step, the hub card's live line",
+    marketingFile:
+      "src/components/marketing/sections/how-it-works/host-pictures.tsx",
+    appFile: "src/components/app/event-feed/reel-card.tsx",
+    literal: "Live for guests",
+  },
+  {
+    label: "how-it-works host reel step, the Settings look row",
+    marketingFile:
+      "src/components/marketing/sections/how-it-works/host-pictures.tsx",
+    appFile: "src/components/app/event-settings/highlight-reel-card.tsx",
+    literal: "Where every guest starts.",
+  },
+  {
+    label: "home live demo payoff card, the reel's own heading",
+    marketingFile: "src/components/marketing/sections/home/live-demo.tsx",
+    appFile: "src/components/guest/reel/live-reel.tsx",
+    literal: "Highlight reel",
+  },
+  // The select mode's bar lost Add to reel with the stored reel; the mock's
+  // first action is the app's own first action now.
+  {
+    label: "bulk select mock like action",
+    marketingFile:
+      "src/components/marketing/sections/shared/bulk-select-mock.tsx",
+    appFile: "src/components/app/event-feed/gallery-actions.tsx",
+    literal: '"Like"',
+  },
 ];
 
 describe("marketing mock <-> app copy parity", () => {
