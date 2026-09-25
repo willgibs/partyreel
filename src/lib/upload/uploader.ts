@@ -100,6 +100,34 @@ function measureFile(file: File, kind: "photo" | "video"): Promise<Measured> {
   });
 }
 
+/**
+ * ONE PROGRESS REPORT A FRAME. XHR fires `progress` as often as the network
+ * hands it bytes (dozens a second on a fast link), and every report is a state
+ * patch that re-renders the album around the in-flight tile; a frame can show
+ * one number, so the rest were work for nobody. The latest fraction in a frame
+ * is the one reported, and nothing is reported once the request has settled
+ * (a stale frame landing after `done` would drag the bar back).
+ */
+export function perFrame(report: ((fraction: number) => void) | undefined) {
+  let latest = 0;
+  let frame: number | null = null;
+  return {
+    push(fraction: number) {
+      if (!report) return;
+      latest = fraction;
+      if (frame !== null) return;
+      frame = requestAnimationFrame(() => {
+        frame = null;
+        report(latest);
+      });
+    },
+    stop() {
+      if (frame !== null) cancelAnimationFrame(frame);
+      frame = null;
+    },
+  };
+}
+
 function putWithProgress(args: {
   url: string;
   body: Blob;
@@ -109,18 +137,23 @@ function putWithProgress(args: {
   const { url, body, headers, onProgress } = args;
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
+    const progress = perFrame(onProgress);
     xhr.open("PUT", url);
     for (const [name, value] of Object.entries(headers ?? {})) {
       xhr.setRequestHeader(name, value);
     }
     xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable) onProgress?.(e.loaded / e.total);
+      if (e.lengthComputable) progress.push(e.loaded / e.total);
     };
     xhr.onload = () => {
+      progress.stop();
       if (xhr.status >= 200 && xhr.status < 300) resolve(xhr);
       else reject(new Error(`Upload failed (${xhr.status}).`));
     };
-    xhr.onerror = () => reject(new Error("Network error during upload."));
+    xhr.onerror = () => {
+      progress.stop();
+      reject(new Error("Network error during upload."));
+    };
     xhr.send(body);
   });
 }

@@ -1,17 +1,25 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, RefObject } from "react";
 import { flushSync } from "react-dom";
 import { Download } from "lucide-react";
 
 import type { GridMedia } from "@/components/app/media-grid";
 import { UploadStackTile } from "@/components/guest/upload/stack-tile";
 import { useLikeAction } from "@/components/likes/like-button";
-import { LikesProvider } from "@/components/likes/likes-provider";
-import { setAlbumRenderProbe } from "@/components/shared/album-tile";
+import {
+  LocalLikesProvider,
+  useLikes,
+} from "@/components/likes/likes-provider";
+import { setAlbumRenderProbe } from "@/components/shared/album-tile-probe";
 import { MasonryColumns, type TileAction } from "@/components/shared/masonry";
-import type { RowStep } from "@/lib/shared/album-rows";
+import { ViewMenu } from "@/components/shared/view-menu";
+import {
+  DEFAULT_ROW_STEP,
+  isRowStep,
+  type RowStep,
+} from "@/lib/shared/album-rows";
 import { ARRIVAL_GLOW_MS, ARRIVAL_SWEEP_MS } from "@/lib/shared/arrival";
 
 import { scaleAlbum, scaleItem } from "./fixtures";
@@ -26,7 +34,8 @@ export type AlbumScaleApi = {
   ready: true;
   layout: ScaleLayout;
   count: () => number;
-  renders: () => { tile: number; mark: number };
+  /** Renders since the last reset: tile bodies, like marks, and how many photographs they belonged to. */
+  renders: () => { tile: number; mark: number; ids: number };
   resetRenders: () => void;
   /** Toggles one photograph's like (the first in view unless named); its id. */
   like: (id?: string) => string | null;
@@ -36,6 +45,8 @@ export type AlbumScaleApi = {
   poll: () => void;
   /** `n` photographs land at the head; the synchronous work it cost. */
   arrive: (n: number) => { syncMs: number; layoutMs: number };
+  /** The density step, as the View menu's slider sets it. */
+  step: (s: number) => void;
 };
 
 declare global {
@@ -90,20 +101,29 @@ function useGuestRow() {
 function Album({
   layout,
   step,
+  onStep,
   items,
   progress,
+  toggleRef,
 }: {
   layout: ScaleLayout;
-  step: RowStep | undefined;
+  step: RowStep;
+  onStep: (s: RowStep) => void;
   items: GridMedia[];
   progress: number | null;
+  toggleRef: RefObject<((id: string) => void) | null>;
 }) {
   const tileActions = useGuestRow();
+  const likes = useLikes();
+  useEffect(() => {
+    toggleRef.current = likes ? likes.toggle : null;
+  }, [likes, toggleRef]);
   return (
     <MasonryColumns
       items={items}
       layout={layout}
       rowStep={step}
+      onRowStepChange={onStep}
       stagger
       tileActions={tileActions}
       photoAddress={false}
@@ -123,13 +143,15 @@ function Album({
 
 /**
  * THE SCALE PAGE: the real album grid over a synthetic album at a party's
- * scale, with nothing around it but a line of links, so what the harness
- * measures is the album and not the lab's shell.
+ * scale, with nothing around it but a line of links and the album's own View
+ * menu, so what the harness measures is the album and not the lab's shell.
+ * The likes are the product's store with no network under it
+ * (`LocalLikesProvider`), so a like here is the same notification as a real one.
  */
 export function AlbumScale({
   layout,
   count,
-  step,
+  step: initialStep,
   uploading,
 }: {
   layout: ScaleLayout;
@@ -138,33 +160,34 @@ export function AlbumScale({
   uploading: boolean;
 }) {
   const [items, setItems] = useState(() => scaleAlbum(count));
+  const [step, setStep] = useState<RowStep>(initialStep ?? DEFAULT_ROW_STEP);
   const [progress, setProgress] = useState<number | null>(uploading ? 0 : null);
   const arrivals = useRef(0);
-  const counts = useRef({ tile: 0, mark: 0 });
+  const counts = useRef({ tile: 0, mark: 0, ids: new Set<string>() });
+  const toggle = useRef<((id: string) => void) | null>(null);
 
   useEffect(() => {
-    setAlbumRenderProbe((kind) => {
+    setAlbumRenderProbe((kind, id) => {
       counts.current[kind] += 1;
+      counts.current.ids.add(id);
     });
     window.__albumScale = {
       ready: true,
       layout,
       count: () => document.querySelectorAll("[data-media-tile]").length,
-      renders: () => ({ ...counts.current }),
+      renders: () => ({
+        tile: counts.current.tile,
+        mark: counts.current.mark,
+        ids: counts.current.ids.size,
+      }),
       resetRenders: () => {
-        counts.current = { tile: 0, mark: 0 };
+        counts.current = { tile: 0, mark: 0, ids: new Set() };
       },
       like: (id) => {
         const target = id ?? firstInView();
-        if (!target) return null;
-        // A like changes one photograph's state and nothing else.
-        flushSync(() =>
-          setItems((prev) =>
-            prev.map((m) =>
-              m.id === target ? { ...m, likeCount: (m.likeCount ?? 0) + 1 } : m,
-            ),
-          ),
-        );
+        const flip = toggle.current;
+        if (!target || !flip) return null;
+        flushSync(() => flip(target));
         return target;
       },
       tick: () => {
@@ -185,6 +208,9 @@ export function AlbumScale({
         const t2 = performance.now();
         return { syncMs: t1 - t0, layoutMs: t2 - t0 };
       },
+      step: (s) => {
+        if (isRowStep(s)) flushSync(() => setStep(s));
+      },
     };
     return () => {
       setAlbumRenderProbe(null);
@@ -192,13 +218,8 @@ export function AlbumScale({
     };
   }, [layout]);
 
-  const link = (params: Record<string, string>) => {
-    const q = new URLSearchParams(
-      typeof window === "undefined" ? "" : window.location.search,
-    );
-    for (const [k, v] of Object.entries(params)) q.set(k, v);
-    return `?${q.toString()}`;
-  };
+  const link = (to: ScaleLayout) =>
+    `?layout=${to}&n=${count}${uploading ? "&uploading=1" : ""}`;
 
   return (
     <div
@@ -211,23 +232,40 @@ export function AlbumScale({
       }
     >
       <div className="px-3 py-4 sm:px-5">
-        <p className="mb-3 flex flex-wrap gap-x-3 text-sm text-muted-foreground tabular-nums">
+        <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground tabular-nums">
           <span>{items.length.toLocaleString("en")} photographs</span>
-          <a href={link({ layout: "masonry" })} className="underline">
+          <a href={link("masonry")} className="underline">
             masonry
           </a>
-          <a href={link({ layout: "rows" })} className="underline">
+          <a href={link("rows")} className="underline">
             rows
           </a>
-        </p>
-        <LikesProvider mediaIds={items.map((m) => m.id)}>
+          {layout === "rows" && (
+            <div className="ml-auto">
+              <ViewMenu
+                groups={[
+                  {
+                    kind: "density",
+                    id: "size",
+                    label: "Size",
+                    value: step,
+                    onChange: setStep,
+                  },
+                ]}
+              />
+            </div>
+          )}
+        </div>
+        <LocalLikesProvider>
           <Album
             layout={layout}
             step={step}
+            onStep={setStep}
             items={items}
             progress={progress}
+            toggleRef={toggle}
           />
-        </LikesProvider>
+        </LocalLikesProvider>
       </div>
     </div>
   );

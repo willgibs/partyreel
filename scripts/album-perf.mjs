@@ -87,6 +87,8 @@ const out = opt("--out", "");
 const extra = opt("--query", "");
 const checkBudgets = argv.includes("--budgets");
 const headed = argv.includes("--headed");
+// `--profile`: a CPU profile of each fling, its heaviest functions by self time printed under the run.
+const profileFling = argv.includes("--profile");
 const callTimeout = 120_000;
 
 const CHROME =
@@ -297,6 +299,35 @@ const LIB = `
 `;
 
 // ── Per run
+/** A CPU profile's heaviest functions by self time: where a janky frame's milliseconds went. */
+function selfTimes(profile, top = 14) {
+  const dt = new Map();
+  const { samples, timeDeltas, nodes } = profile;
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  for (let i = 0; i < samples.length; i++)
+    dt.set(samples[i], (dt.get(samples[i]) ?? 0) + (timeDeltas[i] ?? 0));
+  const parent = new Map();
+  for (const n of nodes) for (const c of n.children ?? []) parent.set(c, n.id);
+  const name = (id) => {
+    const f = byId.get(id).callFrame;
+    const file = f.url.split("/").pop() || "(native)";
+    return `${f.functionName || "(anonymous)"} ${file}:${f.lineNumber + 1}`;
+  };
+  const byFn = new Map();
+  for (const [id, us] of dt) {
+    // A native call is named with its caller: "getBoundingClientRect" alone
+    // says nothing about which code forced the layout.
+    const f = byId.get(id).callFrame;
+    const via = !f.url && parent.has(id) ? ` <- ${name(parent.get(id))}` : "";
+    const k = name(id) + via;
+    byFn.set(k, (byFn.get(k) ?? 0) + us);
+  }
+  return [...byFn.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, top)
+    .map(([k, us]) => `${(us / 1000).toFixed(0)}ms ${k}`);
+}
+
 function histogram(deltas) {
   const edges = [8.5, 17.5, 25, 34, 50, Infinity];
   const names = ["<=8", "<=17", "<=25", "<=34", "<=50", ">50"];
@@ -418,7 +449,15 @@ async function measure(ws, layout, vp) {
   // The fling.
   const netBefore = bytes().total;
   const loafBefore = (await evaluate(ws, "window.__perf.loaf.length")) ?? 0;
+  if (profileFling) {
+    await send(ws, "Profiler.enable");
+    await send(ws, "Profiler.setSamplingInterval", { interval: 200 });
+    await send(ws, "Profiler.start");
+  }
   const f = await evaluate(ws, `__ap.fling(${flingMs})`);
+  const hot = profileFling
+    ? selfTimes((await send(ws, "Profiler.stop")).profile)
+    : null;
   const m1 = await metrics(ws);
   const loaf =
     (await evaluate(ws, `window.__perf.loaf.slice(${loafBefore})`)) ?? [];
@@ -438,6 +477,7 @@ async function measure(ws, layout, vp) {
     ).toFixed(0),
     scriptMs: +((m1.ScriptDuration - m0.ScriptDuration) * 1000).toFixed(0),
     bytes: bytes().total - netBefore,
+    ...(hot ? { hot } : {}),
   };
 
   // At rest, back at the top, once the images in view are in.
@@ -535,9 +575,11 @@ function budgets(r) {
     ["0 running animations at rest", r.load.animations.running === 0],
     ["p95 frame <= 16.7ms", r.fling.p95 <= 17.5],
     ["no long frame > 50ms in the fling", r.fling.longFrames.length === 0],
+    // One photograph's parts (its heart mark, its like glyph), and its tile body at most once.
     [
       "a like re-renders <= 1 tile",
-      r.renders.like.tile + r.renders.like.mark <= 1,
+      (r.renders.like.ids ?? r.renders.like.tile) <= 1 &&
+        r.renders.like.tile <= 1,
     ],
     [
       "a progress tick re-renders 0",
@@ -567,8 +609,11 @@ function report(r) {
     `  fling    ${r.fling.frames} frames over ${r.fling.scrollPx}px (peak ${r.fling.peakPxPerS}px/s): p50 ${r.fling.p50} · p95 ${r.fling.p95} · p99 ${r.fling.p99} · max ${r.fling.max}ms`,
     `           ${JSON.stringify(r.fling.buckets)} · long frames ${r.fling.longFrames.length} ${JSON.stringify(r.fling.longFrames.slice(0, 12))}`,
     `           max album nodes ${r.fling.maxAlbumNodes} · layouts ${r.fling.layouts} (${r.fling.layoutMs}ms) · style ${r.fling.styleRecalcs} (${r.fling.styleMs}ms) · script ${r.fling.scriptMs}ms · ${kb(r.fling.bytes)} fetched`,
+    ...(r.fling.hot
+      ? [`           hot: ${r.fling.hot.join("\n                ")}`]
+      : []),
     `  after    animations running ${r.rest.animations.running} ${JSON.stringify(r.rest.animations.by)} · album nodes ${r.rest.albumNodes}`,
-    `  renders  like ${r.renders.like.tile} tiles + ${r.renders.like.mark} marks · tick ${r.renders.tick.tile} + ${r.renders.tick.mark} · poll ${r.renders.poll.tile} + ${r.renders.poll.mark}`,
+    `  renders  like ${r.renders.like.tile} tiles + ${r.renders.like.mark} marks${r.renders.like.ids === undefined ? "" : ` (${r.renders.like.ids} photograph${r.renders.like.ids === 1 ? "" : "s"})`} · tick ${r.renders.tick.tile} + ${r.renders.tick.mark} · poll ${r.renders.poll.tile} + ${r.renders.poll.mark}`,
     `  arrival  sync ${r.arrival.syncMs}ms, to layout ${r.arrival.layoutMs}ms · renders ${r.arrival.renders.tile} tiles · moved: after 2 frames ${r.arrival.afterTwoFrames.maxPx}px (${r.arrival.afterTwoFrames.movedTiles}/${r.arrival.afterTwoFrames.of}), settled ${r.arrival.settled.maxPx}px (${r.arrival.settled.movedTiles}/${r.arrival.settled.of})`,
   ];
   if (checkBudgets)
@@ -612,7 +657,11 @@ try {
   failed = true;
 } finally {
   chrome.kill();
-  await sleep(300);
-  rmSync(profile, { recursive: true, force: true });
+  await sleep(500);
+  try {
+    rmSync(profile, { recursive: true, force: true });
+  } catch {
+    // Chrome still closing its profile: the OS reaps its temp dir.
+  }
 }
 process.exit(failed ? 1 : 0);
