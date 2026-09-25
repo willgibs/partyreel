@@ -11,6 +11,7 @@ import {
   steadyWidth,
 } from "@/components/shared/album-window";
 import {
+  abortUnfinishedImages,
   columnsFor,
   distributeColumns,
   MasonryColumns,
@@ -632,12 +633,60 @@ describe("the open photograph rides the address", () => {
     expect(here()).toBe("/e/tok?reel");
   });
 
-  it("follows the viewer as it steps, so a refresh returns to where it is", async () => {
+  // A beat past the quiet a step waits for (`ADDRESS_STEP_QUIET_MS`).
+  const quiet = () =>
+    act(async () => {
+      await new Promise((r) => setTimeout(r, 360));
+    });
+
+  it("follows the viewer once a step rests, so a refresh returns to where it is", async () => {
     render(<MasonryColumns items={items} />, { wrapper: TooltipWrap });
     fireEvent.click(screen.getByLabelText("View photo"));
     await frame();
     fireEvent.keyDown(window, { key: "ArrowRight" });
+    // A step waits for a beat of quiet (the browsers' caps on the history API).
+    expect(here()).toBe("/e/tok?reel&photo=a");
+    await quiet();
     expect(here()).toBe("/e/tok?reel&photo=b");
+  });
+
+  it("writes a walk's address once, when it rests, and a close straight after a walk clears it", async () => {
+    const walk: GridMedia[] = Array.from({ length: 40 }, (_, i) => ({
+      id: `p${i}`,
+      type: "photo" as const,
+      url: `/p${i}.jpg`,
+      width: 800,
+      height: 600,
+    }));
+    const replace = vi.spyOn(window.history, "replaceState");
+    try {
+      const { unmount } = render(<MasonryColumns items={walk} />, {
+        wrapper: TooltipWrap,
+      });
+      fireEvent.click(screen.getAllByLabelText("View photo")[0]);
+      await frame();
+      expect(here()).toBe("/e/tok?reel&photo=p0");
+      // A held arrow key: thirty steps, and not one write among them.
+      replace.mockClear();
+      for (let i = 0; i < 30; i++)
+        fireEvent.keyDown(window, { key: "ArrowRight" });
+      expect(
+        screen.getByRole("dialog", { name: "Photo 31 of 40" }),
+      ).toBeTruthy();
+      expect(replace).not.toHaveBeenCalled();
+      await quiet();
+      expect(replace).toHaveBeenCalledTimes(1);
+      expect(here()).toBe("/e/tok?reel&photo=p30");
+      // Straight on and straight out: the close clears it at once, and the step still waiting never lands.
+      fireEvent.keyDown(window, { key: "ArrowRight" });
+      fireEvent.click(screen.getByRole("button", { name: "Close" }));
+      expect(here()).toBe("/e/tok?reel");
+      await quiet();
+      expect(here()).toBe("/e/tok?reel");
+      unmount();
+    } finally {
+      replace.mockRestore();
+    }
   });
 
   it("opens the photograph a refresh lands on", async () => {
@@ -1028,5 +1077,71 @@ describe("dimItem dims the media", () => {
     expect(dimmed.classList.contains("opacity-30")).toBe(true);
     expect(dimmed.classList.contains("active:scale-[0.98]")).toBe(true);
     expect(plain.classList.contains("opacity-30")).toBe(false);
+  });
+});
+
+/**
+ * A TILE THAT LEAVES TAKES ITS DOWNLOAD WITH IT (`abortUnfinishedImages`). A browser never cancels an
+ * image because its element left the page, and R2 answers over HTTP/1.1 (six connections), so the
+ * screen a scroll through a big album stopped on waited behind every photograph it passed: 13 to 18 s
+ * at the bottom of the scale probe, 0.5 to 0.8 s once a leaving tile clears its `src`.
+ */
+describe("a tile that leaves takes its unfinished download with it", () => {
+  const finished = (img: HTMLImageElement, done: boolean) =>
+    Object.defineProperty(img, "complete", {
+      configurable: true,
+      get: () => done,
+    });
+
+  it("clears an unfinished image's source by the attribute (no error to read as an expiry), and keeps a drawn one", () => {
+    const box = document.createElement("div");
+    const pending = document.createElement("img");
+    const drawn = document.createElement("img");
+    pending.setAttribute("src", "https://r2.test/p/1.webp");
+    pending.setAttribute("srcset", "https://r2.test/p/1.webp 1x");
+    drawn.setAttribute("src", "https://r2.test/p/2.webp");
+    finished(pending, false);
+    finished(drawn, true);
+    box.append(pending, drawn);
+    const error = vi.fn();
+    pending.addEventListener("error", error);
+    abortUnfinishedImages(box);
+    expect(pending.hasAttribute("src")).toBe(false);
+    expect(pending.hasAttribute("srcset")).toBe(false);
+    expect(drawn.getAttribute("src")).toBe("https://r2.test/p/2.webp");
+    expect(error).not.toHaveBeenCalled();
+  });
+
+  it("runs as a tile leaves the grid, and never on a tile that stays", () => {
+    // The grid's one observer is what hears a tile leave; jsdom has none of its own.
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+    try {
+      const two: GridMedia[] = [
+        { id: "a", type: "photo", url: "/a.jpg", width: 800, height: 1200 },
+        { id: "c", type: "photo", url: "/c.jpg", width: 800, height: 600 },
+      ];
+      const { container, rerender } = render(<MasonryColumns items={two} />);
+      const leaving = container.querySelector<HTMLImageElement>(
+        '[data-media-id="a"] img',
+      )!;
+      const staying = container.querySelector<HTMLImageElement>(
+        '[data-media-id="c"] img',
+      )!;
+      finished(leaving, false);
+      finished(staying, false);
+      rerender(<MasonryColumns items={[two[1]]} />);
+      expect(leaving.isConnected).toBe(false);
+      expect(leaving.hasAttribute("src")).toBe(false);
+      expect(staying.getAttribute("src")).toBe("/c.jpg");
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

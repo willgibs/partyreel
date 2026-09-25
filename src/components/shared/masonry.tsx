@@ -171,6 +171,9 @@ const COLUMN_FLOOR = 220;
  */
 let addressClaim: string | null = null;
 
+/** How long a walk through the viewer rests before the address follows it (see `addressAfterStep`). */
+const ADDRESS_STEP_QUIET_MS = 300;
+
 /** Write the open photograph into the address (null clears it), history untouched. */
 function writeAddress(id: string | null) {
   if (typeof window === "undefined") return;
@@ -199,6 +202,24 @@ function tileFor(root: HTMLElement | null, id: string): HTMLElement | null {
   return root.querySelector<HTMLElement>(
     `[data-media-tile][data-media-id="${safe}"]`,
   );
+}
+
+/**
+ * ★ A TILE THAT LEAVES TAKES ITS DOWNLOAD WITH IT. R2's presigned endpoint answers over HTTP/1.1, so
+ * a browser keeps six connections to it and queues the rest; a scroll through a big album asks for
+ * every photograph it passes, and a browser never cancels an image because its element left the
+ * page (clearing the element's `src` does). So the screen a scroll stopped on waited behind hundreds
+ * of photographs nobody would see: on the scale probe at 1440, paging down 1,145 photographs left
+ * about 800 still in flight at the bottom, whose own took 13 to 18 s to draw. The attribute goes
+ * rather than emptying, because an empty `src` fires `error`, which the presign watchdog reads as an
+ * expired link. A photograph already drawn keeps its bytes in the browser's cache either way.
+ */
+export function abortUnfinishedImages(el: HTMLElement) {
+  for (const img of el.getElementsByTagName("img")) {
+    if (img.complete) continue;
+    img.removeAttribute("srcset");
+    img.removeAttribute("src");
+  }
 }
 
 /** The photograph a click or a press landed on: its tile's id, for a target inside its open button. */
@@ -602,6 +623,39 @@ export function MasonryColumns<T extends GridMedia>(props: {
     return tile;
   }, []);
 
+  /**
+   * ★ A WALK WRITES THE ADDRESS WHEN IT PAUSES. Browsers cap the history API
+   * (Chrome drops calls past 200 in 10 s, Safari refuses past 100), and a
+   * viewer stepped with a held arrow key wrote one a step: walking the scale
+   * probe, the address stopped following at the hundredth photograph, and the
+   * close's own write was dropped too, leaving a closed viewer's `?photo=`
+   * behind for a refresh to reopen. So a step waits for a beat of quiet, and an
+   * open, a close and a vanish write at once (cancelling a step still waiting).
+   */
+  const addressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const addressNow = useCallback(
+    (id: string | null) => {
+      if (addressTimer.current !== null) clearTimeout(addressTimer.current);
+      addressTimer.current = null;
+      if (photoAddress) writeAddress(id);
+    },
+    [photoAddress],
+  );
+  const addressAfterStep = (id: string | null) => {
+    if (!photoAddress) return;
+    if (addressTimer.current !== null) clearTimeout(addressTimer.current);
+    addressTimer.current = setTimeout(() => {
+      addressTimer.current = null;
+      writeAddress(id);
+    }, ADDRESS_STEP_QUIET_MS);
+  };
+  useEffect(
+    () => () => {
+      if (addressTimer.current !== null) clearTimeout(addressTimer.current);
+    },
+    [],
+  );
+
   const openItem = (id: string, tile: Element | null) => {
     setOpenId(id);
     setOrigin(
@@ -609,12 +663,12 @@ export function MasonryColumns<T extends GridMedia>(props: {
         ? { kind: "tile", rect: tile.getBoundingClientRect(), returnTo }
         : undefined,
     );
-    if (photoAddress) writeAddress(id);
+    addressNow(id);
   };
 
   const closeItem = () => {
     setOpenId(null);
-    if (photoAddress) writeAddress(null);
+    addressNow(null);
   };
 
   // The address, read once on mount (see `writeAddress`). Async on purpose: a
@@ -665,8 +719,8 @@ export function MasonryColumns<T extends GridMedia>(props: {
   // The open photograph vanished under the viewer (removed, filtered away):
   // the address stops naming it.
   useEffect(() => {
-    if (photoAddress && openId && openAt < 0) writeAddress(null);
-  }, [photoAddress, openId, openAt]);
+    if (openId && openAt < 0) addressNow(null);
+  }, [addressNow, openId, openAt]);
 
   const measure = useCallback(() => {
     const el = boxRef.current;
@@ -725,7 +779,8 @@ export function MasonryColumns<T extends GridMedia>(props: {
    * skeleton's shimmer under it, after a beat). A thousand photographs below the
    * fold each ran a shimmer every frame for nobody (measured: 1,110 running
    * animations on the scale page). An attribute, not state: the tile does not
-   * re-render to learn it is seen.
+   * re-render to learn it is seen. Its cleanup is the tile leaving, which
+   * cancels the tile's unfinished download (`abortUnfinishedImages`).
    */
   const [observe] = useState(() => {
     if (typeof IntersectionObserver === "undefined") return undefined;
@@ -736,7 +791,10 @@ export function MasonryColumns<T extends GridMedia>(props: {
     return (el: HTMLElement | null) => {
       if (!el) return;
       io.observe(el);
-      return () => io.unobserve(el);
+      return () => {
+        io.unobserve(el);
+        abortUnfinishedImages(el);
+      };
     };
   });
 
@@ -948,7 +1006,7 @@ export function MasonryColumns<T extends GridMedia>(props: {
         onIndexChange={(i) => {
           const id = items[i]?.id ?? null;
           setOpenId(id);
-          if (photoAddress) writeAddress(id);
+          addressAfterStep(id);
         }}
         viewerIsHost={viewerIsHost}
         shareUrl={shareUrl}
