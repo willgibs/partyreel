@@ -93,7 +93,12 @@ export {
   CornerPlayBadge,
   type TileAction,
 } from "@/components/shared/album-tile";
-export type { AlbumHandle } from "@/components/shared/album-window";
+// The rows' box, for a board that draws its own tile (the media-viewer board).
+export {
+  AlbumRows,
+  type AlbumHandle,
+  type RowTileBox,
+} from "@/components/shared/album-window";
 
 /**
  * THE ALBUM'S COLUMN RULE — the one place a gallery's columns are decided
@@ -822,7 +827,7 @@ export function MasonryColumns<T extends GridMedia>(props: {
     <AlbumTile
       key={item.id}
       {...tileProps(item)}
-      box={t.box}
+      box={t.style}
       rowsKey={t.rowsKey}
       enter={stagger && t.fresh}
       entering={t.entering}

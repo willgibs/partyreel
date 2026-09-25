@@ -120,13 +120,17 @@ import { cn } from "@/lib/utils";
 export type RowRhythm = "plain" | RowFeature;
 
 /**
- * What the box hands whoever draws a photograph's tile: spread `box` into the
- * tile root's style and write `rowsKey` as its `data-rows-key` (how the glide
- * and the anchoring find it).
+ * What the box hands whoever draws a photograph's tile: spread `style` into the
+ * tile root's own and write `rowsKey` as its `data-rows-key` (how the glide and
+ * the anchoring find it). A board that draws its own tile needs only these two.
  */
-export type RowTile = {
-  box: CSSProperties;
+export type RowTileBox = {
+  style: CSSProperties;
   rowsKey: string;
+};
+
+/** The box, and what the one grid's own tile also reads (`masonry.tsx`). */
+export type RowTile = RowTileBox & {
   /** The album has not settled yet: a tile mounting now may take the album's entrance. */
   fresh: boolean;
   /** New to the rows this moment (an arrival, a late approval): it pushes in. */
@@ -892,7 +896,7 @@ export function AlbumRows<
     const drawn = (
       id: string,
       style: CSSProperties,
-      tile: Omit<RowTile, "box" | "rowsKey">,
+      tile: Omit<RowTile, keyof RowTileBox>,
     ) => {
       const slot = slotByKey.get(id);
       if (slot !== undefined)
@@ -915,7 +919,7 @@ export function AlbumRows<
       const item =
         byId.get(id) ?? (current?.byId.get(id) as T | undefined) ?? null;
       return item
-        ? renderTile(item, { box: style, rowsKey: id, ...tile })
+        ? renderTile(item, { style, rowsKey: id, ...tile })
         : null;
     };
 
