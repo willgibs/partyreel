@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "e30aaada"          # the launch-prep SHA this state was written at
+cut: "bf2bc846"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/theme.css
   - src/app/(marketing)/marketing.css
@@ -31,26 +31,38 @@ model Will seats (Fable or Opus); nothing here depends on which.
 ## In flight
 
 Up to eight lanes at once (Will, 2026-09-24); every production build, a lane's or the kit's gate, takes turns
-through `scripts/build-lock.sh` (the kit's gate takes it itself). Batch 3 runs overnight on 2026-09-25 with Will asleep
-in auto mode ("work through the night on all of this until fully complete"); the live plan is
-`~/.claude/plans/great-work-however-1-dapper-twilight.md`, and the lanes' manifests carry everything they need.
+through `scripts/build-lock.sh` (the kit's gate takes it itself). The lanes' manifests carry everything they need; an
+agent id below lives only in the Orchestrator session that spawned it (another session respawns: the runbook's "Resume
+a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `album-guest-wiring` | the guest album, viewer, reel and profile feeds onto the paged, windowed rows with r2's picks; `planTake` sub-quadratic; the perf harness's `--page` mode | building (agent `a29a00be06c5e3b16`) | Opus, :3131 | its `guest-flow.md` lines through the Handoff |
-| `album-host-wiring` | the hub's album onto the paged rows, select mode on the one grid, the bin on a manifest, Sort live, `like_many` | building (agent `a54c6daada060d103`) | Opus, :3134 | ends a turn with "migration ready at <sha>" for `like_many`; `host-app.md` lines through the Handoff |
-| `crumbs` | tonight's deferred leftovers (the Studio's reveal CSS, vaul, stale comments, the voice board's door quote, the password step's sticky foot, one code length, the test setup's flush); holds `globals.css` until its merge | building (agent `a353ac97661104821`) | Sonnet, :3135 | three root files as decided exceptions |
+| `album-guest-wiring` | the guest album, viewer, reel and profile feeds onto the paged, windowed rows with r2's picks; `planTake` sub-quadratic; the perf harness's `--page` mode; build 9's two reel findings in its files (the view's scroll lock, the tile's hit area) | building (agent `a4f93b6854568e16f`) | Opus, :3131 | its `guest-flow.md` lines through the Handoff |
+| `album-host-wiring` | the hub's album onto the paged rows, select mode on the one grid, the bin on a manifest, Sort live, `like_many` (applied, types at `14359c94`) | building (agent `aca30254725561438`) | Opus, :3134 | syncs past `album-guest-wiring` if it lands first; `host-app.md` lines through the Handoff |
+| `crumbs` | tonight's deferred leftovers (the Studio's reveal CSS, vaul, stale comments, the voice board's door quote, the password step's sticky foot, one code length, the test setup's flush); holds `globals.css` until its merge | building (agent `a4599f1c56870a65b`) | Sonnet, :3135 | three root files as decided exceptions, and `ui/floating-layer.ts`'s drawer comment |
 
 Merged tonight (their records carry the rest): reel-guest-wiring, reel-host-wiring, mark-r3, story-r2, door-r2,
-album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hardening, reel-sweep, door-flow.
+album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hardening, reel-sweep, door-flow,
+retire-reel-boards.
 
 ## Next, in order
 
-1. **Build 9 is live** (`52a19853`, the alias assigned, pages clean): the red-team agent (`a5ce4e129cf0a54b6`) walks the
-   reel's journeys in the browser pane (nobody else drives the pane while it runs). Its drop migration (`20260924110000_live_reel_drop.sql`) and then `node
-   scripts/sweep-reel-files.mjs --apply` wait for Will's yes.
-2. **Integrate as they land**: `album-host-wiring` (its `like_many` migration first), `album-guest-wiring`, `door-flow`
-   (synced past both). Then build 10.
+1. **Integrate as they land**: `album-host-wiring` and `album-guest-wiring` in either order, and `crumbs`. Then build 10
+   (`[preview]`); build 9 (`52a19853`) serves the alias until then.
+2. **Build 10's red-team** (Opus; the pane for a guest, Chrome's account chooser for the host), which also finishes
+   build 9's walk (it stopped at the usage limit with its first six journeys passing):
+   - the reel on the album's new data path: the tile, the view, clips, access, the password event, the demo;
+   - `?reel=screen` soaked headless at 1920x1080 for 100 minutes (a hidden pane throttles the page);
+   - the door at 375 on the Sheet (build 9's vaul sheet scrolled three times its height, and the password step opened
+     past its heading);
+   - the album at scale on both surfaces;
+   - re-checks: the count's "1 photo & videos", one stalled owner `?reel` in a hidden tab, Settings saving the default
+     look and hold as values rather than NULL.
+
+   Afterwards the 15-photo probe's `reel_style_id` and `reel_hold_sec` go back to NULL. Journey 9's page checks passed
+   on build 9 (both legal pages at 1.7, the retired help slugs 308, no stale reel claim on the marketing pages,
+   `/admin/reels` a 404). Then the drop migration (`20260924110000_live_reel_drop.sql`) and
+   `node scripts/sweep-reel-files.mjs --apply` wait for Will's yes.
 3. **Retire `album-columns`** once the surface lanes merge (the five reel boards retired at `0cbd5634`), atomically across
    `touchpoints.ts`, `registry.ts` and `boards.ts`, its ledger with it.
 4. **After his sitting on build 9**: `reel-marketing` (his `reel-story` r2), the door's look (his `identity-door` r2)
@@ -65,7 +77,7 @@ album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hard
 ## Waiting on Will
 
 - **His sitting on build 9**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
-- **Two yeses**: the reel drop after build 9's red-team; clearing past deleted accounts' addresses from guest rows
+- **Two yeses**: the reel drop after build 10's red-team; clearing past deleted accounts' addresses from guest rows
   (`20260926210000_identity_backfill.sql`, written, never applied).
 - **One dashboard minute** (no management token here): Supabase, Authentication, Templates, Change Email Address, add
   `{{ .Token }}` beside `{{ .ConfirmationURL }}` (the wording is in lp/identity-email's Handoff, merged at `3248a785`);

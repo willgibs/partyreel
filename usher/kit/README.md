@@ -18,8 +18,12 @@ Look up the task in hand; each section stands alone. The scripts run from the re
 After a restart, a kill, a usage limit or plan mode (which pauses every running lane), message each lane that was
 mid-work by SendMessage to its agent id; its transcript survives, so it keeps its context. Say what died, what is on
 disk (its branch head, uncommitted files), that a stale `.next/dev/lock` may be deleted, and to continue from its
-commits to its own handoff. Never integrate a checkpoint or finish a lane's work for it (Will: see every agent's vision
-through); only a lane that handed off is integrated as it stands.
+commits to its own handoff. An agent id lives only in the session that spawned it: when the Orchestrator's own session
+is gone (another account, a closed session), respawn the lane on its worktree from `spawn-prompt.txt` plus what its
+predecessor did, what remains and what it measured, read from its transcript
+(`~/.claude/projects/<project>/<old session>/subagents/agent-<id>.jsonl`), so nothing is redone. Never integrate a
+checkpoint or finish a lane's work for it (Will: see every agent's vision through); only a lane that handed off is
+integrated as it stands.
 
 ## Run a round
 
@@ -64,7 +68,8 @@ through); only a lane that handed off is integrated as it stands.
 2. `python3 usher/kit/cut-lane.py <launch-prep-sha8> $S/specs/<track>.json`, then
    `pnpm vitest run src/lib/track-manifests.test.ts`.
 3. Commit the manifests alone; push; add the lane's In-flight row to `orchestrator.md` (its agent id, model and port).
-4. Spawn with the Agent tool: `spawn-prompt.txt` filled (`{track}`, `{port}`, `{scratch}`), one port each from 3131 to
+4. Spawn with the Agent tool: `spawn-prompt.txt` filled (`{track}`, `{port}`, and `{scratch}` the absolute path of
+   `../partyreel-wt/_scratch`, never `$S`: a session's scratchpad dies with it, captures included), one port each from 3131 to
    3139, at most eight lanes at once (`memory_pressure` first), their production builds taking turns through
    `scripts/build-lock.sh`. The model is your call on every spawn: Opus for
    big, ambiguous, multi-file work, Sonnet for fast, direct UI work.
@@ -106,8 +111,8 @@ Read the Handoff, the lane check and the captures, never the whole diff.
    tests when the record touched the desk (`touchpoints.ts`, a registry file or `docs/reviews/`: nothing else a record
    edits reaches them); stage by name; commit `record: <track> ... [skip ci]`; push.
 7. Prune only after the lane's final line (a lane asked for more work after its handoff is still working):
-   `git worktree remove --force ../partyreel-wt/<track>`, `git branch -d lp/<track>`, `git worktree prune`; kill its
-   port.
+   `git worktree remove --force ../partyreel-wt/<track>`, `git branch -d lp/<track>`, `git worktree prune`,
+   `rm -rf ../partyreel-wt/_scratch/<track>`; kill its port.
 
 **Migrations** are global state (one Supabase behind prod and every preview): a lane writes the SQL file; you apply it
 (`apply_migration`), additive-only while an open lane's code still calls what a contract migration would drop, and a
