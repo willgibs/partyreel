@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { Check, Eye, EyeOff, Lock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { floatingKeyboardFoot } from "@/components/ui/floating-layer";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -192,44 +193,48 @@ export function PasswordGate({
             for the whole held beat; the subtext says what's happening. If the
             refresh hangs past the watchdog, the button becomes the Retry (the
             cookie is set, so it always recovers; the form never re-enables). */}
-        {done && stalled ? (
-          <Button
-            type="button"
-            onClick={onRetry}
-            size="cta"
-            className="w-full"
-          >
-            Open the album
-          </Button>
-        ) : (
-          <Button
-            type="submit"
-            size="cta"
-            className={cn(
-              "w-full transition-colors duration-200",
-              done &&
-                "bg-success text-success-foreground hover:bg-success disabled:opacity-100",
-            )}
-            disabled={pending || done || !password.trim() || cooldownLeft > 0}
-          >
-            {done ? (
-              <span
-                key="in"
-                data-unlock-success
-                className="flex items-center gap-2"
-              >
-                <Check className="size-4.5" />
-                You&rsquo;re in
-              </span>
-            ) : pending ? (
-              "Unlocking…"
-            ) : cooldownLeft > 0 ? (
-              `Wait ${cooldownLeft}s`
-            ) : (
-              "Unlock"
-            )}
-          </Button>
-        )}
+        <div data-sheet-primary className={cn("relative", floatingKeyboardFoot)}>
+          {done && stalled ? (
+            <Button
+              type="button"
+              onClick={onRetry}
+              size="cta"
+              className="w-full"
+            >
+              Open the album
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              size="cta"
+              className={cn(
+                "w-full transition-colors duration-200",
+                done &&
+                  "bg-success text-success-foreground hover:bg-success disabled:opacity-100",
+              )}
+              disabled={
+                pending || done || !password.trim() || cooldownLeft > 0
+              }
+            >
+              {done ? (
+                <span
+                  key="in"
+                  data-unlock-success
+                  className="flex items-center gap-2"
+                >
+                  <Check className="size-4.5" />
+                  You&rsquo;re in
+                </span>
+              ) : pending ? (
+                "Unlocking…"
+              ) : cooldownLeft > 0 ? (
+                `Wait ${cooldownLeft}s`
+              ) : (
+                "Unlock"
+              )}
+            </Button>
+          )}
+        </div>
         {done && (
           <p
             className={cn(

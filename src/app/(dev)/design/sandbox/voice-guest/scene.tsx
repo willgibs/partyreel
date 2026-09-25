@@ -374,8 +374,8 @@ export function AlbumGround({
 
 /**
  * THE DOOR'S PHONE HALF, QUOTED (`entry-shell.tsx`): the overlay, then the
- * vaul drawer's own classes, HELD (no handle: the door has no exit). The
- * `data-entry-drawer` hook is the shipped one, so globals.css gives the
+ * Sheet's own classes, HELD (no handle: the door has no exit). The
+ * `data-entry-sheet` hook is the shipped one, so door.css gives the
  * welcome its ratified 55svh presence here exactly as on a phone (`svh`
  * inside a frame is the frame's own height). `relative pt-1` is the step
  * container every step sits in (`entry-modal.tsx`).
@@ -420,7 +420,7 @@ export function DoorGround({
       <div className="fixed inset-0">
         <div className="absolute inset-0 bg-black/10 supports-backdrop-filter:backdrop-blur-xs" />
         <div
-          data-entry-drawer
+          data-entry-sheet
           className="fixed inset-x-0 bottom-0 flex max-h-[85svh] flex-col overflow-y-auto rounded-t-float bg-popover px-6 pt-3 pb-6 text-sm text-popover-foreground shadow-layer ring-1 ring-foreground/10 outline-none"
         >
           <div className="relative pt-1">{children}</div>

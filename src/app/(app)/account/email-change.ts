@@ -15,11 +15,11 @@
  */
 import { z } from "zod";
 
-/**
- * Lockstep with the Supabase dashboard's Email OTP Length (6), like the sign-in door's and the
- * delete card's own copies: the code will not verify if they drift.
- */
-export const EMAIL_CODE_LENGTH = 6;
+import { CODE_LENGTH } from "@/lib/auth/code-length";
+
+/** The one shared code length (`src/lib/auth/code-length.ts`), under this name for
+ *  email-actions.ts and email-section.tsx. */
+export const EMAIL_CODE_LENGTH = CODE_LENGTH;
 
 /**
  * How long a pending change's codes verify: lockstep with the dashboard's Email OTP Expiration

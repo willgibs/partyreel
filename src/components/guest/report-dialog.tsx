@@ -26,14 +26,10 @@ import { Textarea } from "@/components/ui/textarea";
  *
  * ★ IT WEARS THE ONE PRODUCT SHEET, like the Invite beside it.
  *
- * ★ AND IT IS THE ONE WITH A FIELD IN IT, which is a known risk: the
- * responsive Sheet's phone half is a Radix panel, and a Radix panel has never
- * held a FOCUSED input on a real iPhone in this product. The guest gate next
- * door keeps vaul's engine for exactly that reason (`repositionInputs`,
- * entry-shell.tsx) — vaul lifts the sheet above the keyboard and Radix does
- * not. If the keyboard covers this textarea on a real phone, the fix is the
- * SHEET's phone half becoming vaul-backed for every consumer, ONE follow-up,
- * never a per-dialog exception that puts this screen back on its own surface.
+ * ★ AND IT IS THE ONE WITH A FIELD IN IT, which is no longer a special risk:
+ * the responsive Sheet's phone half is keyboard-safe (`src/lib/use-keyboard-inset.ts`),
+ * the same ground the guest door's own steps stand on, so this textarea rides
+ * the one product Sheet like everything else — no per-dialog exception needed.
  */
 export function ReportDialog({ qrToken }: { qrToken: string }) {
   const [open, setOpen] = useState(false);

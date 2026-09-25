@@ -144,7 +144,7 @@ export function GuestHeader({
   // next person on a shared device doesn't upload under this one's session_token, and expires the
   // server-readable cookie half beside it), collapse the menu back
   // to the CTA (router.refresh() re-runs only the SERVER tree, not this island's state), sign out
-  // (shared-device bleed), then refresh so an account-required event re-gates to <EnterEventPrompt>.
+  // (shared-device bleed), then refresh so an account-required event re-gates to the door's `identify` step.
   const handleSignOut = useCallback(async () => {
     // ★ EVERY EVENT'S TICKET, NOT THIS ALBUM'S. A confirmed guest's ticket at another album would
     // outlive a sign-out that put down only this one, and credit the next person's photograph to

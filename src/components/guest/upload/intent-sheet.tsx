@@ -28,9 +28,9 @@
  * accepted, which is a third decision in front of a guest who has already made
  * two. The album row takes both kinds, many at a time.
  *
- * ★ NO FIELD IS EVER TYPED IN HERE, which is what makes Radix safe on a phone:
- * the one guest surface with a text field (Report) is the one carrying the
- * keyboard risk the responsive Sheet has not been proven against.
+ * ★ NO FIELD IS EVER TYPED IN HERE, so this sheet never touches the keyboard
+ * machinery at all — the one guest surface with a text field (Report) rides
+ * the responsive Sheet's own keyboard-safe phone half instead.
  */
 import { useRef, useState } from "react";
 import { Camera, Images } from "lucide-react";

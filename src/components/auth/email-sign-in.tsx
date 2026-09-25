@@ -27,6 +27,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { CODE_LENGTH } from "@/lib/auth/code-length";
 import {
   doorFailure,
   isRateLimited,
@@ -41,14 +42,6 @@ const emailSchema = z.object({
   email: z.email("Enter a valid email address."),
 });
 type EmailValues = z.infer<typeof emailSchema>;
-
-// MUST stay in lockstep with the Supabase "Email OTP Length" setting (Dashboard →
-// Authentication → Sign In / Providers → Email). Supabase enforces a 6-digit MINIMUM for
-// email OTP (a 4-digit email code isn't offered), and 6 is the standard. This is a
-// hand-synced pair, like tier_limits() ↔ tiers.ts: if the dashboard length changes, change
-// this constant (it drives both the input maxLength and the rendered slot count). The OTP
-// won't verify if the two drift.
-const OTP_LENGTH = 6;
 
 // Resend cooldown (seconds) — matches the custom-SMTP per-user minimum interval (Supabase
 // Auth → Emails → SMTP → "Minimum interval per user", 60 s). Below that, a resend silently
@@ -342,7 +335,7 @@ export function EmailSignIn({
         <div className="flex flex-col items-center gap-2">
           <InputOTP
             ref={otpRef}
-            maxLength={OTP_LENGTH}
+            maxLength={CODE_LENGTH}
             inputMode="numeric"
             autoComplete="one-time-code"
             aria-label="Your code"
@@ -360,7 +353,7 @@ export function EmailSignIn({
             onComplete={onCodeComplete}
           >
             <InputOTPGroup>
-              {Array.from({ length: OTP_LENGTH }, (_, i) => (
+              {Array.from({ length: CODE_LENGTH }, (_, i) => (
                 <InputOTPSlot key={i} index={i} />
               ))}
             </InputOTPGroup>
