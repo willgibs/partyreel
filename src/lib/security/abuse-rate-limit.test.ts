@@ -114,4 +114,20 @@ describe("abuseRateDecision", () => {
     // The per-scope window is reported (backstop is checked first).
     expect(r.retryAfterSec).toBe(ABUSE_LIMITS.join.scopeWindowMin * 60);
   });
+
+  it("email_change: per account, six an hour for requests and code attempts together, breadth disabled", () => {
+    // An account is not venue-shaped: there is nothing to be broad across.
+    expect(ABUSE_LIMITS.email_change.breadthMax).toBe(Infinity);
+    expect(abuseRateDecision("email_change", 9999, 0).allowed).toBe(true);
+
+    // An honest change is three calls (the request and two codes); a full redo is three more.
+    for (let spent = 0; spent < 6; spent++) {
+      expect(abuseRateDecision("email_change", 0, spent).allowed).toBe(true);
+    }
+    // The seventh in an hour is refused, the hour quoted back.
+    expect(abuseRateDecision("email_change", 0, 6)).toEqual({
+      allowed: false,
+      retryAfterSec: 3600,
+    });
+  });
 });
