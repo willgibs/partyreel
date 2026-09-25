@@ -68,9 +68,9 @@ export type ViewerDecision = GalleryDecision & { albumFull: boolean };
 /**
  * THE ONE SERVER ENTRY FOR "WHAT DOES THIS VIEWER GET".
  *
- * The page RSC and the gallery poll both ask this rather than each carrying the same resolution:
- * with the upload gate it is eleven lines with a service-role read in the middle, which belongs in
- * one place, not two.
+ * The page RSC, the album's routes (`album-viewer.server.ts`) and the export all ask this rather than
+ * each carrying the same resolution: with the upload gate it is eleven lines with a service-role
+ * read in the middle, which belongs in one place.
  *
  * ★ IT RESOLVES TWICE, AND THE FIRST PASS IS THE CHEAP ONE. Assuming a contribution short-circuits
  * the upload clause, so the password and account gates answer with NO extra read at all: a locked
@@ -78,7 +78,7 @@ export type ViewerDecision = GalleryDecision & { albumFull: boolean };
  * a viewer who would otherwise see the full album, on an event whose switch is ON and whose uploads
  * are open, costs the round trip -- and that is exactly the population the gate is about.
  *
- * ★ THE DEMO NEVER REACHES HERE (both callers short-circuit it to full), and the host is the owner,
+ * ★ THE DEMO NEVER REACHES HERE (every caller short-circuits it to full), and the host is the owner,
  * whom the resolver answers first.
  *
  * ★ `albumFull` COSTS A SECOND READ FOR A GUEST WHO HAS CONTRIBUTED, AND ONLY ON REQUEST. The gate

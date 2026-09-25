@@ -1,7 +1,7 @@
 /**
  * THE ALBUM'S FULLNESS, AS THE PAGE READS IT; AND THE ALBUM'S SIZE, AS EVERY PAYLOAD CARRIES IT.
  *
- * `resolveViewerDecision` answers the page, the poll, the export and the reel download. The page
+ * `resolveViewerDecision` answers the page, the album's routes and the export. The page
  * alone also needs to know whether the album can take another upload: on a Require-an-upload-to-
  * view album the gate FAILS OPEN when it is full, so a guest's own last removal closes nothing and
  * the lightbox must not say it does. The gate reads the caps only for a viewer who has not
