@@ -5,16 +5,25 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useRef,
   useState,
   useSyncExternalStore,
 } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Camera, Check, ChevronLeft, ImageUp, Images, QrCode } from "lucide-react";
+import {
+  Camera,
+  Check,
+  ChevronLeft,
+  ImageUp,
+  Images,
+  QrCode,
+} from "lucide-react";
 
 import { updateDisplayNameAction } from "@/app/(app)/account/actions";
 import { initial } from "@/components/app/user-menu";
-import { EnterEventPrompt } from "@/components/guest/enter-event-prompt";
+import { chooserCopy, DoorChooser } from "@/components/guest/door/chooser";
+import { SigninStep, signinCopy } from "@/components/guest/door/signin-step";
 import { EntryShell, type DismissMode } from "@/components/guest/entry-shell";
 import { EntryStepTransition } from "@/components/guest/entry-step-transition";
 import {
@@ -22,6 +31,7 @@ import {
   guestNameCopy,
   type GuestNameMode,
 } from "@/components/guest/guest-name-step";
+import { identifyCopy, IdentifyStep } from "@/components/guest/identify-step";
 import { PasswordGate } from "@/components/guest/password-gate";
 import { UploadStep, uploadStepReason } from "@/components/guest/upload-step";
 import { LegalConsentLine } from "@/components/shared/legal-consent-line";
@@ -30,7 +40,12 @@ import { Button } from "@/components/ui/button";
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 import { formatCount } from "@/lib/format/count";
 import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
-import { computeDoor, type EntryStep } from "@/lib/guest/entry-steps";
+import {
+  computeDoor,
+  doorBack,
+  type DoorPath,
+  type EntryStep,
+} from "@/lib/guest/entry-steps";
 import { joinEvent } from "@/lib/guest/join";
 import { ARRIVAL_BEAT_MS, useArrivalBeat } from "@/lib/guest/use-arrival-beat";
 import { setLastName, setStoredName } from "@/lib/guest/use-stored-name";
@@ -47,7 +62,7 @@ export type EntryModalHandle = {
   /** The teaser's "See all N" re-asserts the sheet at whatever step it is on. */
   openToGate: () => void;
   /**
-   * THE EDIT DOOR, and only that. The join/hold/profile modes are steps of the itinerary; "Change
+   * THE EDIT DOOR, and only that. The join/profile modes are steps of the itinerary; "Change
    * name" in the album's menu is the one name door raised imperatively, and the one surface in this
    * whole sheet that a guest may close.
    */
@@ -56,25 +71,32 @@ export type EntryModalHandle = {
 
 /**
  * THE GUEST DOOR: ONE HELD SHEET, THEN THE ALBUM. The welcome, the password when the event has
- * one, the name, the email held until it is confirmed when the host requires verified emails, then
- * the first upload asked actively inside this same sheet. The nine-tile teaser sits blurred behind
- * it the whole way, which is the point: the album is the reward held out for the guest's name or
- * email and their media.
+ * one, then who the guest is (on a name-only event the chooser: Continue as guest, Create account
+ * or Log in; on a verification event one name-and-email screen confirmed by code), then the first
+ * upload asked inside this same sheet. The album sits blurred behind it the whole way, which is
+ * the point: it is the reward held out for the guest's name or email and their media.
  *
  * ★ NO EXIT. A "Just browsing" row, or any other way around the door, would defeat the whole
  * purpose of using the album to justify the name or email friction.
- * Every step is HELD: no X, no drag handle, Escape and the backdrop inert. The one dismissible door
- * left in this file is the album menu's "Change name", which is opened from an album the guest is
- * already standing in and posts nothing when it closes.
+ * Every step is HELD: no X, Escape and the backdrop inert. The one dismissible door left in this
+ * file is the album menu's "Change name", which is opened from an album the guest is already
+ * standing in and posts nothing when it closes.
  *
  * ★ THE ITINERARY IS DERIVED, NOT SEQUENCED. `computeDoor` (lib/guest/entry-steps.ts) takes the
- * server's decision and this browser's own facts and answers an ordered list; the CURRENT step is
- * always its first. The server steps (password, email) drop through the RSC's refresh; the client
- * steps (name, upload) drop through flags here. There is no step counter to desync.
+ * server's decision and this browser's own facts (the way in picked at the chooser among them)
+ * and answers an ordered list; the CURRENT step is always its first. The server steps (password,
+ * identify) drop through the RSC's refresh; the client steps (chooser, name, upload) drop through
+ * state here. There is no step counter to desync.
  *
  * ★ THE "YOU'RE IN" BEAT PLAYS ONCE, ON THE LAST STEP. Every other step hands forward with no
  * celebration, the way the welcome always has: three green checks on the way into one album would
  * be three lies about how much has been achieved.
+ *
+ * ★ THE KEYBOARD IS THE GUEST'S (door-flow's focus rules). No step autofocuses a field, and the
+ * shell stops Radix from focusing one on open; focus moves only inside the guest's own tap or
+ * Return; and a step change never unmounts a focused field (the field lets go first, and the step
+ * container blurs one as a last resort). The sheet itself stands on the keyboard while a field is
+ * focused (`use-keyboard-inset.ts`, through the responsive Sheet).
  */
 export const EntryModal = forwardRef<
   EntryModalHandle,
@@ -102,7 +124,7 @@ export const EntryModal = forwardRef<
     isVerified: boolean;
     /** That account already has a profile display name (so the name is a fact, not a question). */
     hasProfileName: boolean;
-    /** Approved media count (numbers only) — the gate steps' "N photos are
+    /** Approved media count (numbers only) — the verification door's "N photos are
      *  waiting" tease + the welcome's count proof (a deliberate
      *  cardinality-only leak). */
     mediaTotal?: number;
@@ -209,15 +231,19 @@ export const EntryModal = forwardRef<
   // THE EDIT DOOR's own open state: a SECOND door through the same shell rather than a step, and
   // the only free surface here (see the handle's comment).
   const [editOpen, setEditOpen] = useState(false);
-  /* ★ THE HELD NAME (verified mode). The join would answer 422 before the code confirms, so the
-     name lives here until the confirmation's sequence has a row to put it on. It also counts as
-     `hasName` for the machine, which is what lets the email step follow the name step instead of
-     re-asking it. A magic-link round trip that loses this recovers as the `profile` mode, prefilled
-     from `pr_guest_name_last`. */
+  /* ★ THE WAY IN, picked at the chooser. Modal state for this visit alone: going back to the
+     chooser clears it and nothing persists it (entry-steps.ts's own note on `DoorPath`). */
+  const [path, setPath] = useState<DoorPath | null>(null);
+  /* ★ THE NAME TYPED ON `identify`, kept for the confirmation's four writes (a profile with no
+     name takes it). It never counts as a name for the machine: the name and the email are one
+     screen now, so there is no held name for a later step to follow. A magic-link round trip that
+     loses it recovers as the `profile` mode, prefilled from `pr_guest_name_last`, or through the
+     `door_name` the code request carried. */
   const [typedName, setTypedName] = useState<string | null>(null);
   // The OFF state's soft skip, once per pass. ON there is no skip to press, and `computeDoor`
   // ignores this flag entirely in that state so a stale one can never open an album.
   const [skipped, setSkipped] = useState(false);
+  const sheetRef = useRef<HTMLDivElement>(null);
   // Open only AFTER hydration: useWelcomeSeen's server snapshot is `seen=true`, so deciding `open`
   // during SSR/hydration would flash the wrong step before the real value resolves. useSyncExternalStore
   // (server=false, client=true) gives a hydrated flag without a setState-in-effect mount flag.
@@ -227,11 +253,10 @@ export const EntryModal = forwardRef<
     () => false,
   );
 
-  /* THE NAME THIS BROWSER HAS, from whichever of the three places holds it: the per-event key a
-     join wrote, the held name typed a moment ago, or a confirmed account's own profile name (which
-     is a fact about the person, not a question for this album). */
-  const hasName =
-    Boolean(storedName) || Boolean(typedName) || (isVerified && hasProfileName);
+  /* THE NAME THIS BROWSER HAS, from whichever of the two places holds it: the per-event key a
+     join wrote, or a confirmed account's own profile name (which is a fact about the person, not
+     a question for this album). */
+  const hasName = Boolean(storedName) || (isVerified && hasProfileName);
 
   const { steps, autoOpen } = computeDoor({
     gate,
@@ -241,6 +266,8 @@ export const EntryModal = forwardRef<
     requireUpload,
     welcomeSeen: seen,
     hasName,
+    isVerified,
+    path,
     contributed,
     skipped,
     returning,
@@ -250,15 +277,10 @@ export const EntryModal = forwardRef<
   const current: EntryStep | null = steps[0] ?? null;
   const isLastStep = steps.length === 1;
 
-  /* WHICH NAME IS BEING ASKED FOR. A confirmed account with no profile name writes the PROFILE; an
-     unconfirmed guest of a verified-emails event HOLDS the name until the code lands; everyone else
-     joins under it. */
+  /* WHICH NAME IS BEING ASKED FOR. A confirmed account with no profile name writes the PROFILE;
+     everyone else (Continue as guest) joins under it. */
   const nameMode: GuestNameMode =
-    isVerified && !hasProfileName
-      ? "profile"
-      : gate === "account"
-        ? "hold"
-        : "join";
+    isVerified && !hasProfileName ? "profile" : "join";
 
   // The arrival beat holds ONLY the auto-open (Act 1 settles, then Act 2
   // arrives); a re-assert stays instant. 700ms for the first-visit
@@ -314,28 +336,31 @@ export const EntryModal = forwardRef<
     // The edit door, ORed in: it opens over an album with no step pending at all.
     (hydrated && editOpen);
 
-  // THE BACK AFFORDANCE: a transient client view OVER the derived machine. The password, the name
-  // and the email go back to the WELCOME (the guest can always re-read what this is); the upload
-  // goes back to the NAME, which is the step it followed. The machine never knows (markSeen/steps
-  // untouched). Both reset when the FLOW advances (the sanctioned adjust-state-during-render pattern).
+  /* THE BACK AFFORDANCE (`doorBack`, entry-steps.ts): the welcome and the name are transient
+     client VIEWS over the derived machine (markSeen and the steps untouched); the chooser is a
+     real input, so going back to it clears the pick. Views reset when the FLOW advances (the
+     sanctioned adjust-state-during-render pattern), and a step change caused by going back to the
+     chooser keeps the backward direction. */
   const [backView, setBackView] = useState<"welcome" | "name" | null>(null);
   const [direction, setDirection] = useState<"fwd" | "back">("fwd");
+  const [goingBack, setGoingBack] = useState(false);
   const [prevStep, setPrevStep] = useState(current);
   if (current !== prevStep) {
     setPrevStep(current);
     setBackView(null);
-    setDirection("fwd");
+    setDirection(goingBack ? "back" : "fwd");
+    if (goingBack) setGoingBack(false);
   }
-  const backTarget: "welcome" | "name" | null =
-    current === "password" || current === "name" || current === "email"
-      ? "welcome"
-      : current === "upload"
-        ? // The demo asks no name, so its one step behind the upload is the role screen.
-          isDemo
-          ? "welcome"
-          : "name"
-        : null;
+  const back = doorBack({ current, path, gate, isVerified, isDemo });
   const reviewing = backView !== null && current !== null && !holding;
+
+  /** Rule 4: a step change never unmounts a focused field; the field inside the sheet lets go. */
+  const letGo = useCallback(() => {
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && sheetRef.current?.contains(active)) {
+      active.blur();
+    }
+  }, []);
 
   useImperativeHandle(
     ref,
@@ -359,23 +384,23 @@ export const EntryModal = forwardRef<
   );
 
   /* ────────────────────────────────────────────────────────────────────────
-     WHAT HAPPENS THE INSTANT THE CODE CONFIRMS (verified mode).
+     WHAT HAPPENS THE INSTANT A CODE CONFIRMS (identify and Log in share it).
 
-     `EnterEventPrompt` cannot own this: the door holds a NAME that has never been sent anywhere,
-     and the order the four writes happen in is the whole difference between a guest who lands
-     named and one whose photographs carry no name. So the prompt is a plain callback and this
-     sequence is the modal's:
+     The steps cannot own this: `identify` holds a NAME that has never been sent anywhere, and the
+     order the four writes happen in is the whole difference between a guest who lands named and
+     one whose photographs carry no name. So both steps take a plain callback and the sequence is
+     the modal's:
 
        1. claim this browser's anonymous uploads onto the freshly confirmed account;
        2. join, VERIFIED and nameless (create_guest nulls a typed name beside a confirmed
           account, so sending one would be asking to have it thrown away);
        3. read this account's OWN profile row for a display name;
        4. when there is none and a name was typed at the door, write it as the profile name;
-       5. hold the beat, then refresh.
+       5. hold the beat (when the album is directly behind), then refresh.
 
      ★ THE ACCOUNT'S NAME WINS. A confirmed viewer whose profile already says "Priya" is credited
-     as Priya even if they typed "P" at the door a minute ago: one person, one name, and the email
-     step says so out loud above the field.
+     as Priya even if they typed "P" at the door a minute ago: one person, one name, and the
+     identify step says so under the name field before they confirm.
 
      The whole sequence runs UNDER the hold, so a guest sees one beat rather than four flickers.
      ──────────────────────────────────────────────────────────────────────── */
@@ -459,7 +484,7 @@ export const EntryModal = forwardRef<
   const displayKey = open ? stepKey : lastKey;
 
   /* ★ THE DISMISSABILITY TABLE IS ONE ROW. "No exit": every step of the door is HELD, so there
-     is no X, no handle, and Escape and the backdrop do nothing. The one free surface is the album
+     is no X, and Escape and the backdrop do nothing. The one free surface is the album
      menu's "Change name", which sits over an album the guest already reached and posts nothing when
      it closes. A closed/exiting shell is held too, so affordances cannot pop in mid-exit. */
   const dismissMode: DismissMode =
@@ -475,6 +500,20 @@ export const EntryModal = forwardRef<
     markSeen();
   }
 
+  function goBack() {
+    letGo();
+    if (back === "chooser") {
+      // A real change of input: the pick clears, and the chooser arrives from the left.
+      setGoingBack(true);
+      setPath(null);
+      return;
+    }
+    if (back) {
+      setDirection("back");
+      setBackView(back);
+    }
+  }
+
   const nameStepNode = (
     <GuestNameStep
       qrToken={qrToken}
@@ -488,21 +527,15 @@ export const EntryModal = forwardRef<
           onNamed?.({ ...result, source: "edit" });
           return;
         }
-        if (nameMode === "hold") {
-          // Nothing was sent: the name waits here for the confirmation's sequence, and the email
-          // step follows because `hasName` now answers true.
-          setTypedName(result.displayName);
-          setBackView(null);
-          return;
-        }
-        // A real row carries the name now: the caller adopts the session, and the machine advances
-        // on the stored name the step just wrote (no refresh: the next step is in this sheet).
+        // A real row (or profile) carries the name now: the caller adopts the session, and the
+        // machine advances on the stored name the step just wrote (no refresh: the next step is
+        // in this sheet).
         setBackView(null);
         onNamed?.({ ...result, source: "step" });
       }}
       onVerificationRequired={() => {
         // The host turned Require verified emails ON while this guest stood at the door. The name
-        // is worth nothing now, so the page's own refresh re-gates to the email step, which is the
+        // is worth nothing now, so the page's own refresh re-gates to `identify`, which is the
         // honest surface for what just changed.
         setEditOpen(false);
         router.refresh();
@@ -511,7 +544,7 @@ export const EntryModal = forwardRef<
   );
 
   // Nothing renders pre-hydration (open is always false there anyway); the
-  // early return keeps the shell branch (drawer vs dialog) client-only.
+  // early return keeps the shell client-only.
   if (!hydrated) return null;
 
   const sheetCopy = entrySheetCopy({
@@ -522,6 +555,8 @@ export const EntryModal = forwardRef<
     eventName,
     hostName,
     nameMode,
+    verification: gate === "account",
+    mediaTotal,
     uploadReason: uploadStepReason({
       isDemo,
       requireUpload,
@@ -531,6 +566,7 @@ export const EntryModal = forwardRef<
 
   return (
     <EntryShell
+      ref={sheetRef}
       open={open}
       dismissMode={dismissMode}
       onDismiss={handleDismiss}
@@ -569,16 +605,17 @@ export const EntryModal = forwardRef<
           {/* The chevron back to the step behind this one (the guest can always re-read what
               this is) - hidden while the success beat plays, and on the edit door, which has a
               real X of its own. */}
-          {backTarget && !reviewing && !holding && !editOpen && (
+          {back && !reviewing && !holding && !editOpen && (
             <button
               type="button"
               aria-label={
-                backTarget === "name" ? "Back to your name" : "Back to the welcome"
+                back === "name"
+                  ? "Back to your name"
+                  : back === "chooser"
+                    ? "Back to how you join"
+                    : "Back to the welcome"
               }
-              onClick={() => {
-                setDirection("back");
-                setBackView(backTarget);
-              }}
+              onClick={goBack}
               className="absolute top-0 left-0 z-10 flex size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <ChevronLeft className="size-5" />
@@ -586,7 +623,6 @@ export const EntryModal = forwardRef<
           )}
           {(displayKey === "name-join" ||
             displayKey === "name-edit" ||
-            displayKey === "name-hold" ||
             displayKey === "name-profile") && (
             <div className={displayKey === "name-edit" ? undefined : "pt-7"}>
               {nameStepNode}
@@ -626,17 +662,31 @@ export const EntryModal = forwardRef<
               />
             </div>
           )}
-          {displayKey === "email" && (
+          {displayKey === "chooser" && (
             <div className="pt-7">
-              <EnterEventPrompt
+              <DoorChooser
+                onPick={(picked) => {
+                  setDirection("fwd");
+                  setPath(picked);
+                }}
+              />
+            </div>
+          )}
+          {displayKey === "identify" && (
+            <div className="pt-7">
+              <IdentifyStep
                 qrToken={qrToken}
+                verification={gate === "account"}
                 mediaTotal={mediaTotal}
-                // ★ THE NAME THE ACCOUNT ALREADY HAS IS THE ONE THAT SHOWS, and the guest is told
-                // so before they confirm rather than after they see somebody else's version of
-                // their own name on a photograph.
-                accountNameNote={Boolean(typedName)}
+                storedName={storedName}
+                onTypedName={setTypedName}
                 onVerified={handleEmailVerified}
               />
+            </div>
+          )}
+          {displayKey === "signin" && (
+            <div className="pt-7">
+              <SigninStep qrToken={qrToken} onVerified={handleEmailVerified} />
             </div>
           )}
           {displayKey === "upload" && (
@@ -676,7 +726,7 @@ export const EntryModal = forwardRef<
 /**
  * The sheet's sr-only accessible name and description, per step, in one place (the shell's own
  * division of labour: the shell announces, the step renders). Pure and exported so the copy table
- * is readable as a table rather than as five nested ternaries inside JSX.
+ * is readable as a table rather than as nested ternaries inside JSX.
  */
 export function entrySheetCopy(input: {
   holding: boolean;
@@ -686,6 +736,9 @@ export function entrySheetCopy(input: {
   eventName: string;
   hostName?: string | null;
   nameMode: GuestNameMode;
+  /** A verification event (its `identify` sells the album with the host's reason). */
+  verification: boolean;
+  mediaTotal?: number;
   uploadReason: string;
 }): { title: string; description: string } {
   const {
@@ -696,6 +749,8 @@ export function entrySheetCopy(input: {
     eventName,
     hostName,
     nameMode,
+    verification,
+    mediaTotal,
     uploadReason,
   } = input;
   if (holding) return { title: "You're in", description: "Opening the album." };
@@ -713,7 +768,11 @@ export function entrySheetCopy(input: {
       description: "A real album, running exactly as a guest would see it.",
     };
   }
-  if (reviewing || displayKey === "welcome" || displayKey === "welcome-review") {
+  if (
+    reviewing ||
+    displayKey === "welcome" ||
+    displayKey === "welcome-review"
+  ) {
     return {
       title: `Welcome to ${eventName}`,
       description: "A shared album for the whole event.",
@@ -725,15 +784,18 @@ export function entrySheetCopy(input: {
       description: "Enter the event password to view it.",
     };
   }
-  // ★ THE GATE LINE: an account is not what is being asked for, a confirmed address is, and what it
-  // opens is the album plus a keepsake. The second sentence is the guest's own benefit, because
-  // every line of this door is framed as a benefit to the guest or the event host, never as
-  // something bland or regulatory.
-  return {
-    title: "See all the photos",
-    description:
-      "Confirm your email and the whole album opens. Your photos stay with you afterwards.",
-  };
+  if (displayKey === "chooser") {
+    const copy = chooserCopy();
+    return { title: copy.title, description: copy.reason };
+  }
+  if (displayKey === "signin") {
+    const copy = signinCopy();
+    return { title: copy.title, description: copy.reason };
+  }
+  // `identify`: the verification door sells the album with the host's ruled reason, and a
+  // name-only event's Create account says what confirming keeps.
+  const copy = identifyCopy({ verification, mediaTotal });
+  return { title: copy.title, description: copy.reason };
 }
 
 // THE SUCCESS BEAT: the held "You're in" view that masks the
@@ -825,9 +887,9 @@ function WelcomeStep({
 
   return (
     // data-welcome-step: the "tall" presence (~55svh) applies ONLY
-    // inside the phone sheet, via [data-entry-drawer] [data-welcome-step] in
-    // globals.css; the desktop dialog stays content-height. The CTA block's
-    // mt-auto pins it to the sheet's foot when the minimum height engages.
+    // inside the phone half of the sheet, via door.css; the desk panel is full
+    // height already. The CTA block's mt-auto pins it to the sheet's foot when
+    // the minimum height engages.
     <div data-welcome-step className="flex flex-col gap-5">
       <div className="flex flex-col">
         <p className="text-label font-medium text-muted-foreground uppercase">
@@ -921,8 +983,8 @@ function RoleStep({
           You&rsquo;re a guest at {eventName}
         </p>
         <p className="mt-2 text-working text-muted-foreground">
-          This is a real album, exactly as{" "}
-          {host ? `${host}’s` : "the host’s"} guests see it.
+          This is a real album, exactly as {host ? `${host}’s` : "the host’s"}{" "}
+          guests see it.
         </p>
       </div>
 
@@ -944,7 +1006,11 @@ function RoleStep({
         <Button onClick={onContinue} size="cta" className="w-full">
           Continue
         </Button>
-        <Button asChild variant="ghost" className="w-full text-muted-foreground">
+        <Button
+          asChild
+          variant="ghost"
+          className="w-full text-muted-foreground"
+        >
           <Link href="/">Start your own</Link>
         </Button>
       </div>

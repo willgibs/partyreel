@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import { flushSync } from "react-dom";
+import { Mail } from "lucide-react";
 
 import { updateDisplayNameAction } from "@/app/(app)/account/actions";
 import { Button } from "@/components/ui/button";
+import { floatingKeyboardFoot } from "@/components/ui/floating-layer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -21,44 +24,47 @@ import {
   setStoredName,
 } from "@/lib/guest/use-stored-name";
 import { dropGuestTicket } from "@/lib/guest/use-stored-session";
+import { cn } from "@/lib/utils";
 import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
 // The route's own cap, so the field cannot accept what the parse behind it
 // refuses (the column's CHECK is the same number).
 import { MAX_GUEST_EMAIL_LENGTH } from "@/lib/validation/upload";
 
 /**
- * THE DOOR, ON A NAME-ONLY EVENT.
+ * THE NAME, AT THE DOOR: "Continue as guest" on a name-only event, a confirmed account's missing
+ * name, and the album menu's "Change name".
  *
- * ★ AND IT ASKS FOR AN ADDRESS, OPTIONALLY, because on an unverified event a
- * field under the name is more streamlined than a screen of its own. One
- * compact field under the name, a benefit as its helper line, and nothing said
- * about proving anything: what is typed is stored UNCONFIRMED, shown to nobody,
- * mailed nothing, and exists so this guest can claim these photographs from any
- * device the day they confirm it. Skipping it costs the guest nothing at all,
- * which is why the field is last, unfocused and never prefilled.
+ * ★ THE ADDRESS IS OFFERED, OPTIONALLY, AS A GHOST LINE (Will, `identity-door` r1 `field=ghost`:
+ * "making email more subtle and easily skippable will likely be appreciated by guests. We're more
+ * likely to win them over and get their email once they start seeing the value"). Only the name
+ * shows; one quiet full-width row under it says what an address buys, and a tap turns it into the
+ * labelled field with focus inside it. What is typed is stored UNCONFIRMED, shown to nobody, mailed
+ * nothing, and exists so this guest can claim these photographs from any device the day they
+ * confirm it, so skipping it costs nothing, and the line stays one line at 375: it reads at the
+ * working size, and under 360px its icon steps aside so the words still fit on one line at 320.
  *
  * ★ IT IS ASKED BEFORE THE ALBUM, NOT AT THE FIRST ADD. A guest who can reach the album's
  * media without entering a name reaps all of its rewards anonymously, and the friction then lands
  * at the moment they go to contribute. As a quick gate in front of the reward it is paid once, and
- * uploading feels seamless from inside the album. So the step is one of the door's ordered steps
- * with the album a step behind it, and the reward is what pays for the field.
+ * uploading feels seamless from inside the album.
  *
- * ★ FOUR MODES, BECAUSE FOUR DOORS ASK THE SAME QUESTION, AND ONLY ONE OF THEM
- *   CARRIES THE ADDRESS FIELD:
- *   `join`    names mode, and the ONLY mode with the optional email field. A held session renames
+ * ★ THREE MODES, BECAUSE THREE DOORS ASK THE SAME QUESTION, AND ONLY ONE OF THEM
+ *   CARRIES THE ADDRESS:
+ *   `join`    Continue as guest, and the ONLY mode with the optional email. A held session renames
  *             its row (then attaches the address on a second call); otherwise the join mints one
  *             under the typed name and the address in ONE post. The machine advances to whatever
  *             is next.
  *   `edit`    the album menu's "Change name", and the one dismissible door.
- *   `hold`    VERIFIED mode, before the confirmation. The join would answer 422 (nothing is
- *             proved yet), so nothing is sent: the name is validated locally, kept in the modal's
- *             own state as `typedName`, written to `pr_guest_name_last` ONLY (never the per-event
- *             key, which would claim a row that does not exist), and the email step follows. NO
- *             field here: the very next step asks for an address and PROVES it, so offering an
- *             unproven one a moment earlier would be asking the same question twice and meaning
- *             less by it.
- *   `profile` a CONFIRMED account with no profile name: `updateDisplayNameAction`. No field: a
- *             confirmed account already has the only address that counts.
+ *   `profile` a CONFIRMED account with no profile name: `updateDisplayNameAction`. No address: a
+ *             confirmed account already has the only one that counts.
+ * (A verification event asks the name and the address together, on `identify-step.tsx`, so the
+ * name is never held here waiting for a code.)
+ *
+ * ★ THE KEYBOARD MOVES ONLY WHEN THE GUEST DOES. Nothing here autofocuses: the iOS keyboard rising
+ * into a sheet that is still arriving is what made the door feel broken. The ghost line's tap
+ * moves focus into the field it opens (inside the tap, so iOS raises the keyboard for it), Return
+ * on the name moves to the address when it is open, and a step change never unmounts a focused
+ * field: the field lets go first.
  *
  * ★ THE PREFILL IS THE LAST NAME THIS DEVICE TYPED, at any event
  * (`pr_guest_name_last`). The second party a phone scans should not ask a
@@ -75,8 +81,8 @@ import { MAX_GUEST_EMAIL_LENGTH } from "@/lib/validation/upload";
  * `verification_required`: the host flipped the switch while the guest stood
  * here, so the caller re-gates rather than this form arguing with it.
  */
-/** The four doors that ask one question; see the head comment. */
-export type GuestNameMode = "join" | "edit" | "hold" | "profile";
+/** The three doors that ask one question; see the head comment. */
+export type GuestNameMode = "join" | "edit" | "profile";
 
 export function GuestNameStep({
   qrToken,
@@ -88,7 +94,7 @@ export function GuestNameStep({
   onVerificationRequired,
 }: {
   qrToken: string;
-  /** See the four modes in this file's head comment. */
+  /** See the three modes in this file's head comment. */
   mode: GuestNameMode;
   /**
    * Kept for the callers and the lab's fixtures, and not read: the lede
@@ -115,23 +121,44 @@ export function GuestNameStep({
   /** The host turned Require verified emails ON mid-visit; the gate is the way in now. */
   onVerificationRequired?: (message: string) => void;
 }) {
-  const [value, setValue] = useState(
-    () => storedName ?? readLastName() ?? "",
-  );
+  const [value, setValue] = useState(() => storedName ?? readLastName() ?? "");
   /* ★ NEVER PREFILLED, unlike the name beside it. The name's prefill is a
      kindness at the second party a phone scans; an ADDRESS carried across
      parties is the last guest's address shown to the next one, which is the
      rule `lib/auth/remembered-email.ts` exists to keep. */
   const [email, setEmail] = useState("");
+  // The ghost line, closed until the guest opens it. Never reopened by anything but their tap.
+  const [emailOpen, setEmailOpen] = useState(false);
   const [refusal, setRefusal] = useState<JoinRefusal | null>(null);
   /* The address's refusal lives apart from the name's so each sits under the
      field it is about; one slot would point a guest at the wrong question. */
   const [emailRefusal, setEmailRefusal] = useState<JoinRefusal | null>(null);
   const [saving, startSave] = useTransition();
+  const formRef = useRef<HTMLFormElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
   const editing = mode === "edit";
   const copy = guestNameCopy(mode, hostName);
-  // The one mode that asks. See the head comment for why the other three do not.
+  // The one mode that asks. See the head comment for why the other two do not.
   const asksEmail = mode === "join";
+
+  /** The step is about to hand forward to one with no field: the keyboard goes down first. */
+  function letGo() {
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && formRef.current?.contains(active)) {
+      active.blur();
+    }
+  }
+
+  function named(result: Parameters<typeof onNamed>[0]) {
+    letGo();
+    onNamed(result);
+  }
+
+  /** The ghost line's tap: the field opens and takes focus INSIDE the tap, so iOS raises the keyboard. */
+  function openEmail() {
+    flushSync(() => setEmailOpen(true));
+    emailRef.current?.focus();
+  }
 
   function submit() {
     const checked = checkDisplayName(value);
@@ -141,35 +168,20 @@ export function GuestNameStep({
     }
     const name = checked.name;
 
-    /* The optional address, parsed before anything is sent. A blank field is an
-       ANSWER (`email: null`), not a refusal: the question is optional and the
-       guest has already moved past it. */
-    const checkedEmail = asksEmail
-      ? checkGuestEmail(email)
-      : ({ ok: true, email: null } as const);
+    /* The optional address, parsed before anything is sent. A blank or unopened
+       field is an ANSWER (`email: null`), not a refusal: the question is
+       optional and the guest has already moved past it. */
+    const checkedEmail =
+      asksEmail && emailOpen
+        ? checkGuestEmail(email)
+        : ({ ok: true, email: null } as const);
     if (!checkedEmail.ok) {
       setEmailRefusal(checkedEmail.refusal);
       return;
     }
     const typedEmail = checkedEmail.email;
 
-    /* ★ THE HELD NAME SENDS NOTHING (verified mode, before the confirmation). `create_guest`
-       refuses an unverified join on this event with a 422, so asking it would be asking for a
-       refusal. The name is validated by the SAME `checkDisplayName` every other mode uses, kept
-       by the modal as `typedName`, and written to the LAST-NAME key alone: the per-event key
-       means "this device is named at this event", which is not true until a row exists. */
-    if (mode === "hold") {
-      setLastName(name);
-      onNamed({
-        sessionToken: null,
-        displayName: name,
-        emailAttached: false,
-        email: null,
-      });
-      return;
-    }
-
-    /* ★ AND A CONFIRMED ACCOUNT WITH NO PROFILE NAME WRITES THE PROFILE. Their identity is the
+    /* ★ A CONFIRMED ACCOUNT WITH NO PROFILE NAME WRITES THE PROFILE. Their identity is the
        account's, so there is no guest row to name: `create_guest` nulls a typed name beside a
        confirmed session anyway. So the question is asked once, at the door, like every other. */
     if (mode === "profile") {
@@ -184,7 +196,7 @@ export function GuestNameStep({
           return;
         }
         setLastName(name);
-        onNamed({
+        named({
           sessionToken: sessionToken ?? null,
           displayName: name,
           emailAttached: false,
@@ -247,7 +259,7 @@ export function GuestNameStep({
             }
             attached = put.ok && put.emailAttached;
           }
-          onNamed({
+          named({
             sessionToken,
             displayName: renamed.displayName,
             emailAttached: attached,
@@ -280,6 +292,7 @@ export function GuestNameStep({
       });
       if (!joined.ok) {
         if (joined.refusal.kind === "verification_required") {
+          letGo();
           onVerificationRequired?.(joined.refusal.message);
           return;
         }
@@ -298,7 +311,7 @@ export function GuestNameStep({
       // even though something was typed.
       const landed = joined.guest.displayName ?? name;
       setStoredName(qrToken, landed);
-      onNamed({
+      named({
         sessionToken: joined.guest.sessionToken,
         displayName: landed,
         emailAttached: joined.guest.emailAttached,
@@ -309,6 +322,7 @@ export function GuestNameStep({
 
   return (
     <form
+      ref={formRef}
       data-guest-name-step={mode}
       /* ★ THE BROWSER NEVER GETS TO REFUSE THIS FORM. A native `type="email"`
          field inside a form makes the browser run its own constraint check on
@@ -352,11 +366,19 @@ export function GuestNameStep({
             setValue(e.target.value);
             if (refusal) setRefusal(null);
           }}
+          onKeyDown={(e) => {
+            // Return moves on to the address when the guest has opened it, and sends otherwise.
+            if (e.key === "Enter" && asksEmail && emailOpen) {
+              e.preventDefault();
+              emailRef.current?.focus();
+            }
+          }}
           placeholder="Your name"
           maxLength={DISPLAY_NAME_MAX_LENGTH}
           autoComplete="name"
-          autoFocus
-          enterKeyHint="go"
+          autoCapitalize="words"
+          inputMode="text"
+          enterKeyHint={asksEmail && emailOpen ? "next" : "go"}
           aria-invalid={refusal ? true : undefined}
           aria-describedby="pr-guest-name-hint"
           className="h-11 text-base"
@@ -376,58 +398,75 @@ export function GuestNameStep({
           </p>
         )}
       </div>
-      {/* ★ THE OPTIONAL ADDRESS. Under the name and its hint,
-          one compact field with a VISIBLE label, because unlike the name this
-          question is not the heading and "(optional)" is the most important
-          word on the step: a guest must be able to see that skipping it is a
-          real choice before they decide. No autofocus (the name keeps it, and
-          the keyboard is already up), a `type="email"` so the phone brings the
-          right keys, and a helper line that is a benefit to THEM rather than a
-          reason of ours. */}
-      {asksEmail && (
-        <div className="space-y-1.5">
-          <Label htmlFor="pr-guest-email">Email (optional)</Label>
-          <Input
-            id="pr-guest-email"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              if (emailRefusal) setEmailRefusal(null);
-            }}
-            placeholder="you@email.com"
-            maxLength={MAX_GUEST_EMAIL_LENGTH}
-            enterKeyHint="go"
-            aria-invalid={emailRefusal ? true : undefined}
-            aria-describedby="pr-guest-email-hint"
-            className="h-11 text-base"
-          />
-          {emailRefusal ? (
-            <p id="pr-guest-email-hint" className="text-reading text-destructive">
-              {emailRefusal.message}
-            </p>
-          ) : (
-            // What the address BUYS them, and nothing about what it is for us.
-            // Nothing is sent to it, now or later, until they confirm it.
-            <p
-              id="pr-guest-email-hint"
-              className="text-reading text-muted-foreground"
-            >
-              Come back to this album anytime, with every photo you add.
-            </p>
-          )}
-        </div>
-      )}
-      <Button
-        type="submit"
-        size="cta"
-        className="w-full"
-        disabled={saving || !value.trim()}
-      >
-        {saving ? "Just a second…" : editing ? "Save name" : "Continue"}
-      </Button>
+      {asksEmail &&
+        (emailOpen ? (
+          /* ★ THE OPTIONAL ADDRESS, OPENED. A VISIBLE label, because unlike the
+             name this question is not the heading and "(optional)" is the most
+             important word on it; a helper line that is a benefit to THEM
+             rather than a reason of ours. */
+          <div className="space-y-1.5">
+            <Label htmlFor="pr-guest-email">Email (optional)</Label>
+            <Input
+              ref={emailRef}
+              id="pr-guest-email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              autoCapitalize="none"
+              spellCheck={false}
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (emailRefusal) setEmailRefusal(null);
+              }}
+              placeholder="you@email.com"
+              maxLength={MAX_GUEST_EMAIL_LENGTH}
+              enterKeyHint="go"
+              aria-invalid={emailRefusal ? true : undefined}
+              aria-describedby="pr-guest-email-hint"
+              className="h-11 text-base"
+            />
+            {emailRefusal ? (
+              <p
+                id="pr-guest-email-hint"
+                className="text-reading text-destructive"
+              >
+                {emailRefusal.message}
+              </p>
+            ) : (
+              // What the address BUYS them, and nothing about what it is for us.
+              // Nothing is sent to it, now or later, until they confirm it.
+              <p
+                id="pr-guest-email-hint"
+                className="text-reading text-muted-foreground"
+              >
+                Come back to this album anytime, with every photo you add.
+              </p>
+            )}
+          </div>
+        ) : (
+          /* ★ THE GHOST LINE: one row, full width, at least 44px tall, that
+             reads as an easy afterthought rather than a second question. */
+          <button
+            type="button"
+            data-email-ghost
+            onClick={openEmail}
+            className="flex min-h-11 w-full items-center gap-2 rounded-lg border border-dashed border-border px-3 text-left text-working text-muted-foreground transition-colors duration-150 ease-emphasis outline-none hover:border-foreground/30 hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            <Mail className="size-4 shrink-0 max-[359px]:hidden" aria-hidden />
+            Add an email to come back anytime
+          </button>
+        ))}
+      <div data-sheet-primary className={cn("relative", floatingKeyboardFoot)}>
+        <Button
+          type="submit"
+          size="cta"
+          className="w-full"
+          disabled={saving || !value.trim()}
+        >
+          {saving ? "Just a second…" : editing ? "Save name" : "Continue"}
+        </Button>
+      </div>
     </form>
   );
 }
@@ -463,6 +502,7 @@ export function guestNameCopy(
      untouched. */
   return {
     title: "What should we call you?",
-    reason: "Your name goes on the photos you add, so the host knows who to thank.",
+    reason:
+      "Your name goes on the photos you add, so the host knows who to thank.",
   };
 }

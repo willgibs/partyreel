@@ -239,11 +239,13 @@ export function SetInitialPassword({
       <div className="space-y-1.5">
         <Label htmlFor="create-password">Password</Label>
         <div className="relative">
+          {/* No autofocus: this screen mounts after a code verifies, outside any tap, where
+              iOS raises no keyboard for it, and on a guest's door the keyboard moves only when
+              the person does (door-flow's focus rules). */}
           <Input
             id="create-password"
             type={show ? "text" : "password"}
             autoComplete="new-password"
-            autoFocus
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="pr-10"

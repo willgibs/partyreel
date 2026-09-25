@@ -5,21 +5,16 @@ import { Fingerprint } from "lucide-react";
 
 import {
   EmailSignIn,
+  type BeforeSend,
   type DoorVerified,
 } from "@/components/auth/email-sign-in";
 import { FailurePaths } from "@/components/auth/failure-paths";
 import { GoogleIcon } from "@/components/auth/google-icon";
-import {
-  SetInitialPassword,
-  SignIn,
-} from "@/components/auth/password-sign-in";
+import { SetInitialPassword, SignIn } from "@/components/auth/password-sign-in";
 import { LegalConsentLine } from "@/components/shared/legal-consent-line";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import {
-  doorFailure,
-  type DoorFailureKind,
-} from "@/lib/auth/door-failure";
+import { doorFailure, type DoorFailureKind } from "@/lib/auth/door-failure";
 import {
   forgetRememberedDoor,
   hasPasskeyHint,
@@ -87,55 +82,60 @@ export type DoorWear = "login" | "gate" | "keep" | "like" | "signin";
  * host framing is true for them; what they want is their own photographs to end
  * up in the one place they keep everything.
  */
-export const DOOR_WEAR: Record<DoorWear, { heading: string; reason: string }> = {
-  login: {
-    heading: "Welcome to Partyreel",
-    reason:
-      "Sign in to create events and collect photos from your guests. No app, no fuss.",
-  },
-  // ★ RULED VERBATIM, TWICE. Will's `voice` r1 `gate=ask` (2026-09-19) set the
-  // first sentence; the identity ruling of 2026-09-22 SUPERSEDES it by name and
-  // puts the ask first, because the ask is the host's and the safety is the
-  // reason rather than the other way round. "Tap" is his too, relitigated off
-  // "click" in the same sitting: "'tap' is better than 'click', and I would
-  // prefer to use that." It says WHOSE call it is, WHY, and what it costs.
-  // "Almost in" is untouched. Do not reword.
-  gate: {
-    heading: "Almost in",
-    reason:
-      "The host has asked guests to confirm an email for safety. One tap and you're in.",
-  },
-  // The capture moment's words (the identity reshape): a guest who has just put
-  // photographs into somebody's album is not shopping for an account, so the
-  // heading names the thing they already care about and the reason says what
-  // confirming does with it. "Confirming makes a free account" is the whole
-  // price, said last. ★ "In your account", never "on your profile": a profile
-  // publishes nothing until its owner turns it on (profiles-social.md), and
-  // every door wearing this line (the offer card, the mark, the name menu)
-  // claims the photographs into the account, so the account is where they are.
-  // ★ AND IT HOLDS BEFORE AN UPLOAD (guest by upload, 2026-09-22). The name
-  // menu offers this door the moment a name is typed, and save is gone: an
-  // event reaches the account only through the photos added to it, so the line
-  // promises the photos first and the event with them, never an event alone.
-  keep: {
-    heading: "Keep your photos",
-    reason:
-      "Confirm your email and every photo you add here stays in your account, with this event. Confirming makes a free account.",
-  },
-  // ★ NO PROMISE OF A PLACE (guest by upload, 2026-09-22). Likes live in the
-  // profile's owner mode, which needs a handle, so "find them again on your
-  // dashboard" was false; what is true for everyone is that they are kept.
-  like: {
-    heading: "Like this",
-    reason:
-      "Confirm your email and your likes stay in your account. Confirming makes a free account.",
-  },
-  signin: {
-    heading: "Sign in",
-    reason:
-      "Already on Partyreel? Sign in and the photos you added here join everything else you have added.",
-  },
-};
+export const DOOR_WEAR: Record<DoorWear, { heading: string; reason: string }> =
+  {
+    login: {
+      heading: "Welcome to Partyreel",
+      reason:
+        "Sign in to create events and collect photos from your guests. No app, no fuss.",
+    },
+    // ★ RULED VERBATIM, TWICE. Will's `voice` r1 `gate=ask` (2026-09-19) set the
+    // first sentence; the identity ruling of 2026-09-22 SUPERSEDES it by name and
+    // puts the ask first, because the ask is the host's and the safety is the
+    // reason rather than the other way round. "Tap" is his too, relitigated off
+    // "click" in the same sitting: "'tap' is better than 'click', and I would
+    // prefer to use that." It says WHOSE call it is, WHY, and what it costs.
+    // "Almost in" is untouched. Do not reword.
+    gate: {
+      heading: "Almost in",
+      reason:
+        "The host has asked guests to confirm an email for safety. One tap and you're in.",
+    },
+    // The capture moment's words (the identity reshape): a guest who has just put
+    // photographs into somebody's album is not shopping for an account, so the
+    // heading names the thing they already care about and the reason says what
+    // confirming does with it. "Confirming makes a free account" is the whole
+    // price, said last. ★ "In your account", never "on your profile": a profile
+    // publishes nothing until its owner turns it on (profiles-social.md), and
+    // every door wearing this line (the offer card, the mark, the name menu)
+    // claims the photographs into the account, so the account is where they are.
+    // ★ AND IT HOLDS BEFORE AN UPLOAD (guest by upload, 2026-09-22). The name
+    // menu offers this door the moment a name is typed, and save is gone: an
+    // event reaches the account only through the photos added to it, so the line
+    // promises the photos first and the event with them, never an event alone.
+    keep: {
+      heading: "Keep your photos",
+      reason:
+        "Confirm your email and every photo you add here stays in your account, with this event. Confirming makes a free account.",
+    },
+    // ★ NO PROMISE OF A PLACE (guest by upload, 2026-09-22). Likes live in the
+    // profile's owner mode, which needs a handle, so "find them again on your
+    // dashboard" was false; what is true for everyone is that they are kept.
+    like: {
+      heading: "Like this",
+      reason:
+        "Confirm your email and your likes stay in your account. Confirming makes a free account.",
+    },
+    // ★ "LOG IN", THE CHOOSER'S WORD (Will, `identity-door` r1 `nudge`: "'Continue as guest'
+    // (primary), create account, or log in"), so the guest menu's row and the door it opens say
+    // the same verb as the door's own third way in. The reason speaks of the photos a guest ADDS,
+    // never "added": the menu offers it to a guest who may not have added one yet.
+    signin: {
+      heading: "Log in",
+      reason:
+        "Already on Partyreel? Log in and the photos you add here join everything else you have added.",
+    },
+  };
 
 export type DoorMethods = {
   /** The code is the lead, and it is not optional: it is the one method that
@@ -171,6 +171,9 @@ export function AccountDoor({
   initialFailure = null,
   inputClassName,
   buttonClassName,
+  buttonSize,
+  leading,
+  beforeSend,
   className,
   children,
 }: {
@@ -203,6 +206,15 @@ export function AccountDoor({
   initialFailure?: DoorFailureKind | null;
   inputClassName?: string;
   buttonClassName?: string;
+  /** The code button's rung (the guest door's primary is the 44px `cta`). */
+  buttonSize?: "default" | "cta";
+  /**
+   * A field of the surface's own inside the email form, above the address (the
+   * guest door's name on `identify`), sent with the same button.
+   */
+  leading?: React.ReactNode;
+  /** The surface's say before the code is sent (see `BeforeSend`). */
+  beforeSend?: BeforeSend;
   className?: string;
   /**
    * One extra control, under the field and above the divider. The offer card's
@@ -213,7 +225,9 @@ export function AccountDoor({
 }) {
   const copy = DOOR_WEAR[wear];
   const [step, setStep] = useState<Step>({ k: "methods" });
-  const [failure, setFailure] = useState<DoorFailureKind | null>(initialFailure);
+  const [failure, setFailure] = useState<DoorFailureKind | null>(
+    initialFailure,
+  );
   // True while six digits are being typed: the ladder under the field steps
   // aside, because a Google button beside a code screen is a way to lose the code.
   const [coding, setCoding] = useState(false);
@@ -428,7 +442,9 @@ export function AccountDoor({
             buttonClassName={buttonClassName}
             onUseCode={() => setStep({ k: "methods" })}
             onForgot={() => setStep({ k: "reset" })}
-            onGoogle={methods.google ? () => void signInWithGoogle() : undefined}
+            onGoogle={
+              methods.google ? () => void signInWithGoogle() : undefined
+            }
             onDone={(email) => {
               // A password sign-in is only ever a RETURNING host, so nothing
               // here can be a new account: `existing` is true by construction
@@ -462,9 +478,7 @@ export function AccountDoor({
             suppress={[
               "send_code",
               "type_code",
-              ...(methods.google
-                ? (["google", "retry_google"] as const)
-                : []),
+              ...(methods.google ? (["google", "retry_google"] as const) : []),
             ]}
             handlers={{
               send_code: () => setFailure(null),
@@ -510,6 +524,14 @@ export function AccountDoor({
           hintEmail={hint}
           inputClassName={inputClassName}
           buttonClassName={buttonClassName}
+          buttonSize={buttonSize}
+          // The surface's own field rides the first send alone, never the reset ladder.
+          leading={step.k === "methods" ? leading : undefined}
+          beforeSend={step.k === "methods" ? beforeSend : undefined}
+          // ★ A GUEST'S KEYBOARD RISES ONLY IF IT WAS ALREADY UP (door-flow's focus rules): every
+          // guest wear hands focus to the code field only from a field that held it. `/login`, a
+          // host at a desk more often than not, keeps focusing it.
+          codeFocus={wear === "login" ? "always" : "follow"}
           sentAt={(email) => setCoding(Boolean(email))}
           onVerified={handleVerified}
         />
