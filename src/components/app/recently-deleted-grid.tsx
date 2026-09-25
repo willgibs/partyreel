@@ -17,7 +17,7 @@ import { useHubWrites } from "@/components/app/event-feed/host-album";
 import type { GridMedia } from "@/components/app/media-grid";
 import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
 import { MasonryColumns } from "@/components/shared/masonry";
-import { PurgeConfirmContent } from "@/components/shared/media-lightbox-parts/actions";
+import { PurgeConfirmContent } from "@/components/shared/media-lightbox-parts/purge-confirm";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { createLinkStore, type LinkStore } from "@/lib/album/links";
 import { DEFAULT_TIER, toBillingTier } from "@/lib/constants/tiers";

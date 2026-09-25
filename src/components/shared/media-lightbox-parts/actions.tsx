@@ -50,6 +50,8 @@ import {
 } from "@/lib/media/share-save";
 import { cn } from "@/lib/utils";
 
+import { PurgeConfirmContent } from "./purge-confirm";
+
 /**
  * THE FLOATING ACTION CAPSULE (`holds=pills`, Will 2026-09-24: "More visible in
  * the lightbox. Additionally, it gives more room for longer guest names by
@@ -102,42 +104,6 @@ function HostRemovalWords() {
       can restore it for {RECENTLY_DELETED_WINDOW_DAYS} days. Guests won&rsquo;t
       see it.
     </>
-  );
-}
-
-/**
- * THE BIN'S FINAL DELETE, SAID ONCE: the confirm behind Delete permanently,
- * opened from the bin's tile pane at a desk and from its viewer at every width
- * (`recently-deleted-grid.tsx` wraps its own trigger in the same `Dialog`). It
- * skips the window, so it names the window it skips, read off the constant.
- */
-export function PurgeConfirmContent({
-  onConfirm,
-  disabled,
-}: {
-  onConfirm: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <DialogContent>
-      <DialogHeader>
-        <DialogTitle>Delete permanently?</DialogTitle>
-        <DialogDescription>
-          This skips the {RECENTLY_DELETED_WINDOW_DAYS}-day recovery window and
-          deletes the file for good. It can&rsquo;t be undone.
-        </DialogDescription>
-      </DialogHeader>
-      <DialogFooter>
-        <DialogClose asChild>
-          <Button variant="outline">Cancel</Button>
-        </DialogClose>
-        <DialogClose asChild>
-          <Button variant="destructive" disabled={disabled} onClick={onConfirm}>
-            Delete permanently
-          </Button>
-        </DialogClose>
-      </DialogFooter>
-    </DialogContent>
   );
 }
 
