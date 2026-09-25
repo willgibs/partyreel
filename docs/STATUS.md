@@ -41,8 +41,8 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   review), `/account`, a real upload through production's pipeline, the lab 404s without its key, the admin door
   redirects, no new runtime error or Sentry issue. `admin.partyreel.com` is served by `partyreel-admin`
   (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 7 (2026-09-24): the refreshed
-  desk and the new Library (build 6, `d3135de`, carried the Library first, its Vercel log confirming the Sentry
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 7 (`b2d22c7`, 2026-09-24): the
+  refreshed desk and the new Library (build 6, `d3135de`, carried the Library first, its Vercel log confirming the Sentry
   source-map upload). The stored reel stays until the reel round's own build. No push deploys; each `[preview]` record
   gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
 - **Data:** disposable test data only; the accounts and fixtures are in
