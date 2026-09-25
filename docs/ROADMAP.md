@@ -17,6 +17,10 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Album: switch each surface to `layout="rows"` once the reel lanes owning the pages merge (the guest album, the host feed, bulk select through `AlbumRows`, the bin, the profile feeds, the skeletons, the five steps in `pr_tile_size` and the View menu, a jump-free first paint), with `album-columns` r2's picks; the needs list is lp/album-rows' Handoff (merged at `30ac9b74`).
+- Album: pause the tile shimmer off screen: a thousand-photo album keeps about 1,100 skeleton animations restyling every frame until each tile nears the viewport (measured in Chrome at 1,145 photos; masonry pays the same with real photo URLs).
+- The lab and the kit: the lab shell's `:has()` rule invalidates the whole page subtree on any DOM insertion (about 7,800 elements restyled per album arrival inside a board, masonry and rows alike); scope it.
+- Album: a photo that wraps from the end of one row to the start of the next glides diagonally across the album; a crossfade at both ends may read calmer (an `album-columns` arrival refinement, from `album-rows`).
 - The lab and the kit: `lab:demo --save-shots` keeps only a stage's largest frame, so a board that draws a laptop and phones per option reaches the review sheet without its phones; save every frame, named by its title (from `clip-bench`).
 - The reel: production's `StyleWall` groups the looks as "Looks" and "Layouts" while the creator's tray also has a "Layout" chip (the orientation); `reel-clip-wiring` names the treatments apart (the `reel-cut` r2 board says moods and treatments).
 - The voice: one line for the QR's ask across paper and screen (the printed sign's "Scan to add your photos" against the view's "Scan to add yours"), a `voice-guest` question.
@@ -167,7 +171,6 @@ The app:
 - Guest: the last-removal line reads the album's fullness at render (`albumFull`, the page's second gate read); an album that fills or frees mid-visit keeps the old line until a refresh (the poll could carry it at one gate read per poll).
 - Social: `social/guest-list.tsx:216` draws "A guest" for a null `displayName`, a label the product retired (a nameless credit shows nothing).
 - Host: at 375 the hub's cards row runs past the phone's edge, so the third card (Guests) sits half off screen at rest (measured by the `event-safety` board's `queue` step, where a waiting count would live).
-- Host: the hidden-media dim never renders: `shared/masonry.tsx` appends `opacity-30` to `active:scale-[0.98]` with no space, so Tailwind never emits it and a hidden photograph sits in the host album at full brightness (the intended dim is `dimItem`'s comment in `host-media-grid.tsx`; no test covers it).
 - Host: dead curation code: `ApproveAllPendingButton` (`host-media-grid.tsx`) has no caller, and the lightbox's pending Approve branch can never render.
 - Host: the Review peek (`selectable-media-grid.tsx`), a third full-bleed viewer, promises an Escape in a comment and never listens for it.
 - Host: no test covers `useReviewTriage`.

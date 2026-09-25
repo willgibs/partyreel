@@ -22,15 +22,15 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   arrival re-solving only the top rows, steps as photos per row); the host reaches the reel by adding the album's first
   two photos, so the reel has no idle screen; the host's reel side and the clip creator as he picked them ("clip" is
   the noun).
-- **Batch 2 runs**: the rows engine with `album-columns` r2, the reel defaults migration (the default hold, the event
-  cards' stills), the host's reel side and the wide host pages, `reel-cut` r2 (the workbench), and the held guest lane
-  re-opened. The guest and host lanes hold unmerged so one alias build replaces the stored reel; the clip, teardown and
-  sweep lanes follow Will's sitting on build 8.
+- **Batch 2**: merged are the reel defaults migration (applied: the default hold, the event cards' stills), the rows
+  engine as an opt-in layout with `album-columns` r2 on it, and `reel-cut` r2 (the workbench). The guest lane is handed
+  off and the host lane is building; both hold unmerged so one alias build replaces the stored reel, and the clip,
+  teardown and sweep lanes follow Will's sitting on build 8.
 
 ## The desk
 
-27 boards at `/design/lab?key=`, in leverage order: `reel-cut` (r2 once its lane lands), `reel-story`, `reel-front` (r2),
-`album-columns` (r2 once its lane lands), `media-viewer` (r2), then `reel-screen`, `reel-host` and `reel-view` (answered;
+27 boards at `/design/lab?key=`, in leverage order: `reel-cut` (r2), `reel-story`, `reel-front` (r2),
+`album-columns` (r2), `media-viewer` (r2), then `reel-screen`, `reel-host` and `reel-view` (answered;
 built by the held lanes, retiring with the stretch), `identity-door`, `identity-claims`, `identity-profile`,
 `guest-capture`, `voice-guest`, `host-curation`, `host-storage`, `event-safety`, `export-flow`, `admin-triage`,
 `help-center`, `emails`, `site-chrome`, `profile-page`, `privacy-hero`, `album-motion`, `loose-ends`, `contact-page`,
@@ -73,6 +73,6 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **His sitting on build 8**, once the two round-2 boards land: `reel-cut` first, then `reel-story`, `reel-front`,
-  `album-columns` and `media-viewer`.
+- **His sitting on build 8**: `reel-cut` r2 first, then `reel-story`, `reel-front` r2, `album-columns` r2 and
+  `media-viewer` r2.
 - **A 10-second iPhone check** on the album: Save to Photos lands in Photos; a shared photo arrives as a photo.

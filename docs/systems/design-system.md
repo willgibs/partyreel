@@ -335,6 +335,8 @@ It lays out as masonry (the default), uniform (a fixed aspect: the Reel and Revi
   is its `flex-grow` over a zero basis, so it lands on its pixel at the laid width and still fills mid-resize.
 - ★ **The rows' glide snapshots every tile in `getSnapshotBeforeUpdate`** (the only pre-commit DOM read React has; a
   null class component): a rect remembered from the last glide is off by however far the reader scrolled since.
+- **The open item is an ID, never a position**: items mutate under an open viewer, and a stored index silently points
+  at another photograph.
 - **A tap hands the viewer its origin**: the viewer grows from the tile's rect (`data-media-id`) and drops back into the
   tile showing at close, focus returning there. The open photograph rides `?photo=<id>` (`lib/media/share-save.ts`),
   claimed by one grid per page.
