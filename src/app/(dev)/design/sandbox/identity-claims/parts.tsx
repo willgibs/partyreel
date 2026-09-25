@@ -2,10 +2,19 @@
 
 import { type ReactNode, useState } from "react";
 import Link from "next/link";
-import { AtSign, Bell, Check, Mail, UserCheck, UserPlus, X } from "lucide-react";
+import {
+  AtSign,
+  Bell,
+  Check,
+  Mail,
+  UserCheck,
+  UserPlus,
+  X,
+} from "lucide-react";
 
 import { EventCard } from "@/components/app/event-card";
 import { AppShell } from "@/components/shared/app-shell";
+import { Logo } from "@/components/shared/logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +35,7 @@ import {
   CLAIMED_COVER,
   CURRENT_EVENT,
   CURRENT_EVENT_COVER,
+  DOOR_ALBUM,
   HERS,
   HERS_PHOTOS,
   IMPOSTOR,
@@ -400,6 +410,70 @@ export function PointerLine() {
   );
 }
 
+/* ── `pointer`, at the door: she can confirm there now, before any upload ── */
+
+/**
+ * THE DOOR'S "YOU'RE IN", QUOTED (the door's round two drew it as ground): the
+ * held sheet over the wedding's blurred album, the green check and its two
+ * lines, then whatever the option puts where she lands. Its own scrim element,
+ * never a filter on the album's ancestor; `desk` is the panel's right-edge
+ * posture, chosen by prop rather than a breakpoint (a lab board's `sm:` only
+ * works where production uses that exact class).
+ */
+export function DoorBeat({ line, desk }: { line: boolean; desk: boolean }) {
+  return (
+    <div className="relative min-h-full bg-background text-foreground">
+      <header className="flex items-center justify-between gap-2 border-b border-border/60 px-5 py-3">
+        <Logo />
+        <span className="h-8" />
+      </header>
+      <div className="mx-auto max-w-[640px] px-4 py-5">
+        <p className="font-heading text-page">{CURRENT_EVENT.name}</p>
+        <div
+          className={cn(
+            "mt-4 grid gap-1",
+            desk ? "grid-cols-3" : "grid-cols-2",
+          )}
+        >
+          {DOOR_ALBUM.map((url, i) => (
+            <Thumb key={i} url={url} size={desk ? 200 : 164} />
+          ))}
+        </div>
+      </div>
+      <div
+        aria-hidden
+        className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[16px]"
+      />
+      <div
+        data-ic-door
+        className={cn(
+          "fixed z-50 bg-popover px-6 text-popover-foreground shadow-layer ring-1 ring-foreground/10",
+          desk
+            ? "inset-y-0 right-0 w-[448px] pt-24"
+            : "inset-x-0 bottom-0 rounded-t-float pt-5 pb-6",
+        )}
+      >
+        <div className="flex flex-col items-center gap-4 py-6 text-center">
+          <div className="flex size-14 items-center justify-center rounded-full bg-success text-success-foreground">
+            <Check className="size-7" />
+          </div>
+          <div>
+            <p className="font-heading text-page">You&rsquo;re in</p>
+            <p className="mt-1 text-base text-muted-foreground">
+              Welcome to the party
+            </p>
+          </div>
+        </div>
+        {line && (
+          <div data-ic-door-pointer>
+            <PointerLine />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ── `pass`: one event at a time, and the checklist ───────────────────────── */
 
 export function OneAtATimeCard() {
@@ -443,7 +517,8 @@ export function ChecklistTicket() {
       </CardHeader>
       <CardContent className="space-y-4">
         {CLAIMABLE_ROWS.map((row) => {
-          const photos = row.eventId === HERS.eventId ? HERS_PHOTOS : IMPOSTOR_PHOTOS;
+          const photos =
+            row.eventId === HERS.eventId ? HERS_PHOTOS : IMPOSTOR_PHOTOS;
           return (
             <div
               key={row.eventId}
@@ -767,7 +842,9 @@ export function DashboardScene({
           </span>
         }
       >
-        <div className={cn("space-y-6", dim && "pointer-events-none opacity-40")}>
+        <div
+          className={cn("space-y-6", dim && "pointer-events-none opacity-40")}
+        >
           {ticket}
           <div className="space-y-3">
             <h2 className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase">

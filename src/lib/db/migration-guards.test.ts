@@ -60,6 +60,11 @@
  *  14. The host's reel defaults (migration 20260925100000): the hold column with its envelope and
  *      its bare column grant, get_event_by_qr_token carried from the expand with only the hold
  *      appended, and event_stills' shape, scoping, clamp and grants.
+ *  15. The paged album's version and change log (migration 20260926100000): two deny-all tables the
+ *      service role only reads; nine functions no client role can run; the album row written ONLY by
+ *      the deferred stamps at commit, every event of a transaction bumped in event-id order (the
+ *      lock-order rule, database-security.md); the note before the stamp by name; the reader's one
+ *      snapshot and its clamp.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -1936,6 +1941,250 @@ describe("the host's reel defaults (20260925100000)", () => {
       );
       expect(collapse(allMigrations().replace(/--[^\n]*/g, ""))).not.toMatch(
         /grant execute on function public\.event_stills\(uuid\[\], integer\) to [^;]*\b(?:anon|public)\b/,
+      );
+    });
+  });
+});
+
+describe("the paged album's version and change log (20260926100000)", () => {
+  // The lock-order rule (database-security.md, Grants): an album row is always a transaction's LAST
+  // lock, taken at COMMIT by the deferred stamps, every event of the transaction in event-id order.
+  // Each pin reads CODE (comments stripped), latest-wins across the set, so a later file that replaces
+  // a body, moves a write mid-transaction or grants a client role fails here.
+  const FILE = "20260926100000_album_version.sql";
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+  const everything = () => collapse(allMigrations().replace(/--[^\n]*/g, ""));
+  const fileSql = collapse(
+    readFileSync(join(MIGRATIONS_DIR, FILE), "utf8").replace(/--[^\n]*/g, ""),
+  );
+  const FUNCTIONS = [
+    "album_scope(public.media_status, public.media_status)",
+    "album_remember(text, uuid)",
+    "album_flush()",
+    "album_note_media()",
+    "album_stamp_media()",
+    "album_note_guest()",
+    "album_note_profile()",
+    "album_flush_trigger()",
+    "album_changes_since(uuid, text, bigint, integer)",
+  ];
+
+  describe("the tables: deny-all, read by the service role alone", () => {
+    it("album_state hangs off events and album_changes off album_state, both cascading", () => {
+      expect(fileSql).toContain(
+        "create table public.album_state ( event_id uuid primary key references public.events (id) on delete cascade, version bigint not null default 0, album_max bigint not null default 0, attr_version bigint not null default 0, updated_at timestamptz not null default now() );",
+      );
+      // No foreign key to media: a purged item's row is its tombstone, how a client learns it left.
+      expect(fileSql).toContain(
+        "create table public.album_changes ( event_id uuid not null references public.album_state (event_id) on delete cascade, media_id uuid not null, host_version bigint not null, album_version bigint, primary key (event_id, media_id) );",
+      );
+    });
+
+    it("both are RLS-on with no policy, revoked from every role and read by service_role only", () => {
+      expect(fileSql).toContain(
+        "alter table public.album_state enable row level security; alter table public.album_changes enable row level security;",
+      );
+      expect(fileSql).toContain(
+        "revoke all on table public.album_state, public.album_changes from public, anon, authenticated, service_role; grant select on table public.album_state, public.album_changes to service_role;",
+      );
+      const sql = everything();
+      expect(sql).not.toMatch(
+        /create policy [^;]* on public\.album_(state|changes)\b/,
+      );
+      expect(sql).not.toMatch(
+        /grant [^;]* on (?:table )?[^;]*public\.album_(state|changes)\b[^;]* to [^;]*\b(anon|authenticated|public)\b/,
+      );
+      expect(sql).not.toMatch(
+        /grant (?:all|insert|update|delete)[^;]* on (?:table )?[^;]*public\.album_(state|changes)\b/,
+      );
+    });
+
+    it("every event starts with a row; the change log starts empty", () => {
+      expect(fileSql).toContain(
+        "insert into public.album_state (event_id) select e.id from public.events e on conflict (event_id) do nothing;",
+      );
+      expect(fileSql).not.toMatch(
+        /insert into public\.album_changes[^;]* select [^;]* from public\.media/,
+      );
+    });
+  });
+
+  describe("the functions: nine, pinned, never a client role's", () => {
+    it("each pins an empty search_path", () => {
+      for (const signature of FUNCTIONS) {
+        const name = signature.slice(0, signature.indexOf("("));
+        expect(code(name), name).toMatch(/ set search_path = '' as \$\$/);
+      }
+    });
+
+    it("each revokes EXECUTE from public, anon and authenticated; only the reader is granted, to service_role", () => {
+      for (const signature of FUNCTIONS) {
+        expect(fileSql, signature).toContain(
+          `revoke all on function public.${signature} from public, anon, authenticated;`,
+        );
+      }
+      expect(fileSql).toContain(
+        "grant execute on function public.album_changes_since(uuid, text, bigint, integer) to service_role;",
+      );
+      expect(everything()).not.toMatch(
+        /grant execute on function public\.album_[a-z_]+\([^)]*\) to [^;]*\b(anon|authenticated|public)\b/,
+      );
+    });
+
+    it("the writers are SECURITY DEFINER, the reader and the helpers INVOKER", () => {
+      for (const name of [
+        "album_flush",
+        "album_note_media",
+        "album_stamp_media",
+        "album_note_guest",
+        "album_note_profile",
+        "album_flush_trigger",
+      ]) {
+        expect(code(name), name).toContain(
+          " security definer set search_path = ''",
+        );
+      }
+      expect(code("album_changes_since")).toContain(
+        " returns jsonb language sql stable security invoker set search_path = ''",
+      );
+      expect(code("album_remember")).toContain(
+        " security invoker set search_path = ''",
+      );
+      expect(code("album_scope")).toContain(
+        " language sql immutable set search_path = ''",
+      );
+    });
+  });
+
+  describe("the lock-order rule: the album row is every transaction's last lock", () => {
+    it("the stamps are DEFERRABLE INITIALLY DEFERRED constraint triggers; the notes are plain", () => {
+      expect(fileSql).toContain(
+        "create trigger media_album_note after insert or update of status or delete on public.media for each row execute function public.album_note_media();",
+      );
+      expect(fileSql).toContain(
+        "create constraint trigger media_album_stamp after insert or update of status or delete on public.media deferrable initially deferred for each row execute function public.album_stamp_media();",
+      );
+      for (const table of ["guests", "profiles"]) {
+        expect(fileSql).toMatch(
+          new RegExp(
+            `create trigger ${table}_album_note after update of [^;]* on public\\.${table} for each row when \\([^;]*\\) execute function public\\.album_note_${table === "guests" ? "guest" : "profile"}\\(\\);`,
+          ),
+        );
+        expect(fileSql).toMatch(
+          new RegExp(
+            `create constraint trigger ${table}_album_stamp after update of [^;]* on public\\.${table} deferrable initially deferred for each row when \\([^;]*\\) execute function public\\.album_flush_trigger\\(\\);`,
+          ),
+        );
+      }
+    });
+
+    it("each table's note sorts before its stamp BY NAME (both fire at a statement's end in name order under set constraints all immediate)", () => {
+      for (const table of ["media", "guests", "profiles"]) {
+        expect(`${table}_album_note` < `${table}_album_stamp`).toBe(true);
+      }
+    });
+
+    it("the notes touch no table: an event id into a transaction-local setting, nothing else", () => {
+      for (const name of ["album_note_media", "album_remember"]) {
+        expect(code(name), name).not.toMatch(
+          /\b(insert into|update public\.|delete from)\b/,
+        );
+      }
+      expect(code("album_remember")).toContain(
+        "perform pg_catalog.set_config(v_key, v_set || p_event_id::text || ',', true);",
+      );
+    });
+
+    it("the flush bumps every noted event once, one upsert each, in event-id order, skipping a vanished event", () => {
+      const flush = code("album_flush");
+      expect(flush).toContain(
+        "for v_event in select x.id from unnest(v_host || v_album || v_attr) as x(id) where exists (select 1 from public.events e where e.id = x.id) group by x.id order by x.id loop insert into public.album_state as s",
+      );
+      expect(flush).toContain(
+        "on conflict (event_id) do update set version = s.version + excluded.version, album_max = s.album_max + excluded.album_max, attr_version = s.attr_version + excluded.attr_version, updated_at = now(); end loop;",
+      );
+      // Where the last flush stopped, so a set that grew is flushed from there and never twice.
+      expect(flush).toContain(
+        "if length(v_h) = v_fh and length(v_a) = v_fa and length(v_t) = v_ft then return; end if;",
+      );
+    });
+
+    it("the media stamp flushes before it writes, and writes the change at its event's new versions", () => {
+      const stamp = code("album_stamp_media");
+      const flush = stamp.indexOf("perform public.album_flush();");
+      const write = stamp.indexOf("insert into public.album_changes as c");
+      expect(flush).toBeGreaterThan(-1);
+      expect(write).toBeGreaterThan(flush);
+      expect(stamp).toContain(
+        "select v_event, v_media, s.version, case when v_scope & 2 = 2 then s.album_max end from public.album_state s where s.event_id = v_event on conflict (event_id, media_id) do update set host_version = excluded.host_version, album_version = coalesce(excluded.album_version, c.album_version);",
+      );
+    });
+
+    it("nothing but the flush and the media stamp ever writes an album table (the backfill aside)", () => {
+      const writers = new Set<string>();
+      const fn = /create (?:or replace )?function public\.([a-z_0-9]+)\(/g;
+      for (const { sql } of executableMigrations()) {
+        const starts = [...sql.matchAll(fn)];
+        starts.forEach((m, i) => {
+          const body = sql.slice(m.index, starts[i + 1]?.index ?? sql.length);
+          if (
+            /\b(insert into|update|delete from) public\.album_(state|changes)\b/.test(
+              body,
+            )
+          ) {
+            writers.add(m[1]);
+          }
+        });
+      }
+      expect([...writers].sort()).toEqual(["album_flush", "album_stamp_media"]);
+    });
+  });
+
+  describe("the scopes: only what a viewer can see moves a version", () => {
+    it("album_scope: 1 for the host's scope, +2 across approved, 0 for a move inside the bin or no move", () => {
+      expect(code("album_scope")).toContain(
+        "select case when p_was is not distinct from p_is then 0 when coalesce(p_was, 'removed') = 'removed' and coalesce(p_is, 'removed') = 'removed' then 0 else 1 + case when (p_was is not distinct from 'approved') <> (p_is is not distinct from 'approved') then 2 else 0 end end;",
+      );
+    });
+
+    it("a guest row moves attribution only with a live upload; a profile moves its hosted events and its verified-guest ones", () => {
+      expect(code("album_note_guest")).toContain(
+        "if exists ( select 1 from public.media m where m.guest_id = new.id and m.status <> 'removed' ) then perform public.album_remember('t', new.event_id);",
+      );
+      expect(code("album_note_profile")).toContain(
+        "select e.id from public.events e where e.host_id = new.id union select g.event_id from public.guests g where g.user_id = new.id and g.verified_at is not null and exists ( select 1 from public.media m where m.guest_id = g.id and m.status <> 'removed' )",
+      );
+    });
+  });
+
+  describe("album_changes_since: one jsonb, one snapshot", () => {
+    it("keysets each scope on its own version, clamped to 1,000, a null limit reading all", () => {
+      const reader = code("album_changes_since");
+      for (const scope of ["host", "album"]) {
+        const column = scope === "host" ? "host_version" : "album_version";
+        expect(reader).toContain(
+          `where p_scope = '${scope}' and ch.event_id = p_event_id and ch.${column} > p_after order by ch.${column}, ch.media_id limit case when p_limit is null then null else least(p_limit, 1000) end)`,
+        );
+      }
+    });
+
+    it("hands the guest scope no guest_id and no moderation counts", () => {
+      const reader = code("album_changes_since");
+      expect(reader).toContain(
+        "case when p_scope = 'host' then m.guest_id end",
+      );
+      expect(reader).toContain(
+        "'hidden', case when p_scope = 'host' then ( select count(*) from public.media m where m.event_id = p_event_id and m.status = 'hidden') end",
+      );
+      expect(reader).toContain(
+        "'pending', case when p_scope = 'host' then ( select count(*) from public.media m where m.event_id = p_event_id and m.status = 'pending') end",
+      );
+    });
+
+    it("carries created_at as whole microseconds, the manifest's `t`", () => {
+      expect(code("album_changes_since")).toContain(
+        "(extract(epoch from m.created_at) * 1000000)::bigint",
       );
     });
   });

@@ -22,9 +22,9 @@ import {
   OfferCaption,
   OfferCard,
   OfferSheet,
-  TrackerAccountHeader,
   TrackerButton,
   TrackerInlineStrip,
+  TrackerMenu,
   TrackerRow,
   TrackerSheet,
 } from "./parts";
@@ -250,7 +250,8 @@ const measureName: Reader = (root) => {
   const card = root.querySelector<HTMLElement>("[data-gc-moment]");
   const overlap = card
     ? Math.round(
-        notice.getBoundingClientRect().bottom - card.getBoundingClientRect().top,
+        notice.getBoundingClientRect().bottom -
+          card.getBoundingClientRect().top,
       )
     : 0;
   if (overlap > 0)
@@ -280,6 +281,18 @@ function nameScreen(id: "silent" | "confirm" | "told", s: BoardState) {
 }
 
 /* ── tracker: his own idea, on a MODERATED event (`tracker`) ─────────────── */
+
+/** Her menu with the tracker's row: where the row sits and what it counts. */
+const measureTrackerMenu: Reader = (root) => {
+  const menu = root.querySelector('[data-gc-tracker="menu"]');
+  const entry = menu?.querySelector<HTMLElement>("[data-gc-tracker-entry]");
+  const card = menu?.querySelector("[data-gc-menu-card]");
+  if (!menu || !entry || !card) return null;
+  const under =
+    entry.getBoundingClientRect().top >= card.getBoundingClientRect().bottom;
+  const words = (entry.innerText || "").trim().replace(/\s+/g, " ");
+  return `Measured: her menu holds a row reading "${words}", ${under ? "under" : "above"} the card that saves the event.`;
+};
 
 /** Whether a sheet opened, and from what: honest either way, never asserted. */
 const measureTracker: Reader = (root) => {
@@ -313,11 +326,13 @@ function trackerScreen(id: "button" | "menu" | "inline") {
       </Scene>
     );
   }
-  return (
+  const sheet = (
     <Scene
       id={`tracker-${id}`}
       screen="375"
-      title="Her tracker"
+      title={
+        id === "menu" ? "Her tracker, the list the row opens" : "Her tracker"
+      }
       measure={measureTracker}
     >
       <Ground
@@ -329,15 +344,33 @@ function trackerScreen(id: "button" | "menu" | "inline") {
         }
         items={ALBUM}
       />
-      <TrackerSheet
-        title={id === "menu" ? "Your photos" : "Your uploads"}
-        above={id === "menu" ? <TrackerAccountHeader /> : undefined}
-      >
+      <TrackerSheet title={id === "menu" ? "Your photos" : "Your uploads"}>
         {TRACKER_ITEMS.map((item) => (
           <TrackerRow key={item.id} item={item} />
         ))}
       </TrackerSheet>
     </Scene>
+  );
+  if (id !== "menu") return sheet;
+  // ★ TWO FRAMES, STACKED, SO THE OPTION STAYS ONE PHONE WIDE: her menu with
+  // the row under its card, then the list that row opens (the door's round
+  // two answered `identity-door.menu` with a card, so the row joins that menu
+  // rather than a single "Your photos" sheet that was never picked).
+  return (
+    <div className="flex flex-col gap-6">
+      <Scene
+        id="tracker-menu-row"
+        screen="375"
+        title="Her tracker, a row in her menu"
+        measure={measureTrackerMenu}
+      >
+        <div className="relative min-h-full">
+          <Ground header="named" action={<AddPhotosRow />} items={ALBUM} />
+          <TrackerMenu />
+        </div>
+      </Scene>
+      {sheet}
+    </div>
   );
 }
 
