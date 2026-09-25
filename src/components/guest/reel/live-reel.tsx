@@ -43,6 +43,7 @@ import {
   liveReelAvailable,
   type GalleryItem,
 } from "@/lib/events/gallery-reel";
+import { setReelDefaults } from "@/lib/reel/defaults-action";
 import { stillUrlFor } from "@/lib/reel/live/items";
 import { playableSignature, tileStills } from "@/lib/guest/reel-tile";
 import { useReelParam, type ReelMode } from "@/lib/guest/reel-url";
@@ -175,6 +176,19 @@ export function LiveReel({
     () => close({ returnBack: isOwner }),
     [close, isOwner],
   );
+  // The owner's "Set for everyone": the event-wide defaults' one write (it re-verifies the owner and
+  // revalidates nothing, so the reel keeps playing). Never in the demo, whose visitor owns nothing.
+  const setForEveryone = useCallback(
+    async (look: { styleId: string; holdSec: number }) => {
+      const result = await setReelDefaults({
+        eventId,
+        styleId: look.styleId,
+        holdSec: look.holdSec,
+      });
+      return result.ok;
+    },
+    [eventId],
+  );
 
   const controller = useMemo<ReelController>(
     () => ({ available, open, playable, creator, eventId }),
@@ -195,6 +209,7 @@ export function LiveReel({
         creator,
         addClipToAlbum,
         isOwner,
+        onSetForEveryone: isOwner && !isDemo ? setForEveryone : undefined,
         onClose: closeView,
       }
     : null;

@@ -22,6 +22,13 @@ import type { QueueItem } from "@/lib/guest/use-upload-queue";
 const hooks = vi.hoisted(() => ({
   refresh: null as (() => void) | null,
   creator: null as unknown,
+  setForEveryone: undefined as
+    | ((look: { styleId: string; holdSec: number }) => Promise<boolean>)
+    | undefined,
+  setReelDefaults: vi.fn(async (input: unknown) => {
+    void input;
+    return { ok: true } as { ok: boolean };
+  }),
 }));
 
 vi.mock("@/app/(guest)/e/[token]/actions", () => ({
@@ -34,13 +41,19 @@ vi.mock("@/lib/guest/use-gallery-doorbell", () => ({
     return { live: true };
   },
 }));
+vi.mock("@/lib/reel/defaults-action", () => ({
+  setReelDefaults: (input: unknown) => hooks.setReelDefaults(input),
+}));
 vi.mock("@/components/guest/reel/live-reel-view", () => ({
   LiveReelView: (props: {
     mode: string;
     idle: boolean;
     isOwner?: boolean;
+    onSetForEveryone?: (look: { styleId: string; holdSec: number }) => Promise<boolean>;
     onClose: () => void;
-  }) => (
+  }) => {
+    hooks.setForEveryone = props.onSetForEveryone;
+    return (
     <div
       data-testid="reel-view"
       data-mode={props.mode}
@@ -51,7 +64,8 @@ vi.mock("@/components/guest/reel/live-reel-view", () => ({
         Close the view
       </button>
     </div>
-  ),
+    );
+  },
 }));
 vi.mock("@/components/guest/reel/creator-seam", () => ({
   get REEL_CREATOR() {
@@ -418,6 +432,32 @@ describe("a screen below two, and the owner's view", () => {
     fireEvent.click(screen.getByRole("button", { name: "Close the view" }));
     expect(back).toHaveBeenCalledTimes(1);
     back.mockRestore();
+  });
+
+  it("binds the owner's Set for everyone to the event-wide defaults' write, and nobody else's", async () => {
+    window.history.replaceState(null, "", "/e/qr-token?reel");
+    const owner = await mount({ isOwner: true });
+    await settle();
+    expect(hooks.setForEveryone).toBeTypeOf("function");
+    await expect(
+      hooks.setForEveryone!({ styleId: "mono", holdSec: 5 }),
+    ).resolves.toBe(true);
+    expect(hooks.setReelDefaults).toHaveBeenCalledWith({
+      eventId: "event-1",
+      styleId: "mono",
+      holdSec: 5,
+    });
+    // A refusal says so to the view.
+    hooks.setReelDefaults.mockResolvedValueOnce({ ok: false });
+    await expect(
+      hooks.setForEveryone!({ styleId: "warm", holdSec: 3 }),
+    ).resolves.toBe(false);
+    owner.unmount();
+
+    window.history.replaceState(null, "", "/e/qr-token?reel");
+    await mount();
+    await settle();
+    expect(hooks.setForEveryone).toBeUndefined();
   });
 
   it("with nowhere to go back to, the owner's Close lands on the album", async () => {

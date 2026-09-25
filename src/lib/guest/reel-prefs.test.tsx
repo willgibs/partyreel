@@ -10,12 +10,15 @@ import { resolveTheme } from "@/lib/reel/engine/themes";
 
 import {
   DEFAULT_HOLD_SEC,
-  defaultIncludeVideos,
   HOLD_STEPS_SEC,
+  nearestHoldStep,
+} from "@/lib/reel/defaults";
+
+import {
+  defaultIncludeVideos,
   holdLabel,
   holdScaleFor,
   liveMoods,
-  nearestHoldStep,
   readHoldSec,
   readIncludeVideos,
   readStyleId,
@@ -30,9 +33,7 @@ afterEach(() => {
 });
 
 describe("the Hold", () => {
-  it("offers both boards' steps with the 3 s default among them", () => {
-    expect(HOLD_STEPS_SEC).toEqual([1, 1.5, 2.2, 3, 3.6, 5, 7]);
-    expect(DEFAULT_HOLD_SEC).toBe(3);
+  it("labels a hold the way the dock says it", () => {
     expect(holdLabel(3)).toBe("3 s");
     expect(holdLabel(1.5)).toBe("1.5 s");
   });

@@ -281,6 +281,7 @@ export async function loadGalleryReel(
     showReel: event.show_reel,
     liveReelEnabled: facts.liveReelEnabled,
     styleId: event.reel_style_id,
+    holdSec: event.reel_hold_sec,
     tier: facts.tier,
   });
 }

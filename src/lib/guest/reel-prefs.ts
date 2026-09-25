@@ -21,28 +21,14 @@
  * can set both for everyone), each falling back to the host's default for that event; the videos
  * switch is the viewer's across events (a data plan is about the person).
  */
+import { nearestHoldStep, resolveHoldSec } from "@/lib/reel/defaults";
 import { STYLE_CATALOG } from "@/lib/reel/engine/style-registry";
 import { resolveTheme } from "@/lib/reel/engine/themes";
 import { resolveLiveStyleId } from "@/lib/reel/live/window";
 
-/** The Hold control's steps, in seconds: brisk holds for a phone in the hand (1, 1.5 and 2.2) and
- *  calmer ones for a wall (3.6, 5 and 7), with the 3 s default among them. */
-export const HOLD_STEPS_SEC = [1, 1.5, 2.2, 3, 3.6, 5, 7] as const;
-export const DEFAULT_HOLD_SEC = 3;
-
 const VIDEOS_KEY = "pr_reel_videos";
 const styleKey = (qrToken: string) => `pr_reel_style_${qrToken}`;
 const holdKey = (qrToken: string) => `pr_reel_hold_${qrToken}`;
-
-/** The step a stored or odd value belongs to (a future step list never strands an old choice). */
-export function nearestHoldStep(seconds: number): number {
-  if (!Number.isFinite(seconds)) return DEFAULT_HOLD_SEC;
-  let best: number = HOLD_STEPS_SEC[0];
-  for (const step of HOLD_STEPS_SEC) {
-    if (Math.abs(step - seconds) < Math.abs(best - seconds)) best = step;
-  }
-  return best;
-}
 
 /** How a hold reads in the dock: "3 s", "1.5 s". */
 export function holdLabel(seconds: number): string {
@@ -88,7 +74,7 @@ export function readHoldSec(
 ): number {
   const raw = read(holdKey(qrToken));
   if (raw !== null) return nearestHoldStep(Number(raw));
-  return eventDefault === null ? DEFAULT_HOLD_SEC : nearestHoldStep(eventDefault);
+  return resolveHoldSec(eventDefault);
 }
 
 export function writeHoldSec(qrToken: string, seconds: number): void {

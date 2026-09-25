@@ -873,7 +873,8 @@ creator's (below).
 - **The facts ride the gallery payload.** `loadGalleryReel(event, access)`
   ([`gallery-access.server.ts`](../../src/lib/events/gallery-access.server.ts)) answers `null` short of
   `full` access (nothing is read), else `GalleryReel` ([`gallery-reel.ts`](../../src/lib/events/gallery-reel.ts)):
-  the host's switch (`events.show_reel`) and mood (`reel_style_id`) off the event row, the platform lever
+  the host's switch (`events.show_reel`), mood (`reel_style_id`) and hold (`reel_hold_sec`, NULL until a host
+  sets it, read through `resolveHoldSec`) off the event row, the platform lever
   (`ops_flags.live_reel_enabled`) and the host's plan for the creator (`clip`: `videoAllowed`, `watermark`,
   `maxSeconds`, tier-derived on the server and never on the client; `null` when the host's tier could not be
   read). `getLiveReelServerFacts` reads the lever and the tier on the admin client (`ops_flags` is deny-all),
@@ -923,14 +924,18 @@ creator's (below).
     only (a phone has no wall to show it to). Space pauses, Escape closes, the arrows step a clip (the
     player's `step`; the clock never moves).
   - **The owner's extras** (the event's owner, who meets no gate on the page; the host's hub links its Reel
-    card here): at 1024px and up a seventh icon, Play on a screen, opens `?reel=screen` in a new tab; and Close
-    goes back where the host came from whenever there is history (`useReelParam().close({ returnBack })`),
-    else to the album, where a guest's deep link always closes onto the album.
+    card here): at 1024px and up a seventh icon, Play on a screen, opens `?reel=screen` in a new tab; the
+    Style list's footer reads "Only on this device, for now" with a Set for everyone pill that makes the
+    device's look and hold the event's defaults (`setReelDefaults`, `lib/reel/defaults-action.ts`, which
+    re-verifies the owner and revalidates nothing, so the reel keeps playing), and "Everyone sees this look"
+    once they match; Close goes back where the host came from whenever there is history
+    (`useReelParam().close({ returnBack })`), else to the album, where a guest's deep link always closes onto
+    the album.
   - **The viewer's own knobs, on this device** ([`reel-prefs.ts`](../../src/lib/guest/reel-prefs.ts),
-    `localStorage`, never on the wire): Hold (1, 1.5, 2.2, 3, 3.6, 5 or 7 s a photo, 3 by default, converted
-    into the mood's `holdScale`); Style (the eight moods, per event, defaulting to the event's
-    `reel_style_id`, else the default mood); Include videos (on, unless `navigator.connection.saveData` says
-    otherwise).
+    `localStorage`, never on the wire): Hold (the steps' one home is `lib/reel/defaults.ts`: 1, 1.5, 2.2, 3,
+    3.6, 5 or 7 s a photo; per event, defaulting to the host's `reel_hold_sec`, else 3 s; converted into the
+    mood's `holdScale`); Style (the eight moods, per event, defaulting to the event's `reel_style_id`, else the
+    default mood); Include videos (across events: on, unless `navigator.connection.saveData` says otherwise).
   - **The arrivals** ([`arrival-feed.ts`](../../src/lib/guest/arrival-feed.ts)): the provider's arrival ids
     name their uploader top left for one hold; a burst stacks into a short feed of limited depth that
     collapses ("Theo +12").

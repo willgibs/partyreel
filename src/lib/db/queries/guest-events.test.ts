@@ -28,7 +28,7 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => asSupabase(fake),
 }));
 
-const { getEventMediaByQrToken, olderThan } =
+const { getEventByQrToken, getEventMediaByQrToken, olderThan } =
   await import("@/lib/db/queries/guest-events");
 
 const OPEN_QR = "d02631f1bfb3455188d224e41bf9510f";
@@ -278,5 +278,55 @@ describe("olderThan: the table-read twin of the RPC's cursor", () => {
     ).toBe(
       `created_at.lt.2026-09-23T23:13:38.122749+00:00,and(created_at.eq.2026-09-23T23:13:38.122749+00:00,id.lt.${uid(7)})`,
     );
+  });
+});
+
+describe("getEventByQrToken: the live reel's event facts", () => {
+  function eventRow(over: Record<string, unknown> = {}): FakeRow {
+    return {
+      id: uid(900),
+      qr_token: OPEN_QR,
+      name: "Probe",
+      description: null,
+      moderation_mode: "live",
+      visibility: "open",
+      accepting_uploads: true,
+      require_verified_email: false,
+      require_upload_to_view: false,
+      event_date: null,
+      qr_style: "classic",
+      host_display_name: null,
+      custom_slug: null,
+      show_reel: true,
+      reel_style_id: null,
+      reel_hold_sec: null,
+      ...over,
+    };
+  }
+  function answer(row: FakeRow) {
+    fake = createFakePostgrest({ rpc: { get_event_by_qr_token: () => [row] } });
+  }
+
+  it("keeps a host's unset hold as NULL (the default), never as 0 s", async () => {
+    answer(eventRow());
+    const result = await getEventByQrToken(OPEN_QR);
+    expect(result.ok && result.data.reel_hold_sec).toBeNull();
+  });
+
+  it("carries the host's default hold when one is set", async () => {
+    answer(eventRow({ reel_hold_sec: 5, reel_style_id: "mono" }));
+    const result = await getEventByQrToken(OPEN_QR);
+    expect(result.ok && result.data.reel_hold_sec).toBe(5);
+    expect(result.ok && result.data.reel_style_id).toBe("mono");
+  });
+
+  it("reads an RPC from before the column as the defaults", async () => {
+    const row = eventRow();
+    delete row.reel_hold_sec;
+    delete row.show_reel;
+    answer(row);
+    const result = await getEventByQrToken(OPEN_QR);
+    expect(result.ok && result.data.reel_hold_sec).toBeNull();
+    expect(result.ok && result.data.show_reel).toBe(true);
   });
 });

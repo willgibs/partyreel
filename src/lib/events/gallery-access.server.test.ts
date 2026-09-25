@@ -68,6 +68,7 @@ const EVENT = {
   host_display_name: null,
   show_reel: true,
   reel_style_id: null,
+  reel_hold_sec: null,
 } as unknown as Event;
 
 const GUEST = {
@@ -240,14 +241,14 @@ describe("loadGalleryReel: the live reel's facts for one viewer", () => {
 
   it("joins the event's own switch and mood to the lever and the plan", async () => {
     const reel = await loadGalleryReel(
-      { ...EVENT, show_reel: false, reel_style_id: "warm" } as Event,
+      { ...EVENT, show_reel: false, reel_style_id: "warm", reel_hold_sec: 5 } as Event,
       "full",
     );
     expect(reel).toEqual({
       showReel: false,
       liveReelEnabled: true,
       styleId: "warm",
-      holdSec: null,
+      holdSec: 5,
       clip: { videoAllowed: false, watermark: true, maxSeconds: 30 },
     });
     expect(getLiveReelServerFacts).toHaveBeenCalledWith("event-1");

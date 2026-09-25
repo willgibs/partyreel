@@ -93,12 +93,9 @@ import {
   type ArrivalRow,
 } from "@/lib/guest/arrival-feed";
 import {
-  DEFAULT_HOLD_SEC,
-  HOLD_STEPS_SEC,
   holdLabel,
   holdScaleFor,
   liveMoods,
-  nearestHoldStep,
   readHoldSec,
   readIncludeVideos,
   readStyleId,
@@ -116,6 +113,11 @@ import {
   onFullscreenChange,
 } from "@/lib/guest/screen-posture";
 import { captureWarning } from "@/lib/observability/sentry";
+import {
+  DEFAULT_HOLD_SEC,
+  HOLD_STEPS_SEC,
+  resolveHoldSec,
+} from "@/lib/reel/defaults";
 import { modulePx, MODULE_FLOOR_PX } from "@/lib/qr/module-floor";
 import type { QrStyleKey } from "@/lib/constants/qr-presets";
 import {
@@ -451,7 +453,7 @@ export function LiveReelView({
   const [setLook, setSetLook] = useState<{ styleId: string; holdSec: number } | null>(null);
   const everyoneLook = setLook ?? {
     styleId: resolveLiveStyleId(hostStyle),
-    holdSec: hostHold === null ? DEFAULT_HOLD_SEC : nearestHoldStep(hostHold),
+    holdSec: resolveHoldSec(hostHold),
   };
   const lookIsEveryones =
     everyoneLook.styleId === styleId && everyoneLook.holdSec === holdSec;

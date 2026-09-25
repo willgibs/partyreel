@@ -51,6 +51,9 @@ export type GuestEvent = {
   /** The host's default mood for the live reel; null is the default mood. A viewer's own pick
    *  overrides it on their device and is never written back. */
   reel_style_id: string | null;
+  /** The host's default hold in seconds; null is the product's default (`resolveHoldSec` reads it).
+   *  A viewer's own hold overrides it on their device. */
+  reel_hold_sec: number | null;
 };
 
 export type GuestEventResult =
@@ -157,6 +160,9 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
     // returned them, and a missing switch must read as the default (on), never as off.
     show_reel: row.show_reel ?? true,
     reel_style_id: row.reel_style_id ?? null,
+    // ★ Typed `number` by the generated RETURNS TABLE, yet NULL until a host sets it: kept as NULL
+    // (the default), never coerced to 0 s. An RPC from before the column never returned it.
+    reel_hold_sec: (row.reel_hold_sec as number | null | undefined) ?? null,
   };
 
   return { ok: true, data: await rehydrateUnlockedDetails(event) };
