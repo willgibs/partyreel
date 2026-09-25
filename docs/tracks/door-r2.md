@@ -1,6 +1,6 @@
 ---
 track: door-r2
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "afd3a267"            # the launch-prep SHA the branch was cut from
 board: identity-door
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -81,25 +81,88 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **What does the winning look show at a password event, where the welcome stands over a locked page that shows no
+  pixel of the album?** Recommended: nothing of the album until the password lands. `peek` fans three face-down prints
+  (the sleeve's own blank backs), `ticket`'s card rests on the locked page's ghost river, `lit` takes the house five
+  (law 3's no-media branch), `host` is unchanged; the photographs arrive with the unlock. Not drawn: the board's flow is
+  name-only and verification events, and the wiring after his pick carries it (Deferred).
+- **Does the door ship the winner's own scrim or today's?** Recommended: the winner's own, one number for every step
+  of the door (`peek` 20px blur at 22% black; `lit` 28px at 30% and 72% brightness, the lightbox's blur and saturation;
+  `ticket` 16px at 25%; `host` 10px at 14%), since his note asked for a blur and a soft overlay and today's 4px at 10%
+  is the baseline he called bland. The `scrim` knob draws each against today's.
+- **If `host` wins, how much of a long description does the greeting show?** Recommended: three lines, the rest a tap
+  away; the album page already shows it whole.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: a lab round ships no production byte, and this lane owns no system doc.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: Guest door: at a password event the winning `identity-door` look shows no photograph before the unlock (`peek`
+  face-down prints, `ticket` the ghost river, `lit` the house five); the look's wiring carries it.
+- Now: Lab: the door board's keyboard is drawn at the manifest's 335 pt, never measured; door-flow's simulator walk
+  (software keyboard on, Safari's form bar in view) trues `KEYBOARD_H` in `sandbox/identity-door/keyboard.tsx`.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed on `lp/door-r2`:** `3f997277` (the round-two board and the three neighbours), `53410193` (door-flow's
+  keyboard rule, captions, the ghost tap's plus), then this manifest. **No sync:** launch-prep moved (mark-r3's merge, the
+  door-flow and identity-email cuts), nothing in my `reads` changed, and `git merge-tree --write-tree HEAD
+  origin/launch-prep` merges clean (mark-r3 edited `touchpoints.ts`'s media-viewer row, mine the four boards' rows).
+- **Gates on `53410193`, each its own exit code, all 0:** `pnpm typecheck`; `pnpm lint` (6 warnings, none in a touched
+  file); `pnpm test` (449 files, 4888 tests); `zsh scripts/build-lock.sh pnpm build`; `pnpm lab:smoke --base
+  http://localhost:3138` (278 checks, 0 failing; identity-door reads 586 of 1200 words); `pnpm lab:demo --board
+  identity-door --base http://localhost:3138` (`identity-door.look` ok, 4 options, the stage moves by up to 51.88%,
+  painted, 2.9 screens); and `--only` on the three redrawn neighbour steps: `identity-claims.pointer` ok (17.20%),
+  `identity-profile.prompt` ok (28.63%), `guest-capture.tracker` ok (80.75%).
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = the four owned board folders, plus
+  `src/app/(dev)/design/touchpoints.ts` (the manifest's own exception: the four boards' rows, identity-door's and
+  identity-claims' edited, the other two still true), plus this file.
+- **Items:**
+  - `identity-door` r2 (`sandbox/identity-door/spec.ts`): one ask, `look`, four options, `peek` recommended; knobs
+    `stage` (Arriving, Typing, Accounts, Inside), `scrim` (own or today's), `greeting` (Maya wrote a description or
+    not); round one's asks gone (the ledger keeps them), its line in `history`; the seven calls in `carried`.
+  - Frames (`scene.tsx`): each stage is one 1440 frame over three 375 frames, reel-cut's layout; every caption is read
+    off its own frame (`board.tsx` readers).
+  - Ground (`steps.tsx`, `ground.tsx`, `door.tsx`): his flow at production's words (the welcome at today's text,
+    `DOOR_WEAR.gate` verbatim, the chooser in his order, the menu card as he amended it, the change-or-remove sheet),
+    the album behind from `PosterCard`, `MediaTile` and `GALLERY_COLUMNS` with two arrivals held at the `data-arrived`
+    rim, the scrim its own element.
+  - The directions (`looks.tsx`, `identity-door.css`): `lit` (the screen lamp: hues sampled by `useSampledPalette`, paper
+    or dark register by theme, the count ticking 48 to 50), `peek` (the sleeve: three newest stills out of the free
+    edge, her credited slot on the name, held at the gate, brightened at the code, opened at the beat, a small fan on
+    her card), `ticket` (the reel tile's crossfading card torn to a stub, stamped at You're in, heading her card),
+    `host` (the identity line and her description as a message). All motion is CSS behind `no-preference`, still under
+    reduced motion.
+  - Keyboard (`keyboard.tsx`): one flat SVG in JSX so it wears the theme, 335 pt with the QuickType bar, letters (name,
+    email) and the number pad (the code, offered From Mail); Return reads "next" on the name, "go" on an email.
+  - The ghost tap: 44px, `text-working`, a trailing plus, one line at 375 with 15px to spare; at 320 "anytime" steps
+    aside ("Add an email to come back", still one line), measured on screen by a 320 probe in the frame.
+  - Neighbours, every option kept: `identity-claims.pointer` drawn at the album and at the door's You're in (context
+    and options reworded); `identity-profile.prompt`'s `follow` adds the door frame; `guest-capture.tracker`'s `menu`
+    is a Your photos row under her menu's card, then the list it opens. Each stacks its frames so the option stays one
+    phone wide, and each round line says it was redrawn.
+  - Two lab traps met and answered in place (WHY-comments): a board's Tailwind variant loses to production's utility on
+    the same element (the ghost tap's query moved to the board's CSS), and `Row` is a kit-owned name (`MenuRow`).
+- **Assets requested from Will:** `A portrait of Maya, the host · 512x512 square, warm and candid, JPEG, 1 · replaces the
+  wedding-golden crop at HOST.avatar in sandbox/identity-door/fixtures.ts`.
+- **Board ideas:**
+  - The album's arrival light is white, so behind a blurred scrim on a light page it barely reads; a scrim-safe arrival
+    (the photograph's own light blooming) would let the door's album read as live in both themes.
+  - At 1440 the held door's content sits at the top of a 900px panel with its lower half empty in every direction; a
+    board could ask whether the door's panel anchors, centres or fills at a desk.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:**
+  - The seven in the board's carried list (Google and the password under Log in; the hold only with uploads to move; a
+    typed email changed or removed from the card; the one responsive Sheet, keyboard-safe; "Log in" on the chooser and
+    the menu; the ghost line's words; the chooser's "How would you like to join?").
+  - The keyboard rule is drawn as door-flow builds it, a sheet as tall as its content up to the visible area minus 12
+    px, so tall steps leave 12px of album and short ones (the code) more; my brief said the height is that number.
+  - Create account's line is production's own `keep` wear line (door-flow gives `identify` a reason only on a
+    verification event); Log in's is the `signin` line in the future tense ("the photos you add here").
+  - With the keyboard up `peek`'s fan rides small inside the sheet; at 1440 it comes out of the panel's left edge, its
+    one free edge.
+- **Look at first:** `/design/lab/identity-door?session=identity-door.look&key=`: `peek` at Arriving (the fan out of the
+  welcome's edge), then Typing (held at the gate, brightened at the code), then `ticket` at Accounts (the stamp); flip
+  `scrim` to today's on any of them to see what the blur and the overlay buy.
