@@ -38,7 +38,6 @@ in auto mode ("work through the night on all of this until fully complete"); the
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `reel-host-wiring` | the host's reel side and the wide host pages | handed off at `c8af4435`; merging after the guest lane | Opus | its ten calls relayed with the merge |
 
 ## Next, in order
 

@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Host: the lightbox's pending Approve branch can never render (`src/components/shared/media-lightbox`); remove it or give it a door (from `reel-host-wiring`).
 - Tests: the Radix FocusScope teardown flush `entry-modal.test.tsx` runs in its own `afterEach` belongs in `vitest.setup.ts`, for every component test that unmounts a Radix dialog (from `reel-guest-wiring`).
 - Guest: `src/components/guest/yours-filter.ts` moves into `src/lib/guest/` beside the other gallery arithmetic (`merge-gallery-items`, `reconcile-gallery-items`).
 - Guest: the approval toast's server half, so an upload approved after the visit that made it is told on the next visit (the queue lives in memory).
