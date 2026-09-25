@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Lock } from "lucide-react";
 
+import { DOOR_NAME_KEY } from "@/app/(auth)/door-name-key";
 import { AccountDoor, DOOR_WEAR } from "@/components/auth/account-door";
 import type { DoorVerified } from "@/components/auth/email-sign-in";
 import { Input } from "@/components/ui/input";
@@ -26,8 +27,8 @@ import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
  * ★ THE NAME RIDES THE CODE REQUEST, never a second trip: it is checked here with the one name
  * policy (`checkDisplayName`), kept by the modal for the confirmation's four writes (a profile with
  * no name takes it), written to `pr_guest_name_last` as the same-browser fallback, and sent as the
- * new user's metadata (`door_name`) so a guest who confirms by the emailed LINK, in another tab or
- * on another device, still lands named (`identity-email` builds the server half that adopts it).
+ * new user's metadata (`DOOR_NAME_KEY`) so a guest who confirms by the emailed LINK, in another tab
+ * or on another device, still lands named (`/auth/callback` adopts it: `adopt-door-name.ts`).
  * A code the account already had keeps that account's own name: the hint under the field says so
  * before they confirm, rather than after they see somebody else's version of their name.
  *
@@ -155,7 +156,7 @@ export function IdentifyStep({
           }
           setLastName(checked.name);
           onTypedName(checked.name);
-          return { data: { door_name: checked.name } };
+          return { data: { [DOOR_NAME_KEY]: checked.name } };
         }}
         onVerified={onVerified}
       />

@@ -73,8 +73,10 @@ beforeEach(() => {
 
 afterEach(async () => {
   cleanup();
+  // Radix restores focus from a setTimeout(0), and input-otp arms 10ms and 50ms timers of its own
+  // (its password-manager probe): let them all run while the document still exists.
   await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 80));
   });
 });
 
