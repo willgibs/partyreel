@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Identity: an email change leaves `newsletter_signups` on the old address, so the `/account` marketing switch reads the new one and turning it off cannot remove the old row; move the row with the change (or key the switch on the account) before a newsletter sender ships (from `identity-email`).
+- Code hygiene: the six-digit code length lives in three files (`email-sign-in.tsx`, `account-delete-card.tsx`, `email-change.ts`'s `EMAIL_CODE_LENGTH`), each in lockstep with the dashboard; one export in `src/lib/auth/`.
 - Clips: a guest's Add to event in the creator follows its queue item (uploading, held for review, refused) instead of reading Added on hand-off (from `reel-clip-wiring`).
 - The reel: `buildReelProps` caps on the mood timeline, so a treatment runs past or short of its length; the lab's builders could share the clip's own-clock fit (`clip-selection.ts`).
 - Housekeeping: the Studio's reveal leftovers, unreferenced now: `globals.css`'s `--tune-rvl-*` and `--tune-rxp-*` block and its `[data-rvl-*]` rules, `src/lib/shared/use-reveal-acts.ts` with its test, and the comments naming `reveal-constants.ts` (`globals.css`, `motion-tuner-config.ts`, `design-system.md`).
