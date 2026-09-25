@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { readGuestAlbumMedia } from "@/lib/db/queries/album-guest";
+import {
+  ALBUM_REFUSED,
+  readGuestAlbumMedia,
+} from "@/lib/db/queries/album-guest";
 import { toGuestAlbumLinks } from "@/lib/events/album-guest-links";
 import { resolveAlbumViewer } from "@/lib/events/album-viewer.server";
 import {
@@ -10,6 +13,7 @@ import {
   type AlbumLinksBody,
 } from "@/lib/events/album-wire";
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
+import { reportAlbumRefused } from "@/lib/events/gallery-access.server";
 import { presignDownload } from "@/lib/r2/presign";
 import { presignBucketId } from "@/lib/r2/presign-bucket";
 
@@ -22,12 +26,12 @@ export const dynamic = "force-dynamic";
  * distinct ids.
  *
  * Only a viewer the decision lets in whole (`full`) gets links; a teaser or locked viewer, a private
- * or unknown album, and a password album without its unlock cookie get none, every asked id back in
- * `missing` (the teaser's nine travel inline on the poll). An id that is unknown, gone, held, hidden
- * or another album's is `missing` too, so the answer says nothing about which. The rows are read by
- * id (`inChunks`), minted in the current presign bucket (`b`, read before minting, so a bucket that
- * rolls mid-request only makes a link outlive the client's estimate), and attributed by name and two
- * flags, never an address (`album-guest-links.ts`).
+ * or unknown album, and a password album without its unlock cookie (its host aside) get none, every
+ * asked id back in `missing` (the teaser's nine travel inline on the poll). An id that is unknown,
+ * gone, held, hidden or another album's is `missing` too, so the answer says nothing about which.
+ * The rows are read by id (`inChunks`), minted in the current presign bucket (`b`, read before
+ * minting, so a bucket that rolls mid-request only makes a link outlive the client's estimate), and
+ * attributed by name and two flags, never an address (`album-guest-links.ts`).
  *
  * Nothing here writes a cookie: the heal is the poll's (album-viewer.server.ts).
  */
@@ -64,7 +68,11 @@ export async function POST(request: Request) {
   const read = await readGuestAlbumMedia(viewer.event, ids, {
     attribute: !viewer.isDemo,
   });
-  if (!read) return nothing(ids, "none", viewer.decision.gate);
+  // The reads' own gate refused a viewer the decision let in: locked, and reported (album-guest.ts).
+  if (!read) {
+    reportAlbumRefused(viewer.event.id, "media");
+    return nothing(ids, ALBUM_REFUSED.access, ALBUM_REFUSED.gate);
+  }
 
   const links = await toGuestAlbumLinks(read.rows, {
     eventName: viewer.event.name,

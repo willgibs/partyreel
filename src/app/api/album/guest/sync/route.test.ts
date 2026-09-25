@@ -3,22 +3,28 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 /**
  * THE GUEST'S POLL: one row when nothing changed, the teaser inline, the paged album at full access,
  * and today's route rules (no validator on a locked answer, none while a heal is pending, never
- * across access levels or gates).
+ * across access levels or gates). A read the reads' own gate refuses answers locked behind the
+ * password and is reported, never a 500; a read that FAILS is still a failure.
  */
+import { planAlbumSync } from "@/lib/events/album-sync";
+
 vi.mock("server-only", () => ({}));
 
 const resolveAlbumViewer = vi.fn();
 vi.mock("@/lib/events/album-viewer.server", () => ({
   resolveAlbumViewer: (...a: unknown[]) => resolveAlbumViewer(...a),
 }));
+// The plan's two reads behind the gate (the snapshot, then a manifest's first page), planned by the
+// REAL `planAlbumSync`, as `planGuestAlbumSync` plans them.
 const readGuestAlbumVersions = vi.fn();
-const readGuestAlbum = vi.fn();
-const readGuestManifestPage = vi.fn();
+const planRead = vi.fn();
+const planPage = vi.fn();
+const planGuestAlbumSync = vi.fn();
 const readGuestAttribution = vi.fn();
 vi.mock("@/lib/db/queries/album-guest", () => ({
+  ALBUM_REFUSED: { access: "none", gate: "password" },
   readGuestAlbumVersions: (...a: unknown[]) => readGuestAlbumVersions(...a),
-  readGuestAlbum: (...a: unknown[]) => readGuestAlbum(...a),
-  readGuestManifestPage: (...a: unknown[]) => readGuestManifestPage(...a),
+  planGuestAlbumSync: (...a: unknown[]) => planGuestAlbumSync(...a),
   readGuestAttribution: (...a: unknown[]) => readGuestAttribution(...a),
 }));
 const getApprovedPhotoTeaser = vi.fn();
@@ -30,8 +36,10 @@ vi.mock("@/lib/db/queries/guest-events-admin", () => ({
   getGuestCount: (...a: unknown[]) => getGuestCount(...a),
 }));
 const loadGalleryReel = vi.fn();
+const reportAlbumRefused = vi.fn();
 vi.mock("@/lib/events/gallery-access.server", () => ({
   loadGalleryReel: (...a: unknown[]) => loadGalleryReel(...a),
+  reportAlbumRefused: (...a: unknown[]) => reportAlbumRefused(...a),
 }));
 vi.mock("@/lib/r2/presign", () => ({
   presignDownload: async ({
@@ -91,7 +99,11 @@ beforeEach(() => {
     albumMax: 5,
     attrVersion: 2,
   });
-  readGuestAlbum.mockImplementation(async (_e, after: number, limit: number) =>
+  planGuestAlbumSync.mockImplementation(
+    async (_event: unknown, since: number | null) =>
+      planAlbumSync({ scope: "album", since, read: planRead, page: planPage }),
+  );
+  planRead.mockImplementation(async (after: number, limit: number) =>
     limit === 0
       ? read()
       : read({
@@ -115,7 +127,7 @@ beforeEach(() => {
               : [],
         }),
   );
-  readGuestManifestPage.mockResolvedValue({
+  planPage.mockResolvedValue({
     entries: [[M1, 4, 3, 4, 1790206284644108]],
     next: null,
   });
@@ -168,9 +180,10 @@ describe("a first load and the quiet poll", () => {
     });
     expect(body.entries).toHaveLength(1);
     expect(res.headers.get("etag")).toMatch(/^"a1-/);
-    // The version was read (limit 0) BEFORE the page.
-    expect(readGuestAlbum.mock.invocationCallOrder[0]).toBeLessThan(
-      readGuestManifestPage.mock.invocationCallOrder[0],
+    // Planned through the reads' own gate; the version was read (limit 0) BEFORE the page.
+    expect(planGuestAlbumSync).toHaveBeenCalledWith(EVENT, null);
+    expect(planRead.mock.invocationCallOrder[0]).toBeLessThan(
+      planPage.mock.invocationCallOrder[0],
     );
   });
 
@@ -189,8 +202,7 @@ describe("a first load and the quiet poll", () => {
       { "If-None-Match": etag },
     );
     expect(res.status).toBe(304);
-    expect(readGuestAlbum).not.toHaveBeenCalled();
-    expect(readGuestManifestPage).not.toHaveBeenCalled();
+    expect(planGuestAlbumSync).not.toHaveBeenCalled();
     expect(getGuestCount).not.toHaveBeenCalled();
   });
 
@@ -264,7 +276,8 @@ describe("the locked answer and the teaser", () => {
       gate: "password",
     });
     expect(res.headers.get("etag")).toBeNull();
-    expect(readGuestAlbum).not.toHaveBeenCalled();
+    expect(readGuestAlbumVersions).not.toHaveBeenCalled();
+    expect(planGuestAlbumSync).not.toHaveBeenCalled();
   });
 
   it("the teaser is today's inline payload, links and names, never an address or a raw key", async () => {
@@ -295,7 +308,7 @@ describe("the locked answer and the teaser", () => {
     expect(
       text.replace(/https:\/\/r2\.test\/events\/[^"]+/g, ""),
     ).not.toContain("events/");
-    expect(readGuestManifestPage).not.toHaveBeenCalled();
+    expect(planGuestAlbumSync).not.toHaveBeenCalled();
   });
 
   it("the teaser's validator never validates the full album, nor another gate", async () => {
@@ -332,6 +345,73 @@ describe("the locked answer and the teaser", () => {
     );
     expect(full.status).toBe(200);
     expect((await full.json()).kind).toBe("delta");
+  });
+});
+
+describe("a refusal after the decision let the viewer in (build 10: the host's own password album)", () => {
+  const LOCKED = {
+    ok: true,
+    kind: "locked",
+    access: "none",
+    gate: "password",
+  };
+
+  it("★ the plan refused at full answers LOCKED behind the password, never a 500, and is reported", async () => {
+    planGuestAlbumSync.mockResolvedValue(null);
+    const res = await post({ qr_token: "qr-1" });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual(LOCKED);
+    expect(res.headers.get("etag")).toBeNull();
+    expect(reportAlbumRefused).toHaveBeenCalledWith(EVENT.id, "sync");
+    expect(getGuestCount).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["full", null],
+    ["teaser", "account"],
+  ])(
+    "the versions refused at %s answer locked behind the password, and are reported",
+    async (access, gate) => {
+      resolveAlbumViewer.mockResolvedValue({
+        kind: "viewer",
+        event: EVENT,
+        decision: { access, gate },
+        isDemo: false,
+        heal: null,
+      });
+      readGuestAlbumVersions.mockResolvedValue(null);
+      const res = await post({ qr_token: "qr-1", since: 5 });
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual(LOCKED);
+      expect(reportAlbumRefused).toHaveBeenCalledWith(EVENT.id, "sync");
+      expect(planGuestAlbumSync).not.toHaveBeenCalled();
+      expect(getApprovedPhotoTeaser).not.toHaveBeenCalled();
+    },
+  );
+
+  it("a refusal still writes a pending heal, and never a validator", async () => {
+    resolveAlbumViewer.mockResolvedValue({
+      kind: "viewer",
+      event: EVENT,
+      decision: { access: "full", gate: null },
+      isDemo: false,
+      heal: HEAL,
+    });
+    planGuestAlbumSync.mockResolvedValue(null);
+    const res = await post({ qr_token: "qr-1", session_token: HEAL.value });
+    expect(await res.json()).toEqual(LOCKED);
+    expect(res.headers.get("set-cookie")).toContain(
+      `pr_guest_e1=${HEAL.value}`,
+    );
+    expect(res.headers.get("etag")).toBeNull();
+  });
+
+  it("a read that FAILS is a failure, not a refusal: never answered as a locked album", async () => {
+    planRead.mockRejectedValue(new Error("album: changes since"));
+    await expect(post({ qr_token: "qr-1" })).rejects.toThrow(
+      "album: changes since",
+    );
+    expect(reportAlbumRefused).not.toHaveBeenCalled();
   });
 });
 
