@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Guest door: at a password event the winning `identity-door` look shows no photograph before the unlock (`peek` face-down prints, `ticket` the ghost river, `lit` the house five); the look's wiring carries it (from `door-r2`).
+- The lab: the door board's keyboard is drawn at 335pt, never measured; `door-flow`'s simulator walk trues `KEYBOARD_H` in `sandbox/identity-door/keyboard.tsx`.
 - Albums: prune `album_changes` tombstones (one row per item ever, a purged item's included) with a per-event watermark that answers resync below it, as a job with its `/admin` health signal (from `album-pages`).
 - Album: the count row could carry the guest's own share as a quiet phrase that is the filter ("28 photos & videos · 8 yours"), so Yours is in plain sight whichever mark wins (today it is two taps into View); from `mark-r3`.
 - Host: the lightbox's pending Approve branch can never render (`src/components/shared/media-lightbox`); remove it or give it a door (from `reel-host-wiring`).
