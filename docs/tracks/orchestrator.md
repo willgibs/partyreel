@@ -38,7 +38,6 @@ in auto mode ("work through the night on all of this until fully complete"); the
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `reel-clip-wiring` | the creator with his tabs, the finish, the Studio out, the client adds, the seam flip, `reel-front` on the tile | building (agent `abac01a6bfea16cbd`) | Opus, :3131 | integrate first of the stretch's last three |
 | `reel-teardown` | the stored reel's server side out, `reel_clip_add`, the lever's admin switch and the host reading it, the R2 sweep script | handed off at `6c3db0f2`; waits for the clip lane's merge, then syncs (agent `a17875c8c12aa4276`); three out-of-owns edits to decide (`dashboard/page.tsx`, two tests) | Sonnet, :3132 | two calls: the clip budget per guest session (10 a day), the lever's off reading as the host's own off |
 | `reel-sweep` | the words everywhere but round 2's four, help, legal, docs, `reel.md` born | building (agent `a5e526adcff700214`) | Opus, :3133 | integrate last, synced; then build 9 |
 | `album-window` | windowed rows, the memo'd tile, no off-screen animation, three steps, the push arrival, the density control, the perf harness | building (agent `a14670e17b0a7ffc3`) | Opus, :3136 | its masonry fixes ship at its merge |

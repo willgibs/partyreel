@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Clips: a guest's Add to event in the creator follows its queue item (uploading, held for review, refused) instead of reading Added on hand-off (from `reel-clip-wiring`).
+- The reel: `buildReelProps` caps on the mood timeline, so a treatment runs past or short of its length; the lab's builders could share the clip's own-clock fit (`clip-selection.ts`).
+- Housekeeping: the Studio's reveal leftovers, unreferenced now: `globals.css`'s `--tune-rvl-*` and `--tune-rxp-*` block and its `[data-rvl-*]` rules, `src/lib/shared/use-reveal-acts.ts` with its test, and the comments naming `reveal-constants.ts` (`globals.css`, `motion-tuner-config.ts`, `design-system.md`).
 - Guest door: at a password event the winning `identity-door` look shows no photograph before the unlock (`peek` face-down prints, `ticket` the ghost river, `lit` the house five); the look's wiring carries it (from `door-r2`).
 - The lab: the door board's keyboard is drawn at 335pt, never measured; `door-flow`'s simulator walk trues `KEYBOARD_H` in `sandbox/identity-door/keyboard.tsx`.
 - Albums: prune `album_changes` tombstones (one row per item ever, a purged item's included) with a per-event watermark that answers resync below it, as a job with its `/admin` health signal (from `album-pages`).
