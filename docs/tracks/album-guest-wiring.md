@@ -41,7 +41,6 @@ reads:                  # single-sources you depend on: never duplicate, never e
   - src/lib/shared/album-window.ts
   - src/lib/shared/album-rows.ts
   - src/components/shared/density-control.tsx
-  - scripts/album-perf.mjs
   - docs/systems/design-system.md
 ---
 
