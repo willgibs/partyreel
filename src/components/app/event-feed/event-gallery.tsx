@@ -58,9 +58,10 @@ type View = "album" | "deleted";
  * step a returning host picked.
  *
  * ★ THE BIN IS FETCHED ON DEMAND, NEVER WITH THE PAGE, AND IS PAGED. Choosing
- * the filter reads the bin's list (ids, shapes, countdowns, no links), once for
- * the life of the island, and its rows mint links per window like the album's
- * (`useHubBin`), so a bin of a thousand costs what its first screen shows.
+ * the filter reads the bin's list (ids, shapes, countdowns, no links), again
+ * each time it is chosen so what was just deleted is there, and its rows mint
+ * links per window like the album's (`useHubBin`), so a bin of a thousand costs
+ * what its first screen shows.
  *
  * ★ THE BIN'S ITEMS ARE NEVER IN THE ALBUM'S COUNT. The count beside "Album" is
  * the live album's, full stop — a host reading "48 photos" must be reading the

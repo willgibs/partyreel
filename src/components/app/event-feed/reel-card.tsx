@@ -65,19 +65,25 @@ const LABEL = "Highlight reel";
  * to live on the very photograph that makes the guest's reel appear. Its stills are the reel's own
  * take, which only the server can plan (who uploaded, how liked) and presign, so when the state moves
  * or a still it shows leaves the album, it asks once for that album version
- * (`refreshHubReelAction`), drawing the new state plainly meanwhile. Off stays off: the switch and
- * the platform's lever live in Settings, whose save re-renders the page. Off the hub, the page's face.
+ * (`refreshHubReelAction`), drawing the new state plainly meanwhile. Off the hub, the page's face.
+ *
+ * ★ THE PAGE'S FACE WINS WHEN IT CHANGES. The switch and the platform's lever live in Settings,
+ * whose save re-renders the page and hands this a new face: a card that went live here and was then
+ * switched off must say Off, and a card switched back on wears the take the page just read. So a new
+ * face from the page replaces whatever this card worked out, and "off" is always the page's word.
  */
 export function useLiveReel(eventId: string, reel: ReelCardData): ReelCardData {
   const album = useHostAlbum();
   const entries = useHubEntries(album);
   const counts = useHubCounts(album);
-  const [face, setFace] = useState({
-    state: reel.state,
-    have: reel.have,
-    stills: reel.stills,
-    stillIds: reel.stillIds ?? [],
-  });
+  const [face, setFace] = useState(() => servedFace(reel));
+  // A new face from the page (its object is new only when the page rendered again), adopted during
+  // render: React's own pattern for state that follows a prop.
+  const [served, setServed] = useState(reel);
+  if (served !== reel) {
+    setServed(reel);
+    setFace(servedFace(reel));
+  }
   const playable = useMemo(
     () => (entries ? playableCount(entries, REEL_MINIMUM) : null),
     [entries],
@@ -92,11 +98,13 @@ export function useLiveReel(eventId: string, reel: ReelCardData): ReelCardData {
   }, [entries, face.stillIds]);
 
   const want: ReelState =
-    reel.state === "off" || playable === null
-      ? face.state
-      : playable >= REEL_MINIMUM
-        ? "live"
-        : "counting";
+    reel.state === "off"
+      ? "off"
+      : playable === null
+        ? face.state
+        : playable >= REEL_MINIMUM
+          ? "live"
+          : "counting";
   const stale = reel.state !== "off" && (want !== face.state || gone);
 
   // One ask per album the card saw go stale: a late answer that still disagrees waits for the next
@@ -123,6 +131,16 @@ export function useLiveReel(eventId: string, reel: ReelCardData): ReelCardData {
     stills: want === face.state && !gone ? face.stills : [],
     stillIds: face.stillIds,
     pending: counts?.pending ?? reel.pending,
+  };
+}
+
+/** The part of the page's reel face the card can later work out, or ask for, on its own. */
+function servedFace(reel: ReelCardData) {
+  return {
+    state: reel.state,
+    have: reel.have,
+    stills: reel.stills,
+    stillIds: reel.stillIds ?? [],
   };
 }
 

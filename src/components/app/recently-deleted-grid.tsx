@@ -4,6 +4,7 @@ import {
   type CSSProperties,
   useCallback,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
   useTransition,
@@ -11,10 +12,7 @@ import {
 import { Trash2, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 
-import {
-  purgeMediaNowAction,
-  restoreMediaAction,
-} from "@/app/(app)/dashboard/[eventId]/actions";
+import { useHubWrites } from "@/components/app/event-feed/host-album";
 import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
 import { MasonryColumns } from "@/components/shared/masonry";
 import { Button } from "@/components/ui/button";
@@ -73,10 +71,11 @@ function BinTileOverlay({
   onRestored?: () => void;
 }) {
   const [isPending, startTransition] = useTransition();
+  const writes = useHubWrites();
 
   function onRestore() {
     startTransition(async () => {
-      const result = await restoreMediaAction(eventId, item.id);
+      const result = await writes.restore(eventId, item.id);
       if (result.ok) {
         toast.success("Restored. It's back in the album.");
         onGone?.(item.id);
@@ -103,7 +102,7 @@ function BinTileOverlay({
 
   function onPurge() {
     startTransition(async () => {
-      const result = await purgeMediaNowAction(eventId, [item.id]);
+      const result = await writes.purge(eventId, [item.id]);
       if (result.ok) {
         toast.success("Permanently deleted.");
         onGone?.(item.id);
@@ -258,7 +257,7 @@ export type HubBinState = {
   status: "idle" | "loading" | "ready" | "error";
   entries: readonly BinEntry[];
   links: LinkStore<null>;
-  /** Read the list (once for the island's life; again after a failure). */
+  /** Read the list (each time the filter is chosen; the last list stays on screen meanwhile). */
   open: () => void;
   /** Items that left the bin. */
   drop: (ids: readonly string[]) => void;
@@ -277,15 +276,20 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
 
 /**
  * THE PAGED BIN'S STATE (`lib/event/bin.ts`). Nothing is read until the Deleted filter is chosen;
- * then the list comes once (ids, shapes, countdowns) and each window's links through the album's own
- * link store (dated and re-minted the same way). An id the links route no longer finds in the bin
+ * then the list comes (ids, shapes, countdowns) and each window's links through the album's own link
+ * store (dated and re-minted the same way). An id the links route no longer finds in the bin
  * (restored in another tab, purged by the sweep) leaves the list.
+ *
+ * ★ THE LIST IS READ AGAIN EACH TIME THE FILTER IS CHOSEN. A host who deletes from the album and
+ * then opens Deleted must find what she just deleted there, and a list kept for the island's life
+ * (the old bin's rule, when every item in it cost a presign) showed the bin as it was the first time
+ * she looked. The list has no links, so reading it again costs one light request; the links it
+ * already minted stay in the store, and the last list stays on screen while the new one is read.
  */
 export function useHubBin(eventId: string): HubBinState {
-  const [list, setList] = useState<{
-    status: HubBinState["status"];
-    entries: readonly BinEntry[];
-  }>({ status: "idle", entries: [] });
+  const [list, setList] = useState<BinList>(IDLE_BIN);
+  // One read at a time (read and written only in `open`, an event's handler).
+  const inFlight = useRef(false);
 
   const drop = useCallback((ids: readonly string[]) => {
     if (ids.length === 0) return;
@@ -293,6 +297,8 @@ export function useHubBin(eventId: string): HubBinState {
     setList((prev) => ({
       ...prev,
       entries: prev.entries.filter((e) => !gone.has(e[0])),
+      // Left while a read is out: that read's answer, read before it left, must not bring it back.
+      left: prev.reading ? new Set([...prev.left, ...gone]) : prev.left,
     }));
   }, []);
 
@@ -307,10 +313,15 @@ export function useHubBin(eventId: string): HubBinState {
     }),
   );
 
-  const status = list.status;
   const open = useCallback(() => {
-    if (status === "loading" || status === "ready") return; // Already paid for.
-    setList((prev) => ({ ...prev, status: "loading" }));
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setList((prev) => ({
+      ...prev,
+      status: prev.status === "ready" ? "ready" : "loading",
+      reading: true,
+      left: NONE_LEFT,
+    }));
     void (async () => {
       try {
         const res = await fetch(
@@ -319,15 +330,46 @@ export function useHubBin(eventId: string): HubBinState {
         );
         if (!res.ok) throw new Error(`bin: ${res.status}`);
         const body = (await res.json()) as BinManifestBody;
-        setList({ status: "ready", entries: body.entries });
+        // In the bin now, by this read: an id the links route once answered missing (restored in
+        // another tab) and since deleted again is asked for again.
+        links.revive(body.entries.map((e) => e[0]));
+        setList((prev) => ({
+          status: "ready",
+          entries: body.entries.filter((e) => !prev.left.has(e[0])),
+          reading: false,
+          left: NONE_LEFT,
+        }));
       } catch {
-        setList((prev) => ({ ...prev, status: "error" }));
+        // A first read that failed says so; a read again that failed keeps the list on screen.
+        setList((prev) => ({
+          ...prev,
+          status: prev.status === "ready" ? "ready" : "error",
+          reading: false,
+          left: NONE_LEFT,
+        }));
+      } finally {
+        inFlight.current = false;
       }
     })();
-  }, [eventId, status]);
+  }, [eventId, links]);
 
-  return { ...list, links, open, drop };
+  return { status: list.status, entries: list.entries, links, open, drop };
 }
+
+/** The bin's list as the hook holds it: what it shows, and whether a read is out and what left meanwhile. */
+type BinList = {
+  status: HubBinState["status"];
+  entries: readonly BinEntry[];
+  reading: boolean;
+  left: ReadonlySet<string>;
+};
+const NONE_LEFT: ReadonlySet<string> = new Set();
+const IDLE_BIN: BinList = {
+  status: "idle",
+  entries: [],
+  reading: false,
+  left: NONE_LEFT,
+};
 
 /** The bin's grid over its list and its windows' links. */
 export function HubBin({

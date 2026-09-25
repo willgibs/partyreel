@@ -272,8 +272,8 @@ describe("the live card", () => {
     stillIds: [id(1)],
   };
 
-  function Probe() {
-    const reel = useLiveReel("e1", served);
+  function Probe({ face = served }: { face?: ReelCardData }) {
+    const reel = useLiveReel("e1", face);
     return (
       <span data-testid="card">
         {reel.state}:{reel.have}:{reel.stills.join(",")}
@@ -326,6 +326,68 @@ describe("the live card", () => {
       });
     });
     expect(screen.getByTestId("card").textContent).toBe("live:2:take-2,take-1");
+    expect(refreshHubReelAction).toHaveBeenCalledTimes(1);
+  });
+
+  // ★ THE PAGE'S FACE WINS WHEN IT CHANGES. Settings' switch saves and re-renders the page, which
+  // hands the card a new face: a card that went live on the album's own count must then say Off (it
+  // kept "live" until a reload, the scar), and switched back on it wears the take the page just read.
+  it("says Off the moment the page's face does, and wears the page's take when switched back on", async () => {
+    refreshHubReelAction.mockReset();
+    polls.length = 0;
+    polls.push(() => ({
+      kind: "delta",
+      v: 2,
+      attr: 0,
+      upsert: [entry(2)],
+      remove: [],
+      ok: true,
+      counts: { album: 2, pending: 0 },
+    }));
+    refreshHubReelAction.mockResolvedValue({
+      ok: true,
+      reel: {
+        state: "live",
+        have: 2,
+        stills: ["take-2", "take-1"],
+        stillIds: [id(2), id(1)],
+      },
+    });
+
+    const { rerender } = render(
+      <HostAlbumProvider seed={seed} qrToken="qr">
+        <Probe />
+      </HostAlbumProvider>,
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId("card").textContent).toBe(
+        "live:2:take-2,take-1",
+      ),
+    );
+
+    // Switched off in Settings: the page renders again with the switch's word.
+    rerender(
+      <HostAlbumProvider seed={seed} qrToken="qr">
+        <Probe face={{ ...base, state: "off", have: 2, stillIds: [] }} />
+      </HostAlbumProvider>,
+    );
+    expect(screen.getByTestId("card").textContent).toBe("off:2:");
+
+    // Switched back on: the page's own take, adopted as it is, with nothing asked again.
+    rerender(
+      <HostAlbumProvider seed={seed} qrToken="qr">
+        <Probe
+          face={{
+            ...base,
+            state: "live",
+            have: 2,
+            stills: ["page-2", "page-1"],
+            stillIds: [id(2), id(1)],
+          }}
+        />
+      </HostAlbumProvider>,
+    );
+    expect(screen.getByTestId("card").textContent).toBe("live:2:page-2,page-1");
     expect(refreshHubReelAction).toHaveBeenCalledTimes(1);
   });
 });

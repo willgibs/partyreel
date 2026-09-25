@@ -27,6 +27,14 @@ import {
 } from "react";
 
 import {
+  purgeMediaNowAction,
+  removeMediaAction,
+  removeMediaBulkAction,
+  restoreMediaAction,
+  setMediaStatusAction,
+  setMediaStatusBulkAction,
+} from "@/app/(app)/dashboard/[eventId]/actions";
+import {
   createAlbumStore,
   type AlbumSnapshot,
   type AlbumStore,
@@ -97,11 +105,39 @@ export type HubAlbum = {
   /** One poll now (a doorbell, a write that just landed); resolves when the store has caught up. */
   sync: () => Promise<void>;
   live: Flag;
+  /** The album's writes (`HUB_WRITES`, or the lab's fakes). */
+  writes: HubWrites;
+};
+
+/**
+ * THE ALBUM'S WRITES: the hub's own Server Functions, reached through the album so the lab's scale
+ * page can hand fakes (its album has no server behind it, as its store has a fake transport), which is
+ * how a bulk Hide of a whole album is walked and measured before an alias carries it. A grid outside
+ * the hub (the Library's) calls these same functions.
+ */
+export type HubWrites = {
+  setStatus: typeof setMediaStatusAction;
+  setStatusBulk: typeof setMediaStatusBulkAction;
+  remove: typeof removeMediaAction;
+  removeBulk: typeof removeMediaBulkAction;
+  restore: typeof restoreMediaAction;
+  purge: typeof purgeMediaNowAction;
+};
+
+/** The Server Functions, each read when it is called (a test's module mock names only what it calls). */
+export const HUB_WRITES: HubWrites = {
+  setStatus: (...a) => setMediaStatusAction(...a),
+  setStatusBulk: (...a) => setMediaStatusBulkAction(...a),
+  remove: (...a) => removeMediaAction(...a),
+  removeBulk: (...a) => removeMediaBulkAction(...a),
+  restore: (...a) => restoreMediaAction(...a),
+  purge: (...a) => purgeMediaNowAction(...a),
 };
 
 function createHubAlbum(
   seed: HubAlbumSeed,
   live: AlbumTransport<HostWhoTuple>,
+  writes: HubWrites,
 ): HubAlbum {
   const likeCounts = createLikeCounts();
   const store = createAlbumStore<HostWhoTuple>({
@@ -127,6 +163,7 @@ function createHubAlbum(
     ),
     sync: () => store.sync(),
     live: createFlag(false),
+    writes,
   };
 }
 
@@ -135,6 +172,11 @@ const HostAlbumContext = createContext<HubAlbum | null>(null);
 /** The hub's album, or null off the hub (the Library's grids, the Review room). */
 export function useHostAlbum(): HubAlbum | null {
   return useContext(HostAlbumContext);
+}
+
+/** The album's writes: the hub's (the Server Functions, or the lab's fakes), else the Server Functions. */
+export function useHubWrites(): HubWrites {
+  return useContext(HostAlbumContext)?.writes ?? HUB_WRITES;
 }
 
 /** The album as it stands: the store's once it has adopted the seed, the seed's until then. */
@@ -206,6 +248,7 @@ export function HostAlbumProvider({
   seed,
   qrToken,
   transport,
+  writes = HUB_WRITES,
   doorbell = true,
   children,
 }: {
@@ -214,6 +257,8 @@ export function HostAlbumProvider({
   qrToken: string;
   /** The routes the store polls; the host's own by default (the lab's scale page hands a fake). */
   transport?: AlbumTransport<HostWhoTuple>;
+  /** The album's writes; the hub's Server Functions by default (the lab's scale page hands fakes). */
+  writes?: HubWrites;
   /** Whether to listen on the doorbell's socket (off on the lab's scale page, which has none). */
   doorbell?: boolean;
   children: React.ReactNode;
@@ -222,6 +267,7 @@ export function HostAlbumProvider({
     createHubAlbum(
       seed,
       transport ?? hostAlbumTransport({ eventId: seed.eventId }),
+      writes,
     ),
   );
 

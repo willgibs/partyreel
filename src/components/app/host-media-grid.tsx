@@ -14,11 +14,9 @@ import { Download, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 import {
-  removeMediaAction,
-  removeMediaBulkAction,
-  setMediaStatusAction,
-  setMediaStatusBulkAction,
-} from "@/app/(app)/dashboard/[eventId]/actions";
+  useHubWrites,
+  type HubWrites,
+} from "@/components/app/event-feed/host-album";
 import { useExportDownload } from "@/components/app/export/use-export-download";
 import { useHostSelection } from "@/components/app/host-selection-provider";
 import { type GridMedia } from "@/components/app/media-grid";
@@ -115,6 +113,7 @@ function useModeration(
   eventId: string,
   applyOptimistic: (change: OptimisticChange) => void,
   afterWrite: () => Promise<void>,
+  writes: HubWrites,
 ): Moderation {
   const [, startTransition] = useTransition();
 
@@ -133,7 +132,7 @@ function useModeration(
           : "Couldn't approve that item.";
     startTransition(async () => {
       applyOptimistic({ type: "status", id: item.id, status });
-      const result = await setMediaStatusAction(eventId, item.id, status);
+      const result = await writes.setStatus(eventId, item.id, status);
       if (!result.ok) {
         toast.error(failTitle, { description: result.message });
         return;
@@ -146,7 +145,7 @@ function useModeration(
   const remove = (item: GridMedia) => {
     startTransition(async () => {
       applyOptimistic({ type: "remove", id: item.id });
-      const result = await removeMediaAction(eventId, item.id);
+      const result = await writes.remove(eventId, item.id);
       if (!result.ok) {
         toast.error("Couldn't remove that item.", {
           description: result.message,
@@ -278,6 +277,7 @@ export function HostMediaGrid({
   rows?: HubRows;
 }) {
   const afterWrite = rows?.afterWrite ?? NO_WRITE;
+  const writes = useHubWrites();
   // ONE optimistic source over the album's items, shared by the tiles AND the lightbox
   // (both render from optimisticItems), so a hide/approve/remove updates instantly; it
   // reverts on failure. ONE moderation hook drives both surfaces.
@@ -289,6 +289,7 @@ export function HostMediaGrid({
     eventId,
     applyOptimistic,
     afterWrite,
+    writes,
   );
   // The arrival mark reads the album's items, never the optimistic overlay: an
   // optimistic hide removes nothing and adds nothing, and a host's own action is
@@ -351,7 +352,7 @@ export function HostMediaGrid({
       startBulk(async () => {
         applyOptimistic({ type: "status-many", ids: new Set(ids), status });
         const res = await inBulkBatches(ids, (batch) =>
-          setMediaStatusBulkAction(eventId, batch, status),
+          writes.setStatusBulk(eventId, batch, status),
         );
         if (!res.ok) {
           toast.error(res.message || "Couldn't update those items.");
@@ -375,7 +376,7 @@ export function HostMediaGrid({
         applyOptimistic({ type: "remove-many", ids: new Set(ids) });
         setExiting(new Set());
         const res = await inBulkBatches(ids, (batch) =>
-          removeMediaBulkAction(eventId, batch),
+          writes.removeBulk(eventId, batch),
         );
         if (!res.ok) {
           toast.error(

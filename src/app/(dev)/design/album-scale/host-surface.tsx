@@ -8,6 +8,7 @@ import { EventGallery } from "@/components/app/event-feed/event-gallery";
 import {
   HostAlbumProvider,
   useHostAlbum,
+  type HubWrites,
 } from "@/components/app/event-feed/host-album";
 import { EventUploads } from "@/components/app/event-uploads";
 import { HostAddProvider } from "@/components/app/host-add-provider";
@@ -22,11 +23,20 @@ import {
 } from "@/components/likes/likes-provider";
 import { setAlbumRenderProbe } from "@/components/shared/album-tile-probe";
 import type { AlbumTransport } from "@/lib/album/store";
+import {
+  toBinEntry,
+  type BinLinksBody,
+  type BinManifestBody,
+} from "@/lib/event/bin";
+import { BULK_LIMIT_MESSAGE, MAX_BULK_ITEMS } from "@/lib/event/bulk-selection";
 import type { HubAlbumSeed } from "@/lib/event/hub-album";
 import {
+  ALBUM_RESYNC_AFTER,
+  ENTRY_HIDDEN,
   ENTRY_PREVIEW,
   ENTRY_REEL,
   ENTRY_VIDEO,
+  compareEntries,
   type AlbumLinkTuple,
   type HostAlbumLinksBody,
   type HostSyncBody,
@@ -40,16 +50,23 @@ import { scaleItem } from "./fixtures";
 
 /**
  * THE HOST'S ALBUM AT SCALE (album-host-wiring): the hub's real album, its store, its window, its
- * select mode and its View menu, over the scale page's synthetic photographs, for
- * `scripts/album-perf.mjs --query surface=host` to measure on a production build. The hub itself sits
- * behind a sign-in a local server cannot complete, so this is where its album is measured before the
- * alias carries it; the transport is a fake answering the routes' own shapes, and the likes live in
- * memory, as on the guest's scale page.
+ * select mode, its bin and its View menu, over the scale page's synthetic photographs, for
+ * `scripts/album-perf.mjs --query surface=host` to measure on a production build and for the hub's
+ * walk (select all, hide and show in batches, delete, the bin, restore, Sort, an arrival). The hub
+ * itself sits behind a sign-in a local server cannot complete, so this is where its album is walked
+ * before the alias carries it.
+ *
+ * ★ A FAKE SERVER, KEPT HONEST. One in-memory album answers the three things the hub talks to: the
+ * store's poll (a 304 at the current version, a delta by id since the client's, a fresh manifest past
+ * `ALBUM_RESYNC_AFTER` changes, exactly as `album_changes_since` plans it), the album's writes (handed
+ * to `HostAlbumProvider` as `writes`, refusing past `MAX_BULK_ITEMS` as the actions do), and the bin's
+ * two routes (answered by a `fetch` shim on this page alone). The likes live in memory, as on the
+ * guest's scale page.
  *
  * `__albumScale` speaks the harness's API with the host's meanings: `like` hearts the first tile in
  * view, `tick` is nothing (a host album has no tile in flight), `poll` is a real sync answered 304,
- * `arrive(n)` a real delta of n photographs at the head. `select()` and `toggle(id)` drive select
- * mode on the one grid.
+ * `arrive(n)` n photographs landing at the head of the server's album, then a real sync. `select()`
+ * and `toggle(id)` drive select mode on the one grid; `server()` and `album()` read both sides.
  */
 type HostScaleApi = {
   ready: true;
@@ -65,6 +82,8 @@ type HostScaleApi = {
   select: () => void;
   toggle: (id?: string) => string | null;
   links: () => number;
+  server: () => FakeServerState;
+  album: () => { entries: number; hidden: number; albumCount: number | null };
 };
 
 declare global {
@@ -73,15 +92,375 @@ declare global {
   }
 }
 
-/** A fixture photograph as the host's manifest carries it. */
-function toEntry(m: GridMedia, t: number): ManifestEntry {
-  const flags =
-    ENTRY_REEL | ENTRY_PREVIEW | (m.type === "video" ? ENTRY_VIDEO : 0);
-  return [m.id, m.width ?? 0, m.height ?? 0, flags, t];
-}
+/** What the fake server holds and has been asked, for the walk to read. */
+type FakeServerState = {
+  version: number;
+  approved: number;
+  hidden: number;
+  removed: number;
+  /** Every write, in order: its kind and how many ids it carried. */
+  writes: { kind: string; n: number }[];
+  /** Polls answered: 304s, deltas, manifests. */
+  polls: { unchanged: number; deltas: number; manifests: number };
+  albumLinkIds: number;
+  binReads: number;
+  binLinkIds: number;
+};
+
+type Status = "approved" | "hidden" | "removed";
+type Row = { media: GridMedia; t: number; status: Status; removedAt: number };
 
 /** The newest first: the first item the latest, one second apart. */
 const T0 = 1_790_000_000_000_000;
+
+const EVENT = "lab-scale";
+
+/** A fixture photograph as the host's manifest carries it, in its status. */
+function entryOf(row: Row): ManifestEntry {
+  const m = row.media;
+  const flags =
+    ENTRY_REEL |
+    ENTRY_PREVIEW |
+    (m.type === "video" ? ENTRY_VIDEO : 0) |
+    (row.status === "hidden" ? ENTRY_HIDDEN : 0);
+  return [m.id, m.width ?? 0, m.height ?? 0, flags, row.t];
+}
+
+/**
+ * THE FAKE SERVER: the album, a change log keyed on a version, the writes, and the bin's routes.
+ * Pure data and closures (no React), created once per page.
+ */
+function createFakeHub(count: number) {
+  const rows = new Map<string, Row>();
+  for (let i = 0; i < count; i++) {
+    const media = scaleItem(i);
+    rows.set(media.id, {
+      media,
+      t: T0 - i * 1_000_000,
+      status: "approved",
+      removedAt: 0,
+    });
+  }
+  let version = 1;
+  const log: { v: number; id: string }[] = [];
+  const state = {
+    writes: [] as FakeServerState["writes"],
+    polls: { unchanged: 0, deltas: 0, manifests: 0 },
+    albumLinkIds: 0,
+    binReads: 0,
+    binLinkIds: 0,
+  };
+  let arrivals = 0;
+
+  const touch = (id: string) => {
+    version += 1;
+    log.push({ v: version, id });
+  };
+  const albumRows = () =>
+    [...rows.values()].filter((r) => r.status !== "removed");
+  const counts = () => ({ album: albumRows().length, pending: 0 });
+  const albumEntries = () => albumRows().map(entryOf).sort(compareEntries);
+  const refuseSize = (ids: readonly string[]) =>
+    ids.length > MAX_BULK_ITEMS
+      ? ({
+          ok: false,
+          code: "validation",
+          message: BULK_LIMIT_MESSAGE,
+        } as const)
+      : null;
+
+  const transport: AlbumTransport<HostWhoTuple> = {
+    async sync({ since }) {
+      const etag = `"a1-lab-${version}"`;
+      if (since === version) {
+        state.polls.unchanged += 1;
+        return { status: 304 };
+      }
+      const changed =
+        since === null
+          ? null
+          : new Set(log.filter((c) => c.v > since).map((c) => c.id));
+      if (!changed || changed.size > ALBUM_RESYNC_AFTER) {
+        state.polls.manifests += 1;
+        const body: HostSyncBody = {
+          kind: "manifest",
+          v: version,
+          attr: 0,
+          entries: albumEntries(),
+          next: null,
+          ok: true,
+          counts: counts(),
+        };
+        return { status: 200, etag, body };
+      }
+      state.polls.deltas += 1;
+      const upsert: ManifestEntry[] = [];
+      const remove: string[] = [];
+      for (const id of changed) {
+        const row = rows.get(id);
+        if (row && row.status !== "removed") upsert.push(entryOf(row));
+        else remove.push(id);
+      }
+      const body: HostSyncBody = {
+        kind: "delta",
+        v: version,
+        attr: 0,
+        upsert,
+        remove,
+        ok: true,
+        counts: counts(),
+      };
+      return { status: 200, etag, body };
+    },
+    async manifest() {
+      throw new Error("the lab's album fits one manifest page");
+    },
+    async links(ids) {
+      state.albumLinkIds += ids.length;
+      const now = Date.now();
+      const body: HostAlbumLinksBody = {
+        ok: true,
+        access: "full",
+        gate: null,
+        b: Number(presignBucketId(now)),
+        now,
+        links: ids.flatMap((id): AlbumLinkTuple<HostWhoTuple>[] => {
+          const row = rows.get(id);
+          if (!row || row.status === "removed") return [];
+          const m = row.media;
+          return [
+            [id, m.previewUrl ?? m.url, m.url, m.url, ["Guest", 0, null]],
+          ];
+        }),
+        missing: ids.filter((id) => {
+          const row = rows.get(id);
+          return !row || row.status === "removed";
+        }),
+        likes: {},
+      };
+      return body;
+    },
+  };
+
+  const writes: HubWrites = {
+    async setStatus(_event, id, status) {
+      state.writes.push({ kind: `status:${status}`, n: 1 });
+      const row = rows.get(id);
+      if (
+        row &&
+        row.status !== "removed" &&
+        (status === "approved" || status === "hidden")
+      ) {
+        row.status = status;
+        touch(id);
+      }
+      return { ok: true };
+    },
+    async setStatusBulk(_event, ids, status) {
+      const refused = refuseSize(ids);
+      if (refused) return refused;
+      state.writes.push({ kind: `status-bulk:${status}`, n: ids.length });
+      for (const id of ids) {
+        const row = rows.get(id);
+        if (
+          row &&
+          row.status !== "removed" &&
+          (status === "approved" || status === "hidden")
+        ) {
+          row.status = status;
+          touch(id);
+        }
+      }
+      return { ok: true };
+    },
+    async remove(_event, id) {
+      state.writes.push({ kind: "remove", n: 1 });
+      const row = rows.get(id);
+      if (row && row.status !== "removed") {
+        row.status = "removed";
+        row.removedAt = Date.now();
+        touch(id);
+      }
+      return { ok: true };
+    },
+    async removeBulk(_event, ids) {
+      const refused = refuseSize(ids);
+      if (refused) return refused;
+      state.writes.push({ kind: "remove-bulk", n: ids.length });
+      const at = Date.now();
+      for (const id of ids) {
+        const row = rows.get(id);
+        if (row && row.status !== "removed") {
+          row.status = "removed";
+          row.removedAt = at;
+          touch(id);
+        }
+      }
+      return { ok: true };
+    },
+    async restore(_event, id) {
+      state.writes.push({ kind: "restore", n: 1 });
+      const row = rows.get(id);
+      if (!row || row.status !== "removed")
+        return { ok: false, code: "validation", message: "Not in Deleted." };
+      row.status = "approved";
+      row.removedAt = 0;
+      touch(id);
+      return { ok: true };
+    },
+    async purge(_event, ids) {
+      const refused = refuseSize(ids);
+      if (refused) return refused;
+      state.writes.push({ kind: "purge", n: ids.length });
+      for (const id of ids) {
+        if (rows.get(id)?.status === "removed") rows.delete(id);
+      }
+      return { ok: true };
+    },
+  };
+
+  /** The bin's list and its links, as `/api/events/<id>/bin` and `bin/media` answer them. */
+  function binList(): BinManifestBody {
+    state.binReads += 1;
+    const binned = [...rows.values()]
+      .filter((r) => r.status === "removed")
+      .sort((a, b) => b.removedAt - a.removedAt || b.t - a.t);
+    return {
+      ok: true,
+      entries: binned.map((r) =>
+        toBinEntry({
+          id: r.media.id,
+          type: r.media.type === "video" ? "video" : "photo",
+          width: r.media.width ?? null,
+          height: r.media.height ?? null,
+          duration_seconds: null,
+          preview_key: "lab",
+          countdownDays: 30,
+        }),
+      ),
+    };
+  }
+  function binLinks(ids: string[]): BinLinksBody {
+    state.binLinkIds += ids.length;
+    const now = Date.now();
+    const inBin = (id: string) => rows.get(id)?.status === "removed";
+    return {
+      ok: true,
+      access: "full",
+      gate: null,
+      b: Number(presignBucketId(now)),
+      now,
+      links: ids.filter(inBin).map((id) => {
+        const m = rows.get(id)!.media;
+        return [id, m.previewUrl ?? m.url, m.url, "", null] as const;
+      }),
+      missing: ids.filter((id) => !inBin(id)),
+    };
+  }
+
+  /** n photographs landing at the head of the server's album. */
+  function land(n: number) {
+    for (let k = 0; k < n; k++) {
+      const i = arrivals++;
+      const media = scaleItem(i, "arrival");
+      rows.set(media.id, {
+        media,
+        t: T0 + 10_000_000 + i,
+        status: "approved",
+        removedAt: 0,
+      });
+      touch(media.id);
+    }
+  }
+
+  function read(): FakeServerState {
+    let approved = 0;
+    let hidden = 0;
+    let removed = 0;
+    for (const r of rows.values()) {
+      if (r.status === "approved") approved += 1;
+      else if (r.status === "hidden") hidden += 1;
+      else removed += 1;
+    }
+    return {
+      version,
+      approved,
+      hidden,
+      removed,
+      writes: [...state.writes],
+      polls: { ...state.polls },
+      albumLinkIds: state.albumLinkIds,
+      binReads: state.binReads,
+      binLinkIds: state.binLinkIds,
+    };
+  }
+
+  const seed: HubAlbumSeed = {
+    eventId: EVENT,
+    sync: {
+      kind: "manifest",
+      v: version,
+      attr: 0,
+      entries: albumEntries(),
+      next: null,
+      ok: true,
+      counts: counts(),
+    },
+    etag: `"a1-lab-${version}"`,
+    // The page mints its first window server-side; the lab's links cost nothing, so the window asks.
+    links: {
+      ok: true,
+      access: "full",
+      gate: null,
+      b: 0,
+      now: 0,
+      links: [],
+      missing: [],
+      likes: {},
+    },
+  };
+
+  return { seed, transport, writes, binList, binLinks, land, read };
+}
+
+type FakeHub = ReturnType<typeof createFakeHub>;
+
+/**
+ * The bin's two routes answered on this page alone: every other request goes to the network. Installed
+ * before the first paint's effects run, and taken out with the page.
+ */
+function useBinRoutes(hub: FakeHub) {
+  useEffect(() => {
+    const real = window.fetch;
+    const list = `/api/events/${EVENT}/bin`;
+    const media = `/api/events/${EVENT}/bin/media`;
+    const json = (body: unknown) =>
+      new Response(JSON.stringify(body), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    window.fetch = async (input, init) => {
+      const url =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.pathname
+            : input.url;
+      const path = url.startsWith("http") ? new URL(url).pathname : url;
+      if (path === list) return json(hub.binList());
+      if (path === media) {
+        const { ids } = JSON.parse(String(init?.body ?? "{}")) as {
+          ids: string[];
+        };
+        return json(hub.binLinks(ids));
+      }
+      return real(input, init);
+    };
+    return () => {
+      window.fetch = real;
+    };
+  }, [hub]);
+}
 
 function firstInView(): string | null {
   const tiles = document.querySelectorAll<HTMLElement>(
@@ -95,56 +474,8 @@ function firstInView(): string | null {
   return null;
 }
 
-/** The routes' shapes, answered in memory: links for any fixture, 304 unless a delta waits. */
-function fakeTransport(byId: Map<string, GridMedia>) {
-  const queue: HostSyncBody[] = [];
-  let asked = 0;
-  const transport: AlbumTransport<HostWhoTuple> = {
-    async sync() {
-      const next = queue.shift();
-      return next
-        ? { status: 200, etag: `"a1-lab-${next.v}"`, body: next }
-        : { status: 304 };
-    },
-    async manifest() {
-      throw new Error("the lab's album fits one manifest page");
-    },
-    async links(ids) {
-      asked += ids.length;
-      const now = Date.now();
-      const body: HostAlbumLinksBody = {
-        ok: true,
-        access: "full",
-        gate: null,
-        b: Number(presignBucketId(now)),
-        now,
-        links: ids.flatMap((id): AlbumLinkTuple<HostWhoTuple>[] => {
-          const m = byId.get(id);
-          return m
-            ? [[id, m.previewUrl ?? m.url, m.url, m.url, ["Guest", 0, null]]]
-            : [];
-        }),
-        missing: ids.filter((id) => !byId.has(id)),
-        likes: {},
-      };
-      return body;
-    },
-  };
-  return { transport, queue, asked: () => asked };
-}
-
 /** The harness's hooks, installed inside the providers they drive. */
-function Probe({
-  queue,
-  byId,
-  asked,
-  count,
-}: {
-  queue: HostSyncBody[];
-  byId: Map<string, GridMedia>;
-  asked: () => number;
-  count: () => number;
-}) {
+function Probe({ hub }: { hub: FakeHub }) {
   const album = useHostAlbum();
   const likes = useLikes();
   const selection = useHostSelection();
@@ -153,9 +484,6 @@ function Probe({
     latest.current = { album, likes, selection };
   });
   const counts = useRef({ tile: 0, mark: 0, ids: new Set<string>() });
-  const arrivals = useRef(0);
-  const version = useRef(1);
-  const total = useRef(count());
 
   useEffect(() => {
     setAlbumRenderProbe((kind, id) => {
@@ -186,23 +514,7 @@ function Probe({
         await latest.current.album?.sync();
       },
       arrive: async (n) => {
-        const fresh = Array.from({ length: n }, () => {
-          const i = arrivals.current++;
-          const m = scaleItem(i, "arrival");
-          byId.set(m.id, m);
-          return toEntry(m, T0 + 10_000_000 + i);
-        });
-        total.current += n;
-        version.current += 1;
-        queue.push({
-          kind: "delta",
-          v: version.current,
-          attr: 0,
-          upsert: fresh,
-          remove: [],
-          ok: true,
-          counts: { album: total.current, pending: 0 },
-        });
+        hub.land(n);
         const t0 = performance.now();
         await latest.current.album?.sync();
         const t1 = performance.now();
@@ -222,7 +534,19 @@ function Probe({
         flushSync(() => s.toggle(target));
         return target;
       },
-      links: asked,
+      links: () => hub.read().albumLinkIds,
+      server: () => hub.read(),
+      album: () => {
+        const snap = latest.current.album?.store.getSnapshot();
+        const entries = snap?.entries ?? [];
+        let hidden = 0;
+        for (const e of entries) if (e[3] & ENTRY_HIDDEN) hidden += 1;
+        return {
+          entries: entries.length,
+          hidden,
+          albumCount: snap?.counts?.album ?? null,
+        };
+      },
     };
     window.__hostScale = api;
     // The harness reads `__albumScale`; on this surface it is the host's.
@@ -231,7 +555,7 @@ function Probe({
       setAlbumRenderProbe(null);
       delete window.__hostScale;
     };
-  }, [queue, byId, asked]);
+  }, [hub]);
   return null;
 }
 
@@ -242,38 +566,9 @@ export function HostScale({
   count: number;
   step: RowStep | undefined;
 }) {
-  const [world] = useState(() => {
-    const items = Array.from({ length: count }, (_, i) => scaleItem(i));
-    const byId = new Map(items.map((m) => [m.id, m] as const));
-    const entries = items.map((m, i) => toEntry(m, T0 - i * 1_000_000));
-    const fake = fakeTransport(byId);
-    const seed: HubAlbumSeed = {
-      eventId: "lab-scale",
-      sync: {
-        kind: "manifest",
-        v: 1,
-        attr: 0,
-        entries,
-        next: null,
-        ok: true,
-        counts: { album: entries.length, pending: 0 },
-      },
-      etag: '"a1-lab-1"',
-      // The page mints its first window server-side; the lab's links cost nothing, so the window asks.
-      links: {
-        ok: true,
-        access: "full",
-        gate: null,
-        b: 0,
-        now: 0,
-        links: [],
-        missing: [],
-        likes: {},
-      },
-    };
-    return { byId, fake, seed };
-  });
-  const countOf = useMemo(() => () => count, [count]);
+  const [hub] = useState(() => createFakeHub(count));
+  useBinRoutes(hub);
+  const writes = useMemo(() => hub.writes, [hub]);
 
   return (
     <div
@@ -283,25 +578,21 @@ export function HostScale({
       <div className="px-3 py-4 sm:px-5">
         <LocalLikesProvider>
           <HostAlbumProvider
-            seed={world.seed}
+            seed={hub.seed}
             qrToken="lab"
-            transport={world.fake.transport}
+            transport={hub.transport}
+            writes={writes}
             doorbell={false}
           >
             <HostAddProvider>
               <HostSelectionProvider>
-                <Probe
-                  queue={world.fake.queue}
-                  byId={world.byId}
-                  asked={world.fake.asked}
-                  count={countOf}
-                />
+                <Probe hub={hub} />
                 <EventGallery
-                  eventId="lab-scale"
+                  eventId={EVENT}
                   videosAllowed
                   initialStep={step ?? 1}
                 >
-                  <EventUploads eventId="lab-scale" rhythmSeed={25} />
+                  <EventUploads eventId={EVENT} rhythmSeed={25} />
                 </EventGallery>
               </HostSelectionProvider>
             </HostAddProvider>

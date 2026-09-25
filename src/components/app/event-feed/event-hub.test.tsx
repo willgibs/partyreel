@@ -155,9 +155,13 @@ describe("the album, and the bin as its filter", () => {
     ).toBe(true);
   });
 
-  it("loads the bin only when the filter is chosen, and only once", () => {
-    // Choosing Deleted is what pays for the bin (its list; its links per window), and the list is
-    // kept for the island's life, so flipping back and forth reads nothing again.
+  it("loads the bin only when the filter is chosen, and its list carries no links", () => {
+    // Choosing Deleted is what pays for the bin (its list; its links per window). ★ The reshape of
+    // "and only once" (album-host-wiring): the list used to be kept for the island's life because the
+    // old bin presigned every item in it; the paged bin's list has no links, so it is read again each
+    // time the filter is chosen (`recently-deleted-grid.test.tsx` pins that), and a kept list hid what
+    // the host had just deleted. What stays forbidden is the page paying for the bin, and the list
+    // growing links, which would make each read again cost a presign per item.
     const gallery = code(GALLERY);
     expect(
       /const showDeleted = \(\) => \{\s*setView\("deleted"\);\s*bin\.open\(\);/.test(
@@ -165,11 +169,10 @@ describe("the album, and the bin as its filter", () => {
       ),
       "the bin stopped loading on the filter's choice",
     ).toBe(true);
-    const bin = code("src/components/app/recently-deleted-grid.tsx");
     expect(
-      /if \(status === "loading" \|\| status === "ready"\) return;/.test(bin),
-      "the bin stopped being kept, so flipping the filter reads it again",
-    ).toBe(true);
+      /presign/i.test(code("src/app/api/events/[eventId]/bin/route.ts")),
+      "the bin's list started minting links, so each read of it costs a presign per item",
+    ).toBe(false);
     expect(
       /useHubBin|\/bin/.test(code(HUB)),
       "the hub started loading the bin on every render",
