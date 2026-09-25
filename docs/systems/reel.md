@@ -76,9 +76,11 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
 - **The Highlight reel tile** (`LiveReelTile`, [`reel/live-reel.tsx`](../../src/components/guest/reel/live-reel.tsx))
   sits in its own slot directly above `aboveAlbum`, on the words' column, never a fourth arm of `pickAboveAlbumState`:
   a slow crossfade of six stills from the take, previews only, the app's `PosterCard` headed "Highlight reel", with no
-  engine on the album and nothing blocking its first paint. "Make your own clip to share" renders only once a creator is
-  registered AND the host's plan was read. A tap opens the view (a pointer over it warms the view's chunk); it stays
-  after uploads close.
+  engine on the album and nothing blocking its first paint. Its corner is a glyph (a 24px glass-mark disc holding a 12px
+  clapperboard), and the violet "Make your own clip to share" under the heading renders only once a creator is
+  registered AND the host's plan was read: a control of its own, lifted above the tile's watch layer (a button cannot
+  hold a button), that opens the creator directly. A tap anywhere else opens the view (a pointer over it warms the
+  view's chunk); it stays after uploads close.
 - **The view** ([`reel/live-reel-view.tsx`](../../src/components/guest/reel/live-reel-view.tsx), `React.lazy`, ONE
   import promise shared by the warm-up and the lazy boundary) is a full-bleed Radix dialog over the player in `fill`,
   following the viewport's orientation. ★ **In a landscape composition every mood fills the frame edge to edge**
@@ -163,36 +165,53 @@ A host has no reel to create, only a state to read and a few defaults to set.
 
 ## The clip
 
-- **The creator** (`components/reel/clip-*.tsx`, "Make your own") is registered through the guest seam
-  ([`creator-seam.ts`](../../src/components/guest/reel/creator-seam.ts)): `REEL_CREATOR` is `null` until then, and every
-  "Make your own" renders only when it is present, so no build shows a dead end. Everything it needs arrives as props.
-  It is lazy twice: the engine arrives when someone opens it, the encoder with the first make.
-- **A room of its own, the bench at a laptop**: the clip at full height, a panel of two tabs, one open at a time (Looks:
-  every look drawn on her own clip; Moments: the album pool with the fills, the numbers and "Hidden · Show"), and the
-  order strip and the tray (Length, Layout, Opening) beneath. At a phone, focused views, never everything at once.
-- **Moments are a local selection**: the default is the reel's current take capped to the length, the fills are Only
-  mine and Everything, and the pool is the reel-eligible album, so a clip is never cut from clips. A guest never sees a
-  hidden photo; the host sees it captioned "Hidden · Show".
-- **The make**: encoded on the device from the same draw the player runs, silent (no audio track), the length cap a
-  constant in the encoder. A backgrounded tab pauses; a clip that does not finish lands on the finish with Retry and the
-  picks kept. A browser that cannot encode keeps Make your own visible, greyed, and explains on a tap.
-- **The finish**: Share leads on its own tap (iOS spends the user activation on the encode, so it is never chained),
-  with `canShare` probed on the real file and a dismissed sheet raising nothing; Save opens the platform's options
-  ([`share-save.ts`](../../src/lib/media/share-save.ts)); Add to event waits behind a confirm. Every action keeps the
-  viewer on the finish with its done state.
+- **The creator** ([`components/reel/clip-creator.tsx`](../../src/components/reel/clip-creator.tsx), "Make your own")
+  plugs in through the guest seam ([`creator-seam.ts`](../../src/components/guest/reel/creator-seam.ts)): every "Make
+  your own" renders only when a creator is registered AND the host's plan was read, so no build shows a dead end, and
+  never in the demo (its photographs are simulated). It is lazy twice: the album carries none of it, the engine
+  arrives when someone opens it (a pointer over the door warms it), and the encoder (mediabunny) with the first Make it
+  or an idle warm-up. The view's Make your own opens it as a room of its own; the tile's line opens the view with the
+  creator already asked for. Everything it needs arrives as props.
+- **The bench**: at a laptop the head (the event, "Your clip", the clip's line, a violet Make it), the clip at full
+  height, a panel of two tabs, one open at a time (Looks first: every look drawn on her own clip; Moments: the pool with
+  the fills, the numbers and "Hidden · Show"), and the order strip and the tray (Length, Layout, Opening) beneath. In a
+  hand, focused views: the clip, the tab switch, one view, the tray, with the order strip inside Moments. Escape is one
+  step back (making cancels, the finish returns to editing, the bench returns to the reel).
+- **Moments are a local selection** ([`reel/clip-selection.ts`](../../src/lib/reel/clip-selection.ts)): the fills are
+  the reel's picks (loop 0's take capped to the length), Only mine (a guest's own ids, the owner's own uploads) and
+  Everything, and the pool is the reel's (`isReelEligible`), so a clip is never cut from clips. Length is Auto (the
+  clip's own length up to the plan's cap) or 15, 30 or 60 under it, fitted on each look's own clock. A guest never sees
+  a hidden photograph; the owner's come through
+  [`clip-hidden-action.ts`](../../src/lib/reel/clip-hidden-action.ts) (`getUser()`, then RLS), captioned "Hidden ·
+  Show", and Show un-hides it for everyone as the viewer's Show does and puts it in the clip.
+- **The make**: encoded on the device from the same draw the player runs, silent (no audio track). ★ The encoder
+  carries its own ceiling (`MAX_ENCODE_SECONDS` in `engine/encode.ts`: the longest plan plus a style tail), refused
+  before a byte is decoded, since no server caps a clip. A backgrounded tab pauses the encode and says so; a clip that
+  does not finish lands on Retry with the picks kept and reports once to Sentry. Without WebCodecs
+  ([`clip-support.ts`](../../src/lib/reel/clip-support.ts)) Make your own stays visible, greyed, and explains on a tap.
+- **The finish**: Share leads on its own tap (iOS spends the user activation on the tap that started the encode, so it
+  is never chained) and appears only where the sheet takes the very file (`canShare`), Save leading in violet
+  elsewhere; a dismissed sheet raises nothing. Save follows the platform ([`share-save.ts`](../../src/lib/media/share-save.ts):
+  on iOS Save to Photos, then Download file), naming the file after the event (`-clip.mp4`). Add to event waits behind
+  a confirm. Every action keeps the viewer on the finish with its done state; Make another starts from the reel's next
+  take, keeping the look, length and layout, while Back to editing keeps the picks.
 - ★ **Payload-derived, never the client's**: the mark, the length cap and whether video may go back come from the
-  server's `ClipFacts`. Add to event renders only when the seam passes `addClipToAlbum` (a guest; `null` while uploads
-  are closed or the plan takes no video) or, for the host, when the plan takes video.
-- **Add to event**, a guest's: the ordinary upload queue (`addClip`, `reelEligible: false`, the poster as its preview) →
-  `/api/r2/complete-upload` → the pipeline → `create_media(..., p_reel_eligible => false)`. ★ It is the one upload the
-  guest routes rate-limit: `reel_clip_add`, a daily budget per guest SESSION (not per event, so one enthusiast never
-  drains a venue's envelope), checked before the pipeline spends a write, recorded only after one lands, failing open,
-  and refused with the route's shape ("You've added a lot of clips today. Try again tomorrow."). The host's add rides
-  `/api/host/r2/complete-upload` with `reel_eligible: false` into `create_media_as_host`, metered by storage and never
-  by that budget.
-- **The mark is stamped in the draw's dispatch layer**, so no look exports unmarked. An accepted caveat, so build no
-  detection: the server never sees a clip's pixels, so a tampered device can make an unmarked clip, defrauding a
-  watermark and nothing else; a clip added to the album is an ordinary video either way.
+  server's `ClipFacts`. Add to event exists only when the plan takes video AND this viewer may add: a guest through the
+  seam's `addClipToAlbum` (`null` while uploads are closed), the owner through her own route whenever her plan takes
+  video, uploads open or closed.
+- **Add to event**, a guest's: the page's own upload queue (`addClip`, `reelEligible: false`, the drawn poster as its
+  preview) → `/api/r2/complete-upload` → the pipeline → `create_media(..., p_reel_eligible => false)`, moderated like
+  any upload and refused on Free by the video gate; her Added means handed to the queue, which carries its own progress
+  and failure sheet. ★ It is the one upload the guest routes rate-limit: `reel_clip_add`, ten a day per guest SESSION
+  (not per event, so one enthusiast never drains a venue's envelope for everyone else at the party), checked before the
+  pipeline spends a write, recorded only after one lands, failing open, and refused with the route's shape ("You've
+  added a lot of clips today. Try again tomorrow."). The owner's add is
+  [`clip-add.ts`](../../src/lib/reel/clip-add.ts) over `/api/host/r2/*` with `reel_eligible: false` into
+  `create_media_as_host`: approved, metered on her storage, reading "Adding N%" until it lands, never the budget.
+- **The mark is stamped in the draw's dispatch layer**, so no look exports unmarked, and one quiet line under a free
+  event's clip says whose it is (a guest: which events mark; the owner: the way past it, her upgrade). An accepted
+  caveat, so build no detection: the server never sees a clip's pixels, so a tampered device can make an unmarked clip,
+  defrauding a watermark and nothing else.
 
 ## The looks and the engine
 

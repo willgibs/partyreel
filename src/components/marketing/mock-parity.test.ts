@@ -307,6 +307,57 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/app/event-feed/gallery-actions.tsx",
     literal: '"Like"',
   },
+  // The clip creator's own words, wherever a marketing picture draws a clip:
+  // its head (clip-room.tsx) and its laptop finish (clip-finish.tsx).
+  {
+    label: "reel page clip finish, the creator's head",
+    marketingFile: "src/components/marketing/sections/reel/clip-section.tsx",
+    appFile: "src/components/reel/clip-room.tsx",
+    literal: "Your clip",
+  },
+  {
+    label: "reel page clip finish, the way back",
+    marketingFile: "src/components/marketing/sections/reel/clip-section.tsx",
+    appFile: "src/components/reel/clip-finish.tsx",
+    literal: "Back to editing, your picks kept",
+  },
+  {
+    label: "reel page clip finish, the finish's words",
+    marketingFile: "src/components/marketing/sections/reel/clip-section.tsx",
+    appFile: "src/components/reel/clip-finish.tsx",
+    literal: "Your clip is ready",
+  },
+  {
+    label: "reel page clip finish, where the file lives",
+    marketingFile: "src/components/marketing/sections/reel/clip-section.tsx",
+    appFile: "src/components/reel/clip-finish.tsx",
+    literal: "It&rsquo;s on this device.",
+  },
+  {
+    label: "reel page clip finish, what leaves the device",
+    marketingFile: "src/components/marketing/sections/reel/clip-section.tsx",
+    appFile: "src/components/reel/clip-finish.tsx",
+    literal: "Nothing leaves it until you share it or add it.",
+  },
+  {
+    label: "reel page clip finish, the album door",
+    marketingFile: "src/components/marketing/sections/reel/clip-section.tsx",
+    appFile: "src/components/reel/clip-finish.tsx",
+    literal: "Add to event",
+  },
+  {
+    label: "reel page clip finish, starting over",
+    marketingFile: "src/components/marketing/sections/reel/clip-section.tsx",
+    appFile: "src/components/reel/clip-finish.tsx",
+    literal: "Make another",
+  },
+  {
+    label: "how-it-works guest clip step, the creator's head",
+    marketingFile:
+      "src/components/marketing/sections/how-it-works/guest-pictures.tsx",
+    appFile: "src/components/reel/clip-room.tsx",
+    literal: "Your clip",
+  },
 ];
 
 describe("marketing mock <-> app copy parity", () => {

@@ -81,3 +81,9 @@ export const HERO_REEL = marketingReel("hero-candidate-01");
 
 /** The screen chapter's landscape loop: the reel as a wall plays it. */
 export const SCREEN_REEL = marketingReel("hero-candidate-02");
+
+/** "0:13" from 13.08s: the caption format for a recorded loop's length (the reel-story board reads it). */
+export function formatReelSeconds(seconds: number): string {
+  const s = Math.round(seconds);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
