@@ -36,13 +36,19 @@ vi.mock("@/lib/env", () => ({
   },
 }));
 
-// The request's cookie jar, as `cookies()` hands it to a server read.
+// The request's cookie jar, as `cookies()` hands it to a server read. Each call is a NEW request's
+// store unless a test pins one (`request.store`): Next resolves `cookies()` to one object for a
+// request's whole life, which is what the per-request memo keys on.
 const jar = vi.hoisted(() => new Map<string, string>());
-vi.mock("next/headers", () => ({
-  cookies: async () => ({
+const request = vi.hoisted(() => ({ store: null as object | null }));
+function cookieStore() {
+  return {
     get: (name: string) =>
       jar.has(name) ? { name, value: jar.get(name) } : undefined,
-  }),
+  };
+}
+vi.mock("next/headers", () => ({
+  cookies: async () => request.store ?? cookieStore(),
 }));
 
 const captureWarning = vi.fn();
@@ -98,6 +104,7 @@ async function unlock(qrToken = "tok_event") {
 
 beforeEach(() => {
   env.serverEnv.UNLOCK_COOKIE_SECRET = SECRET;
+  request.store = null;
   jar.clear();
   captureWarning.mockClear();
   seed(eventRow());
@@ -184,6 +191,73 @@ describe("isUnlocked, bound to the password", () => {
       "security",
       "unlock_password_state_unreadable",
       expect.objectContaining({ reason: expect.any(String) }),
+    );
+  });
+});
+
+/**
+ * ONE VERSION READ PER REQUEST, route handlers included (measured before the memo: three per
+ * gallery poll, five per album sync, per unlocked guest every 12 seconds). The memo is keyed on the
+ * request's cookie store and dies with it, so the next request sees a change.
+ */
+describe("isUnlocked: one read per request", () => {
+  const versionReads = () =>
+    (db.fake?.requests ?? []).filter((r) => r.name === "events").length;
+
+  it("★ answers every ask in one request from one read, and the next request reads again", async () => {
+    await unlock();
+    const readsBefore = versionReads();
+
+    request.store = cookieStore();
+    expect(await isUnlocked(EVENT)).toBe(true);
+    expect(await isUnlocked(EVENT)).toBe(true);
+    expect(await isUnlocked(EVENT)).toBe(true);
+    expect(versionReads() - readsBefore).toBe(1);
+
+    // The password changes mid-request: this request keeps its one answer...
+    storedEvent().event_password_hash = HASH_2;
+    expect(await isUnlocked(EVENT)).toBe(true);
+
+    // ...and the very next request is signed out.
+    request.store = cookieStore();
+    expect(await isUnlocked(EVENT)).toBe(false);
+    expect(versionReads() - readsBefore).toBe(2);
+  });
+
+  it("keeps each event's answer apart within one request", async () => {
+    seed(
+      eventRow(),
+      eventRow({
+        id: OTHER,
+        qr_token: "tok_other",
+        event_password_hash: HASH_2,
+      }),
+    );
+    await unlock("tok_event");
+    request.store = cookieStore();
+    expect(await isUnlocked(EVENT)).toBe(true);
+    expect(await isUnlocked(OTHER)).toBe(false);
+  });
+
+  it("reports an unreadable state once per request, however often it is asked", async () => {
+    await unlock();
+    db.fake = createFakePostgrest({
+      tables: { events: [eventRow()] },
+      urlLengthLimit: 10,
+    });
+    request.store = cookieStore();
+    for (let i = 0; i < 4; i++) expect(await isUnlocked(EVENT)).toBe(false);
+    expect(captureWarning).toHaveBeenCalledTimes(1);
+  });
+
+  it("fails closed, and reports, when the client cannot even be built", async () => {
+    await unlock();
+    db.fake = null; // asSupabase(null): the first `.from` throws, as a missing service key would.
+    expect(await isUnlocked(EVENT)).toBe(false);
+    expect(captureWarning).toHaveBeenCalledWith(
+      "security",
+      "unlock_password_state_unreadable",
+      expect.anything(),
     );
   });
 });

@@ -16,7 +16,6 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 import { cookies } from "next/headers";
-import { cache } from "react";
 
 import { assertUnlockEnv, serverEnv } from "@/lib/env";
 import {
@@ -44,34 +43,66 @@ function passwordVersionOf(passwordHash: string): string {
 
 /**
  * An event's CURRENT password version, or null when it has none (no password, a
- * cleared one, a deleted event). Request-scoped (`cache()`, keyed on the id string):
- * one guest render asks through several self-guarded reads (the page, the details
- * rehydrate, the album, the reel), and one answer means they can never disagree
- * mid-render; outside a render (the route handlers) it is a plain call, one read.
+ * cleared one, a deleted event).
  *
- * DELIBERATE FAIL-CLOSED: a failed read answers null, so nothing verifies and the guest
- * meets the password step rather than a 500 at the venue, and it is reported, because a
- * locked-out crowd with a correct password must never look like a quiet night.
+ * DELIBERATE FAIL-CLOSED: a failed read (or a client that cannot be built) answers
+ * null, so nothing verifies and the guest meets the password step rather than a 500 at
+ * the venue, and it is reported, because a locked-out crowd with a correct password must
+ * never look like a quiet night.
  */
-const currentPasswordVersion = cache(async function currentPasswordVersion(
-  eventId: string,
-): Promise<string | null> {
-  const { data, error } = await createAdminClient()
-    .from("events")
-    .select("event_password_hash")
-    .eq("id", eventId)
-    .is("deleted_at", null)
-    .maybeSingle();
-  if (error) {
+async function readPasswordVersion(eventId: string): Promise<string | null> {
+  try {
+    const { data, error } = await createAdminClient()
+      .from("events")
+      .select("event_password_hash")
+      .eq("id", eventId)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data?.event_password_hash
+      ? passwordVersionOf(data.event_password_hash)
+      : null;
+  } catch (e) {
     captureWarning("security", "unlock_password_state_unreadable", {
-      reason: error.message,
+      reason: e instanceof Error ? e.message : String(e),
     });
     return null;
   }
-  return data?.event_password_hash
-    ? passwordVersionOf(data.event_password_hash)
-    : null;
-});
+}
+
+/**
+ * ONE READ PER REQUEST, route handlers included. A guest's request reaches
+ * `isUnlocked` through several self-guarded reads (the route, the unlocked album, the
+ * reel arm, the details re-read): measured before this memo, three version reads per
+ * gallery poll and five per album sync, every 12 seconds per unlocked guest. React's
+ * `cache()` dedupes only inside a render, so the answer is memoized on the request's
+ * own cookie store instead, which `cookies()` resolves to once per request in a render,
+ * a route handler and an action alike. Were that identity ever to change, this only
+ * stops deduping, never answers wrongly. One answer per request also means its reads
+ * can never disagree mid-request; the memo dies with the request, so a password change
+ * is seen by the very next one.
+ */
+const versionsByRequest = new WeakMap<
+  object,
+  Map<string, Promise<string | null>>
+>();
+
+function currentPasswordVersion(
+  request: object,
+  eventId: string,
+): Promise<string | null> {
+  let versions = versionsByRequest.get(request);
+  if (!versions) {
+    versions = new Map();
+    versionsByRequest.set(request, versions);
+  }
+  let version = versions.get(eventId);
+  if (!version) {
+    version = readPasswordVersion(eventId);
+    versions.set(eventId, version);
+  }
+  return version;
+}
 
 /** An event's password state, as the unlock route reads it before checking a password. */
 export type UnlockState = UnlockClaim;
@@ -135,7 +166,7 @@ export async function isUnlocked(eventId: string): Promise<boolean> {
   const value = store.get(unlockCookieName(eventId))?.value;
   // No cookie, no read: the crowd still at the door costs the database nothing.
   if (!value) return false;
-  const passwordVersion = await currentPasswordVersion(eventId);
+  const passwordVersion = await currentPasswordVersion(store, eventId);
   if (!passwordVersion) return false;
   return verifyUnlockToken(
     secret,
