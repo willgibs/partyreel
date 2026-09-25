@@ -43,6 +43,9 @@ import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion
  * to the always-dark cinema room (the live-direction lab reference), acting
  * out the core loop: QR pulses, the scan beam sweeps, tiles FLY from the
  * phone into the album, live toasts pop, the reel card lands, counters tick.
+ * The card is the live reel's, headed as the album tile heads it ("Highlight
+ * reel"): it plays while the album fills, so it names no duration and no
+ * render, which were the stored reel's.
  *
  *  - Phases idle -> scan (400ms) -> tiles (1600ms) -> reel (3600ms),
  *    timeout-scheduled ONCE the stage scrolls into view (useInViewOnce 0.35);
@@ -270,9 +273,9 @@ export function LiveDemo() {
               </span>
             </div>
             <div>
-              <p className="text-sm font-medium">Reel ready</p>
+              <p className="text-sm font-medium">Highlight reel</p>
               <p className="text-xs text-muted-foreground">
-                0:47 · Built from the party
+                Playing live · built from the party
               </p>
             </div>
           </div>

@@ -2,8 +2,9 @@
  * Server-only store for the abuse rate-limiter. Reads/writes the deny-all `action_attempts` table via the
  * service-role admin client; the breadth COUNT(DISTINCT) runs in the `action_rate` SECURITY DEFINER RPC
  * (PostgREST can't COUNT DISTINCT). Privacy: stores ONLY HMAC hashes keyed by UNLOCK_COOKIE_SECRET (the
- * existing rate-limit hashing secret) — never a raw IP or qr_token. See `abuse-rate-limit.ts` for the design
- * + the per-kind thresholds; the guest routes wire it (and fail OPEN on any error).
+ * existing rate-limit hashing secret) — never a raw IP, qr_token or user id. See `abuse-rate-limit.ts` for
+ * the design + the per-kind thresholds; the guest routes wire it (and fail OPEN on any error), and the
+ * account kinds go through `checkAccountAbuseRate` below (which fails CLOSED).
  */
 import "server-only";
 
@@ -12,10 +13,12 @@ import { createHmac } from "node:crypto";
 import { mustQuery } from "@/lib/db/must-query";
 import { serverEnv } from "@/lib/env";
 import { recordSignalFailure } from "@/lib/jobs/failure-log";
+import { captureError, captureWarning } from "@/lib/observability/sentry";
 import {
   ABUSE_LIMITS,
   abuseRateDecision,
   type AbuseKind,
+  type AccountAbuseKind,
 } from "@/lib/security/abuse-rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -39,6 +42,66 @@ export function abuseHashes(
     ipHash: hmac(secret, `a-ip:${ip}`),
     scopeHash: hmac(secret, `a-scope:${kind}:${scopeValue}`),
   };
+}
+
+/**
+ * The per-ACCOUNT key pair for an account kind (`email_change`). The requester column (`ip_hash`, named
+ * for the venue kinds) holds an HMAC of the signed-in user's id under its own `a-acct:` prefix, so it can
+ * never equal an IP's hash, and the scope is the kind's constant, so the per-scope count IS the
+ * per-account count, whatever network the account arrives from. Never the raw id. Throws if the secret is
+ * unset (the account gate catches, and fails CLOSED).
+ */
+export function accountAbuseHashes(
+  kind: AccountAbuseKind,
+  userId: string,
+): { ipHash: string; scopeHash: string } {
+  const secret = serverEnv.UNLOCK_COOKIE_SECRET;
+  if (!secret) throw new Error("UNLOCK_COOKIE_SECRET unset");
+  return {
+    ipHash: hmac(secret, `a-acct:${userId}`),
+    scopeHash: hmac(secret, `a-scope:${kind}:`),
+  };
+}
+
+export type AccountRateGate =
+  | { allowed: true }
+  /** Over the per-account ceiling. `retryAfterSec` is the window, for the refusal to quote. */
+  | { allowed: false; reason: "rate_limited"; retryAfterSec: number }
+  /** The limiter itself could not answer. Refused on purpose (below). */
+  | { allowed: false; reason: "unavailable"; retryAfterSec: number };
+
+/**
+ * THE ACCOUNT KINDS' GATE: check the account's window and, when allowed, COUNT THIS CALL BEFORE THE WORK
+ * IT AUTHORIZES (the public forms' order), so a call that then fails at GoTrue still spent its share and a
+ * burst of parallel calls cannot all slip in behind one count.
+ *
+ * ★ IT FAILS CLOSED, unlike the guest kinds. Their capability token is the real gate and the limiter a
+ * second layer; here the limiter is the only bound on the abuse it exists for (the `email_change` kind's
+ * comment: an `email_exists` oracle Supabase never meters). An unreadable limiter is a call refused, and
+ * reported as an error, because an outage of the only gate should wake somebody. A failed count after an
+ * allowed check does not deny (best-effort, and `recordAbuseEvent` reports its own failures).
+ */
+export async function checkAccountAbuseRate(
+  kind: AccountAbuseKind,
+  userId: string,
+): Promise<AccountRateGate> {
+  try {
+    const { ipHash, scopeHash } = accountAbuseHashes(kind, userId);
+    const gate = await checkAbuseRate(kind, ipHash, scopeHash);
+    if (!gate.allowed) {
+      captureWarning("security", "account_rate_limited", { kind });
+      return {
+        allowed: false,
+        reason: "rate_limited",
+        retryAfterSec: gate.retryAfterSec,
+      };
+    }
+    await recordAbuseEvent(kind, ipHash, scopeHash).catch(() => {});
+    return { allowed: true };
+  } catch (e) {
+    captureError("security", e, { kind, phase: "rate_limit_fail_closed" });
+    return { allowed: false, reason: "unavailable", retryAfterSec: 60 };
+  }
 }
 
 /** Read the breadth + backstop snapshot (one RPC) and decide. Reads via the service-role client. */

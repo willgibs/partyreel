@@ -15,26 +15,25 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 ## The current round: batch 3, from Will's sitting on build 8
 
-- **Milestone 28 is live** (`1076d3d7`, 2026-09-24): no read stops at 1,000 rows (every list reads whole, every count
-  counts, every id list chunks, every set-returning RPC pages, every sweep reports what it left; `row-cap-policy.test.ts`
-  and a Sentry tripwire keep it so); a claimed guest ticket uploads only for its owner; a guest's own delete is final.
-- **Will's sitting on build 8 is recorded** (2026-09-25): the clip creator's panel holds its looks and moments as
-  tabs; the reel's marketing copy goes to a second round, the home and the hub's card decoupled; the tile loses its
-  "Make your own" pill; the album takes three density steps everywhere and pages now (a light whole-album list, links
-  minted for what is on screen, rows mounted around the viewport, a delta poll); the own-item mark gets a third round;
-  the guest door gets a welcome that feels alive, a chooser (Continue as guest, Create account, Log in), a keyboard-safe
-  phone sheet, and a confirmed email that is changed, never removed.
-- **Batch 3** (overnight, Will asleep in auto mode): the held reel lanes merge, the reel stretch's last lanes run
-  (clip, teardown, sweep), three lab rounds open (`identity-door` r2, `reel-story` r2, `media-viewer` r3), and the paged
-  album's two engine lanes build beside them; build 9 carries it all.
+- **Milestone 28 is live** (`1076d3d7`, 2026-09-24): no read stops at 1,000 rows; a claimed guest ticket uploads only
+  for its owner; a guest's own delete is final.
+- **The reel stretch landed** (2026-09-25, overnight in auto mode): the live reel's guest and host sides, the clip
+  creator (Make your own, Looks and Moments as tabs), the stored reel's server side gone, the reel retold across
+  marketing, help and legal, and `docs/systems/reel.md` its home. The drop migration and the R2 sweep of the old
+  files wait for his yes after build 10's red-team, which finishes build 9's (stopped at the usage limit).
+- **Also landed**: the album fast at any size (windowed rows, a memoized tile, three density steps) and the paged
+  album's data half (`album_state` and `album_changes`, links by id, a delta poll); a confirmed email changed at both
+  addresses and deletion taking the address with it; four correctness fixes (the billing downgrade, the unlock
+  cookie bound to the password, the orphan breaker's health, counts past 999); the door's new flow (his chooser, a
+  keyboard-safe phone sheet). Building: the album's guest and host surfaces onto the paged rows, and the crumbs.
 
 ## The desk
 
-27 boards at `/design/lab?key=`, in leverage order: `identity-door`, `reel-story` and `media-viewer` (their next rounds
-drawing), `identity-claims`, `identity-profile`, `guest-capture`, `voice-guest`, `host-curation`, `host-storage`,
-`event-safety`, `export-flow`, `admin-triage`, `help-center`, `emails`, `site-chrome`, `profile-page`, `privacy-hero`,
-`album-motion`, `loose-ends`, `contact-page`, `press-page`, then the answered boards awaiting their build and
-retirement: `reel-cut`, `reel-front`, `album-columns`, `reel-screen`, `reel-host`, `reel-view`.
+22 boards at `/design/lab?key=`, in leverage order: `identity-door` (r2, the door's look), `reel-story` (r2),
+`media-viewer` (r3), `identity-claims`, `identity-profile`, `guest-capture`, `voice-guest`, `host-curation`,
+`host-storage`, `event-safety`, `export-flow`, `admin-triage`, `help-center`, `emails`, `site-chrome`, `profile-page`,
+`privacy-hero`, `album-motion`, `loose-ends`, `contact-page`, `press-page`, then `album-columns` (answered; it retires
+once the album's surfaces are wired).
 
 ## Live state
 
@@ -43,10 +42,9 @@ retirement: `reel-cut`, `reel-front`, `album-columns`, `reel-screen`, `reel-host
   review), `/account`, a real upload through production's pipeline, the lab 404s without its key, the admin door
   redirects, no new runtime error or Sentry issue. `admin.partyreel.com` is served by `partyreel-admin`
   (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 8 (`2cfb9b27`, 2026-09-25): the
-  desk for Will's sitting, with `reel-cut` r2 and `album-columns` r2 on the real rows engine, and the reel defaults
-  migration's write path (nothing calls it yet). The stored reel stays until the reel stretch's own build. No push
-  deploys; each `[preview]` record gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 9 (the reel stretch, the
+  album's engines, the identity and hardening lanes, and the three boards for his sitting). No push deploys; each
+  `[preview]` record gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
 - **Data:** disposable test data only; the accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md). The disposable events stay in the states the
   last red-teams left until Will says restore.
@@ -73,7 +71,9 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **His sitting on build 9** once it lands: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
-- **Two yeses**: the reel drop migration after build 9's red-team, and clearing past deleted accounts' addresses from
-  their guest rows.
+- **His sitting on build 9**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
+- **Two yeses**: the reel drop migration after build 10's red-team (then the R2 sweep), and clearing past deleted
+  accounts' addresses from their guest rows (`20260926210000_identity_backfill.sql`).
+- **One dashboard minute**: Supabase's Change Email Address template gains `{{ .Token }}` (until then the change
+  confirms by the link at both addresses).
 - **A 10-second iPhone check** on the album: Save to Photos lands in Photos; a shared photo arrives as a photo.

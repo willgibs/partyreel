@@ -51,14 +51,14 @@ const reelEngineer: JobOpening = {
   team: "Engineering",
   type: "Full-time",
   location: "Remote",
-  hook: "Own the highlight reel, the moment every event has been building toward.",
+  hook: "Own the highlight reel, the event playing back on every screen.",
   summary:
-    "Every Partyreel album can end as a short film: the best moments of an event, cut together and ready to share. The engine that makes them runs entirely in the browser, renders on the host's own phone, and ships fourteen distinct looks today. We are looking for the person to own it and take it much further.",
+    "Every Partyreel album plays as a live highlight reel from its second photo: the event cutting itself together while it is still happening, on every guest's phone and on the screen at the front of the room, with a clip anyone can make and take home. The engine runs entirely in the browser, draws on each viewer's own device, and ships fourteen distinct looks today. We are looking for the person to own it and take it much further.",
   responsibilities: [
-    "Own the reel end to end, from the styles a host picks from to the video they download.",
+    "Own the reel end to end, from the live composer on every phone to the clip a guest makes and shares.",
     "Design and ship new looks: layout, timing, colour, and typography in motion that flatter whatever mix of photos and videos a real event produces.",
     "Keep the reel fast and dependable on the phones people actually own, not just the ones we test on.",
-    "Shape the experience around it, from the host's studio to the moment guests see the finished film.",
+    "Shape the experience around it, from the tile at the top of the album to the screen at the front of the room.",
   ],
   requirements: [
     "Real experience with graphics on the web: canvas or WebGL, animation timing, colour, and type in motion.",
@@ -172,7 +172,7 @@ export const CAREERS_STORY: StoryBeat[] = [
   {
     eyebrow: "The highlights",
     title: "And turn the best into a highlight reel.",
-    body: "The whole event, cut down to something worth sending. That is the surface we are hiring for.",
+    body: "The whole event, playing back on every phone and on the screen in the room, with a clip for anyone to send. That is the surface we are hiring for.",
   },
 ];
 

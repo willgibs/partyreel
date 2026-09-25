@@ -8,7 +8,7 @@ import {
 
 import {
   HERO_REEL,
-  SHARE_REEL,
+  SCREEN_REEL,
   STYLE_COUNT,
   STYLE_FACETS,
   SWITCHER_CLIP_IDS,
@@ -70,6 +70,6 @@ describe("the /reel live-switcher recipe", () => {
 describe("the /reel manifest loops", () => {
   it("keep their ruled orientations (hero portrait beside copy, share landscape in the player frame)", () => {
     expect(HERO_REEL.orientation).toBe("portrait");
-    expect(SHARE_REEL.orientation).toBe("landscape");
+    expect(SCREEN_REEL.orientation).toBe("landscape");
   });
 });

@@ -1,9 +1,8 @@
 ---
 track: orchestrator
 status: open
-cut: "e30aaada"          # the launch-prep SHA this state was written at
+cut: "bf2bc846"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
-  - src/app/globals.css
   - src/app/theme.css
   - src/app/(marketing)/marketing.css
   - src/app/(dev)/design/rules/bible.ts
@@ -32,36 +31,43 @@ model Will seats (Fable or Opus); nothing here depends on which.
 ## In flight
 
 Up to eight lanes at once (Will, 2026-09-24); every production build, a lane's or the kit's gate, takes turns
-through `scripts/build-lock.sh` (the kit's gate takes it itself). Batch 3 runs overnight on 2026-09-25 with Will asleep
-in auto mode ("work through the night on all of this until fully complete"); the live plan is
-`~/.claude/plans/great-work-however-1-dapper-twilight.md`, and the lanes' manifests carry everything they need.
+through `scripts/build-lock.sh` (the kit's gate takes it itself). The lanes' manifests carry everything they need; an
+agent id below lives only in the Orchestrator session that spawned it (another session respawns: the runbook's "Resume
+a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `reel-sweep` | the words everywhere but round 2's four, help, legal, docs, `reel.md` born; identity-email's two help sentences | building (agent `a5e526adcff700214`) | Opus, :3133 | integrate last of the stretch, synced; then build 9 |
-| `door-flow` | his chooser, identify and log-in steps, the keyboard-safe responsive Sheet replacing vaul, the focus rules, the menu card, the pending email's change or remove; the measured keyboard height | building (agent `abd1aecbb0aafbb5c`) | Opus, :3139 | syncs past the clip lane and identity-email before it hands off |
-| `hardening` | the billing webhook's two-subscription downgrade, the unlock cookie bound to the password, the orphan breaker's health, counts past 999, and the `email_change` limiter kind | building (agent `a68068e5cb952cb28`) | Opus, :3137 | a migration only through the Orchestrator |
-| `album-guest-wiring` | the guest album, viewer, reel and profile feeds onto the paged, windowed rows with r2's picks; `planTake` sub-quadratic; the perf harness's `--page` mode | building (agent `a29a00be06c5e3b16`) | Opus, :3131 | its `guest-flow.md` lines through the Handoff |
-| `album-host-wiring` | the hub's album onto the paged rows, select mode on the one grid, the bin on a manifest, Sort live, `like_many` | building (agent `a54c6daada060d103`) | Opus, :3134 | ends a turn with "migration ready at <sha>" for `like_many`; `host-app.md` lines through the Handoff |
+| `album-guest-wiring` | the guest album, viewer, reel and profile feeds onto the paged, windowed rows with r2's picks; `planTake` sub-quadratic; the perf harness's `--page` mode; build 9's two reel findings in its files (the view's scroll lock, the tile's hit area) | building (agent `a4f93b6854568e16f`) | Opus, :3131 | its `guest-flow.md` lines through the Handoff |
+| `album-host-wiring` | the hub's album onto the paged rows, select mode on the one grid, the bin on a manifest, Sort live, `like_many` (applied, types at `14359c94`) | building (agent `aca30254725561438`) | Opus, :3134 | syncs past `album-guest-wiring` if it lands first; `host-app.md` lines through the Handoff |
+| `crumbs` | tonight's deferred leftovers (the Studio's reveal CSS, vaul, stale comments, the voice board's door quote, the password step's sticky foot, one code length, the test setup's flush); holds `globals.css` until its merge | building (agent `a4599f1c56870a65b`) | Sonnet, :3135 | three root files as decided exceptions, and `ui/floating-layer.ts`'s drawer comment |
 
 Merged tonight (their records carry the rest): reel-guest-wiring, reel-host-wiring, mark-r3, story-r2, door-r2,
-album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window.
+album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hardening, reel-sweep, door-flow,
+retire-reel-boards.
 
 ## Next, in order
 
-1. **Merge the two held reel lanes** (guest, then host), then cut from the new tip: `reel-clip-wiring` (the creator
-   with his tabs, the finish, the Studio out, the client adds, the seam flip, `reel-front` on the tile),
-   `reel-teardown`, `reel-sweep` (all but the four copy asks `reel-story` r2 holds), the lab rounds `door-r2`,
-   `story-r2` and `mark-r3`, and the paged album's engine lanes `album-window` (windowed rows, the memo'd tile, three
-   steps, the push arrival, the density control, the perf harness) and `album-pages` (the manifest, links by id, the
-   version and change-log migration, the store and routes).
-2. **The stretch integrates** clip, teardown, sweep, synced; the three boards land; one `[preview]` (build 9); the
-   red-team walks the reel's journeys. The drop migration and the one-shot R2 sweep wait for Will's yes.
-3. **Then**: `album-guest-wiring` and `album-host-wiring` (every album surface onto the paged, windowed rows with
-   `album-columns` r2's picks; `planTake` sub-quadratic on the manifest), `door-flow` (his chooser, the keyboard-safe
-   phone sheet, the menu card), `identity-email` (the deletion scrub going forward, the account's email change),
-   `reel-marketing` after his `reel-story` r2, the mark's wiring after his `media-viewer` r3.
-4. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
+1. **Integrate as they land**: `album-host-wiring` and `album-guest-wiring` in either order, and `crumbs`. Then build 10
+   (`[preview]`); build 9 (`52a19853`) serves the alias until then.
+2. **Build 10's red-team** (Opus; the pane for a guest, Chrome's account chooser for the host), which also finishes
+   build 9's walk (it stopped at the usage limit with its first six journeys passing):
+   - the reel on the album's new data path: the tile, the view, clips, access, the password event, the demo;
+   - `?reel=screen` soaked headless at 1920x1080 for 100 minutes (a hidden pane throttles the page);
+   - the door at 375 on the Sheet (build 9's vaul sheet scrolled three times its height, and the password step opened
+     past its heading);
+   - the album at scale on both surfaces;
+   - re-checks: the count's "1 photo & videos", one stalled owner `?reel` in a hidden tab, Settings saving the default
+     look and hold as values rather than NULL.
+
+   Afterwards the 15-photo probe's `reel_style_id` and `reel_hold_sec` go back to NULL. Journey 9's page checks passed
+   on build 9 (both legal pages at 1.7, the retired help slugs 308, no stale reel claim on the marketing pages,
+   `/admin/reels` a 404). Then the drop migration (`20260924110000_live_reel_drop.sql`) and
+   `node scripts/sweep-reel-files.mjs --apply` wait for Will's yes.
+3. **Retire `album-columns`** once the surface lanes merge (the five reel boards retired at `0cbd5634`), atomically across
+   `touchpoints.ts`, `registry.ts` and `boards.ts`, its ledger with it.
+4. **After his sitting on build 9**: `reel-marketing` (his `reel-story` r2), the door's look (his `identity-door` r2)
+   over `door-flow`, the mark's wiring (his `media-viewer` r3).
+5. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
    self-registering folder, its metadata in its spec, lab checks scoped to the lane's own boards, the authoring API
    trimmed, a fresh agent proving it; with library-lean's board ideas (a `Surfaces` family of live frames per route
    with guest entries, the Library's sidebar open by default, a plain-text view of Library pages, a
@@ -71,7 +77,7 @@ album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window.
 ## Waiting on Will
 
 - **His sitting on build 9**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
-- **Two yeses**: the reel drop after build 9's red-team; clearing past deleted accounts' addresses from guest rows
+- **Two yeses**: the reel drop after build 10's red-team; clearing past deleted accounts' addresses from guest rows
   (`20260926210000_identity_backfill.sql`, written, never applied).
 - **One dashboard minute** (no management token here): Supabase, Authentication, Templates, Change Email Address, add
   `{{ .Token }}` beside `{{ .ConfirmationURL }}` (the wording is in lp/identity-email's Handoff, merged at `3248a785`);

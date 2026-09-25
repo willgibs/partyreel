@@ -412,7 +412,7 @@ export function PlanPair() {
             <Item>Verified-email uploads, on by default</Item>
             <Item limit>Photos only</Item>
             <Item limit>
-              {MAX_REEL_SECONDS.free}-second reel with a small mark
+              {MAX_REEL_SECONDS.free}-second clips with a small mark
             </Item>
           </ul>
 
@@ -477,7 +477,7 @@ export function PlanPair() {
             <Item ink>
               {videosAllowedForTier("pro") ? "Photos and video" : "Photos"}
             </Item>
-            <Item ink>{MAX_REEL_SECONDS.pro}-second reels, no watermark</Item>
+            <Item ink>{MAX_REEL_SECONDS.pro}-second clips, no watermark</Item>
             <Item ink>
               {GATED_EVENT_SETTINGS.includes("password")
                 ? "Password-locked albums"

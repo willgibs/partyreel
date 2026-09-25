@@ -8,9 +8,10 @@ import { SectionShell } from "@/components/marketing/system/section-shell";
 /**
  * Sharing page section 4 (paper): the calm clarity block. Three document-style
  * rows: access = originals for everyone, sharing never loosens visibility
- * (crosslink to /features/privacy), and the reel downloads too (/reel). The
- * reel row wears the house --reel violet (the app's universal action color for
- * reel things); the rest stays ink.
+ * (crosslink to /features/privacy), and a clip of the reel is the take-home
+ * video (/reel): the reel itself plays live and is never a file anyone
+ * downloads. The reel row wears the house --reel violet (the app's universal
+ * action color for reel things); the rest stays ink.
  */
 
 const ROWS: {
@@ -43,8 +44,8 @@ const ROWS: {
   {
     icon: Clapperboard,
     tint: "text-reel",
-    title: "The reel comes home too",
-    body: "The highlight reel downloads like everything else: one finished video, ready to keep and repost wherever the group chat lives.",
+    title: "The reel comes home as a clip",
+    body: "Anyone with the album can make their own clip from the highlight reel, made on their phone and ready to keep or repost wherever the group chat lives.",
     link: <LearnMoreLink href="/reel">Meet the reel</LearnMoreLink>,
   },
 ];

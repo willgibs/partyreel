@@ -6,6 +6,7 @@ import { Trash2 } from "lucide-react";
 import { deleteAccountAsOperatorAction } from "@/app/admin/accounts/actions";
 import { DestructiveSheet } from "@/components/admin/destructive-sheet";
 import { Button } from "@/components/ui/button";
+import { formatCount } from "@/lib/format/count";
 
 /**
  * The operator's half of account deletion. Same request path as the host's own
@@ -36,16 +37,17 @@ export function DeleteAccountControl({
 }) {
   const [open, setOpen] = useState(false);
 
+  // Every count through formatCount: an account past 999 events read "1249 events" here, raw.
   const touches = [
     "Any active subscription is cancelled first. If Stripe refuses, nothing is deleted",
-    `${eventCount === 1 ? "1 event is" : `${eventCount} events are`} binned now and hard-deleted by the next purge run, media and R2 objects included`,
+    `${eventCount === 1 ? "1 event is" : `${formatCount(eventCount)} events are`} binned now and hard-deleted by the next purge run, media and R2 objects included`,
     "The profile is anonymised immediately and the person can no longer sign in",
   ];
   if (heldEventCount > 0) {
     touches.splice(
       2,
       0,
-      `${heldEventCount === 1 ? "1 event is" : `${heldEventCount} events are`} under a legal hold, skipped, and the auth user survives until it is released`,
+      `${heldEventCount === 1 ? "1 event is" : `${formatCount(heldEventCount)} events are`} under a legal hold, skipped, and the auth user survives until it is released`,
     );
   }
 

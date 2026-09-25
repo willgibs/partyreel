@@ -76,7 +76,7 @@ export type EventTypeMedia = {
 export type EventType = {
   slug: string;
   navLabel: string;
-  /** Singular form for sentence slots ("Every wedding ends with a reel."). */
+  /** Singular form for sentence slots ("Here is how it works for your wedding."). */
   singularLabel: string;
   icon: LucideIcon;
   /**
@@ -123,9 +123,11 @@ export type EventType = {
   ogTitle: string;
   /**
    * The per-type highlight-reel hook (T2.5 B2: every landing page routes its
-   * reader to /reel through its OWN moment, e.g. weddings lead with the
-   * first-dance cut). One sentence, reel register, no counts (style/length
-   * numbers render from their single sources at the component).
+   * reader to /reel through its OWN moment, e.g. weddings lead with the first
+   * dance). One sentence, no counts. ★ THE WALL REGISTER (`reel-story` r1
+   * `events=wall`): the line says what the live reel does AT this kind of
+   * event, playing on the room's screen as it happens, never a video cut and
+   * sent afterward, which is the stored reel the live one replaced.
    */
   reelAngle: string;
 };
@@ -209,7 +211,7 @@ export const EVENT_TYPES: EventType[] = [
       {
         q: "Will we get the original-quality files?",
         // A1 + A35: photos and the album are never watermarked on any plan (the
-        // small mark lives on the FREE reel only), and video is a paid feature.
+        // small mark lives on a free event's clips only), and video is a paid feature.
         a: "Yes. Photos upload at full resolution on every plan, and video on Pro and Event Pass. Anyone with the album can download the originals, with no compression and no watermark.",
       },
       {
@@ -220,7 +222,7 @@ export const EVENT_TYPES: EventType[] = [
     ctaTitle: "Collect every photo from your wedding",
     ogTitle: "Every wedding photo, from everyone there",
     reelAngle:
-      "The first dance from every angle, the toasts, the send-off: cut into one highlight reel you can share before the thank-you notes go out.",
+      "The first dance from every angle, the toasts, the send-off: the reel plays them on the screen at the reception while the party is still going.",
   },
   {
     slug: "parties",
@@ -304,7 +306,7 @@ export const EVENT_TYPES: EventType[] = [
     ctaTitle: "Start your party's album",
     ogTitle: "The whole party's camera roll, in one place",
     reelAngle:
-      "The best candids from every corner of the room, cut into a highlight reel while everyone is still talking about the party.",
+      "The best candids from every corner of the room, playing on the TV moments after they are taken, while everyone is still there to see them.",
   },
   {
     slug: "conferences",
@@ -390,7 +392,7 @@ export const EVENT_TYPES: EventType[] = [
     ctaTitle: "Capture your whole conference",
     ogTitle: "Your conference, captured by everyone there",
     reelAngle:
-      "The keynote, the booths, and the hallway conversations, cut into a highlight reel that opens your recap email.",
+      "The keynote, the booths, and the hallway conversations, looping on the screens between sessions as attendees add them.",
   },
   {
     slug: "trips",
@@ -475,7 +477,7 @@ export const EVENT_TYPES: EventType[] = [
     ctaTitle: "Make one album for the trip",
     ogTitle: "One shared album for the whole trip",
     reelAngle:
-      "The whole trip, from the airport selfie to the last sunset, cut into a highlight reel the group can watch on the way home.",
+      "The whole trip, from the airport selfie to the last sunset, playing on the rental's TV as the group adds to it each evening.",
   },
 ];
 
@@ -541,7 +543,7 @@ export const EVENTS_HUB: EventsHub = {
     "festival-crowd",
   ],
   reelAngle:
-    "Every angle your guests caught, cut into one highlight reel you can send the same night.",
+    "Every angle your guests caught, playing on the screen in the room as they catch it.",
   benefits: [
     {
       icon: QrCode,
@@ -556,7 +558,7 @@ export const EVENTS_HUB: EventsHub = {
     {
       icon: Film,
       // A1 + A35: photo-scoped truth. Photos and the album are never
-      // watermarked on any plan (the small mark is the FREE REEL's alone), and
+      // watermarked on any plan (the small mark is a free event's CLIPS' alone), and
       // video is a paid feature, so both paid plans get named here.
       title: "Full quality photos, never watermarked",
       body: "Photos land at full resolution on every plan, ready to download and keep. Video comes with Pro and Event Pass.",

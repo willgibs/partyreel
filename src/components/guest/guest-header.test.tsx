@@ -20,7 +20,7 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
 vi.mock("@/components/auth/account-door", () => ({
   DOOR_WEAR: {
     keep: { heading: "Keep your photos", reason: "Confirm it." },
-    signin: { heading: "Sign in", reason: "Sign in." },
+    signin: { heading: "Log in", reason: "Log in." },
   },
   AccountDoor: ({ onVerified }: { onVerified: () => Promise<void> }) => (
     <button type="button" onClick={() => void onVerified()}>
@@ -96,7 +96,8 @@ describe("GuestHeader: a guest with a name and no account", () => {
     expect(screen.queryByRole("link", { name: /start for free/i })).toBeNull();
     // The PUBLIC word, read from the mark itself so the two cannot drift.
     await waitFor(() => expect(screen.getByText("Unverified")).toBeVisible());
-    for (const row of [/confirm your email/i, /change name/i, /^sign in$/i]) {
+    // "Log in", the door chooser's word (door-flow), where the row once said "Sign in".
+    for (const row of [/confirm your email/i, /change name/i, /^log in$/i]) {
       expect(screen.getByRole("menuitem", { name: row })).toBeInTheDocument();
     }
   });
@@ -162,7 +163,7 @@ describe("GuestHeader: a guest with a name and no account", () => {
 /**
  * CONFIRMING FROM THE MENU CLAIMS, AND LEAVES THE WAY BACK. The email row is
  * the offer card's act in its words: the uploads claimed, and with them the
- * event; there is no save step. Every door here (the email row, and Sign in,
+ * event; there is no save step. Every door here (the email row, and Log in,
  * whose claim carries the same photographs) writes the album's return marker
  * BEFORE it opens, because Google and a magic link leave the page and the
  * album's own claim on the way back is what plays the follow moment.
@@ -192,10 +193,10 @@ describe("GuestNameMenu: every door claims, and leaves the way back", () => {
     await waitFor(() => expect(refresh).toHaveBeenCalled());
   });
 
-  it("Sign in: the same marker and the same claim", async () => {
+  it("Log in: the same marker and the same claim", async () => {
     localStorage.setItem("pr_guest_name_tok-1", "Sam");
     render(<GuestHeader qrToken="tok-1" eventId="evt-1" />);
-    const finish = await openDoor(/^sign in$/i);
+    const finish = await openDoor(/^log in$/i);
     expect(localStorage.getItem("pr_pending_offer_tok-1")).toBe("1");
     fireEvent.click(finish);
     await waitFor(() => expect(claimAnonymousUploads).toHaveBeenCalled());

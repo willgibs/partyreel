@@ -54,11 +54,21 @@ type Admin = ReturnType<typeof createAdminClient>;
 type Ordering = "absolute" | "accumulating";
 
 /**
- * The outcome of a guarded entitlement write. `stale` is a SUCCESS: an out-of-order or replayed
- * delivery the guard correctly declined, which Stripe must be told is handled (200) or it retries
- * it for three days.
+ * The outcome of a guarded entitlement write. `stale` and `superseded` are SUCCESSES, which Stripe
+ * must be told are handled (200) or it retries them for three days: `stale` is an out-of-order or
+ * replayed delivery the recency guard declined, `superseded` a downgrade that ended a subscription
+ * the profile does not follow (the abandoned second Checkout tab, a duplicate being cancelled).
  */
-type WriteResult = "applied" | "stale";
+type WriteResult = "applied" | "stale" | "superseded";
+
+/**
+ * A value inside a PostgREST logic tree, double-quoted with `\` and `"` escaped (PostgREST's own
+ * quoting grammar), so no character in it can ever split the `or=(...)` it rides in. A Stripe id
+ * holds none today; the quoting is what makes that a non-assumption.
+ */
+function logicTreeValue(value: string): string {
+  return `"${value.replaceAll("\\", "\\\\").replaceAll('"', '\\"')}"`;
+}
 
 /**
  * Apply an entitlement patch to exactly one profile, or throw.
@@ -76,7 +86,14 @@ type WriteResult = "applied" | "stale";
  * of both passing off one stale read. Without it, a retried or out-of-order delivery could
  * re-grant Pro after a cancellation, or strip a paying host back to Free.
  *
- * Zero rows is therefore ambiguous, and the disambiguation matters: "the guard declined it" is a
+ * THE TWO-SUBSCRIPTION DOWNGRADE (provision.ts's second ★): a downgrade that names the
+ * subscription it ends (`endsSubscriptionId`) also carries "the profile follows that subscription,
+ * or none" in the same WHERE clause, atomic for the same reason as the recency guard: a grant from
+ * the live subscription and the stale one's expiry, racing, can never both pass one stale read. A
+ * downgrade for a subscription the profile does not follow matches zero rows and writes nothing,
+ * not even the recency stamp: it is about a subscription this profile's entitlement never came from.
+ *
+ * Zero rows is therefore ambiguous, and the disambiguation matters: "a guard declined it" is a
  * 200, "no profile holds this Stripe customer" is a 500. One follow-up select on the same key
  * settles it, taken only on the zero-row path.
  */
@@ -86,8 +103,9 @@ async function applyEntitlement(
   key: { column: "id" | "stripe_customer_id"; value: string },
   createdAt: string,
   ordering: Ordering,
+  endsSubscriptionId: string | null = null,
 ): Promise<WriteResult> {
-  const { data: updated, error } = await admin
+  let write = admin
     .from("profiles")
     .update({ ...patch, stripe_event_created_at: createdAt })
     .eq(key.column, key.value)
@@ -97,8 +115,13 @@ async function applyEntitlement(
       "stripe_event_created_at",
       ordering === "absolute" ? "lte" : "lt",
       createdAt,
-    )
-    .select("id");
+    );
+  if (endsSubscriptionId) {
+    write = write.or(
+      `stripe_subscription_id.is.null,stripe_subscription_id.eq.${logicTreeValue(endsSubscriptionId)}`,
+    );
+  }
+  const { data: updated, error } = await write.select("id");
 
   if (error) throw new Error(`entitlement write: ${error.message}`);
   if (updated.length === 1) return "applied";
@@ -115,7 +138,7 @@ async function applyEntitlement(
   // row-cap: by the primary key or stripe_customer_id's partial unique index: at most one profile
   const { data: existing, error: lookupError } = await admin
     .from("profiles")
-    .select("id")
+    .select("id, stripe_subscription_id")
     .eq(key.column, key.value);
   if (lookupError) {
     throw new Error(`entitlement write lookup: ${lookupError.message}`);
@@ -123,7 +146,15 @@ async function applyEntitlement(
   if (existing.length === 0) {
     throw new Error(`paid, but no profile matched on ${key.column}`);
   }
-  return "stale";
+  // Following another subscription outranks recency: whatever the stamp says, this downgrade was
+  // never going to apply to a profile entitled by a different subscription.
+  const followsAnother = existing.some(
+    (profile) =>
+      endsSubscriptionId !== null &&
+      profile.stripe_subscription_id !== null &&
+      profile.stripe_subscription_id !== endsSubscriptionId,
+  );
+  return followsAnother ? "superseded" : "stale";
 }
 
 export async function POST(request: Request) {
@@ -177,17 +208,27 @@ export async function POST(request: Request) {
         });
         await recomputePassEntitlement(ref.userId);
 
-        // Keep the customer bound + any stale subscription pointer cleared (a pass
-        // holder has no live subscription by the checkout gate).
+        // Keep the customer bound.
         const { error: bindError } = await admin
           .from("profiles")
-          .update({
-            stripe_customer_id: ref.customerId,
-            stripe_subscription_id: null,
-          })
+          .update({ stripe_customer_id: ref.customerId })
           .eq("id", ref.userId);
         if (bindError) {
           throw new Error(`event-pass customer bind: ${bindError.message}`);
+        }
+        // Clear a stale subscription pointer, never a LIVE Pro one (`.neq`, the recompute's own
+        // guard). The checkout gate refuses a pass to a Pro host, but a pass session lives a day,
+        // so one opened before going Pro can still be paid after. Clearing the pointer of the
+        // subscription that entitles them would hand any other subscription's downgrade "the
+        // profile holds none" (Free while Pro bills) and blind the account deletion's cancel,
+        // which cancels the subscription this pointer names.
+        const { error: pointerError } = await admin
+          .from("profiles")
+          .update({ stripe_subscription_id: null })
+          .eq("id", ref.userId)
+          .neq("tier", "pro");
+        if (pointerError) {
+          throw new Error(`event-pass pointer clear: ${pointerError.message}`);
         }
         return Response.json({ received: true });
       }
@@ -267,6 +308,7 @@ export async function POST(request: Request) {
     // banked behind Pro; a credited pass already cleared it, this is the belt). A null
     // patch writes nothing: an unrelated event, an unknown price, or a first payment
     // still in flight (`incomplete`, which must never downgrade a host it is paying for).
+    // A downgrade lands only on a profile following the subscription it ends, or none.
     const patch = resolveSubscriptionUpdate(event, planForPriceId);
     if (patch) {
       const result = await applyEntitlement(
@@ -281,11 +323,13 @@ export async function POST(request: Request) {
         { column: "stripe_customer_id", value: patch.customerId },
         createdAt,
         "absolute",
+        patch.endsSubscriptionId,
       );
 
       // A downgrade to Free re-derives from the ledger: if the host somehow still owns
       // live UNCREDITED passes (they never started Pro through the credited checkout),
-      // those windows resurface as event_pass entitlement instead of evaporating.
+      // those windows resurface as event_pass entitlement instead of evaporating. Only an
+      // APPLIED one: a stale or superseded downgrade changed nothing to re-derive from.
       if (result === "applied" && patch.tier === "free") {
         const { data: owner, error: ownerError } = await admin
           .from("profiles")

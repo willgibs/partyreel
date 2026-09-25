@@ -2,7 +2,22 @@
 // Mobile-first: guests arrive on a phone via a scanned QR, so the canvas is a single narrow
 // column with no host chrome (the event page renders its own auth-aware header — see
 // guest-header.tsx: logged-out → "Start for free", logged-in → account menu).
+import type { Viewport } from "next";
+
 import { AppDesignIsland } from "@/components/dev/app-design-island";
+
+/**
+ * ★ ANDROID RESIZES THE PAGE AROUND ITS KEYBOARD (door-flow). With
+ * `interactive-widget=resizes-content` Chrome shrinks the layout viewport when
+ * the keyboard opens, so the door's bottom sheet (and every other guest sheet)
+ * already sits above it and `use-keyboard-inset.ts` measures nothing to lift.
+ * iOS Safari ignores the key today; there the same formula does the lifting,
+ * and it cancels out wherever this key works. Merged over the root layout's
+ * viewport (its theme colour and the device-width default stand).
+ */
+export const viewport: Viewport = {
+  interactiveWidget: "resizes-content",
+};
 
 export default function GuestLayout({
   children,

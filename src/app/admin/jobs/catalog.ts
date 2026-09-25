@@ -134,10 +134,30 @@ export const STOPPED_EARLY_KEY = "stopped_early";
 
 /** Did the run whose `counts` these are stop early? Only an explicit `true` says so. */
 export function countsStoppedEarly(counts: unknown): boolean {
+  return countsFlag(counts, STOPPED_EARLY_KEY);
+}
+
+/**
+ * THE ORPHAN BREAKER'S FLAG, a top-level `counts` key on the Orphan sweep's run. When the
+ * circuit-breaker finds the orphan candidates pathological (durability-backups.md) it deletes
+ * nothing, fires its Sentry error and the operator email, and returns normally with this `true`,
+ * so the run closes `ok`: the breaker did its job, and nothing failed. Read here as `attention`,
+ * because a tripped breaker is a person's call to make (a lost media set, or an intentional purge
+ * on the wrong path), and a card reading Healthy beside that email was a quiet contradiction.
+ * The sweep types the key on its tally (`OrphansTally`); the catalog's test pins the two together.
+ */
+export const BREAKER_TRIPPED_KEY = "breaker_tripped";
+
+/** Did the run whose `counts` these are trip the orphan circuit-breaker? Only an explicit `true`. */
+export function countsBreakerTripped(counts: unknown): boolean {
+  return countsFlag(counts, BREAKER_TRIPPED_KEY);
+}
+
+function countsFlag(counts: unknown, key: string): boolean {
   if (!counts || typeof counts !== "object" || Array.isArray(counts)) {
     return false;
   }
-  return (counts as Record<string, unknown>)[STOPPED_EARLY_KEY] === true;
+  return (counts as Record<string, unknown>)[key] === true;
 }
 
 export const JOBS: JobDef[] = [
@@ -378,6 +398,8 @@ export type JobRunSummary = {
   finishedAtMs: number | null;
   /** The run's `counts` carried `STOPPED_EARLY_KEY`: it ran out of time with work left. */
   stoppedEarly?: boolean;
+  /** The run's `counts` carried `BREAKER_TRIPPED_KEY`: the orphan breaker refused the delete. */
+  breakerTripped?: boolean;
 };
 
 /** A `signal` job's rolling window: what succeeded, and what did not. */
@@ -488,6 +510,9 @@ export function jobHealth(input: {
   // A run that finished but ran out of time with work left: nothing failed, and the next run
   // resumes, but a backlog that outlasts a night is the thing this console exists to show.
   if (lastRun.stoppedEarly) return "attention";
+  // A tripped orphan breaker closed its run `ok` on purpose (it deleted nothing, as designed) and
+  // is still waiting on a human: the card says so rather than reading Healthy beside the email.
+  if (lastRun.breakerTripped) return "attention";
   return "ok";
 }
 
