@@ -37,6 +37,7 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `album-docs` | `album-guest-wiring`'s doc lines into `guest-flow.md`, `reel.md` and `testing-verification.md` | building (agent `a1ad73033e1e9da3e`) | Sonnet, docs only | the three docs owned; the Orchestrator reviews the diff |
 | `save-sheet` | Will's iPhone check: on iOS, Save opens the system sheet in one tap in the viewer and the clip finish (the menu's Download file goes); the two help articles follow | building (agent `ac61bdf54b82a04ad`) | Sonnet, :3131 | its guest-flow, reel and uploads-and-r2 lines through the Handoff |
 | `retire-album-columns` | the board leaves the desk, its picks built on both album surfaces; holds `registry.ts` and `boards.ts` until its merge | building (agent `aab5a522aa3610bcf`) | Sonnet, :3132 | the ledger is the record's to delete |
 
@@ -46,12 +47,10 @@ retire-reel-boards, crumbs, album-host-wiring, album-guest-wiring, crumbs-2.
 
 ## Next, in order
 
-1. **Integrate `album-guest-wiring`** as it lands (told to sync past `album-host-wiring`'s merge). Then build 10
-   (`[preview]`), which opens Will's next sitting on the desk; build 9 (`52a19853`) serves the alias until then. Cut
-   `save-sheet` after the guest lane's merge (it owns the viewer): on iOS, Save opens the system sheet in one tap in the
-   viewer and the clip finish, since the sheet already carries Save Image or Video and Save to Files (Will's iPhone
-   check), so the menu's Download file goes; elsewhere Save stays the plain download; the two help articles follow.
-2. **Build 10's red-team** (Opus; the pane for a guest, Chrome's account chooser for the host), which also finishes
+1. **Build 10 is live** (`43b82591`, both aliases, the desk and the album's pages clean) and Will's sitting is on it.
+   Integrate `save-sheet`, `retire-album-columns` and `album-docs` as they land; they ride build 11.
+2. **Build 10's red-team** (agent `ac1c3dea4e483fefc`, Opus; its brief in `../partyreel-wt/_scratch/redteam-10/brief.md`;
+   the pane for a guest, Chrome's account chooser for the host), which also finishes
    build 9's walk (it stopped at the usage limit with its first six journeys passing):
    - the reel on the album's new data path: the tile, the view, clips, access, the password event, the demo;
    - `?reel=screen` soaked headless at 1920x1080 for 100 minutes (a hidden pane throttles the page);
@@ -80,5 +79,5 @@ retire-reel-boards, crumbs, album-host-wiring, album-guest-wiring, crumbs-2.
 
 ## Waiting on Will
 
-- **His sitting on build 9**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
+- **His sitting on build 10**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
 - **A 10-second iPhone check**: a shared photo arrives as a photograph (Save opens the system sheet, his check).

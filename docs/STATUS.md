@@ -42,9 +42,9 @@ once the album's surfaces are wired).
   review), `/account`, a real upload through production's pipeline, the lab 404s without its key, the admin door
   redirects, no new runtime error or Sentry issue. `admin.partyreel.com` is served by `partyreel-admin`
   (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 9 (the reel stretch, the
-  album's engines, the identity and hardening lanes, and the three boards for his sitting). No push deploys; each
-  `[preview]` record gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 10 (`43b82591`): the door on
+  the Sheet, both albums on the paged rows, the stored reel gone, and the three boards for his sitting. No push
+  deploys; each `[preview]` record gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
@@ -71,5 +71,5 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **His sitting on build 9**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
+- **His sitting on build 10**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
 - **A 10-second iPhone check** on the album: a shared photo arrives as a photograph.
