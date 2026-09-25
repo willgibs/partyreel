@@ -43,10 +43,10 @@ built by the held lanes, retiring with the stretch), `identity-door`, `identity-
   review), `/account`, a real upload through production's pipeline, the lab 404s without its key, the admin door
   redirects, no new runtime error or Sentry issue. `admin.partyreel.com` is served by `partyreel-admin`
   (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 7 (`b2d22c7`, 2026-09-24): the
-  refreshed desk and the new Library (build 6, `d3135de`, carried the Library first, its Vercel log confirming the Sentry
-  source-map upload). The stored reel stays until the reel round's own build. No push deploys; each `[preview]` record
-  gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 8 (`2cfb9b27`, 2026-09-25): the
+  desk for Will's sitting, with `reel-cut` r2 and `album-columns` r2 on the real rows engine, and the reel defaults
+  migration's write path (nothing calls it yet). The stored reel stays until the reel stretch's own build. No push
+  deploys; each `[preview]` record gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
 - **Data:** disposable test data only; the accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md). The disposable events stay in the states the
   last red-teams left until Will says restore.
