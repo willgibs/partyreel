@@ -15,7 +15,7 @@ import { createClient } from "@/lib/supabase/client";
 /**
  * THE PASSWORD DOOR, now a SECOND door rather than the lead.
  *
- * ★ RULED (Will, 2026-09-20, `app-door` r1 `lead=code`): one email field, the
+ * ★ CHOSEN (`app-door` r1 `lead=code`): one email field, the
  * same address signs in or creates the account, Google beside it, and a password
  * drops to a quiet link. So the account-CREATION flow that used to live here
  * (the "Create account" link, the OTP verify, then "Pick a password") is gone:

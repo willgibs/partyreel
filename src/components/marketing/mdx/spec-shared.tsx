@@ -132,7 +132,7 @@ export const No = () => <MatrixMark value={false} label="No" />;
 // a row keeps its name while the reader scrolls the values. No sticky first column: that
 // needs an opaque ground matching the paper chapter, and the pricing matrix does without it
 // too. The header register is pricing's (0.08em), not the eyebrow's, since column heads
-// are often proper nouns. Numerals are tabular Inter, never mono (the R6 mono ruling: mono
+// are often proper nouns. Numerals are tabular Inter, never mono (the R6 mono rule: mono
 // is for numerals that align in a column; these cells mix words and figures).
 function MdxTable(props: ComponentProps<"table">) {
   return (
@@ -410,7 +410,7 @@ function H3({ children }: { children?: ReactNode }) {
 
 // ── Steps — numbered procedures with a tabular numeral rail ─────────────────────
 // Numerals stay on the UI (sans) face with tabular-nums for alignment; no mono
-// anywhere (bible 8). Steps injects the index so authors never hand-number.
+// anywhere. Steps injects the index so authors never hand-number.
 type StepProps = { index?: number; title: string; children?: ReactNode };
 
 export function Step({ index = 1, title, children }: StepProps) {

@@ -78,7 +78,7 @@ export type Plan = {
   /** Display only — Stripe Prices are the billing truth. */
   priceLabel: string;
   billing: BillingKind;
-  /** Subscription cadence; undefined = "month" (annual ruled 2026-08-27). */
+  /** Subscription cadence; undefined = "month". */
   interval?: "month" | "year";
   /** Env var holding the Stripe Price ID (paid plans only). */
   stripePriceEnvKey?: string;
@@ -122,7 +122,7 @@ export const PLANS: Plan[] = [
     billing: "subscription",
     stripePriceEnvKey: "STRIPE_PRICE_PRO_2TB",
   },
-  // Annual Pro (ruled 2026-08-27): exactly x10 the monthly, marketed as "two
+  // Annual Pro: exactly x10 the monthly, marketed as "two
   // months free". x10 is a DRIFT GUARD as much as a price: a test pins each
   // yearly label to 10x its monthly sibling, so the pair can only move together.
   {
@@ -178,7 +178,7 @@ export const TIER_NAMES: Record<Tier, string> = {
  * The Event Pass RENEWAL price label (display only — the Stripe price
  * STRIPE_PRICE_EVENT_PASS_RENEWAL is the billing truth, see PRICING.md). A
  * separate cheaper one-time price that extends a live pass by another year
- * (billing-caps.md decision 3); surfaced on /pricing so the keep-it-alive cost is
+ * (billing-caps.md); surfaced on /pricing so the keep-it-alive cost is
  * never a surprise.
  */
 export const EVENT_PASS_RENEWAL_PRICE_LABEL = "$15";

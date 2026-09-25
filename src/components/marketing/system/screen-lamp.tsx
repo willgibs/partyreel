@@ -16,13 +16,13 @@ import { cn } from "@/lib/utils";
  * it). It was three near-identical files before this one; a fourth copy is a
  * config, not a component.
  *
- * Lamp (law 1): the children, which must contain the photographs being lit.
- * Direction (law 2): down, from the bottom edge of the wrapped object.
- * Colour (law 3): SAMPLED from the `<img>` elements inside the wrapper via
+ * Lamp: the children, which must contain the photographs being lit.
+ * Direction: down, from the bottom edge of the wrapped object.
+ * Colour: SAMPLED from the `<img>` elements inside the wrapper via
  * useSampledPaletteFromDom, so the light is the colour of what the visitor is
  * looking at; the house five stand in until the sample resolves (and on any
- * surface with no photographs, which is law 3's no-media branch).
- * Falloff (law 4): the engine's seam shape (base + band, always together).
+ * surface with no photographs, which is Colour's no-media branch).
+ * Falloff: the engine's seam shape (base + band, always together).
  *
  * ★ THE LAMP IS A SIBLING OF THE OBJECT, NEVER INSIDE IT. The children are
  * usually a BrowserFrame, a Conveyor or a player, and every one of those clips
@@ -83,10 +83,10 @@ export function ScreenLamp({
           vars={{
             "--glw-h": `${height}px`,
             "--glw-strength": String(strength),
-            // The one lamp clock, read from its token: Will ruled 8s on the
-            // whole page (2026-09-17) and every production lamp follows it from
+            // The one lamp clock, read from its token: 8s on the
+            // whole page, and every production lamp follows it from
             // here. Never a literal, or this lamp drifts out of the page's
-            // register the next time the ruling moves.
+            // register the next time that number changes.
             "--glw-dur": "var(--spill-cadence)",
           }}
         />

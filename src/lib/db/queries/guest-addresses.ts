@@ -2,7 +2,7 @@
  * THE HOST'S VIEW OF A CONFIRMED GUEST'S ADDRESS, for the Guests room (Will, 2026-09-23: "Guests should not see
  * other confirmed guests' emails, making them more comfortable knowing only the host sees it. Exposing emails
  * publicly would go from a safety feature to privacy concern - the host assumes responsibility of ensuring that
- * safety."). Why the host sees one at all is his ruling of 2026-09-22: a verified badge with no address "implies far
+ * safety."). Why the host sees one at all: a verified badge with no address "implies far
  * more safety than it should", because anyone can verify an address they made up.
  *
  * ★ THIS IS THE ONE MODULE THAT READS A GUEST'S ADDRESS FOR A LIST, and it lives apart from `social.ts` on purpose:

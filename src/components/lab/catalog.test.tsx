@@ -13,15 +13,15 @@ import { type BoardSpec, defineBoard } from "./board-spec";
 import { Catalog, CatalogTiles } from "./catalog";
 
 /**
- * THE CATALOG'S CONTRACT (the revamp, 2026-09-16).
+ * THE CATALOG'S CONTRACT.
  *
  * What is pinned is what makes a catalog a catalog rather than a grid of
  * pictures: one card per declared candidate, every control on a card driving a
- * PAGE-WIDE declared control (Will, 2026-09-16: "the GUI control should be
+ * PAGE-WIDE declared control (Will: "the GUI control should be
  * fixed so that variants can be toggled on different previews anywhere on the
  * page"), a pick that can be unpicked, and the reviewer's verdict row on every
  * card. Nothing about the grid, the spacing or the card's look is asserted:
- * that is precedent and the next round may rebuild it.
+ * that came from the last round and this one may rebuild it.
  */
 const SPEC: BoardSpec = defineBoard({
   id: "fixture",

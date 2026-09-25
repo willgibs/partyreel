@@ -71,7 +71,7 @@ import {
 export const AlbumStreamPause = createContext<(() => boolean) | null>(null);
 
 /** The stand-in photograph for a frame: the home hero's own twelve, through the
- *  media manifest (bible 9), so the two compositions share one set until the
+ *  media manifest, so the two compositions share one set until the
  *  Higgsfield month replaces them by id (ASSETS row 22). */
 const photoOf = (i: number) =>
   marketingImage(STREAM_FRAMES[i % STREAM_FRAMES.length]);

@@ -7,8 +7,8 @@ import { floatingPanel, floatingRow } from "@/components/ui/floating-layer";
 import { cn } from "@/lib/utils";
 
 /**
- * THE CORNER LADDER, MEASURED OFF ITSELF (Will's ruling, 2026-09-18: family C,
- * the derived steps in quarters; the rounding board retired into this).
+ * THE CORNER LADDER, MEASURED OFF ITSELF (family C, the derived steps in
+ * quarters; the rounding board retired into this).
  *
  * ★ NOT ONE NUMBER IS TYPED HERE, the type ladder's rule beside it. Every
  * specimen wears the real token or class, and every caption is

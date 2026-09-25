@@ -43,8 +43,8 @@ export type JobOpening = {
 
 // The slug stays `reels-engineer` (no dead URLs) while the TITLE is searchable:
 // "Reels Engineer" was invented nomenclature that named no discipline and no
-// seniority, so nobody looking for this work would ever type it (renamed by
-// Will's ruling, 2026-08-28).
+// seniority, so nobody looking for this work would ever type it (renamed
+// accordingly).
 const reelEngineer: JobOpening = {
   slug: "reels-engineer",
   title: "Graphics Engineer, Reel",
@@ -70,7 +70,7 @@ const reelEngineer: JobOpening = {
   // is really meant to spark a conversation... competitive compensation is
   // totally fine and fairly commonplace on job listings. If we get more serious
   // and really want to recruit, we'll start getting more specific later."
-  // The one change he ruled: "Remote-friendly" became "Remote", because it
+  // The one change made: "Remote-friendly" became "Remote", because it
   // contradicted the Remote location badge rendered on the same screen.
   offer: [
     "Remote",
@@ -130,7 +130,7 @@ export function getJob(slug: string): JobOpening | undefined {
 // headings plus the catch-all. Vary the verb before adding a heading.
 export const CAREERS_INTRO = {
   eyebrow: "Careers",
-  // Ruled plain and confident: the photography carries the hero, so the words
+  // Kept plain and confident: the photography carries the hero, so the words
   // do not have to. It only works while the contact sheet is genuinely good.
   headline: "Join our team",
   subhead:

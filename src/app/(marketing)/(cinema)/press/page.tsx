@@ -32,13 +32,13 @@ export const metadata: Metadata = {
 };
 
 /**
- * THE PRESS PAGE, built as THE CONTACT SHEET (Will's ruling, 2026-08-28, over the
+ * THE PRESS PAGE, built as THE CONTACT SHEET (chosen over the
  * specimen-sheet alternative: "focusing press around the assets and quick hit points").
  * The explored range is on the record: git show 3ffe0d56:docs/decisions/design-record.md, #press-identity.
  *
  * ★ THIS PAGE LIVES IN (cinema), NOT (paper), and the reason is the NAV. A dark hero has
- * to be paired with a dark nav (Will), and the header skin is chosen by the group layout,
- * which a page cannot override. /help set the precedent for exactly this: a resource page
+ * to be paired with a dark nav, and the header skin is chosen by the group layout,
+ * which a page cannot override. /help already does exactly this: a resource page
  * in the cinema group so the dark overlay header runs seamlessly into its hero, with a
  * PaperChapter carrying the body. The route path is unchanged; only the chrome is.
  *
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
  * their content on the right. It replaced a narrow centered reading column that left the
  * page feeling emptier than its own hero. See PressSection for the sticky-in-grid trap.
  *
- * ★ NO BRAND-GUIDELINES SECTION, by ruling. Clear space, minimum size and misuse plates
+ * ★ NO BRAND-GUIDELINES SECTION. Clear space, minimum size and misuse plates
  * are internal brand-book material. The two usage points that ARE press business ship as
  * quick hits beside the copy they govern. Do not reintroduce a guidelines block.
  *
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
  * quotable version of "what Partyreel is" cannot fork between humans and crawlers.
  */
 
-/** Mono is for DATA, never for scaffolding (the R6 numerals-only ruling, applied here to
+/** Mono is for DATA, never for scaffolding (the R6 numerals-only rule, applied here to
  *  the surface that raised it): a year and a price are tabular. Labels, descriptors and
  *  addresses are Inter, and the addresses are links rather than strings. */
 const isTabular = (value: string) => /^[\d$]/.test(value);
@@ -123,7 +123,7 @@ export default function PressPage() {
       />
 
       {/* THE MASTHEAD. The shared lockup at its display step, the same one /about
-          takes (Will's ruling, 2026-08-29): a one-word title set as a masthead, with
+          takes: a one-word title set as a masthead, with
           the optical trim and the tracking squeeze arriving from the STEP rather than
           being hand-rolled here. The round shipped its own eyebrow/h1/standfirst stack,
           which is the fourth such stack on this lane and is what page-hero.tsx exists to

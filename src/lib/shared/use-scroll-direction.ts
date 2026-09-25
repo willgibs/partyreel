@@ -37,7 +37,7 @@ import { useSyncExternalStore } from "react";
  *   • `top`  — inside the reveal zone at the head of the page.
  *   • `up`   — the last real movement was upward (and a page that loaded
  *              already scrolled seeds here: nothing has been scrolled yet, and
- *              the visible state is the default, bible 5).
+ *              the visible state is the default).
  *   • `down` — the reader is moving away, past the hysteresis.
  * `top` and `up` read identically to a consumer; only `down` hides anything.
  */
@@ -147,7 +147,7 @@ function subscribe(onStoreChange: () => void) {
 
 const getSnapshot = () => state.direction;
 /** Prerender and the first client render agree on SHOWN, so ~50 static
- *  marketing routes hydrate identically (bible 5). */
+ *  marketing routes hydrate identically. */
 const getServerSnapshot = (): ScrollDirection => "top";
 
 export function useScrollDirection(): ScrollDirection {

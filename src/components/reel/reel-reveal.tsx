@@ -3,7 +3,7 @@
 /**
  * THE COMPOSITE REVEAL — the beat where a host's reel first exists.
  *
- * Ruled by Will at T1 and ratified AS-BUILT at T2: the curated tiles assemble
+ * Set at T1 and ratified AS-BUILT at T2: the curated tiles assemble
  * into center screen, square up, hold, a camera flash, the stack scales to full
  * bleed, the title card names the event as it lands, the reel takes breath. The
  * grammar is CLOSED — the beats, the from-scale and the scatter are transplanted

@@ -6,9 +6,9 @@ import { getProfile } from "@/lib/db/queries/profile";
 import { needsDisplayName } from "@/lib/welcome";
 
 /**
- * THE NAME GATE, IN ONE PLACE (name-gate, 2026-09-22).
+ * THE NAME GATE, IN ONE PLACE.
  *
- * Will's ruling: "I wanted to ensure an account without a name wasn't moving
+ * "I wanted to ensure an account without a name wasn't moving
  * around the app as a normal user. Name always required, even if one
  * character." Every account is born
  * nameless (`handle_new_user` leaves `display_name` NULL for every signup,

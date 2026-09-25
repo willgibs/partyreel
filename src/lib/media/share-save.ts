@@ -380,7 +380,7 @@ export type SaveOutcome =
  * SAVE TO PHOTOS (iOS): the file into the system sheet, whose "Save Image" is
  * the one web path into the library. Anything that keeps the file from the
  * sheet (too big, a refusal, a broken read) falls back to the plain download,
- * because a Save that saves nothing is the one outcome Will ruled out.
+ * because a Save that saves nothing is the one outcome to avoid.
  */
 export async function saveToPhotos(
   input: { fileUrl: string; name: string },

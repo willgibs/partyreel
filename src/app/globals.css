@@ -33,7 +33,7 @@
     • Both modes are one system: light = paper + hairline borders, dark =
       near-black + translucent card + lighter-is-closer elevation. No pure
       black/white anywhere (bg 0.99 / card 0.997 in light; fg 0.96 in dark).
-    • THE ROUNDING SYSTEM (Will's ruling, 2026-09-18: family C, the derived
+    • THE ROUNDING SYSTEM (family C, the derived
       steps in quarters): an 8px surface (--radius: cards, inputs, panels), a
       12px floating layer (--radius-float: menus, tooltips, toasts, dialogs,
       the guest entry sheet; a ROW inside one is 4px tighter, derived), a 4px
@@ -45,7 +45,7 @@
       quarters of --radius (4/6/8/10/12); 3xl and 4xl are dropped. Nested
       corners follow inner = outer − gap (Hobday); an action rides its HEIGHT
       instead, the system's one deliberate exception to that math.
-    • THE ELEVATION CONTRACT (Will's ruling, 2026-09-17): FOUR techniques, one
+    • THE ELEVATION CONTRACT: FOUR techniques, one
       per height, never rivals. The STEP (a panel is a shade lighter than the
       page) and the RING (a hairline marks an edge) ship on every surface. The
       LIFT (--shadow-lift) goes only where one object overlaps another of its
@@ -101,11 +101,11 @@
    tuner override on <html> pierces every paper subtree. */
 :root,
 .surface-paper {
-  /* Light = paper, the PEARL register (the palette's round eight, Will ruled
-     Graphite 2026-09-17). Two things changed and both are deliberate. The page
+  /* Light = paper, the PEARL register (the palette's round eight, named
+     Graphite). Two things changed and both are deliberate. The page
      is the brightest thing in the product at 0.995 and a CARD IS THE SAME
      WHITE: a card is defined by its hairline, never by a step of 0.007 that no
-     eye resolves (and never by a shadow: since the light ruling a surface
+     eye resolves (and never by a shadow: a surface
      lying flat takes none, see THE TWO SHADOWS below). And every fill BELOW the page is one of Apple's
      cool greys at hue 286 (their grey, not their blue at 258), so a panel and a
      hover fill are 0.040 apart instead of 0.005. The menu is the one surface
@@ -122,7 +122,7 @@
   --secondary-foreground: oklch(0.145 0.006 286);
   --muted: oklch(0.963 0.0066 286);
   --muted-foreground: oklch(0.46 0.009 286);
-  /* THE THIRD TEXT STEP (faint=in, Will 2026-09-17). A timestamp, a caption and
+  /* THE THIRD TEXT STEP (faint=in). A timestamp, a caption and
      a hint are all dimmer than the second grey, and ~37 places used to fade it
      by hand with an alpha. An alpha composites against WHATEVER IS BEHIND IT,
      so the same line was a different grey on a card than on the page; one token
@@ -137,8 +137,8 @@
   --input: oklch(0.862 0.0068 286);
   --ring: oklch(0.3 0.008 286);
   /* The admin chart ramp is still at chroma 0: the palette's paste covers the
-     surface and text tokens, and a cast on five chart greys nobody has ruled
-     would be a value invented in a wiring round. Deferred, ROADMAP > Design. */
+     surface and text tokens, and a cast on five chart greys nobody has settled
+     on would be a value invented in a wiring round. Deferred, ROADMAP > Design. */
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -166,9 +166,9 @@
      signal, distinct from like-rose + save-blue. Used as the ICON color when in-reel / on hover. */
   --reel: oklch(0.62 0.2 300);
 
-  /* ─── THE TWO SHADOWS, BY ROLE (Will's ruling, 2026-09-17: "A small shadow
+  /* ─── THE TWO SHADOWS, BY ROLE: a small shadow
      where one card sits on another, and a larger one under menus, dialogs and
-     toasts"). ONE geometry (blur = 2x offset, single top light source), TWO
+     toasts. ONE geometry (blur = 2x offset, single top light source), TWO
      sizes, ONE alpha ramp per ground.
 
        LIFT   separates two objects of the same lightness that really overlap:
@@ -183,10 +183,10 @@
 
      ★ PAPER DID NOT MOVE. The lift here is the retired single shadow's value
      to the byte, and the layer is that geometry at double the offsets. What
-     the ruling added is the DARK ramp (see .dark): 6 percent of black over a
+     was added is the DARK ramp (see .dark): 6 percent of black over a
      0.105 room is arithmetically invisible, which is the whole reason dark
-     read as shadowless. (The old name left with the rounding board, its last
-     reader, on 2026-09-18; elevation-policy.test.ts refuses it coming back.)
+     read as shadowless. (The old single-shadow name is gone;
+     elevation-policy.test.ts refuses it coming back.)
      ─── */
   --shadow-lift:
     0 2px 4px -1px oklch(0 0 0 / 0.06), 0 4px 8px -2px oklch(0 0 0 / 0.1);
@@ -207,7 +207,7 @@
   --gallery-border: oklch(1 0 0 / 8%);
 
   /* ─── THE LAMP SET: the house palette for LIGHT (SPILL + BEAM + confetti).
-     Named for the doctrine's law 1, "name the lamp". The five hues ARE the
+     Named for the engine's SOURCE rule, "every instance names its lamp". The five hues ARE the
      identity: 25 coral, 85 amber, 155 green, 255 blue, 305 violet. What varies
      per surface is the REGISTER, not the hue.
 
@@ -247,7 +247,7 @@
    inline value on <html> (what the tuner writes) wins everywhere. Never move
    them back into the `:root, .surface-paper` block. */
 :root {
-  /* The rounding system: family C (Will, 2026-09-18; rationale in the header).
+  /* The rounding system: family C (rationale in the header).
      Each value is the board's own, never retyped: C was 8 / 12 / 4 with the
      gap its `gapFor(tile)`. The 48px action rung left with its one call site
      (the reel builder's CTA is the 44px `cta` corner now, button.tsx). */
@@ -257,18 +257,18 @@
   --radius-tile: 4px; /* a photograph */
   /* The ONE gap for every media-tile grid (masonry + the dense triage grids;
      use gap-[var(--gap-gallery)], and mb-[...] where a masonry lays out in
-     columns). ★ PINNED TO THE TILE, never typed (Will's gap=pinned): below
+     columns). ★ PINNED TO THE TILE, never typed: below
      the tile radius, four rounded corners meeting at a junction open a
      visible diamond, so the gap follows the corner; 3px is its floor because
      the 3px gap is the album tell. Retune --radius-tile and this moves too
      (both sit on <html>, which is where the tuner writes). */
   --gap-gallery: max(3px, var(--radius-tile));
   --radius-float: 0.75rem; /* 12px: menus, tooltips, toasts, dialogs, the guest sheet */
-  /* The lamps' cadence, ONE token (ruled 2026-09-17): every shipped lamp (the
+  /* The lamps' cadence, ONE token: every shipped lamp (the
      footer seam, the film strip, the reel pool, the feature heroes' screen
      lamps) passes --glw-dur: var(--spill-cadence), so the whole page moves on
-     one clock. Will ruled 8s on the whole home page at each, which is the
-     engine's own register (2026-08-31) and ends the two rounds where every lamp
+     one clock. 8s on the whole home page at each is the
+     engine's own register and ends the two rounds where every lamp
      shipped 11s against it. Not --glw-* (the engine reads only its own knobs)
      and not --lamp-* (the five are colour, fenced as light-never-UI). */
   --spill-cadence: 8s;
@@ -276,8 +276,8 @@
   /* THE AURORA'S CLOCK: a SIBLING of the lamp's, never a re-tune of it. A field
      the size of a chapter moving at a lamp's clock reads as a screensaver, so
      the Aurora takes three laps of whatever the lamp runs: 24s against the
-     ruled 8s. Re-pointing --spill-cadence itself would slow the footer seam
-     that is the model for all of this, which is a different ruling entirely.
+     8s base. Re-pointing --spill-cadence itself would slow the footer seam
+     that is the model for all of this, which is a separate change entirely.
 
      ★ IT MUST BE DECLARED SOMEWHERE EVERY CONSUMER LOADS, AND AN UNDECLARED
      CADENCE FREEZES THE BAND RATHER THAN FALLING BACK. SectionLight hands the
@@ -292,8 +292,8 @@
      lives here so the site can never repeat it. */
   --aurora-cadence: calc(var(--spill-cadence) * 3);
 
-  /* Motion timing knobs — the RATIFIED production values (ratified in the /design/event-feed lab,
-     Will 2026-06-22). Read by CSS via var(--tune-*, fallback) and by JS via getComputedStyle
+  /* Motion timing knobs — the RATIFIED production values (ratified in the /design/event-feed lab).
+     Read by CSS via var(--tune-*, fallback) and by JS via getComputedStyle
      (use-flip, use-review-triage). The lab's MotionTuner overrides these live with an inline style
      on <html> (which outranks :root), so the playground still tunes against these as the baseline. */
   --tune-route-fade-ms: 310ms; /* the page route fade-in */
@@ -302,7 +302,7 @@
   --tune-reorder-ms: 500ms; /* the section FLIP when the urgency order flips */
   --tune-review-beat-ms: 2500ms; /* the all-caught-up beat before the review section relocates */
 
-  /* The REEL REVEAL beats (R3). CLOSED grammar: ruled by Will at T1, ratified
+  /* The REEL REVEAL beats (R3). CLOSED grammar: set at T1, ratified
      AS-BUILT at T2, so these are transplanted verbatim from the design lab and
      are revisit-only — do not re-tune them as part of a build. They are read by
      CSS below via var(--tune-rvl-*, <the same value>) and by JS via readCssMs
@@ -325,7 +325,7 @@
 }
 
 .dark {
-  /* Dark = the night system, the GRAPHITE room (Will ruled it 2026-09-17).
+  /* Dark = the night system, the GRAPHITE room.
      ONE room at 0.105 for the whole product: the app used to sit 0.030 lighter
      than a marketing chapter for no stated reason, and marketing's own deeper
      value is what the whole product now wears. Deep enough to be a GROUND
@@ -341,9 +341,9 @@
   --background: oklch(0.105 0.0053 286);
   --foreground: oklch(0.965 0.0045 286);
   /* ★ THE VEIL RETIRED, AND THE GLASS IT HINTED AT NOW EXISTS ELSEWHERE
-     (card=declared, Will 2026-09-17: "If we ever need to design that glass style
-     over photos, we can design that custom."; designed and ruled as Crystal,
-     2026-09-20). This was the system's ONE translucent surface and no document
+     (card=declared: "If we ever need to design that glass style
+     over photos, we can design that custom."; designed and named Crystal).
+     This was the system's ONE translucent surface and no document
      said so: 62% of a grey over whatever sat behind it, which read solid over a
      page and turned to glass over a photograph. A card is an OPAQUE surface
      everywhere now, and that is still the rule: the custom glass he asked for is
@@ -392,7 +392,7 @@
   --save-foreground: oklch(0.13 0 0);
   --reel: oklch(0.72 0.18 300);
 
-  /* THE RAMP DARK NEVER HAD (the light board's depth ruling, 2026-09-17). The
+  /* THE RAMP DARK NEVER HAD (the light board's depth pass). The
      geometry is the light block's, to the pixel; only the alpha changes,
      because a shadow has to be darker than what it falls on. Judged on two
      mid-key photographs and on a menu over a busy page, which are the only
@@ -422,7 +422,7 @@
 
    ★ IT IS DECLARED, NOT YET WORN. The ~35 `bg-muted/N` call sites become
    sections carrying this class as a mechanical follow-up (ROADMAP > Design);
-   the ruling is the ground, not the sweep. Light only: it declares no dark
+   this covers the ground, not the sweep. Light only: it declares no dark
    values, so a `.dark` subtree inside it keeps the room's ladder. Placed after
    .surface-paper and before .surface-ink so an ink leaf on a mat still wins. */
 .surface-mat {
@@ -451,7 +451,7 @@
    were one value. Graphite splits them (the well at 0.065, the slab at 0.165),
    so deriving would drag this leaf down to the well with it and a footer at the
    bottom of a paper page would read as a hole rather than as a step. This is
-   the SLAB register of the ruled dark set, verbatim.
+   the SLAB register of the dark set, verbatim.
 
    --brand is redeclared DIRECTLY here, and via --primary declared in this same
    block: a var() inside a custom property is substituted where it is DECLARED,
@@ -984,10 +984,10 @@
    retired at this wiring. `src/lib/glass.ts` names these tokens for the
    contract test and `docs/systems/design-system.md` carries the facts.)
 
-   ★ ONE MATERIAL, EVERYWHERE, AND THAT IS THE RULING. Will, on the reel's white
+   ★ ONE MATERIAL, EVERYWHERE, AND THAT IS THE POINT. On the reel's white
    pane: "I don't want to have separate glass treatments and would prefer to find
    a global that works everywhere". Round two drew three bodies on all six glass
-   surfaces at once and he picked `material=crystal` with `edge=double`. So the
+   surfaces at once and `material=crystal` with `edge=double` was picked. So the
    numbers live HERE, once, and every glass surface in the product wears
    `.glass`. A pill that types its own `bg-black/55 backdrop-blur-sm` is the
    drift this block exists to end.
@@ -1113,8 +1113,8 @@
    Swap the brand face forever by repointing --font-display (root layout) +
    retuning these two lines.
 
-   ★ THE -0.03em IS A FALLBACK NOW, NOT THE LAW (the type wiring, 2026-09-17).
-   Will's ruling gave every SIZE its own letter-spacing, tighter as it climbs
+   ★ THE -0.03em IS A FALLBACK NOW, NOT THE RULE (the type wiring).
+   Every SIZE now gets its own letter-spacing, tighter as it climbs
    (-0.045em at 160px, -0.006em at 16px; src/app/theme.css). A flat value from
    160 down to 16 was fault three the ladder answers, so a heading wearing both
    `font-heading` and a step must take the STEP's value — and it does, measured
@@ -1210,7 +1210,7 @@
   color: inherit !important;
 }
 
-/* THE TOAST IS A LAYER (the light ruling, 2026-09-17: "a larger one under
+/* THE TOAST IS A LAYER (the two-shadows rule: "a larger one under
    menus, dialogs and toasts"), and it was the one floating surface outside the
    family: sonner ships its own `0 4px 12px rgba(0,0,0,.1)`, which is a fourth
    geometry in light and nothing at all over a dark room.
@@ -1238,7 +1238,7 @@
 
 /* ═══════════ Reel reveal + reel experience (ratified, R3) ═══════════
    Promoted out of the design lab (design.css `[data-rvl-*]` / `[data-rxp-*]`)
-   after Will ruled the composite reveal at T1 and ratified it AS-BUILT at T2.
+   after the composite reveal was set at T1 and ratified AS-BUILT at T2.
    The grammar is CLOSED: the values here are the lab's verbatim, the two lab
    tokens were remapped to their production equivalents (--dir-ease ->
    --ease-emphasis, [data-dir-display] -> the `font-heading` utility), and the
@@ -1654,15 +1654,15 @@
 
    Inert until something renders [data-glw]. Today that is the footer seam.
 
-   ── THE FOUR LAWS THIS ENCODES ──
-   1 SOURCE    every instance names its lamp (the caller positions the field).
-   2 DIRECTION --glw-from-x/y is required, not decorative: the container mask is
+   ── THE FOUR RULES THIS ENCODES ──
+   SOURCE      every instance names its lamp (the caller positions the field).
+   DIRECTION   --glw-from-x/y is required, not decorative: the container mask is
                origin-anchored, so a spill always has a vector. There is no
                "even rim" mode on purpose.
-   3 COLOUR    --glw-c1..c5 are INPUTS. The palette below is only the fallback
+   COLOUR      --glw-c1..c5 are INPUTS. The palette below is only the fallback
                for surfaces with no media; a lamp with real photographs
                overrides them inline from sampled pixels.
-   4 FALLOFF   base + band, always. A swept layer rests off-layer, so a band-only
+   FALLOFF     base + band, always. A swept layer rests off-layer, so a band-only
                glow is invisible whenever it is paused, which is its default
                state below the fold AND its reduced-motion state (the global
                guard forces animation-iteration-count: 1). The base is how a
@@ -1691,7 +1691,7 @@
 /* The scalar phase. Registered so calc() can interpolate it; without the
    registration a browser treats it as a token string and the transition
    snaps. Safari gained @property at 16.4 — older engines drop the moving
-   layer and keep the base lit, which is exactly law 4's fallback. */
+   layer and keep the base lit, which is exactly FALLOFF's fallback. */
 @property --glw-t {
   syntax: "<number>";
   inherits: true;
@@ -1699,7 +1699,7 @@
 }
 
 [data-glw] {
-  /* Law 3's FALLBACK: the house lamp set (globals.css), for surfaces with no
+  /* COLOUR's FALLBACK: the house lamp set (globals.css), for surfaces with no
      media to sample. Aliased, never copied, so the footer seam / the confetti
      canvas / a future beam cannot drift apart.
 
@@ -1718,15 +1718,15 @@
      comet over it. The footer ships both at 0.62; that is the calibration. */
   --glw-base: 0.62;
   --glw-strength: 0.62;
-  /* 8s ruled by Will on the register (2026-08-31, held on the whole page
-     2026-09-17). --spill-cadence now carries the same number, so a lamp that
+  /* 8s on the register, held on the whole page.
+     --spill-cadence now carries the same number, so a lamp that
      passes the token and a lamp that takes this default finally agree. */
   --glw-dur: 8s;
   --glw-blur: 16px;
   /* The recipe's pixel geometry is tuned for a 142px tile and MUST scale with
      the surface, or a 40px pill and a 1440px hero share an overhang. */
   --glw-scale: 1;
-  /* Law 2. Where the lamp is, in the layer's own box.
+  /* DIRECTION. Where the lamp is, in the layer's own box.
 
      ★ INDIRECTED THROUGH --glw-origin-* ON PURPOSE. A custom property declared
      ON an element always beats the same property inherited from an ancestor, so
@@ -1752,7 +1752,7 @@
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  /* ★ LAW 4 IS A STACKING RULE TOO. Without `isolation`, this element is
+  /* ★ FALLOFF IS A STACKING RULE TOO. Without `isolation`, this element is
      position:absolute with z-index auto, so it creates NO stacking context and
      the edge beam's own `z-index: 1` competes at the PARENT's level, landing
      the beam on top of the content the light is supposed to sit behind. The
@@ -1760,7 +1760,7 @@
      "the effect is too strong" and sends you tuning opacity instead of fixing
      the stack. Caught on the doorbell specimen. */
   isolation: isolate;
-  /* Law 4: falloff from the lamp outward. Origin-anchored, so the same rule
+  /* FALLOFF: falloff from the lamp outward. Origin-anchored, so the same rule
      serves a seam (50% 0%), a card throwing down (50% 100%) and a plate
      throwing outward (50% 50%). */
   -webkit-mask-image: radial-gradient(
@@ -1799,7 +1799,7 @@
    footer has always used 250px (inset: -40px -40px 0 -40px).
 
    ★ WHICH MEANS THE LAB SPECIMEN AND THE SHIPPED FOOTER WERE NEVER THE SAME
-   LAMP. Every seam ruling before this date was taken on a field 16% taller
+   LAMP. Every seam read before this date was taken on a field 16% taller
    than the live one. Same class of finding as the dead halo mask fixed at the
    merge: a specimen that was not rendering what its own source claimed.
    Per-shape field insets are the established pattern here (the halo overrides
@@ -1820,9 +1820,9 @@
    46%, deliberately smaller than the object.
 
    This is a real doctrine finding, not just a fix. A halo has a nameable lamp
-   and a real vector (from behind the object, outward), so it does NOT fail law
-   2 the way I claimed a "rim" does. What decides the CTA case is law 1 instead:
-   in the hero there IS something behind the button (the media wall), and in the
+   and a real vector (from behind the object, outward), so it does NOT fail
+   DIRECTION the way a "rim" was claimed to. What decides the CTA case is SOURCE
+   instead: in the hero there IS something behind the button (the media wall), and in the
    chrome there is nothing. Same verdict, arrived at honestly.
 
    TWO DELIBERATE DEVIATIONS from the recipe, both stated on the board:
@@ -1918,7 +1918,7 @@
   background-size: 180% 180%;
 }
 
-/* The base holds the ring lit while paused and under reduced motion (law 4);
+/* The base holds the ring lit while paused and under reduced motion (FALLOFF);
    the band is the same field travelling a lap. */
 [data-glw-shape="halo"] [data-glw-base] {
   background-position:
@@ -1987,7 +1987,7 @@
     );
 }
 
-/* Law 4: the resting light. Always on, never animated, never paused. */
+/* FALLOFF: the resting light. Always on, never animated, never paused. */
 [data-glw-base] {
   opacity: var(--glw-base);
 }
@@ -1996,8 +1996,8 @@
   opacity: var(--glw-strength);
 }
 
-/* ★ A BLOOM'S BAND RESTS AT ITS OWN FROM-KEYFRAME (round 2, 2026-09-02). Law
-   4's reduced-motion half, one shape over from the mask drives' resting
+/* ★ A BLOOM'S BAND RESTS AT ITS OWN FROM-KEYFRAME (round 2). FALLOFF's
+   reduced-motion half, one shape over from the mask drives' resting
    mask-position, and it was broken the same way. The rule above declares the
    band at full --glw-strength, and a bloom is the ONE shape with no travelling
    window to hide that (the comet mask block carries
@@ -2011,12 +2011,12 @@
                an arrival.
      reduced   the animation is only ever declared inside no-preference, so the
                DECLARED value is the whole of what a reduced-motion visitor
-               sees, and that was base + band both at 0.62 forever: the same
-               law inverted that the `50% 0` resting mask-position was.
+               sees, and that was base + band both at 0.62 forever: FALLOFF
+               inverted the same way the `50% 0` resting mask-position was.
 
    glw-bloom's from-keyframe is `opacity: 0; scale: 0.94`, so declaring it here
    makes the resting state the START of the travel rather than a point inside
-   it, and the base alone carries the light -- which IS law 4's arrival. The
+   it, and the base alone carries the light -- which IS how FALLOFF arrives. The
    animation runs `both`, so its 0% keyframe wins from the first tick and the
    armed no-preference path is unchanged down to the frame. Specificity (0,2,0)
    beats the (0,1,0) rule above, so placement here is for reading order only. */
@@ -2037,8 +2037,8 @@
    That override was DEAD: it is (0,2,0) and this block is (0,4,0) AND later in
    source order, so it lost twice and every halo specimen rendered the comet
    mask instead of the orbit. Same :not() trap this comment already warns about
-   for bloom, and the same fix. Rulings taken on a halo specimen before this
-   date were taken on a lamp that was not doing what its own source said. ── */
+   for bloom, and the same fix. Any read taken on a halo specimen before this
+   fix was a read of a lamp that was not doing what its own source said. ── */
 [data-glw]:not([data-glw-shape="bloom"]):not(
     [data-glw-shape="halo"]
   )[data-glw-drive="mask"]
@@ -2085,9 +2085,9 @@
      Nobody with prefers-reduced-motion has ever seen this lamp any other way,
      because the animation lives in the no-preference block below and reduced
      motion never opts in. The comment on that block asserted "comet parked",
-     which is the tell: a claim the CSS did not implement. Law 4 says the base
+     which is the tell: a claim the CSS did not implement. FALLOFF says the base
      is how a reduced-motion arrival still ARRIVES -- base lit, band away --
-     and the band at full strength was that law inverted.
+     and the band at full strength inverted that.
 
      150% is the animation's own from-keyframe, so no-preference is unchanged
      down to the frame: the animation overrides this from its first tick. Only
@@ -2109,7 +2109,7 @@
      that was `translate: none`, which on a band inset -90% either side puts the
      gradient's own 50% peak at dead centre of the box at full --glw-strength:
      the precise midpoint of the sweep, forever, for the people who asked for
-     less motion. Law 4 inverted, exactly as `mask-position: 50% 0` was.
+     less motion. FALLOFF inverted, exactly as `mask-position: 50% 0` was.
 
      Nobody had seen it because no shipped lamp used this drive; the Aurora's
      field is the first, and a chapter-scale field is the worst possible place
@@ -2168,7 +2168,7 @@
    inner glow and a heavy bloom, all shaped by ONE comet window phase-locked to
    the band's clock, so the border lights up exactly where the band is passing.
    Deliberate deviation from the recipe: ours sits over a faint always-on ring,
-   because the recipe's edge beam has no base and would vanish under law 4's
+   because the recipe's edge beam has no base and would vanish under FALLOFF's
    paused and reduced-motion states. Stated on the board, not hidden. ── */
 [data-glw-edge] {
   position: absolute;
@@ -2533,10 +2533,9 @@
   }
 }
 
-/* ── THE AURORA IS A DARK-GROUND LIGHT, BY CONSTRUCTION (Will, 2026-09-17).
-   His ruling, in his words: "we may not be able to use the Aurora on
-   white/paper surfaces. It's barely noticeable and almost appears as a weird
-   shadow or a stray artifact... No light ground usage is a decision for now."
+/* ── THE AURORA IS A DARK-GROUND LIGHT, BY CONSTRUCTION: on white/paper
+   surfaces it is barely noticeable and can read as a weird shadow or a stray
+   artifact, so light-ground usage is out for now.
 
    So the fence is CSS rather than a prop, a lint or a review note: a chapter
    that turns to paper later, or a SectionLight dropped into the app's light
@@ -2608,8 +2607,8 @@
    radial (and a seam's linear ramp, and a halo's mask, which is the one that
    CLEARS the centre so the object it backlights is not painted over). With
    masking gone, hiding the band leaves exactly the unmasked field the comment
-   promised to prevent, halo included. There is no "lit and still" to keep: law
-   4 says spill fades with distance and never draws an edge, and an unmasked
+   promised to prevent, halo included. There is no "lit and still" to keep:
+   FALLOFF says spill fades with distance and never draws an edge, and an unmasked
    field draws one at the box. So the whole lamp goes, the same degradation
    forced-colors and print already take two rules up. */
 @supports not (mask-image: linear-gradient(#000, transparent)) {

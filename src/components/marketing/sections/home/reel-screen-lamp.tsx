@@ -7,13 +7,13 @@ import { useSampledPaletteFromDom } from "@/lib/shared/sampled-palette";
 
 /**
  * THE SCREEN'S LIGHT, THROWN DOWN ONTO THE FLOOR. The reel player is a screen
- * in a dark room, the most literal emitting object on the page, so law 1 is
+ * in a dark room, the most literal emitting object on the page, so SOURCE is
  * answered by the object itself. Its light falls DOWN out of its bottom edge
  * onto the dark beneath it, where the style strip and the pointer sit in the
  * pool: the projector-on-the-floor image, and the same mechanic the film strip
  * and the footer use -- a seam anchored on a real edge.
  *
- * Colour is sampled from the poster the player shows (law 3), read off the
+ * Colour is sampled from the poster the player shows, read off the
  * live <img> next/image renders, so it costs no bytes.
  *
  * ★ WHY NOT A GLOW ALL THE WAY AROUND, since that was the first cut. A `throw`
@@ -27,8 +27,8 @@ import { useSampledPaletteFromDom } from "@/lib/shared/sampled-palette";
  * which an opaque screen makes invisible. Neither shape is a backlight for an
  * opaque object; a seam under it is, and it is already ratified twice.
  *
- * ★ THE SIDES END IN A POOL, NOT A FADE (Will's ruling on treatment A,
- * 2026-09-01: "the lamp extends its width beyond the width of the real
+ * ★ THE SIDES END IN A POOL, NOT A FADE (treatment A's problem:
+ * "the lamp extends its width beyond the width of the real
  * preview video, and the clipping feels very unnatural"). The seam's five
  * ellipses sit at 14/38/60/80/96% of the field, so at ANY box width the outer
  * two still carry ~40-50% opacity at the box's edges. The first cut put a

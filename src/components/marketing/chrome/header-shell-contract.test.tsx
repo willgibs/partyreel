@@ -12,7 +12,7 @@ import { HeaderShell } from "./header-shell";
  * THE BAR THAT GETS OUT OF THE WAY (`on-scroll=hide`, Will 2026-09-19: "Hides
  * going down, returns coming up"). Function, never look: nothing here asserts
  * a curve, a clock or a colour, and the numbers it does assert are the ones
- * that decide WHETHER the bar is there, which is the thing he ruled.
+ * that decide WHETHER the bar is there, which is the thing that was decided.
  *
  * Split in two on purpose. The state machine is a render assertion, because
  * jsdom can dispatch a scroll. The three ESCAPES are source pins, because they
@@ -135,7 +135,7 @@ describe("the header's hide-on-scroll", () => {
   });
 
   it("hides the SOLID posture on the same signal, not a second rule", () => {
-    // Paper routes and the root 404 render the always-glass bar. Will ruled
+    // Paper routes and the root 404 render the always-glass bar: there is
     // one behaviour for the chrome, so the two postures must not drift.
     render(
       <HeaderShell>

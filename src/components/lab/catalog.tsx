@@ -30,7 +30,7 @@ import { useDesignKey } from "./walk";
  * preview, the facts, the argument folded away, and the reviewer's row.
  *
  * ★ EVERY CONTROL ON A CARD IS A PAGE-WIDE SWITCH, which is the other half of
- * the ruling ("the GUI control should be fixed so that variants can be toggled
+ * the point ("the GUI control should be fixed so that variants can be toggled
  * on different previews anywhere on the page"). Pick sets the board's declared
  * pick control, so every section below the catalog wears the card; A and B set
  * the two compare controls, so any two cards can be put side by side without
@@ -94,9 +94,9 @@ export function CatalogTiles({
 }
 
 const VERDICT_STYLE: Record<BuilderVerdict, string> = {
-  // Lifted from the glow boards' own pill (retired 2026-09-18; git has
+  // Lifted from the glow boards' own pill (retired; git has
   // sandbox/glow-lab-shared.tsx), which is where the grammar was worked out: the weight IS the verdict, so it reads
-  // at a glance across twelve cards and never costs a hue (bible 6).
+  // at a glance across twelve cards and never costs a hue.
   ship: "border-transparent bg-foreground text-background",
   refine: "border-border text-foreground",
   kill: "border-border text-muted-foreground line-through decoration-1",

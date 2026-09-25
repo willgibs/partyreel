@@ -1,5 +1,5 @@
 /**
- * The GUEST reel payload: the pure contract surface of the guest reel read (R3, guest-flow.md ruling 5).
+ * The GUEST reel payload: the pure contract surface of the guest reel read (R3; guest-flow.md).
  *
  * Kept free of server imports so the contract test can pin it directly. The shape mirrors
  * get_event_reel_by_qr_token's RETURNS TABLE (supabase/migrations/20260730120000): that table IS the
@@ -42,7 +42,7 @@ export const GUEST_REEL_ALLOWED_KEYS = [
 ] as const satisfies readonly (keyof GuestReelRpcRow)[];
 
 /**
- * Names that must NEVER appear on the anon surface (guest-flow.md ruling 5's "never returned" list).
+ * Names that must NEVER appear on the anon surface (guest-flow.md's "never returned" list).
  * The contract test asserts zero intersection with the allow-list, so a future column added to the
  * RPC by name lands on this tripwire in review.
  */

@@ -28,7 +28,7 @@ type NotFoundScreenBase = {
   digest?: string;
   /**
    * Which half of the site this dead end is on, which is the ONE thing the
-   * title needs to know (Will's type ruling, 2026-09-17: the dead-link title
+   * title needs to know (the dead-link title
    * joins the ladder, at the prose step on marketing and the page step inside
    * the app). A prop rather than an ancestor selector, and certainly rather
    * than a second component: `[data-mkt]` is absent on the root 404, which
@@ -74,7 +74,7 @@ const TITLE_STEP = {
 //
 // ★ ITS TITLE IS ON THE LADDER NOW, AND IT USED TO BE THE ONE H1 THAT WAS NOT.
 // It shipped in Inter 600 at a hand-rolled 30/36 while every other h1 on the
-// site wore the heading face; Will ruled it onto the set (2026-09-17). The
+// site wore the heading face; this one joined the set. The
 // `surface` prop is the whole of the difference between the two halves, so the
 // call sites still share ONE component and one dead-end grammar.
 export function NotFoundScreen({

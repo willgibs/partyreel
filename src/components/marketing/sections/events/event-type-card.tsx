@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
  * AN EVENT-TYPE CARD: THE PHOTOGRAPH IS THE CARD, at both of the sizes the site
  * shows one.
  *
- * Will ruled `the-cards=frame` (2026-09-19, verbatim): "However, with this
+ * `the-cards=frame` was chosen, verbatim: "However, with this
  * selection, all events should have a photograph (weddings, parties) rather
  * than an artifact (conferences, trips). These cards could use a ton of design
  * polish, only approving the photograph as full bg component here." Earlier the
@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
  * for carry a NAMED STAND-IN rather than an artifact (`events.ts`,
  * `media.card`; ASSETS rows 24 and 25 are the swap, and it is a data change in
  * that one file). The artifact-inside-a-card is gone from both sizes: it is
- * the thing he ruled out by name.
+ * the thing removed by name.
  *
  * ★ ONE ANATOMY, TWO SIZES. The hub's directory card and the home row's card
  * used to be two components with two opinions about the same object (a 16:10
@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils";
  * now, and `size` changes only what a 438px card can hold that a 280px one
  * cannot: the type step of the name, and the long-tail line.
  *
- * ★ THE SCRIM IS THE RULED ONE, never a fresh ramp. `CARD_COPY_SCRIM`
+ * ★ THE SCRIM IS THE SHARED ONE, never a fresh ramp. `CARD_COPY_SCRIM`
  * (feature-door.tsx) is two measured layers, a band for the copy row's ground
  * and a bloom in the corner the copy starts from; the rest scrim above it lifts
  * on hover while the copy's own gradient holds, so the photograph brightens and

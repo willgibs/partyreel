@@ -99,7 +99,7 @@ describe("decideVideo", () => {
 });
 
 describe("where Include videos starts", () => {
-  it("is on by default (Will's ruling), and off only under Data Saver", () => {
+  it("is on by default, and off only under Data Saver", () => {
     expect(videosDefaultOn(undefined)).toBe(true);
     expect(videosDefaultOn(null)).toBe(true);
     expect(videosDefaultOn(false)).toBe(true);

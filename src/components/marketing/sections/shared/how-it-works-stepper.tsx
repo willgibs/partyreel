@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
  * THE "HOW IT WORKS" OVERVIEW: the whole loop inside one ordinary section,
  * one step on screen at a time.
  *
- * Will ruled it on the walkthrough's `shape` step (2026-09-19): "I made a
+ * Chosen on the walkthrough's `shape` step: "I made a
  * previous question note about using a simpler three steps for 'How It Works'
  * sections, such as on the homepage, to point into the more comprehensive How
  * It Works page. However, I think a numbered stepper would work better, where

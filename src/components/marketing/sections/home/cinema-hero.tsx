@@ -46,7 +46,7 @@ import {
  * THE HOME HERO: THE ALBUM LEAVING THE CODE (the hero's wiring round,
  * 2026-09-17; it replaces the living album wall of 2026-08-25).
  *
- * Will's rulings, in order: the SOURCE direction,
+ * The choices, in order: the SOURCE direction,
  * the album coming out of the code, the lockup CENTRED rather than left like
  * every other marketing page, the site's one ruled line as the headline and no
  * live count anywhere (round five); the symmetric approach by name over the
@@ -62,21 +62,21 @@ import {
  * (hero-stream.ts solves the clear line), and the real demo QR stands still at
  * scanning size where the frames are born. The code is the eyebrow, the object
  * and the argument at once, and there is no darkening layer anywhere over a
- * photograph (bible 6).
+ * photograph.
  *
  * ★ NOTHING ABOUT THE CODE MOVES. The stillness is the point, and a QR that
  * breathes is a QR nobody can scan. It is the real demo event's, live from
  * NEXT_PUBLIC_DEMO_QR_TOKEN, server-rendered and tappable.
  *
  * ★ THE LCP IS THE HEADLINE, which is why it is plain markup at full opacity
- * gated by nothing (bible 5, marketing-h1-policy.test.ts). The frames lit at
+ * gated by nothing (marketing-h1-policy.test.ts). The frames lit at
  * rest load eager, because they are what a reduced-motion reader sees on the
  * first paint; the two born inside the code load lazy.
  *
  * ★ WHAT LEFT WITH THE WALL, so nobody goes looking: WALL_ORDER, WALL_TILES,
  * TALL_TILES, the three scrims, the reel card in the wall, HERO_EYEBROW, the
  * DemoTicket under the actions (the code IS the demo affordance now) and the
- * kinetic SpliceWord, whose pre-agreed fallback was exactly this, the ruled
+ * kinetic SpliceWord, whose pre-agreed fallback was exactly this, the
  * thesis rendered static. Git holds them at `85aa65d9`.
  */
 
@@ -287,7 +287,7 @@ export function CinemaHero() {
                 style={f.style}
               >
                 {/* At FULL luminance, and there is no scrim prop: a hero that
-                    needs one has not solved its composition (bible 6). */}
+                    needs one has not solved its composition. */}
                 <div className="relative size-full overflow-hidden rounded-[var(--radius-tile)] bg-white/5 ring-1 ring-white/10 ring-inset">
                   <Image
                     src={f.image.src}

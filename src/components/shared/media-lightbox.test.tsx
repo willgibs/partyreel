@@ -6,7 +6,7 @@
  * instant path, keyboard nav, drag-click suppression. Pins read
  * transforms/attributes/callbacks - never theme styles.
  *
- * ★ WHAT r1 CHANGED, DELIBERATELY, AND WHY (Will's rulings, each pin below says
+ * ★ WHAT r1 CHANGED, DELIBERATELY, AND WHY (each pin below says
  * which): a tap on blank space CLOSES wherever it lands (`wayout=down`, "clicking
  * on any blank space around the media should close"), so the 30% side zones that
  * stepped through the album went and a tap on a PEEKING NEIGHBOUR steps instead
@@ -23,8 +23,8 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GridMedia } from "@/components/app/media-grid";
-// The mark's one label constant, read rather than retyped (Will, 2026-09-22
-// re-ruled its word): the pill, the guest list and the menu move together, and
+// The mark's one label constant, read rather than retyped (its word
+// changed once already): the pill, the guest list and the menu move together, and
 // a regex copy of the old string here would have been the one thing that did not.
 import { UNVERIFIED_LABEL } from "@/components/shared/unverified-mark";
 import { TooltipProvider } from "@/components/ui/tooltip";

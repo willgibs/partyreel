@@ -102,7 +102,7 @@ export function buildOperatorQueue(input: QueueInput): QueueItem[] {
       kind: "reports",
       kindLabel: KIND_LABEL.reports,
       what: plural(input.reports.count, "open report"),
-      detail: "Guest safety, nobody has ruled yet",
+      detail: "Guest safety, not yet reviewed",
       waitedMs: age(input.reports.oldestAtMs, nowMs),
       action: { label: "Review them", href: "/admin/reports" },
       tone: "warning",

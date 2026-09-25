@@ -6,8 +6,8 @@ import { boardNoteHoldId, holdId, itemHoldId } from "./step-id";
 
 /**
  * THE SESSION'S ANSWERS (the Library x Lab round, 2026-09-15): what Will has
- * picked so far, held in this browser only. The UI never writes the repo (his
- * ruling the same day), so the answers have to survive a reload somewhere, and
+ * picked so far, held in this browser only. The UI never writes the repo
+ * directly, so the answers have to survive a reload somewhere, and
  * localStorage is the only place that costs nothing and reaches nobody else.
  *
  * A store outside React, read with useSyncExternalStore, is the lab's idiom

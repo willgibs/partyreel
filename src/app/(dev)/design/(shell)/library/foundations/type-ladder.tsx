@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * THE TYPE LADDER, DRAWN BY THE PRODUCTION TOKENS AND MEASURED OFF ITSELF
- * (Will's ruling, 2026-09-17; the type-scale board retired into this).
+ * (the type-scale board retired into this).
  *
  * ★ NOT ONE NUMBER IS TYPED HERE, AND THAT IS THE WHOLE DESIGN. Every rung
  * wears the real utility class (`text-display`, `text-hero`, …), so its size,

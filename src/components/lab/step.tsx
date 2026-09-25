@@ -98,11 +98,11 @@ import { useDesignKey } from "./walk";
  * a board page (the desk's dry run) there is no evidence function, and the
  * options degrade to what the spec declares in words.
  *
- * ★ A QUESTION A NEWER RULING REACHED IS RESHAPED ON ITS BOARD, NEVER BADGED
- * HERE (Will, 2026-09-22: an earlier pick that closed the road to a better
+ * ★ A QUESTION A LATER BOARD REACHED IS RESHAPED ON ITS BOARD, NEVER BADGED
+ * HERE (an earlier pick that closed the road to a better
  * answer is adapted to the current context, and a question already solved at
  * its best is removed). So the step draws every question the same way, and
- * the ground a newer ruling moved lives in the question's own context.
+ * the ground a later board moved lives in the question's own context.
  *
  * Keys: 1..9 shows an option and a second press picks it; x blinks back to the
  * one shown before (A and B); g flips or lays side by side; n goes to the note;

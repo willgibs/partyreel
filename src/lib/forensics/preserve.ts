@@ -1,5 +1,5 @@
 /**
- * Evidence preservation + legal hold (trust-safety-forensics.md decision 2). Preserve = set the hold, copy the
+ * Evidence preservation + legal hold (trust-safety-forensics.md, "Legal hold and preservation"). Preserve = set the hold, copy the
  * ORIGINAL object into the segregated preservation prefix (server-side; no key/URL touches a
  * browser), and snapshot the DB evidence (media + forensic + event rows) as JSON beside it.
  * The 1-year CyberTipline preservation clock runs on these objects; releasing a hold does NOT

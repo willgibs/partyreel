@@ -1,13 +1,13 @@
 /**
- * The GUEST download LADDER, as a pure decision (R3, guest-flow.md ruling 4).
+ * The GUEST download LADDER, as a pure decision (R3; guest-flow.md).
  *
  * The overlay's Download tap has four possible outcomes and they are chosen from exactly two facts:
  * what the route answered, and whether THIS device can encode. Keeping that choice pure (rather than
- * inline in the overlay's async handler) is what makes the ruled ladder testable at all: the live
+ * inline in the overlay's async handler) is what makes the ladder testable at all: the live
  * red-team can only force one rung at a time, whereas the pins below cover all four plus the
  * refusals, and any future rung has to declare itself here.
  *
- * The ladder, in the ruled order (artifact-preferred, then $0 self-encode, then the honest ask):
+ * The ladder, in order (artifact-preferred, then $0 self-encode, then the honest ask):
  *
  *   fresh artifact                → serve it (instant, universal, matches the current cut exactly)
  *   stale artifact + can encode   → encode the cut the guest is WATCHING (the shown props), $0
@@ -17,7 +17,7 @@
  *
  * Note the asymmetry: freshness LOSES to a local encode where one is possible (the guest gets the cut
  * they are looking at, not the host's older render) but WINS over nothing. There is deliberately no
- * server render / mint / upload rung: a guest has no write path (ruling 4).
+ * server render / mint / upload rung: a guest has no write path (guest-flow.md).
  */
 import type { ReelDownloadResponse } from "@/lib/reel/guest-download-contract";
 

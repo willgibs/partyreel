@@ -1,6 +1,6 @@
 /* ── THE VIEWER'S OWN SHEET (media-lightbox.tsx, media-viewer r1) ──────────
 
-   Beside the component and imported by it (the `arrival.css` precedent), so
+   Beside the component and imported by it (matching `arrival.css`), so
    the rules that move a photograph live with the code that moves it. The swipe
    track's own settle stays in globals.css; everything here rides it.
 
@@ -10,7 +10,7 @@
    control inside it carries.
 
    ★ THE STATES APPLY UNDER EVERY MOTION SETTING; ONLY THE TRANSITIONS ARE
-   GATED (bible 5). A reduced-motion visitor gets the same quiet slivers and
+   GATED. A reduced-motion visitor gets the same quiet slivers and
    the same hidden chrome, arriving at once. */
 
 /* Hidden while a photograph flies in or out, or is being pulled down. */

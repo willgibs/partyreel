@@ -5,7 +5,7 @@
  *
  * The moment a host shares a reel used to be two flat violet box-shadows (one
  * breathing INSIDE the Studio's frame, one riding out of the share card), both
- * decaying to nothing. Will ruled both halves on the light board (2026-09-17):
+ * decaying to nothing. Both halves were settled on the light board:
  *
  *   the colour  "Let's keep it consistent with the rest of our glows. Don't need
  *               a single stray glow color, let's use either our house five or
@@ -22,12 +22,12 @@
  *   the places  "custom and bespoke, not a couple of identity components reused
  *               everywhere in the same way constantly."
  *
- * WHY ONE FILE AND TWO MOUNTS. The two places share a LAW, not a look: the
+ * WHY ONE FILE AND TWO MOUNTS. The two places share a RULE, not a look: the
  * engine's bloom, the house five, mounted only while the reel is shared, the
  * swell owed to the tap and the base to the state (`restOrSwell` below). What
  * they do not share is geometry, so each is composed for its own object and
  * there is no mode prop to pick between them. They live side by side so the
- * law cannot drift between two files, and so the lab's Publish moment and the
+ * rule cannot drift between two files, and so the lab's Publish moment and the
  * contract (publish-light.test.tsx) mount the very lamps that ship: the Studio
  * is behind sign-in and cannot be rendered on a board, and a specimen that
  * re-types a recipe is how a board ends up showing a light production never had.
@@ -66,7 +66,7 @@ export type PublishLightState = {
  * the same 1400ms and stops. Both roads therefore REST at the same level (base
  * under band-at-base), and only the tap overshoots on the way. Under reduced
  * motion the engine never runs the animation at all, so the band stays away and
- * the base alone is the light: law 4's arrival, with no swell on either road.
+ * the base alone is the light: FALLOFF's arrival, with no swell on either road.
  */
 function restOrSwell(vars: GlowVars, sharedHere: boolean): GlowVars {
   return sharedHere ? vars : { ...vars, "--glw-strength": "0" };

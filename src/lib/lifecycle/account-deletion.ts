@@ -1,7 +1,7 @@
 /**
  * Account deletion: the anonymisation shape, and the sweep that finishes the job.
  *
- * THE TWO HALVES (Will's rulings, 2026-09-02: immediate, no undo, an active plan
+ * THE TWO HALVES (immediate, no undo, an active plan
  * auto-cancelled at the request):
  *
  *   1. THE REQUEST (src/lib/db/mutations/account.ts, driven by the /account card
@@ -27,7 +27,7 @@
  * ★ A FORENSIC HOLD OUTRANKS THE DELETION REQUEST (trust-safety-forensics.md). An event holding
  * ANY held media is skipped WHOLE (the cascade is all-or-nothing), so a held
  * account never reaches zero events and its auth user survives. It stays
- * anonymised the entire time, which is the ruled behaviour: anonymised at once,
+ * anonymised the entire time, which is the intended behaviour: anonymised at once,
  * deleted when the hold lifts. The account is not told, and the hold columns are
  * not readable by it (database-security.md's column-scoped SELECT).
  *
@@ -257,7 +257,7 @@ export async function purgeAccount(
   await reanonymise(admin, userId);
 
   // EVERY event, soft-deleted or not: the request already binned them, and the
-  // ruling is immediate, so there is no 30-day wait here (that window is for a
+  // the request is immediate, so there is no 30-day wait here (that window is for a
   // host who may want their event BACK).
   const eventIds = await readHostedEventIds(admin, userId);
 
@@ -449,7 +449,7 @@ async function countQueueAfter(
  *
  * `_now` is accepted for signature symmetry with the sibling sweeps (the cron
  * hands one `now` to all of them). This sweep has no time window: deletion is
- * immediate by ruling, so every stamped account is due on the next run.
+ * immediate by design, so every stamped account is due on the next run.
  */
 export async function sweepDeletedAccounts(
   admin: AdminClient,
@@ -492,7 +492,7 @@ export async function sweepDeletedAccounts(
 
     // ★ PER-ROW ISOLATION (QA #27). One account whose R2 delete or auth delete threw used to abort
     // the whole sweep, so every account BEHIND it waited another day, for a deletion that is
-    // immediate by ruling. Each account is isolated; `rows_failed` travels with the tally so the
+    // immediate by design. Each account is isolated; `rows_failed` travels with the tally so the
     // sweep's own run still closes RED (src/lib/jobs/purge-sweeps.ts reads it), and the next run
     // retries the failed ones.
     const tally = await forEachIsolated(

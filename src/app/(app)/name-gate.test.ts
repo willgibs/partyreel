@@ -4,9 +4,9 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
- * THE NAME GATE IS WHOLE (name-gate, 2026-09-22): Will's ruling is that a
- * nameless account must never move around the app as a normal user, "even if
- * one character" is all the name rule asks. Before this gate, `/account` and
+ * THE NAME GATE IS WHOLE: a nameless account must never move around the app
+ * as a normal user, "even if one character" is all the name rule asks.
+ * Before this gate, `/account` and
  * every `/dashboard/[eventId]/*` room rendered normally for a nameless
  * profile — only `/dashboard` and `/dashboard/new` redirected.
  *

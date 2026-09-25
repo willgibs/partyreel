@@ -95,7 +95,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // ── billing-caps.md (supersedes billing-caps.md ruling 1's pass arm) ──────────────────────────────────────
+  // ── billing-caps.md ("One plan at a time for Pro; passes stack") ──────────────────────────────────────
   // Pro stays ONE AT A TIME: a second subscription would double-bill against one cap, and a
   // size or cadence change belongs to /api/stripe/change-plan (the storage check, then Stripe's
   // confirm page with correct proration). Derived server-side from `profiles` (the webhook is

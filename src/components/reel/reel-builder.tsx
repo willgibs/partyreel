@@ -3,7 +3,7 @@
 /**
  * THE BUILDER: the Reel section before a reel exists.
  *
- * Create-birth (host-app.md ruling 4): the reel is BORN when the host taps Create,
+ * Create-birth (host-app.md, "Reel curation, the live composer, and the .mp4 export"): the reel is BORN when the host taps Create,
  * and that tap is the reveal's natural trigger. So this surface has exactly one
  * job — get the host to a set of moments they are happy with, then hand the beat
  * over. Two beats, never one: FILL (quick-add, or pick your own), then CREATE.

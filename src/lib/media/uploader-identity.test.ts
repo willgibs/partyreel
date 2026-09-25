@@ -10,7 +10,7 @@
  * NOWHERE ELSE. `guests.email` means "confirmed, copied from auth.users"; case 3 used to hand back
  * whatever sat in that column, which an unconfirmed sign-up could fill through the newsletter
  * capture, and the host gallery would then have printed an unproved address beside an unverified
- * mark. That is the impersonation his ruling forbids ("there's no impersonation risk if the host
+ * mark. That is the exact impersonation this guards against ("there's no impersonation risk if the host
  * can't see the attributed email of an unconfirmed account"), so case 3 now returns null always.
  */
 import { readFileSync } from "node:fs";

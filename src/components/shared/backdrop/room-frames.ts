@@ -20,13 +20,13 @@ import { marketingImage } from "@/lib/constants/marketing-media";
  * night frames where a pointer crosses it fastest.
  *
  * ★ THE LAST ONE IS THE BRIGHTEST ON PURPOSE. This section closes the home's
- * first chapter and the paper chapter opens under it (Will's ruling: a
+ * first chapter and the paper chapter opens under it (a
  * full-image section makes the crossing "much less harsh"), so the photograph a
  * reader leaves on is the one nearest the light ground they are about to meet.
  *
  * ★ THE FIRST ONE IS THE REST STATE. It is what a crawler, a throttled tab, a
  * reader with scripting off and a reader who asked for less motion all see, so
- * it carries the section on its own (bible 5).
+ * it carries the section on its own.
  *
  * ★ EVERY FRAME IS LANDSCAPE, and that is a requirement rather than an
  * accident: a portrait still (`wedding-petals`) cropped to a full-bleed band

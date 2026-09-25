@@ -20,10 +20,10 @@ export const metadata: Metadata = {
 // THE BLOG INDEX (rebuilt 2026-08-28 from the blog-identity lab round, on the record at
 // git show 3ffe0d56:docs/decisions/design-record.md, #blog-identity). The page shell stays
 // server-side: metadata, the JSON-LD, and the close. Everything between the masthead and the
-// library is one island, because the ruled hero rule couples the staged lead to the filter (the
+// library is one island, because the hero-visibility rule couples the staged lead to the filter (the
 // why is in blog-list.tsx + blog-index.ts).
 //
-// The page lives in the (cinema) group by Will's ruling: dark stage, then a PaperChapter for the
+// The page lives in the (cinema) group: dark stage, then a PaperChapter for the
 // reading half. Distinctness from /help is the constraint that shapes it - see blog-list.tsx.
 export default function BlogIndexPage() {
   const posts = getPostListItems();

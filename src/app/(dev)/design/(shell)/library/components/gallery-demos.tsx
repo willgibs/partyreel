@@ -397,7 +397,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     specimens: [
       {
         label: "The album, at the scale's 896 step",
-        hint: "the halo lights the frame's rim, its window bar and the header type from BEHIND, so the photographs stay exactly as they are (bible 6); the foot dissolves under a mask rather than a scrim, so the album reads as going on",
+        hint: "the halo lights the frame's rim, its window bar and the header type from BEHIND, so the photographs stay exactly as they are; the foot dissolves under a mask rather than a scrim, so the album reads as going on",
         node: <CinemaGround>{<LiveAlbumStage />}</CinemaGround>,
       },
       {
@@ -931,7 +931,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
         // that do not exist), NOT to the river. Everywhere else it pours at
         // full luminance, and a placement that wants it quiet filters its own
         // wrapper rather than dimming the component or laying a scrim over the
-        // photographs (bible 6).
+        // photographs.
         label: "The river itself, unfaded",
         hint: "decorative, aria-hidden, nothing focusable; one rAF loop, paused off screen and under reduced motion",
         node: (
@@ -1273,8 +1273,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     test: "src/components/ui/dropdown-menu.test.tsx",
     family: "components",
     section: "Overlays",
-    // CARD, AS THE WORKING VERSION (Will, floating-surfaces r7, 2026-09-17:
-    // "Card is my overall favorite"). Two specimens, because the ruling is two
+    // CARD, AS THE WORKING VERSION (floating-surfaces r7:
+    // "Card is my overall favorite"). Two specimens, because the point is two
     // claims: the parts exist, AND a menu with nothing to say wears none of
     // them. The full anatomy alone would read as a house style every overflow
     // has to obey, which is the cost Card was judged against.
