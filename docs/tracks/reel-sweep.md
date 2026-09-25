@@ -90,11 +90,24 @@ working.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `reel.md` born as the reel's one home: the model and its names, the payload facts, the take, the tile, the view and
+  the screen, the host's side, the defaults and the lever (it fails open), the clip (the creator, the finish, Add to
+  event and its `reel_clip_add` budget, the mark's caveat), the looks, and the stored reel's end on its clock.
+- `guest-flow.md` and `host-app.md`: their reel sections are pointers; the NOT HERE line, the viewer decision's callers
+  (no `/api/reel/download`), a withdrawal's list (the live reel) and the band's lever are refined in place.
+- `billing-caps.md`: the reel-artifact exemption is gone; a clip added to an event is an ordinary metered video; the
+  length cap reaches the creator as `ClipFacts`.
+- `notifications-analytics-growth.md`: the reel and clips carry no telemetry in v1.
+- `admin-observability.md`: the lever's fail-open joins the kill switches' failure directions.
+- `marketing-content.md`: the album's own "no big-screen mode" now points at the reel's screen; the reel's nouns and
+  its one mark as a shared claim; a `/reel` line.
+- `SYSTEMS.md` lists `reel.md`; `PRD.md` and `PRICING.md` tell the live reel and the clip.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Docs, after tonight's claims release: `uploads-and-r2.md`'s "no request rate limiter sits on the four routes" gains
+  its one exception, a guest's clip add (`reel_clip_add`, `reel.md`); `design-system.md`'s "add-to-reel violet" is the
+  reel's violet (Make your own).
 
 ## Handoff (replaces the chat report)
 
