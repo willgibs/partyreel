@@ -227,12 +227,11 @@ A host has no reel to create, only a state to read and a few defaults to set.
 ## The stored reel's end
 
 The host-made, stored, published reel is gone: its routes, its admin page and switch, its libraries, queries and
-limiter kinds, the Studio and the guest's stored-reel card. What remains is on a clock:
-- **The drop migration** (`supabase/migrations/20260924110000_live_reel_drop.sql`: the five reel RPCs, `reel_items`,
-  `reel_render_log`, `highlight_reels`, the `reel_status` enum, `notification_prefs.notify_reel_ready`, the
-  `reel_render_enabled` flag) waits for Will's yes after the alias build's red-team. Nothing shipped calls what it drops.
+limiter kinds, the Studio, the guest's stored-reel card and its schema (`20260924110000_live_reel_drop.sql`: the five
+reel RPCs, `reel_items`, `reel_render_log`, `highlight_reels`, the `reel_status` enum,
+`notification_prefs.notify_reel_ready`, the `reel_render_enabled` flag). What remains is on a clock:
 - **The stored files**: `reelOutputKey`, the purge cron's append and `account-deletion.ts`'s append stay through one
   deprecation window. [`scripts/sweep-reel-files.mjs`](../../scripts/sweep-reel-files.mjs) is the one-shot sweep over
   `listR2Objects` for every `events/<id>/reel/reel.mp4` (dry by default with a count, `--apply` to delete through
-  `r2/delete.ts`); the Orchestrator runs it after the drop, and the helper and both appends leave in a later change only
-  once it reports zero. The backup bucket keeps copies of its own, which neither the sweep nor the prune reaches.
+  `r2/delete.ts`), run once per bucket: the backup bucket keeps copies of its own that no prune reaches, so it runs
+  again with `R2_BUCKET=partyreel-backup`. The helper and both appends leave in a later change once both report zero.

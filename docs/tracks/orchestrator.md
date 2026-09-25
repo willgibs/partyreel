@@ -60,8 +60,8 @@ retire-reel-boards, crumbs.
 
    Afterwards the 15-photo probe's `reel_style_id` and `reel_hold_sec` go back to NULL. Journey 9's page checks passed
    on build 9 (both legal pages at 1.7, the retired help slugs 308, no stale reel claim on the marketing pages,
-   `/admin/reels` a 404). Then the drop migration (`20260924110000_live_reel_drop.sql`) and
-   `node scripts/sweep-reel-files.mjs --apply` wait for Will's yes.
+   `/admin/reels` a 404). The drop migration is applied (Will's yes, 2026-09-25); the sweep of the stored files is his to
+   run.
 3. **Retire `album-columns`** once the surface lanes merge (the five reel boards retired at `0cbd5634`), atomically across
    `touchpoints.ts`, `registry.ts` and `boards.ts`, its ledger with it.
 4. **After his sitting on build 9**: `reel-marketing` (his `reel-story` r2), the door's look (his `identity-door` r2)
@@ -76,8 +76,10 @@ retire-reel-boards, crumbs.
 ## Waiting on Will
 
 - **His sitting on build 9**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
-- **Two yeses**: the reel drop after build 10's red-team; clearing past deleted accounts' addresses from guest rows
-  (`20260926210000_identity_backfill.sql`, written, never applied).
+- **The reel sweep**, his to run (a file delete): `node scripts/sweep-reel-files.mjs --apply`, then the same with
+  `R2_BUCKET=partyreel-backup` (one stored reel in each); then a dry run of each reads zero.
+- **Milestone 29's yes**, after build 10's red-team: since the drop, partyreel.com's host dashboard errors (milestone
+  28's `/dashboard` reads `highlight_reels`), and the milestone ships the code that no longer does.
 - **One dashboard minute** (no management token here): Supabase, Authentication, Templates, Change Email Address, add
   `{{ .Token }}` beside `{{ .ConfirmationURL }}` (the wording is in lp/identity-email's Handoff, merged at `3248a785`);
   until then an email change confirms by the link at both addresses.

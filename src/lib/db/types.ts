@@ -441,87 +441,6 @@ export type Database = {
           },
         ]
       }
-      highlight_reels: {
-        Row: {
-          cover_media_id: string | null
-          created_at: string
-          event_id: string
-          guest_visible: boolean
-          id: string
-          length_seconds: number | null
-          orientation: string
-          output_key: string | null
-          render_cost_usd: number | null
-          render_error: string | null
-          render_id: string | null
-          render_started_at: string | null
-          rendered_at: string | null
-          rendered_hash: string | null
-          seed: number
-          status: Database["public"]["Enums"]["reel_status"]
-          style_id: string
-          theme: string
-          updated_at: string
-        }
-        Insert: {
-          cover_media_id?: string | null
-          created_at?: string
-          event_id: string
-          guest_visible?: boolean
-          id?: string
-          length_seconds?: number | null
-          orientation?: string
-          output_key?: string | null
-          render_cost_usd?: number | null
-          render_error?: string | null
-          render_id?: string | null
-          render_started_at?: string | null
-          rendered_at?: string | null
-          rendered_hash?: string | null
-          seed?: number
-          status?: Database["public"]["Enums"]["reel_status"]
-          style_id?: string
-          theme?: string
-          updated_at?: string
-        }
-        Update: {
-          cover_media_id?: string | null
-          created_at?: string
-          event_id?: string
-          guest_visible?: boolean
-          id?: string
-          length_seconds?: number | null
-          orientation?: string
-          output_key?: string | null
-          render_cost_usd?: number | null
-          render_error?: string | null
-          render_id?: string | null
-          render_started_at?: string | null
-          rendered_at?: string | null
-          rendered_hash?: string | null
-          seed?: number
-          status?: Database["public"]["Enums"]["reel_status"]
-          style_id?: string
-          theme?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "highlight_reels_cover_media_id_fkey"
-            columns: ["cover_media_id"]
-            isOneToOne: false
-            referencedRelation: "media"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "highlight_reels_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       job_applications: {
         Row: {
           created_at: string
@@ -823,7 +742,6 @@ export type Database = {
           notify_album_shared: boolean
           notify_new_follower: boolean
           notify_new_uploads_digest: boolean
-          notify_reel_ready: boolean
           updated_at: string
           user_id: string
         }
@@ -833,7 +751,6 @@ export type Database = {
           notify_album_shared?: boolean
           notify_new_follower?: boolean
           notify_new_uploads_digest?: boolean
-          notify_reel_ready?: boolean
           updated_at?: string
           user_id: string
         }
@@ -843,7 +760,6 @@ export type Database = {
           notify_album_shared?: boolean
           notify_new_follower?: boolean
           notify_new_uploads_digest?: boolean
-          notify_reel_ready?: boolean
           updated_at?: string
           user_id?: string
         }
@@ -983,78 +899,6 @@ export type Database = {
           tier_expires_at?: string | null
           updated_at?: string
           welcomed_at?: string | null
-        }
-        Relationships: []
-      }
-      reel_items: {
-        Row: {
-          added_at: string
-          event_id: string
-          media_id: string
-          position: number
-        }
-        Insert: {
-          added_at?: string
-          event_id: string
-          media_id: string
-          position?: number
-        }
-        Update: {
-          added_at?: string
-          event_id?: string
-          media_id?: string
-          position?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reel_items_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reel_items_media_id_fkey"
-            columns: ["media_id"]
-            isOneToOne: false
-            referencedRelation: "media"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      reel_render_log: {
-        Row: {
-          cost_usd: number | null
-          created_at: string
-          duration_sec: number | null
-          error: string | null
-          event_id: string | null
-          id: string
-          outcome: string
-          render_id: string | null
-          requester_hash: string | null
-        }
-        Insert: {
-          cost_usd?: number | null
-          created_at?: string
-          duration_sec?: number | null
-          error?: string | null
-          event_id?: string | null
-          id?: string
-          outcome: string
-          render_id?: string | null
-          requester_hash?: string | null
-        }
-        Update: {
-          cost_usd?: number | null
-          created_at?: string
-          duration_sec?: number | null
-          error?: string | null
-          event_id?: string | null
-          id?: string
-          outcome?: string
-          render_id?: string | null
-          requester_hash?: string | null
         }
         Relationships: []
       }
@@ -1378,7 +1222,6 @@ export type Database = {
         }
         Returns: Json
       }
-      add_to_reel: { Args: { p_media_id: string }; Returns: Json }
       admin_metrics_snapshot: {
         Args: { p_fortnight_days?: number; p_window_days?: number }
         Returns: Json
@@ -1532,19 +1375,6 @@ export type Database = {
           width: number
         }[]
       }
-      get_event_reel_by_qr_token: {
-        Args: { p_qr_token: string }
-        Returns: {
-          cover_media_id: string
-          item_ids: string[]
-          length_seconds: number
-          mp4_ready: boolean
-          orientation: string
-          seed: number
-          style_id: string
-          watermark: boolean
-        }[]
-      }
       get_host_upload_context: {
         Args: {
           p_event_id: string
@@ -1661,10 +1491,6 @@ export type Database = {
         Args: { p_media_id: string; p_session_token: string }
         Returns: Json
       }
-      reorder_reel: {
-        Args: { p_event_id: string; p_media_ids: string[] }
-        Returns: Json
-      }
       restore_event: { Args: { p_event_id: string }; Returns: Json }
       restore_media: { Args: { p_media_id: string }; Returns: Json }
       set_event_password: {
@@ -1681,10 +1507,6 @@ export type Database = {
       }
       set_guest_pending_email: {
         Args: { p_email: string; p_session_token: string }
-        Returns: Json
-      }
-      set_reel_guest_visible: {
-        Args: { p_event_id: string; p_visible: boolean }
         Returns: Json
       }
       standby_hosts: {
@@ -1704,17 +1526,6 @@ export type Database = {
           monthly_ingress_bytes: number
         }[]
       }
-      upsert_reel_config: {
-        Args: {
-          p_cover_media_id?: string
-          p_event_id: string
-          p_length_seconds?: number
-          p_orientation: string
-          p_seed: number
-          p_style_id: string
-        }
-        Returns: Json
-      }
       verify_current_password: {
         Args: { p_password: string }
         Returns: boolean
@@ -1730,7 +1541,6 @@ export type Database = {
       media_status: "pending" | "approved" | "hidden" | "removed"
       media_type: "photo" | "video"
       moderation_mode: "live" | "hold_for_approval"
-      reel_status: "pending" | "processing" | "ready"
       report_status: "open" | "reviewed" | "dismissed" | "actioned"
       tier_type: "free" | "event_pass" | "pro" | "max"
     }
@@ -1865,7 +1675,6 @@ export const Constants = {
       media_status: ["pending", "approved", "hidden", "removed"],
       media_type: ["photo", "video"],
       moderation_mode: ["live", "hold_for_approval"],
-      reel_status: ["pending", "processing", "ready"],
       report_status: ["open", "reviewed", "dismissed", "actioned"],
       tier_type: ["free", "event_pass", "pro", "max"],
     },

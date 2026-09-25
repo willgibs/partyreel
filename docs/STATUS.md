@@ -19,8 +19,8 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   for its owner; a guest's own delete is final.
 - **The reel stretch landed** (2026-09-25, overnight in auto mode): the live reel's guest and host sides, the clip
   creator (Make your own, Looks and Moments as tabs), the stored reel's server side gone, the reel retold across
-  marketing, help and legal, and `docs/systems/reel.md` its home. The drop migration and the R2 sweep of the old
-  files wait for his yes after build 10's red-team, which finishes build 9's (stopped at the usage limit).
+  marketing, help and legal, and `docs/systems/reel.md` its home. The drop migration is applied; until milestone 29
+  partyreel.com's host dashboard errors (milestone 28 reads the dropped `highlight_reels`).
 - **Also landed**: the album fast at any size (windowed rows, a memoized tile, three density steps) and the paged
   album's data half (`album_state` and `album_changes`, links by id, a delta poll); a confirmed email changed at both
   addresses and deletion taking the address with it; four correctness fixes (the billing downgrade, the unlock
@@ -72,8 +72,8 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 ## Waiting on Will
 
 - **His sitting on build 9**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
-- **Two yeses**: the reel drop migration after build 10's red-team (then the R2 sweep), and clearing past deleted
-  accounts' addresses from their guest rows (`20260926210000_identity_backfill.sql`).
+- **The reel sweep** (`node scripts/sweep-reel-files.mjs --apply`, once per bucket) and **milestone 29's yes** after
+  build 10's red-team.
 - **One dashboard minute**: Supabase's Change Email Address template gains `{{ .Token }}` (until then the change
   confirms by the link at both addresses).
 - **A 10-second iPhone check** on the album: Save to Photos lands in Photos; a shared photo arrives as a photo.

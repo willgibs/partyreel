@@ -166,8 +166,8 @@ Dashboard state, held nowhere in the repo, that the code assumes:
   the purge before `deleteUser`; the one pass that reaches a held account), and in `scrub_account_guest_rows`, the
   BEFORE DELETE trigger on `profiles` that the `auth.users` cascade fires (★ it returns `old`: a BEFORE trigger that
   returns null silently skips the delete). `verified_at` stays. `resolveUploaderIdentity` names an address only while
-  the row's `user_id` stands, for rows orphaned before the scrub; clearing those in the table is
-  `20260926210000_identity_backfill.sql`, applied only on Will's yes.
+  the row's `user_id` stands, and `20260926210000_identity_backfill.sql` cleared the rows orphaned before the
+  scrub.
 - **The re-verification lives in the server action,** which re-checks the password or a fresh email code itself: a
   server action is a public endpoint, and the attack re-verification stops is a borrowed session. The code goes to
   the caller's own address, read through `getUser()`, never from the request.
