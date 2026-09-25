@@ -8,6 +8,8 @@ import {
   REEL_CARD_STILLS,
   REEL_MINIMUM,
   reelState,
+  spreadSample,
+  TAKE_POOL,
 } from "./reel-progress";
 
 /**
@@ -107,5 +109,32 @@ describe("hubReel: the Reel card's face", () => {
       have: 2,
       stills: [],
     });
+  });
+});
+
+describe("the take's pool: a spread of the whole album, never its head", () => {
+  it("keeps a small album whole", () => {
+    expect(spreadSample([1, 2, 3], 5)).toEqual([1, 2, 3]);
+  });
+
+  it("samples a big one evenly, newest and oldest both in, the same way every render", () => {
+    const album = Array.from({ length: 1000 }, (_, i) => i);
+    const pool = spreadSample(album, TAKE_POOL);
+    expect(pool).toHaveLength(TAKE_POOL);
+    expect(pool[0]).toBe(0);
+    expect(pool.at(-1)).toBe(999);
+    expect(new Set(pool).size).toBe(TAKE_POOL);
+    expect(spreadSample(album, TAKE_POOL)).toEqual(pool);
+  });
+
+  it("gives a big album's card stills from its pool, not from the newest tiles alone", () => {
+    const items = Array.from({ length: 3000 }, (_, i) => photo(i));
+    const pool = new Set(
+      spreadSample(items, TAKE_POOL).map((m) => `preview-${m.id.slice(1)}`),
+    );
+    const face = hubReel({ eventId: "e1", showReel: true, items });
+    expect(face.state).toBe("live");
+    expect(face.stills).toHaveLength(REEL_CARD_STILLS);
+    for (const still of face.stills) expect(pool.has(still)).toBe(true);
   });
 });

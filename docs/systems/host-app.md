@@ -279,8 +279,9 @@ the SECOND one on, unless the host switched it off (the guest side, the view and
   the photo that makes the guest's tile appear. The dashboard asks the same in SQL (`getReelProgress`: one row per
   event, at most two media embedded).
 - **The Reel card counts to two** (`event-feed/reel-card.tsx`): dashed at none ("Starts at 2 photos"), the one photo
-  under an overlay at one, and the living card at two, dissolving through the reel's own opening stills (`planTake`,
-  never the album's newest, which sit right beneath it). Before two a press opens guidance (what is left, Add photos
+  under an overlay at one, and the living card at two, dissolving through the reel's own take (`planTake`, never the
+  album's newest, which sit right beneath it). ★ The take is planned over a spread of the album (`TAKE_POOL`): the
+  brain is quadratic (a second at 6,000 items) and the hub renders on every arrival. Before two a press opens guidance (what is left, Add photos
   into the album's upload panel, and on a moderated event that a guest's photo counts once approved); from two it opens
   `/e/<token>?reel`, where the owner passes every gate; switched off it opens Settings.
 - **`/dashboard/<id>/reel` is a redirect for old links**: into the view once the reel plays, else back to the hub. It
