@@ -48,7 +48,10 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The hold gets an envelope CHECK, beyond the brief.** Built: `events_reel_hold_sec_range`, NULL or 0.5 to 30 s. The column is host-writable by grant, so a direct PostgREST write skips the app's step check, and every guest device plays what it holds; the envelope refuses a flicker, a stall, NaN and Infinity (NaN sorts above every number, so the upper bound is what catches it), while the steps (1 to 7 s) still change with no migration. Overrule: no CHECK, each reader snapping to the nearest step.
+- **`event_stills` answers one jsonb, not rows.** Built: `{ "<event id>": ["<preview key>", ...] }`, newest first. Rows of (event id, preview key) would be a set-returning function with no `p_limit`, which `row-cap-sql.test.ts` refuses unless it pages; one jsonb carries the same two facts, the way `event_covers` does. Overrule: a paged table.
+- **Stills are previews only.** Built: a photo with no preview is passed over and the next previewed one takes its place; an event with none is absent and its card keeps its `event_covers` cover (which falls back to the original). Overrule: fall back to originals too (tens of MB on a phone for a page of cards).
+- **The clamp.** Built: `p_per_event` is clamped to 0..12 (twice the guest tile's six slots); a null or non-positive N answers `{}`, never everything. Overrule: another ceiling.
 
 ## System-doc edits (in place, owned facts only)
 
