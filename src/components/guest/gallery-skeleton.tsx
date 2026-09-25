@@ -1,83 +1,64 @@
 import type { CSSProperties } from "react";
 
-import { GALLERY_COLUMNS } from "@/components/shared/masonry";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { TileSize } from "@/lib/shared/tile-size-cookie";
+import { ROW_CLASSES, type RowStep } from "@/lib/shared/album-rows";
+import { cn } from "@/lib/utils";
 
-// The streaming fallback for the guest gallery: the shell paints immediately
-// while the presign-heavy gallery payload streams in. Mirrors the masonry's
-// geometry so the swap is layout-stable; the shimmer is the shared `Skeleton`
-// treatment.
-
-/** The two columns a phone always shows: three tiles deep, about a screen. */
-const PHONE_RATIOS = ["4/5", "1/1", "3/4", "4/3", "1/1", "4/5"];
 /**
- * The rest, which exist only once the album has left the phone's two columns
- * and runs the window's width. Six tiles spread across a 1920 window is ONE thin
- * row of shimmer, which reads as a broken album rather than a loading one; eighteen
- * keeps it about two deep or more at every count the width rule produces (5, 6
- * and 7 columns at 1280, 1512 and 1920 on the default Medium tile; 10 at 1920
- * on Small) without making a phone scroll past nine shimmering rows before the
- * photographs land.
+ * THE STREAMING FALLBACK FOR THE GUEST ALBUM: the shell paints at once while the album's seed (the
+ * manifest and the first paint's links) streams in, and this holds the album's slot in the album's
+ * OWN shape: justified rows at the step the album lands at, so the swap never changes how many
+ * photographs a row holds (a masonry placeholder under a rows album would flash the wrong layout on
+ * every load).
+ *
+ * ★ THE ROW COUNT IS THE ALBUM'S RULE, READ, NEVER RE-TYPED. Photographs a row come from
+ * `ROW_CLASSES` at the album's step (the server-resolved `pr_tile_size` cookie), one container query
+ * per width class picking that class's count, exactly as the rows' own first paint picks its breaks
+ * (`album-window.tsx`), on the ONE gallery gap and the photograph's corner.
+ *
+ * ★ ABOUT A SCREEN, NEVER A PAGE: three rows at the densest class and no more than a screen and a
+ * half of shimmer at one a row, where a phone would otherwise scroll past twenty placeholders before
+ * the photographs land.
  */
-const WIDE_RATIOS = [
-  "3/4",
-  "1/1",
-  "4/5",
-  "4/3",
-  "4/5",
-  "1/1",
-  "3/4",
-  "4/3",
-  "1/1",
-  "4/5",
-  "4/3",
-  "3/4",
-];
+const COUNT_BY_CLASS =
+  "[--sk-n:var(--sk-n0)] @min-[480px]:[--sk-n:var(--sk-n1)] @min-[900px]:[--sk-n:var(--sk-n2)] @min-[1280px]:[--sk-n:var(--sk-n3)]";
+
+/** Three of the densest rows any class lays. */
+const TILES = Math.max(...ROW_CLASSES.map((c) => c.perRow[2])) * 3;
 
 export function GallerySkeleton({
-  tileSize,
+  step,
 }: {
-  /**
-   * The album's own tile size (the server-resolved `pr_tile_size` cookie), so
-   * the placeholder lays out the columns the album lands in. Without it the
-   * column rule falls back to its 220px floor, and a 1920 window would shimmer
-   * in 8 columns under an album that lands in 7.
-   */
-  tileSize: TileSize;
+  /** The album's density step (the server-resolved cookie), so the placeholder lays the album's rows. */
+  step: RowStep;
 }) {
+  const counts = Object.fromEntries(
+    ROW_CLASSES.map((c, i) => [`--sk-n${i}`, c.perRow[step]]),
+  );
   return (
-    <section
-      className="mt-9"
-      aria-hidden
-      // The knob the album sets on its own wrapper (live-gallery.tsx), read by
-      // the same column rule below, so the two boxes cannot disagree.
-      style={{ "--album-column": `${tileSize}px` } as CSSProperties}
-    >
-      {/* Stands in for the gallery's "Download all" control, which sits at the
-          album's RIGHT edge — `ml-auto`, because on a full-width album a
-          placeholder parked on the left is most of a window away from the
-          thing it is standing in for. */}
+    <section className="mt-9" aria-hidden data-gallery-skeleton>
+      {/* Stands in for the album's "Download all" and View menu, at its RIGHT edge (`ml-auto`). */}
       <Skeleton className="mb-3 ml-auto h-5 w-36" />
-      {/* Mirrors guest-masonry.tsx: the SHARED column rule (shared/masonry.tsx)
-          at varied heights, on the ONE gallery gap and the photograph's corner.
-          The rule and the tokens are read, never their values, so the skeleton
-          cannot drift from the grid it stands in for. */}
-      <div className={GALLERY_COLUMNS}>
-        {PHONE_RATIOS.map((ratio, i) => (
-          <Skeleton
-            key={`p${i}`}
-            className="mb-[var(--gap-gallery)] w-full rounded-tile"
-            style={{ aspectRatio: ratio }}
-          />
-        ))}
-        {WIDE_RATIOS.map((ratio, i) => (
-          <Skeleton
-            key={`w${i}`}
-            className="mb-[var(--gap-gallery)] hidden w-full rounded-tile sm:block"
-            style={{ aspectRatio: ratio }}
-          />
-        ))}
+      <div className="@container max-h-[150svh] w-full overflow-hidden">
+        <div
+          className={cn(
+            "flex w-full flex-wrap gap-[var(--gap-gallery)]",
+            COUNT_BY_CLASS,
+          )}
+          style={counts as CSSProperties}
+        >
+          {Array.from({ length: TILES }, (_, i) => (
+            <Skeleton
+              key={i}
+              className="shrink-0 grow-0 rounded-tile"
+              style={{
+                flexBasis:
+                  "calc((100% - (var(--sk-n) - 1) * var(--gap-gallery)) / var(--sk-n))",
+                aspectRatio: "4 / 3",
+              }}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );

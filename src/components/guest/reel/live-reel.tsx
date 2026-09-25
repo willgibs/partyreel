@@ -17,10 +17,15 @@
  * below the minimum shows its idle state (the code and the address alone), because the host set a
  * screen up before anyone arrived, and a blank wall is the one place a code does its job best.
  *
- * ★ WHICH LIST PLAYS. The reel reads the SERVER's approved list, so a photograph enters the loop the
- * moment the album confirms it (a completion refreshes at once), and never as the full-size blob of
- * an optimistic tile. The demo is the exception: its uploads are simulated and never reach a server,
- * so there the optimistic tiles play too, or a visitor's own photograph could never join the reel.
+ * ★ WHICH LIST PLAYS. The reel reads the SERVER's approved list, the manifest, so a photograph enters
+ * the loop the moment the album confirms it (a completion syncs at once), and never as the full-size
+ * blob of an optimistic tile. The demo is the exception: its uploads are simulated and never reach a
+ * server, so there the optimistic tiles play too, or a visitor's own photograph could never join.
+ *
+ * ★ ON THE PAGED ALBUM IT PLANS FROM THE MANIFEST AND READS LINKS BY ID. The list the reel plays is
+ * the manifest's items with no urls (`reelItems`: whether each has a still is its flags' word,
+ * `drawable`), so the minimum, the take and the tile's stills are counted over the whole album; a
+ * clip's links are minted a window or two ahead of its turn through the provider's resolver.
  */
 import {
   createContext,
@@ -44,11 +49,12 @@ import {
   type GalleryLive,
 } from "@/components/guest/gallery-live";
 import { PosterCard } from "@/components/reel/poster-card";
-import { liveReelAvailable, type GalleryItem } from "@/lib/events/gallery-reel";
+import type { ClipResolver } from "@/lib/album/resolver";
+import { liveReelAvailable } from "@/lib/events/gallery-reel";
 import { GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 import { setReelDefaults } from "@/lib/reel/defaults-action";
-import { stillUrlFor } from "@/lib/reel/live/items";
-import { playableSignature, tileStills } from "@/lib/guest/reel-tile";
+import { stillUrlFor, type LiveMediaItem } from "@/lib/reel/live/items";
+import { TILE_SLOTS, tileStills } from "@/lib/guest/reel-tile";
 import { useReelParam, type ReelMode } from "@/lib/guest/reel-url";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 import { cn } from "@/lib/utils";
@@ -85,8 +91,8 @@ type ReelController = {
    * own greyed button, why not.
    */
   openCreator: () => void;
-  /** The list the reel plays (see the header). */
-  playable: readonly GalleryItem[];
+  /** The list the reel plays (see the header): the manifest's items, no urls. */
+  playable: readonly LiveMediaItem[];
   /** A creator is registered AND the host's plan was read, so "Make your own" leads somewhere. */
   creator: ReelCreator | null;
   eventId: string;
@@ -147,7 +153,7 @@ export function LiveReel({
   if (!live) {
     throw new Error("LiveReel must sit inside a GalleryLiveProvider");
   }
-  const playable = isDemo ? live.items : live.serverItems;
+  const playable = live.reelItems;
   const available = liveReelAvailable(live.reel, playable);
   const { mode, open: openParam, close } = useReelParam();
 
@@ -265,7 +271,21 @@ export function LiveReel({
 
 /* ── the tile ────────────────────────────────────────────────────────────────── */
 
-const NO_ITEMS: readonly GalleryItem[] = [];
+const NO_ITEMS: readonly LiveMediaItem[] = [];
+
+/**
+ * An item as the tile draws it: its own urls where it carries them (the demo's optimistic tiles),
+ * else the links the resolver holds (a still is a photograph's `tile`, or a video's preview, which is
+ * its `tile` too; a video with no preview is never drawable, so never asked).
+ */
+function linkedStill(
+  item: LiveMediaItem,
+  clips: ClipResolver | null,
+): LiveMediaItem {
+  if (item.url || item.previewUrl) return item;
+  const link = clips?.get(item.id);
+  return link ? { ...item, url: link.view, previewUrl: link.tile } : item;
+}
 
 /** One still's slot in the six-slot cycle, in seconds (see live-reel.css). */
 const TILE_HOLD_SEC = 3.2;
@@ -285,6 +305,11 @@ const TILE_HOLD_SEC = 3.2;
  * creator is registered, so no build promises a clip it cannot make. It is its own control, and
  * opens the creator directly (a call, his to overrule), so the watch target is a layer of its own
  * across the whole card rather than a button around it (a button cannot hold a button).
+ *
+ * ★ `className` IS THE CALLER'S BOX, NEVER THE CARD'S. The page hands the tile its column (the
+ * words' measure and its 20px gutters) and its margins; the watch layer and the press's scale live on
+ * the card inside that box, so a tap in the gutter stays the page's and the press shrinks the card
+ * about its own centre (build 9's red-team found the layer spanning the gutters).
  */
 export function LiveReelTile({ className }: { className?: string }) {
   const controller = useReelController();
@@ -292,108 +317,122 @@ export function LiveReelTile({ className }: { className?: string }) {
   const playable = controller?.playable ?? NO_ITEMS;
   const eventId = controller?.eventId ?? "";
   const ownIds = live?.ownIds ?? null;
+  const clips = live?.clips ?? null;
 
-  // WHICH stills are recomputed only when the album's playable membership changes; their URLS are
-  // read from the latest items every render, so the half-hourly presign roll reaches the tile too.
-  const signature = playableSignature(playable);
+  // WHICH stills: the reel's own take's first pass (`tileStills`), recomputed only when the album's
+  // membership changes (the manifest's items keep their identity until it does); their URLS are read
+  // by id every render, so a link that lands, or is re-minted, reaches the tile too.
   const picked = useMemo(
-    () => tileStills(playable, { eventId, ownIds }).map((s) => s.id),
-    // `signature` stands for `playable`'s membership on purpose (see above); `ownIds` joins so a
-    // guest's own first photograph can lead.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [signature, eventId, ownIds],
+    () => [
+      ...new Set(tileStills(playable, { eventId, ownIds }).map((s) => s.id)),
+    ],
+    [playable, eventId, ownIds],
   );
+  // The picks' links, asked for once per set of picks (the tile draws previews only).
+  const ensureLinks = live?.ensureLinks;
+  useEffect(() => {
+    ensureLinks?.(picked);
+  }, [ensureLinks, picked]);
   const byId = useMemo(
     () => new Map(playable.map((item) => [item.id, item])),
     [playable],
   );
 
   if (!controller?.available || !live) return null;
-  const urls = picked
-    .map((id) => {
-      const item = byId.get(id);
-      return item ? stillUrlFor(item) : "";
-    })
-    .filter(Boolean);
-  if (urls.length === 0) return null;
-  const total = TILE_HOLD_SEC * urls.length;
+  const drawn = picked.flatMap((id) => {
+    const item = byId.get(id);
+    const url = item ? stillUrlFor(linkedStill(item, clips)) : "";
+    return url ? [{ id, url }] : [];
+  });
+  // ★ ALWAYS SIX SLOTS (reel-tile.ts): an album of two cycles its two stills three times round.
+  const slots = Array.from(
+    { length: drawn.length > 0 ? TILE_SLOTS : 0 },
+    (_, i) => drawn[i % drawn.length],
+  );
+  // ★ THE TILE STANDS FROM THE FIRST PAINT, ITS STILLS OR NOT. Whether the reel exists is the
+  // manifest's word (two playable items), and its stills' links ride the page's seed; a still whose
+  // link is still on its way leaves the tile's own ground showing for a beat, and the stills fade in
+  // over it. A tile that waited for them would arrive late and push the album down under the eye.
+  const total = TILE_HOLD_SEC * Math.max(1, slots.length);
 
   return (
-    <div
-      className={cn(
-        "relative rounded-lg transition-transform duration-150 ease-emphasis",
-        "has-[[data-reel-watch]:active]:scale-[0.99] motion-reduce:has-[[data-reel-watch]:active]:scale-100",
-        className,
-      )}
-      data-reel-tile
-    >
-      <PosterCard
-        eventName="Highlight reel"
-        chip={
-          <span
-            data-reel-glyph
-            className={cn(
-              "flex size-6 items-center justify-center rounded-full text-white",
-              GLASS_MARK,
-            )}
-          >
-            <Clapperboard
-              className={cn("size-3", GLASS_MARK_LIT)}
-              aria-hidden
-            />
-          </span>
-        }
-        meta={
-          controller.creator ? (
-            <button
-              type="button"
-              onClick={controller.openCreator}
-              onPointerEnter={preloadCreatorDoor}
-              onFocus={preloadCreatorDoor}
-              data-reel-make
+    <div className={className} data-reel-tile>
+      <div
+        data-reel-card
+        className={cn(
+          "relative rounded-lg transition-transform duration-150 ease-emphasis",
+          "has-[[data-reel-watch]:active]:scale-[0.99] motion-reduce:has-[[data-reel-watch]:active]:scale-100",
+        )}
+      >
+        <PosterCard
+          eventName="Highlight reel"
+          chip={
+            <span
+              data-reel-glyph
               className={cn(
-                // Above the watch layer, and a finger's height without growing the line itself.
-                "pointer-events-auto relative z-[2] -mx-1 -my-2 rounded-sm px-1 py-2 text-left text-micro font-medium text-[oklch(0.8_0.14_300)] outline-none",
-                "hover:underline hover:underline-offset-2 focus-visible:underline focus-visible:ring-2 focus-visible:ring-white/70",
+                "flex size-6 items-center justify-center rounded-full text-white",
+                GLASS_MARK,
               )}
             >
-              Make your own clip to share
-            </button>
-          ) : undefined
-        }
-        media={
-          <div className="relative aspect-[2/1] w-full overflow-hidden bg-muted sm:aspect-[21/9]">
-            {urls.map((src, i) => (
-              // eslint-disable-next-line @next/next/no-img-element -- a presigned preview (next/image would cache a url that expires)
-              <img
-                key={`${i}-${src.slice(-24)}`}
-                src={src}
-                alt=""
-                loading={i === 0 ? "eager" : "lazy"}
-                decoding="async"
-                data-rest={i === 0 ? "" : undefined}
-                onError={live.reportPossibleExpiry}
-                className="lr-still"
-                style={
-                  {
-                    "--lr-hold": TILE_HOLD_SEC,
-                    "--lr-delay": i * TILE_HOLD_SEC - total,
-                  } as React.CSSProperties
-                }
+              <Clapperboard
+                className={cn("size-3", GLASS_MARK_LIT)}
+                aria-hidden
               />
-            ))}
-          </div>
-        }
-      />
-      <button
-        type="button"
-        onClick={() => controller.open("hand")}
-        onPointerEnter={preloadView}
-        onFocus={preloadView}
-        aria-label="Watch the highlight reel"
-        data-reel-watch
-        className="absolute inset-0 z-[1] rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-      />
+            </span>
+          }
+          meta={
+            controller.creator ? (
+              <button
+                type="button"
+                onClick={controller.openCreator}
+                onPointerEnter={preloadCreatorDoor}
+                onFocus={preloadCreatorDoor}
+                data-reel-make
+                className={cn(
+                  // Above the watch layer, and a finger's height without growing the line itself.
+                  "pointer-events-auto relative z-[2] -mx-1 -my-2 rounded-sm px-1 py-2 text-left text-micro font-medium text-[oklch(0.8_0.14_300)] outline-none",
+                  "hover:underline hover:underline-offset-2 focus-visible:underline focus-visible:ring-2 focus-visible:ring-white/70",
+                )}
+              >
+                Make your own clip to share
+              </button>
+            ) : undefined
+          }
+          media={
+            <div className="relative aspect-[2/1] w-full overflow-hidden bg-muted sm:aspect-[21/9]">
+              {slots.map(({ id, url }, i) => (
+                // eslint-disable-next-line @next/next/no-img-element -- a presigned preview (next/image would cache a url that expires)
+                <img
+                  key={`${i}-${url.slice(-24)}`}
+                  src={url}
+                  alt=""
+                  loading={i === 0 ? "eager" : "lazy"}
+                  decoding="async"
+                  data-rest={i === 0 ? "" : undefined}
+                  // The watchdog, by id: only this still's link is re-minted.
+                  onError={() => live.reportPossibleExpiry([id])}
+                  className="lr-still"
+                  style={
+                    {
+                      "--lr-hold": TILE_HOLD_SEC,
+                      "--lr-delay": i * TILE_HOLD_SEC - total,
+                    } as React.CSSProperties
+                  }
+                />
+              ))}
+            </div>
+          }
+        />
+        <button
+          type="button"
+          onClick={() => controller.open("hand")}
+          onPointerEnter={preloadView}
+          onFocus={preloadView}
+          aria-label="Watch the highlight reel"
+          data-reel-watch
+          className="absolute inset-0 z-[1] rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        />
+      </div>
     </div>
   );
 }

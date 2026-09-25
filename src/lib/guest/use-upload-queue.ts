@@ -8,7 +8,14 @@
  * owns it, so the door's upload step and the album's `GuestUpload` both read
  * one snapshot.
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { toast } from "sonner";
 
 import { joinEvent } from "@/lib/guest/join";
@@ -70,6 +77,100 @@ export type QueueItem = {
   /** The clip's poster, drawn by its creator: the album's preview for it (uploader.ts). */
   poster?: Blob;
 };
+
+/**
+ * ★ A PROGRESS TICK IS NOT A QUEUE CHANGE. The uploader reports progress about once a frame, and the
+ * queue lives in `event-experience.tsx`, the page's whole shell: a progress tick written into `items`
+ * re-rendered the shell, the live gallery's provider, the reel and the album, sixty times a second
+ * for as long as a guest's twelve photographs took to go. So a tick goes HERE, a tiny store outside
+ * React state, and `items` changes only when an item's status does (its `progress` field is the value
+ * at that moment: 0 as it starts, 100 when it lands). What draws a bar subscribes to its own item's
+ * progress (`useQueueProgress`), so a tick re-renders one bar and nothing else.
+ */
+export type QueueProgress = {
+  /** An item's progress, 0-100 (0 for one this store has not heard of). */
+  get(id: string): number;
+  subscribe(listener: () => void): () => void;
+};
+
+type WritableQueueProgress = QueueProgress & {
+  set(id: string, value: number): void;
+};
+
+function createQueueProgress(): WritableQueueProgress {
+  const values = new Map<string, number>();
+  const listeners = new Set<() => void>();
+  return {
+    get: (id) => values.get(id) ?? 0,
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    set(id, value) {
+      if (values.get(id) === value) return;
+      values.set(id, value);
+      for (const listener of listeners) listener();
+    },
+  };
+}
+
+/** One item's live progress, subscribed: a tick re-renders the caller and nothing else. */
+export function useQueueProgress(
+  progress: QueueProgress | null | undefined,
+  id: string | null | undefined,
+): number {
+  const subscribe = useCallback(
+    (onChange: () => void) =>
+      progress && id ? progress.subscribe(onChange) : () => {},
+    [progress, id],
+  );
+  const read = () => (progress && id ? progress.get(id) : 0);
+  return useSyncExternalStore(subscribe, read, read);
+}
+
+/**
+ * The queue with every item's live progress folded in, but ONLY while `live` is true: the one caller
+ * whose bars read `progress` off the items themselves (the door's upload step, which draws a bar a
+ * pick) re-renders per tick while it is on screen, and nothing re-renders for a tick otherwise.
+ */
+export function useLiveQueue(
+  items: readonly QueueItem[],
+  progress: QueueProgress,
+  live: boolean,
+): readonly QueueItem[] {
+  const subscribe = useCallback(
+    (onChange: () => void) => (live ? progress.subscribe(onChange) : () => {}),
+    [progress, live],
+  );
+  // A string snapshot, so an unchanged tick reads as unchanged (a fresh array per read would loop).
+  const key = useSyncExternalStore(
+    subscribe,
+    () =>
+      live
+        ? items
+            .map((it) =>
+              it.status === "uploading" ? progress.get(it.id) : it.progress,
+            )
+            .join(",")
+        : "",
+    () => "",
+  );
+  return useMemo(
+    () =>
+      live && key
+        ? items.map((it) =>
+            it.status === "uploading"
+              ? { ...it, progress: progress.get(it.id) }
+              : it,
+          )
+        : items,
+    // `key` stands for every item's live progress.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [items, live, key],
+  );
+}
 
 export type UploadedItem = {
   mediaId: string;
@@ -154,6 +255,7 @@ export function useUploadQueue({
   onDoorNeeded?: () => void;
 }) {
   const [items, setItems] = useState<QueueItem[]>([]);
+  const [progress] = useState(createQueueProgress);
   // Ref mirror so the sequential queue runner reads current state synchronously.
   const itemsRef = useRef<QueueItem[]>([]);
   const processingRef = useRef(false);
@@ -188,9 +290,13 @@ export function useUploadQueue({
 
   const patch = useCallback(
     (id: string, p: Partial<QueueItem>) => {
+      if (p.progress !== undefined) progress.set(id, p.progress);
+      // A tick alone never reaches `items` (see `QueueProgress`).
+      const keys = Object.keys(p);
+      if (keys.length === 1 && keys[0] === "progress") return;
       sync(itemsRef.current.map((it) => (it.id === id ? { ...it, ...p } : it)));
     },
-    [sync],
+    [sync, progress],
   );
 
   /**
@@ -589,5 +695,12 @@ export function useUploadQueue({
     [sync],
   );
 
-  return { items, addFiles, addClip, retry, dismiss };
+  return {
+    items,
+    progress: progress as QueueProgress,
+    addFiles,
+    addClip,
+    retry,
+    dismiss,
+  };
 }

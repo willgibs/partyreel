@@ -19,7 +19,8 @@ import { cn } from "@/lib/utils";
  * of every one would be a thousand <img> requests to show fifteen. It draws the
  * current frame's seven neighbours each side, keyed by id so a step slides the
  * frames it keeps rather than redrawing them, and a frame entering the window
- * fades in.
+ * fades in. The viewer asks its link source for exactly these frames
+ * (`onNeedLinks`, reach `FILMSTRIP_REACH`), so a frame fills in as its link lands.
  *
  * ★ EAGER PICTURES, NOT `loading="lazy"`: the media-viewer board found a lazy
  * strip that never loaded (Blink resolves lazy loading against the top window),
@@ -53,8 +54,12 @@ export const Filmstrip = memo(function Filmstrip({
         const item = items[k];
         const current = k === index;
         const label = `${item.type === "video" ? "Video" : "Photo"} ${k + 1} of ${items.length}`;
+        // ★ A FRAME WITH NO LINK YET IS AN EMPTY FRAME, NEVER `src=""`: the
+        // paged album's unlinked item has an empty url, which a browser
+        // resolves against the PAGE and fetches. `||`, not `??`, so an empty
+        // string falls through to the frame's own fill like a missing one.
         const src =
-          item.previewUrl ?? (item.type === "photo" ? item.url : null);
+          item.previewUrl || (item.type === "photo" ? item.url : "") || null;
         return (
           <ActionTooltip key={item.id} label={label}>
             <button

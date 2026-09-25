@@ -5,16 +5,22 @@
  * on screen and never rewrites the window being watched; a departure is cut from every planned
  * window at once; and the retains stay flat no matter how long the reel runs, because that is what
  * keeps a 300-photograph album costing what a six-photograph one costs.
+ *
+ * And on the paged album (a resolver): the take is planned from url-less manifest items, links are
+ * asked for ahead of their turn and read at the moment a window is built, a window waits for its
+ * stills only boundedly, and a still that failed is reported by id.
  */
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { ClipResolver } from "@/lib/album/resolver";
 import { createBitmapCache } from "@/lib/reel/engine/asset-cache";
 import type { CanvasImage } from "@/lib/reel/engine/canvas2d";
 import { THEME_IDS } from "@/lib/reel/engine/themes";
 import { frameStateAt } from "@/lib/reel/engine/timeline";
 
 import type { LiveMediaItem } from "./items";
-import { createClipSource } from "./source";
+import { createClipSource, LINK_WAIT_MS } from "./source";
+import { planTake } from "./take";
 import type { ReelLook, ReelWindow } from "./window";
 
 const LOOK: ReelLook = { styleId: "classic", surface: "hand" };
@@ -381,6 +387,23 @@ describe("a drop", () => {
     expect(cut.resumeFrame).toBeGreaterThan(0);
   });
 
+  it("still leaves FROM the clip on screen when the PAYLOAD drops it (the album's own path)", () => {
+    // A guest's payload loses a hidden photograph outright, so by the time it is dropped it is no
+    // longer in the items: the cutaway must serve it from what the source knew before.
+    const items = album(20);
+    const { source: s } = source(items);
+    const current = s.windowAt(0, LOOK)!;
+    s.setCurrentWindow(0);
+    const onScreen = current.ids[1];
+    expect(
+      s.setItems(items.filter((it) => it.id !== onScreen)).dropped,
+    ).toEqual([onScreen]);
+    const cut = s.cutawayFrom(current, onScreen, LOOK)!;
+    expect(cut.ids[0]).toBe(onScreen);
+    expect(cut.props.clips[0].url).toBe(current.props.clips[1].url);
+    expect(cut.resumeFrame).toBeGreaterThan(0);
+  });
+
   it("tops the cutaway up from what comes NEXT when the window had nothing after it", () => {
     const { source: s } = source(album(20));
     const current = s.windowAt(0, LOOK)!;
@@ -541,5 +564,312 @@ describe("the retains", () => {
     const assets = await s.prepare(s.windowAt(0, LOOK)!, { needs: NEEDS });
     expect(assets.clips).toEqual([null, null, null, null]);
     expect(assets.failures).toBe(4);
+  });
+});
+
+/** A manifest item of the paged album: no links at all, `drawable` says it has a still. */
+function unlinked(i: number, over: Partial<LiveMediaItem> = {}): LiveMediaItem {
+  return item(i, { url: "", previewUrl: null, drawable: true, ...over });
+}
+
+const manifest = (n: number) =>
+  Array.from({ length: n }, (_, i) => unlinked(i));
+
+/** A resolver over a hand-held link map: `land` mints, `remint` re-signs, `forget` drops. */
+function fakeResolver() {
+  const links = new Map<string, { tile: string; view: string }>();
+  const asked: string[][] = [];
+  let version = 1;
+  const resolver: ClipResolver = {
+    get: (id) => links.get(id),
+    ensure: async (ids) => {
+      asked.push([...ids]);
+    },
+  };
+  const land = (ids: readonly string[], tag = "") => {
+    for (const id of ids) {
+      links.set(id, {
+        tile: `/t/${id}${tag}.webp?v=${version}`,
+        view: `/v/${id}?v=${version}`,
+      });
+    }
+  };
+  return {
+    resolver,
+    asked,
+    land,
+    remint(ids: readonly string[]) {
+      version += 1;
+      land(ids);
+    },
+    forget(ids: readonly string[]) {
+      for (const id of ids) links.delete(id);
+    },
+  };
+}
+
+/** A loader whose `bad` urls fail to decode, recording what it was asked for. */
+function fakeLoadFailing(bad: (url: string) => boolean) {
+  const calls: string[][] = [];
+  const load = vi.fn(async (clips: readonly { url: string }[]) => {
+    calls.push(clips.map((clip) => clip.url));
+    return {
+      clips: clips.map((clip) =>
+        clip.url && !bad(clip.url)
+          ? {
+              image: fakeImage(clip.url),
+              width: 4,
+              height: 4,
+              wash: null,
+              halo: null,
+            }
+          : null,
+      ),
+      failures: clips.filter((clip) => clip.url && bad(clip.url)).length,
+      grain: null,
+    };
+  });
+  return { load: load as never, calls };
+}
+
+describe("on the paged album (a resolver)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("plans the take from url-less drawable items and asks for the first window's links, two windows past it", () => {
+    const items = manifest(20);
+    const r = fakeResolver();
+    const { source: s } = source(items, { resolver: r.resolver });
+    const take = planTake(items, { eventId: "e1", loopIndex: 0 });
+    expect(s.eligibleCount()).toBe(20);
+    // Nothing has landed: the window waits for its stills rather than planning theme-colour holds.
+    expect(s.windowAt(0, LOOK)).toBeNull();
+    expect(r.asked).toEqual([take.slice(0, 12)]); // windows of four: this one and about two more
+  });
+
+  it("builds a window once its links land, reading them at that moment", () => {
+    const items = manifest(20);
+    const r = fakeResolver();
+    const { source: s } = source(items, { resolver: r.resolver });
+    const take = planTake(items, { eventId: "e1", loopIndex: 0 });
+    expect(s.windowAt(0, LOOK)).toBeNull();
+    r.land(take.slice(0, 4)); // only this window's: the rest can still be on their way
+    const w0 = s.windowAt(0, LOOK)!;
+    expect(w0.ids).toEqual(take.slice(0, 4));
+    expect(w0.props.clips.map((clip) => clip.url)).toEqual(
+      take.slice(0, 4).map((id) => `/t/${id}.webp?v=1`),
+    );
+  });
+
+  it("asks ahead as the chain walks: every planned slot, across a loop boundary too", () => {
+    const items = manifest(7);
+    const r = fakeResolver();
+    r.land(items.map((it) => it.id));
+    const { source: s } = source(items, { resolver: r.resolver });
+    const take = planTake(items, { eventId: "e1", loopIndex: 0 });
+    const w0 = s.windowAt(0, LOOK)!;
+    const w1 = s.windowAt(1, LOOK)!;
+    // The second slot opens on the first's last clip (position 3) and asks from there.
+    expect(r.asked[1]).toEqual(take.slice(3, 15));
+    const w2 = s.windowAt(2, LOOK)!;
+    expect(w2.loopIndex).toBe(1);
+    // A new loop's take, carrying the clip on screen at its head, asked for as soon as it is planned.
+    const carry = w1.ids[w1.ids.length - 1];
+    const next = planTake(items, { eventId: "e1", loopIndex: 1 });
+    expect(r.asked[2]).toEqual([carry, ...next.filter((id) => id !== carry)]);
+    expect(w0.ids).toEqual(take.slice(0, 4));
+  });
+
+  it("waits for its stills only boundedly: past LINK_WAIT_MS it builds without them", async () => {
+    vi.useFakeTimers();
+    const onFailedIds = vi.fn();
+    const r = fakeResolver();
+    const { source: s } = source(manifest(12), {
+      resolver: r.resolver,
+      onFailedIds,
+    });
+    expect(s.windowAt(0, LOOK)).toBeNull();
+    vi.advanceTimersByTime(LINK_WAIT_MS - 1);
+    expect(s.windowAt(0, LOOK)).toBeNull();
+    vi.advanceTimersByTime(1);
+    const w0 = s.windowAt(0, LOOK)!;
+    expect(w0).not.toBeNull();
+    expect(w0.props.clips.every((clip) => clip.url === "")).toBe(true);
+    // A still that never came holds a theme colour, as a url-less clip always has: not a failure.
+    const assets = await s.prepare(w0, { needs: NEEDS });
+    expect(assets.failures).toBe(0);
+    expect(onFailedIds).not.toHaveBeenCalled();
+  });
+
+  it("never waits for an item that carries its own urls, and keeps them when the resolver has nothing", () => {
+    const r = fakeResolver();
+    const { source: s } = source(album(12), { resolver: r.resolver });
+    const w0 = s.windowAt(0, LOOK)!;
+    expect(w0).not.toBeNull();
+    expect(w0.props.clips.every((clip) => clip.url.startsWith("/p/"))).toBe(
+      true,
+    );
+    expect(s.itemFor("m3")).toMatchObject({
+      url: "/u/3.jpg",
+      previewUrl: "/p/3.webp",
+    });
+  });
+
+  it("merges links into itemFor fresh on every call, and never holds a stale url after a re-mint", () => {
+    const items = [
+      unlinked(0),
+      unlinked(1, { type: "video" }),
+      unlinked(2, { type: "video", drawable: false }),
+      ...manifest(12).slice(3),
+    ];
+    const r = fakeResolver();
+    r.land(items.map((it) => it.id));
+    const { source: s } = source(items, { resolver: r.resolver });
+    expect(s.itemFor("m0")).toMatchObject({
+      url: "/v/m0?v=1",
+      previewUrl: "/t/m0.webp?v=1",
+    });
+    // A video: the view is its original (the motion window), the tile its poster.
+    expect(s.itemFor("m1")).toMatchObject({
+      url: "/v/m1?v=1",
+      previewUrl: "/t/m1.webp?v=1",
+    });
+    // A posterless video's tile is the raw file, which is never a still.
+    expect(s.itemFor("m2")?.previewUrl).toBeNull();
+    expect(s.isLive("m2")).toBe(false);
+
+    s.windowAt(0, LOOK);
+    r.remint(items.map((it) => it.id));
+    expect(s.itemFor("m0")).toMatchObject({
+      url: "/v/m0?v=2",
+      previewUrl: "/t/m0.webp?v=2",
+    });
+    // The next window is built after the re-mint, so it reads the new links, never the old.
+    const w1 = s.windowAt(1, LOOK)!;
+    expect(w1.props.clips.every((clip) => clip.url.endsWith("?v=2"))).toBe(
+      true,
+    );
+  });
+
+  it("reports exactly the ids whose stills failed (onFailedIds), once per prepare", async () => {
+    const items = manifest(8);
+    const r = fakeResolver();
+    const take = planTake(items, { eventId: "e1", loopIndex: 0 });
+    const [a, b, c, d] = take.slice(0, 4);
+    r.land([a, d]);
+    r.land([b, c], "-bad");
+    const onFailedIds = vi.fn();
+    const { load } = fakeLoadFailing((url) => url.includes("-bad"));
+    const s = createClipSource({
+      eventId: "e1",
+      items,
+      windowSize: 4,
+      cache: createBitmapCache(async (url) => fakeImage(url)),
+      load,
+      resolver: r.resolver,
+      onFailedIds,
+    });
+    const assets = await s.prepare(s.windowAt(0, LOOK)!, { needs: NEEDS });
+    expect(assets.failures).toBe(2);
+    expect(onFailedIds).toHaveBeenCalledTimes(1);
+    expect([...onFailedIds.mock.calls[0][0]].sort()).toEqual([b, c].sort());
+  });
+
+  it("tries a failed still again in the next window that holds it, with the link it has by then", async () => {
+    const items = manifest(12);
+    const r = fakeResolver();
+    const take = planTake(items, { eventId: "e1", loopIndex: 0 });
+    const overlap = take[3]; // window 0's last clip is window 1's first
+    r.land(take);
+    r.land([overlap], "-bad");
+    const { load, calls } = fakeLoadFailing((url) => url.includes("-bad"));
+    const s = createClipSource({
+      eventId: "e1",
+      items,
+      windowSize: 4,
+      cache: createBitmapCache(async (url) => fakeImage(url)),
+      load,
+      resolver: r.resolver,
+    });
+    const w0 = s.windowAt(0, LOOK)!;
+    expect((await s.prepare(w0, { needs: NEEDS })).clips[3]).toBeNull();
+    r.remint([overlap]); // the watchdog's re-mint
+    const w1 = s.windowAt(1, LOOK)!;
+    expect(w1.ids[0]).toBe(overlap);
+    const assets = await s.prepare(w1, { needs: NEEDS });
+    // A remembered failure would have kept it blank for as long as any window held it.
+    expect(assets.clips[0]).not.toBeNull();
+    expect(calls.at(-1)).toContain(`/t/${overlap}.webp?v=2`);
+  });
+
+  it("splices an arrival on screen with its still, and waits for it only boundedly", () => {
+    vi.useFakeTimers();
+    const items = manifest(20);
+    const r = fakeResolver();
+    r.land(items.map((it) => it.id));
+    const { source: s } = source(items, { resolver: r.resolver });
+    const current = s.windowAt(0, LOOK)!;
+    s.setCurrentWindow(0);
+    const onScreen = current.ids[1];
+
+    s.setItems([...items, unlinked(99, { id: "fresh" })]);
+    // Asked for the moment it landed.
+    expect(r.asked.at(-1)).toEqual(["fresh"]);
+    // Its link is not in yet: no rewindow, and the queue is untouched for the next tick.
+    expect(s.rewindowAt(current, onScreen, LOOK)).toBeNull();
+    expect(s.pendingCount()).toBe(1);
+
+    r.land(["fresh"]);
+    const rebuilt = s.rewindowAt(current, onScreen, LOOK)!;
+    expect(rebuilt.ids.slice(0, 2)).toEqual([onScreen, "fresh"]);
+    expect(rebuilt.props.clips[1].url).toBe("/t/fresh.webp?v=1");
+
+    // A second arrival whose link never comes: spliced anyway once the wait runs out.
+    s.setItems([
+      ...items,
+      unlinked(99, { id: "fresh" }),
+      unlinked(98, { id: "late" }),
+    ]);
+    expect(s.rewindowAt(rebuilt, onScreen, LOOK)).toBeNull();
+    vi.advanceTimersByTime(LINK_WAIT_MS);
+    const anyway = s.rewindowAt(rebuilt, onScreen, LOOK)!;
+    expect(anyway.ids.slice(0, 2)).toEqual([onScreen, "late"]);
+  });
+
+  it("leaves on the still that was drawn, even once the album has forgotten the leaver's links", () => {
+    const items = manifest(20);
+    const r = fakeResolver();
+    r.land(items.map((it) => it.id));
+    const { source: s } = source(items, { resolver: r.resolver });
+    const current = s.windowAt(0, LOOK)!;
+    s.setCurrentWindow(0);
+    const onScreen = current.ids[1];
+    // The album drops an id's links when a delta removes it, before the reel hears of it.
+    r.forget([onScreen]);
+    s.setItems(items.filter((it) => it.id !== onScreen));
+    const cut = s.cutawayFrom(current, onScreen, LOOK)!;
+    expect(cut.ids[0]).toBe(onScreen);
+    expect(cut.props.clips[0].url).toBe(current.props.clips[1].url);
+    expect(cut.ids.length).toBeGreaterThan(1);
+  });
+
+  it("shrugs off a resolver that rejects or throws (the wait covers it)", () => {
+    vi.useFakeTimers();
+    for (const ensure of [
+      async () => {
+        throw new Error("offline");
+      },
+      () => {
+        throw new Error("broken");
+      },
+    ]) {
+      const { source: s } = source(manifest(8), {
+        resolver: { get: () => undefined, ensure } as ClipResolver,
+      });
+      expect(s.windowAt(0, LOOK)).toBeNull();
+      vi.advanceTimersByTime(LINK_WAIT_MS);
+      expect(s.windowAt(0, LOOK)).not.toBeNull();
+    }
   });
 });

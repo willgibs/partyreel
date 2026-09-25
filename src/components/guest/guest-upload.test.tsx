@@ -34,6 +34,7 @@ import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import {
   useUploadQueue,
   type QueueItem,
+  type QueueProgress,
   type UploadedItem,
 } from "@/lib/guest/use-upload-queue";
 import { uploadFile } from "@/lib/upload/uploader";
@@ -87,6 +88,7 @@ function Harness({
   onSession,
   onUploaded,
   onQueueChange,
+  onProgressStore,
   onVerificationRequired,
   isDemo = false,
   isVerified = false,
@@ -97,6 +99,7 @@ function Harness({
   onSession: (token: string | null) => void;
   onUploaded: (item: UploadedItem) => void;
   onQueueChange?: (items: QueueItem[]) => void;
+  onProgressStore?: (progress: QueueProgress) => void;
   onVerificationRequired?: (message: string) => void;
   isDemo?: boolean;
   isVerified?: boolean;
@@ -107,7 +110,7 @@ function Harness({
   removedIds?: ReadonlySet<string>;
 }) {
   const pendingRef = useRef<string | null>(null);
-  const { items, addFiles, retry, dismiss } = useUploadQueue({
+  const { items, progress, addFiles, retry, dismiss } = useUploadQueue({
     qrToken: "qr-token-1",
     sessionToken,
     onSession,
@@ -125,6 +128,9 @@ function Harness({
   useEffect(() => {
     onQueueChange?.(items);
   }, [items, onQueueChange]);
+  useEffect(() => {
+    onProgressStore?.(progress);
+  }, [progress, onProgressStore]);
   return (
     <GuestUpload
       ref={handleRef}
@@ -237,10 +243,11 @@ describe("GuestUpload: queue", () => {
     await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(2));
   });
 
-  // Per-file progress is drawn by the GALLERY TILES, so it surfaces here through
-  // the lifted queue snapshots (the same wiring the tiles read): onProgress
-  // reaches an observable output at 50%.
-  it("patches per-file progress through the onProgress callback", async () => {
+  // Per-file progress is drawn by the album's stack tile, which subscribes to the queue's PROGRESS
+  // STORE itself (album-guest-wiring: a tick used to rewrite `items` and re-render the page's whole
+  // shell once a frame). So onProgress reaches the store at 50%, and the snapshot a status change
+  // wrote stands untouched by the tick.
+  it("patches per-file progress through the onProgress callback, into the progress store", async () => {
     let report!: (f: number) => void;
     mockUploadFile.mockImplementation(
       ({ onProgress }) =>
@@ -248,17 +255,17 @@ describe("GuestUpload: queue", () => {
           report = onProgress!;
         }),
     );
-    const { addFiles, snapshots } = mountWithQueue();
+    const { addFiles, snapshots, store } = mountWithQueue();
     addFiles([makeFile()]);
 
     await waitFor(() => expect(mockUploadFile).toHaveBeenCalled());
+    const before = snapshots.length;
     report(0.5);
-    await waitFor(() => {
-      expect(snapshots.at(-1)?.[0]).toMatchObject({
-        status: "uploading",
-        progress: 50,
-      });
-    });
+    const item = snapshots.at(-1)![0];
+    await waitFor(() => expect(store.progress?.get(item.id)).toBe(50));
+    expect(item).toMatchObject({ status: "uploading", progress: 0 });
+    // The tick wrote no new snapshot: nothing that reads `items` re-rendered for it.
+    expect(snapshots.length).toBe(before);
   });
 
   it("approved outcome: reports onUploaded and mounts the growth prompt", async () => {
@@ -747,12 +754,17 @@ describe("GuestUpload: dismissing a failure retires it for good", () => {
 
 function mountWithQueue(props?: Record<string, unknown>) {
   const snapshots: QueueItem[][] = [];
+  const store: { progress: QueueProgress | null } = { progress: null };
   return {
     ...mount({
       ...props,
       onQueueChange: (items: QueueItem[]) => snapshots.push(items),
+      onProgressStore: (progress: QueueProgress) => {
+        store.progress = progress;
+      },
     }),
     snapshots,
+    store,
   };
 }
 
@@ -767,18 +779,16 @@ describe("GuestUpload: the lifted queue contract", () => {
           resolveUpload = resolve;
         }),
     );
-    const { addFiles, snapshots } = mountWithQueue();
+    const { addFiles, snapshots, store } = mountWithQueue();
     addFiles([makeFile()]);
 
     await waitFor(() => expect(mockUploadFile).toHaveBeenCalled());
     report(0.5);
     await waitFor(() => {
       const last = snapshots.at(-1)!;
-      expect(last[0]).toMatchObject({
-        kind: "photo",
-        status: "uploading",
-        progress: 50,
-      });
+      expect(last[0]).toMatchObject({ kind: "photo", status: "uploading" });
+      // The live progress is the store's (see the progress pin above).
+      expect(store.progress?.get(last[0].id)).toBe(50);
     });
     resolveUpload({
       ok: true,
@@ -889,7 +899,9 @@ describe("GuestUpload: the lifted queue contract", () => {
 describe("GuestUpload: the slot on a confirmation's return", () => {
   it("stands with nothing uploaded this visit when the album says the moment is due", async () => {
     mount({ moment: true });
-    expect(await screen.findByTestId("save-account-prompt")).toBeInTheDocument();
+    expect(
+      await screen.findByTestId("save-account-prompt"),
+    ).toBeInTheDocument();
   });
 
   it("stays empty without it until something is uploaded", () => {
@@ -938,7 +950,9 @@ describe("GuestUpload: the post-upload card counts what is still in the album", 
     const { rerender } = render(harness());
     act(() => handleRef.current!.openAdd());
     fireEvent.change(
-      document.querySelector('input[type="file"][multiple]') as HTMLInputElement,
+      document.querySelector(
+        'input[type="file"][multiple]',
+      ) as HTMLInputElement,
       { target: { files: [makeFile("a.jpg"), makeFile("b.jpg")] } },
     );
     fireEvent.click(screen.getByRole("button", { name: "Send 2" }));

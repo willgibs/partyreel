@@ -47,6 +47,13 @@ export type ViewerMedia = GridMedia & { uploaderFace?: CreditFace | null };
  * deleted account's surviving upload render no credit at all, never an invented
  * stand-in (the identity reshape). The personal Uploads feed, whose items carry
  * no uploader because they are all yours, shows only the event they came from.
+ *
+ * ★ IT ARRIVES WITH THE LINK, AND FADES IN. The paged album's attribution rides
+ * an item's link (minted by id), so an item not linked yet names nobody and
+ * draws nothing; when the link lands the caller hands a new item object, this
+ * memo re-renders on it, and the credit mounts and fades in. The viewer keys it
+ * by id, so it also fades in afresh on every photograph (the fade the key was
+ * always for; a re-minted link on the same photograph re-renders it in place).
  */
 export const FaceCredit = memo(function FaceCredit({
   item,
@@ -97,6 +104,9 @@ export const FaceCredit = memo(function FaceCredit({
       data-lightbox-credit
       className={cn(
         "pointer-events-auto flex max-w-full min-w-0 items-center gap-2 rounded-full py-1 pr-3",
+        // The arrival (above). Opacity alone, never the keyframe `animate-in`,
+        // whose `filter` would sit on the same element as the glass's backdrop.
+        "transition-opacity duration-200 ease-emphasis motion-safe:starting:opacity-0",
         named ? "pl-1" : "pl-3",
         GLASS,
       )}

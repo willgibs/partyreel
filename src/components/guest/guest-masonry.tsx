@@ -1,39 +1,20 @@
 "use client";
 
 /**
- * THE GUEST ALBUM — a thin wrapper over the ONE grid.
+ * THE MASONRY ALBUM, KEPT FOR WHAT STILL DRAWS IT: the marketing site's live album stage and the
+ * lab's boards. The guest album itself left masonry for the justified, windowed rows
+ * (`gallery-rows.tsx`, the album-guest-wiring lane); this stays a thin wrapper over the ONE grid, with
+ * the same head seam (one stack for a pick in flight, a waiting tile per held file), so a stage that
+ * draws "the guest album" still draws the product's own tile and marks.
  *
- * ★ NEVER A SECOND COPY OF THE ALBUM. No tile box, play badge, hover row or
- * lightbox wiring of its own beside `shared/masonry.tsx` doing the same for the
- * host: two copies answering one design is how they drift, and one `MediaTile`
- * serves every album grid. What lives here is what is genuinely the GUEST's and
- * nobody else's — what this DEVICE has sent that is not in the album yet, and a
- * hover set with no moderation in it.
- *
- * ★ THE PREFIX IS THE SEAM, and the whole of it is two objects: one
- * `UploadStackTile` for a pick in flight, however many files it holds, and one
- * `WaitingTile` per file a hold-for-approval event is keeping back. Their box is
- * the landed tile's box to the pixel — the same radius, the same `data-lit` hook,
- * the same bottom margin — so a photograph does not change shape at the moment
- * it finishes uploading.
- *
- * ★ AND A FILE THAT DID NOT GO IS DRAWN NOWHERE. A refusal is read at the end of
- * the run, on the failure sheet, a surface that waits, rather than as the word
- * BROKEN written across a perfectly good photograph.
- *
- * ★ NO LANDED CHECK EITHER. A guest's own landing is the landing sweep, a pass of
- * light across the tile itself, written by the grid from `landedIds`, so this
- * file passes ids rather than rendering a badge. `renderOverlay` stays on the
- * grid for the surfaces that use it (the bin's countdown).
- *
- * ★ AND NO ADD LIVES HERE. The album's Add is the page's: the action row on
- * landing, then the dock once that row leaves the screen (guest-action-dock.tsx),
- * so this grid draws photographs and nothing that competes with them.
+ * ★ NEVER A SECOND COPY OF THE ALBUM. No tile box, play badge, hover row or lightbox wiring of its own
+ * beside `shared/masonry.tsx`: one `MediaTile` serves every album grid.
  */
 import type { ReactNode } from "react";
 import { Download } from "lucide-react";
 
 import { type GridMedia } from "@/components/app/media-grid";
+import type { PendingTile } from "@/components/guest/gallery-rows";
 import {
   UploadStackTile,
   WaitingTile,
@@ -41,23 +22,8 @@ import {
 import { useLikeAction } from "@/components/likes/like-button";
 import { MasonryColumns, type TileAction } from "@/components/shared/masonry";
 
-/**
- * A FILE THIS DEVICE HAS SENT OR IS SENDING, rendered at the album's head.
- * `url` is the object URL the gallery's own ledger owns, and `file` rides along
- * so an undrawable one (an iPhone clip, a HEIC outside Safari) can be NAMED
- * rather than drawn as an empty black box.
- *
- * `held` is the third state, drawn as a waiting tile: the upload finished, the
- * host has not approved it, and only this device knows it exists at all.
- */
-export type PendingTile = {
-  queueId: string;
-  url: string;
-  file: File;
-  kind: "photo" | "video";
-  status: "queued" | "uploading" | "held";
-  progress: number;
-};
+// The head's file, one shape for both albums (the rows' own home).
+export type { PendingTile };
 
 export function GuestMasonry({
   items,

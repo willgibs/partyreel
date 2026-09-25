@@ -44,6 +44,39 @@ vi.mock("./registry", async (importOriginal) => {
   return { ...actual, drawReelFrame: log.drawReelFrame };
 });
 
+// The motion wiring, stubbed: the pins that include videos only need what the player hands it
+// (its `sourceFor` and `onFailure`), never a real range reader over the network.
+type PlaybackOptions = Parameters<
+  typeof import("./video/prepare-frame").createVideoPlayback
+>[0];
+const video = vi.hoisted(() => ({ options: [] as unknown[] }));
+
+vi.mock("./video/prepare-frame", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./video/prepare-frame")>();
+  return {
+    ...actual,
+    createVideoPlayback: (options: unknown) => {
+      video.options.push(options);
+      return {
+        videoSourceFor: () => ({ kind: "window", frameAt: () => null }),
+        cue: () => ({ motion: false, reason: "not-ready" }),
+        prepareFrame: async () => {},
+        setIncludeVideos: () => {},
+        includeVideos: true,
+        decisions: () => new Map(),
+        stats: () => ({
+          liveReaders: 0,
+          spentBytes: 0,
+          ceilingBytes: 0,
+          framesDecoded: 0,
+          bytesRead: 0,
+        }),
+        dispose: () => {},
+      };
+    },
+  };
+});
+
 const { LiveReelPlayer } = await import("./player-live");
 const { createClipSource } = await import("@/lib/reel/live/source");
 type LiveMediaItem = import("@/lib/reel/live/items").LiveMediaItem;
@@ -577,6 +610,114 @@ describe("LiveReelPlayer", () => {
     await mountPlayer({ source });
     await tickFrames(20);
     expect(log.drawReelFrame).not.toHaveBeenCalled();
+  });
+
+  it("★ starts once an album that was empty at mount gets its first items (the first window retries)", async () => {
+    // A first window that answered null used to be the end of it: no window, no clock, for ever.
+    const source = makeSource([]);
+    const { container } = await mountPlayer({ source });
+    await tickFrames(5);
+    expect(log.drawReelFrame).not.toHaveBeenCalled();
+    await act(async () => {
+      source.setItems(album(24));
+    });
+    await tickFrames(5);
+    expect(log.drawReelFrame).toHaveBeenCalled();
+    expect(
+      container
+        .querySelector("[data-live-reel]")
+        ?.getAttribute("data-live-reel"),
+    ).toBe("playing");
+  });
+
+  it("★ starts on the paged album once the first window's links land (a window waiting for its stills)", async () => {
+    const links = new Map<string, { tile: string; view: string }>();
+    const ensured: string[] = [];
+    const items = album(24).map((it) => ({
+      ...it,
+      url: "",
+      previewUrl: null,
+      drawable: true,
+    }));
+    const source = createClipSource({
+      eventId: "e1",
+      items,
+      windowSize: 4,
+      cache: createBitmapCache(async (url) => fakeImage(url), 64),
+      load: (async (clips: readonly { url: string }[]) => ({
+        clips: clips.map((clip) =>
+          clip.url
+            ? {
+                image: fakeImage(clip.url),
+                width: 4,
+                height: 4,
+                wash: null,
+                halo: null,
+              }
+            : null,
+        ),
+        failures: 0,
+        grain: null,
+      })) as never,
+      resolver: {
+        get: (id) => links.get(id),
+        ensure: async (ids) => {
+          ensured.push(...ids);
+        },
+      },
+    });
+    const { seen } = await mountPlayer({ source });
+    await tickFrames(5);
+    // Asked for, not yet landed: nothing drawn (no theme-colour holds where photographs belong).
+    expect(ensured.length).toBeGreaterThan(0);
+    expect(log.drawReelFrame).not.toHaveBeenCalled();
+    for (const id of ensured) {
+      links.set(id, { tile: `/t/${id}.webp`, view: `/v/${id}` });
+    }
+    await tickFrames(5);
+    expect(log.drawReelFrame).toHaveBeenCalled();
+    expect(seen.at(-1)?.clipId).toBeTruthy();
+    expect(monotonic(seen)).toBe(true);
+  });
+
+  it("names the clip whose video read failed like an expired link (onExpired), beside onReport", async () => {
+    video.options.length = 0;
+    const expired: string[] = [];
+    const reports: string[] = [];
+    const source = makeSource(
+      album(24).map((it) => ({ ...it, type: "video" as const })),
+    );
+    await mountPlayer({
+      source,
+      includeVideos: true,
+      onExpired: (id) => expired.push(id),
+      onReport: (message) => reports.push(message),
+    });
+    const options = video.options[0] as PlaybackOptions | undefined;
+    expect(options, "no window wired its videos").toBeDefined();
+    const clipId = options!.sourceFor(0)!.clipKey;
+
+    await act(async () => {
+      options!.onFailure!(0, {
+        kind: "open",
+        message: "Failed to fetch",
+        possibleExpiry: true,
+      });
+    });
+    expect(expired).toEqual([clipId]);
+    expect(reports.at(-1)).toContain("possible expiry");
+
+    // A failure that is an answer rather than a dead link (a codec this device lacks) is reported,
+    // and never sent for a re-mint.
+    await act(async () => {
+      options!.onFailure!(0, {
+        kind: "undecodable",
+        message: "no decoder",
+        possibleExpiry: false,
+      });
+    });
+    expect(expired).toEqual([clipId]);
+    expect(reports.at(-1)).toContain("undecodable");
   });
 });
 

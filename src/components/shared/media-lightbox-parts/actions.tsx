@@ -9,7 +9,6 @@ import {
   type ReactNode,
 } from "react";
 import {
-  Check,
   Download,
   Eye,
   EyeOff,
@@ -70,12 +69,24 @@ import { cn } from "@/lib/utils";
  * `lib/media/share-save.ts`, tested over mocked navigators). The file is
  * fetched on the tap and never before; a fetch that outlives the tap's
  * activation turns the button into a one-tap "Ready" instead of failing.
+ *
+ * ★ A CONTROL THAT SENDS THE PHOTOGRAPH WAITS FOR ITS LINK, IN PLACE. The paged
+ * album hands the viewer items whose links are not minted yet (`url` is "").
+ * Save and Share send the file, so they wait for its link, and Copy link waits
+ * with them, so the three ways of sending a photograph arrive together and
+ * nobody copies the address of a picture that has not appeared. They wait
+ * DISABLED, never removed: a capsule that grew three controls when the link
+ * landed would jump under the thumb already reaching for it. Like, Delete and
+ * the curate group work by id and never wait.
  */
 
 /** A capsule glyph: white at rest, its hue on direct hover (monochrome at rest). */
 export const LIGHTBOX_ACTION = cn(
   "relative flex items-center gap-1.5 text-white/80 outline-none transition-[color,transform] duration-150 ease-emphasis",
   "hover:text-white focus-visible:text-white active:scale-90 motion-reduce:active:scale-100",
+  // Waiting for a link (above): dimmed and inert, so no hover hue and no
+  // tooltip promise a control that cannot act yet.
+  "disabled:pointer-events-none disabled:opacity-40",
   GLASS_MARK_LIT,
 );
 
@@ -178,6 +189,9 @@ export const ActionCapsule = memo(function ActionCapsule({
       : shareUrl
     : undefined;
   const name = filenameFor(item);
+  // Every surface's item carries a view link once it has any (the paged
+  // album's unlinked item has ""), so this is the one test for "not yet".
+  const linked = !!item.url;
   const fileUrl = item.downloadUrl ?? item.url;
 
   const begin = (kind: Prep["kind"]) => {
@@ -203,6 +217,9 @@ export const ActionCapsule = memo(function ActionCapsule({
   );
 
   const onShare = async () => {
+    // Belt to the disabled button's braces: an empty file url would fetch the
+    // PAGE (it resolves against the page's own address).
+    if (!linked) return;
     if (prep?.state === "ready" && prep.kind === "share")
       return sendReady(prep.file, "share");
     if (prep?.state === "loading") return;
@@ -241,7 +258,7 @@ export const ActionCapsule = memo(function ActionCapsule({
   };
 
   const onCopyLink = async () => {
-    if (!link) return;
+    if (!link || !linked) return;
     if (await copyText(link, currentNav())) toast.success("Link copied.");
     else toast.error("Couldn't copy the link.");
   };
@@ -252,7 +269,22 @@ export const ActionCapsule = memo(function ActionCapsule({
     prep?.kind === kind && prep.state === "ready";
 
   let save: ReactNode = null;
-  if (item.downloadUrl) {
+  if (!linked) {
+    // Waiting (the header): the glyph holds Save's place. An album item's
+    // download link arrives with its view link (the wire mints both at once),
+    // so this becomes the real Save below; a surface that never saves (the
+    // recovery bin) should hand the viewer linked items, or this shows once.
+    save = (
+      <button
+        type="button"
+        disabled
+        aria-label="Save"
+        className={cn(LIGHTBOX_ACTION, "hover:text-save")}
+      >
+        <Download className="size-5" />
+      </button>
+    );
+  } else if (item.downloadUrl) {
     if (platform !== "ios") {
       // Android's download lands in the gallery and a desk downloads: the
       // plain signed link IS the native way, so it stays a link.
@@ -373,6 +405,7 @@ export const ActionCapsule = memo(function ActionCapsule({
         <ActionTooltip label={shareLabel}>
           <button
             type="button"
+            disabled={!linked}
             onClick={() => void onShare()}
             aria-label={shareLabel}
             aria-busy={loading("share") || undefined}
@@ -391,6 +424,7 @@ export const ActionCapsule = memo(function ActionCapsule({
         <ActionTooltip label="Copy link">
           <button
             type="button"
+            disabled={!linked}
             onClick={() => void onCopyLink()}
             aria-label="Copy link"
             className={cn(LIGHTBOX_ACTION, "hover:text-save")}
@@ -448,24 +482,14 @@ export const ActionCapsule = memo(function ActionCapsule({
         </Dialog>
       )}
 
-      {/* the curate group (HOST only): approve/hide/show are reversible and
-          direct; remove waits behind a confirm. The live reel makes itself, so
-          nothing here curates a reel. */}
+      {/* the curate group (HOST only): hide/show are reversible and direct;
+          remove waits behind a confirm. No Approve: pending media lives in the
+          Review room and never reaches an album grid, so the viewer is never
+          handed one to approve. The live reel makes itself, so nothing here
+          curates a reel. */}
       {viewerIsHost && onSetStatus && (
         <>
           <Rule />
-          {item.status === "pending" && (
-            <ActionTooltip label="Approve">
-              <button
-                type="button"
-                aria-label="Approve"
-                onClick={() => onSetStatus(item, "approved")}
-                className={cn(LIGHTBOX_ACTION, "hover:text-success")}
-              >
-                <Check className="size-5" />
-              </button>
-            </ActionTooltip>
-          )}
           {item.status === "hidden" ? (
             // Hidden = the amber Show is ACTIVE, not just on hover: the viewer's
             // hidden-state marker (mirrors the liked heart).

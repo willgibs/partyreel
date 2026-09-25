@@ -17,6 +17,11 @@ import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GalleryPayload } from "@/components/guest/gallery-live";
+import type {
+  AlbumLinkTuple,
+  GuestWhoTuple,
+  ManifestEntry,
+} from "@/lib/events/album-wire";
 import type { GalleryItem, GalleryReel } from "@/lib/events/gallery-reel";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 
@@ -34,7 +39,7 @@ const hooks = vi.hoisted(() => ({
 
 vi.mock("@/app/(guest)/e/[token]/actions", () => ({
   removeMyUploadGuestAction: vi.fn(),
-  setTileSizeAction: vi.fn(),
+  setRowStepAction: vi.fn(),
 }));
 vi.mock("@/lib/guest/use-gallery-doorbell", () => ({
   useGalleryDoorbell: (opts: { onRefresh: () => void }) => {
@@ -107,6 +112,82 @@ function item(i: number, over: Partial<GalleryItem> = {}): GalleryItem {
   };
 }
 
+/* ── the paged album's own shapes, from the fixture's items ── */
+
+const T0 = 1_790_000_000_000_000;
+const approved = (items: GalleryItem[]) =>
+  items.filter((it) => (it.status ?? "approved") === "approved");
+/** An item as the manifest carries it: its flags say video, preview and reel-eligible. */
+function toEntry(it: GalleryItem): ManifestEntry {
+  let flags = 0;
+  if (it.type === "video") flags |= 1;
+  if (it.previewUrl) flags |= 2;
+  if (it.reelEligible !== false) flags |= 4;
+  return [it.id, 640, 480, flags, T0 - Number(it.id.slice(1))];
+}
+/** An item's links as the links route mints them. */
+function toLink(it: GalleryItem): AlbumLinkTuple<GuestWhoTuple> {
+  return [
+    it.id,
+    it.previewUrl ?? it.url,
+    it.previewUrl ? it.url : null,
+    `${it.url}?dl`,
+    it.uploaderName ? [it.uploaderName, 0] : null,
+  ];
+}
+function manifestOf(items: GalleryItem[], reel: GalleryReel | null, v = 20) {
+  const shown = approved(items).sort(
+    (a, b) => Number(a.id.slice(1)) - Number(b.id.slice(1)),
+  );
+  return {
+    ok: true as const,
+    kind: "manifest" as const,
+    access: "full" as const,
+    gate: null,
+    v,
+    attr: 1,
+    entries: shown.map(toEntry),
+    next: null,
+    total: shown.length,
+    reel,
+  };
+}
+/** The links route and the sync route, answered from the latest items. */
+let latest = new Map<string, GalleryItem>();
+let nextSync: Record<string, unknown> | null = null;
+function serve() {
+  global.fetch = vi.fn(async (url: string, init?: { body?: string }) => {
+    const body = JSON.parse(init?.body ?? "{}");
+    const ok = (json: unknown) => ({
+      status: 200,
+      ok: true,
+      headers: { get: (): string | null => '"a1-next"' },
+      json: async () => json,
+    });
+    if (url === "/api/album/guest/media") {
+      const asked = body.ids as string[];
+      return ok({
+        ok: true,
+        access: "full",
+        gate: null,
+        b: Math.floor(Date.now() / 1_800_000),
+        now: Date.now(),
+        links: asked
+          .map((id) => latest.get(id))
+          .filter((it): it is GalleryItem => Boolean(it))
+          .map(toLink),
+        missing: asked.filter((id) => !latest.has(id)),
+      });
+    }
+    if (url === "/api/album/guest/sync" && nextSync) return ok(nextSync);
+    return {
+      status: 304,
+      ok: false,
+      headers: { get: (): string | null => null },
+    };
+  }) as unknown as typeof fetch;
+}
+
 async function mount({
   items = [item(1), item(2)],
   reel = REEL,
@@ -115,6 +196,7 @@ async function mount({
   moderated = false,
   welcomePending = false,
   isOwner = false,
+  tileClassName,
 }: {
   items?: GalleryItem[];
   reel?: GalleryReel | null;
@@ -123,14 +205,42 @@ async function mount({
   moderated?: boolean;
   welcomePending?: boolean;
   isOwner?: boolean;
+  /** The box the page hands the tile (its column and margins). */
+  tileClassName?: string;
 } = {}) {
-  const payload: GalleryPayload = {
-    items,
-    teaserTotal: null,
-    approvedTotal: items.length,
-    reel,
-    etag: "e1",
-  };
+  latest = new Map(items.map((it) => [it.id, it]));
+  nextSync = null;
+  serve();
+  const manifest = manifestOf(items, reel, 10);
+  const payload: GalleryPayload =
+    access === "teaser"
+      ? {
+          kind: "teaser",
+          sync: {
+            ok: true,
+            kind: "teaser",
+            access: "teaser",
+            gate: "account",
+            items: approved(items),
+            teaserTotal: items.length,
+            approvedTotal: items.length,
+          },
+          etag: '"a1-teaser"',
+        }
+      : {
+          kind: "full",
+          sync: manifest,
+          etag: '"a1-seed"',
+          links: {
+            ok: true,
+            access: "full",
+            gate: null,
+            b: Math.floor(Date.now() / 1_800_000),
+            now: Date.now(),
+            links: approved(items).map(toLink),
+            missing: [],
+          },
+        };
   const galleryPromise = Promise.resolve(payload);
   const tree = (q: QueueItem[], pending = welcomePending) => (
     <Suspense fallback={<div>loading</div>}>
@@ -153,7 +263,7 @@ async function mount({
           welcomePending={pending}
           isOwner={isOwner}
         >
-          <LiveReelTile />
+          <LiveReelTile className={tileClassName} />
         </LiveReel>
       </GalleryLiveProvider>
     </Suspense>
@@ -162,6 +272,7 @@ async function mount({
   await act(async () => {
     utils = render(tree(queue));
     await galleryPromise;
+    await new Promise((resolve) => setTimeout(resolve, 0));
   });
   return {
     ...utils,
@@ -182,24 +293,15 @@ async function settle() {
   });
 }
 
-/** A poll answering this payload (the doorbell rang). */
+/** A poll answering this album (the doorbell rang): the sync route's fresh manifest of it. */
+let version = 20;
 async function pollWith(items: GalleryItem[], reel: GalleryReel | null = REEL) {
-  global.fetch = vi.fn(async () => ({
-    status: 200,
-    ok: true,
-    headers: { get: () => "etag-next" },
-    json: async () => ({
-      ok: true,
-      items,
-      access: "full",
-      gate: null,
-      approvedTotal: items.length,
-      reel,
-    }),
-  })) as unknown as typeof fetch;
+  latest = new Map(items.map((it) => [it.id, it]));
+  nextSync = manifestOf(items, reel, ++version);
   await act(async () => {
     hooks.refresh?.();
-    await Promise.resolve();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
   });
   await act(async () => {});
 }
@@ -231,6 +333,26 @@ describe("the Highlight reel tile", () => {
     expect(tile).not.toHaveTextContent("Make your own clip to share");
     // No style name, no moment count, no text chip in the corner (the corner is a glyph).
     expect(tile).not.toHaveTextContent(/Cinematic|moments|The reel/);
+  });
+
+  it("takes a tap and a press on its card alone, never in the column's gutters the page hands it", async () => {
+    // The page's own box for it (event-experience.tsx: the words' column, and the tile's margins).
+    const COLUMN_BOX = "w-full max-w-2xl px-5 mt-7 mb-4";
+    const { container } = await mount({ tileClassName: COLUMN_BOX });
+    const tile = theTile(container)!;
+    // The caller's box stays the caller's: nothing in it takes a tap or moves on a press.
+    expect(tile.className).toBe(COLUMN_BOX);
+    const watch = screen.getByRole("button", {
+      name: "Watch the highlight reel",
+    });
+    // The watch layer (absolute, inset 0) spans its positioned parent, which is the card: the
+    // gutters' 20px are outside it, and the press's scale moves the card about its own centre.
+    const card = watch.parentElement!;
+    expect(card).toHaveAttribute("data-reel-card");
+    expect(card.parentElement).toBe(tile);
+    expect(card.className).toMatch(/(^|\s)relative(\s|$)/);
+    expect(card.className).toContain("scale-[0.99]");
+    expect(card.className).not.toMatch(/px-5|max-w-2xl|mt-7|mb-4/);
   });
 
   it("wears the reel's glyph in its corner, a mark with no words (`badge=glyph`)", async () => {

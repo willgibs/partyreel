@@ -14,7 +14,13 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useUploadQueue, type QueueItem } from "@/lib/guest/use-upload-queue";
+import {
+  useLiveQueue,
+  useQueueProgress,
+  useUploadQueue,
+  type QueueItem,
+  type QueueProgress,
+} from "@/lib/guest/use-upload-queue";
 import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
 
 vi.mock("@/lib/upload/uploader", () => ({ uploadFile: vi.fn() }));
@@ -317,7 +323,11 @@ describe("the clip's seam (addClipToAlbum)", () => {
     expect(sent.reelEligible).toBe(false);
     expect(sent.poster).toBe(poster);
     expect(q.items()).toEqual([
-      expect.objectContaining({ status: "done", kind: "video", reelEligible: false }),
+      expect.objectContaining({
+        status: "done",
+        kind: "video",
+        reelEligible: false,
+      }),
     ]);
   });
 
@@ -351,5 +361,73 @@ describe("the clip's seam (addClipToAlbum)", () => {
     await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
     expect(sentOn(0)).toBe("fresh-token");
     expect(mockUploadFile.mock.calls[0][0].reelEligible).toBe(false);
+  });
+});
+
+/* ── A PROGRESS TICK IS NOT A QUEUE CHANGE (album-guest-wiring): a tick lives in the queue's own
+   progress store, so what reads `items` (the page's whole shell) never re-renders for one; the bar
+   that draws it subscribes to its own item. ── */
+
+function fakeProgress(initial: Record<string, number> = {}) {
+  const values = new Map(Object.entries(initial));
+  const listeners = new Set<() => void>();
+  const store: QueueProgress & { tick: (id: string, v: number) => void } = {
+    get: (id) => values.get(id) ?? 0,
+    subscribe: (l) => {
+      listeners.add(l);
+      return () => listeners.delete(l);
+    },
+    tick: (id, v) => {
+      values.set(id, v);
+      for (const l of listeners) l();
+    },
+  };
+  return store;
+}
+
+const flying = (id: string, over: Partial<QueueItem> = {}): QueueItem => ({
+  id,
+  file: new File(["x"], `${id}.jpg`, { type: "image/jpeg" }),
+  kind: "photo",
+  status: "uploading",
+  progress: 0,
+  ...over,
+});
+
+describe("useQueueProgress", () => {
+  it("reads one item's live progress and re-renders on its ticks", () => {
+    const progress = fakeProgress({ q1: 10 });
+    const { result } = renderHook(() => useQueueProgress(progress, "q1"));
+    expect(result.current).toBe(10);
+    act(() => progress.tick("q1", 60));
+    expect(result.current).toBe(60);
+  });
+
+  it("is zero without a store or an id", () => {
+    const { result } = renderHook(() => useQueueProgress(null, "q1"));
+    expect(result.current).toBe(0);
+  });
+});
+
+describe("useLiveQueue", () => {
+  it("hands back the very same items while it is not live (nothing re-renders for a tick)", () => {
+    const progress = fakeProgress({ q1: 40 });
+    const items = [flying("q1")];
+    const { result } = renderHook(() => useLiveQueue(items, progress, false));
+    expect(result.current).toBe(items);
+    act(() => progress.tick("q1", 80));
+    expect(result.current).toBe(items);
+  });
+
+  it("folds each uploading item's live progress in while it is live", () => {
+    const progress = fakeProgress({ q1: 40 });
+    const items = [
+      flying("q1"),
+      flying("q2", { status: "done", progress: 100 }),
+    ];
+    const { result } = renderHook(() => useLiveQueue(items, progress, true));
+    expect(result.current.map((it) => it.progress)).toEqual([40, 100]);
+    act(() => progress.tick("q1", 90));
+    expect(result.current[0].progress).toBe(90);
   });
 });

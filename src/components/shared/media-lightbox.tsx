@@ -6,6 +6,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useEffectEvent,
   useLayoutEffect,
   useRef,
   useState,
@@ -27,7 +28,7 @@ import { cn } from "@/lib/utils";
 
 import { ActionCapsule } from "./media-lightbox-parts/actions";
 import { FaceCredit, type ViewerMedia } from "./media-lightbox-parts/credit";
-import { Filmstrip } from "./media-lightbox-parts/filmstrip";
+import { Filmstrip, FILMSTRIP_REACH } from "./media-lightbox-parts/filmstrip";
 import {
   CHROME,
   ZOOM_MAX,
@@ -82,6 +83,14 @@ export type { CreditFace, ViewerMedia } from "./media-lightbox-parts/credit";
 // shift, so `peek` px of its own edge shows at rest, and the track moves by the
 // current photograph's STRIDE, so the photograph under the finger follows it one
 // to one and the swap after a commit moves nothing (geometry.ts proves both).
+//
+// THE PAGED ALBUM (album-guest-wiring): a surface may hand the WHOLE album as
+// `items`, most of it not linked yet (`url` is "", with no preview, no download
+// link and no attribution; the id, type, size and length are known). Next and
+// previous cross the whole list and "Photo k of N" is its length. The viewer asks
+// `onNeedLinks` for the links it is about to draw, the caller re-renders it with
+// each item's links as they land, and until then an item draws a placeholder at
+// its own shape and never a request (`ViewerPhoto`, and the clip in `renderMedia`).
 
 // Gesture tuning: screen px / px-per-ms; tunable on real-device feel.
 const DIR_LOCK_PX = 10; // travel before we commit to horizontal vs vertical/tap
@@ -219,6 +228,140 @@ function ownsKeys(target: EventTarget | null) {
   );
 }
 
+/**
+ * The ids within `reach` of `index` that have no link yet, NEAREST FIRST (the
+ * item on screen, then the next, the previous, and outward), so a caller that
+ * batches or caps what it asks for mints the photograph in front of the guest
+ * first.
+ */
+function unlinkedNear(
+  items: readonly GridMedia[],
+  index: number,
+  reach: number,
+): string[] {
+  const out: string[] = [];
+  const take = (k: number) => {
+    const item = items[k];
+    if (item && !item.url) out.push(item.id);
+  };
+  take(index);
+  for (let d = 1; d <= reach; d++) {
+    take(index + d);
+    take(index - d);
+  }
+  return out;
+}
+
+/** A picture's layer in its media box: it fills the box. */
+const MEDIA_FILL =
+  "absolute inset-0 size-full select-none [-webkit-user-drag:none]";
+
+/**
+ * WHERE A PICTURE WILL BE, BEFORE ITS LINK HAS COME. A quiet fill at the item's
+ * own shape: its known size, fitted (the media box IS the fit rect then), or the
+ * tile's 1:1 centred in the box when the size is unknown, which is the shape its
+ * tile had. In the viewer's white-on-dark grammar (the filmstrip's empty frame)
+ * rather than the page's `Skeleton`, whose `bg-muted` is a pale sheet in the
+ * light theme over a ground that is dark in both.
+ *
+ * ★ STATIC, NEVER A SHIMMER: a link that never lands (an item the album has
+ * just dropped) must not read as loading for ever.
+ */
+function Placeholder({ frame, fitted }: { frame: Size; fitted: boolean }) {
+  const side = Math.min(frame.width, frame.height);
+  return (
+    <span
+      data-lightbox-placeholder
+      aria-hidden
+      className={cn("absolute bg-white/10", fitted && "inset-0")}
+      style={
+        fitted
+          ? undefined
+          : {
+              left: (frame.width - side) / 2,
+              top: (frame.height - side) / 2,
+              width: side,
+              height: side,
+              borderRadius: "var(--radius-tile)",
+            }
+      }
+    />
+  );
+}
+
+/**
+ * A PHOTOGRAPH IN A SLOT, AS FAR AS ITS LINKS HAVE COME. Linked, it is what it
+ * always was: the tile's preview at once, the original fading in over it. Not
+ * linked yet, it is its placeholder and no `<img>` at all (an empty `src`
+ * resolves against the page and fetches it); a preview with no original yet is
+ * drawn alone.
+ *
+ * ★ THE PLACEHOLDER HOLDS UNTIL A PICTURE PAINTS. When the link lands the
+ * pictures mount OVER the placeholder, and it leaves once the first of them has
+ * loaded, so the slot goes from the fill to the photograph, never through the
+ * bare ground between. An item that arrives linked never shows it (every
+ * surface as it was); one whose link lapses back to nothing shows it again.
+ */
+function ViewerPhoto({
+  item,
+  isCenter,
+  fit,
+  frame,
+  onSize,
+}: {
+  item: ViewerMedia;
+  isCenter: boolean;
+  fit: Rect | null;
+  frame: Size;
+  onSize: (id: string, width: number, height: number) => void;
+}) {
+  const full = item.url || null;
+  const preview = item.previewUrl || null;
+  const hasPicture = full !== null || preview !== null;
+  const [waiting, setWaiting] = useState(!hasPicture);
+  if (!hasPicture && !waiting) setWaiting(true);
+  const painted = () => setWaiting(false);
+  const cover = fit ? "object-cover" : "object-contain";
+  const overPreview = preview !== null && preview !== full;
+  return (
+    <>
+      {waiting && <Placeholder frame={frame} fitted={fit !== null} />}
+      {overPreview && (
+        // The tile's own preview, already in the cache: the photograph
+        // that flies out of the tile is the one the tile was showing.
+        // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
+        <img
+          src={preview}
+          alt=""
+          draggable={false}
+          onLoad={painted}
+          className={cn(MEDIA_FILL, cover)}
+        />
+      )}
+      {full !== null && (
+        // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
+        <img
+          src={full}
+          alt=""
+          draggable={false}
+          aria-hidden={!isCenter}
+          data-lightbox-full={overPreview ? "" : undefined}
+          ref={(el) => {
+            if (el?.complete && el.naturalWidth > 0) el.dataset.loaded = "";
+          }}
+          onLoad={(e) => {
+            const img = e.currentTarget;
+            img.dataset.loaded = "";
+            onSize(item.id, img.naturalWidth, img.naturalHeight);
+            painted();
+          }}
+          className={cn(MEDIA_FILL, cover)}
+        />
+      )}
+    </>
+  );
+}
+
 export function MediaLightbox({
   items,
   index,
@@ -232,13 +375,14 @@ export function MediaLightbox({
   onRemove,
   origin,
   startAt,
+  onNeedLinks,
 }: {
   items: ViewerMedia[];
   index: number | null;
   onClose: () => void;
   onIndexChange: (index: number) => void;
   /** Host gallery? Drives the host-only address line AND the host curate group
-   *  (approve/hide/unhide + remove) when the moderation handlers are set. */
+   *  (hide/show + remove) when the moderation handlers are set. */
   viewerIsHost?: boolean;
   /**
    * Opt-in delete (the personal "Uploads" tab, and a guest's own photographs on the album). When set,
@@ -261,8 +405,8 @@ export function MediaLightbox({
   shareUrl?: string;
   /**
    * Host moderation, host-only (gated by `viewerIsHost && onSetStatus`). `onSetStatus` drives the
-   * curate group's approve/hide/unhide; `onRemove` is the confirmed remove (the caller closes the
-   * viewer, like onDeleteCurrent).
+   * curate group's hide ("hidden") and show ("approved"); `onRemove` is the confirmed remove (the
+   * caller closes the viewer, like onDeleteCurrent).
    */
   onSetStatus?: (item: GridMedia, status: "approved" | "hidden") => void;
   onRemove?: (item: GridMedia) => void;
@@ -270,6 +414,17 @@ export function MediaLightbox({
   origin?: ViewerOrigin;
   /** Opened from the reel on a video: carry on from the reel's moment (seconds) instead of the start. */
   startAt?: number;
+  /**
+   * THE LINK SOURCE, for a surface that hands the whole album with most of it unlinked (`url` "").
+   * Called with the ids, nearest first, of the items about to be drawn that have no link yet: the
+   * current item and one neighbour each side (the swipe track's three slots) and, while the desk's
+   * filmstrip shows, the `FILMSTRIP_REACH` frames each side of it. It fires on open and on every
+   * step, only with a non-empty list, keyed on the place and on the SET still missing: a plain
+   * re-render (a new callback, a new array with the same gaps) never asks again, and a partial
+   * landing asks only for what is still missing. The caller re-renders the viewer with each item's
+   * links (and attribution) as they land. Omitted = every item arrives linked, as before.
+   */
+  onNeedLinks?: (ids: readonly string[]) => void;
 }) {
   const current = index === null ? null : (items[index] ?? null);
   const open = current !== null;
@@ -317,21 +472,26 @@ export function MediaLightbox({
   // were measured (the item's own width/height win whenever they exist).
   const [measured, setMeasured] = useState<Record<string, Size>>({});
 
-  // One open = one session: whether it flew in, where a reel's clip carries on.
+  // One open = one session: whether it flew in and from where, where a reel's
+  // clip carries on.
   const [session, setSession] = useState<{
     id: string | null;
     flew: boolean;
+    from: ViewerRect | null;
     startAt?: number;
-  }>({ id: null, flew: false });
+  }>({ id: null, flew: false, from: null });
   const [phase, setPhase] = useState<"opening" | "open" | "closing">("open");
 
   // Reset the per-item view when the viewer moves to another item, and open a
   // session when it opens. React's "adjust state during render on a prop
-  // change" pattern, not a setState-in-effect.
-  const [trackedIndex, setTrackedIndex] = useState(index);
+  // change" pattern, not a setState-in-effect. The ITEM, by id, not its index:
+  // the paged album's arrivals shift the index of the photograph on screen, and
+  // a close-up must survive the album growing under it.
+  const currentId = current?.id ?? null;
+  const [trackedId, setTrackedId] = useState(currentId);
   const [trackedOpen, setTrackedOpen] = useState(false);
-  if (index !== trackedIndex) {
-    setTrackedIndex(index);
+  if (currentId !== trackedId) {
+    setTrackedId(currentId);
     setZoomed(false);
   }
 
@@ -364,7 +524,12 @@ export function MediaLightbox({
     current: curFit?.width ?? null,
     next: nextFit?.width ?? null,
   };
-  const canZoom = current?.type === "photo" && curFit !== null;
+  // A photograph with nothing to look at yet (its placeholder) does not zoom;
+  // a preview does, and the original landing under the close-up keeps it.
+  const canZoom =
+    current?.type === "photo" &&
+    curFit !== null &&
+    !!(current.url || current.previewUrl);
 
   if (open !== trackedOpen) {
     setTrackedOpen(open);
@@ -375,7 +540,12 @@ export function MediaLightbox({
         curFit !== null &&
         typeof Element !== "undefined" &&
         typeof Element.prototype.animate === "function";
-      setSession({ id: current.id, flew: flies, startAt });
+      setSession({
+        id: current.id,
+        flew: flies,
+        from: flies ? (origin?.rect ?? null) : null,
+        startAt,
+      });
       setPhase(flies ? "opening" : "open");
     }
   }
@@ -500,13 +670,43 @@ export function MediaLightbox({
 
   // A new current item starts at fit; the one it replaced loses its close-up
   // (it is a neighbour now, and a sliver of a zoomed photograph is nonsense).
+  // Keyed on the item, like the reset above: its links landing, or the album
+  // moving it to another index, leave the close-up where it is. ★ AND ON
+  // `centerEl`, the photograph's own element: radix's Portal mounts it a commit
+  // after the viewer opens, so a capture keyed on the item alone caught nothing
+  // at the open, and the first step after opening left the photograph it
+  // replaced zoomed in its sliver.
   useEffect(() => {
     zoomRef.current = ZOOM_REST;
     const el = centerZoomRef.current;
     return () => {
       if (el) el.style.transform = "";
     };
-  }, [index]);
+  }, [currentId, centerEl]);
+
+  /* ── the links ─────────────────────────────────────────────────────────── */
+
+  // THE LINK SOURCE (`onNeedLinks`): ask for what is about to be drawn and has
+  // no link yet, the swipe track's three slots and the desk strip's frames.
+  // ★ KEYED ON THE PLACE AND THE SET STILL MISSING, AS A STRING, never on
+  // `items` or the callback: both are new objects on every landing and every
+  // render, and an effect keyed on them would ask again each time. The callback
+  // is read through an effect event, so a caller's inline arrow is fine.
+  const needKey =
+    open && onNeedLinks
+      ? JSON.stringify(
+          unlinkedNear(items, index!, showFilmstrip ? FILMSTRIP_REACH : 1),
+        )
+      : "[]";
+  const askForLinks = useEffectEvent((ids: readonly string[]) => {
+    onNeedLinks?.(ids);
+  });
+  useEffect(() => {
+    const ids = JSON.parse(needKey) as string[];
+    if (ids.length > 0) askForLinks(ids);
+    // `index` and `open` on purpose: a step asks again even when the gaps in
+    // reach are the same ids (the caller's store dedupes what is in flight).
+  }, [needKey, index, open]);
 
   /* ── the video ─────────────────────────────────────────────────────────── */
 
@@ -686,8 +886,13 @@ export function MediaLightbox({
   // to fill the screen; out of the reel, the frame lets go of its crop. The
   // element is already laid out at its fit rect; the flight scales and clips it
   // back onto the tile's exact crop and plays forward to rest.
+  //
+  // ★ IT FLIES FROM WHERE IT OPENED, READ AT THE OPEN (`session.from`), never
+  // from the live `origin` prop: the paged album re-renders the viewer inside
+  // the flight as a neighbour's link lands, and a caller that handed a fresh
+  // `origin` object there would otherwise restart the photograph from its tile.
   useLayoutEffect(() => {
-    const from = origin?.rect;
+    const from = session.from;
     if (phase !== "opening" || !isRealRect(from)) return;
     let done = false;
     const land = () => {
@@ -714,7 +919,7 @@ export function MediaLightbox({
         });
     }
     return () => window.clearTimeout(timer);
-  }, [phase, origin, centerEl]);
+  }, [phase, session, centerEl]);
 
   /* ── navigation ────────────────────────────────────────────────────────── */
 
@@ -1219,49 +1424,42 @@ export function MediaLightbox({
     settleTo(dir === 1 ? -stride : stride, dir);
   };
 
-  function renderMedia(item: ViewerMedia, isCenter: boolean, fit: Rect | null) {
-    const cover = fit ? "object-cover" : "object-contain";
-    if (item.type === "photo") {
-      const preview = item.previewUrl ?? null;
+  function renderMedia(
+    item: ViewerMedia,
+    isCenter: boolean,
+    fit: Rect | null,
+    frame: Size,
+  ) {
+    if (item.type === "photo")
       return (
-        <>
-          {preview && preview !== item.url && (
-            // The tile's own preview, already in the cache: the photograph
-            // that flies out of the tile is the one the tile was showing.
-            // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
-            <img
-              src={preview}
-              alt=""
-              draggable={false}
-              className={cn(
-                "absolute inset-0 size-full select-none [-webkit-user-drag:none]",
-                cover,
-              )}
-            />
-          )}
-          {/* eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable */}
-          <img
-            src={item.url}
-            alt=""
-            draggable={false}
-            aria-hidden={!isCenter}
-            data-lightbox-full={
-              preview && preview !== item.url ? "" : undefined
-            }
-            ref={(el) => {
-              if (el?.complete && el.naturalWidth > 0) el.dataset.loaded = "";
-            }}
-            onLoad={(e) => {
-              const img = e.currentTarget;
-              img.dataset.loaded = "";
-              noteSize(item.id, img.naturalWidth, img.naturalHeight);
-            }}
-            className={cn(
-              "absolute inset-0 size-full select-none [-webkit-user-drag:none]",
-              cover,
-            )}
-          />
-        </>
+        <ViewerPhoto
+          item={item}
+          isCenter={isCenter}
+          fit={fit}
+          frame={frame}
+          onSize={noteSize}
+        />
+      );
+    // ★ A CLIP WITH NO LINK YET MOUNTS NO <video>: `videoPosterSrc("")` is
+    // "#t=0.1", which resolves against the PAGE's address and would fetch the
+    // page as a video. Its poster stands in (the frame its tile showed), else
+    // the placeholder; the real clip mounts the moment its link lands, and the
+    // transport with it.
+    if (!item.url) {
+      const poster = item.previewUrl || null;
+      return poster ? (
+        // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL, not optimizable
+        <img
+          src={poster}
+          alt=""
+          draggable={false}
+          data-lightbox-poster
+          // The clip's own look (object-contain on black), so the element
+          // that replaces it paints the same picture.
+          className={cn(MEDIA_FILL, "bg-black object-contain")}
+        />
+      ) : (
+        <Placeholder frame={frame} fitted={fit !== null} />
       );
     }
     return (
@@ -1342,7 +1540,7 @@ export function MediaLightbox({
             )}
             style={{ borderRadius: "var(--radius-tile)" }}
           >
-            {renderMedia(item, isCenter, fit)}
+            {renderMedia(item, isCenter, fit, rect)}
           </div>
         </div>
       </div>
@@ -1350,6 +1548,8 @@ export function MediaLightbox({
   }
 
   const isOwn = current ? (canDelete?.(current) ?? false) : false;
+  // An unlinked clip has no element yet (renderMedia), so nothing to drive.
+  const clipMounted = current?.type === "video" && !!current.url;
   const quiet = phase !== "open" || zoomed;
   const bottomLift = CHROME.capsuleGap + (showFilmstrip ? CHROME.filmstrip : 0);
 
@@ -1568,7 +1768,11 @@ export function MediaLightbox({
                     bottom: `calc(${bottomLift}px + env(safe-area-inset-bottom))`,
                   }}
                 >
-                  {current.type === "video" && (
+                  {/* Only over a clip that exists: a play button and a
+                      scrubber over a poster would promise a clip that is
+                      not there yet. The media box already reserves its row,
+                      so its arrival moves nothing. */}
+                  {clipMounted && (
                     <VideoTransport
                       videoRef={centerVideoRef}
                       clipKey={current.id}
@@ -1590,8 +1794,15 @@ export function MediaLightbox({
                     deleteConsequence={deleteConsequence}
                     onSetStatus={onSetStatus}
                     onRemove={onRemove}
+                    // An unlinked clip keeps its sound control (the capsule
+                    // holds its shape), showing the choice its clip will
+                    // mount with, since there is no element to read yet.
                     soundMuted={
-                      current.type === "video" ? videoState.muted : undefined
+                      current.type !== "video"
+                        ? undefined
+                        : clipMounted
+                          ? videoState.muted
+                          : !soundOn
                     }
                     onToggleSound={toggleSound}
                   />

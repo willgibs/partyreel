@@ -4,8 +4,9 @@
  * three presigns per item: an INLINE url (grid/lightbox render) and an `attachment`
  * download url (the lightbox Save) from the original key, plus the small tile preview
  * from `preview_key` when the row has one (`toModerationFeedItems` mints the first two
- * alone). Single source so the public album, the guest event page, and the gallery poll
- * route all presign identically.
+ * alone). Single source so every surface that still hands a whole list of linked items
+ * presigns identically: the guest album's teaser (its nine, inline), the personal feeds and
+ * the operator's. The paged album mints its links by id instead (`album-guest-links.ts`).
  */
 import "server-only";
 
@@ -82,8 +83,8 @@ export async function toGridItems(
         // attribution at all (uploaderName is null), so `false` can never draw a false claim,
         // while `true` would be one waiting to happen.
         isVerified: who?.isVerified ?? false,
-        // Masonry geometry + video badge data. Immutable per id, so
-        // they ride OUTSIDE the gallery ETag fingerprint (gallery-fingerprint.ts).
+        // The tile's geometry + video badge data. Immutable per id (write-once
+        // at create_media, like the paged album's manifest entries).
         width: m.width ?? null,
         height: m.height ?? null,
         durationSeconds: m.duration_seconds ?? null,
