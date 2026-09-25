@@ -37,6 +37,8 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `save-sheet` | Will's iPhone check: on iOS, Save opens the system sheet in one tap in the viewer and the clip finish (the menu's Download file goes); the two help articles follow | building (agent `ac61bdf54b82a04ad`) | Sonnet, :3131 | its guest-flow, reel and uploads-and-r2 lines through the Handoff |
+| `retire-album-columns` | the board leaves the desk, its picks built on both album surfaces; holds `registry.ts` and `boards.ts` until its merge | building (agent `aab5a522aa3610bcf`) | Sonnet, :3132 | the ledger is the record's to delete |
 
 Merged tonight (their records carry the rest): reel-guest-wiring, reel-host-wiring, mark-r3, story-r2, door-r2,
 album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hardening, reel-sweep, door-flow,
