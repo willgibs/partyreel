@@ -20,9 +20,10 @@
  * - THE EXPORT'S MINUTE (`wait=stack`): the clip's own frame stacks and counts moments, "Keep this
  *   tab open", Cancel; a backgrounded tab pauses; a clip that does not finish lands on the finish
  *   with Retry and the picks kept.
- * - THE FINISH (`finish=save`, amended): Share leads on its own tap; Save opens the platform's
- *   options; Add to event waits behind a confirm; every action keeps her on the finish with its done
- *   state; at a laptop it sits in the panel under "Back to editing, your picks kept".
+ * - THE FINISH (`finish=save`, amended; one tap, save-sheet): Share leads on its own tap; Save is
+ *   one tap into the platform's own action; Add to event waits behind a confirm; every action keeps
+ *   her on the finish with its done state; at a laptop it sits in the panel under "Back to editing,
+ *   your picks kept".
  * - NO SOUND (`sound=silent`): a clip has no audio track; people add their own music where they post.
  * - THE MARK (`mark=line`): a free event's clip carries the engine's mark, and one quiet line under
  *   the clip says it is the free event's, not every clip's.
@@ -449,7 +450,7 @@ export function ClipCreator({
         }
         if (out.kind === "cancelled") return;
         if (out.kind === "needs-tap") {
-          toast("Tap Save to Photos once more to open it");
+          toast("Tap Save once more to open it");
           return;
         }
         // Refused or broken: a Save that saves nothing is the one outcome to avoid.

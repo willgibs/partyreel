@@ -12,10 +12,14 @@
  * project, and the viewer only renders what these functions answer.
  *
  * ★ iOS HAS ONE WEB DOOR INTO THE PHOTOS LIBRARY, AND IT IS THE SYSTEM SHEET
- * CARRYING THE FILE. A download lands in Files, which is exactly what Will hit;
- * `navigator.share({ files })` puts "Save Image" (or "Save Video") in the sheet,
- * and nothing else a page can do reaches Photos. Android's download already lands
- * in the gallery and a desk downloads, so only iOS gets the two-way Save.
+ * CARRYING THE FILE, SO SAVE ASKS NOTHING THERE (save-sheet, Will's iPhone
+ * check: "we may not need to differentiate... just open the save sheet"). A
+ * download lands in Files, which is exactly what he hit; `navigator.share({
+ * files })` puts "Save Image" (or "Save Video") into Photos AND "Save to
+ * Files" in the SAME sheet, so a second, plain-download choice would only ask
+ * a question the sheet already answers. Android's download already lands in
+ * the gallery and a desk downloads, so both keep the one plain Save they
+ * already had.
  *
  * ★ THE FILE IS FETCHED ON THE TAP, NEVER BEFORE. A swipe through an album must
  * never pull originals a guest did not ask for. The cost is that a slow fetch can
@@ -134,12 +138,15 @@ export function detectPlatform(nav: NavigatorLike): Platform {
 export type SaveChoice = "photos" | "file";
 
 /**
- * What Save offers here, first choice first. iOS: the Photos library through
- * the sheet, then the plain download to Files. Everywhere else the download IS
- * the native way (Android's lands in the gallery), so it is the only choice.
+ * What Save does here: one choice, never a menu. iOS: the file into the
+ * system sheet, whose "Save Image"/"Save Video" (Photos) and "Save to Files"
+ * already live side by side there, so there is nothing left for a second,
+ * plain-download option to add. Everywhere else the download IS the native
+ * way (Android's lands in the gallery, a desk downloads), so it stays the
+ * only choice there too.
  */
 export function saveChoices(platform: Platform): readonly SaveChoice[] {
-  return platform === "ios" ? ["photos", "file"] : ["file"];
+  return platform === "ios" ? ["photos"] : ["file"];
 }
 
 /* ── the file ────────────────────────────────────────────────────────────── */

@@ -12,8 +12,6 @@ import {
   Download,
   Eye,
   EyeOff,
-  FileDown,
-  Images,
   Link2,
   Loader2,
   Share2,
@@ -37,12 +35,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { GLASS, GLASS_MARK_LIT } from "@/lib/glass";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import {
@@ -300,11 +292,16 @@ export const ActionCapsule = memo(function ActionCapsule({
           </a>
         </ActionTooltip>
       );
-    } else if (ready("photos") || loading("photos")) {
-      // Mid-flight or ready, Save is one button: the menu already chose.
+    } else {
+      // ★ ONE BUTTON, IDLE THROUGH READY (save-sheet, Will's iPhone check): the
+      // system sheet already carries every way to keep the file — "Save Image"
+      // or "Save Video" into Photos, "Save to Files" beside it — so there is no
+      // second, plain-download choice left to offer, and no menu to open first.
       const label = ready("photos")
         ? "Ready to save. Tap to save."
-        : "Preparing to save";
+        : loading("photos")
+          ? "Preparing to save"
+          : "Save";
       save = (
         <ActionTooltip label={label}>
           <button
@@ -322,40 +319,6 @@ export const ActionCapsule = memo(function ActionCapsule({
             {ready("photos") && <ReadyWord />}
           </button>
         </ActionTooltip>
-      );
-    } else {
-      // ★ PHOTOS FIRST ON iOS (his "priority option of native photo library"),
-      // the file second ("not looking to reduce ways to download").
-      save = (
-        <DropdownMenu>
-          <ActionTooltip label="Save">
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                aria-label="Save"
-                className={cn(LIGHTBOX_ACTION, "hover:text-save")}
-              >
-                <Download className="size-5" />
-              </button>
-            </DropdownMenuTrigger>
-          </ActionTooltip>
-          <DropdownMenuContent
-            side="top"
-            align="center"
-            className="w-auto min-w-48"
-          >
-            <DropdownMenuItem onSelect={() => void onSaveToPhotos()}>
-              <Images />
-              Save to Photos
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <a href={item.downloadUrl} download>
-                <FileDown />
-                Download file
-              </a>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       );
     }
   }

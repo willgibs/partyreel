@@ -4,10 +4,7 @@ import type { ReactNode } from "react";
 import {
   ArrowLeft,
   Check,
-  ChevronDown,
   Download,
-  FileDown,
-  Images,
   Loader2,
   Plus,
   RotateCcw,
@@ -25,21 +22,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import type { Platform, SaveChoice } from "@/lib/media/share-save";
+  saveChoices,
+  type Platform,
+  type SaveChoice,
+} from "@/lib/media/share-save";
 import { cn } from "@/lib/utils";
 
 import { ROOM_FOCUS, ROOM_PRESS } from "./clip-room";
 
 /**
- * THE FINISH, AS WILL AMENDED IT (reel-cut round 1, `finish=save`): Share leads; Save opens the
- * platform's options (iOS: Save to Photos first, then Download file; elsewhere the download is the
- * native way); Add to event waits behind a confirm; every action keeps her HERE with its done state,
- * so save-then-share or add-then-share is two taps on one screen; Make another starts over.
+ * THE FINISH, AS WILL AMENDED IT (reel-cut round 1, `finish=save`; one tap, save-sheet): Share
+ * leads; Save is one tap into the platform's own action (iOS: the system sheet with the file,
+ * which already carries Photos and Files alike, so there is no second choice to offer; elsewhere
+ * the download, already the native way); Add to event waits behind a confirm; every action keeps
+ * her HERE with its done state, so save-then-share or add-then-share is two taps on one screen;
+ * Make another starts over.
  *
  * ★ SHARE IS ITS OWN TAP, NEVER CHAINED OFF THE ENCODE. iOS spends the user activation on the tap
  * that started the encode long before the file exists, and refuses a share sheet without one, so the
@@ -121,39 +118,17 @@ export function FinishDoors({
       <div
         className={cn("grid gap-2.5", canAdd ? "grid-cols-2" : "grid-cols-1")}
       >
-        {platform === "ios" ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                data-clip-door="save"
-                className={doorClass(saveLoud, saveDone)}
-              >
-                {saveInner}
-                <ChevronDown className="size-3.5 opacity-60" aria-hidden />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="top" align="start" className="w-52">
-              <DropdownMenuItem onSelect={() => onSave("photos")}>
-                <Images aria-hidden />
-                Save to Photos
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => onSave("file")}>
-                <FileDown aria-hidden />
-                Download file
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <button
-            type="button"
-            onClick={() => onSave("file")}
-            data-clip-door="save"
-            className={doorClass(saveLoud, saveDone)}
-          >
-            {saveInner}
-          </button>
-        )}
+        {/* ★ ONE TAP, NEVER A MENU: the platform's own save story has one
+            choice (`saveChoices`; iOS's system sheet already carries Photos
+            and Files alike), so Save does it directly. */}
+        <button
+          type="button"
+          onClick={() => onSave(saveChoices(platform)[0])}
+          data-clip-door="save"
+          className={doorClass(saveLoud, saveDone)}
+        >
+          {saveInner}
+        </button>
         {canAdd ? (
           <button
             type="button"
