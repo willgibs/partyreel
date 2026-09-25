@@ -1,0 +1,80 @@
+/* THE DOOR'S OWN MOTION AND POSTURE, beside the door (door-flow moved these out
+   of globals.css, where they sat among the whole site's rules). Plain CSS in the
+   base layer, exactly where they lived before, so nothing about the cascade
+   moved with them: a utility on the same element still wins.
+
+   Written flat (a top-level @starting-style naming its selector) rather than
+   nested, so the file means the same thing whether or not a nesting transform
+   runs over it. */
+
+@layer base {
+  /* THE STEPS EASE IN when revealed (each re-keyed, so they cross on every step
+     change): opacity plus a small rise, on mount only. Never scale from 0;
+     transform and opacity only; reduced motion gets no movement. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-entry-step] {
+      transition:
+        opacity 220ms var(--ease-emphasis),
+        transform 220ms var(--ease-emphasis);
+    }
+    @starting-style {
+      [data-entry-step] {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+    }
+  }
+
+  /* The steps hand off DIRECTIONALLY inside one height-animated container
+     (entry-step-transition.tsx): forward enters from the right, back from the
+     left, overriding the rise above (the first layer of a mount carries no
+     data-dir and keeps the rise). The outgoing step leaves a static clone that
+     fades the OPPOSITE way: an INVERTED @starting-style, mounted visible and
+     transitioning to hidden. Reduced motion simply never shows the clone. */
+  @media (prefers-reduced-motion: no-preference) {
+    @starting-style {
+      [data-entry-step][data-dir="fwd"] {
+        opacity: 0;
+        transform: translateX(16px);
+      }
+      [data-entry-step][data-dir="back"] {
+        opacity: 0;
+        transform: translateX(-16px);
+      }
+    }
+    [data-entry-exit] {
+      opacity: 0;
+      transition:
+        opacity 160ms var(--ease-emphasis),
+        transform 160ms var(--ease-emphasis);
+    }
+    @starting-style {
+      [data-entry-exit] {
+        opacity: 1;
+        transform: none;
+      }
+    }
+    [data-entry-exit][data-exit-dir="fwd"] {
+      transform: translateX(-16px);
+    }
+    [data-entry-exit][data-exit-dir="back"] {
+      transform: translateX(16px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-entry-exit] {
+      display: none;
+    }
+  }
+
+  /* THE WELCOME'S PRESENCE ("tall ~55svh", the Calm arrival): on a phone the
+     invitation stands toward the screen's centre instead of hugging the bottom
+     edge (Will's "eyes go to center"). The phone half only: the desk panel is
+     full height already. The step container's height transition turns the
+     welcome-to-chooser shrink into the same glide. */
+  @media (width < 40rem) {
+    [data-entry-sheet] [data-welcome-step] {
+      min-height: 55svh;
+    }
+  }
+}

@@ -436,13 +436,21 @@ primitives name their transition properties, never `transition-all`.
 fade, a hair of scale, 8px from the anchor) and `floatingEdgeEntrance` (the sheet's slide); and `floatingClock`, whose
 three rungs follow frequency: instant for what opens dozens of times an hour (a tooltip, a dropdown, a select),
 standard for a popover or dialog, edge for the sheet. The light is `shadow-layer`, and no panel is translucent.
-`drawer.tsx` (vaul owns its physics) and `sonner.tsx` sit outside the family by name; the QR mini-modal's View
+`drawer.tsx` (vaul's, drawn only by the Library's gallery now) and `sonner.tsx` sit outside the family by name; the QR mini-modal's View
 Transition is its one sanctioned hole ([host-app.md](host-app.md)).
 
 - **The product has ONE responsive `Sheet`** (`ui/sheet.tsx`, opted into with `responsive`): a side panel at a desk, a
   bottom sheet in a hand. It emits `data-side="responsive"`, so none of the fixed-side rules can race it, and its
-  posture pair lives in `floating-layer.ts`; the share, settings and pricing sheets, the guest flow's and the admin's
-  destructive sheets all wear it.
+  posture pair lives in `floating-layer.ts`; the share, settings and pricing sheets, the guest's door and overlays and
+  the admin's destructive sheets all wear it.
+- ★ **Its phone half is keyboard-safe** (`src/lib/use-keyboard-inset.ts`): `visualViewport` sets `--kb-inset` and
+  `--vv-h`, the sheet stands on the keyboard with its ceiling at the visible height, `data-keyboard` reads `open` (or
+  `tight` under 200px, a landscape phone's thin band), and `floatingKeyboardFoot` with `data-sheet-primary` keeps the
+  primary action sticky at the foot while typing. The phone half opens with focus on the panel, never its first field;
+  on iOS a field's tap is taken at `touchend` to hold the page's scroll, and the keyboard's height is remembered, since
+  iOS reports it only once risen. An `overflow: hidden` ancestor defeats the sticky foot (use `overflow: clip`), and a
+  fixed-height flex child inside the sheet needs `shrink-0` or it clips instead of scrolling. `overlayClassName`
+  carries a door's own scrim.
 - ★ **An unportalled submenu can open with a real box and paint nothing.** `SubContent` sits in a `Portal`: inside the
   scrolling, transform-animated `Content`, the transformed ancestor becomes the containing block for fixed
   descendants, so a submenu opened by a click mid-close paints nothing, while hover on a settled parent works. A menu
@@ -467,14 +475,10 @@ Its 5rem offset cannot read `--mkt-header-h`, which is scoped to `[data-mkt]`, a
 ## The arrival choreography ("Calm + 700ms")
 
 The guest's arrival is a sanctioned exception to the 300ms ceiling, because it happens once (the reel reveal and
-marketing's reveal are the others): the entry sheet enters on vaul's native 500ms drawer curve after a 700ms beat,
+marketing's reveal are the others): the entry sheet enters on the Sheet's edge clock (300ms) after a 700ms beat,
 while everything repeated stays fast. Its attributes (`data-arrive`, the step handoffs, `data-unlock-success`,
 `data-reveal` behind `[data-reveal-curtain]`) are `@starting-style` with reduced-motion fades; the timings live in
 `use-arrival-beat.ts` and `use-success-hold.ts`.
-
-**★ The vaul motion gotcha:** with no `snapPoints`, vaul opens and closes on keyframes from its injected stylesheet, so
-a `transition-duration` override does nothing; a faster exit overrides `animation-duration` (`!important`, scoped to
-`data-state="closed"`). The drawer's transition only drives the drag-release snap-back, so never touch it.
 
 ## Errors: the taxonomy and the boundaries
 

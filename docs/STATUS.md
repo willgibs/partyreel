@@ -20,20 +20,20 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 - **The reel stretch landed** (2026-09-25, overnight in auto mode): the live reel's guest and host sides, the clip
   creator (Make your own, Looks and Moments as tabs), the stored reel's server side gone, the reel retold across
   marketing, help and legal, and `docs/systems/reel.md` its home. The drop migration and the R2 sweep of the old
-  files wait for his yes after build 9's red-team.
+  files wait for his yes after build 10's red-team, which finishes build 9's (stopped at the usage limit).
 - **Also landed**: the album fast at any size (windowed rows, a memoized tile, three density steps) and the paged
   album's data half (`album_state` and `album_changes`, links by id, a delta poll); a confirmed email changed at both
   addresses and deletion taking the address with it; four correctness fixes (the billing downgrade, the unlock
-  cookie bound to the password, the orphan breaker's health, counts past 999). Building: the album's guest and host
-  surfaces onto the paged rows, and the door's new flow (his chooser, a keyboard-safe phone sheet).
+  cookie bound to the password, the orphan breaker's health, counts past 999); the door's new flow (his chooser, a
+  keyboard-safe phone sheet). Building: the album's guest and host surfaces onto the paged rows, and the crumbs.
 
 ## The desk
 
-27 boards at `/design/lab?key=`, in leverage order: `identity-door` (r2, the door's look), `reel-story` (r2),
+22 boards at `/design/lab?key=`, in leverage order: `identity-door` (r2, the door's look), `reel-story` (r2),
 `media-viewer` (r3), `identity-claims`, `identity-profile`, `guest-capture`, `voice-guest`, `host-curation`,
 `host-storage`, `event-safety`, `export-flow`, `admin-triage`, `help-center`, `emails`, `site-chrome`, `profile-page`,
-`privacy-hero`, `album-motion`, `loose-ends`, `contact-page`, `press-page`, then the answered boards retiring:
-`reel-cut`, `reel-front`, `album-columns`, `reel-screen`, `reel-host`, `reel-view`.
+`privacy-hero`, `album-motion`, `loose-ends`, `contact-page`, `press-page`, then `album-columns` (answered; it retires
+once the album's surfaces are wired).
 
 ## Live state
 
@@ -72,7 +72,7 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 ## Waiting on Will
 
 - **His sitting on build 9**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
-- **Two yeses**: the reel drop migration after build 9's red-team (then the R2 sweep), and clearing past deleted
+- **Two yeses**: the reel drop migration after build 10's red-team (then the R2 sweep), and clearing past deleted
   accounts' addresses from their guest rows (`20260926210000_identity_backfill.sql`).
 - **One dashboard minute**: Supabase's Change Email Address template gains `{{ .Token }}` (until then the change
   confirms by the link at both addresses).

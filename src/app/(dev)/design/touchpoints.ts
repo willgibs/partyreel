@@ -28,10 +28,8 @@ export type SandboxId =
   | "identity-door"
   | "identity-claims"
   | "identity-profile"
-  | "reel-screen"
   | "guest-capture"
   | "voice-guest"
-  | "reel-front"
   | "site-chrome"
   | "profile-page"
   | "export-flow"
@@ -39,13 +37,10 @@ export type SandboxId =
   | "reel-story"
   | "media-viewer"
   | "emails"
-  | "reel-view"
   | "help-center"
   | "host-curation"
   | "host-storage"
   | "event-safety"
-  | "reel-host"
-  | "reel-cut"
   | "press-page"
   | "contact-page"
   | "album-motion"
@@ -80,7 +75,7 @@ export const RULINGS: Ruling[] = [
       "src/components/guest/entry-modal.tsx",
       "src/components/guest/entry-shell.tsx",
       "src/components/guest/guest-name-step.tsx",
-      "src/components/guest/enter-event-prompt.tsx",
+      "src/components/guest/identify-step.tsx",
       "src/components/guest/guest-name-menu.tsx",
       "src/components/guest/add-email-dialog.tsx",
       "src/components/auth/account-door.tsx",
@@ -139,25 +134,6 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
-    id: "reel-screen",
-    title: "The reel on a big screen",
-    surface: "guest",
-    asks: "the live reel on a venue's screen: what it shows before the reel starts at the second photo, what the host presses to start it, and whether it ever plays a video's sound",
-    why: "Play on a screen puts the reel's own view on a television, and three questions only a big screen asks are left: the empty screen, the press, the sound.",
-    lives: [
-      "docs/systems/guest-flow.md",
-      "content/help/play-the-reel-on-a-screen.mdx",
-      "src/lib/reel/engine/player-live.tsx",
-      "src/lib/reel/engine/video/window-reader.ts",
-      "src/components/app/styled-qr.tsx",
-      "src/lib/qr/stock.ts",
-    ],
-    board: {
-      note: "Three decisions on a television at 1440 by 810 with a real 1920 on the knob, over Mia and Theo's wedding, every reel frame the real engine's: what the screen shows before the reel starts at the second photo, a title card and two seats among the options; what the host presses to start it, or whether the reel waits for a press at all; and whether the screen ever plays a video moment's own sound",
-      variants: ["Before it starts", "The Start plate", "Sound on the screen"],
-    },
-  },
-  {
     id: "guest-capture",
     title: "Keeping what she just added",
     surface: "guest",
@@ -207,33 +183,6 @@ export const RULINGS: Ruling[] = [
         "The empty album's button",
         "A held photo",
         "Keeping it",
-      ],
-    },
-  },
-  {
-    id: "reel-front",
-    title: "The album's living tile",
-    surface: "guest",
-    asks: "the live reel's tile at the album's head: what it is, its verbs, its small states, the beat after a first photo, the door's backdrop, once uploads close, and the hub's Reel card",
-    why: "The live reel plays from a tile at the head of the album; reel-view is the view it opens and reel-cut the creator beside it.",
-    lives: [
-      "docs/systems/guest-flow.md",
-      "src/components/guest/event-experience.tsx",
-      "src/components/guest/reel/live-reel.tsx",
-      "src/components/reel/poster-card.tsx",
-      "src/components/guest/entry-shell.tsx",
-      "src/app/(app)/dashboard/[eventId]/page.tsx",
-    ],
-    board: {
-      note: "Seven decisions on the album's own head, at Maya and Jay's wedding, every reel frame drawn by the real engine over fixture clips: what the living tile is, its verbs, its states before three items, the beat after a guest's first approved photo, the door's backdrop where access is already full, the keepsake state once uploads close, and the host hub's Reel card",
-      variants: [
-        "The living tile",
-        "The tile's verbs",
-        "The small states",
-        "The beat after yours",
-        "The door's backdrop",
-        "Once uploads close",
-        "The hub's Reel card",
       ],
     },
   },
@@ -302,37 +251,6 @@ export const RULINGS: Ruling[] = [
         "A tap with no answer",
         "The limit",
         "Where the file lands",
-      ],
-    },
-  },
-  {
-    id: "reel-host",
-    title: "The host's side of the reel",
-    surface: "host",
-    asks: "the way to the reel before it starts, what the Reel card opens, where Play on a screen sits, what tells a host uploads are waiting, where the reel's defaults live, the Show the reel switch, the dashboard's word on the reel, and a host's own cut",
-    why: "The live reel makes itself, so a host keeps a few small acts and one door: this board places each on the real hub, its sheets and the dashboard.",
-    lives: [
-      "docs/systems/host-app.md",
-      "src/app/(app)/dashboard/[eventId]/page.tsx",
-      "src/components/app/event-feed/event-cards-row.tsx",
-      "src/components/app/event-settings/event-settings-sheet.tsx",
-      "src/components/app/event-settings/profile-social-card.tsx",
-      "src/app/(app)/dashboard/page.tsx",
-      "src/components/app/dashboard/next-step-band.tsx",
-      "src/lib/dashboard/next-step.ts",
-      "src/components/app/share/event-sheets.tsx",
-    ],
-    board: {
-      note: "Eight decisions on the real hub, its sheets and the dashboard, over Mia and Theo's wedding: how the page shows the way to the reel, what the Reel card opens, where Play on a screen sits, what tells a host uploads are waiting, where the reel's defaults live, where Show the reel sits, what the dashboard says about a reel, and what a host's own cut does to the album",
-      variants: [
-        "The way to the reel",
-        "What the Reel card opens",
-        "Onto a big screen",
-        "Waiting uploads",
-        "The reel's defaults",
-        "Show the reel",
-        "The dashboard's word",
-        "A host's own cut, added",
       ],
     },
   },
@@ -407,28 +325,6 @@ export const RULINGS: Ruling[] = [
         "Nothing on the tiles",
       ],
       tracks: ["mark-r3"],
-    },
-  },
-  {
-    id: "reel-view",
-    title: "The reel's full-screen view",
-    surface: "guest",
-    asks: "the live reel's full-screen view: the chrome and its fade, the controls, the arrival, a tap, the posture, the pace, the loop's seam, and reduced motion",
-    why: "The view a tap on the album's tile or ?reel opens; its chrome fades until the pointer moves, with Include videos and the style switch beside it.",
-    lives: [
-      "docs/systems/guest-flow.md",
-      "src/components/guest/reel/live-reel-view.tsx",
-      "src/lib/reel/engine/player.tsx",
-    ],
-    board: {
-      note: "Eight decisions over the shared wedding album, drawn by the real engine at 1440 with 375 on the knob: the chrome and its fade, the control set's arrangement, the arrival beat, what a tap does, whether the reel follows the device's shape, how fast a photograph holds, how a fresh loop announces itself, and what reduced motion starts on",
-      variants: [
-        "The chrome",
-        "The controls",
-        "The arrival",
-        "The tap",
-        "The posture",
-      ],
     },
   },
   {
@@ -559,28 +455,6 @@ export const RULINGS: Ruling[] = [
         "The blocked door",
         "Who can join",
         "The invite list",
-      ],
-    },
-  },
-  {
-    id: "reel-cut",
-    title: "From the reel to a clip",
-    surface: "guest",
-    asks: "where the moments and the looks live inside the clip's workbench, as three whole creators at a laptop and in a hand",
-    why: "A clip is anyone's, made on the device from the live reel and never stored; round two designs its moments and looks into the bench he picked.",
-    lives: [
-      "docs/systems/host-app.md",
-      "src/components/reel/clip-creator.tsx",
-      "src/components/reel/clip-finish.tsx",
-      "src/components/guest/reel/creator-seam.ts",
-      "src/lib/reel/engine/registry.ts",
-    ],
-    board: {
-      note: "One decision on the clip creator, over the album media-viewer already draws: where the moments and the looks live inside the bench, as three whole creators each at 1440 and 375 (both in the panel, the moments on the strip with the looks beside, the looks on the clip with the album beside), and the rest of the creator walked as ground on the stage knob",
-      variants: [
-        "Both in the panel",
-        "Moments on the strip",
-        "Looks on the clip",
       ],
     },
   },
@@ -750,12 +624,7 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "loose-ends",
   "contact-page",
   "press-page",
-  "reel-cut",
-  "reel-front",
   "album-columns",
-  "reel-screen",
-  "reel-host",
-  "reel-view",
 ];
 
 const deskIndex = (id: string): number => {

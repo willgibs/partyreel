@@ -81,6 +81,12 @@ const TOOLS: NavItem[] = [
     note: "Three streaming shapes against the production runtime.",
   },
   {
+    href: "/design/lab/tools/keyboard-sheet",
+    label: "Keyboard sheet",
+    badge: "tool",
+    note: "The door's sheet over a fake album under a software keyboard, the viewport read out live.",
+  },
+  {
     href: "/design/lab/tools/boom",
     label: "Error boundary",
     badge: "tool",

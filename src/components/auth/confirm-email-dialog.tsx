@@ -4,18 +4,18 @@ import type { ReactNode } from "react";
 
 import { AccountDoor, DOOR_WEAR } from "@/components/auth/account-door";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
 
 /**
  * THE CONFIRM DOOR ON AN ALBUM, ONE OBJECT FOR THE THREE PLACES THAT OPEN IT (guest by upload,
  * 2026-09-22): the offer card under a first upload, the Unverified mark on a guest's own credit, and
- * the header's name menu (which also opens it as Sign in). They were three hand-built dialogs that
+ * the header's name menu (which also opens it as Log in). They were three hand-built dialogs that
  * each claimed the uploads and then SAVED the event; save is gone ("uploading to an event is now
  * effectively saving"), so all three now do one thing, in one order, here:
  *
@@ -32,9 +32,15 @@ import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
  * itself is the album page's decision, not this door's: the page hears every claim, from here or
  * from its own mount, and plays the moment only when this album's uploads actually moved.
  *
- * The Dialog owns the title and the description for a11y (radix wires aria-labelledby and
+ * The Sheet owns the title and the description for a11y (radix wires aria-labelledby and
  * -describedby to them), so the words come from the door's own wear table rather than being retyped;
  * an opener may override the description alone, for a fact only it knows.
+ *
+ * ★ IT WEARS THE ONE RESPONSIVE SHEET (door-flow), like every other guest surface: a bottom sheet in
+ * a hand, a side panel at a desk, never a centred box. Its phone half stands on the keyboard while
+ * the email or the code is being typed, with the code button pinned at its foot, and no field takes
+ * focus when it opens (the Sheet's own rules), so the confirm door types as calmly as the album's
+ * own door.
  */
 export function ConfirmEmailDialog({
   open,
@@ -70,19 +76,24 @@ export function ConfirmEmailDialog({
       : "/auth/callback";
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{copy.heading}</DialogTitle>
-          <DialogDescription>{description ?? copy.reason}</DialogDescription>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent responsive className="overflow-y-auto overscroll-contain">
+        <SheetHeader>
+          <SheetTitle>{copy.heading}</SheetTitle>
+          <SheetDescription>{description ?? copy.reason}</SheetDescription>
+        </SheetHeader>
         <AccountDoor
+          className="px-4 pb-6"
+          // The guest door's field and button: 16px (no iOS focus zoom) and the 44px primary.
+          inputClassName="h-11 text-base"
+          buttonSize="cta"
+          buttonClassName="h-11"
           wear={wear}
           methods={{ code: true, google: true, password: wear === "signin" }}
           emailRedirectTo={emailRedirectTo}
           chrome="none"
           // Confirming CREATES for most people; signing in does not, and saying "you already had an
-          // account" to somebody who just pressed Sign in is noise rather than a warning.
+          // account" to somebody who just pressed Log in is noise rather than a warning.
           intent={wear === "signin" ? "signin" : "create"}
           // Undefined rather than null when there is nothing to hint: the door seeds its field from
           // this once, and a null would read as a hint of empty rather than as no hint.
@@ -94,7 +105,7 @@ export function ConfirmEmailDialog({
         >
           {children}
         </AccountDoor>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

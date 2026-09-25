@@ -85,12 +85,11 @@ stub.
 ([`ui/sheet.tsx`](../../src/components/ui/sheet.tsx)), a side panel at a desk and a bottom sheet in a hand:
 Invite ([`guest-share.tsx`](../../src/components/guest/guest-share.tsx)), Report
 ([`report-dialog.tsx`](../../src/components/guest/report-dialog.tsx)), the add and failure sheets, and the
-DOOR from 640 up (its phone half stays vaul-backed). "Download all" (`ExportDialog`, shared with host surfaces), the
-confirm door (`ConfirmEmailDialog`) and the header menu's Add your email
-([`add-email-dialog.tsx`](../../src/components/guest/add-email-dialog.tsx)) are still centred Dialogs. ⚠ Report
-and Add your email hold the guest's only overlay FIELDS outside the door, unproven with a focused input on a real
-iPhone: if the keyboard covers the textarea, the fix is the Sheet's
-phone half becoming vaul-backed for every consumer, never a per-dialog exception.
+DOOR at both widths, the confirm door (`ConfirmEmailDialog`) and the header menu's Add your email
+([`add-email-dialog.tsx`](../../src/components/guest/add-email-dialog.tsx)). "Download all" (`ExportDialog`, shared
+with host surfaces) is still a centred Dialog. The Sheet's phone half is keyboard-safe for every consumer
+([design-system.md](design-system.md), the floating layer): it stands on the keyboard with its primary action sticky
+at the foot, so no dialog carries its own keyboard fix.
 
 - **Stats**: `getGalleryStats(event)` ([`guest-events-admin.ts`](../../src/lib/db/queries/guest-events-admin.ts))
   → `{approvedTotal, guestCount}`: a head count of approved media (`countApprovedMedia`, request-scoped, so the
@@ -360,20 +359,21 @@ the password and the email and cannot see whether THIS browser typed a name. A s
 the steps behind it: the resolver has no opinion past an unmet password or email, so the itinerary stops
 and re-derives on that step's refresh. `autoOpen` is true whenever a step exists.
 
-The cases: the owner `[]` (no sheet); password-only `[welcome?, password]` then `[name?, upload?]`; names
-mode `[welcome?, name, upload?]`; verified mode `[welcome?, name, email]` then `[upload?]`; both, in that
-order; the demo `[welcome (its role step), upload]`, which asks no name; a returning guest with a name and
-(when required) a contribution `[]`; the mid-visit flip `[email]`. ★ **THE NAME STEP CARRIES A SECOND,
-OPTIONAL FIELD in names mode**, "Email (optional)": it adds no step, and `computeDoor` does not know it
-exists (see "Joining + identity").
+The itinerary is `welcome | password | chooser | name | identify | signin | upload`, its rules in
+[`entry-steps.ts`](../../src/lib/guest/entry-steps.ts). The cases: the owner `[]` (no sheet); password-only
+`[welcome?, password]` then the rest; names mode `[welcome?, chooser → name | identify | signin, upload?]` (the
+chooser's Continue as guest, Create account and Log in; the chevron is `doorBack()`, and a way in returns to the chooser
+and clears the pick); verified mode `[welcome?, identify]` then `[upload?]`; both, in that order; the demo `[welcome (its role step), upload]`, which asks no name; a returning guest with a name and
+(when required) a contribution `[]`; the mid-visit flip `[email]`. ★ **THE NAME STEP CARRIES AN OPTIONAL
+ADDRESS in names mode**, a one-line ghost under the name that opens into the labelled field: it adds no step, and
+`computeDoor` does not know it exists (see "Joining + identity").
 
-One shell ([`entry-shell.tsx`](../../src/components/guest/entry-shell.tsx)) renders a REAL Vaul drawer on
-phones (drag physics, `repositionInputs` lifts a focused field above the iOS keyboard,
-`dismissible={false}` rubber-bands) and, from 640 up, the ONE product Sheet (`SheetContent responsive`) as
-a full-height panel from the right edge. ★ **NO CENTRED FLOAT AT A DESK**: an edge sheet leaves more of the
-blurred album in view, and that preview is the incentive the door runs on. The phone half keeps vaul
-because the gates TYPE into it and `repositionInputs` is the only thing keeping a focused field off the
-keyboard; it takes the Sheet's posture, `max-h-[85svh]`, so the album still shows above the door. The
+One shell ([`entry-shell.tsx`](../../src/components/guest/entry-shell.tsx)) renders the ONE product Sheet
+(`SheetContent responsive`) at both widths: a bottom sheet in a hand, keyboard-safe
+([design-system.md](design-system.md), the floating layer), and from 640 up a full-height panel from the right edge;
+the door's own CSS lives in `door.css`. ★ **NO CENTRED FLOAT AT A DESK**: an edge sheet leaves more of the blurred
+album in view, and that preview is the incentive the door runs on. The phone half keeps `max-h-[85svh]` at rest, so
+the album still shows above the door. The
 CURRENT step is always the itinerary's first; SERVER steps advance through the RSC's refresh, CLIENT steps
 through flags in the sheet. No step counter to desync.
 
@@ -443,8 +443,9 @@ through flags in the sheet. No step counter to desync.
   when the gate is `upload` and localStorage holds a token: one poll POST carrying it (no `If-None-Match`),
   the auto-open waiting on the answer, then a refresh if the gate came back other than `upload`.
 - **No autofocus in the password gate** (the iOS keyboard ambushed the mid-transition sheet): its keyboard
-  rises on an intentional tap. Gate inputs are h-11/16px (16px also stops the iOS focus auto-zoom). The
-  name step's field does carry `autoFocus`, and the email step's code field focuses once a code is sent.
+  rises on an intentional tap. Gate inputs are h-11/16px (16px also stops the iOS focus auto-zoom). No
+  door field autofocuses at either width (a source test pins it); the code field takes focus only from a field that
+  held it when the code was sent.
 
 ## Invariants (don't break)
 
@@ -567,22 +568,22 @@ visit, only to prefill the offer card's door, and `collectStoredSessionTokens` n
 
 ★ **THE NAME IS ASKED BEFORE THE ALBUM, NEVER AT THE FIRST ADD**: a guest who reached the album first would
 reap it anonymously and meet the friction only when contributing. Its lede names nobody ("so the host knows
-who to thank"; a long host name breaks the line). `guest-name-step.tsx` has FOUR modes: `join` (names mode,
-the ONLY mode with the address field: rename a held row first, else mint under the typed name), `edit`
-(the album menu's, the one dismissible door), `hold` (verified mode BEFORE the confirmation: the join would
-answer 422, so nothing is sent; the name is validated locally, kept in the sheet's state and written only
-to `pr_guest_name_last`, never the per-event key, which would claim a row that does not exist; no address
-field, since the next step asks for one and PROVES it) and `profile` (a confirmed account with no profile
+who to thank"; a long host name breaks the line). `guest-name-step.tsx` has THREE modes: `join` (names mode,
+the ONLY mode with the address, a ghost line that opens into the field: rename a held row first, else mint under the
+typed name), `edit` (the album menu's, the one dismissible door) and `profile` (a confirmed account with no profile
 name writes the PROFILE's; the album has no inline name panel, and the shared `SetNameStep` serves the host's
 `/welcome` and the Library's demo). No unique name is claimed at the door.
 
-★ **THE CONFIRMATION'S FOUR WRITES, IN ORDER, ARE THE MODAL'S.** `EnterEventPrompt.onVerified` is a plain
-callback and `entry-modal.tsx` owns the sequence, because the door holds a name never sent anywhere and the
+★ **THE CONFIRMATION'S FOUR WRITES, IN ORDER, ARE THE MODAL'S,** shared by `identify` (name and email to a code:
+Create account, and every verification event) and `signin` (Log in, the email alone), and `entry-modal.tsx` owns the
+sequence, because the door holds a name never sent anywhere and the
 order decides whether a guest lands named or with no name at all: claim this browser's anonymous uploads →
 `joinEvent` (verified and NAMELESS, since `create_guest` nulls a typed name beside a confirmed account) →
 one own-row read of `profiles.display_name` → when null and a name was typed, `updateDisplayNameAction` →
-hold the beat → refresh. **The account's own name wins** over a typed one, and the email step says so above
-the field before they confirm.
+hold the beat → refresh. **The account's own name wins** over a typed one, and the door says so above
+the field before they confirm. The typed name also rides the code request as `DOOR_NAME_KEY`, so a magic link opened
+elsewhere lands named (`adoptDoorName`, [auth-accounts.md](auth-accounts.md)). "Signed you into the account you already
+had" holds only when this device holds a guest ticket a claim would move.
 
 - **The join carries the identity:** `POST /api/guests {qr_token, display_name?, email?}` → `create_guest`
   issues a `session_token` (localStorage, returning-guest) and returns
@@ -631,10 +632,10 @@ the field before they confirm.
   pipeline runs identically whichever identity the uploader carries.
 - **`require_verified_email = true` gates the VIEW as well as the upload**, free on every tier (see
   [host-app.md](host-app.md)); turning it OFF is the opt-in, behind a consequence-confirm, not a paid
-  feature. The door's email step is `<EnterEventPrompt>` over the shared
-  [`<AccountDoor>`](../../src/components/auth/account-door.tsx) in its `gate` wear: the emailed code through
-  [`<EmailSignIn>`](../../src/components/auth/email-sign-in.tsx) first (one tap = create account OR log
-  in), Google beside it and a quiet password link, with the teaser behind. `create_guest` derives identity
+  feature. The door's verification step is `identify`: one name-and-email form over
+  [`<EmailSignIn>`](../../src/components/auth/email-sign-in.tsx)'s emailed code (one path for a new or an existing
+  guest), with the teaser behind; Google and the password link live under the chooser's Log in
+  ([`<AccountDoor>`](../../src/components/auth/account-door.tsx)'s `signin` wear). `create_guest` derives identity
   (`user_id`, `email`, `verified_at`) from the trusted uid, NEVER the client.
 - **The named unverified are LISTED, with the mark:** `getEventGuestList(id, {includeUnverified: true})`
   appends them after the profile cards, one entry per guest row (without an account there is nothing to
@@ -801,20 +802,21 @@ puts EVERY guest ticket on the device down, not only this album's (`leaveAllGues
 tokens, names and flags through the module-singleton `emit()`s in
 [`use-stored-session.ts`](../../src/lib/guest/use-stored-session.ts), every `pr_guest_*` cookie through
 `POST /api/guests/leave` `{ all: true }`, on `/u/[slug]` too), signs out, then `router.refresh()`s — so the
-visitor STAYS on the event page, a verified-email event re-gates to the door's email step
-(`<EnterEventPrompt>`), and the next person on a shared device inherits nothing.
+visitor STAYS on the event page, a verified-email event re-gates to the door's `identify` step, and the next person on a shared device inherits nothing.
 
 ★ **A THIRD STATE, for the commonest person at a name-only party**: signed out WITH a stored name, the
 header wears [`guest-name-menu.tsx`](../../src/components/guest/guest-name-menu.tsx) instead of the
 stranger's CTA — the name, its label (read from the mark, so the two cannot drift), then the email row,
-Change name, and Sign in (the `signin` wear). ★ **AND IT IS THE ONE SURFACE THAT KNOWS ABOUT AN UNCONFIRMED
+Change name, and Log in (the `signin` wear, whose door reads "Log in" too). ★ **AND IT IS THE ONE SURFACE THAT KNOWS ABOUT AN UNCONFIRMED
 ADDRESS**: it reads the device flag `pr_guest_email_attached_<qr>` (never an address; none is stored) and
-draws two states. Name only → "Unverified" under the name and **Add your email**
+draws two states above a card reading "Save this event for later". Name only → "Unverified" under the name and
+**Add your email**
 ([`add-email-dialog.tsx`](../../src/components/guest/add-email-dialog.tsx): one field, the door's own
 promise line, Save over `attachGuestEmail`, and "Confirm it now instead" handing to the code door). Address
 attached → "Email not confirmed" and **Confirm your email** (the one confirm door, its field EMPTY because
 nothing kept the address, and its description saying so: "Enter the email you added and we will send a
-code."). No row removes the address. An ACCOUNT always wins the slot: a signed-in visitor's menu is the
+code."), with a quiet "Change or remove it" that overwrites the pending address or detaches it (`email: null`,
+behind `PENDING_EMAIL_REMOVABLE`, Will's to decide); a confirmed address changes only on the account page. An ACCOUNT always wins the slot: a signed-in visitor's menu is the
 truer answer to "who am I here", and their credit is not marked at all. **No Sign out row**: there is no
 session to end, and clearing this browser's token would orphan the photographs this device can still
 remove. ★ Change name cannot reach the entry modal's handle (this header is a SIBLING island of
