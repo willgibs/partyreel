@@ -5,6 +5,10 @@ import { headers } from "next/headers";
 import { after } from "next/server";
 
 import { isRateLimited, retryAfterSeconds } from "@/lib/auth/door-failure";
+import {
+  checkAccountAbuseRate,
+  type AccountRateGate,
+} from "@/lib/security/abuse-rate-limit-store";
 import { syncBillingEmail } from "@/lib/stripe/customer-email";
 import { createClient } from "@/lib/supabase/server";
 
@@ -71,6 +75,27 @@ function rateLimited(message: string | undefined): EmailChangeRefusal {
 }
 
 /**
+ * THE ACCOUNT'S OWN LIMIT (the `email_change` kind: six calls an hour, requests and code attempts on
+ * one budget, fail closed). GoTrue answers `email_exists` before it sends anything, so without this a
+ * signed-in account could probe which addresses hold accounts at the request rate. Asked right before
+ * each call reaches Supabase Auth, so a malformed or same-address input never spends the budget, and
+ * refused in the action's own shape: `rate_limited` with the window, or `error` when the limiter
+ * cannot answer (`failed` is that path's words).
+ */
+function refusedByLimit(
+  gate: Exclude<AccountRateGate, { allowed: true }>,
+  failed: string,
+): EmailChangeRefusal {
+  if (gate.reason === "unavailable") return refuse("error", failed);
+  return {
+    ok: false,
+    code: "rate_limited",
+    message: "Too many tries for now. Try again in an hour.",
+    seconds: gate.retryAfterSec,
+  };
+}
+
+/**
  * Where a tapped link lands: `/auth/callback` on THE HOST THIS REQUEST CAME IN ON, never the
  * canonical site URL. The link's code exchange needs the PKCE verifier `updateUser` just set as a
  * cookie, and that cookie belongs to this host (the alias, localhost) even when the site URL names
@@ -95,8 +120,8 @@ async function emailChangeCallback(): Promise<string> {
  * ★ AN ADDRESS THAT ALREADY HAS AN ACCOUNT IS ANSWERED LIKE A SENT ONE (`email_exists`): a different
  * sentence would make this action an oracle for which addresses hold Partyreel accounts. The card's
  * own help line covers the case without naming it ("the new address may already have its own
- * account"). Supabase Auth's email limits bound the sends; an abuse-limiter kind of its own is a
- * question in lp/identity-email's manifest.
+ * account"). The requester's own inbox still tells (no code arrives for a taken address), so the
+ * account's `email_change` limit bounds how many addresses it can try (`refusedByLimit`).
  */
 export async function requestEmailChangeAction(
   input: string,
@@ -117,6 +142,14 @@ export async function requestEmailChangeAction(
   if (!user?.email) return refuse("unauthorized", "Sign in and try again.");
   if (address === user.email.trim().toLowerCase()) {
     return refuse("same", "That's already your email.");
+  }
+
+  const gate = await checkAccountAbuseRate("email_change", user.id);
+  if (!gate.allowed) {
+    return refusedByLimit(
+      gate,
+      "We couldn't send the codes. Try again in a minute.",
+    );
   }
 
   const { error } = await supabase.auth.updateUser(
@@ -165,6 +198,15 @@ export async function confirmEmailChangeAction(
     return refuse(
       "no_change",
       "This change isn't waiting anymore. Send new codes to start it again.",
+    );
+  }
+
+  // A code attempt spends the same budget as a request: a guesser gets six tries an hour, not GoTrue's.
+  const gate = await checkAccountAbuseRate("email_change", user.id);
+  if (!gate.allowed) {
+    return refusedByLimit(
+      gate,
+      "We couldn't check that code. Try again in a minute.",
     );
   }
 

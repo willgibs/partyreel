@@ -1,6 +1,7 @@
 "use client";
 
 import { FILTER_CHIPS, type FilterValue } from "@/lib/dashboard/filters";
+import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
 /**
@@ -43,7 +44,7 @@ export function FilterChips({
     <div
       role="group"
       aria-label="Filter your dashboard"
-      className="-mx-1 flex gap-1.5 overflow-x-auto px-1 py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="-mx-1 flex [scrollbar-width:none] gap-1.5 overflow-x-auto px-1 py-0.5 [&::-webkit-scrollbar]:hidden"
     >
       {FILTER_CHIPS.map((chip) => {
         const isActive = active === chip.value;
@@ -54,7 +55,7 @@ export function FilterChips({
             aria-pressed={isActive}
             onClick={() => onChange(chip.value)}
             className={cn(
-              "flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-sm font-medium outline-none transition-transform duration-150 ease-emphasis active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-ring/50",
+              "flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-sm font-medium transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.97]",
               isActive
                 ? "border border-transparent bg-foreground text-background"
                 : "border border-border text-muted-foreground hover:text-foreground",
@@ -70,7 +71,7 @@ export function FilterChips({
                     : "bg-muted text-muted-foreground",
                 )}
               >
-                {trashCount}
+                {formatCount(trashCount)}
               </span>
             )}
           </button>

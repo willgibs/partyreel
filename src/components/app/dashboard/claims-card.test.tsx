@@ -78,6 +78,46 @@ describe("a grouped row", () => {
   });
 });
 
+/**
+ * EVERY COUNT ON THE TICKET, GROUPED (the 1,000-row round's follow-on): a guest with more than
+ * 999 uploads under their email read "1249 photos" on the row, in the confirmation and in the
+ * toast. All three go through `formatCount`.
+ */
+describe("a count past 999", () => {
+  const big: ClaimableEventRow = { ...rowA, uploadCount: 1249 };
+
+  it("is grouped on the row", () => {
+    render(<ClaimsCard rows={[big]} />);
+    expect(screen.getByText(/Added as Priya/).textContent).toContain(
+      "1,249 photos",
+    );
+  });
+
+  it("is grouped in the confirmation", () => {
+    render(<ClaimsCard rows={[big]} />);
+    fireEvent.click(screen.getByRole("button", { name: "Finish" }));
+    expect(
+      within(screen.getByRole("dialog")).getByText(
+        "Permanently delete the 1,249 photos and videos added under your email at this event?",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("is grouped in the toast", async () => {
+    vi.mocked(finishClaimsAction).mockResolvedValue({
+      ok: true,
+      claimedEvents: 1,
+    });
+    render(<ClaimsCard rows={[big]} />);
+    fireEvent.click(screen.getByRole("button", { name: "Claim all" }));
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith(
+        "Added 1,249 photos to your account.",
+      ),
+    );
+  });
+});
+
 describe("Claim all", () => {
   it("sends null, claims every row and skips the confirmation entirely", async () => {
     vi.mocked(finishClaimsAction).mockResolvedValue({
@@ -136,9 +176,7 @@ describe("Finish", () => {
     fireEvent.click(screen.getByRole("button", { name: "Finish" }));
 
     const dialog = screen.getByRole("dialog");
-    expect(
-      within(dialog).getByText(/Permanently delete/),
-    ).toBeInTheDocument();
+    expect(within(dialog).getByText(/Permanently delete/)).toBeInTheDocument();
     expect(within(dialog).getByText(rowB.eventName)).toBeInTheDocument();
 
     fireEvent.click(
@@ -244,9 +282,7 @@ describe("Finish", () => {
     fireEvent.click(rowButton(rowA.eventName, "Claim"));
     fireEvent.click(screen.getByRole("button", { name: "Finish" }));
 
-    await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith("Try again."),
-    );
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Try again."));
     expect(screen.getByText(rowA.eventName)).toBeInTheDocument();
   });
 });

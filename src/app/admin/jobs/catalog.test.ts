@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  BREAKER_TRIPPED_KEY,
   DEPTH_AGE_COUNT_KEYS,
   DEPTH_COUNT_KEYS,
   JOBS,
   MISSED_GRACE_MULTIPLIER,
   QUEUE_BACKLOG_ATTENTION,
   STOPPED_EARLY_KEY,
+  countsBreakerTripped,
   countsStoppedEarly,
   isJobMissed,
   isUnhealthy,
@@ -21,6 +23,8 @@ import {
   type JobDef,
   type JobRunSummary,
 } from "@/app/admin/jobs/catalog";
+import { sanitizeCounts } from "@/lib/jobs/sweep-tally";
+import type { OrphansTally } from "@/lib/lifecycle/sweeps/orphans";
 
 const DAY = 24 * 60 * 60 * 1000;
 const NOW = Date.parse("2026-09-02T12:00:00.000Z");
@@ -339,6 +343,121 @@ describe("countsStoppedEarly", () => {
     ).toBe(false);
     expect(countsStoppedEarly(null)).toBe(false);
     expect(countsStoppedEarly([true])).toBe(false);
+  });
+});
+
+/**
+ * ★ A TRIPPED ORPHAN BREAKER READS ATTENTION, NOT HEALTHY. The breaker refuses the delete, fires
+ * its Sentry error and the operator email, and returns normally, so the Orphan sweep's run closes
+ * `ok`; until now its card read Healthy beside that email.
+ */
+describe("the orphan breaker's health", () => {
+  const def = defOf("purge_orphans");
+
+  // THE KEY IS ONE FACT IN TWO MODULES: the sweep types it on its tally, the catalog reads it back.
+  // This line stops type-checking the day either side renames it.
+  const typedByTheSweep: keyof OrphansTally = BREAKER_TRIPPED_KEY;
+
+  /** What the Orphan sweep returns when the breaker trips (orphans.ts), as its run row stores it. */
+  function trippedRunCounts() {
+    const tally: OrphansTally = {
+      scanned_pages: 2,
+      r2_deleted: 0,
+      r2_errored: 0,
+      objects_scanned: 1_800,
+      [typedByTheSweep]: true,
+      breaker_reason: "fraction_cap",
+      orphan_candidates: 1_500,
+      media_count: 40,
+    };
+    return sanitizeCounts(tally);
+  }
+
+  it("★ reads attention for a run that closed ok with the breaker tripped, end to end from the sweep's tally", () => {
+    const counts = trippedRunCounts();
+    // The flag survives the run row's sanitising, where every other boolean does too.
+    expect(countsBreakerTripped(counts)).toBe(true);
+    expect(
+      jobHealth({
+        def,
+        enabled: true,
+        lastRun: {
+          ...run("ok", 60_000, 60_000),
+          breakerTripped: countsBreakerTripped(counts),
+        },
+        lastFinishedAtMs: NOW - 60_000,
+        nowMs: NOW,
+      }),
+    ).toBe("attention");
+    // Attention is on the operator's bell (the health band), not only on the card.
+    expect(isUnhealthy("attention")).toBe(true);
+  });
+
+  it("stays ok for an Orphan sweep that deleted what it found", () => {
+    const counts = sanitizeCounts({
+      scanned_pages: 1,
+      r2_deleted: 12,
+      r2_errored: 0,
+      objects_scanned: 900,
+    } satisfies OrphansTally);
+    expect(countsBreakerTripped(counts)).toBe(false);
+    expect(
+      jobHealth({
+        def,
+        enabled: true,
+        lastRun: {
+          ...run("ok", 60_000, 60_000),
+          breakerTripped: countsBreakerTripped(counts),
+        },
+        lastFinishedAtMs: NOW - 60_000,
+        nowMs: NOW,
+      }),
+    ).toBe("ok");
+  });
+
+  it("lets a failure, a pause and a missed run outrank a tripped breaker", () => {
+    const tripped = (status: JobRunSummary["status"], agoMs: number) => ({
+      ...run(status, agoMs, agoMs),
+      breakerTripped: true,
+    });
+    expect(
+      jobHealth({
+        def,
+        enabled: true,
+        lastRun: tripped("error", 60_000),
+        lastFinishedAtMs: NOW - 60_000,
+        nowMs: NOW,
+      }),
+    ).toBe("failed");
+    expect(
+      jobHealth({
+        def,
+        enabled: false,
+        lastRun: tripped("ok", 60_000),
+        lastFinishedAtMs: NOW - 60_000,
+        nowMs: NOW,
+      }),
+    ).toBe("paused");
+    expect(
+      jobHealth({
+        def,
+        enabled: true,
+        lastRun: tripped("ok", 4 * DAY),
+        lastFinishedAtMs: NOW - 4 * DAY,
+        nowMs: NOW,
+      }),
+    ).toBe("missed");
+  });
+
+  it("reads the flag only as an explicit true at the top of the counts", () => {
+    expect(countsBreakerTripped({ [BREAKER_TRIPPED_KEY]: true })).toBe(true);
+    expect(countsBreakerTripped({ [BREAKER_TRIPPED_KEY]: false })).toBe(false);
+    expect(countsBreakerTripped({ [BREAKER_TRIPPED_KEY]: "true" })).toBe(false);
+    expect(
+      countsBreakerTripped({ orphans: { [BREAKER_TRIPPED_KEY]: true } }),
+    ).toBe(false);
+    expect(countsBreakerTripped(null)).toBe(false);
+    expect(countsBreakerTripped([true])).toBe(false);
   });
 });
 
