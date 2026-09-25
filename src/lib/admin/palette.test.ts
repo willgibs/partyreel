@@ -63,7 +63,7 @@ describe("the ranker", () => {
 
   it("puts a label that STARTS with the term above one that merely contains it", () => {
     const hits = matchPalette(paletteSurfaces(), "re");
-    // "Reports" and "Reels" begin with it; "Announcements" only contains it.
+    // "Reports" begins with it; "Announcements" only contains it.
     expect(hits[0].label.toLowerCase().startsWith("re")).toBe(true);
   });
 

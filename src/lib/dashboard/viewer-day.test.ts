@@ -99,6 +99,7 @@ describe("the evening-before scenario: 'Print the code' must not disappear", () 
     pending: 0,
     acceptingUploads: true,
     showReel: true,
+    liveReelEnabled: true,
     reelItems: 2,
     eventDate: "2026-09-21",
   };

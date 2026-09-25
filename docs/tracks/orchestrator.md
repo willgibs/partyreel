@@ -38,13 +38,9 @@ in auto mode ("work through the night on all of this until fully complete"); the
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `reel-clip-wiring` | the creator with his tabs, the finish, the Studio out, the client adds, the seam flip, `reel-front` on the tile | building (agent `abac01a6bfea16cbd`) | Opus, :3131 | integrate first of the stretch's last three |
-| `reel-teardown` | the stored reel's server side out, `reel_clip_add`, the lever's admin switch and the host reading it, the R2 sweep script | handed off at `6c3db0f2`; waits for the clip lane's merge, then syncs (agent `a17875c8c12aa4276`); three out-of-owns edits to decide (`dashboard/page.tsx`, two tests) | Sonnet, :3132 | two calls: the clip budget per guest session (10 a day), the lever's off reading as the host's own off |
 | `reel-sweep` | the words everywhere but round 2's four, help, legal, docs, `reel.md` born | building (agent `a5e526adcff700214`) | Opus, :3133 | integrate last, synced; then build 9 |
-| `door-r2` | `identity-door` round 2, the door's look; `identity-claims.pointer`, `identity-profile.prompt`, `guest-capture.tracker` adapted in round 1 | drawing (agent `ac8b8637fa91b86b8`) | Opus, :3138 | rides build 9 |
 | `album-window` | windowed rows, the memo'd tile, no off-screen animation, three steps, the push arrival, the density control, the perf harness | building (agent `a14670e17b0a7ffc3`) | Opus, :3136 | its masonry fixes ship at its merge |
 | `door-flow` | his chooser, identify and log-in steps, the keyboard-safe responsive Sheet replacing vaul, the focus rules, the menu card, the pending email's change or remove | building (agent `abd1aecbb0aafbb5c`) | Opus, :3139 | syncs past the clip lane and `identity-email` before it hands off |
-| `identity-email` | the account's email change confirmed at both addresses with the copies following, the typed name surviving the magic link, the deletion scrub going forward and its nets; the backfill written, never applied | its migration applied (`identity`: the email-change copy on auth.users, the scrub before a profile's delete; `ROLLBACK_OK`, advisors unchanged, types unchanged); finishing (agent `a0048aa232de8bba2`) | Opus, :3135 | the dashboard's Secure email change and Change Email template follow its merge; the backfill waits for Will |
 
 ## Next, in order
 
@@ -70,5 +66,9 @@ in auto mode ("work through the night on all of this until fully complete"); the
 ## Waiting on Will
 
 - **His sitting on build 9**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
-- **Two yeses**: the reel drop after build 9's red-team; clearing past deleted accounts' addresses from guest rows.
+- **Two yeses**: the reel drop after build 9's red-team; clearing past deleted accounts' addresses from guest rows
+  (`20260926210000_identity_backfill.sql`, written, never applied).
+- **One dashboard minute** (no management token here): Supabase, Authentication, Templates, Change Email Address, add
+  `{{ .Token }}` beside `{{ .ConfirmationURL }}` (the wording is in lp/identity-email's Handoff, merged at `3248a785`);
+  until then an email change confirms by the link at both addresses.
 - **A 10-second iPhone check**: Save to Photos lands in Photos, and a shared photo arrives as a photograph.

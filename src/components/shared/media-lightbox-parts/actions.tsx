@@ -26,7 +26,6 @@ import { toast } from "sonner";
 
 import type { GridMedia } from "@/components/app/media-grid";
 import { LikeButton, LikeCountBadge } from "@/components/likes/like-button";
-import { ReelButton } from "@/components/reel/reel-button";
 import { ActionTooltip } from "@/components/shared/action-tooltip";
 import { Button } from "@/components/ui/button";
 import {
@@ -450,12 +449,11 @@ export const ActionCapsule = memo(function ActionCapsule({
       )}
 
       {/* the curate group (HOST only): approve/hide/show are reversible and
-          direct; remove waits behind a confirm. The reel's "Add to reel" stays
-          until the reel teardown lane removes it. */}
+          direct; remove waits behind a confirm. The live reel makes itself, so
+          nothing here curates a reel. */}
       {viewerIsHost && onSetStatus && (
         <>
           <Rule />
-          {item.status === "approved" && <ReelButton item={item} />}
           {item.status === "pending" && (
             <ActionTooltip label="Approve">
               <button

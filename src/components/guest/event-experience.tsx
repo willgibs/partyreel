@@ -504,7 +504,10 @@ export function EventExperience({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ qr_token: qrToken, session_token: token }),
         });
-        const body = (await res.json()) as { ok?: boolean; gate?: string | null };
+        const body = (await res.json()) as {
+          ok?: boolean;
+          gate?: string | null;
+        };
         if (cancelled) return;
         // The decision came back different from the one this page was rendered with: the cookie
         // is written now, so the refresh resolves the same guest the browser thinks it is.
@@ -738,65 +741,65 @@ export function EventExperience({
         {/* The heal holds the door (see its own note): a sheet that appears and vanishes half a
             second later is worse than one that arrives a beat late. */}
         {!healing && (
-        <EntryModalLazy
-          ref={entryRef}
-          qrToken={qrToken}
-          eventName={event.name}
-          access={access}
-          gate={gate}
-          hasContributed={serverContributed}
-          contributed={clientContributed}
-          returning={returning}
-          uploadsOpen={event.accepting_uploads}
-          requireUpload={event.require_upload_to_view}
-          albumEmpty={mediaCount === 0}
-          isOwner={isOwner}
-          isDemo={isDemo}
-          isVerified={isVerified}
-          // A confirmed account WITHOUT a profile name is the door's `profile` name step; with
-          // one, the name is a fact about the person and is never asked for again.
-          hasProfileName={!needsName}
-          queue={queue}
-          onSend={addFiles}
-          onRetry={retry}
-          onDismissFailures={dismiss}
-          onUploadStepActive={onUploadStepActive}
-          // The header's own live number, so a door opened over the teaser
-          // never says a different size than the line beside it.
-          mediaTotal={mediaCount}
-          // The welcome's byline. On a locked page `event` is the REDACTED
-          // shellEvent (host_display_name null), so the host name hides
-          // itself there - the privacy rule needs no extra guard.
-          hostName={event.host_display_name}
-          eventDate={event.event_date}
-          hostAvatarUrl={hostAvatarUrl}
-          hostSeed={hostSeed}
-          onHoldingChange={setHoldCurtain}
-          onPendingChange={setWelcomePending}
-          sessionToken={sessionToken}
-          storedName={storedName}
-          onNamed={({
-            sessionToken: token,
-            displayName,
-            source,
-            emailAttached,
-            email,
-          }) => {
-            // The row carries a name now. Adopt the session this device just
-            // minted (a rename hands back the one it already had).
-            if (token) setSessionToken(token);
-            /* The device flag and the in-memory address, in that order. The
+          <EntryModalLazy
+            ref={entryRef}
+            qrToken={qrToken}
+            eventName={event.name}
+            access={access}
+            gate={gate}
+            hasContributed={serverContributed}
+            contributed={clientContributed}
+            returning={returning}
+            uploadsOpen={event.accepting_uploads}
+            requireUpload={event.require_upload_to_view}
+            albumEmpty={mediaCount === 0}
+            isOwner={isOwner}
+            isDemo={isDemo}
+            isVerified={isVerified}
+            // A confirmed account WITHOUT a profile name is the door's `profile` name step; with
+            // one, the name is a fact about the person and is never asked for again.
+            hasProfileName={!needsName}
+            queue={queue}
+            onSend={addFiles}
+            onRetry={retry}
+            onDismissFailures={dismiss}
+            onUploadStepActive={onUploadStepActive}
+            // The header's own live number, so a door opened over the teaser
+            // never says a different size than the line beside it.
+            mediaTotal={mediaCount}
+            // The welcome's byline. On a locked page `event` is the REDACTED
+            // shellEvent (host_display_name null), so the host name hides
+            // itself there - the privacy rule needs no extra guard.
+            hostName={event.host_display_name}
+            eventDate={event.event_date}
+            hostAvatarUrl={hostAvatarUrl}
+            hostSeed={hostSeed}
+            onHoldingChange={setHoldCurtain}
+            onPendingChange={setWelcomePending}
+            sessionToken={sessionToken}
+            storedName={storedName}
+            onNamed={({
+              sessionToken: token,
+              displayName,
+              source,
+              emailAttached,
+              email,
+            }) => {
+              // The row carries a name now. Adopt the session this device just
+              // minted (a rename hands back the one it already had).
+              if (token) setSessionToken(token);
+              /* The device flag and the in-memory address, in that order. The
                FLAG is what the header's menu island reads (it subscribes to the
                same store the name does); the ADDRESS never leaves this state.
                Only a true attach writes either: a door that offered the field
                and got nothing leaves both exactly as they were, so a guest who
                added an address a week ago and skipped it tonight keeps the
                menu row they earned. */
-            if (emailAttached) {
-              setStoredEmailAttached(qrToken, true);
-              setAttachedEmail(email);
-            }
-            /* ──────────────────────────────────────────────────────────────
+              if (emailAttached) {
+                setStoredEmailAttached(qrToken, true);
+                setAttachedEmail(email);
+              }
+              /* ──────────────────────────────────────────────────────────────
                THE RENAME PATCH: "Change name" updates the header chip and
                localStorage at once, so the loaded credits follow at once too,
                or the lightbox pill would read the old name until the next poll
@@ -810,16 +813,16 @@ export function EventExperience({
                until a guest happens to reload. It is safe here specifically
                because a rename never changes `access`, so `key={access}` never
                remounts the gallery (unlike a looser access flip, which does). */
-            if (displayName) galleryRef.current?.renameMine(displayName);
-            /* ★ THE REFRESH IS ONLY THE RENAME'S. The door's own name STEP must not refresh: it
+              if (displayName) galleryRef.current?.renameMine(displayName);
+              /* ★ THE REFRESH IS ONLY THE RENAME'S. The door's own name STEP must not refresh: it
                hands forward to the next step in the same sheet, and a refresh there would remount
                the gallery under an open door for nothing. A rename from the album menu still needs
                one (the server-baked Guests list has no live subscription of its own), and the
                CONFIRMATION sequence issues its own inside the hold. So this only fires when there
                is no step behind the name. */
-            if (source === "edit") router.refresh();
-          }}
-        />
+              if (source === "edit") router.refresh();
+            }}
+          />
         )}
       </Suspense>
       {/* THE WORDS. One box, on the left line, holding everything above the
@@ -881,7 +884,8 @@ export function EventExperience({
                 style={{ "--reveal-i": revealBase + 1 } as React.CSSProperties}
                 className="mt-1 text-xs text-muted-foreground"
               >
-                {formatCount(mediaCount)} {mediaCount === 1 ? "photo" : "photos"}
+                {formatCount(mediaCount)}{" "}
+                {mediaCount === 1 ? "photo" : "photos"}
                 {" & videos"}
                 {guestCount > 0 && (
                   <>
@@ -1031,7 +1035,8 @@ export function EventExperience({
                 !isDemo && (
                   <>
                     <p className="mt-7 text-center text-reading text-muted-foreground">
-                      The host has closed uploads. You can still browse the album.
+                      The host has closed uploads. You can still browse the
+                      album.
                     </p>
                     {/* A confirmation from the name menu or the mark can land
                         here too, on an album whose uploads have since closed:
@@ -1095,6 +1100,7 @@ export function EventExperience({
             >
               <LiveReel
                 eventId={event.id}
+                eventName={event.name}
                 joinUrl={joinUrl}
                 displayAddress={displayAddress}
                 qrStyle={event.qr_style}

@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { createMedia, getUploadContext } from "@/lib/db/mutations/guest";
@@ -6,6 +7,12 @@ import { guestSessionCookieIfChanged } from "@/lib/guest/session-cookie";
 import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
 import { checkSessionOwner } from "@/lib/guest/session-owner.server";
 import { captureWarning } from "@/lib/observability/sentry";
+import {
+  abuseHashes,
+  checkAbuseRate,
+  recordAbuseEvent,
+} from "@/lib/security/abuse-rate-limit-store";
+import { clientIp } from "@/lib/security/unlock-rate-limit";
 import {
   runCompletePipeline,
   type CompleteStrategy,
@@ -139,6 +146,79 @@ const guestCompleteStrategy: CompleteStrategy<typeof guestCompleteSchema> = {
   },
 };
 
+/**
+ * THE CLIP-ADD LIMITER (`reel_clip_add`, reel-teardown): a daily budget per guest session for
+ * adding a clip to the album, checked BEFORE the pipeline spends a write and recorded only AFTER
+ * it actually lands one — a refused or unrelated (non-clip) completion never touches the counter.
+ * Scoped by the guest's OWN session token (abuse-rate-limit.ts's WHY-comment), never by event, so
+ * one enthusiastic uploader can never drain a shared venue envelope for every other guest at the
+ * same party. Fails OPEN on a limiter error, like every other kind here: the real gate is the
+ * capability token + create_media's own caps, this is defense-in-depth.
+ */
+async function checkClipAddRate(
+  sessionToken: string,
+  ip: string,
+): Promise<{ allowed: boolean; retryAfterSec?: number }> {
+  try {
+    const { ipHash, scopeHash } = abuseHashes(
+      ip,
+      "reel_clip_add",
+      sessionToken,
+    );
+    return await checkAbuseRate("reel_clip_add", ipHash, scopeHash);
+  } catch {
+    captureWarning("security", "abuse_limiter_unavailable_fail_open", {
+      kind: "reel_clip_add",
+    });
+    return { allowed: true };
+  }
+}
+
+async function recordClipAdd(sessionToken: string, ip: string): Promise<void> {
+  try {
+    const { ipHash, scopeHash } = abuseHashes(
+      ip,
+      "reel_clip_add",
+      sessionToken,
+    );
+    await recordAbuseEvent("reel_clip_add", ipHash, scopeHash);
+  } catch {
+    // Best-effort; a swallowed write here only ever UNDER-counts (fails open), never blocks one.
+  }
+}
+
 export async function POST(request: Request) {
+  // A clip add is the one completion this route meters beyond create_media's own caps (the brief:
+  // "the upload whose reel_eligible is false"). Peeking at a CLONE leaves the original stream
+  // untouched for the pipeline's own parse; a body that fails to parse here just skips the gate and
+  // lets the pipeline produce its normal bad_request refusal.
+  let peek: { reel_eligible?: unknown; session_token?: unknown } = {};
+  try {
+    peek = (await request.clone().json()) as typeof peek;
+  } catch {
+    // Malformed JSON: fall through to the pipeline's own parse + refusal.
+  }
+
+  if (peek.reel_eligible === false && typeof peek.session_token === "string") {
+    const ip = clientIp(request.headers);
+    const gate = await checkClipAddRate(peek.session_token, ip);
+    if (!gate.allowed) {
+      return NextResponse.json(
+        {
+          ok: false,
+          code: "rate_limited",
+          message: "You've added a lot of clips today. Try again tomorrow.",
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(gate.retryAfterSec ?? 86_400) },
+        },
+      );
+    }
+    const response = await runCompletePipeline(request, guestCompleteStrategy);
+    if (response.ok) await recordClipAdd(peek.session_token, ip);
+    return response;
+  }
+
   return runCompletePipeline(request, guestCompleteStrategy);
 }
