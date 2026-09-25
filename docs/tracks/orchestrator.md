@@ -7,8 +7,6 @@ owns:                    # the standing claims no lane touches
   - src/app/(marketing)/marketing.css
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
-  - src/app/(dev)/design/sandbox/registry.ts
-  - src/app/(dev)/design/(shell)/lab/boards.ts
   - src/lib/design-gate/
   - src/app/api/design-gate/
   - scripts/vercel-ignore-build.mjs
@@ -39,11 +37,10 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `crumbs-2` | the stored reel's last code after the drop and the sweep (`reelOutputKey`, its two appends, the sweep script, stale comments and fixtures); the `voice-guest` board's door stylesheet | building (agent `af596085cbe6e2577`) | Sonnet, :3135 | rides the build after its merge; build 10 never waits for it |
 
 Merged tonight (their records carry the rest): reel-guest-wiring, reel-host-wiring, mark-r3, story-r2, door-r2,
 album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hardening, reel-sweep, door-flow,
-retire-reel-boards, crumbs, album-host-wiring, album-guest-wiring.
+retire-reel-boards, crumbs, album-host-wiring, album-guest-wiring, crumbs-2.
 
 ## Next, in order
 
@@ -64,8 +61,8 @@ retire-reel-boards, crumbs, album-host-wiring, album-guest-wiring.
 
    Afterwards the 15-photo probe's `reel_style_id` and `reel_hold_sec` go back to NULL. Journey 9's page checks passed
    on build 9 (both legal pages at 1.7, the retired help slugs 308, no stale reel claim on the marketing pages,
-   `/admin/reels` a 404). The drop migration is applied and the stored files are swept from both buckets; `crumbs-2`
-   removes the stored reel's last code.
+   `/admin/reels` a 404). The stored reel is gone whole: the drop applied, both buckets swept, its last code removed
+   (`crumbs-2`).
    Then **milestone 29** (Will's yes, given): the full gate on `launch-prep`, merge to `main`, tag, verify partyreel.com
    (the host dashboard stops erroring), back-merge.
 3. **Retire `album-columns`** once the surface lanes merge (the five reel boards retired at `0cbd5634`), atomically across
