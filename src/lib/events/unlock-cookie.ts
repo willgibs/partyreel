@@ -72,15 +72,14 @@ async function readPasswordVersion(eventId: string): Promise<string | null> {
 
 /**
  * ONE READ PER REQUEST, route handlers included. A guest's request reaches
- * `isUnlocked` through several self-guarded reads (the route, the unlocked album, the
- * reel arm, the details re-read): measured before this memo, three version reads per
- * gallery poll and five per album sync, every 12 seconds per unlocked guest. React's
- * `cache()` dedupes only inside a render, so the answer is memoized on the request's
- * own cookie store instead, which `cookies()` resolves to once per request in a render,
- * a route handler and an action alike. Were that identity ever to change, this only
- * stops deduping, never answers wrongly. One answer per request also means its reads
- * can never disagree mid-request; the memo dies with the request, so a password change
- * is seen by the very next one.
+ * `isUnlocked` through several self-guarded reads (the route itself, the unlocked
+ * album, the teaser, the details re-read), and an unlocked guest's gallery poll and
+ * album sync run every 12 seconds. React's `cache()` dedupes only inside a render, so
+ * the answer is memoized on the request's own cookie store instead, which `cookies()`
+ * resolves to once per request in a render, a route handler and an action alike. Were
+ * that identity ever to change, this only stops deduping, never answers wrongly. One
+ * answer per request also means its reads can never disagree mid-request; the memo
+ * dies with the request, so a password change is seen by the very next one.
  */
 const versionsByRequest = new WeakMap<
   object,

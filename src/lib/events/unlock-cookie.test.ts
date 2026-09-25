@@ -7,7 +7,7 @@
  * minted before the version existed is refused; the version read fails CLOSED and says so; no
  * cookie costs no read; and, because every caller asks `isUnlocked(eventId)` and nothing else can
  * sign, verify or read the cookie (the last block), "refused here" is "refused everywhere the
- * helper answers": the guest page, the gallery poll, the export, the album reads, the reel.
+ * helper answers": the guest page, the gallery poll, the export, the album reads, the guest uploads.
  */
 import { createHmac } from "node:crypto";
 import { readdirSync, readFileSync, statSync } from "node:fs";
