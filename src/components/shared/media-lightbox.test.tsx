@@ -571,6 +571,78 @@ describe("MediaLightbox: host curate actions (3c.2)", () => {
   });
 });
 
+/* THE BIN'S TWO VERBS IN ITS VIEWER (album-fixes; Will's question from album-host-wiring, its
+   recommended answer): the bin's tile pane is a desk's, so on a phone Deleted offered no Restore and
+   no Delete permanently at all. The viewer carries both at every width, as the album's viewer
+   carries the album's: Restore at once, Delete permanently behind its confirm. */
+describe("MediaLightbox: the recovery bin's Restore and Delete permanently", () => {
+  // A bin item as the paged bin hands it: removed, no download link, and here not linked yet.
+  const binned: GridMedia = {
+    id: "b1",
+    type: "photo",
+    url: "",
+    status: "removed",
+    width: 400,
+    height: 300,
+  };
+
+  it("restores at once, with no confirm", () => {
+    const onRestore = vi.fn();
+    mount([binned], 0, { onRestore, onPurge: vi.fn() });
+    fireEvent.click(screen.getByRole("button", { name: "Restore" }));
+    expect(onRestore).toHaveBeenCalledWith(binned);
+    expect(screen.queryByRole("dialog", { name: /delete/i })).toBeNull();
+  });
+
+  it("deletes for good only behind its confirm, which names the window it skips", () => {
+    const onPurge = vi.fn();
+    mount([binned], 0, { onRestore: vi.fn(), onPurge });
+    fireEvent.click(screen.getByRole("button", { name: "Delete permanently" }));
+    expect(onPurge).not.toHaveBeenCalled();
+    const dialog = screen.getByRole("dialog", {
+      name: "Delete permanently?",
+    });
+    expect(dialog.textContent).toContain(
+      `${RECENTLY_DELETED_WINDOW_DAYS}-day recovery window`,
+    );
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Delete permanently" }),
+    );
+    expect(onPurge).toHaveBeenCalledWith(binned);
+  });
+
+  it("holds no place for a Save the bin never offers, linked or not", () => {
+    const unlinked = mount([binned], 0, {
+      onRestore: vi.fn(),
+      onPurge: vi.fn(),
+    });
+    expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
+    unlinked.unmount();
+    const linked = mount([{ ...binned, url: "https://r2.test/b1.jpg" }], 0, {
+      onRestore: vi.fn(),
+      onPurge: vi.fn(),
+    });
+    expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Save" })).toBeNull();
+    // An album's unlinked photograph still holds Save's place while it waits.
+    linked.unmount();
+    mount([{ ...binned, status: "approved" }], 0);
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+  });
+
+  it("appears nowhere but the bin: the host's album viewer carries neither", () => {
+    mount(PHOTOS, 0, {
+      viewerIsHost: true,
+      onSetStatus: vi.fn(),
+      onRemove: vi.fn(),
+    });
+    expect(screen.queryByRole("button", { name: "Restore" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Delete permanently" }),
+    ).toBeNull();
+  });
+});
+
 /* THE SEAM (the Orchestrator, 2026-09-20): `canDelete` gates the personal Delete per item, so a
    surface that may remove SOME photographs (a guest's own) shows the Trash only on those. */
 describe("canDelete gates the personal Delete per item", () => {

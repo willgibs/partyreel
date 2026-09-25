@@ -516,6 +516,13 @@ export function MasonryColumns<T extends GridMedia>(props: {
   onSetStatus?: (item: GridMedia, status: "approved" | "hidden") => void;
   onRemove?: (item: GridMedia) => void;
   /**
+   * The recovery bin's two verbs in the viewer (its tile pane is a desk's, so on a phone the viewer
+   * is the only place they live): Restore at once, Delete permanently behind its confirm. Each
+   * shrinks the bin, so the viewer closes first (as Remove does). Omitted everywhere but the bin.
+   */
+  onRestore?: (item: GridMedia) => void;
+  onPurge?: (item: GridMedia) => void;
+  /**
    * The open photograph rides the page's address as `?photo=<id>` (on by default; see
    * `writeAddress`). Off for a grid that is not the page's subject.
    */
@@ -533,6 +540,8 @@ export function MasonryColumns<T extends GridMedia>(props: {
     shareUrl,
     onSetStatus,
     onRemove,
+    onRestore,
+    onPurge,
     onTileLongPress,
     layout = "masonry",
     rowStep,
@@ -1027,6 +1036,23 @@ export function MasonryColumns<T extends GridMedia>(props: {
             ? (item) => {
                 closeItem();
                 onRemove(item);
+              }
+            : undefined
+        }
+        // The bin's two verbs shrink the bin the same way: close, then run.
+        onRestore={
+          onRestore
+            ? (item) => {
+                closeItem();
+                onRestore(item);
+              }
+            : undefined
+        }
+        onPurge={
+          onPurge
+            ? (item) => {
+                closeItem();
+                onPurge(item);
               }
             : undefined
         }

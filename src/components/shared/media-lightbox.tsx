@@ -373,6 +373,8 @@ export function MediaLightbox({
   shareUrl,
   onSetStatus,
   onRemove,
+  onRestore,
+  onPurge,
   origin,
   startAt,
   onNeedLinks,
@@ -410,6 +412,13 @@ export function MediaLightbox({
    */
   onSetStatus?: (item: GridMedia, status: "approved" | "hidden") => void;
   onRemove?: (item: GridMedia) => void;
+  /**
+   * The recovery bin's two verbs, at every width (its tile pane is a desk's): `onRestore` acts at
+   * once, `onPurge` is the confirmed delete for good. Both shrink the set, so the caller closes the
+   * viewer first, like onRemove. Omitted everywhere but the bin.
+   */
+  onRestore?: (item: GridMedia) => void;
+  onPurge?: (item: GridMedia) => void;
   /** Where it opened from, so it grows out of it and drops back in (omitted = a plain fade). */
   origin?: ViewerOrigin;
   /** Opened from the reel on a video: carry on from the reel's moment (seconds) instead of the start. */
@@ -1794,6 +1803,8 @@ export function MediaLightbox({
                     deleteConsequence={deleteConsequence}
                     onSetStatus={onSetStatus}
                     onRemove={onRemove}
+                    onRestore={onRestore}
+                    onPurge={onPurge}
                     // An unlinked clip keeps its sound control (the capsule
                     // holds its shape), showing the choice its clip will
                     // mount with, since there is no element to read yet.

@@ -14,19 +14,11 @@ import { Trash2, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { useHubWrites } from "@/components/app/event-feed/host-album";
+import type { GridMedia } from "@/components/app/media-grid";
 import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
 import { MasonryColumns } from "@/components/shared/masonry";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { PurgeConfirmContent } from "@/components/shared/media-lightbox-parts/actions";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { createLinkStore, type LinkStore } from "@/lib/album/links";
 import { DEFAULT_TIER, toBillingTier } from "@/lib/constants/tiers";
 import {
@@ -47,73 +39,112 @@ import { cn } from "@/lib/utils";
 // lightbox. The bin's only verbs are Restore (capacity-gated in the RPC -> safe +
 // reversible, no confirm) and Delete permanently (irreversible -> skips the 30-day
 // window, so it's behind a confirm Dialog). Items carry NO downloadUrl, so the
-// lightbox hides Save (no original-file download from the bin), and the viewer is
-// read-only (NOT the host moderation viewer). We toast on every outcome, and an
-// item that leaves the bin leaves the grid at once (`onGone`).
+// lightbox hides Save (no original-file download from the bin). We toast on every
+// outcome, and an item that leaves the bin leaves the grid at once (`onGone`).
+//
+// ★ THE VIEWER CARRIES THE BIN'S TWO VERBS TOO (album-fixes; Will's question from
+// album-host-wiring, its recommended answer): the tile pane is a desk's, so on a
+// phone Deleted offered no Restore and no Delete permanently at all. The pane and
+// the viewer call ONE pair of writes (`useBinActions`), as the album's tile row and
+// viewer share `useModeration`.
 
 /** A bin item = a GridMedia plus its server-computed countdown (a stable integer dodges the
  * locale-date hydration mismatch). It's assignable to GridMedia, so the lightbox accepts it. */
 export type { BinMedia } from "@/lib/event/bin";
 
-function BinTileOverlay({
-  eventId,
-  item,
-  onOutOfRoom,
-  onGone,
-  onRestored,
-}: {
-  eventId: string;
-  item: BinMedia;
-  /** The grid's ONE pricing sheet, opened by this tile's cap refusal. */
-  onOutOfRoom: () => void;
-  /** The item left the bin (restored or deleted for good): the grid drops it. */
-  onGone?: (id: string) => void;
-  /** A restore landed: the album takes the photograph back. */
-  onRestored?: () => void;
-}) {
-  const [isPending, startTransition] = useTransition();
+/** The bin's two writes, each toasting its outcome. */
+export type BinActions = {
+  restore: (item: GridMedia) => Promise<void>;
+  purge: (item: GridMedia) => Promise<void>;
+};
+
+/**
+ * THE ONE HOME FOR THE BIN'S WRITES AND THEIR WORDS, shared by the tile pane and the viewer. An
+ * item that leaves the bin (restored, or deleted for good) leaves the list at once (`onGone`); a
+ * restore the plan has no room for offers the room sheet (`onOutOfRoom`); a write that never
+ * answered says so rather than failing silently.
+ */
+export function useBinActions(
+  eventId: string,
+  {
+    onGone,
+    onRestored,
+    onOutOfRoom,
+  }: {
+    /** The item left the bin (restored or deleted for good): the grid drops it. */
+    onGone?: (id: string) => void;
+    /** A restore landed: the album takes the photograph back. */
+    onRestored?: () => void;
+    /** The grid's ONE pricing sheet, opened by an at-cap refusal. */
+    onOutOfRoom: () => void;
+  },
+): BinActions {
   const writes = useHubWrites();
 
-  function onRestore() {
-    startTransition(async () => {
-      const result = await writes.restore(eventId, item.id);
-      if (result.ok) {
-        toast.success("Restored. It's back in the album.");
-        onGone?.(item.id);
-        onRestored?.();
-        return;
-      }
-      // insufficient_space is the expected at-cap refusal -> offer the upgrade
-      // path. It opens the pricing sheet on `room` rather than leaving for a
-      // static /pricing (`first=trigger`, Will 2026-09-20).
-      if (
-        result.code === "insufficient_space" ||
-        result.code === "event_limit"
-      ) {
-        toast.error(result.message, {
-          action: { label: "Upgrade", onClick: onOutOfRoom },
-        });
-        return;
-      }
+  async function restore(item: GridMedia) {
+    let result: Awaited<ReturnType<typeof writes.restore>>;
+    try {
+      result = await writes.restore(eventId, item.id);
+    } catch {
       toast.error("Couldn't restore that item.", {
-        description: result.message,
+        description: "Check your connection and try again.",
       });
+      return;
+    }
+    if (result.ok) {
+      toast.success("Restored. It's back in the album.");
+      onGone?.(item.id);
+      onRestored?.();
+      return;
+    }
+    // insufficient_space is the expected at-cap refusal -> offer the upgrade
+    // path. It opens the pricing sheet on `room` rather than leaving for a
+    // static /pricing (`first=trigger`, Will 2026-09-20).
+    if (result.code === "insufficient_space" || result.code === "event_limit") {
+      toast.error(result.message, {
+        action: { label: "Upgrade", onClick: onOutOfRoom },
+      });
+      return;
+    }
+    toast.error("Couldn't restore that item.", {
+      description: result.message,
     });
   }
 
-  function onPurge() {
-    startTransition(async () => {
-      const result = await writes.purge(eventId, [item.id]);
-      if (result.ok) {
-        toast.success("Permanently deleted.");
-        onGone?.(item.id);
-        return;
-      }
+  async function purge(item: GridMedia) {
+    let result: Awaited<ReturnType<typeof writes.purge>>;
+    try {
+      result = await writes.purge(eventId, [item.id]);
+    } catch {
       toast.error("Couldn't delete that item.", {
-        description: result.message,
+        description: "Check your connection and try again.",
       });
+      return;
+    }
+    if (result.ok) {
+      toast.success("Permanently deleted.");
+      onGone?.(item.id);
+      return;
+    }
+    toast.error("Couldn't delete that item.", {
+      description: result.message,
     });
   }
+
+  return { restore, purge };
+}
+
+function BinTileOverlay({
+  item,
+  actions,
+}: {
+  item: BinMedia;
+  actions: BinActions;
+}) {
+  // The pane waits while its own item's write is out.
+  const [isPending, startTransition] = useTransition();
+  const onRestore = () => startTransition(() => actions.restore(item));
+  const onPurge = () => startTransition(() => actions.purge(item));
 
   return (
     <>
@@ -130,9 +161,10 @@ function BinTileOverlay({
 
       {/* The bin's two verbs, in the one pane the grid draws. Restore is
           capacity-gated in the RPC (safe + reversible, no confirm); Delete
-          permanently skips the 30-day window, so it stays behind a confirm.
-          The Dialog lives HERE rather than in the row because the row is a
-          declared action set and a trigger is a component. */}
+          permanently skips the 30-day window, so it stays behind a confirm
+          (the viewer's own, `PurgeConfirmContent`). The Dialog lives HERE
+          rather than in the row because the row is a declared action set and
+          a trigger is a component. */}
       <div className="absolute top-1.5 right-1.5 z-10 hidden md:block">
         <Dialog>
           <div
@@ -165,29 +197,7 @@ function BinTileOverlay({
               </button>
             </DialogTrigger>
           </div>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Delete permanently?</DialogTitle>
-              <DialogDescription>
-                This skips the 30-day recovery window and deletes the file for
-                good. It can&rsquo;t be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
-              <DialogClose asChild>
-                <Button
-                  variant="destructive"
-                  disabled={isPending}
-                  onClick={onPurge}
-                >
-                  Delete permanently
-                </Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
+          <PurgeConfirmContent disabled={isPending} onConfirm={onPurge} />
         </Dialog>
       </div>
     </>
@@ -210,7 +220,10 @@ export function RecentlyDeletedGrid({
   eventId: string;
   items: BinMedia[];
   tier?: string;
-  /** The tiles the window mounts, whenever that changes: the paged bin mints their links. */
+  /**
+   * Ids whose links the bin should mint: the tiles its window mounts, whenever that changes, and
+   * the photographs the viewer is about to show (the paged bin mints both the same way).
+   */
   onWindowChange?: (ids: readonly string[]) => void;
   /** An item left the bin (restored or deleted for good). */
   onGone?: (id: string) => void;
@@ -221,6 +234,11 @@ export function RecentlyDeletedGrid({
   // and each mounted sheet is a portal, a focus trap and a scroll lock waiting
   // to exist. The tiles raise the refusal; the grid owns the surface.
   const [pricingOpen, setPricingOpen] = useState(false);
+  const actions = useBinActions(eventId, {
+    onGone,
+    onRestored,
+    onOutOfRoom: () => setPricingOpen(true),
+  });
   // clampAspect keeps the countdown + restore/purge controls legible on extreme
   // ratios (same moderation-ergonomics reason as the main host grid).
   return (
@@ -230,15 +248,14 @@ export function RecentlyDeletedGrid({
         layout="rows"
         clampAspect
         onWindowChange={onWindowChange}
+        // The viewer walks the whole bin, most of it unlinked: it asks for what it is about to show.
+        onViewerNeedLinks={onWindowChange}
         renderOverlay={(item) => (
-          <BinTileOverlay
-            eventId={eventId}
-            item={item}
-            onOutOfRoom={() => setPricingOpen(true)}
-            onGone={onGone}
-            onRestored={onRestored}
-          />
+          <BinTileOverlay item={item} actions={actions} />
         )}
+        // The viewer's copy of the pane's two verbs (it closes first; the item then leaves).
+        onRestore={(item) => void actions.restore(item)}
+        onPurge={(item) => void actions.purge(item)}
       />
       <PricingSheet
         open={pricingOpen}

@@ -39,9 +39,14 @@
  * same layout effect that writes the change it scrolls by exactly how far that
  * photograph moved. A head arrival while the reader is deep, a hide above, a
  * late approval landing mid-album, a step and a resize all keep it on its
- * pixel. On a touch screen a change that needs such a scroll waits until the
- * scroll has been still for a beat (`MOMENTUM_IDLE_MS`): a scroll written
- * during a flick's momentum stops the flick dead.
+ * pixel. ★ The scroll can only hold what the change did not re-lay, so the rows
+ * in view are handed to the engine (`rowsInView`) and a change outside them
+ * re-lays only rows on its own side: a hide in the row just above the view used
+ * to re-break the row at the view's top, whose top edge the scroll kept while
+ * its photographs moved under the reader. On a touch screen a change that needs
+ * such a scroll waits until the scroll has been still for a beat
+ * (`MOMENTUM_IDLE_MS`): a scroll written during a flick's momentum stops the
+ * flick dead.
  *
  * ★ THE FIRST PAINT IS CSS, BECAUSE THE SERVER HAS NO WIDTH. Before the box is
  * measured the first photographs wrap greedily on the same target (a container
@@ -99,6 +104,7 @@ import {
   perRowFor,
   reflowRows,
   ROW_CLASSES,
+  type HeldRows,
   type RowAnchor,
   type RowFeature,
   type RowItem,
@@ -106,10 +112,12 @@ import {
   type RowStep,
 } from "@/lib/shared/album-rows";
 import {
+  albumHeight,
   anchorShift,
   holdForMomentum,
   MOMENTUM_IDLE_MS,
   mountedRanges,
+  rowAt,
   rowBottom,
   rowIndex,
   rowTops,
@@ -234,6 +242,29 @@ export function headSlots(head: ReactNode): { key: string; node: ReactNode }[] {
   };
   walk(head, "");
   return out;
+}
+
+/**
+ * THE ROWS A READER CAN SEE, first and last, in a laid album: what a change
+ * outside them must never re-lay (`reflowRows`' `held`). The first is the row
+ * `topAnchor` anchors on (the row showing at the view's top, even by a pixel;
+ * past it when the view's top sits in the gap under it), so the anchor always
+ * rides a held row. Null when the view shows none of the album.
+ */
+export function rowsInView(
+  tops: Float64Array,
+  gap: number,
+  view: ViewBox,
+): HeldRows | null {
+  const n = tops.length - 1;
+  const bottom = view.top + view.height;
+  if (n <= 0 || bottom <= 0 || view.top >= albumHeight(tops, gap)) return null;
+  let first = rowAt(tops, view.top);
+  if (rowBottom(tops, first, gap) <= view.top && first + 1 < n) first++;
+  // The last row with a pixel above the view's bottom edge.
+  let last = rowAt(tops, bottom);
+  if (tops[last] >= bottom && last > first) last--;
+  return [first, Math.max(first, last)];
 }
 
 /** Whether two laid lists are the same photographs, shapes and picks, in order. */
@@ -662,13 +693,25 @@ export function AlbumRows<
     (!laid || laid.params !== paramsKey || !sameRowItems(laid.items, rowItems))
   ) {
     const params = !laid || laid.params !== paramsKey;
-    const r = reflowRows(laid?.layout ?? null, rowItems, {
-      width: box.width,
-      gap: box.gap,
-      perRow,
-      anchor,
-      feature,
-    });
+    // The rows the reader sees stay whole through any change outside them
+    // (`reflowRows`' hold), so the anchor below rides a row that did not move
+    // and its scroll leaves everything on screen where it was.
+    const seen =
+      laid && view && !params
+        ? rowsInView(laid.tops, laid.layout.gap, view)
+        : null;
+    const r = reflowRows(
+      laid?.layout ?? null,
+      rowItems,
+      {
+        width: box.width,
+        gap: box.gap,
+        perRow,
+        anchor,
+        feature,
+      },
+      seen,
+    );
     if (r.kind !== "none" || params) {
       const tops = rowTops(r.layout.rows, box.gap);
       // THE ANCHOR (see the head note): a pinch's photograph, else the first

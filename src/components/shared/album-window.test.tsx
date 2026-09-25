@@ -5,8 +5,9 @@
  * keyboard's row stays mounted, a deep link mounts its tile and hands it back,
  * what is mounted is reported and numbered for a screen reader, a head arrival
  * while the reader is deep is paid for with exactly the scroll that keeps them
- * on their pixel (and nothing at the top), a touch change waits out a flick,
- * and a pinch asks for the next step.
+ * on their pixel (and nothing at the top), a hide just above the view re-lays
+ * none of the rows in it, a touch change waits out a flick, and a pinch asks
+ * for the next step.
  *
  * ★ jsdom has no layout: every element measures 800px wide at the top of the
  * page (vitest.setup.ts) and resolves no gap, so the rows are real engine rows
@@ -18,6 +19,8 @@ import { act, render } from "@testing-library/react";
 import { createRef } from "react";
 
 import type { GridMedia } from "@/components/app/media-grid";
+import { rowsInView } from "@/components/shared/album-window";
+import { rowItemsFor } from "@/components/shared/album-window-plan";
 import { MasonryColumns, type AlbumHandle } from "@/components/shared/masonry";
 import {
   layoutRows,
@@ -25,6 +28,7 @@ import {
   reflowRows,
   type RowItem,
 } from "@/lib/shared/album-rows";
+import { rowTops } from "@/lib/shared/album-window";
 import { rowRatio } from "@/lib/media/tile-aspect";
 
 vi.mock("@/components/shared/media-lightbox.lazy", () => ({
@@ -309,6 +313,106 @@ describe("a head arrival while the reader is deep moves nothing they can see", (
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe("a hide just above the view re-lays none of the rows in it", () => {
+  /**
+   * ★ THE RED-TEAM'S CASE, FOUND RATHER THAN HAND-BUILT: an album, a visit's seed and a photograph
+   * in the row just above the view whose hide, left to the old window (its row and both
+   * neighbours), would have re-laid the row at the view's top. The seeds are searched so the pin
+   * keeps biting whatever the engine's answers become.
+   */
+  const VIEW_TOP = 20_000;
+  function biting() {
+    const perRow = perRowFor(800, 1);
+    const params = { ...PARAMS, feature: "double" as const };
+    for (let seed = 1; seed < 400; seed++) {
+      const list = rowItemsFor(album, false, { seed, perRow }, [], "end");
+      const before = layoutRows(list, params);
+      const tops = rowTops(before.rows, 0);
+      const held = rowsInView(tops, 0, {
+        top: VIEW_TOP,
+        height: window.innerHeight,
+      })!;
+      for (const victim of before.rows[held[0] - 1].ids) {
+        const next = list.filter((it) => it.id !== victim);
+        const free = reflowRows(before, next, params);
+        if (free.windows.some(([a, b]) => a <= held[1] && b >= held[0]))
+          return { seed, victim, before, held, params };
+      }
+    }
+    throw new Error("no hide above the view reached it: the pin bites nothing");
+  }
+
+  it("pays for the rows above with exactly their change, and every tile in view keeps its box", async () => {
+    const { seed, victim, before, held, params } = biting();
+    const props = {
+      layout: "rows" as const,
+      rowRhythm: "double" as const,
+      rhythmSeed: seed,
+    };
+    const { container, rerender } = render(
+      <MasonryColumns items={album} {...props} />,
+    );
+    await scrollTo(VIEW_TOP);
+    const seen = before.rows.slice(held[0], held[1] + 1).flatMap((r) => r.ids);
+    const box = (id: string) => {
+      const el = container.querySelector<HTMLElement>(
+        `[data-media-id="${id}"]`,
+      )!;
+      return `${el.style.flexGrow}|${el.style.height}`;
+    };
+    const was = new Map(seen.map((id) => [id, box(id)] as const));
+    rerender(
+      <MasonryColumns
+        items={album.filter((m) => m.id !== victim)}
+        {...props}
+      />,
+    );
+    const next = reflowRows(
+      before,
+      rowItemsFor(
+        album.filter((m) => m.id !== victim),
+        false,
+        { seed, perRow: params.perRow },
+        [],
+        "end",
+      ),
+      params,
+      held,
+    );
+    // Only rows above the view were re-laid...
+    expect(next.windows.every(([, b]) => b < held[0])).toBe(true);
+    // ...so the scroll is their change, and nothing the reader sees moved.
+    const first = before.rows[held[0]].ids[0];
+    expect(scrollBy).toHaveBeenCalledTimes(1);
+    expect(scrollBy.mock.calls[0][0].top).toBe(
+      ROW_TOP(next.layout, first) - ROW_TOP(before, first),
+    );
+    for (const id of seen) expect(box(id)).toBe(was.get(id));
+  });
+
+  it("reads the rows in view off the laid tops: the row at the view's top, by a pixel, to the last one showing", () => {
+    // Rows 100 tall with no gap: 0-100, 100-200, 200-300, 300-400.
+    const tops = rowTops(
+      Array.from({ length: 4 }, () => ({ height: 100 })),
+      0,
+    );
+    expect(rowsInView(tops, 0, { top: 150, height: 100 })).toEqual([1, 2]);
+    expect(rowsInView(tops, 0, { top: 199, height: 2 })).toEqual([1, 2]);
+    // A view whose bottom edge meets a row's top does not see that row.
+    expect(rowsInView(tops, 0, { top: 100, height: 100 })).toEqual([1, 1]);
+    // Above the album's top it sees the head; past its end, nothing.
+    expect(rowsInView(tops, 0, { top: -300, height: 350 })).toEqual([0, 0]);
+    expect(rowsInView(tops, 0, { top: 400, height: 100 })).toBeNull();
+    expect(rowsInView(tops, 0, { top: -300, height: 300 })).toBeNull();
+    // With a gap, a view whose top sits in the gap under a row starts past it.
+    const gapped = rowTops(
+      Array.from({ length: 3 }, () => ({ height: 100 })),
+      4,
+    );
+    expect(rowsInView(gapped, 4, { top: 102, height: 50 })).toEqual([1, 1]);
   });
 });
 
