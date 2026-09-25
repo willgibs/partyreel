@@ -8,6 +8,8 @@ owns:                    # the standing claims no lane touches
   - src/app/(marketing)/marketing.css
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
+  - src/app/(dev)/design/sandbox/registry.ts
+  - src/app/(dev)/design/(shell)/lab/boards.ts
   - src/lib/design-gate/
   - src/app/api/design-gate/
   - scripts/vercel-ignore-build.mjs
@@ -38,7 +40,6 @@ in auto mode ("work through the night on all of this until fully complete"); the
 | --- | --- | --- | --- | --- |
 | `album-guest-wiring` | the guest album, viewer, reel and profile feeds onto the paged, windowed rows with r2's picks; `planTake` sub-quadratic; the perf harness's `--page` mode | building (agent `a29a00be06c5e3b16`) | Opus, :3131 | its `guest-flow.md` lines through the Handoff |
 | `album-host-wiring` | the hub's album onto the paged rows, select mode on the one grid, the bin on a manifest, Sort live, `like_many` | building (agent `a54c6daada060d103`) | Opus, :3134 | ends a turn with "migration ready at <sha>" for `like_many`; `host-app.md` lines through the Handoff |
-| `retire-reel-boards` | `reel-cut`, `reel-front`, `reel-screen`, `reel-host` and `reel-view` leave the desk (their picks live on build 9); holds `registry.ts` and `boards.ts` until its merge | building (agent `af28dc5126e2ce63b`) | Sonnet, :3132 | the ledgers are the record's to delete |
 
 Merged tonight (their records carry the rest): reel-guest-wiring, reel-host-wiring, mark-r3, story-r2, door-r2,
 album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hardening, reel-sweep, door-flow.
@@ -50,9 +51,8 @@ album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hard
    scripts/sweep-reel-files.mjs --apply` wait for Will's yes.
 2. **Integrate as they land**: `album-host-wiring` (its `like_many` migration first), `album-guest-wiring`, `door-flow`
    (synced past both). Then build 10.
-3. **Retire the built boards** (`reel-cut`, `reel-front`, `reel-screen`, `reel-host`, `reel-view` now; `album-columns`
-   after the surface lanes), atomically across `touchpoints.ts`, `registry.ts` and `boards.ts`, their ledgers with
-   them.
+3. **Retire `album-columns`** once the surface lanes merge (the five reel boards retired at `0cbd5634`), atomically across
+   `touchpoints.ts`, `registry.ts` and `boards.ts`, its ledger with it.
 4. **After his sitting on build 9**: `reel-marketing` (his `reel-story` r2), the door's look (his `identity-door` r2)
    over `door-flow`, the mark's wiring (his `media-viewer` r3).
 5. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
