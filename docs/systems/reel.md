@@ -153,11 +153,13 @@ A host has no reel to create, only a state to read and a few defaults to set.
 - **`setReelDefaults`** ([`reel/defaults-action.ts`](../../src/lib/reel/defaults-action.ts)) is the one write, shared by
   the view's Set for everyone and Settings: it re-verifies the owner and revalidates nothing, so the reel keeps playing.
 - ★ **The platform lever, `ops_flags.live_reel_enabled`**: off means no tile, no view, no screen and no Make your own
-  anywhere, and the host's card, band step and redirect say off. The guest payload and `reelState` read it server-side
-  the same way, and it fails OPEN (a flaky read must not take the reel off every album), while an unreadable plan fails
-  to `null` (the creator goes, the reel stays); both are reported. Its switch sits beside the exports kill switch in
-  `/admin/exports`, with the same shape and audit, and its card points at the view's "live reel: frames failing"
-  reports.
+  anywhere. The guest payload and the host's side read it through the one `getLiveReelServerFacts`, so they cannot
+  disagree: `reelState` lets it outrank the host's own switch silently, and the Reel card, the band's step and the old
+  route's redirect show the same Off either way. It fails OPEN (a flaky read must not take the reel off every album),
+  while an unreadable plan fails to `null` (the creator goes, the reel stays); both are reported. Its switch is the
+  `live-reel` card beside Download all's in `/admin/exports` (the same guarded switch, destructive sheet and audit;
+  the palette jumps there), and the card sends an operator to the view's "live reel: frames failing" reports, so a
+  broken reel and a paused one are not confused.
 
 ## The clip
 
