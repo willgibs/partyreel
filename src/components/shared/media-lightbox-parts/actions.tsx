@@ -407,9 +407,11 @@ export const ActionCapsule = memo(function ActionCapsule({
         </>
       )}
 
-      {/* the enjoy group (guest + host) */}
-      <LikeButton item={item} />
-      <LikeCountBadge count={item.likeCount} />
+      {/* the enjoy group (guest + host). A photograph in the bin is on its way
+          out, so the bin's capsule carries its two verbs and nothing to enjoy,
+          even under a likes store (the lab's scale page keeps one above it). */}
+      {!binned && <LikeButton item={item} />}
+      {!binned && <LikeCountBadge count={item.likeCount} />}
       {save}
       {shareUrl && (
         <ActionTooltip label={shareLabel}>

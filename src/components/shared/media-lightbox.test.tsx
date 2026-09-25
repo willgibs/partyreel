@@ -23,6 +23,7 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GridMedia } from "@/components/app/media-grid";
+import { LikesProvider } from "@/components/likes/likes-provider";
 // The mark's one label constant, read rather than retyped (its word
 // changed once already): the pill, the guest list and the menu move together, and
 // a regex copy of the old string here would have been the one thing that did not.
@@ -628,6 +629,32 @@ describe("MediaLightbox: the recovery bin's Restore and Delete permanently", () 
     linked.unmount();
     mount([{ ...binned, status: "approved" }], 0);
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+  });
+
+  it("carries nothing to enjoy, even under a likes store", () => {
+    render(
+      <LikesProvider mediaIds={[binned.id]} initialLikedIds={[]}>
+        <TooltipProvider>
+          <MediaLightbox
+            items={[{ ...binned, url: "https://r2.test/b1.jpg", likeCount: 3 }]}
+            index={0}
+            onClose={() => {}}
+            onIndexChange={() => {}}
+            onRestore={vi.fn()}
+            onPurge={vi.fn()}
+          />
+        </TooltipProvider>
+      </LikesProvider>,
+    );
+    const capsule = document.querySelector<HTMLElement>(
+      "[data-lightbox-capsule]",
+    )!;
+    expect(within(capsule).queryByRole("button", { name: /like/i })).toBeNull();
+    expect(
+      within(capsule)
+        .getAllByRole("button")
+        .map((b) => b.getAttribute("aria-label")),
+    ).toEqual(["Restore", "Delete permanently"]);
   });
 
   it("appears nowhere but the bin: the host's album viewer carries neither", () => {
