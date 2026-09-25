@@ -79,6 +79,8 @@ const {
 } = await import("@/lib/events/gallery-access.server");
 const { guestAlbumEtag } = await import("@/lib/events/album-validator");
 const { firstPaintIds } = await import("@/components/shared/album-window-plan");
+const { createReelItems } = await import("@/lib/guest/reconcile-album-items");
+const { tileStills } = await import("@/lib/guest/reel-tile");
 
 type Event = Parameters<typeof resolveViewerDecision>[0];
 
@@ -327,7 +329,11 @@ describe("loadGallerySeed: the page's album seed", () => {
     );
   });
 
-  it("mints links for exactly the first paint's photographs, and reports the ones gone", async () => {
+  it("mints links for exactly the first paint's photographs (the reel off), and reports the ones gone", async () => {
+    getLiveReelServerFacts.mockResolvedValue({
+      liveReelEnabled: false,
+      tier: "pro",
+    });
     const seed = await loadGallerySeed(
       EVENT,
       { access: "full", gate: null },
@@ -347,6 +353,27 @@ describe("loadGallerySeed: the page's album seed", () => {
     );
     expect(seed.links.missing).toEqual([uuid(1)]);
     expect(seed.links.b).toBe(7);
+  });
+
+  it("with a reel, the Highlight reel tile's stills ride the seed too, after the first paint's", async () => {
+    const seed = await loadGallerySeed(
+      EVENT,
+      { access: "full", gate: null },
+      { ...FIRST, width: 1400 },
+    );
+    if (seed.kind !== "full") throw new Error("expected a full seed");
+    const paint = firstPaintIds(
+      ENTRIES.map(([id, width, height]) => ({ id, width, height })),
+      { ...FIRST, width: 1400 },
+    );
+    const stills = tileStills(createReelItems()(ENTRIES), {
+      eventId: EVENT.id,
+    }).map((s) => s.id);
+    const asked = readGuestAlbumMedia.mock.calls[0][1] as string[];
+    expect(asked.slice(0, paint.length)).toEqual(paint);
+    expect(new Set(asked)).toEqual(new Set([...paint, ...stills]));
+    // The one playable-but-posterless video is never a still.
+    expect(stills).not.toContain(uuid(2));
   });
 
   it("a guest's attribution is a name and two flags, never an address", async () => {

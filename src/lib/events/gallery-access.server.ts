@@ -40,8 +40,14 @@ import {
   type GalleryAccess,
   type GalleryDecision,
 } from "@/lib/events/gallery-access";
-import { reelFactsFor, type GalleryReel } from "@/lib/events/gallery-reel";
+import {
+  liveReelAvailable,
+  reelFactsFor,
+  type GalleryReel,
+} from "@/lib/events/gallery-reel";
 import type { GallerySeed } from "@/lib/events/gallery-seed";
+import { createReelItems } from "@/lib/guest/reconcile-album-items";
+import { tileStills } from "@/lib/guest/reel-tile";
 import type { UploaderIdentity } from "@/lib/media/uploader-identity";
 import { toGridItems } from "@/lib/r2/grid-items";
 import { presignDownload } from "@/lib/r2/presign";
@@ -341,11 +347,22 @@ export async function loadGallerySeed(
   const part = plan.part as AlbumManifestPart;
   const reel = await reelPromise;
 
-  // The first paint's photographs, and only those, get their links in the render.
+  // The first paint's photographs get their links in the render, and so do the Highlight reel
+  // tile's stills (the reel's own first pass, `tileStills`), so the tile stands with its pictures
+  // from the first byte rather than arriving late and pushing the album down.
   const ids = firstPaintIds(
     part.entries.map(([id, width, height]) => ({ id, width, height })),
     firstPaint,
   );
+  const reelItems = createReelItems()(part.entries);
+  if (liveReelAvailable(reel, reelItems)) {
+    const have = new Set(ids);
+    for (const { id } of tileStills(reelItems, { eventId: event.id }))
+      if (!have.has(id)) {
+        have.add(id);
+        ids.push(id);
+      }
+  }
   const bucket = Number(presignBucketId(Date.now()));
   const now = Date.now();
   const media =

@@ -344,8 +344,11 @@ export function LiveReelTile({ className }: { className?: string }) {
     { length: drawn.length > 0 ? TILE_SLOTS : 0 },
     (_, i) => drawn[i % drawn.length],
   );
-  if (slots.length === 0) return null;
-  const total = TILE_HOLD_SEC * slots.length;
+  // ★ THE TILE STANDS FROM THE FIRST PAINT, ITS STILLS OR NOT. Whether the reel exists is the
+  // manifest's word (two playable items), and its stills' links ride the page's seed; a still whose
+  // link is still on its way leaves the tile's own ground showing for a beat, and the stills fade in
+  // over it. A tile that waited for them would arrive late and push the album down under the eye.
+  const total = TILE_HOLD_SEC * Math.max(1, slots.length);
 
   return (
     <div

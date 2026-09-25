@@ -77,7 +77,8 @@
  * because a first poll holds no validator yet and one that heals the ticket
  * cookie is answered without one (the sync route's rule).
  *
- * Its budgets: album nodes <= 2,000 at any point; 0 running animations at rest;
+ * Its budgets: album nodes <= 2,000 at any point; 0 running animations in the
+ * album at rest (the page's own, like the reel tile's crossfade, are reported);
  * the document <= 150 KB on the wire; the quiet poll answered 304 (when one was
  * seen); a head arrival while deep moves nothing (<= 1px, with --arrive); CLS
  * <= 0.02. The `/e/` token is masked in everything printed or written: the link
@@ -367,15 +368,22 @@ const LIB = `
       return pending.length;
     },
     animations() {
+      // ★ THE ALBUM'S OWN, COUNTED APART: a page mounts things that animate at rest by design (the
+      // guest page's Highlight reel tile crossfades its stills), and the budget is the album's:
+      // nothing in the grid runs for nobody. The page's whole count is reported beside it.
+      const grid = this.grid();
       const by = {};
       let running = 0;
+      let album = 0;
       for (const a of document.getAnimations()) {
         if (a.playState !== "running") continue;
         running++;
+        const target = a.effect && a.effect.target;
+        if (grid && target && grid.contains(target)) album++;
         const name = a.animationName || (a.transitionProperty ? "transition:" + a.transitionProperty : a.constructor.name);
         by[name] = (by[name] || 0) + 1;
       }
-      return { running, by };
+      return { running, album, by };
     },
     /** The first row's photographs: the tiles at the album's smallest top. */
     firstRow() {
@@ -1247,8 +1255,8 @@ function pageBudgets(r) {
     // Both rests: loaded at the top, and back there after the fling, which mounts rows the load
     // never did (whatever they start has to stop too).
     [
-      "0 running animations at rest",
-      r.load.animations.running === 0 && r.rest.animations.running === 0,
+      "0 running animations in the album at rest",
+      r.load.animations.album === 0 && r.rest.animations.album === 0,
     ],
     [
       "the document <= 150 KB on the wire",
@@ -1283,9 +1291,9 @@ function report(r) {
     `           layouts ${r.load.layouts} (${r.load.layoutMs}ms) · style ${r.load.styleRecalcs} (${r.load.styleMs}ms) · script ${r.load.scriptMs}ms`,
     `           transfer ${kb(r.load.transfer.total)} (images ${r.load.transfer.images}, ${kb(r.load.transfer.by.Image ?? 0)}) · LCP ${r.load.lcp ? Math.round(r.load.lcp.t) + "ms " + r.load.lcp.tag : "n/a"} · CLS ${r.load.cls}`,
     `           first row: ${r.load.firstRow ? `${r.load.firstRow.count} images, ${r.load.firstRow.eager} eager, ${r.load.firstRow.high} high, in by ${Math.round(r.load.firstRow.responseEnd ?? -1)}ms` : "n/a"}`,
-    `           animations running ${r.load.animations.running} ${JSON.stringify(r.load.animations.by)} · long frames ${JSON.stringify(r.load.longFrames)}`,
+    `           animations running ${r.load.animations.running} (album ${r.load.animations.album ?? "?"}) ${JSON.stringify(r.load.animations.by)} · long frames ${JSON.stringify(r.load.longFrames)}`,
     ...flingLines(r.fling),
-    `  after    animations running ${r.rest.animations.running} ${JSON.stringify(r.rest.animations.by)} · album nodes ${r.rest.albumNodes}`,
+    `  after    animations running ${r.rest.animations.running} (album ${r.rest.animations.album ?? "?"}) ${JSON.stringify(r.rest.animations.by)} · album nodes ${r.rest.albumNodes}`,
     `  renders  like ${r.renders.like.tile} tiles + ${r.renders.like.mark} marks${r.renders.like.ids === undefined ? "" : ` (${r.renders.like.ids} photograph${r.renders.like.ids === 1 ? "" : "s"})`} · tick ${r.renders.tick.tile} + ${r.renders.tick.mark} · poll ${r.renders.poll.tile} + ${r.renders.poll.mark}`,
     `  arrival  sync ${r.arrival.syncMs}ms, to layout ${r.arrival.layoutMs}ms · renders ${r.arrival.renders.tile} tiles · moved: after 2 frames ${r.arrival.afterTwoFrames.maxPx}px (${r.arrival.afterTwoFrames.movedTiles}/${r.arrival.afterTwoFrames.of}), settled ${r.arrival.settled.maxPx}px (${r.arrival.settled.movedTiles}/${r.arrival.settled.of})`,
   ];
@@ -1318,9 +1326,9 @@ function reportPage(r) {
     `           document ${d ? `${kb1(d.bytes)} on the wire (${d.encoding}, headers in), ${d.decoded ? kb1(d.decoded) : "?"} decoded, ${d.status}` : "n/a"} · rsc after it ${r.load.rsc.requests} (${kb1(r.load.rsc.bytes)})`,
     `           transfer ${kb(r.load.transfer.total)} (images ${r.load.transfer.images}, ${kb(r.load.transfer.by.Image ?? 0)}) · LCP ${r.load.lcp ? Math.round(r.load.lcp.t) + "ms " + r.load.lcp.tag : "n/a"} · CLS ${r.load.cls}`,
     `           first row: ${r.load.firstRow ? `${r.load.firstRow.count} images, ${r.load.firstRow.eager} eager, ${r.load.firstRow.high} high, in by ${Math.round(r.load.firstRow.responseEnd ?? -1)}ms` : "n/a"}`,
-    `           animations running ${r.load.animations.running} ${JSON.stringify(r.load.animations.by)} · long frames ${JSON.stringify(r.load.longFrames)}`,
+    `           animations running ${r.load.animations.running} (album ${r.load.animations.album ?? "?"}) ${JSON.stringify(r.load.animations.by)} · long frames ${JSON.stringify(r.load.longFrames)}`,
     ...flingLines(r.fling),
-    `  after    animations running ${r.rest.animations.running} ${JSON.stringify(r.rest.animations.by)} · album nodes ${r.rest.albumNodes}`,
+    `  after    animations running ${r.rest.animations.running} (album ${r.rest.animations.album ?? "?"}) ${JSON.stringify(r.rest.animations.by)} · album nodes ${r.rest.albumNodes}`,
     `  poll     ${pollLine(r.poll)}`,
     ...(r.arrival ? [`  arrival  ${arrivalLine(r.arrival)}`] : []),
   ];
