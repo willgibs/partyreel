@@ -1,15 +1,11 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 
-import { REEL_HOST } from "./reel-host/spec";
-import { REEL_VIEW } from "./reel-view/spec";
 import { IDENTITY_DOOR } from "./identity-door/spec";
 import { IDENTITY_CLAIMS } from "./identity-claims/spec";
 import { IDENTITY_PROFILE } from "./identity-profile/spec";
-import { REEL_SCREEN } from "./reel-screen/spec";
 import { GUEST_CAPTURE } from "./guest-capture/spec";
 import { VOICE_GUEST } from "./voice-guest/spec";
-import { REEL_FRONT } from "./reel-front/spec";
 import { SITE_CHROME } from "./site-chrome/spec";
 import { PROFILE_PAGE } from "./profile-page/spec";
 import { EXPORT_FLOW } from "./export-flow/spec";
@@ -21,7 +17,6 @@ import { HELP_CENTER } from "./help-center/spec";
 import { HOST_CURATION } from "./host-curation/spec";
 import { HOST_STORAGE } from "./host-storage/spec";
 import { EVENT_SAFETY } from "./event-safety/spec";
-import { REEL_CUT } from "./reel-cut/spec";
 
 import { PRESS_PAGE } from "./press-page/spec";
 import { CONTACT_PAGE } from "./contact-page/spec";
@@ -58,25 +53,17 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
  * missing from `DESK_ORDER` sorts to the foot until the Orchestrator places it.
  */
 const REGISTERED: readonly BoardSpec[] = [
-  REEL_HOST,
-  REEL_VIEW,
-
   IDENTITY_DOOR,
   IDENTITY_CLAIMS,
 
   IDENTITY_PROFILE,
-  REEL_SCREEN,
   GUEST_CAPTURE,
   VOICE_GUEST,
-  REEL_FRONT,
 
   MEDIA_VIEWER,
   HOST_CURATION,
   HOST_STORAGE,
   EVENT_SAFETY,
-  // Registered beside its named neighbour rather than at the head: three reel
-  // boards register in the same wave, and the head is one line for all of them.
-  REEL_CUT,
   EXPORT_FLOW,
   ADMIN_TRIAGE,
   REEL_STORY,
