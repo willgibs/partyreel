@@ -47,14 +47,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuFooter,
@@ -1205,36 +1197,6 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
               </SheetHeader>
             </SheetContent>
           </Sheet>
-        ),
-      },
-    ],
-  },
-  {
-    id: "drawer",
-    file: "src/components/ui/drawer.tsx",
-    for: "the vaul bottom sheet; in the kit, and no product surface has claimed it yet",
-    family: "components",
-    section: "Overlays",
-    specimens: [
-      {
-        label: "Drawer",
-        hint: "vaul · bottom, drag to dismiss",
-        node: (
-          <Drawer>
-            <DrawerTrigger asChild>
-              <Button variant="outline" size="sm">
-                Open drawer
-              </Button>
-            </DrawerTrigger>
-            <DrawerContent>
-              <DrawerHeader>
-                <DrawerTitle>Add to your event</DrawerTitle>
-                <DrawerDescription>
-                  The mobile sheet pattern, with drag-to-dismiss.
-                </DrawerDescription>
-              </DrawerHeader>
-            </DrawerContent>
-          </Drawer>
         ),
       },
     ],
