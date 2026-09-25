@@ -87,13 +87,7 @@ export function Scene({
   const [measured, setMeasured] = useState("measuring");
   return (
     <Fit w={PHONE.w}>
-      <Frame
-        id={id}
-        w={PHONE.w}
-        h={PHONE.h}
-        title={title}
-        caption={measured}
-      >
+      <Frame id={id} w={PHONE.w} h={PHONE.h} title={title} caption={measured}>
         <Measured probe={measure} deps={[id]} onMeasure={setMeasured}>
           {children}
         </Measured>
@@ -375,10 +369,12 @@ export function AlbumGround({
 /**
  * THE DOOR'S PHONE HALF, QUOTED (`entry-shell.tsx`): the overlay, then the
  * Sheet's own classes, HELD (no handle: the door has no exit). The
- * `data-entry-sheet` hook is the shipped one, so door.css gives the
- * welcome its ratified 55svh presence here exactly as on a phone (`svh`
- * inside a frame is the frame's own height). `relative pt-1` is the step
- * container every step sits in (`entry-modal.tsx`).
+ * `data-entry-sheet` hook is the shipped one, but door.css itself doesn't
+ * ride along with a quoted primitive (it loads only where `entry-shell.tsx`
+ * is rendered, never here), so `board.tsx` imports it directly: that is what
+ * gives the welcome its ratified 55svh presence here exactly as on a phone
+ * (`svh` inside a frame is the frame's own height). `relative pt-1` is the
+ * step container every step sits in (`entry-modal.tsx`).
  */
 export function DoorGround({
   locked,

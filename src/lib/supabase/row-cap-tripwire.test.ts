@@ -188,11 +188,11 @@ describe("withRowCapTripwire", () => {
   it("sends the default warning to Sentry under the db area", async () => {
     const tripwire = withRowCapTripwire((async () =>
       answer("0-999/*")) as unknown as typeof fetch);
-    await tripwire(`${REST}/reel_items?select=id`);
+    await tripwire(`${REST}/guests?select=id`);
     await vi.waitFor(() =>
       expect(captureWarning).toHaveBeenCalledWith("db", "row_cap_hit", {
         method: "GET",
-        path: "/rest/v1/reel_items",
+        path: "/rest/v1/guests",
       }),
     );
   });

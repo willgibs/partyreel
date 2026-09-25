@@ -73,8 +73,6 @@ import {
   type StoppedEarly,
 } from "@/lib/lifecycle/sweep-budget";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
-import { deleteR2Objects } from "@/lib/r2/delete";
-import { reelOutputKey } from "@/lib/r2/keys";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { removeAvatar } from "@/lib/supabase/avatar-storage";
 
@@ -382,14 +380,6 @@ export async function purgeAccount(
         result.hold_blocked_events += chunk.length - doomed.length;
         if (doomed.length === 0) return [true];
 
-        // The rendered reel .mp4 is a derived artifact with no media row and a
-        // non-media-shaped key, so the orphan sweep would never reclaim it; its
-        // deterministic key is safe to delete whether or not a reel was ever
-        // rendered (deleting an absent key is a success).
-        const reels = await deleteR2Objects(doomed.map(reelOutputKey));
-        result.r2_deleted += reels.deleted;
-        result.r2_errored += reels.errored.length;
-
         // Safe now: the media is gone, so the FK cascade has nothing of value
         // left to destroy.
         const { error: delErr } = await admin
@@ -412,8 +402,8 @@ export async function purgeAccount(
 
     if (result.r2_errored > 0) {
       // We still reclaim the rows (matching the expired-events sweep): the orphan sweep is the
-      // backstop for a stranded media object. Said loudly, because a reel .mp4 that fails here
-      // leaks silently forever.
+      // backstop for a stranded media object. Said loudly, because a leak here would otherwise be
+      // silent forever.
       captureWarning("cron", "account_deletion_r2_partial", {
         user_id: userId,
         errored: result.r2_errored,

@@ -1,7 +1,7 @@
 /**
  * SWEEP 1: EVENTS WHOSE RECOVERABLE TAIL HAS ELAPSED. Hard-deletes their media (R2, rows, the
- * `storage_used_bytes` meter), their rendered reels, then the event rows (which cascade to guests,
- * reels and reports). `coalesce(purge_at, deleted_at + the window)`, so a legacy soft-delete with no
+ * `storage_used_bytes` meter), then the event rows (which cascade to guests and reports).
+ * `coalesce(purge_at, deleted_at + the window)`, so a legacy soft-delete with no
  * `purge_at` is still reclaimed instead of leaking storage forever.
  *
  * HOW IT STAYS WHOLE (the 1,000-row round, 2026-09-23):
@@ -48,8 +48,6 @@ import {
   type Deadline,
   type StoppedEarly,
 } from "@/lib/lifecycle/sweep-budget";
-import { deleteR2Objects } from "@/lib/r2/delete";
-import { reelOutputKey } from "@/lib/r2/keys";
 
 export type ExpiredEventsTally = Reclaimed & {
   events: number;
@@ -158,8 +156,8 @@ export async function sweepExpiredEvents(
 
 /**
  * Purge one batch of hold-free expired events (at most `IN_CHUNK`, so the whole batch is one chunk):
- * every media page reclaimed, then the reels, then the event rows. False when the deadline stopped
- * it before the event rows could go.
+ * every media page reclaimed, then the event rows. False when the deadline stopped it before the
+ * event rows could go.
  */
 async function purgeEventBatch(
   admin: AdminClient,
@@ -206,13 +204,6 @@ async function purgeEventBatch(
       const doomed = chunk.filter((id) => !stillHeld.has(id));
       tally.hold_blocked_events += chunk.length - doomed.length;
       if (doomed.length === 0) return [true];
-
-      // The rendered reel is a DERIVED artifact with no media row and a non-media key, so neither the
-      // enumeration above nor the orphan sweep would ever delete it. Deleting an absent key is a
-      // success, so this is safe whether or not a reel was ever rendered.
-      const reels = await deleteR2Objects(doomed.map(reelOutputKey));
-      tally.r2_deleted += reels.deleted;
-      tally.r2_errored += reels.errored.length;
 
       const { error } = await admin
         .from("events")

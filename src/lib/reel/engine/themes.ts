@@ -2,8 +2,8 @@
 // craft): grade + transition palette + Ken-Burns + motion character + pacing + a signature touch, NOT a
 // tint. The photos fill the frame; the EDIT + GRADE + ENERGY + SIGNATURE differentiate the moods, each
 // tuned to an event vibe. The per-reel seed samples WITHIN a kit (transition per gap, pan/zoom, jitter), so
-// same-kit reels still feel unique. `theme` is a TEXT id on highlight_reels, validated here (no DB enum →
-// kits add freely; the catalog is built to grow). Tuned in the reel canvas style lab + curated with Will.
+// same-kit reels still feel unique. `theme` is a validated TEXT id (no DB enum → kits add freely; the
+// catalog is built to grow). Tuned in the reel canvas style lab + curated with Will.
 //
 // NOTE (transitional): the first three keep their legacy ids (classic/warm/punchy) so existing configs +
 // the render-hash tests keep resolving; their LABELS are the polished mood names. Phase 2 formalizes the
@@ -40,7 +40,12 @@ export const THEME_PUNCHY: ReelTheme = {
   transitions: [
     { kind: "cut", durationSec: 0, timing: "linear" },
     { kind: "cut", durationSec: 0, timing: "linear" },
-    { kind: "slide", durationSec: 0.18, dirs: ["from-left", "from-right"], timing: "linear" },
+    {
+      kind: "slide",
+      durationSec: 0.18,
+      dirs: ["from-left", "from-right"],
+      timing: "linear",
+    },
   ],
   kenBurns: { zoom: 0.26, pan: 0.13, punch: 0.1 },
   motionStyle: "punch",
@@ -56,8 +61,18 @@ export const THEME_KINETIC: ReelTheme = {
   photoHoldSec: 1.4,
   holdJitter: 0.18,
   transitions: [
-    { kind: "slide", durationSec: 0.2, dirs: ["from-left", "from-right"], timing: "linear" },
-    { kind: "slide", durationSec: 0.2, dirs: ["from-top", "from-bottom"], timing: "linear" },
+    {
+      kind: "slide",
+      durationSec: 0.2,
+      dirs: ["from-left", "from-right"],
+      timing: "linear",
+    },
+    {
+      kind: "slide",
+      durationSec: 0.2,
+      dirs: ["from-top", "from-bottom"],
+      timing: "linear",
+    },
     { kind: "cut", durationSec: 0, timing: "linear" },
   ],
   kenBurns: { zoom: 0.3, pan: 0.15, punch: 0.14 },
@@ -86,13 +101,19 @@ export const THEME_EDITORIAL: ReelTheme = {
 /** SUNSET (outdoor, festivals, golden hour). Signature: a warm highlight bloom + a slow light sweeping
  *  across, over a golden grade with an easy float. Bathed in golden-hour light. */
 export const THEME_GOLDEN: ReelTheme = {
-  grade: "sepia(0.3) saturate(1.18) contrast(1.0) brightness(1.06) hue-rotate(-10deg)",
+  grade:
+    "sepia(0.3) saturate(1.18) contrast(1.0) brightness(1.06) hue-rotate(-10deg)",
   background: "#14100a",
   photoHoldSec: 2.6,
   holdJitter: 0.1,
   transitions: [
     { kind: "fade", durationSec: 0.65, timing: "spring" },
-    { kind: "wipe", durationSec: 0.6, dirs: ["from-left", "from-right"], timing: "linear" },
+    {
+      kind: "wipe",
+      durationSec: 0.6,
+      dirs: ["from-left", "from-right"],
+      timing: "linear",
+    },
   ],
   kenBurns: { zoom: 0.14, pan: 0.1 },
   motionStyle: "float",
