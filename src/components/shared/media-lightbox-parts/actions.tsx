@@ -16,6 +16,7 @@ import {
   Loader2,
   Share2,
   Trash2,
+  Undo2,
   Volume2,
   VolumeX,
 } from "lucide-react";
@@ -49,12 +50,15 @@ import {
 } from "@/lib/media/share-save";
 import { cn } from "@/lib/utils";
 
+import { PurgeConfirmContent } from "./purge-confirm";
+
 /**
  * THE FLOATING ACTION CAPSULE (`holds=pills`, Will 2026-09-24: "More visible in
  * the lightbox. Additionally, it gives more room for longer guest names by
  * stacking the actions."). One capsule at the foot, apart from the credit (which
  * moved to the top), carrying every action on the photograph: the enjoy group
- * for everyone and, for the host, a divider and the curate group.
+ * for everyone and, for the host, a divider and the curate group; in the
+ * recovery bin, the bin's Restore and Delete permanently.
  *
  * ★ SHARE SENDS THE PICTURE, COPY LINK SENDS THE PLACE, SAVE FOLLOWS THE
  * PLATFORM (`link=file` and his notes; the decision tree is
@@ -145,6 +149,8 @@ export const ActionCapsule = memo(function ActionCapsule({
   deleteConsequence,
   onSetStatus,
   onRemove,
+  onRestore,
+  onPurge,
   soundMuted,
   onToggleSound,
 }: {
@@ -158,6 +164,9 @@ export const ActionCapsule = memo(function ActionCapsule({
   deleteConsequence: string | null;
   onSetStatus?: (item: GridMedia, status: "approved" | "hidden") => void;
   onRemove?: (item: GridMedia) => void;
+  /** The bin's two verbs (the recovery bin only): back to the album, and gone for good. */
+  onRestore?: (item: GridMedia) => void;
+  onPurge?: (item: GridMedia) => void;
   /**
    * A video's sound (undefined for a photograph), which lives here now that the
    * credit holds the top-left corner.
@@ -260,12 +269,16 @@ export const ActionCapsule = memo(function ActionCapsule({
   const ready = (kind: Prep["kind"]) =>
     prep?.kind === kind && prep.state === "ready";
 
+  // ★ THE BIN NEVER SAVES (its items carry no download link, by design), so its
+  // capsule holds no place for a Save that would never come: a waiting glyph
+  // that vanished when the link landed would slide Restore and Delete
+  // permanently out from under the thumb reaching for them.
+  const binned = !!(onRestore || onPurge);
   let save: ReactNode = null;
-  if (!linked) {
+  if (!linked && !binned) {
     // Waiting (the header): the glyph holds Save's place. An album item's
     // download link arrives with its view link (the wire mints both at once),
-    // so this becomes the real Save below; a surface that never saves (the
-    // recovery bin) should hand the viewer linked items, or this shows once.
+    // so this becomes the real Save below.
     save = (
       <button
         type="button"
@@ -360,9 +373,11 @@ export const ActionCapsule = memo(function ActionCapsule({
         </>
       )}
 
-      {/* the enjoy group (guest + host) */}
-      <LikeButton item={item} />
-      <LikeCountBadge count={item.likeCount} />
+      {/* the enjoy group (guest + host). A photograph in the bin is on its way
+          out, so the bin's capsule carries its two verbs and nothing to enjoy,
+          even under a likes store (the lab's scale page keeps one above it). */}
+      {!binned && <LikeButton item={item} />}
+      {!binned && <LikeCountBadge count={item.likeCount} />}
       {save}
       {shareUrl && (
         <ActionTooltip label={shareLabel}>
@@ -518,6 +533,41 @@ export const ActionCapsule = memo(function ActionCapsule({
             </Dialog>
           )}
         </>
+      )}
+
+      {/* THE BIN'S TWO VERBS (album-fixes; Will's question from
+          album-host-wiring, its recommended answer): the tile pane that
+          carries them is a desk's, so on a phone the viewer is the only place
+          they can live, and at a desk it carries them too, as the album's
+          viewer carries the album's. Restore is reversible and acts at once;
+          Delete permanently skips the window, so it confirms first. */}
+      {onRestore && (
+        <ActionTooltip label="Restore">
+          <button
+            type="button"
+            aria-label="Restore"
+            onClick={() => onRestore(item)}
+            className={LIGHTBOX_ACTION}
+          >
+            <Undo2 className="size-5" />
+          </button>
+        </ActionTooltip>
+      )}
+      {onPurge && (
+        <Dialog>
+          <ActionTooltip label="Delete permanently">
+            <DialogTrigger asChild>
+              <button
+                type="button"
+                aria-label="Delete permanently"
+                className={cn(LIGHTBOX_ACTION, "hover:text-destructive")}
+              >
+                <Trash2 className="size-5" />
+              </button>
+            </DialogTrigger>
+          </ActionTooltip>
+          <PurgeConfirmContent onConfirm={() => onPurge(item)} />
+        </Dialog>
       )}
     </div>
   );

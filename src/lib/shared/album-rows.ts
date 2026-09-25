@@ -26,7 +26,8 @@
  * arrival at the growing end takes the new photos and the three rows beside
  * them, a hide or a mid-album insert takes its row and its neighbours, and a
  * window stretches by one row at most when its best answer still breaks the
- * band. No more than four old rows ever move.
+ * band. No more than four old rows ever move, and never a row the reader is
+ * looking at for a change outside it (`HeldRows`).
  *
  * ★ STEPS ARE PHOTOS PER ROW, NEVER PIXELS (`control=slider`: "3-5 fixed
  * steps... a fine pixel slider means images may not cleanly fill the gallery
@@ -582,6 +583,12 @@ export type Reflow = {
     | "infeasible";
 };
 
+/**
+ * THE ROWS A READER CAN SEE, as the OLD layout's row indices, first and last
+ * (inclusive): what a change outside them must never re-lay (`reflowRows`).
+ */
+export type HeldRows = readonly [first: number, last: number];
+
 /** More old rows than this in play at once is a filter, not a trickle. */
 const MAX_LOCAL_ROWS = 8;
 /** An arrival takes the new photographs and this many rows beside them. */
@@ -635,11 +642,27 @@ function worstBand(
  * move moved. Falls back to a full layout whenever the change is not local:
  * the parameters changed, the order of what stayed changed, most of the album
  * changed, or the window cannot be laid under its cap.
+ *
+ * ★ A CHANGE OUTSIDE THE ROWS IN VIEW NEVER RE-LAYS THEM (`held`, the
+ * album-fixes lane). A window takes its row's neighbours on both sides, so a
+ * hide in the row just above the reader's view used to re-lay the row at the
+ * view's top too: the scroll that pays for the rows above kept that row's top
+ * edge still while its photographs re-broke under the reader (a feature row
+ * re-forming took 6 of 8 photographs in view off screen at a desk). Given the
+ * rows in view, a change entirely above or below them keeps to its own side: a
+ * window re-lays and stretches only away from them (keeping its size by
+ * reaching further off), a run landing on their edge joins the row outside
+ * them, and a change too big to be local re-solves each side it touched whole
+ * rather than the album. So every row the reader sees is the same row, and the
+ * anchor's scroll moves nothing on screen. A change IN a row they see
+ * re-justifies around it as before, and a side that cannot be laid under its
+ * cap drops the hold rather than the album.
  */
 export function reflowRows(
   prev: RowsLayout | null,
   input: readonly RowItem[],
   params: RowsParams,
+  held?: HeldRows | null,
 ): Reflow {
   if (!prev) return full(input, params, "first");
   if (!sameParams(prev, params)) return full(input, params, "params");
@@ -683,6 +706,18 @@ export function reflowRows(
     if (keptNew[i] !== keptOld[i]) return full(items, params, "reorder");
 
   const lastRow = prev.rows.length - 1;
+  // The rows in view (see the head note), when they name real rows.
+  const hold =
+    held &&
+    Number.isInteger(held[0]) &&
+    Number.isInteger(held[1]) &&
+    held[0] >= 0 &&
+    held[0] <= held[1] &&
+    held[1] <= lastRow
+      ? held
+      : null;
+  const inHold = (r: number) => !!hold && r >= hold[0] && r <= hold[1];
+
   const dirty = new Set<number>();
   // A hide, or a photograph whose shape or feature changed: its row.
   for (const old of prevItems) {
@@ -700,6 +735,8 @@ export function reflowRows(
   const home = new Array<number>(items.length);
   let headArrival = false;
   let tailArrival = false;
+  // The runs of new photographs: [first, end), and the kept rows either side.
+  const runs: { i: number; j: number; before: number; after: number }[] = [];
   let lastKept = -1;
   for (let i = 0; i < items.length; i++) {
     const r = rowOf.get(items[i].id);
@@ -712,8 +749,38 @@ export function reflowRows(
     let j = i;
     while (j < items.length && !rowOf.has(items[j].id)) j++;
     const after = j < items.length ? rowOf.get(items[j].id)! : -1;
-    const before = lastKept;
-    for (let m = i; m < j; m++) home[m] = before >= 0 ? before : after;
+    runs.push({ i, j, before: lastKept, after });
+    i = j - 1;
+  }
+  // On the edge of the rows in view: a run between two rows may join either.
+  const edge = ({ before, after }: (typeof runs)[number]) =>
+    before >= 0 && after >= 0 && inHold(before) !== inHold(after);
+
+  // A change in a row the reader sees re-justifies around it, as it always
+  // has: the hold is only for a change wholly outside them.
+  const around =
+    hold &&
+    ![...dirty].some(inHold) &&
+    runs.every(
+      (run) =>
+        edge(run) ||
+        (run.before < 0
+          ? !inHold(run.after)
+          : run.after < 0
+            ? !inHold(run.before)
+            : !inHold(run.before) && !inHold(run.after)),
+    )
+      ? hold
+      : null;
+  const inView = (r: number) => !!around && r >= around[0] && r <= around[1];
+
+  for (const run of runs) {
+    const { before, after } = run;
+    // Beside the rows in view, a run on their edge joins the row outside them
+    // (a restore just below the view).
+    const outside = !!around && edge(run);
+    const into = before < 0 || (outside && inView(before)) ? after : before;
+    for (let m = run.i; m < run.j; m++) home[m] = into;
     if (before < 0) {
       // At the head: the growing end for a newest-first album.
       if (prev.anchor === "end") headArrival = true;
@@ -722,29 +789,55 @@ export function reflowRows(
       // At the tail: the growing end for an oldest-first album.
       if (prev.anchor === "start") tailArrival = true;
       else dirty.add(before);
+    } else if (outside) {
+      dirty.add(into);
     } else {
       dirty.add(before);
       dirty.add(after);
     }
-    i = j - 1;
   }
 
   // Each dirty row takes its neighbours; an arrival takes the rows beside it.
+  // Beside the rows in view, a window keeps to its own side of them and keeps
+  // its size by reaching further away.
   const ranges: [number, number][] = [];
-  for (const r of dirty)
-    ranges.push([Math.max(0, r - 1), Math.min(lastRow, r + 1)]);
-  if (headArrival) ranges.push([0, Math.min(lastRow, ARRIVAL_ROWS - 1)]);
+  for (const r of dirty) {
+    if (around && r < around[0]) {
+      const b = Math.min(r + 1, around[0] - 1);
+      ranges.push([Math.max(0, Math.min(r - 1, b - 2)), b]);
+    } else if (around && r > around[1]) {
+      const a = Math.max(r - 1, around[1] + 1);
+      ranges.push([a, Math.min(lastRow, Math.max(r + 1, a + 2))]);
+    } else ranges.push([Math.max(0, r - 1), Math.min(lastRow, r + 1)]);
+  }
+  if (headArrival)
+    ranges.push([
+      0,
+      Math.min(lastRow, ARRIVAL_ROWS - 1, around ? around[0] - 1 : lastRow),
+    ]);
   if (tailArrival)
-    ranges.push([Math.max(0, lastRow - ARRIVAL_ROWS + 1), lastRow]);
+    ranges.push([
+      Math.max(0, lastRow - ARRIVAL_ROWS + 1, around ? around[1] + 1 : 0),
+      lastRow,
+    ]);
   ranges.sort((a, b) => a[0] - b[0]);
-  const windows: [number, number][] = [];
+  let windows: [number, number][] = [];
   for (const r of ranges) {
     const last = windows[windows.length - 1];
     if (last && r[0] <= last[1] + 1) last[1] = Math.max(last[1], r[1]);
     else windows.push([r[0], r[1]]);
   }
   const inPlay = windows.reduce((n, [a, b]) => n + b - a + 1, 0);
-  if (inPlay > MAX_LOCAL_ROWS) return full(items, params, "bulk");
+  if (inPlay > MAX_LOCAL_ROWS) {
+    if (!around) return full(items, params, "bulk");
+    // Too big to be local, beside the rows in view: each side it touched is
+    // re-solved whole, so the rows in view still stay.
+    const sides: [number, number][] = [];
+    if (windows.some(([, b]) => b < around[0])) sides.push([0, around[0] - 1]);
+    if (windows.some(([a]) => a > around[1]))
+      sides.push([around[1] + 1, lastRow]);
+    windows = sides;
+  }
 
   // Where each old row's slice of the NEW list starts and ends.
   const sliceStart = new Array<number>(prev.rows.length + 1).fill(-1);
@@ -785,20 +878,27 @@ export function reflowRows(
     let best = solveWindow(a, b);
     // Still outside the band: stretch by one row (an arrival's window can
     // only stretch away from the growing end, where the album is), never into
-    // a neighbouring window and never past four old rows.
+    // a neighbouring window, never into the rows in view and never past four
+    // old rows.
     if ((!best || best.worst > 1) && b - a + 1 < MAX_WINDOW_ROWS) {
       const prevWin = solvedWindows[solvedWindows.length - 1];
       const nextWin = windows[w + 1];
       const tries: [number, number][] = [];
-      if (b < lastRow && (!nextWin || nextWin[0] > b + 1))
+      if (b < lastRow && (!nextWin || nextWin[0] > b + 1) && !inView(b + 1))
         tries.push([a, b + 1]);
-      if (a > 0 && (!prevWin || prevWin.b < a - 1)) tries.push([a - 1, b]);
+      if (a > 0 && (!prevWin || prevWin.b < a - 1) && !inView(a - 1))
+        tries.push([a - 1, b]);
       for (const [ta, tb] of tries) {
         const t = solveWindow(ta, tb);
         if (t && (!best || t.worst < best.worst)) best = t;
       }
     }
-    if (!best) return full(items, params, "infeasible");
+    // A side that cannot be laid under its cap lets the rows in view go before
+    // it lets the album go: the reflow again, as if nothing were held.
+    if (!best)
+      return around
+        ? reflowRows(prev, input, params)
+        : full(items, params, "infeasible");
     solvedWindows.push({ a: best.a, b: best.b, rows: best.rows });
   }
 

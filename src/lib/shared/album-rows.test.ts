@@ -22,11 +22,13 @@ import {
   capFor,
   DEFAULT_ROW_STEP,
   FEATURE_MIN_RATIO,
+  FEATURE_SCALE,
   layoutRows,
   perRowFor,
   pickFeatures,
   reflowRows,
   ROW_CLASSES,
+  type Reflow,
   type Row,
   type RowItem,
   type RowsLayout,
@@ -341,6 +343,236 @@ describe("a hide re-solves only its window", () => {
           }
         }
     expect(hides).toBeGreaterThan(400);
+  });
+});
+
+/**
+ * ★ A CHANGE OUTSIDE THE ROWS IN VIEW NEVER RE-LAYS THEM (build 10's red-team, the album-fixes
+ * lane): a guest deep in the scale probe at 1440 watched a hide above the view take 6 of 8
+ * photographs in view off screen, because the hide's window reached the row at the view's top and a
+ * feature row re-formed in it. The box hands the engine the rows in view (`HeldRows`); these hold it
+ * to them on the albums a guest and a host lay: party shapes and the probe's uniform landscapes, the
+ * rhythm on, from a phone to a wide desk.
+ */
+describe("a change outside the rows in view never re-lays them", () => {
+  const featured = (items: RowItem[], seed: number, perRow: number) => {
+    const picks = pickFeatures(items, seed, perRow);
+    return items.map((it) =>
+      picks.has(it.id) ? { ...it, feature: true } : it,
+    );
+  };
+  /** The scale probe: every photograph a 320x240 landscape, so any of them may lead a feature row. */
+  const probe = (n: number, prefix = "p"): RowItem[] =>
+    Array.from({ length: n }, (_, i) => ({
+      id: `${prefix}${i}`,
+      ratio: 4 / 3,
+    }));
+  type Case = {
+    p: ReturnType<typeof params> & { feature: "double" };
+    r: () => number;
+    items: RowItem[];
+    layout: RowsLayout;
+    /** The rows in view: a few rows somewhere past the head. */
+    held: [number, number];
+  };
+  function* albums(): Generator<Case> {
+    for (const width of [351, 728, 1400, 2520])
+      for (const step of STEPS)
+        for (let s = 0; s < 6; s++) {
+          const p = { ...params(width, step), feature: "double" as const };
+          const r = rng(s * 31 + width * 3 + step);
+          const shapes = s % 2 === 0 ? album(140, r) : probe(140);
+          const items = featured(shapes, s + 1, p.perRow);
+          const layout = layoutRows(items, p);
+          const n = layout.rows.length;
+          const first = 5 + Math.floor(r() * (n - 14));
+          yield {
+            p,
+            r,
+            items,
+            layout,
+            held: [first, first + 1 + Math.floor(r() * 3)],
+          };
+        }
+  }
+  const pick = <T>(r: () => number, list: readonly T[]) =>
+    list[Math.floor(r() * list.length)];
+  const without = (items: RowItem[], id: string) =>
+    items.filter((it) => it.id !== id);
+  /** Whether any window of a reflow re-solved one of these old rows. */
+  const touched = (next: Reflow, [h0, h1]: readonly [number, number]) =>
+    next.windows.some(([a, b]) => a <= h1 && b >= h0);
+
+  it("a hide above them re-lays only rows above them, a feature row re-forming included", () => {
+    let hides = 0;
+    let reached = 0;
+    for (const { p, r, items, layout, held } of albums()) {
+      const [h0] = held;
+      const before = layout.rows.map(bytes);
+      // The rows just above the view are where a window used to reach into it.
+      for (const q of [h0 - 1, h0 - 2, h0 - 3]) {
+        const victim = pick(r, layout.rows[q].ids);
+        const list = without(items, victim);
+        const next = reflowRows(layout, list, p, held);
+        hides++;
+        if (touched(reflowRows(layout, list, p), held)) reached++;
+        expect(next.kind).toBe("local");
+        expect(next.windows.every(([, b]) => b < h0)).toBe(true);
+        // Every row from the view's first down is the very same row.
+        const after = next.layout.rows.map(bytes);
+        expect(after.slice(after.length - (before.length - h0))).toEqual(
+          before.slice(h0),
+        );
+        expect(flat(next.layout)).toEqual(list.map((it) => it.id));
+        // Under the cap: a feature row's own, at most twice a plain row's.
+        for (const row of next.layout.rows)
+          expect(row.height / layout.target).toBeLessThanOrEqual(
+            capFor(p.perRow) * (row.feature ? FEATURE_SCALE : 1) +
+              1 / layout.target,
+          );
+      }
+    }
+    expect(hides).toBeGreaterThan(200);
+    // The pin bites: without the rows in view, a good share of these re-laid one of them.
+    expect(reached).toBeGreaterThan(hides / 5);
+  });
+
+  it("a hide below them re-lays only rows below them", () => {
+    for (const { p, r, items, layout, held } of albums()) {
+      const [, h1] = held;
+      const before = layout.rows.map(bytes);
+      for (const q of [h1 + 1, h1 + 2]) {
+        const list = without(items, pick(r, layout.rows[q].ids));
+        const next = reflowRows(layout, list, p, held);
+        expect(next.kind).toBe("local");
+        expect(next.windows.every(([a]) => a > h1)).toBe(true);
+        expect(next.layout.rows.slice(0, h1 + 1).map(bytes)).toEqual(
+          before.slice(0, h1 + 1),
+        );
+        expect(flat(next.layout)).toEqual(list.map((it) => it.id));
+      }
+    }
+  });
+
+  it("a restore on their edge joins the row outside them", () => {
+    for (const { p, r, items, layout, held } of albums()) {
+      const [h0, h1] = held;
+      const before = layout.rows.map(bytes);
+      const back = featured(
+        r() < 0.5 ? album(1, r, "back") : probe(1, "back"),
+        7,
+        p.perRow,
+      );
+      // Between the last photograph above the view and the first in it.
+      const top = items.findIndex((it) => it.id === layout.rows[h0].ids[0]);
+      const above = [...items.slice(0, top), ...back, ...items.slice(top)];
+      const up = reflowRows(layout, above, p, held);
+      expect(up.kind).toBe("local");
+      const upRows = up.layout.rows.map(bytes);
+      expect(upRows.slice(upRows.length - (before.length - h0))).toEqual(
+        before.slice(h0),
+      );
+      expect(flat(up.layout)).toEqual(above.map((it) => it.id));
+      // Between the last photograph in the view and the first below it.
+      const end = items.findIndex((it) => it.id === layout.rows[h1 + 1].ids[0]);
+      const below = [...items.slice(0, end), ...back, ...items.slice(end)];
+      const down = reflowRows(layout, below, p, held);
+      expect(down.kind).toBe("local");
+      expect(down.layout.rows.slice(0, h1 + 1).map(bytes)).toEqual(
+        before.slice(0, h1 + 1),
+      );
+      expect(flat(down.layout)).toEqual(below.map((it) => it.id));
+    }
+  });
+
+  it("an arrival at the head re-lays only the rows above a view just past it", () => {
+    let arrivals = 0;
+    let letGo = 0;
+    for (const { p, r, items, layout } of albums()) {
+      const held: [number, number] = [1, 3];
+      const fresh = featured(album(r() < 0.3 ? 3 : 1, r, "new"), 9, p.perRow);
+      const list = [...fresh, ...items];
+      const next = reflowRows(layout, list, p, held);
+      arrivals++;
+      expect(next.kind).toBe("local");
+      if (next.windows[0][1] !== 0) {
+        // The head row alone could not take them under its cap (a portrait
+        // landing on a feature row of two landscapes): the view is let go,
+        // exactly as if nothing were held, and never the album.
+        expect(next).toEqual(reflowRows(layout, list, p));
+        letGo++;
+        continue;
+      }
+      expect(next.windows).toEqual([[0, 0]]);
+      const before = layout.rows.map(bytes);
+      const after = next.layout.rows.map(bytes);
+      expect(after.slice(after.length - (before.length - 1))).toEqual(
+        before.slice(1),
+      );
+    }
+    expect(arrivals).toBeGreaterThan(60);
+    expect(letGo).toBeLessThanOrEqual(arrivals / 20);
+  });
+
+  it("a change too big to be local re-solves the side it touched whole, never the rows in view", () => {
+    for (const { p, r, items, layout } of albums()) {
+      const n = layout.rows.length;
+      if (n < 24) continue;
+      const held: [number, number] = [n - 8, n - 6];
+      // A host's bulk hide of a dozen photographs spread above a guest's view.
+      const gone = new Set<string>();
+      while (gone.size < 12)
+        gone.add(pick(r, layout.rows[Math.floor(r() * (n - 9))].ids));
+      const list = items.filter((it) => !gone.has(it.id));
+      expect(reflowRows(layout, list, p).reason).toBe("bulk");
+      const next = reflowRows(layout, list, p, held);
+      expect(next.kind).toBe("local");
+      expect(next.windows).toEqual([[0, n - 9]]);
+      const before = layout.rows.map(bytes);
+      const after = next.layout.rows.map(bytes);
+      expect(after.slice(after.length - 8)).toEqual(before.slice(n - 8));
+      expect(flat(next.layout)).toEqual(list.map((it) => it.id));
+    }
+  });
+
+  it("a change IN a row they see re-justifies around it, exactly as without them", () => {
+    for (const { p, r, items, layout, held } of albums()) {
+      const [h0, h1] = held;
+      const q = h0 + Math.floor(r() * (h1 - h0 + 1));
+      const list = without(items, pick(r, layout.rows[q].ids));
+      expect(reflowRows(layout, list, p, held)).toEqual(
+        reflowRows(layout, list, p),
+      );
+    }
+  });
+
+  it("a side that cannot be laid under its cap lets the view go before the album", () => {
+    // The head row left with one photograph, beside a view from row 1: alone,
+    // a landscape stands far past the cap, and a window may not reach row 1.
+    const p = { ...params(1400, DEFAULT_ROW_STEP), feature: "double" as const };
+    const items = probe(80);
+    const layout = layoutRows(items, p);
+    const [keep, ...drop] = layout.rows[0].ids;
+    const list = items.filter((it) => !drop.includes(it.id));
+    expect(keep).toBeDefined();
+    const free = reflowRows(layout, list, p);
+    expect(free.kind).toBe("local");
+    expect(reflowRows(layout, list, p, [1, 3])).toEqual(free);
+  });
+
+  it("ignores a range that names no rows", () => {
+    const p = params(1400, DEFAULT_ROW_STEP);
+    const items = album(80, rng(3));
+    const layout = layoutRows(items, p);
+    const list = without(items, layout.rows[4].ids[0]);
+    const free = reflowRows(layout, list, p);
+    for (const bad of [
+      [-1, 2],
+      [3, 2],
+      [2, layout.rows.length],
+      [1.5, 3],
+    ] as [number, number][])
+      expect(reflowRows(layout, list, p, bad)).toEqual(free);
   });
 });
 

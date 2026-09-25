@@ -23,6 +23,7 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GridMedia } from "@/components/app/media-grid";
+import { LikesProvider } from "@/components/likes/likes-provider";
 // The mark's one label constant, read rather than retyped (its word
 // changed once already): the pill, the guest list and the menu move together, and
 // a regex copy of the old string here would have been the one thing that did not.
@@ -568,6 +569,104 @@ describe("MediaLightbox: host curate actions (3c.2)", () => {
     const dialog = screen.getByRole("dialog");
     fireEvent.click(within(dialog).getByRole("button", { name: "Remove" }));
     expect(onRemove).toHaveBeenCalledWith(items[0]);
+  });
+});
+
+/* THE BIN'S TWO VERBS IN ITS VIEWER (album-fixes; Will's question from album-host-wiring, its
+   recommended answer): the bin's tile pane is a desk's, so on a phone Deleted offered no Restore and
+   no Delete permanently at all. The viewer carries both at every width, as the album's viewer
+   carries the album's: Restore at once, Delete permanently behind its confirm. */
+describe("MediaLightbox: the recovery bin's Restore and Delete permanently", () => {
+  // A bin item as the paged bin hands it: removed, no download link, and here not linked yet.
+  const binned: GridMedia = {
+    id: "b1",
+    type: "photo",
+    url: "",
+    status: "removed",
+    width: 400,
+    height: 300,
+  };
+
+  it("restores at once, with no confirm", () => {
+    const onRestore = vi.fn();
+    mount([binned], 0, { onRestore, onPurge: vi.fn() });
+    fireEvent.click(screen.getByRole("button", { name: "Restore" }));
+    expect(onRestore).toHaveBeenCalledWith(binned);
+    expect(screen.queryByRole("dialog", { name: /delete/i })).toBeNull();
+  });
+
+  it("deletes for good only behind its confirm, which names the window it skips", () => {
+    const onPurge = vi.fn();
+    mount([binned], 0, { onRestore: vi.fn(), onPurge });
+    fireEvent.click(screen.getByRole("button", { name: "Delete permanently" }));
+    expect(onPurge).not.toHaveBeenCalled();
+    const dialog = screen.getByRole("dialog", {
+      name: "Delete permanently?",
+    });
+    expect(dialog.textContent).toContain(
+      `${RECENTLY_DELETED_WINDOW_DAYS}-day recovery window`,
+    );
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Delete permanently" }),
+    );
+    expect(onPurge).toHaveBeenCalledWith(binned);
+  });
+
+  it("holds no place for a Save the bin never offers, linked or not", () => {
+    const unlinked = mount([binned], 0, {
+      onRestore: vi.fn(),
+      onPurge: vi.fn(),
+    });
+    expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
+    unlinked.unmount();
+    const linked = mount([{ ...binned, url: "https://r2.test/b1.jpg" }], 0, {
+      onRestore: vi.fn(),
+      onPurge: vi.fn(),
+    });
+    expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Save" })).toBeNull();
+    // An album's unlinked photograph still holds Save's place while it waits.
+    linked.unmount();
+    mount([{ ...binned, status: "approved" }], 0);
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+  });
+
+  it("carries nothing to enjoy, even under a likes store", () => {
+    render(
+      <LikesProvider mediaIds={[binned.id]} initialLikedIds={[]}>
+        <TooltipProvider>
+          <MediaLightbox
+            items={[{ ...binned, url: "https://r2.test/b1.jpg", likeCount: 3 }]}
+            index={0}
+            onClose={() => {}}
+            onIndexChange={() => {}}
+            onRestore={vi.fn()}
+            onPurge={vi.fn()}
+          />
+        </TooltipProvider>
+      </LikesProvider>,
+    );
+    const capsule = document.querySelector<HTMLElement>(
+      "[data-lightbox-capsule]",
+    )!;
+    expect(within(capsule).queryByRole("button", { name: /like/i })).toBeNull();
+    expect(
+      within(capsule)
+        .getAllByRole("button")
+        .map((b) => b.getAttribute("aria-label")),
+    ).toEqual(["Restore", "Delete permanently"]);
+  });
+
+  it("appears nowhere but the bin: the host's album viewer carries neither", () => {
+    mount(PHOTOS, 0, {
+      viewerIsHost: true,
+      onSetStatus: vi.fn(),
+      onRemove: vi.fn(),
+    });
+    expect(screen.queryByRole("button", { name: "Restore" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Delete permanently" }),
+    ).toBeNull();
   });
 });
 
