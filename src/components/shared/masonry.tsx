@@ -29,11 +29,11 @@
  * ★ THE PRE-MEASURE RENDER IS TODAY'S BOX, AND THE MEASURED ONE IS THE SAME
  * BOX. The column COUNT needs the container's width, which the server does not
  * have, so the first paint is the CSS-columns box this file has always shipped.
- * The measured columns place each tile absolutely in that SAME box, in the same
- * DOM order, from `calc()`s on the box's own width (`placeColumns`): a tile
- * that changed parent would remount, and the columns used to be one wrapper
- * each, so the first measure remounted every tile (a second entrance, every
- * image decoded again), and so did every filter. Now the measure is a restyle.
+ * The measured columns keep every tile in that SAME box, in the same DOM order,
+ * flowing in columns by `order` (`placeColumns`): a tile that changed parent
+ * would remount, and the columns used to be one wrapper each, so the first
+ * measure remounted every tile (a second entrance, every image decoded again),
+ * and so did every filter. Now the measure is a restyle.
  *
  * ★ AND `layout="rows"` IS THE JUSTIFIED ALBUM (`album-columns`: Will's
  * `layout=justified`), opt-in beside masonry, which stays the default until the
@@ -230,10 +230,22 @@ export function columnsFor(el: HTMLElement): number {
   // then ran one column past the CSS box wherever a window sat just over a
   // boundary (a 1490 window: six 238px columns under a 240 floor, where the
   // rule, the pre-measure paint and the skeleton all lay five), so the album
-  // jumped a column as it hydrated. Both boxes this grid draws set
-  // `gap: var(--gap-gallery)`, and a real length property computes to pixels.
-  const gap = parseFloat(style.columnGap) || 0;
+  // jumped a column as it hydrated. A real length property computes to pixels.
+  const gap = resolvedGap(el, style);
   return Math.max(PHONE_COLUMNS, Math.floor((width + gap) / (floor + gap)));
+}
+
+/**
+ * The gallery gap as a box resolves it: its own column gap in the flow (the
+ * pre-measure box sets `gap: var(--gap-gallery)`), and once measured, when the
+ * box carries no gap of its own (its tiles carry it), a tile's bottom margin,
+ * which is the same token.
+ */
+function resolvedGap(el: HTMLElement, style = getComputedStyle(el)): number {
+  const own = parseFloat(style.columnGap);
+  if (own) return own;
+  const tile = el.querySelector<HTMLElement>(":scope > [data-media-tile]");
+  return tile ? parseFloat(getComputedStyle(tile).marginBottom) || 0 : 0;
 }
 
 /**
@@ -284,50 +296,73 @@ export function distributeColumns<T extends GridMedia>(
   return out;
 }
 
-/** A number for a `calc()`: short, and never an exponent. */
-const n6 = (x: number) => String(Math.round(x * 1e6) / 1e6);
+/** A measured masonry box: how many columns, its width and its gap, in px. */
+export type ColumnBox = { cols: number; width: number; gap: number };
+
+/** The `order` stride of one column: more photographs than any column will hold. */
+const COLUMN_ORDER = 100_000;
 
 /**
- * THE MEASURED COLUMNS, AS PLACES IN THE ONE BOX: each tile's absolute box, the
- * box's height, and the first tile of each column (the album's first row).
+ * THE MEASURED COLUMNS, AS ONE FLEX BOX FLOWING IN COLUMNS: each tile's
+ * `order` and box, the column breaks' orders, the box's height, and the first
+ * tile of each column (the album's first row). The box is `flex-direction:
+ * column` wrapped at its tallest column's height, a full-height break after
+ * each column, and every tile a direct child of it in the album's own DOM
+ * order, so a measure or a filter moves no tile to a new parent.
  *
- * ★ `calc()` ON THE BOX'S OWN WIDTH, SO A RESIZE RE-PLACES NOTHING. A column is
- * `--col-w` wide (the box's `100cqw` shared out), a tile's height is its width
- * times its shape, so a tile's top is the shapes above it in `--col-w`s plus
- * their gaps: the browser recomputes every place as the box resizes, and this
- * runs again only when the COUNT changes. The first column starts under the
- * head (`--head-h`, the in-flight tiles, measured).
+ * ★ A TILE'S ORDER COUNTS FROM ITS COLUMN'S OLDEST END, SO AN ARRIVAL RESTYLES
+ * NOTHING. Its column is its `order` stride and its place in it is counted up
+ * from the bottom, so a photograph landing at a column's head takes the next
+ * smaller order and every tile already there keeps its style: the column moves
+ * down by layout alone, which is all the old flex columns ever paid. Placing
+ * tiles absolutely instead cost a restyle per moved tile (573 tiles and 28ms of
+ * style an arrival at a phone's two columns, measured).
+ *
+ * The height has slack: a column's real height is the browser's sum of its
+ * tiles' rounded heights, and a box a hair too short would wrap a column's
+ * last photograph into a column of its own.
  */
 export function placeColumns<T extends GridMedia>(
   items: readonly T[],
-  cols: number,
+  { cols, width, gap }: ColumnBox,
   clampAspect: boolean,
-): { box: Map<string, CSSProperties>; height: string; first: Set<string> } {
+  headHeight = 0,
+): {
+  box: Map<string, CSSProperties>;
+  breaks: number[];
+  headOrder: number;
+  colWidth: number;
+  height: number;
+  first: Set<string>;
+} {
+  const colWidth = Math.max(0, (width - (cols - 1) * gap) / cols);
   const box = new Map<string, CSSProperties>();
   const first = new Set<string>();
-  const heights: string[] = [];
+  let height = 0;
   distributeColumns(items, cols, clampAspect).forEach((column, c) => {
-    const head = c === 0 ? " + var(--head-h, 0px)" : "";
-    let above = 0;
+    let h = c === 0 ? headHeight : 0;
     column.forEach((item, k) => {
       if (k === 0) first.add(item.id);
       const aspect = tileAspect(item, clampAspect);
       box.set(item.id, {
-        position: "absolute",
-        left: `calc(${c} * (var(--col-w) + var(--gap-gallery)))`,
-        top: `calc(${n6(above)} * var(--col-w) + ${k} * var(--gap-gallery)${head})`,
-        width: "var(--col-w)",
+        // Newest at the head: the oldest takes the column's largest order.
+        order: (c + 1) * COLUMN_ORDER - (column.length - k),
+        width: colWidth,
+        marginLeft: c > 0 ? gap : 0,
+        // The box is the tile's whole style, so it carries the shape too.
         aspectRatio: aspect,
       });
-      above += heightInWidths(aspect);
+      h += colWidth * heightInWidths(aspect) + gap;
     });
-    heights.push(
-      `calc(${n6(above)} * var(--col-w) + ${column.length} * var(--gap-gallery)${head})`,
-    );
+    // A sixty-fourth of a pixel a tile is the most a browser's rounding adds.
+    height = Math.max(height, h + column.length / 32 + 2);
   });
   return {
     box,
-    height: heights.length === 1 ? heights[0] : `max(${heights.join(", ")})`,
+    breaks: Array.from({ length: cols - 1 }, (_, c) => (c + 1) * COLUMN_ORDER),
+    headOrder: 0,
+    colWidth,
+    height,
     first,
   };
 }
@@ -523,7 +558,7 @@ export function MasonryColumns<T extends GridMedia>(props: {
   // null until the box is measured: the first paint is the CSS-columns box (see
   // the head comment), so the server HTML and the hydrated tree hold the same
   // height and the swap is a re-balance rather than a jump.
-  const [cols, setCols] = useState<number | null>(null);
+  const [cols, setCols] = useState<ColumnBox | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
   // The grid's root in every layout.
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -618,12 +653,16 @@ export function MasonryColumns<T extends GridMedia>(props: {
   const measure = useCallback(() => {
     const el = boxRef.current;
     if (!el) return;
-    setCols((prev) => {
-      const next = columnsFor(el);
-      // An unmeasurable box keeps whatever it had (see columnsFor).
-      if (next === 0) return prev;
-      return prev === next ? prev : next;
-    });
+    const count = columnsFor(el);
+    // An unmeasurable box keeps whatever it had (see columnsFor).
+    if (count === 0) return;
+    const width = el.clientWidth;
+    const gap = resolvedGap(el);
+    setCols((prev) =>
+      prev && prev.cols === count && prev.width === width && prev.gap === gap
+        ? prev
+        : { cols: count, width, gap },
+    );
   }, []);
   useLayoutEffect(() => {
     // The rows measure their own box (`AlbumRows`).
@@ -646,8 +685,8 @@ export function MasonryColumns<T extends GridMedia>(props: {
     () =>
       uniform || rows || cols === null
         ? null
-        : placeColumns(items, cols, clampAspect),
-    [uniform, rows, cols, items, clampAspect],
+        : placeColumns(items, cols, clampAspect, headHeight),
+    [uniform, rows, cols, items, clampAspect, headHeight],
   );
   useLayoutEffect(() => {
     const read = () =>
@@ -833,18 +872,13 @@ export function MasonryColumns<T extends GridMedia>(props: {
             uniform
               ? GALLERY_UNIFORM_COLUMNS
               : placed
-                ? // The measured columns: the same box, restyled (see the head note).
-                  "[container-type:inline-size] relative w-full gap-[var(--gap-gallery)]"
+                ? // The measured columns: the same box, restyled (`placeColumns`);
+                  // the tiles carry the gap (a bottom margin, a left one past
+                  // the first column), so a column break adds none.
+                  "flex w-full flex-col flex-wrap content-start"
                 : GALLERY_COLUMNS
           }
-          style={
-            placed && cols
-              ? ({
-                  "--col-w": `calc((100cqw - ${cols - 1} * var(--gap-gallery)) / ${cols})`,
-                  "--head-h": `${headHeight}px`,
-                } as CSSProperties)
-              : undefined
-          }
+          style={placed ? { height: placed.height } : undefined}
         >
           {hasHead && (
             <div
@@ -855,12 +889,7 @@ export function MasonryColumns<T extends GridMedia>(props: {
               className={cn(placed ? "flow-root" : "contents")}
               style={
                 placed
-                  ? {
-                      position: "absolute",
-                      left: 0,
-                      top: 0,
-                      width: "var(--col-w)",
-                    }
+                  ? { order: placed.headOrder, width: placed.colWidth }
                   : undefined
               }
             >
@@ -877,10 +906,15 @@ export function MasonryColumns<T extends GridMedia>(props: {
               eager={placed ? placed.first.has(item.id) : !uniform && i < 2}
             />
           ))}
-          {placed && (
-            // The box's height: absolutely placed tiles take none of their own.
-            <div aria-hidden style={{ height: placed.height }} />
-          )}
+          {placed?.breaks.map((order) => (
+            // A column ends here: a full-height line of its own, no width.
+            <div
+              key={`column:${order}`}
+              aria-hidden
+              data-column-break
+              style={{ order, flexBasis: "100%", width: 0 }}
+            />
+          ))}
         </div>
       )}
 

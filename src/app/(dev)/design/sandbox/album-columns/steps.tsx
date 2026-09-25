@@ -45,10 +45,11 @@ function RowGlyph({ count }: { count: number }) {
 }
 
 /**
- * THE STEPPED SLIDER: five stops, the densest at the left, the largest at the
- * right (the Photos and Finder slider's own direction: smaller to the left).
- * Five real radio buttons on a drawn track, so a keyboard and a screen reader
- * get a group of five choices rather than a range of pixels.
+ * THE STEPPED SLIDER: a stop a step (three since the round's pick, five when it
+ * was asked), the densest at the left, the largest at the right (the Photos and
+ * Finder slider's own direction: smaller to the left). Real radio buttons on a
+ * drawn track, so a keyboard and a screen reader get a group of choices rather
+ * than a range of pixels. Production's is `shared/density-control.tsx`.
  */
 function StepSlider({
   step,
@@ -167,7 +168,7 @@ function DrawnViewMenu({
   );
 }
 
-/** FIVE SEGMENTS beside View, each drawn as the photographs a row it holds. */
+/** SEGMENTS beside View (one a step), each drawn as the photographs a row it holds. */
 function Segments({
   step,
   onStep,
@@ -400,7 +401,7 @@ function StepsShowcase({
 
 const TITLE: Record<StepsOption, string> = {
   menu: "A stepped slider in View",
-  segments: "Five segments at a desk",
+  segments: "Segments at a desk",
   pinch: "Pinch, no control",
   both: "The slider, and pinch too",
 };

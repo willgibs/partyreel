@@ -85,6 +85,7 @@ import {
 import { rowRatio } from "@/lib/media/tile-aspect";
 import {
   DEFAULT_ROW_STEP,
+  layoutRows,
   meanRatio,
   perRowFor,
   pickFeatures,
@@ -146,19 +147,129 @@ export type AlbumHandle = {
 
 /**
  * THE FIRST PAINT'S WIDTH CLASSES: `ROW_CLASSES`' own breakpoints as container
- * queries, each picking that class's count at the step. A class string because
- * Tailwind reads classes from source, so it cannot be built from the table;
- * `masonry.test.tsx` holds the two to the same numbers.
+ * queries, each picking that class's count and the rest's height at the step.
+ * Class strings because Tailwind reads classes from source, so they cannot be
+ * built from the table; `masonry.test.tsx` holds them to the same numbers.
  */
 export const ROWS_FIRST_PAINT =
-  "gap-y-[var(--gap-gallery)] [--rows-n:var(--rows-n0)] @min-[480px]:[--rows-n:var(--rows-n1)] @min-[900px]:[--rows-n:var(--rows-n2)] @min-[1280px]:[--rows-n:var(--rows-n3)]";
+  "[--rows-fill:var(--rows-fill0)] [--rows-rest:var(--rows-rest0)] @min-[480px]:[--rows-fill:var(--rows-fill1)] @min-[480px]:[--rows-rest:var(--rows-rest1)] @min-[900px]:[--rows-fill:var(--rows-fill2)] @min-[900px]:[--rows-rest:var(--rows-rest2)] @min-[1280px]:[--rows-fill:var(--rows-fill3)] @min-[1280px]:[--rows-rest:var(--rows-rest3)]";
+
+/** A first-paint row break shown only in its own width class (same breakpoints as above). */
+export const CLASS_BREAKS = [
+  "@max-[480px]:block",
+  "@min-[480px]:@max-[900px]:block",
+  "@min-[900px]:@max-[1280px]:block",
+  "@min-[1280px]:block",
+] as const;
+
+/**
+ * THE WIDTH EACH CLASS'S FIRST PAINT IS LAID AT: a phone's album box, a
+ * tablet's, a small laptop's, a desk's. The server has no width, but a class's
+ * breaks barely depend on it: the engine's cost is a ratio of heights, and the
+ * gaps are the only length in it, so the rows laid at the class's nominal width
+ * are the rows the measure lays at any width in the class, give or take a
+ * marginal row.
+ */
+const NOMINAL_WIDTH = [351, 728, 984, 1400] as const;
+const NOMINAL_GAP = 4;
 
 /**
  * HOW MANY PHOTOGRAPHS THE FIRST PAINT DRAWS before the box is measured: six of
  * the densest desk rows, more than a phone's first screens, and the rest a
- * spacer until the window takes over. The server renders exactly these.
+ * spacer until the window takes over. The server renders exactly these (plus
+ * whatever completes the row the last of them sits in, in any class).
  */
 export const FIRST_PAINT = 48;
+
+/**
+ * ★ THE FIRST PAINT IS ALREADY THE ENGINE'S ROWS. It used to wrap greedily on
+ * the target, and the measured layout then re-broke every row on screen: on a
+ * phone whose JavaScript lands a second after the HTML, the whole first screen
+ * jumped (a layout shift of 0.76, measured at a 4x throttle). So the server lays
+ * the rows once per width class at that class's nominal width, draws each
+ * class's breaks as full-width breaks shown only in their class, and a spacer per
+ * class stands for the rest at its laid height, scaled to the box.
+ *
+ * ★ EVERY BASIS IS ZERO, SO ONLY A DRAWN BREAK ENDS A LINE. Flex wraps a line on
+ * its items' bases before it shrinks anything, so a basis anywhere near a
+ * photograph's width wrapped a class's row early wherever its bases ran over
+ * the box. With zero bases a line is exactly what lies between two breaks, and
+ * each photograph's `flex-grow` (its ratio) makes it the engine's row. A last
+ * line a class leaves unfinished shares its width with a filler grown by that
+ * class's missing ratio (`fill`), so it stands about the target height.
+ */
+function firstPaintPlan(
+  list: readonly RowItem[],
+  step: RowStep,
+  rhythm: RowRhythm,
+  seed: number,
+  anchor: RowAnchor,
+  feature: RowFeature,
+): {
+  count: number;
+  breaksAfter: Map<string, number[]>;
+  rest: string[];
+  fill: number[];
+} {
+  const laid = NOMINAL_WIDTH.map((width, c) => {
+    const perRow = ROW_CLASSES[c].perRow[step];
+    const picks = rhythm === "plain" ? null : pickFeatures(list, seed, perRow);
+    const items = picks
+      ? list.map((it) => (picks.has(it.id) ? { ...it, feature: true } : it))
+      : list;
+    return layoutRows(items, {
+      width,
+      gap: NOMINAL_GAP,
+      perRow,
+      anchor,
+      feature,
+    });
+  });
+  // Every photograph up to the end of the row the last of the first ones sits
+  // in, in whichever class that row runs longest.
+  let count = Math.min(list.length, FIRST_PAINT);
+  for (const layout of laid) {
+    let end = 0;
+    for (const row of layout.rows) {
+      if (end >= FIRST_PAINT) break;
+      end += row.ids.length;
+    }
+    count = Math.max(count, Math.min(list.length, end));
+  }
+  const breaksAfter = new Map<string, number[]>();
+  const rest: string[] = [];
+  const fill: number[] = [];
+  const mean = meanRatio(list);
+  laid.forEach((layout, c) => {
+    let end = 0;
+    let height = 0;
+    // What a row needs to stand at the target height, in ratio: a line short
+    // of it takes the balance as filler.
+    const full = ROW_CLASSES[c].perRow[step] * mean;
+    // An album too small to fill a row is one centred row at the cap: no
+    // break, so its line keeps about the target height rather than stretching
+    // a photograph or two across the whole box.
+    if (layout.tiny) {
+      rest.push("0px");
+      fill.push(Math.max(0, full - list.reduce((n, it) => n + it.ratio, 0)));
+      return;
+    }
+    for (const row of layout.rows) {
+      if (end + row.ids.length > count) {
+        height += row.height + NOMINAL_GAP;
+        continue;
+      }
+      end += row.ids.length;
+      const last = row.ids[row.ids.length - 1];
+      breaksAfter.set(last, [...(breaksAfter.get(last) ?? []), c]);
+    }
+    let unfinished = 0;
+    for (let i = end; i < count; i++) unfinished += list[i].ratio;
+    fill.push(unfinished > 0 ? Math.max(0, full - unfinished) : 0);
+    rest.push(`calc(${height / NOMINAL_WIDTH[c]} * 100cqw)`);
+  });
+  return { count, breaksAfter, rest, fill };
+}
 
 /** Where a head slot's id is kept apart from every photograph's. */
 const HEAD_ID = "rows-head:";
@@ -597,6 +708,14 @@ export function AlbumRows<
     () => new Map<string, T>(items.map((m) => [m.id, m] as const)),
     [items],
   );
+  // Only until the box is measured: the first paint's rows, per width class.
+  const plan = useMemo(
+    () =>
+      box
+        ? null
+        : firstPaintPlan(rowItems, step, rhythm, seed, anchor, feature),
+    [box, rowItems, step, rhythm, seed, anchor, feature],
+  );
 
   // THE ROWS, derived during render from the last rows (React's "storing
   // information from previous renders"): the engine is pure and fast, and a
@@ -856,45 +975,63 @@ export function AlbumRows<
       return out;
     }
 
-    // The first paint (see the head note): the first photographs, greedy and
-    // justified per line, then a spacer standing for the rest.
-    const first = rowItems.slice(0, FIRST_PAINT);
-    first.forEach((it, i) =>
+    // The first paint (see `firstPaintPlan`): the first photographs on each
+    // class's own breaks, each line justified by its shapes (a width in
+    // proportion to its ratio, the height the line's), then a spacer for the rest.
+    if (!plan) return out;
+    rowItems.slice(0, plan.count).forEach((it, i) => {
       out.push(
         drawn(
           it.id,
           {
             flexGrow: it.ratio,
-            flexBasis: `calc(var(--rows-unit) * ${it.ratio})`,
+            flexBasis: 0,
             aspectRatio: it.ratio,
             minWidth: 0,
           },
           { fresh: true, entering: false, eager: i < 3 },
         ),
-      ),
-    );
-    // The last line keeps its target height rather than blowing one
-    // photograph up to the full width.
+      );
+      const classes = plan.breaksAfter.get(it.id);
+      if (classes)
+        out.push(
+          <div
+            key={`break:${it.id}`}
+            aria-hidden
+            data-row-break
+            className={cn(
+              "hidden basis-full",
+              ...classes.map((c) => CLASS_BREAKS[c]),
+            )}
+            style={{ height: "var(--gap-gallery)" }}
+          />,
+        );
+    });
+    // A last line a class leaves unfinished keeps about the target height
+    // rather than blowing its photographs up to the full width.
     out.push(
-      <div key="rows-rest" aria-hidden className="h-0 grow-[1000] basis-0" />,
+      <div
+        key="rows-rest"
+        aria-hidden
+        className="h-0 basis-0"
+        style={{ flexGrow: "var(--rows-fill)" }}
+      />,
     );
-    const rest = rowItems.length - first.length;
-    if (rest > 0)
+    if (rowItems.length > plan.count)
       out.push(
         <div
           key="spacer:estimate"
           aria-hidden
           data-rows-spacer
           className="basis-full"
-          style={{
-            height: `calc(${rest} / var(--rows-n) * (var(--rows-unit) + var(--gap-gallery)))`,
-          }}
+          style={{ height: "var(--rows-rest)" }}
         />,
       );
     return out;
     // `ranges` is read through its key: a new array for the same rows rebuilds nothing.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    plan,
     layout,
     tops,
     rangesKey,
@@ -1013,20 +1150,16 @@ export function AlbumRows<
     if (!next || !e.currentTarget.contains(next)) setPinId(null);
   };
 
-  // Each width class's count at this step, for the first paint's container
-  // queries; the engine reads the same table. ★ FIRST PAINT ONLY: the unit
-  // carries the album's mean shape, which every arrival nudges, and a custom
-  // property changed on the grid restyles every one of its descendants: a
-  // thousand tiles restyled, on every arrival, for a value nothing reads once
-  // the rows are measured.
+  // Each width class's filler and rest, for the first paint's container
+  // queries (`firstPaintPlan`). ★ FIRST PAINT ONLY: a custom property changed on
+  // the grid restyles every one of its descendants, so none is written once the
+  // rows are measured.
   const vars: Record<string, string | number> = {};
-  if (!layout) {
-    ROW_CLASSES.forEach((c, i) => {
-      vars[`--rows-n${i}`] = c.perRow[step];
+  if (!layout && plan)
+    ROW_CLASSES.forEach((_, i) => {
+      vars[`--rows-fill${i}`] = plan.fill[i];
+      vars[`--rows-rest${i}`] = plan.rest[i];
     });
-    vars["--rows-unit"] =
-      `calc((100cqw - (var(--rows-n) - 1) * var(--gap-gallery)) / (var(--rows-n) * ${meanRatio(rowItems)}))`;
-  }
 
   return (
     <div className="@container w-full">
@@ -1050,7 +1183,8 @@ export function AlbumRows<
         }
         className={cn(
           "flex w-full flex-wrap gap-x-[var(--gap-gallery)]",
-          layout ? "gap-y-0" : ROWS_FIRST_PAINT,
+          "gap-y-0",
+          !layout && ROWS_FIRST_PAINT,
           layout?.tiny && "justify-center",
         )}
       >

@@ -6,6 +6,7 @@ import type { GridMedia } from "@/components/app/media-grid";
 import { LikesProvider } from "@/components/likes/likes-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
+  CLASS_BREAKS,
   ROWS_FIRST_PAINT,
   steadyWidth,
 } from "@/components/shared/album-window";
@@ -16,7 +17,8 @@ import {
   placeColumns,
   type TileAction,
 } from "@/components/shared/masonry";
-import { ROW_CLASSES } from "@/lib/shared/album-rows";
+import { rowRatio } from "@/lib/media/tile-aspect";
+import { layoutRows, perRowFor, ROW_CLASSES } from "@/lib/shared/album-rows";
 
 // The lazy wrapper is next/dynamic, which resolves after the pin is over; the
 // address pins need the real viewer, so it mounts synchronously here (closed, it
@@ -420,8 +422,9 @@ describe("distributeColumns keeps an album still when one lands", () => {
  * ★ THE MEASURED COLUMNS ARE THE SAME BOX, RESTYLED (the album-window lane).
  * The columns used to be one wrapper each, so the first measure (and every
  * filter) moved every tile to a new parent, and React remounts a node that
- * changes parent: a second entrance and every photograph decoded again. Now a
- * tile is placed absolutely in the one box, from `calc()`s on its width.
+ * changes parent: a second entrance and every photograph decoded again. Now
+ * the one box flows in columns and each tile's column is its `order`, counted
+ * from the column's oldest end, so an arrival restyles no tile already there.
  */
 describe("the measured columns place tiles in the one box", () => {
   const album: GridMedia[] = Array.from({ length: 11 }, (_, i) => ({
@@ -432,47 +435,77 @@ describe("the measured columns place tiles in the one box", () => {
     height: [150, 100, 75][i % 3],
   }));
 
-  it("places each column's tiles at the shapes and gaps above them", () => {
-    const placed = placeColumns(album, 3, false);
+  it("flows each column by order, counted from its oldest end, under the head", () => {
+    const box = { cols: 3, width: 908, gap: 4 };
+    const placed = placeColumns(album, box, false, 50);
+    expect(placed.colWidth).toBe(300);
     const cols = distributeColumns(album, 3, false);
+    let tallest = 0;
     cols.forEach((col, c) => {
-      let above = 0;
+      let y = c === 0 ? 50 : 0;
       col.forEach((item, k) => {
-        const box = placed.box.get(item.id)!;
-        expect(box.position).toBe("absolute");
-        expect(box.width).toBe("var(--col-w)");
-        expect(box.left).toBe(
-          `calc(${c} * (var(--col-w) + var(--gap-gallery)))`,
-        );
-        expect(box.top).toBe(
-          `calc(${Math.round(above * 1e6) / 1e6} * var(--col-w) + ${k} * var(--gap-gallery)${c === 0 ? " + var(--head-h, 0px)" : ""})`,
-        );
-        above += (item.height ?? 1) / (item.width ?? 1);
+        const at = placed.box.get(item.id)!;
+        expect(at.width).toBe(300);
+        expect(at.marginLeft).toBe(c > 0 ? 4 : 0);
+        // The column's stride, the oldest at its end.
+        expect(at.order).toBe((c + 1) * 100_000 - (col.length - k));
+        y += (300 * (item.height ?? 1)) / (item.width ?? 1) + 4;
       });
+      tallest = Math.max(tallest, y);
     });
+    // Each column ends at a break; the head leads the first column.
+    expect(placed.breaks).toEqual([100_000, 200_000]);
+    expect(placed.headOrder).toBeLessThan(
+      Math.min(...cols[0].map((m) => placed.box.get(m.id)!.order as number)),
+    );
     // The first row: each column's head.
     expect([...placed.first].sort()).toEqual(
       cols.map((col) => col[0].id).sort(),
     );
-    // The box stands as tall as its tallest column.
-    expect(placed.height.startsWith("max(")).toBe(true);
+    // The box stands as tall as its tallest column, and a little more (the
+    // browser rounds each tile; a box a hair short would wrap a column).
+    expect(placed.height).toBeGreaterThan(tallest);
+    expect(placed.height).toBeLessThan(tallest + 4);
+  });
+
+  it("restyles no tile already there when one lands at a column's head", () => {
+    const box = { cols: 3, width: 908, gap: 4 };
+    const before = placeColumns(album, box, false);
+    const arrival: GridMedia = {
+      id: "new",
+      type: "photo",
+      url: "/n.jpg",
+      width: 100,
+      height: 120,
+    };
+    const after = placeColumns([arrival, ...album], box, false);
+    for (const m of album)
+      expect(after.box.get(m.id), `${m.id} restyled`).toEqual(
+        before.box.get(m.id),
+      );
+    expect(after.box.has("new")).toBe(true);
   });
 
   it("balances a clamped host album on its real shapes, not as squares", () => {
     // The clamped spelling is one number ("1.5"), which the balance once read
-    // as a square: every tile counted 1, whatever its shape.
-    const wide: GridMedia[] = Array.from({ length: 6 }, (_, i) => ({
-      id: `w${i}`,
+    // as a square: every tile counted 1, whatever its shape. Newest first: two
+    // wide photographs, then a tall one (clamped to 0.66, 1.5 widths tall).
+    const shot = (id: string, w: number, h: number): GridMedia => ({
+      id,
       type: "photo",
-      url: "/w.jpg",
-      width: i < 2 ? 100 : 300,
-      height: i < 2 ? 300 : 100,
-    }));
-    const placed = placeColumns(wide, 2, true);
-    const tops = wide.map((m) => placed.box.get(m.id)!.top as string);
-    // A tall tile above a column's second tile pushes it down by more than a
-    // wide one would: the heights read are the clamped ratios' own.
-    expect(tops.some((t) => t.includes("1.515152"))).toBe(true);
+      url: `/${id}.jpg`,
+      width: w,
+      height: h,
+    });
+    const album = [
+      shot("a", 300, 100),
+      shot("b", 300, 100),
+      shot("tall", 100, 300),
+    ];
+    const cols = distributeColumns(album, 2, true);
+    // On the real shapes the tall one stands alone and the two wide share a
+    // column (1.5 against 0.67 + 0.67); read as squares, "a" joined the tall one.
+    expect(cols.map((c) => c.map((m) => m.id))).toEqual([["tall"], ["a", "b"]]);
   });
 
   it("measures without remounting a single tile, and filters without remounting either", () => {
@@ -506,11 +539,11 @@ describe("the measured columns place tiles in the one box", () => {
       width = 1200;
       act(() => observers.forEach((o) => o()));
       expect(box.className).not.toContain("columns-2");
-      expect(box.style.getPropertyValue("--col-w")).toContain("100cqw");
+      expect(parseFloat(box.style.height)).toBeGreaterThan(0);
       for (const [id, node] of nodes) {
         const now = box.querySelector(`[data-media-id="${id}"]`);
         expect(now, `${id} was remounted by the measure`).toBe(node);
-        expect(now!.getAttribute("style")).toContain("position: absolute");
+        expect(now!.getAttribute("style")).toMatch(/order: \d+/);
       }
       // The Yours filter keeps what it keeps, node for node.
       rerender(<MasonryColumns items={album.filter((_, i) => i % 2 === 0)} />);
@@ -870,12 +903,27 @@ describe('layout="rows": the justified album on the one grid', () => {
   it("keeps the first paint's width classes on the engine's own breakpoints", () => {
     const queried = [
       ...ROWS_FIRST_PAINT.matchAll(
-        /@min-\[(\d+)px\]:\[--rows-n:var\(--rows-n(\d)\)\]/g,
+        /@min-\[(\d+)px\]:\[--rows-fill:var\(--rows-fill(\d)\)\]/g,
       ),
     ].map((m) => [Number(m[2]), Number(m[1])]);
     expect(queried).toEqual(ROW_CLASSES.slice(1).map((c, i) => [i + 1, c.min]));
-    expect(ROWS_FIRST_PAINT).toContain("[--rows-n:var(--rows-n0)]");
+    expect(ROWS_FIRST_PAINT).toContain("[--rows-fill:var(--rows-fill0)]");
     expect(ROW_CLASSES[0].min).toBe(0);
+    // The rest's height follows the same classes.
+    const rests = [
+      ...ROWS_FIRST_PAINT.matchAll(
+        /@min-\[(\d+)px\]:\[--rows-rest:var\(--rows-rest(\d)\)\]/g,
+      ),
+    ].map((m) => [Number(m[2]), Number(m[1])]);
+    expect(rests).toEqual(queried);
+    // And each class's breaks show inside exactly its own range.
+    const bounds = [...ROW_CLASSES.map((c) => c.min), Infinity];
+    CLASS_BREAKS.forEach((cls, i) => {
+      const min = cls.match(/@min-\[(\d+)px\]/);
+      const max = cls.match(/@max-\[(\d+)px\]/);
+      expect(min ? Number(min[1]) : 0).toBe(bounds[i]);
+      expect(max ? Number(max[1]) : Infinity).toBe(bounds[i + 1]);
+    });
   });
 
   it("holds the narrower width when the rows summon and dismiss their own scrollbar", () => {
@@ -912,7 +960,7 @@ describe('layout="rows": the justified album on the one grid', () => {
     expect(steadyWidth([{ width: 800, at: 0 }])).toBe(800);
   });
 
-  it("paints greedy CSS rows before the box is measured", () => {
+  it("paints the engine's own rows, per width class, before the box is measured", () => {
     const rect = vi
       .spyOn(Element.prototype, "getBoundingClientRect")
       .mockReturnValue({
@@ -930,9 +978,38 @@ describe('layout="rows": the justified album on the one grid', () => {
       <MasonryColumns items={album} layout="rows" />,
     );
     const grid = gridOf(container);
-    expect(grid.querySelector("[data-row-break]")).toBeNull();
+    // Greedy wrapping re-broke every row on screen once measured (a layout
+    // shift of 0.76 on a throttled phone): the first paint is the engine's
+    // rows at each class's nominal width, each class's breaks shown only there.
+    const breaks = [
+      ...grid.querySelectorAll<HTMLElement>(":scope > [data-row-break]"),
+    ];
+    expect(breaks.length).toBeGreaterThan(0);
+    for (const b of breaks) {
+      expect(b.className).toContain("hidden");
+      expect(CLASS_BREAKS.some((c) => b.className.includes(c))).toBe(true);
+    }
+    // The desk's breaks fall exactly after the desk's rows.
+    const desk = layoutRows(
+      album.map((m) => ({ id: m.id, ratio: rowRatio(m) })),
+      { width: 1400, gap: 4, perRow: perRowFor(1400, 1) },
+    );
+    const deskBreaks = breaks
+      .filter((b) => b.className.includes(CLASS_BREAKS[3]))
+      .map((b) => (b.previousElementSibling as HTMLElement).dataset.mediaId);
+    let end = 0;
+    const deskRowEnds: string[] = [];
+    for (const row of desk.rows) {
+      end += row.ids.length;
+      if (end > album.length) break;
+      deskRowEnds.push(row.ids[row.ids.length - 1]);
+    }
+    expect(deskBreaks).toEqual(deskRowEnds);
+    // Each line justified by its shapes: a zero basis (so only a drawn break
+    // ends a line), a width in proportion to its ratio, the line's height.
     const tile = grid.querySelector<HTMLElement>("[data-media-tile]")!;
-    expect(tile.style.flexBasis).toContain("var(--rows-unit)");
+    expect(tile.style.flexBasis).toMatch(/^0(px)?$/);
+    expect(Number(tile.style.flexGrow)).toBeGreaterThan(0);
     expect(tile.style.aspectRatio).not.toBe("");
     rect.mockRestore();
   });
