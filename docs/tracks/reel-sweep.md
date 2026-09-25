@@ -1,6 +1,6 @@
 ---
 track: reel-sweep
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "e13a98d6"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -111,13 +111,78 @@ working.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed to `lp/reel-sweep`**: the work in `71e7bd62` (the retelling), `ffdfd8da` (`reel.md` and the docs),
+  `4344de16`, `84773a8b`, `fc68a230` (the /reel tile's glyph and the creator's finish), `1c273126` (the creator's words
+  pinned, identity-email's passages) and `5f1c0189` (the limiter's refusal); the manifest in `b7ce55e6`, `2bf6edb5` and
+  this commit. **Two syncs**: `7e35f09d` past reel-clip-wiring and identity-email (the clip lane's six unwrapped reel
+  articles resolved to this side, as it anticipated) and `341602b2` past reel-teardown and album-window (clean);
+  `origin/launch-prep` (`055baee9`) is contained in the head.
+- **Gates on `5f1c0189`, the synced tree, each on its own exit code**: `pnpm typecheck` 0 (after `rm -rf .next/dev`: a
+  stale dev validator still named the deleted `/api/reel/*`); `pnpm lint` 0 (6 warnings, none in a touched file:
+  `review-session.tsx`, `home-hero/shared.tsx`, `contact-form.tsx`, `album-fill-grid.tsx` twice, `review-switch.tsx`);
+  `pnpm test` 0 (5,192 tests); `zsh scripts/build-lock.sh pnpm build` 0 (`/reel` static); `pnpm lab:smoke --base
+  http://localhost:3133` 0 (280 checks). No board, so no `lab:demo`.
+- **Lane check** (115 paths): every one under `owns` or this file, but five exceptions: the four constants files of the
+  last Question (`how-it-works.ts`, `events.ts`, `press.ts`, `careers.ts`), and one line of `touchpoints.ts` (the
+  `reel-screen` board's `lives` moves to `play-the-reel-on-a-screen.mdx`, since `links.test.ts` resolves every `lives`
+  path on disk).
+- **/reel** (`arc=live-first`): the hero's subhead and caption; the switcher's heading off the facets ("8 moods for the
+  reel, 6 more for your clip."); `live-section.tsx` (the app's `PosterCard` with the tile's glyph over `LivingStills` on
+  a laptop album), `screen-section.tsx` (the reel as the wall, the demo's real code bottom right, "Scan to add yours")
+  and `clip-section.tsx` (the creator's laptop finish beside the renamed table); the five stored-reel sections deleted;
+  the close "Your reel starts at the second photo.".
+- **Pricing** (`pricing=renamed`): "Clip length" and "Clip watermark" with tips, the Free and Pro cards, the Pass
+  ticket, the FAQ and "The 60-second clip" tile.
+- **How it works** (`steps=grow-clip`): "Watch the reel grow" over the hub card at none, one and live plus Settings'
+  Look row; "Make your clip" over the reel's view with its Make your own and the clip beside it (the step id `clip`).
+- **Help** (`help=highlight-reel`): the shelf runs reel, screen, clip (`the-highlight-reel`, `play-the-reel-on-a-screen`,
+  `make-your-own-clip`, `reel-styles-length-and-layout`, `add-a-clip-to-the-event`), `a-clip-wont-finish-or-save` in
+  troubleshooting, every creator label a `<UiLabel>`; five slugs 308 (`help-redirects.ts`; each curled 308 on localhost
+  to its successor); 20 other articles' reel lines retold (bulk select without Add to reel, likes that no longer claim
+  to steer the reel, the event page's Highlight reel card, Settings' Highlight reel section and the sheet's real order,
+  the dashboard band, storage, plans, the free plan, the day-of checklist's screen step, the QR article's callout),
+  and 4 more where "clip" meant a video.
+- **Legal**: Terms 1.7 (the clip sentence under the guest-content license, the host's license names clips, the service
+  and limits lines, `the-reel` retold with its id kept); Privacy 1.7 ("rendering the reel and clips on your device",
+  and who can see what).
+- **The rest**: nav and footer say "Highlight reel" (the help category's rung too), JSON-LD's feature list, `llms.ts`
+  (the reel's paragraphs, the plan table, "When it is not"), the press boilerplate and fact sheet, the careers posting
+  and story, the five `reelAngle` lines in the wall register, `/features` (metadata, subhead), the album page (the
+  take-home plate with Make your own, the big-screen FAQ), the sharing page's reel row, the bulk-select mock (Like,
+  Hide, Download in the app's hues) and its copy on two pages, the live demo's card, "video" wherever "clip" meant an
+  upload, and `pro-vs-event-pass`'s table (a profile handle is free on every plan).
+- **Blog**: `highlight-reel-renders-on-your-phone` rewritten (title, standfirst, FAQ, `updated`), thirteen posts' reel
+  lines retold and three more where "clip" meant a video, the AUTHORING brief's product section and rules.
+- **mock-parity**: 17 new pins, the reel's words in the tile, view, hub card and Settings, and the creator's head and
+  finish (`clip-room.tsx`, `clip-finish.tsx`).
+- **identity-email's two passages**, as relayed: `your-data-and-deleting-your-account.mdx` and
+  `display-name-and-profile-photo.mdx`.
+- **Verified**: the retired claims ("Create reel", "one reel per event", "no slideshow", a reel download, "Share with
+  guests", "Open studio", "Add to reel") have no hit in this lane's paths; what remains repo-wide is migration SQL
+  history, two comments outside `owns` and one plain English "share with guests". Captures in
+  `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/reel-sweep/`:
+  `final-reel-1440-0{1..6}.png` and `final-reel-375-0{1..4}.png` (no sideways scroll at either), `hiw-1440-0{1,2}.png`
+  and `final-hiw-375-0{1,2}.png`, `pricing-1440-0{1,3}.png`, `unlock-1440-01.png`, `album-1440-01.png`,
+  `curation-1440-01.png`, `events-1440-01.png`, `help-*-01.png`, `helpindex-1440-01.png`, `final-help-375-0{2,3}.png`;
+  reduced motion (`rm-reel-1440-*.png`: both loops paused on their posters, the tile holding its first still).
+- Assets requested from Will: none (the screen chapter's loop is `hero-candidate-02`, the recorded engine loop the
+  page already carried).
+- Board ideas:
+  - `events.ts`'s FAQs answer "Do guests need an app or an account?" with "No.", which the account rule forbids (the
+    content-policy fence misses the question form).
+  - `constants/features.ts`'s dead REEL band still reads "Every event ends with a reel"; the scaffold and its test
+    could go.
+  - Two stale comments outside `owns`: `gallery-access.server.test.ts` ("the reel download") and `queries/analytics.ts`
+    ("Share with guests").
+  - The home's live demo could land the reel's own tile (the `LivingStills` dissolve) where its payoff card is a still.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule, one line each:
+  - The five Questions above, each built as recommended.
+  - /reel's chapter headings ("It starts at the second photo.", "Put it on the wall.", "Everyone leaves with a clip of
+    their own.") and its close ("Your reel starts at the second photo.").
+  - The hero subhead under the held heading, and its caption "Recorded from the reel's own engine".
+  - The album page's third plate, "Clip the reel", drawn with the violet Make your own.
+  - The nav's reel line, "The album, playing itself on any screen."
+  - The help category's blurb, "The reel that plays itself, on a screen too, and the clips you make."
+- Look at first: `/reel` at 1440 (the three chapters, then 375), `/help/the-highlight-reel` and
+  `/help/make-your-own-clip`, `/how-it-works` step six from both sides, then `/pricing`'s clip rows.
