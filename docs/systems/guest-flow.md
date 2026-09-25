@@ -1,7 +1,7 @@
 # Guest flow — the `/e/[token]` event page
 
 > ROLE: what a guest (or a signed-in visitor) experiences on the one event link, and how joining/uploading is gated.
-> BELONGS HERE: the `/e/[token]` page, WHO A GUEST IS (the definition every surface counts by), the 3-state visibility machine, capability tokens, the password gate + unlock cookie, the door (its steps, the `require_verified_email` switch with its name-only door, Require an upload to view), silent join, the confirm doors and the return after one, the auth-aware header island, the live gallery (the one live source, doorbell + conditional poll), the live reel's guest half (the Highlight reel tile, the view that is also the wall, the approval toast, the creator's seam), the link card, demo mode. · NOT HERE: the upload pipeline + R2 + lightbox mechanics (→ [uploads-and-r2.md](uploads-and-r2.md)), the dashboard's Guest cards and the host's counts (→ [host-app.md](host-app.md)), host-side event config + reel curation/Studio (→ [host-app.md](host-app.md)), why a rule was chosen and what shipped when (→ git).
+> BELONGS HERE: the `/e/[token]` page, WHO A GUEST IS (the definition every surface counts by), the 3-state visibility machine, capability tokens, the password gate + unlock cookie, the door (its steps, the `require_verified_email` switch with its name-only door, Require an upload to view), silent join, the confirm doors and the return after one, the auth-aware header island, the live gallery (the one live source, doorbell + conditional poll), the link card, demo mode. · NOT HERE: the highlight reel and the clip (the tile, the view that is also the wall, the approval toast, the creator's seam → [reel.md](reel.md)), the upload pipeline + R2 + lightbox mechanics (→ [uploads-and-r2.md](uploads-and-r2.md)), the dashboard's Guest cards and the host's counts (→ [host-app.md](host-app.md)), host-side event config (→ [host-app.md](host-app.md)), why a rule was chosen and what shipped when (→ git).
 > GROWS BY: integrate-in-place.
 
 ## What it does
@@ -273,8 +273,8 @@ can forget the gate: two callers hand out real bytes, and a defaulted context wo
 every original.
 
 ONE server entry, `resolveViewerDecision(event, {isOwner, isAuthed, isUnlocked, userId, sessionToken})`
-([`gallery-access.server.ts`](../../src/lib/events/gallery-access.server.ts)), answers the page, the poll,
-`/api/export/guest` and `/api/reel/download`. It resolves ONCE assuming a contribution (short-circuiting
+([`gallery-access.server.ts`](../../src/lib/events/gallery-access.server.ts)), answers the page, the poll and
+`/api/export/guest`. It resolves ONCE assuming a contribution (short-circuiting
 the upload clause), and only when that lands on `full` with `require_upload_to_view` on and uploads open
 does it call `getUploadGate` ([`guest-gate.ts`](../../src/lib/db/queries/guest-gate.ts), the service-role
 `get_upload_gate`) and resolve again, so a locked event and an unconfirmed viewer cost no extra read.
@@ -508,7 +508,7 @@ through flags in the sheet. No step counter to desync.
   a signed-in person's photograph. ★ **A withdrawal is final for the host** (`removed_by_uploader`: a guest who
   takes a photograph back wants it gone everywhere, the host's view included): no host surface shows or
   restores it (the album and its viewer, Review, Deleted and `restore_media`, the home's pulse and the events
-  list's counts and covers, the exports, the reel's timeline), `host_storage_summary`'s Deleted figure counts
+  list's counts and covers, the exports, the live reel), `host_storage_summary`'s Deleted figure counts
   it in neither number, and the confirm says so with no window ("It's deleted from the event right away and
   can't be recovered."), because a number of days reads as a hold the host can still reach.
   [`media.test.ts`](../../src/lib/db/queries/media.test.ts) pins the host reads against a withdrawn row.
@@ -862,112 +862,12 @@ facts are read the same way), and its reel plays the optimistic tiles too, so a 
 photograph joins the loop. The view's Add yours is the page's own simulated Add ("Add yours (a demo
 upload)"); there is no creator and no approval toast.
 
-## The live reel (the guest half)
+## The live reel
 
-A dynamically composed, looped slideshow of the album's current approved media, watchable at once, taking
-new uploads as they land and needing no host action. Nothing is stored and nothing is
-downloadable: the reel is the album's own live payload, composed on the device by the live composer
-(`lib/reel/live/`, `player-live.tsx`; the engine → [host-app.md](host-app.md)). A guest's own clip is the
-creator's (below).
-
-- **The facts ride the gallery payload.** `loadGalleryReel(event, access)`
-  ([`gallery-access.server.ts`](../../src/lib/events/gallery-access.server.ts)) answers `null` short of
-  `full` access (nothing is read), else `GalleryReel` ([`gallery-reel.ts`](../../src/lib/events/gallery-reel.ts)):
-  the host's switch (`events.show_reel`), mood (`reel_style_id`) and hold (`reel_hold_sec`, NULL until a host
-  sets it, read through `resolveHoldSec`) off the event row, the platform lever
-  (`ops_flags.live_reel_enabled`) and the host's plan for the creator (`clip`: `videoAllowed`, `watermark`,
-  `maxSeconds`, tier-derived on the server and never on the client; `null` when the host's tier could not be
-  read). `getLiveReelServerFacts` reads the lever and the tier on the admin client (`ops_flags` is deny-all),
-  cached 30 s per event, each failed read reported. The page and every poll's 200 carry it, and the ETag
-  hashes it.
-- ★ **IT EXISTS FROM THE SECOND ITEM, AND BELOW IT THERE IS NOTHING** (`LIVE_REEL_MINIMUM`,
-  `liveReelAvailable`). It counts approved, `reelEligible` items with something to draw; a clip
-  (`reel_eligible` false) never counts and never plays. Below two, with the switch or the lever off, or
-  behind a door, there is no tile, no view and no `?reel`: the host reaches the reel by adding the album's
-  first two photos, so the view has no empty state of its own (a `?reel` below the minimum is dropped
-  quietly and a phone's view whose album drops under two returns to the album; one behind a door waits for
-  the door). The owner's reel is exactly a guest's: approved, visible, reel-eligible items only. The reel plays the SERVER's approved list, never an optimistic blob; the
-  demo plays its optimistic tiles too, since its uploads never reach a server.
-- ★ **THE WELCOME COMES FIRST, EVERYWHERE**: the door is how a guest reaches the event page, and a host who
-  plays the reel on a venue laptop or screen goes through it on that device like any guest. A visitor who
-  still owes the door meets it with no reel under it or over it, for `?reel` and `?reel=screen` alike (the
-  screen posture is no exception); the moment they are through, the reel their link asked for opens. The door says so itself (EntryModal's `onPendingChange`: a step pending or
-  the "You're in" beat holding, reported once hydrated), and the page treats it as owed until that first
-  report. The owner never owes it and gets the reel at once. A `?reel` that cannot play is dropped only once
-  the door is behind the visitor.
-- **The Highlight reel tile** (`LiveReelTile`, [`reel/live-reel.tsx`](../../src/components/guest/reel/live-reel.tsx))
-  sits in its own slot directly above `aboveAlbum`, on the words' column, never a fourth arm of
-  `pickAboveAlbumState`. A slow crossfade of six stills from the reel's own take (`planTake`, via
-  [`reel-tile.ts`](../../src/lib/guest/reel-tile.ts)), previews only, so it never mirrors the tiles beneath
-  it; no engine on the album and nothing blocking its first paint. Headed "Highlight reel"; "Make your own
-  clip to share" only once a creator is registered AND the host's plan was read; no style name, no count, no
-  corner badge. A tap opens the view (a pointer over it warms the view's chunk). It stays with uploads
-  closed.
-- **The view** ([`reel/live-reel-view.tsx`](../../src/components/guest/reel/live-reel-view.tsx), `React.lazy`,
-  ONE import promise shared by the warm-up and the lazy boundary) is a full-bleed Radix dialog over the
-  player in `fill` (cover), following the viewport's orientation. ★ **In a landscape composition every mood
-  fills the frame edge to edge** (`fillLandscape`, `lib/reel/live/window.ts`), because a laptop or an event
-  screen is where the reel must fill the room: Cinematic's letterbox bars and Editorial's inset card are set aside, and a mismatched photograph (a
-  portrait shot on a laptop or a screen) stays whole on its own darkened blur rather than a flat colour.
-  Portrait keeps every mood as designed. ★ **`?reel` is its address**
-  ([`reel-url.ts`](../../src/lib/guest/reel-url.ts)): opening PUSHES an entry marked in its own history state
-  (`prReelPushed`), so a phone's back gesture closes the view; closing an entry the page pushed goes back,
-  and closing a deep link's view REPLACES the address, so closing never leaves the page. Every other
-  parameter survives AS WRITTEN (only the `reel` segment is touched, never a re-serialised query; the
-  viewer's `withPhotoParam` is the mirror).
-  - **The chrome**: at rest a slim glass bar at the foot (play and progress); pointer movement, or a tap on
-    the bar on touch, grows it into the dock (a `clip-path` morph, [`live-reel.css`](../../src/components/guest/reel/live-reel.css),
-    instant under reduced motion); a resting pointer settles it back (2.4 s; 4.2 s after a touch). Close shows
-    and hides with the dock, and every control has a tooltip.
-  - **The dock**: one row of icon buttons (play/pause, Include videos, Style, Hold, Show the code, Add yours),
-    then "Make your own" as the single primary, only with a creator. Show the code exists from 1024px up
-    only (a phone has no wall to show it to). Space pauses, Escape closes, the arrows step a clip (the
-    player's `step`; the clock never moves).
-  - **The owner's extras** (the event's owner, who meets no gate on the page; the host's hub links its Reel
-    card here): at 1024px and up a seventh icon, Play on a screen, opens `?reel=screen` in a new tab; the
-    Style list's footer reads "Only on this device, for now" with a Set for everyone pill that makes the
-    device's look and hold the event's defaults (`setReelDefaults`, `lib/reel/defaults-action.ts`, which
-    re-verifies the owner and revalidates nothing, so the reel keeps playing), and "Everyone sees this look"
-    once they match; Close goes back where the host came from whenever there is history
-    (`useReelParam().close({ returnBack })`), else to the album, where a guest's deep link always closes onto
-    the album.
-  - **The viewer's own knobs, on this device** ([`reel-prefs.ts`](../../src/lib/guest/reel-prefs.ts),
-    `localStorage`, never on the wire): Hold (the steps' one home is `lib/reel/defaults.ts`: 1, 1.5, 2.2, 3,
-    3.6, 5 or 7 s a photo; per event, defaulting to the host's `reel_hold_sec`, else 3 s; converted into the
-    mood's `holdScale`); Style (the eight moods, per event, defaulting to the event's `reel_style_id`, else the
-    default mood); Include videos (across events: on, unless `navigator.connection.saveData` says otherwise).
-  - **The arrivals** ([`arrival-feed.ts`](../../src/lib/guest/arrival-feed.ts)): the provider's arrival ids
-    name their uploader top left for one hold; a burst stacks into a short feed of limited depth that
-    collapses ("Theo +12").
-  - **The code** (`Show the code`): a white plate bottom right, the event's QR in the host's preset,
-    "Scan to add yours" and the readable address (the custom slug's, when there is one). No event name on
-    screen.
-  - A tap on the picture pauses and opens the item in the shared media viewer, grown out of the FRAME
-    (`origin` of kind `reel` with the picture's rect and no `returnTo`, so the way out lands back in the
-    frame), a playing video carrying on from the reel's moment (`startAt`, from the player's `moment()`;
-    a video drawn as its poster starts at the top). Reduced motion holds the
-    first frame with the dock up. The loop never announces its seam. Twelve failed frames or stills send ONE
-    Sentry report per view, and every failure also feeds the provider's watchdog.
-- ★ **THE VIEW IS THE WALL: `?reel=screen`** is the same view in its screen posture: the reel plays in the
-  window at once with the code on, under a glass pill at the top, "Press anywhere to fill the screen". The
-  press (anywhere, the pill included) takes fullscreen where the platform allows it and the wake lock
-  ([`screen-posture.ts`](../../src/lib/guest/screen-posture.ts)), re-taken on every return to visible and
-  released only when the view closes; leaving fullscreen never pauses the reel or lets go of the lock, the
-  pill simply comes back. Where the platform has no fullscreen the pill asks to keep the screen awake and
-  goes once pressed. Under reduced motion the window holds its first frame until the press (the host's
-  explicit act). A screen whose album drops under two (or reloads there) shows the code and the address
-  alone until the reel returns.
-- **The approval toast** (moderated events only): once per visit, when the first of this device's held
-  uploads shows up approved while the reel is showing, "The host added your uploads" with "Watch reel",
-  which opens the view. No numbers; never for a clip. The queue lives in memory, so it plays only within the
-  visit that made the upload.
-- **The creator's seam** ([`creator-seam.ts`](../../src/components/guest/reel/creator-seam.ts)): `REEL_CREATOR`
-  is `null` until the creator registers there, and every "Make your own" renders only when it is present, so
-  no build shows a dead end. A finished clip goes through `addClipToAlbum(file, poster)`: the ordinary upload
-  queue (`addClip`, `reelEligible: false`, the poster as its preview) → the complete route → the pipeline →
-  `create_media(..., p_reel_eligible => false)`.
-- The stored reel's guest files (`guest-reel-card.tsx`, `guest-reel-overlay.tsx`, `lib/reel/guest-reel.ts`)
-  are not rendered or read by the page; they are residue until the stored reel's teardown.
+The Highlight reel tile, the view that is also the wall, the approval toast and the creator's seam are
+[reel.md](reel.md)'s. What this page owes the reel: the gallery payload carries its facts (the one live source,
+above), the tile keeps the words' column in its own slot directly above `aboveAlbum`, and the welcome comes before
+any reel, `?reel=screen` included.
 
 ## See also
 
