@@ -216,4 +216,39 @@ describe("resolveUploaderIdentity", () => {
       isVerified: true,
     });
   });
+
+  it("★ a DELETED account's verified row returns no address: case 2 names an email only while user_id stands", () => {
+    // lp/identity-email. The FK nulled `user_id` and the join lost the profile, but `verified_at` and
+    // the address the account proved stayed on the row, so the host's viewer printed a deleted
+    // person's email beside a nameless photograph (credit.tsx draws `uploaderEmail` even when no
+    // name is drawn). Deletion scrubs the column now; this holds for the rows it never reached.
+    const out = resolveUploaderIdentity(
+      guest({
+        user_id: null,
+        email: "left@over.com",
+        verified_at: CONFIRMED,
+        profiles: null,
+      }),
+      HOST,
+    );
+    expect(out).toEqual({
+      displayName: null,
+      email: null,
+      isHost: false,
+      isVerified: true,
+    });
+  });
+
+  it("the same verified row keeps its address while its account stands", () => {
+    const out = resolveUploaderIdentity(
+      guest({
+        user_id: "u1",
+        email: "alex@example.com",
+        verified_at: CONFIRMED,
+        profiles: { display_name: "Alex" },
+      }),
+      HOST,
+    );
+    expect(out.email).toBe("alex@example.com");
+  });
 });

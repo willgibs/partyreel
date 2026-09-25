@@ -45,15 +45,20 @@ describe("the plan card's tier read", () => {
     }
   });
 
-  it("admits only ?reset and ?welcome, and neither may carry a plan", () => {
+  it("admits only ?reset, ?welcome and ?email_change, and none may carry a plan", () => {
     // Widening the searchParams type is the change that would let a plan claim
     // in via the URL, so the type itself is the tripwire. `welcome` was added by
     // app-pricing-wiring (`back=finish`): it opens the receipt modal and nothing
     // else, and the modal's own claim is `tier !== "free"` read from the profile
-    // row below. EXTENDED, never loosened: a third param needs a reason here.
+    // row below. `email_change` was added by identity-email: /auth/callback's
+    // landing for a tapped email-change link, parsed to one of three words that
+    // pick a line of copy in the email row, while the address and the pending
+    // change are read from getUser(). EXTENDED, never loosened: a fourth param
+    // needs a reason here.
     expect(page).toMatch(
-      /searchParams:\s*Promise<\{\s*reset\?:\s*string;\s*welcome\?:\s*string;?\s*\}>/,
+      /searchParams:\s*Promise<\{\s*reset\?:\s*string;\s*welcome\?:\s*string;\s*email_change\?:\s*string;?\s*\}>/,
     );
+    expect(page).toContain("parseEmailChangeHint(email_change)");
   });
 
   it("decides the receipt's claim from the tier, never from the marker", () => {

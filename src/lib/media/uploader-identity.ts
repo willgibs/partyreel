@@ -23,7 +23,8 @@
  *
  * ★ `email` IS ONLY EVER A PROVED ONE (the guest identity round, Will 2026-09-22). Case 2 and case 2
  * alone returns an address, because `guests.email` means "confirmed, copied from auth.users" and
- * nothing else. Case 3 used to return `guest.email` too, which an UNCONFIRMED sign-up could fill
+ * nothing else, and only while the row's account stands (a deleted account's address is nobody's to
+ * show). Case 3 used to return `guest.email` too, which an UNCONFIRMED sign-up could fill
  * through the newsletter capture: the host gallery would then have printed an unproved address
  * beside an unverified mark, which is the exact impersonation this guards against ("there's no
  * impersonation risk if the host can't see the attributed email of an unconfirmed account"). It now
@@ -84,10 +85,15 @@ export function resolveUploaderIdentity(
   // 2. A proved email: the identity is the PROFILE's name, never a second name stored beside it.
   // A verified guest with a null profile name (a deleted account's surviving upload) resolves to no
   // name, so the caption renders nothing rather than mislabeling a real person.
+  // ★ AND THE ADDRESS ONLY WHILE THE ACCOUNT STANDS (lp/identity-email). A deleted account's row
+  // keeps `verified_at` (that is why it writes for nobody) and loses `user_id` to the FK, and the
+  // address it carried belongs to nobody the host can reach: the host's viewer printed it beside a
+  // nameless photograph. Deletion scrubs the column going forward; this is the net under the rows
+  // the scrub never saw.
   if (guest.verified_at !== null) {
     return {
       displayName: guest.profiles?.display_name ?? null,
-      email: guest.email ?? null,
+      email: guest.user_id !== null ? (guest.email ?? null) : null,
       isHost: false,
       isVerified: true,
     };

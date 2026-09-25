@@ -164,6 +164,67 @@ describe("the sweep's destruction order (source text)", () => {
   it("keeps the account whole when a hold blocks an event", () => {
     expect(body).toContain("const { purgeable, blocked }");
   });
+
+  it("scrubs the guest rows in the re-anonymise, before anything is deleted and before the profile", () => {
+    // lp/identity-email: a failed scrub throws out of reanonymise, which runs first, so the purge
+    // stops before an R2 delete, an event delete or deleteUser. It is also the only pass that
+    // reaches a HELD account, which never gets as far as the BEFORE DELETE trigger.
+    const reanonymiseCall = body.indexOf("await reanonymise(admin, userId)");
+    expect(reanonymiseCall).toBeGreaterThan(-1);
+    expect(reanonymiseCall).toBeLessThan(reclaim);
+    expect(reanonymiseCall).toBeLessThan(authDelete);
+    const helper = sweepSrc.slice(
+      sweepSrc.indexOf("async function reanonymise("),
+      sweepSrc.indexOf("/** EVERY event the account hosts"),
+    );
+    const scrub = helper.indexOf("scrubAccountGuestRows(admin, userId)");
+    expect(scrub).toBeGreaterThan(-1);
+    expect(scrub).toBeLessThan(
+      helper.indexOf(".update(ANONYMISED_PROFILE_PATCH)"),
+    );
+  });
+});
+
+describe("the guest-row scrub (source text)", () => {
+  function patchLiteral(): string {
+    const match = sweepSrc.match(
+      /export const SCRUBBED_GUEST_PATCH = \{([\s\S]*?)\} as const;/,
+    );
+    expect(match, "SCRUBBED_GUEST_PATCH literal not found").toBeTruthy();
+    return match![1];
+  }
+
+  it("clears the two addresses, the stamp and a typed name, never the proof or the link", () => {
+    const keys = [...patchLiteral().matchAll(/^\s*(\w+):\s*null,/gm)].map(
+      (m) => m[1],
+    );
+    expect(keys.sort()).toEqual(
+      ["display_name", "email", "pending_email", "pending_email_at"].sort(),
+    );
+    // `verified_at` is why a deleted account's row writes for nobody; `user_id` is the FK's.
+    expect(patchLiteral()).not.toMatch(/verified_at|user_id/);
+  });
+
+  it("clears what the BEFORE DELETE trigger clears, so the app scrub and the database net agree", () => {
+    const sql = readFileSync(
+      join(ROOT, "supabase/migrations/20260926200000_identity.sql"),
+      "utf8",
+    );
+    const fn = sql.slice(
+      sql.indexOf(
+        "create or replace function public.scrub_account_guest_rows()",
+      ),
+    );
+    const set = fn.slice(fn.indexOf("set email = null"), fn.indexOf("where"));
+    for (const column of [
+      "email",
+      "pending_email",
+      "pending_email_at",
+      "display_name",
+    ]) {
+      expect(set, column).toMatch(new RegExp(`\\b${column} = null`));
+    }
+  });
 });
 
 describe("the request path's order", () => {
@@ -176,6 +237,9 @@ describe("the request path's order", () => {
   );
   const anonymise = requestSrc.indexOf(".update(ANONYMISED_PROFILE_PATCH)");
   const ban = requestSrc.indexOf("banAuthUser(");
+  const scrub = requestSrc.indexOf(
+    "await scrubAccountGuestRows(admin, userId)",
+  );
 
   it("finds every step it means to order", () => {
     for (const [name, at] of Object.entries({
@@ -186,6 +250,7 @@ describe("the request path's order", () => {
       newsletter,
       anonymise,
       ban,
+      scrub,
     })) {
       expect(at, `${name} not found in the request path`).toBeGreaterThan(-1);
     }
@@ -204,6 +269,11 @@ describe("the request path's order", () => {
 
   it("removes the newsletter address before the anonymisation nulls it", () => {
     expect(newsletter).toBeLessThan(anonymise);
+  });
+
+  it("scrubs the guest rows after the stamp and before the anonymisation", () => {
+    expect(scrub).toBeGreaterThan(stamp);
+    expect(scrub).toBeLessThan(anonymise);
   });
 
   it("locks the auth user out between the request and the sweep", () => {
@@ -256,8 +326,16 @@ function passesAfter(n: number): Deadline {
   return { at: 0, passed: () => asked++ >= n };
 }
 
-/** The fake world, with `auth.admin.deleteUser` recording who was deleted. */
-function world(tables: Record<string, FakeRow[]>): CronWorld {
+/**
+ * The fake world, with `auth.admin.deleteUser` recording who was deleted. `guests` defaults to empty
+ * (the re-anonymise scrubs it on every account); `noGuests` leaves the table out, so the fake answers
+ * the scrub with PGRST205, a failed write.
+ */
+function world(
+  tables: Record<string, FakeRow[]>,
+  opts: { noGuests?: boolean } = {},
+): CronWorld {
+  if (!opts.noGuests) tables.guests ??= [];
   const w = createCronWorld(tables);
   (w.fake as unknown as { auth: unknown }).auth = {
     getUser: async () => ({ data: { user: null }, error: null }),
@@ -383,6 +461,158 @@ describe("purgeAccount on the clamping fake", () => {
     const again = await purgeAccount(w.client, user);
     expect(again).toMatchObject({ outcome: "deleted", media_rows: 1_500 });
     expect(state.deletedUsers).toEqual([user]);
+  });
+});
+
+describe("the guest-row scrub on the clamping fake (lp/identity-email)", () => {
+  const OTHER_EVENT = uuidOf("oe", 1);
+
+  /** A guest row at another host's event: `who` owns it; `over` sets the identity columns. */
+  function guestRow(id: string, who: string | null, over: FakeRow): FakeRow {
+    return {
+      id,
+      event_id: OTHER_EVENT,
+      user_id: who,
+      email: null,
+      pending_email: null,
+      pending_email_at: null,
+      display_name: null,
+      verified_at: null,
+      ...over,
+    };
+  }
+
+  it("takes the addresses and a typed name off the account's rows, keeps the proof, and leaves others alone", async () => {
+    const user = uuidOf("u", 40);
+    const bystander = uuidOf("u", 41);
+    const guests = [
+      guestRow(uuidOf("g", 1), user, {
+        email: "gone@example.com",
+        verified_at: HELD,
+      }),
+      guestRow(uuidOf("g", 2), user, {
+        display_name: "Typed Name",
+        pending_email: "typed@example.com",
+        pending_email_at: HELD,
+      }),
+      // Already clean: not counted, not rewritten.
+      guestRow(uuidOf("g", 3), user, { verified_at: HELD }),
+      guestRow(uuidOf("g", 4), bystander, {
+        email: "stays@example.com",
+        verified_at: HELD,
+      }),
+      // A name-only guest with no account keeps what they typed.
+      guestRow(uuidOf("g", 5), null, {
+        display_name: "Maya",
+        pending_email: "maya@example.com",
+        pending_email_at: HELD,
+      }),
+    ];
+    const w = world({ profiles: [profile(user, HELD)], guests });
+
+    const result = await purgeAccount(w.client, user);
+
+    expect(result).toMatchObject({
+      outcome: "deleted",
+      guest_rows_scrubbed: 2,
+    });
+    const [verified, typed, clean, other, nameOnly] = w.fake.tables.guests;
+    expect(verified).toMatchObject({ email: null, verified_at: HELD });
+    expect(typed).toMatchObject({
+      display_name: null,
+      pending_email: null,
+      pending_email_at: null,
+    });
+    expect(clean).toMatchObject({ verified_at: HELD });
+    expect(other).toMatchObject({ email: "stays@example.com" });
+    expect(nameOnly).toMatchObject({
+      display_name: "Maya",
+      pending_email: "maya@example.com",
+    });
+    // ONE write keyed on the account, whatever it joined: no id list rides the URL.
+    const writes = w.fake.requests.filter(
+      (r) => r.name === "guests" && r.method === "PATCH",
+    );
+    expect(writes).toHaveLength(1);
+    expect(writes[0].filters).toContainEqual({
+      column: "user_id",
+      op: "eq",
+      value: user,
+    });
+  });
+
+  it("is a quiet zero on the next run of a held account", async () => {
+    const user = uuidOf("u", 42);
+    const e = eventRow(uuidOf("e", 42), user, { deleted_at: HELD });
+    const w = world({
+      profiles: [profile(user, HELD)],
+      events: [e],
+      media: [mediaRow(uuidOf("m", 42), e, { legal_hold_at: HELD })],
+      guests: [
+        guestRow(uuidOf("g", 42), user, {
+          email: "gone@example.com",
+          verified_at: HELD,
+        }),
+      ],
+    });
+
+    expect(await purgeAccount(w.client, user)).toMatchObject({
+      outcome: "held",
+      guest_rows_scrubbed: 1,
+    });
+    expect(await purgeAccount(w.client, user)).toMatchObject({
+      outcome: "held",
+      guest_rows_scrubbed: 0,
+    });
+  });
+
+  it("★ a failed scrub stops the purge before anything is deleted, deleteUser included", async () => {
+    const user = uuidOf("u", 43);
+    const e = eventRow(uuidOf("e", 43), user, { deleted_at: HELD });
+    const w = world(
+      {
+        profiles: [profile(user, HELD)],
+        events: [e],
+        media: [mediaRow(uuidOf("m", 43), e)],
+      },
+      { noGuests: true },
+    );
+
+    await expect(purgeAccount(w.client, user)).rejects.toThrow(
+      /scrubAccountGuestRows/,
+    );
+    expect(state.deletedUsers).toEqual([]);
+    expect(w.fake.tables.events).toHaveLength(1);
+    expect(w.fake.tables.media).toHaveLength(1);
+    expect(w.log).toEqual([]);
+  });
+
+  it("the sweep reports every scrubbed row in its tally, for the run's /admin detail", async () => {
+    const a = uuidOf("u", 44);
+    const b = uuidOf("u", 45);
+    const w = world({
+      profiles: [profile(a, HELD), profile(b, HELD)],
+      guests: [
+        guestRow(uuidOf("g", 44), a, {
+          email: "a@example.com",
+          verified_at: HELD,
+        }),
+        guestRow(uuidOf("g", 45), b, {
+          email: "b@example.com",
+          verified_at: HELD,
+        }),
+        guestRow(uuidOf("g", 46), b, { display_name: "B typed" }),
+      ],
+    });
+
+    const result = await sweepDeletedAccounts(w.client, NOW, new Set());
+
+    expect(result).toMatchObject({
+      accounts: 2,
+      accounts_deleted: 2,
+      guest_rows_scrubbed: 3,
+      rows_failed: 0,
+    });
   });
 });
 
