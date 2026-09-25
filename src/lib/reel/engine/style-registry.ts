@@ -13,7 +13,7 @@ import { THEME_IDS, THEME_LABELS, type ThemeId } from "./themes";
 export type StyleKind = "mood" | "treatment";
 
 export type StyleEntry = {
-  /** The stable id persisted in highlight_reels.style_id + folded into the render hash. */
+  /** The stable id, folded into the render hash. */
   id: string;
   /** The human label shown in the composer's style picker. */
   label: string;
@@ -24,18 +24,48 @@ export type StyleEntry = {
 
 // The 6 stylized treatments — ids/labels/native themeIds mirror the design lab (reel-lab.tsx TREATMENTS).
 const TREATMENTS: StyleEntry[] = [
-  { id: "polaroid", label: "Polaroid stack", kind: "treatment", themeId: "warm" },
-  { id: "filmstrip", label: "Film strip", kind: "treatment", themeId: "classic" },
-  { id: "scattered", label: "Scattered prints", kind: "treatment", themeId: "warm" },
-  { id: "framed", label: "Framed gallery", kind: "treatment", themeId: "editorial" },
+  {
+    id: "polaroid",
+    label: "Polaroid stack",
+    kind: "treatment",
+    themeId: "warm",
+  },
+  {
+    id: "filmstrip",
+    label: "Film strip",
+    kind: "treatment",
+    themeId: "classic",
+  },
+  {
+    id: "scattered",
+    label: "Scattered prints",
+    kind: "treatment",
+    themeId: "warm",
+  },
+  {
+    id: "framed",
+    label: "Framed gallery",
+    kind: "treatment",
+    themeId: "editorial",
+  },
   { id: "carddeck", label: "Card deck", kind: "treatment", themeId: "punchy" },
-  { id: "parallax", label: "Layered parallax", kind: "treatment", themeId: "classic" },
+  {
+    id: "parallax",
+    label: "Layered parallax",
+    kind: "treatment",
+    themeId: "classic",
+  },
 ];
 
 // The 8 media-first moods (styleId === themeId) followed by the treatments. Order = the catalog's display order.
 export const STYLE_CATALOG: StyleEntry[] = [
   ...THEME_IDS.map(
-    (id): StyleEntry => ({ id, label: THEME_LABELS[id], kind: "mood", themeId: id }),
+    (id): StyleEntry => ({
+      id,
+      label: THEME_LABELS[id],
+      kind: "mood",
+      themeId: id,
+    }),
   ),
   ...TREATMENTS,
 ];
@@ -47,7 +77,9 @@ export const DEFAULT_STYLE_ID = "classic";
 const BY_ID = new Map(STYLE_CATALOG.map((s) => [s.id, s]));
 
 /** Resolve a stored styleId to its catalog entry, falling back to the default (Cinematic mood) for unknown ids. */
-export function resolveStyleEntry(styleId: string | null | undefined): StyleEntry {
+export function resolveStyleEntry(
+  styleId: string | null | undefined,
+): StyleEntry {
   return BY_ID.get(styleId ?? "") ?? BY_ID.get(DEFAULT_STYLE_ID)!;
 }
 

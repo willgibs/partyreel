@@ -27,9 +27,6 @@
  * (billing/storage-summary.test.ts), and the dashboard's pulse and event cards (queries/pulse.test.ts
  * and queries/events.test.ts, where the counts and covers are SQL).
  */
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MAX_ROWS } from "@/lib/db/read-all";
@@ -116,16 +113,6 @@ function media(id: string, fields: FakeRow): FakeRow {
   return row;
 }
 
-/** A reel member whose `media` embed is the live media row (null once the row is purged). */
-function reelItem(fields: FakeRow): FakeRow {
-  const row: FakeRow = { ...fields };
-  Object.defineProperty(row, "media", {
-    enumerable: false,
-    get: () => fake.tables.media.find((m) => m.id === row.media_id) ?? null,
-  });
-  return row;
-}
-
 /** Postgres's text order for these fixtures: by code unit, never the locale's collation. */
 const byCodeUnit = (a: unknown, b: unknown) =>
   String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0;
@@ -198,21 +185,6 @@ beforeEach(() => {
         },
       ],
       announcements: [],
-      highlight_reels: [],
-      reel_items: [
-        reelItem({
-          event_id: "ev-1",
-          media_id: "m-withdrawn-new",
-          position: 0,
-          added_at: at(-15 * MINUTE),
-        }),
-        reelItem({
-          event_id: "ev-1",
-          media_id: "m-live",
-          position: 1,
-          added_at: at(-100 * MINUTE),
-        }),
-      ],
     },
   });
 });
@@ -269,31 +241,6 @@ describe("a guest's own withdrawal never reaches a host read", () => {
     const bin = await listRecentlyDeletedMedia("ev-1");
     expect(ids(bin)).toEqual(["m-host-removed"]);
     expect(bin[0].countdownDays).toBe(28);
-  });
-
-  it("the open event's anon RPC drops a withdrawn moment: its items join media on approved alone", async () => {
-    // reel-teardown deleted this pin's TS half (resolveReelRenderContext / render-service.ts, the
-    // stored reel's admin-arm reader): the live reel replaced it, and that invariant now lives in
-    // the live reel's own tests. The SQL half below is independent of that TS code and still holds.
-    const dir = join(process.cwd(), "supabase", "migrations");
-    const newest = readdirSync(dir)
-      .filter((file) => file.endsWith(".sql"))
-      .sort()
-      .map((file) => readFileSync(join(dir, file), "utf8"))
-      .filter((sql) =>
-        /create (?:or replace )?function public\.get_event_reel_by_qr_token\s*\(/i.test(
-          sql,
-        ),
-      )
-      .at(-1);
-    expect(
-      newest,
-      "no migration defines get_event_reel_by_qr_token",
-    ).toBeDefined();
-    const body = (newest as string).replace(/\s+/g, " ");
-    expect(body).toContain(
-      "join public.media m on m.id = r.media_id and m.status = 'approved'",
-    );
   });
 
   /*

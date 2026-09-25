@@ -229,8 +229,6 @@ A host has no reel to create, only a state to read and a few defaults to set.
 The host-made, stored, published reel is gone: its routes, its admin page and switch, its libraries, queries and
 limiter kinds, the Studio, the guest's stored-reel card and its schema (`20260924110000_live_reel_drop.sql`: the five
 reel RPCs, `reel_items`, `reel_render_log`, `highlight_reels`, the `reel_status` enum,
-`notification_prefs.notify_reel_ready`, the `reel_render_enabled` flag). What remains is on a clock:
-- **The stored files are swept** from both buckets ([`scripts/sweep-reel-files.mjs`](../../scripts/sweep-reel-files.mjs),
-  the one-shot sweep for every `events/<id>/reel/reel.mp4`, run once per bucket with `R2_BUCKET` naming the backup;
-  dry runs of both read zero). `reelOutputKey`, the purge cron's append and `account-deletion.ts`'s append are the
-  last of its code and leave in a later change.
+`notification_prefs.notify_reel_ready`, the `reel_render_enabled` flag). Its stored files are swept from both R2
+buckets too (the one-shot sweep read zero on both dry runs before it ran), and the code that named any of it —
+`reelOutputKey`, the purge cron's append, `account-deletion.ts`'s append, the sweep script itself — is gone with it.

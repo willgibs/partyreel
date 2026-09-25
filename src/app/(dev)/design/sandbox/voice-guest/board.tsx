@@ -1,18 +1,13 @@
 "use client";
 
+import "@/components/guest/door.css";
+
 import { ExplorationBoard, ReplayButton, useReplay } from "@/components/lab";
 import type { GridMedia } from "@/components/app/media-grid";
 import { optionId, optionLabel } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
-import {
-  HELD,
-  LAST_OF_PICK,
-  PICK,
-  PRIYA,
-  strip,
-  TOM,
-} from "./fixtures";
+import { HELD, LAST_OF_PICK, PICK, PRIYA, strip, TOM } from "./fixtures";
 import { LANDED, type Register, WAITING } from "./lines";
 import {
   EmptyState,
@@ -130,7 +125,9 @@ const measureLanded: Reader = (root, win) => {
   const n = lineCount(line);
   if (!tile || !pane || !n) return null;
   const t = tile.getBoundingClientRect();
-  const share = Math.round((pane.getBoundingClientRect().height / t.height) * 100);
+  const share = Math.round(
+    (pane.getBoundingClientRect().height / t.height) * 100,
+  );
   return `Measured: ${lines(n)} on a ${Math.round(t.width)}px tile; the pane covers ${share}% of the photograph.`;
 };
 

@@ -530,9 +530,9 @@ async function deleteKeys(keys) {
   return { deleted, errors };
 }
 
-/** Every media-shaped object under the event (events/<id>/<kind>/<mediaId>/<variant>.<ext>). The
- *  rendered reel.mp4 is deliberately NOT media-shaped, so parseMediaIdFromKey skips it and a
- *  re-seed leaves it alone (highlight_reels.rendered_hash re-renders it when the media changes). */
+/** Every media-shaped object under the event (events/<id>/<kind>/<mediaId>/<variant>.<ext>);
+ *  parseMediaIdFromKey filters to exactly that shape, so anything else under the prefix is left
+ *  alone. */
 async function listEventMediaObjects(eventId) {
   const keys = [];
   let token;

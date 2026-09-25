@@ -115,7 +115,6 @@ describe("the sweep's destruction order (source text)", () => {
   const holdFilter = body.indexOf('.filter("legal_hold_at", "is", null)');
   const reclaim = body.indexOf("reclaimMedia(");
   const recheck = body.indexOf("readHeldEventIds(admin, chunk)");
-  const reelDelete = body.indexOf("deleteR2Objects(");
   const eventDelete = body.search(/\.from\("events"\)\s*\.delete\(\)/);
   const authDelete = body.indexOf("auth.admin.deleteUser(");
 
@@ -126,7 +125,6 @@ describe("the sweep's destruction order (source text)", () => {
       holdFilter,
       reclaim,
       recheck,
-      reelDelete,
       eventDelete,
       authDelete,
     })) {
@@ -142,7 +140,6 @@ describe("the sweep's destruction order (source text)", () => {
 
   it("reclaims the media (R2 first, inside reclaimMedia) before the event rows go", () => {
     expect(reclaim).toBeLessThan(eventDelete);
-    expect(reelDelete).toBeLessThan(eventDelete);
   });
 
   it("asks the holds again right before the event rows go", () => {
