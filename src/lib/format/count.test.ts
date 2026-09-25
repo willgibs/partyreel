@@ -4,6 +4,7 @@ import {
   compactAxisWidth,
   formatCompactNumber,
   formatCount,
+  formatMediaCount,
   formatSignedCount,
 } from "./count";
 
@@ -23,6 +24,19 @@ describe("formatCount", () => {
   it("leaves a small count unchanged", () => {
     expect(formatCount(0)).toBe("0");
     expect(formatCount(47)).toBe("47");
+  });
+});
+
+describe("formatMediaCount", () => {
+  it("reads a lone item as 'photo or video', never a lying 'photo'", () => {
+    // The bug both red-teams caught: "1 photo & videos" always claimed videos too.
+    expect(formatMediaCount(1)).toBe("1 photo or video");
+  });
+
+  it("reads several as 'photos & videos', grouped through formatCount", () => {
+    expect(formatMediaCount(0)).toBe("0 photos & videos");
+    expect(formatMediaCount(2)).toBe("2 photos & videos");
+    expect(formatMediaCount(1249)).toBe("1,249 photos & videos");
   });
 });
 

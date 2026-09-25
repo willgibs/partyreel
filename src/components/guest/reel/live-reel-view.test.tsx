@@ -457,6 +457,49 @@ describe("the viewer's own knobs", () => {
   });
 });
 
+describe("a view already open follows the event going live (build 10's red-team: 'Set for everyone' toasted the room, but a screen already open kept playing its mount-time look)", () => {
+  it("adopts a live style change once the poll carries it, with no pick of its own", async () => {
+    h.live = live({ reel: { ...REEL, styleId: null } });
+    const { rerender, props } = renderView();
+    expect(h.player?.styleId).toBe("classic");
+    h.live = live({ reel: { ...REEL, styleId: "mono" } });
+    await act(async () => {
+      rerender(<LiveReelView {...props} />);
+    });
+    expect(h.player?.styleId).toBe("mono");
+  });
+
+  it("adopts a live hold change once the poll carries it, with no pick of its own", async () => {
+    h.live = live({ reel: { ...REEL, styleId: null, holdSec: 3 } });
+    const { rerender, props } = renderView();
+    // Cinematic holds 2.7 s by design: 3 s is 3 / 2.7 of it (the first test's own comment).
+    expect(h.player?.holdScale).toBeCloseTo(3 / 2.7, 5);
+    h.live = live({ reel: { ...REEL, styleId: null, holdSec: 5 } });
+    await act(async () => {
+      rerender(<LiveReelView {...props} />);
+    });
+    expect(h.player?.holdScale).toBeCloseTo(5 / 2.7, 5);
+  });
+
+  it("never touches a device's own style or hold pick", async () => {
+    localStorage.setItem("pr_reel_style_qr-token", "mono");
+    localStorage.setItem("pr_reel_hold_qr-token", "7");
+    const { rerender, props } = renderView();
+    expect(h.player?.styleId).toBe("mono");
+    expect(
+      screen.getByRole("button", { name: "Hold: 7 s a photo" }),
+    ).toBeInTheDocument();
+    h.live = live({ reel: { ...REEL, styleId: "warm", holdSec: 2 } });
+    await act(async () => {
+      rerender(<LiveReelView {...props} />);
+    });
+    expect(h.player?.styleId).toBe("mono");
+    expect(
+      screen.getByRole("button", { name: "Hold: 7 s a photo" }),
+    ).toBeInTheDocument();
+  });
+});
+
 describe("a tap on the picture (a tap opens the viewer)", () => {
   it("pauses and opens the photograph on screen in the media viewer", () => {
     renderView();

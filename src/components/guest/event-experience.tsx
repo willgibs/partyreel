@@ -49,7 +49,7 @@ import {
   type DemoPairArrival,
 } from "@/lib/demo";
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
-import { formatCount } from "@/lib/format/count";
+import { formatCount, formatMediaCount } from "@/lib/format/count";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import { DEFAULT_ROW_STEP, type RowStep } from "@/lib/shared/album-rows";
 import { closesOnLastRemoval as lastRemovalCloses } from "@/lib/guest/delete-consequence";
@@ -899,9 +899,7 @@ export function EventExperience({
                 style={{ "--reveal-i": revealBase + 1 } as React.CSSProperties}
                 className="mt-1 text-xs text-muted-foreground"
               >
-                {formatCount(mediaCount)}{" "}
-                {mediaCount === 1 ? "photo" : "photos"}
-                {" & videos"}
+                {formatMediaCount(mediaCount)}
                 {guestCount > 0 && (
                   <>
                     {" "}
@@ -947,7 +945,7 @@ export function EventExperience({
               <Lock className="size-4" aria-hidden />
               <p className="text-reading">
                 {stats.approvedTotal > 0
-                  ? `${formatCount(stats.approvedTotal)} ${stats.approvedTotal === 1 ? "photo" : "photos"} & videos inside`
+                  ? `${formatMediaCount(stats.approvedTotal)} inside`
                   : "This event is private"}
               </p>
             </div>

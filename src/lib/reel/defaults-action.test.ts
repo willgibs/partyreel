@@ -10,6 +10,9 @@
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { DEFAULT_HOLD_SEC } from "@/lib/reel/defaults";
+import { DEFAULT_STYLE_ID } from "@/lib/reel/engine/style-registry";
+
 vi.mock("server-only", () => ({}));
 
 const EVENT_ID = "5d0f0f6e-2b1a-4c1e-9a55-1f2d3c4b5a69";
@@ -192,6 +195,24 @@ describe("setReelDefaults: the host's saves", () => {
       { reel_style_id: "golden" },
       { reel_style_id: null, reel_hold_sec: null },
     ]);
+  });
+
+  it("stores a pick that lands on the platform's own default as NULL, not the matching value (build 9 and 10's red-teams)", async () => {
+    await setReelDefaults({ eventId: EVENT_ID, styleId: DEFAULT_STYLE_ID });
+    await setReelDefaults({ eventId: EVENT_ID, holdSec: DEFAULT_HOLD_SEC });
+    expect(state.patches).toEqual([
+      { reel_style_id: null },
+      { reel_hold_sec: null },
+    ]);
+  });
+
+  it("normalizes each column on its own: a default look beside a pinned hold touches only the look", async () => {
+    await setReelDefaults({
+      eventId: EVENT_ID,
+      styleId: DEFAULT_STYLE_ID,
+      holdSec: 5,
+    });
+    expect(state.patches).toEqual([{ reel_style_id: null, reel_hold_sec: 5 }]);
   });
 
   it("can never carry another setting: every other key is dropped before the write", async () => {

@@ -21,6 +21,18 @@ export function formatCount(n: number): string {
   return GROUPED.format(n);
 }
 
+/**
+ * "1 photo or video" | "42 photos & videos" — the one way an album's count of EITHER type is said
+ * (the guest album's header, its locked tease, the CTA and the email door: build 9 and 10's
+ * red-teams both caught "1 photo & videos", the ampersand form pinned at every count). Never "1
+ * photo", which lies when the one item is a video. Worded like the dashboard's own two-type count
+ * (`claims-card.tsx`'s `confirmDeleteTitle`), but with the guest surface's "&" rather than the
+ * dashboard's "and", since the guest header already reads "N photos & videos from M guests".
+ */
+export function formatMediaCount(n: number): string {
+  return n === 1 ? "1 photo or video" : `${formatCount(n)} photos & videos`;
+}
+
 /** "1247" -> "+1,247", "-3" -> "-3", "0" -> "0". A delta against a prior period. */
 export function formatSignedCount(n: number): string {
   if (n === 0) return "0";

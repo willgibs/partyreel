@@ -21,6 +21,7 @@ import {
   liveMoods,
   readHoldSec,
   readIncludeVideos,
+  readOwnHoldSec,
   readStyleId,
   writeHoldSec,
   writeIncludeVideos,
@@ -70,6 +71,12 @@ describe("the Hold", () => {
     // A host default off the steps lands on the nearest one.
     expect(readHoldSec("qr-c", 2.9)).toBe(3);
   });
+
+  it("readOwnHoldSec answers null with nothing stored, never a resolved fallback (reel-and-copy: this is what lets an open view tell 'never picked' from 'picked the default')", () => {
+    expect(readOwnHoldSec("qr-d")).toBeNull();
+    writeHoldSec("qr-d", 2.2);
+    expect(readOwnHoldSec("qr-d")).toBe(2.2);
+  });
 });
 
 describe("the style", () => {
@@ -115,6 +122,7 @@ describe("storage that throws", () => {
     });
     expect(readHoldSec("qr")).toBe(DEFAULT_HOLD_SEC);
     expect(readHoldSec("qr", 5)).toBe(5);
+    expect(readOwnHoldSec("qr")).toBeNull();
     expect(readStyleId("qr")).toBeNull();
     expect(() => writeHoldSec("qr", 7)).not.toThrow();
     expect(() => writeStyleId("qr", "warm")).not.toThrow();
