@@ -104,10 +104,17 @@ working.
 ## Handoff (replaces the chat report)
 
 - Work commit `a35e6f79` (`reel-teardown: end the stored reel's server side, wire the live reel's
-  lever`), pushed to `lp/reel-teardown`; `launch-prep` had not moved since the `afd3a267` cut, so no
-  sync commit. This manifest update is a second, separate commit on top, per Agent boot.
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = every owned path touched, plus three
-  exceptions outside `owns` (why, below) — no fourth file, no sibling lane's path.
+  lever`), pushed to `lp/reel-teardown`. Sync commit `b163c7c7` (`Merge remote-tracking branch
+  'origin/launch-prep' into lp/reel-teardown`, clean, no conflicts) once the Orchestrator merged
+  `reel-clip-wiring` (`38edc265`) and told this lane to sync past it. One more work commit after the
+  sync, `7b0511fa`, for the orphaned-module exception below. Head: `7b0511fa`. This manifest update is
+  a further, separate commit on top, per Agent boot.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = every owned path touched, this file,
+  and four exceptions outside `owns` (why, below) — no fifth file, no sibling lane's path.
+- **The merge-order gap in the first handoff is closed.** That version of this Handoff reported 8
+  `TS2307` errors (typecheck and build both) confined to five files inside `reel-clip-wiring`'s
+  `owns`, exactly as both manifests' "merge after, synced past it" language anticipated. Syncing past
+  `38edc265` resolved every one with no edit from this lane: see Gates below, now fully green.
 
 ### Deletions (by name, all with their tests)
 `src/app/api/reel/{upload,download}/route.ts`; `/admin/reels` whole (`page.tsx`, `actions.ts`,
@@ -157,35 +164,37 @@ inventory comment names (the "Partyreel Demo" event); `errors: 0`, nothing delet
 the purge cron's append and `account-deletion.ts`'s append are untouched, per the deprecation window
 (see Deferred above for when they go).
 
-### Gates, each on its own exit code, all on `a35e6f79` (formatted with `pnpm format` first)
-- `pnpm typecheck`: **fails**, exactly 8 `TS2307` "Cannot find module" errors across 5 files —
-  `src/components/guest/guest-reel-card.tsx` (1), `guest-reel-overlay.tsx` (3),
-  `src/components/reel/reel-studio.tsx` (1), `studio-moments-picker.tsx` (1), `use-reel-config.ts`
-  (2) — every one of them importing a module this commit deletes. All 5 files are inside
-  `reel-clip-wiring`'s `owns` (its manifest names all five explicitly as "the Studio's end"), and both
-  manifests already document the merge order: "you merge after it, synced past it" (mine),
-  "`reel-teardown` deletes the stored reel's server side... and merges after you" (theirs). **Merge
-  `reel-clip-wiring` before this lane**; a sync afterward should show zero typecheck errors. Full
-  log kept nowhere durable — reproduce with `pnpm typecheck` on this sha if in doubt.
-- `pnpm lint`: green, 0 errors. 6 pre-existing warnings, all in files this lane never touched
-  (`review-session.tsx`, `home-hero/shared.tsx`, `contact-form.tsx`, `album-fill-grid.tsx`,
-  `review-switch.tsx`) — not this lane's to own per CLAUDE.md's "a warning in a file you touched is
-  yours."
-- `pnpm test`: green, **441/441 test files, 4839/4839 tests**.
-- `zsh scripts/build-lock.sh pnpm build`: **fails** at the same first cross-lane error
-  (`guest-reel-card.tsx:40`, `Cannot find module '@/lib/reel/guest-reel-payload'`) — Turbopack's own
-  compile step passed ("Compiled successfully in 9.2s"); only the "Running TypeScript" step after it
-  hits the identical 5-file gap. Same fix: merge order.
-- `pnpm lab:smoke --base http://localhost:3132`: green, **276 checks, 0 failing**. The one non-200 in
-  the raw log (`/design/boom` → 500) is `src/app/(dev)/design/(shell)/lab/tools/boom/page.tsx`, a
-  PERMANENT intentional boundary probe ("design-lab boundary probe: intentional render crash (not a
-  real failure)") — pre-existing, unrelated, not a regression.
-- `git grep` sweep for the five dropped RPCs, the three dropped tables and the two dead limiter kinds
-  across `src`/`scripts`: every hit outside `reel-clip-wiring`'s owns, `src/lib/db/types.ts`
-  (generated, untouched until the drop applies) and the migration-guard/row-cap tests (which scan
-  migration SQL text directly, never import my TS) is a doc-comment mentioning a column/table name for
-  context (`r2/keys.ts`, `engine/style-registry.ts`, `engine/themes.ts`, `scripts/seed-demo-event.mjs`)
-  — none of them a live import or call.
+### The orphaned-module exception (new, post-sync)
+The Orchestrator's sync instruction named it directly: `src/lib/reel/client-encode-budget.ts` (+ its
+test) lost its last reader when `render-service.ts` went (`a35e6f79`) — `reel-clip-wiring`'s own merge
+(`38edc265`) had already removed the OTHER reader (the guest overlay). `git grep -l
+"client-encode-budget"` after the sync showed only the module's own test file. Owned by no live lane
+now, so deleted here (`7b0511fa`) as the decided exception the Orchestrator asked for rather than left
+dead in the tree.
+
+### Gates, each on its own exit code, all on the synced tree at `7b0511fa` (formatted first)
+- `pnpm typecheck`: **green**, zero errors. The prior Handoff's 8 `TS2307` errors are gone — every one
+  was a `reel-clip-wiring`-owned file importing a module this lane deletes, and syncing past their
+  merge removed the importers.
+- `pnpm lint`: green, 0 errors. Still the same 6 pre-existing warnings in files this lane never
+  touched (`review-session.tsx`, `home-hero/shared.tsx`, `contact-form.tsx`, `album-fill-grid.tsx`,
+  `review-switch.tsx`) — not this lane's per CLAUDE.md's "a warning in a file you touched is yours."
+- `pnpm test`: green, **459/459 test files, 5027/5027 tests** (up from 441/4839 pre-sync: the merge
+  brought in `reel-clip-wiring`'s and other batch-3 lanes' own tests).
+- `zsh scripts/build-lock.sh pnpm build`: **green** — Turbopack compile, `runAfterProductionCompile`
+  and the TypeScript step all passed.
+- `pnpm lab:smoke --base http://localhost:3132`: green, **281 checks, 0 failing** (re-run against the
+  restarted dev server on the synced tree). The one non-200 in the raw log (`/design/boom` → 500) is
+  `src/app/(dev)/design/(shell)/lab/tools/boom/page.tsx`, a PERMANENT intentional boundary probe
+  ("design-lab boundary probe: intentional render crash (not a real failure)") — pre-existing,
+  unrelated, not a regression.
+- `git grep` sweep, re-run on the synced tree, for the five dropped RPCs, the three dropped tables,
+  the two dead limiter kinds and every deleted module's path (`client-encode-budget` included): every
+  hit is `src/lib/db/types.ts` (generated, untouched until the drop applies), the migration-guard/
+  row-cap tests (scan migration SQL text directly, never import my TS), or a doc-comment mentioning a
+  column/table/file name for context (`r2/keys.ts`, `engine/style-registry.ts`, `engine/themes.ts`,
+  `scripts/seed-demo-event.mjs`, this lane's own `media.test.ts`) — zero live imports or calls
+  anywhere, `reel-clip-wiring`'s former files included (they are gone, not just fixed).
 - The limiter's budget and refusal: `complete-upload/route.test.ts` (above).
 - The lever's switch + the gallery following it: **not click-tested live.** Admin sign-in is
   alias-only (`testing-verification.md`: "typing a password or a code never is," Google-chooser only,
@@ -207,14 +216,17 @@ the purge cron's append and `account-deletion.ts`'s append are untouched, per th
   - The clip-add limiter is scoped per guest session (cap 10/day), not per event like its siblings.
   - An operator's platform pause and a host's own switch-off render as the same "Off" Reel card.
 - Look at first:
-  1. Merge `reel-clip-wiring` before this lane (the 8 typecheck/build errors above name exactly why).
-  2. After integrating, red-team the live-reel admin switch on the alias as a signed-in admin (this
-     lane could not: see the gates section above) — the one piece of this Handoff resting on mirrored
-     code + unit tests rather than a live click.
+  1. This lane is synced past `reel-clip-wiring` (`38edc265`) and the gate is fully green on
+     `7b0511fa` — safe to merge whenever it suits the queue; no further merge-order dependency.
+  2. Red-team the live-reel admin switch on the alias as a signed-in admin once this lane's code
+     actually reaches it (it could not before: see Gates above) — the one piece of this Handoff
+     resting on mirrored code + unit tests rather than a live click. Confirm the switch flips
+     `ops_flags.live_reel_enabled` and a guest album's tile/view/screen and Make your own all
+     disappear, then flip it back.
   3. `docs/tracks/reel-sweep.md`'s Handoff needs: the limiter's shape/budget, the lever's switch
      location and behavior, and the sweep's dry-run result, all written out above for its
      `docs/systems/reel.md`.
-  4. Two small exceptions outside this lane's `owns`, both minimal and both keep the tree green:
+  4. Four small exceptions outside this lane's `owns`, all minimal, all keeping the tree green:
      - `src/app/(app)/dashboard/page.tsx`: threads `liveReelEnabled` into every mapped
        `NextStepEvent` (one `getLiveReelServerFacts` call, read once since the lever is one global
        fact, not per-event, with `.tier` discarded) — required by this lane's own brief ("so all
@@ -225,5 +237,8 @@ the purge cron's append and `account-deletion.ts`'s append are untouched, per th
        TS half (the invariant now lives only in the live reel's own tests) and kept the SQL half,
        which is independent of the deleted code. Left its now-unread `highlight_reels`/`reel_items`
        fixture rows in place rather than pruning someone else's fixture beyond what broke.
-     - (A third, `src/lib/dashboard/viewer-day.test.ts`, needed only the same new required field
-       added to one fixture object — mechanical, no judgment call.)
+     - `src/lib/dashboard/viewer-day.test.ts`: the same new required field added to one fixture
+       object — mechanical, no judgment call.
+     - `src/lib/reel/client-encode-budget.ts` (+ its test): the Orchestrator's own sync instruction,
+       above — orphaned by this lane's deletion plus `reel-clip-wiring`'s merge together, owned by
+       no live lane, deleted as a decided exception rather than left dead.
