@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Tests: the Radix FocusScope teardown flush `entry-modal.test.tsx` runs in its own `afterEach` belongs in `vitest.setup.ts`, for every component test that unmounts a Radix dialog (from `reel-guest-wiring`).
+- Guest: `src/components/guest/yours-filter.ts` moves into `src/lib/guest/` beside the other gallery arithmetic (`merge-gallery-items`, `reconcile-gallery-items`).
+- Guest: the approval toast's server half, so an upload approved after the visit that made it is told on the next visit (the queue lives in memory).
 - Album: switch each surface to `layout="rows"` once the reel lanes owning the pages merge (the guest album, the host feed, bulk select through `AlbumRows`, the bin, the profile feeds, the skeletons, the five steps in `pr_tile_size` and the View menu, a jump-free first paint), with `album-columns` r2's picks; the needs list is lp/album-rows' Handoff (merged at `30ac9b74`).
 - Album: pause the tile shimmer off screen: a thousand-photo album keeps about 1,100 skeleton animations restyling every frame until each tile nears the viewport (measured in Chrome at 1,145 photos; masonry pays the same with real photo URLs).
 - The lab and the kit: the lab shell's `:has()` rule invalidates the whole page subtree on any DOM insertion (about 7,800 elements restyled per album arrival inside a board, masonry and rows alike); scope it.

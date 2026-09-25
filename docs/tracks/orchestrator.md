@@ -38,7 +38,6 @@ in auto mode ("work through the night on all of this until fully complete"); the
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `reel-guest-wiring` | the live reel's guest side | handed off at `7d5bfb32`; merging now (no `[preview]`: the stretch still reaches the alias as one build) | Opus | its calls are Will's to overrule, relayed with the merge |
 | `reel-host-wiring` | the host's reel side and the wide host pages | handed off at `c8af4435`; merging after the guest lane | Opus | its ten calls relayed with the merge |
 
 ## Next, in order
