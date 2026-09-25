@@ -66,7 +66,27 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The event pages' reel angles sit inside the held reel side.** The brief retells "the event pages' reel angles" and
+  also holds "the event pages' reel side beside the demo door", where those five lines are the only place they render.
+  Recommended, built: the five `reelAngle` strings (`constants/events.ts`) are retold now in round 1's settled
+  `events=wall` register (the reel on the room's screen at that kind of event); the side itself (its layout, the
+  "And it ends with a reel." line, the stored poster player, its caption and link) stays for round 2's `wall`.
+- **Five help slugs move, two of them retired.** Recommended, built: `the-highlight-reel` and
+  `reel-styles-length-and-layout` keep their slugs (rewritten); `show-the-album-live-on-a-screen` merges into
+  `play-the-reel-on-a-screen`; `pick-and-reorder-reel-moments` becomes `make-your-own-clip`; `the-reel-wont-download`
+  becomes `a-clip-wont-finish-or-save` (troubleshooting, where failures live); the two false ones retire, the download
+  article to `make-your-own-clip` and the share article to `the-highlight-reel`. Every moved slug 308s
+  (`help-redirects.ts`); `add-a-clip-to-the-event` is new. The category runs live-first: reel, screen, clip.
+- **"Clip" also meant a video upload** in about a dozen marketing, help and blog lines ("Guests add clips straight to
+  the album"). Recommended, built: those say "video" now, so "clip" names only what a viewer makes from the reel.
+- **The /reel page's three chapters get honest file names.** The spec named `render-section.tsx`, `tier-section.tsx`
+  and `guest-share-section.tsx` as the files to rebuild. Recommended, built: new `live-section.tsx`,
+  `screen-section.tsx` and `clip-section.tsx` in that order (the clip chapter carries the renamed length and mark
+  table), and the five stored-reel sections (the wysiwyg claim, the render story, the tier table, the guest share, the
+  how-it-works reprise) are deleted; the switcher stays second as the engine's proof.
+- **Four constants files outside `owns` carry settled picks.** `how-it-works.ts` (`steps=grow-clip`), `events.ts` (the
+  angles), `press.ts` (the fact sheet, "the sweep's alone" per `reel-story`) and `careers.ts` (the reel engineer's
+  posting sells the Studio) are unclaimed tonight. Built as listed exceptions; the owns list could carry them.
 
 ## System-doc edits (in place, owned facts only)
 
