@@ -196,7 +196,8 @@ at the foot, so no dialog carries its own keyboard fix.
   clip's `startAt`) and drops back into it; a face-led CREDIT top left (the face or plain disc, the name, the mark,
   "You" on your own upload, the host's proved address, a door to `/u/<slug>` only where the item carries one), the
   close top right, the floating ACTION CAPSULE at the foot (Like / Save / Share / Copy link / Delete, a clip's sound,
-  the host's curate group behind a divider) and a clip's TRANSPORT (play, a scrubber, the time) above it. ★ **EVERY
+  the host's curate group behind a divider; in the recovery bin, its Restore and Delete permanently alone) and a
+  clip's TRANSPORT (play, a scrubber, the time) above it. ★ **EVERY
   UPLOAD CARRIES A NAME**: a confirmed guest's profile name stands plain, a typed one wears
   [`unverified-mark.tsx`](../../src/components/shared/unverified-mark.tsx) (MineMark's material, tap to open, one
   extra sentence for the host, and on YOUR OWN credit a "Confirm your email" opening the one confirm door). A row with

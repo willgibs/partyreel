@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Host: the hub's select mode changes the header's height on a phone (the album's top moves 34 px at 375), and leaving it after a bulk delete jumped the album those 34 px in 3 of 6 walks, when the browser's own scroll anchoring missed the header growing back; the album's anchor could own a change above the album too (from `album-fixes`).
 - Code hygiene: `mayUploadPastLock` (`src/lib/events/upload-lock.ts`) and `resolveAlbumViewer` (`src/lib/events/album-viewer.server.ts`) still ask the owner inline (`getUser()` and `isEventOwner`); moving both onto `isRequestOwner` (`gallery-access-owner.server.ts`) makes every gate on the guest page one owner answer (from `owner-album`).
 - Host: the bulk toasts (`host-media-grid.tsx`'s "Liked N photo(s)", `event-feed/use-review-triage.ts`'s "Approved N photo(s)") read "photo" for a selection that can hold a video; `formatMediaCount` (`src/lib/format/count.ts`) is the guest side's fix (from `reel-and-copy`).
 - Docs: `testing-verification.md`'s presign-roll soak still frames a refreshed link as "the 30-minute bucket rolls"; the guest album's links now re-mint per id at `ALBUM_LINK_REMINT_MS` (an hour) instead (the teaser still uses the bucket, and the host album's own timing is unverified); the section's opening wants its own pass (from `album-docs`).

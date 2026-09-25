@@ -347,7 +347,10 @@ server answering the poll, the writes and the bin's routes as the real ones do.
 - ★ **A full re-solve moves the whole album**, since paths from a new head need not merge with the old ones, so it runs
   only on load, a resize, a step change and a filter; an arrival re-solves the new photos plus the three rows beside
   them and a hide its row and neighbours, each window pinned at its edges and stretched by one row at most: never
-  more than four old rows move.
+  more than four old rows move; and a change outside the rows in view never re-lays them: the box hands the engine
+  those rows (`rowsInView`), a window keeps to its own side of them (a run on their edge joins the row outside them,
+  a bulk change re-solves that side whole), and a side that cannot be laid under its cap lets the view go before the
+  album.
 - ★ **The rows are one flex container broken by hand, never a wrapper per row**: a tile that changes parent remounts,
   dropping its decoded image to the shimmer and replaying its entrance on every arrival. Each tile's whole-pixel width
   is its `flex-grow` over a zero basis, so it lands on its pixel at the laid width and still fills mid-resize.
@@ -358,7 +361,8 @@ server answering the poll, the writes and the bin's routes as the real ones do.
 - ★ **Nothing a reader is looking at moves**: `overflow-anchor: none` (the browser cannot anchor through a spacer, and
   Safari has no anchoring), then a change is paid in its own layout effect by scrolling exactly as far as the first
   photograph at the view's top (or under a pinch) moved: a difference of two album positions, so a view read a frame
-  late cannot throw it off. At the head nothing anchors, so the arrival is seen; on a touch screen a change that needs
+  late cannot throw it off. The scroll holds only what the change did not re-lay, which is why the rows in view stay
+  whole (above). At the head nothing anchors, so the arrival is seen; on a touch screen a change that needs
   a scroll waits until the scroll has been still 150ms, since a scroll written mid-flick stops the flick.
 - ★ **The rows' glide snapshots every tile in `getSnapshotBeforeUpdate`** (the only pre-commit DOM read React has; a
   null class component): a rect remembered from the last glide is off by however far the reader scrolled since. The

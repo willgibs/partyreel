@@ -212,7 +212,9 @@ beneath, newest first.
   always renders so an empty album still reaches the bin. ★ The bin is the paged album's shape (`lib/event/bin.ts`):
   choosing Deleted reads its list (`/api/events/<id>/bin`: ids, shapes and countdowns, no links), again on every
   choice so what was just deleted is there; its rows mint links per window (`bin/media`) and re-mint them every five
-  minutes while it is open; bin items never count in the album.
+  minutes while it is open; bin items never count in the album. Its two verbs, Restore (at once) and Delete
+  permanently (behind a confirm), ride the tile's pane at a desk and the viewer at every width, one `useBinActions`
+  for both: the viewer closes first, the item leaves the list, and the bin's viewer carries nothing else.
 - ★ **The hub's album is the paged album and its numbers are counted**: the page plans the host's first sync (every
   item but the bin, light, each status in its flags) and mints links for the 96 newest (`FIRST_WINDOW`,
   `readHostLinksBody`, with each item's like count); the windowed rows ask for the rest by id. Every number is counted
