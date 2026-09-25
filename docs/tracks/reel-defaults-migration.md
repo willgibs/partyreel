@@ -1,6 +1,6 @@
 ---
 track: reel-defaults-migration
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "242e0bf4"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -55,21 +55,27 @@ working.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/database-security.md`: `reel_hold_sec` joins `get_event_by_qr_token`'s unredacted fields ("its switches and the reel's defaults"); `event_stills` named under "SECURITY INVOKER is the default for a new read" (authenticated-only, another host's event absent, only granted media columns).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits**, all pushed on `lp/reel-defaults-migration`: `3e51d6a2` the migration and its guards; `ea6208fb` the SQL's four calls under Questions (the "SQL ready" checkpoint); `368c5d0c` the sync, merging `origin/launch-prep` at `d375f520` (the applied migration's regenerated types); `5a3e5456` the write path; the head is this manifest commit. launch-prep has not moved since `d375f520`.
+- **Gates on `5a3e5456`** (the synced tree), each on its own exit code: `pnpm typecheck` 0; `pnpm lint` 0 (0 errors; its 7 warnings all sit in files this lane never touched); `pnpm test` 0 (429 files, 4,622 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3132` 0 (290 checks, 0 failing). No board, so no `lab:demo`.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = the 11 owned paths + this file, no exceptions.
+- **The migration** (`supabase/migrations/20260925100000_reel_host_defaults.sql`, applied at `d375f520`'s regeneration): `events.reel_hold_sec` numeric (NULL = the default hold) inside `events_reel_hold_sec_range` (NULL or 0.5 to 30 s) with a bare column grant; `get_event_by_qr_token` = the expand's body plus the hold, last and unredacted, its whole ACL restated; `event_stills(uuid[], integer)`, SECURITY INVOKER, one jsonb `{ event id: [preview_key, ...] }` of each event's newest approved, non-removed, previewed photos, clamped to 0..12, authenticated-only. Its rolled-back check held on the live schema before the apply (md5s `52a56b21` and `f0d4e91b` in its header, the catalog unchanged afterwards), and again in the Orchestrator's apply.
+- **Live after the apply**, as anon with the public key: `get_event_by_qr_token` on the scale probe answers 17 keys ending `show_reel, reel_style_id, reel_hold_sec`, with `reel_hold_sec: null`; `event_stills` answers 42501 "permission denied for function event_stills"; a PATCH of `events.reel_hold_sec` answers 42501. The probe's guest page renders 200 on the new payload locally.
+- **The guards** (`src/lib/db/migration-guards.test.ts`, item 14): the column, its envelope and bare grant (no revoke on events, no anon grant); the recreate IS the expand's definition with only the hold appended (compared character for character, so QA #40 and `limit 1` cannot drift); the hold last; drop before create and both ACL grants; `event_stills`' signature, INVOKER mode, predicates, clamp, grants, never anon, and that it names only media columns the replayed host SELECT grant holds. The expand's two tail pins now stop before the hold, reshaped on purpose and saying so. Ten deliberate breakages of the SQL each failed them.
+- **`src/lib/reel/defaults.ts`**: `HOLD_STEPS_SEC` and `DEFAULT_HOLD_SEC` under the names the guest lane's copy uses (`src/lib/guest/reel-prefs.ts`), so its swap is an import; `REEL_MOOD_IDS` (the catalog's eight moods); `isHoldStep`, `isReelMoodId`; `nearestHoldStep` (the guest lane's semantics, importable too); `resolveHoldSec`, which reads null as the default and never as the 1 s step, for the RPC's `reel_hold_sec` (typed `number`, NULL until a host sets it). `defaults.test.ts` reads the envelope off the migrations and holds every step inside it.
+- **`validation/event.ts` and `updateEvent`**: `show_reel`, `reel_style_id` (a mood or null) and `reel_hold_sec` (a step or null) join `updateEventSchema` only (a create strips them); `reelDefaultsInputSchema` is the action's input, unknown keys stripped; `updateEvent` patches the three as sent (`events.test.ts`).
+- **`src/lib/reel/defaults-action.ts`**: `setReelDefaults({ eventId, showReel?, styleId?, holdSec? })` answers `{ ok: true, defaults: { showReel, styleId, holdSec } }` (what the row now holds) or a refusal coded `validation`, `unauthorized` or `unknown`. The input is refused before a session is read; `updateEvent` re-verifies with `auth.getUser()`; RLS and the column grant are the owner check; only the three columns are writable; it revalidates nothing (every reader renders per request, and from the view a `revalidatePath` would re-render the presign-heavy album under a playing reel). `defaults-action.test.ts` runs through the real `updateEvent`: signed out, not the owner (PGRST116), an unknown or treatment look, holds off the steps, hostile types, an empty save, each save's patch, extra keys dropped. Five deliberate breakages of the write path each failed its tests.
+- **For the next lanes:** the guest lane reads the host's hold with `resolveHoldSec(row.reel_hold_sec)` and imports `HOLD_STEPS_SEC`, `DEFAULT_HOLD_SEC` and `nearestHoldStep` in place of its copies; the host lane reads `event_stills` on the user's client and presigns each key server-side (as `readCoverUrls` does), and calls `setReelDefaults` from Settings.
+- **Not verified live:** `setReelDefaults` itself, since nothing calls it yet and a session cannot be driven without a surface. Its SQL half held in the live rolled-back check (the host's write lands, another host's matches no row, anon is refused, the envelope refuses 0.4, 0, -1, 31, NaN, Infinity and -Infinity); the first lane that wires the action red-teams it on the alias.
+- Assets requested from Will: none
+- Board ideas: none
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none (the one migration is applied)
+- Calls his to overrule: the four under Questions (the envelope CHECK, jsonb stills, previews only, the clamp at 12)
+- Look at first: the migration's section 3 (`event_stills`) and its rolled-back check, then `src/lib/reel/defaults-action.ts`'s header
