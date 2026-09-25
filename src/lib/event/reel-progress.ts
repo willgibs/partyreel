@@ -21,6 +21,14 @@
  *
  * Pure and client-safe: no DOM, no React, no server imports.
  */
+import {
+  ENTRY_HIDDEN,
+  ENTRY_PENDING,
+  ENTRY_PREVIEW,
+  ENTRY_REEL,
+  ENTRY_VIDEO,
+  type ManifestEntry,
+} from "@/lib/events/album-wire";
 import { LIVE_REEL_MINIMUM } from "@/lib/events/gallery-reel";
 import {
   isReelEligible,
@@ -88,6 +96,31 @@ export function photosToGo(playable: number): number {
   return Math.max(0, REEL_MINIMUM - playable);
 }
 
+/**
+ * WHETHER A MANIFEST ENTRY CAN PLAY: `isReelEligible` (the guest's own rule), read off the paged
+ * album's flags where the hub no longer holds the items themselves. Approved (not hidden, not held),
+ * not a clip someone added to the album, and something to draw: a photograph always has one, a video
+ * only its preview, since the reel's image decoder cannot read an mp4.
+ */
+export function isPlayableEntry(e: ManifestEntry): boolean {
+  const flags = e[3];
+  if (flags & (ENTRY_HIDDEN | ENTRY_PENDING)) return false;
+  if (!(flags & ENTRY_REEL)) return false;
+  return !(flags & ENTRY_VIDEO) || (flags & ENTRY_PREVIEW) !== 0;
+}
+
+/** How many entries can play, counted no further than `cap` (the card needs to know "two or more"). */
+export function playableCount(
+  entries: readonly ManifestEntry[],
+  cap = Infinity,
+): number {
+  let n = 0;
+  for (const e of entries) {
+    if (isPlayableEntry(e) && ++n >= cap) break;
+  }
+  return n;
+}
+
 /** The Reel card's face, read off the album the hub already holds. */
 export type HubReel = {
   state: ReelState;
@@ -98,6 +131,8 @@ export type HubReel = {
    * reel's own opening stills. Empty when the card is plain (off, or nothing yet).
    */
   stills: string[];
+  /** Whose stills they are, in order: the album can take one away, and then the card asks again. */
+  stillIds: string[];
 };
 
 /**
@@ -108,9 +143,9 @@ export type HubReel = {
  * album (`TAKE_POOL`), so the card previews the reel's feel from across the party at a cost that
  * stays flat however big the album grows.
  *
- * The count is read off the whole album the hub reads (`listEventMedia` pages to the last row), so
- * it is exact, and the stills come from the same items: the face can never claim a reel whose
- * pictures it does not have.
+ * On the hub it is handed the spread itself (`readHubReel`, `host-album.server.ts`, reads the
+ * manifest's playable entries and only the pool's rows), and the stills come from those items: the
+ * face can never claim a reel whose pictures it does not have.
  */
 export function hubReel(input: {
   eventId: string;
@@ -125,19 +160,29 @@ export function hubReel(input: {
     playable: playable.length,
   });
   const have = Math.min(playable.length, REEL_MINIMUM);
-  if (state === "off") return { state, have, stills: [] };
+  if (state === "off") return { state, have, stills: [], stillIds: [] };
   if (state === "counting") {
     const first = playable[0];
-    return { state, have, stills: first ? [stillUrlFor(first)] : [] };
+    return {
+      state,
+      have,
+      stills: first ? [stillUrlFor(first)] : [],
+      stillIds: first ? [first.id] : [],
+    };
   }
   const pool = spreadSample(playable, TAKE_POOL);
   const byId = new Map(pool.map((item) => [item.id, item]));
-  const stills = planTake(pool, { eventId: input.eventId, loopIndex: 0 })
+  const shown = planTake(pool, { eventId: input.eventId, loopIndex: 0 })
     .slice(0, REEL_CARD_STILLS)
-    .map((id) => {
+    .flatMap((id) => {
       const item = byId.get(id);
-      return item ? stillUrlFor(item) : "";
-    })
-    .filter(Boolean);
-  return { state, have, stills };
+      const still = item ? stillUrlFor(item) : "";
+      return still ? [{ id, still }] : [];
+    });
+  return {
+    state,
+    have,
+    stills: shown.map((s) => s.still),
+    stillIds: shown.map((s) => s.id),
+  };
 }

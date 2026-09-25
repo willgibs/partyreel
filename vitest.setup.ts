@@ -5,7 +5,7 @@
  * never sees this file.
  */
 import { afterEach, beforeEach, vi } from "vitest";
-import { cleanup, configure } from "@testing-library/react";
+import { act, cleanup, configure } from "@testing-library/react";
 
 // Entry-step EXIT CLONES (entry-step-transition.tsx) are inert pixels that
 // linger ~320ms during a step handoff; exclude them from text queries the
@@ -21,8 +21,21 @@ process.env.NEXT_PUBLIC_SUPABASE_URL ??= "https://test.supabase.co";
 process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??= "test-publishable-key";
 
 // RTL auto-cleanup hooks into globals (off here); register it explicitly so
-// each test starts from an empty document.
-afterEach(cleanup);
+// each test starts from an empty document. Radix's FocusScope restores focus
+// on unmount from a `setTimeout(0)` that dispatches on its container: flush
+// that timer here, in the SAME hook as the unmount, while the document still
+// exists. Left pending, a loaded run can reach it after jsdom is torn down,
+// where `dispatchEvent` throws as an unhandled error - and splitting the
+// flush into its own afterEach wouldn't help (after hooks run in reverse
+// registration order, so a later-registered flush would fire BEFORE this
+// cleanup ever unmounts anything, and one registered earlier would run after
+// every other file's hooks, too late to catch what this cleanup schedules).
+afterEach(async () => {
+  cleanup();
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+});
 
 // React 19 + RTL act() integration.
 (globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;

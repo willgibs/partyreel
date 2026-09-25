@@ -20,8 +20,8 @@ export const dynamic = "force-dynamic";
  *
  * The host's album is everything but the bin (approved, hidden and held, each entry's status in its
  * flags), and every status change moves the host's version, so a held upload on a moderated event
- * reaches the one person who can approve it: the hub's `/api/events/<id>/live` question, answered
- * with the change itself. A matching `If-None-Match` is a 304 that read one row (album-validator.ts).
+ * reaches the one person who can approve it: the hub polls here, and is answered with the change
+ * itself. A matching `If-None-Match` is a 304 that read one row (album-validator.ts).
  * A 200 carries the manifest (first load, or more than 500 changes behind) or the delta, and the two
  * numbers the hub says, the album (approved + hidden) and Review (held), counted in the same snapshot
  * as the version.

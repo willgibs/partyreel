@@ -23,6 +23,10 @@ vi.mock("server-only", () => ({}));
 let fake: FakePostgrest;
 let signedIn = true;
 
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => asSupabase(fake),
+}));
+
 vi.mock("@/lib/supabase/request-auth", () => ({
   getRequestAuth: async () => ({
     supabase: asSupabase(fake),
@@ -30,7 +34,8 @@ vi.mock("@/lib/supabase/request-auth", () => ({
   }),
 }));
 
-const { getEventLikeCounts } = await import("@/lib/db/queries/likes");
+const { getEventLikeCounts, parseLikeCounts, readMediaLikeCounts } =
+  await import("@/lib/db/queries/likes");
 
 const uuid = (i: number) =>
   `m0000000-0000-4000-8000-${String(i).padStart(12, "0")}`;
@@ -39,7 +44,8 @@ const uuid = (i: number) =>
 function likeCounts(liked: Map<string, number>) {
   return (args: Record<string, unknown>) => {
     const after = (args.p_after as string | undefined) ?? null;
-    const limit = args.p_limit == null ? Infinity : Math.min(Number(args.p_limit), 1000);
+    const limit =
+      args.p_limit == null ? Infinity : Math.min(Number(args.p_limit), 1000);
     return [...liked]
       .filter(([id]) => after === null || id > after)
       .sort(([a], [b]) => (a < b ? -1 : 1))
@@ -98,5 +104,64 @@ describe("getEventLikeCounts", () => {
     await expect(getEventLikeCounts("event-1")).rejects.toThrow(
       /host: like counts/,
     );
+  });
+});
+
+/**
+ * A WINDOW'S COUNTS (album-host-wiring): `media_like_counts` answers one jsonb for exactly the asked
+ * ids of one event, on the service role after the caller's own ownership check, and an id nobody
+ * liked is absent (0). One request whatever the window, never the event's whole liked set.
+ */
+describe("readMediaLikeCounts", () => {
+  it("asks for exactly the window's ids in one call and reads the answer as a map", async () => {
+    const asked: unknown[] = [];
+    fake = createFakePostgrest({
+      rpc: {
+        media_like_counts: (args: Record<string, unknown>) => {
+          asked.push(args);
+          return { [uuid(1)]: 3, [uuid(2)]: 1 };
+        },
+      },
+    });
+    const counts = await readMediaLikeCounts("event-1", [
+      uuid(1),
+      uuid(2),
+      uuid(3),
+    ]);
+    expect(asked).toEqual([
+      { p_event_id: "event-1", p_media_ids: [uuid(1), uuid(2), uuid(3)] },
+    ]);
+    expect(counts.get(uuid(1))).toBe(3);
+    expect(counts.get(uuid(3))).toBeUndefined();
+  });
+
+  it("asks nothing for an empty window", async () => {
+    fake = createFakePostgrest({ rpc: {} });
+    expect((await readMediaLikeCounts("event-1", [])).size).toBe(0);
+    expect(fake.requests).toHaveLength(0);
+  });
+
+  it("throws a labelled error rather than reading a failure as nobody's likes", async () => {
+    fake = createFakePostgrest({
+      rpc: {
+        media_like_counts: () => {
+          throw new FakeRpcError("XX000", "boom");
+        },
+      },
+    });
+    await expect(readMediaLikeCounts("event-1", [uuid(1)])).rejects.toThrow(
+      /likes: media like counts/,
+    );
+  });
+
+  it("keeps only whole positive counts from whatever it is handed", () => {
+    expect([
+      ...parseLikeCounts({ a: 2, b: 0, c: -1, d: 1.5, e: "3", f: 4 }),
+    ]).toEqual([
+      ["a", 2],
+      ["f", 4],
+    ]);
+    expect(parseLikeCounts(null).size).toBe(0);
+    expect(parseLikeCounts([1, 2]).size).toBe(0);
   });
 });

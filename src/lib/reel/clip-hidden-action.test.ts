@@ -97,7 +97,9 @@ describe("listClipHiddenAction", () => {
       row({ id: "e", type: "video", guest_id: null }),
     ];
     const result = await listClipHiddenAction(EVENT);
-    expect(h.read).toHaveBeenCalledWith(expect.anything(), EVENT, "album");
+    // The hidden slice alone (album-host-wiring): a creator opened over a big album reads its
+    // handful of hidden items, never the whole album. The filter below still stands behind it.
+    expect(h.read).toHaveBeenCalledWith(expect.anything(), EVENT, "hidden");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.items.map((m) => m.id)).toEqual(["b", "e"]);

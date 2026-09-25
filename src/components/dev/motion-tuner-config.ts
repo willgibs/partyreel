@@ -17,11 +17,11 @@
  * knobs, the Library's radius section (/design/library/foundations#radius) for
  * the radius tokens (the rounding board was, until it retired). A knob
  * without a specimen is retired from the panel rather than left as a dead
- * slider: the reel reveal's seven and the reel experience's two (ratified at T1,
- * revisit-only) and the event feed's swap and reorder (ratified 2026-06-22) left
- * the panel here; their vars and baked values are untouched (the three-place
- * contract in src/components/reel/reveal-constants.ts still holds), and a
- * revisit re-adds a knob WITH its specimen in the same commit.
+ * slider: the event feed's swap and reorder (ratified 2026-06-22) left the
+ * panel here; their vars and baked values are untouched, and a revisit re-adds
+ * a knob WITH its specimen in the same commit. (The reel reveal's seven and
+ * the reel experience's two left the same way; their vars are since gone too
+ * — housekeeping, not a revisit.)
  *
  * GROWS PER INCREMENT: an increment APPENDS its controls here in the SAME commit
  * it wires the matching `var()` into the CSS, with a description, a ships line

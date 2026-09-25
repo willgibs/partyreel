@@ -117,9 +117,7 @@ export const floatingEdgeEntrance = [
  * `data-side="responsive"`, which NONE of the four fixed-side rules above
  * match, so this constant owns its position and its entrance outright at both
  * widths with no specificity race. The default `side` is untouched, which is
- * what `marketing/chrome/mobile-menu.tsx` and the design shell keep drawing,
- * and `drawer.tsx` is NOT retired: the lab's gallery demos draw it and vaul's
- * drag is a different affordance from a panel that arrives on a curve.
+ * what `marketing/chrome/mobile-menu.tsx` and the design shell keep drawing.
  *
  * ★ THE CORNER IS THE FAMILY'S TOKEN, not one of its own. A bottom sheet's top
  * edge is the only edge of it that is not the viewport's, so that edge — and

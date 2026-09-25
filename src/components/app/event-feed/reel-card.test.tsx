@@ -7,10 +7,24 @@
  * the card is a link into the view the guests watch; switched off it opens Settings, where the
  * switch lives. Copy is precedent, not contract, except the count, which is the point.
  */
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ReelCard, type ReelCardData } from "./reel-card";
+import type { HubAlbumSeed } from "@/lib/event/hub-album";
+import {
+  ENTRY_REEL,
+  type HostSyncBody,
+  type ManifestEntry,
+} from "@/lib/events/album-wire";
+
+import { HostAlbumProvider } from "./host-album";
+import { ReelCard, useLiveReel, type ReelCardData } from "./reel-card";
 
 const openAdd = vi.fn();
 const openSheet = vi.fn();
@@ -20,6 +34,32 @@ vi.mock("@/components/app/host-add-provider", () => ({
 }));
 vi.mock("@/components/app/share/event-share-provider", () => ({
   useEventShare: () => ({ openSheet }),
+}));
+
+// The live card's one server read, and the album store's live channel.
+const refreshHubReelAction = vi.fn();
+vi.mock("@/app/(app)/dashboard/[eventId]/actions", () => ({
+  refreshHubReelAction: (...a: unknown[]) => refreshHubReelAction(...a),
+}));
+vi.mock("@/lib/guest/use-gallery-doorbell", () => ({
+  useGalleryDoorbell: () => ({ live: false }),
+}));
+const polls: (() => HostSyncBody | null)[] = [];
+vi.mock("@/lib/album/transport", () => ({
+  hostAlbumTransport: () => ({
+    sync: async () => {
+      const next = polls.shift()?.() ?? null;
+      return next
+        ? { status: 200, etag: '"a1-next"', body: next }
+        : { status: 304 };
+    },
+    manifest: async () => {
+      throw new Error("no pages");
+    },
+    links: async () => {
+      throw new Error("no links");
+    },
+  }),
 }));
 
 // jsdom has no IntersectionObserver; the living card's clock asks one whether it is on screen.
@@ -182,5 +222,172 @@ describe("switched off, the card opens Settings", () => {
     fireEvent.click(screen.getByRole("link"), { button: 0, metaKey: true });
     document.removeEventListener("click", stopNavigation);
     expect(openSheet).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * THE CARD FOLLOWS THE ALBUM (album-host-wiring: the hub is never refreshed to show an arrival).
+ * The second playable photograph arrives as a delta on the album's store, the card flips to live on
+ * it with the pips full and no stills that belong to the state it left, and asks once for the reel's
+ * own take, which then dissolves behind it.
+ */
+describe("the live card", () => {
+  const id = (n: number) =>
+    `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
+  const entry = (n: number): ManifestEntry => [
+    id(n),
+    400,
+    300,
+    ENTRY_REEL,
+    1_758_800_000_000_000 + n,
+  ];
+  const seed: HubAlbumSeed = {
+    eventId: "e1",
+    sync: {
+      kind: "manifest",
+      v: 1,
+      attr: 0,
+      entries: [entry(1)],
+      next: null,
+      ok: true,
+      counts: { album: 1, pending: 0 },
+    },
+    etag: '"a1-seed"',
+    links: {
+      ok: true,
+      access: "full",
+      gate: null,
+      b: 0,
+      now: 0,
+      links: [],
+      missing: [],
+      likes: {},
+    },
+  };
+  const served: ReelCardData = {
+    ...base,
+    state: "counting",
+    have: 1,
+    stills: ["still-1"],
+    stillIds: [id(1)],
+  };
+
+  function Probe({ face = served }: { face?: ReelCardData }) {
+    const reel = useLiveReel("e1", face);
+    return (
+      <span data-testid="card">
+        {reel.state}:{reel.have}:{reel.stills.join(",")}
+      </span>
+    );
+  }
+
+  it("flips to live on the second photograph's delta, then wears the reel's own take", async () => {
+    polls.length = 0;
+    // The page's catch-up poll brings the second photograph.
+    polls.push(() => ({
+      kind: "delta",
+      v: 2,
+      attr: 0,
+      upsert: [entry(2)],
+      remove: [],
+      ok: true,
+      counts: { album: 2, pending: 0 },
+    }));
+    let answer: (v: unknown) => void = () => {};
+    refreshHubReelAction.mockReturnValue(
+      new Promise((resolve) => {
+        answer = resolve;
+      }),
+    );
+
+    render(
+      <HostAlbumProvider seed={seed} qrToken="qr">
+        <Probe />
+      </HostAlbumProvider>,
+    );
+    expect(screen.getByTestId("card")).toHaveTextContent("counting:1:still-1");
+
+    await waitFor(() =>
+      expect(screen.getByTestId("card")).toHaveTextContent("live:2:"),
+    );
+    expect(screen.getByTestId("card").textContent).toBe("live:2:");
+    expect(refreshHubReelAction).toHaveBeenCalledTimes(1);
+    expect(refreshHubReelAction).toHaveBeenCalledWith("e1");
+
+    await act(async () => {
+      answer({
+        ok: true,
+        reel: {
+          state: "live",
+          have: 2,
+          stills: ["take-2", "take-1"],
+          stillIds: [id(2), id(1)],
+        },
+      });
+    });
+    expect(screen.getByTestId("card").textContent).toBe("live:2:take-2,take-1");
+    expect(refreshHubReelAction).toHaveBeenCalledTimes(1);
+  });
+
+  // ★ THE PAGE'S FACE WINS WHEN IT CHANGES. Settings' switch saves and re-renders the page, which
+  // hands the card a new face: a card that went live on the album's own count must then say Off (it
+  // kept "live" until a reload, the scar), and switched back on it wears the take the page just read.
+  it("says Off the moment the page's face does, and wears the page's take when switched back on", async () => {
+    refreshHubReelAction.mockReset();
+    polls.length = 0;
+    polls.push(() => ({
+      kind: "delta",
+      v: 2,
+      attr: 0,
+      upsert: [entry(2)],
+      remove: [],
+      ok: true,
+      counts: { album: 2, pending: 0 },
+    }));
+    refreshHubReelAction.mockResolvedValue({
+      ok: true,
+      reel: {
+        state: "live",
+        have: 2,
+        stills: ["take-2", "take-1"],
+        stillIds: [id(2), id(1)],
+      },
+    });
+
+    const { rerender } = render(
+      <HostAlbumProvider seed={seed} qrToken="qr">
+        <Probe />
+      </HostAlbumProvider>,
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId("card").textContent).toBe(
+        "live:2:take-2,take-1",
+      ),
+    );
+
+    // Switched off in Settings: the page renders again with the switch's word.
+    rerender(
+      <HostAlbumProvider seed={seed} qrToken="qr">
+        <Probe face={{ ...base, state: "off", have: 2, stillIds: [] }} />
+      </HostAlbumProvider>,
+    );
+    expect(screen.getByTestId("card").textContent).toBe("off:2:");
+
+    // Switched back on: the page's own take, adopted as it is, with nothing asked again.
+    rerender(
+      <HostAlbumProvider seed={seed} qrToken="qr">
+        <Probe
+          face={{
+            ...base,
+            state: "live",
+            have: 2,
+            stills: ["page-2", "page-1"],
+            stillIds: [id(2), id(1)],
+          }}
+        />
+      </HostAlbumProvider>,
+    );
+    expect(screen.getByTestId("card").textContent).toBe("live:2:page-2,page-1");
+    expect(refreshHubReelAction).toHaveBeenCalledTimes(1);
   });
 });

@@ -17,6 +17,7 @@ reads:
   - CLAUDE.md
   - docs/PROGRAM.md
 announces:
+  - "album-host-wiring merged at 7130d26d (2026-09-25): `HostAlbumLinksBody` (the host's links answer plus `likes`) in `@/lib/events/album-wire`; `likes-provider.tsx` seeds likes per window and bulk-likes through `like_many`; `lib/events/host-fingerprint.ts` and `/api/events/[eventId]/live` are gone; the bin is `/api/events/<id>/bin` and `bin/media`."
   - "reel-defaults-migration merged at 71cfea65 (2026-09-25), its migration applied: `events.reel_hold_sec` (NULL = the default hold; read it with `resolveHoldSec(row.reel_hold_sec)`, since the generated type says `number`), returned last by `get_event_by_qr_token`; `HOLD_STEPS_SEC`, `DEFAULT_HOLD_SEC`, `nearestHoldStep`, `REEL_MOOD_IDS` in `@/lib/reel/defaults` (their one home: the guest lane drops its copies); `setReelDefaults({ eventId, showReel?, styleId?, holdSec? })` in `@/lib/reel/defaults-action` for the view's Set for everyone and Settings; `event_stills(uuid[], int)` (authenticated, one jsonb of preview keys an event, presigned server-side like `readCoverUrls`). reel-guest-wiring and reel-host-wiring merge origin/launch-prep past it."
   - "media-viewer-wiring merged at 7eb190de (2026-09-24): `MediaLightbox`/`MediaLightboxLazy` take `origin={{ kind: \"reel\", rect }}` (rect null fades in; omit `returnTo` so the way out lands in the frame) and `startAt` (a clip's seconds); `ViewerOrigin` is exported from `@/components/shared/media-lightbox`; the photo parameter is `PHOTO_PARAM` with `readPhotoParam` in `@/lib/media/share-save`, whose Save follows the platform (the clip's finish reuses it)."
 ---
@@ -38,17 +39,19 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `album-guest-wiring` | the guest album, viewer, reel and profile feeds onto the paged, windowed rows with r2's picks; `planTake` sub-quadratic; the perf harness's `--page` mode; build 9's two reel findings in its files (the view's scroll lock, the tile's hit area) | building (agent `a4f93b6854568e16f`) | Opus, :3131 | its `guest-flow.md` lines through the Handoff |
-| `album-host-wiring` | the hub's album onto the paged rows, select mode on the one grid, the bin on a manifest, Sort live, `like_many` (applied, types at `14359c94`) | building (agent `aca30254725561438`) | Opus, :3134 | syncs past `album-guest-wiring` if it lands first; `host-app.md` lines through the Handoff |
-| `crumbs` | tonight's deferred leftovers (the Studio's reveal CSS, vaul, stale comments, the voice board's door quote, the password step's sticky foot, one code length, the test setup's flush); holds `globals.css` until its merge | building (agent `a4599f1c56870a65b`) | Sonnet, :3135 | three root files as decided exceptions, and `ui/floating-layer.ts`'s drawer comment |
+| `crumbs-2` | the stored reel's last code after the drop and the sweep (`reelOutputKey`, its two appends, the sweep script, stale comments and fixtures); the `voice-guest` board's door stylesheet | building (agent `af596085cbe6e2577`) | Sonnet, :3135 | rides the build after its merge; build 10 never waits for it |
 
 Merged tonight (their records carry the rest): reel-guest-wiring, reel-host-wiring, mark-r3, story-r2, door-r2,
 album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hardening, reel-sweep, door-flow,
-retire-reel-boards.
+retire-reel-boards, crumbs, album-host-wiring.
 
 ## Next, in order
 
-1. **Integrate as they land**: `album-host-wiring` and `album-guest-wiring` in either order, and `crumbs`. Then build 10
-   (`[preview]`); build 9 (`52a19853`) serves the alias until then.
+1. **Integrate `album-guest-wiring`** as it lands (told to sync past `album-host-wiring`'s merge). Then build 10
+   (`[preview]`), which opens Will's next sitting on the desk; build 9 (`52a19853`) serves the alias until then. Cut
+   `save-sheet` after the guest lane's merge (it owns the viewer): on iOS, Save opens the system sheet in one tap in the
+   viewer and the clip finish, since the sheet already carries Save Image or Video and Save to Files (Will's iPhone
+   check), so the menu's Download file goes; elsewhere Save stays the plain download; the two help articles follow.
 2. **Build 10's red-team** (Opus; the pane for a guest, Chrome's account chooser for the host), which also finishes
    build 9's walk (it stopped at the usage limit with its first six journeys passing):
    - the reel on the album's new data path: the tile, the view, clips, access, the password event, the demo;
@@ -61,8 +64,10 @@ retire-reel-boards.
 
    Afterwards the 15-photo probe's `reel_style_id` and `reel_hold_sec` go back to NULL. Journey 9's page checks passed
    on build 9 (both legal pages at 1.7, the retired help slugs 308, no stale reel claim on the marketing pages,
-   `/admin/reels` a 404). Then the drop migration (`20260924110000_live_reel_drop.sql`) and
-   `node scripts/sweep-reel-files.mjs --apply` wait for Will's yes.
+   `/admin/reels` a 404). The drop migration is applied and the stored files are swept from both buckets; `crumbs-2`
+   removes the stored reel's last code.
+   Then **milestone 29** (Will's yes, given): the full gate on `launch-prep`, merge to `main`, tag, verify partyreel.com
+   (the host dashboard stops erroring), back-merge.
 3. **Retire `album-columns`** once the surface lanes merge (the five reel boards retired at `0cbd5634`), atomically across
    `touchpoints.ts`, `registry.ts` and `boards.ts`, its ledger with it.
 4. **After his sitting on build 9**: `reel-marketing` (his `reel-story` r2), the door's look (his `identity-door` r2)
@@ -77,9 +82,7 @@ retire-reel-boards.
 ## Waiting on Will
 
 - **His sitting on build 9**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
-- **Two yeses**: the reel drop after build 10's red-team; clearing past deleted accounts' addresses from guest rows
-  (`20260926210000_identity_backfill.sql`, written, never applied).
-- **One dashboard minute** (no management token here): Supabase, Authentication, Templates, Change Email Address, add
-  `{{ .Token }}` beside `{{ .ConfirmationURL }}` (the wording is in lp/identity-email's Handoff, merged at `3248a785`);
-  until then an email change confirms by the link at both addresses.
-- **A 10-second iPhone check**: Save to Photos lands in Photos, and a shared photo arrives as a photograph.
+- **"Allow new users to sign up" is OFF** on the live project (`/auth/v1/settings` answers `disable_signup: true`),
+  against `auth-accounts.md`'s ON: no new account can be made (the door's Create account, a new address's code, a new
+  Google account). Nothing in the program's records turned it off; his call, recommended ON.
+- **A 10-second iPhone check**: a shared photo arrives as a photograph (Save opens the system sheet, his check).

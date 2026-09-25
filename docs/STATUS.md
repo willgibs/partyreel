@@ -19,13 +19,13 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   for its owner; a guest's own delete is final.
 - **The reel stretch landed** (2026-09-25, overnight in auto mode): the live reel's guest and host sides, the clip
   creator (Make your own, Looks and Moments as tabs), the stored reel's server side gone, the reel retold across
-  marketing, help and legal, and `docs/systems/reel.md` its home. The drop migration and the R2 sweep of the old
-  files wait for his yes after build 10's red-team, which finishes build 9's (stopped at the usage limit).
+  marketing, help and legal, and `docs/systems/reel.md` its home. The drop is applied and the stored files swept; until
+  milestone 29 partyreel.com's host dashboard errors (milestone 28 reads the dropped `highlight_reels`).
 - **Also landed**: the album fast at any size (windowed rows, a memoized tile, three density steps) and the paged
   album's data half (`album_state` and `album_changes`, links by id, a delta poll); a confirmed email changed at both
   addresses and deletion taking the address with it; four correctness fixes (the billing downgrade, the unlock
   cookie bound to the password, the orphan breaker's health, counts past 999); the door's new flow (his chooser, a
-  keyboard-safe phone sheet). Building: the album's guest and host surfaces onto the paged rows, and the crumbs.
+  keyboard-safe phone sheet); the host's album on the paged rows. Building: the guest's album onto them.
 
 ## The desk
 
@@ -48,7 +48,7 @@ once the album's surfaces are wired).
 - **Data:** disposable test data only; the accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md). The disposable events stay in the states the
   last red-teams left until Will says restore.
-- **Tests:** about 4,570 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
+- **Tests:** about 5,300 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
 - **Jobs:** the daily purge cron (Vercel Hobby fires it at 04:48 UTC; its first run on milestone 28's sweeps was green:
   every sweep ok, none stopped early, the orphan scan read 1,368 objects and deleted none, the standby budget's one host
   willg97 with the withdrawals out), the media-backup Worker and the daily DB-backup Action are live; the deletion-aware
@@ -72,8 +72,5 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 ## Waiting on Will
 
 - **His sitting on build 9**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
-- **Two yeses**: the reel drop migration after build 10's red-team (then the R2 sweep), and clearing past deleted
-  accounts' addresses from their guest rows (`20260926210000_identity_backfill.sql`).
-- **One dashboard minute**: Supabase's Change Email Address template gains `{{ .Token }}` (until then the change
-  confirms by the link at both addresses).
-- **A 10-second iPhone check** on the album: Save to Photos lands in Photos; a shared photo arrives as a photo.
+- **His call on signups**: "Allow new users to sign up" is off on the live project, against the docs' on.
+- **A 10-second iPhone check** on the album: a shared photo arrives as a photograph.

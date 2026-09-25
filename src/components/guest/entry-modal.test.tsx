@@ -22,7 +22,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   EntryModal,
@@ -158,17 +158,6 @@ beforeEach(() => {
   profileName.value = null;
   sent.gates.length = 0;
   global.fetch = vi.fn();
-});
-
-// Radix's FocusScope restores focus on unmount from a `setTimeout(0)` that dispatches on its
-// container. Unmount here and let that timer run while the document still exists: left pending, a
-// loaded run can reach it after jsdom is torn down, where `dispatchEvent` throws as an unhandled
-// error. (After hooks run in reverse order, so the setup file's own cleanup would come too late.)
-afterEach(async () => {
-  cleanup();
-  await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 0));
-  });
 });
 
 describe("no exit: the affordance table is one row", () => {

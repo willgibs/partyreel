@@ -13,14 +13,14 @@ DEFINER RPCs validate inside; `anon` never touches a table. A feature's own RPC 
 
 ## The RPC inventory and the advisor set
 
-`get_advisors` (security) after every schema change reads 17 `rls_enabled_no_policy`, 5 in lint `0028` and 32 in
-`0029`; the live reel's drop (`20260924110000`, held for the reel lane's alias build) takes them to 16, 4 and 27.
+`get_advisors` (security) after every schema change reads 16 `rls_enabled_no_policy`, 4 in lint `0028` and 27 in
+`0029`.
 Leaked Password Protection is on, so its WARN never shows. A function in the wrong list means a grant slipped.
 
 - **Anon capability reads (`0028`, and `0029` too; by design, never revoke):** `get_event_by_qr_token`,
-  `get_event_media_by_qr_token`, `get_upload_context`, `get_public_profile`, and the stored reel's
-  `get_event_reel_by_qr_token` until the drop. Each only READS visibility-gated state, the opaque token being the
-  authorization. `get_upload_context` stays anon because every guest presign calls it.
+  `get_event_media_by_qr_token`, `get_upload_context` and `get_public_profile`. Each only READS visibility-gated
+  state, the opaque token being the authorization. `get_upload_context` stays anon because every guest presign calls
+  it.
   - ★ **An anon read never discloses more than the page it backs.** `get_event_by_qr_token` redacts the
     description, date, custom slug and host name (the name too, for `private`) from a non-owner of a gated event;
     an unlocked viewer's fields come back through a self-guarded admin re-read inside `getEventByQrToken`. Its
@@ -49,26 +49,25 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   `check_slug_available`, `has_password` / `verify_current_password` / `mark_password_set`, `get_my_uploads` /
   `remove_my_upload`, `claim_anonymous_uploads`, `list_guest_rows_by_email` / `claim_guest_rows_by_email` /
   `disown_guest_rows_by_email`, `restore_media` / `restore_event` / `purge_media_now`, `like_media` /
-  `get_my_likes` / `get_event_like_counts`, `follow_user` / `block_user`, and the stored reel's `add_to_reel`,
-  `reorder_reel`, `upsert_reel_config` and `set_reel_guest_visible` until the drop.
+  `get_my_likes` / `get_event_like_counts` and `follow_user` / `block_user`.
   - `claim_anonymous_uploads` stays browser-callable because nothing in it is spoofable: the held `session_token`s
     authorize it and `user_id is null` guards against theft.
   - ★ **The claim by address never takes an address.** The three `*_guest_rows_by_email` functions key on the
     caller's own CONFIRMED address, read from `auth.users` under definer privilege, so nothing can answer "is this
     address a Partyreel guest?", and an unconfirmed caller gets an empty set even for their own address.
-  - **A like is only as visible as its media.** `like_media` accepts media the caller can see; `get_my_likes`
-    re-applies that predicate, so a like on media that has since closed never presigns; `get_event_like_counts` is
-    host-gated and the only count path, so no count reaches a guest.
-  - ★ **The stored reel keeps two predicates** until the drop: membership (host UI, counts, `reorder_reel`'s guard)
-    is `status in ('approved','hidden')`; the timeline, guests and publishing are `approved` only. An approved-only
-    reorder guard would brick a reel holding hidden items.
+  - **A like is only as visible as its media.** `like_media` accepts media the caller can see, and `like_many`
+    (authenticated, SECURITY INVOKER, at most 2,000 ids a call) sends each id through it, so `like_media` stays the
+    only insert; `get_my_likes` re-applies that predicate, so a like on media that has since closed never presigns.
+    The counts are host-only through two paths, `get_event_like_counts` and `media_like_counts`, so no count reaches
+    a guest.
 - **SECURITY INVOKER is the default for a new read** (in neither list): a grant that reached the wrong role reads
   only that role's own rows, where a DEFINER body would read everyone's. The dashboard cards' `event_stills` (up to
   12 previewed, approved photos an event, one jsonb) is this shape, authenticated-only: another host's event is
   simply absent, and it may name only media columns the host's SELECT grant holds.
 - **Service-role only, never in either list:** the server-mediated set above, `action_rate`, `purge_media_rows`,
   `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `monthly_ingress_cap`, the paged album's reader
-  `album_changes_since` (an INVOKER read the Next routes call after their own capability check), and the trigger
+  `album_changes_since` (an INVOKER read the Next routes call after their own capability check), `media_like_counts`
+  (an INVOKER read the host's links route and the hub page call after their `getEvent` check), and the trigger
   functions, whose EXECUTE is revoked from the client roles and which still fire (EXECUTE is checked when a trigger
   is created, never when it fires).
 - ★ **Every SECURITY DEFINER function pins `set search_path = ''` and fully qualifies every name** (`public.events`,
@@ -79,8 +78,7 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   `job_applications`, `event_passes`, `job_runs`, `export_log` (an HMAC of the IP, never the IP), `ops_flags` (the
   kill switches), `upload_forensics` and `forensic_audit_log` (raw IP by design; the deny-all is the containment:
   [trust-safety-forensics.md](trust-safety-forensics.md)), `album_state` and `album_changes` (the paged album's
-  versions and change log: service_role SELECT only, written by the deferred triggers alone), and `reel_render_log`
-  until the drop.
+  versions and change log: service_role SELECT only, written by the deferred triggers alone).
 
 ## Grants
 
@@ -108,8 +106,6 @@ under Gotchas).
   (`session-cookie.test.ts`), so the cookie adds no CSRF surface.
 - **`media_likes`:** owner RLS on select and delete; `like_media` is the only write (a raw insert would let a user
   like, then presign through `get_my_likes`, media they cannot see).
-- **`reel_items`** (until the drop): host RLS on select and delete; `add_to_reel` and `reorder_reel` (the ids must
-  equal the reel's set exactly, else `stale`) are the only writes.
 - ★ **TWO EMAIL COLUMNS, AND ONLY `verified_at` IS PROOF.** `guests.email` is only ever a confirmed address of the
   row's own account: `create_guest` copies the session's address only beside its `email_confirmed_at`, the claims
   write the caller's confirmed address as they stamp its `user_id`, and `capture_guest_email` fills an empty one only

@@ -301,27 +301,6 @@
   --tune-section-swap-ms: 180ms; /* the pill filter swap + the floating-bar morph crossfade */
   --tune-reorder-ms: 500ms; /* the section FLIP when the urgency order flips */
   --tune-review-beat-ms: 2500ms; /* the all-caught-up beat before the review section relocates */
-
-  /* The REEL REVEAL beats (R3). CLOSED grammar: set at T1, ratified
-     AS-BUILT at T2, so these are transplanted verbatim from the design lab and
-     are revisit-only — do not re-tune them as part of a build. They are read by
-     CSS below via var(--tune-rvl-*, <the same value>) and by JS via readCssMs
-     (src/components/reel/reveal-constants.ts), which mirrors them again. */
-  --tune-rvl-fly-ms: 640ms; /* per-tile assembly flight */
-  --tune-rvl-stagger-ms: 42ms; /* per-tile flight delay step */
-  --tune-rvl-hold-ms: 700ms; /* the stack hold before the flash */
-  --tune-rvl-flash-ms: 360ms; /* the camera flash */
-  --tune-rvl-expand-ms: 720ms; /* the full-bleed expansion */
-  --tune-rvl-expand-ease: cubic-bezier(
-    0.77,
-    0,
-    0.175,
-    1
-  ); /* = --ease-in-out-strong (on-screen movement) */
-  --tune-rvl-title-ms: 1700ms; /* the title hold */
-  /* The reel-experience beats: the publish flourish + the sheet/swap family. */
-  --tune-rxp-pub-ms: 700ms; /* the publish beat: the Studio's confirmation card's hold (JS reads it; the light's swell is the engine's own clock) */
-  --tune-rxp-sheet-ms: 260ms; /* studio sheets + content swaps (under the 300ms ceiling) */
 }
 
 .dark {
@@ -1153,36 +1132,22 @@
     0 0 0 2px color-mix(in oklab, var(--ring) 50%, transparent);
 }
 
-/* ═══════════ Reel reveal + reel experience (ratified, R3) ═══════════
-   Promoted out of the design lab (design.css `[data-rvl-*]` / `[data-rxp-*]`)
-   after the composite reveal was set at T1 and ratified AS-BUILT at T2.
-   The grammar is CLOSED: the values here are the lab's verbatim, the two lab
-   tokens were remapped to their production equivalents (--dir-ease ->
+/* ═══════════ Reel experience (ratified, R3) ═══════════
+   Promoted out of the design lab (design.css `[data-rxp-*]`), ratified
+   AS-BUILT. The grammar is CLOSED: the values here are the lab's verbatim, two
+   lab tokens were remapped to their production equivalents (--dir-ease ->
    --ease-emphasis, [data-dir-display] -> the `font-heading` utility), and the
-   --tune-rvl and --tune-rxp fallbacks MIRROR the :root bake above (the
-   motion-tuner contract: the panel is a no-op until a slider moves).
+   --tune-rxp fallbacks MIRROR the :root bake above (the motion-tuner
+   contract: the panel is a no-op until a slider moves).
    CAUTION when editing these comments: a literal star-slash pair (as in a glob
-   like --tune-rvl-<star>/) CLOSES the CSS comment and the build fails with an
+   like --tune-rxp-<star>/) CLOSES the CSS comment and the build fails with an
    opaque postcss "Unknown word" 100 lines away. Spell the prefixes out.
 
    House convention, kept: FINAL states live OUTSIDE the media queries (so a
    reduced-motion jump still ARRIVES everywhere), TRANSITIONS live inside
    no-preference, and the reduce block collapses everything to a plain fade.
-   `data-act` on the stage root is the entire state machine (useRevealActs).
+   `data-act` on a stage root is the state machine.
 
-   ONE OWNER: this block also carries the GUEST arrival's `[data-rxp-g*]` rules.
-   The host reveal and the guest arrival are the same closed grammar with
-   different cuts, so they must not live in two files that can drift.
-
-     [data-rvl-stage] / [data-rvl-composite]  the stage root + the composite marker
-     [data-rvl-veil]        the cinema dark
-     [data-rvl-grid] / [data-rvl-tile]        the flying copies (per-tile
-                            --dx/--dy/--s/--r/--i written by the FLIP measure)
-     [data-rvl-screen]      the CanvasReelPlayer box (--rvl-screen-from = its
-                            hidden pose, --rvl-screen-ease its move)
-     [data-rvl-flash]       the camera flash at ignite
-     [data-rvl-scrim] / [data-rvl-title]      the title beat
-     [data-rvl-end]         the settled share prompt
      [data-rxp-ghost]       the builder's own grid, the instant its flying copies
                             take over (vanishes with NO transition)
      [data-rxp-thumb]       a style-rail thumb's frame; [data-active] = the ring
@@ -1206,101 +1171,16 @@
                             the GUEST arrival cut (--rxp-g-from = its from-pose) */
 
 /* ── Rest / final states (outside the media queries, deliberately) ── */
-[data-rvl-veil],
-[data-rvl-scrim],
-[data-rvl-flash] {
-  opacity: 0;
-}
-[data-rvl-screen] {
-  opacity: 0;
-  transform: var(--rvl-screen-from, scale(0.94));
-}
-[data-rvl-title] {
-  opacity: 0;
-  transform: translateY(14px);
-}
-[data-rvl-end] {
-  opacity: 0;
-  transform: translateY(8px);
-}
-/* The flying copies are invisible until a run starts (they are mounted from
-   first paint so their first transform can be a transition). */
-[data-rvl-stage][data-act="idle"] [data-rvl-grid] {
-  opacity: 0;
-}
-
-/* Every run starts the same way: the lights go down. */
-[data-rvl-stage]:not([data-act="idle"]) [data-rvl-veil] {
-  opacity: 1;
-}
 /*
  * The builder's OWN grid disappears the instant the copies take over, with NO
  * transition, so nothing is left fading behind the flight. Production deviation
  * from the lab: the builder card lives in the FEED, outside the fixed reveal
  * stage, so the ghost carries its own `data-hidden` flag instead of matching a
- * `[data-rvl-stage]:not([data-act="idle"])` ancestor.
+ * stage ancestor.
  */
 [data-rxp-ghost][data-hidden] {
   opacity: 0;
   transition: none;
-}
-
-/* ── The composite: gather > condense > held > ignite > open > title > settled ── */
-
-/* The flight. Gather throws the tiles at the screen's center wearing their
-   seeded scatter; condense squares the deck to a 25% residual tilt; held keeps
-   that pose, perfectly still, through the hold before the flash. */
-[data-rvl-stage]:is(
-    [data-act="gather"],
-    [data-act="condense"],
-    [data-act="ignite"]
-  )
-  [data-rvl-tile] {
-  transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--r, 0deg))
-    scale(var(--s, 1));
-}
-[data-rvl-stage]:is([data-act="condense"], [data-act="held"]) [data-rvl-tile] {
-  transform: translate(var(--dx, 0px), var(--dy, 0px))
-    rotate(calc(var(--r, 0deg) * 0.25)) scale(var(--s, 1));
-}
-/* The stack vanishes under the flash exactly as the screen takes its footprint,
-   and STAYS down through title + settled (otherwise the grid repaints behind the
-   full-bleed screen for the whole title beat: invisible, but wasted paint). */
-[data-rvl-stage]:is(
-    [data-act="ignite"],
-    [data-act="open"],
-    [data-act="title"],
-    [data-act="settled"]
-  )
-  [data-rvl-grid] {
-  opacity: 0;
-}
-
-/* The screen is BORN at ignite (at the stack's footprint) and MOVES on open. */
-[data-rvl-stage][data-act="ignite"] [data-rvl-screen] {
-  opacity: 1;
-}
-[data-rvl-stage]:is([data-act="open"], [data-act="title"], [data-act="settled"])
-  [data-rvl-screen] {
-  opacity: 1;
-  transform: none;
-}
-
-/* The title beat, then it clears for the settled prompt. */
-[data-rvl-stage][data-act="title"] [data-rvl-scrim] {
-  opacity: 1;
-}
-[data-rvl-stage][data-act="title"] [data-rvl-title] {
-  opacity: 1;
-  transform: none;
-}
-[data-rvl-stage][data-act="settled"] [data-rvl-title] {
-  opacity: 0;
-  transform: translateY(-8px);
-}
-[data-rvl-stage][data-act="settled"] [data-rvl-end] {
-  opacity: 1;
-  transform: none;
 }
 
 /* ── Style-rail thumbs: the active ring is INSTANT on purpose (a style tap must
@@ -1371,59 +1251,6 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  /* ── The reveal's transitions ── */
-  [data-rvl-veil] {
-    transition: opacity 520ms var(--ease-emphasis);
-  }
-  [data-rvl-tile] {
-    transition-property: transform;
-    transition-timing-function: var(--ease-in-out-strong);
-    transition-duration: var(--tune-rvl-fly-ms, 640ms);
-    transition-delay: calc(var(--i, 0) * var(--tune-rvl-stagger-ms, 42ms));
-  }
-  /* Squaring the deck and holding it are ONE collective settle: short, no
-     stagger (the flight's per-tile stagger would read as a wobble here). */
-  [data-rvl-stage]:is([data-act="condense"], [data-act="held"])
-    [data-rvl-tile] {
-    transition-duration: 320ms;
-    transition-delay: 0ms;
-  }
-  [data-rvl-grid] {
-    transition: opacity 160ms linear;
-  }
-  [data-rvl-screen] {
-    transition:
-      opacity 420ms var(--ease-emphasis),
-      transform var(--tune-rvl-expand-ms, 720ms)
-        var(--tune-rvl-expand-ease, var(--ease-in-out-strong));
-  }
-  /* The ignite handoff is a SNAP: the flash covers it. Later in the cascade than
-     the rule above, so it wins on order at equal specificity. */
-  [data-rvl-stage][data-act="ignite"] [data-rvl-screen] {
-    transition-duration: 180ms;
-  }
-  [data-rvl-stage][data-act="ignite"] [data-rvl-flash] {
-    animation: rvl-flash var(--tune-rvl-flash-ms, 360ms) var(--ease-emphasis)
-      both;
-  }
-  [data-rvl-scrim] {
-    transition: opacity 500ms var(--ease-emphasis);
-  }
-  [data-rvl-title] {
-    transition:
-      opacity 520ms var(--ease-emphasis),
-      transform 520ms var(--ease-emphasis);
-  }
-  [data-rvl-stage][data-act="settled"] [data-rvl-title] {
-    transition-duration: 260ms; /* exits faster than it enters */
-  }
-  [data-rvl-end] {
-    transition:
-      opacity 420ms var(--ease-emphasis),
-      transform 420ms var(--ease-emphasis);
-    transition-delay: 160ms;
-  }
-
   /* ── The reel-experience beats ── */
   /* A content swap's entrance. @starting-style fires on the element's FIRST
      paint, so this belongs ONLY on a node that mounts at a state transition. */
@@ -1466,18 +1293,19 @@
     }
   }
 
-  /* ── The guest arrival's transitions (the CLOSED reveal vars, read-only) ── */
+  /* ── The guest arrival's transitions (720ms / 360ms once mirrored the reveal
+       composite's own expand/flash timing vars; baked as literals now that
+       the composite and its vars are gone) ── */
   [data-rxp-gscreen] {
     transition:
       opacity 420ms var(--ease-emphasis),
-      transform var(--tune-rvl-expand-ms, 720ms) var(--ease-in-out-strong);
+      transform 720ms var(--ease-in-out-strong);
   }
   [data-rxp-gstage][data-act="flash"] [data-rxp-gscreen] {
     transition-duration: 180ms; /* the flash covers the card-to-canvas swap */
   }
   [data-rxp-gstage][data-act="flash"] [data-rxp-gflash] {
-    animation: rvl-flash var(--tune-rvl-flash-ms, 360ms) var(--ease-emphasis)
-      both;
+    animation: rvl-flash 360ms var(--ease-emphasis) both;
   }
   [data-rxp-gscrim] {
     transition: opacity 500ms var(--ease-emphasis);
@@ -1502,10 +1330,6 @@
   /* The honest fallback: the act script still PLAYS (so the narrative order
      survives) but every beat arrives as a plain fade, and the player stays
      paused on frame 0 with its controls shown. */
-  [data-rvl-screen],
-  [data-rvl-title],
-  [data-rvl-end],
-  [data-rvl-tile],
   [data-rxp-gscreen],
   [data-rxp-gtitle],
   [data-rxp-gend] {
@@ -1513,9 +1337,6 @@
     transform: none !important;
   }
   /* Positioned by their own utility transforms: fade only, keep the transform. */
-  [data-rvl-veil],
-  [data-rvl-scrim],
-  [data-rvl-grid],
   [data-rxp-gscrim] {
     transition: opacity 200ms ease-out;
   }
@@ -1531,7 +1352,6 @@
   }
   /* The flourishes are pure theater: reduced motion arrives without them (the JS
      side skips their holds too, so the state lands immediately). */
-  [data-rvl-flash],
   [data-rxp-gstage][data-act="flash"] [data-rxp-gflash] {
     animation: none !important;
   }
