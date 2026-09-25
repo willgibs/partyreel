@@ -4,7 +4,8 @@
  * is laid per width class; this module is that plan, lifted out of the client component so the
  * guest page's server render can ask the one question it needs answered before any byte goes out:
  * which photographs does the first paint draw, so their links can ride the page (`firstPaintIds`).
- * A plan computed twice, once to embed links and once to draw, must be the same plan: one home.
+ * A plan computed twice, once to embed links and once to draw, must be the same plan: one home, and
+ * the browser hydrates with the plan the server drew rather than its own (`decodeFirstPaint`).
  *
  * Pure: no DOM, no React.
  */
@@ -188,8 +189,15 @@ export function firstPaintPlan(
       fill.push(Math.max(0, full - list.reduce((n, it) => n + it.ratio, 0)));
       return;
     }
+    // ★ THE FIRST ROW THE FIRST PAINT CANNOT FINISH ENDS ITS BREAKS: that row is
+    // its unfinished last line, and every row after it is the spacer's. A
+    // shorter row further down (a feature row holds fewer) used to "fit" again,
+    // so it was given a break past the last photograph drawn, the filler was
+    // sized for the wrong photographs and the spacer lost that row's height.
+    let open = true;
     for (const row of layout.rows) {
-      if (end + row.ids.length > count) {
+      if (!open || end + row.ids.length > count) {
+        open = false;
         height += row.height + NOMINAL_GAP;
         continue;
       }
@@ -203,6 +211,126 @@ export function firstPaintPlan(
     rest.push(`calc(${height / widths[c]} * 100cqw)`);
   });
   return { count, breaksAfter, rest, fill };
+}
+
+/* ── The plan the server drew, handed to the hydration ───────────────────── */
+
+/**
+ * ★ THE SERVER'S PLAN IS THE PLAN THE BROWSER HYDRATES WITH. The engine prices
+ * a row with logs and powers, which ECMAScript lets every engine round its own
+ * way: Node's V8 and a browser's disagree in the last bit on 5 to 10% of inputs
+ * (measured: `Math.log`, `**` and `Math.exp`, Node 22 against Chrome 153), and
+ * on an album of near-identical shapes (every phone's 4:3) a last bit decides a
+ * near-tie between two partitions. So one plan laid twice, in the server's
+ * render and again in the hydration, differed on about one load in ten on the
+ * scale probe: a React hydration error, and the album thrown away and drawn
+ * again. The render writes the plan it drew onto the grid (`encodeFirstPaint`,
+ * a few hundred bytes) and the hydration reads it back (`decodeFirstPaint`)
+ * whenever it was laid for this very list and these parameters
+ * (`firstPaintKey`); anything else lays its own plan, as before.
+ */
+export function firstPaintKey(
+  list: readonly RowItem[],
+  step: RowStep,
+  rhythm: RowRhythm,
+  seed: number,
+  anchor: RowAnchor,
+  feature: RowFeature,
+  widths: readonly number[],
+): string {
+  // Two 32-bit string hashes over every id and shape: integer arithmetic, so
+  // every engine agrees (a shape is a quotient of two integers, exact anywhere).
+  let a = 0x811c9dc5;
+  let b = 5381;
+  const mix = (s: string) => {
+    for (let i = 0; i < s.length; i++) {
+      const c = s.charCodeAt(i);
+      a = Math.imul(a ^ c, 0x01000193) >>> 0;
+      b = (Math.imul(b, 33) + c) >>> 0;
+    }
+  };
+  for (const it of list) mix(`${it.id}:${it.ratio}${it.feature ? "*" : ";"}`);
+  return [
+    list.length,
+    a.toString(36),
+    b.toString(36),
+    step,
+    rhythm,
+    seed,
+    anchor,
+    feature,
+    widths.join(","),
+  ].join("|");
+}
+
+/** The plan as the grid carries it: its key, count, breaks by position, rests and fills. */
+export function encodeFirstPaint(
+  plan: FirstPaintPlan,
+  list: readonly RowItem[],
+  key: string,
+): string {
+  const breaks: [number, number[]][] = [];
+  list.slice(0, plan.count).forEach((it, i) => {
+    const classes = plan.breaksAfter.get(it.id);
+    if (classes) breaks.push([i, classes]);
+  });
+  return JSON.stringify({
+    k: key,
+    n: plan.count,
+    b: breaks,
+    r: plan.rest,
+    f: plan.fill,
+  });
+}
+
+/** The plan a grid carried, when it was laid for `key`; else null (lay your own). */
+export function decodeFirstPaint(
+  wire: string | null | undefined,
+  list: readonly RowItem[],
+  key: string,
+): FirstPaintPlan | null {
+  if (!wire) return null;
+  let o: { k?: unknown; n?: unknown; b?: unknown; r?: unknown; f?: unknown };
+  try {
+    o = JSON.parse(wire);
+  } catch {
+    return null;
+  }
+  const count = o?.n;
+  if (
+    o?.k !== key ||
+    typeof count !== "number" ||
+    !Number.isInteger(count) ||
+    count < 0 ||
+    count > list.length ||
+    !Array.isArray(o.b) ||
+    !Array.isArray(o.r) ||
+    !o.r.every((s) => typeof s === "string") ||
+    !Array.isArray(o.f) ||
+    !o.f.every((n) => typeof n === "number")
+  )
+    return null;
+  const breaksAfter = new Map<string, number[]>();
+  for (const entry of o.b as unknown[]) {
+    if (!Array.isArray(entry)) return null;
+    const [i, classes] = entry as [unknown, unknown];
+    if (
+      typeof i !== "number" ||
+      !Number.isInteger(i) ||
+      i < 0 ||
+      i >= count ||
+      !Array.isArray(classes) ||
+      !classes.every((c) => Number.isInteger(c))
+    )
+      return null;
+    breaksAfter.set(list[i].id, classes as number[]);
+  }
+  return {
+    count,
+    breaksAfter,
+    rest: o.r as string[],
+    fill: o.f as number[],
+  };
 }
 
 /**

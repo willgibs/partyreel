@@ -9,8 +9,11 @@ import { layoutRows, ROW_CLASSES } from "@/lib/shared/album-rows";
 
 import {
   classWidths,
+  decodeFirstPaint,
+  encodeFirstPaint,
   FIRST_PAINT,
   firstPaintIds,
+  firstPaintKey,
   firstPaintPlan,
   NOMINAL_GAP,
   NOMINAL_WIDTH,
@@ -117,5 +120,83 @@ describe("parseAlbumWidth", () => {
     expect(parseAlbumWidth("366")).toBe(366);
     for (const bad of [undefined, null, "", "abc", "12.5", "-4", "0", "99999"])
       expect(parseAlbumWidth(bad as string | null | undefined)).toBeNull();
+  });
+});
+
+/**
+ * THE SERVER'S PLAN, HANDED TO THE HYDRATION (`encodeFirstPaint`, `decodeFirstPaint`): the engine's
+ * logs and powers round differently in the server's engine and a browser's, so the browser hydrates
+ * with the plan the server drew, whenever it was drawn for the very same list and parameters.
+ */
+describe("the first paint's plan on the grid", () => {
+  const items = album(300);
+  const list = rowItemsFor(items, false, null, [], "end");
+  const widths = classWidths(351);
+  const keyOf = (l = list, seed = 7, w = widths) =>
+    firstPaintKey(l, 1, "double", seed, "end", "double", w);
+  const plan = firstPaintPlan(list, 1, "double", 7, "end", "double", widths);
+
+  it("keys the whole list and every parameter, in arithmetic every engine agrees on", () => {
+    expect(keyOf()).toBe(
+      keyOf(rowItemsFor(album(300), false, null, [], "end")),
+    );
+    const swapped = [...list];
+    [swapped[250], swapped[251]] = [swapped[251], swapped[250]];
+    const reshaped = list.map((it, i) =>
+      i === 299 ? { ...it, ratio: 0.75 } : it,
+    );
+    for (const other of [
+      keyOf(list.slice(1)),
+      keyOf(swapped),
+      keyOf(reshaped),
+      keyOf(list, 8),
+      keyOf(list, 7, classWidths(360)),
+      firstPaintKey(list, 2, "double", 7, "end", "double", widths),
+      firstPaintKey(list, 1, "plain", 7, "end", "double", widths),
+    ])
+      expect(other).not.toBe(keyOf());
+  });
+
+  it("breaks only the photographs it draws: a shorter row past the first unfinished one is the spacer's", () => {
+    // Feature rows hold fewer photographs, so a row past the unfinished one could "fit" again.
+    for (const seed of [7, 11, 1234, 99991]) {
+      const p = firstPaintPlan(
+        list,
+        1,
+        "double",
+        seed,
+        "end",
+        "double",
+        widths,
+      );
+      const drawn = new Set(list.slice(0, p.count).map((it) => it.id));
+      for (const id of p.breaksAfter.keys()) expect(drawn.has(id)).toBe(true);
+    }
+  });
+
+  it("round-trips exactly: the breaks by photograph, the count, the rests and the fills", () => {
+    const wire = encodeFirstPaint(plan, list, keyOf());
+    const back = decodeFirstPaint(wire, list, keyOf());
+    expect(back).toEqual(plan);
+    // A few hundred bytes on the grid, not the album.
+    expect(wire.length).toBeLessThan(1200);
+  });
+
+  it("is refused for another list or other parameters, and when it is not a plan at all", () => {
+    const wire = encodeFirstPaint(plan, list, keyOf());
+    expect(decodeFirstPaint(wire, list, keyOf(list, 8))).toBeNull();
+    expect(
+      decodeFirstPaint(wire, list.slice(1), keyOf(list.slice(1))),
+    ).toBeNull();
+    expect(decodeFirstPaint(null, list, keyOf())).toBeNull();
+    expect(decodeFirstPaint("{not json", list, keyOf())).toBeNull();
+    const o = JSON.parse(wire);
+    const forged = (patch: object) =>
+      decodeFirstPaint(JSON.stringify({ ...o, ...patch }), list, keyOf());
+    expect(forged({ n: list.length + 1 })).toBeNull();
+    expect(forged({ b: [[o.n, [0]]] })).toBeNull();
+    expect(forged({ b: [["0", [0]]] })).toBeNull();
+    expect(forged({ r: [1, 2, 3, 4] })).toBeNull();
+    expect(forged({ f: ["1"] })).toBeNull();
   });
 });

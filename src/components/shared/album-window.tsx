@@ -63,6 +63,7 @@ import {
   isValidElement,
   useCallback,
   useEffect,
+  useId,
   useImperativeHandle,
   useLayoutEffect,
   useMemo,
@@ -80,6 +81,9 @@ import { flushSync } from "react-dom";
 
 import {
   classWidths,
+  decodeFirstPaint,
+  encodeFirstPaint,
+  firstPaintKey,
   firstPaintPlan,
   isPhoto,
   rowItemsFor,
@@ -376,6 +380,21 @@ type RowsLaid = {
   shift: number;
 };
 
+/**
+ * The first paint's plan a server render wrote on this grid (`data-rows-plan`),
+ * found by the grid's own `useId`, which the server and the hydration share.
+ * Read once, in the hydration's first render, before React touches the grid;
+ * null on a client that never had a server's grid.
+ */
+function readServedPlan(planId: string): string | null {
+  if (typeof document === "undefined") return null;
+  const safe = planId.replace(/["\\]/g, "\\$&");
+  return (
+    document.querySelector<HTMLElement>(`[data-rows-plan-id="${safe}"]`)
+      ?.dataset.rowsPlan ?? null
+  );
+}
+
 export function AlbumRows<
   T extends { id: string; width?: number | null; height?: number | null },
 >({
@@ -585,22 +604,47 @@ export function AlbumRows<
     () => new Map<string, T>(items.map((m) => [m.id, m] as const)),
     [items],
   );
-  // Only until the box is measured: the first paint's rows, per width class.
-  const plan = useMemo(
-    () =>
-      box
-        ? null
-        : firstPaintPlan(
-            rowItems,
-            step,
-            rhythm,
-            seed,
-            anchor,
-            feature,
-            classWidths(firstPaintWidth),
-          ),
-    [box, rowItems, step, rhythm, seed, anchor, feature, firstPaintWidth],
-  );
+  // THE PLAN THE SERVER DREW (`decodeFirstPaint`): read once, off the grid the
+  // server rendered, by the grid's own id; none where no server drew one.
+  const planId = useId();
+  const [servedPlan] = useState(() => readServedPlan(planId));
+  // Only until the box is measured: the first paint's rows, per width class, as
+  // the server drew them when it drew this very list, else laid here.
+  const plan = useMemo(() => {
+    if (box) return null;
+    const widths = classWidths(firstPaintWidth);
+    const key = firstPaintKey(
+      rowItems,
+      step,
+      rhythm,
+      seed,
+      anchor,
+      feature,
+      widths,
+    );
+    const served = decodeFirstPaint(servedPlan, rowItems, key);
+    if (served && servedPlan) return { ...served, wire: servedPlan };
+    const laid = firstPaintPlan(
+      rowItems,
+      step,
+      rhythm,
+      seed,
+      anchor,
+      feature,
+      widths,
+    );
+    return { ...laid, wire: encodeFirstPaint(laid, rowItems, key) };
+  }, [
+    box,
+    rowItems,
+    step,
+    rhythm,
+    seed,
+    anchor,
+    feature,
+    firstPaintWidth,
+    servedPlan,
+  ]);
 
   // THE ROWS, derived during render from the last rows (React's "storing
   // information from previous renders"): the engine is pure and fast, and a
@@ -1052,6 +1096,9 @@ export function AlbumRows<
         role="list"
         data-album-grid
         data-album-layout="rows"
+        // The first paint's plan, for the hydration to draw with (`readServedPlan`).
+        data-rows-plan-id={planId}
+        data-rows-plan={!layout && plan ? plan.wire : undefined}
         // One placeholder in a session replay (masonry.tsx has why).
         data-sentry-block=""
         onFocus={onFocus}
