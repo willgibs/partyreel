@@ -50,8 +50,10 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
   plays. Below two, with the switch or the lever off, or behind a door, there is no tile, no view and no `?reel`: the
   host reaches the reel by adding the album's first two photos, so the view has no empty state of its own (a `?reel`
   below the minimum is dropped quietly and a phone's view whose album drops under two returns to the album). The
-  owner's reel is exactly a guest's. It plays the SERVER's approved list, never an optimistic blob; the demo plays its
-  optimistic tiles too, since its uploads never reach a server.
+  owner's reel is exactly a guest's. It plays the SERVER's approved list: the manifest's drawable entries
+  (`reelItems`, no links, never an optimistic blob), a clip's links read by id through the provider's resolver
+  (`clips`) about two windows ahead (`createClipSource`); the demo plays its optimistic tiles too, since its
+  uploads never reach a server.
 - ★ **The welcome comes first, everywhere**: a visitor who still owes the door meets it with no reel under it or over
   it, for `?reel` and `?reel=screen` alike, and the moment they are through the reel their link asked for opens
   (EntryModal's `onPendingChange`, reported once hydrated; owed until that first report). The owner never owes it and
@@ -67,23 +69,32 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
   boundary keeps its pan and zoom. After a guest's first upload their own device leads with it.
 - **Likes do not reach it**: the guest payload carries no counts, so the brain's likes term is zero on every guest
   surface.
-- ★ **The brain is quadratic** (about a second at 6,000 items), so the hub's card plans over a spread of the album
-  (`TAKE_POOL`), and the tile's six stills come from the take ([`reel-tile.ts`](../../src/lib/guest/reel-tile.ts)),
-  never the album's newest, which sit right beneath it.
+- ★ **The take is O(n log n)**: the brain scores the album once a loop (`quickAddScores`) and the passes walk
+  that order (6,000 items about 5 ms, down from about 610 ms when it re-scored on every pass). The hub's card
+  still plans over a spread of the album (`TAKE_POOL`), and the tile's six stills are the take's first pass,
+  its head alone (`passes: 1`, [`reel-tile.ts`](../../src/lib/guest/reel-tile.ts)), never the album's newest,
+  which sit right beneath it.
 
 ## The tile, the view and the screen (the guest's side)
 
 - **The Highlight reel tile** (`LiveReelTile`, [`reel/live-reel.tsx`](../../src/components/guest/reel/live-reel.tsx))
-  sits in its own slot directly above `aboveAlbum`, on the words' column, never a fourth arm of `pickAboveAlbumState`:
-  a slow crossfade of six stills from the take, previews only, the app's `PosterCard` headed "Highlight reel", with no
-  engine on the album and nothing blocking its first paint. Its corner is a glyph (a 24px glass-mark disc holding a 12px
-  clapperboard), and the violet "Make your own clip to share" under the heading renders only once a creator is
-  registered AND the host's plan was read: a control of its own, lifted above the tile's watch layer (a button cannot
-  hold a button), that opens the creator directly. A tap anywhere else opens the view (a pointer over it warms the
-  view's chunk); it stays after uploads close.
+  sits in its own slot directly above `aboveAlbum`, never a fourth arm of `pickAboveAlbumState`: a slow crossfade of
+  six stills from the take, previews only, the app's `PosterCard` headed "Highlight reel", with no engine on the
+  album. ★ **IT STANDS FROM THE FIRST PAINT**, its stills or not: their links ride the page's own seed, and a still
+  whose link is still on its way leaves the tile's own ground showing for a beat while the rest fade in over it. Its
+  corner is a glyph (a 24px glass-mark disc holding a 12px clapperboard), and the violet "Make your own clip to
+  share" under the heading renders only once a creator is registered AND the host's plan was read: a control of its
+  own, lifted above the tile's watch layer (a button cannot hold a button), that opens the creator directly. ★
+  **`className` IS THE CALLER'S BOX, NEVER THE CARD'S**: the page hands the tile its column (the words' measure) and
+  its margins, and the watch layer and the press's scale live on the card inside that box, so a tap in the gutter
+  stays the page's. A tap on the card opens the view (a pointer over it warms the view's chunk); it stays after
+  uploads close.
 - **The view** ([`reel/live-reel-view.tsx`](../../src/components/guest/reel/live-reel-view.tsx), `React.lazy`, ONE
   import promise shared by the warm-up and the lazy boundary) is a full-bleed Radix dialog over the player in `fill`,
-  following the viewport's orientation. ★ **In a landscape composition every mood fills the frame edge to edge**
+  following the viewport's orientation. ★ **HELD INSIDE THE OVERLAY, THE PAGE'S SCROLL LOCK**: Radix locks the page
+  in the Overlay (its `RemoveScroll`, which also takes the desk's scrollbar away), never in Content, so a view with
+  no Overlay would leave the album scrolling under it; the view sits inside it, which keeps its portaled Style and
+  Hold menus inside the lock too, each still scrolling on its own. ★ **In a landscape composition every mood fills the frame edge to edge**
   (`fillLandscape`, `lib/reel/live/window.ts`): a laptop or a wall is where the reel must fill the room, so Cinematic's
   bars and Editorial's inset card are set aside and a mismatched photograph stays whole on its own darkened blur.
   ★ **`?reel` is its address** ([`reel-url.ts`](../../src/lib/guest/reel-url.ts)): opening PUSHES an entry marked in its
@@ -109,7 +120,8 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
   - A tap on the picture pauses and opens the item in the shared media viewer, grown out of the frame (`origin` of kind
     `reel` with its rect and no `returnTo`), a playing video carrying on from the reel's moment (`startAt`). Reduced
     motion holds the first frame with the dock up. The loop never announces its seam. Twelve failed frames or stills
-    send ONE Sentry report per view ("live reel: frames failing"), and every failure feeds the provider's watchdog.
+    send ONE Sentry report per view ("live reel: frames failing"), and every failure feeds the provider's watchdog,
+    which re-mints only the failing ids.
   - **Video** plays as motion, silent, decoded on the viewer's device from a byte-range window of the original
     ([`engine/video/window-reader.ts`](../../src/lib/reel/engine/video/window-reader.ts)); every failure is the poster.
     Nothing is transcoded or stored.
@@ -191,8 +203,9 @@ A host has no reel to create, only a state to read and a few defaults to set.
   ([`clip-support.ts`](../../src/lib/reel/clip-support.ts)) Make your own stays visible, greyed, and explains on a tap.
 - **The finish**: Share leads on its own tap (iOS spends the user activation on the tap that started the encode, so it
   is never chained) and appears only where the sheet takes the very file (`canShare`), Save leading in violet
-  elsewhere; a dismissed sheet raises nothing. Save follows the platform ([`share-save.ts`](../../src/lib/media/share-save.ts):
-  on iOS Save to Photos, then Download file), naming the file after the event (`-clip.mp4`). Add to event waits behind
+  elsewhere; a dismissed sheet raises nothing. Save is one tap into the platform's own action
+  ([`share-save.ts`](../../src/lib/media/share-save.ts): the system sheet on iOS, the download elsewhere), naming
+  the file after the event (`-clip.mp4`). Add to event waits behind
   a confirm. Every action keeps the viewer on the finish with its done state; Make another starts from the reel's next
   take, keeping the look, length and layout, while Back to editing keeps the picks.
 - ★ **Payload-derived, never the client's**: the mark, the length cap and whether video may go back come from the

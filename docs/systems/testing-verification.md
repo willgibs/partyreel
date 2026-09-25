@@ -31,6 +31,10 @@ like the tool rather than the product, are [CLAUDE.md](../../CLAUDE.md)'s.
   share and OG links point at partyreel.com) while `DESIGN_PREVIEW_KEY` is set on the unscoped preview target too (the
   lab opens with `?key=`; check scope with `GET /v9/projects/partyreel/env`); and it is a fresh origin with no stored
   theme.
+- ★ **The reel's canvas cannot draw on localhost**: R2's CORS answers `http://localhost:*` with no
+  Allow-Origin, so every image request the live reel's canvas needs is refused there; the launch-prep alias
+  and partyreel.com are both in R2's CORS allow-list, so the reel's drawing (the tile, the view, a clip's
+  render) is proven on the alias, never locally.
 - **Confirming a deploy is READY at a SHA:** `GET https://api.vercel.com/v6/deployments?projectId=prj_9jMOBYmlxMtjNOuWXthVIcwAjWaB&teamId=team_ht9qAVBQVZf60dpGNJUwmaj5&limit=12`
   with `$VERCEL_TOKEN` (add `&target=production` for production; the admin project is
   `prj_gJhEa7ul4ehpQljDI1EIm6d9jd9D`), match `meta.githubCommitSha` and wait for `READY`;
@@ -136,7 +140,7 @@ that read as "broken":
   the moment the tab is visible; a tab that LOADS hidden keeps the browser's throttled background interval). A soak
   tab backgrounded mid-run never adopts refreshed URLs and looks dead once its presigns expire (at most 90 minutes).
   Keep it in the foreground, the real scenario being a host's album up on a screen, and check mid-run with
-  `performance.getEntriesByType("resource")` filtered to `/api/guests/gallery`: zero entries means hidden, not broken.
+  `performance.getEntriesByType("resource")` filtered to `/api/album/guest/sync`: zero entries means hidden, not broken.
   The refresh on return to visible is itself a recovery worth asserting.
 - **The demo event cannot test it:** demo mode never polls (`liveEnabled` is false). Soak a real test event's link.
 
