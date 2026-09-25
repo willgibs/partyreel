@@ -8,7 +8,7 @@ import { BRAND_HEX } from "@/lib/constants/site";
 import { cn } from "@/lib/utils";
 
 /**
- * THE SHEET: the press kit as a photographic contact sheet (ruled by Will 2026-08-28
+ * THE SHEET: the press kit as a photographic contact sheet (chosen
  * over the specimen-sheet alternative, "focusing press around the assets and quick hit
  * points"; the explored range is on the record, git show 3ffe0d56:docs/decisions/design-record.md, #press-identity).
  *

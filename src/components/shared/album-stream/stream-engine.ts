@@ -16,8 +16,8 @@ import {
  * still owes: "I love the images falling into the album. I was just curious to
  * see maybe two to three variations of this concept to get an idea of what the
  * best version is." So the composition is PARAMETERISED here rather than drawn
- * once: `glide` is the version he ruled on, `gather` and `cascade` are the two
- * the `album-motion` board draws beside it on the wired hero, and his pick is a
+ * once: `glide` is the shipped version, `gather` and `cascade` are the two
+ * the `album-motion` board draws beside it on the wired hero, and switching is a
  * one-word change to `SHIPPED` below.
  *
  * ── WHAT CHANGED ON THE WAY OUT OF THE LAB ───────────────────────────────────
@@ -446,17 +446,29 @@ export function frameAt(
 /* ── The three variations ────────────────────────────────────────────────── */
 
 /**
- * THE THREE, AND WHAT MAKES EACH ONE A DIFFERENT ANSWER rather than a knob.
+ * THE FOUR, AND WHAT MAKES EACH ONE A DIFFERENT ANSWER rather than a knob.
  * Will asked for "two to three variations of this concept", with no direction
  * on what improvement means, so each varies on SEVERAL axes at once and is a
  * real contender: the arc of the fall, the size at birth against the size at
  * the landing, how often a photograph arrives and whether it comes alone, and
  * what happens at the moment it meets the album.
+ *
+ * ★ BLOOM IS THE FOURTH, DRAWN FOR THE FADE RULE RATHER THAN RESCORING THE
+ * FIRST THREE (the refresh). The product has since settled on its own
+ * arrival grammar everywhere a photograph lands: it grows into its column
+ * under a glow that fades. Cascade already tells that shape truest among the
+ * first three, but none of them carries an actual glow, only scale and
+ * opacity; `bloom` is born smaller and grows larger than any of the others,
+ * settles the longest before it fades (a slower beat, so the hold reads as a
+ * moment rather than a blip), and its arrival is lit from within
+ * (`album-stream.css`'s `.als-layer[data-variant="bloom"]` glow, which piggy-
+ * backs on the frame's own opacity so it fades in step with the photograph
+ * rather than needing a second animated value).
  */
-export const VARIANTS = ["glide", "gather", "cascade"] as const;
+export const VARIANTS = ["glide", "gather", "cascade", "bloom"] as const;
 export type Variant = (typeof VARIANTS)[number];
 
-/** The one Will ruled on, and the one that ships until he picks another. */
+/** The shipped version, until a future round picks another. */
 export const SHIPPED: Variant = "glide";
 
 type Recipe = {
@@ -497,7 +509,7 @@ type Recipe = {
 
 const RECIPES: Record<Variant, Recipe> = {
   /**
-   * GLIDE, the version he ruled on: a pair appears in the empty space either
+   * GLIDE, the shipped version: a pair appears in the empty space either
    * side of the words every beat of the home hero's clock and glides down into
    * the album's top edge on the home hero's own curve, leaving at its launch
    * speed and gathering pace as it goes. Each frame FALLS FIRST and turns in
@@ -550,6 +562,26 @@ const RECIPES: Record<Variant, Recipe> = {
     bend: 0.97,
     sink: -16,
     into: 0.98,
+    exit: "settle",
+  },
+  /**
+   * BLOOM, arriving rather than travelling. One photograph at a time, on a
+   * slower beat than any of the other three so each gets room to be noticed:
+   * born smaller and grown larger by the time it lands than any of them,
+   * turning in latest of all, and it comes to rest on the album's edge for the
+   * longest hold before it gives itself up. The glow is not this table's: it
+   * is a CSS box-shadow scoped to this variant that rides the frame's own
+   * opacity, so it lights up as the photograph fades in and dims with it.
+   */
+  bloom: {
+    pair: false,
+    beats: { lg: 1.5, base: 3 },
+    unit: 100,
+    s0: 0.5,
+    s1: 1.15,
+    bend: 0.98,
+    sink: -10,
+    into: 1,
     exit: "settle",
   },
 };

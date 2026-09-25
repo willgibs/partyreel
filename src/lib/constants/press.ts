@@ -11,7 +11,7 @@
  * reading its source text, never by importing it. tiers.ts is env-free and safe.
  *
  * All copy is PROVISIONAL (the marketing-voice.ts convention): agent drafts awaiting
- * Will's ruling, not ratified lines.
+ * a final pass, not ratified lines.
  */
 
 import { planById } from "./tiers";

@@ -39,7 +39,7 @@ import {
  *  2  NO PHOTOGRAPH IS EVER UNDER A WORD, asked at the NARROWEST viewport each
  *     composition serves, where the band crowds the lockup hardest. The keep-out
  *     is the lockup's whole COLUMN, which is wider than its ink at every width
- *     it is drawn at, so a rewrite of the copy cannot invalidate it (bible 10).
+ *     it is drawn at, so a rewrite of the copy cannot invalidate it.
  *  3  NO TWO FRAMES SIT ON THE SAME PIXEL. Photographs in a file may overlap;
  *     two on the same spot read as a rendering fault, and the first draft had
  *     exactly that.

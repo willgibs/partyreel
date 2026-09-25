@@ -112,7 +112,7 @@ export function decideVideo(input: VideoLadderInput): VideoDecision {
 }
 
 /**
- * Where "Include videos" STARTS on this device. Will's ruling is that it defaults ON everywhere;
+ * Where "Include videos" STARTS on this device. It defaults ON everywhere;
  * the one exception in the plan is Data Saver, which is the device telling us it is metered.
  * Takes the value rather than reading navigator, so it is pure; `readSaveData()` below is the
  * one-line bridge a client component calls.

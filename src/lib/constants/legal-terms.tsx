@@ -4,7 +4,7 @@ import { LEGAL_PARTY, note, ol, p, sub, ul, type LegalSection } from "./legal";
 
 /**
  * THE TERMS OF SERVICE (version 1.0, the legal round, 2026-09-01). Formal but
- * readable by ruling. Will's rulings baked in (2026-09-01): hosts 18+ and
+ * readable throughout. The choices baked in: hosts 18+ and
  * guests 13+; Pro non-refundable with cancel-anytime, Event Pass refundable
  * within 14 days if unused; informal resolution then the courts of [STATE]
  * with a class-action waiver and NO arbitration; the full DMCA procedure with
@@ -243,7 +243,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
       // tiers.ts: free = 1 event, photos only; pro = subscription (month or
       // year), unlimited events; event_pass = one-time, 1 event, ~1 year,
       // stacks (billing-caps.md); pass→pro = prorated credit; one Pro at a time
-      // (host-app.md); renewal extends never resets.
+      // (billing-caps.md); renewal extends never resets.
       sub("plans", "The plans"),
       ul(
         <>
@@ -307,7 +307,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
     summary:
       "Cancel Pro any time and keep it to the end of the period; no refunds. An unused Event Pass is refundable within 14 days.",
     blocks: [
-      // Will's ruling (2026-09-01): Pro no refunds + cancel anytime; Event
+      // The policy: Pro no refunds + cancel anytime; Event
       // Pass refundable within 14 days if unused (no event created on the
       // slot); statutory rights preserved.
       ul(
@@ -469,7 +469,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
       "Close your account yourself, any time, in a couple of taps. We can close accounts that break the rules. Either way, download first, because deletion is real.",
     blocks: [
       // Self-serve since 2026-09-02, and the plan now goes WITH the account
-      // (Will's ruling: an active plan is auto-cancelled at the request), so
+      // (an active plan is auto-cancelled at the request), so
       // the old "cancelling is separate" sentence would have been wrong.
       p(
         <>
@@ -533,7 +533,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
       ),
       // Our own images, never a guest's: this sits after the sentence that
       // separates the two so it can only read as the "us" side. It is the
-      // whole disclosure by Will's ruling (2026-09-18): no mark on any image.
+      // whole disclosure: no mark on any image.
       p(
         "We may use generative artificial-intelligence tools to create some of the images and videos on our website, in our marketing and in our demo event.",
       ),
@@ -581,7 +581,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
     summary:
       "Talk to us first. If that fails, the courts of our home state decide, one person at a time.",
     blocks: [
-      // Will's ruling (2026-09-01): informal resolution first, then the courts
+      // The policy: informal resolution first, then the courts
       // of [STATE], class-action waiver; deliberately NO arbitration.
       sub("informal", "Talk to us first"),
       p(

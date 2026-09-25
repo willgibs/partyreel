@@ -6,8 +6,13 @@ import type { PreviewsFor } from "@/components/lab/exploration";
 
 import { EVENT, LIVE_ALBUM_COUNT, MINIMUM, WAITING } from "./fixtures";
 import { AS_WIRED, BellPanelAgree, PhoneDashboard } from "./parts-counts";
-import { AddToAlbumConfirm, AlbumWithCut, PhoneReviewRoom } from "./parts-curation";
-import { type PulseOption, PulsePair } from "./parts-dashboard";
+import {
+  AddToAlbumConfirm,
+  AlbumWithCut,
+  PhoneReviewRoom,
+} from "./parts-curation";
+import { Dashboard, type PulseOption } from "./parts-dashboard";
+import { ReelRoom, ReelSheetBody } from "./parts-home";
 import {
   Hub,
   ProgressBand,
@@ -29,7 +34,6 @@ import { ShareSheetWithScreen } from "./parts-share";
 import { type Device, HostView, measureView } from "./parts-view";
 import {
   Composite,
-  DashboardBar,
   Scene,
   SCREENS,
   type ScreenId,
@@ -40,7 +44,7 @@ import { REEL_HOST } from "./spec";
 
 /**
  * THE PREVIEWS, AND NOTHING ELSE. Every option holds the rest of the picture
- * steady and moves only the one thing its ask is about: the progression's four
+ * steady and moves only the one thing its ask is about: the progression's five
  * vary only how the page speaks below the minimum, never the event; the screen
  * door's five vary only where the door sits, never the view it opens.
  *
@@ -60,7 +64,9 @@ const itemsOf = (s: BoardState): number => {
 
 /** The visible words of an element, whitespace folded, cut for a caption. */
 const said = (el: Element | null | undefined, max = 90): string => {
-  const t = ((el as HTMLElement | null)?.innerText ?? "").trim().replace(/\s+/g, " ");
+  const t = ((el as HTMLElement | null)?.innerText ?? "")
+    .trim()
+    .replace(/\s+/g, " ");
   return t.length > max ? `${t.slice(0, max - 3)}...` : t;
 };
 
@@ -71,7 +77,7 @@ const hubBehind = (device: Device) => (
 
 /* ── progress: the way to the reel ───────────────────────────────────────── */
 
-type ProgressId = "card" | "band" | "tile" | "step";
+type ProgressId = "card" | "band" | "tile" | "step" | "preview";
 
 const measureProgress: Reader = (root) => {
   const face = root.querySelector<HTMLElement>("[data-rh-reel-card]")?.dataset
@@ -84,7 +90,9 @@ const measureProgress: Reader = (root) => {
       ? "the Reel card wears the living crossfade"
       : face === "counting"
         ? "the Reel card counts"
-        : "the Reel card says \"Not yet\"";
+        : face === "preview"
+          ? "the Reel card is the host's alone until the minimum"
+          : 'the Reel card says "Not yet"';
   return lines.length
     ? `Measured: the page says "${lines.join(" / ")}"; ${card}.`
     : `Measured: nothing on the page speaks of the reel; ${card}.`;
@@ -106,8 +114,12 @@ function progressScene(id: ProgressId, s: BoardState) {
         device={device}
         items={items}
         reel={
-          id === "card" && below ? (
-            <ReelCard device={device} face="counting" items={items} />
+          (id === "card" || id === "preview") && below ? (
+            <ReelCard
+              device={device}
+              face={id === "card" ? "counting" : "preview"}
+              items={items}
+            />
           ) : undefined
         }
         above={
@@ -117,26 +129,80 @@ function progressScene(id: ProgressId, s: BoardState) {
             <StepRow />
           ) : undefined
         }
-        after={id === "tile" && items === 1 ? <WaitingTile /> : undefined}
+        head={id === "tile" && items === 1 ? <WaitingTile /> : undefined}
         launchWithReel={id === "step" && items === 0}
       />
     </Scene>
   );
 }
 
+/* ── home: what the Reel card opens ──────────────────────────────────────── */
+
+type HomeId = "view" | "room" | "sheet";
+
+const measureHome: Reader = (root) => {
+  if (root.querySelector("[data-rh-view]")) {
+    const view = measureView(root)?.replace(/^Measured: /, "") ?? "";
+    return `Measured: the card opens the full-screen view; ${view}`;
+  }
+  const rows = [...root.querySelectorAll("[data-rh-home-row]")].map((el) =>
+    said(el, 24),
+  );
+  const where = root.querySelector("[data-rh-room]")
+    ? "a room with a crumb"
+    : root.querySelector("[data-rh-reel-sheet]")
+      ? "a sheet over the album"
+      : null;
+  return where
+    ? `Measured: the card opens ${where}: the reel playing, Watch and Play on a screen, then ${rows.join(", ")}.`
+    : null;
+};
+
+function homeScene(id: HomeId, s: BoardState) {
+  const sc = viewportOf(s);
+  const device = deviceOf(sc);
+  const body =
+    id === "view" ? (
+      <div data-rh-open-view="">
+        <HostView device={device} dock="up" extra="screen" />
+      </div>
+    ) : id === "room" ? (
+      <ReelRoom device={device} />
+    ) : (
+      <SheetGround
+        screen={sc}
+        title="Reel"
+        description={EVENT.name}
+        behind={hubBehind(device)}
+      >
+        <ReelSheetBody />
+      </SheetGround>
+    );
+  return (
+    <Scene
+      id={`home-${id}`}
+      screen={sc}
+      title="What the Reel card opens"
+      measure={measureHome}
+    >
+      {body}
+    </Scene>
+  );
+}
+
 /* ── open: where the door to a big screen sits ───────────────────────────── */
 
-type OpenId = "view" | "hub" | "share" | "settings" | "link";
+type OpenId = "view" | "hub" | "share" | "settings" | "send";
 
 const measureOpen: Reader = (root) => {
   if (root.querySelector("[data-rh-view]")) return measureView(root);
   const door = root.querySelector("[data-rh-screen-door]");
-  const later = root.querySelector("[data-rh-link-later]");
+  const link = root.querySelector("[data-rh-send-link] .tabular-nums");
   if (door) {
     // In a hand the row scrolls sideways, and a fifth card starts past its edge.
     const edge = root.ownerDocument.documentElement.clientWidth;
     const past = door.getBoundingClientRect().left >= edge - 8;
-    return `Measured: a fifth door in the cards row, "${said(door, 40)}"${past ? ", past the row's edge on a phone" : ""}${later ? ", and a screen link drawn as later work under the row" : ""}.`;
+    return `Measured: a fifth door in the cards row, "${said(door, 40)}"${past ? ", past the row's edge on a phone" : ""}${link ? `, and a link to send under the row, "${said(link, 48)}"` : ""}.`;
   }
   const block = root.querySelector("[data-rh-screen-block] h3");
   if (block)
@@ -179,7 +245,7 @@ function openScene(id: OpenId, s: BoardState) {
         device={device}
         items={LIVE_ALBUM_COUNT}
         door={<ScreenDoor device={device} />}
-        below={id === "link" ? <ScreenLinkRow /> : undefined}
+        below={id === "send" ? <ScreenLinkRow /> : undefined}
       />
     );
   return (
@@ -191,7 +257,14 @@ function openScene(id: OpenId, s: BoardState) {
 
 /* ── review: what tells the host about a waiting queue ───────────────────── */
 
-type ReviewId = "wired" | "agree" | "card" | "header" | "feed" | "chip" | "room";
+type ReviewId =
+  | "wired"
+  | "agree"
+  | "card"
+  | "header"
+  | "feed"
+  | "chip"
+  | "room";
 
 const PHONE_LABEL: Record<ReviewId, string> = {
   wired: "Mia's phone: the hub, its counts as wired",
@@ -221,7 +294,12 @@ const measureReview: Reader = (root) => {
 
 function reviewScene(id: ReviewId) {
   const hubAsWired = (
-    <Hub device="phone" items={LIVE_ALBUM_COUNT} waiting={WAITING} bell={WAITING} />
+    <Hub
+      device="phone"
+      items={LIVE_ALBUM_COUNT}
+      waiting={WAITING}
+      bell={WAITING}
+    />
   );
   const phone =
     id === "agree" ? (
@@ -248,7 +326,11 @@ function reviewScene(id: ReviewId) {
       measure={measureReview}
       screenLabel="The big screen, drawn at half a 1920 wall"
       phoneLabel={PHONE_LABEL[id]}
-      screen={<Tv says={id === "chip" ? "chip" : id === "room" ? "room" : "nothing"} />}
+      screen={
+        <Tv
+          says={id === "chip" ? "chip" : id === "room" ? "room" : "nothing"}
+        />
+      }
       phone={phone}
     />
   );
@@ -262,12 +344,16 @@ const measureStyle: Reader = (root) => {
   const view = root.querySelector("[data-rh-style-popover]");
   const card = root.querySelector("[data-rh-defaults]");
   const line = said(root.querySelector("[data-rh-default-line]"), 80);
-  const moods = root.querySelectorAll("[data-rh-defaults] [data-rh-mood]").length;
+  const moods = root.querySelectorAll(
+    "[data-rh-defaults] [data-rh-mood]",
+  ).length;
   const steps = root.querySelector<HTMLElement>("[data-rh-hold-steps]")?.dataset
     .rhHoldSteps;
   const parts = [
     view ? `the view's Style popover says "${line}"` : null,
-    card ? `a Settings card carries ${moods} moods and ${steps} hold steps` : null,
+    card
+      ? `a Settings card carries ${moods} moods and ${steps} hold steps`
+      : null,
   ].filter(Boolean);
   return parts.length ? `Measured: ${parts.join("; ")}.` : null;
 };
@@ -278,8 +364,8 @@ const measureStyle: Reader = (root) => {
  * where it really opens, a panel on the right; in a hand the two stack.
  *
  * ★ PIXELS, NEVER PERCENTAGES: this frame's own document hands nothing a
- * percentage height down from (the old board's finding), so every split is
- * arithmetic on the frame's known size.
+ * percentage height down from, so every split is arithmetic on the frame's
+ * known size.
  */
 function StyleBoth({ screen }: { screen: ScreenId }) {
   const { w, h } = SCREENS[screen];
@@ -288,7 +374,12 @@ function StyleBoth({ screen }: { screen: ScreenId }) {
     return (
       <div className="relative bg-background" style={{ width: w, height: h }}>
         <div className="absolute inset-y-0 left-0" style={{ width: w - panel }}>
-          <HostView device="laptop" dock="up" popover="style-both" mode="contain" />
+          <HostView
+            device="laptop"
+            dock="up"
+            popover="style-both"
+            mode="contain"
+          />
         </div>
         <div
           className="absolute inset-y-0 right-0 flex flex-col gap-3 overflow-hidden border-l border-border bg-popover p-4 text-popover-foreground"
@@ -303,8 +394,16 @@ function StyleBoth({ screen }: { screen: ScreenId }) {
   const top = Math.round(h * 0.56);
   return (
     <div className="relative bg-background" style={{ width: w, height: h }}>
-      <div className="absolute inset-x-0 top-0 overflow-hidden" style={{ height: top }}>
-        <HostView device="phone" dock="up" popover="style-both" mode="contain" />
+      <div
+        className="absolute inset-x-0 top-0 overflow-hidden"
+        style={{ height: top }}
+      >
+        <HostView
+          device="phone"
+          dock="up"
+          popover="style-both"
+          mode="contain"
+        />
       </div>
       <div
         className="absolute inset-x-0 bottom-0 overflow-hidden bg-background p-3 text-foreground"
@@ -394,21 +493,33 @@ function switchScene(id: SwitchId, s: BoardState) {
       </SheetGround>
     );
   return (
-    <Scene id={`switch-${id}`} screen={sc} title={title} measure={measureSwitch}>
+    <Scene
+      id={`switch-${id}`}
+      screen={sc}
+      title={title}
+      measure={measureSwitch}
+    >
       {body}
     </Scene>
   );
 }
 
-/* ── pulse: the dashboard's line ─────────────────────────────────────────── */
+/* ── pulse: the dashboard's word on the reel ─────────────────────────────── */
 
 const measurePulse: Reader = (root) => {
+  const chips = [...root.querySelectorAll("[data-rh-band] li")].map((l) =>
+    said(l, 70),
+  );
+  const reelChip = chips.find((c) => /reel/i.test(c));
   const lines = [...root.querySelectorAll("[data-rh-reel-line]")].map((l) =>
     said(l),
   );
   const moving = root.querySelector("[data-rh-playing-cover]");
   const parts = [
-    lines.length ? `the cards say "${lines.join(" / ")}"` : "no card carries a line",
+    reelChip ? `the band says "${reelChip}"` : "the band carries no reel step",
+    lines.length
+      ? `the cards say "${lines.join(" / ")}"`
+      : "no card carries a line",
     moving ? "the live event's cover crossfades" : "every cover holds still",
   ];
   return `Measured: ${parts.join("; ")}.`;
@@ -417,16 +528,13 @@ const measurePulse: Reader = (root) => {
 function pulseScene(id: PulseOption, s: BoardState) {
   const sc = viewportOf(s);
   return (
-    <Scene id={`pulse-${id}`} screen={sc} title="The dashboard's line" measure={measurePulse}>
-      <div className="min-h-full bg-background text-foreground">
-        <DashboardBar />
-        <div className={sc === "375" ? "space-y-3 px-4 py-5" : "space-y-4 px-8 py-7"}>
-          <p className="text-label font-semibold text-muted-foreground uppercase">
-            Your events
-          </p>
-          <PulsePair option={id} device={deviceOf(sc)} />
-        </div>
-      </div>
+    <Scene
+      id={`pulse-${id}`}
+      screen={sc}
+      title="The dashboard's word"
+      measure={measurePulse}
+    >
+      <Dashboard option={id} device={deviceOf(sc)} />
     </Scene>
   );
 }
@@ -451,7 +559,12 @@ function cutScene(id: "marked" | "plain" | "confirm", s: BoardState) {
   const title = "A host's own cut, added";
   if (id === "confirm") {
     return (
-      <Scene id="cut-confirm" screen={sc} title={title} measure={measureCutConfirm}>
+      <Scene
+        id="cut-confirm"
+        screen={sc}
+        title={title}
+        measure={measureCutConfirm}
+      >
         <AddToAlbumConfirm />
       </Scene>
     );
@@ -472,12 +585,17 @@ const PREVIEWS: PreviewsFor<typeof REEL_HOST> = {
   "progress.band": (s) => progressScene("band", s),
   "progress.tile": (s) => progressScene("tile", s),
   "progress.step": (s) => progressScene("step", s),
+  "progress.preview": (s) => progressScene("preview", s),
+
+  "home.view": (s) => homeScene("view", s),
+  "home.room": (s) => homeScene("room", s),
+  "home.sheet": (s) => homeScene("sheet", s),
 
   "open.view": (s) => openScene("view", s),
   "open.hub": (s) => openScene("hub", s),
   "open.share": (s) => openScene("share", s),
   "open.settings": (s) => openScene("settings", s),
-  "open.link": (s) => openScene("link", s),
+  "open.send": (s) => openScene("send", s),
 
   "review.wired": () => reviewScene("wired"),
   "review.agree": () => reviewScene("agree"),
@@ -499,6 +617,8 @@ const PREVIEWS: PreviewsFor<typeof REEL_HOST> = {
   "pulse.counts": (s) => pulseScene("counts", s),
   "pulse.threshold": (s) => pulseScene("threshold", s),
   "pulse.cover": (s) => pulseScene("cover", s),
+  "pulse.band": (s) => pulseScene("band", s),
+  "pulse.quiet": (s) => pulseScene("quiet", s),
 
   "cut.marked": (s) => cutScene("marked", s),
   "cut.plain": (s) => cutScene("plain", s),

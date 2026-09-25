@@ -1,15 +1,15 @@
 ---
 track: orchestrator
 status: open
-cut: "4c70fd4e"          # the launch-prep SHA this state was written at
+cut: "e30aaada"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
-  - src/app/(dev)/design/rules/bible.ts
-  - src/app/(dev)/design/rules/bible.test.ts
-  - src/app/(marketing)/marketing.css
-  - src/app/(dev)/design/sandbox/registry.ts
-  - src/app/(dev)/design/(shell)/lab/boards.ts
   - src/app/globals.css
   - src/app/theme.css
+  - src/app/(marketing)/marketing.css
+  - src/app/(dev)/design/rules/bible.ts
+  - src/app/(dev)/design/rules/bible.test.ts
+  - src/app/(dev)/design/sandbox/registry.ts
+  - src/app/(dev)/design/(shell)/lab/boards.ts
   - src/lib/design-gate/
   - src/app/api/design-gate/
   - scripts/vercel-ignore-build.mjs
@@ -18,9 +18,8 @@ reads:
   - CLAUDE.md
   - docs/PROGRAM.md
 announces:
-  - "media-viewer-wiring merged at 7eb190de (2026-09-24): `MediaLightbox`/`MediaLightboxLazy` take `origin={{ kind: \"reel\", rect }}` (rect null fades in; omit `returnTo` so the way out lands in the frame) and `startAt` (a clip's seconds); `ViewerOrigin` is exported from `@/components/shared/media-lightbox`; the photo parameter is `PHOTO_PARAM` with `readPhotoParam` in `@/lib/media/share-save`. The Orchestrator replaced guest-flow.md's Lightbox bullet. `reel-guest-wiring` syncs past it and passes both from the view's tap."
-  - "lab-scene-kit merged at bff618d4 (2026-09-23): `Fit` and `Measured` live in `@/components/lab` (`scene.tsx`); `kit-discipline.test.ts` refuses a registered board that declares either. `event-safety` syncs past it and imports the two."
-  - "The reshape (Will, 2026-09-22): the docs carry rules, never history. `docs/CHANGELOG.md` is gone (the merge commit carries a lane's summary), `usher/kit/cut-lane.py` cuts manifests from a spec, and four lanes run on disjoint files: `docs-rules` retires `docs/design/rulings.md` and the Library's rulings page, `systems-trim` trims `docs/systems/`, `roadmap-lean` rewrites `docs/ROADMAP.md` and `docs/ASSETS.md`, `pointer-sweep` rewrites code comments that point at the retired docs. None changes behavior."
+  - "reel-defaults-migration merged at 71cfea65 (2026-09-25), its migration applied: `events.reel_hold_sec` (NULL = the default hold; read it with `resolveHoldSec(row.reel_hold_sec)`, since the generated type says `number`), returned last by `get_event_by_qr_token`; `HOLD_STEPS_SEC`, `DEFAULT_HOLD_SEC`, `nearestHoldStep`, `REEL_MOOD_IDS` in `@/lib/reel/defaults` (their one home: the guest lane drops its copies); `setReelDefaults({ eventId, showReel?, styleId?, holdSec? })` in `@/lib/reel/defaults-action` for the view's Set for everyone and Settings; `event_stills(uuid[], int)` (authenticated, one jsonb of preview keys an event, presigned server-side like `readCoverUrls`). reel-guest-wiring and reel-host-wiring merge origin/launch-prep past it."
+  - "media-viewer-wiring merged at 7eb190de (2026-09-24): `MediaLightbox`/`MediaLightboxLazy` take `origin={{ kind: \"reel\", rect }}` (rect null fades in; omit `returnTo` so the way out lands in the frame) and `startAt` (a clip's seconds); `ViewerOrigin` is exported from `@/components/shared/media-lightbox`; the photo parameter is `PHOTO_PARAM` with `readPhotoParam` in `@/lib/media/share-save`, whose Save follows the platform (the clip's finish reuses it)."
 ---
 
 # The Orchestrator's state
@@ -33,41 +32,36 @@ model Will seats (Fable or Opus); nothing here depends on which.
 ## In flight
 
 Up to eight lanes at once (Will, 2026-09-24); every production build, a lane's or the kit's gate, takes turns
-through `scripts/build-lock.sh` (the kit's gate takes it itself).
+through `scripts/build-lock.sh` (the kit's gate takes it itself). Batch 2 is cut from `e30aaada`; the live plan is
+`~/.claude/plans/great-work-however-1-dapper-twilight.md` (the lanes' manifests carry everything they need).
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `refresh-reel-host` | `reel-screen` and `reel-host` refreshed under the new guidance (strong options kept and improved, bolder directions added, nothing fenced by a past pick) | running (agent `ae61fe3e9bbb13c94`), cut at `75631277` | Opus, :3131 | integrate as it lands; its boards into their leverage places; one `[preview]` when the wave is in |
-| `refresh-reel-cut` | `reel-front`, `reel-cut` and `reel-story` refreshed the same way | running (agent `a93a816e4ff303150`), cut at `75631277` | Sonnet, :3132 | integrate as it lands; its boards into their leverage places; one `[preview]` when the wave is in |
-| `refresh-host` | `export-flow`, `admin-triage`, `host-curation`, `host-storage` and `event-safety` refreshed | running (agent `a8844c85921d92ea8`), cut at `75631277` | Sonnet, :3133 | integrate as it lands; its boards into their leverage places; one `[preview]` when the wave is in |
-| `refresh-site` | `site-chrome`, `privacy-hero`, `profile-page`, `album-motion` and `loose-ends` refreshed | running (agent `a9d0a115ec18ff8cd`), cut at `75631277` | Sonnet, :3134 | integrate as it lands; its boards into their leverage places; one `[preview]` when the wave is in |
-| `refresh-identity` | `identity-door`, `identity-claims` and `identity-profile` refreshed | running (agent `a527a1c8604e93f6c`), cut at `31120a14` | Sonnet, :3138 | integrate as it lands; its boards into their leverage places; one `[preview]` when the wave is in |
-| `reel-guest-wiring` | the live reel's guest side: the seam fix, minimum 2, the provider lift, the Highlight reel tile, the view that is also the wall, the toast, the cut's seam, the photo link card | handed off at `0384a77b` (Will's morning rulings built: the welcome comes first everywhere, landscape fills; a portrait photo on a landscape screen sits whole on its own blur, his to overrule); HELD unmerged; syncing past the lean round (the directives, comments, the entry-modal flake) (agent `a744f57e3c4cbd81f`) | Opus, :3137 | integrate with the cut and host lanes in one stretch; the reel picture, the Start's fullscreen and wake lock and the toast prove on that alias build (R2 answers CORS only for the alias and prod) |
+| `album-rows` | the justified rows engine and an opt-in `rows` layout on the shared grid (masonry stays the default), then `album-columns` r2 on it | working (agent `a4df869a96aed6e65`) | Opus, :3131 | integrate for build 8; its Handoff lists each surface's switch for `album-rows-wiring` |
+| `clip-bench` | `reel-cut` r2 (the workbench with moments and looks inside it) and `reel-story`'s noun | working (agent `a3b9e5aa5c95602c2`) | Opus, :3138 | integrate for build 8 |
+| `reel-host-wiring` | the host's reel side (the Reel card counting to two, one review number, the Highlight reel section, the band and the cards' crossfade, the Studio's host pieces out) and the wide host pages | working (agent `a7a1fff0cd8e82d51`); syncs past the migration lane when announced | Opus, :3133 | HOLD unmerged for the stretch |
+| `reel-guest-wiring` | the live reel's guest side, re-opened for batch 2: the window start, the code toggle at 1024 and up, the view gated at two, the owner's extras, the hold per event, "clip", the 12px phone gutter | re-opened by message (agent `a744f57e3c4cbd81f`) from `f3aa612c`; syncs past the migration lane when announced | Opus, :3137 | HOLD unmerged for the stretch; its picture, fullscreen, wake lock and owner's extras prove on the stretch's alias build |
 
 ## Next, in order
 
-The lean round's rest (Will's words drive it; everything is guidance, one home, nothing treated as finished).
-Scratch for this session: `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/`.
-
-1. **The rest of the refresh wave** as memory frees (held at six lanes while about 10 GB sat compressed): `refresh-pages`
-   (spec ready in `specs/`), then
-   **the mandate sweep**: `python3 $S/make-sweep-spec.py` computes its owns at the cut (the files outside every live
-   lane and the boards that frame a choice as authority), `sweep-brief.md` and `sweep-pointers.md` beside it.
-2. **`reel-guest-wiring`, one message** (sent 2026-09-24 with the wave; it hands off again, still held): sync; strip `@contract-for`, `@policy` and `@refuses`
-   from its 22 test headers; its comments keep their reason and drop authority ("bible N", "Will ruled", "law");
-   `guest-flow.md`'s "bible 4 refuses" names the bible's seventh principle; `entry-modal.test.tsx`'s Radix focus-scope
-   timer throws after teardown under load (four unhandled errors in gate 158, green on rerun); re-gate; hand off again.
-3. **When the wave is in**: one `[preview]` for Will's sitting (`album-columns` first; build 6, `d3135de`, already
-   serves the new Library and that board, and its Vercel log confirms the source-map upload).
+1. **Build 8**: integrate `album-rows` and `clip-bench`, read their new asks side by side (`board-card.mjs --desk`), one
+   `[preview]`, then Will's sitting: `reel-cut` r2, `reel-story`, `reel-front` r2, `album-columns` r2, `media-viewer` r2.
+2. **After the sitting**: cut `reel-clip-wiring` (Opus; the creator, the bench as picked, the finish as amended, the
+   Studio's `src/components/reel/` pieces out, the client adds), `reel-sweep` (Opus; the copy from `reel-story`, help,
+   legal, admin, docs, `docs/systems/reel.md`) and `reel-teardown` (Sonnet; `reel_clip_add`; the stored files' end);
+   the guest lane's last re-open (`reel-front` r2, the creator seam). The stretch integrates guest, host, clip,
+   teardown, sweep, synced; one `[preview]` (build 9); the red-team; the drop migration on Will's yes; the one-shot
+   R2 sweep; the reel boards and ledgers retire after their manifests close.
+3. **`album-rows-wiring`** (Opus): every surface to rows with `album-columns` r2's picks, the jump-free first paint,
+   the five steps, and `media-viewer` r2's mark; build 10.
 4. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
    self-registering folder, its metadata in its spec, lab checks scoped to the lane's own boards, the authoring API
    trimmed, a fresh agent proving it; with library-lean's board ideas (a `Surfaces` family of live frames per route
-   with guest entries, the Library's sidebar open by default, a plain-text view of Library pages, and a
-   retire-or-reuse call on `anonymous-info.tsx` and `floating-add-button.tsx`).
-5. **The reel round**, after Will's desk review (the plan file's batch-1 and reel sections).
+   with guest entries, the Library's sidebar open by default, a plain-text view of Library pages, a
+   retire-or-reuse call on `anonymous-info.tsx` and `floating-add-button.tsx`, and the lab's own words renamed with the
+   revamp: the review mechanic's "ruled", `touchpoints.ts`'s `RULINGS`/`Ruling`/`getRuling`, and "ratified").
 
 ## Waiting on Will
 
-- **His desk review**, on the refreshed boards once the refresh wave lands (build 5's boards are superseded), with
-  `album-columns` at the head.
-- **A 10-second iPhone check** on build 5: Save to Photos lands in Photos, and a shared photo arrives as a photograph.
+- **His sitting on build 8**, once `album-rows` and `clip-bench` land: `reel-cut` r2 first.
+- **A 10-second iPhone check**: Save to Photos lands in Photos, and a shared photo arrives as a photograph.

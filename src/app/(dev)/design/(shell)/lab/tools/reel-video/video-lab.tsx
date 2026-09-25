@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * THE RANGE-WINDOW VIDEO HARNESS (the reel round, 2026-09-22; Will's ruling "Range-window decode on
+ * THE RANGE-WINDOW VIDEO HARNESS (the reel round: "range-window decode on
  * device"). The engine lane's proving ground: a real mov, a real webm and a portrait mp4, each
  * fetched BY BYTE RANGE from the sibling fixture route and decoded on this device into the ring the
  * synchronous draw reads. Every knob the product will carry is here, and every number the ladder

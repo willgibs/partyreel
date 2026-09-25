@@ -2,35 +2,28 @@ import type { Control } from "@/components/lab/board-spec";
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * THE HOST'S SIDE OF THE REEL, ROUND ONE, RE-CUT ON HIS FIRST ANSWERS
- * (2026-09-24). Nothing on this board has been answered yet, so it keeps round
- * one and re-cuts its asks.
+ * THE HOST'S SIDE OF THE REEL, ROUND ONE, REFRESHED (2026-09-24).
  *
  * The reel makes itself from the second reel-eligible item: no Studio, no
  * publish, no file. What is left for a host is a handful of small acts spread
- * over the surfaces they already visit, and this board places each one.
+ * over the surfaces they already visit, and this board places each one, plus
+ * the door the others hang off: what the Reel card opens once the stored reel's
+ * room is gone.
  *
- * ★ HIS ANSWERS ARE GIVENS ON EVERY DRAWING (reel-view r1, reel-front r1,
- * reel-screen r1, and his ruling in chat, "The view is the wall"):
- *   - the view has a slim glass bar at rest that morphs into the dock; one top
- *     row of icons (play/pause, Include videos, Style, Hold, Show the code, Add
- *     yours as an icon) with "Make your own" as the single primary beneath; a
- *     top-left arrival chip that stacks into a short feed; full bleed; a 3 s
- *     hold adjustable in the dock; the code as a white plate bottom right; no
- *     event name on the picture;
- *   - Play on a screen opens that same view with the code on and a one-tap
- *     Start (there is no wall mode);
- *   - the hub's Reel card is the labelled card wearing a calm living thumbnail
- *     as a full background under an overlay;
- *   - the reel's minimum is TWO, and guests see nothing below it.
+ * ★ WHAT EVERY DRAWING STANDS ON, AND WHY IT IS GROUND RATHER THAN A FENCE. A
+ * host-side question is judged on the reel that will ship, so the reel's other
+ * answers are drawn as its surfaces will be: the view's slim glass bar that
+ * becomes the dock (one row of icons, Make your own beneath), the top-left
+ * arrival chip, a 3 s hold the viewer can change, the white code plate bottom
+ * right, full bleed; the Reel card as the labelled card over a calm living
+ * thumbnail; a minimum of two, below which guests see nothing. An option may
+ * still move any of them where its own question is about it.
  *
- * ★ TWO QUESTIONS ARE MERGED, EVERY OPTION KEPT (his rule for repeats:
- * "instead of removing one, merge options under the same question"). `open` is
- * this board's old `screen` with reel-screen's `open`; `review` is this
- * board's old `review` with reel-screen's `review` and host-curation's `count`
- * (the desk-refresh-standing lane removes it there). Two of those options drew
- * the same picture (the counts as wired, and nothing at all), so they are one
- * option here, which is a finding rather than a road closed.
+ * ★ REPEATS MERGE, AND NO OPTION IS LOST TO THE MERGE. `open` holds this
+ * board's screen door and reel-screen's way in; `review` holds this board's
+ * waiting queue with reel-screen's and host-curation's count. Two of those
+ * options drew the same picture (the counts as wired, and nothing at all), so
+ * they are one option here, which is a finding rather than a road closed.
  *
  * ★ EVERY REEL FRAME IS THE REAL ENGINE'S (`stills.tsx`), over the reel's own
  * take of the fixture album, never an album photograph behind a chrome.
@@ -68,26 +61,19 @@ export const REEL_HOST = defineExploration({
     n: 1,
     date: "2026-09-24",
     changed:
-      "Re-cut on his first answers: open and review merged in from reel-screen and host-curation, every option kept; Style becomes the reel's defaults; the switch gains the reel's own card; pulse redrawn for two; a new ask, the way to the reel.",
+      "Refreshed: a new ask for what the Reel card opens; the way to the reel gains a reel the host sees from the first photo; the dashboard gains its What needs you step and a quiet option; the screen link becomes a link to send; the hub draws its real album.",
   },
   context:
-    "The reel makes itself from the second photo; a host has a few small acts left, spread over the hub, Settings and the dashboard. Seven decisions on those real surfaces over Mia and Theo's wedding, each drawn on his answers: the view's glass bar and dock, the living Reel card, a screen that carries only the code, a minimum of two.",
+    "The reel makes itself from the second photo, so a host is left a few small acts spread over the hub, its sheets and the dashboard. Eight decisions on those real surfaces over Mia and Theo's wedding, each drawn on the reel that will ship: the view's glass bar and dock, the living Reel card, the code in its corner, a minimum of two.",
   carried: [
     {
-      id: "look",
-      question: "Which mood do the view's frames wear while these are judged?",
+      id: "home-drawn",
+      question:
+        "Which door to the reel do the screen, defaults and switch asks draw behind?",
       taken:
-        "Sunset, full bleed. The default, Cinematic, letterboxes and would put the view's corners over black bars.",
+        "The Reel card opening the view, the reel's current plan. A room or a sheet from the home ask would gather those three controls.",
       overrule:
-        "Worth knowing alone: a host who touches nothing gets Cinematic's bars on every screen.",
-    },
-    {
-      id: "screen-rec",
-      question: "Which way onto a screen does the board recommend now?",
-      taken:
-        "The view's own control, over the hub door both boards recommended: his ruling made the screen a posture of the view.",
-      overrule:
-        "If a host should meet the screen while planning, before opening the reel, the hub door is the pick again.",
+        "Each of the three still says what a host gets beyond that home: a hub door, a Settings row, a switch on the page.",
     },
     {
       id: "host-line",
@@ -105,13 +91,13 @@ export const REEL_HOST = defineExploration({
       question:
         "How should the event page show a host the way to their reel before it starts?",
       context:
-        "The reel starts at the second photo and guests see nothing before it. His words: it would be easy for a host to open an event with one image and think \"where's my reel??\".",
+        "The reel starts at the second photo and guests see nothing before it, so a host who opens an event with one photograph can fairly ask where the reel is. Each option is drawn at none, one and two photos on the knob.",
       options: [
         {
           id: "card",
           label: "The Reel card counts to two",
           means:
-            "The Reel card shows its one photo behind \"1 more photo\" and two pips, then wears the living crossfade at two. No new block.",
+            'The Reel card shows its one photo behind "1 more photo" and two pips, then wears the living crossfade at two. No new block.',
         },
         {
           id: "band",
@@ -123,18 +109,24 @@ export const REEL_HOST = defineExploration({
           id: "tile",
           label: "A waiting tile in the album",
           means:
-            "The album keeps a dashed tile beside its one photo, \"One more starts your highlight reel\", gone when the second lands.",
+            'The album keeps a dashed tile at its head, "One more starts your highlight reel", gone when the second photo lands.',
         },
         {
           id: "step",
           label: "A step in what is left",
           means:
-            "The launch list gains \"Start your highlight reel\", and that one row stays above the album until the second photo lands.",
+            'The launch list gains "Start your highlight reel", and that one row stays above the album until the second photo lands.',
+        },
+        {
+          id: "preview",
+          label: "The host's reel plays from the first photo",
+          means:
+            'At one photo the Reel card already lives and opens the reel for the host alone, reading "Guests see it at 2". It plays, so nothing needs explaining.',
         },
       ],
       recommended: "card",
       because:
-        "The Reel card is where a host goes looking for the reel, so the answer to \"where is it\" belongs on it, and it grows into his living card at two with no block that has to come and go.",
+        'The Reel card is where a host goes looking for the reel, so the answer to "where is it" belongs on it, and it grows into the living card at two with no block that has to come and go.',
       overrule:
         "If a host reads the album before the cards row, the band says it where the eye already is and makes the unlock a moment.",
       lands:
@@ -142,11 +134,47 @@ export const REEL_HOST = defineExploration({
       configs: [VIEWPORT, ITEMS],
     },
     {
+      id: "home",
+      label: "What the Reel card opens",
+      question:
+        "What should the Reel card open for the host, now that the reel makes itself?",
+      context:
+        "The hub's Reel card opens the stored reel's room today, and that room leaves with the stored reel. The reel's plan opens the same full-screen view guests watch; a room or a sheet would give the host's reel controls one home.",
+      options: [
+        {
+          id: "view",
+          label: "The view, full screen",
+          means:
+            "The card opens the view guests watch, full bleed; the host's few extras ride its dock (on a laptop, Play on a screen), one press from the reel.",
+        },
+        {
+          id: "room",
+          label: "A Reel room, like Review and Guests",
+          means:
+            "A page with a crumb: the reel playing large, with Watch, Play on a screen, the mood and hold every guest starts on, and Show the reel.",
+        },
+        {
+          id: "sheet",
+          label: "A Reel sheet, like Settings and Share",
+          means:
+            "A sheet over the album: the reel playing in its head, Watch and Play on a screen under it, then the defaults and the switch.",
+        },
+      ],
+      recommended: "view",
+      because:
+        "The reel is a thing to watch, not to manage: the card opening the view the guests see is the one place a host can judge it, and the few controls a host needs ride its dock with no second place to learn.",
+      overrule:
+        "If the reel's host settings should sit together where they can be read at a glance, a Reel sheet gathers them without leaving the album.",
+      lands:
+        "The Reel card's destination, and whether the host's reel controls gather in one place or ride the view.",
+      configs: [VIEWPORT],
+    },
+    {
       id: "open",
       label: "Onto a big screen",
       question: "How should a host put the reel on a big screen?",
       context:
-        "The view is the wall: Play on a screen opens the same view with the code on and a one-tap Start. This asks where that door sits. Merged from reel-host.screen and reel-screen.open.",
+        "The screen is the view in another posture: the code on, and a press to fill the screen. A venue laptop reaches it like any guest, through the event's link and the welcome, so this asks where the host's door sits.",
       options: [
         {
           id: "view",
@@ -158,7 +186,7 @@ export const REEL_HOST = defineExploration({
           id: "hub",
           label: "A door in the hub's cards row",
           means:
-            "\"Play on a screen\" beside Review, Reel, Guests and Settings opens the view in a new tab on its Start plate.",
+            '"Play on a screen" beside Review, Reel, Guests and Settings opens the view in a new tab, in its screen posture.',
         },
         {
           id: "share",
@@ -173,19 +201,19 @@ export const REEL_HOST = defineExploration({
             "A host sets the screen up once, so it sits in the reel's own Settings card beside the switch, not among the rooms.",
         },
         {
-          id: "link",
-          label: "The hub door, plus a screen link",
+          id: "send",
+          label: "The hub door, plus a link to send",
           means:
-            "The door, and a copyable link that opens a gated event's screen on a machine that is not yours. A token that expires: its own later build.",
+            "The door, and a copyable link that opens the reel on a screen: the event's own, so a venue laptop meets the welcome like any guest.",
         },
       ],
       recommended: "view",
       because:
-        "The screen is a posture of the view now, so its door belongs in the view: one press from the reel on any laptop that can open the album, and a public event's venue computer never needs the host signed in.",
+        "A venue laptop reaches the reel through the event's link like any guest, so a door inside the view is the one every screen can reach, and on the host's own laptop it is one press from the reel.",
       overrule:
-        "If hosts should discover the screen while planning the night, before ever opening the reel, the hub door announces it.",
+        "If hosts should find the screen while planning the night, before ever opening the reel, the hub door announces it.",
       lands:
-        "Where the screen lives in the product, and whether a screen link that needs no sign-in is on the roadmap.",
+        "Where the screen lives in the product, and whether a link made for the screen earns its own row.",
       configs: [VIEWPORT],
     },
     {
@@ -194,7 +222,7 @@ export const REEL_HOST = defineExploration({
       question:
         "What should tell a host that uploads are waiting, and so are not in the reel yet?",
       context:
-        "The reel plays approved items only, so a moderated queue never reaches it. Merged from reel-host.review, reel-screen.review and host-curation.count; each option drawn on the host's phone and on the screen.",
+        "The reel plays approved items only, so a moderated queue never reaches it. Each option is drawn on the host's phone and on the screen, since some speak to the host and some to the room.",
       options: [
         {
           id: "wired",
@@ -218,25 +246,25 @@ export const REEL_HOST = defineExploration({
           id: "header",
           label: "Review's header says it",
           means:
-            "Review gains one line: \"Approved photos join the highlight reel right away.\" Nothing on the reel or the screen.",
+            'Review gains one line: "Approved photos join the highlight reel right away." Nothing on the reel or the screen.',
         },
         {
           id: "feed",
           label: "The host's arrival feed says it",
           means:
-            "In the host's own view the top-left feed carries \"3 waiting to review\" under the arrivals, opening Review. A screen never shows it.",
+            'In the host\'s own view the top-left feed carries "3 waiting to review" under the arrivals, opening Review. A screen never shows it.',
         },
         {
           id: "chip",
           label: "A host's chip on the screen",
           means:
-            "A small chip on the screen, \"3 waiting, on your phone\". Meant for one person, read by the whole room.",
+            'A small chip on the screen, "3 waiting, on your phone". Meant for one person, read by the whole room.',
         },
         {
           id: "room",
           label: "A line the room reads",
           means:
-            "\"New photos appear once Mia approves them\", across the top of the screen, so a guest knows why theirs is not up yet.",
+            '"New photos appear once Mia approves them", across the top of the screen, so a guest knows why theirs is not up yet.',
         },
       ],
       recommended: "feed",
@@ -253,7 +281,7 @@ export const REEL_HOST = defineExploration({
       question:
         "Where should a host set the reel's defaults, its mood and its hold?",
       context:
-        "Style and Hold already sit in the view's dock for every viewer, each a device's own choice. The event still starts everyone somewhere: a mood (Cinematic unless set) and his 3 second hold.",
+        "Style and Hold already sit in the view's dock for every viewer, each a device's own choice. The event still starts everyone somewhere: a mood (Cinematic unless set) and a 3 second hold.",
       options: [
         {
           id: "view",
@@ -269,14 +297,14 @@ export const REEL_HOST = defineExploration({
         },
         {
           id: "both",
-          label: "Settings, and \"for everyone\" in the view",
+          label: 'Settings, and "for everyone" in the view',
           means:
-            "The Settings card holds the defaults, and the host's popover in the view offers \"Set for everyone\" beside the pick.",
+            'The Settings card holds the defaults, and the host\'s popover in the view offers "Set for everyone" beside the pick.',
         },
       ],
       recommended: "both",
       because:
-        "A default is set best while it plays and should never change by accident: a host slowing the hold for a wall would otherwise slow every phone. An explicit \"Set for everyone\" in the view and a card that shows what is set cover both.",
+        'A default is set best while it plays and should never change by accident: a host slowing the hold for a wall would otherwise slow every phone. An explicit "Set for everyone" in the view and a card that shows what is set cover both.',
       overrule:
         "If a second home for Style is one too many, the host's own moves in the view set it, and the popover says so.",
       lands:
@@ -286,7 +314,7 @@ export const REEL_HOST = defineExploration({
     {
       id: "switch",
       label: "Show the reel",
-      question: "Where should the host's \"Show the reel\" switch sit?",
+      question: 'Where should the host\'s "Show the reel" switch sit?',
       context:
         "The reel is on for every event unless the host turns it off, which hides it everywhere: the album's tile, the view and any screen. Settings already carries one such switch, beside the guest list.",
       options: [
@@ -326,43 +354,56 @@ export const REEL_HOST = defineExploration({
     },
     {
       id: "pulse",
-      label: "The dashboard's line",
-      question: "How should the dashboard say an event's reel is live?",
+      label: "The dashboard's word",
+      question: "What should the dashboard say about each event's reel?",
       context:
-        "\"Has a reel\" becomes \"the reel is live\": the switch on and two or more items. The dashboard's cards already say what each event needs; the reel's life is new information they could carry, or not.",
+        'Each event\'s card says what it is, and the What needs you band above says what it wants; its reel step still offers the stored reel ("has no reel yet"), so every option says what becomes of it. Drawn over a live event and one a photo short.',
       options: [
         {
           id: "counts",
           label: "A line that counts to two",
           means:
-            "Under two items the card says \"1 more photo starts the highlight reel\"; from two, \"Highlight reel live\".",
+            'Under two items a card says "1 more photo starts the highlight reel"; from two, "Highlight reel live". The band\'s reel step retires.',
         },
         {
           id: "threshold",
           label: "Nothing until two, then the line",
           means:
-            "Under two items the card says nothing extra; the moment the second lands, \"Highlight reel live\" appears under it.",
+            'Under two a card says nothing extra; the moment the second lands, "Highlight reel live" appears under it. The band\'s step retires.',
         },
         {
           id: "cover",
           label: "The card's cover crossfades",
           means:
-            "No line, no words: a live event's cover slowly crossfades through the reel's stills, at his tile's calm pace.",
+            "No line, no words: a live event's cover slowly crossfades through the reel's stills at the tile's calm pace. The band's step retires.",
+        },
+        {
+          id: "band",
+          label: "A step in What needs you, below two",
+          means:
+            "The band's reel step tells the truth: \"1 more photo starts the reel on Ruby's 30th\". It leaves at two, and no card says more.",
+        },
+        {
+          id: "quiet",
+          label: "Nothing: the reel needs nothing",
+          means:
+            "The band's reel step retires and no card mentions the reel: a feature that runs itself never asks for a host's attention.",
         },
       ],
-      recommended: "cover",
+      recommended: "band",
       because:
-        "The reel's pitch is that it is watchable, not merely present: a card whose cover moves at his tile's slow crossfade shows it in the one place a host looks every morning.",
+        "The band already carries a reel step, and it goes stale the day the stored reel does. The true step there, and nothing once the reel runs, keeps the dashboard about what needs the host and adds no new part.",
       overrule:
-        "A moving dashboard is also the busiest one; if that reads as noise, the plain line says the same fact at rest.",
+        "If a live reel should show itself where a host looks every morning, the card's cover crossfades through it at the tile's calm pace.",
       lands:
-        "Whether the dashboard states the reel's life as a fact, counts toward it, or lets the card show it.",
+        "What the dashboard says about a reel before and after it starts, and what becomes of the band's reel step.",
       configs: [VIEWPORT],
     },
     {
       id: "cut",
       label: "A host's own cut, added",
-      question: "What should happen when a host adds their own cut to the album?",
+      question:
+        "What should happen when a host adds their own cut to the album?",
       context:
         "A finished cut on a paid event can go through 'Add to the album', spending the host's own storage; the live reel skips it. It always lands approved, never a Review queue, so this asks what the album shows, never whether it is held.",
       options: [

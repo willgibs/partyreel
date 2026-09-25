@@ -1,7 +1,7 @@
 /**
  * What plan a host ACTUALLY holds right now, derived server-side from `profiles`.
  *
- * billing-caps.md ruling 1 ("one plan at a time") needs one honest answer to "does this caller already
+ * billing-caps.md's rule ("one plan at a time for Pro; passes stack") needs one honest answer to "does this caller already
  * have a live entitlement?", and that answer can never come from the client: the tier the browser
  * believes it has is exactly the field an attacker edits. Kept pure and fixture-testable so the
  * checkout route stays a thin gate over it.
@@ -29,7 +29,7 @@ export type Entitlement =
   | { held: "pro"; expiresAt: null }
   | { held: "event_pass"; expiresAt: string };
 
-/** The only two `profiles` columns the ruling depends on. Both are webhook-written. */
+/** The only two `profiles` columns this depends on. Both are webhook-written. */
 export type EntitlementProfile = {
   tier: string | null;
   tier_expires_at: string | null;

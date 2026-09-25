@@ -69,9 +69,9 @@ export const HELP_CENTER = defineExploration({
       id: "hub",
       label: "The hub",
       question:
-        "Should the full index still follow the doors, now two other boards took the shortest front door?",
+        "Should the full index still lead, or does help's own two-visitor mix want a quicker front door first?",
       context:
-        "App-pricing r1 took the short surface, the rest one click away; first-event r1 took the shortest front door, everything else for later screens. Both argue for a few doors first, whether or not the full index still lives further down.",
+        "Who-first's own split is the real traffic: a phone almost always just scanned a code, a laptop came from the host's own menu. The sheet is also the one page search engines and llms.txt read end to end: real inventory, not just navigation.",
       options: [
         {
           id: "sheet",
@@ -91,9 +91,9 @@ export const HELP_CENTER = defineExploration({
       ],
       recommended: "hybrid",
       because:
-        "The index is real inventory search engines and llms.txt both read, which neither ruling touches; doors first give the two-second scanner the short front door they now expect everywhere else, without deleting the page that lists everything.",
+        "That inventory is real reach: search engines and llms.txt read it, so deleting it costs both. But the phone visitor who just scanned a code for one broken thing should not have to scroll a full index first; doors serve that scanner, the sheet underneath still feeds everyone else.",
       overrule:
-        "If neither ruling's brevity should extend to a reference page like this one, the doors are decoration and the sheet earns being first again.",
+        "If search already lands most visitors on the one article they need, nobody scrolls to the sheet anyway, and the plain sheet earns being first again.",
       lands: "Whether the index sheet survives at all, and how far down the page it sits.",
       after: { ask: "who-first" },
     },
@@ -163,9 +163,9 @@ export const HELP_CENTER = defineExploration({
       id: "feedback",
       label: "Feedback",
       question:
-        'Should "Did this answer your question?" go anywhere, now the portal\'s home is built for numbers?',
+        'Should "Did this answer your question?" leave a mark anywhere, now that keeping fifty-nine articles honest means knowing which ones fail?',
       context:
-        "Admin r1 already opens the portal on four figures and a fortnight's trend, the queue beneath: a page built to lead with exactly this kind of count. A per-article miss rate has somewhere to land without needing a page invented for it.",
+        "The click flips local state today and is thrown away: fifty-nine articles have shipped and nobody knows which ones lose their reader. A content problem first, true whether or not anything downstream ever charts it.",
       options: [
         {
           id: "ephemeral",
@@ -185,10 +185,10 @@ export const HELP_CENTER = defineExploration({
       ],
       recommended: "beacon",
       because:
-        "Fifty-nine articles have never once said which of them fail, and the portal now has a home built for counts; a beacon is one small table and one insert, cheap enough to ship onto a page that already exists.",
+        "A team keeping fifty-nine articles accurate cannot fix what it never sees failing; a beacon is one small table and one insert, cheap enough that the count exists whether or not anyone ever builds a screen for it.",
       overrule:
-        "If every No should already be a signal a person triages, route it through contact_submissions directly instead of a count nobody reads day to day.",
-      lands: "Whether a beacon table ships at all, and whether admin gains a per-article miss rate.",
+        "If every No deserves a person's eyes and not just a tally, route it into the same queue a contact note lands in instead of a count that risks going unread.",
+      lands: "Whether a beacon table ships at all, and whether admin, or anything else, ever surfaces it.",
     },
     {
       id: "dead-end",

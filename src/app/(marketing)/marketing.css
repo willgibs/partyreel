@@ -14,7 +14,7 @@
 
    THE MOTION REGISTERS: the `[data-mkt-*]` grammar below is the CINEMATIC
    register (the five ratified signature mechanics, lab-ratified 2026-07-03,
-   promoted here per the `[data-rvl-*]` recipe precedent in globals.css with
+   promoted here to match the `[data-rvl-*]` recipe already in globals.css with
    `--dir-ease` remapped to `--ease-emphasis`). transitions.dev recipes form
    the STANDARD register (chapter 2, added by the build tracks, re-tokened to
    house curves). Four curves only: --ease-emphasis, --mkt-ease-pop,
@@ -1072,7 +1072,7 @@
 }
 
 /* ── [data-mkt-rule]: the masthead hairline, drawing in from the left. Direction A's magazine
-   furniture, promoted for real when the /blog round ruled the Broadsheet masthead in. Fires on
+   furniture, promoted for real when the /blog round brought the Broadsheet masthead in. Fires on
    @starting-style like the rest of this page's arrival, so it does not depend on an observer, and
    the drawn state is the DEFAULT: a rule that defaults to scaleX(0) is an invisible divider on
    every path that fails to trigger. ── */
@@ -1123,7 +1123,7 @@
   }
 }
 
-/* ── THE TWO-BEAT SET CHANGE: removal and reflow are never one beat (Will's ruling, 2026-08-28:
+/* ── THE TWO-BEAT SET CHANGE: removal and reflow are never one beat (the ask was
    "a polished motion transition, then cards reorganize"). Animating removal and reflow at the same
    time is what makes a filter change read cheap: the eye cannot tell what left from what moved.
    Written for the /blog library and deliberately page-neutral — any filtered or paged collection
@@ -1135,7 +1135,7 @@
    Deliberately no `filter: blur()`: at 140ms a blur costs a paint the beat cannot afford.
    ★ The whole beat is inside no-preference, and the island ALSO skips it under reduced motion
    (committing the set immediately rather than waiting out a clock nothing is animating). That is
-   both halves of the same precedent: the review queue guards the CSS and never sets [data-exiting]
+   both halves of the same rule: the review queue guards the CSS and never sets [data-exiting]
    at all. Guarding only the CSS would leave a reduced-motion reader a 140ms pause for nothing.
 
    Beat 2 is JS: once the exit clock is spent the set commits and useFlip (two-axis, since a
@@ -1461,8 +1461,8 @@
    DISPLAY STEP's own tracking, read from the token rather than repeated as a
    number, so REDUCED MOTION and a crawler get the correct wordmark with nothing
    written at all: arrival is guaranteed by ABSENCE rather than by winning a
-   specificity race, and retuning the step retunes the rest state. Before Will's
-   type ruling (2026-09-17) this mirrored the flat -0.03em that `font-heading`
+   specificity race, and retuning the step retunes the rest state. Before the
+   type pass this mirrored the flat -0.03em that `font-heading`
    still carries as its off-ladder fallback.
 
    ★ AND THIS IS WHY THE STEP CANNOT SIMPLY BE WORN HERE. marketing.css is
@@ -1620,14 +1620,14 @@
 
    The body:has rules stop session-theme overscroll/short-page bleed around the
    wrappers (the red-team's body-edge finding) — one per skin since the
-   2026-08-26 forced-light ruling (marketing themes are AUTHORED; the app is the
+   forced-light rule (marketing themes are AUTHORED; the app is the
    only theme-following surface): cinema edges stay room-dark, paper edges stay
    paper-light, whatever the session says. They are the file's only body
    selectors, sanctioned by the policy test. They must stay LITERAL: body sits
    outside both wrappers, so var(--background) there resolves to the session's
    own theme. These two are the room and the page of globals.css, by hand. ─── */
 
-/* ─── THE ACCENT BLOCK (the 2026-08-25 ruling: ACHROMATIC base, not
+/* ─── THE ACCENT BLOCK (ACHROMATIC base, not
    monochromatic — occasional tasteful color accents for status feedback and
    life, never a brand hue). The confetti five are ALIASES now, not literals:
    the values moved to --lamp-* in globals.css at the light-system promotion

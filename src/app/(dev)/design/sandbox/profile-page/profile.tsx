@@ -46,7 +46,7 @@ import type { Party, Person } from "./fixtures";
 
 /* ── The head ────────────────────────────────────────────────────────────── */
 
-export type HeadOption = "today" | "guest" | "bare";
+export type HeadOption = "today" | "guest" | "bare" | "quiet";
 
 /**
  * ★ `GuestHeader` IS QUOTED, NOT MOUNTED, and the reason is a landmine rather
@@ -55,6 +55,12 @@ export type HeadOption = "today" | "guest" | "bare";
  * draw whatever the author happens to be signed in as. Its markup is copied
  * (the same h-8 slot that keeps the CTA-to-avatar swap height-stable) and the
  * menu is drawn closed, which is the state a header preview shows anyway.
+ *
+ * ★ "QUIET" ADDED BY THE REFRESH (2026-09-24, the `head` ask asked again): the
+ * same bar and logo as `today`/`guest`, with no control on the right at all,
+ * signed in or not. Not `bare` (which drops the bar itself too): the page
+ * still says Partyreel made this, just without a menu competing with
+ * `way-back`'s own pill for the same job.
  */
 export function Head({
   option,
@@ -69,17 +75,19 @@ export function Head({
       <span aria-label="Partyreel home">
         <Logo />
       </span>
-      <div className="flex h-8 items-center">
-        {option === "guest" && signedIn ? (
-          <Avatar size="default">
-            <AvatarFallback>W</AvatarFallback>
-          </Avatar>
-        ) : (
-          <Button variant="ghost" size="sm">
-            {signedIn ? "Dashboard" : "Start for free"}
-          </Button>
-        )}
-      </div>
+      {option !== "quiet" && (
+        <div className="flex h-8 items-center">
+          {option === "guest" && signedIn ? (
+            <Avatar size="default">
+              <AvatarFallback>W</AvatarFallback>
+            </Avatar>
+          ) : (
+            <Button variant="ghost" size="sm">
+              {signedIn ? "Dashboard" : "Start for free"}
+            </Button>
+          )}
+        </div>
+      )}
     </header>
   );
 }

@@ -12,7 +12,7 @@ import { ScanPulseRing } from "./scan-pulse-ring";
  * photo in the manifest — conferences (the bootstrap set's only "venue" is a
  * blue-and-white banquet tent, which read as a wedding) and trips (the only
  * "away" frames are festival crowds, which read as an EDM rave against
- * "family reunions, retreats"). The ruling: NEVER download new media to paper
+ * "family reunions, retreats"). The fix: NEVER download new media to paper
  * over that, and never let a photo make a promise the vertical can't keep —
  * lead with the PRODUCT instead.
  *
@@ -24,7 +24,7 @@ import { ScanPulseRing } from "./scan-pulse-ring";
  *    people. The story the product actually tells (everyone's camera in one
  *    place) told by the product, not by a borrowed subject.
  *
- * ★ WHAT THE WIRING ROUND CHANGED (2026-09-19). Will ruled the CARDS onto
+ * ★ WHAT THE WIRING ROUND CHANGED. The CARDS moved onto
  * photographs for all four types ("all events should have a photograph
  * (weddings, parties) rather than an artifact (conferences, trips)"), so
  * neither artifact stands in a card any more: the directory and the home row
@@ -43,7 +43,7 @@ import { ScanPulseRing } from "./scan-pulse-ring";
    block tokens its cells (bg-foreground data + bg-brand finders), which INVERTS
    on the cinema skin (white data, invisible ink finders — no longer reads as a
    QR). A real QR is ink-on-white for scanners, so the badge draws exactly that
-   on a white plate (the LiveQr precedent), deterministic per seed so SSR and
+   on a white plate (matching LiveQr), deterministic per seed so SSR and
    client never drift and no two badges in the fan repeat a pattern. Decorative
    only: live scannable QRs belong to the home demo ticket and /features/qr. */
 const BADGE_QR_SIZE = 11;
@@ -82,7 +82,7 @@ export function AttendeeBadge({
   pulse?: boolean;
   /**
    * A REAL code, in place of the drawn cells (the events wiring, 2026-09-19).
-   * Will ruled the object hero because it "conveys more about how we actually
+   * The object hero was chosen because it "conveys more about how we actually
    * help that event (such as incorporating the QR)", so the conference object's
    * FRONT badge carries the demo's own scannable plate while the four leaning
    * behind it keep their decorative ones. The slot brings its own white plate

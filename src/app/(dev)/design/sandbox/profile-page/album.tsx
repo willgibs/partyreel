@@ -22,7 +22,7 @@ import { ALBUM, type Chip, EVENT, isUnverified } from "./fixtures";
  * decision still opens from the same wedding album.
  *
  * ★ ROUND ONE'S THREE DECISIONS DRAWN HERE (`named`, `claim`, `list`) ARE
- * RULED AND GONE (2026-09-19): `NamedShowcase`, `ClaimShowcase`, `ListShowcase`
+ * DECIDED AND GONE (2026-09-19): `NamedShowcase`, `ClaimShowcase`, `ListShowcase`
  * and the membership/claim helpers left with them, because nothing on this
  * board varies who is named or when a handle is offered any more. What
  * survives is the CLOSED representation his `list=faces` picked (`FacesRow`)
@@ -174,10 +174,10 @@ export function NameList({ items }: { items: Chip[] }) {
   );
 }
 
-/* ── The closed state: round one's ruled `list=faces` ────────────────────── */
+/* ── The closed state: round one's `list=faces` ──────────────────────────── */
 
 /**
- * Overlapping avatars and a count, ruled whole in round one. Not a click
+ * Overlapping avatars and a count, decided whole in round one. Not a click
  * handler of its own any more: `view-all`'s four options each decide what a
  * tap on it does (`reach.tsx`), so the row itself only ever renders closed.
  */

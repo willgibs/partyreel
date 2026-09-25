@@ -25,7 +25,7 @@
  * alone returns an address, because `guests.email` means "confirmed, copied from auth.users" and
  * nothing else. Case 3 used to return `guest.email` too, which an UNCONFIRMED sign-up could fill
  * through the newsletter capture: the host gallery would then have printed an unproved address
- * beside an unverified mark, which is the exact impersonation his ruling forbids ("there's no
+ * beside an unverified mark, which is the exact impersonation this guards against ("there's no
  * impersonation risk if the host can't see the attributed email of an unconfirmed account"). It now
  * returns null, always. `guests.pending_email` is NEVER READ HERE AT ALL — it is inert, and the host
  * sees a badge, never an address.

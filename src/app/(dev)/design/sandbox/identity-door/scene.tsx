@@ -89,9 +89,10 @@ export function Scene({
 /* ── the door's own ground: the event behind, then the held sheet on it ──── */
 
 /**
- * The nine tiles behind the door, in the shipped column rule
- * (`gallery-width`'s law, worn here rather than re-judged): a column WIDTH,
- * not a count, so this is the same grid the real teaser draws.
+ * The nine tiles behind the door, in the shipped column rule (`album-columns`'
+ * own question, drawn here exactly as production has it rather than
+ * reopened): a column WIDTH, not a count, so this is the same grid the real
+ * teaser draws.
  */
 function TeaserGrid({ items }: { items: readonly GridMedia[] }) {
   return (

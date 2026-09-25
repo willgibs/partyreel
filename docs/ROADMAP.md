@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The voice: one line for the QR's ask across paper and screen (the printed sign's "Scan to add your photos" against the view's "Scan to add yours"), a `voice-guest` question.
+- The lab and the kit: `album-motion`'s `bloom` recipe lives in the shared `AlbumStream` engine (`stream-engine.ts`, `album-stream.css`) because the board renders the production component; it leaves with the board unless Will picks it.
 - Code hygiene: `GLASS_TOKENS` and `NOT_GLASS` in `src/lib/glass.ts` are read by nothing since the glass look tests went.
 - The lab and the kit: seven catalog entry pages log next/image dev warnings from their specimens (`loading="eager"` on an LCP image; `sizes="100vw"` on a `fill` image narrower than the viewport), and the components family page scrolls sideways at 1440 (its `w-screen` breakouts).
 - The lab and the kit: an open ask whose premise rots with no new verdict is never retired; when a merge touches a board's `lives` paths (`touchpoints.ts`), flag that board's open asks for re-validation before Will's next sitting (event-driven on the code the question describes, not on a calendar).
@@ -169,6 +171,7 @@ The app:
 - Host: no test covers `useReviewTriage`.
 - Host: the gallery doorbell rings only when the approved-visible set changes, so a pending upload never wakes the host; the hub bridges it with a host fingerprint route (`/api/events/[eventId]/live`) polled on the guest cadence, which a host channel rung on every arrival (a migration on `media_gallery_doorbell`) would retire.
 - Host: the album keeps its own arrival timers (`host-media-grid.tsx`'s `useArrivedIds`) beside the shared `useArrivalMarks` (`lib/shared/arrival.ts`); fold it onto the hook so both surfaces hold an arrival for one length.
+- Host: the event settings sheet as a board once the lab revamp lands: its sections (a Media group for the uploads and the reel, from Will's "maybe media in general", 2026-09-25) and one save model (today one Save button beside instant-save cards).
 - Host: the View menu's Sort ships disabled because the album is a server-rendered slot and a client sort could only reorder what is mounted; it switches on when the sort moves server-side, and a size sort (largest or smallest first) joins it then, the host's way to the heaviest files (Will, 2026-09-22).
 - Host: empty states draw "nothing here yet" four ways (`shared/empty-state.tsx`, `dashboard/empty-section-teaser.tsx`, `dashboard/events-empty-teaser.tsx`, `event-feed/feed-section-empty.tsx`) and the Likes section two ways for one interaction (`EmptySectionTeaser` when the server knows it is empty, `my-likes-gallery.tsx`'s bare `EmptyState` after the last unlike); one grammar (`empty-state.tsx`'s comment calls `quiet` the default while the code defaults to `icon`).
 - Host: the ghost pack's file list is built three times (`guest/gallery-empty-state.tsx`'s `GUEST_GHOST_FRAMES`, and a list each in `dashboard/events-empty-teaser.tsx` and `dashboard/empty-section-teaser.tsx`); one exported list.
@@ -287,12 +290,12 @@ The app:
   - Toggles for the link, the date and the cover; phone and story formats beside printable ones; several file types; drag-and-drop placement as the stretch goal.
   - The share sheet grows sections for posters and an invite when they exist.
 - **Event safety**: a host blocks a person from an event, and keeps an event closed. A block puts the person out and removes their uploads (no join, upload, album, like or claim; the uploads removed in the same step and restorable from Deleted; a plain closed door, never the word blocked); the closed doors are approve newcomers, close to newcomers and an invite list; all free on every plan. The `event-safety` board draws it; the wiring follows his review, keyed on the account (every device) or one row (one browser), never a device id or an IP.
-- **The reel:** the round's wiring waits on Will's desk review of the six reel boards (`reel-view`, `reel-front`, `reel-screen`, `reel-cut`, `reel-host`, `reel-story`); the approved plan named in [`tracks/orchestrator.md`](tracks/orchestrator.md) runs the guest, cut, host, teardown and sweep lanes on the expand migration (live since 2026-09-24), one alias build replacing the stored reel, and the drop migration and a one-shot R2 sweep of the stored reel files after its red-team (the demo's `events/2485e1e6-12b1-4d02-aee3-1e2bb5d38d4f/reel/reel.mp4` among them, and its copy in the backup bucket, which no prune reaches). Ideas at zero storage, since a reel is a recipe:
-  - A host featuring one cut on the album, and a shareable cut link.
+- **The reel:** the stretch runs as [`tracks/orchestrator.md`](tracks/orchestrator.md) orders it: the guest and host lanes held for the clip, teardown and sweep lanes (cut after Will's sitting on `reel-cut` r2 and `reel-story`), one alias build replacing the stored reel, then the drop migration and a one-shot R2 sweep of the stored reel files after its red-team (the demo's `events/2485e1e6-12b1-4d02-aee3-1e2bb5d38d4f/reel/reel.mp4` among them, and its copy in the backup bucket, which no prune reaches). Ideas at zero storage, since a reel is a recipe:
+  - A host featuring one clip on the album, and a shareable clip link.
   - Host pins that open each loop.
   - The uploader's own video window (a trim on `media.clip_start_seconds`/`clip_end_seconds`).
   - A screen link that bypasses the host sign-in (a capability of its own).
-  - A counted client event for cuts made per event (no server write exists, by design).
+  - A counted client event for clips made per event (no server write exists, by design).
   - Drop the dormant `media.highlight_score` and `clip_*` once the round settles (their names sit in the host's column-scoped select list, so the drop edits that list in the same commit).
 - **User profiles and social discovery** (not launch-gating; the consent one-way door is decided in [`systems/profiles-social.md`](systems/profiles-social.md)):
   - The social feed and discovery (depends on the Notification system).

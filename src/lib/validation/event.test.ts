@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
+import { HOLD_STEPS_SEC, REEL_MOOD_IDS } from "@/lib/reel/defaults";
 import {
   createEventSchema,
   eventSlugSchema,
+  reelDefaultsInputSchema,
   updateEventSchema,
 } from "@/lib/validation/event";
 
@@ -155,5 +157,119 @@ describe("createEventSchema: a create with only a name lands every default", () 
 
   it("still requires the name", () => {
     expect(createEventSchema.safeParse({}).success).toBe(false);
+  });
+});
+
+// ★ THE REEL'S DEFAULTS (Will, reel-host `style=both`): what every viewer starts on, set by the host
+// from the view and from Settings. Update-only, each nullable (null: the product's own default), and
+// the look and the hold checked here because the columns hold no step list and no mood list.
+describe("updateEventSchema: the reel's three defaults", () => {
+  it("parses each alone, as sent, and null hands it back to the default", () => {
+    expect(updateEventSchema.parse({ show_reel: false })).toEqual({
+      show_reel: false,
+    });
+    expect(updateEventSchema.parse({ reel_style_id: "mono" })).toEqual({
+      reel_style_id: "mono",
+    });
+    expect(updateEventSchema.parse({ reel_hold_sec: 2.2 })).toEqual({
+      reel_hold_sec: 2.2,
+    });
+    expect(
+      updateEventSchema.parse({ reel_style_id: null, reel_hold_sec: null }),
+    ).toEqual({ reel_style_id: null, reel_hold_sec: null });
+  });
+
+  it("takes every mood and every step", () => {
+    for (const id of REEL_MOOD_IDS) {
+      expect(updateEventSchema.safeParse({ reel_style_id: id }).success).toBe(
+        true,
+      );
+    }
+    for (const sec of HOLD_STEPS_SEC) {
+      expect(updateEventSchema.safeParse({ reel_hold_sec: sec }).success).toBe(
+        true,
+      );
+    }
+  });
+
+  it("refuses a treatment and an unknown look: the live reel plays moods only", () => {
+    for (const id of ["polaroid", "filmstrip", "neon", "", "Classic"]) {
+      expect(
+        updateEventSchema.safeParse({ reel_style_id: id }).success,
+        id,
+      ).toBe(false);
+    }
+  });
+
+  it("refuses a hold off the steps, never rounding it onto one", () => {
+    for (const sec of [2.5, 0, -1, 0.5, 30, 1e9, NaN, Infinity]) {
+      expect(
+        updateEventSchema.safeParse({ reel_hold_sec: sec }).success,
+        String(sec),
+      ).toBe(false);
+    }
+    expect(updateEventSchema.safeParse({ reel_hold_sec: "3" }).success).toBe(
+      false,
+    );
+  });
+
+  it("a create never carries them: a new event takes the column defaults", () => {
+    const parsed = createEventSchema.parse({
+      name: "Sarah's wedding",
+      show_reel: false,
+      reel_style_id: "mono",
+      reel_hold_sec: 7,
+    });
+    for (const key of ["show_reel", "reel_style_id", "reel_hold_sec"]) {
+      expect(parsed).not.toHaveProperty(key);
+    }
+  });
+
+  it("a save of some other setting invents none of them", () => {
+    const parsed = updateEventSchema.parse({ qr_style: "dots" });
+    for (const key of ["show_reel", "reel_style_id", "reel_hold_sec"]) {
+      expect(parsed).not.toHaveProperty(key);
+    }
+  });
+});
+
+describe("reelDefaultsInputSchema: setReelDefaults' input", () => {
+  const eventId = "5d0f0f6e-2b1a-4c1e-9a55-1f2d3c4b5a69";
+
+  it("takes the event and any of the three", () => {
+    expect(
+      reelDefaultsInputSchema.parse({ eventId, holdSec: 5, styleId: null }),
+    ).toEqual({ eventId, holdSec: 5, styleId: null });
+    expect(reelDefaultsInputSchema.parse({ eventId, showReel: true })).toEqual({
+      eventId,
+      showReel: true,
+    });
+  });
+
+  it("strips every other key, so it can never carry another setting", () => {
+    expect(
+      reelDefaultsInputSchema.parse({
+        eventId,
+        holdSec: 3,
+        visibility: "open",
+        moderation_mode: "live",
+        reel_hold_sec: 7,
+      }),
+    ).toEqual({ eventId, holdSec: 3 });
+  });
+
+  it("refuses a malformed event id, a treatment and a hold off the steps", () => {
+    for (const input of [
+      { eventId: "event-1", holdSec: 3 },
+      { eventId: "", holdSec: 3 },
+      { eventId, styleId: "polaroid" },
+      { eventId, holdSec: 4 },
+      { eventId, showReel: "yes" },
+    ]) {
+      expect(
+        reelDefaultsInputSchema.safeParse(input).success,
+        JSON.stringify(input),
+      ).toBe(false);
+    }
   });
 });

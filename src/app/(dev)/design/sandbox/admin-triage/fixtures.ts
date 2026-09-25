@@ -4,11 +4,13 @@ import { NAV, type NavItem } from "@/lib/admin/nav";
 /**
  * ONE OPERATOR'S SATURDAY NIGHT, AND EVERY OPTION ON THIS BOARD WEARS IT.
  *
- * Three reports are open and three are closed, which is the same Tuesday the
+ * Three reports are open and four are closed, which is the same Tuesday the
  * `admin` board draws (`ALERTS.reports = 3`) moved to the hour a wedding is
- * actually running. Every decision below draws the SAME six rows, so a shape is
- * judged on how it handles a real queue rather than on how much data its author
- * happened to give it.
+ * actually running. Every decision below draws the SAME seven rows, so a shape
+ * is judged on how it handles a real queue rather than on how much data its
+ * author happened to give it. The fourth closed report (boards refresh,
+ * 2026-09-24) is a removal several days old, neither "Yesterday" nor held: the
+ * one row that tells `closed`'s 24-hour Undo and its 30-day `window` apart.
  *
  * ★ NOTHING HERE TOUCHES THE DATABASE. The lab never calls `requireAdmin`,
  * never reads with the service role and never presigns: a reported frame is a
@@ -112,6 +114,25 @@ export const REPORTS: ReportRow[] = [
       when: "Yesterday, 20:06",
       by: "partyr33l@gmail.com",
       note: "Card number legible in the frame. Removed, host not contacted.",
+    },
+  },
+  {
+    id: "9c4e1a72-6f83-4b09-bd2e-1a5d8f3c6e91",
+    event: "Marlow Christening",
+    host: "j.marlow@fastmail.com",
+    when: "15 September, 09:10",
+    scope: "item",
+    media: {
+      id: "b81f4d3a-9c27-4e56-8b0a-5f2d7c1e8963",
+      image: "party-balloons",
+      type: "photo",
+    },
+    reason: "This is my ex, please take it down.",
+    status: "actioned",
+    resolved: {
+      when: "15 September, 09:24",
+      by: "partyr33l@gmail.com",
+      note: "Removed at the requester's ask, not a safety report.",
     },
   },
   {

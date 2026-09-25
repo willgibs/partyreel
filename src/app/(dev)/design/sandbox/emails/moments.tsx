@@ -90,8 +90,8 @@ export const DORMANT_ROSTER: MomentRow[] = [
 
 /**
  * The guest-facing rows the `guest` decision adds, none of them shipped. The
- * link only ever follows a completed upload (Will's identity ruling): an
- * address alone, typed and unconfirmed, is never mailed on its own.
+ * link only ever follows a completed upload (the identity round's answer):
+ * an address alone, typed and unconfirmed, is never mailed on its own.
  */
 export const GUEST_ROSTER: MomentRow[] = [
   { subject: "Here's your album link", trigger: "first upload, address on file", kind: "guest" },

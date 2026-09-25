@@ -15,7 +15,7 @@ import { PlanPair } from "./plan-cards";
  * FOR; Will retunes the rest without asking a test).
  *
  * Three things have to hold or the pair stops being what `pricing-page` r1
- * ruled on 2026-09-20:
+ * settled on:
  *
  *  1. THE SIZE IS A SLIDER, AND ITS STOPS ARE tiers.ts (`size=slider`). The
  *     one thing a slider can get wrong that a segmented control cannot is
@@ -30,7 +30,7 @@ import { PlanPair } from "./plan-cards";
  *     "This keeps the monthly/yearly toggle above, which feels more
  *     intuitive/natural." Pinned as DOM ORDER, so any look may change.
  *
- * Copy is never pinned here (bible 10): every control is found by role and by
+ * Copy is never pinned here: every control is found by role and by
  * a number that comes out of tiers.ts.
  */
 

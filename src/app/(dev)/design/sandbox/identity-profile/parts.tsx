@@ -375,6 +375,77 @@ export function AttendedSwitches({
   );
 }
 
+/* ── default: whether a newly attended event opens off, on, or is asked once ── */
+
+/** `default`'s `off` and `on`: the same switch list, seeded at the starting
+ *  value the option asks about, with its own controlled state (the
+ *  uncontrolled fallback above only ever seeds from `ATTENDED` itself, which
+ *  would ignore a caller-chosen start). */
+function SeededAttendedSwitches({ startShown }: { startShown: boolean }) {
+  const [events, setEvents] = useState(() =>
+    ATTENDED.map((e) => ({ ...e, shown: startShown })),
+  );
+  function toggle(id: string, shown: boolean) {
+    setEvents((all) => all.map((e) => (e.id === id ? { ...e, shown } : e)));
+  }
+  return <AttendedSwitches events={events} onToggle={toggle} />;
+}
+
+export function DefaultOff() {
+  return (
+    <div data-ip-relevant className="p-4">
+      <SeededAttendedSwitches startShown={false} />
+    </div>
+  );
+}
+
+export function DefaultOn() {
+  return (
+    <div data-ip-relevant className="p-4">
+      <SeededAttendedSwitches startShown={true} />
+    </div>
+  );
+}
+
+/** `default=asked`: setup itself asks once, before any switch shows at all;
+ *  answering either way seeds every switch at that one answer. */
+export function DefaultAsked() {
+  const [answered, setAnswered] = useState<"yes" | "no" | null>(null);
+  if (answered) {
+    return (
+      <div className="p-4">
+        <SeededAttendedSwitches startShown={answered === "yes"} />
+      </div>
+    );
+  }
+  return (
+    <div className="p-4">
+      <Card data-ip-relevant>
+        <CardHeader>
+          <CardTitle>Show your events on your page?</CardTitle>
+          <CardDescription>
+            Applies to all 3 events you&rsquo;ve added photos to; change any
+            one afterward.
+          </CardDescription>
+        </CardHeader>
+        <CardFooter className="justify-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setAnswered("no")}
+          >
+            Not yet
+          </Button>
+          <Button type="button" size="sm" onClick={() => setAnswered("yes")}>
+            Show them
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+}
+
 /* ── attended: a picker of event covers you tap to show, the chosen ones
    lifting ────────────────────────────────────────────────────────────────── */
 
@@ -607,7 +678,7 @@ export function PageNothing() {
 export function PageCount() {
   // The same door a shown "guest at" line would stand behind: a stranger who
   // has never passed The Block Party's Require-an-upload-to-view gate cannot
-  // be told it exists either, even inside a bare count (tonight's ruling).
+  // be told it exists either, even inside a bare count.
   const visibleCount = ATTENDED.filter((e) => !e.requireUpload).length;
   return (
     <div className="mx-auto w-full max-w-[420px] px-5 py-10">

@@ -5,11 +5,10 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 
 /**
- * THE BRIGHT EDGE, WHERE IT IS JUDGED (Will's ruling on the light board's face
- * step, 2026-09-17: "I love the bright edge. It's a really nice subtle design
- * touch, but I think the implementation could use a tweak to feel more polished
- * and beautiful. The transparent border radius also revealed some mismatches
- * here in the preview roundings."). The rule itself, and why it is shaped the
+ * THE BRIGHT EDGE, WHERE IT IS JUDGED: "I love the bright edge. It's a really
+ * nice subtle design touch, but I think the implementation could use a tweak
+ * to feel more polished and beautiful. The transparent border radius also
+ * revealed some mismatches here in the preview roundings." The rule itself, and why it is shaped the
  * way it is, lives at [data-lit] in src/app/globals.css; the hook's contract is
  * src/components/shared/lit-edge-contract.test.ts. This file only SHOWS it.
  *

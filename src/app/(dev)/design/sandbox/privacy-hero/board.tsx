@@ -5,12 +5,12 @@ import type { Mode } from "@/components/lab";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
 import {
-  ACCESS,
   APERTURE,
   type ConceptId,
   SEAL,
   sealStepMs,
   SWEEP,
+  VEIL,
 } from "./concepts";
 import { PrivacyHero } from "./hero";
 import { PRIVACY_HERO } from "./spec";
@@ -35,8 +35,9 @@ import { PRIVACY_HERO } from "./spec";
  * ★ ONE ASK, FOUR OPTIONS, NO STAGED FOLLOW-UP. Round three is a concept
  * pick, not a refinement of one mechanism's dimensions, so nothing here
  * reads a prior answer the way round two's `look()` did. `sweep` (the
- * overtaken audit's reshape, 2026-09-21) is the fourth, added once the
- * product had its own arrival grammar to build the fourth concept from.
+ * overtaken audit's reshape, 2026-09-21) answers the same question `access`
+ * did with the product's own mechanism; the refresh (2026-09-24) retired
+ * `access` as the same concept restated and drew `veil` in the open slot.
  */
 
 /** The numbers under each screen, measured off the same constants the
@@ -47,13 +48,12 @@ function captionFor(concept: ConceptId, mode: Mode): string {
     const [ringLo, ringHi] = APERTURE.ring[mode];
     return `1 photograph, blurred ${APERTURE.blurPx[mode]}px, ${Math.round(lo * 100)} to ${Math.round(hi * 100)}% opacity · a ${ringLo} to ${ringHi}px ring · one breath every ${APERTURE.cycleMs / 1000}s`;
   }
-  if (concept === "access") {
-    const n = ACCESS.tiles[mode];
-    return `${n} tiles at ${ACCESS.sizePx[mode]}px, frosted at ${Math.round(ACCESS.frosted.opacity * 100)}% · ${ACCESS.holdMs}ms clear, ${ACCESS.fadeMs}ms to fade · a turn every ${ACCESS.stepMs}ms, a full circuit in ${ACCESS.cycleMs / 1000}s`;
-  }
   if (concept === "sweep") {
     const n = SWEEP.tiles[mode];
     return `${n} tiles at ${SWEEP.sizePx[mode]}px, frosted at ${Math.round(SWEEP.frosted.opacity * 100)}% · one ${SWEEP.sweepMs}ms pass of light clears each · a turn every ${SWEEP.stepMs}ms, a full circuit in ${SWEEP.cycleMs / 1000}s`;
+  }
+  if (concept === "veil") {
+    return `1 photograph, blurred ${VEIL.blurPx[mode]}px at ${Math.round(VEIL.baseOpacity * 100)}% · a ${VEIL.portholePx[mode]}px clearing drifts across it · one full drift every ${VEIL.cycleMs / 1000}s`;
   }
   const n = SEAL.cards[mode];
   const { w, h } = SEAL.size[mode];
@@ -88,9 +88,9 @@ function Screens({ concept }: { concept: ConceptId }) {
 
 const PREVIEWS: PreviewsFor<typeof PRIVACY_HERO> = {
   "concept.aperture": <Screens concept="aperture" />,
-  "concept.access": <Screens concept="access" />,
-  "concept.seal": <Screens concept="seal" />,
   "concept.sweep": <Screens concept="sweep" />,
+  "concept.seal": <Screens concept="seal" />,
+  "concept.veil": <Screens concept="veil" />,
 };
 
 export function PrivacyHeroBoard() {

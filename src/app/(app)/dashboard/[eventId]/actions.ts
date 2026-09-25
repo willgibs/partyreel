@@ -254,10 +254,10 @@ export async function purgeMediaNowAction(
 }
 
 /**
- * The reel publish switch (R3, guest-flow.md ruling 1) — the ONE seam the share card, the reveal's
+ * The reel publish switch (R3, guest-flow.md) — the ONE seam the share card, the reveal's
  * settled "Share with guests", and the Studio header all call. The RPC authorizes internally
  * (auth.uid() + host-owns-event) on the USER client — defense in depth over RLS, same as the other
- * reel writes. NO notification here by ruling (2026-07-30): reel-published emails are R5's round;
+ * reel writes. NO notification here yet: reel-published emails are R5's round;
  * when R5 lands, its fan-out hooks into THIS action (the single publish seam), nothing else.
  */
 export type ReelPublishResult =

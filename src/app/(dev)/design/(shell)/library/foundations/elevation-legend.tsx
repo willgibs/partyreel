@@ -10,8 +10,8 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 import { cn } from "@/lib/utils";
 
 /**
- * THE FOUR HEIGHTS ON ONE SCREEN, AND WHEN EACH IS REACHED FOR (Will's ruling on
- * the light board's depth step, 2026-09-17; the board retired into this).
+ * THE FOUR HEIGHTS ON ONE SCREEN, AND WHEN EACH IS REACHED FOR (the light
+ * board's depth step; the board retired into this).
  *
  * His question on round seven is why this is a legend and not four swatches:
  * "our step, ring, lift, and float: a set of four options to choose from, or are
@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
  * together. Very good work." They are not rivals. Each does a different job at
  * a different height, one screen uses all four at once, and only the last two
  * are shadows. This scene is that board's, kept almost to the pixel, because
- * it is the drawing that made the system legible to the person who rules it.
+ * it is the drawing that made the system legible to the person steering it.
  *
  * ★ THE FRONT CARD IS ABOVE AND OVER THE BACK ONE, BECAUSE A SHADOW FALLS DOWN.
  * His note on the first lift card was a bug report: "since the top card in the

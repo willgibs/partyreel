@@ -4,7 +4,7 @@
 > [`systems/`](systems); what might be next is [`ROADMAP.md`](ROADMAP.md); what runs this minute is
 > [`tracks/orchestrator.md`](tracks/orchestrator.md); what shipped is `git log`.
 
-**Updated:** 2026-09-24
+**Updated:** 2026-09-25
 
 ## The era
 
@@ -13,30 +13,28 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoin
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: Will's desk review, batch 1 wired and the desk re-cut
+## The current round: batch 2, from Will's sitting on build 7
 
 - **Milestone 28 is live** (`1076d3d7`, 2026-09-24): no read stops at 1,000 rows (every list reads whole, every count
   counts, every id list chunks, every set-returning RPC pages, every sweep reports what it left; `row-cap-policy.test.ts`
   and a Sentry tripwire keep it so); a claimed guest ticket uploads only for its owner; a guest's own delete is final.
-- **A block for bad actors**: the `event-safety` board (a block puts the person out
-  and removes their uploads; approve newcomers, close to newcomers and an invite list; all free on every plan).
-- **Desk review batch 1** (2026-09-24): `media-viewer`, `reel-view` and `reel-front` answered, `reel-screen` stopped on
-  two repeats; the reel's view is also the wall. Wiring: the media viewer and the reel's guest side (held unmerged until
-  the cut and host lanes, so one alias build replaces the stored reel); the desk re-cut (repeats
-  become one question, every option kept), with the rounds he asked for; the plan is the plan file's head.
-- **The lean round**: the boot-time docs sharpened (a lane reads
-  about 1,800 words at boot, from 5,400), the bible to ten principles, the Library to the brand kit, the catalog and
-  the ten with the look tests gone, the system docs cut to how the systems work and their gotchas, and a root `kit/`
-  brand kit Will can copy for outside agents.
-- **Since milestone 28 (`clocks-and-counts`):** counts grouped, chart ticks that fit, the admin's times in UTC, one Link
-  visits figure, the host's dashboard on the viewer's own day (`x-vercel-ip-timezone`), the backup's CLI pinned.
+- **Will's sitting on build 7 is recorded** (2026-09-25): the album goes to justified rows (every row edge to edge, an
+  arrival re-solving only the top rows, steps as photos per row); the host reaches the reel by adding the album's first
+  two photos, so the reel has no idle screen; the host's reel side and the clip creator as he picked them ("clip" is
+  the noun).
+- **Batch 2 runs**: the rows engine with `album-columns` r2, the reel defaults migration (the default hold, the event
+  cards' stills), the host's reel side and the wide host pages, `reel-cut` r2 (the workbench), and the held guest lane
+  re-opened. The guest and host lanes hold unmerged so one alias build replaces the stored reel; the clip, teardown and
+  sweep lanes follow Will's sitting on build 8.
 
 ## The desk
 
-27 standing boards at `/design/lab?key=`, in leverage order: `album-columns`, `reel-screen`, `reel-host`, `reel-cut`, `reel-story`, `reel-front` (r2), `media-viewer` (r2), `reel-view`, `identity-door`,
-`identity-claims`, `identity-profile`, `guest-capture`, `voice-guest`, `host-curation`, `host-storage`, `event-safety`, `export-flow`,
-`admin-triage`, `help-center`, `emails`, `site-chrome`, `profile-page`, `privacy-hero`, `album-motion`, `loose-ends`,
-`contact-page`, `press-page`.
+27 boards at `/design/lab?key=`, in leverage order: `reel-cut` (r2 once its lane lands), `reel-story`, `reel-front` (r2),
+`album-columns` (r2 once its lane lands), `media-viewer` (r2), then `reel-screen`, `reel-host` and `reel-view` (answered;
+built by the held lanes, retiring with the stretch), `identity-door`, `identity-claims`, `identity-profile`,
+`guest-capture`, `voice-guest`, `host-curation`, `host-storage`, `event-safety`, `export-flow`, `admin-triage`,
+`help-center`, `emails`, `site-chrome`, `profile-page`, `privacy-hero`, `album-motion`, `loose-ends`, `contact-page`,
+`press-page`.
 
 ## Live state
 
@@ -45,11 +43,10 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   review), `/account`, a real upload through production's pipeline, the lab 404s without its key, the admin door
   redirects, no new runtime error or Sentry issue. `admin.partyreel.com` is served by `partyreel-admin`
   (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves `d3135de` (build 6, 2026-09-24):
-  the new Library (the brand kit, the catalog under the design recipe, the ten) and `album-columns` at the head of
-  the desk, every Library page and the board loading with no console error; the refreshed boards follow in the next
-  build. The stored reel stays until the reel round's own build. No push deploys; each `[preview]` record gets one
-  build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 7 (`b2d22c7`, 2026-09-24): the
+  refreshed desk and the new Library (build 6, `d3135de`, carried the Library first, its Vercel log confirming the Sentry
+  source-map upload). The stored reel stays until the reel round's own build. No push deploys; each `[preview]` record
+  gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
 - **Data:** disposable test data only; the accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md). The disposable events stay in the states the
   last red-teams left until Will says restore.
@@ -76,5 +73,6 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **His desk review**, on the refreshed boards once the refresh wave lands (it supersedes build 5's), `album-columns` first.
-- **A 10-second iPhone check** on build 5's album: Save to Photos lands in Photos; a shared photo arrives as a photo.
+- **His sitting on build 8**, once the two round-2 boards land: `reel-cut` first, then `reel-story`, `reel-front`,
+  `album-columns` and `media-viewer`.
+- **A 10-second iPhone check** on the album: Save to Photos lands in Photos; a shared photo arrives as a photo.

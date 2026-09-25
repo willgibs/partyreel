@@ -3,10 +3,14 @@
 import type { ReactNode } from "react";
 import {
   Bell,
+  ChevronLeft,
+  ChevronRight,
   Clapperboard,
   Copy,
+  Download,
   Eye,
   ImagePlus,
+  ImageUp,
   Images,
   Link2,
   ListChecks,
@@ -15,14 +19,18 @@ import {
   Printer,
   QrCode,
   Settings,
+  SlidersHorizontal,
   Users,
 } from "lucide-react";
 
+import { FeedSectionHeader } from "@/components/app/event-feed/feed-section-header";
 import { StyledQr } from "@/components/app/styled-qr";
 import { Logo } from "@/components/shared/logo";
+import { MasonryColumns } from "@/components/shared/masonry";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
+import { cn, formatEventDate } from "@/lib/utils";
 
 import {
   albumAt,
@@ -43,21 +51,25 @@ import type { Device } from "./parts-view";
  *
  * `[eventId]/page.tsx` is a server page and `EventCardsRow` calls
  * `useEventShare()` (a provider this board has no business standing up) and
- * renders a `next/link` per card, so the hub is quoted at rest: the live code
- * at the left of the title (`event-code-door.tsx`, 112 px on a white plate),
- * the metadata row and the link, the four doors (`event-cards-row.tsx` at rest:
- * `h-24`, `w-40` at a laptop and `w-36` in a hand, `font-heading
- * text-card-title`, the `text-xs` value line), then the album. The launch list
- * is `launch-list.tsx`'s own markup for this event, whose date and note are set,
- * so only its print row and its share door remain.
+ * renders a `next/link` per card, so the hub is quoted at rest: the bar with
+ * its crumb trail (`crumbs.tsx`: the whole trail at a desk, one step back in a
+ * hand), the live code at the left of the title (`event-code-door.tsx`, 112 px
+ * on a white plate), the metadata row with the Live pip and the link, the four
+ * doors (`event-cards-row.tsx` at rest: `h-24`, `w-40` at a laptop and `w-36`
+ * in a hand), then the album as `event-gallery.tsx` draws it: its header with
+ * the four verbs and the real `MasonryColumns`. Before the first photograph the
+ * album's place is the launch list (`launch-list.tsx`) for this event, whose
+ * date and note are set, so only its print row and its share door remain.
  *
- * ★ HIS HUB NOTE IS A GIVEN ON EVERY DRAWING HERE: the labelled Reel card wears
- * the calm living thumbnail as a full background with an overlay, from the
- * reel's minimum up. Below the minimum the card has no reel to show, and what
- * it says there is the `progress` question's to decide.
+ * ★ THE ALBUM IS PRODUCTION'S OWN GRID, NEVER A STAND-IN. No question here is
+ * about the album's layout (that is `album-columns`), which is exactly why it
+ * is drawn as it ships: an option judged beside a grid that does not exist
+ * would be judged on the wrong page.
  *
  * ★ A DEVICE PROP, NEVER A BREAKPOINT (the view's own reason): the hub is drawn
- * in real 375 and 1440 frames and inside the review composite's phone box.
+ * in real 375 and 1440 frames and inside the review composite's phone box, so
+ * every size here is keyed off `device`. The masonry needs none: it counts its
+ * columns off its own box, which is what makes it right inside the phone box.
  */
 
 /* ── the app's top bar ───────────────────────────────────────────────────── */
@@ -66,14 +78,19 @@ export function AppBar({
   device,
   bell = 0,
   bellPanel,
+  trail,
 }: {
   device: Device;
   /** The bell's badge: the host's waiting total across events, as wired. */
   bell?: number;
   /** The bell's panel, drawn open under it. */
   bellPanel?: ReactNode;
+  /** The crumb trail; the event's page by default. */
+  trail?: readonly string[];
 }) {
   const phone = device === "phone";
+  const steps = trail ?? ["Partyreel", EVENT.name];
+  const parent = steps.length > 1 ? steps[steps.length - 2] : null;
   return (
     <header
       className={cn(
@@ -81,15 +98,48 @@ export function AppBar({
         phone ? "px-4" : "px-6",
       )}
     >
-      <span className="flex min-w-0 items-center gap-2.5">
-        <Logo markOnly={phone} />
-        {!phone ? (
-          <span className="truncate text-sm text-muted-foreground">
-            Partyreel / {EVENT.name}
-          </span>
-        ) : null}
+      <span className="flex min-w-0 flex-1 items-center gap-4">
+        <Logo />
+        <nav
+          aria-label="Breadcrumb"
+          className="flex min-w-0 flex-1 items-center text-sm"
+        >
+          {phone ? (
+            parent ? (
+              <span className="flex min-w-0 items-center gap-0.5 text-muted-foreground">
+                <ChevronLeft className="size-4 shrink-0" aria-hidden />
+                <span className="truncate">{parent}</span>
+              </span>
+            ) : null
+          ) : (
+            <ol className="flex min-w-0 items-center gap-1">
+              {steps.map((label, i) => (
+                <li
+                  key={`${label}-${i}`}
+                  className="flex min-w-0 items-center gap-1"
+                >
+                  {i > 0 ? (
+                    <ChevronRight
+                      className="size-3.5 shrink-0 text-muted-foreground/60"
+                      aria-hidden
+                    />
+                  ) : null}
+                  <span
+                    className={
+                      i === steps.length - 1
+                        ? "truncate font-medium text-foreground"
+                        : "truncate text-muted-foreground"
+                    }
+                  >
+                    {label}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </nav>
       </span>
-      <span className="relative flex items-center gap-1.5">
+      <span className="relative flex shrink-0 items-center gap-1.5">
         <span
           data-rh-bell={bell}
           className="relative flex size-9 items-center justify-center rounded-full text-muted-foreground"
@@ -139,7 +189,7 @@ function HubHeader({ device, items }: { device: Device; items: number }) {
       <div className="min-w-0 flex-1 space-y-1">
         <h1
           className={cn(
-            "truncate font-heading font-semibold",
+            "truncate font-heading",
             // The ladder's `page` step at each end: its phone end written out,
             // because inside the review composite's phone box the fluid step
             // would read the composite's 1440 viewport.
@@ -151,7 +201,7 @@ function HubHeader({ device, items }: { device: Device; items: number }) {
           {EVENT.name}
         </h1>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground tabular-nums">
-          {!phone ? <span>15 Aug 2026</span> : null}
+          <span>{formatEventDate(EVENT.date)}</span>
           <span className="flex items-center gap-1.5">
             <Images className="size-3.5" aria-hidden />
             {items}
@@ -162,7 +212,19 @@ function HubHeader({ device, items }: { device: Device; items: number }) {
           </span>
           <span className="flex items-center gap-1.5">
             <Eye className="size-3.5" aria-hidden />
-            {items === 0 ? 3 : items < MINIMUM ? 9 : items === MINIMUM ? 14 : 128}
+            {items === 0
+              ? 3
+              : items < MINIMUM
+                ? 9
+                : items === MINIMUM
+                  ? 14
+                  : 128}
+          </span>
+          {/* The page's one live island, as `EventLive` draws it once its
+              channel is subscribed. */}
+          <span className="flex items-center gap-1.5">
+            <span className="size-1.5 rounded-full bg-success" aria-hidden />
+            Live
           </span>
         </div>
         <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
@@ -223,12 +285,15 @@ function Door({
 }
 
 /**
- * THE REEL CARD'S FACES. `living` is his hub note, the given from the minimum
- * up. `waiting` is the plain labelled card below it, with nothing to show yet.
- * `counting` is the `progress=card` option: the photograph it has behind "1
- * more photo" and two pips, the card already becoming the living one.
+ * THE REEL CARD'S FACES. `living` is the labelled card over a calm living
+ * thumbnail, from the minimum up: the one card in the row that shows what it
+ * holds, because the reel is the one room whose contents move. `waiting` is the
+ * plain labelled card below it, with nothing to show yet. `counting` is the
+ * `progress=card` option (the photograph it has behind "1 more photo" and two
+ * pips, already becoming the living card); `preview` is `progress=preview`
+ * (the living card a photograph early, for the host alone).
  */
-export type ReelFace = "living" | "waiting" | "counting";
+export type ReelFace = "living" | "waiting" | "counting" | "preview";
 
 export function ReelCard({
   device,
@@ -240,25 +305,34 @@ export function ReelCard({
   items: number;
 }) {
   const shell = cn(CARD_BASE, cardW(device));
-  if (face === "living") {
+  if (face === "living" || (face === "preview" && items > 0)) {
+    const preview = face === "preview" && items < MINIMUM;
     return (
       <div
-        data-rh-reel-card="living"
+        data-rh-reel-card={preview ? "preview" : "living"}
+        data-rh-said={preview ? "" : undefined}
         className={cn(shell, "border-transparent text-white")}
       >
         <Living stills={livingAt(items)} />
-        {/* His "overlay": heavier at the foot where the words sit, so the
-            card reads at a glance over the brightest photograph in the take. */}
+        {/* The overlay: heavier at the foot where the words sit, so the card
+            reads at a glance over the brightest photograph in the take. */}
         <div
           aria-hidden
           className="absolute inset-0 bg-linear-to-t from-black/80 via-black/50 to-black/30"
         />
-        <Clapperboard className="relative size-4 text-white/85" aria-hidden />
+        <span className="relative flex items-center justify-between">
+          <Clapperboard className="size-4 text-white/85" aria-hidden />
+          {preview ? (
+            <span className="rounded-full bg-white/20 px-1.5 text-[10px] leading-4 font-medium">
+              Only you
+            </span>
+          ) : null}
+        </span>
         <span className="relative font-heading text-card-title font-medium">
           Reel
         </span>
-        <span className="relative truncate text-xs text-white/80 tabular-nums">
-          {items} items
+        <span className="relative truncate text-xs text-white/85 tabular-nums">
+          {preview ? `Guests see it at ${MINIMUM}` : `${items} items`}
         </span>
       </div>
     );
@@ -306,21 +380,28 @@ export function ReelCard({
             first ? "text-white/85" : "text-muted-foreground",
           )}
         >
-          {items === 0 ? "Starts at 2 photos" : "1 more photo"}
+          {items === 0 ? `Starts at ${MINIMUM} photos` : "1 more photo"}
         </span>
       </div>
     );
   }
+  // `waiting`, and `preview` with no photograph yet to play.
   return (
-    <div data-rh-reel-card="waiting" className={cn(shell, "border-border")}>
+    <div
+      data-rh-reel-card={face === "preview" ? "preview" : "waiting"}
+      data-rh-said={face === "preview" ? "" : undefined}
+      className={cn(shell, "border-border")}
+    >
       <Clapperboard className="size-4 text-muted-foreground" aria-hidden />
       <span className="font-heading text-card-title font-medium">Reel</span>
-      <span className="truncate text-xs text-muted-foreground">Not yet</span>
+      <span className="truncate text-xs text-muted-foreground">
+        {face === "preview" ? "Plays from your first photo" : "Not yet"}
+      </span>
     </div>
   );
 }
 
-/** A fifth door: "Play on a screen", the `open=hub` and `open=link` option. */
+/** A fifth door: "Play on a screen", the `open=hub` and `open=send` option. */
 export function ScreenDoor({ device }: { device: Device }) {
   return (
     <Door
@@ -384,55 +465,80 @@ function CardsRow({
 /* ── the album, and the launch list before it ───────────────────────────── */
 
 /**
- * The album under the row: the shared fixture's photographs in a plain tile
- * grid, so the hub a question is judged on is a hub with an event in it. Not
- * the masonry: no question here is about the album's layout, and a plain grid
- * reads the same in a real frame and in the composite's phone box.
+ * The album's header as `event-gallery.tsx` draws it: the eyebrow and its
+ * count, then Add photos, Download, Select and the one View menu, which wrap
+ * under the eyebrow in a hand exactly as the real flex row does. Before the
+ * first photograph it is named for what the room holds instead.
  */
-function AlbumGrid({
-  device,
-  items,
-  after,
-}: {
-  device: Device;
-  items: number;
-  /** One more tile after the photographs: the `progress=tile` option's. */
-  after?: ReactNode;
-}) {
-  const shown = albumAt(Math.min(items, device === "phone" ? 6 : 12));
+function AlbumHeader({ items, launch }: { items: number; launch: number }) {
   return (
-    <div className="space-y-2.5">
-      <p className="text-label font-semibold text-muted-foreground uppercase tabular-nums">
-        Album <span className="font-normal">{items}</span>
-      </p>
-      <div
-        className={cn(
-          "grid gap-1",
-          device === "phone" ? "grid-cols-2" : "grid-cols-6",
-        )}
-      >
-        {shown.map((m) => (
-          // eslint-disable-next-line @next/next/no-img-element -- a local fixture still
-          <img
-            key={m.id}
-            src={stillOf(m)}
-            alt=""
-            className="aspect-[4/5] w-full rounded-[var(--radius-tile)] object-cover"
-          />
-        ))}
-        {after}
-      </div>
-    </div>
+    <FeedSectionHeader
+      label={items === 0 ? "Before the first photo" : "Album"}
+      count={items || launch || undefined}
+      action={
+        <div className="flex flex-wrap items-center justify-end gap-1.5">
+          <Button variant="outline" size="sm" tabIndex={-1}>
+            <ImageUp /> Add photos
+          </Button>
+          {items > 0 ? (
+            <>
+              <Button variant="outline" size="sm" tabIndex={-1}>
+                <Download /> Download
+              </Button>
+              <Button variant="outline" size="sm" tabIndex={-1}>
+                <ListChecks /> Select
+              </Button>
+            </>
+          ) : null}
+          <Button variant="outline" size="sm" tabIndex={-1}>
+            <SlidersHorizontal /> View
+          </Button>
+        </div>
+      }
+    />
   );
 }
 
-/** `progress=tile`: the album keeps a dashed seat for the photograph that starts the reel. */
+/**
+ * The album under the row: the shared fixture's photographs on the real
+ * masonry, wrapped `pointer-events-none` so a reviewer's click never opens the
+ * real lightbox inside a static preview.
+ */
+function Album({
+  device,
+  items,
+  head,
+}: {
+  device: Device;
+  items: number;
+  /** A tile at the album's head, in the seat an arriving photograph takes. */
+  head?: ReactNode;
+}) {
+  // A phone frame shows its first screen of the album, so eight is the whole
+  // of what it can show; a laptop's frame holds every photograph the event has.
+  const shown = albumAt(Math.min(items, device === "phone" ? 8 : items));
+  return (
+    <section aria-label="Album" className="space-y-2.5">
+      <AlbumHeader items={items} launch={0} />
+      <div data-rh-album="" className="pointer-events-none">
+        <MasonryColumns items={shown} clampAspect viewerIsHost prefix={head} />
+      </div>
+    </section>
+  );
+}
+
+/**
+ * `progress=tile`: the album keeps a dashed tile at its head, in the seat
+ * `MasonryColumns` gives its `prefix` (where a photograph arriving from this
+ * page shows while it sends), so the tile sits exactly where the next one
+ * lands.
+ */
 export function WaitingTile() {
   return (
     <div
       data-rh-said=""
       data-rh-waiting-tile=""
-      className="flex aspect-[4/5] w-full flex-col items-center justify-center gap-2 rounded-[var(--radius-tile)] border border-dashed border-foreground/25 p-3 text-center"
+      className="mb-[var(--gap-gallery)] flex aspect-[4/5] w-full flex-col items-center justify-center gap-2 rounded-[var(--radius-tile)] border border-dashed border-foreground/25 p-3 text-center"
     >
       <span className="flex size-8 items-center justify-center rounded-full bg-muted">
         <Plus className="size-4 text-muted-foreground" aria-hidden />
@@ -490,9 +596,9 @@ function LaunchItem({ row, said }: { row: LaunchRow; said?: boolean }) {
         <span className="block text-sm font-medium">{row.title}</span>
         <span className="block text-sm text-muted-foreground">{row.line}</span>
       </span>
-      <span className="flex h-7 shrink-0 items-center rounded-[calc(var(--radius-action)*0.7)] border border-border px-2.5 text-xs font-medium">
+      <Button variant="outline" size="sm" className="shrink-0" tabIndex={-1}>
         {row.action}
-      </span>
+      </Button>
     </li>
   );
 }
@@ -501,22 +607,24 @@ function LaunchItem({ row, said }: { row: LaunchRow; said?: boolean }) {
 function LaunchList({ withReel }: { withReel?: boolean }) {
   const rows = withReel ? [REEL_ROW, PRINT_ROW] : [PRINT_ROW];
   return (
-    <div className="py-2">
-      <ol className="mx-auto max-w-xl space-y-2">
-        {rows.map((row) => (
-          <LaunchItem key={row.id} row={row} said={row.id === "reel"} />
-        ))}
-      </ol>
-      <div className="flex justify-center pt-3">
-        <span className="flex h-7 items-center gap-1 rounded-[calc(var(--radius-action)*0.7)] bg-primary px-2.5 text-xs font-medium text-primary-foreground">
-          <QrCode className="size-3.5" aria-hidden />
-          Share the code
-        </span>
+    <section aria-label="Album" className="space-y-2.5">
+      <AlbumHeader items={0} launch={rows.length} />
+      <div className="py-2">
+        <ol className="mx-auto max-w-xl space-y-2">
+          {rows.map((row) => (
+            <LaunchItem key={row.id} row={row} said={row.id === "reel"} />
+          ))}
+        </ol>
+        <div className="flex justify-center pt-3">
+          <Button size="sm" tabIndex={-1}>
+            <QrCode /> Share the code
+          </Button>
+        </div>
+        <p className="pt-3 text-center text-sm text-muted-foreground">
+          The album takes this room back the moment a photograph lands.
+        </p>
       </div>
-      <p className="pt-3 text-center text-sm text-muted-foreground">
-        The album takes this room back the moment a photograph lands.
-      </p>
-    </div>
+    </section>
   );
 }
 
@@ -615,19 +723,17 @@ export function ProgressBand({
       </div>
       <div className="flex shrink-0 gap-2">
         {live ? (
-          <span className="flex h-8 items-center rounded-action-sm bg-primary px-3 text-sm font-medium text-primary-foreground">
+          <Button size="sm" tabIndex={-1}>
             Watch
-          </span>
+          </Button>
         ) : (
           <>
-            <span className="flex h-8 items-center gap-1.5 rounded-action-sm bg-primary px-3 text-sm font-medium text-primary-foreground">
-              <ImagePlus className="size-4" aria-hidden />
-              Add a photo
-            </span>
-            <span className="flex h-8 items-center gap-1.5 rounded-action-sm border border-border px-3 text-sm font-medium">
-              <QrCode className="size-4" aria-hidden />
-              Share the code
-            </span>
+            <Button size="sm" tabIndex={-1}>
+              <ImagePlus /> Add a photo
+            </Button>
+            <Button variant="outline" size="sm" tabIndex={-1}>
+              <QrCode /> Share the code
+            </Button>
           </>
         )}
       </div>
@@ -675,24 +781,34 @@ export function ReelHomeCard({ device }: { device: Device }) {
   );
 }
 
-/** `open=link`'s second way in: a link for a machine that is not yours, drawn as later work. */
+/**
+ * `open=send`'s second way in: a link made for the screen. It is the event's
+ * own link with the screen posture on, so the laptop by the screen meets the
+ * welcome like any guest's and needs no session of the host's.
+ */
 export function ScreenLinkRow() {
   return (
-    <div data-rh-link-later="" className="max-w-xl space-y-1.5">
-      <div className="flex items-center gap-2 rounded-[var(--radius)] border border-dashed border-border px-3 py-2">
-        <MonitorPlay
-          className="size-4 shrink-0 text-muted-foreground"
-          aria-hidden
-        />
-        <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground tabular-nums">
-          partyreel.com/screen/9f2c4a
+    <div
+      data-rh-send-link=""
+      className="flex max-w-xl items-center gap-3 rounded-xl border border-border p-3"
+    >
+      <MonitorPlay
+        className="size-4 shrink-0 text-muted-foreground"
+        aria-hidden
+      />
+      <span className="min-w-0 flex-1 space-y-0.5">
+        <span className="block text-sm font-medium">A link for the screen</span>
+        <span className="block truncate text-xs text-muted-foreground tabular-nums">
+          {JOIN_LABEL}?reel=screen
         </span>
-        <Copy className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-      </div>
-      <p className="text-xs text-muted-foreground">
-        Later: a screen link for a gated event is a capability token, so it
-        expires, can be revoked, and never carries your session.
-      </p>
+        <span className="block text-xs text-muted-foreground">
+          Open it on the computer by the screen. It meets the welcome like any
+          guest.
+        </span>
+      </span>
+      <Button variant="outline" size="sm" className="shrink-0" tabIndex={-1}>
+        <Copy /> Copy
+      </Button>
     </div>
   );
 }
@@ -706,7 +822,7 @@ export function Hub({
   door,
   below,
   above,
-  after,
+  head,
   launchWithReel,
   waiting = 0,
   bell = 0,
@@ -718,12 +834,12 @@ export function Hub({
   reel?: ReactNode;
   /** A fifth door in the row. */
   door?: ReactNode;
-  /** Right under the row (a later link). */
+  /** Right under the row (a link to send). */
   below?: ReactNode;
   /** Between the row and the album (a band, a card, a step). */
   above?: ReactNode;
-  /** One more tile after the album's photographs. */
-  after?: ReactNode;
+  /** A tile at the album's head, where the next photograph lands. */
+  head?: ReactNode;
   /** The launch list gains the reel's row (`progress=step` with none yet). */
   launchWithReel?: boolean;
   waiting?: number;
@@ -737,7 +853,9 @@ export function Hub({
       className="min-h-full bg-background text-foreground"
     >
       <AppBar device={device} bell={bell} bellPanel={bellPanel} />
-      <div className={cn(phone ? "space-y-5 px-4 py-5" : "space-y-6 px-6 py-6")}>
+      <div
+        className={cn(phone ? "space-y-5 px-4 py-5" : "space-y-6 px-6 py-6")}
+      >
         <HubHeader device={device} items={items} />
         <CardsRow
           device={device}
@@ -759,7 +877,7 @@ export function Hub({
         {items === 0 ? (
           <LaunchList withReel={launchWithReel} />
         ) : (
-          <AlbumGrid device={device} items={items} after={after} />
+          <Album device={device} items={items} head={head} />
         )}
       </div>
     </div>

@@ -973,12 +973,32 @@ const queue = (s: BoardState, option: Queue) => {
 
 /* ── decision 10: closed to newcomers (reads `door`) ──────────────────────── */
 
-type Newcomer = "same" | "honest";
+/**
+ * `ask` is the new third door (boards refresh, 2026-09-24), not a wording
+ * variant on `honest` but a different function: the same truthful line, plus
+ * a request that reaches the host, so a genuine latecomer has a way through a
+ * door `same` and `honest` both simply stop at.
+ */
+type Newcomer = "same" | "honest" | "ask";
 const HONEST: DoorWords = {
   title: "Closed to new guests",
   line: "Only people already in can open it and add photos.",
 };
 const BACK_IN = <QuietWay lead="Already a guest?" link="Confirm your email" />;
+const ASK_BELOW = (
+  <div className="flex w-full flex-col items-center gap-3">
+    <Button size="cta" className="w-full" tabIndex={-1} data-es-reach>
+      {`Ask ${HOST.first} to add me`}
+    </Button>
+    {BACK_IN}
+  </div>
+);
+
+const NEWCOMER_TITLE = {
+  same: "The blocked door, word for word",
+  honest: "Its own line, closed to new guests",
+  ask: "Its own line, with a way to ask",
+} as const;
 
 const newcomer = (s: BoardState, option: Newcomer) => {
   const scr = screen(s);
@@ -990,13 +1010,18 @@ const newcomer = (s: BoardState, option: Newcomer) => {
     <Scene
       id={`newcomer-${option}-${form}`}
       screen={scr}
-      title={option === "same" ? "The blocked door, word for word" : "Its own line, closed to new guests"}
+      title={NEWCOMER_TITLE[option]}
       measure={doorLines}
     >
       {option === "same" ? (
         <ClosedDoor form={form} scr={scr} words={CLOSED} below={form === "gone" ? undefined : BACK_IN} />
       ) : (
-        <ClosedDoor form={honestForm} scr={scr} words={HONEST} below={BACK_IN} />
+        <ClosedDoor
+          form={honestForm}
+          scr={scr}
+          words={HONEST}
+          below={option === "ask" ? ASK_BELOW : BACK_IN}
+        />
       )}
     </Scene>
   );
@@ -1323,6 +1348,7 @@ const PREVIEWS: PreviewsFor<typeof EVENT_SAFETY> = {
   "queue.hub": (s) => queue(s, "hub"),
   "newcomer.same": (s) => newcomer(s, "same"),
   "newcomer.honest": (s) => newcomer(s, "honest"),
+  "newcomer.ask": (s) => newcomer(s, "ask"),
   "inside.sentence": (s) => inside(s, "sentence"),
   "inside.count": (s) => inside(s, "count"),
   "inside.list": (s) => inside(s, "list"),

@@ -20,15 +20,15 @@ import { AppBar } from "./parts-hub";
  *  it, landed approved. `mark` alone varies; the pool, the layout and every
  *  other tile are identical between the two options.
  *
- * ★ THE CUT LEADS THE GRID (found live, 2026-09-22: buried ninth of nine, its
- * small badge read as "the same picture" against the plain option). Masonry
- * fills its shortest column first, so the leading item lands in the most
- * prominent slot a reviewer's eye actually meets. */
+ * ★ THE CUT LEADS THE GRID: buried ninth of nine, its small badge reads as
+ * "the same picture" against the plain option. Masonry fills its shortest
+ * column first, so the leading item lands in the most prominent slot a
+ * reviewer's eye actually meets. */
 export function AlbumWithCut({ mark }: { mark: boolean }) {
   const items = [CUT_ITEM, ...GALLERY_ITEMS.slice(0, 8)];
   return (
     <div className="px-6 py-4" data-rh-relevant>
-      <FeedSectionHeader label="Gallery" count={items.length} />
+      <FeedSectionHeader label="Album" count={items.length} />
       <div className="pointer-events-none mt-2.5" data-rh-album>
         <MasonryColumns
           items={items}
@@ -71,8 +71,8 @@ export function AddToAlbumConfirm() {
             Add this cut to the album?
           </h2>
           <p className="text-sm text-muted-foreground">
-            It lands approved, right away. This uses about 8 MB of your
-            storage, the same as any video you upload yourself.
+            It lands approved, right away. This uses about 8 MB of your storage,
+            the same as any video you upload yourself.
           </p>
         </div>
         <div className="flex justify-end gap-2">
@@ -96,7 +96,10 @@ export function AddToAlbumConfirm() {
  */
 export function PhoneReviewRoom() {
   return (
-    <div data-rh-review-room="" className="min-h-full bg-background text-foreground">
+    <div
+      data-rh-review-room=""
+      className="min-h-full bg-background text-foreground"
+    >
       <AppBar device="phone" bell={PENDING_ITEMS.length} />
       <section aria-label="Review" className="space-y-2.5 px-4 py-5">
         <FeedSectionHeader label="Review" count={PENDING_ITEMS.length} amber />

@@ -43,7 +43,7 @@ function collectMdx(dir: string): string[] {
 
 const mdxFiles = collectMdx(join(ROOT, "content"));
 
-// The human-promise fence (Will's 2026-08-28 neutralization ruling) walks the
+// The human-promise fence (the neutralization pass) walks the
 // WHOLE user-facing copy surface, not just the claim single-sources: every
 // marketing page, marketing component, and copy constant. A tree walk so new
 // pages are covered the day they land.
@@ -151,7 +151,7 @@ describe("content policy", () => {
   });
 
   it("promises no human response, no human moderation, and no automation absolutes", () => {
-    // Will's neutralization ruling (2026-08-28): published copy commits to
+    // The neutralization rule: published copy commits to
     // OUTCOMES (a reply, a review, host control), never to WHO or WHAT delivers
     // them, so support/moderation tooling can evolve without breaking published
     // (especially legal) language. Deliberately phrase-narrow, like the claims
@@ -210,15 +210,15 @@ describe("content policy", () => {
     ).toEqual([]);
   });
 
-  it('never promises "no account" (bible 10: a host may require one)', () => {
-    // Will's account rule (2026-09-19, `voice` r1 `absence=named`; bible 10 ruled
-    // PERMISSIVE, ruling in marketing-voice.ts's head comment). Require verified
+  it('never promises "no account" (a host may require one)', () => {
+    // The account rule (`voice` r1 `absence=named`; see
+    // marketing-voice.ts's head comment). Require verified
     // emails defaults ON for a new event, so a line promising "no app" AND "no
     // account" together is false on most events; "No app required." is the
     // shipped swap that survives ("no app" alone stays legal as a named benefit).
     // Block comments are stripped before the scan: marketing-voice.ts,
     // trust-strip.tsx and ask-ai.ts each quote the retired literal verbatim
-    // ("No app, no account.") in a JSDoc block to document the ruling, which is
+    // ("No app, no account.") in a JSDoc block to document the change, which is
     // history, not shipped copy - a narrow scan should not relitigate its own record.
     const BANNED = /\bno apps?\b,?\s*(?:or|and)?\s*(?:no\s+)?account\b/i;
     const surfaces = [

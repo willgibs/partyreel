@@ -25,9 +25,10 @@ import { clipMidFrame, FIRST_PHOTO, screenProps } from "./fixtures";
  *
  * ★ DRAWN ONCE, OFF-DOM, HANDED ACROSS AS A STRING. A `Frame` portals its JSX
  * from this realm into the iframe's document, so a live canvas player would
- * reach for the lab page's own globals; a data url needs no realm at all. Both
- * questions here are about a plate or an empty screen, which is judged against
- * a held frame, so two stills are the whole of the engine this board needs.
+ * reach for the lab page's own globals; a data url needs no realm at all.
+ * Every question here is about a plate, an empty screen or the dock, each
+ * judged against a held frame, so two stills are the whole of the engine this
+ * board needs.
  *
  * ★ THE RASTER IS SMALLER THAN THE COMPOSITION, ON PURPOSE. The env reports
  * COMPOSITION space and one pre-scale squeezes the draw onto the backing store

@@ -27,7 +27,7 @@ import type { ScreenId } from "./scene";
  * `.hs-sheet`/`.hs-scrim` are reused for the same reason).
  *
  * ★ NOTHING HERE STARTS CHECKOUT OR OPENS THE REAL PORTAL. Every button is
- * drawn, never wired: `billing-caps.md`'s ruling that a Pro SWITCH finishes in
+ * drawn, never wired: `billing-caps.md`'s own rule that a Pro SWITCH finishes in
  * Stripe's own billing portal is untouched by this board, decision 5 included
  * — six prices being VISIBLE in the sheet is a comparison the host could not
  * make before, not a new route to Checkout.

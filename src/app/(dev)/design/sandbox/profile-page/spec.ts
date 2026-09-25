@@ -3,7 +3,7 @@ import { defineExploration } from "@/components/lab/exploration";
 
 /**
  * WHAT A PERSON IS ON PARTYREEL, ROUND TWO: THE THREE HE LEFT OPEN
- * (2026-09-19).
+ * (2026-09-19); A FOURTH, `head`, ASKED AGAIN BY THE REFRESH (2026-09-24).
  *
  * Round one answered whole (docs/reviews/profile-page.json; the fourth
  * batch, verbatim): whether a person has a page,
@@ -33,13 +33,20 @@ import { defineExploration } from "@/components/lab/exploration";
  * ★ ROUND ONE'S EIGHT ASKS ARE GONE FROM `asks` ON PURPOSE (the `privacy-hero`
  * precedent: a round replaces its questions rather than accreting them). The
  * ledger keeps their answers for ever; the board only ever carries what is
- * still open. `profile.tsx` (Head, Identity, Body, Acts, Foot, ProfilePage)
- * stays untouched and now renders every preview WEARING his eight picks (the
- * guest header, the line bio, event covers, the Report menu) as the ground,
- * because that is what these three questions sit on top of, not what they
- * are about. `album.tsx` keeps its bases (`AlbumHead`, `Album`, `Section`,
+ * still open. `album.tsx` keeps its bases (`AlbumHead`, `Album`, `Section`,
  * `FacesRow`, `NamesSheet`) and drops the three retired showcases; `reach.tsx`
- * is new, one function per question.
+ * holds one function per question.
+ *
+ * ★ THE REFRESH ASKS `head` AGAIN (2026-09-24), BECAUSE ITS OWN PREMISE
+ * CHANGED. Round one won `guest` (the album's own header) on ONE argument:
+ * without its account menu, a signed-in visitor loses their way back after
+ * clicking through guests. `way-back` was written for that exact worry and
+ * now answers it directly, for every visitor, signed in or not; the argument
+ * that decided `head` no longer has to be the header's job alone. `head`
+ * gains a `quiet` option his three original ones never offered (the logo with
+ * no control at all, not even `today`'s button), and `profile.tsx`'s `Head`
+ * grows that one case. The recommendation still holds today's header, but for
+ * a narrower reason than it first won on, stated in the ask itself.
  *
  * ★ A 240-NAME FIXTURE, BECAUSE THE QUESTION IS COST AT SCALE. `view-all`'s
  * `count` control switches the wedding between round one's 24 (`GUESTS`) and
@@ -66,8 +73,8 @@ import { defineExploration } from "@/components/lab/exploration";
  * modal" is renamed `centred` and re-argued against a real precedent (the
  * shipped welcome-to-Pro dialog, app-pricing r1) rather than "as drawn";
  * `inline` moves to the back of the array as the cheap fourth it always was.
- * `quick-look`'s bespoke "popover at 1440" is gone: `app-shape r1` ruled both
- * the responsive Sheet and a mini-modal into existence, so the option set is
+ * `quick-look`'s bespoke "popover at 1440" is gone: `app-shape r1` shipped
+ * both the responsive Sheet and a mini-modal, so the option set is
  * now those two real objects (`sheet`, renamed `mini-modal`), and the
  * recommendation flips to the Sheet now that its real desk shape (a
  * right-edge panel, never full-width) already answers the objection that
@@ -148,9 +155,9 @@ const DRAFT = defineExploration({
   title: "What a person is here",
   round: {
     n: 2,
-    date: "2026-09-22",
+    date: "2026-09-24",
     changed:
-      "Rechecked against the identity round: the guest list redrawn as it ships (the confirmed first, then each Unverified name, marked, no link) and truly open in every view-all option; quick-look reshaped for names with no page; way-back's reasons restated for a verified-by-default party.",
+      "A fourth question, head, asked again: way-back now answers the exact worry that decided it in round one, so the header no longer has to carry that argument alone. A new quiet option (logo, no menu) joins today's header and bare; today still holds, for a narrower reason.",
   },
   context:
     "Maya hosts; Priya has a page and chose two events for it; Jay confirmed and never claimed a handle; Nina typed a name: a names-mode wedding, so most of its guest list is Unverified. Every option is the shipped guest list or the shipped profile with one thing changed, phone first with 1440 on the knob. view-all reads the list at 24 and at 240, a quarter of the thousand Will imagined. Nothing here reaches a Server Function or a row: the social controls stay forked to local state, as round one forked them.",
@@ -160,7 +167,7 @@ const DRAFT = defineExploration({
       label: "View all",
       question: "How should the full guest list open from the faces row?",
       context:
-        "The faces row is ruled; the list opens in place, 24 at a time: the confirmed, then each typed name, marked. The Sheet ships (app-shape r1); no centred float survives at a desk (guest-shape r2), but Pro's modal centres (app-pricing r1).",
+        "The faces row is settled; the list opens in place, 24 at a time: the confirmed, then each typed name, marked. The Sheet ships (app-shape r1); no centred float survives at a desk (guest-shape r2), but Pro's modal centres (app-pricing r1).",
       options: [
         {
           id: "sheet",
@@ -268,6 +275,43 @@ const DRAFT = defineExploration({
         "Whether a profile carries any memory of where a visit began, and whether a signed-out guest gets a way back at all.",
       tile: "phone",
       configs: [SCREEN, WHO, ARRIVED],
+    },
+    {
+      id: "head",
+      label: "The head, asked again",
+      question:
+        "What should stand above a person's page, now that way-back exists?",
+      context:
+        "Round one answered this once (guest, the album's own header) with his own doubt: getting lost clicking through guests, 'maybe not the best overall solution for our nav in general.' way-back's pill now answers that, signed in or not.",
+      options: [
+        {
+          id: "today",
+          label: "The album's own header, as shipped",
+          means:
+            "Logo and, signed in, the account menu; the pill sits under it too now. Two ways back doing overlapping jobs.",
+        },
+        {
+          id: "quiet",
+          label: "The logo alone, no menu",
+          means:
+            "The same bar, nothing on its right: bible 7's own ask, now that the pill, not the menu, carries the way back.",
+        },
+        {
+          id: "bare",
+          label: "Nothing above them",
+          means:
+            "The page opens on the face; the pill is the only thing above it at all.",
+        },
+      ],
+      recommended: "today",
+      because:
+        "The menu still does more than get a visitor back: settings, billing, sign-out, one tap away while browsing someone else's page. The pill narrows round one's own argument rather than replacing the menu's other jobs, so today's header earns its place for a smaller reason than it first won on.",
+      overrule:
+        "If a guest surface should carry as little Partyreel as the pages it curates (bible 7), quiet is built for that now the pill, not the menu, gets anyone back.",
+      lands:
+        "Whether the profile keeps its account menu at all, now that way-back answers the reason round one gave it.",
+      tile: "phone",
+      configs: [SCREEN, WHO],
     },
   ],
 });

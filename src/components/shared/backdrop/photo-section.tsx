@@ -37,7 +37,7 @@ import { ROOM_FRAMES, roomFrame, SCROLL_STEPS } from "./room-frames";
  * reader moves: the pointer's position across the room for a reader with a
  * cursor, the section's own progress up the screen for a reader without one.
  * Its copy sits on a glass plate so it stays legible over every photograph in
- * the pool. Ruled whole by Will on 2026-09-18
+ * the pool. Settled whole
  * ("full-image sections are chapter transitions"), where it also became a
  * page-level device: a full-image section "can close a chapter, open a chapter,
  * or exist individually to separate two chapters", used sometimes and never at
@@ -47,11 +47,11 @@ import { ROOM_FRAMES, roomFrame, SCROLL_STEPS } from "./room-frames";
  * three things a pure module cannot: where the reader is, when a frame happens,
  * and what gets written onto a node.
  *
- * ★ FRAME ZERO IS VISIBLE WITH NO JAVASCRIPT AND NO STYLE FROM HERE (bible 5).
+ * ★ FRAME ZERO IS VISIBLE WITH NO JAVASCRIPT AND NO STYLE FROM HERE.
  * The sheet hides every layer and shows the first; the loop writes inline
  * styles, which win over it. So a crawler, a throttled tab and a reader with
  * scripting off all get the section standing on one photograph, which is also
- * exactly what a reader who asked for less motion gets (bible 5: the loop
+ * exactly what a reader who asked for less motion gets (the loop
  * never starts, no listener is attached, and nothing is observed).
  *
  * ★ IT COSTS NOTHING WHEN NOBODY IS MOVING. The loop runs only while a
@@ -130,8 +130,8 @@ export type PhotoSectionProps = {
   className?: string;
   /**
    * WHICH RULE DRIVES IT, forced. Production never passes this: the section
-   * asks the reader's own device (a cursor scrubs, a thumb steps) and that is
-   * the ruling. It exists so the Library can put both rules on one screen,
+   * asks the reader's own device (a cursor scrubs, a thumb steps) and that
+   * decides it. It exists so the Library can put both rules on one screen,
    * which is the only way a reviewer on a laptop can see the phone's.
    */
   source?: SourceId;

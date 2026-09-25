@@ -1,0 +1,63 @@
+{
+  "board": "album-columns",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-25",
+      "answers": [
+        {
+          "ask": "layout",
+          "choice": "justified",
+          "note": "I like this more than masonry because we insert into rows (feels natural) rather than columns (vertical shift feels unexpected), along with cleaner row lines. Also like the better fit across a mix of landscape and portrait media. I know we'll need a new arrival. However, will this ever lead to gaps, particularly on the right side if all widths don't balance to 100%? Gaps make it feel very unbalanced, as opposed to the gallery having clean edges on both sides (images cards fill left to right edge).",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "width",
+          "choice": "edge",
+          "note": "On mobile, we could likely reduce the gutter to 8-12px. As an added note in case no question handles it, it feels weird that the host dash is width constrained but the event album is wide. Host dash should go wide the same way.",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "scale",
+          "choice": "ceiling",
+          "note": "If this is a bad balance with the justified layout selected previously, I'd also entertain the Mosaic layout option but the large images being random in flow, not most liked, so they change as new images upload.",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "phone",
+          "choice": "step-three",
+          "note": "The additional conditional third column would benefit tablet breakpoints.",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "scope",
+          "choice": "shared",
+          "note": "This is simply an easier mental model for users. Provides a consistent experience without them adjusting one and wondering why it didn't affect the other.",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        },
+        {
+          "ask": "control",
+          "choice": "slider",
+          "note": "I think a slider (or maybe better UI) with 3-5 fixed steps would be ideal. Using a fine pixel slider means images may not cleanly fill the gallery edge to edge on each row, creating weird gaps.",
+          "by": "Will",
+          "at": "2026-09-25T04:15:12Z"
+        }
+      ],
+      "notes": [
+        {
+          "on": null,
+          "text": "His gap question, answered: every row fills the width, the last included; the layout picks optimal breaks, and an arrival or a hide re-solves only a local window (at most four rows move). Only an album too small to fill one row at the height cap sits centered. The ceiling pairs with rows as the densest step (about eight a row); steps are photos per row, not pixels, so the mosaic fallback is not needed and his random version returns as rhythm. The r1 prototypes padded twice (full rows overran by 40px, the ceiling drew seven at 2560); r2 draws on the real engine and asks arrival, steps and rhythm.",
+          "by": "ai:orchestrator",
+          "at": "2026-09-25T04:15:30Z"
+        }
+      ],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

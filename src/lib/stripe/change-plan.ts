@@ -71,7 +71,7 @@ export type ChangePlanRefusalCode =
  * One sentence per refusal, in ONE home: the route sends it and the plan sheet
  * prints the same words beside a Pro list whose switch cannot open, so a host is
  * never told two different things about one subscription. None promises a reply
- * (bible 10's fence); the contact page is named as a place, not a service level.
+ * (copy stays open); the contact page is named as a place, not a service level.
  */
 export const CHANGE_REFUSAL_MESSAGES: Record<ChangePlanRefusalCode, string> = {
   not_subscribed: "You're not on Pro. Choose a plan to start one.",

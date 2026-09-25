@@ -15,7 +15,7 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
  * can only hold on the one browser he used.
  *
  * ★ A SEPARATE FILE, NEVER AN IMPORT FROM ANOTHER BOARD (`identity-door`'s own
- * rule, carried): a board's directory leaves with its ruling, and
+ * rule, carried): a board's directory retires with its picks, and
  * `sandbox/gallery-fixtures.ts` is being reshaped by another lane this round.
  *
  * ★ THE ADDRESSES ARE `example.com` AND THE STILLS ARE THE TWELVE BOOTSTRAP

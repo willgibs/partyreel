@@ -11,10 +11,10 @@ export type CalloutKind =
   | "note";
 
 const LABEL: Record<CalloutKind, string> = {
-  "not-law": "Not law",
+  "not-law": "Guidance",
   provisional: "Provisional",
   "agent-authored": "Agent-authored",
-  will: "Will's ruling",
+  will: "Will's word",
   landmine: "Landmine",
   note: "Note",
 };
@@ -29,14 +29,14 @@ const ICON = {
 } as const;
 
 /**
- * The authority of what follows, said once at the top of a page or a block: a
- * doctrine page is precedent, a policy is provisional, a ruling is Will's, a ★
- * is a trap. The words are the reader's cue and the tone is quiet on purpose
- * (the law is short, and a loud banner on every page would drown it), so the
- * only kind that carries weight is Will's: a solid left rule, because it is
- * the one kind that binds.
+ * What kind of claim follows, said once at the top of a page or a block: a
+ * doctrine page is background, a policy is provisional, a call is Will's, a ★
+ * is a trap. The words are the reader's cue, and the tone stays quiet on
+ * purpose so a loud banner on every page does not drown them out; Will's kind
+ * is the one drawn with weight, a solid left rule, because it is the one a
+ * reader most needs to notice.
  *
- * Achromatic like everything else in the chrome (bible 6): the icon and the
+ * Achromatic like everything else in the chrome: the icon and the
  * rule do the telling, never a colour.
  */
 export function Callout({

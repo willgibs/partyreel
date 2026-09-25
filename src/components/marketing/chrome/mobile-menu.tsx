@@ -27,7 +27,7 @@ import { portalSkinProps, type MarketingSkin } from "./portal-skin";
 import { useSignedInHint } from "./session-hint";
 
 /**
- * THE MOBILE MENU (rebuilt full-screen, 2026-08-28, Will's ruling). The old
+ * THE MOBILE MENU (rebuilt full-screen). The old
  * 288px right-hand sheet listed every group flattened and fully expanded, so a
  * phone got one long scroll of 17 undifferentiated links. This is the same
  * information as a full-screen surface with COLLAPSED groups: big touch rows,

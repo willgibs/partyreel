@@ -8,6 +8,9 @@ import {
   AttendedGuestMenu,
   AttendedPicker,
   AttendedSwitches,
+  DefaultAsked,
+  DefaultOff,
+  DefaultOn,
   PageCount,
   PageNothing,
   PageNotFound,
@@ -26,8 +29,9 @@ import { IDENTITY_PROFILE } from "./spec";
  * here). Every option holds the rest of the picture steady and moves only the
  * one thing its ask is about: `setup`'s three options vary how the handle,
  * name and events get set, never the world they're set in; `attended` varies
- * only how the choice is made; `prompt` varies only whether and where an
- * invitation appears; `page` varies only what a visitor reads.
+ * only how the choice is made; `default` varies only what an event's switch
+ * reads BEFORE Priya ever touches it; `prompt` varies only whether and where
+ * an invitation appears; `page` varies only what a visitor reads.
  *
  * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED: a field count, a row
  * count, an invitation's own words. When the words above a frame and the
@@ -116,6 +120,39 @@ function attendedScreen(id: "switches" | "picker" | "guest-menu", s: BoardState)
         ) : (
           <AttendedPicker />
         )}
+      </div>
+    </Scene>
+  );
+}
+
+/* ── default: whether an event's switch opens off, on, or asked once first ──── */
+
+const measureDefault: Reader = (root) => {
+  const prompt = root.querySelector<HTMLElement>("[data-ip-relevant]");
+  if (prompt?.innerText?.includes("Show your events")) {
+    return "Measured: a single yes-or-no stands before any switch is drawn.";
+  }
+  const rows = root.querySelectorAll("[data-ip-attended-row]");
+  const on = [...rows].filter((r) =>
+    r.querySelector('[data-state="checked"]'),
+  ).length;
+  return `Measured: ${on} of ${rows.length} events start switched on.`;
+};
+
+function defaultScreen(id: "off" | "asked" | "on", s: BoardState) {
+  const sc = screen(s);
+  const body =
+    id === "off" ? <DefaultOff /> : id === "on" ? <DefaultOn /> : <DefaultAsked />;
+  return (
+    <Scene
+      id={`default-${id}`}
+      screen={sc}
+      title="The starting default"
+      measure={measureDefault}
+    >
+      <div className="min-h-full bg-background text-foreground">
+        <AppHeader label="Account" />
+        {body}
       </div>
     </Scene>
   );
@@ -215,6 +252,10 @@ const PREVIEWS: PreviewsFor<typeof IDENTITY_PROFILE> = {
   "attended.switches": (s) => attendedScreen("switches", s),
   "attended.picker": (s) => attendedScreen("picker", s),
   "attended.guest-menu": (s) => attendedScreen("guest-menu", s),
+
+  "default.off": (s) => defaultScreen("off", s),
+  "default.asked": (s) => defaultScreen("asked", s),
+  "default.on": (s) => defaultScreen("on", s),
 
   "prompt.claim": (s) => promptScreen("claim", s),
   "prompt.follow": (s) => promptScreen("follow", s),

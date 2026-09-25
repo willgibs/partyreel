@@ -15,8 +15,8 @@ import { defineExploration } from "@/components/lab/exploration";
  * sees it. Exposing emails publicly would go from a safety feature to privacy
  * concern - the host assumes responsibility of ensuring that safety."
  *
- * ★ HIS THREE ANSWERS ARE THE WALLS EVERY OPTION STANDS INSIDE, never asked
- * again: a block is "Out, uploads removed" (per event, the host's to make and
+ * ★ HIS THREE ANSWERS ARE THE BRIEF'S OWN TERMS, not reopened here because
+ * their premise has not changed since he set them: a block is "Out, uploads removed" (per event, the host's to make and
  * undo; the person cannot join, upload, open the album, like or claim, every
  * refusal re-checked per request; their uploads leave for Deleted in the same
  * step; they meet a plain closed door, never the word "blocked"); the closed
@@ -95,9 +95,9 @@ export const EVENT_SAFETY = defineExploration({
   title: "Keeping an event safe",
   round: {
     n: 1,
-    date: "2026-09-23",
+    date: "2026-09-24",
     changed:
-      "New board on his concept: a per-event block for a bad actor and three closed doors, all free. Thirteen steps where the brief named nine, since four of its nine each held two separate choices.",
+      "The boards refresh: newcomer, the one binary here, gains a real third door (the honest line plus a way to ask); his three founding answers kept, reframed as the brief's own terms rather than a wall.",
   },
   context:
     "Will, 2026-09-23: a bad actor with a verified email can be hidden photo by photo but never stopped. His three answers bound the board: a block puts the person out with their uploads; approve newcomers, close to newcomers and an invite list keep an event closed; all free on every plan. Drawn on Maya and Jay's wedding at 375, 1440 on the knob. Asked elsewhere, never here: the credit's shape (media-viewer.who), identity-door's five, host-curation's bulk act, undo, count and arrivals, profile-page.view-all, and voice-guest's seven lines.",
@@ -483,14 +483,20 @@ export const EVENT_SAFETY = defineExploration({
           means:
             "The same form with a truer line: the album is only open to people already in.",
         },
+        {
+          id: "ask",
+          label: "The honest line, with a way to ask",
+          means:
+            "The truer line, plus a button that sends the host their name and address to add like a newcomer.",
+        },
       ],
       recommended: "same",
       because:
         "One door for every refusal means a blocked person learns nothing from it: they meet exactly what a latecomer meets.",
       overrule:
-        "If a latecomer deserves to know it is the album and not them, the honest line costs a blocked person's cover.",
+        "If a real latecomer deserves a way through and not just the truth, 'ask' gives one, at the same cost 'honest' already pays: a blocked person's cover.",
       lands:
-        "Whether a closed album and a block read the same to the person at the door.",
+        "Whether a closed album and a block read the same to the person at the door, and whether a latecomer has any way in at all.",
       after: { ask: "door" },
       configs: [SCREEN],
     },

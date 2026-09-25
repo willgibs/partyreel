@@ -41,10 +41,10 @@ import { trailFrame } from "./trail-frames";
 
 /**
  * THE IMAGE TRAIL: photographs laid down behind a moving point, each sliding
- * after it and then fading and shrinking away where it lies. Will ruled its look
- * and its home on 2026-09-19 (`d140`, a three-second decay, `flick`, 180 px and
+ * after it and then fading and shrinking away where it lies. Its look
+ * and its home were chosen (`d140`, a three-second decay, `flick`, 180 px and
  * 100 at a phone, `home=notfound`, `phone=walks`); the arithmetic is in
- * `trail-engine.ts` and every number in it is one of those rulings.
+ * `trail-engine.ts` and every number in it comes from that.
  *
  * ★ TWO SOURCES, ONE MECHANISM. `pointer` walks the path on its own until a real
  * hand enters and then follows the hand, resuming the walk when it leaves;
@@ -56,7 +56,7 @@ import { trailFrame } from "./trail-frames";
  * focusable, no link and no code, and the layer takes no pointer events: the
  * words a placement needs stand INSIDE the stage, over the photographs, and the
  * shy fade is what keeps them the loudest thing on the screen (never a scrim,
- * which bible 6 refuses).
+ * which stays ruled out).
  *
  * ★ IT COSTS NOTHING WHEN NOBODY IS LOOKING, four ways: one rAF loop, suspended
  * off screen (IntersectionObserver), suspended on a hidden tab, never started
@@ -452,7 +452,7 @@ export function Trail({
   className?: string;
   /** Forced only where both rules have to stand on one screen (the Library).
    *  Production asks the reader's own screen: a phone has no cursor to follow,
-   *  and Will ruled it walks rather than waits for a finger. */
+   *  and it walks rather than waits for a finger, by design. */
   source?: Drive;
 }) {
   const stage = useRef<HTMLDivElement | null>(null);

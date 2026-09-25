@@ -15,6 +15,7 @@ import {
   sealCards,
   sealStepMs,
   SWEEP,
+  VEIL,
 } from "./concepts";
 import { PRIVACY_HERO } from "./spec";
 
@@ -23,7 +24,8 @@ import { PRIVACY_HERO } from "./spec";
  * promise every option's geometry makes: nothing sits on the lockup's ink.
  * `paths.test.ts` did the first job for round two's engine (deleted with
  * it); this is the same discipline, `sweep` added by the overtaken audit's
- * reshape (2026-09-21).
+ * reshape (2026-09-21), `access` retired and `veil` added by the refresh
+ * (2026-09-24).
  */
 
 const MODES = ["desktop", "phone"] as const;
@@ -54,12 +56,12 @@ describe("the option tiles state the concepts' own numbers", () => {
     expect(t).toContain(`${APERTURE.cycleMs / 1000} seconds`);
   });
 
-  it("the access grid", () => {
-    const t = tile("access");
-    expect(t).toContain(`${ACCESS.tiles.desktop} small tiles`);
-    expect(t).toContain(`${(ACCESS.holdMs / 1000).toFixed(2)}s`);
-    expect(t).toContain(`${(ACCESS.fadeMs / 1000).toFixed(2)}s`);
-    expect(t).toContain(`${ACCESS.cycleMs / 1000}s`);
+  it("the veil", () => {
+    const t = tile("veil");
+    expect(t).toContain(`${VEIL.blurPx.desktop}px`);
+    expect(t).toContain(`${Math.round(VEIL.baseOpacity * 100)}%`);
+    expect(t).toContain(`${VEIL.portholePx.desktop}px`);
+    expect(t).toContain(`${VEIL.cycleMs / 1000}`);
   });
 
   it("the sweep", () => {
@@ -151,6 +153,20 @@ describe("every static element clears the lockup's ink and sits inside its canva
       const [, ringHi] = APERTURE.ring[mode];
       expect(ringHi).toBeLessThan(CANVAS[mode].w);
       expect(ringHi).toBeLessThan(CANVAS[mode].h);
+    }
+  });
+
+  it("veil reuses the aperture's own footprint rather than a second one", () => {
+    // Both sit on the one circle already proven clear of the lockup by eye
+    // (the scrim, not a rectsClear check: aperture's own geometry test above
+    // is the same shape of promise). Locking the reuse here is what keeps a
+    // future retune of either from drifting the two apart unnoticed.
+    expect(VEIL.washPx).toBe(APERTURE.washPx);
+  });
+
+  it("veil's clearing is smaller than the wash it drifts across", () => {
+    for (const mode of MODES) {
+      expect(VEIL.portholePx[mode]).toBeLessThan(VEIL.washPx[mode]);
     }
   });
 });

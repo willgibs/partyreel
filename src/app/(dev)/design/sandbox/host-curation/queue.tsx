@@ -414,7 +414,7 @@ function UnverifiedDot() {
  *
  * The shipped peek is private state inside `SelectableMediaGrid` and cannot be
  * opened from outside it, so its surface is quoted exactly: the same fixed full
- * bleed on the lightbox's ruled ground (`GLASS_BEHIND`, the queue behind it
+ * bleed on the lightbox's own ground (`GLASS_BEHIND`, the queue behind it
  * blurred at half brightness), the same glass close at the top right. What
  * each option adds sits on that identical ground, over whichever grid the
  * queue decision settled.

@@ -25,7 +25,7 @@ import { StepPicture } from "./step-picture";
  * THE WALKTHROUGH: one scroll, six steps, and a toggle above them that swaps
  * the whole thing between the host's side and the guest's.
  *
- * Will ruled both halves in one answer (2026-09-19, `shape=scroll`): "For the
+ * Both halves were answered together (`shape=scroll`): "For the
  * full how it works walkthrough, let's do one scroll as today. It feels
  * cleanest and creates a more full page. However, let's include a toggle above
  * the steps to switch between Host/Guest perspective, and have custom steps for

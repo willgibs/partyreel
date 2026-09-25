@@ -74,10 +74,11 @@ export const RULINGS: Ruling[] = [
     title: "Asking for an email at the door",
     surface: "guest",
     asks:
-      "where the optional email sits against the name, where a member's sign-in lives, how the verified gate frames its benefit, what the guest's own menu says, and where undoing an email lives",
+      "whether the welcome deserves its own screen, where the optional email sits against the name, where a member's sign-in lives, how the verified gate frames its benefit, what the guest's own menu says, and where undoing an email lives",
     why: "The email at the door, the trust levels, the verified gate and the guest menu are live; this board redesigns them on the shipped pieces.",
     lives: [
       "docs/systems/guest-flow.md",
+      "src/components/guest/entry-modal.tsx",
       "src/components/guest/guest-name-step.tsx",
       "src/components/guest/enter-event-prompt.tsx",
       "src/components/guest/guest-name-menu.tsx",
@@ -86,8 +87,9 @@ export const RULINGS: Ruling[] = [
       "src/components/shared/unverified-mark.tsx",
     ],
     board: {
-      note: "Five decisions on the shipped door's real pieces, over Priya, guest-capture's own guest, one step earlier than that board finds her: where the optional email sits against her name, where a member's sign-in path lives, how the verified gate frames its benefit, what her own menu says, and where undoing an email lives",
+      note: "Six decisions on the shipped door's real pieces, over Priya, guest-capture's own guest, one step earlier than that board finds her: whether the welcome earns its own screen, where the optional email sits against her name, where a member's sign-in path lives, how the verified gate frames its benefit, what her own menu says, and where undoing an email lives",
       variants: [
+        "The welcome step",
         "The field",
         "The sign-in nudge",
         "The gate's framing",
@@ -126,7 +128,7 @@ export const RULINGS: Ruling[] = [
     title: "Setting up a page",
     surface: "guest",
     asks:
-      "how a verified guest sets up her page, how she chooses what shows, when the app offers the setup, and what an empty page says to a visitor",
+      "how a verified guest sets up her page, how she chooses what shows, whether that choice should even default to hidden, when the app offers the setup, and what an empty page says to a visitor",
     why: "A profile publishes nothing until its owner chooses, so the setup is how a page fills; drawn on the account page's real cards and the public page.",
     lives: [
       "docs/systems/profiles-social.md",
@@ -135,10 +137,11 @@ export const RULINGS: Ruling[] = [
       "src/app/(app)/account/page.tsx",
     ],
     board: {
-      note: "Four decisions on the account page's real cards and the public profile page, over Priya, verified, with photos added to three events and none shown: how setup itself happens, how she chooses what shows, when the app ever invites the setup, and what an empty claimed page says to a visitor",
+      note: "Five decisions on the account page's real cards and the public profile page, over Priya, verified, with photos added to three events and none shown: how setup itself happens, how she chooses what shows, whether that choice should even default to hidden, when the app ever invites the setup, and what an empty claimed page says to a visitor",
       variants: [
         "How it's set up",
         "What shows",
+        "The starting default",
         "When it's offered",
         "The empty page",
       ],
@@ -146,28 +149,25 @@ export const RULINGS: Ruling[] = [
   },
   {
     id: "reel-screen",
-    title: "The reel on the wall",
+    title: "The reel on a big screen",
     surface: "guest",
     asks:
-      "the live reel on a venue's screen: where the code lives, how the event is named, the just-added beat, the pace, before it begins, the Start plate, Review on a public wall, and the way in",
-    why: "Screen mode is a first-class way to play the live reel: one wall carries it full-bleed with the event's name and its code for a whole night.",
+      "the live reel on a venue's screen: what it shows before the reel starts at the second photo, what the host presses to start it, and whether it ever plays a video's sound",
+    why: "Play on a screen puts the reel's own view on a television, and three questions only a big screen asks are left: the empty screen, the press, the sound.",
     lives: [
       "docs/systems/guest-flow.md",
       "content/help/show-the-album-live-on-a-screen.mdx",
-      "src/lib/reel/engine/player.tsx",
+      "src/lib/reel/engine/player-live.tsx",
+      "src/lib/reel/engine/video/window-reader.ts",
       "src/components/app/styled-qr.tsx",
+      "src/lib/qr/stock.ts",
     ],
     board: {
-      note: "Eight decisions on the wall at 1920 by 1080 with a 1440 television on the knob, over Mia and Theo's wedding, every reel frame the real engine at its landscape composition: where the code lives and how big, how the event is named, what happens when a photograph lands, how long one holds, what is on screen before the reel begins, what the host presses to start it, whether Review is ever said on a public screen, and where the door sits on the hub",
+      note: "Three decisions on a television at 1440 by 810 with a real 1920 on the knob, over Mia and Theo's wedding, every reel frame the real engine's: what the screen shows before the reel starts at the second photo, a title card and two seats among the options; what the host presses to start it, or whether the reel waits for a press at all; and whether the screen ever plays a video moment's own sound",
       variants: [
-        "The code",
-        "The event's name",
-        "The just-added beat",
-        "The wall's pace",
-        "Before it begins",
+        "Before it starts",
         "The Start plate",
-        "Review on the wall",
-        "The way in",
+        "Sound on the screen",
       ],
     },
   },
@@ -203,7 +203,7 @@ export const RULINGS: Ruling[] = [
     surface: "guest",
     asks:
       "seven lines a guest reads, each in its real place: the welcome, the password's ask, the landing, a failed upload, the empty album's button, a held photo, and the capture's words",
-    why: "The voice is built one won line at a time in its real place (bible 10); these seven are the guest's most-read words and where most of the asks live.",
+    why: "The voice is built one won line at a time in its real place; these seven are the guest's most-read words and where most of the asks live.",
     lives: [
       "src/components/guest/entry-modal.tsx",
       "src/components/guest/password-gate.tsx",
@@ -259,7 +259,7 @@ export const RULINGS: Ruling[] = [
     title: "The marketing site's chrome",
     surface: "marketing",
     asks:
-      "the footer beneath a page's own closing call to action: its register, a page with none above it, and the phone",
+      "the footer beneath a page's own closing call to action: its register, a page with none above it, and how its code reaches a phone",
     why: "Most pages close on a call to action, so the footer's demo invitation has to work beneath one rather than repeat it; the rest of the chrome is built.",
     lives: [
       "docs/systems/marketing-content.md",
@@ -271,14 +271,11 @@ export const RULINGS: Ruling[] = [
       "src/lib/constants/marketing-nav.ts",
     ],
     board: {
-      note: "Round two, the footer alone: three decisions on what the footer's demo register should be right under a page's own closing CTA, whether a page with no CTA above it keeps the same footer, and how the invitation travels to a phone; every option drawn under a real CtaBand and under a real page with none, at 1440 and 375.",
+      note: "Round two, the footer alone: what the footer's demo register should be right under a page's own closing CTA, whether a page with no CTA above it gets the same footer or a closing line built for it, and how its code reaches a phone (hidden, revealed on a tap, always shown, or dropped); every option drawn under a real CtaBand and under a real page with none, at 1440 and 375.",
       variants: [
-        "The shape",
-        "What it holds",
-        "The returning host",
-        "The phone's menu",
-        "On scroll",
-        "The foot's job",
+        "The foot after a close",
+        "The foot where nothing closes the page",
+        "The phone's foot",
       ],
     },
   },
@@ -287,8 +284,8 @@ export const RULINGS: Ruling[] = [
     title: "What a person is here",
     surface: "guest",
     asks:
-      "how the full guest list opens from the faces row, what a name opens first, and how a profile keeps the scanned event reachable",
-    why: "A person's page ships; three pieces stay open: the whole list's shape, a quick look before the page, and the way back to the event.",
+      "how the full guest list opens from the faces row, what a name opens first, how a profile keeps the scanned event reachable, and what should stand above it now that it does",
+    why: "A person's page ships; three pieces stay open, and a fourth, the header, is asked again now way-back changes what it has to solve alone.",
     lives: [
       "docs/systems/profiles-social.md",
       "src/app/(guest)/u/[slug]/page.tsx",
@@ -298,8 +295,8 @@ export const RULINGS: Ruling[] = [
       "src/components/social/profile-slug-control.tsx",
     ],
     board: {
-      note: "Three decisions on the shipped guest list and profile, phone first at 375 with 1440 on the knob, a 240-name fixture beside a 24-name one: how the full list opens from the faces row, what a name opens first, and how a profile keeps the scanned event reachable",
-      variants: ["View all", "Quick-look", "Way back"],
+      note: "Four decisions on the shipped guest list and profile, phone first at 375 with 1440 on the knob, a 240-name fixture beside a 24-name one: how the full list opens from the faces row, what a name opens first, how a profile keeps the scanned event reachable, and, asked again now that it does, what should stand above the page at all",
+      variants: ["View all", "Quick-look", "Way back", "The head, asked again"],
     },
   },
   {
@@ -333,25 +330,30 @@ export const RULINGS: Ruling[] = [
     title: "The host's side of the reel",
     surface: "host",
     asks:
-      "where the host's Style lives, the Show the reel switch, where Play on a screen opens, the dashboard's line, a host's own cut added to the album, and Review's interplay",
-    why: "The live reel makes itself, so a host keeps a default style, an off switch, the screen and a cut of their own; this board places each on the real hub.",
+      "the way to the reel before it starts, what the Reel card opens, where Play on a screen sits, what tells a host uploads are waiting, where the reel's defaults live, the Show the reel switch, the dashboard's word on the reel, and a host's own cut",
+    why: "The live reel makes itself, so a host keeps a few small acts and one door: this board places each on the real hub, its sheets and the dashboard.",
     lives: [
       "docs/systems/host-app.md",
       "src/app/(app)/dashboard/[eventId]/page.tsx",
+      "src/components/app/event-feed/event-cards-row.tsx",
       "src/components/app/event-settings/event-settings-sheet.tsx",
       "src/components/app/event-settings/profile-social-card.tsx",
       "src/app/(app)/dashboard/page.tsx",
+      "src/components/app/dashboard/next-step-band.tsx",
+      "src/lib/dashboard/next-step.ts",
       "src/components/app/share/event-sheets.tsx",
     ],
     board: {
-      note: "Six decisions on the real hub, settings sheet, share sheet and dashboard, over Mia and Theo's wedding: where the host's Style control lives, where the Show the reel switch sits, where Play on a screen opens from, how the dashboard says the reel is live, what a host's own cut does to the album, and whether the reel ever explains a waiting queue",
+      note: "Eight decisions on the real hub, its sheets and the dashboard, over Mia and Theo's wedding: how the page shows the way to the reel, what the Reel card opens, where Play on a screen sits, what tells a host uploads are waiting, where the reel's defaults live, where Show the reel sits, what the dashboard says about a reel, and what a host's own cut does to the album",
       variants: [
-        "Where Style lives",
-        "The 'Show the reel' row",
-        "Where 'Play on a screen' lives",
-        "The dashboard's line",
+        "The way to the reel",
+        "What the Reel card opens",
+        "Onto a big screen",
+        "Waiting uploads",
+        "The reel's defaults",
+        "Show the reel",
+        "The dashboard's word",
         "A host's own cut, added",
-        "Review's interplay",
       ],
     },
   },
@@ -596,7 +598,7 @@ export const RULINGS: Ruling[] = [
     title: "From the reel to a cut",
     surface: "guest",
     asks:
-      "the creator a guest meets from the reel: the way in, the room, the fourteen looks, the moments, a hidden tile, the export's wait, the finish, the free mark, and a device that cannot encode",
+      "the creator a guest meets from the reel: the way in, the room, the fourteen looks, the moments, a hidden tile, the export's wait, the finish, the free mark, whether it carries sound, and a device that cannot encode",
     why: "A cut is anyone's, made on the device from the live reel, saved or shared as a file and never stored; this board is the creator that replaces the Studio.",
     lives: [
       "docs/systems/host-app.md",
@@ -608,7 +610,7 @@ export const RULINGS: Ruling[] = [
       "src/lib/reel/engine/registry.ts",
     ],
     board: {
-      note: "Nine decisions on the creator a guest meets after tapping Make your own, over the album media-viewer already draws: the way in from the reel, the room at both sizes, the fourteen looks, the moments as a local pick with three fills, a hidden tile only the host meets, the export's minute, the finish, the free mark and a device that cannot encode",
+      note: "Ten decisions on the creator a guest meets after tapping Make your own, over the album media-viewer already draws: the way in from the reel, the room at both sizes, the fourteen looks, the moments as a local pick with three fills, a hidden tile only the host meets, the export's minute, the finish, the free mark, whether a cut ever carries sound, and a device that cannot encode",
       variants: [
         "The way in",
         "The room",
@@ -675,15 +677,15 @@ export const RULINGS: Ruling[] = [
     title: "The album's falling-in",
     surface: "marketing",
     asks:
-      "which way a photograph reaches the album on the /features/album hero: Glide, Gather or Cascade",
+      "which way a photograph reaches the album on the /features/album hero: Glide, Gather, Cascade or Bloom",
     why: "One decision, drawn on the wired hero so the pick is already built: the falling-in stays, and only its motion is asked.",
     lives: [
       "src/components/shared/album-stream/stream-engine.ts",
       "src/components/marketing/sections/features/album/arrivals-hero.tsx",
     ],
     board: {
-      note: "One decision, three whole variations of the falling-in drawn on the LIVE /features/album hero at 1440 and 375 (the shipped one among them): a pair sliding under the album's edge, a pair born large and dissolving into it, and singles landing on it; every number under a tile measured off the engine against the home hero's",
-      variants: ["Glide", "Gather", "Cascade"],
+      note: "One decision, four whole variations of the falling-in drawn on the LIVE /features/album hero at 1440 and 375 (the shipped one among them): a pair sliding under the album's edge, a pair born large and dissolving into it, singles landing on it, and singles arriving lit by the product's own glow; every number under a tile measured off the engine against the home hero's",
+      variants: ["Glide", "Gather", "Cascade", "Bloom"],
     },
   },
   {
@@ -716,15 +718,15 @@ export const RULINGS: Ruling[] = [
     title: "The privacy page's hero",
     surface: "marketing",
     asks:
-      "the privacy page's hero: a breathing aperture, a grid whose tiles take turns clearing, or sealed cards that lift",
-    why: "Three still concepts built on what privacy means rather than a figure in flight: one decision, drawn at 1440 and 375.",
+      "the privacy page's hero: a breathing aperture, a grid that hands a tile over, sealed cards that lift, or a clearing drifting across one photograph",
+    why: "Four still concepts built on what privacy means rather than a figure in flight: one decision, drawn at 1440 and 375.",
     lives: [
       "src/app/(marketing)/(cinema)/features/privacy/page.tsx",
       "src/components/marketing/system/page-hero.tsx",
     ],
     board: {
-      note: "Four decisions, no page: the spirals' pace against the home hero's, the gap between frames, the trail each arm leaves, and what a phone draws; every option is the live privacy page's first screen at 1440 and 375",
-      variants: ["The pace", "The gap", "The trail", "At a phone"],
+      note: "One decision, four concepts, no page: an aperture's breath, a grid that hands one tile over at a time, sealed photographs that lift, and a single photograph never wholly visible at once with a clearing drifting across it; every option is the live privacy page's first screen at 1440 and 375",
+      variants: ["The aperture", "The sweep", "The sealed cards", "The veil"],
       tracks: ["heroes"],
     },
   },
@@ -771,13 +773,13 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
-  "album-columns",
-  "reel-screen",
-  "reel-host",
   "reel-cut",
   "reel-story",
   "reel-front",
+  "album-columns",
   "media-viewer",
+  "reel-screen",
+  "reel-host",
   "reel-view",
   "identity-door",
   "identity-claims",

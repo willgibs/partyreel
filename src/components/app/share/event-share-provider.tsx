@@ -31,7 +31,7 @@ import {
  * Back to walk four peeks at a QR code.
  *
  * ★ WHY `history.pushState` AND NOT `router.push`. A route change re-renders
- * the album and loses its scroll; Will's ruling is that the album stays behind
+ * the album and loses its scroll; the album has to stay behind
  * the sheet ("the album stays behind it"). The native history API is the
  * App Router's sanctioned shallow mechanism (Next 16 docs, "single-page
  * applications") and `useSearchParams` follows it without a server round-trip.

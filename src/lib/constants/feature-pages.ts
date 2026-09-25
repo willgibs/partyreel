@@ -6,7 +6,7 @@
  * module (bespoke by design; this file carries only the shared identity layer).
  *
  * Every copy string here is PROVISIONAL (the SECTION_HEADERS pattern): ships as
- * working copy, awaits Will's ruling pass. navDescription is the mega-panel
+ * working copy, awaiting a final pass. navDescription is the mega-panel
  * one-liner and must stay short (~45 chars). H1s deliberately do NOT repeat the
  * pages' home-section headers (home teases; the page owns the depth register).
  * No em-dashes (policy); the registry test pins shape + copy hygiene.

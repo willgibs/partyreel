@@ -2,14 +2,12 @@ import type { Control } from "@/components/lab/board-spec";
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * THE DOOR SHEET, WITH AN EMAIL (round one, 2026-09-22).
+ * THE DOOR SHEET, WITH AN EMAIL (the refresh, round one, 2026-09-24).
  *
- * A NEW BOARD ON HIS WORD ("the morning after the
- * identity round" and "guest identity", both 2026-09-22, verbatim): "We'll
- * do a lot of lab work later to redesign here" and "I'd like to run most of
- * this through the lab once our foundation is complete." The foundation
- * (three waves: the schema, the wire, the door, the claim) is whole on the
- * alias; this board is that lab work, on the door alone.
+ * The lab's own redesign of the guest door, once identity's foundation (the
+ * schema, the wire, the door, the claim) stood whole on the alias: six
+ * decisions on the shipped pieces a guest actually meets between her QR scan
+ * and the album.
  *
  * ★ ONE GUEST, THE WHOLE BOARD. Every option is Priya, `guest-capture`'s own
  * guest, at Maya and Jay's wedding, met a step earlier than that board finds
@@ -17,19 +15,21 @@ import { defineExploration } from "@/components/lab/exploration";
  * has answered `guest-capture` meets her again here, at the door she walked
  * through to get there.
  *
- * ★ THE ORDER IS HER OWN WALK THROUGH THE DOOR: the optional email under her
- * name, a way to sign in if she is already a member, the framing she would
- * meet had Maya asked for a confirmed email instead, then her own menu once
- * she is inside and where undoing an email lives. All five are roots: each
- * holds the other four at today's shape and moves only its own piece.
+ * ★ THE ORDER IS HER OWN WALK THROUGH THE DOOR: whether the welcome earns its
+ * own screen before her name does, the optional email under that name, a way
+ * to sign in if she is already a member, the framing she would meet had Maya
+ * asked for a confirmed email instead, then her own menu once she is inside
+ * and where undoing an email lives. All six are roots: each holds the other
+ * five at today's shape and moves only its own piece.
  *
- * ★ WHAT IS DELIBERATELY NOT ASKED. Whether an event requires a verified
- * email at all, the three levels of trust, the claim per event, the mark's
- * word: all ruled ("guest identity"). The name step's own
- * sequence (welcome, then name, then the gate, then upload, "No exit") is
- * `door-steps`'s shipped shape and worn here as law, not reopened. The
- * flows around the claim ticket itself (the notification, the profile
- * setup) are his named exception, waiting on this board first.
+ * ★ WHAT IS HELD STEADY, NOT ASKED HERE. Whether an event requires a
+ * verified email at all, the three levels of trust, the claim per event, the
+ * mark's word: all outside this board's six questions. The steps behind the
+ * name field (the gate before the upload, the itinerary's "no exit") stay
+ * put too; only whether the WELCOME half of the walk deserves its own screen
+ * is open, in `walk` below. The flows around the claim ticket itself and the
+ * profile it can lead to are the two boards beside this one,
+ * `identity-claims` and `identity-profile`.
  */
 
 const SCREEN: Control = {
@@ -49,11 +49,48 @@ const DRAFT = defineExploration({
     n: 1,
     date: "2026-09-24",
     changed:
-      "The desk re-cut: menu's context now names guest-capture's new tracker ask as the sheet option's neighbour; no option changed.",
+      "The refresh: a sixth question (`walk`) asks whether the welcome deserves its own screen at all; the gate's copy no longer leans on being 'the ruled line' to justify itself; every comment drops the earlier round's authority framing.",
   },
   context:
-    "Every option is Priya at Maya and Jay's wedding, the world guest-capture already uses, one step earlier: the held door sheet before she has typed a name. The optional email shipped under the name this morning; this board asks where it sits, whether a member gets a way to sign in instead, how the verified gate sells itself, and what her own menu offers once she is inside.",
+    "Every option is Priya at Maya and Jay's wedding, the world guest-capture already uses, met at the door she walks through to reach it. This board asks whether the welcome deserves its own screen, where the optional email sits against her name, whether a member gets a way to sign in instead, how the verified gate sells itself, and what her own menu offers once she is inside.",
   asks: [
+    {
+      id: "walk",
+      label: "The welcome step",
+      question:
+        "Does the welcome deserve its own screen before Priya can even start typing her name?",
+      context:
+        "Today a first-time visitor meets one screen alone (an eyebrow, the event's name, two benefit rows, one Continue) before the name step behind it ever shows; a returning device skips straight to the plain name step already.",
+      options: [
+        {
+          id: "separate",
+          label: "Its own screen, once, as shipped",
+          means:
+            "A first visit meets the welcome alone; Continue reveals the name step. A returning device skips straight to the name step, as today.",
+        },
+        {
+          id: "combined",
+          label: "Combined, on a first visit only",
+          means:
+            "The welcome's two lines sit above the name field itself, one screen, one Continue. A returning device meets exactly today's name step.",
+        },
+        {
+          id: "gone",
+          label: "Retired: every visit meets one screen",
+          means:
+            "The dedicated welcome step goes; its two lines fold into the name step's own heading, so first-time and returning guests meet the same screen.",
+        },
+      ],
+      recommended: "combined",
+      because:
+        "The welcome's own words move above the field she is about to fill instead of behind a tap that reveals it: one fewer screen for a first look, with the return visit (already the common case) untouched.",
+      overrule:
+        "If the arrival's own beat is worth an extra tap, the shipped two screens keep it dedicated rather than a field she reads past on her way in.",
+      lands:
+        "Whether a guest's very first look at an event costs one screen or two before she can start typing her name.",
+      tile: "phone",
+      configs: [SCREEN],
+    },
     {
       id: "field",
       label: "The field",
@@ -132,15 +169,15 @@ const DRAFT = defineExploration({
       id: "gate",
       label: "The gate's framing",
       question:
-        "On the verified-required gate, should the benefit framing stay the one ruled line, or say more?",
+        "On the verified-required gate, should the benefit framing stay the one shipped line, or say more?",
       context:
-        'Today, ruled verbatim: "The host has asked guests to confirm an email for safety. One tap and you\'re in." His benefits note once wanted the event saved too; that half is dead now, leaving one true benefit: her photos stay in her account.',
+        'Today: "The host has asked guests to confirm an email for safety. One tap and you\'re in." An earlier draft paired it with a second benefit, saving the event; that half is gone now, leaving one true benefit: her photos stay in her account.',
       options: [
         {
           id: "line",
           label: "The one line, as shipped",
           means:
-            "The ruled sentence alone, under the eyebrow 'Almost in': the ask, the reason, the cost, in one breath.",
+            "The shipped sentence alone, under the eyebrow 'Almost in': the ask, the reason, the cost, in one breath.",
         },
         {
           id: "list",
@@ -152,12 +189,12 @@ const DRAFT = defineExploration({
           id: "eyebrow",
           label: "The host named in the eyebrow",
           means:
-            "\"Almost in\" becomes the host's own name (\"Maya's event\"); the ruled reason line stands unchanged beneath it.",
+            "\"Almost in\" becomes the host's own name (\"Maya's event\"); the shipped reason line stands unchanged beneath it.",
         },
       ],
       recommended: "line",
       because:
-        "His benefits note is half dead: 'save the event' no longer exists, and the one truthful line left over, a forward promise about photos she has not added yet, is thinner than the pair he had in mind. The shipped line already carries the ask, the reason and the cost in one breath.",
+        "The one truthful benefit left, a forward promise about photos she has not added yet, is thinner alone than the pair an earlier draft paired it with. The shipped line already carries the ask, the reason and the cost in one breath.",
       overrule:
         "If even one true benefit is worth surfacing at the gate, the added line costs nothing and answers the question she is about to ask herself anyway.",
       lands:
@@ -245,7 +282,7 @@ const DRAFT = defineExploration({
 /**
  * ONE KNOB PER ID (`media-viewer`'s own finding, carried by every board over
  * this world): every ask declares the same SCREEN control on its own strip,
- * so the constructor would draw it five times without this dedupe.
+ * so the constructor would draw it six times without this dedupe.
  */
 export const IDENTITY_DOOR: typeof DRAFT = {
   ...DRAFT,

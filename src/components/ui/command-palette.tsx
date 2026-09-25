@@ -167,7 +167,7 @@ function CommandPaletteContent({
           "fixed top-[12vh] left-1/2 z-50 flex w-[min(40rem,calc(100vw-2rem))] -translate-x-1/2 flex-col overflow-hidden outline-none",
           floatingPanel,
           floatingEntrance,
-          // Opened a few times a session, and worth a beat (bible 5).
+          // Opened a few times a session, and worth a beat.
           floatingClock.standard,
           className
         )}
