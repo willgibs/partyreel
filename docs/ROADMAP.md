@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Albums: prune `album_changes` tombstones (one row per item ever, a purged item's included) with a per-event watermark that answers resync below it, as a job with its `/admin` health signal (from `album-pages`).
 - Album: the count row could carry the guest's own share as a quiet phrase that is the filter ("28 photos & videos · 8 yours"), so Yours is in plain sight whichever mark wins (today it is two taps into View); from `mark-r3`.
 - Host: the lightbox's pending Approve branch can never render (`src/components/shared/media-lightbox`); remove it or give it a door (from `reel-host-wiring`).
 - Tests: the Radix FocusScope teardown flush `entry-modal.test.tsx` runs in its own `afterEach` belongs in `vitest.setup.ts`, for every component test that unmounts a Radix dialog (from `reel-guest-wiring`).
