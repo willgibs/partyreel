@@ -7,9 +7,7 @@ import type { ReactNode } from "react";
 import { GroundBox } from "@/components/lab";
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
-import {
-  CARD_COPY_SCRIM,
-} from "@/components/marketing/sections/features/shared/feature-door";
+import { CARD_COPY_SCRIM } from "@/components/marketing/sections/features/shared/feature-door";
 import { InlineReelPlayer } from "@/components/marketing/sections/shared/inline-reel-player";
 import { CategoryEmblem } from "@/components/marketing/help/help-emblems";
 import { Caption } from "@/components/marketing/system/caption";
@@ -160,12 +158,22 @@ export function ThesisDoor({ line, phone }: { line: string; phone: boolean }) {
           phone ? "aspect-[16/9] w-full" : "aspect-[21/9] w-full max-w-xl",
         )}
       >
-        <Image src={reel.poster} alt="" fill sizes="640px" className="object-cover" />
+        <Image
+          src={reel.poster}
+          alt=""
+          fill
+          sizes="640px"
+          className="object-cover"
+        />
         <span
           aria-hidden
           className="absolute inset-0 bg-linear-to-t from-black/85 via-black/40 to-black/10"
         />
-        <span aria-hidden className="absolute inset-0" style={CARD_COPY_SCRIM} />
+        <span
+          aria-hidden
+          className="absolute inset-0"
+          style={CARD_COPY_SCRIM}
+        />
         <span aria-hidden className="absolute top-3 left-3">
           <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-black/55 px-2 text-micro font-medium text-white backdrop-blur-sm">
             <Play className="size-3 fill-white" />
@@ -186,7 +194,13 @@ export function ThesisDoor({ line, phone }: { line: string; phone: boolean }) {
   );
 }
 
-export function ThesisPreview({ line, phone }: { line: string; phone: boolean }) {
+export function ThesisPreview({
+  line,
+  phone,
+}: {
+  line: string;
+  phone: boolean;
+}) {
   return (
     <div>
       <Caption className="px-6 pt-4">The home&rsquo;s close</Caption>
@@ -199,9 +213,12 @@ export function ThesisPreview({ line, phone }: { line: string; phone: boolean })
 
 /* ── 2. the /reel page's arc ─────────────────────────────────────────────── */
 
-export type ArcKey = "live" | "screen" | "cut";
+export type ArcKey = "live" | "screen" | "clip";
 
-const ARC_CHAPTER: Record<ArcKey, { eyebrow: string; heading: string; body: string }> = {
+const ARC_CHAPTER: Record<
+  ArcKey,
+  { eyebrow: string; heading: string; body: string }
+> = {
   live: {
     eyebrow: "Alive now",
     heading: "The reel",
@@ -212,9 +229,9 @@ const ARC_CHAPTER: Record<ArcKey, { eyebrow: string; heading: string; body: stri
     heading: "The screen",
     body: "Play on a screen opens the reel full-bleed with the event's name in a corner: scan, add, on the wall a minute later.",
   },
-  cut: {
+  clip: {
     eyebrow: "Yours to make",
-    heading: "A cut",
+    heading: "A clip",
     body: "Anyone taps Make your own: pick moments, a look, a length. It renders on the device and shares as a file, unlimited, never stored.",
   },
 };
@@ -234,7 +251,11 @@ function ArcMedia({ chapter, phone }: { chapter: ArcKey; phone: boolean }) {
   if (chapter === "screen") {
     return (
       <div className="mx-auto w-full max-w-md overflow-hidden rounded-md border-4 border-neutral-800 bg-black shadow-lift">
-        <CanvasReelPlayer reelProps={DEMO_REEL_LANDSCAPE} showControls={false} maxDim={420} />
+        <CanvasReelPlayer
+          reelProps={DEMO_REEL_LANDSCAPE}
+          showControls={false}
+          maxDim={420}
+        />
       </div>
     );
   }
@@ -254,20 +275,41 @@ export function ArcPreview({
 }) {
   return (
     <div className="dark bg-background text-foreground">
-      <div className={cn("flex flex-col items-center gap-3 border-b border-white/10 px-6 py-10 text-center", phone && "px-4 py-8")}>
+      <div
+        className={cn(
+          "flex flex-col items-center gap-3 border-b border-white/10 px-6 py-10 text-center",
+          phone && "px-4 py-8",
+        )}
+      >
         <Eyebrow>The highlight reel</Eyebrow>
-        <h1 className={cn("font-heading text-balance", phone ? "text-3xl" : "text-5xl")}>
+        <h1
+          className={cn(
+            "font-heading text-balance",
+            phone ? "text-3xl" : "text-5xl",
+          )}
+        >
           Every event has a reel.
         </h1>
         <p className="max-w-md text-sm text-pretty text-muted-foreground">
-          The style switcher stays here: pick a mood, watch the same take redraw.
+          The style switcher stays here: pick a mood, watch the same take
+          redraw.
         </p>
       </div>
-      <div className={cn("mx-auto flex max-w-2xl flex-col gap-10 px-6 py-10", phone && "gap-8 px-4 py-8")}>
+      <div
+        className={cn(
+          "mx-auto flex max-w-2xl flex-col gap-10 px-6 py-10",
+          phone && "gap-8 px-4 py-8",
+        )}
+      >
         {order.map((key) => (
-          <div key={key} className="flex flex-col items-center gap-3 border-t border-white/10 pt-10 text-center first:border-t-0 first:pt-0">
+          <div
+            key={key}
+            className="flex flex-col items-center gap-3 border-t border-white/10 pt-10 text-center first:border-t-0 first:pt-0"
+          >
             <Caption>{ARC_CHAPTER[key].eyebrow}</Caption>
-            <h2 className="font-heading text-subsection">{ARC_CHAPTER[key].heading}</h2>
+            <h2 className="font-heading text-subsection">
+              {ARC_CHAPTER[key].heading}
+            </h2>
             <p className="max-w-md text-sm text-pretty text-muted-foreground">
               {ARC_CHAPTER[key].body}
             </p>
@@ -315,7 +357,7 @@ function TeaserCrossfade({ images }: { images: readonly string[] }) {
 }
 
 const TEASER_SUBHEAD =
-  "Alive from the second photo, styled by the host, yours to switch. Every guest can make their own cut.";
+  "Alive from the second photo, styled by the host, yours to switch. Every guest can make their own clip.";
 
 export function TeaserPreview({
   variant,
@@ -354,8 +396,17 @@ export function TeaserPreview({
           )}
           {variant === "poster" && (
             <div className="relative aspect-video w-full overflow-hidden rounded-2xl border bg-black ring-1 ring-foreground/5">
-              <Image src={filmReel.poster} alt="" fill sizes="640px" className="object-cover" />
-              <span aria-hidden className="absolute inset-0 flex items-center justify-center">
+              <Image
+                src={filmReel.poster}
+                alt=""
+                fill
+                sizes="640px"
+                className="object-cover"
+              />
+              <span
+                aria-hidden
+                className="absolute inset-0 flex items-center justify-center"
+              >
                 <span className="flex size-14 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm">
                   <Play className="size-6 translate-x-0.5 fill-current" />
                 </span>
@@ -369,9 +420,11 @@ export function TeaserPreview({
           )}
           <Caption className="mt-4 text-center tabular-nums">
             {variant === "engine" && "Playing live · the demo album's own reel"}
-            {variant === "film" && `A real render · ${formatDuration(filmReel.durationSeconds)}`}
+            {variant === "film" &&
+              `A real render · ${formatDuration(filmReel.durationSeconds)}`}
             {variant === "poster" && "A still frame, until you tap it"}
-            {variant === "crossfade" && "The album tile's own crossfade · no engine"}
+            {variant === "crossfade" &&
+              "The album tile's own crossfade · no engine"}
           </Caption>
         </div>
       </SectionShell>
@@ -381,9 +434,15 @@ export function TeaserPreview({
 
 /* ── 4. the pricing rows ─────────────────────────────────────────────────── */
 
-export type PricingVariant = "renamed" | "clip-renamed" | "one-row" | "footnote";
+export type PricingVariant = "renamed" | "one-row" | "footnote";
 
-function PriceRow({ label, values }: { label: string; values: [string, string, string] }) {
+function PriceRow({
+  label,
+  values,
+}: {
+  label: string;
+  values: [string, string, string];
+}) {
   return (
     <div className="grid grid-cols-[1fr_1fr_1fr_1fr] items-baseline gap-3 border-t border-dashed border-border py-3 text-sm">
       <span className="text-foreground">{label}</span>
@@ -411,32 +470,36 @@ export function PricingPreview({ variant }: { variant: PricingVariant }) {
         </div>
         {variant === "renamed" && (
           <>
-            <PriceRow label="Cut length" values={[`${free}s`, `${pass}s`, `${pro}s`]} />
-            <PriceRow label="Cut watermark" values={["Small mark", "None", "None"]} />
-          </>
-        )}
-        {variant === "clip-renamed" && (
-          <>
-            <PriceRow label="Clip length" values={[`${free}s`, `${pass}s`, `${pro}s`]} />
-            <PriceRow label="Clip watermark" values={["Small mark", "None", "None"]} />
+            <PriceRow
+              label="Clip length"
+              values={[`${free}s`, `${pass}s`, `${pro}s`]}
+            />
+            <PriceRow
+              label="Clip watermark"
+              values={["Small mark", "None", "None"]}
+            />
           </>
         )}
         {variant === "one-row" && (
           <PriceRow
             label="Your reel"
-            values={[`${free}s, small mark`, `${pass}s, no mark`, `${pro}s, no mark`]}
+            values={[
+              `${free}s, small mark`,
+              `${pass}s, no mark`,
+              `${pro}s, no mark`,
+            ]}
           />
         )}
         {variant === "footnote" && (
           <p className="pt-3 text-xs text-pretty text-muted-foreground">
-            The reel and the cut carry no row here: the live reel and the
+            The reel and the clip carry no row here: the live reel and the
             screen are unmarked and uncapped on every plan.
           </p>
         )}
       </div>
       {variant === "footnote" && (
-        <p className="mx-auto mt-4 max-w-xl text-pretty text-xs text-muted-foreground">
-          {`* A free event's own cut carries a small mark and runs ${free} seconds; the Event Pass and Pro carry neither.`}
+        <p className="mx-auto mt-4 max-w-xl text-xs text-pretty text-muted-foreground">
+          {`* A free event's own clip carries a small mark and runs ${free} seconds; the Event Pass and Pro carry neither.`}
         </p>
       )}
     </div>
@@ -445,18 +508,14 @@ export function PricingPreview({ variant }: { variant: PricingVariant }) {
 
 /* ── 5. the how-it-works steps ───────────────────────────────────────────── */
 
-export type StepsVariant = "grow-cut" | "grow-clip" | "screen-step" | "folded";
+export type StepsVariant = "grow-clip" | "screen-step" | "folded";
 
 type StepCopy = { title: string; body: string };
 
-const CUT_STEP: StepCopy = {
-  title: "Make your cut",
+const CLIP_STEP: StepCopy = {
+  title: "Make your clip",
   body: "Tap Make your own on the reel: pick a look and a length, and it renders free, right on your phone.",
 };
-
-/** The same step, his own guest-facing word: a clip, never a second body of
- *  copy to keep in sync (`steps` draws clip beside cut, never past it). */
-const CLIP_STEP: StepCopy = { title: "Make your clip", body: CUT_STEP.body };
 
 const GROW_HOST: StepCopy = {
   title: "Watch the reel grow",
@@ -467,10 +526,6 @@ const STEPS_COPY: Record<
   StepsVariant,
   { host: StepCopy | null; guest: StepCopy; foldedNote?: string }
 > = {
-  "grow-cut": {
-    host: GROW_HOST,
-    guest: CUT_STEP,
-  },
   "grow-clip": {
     host: GROW_HOST,
     guest: CLIP_STEP,
@@ -480,15 +535,16 @@ const STEPS_COPY: Record<
       title: "Put it on a screen",
       body: "Open Play on a screen from the hub and the reel fills the wall, updating as photos land all night.",
     },
-    guest: CUT_STEP,
+    guest: CLIP_STEP,
   },
   folded: {
     host: null,
     guest: {
       title: "Take it all home",
-      body: "Save a favourite, download the whole album, or make your own cut of the reel that has been playing all night.",
+      body: "Save a favourite, download the whole album, or make your own clip of the reel that has been playing all night.",
     },
-    foldedNote: "Neither side numbers the reel on its own; it rides inside the last step instead.",
+    foldedNote:
+      "Neither side numbers the reel on its own; it rides inside the last step instead.",
   },
 };
 
@@ -529,17 +585,30 @@ function StepCard({ side, step }: { side: "Host" | "Guest"; step: StepCopy }) {
   );
 }
 
-export function StepsPreview({ variant, phone }: { variant: StepsVariant; phone: boolean }) {
+export function StepsPreview({
+  variant,
+  phone,
+}: {
+  variant: StepsVariant;
+  phone: boolean;
+}) {
   const copy = STEPS_COPY[variant];
   return (
     <div className="dark flex flex-col gap-8 bg-background p-6 text-foreground sm:p-10">
       <StepRail count={stepCount(variant)} />
-      <div className={cn("mx-auto grid w-full max-w-2xl gap-4", phone ? "grid-cols-1" : "grid-cols-2")}>
+      <div
+        className={cn(
+          "mx-auto grid w-full max-w-2xl gap-4",
+          phone ? "grid-cols-1" : "grid-cols-2",
+        )}
+      >
         {copy.host && <StepCard side="Host" step={copy.host} />}
         <StepCard side="Guest" step={copy.guest} />
       </div>
       {copy.foldedNote && (
-        <p className="text-center text-xs text-muted-foreground">{copy.foldedNote}</p>
+        <p className="text-center text-xs text-muted-foreground">
+          {copy.foldedNote}
+        </p>
       )}
     </div>
   );
@@ -547,7 +616,7 @@ export function StepsPreview({ variant, phone }: { variant: StepsVariant; phone:
 
 /* ── 6. the events pages' reel column ────────────────────────────────────── */
 
-export type EventsVariant = "wall" | "cut" | "gone";
+export type EventsVariant = "wall" | "clip" | "gone";
 
 const DOOR_REEL_ID_EVENTS = "hero-candidate-01";
 const DOOR_RATIO = 0.78;
@@ -584,27 +653,41 @@ function DemoDoorColumn({ phone }: { phone: boolean }) {
 
 const EVENT_ANGLE: Record<Exclude<EventsVariant, "gone">, string> = {
   wall: "The live reel plays on the wall all night, restyled by the host, growing with every photo your guests take.",
-  cut: "Tap Make your own on the reel and take home a highlight clip built from your own night, shareable in a tap.",
+  clip: "Tap Make your own on the reel and take home a highlight clip built from your own night, shareable in a tap.",
 };
 
-function ReelColumn({ variant, phone }: { variant: Exclude<EventsVariant, "gone">; phone: boolean }) {
+function ReelColumn({
+  variant,
+  phone,
+}: {
+  variant: Exclude<EventsVariant, "gone">;
+  phone: boolean;
+}) {
   return (
     <div className={cn("flex flex-col gap-5", !phone && "lg:col-span-5")}>
       <div className="flex flex-col gap-2.5">
         <p className="font-heading text-subsection">And it ends with a reel.</p>
-        <p className="text-sm text-pretty text-muted-foreground">{EVENT_ANGLE[variant]}</p>
+        <p className="text-sm text-pretty text-muted-foreground">
+          {EVENT_ANGLE[variant]}
+        </p>
       </div>
       <div className="flex items-end gap-5">
         <div className="w-[150px] shrink-0 overflow-hidden rounded-[var(--radius-tile)] shadow-lift ring-1 ring-white/10">
           {variant === "wall" ? (
-            <CanvasReelPlayer reelProps={DEMO_REEL_PORTRAIT} showControls={false} maxDim={300} />
+            <CanvasReelPlayer
+              reelProps={DEMO_REEL_PORTRAIT}
+              showControls={false}
+              maxDim={300}
+            />
           ) : (
             <InlineReelPlayer reelId={DOOR_REEL_ID_EVENTS} sizes="150px" />
           )}
         </div>
         <div className="flex flex-col gap-3 pb-1">
           <Caption className="tabular-nums">
-            {variant === "wall" ? "Playing live · the demo album" : "A real render · 13s"}
+            {variant === "wall"
+              ? "Playing live · the demo album"
+              : "A real render · 13s"}
           </Caption>
           <LearnMoreLink href="/reel">See how reels work</LearnMoreLink>
         </div>
@@ -613,7 +696,13 @@ function ReelColumn({ variant, phone }: { variant: Exclude<EventsVariant, "gone"
   );
 }
 
-export function EventsPreview({ variant, phone }: { variant: EventsVariant; phone: boolean }) {
+export function EventsPreview({
+  variant,
+  phone,
+}: {
+  variant: EventsVariant;
+  phone: boolean;
+}) {
   const weddings = EVENT_TYPES.find((t) => t.slug === "weddings")!;
   return (
     <div className="dark bg-background p-6 text-foreground sm:p-10">
@@ -624,7 +713,11 @@ export function EventsPreview({ variant, phone }: { variant: EventsVariant; phon
       <div
         className={cn(
           "mx-auto grid gap-8",
-          variant === "gone" ? "max-w-md" : phone ? "max-w-md grid-cols-1" : "max-w-4xl lg:grid-cols-12 lg:items-center",
+          variant === "gone"
+            ? "max-w-md"
+            : phone
+              ? "max-w-md grid-cols-1"
+              : "max-w-4xl lg:grid-cols-12 lg:items-center",
         )}
       >
         <DemoDoorColumn phone={phone || variant === "gone"} />
@@ -639,13 +732,13 @@ export function EventsPreview({ variant, phone }: { variant: EventsVariant; phon
 export type HelpVariant =
   | "highlight-reel"
   | "the-reel"
-  | "reels-cuts"
+  | "reels-clips"
   | "live-reel";
 
 const HELP_LABEL: Record<HelpVariant, string> = {
   "highlight-reel": "Highlight reel",
   "the-reel": "The reel",
-  "reels-cuts": "Reels and cuts",
+  "reels-clips": "Reels and clips",
   "live-reel": "The live reel",
 };
 
@@ -687,7 +780,7 @@ function CategoryPane({ label }: { label: string }) {
         </div>
       </div>
       <p className="mt-3 text-sm text-pretty text-muted-foreground">
-        Your event&rsquo;s best moments, live on the wall and yours to cut.
+        Your event&rsquo;s best moments, live on the wall and yours to clip.
       </p>
     </div>
   );

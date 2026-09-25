@@ -49,10 +49,15 @@ function thesisScreen(id: string, s: BoardState) {
   );
 }
 
-const ARC_ORDER: Record<string, readonly ["live", "screen", "cut"] | readonly ["cut", "live", "screen"] | readonly ["screen", "live", "cut"]> = {
-  "live-first": ["live", "screen", "cut"],
-  "cut-first": ["cut", "live", "screen"],
-  "screen-first": ["screen", "live", "cut"],
+const ARC_ORDER: Record<
+  string,
+  | readonly ["live", "screen", "clip"]
+  | readonly ["clip", "live", "screen"]
+  | readonly ["screen", "live", "clip"]
+> = {
+  "live-first": ["live", "screen", "clip"],
+  "clip-first": ["clip", "live", "screen"],
+  "screen-first": ["screen", "live", "clip"],
 };
 
 function arcScreen(id: string, s: BoardState) {
@@ -70,7 +75,10 @@ function arcScreen(id: string, s: BoardState) {
   );
 }
 
-function teaserScreen(id: "engine" | "film" | "poster" | "crossfade", s: BoardState) {
+function teaserScreen(
+  id: "engine" | "film" | "poster" | "crossfade",
+  s: BoardState,
+) {
   const screen = screenOf(s.screen);
   const phone = phoneOf(screen);
   return (
@@ -85,17 +93,16 @@ function teaserScreen(id: "engine" | "film" | "poster" | "crossfade", s: BoardSt
   );
 }
 
-function pricingScreen(
-  id: "renamed" | "clip-renamed" | "one-row" | "footnote",
-  s: BoardState,
-) {
+function pricingScreen(id: "renamed" | "one-row" | "footnote", s: BoardState) {
   const screen = screenOf(s.screen);
   return (
     <Screen
       id={`pricing-${id}`}
       screen={screen}
       h={id === "footnote" ? 340 : 300}
-      caption={'The comparison matrix’s own "The reel" group, real MAX_REEL_SECONDS numbers, on the table’s dark ground.'}
+      caption={
+        'The comparison matrix’s own "The reel" group, real MAX_REEL_SECONDS numbers, on the table’s dark ground.'
+      }
     >
       <PricingPreview variant={id} />
     </Screen>
@@ -103,7 +110,7 @@ function pricingScreen(
 }
 
 function stepsScreen(
-  id: "grow-cut" | "grow-clip" | "screen-step" | "folded",
+  id: "grow-clip" | "screen-step" | "folded",
   s: BoardState,
 ) {
   const screen = screenOf(s.screen);
@@ -120,7 +127,7 @@ function stepsScreen(
   );
 }
 
-function eventsScreen(id: "wall" | "cut" | "gone", s: BoardState) {
+function eventsScreen(id: "wall" | "clip" | "gone", s: BoardState) {
   const screen = screenOf(s.screen);
   const phone = phoneOf(screen);
   return (
@@ -136,7 +143,7 @@ function eventsScreen(id: "wall" | "cut" | "gone", s: BoardState) {
 }
 
 function helpScreen(
-  id: "highlight-reel" | "the-reel" | "reels-cuts" | "live-reel",
+  id: "highlight-reel" | "the-reel" | "reels-clips" | "live-reel",
   s: BoardState,
 ) {
   const screen = screenOf(s.screen);
@@ -159,7 +166,7 @@ const PREVIEWS: PreviewsFor<typeof REEL_STORY> = {
   "thesis.auto": (s) => thesisScreen("auto", s),
 
   "arc.live-first": (s) => arcScreen("live-first", s),
-  "arc.cut-first": (s) => arcScreen("cut-first", s),
+  "arc.clip-first": (s) => arcScreen("clip-first", s),
   "arc.screen-first": (s) => arcScreen("screen-first", s),
 
   "teaser.engine": (s) => teaserScreen("engine", s),
@@ -168,22 +175,20 @@ const PREVIEWS: PreviewsFor<typeof REEL_STORY> = {
   "teaser.crossfade": (s) => teaserScreen("crossfade", s),
 
   "pricing.renamed": (s) => pricingScreen("renamed", s),
-  "pricing.clip-renamed": (s) => pricingScreen("clip-renamed", s),
   "pricing.one-row": (s) => pricingScreen("one-row", s),
   "pricing.footnote": (s) => pricingScreen("footnote", s),
 
-  "steps.grow-cut": (s) => stepsScreen("grow-cut", s),
   "steps.grow-clip": (s) => stepsScreen("grow-clip", s),
   "steps.screen-step": (s) => stepsScreen("screen-step", s),
   "steps.folded": (s) => stepsScreen("folded", s),
 
   "events.wall": (s) => eventsScreen("wall", s),
-  "events.cut": (s) => eventsScreen("cut", s),
+  "events.clip": (s) => eventsScreen("clip", s),
   "events.gone": (s) => eventsScreen("gone", s),
 
   "help.highlight-reel": (s) => helpScreen("highlight-reel", s),
   "help.the-reel": (s) => helpScreen("the-reel", s),
-  "help.reels-cuts": (s) => helpScreen("reels-cuts", s),
+  "help.reels-clips": (s) => helpScreen("reels-clips", s),
   "help.live-reel": (s) => helpScreen("live-reel", s),
 };
 

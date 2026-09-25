@@ -2,319 +2,127 @@
 
 import { type ReactNode } from "react";
 import {
-  ArrowLeft,
   Check,
+  ChevronDown,
+  ChevronLeft,
   ChevronRight,
-  Clapperboard,
-  Download,
   EyeOff,
-  Film,
+  GripVertical,
   Heart,
-  Hourglass,
-  Music2,
-  Pause,
+  ImagePlay,
+  Lock,
   Play,
   Plus,
-  QrCode,
-  Share2,
-  Sparkles,
-  X,
+  RectangleVertical,
+  Timer,
 } from "lucide-react";
 
 import { UNIFORM_TILE_ASPECT } from "@/lib/media/tile-aspect";
 import { cn } from "@/lib/utils";
 
-import {
-  CUT,
-  EVENT,
-  FILL_LABEL,
-  FILLS,
-  GUEST_POOL,
-  POOL,
-  STYLES,
-} from "./fixtures";
+import { BY_ID, FILL_LABEL, FILLS, STYLES } from "./fixtures";
 import type { AlbumItem, FillId } from "./fixtures";
-import { RoomChip, type ScreenId } from "./room";
-import { CutStill } from "./stills";
+import { ClipStill } from "./stills";
 
 /**
- * EVERY PIECE THE NINE DECISIONS MOVE, AND NOTHING ELSE.
+ * THE PIECES A DIRECTION IS BUILT FROM, AND NOTHING ELSE.
  *
- * ★ NOTHING HERE MOUNTS A RADIX PORTAL (Dialog, Sheet, Popover, Tooltip,
- * DropdownMenu). A portal opened inside a portalled lab frame renders on the
- * LAB PAGE's document, not inside the phone being judged (`guest-capture` and
- * `host-curation` both name the same landmine). So the export modal and the
- * blocked tile's tooltip are QUOTED markup: the real classes and the real
- * copy, none of the real primitives.
+ * ★ QUOTED, NEVER MOUNTED. The creator's real controls (`ReelStudio`,
+ * `StyleWall`, `StudioMomentsPicker`) mount `ReelProvider` and fire writes
+ * against whatever event id they are handed, so each piece here is the shipped
+ * piece's own classes and words over the fixtures: the dark room's chip, the
+ * sheet's label, the picker's position badge, the wall's tile.
  *
- * ★ NOTHING HERE PLAYS, PRESIGNS OR ENCODES. Every cut frame is a still the
- * engine drew once (stills.tsx); every count under a frame is read off the
- * document by the board, never written here.
+ * ★ NOTHING HERE MOUNTS A RADIX PORTAL. A portal opened inside a portalled lab
+ * frame renders on the LAB PAGE's document, not inside the phone being judged,
+ * so a menu or a dialog is quoted markup: the real classes, none of the
+ * primitives.
  *
- * ★ THE WORDS ARE PLACEHOLDERS EXCEPT WHERE THEY ARE RULED. "Make your own",
- * "Add to the album" and the cut itself are the concept's own names (rulings,
- * 2026-09-22); the three fills, the export verb and the mark's line are this
- * board's, and a copy round may take all three.
+ * ★ EVERY COUNT UNDER A FRAME IS READ OFF THE DOCUMENT BY THE BOARD, so each
+ * piece marks what it is (`data-rc-look`, `data-rc-moment`) and never reports
+ * a number of its own.
  */
 
-/* ── the reel's own view, which is where a cut begins ─────────────────────── */
+/** The room's ground and its one raised surface, in one place. */
+export const ROOM = "bg-[oklch(0.11_0_0)]";
+export const PANEL = "bg-[oklch(0.14_0_0)] ring-1 ring-white/[0.07]";
 
-/** A round control in the view's weighted dock: reel-view round one's own
- *  shape, reused here as ground. */
-function ViewControl({
-  label,
+/* ── the dark room's own chip and label, quoted from reel-studio.tsx ─────── */
+
+export function RoomChip({
+  active,
   children,
+  className,
 }: {
-  label: string;
+  active?: boolean;
   children: ReactNode;
+  className?: string;
 }) {
   return (
     <span
-      data-rc-view-control
-      aria-label={label}
-      title={label}
-      className="flex size-10 items-center justify-center rounded-full border border-white/20 text-white/85 backdrop-blur-sm"
+      className={cn(
+        "flex h-8 shrink-0 items-center gap-1 rounded-[var(--radius-action-sm)] border px-3 text-caption font-medium whitespace-nowrap",
+        active
+          ? "border-white bg-white text-zinc-900"
+          : "border-white/20 text-white/80",
+        className,
+      )}
     >
       {children}
     </span>
   );
 }
 
-/** What stands where "Make your own" would: the whole of `noencode`. */
-export type MakeSlot = "line" | "greyed" | "none";
-
-/**
- * THE VIEW: the live reel full bleed, its chrome DECIDED now (reel-view round
- * one, carried here as ground): a top-left arrival chip, no event name on
- * screen, a weighted dock (a slim utility row, "Add yours" an icon, "Make
- * your own" the one primary beneath it) and the event's code as a plate
- * bottom right. `entry` asks what happens when "Make your own" is tapped and
- * `noencode` asks what stands in the primary's place when it cannot be;
- * neither asks anything else about this row, which is `reel-view`'s round.
- */
-export function ReelView({
-  still,
-  make,
-  screen,
-  over,
-}: {
-  still: string | null;
-  make: MakeSlot;
-  screen: ScreenId;
-  /** Anything drawn over the view (the entry's rising sheet). */
-  over?: ReactNode;
-}) {
-  const phone = screen === "375";
-  return (
-    <div
-      data-rc-view
-      className="relative flex h-dvh flex-col overflow-hidden bg-black"
-    >
-      <div className="absolute inset-0">
-        {still ? (
-          // eslint-disable-next-line @next/next/no-img-element -- a data url the engine just drew
-          <img
-            src={still}
-            alt="The event's live reel"
-            className="size-full object-cover opacity-90"
-          />
-        ) : null}
-        {/* The chrome sits on a scrim rather than on the picture: a reel of
-            a balloon wall is the brightest thing an album holds, and white on
-            it at 60 percent is unreadable (measured on this very still). */}
-        <span
-          aria-hidden
-          className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-black/90 via-black/55 to-transparent"
-        />
-      </div>
-
-      {/* No event name on screen: the arrival chip takes the top-left corner
-          instead, a live-feel beat rather than a label. */}
-      <div className="relative flex items-start justify-between p-3">
-        <span className="rounded-full bg-black/40 px-3 py-1.5 text-caption text-white/85 backdrop-blur-sm">
-          Ruby just added a photo
-        </span>
-        <ViewControl label="Close">
-          <X className="size-4" aria-hidden />
-        </ViewControl>
-      </div>
-
-      <div className="relative mt-auto flex flex-col items-center gap-3 px-4 pb-6">
-        <div
-          className={cn(
-            "flex items-center gap-2",
-            phone ? "justify-center" : "justify-center gap-3",
-          )}
-        >
-          <ViewControl label="Pause">
-            <Pause className="size-4" aria-hidden />
-          </ViewControl>
-          <ViewControl label="Include videos">
-            <Film className="size-4" aria-hidden />
-          </ViewControl>
-          <ViewControl label="Style">
-            <Sparkles className="size-4" aria-hidden />
-          </ViewControl>
-          <ViewControl label="Hold">
-            <Hourglass className="size-4" aria-hidden />
-          </ViewControl>
-          <ViewControl label="Show the code">
-            <QrCode className="size-4" aria-hidden />
-          </ViewControl>
-          <ViewControl label="Add yours">
-            <Plus className="size-4" aria-hidden />
-          </ViewControl>
-        </div>
-        {/* "Make your own" is the one primary beneath the row: removing it
-            for `noencode` empties this slot rather than disabling one icon
-            among many. */}
-        {make === "greyed" ? (
-          <span
-            data-rc-make-own="greyed"
-            aria-disabled
-            className="flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-working font-medium text-white/35"
-          >
-            <Clapperboard className="size-4" aria-hidden />
-            Make your own
-          </span>
-        ) : null}
-        {make === "line" || make === "greyed" ? (
-          <p
-            data-rc-noencode-line
-            className="max-w-[46ch] text-center text-caption text-white/75"
-          >
-            Making your own clip needs a newer browser. The reel plays here
-            either way.
-          </p>
-        ) : null}
-      </div>
-
-      {/* The event's code, a white plate bottom right: "Scan to add yours"
-          is the whole of it, so it never fights the centred dock for width
-          at 375. */}
-      <span
-        aria-label="Scan to add yours, at partyreel.com"
-        className="absolute right-3 bottom-3 z-10 flex size-9 items-center justify-center rounded-full bg-white text-zinc-900 shadow-lift"
-      >
-        <QrCode className="size-4" aria-hidden />
-      </span>
-
-      {over}
-    </div>
-  );
-}
-
-/* ── the entry's third shape: the album's own page, the creator beneath ───── */
-
-/** The album page a guest came from, with the reel's living tile at its head:
- *  headed "Highlight reel" and described "Make your own clip to share"
- *  (reel-front round one's own line) rather than the plain caption this
- *  replaced. */
-export function AlbumPage({
-  still,
+/** The sheet's own label row, with a count read by the reader, not typed. */
+export function PanelLabel({
   children,
+  aside,
 }: {
-  still: string | null;
-  children?: ReactNode;
+  children: ReactNode;
+  aside?: ReactNode;
 }) {
   return (
-    <div data-rc-album className="min-h-full bg-background text-foreground">
-      <header className="flex items-center justify-between gap-2 border-b border-border/60 px-4 py-3">
-        <span className="font-heading text-card-title">{EVENT.name}</span>
-        <span className="text-caption text-muted-foreground">
-          {EVENT.items} items
-        </span>
-      </header>
-      <div className="px-4 pt-4">
-        <div
-          data-rc-album-reel
-          className="relative overflow-hidden rounded-float bg-black"
-        >
-          <div className="flex h-36 items-center justify-center overflow-hidden">
-            {still ? (
-              // eslint-disable-next-line @next/next/no-img-element -- a data url the engine just drew
-              <img
-                src={still}
-                alt="The event's live reel"
-                className="w-full object-cover opacity-90"
-              />
-            ) : null}
-          </div>
-          <span
-            aria-hidden
-            className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/80 to-transparent"
-          />
-          <span className="absolute inset-x-3 bottom-2 flex flex-col gap-0.5">
-            <span className="font-heading text-working text-white">
-              Highlight reel
-            </span>
-            <span className="text-caption text-white/70">
-              Make your own clip to share
-            </span>
-          </span>
-        </div>
-      </div>
-      {children}
+    <div className="mb-2.5 flex items-baseline justify-between gap-3">
+      <p className="text-label font-semibold text-white/45 uppercase">
+        {children}
+      </p>
+      {aside ? (
+        <p className="text-micro text-white/40 tabular-nums">{aside}</p>
+      ) : null}
     </div>
   );
 }
 
-/**
- * THE TILE'S OWN DESCRIPTION, ECHOED for `noencode`'s second surface: what
- * "Make your own clip to share" becomes on a device that cannot cut, in the
- * same three shapes the view's primary slot wears (`MakeSlot`), never a
- * fourth vocabulary for the same question.
- */
-export function TileDescriptionEcho({ make }: { make: MakeSlot }) {
-  return (
-    <div
-      data-rc-tile-echo
-      className="mx-auto w-full max-w-[320px] rounded-float border border-border bg-background p-4 text-foreground"
-    >
-      <p className="font-heading text-card-title">Highlight reel</p>
-      {make === "none" ? null : (
-        <p
-          data-rc-tile-echo-line
-          className={cn(
-            "mt-1 text-working",
-            make === "greyed" ? "text-muted-foreground/60" : "text-muted-foreground",
-          )}
-        >
-          Clips need a newer browser here.
-        </p>
-      )}
-    </div>
-  );
-}
-
-/* ── the looks: fourteen frames of HER cut, in three postures ─────────────── */
+/* ── the looks: fourteen frames of HER clip ──────────────────────────────── */
 
 function LookTile({
+  id,
   src,
   label,
   active,
-  big,
+  className,
 }: {
+  id: string;
   src: string | null;
   label: string;
-  active?: boolean;
-  big?: boolean;
+  active: boolean;
+  className?: string;
 }) {
   return (
     <span
-      data-rc-look
-      className={cn(
-        "flex shrink-0 flex-col gap-1",
-        big ? "w-[104px]" : "w-full",
-      )}
+      data-rc-look={active ? "on" : "off"}
+      data-rc-look-id={id}
+      className={cn("flex min-w-0 shrink-0 flex-col gap-1", className)}
     >
       <span
         className={cn(
-          "relative block overflow-hidden rounded-lg bg-white/5",
-          active && "ring-2 ring-white",
+          "relative block rounded-lg",
+          active
+            ? "ring-2 ring-white ring-offset-2 ring-offset-[oklch(0.14_0_0)]"
+            : "ring-1 ring-white/10",
         )}
       >
-        <CutStill src={src} label={label} className="rounded-lg" />
+        <ClipStill src={src} label={label} rounded="rounded-lg" role="look" />
         {active ? (
           <span
             aria-hidden
@@ -324,70 +132,40 @@ function LookTile({
           </span>
         ) : null}
       </span>
-      <span className="truncate text-micro text-white/65">{label}</span>
+      <span
+        className={cn(
+          "truncate text-micro",
+          active ? "font-medium text-white" : "text-white/55",
+        )}
+      >
+        {label}
+      </span>
     </span>
   );
 }
 
-export type LooksShape = "wall" | "rail" | "three";
-
-/** Three to start: one per family, then the rest behind More. */
-const THREE = ["classic", "mono", "polaroid"];
-
-export function Looks({
-  shape,
-  byStyle,
-  picked = CUT.styleId,
+/** Fourteen at once, as a wall of `cols` columns (the shipped StyleWall's
+ *  tile, ungrouped so all fourteen stand in one rectangle). */
+export function LookWall({
+  thumbs,
+  picked,
+  cols,
 }: {
-  shape: LooksShape;
-  byStyle: ReadonlyMap<string, string>;
-  picked?: string;
+  thumbs: ReadonlyMap<string, string>;
+  picked: string;
+  cols: number;
 }) {
-  if (shape === "rail") {
-    return (
-      <div data-rc-looks="rail" className="flex gap-2 overflow-x-auto pb-1">
-        {STYLES.map((s) => (
-          <LookTile
-            key={s.id}
-            big
-            src={byStyle.get(s.id) ?? null}
-            label={s.label}
-            active={s.id === picked}
-          />
-        ))}
-      </div>
-    );
-  }
-  if (shape === "three") {
-    return (
-      <div data-rc-looks="three" className="flex flex-col gap-2">
-        <div className="grid grid-cols-3 gap-2">
-          {THREE.map((id) => {
-            const s = STYLES.find((x) => x.id === id);
-            if (!s) return null;
-            return (
-              <LookTile
-                key={s.id}
-                src={byStyle.get(s.id) ?? null}
-                label={s.label}
-                active={s.id === picked}
-              />
-            );
-          })}
-        </div>
-        <span className="flex items-center justify-center gap-1 rounded-[var(--radius-action-sm)] border border-white/20 py-2 text-caption font-medium text-white/80">
-          More looks
-          <ChevronRight className="size-3.5" aria-hidden />
-        </span>
-      </div>
-    );
-  }
   return (
-    <div data-rc-looks="wall" className="grid grid-cols-4 gap-2">
+    <div
+      data-rc-looks="wall"
+      className="grid gap-x-2.5 gap-y-3"
+      style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+    >
       {STYLES.map((s) => (
         <LookTile
           key={s.id}
-          src={byStyle.get(s.id) ?? null}
+          id={s.id}
+          src={thumbs.get(s.id) ?? null}
           label={s.label}
           active={s.id === picked}
         />
@@ -396,11 +174,132 @@ export function Looks({
   );
 }
 
-/* ── the moments: the three fills, and the pool under them ───────────────── */
-
-export function Fills({ fill }: { fill: FillId }) {
+/** One scrolling row of the fourteen, tiles `w` px wide. */
+export function LookRail({
+  thumbs,
+  picked,
+  w = 72,
+}: {
+  thumbs: ReadonlyMap<string, string>;
+  picked: string;
+  w?: number;
+}) {
   return (
-    <div data-rc-fills className="mb-2 flex items-center gap-1.5">
+    <div
+      data-rc-looks="rail"
+      data-rc-scroll
+      className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pt-1 pb-1"
+    >
+      {STYLES.map((s) => (
+        <span key={s.id} style={{ width: w }} className="shrink-0">
+          <LookTile
+            id={s.id}
+            src={thumbs.get(s.id) ?? null}
+            label={s.label}
+            active={s.id === picked}
+          />
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * THE DIAL: the looks' names under the clip, the one it wears centred and
+ * lit, its neighbours fading with distance (the camera's own mode dial). The
+ * picture is the clip itself, so the dial carries words only.
+ */
+export function LookDial({
+  picked,
+  reach = 2,
+  className,
+}: {
+  picked: string;
+  /** How many names show each side of the one it wears. */
+  reach?: number;
+  className?: string;
+}) {
+  const at = Math.max(
+    0,
+    STYLES.findIndex((s) => s.id === picked),
+  );
+  const slots = Array.from({ length: reach * 2 + 1 }, (_, k) => k - reach);
+  return (
+    <div
+      data-rc-looks="dial"
+      className={cn("flex items-center justify-center gap-1", className)}
+    >
+      <span
+        aria-label="The look before"
+        className="flex size-7 shrink-0 items-center justify-center rounded-full text-white/55"
+      >
+        <ChevronLeft className="size-4" aria-hidden />
+      </span>
+      <div className="grid min-w-0 flex-1 grid-flow-col items-center justify-center gap-3 overflow-hidden">
+        {slots.map((d) => {
+          const s = STYLES[at + d];
+          if (!s) return <span key={d} aria-hidden className="w-12" />;
+          const here = d === 0;
+          return (
+            <span
+              key={s.id}
+              data-rc-dial-name={here ? "on" : "off"}
+              className={cn(
+                "text-center whitespace-nowrap",
+                here
+                  ? "text-caption font-semibold tracking-[0.12em] text-white uppercase"
+                  : Math.abs(d) === 1
+                    ? "text-caption text-white/50"
+                    : "text-caption text-white/25",
+              )}
+            >
+              {s.label}
+            </span>
+          );
+        })}
+      </div>
+      <span
+        aria-label="The next look"
+        className="flex size-7 shrink-0 items-center justify-center rounded-full text-white/55"
+      >
+        <ChevronRight className="size-4" aria-hidden />
+      </span>
+    </div>
+  );
+}
+
+/** The dots under a swiped clip: where in the fourteen it is. */
+export function LookDots({ picked }: { picked: string }) {
+  return (
+    <div aria-hidden className="flex items-center justify-center gap-1">
+      {STYLES.map((s) => (
+        <span
+          key={s.id}
+          className={cn(
+            "size-1 rounded-full",
+            s.id === picked ? "bg-white" : "bg-white/25",
+          )}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ── the moments ─────────────────────────────────────────────────────────── */
+
+/** The three fills, as the room's chips. */
+export function Fills({
+  fill,
+  className,
+}: {
+  fill: FillId;
+  className?: string;
+}) {
+  return (
+    <div
+      data-rc-fills
+      className={cn("flex items-center gap-1.5 overflow-x-auto", className)}
+    >
       {FILLS.map((f) => (
         <RoomChip key={f} active={f === fill}>
           {FILL_LABEL[f]}
@@ -410,453 +309,383 @@ export function Fills({ fill }: { fill: FillId }) {
   );
 }
 
-export type BlockedShape = "caption" | "toast" | "tooltip";
+/** The same three, folded into one chip that opens a small menu. */
+export function FillMenu({ fill }: { fill: FillId }) {
+  return (
+    <span
+      data-rc-fills="menu"
+      className="flex h-7 shrink-0 items-center gap-1.5 rounded-[var(--radius-action-sm)] border border-white/20 px-2.5 text-caption whitespace-nowrap text-white/85"
+    >
+      <span className="text-white/45">Start from</span>
+      <span className="font-medium">{FILL_LABEL[fill]}</span>
+      <ChevronDown className="size-3.5 text-white/45" aria-hidden />
+    </span>
+  );
+}
 
 /**
- * THE POOL, in the room's own dark grid (deliberately bespoke rather than
- * `SelectableMediaGrid`, which hard-codes the app's light palette and this
- * room is oklch(0.11): the shipped picker says the same thing about itself).
- *
- * `blocked` only ever renders for the HOST, because a hidden photograph is not
- * in a guest's pool at all. The badge is a POSITION rather than a check: in a
- * cut, "in" matters less than "where", and the number is the bridge between
- * this grid and the dock.
+ * THE HOST'S BLOCKED TILE, as she ruled it (`blocked=caption`): dimmed, the eye
+ * mark, and "Hidden · Show" readable before anyone taps, with Show as its own
+ * control. A guest never meets it: hidden photographs are not in her pool.
  */
-export function PoolGrid({
-  items,
-  selected,
-  blocked = "tooltip",
-  columns = 3,
-  limit,
-  hovered,
+function HiddenCaption({ stacked }: { stacked?: boolean }) {
+  return (
+    <span
+      data-rc-blocked="caption"
+      className={cn(
+        "absolute inset-x-0 bottom-0 flex bg-black/70 text-micro text-white/85",
+        stacked
+          ? "flex-col items-center px-0.5 py-0.5 leading-tight"
+          : "items-center justify-center gap-1 px-1 py-1",
+      )}
+    >
+      <span>Hidden</span>
+      {stacked ? null : (
+        <span aria-hidden className="text-white/40">
+          ·
+        </span>
+      )}
+      <span className="font-semibold text-white underline underline-offset-2">
+        Show
+      </span>
+    </span>
+  );
+}
+
+/**
+ * One moment, in whichever grid or strip holds it. ★ THE BADGE IS A POSITION,
+ * NOT A TICK (the shipped picker's rule): in a clip, "where" matters more than
+ * "in", and the number is the bridge between the pool and the order.
+ */
+function MomentTile({
+  item,
+  at,
+  small,
 }: {
-  items: readonly AlbumItem[];
-  selected: readonly string[];
-  blocked?: BlockedShape;
-  columns?: number;
-  limit?: number;
-  /** The tile the pointer is resting on, for the quoted tooltip. */
-  hovered?: string;
+  item: AlbumItem;
+  /** Its place in the clip, 1-based; undefined when it is out. */
+  at?: number;
+  small?: boolean;
 }) {
-  const position = new Map(selected.map((id, i) => [id, i + 1]));
-  const shown = limit ? items.slice(0, limit) : items;
+  const hidden = item.status === "hidden";
+  const state = hidden ? "blocked" : at ? "in" : "out";
+  return (
+    <span
+      data-rc-moment={state}
+      className="relative block min-w-0"
+      style={{ aspectRatio: UNIFORM_TILE_ASPECT }}
+    >
+      <span
+        className={cn(
+          "absolute inset-0 block overflow-hidden bg-white/5",
+          small ? "rounded-[3px]" : "rounded-[var(--radius-tile)]",
+          at && "ring-2 ring-white ring-inset",
+        )}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- a local fixture still */}
+        <img
+          src={item.previewUrl ?? item.url}
+          alt=""
+          className={cn(
+            "size-full object-cover",
+            hidden ? "opacity-30" : at ? "opacity-100" : "opacity-60",
+          )}
+        />
+        {at ? (
+          <span
+            className={cn(
+              "absolute flex items-center justify-center rounded-full bg-white font-semibold text-zinc-900 tabular-nums",
+              small
+                ? "top-0.5 left-0.5 size-3.5 text-[8px]"
+                : "top-1 left-1 size-5 text-micro",
+            )}
+          >
+            {at}
+          </span>
+        ) : !hidden ? (
+          <span
+            aria-hidden
+            className={cn(
+              "absolute rounded-full border border-white/70 bg-black/20",
+              small ? "top-0.5 left-0.5 size-3" : "top-1 left-1 size-4",
+            )}
+          />
+        ) : null}
+        {item.type === "video" ? (
+          <span
+            aria-hidden
+            className={cn(
+              "absolute flex items-center justify-center rounded-full bg-black/55",
+              small ? "right-0.5 bottom-0.5 size-3" : "right-1 bottom-1 size-4",
+            )}
+          >
+            <Play
+              className={cn(
+                "fill-white text-white",
+                small ? "size-1.5" : "size-2",
+              )}
+            />
+          </span>
+        ) : null}
+        {item.likeCount && !small && !hidden ? (
+          <span className="absolute bottom-1 left-1 flex items-center gap-0.5 text-micro text-white/80">
+            <Heart className="size-2.5" aria-hidden />
+            {item.likeCount}
+          </span>
+        ) : null}
+        {hidden ? (
+          <span
+            aria-hidden
+            className={cn(
+              "absolute flex items-center justify-center rounded-full bg-black/60 text-white/80",
+              small ? "top-0.5 right-0.5 size-3.5" : "top-1 right-1 size-5",
+            )}
+          >
+            <EyeOff className={small ? "size-2" : "size-2.5"} />
+          </span>
+        ) : null}
+        {hidden ? <HiddenCaption stacked={small} /> : null}
+      </span>
+    </span>
+  );
+}
+
+const positions = (ids: readonly string[]) =>
+  new Map(ids.map((id, i) => [id, i + 1]));
+
+/** The pool as a grid: every moment she may take, the ones in numbered. */
+export function MomentGrid({
+  pool,
+  ids,
+  cols,
+}: {
+  pool: readonly AlbumItem[];
+  ids: readonly string[];
+  cols: number;
+}) {
+  const at = positions(ids);
   return (
     <div
-      data-rc-pool
-      className="grid gap-1.5"
-      style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+      data-rc-pool="grid"
+      className="grid gap-[var(--gap-gallery)]"
+      style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
     >
-      {shown.map((m) => {
-        const hidden = m.status === "hidden";
-        const at = position.get(m.id);
-        return (
-          // ★ THE TOOLTIP LIVES OUTSIDE THE CROP. The tile has to clip its own
-          // photograph (object-cover at 4:5) and a tooltip standing above the
-          // tile is clipped by exactly that rule: the first capture of
-          // `blocked=tooltip` showed a dimmed tile and no tooltip at all, which
-          // would have read as the option drawing nothing. So the clip is an
-          // inner box and the tooltip is its sibling.
+      {pool.map((m) => (
+        <MomentTile key={m.id} item={m} at={at.get(m.id)} />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * THE ORDER: the clip's moments as the shipped filmstrip dock draws them (the
+ * one thing a timeline would have), the opening shot ringed, a grip on one to
+ * say they move, and the "+" that leads to the pool.
+ */
+export function OrderStrip({
+  ids,
+  tile = 44,
+  note,
+}: {
+  ids: readonly string[];
+  tile?: number;
+  note?: string | null;
+}) {
+  const items = ids
+    .map((id) => BY_ID.get(id))
+    .filter((m): m is AlbumItem => Boolean(m));
+  return (
+    <div data-rc-order>
+      <div
+        data-rc-scroll
+        className="flex items-start gap-1.5 overflow-x-auto pb-1"
+      >
+        {items.map((m, i) => (
           <span
             key={m.id}
-            data-rc-tile={hidden ? "blocked" : at ? "in" : "out"}
-            className="relative block"
-            style={{ aspectRatio: UNIFORM_TILE_ASPECT }}
+            data-rc-order-tile
+            style={{ width: tile, aspectRatio: UNIFORM_TILE_ASPECT }}
+            className="relative shrink-0 overflow-hidden rounded-[4px] bg-white/5"
           >
-            <span className="absolute inset-0 block overflow-hidden rounded-[var(--radius-tile)] bg-white/5">
-              {/* eslint-disable-next-line @next/next/no-img-element -- a local fixture still */}
-              <img
-                src={m.previewUrl ?? m.url}
-                alt=""
-                className={cn(
-                  "size-full object-cover",
-                  hidden ? "opacity-30" : at ? "opacity-100" : "opacity-70",
-                )}
-              />
-              {at ? (
-                <span className="absolute top-1 left-1 flex size-5 items-center justify-center rounded-full bg-white text-micro font-semibold text-zinc-900 tabular-nums">
-                  {at}
-                </span>
-              ) : null}
-              {m.type === "video" ? (
-                <span
-                  aria-hidden
-                  className="absolute right-1 bottom-1 flex size-4 items-center justify-center rounded-full bg-black/55"
-                >
-                  <Play className="size-2 fill-white text-white" />
-                </span>
-              ) : null}
-              {m.likeCount ? (
-                <span className="absolute bottom-1 left-1 flex items-center gap-0.5 text-micro text-white/80">
-                  <Heart className="size-2.5" aria-hidden />
-                  {m.likeCount}
-                </span>
-              ) : null}
-              {hidden ? (
-                <span
-                  aria-hidden
-                  className="absolute top-1 right-1 flex size-5 items-center justify-center rounded-full bg-black/60 text-white/80"
-                >
-                  <EyeOff className="size-2.5" />
-                </span>
-              ) : null}
-              {hidden && blocked === "caption" ? (
-                <span
-                  data-rc-blocked="caption"
-                  className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-black/70 px-1.5 py-1 text-micro text-white/85"
-                >
-                  Hidden
-                  <span className="font-medium text-white underline">Show</span>
-                </span>
-              ) : null}
-            </span>
-            {hidden && blocked === "tooltip" && hovered === m.id ? (
+            {/* eslint-disable-next-line @next/next/no-img-element -- a local fixture still */}
+            <img
+              src={m.previewUrl ?? m.url}
+              alt=""
+              className="size-full object-cover"
+            />
+            {m.type === "video" ? (
               <span
-                data-rc-blocked="tooltip"
-                role="tooltip"
-                className="absolute -top-1 left-1/2 z-10 w-max max-w-[22ch] -translate-x-1/2 -translate-y-full rounded-md bg-popover px-2 py-1 text-micro text-popover-foreground shadow-layer"
+                aria-hidden
+                className="absolute right-0.5 bottom-0.5 flex size-3 items-center justify-center rounded-full bg-black/55"
               >
-                Hidden moments cannot go in a clip. Show it first.
+                <Play className="size-1.5 fill-white text-white" />
+              </span>
+            ) : null}
+            {i === 0 ? (
+              <span
+                aria-hidden
+                className="absolute inset-0 ring-2 ring-white/70 ring-inset"
+              />
+            ) : null}
+            {i === 2 ? (
+              <span
+                aria-hidden
+                className="pointer-events-none absolute top-0.5 right-0.5 text-white/85"
+              >
+                <GripVertical className="size-3 drop-shadow" />
               </span>
             ) : null}
           </span>
-        );
-      })}
-    </div>
-  );
-}
-
-/** The line a tap gets, quoted as the house toast rather than mounted. */
-export function BlockedLine() {
-  return (
-    <div
-      data-rc-blocked="toast"
-      className="pointer-events-none absolute inset-x-3 bottom-3 z-30 flex items-center justify-between gap-3 rounded-float bg-popover px-3 py-2.5 text-caption text-popover-foreground shadow-layer"
-    >
-      <span>That moment is hidden, so a clip cannot take it.</span>
-      <span className="shrink-0 font-medium underline">Show</span>
-    </div>
-  );
-}
-
-/* ── the export's minute ──────────────────────────────────────────────────── */
-
-/** What a backgrounded tab and a lost context do, said on every option. */
-export function WaitNote({ children }: { children: ReactNode }) {
-  return (
-    <p
-      data-rc-wait-note
-      className="mx-auto mt-2 max-w-[42ch] text-center text-micro text-white/45"
-    >
-      {children}
-    </p>
-  );
-}
-
-export const WAIT_NOTE =
-  "Leave the tab and the draw pauses, then picks up where it stopped. Lose the context and you land back here, your picks intact, with one Retry.";
-
-/** The bar across the cut's foot: the preview keeps running behind it. */
-export function FrameProgress({ progress }: { progress: number }) {
-  return (
-    <div
-      data-rc-progress="bar"
-      className="absolute inset-x-0 bottom-0 z-20 flex items-center gap-2 bg-gradient-to-t from-black/80 to-transparent px-3 pt-8 pb-3"
-    >
-      <span className="h-1 flex-1 overflow-hidden rounded-full bg-white/20">
+        ))}
         <span
-          className="block h-full rounded-full bg-reel"
-          style={{ width: `${progress}%` }}
-        />
-      </span>
-      <span className="text-micro text-white/80 tabular-nums">{progress}%</span>
-      <span className="flex size-6 items-center justify-center rounded-full border border-white/25 text-white/80">
-        <X className="size-3" aria-hidden />
-      </span>
+          aria-label="Add moments"
+          style={{ width: tile, aspectRatio: UNIFORM_TILE_ASPECT }}
+          className="flex shrink-0 items-center justify-center rounded-[4px] border border-dashed border-white/25 text-white/60"
+        >
+          <Plus className="size-4" aria-hidden />
+        </span>
+      </div>
+      {note ? <p className="mt-1 text-micro text-white/40">{note}</p> : null}
     </div>
   );
 }
 
 /**
- * THE HOUSE IDIOM IN PLACE: the cut's own frame stacks and counts the moments
- * still to draw. It stops playing, because the device is busy drawing them.
+ * THE ALBUM AS THE FILMSTRIP (`strip`'s own piece): the clip's moments lit and
+ * numbered first, in order; a hairline; then the rest of the album dimmed.
+ * Tapping a dim one appends it, tapping a lit one takes it out, holding one
+ * moves it: membership and order are one strip.
  */
-export function StackingFrame({
-  src,
-  left,
-  total,
+export function AlbumStrip({
+  pool,
+  ids,
+  fill,
+  tile = 44,
+  trailing,
 }: {
-  src: string | null;
-  left: number;
-  total: number;
+  pool: readonly AlbumItem[];
+  ids: readonly string[];
+  fill: FillId;
+  tile?: number;
+  /** The head row's right end: the tray, at a laptop. */
+  trailing?: ReactNode;
 }) {
+  const inClip = ids
+    .map((id) => BY_ID.get(id))
+    .filter((m): m is AlbumItem => Boolean(m));
+  const members = new Set(ids);
+  const rest = pool.filter((m) => !members.has(m.id));
   return (
-    <div data-rc-progress="stack" className="relative">
-      <span
-        aria-hidden
-        className="absolute inset-x-3 -top-2 h-6 rounded-t-xl bg-white/10"
-      />
-      <span
-        aria-hidden
-        className="absolute inset-x-1.5 -top-1 h-6 rounded-t-xl bg-white/15"
-      />
-      <CutStill src={src} label="The cut, being drawn" className="opacity-60" />
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center">
-        <p className="text-card-title text-white">
-          {`${left} of ${total} moments left`}
+    <div data-rc-pool="strip">
+      <div className="mb-2 flex items-center gap-3">
+        <FillMenu fill={fill} />
+        <p className="min-w-0 flex-1 truncate text-micro text-white/45 tabular-nums">
+          {`${inClip.length} in your clip · ${rest.length} more`}
         </p>
-        <p className="max-w-[26ch] text-caption text-white/60">
-          Drawing your clip on this device. Keep this tab open.
-        </p>
-        <span className="mt-1 flex h-8 items-center rounded-full border border-white/25 px-3 text-caption font-medium text-white/85">
-          Cancel
-        </span>
+        {trailing}
       </div>
-    </div>
-  );
-}
-
-/** The shipped stitching dialog, quoted (no Radix portal inside a frame). */
-export function QuotedExportModal({ progress }: { progress: number }) {
-  return (
-    <div
-      data-rc-progress="modal"
-      className="absolute inset-0 z-30 flex items-center justify-center bg-black/55 px-6"
-    >
-      <div className="w-full max-w-sm rounded-float bg-popover p-6 text-popover-foreground shadow-layer">
-        <p className="font-heading text-card-title">Creating your video</p>
-        <p className="mt-1 text-working text-muted-foreground">
-          Your clip is encoding right here in your browser. This usually takes
-          a few seconds.
-        </p>
-        <div className="flex flex-col items-center gap-3 py-4">
-          <span className="relative flex size-16 items-center justify-center">
-            <span
-              aria-hidden
-              className="absolute inset-0 rounded-full border-2 border-reel/20 border-t-reel"
-            />
-            <Clapperboard className="size-7 text-reel" aria-hidden />
+      <div
+        data-rc-scroll
+        className="flex items-end gap-1.5 overflow-x-auto pb-1"
+      >
+        {inClip.map((m, i) => (
+          <span key={m.id} className="shrink-0" style={{ width: tile }}>
+            <MomentTile item={m} at={i + 1} small />
           </span>
-          <div className="flex w-full items-center gap-2">
-            <span className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
-              <span
-                className="block h-full rounded-full bg-reel"
-                style={{ width: `${progress}%` }}
-              />
-            </span>
-            <span className="w-9 shrink-0 text-right text-caption text-muted-foreground tabular-nums">
-              {`${progress}%`}
-            </span>
-          </div>
-        </div>
+        ))}
+        <span
+          aria-hidden
+          data-rc-strip-divider
+          className="mx-1 w-px shrink-0 self-stretch bg-white/25"
+        />
+        {rest.map((m) => (
+          <span key={m.id} className="shrink-0" style={{ width: tile }}>
+            <MomentTile item={m} small />
+          </span>
+        ))}
       </div>
     </div>
   );
 }
 
-/* ── the finish ──────────────────────────────────────────────────────────── */
+/* ── the tray: three settings that show their value ──────────────────────── */
 
-export type FinishShape = "four" | "share" | "save";
-
-function Door({
+function TrayChip({
   icon,
   label,
-  loud,
-  quiet,
-  wide,
+  value,
+  compact,
 }: {
   icon: ReactNode;
   label: string;
-  loud?: boolean;
-  quiet?: boolean;
-  wide?: boolean;
+  value: string;
+  compact?: boolean;
 }) {
   return (
     <span
-      data-rc-door={loud ? "loud" : quiet ? "quiet" : "equal"}
-      className={cn(
-        "flex items-center justify-center gap-2 rounded-[var(--radius-action-sm)] font-medium whitespace-nowrap",
-        wide ? "h-11 w-full" : "h-11",
-        // A quiet door drops a step and loses its icon, so three of them, one
-        // the five-word "Add to the album", sit on ONE line at 375 instead of
-        // wrapping to two. Measured on the capture, not guessed: with icons and
-        // px-3 the row wanted 374 px of the 343 a phone has.
-        quiet ? "px-1 text-caption" : "px-3 text-working",
-        loud
-          ? "bg-reel text-white"
-          : quiet
-            ? "text-white/70 underline"
-            : "border border-white/20 text-white/85",
-      )}
+      data-rc-tray-chip
+      className="flex h-8 shrink-0 items-center gap-1.5 rounded-[var(--radius-action-sm)] border border-white/15 px-2.5 text-caption whitespace-nowrap text-white/85"
     >
-      {quiet ? null : icon}
-      {label}
+      <span className="text-white/50">{icon}</span>
+      {compact ? null : <span className="text-white/45">{label}</span>}
+      <span className="font-medium">{value}</span>
+      <ChevronDown className="size-3.5 text-white/40" aria-hidden />
     </span>
   );
 }
 
 /**
- * THE FINISH: the file exists on her device and nothing has been uploaded.
- * Share is its OWN tap here and never chained off the encode, because iOS
- * spends the activation during the render and `share()` then throws; the
- * button is probed with the real file, so where it cannot carry one this row
- * is drawn without it and Save takes the lead.
+ * THE TRAY, NOW THREE: the settings that style what is already there. Each
+ * chip shows its value and opens a small menu, so none of them takes the
+ * bench's panel from the moments and the looks.
  */
-export function Finish({
-  shape,
-  paid,
-  children,
+export function Tray({
+  compact,
+  free,
+  inert,
+  className,
 }: {
-  shape: FinishShape;
-  /** A free event has no "Add to the album": a clean mark is not a licence. */
-  paid: boolean;
-  /** The cut's own frame, above the doors. */
-  children: ReactNode;
+  compact?: boolean;
+  /** A free event caps a clip at 30 seconds: the menu's 60 wears a lock. */
+  free?: boolean;
+  /** The export's minute: nothing here moves until it is done. */
+  inert?: boolean;
+  className?: string;
 }) {
-  const save = <Download className="size-4" aria-hidden />;
-  const share = <Share2 className="size-4" aria-hidden />;
-  const add = <Plus className="size-4" aria-hidden />;
-  const again = <Clapperboard className="size-4" aria-hidden />;
   return (
     <div
-      data-rc-finish={shape}
-      className="flex h-dvh flex-col bg-[oklch(0.11_0_0)] px-4 pt-5 pb-6"
+      data-rc-tray
+      data-rc-inert={inert ? "" : undefined}
+      className={cn(
+        "flex items-center justify-center gap-1.5",
+        inert && "opacity-35",
+        className,
+      )}
     >
-      <div className="flex items-center gap-2 pb-3">
-        <span className="flex size-8 items-center justify-center rounded-full border border-white/15 text-white/75">
-          <ArrowLeft className="size-4" aria-hidden />
+      <TrayChip
+        compact={compact}
+        icon={<Timer className="size-3.5" aria-hidden />}
+        label="Length"
+        value="0:30"
+      />
+      <TrayChip
+        compact={compact}
+        icon={<RectangleVertical className="size-3.5" aria-hidden />}
+        label="Layout"
+        value="Portrait"
+      />
+      <TrayChip
+        compact={compact}
+        icon={<ImagePlay className="size-3.5" aria-hidden />}
+        label="Opening"
+        value="Auto"
+      />
+      {free && !compact ? (
+        <span className="flex items-center gap-1 text-micro text-white/35">
+          <Lock className="size-2.5" aria-hidden />
+          60s with Pro
         </span>
-        <p className="text-micro font-medium tracking-[0.24em] text-white/50 uppercase">
-          Your clip is ready
-        </p>
-      </div>
-      <div className="flex min-h-0 flex-1 items-center justify-center">
-        <div className="flex aspect-[9/16] h-full max-w-full items-center">
-          {children}
-        </div>
-      </div>
-      <div data-rc-doors className="pt-4">
-        {shape === "four" ? (
-          <div className="grid grid-cols-2 gap-2">
-            <Door icon={save} label="Save to Photos" />
-            <Door icon={share} label="Share" />
-            {paid ? <Door icon={add} label="Add to the album" /> : null}
-            <Door icon={again} label="Make another" />
-          </div>
-        ) : null}
-        {shape === "share" ? (
-          <div className="flex flex-col gap-2">
-            <Door icon={share} label="Share" loud wide />
-            <div className="flex items-center justify-center gap-4 pt-1">
-              <Door icon={save} label="Save to Photos" quiet />
-              {paid ? <Door icon={add} label="Add to the album" quiet /> : null}
-              <Door icon={again} label="Make another" quiet />
-            </div>
-          </div>
-        ) : null}
-        {shape === "save" ? (
-          <div className="flex flex-col gap-2">
-            <Door icon={save} label="Save to Photos" loud wide />
-            <div className="grid grid-cols-2 gap-2">
-              <Door icon={share} label="Share" />
-              {paid ? <Door icon={add} label="Add to the album" /> : null}
-            </div>
-            <div className="flex justify-center pt-1">
-              <Door icon={again} label="Make another" quiet />
-            </div>
-          </div>
-        ) : null}
-      </div>
+      ) : null}
     </div>
   );
 }
-
-/* ── the free mark ───────────────────────────────────────────────────────── */
-
-export type MarkShape = "line" | "bare" | "chip";
-
-/** The line under the cut that names what removes the mark. */
-export function MarkLine() {
-  return (
-    <p
-      data-rc-mark="line"
-      className="mx-auto mt-2 max-w-[38ch] text-center text-micro text-white/50"
-    >
-      Free clips carry the small mark and run to 30 seconds. Pro removes both.
-    </p>
-  );
-}
-
-/** The chip beside the cut that says which plan this is. */
-export function MarkChip() {
-  return (
-    <span
-      data-rc-mark="chip"
-      className="absolute top-2 left-2 z-20 flex h-7 items-center gap-1 rounded-full bg-black/55 px-2.5 text-micro font-medium text-white/85 backdrop-blur-sm"
-    >
-      Free
-      <ChevronRight className="size-3" aria-hidden />
-    </span>
-  );
-}
-
-/* ── the cut's sound ──────────────────────────────────────────────────────── */
-
-export type SoundShape = "silent" | "native" | "bed";
-
-/** The line under the cut that says how the audio behaves: `native`'s own
- *  tell, since a mute control is a fact about playback, not a visible mark. */
-export function SoundLine() {
-  return (
-    <p
-      data-rc-sound="line"
-      className="mx-auto mt-2 max-w-[38ch] text-center text-micro text-white/50"
-    >
-      Video moments keep their own captured sound; a photo stretch stays
-      quiet under it. One mute control covers the whole clip.
-    </p>
-  );
-}
-
-/** The corner chip that names a chosen track: `bed`'s own tell, the same
- *  slot `MarkChip` uses on the opposite corner so the two never collide. */
-export function SoundChip({ label = "Warm Piano" }: { label?: string }) {
-  return (
-    <span
-      data-rc-sound="chip"
-      className="absolute top-2 right-2 z-20 flex h-7 items-center gap-1 rounded-full bg-black/55 px-2.5 text-micro font-medium text-white/85 backdrop-blur-sm"
-    >
-      <Music2 className="size-3" aria-hidden />
-      {label}
-    </span>
-  );
-}
-
-/* ── the small furniture the board reuses ────────────────────────────────── */
-
-/** The cut's settings, as the room's chips read them: what is not being asked. */
-export function SettingsRow({ moments }: { moments: number }) {
-  return (
-    <div className="flex items-center justify-center gap-1.5 text-micro text-white/45">
-      <span>{`${moments} moments`}</span>
-      <span aria-hidden>·</span>
-      <span>Portrait</span>
-      <span aria-hidden>·</span>
-      <span>0:30</span>
-    </div>
-  );
-}
-
-/** The host's pool: the same, plus what she hid, which is the blocked tile. */
-export function hostPool(): readonly AlbumItem[] {
-  return POOL;
-}
-
-/** The first hidden tile in the host's pool: what `blocked` is drawn on. */
-export const FIRST_HIDDEN =
-  POOL.find((m) => m.status === "hidden")?.id ?? POOL[0].id;
-
-/** The album's own count against the creator's, so the gap can be captioned. */
-export const CUTS_IN_ALBUM = EVENT.items - POOL.length;
-
-/** What Maya hid: in the host's pool, blocked; absent from a guest's entirely. */
-export const HIDDEN_COUNT = POOL.length - GUEST_POOL.length;
