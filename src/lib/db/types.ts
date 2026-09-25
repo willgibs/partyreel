@@ -180,6 +180,7 @@ export type Database = {
           purge_at: string | null
           qr_style: string
           qr_token: string
+          reel_hold_sec: number | null
           reel_style_id: string | null
           require_upload_to_view: boolean
           require_verified_email: boolean
@@ -205,6 +206,7 @@ export type Database = {
           purge_at?: string | null
           qr_style?: string
           qr_token?: string
+          reel_hold_sec?: number | null
           reel_style_id?: string | null
           require_upload_to_view?: boolean
           require_verified_email?: boolean
@@ -230,6 +232,7 @@ export type Database = {
           purge_at?: string | null
           qr_style?: string
           qr_token?: string
+          reel_hold_sec?: number | null
           reel_style_id?: string | null
           require_upload_to_view?: boolean
           require_verified_email?: boolean
@@ -1394,6 +1397,10 @@ export type Database = {
       event_card_stats: { Args: { p_event_ids: string[] }; Returns: Json }
       event_covers: { Args: { p_event_ids: string[] }; Returns: Json }
       event_link_totals: { Args: { p_event_id: string }; Returns: Json }
+      event_stills: {
+        Args: { p_event_ids: string[]; p_per_event: number }
+        Returns: Json
+      }
       follow_user: { Args: { p_followee: string }; Returns: undefined }
       get_event_by_qr_token: {
         Args: { p_qr_token: string }
@@ -1409,6 +1416,7 @@ export type Database = {
           name: string
           qr_style: string
           qr_token: string
+          reel_hold_sec: number
           reel_style_id: string
           require_upload_to_view: boolean
           require_verified_email: boolean
