@@ -16,8 +16,8 @@ A tier is a total stored-bytes cap; nothing caps items per event. `tiers.ts` hol
 client-import-safe (no env, no Price IDs: those map in the server-only `stripe/plans.ts`).
 
 - **`tier_limits()` mirrors `tiers.ts`,** held by `tier-limits-parity.test.ts`, which parses the newest migration
-  defining it and throws on anything it cannot read. A limit only TypeScript knows is a suggestion: the reel's length
-  cap is mirrored in SQL and re-derived from the host's own tier at render and mint, never taken from the client.
+  defining it and throws on anything it cannot read. A limit only TypeScript knows is a suggestion: the clip's length
+  cap is mirrored in SQL and reaches the creator only as the server's tier-derived `ClipFacts`, never the client's.
   Changing the function's return columns is DROP + CREATE (grants: [database-security.md](database-security.md)).
 - **`create_media` enforces two bounds.** ACTIVE bytes (`host_active_bytes()`: non-removed media in non-deleted
   events) against the cap plus a 10% write headroom (`capWithWriteHeadroom` mirrors it, so the over-cap sweep engages
@@ -42,9 +42,9 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
 - The `tier_type` enum carries an unused `max`: coerce a database tier with `toBillingTier()` (`max` becomes
   `pro`, anything unknown `free`) before indexing `tiers.ts`. Dropping an enum value is not worth its risk.
 - A Free profile's null `storage_cap_bytes` falls back to the `tier_limits()` default.
-- ★ **Reel artifact bytes are exempt from the cap,** so a Free host near the cap keeps the feature that sells the
-  product. The exemption is safe only while one artifact per event holds (a re-render overwrites one stable key, and a
-  test pins it); plural reels per event would re-decide it first.
+- **A clip added to an event is an ordinary video:** `create_media*` meters it against the cap and the monthly meter
+  like any upload, and the video gate refuses it on Free. The live reel and a clip kept on a device store nothing, so
+  they cost nothing ([reel.md](reel.md)).
 
 ## Plan changes
 
@@ -110,6 +110,10 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   customer-binding write leaves no stamp, because `customer.subscription.created` can carry an earlier `created` than
   its checkout session. Pass purchases skip the guard: the ledger's unique `stripe_session_id` makes them
   replay-safe.
+- ★ **A downgrade lands only on the profile following the subscription it ends** (or following none): one customer can
+  hold two subscriptions (two Checkout tabs, a stale session), so `resolveSubscriptionUpdate` names it and the write
+  carries "is null or is that one" in the same WHERE as the recency guard; a declined one is a 200 that writes nothing.
+  The pass checkout's pointer clear skips a Pro profile (a pass session lives a day).
 - **Provisioning is the pure `resolveSubscriptionUpdate`, returning absolute values,** so a redelivery is idempotent.
   `customer.subscription.deleted` and the ended states (`incomplete_expired`, `canceled`, `unpaid`, `paused`)
   downgrade to Free; `active`, `trialing` and `past_due` grant. ★ **`incomplete` changes nothing** (no write, no

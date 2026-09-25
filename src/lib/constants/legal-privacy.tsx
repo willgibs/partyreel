@@ -143,20 +143,19 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         <>
           If you sign in as a guest, the display-name rule for hosts applies to
           you. Where a host turns off the verified-email requirement, a guest
-          instead provides a typed display name; uploads are attributed to
-          that name, shown with a small unverified mark rather than a
-          confirmed one.
+          instead provides a typed display name; uploads are attributed to that
+          name, shown with a small unverified mark rather than a confirmed one.
         </>,
         <>
           <strong className="text-foreground">
             An email address you choose to add
           </strong>{" "}
           at an event that does not require one. It is stored unconfirmed and
-          used only so you can claim your uploads from any device if you
-          confirm it later. It is never shown to the host or to other guests.
-          It stays until you confirm it and finish claiming: if someone used
-          your address without you, confirm it and mark those events as not
-          yours, and their uploads are removed and the address detached.
+          used only so you can claim your uploads from any device if you confirm
+          it later. It is never shown to the host or to other guests. It stays
+          until you confirm it and finish claiming: if someone used your address
+          without you, confirm it and mark those events as not yours, and their
+          uploads are removed and the address detached.
         </>,
       ),
       sub("events", "Events and media"),
@@ -227,7 +226,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         [
           [
             "Providing the Service",
-            "Creating events, storing and serving media, verifying guest emails, generating previews and reels, bundling downloads, showing profiles and guest lists",
+            "Creating events, storing and serving media, verifying guest emails, generating previews, rendering the reel and clips on your device, bundling downloads, showing profiles and guest lists",
             "Performing our contract with you",
           ],
           [
@@ -298,7 +297,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         "Event links are excluded from search engines by our site settings and by instructions on every event page, and media files are never served from public addresses: the album hands out short-lived signed links as you browse, and a guest's access reaches only the event they joined.",
       ),
       p(
-        "Inside an album, your uploads are attributed to your confirmed display name, or to a typed display name wearing a small unverified mark. The host of an event can see the email address of each guest who verified one; other guests cannot. Anyone who can see the album can download items from it, download the whole album, and watch a highlight reel the host publishes.",
+        "Inside an album, your uploads are attributed to your confirmed display name, or to a typed display name wearing a small unverified mark. The host of an event can see the email address of each guest who verified one; other guests cannot. Anyone who can see the album can download items from it, download the whole album, watch its highlight reel, and make a clip from that reel on their own device.",
       ),
       // profiles-social.md: host-controlled guest list, no per-guest opt-in; the escape
       // hatches are the ones the ADR names.
@@ -537,10 +536,10 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
         <>
           <strong className="text-foreground">Delete your uploads.</strong> Open
           any photo or video you added and remove it, right on the album,
-          whether or not you signed in; without signing in, this works only
-          from the same phone and browser you uploaded from. A signed-in
-          upload is also reachable from the Uploads tab of your dashboard.
-          Either way the removal is final, for the host too.
+          whether or not you signed in; without signing in, this works only from
+          the same phone and browser you uploaded from. A signed-in upload is
+          also reachable from the Uploads tab of your dashboard. Either way the
+          removal is final, for the host too.
         </>,
         <>
           <strong className="text-foreground">Delete your events.</strong> Hosts
@@ -548,12 +547,11 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
           recovery bin for 30 days, where they can be restored or purged sooner.
         </>,
         <>
-          <strong className="text-foreground">Stay out of view.</strong>{" "}
-          Nothing you attend shows on your public profile until you choose to
-          show it there, and you can turn any event back off at any time.
-          Stay off an event’s guest list by not uploading to it at all: every
-          upload is listed, a confirmed name or one wearing the small
-          unverified mark.
+          <strong className="text-foreground">Stay out of view.</strong> Nothing
+          you attend shows on your public profile until you choose to show it
+          there, and you can turn any event back off at any time. Stay off an
+          event’s guest list by not uploading to it at all: every upload is
+          listed, a confirmed name or one wearing the small unverified mark.
         </>,
         // Self-serve since 2026-09-02: the /account danger zone (request path in
         // db/mutations/account.ts, hard delete in lifecycle/account-deletion.ts).

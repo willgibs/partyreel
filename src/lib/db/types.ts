@@ -1613,6 +1613,7 @@ export type Database = {
           standby_bytes: number
         }[]
       }
+      like_many: { Args: { p_media_ids: string[] }; Returns: Json }
       like_media: { Args: { p_media_id: string }; Returns: Json }
       list_guest_rows_by_email: {
         Args: { p_after_at?: string; p_after_id?: string; p_limit?: number }
@@ -1628,6 +1629,10 @@ export type Database = {
         }[]
       }
       mark_password_set: { Args: never; Returns: undefined }
+      media_like_counts: {
+        Args: { p_event_id: string; p_media_ids: string[] }
+        Returns: Json
+      }
       monthly_ingress_cap: {
         Args: {
           p_storage_cap_bytes: number

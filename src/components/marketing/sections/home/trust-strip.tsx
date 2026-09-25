@@ -11,10 +11,10 @@ import { TextsReveal } from "../shared/texts-reveal";
  * never fabricated social proof; no counts while Stripe is TEST).
  *
  * PROVISIONAL (R4 truth ruling A1): the bare "No watermarks" read as a
- * whole-product promise, but the FREE reel does carry a small partyreel.com
- * mark (photos and the album are unmarked on every tier, and upgrading clears
- * the reel's mark). The claim is now scoped to photos in the copy itself, so
- * the strip can stay short without over-promising.
+ * whole-product promise, but a FREE event's clips do carry a small
+ * partyreel.com mark (photos, the album and the live reel are unmarked on every
+ * tier, and a paid plan clears the clips' mark). The claim is scoped to photos
+ * in the copy itself, so the strip can stay short without over-promising.
  *
  * ★ THE SAME TRAP CAUGHT THE FIRST CLAIM (Will, 2026-09-19, voice r1). It read
  * "No app, no account": four words at the top of the page promising something

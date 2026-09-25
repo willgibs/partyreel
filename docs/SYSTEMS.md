@@ -8,8 +8,9 @@
 | --- | --- |
 | [architecture.md](systems/architecture.md) | work across systems (the route groups, the two stores of truth, the data flows, the scheduled jobs), revalidate a path, or chase a host page that renders but never hydrates |
 | [auth-accounts.md](systems/auth-accounts.md) | change sign-in (the one account door, codes, passwords, Google, passkeys) or a Supabase Auth dashboard setting, a display name, an avatar, the `/welcome` gate or account deletion |
-| [guest-flow.md](systems/guest-flow.md) | change the event link `/e/[token]`: who counts as a guest, visibility and the password gate, the door and the confirm doors, the live gallery, demo mode, the guest's reel |
-| [host-app.md](systems/host-app.md) | change a host surface: the dashboard, creating an event, the QR designer and print, the custom link, the welcome, the event page and its settings, moderation, the reel and its export |
+| [guest-flow.md](systems/guest-flow.md) | change the event link `/e/[token]`: who counts as a guest, visibility and the password gate, the door and the confirm doors, the live gallery, demo mode |
+| [host-app.md](systems/host-app.md) | change a host surface: the dashboard, creating an event, the QR designer and print, the custom link, the welcome, the event page and its settings, moderation |
+| [reel.md](systems/reel.md) | change the highlight reel (when it exists, its take, the tile, the view that is also the screen, the host's card and defaults, the platform lever) or the clip (the creator, Add to event), or a word either says |
 | [uploads-and-r2.md](systems/uploads-and-r2.md) | touch the upload pipeline, an R2 key, client or presign, the EXIF strip, or how media renders (tiles, previews, posters, the viewer) and downloads (Save, Download all) |
 | [billing-caps.md](systems/billing-caps.md) | change a price or a limit, anything that decides whether an upload, a restore or a plan change fits, Stripe checkout, change-plan or the webhook, or the in-app pricing surface and the Plan card |
 | [lifecycle-recovery.md](systems/lifecycle-recovery.md) | add or change a purge-cron sweep, touch deleting and restoring (the 30-day window, the standby budget, the Deleted filters) or the over-cap, lapsed-pass and inactivity sweeps, or send an email |

@@ -3,8 +3,8 @@ import type { ComponentType } from "react";
 import type { LoopPictureId } from "@/lib/constants/how-it-works";
 
 import {
-  ArrivesPicture,
   AddPicture,
+  ClipPicture,
   DoorPicture,
   RoomPicture,
   SavePicture,
@@ -37,7 +37,7 @@ const PICTURE: Record<LoopPictureId, ComponentType> = {
   add: AddPicture,
   room: RoomPicture,
   save: SavePicture,
-  arrives: ArrivesPicture,
+  clip: ClipPicture,
 };
 
 export function StepPicture({ id }: { id: LoopPictureId }) {

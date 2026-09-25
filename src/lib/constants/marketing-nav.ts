@@ -92,9 +92,11 @@ export const PRIMARY_NAV: NavItem[] = [
         description: "Private by default, yours to open up.",
       },
       {
-        label: "The highlight reel",
+        // One name in every door (`reel-story` r1 `help=highlight-reel`): the
+        // album tile's own heading, the help category and the footer say it too.
+        label: "Highlight reel",
         href: "/reel",
-        description: "The whole event, cut into a minute.",
+        description: "The album, playing itself on any screen.",
       },
     ],
   },
@@ -223,7 +225,7 @@ export const FOOTER_NAV: FooterColumn[] = [
     links: [
       { label: "How it works", href: "/how-it-works" },
       { label: "Pricing", href: "/pricing" },
-      { label: "The reel", href: "/reel" },
+      { label: "Highlight reel", href: "/reel" },
       { label: "FAQ", href: "/#faq" },
     ],
   },

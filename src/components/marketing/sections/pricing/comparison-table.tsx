@@ -33,7 +33,7 @@ import { formatBytes } from "@/lib/utils";
  * Layout: the plan header row is STICKY from lg up (the Biograph sticky-summary
  * move adapted to a matrix: names, prices and CTAs stay present while rows
  * scroll). Below sm each row becomes its own block with the plan names carried
- * inline (the reel tier-section pattern). Divider grammar (Will's note 7):
+ * inline (the /reel clip table's pattern). Divider grammar (Will's note 7):
  * dashed hairlines between rows inside a group, solid rules around group
  * headers, which sit on the whisper-gray band (note 8).
  *
@@ -153,10 +153,14 @@ function buildGroups(): MatrixGroup[] {
       ],
     },
     {
+      // `reel-story` r1 `pricing=renamed`: the two rows describe the CLIP a
+      // viewer makes from the reel, never the live reel, which plays with no
+      // cap and no mark on every plan. Same shape, same numbers, the right noun.
       title: "The reel",
       rows: [
         {
-          label: "Reel length",
+          label: "Clip length",
+          tip: "The longest clip anyone can make from your event's reel. The reel itself runs as long as the album.",
           values: [
             `${MAX_REEL_SECONDS.free} seconds`,
             `${MAX_REEL_SECONDS.event_pass} seconds`,
@@ -164,12 +168,13 @@ function buildGroups(): MatrixGroup[] {
           ],
         },
         {
-          label: "Reel watermark",
+          label: "Clip watermark",
+          tip: "Free events mark their clips. The reel and the screen carry no mark on any plan.",
           values: ["Small mark", "None", "None"],
         },
         {
           label: "Photos and album",
-          tip: "Full resolution, never watermarked, on any plan. Only the free reel carries a mark.",
+          tip: "Full resolution, never watermarked, on any plan. Only a free event's clips carry a mark.",
           values: ["Never marked", "Never marked", "Never marked"],
         },
       ],

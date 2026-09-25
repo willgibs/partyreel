@@ -180,6 +180,8 @@ under Gotchas).
   so failing open would open a pipe to the monthly email quota the breaker alerts also send on. Their scope is the
   bare IP; the check runs after the honeypot (a caught bot must not spend a shared office's budget) and before the
   insert and the send, and the swallowed error is captured where it is swallowed.
+- **The account kinds (`email_change`) key on the signed-in user's id** (HMAC'd, in its own domain), have no breadth,
+  and fail CLOSED like the public forms: the limiter is the only bound on the `email_exists` oracle.
 - Volumetric DoS is the Vercel edge firewall's job, not the app's; the guest OTP door is throttled only by Supabase
   Auth ([auth-accounts.md](auth-accounts.md)).
 

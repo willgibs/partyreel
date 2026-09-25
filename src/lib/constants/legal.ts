@@ -70,8 +70,12 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
     // 1.6 (2026-09-23): the guest-by-upload round. Saved events are no longer
     // kept (a person is a guest of an event through their uploads), so the
     // list of what we keep reads likes, follows and blocks.
-    version: "1.6",
-    lastUpdated: "2026-09-22",
+    // 1.7 (2026-09-25): the live reel. The reel is no longer a video a host
+    // renders and publishes: it plays from the album on each viewer's device,
+    // and anyone with album access may make a clip from it there, so the
+    // purpose reads "rendering the reel and clips on your device".
+    version: "1.7",
+    lastUpdated: "2026-09-25",
     status: "pending-review",
     effectiveDate: null,
   },
@@ -104,8 +108,13 @@ export const LEGAL_DOCUMENTS: Record<LegalDocId, LegalDocMeta> = {
     // changes from your account (no longer "through the billing portal"),
     // and a Pro purchase or change is available only for a size that holds
     // what you already store.
-    version: "1.6",
-    lastUpdated: "2026-09-23",
+    // 1.7 (2026-09-25): the live reel. The album plays as a highlight reel on
+    // each viewer's device and nothing is rendered or stored for it; anyone
+    // with album access may make and share a clip for personal, non-commercial
+    // use under the guest-content license; the host's license names clips
+    // where it named highlight reels; only a free event's clips carry a mark.
+    version: "1.7",
+    lastUpdated: "2026-09-25",
     status: "pending-review",
     effectiveDate: null,
   },

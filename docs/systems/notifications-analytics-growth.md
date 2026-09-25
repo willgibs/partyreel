@@ -64,6 +64,8 @@ root `not-found.tsx`, outside the group, is untracked too).
   pageview and event tools (the P3 team) or the REST API.
 - **`/privacy`'s "what we collect" names cookieless, first-party counting,** so a new vendor means re-checking its "no
   cookies, never identifies you, no cross-site" sentences.
+- **The reel and clips carry no telemetry in v1:** nothing counts a view, a look switched, a clip made or a clip added
+  to an event. The view's frame-failure report is Sentry error reporting, not analytics ([reel.md](reel.md)).
 
 ## The newsletter opt-in and a guest's address
 

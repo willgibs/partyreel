@@ -17,6 +17,11 @@
  * over one. So those two fail CLOSED on a limiter error, in `public-form-limit.ts`. They are also not
  * event-shaped, so breadth is meaningless (there is nothing to be broad across) and the scope is the bare IP,
  * exactly like `capture`.
+ *
+ * ★ THE ACCOUNT KINDS ARE THE OTHER EXCEPTION (`email_change`). Their requester is a signed-in ACCOUNT, not a
+ * venue: the key is the user's id (HMAC'd in the store, `accountAbuseHashes`), so no NAT is shared and no
+ * breadth applies, and the gate (`checkAccountAbuseRate`) fails CLOSED, because for this abuse the limiter is
+ * the only bound (the kind's comment below says why).
  */
 
 export type AbuseKind =
@@ -28,7 +33,11 @@ export type AbuseKind =
   | "export"
   | "reel_clip_add"
   | "contact"
-  | "careers";
+  | "careers"
+  | "email_change";
+
+/** The kinds keyed on a signed-in account rather than an IP (see the header's second ★). */
+export type AccountAbuseKind = Extract<AbuseKind, "email_change">;
 
 type Limit = {
   /** # of DISTINCT events one IP may touch in `breadthWindowMin` before it reads as a scraper. */
@@ -145,6 +154,20 @@ export const ABUSE_LIMITS: Record<AbuseKind, Limit> = {
     breadthMax: Infinity,
     scopeWindowMin: 60,
     scopeMax: 5,
+  },
+  // The account page's email change (requestEmailChangeAction, confirmEmailChangeAction), scope = the
+  // signed-in ACCOUNT. GoTrue answers `email_exists` BEFORE it sends anything, so the requester's own
+  // current inbox stays empty exactly when the new address already has an account: an oracle for which
+  // addresses hold Partyreel accounts, which Supabase's email limits never meter because nothing was
+  // sent. This kind is that oracle's only bound, so it counts every request AND every code attempt (a
+  // code guesser draws on the same budget). Six an hour: an honest change is three calls (the request
+  // and two codes), so six is a change plus one full redo (a lost email, a code typed wrong twice), and
+  // a prober gets six addresses an hour per account. No breadth: an account is not venue-shaped.
+  email_change: {
+    breadthWindowMin: 60,
+    breadthMax: Infinity,
+    scopeWindowMin: 60,
+    scopeMax: 6,
   },
 };
 

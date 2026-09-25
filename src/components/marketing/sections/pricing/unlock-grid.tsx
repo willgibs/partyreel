@@ -21,14 +21,17 @@ export function UnlockGrid() {
     {
       icon: Video,
       title: "Video uploads",
-      body: `Guests add clips straight to the album, up to ${formatBytes(MAX_UPLOAD_BYTES)} per file.`,
+      body: `Guests add videos straight to the album, up to ${formatBytes(MAX_UPLOAD_BYTES)} per file.`,
       freeLine: "Free is photos only.",
     },
     {
+      // The CLIP, never the live reel: the reel plays uncapped and unmarked on
+      // every plan, so the paid wall is the clip's length and mark, plus Add to
+      // event (a clip is a video, and video is paid).
       icon: Clapperboard,
-      title: `The ${MAX_REEL_SECONDS.pro}-second cut`,
-      body: "Twice the reel, and the small mark comes off your renders.",
-      freeLine: `Free reels run ${MAX_REEL_SECONDS.free} seconds with a small mark.`,
+      title: `The ${MAX_REEL_SECONDS.pro}-second clip`,
+      body: "Twice as long, with no mark, and a finished clip can join the album.",
+      freeLine: `Free clips run ${MAX_REEL_SECONDS.free} seconds with a small mark.`,
     },
     {
       icon: Lock,

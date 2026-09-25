@@ -33,8 +33,8 @@ import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
 const GUEST_LINE =
   "Your guests just see the good part: one clean album, the best of everyone's camera roll.";
 
-// `tint` = the app's REAL action colors (approve green, hide amber, the reel
-// violet on the sweep), per the 2026-08-25 achromatic ruling: accents where
+// `tint` = the app's REAL action colors (approve green, hide amber, the like
+// rose on the sweep, its bar's first action), per the 2026-08-25 achromatic ruling: accents where
 // they add clarity — here they teach the product's universal action-color
 // system before the visitor ever signs in. Icon-stroke only; chrome stays ink.
 const CONTROLS: {
@@ -58,8 +58,8 @@ const CONTROLS: {
   {
     icon: CopyCheck,
     title: "Bulk select",
-    body: "Sweep up dozens at once to feature, hide, or download together.",
-    tint: "text-reel",
+    body: "Sweep up dozens at once to like, hide, or download together.",
+    tint: "text-like",
   },
 ];
 

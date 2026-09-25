@@ -62,6 +62,8 @@ describe("resolveSubscriptionUpdate", () => {
       tier: "pro",
       storageCapBytes: planById("pro_500").storageBytes,
       subscriptionId: "sub_abc",
+      // A grant names no subscription to end: it applies whatever the profile followed.
+      endsSubscriptionId: null,
     });
   });
 
@@ -87,6 +89,8 @@ describe("resolveSubscriptionUpdate", () => {
       tier: "free",
       storageCapBytes: null,
       subscriptionId: null,
+      // The downgrade names the subscription it ends (the two-subscription ★).
+      endsSubscriptionId: "sub_123",
     });
   });
 
@@ -130,11 +134,13 @@ describe("resolveSubscriptionUpdate: every status", () => {
     tier: "pro",
     storageCapBytes: PRO_500,
     subscriptionId: "sub_123",
+    endsSubscriptionId: null,
   };
   const downgrade = {
     tier: "free",
     storageCapBytes: null,
     subscriptionId: null,
+    endsSubscriptionId: "sub_123",
   };
 
   const cases: [
@@ -197,6 +203,49 @@ describe("resolveSubscriptionUpdate: every status", () => {
     expect(granted?.tier).toBe("pro");
     // The late delivery writes nothing, so nothing overwrites the grant.
     expect(late).toBeNull();
+  });
+});
+
+/**
+ * ★ A DOWNGRADE ENDS ONE SUBSCRIPTION, NOT THE CUSTOMER'S PLAN. Two Checkout tabs (or a stale
+ * session paid after the first) give one customer two subscriptions, and every event for either
+ * names the same customer. So each downgrade names the subscription it ends, and the webhook lands
+ * it only on a profile following that one (its route test drives the race against the table).
+ */
+describe("resolveSubscriptionUpdate: two subscriptions, one customer", () => {
+  it("the abandoned tab's expiry names the stale subscription, not the live one", () => {
+    const granted = resolveSubscriptionUpdate(
+      subEvent("customer.subscription.updated", { id: "sub_live" }),
+      resolve,
+    );
+    const expired = resolveSubscriptionUpdate(
+      subEvent("customer.subscription.updated", {
+        id: "sub_stale",
+        status: "incomplete_expired",
+      }),
+      resolve,
+    );
+    expect(granted).toMatchObject({
+      tier: "pro",
+      subscriptionId: "sub_live",
+      endsSubscriptionId: null,
+    });
+    expect(expired).toMatchObject({
+      customerId: granted?.customerId,
+      tier: "free",
+      endsSubscriptionId: "sub_stale",
+    });
+  });
+
+  it("each subscription's deletion names itself", () => {
+    for (const id of ["sub_stale", "sub_live"]) {
+      expect(
+        resolveSubscriptionUpdate(
+          subEvent("customer.subscription.deleted", { id, status: "canceled" }),
+          resolve,
+        )?.endsSubscriptionId,
+      ).toBe(id);
+    }
   });
 });
 

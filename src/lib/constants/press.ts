@@ -24,15 +24,16 @@ const PRESS_DOMAIN = "partyreel.com";
 
 /**
  * The paragraph version. Sentence one is the strongest line the company has written and
- * is deliberately untouched. The reel length is left unnumbered because the cap is
- * per-tier (tiers.ts MAX_REEL_SECONDS), so a fixed number here would be wrong on Free.
+ * is deliberately untouched. The closing clause names the live reel (it plays itself from
+ * the album on every plan, `reel-story` r1), never a clip's length, whose cap is per-tier
+ * (tiers.ts MAX_REEL_SECONDS), so a fixed number here would be wrong on Free.
  */
 export const PRESS_BOILERPLATE =
-  "Partyreel turns every guest's phone into the event's camera. The host shares one QR code; guests scan it and upload photos and videos from the browser, with no app required. Everything lands in one live album at full quality, where the host decides what stays and everyone leaves with the originals. Nobody has to chase a group chat the next morning. There are no per-guest fees, and any album can become a highlight reel.";
+  "Partyreel turns every guest's phone into the event's camera. The host shares one QR code; guests scan it and upload photos and videos from the browser, with no app required. Everything lands in one live album at full quality, where the host decides what stays and everyone leaves with the originals. Nobody has to chase a group chat the next morning. There are no per-guest fees, and every album plays as its own highlight reel.";
 
 /** The one-sentence version: what a reporter pastes into a story. */
 export const PRESS_BOILERPLATE_SHORT =
-  "Partyreel turns every guest's phone into the event's camera: guests scan one QR code, their photos and videos land in one live album at full quality, and the event can end as a highlight reel.";
+  "Partyreel turns every guest's phone into the event's camera: guests scan one QR code, their photos and videos land in one live album at full quality, and the album plays as a highlight reel as it fills.";
 
 /**
  * The fact sheet, ordered by what a reporter reaches for first rather than by logic.
@@ -58,7 +59,7 @@ export const PRESS_FACTS: { label: string; value: string }[] = [
   {
     label: "Hosts get",
     value:
-      "One live album at full quality, control over what stays, and a highlight reel at the end.",
+      "One live album at full quality, control over what stays, and a highlight reel that makes itself.",
   },
   {
     label: "Platform",
@@ -77,7 +78,7 @@ export const PRESS_FACTS: { label: string; value: string }[] = [
   {
     label: "Not this",
     value:
-      "Not a professional delivery or asset-management tool, and not a slideshow product.",
+      "Not a professional delivery or asset-management tool, and not a video editor.",
   },
   { label: "Founded", value: "2026" },
   { label: "Website", value: PRESS_DOMAIN },

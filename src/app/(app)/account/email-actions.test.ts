@@ -8,8 +8,13 @@
  *     (`email` for the current side, `new_email` for the new one), never one the request names.
  *   ★ The first confirmation is `half`; only the second completes, revalidates the page and hands
  *     the Stripe customer's copy to after().
+ *   ★ Both spend the ACCOUNT's `email_change` budget right before Supabase Auth hears them, and
+ *     refuse in their own shape past it (the last block; the limiter itself is tested in
+ *     abuse-rate-limit-store.test.ts).
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import type { AccountRateGate } from "@/lib/security/abuse-rate-limit-store";
 
 type AuthError = { code?: string; status?: number; message: string };
 
@@ -27,8 +32,17 @@ const state = vi.hoisted(() => ({
   afterCallbacks: [] as (() => unknown)[],
   revalidatePath: vi.fn(),
   headers: new Map<string, string>(),
+  limit: vi.fn(
+    async (_kind: string, _userId: string): Promise<AccountRateGate> => ({
+      allowed: true,
+    }),
+  ),
 }));
 
+vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
+  checkAccountAbuseRate: (kind: string, userId: string) =>
+    state.limit(kind, userId),
+}));
 vi.mock("next/cache", () => ({ revalidatePath: state.revalidatePath }));
 vi.mock("next/headers", () => ({
   headers: async () => ({ get: (k: string) => state.headers.get(k) ?? null }),
@@ -71,6 +85,8 @@ beforeEach(() => {
   state.syncBillingEmail.mockClear();
   state.afterCallbacks = [];
   state.revalidatePath.mockClear();
+  state.limit.mockReset();
+  state.limit.mockResolvedValue({ allowed: true });
   state.headers = new Map([
     ["host", "partyreel.com"],
     ["x-forwarded-proto", "https"],
@@ -335,6 +351,124 @@ describe("confirmEmailChangeAction", () => {
     ).resolves.toMatchObject({
       ok: false,
       code: "rate_limited",
+    });
+  });
+});
+
+/**
+ * ★ THE ACCOUNT'S OWN LIMIT (the `email_change` kind: six calls an hour, requests and code attempts on
+ * one budget, fail closed). GoTrue answers `email_exists` before sending, so without it a signed-in
+ * account could probe which addresses hold accounts at the request rate.
+ */
+describe("the email_change limit", () => {
+  const OVER: AccountRateGate = {
+    allowed: false,
+    reason: "rate_limited",
+    retryAfterSec: 3600,
+  };
+  const DOWN: AccountRateGate = {
+    allowed: false,
+    reason: "unavailable",
+    retryAfterSec: 60,
+  };
+
+  it("★ a request spends the signed-in ACCOUNT's budget, before Supabase Auth hears it", async () => {
+    state.updateUser.mockImplementation(async () => {
+      expect(state.limit).toHaveBeenCalledTimes(1);
+      return { data: { user: ME }, error: null };
+    });
+    await expect(requestEmailChangeAction("new@example.com")).resolves.toEqual({
+      ok: true,
+      pending: "new@example.com",
+    });
+    expect(state.limit).toHaveBeenCalledWith("email_change", "user-1");
+  });
+
+  it("★ past the limit, a request is refused in its own shape and GoTrue never hears it", async () => {
+    state.limit.mockResolvedValue(OVER);
+    await expect(requestEmailChangeAction("new@example.com")).resolves.toEqual({
+      ok: false,
+      code: "rate_limited",
+      message: "Too many tries for now. Try again in an hour.",
+      seconds: 3600,
+    });
+    expect(state.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("★ an address probe is refused the same whether the address is taken or free", async () => {
+    state.limit.mockResolvedValue(OVER);
+    const taken = await requestEmailChangeAction("taken@example.com");
+    const free = await requestEmailChangeAction("free@example.com");
+    expect(taken).toEqual(free);
+    expect(state.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("fails CLOSED when the limiter cannot answer: the request's own retry line, nothing sent", async () => {
+    state.limit.mockResolvedValue(DOWN);
+    await expect(requestEmailChangeAction("new@example.com")).resolves.toEqual({
+      ok: false,
+      code: "error",
+      message: "We couldn't send the codes. Try again in a minute.",
+    });
+    expect(state.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("spends nothing on a request it refuses by itself (malformed, the same address, signed out)", async () => {
+    await requestEmailChangeAction("not-an-address");
+    await requestEmailChangeAction("OLD@example.com");
+    state.user = null;
+    await requestEmailChangeAction("new@example.com");
+    expect(state.limit).not.toHaveBeenCalled();
+  });
+
+  describe("a code attempt", () => {
+    beforeEach(() => {
+      state.user = { ...ME, new_email: "new@example.com" };
+      state.verifyOtp.mockResolvedValue({
+        data: { user: null, session: null },
+        error: null,
+      });
+    });
+
+    it("★ spends the same account budget as a request, before GoTrue checks the code", async () => {
+      state.verifyOtp.mockImplementation(async () => {
+        expect(state.limit).toHaveBeenCalledTimes(1);
+        return { data: { user: null, session: null }, error: null };
+      });
+      await expect(
+        confirmEmailChangeAction("current", "123456"),
+      ).resolves.toMatchObject({ ok: true, state: "half" });
+      expect(state.limit).toHaveBeenCalledWith("email_change", "user-1");
+    });
+
+    it("★ past the limit, a code is refused in its own shape and never checked (no guessing past it)", async () => {
+      state.limit.mockResolvedValue(OVER);
+      await expect(confirmEmailChangeAction("new", "123456")).resolves.toEqual({
+        ok: false,
+        code: "rate_limited",
+        message: "Too many tries for now. Try again in an hour.",
+        seconds: 3600,
+      });
+      expect(state.verifyOtp).not.toHaveBeenCalled();
+    });
+
+    it("fails CLOSED when the limiter cannot answer", async () => {
+      state.limit.mockResolvedValue(DOWN);
+      await expect(confirmEmailChangeAction("new", "123456")).resolves.toEqual({
+        ok: false,
+        code: "error",
+        message: "We couldn't check that code. Try again in a minute.",
+      });
+      expect(state.verifyOtp).not.toHaveBeenCalled();
+    });
+
+    it("spends nothing on a code it refuses by itself (malformed, no change waiting, signed out)", async () => {
+      await confirmEmailChangeAction("new", "12a456");
+      state.user = { ...ME };
+      await confirmEmailChangeAction("new", "123456");
+      state.user = null;
+      await confirmEmailChangeAction("new", "123456");
+      expect(state.limit).not.toHaveBeenCalled();
     });
   });
 });

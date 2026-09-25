@@ -96,7 +96,8 @@ three definitions of healthy:
   not a fault, and never trips the missed-run alert.
 - **The kill switches fail differently on purpose.** The purge cron and its sub-sweeps fail CLOSED on an unreadable
   switch (they delete, and a skipped day costs nothing); the backup reconcile and the DB-backup Action fail OPEN (a
-  missing backup is worse than a missing log line); the prune fails CLOSED (it deletes from the last-resort copy).
+  missing backup is worse than a missing log line); the prune fails CLOSED (it deletes from the last-resort copy); the
+  live reel's platform lever fails OPEN (a flaky read must not take the reel off every album, [reel.md](reel.md)).
 - ★ **The missed-run signal rides the purge cron,** the only scheduled app-side code: each run checks every job for a
   terminal row within 1.5 times its cadence and raises one `job_missed_run` warning per silent job, judged by
   `jobHealth`. ★ **A freshness rule can page only on SILENCE,** so the kinds that are never silent alert at their
@@ -114,6 +115,9 @@ three definitions of healthy:
   counted `remaining` where it can take one), and `jobHealth` turns a finished `ok` run carrying it into `attention`
   (a failure, a pause or a missed run still outranks it), so the band and the bell show a backlog that outlasts a
   night. The card leads with `remaining` and never prints a rotating sweep's resume cursor.
+- **A tripped orphan breaker reads attention too:** it deletes nothing, fires its Sentry error and the email, and closes
+  its run `ok` carrying `breaker_tripped`, which `jobHealth` reads as `attention` (a failure, a pause or a missed run
+  outranks it).
 - **A signal's failure count is a floor, not a census:** the log damps a burst to one row per quarter hour per
   instance, so a database outage cannot storm the table the console reads; Sentry still gets every event.
 - **Heartbeat writes degrade; health reads do not.** A job must not die because its bookkeeping failed, so writes

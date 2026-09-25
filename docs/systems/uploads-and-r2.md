@@ -24,8 +24,9 @@ ledger and enforces the caps. Guests (the session-token capability) and hosts (a
   AND complete: [guest-flow.md](guest-flow.md)). The per-event `max_upload_bytes` binds guests only. Refusals are framed per
   identity: a guest's video refusal names the EVENT so a guest never learns the host's plan, a host's names the tier,
   and a host's `not_owner` is a 404, so existence never leaks; the guest failure sheet prints each refusal verbatim,
-  which makes its wording user-facing copy. No request rate limiter sits on the four routes: the capability, the caps,
-  the per-part Content-Length binding and the multipart abort are the abuse control.
+  which makes its wording user-facing copy. No request rate limiter sits on the four routes but one: the capability, the caps,
+  the per-part Content-Length binding and the multipart abort are the abuse control, and a guest's clip into the album
+  (a `reelEligible: false` completion) also spends `reel_clip_add`, a daily budget per guest session ([reel.md](reel.md)).
 - **`create_media*` is the only write into `media`.** A host's RLS insert would bypass the ledger,
   `storage_used_bytes` and the cap: unmetered storage. The RPC re-checks both keys' event prefix (`events/<event_id>/%`,
   else `bad_key`), so a valid session can never record a row in another event's namespace, nor plant a victim's preview
