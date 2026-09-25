@@ -1,6 +1,6 @@
 ---
 track: reel-clip-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "e13a98d6"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -81,25 +81,115 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Every one is built as recommended and is Will's to overrule; none is a one-way door.
+- **What "the cap moves into the encoder as a constant" means.** Built: `MAX_ENCODE_SECONDS` in `engine/encode.ts`
+  (the longest plan's cap plus a 20 s style tail, 80 s), refused before a byte is decoded
+  (`encode-ceiling.test.ts`). `client-encode-budget.ts` keeps serving `render-service.ts` (reel-teardown's) and goes
+  when its last reader does (Deferred).
+- **A clip's Length is fitted on each look's own clock**, not `buildReelProps`'s mood-timeline cap: capped that way
+  Layered parallax at a free 0:30 runs 0:37 and Scattered prints at 1:00 stops at 0:17 (`clip-selection.ts`).
+- **The owner's Add to event goes through the host route whenever her plan takes video, uploads open or closed**
+  (that route is exempt from `accepting_uploads`, as her Add photos is); a guest's rides the seam, null while
+  uploads are closed.
+- **Show on a hidden photograph un-hides it for everyone (the lightbox's own Show) and adds it to the clip**, with no
+  confirm (reversible from the album); "It's back in the album" says so.
+- **Make another starts from the reel's next take** (a fresh handful), keeping the look, length and layout; Back to
+  editing keeps the picks.
+- **Looks opens first; the tile's line opens the creator directly** (the Orchestrator's two calls, as briefed).
+- **The glyph's disc is the house glass mark** (`GLASS_MARK`, the play badge's material), not the board's flat
+  black at 55 percent: one material everywhere.
+- **A guest's mark line is words only** (she cannot upgrade the host's event); the host's "Remove it with Pro" opens
+  the in-app pricing sheet (the host app never links to /pricing).
+- **In a hand the order strip lives in the Moments tab** (focused views: the order is chosen with the moments); the
+  tray stays at the foot.
+- **Share appears only where the sheet takes the very file**; elsewhere (desktop Firefox) Save leads in violet.
+- **A guest's Added means handed to the album's upload queue** (its own progress and failure sheet carry the rest);
+  the host's reads "Adding N%" until her upload lands.
+- **Escape is one step back**: making cancels, the finish goes back to editing, the bench goes back to the reel.
+- **A landscape clip's wall is three columns at a laptop, two in a hand** (portrait keeps five in three rows).
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: this lane owns no system doc; the facts for `docs/systems/reel.md` are under the Handoff for `reel-sweep`.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: a guest's Add to event in the creator follows its queue item (uploading, held for review, refused) instead of
+  reading Added on hand-off.
+- Now: `buildReelProps` caps on the mood timeline, so a treatment runs past or short of its length; the lab's
+  builders could share the clip's own-clock fit (`clip-selection.ts`).
+- Now: `client-encode-budget.ts` and its test leave when reel-teardown deletes `render-service.ts`, its last reader.
+- Now: the Studio's reveal leftovers outside this lane, unreferenced now: `globals.css`'s `--tune-rvl-*` and
+  `--tune-rxp-*` block and its `[data-rvl-*]` rules, `src/lib/shared/use-reveal-acts.ts` with its test, and the
+  comments naming `reveal-constants.ts` (`globals.css`, `motion-tuner-config.ts`, `design-system.md`).
+- Now: `readEventMedia` takes a hidden slice, so the clip's hidden read stops reading the whole album.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed**: `1352aba3` (the work), `6220f92e` (the help exception, droppable), then this manifest (the
+  head in the chat line). launch-prep moved (mark-r3, story-r2, album-pages, door-r2 merged); none touches a read or
+  a file of this lane and `git merge-tree` against `origin/launch-prep` is clean, so no sync (PROGRAM's rule).
+- **Gates on `6220f92e`, each on its own exit code**: `pnpm typecheck` 0; `pnpm lint` 0 (6 warnings, none in a touched
+  file); `pnpm test` 0 (452 files, 4,925 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base
+  http://localhost:3131` 0 (276 checks, 0 failing). No board, so no `lab:demo`.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`, 63 paths): all under `owns` but three
+  exceptions. `src/components/guest/event-experience.tsx`, one line (`eventName={event.name}` on `LiveReel`: the room
+  leads with the event's name and the confirm names it). `src/app/(dev)/design/touchpoints.ts`, the `lives` of the
+  reel-front, reel-view and reel-cut rows (`links.test.ts` requires every `lives` file on disk; they named Studio
+  files). `content/help/` six stored-reel articles, 20 `<UiLabel>` pins unwrapped, words kept (`help-ui-labels.test`
+  pins labels to shipped strings, and the Studio's end removes them): reel-sweep retires these articles, wins any
+  conflict, and `6220f92e` drops cleanly if sweep lands first.
+- **The creator** (`src/components/reel/clip-*.tsx`, `ClipCreator`), as reel-cut r1 and r2 settled, captured at 1440
+  and 375 in headless Chrome with web security off (captures only), every file below in
+  `/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/401f4a77-be99-4a42-82f6-e5fac8e4a4c5/scratchpad/reel-clip-wiring/shots/`:
+  `creator-1440-looks.png`, `creator-1440-moments.png`, `creator-1440-making.png`, `creator-1440-finish.png`,
+  `creator-1440-confirm.png`, `creator-1440-landscape.png`, `creator-375-looks.png`, `creator-375b-moments.png`,
+  `makingcheck.png` (375 making), `creator-375-finish.png`. Reduced motion: the clip rests on its still with Play
+  (`creator-1440-reduced.png`); the finished file shows controls, no autoplay.
+- **The engine and the file**: a 30.1 s 1080x1920 mp4 (22.4 MB) encoded in 3.1 s in headless Chrome; Share handed the
+  sheet the real file (name, `video/mp4`, 22,440,731 bytes; the sheet recorded, since headless Chrome draws none) and
+  read Shared; Save downloaded
+  `reel-lane-probe-disposable-clip.mp4` (22,440,731 bytes on disk) and read Saved, both on the finish
+  (`sharesave-done.png`). A backgrounded tab pauses the encode and says so; Cancel returns with the picks kept; any
+  failure lands on Retry and reports `clip: encode failed` (area `reel`) once (`clip-encode.test.tsx`,
+  `clip-creator.test.tsx`).
+- **Add to event, live on a disposable event**: a guest's clip on "Reel lane probe (disposable)" went presign 200, R2
+  PUT (original and the drawn poster) 200, complete 200; row `6b80f7c8-25bb-4c66-a916-2d5de4e17dca` is `video`,
+  `approved`, `reel_eligible = false`, 22,440,731 bytes, by a guest, with a preview. The album counted 15 and drew
+  it; the tile's stills and the creator's pool (14) skip it (`addflow-album.png`).
+- **A free event's clip carries the mark at 30 s**: no free event with photos exists (hi@willgibs.com's one event is
+  empty and the free plan's event cap refused a second), so the gallery poll's facts were rewritten in the test
+  browser only to `clipFactsForTier("free")`: the mark line showed, Add to event left, Everything under Layered
+  parallax fitted 10 moments in 0:28 ("4 moments don't fit in 0:30"), and the 28.3 s file carries the partyreel.com
+  lockup (`free-1440-bench.png`, `free-frame-corner.png`).
+- **No encoder** (`VideoEncoder` deleted before load): the view keeps Make your own greyed, the tile's line opens the
+  view with the reason bubbled over the dock (`noencode-1440.png`, `noencode-375.png`).
+- **The tile** (`reel-front`): the 24px glyph at 10px, the violet line under Highlight reel, only with a creator
+  (`album-1440-tile-zoom.png`).
+- **The Studio's end**: 19 files under `src/components/reel/`, `guest-reel-card.tsx`, `guest-reel-overlay.tsx`, the
+  lightbox's `ReelButton`, RouteSkeleton's studio shape and its Library demo, `setReelGuestVisibleAction` (its RPC is
+  in the drop migration). `build-reel-props.ts` stays (six lab boards, the parity tool, the marketing switcher
+  and the clip itself read it); `PosterCard` stays, `PosterCardChip` gone (its only reader left).
+- **Facts for `docs/systems/reel.md`** (reel-sweep): the creator is `components/reel/clip-creator.tsx`, registered
+  lazily through `guest/reel/creator-seam.ts` (the album carries none of it; mediabunny arrives with the first Make
+  it or an idle warm-up). Its pool is the reel's (`isReelEligible`), so a clip is never cut from clips; the fills are
+  the reel's picks (loop 0's take capped to the length), Only mine (a guest's `ownIds`, the owner's `isHost`) and
+  Everything. Length is Auto (the plan's cap) or 15, 30, 60 under it, fitted on the look's own clock; the encoder
+  refuses anything past 80 s. The mark, the cap and whether video may go back are `ClipFacts`. A guest's Add to event
+  is the page's queue (`create_media`, `p_reel_eligible => false`, moderated, the paid-only video gate); the host's
+  is `lib/reel/clip-add.ts` over `/api/host/r2/*` (approved, metered on her storage). The owner's hidden photographs
+  come from `lib/reel/clip-hidden-action.ts` (owner-only, `getUser()` then RLS; Show is `setMediaStatus` to approved,
+  no revalidation). Without WebCodecs the door stays greyed and explains on a tap (`lib/reel/clip-support.ts`).
+  Clips carry no sound and no telemetry; an encode failure reports once to Sentry.
+- **Test data left** (disposable, for the reset): guest rows named Clip Tester (several runs), Clip Adder, Skip Checker, Free
+  Maker, Share Saver and Making Checker, and the clip row above, all on "Reel lane probe (disposable)".
+- Assets requested from Will: none.
+- **Board ideas**: in a hand the clip could dock small beside the order strip while the Moments view scrolls (the
+  column direction's own second moment); the fills could carry their counts ("Only mine · 3") so an empty one says
+  why before a tap.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- **Calls his to overrule**: the thirteen under Questions.
+- **Look at first, on the alias** (what localhost could not drive): an iPhone's Save to Photos and Share for a clip
+  (the sheet's Save Video); the host's own Add to event and Hidden · Show, signed in as willg97 through the chooser
+  ("Personal Testing Throwaway" holds one hidden photo); a real free event's clip, if Will gives hi@willgibs.com's
+  event a few photos.
