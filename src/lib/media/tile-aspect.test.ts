@@ -5,6 +5,10 @@ import {
   MAX_TILE_RATIO,
   MIN_SANE_RATIO,
   MIN_TILE_RATIO,
+  ROW_FALLBACK_RATIO,
+  ROW_MAX_RATIO,
+  ROW_MIN_RATIO,
+  rowRatio,
   tileAspect,
 } from "./tile-aspect";
 
@@ -82,5 +86,38 @@ describe("tileAspect: the sanity band (applies even without clamp)", () => {
       "1 / 1",
     );
     expect(tileAspect({ width: Number.NaN, height: 100 })).toBe("1 / 1");
+  });
+});
+
+// The number a justified row lays a tile at (`lib/shared/album-rows.ts`): the
+// row band clamps harder than the masonry's sanity band, because every photo
+// in a row shares one height.
+describe("rowRatio", () => {
+  it("passes a real phone ratio through untouched", () => {
+    expect(rowRatio({ width: 1080, height: 1920 })).toBeCloseTo(0.5625);
+    expect(rowRatio({ width: 4032, height: 3024 })).toBeCloseTo(4 / 3);
+    expect(rowRatio({ width: 2560, height: 1080 })).toBeCloseTo(2.37, 3);
+  });
+
+  it("crops a panorama and a sliver to the row band", () => {
+    expect(rowRatio({ width: 9000, height: 1000 })).toBe(ROW_MAX_RATIO);
+    expect(rowRatio({ width: 1000, height: 9000 })).toBe(ROW_MIN_RATIO);
+  });
+
+  it("clamps to the moderation band when the host asks", () => {
+    expect(rowRatio({ width: 3000, height: 1000 }, true)).toBe(MAX_TILE_RATIO);
+    expect(rowRatio({ width: 1000, height: 3000 }, true)).toBe(MIN_TILE_RATIO);
+  });
+
+  it("gives a photo nobody measured the fallback, never NaN", () => {
+    expect(rowRatio({})).toBe(ROW_FALLBACK_RATIO);
+    expect(rowRatio({ width: 0, height: 800 })).toBe(ROW_FALLBACK_RATIO);
+    expect(rowRatio({ width: -100, height: 200 })).toBe(ROW_FALLBACK_RATIO);
+    expect(rowRatio({ width: Number.NaN, height: 100 })).toBe(
+      ROW_FALLBACK_RATIO,
+    );
+    expect(rowRatio({ width: Number.POSITIVE_INFINITY, height: 100 })).toBe(
+      ROW_FALLBACK_RATIO,
+    );
   });
 });

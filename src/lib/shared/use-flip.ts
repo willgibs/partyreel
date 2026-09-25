@@ -1,8 +1,5 @@
 "use client";
 
-/* eslint-disable react-hooks/immutability -- a FLIP imperatively mutates DOM element
-   styles (transform/transition) in a layout effect; that imperative DOM write IS the
-   technique. The lint guards against mutating React-owned values, not the live DOM. */
 import { useCallback, useLayoutEffect, useRef } from "react";
 
 import { readCssMs } from "@/lib/shared/read-css-ms";
@@ -39,6 +36,21 @@ export type FlipOptions = {
   skip?: (key: string) => boolean;
   /** Called for each skipped key in the same layout pass (the dragged tile follows the finger). */
   onSkip?: (key: string) => void;
+  /**
+   * Invert the SIZE as well as the place (the album's justified rows: a photograph that changes
+   * rows changes height with it). It scales about the node's own centre, so it assumes the default
+   * `transform-origin`; the content scales with the box for the length of the glide.
+   */
+  scale?: boolean;
+  /** The glide in ms (default `--tune-reorder-ms`, read in the nodes' own document); 0 is instant. */
+  duration?: number;
+  /** The curve (default `--ease-in-out-strong`). */
+  easing?: string;
+  /**
+   * Animate only what is on screen before or after (within half a screen): a node off screen both
+   * times simply moves. A thousand-tile album glides the forty a reader can see, not all of them.
+   */
+  visibleOnly?: boolean;
 };
 
 /**
@@ -46,36 +58,86 @@ export type FlipOptions = {
  * transition back, then remember the new rect, then prune rects for keys no longer mounted.
  * Reduced motion skips the invert (instant reflow). Pure DOM arithmetic; the hook and the sortable
  * grid both call it.
+ *
+ * ★ EVERY RECT IS READ BEFORE ANY STYLE IS WRITTEN (the album-rows lane, 2026-09-25). The pass used
+ * to read a node, write its invert and force a reflow, node by node, which is one full layout per
+ * moved node: harmless for a dozen feed sections, and seconds of jank for the hundreds of tiles an
+ * arrival shifts in a justified album. Now: every read, then every write, then ONE forced reflow
+ * (it is what makes the invert the transition's starting point), then one frame to let them all go.
+ * The output is identical; only the order of the DOM work changed.
  */
 export function runFlip(
   nodes: Map<string, HTMLElement>,
   prev: Map<string, DOMRect>,
   options: FlipOptions = {},
 ) {
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const dur = readCssMs("--tune-reorder-ms", 500);
+  const first = nodes.values().next().value as HTMLElement | undefined;
+  // The nodes' own window: a lab frame portals them into another document.
+  const win = first?.ownerDocument.defaultView ?? window;
+  const reduce = win.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const dur =
+    options.duration ??
+    readCssMs("--tune-reorder-ms", 500, first?.ownerDocument.documentElement);
+  const ease = options.easing ?? "var(--ease-in-out-strong)";
+
+  // 1. Read.
+  const now = new Map<string, DOMRect>();
+  const skipped: string[] = [];
   for (const [key, el] of nodes) {
-    if (options.skip?.(key)) {
-      options.onSkip?.(key);
-      continue; // finger-followed, not FLIPped; its (transformed) rect must not become the baseline
-    }
-    const now = el.getBoundingClientRect();
-    const was = prev.get(key);
-    if (was && !reduce) {
-      const dx = was.left - now.left;
-      const dy = was.top - now.top;
-      if (dx || dy) {
-        el.style.transition = "none";
-        el.style.transform = `translate(${dx}px, ${dy}px)`;
-        void el.offsetWidth; // force reflow so the invert is the starting point
-        requestAnimationFrame(() => {
-          el.style.transition = `transform ${dur}ms var(--ease-in-out-strong)`;
-          el.style.transform = "";
-        });
-      }
-    }
-    prev.set(key, now);
+    if (options.skip?.(key)) skipped.push(key);
+    else now.set(key, el.getBoundingClientRect());
   }
+  // finger-followed, not FLIPped; its (transformed) rect must not become the baseline
+  for (const key of skipped) options.onSkip?.(key);
+
+  // 2. Write every invert.
+  const moving: HTMLElement[] = [];
+  const reach = win.innerHeight * 0.5;
+  const onScreen = (r: DOMRect) =>
+    r.bottom > -reach && r.top < win.innerHeight + reach;
+  for (const [key, rect] of now) {
+    const was = prev.get(key);
+    prev.set(key, rect);
+    if (!was || reduce || dur <= 0) continue;
+    if (options.visibleOnly && !onScreen(was) && !onScreen(rect)) continue;
+    const el = nodes.get(key)!;
+    let transform = "";
+    if (options.scale && rect.width > 0 && rect.height > 0) {
+      const sx = was.width / rect.width;
+      const sy = was.height / rect.height;
+      const tx = was.left + was.width / 2 - (rect.left + rect.width / 2);
+      const ty = was.top + was.height / 2 - (rect.top + rect.height / 2);
+      // Sub-pixel drift is not motion: nothing to show, nothing to run.
+      if (
+        Math.abs(tx) < 0.5 &&
+        Math.abs(ty) < 0.5 &&
+        Math.abs(sx - 1) < 0.005 &&
+        Math.abs(sy - 1) < 0.005
+      )
+        continue;
+      transform = `translate(${tx}px, ${ty}px) scale(${sx}, ${sy})`;
+    } else {
+      const dx = was.left - rect.left;
+      const dy = was.top - rect.top;
+      if (!dx && !dy) continue;
+      transform = `translate(${dx}px, ${dy}px)`;
+    }
+    el.style.transition = "none";
+    el.style.transform = transform;
+    moving.push(el);
+  }
+
+  // 3. One reflow, so every invert is its transition's starting point; then let them all go.
+  if (moving.length > 0) {
+    void moving[0].offsetWidth;
+    win.requestAnimationFrame(() => {
+      for (const el of moving) {
+        el.style.transition = `transform ${dur}ms ${ease}`;
+        el.style.transform = "";
+      }
+    });
+  }
+
   // Drop rects for nodes that are no longer mounted (see the prune note above).
   for (const key of prev.keys()) {
     if (!nodes.has(key)) prev.delete(key);

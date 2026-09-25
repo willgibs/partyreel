@@ -309,6 +309,8 @@ named in `lib/glass.ts`. `PosterCardChip` (the stored reel's poster) is the one 
 
 One tile, `shared/masonry.tsx` (`MasonryColumns`), draws every album grid: the guest album (`GuestMasonry` wraps it),
 the host's album, the bin and the personal feeds. The admin's `ModerationTile` stays its own: a report is not an album.
+It lays out as masonry (the default), uniform (a fixed aspect: the Reel and Review) or `rows`, the justified album
+(`AlbumRows`, opt-in until each surface switches).
 
 - **A tile shows state, not controls**: at most an active like, a play mark, a like count and the guest's `MineMark`;
   on a phone that is the whole tile, and every action lives in the viewer. At a desk the surface's `tileActions` ride
@@ -320,8 +322,19 @@ the host's album, the bin and the personal feeds. The admin's `ModerationTile` s
   `distributeColumns` places oldest first into the shortest, walking backwards, so an arrival grows one column and no
   tile on screen moves. It is pure, so strict mode and a poll's reconcile agree. `GALLERY_COLUMNS` stays the first
   paint, since the column count needs a width the server lacks.
-- **The open item is an ID, never a position**: items mutate under an open viewer, and a stored index silently points
-  at another photograph.
+- **`rows` justifies like a typesetter** (`lib/shared/album-rows.ts`): optimal breaks over the whole album, so every row
+  fills the width; the oldest row justifies too and alone may run past the soft band, up to a hard cap; an album too
+  small to fill a row at the cap sits centred at it. Steps are photos per row by the box's width (`ROW_CLASSES`),
+  never pixels, so all five stay distinct at any width. Extreme ratios clamp to 1:2..2.4:1 (`rowRatio`).
+- ★ **A full re-solve moves the whole album**, since paths from a new head need not merge with the old ones, so it runs
+  only on load, a resize, a step change and a filter; an arrival re-solves the new photos plus the three rows beside
+  them and a hide its row and neighbours, each window pinned at its edges and stretched by one row at most: never
+  more than four old rows move.
+- ★ **The rows are one flex container broken by hand, never a wrapper per row**: a tile that changes parent remounts,
+  dropping its decoded image to the shimmer and replaying its entrance on every arrival. Each tile's whole-pixel width
+  is its `flex-grow` over a zero basis, so it lands on its pixel at the laid width and still fills mid-resize.
+- ★ **The rows' glide snapshots every tile in `getSnapshotBeforeUpdate`** (the only pre-commit DOM read React has; a
+  null class component): a rect remembered from the last glide is off by however far the reader scrolled since.
 - **A tap hands the viewer its origin**: the viewer grows from the tile's rect (`data-media-id`) and drops back into the
   tile showing at close, focus returning there. The open photograph rides `?photo=<id>` (`lib/media/share-save.ts`),
   claimed by one grid per page.
@@ -360,8 +373,9 @@ primitives name their transition properties, never `transition-all`.
   it on the bar, which snaps and repaints every descendant blurred; and a measured indicator suspends its transition and
   forces a reflow on first placement, or it flies in from x=0.
 - **FLIP and drag are hand-rolled** (no motion or drag library): `useFlip` inverts both axes, `runFlip` is the one copy
-  of the maths, and `useSortableGrid` drops by index arithmetic on a uniform grid, with a 450ms touch press so a scroll
-  never reorders and keyboard reorder for free. ★ `useFlip` prunes the rects of unmounted keys every pass, or a node
+  of the maths (every rect read before any style is written, one forced reflow a pass; `scale`, `duration` and
+  `visibleOnly` for the album's rows), and `useSortableGrid` drops by index arithmetic on a uniform grid, with a 450ms
+  touch press so a scroll never reorders and keyboard reorder for free. ★ `useFlip` prunes the rects of unmounted keys every pass, or a node
   that leaves a filtered set flies back in from where it sat; the prune cannot live in the ref cleanup, because
   `register(key)` is a fresh closure every render.
 - **The two-beat set change: removal and reflow are never the same beat.** Leavers exit together, then the set commits

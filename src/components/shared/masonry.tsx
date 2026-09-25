@@ -45,6 +45,11 @@
  * the CSS-columns box this file has always shipped and the measured layout takes
  * over in a layout effect. Same rule, same count, same gap: the swap is a
  * re-balance, never a jump in height.
+ *
+ * ★ AND `layout="rows"` IS THE JUSTIFIED ALBUM (`album-columns`: Will's
+ * `layout=justified`), opt-in beside masonry, which stays the default. Its
+ * engine is `lib/shared/album-rows.ts` (optimal breaks, local arrivals); this
+ * file is its box, `AlbumRows`, below.
  */
 // THE ARRIVAL GRAMMAR'S SHEET, on the ONE grid every album is made of: the glow
 // an arriving tile takes (`data-arrived`, anyone's) and the sweep a guest's own
@@ -53,14 +58,19 @@
 import "./arrival.css";
 
 import {
+  Children,
+  Component,
+  Fragment,
+  isValidElement,
   useCallback,
   useEffect,
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, HTMLAttributes, ReactNode } from "react";
 import { Play } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -75,7 +85,27 @@ import { GLASS, GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 // The tile aspect-ratio math lives in a pure module (node-unit tested + reusable
 // by host grids without pulling this client component's lightbox graph in).
 import { readPhotoParam, withPhotoParam } from "@/lib/media/share-save";
-import { tileAspect, UNIFORM_TILE_ASPECT } from "@/lib/media/tile-aspect";
+import {
+  rowRatio,
+  tileAspect,
+  UNIFORM_TILE_ASPECT,
+} from "@/lib/media/tile-aspect";
+import {
+  DEFAULT_ROW_STEP,
+  meanRatio,
+  perRowFor,
+  pickFeatures,
+  reflowRows,
+  ROW_CLASSES,
+  type RowAnchor,
+  type RowFeature,
+  type RowItem,
+  type RowsLayout,
+  type RowStep,
+} from "@/lib/shared/album-rows";
+import { ARRIVAL_GLIDE_MS } from "@/lib/shared/arrival";
+import { readCssMs } from "@/lib/shared/read-css-ms";
+import { runFlip } from "@/lib/shared/use-flip";
 import { useLongPress } from "@/lib/shared/use-long-press";
 import { cn } from "@/lib/utils";
 
@@ -465,6 +495,476 @@ export function distributeColumns<T extends GridMedia>(
   return out;
 }
 
+/* ── THE JUSTIFIED ROWS' BOX ─────────────────────────────────────────────── */
+
+/**
+ * A tile's box in the rows, handed to whoever draws the tile: spread `style`
+ * into the tile root's own and write `rowsKey` as its `data-rows-key`, which is
+ * how the glide finds it.
+ */
+export type RowTileBox = {
+  style: CSSProperties;
+  rowsKey: string;
+};
+
+/**
+ * THE FIRST PAINT'S WIDTH CLASSES: `ROW_CLASSES`' own breakpoints as container
+ * queries, each picking that class's count at the step. A class string because
+ * Tailwind reads classes from source, so it cannot be built from the table;
+ * `masonry.test.tsx` holds the two to the same numbers.
+ */
+export const ROWS_FIRST_PAINT =
+  "gap-y-[var(--gap-gallery)] [--rows-n:var(--rows-n0)] @min-[480px]:[--rows-n:var(--rows-n1)] @min-[900px]:[--rows-n:var(--rows-n2)] @min-[1280px]:[--rows-n:var(--rows-n3)]";
+
+/** Every drawn tile and head slot in a rows grid, by its key, as the DOM has them now. */
+function rowNodes(grid: HTMLElement | null): Map<string, HTMLElement> {
+  const nodes = new Map<string, HTMLElement>();
+  grid
+    ?.querySelectorAll<HTMLElement>(":scope > [data-rows-key]")
+    .forEach((el) => nodes.set(el.dataset.rowsKey!, el));
+  return nodes;
+}
+
+/** The rhythm: plain rows, or a feature row now and then (`RowFeature`). */
+export type RowRhythm = "plain" | RowFeature;
+
+/**
+ * THE WIDTH TO LAY THE ROWS AT, given the last few measurements.
+ *
+ * ★ ROWS CAN SUMMON THEIR OWN SCROLLBAR, AND DISMISS IT. A row's height scales
+ * with the width, so an album whose height sits within a hair of the window's
+ * lays out tall enough to need a scrollbar, loses the scrollbar's width, lays
+ * out short enough not to, gets the width back, and loops every frame (masonry
+ * only changes at a column boundary, so it almost never meets this). A width
+ * that flips back to where it was two measurements ago, by no more than a
+ * scrollbar and within a few frames, is that loop: lay the NARROWER width and
+ * hold. Those rows are short enough to need no scrollbar, and in the wider box
+ * flex stretches them the few pixels they are short.
+ */
+export function steadyWidth(
+  recent: readonly { width: number; at: number }[],
+): number {
+  const n = recent.length;
+  const last = recent[n - 1];
+  if (n < 3) return last.width;
+  const [a, b] = [recent[n - 3], recent[n - 2]];
+  const flipped =
+    a.width === last.width &&
+    a.width !== b.width &&
+    Math.abs(a.width - b.width) <= 24 &&
+    last.at - a.at < 300;
+  return flipped ? Math.min(a.width, b.width) : last.width;
+}
+
+/** Where a head slot's id is kept apart from every photograph's. */
+const HEAD_ID = "rows-head:";
+
+/**
+ * THE HEAD SLOT'S NOMINAL SHAPE. What stands at the album's head (the guest's
+ * upload stack, a held photograph waiting for the host) has no dimensions the
+ * grid can see, so it takes a square: the shape a photograph nobody measured
+ * takes too (`ROW_FALLBACK_RATIO`), and the one that crops either orientation
+ * least.
+ */
+const HEAD_RATIO = 1;
+
+/**
+ * Every tile-shaped node in a head: the page hands one fragment of however
+ * many tiles, and each becomes a slot of its own in the first row. A fragment's
+ * children are walked through (the guest album's head is exactly that shape);
+ * anything that is not an element (a stray `false`, an empty string) is no
+ * tile.
+ */
+function headSlots(head: ReactNode): { key: string; node: ReactNode }[] {
+  const out: { key: string; node: ReactNode }[] = [];
+  const walk = (node: ReactNode, path: string) => {
+    Children.toArray(node).forEach((child, i) => {
+      if (!isValidElement<{ children?: ReactNode }>(child)) return;
+      const key = `${path}${child.key ?? i}`;
+      if (child.type === Fragment) walk(child.props.children, `${key}/`);
+      else out.push({ key, node: child });
+    });
+  };
+  walk(head, "");
+  return out;
+}
+
+/** The list the engine lays: every photograph's row ratio, the rhythm's picks, the head's slots. */
+function rowItemsFor(
+  items: readonly {
+    id: string;
+    width?: number | null;
+    height?: number | null;
+  }[],
+  clampAspect: boolean,
+  picks: { seed: number; perRow: number } | null,
+  heads: readonly string[],
+  anchor: RowAnchor,
+): RowItem[] {
+  const list: RowItem[] = items.map((m) => ({
+    id: m.id,
+    ratio: rowRatio(m, clampAspect),
+  }));
+  if (picks) {
+    const featured = pickFeatures(list, picks.seed, picks.perRow);
+    for (let i = 0; i < list.length; i++)
+      if (featured.has(list[i].id)) list[i] = { ...list[i], feature: true };
+  }
+  const slots = heads.map((key) => ({ id: HEAD_ID + key, ratio: HEAD_RATIO }));
+  return anchor === "end" ? [...slots, ...list] : [...list, ...slots];
+}
+
+/** Whether two laid lists are the same photographs, shapes and picks, in order. */
+function sameRowItems(a: readonly RowItem[], b: readonly RowItem[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++)
+    if (
+      a[i].id !== b[i].id ||
+      a[i].ratio !== b[i].ratio ||
+      !!a[i].feature !== !!b[i].feature
+    )
+      return false;
+  return true;
+}
+
+/**
+ * ★ THE GLIDE NEEDS WHERE EVERY TILE WAS A MOMENT BEFORE THE ROWS CHANGED, NOT
+ * WHERE IT WAS AT THE LAST GLIDE. A guest scrolls between two arrivals, and a
+ * rect remembered from the last one is off by however far they scrolled: the
+ * whole album would fly by that distance. React's only way to read the DOM
+ * after the new rows are decided and before they are written is a class
+ * lifecycle, `getSnapshotBeforeUpdate` (there is no hook for it), so this null
+ * component exists to call `capture` at exactly that moment, and only when the
+ * rows about to be written will glide.
+ */
+class RowsSnapshot extends Component<{
+  version: number;
+  armed: boolean;
+  capture: () => void;
+}> {
+  getSnapshotBeforeUpdate(prev: { version: number }) {
+    if (prev.version !== this.props.version && this.props.armed)
+      this.props.capture();
+    return null;
+  }
+  // React calls the snapshot only on a component that also declares this.
+  componentDidUpdate() {}
+  render() {
+    return null;
+  }
+}
+
+type RowsLaid = {
+  /** The list these rows were laid from. */
+  items: readonly RowItem[];
+  /** The parameters, as a key: a resize, a step, an anchor or a rhythm. */
+  params: string;
+  layout: RowsLayout;
+  /** Bumped on every change actually written, so the glide runs once per change. */
+  version: number;
+  /** Whether this change glides (an arrival, a hide, a step), or lands at once. */
+  glide: boolean;
+};
+
+/**
+ * THE JUSTIFIED ALBUM (`album-columns`, Will's `layout=justified`: "I like this
+ * more than masonry because we insert into rows (feels natural) rather than
+ * columns... along with cleaner row lines"). The engine decides the rows
+ * (`lib/shared/album-rows.ts`); this box measures the width they are laid in,
+ * draws them, and glides what an arrival, a hide or a step moves.
+ *
+ * ★ ONE FLEX CONTAINER, ITS ROWS BROKEN BY HAND, NEVER A WRAPPER PER ROW. A
+ * photograph that changes rows would change PARENT under a wrapper per row, and
+ * React remounts a node that changes parent: the tile would drop its decoded
+ * image back to the shimmer, replay its entrance and lose its hover, on every
+ * arrival, for every photograph the arrival pushed along. So every tile is a
+ * child of one wrapping flex box, each row is one flex line, and a zero-height,
+ * full-width break (the row gap's own height) ends each line. A reflow moves
+ * breaks, never tiles.
+ *
+ * ★ WHOLE PIXELS, AND FLEX HANDS THEM OUT. The engine gives each tile a whole
+ * pixel width summing to the row; the tile's `flex-grow` IS that width over a
+ * zero basis, so at the width it was laid for every tile lands on its pixel
+ * (no seams), and in the frames between a resize and its layout the row still
+ * fills the box edge to edge, stretched a hair, rather than wrapping.
+ *
+ * ★ THE FIRST PAINT IS CSS, BECAUSE THE SERVER HAS NO WIDTH. Before the box is
+ * measured the tiles wrap greedily on the same target (a container query per
+ * width class, the album's mean ratio, each tile growing in proportion to its
+ * shape, so each line is already justified); the engine's rows replace it in a
+ * layout effect, moving breaks and never remounting a tile. The greedy lines are
+ * not the engine's, so the swap is a re-break: a jump-free first paint needs the
+ * step and a width the server can know, which is the surface's to thread.
+ *
+ * Arrivals glide (`--arrival-glide-ms`, `ARRIVAL_GLIDE_MS`): a new tile mounts
+ * in place and takes the album's own entrance and glow, and every tile the
+ * reflow moved glides from where it stood, only those a reader can see. A step
+ * change glides the same way. A resize, a filter and the first layout land at
+ * once, and reduced motion lands everything at once.
+ */
+export function AlbumRows<
+  T extends { id: string; width?: number | null; height?: number | null },
+>({
+  items,
+  step = DEFAULT_ROW_STEP,
+  anchor = "end",
+  rhythm = "plain",
+  seed = 0,
+  clampAspect = false,
+  head,
+  renderTile,
+  gridRef,
+  gridProps,
+}: {
+  items: readonly T[];
+  /** The density step: photographs per row (`ROW_CLASSES`), never pixels. */
+  step?: RowStep;
+  /** The fixed end (`RowAnchor`): "end" for a newest-first album. */
+  anchor?: RowAnchor;
+  rhythm?: RowRhythm;
+  /** The visit's seed for the rhythm's picks: the same seed, the same picks. */
+  seed?: number;
+  /** The host's moderation band (`rowRatio`). */
+  clampAspect?: boolean;
+  /**
+   * What stands at the growing end before the first photograph (the guest's
+   * upload tiles): each tile-shaped node takes a slot of its own at the head
+   * (at the tail for an oldest-first album), square, with its own bottom margin
+   * zeroed and its box filled.
+   */
+  head?: ReactNode;
+  renderTile: (item: T, box: RowTileBox) => ReactNode;
+  gridRef?: (el: HTMLDivElement | null) => void;
+  gridProps?: HTMLAttributes<HTMLDivElement>;
+}) {
+  const gridEl = useRef<HTMLDivElement | null>(null);
+  const [box, setBox] = useState<{ width: number; gap: number } | null>(null);
+  const widths = useRef<{ width: number; at: number }[]>([]);
+
+  // The width the rows are laid in, and the gap as the box resolves it (the
+  // token is a `max()`, which a custom property reads back as text).
+  const measure = useCallback(() => {
+    const el = gridEl.current;
+    if (!el) return;
+    const measured = el.getBoundingClientRect().width;
+    // A zero width is "not laid out" (a hidden tab, jsdom), never "a phone".
+    if (measured <= 0) return;
+    const recent = widths.current;
+    if (recent[recent.length - 1]?.width !== measured)
+      recent.push({ width: measured, at: performance.now() });
+    if (recent.length > 3) recent.shift();
+    const width = steadyWidth(recent);
+    const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
+    setBox((prev) =>
+      prev && prev.width === width && prev.gap === gap ? prev : { width, gap },
+    );
+  }, []);
+  useLayoutEffect(() => {
+    measure();
+    const el = gridEl.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [measure]);
+
+  const slots = headSlots(head);
+  const perRow = box ? perRowFor(box.width, step) : null;
+  const feature: RowFeature = rhythm === "plain" ? "double" : rhythm;
+  // Plain arithmetic every render (a few microseconds a thousand photographs):
+  // the rows below compare it by CONTENT, so a poll that hands down an equal
+  // list in a new array lays nothing.
+  const rowItems = rowItemsFor(
+    items,
+    clampAspect,
+    rhythm !== "plain" && perRow !== null ? { seed, perRow } : null,
+    slots.map((h) => h.key),
+    anchor,
+  );
+
+  // THE ROWS, derived during render from the last rows (React's "storing
+  // information from previous renders"): the engine is pure and fast, and a
+  // reflow that is decided here is written in the same commit, so the glide's
+  // snapshot sees the old rows and its effect the new ones.
+  const paramsKey =
+    box && perRow !== null
+      ? `${box.width}|${box.gap}|${perRow}|${anchor}|${feature}`
+      : "";
+  const [laid, setLaid] = useState<RowsLaid | null>(null);
+  let current = laid;
+  if (
+    box &&
+    perRow !== null &&
+    (!laid || laid.params !== paramsKey || !sameRowItems(laid.items, rowItems))
+  ) {
+    const r = reflowRows(laid?.layout ?? null, rowItems, {
+      width: box.width,
+      gap: box.gap,
+      perRow,
+      anchor,
+      feature,
+    });
+    if (r.kind !== "none" || !laid || laid.params !== paramsKey) {
+      const sameWidth = !!laid && laid.layout.width === box.width;
+      current = {
+        items: rowItems,
+        params: paramsKey,
+        layout: r.layout,
+        version: (laid?.version ?? 0) + 1,
+        glide:
+          r.kind === "local" ||
+          (r.kind === "full" &&
+            ((r.reason === "params" && sameWidth) || r.reason === "tiny")),
+      };
+      setLaid(current);
+    }
+  }
+
+  // The glide: every tile's box a moment before the rows changed (the
+  // snapshot), then the pass over what moved. The tiles are read out of the
+  // grid by their `data-rows-key` at those two moments rather than tracked by
+  // a ref callback each, so a render hands nothing but attributes.
+  const snap = useRef<Map<string, DOMRect> | null>(null);
+  const capture = useCallback(() => {
+    const was = new Map<string, DOMRect>();
+    for (const [key, el] of rowNodes(gridEl.current))
+      was.set(key, el.getBoundingClientRect());
+    snap.current = was;
+  }, []);
+  const version = current?.version ?? 0;
+  const glide = current?.glide ?? false;
+  useLayoutEffect(() => {
+    const was = snap.current;
+    snap.current = null;
+    if (!was || !glide) return;
+    runFlip(rowNodes(gridEl.current), was, {
+      scale: true,
+      visibleOnly: true,
+      duration: readCssMs(
+        "--arrival-glide-ms",
+        ARRIVAL_GLIDE_MS,
+        gridEl.current,
+      ),
+      easing: "var(--arrival-glide-ease, var(--ease-in-out-strong))",
+    });
+  }, [version, glide]);
+
+  const byId = useMemo(
+    () => new Map(items.map((m) => [m.id, m] as const)),
+    [items],
+  );
+  const slotByKey = new Map(slots.map((h) => [HEAD_ID + h.key, h.node]));
+
+  const drawn = (id: string, style: CSSProperties) => {
+    const slot = slotByKey.get(id);
+    if (slot !== undefined)
+      return (
+        <div
+          key={id}
+          data-rows-key={id}
+          data-rows-head
+          style={style}
+          // The head's tiles bring the masonry's bottom margin and their own
+          // height; in a row the slot is the box, so both give way to it.
+          className="relative [&_[data-media-tile]]:!mb-0 [&_[data-media-tile]]:h-full [&>*]:!mb-0 [&>*]:h-full [&>*]:w-full"
+        >
+          {slot}
+        </div>
+      );
+    const item = byId.get(id);
+    return item ? renderTile(item, { style, rowsKey: id }) : null;
+  };
+
+  const children: ReactNode[] = [];
+  const layout = current?.layout;
+  if (layout) {
+    layout.rows.forEach((row, r) => {
+      row.ids.forEach((id, i) => {
+        const w = row.widths[i];
+        children.push(
+          drawn(
+            id,
+            layout.tiny
+              ? { flex: `0 0 ${w}px`, height: row.height }
+              : {
+                  flexGrow: w,
+                  flexShrink: 1,
+                  flexBasis: 0,
+                  minWidth: 0,
+                  height: row.height,
+                },
+          ),
+        );
+      });
+      if (r < layout.rows.length - 1)
+        children.push(
+          <div
+            key={`break:${row.ids[row.ids.length - 1]}`}
+            aria-hidden
+            data-row-break
+            className="basis-full"
+            style={{ height: "var(--gap-gallery)" }}
+          />,
+        );
+    });
+  } else {
+    // The first paint (see the head comment): greedy, justified per line.
+    for (const it of rowItems)
+      children.push(
+        drawn(it.id, {
+          flexGrow: it.ratio,
+          flexBasis: `calc(var(--rows-unit) * ${it.ratio})`,
+          aspectRatio: it.ratio,
+          minWidth: 0,
+        }),
+      );
+    // The last line keeps its target height rather than blowing one
+    // photograph up to the full width.
+    children.push(
+      <div key="rows-rest" aria-hidden className="h-0 grow-[1000] basis-0" />,
+    );
+  }
+
+  // Each width class's count at this step, for the first paint's container
+  // queries; the engine reads the same table. ★ FIRST PAINT ONLY: the unit
+  // carries the album's mean shape, which every arrival nudges, and a custom
+  // property changed on the grid restyles every one of its descendants: a
+  // thousand tiles restyled, on every arrival, for a value nothing reads once
+  // the rows are measured.
+  const unitVars: Record<string, string | number> = {};
+  if (!layout) {
+    ROW_CLASSES.forEach((c, i) => {
+      unitVars[`--rows-n${i}`] = c.perRow[step];
+    });
+    unitVars["--rows-unit"] =
+      `calc((100cqw - (var(--rows-n) - 1) * var(--gap-gallery)) / (var(--rows-n) * ${meanRatio(rowItems)}))`;
+  }
+
+  return (
+    <div className="@container w-full">
+      <div
+        {...gridProps}
+        ref={(el) => {
+          gridEl.current = el;
+          gridRef?.(el);
+        }}
+        data-album-grid
+        data-album-layout="rows"
+        style={unitVars as CSSProperties}
+        className={cn(
+          "flex w-full flex-wrap gap-x-[var(--gap-gallery)]",
+          layout ? "gap-y-0" : ROWS_FIRST_PAINT,
+          layout?.tiny && "justify-center",
+        )}
+      >
+        {children}
+      </div>
+      <RowsSnapshot version={version} armed={glide} capture={capture} />
+    </div>
+  );
+}
+
 export function MasonryColumns<T extends GridMedia>({
   items,
   onDeleteItem,
@@ -480,6 +980,10 @@ export function MasonryColumns<T extends GridMedia>({
   onRemove,
   onTileLongPress,
   layout = "masonry",
+  rowStep,
+  rowAnchor,
+  rowRhythm,
+  rhythmSeed,
   arrivedIds,
   landedIds,
   canDelete,
@@ -525,9 +1029,18 @@ export function MasonryColumns<T extends GridMedia>({
   stagger?: boolean;
   clampAspect?: boolean;
   /** "masonry" = explicit, height-balanced columns (the Gallery "wow"). "uniform" = a fixed-aspect
-   *  CSS grid (the Reel + Review, where uniformity makes drag-order / selection legible). Only the
-   *  container and the per-tile aspect change; the marks / lightbox / dimItem paths are identical. */
-  layout?: "masonry" | "uniform";
+   *  CSS grid (the Reel + Review, where uniformity makes drag-order / selection legible). "rows" =
+   *  the justified album (`AlbumRows`, opt-in until each surface switches). Only the container and
+   *  the per-tile box change; the marks / lightbox / dimItem paths are identical. */
+  layout?: "masonry" | "uniform" | "rows";
+  /** Rows only: the density step, photographs per row (`lib/shared/album-rows.ts`). */
+  rowStep?: RowStep;
+  /** Rows only: the fixed end, "end" (the default) for a newest-first album. */
+  rowAnchor?: RowAnchor;
+  /** Rows only: plain rows (the default) or a feature row now and then. */
+  rowRhythm?: RowRhythm;
+  /** Rows only: the visit's seed for the rhythm's picks, held for the visit. */
+  rhythmSeed?: number;
   /** Threads to the lightbox (host viewer affordances). Default false (guest/read-only). */
   viewerIsHost?: boolean;
   /** Tap-and-hold a tile to enter the gallery album bulk-select, seeded with that id. Omitted
@@ -577,8 +1090,15 @@ export function MasonryColumns<T extends GridMedia>({
   const openIndex = openAt >= 0 ? openAt : null;
   // Only the FIRST render staggers (later arrivals enter instantly). Captured
   // once via the useState initializer (no ref-in-render). Unused when stagger=false.
-  const [seededIds] = useState(() => new Set(items.map((m) => m.id)));
+  // ★ THE SEED INDEX, NOT TODAY'S: a tile's `--tile-i` is its place in the seed
+  // render and stays that, because an arrival that shifted every index rewrote
+  // an inline custom property on every tile and restyled the whole album for a
+  // delay that only ever mattered at mount.
+  const [seedIndex] = useState(
+    () => new Map(items.map((m, i) => [m.id, i] as const)),
+  );
   const uniform = layout === "uniform";
+  const rows = layout === "rows";
   // One long-press machine for the grid (a single press at a time). bind() is a no-op without
   // onTileLongPress, so non-host grids are unaffected.
   const longPress = useLongPress(onTileLongPress);
@@ -684,18 +1204,22 @@ export function MasonryColumns<T extends GridMedia>({
     });
   }, []);
   useLayoutEffect(() => {
-    if (uniform) return;
+    // The rows measure their own box (`AlbumRows`).
+    if (uniform || rows) return;
     measure();
     const el = boxRef.current;
     if (!el || typeof ResizeObserver === "undefined") return;
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [uniform, measure]);
+  }, [uniform, rows, measure]);
 
-  const tileOf = (item: T, i: number) => (
+  // `box` is a justified row's size and the glide's key (`AlbumRows`); without
+  // one the tile sizes itself by its aspect, as masonry and uniform always have.
+  const tileOf = (item: T, box?: RowTileBox) => (
     <div
       key={item.id}
+      data-rows-key={box?.rowsKey}
       data-media-tile
       data-arrived={arrivedIds?.has(item.id) ? "" : undefined}
       data-landed={landedIds?.has(item.id) ? "" : undefined}
@@ -711,20 +1235,28 @@ export function MasonryColumns<T extends GridMedia>({
       data-static={stagger ? undefined : ""}
       style={
         {
-          // Uniform = the one fixed aspect (object-cover crops); masonry = natural ratio.
-          aspectRatio: uniform
-            ? UNIFORM_TILE_ASPECT
-            : tileAspect(item, clampAspect),
+          // Rows = the engine's box. Uniform = the one fixed aspect (object-cover
+          // crops); masonry = natural ratio.
+          ...(box
+            ? box.style
+            : {
+                aspectRatio: uniform
+                  ? UNIFORM_TILE_ASPECT
+                  : tileAspect(item, clampAspect),
+              }),
           borderRadius: "var(--radius-tile)",
-          ...(stagger ? { "--tile-i": seededIds.has(item.id) ? i : 0 } : {}),
+          ...(stagger ? { "--tile-i": seedIndex.get(item.id) ?? 0 } : {}),
         } as CSSProperties
       }
-      // Uniform: the CSS-grid gap spaces tiles. Masonry: the gap is the tile's own
-      // bottom margin, because neither a `columns` box nor a column element has a row gap.
+      // Uniform: the CSS-grid gap spaces tiles; rows: the flex gap and the row
+      // breaks. Masonry: the gap is the tile's own bottom margin, because
+      // neither a `columns` box nor a column element has a row gap.
       className={
-        uniform
-          ? "group relative w-full overflow-hidden bg-black/10"
-          : "group relative mb-[var(--gap-gallery)] w-full break-inside-avoid overflow-hidden bg-black/10"
+        box
+          ? "group relative overflow-hidden bg-black/10"
+          : uniform
+            ? "group relative w-full overflow-hidden bg-black/10"
+            : "group relative mb-[var(--gap-gallery)] w-full break-inside-avoid overflow-hidden bg-black/10"
       }
     >
       <button
@@ -737,9 +1269,13 @@ export function MasonryColumns<T extends GridMedia>({
           openItem(item.id, e.currentTarget.closest("[data-media-tile]"));
         }}
         aria-label={item.type === "photo" ? "View photo" : "Play video"}
-        className={`size-full cursor-pointer transition-[transform,opacity] duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset active:scale-[0.98]${
-          dimItem?.(item) ? "opacity-30" : ""
-        }`}
+        // ★ `cn`, never a template: the dim used to be glued straight onto
+        // `active:scale-[0.98]` with no space, one class nobody emits, so a
+        // hidden photograph sat in the host album at full brightness.
+        className={cn(
+          "size-full cursor-pointer transition-[transform,opacity] duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset active:scale-[0.98]",
+          dimItem?.(item) && "opacity-30",
+        )}
       >
         <MediaTile item={item} playBadge="none" />
       </button>
@@ -765,13 +1301,31 @@ export function MasonryColumns<T extends GridMedia>({
   );
 
   const columns =
-    uniform || cols === null
+    uniform || rows || cols === null
       ? null
       : distributeColumns(items, cols, clampAspect);
 
   return (
     <>
-      {columns ? (
+      {rows ? (
+        <AlbumRows
+          items={items}
+          step={rowStep}
+          anchor={rowAnchor}
+          rhythm={rowRhythm}
+          seed={rhythmSeed}
+          clampAspect={clampAspect}
+          head={prefix}
+          renderTile={(item, box) => tileOf(item, box)}
+          gridRef={(el) => {
+            rootRef.current = el;
+          }}
+          gridProps={{
+            onPointerEnter: preloadMediaLightbox,
+            onTouchStart: preloadMediaLightbox,
+          }}
+        />
+      ) : columns ? (
         <div
           ref={(el) => {
             boxRef.current = el;
@@ -785,7 +1339,7 @@ export function MasonryColumns<T extends GridMedia>({
           {columns.map((column, c) => (
             <div key={c} className="min-w-0 flex-1">
               {c === 0 && prefix}
-              {column.map((item) => tileOf(item, items.indexOf(item)))}
+              {column.map((item) => tileOf(item))}
             </div>
           ))}
         </div>
@@ -801,7 +1355,7 @@ export function MasonryColumns<T extends GridMedia>({
           onTouchStart={preloadMediaLightbox}
         >
           {prefix}
-          {items.map((item, i) => tileOf(item, i))}
+          {items.map((item) => tileOf(item))}
         </div>
       )}
 
