@@ -58,6 +58,41 @@
       ],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-25",
+      "answers": [
+        {
+          "ask": "arrival",
+          "choice": "push",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        },
+        {
+          "ask": "steps",
+          "choice": "both",
+          "note": "We could reduce the amount of steps on a phone to 3 max (effectively 1 item, 2 items, 3 items per row) so 4-5 items per row doesn't force us to load in a ton of media at once, and compounds on scrolls vs less dense grids. This may even justify 3 steps max on desktop too, your call! We already need to add scrolling pagination to event pages rather than load the whole album upfront. Even our text event with 1000+ lightweight items gets laggy on my MBP fast.",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        },
+        {
+          "ask": "rhythm",
+          "choice": "double",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        }
+      ],
+      "notes": [
+        {
+          "on": null,
+          "text": "Three steps everywhere, his call handed to me: under 480px 1, 2 or 3 a row; from 480px 2, 3 or 4; from 900px 3, 4 or 6; from 1280px 3, 5 or 8; the middle is the default, one index shared by host and guest, the old sizes mapped across. The feature row stays off at one photo a row. The album pages now: a light list of the whole album with image links minted only for what is on screen, rows mounted only around the viewport, and a poll that asks what changed since its version.",
+          "by": "ai:orchestrator",
+          "at": "2026-09-25T08:46:18Z"
+        }
+      ],
+      "items": [],
+      "calls": []
     }
   ]
 }

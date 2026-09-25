@@ -32,28 +32,29 @@ model Will seats (Fable or Opus); nothing here depends on which.
 ## In flight
 
 Up to eight lanes at once (Will, 2026-09-24); every production build, a lane's or the kit's gate, takes turns
-through `scripts/build-lock.sh` (the kit's gate takes it itself). Batch 2 is cut from `e30aaada`; the live plan is
-`~/.claude/plans/great-work-however-1-dapper-twilight.md` (the lanes' manifests carry everything they need).
+through `scripts/build-lock.sh` (the kit's gate takes it itself). Batch 3 runs overnight on 2026-09-25 with Will asleep
+in auto mode ("work through the night on all of this until fully complete"); the live plan is
+`~/.claude/plans/great-work-however-1-dapper-twilight.md`, and the lanes' manifests carry everything they need.
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `reel-host-wiring` | the host's reel side (the Highlight reel card counting to two with its guidance, one review number, the Highlight reel section in Settings, the band's reel step and the cards' crossfade, the Studio's host pieces out) and the wide host pages | handed off at `c8af4435`; HOLD unmerged (agent `a7a1fff0cd8e82d51`); its lane check names five comment-or-test exceptions outside its owns (the Library's `gallery-demos.tsx`, `use-reel-config.test.tsx`, three stale comments) | Opus, :3133 | integrate second in the stretch; its ten calls under Questions are Will's to overrule (the card's name and lines, the band's step at one photo, the bell's count, Settings' graded stills, the crossfade on every hosted card at 3.5 s, the 375 cards grid, the take over 96 items) |
-| `reel-guest-wiring` | the live reel's guest side with batch 2: the window start, the code toggle at 1024 and up, the view live only at two (the code on a drop), the owner's extras (Play on a screen, Set for everyone, Close back), the hold per event over the host's default, "clip", the 12px phone gutter | handed off at `7d5bfb32` (synced past the migration; gate green on `a3c4eb53`); HOLD unmerged (agent `a744f57e3c4cbd81f`) | Opus, :3137 | integrate first in the stretch; the owner's extras, fullscreen and the wake lock prove on its alias build; its two calls (the pill without fullscreen, "Everyone sees this look") are Will's to overrule |
+| `reel-guest-wiring` | the live reel's guest side | handed off at `7d5bfb32`; merging now (no `[preview]`: the stretch still reaches the alias as one build) | Opus | its calls are Will's to overrule, relayed with the merge |
+| `reel-host-wiring` | the host's reel side and the wide host pages | handed off at `c8af4435`; merging after the guest lane | Opus | its ten calls relayed with the merge |
 
 ## Next, in order
 
-1. **Will's sitting on build 8** (the `[preview]` after `album-rows` and `clip-bench` merged; the new asks read side by
-   side, none repeating): `reel-cut` r2, `reel-story`, `reel-front` r2, `album-columns` r2, `media-viewer` r2. Transcribe
-   it with `lab:review`, then cut the lanes below.
-2. **After the sitting**: cut `reel-clip-wiring` (Opus; the creator, the bench as picked, the finish as amended, the
-   Studio's `src/components/reel/` pieces out, the client adds), `reel-sweep` (Opus; the copy from `reel-story`, help,
-   legal, admin, docs, `docs/systems/reel.md`) and `reel-teardown` (Sonnet; `reel_clip_add`; the stored files' end);
-   the guest lane's last re-open (`reel-front` r2, the creator seam, and the live take made sub-quadratic: the host lane
-   measured `planTake` at 48 ms for 1,200 items and a second at 6,000, so the hub reads a 96-item spread). The stretch integrates guest, host, clip,
-   teardown, sweep, synced; one `[preview]` (build 9); the red-team; the drop migration on Will's yes; the one-shot
-   R2 sweep; the reel boards and ledgers retire after their manifests close.
-3. **`album-rows-wiring`** (Opus): every surface to rows with `album-columns` r2's picks, the jump-free first paint,
-   the five steps, and `media-viewer` r2's mark; build 10.
+1. **Merge the two held reel lanes** (guest, then host), then cut from the new tip: `reel-clip-wiring` (the creator
+   with his tabs, the finish, the Studio out, the client adds, the seam flip, `reel-front` on the tile),
+   `reel-teardown`, `reel-sweep` (all but the four copy asks `reel-story` r2 holds), the lab rounds `door-r2`,
+   `story-r2` and `mark-r3`, and the paged album's engine lanes `album-window` (windowed rows, the memo'd tile, three
+   steps, the push arrival, the density control, the perf harness) and `album-pages` (the manifest, links by id, the
+   version and change-log migration, the store and routes).
+2. **The stretch integrates** clip, teardown, sweep, synced; the three boards land; one `[preview]` (build 9); the
+   red-team walks the reel's journeys. The drop migration and the one-shot R2 sweep wait for Will's yes.
+3. **Then**: `album-guest-wiring` and `album-host-wiring` (every album surface onto the paged, windowed rows with
+   `album-columns` r2's picks; `planTake` sub-quadratic on the manifest), `door-flow` (his chooser, the keyboard-safe
+   phone sheet, the menu card), `identity-email` (the deletion scrub going forward, the account's email change),
+   `reel-marketing` after his `reel-story` r2, the mark's wiring after his `media-viewer` r3.
 4. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
    self-registering folder, its metadata in its spec, lab checks scoped to the lane's own boards, the authoring API
    trimmed, a fresh agent proving it; with library-lean's board ideas (a `Surfaces` family of live frames per route
@@ -63,5 +64,6 @@ through `scripts/build-lock.sh` (the kit's gate takes it itself). Batch 2 is cut
 
 ## Waiting on Will
 
-- **His sitting on build 8**: `reel-cut` r2 first.
+- **His sitting on build 9**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
+- **Two yeses**: the reel drop after build 9's red-team; clearing past deleted accounts' addresses from guest rows.
 - **A 10-second iPhone check**: Save to Photos lands in Photos, and a shared photo arrives as a photograph.

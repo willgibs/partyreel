@@ -63,6 +63,29 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-25",
+      "answers": [
+        {
+          "ask": "mine",
+          "choice": "ring",
+          "note": "I'm split on this. I can already see that neighboring uploads from the same user would have overlapping rings, but this is far less intrusive than the glass dot or worded corner. Curious if you could solve it even better, maybe in this direction, maybe new idea. If not, we'll scratch and go nothing at all. Simply use a filter to find yours.",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        }
+      ],
+      "notes": [
+        {
+          "on": null,
+          "text": "Round 3 draws on the real rows engine with runs of your own photos side by side, which round 2 never showed: the ring moved inside the tile, one outline around each run, a baseline, and none (the shipped Yours filter in View). Round 2's ring sat outside the tile and was exactly as wide as the 4px gutter, so neighbours merged as he foresaw.",
+          "by": "ai:orchestrator",
+          "at": "2026-09-25T08:46:18Z"
+        }
+      ],
+      "items": [],
+      "calls": []
     }
   ]
 }

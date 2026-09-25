@@ -1,0 +1,68 @@
+{
+  "board": "reel-story",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-25",
+      "answers": [
+        {
+          "ask": "thesis",
+          "choice": null,
+          "note": "I don't like any of these options. The home screen and the feature hub's reel door don't have to be tied together with this copy. Doesn't make a ton of sense since they're for different purposes. Don't love 'Roll credits on the group chat' for home close (readers have to think too much, but nice try) and none of these feel right for the actual card.",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        },
+        {
+          "ask": "arc",
+          "choice": "live-first",
+          "note": "The reel is the core concept, then the screen introduces a key way it is used (play it on the big screen) and clips are a key takeaway (make your own clips). Your call on whether screen vs clips works best as second follow up, other goes third.",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        },
+        {
+          "ask": "teaser",
+          "choice": "poster",
+          "note": "This was the closest option to what I'd like. However, rather than a still poster, we'll use a custom clipped short looped video that inspires a click on the play mark, which (unless you have a better idea) would be cool to launch a demo reel experience from. If that's a bad idea, we could play a demo reel housed in a modal that contextualizes what they're watching with some CTA.",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        },
+        {
+          "ask": "pricing",
+          "choice": "renamed",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        },
+        {
+          "ask": "steps",
+          "choice": "grow-clip",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        },
+        {
+          "ask": "events",
+          "choice": "wall",
+          "note": "While the left card is beautiful, the right side of this option could use a ton of redesign work around the reel presentation. The left card is beautiful for production, only needing shorter copy that reduces it to 2 lines max. too long now.",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        },
+        {
+          "ask": "help",
+          "choice": "highlight-reel",
+          "note": "For a newer user, this is more all-encompassing, especially if they don't know about clips as a distinct side feature yet. Users who do know about clips will intuitively find that content under this broader category name.",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        }
+      ],
+      "notes": [
+        {
+          "on": null,
+          "text": "Round 2 decouples the thesis: the home's close and the hub's reel card each get their own plain lines, none a reader has to decode. The arc, his call handed to me: the reel, then the screen, then clips (the party, then the morning after). The poster becomes a short looped clip made by Partyreel's own creator from the demo album, and where its play mark leads is round 2's play ask (recommended: the demo's live reel over the page with one line of context and Start your event). The demo door keeps its look with its copy cut to two lines at most; the reel side beside it is round 2's wall ask.",
+          "by": "ai:orchestrator",
+          "at": "2026-09-25T08:46:18Z"
+        }
+      ],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

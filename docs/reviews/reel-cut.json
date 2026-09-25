@@ -82,6 +82,29 @@
       ],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-25",
+      "answers": [
+        {
+          "ask": "bench",
+          "choice": "column",
+          "note": "This is going to be a weird selection. My favorite overall *idea* is both in the panel, but not one scroll. Both options 2 and 3 design the reel styles (2) and event gallery (3) to the right on desktop. I think both of those looked great, but would rather have them nested under something so only 1 can be active at a time and users switch between the different configs. That gives each plenty of room to do its things, and gives the timeline order strip more room beneath. For mobile, it's especially important to have focused views, else it gets way too crowded quickly. Tabs or something are nice because it's almost like a self-tour as you click into each and toggle around.",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        }
+      ],
+      "notes": [
+        {
+          "on": null,
+          "text": "Built as the column with his tabs: the panel holds Looks (the strip option's wall, her own clip's still under each look) and Moments (the dial option's album pool, with the fill chips, the numbers and Hidden · Show), one open at a time; the order strip beneath takes the height the tabs free, and at 375 each tab is a focused view under the clip. A call, his to overrule: Looks opens first, since the reel's picks already fill the moments.",
+          "by": "ai:orchestrator",
+          "at": "2026-09-25T08:46:18Z"
+        }
+      ],
+      "items": [],
+      "calls": []
     }
   ]
 }

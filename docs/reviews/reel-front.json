@@ -57,6 +57,35 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-25",
+      "answers": [
+        {
+          "ask": "signature",
+          "choice": "plain",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        },
+        {
+          "ask": "badge",
+          "choice": "glyph",
+          "note": "Do not like the \"Make your own\" badge in the top right.",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        }
+      ],
+      "notes": [
+        {
+          "on": null,
+          "text": "Built without the tile's Make your own pill: his round-1 note had already asked for the violet line 'Make your own clip to share' under the Highlight reel heading instead, and round 2 drew the pill as ground by mistake. The glyph sits top left.",
+          "by": "ai:orchestrator",
+          "at": "2026-09-25T08:46:18Z"
+        }
+      ],
+      "items": [],
+      "calls": []
     }
   ]
 }

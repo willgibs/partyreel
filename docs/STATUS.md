@@ -13,28 +13,28 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoin
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: batch 2, from Will's sitting on build 7
+## The current round: batch 3, from Will's sitting on build 8
 
 - **Milestone 28 is live** (`1076d3d7`, 2026-09-24): no read stops at 1,000 rows (every list reads whole, every count
   counts, every id list chunks, every set-returning RPC pages, every sweep reports what it left; `row-cap-policy.test.ts`
   and a Sentry tripwire keep it so); a claimed guest ticket uploads only for its owner; a guest's own delete is final.
-- **Will's sitting on build 7 is recorded** (2026-09-25): the album goes to justified rows (every row edge to edge, an
-  arrival re-solving only the top rows, steps as photos per row); the host reaches the reel by adding the album's first
-  two photos, so the reel has no idle screen; the host's reel side and the clip creator as he picked them ("clip" is
-  the noun).
-- **Batch 2**: merged are the reel defaults migration (applied: the default hold, the event cards' stills), the rows
-  engine as an opt-in layout with `album-columns` r2 on it, and `reel-cut` r2 (the workbench). The guest lane is handed
-  off and the host lane is building; both hold unmerged so one alias build replaces the stored reel, and the clip,
-  teardown and sweep lanes follow Will's sitting on build 8.
+- **Will's sitting on build 8 is recorded** (2026-09-25): the clip creator's panel holds its looks and moments as
+  tabs; the reel's marketing copy goes to a second round, the home and the hub's card decoupled; the tile loses its
+  "Make your own" pill; the album takes three density steps everywhere and pages now (a light whole-album list, links
+  minted for what is on screen, rows mounted around the viewport, a delta poll); the own-item mark gets a third round;
+  the guest door gets a welcome that feels alive, a chooser (Continue as guest, Create account, Log in), a keyboard-safe
+  phone sheet, and a confirmed email that is changed, never removed.
+- **Batch 3** (overnight, Will asleep in auto mode): the held reel lanes merge, the reel stretch's last lanes run
+  (clip, teardown, sweep), three lab rounds open (`identity-door` r2, `reel-story` r2, `media-viewer` r3), and the paged
+  album's two engine lanes build beside them; build 9 carries it all.
 
 ## The desk
 
-27 boards at `/design/lab?key=`, in leverage order: `reel-cut` (r2), `reel-story`, `reel-front` (r2),
-`album-columns` (r2), `media-viewer` (r2), then `reel-screen`, `reel-host` and `reel-view` (answered;
-built by the held lanes, retiring with the stretch), `identity-door`, `identity-claims`, `identity-profile`,
-`guest-capture`, `voice-guest`, `host-curation`, `host-storage`, `event-safety`, `export-flow`, `admin-triage`,
-`help-center`, `emails`, `site-chrome`, `profile-page`, `privacy-hero`, `album-motion`, `loose-ends`, `contact-page`,
-`press-page`.
+27 boards at `/design/lab?key=`, in leverage order: `identity-door`, `reel-story` and `media-viewer` (their next rounds
+drawing), `identity-claims`, `identity-profile`, `guest-capture`, `voice-guest`, `host-curation`, `host-storage`,
+`event-safety`, `export-flow`, `admin-triage`, `help-center`, `emails`, `site-chrome`, `profile-page`, `privacy-hero`,
+`album-motion`, `loose-ends`, `contact-page`, `press-page`, then the answered boards awaiting their build and
+retirement: `reel-cut`, `reel-front`, `album-columns`, `reel-screen`, `reel-host`, `reel-view`.
 
 ## Live state
 
@@ -73,6 +73,7 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **His sitting on build 8**: `reel-cut` r2 first, then `reel-story`, `reel-front` r2, `album-columns` r2 and
-  `media-viewer` r2.
+- **His sitting on build 9** once it lands: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
+- **Two yeses**: the reel drop migration after build 9's red-team, and clearing past deleted accounts' addresses from
+  their guest rows.
 - **A 10-second iPhone check** on the album: Save to Photos lands in Photos; a shared photo arrives as a photo.
