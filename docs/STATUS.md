@@ -19,13 +19,13 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   for its owner; a guest's own delete is final.
 - **The reel stretch landed** (2026-09-25, overnight in auto mode): the live reel's guest and host sides, the clip
   creator (Make your own, Looks and Moments as tabs), the stored reel's server side gone, the reel retold across
-  marketing, help and legal, and `docs/systems/reel.md` its home. The drop migration is applied; until milestone 29
-  partyreel.com's host dashboard errors (milestone 28 reads the dropped `highlight_reels`).
+  marketing, help and legal, and `docs/systems/reel.md` its home. The drop is applied and the stored files swept; until
+  milestone 29 partyreel.com's host dashboard errors (milestone 28 reads the dropped `highlight_reels`).
 - **Also landed**: the album fast at any size (windowed rows, a memoized tile, three density steps) and the paged
   album's data half (`album_state` and `album_changes`, links by id, a delta poll); a confirmed email changed at both
   addresses and deletion taking the address with it; four correctness fixes (the billing downgrade, the unlock
   cookie bound to the password, the orphan breaker's health, counts past 999); the door's new flow (his chooser, a
-  keyboard-safe phone sheet). Building: the album's guest and host surfaces onto the paged rows.
+  keyboard-safe phone sheet); the host's album on the paged rows. Building: the guest's album onto them.
 
 ## The desk
 
@@ -72,8 +72,7 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 ## Waiting on Will
 
 - **His sitting on build 9**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
-- **The reel sweep** (`node scripts/sweep-reel-files.mjs --apply`, once per bucket) and **milestone 29's yes** after
-  build 10's red-team.
+- **Milestone 29's yes** after build 10's red-team (it ends partyreel.com's dashboard error since the drop).
 - **One dashboard minute**: Supabase's Change Email Address template gains `{{ .Token }}` (until then the change
   confirms by the link at both addresses).
 - **A 10-second iPhone check** on the album: Save to Photos lands in Photos; a shared photo arrives as a photo.

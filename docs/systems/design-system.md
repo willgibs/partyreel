@@ -314,7 +314,8 @@ admin's `ModerationTile` stays its own: a report is not an album. It lays out as
 fixed aspect: the Reel and Review) or `rows`, the justified album, windowed (`shared/album-window.tsx`, opt-in until
 each surface switches). `/design/album-scale` is the grid over 1,145 photographs and `scripts/album-perf.mjs` its
 harness (nodes, animations, a fling's frames, renders per like, tick and poll, a head arrival while deep), measured on
-a production build.
+a production build; `?surface=host` is the hub's album there (its store, select mode, bin and View menu) over one fake
+server answering the poll, the writes and the bin's routes as the real ones do.
 
 - **A tile shows state, not controls**: at most an active like, a play mark, a like count and the guest's `MineMark`;
   on a phone that is the whole tile, and every action lives in the viewer. At a desk the surface's `tileActions` ride

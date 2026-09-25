@@ -230,8 +230,7 @@ The host-made, stored, published reel is gone: its routes, its admin page and sw
 limiter kinds, the Studio, the guest's stored-reel card and its schema (`20260924110000_live_reel_drop.sql`: the five
 reel RPCs, `reel_items`, `reel_render_log`, `highlight_reels`, the `reel_status` enum,
 `notification_prefs.notify_reel_ready`, the `reel_render_enabled` flag). What remains is on a clock:
-- **The stored files**: `reelOutputKey`, the purge cron's append and `account-deletion.ts`'s append stay through one
-  deprecation window. [`scripts/sweep-reel-files.mjs`](../../scripts/sweep-reel-files.mjs) is the one-shot sweep over
-  `listR2Objects` for every `events/<id>/reel/reel.mp4` (dry by default with a count, `--apply` to delete through
-  `r2/delete.ts`), run once per bucket: the backup bucket keeps copies of its own that no prune reaches, so it runs
-  again with `R2_BUCKET=partyreel-backup`. The helper and both appends leave in a later change once both report zero.
+- **The stored files are swept** from both buckets ([`scripts/sweep-reel-files.mjs`](../../scripts/sweep-reel-files.mjs),
+  the one-shot sweep for every `events/<id>/reel/reel.mp4`, run once per bucket with `R2_BUCKET` naming the backup;
+  dry runs of both read zero). `reelOutputKey`, the purge cron's append and `account-deletion.ts`'s append are the
+  last of its code and leave in a later change.

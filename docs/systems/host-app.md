@@ -199,29 +199,30 @@ beneath, newest first.
   event's own nulls so it lists only what is left (the date, the note, printing the table cards, always last because
   the app cannot observe it done). It is a server component passed as a slot, so the client `EventUploads` never needs
   the event's fields. A held-only event shows "Everything's in Review": it is full, not empty.
-- ★ **The hub is live: an upload lands while the host looks.** `EventLive` (`event-gallery.tsx`) spends a
-  `router.refresh()` on exactly two signals and never on a timer: the guest's Realtime doorbell, or a changed validator
-  from `/api/events/<id>/live` (two RLS-scoped head counts and one row, no presigns, a bodiless 304 when nothing moved),
-  polled on the guest album's hybrid cadence. ★ The poll is not redundant with the socket: the doorbell fires only on the
-  approved-visible set, so a held upload on a moderated event wakes nobody, and the host fingerprint
-  (`lib/events/host-fingerprint.ts`: the album and pending counts and the newest `updated_at`, which
-  `media_set_updated_at` stamps on every write, so another tab's hide moves it) is how the one person who can approve
-  it hears. It hashes numbers, never the item list, so it costs the same at any size and no row past the 1,000th
-  changes unseen. ★ The first response only seeds the validator, or every load would refresh itself. `HostMediaGrid`
-  marks arrivals by diffing item ids across a refresh, never the presigned URLs (they roll every half hour), and a
-  host album never staggers.
+- ★ **The hub is live: an upload lands while the host looks, and nothing refreshes the page.** The album is the page's
+  store (`event-feed/host-album.tsx`, its pure half `lib/event/hub-album.ts`), seeded with the host's first sync and
+  its validator, and moved by `sync()` on the guest's Realtime doorbell, a fallback poll (12s with the socket down, 60s
+  up, paused while hidden, asked again on return) and each write's catch-up. The host's version answers every question
+  (`/api/album/host/<id>/sync`: a 304 that read one row, a delta by id, a manifest past 500 changes). ★ The poll is not
+  redundant with the socket: the doorbell fires only on the approved-visible set, and the host's version, which every
+  status change moves, is how a held upload reaches the one person who can approve it (the Review card counts it).
+  `HostMediaGrid` marks arrivals by diffing ids, never links (they roll every half hour), and a host album never
+  staggers.
 - **The album** (`event-feed/event-gallery.tsx`) carries Add photos, Download all, Select and one View menu, which
-  always renders so an empty album still reaches the bin. ★ The bin is fetched on demand (`listDeletedMediaAction`, a
-  `getUser()`-gated Server Function), never with the page, because each item needs its own presign; it reads the whole
-  bin, and bin items never count in the album.
-- ★ **The hub's album is read whole and its numbers are counted**: it presigns the `album` slice of `listEventMedia`
-  (approved and hidden) through `readAllPages`, and every number on the page is a head count (`countEventMedia`), never
-  a list's length (the Reel card's pips are a threshold, read off that whole album with the stills they sit on). The
-  `live` slice is Download all's, whose manifest refuses past 2,000 items with a 413.
-- ★ **The View menu** (`shared/view-menu.tsx`) holds Tile size (the masonry's `--album-column`, in the per-device
-  `pr_tile_size` cookie painted inline by the hub, never localStorage, which would repaint the columns after hydration),
-  Sort (disabled: the album is a server-rendered slot, so a client sort could only reorder what is mounted) and Filter
-  (All, Deleted).
+  always renders so an empty album still reaches the bin. ★ The bin is the paged album's shape (`lib/event/bin.ts`):
+  choosing Deleted reads its list (`/api/events/<id>/bin`: ids, shapes and countdowns, no links), again on every
+  choice so what was just deleted is there; its rows mint links per window (`bin/media`) and re-mint them every five
+  minutes while it is open; bin items never count in the album.
+- ★ **The hub's album is the paged album and its numbers are counted**: the page plans the host's first sync (every
+  item but the bin, light, each status in its flags) and mints links for the 96 newest (`FIRST_WINDOW`,
+  `readHostLinksBody`, with each item's like count); the windowed rows ask for the rest by id. Every number is counted
+  in the version's snapshot (approved plus hidden, and pending), never a list's length. The album's writes never
+  revalidate the hub: each asks the store to catch up. The `live` slice is Download all's, whose manifest refuses past
+  2,000 items with a 413.
+- ★ **The View menu** (`shared/view-menu.tsx`) holds Tile size (the rows' three density steps: the slider, a pinch,
+  ctrl and the wheel, in the per-device `pr_tile_size` cookie painted by the hub, never localStorage, which would
+  repaint after hydration), Sort (Newest or Oldest first: the manifest reversed and laid from its start, so an arrival
+  lands at the end; it resets each visit) and Filter (All, Deleted).
 - **SSR'd surfaces use native `title` only**, never a radix Tooltip (the hydration regression in
   [architecture.md](architecture.md)); rich client UI is safe inside its islands.
 
@@ -251,19 +252,20 @@ beneath, newest first.
 - **The viewer's pill groups "enjoy | curate"**, the curate group gated on `viewerIsHost && onSetStatus`, so the guest's
   pill is behaviour-identical; Remove confirms, the rest act directly. The tile row and the viewer share ONE
   `useModeration` hook (`host-media-grid.tsx`) over one `useOptimistic` list.
-- **Album bulk select** opens from Select or a long press (`use-long-press.ts`): the album swaps to
-  `SelectableMediaGrid` and its header's action slot becomes the shared `BulkBar`, whose rich tooltips mount only after
-  hydration. The selection lives in a thin `HostSelectionProvider`, into which the album grid (owner of the optimistic
-  items) registers its handlers, so the bar calls `selection.run(kind)`: the seam whenever a control surface and its
-  grid live in different subtrees.
+- **Album bulk select** opens from Select or a long press (`use-long-press.ts`) and runs on the one grid through
+  `selection` (no second grid, no remount: a toggle re-renders one tile); the header's action slot becomes the shared
+  `BulkBar`, whose rich tooltips mount only after hydration, and select-all takes every manifest id, mounted or not.
+  The selection lives in a thin `HostSelectionProvider`, into which the album grid (owner of the optimistic items)
+  registers its handlers, so the bar calls `selection.run(kind)`: the seam whenever a control surface and its grid live
+  in different subtrees.
 - ★ **The selection prunes to the surviving ids when the album changes, never resets** (`useSelection`), so a poll never
   wipes a selection in progress.
-- **Bulk Like loops its idempotent RPC under ONE summary toast** (`likeMany`); Hide, Show and Delete are the general
-  `setMediaStatusBulk` and `removeMediaBulk` (plain RLS, no pending predicate).
+- **Bulk Like is one `like_many` call a batch under ONE summary toast** (the refused ids reverted); Hide, Show and
+  Delete are the general `setMediaStatusBulk` and `removeMediaBulk` (plain RLS, no pending predicate), each sent in
+  batches of `MAX_BULK_ITEMS`.
 - ★ **Every bulk write, and Delete forever's reads, send the selection through `inChunks`** (an unchunked
   `.in('id', …)` over a big selection outgrew the URL and failed whole), and every bulk action refuses more than
   `MAX_BULK_ITEMS` (`lib/event/bulk-selection.ts`).
-- ★ **The select grid passes the same `clampAspect` as the album's grid**, or toggling select reflows every tile.
 - **Host upload**: Add photos opens a dropzone (`host-upload.tsx`) straight into the album; its pipeline is
   [uploads-and-r2.md](uploads-and-r2.md)'s.
 
@@ -271,5 +273,6 @@ beneath, newest first.
 
 The Reel card, the band's reel step, the old route's redirect and Settings' Highlight reel section are
 [reel.md](reel.md)'s, with the rest of the reel and the clip. What the hub owes it: the card rides the cards row
-(the Highlight reel is a door, never a room), the hub reads the album whole so the card's threshold and stills sit on
-it, and nothing about review shows anywhere a room could watch.
+(the Highlight reel is a door, never a room), the card's threshold reads the album's manifest (`isPlayableEntry`) and
+its stills are the reel's take, planned on the server (`readHubReel`) and asked again when its state moves, and
+nothing about review shows anywhere a room could watch.

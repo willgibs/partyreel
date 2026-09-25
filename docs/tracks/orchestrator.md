@@ -17,6 +17,7 @@ reads:
   - CLAUDE.md
   - docs/PROGRAM.md
 announces:
+  - "album-host-wiring merged at 7130d26d (2026-09-25): `HostAlbumLinksBody` (the host's links answer plus `likes`) in `@/lib/events/album-wire`; `likes-provider.tsx` seeds likes per window and bulk-likes through `like_many`; `lib/events/host-fingerprint.ts` and `/api/events/[eventId]/live` are gone; the bin is `/api/events/<id>/bin` and `bin/media`."
   - "reel-defaults-migration merged at 71cfea65 (2026-09-25), its migration applied: `events.reel_hold_sec` (NULL = the default hold; read it with `resolveHoldSec(row.reel_hold_sec)`, since the generated type says `number`), returned last by `get_event_by_qr_token`; `HOLD_STEPS_SEC`, `DEFAULT_HOLD_SEC`, `nearestHoldStep`, `REEL_MOOD_IDS` in `@/lib/reel/defaults` (their one home: the guest lane drops its copies); `setReelDefaults({ eventId, showReel?, styleId?, holdSec? })` in `@/lib/reel/defaults-action` for the view's Set for everyone and Settings; `event_stills(uuid[], int)` (authenticated, one jsonb of preview keys an event, presigned server-side like `readCoverUrls`). reel-guest-wiring and reel-host-wiring merge origin/launch-prep past it."
   - "media-viewer-wiring merged at 7eb190de (2026-09-24): `MediaLightbox`/`MediaLightboxLazy` take `origin={{ kind: \"reel\", rect }}` (rect null fades in; omit `returnTo` so the way out lands in the frame) and `startAt` (a clip's seconds); `ViewerOrigin` is exported from `@/components/shared/media-lightbox`; the photo parameter is `PHOTO_PARAM` with `readPhotoParam` in `@/lib/media/share-save`, whose Save follows the platform (the clip's finish reuses it)."
 ---
@@ -38,16 +39,15 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `album-guest-wiring` | the guest album, viewer, reel and profile feeds onto the paged, windowed rows with r2's picks; `planTake` sub-quadratic; the perf harness's `--page` mode; build 9's two reel findings in its files (the view's scroll lock, the tile's hit area) | building (agent `a4f93b6854568e16f`) | Opus, :3131 | its `guest-flow.md` lines through the Handoff |
-| `album-host-wiring` | the hub's album onto the paged rows, select mode on the one grid, the bin on a manifest, Sort live, `like_many` (applied, types at `14359c94`) | building (agent `aca30254725561438`) | Opus, :3134 | syncs past `album-guest-wiring` if it lands first; `host-app.md` lines through the Handoff |
 
 Merged tonight (their records carry the rest): reel-guest-wiring, reel-host-wiring, mark-r3, story-r2, door-r2,
 album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hardening, reel-sweep, door-flow,
-retire-reel-boards, crumbs.
+retire-reel-boards, crumbs, album-host-wiring.
 
 ## Next, in order
 
-1. **Integrate as they land**: `album-host-wiring` and `album-guest-wiring` in either order, and `crumbs`. Then build 10
-   (`[preview]`); build 9 (`52a19853`) serves the alias until then.
+1. **Integrate `album-guest-wiring`** as it lands (told to sync past `album-host-wiring`'s merge). Then build 10
+   (`[preview]`), which opens Will's next sitting; build 9 (`52a19853`) serves the alias until then.
 2. **Build 10's red-team** (Opus; the pane for a guest, Chrome's account chooser for the host), which also finishes
    build 9's walk (it stopped at the usage limit with its first six journeys passing):
    - the reel on the album's new data path: the tile, the view, clips, access, the password event, the demo;
@@ -60,8 +60,8 @@ retire-reel-boards, crumbs.
 
    Afterwards the 15-photo probe's `reel_style_id` and `reel_hold_sec` go back to NULL. Journey 9's page checks passed
    on build 9 (both legal pages at 1.7, the retired help slugs 308, no stale reel claim on the marketing pages,
-   `/admin/reels` a 404). The drop migration is applied (Will's yes, 2026-09-25); the sweep of the stored files is his to
-   run.
+   `/admin/reels` a 404). The drop migration is applied and the stored files are swept from both buckets; the stored
+   reel's last code (`reelOutputKey`, its two appends, the stale comments) is a ROADMAP line for a small lane.
 3. **Retire `album-columns`** once the surface lanes merge (the five reel boards retired at `0cbd5634`), atomically across
    `touchpoints.ts`, `registry.ts` and `boards.ts`, its ledger with it.
 4. **After his sitting on build 9**: `reel-marketing` (his `reel-story` r2), the door's look (his `identity-door` r2)
@@ -76,8 +76,6 @@ retire-reel-boards, crumbs.
 ## Waiting on Will
 
 - **His sitting on build 9**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
-- **The reel sweep**, his to run (a file delete): `node scripts/sweep-reel-files.mjs --apply`, then the same with
-  `R2_BUCKET=partyreel-backup` (one stored reel in each); then a dry run of each reads zero.
 - **Milestone 29's yes**, after build 10's red-team: since the drop, partyreel.com's host dashboard errors (milestone
   28's `/dashboard` reads `highlight_reels`), and the milestone ships the code that no longer does.
 - **One dashboard minute** (no management token here): Supabase, Authentication, Templates, Change Email Address, add

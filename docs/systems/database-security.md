@@ -55,16 +55,19 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   - ★ **The claim by address never takes an address.** The three `*_guest_rows_by_email` functions key on the
     caller's own CONFIRMED address, read from `auth.users` under definer privilege, so nothing can answer "is this
     address a Partyreel guest?", and an unconfirmed caller gets an empty set even for their own address.
-  - **A like is only as visible as its media.** `like_media` accepts media the caller can see; `get_my_likes`
-    re-applies that predicate, so a like on media that has since closed never presigns; `get_event_like_counts` is
-    host-gated and the only count path, so no count reaches a guest.
+  - **A like is only as visible as its media.** `like_media` accepts media the caller can see, and `like_many`
+    (authenticated, SECURITY INVOKER, at most 2,000 ids a call) sends each id through it, so `like_media` stays the
+    only insert; `get_my_likes` re-applies that predicate, so a like on media that has since closed never presigns.
+    The counts are host-only through two paths, `get_event_like_counts` and `media_like_counts`, so no count reaches
+    a guest.
 - **SECURITY INVOKER is the default for a new read** (in neither list): a grant that reached the wrong role reads
   only that role's own rows, where a DEFINER body would read everyone's. The dashboard cards' `event_stills` (up to
   12 previewed, approved photos an event, one jsonb) is this shape, authenticated-only: another host's event is
   simply absent, and it may name only media columns the host's SELECT grant holds.
 - **Service-role only, never in either list:** the server-mediated set above, `action_rate`, `purge_media_rows`,
   `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `monthly_ingress_cap`, the paged album's reader
-  `album_changes_since` (an INVOKER read the Next routes call after their own capability check), and the trigger
+  `album_changes_since` (an INVOKER read the Next routes call after their own capability check), `media_like_counts`
+  (an INVOKER read the host's links route and the hub page call after their `getEvent` check), and the trigger
   functions, whose EXECUTE is revoked from the client roles and which still fire (EXECUTE is checked when a trigger
   is created, never when it fires).
 - ★ **Every SECURITY DEFINER function pins `set search_path = ''` and fully qualifies every name** (`public.events`,
