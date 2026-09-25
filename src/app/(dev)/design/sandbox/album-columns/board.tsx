@@ -1,52 +1,36 @@
 "use client";
 
+import "./album-columns.css";
+
 import { ExplorationBoard } from "@/components/lab";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
-import { controlPreview } from "./control";
-import { layoutPreview } from "./layouts";
-import { phonePreview } from "./phone";
-import { ScopeShowcase } from "./scope";
+import { arrivalPreview } from "./arrival";
+import { rhythmPreview } from "./rhythm";
 import { ALBUM_COLUMNS } from "./spec";
-import { scalePreview } from "./scale";
-import { widthPreview } from "./width";
+import { stepsPreview } from "./steps";
 
 /**
- * THE PREVIEWS, AND NOTHING ELSE: every option is the real fixture album,
- * either the real `MasonryColumns` or (`layout`'s justified/mosaic, `phone`'s
- * scales/step-three/single-column) the same balancing math this board quotes
- * rather than forks, at the width where its decision's difference shows.
- * `layout`, `width`, `scale` and `phone` read a screen knob from the board's
- * state (`screens.ts`); `scope` and `control` are not width-dependent, so
- * their pictures are plain nodes.
+ * THE PREVIEWS, AND NOTHING ELSE: every option is the real `rows` layout of
+ * the one grid (`MasonryColumns`, `layout="rows"`) over the lab's album, in a
+ * real frame at the width the screen knob names. The arrival's options differ
+ * only in the board's sheet; the steps' faces really re-lay the album under
+ * them; the rhythm's options are the engine's own feature rows.
  */
 const PREVIEWS: PreviewsFor<typeof ALBUM_COLUMNS> = {
-  "layout.masonry": (s) => layoutPreview(s, "masonry"),
-  "layout.justified": (s) => layoutPreview(s, "justified"),
-  "layout.uniform": (s) => layoutPreview(s, "uniform"),
-  "layout.mosaic": (s) => layoutPreview(s, "mosaic"),
+  "arrival.rise": (s) => arrivalPreview(s, "rise"),
+  "arrival.push": (s) => arrivalPreview(s, "push"),
+  "arrival.beats": (s) => arrivalPreview(s, "beats"),
+  "arrival.snap": (s) => arrivalPreview(s, "snap"),
 
-  "width.edge": (s) => widthPreview(s, "edge"),
-  "width.contained": (s) => widthPreview(s, "contained"),
-  "width.bleed": (s) => widthPreview(s, "bleed"),
+  "steps.menu": (s) => stepsPreview(s, "menu"),
+  "steps.segments": (s) => stepsPreview(s, "segments"),
+  "steps.pinch": (s) => stepsPreview(s, "pinch"),
+  "steps.both": (s) => stepsPreview(s, "both"),
 
-  "scale.unlimited": (s) => scalePreview(s, "unlimited"),
-  "scale.grows": (s) => scalePreview(s, "grows"),
-  "scale.ceiling": (s) => scalePreview(s, "ceiling"),
-
-  "phone.fixed-two": (s) => phonePreview(s, "fixed-two"),
-  "phone.scales": (s) => phonePreview(s, "scales"),
-  "phone.step-three": (s) => phonePreview(s, "step-three"),
-  "phone.single-column": (s) => phonePreview(s, "single-column"),
-
-  "scope.shared": <ScopeShowcase option="shared" />,
-  "scope.split": <ScopeShowcase option="split" />,
-  "scope.shared-defaults": <ScopeShowcase option="shared-defaults" />,
-
-  "control.three-step": controlPreview("three-step"),
-  "control.slider": controlPreview("slider"),
-  "control.five-step": controlPreview("five-step"),
-  "control.pinch": controlPreview("pinch"),
+  "rhythm.plain": (s) => rhythmPreview(s, "plain"),
+  "rhythm.double": (s) => rhythmPreview(s, "double"),
+  "rhythm.solo": (s) => rhythmPreview(s, "solo"),
 };
 
 export function AlbumColumnsBoard() {

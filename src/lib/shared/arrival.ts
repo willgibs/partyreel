@@ -47,6 +47,18 @@ export const ARRIVAL_GLOW_MS = 2000;
  */
 export const ARRIVAL_SWEEP_MS = 900;
 
+/**
+ * THE GLIDE: how long the rows an arrival reflows take to reach their new
+ * places in a justified album (`AlbumRows`), and how long a step change takes
+ * to re-lay the photographs a reader can see. Ambient like the glow, so it is
+ * allowed past the 300ms a control's answer gets, but it is the album MOVING,
+ * so it stays well under the glow: long enough for the eye to follow a
+ * photograph to its new row, short enough to be over before a thumb comes
+ * back. The album box reads `--arrival-glide-ms` first (the tuner, a lab
+ * option), so this is the default, not a second copy.
+ */
+export const ARRIVAL_GLIDE_MS = 450;
+
 export type ArrivalMarks = {
   /** Ids that take the glow: everything that arrived by itself. */
   arrived: readonly string[];

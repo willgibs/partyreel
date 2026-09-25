@@ -9,8 +9,11 @@ import {
   columnsFor,
   distributeColumns,
   MasonryColumns,
+  ROWS_FIRST_PAINT,
+  steadyWidth,
   type TileAction,
 } from "@/components/shared/masonry";
+import { ROW_CLASSES } from "@/lib/shared/album-rows";
 
 // The lazy wrapper is next/dynamic, which resolves after the pin is over; the
 // address pins need the real viewer, so it mounts synchronously here (closed, it
@@ -19,6 +22,14 @@ vi.mock("@/components/shared/media-lightbox.lazy", async () => {
   const { MediaLightbox } = await import("@/components/shared/media-lightbox");
   return { MediaLightboxLazy: MediaLightbox, preloadMediaLightbox: () => {} };
 });
+
+// The rows' glide is `runFlip`'s own contract (use-flip.test.tsx); here only
+// WHEN the grid asks for one is pinned, so the pass itself is a spy.
+const runFlipSpy = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/shared/use-flip", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/shared/use-flip")>()),
+  runFlip: runFlipSpy,
+}));
 
 /**
  * THE ONE ALBUM TILE'S CONTRACT (Will, `tiles`, 2026-09-20, in his own words:
@@ -525,5 +536,282 @@ describe("the open photograph rides the address", () => {
     });
     fireEvent.click(screen.getByLabelText("View photo"));
     expect(here()).toBe("/e/tok?reel");
+  });
+});
+
+/**
+ * THE JUSTIFIED ALBUM ON THE ONE GRID (`album-columns`, Will's
+ * `layout=justified`). The engine's rules are `album-rows.test.ts`; these pin
+ * the BOX: the rows fill it, a tile keeps everything a tile carries, the head
+ * slots seat the in-flight tiles, and a reflow moves breaks, never tiles.
+ *
+ * ★ jsdom measures every element at 800px (vitest.setup.ts) and resolves no
+ * gap, so the rows here are real engine rows at 800 with a gap of 0.
+ */
+describe('layout="rows": the justified album on the one grid', () => {
+  const album: GridMedia[] = Array.from({ length: 23 }, (_, i) => ({
+    id: `r${i}`,
+    type: i === 3 ? "video" : "photo",
+    url: `/${i}.jpg`,
+    width: [300, 400, 400, 1600, 100][i % 5],
+    height: [400, 300, 500, 900, 100][i % 5],
+    likeCount: i === 2 ? 5 : 0,
+  }));
+
+  /** The tiles, row by row, as the breaks divide them. */
+  const rowsOf = (grid: Element) => {
+    const rows: HTMLElement[][] = [[]];
+    for (const el of Array.from(grid.children) as HTMLElement[]) {
+      if (el.hasAttribute("data-row-break")) rows.push([]);
+      else if (el.hasAttribute("data-rows-key")) rows[rows.length - 1].push(el);
+    }
+    return rows;
+  };
+  const gridOf = (container: HTMLElement) =>
+    container.querySelector('[data-album-grid][data-album-layout="rows"]')!;
+
+  beforeEach(() => runFlipSpy.mockClear());
+
+  it("leaves masonry the default", () => {
+    const { container } = render(<MasonryColumns items={album} />);
+    expect(container.querySelector("[data-album-layout]")).toBeNull();
+  });
+
+  it("lays every photograph in rows that fill the box, one height a row", () => {
+    const { container } = render(
+      <MasonryColumns items={album} layout="rows" />,
+    );
+    const rows = rowsOf(gridOf(container));
+    expect(rows.length).toBeGreaterThan(2);
+    expect(rows.flat().map((t) => t.getAttribute("data-media-id"))).toEqual(
+      album.map((m) => m.id),
+    );
+    for (const row of rows) {
+      // Whole pixels summing to the box (800, no gap): no gap at the edge.
+      const widths = row.map((t) => Number(t.style.flexGrow));
+      expect(widths.every(Number.isInteger)).toBe(true);
+      expect(widths.reduce((a, b) => a + b, 0)).toBe(800);
+      expect(new Set(row.map((t) => t.style.height)).size).toBe(1);
+    }
+  });
+
+  it("keeps everything a tile carries: marks, the viewer's hooks, the arrival marks", () => {
+    const { container } = render(
+      <MasonryColumns
+        items={album}
+        layout="rows"
+        mineIds={new Set(["r1"])}
+        arrivedIds={new Set(["r0"])}
+        landedIds={new Set(["r1"])}
+      />,
+    );
+    const tile = (id: string) =>
+      container.querySelector<HTMLElement>(
+        `[data-media-tile][data-media-id="${id}"]`,
+      )!;
+    expect(tile("r3").querySelector("svg.lucide-play")).not.toBeNull();
+    expect(tile("r2").querySelector('[data-tile-mark="like"]')).not.toBeNull();
+    expect(tile("r1").querySelector('[data-tile-mark="mine"]')).not.toBeNull();
+    expect(tile("r0").hasAttribute("data-arrived")).toBe(true);
+    expect(tile("r1").hasAttribute("data-landed")).toBe(true);
+    expect(tile("r4").hasAttribute("data-lit")).toBe(true);
+  });
+
+  it("takes the step as photographs per row, never pixels", () => {
+    const { container, rerender } = render(
+      <MasonryColumns items={album} layout="rows" rowStep={0} />,
+    );
+    const sparse = rowsOf(gridOf(container)).length;
+    rerender(<MasonryColumns items={album} layout="rows" rowStep={4} />);
+    const dense = rowsOf(gridOf(container)).length;
+    // 800px is the tablet class: about 2 a row at the largest, 5 at the densest.
+    expect(sparse).toBeGreaterThan(dense * 2 - 1);
+  });
+
+  it("seats each head tile in a slot of its own before the first photograph", () => {
+    const { container, rerender } = render(
+      <MasonryColumns
+        items={album}
+        layout="rows"
+        prefix={
+          <>
+            {false}
+            <div data-testid="stack">in flight</div>
+            {[
+              <div key="held" data-testid="held">
+                waiting
+              </div>,
+            ]}
+          </>
+        }
+      />,
+    );
+    const grid = gridOf(container);
+    const first = rowsOf(grid)[0];
+    expect(first[0].hasAttribute("data-rows-head")).toBe(true);
+    expect(first[1].hasAttribute("data-rows-head")).toBe(true);
+    expect(first[0].contains(screen.getByTestId("stack"))).toBe(true);
+    expect(first[1].contains(screen.getByTestId("held"))).toBe(true);
+    // The masonry's bottom margin gives way to the row: the slot is the box.
+    expect(first[0].className).toContain("[&>*]:!mb-0");
+    // An empty head is no slot at all (the guest's head is a fragment always).
+    rerender(
+      <MasonryColumns items={album} layout="rows" prefix={<>{false}</>} />,
+    );
+    expect(grid.querySelector("[data-rows-head]")).toBeNull();
+  });
+
+  it("moves breaks, never tiles: an arrival keeps every tile's node", () => {
+    const { container, rerender } = render(
+      <MasonryColumns items={album} layout="rows" />,
+    );
+    const before = new Map(
+      Array.from(
+        container.querySelectorAll<HTMLElement>("[data-media-tile]"),
+      ).map((t) => [t.getAttribute("data-media-id"), t]),
+    );
+    const arrival: GridMedia = {
+      id: "new",
+      type: "photo",
+      url: "/n.jpg",
+      width: 400,
+      height: 300,
+    };
+    rerender(<MasonryColumns items={[arrival, ...album]} layout="rows" />);
+    for (const [id, node] of before)
+      expect(
+        container.querySelector(`[data-media-tile][data-media-id="${id}"]`),
+        `${id} was remounted`,
+      ).toBe(node);
+    expect(container.querySelector('[data-media-id="new"]')).not.toBeNull();
+  });
+
+  it("glides an arrival and a step change, and nothing on the first layout", () => {
+    const { rerender } = render(<MasonryColumns items={album} layout="rows" />);
+    expect(runFlipSpy).not.toHaveBeenCalled();
+    const arrival: GridMedia = {
+      id: "new",
+      type: "photo",
+      url: "/n.jpg",
+      width: 400,
+      height: 300,
+    };
+    rerender(<MasonryColumns items={[arrival, ...album]} layout="rows" />);
+    expect(runFlipSpy).toHaveBeenCalledTimes(1);
+    const [nodes, was, options] = runFlipSpy.mock.calls[0];
+    // Every photograph already on screen was snapshotted; the newcomer was not.
+    expect((was as Map<string, DOMRect>).has("r0")).toBe(true);
+    expect((was as Map<string, DOMRect>).has("new")).toBe(false);
+    expect((nodes as Map<string, HTMLElement>).has("new")).toBe(true);
+    expect(options).toMatchObject({ scale: true, visibleOnly: true });
+    rerender(
+      <MasonryColumns items={[arrival, ...album]} layout="rows" rowStep={4} />,
+    );
+    expect(runFlipSpy).toHaveBeenCalledTimes(2);
+    // An equal list in a new array lays nothing and glides nothing.
+    rerender(
+      <MasonryColumns
+        items={[arrival, ...album].map((m) => ({ ...m }))}
+        layout="rows"
+        rowStep={4}
+      />,
+    );
+    expect(runFlipSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it("centres an album too small to fill a row", () => {
+    const { container } = render(
+      <MasonryColumns items={album.slice(0, 1)} layout="rows" rowStep={4} />,
+    );
+    const grid = gridOf(container);
+    expect(grid.className).toContain("justify-center");
+    const tile = grid.querySelector<HTMLElement>("[data-media-tile]")!;
+    expect(tile.style.flex).toMatch(/^0 0 \d+px$/);
+  });
+
+  it("keeps the first paint's width classes on the engine's own breakpoints", () => {
+    const queried = [
+      ...ROWS_FIRST_PAINT.matchAll(
+        /@min-\[(\d+)px\]:\[--rows-n:var\(--rows-n(\d)\)\]/g,
+      ),
+    ].map((m) => [Number(m[2]), Number(m[1])]);
+    expect(queried).toEqual(ROW_CLASSES.slice(1).map((c, i) => [i + 1, c.min]));
+    expect(ROWS_FIRST_PAINT).toContain("[--rows-n:var(--rows-n0)]");
+    expect(ROW_CLASSES[0].min).toBe(0);
+  });
+
+  it("holds the narrower width when the rows summon and dismiss their own scrollbar", () => {
+    // 1385 with no scrollbar, 1370 with one, back to 1385 a frame later: the loop.
+    expect(
+      steadyWidth([
+        { width: 1385, at: 0 },
+        { width: 1370, at: 16 },
+        { width: 1385, at: 33 },
+      ]),
+    ).toBe(1370);
+    // A person resizing is not a loop: too slow, too far, or not back where it was.
+    expect(
+      steadyWidth([
+        { width: 1385, at: 0 },
+        { width: 1370, at: 400 },
+        { width: 1385, at: 800 },
+      ]),
+    ).toBe(1385);
+    expect(
+      steadyWidth([
+        { width: 1400, at: 0 },
+        { width: 1100, at: 16 },
+        { width: 1400, at: 33 },
+      ]),
+    ).toBe(1400);
+    expect(
+      steadyWidth([
+        { width: 1385, at: 0 },
+        { width: 1370, at: 16 },
+        { width: 1360, at: 33 },
+      ]),
+    ).toBe(1360);
+    expect(steadyWidth([{ width: 800, at: 0 }])).toBe(800);
+  });
+
+  it("paints greedy CSS rows before the box is measured", () => {
+    const rect = vi
+      .spyOn(Element.prototype, "getBoundingClientRect")
+      .mockReturnValue({
+        width: 0,
+        height: 0,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      } as DOMRect);
+    const { container } = render(
+      <MasonryColumns items={album} layout="rows" />,
+    );
+    const grid = gridOf(container);
+    expect(grid.querySelector("[data-row-break]")).toBeNull();
+    const tile = grid.querySelector<HTMLElement>("[data-media-tile]")!;
+    expect(tile.style.flexBasis).toContain("var(--rows-unit)");
+    expect(tile.style.aspectRatio).not.toBe("");
+    rect.mockRestore();
+  });
+});
+
+/**
+ * THE HIDDEN MARK (host-app: a hidden photograph dims to 30% in the host's own
+ * album). The dim was glued onto `active:scale-[0.98]` with no space between,
+ * one class nobody emits, so a hidden photograph sat at full brightness.
+ */
+describe("dimItem dims the media", () => {
+  it("writes opacity-30 as a class of its own on a dimmed tile, and only there", () => {
+    render(<MasonryColumns items={items} dimItem={(m) => m.id === "a"} />);
+    const dimmed = screen.getByLabelText("View photo");
+    const plain = screen.getByLabelText("Play video");
+    expect(dimmed.classList.contains("opacity-30")).toBe(true);
+    expect(dimmed.classList.contains("active:scale-[0.98]")).toBe(true);
+    expect(plain.classList.contains("opacity-30")).toBe(false);
   });
 });

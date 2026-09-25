@@ -33,6 +33,43 @@ export const MAX_SANE_RATIO = 6;
 export const UNIFORM_TILE_ASPECT = "4 / 5";
 
 /**
+ * THE BAND A JUSTIFIED ROW CLAMPS TO (`album-rows.ts`). Much tighter than the
+ * masonry's sanity band, because a row gives every photograph the SAME height:
+ * a 6:1 panorama at the row's height is a ribbon six photographs wide, and a
+ * 1:6 strip is a sliver. 1:2 keeps a 9:16 phone video whole (0.5625) and 2.4
+ * keeps a 21:9 ultrawide whole; anything past either edge crops (the tile's
+ * `object-cover`), which is what "extreme ratios clamp" means for rows.
+ */
+export const ROW_MIN_RATIO = 0.5;
+export const ROW_MAX_RATIO = 2.4;
+
+/**
+ * THE RATIO A ROW LAYS A PHOTOGRAPH WITH NO DIMENSIONS AT: the same square
+ * `tileAspect` gives a pre-measure-era row, so the two layouts agree about a
+ * photograph nobody measured.
+ */
+export const ROW_FALLBACK_RATIO = 1;
+
+/**
+ * width/height -> the NUMBER a justified row lays a tile at. Missing, zero,
+ * negative or non-finite dimensions take `ROW_FALLBACK_RATIO`; `clamp` is the
+ * host's moderation band (the same one `tileAspect` clamps to), and without it
+ * the row band above.
+ */
+export function rowRatio(
+  dims: { width?: number | null; height?: number | null },
+  clamp = false,
+): number {
+  if (!dims.width || !dims.height) return ROW_FALLBACK_RATIO;
+  const ratio = dims.width / dims.height;
+  if (!Number.isFinite(ratio) || ratio <= 0) return ROW_FALLBACK_RATIO;
+  const [min, max] = clamp
+    ? [MIN_TILE_RATIO, MAX_TILE_RATIO]
+    : [ROW_MIN_RATIO, ROW_MAX_RATIO];
+  return Math.min(Math.max(ratio, min), max);
+}
+
+/**
  * width/height -> a CSS aspect-ratio value; "1 / 1" when dims are missing
  * (pre-measure-era rows). With `clamp`, the numeric ratio is bounded into the
  * browseable band above (returned as a single number, which `aspect-ratio`
