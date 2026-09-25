@@ -86,7 +86,8 @@ Functions are `email-actions.ts`.
   expired one with the same `otp_expired`.
 - ★ **An address that already has an account is answered like a sent one** (`email_exists`), or the action is an
   enumeration oracle; the row's help line covers the case for everyone. The account's own inbox staying silent still
-  tells, and only Supabase Auth's limits bound that probe.
+  tells, so the account's `email_change` limit (six calls an hour, requests and code attempts on one budget, fail
+  closed) bounds that probe.
 - ★ **The copies follow inside GoTrue's commit.** `handle_user_email_change` (AFTER UPDATE OF email ON `auth.users`,
   when the address changed) writes it to `profiles.email` and to `guests.email` on the account's verified rows, except
   for an account whose deletion is requested; past hosts see the new address, and `upload_forensics` keeps what each

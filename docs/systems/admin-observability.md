@@ -115,6 +115,9 @@ three definitions of healthy:
   counted `remaining` where it can take one), and `jobHealth` turns a finished `ok` run carrying it into `attention`
   (a failure, a pause or a missed run still outranks it), so the band and the bell show a backlog that outlasts a
   night. The card leads with `remaining` and never prints a rotating sweep's resume cursor.
+- **A tripped orphan breaker reads attention too:** it deletes nothing, fires its Sentry error and the email, and closes
+  its run `ok` carrying `breaker_tripped`, which `jobHealth` reads as `attention` (a failure, a pause or a missed run
+  outranks it).
 - **A signal's failure count is a floor, not a census:** the log damps a burst to one row per quarter hour per
   instance, so a database outage cannot storm the table the console reads; Sentry still gets every event.
 - **Heartbeat writes degrade; health reads do not.** A job must not die because its bookkeeping failed, so writes

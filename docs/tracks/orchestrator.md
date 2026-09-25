@@ -38,31 +38,26 @@ in auto mode ("work through the night on all of this until fully complete"); the
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `reel-sweep` | the words everywhere but round 2's four, help, legal, docs, `reel.md` born; identity-email's two help sentences | building (agent `a5e526adcff700214`) | Opus, :3133 | integrate last of the stretch, synced; then build 9 |
 | `door-flow` | his chooser, identify and log-in steps, the keyboard-safe responsive Sheet replacing vaul, the focus rules, the menu card, the pending email's change or remove; the measured keyboard height | building (agent `abd1aecbb0aafbb5c`) | Opus, :3139 | syncs past the clip lane and identity-email before it hands off |
 | `album-guest-wiring` | the guest album, viewer, reel and profile feeds onto the paged, windowed rows with r2's picks; `planTake` sub-quadratic; the perf harness's `--page` mode | building (agent `a29a00be06c5e3b16`) | Opus, :3131 | its `guest-flow.md` lines through the Handoff |
 | `album-host-wiring` | the hub's album onto the paged rows, select mode on the one grid, the bin on a manifest, Sort live, `like_many` | building (agent `a54c6daada060d103`) | Opus, :3134 | ends a turn with "migration ready at <sha>" for `like_many`; `host-app.md` lines through the Handoff |
 
 Merged tonight (their records carry the rest): reel-guest-wiring, reel-host-wiring, mark-r3, story-r2, door-r2,
-album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hardening. Doc lines owed once `reel-sweep`
-merges (its docs): hardening's three (the downgrade rule in `billing-caps.md`, the breaker's health in
-`admin-observability.md`, the unlock cookie's version in `guest-flow.md`), from lp/hardening's Handoff at `ea3b2b52`.
+album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hardening, reel-sweep.
 
 ## Next, in order
 
-1. **Merge the two held reel lanes** (guest, then host), then cut from the new tip: `reel-clip-wiring` (the creator
-   with his tabs, the finish, the Studio out, the client adds, the seam flip, `reel-front` on the tile),
-   `reel-teardown`, `reel-sweep` (all but the four copy asks `reel-story` r2 holds), the lab rounds `door-r2`,
-   `story-r2` and `mark-r3`, and the paged album's engine lanes `album-window` (windowed rows, the memo'd tile, three
-   steps, the push arrival, the density control, the perf harness) and `album-pages` (the manifest, links by id, the
-   version and change-log migration, the store and routes).
-2. **The stretch integrates** clip, teardown, sweep, synced; the three boards land; one `[preview]` (build 9); the
-   red-team walks the reel's journeys. The drop migration and the one-shot R2 sweep wait for Will's yes.
-3. **Then**: `album-guest-wiring` and `album-host-wiring` (every album surface onto the paged, windowed rows with
-   `album-columns` r2's picks; `planTake` sub-quadratic on the manifest), `door-flow` (his chooser, the keyboard-safe
-   phone sheet, the menu card), `identity-email` (the deletion scrub going forward, the account's email change),
-   `reel-marketing` after his `reel-story` r2, the mark's wiring after his `media-viewer` r3.
-4. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
+1. **Build 9** (`[preview]` at the sweep's record): the alias checks, then the red-team walks the reel's journeys (the
+   plan file's list). Its drop migration (`20260924110000_live_reel_drop.sql`) and then `node
+   scripts/sweep-reel-files.mjs --apply` wait for Will's yes.
+2. **Integrate as they land**: `album-host-wiring` (its `like_many` migration first), `album-guest-wiring`, `door-flow`
+   (synced past both). Then build 10.
+3. **Retire the built boards** (`reel-cut`, `reel-front`, `reel-screen`, `reel-host`, `reel-view` now; `album-columns`
+   after the surface lanes), atomically across `touchpoints.ts`, `registry.ts` and `boards.ts`, their ledgers with
+   them.
+4. **After his sitting on build 9**: `reel-marketing` (his `reel-story` r2), the door's look (his `identity-door` r2)
+   over `door-flow`, the mark's wiring (his `media-viewer` r3).
+5. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
    self-registering folder, its metadata in its spec, lab checks scoped to the lane's own boards, the authoring API
    trimmed, a fresh agent proving it; with library-lean's board ideas (a `Surfaces` family of live frames per route
    with guest entries, the Library's sidebar open by default, a plain-text view of Library pages, a

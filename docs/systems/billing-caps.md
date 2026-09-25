@@ -110,6 +110,10 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   customer-binding write leaves no stamp, because `customer.subscription.created` can carry an earlier `created` than
   its checkout session. Pass purchases skip the guard: the ledger's unique `stripe_session_id` makes them
   replay-safe.
+- ★ **A downgrade lands only on the profile following the subscription it ends** (or following none): one customer can
+  hold two subscriptions (two Checkout tabs, a stale session), so `resolveSubscriptionUpdate` names it and the write
+  carries "is null or is that one" in the same WHERE as the recency guard; a declined one is a 200 that writes nothing.
+  The pass checkout's pointer clear skips a Pro profile (a pass session lives a day).
 - **Provisioning is the pure `resolveSubscriptionUpdate`, returning absolute values,** so a redelivery is idempotent.
   `customer.subscription.deleted` and the ended states (`incomplete_expired`, `canceled`, `unpaid`, `paused`)
   downgrade to Free; `active`, `trialing` and `past_due` grant. ★ **`incomplete` changes nothing** (no write, no

@@ -481,9 +481,12 @@ through flags in the sheet. No step counter to desync.
 - **The anon media RPCs gate on `visibility = 'open'`, NOT `<> 'private'`.** A password event's media must
   NEVER stream through `get_event_media_by_qr_token` / the anon path; it is served ONLY via the server
   admin-read (`getApprovedMediaForUnlock`, self-guarded by the unlock cookie) after `/api/guests/unlock`
-  verifies the password. The bcrypt hash never leaves the DB (RPCs expose `has_password` only).
-- **The unlock cookie is a signed HMAC of `{eid,exp}`** (`UNLOCK_COOKIE_SECRET`, 12 h) — the cookie *name*
-  isn't the boundary, the **signed eid** is. It fails CLOSED when the secret is unset. Password is
+  verifies the password. The bcrypt hash never reaches a browser: guest RPCs expose `has_password` only, and the server reads it only to derive (`has_password`, the cookie's version).
+- **The unlock cookie is a signed HMAC of `{eid, exp}` and the event's password version** (`UNLOCK_COOKIE_SECRET`, 12 h;
+  the version is a sha256 of the stored bcrypt hash, read server-side once per request, never in the cookie), so any
+  `set_event_password` (a fresh salt, even for the same word) or `clear_event_password` signs everyone out; the unlock
+  route reads the state before the bcrypt check, so a change landing mid-unlock can only fail closed, and a failed read
+  fails closed and is reported. The cookie *name* isn't the boundary, the **signed eid** is. It fails CLOSED when the secret is unset. Password is
   set/cleared ONLY by `set_event_password` / `clear_event_password` (host-auth SECURITY DEFINER; the column
   is revoked from the host UPDATE grant), and those two own the STATE as well as the hash:
   `set_event_password` is the only path INTO `visibility='password'` (it flips hash and state atomically,
