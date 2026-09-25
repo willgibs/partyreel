@@ -15,6 +15,7 @@ import {
   ConfirmInlineTicket,
   ConfirmSecondScreen,
   DashboardScene,
+  DoorBeat,
   MomentCard,
   OneAtATimeCard,
   PhotoGridTicket,
@@ -24,7 +25,14 @@ import {
   TicketBellDrawer,
   TicketSheetPanel,
 } from "./parts";
-import { AlbumGround, Scene, screenOf, Scrim, ToastVisual } from "./scene";
+import {
+  AlbumGround,
+  Scene,
+  type ScreenId,
+  screenOf,
+  Scrim,
+  ToastVisual,
+} from "./scene";
 import { IDENTITY_CLAIMS } from "./spec";
 
 /**
@@ -101,8 +109,46 @@ function ticketScreen(id: "card" | "banner" | "bell", s: BoardState) {
   );
 }
 
+/**
+ * ★ `pointer` IS DRAWN IN BOTH PLACES SHE CAN CONFIRM (the door's round two):
+ * the album's moment card, as before, and now the door's own "You're in", since
+ * the verification door, Create account and Log in all confirm her before any
+ * upload. Stacked, so the option stays one phone wide on the step.
+ */
 function pointerScreen(id: "quiet" | "line" | "toast", s: BoardState) {
   const sc = screenOf(s.screen as string);
+  const door = (
+    <Scene
+      id={`pointer-${id}-door`}
+      screen={sc}
+      title="The pointer at the door"
+      caption={
+        id === "line"
+          ? `At the door: You're in gains the same line, ${TOTAL_WAITING} photos from ${CLAIMABLE_ROWS.length} other events are waiting for you.`
+          : id === "toast"
+            ? "At the door: the same toast appears once, over the beat."
+            : "At the door: You're in names only this event; nothing points elsewhere."
+      }
+    >
+      <DoorBeat line={id === "line"} desk={sc === "1440"} />
+      {id === "toast" && (
+        <ToastVisual
+          lines={[
+            `${TOTAL_WAITING} photos from ${CLAIMABLE_ROWS.length} other events are waiting for you.`,
+          ]}
+        />
+      )}
+    </Scene>
+  );
+  return (
+    <div className="flex flex-col gap-6">
+      {pointerAlbum(id, sc)}
+      {door}
+    </div>
+  );
+}
+
+function pointerAlbum(id: "quiet" | "line" | "toast", sc: ScreenId) {
   if (id === "line") {
     return (
       <Scene
@@ -240,7 +286,9 @@ function confirmScreen(
       caption={`A centred dialog: ${IMPOSTOR.uploadCount} photos and videos, at ${IMPOSTOR.eventName}, Delete and finish or Go back.`}
     >
       <DashboardScene
-        ticket={<ShippedTicket initialDecisions={{ [HERS.eventId]: "claim" }} />}
+        ticket={
+          <ShippedTicket initialDecisions={{ [HERS.eventId]: "claim" }} />
+        }
         overlay={<ConfirmDialog />}
       />
     </Scene>

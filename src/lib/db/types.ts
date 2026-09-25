@@ -35,6 +35,67 @@ export type Database = {
         }
         Relationships: []
       }
+      album_changes: {
+        Row: {
+          album_version: number | null
+          event_id: string
+          host_version: number
+          media_id: string
+        }
+        Insert: {
+          album_version?: number | null
+          event_id: string
+          host_version: number
+          media_id: string
+        }
+        Update: {
+          album_version?: number | null
+          event_id?: string
+          host_version?: number
+          media_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "album_changes_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "album_state"
+            referencedColumns: ["event_id"]
+          },
+        ]
+      }
+      album_state: {
+        Row: {
+          album_max: number
+          attr_version: number
+          event_id: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          album_max?: number
+          attr_version?: number
+          event_id: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          album_max?: number
+          attr_version?: number
+          event_id?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "album_state_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       announcements: {
         Row: {
           body: string
@@ -1321,6 +1382,27 @@ export type Database = {
       admin_metrics_snapshot: {
         Args: { p_fortnight_days?: number; p_window_days?: number }
         Returns: Json
+      }
+      album_changes_since: {
+        Args: {
+          p_after: number
+          p_event_id: string
+          p_limit?: number
+          p_scope: string
+        }
+        Returns: Json
+      }
+      album_flush: { Args: never; Returns: undefined }
+      album_remember: {
+        Args: { p_event_id: string; p_scope: string }
+        Returns: undefined
+      }
+      album_scope: {
+        Args: {
+          p_is: Database["public"]["Enums"]["media_status"]
+          p_was: Database["public"]["Enums"]["media_status"]
+        }
+        Returns: number
       }
       block_user: { Args: { p_blocked: string }; Returns: undefined }
       capture_guest_email: {

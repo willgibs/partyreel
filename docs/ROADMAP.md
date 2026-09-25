@@ -17,6 +17,15 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Identity: an email change leaves `newsletter_signups` on the old address, so the `/account` marketing switch reads the new one and turning it off cannot remove the old row; move the row with the change (or key the switch on the account) before a newsletter sender ships (from `identity-email`).
+- Code hygiene: the six-digit code length lives in three files (`email-sign-in.tsx`, `account-delete-card.tsx`, `email-change.ts`'s `EMAIL_CODE_LENGTH`), each in lockstep with the dashboard; one export in `src/lib/auth/`.
+- Clips: a guest's Add to event in the creator follows its queue item (uploading, held for review, refused) instead of reading Added on hand-off (from `reel-clip-wiring`).
+- The reel: `buildReelProps` caps on the mood timeline, so a treatment runs past or short of its length; the lab's builders could share the clip's own-clock fit (`clip-selection.ts`).
+- Housekeeping: the Studio's reveal leftovers, unreferenced now: `globals.css`'s `--tune-rvl-*` and `--tune-rxp-*` block and its `[data-rvl-*]` rules, `src/lib/shared/use-reveal-acts.ts` with its test, and the comments naming `reveal-constants.ts` (`globals.css`, `motion-tuner-config.ts`, `design-system.md`).
+- Guest door: at a password event the winning `identity-door` look shows no photograph before the unlock (`peek` face-down prints, `ticket` the ghost river, `lit` the house five); the look's wiring carries it (from `door-r2`).
+- The lab: the door board's keyboard is drawn at 335pt, never measured; `door-flow`'s simulator walk trues `KEYBOARD_H` in `sandbox/identity-door/keyboard.tsx`.
+- Albums: prune `album_changes` tombstones (one row per item ever, a purged item's included) with a per-event watermark that answers resync below it, as a job with its `/admin` health signal (from `album-pages`).
+- Album: the count row could carry the guest's own share as a quiet phrase that is the filter ("28 photos & videos · 8 yours"), so Yours is in plain sight whichever mark wins (today it is two taps into View); from `mark-r3`.
 - Host: the lightbox's pending Approve branch can never render (`src/components/shared/media-lightbox`); remove it or give it a door (from `reel-host-wiring`).
 - Tests: the Radix FocusScope teardown flush `entry-modal.test.tsx` runs in its own `afterEach` belongs in `vitest.setup.ts`, for every component test that unmounts a Radix dialog (from `reel-guest-wiring`).
 - Guest: `src/components/guest/yours-filter.ts` moves into `src/lib/guest/` beside the other gallery arithmetic (`merge-gallery-items`, `reconcile-gallery-items`).
@@ -64,9 +73,7 @@ below hold the rest by surface.
 - Help: `your-dashboard-explained.mdx` carries the stale `<Path>Account menu › Dashboard</Path>` breadcrumb (the account menu has no Dashboard item; the logo is the door), beside its own billing help-sync line.
 - Marketing: `faq-data.ts`'s "How long do you keep my photos?" answer reconciles only the Event Pass exception; the Free plan's inactivity removal (the help guide's rule 7) is missing from it.
 - Marketing: `/events/weddings` and `/events/trips` still say "no expiry clock counting down" on the memories (`src/lib/constants/events.ts`, four lines), with no word of the Free plan's inactivity removal.
-- The lab and the kit: `lab:demo` presses a step only in its default knobs, so a config's other states are never measured (`media-viewer`'s `origin=reel` and `credit=confirmed` were checked by hand); a `--state <control>=<option>` pass would press them too.
-- The lab: `media-viewer`'s drawn chrome (both capsules, the strip, the face-led credit) wears a hand-copied `bg-black/55 backdrop-blur-sm`, a grade behind the shipped lightbox's Crystal (`GLASS`); a material pass before the board's next round.
-- The lab: `media-viewer.holds` still draws the `grow` opening caught mid-flight, where `who` and `wayout` draw it settled (`Viewer`'s `settled`); its next round passes `settled` there too.
+- The lab and the kit: `lab:demo` presses a step only in its default knobs, so a config's other states are never measured; a `--state <control>=<option>` pass would press them too.
 - Guest: the name step's field carries `autoFocus` (`guest-name-step.tsx:356`) though the password gate drops it for the iOS keyboard; check on a real iPhone.
 - Housekeeping: more files with no importer or Library-only, beyond the lines above: `features.ts` and `features-layout.ts` (read only by their tests), `anonymous-info.tsx` (Library only).
 - Housekeeping: comments that state retired facts: `getHostAvatarUrl` (`lib/avatar/seed.ts`), `resolveGalleryAccess` (several), `body-token-source.test.ts` (`lib/guest/session-cookie.ts`, `api/guests/route.ts`; the pin is `session-cookie.test.ts`), `claim-handle-prompt.tsx` on what the claim writes, `profile-slug-control.tsx`'s "EVENT slugs stay Pro", the root `not-found.tsx`'s glow, `contact-sheet.tsx`'s deleted file, `workers/backup/src/index.ts:296`'s "Cost & scaling", `share-urls.ts`'s "database-security.md0", and comments citing numbered rulings no doc holds (`upload-lock.ts`, `entitlement.ts`, `tiers.ts:181`, `request-facts.ts`, `preserve.ts`).
@@ -96,7 +103,7 @@ below hold the rest by surface.
 - Design: a mark over media, if one ships (the shimmer is banked as a delight moment), needs from the glow engine a play-once sweep, a `runId` re-key for every shape (only a one-shot has one), an additive blend over a photograph, and `[data-glw-edge-rest]` under its travelling ring; `SectionLight` ships without a dither until the grain tile lands (ASSETS row 15).
 
 The lab and the kit:
-- Three boards still draw "A guest" for a null uploader name (`media-viewer/viewer.tsx:194,296`, `host-curation/queue.tsx:490`, `profile-page/album.tsx:149`), and `host-storage/spec.ts:49` still says `gallery-fixtures.ts` mints a nameless anonymous uploader, which it no longer does.
+- Two boards still draw "A guest" for a null uploader name (`host-curation/queue.tsx:490`, `profile-page/album.tsx:149`), and `host-storage/spec.ts:49` still says `gallery-fixtures.ts` mints a nameless anonymous uploader, which it no longer does.
 - `Several` (an option drawn as several screens: phones side by side on equal columns, laptops stacked and cut short) and `ScrollHere` (scroll a frame's sheet or page to the card a decision is about) are local to `event-safety`; `voice-guest`'s `Pair` is the same idea as `Several`: kit candidates.
 - `lab:demo` compares only an option's FIRST frame, so a composite option whose first frame matches another's prints "same picture" (`event-safety.entry`), and on a stage taller than about three screens a `--save-shots` capture lands misaligned (the lab's sticky bar inside it); compare every frame, each scrolled into view before its clip.
 - The kit's `Frame` exposes its pixel height to children (a CSS variable): a percentage `min-h-full` inside a frame collapses to 0 px, so a full-bleed child reaches for `fixed` or a hard-coded screen height today.

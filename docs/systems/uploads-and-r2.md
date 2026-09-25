@@ -87,12 +87,20 @@ it rather than fork it.
   `WHEN_REQUIRED`:** the SDK's automatic CRC checksums make R2 write 0-byte objects or answer
   `SignatureDoesNotMatch`. An upload presign signs `content-type` and `content-length`; an UploadPart presign,
   `content-length`.
-- **Raw keys never reach the browser:** every read is presigned server-side (`toGridItems`), and the render routes are
-  dynamic.
+- **Raw keys never reach the browser:** every read is presigned server-side (`toGridItems`; the paged album's
+  `album-guest-links.ts` and `album-host-links.ts`), and the render routes are dynamic.
 - **Gallery read presigns are stable:** `presignDownload({ stable: true })` pins the signing date to the current
   30-minute bucket (`r2/presign-bucket.ts`), so two presigns of one key in a bucket are byte-identical: the image
   cache works across refetches and the gallery's ETag rolls with the bucket. They live 90 minutes (two buckets and
   slack), so a leaked gallery URL lives at most 90 minutes, an accepted trade. Upload presigns are never stable.
+- **The paged album mints links by id, per window** (`/api/album/guest/media`, `/api/album/host/<id>/media`): at
+  most 200 ids an ask, three links each (the tile: the preview, or the original when there is none; the inline
+  original, sent null when it is the tile; the attachment), and an id that is not visible in that album comes back
+  `missing`. ★ **Each answer carries its bucket (`b`, read BEFORE minting, so a roll mid-request only lengthens a
+  link's life) and the server's clock (`now`)**: the client dates each link on its own clock from those offsets and
+  re-mints an hour after the bucket opened, half an hour before the link dies (`src/lib/album/links.ts`), so the
+  album's validators never carry the bucket and an album left open stays on 304. The teaser's nine travel inline on
+  the poll, so its validator is the one that still rolls with the bucket.
 - ★ **A CORS read of a tile-shared presign bypasses the HTTP cache.** Plain `<img>` tiles fetch presigned URLs with no
   Origin, R2 answers without `Access-Control-Allow-Origin` (and without `Vary: Origin`), and the browser caches that
   under the SAME URL the stable scheme shares; a later `fetch(mode: "cors")` reads the poisoned entry and fails with a
@@ -106,7 +114,9 @@ it rather than fork it.
   (`getUploaderIdentities`: `profiles` RLS is own-row-only and the guest identity columns sit outside the host's
   grant). The host gallery's items carry the email; every guest-facing item is built by `toGridItems`, which names only
   the name, `isHost` and `isVerified`, never an email or `pending_email`, by construction rather than a viewer flag, and
-  `grid-items.email-safety.test.ts` guards it.
+  `grid-items.email-safety.test.ts` guards it. The paged album attributes only the ids a window asks for
+  (`readAlbumAttribution`), and its guest path never even selects `guests.email`; its guest tuple is a name and two
+  flags, guarded by the same test.
 - **Credit follows the identity** (`resolveUploaderIdentity`): no `guest_id` is the Host (the host's name, no email);
   a verified guest shows their profile's name (and, to the host, `guests.email`); an unverified typed name shows with
   the unverified mark and never an address; a row with no name shows no credit, only the counter, never an invented
