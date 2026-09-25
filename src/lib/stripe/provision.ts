@@ -16,7 +16,13 @@ export type ProfilePatch = {
   tier: Tier;
   /** null → falls back to the tier default in create_media (Free = 2 GB). */
   storageCapBytes: number | null;
+  /** What profiles.stripe_subscription_id becomes: the granting subscription, or null on a downgrade. */
   subscriptionId: string | null;
+  /**
+   * The subscription a DOWNGRADE ends; null on a grant. The webhook applies a downgrade only to a
+   * profile whose stripe_subscription_id is this one, or that holds none (the ★ below).
+   */
+  endsSubscriptionId: string | null;
 };
 
 // Statuses where the host keeps Pro access. past_due keeps access during dunning
@@ -44,6 +50,16 @@ const ACTIVE_STATUSES = new Set<Stripe.Subscription.Status>([
  * on Free until `active` arrives, and a pass holder keeps their pass. The terminal
  * states still downgrade: `incomplete_expired` (the first payment never came),
  * `canceled`, `unpaid`, `paused`, and any `deleted` event, whatever its status.
+ *
+ * ★ A DOWNGRADE ENDS ONE SUBSCRIPTION, NOT THE CUSTOMER'S PLAN. Stripe keys every
+ * subscription event to the customer, and one customer can hold two subscriptions:
+ * two Checkout tabs, or a stale session paid after the first, each make their own.
+ * The profile follows exactly one, the `stripe_subscription_id` its last grant wrote,
+ * so a downgrade names the subscription it ends (`endsSubscriptionId`) and the webhook
+ * applies it only to a profile following that subscription, or following none. Keyed
+ * on the customer alone, the abandoned tab's `incomplete_expired` (a day later) or
+ * the duplicate's cancellation put a host whose other subscription is active on Free.
+ * A grant names nothing: it applies whatever the profile followed, and re-points it.
  */
 export function resolveSubscriptionUpdate(
   event: Stripe.Event,
@@ -83,6 +99,7 @@ export function resolveSubscriptionUpdate(
       tier: "free",
       storageCapBytes: null,
       subscriptionId: null,
+      endsSubscriptionId: sub.id,
     };
   }
 
@@ -95,6 +112,7 @@ export function resolveSubscriptionUpdate(
     tier: plan.tier,
     storageCapBytes: plan.storageBytes,
     subscriptionId: sub.id,
+    endsSubscriptionId: null,
   };
 }
 
