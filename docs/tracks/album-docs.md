@@ -62,14 +62,15 @@ working.
 
 ## Handoff (replaces the chat report)
 
-- Work commit `1da21c82`, pushed; no sync commit (launch-prep had not moved past this lane's base, `cb4a5de2`,
-  for any of the three owned files: `git diff --name-only cb4a5de2..origin/launch-prep -- docs/systems/guest-flow.md
-  docs/systems/reel.md docs/systems/testing-verification.md` was empty even after `retire-album-columns` and
-  `save-sheet` landed).
+- Work commits `1da21c82` (the doc rewrite) and `1c2a1cc4` (a rewrap of one line the first commit split mid-mark),
+  pushed; no sync commit (launch-prep had not moved past this lane's base, `cb4a5de2`, for any of the three owned
+  files: `git diff --name-only cb4a5de2..origin/launch-prep -- docs/systems/guest-flow.md docs/systems/reel.md
+  docs/systems/testing-verification.md` was empty even after `retire-album-columns` and `save-sheet` landed).
 - Gates on `1da21c82`, each on its own exit code: the five doc tests (`no-em-dash-policy.test.ts`,
   `record-depth-policy.test.ts`, `single-source-policy.test.ts`, `content-policy.test.ts`, `docs.test.ts`) 0, 22
   tests; `pnpm test` 0, 482 files, 5,397 tests; `pnpm typecheck` 0; `pnpm lint` 0 (6 pre-existing warnings, none in
-  the lane's files). `pnpm build` and `lab:smoke` not run: a docs-only lane per the spawn brief, and no code path
+  the lane's files). The five doc tests re-ran 0, 22 tests, on `1c2a1cc4` (whitespace only, so not the whole
+  suite again). `pnpm build` and `lab:smoke` not run: a docs-only lane per the spawn brief, and no code path
   reads `docs/systems/*.md` (`docs.test.ts`'s `renderedDocs()` traces only `docs/tracks/` and `docs/specs/`).
   Logs: `/Users/gibby/local/ai/partyreel-wt/_scratch/album-docs/gate-typecheck.log`, `gate-lint.log`,
   `gate-test.log`.
