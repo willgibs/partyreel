@@ -11,9 +11,9 @@
  * - The export's minute: the frame stacks and counts moments; Cancel goes back with the picks kept;
  *   a clip that does not finish lands on Retry, reported once.
  * - The finish: Share leads only when the sheet takes the very file, and a dismissed sheet raises
- *   nothing; Save follows the platform (iOS: Save to Photos, then Download file); Add to event waits
- *   behind a confirm, a guest's through the seam and the host's through her own route; every action
- *   keeps her on the finish with its done state.
+ *   nothing; Save is one tap into the platform's own action (iOS: the system sheet; elsewhere the
+ *   download); Add to event waits behind a confirm, a guest's through the seam and the host's
+ *   through her own route; every action keeps her on the finish with its done state.
  * - Escape is one step back. In a hand the views focus and the finish is its own screen.
  *
  * The engine's canvas is stubbed (the canvas is the engine's own, pinned there), and so are the
@@ -497,7 +497,7 @@ describe("the finish", () => {
     );
   });
 
-  it("on iOS, Save offers Save to Photos first, then Download file", async () => {
+  it("on iOS, Save is one tap into the system sheet, never a menu", async () => {
     Object.defineProperty(navigator, "userAgent", {
       configurable: true,
       value:
@@ -505,19 +505,14 @@ describe("the finish", () => {
     });
     renderCreator();
     await makeIt();
-    fireEvent.pointerDown(screen.getByRole("button", { name: "Save" }), {
-      button: 0,
-      ctrlKey: false,
-    });
-    const items = screen.getAllByRole("menuitem").map((m) => m.textContent);
-    expect(items).toEqual(["Save to Photos", "Download file"]);
     h.share.mockResolvedValue({ kind: "shared" });
     await act(async () => {
-      fireEvent.click(screen.getByRole("menuitem", { name: "Save to Photos" }));
+      fireEvent.click(screen.getByRole("button", { name: "Save" }));
     });
     expect(h.share).toHaveBeenCalledWith(CLIP_FILE, navigator);
     expect(h.save).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: /Saved/ })).toBeInTheDocument();
+    expect(screen.queryByRole("menuitem")).toBeNull();
   });
 
   it("adds a guest's clip through the seam, behind a confirm that says the host reviews it", async () => {

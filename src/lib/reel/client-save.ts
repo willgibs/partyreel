@@ -1,6 +1,7 @@
 /**
- * Saving a clip straight from memory: the clip creator's Save (the download on Android and at a
- * desk, and iOS's Download file), and its fallback whenever the system sheet would save nothing.
+ * Saving a clip straight from memory: the clip creator's Save on Android and at a desk (the
+ * native way there already), and its silent fallback on iOS whenever the system sheet would
+ * save nothing.
  *
  * Not React: it touches nothing but the document, so it needs no hook (and as a plain module
  * function it is a stable reference, one fewer thing in every caller's dependency array).

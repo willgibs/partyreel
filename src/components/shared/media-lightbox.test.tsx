@@ -952,28 +952,27 @@ describe("MediaLightbox: share, copy link and save (r1)", () => {
     expect(save).toHaveAttribute("href", "https://r2.test/d2.jpg");
   });
 
-  it("offers Save to Photos first and the file second on iOS", async () => {
+  it("is one button on iOS, straight into the system sheet, never a menu", async () => {
     stub(
       "userAgent",
       "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1",
     );
-    mount(PHOTOS, 1);
-    const save = screen.getByRole("button", { name: "Save" });
-    // Radix's menu opens on the pointer going down.
-    fireEvent.pointerDown(save, {
-      button: 0,
-      ctrlKey: false,
-      pointerType: "mouse",
-    });
-    const items = await screen.findAllByRole("menuitem");
-    expect(items.map((i) => i.textContent)).toEqual([
-      "Save to Photos",
-      "Download file",
-    ]);
-    expect(items[1].closest("a") ?? items[1]).toHaveAttribute(
-      "href",
-      "https://r2.test/d2.jpg",
+    const share = vi.fn(async () => {});
+    stub("share", share);
+    stub("canShare", () => true);
+    stub("userActivation", { isActive: true });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => jpegResponse()),
     );
+    mount(PHOTOS, 1);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    });
+    await vi.waitFor(() => expect(share).toHaveBeenCalled());
+    const sent = (share.mock.calls[0] as unknown as [ShareData])[0];
+    expect(sent.files?.[0]).toBeInstanceOf(File);
+    expect(screen.queryByRole("menuitem")).toBeNull();
   });
 });
 

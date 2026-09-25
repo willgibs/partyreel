@@ -23,8 +23,9 @@ import {
 /**
  * The share-and-save decision tree, over mocked navigators: every branch a real
  * phone or desk can take, with no browser. What is held is the ORDER Will asked
- * for (the picture itself, then the link, then a copy; Photos first on iOS) and
- * the two rules a device cannot show a test: the file is fetched on the tap and
+ * for on Share (the picture itself, then the link, then a copy) and Save's one
+ * choice per platform (the sheet on iOS, the plain download elsewhere), plus the
+ * two rules a device cannot show a test: the file is fetched on the tap and
  * never cached, and a lapsed tap comes back as a file in hand, never a failure.
  */
 
@@ -120,8 +121,8 @@ describe("which save story a device lives in", () => {
     expect(detectPlatform({})).toBe("desktop");
   });
 
-  it("offers Save to Photos first on iOS, and the download alone everywhere else", () => {
-    expect(saveChoices("ios")).toEqual(["photos", "file"]);
+  it("offers the sheet alone on iOS, and the download alone everywhere else: one choice, never two", () => {
+    expect(saveChoices("ios")).toEqual(["photos"]);
     expect(saveChoices("android")).toEqual(["file"]);
     expect(saveChoices("desktop")).toEqual(["file"]);
   });
