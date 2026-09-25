@@ -7,6 +7,8 @@ owns:                    # the standing claims no lane touches
   - src/app/(marketing)/marketing.css
   - src/app/(dev)/design/rules/bible.ts
   - src/app/(dev)/design/rules/bible.test.ts
+  - src/app/(dev)/design/sandbox/registry.ts
+  - src/app/(dev)/design/(shell)/lab/boards.ts
   - src/lib/design-gate/
   - src/app/api/design-gate/
   - scripts/vercel-ignore-build.mjs
@@ -39,11 +41,10 @@ a lane").
 | --- | --- | --- | --- | --- |
 | `album-docs` | `album-guest-wiring`'s doc lines into `guest-flow.md`, `reel.md` and `testing-verification.md` | building (agent `a1ad73033e1e9da3e`) | Sonnet, docs only | the three docs owned; the Orchestrator reviews the diff |
 | `save-sheet` | Will's iPhone check: on iOS, Save opens the system sheet in one tap in the viewer and the clip finish (the menu's Download file goes); the two help articles follow | building (agent `ac61bdf54b82a04ad`) | Sonnet, :3131 | its guest-flow, reel and uploads-and-r2 lines through the Handoff |
-| `retire-album-columns` | the board leaves the desk, its picks built on both album surfaces; holds `registry.ts` and `boards.ts` until its merge | building (agent `aab5a522aa3610bcf`) | Sonnet, :3132 | the ledger is the record's to delete |
 
 Merged tonight (their records carry the rest): reel-guest-wiring, reel-host-wiring, mark-r3, story-r2, door-r2,
 album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hardening, reel-sweep, door-flow,
-retire-reel-boards, crumbs, album-host-wiring, album-guest-wiring, crumbs-2.
+retire-reel-boards, crumbs, album-host-wiring, album-guest-wiring, crumbs-2, retire-album-columns.
 
 ## Next, in order
 
@@ -66,11 +67,9 @@ retire-reel-boards, crumbs, album-host-wiring, album-guest-wiring, crumbs-2.
    (`crumbs-2`).
    Then **milestone 29** (Will's yes, given): the full gate on `launch-prep`, merge to `main`, tag, verify partyreel.com
    (the host dashboard stops erroring), back-merge.
-3. **Retire `album-columns`** once the surface lanes merge (the five reel boards retired at `0cbd5634`), atomically across
-   `touchpoints.ts`, `registry.ts` and `boards.ts`, its ledger with it.
-4. **After his sitting on build 9**: `reel-marketing` (his `reel-story` r2), the door's look (his `identity-door` r2)
+3. **After his sitting on build 10**: `reel-marketing` (his `reel-story` r2), the door's look (his `identity-door` r2)
    over `door-flow`, the mark's wiring (his `media-viewer` r3).
-5. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
+4. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
    self-registering folder, its metadata in its spec, lab checks scoped to the lane's own boards, the authoring API
    trimmed, a fresh agent proving it; with library-lean's board ideas (a `Surfaces` family of live frames per route
    with guest entries, the Library's sidebar open by default, a plain-text view of Library pages, a

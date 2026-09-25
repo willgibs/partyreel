@@ -29,11 +29,10 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 ## The desk
 
-22 boards at `/design/lab?key=`, in leverage order: `identity-door` (r2, the door's look), `reel-story` (r2),
+21 boards at `/design/lab?key=`, in leverage order: `identity-door` (r2, the door's look), `reel-story` (r2),
 `media-viewer` (r3), `identity-claims`, `identity-profile`, `guest-capture`, `voice-guest`, `host-curation`,
 `host-storage`, `event-safety`, `export-flow`, `admin-triage`, `help-center`, `emails`, `site-chrome`, `profile-page`,
-`privacy-hero`, `album-motion`, `loose-ends`, `contact-page`, `press-page`, then `album-columns` (answered; it retires
-once the album's surfaces are wired).
+`privacy-hero`, `album-motion`, `loose-ends`, `contact-page`, `press-page`.
 
 ## Live state
 
