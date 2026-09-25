@@ -39,13 +39,12 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `owner-album` | build 10's blocker: the host's own password event's guest page crashes (`albumReadable` refuses the owner, who holds no unlock cookie); one owner across the page and the three guest album routes, nobody else widened | building (agent `a633bc3c36feefa0e`) | Opus, :3131 | blocks milestone 29 |
 | `album-fixes` | a hide above the view holds it (the anchor an arrival keeps); the phone bin's viewer takes Restore and Delete permanently (his question's recommended answer) | building (agent `afb8597496829d3c7`) | Opus, :3132 | its guest-flow, host-app and design-system lines through the Handoff |
 
 Merged tonight (their records carry the rest): reel-guest-wiring, reel-host-wiring, mark-r3, story-r2, door-r2,
 album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hardening, reel-sweep, door-flow,
 retire-reel-boards, crumbs, album-host-wiring, album-guest-wiring, crumbs-2, retire-album-columns, save-sheet,
-album-docs, reel-and-copy.
+album-docs, reel-and-copy, owner-album.
 
 ## Next, in order
 

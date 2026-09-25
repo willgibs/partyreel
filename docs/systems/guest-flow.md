@@ -275,8 +275,8 @@ causes, so the gate (`"password" | "account" | "upload" | null`) says which door
 The order is the door's: owner → `full`; an unproven password → `none`/`password`; verified emails
 required and none confirmed → `teaser`/`account`; an upload required that this viewer could make and has
 not → `teaser`/`upload`; else `full`. `hasContributed` and `canContribute` have NO defaults, so no caller
-can forget the gate: two callers hand out real bytes, and a defaulted context would let a held guest zip
-every original.
+can forget the gate: one caller (`/api/export/guest`) hands out real bytes, and a defaulted context would let a
+held guest zip every original.
 
 ONE server entry, `resolveViewerDecision(event, {isOwner, isAuthed, isUnlocked, userId, sessionToken})`
 ([`gallery-access.server.ts`](../../src/lib/events/gallery-access.server.ts)), answers the page, the poll and
@@ -285,6 +285,12 @@ the upload clause), and only when that lands on `full` with `require_upload_to_v
 does it call `getUploadGate` ([`guest-gate.ts`](../../src/lib/db/queries/guest-gate.ts), the service-role
 `get_upload_gate`) and resolve again, so a locked event and an unconfirmed viewer cost no extra read.
 `isAuthed` means a CONFIRMED email (`user.email_confirmed_at`), never a bare `user.id`.
+
+★ **THE ALBUM'S READS KEEP A SECOND GATE, AND ITS REFUSAL IS LOCKED, NEVER A THROW.** `album-guest.ts` lets a
+password album through for the unlock cookie or the host (the page's own owner answer), so a null after a
+`teaser` or `full` decision is the two gates disagreeing: the seed and the sync, links and manifest routes answer it
+locked behind the password (`ALBUM_REFUSED`) and report it (`reportAlbumRefused`, Sentry `security`); an empty
+manifest page never says `full`; a read that fails is still a failure.
 
 - **`full`** — the whole gallery: the owner (host), the demo, and any viewer past every gate that applies.
   ★ **READ WHOLE, IN ONE ORDER, BY EITHER ARM** (the 1,000-row rule, `read-all.ts`): PostgREST cuts a read at
@@ -488,8 +494,9 @@ through flags in the sheet. No step counter to desync.
   permanent by design (a custom slug is a mutable alias to it, never a replacement).
 - **The anon media RPCs gate on `visibility = 'open'`, NOT `<> 'private'`.** A password event's media must
   NEVER stream through `get_event_media_by_qr_token` / the anon path; it is served ONLY via the server
-  admin-read (`getApprovedMediaForUnlock`, self-guarded by the unlock cookie) after `/api/guests/unlock`
-  verifies the password. The bcrypt hash never reaches a browser: guest RPCs expose `has_password` only, and the server reads it only to derive (`has_password`, the cookie's version).
+  admin-reads (`getApprovedMediaForUnlock` and the paged album's reads, `album-guest.ts`), each self-guarded by
+  the unlock cookie or the host (`isRequestOwner`): after `/api/guests/unlock` verifies the password, or for the
+  host, who never meets that door. The bcrypt hash never reaches a browser: guest RPCs expose `has_password` only, and the server reads it only to derive (`has_password`, the cookie's version).
 - **The unlock cookie is a signed HMAC of `{eid, exp}` and the event's password version** (`UNLOCK_COOKIE_SECRET`, 12 h;
   the version is a sha256 of the stored bcrypt hash, read server-side once per request, never in the cookie), so any
   `set_event_password` (a fresh salt, even for the same word) or `clear_event_password` signs everyone out; the unlock
@@ -503,8 +510,9 @@ through flags in the sheet. No step counter to desync.
 - **The page calls `getUser()` for every non-private, non-demo event**, because the gates must know whether
   the viewer holds a confirmed session. With NO session it's a cheap LOCAL null (no network), so an
   anonymous crowd behind one venue-NAT IP doesn't each pay an auth round-trip; the owner check
-  (`isEventOwner`, an explicit `host_id = uid` match) runs ONLY when
-  signed in. The header island resolves its own auth with a LOCAL `getSession()`.
+  (`isRequestOwner`, then `isEventOwner`'s explicit `host_id = uid` match, `gallery-access-owner.server.ts`) runs
+  ONLY when signed in, and the album's own reads ask the same one-per-render answer, so the page and its seed never
+  disagree about the host. The header island resolves its own auth with a LOCAL `getSession()`.
 - **The upload slot is `full`-only** (a `teaser`/`none` viewer is still at the door, which owns every step
   in front of them). At `full`, the upload panel while `accepting_uploads`, else the view-only line. A
   confirmed account with no profile name is asked at the door (`needsName` → the name step's `profile`
@@ -678,8 +686,10 @@ had" holds only when this device holds a guest ticket a claim would move.
   ([`reel/live-reel.tsx`](../../src/components/guest/reel/live-reel.tsx)) reads the same context, never the
   seed promise, so an upload that reaches the grid reaches the reel in the same breath.
   [`event-experience.tsx`](../../src/components/guest/event-experience.tsx) is the SHELL around both and
-  streams the seed in via `<Suspense>` (the RSC passes [`loadGallerySeed`](../../src/lib/events/gallery-seed.ts)
-  down UN-awaited; `use()` resolves it behind
+  streams the seed in via `<Suspense>` (the RSC passes `streamGallerySeed`
+  ([`gallery-access.server.ts`](../../src/lib/events/gallery-access.server.ts)) down UN-awaited, `loadGallerySeed`
+  with a handler attached the moment it exists: a seed that failed before React held it was an unhandled rejection,
+  and Vercel exits the function on one; `use()` resolves it behind
   [`gallery-skeleton.tsx`](../../src/components/guest/gallery-skeleton.tsx) so the presign-heavy payload
   never blocks the shell's paint), and the store adopts it as its own first `sync()`, answered locally.
   `key={access}` remounts it on an access flip (teaser → full) — a clean re-seed, no resync effects.
