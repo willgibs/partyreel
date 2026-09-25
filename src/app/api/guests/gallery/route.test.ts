@@ -236,7 +236,7 @@ describe("the live reel's facts", () => {
     showReel: true,
     liveReelEnabled: true,
     styleId: "warm",
-    cut: { videoAllowed: true, watermark: false, maxSeconds: 60 },
+    clip: { videoAllowed: true, watermark: false, maxSeconds: 60 },
   };
 
   it("ride every 200, read for the viewer's own access level", async () => {

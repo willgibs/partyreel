@@ -88,7 +88,7 @@ const serverSnapshot = () => null;
 export function useReelParam(): {
   mode: ReelMode | null;
   open: (mode: ReelMode) => void;
-  close: () => void;
+  close: (opts?: { returnBack?: boolean }) => void;
 } {
   const mode = useSyncExternalStore(subscribe, snapshot, serverSnapshot);
 
@@ -106,9 +106,11 @@ export function useReelParam(): {
     window.dispatchEvent(new Event(CHANGE));
   }, []);
 
-  const close = useCallback(() => {
+  const close = useCallback((opts?: { returnBack?: boolean }) => {
     if (readReelParam(window.location.search) === null) return;
-    if (pushedByUs()) {
+    // The owner's Close goes back to where they came from (the event's hub links here) whenever
+    // there is somewhere to go back to; a guest's deep link never leaves the page.
+    if (pushedByUs() || (opts?.returnBack && window.history.length > 1)) {
       window.history.back();
       return;
     }

@@ -295,25 +295,25 @@ describe("the ticket is read per file, never once per run", () => {
   });
 });
 
-describe("the cut's seam (addCutToAlbum)", () => {
-  it("sends a cut through the ordinary queue, not reel-eligible, with its poster as the preview", async () => {
+describe("the clip's seam (addClipToAlbum)", () => {
+  it("sends a clip through the ordinary queue, not reel-eligible, with its poster as the preview", async () => {
     mockUploadFile.mockResolvedValue({
       ok: true,
       status: "approved",
-      mediaId: "cut-1",
+      mediaId: "clip-1",
       kind: "video",
     });
-    const cut = new File([new Uint8Array([1, 2, 3])], "cut.mp4", {
+    const clip = new File([new Uint8Array([1, 2, 3])], "clip.mp4", {
       type: "video/mp4",
     });
     const poster = new Blob([new Uint8Array([9])], { type: "image/png" });
     const q = mountQueue({ sessionToken: STALE, isVerified: false });
 
-    act(() => q.result.current.addCut(cut, poster));
+    act(() => q.result.current.addClip(clip, poster));
 
     await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
     const sent = mockUploadFile.mock.calls[0][0];
-    expect(sent.file).toBe(cut);
+    expect(sent.file).toBe(clip);
     expect(sent.reelEligible).toBe(false);
     expect(sent.poster).toBe(poster);
     expect(q.items()).toEqual([
@@ -340,14 +340,14 @@ describe("the cut's seam (addCutToAlbum)", () => {
     mockUploadFile.mockResolvedValue({
       ok: true,
       status: "approved",
-      mediaId: "cut-2",
+      mediaId: "clip-2",
       kind: "video",
     });
-    const cut = new File([new Uint8Array([1])], "cut.webm", {
+    const clip = new File([new Uint8Array([1])], "clip.webm", {
       type: "video/webm",
     });
     const q = mountQueue({ sessionToken: null, isVerified: false });
-    act(() => q.result.current.addCut(cut, new Blob([new Uint8Array([1])])));
+    act(() => q.result.current.addClip(clip, new Blob([new Uint8Array([1])])));
     await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
     expect(sentOn(0)).toBe("fresh-token");
     expect(mockUploadFile.mock.calls[0][0].reelEligible).toBe(false);

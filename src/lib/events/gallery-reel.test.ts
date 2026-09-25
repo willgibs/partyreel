@@ -3,13 +3,13 @@
  *
  * The reel exists for a guest from the SECOND reel-eligible item, and below it (or with the host's
  * switch off, the platform lever off, or a door still standing) there is no tile, no view and no
- * `?reel`. A cut never counts toward the two. And every tier-shaped fact is derived here from a
+ * `?reel`. A clip never counts toward the two. And every tier-shaped fact is derived here from a
  * tier the server read.
  */
 import { describe, expect, it } from "vitest";
 
 import {
-  cutFactsForTier,
+  clipFactsForTier,
   LIVE_REEL_MINIMUM,
   liveReelAvailable,
   reelEligibleCount,
@@ -31,7 +31,7 @@ const ON: GalleryReel = {
   showReel: true,
   liveReelEnabled: true,
   styleId: null,
-  cut: cutFactsForTier("pro"),
+  clip: clipFactsForTier("pro"),
 };
 
 describe("reelFactsFor", () => {
@@ -62,7 +62,7 @@ describe("reelFactsFor", () => {
       showReel: false,
       liveReelEnabled: true,
       styleId: "warm",
-      cut: { videoAllowed: false, watermark: true, maxSeconds: 30 },
+      clip: { videoAllowed: false, watermark: true, maxSeconds: 30 },
     });
   });
 
@@ -75,18 +75,18 @@ describe("reelFactsFor", () => {
       tier: null,
     });
     expect(facts?.showReel).toBe(true);
-    expect(facts?.cut).toBeNull();
+    expect(facts?.clip).toBeNull();
   });
 });
 
-describe("cutFactsForTier", () => {
-  it("lets a paid plan save a video cut without the mark, at the paid length", () => {
-    expect(cutFactsForTier("pro")).toEqual({
+describe("clipFactsForTier", () => {
+  it("lets a paid plan save a video clip without the mark, at the paid length", () => {
+    expect(clipFactsForTier("pro")).toEqual({
       videoAllowed: true,
       watermark: false,
       maxSeconds: 60,
     });
-    expect(cutFactsForTier("event_pass")).toEqual({
+    expect(clipFactsForTier("event_pass")).toEqual({
       videoAllowed: true,
       watermark: false,
       maxSeconds: 60,
@@ -101,12 +101,12 @@ describe("liveReelAvailable: the minimum is TWO", () => {
     expect(liveReelAvailable(ON, [item(1), item(2)])).toBe(true);
   });
 
-  it("never counts a cut, a held item, or one with nothing to draw", () => {
-    const cut = item(2, { reelEligible: false });
+  it("never counts a clip, a held item, or one with nothing to draw", () => {
+    const clip = item(2, { reelEligible: false });
     const held = item(3, { status: "pending" });
     const blank = item(4, { type: "video", previewUrl: null });
-    expect(reelEligibleCount([item(1), cut, held, blank])).toBe(1);
-    expect(liveReelAvailable(ON, [item(1), cut, held, blank])).toBe(false);
+    expect(reelEligibleCount([item(1), clip, held, blank])).toBe(1);
+    expect(liveReelAvailable(ON, [item(1), clip, held, blank])).toBe(false);
   });
 
   it("reads an absent reelEligible as eligible (a payload from before the column)", () => {

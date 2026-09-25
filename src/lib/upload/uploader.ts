@@ -178,9 +178,9 @@ export async function uploadFile(args: {
   endpoints: { presign: string; complete: string };
   identity: Record<string, string>;
   onProgress?: (fraction: number) => void;
-  /** A cut added to the album (the live reel's seam): `false` keeps it out of the live reel. */
+  /** A clip added to the album (the live reel's seam): `false` keeps it out of the live reel. */
   reelEligible?: boolean;
-  /** The image the album shows for this upload, when the caller already has it (a cut's poster). */
+  /** The image the album shows for this upload, when the caller already has it (a clip's poster). */
   poster?: Blob;
 }): Promise<UploadOutcome> {
   try {
@@ -249,7 +249,7 @@ async function runUpload(args: {
   // 0b. Generate a small WebP preview in the browser from the STRIPPED file (best-effort; null on
   //    skip/failure) - previews were already metadata-clean by canvas regeneration. Its size is sent
   //    to presign so the preview PUT can bind content-length (like the original) — no unbounded preview PUT.
-  // A cut arrives with the poster its creator drew (the live reel's seam), which beats seeking into
+  // A clip arrives with the poster its creator drew (the live reel's seam), which beats seeking into
   // a video the same browser has only just encoded; the generated one stays the fallback.
   const preview =
     (poster ? await posterPreview(poster) : null) ??
@@ -348,7 +348,7 @@ async function runUpload(args: {
     width: measured.width,
     height: measured.height,
     preview_key: previewKey,
-    // Only a cut says anything (the live reel never plays a reel); every other body is unchanged.
+    // Only a clip says anything (the live reel never plays a reel); every other body is unchanged.
     ...(reelEligible === false ? { reel_eligible: false } : {}),
     upload_id: presign.strategy === "multipart" ? presign.upload_id : null,
     parts,

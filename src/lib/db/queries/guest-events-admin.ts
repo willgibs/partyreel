@@ -318,7 +318,7 @@ export async function getUploaderIdentities(
 
 /**
  * THE TWO SERVER-ONLY FACTS BEHIND THE LIVE REEL: the platform lever (`ops_flags.live_reel_enabled`)
- * and the host's plan (which decides what the cut creator may do, `cutFactsForTier`). Both are
+ * and the host's plan (which decides what the clip creator may do, `clipFactsForTier`). Both are
  * deny-all or host-private, so the admin client reads them; only the derived booleans and one
  * number ever reach a guest (`gallery-reel.ts`).
  *
@@ -331,7 +331,7 @@ export async function getUploaderIdentities(
  * ★ EACH FAILURE HAS ITS OWN HONEST ANSWER, NEVER A GUESS. The lever fails OPEN (a flaky read must
  * not take the reel off every album; render-service.ts's own kill switch reads the same way). The
  * plan fails to `null`, which drops the creator and keeps the reel: guessing "free" would stamp the
- * mark on a paying host's cuts, guessing paid would lift it off a free one. Both are reported.
+ * mark on a paying host's clips, guessing paid would lift it off a free one. Both are reported.
  */
 export type LiveReelServerFacts = {
   liveReelEnabled: boolean;

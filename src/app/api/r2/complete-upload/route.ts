@@ -14,7 +14,7 @@ import { completeUploadSchema } from "@/lib/validation/upload";
 
 /**
  * THE GUEST COMPLETION'S SHAPE: the shared schema, plus the live reel's one field. `reel_eligible`
- * is false only for a cut the on-device creator adds to the album (`addCutToAlbum`), so the live
+ * is false only for a clip the on-device creator adds to the album (`addClipToAlbum`), so the live
  * reel never plays a reel; absent is the column's default (true). Extended here rather than in the
  * shared validation module, so the host's completion shape is untouched until its own route passes
  * the field.
@@ -94,7 +94,7 @@ const guestCompleteStrategy: CompleteStrategy<typeof guestCompleteSchema> = {
       width: parsed.width ?? null,
       height: parsed.height ?? null,
       previewKey: parsed.preview_key ?? null,
-      // Only a cut says anything here; every other upload leaves the column's default.
+      // Only a clip says anything here; every other upload leaves the column's default.
       reelEligible: parsed.reel_eligible,
     });
     /* ★ THE FLIP IS A COOKIE AND THEN A REFRESH. On an event requiring an upload to view, THIS is

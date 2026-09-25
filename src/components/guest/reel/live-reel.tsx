@@ -97,8 +97,8 @@ export type LiveReelProps = {
   moderated: boolean;
   /** The page's Add, when this viewer may add right now (the view's "Add yours"). */
   onAddYours?: () => void;
-  /** Put a finished cut into the album (the creator's seam), when this viewer may. */
-  addCutToAlbum?: ((file: File, poster: Blob) => void) | null;
+  /** Put a finished clip into the album (the creator's seam), when this viewer may. */
+  addClipToAlbum?: ((file: File, poster: Blob) => void) | null;
   /** This device's upload queue: the toast reads its held items. */
   queue: readonly QueueItem[];
   /**
@@ -107,6 +107,8 @@ export type LiveReelProps = {
    * waits, under nothing and over nothing, and opens the moment they are through.
    */
   welcomePending?: boolean;
+  /** The event's owner is watching: the view shows the host's extras, and its Close goes back. */
+  isOwner?: boolean;
   children: ReactNode;
 };
 
@@ -118,9 +120,10 @@ export function LiveReel({
   isDemo,
   moderated,
   onAddYours,
-  addCutToAlbum = null,
+  addClipToAlbum = null,
   queue,
   welcomePending = false,
+  isOwner = false,
   children,
 }: LiveReelProps) {
   const live = useGalleryLive();
@@ -131,10 +134,10 @@ export function LiveReel({
   const available = liveReelAvailable(live.reel, playable);
   const { mode, open: openParam, close } = useReelParam();
 
-  // The creator leads somewhere only with the host's plan in hand (the cut's facts are the server's),
+  // The creator leads somewhere only with the host's plan in hand (the clip's facts are the server's),
   // and never in the demo, which has no creator (its visitor's photographs are simulated).
   const creator =
-    !isDemo && REEL_CREATOR && live.reel?.cut ? REEL_CREATOR : null;
+    !isDemo && REEL_CREATOR && live.reel?.clip ? REEL_CREATOR : null;
 
   // ★ THE WELCOME COMES FIRST. A visitor who still owes the door meets it first, with no reel under
   // it or over it; the moment they are through, the reel their link asked for opens. The owner
@@ -166,6 +169,12 @@ export function LiveReel({
     },
     [openParam],
   );
+  // The view's own Close (and Escape, and Back): the owner goes back where they came from; the
+  // quiet drop above never does, so an album under two keeps its visitor on the page.
+  const closeView = useCallback(
+    () => close({ returnBack: isOwner }),
+    [close, isOwner],
+  );
 
   const controller = useMemo<ReelController>(
     () => ({ available, open, playable, creator, eventId }),
@@ -184,8 +193,9 @@ export function LiveReel({
         playable,
         onAddYours,
         creator,
-        addCutToAlbum,
-        onClose: close,
+        addClipToAlbum,
+        isOwner,
+        onClose: closeView,
       }
     : null;
 
@@ -311,7 +321,7 @@ export function LiveReelTile({ className }: { className?: string }) {
  * one of this guest's uploads will be in the reel on a moderated event.
  *
  * ★ ONCE PER VISIT, on a moderated event, the moment the first of this device's HELD uploads shows up
- * approved in the album (its media id reaches the live list) and would play (not a cut). Never
+ * approved in the album (its media id reaches the live list) and would play (not a clip). Never
  * while no reel is showing: "Watch reel" must lead somewhere. And not while the view is already
  * open, where the arrival chip says the same thing on the picture itself; the moment is spent either
  * way. The queue lives in memory, so this can only fire within the visit that made the upload (the

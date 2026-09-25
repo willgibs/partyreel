@@ -44,7 +44,7 @@ describe("galleryEtag", () => {
       showReel: true,
       liveReelEnabled: true,
       styleId: null as string | null,
-      cut: { videoAllowed: true, watermark: false, maxSeconds: 60 },
+      clip: { videoAllowed: true, watermark: false, maxSeconds: 60 },
     };
     const on = galleryEtag({ ...base, reel });
     expect(galleryEtag({ ...base, reel: { ...reel } })).toBe(on);
@@ -56,10 +56,10 @@ describe("galleryEtag", () => {
     expect(
       galleryEtag({
         ...base,
-        reel: { ...reel, cut: { ...reel.cut, watermark: true } },
+        reel: { ...reel, clip: { ...reel.clip, watermark: true } },
       }),
     ).not.toBe(on);
-    expect(galleryEtag({ ...base, reel: { ...reel, cut: null } })).not.toBe(on);
+    expect(galleryEtag({ ...base, reel: { ...reel, clip: null } })).not.toBe(on);
     expect(galleryEtag({ ...base, reel: null })).not.toBe(on);
     // Absent (a caller that passes no reel) hashes the same as null.
     expect(galleryEtag(base)).toBe(galleryEtag({ ...base, reel: null }));

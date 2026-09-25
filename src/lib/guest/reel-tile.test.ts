@@ -36,7 +36,7 @@ describe("tileStills", () => {
     expect(stills.map((s) => s.id)).toEqual(take.slice(0, TILE_SLOTS));
   });
 
-  it("draws previews and posters only: never a video's own file, never a cut", () => {
+  it("draws previews and posters only: never a video's own file, never a clip", () => {
     const stills = tileStills(
       [
         item(1),

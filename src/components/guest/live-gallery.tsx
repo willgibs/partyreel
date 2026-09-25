@@ -471,10 +471,10 @@ function LiveGalleryView({
         // tall. An album with no photographs in it has nothing to spread, so the
         // promise stays the width of the words it sits under and the window
         // opens up only once there is something to put in it. Pulled out by the
-        // album's gutter and padded back in, so this is the page's reading
-        // column to the pixel rather than 40 px wider than the words it sits
-        // under.
-        <div className="-mx-5 max-w-2xl px-5">
+        // album's gutter (12 px on a phone, 20 above) and padded back in by the
+        // words' 20, so this is the page's reading column to the pixel rather
+        // than wider than the words it sits under.
+        <div className="-mx-3 max-w-2xl px-5 sm:-mx-5">
           <GalleryEmptyState
             onAddFirst={access === "full" ? onAddFirst : undefined}
           />

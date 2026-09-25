@@ -245,7 +245,7 @@ type CompleteCommon = {
   preview_key?: string;
   /**
    * `media.reel_eligible` for the row this completion creates (the live reel): sent as
-   * false ONLY for a cut added to the album (`addCutToAlbum`), so the live reel never plays a reel;
+   * false ONLY for a clip added to the album (`addClipToAlbum`), so the live reel never plays a reel;
    * absent means eligible (the column's default). The engine carries it to either strategy, guest
    * or host, and each writes it once through its create_media* call. Not a trust boundary: the
    * worst a forged `false` does is keep the sender's own upload out of the reel.

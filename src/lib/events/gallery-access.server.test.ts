@@ -247,7 +247,7 @@ describe("loadGalleryReel: the live reel's facts for one viewer", () => {
       showReel: false,
       liveReelEnabled: true,
       styleId: "warm",
-      cut: { videoAllowed: false, watermark: true, maxSeconds: 30 },
+      clip: { videoAllowed: false, watermark: true, maxSeconds: 30 },
     });
     expect(getLiveReelServerFacts).toHaveBeenCalledWith("event-1");
   });

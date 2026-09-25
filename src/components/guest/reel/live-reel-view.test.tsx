@@ -26,7 +26,7 @@ import type { GalleryLive } from "@/components/guest/gallery-live";
 import type { GalleryItem, GalleryReel } from "@/lib/events/gallery-reel";
 import type { LiveMediaItem } from "@/lib/reel/live/items";
 
-import { setReducedMotion } from "../../../../vitest.setup";
+import { setReducedMotion, setViewportWidth } from "../../../../vitest.setup";
 
 const h = vi.hoisted(() => ({
   live: null as unknown,
@@ -34,6 +34,7 @@ const h = vi.hoisted(() => ({
   step: vi.fn(),
   moment: vi.fn((): unknown => null),
   captureWarning: vi.fn(),
+  canFullscreen: vi.fn(() => true),
   enterFullscreen: vi.fn(async () => true),
   exitFullscreen: vi.fn(async () => {}),
   isFullscreen: vi.fn(() => true),
@@ -81,7 +82,7 @@ vi.mock("@/lib/observability/sentry", () => ({
   captureWarning: (...args: unknown[]) => h.captureWarning(...args),
 }));
 vi.mock("@/lib/guest/screen-posture", () => ({
-  canFullscreen: () => true,
+  canFullscreen: () => h.canFullscreen(),
   enterFullscreen: () => h.enterFullscreen(),
   exitFullscreen: () => h.exitFullscreen(),
   isFullscreen: () => h.isFullscreen(),
@@ -98,7 +99,7 @@ const REEL: GalleryReel = {
   showReel: true,
   liveReelEnabled: true,
   styleId: null,
-  cut: { videoAllowed: true, watermark: false, maxSeconds: 60 },
+  clip: { videoAllowed: true, watermark: false, maxSeconds: 60 },
 };
 
 function item(i: number, over: Partial<GalleryItem> = {}): GalleryItem {
@@ -153,7 +154,7 @@ function renderView(props: Partial<Props> = {}) {
     playable: liveValue.serverItems,
     onAddYours: vi.fn(),
     creator: null,
-    addCutToAlbum: null,
+    addClipToAlbum: null,
     onClose: vi.fn(),
     ...props,
   };
@@ -171,6 +172,7 @@ beforeEach(() => {
   h.moment.mockReset();
   h.moment.mockReturnValue(null);
   h.captureWarning.mockClear();
+  h.canFullscreen.mockReturnValue(true);
   h.enterFullscreen.mockClear();
   h.wake.acquire.mockClear();
   h.wake.release.mockClear();
@@ -240,7 +242,7 @@ describe("the chrome (the thin bar)", () => {
     // The reel waits behind the creator.
     expect(h.player?.paused).toBe(true);
     unmount();
-    h.live = live({ reel: { ...REEL, cut: null } });
+    h.live = live({ reel: { ...REEL, clip: null } });
     renderView({ creator: Creator });
     expect(screen.queryByRole("button", { name: "Make your own" })).toBeNull();
   });
@@ -369,7 +371,7 @@ describe("a tap on the picture (a tap opens the viewer)", () => {
 });
 
 describe("the arrivals (the arrival chip)", () => {
-  it("names who just added one, and never a cut", () => {
+  it("names who just added one, and never a clip", () => {
     const { rerender, props } = renderView();
     expect(document.querySelector("[data-reel-arrivals]")).toBeNull();
     const withTheo = [
@@ -397,66 +399,111 @@ describe("reduced motion (reduced motion starts paused)", () => {
 });
 
 describe("on a screen (the view is the wall)", () => {
-  it("waits behind the Start plate, then takes fullscreen and a wake lock, the code on", async () => {
+  it("plays in the window at once, the code on, under a pill that asks for one press", () => {
     renderView({ mode: "screen" });
-    expect(h.player?.paused).toBe(true);
-    const start = screen.getByRole("button", { name: /Play on this screen/ });
+    expect(h.player?.paused).toBe(false);
+    expect(document.querySelector("[data-reel-code]")).not.toBeNull();
+    expect(document.querySelector("[data-reel-start]")).toBeNull();
+    expect(document.querySelector("[data-reel-fill]")).toHaveTextContent(
+      "Press anywhere to fill the screen",
+    );
+  });
+
+  it("a press anywhere fills the screen and keeps it awake, and opens nothing else", async () => {
+    renderView({ mode: "screen" });
     await act(async () => {
-      fireEvent.click(start);
+      fireEvent.click(document.querySelector("[data-reel-picture]")!);
     });
     expect(h.enterFullscreen).toHaveBeenCalled();
     expect(h.wake.acquire).toHaveBeenCalled();
-    expect(h.player?.paused).toBe(false);
-    expect(document.querySelector("[data-reel-code]")).not.toBeNull();
+    // The press was the pill's, not the media viewer's.
+    expect(screen.queryByTestId("lightbox")).toBeNull();
+    expect(document.querySelector("[data-reel-fill]")).toBeNull();
   });
 
-  it("brings the plate back when fullscreen is left", async () => {
+  it("leaving fullscreen never pauses it or lets go of the screen: the pill simply returns", async () => {
     renderView({ mode: "screen" });
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /Play on this screen/ }));
+      fireEvent.click(document.querySelector("[data-reel-fill]")!);
     });
     h.isFullscreen.mockReturnValue(false);
     act(() => {
       for (const cb of h.fullscreenListeners) cb();
     });
-    expect(
-      screen.getByRole("button", { name: /Play on this screen/ }),
-    ).toBeInTheDocument();
-    expect(h.player?.paused).toBe(true);
-    expect(h.wake.release).toHaveBeenCalled();
+    expect(document.querySelector("[data-reel-fill]")).not.toBeNull();
+    expect(h.player?.paused).toBe(false);
+    expect(h.wake.release).not.toHaveBeenCalled();
     h.isFullscreen.mockReturnValue(true);
   });
 
-  it("overrides reduced motion (the host's explicit act)", async () => {
+  it("under reduced motion the window holds its first frame until the press", async () => {
     setReducedMotion(true);
     renderView({ mode: "screen" });
+    expect(h.player?.paused).toBe(true);
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /Play on this screen/ }));
+      fireEvent.click(document.querySelector("[data-reel-fill]")!);
     });
     expect(h.player?.paused).toBe(false);
   });
 
-  it("below the minimum is the code and the address alone", () => {
+  it("where the platform has no fullscreen, the press keeps the screen awake and the pill says so", async () => {
+    h.canFullscreen.mockReturnValue(false);
+    renderView({ mode: "screen" });
+    expect(document.querySelector("[data-reel-fill]")).toHaveTextContent(
+      "Press anywhere to keep the screen awake",
+    );
+    await act(async () => {
+      fireEvent.click(document.querySelector("[data-reel-fill]")!);
+    });
+    expect(h.wake.acquire).toHaveBeenCalled();
+    expect(h.enterFullscreen).not.toHaveBeenCalled();
+    expect(document.querySelector("[data-reel-fill]")).toBeNull();
+    h.canFullscreen.mockReturnValue(true);
+  });
+
+  it("below the minimum it is the code and the address alone", () => {
     renderView({ mode: "screen", idle: true });
     expect(document.querySelector("[data-reel-idle]")).not.toBeNull();
     expect(screen.queryByTestId("player")).toBeNull();
     expect(screen.getByText("partyreel.com/e/party")).toBeInTheDocument();
+    // Nothing to press and nothing to read but the code: no Start, no line, no pill.
+    expect(screen.queryByRole("button", { name: /Start/ })).toBeNull();
+    expect(document.querySelector("[data-reel-fill]")).toBeNull();
+    expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument();
+  });
+});
+
+describe("the desk's extras", () => {
+  it("the code toggle lives at a desk only", () => {
+    const { unmount } = renderView();
+    expect(screen.getByRole("button", { name: "Show the code" })).toBeInTheDocument();
+    unmount();
+    setViewportWidth(375);
+    renderView();
+    expect(screen.queryByRole("button", { name: /the code/ })).toBeNull();
+    setViewportWidth(1024);
   });
 
-  it("the idle wall's Start never covers the code, and still takes fullscreen and the wake lock", async () => {
-    renderView({ mode: "screen", idle: true });
-    // No plate (its scrim would dim the code a guest has to scan): the Start sits below it.
-    expect(document.querySelector("[data-reel-start]")).toBeNull();
-    const start = screen.getByRole("button", { name: /Start on this screen/ });
-    await act(async () => {
-      fireEvent.click(start);
-    });
-    expect(h.enterFullscreen).toHaveBeenCalled();
-    expect(h.wake.acquire).toHaveBeenCalled();
-    // Taken: the wall is the code alone, and the view can still be closed.
-    expect(screen.queryByRole("button", { name: /Start on this screen/ })).toBeNull();
-    expect(document.querySelector("[data-reel-idle]")).not.toBeNull();
-    expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument();
+  it("the owner at a desk can play it on a screen, in a new tab", () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    renderView({ isOwner: true });
+    fireEvent.click(screen.getByRole("button", { name: "Play on a screen" }));
+    expect(open).toHaveBeenCalledWith(
+      expect.stringContaining("reel=screen"),
+      "_blank",
+      "noopener",
+    );
+    open.mockRestore();
+  });
+
+  it("a guest never gets it, and neither does the owner on a phone", () => {
+    const { unmount } = renderView();
+    expect(screen.queryByRole("button", { name: "Play on a screen" })).toBeNull();
+    unmount();
+    setViewportWidth(375);
+    renderView({ isOwner: true });
+    expect(screen.queryByRole("button", { name: "Play on a screen" })).toBeNull();
+    setViewportWidth(1024);
   });
 });
 

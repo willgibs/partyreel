@@ -22,14 +22,14 @@
  *
  * DELIBERATELY OUTSIDE the hash: width/height/durationSeconds (masonry
  * data) and `reelEligible` (the live reel, `media.reel_eligible`: false only for
- * a cut added to the album). All four are write-once at create_media (mutations
+ * a clip added to the album). All four are write-once at create_media (mutations
  * only ever flip status fields, and no client role can update reel_eligible),
  * so they're a pure function of the already-hashed id - hashing them would add
  * bytes without adding sensitivity. A field that can CHANGE for an existing id
  * must go INSIDE the hash (and bump the version).
  *
  * THE LIVE REEL'S FACTS ARE IN THE HASH: the payload carries the host's switch
- * and mood, the platform lever and what the host's plan lets the cut creator do
+ * and mood, the platform lever and what the host's plan lets the clip creator do
  * (`gallery-reel.ts`), and every one of them can change with no media row
  * moving. Outside the hash, a host turning the reel off would 304 past every
  * open album until the presign bucket rolled.
@@ -59,7 +59,7 @@ export function galleryEtag(input: {
     showReel: boolean;
     liveReelEnabled: boolean;
     styleId: string | null;
-    cut: { videoAllowed: boolean; watermark: boolean; maxSeconds: number } | null;
+    clip: { videoAllowed: boolean; watermark: boolean; maxSeconds: number } | null;
   } | null;
   bucketId: string;
   items: GalleryFingerprintItem[];
@@ -75,11 +75,11 @@ export function galleryEtag(input: {
           input.reel.showReel,
           input.reel.liveReelEnabled,
           input.reel.styleId,
-          input.reel.cut
+          input.reel.clip
             ? [
-                input.reel.cut.videoAllowed,
-                input.reel.cut.watermark,
-                input.reel.cut.maxSeconds,
+                input.reel.clip.videoAllowed,
+                input.reel.clip.watermark,
+                input.reel.clip.maxSeconds,
               ]
             : null,
         ]

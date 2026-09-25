@@ -48,7 +48,7 @@ export const DEFAULT_WINDOW_SIZE = 6;
 /** What a viewer's controls change. Every field is a knob on `reel-view` / `reel-screen`. */
 export type ReelLook = {
   /** A MOOD id. A treatment falls back to the default mood: the six treatments compose a finite set
-   *  (a polaroid stack has a fixed number of cards) and belong to a cut, not to an endless loop. */
+   *  (a polaroid stack has a fixed number of cards) and belong to a clip, not to an endless loop. */
   styleId: string;
   surface: Surface;
   /** The caller's pacing multiplier on top of the surface factor (the viewer's Hold, via `holdScaleFor`). */
@@ -106,7 +106,7 @@ export function themeFor(look: ReelLook): ReelTheme {
  * mood fills the frame edge to edge, because the reel should feel like a full-screen experience,
  * one that fills the big screens at events rather than sitting between bars. Three things in the
  * kits keep a landscape frame from filling, and all three are set aside here, for the live reel only
- * (a cut and the export keep their moods whole):
+ * (a clip and the export keep their moods whole):
  *
  * - Cinematic's LETTERBOX bars (13% top and bottom, drawn in landscape only);
  * - Editorial's INSET paper card (an 8% margin on every side);

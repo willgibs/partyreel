@@ -119,7 +119,8 @@ phone half becoming vaul-backed for every consumer, never a per-dialog exception
   `PlayBadge` is for other surfaces).
   ★ **The page root is two boxes, not a column**:
   [`event-experience.tsx`](../../src/components/guest/event-experience.tsx) carries `COLUMN` (632px of
-  reading measure pinned LEFT, on the header logo's 20px line) and `BLEED` (the 20px gutter alone), and the
+  reading measure pinned LEFT, on the header logo's 20px line) and `BLEED` (the gutter alone: 12px under 640,
+  where a phone's two columns want every pixel, 20px above), and the
   ALBUM ALONE takes the second; everything the page says (action block, upload panel, Highlight reel tile,
   guest list, locked river, empty state) keeps the column, the empty state because its square river would otherwise
   draw a window-wide box of nothing. The streaming skeleton
@@ -455,7 +456,7 @@ through flags in the sheet. No step counter to desync.
   a confirmed guest once per person, a named unconfirmed one once per row, never the host, never a nameless row).
   The account's OWN list of the events it added to takes any live one (→ [host-app.md](host-app.md), the Guest
   cards). A `guests` row stays what it is, the device's upload ticket minted at the door: nothing reads a row as
-  attendance, and there is no save. A cut added to the album is an upload like any other. A host removing all of a
+  attendance, and there is no save. A clip added to the album is an upload like any other. A host removing all of a
   guest's uploads takes them off every list; a restore puts them back.
 - ★ **THE HOST SEES A CONFIRMED GUEST'S ADDRESS, under the name, in the host's viewer and in the Guests room**, and
   never an unconfirmed one: the viewer's uploader credit (`getUploaderIdentities`, the email line) and the room's
@@ -873,16 +874,18 @@ creator's (below).
   ([`gallery-access.server.ts`](../../src/lib/events/gallery-access.server.ts)) answers `null` short of
   `full` access (nothing is read), else `GalleryReel` ([`gallery-reel.ts`](../../src/lib/events/gallery-reel.ts)):
   the host's switch (`events.show_reel`) and mood (`reel_style_id`) off the event row, the platform lever
-  (`ops_flags.live_reel_enabled`) and the host's plan for the creator (`cut`: `videoAllowed`, `watermark`,
+  (`ops_flags.live_reel_enabled`) and the host's plan for the creator (`clip`: `videoAllowed`, `watermark`,
   `maxSeconds`, tier-derived on the server and never on the client; `null` when the host's tier could not be
   read). `getLiveReelServerFacts` reads the lever and the tier on the admin client (`ops_flags` is deny-all),
   cached 30 s per event, each failed read reported. The page and every poll's 200 carry it, and the ETag
   hashes it.
 - ★ **IT EXISTS FROM THE SECOND ITEM, AND BELOW IT THERE IS NOTHING** (`LIVE_REEL_MINIMUM`,
-  `liveReelAvailable`). It counts approved, `reelEligible` items with something to draw; a cut
+  `liveReelAvailable`). It counts approved, `reelEligible` items with something to draw; a clip
   (`reel_eligible` false) never counts and never plays. Below two, with the switch or the lever off, or
-  behind a door, there is no tile, no view and no `?reel` (a `?reel` below the minimum is dropped quietly; one
-  behind a door waits for the door). The reel plays the SERVER's approved list, never an optimistic blob; the
+  behind a door, there is no tile, no view and no `?reel`: the host reaches the reel by adding the album's
+  first two photos, so the view has no empty state of its own (a `?reel` below the minimum is dropped
+  quietly and a phone's view whose album drops under two returns to the album; one behind a door waits for
+  the door). The owner's reel is exactly a guest's: approved, visible, reel-eligible items only. The reel plays the SERVER's approved list, never an optimistic blob; the
   demo plays its optimistic tiles too, since its uploads never reach a server.
 - ★ **THE WELCOME COMES FIRST, EVERYWHERE**: the door is how a guest reaches the event page, and a host who
   plays the reel on a venue laptop or screen goes through it on that device like any guest. A visitor who
@@ -916,8 +919,13 @@ creator's (below).
     instant under reduced motion); a resting pointer settles it back (2.4 s; 4.2 s after a touch). Close shows
     and hides with the dock, and every control has a tooltip.
   - **The dock**: one row of icon buttons (play/pause, Include videos, Style, Hold, Show the code, Add yours),
-    then "Make your own" as the single primary, only with a creator. Space pauses, Escape closes, the arrows
-    step a clip (the player's `step`; the clock never moves).
+    then "Make your own" as the single primary, only with a creator. Show the code exists from 1024px up
+    only (a phone has no wall to show it to). Space pauses, Escape closes, the arrows step a clip (the
+    player's `step`; the clock never moves).
+  - **The owner's extras** (the event's owner, who meets no gate on the page; the host's hub links its Reel
+    card here): at 1024px and up a seventh icon, Play on a screen, opens `?reel=screen` in a new tab; and Close
+    goes back where the host came from whenever there is history (`useReelParam().close({ returnBack })`),
+    else to the album, where a guest's deep link always closes onto the album.
   - **The viewer's own knobs, on this device** ([`reel-prefs.ts`](../../src/lib/guest/reel-prefs.ts),
     `localStorage`, never on the wire): Hold (1, 1.5, 2.2, 3, 3.6, 5 or 7 s a photo, 3 by default, converted
     into the mood's `holdScale`); Style (the eight moods, per event, defaulting to the event's
@@ -935,21 +943,23 @@ creator's (below).
     a video drawn as its poster starts at the top). Reduced motion holds the
     first frame with the dock up. The loop never announces its seam. Twelve failed frames or stills send ONE
     Sentry report per view, and every failure also feeds the provider's watchdog.
-- ★ **THE VIEW IS THE WALL: `?reel=screen`** is the same view in its screen posture: the code on and a one-tap
-  Start plate (the first frame behind a dimmed play mark). Start takes fullscreen where the platform allows
-  it and a wake lock ([`screen-posture.ts`](../../src/lib/guest/screen-posture.ts)), re-taken on every return
-  to visible and released on close; leaving fullscreen brings the plate back. The host's Start overrides
-  reduced motion. Below the minimum (switch and lever on) the screen shows its idle state, the code and the
-  address alone, with the host's Start as a quiet button under the address until it is taken (never the
-  plate's scrim over a code a guest has to scan).
+- ★ **THE VIEW IS THE WALL: `?reel=screen`** is the same view in its screen posture: the reel plays in the
+  window at once with the code on, under a glass pill at the top, "Press anywhere to fill the screen". The
+  press (anywhere, the pill included) takes fullscreen where the platform allows it and the wake lock
+  ([`screen-posture.ts`](../../src/lib/guest/screen-posture.ts)), re-taken on every return to visible and
+  released only when the view closes; leaving fullscreen never pauses the reel or lets go of the lock, the
+  pill simply comes back. Where the platform has no fullscreen the pill asks to keep the screen awake and
+  goes once pressed. Under reduced motion the window holds its first frame until the press (the host's
+  explicit act). A screen whose album drops under two (or reloads there) shows the code and the address
+  alone until the reel returns.
 - **The approval toast** (moderated events only): once per visit, when the first of this device's held
   uploads shows up approved while the reel is showing, "The host added your uploads" with "Watch reel",
-  which opens the view. No numbers; never for a cut. The queue lives in memory, so it plays only within the
+  which opens the view. No numbers; never for a clip. The queue lives in memory, so it plays only within the
   visit that made the upload.
 - **The creator's seam** ([`creator-seam.ts`](../../src/components/guest/reel/creator-seam.ts)): `REEL_CREATOR`
   is `null` until the creator registers there, and every "Make your own" renders only when it is present, so
-  no build shows a dead end. A finished cut goes through `addCutToAlbum(file, poster)`: the ordinary upload
-  queue (`addCut`, `reelEligible: false`, the poster as its preview) → the complete route → the pipeline →
+  no build shows a dead end. A finished clip goes through `addClipToAlbum(file, poster)`: the ordinary upload
+  queue (`addClip`, `reelEligible: false`, the poster as its preview) → the complete route → the pipeline →
   `create_media(..., p_reel_eligible => false)`.
 - The stored reel's guest files (`guest-reel-card.tsx`, `guest-reel-overlay.tsx`, `lib/reel/guest-reel.ts`)
   are not rendered or read by the page; they are residue until the stored reel's teardown.

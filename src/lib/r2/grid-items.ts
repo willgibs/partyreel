@@ -30,7 +30,7 @@ type MediaRow = {
   width?: number | null;
   height?: number | null;
   duration_seconds?: number | null;
-  /** `media.reel_eligible` (the live reel): false only for a cut added to the album. Absent reads
+  /** `media.reel_eligible` (the live reel): false only for a clip added to the album. Absent reads
    *  as eligible, so a caller that never selected it cannot empty a reel. */
   reel_eligible?: boolean | null;
 };

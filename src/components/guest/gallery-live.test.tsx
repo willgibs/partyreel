@@ -33,7 +33,7 @@ const REEL: GalleryReel = {
   showReel: true,
   liveReelEnabled: true,
   styleId: null,
-  cut: null,
+  clip: null,
 };
 
 const item = (i: number): GalleryItem => ({

@@ -13,20 +13,22 @@
  *   something to reach for while the controls are hidden. A pointer's movement (or, on touch, a tap
  *   on the bar itself) grows it into the full dock; a resting pointer lets it settle back. Close shows
  *   and hides with it, and every control carries a tooltip.
- * - THE DOCK: one row of icon buttons (play/pause, Include videos, Style, Hold, Show the code, Add
- *   yours), and beneath it "Make your own" as the single primary, only once a creator is registered.
+ * - THE DOCK: one row of icon buttons (play/pause, Include videos, Style, Hold, Show the code at a
+ *   desk, Add yours; the event's owner also gets Play on a screen at a desk), and beneath it "Make
+ *   your own" as the single primary, only once a creator is registered.
  * - THE ARRIVALS: a fresh upload names its uploader top left for one hold, a burst stacking into a
  *   short feed ("Theo +12").
  * - THE CODE: a white plate bottom right, "Scan to add yours" and the readable address. No event
  *   name on screen, ever.
- * - ON A SCREEN (`?reel=screen`): the code on, and a one-tap Start plate (the first frame behind a
- *   dimmed play mark) that takes fullscreen and keeps the screen awake. Leaving fullscreen brings the
- *   plate back rather than a half-dressed view. Below the minimum it is the code and the address
- *   alone.
+ * - ON A SCREEN (`?reel=screen`): the reel plays in the window at once with the code on, and a glass
+ *   pill at the top asks for one press anywhere, which fills the screen where the platform allows it
+ *   and keeps it awake. Leaving fullscreen changes nothing but the pill, which comes back; the lock
+ *   holds until the view closes. Below the minimum (a screen whose album drops under two) it is the
+ *   code and the address alone, until the reel returns.
  *
  * The hold (3 s by default), the style and the video switch are the viewer's own, kept on this
  * device (lib/guest/reel-prefs.ts). The loop never announces its seam. Reduced motion starts paused
- * with the dock up; a host's explicit Start on a screen overrides it.
+ * with the dock up; on a screen the press is the host's explicit act and starts it.
  *
  * LAZY (live-reel.tsx): this module reaches the whole canvas engine, and nobody who never opens the
  * view downloads it.
@@ -34,6 +36,8 @@
 import {
   Clock3,
   ImagePlus,
+  Maximize2,
+  MonitorPlay,
   Palette,
   Pause,
   Play,
@@ -98,7 +102,7 @@ import {
   writeIncludeVideos,
   writeStyleId,
 } from "@/lib/guest/reel-prefs";
-import type { ReelMode } from "@/lib/guest/reel-url";
+import { withReelParam, type ReelMode } from "@/lib/guest/reel-url";
 import {
   canFullscreen,
   createWakeLock,
@@ -119,6 +123,7 @@ import { isReelEligible, type LiveMediaItem } from "@/lib/reel/live/items";
 import { createClipSource, type ClipSource } from "@/lib/reel/live/source";
 import { resolveLiveStyleId } from "@/lib/reel/live/window";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
+import { useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
 
 import type { ReelCreator } from "./creator-seam";
@@ -136,7 +141,9 @@ export type ReelViewProps = {
   playable: readonly GalleryItem[];
   onAddYours?: () => void;
   creator: ReelCreator | null;
-  addCutToAlbum: ((file: File, poster: Blob) => void) | null;
+  addClipToAlbum: ((file: File, poster: Blob) => void) | null;
+  /** The event's owner is watching (the host's extras: Play on a screen, Set for everyone). */
+  isOwner?: boolean;
   onClose: () => void;
 };
 
@@ -161,12 +168,16 @@ export function LiveReelView({
   playable,
   onAddYours,
   creator,
-  addCutToAlbum,
+  addClipToAlbum,
+  isOwner = false,
   onClose,
 }: ReelViewProps) {
   const live = useGalleryLive();
   const reduced = usePrefersReducedMotion();
   const screen = mode === "screen";
+  // A desk: the code toggle and the owner's Play on a screen live here and nowhere smaller (a phone
+  // has no room to show a wall its code, and nobody casts a screen from one).
+  const desktop = useMediaQuery("(min-width: 1024px)");
   const qrToken = live?.qrToken ?? "";
 
   /* ── the viewer's own knobs, kept on this device ─────────────────────────── */
@@ -183,16 +194,13 @@ export function LiveReelView({
   );
 
   /* ── play state ──────────────────────────────────────────────────────────── */
-  // Reduced motion starts on the first frame with the dock up; a screen starts behind its Start
-  // plate either way.
+  // Reduced motion starts on the first frame with the dock up, on a screen too: there the host's
+  // press is the explicit act that starts it.
   const [paused, setPaused] = useState(
     () =>
-      screen ||
-      (typeof window !== "undefined" &&
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches),
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   );
-  const [started, setStarted] = useState(false);
-  const plateUp = screen && !started;
 
   /* ── the source: the album's live list, fed as it changes ────────────────── */
   const source = useLiveSource(eventId, playable, live?.ownIds ?? null);
@@ -303,28 +311,26 @@ export function LiveReelView({
     [reportPossibleExpiry],
   );
 
-  /* ── the screen posture: fullscreen and a screen that stays awake ───────── */
+  /* ── the screen posture: plays in the window, one press fills it ─────────── */
+  // The reel is already playing when a screen opens; the pill asks for the one thing a page cannot
+  // take by itself, a user's press: fullscreen where the platform has it, and the wake lock (which
+  // re-takes itself on every return to visible). Leaving fullscreen only brings the pill back: the
+  // reel keeps playing and the lock keeps holding until the view closes.
   const [wakeLock] = useState(createWakeLock);
-  const enteredFullscreenRef = useRef(false);
-  const start = useCallback(async () => {
-    setStarted(true);
-    // The host's explicit act overrides reduced motion.
+  const [fullscreenable] = useState(canFullscreen);
+  const [filled, setFilled] = useState(false);
+  const [pressed, setPressed] = useState(false);
+  const fill = useCallback(async () => {
+    setPressed(true);
+    // The host's explicit act starts a reel reduced motion held on its first frame.
     setPaused(false);
     void wakeLock.acquire();
-    enteredFullscreenRef.current = await enterFullscreen();
-  }, [wakeLock]);
+    if (fullscreenable) setFilled(await enterFullscreen());
+  }, [wakeLock, fullscreenable]);
   useEffect(() => {
     if (!screen) return;
-    return onFullscreenChange(() => {
-      // Leaving fullscreen brings the plate back rather than a half-dressed view.
-      if (enteredFullscreenRef.current && !isFullscreen()) {
-        enteredFullscreenRef.current = false;
-        setStarted(false);
-        setPaused(true);
-        wakeLock.release();
-      }
-    });
-  }, [screen, wakeLock]);
+    return onFullscreenChange(() => setFilled(isFullscreen()));
+  }, [screen]);
   useEffect(
     () => () => {
       wakeLock.release();
@@ -332,13 +338,20 @@ export function LiveReelView({
     },
     [wakeLock],
   );
+  // What the pill still has to ask for: the fullscreen whenever the screen is not filled, or, where
+  // there is no fullscreen at all, the wake lock once.
+  const pillUp = screen && !idle && (fullscreenable ? !filled : !pressed);
+  // The owner's second tab: the same view in its screen posture, for the laptop on the wall.
+  const openOnScreen = useCallback(() => {
+    window.open(withReelParam(window.location.href, "screen"), "_blank", "noopener");
+  }, []);
 
   /* ── the arrivals ────────────────────────────────────────────────────────── */
   const rows = useArrivalFeed({
     arrivals: live?.arrivals ?? EMPTY,
     items: live?.items ?? EMPTY_ITEMS,
     holdMs: holdSec * 1000,
-    enabled: !plateUp && !idle,
+    enabled: !idle,
   });
 
   /* ── the lightbox (a tap on the picture) ─────────────────────────────────── */
@@ -378,7 +391,7 @@ export function LiveReelView({
     setPaused(pausedBeforeRef.current);
   }, []);
 
-  /* ── the creator (the cut lane's) ────────────────────────────────────────── */
+  /* ── the creator (the clip lane's) ────────────────────────────────────────── */
   const openCreator = useCallback(() => {
     pausedBeforeRef.current = paused;
     setPaused(true);
@@ -396,12 +409,12 @@ export function LiveReelView({
         // Space pauses, unless a control has the focus (then Space is that control's own press).
         if (target !== contentRef.current) return;
         e.preventDefault();
-        if (!plateUp) setPaused((p) => !p);
+        setPaused((p) => !p);
         wake();
         return;
       }
       if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
-        if (plateUp || idle) return;
+        if (idle) return;
         e.preventDefault();
         playerRef.current?.step(e.key === "ArrowRight" ? 1 : -1);
         wake();
@@ -409,17 +422,17 @@ export function LiveReelView({
       }
       if (e.key !== "Escape") wake();
     },
-    [lightboxIndex, creatorOpen, plateUp, idle, wake],
+    [lightboxIndex, creatorOpen, idle, wake],
   );
 
-  const effectivePaused = paused || plateUp;
+  const effectivePaused = paused;
   const moods = useMemo(() => liveMoods(), []);
   const styleLabel = moods.find((m) => m.id === styleId)?.label ?? "Cinematic";
   const qr = useMemo(
     () => qrSizing({ joinUrl, qrStyle, viewport, screen }),
     [joinUrl, qrStyle, viewport, screen],
   );
-  const cutFacts = live?.reel?.cut ?? null;
+  const clipFacts = live?.reel?.clip ?? null;
 
   return (
     <DialogPrimitive.Root
@@ -462,7 +475,8 @@ export function LiveReelView({
             <div
               ref={pictureRef}
               className="absolute inset-0"
-              onClick={plateUp ? undefined : openLightbox}
+              // While the pill is up, a press anywhere is the press it asks for.
+              onClick={pillUp ? () => void fill() : openLightbox}
               data-reel-picture
             >
               <LiveReelPlayer
@@ -484,20 +498,20 @@ export function LiveReelView({
             </div>
           )}
 
-          {/* ON A SCREEN, BELOW THE MINIMUM: the code and the address alone. The host's one tap
-              still matters here (a wall set up before anyone arrives needs the fullscreen and the
-              wake lock most), so its Start sits BELOW the address instead of the plate's scrim and
-              play mark over the code, which would dim the one thing on the wall a guest has to
-              scan. */}
+          {/* ON A SCREEN, BELOW THE MINIMUM: the code and the address alone, until the reel returns
+              (a screen whose album drops under two while it plays, or reloads there). */}
           {idle && (
             <IdleCode
               joinUrl={joinUrl}
               address={displayAddress}
               qrStyle={qrStyle}
               size={qr.idle}
-              onStart={plateUp ? () => void start() : undefined}
-              fullscreen={canFullscreen()}
             />
+          )}
+
+          {/* ON A SCREEN: the one press, asked for at the top while it is still owed. */}
+          {pillUp && (
+            <FillPill fullscreen={fullscreenable} onPress={() => void fill()} />
           )}
 
           {/* The top edge's legibility: a whisper, only while chrome or a chip is up. */}
@@ -505,37 +519,34 @@ export function LiveReelView({
             aria-hidden
             className={cn(
               "pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/35 to-transparent transition-opacity duration-200 ease-emphasis",
-              chromeUp || rows.length > 0 ? "opacity-100" : "opacity-0",
+              chromeUp || rows.length > 0 || pillUp ? "opacity-100" : "opacity-0",
             )}
           />
 
           {/* THE ARRIVALS, top left. */}
-          {!plateUp && !idle && <ArrivalFeed rows={rows} screen={screen} />}
+          {!idle && <ArrivalFeed rows={rows} screen={screen} />}
 
-          {/* CLOSE, top right: shows and hides with the dock (and on the idle wall, whose Start
-              covers nothing). */}
-          {(!plateUp || idle) && (
-            <div
-              className="lr-follow absolute top-[calc(0.75rem+env(safe-area-inset-top))] right-3 z-30"
-              data-state={chromeUp ? "up" : "rest"}
-            >
-              <TooltipProvider delayDuration={350} skipDelayDuration={250}>
-                <ChromeButton label="Close" onClick={onClose} shortcut="Esc">
-                  <X className={cn("size-4", GLASS_MARK_LIT)} aria-hidden />
-                </ChromeButton>
-              </TooltipProvider>
-            </div>
-          )}
+          {/* CLOSE, top right: shows and hides with the dock. */}
+          <div
+            className="lr-follow absolute top-[calc(0.75rem+env(safe-area-inset-top))] right-3 z-30"
+            data-state={chromeUp || idle ? "up" : "rest"}
+          >
+            <TooltipProvider delayDuration={350} skipDelayDuration={250}>
+              <ChromeButton label="Close" onClick={onClose} shortcut="Esc">
+                <X className={cn("size-4", GLASS_MARK_LIT)} aria-hidden />
+              </ChromeButton>
+            </TooltipProvider>
+          </div>
 
           {/* THE CODE, bottom right: lifted above the dock when the dock is up. */}
-          {showCode && !idle && !plateUp && (
+          {showCode && !idle && (
             <div
               className="pointer-events-none absolute right-3 z-20 transition-transform duration-200 ease-emphasis motion-reduce:transition-none sm:right-5"
               style={{
                 bottom: `calc(${screen ? "1.5rem" : "0.75rem"} + env(safe-area-inset-bottom))`,
                 transform:
                   chromeUp && viewport.w < 720
-                    ? `translateY(-${creator && cutFacts ? 150 : 104}px)`
+                    ? `translateY(-${creator && clipFacts ? 150 : 104}px)`
                     : undefined,
               }}
               data-reel-code
@@ -551,7 +562,7 @@ export function LiveReelView({
           )}
 
           {/* THE BAR THAT BECOMES THE DOCK. */}
-          {!plateUp && !idle && (
+          {!idle && (
             <ReelDock
               state={chromeUp ? "up" : "rest"}
               playing={!effectivePaused}
@@ -588,20 +599,13 @@ export function LiveReelView({
                 writeHoldSec(sec);
               }}
               showCode={showCode}
-              onToggleCode={() => setShowCode((on) => !on)}
+              onToggleCode={desktop ? () => setShowCode((on) => !on) : undefined}
+              onPlayOnScreen={isOwner && desktop ? openOnScreen : undefined}
               onAddYours={onAddYours}
-              onMakeYourOwn={creator && cutFacts ? openCreator : undefined}
+              onMakeYourOwn={creator && clipFacts ? openCreator : undefined}
               onMenuOpenChange={setMenuOpen}
               onFocusWithin={setDockFocus}
               addLabel={isDemo ? "Add yours (a demo upload)" : "Add yours"}
-            />
-          )}
-
-          {/* ON A SCREEN: the one-tap Start, the reel behind a dimmed play mark. */}
-          {plateUp && !idle && (
-            <StartPlate
-              onStart={() => void start()}
-              fullscreen={canFullscreen()}
             />
           )}
 
@@ -621,8 +625,8 @@ export function LiveReelView({
             </LikesProvider>
           )}
 
-          {/* THE CREATOR (the cut lane's component, through the seam). */}
-          {creatorOpen && creator && cutFacts && (
+          {/* THE CREATOR (the clip lane's component, through the seam). */}
+          {creatorOpen && creator && clipFacts && (
             <div className="absolute inset-0 z-40">
               {(() => {
                 const Creator = creator;
@@ -631,8 +635,8 @@ export function LiveReelView({
                     items={playable}
                     styleId={styleId}
                     eventId={eventId}
-                    facts={cutFacts}
-                    addCutToAlbum={addCutToAlbum}
+                    facts={clipFacts}
+                    addClipToAlbum={addClipToAlbum}
                     onClose={() => {
                       setCreatorOpen(false);
                       setPaused(pausedBeforeRef.current);
@@ -796,7 +800,7 @@ function createFeedStore() {
 
 /**
  * The feed's rows, from the provider's arrival ids (the ones that reached the album AFTER the view
- * opened: nobody is announced for having been there already). A cut arriving is not a photograph in
+ * opened: nobody is announced for having been there already). A clip arriving is not a photograph in
  * the reel, so it names nobody.
  */
 function useArrivalFeed({
@@ -944,16 +948,11 @@ function IdleCode({
   address,
   qrStyle,
   size,
-  onStart,
-  fullscreen,
 }: {
   joinUrl: string;
   address: string;
   qrStyle: string;
   size: number;
-  /** The host's one tap, until it is taken (then the wall is the code alone). */
-  onStart?: () => void;
-  fullscreen: boolean;
 }) {
   return (
     <div
@@ -964,72 +963,41 @@ function IdleCode({
       <p className="max-w-[90vw] text-center text-copy break-all text-white/80">
         {address}
       </p>
-      {onStart && (
-        <div className="mt-2 flex flex-col items-center gap-2" data-reel-idle-start>
-          <button
-            type="button"
-            onClick={onStart}
-            autoFocus
-            aria-label={
-              fullscreen
-                ? "Start on this screen (fills the screen and keeps it awake)"
-                : "Start on this screen (keeps it awake)"
-            }
-            className={cn(
-              "flex h-11 items-center gap-2 rounded-full border border-white/25 px-5 text-working font-medium text-white outline-none",
-              "transition-transform duration-150 ease-emphasis active:scale-[0.97] motion-reduce:active:scale-100",
-              "focus-visible:ring-4 focus-visible:ring-white/60",
-              GLASS_MARK,
-            )}
-          >
-            <Play className="size-4 fill-white" aria-hidden />
-            Start on this screen
-          </button>
-          <p className="text-caption text-white/60">
-            The reel starts with the second photo or video.
-          </p>
-        </div>
-      )}
     </div>
   );
 }
 
-/* ── the Start plate ───────────────────────────────────────────────────────── */
+/* ── the screen's one press ────────────────────────────────────────────────── */
 
-function StartPlate({
-  onStart,
+/**
+ * A glass pill at the top of a screen that is not filled yet: the reel is already playing behind it,
+ * and a press anywhere (the pill included) fills the screen and keeps it awake. Where the platform
+ * has no fullscreen (a phone's browser), the press keeps the screen awake and the pill says so.
+ */
+function FillPill({
   fullscreen,
+  onPress,
 }: {
-  onStart: () => void;
   fullscreen: boolean;
+  onPress: () => void;
 }) {
   return (
-    <div className="absolute inset-0 z-40" data-reel-start>
-      <div className="absolute inset-0 bg-black/45" aria-hidden />
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
-        <button
-          type="button"
-          onClick={onStart}
-          autoFocus
-          aria-label={
-            fullscreen
-              ? "Play on this screen (fills the screen and keeps it awake)"
-              : "Play on this screen (keeps it awake)"
-          }
-          className={cn(
-            "flex size-20 items-center justify-center rounded-full border border-white/30 text-white outline-none sm:size-24",
-            "transition-transform duration-150 ease-emphasis active:scale-[0.96] motion-reduce:active:scale-100",
-            "focus-visible:ring-4 focus-visible:ring-white/60",
-            GLASS_MARK,
-          )}
-        >
-          <Play className="ml-1 size-8 fill-white sm:size-10" aria-hidden />
-        </button>
-        <p className={cn("text-copy text-white/85", INK)}>
-          Press to play on this screen
-        </p>
-      </div>
-    </div>
+    <button
+      type="button"
+      onClick={onPress}
+      data-reel-fill
+      className={cn(
+        "absolute top-[calc(0.75rem+env(safe-area-inset-top))] left-1/2 z-30 flex h-10 -translate-x-1/2 items-center gap-2 rounded-full px-4 text-working font-medium whitespace-nowrap text-white outline-none",
+        "transition-transform duration-150 ease-emphasis active:scale-[0.97] motion-reduce:active:scale-100",
+        "focus-visible:ring-2 focus-visible:ring-white/70",
+        GLASS,
+      )}
+    >
+      <Maximize2 className={cn("size-4", GLASS_MARK_LIT)} aria-hidden />
+      {fullscreen
+        ? "Press anywhere to fill the screen"
+        : "Press anywhere to keep the screen awake"}
+    </button>
   );
 }
 
@@ -1091,12 +1059,14 @@ function MenuButton({
   icon,
   stagger,
   onOpenChange,
+  contentClassName,
   children,
 }: {
   label: string;
   icon: ReactNode;
   stagger: number;
   onOpenChange: (open: boolean) => void;
+  contentClassName?: string;
   children: ReactNode;
 }) {
   return (
@@ -1128,7 +1098,7 @@ function MenuButton({
         side="top"
         align="center"
         sideOffset={10}
-        className="w-44"
+        className={cn("w-44", contentClassName)}
       >
         {children}
       </DropdownMenuContent>
@@ -1153,6 +1123,8 @@ function ReelDock({
   onHold,
   showCode,
   onToggleCode,
+  onPlayOnScreen,
+  styleFooter,
   onAddYours,
   onMakeYourOwn,
   onMenuOpenChange,
@@ -1174,7 +1146,12 @@ function ReelDock({
   holdSec: number;
   onHold: (sec: number) => void;
   showCode: boolean;
-  onToggleCode: () => void;
+  /** Absent below a desk's width: no toggle at all (the code keeps whatever state it was in). */
+  onToggleCode?: () => void;
+  /** The owner at a desk: the same view in its screen posture, in a new tab. */
+  onPlayOnScreen?: () => void;
+  /** The owner's footer under the Style list (Set for everyone). */
+  styleFooter?: ReactNode;
   onAddYours?: () => void;
   onMakeYourOwn?: () => void;
   onMenuOpenChange: (open: boolean) => void;
@@ -1249,6 +1226,7 @@ function ReelDock({
               icon={<Palette className={cn("size-[18px]", GLASS_MARK_LIT)} aria-hidden />}
               stagger={i++}
               onOpenChange={onMenuOpenChange}
+              contentClassName={styleFooter ? "w-60" : undefined}
             >
               <DropdownMenuLabel>Style</DropdownMenuLabel>
               <DropdownMenuRadioGroup value={styleId} onValueChange={onStyle}>
@@ -1258,6 +1236,7 @@ function ReelDock({
                   </DropdownMenuRadioItem>
                 ))}
               </DropdownMenuRadioGroup>
+              {styleFooter}
             </MenuButton>
             <MenuButton
               label={`Hold: ${holdLabel(holdSec)} a photo`}
@@ -1282,15 +1261,17 @@ function ReelDock({
                 ))}
               </DropdownMenuRadioGroup>
             </MenuButton>
-            <ChromeButton
-              label={showCode ? "Hide the code" : "Show the code"}
-              onClick={onToggleCode}
-              pressed={showCode}
-              stagger={i++}
-              className=""
-            >
-              <QrCode className={cn("size-[18px]", GLASS_MARK_LIT)} aria-hidden />
-            </ChromeButton>
+            {onToggleCode && (
+              <ChromeButton
+                label={showCode ? "Hide the code" : "Show the code"}
+                onClick={onToggleCode}
+                pressed={showCode}
+                stagger={i++}
+                className=""
+              >
+                <QrCode className={cn("size-[18px]", GLASS_MARK_LIT)} aria-hidden />
+              </ChromeButton>
+            )}
             {onAddYours && (
               <ChromeButton
                 label={addLabel}
@@ -1299,6 +1280,16 @@ function ReelDock({
                 className=""
               >
                 <ImagePlus className={cn("size-[18px]", GLASS_MARK_LIT)} aria-hidden />
+              </ChromeButton>
+            )}
+            {onPlayOnScreen && (
+              <ChromeButton
+                label="Play on a screen"
+                onClick={onPlayOnScreen}
+                stagger={i++}
+                className=""
+              >
+                <MonitorPlay className={cn("size-[18px]", GLASS_MARK_LIT)} aria-hidden />
               </ChromeButton>
             )}
           </div>

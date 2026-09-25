@@ -67,7 +67,7 @@ export type GalleryPayload = {
   approvedTotal: number | null;
   /**
    * The live reel's facts (`gallery-reel.ts`): the host's switch and mood, the platform lever, what
-   * the host's plan lets the cut creator do. Null below full access. Optional because a payload
+   * the host's plan lets the clip creator do. Null below full access. Optional because a payload
    * from an older server mid-deploy carries none, which reads as no reel.
    */
   reel?: GalleryReel | null;

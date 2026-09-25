@@ -63,7 +63,7 @@ function album(
     width: 320,
     height: 240,
     duration_seconds: i % 9 === 0 ? 4.5 : null,
-    // A cut saved to the album now and then (the live reel's `reel_eligible`).
+    // A clip saved to the album now and then (the live reel's `reel_eligible`).
     reel_eligible: i % 7 !== 3,
     created_at: ties.has(i - 1) ? stamp(i - 1, 644108) : stamp(i, 644108),
     status:
@@ -224,7 +224,7 @@ describe("getEventMediaByQrToken: the open album, read whole", () => {
       rpc: { get_event_media_by_qr_token: handler },
     });
     const rows = await getEventMediaByQrToken(OPEN_QR);
-    // uid(4) is index 3: the fixture's cut.
+    // uid(4) is index 3: the fixture's clip.
     expect(rows.find((r) => r.id === uid(4))?.reel_eligible).toBe(false);
 
     const bare = album(3).map((row) => {

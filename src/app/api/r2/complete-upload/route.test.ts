@@ -204,8 +204,8 @@ describe("the ladder around it", () => {
   });
 });
 
-describe("the live reel's one field (a cut added to the album)", () => {
-  it("writes a cut as not reel-eligible, so the live reel never plays a reel", async () => {
+describe("the live reel's one field (a clip added to the album)", () => {
+  it("writes a clip as not reel-eligible, so the live reel never plays a reel", async () => {
     const { status } = await complete({ reel_eligible: false });
     expect(status).toBe(200);
     expect(createMedia).toHaveBeenCalledWith(

@@ -100,7 +100,7 @@ function album(
     width: 320,
     height: 240,
     duration_seconds: null,
-    // Now and then a cut saved to the album (the live reel's `reel_eligible`).
+    // Now and then a clip saved to the album (the live reel's `reel_eligible`).
     reel_eligible: i % 5 !== 4,
     created_at: ties.has(i - 1) ? stamp(i - 1, 250) : stamp(i, 250),
     guest_id: i % 2 === 0 ? `g${i}` : null,
@@ -169,7 +169,7 @@ describe("getApprovedMediaForUnlock: the unlocked password album, read whole", (
     // The raw timestamp rides every row (the next page's cursor, never a Date).
     expect(rows[0].created_at).toBe(approved[0].created_at);
     expect(rows.at(-1)?.created_at).toMatch(/\.\d{6}\+00:00$/);
-    // The live reel's column rides the unlocked album too, so a password event's cuts stay out.
+    // The live reel's column rides the unlocked album too, so a password event's clips stay out.
     expect(rows.map((r) => r.reel_eligible)).toEqual(
       approved.map((r) => r.reel_eligible),
     );

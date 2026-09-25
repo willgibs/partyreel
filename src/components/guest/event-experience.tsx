@@ -74,8 +74,8 @@ import { cn, formatEventDate } from "@/lib/utils";
 /**
  * THE PAGE'S TWO BOXES.
  *
- * The album runs the window's width, to 20 px from each edge, so every window
- * gets every column it can hold. The words sit on the left edge: the logo, the
+ * The album runs the window's width, to 20 px from each edge (12 px under 640, where a phone's
+ * few columns want every pixel), so every window gets every column it can hold. The words sit on the left edge: the logo, the
  * name, the buttons and the photographs share one left line, the way a photo
  * app reads, and the room to the right of the words stays open.
  *
@@ -84,7 +84,7 @@ import { cn, formatEventDate } from "@/lib/utils";
  * reading measure (42rem less its two 20 px gutters), pinned LEFT rather than
  * centred, so its first letter lands on the same 20 px line as the header's logo
  * above it and the album's first column below it. BLEED is the album: the
- * gutter alone, and the window decides the rest.
+ * gutter alone (narrower on a phone), and the window decides the rest.
  *
  * ★ ONLY THE PHOTOGRAPHS LEAVE THE COLUMN. Everything the page SAYS — the name,
  * the byline, the buttons, the reel card, the upload panel, the guest list —
@@ -92,7 +92,7 @@ import { cn, formatEventDate } from "@/lib/utils";
  * 1920, and a gallery is the one thing on the page that does.
  */
 const COLUMN = "w-full max-w-2xl px-5";
-const BLEED = "px-5";
+const BLEED = "px-3 sm:px-5";
 
 // Stable no-op subscribe for `phonePairId`'s useSyncExternalStore read below
 // (entry-modal.tsx's own hydration flag uses the identical shape — it wants a
@@ -292,7 +292,7 @@ export function EventExperience({
   const {
     items: queue,
     addFiles,
-    addCut,
+    addClip,
     retry,
     dismiss,
   } = useUploadQueue({
@@ -681,13 +681,13 @@ export function EventExperience({
       ? `${joinUrl}?${DEMO_PAIR_PARAM}=${ownPairId}`
       : joinUrl;
 
-  /* ★ THE CUT'S SEAM: the on-device creator's finished cut goes through this page's ONE queue like
+  /* ★ THE CLIP'S SEAM: the on-device creator's finished clip goes through this page's ONE queue like
      any upload, written `reel_eligible = false` so the live reel never plays a reel
-     (use-upload-queue.ts's `addCut`). The creator itself sits behind reel/creator-seam.ts; this is
+     (use-upload-queue.ts's `addClip`). The creator itself sits behind reel/creator-seam.ts; this is
      only the door it will use. */
-  const addCutToAlbum = useCallback(
-    (file: File, poster: Blob) => addCut(file, poster),
-    [addCut],
+  const addClipToAlbum = useCallback(
+    (file: File, poster: Blob) => addClip(file, poster),
+    [addClip],
   );
   /* The address the reel's code plate prints for a person to read: the custom slug's when the
      event has one (what the host chose to be read aloud), the token's otherwise. The CODE always
@@ -1101,9 +1101,10 @@ export function EventExperience({
                 isDemo={isDemo}
                 moderated={event.moderation_mode !== "live"}
                 onAddYours={canUpload ? openAdd : undefined}
-                addCutToAlbum={canUpload ? addCutToAlbum : null}
+                addClipToAlbum={canUpload ? addClipToAlbum : null}
                 queue={queue}
                 welcomePending={welcomePending}
+                isOwner={isOwner}
               >
                 {/* THE HIGHLIGHT REEL TILE: its own slot directly above the demo's one slot and the
                     album (never a fourth arm of `pickAboveAlbumState`), on the words' column so it
@@ -1165,11 +1166,11 @@ export function EventExperience({
           {/* Discreet anonymous report path (the report capability is the qr_token).
               The rule under the album runs the album's width, so it reads as the
               page's last line rather than a stray hairline under the words —
-              `mx-5` rather than the BLEED's padding, because the hairline IS the
-              alignment, and a padded box would run its border under the gutter
-              to the window's edge. */}
+              the BLEED's gutter as a margin rather than its padding, because the
+              hairline IS the alignment, and a padded box would run its border
+              under the gutter to the window's edge. */}
           {!isDemo && (
-            <footer className="mx-5 mt-8 flex justify-center border-t border-border/60 pt-5">
+            <footer className="mx-3 mt-8 flex justify-center border-t border-border/60 pt-5 sm:mx-5">
               <ReportDialog qrToken={qrToken} />
             </footer>
           )}

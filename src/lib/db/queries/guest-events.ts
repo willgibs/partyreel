@@ -180,7 +180,7 @@ export type GuestMediaRow = {
   height: number | null;
   duration_seconds: number | null;
   /**
-   * `media.reel_eligible`, "plays in the live reel": false only for a cut someone added to the album,
+   * `media.reel_eligible`, "plays in the live reel": false only for a clip someone added to the album,
    * so the live reel never plays a reel. WRITE-ONCE at create_media, so like the dimensions it rides
    * outside the gallery ETag (gallery-fingerprint.ts).
    */

@@ -2,7 +2,7 @@
  * THE LIVE REEL ON THE ALBUM PAGE: the controller, the Highlight reel tile and the approval toast.
  *
  * What is pinned is behaviour: the reel exists from the SECOND reel-eligible item and below it
- * there is nothing; a cut never counts; the host's switch, the platform lever and a door still
+ * there is nothing; a clip never counts; the host's switch, the platform lever and a door still
  * standing each take it away; a tap (or `?reel`) opens the view; the screen posture below the
  * minimum is the code alone; the tile says "Make your own clip to share" only with a creator to
  * make one; and on a moderated event the toast "The host added your uploads" with "Watch reel"
@@ -35,8 +35,22 @@ vi.mock("@/lib/guest/use-gallery-doorbell", () => ({
   },
 }));
 vi.mock("@/components/guest/reel/live-reel-view", () => ({
-  LiveReelView: (props: { mode: string; idle: boolean }) => (
-    <div data-testid="reel-view" data-mode={props.mode} data-idle={String(props.idle)} />
+  LiveReelView: (props: {
+    mode: string;
+    idle: boolean;
+    isOwner?: boolean;
+    onClose: () => void;
+  }) => (
+    <div
+      data-testid="reel-view"
+      data-mode={props.mode}
+      data-idle={String(props.idle)}
+      data-owner={String(Boolean(props.isOwner))}
+    >
+      <button type="button" onClick={props.onClose}>
+        Close the view
+      </button>
+    </div>
   ),
 }));
 vi.mock("@/components/guest/reel/creator-seam", () => ({
@@ -56,7 +70,7 @@ const REEL: GalleryReel = {
   showReel: true,
   liveReelEnabled: true,
   styleId: null,
-  cut: { videoAllowed: true, watermark: false, maxSeconds: 60 },
+  clip: { videoAllowed: true, watermark: false, maxSeconds: 60 },
 };
 
 function item(i: number, over: Partial<GalleryItem> = {}): GalleryItem {
@@ -78,6 +92,7 @@ async function mount({
   queue = [] as QueueItem[],
   moderated = false,
   welcomePending = false,
+  isOwner = false,
 }: {
   items?: GalleryItem[];
   reel?: GalleryReel | null;
@@ -85,6 +100,7 @@ async function mount({
   queue?: QueueItem[];
   moderated?: boolean;
   welcomePending?: boolean;
+  isOwner?: boolean;
 } = {}) {
   const payload: GalleryPayload = {
     items,
@@ -112,6 +128,7 @@ async function mount({
           moderated={moderated}
           queue={q}
           welcomePending={pending}
+          isOwner={isOwner}
         >
           <LiveReelTile />
         </LiveReel>
@@ -187,12 +204,12 @@ describe("the Highlight reel tile", () => {
     expect(tile).not.toHaveTextContent(/Cinematic|moments|The reel/);
   });
 
-  it("is absent at one item, and a cut never counts toward the two", async () => {
+  it("is absent at one item, and a clip never counts toward the two", async () => {
     await mount({ items: [item(1)] });
     expect(screen.queryByRole("button", { name: /highlight reel/i })).toBeNull();
   });
 
-  it("does not count a cut, a held item or one with nothing to draw", async () => {
+  it("does not count a clip, a held item or one with nothing to draw", async () => {
     await mount({
       items: [
         item(1),
@@ -223,7 +240,7 @@ describe("the Highlight reel tile", () => {
       screen.getByRole("button", { name: "Watch the highlight reel" }),
     ).toHaveTextContent("Make your own clip to share");
     unmount();
-    await mount({ reel: { ...REEL, cut: null } });
+    await mount({ reel: { ...REEL, clip: null } });
     expect(
       screen.getByRole("button", { name: "Watch the highlight reel" }),
     ).not.toHaveTextContent("Make your own clip to share");
@@ -349,6 +366,88 @@ describe("the welcome comes first", () => {
   });
 });
 
+describe("a screen below two, and the owner's view", () => {
+  it("a screen whose album drops under two shows the code alone until the reel returns", async () => {
+    window.history.replaceState(null, "", "/e/qr-token?reel=screen");
+    await mount();
+    await settle();
+    expect(screen.getByTestId("reel-view")).toHaveAttribute("data-idle", "false");
+    await pollWith([item(1)]);
+    await settle();
+    expect(screen.getByTestId("reel-view")).toHaveAttribute("data-idle", "true");
+    expect(window.location.search).toBe("?reel=screen");
+    await pollWith([item(1), item(3)]);
+    await settle();
+    expect(screen.getByTestId("reel-view")).toHaveAttribute("data-idle", "false");
+  });
+
+  it("a phone's view whose album drops under two returns to the plain album", async () => {
+    window.history.replaceState(null, "", "/e/qr-token?reel");
+    await mount();
+    await settle();
+    expect(screen.getByTestId("reel-view")).toBeInTheDocument();
+    await pollWith([item(1)]);
+    expect(screen.queryByTestId("reel-view")).toBeNull();
+    expect(window.location.search).toBe("");
+  });
+
+  it("the owner's reel counts and plays what a guest sees: approved, visible, reel-eligible", async () => {
+    window.history.replaceState(null, "", "/e/qr-token?reel");
+    await mount({
+      isOwner: true,
+      items: [
+        item(1),
+        item(2, { status: "pending" }),
+        item(3, { status: "hidden" }),
+        item(4, { reelEligible: false }),
+      ],
+    });
+    await settle();
+    // One playable item: the owner gets the plain album, like anyone else.
+    expect(screen.queryByTestId("reel-view")).toBeNull();
+    expect(screen.queryByRole("button", { name: /highlight reel/i })).toBeNull();
+  });
+
+  it("the owner's Close goes back where they came from, when there is somewhere to go", async () => {
+    window.history.replaceState(null, "", "/dashboard/event-1");
+    window.history.pushState(null, "", "/e/qr-token?reel");
+    await mount({ isOwner: true });
+    await settle();
+    expect(screen.getByTestId("reel-view")).toHaveAttribute("data-owner", "true");
+    const back = vi.spyOn(window.history, "back").mockImplementation(() => {});
+    fireEvent.click(screen.getByRole("button", { name: "Close the view" }));
+    expect(back).toHaveBeenCalledTimes(1);
+    back.mockRestore();
+  });
+
+  it("with nowhere to go back to, the owner's Close lands on the album", async () => {
+    window.history.replaceState(null, "", "/e/qr-token?reel");
+    const length = vi.spyOn(window.history, "length", "get").mockReturnValue(1);
+    await mount({ isOwner: true });
+    await settle();
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Close the view" }));
+    });
+    expect(window.location.search).toBe("");
+    expect(screen.queryByTestId("reel-view")).toBeNull();
+    length.mockRestore();
+  });
+
+  it("a guest's deep link never leaves the page, whatever the history holds", async () => {
+    window.history.replaceState(null, "", "/somewhere-else");
+    window.history.pushState(null, "", "/e/qr-token?reel");
+    await mount();
+    await settle();
+    const back = vi.spyOn(window.history, "back").mockImplementation(() => {});
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Close the view" }));
+    });
+    expect(back).not.toHaveBeenCalled();
+    expect(window.location.search).toBe("");
+    back.mockRestore();
+  });
+});
+
 describe("the approval toast", () => {
   const held: QueueItem = {
     id: "q1",
@@ -392,7 +491,7 @@ describe("the approval toast", () => {
     expect(toast).not.toHaveBeenCalled();
   });
 
-  it("does not count a cut the host approved (it will never be in the reel)", async () => {
+  it("does not count a clip the host approved (it will never be in the reel)", async () => {
     await mount({ moderated: true, queue: [held] });
     await pollWith([item(1), item(2), item(9, { reelEligible: false })]);
     expect(toast).not.toHaveBeenCalled();

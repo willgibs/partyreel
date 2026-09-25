@@ -17,7 +17,7 @@
  * watches end to end. Writing a second ranker here would have been two brains to keep honest.
  *
  * ★ AND THE PASS IS SHUFFLED, not chronological. The brain returns its pick in time order, because a
- * host's first cut should read as the night's story; a LOOP cannot. With no likes yet, the brain's
+ * host's first clip should read as the night's story; a LOOP cannot. With no likes yet, the brain's
  * score is dominated by recency, which is the same number on every loop, so pass after pass would
  * pick the same twelve AND print them in the same order — a reel whose whole point is randomizing
  * all the current media would have played the identical film every time round. So each pass is
@@ -36,7 +36,7 @@ import { isReelEligible, type LiveMediaItem } from "./items";
 
 /**
  * How many items one pass of the brain places. The brain's own QUICK_ADD_MAX (12) is tuned for a
- * host's first cut; the take wants the same size for a different reason — a pass is the span over
+ * host's first clip; the take wants the same size for a different reason — a pass is the span over
  * which the coverage guarantee holds, and twelve clips is about half a minute on a wall, which is
  * how long a guest watches before deciding the reel is showing them the party.
  */

@@ -74,7 +74,7 @@ export const dynamic = "force-dynamic";
  * photographs can hold still while a video lands behind them, and only the count would say so.
  *
  * ★ THE LIVE REEL'S FACTS RIDE EVERY 200, AND THE VALIDATOR TOO. `reel` is null below `full` and
- * otherwise the host's switch and mood, the platform lever and what the host's plan lets the cut
+ * otherwise the host's switch and mood, the platform lever and what the host's plan lets the clip
  * creator do (`gallery-reel.ts`, `loadGalleryReel`). None of them moves a media row, so they are
  * hashed, or a host turning the reel off would 304 past every open album.
  */

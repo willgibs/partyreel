@@ -1,12 +1,12 @@
 "use client";
 
 /**
- * THE LIVE REEL PLAYER — a sibling of CanvasReelPlayer for a SOURCE instead of a fixed cut.
+ * THE LIVE REEL PLAYER — a sibling of CanvasReelPlayer for a SOURCE instead of a fixed clip.
  *
  * Same engine, same `drawReelFrame`, same pixels. What changes is everything around the draw:
  *
  * - ★ A MONOTONIC CLOCK THE PLAYER OWNS AND NEVER RESETS. The fixed player zeroes its clock on every
- *   props identity, which is right for a cut and fatal for a loop: a new upload, a refreshed presign
+ *   props identity, which is right for a clip and fatal for a loop: a new upload, a refreshed presign
  *   or a style switch would each send the reel back to its first photograph. Here the clock only
  *   goes forward, and every plan swap moves the OFFSET between the clock and the window's own
  *   timeline instead of touching the clock.

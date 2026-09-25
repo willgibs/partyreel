@@ -442,7 +442,7 @@ export function createClipSource(opts: ClipSourceOptions): ClipSource {
       for (const [id, item] of before) {
         const now = after.get(id);
         // Two ways to leave: gone from the payload, or still there and no longer eligible (held,
-        // hidden, or marked as a cut). A plain key diff would miss the second.
+        // hidden, or marked as a clip). A plain key diff would miss the second.
         if (!now || (isReelEligible(item) && !isReelEligible(now))) {
           dropped.push(id);
         }
