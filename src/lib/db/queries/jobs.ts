@@ -25,6 +25,7 @@ import "server-only";
 import {
   JOBS,
   SIGNAL_WINDOW_MS,
+  countsBreakerTripped,
   countsStoppedEarly,
   jobsWithRuns,
   type JobId,
@@ -318,6 +319,8 @@ export async function getJobStates(): Promise<JobState[]> {
                 : null,
               // A finished run that ran out of time with work left reads as `attention`.
               stoppedEarly: countsStoppedEarly(run.counts),
+              // So does an orphan run whose circuit-breaker refused the delete (it closes `ok`).
+              breakerTripped: countsBreakerTripped(run.counts),
             }
           : null,
         lastFinishedAtMs: lastFinished?.finished_at
