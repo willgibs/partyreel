@@ -112,7 +112,9 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
     this look" once they match; Close goes back where the host came from when there is history, else to the album.
   - **The viewer's own knobs, on this device** ([`reel-prefs.ts`](../../src/lib/guest/reel-prefs.ts), `localStorage`,
     never on the wire): Hold (per event, defaulting to the host's, converted into the mood's `holdScale`), Style (per
-    event, the eight moods), Include videos (across events, on unless `saveData` says otherwise).
+    event, the eight moods), Include videos (across events, on unless `saveData` says otherwise). A look or hold this
+    device never set follows the event's as a poll brings a new one, at the next hold with no reload, so Set for
+    everyone reaches a screen already playing; the device's own pick always wins.
   - **The arrivals** ([`arrival-feed.ts`](../../src/lib/guest/arrival-feed.ts)): a fresh upload names its uploader top
     left for one hold; a burst stacks into a short feed of limited depth that collapses ("Theo +12").
   - **The code** (Show the code): a white plate bottom right, the event's QR in the host's preset, "Scan to add yours"
@@ -166,6 +168,8 @@ A host has no reel to create, only a state to read and a few defaults to set.
   would answer the 1 s step.
 - **`setReelDefaults`** ([`reel/defaults-action.ts`](../../src/lib/reel/defaults-action.ts)) is the one write, shared by
   the view's Set for everyone and Settings: it re-verifies the owner and revalidates nothing, so the reel keeps playing.
+  A pick that is the platform's own default (`DEFAULT_HOLD_SEC`, `DEFAULT_STYLE_ID`) is stored as NULL, each column on
+  its own, so the event keeps following the default if it ever moves.
 - ★ **The platform lever, `ops_flags.live_reel_enabled`**: off means no tile, no view, no screen and no Make your own
   anywhere. The guest payload and the host's side read it through the one `getLiveReelServerFacts`, so they cannot
   disagree: `reelState` lets it outrank the host's own switch silently, and the Reel card, the band's step and the old
