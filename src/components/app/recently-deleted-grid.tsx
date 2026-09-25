@@ -1,6 +1,13 @@
 "use client";
 
-import { type CSSProperties, useState, useTransition } from "react";
+import {
+  type CSSProperties,
+  useCallback,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  useTransition,
+} from "react";
 import { Trash2, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -8,7 +15,6 @@ import {
   purgeMediaNowAction,
   restoreMediaAction,
 } from "@/app/(app)/dashboard/[eventId]/actions";
-import { type GridMedia } from "@/components/app/media-grid";
 import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
 import { MasonryColumns } from "@/components/shared/masonry";
 import { Button } from "@/components/ui/button";
@@ -22,35 +28,49 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { createLinkStore, type LinkStore } from "@/lib/album/links";
 import { DEFAULT_TIER, toBillingTier } from "@/lib/constants/tiers";
+import {
+  binItem,
+  type BinEntry,
+  type BinLinksBody,
+  type BinManifestBody,
+  type BinMedia,
+} from "@/lib/event/bin";
 import { binCountdownLabel } from "@/lib/lifecycle/recently-deleted";
 import { GLASS, GLASS_MARK } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
 // The host "Recently deleted" MEDIA grid (event-detail). Reuses the shared
-// MasonryColumns (natural ratios, clamped for control legibility); the per-tile
-// controls ride in via `renderOverlay` as SIBLINGS of the open-lightbox button,
-// so tapping a control never opens the lightbox. The bin's only verbs are Restore
-// (capacity-gated in the RPC -> safe + reversible, no confirm) and Delete
-// permanently (irreversible -> skips the 30-day window, so it's behind a confirm
-// Dialog). Items carry NO downloadUrl, so the lightbox hides Save (no
-// original-file download from the bin), and the viewer is read-only (NOT the host
-// moderation viewer). Writes go through the Phase-3 server actions, which
-// revalidate this path; we toast on every outcome.
+// MasonryColumns in the album's justified rows, windowed (natural ratios, clamped
+// for control legibility); the per-tile controls ride in via `renderOverlay` as
+// SIBLINGS of the open-lightbox button, so tapping a control never opens the
+// lightbox. The bin's only verbs are Restore (capacity-gated in the RPC -> safe +
+// reversible, no confirm) and Delete permanently (irreversible -> skips the 30-day
+// window, so it's behind a confirm Dialog). Items carry NO downloadUrl, so the
+// lightbox hides Save (no original-file download from the bin), and the viewer is
+// read-only (NOT the host moderation viewer). We toast on every outcome, and an
+// item that leaves the bin leaves the grid at once (`onGone`).
 
 /** A bin item = a GridMedia plus its server-computed countdown (a stable integer dodges the
  * locale-date hydration mismatch). It's assignable to GridMedia, so the lightbox accepts it. */
-export type BinMedia = GridMedia & { countdownDays: number };
+export type { BinMedia } from "@/lib/event/bin";
 
 function BinTileOverlay({
   eventId,
   item,
   onOutOfRoom,
+  onGone,
+  onRestored,
 }: {
   eventId: string;
   item: BinMedia;
   /** The grid's ONE pricing sheet, opened by this tile's cap refusal. */
   onOutOfRoom: () => void;
+  /** The item left the bin (restored or deleted for good): the grid drops it. */
+  onGone?: (id: string) => void;
+  /** A restore landed: the album takes the photograph back. */
+  onRestored?: () => void;
 }) {
   const [isPending, startTransition] = useTransition();
 
@@ -59,6 +79,8 @@ function BinTileOverlay({
       const result = await restoreMediaAction(eventId, item.id);
       if (result.ok) {
         toast.success("Restored. It's back in the album.");
+        onGone?.(item.id);
+        onRestored?.();
         return;
       }
       // insufficient_space is the expected at-cap refusal -> offer the upgrade
@@ -84,6 +106,7 @@ function BinTileOverlay({
       const result = await purgeMediaNowAction(eventId, [item.id]);
       if (result.ok) {
         toast.success("Permanently deleted.");
+        onGone?.(item.id);
         return;
       }
       toast.error("Couldn't delete that item.", {
@@ -180,10 +203,19 @@ export function RecentlyDeletedGrid({
   items,
   /** Server-derived (`profiles.tier`); it only picks the sheet's headline. */
   tier,
+  onWindowChange,
+  onGone,
+  onRestored,
 }: {
   eventId: string;
   items: BinMedia[];
   tier?: string;
+  /** The tiles the window mounts, whenever that changes: the paged bin mints their links. */
+  onWindowChange?: (ids: readonly string[]) => void;
+  /** An item left the bin (restored or deleted for good). */
+  onGone?: (id: string) => void;
+  /** A restore landed. */
+  onRestored?: () => void;
 }) {
   // ONE sheet for the whole bin, not one per tile: a bin holds dozens of tiles
   // and each mounted sheet is a portal, a focus trap and a scroll lock waiting
@@ -195,12 +227,16 @@ export function RecentlyDeletedGrid({
     <>
       <MasonryColumns
         items={items}
+        layout="rows"
         clampAspect
+        onWindowChange={onWindowChange}
         renderOverlay={(item) => (
           <BinTileOverlay
             eventId={eventId}
             item={item}
             onOutOfRoom={() => setPricingOpen(true)}
+            onGone={onGone}
+            onRestored={onRestored}
           />
         )}
       />
@@ -212,5 +248,122 @@ export function RecentlyDeletedGrid({
         returnTo={`/dashboard/${eventId}`}
       />
     </>
+  );
+}
+
+/* ─────────────────────────── the paged bin ─────────────────────────── */
+
+/** The hub's bin: its list once asked for, and the link store its windows mint through. */
+export type HubBinState = {
+  status: "idle" | "loading" | "ready" | "error";
+  entries: readonly BinEntry[];
+  links: LinkStore<null>;
+  /** Read the list (once for the island's life; again after a failure). */
+  open: () => void;
+  /** Items that left the bin. */
+  drop: (ids: readonly string[]) => void;
+};
+
+async function postJson<T>(url: string, body: unknown): Promise<T> {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error(`${url}: ${res.status}`);
+  return (await res.json()) as T;
+}
+
+/**
+ * THE PAGED BIN'S STATE (`lib/event/bin.ts`). Nothing is read until the Deleted filter is chosen;
+ * then the list comes once (ids, shapes, countdowns) and each window's links through the album's own
+ * link store (dated and re-minted the same way). An id the links route no longer finds in the bin
+ * (restored in another tab, purged by the sweep) leaves the list.
+ */
+export function useHubBin(eventId: string): HubBinState {
+  const [list, setList] = useState<{
+    status: HubBinState["status"];
+    entries: readonly BinEntry[];
+  }>({ status: "idle", entries: [] });
+
+  const drop = useCallback((ids: readonly string[]) => {
+    if (ids.length === 0) return;
+    const gone = new Set(ids);
+    setList((prev) => ({
+      ...prev,
+      entries: prev.entries.filter((e) => !gone.has(e[0])),
+    }));
+  }, []);
+
+  const [links] = useState(() =>
+    createLinkStore<null>({
+      fetch: (ids) =>
+        postJson<BinLinksBody>(
+          `/api/events/${encodeURIComponent(eventId)}/bin/media`,
+          { ids },
+        ),
+      onMissing: (ids) => drop(ids),
+    }),
+  );
+
+  const status = list.status;
+  const open = useCallback(() => {
+    if (status === "loading" || status === "ready") return; // Already paid for.
+    setList((prev) => ({ ...prev, status: "loading" }));
+    void (async () => {
+      try {
+        const res = await fetch(
+          `/api/events/${encodeURIComponent(eventId)}/bin`,
+          { cache: "no-store" },
+        );
+        if (!res.ok) throw new Error(`bin: ${res.status}`);
+        const body = (await res.json()) as BinManifestBody;
+        setList({ status: "ready", entries: body.entries });
+      } catch {
+        setList((prev) => ({ ...prev, status: "error" }));
+      }
+    })();
+  }, [eventId, status]);
+
+  return { ...list, links, open, drop };
+}
+
+/** The bin's grid over its list and its windows' links. */
+export function HubBin({
+  bin,
+  eventId,
+  tier,
+  onRestored,
+}: {
+  bin: HubBinState;
+  eventId: string;
+  tier?: string;
+  onRestored?: () => void;
+}) {
+  const { links, entries, drop } = bin;
+  const revision = useSyncExternalStore(
+    links.subscribe,
+    links.revision,
+    () => 0,
+  );
+  const items = useMemo(() => {
+    void revision; // a window's links landed
+    return entries.map((e) => binItem(e, links.get(e[0])));
+  }, [entries, links, revision]);
+  const onWindowChange = useCallback(
+    (ids: readonly string[]) => void links.ensure(ids),
+    [links],
+  );
+  const onGone = useCallback((id: string) => drop([id]), [drop]);
+  return (
+    <RecentlyDeletedGrid
+      eventId={eventId}
+      items={items}
+      tier={tier}
+      onWindowChange={onWindowChange}
+      onGone={onGone}
+      onRestored={onRestored}
+    />
   );
 }

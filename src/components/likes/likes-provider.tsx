@@ -21,6 +21,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { QueryFailedError } from "@/lib/db/must-query";
+import { likeManyInBatches } from "@/lib/db/mutations/likes";
 import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
 import { captureError } from "@/lib/observability/sentry";
 import { createClient } from "@/lib/supabase/client";
@@ -36,7 +37,13 @@ import { createClient } from "@/lib/supabase/client";
 //   * the signed-OUT path: stash a pending intent + open ONE shared create-account dialog;
 //     the in-page OTP verify replays the like, and a redirect sign-in (Google / magic link) replays any
 //     pending like on the next mount.
-// Counts are NEVER handled here (they're host-only, read server-side via get_event_like_counts).
+// Counts are NEVER handled here (they're host-only, read server-side via get_event_like_counts and, on the
+// paged album, beside each window's links).
+//
+// ★ THE SEED FOLLOWS THE WINDOW (album-host-wiring). The paged album mounts only the rows around the
+// viewport, so a surface hands the ids it mounts to `seed(ids)` as its window moves; only the ids not
+// yet answered are asked, a tick's asks share one request, and an id in flight is never asked twice. A
+// surface that holds its whole set still passes `mediaIds`, which seeds through the same path.
 //
 // ★ A HEART RE-RENDERS ONE MARK, NEVER THE ALBUM (the album-window lane). The liked set used to be
 // React state on this provider, so every like handed every consumer a new context value: the grid,
@@ -90,6 +97,8 @@ type LikesContextValue = {
   /** Album bulk-select (host only): like a SET of ids at once (idempotent; skips already-liked).
    *  Resolves to the count newly liked so the caller fires ONE summary toast. */
   likeMany: (ids: string[]) => Promise<number>;
+  /** The ids a window mounts: the hearts of any not yet answered are asked for (see the head note). */
+  seed: (ids: readonly string[]) => void;
 };
 
 const LikesContext = createContext<LikesContextValue | null>(null);
@@ -139,6 +148,7 @@ export function LocalLikesProvider({
         for (const id of fresh) store.set(id, true);
         return fresh.length;
       },
+      seed: () => {},
     }),
     [store],
   );
@@ -168,8 +178,12 @@ export function LikesProvider({
   onRemoved,
   children,
 }: {
-  /** The visible media ids — seeds liked state (`my_liked_media_ids`) + asks about each id that joins the set (poll). */
-  mediaIds: string[];
+  /**
+   * The visible media ids, for a surface that holds its whole set: seeds liked state
+   * (`my_liked_media_ids`) and asks about each id that joins it. A windowed surface omits it and
+   * calls `seed(ids)` as its window moves.
+   */
+  mediaIds?: string[];
   /** Optional instant-paint seed (the Likes tab passes every id, all liked) before the select resolves. */
   initialLikedIds?: string[];
   /** "keep" = the heart toggles in place (event page, Uploads). "remove" = an unlike drops the tile (Likes tab). */
@@ -195,52 +209,91 @@ export function LikesProvider({
   // flips is the toggle's own state), so an answered id stays answered, and a poll that brings one
   // new photograph into a thousand-item album asks about that one id, not the whole album again.
   const askedRef = useRef<Set<string>>(new Set());
+  // Asked and not answered yet: never asked twice while one request is out.
+  const askingRef = useRef<Set<string>>(new Set());
+  // The ids asked for in this tick, flushed as ONE request.
+  const queueRef = useRef<Set<string>>(new Set());
+  const scheduledRef = useRef(false);
+
+  // Whether there is a session, resolved once for the provider's life (getSession is local).
+  const sessionRef = useRef<Promise<boolean> | null>(null);
+  const session = useCallback((): Promise<boolean> => {
+    sessionRef.current ??= (async () => {
+      const {
+        data: { session: current },
+      } = await createClient().auth.getSession();
+      signedInRef.current = Boolean(current);
+      return Boolean(current);
+    })();
+    return sessionRef.current;
+  }, []);
+
+  // Seed: which of these ids has THIS user liked, through `my_liked_media_ids` (SECURITY INVOKER over
+  // media_likes' owner-only RLS, so it can answer only for auth.uid()).
+  // ★ THE IDS RIDE THE POST BODY (the 1,000-row round). The old `.in("media_id", ids)` put every
+  // visible id in the URL, about 37 bytes an id, so once the album was read whole a large one's
+  // request failed outright, and the failure was swallowed: the hearts simply started empty. The
+  // answer is ONE uuid[], which neither a URL nor the row cap can clip (measured: a body of 100,000
+  // ids answers 200).
+  // Add-only merge => never clobbers an in-flight optimistic toggle, and genuinely-new poll items
+  // (which the user hasn't liked) correctly stay unfilled.
+  const flushSeed = useCallback(async () => {
+    scheduledRef.current = false;
+    const fresh = [...queueRef.current];
+    queueRef.current.clear();
+    if (fresh.length === 0) return;
+    for (const id of fresh) askingRef.current.add(id);
+    try {
+      if (!(await session())) return;
+      const { data, error } = await createClient().rpc("my_liked_media_ids", {
+        p_media_ids: fresh,
+      });
+      if (error) {
+        // The seed is cosmetic, so no toast: the hearts start unfilled, the ids stay unasked (the
+        // next seed asks again), and the idempotent like RPC still lands a tap. But it is never
+        // silent either: a failed read is reported.
+        captureError(
+          "media",
+          new QueryFailedError("likes: my_liked_media_ids", error),
+          { ids: fresh.length },
+        );
+        return;
+      }
+      for (const id of fresh) askedRef.current.add(id);
+      // One uuid[] value (never rows); anything else reads as no hearts rather than a crash.
+      const likedIds: string[] = Array.isArray(data) ? data : [];
+      for (const id of likedIds) store.set(id, true);
+    } finally {
+      for (const id of fresh) askingRef.current.delete(id);
+    }
+  }, [session, store]);
+
+  const seed = useCallback(
+    (ids: readonly string[]) => {
+      for (const id of ids)
+        if (!askedRef.current.has(id) && !askingRef.current.has(id))
+          queueRef.current.add(id);
+      if (scheduledRef.current || queueRef.current.size === 0) return;
+      scheduledRef.current = true;
+      queueMicrotask(() => void flushSeed());
+    },
+    [flushSeed],
+  );
 
   // A stable dependency for "the visible set changed" (not "a new array identity each poll").
-  const idsKey = mediaIds.join(",");
+  const idsKey = mediaIds?.join(",") ?? "";
+  useEffect(() => {
+    if (mediaIds && mediaIds.length > 0) seed(mediaIds);
+    // idsKey stands in for mediaIds; seed is stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idsKey, seed]);
 
-  // Resolve sign-in, seed liked state from the viewer's own likes, and replay any redirect-queued like.
+  // Resolve sign-in on mount, and replay a like queued before a redirect sign-in.
   useEffect(() => {
     let active = true;
     void (async () => {
+      if (!(await session()) || !active) return;
       const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!active) return;
-      signedInRef.current = Boolean(session);
-      if (!session) return;
-
-      // Seed: which of the grid's media has THIS user liked, through `my_liked_media_ids` (SECURITY
-      // INVOKER over media_likes' owner-only RLS, so it can answer only for auth.uid()).
-      // ★ THE IDS RIDE THE POST BODY (the 1,000-row round). The old `.in("media_id", ids)` put every
-      // visible id in the URL, about 37 bytes an id, so once the album was read whole a large one's
-      // request failed outright, and the failure was swallowed: the hearts simply started empty.
-      // The answer is ONE uuid[], which neither a URL nor the row cap can clip (measured: a body of
-      // 100,000 ids answers 200). Only the ids not yet answered are asked.
-      // Add-only merge => never clobbers an in-flight optimistic toggle, and genuinely-new poll items
-      // (which the user hasn't liked) correctly stay unfilled.
-      const fresh = mediaIds.filter((id) => !askedRef.current.has(id));
-      if (fresh.length > 0) {
-        const { data, error } = await supabase.rpc("my_liked_media_ids", {
-          p_media_ids: fresh,
-        });
-        if (error) {
-          // The seed is cosmetic, so no toast: the hearts start unfilled, the ids stay unasked (the
-          // next change of the grid asks again), and the idempotent like RPC still lands a tap. But
-          // it is never silent either: a failed read is reported.
-          captureError(
-            "media",
-            new QueryFailedError("likes: my_liked_media_ids", error),
-            { ids: fresh.length },
-          );
-        } else if (active) {
-          for (const id of fresh) askedRef.current.add(id);
-          // One uuid[] value (never rows); anything else reads as no hearts rather than a crash.
-          const likedIds: string[] = Array.isArray(data) ? data : [];
-          for (const id of likedIds) store.set(id, true);
-        }
-      }
 
       // Replay a like queued before a redirect sign-in. Keys are cleared after, so this fires once.
       if (typeof window !== "undefined") {
@@ -269,9 +322,7 @@ export function LikesProvider({
     return () => {
       active = false;
     };
-    // idsKey stands in for mediaIds; the rest are stable refs/setters.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idsKey]);
+  }, [session, store]);
 
   const toggle = useCallback(
     (id: string) => {
@@ -331,33 +382,25 @@ export function LikesProvider({
   );
 
   // Album bulk "Like" (host only — the host is always signed in, so the create-account path never
-  // fires here). Optimistically heart every not-already-liked id, fire like_media for each in parallel
-  // (idempotent), revert only the failures. Returns the count newly liked; the caller owns the toast.
+  // fires here). Optimistically heart every not-already-liked id, then ONE `like_many` call per
+  // MAX_BULK_ITEMS (idempotent, each id through like_media's access check), and revert exactly the ids
+  // it refused. Returns the count newly liked; the caller owns the toast.
   const likeMany = useCallback(
     async (ids: string[]): Promise<number> => {
       if (!signedInRef.current) return 0;
       const toLike = ids.filter((id) => !store.has(id));
       if (toLike.length === 0) return 0;
       for (const id of toLike) store.set(id, true);
-      const supabase = createClient();
-      const failed: string[] = [];
-      await Promise.all(
-        toLike.map(async (id) => {
-          const { data, error } = await supabase.rpc("like_media", {
-            p_media_id: id,
-          });
-          if (error || !likeOk(data)) failed.push(id);
-        }),
-      );
+      const failed = await likeManyInBatches(createClient(), toLike);
       for (const id of failed) store.set(id, false);
-      return toLike.length - failed.length;
+      return toLike.length - failed.size;
     },
     [store],
   );
 
   const value = useMemo<LikesContextValue>(
-    () => ({ store, isLiked: store.has, toggle, likeMany }),
-    [store, toggle, likeMany],
+    () => ({ store, isLiked: store.has, toggle, likeMany, seed }),
+    [store, toggle, likeMany, seed],
   );
 
   async function onVerified() {
@@ -365,6 +408,7 @@ export function LikesProvider({
     // does) + complete the pending like inline.
     void claimAnonymousUploads({ silent: true });
     signedInRef.current = true;
+    sessionRef.current = Promise.resolve(true);
     const id = pendingIdRef.current;
     pendingIdRef.current = null;
     setDialogOpen(false);

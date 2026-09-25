@@ -17,8 +17,8 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { mustCount, mustQuery } from "@/lib/db/must-query";
-import { readAllPages } from "@/lib/db/read-all";
+import { mustQuery } from "@/lib/db/must-query";
+import { inChunks, readAllPages } from "@/lib/db/read-all";
 import type { Database, Tables } from "@/lib/db/types";
 import {
   RECENTLY_DELETED_WINDOW_DAYS,
@@ -78,10 +78,13 @@ function newestFirstAfter(
  * Which part of an event's media a host read lists:
  *  - `live`: every status but removed (the export's Download all, whose modal splits shown from
  *    hidden and held),
- *  - `album`: approved + hidden (the hub's grid and the Studio's items; pending lives in Review),
- *  - `pending`: the Review room's queue alone.
+ *  - `album`: approved + hidden (the Studio's items; pending lives in Review),
+ *  - `pending`: the Review room's queue alone,
+ *  - `hidden`: what the host has hidden, alone (the clip creator's hidden moments: only those, so a
+ *    creator opened over a big album reads its handful of hidden items, never the whole album).
+ * The hub's own grid reads none of these: it runs on the paged album's manifest.
  */
-export type AlbumSlice = "live" | "album" | "pending";
+export type AlbumSlice = "live" | "album" | "pending" | "hidden";
 
 /**
  * The host's album, READ WHOLE, newest first: the read behind the event page's grid and its
@@ -111,6 +114,7 @@ export async function readEventMedia(
         .order("id", { ascending: false })
         .limit(limit);
       if (slice === "pending") q = q.eq("status", "pending");
+      else if (slice === "hidden") q = q.eq("status", "hidden");
       else if (slice === "album") q = q.in("status", ["approved", "hidden"]);
       else q = q.neq("status", "removed");
       if (after) q = q.or(newestFirstAfter("created_at", after));
@@ -129,73 +133,6 @@ export async function listEventMedia(
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
   return readEventMedia(supabase, eventId, slice);
-}
-
-/** The hub's two numbers: the album (approved + hidden) and the Review queue (pending). */
-export type AlbumCounts = { album: number; pending: number };
-
-/**
- * The album's two counts, COUNTED: two head counts on `media_event_id_status_idx`, never the
- * length of a list (a list read stops at 1,000, so its length would too). The album count is
- * approved + hidden, the photographs guests can see plus the ones the host has tucked away;
- * removed (the bin) and pending (Review) are never in it. A failed count throws: a count that
- * failed must never read as a confident zero.
- */
-export async function readAlbumCounts(
-  supabase: Client,
-  eventId: string,
-): Promise<AlbumCounts> {
-  const [album, pending] = await Promise.all([
-    mustCount(
-      supabase
-        .from("media")
-        .select("id", { count: "exact", head: true })
-        .eq("event_id", eventId)
-        .in("status", ["approved", "hidden"]),
-      "media: album count",
-    ),
-    mustCount(
-      supabase
-        .from("media")
-        .select("id", { count: "exact", head: true })
-        .eq("event_id", eventId)
-        .eq("status", "pending"),
-      "media: pending count",
-    ),
-  ]);
-  return { album, pending };
-}
-
-/** `readAlbumCounts` on the request's RLS-scoped client, after the `getUser()` re-check. */
-export async function countEventMedia(eventId: string): Promise<AlbumCounts> {
-  const { supabase, user } = await getRequestAuth();
-  if (!user) return { album: 0, pending: 0 };
-  return readAlbumCounts(supabase, eventId);
-}
-
-/**
- * The newest `updated_at` among the event's non-removed media, or null when it has none: the live
- * poll's change signal beside the two counts. `media_set_updated_at` (the init schema's BEFORE
- * UPDATE trigger) stamps `now()` on EVERY write to a row, so a hide or an unhide from a second tab,
- * which moves neither count, still moves this; an arrival or a removal moves a count as well. One
- * row, whatever the album's size.
- */
-export async function readNewestAlbumUpdate(
-  supabase: Client,
-  eventId: string,
-): Promise<string | null> {
-  const row = await mustQuery(
-    supabase
-      .from("media")
-      .select("updated_at")
-      .eq("event_id", eventId)
-      .neq("status", "removed")
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    "media: newest update",
-  );
-  return row?.updated_at ?? null;
 }
 
 /**
@@ -264,4 +201,45 @@ export async function listRecentlyDeletedMedia(
   // One `now` for the window filter + the per-tile countdown — computed HERE (a query, not a
   // component) so the page stays render-pure (no Date.now() in RSC render; react-hooks/purity).
   return readRecentlyDeletedMedia(supabase, eventId, Date.now());
+}
+
+/** What presigning a bin tile needs: the item's keys, and nothing a host did not already see. */
+export type BinKeyRow = Pick<
+  MediaRow,
+  "id" | "type" | "original_key" | "preview_key"
+>;
+
+/**
+ * THE BIN'S ROWS BEHIND A WINDOW'S LINKS (the paged bin: `/api/events/<id>/bin/media`). Each asked id
+ * that is in this event's bin NOW, by the bin's own predicate (removed by the host, not a guest's own
+ * withdrawal, inside the recovery window), with the keys the route presigns. An id that is not
+ * (restored since, purged, withdrawn, another event's) is absent, and the route answers it missing,
+ * so a bin tab left open can never mint a link for an item that left the bin. RLS
+ * (`media_host_all`) scopes the read to the host's own events on top.
+ */
+export async function readBinMediaByIds(
+  supabase: Client,
+  eventId: string,
+  ids: readonly string[],
+  now: number,
+): Promise<BinKeyRow[]> {
+  const windowStart = new Date(
+    now - RECENTLY_DELETED_WINDOW_DAYS * 86_400_000,
+  ).toISOString();
+  return inChunks(
+    "media: bin links",
+    ids,
+    async (chunk) =>
+      (await mustQuery(
+        supabase
+          .from("media")
+          .select("id, type, original_key, preview_key")
+          .eq("event_id", eventId)
+          .eq("status", "removed")
+          .eq("removed_by_uploader", false)
+          .gte("removed_at", windowStart)
+          .in("id", chunk),
+        "media: bin links",
+      )) ?? [],
+  );
 }

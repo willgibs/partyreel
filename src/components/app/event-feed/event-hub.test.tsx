@@ -111,7 +111,7 @@ describe("the cards row", () => {
 describe("the album, and the bin as its filter", () => {
   it("never counts the bin's items in the album's count", () => {
     // A host reading "48 photos" must be reading the number their guests can
-    // see. The bin says its own size on its own header.
+    // see or they have tucked away. The bin says its own size on its own header.
     //
     // The album branch leads with albumCount and falls through to the LAUNCH
     // list's outstanding count when the album is empty (`empty=list`, Will
@@ -119,68 +119,78 @@ describe("the album, and the bin as its filter", () => {
     // and a "0" beside its name would be a count of the wrong thing). What is
     // still forbidden, and is what this guards, is the bin reaching that branch.
     const src = read(GALLERY);
-    const branch = /view === "album"\s*\?([\s\S]*?):\s*\(bin\?\.length/.exec(
-      src,
-    );
+    const branch = /view === "album"\s*\?([\s\S]*?):\s*bin\.status/.exec(src);
     expect(
       branch,
       "the count stopped branching on the view at all",
     ).toBeTruthy();
     expect(
       /albumCount/.test(branch![1]),
-      "the album's count stopped being the album's own length",
+      "the album's count stopped being the album's own number",
     ).toBe(true);
     expect(
       /bin/.test(branch![1]),
       "the album's count started including something other than the album",
     ).toBe(false);
-    // The hub passes the album's COUNTED number (the 1,000-row round: a list's
-    // length stops where PostgREST stops reading, at 1,000), and that count is
-    // approved + hidden, the bin's `removed` and Review's `pending` in neither:
-    // media.test.ts pins countEventMedia's answer against a live album, a held
-    // upload, the host's own removal and two withdrawals.
-    const hub = code(HUB);
+    // ★ The count is the album store's COUNTED number (the paged album, album-host-wiring; the
+    // reshape of the 1,000-row round's pin, whose `countEventMedia` retired with the hub's whole
+    // read): approved + hidden, counted in the same snapshot as the album's version, the bin's
+    // `removed` and Review's `pending` in neither, and never a list's length. The page seeds it from
+    // the host's first-load plan; the gallery reads it live off the store.
+    const gallery = code(GALLERY);
     expect(
-      /albumCount=\{itemCount\}/.test(hub) &&
-        /const \{ album: itemCount, pending: pendingCount \} = counts;/.test(
-          hub,
-        ) &&
-        /countEventMedia\(event\.id\)/.test(hub),
-      "the hub stopped passing the album's own counted number as the count",
+      /const albumCount = useAlbumCount\(album\);/.test(gallery) &&
+        /useHubCounts\(album\)\?\.album/.test(gallery),
+      "the gallery stopped reading the album's counted number",
     ).toBe(true);
     expect(
-      /albumCount=\{[^}]*\.length\}/.test(hub),
+      /const albumCount = [^;]*\.length/.test(gallery),
       "the album's count went back to being a list's length",
     ).toBe(false);
+    expect(
+      /album: plan\.read\.approved \+ \(plan\.read\.hidden \?\? 0\)/.test(
+        read("src/lib/event/host-album.server.ts"),
+      ),
+      "the seeded count stopped being approved + hidden from the version's snapshot",
+    ).toBe(true);
   });
 
   it("loads the bin only when the filter is chosen, and only once", () => {
-    const src = read(GALLERY);
+    // Choosing Deleted is what pays for the bin (its list; its links per window), and the list is
+    // kept for the island's life, so flipping back and forth reads nothing again.
+    const gallery = code(GALLERY);
     expect(
-      /if \(bin\) return;/.test(src),
-      "the bin stopped being cached, so flipping the filter re-presigns it",
+      /const showDeleted = \(\) => \{\s*setView\("deleted"\);\s*bin\.open\(\);/.test(
+        gallery,
+      ),
+      "the bin stopped loading on the filter's choice",
+    ).toBe(true);
+    const bin = code("src/components/app/recently-deleted-grid.tsx");
+    expect(
+      /if \(status === "loading" \|\| status === "ready"\) return;/.test(bin),
+      "the bin stopped being kept, so flipping the filter reads it again",
     ).toBe(true);
     expect(
-      /listDeletedMediaAction/.test(src) &&
-        !/listDeletedMediaAction/.test(read(HUB)),
+      /useHubBin|\/bin/.test(code(HUB)),
       "the hub started loading the bin on every render",
-    ).toBe(true);
+    ).toBe(false);
   });
 
-  it("re-verifies the caller inside the bin's action, not only in RLS", () => {
-    // A Server Function is a public endpoint. RLS is the boundary and the
-    // getUser() check is the defence in depth the security guardrails ask for.
-    const actions = read("src/app/(app)/dashboard/[eventId]/actions.ts");
-    const fn = actions.slice(
-      actions.indexOf("export async function listDeletedMediaAction"),
-    );
-    expect(/supabase\.auth\.getUser\(\)/.test(fn.slice(0, 1200))).toBe(true);
-    expect(
-      /getSession\(/.test(
-        fn.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, ""),
-      ),
-      "authorised from a cookie rather than from a check",
-    ).toBe(false);
+  it("re-verifies the caller inside the bin's routes, not only in RLS", () => {
+    // A route is a public endpoint. RLS is the boundary and the getUser() check is the defence in
+    // depth the security guardrails ask for.
+    for (const route of [
+      "src/app/api/events/[eventId]/bin/route.ts",
+      "src/app/api/events/[eventId]/bin/media/route.ts",
+    ]) {
+      const src = code(route);
+      expect(/supabase\.auth\.getUser\(\)/.test(src), route).toBe(true);
+      expect(/getEvent\(eventId\)/.test(src), route).toBe(true);
+      expect(
+        /getSession\(/.test(src),
+        `${route} authorised from a cookie rather than from a check`,
+      ).toBe(false);
+    }
   });
 });
 

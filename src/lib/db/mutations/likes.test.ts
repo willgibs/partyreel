@@ -16,8 +16,12 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
+import {
+  likeManyInBatches,
+  parseLikeManyFailed,
+} from "@/lib/db/mutations/likes";
 import { MAX_BULK_ITEMS } from "@/lib/event/bulk-selection";
 
 const MIGRATIONS_DIR = join(
@@ -149,5 +153,68 @@ describe("media_like_counts: a window's counts, for the service role alone", () 
     expect(all()).not.toMatch(
       /grant execute on function public\.media_like_counts\([^)]*\) to [^;]*\b(anon|authenticated|public)\b/,
     );
+  });
+});
+
+/**
+ * THE CLIENT'S HALF: one `like_many` call per MAX_BULK_ITEMS, and exactly the ids that did not end up
+ * liked handed back (the refused ones, and every id of a batch whose request failed), so the provider
+ * reverts those hearts and no other.
+ */
+describe("likeManyInBatches", () => {
+  const ids = (n: number, from = 0) =>
+    Array.from({ length: n }, (_, i) => `id-${from + i}`);
+
+  it("sends a whole album selected as batches of MAX_BULK_ITEMS, in order", async () => {
+    const rpc = vi.fn(
+      async (_fn: string, _args: { p_media_ids: string[] }) => ({
+        data: { ok: true, liked: 0, failed: [] },
+        error: null,
+      }),
+    );
+    const failed = await likeManyInBatches({ rpc } as never, ids(4500));
+    expect(failed.size).toBe(0);
+    expect(rpc.mock.calls.map(([fn]) => fn)).toEqual([
+      "like_many",
+      "like_many",
+      "like_many",
+    ]);
+    expect(rpc.mock.calls.map(([, args]) => args.p_media_ids.length)).toEqual([
+      MAX_BULK_ITEMS,
+      MAX_BULK_ITEMS,
+      500,
+    ]);
+  });
+
+  it("hands back the refused ids, and every id of a batch that failed outright", async () => {
+    let call = 0;
+    const rpc = vi.fn(async () => {
+      call += 1;
+      if (call === 1)
+        return { data: { ok: true, liked: 1, failed: ["id-1"] }, error: null };
+      return { data: null, error: { message: "network" } };
+    });
+    const failed = await likeManyInBatches(
+      { rpc } as never,
+      [...ids(2), ...ids(MAX_BULK_ITEMS, 2)].slice(0, MAX_BULK_ITEMS + 2),
+    );
+    expect(failed.has("id-1")).toBe(true);
+    expect(failed.has("id-0")).toBe(false);
+    // The second batch's two ids are the ones past the first MAX_BULK_ITEMS.
+    expect(failed.size).toBe(1 + 2);
+  });
+
+  it("reads a refusal of the whole call, and a thrown request, as nothing liked", async () => {
+    expect(parseLikeManyFailed({ ok: false, reason: "too_many" })).toBeNull();
+    expect(parseLikeManyFailed({ ok: true, failed: ["a", 3] })).toEqual(["a"]);
+    const threw = await likeManyInBatches(
+      {
+        rpc: async () => {
+          throw new Error("offline");
+        },
+      } as never,
+      ["x", "y"],
+    );
+    expect([...threw]).toEqual(["x", "y"]);
   });
 });

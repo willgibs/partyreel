@@ -268,6 +268,120 @@ describe("LikesProvider: the seed past a thousand items (M12)", () => {
   });
 });
 
+/**
+ * THE SEED FOLLOWS THE WINDOW (album-host-wiring). The paged album mounts only the rows around the
+ * viewport, so a windowed surface omits `mediaIds` and calls `seed(ids)` as its window moves: only
+ * the ids not yet answered are asked, a tick's calls share one request, and an id in flight is never
+ * asked twice.
+ */
+describe("LikesProvider: the window's seed", () => {
+  function Window({ asks }: { asks: string[][] }) {
+    const likes = useLikes();
+    return (
+      <button onClick={() => asks.forEach((ids) => likes!.seed(ids))}>
+        scroll
+      </button>
+    );
+  }
+
+  it("asks a window's ids once, a tick's asks in ONE request, and only what is new after", async () => {
+    const supa = signedIn(["w2"]);
+    vi.mocked(createClient).mockReturnValue(supa.client as never);
+    const { rerender } = render(
+      <LikesProvider>
+        <Window
+          asks={[
+            ["w1", "w2"],
+            ["w2", "w3"],
+          ]}
+        />
+        <Probe id="w2" />
+      </LikesProvider>,
+    );
+    fireEvent.click(screen.getByText("scroll"));
+    await waitFor(() =>
+      expect(screen.getByTestId("liked-w2")).toHaveTextContent(/^liked$/),
+    );
+    expect(seedCalls(supa)).toEqual([["w1", "w2", "w3"]]);
+
+    // The window moves on: the ids it already asked about are never asked again.
+    rerender(
+      <LikesProvider>
+        <Window asks={[["w3", "w4"]]} />
+        <Probe id="w2" />
+      </LikesProvider>,
+    );
+    fireEvent.click(screen.getByText("scroll"));
+    await waitFor(() => expect(seedCalls(supa)).toHaveLength(2));
+    expect(seedCalls(supa)[1]).toEqual(["w4"]);
+  });
+
+  it("signed out: asks nothing, whatever the window", async () => {
+    const supa = makeMockSupabase({ session: null });
+    vi.mocked(createClient).mockReturnValue(supa.client as never);
+    render(
+      <LikesProvider>
+        <Window asks={[["w1"]]} />
+      </LikesProvider>,
+    );
+    fireEvent.click(screen.getByText("scroll"));
+    await waitFor(() => expect(supa.getSession).toHaveBeenCalled());
+    expect(seedCalls(supa)).toEqual([]);
+  });
+});
+
+/**
+ * THE BULK LIKE, ONE CALL A BATCH (album-host-wiring, `like_many`): every not-yet-liked id hearted at
+ * once, one `like_many` request, and only the ids it refused reverted. It used to be one
+ * `like_media` per id, all at once.
+ */
+describe("LikesProvider: likeMany through like_many", () => {
+  function Bulk({
+    ids,
+    onDone,
+  }: {
+    ids: string[];
+    onDone: (n: number) => void;
+  }) {
+    const likes = useLikes();
+    return (
+      <button onClick={() => void likes!.likeMany(ids).then(onDone)}>
+        like-all
+      </button>
+    );
+  }
+
+  it("hearts every id, sends ONE like_many, and reverts exactly the refused ones", async () => {
+    const supa = signedIn([]);
+    supa.rpc.mockImplementation((fn: string) =>
+      Promise.resolve(
+        fn === "like_many"
+          ? { data: { ok: true, liked: 2, failed: ["m3"] }, error: null }
+          : { data: [], error: null },
+      ),
+    );
+    vi.mocked(createClient).mockReturnValue(supa.client as never);
+    const done = vi.fn();
+    render(
+      <LikesProvider mediaIds={IDS}>
+        <Bulk ids={IDS} onDone={done} />
+        <Probe id="m1" />
+        <Probe id="m3" />
+      </LikesProvider>,
+    );
+    await waitFor(() => expect(supa.getSession).toHaveBeenCalled());
+    await waitFor(() => expect(seedCalls(supa)).toHaveLength(1));
+    fireEvent.click(screen.getByText("like-all"));
+    await waitFor(() => expect(done).toHaveBeenCalledWith(2));
+    expect(supa.rpc.mock.calls.filter(([fn]) => fn === "like_many")).toEqual([
+      ["like_many", { p_media_ids: IDS }],
+    ]);
+    expect(likeCalls(supa)).toHaveLength(0);
+    expect(screen.getByTestId("liked-m1")).toHaveTextContent(/^liked$/);
+    expect(screen.getByTestId("liked-m3")).toHaveTextContent("not liked");
+  });
+});
+
 describe("LikesProvider: redirect-queued replay", () => {
   it("replays a pending like on signed-in mount: rpc + cleanup + toast", async () => {
     localStorage.setItem(PENDING_PREFIX + "m3", "1");

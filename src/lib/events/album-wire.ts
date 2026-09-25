@@ -256,6 +256,17 @@ export type AlbumLinksBody<Who = GuestWhoTuple> = {
   missing: string[];
 };
 
+/**
+ * THE HOST'S LINKS ANSWER: the guest's shape with the host's attribution, plus each linked item's
+ * like count, so the host's tiles and viewer say it per window (`media_like_counts`, read after the
+ * route's ownership check; `get_event_like_counts`' host-only rule: no count ever reaches a guest,
+ * and the guest's links answer has no place for one). An item nobody liked is ABSENT and reads as 0,
+ * the convention every count reader keeps.
+ */
+export type HostAlbumLinksBody = AlbumLinksBody<HostWhoTuple> & {
+  likes: Record<string, number>;
+};
+
 /* ─────────────────────────────── the poll ─────────────────────────────── */
 
 /** More changes than this since a client's version answers a fresh manifest instead of a delta. */

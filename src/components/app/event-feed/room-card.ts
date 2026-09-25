@@ -9,6 +9,7 @@
  * the first line, the value under them), every door visible and every value whole; from `sm` it is
  * the row of tiles, 144px until `md` so four fit at 640, then 160.
  */
+import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
 export const ROOM_CARD_BASE = cn(
@@ -36,3 +37,23 @@ export function roomRowLayout(stuck: boolean): string {
 
 /** A plain card's border: the row's quiet default. */
 export const ROOM_CARD_QUIET = "border-border hover:border-foreground/25";
+
+/**
+ * THE REVIEW CARD'S FACE, from whether review is on and what waits in it: the server's first paint
+ * and the row's live count read it from this one place, so the two can never word it differently.
+ */
+export function reviewCardFace(
+  moderationOn: boolean,
+  pending: number,
+): { value: string; amber: boolean; count: number | undefined } {
+  const waiting = moderationOn && pending > 0;
+  return {
+    value: moderationOn
+      ? pending > 0
+        ? `${formatCount(pending)} waiting`
+        : "All caught up"
+      : "Off",
+    amber: waiting,
+    count: waiting ? pending : undefined,
+  };
+}

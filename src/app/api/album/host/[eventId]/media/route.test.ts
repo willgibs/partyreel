@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-/** Links by id for the host: their own event only, held and hidden items included, and the proved address. */
+/**
+ * Links by id for the host: their own event only, held and hidden items included, the proved address,
+ * and each linked item's like count (album-host-wiring: the host's links carry the window's counts).
+ */
 vi.mock("server-only", () => ({}));
 
 let user: { id: string } | null = { id: "host-1" };
@@ -16,6 +19,10 @@ vi.mock("@/lib/db/queries/events", () => ({
 const readHostAlbumMedia = vi.fn();
 vi.mock("@/lib/db/queries/album-host", () => ({
   readHostAlbumMedia: (...a: unknown[]) => readHostAlbumMedia(...a),
+}));
+const readMediaLikeCounts = vi.fn();
+vi.mock("@/lib/db/queries/likes", () => ({
+  readMediaLikeCounts: (...a: unknown[]) => readMediaLikeCounts(...a),
 }));
 vi.mock("@/lib/r2/presign", () => ({
   presignDownload: async ({ key }: { key: string }) =>
@@ -43,6 +50,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   user = { id: "host-1" };
   getEvent.mockResolvedValue({ id: EVENT_ID, name: "Maya & Jay" });
+  readMediaLikeCounts.mockResolvedValue(new Map([[id(1), 3]]));
   readHostAlbumMedia.mockResolvedValue({
     rows: [
       {
@@ -73,6 +81,20 @@ describe("the host's links", () => {
     expect(body.missing).toEqual([id(2)]);
   });
 
+  it("carry each linked item's like count, and none for a missing id", async () => {
+    // The count read is the service role's, so it is asked only after the ownership check and only
+    // for this event; a count for an id that did not link is never answered.
+    readMediaLikeCounts.mockResolvedValue(
+      new Map([
+        [id(1), 3],
+        [id(2), 9],
+      ]),
+    );
+    const body = await (await post({ ids: [id(1), id(2)] })).json();
+    expect(body.likes).toEqual({ [id(1)]: 3 });
+    expect(readMediaLikeCounts).toHaveBeenCalledWith(EVENT_ID, [id(1), id(2)]);
+  });
+
   it("401 without a session; 404 for another host's event", async () => {
     user = null;
     expect((await post({ ids: [id(1)] })).status).toBe(401);
@@ -80,6 +102,7 @@ describe("the host's links", () => {
     getEvent.mockResolvedValue(null);
     expect((await post({ ids: [id(1)] })).status).toBe(404);
     expect(readHostAlbumMedia).not.toHaveBeenCalled();
+    expect(readMediaLikeCounts).not.toHaveBeenCalled();
   });
 
   it("200 ids is the cap", async () => {
