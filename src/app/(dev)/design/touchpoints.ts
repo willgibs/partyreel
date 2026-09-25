@@ -73,8 +73,7 @@ export const RULINGS: Ruling[] = [
     id: "identity-door",
     title: "Asking for an email at the door",
     surface: "guest",
-    asks:
-      "whether the welcome deserves its own screen, where the optional email sits against the name, where a member's sign-in lives, how the verified gate frames its benefit, what the guest's own menu says, and where undoing an email lives",
+    asks: "whether the welcome deserves its own screen, where the optional email sits against the name, where a member's sign-in lives, how the verified gate frames its benefit, what the guest's own menu says, and where undoing an email lives",
     why: "The email at the door, the trust levels, the verified gate and the guest menu are live; this board redesigns them on the shipped pieces.",
     lives: [
       "docs/systems/guest-flow.md",
@@ -102,8 +101,7 @@ export const RULINGS: Ruling[] = [
     id: "identity-claims",
     title: "Photos waiting for you",
     surface: "host",
-    asks:
-      "where the claim ticket lives on the dashboard, how the album points to it, working through more than one event, the warning before a deletion, and what Finish leaves",
+    asks: "where the claim ticket lives on the dashboard, how the album points to it, working through more than one event, the warning before a deletion, and what Finish leaves",
     why: "The claim ticket ships deliberately plain; this board refines it on the shipped pieces and never gates the shipped flow.",
     lives: [
       "docs/systems/host-app.md",
@@ -127,8 +125,7 @@ export const RULINGS: Ruling[] = [
     id: "identity-profile",
     title: "Setting up a page",
     surface: "guest",
-    asks:
-      "how a verified guest sets up her page, how she chooses what shows, whether that choice should even default to hidden, when the app offers the setup, and what an empty page says to a visitor",
+    asks: "how a verified guest sets up her page, how she chooses what shows, whether that choice should even default to hidden, when the app offers the setup, and what an empty page says to a visitor",
     why: "A profile publishes nothing until its owner chooses, so the setup is how a page fills; drawn on the account page's real cards and the public page.",
     lives: [
       "docs/systems/profiles-social.md",
@@ -151,8 +148,7 @@ export const RULINGS: Ruling[] = [
     id: "reel-screen",
     title: "The reel on a big screen",
     surface: "guest",
-    asks:
-      "the live reel on a venue's screen: what it shows before the reel starts at the second photo, what the host presses to start it, and whether it ever plays a video's sound",
+    asks: "the live reel on a venue's screen: what it shows before the reel starts at the second photo, what the host presses to start it, and whether it ever plays a video's sound",
     why: "Play on a screen puts the reel's own view on a television, and three questions only a big screen asks are left: the empty screen, the press, the sound.",
     lives: [
       "docs/systems/guest-flow.md",
@@ -164,19 +160,14 @@ export const RULINGS: Ruling[] = [
     ],
     board: {
       note: "Three decisions on a television at 1440 by 810 with a real 1920 on the knob, over Mia and Theo's wedding, every reel frame the real engine's: what the screen shows before the reel starts at the second photo, a title card and two seats among the options; what the host presses to start it, or whether the reel waits for a press at all; and whether the screen ever plays a video moment's own sound",
-      variants: [
-        "Before it starts",
-        "The Start plate",
-        "Sound on the screen",
-      ],
+      variants: ["Before it starts", "The Start plate", "Sound on the screen"],
     },
   },
   {
     id: "guest-capture",
     title: "Keeping what she just added",
     surface: "guest",
-    asks:
-      "when the second ask to keep her photos reaches a guest the door already offered an email, the ask's shape, whom she can follow once she confirms, whether her typed name is written silently, confirmed or told, and whether a moderated event gives her a tracker",
+    asks: "when the second ask to keep her photos reaches a guest the door already offered an email, the ask's shape, whom she can follow once she confirms, whether her typed name is written silently, confirmed or told, and whether a moderated event gives her a tracker",
     why: "The capture flow after a name-only guest's first upload is live; this board refines it and never gates the shipped flow.",
     lives: [
       "docs/systems/guest-flow.md",
@@ -201,8 +192,7 @@ export const RULINGS: Ruling[] = [
     id: "voice-guest",
     title: "The voice of the guest journey",
     surface: "guest",
-    asks:
-      "seven lines a guest reads, each in its real place: the welcome, the password's ask, the landing, a failed upload, the empty album's button, a held photo, and the capture's words",
+    asks: "seven lines a guest reads, each in its real place: the welcome, the password's ask, the landing, a failed upload, the empty album's button, a held photo, and the capture's words",
     why: "The voice is built one won line at a time in its real place; these seven are the guest's most-read words and where most of the asks live.",
     lives: [
       "src/components/guest/entry-modal.tsx",
@@ -230,8 +220,7 @@ export const RULINGS: Ruling[] = [
     id: "reel-front",
     title: "The album's living tile",
     surface: "guest",
-    asks:
-      "the live reel's tile at the album's head: what it is, its verbs, its small states, the beat after a first photo, the door's backdrop, once uploads close, and the hub's Reel card",
+    asks: "the live reel's tile at the album's head: what it is, its verbs, its small states, the beat after a first photo, the door's backdrop, once uploads close, and the hub's Reel card",
     why: "The live reel plays from a tile at the head of the album; reel-view is the view it opens and reel-cut the creator beside it.",
     lives: [
       "docs/systems/guest-flow.md",
@@ -258,8 +247,7 @@ export const RULINGS: Ruling[] = [
     id: "site-chrome",
     title: "The marketing site's chrome",
     surface: "marketing",
-    asks:
-      "the footer beneath a page's own closing call to action: its register, a page with none above it, and how its code reaches a phone",
+    asks: "the footer beneath a page's own closing call to action: its register, a page with none above it, and how its code reaches a phone",
     why: "Most pages close on a call to action, so the footer's demo invitation has to work beneath one rather than repeat it; the rest of the chrome is built.",
     lives: [
       "docs/systems/marketing-content.md",
@@ -283,8 +271,7 @@ export const RULINGS: Ruling[] = [
     id: "profile-page",
     title: "What a person is here",
     surface: "guest",
-    asks:
-      "how the full guest list opens from the faces row, what a name opens first, how a profile keeps the scanned event reachable, and what should stand above it now that it does",
+    asks: "how the full guest list opens from the faces row, what a name opens first, how a profile keeps the scanned event reachable, and what should stand above it now that it does",
     why: "A person's page ships; three pieces stay open, and a fourth, the header, is asked again now way-back changes what it has to solve alone.",
     lives: [
       "docs/systems/profiles-social.md",
@@ -303,8 +290,7 @@ export const RULINGS: Ruling[] = [
     id: "export-flow",
     title: "Getting everything out",
     surface: "shared",
-    asks:
-      "what Download hands a guest, the wait, a request that never answers, a hollow zip, the item limit, keeping the album, and where the file lands on a phone",
+    asks: "what Download hands a guest, the wait, a request that never answers, a hollow zip, the item limit, keeping the album, and where the file lands on a phone",
     why: "Taking everything home is where a host and a guest end, so it is asked from the foundation on the real download dialog, phone first.",
     lives: [
       "docs/systems/uploads-and-r2.md",
@@ -329,8 +315,7 @@ export const RULINGS: Ruling[] = [
     id: "reel-host",
     title: "The host's side of the reel",
     surface: "host",
-    asks:
-      "the way to the reel before it starts, what the Reel card opens, where Play on a screen sits, what tells a host uploads are waiting, where the reel's defaults live, the Show the reel switch, the dashboard's word on the reel, and a host's own cut",
+    asks: "the way to the reel before it starts, what the Reel card opens, where Play on a screen sits, what tells a host uploads are waiting, where the reel's defaults live, the Show the reel switch, the dashboard's word on the reel, and a host's own cut",
     why: "The live reel makes itself, so a host keeps a few small acts and one door: this board places each on the real hub, its sheets and the dashboard.",
     lives: [
       "docs/systems/host-app.md",
@@ -361,8 +346,7 @@ export const RULINGS: Ruling[] = [
     id: "admin-triage",
     title: "Acting on a report",
     surface: "admin",
-    asks:
-      "a report in the queue, a wordless one, what a verdict costs and records, a closed report, the legal hold, the phone, one idiom for four inboxes, and who is told",
+    asks: "a report in the queue, a wordless one, what a verdict costs and records, a closed report, the legal hold, the phone, one idiom for four inboxes, and who is told",
     why: "The operator's act on a report, asked from the ground up inside the portal's own shape: an on-brand devtool.",
     lives: [
       "docs/systems/admin-observability.md",
@@ -387,9 +371,8 @@ export const RULINGS: Ruling[] = [
     id: "reel-story",
     title: "The marketing story of the reel",
     surface: "marketing",
-    asks:
-      "the reel's thesis line, the /reel page's arc, the home's teaser, the pricing rows, the loop's last step, the events' reel column, and the help category's name",
-    why: "Every marketing surface still sells the host-made, stored reel; the live reel and the cut need their story told on the real marketing pieces.",
+    asks: "the reel's thesis line, the /reel page's arc, the home's teaser, the pricing rows, the loop's last step, the events' reel column, and the help category's name",
+    why: "Every marketing surface still sells the host-made, stored reel; the live reel and the clip need their story told on the real marketing pieces.",
     lives: [
       "docs/systems/marketing-content.md",
       "src/lib/constants/marketing-voice.ts",
@@ -397,7 +380,7 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/sections/home/reel-teaser.tsx",
     ],
     board: {
-      note: "Seven decisions on the real marketing pieces, at 1440 with 375 on the knob: the one thesis line (drawn on the home's close and the feature door), the /reel page's three-chapter order, what the home's teaser plays, how the pricing rows name the cut, the loop's last step on both sides, the event pages' reel column, and the help category's name",
+      note: "Seven decisions on the real marketing pieces, at 1440 with 375 on the knob: the one thesis line (drawn on the home's close and the feature door), the /reel page's three-chapter order, what the home's teaser plays, how the pricing rows name the clip, the loop's last step on both sides, the event pages' reel column, and the help category's name",
       variants: [
         "The thesis line",
         "The /reel page's arc",
@@ -413,8 +396,7 @@ export const RULINGS: Ruling[] = [
     id: "media-viewer",
     title: "What a photograph opens as",
     surface: "shared",
-    asks:
-      "what a tap opens, what stands beside the photograph, how it says who took it, the next one, close up, video, the way out, and whether an open photograph has an address",
+    asks: "what a tap opens, what stands beside the photograph, how it says who took it, the next one, close up, video, the way out, and whether an open photograph has an address",
     why: "One viewer serves all six galleries and every album click ends on it, so what a tap builds and how close a guest may get is asked from the foundation.",
     lives: [
       "docs/systems/guest-flow.md",
@@ -438,8 +420,7 @@ export const RULINGS: Ruling[] = [
     id: "reel-view",
     title: "The reel's full-screen view",
     surface: "guest",
-    asks:
-      "the live reel's full-screen view: the chrome and its fade, the controls, the arrival, a tap, the posture, the pace, the loop's seam, and reduced motion",
+    asks: "the live reel's full-screen view: the chrome and its fade, the controls, the arrival, a tap, the posture, the pace, the loop's seam, and reduced motion",
     why: "The view a tap on the album's tile or ?reel opens; its chrome fades until the pointer moves, with Include videos and the style switch beside it.",
     lives: [
       "docs/systems/guest-flow.md",
@@ -461,8 +442,7 @@ export const RULINGS: Ruling[] = [
     id: "emails",
     title: "Every email Partyreel sends",
     surface: "shared",
-    asks:
-      "one shell or two, the brand, the sender, the foot, the sign-in code, which moments send, whether a guest is ever sent one, and the dark inbox",
+    asks: "one shell or two, the brand, the sender, the foot, the sign-in code, which moments send, whether a guest is ever sent one, and the dark inbox",
     why: "Every mail is drawn from the real templates.ts in an inbox mock at a phone's width and a laptop's, so each decision is judged where mail is read.",
     lives: [
       "docs/systems/lifecycle-recovery.md",
@@ -487,8 +467,7 @@ export const RULINGS: Ruling[] = [
     id: "help-center",
     title: "Where a problem lands",
     surface: "marketing",
-    asks:
-      "who the hub greets first, the index sheet, a how-to's shape, a guest's way in from the product, feedback, troubleshooting's dead end, and search's reach",
+    asks: "who the hub greets first, the index sheet, a how-to's shape, a guest's way in from the product, feedback, troubleshooting's dead end, and search's reach",
     why: "Help is where a host or a guest with a problem lands, so each piece is asked on the real help components over fixture articles.",
     lives: [
       "docs/systems/marketing-content.md",
@@ -515,8 +494,7 @@ export const RULINGS: Ruling[] = [
     id: "host-curation",
     title: "Reviewing what guests send",
     surface: "host",
-    asks:
-      "how a waiting photograph shows, the verb for refusing one, what a tap opens, the keyboard, after a bulk act, an arrival mid-visit, the count, and whether a refused guest is told",
+    asks: "how a waiting photograph shows, the verb for refusing one, what a tap opens, the keyboard, after a bulk act, an arrival mid-visit, the count, and whether a refused guest is told",
     why: "Judging another person's photograph is the host's most delicate act; the review surface crops to 4:5, says one word for two acts and counts in three places.",
     lives: [
       "docs/systems/host-app.md",
@@ -541,8 +519,7 @@ export const RULINGS: Ruling[] = [
     id: "host-storage",
     title: "Where the largest files are",
     surface: "host",
-    asks:
-      "where a host sees each item's size, largest-first or grouped by event, how freeing space reads for a plan switch, the pricing sheet's refusal, and a Pro host's six prices",
+    asks: "where a host sees each item's size, largest-first or grouped by event, how freeing space reads for a plan switch, the pricing sheet's refusal, and a Pro host's six prices",
     why: "Sizes are stored but shown nowhere; a host near a cap cannot find what is filling it, and no plan switch may leave them over the new cap.",
     lives: [
       "docs/systems/billing-caps.md",
@@ -569,8 +546,7 @@ export const RULINGS: Ruling[] = [
     id: "event-safety",
     title: "Keeping an event safe",
     surface: "host",
-    asks:
-      "where a host blocks someone, the block's sheet, the door a blocked person meets, the blocked list and letting back in, the Guests room with its list off, and the three closed doors",
+    asks: "where a host blocks someone, the block's sheet, the door a blocked person meets, the blocked list and letting back in, the Guests room with its list off, and the three closed doors",
     why: "A bad actor with a verified email can be hidden photo by photo but never stopped; a block and three closed doors, all free, end that.",
     lives: [
       "docs/systems/guest-flow.md",
@@ -595,11 +571,10 @@ export const RULINGS: Ruling[] = [
   },
   {
     id: "reel-cut",
-    title: "From the reel to a cut",
+    title: "From the reel to a clip",
     surface: "guest",
-    asks:
-      "the creator a guest meets from the reel: the way in, the room, the fourteen looks, the moments, a hidden tile, the export's wait, the finish, the free mark, whether it carries sound, and a device that cannot encode",
-    why: "A cut is anyone's, made on the device from the live reel, saved or shared as a file and never stored; this board is the creator that replaces the Studio.",
+    asks: "where the moments and the looks live inside the clip's workbench, as three whole creators at a laptop and in a hand",
+    why: "A clip is anyone's, made on the device from the live reel and never stored; round two designs its moments and looks into the bench he picked.",
     lives: [
       "docs/systems/host-app.md",
       "src/components/reel/reel-studio.tsx",
@@ -610,13 +585,11 @@ export const RULINGS: Ruling[] = [
       "src/lib/reel/engine/registry.ts",
     ],
     board: {
-      note: "Ten decisions on the creator a guest meets after tapping Make your own, over the album media-viewer already draws: the way in from the reel, the room at both sizes, the fourteen looks, the moments as a local pick with three fills, a hidden tile only the host meets, the export's minute, the finish, the free mark, whether a cut ever carries sound, and a device that cannot encode",
+      note: "One decision on the clip creator, over the album media-viewer already draws: where the moments and the looks live inside the bench, as three whole creators each at 1440 and 375 (both in the panel, the moments on the strip with the looks beside, the looks on the clip with the album beside), and the rest of the creator walked as ground on the stage knob",
       variants: [
-        "The way in",
-        "The room",
-        "The looks",
-        "The moments",
-        "The wait",
+        "Both in the panel",
+        "Moments on the strip",
+        "Looks on the clip",
       ],
     },
   },
@@ -624,8 +597,7 @@ export const RULINGS: Ruling[] = [
     id: "press-page",
     title: "What Partyreel hands the world",
     surface: "marketing",
-    asks:
-      "who /press is for, what the asset sheet shows, how the words hand over, how checkable the facts are, whether anyone is named, the close, and the reading order",
+    asks: "who /press is for, what the asset sheet shows, how the words hand over, how checkable the facts are, whether anyone is named, the close, and the reading order",
     why: "What Partyreel hands the world about itself, asked on the real page pieces at 1440 and 375.",
     lives: [
       "src/app/(marketing)/(cinema)/press/page.tsx",
@@ -650,8 +622,7 @@ export const RULINGS: Ruling[] = [
     id: "contact-page",
     title: "Reaching a person",
     surface: "marketing",
-    asks:
-      "the way in, the receipt, an urgent path, the topic picker, the page's identity against the rest of the site, and what stands beside the form",
+    asks: "the way in, the receipt, an urgent path, the topic picker, the page's identity against the rest of the site, and what stands beside the form",
     why: "How someone reaches a person at Partyreel, asked on the real desk over a host mid-event, a planner weighing a plan and a reporter.",
     lives: [
       "docs/systems/marketing-content.md",
@@ -676,8 +647,7 @@ export const RULINGS: Ruling[] = [
     id: "album-motion",
     title: "The album's falling-in",
     surface: "marketing",
-    asks:
-      "which way a photograph reaches the album on the /features/album hero: Glide, Gather, Cascade or Bloom",
+    asks: "which way a photograph reaches the album on the /features/album hero: Glide, Gather, Cascade or Bloom",
     why: "One decision, drawn on the wired hero so the pick is already built: the falling-in stays, and only its motion is asked.",
     lives: [
       "src/components/shared/album-stream/stream-engine.ts",
@@ -692,8 +662,7 @@ export const RULINGS: Ruling[] = [
     id: "album-columns",
     title: "The album's column rule",
     surface: "shared",
-    asks:
-      "whether masonry is the right layout at all, how wide the album runs, what the biggest screens do once columns would climb forever, what a bigger phone earns, whether hosting and guesting share one tile-size preference, and the control's own form",
+    asks: "whether masonry is the right layout at all, how wide the album runs, what the biggest screens do once columns would climb forever, what a bigger phone earns, whether hosting and guesting share one tile-size preference, and the control's own form",
     why: "Masonry sets the album's columns by a declared width across the middle of the range; both ends, and the layout itself, are open, and this board looks at all three.",
     lives: [
       "src/components/shared/masonry.tsx",
@@ -717,8 +686,7 @@ export const RULINGS: Ruling[] = [
     id: "privacy-hero",
     title: "The privacy page's hero",
     surface: "marketing",
-    asks:
-      "the privacy page's hero: a breathing aperture, a grid that hands a tile over, sealed cards that lift, or a clearing drifting across one photograph",
+    asks: "the privacy page's hero: a breathing aperture, a grid that hands a tile over, sealed cards that lift, or a clearing drifting across one photograph",
     why: "Four still concepts built on what privacy means rather than a figure in flight: one decision, drawn at 1440 and 375.",
     lives: [
       "src/app/(marketing)/(cinema)/features/privacy/page.tsx",
@@ -734,8 +702,7 @@ export const RULINGS: Ruling[] = [
     id: "loose-ends",
     title: "Six loose ends",
     surface: "shared",
-    asks:
-      "the admin chart ramp's cast in each mode, one FAQ look, the home hero at a tablet width, and the album page's three ambient pieces",
+    asks: "the admin chart ramp's cast in each mode, one FAQ look, the home hero at a tablet width, and the album page's three ambient pieces",
     why: "Small open questions drawn as decisions on their real surfaces rather than left as one-line tasks.",
     lives: [
       "src/app/globals.css",
