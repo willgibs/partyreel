@@ -7,7 +7,8 @@
 #   full: lint, `pnpm test` and the build; then the lab (lab:smoke, and lab:demo on the lane's board) only when the lane's
 #     own diff (HEAD^1 to HEAD) holds a path the lab renders.
 # A HEAD with one parent (a gate at a record, or at a round's close) and FULL=1 take the full gate with the lab. Every
-# step prints EXIT[step]=<its own exit code> (<seconds>s), its whole output in $S/gate<N>-<slug>.log.
+# step prints EXIT[step]=<its own exit code> (<seconds>s), its whole output in $S/gate<N>-<slug>.log; the last line,
+# `GATE<N> DONE ... red steps: <n>`, is the one to wait on (a milestone's gate runs alone, with no integrate.sh to count).
 N="$1"; BOARD="$2"
 : "${S:?set S to this session's scratchpad (every kit script writes its logs there)}"
 KIT="$(cd "$(dirname "$0")" && pwd)"; cd "$KIT/../.."
@@ -38,10 +39,12 @@ else
 fi
 
 # run <slug> <step> <tail lines> <command...>: one step on its own exit code, its log whole in $S, its tail here
+RED=0
 run() {
   local slug="$1" step="$2" n="$3" t=$SECONDS rc; shift 3
   "$@" > "$S/gate$N-$slug.log" 2>&1; rc=$?
   tail -n "$n" "$S/gate$N-$slug.log"; echo "EXIT[$step]=$rc ($(( SECONDS - t ))s)"
+  [ "$rc" = 0 ] || RED=$(( RED + 1 ))
 }
 # The catalog's specimen code is regenerated and staged by the merge (merge-lane.sh, hand-merge.sh) before its commit;
 # the gate reads the tree as committed, so a stale artifact is specimens.test.ts's red, never hidden by a rerun here.
@@ -87,9 +90,9 @@ else
       MOVED=$(grep -cE '^[a-z0-9-]+\.[^ ]+ +ok ' "$S/gate$N-demo.log"); FROZE=$(grep -cE '^[a-z0-9-]+\.[^ ]+ +FROZEN ' "$S/gate$N-demo.log")
       if [ "$MOVED" -gt 0 ]; then echo "HARNESS sees: $MOVED step(s) moved in this run, so a FROZEN step here is the board's"
       elif [ "$FROZE" -gt 0 ]; then echo "HARNESS unproven: no step moved in this run; read $S/gate$N-demo.log per step before calling a FROZEN the board's"; fi
-      echo "EXIT[lab:demo $BOARD]=$DEMO ($(( SECONDS - t ))s)"
+      echo "EXIT[lab:demo $BOARD]=$DEMO ($(( SECONDS - t ))s)"; [ "$DEMO" = 0 ] || RED=$(( RED + 1 ))
     fi
     lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null
   fi
 fi
-echo "GATE$N DONE $(date -u) (${SECONDS}s)"
+echo "GATE$N DONE $(date -u) (${SECONDS}s) red steps: $RED"

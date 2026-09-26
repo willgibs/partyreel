@@ -138,10 +138,10 @@ The admin portal's alias is `partyreel-admin-git-launch-prep-partyreel.vercel.ap
 ## Milestone (on Will's yes)
 
 `launch-prep` holds at most about two rounds of unmerged work. A milestone: the full gate on `launch-prep`
-(`rm -rf .next/dev`, then `FULL=1 zsh usher/kit/gate-lane.sh <N> none`, since a merge at the tip would scope itself);
-`git checkout main && git merge --no-ff launch-prep` (never squash; subject
-`milestone-<n>: prod = <the three to five things>`); an annotated tag `milestone-<n>`; push `main`, then the tag;
-production READY at the merge SHA, then a verification pass on partyreel.com (what previews cannot prove);
+(`rm -rf .next/dev`, then `FULL=1 zsh usher/kit/gate-lane.sh <N> none`, since a merge at the tip would scope itself;
+its last line is `GATE<N> DONE … red steps: <n>`); `git checkout main && git merge --no-ff launch-prep` (never squash;
+subject `milestone-<n>: prod = <the three to five things>`); an annotated tag `milestone-<n>`; push `main`, then the
+tag; production READY at the merge SHA, then a verification pass on partyreel.com (what previews cannot prove);
 `git checkout launch-prep && git merge --ff-only main`; STATUS and the pickup rewritten. `main` moves only this way or
 by a true hotfix: fixed on `main`, verified, back-merged to `launch-prep` the same session.
 
