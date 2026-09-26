@@ -18,7 +18,7 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 - **Milestone 29 is live** (`ab30a7f8`, 2026-09-26), batch 3 whole: the live reel in place of the stored one (its
   schema dropped, its files swept), every album paged and windowed on both surfaces, Will's door on the phone Sheet,
   an email change confirmed at both addresses, one-tap Save on an iPhone; 49 lanes since milestone 28, and
-  `launch-prep` equals `main`.
+  `launch-prep` holds no product change past `main`.
 - **Next**: his verdicts on build 10's desk become lanes (`reel-marketing`, the door's look, the mark's wiring), then
   the lab revamp ([`tracks/orchestrator.md`](tracks/orchestrator.md)).
 

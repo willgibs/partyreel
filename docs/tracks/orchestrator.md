@@ -41,7 +41,7 @@ a lane").
 | --- | --- | --- | --- | --- |
 
 Batch 3 closed at milestone 29 (`ab30a7f8`, 2026-09-26): 49 lanes since milestone 28, their merge commits carrying
-the rest; `launch-prep` equals `main`, and no lane, worktree or dev server is open.
+the rest; `launch-prep` holds no product change past `main`, and no lane, worktree or dev server is open.
 
 ## Next, in order
 
