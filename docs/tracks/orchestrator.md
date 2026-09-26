@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "bf2bc846"          # the launch-prep SHA this state was written at
+cut: "ab30a7f8"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/theme.css
   - src/app/(marketing)/marketing.css
@@ -40,37 +40,23 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 
-Merged tonight (their records carry the rest): reel-guest-wiring, reel-host-wiring, mark-r3, story-r2, door-r2,
-album-pages, reel-clip-wiring, identity-email, reel-teardown, album-window, hardening, reel-sweep, door-flow,
-retire-reel-boards, crumbs, album-host-wiring, album-guest-wiring, crumbs-2, retire-album-columns, save-sheet,
-album-docs, reel-and-copy, owner-album, album-fixes.
+Batch 3 closed at milestone 29 (`ab30a7f8`, 2026-09-26): 49 lanes since milestone 28, their merge commits carrying
+the rest; `launch-prep` equals `main`, and no lane, worktree or dev server is open.
 
 ## Next, in order
 
-1. **Build 10 is live** (`43b82591`, both aliases, the desk and the album's pages clean) and Will's sitting is on it.
-   `crumbs-2`, `save-sheet`, `retire-album-columns` and `album-docs` are merged and ride build 11.
-2. **Build 10's red-team reported** (every journey passes but one; the 100-minute soak clean; the hub's HTML 76% lighter):
-   one blocker, the host's own password album crashing (`owner-album`), and four minors (`album-fixes`,
-   `reel-and-copy`). Build 11 goes out once `owner-album` merges; its check is that page as the owner. What it walked
-   (this list stays the scope of the next full red-team), which also finished
-   build 9's walk (it stopped at the usage limit with its first six journeys passing):
-   - the reel on the album's new data path: the tile, the view, clips, access, the password event, the demo;
+1. **Will's sitting on build 10** (the alias, `43b82591`, the desk's 21 boards): his paste goes through
+   `pnpm lab:review` on STDIN (`--dry` first), then the verdicts become lanes: `reel-marketing` (his `reel-story` r2),
+   the door's look (his `identity-door` r2) over `door-flow`, the mark's wiring (his `media-viewer` r3). The alias
+   stays on build 10 until his sitting ends; build 11 carries those lanes.
+2. **Build 11's red-team**, once they land. The scope of a full red-team, as build 10's walked it:
+   - the reel on the album's data path: the tile, the view, clips, access, the password event, the demo;
    - `?reel=screen` soaked headless at 1920x1080 for 100 minutes (a hidden pane throttles the page);
-   - the door at 375 on the Sheet (build 9's vaul sheet scrolled three times its height, and the password step opened
-     past its heading);
-   - the album at scale on both surfaces;
-   - re-checks: the count's "1 photo & videos", one stalled owner `?reel` in a hidden tab, Settings saving the default
-     look and hold as values rather than NULL.
-
-   Afterwards the 15-photo probe's `reel_style_id` and `reel_hold_sec` go back to NULL. Journey 9's page checks passed
-   on build 9 (both legal pages at 1.7, the retired help slugs 308, no stale reel claim on the marketing pages,
-   `/admin/reels` a 404). The stored reel is gone whole: the drop applied, both buckets swept, its last code removed
-   (`crumbs-2`).
-   Then **milestone 29** (Will's yes, given): the full gate on `launch-prep`, merge to `main`, tag, verify partyreel.com
-   (the host dashboard stops erroring), back-merge.
-3. **After his sitting on build 10**: `reel-marketing` (his `reel-story` r2), the door's look (his `identity-door` r2)
-   over `door-flow`, the mark's wiring (his `media-viewer` r3).
-4. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
+   - the door at 375 on the Sheet;
+   - the album at scale on both surfaces, and album-fixes' live walks it never had: a hide just above a deep guest's
+     view moves nothing in it, and the bin's viewer restores and deletes on a phone as a signed-in host;
+   - the owner's own password album, plain, `?reel` and `?reel=screen`, and its Download all.
+3. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
    self-registering folder, its metadata in its spec, lab checks scoped to the lane's own boards, the authoring API
    trimmed, a fresh agent proving it; with library-lean's board ideas (a `Surfaces` family of live frames per route
    with guest entries, the Library's sidebar open by default, a plain-text view of Library pages, a
@@ -80,5 +66,8 @@ album-docs, reel-and-copy, owner-album, album-fixes.
 ## Waiting on Will
 
 - **His sitting on build 10**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
-- **A 10-second iPhone check on build 11**: one tap on Save opens the system sheet (a photo, a video, a finished clip),
-  and a shared photo arrives as a photograph.
+- **A 10-second iPhone check on partyreel.com**: one tap on Save opens the system sheet (a photo, a video, a finished
+  clip), and a shared photo arrives as a photograph.
+- **The calls his to overrule** from the last lanes, relayed in chat on 2026-09-26: reel-and-copy's screens following
+  a new default at the next hold; owner-album's Download all fix and a failed read staying a failure; album-fixes'
+  three (the viewer closes on the bin's verbs, a sliver of a row counts as in view, the hold below the view too).

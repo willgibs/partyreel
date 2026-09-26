@@ -4,7 +4,7 @@
 > [`systems/`](systems); what might be next is [`ROADMAP.md`](ROADMAP.md); what runs this minute is
 > [`tracks/orchestrator.md`](tracks/orchestrator.md); what shipped is `git log`.
 
-**Updated:** 2026-09-25
+**Updated:** 2026-09-26
 
 ## The era
 
@@ -13,19 +13,14 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoin
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: batch 3, from Will's sitting on build 8
+## The current round: after milestone 29, Will's sitting on build 10
 
-- **Milestone 28 is live** (`1076d3d7`, 2026-09-24): no read stops at 1,000 rows; a claimed guest ticket uploads only
-  for its owner; a guest's own delete is final.
-- **The reel stretch landed** (2026-09-25, overnight in auto mode): the live reel's guest and host sides, the clip
-  creator (Make your own, Looks and Moments as tabs), the stored reel's server side gone, the reel retold across
-  marketing, help and legal, and `docs/systems/reel.md` its home. The drop is applied and the stored files swept; until
-  milestone 29 partyreel.com's host dashboard errors (milestone 28 reads the dropped `highlight_reels`).
-- **Also landed**: the album fast at any size (windowed rows, a memoized tile, three density steps) and the paged
-  album's data half (`album_state` and `album_changes`, links by id, a delta poll); a confirmed email changed at both
-  addresses and deletion taking the address with it; four correctness fixes (the billing downgrade, the unlock
-  cookie bound to the password, the orphan breaker's health, counts past 999); the door's new flow (his chooser, a
-  keyboard-safe phone sheet); the host's album on the paged rows. Building: the guest's album onto them.
+- **Milestone 29 is live** (`ab30a7f8`, 2026-09-26), batch 3 whole: the live reel in place of the stored one (its
+  schema dropped, its files swept), every album paged and windowed on both surfaces, Will's door on the phone Sheet,
+  an email change confirmed at both addresses, one-tap Save on an iPhone; 49 lanes since milestone 28, and
+  `launch-prep` equals `main`.
+- **Next**: his verdicts on build 10's desk become lanes (`reel-marketing`, the door's look, the mark's wiring), then
+  the lab revamp ([`tracks/orchestrator.md`](tracks/orchestrator.md)).
 
 ## The desk
 
@@ -36,18 +31,20 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 ## Live state
 
-- **Prod:** partyreel.com is `main` at tag `milestone-28` (`1076d3d7`, 2026-09-24), both projects READY and passed: the
-  guest poll serves the scale probe's 1,145 photos (1,000 at milestone 27) then 304, the dashboard (1,145 items, 20 to
-  review), `/account`, a real upload through production's pipeline, the lab 404s without its key, the admin door
-  redirects, no new runtime error or Sentry issue. `admin.partyreel.com` is served by `partyreel-admin`
-  (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 10 (`43b82591`): the door on
-  the Sheet, both albums on the paged rows, the stored reel gone, and the three boards for his sitting. No push
+- **Prod:** partyreel.com is `main` at tag `milestone-29` (`ab30a7f8`, 2026-09-26), both projects READY and passed:
+  the scale probe's guest poll answers the paged manifest whole (1,145) then a 304, the dashboard and the probe's hub
+  (1,145 items, 20 to review) as willg97, his own password album with `?reel` and `?reel=screen` and its Download all
+  (1 photo) while a signed-out viewer meets the password door, eleven public pages and both sign-in pages with no
+  console error, the lab and `/admin/reels` 404, the admin door redirects, no runtime error.
+  `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel`
+  (`=app`).
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 10 (`43b82591`), the desk for
+  his sitting; everything past it shipped in milestone 29, so the next build carries his verdicts' lanes. No push
   deploys; each `[preview]` record gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** about 5,300 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
+- **Tests:** about 5,460 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
 - **Jobs:** the daily purge cron (Vercel Hobby fires it at 04:48 UTC; its first run on milestone 28's sweeps was green:
   every sweep ok, none stopped early, the orphan scan read 1,368 objects and deleted none, the standby budget's one host
   willg97 with the withdrawals out), the media-backup Worker and the daily DB-backup Action are live; the deletion-aware
@@ -71,4 +68,5 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 ## Waiting on Will
 
 - **His sitting on build 10**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
-- **A 10-second iPhone check** on build 11: one tap on Save opens the system sheet; a shared photo arrives as one.
+- **A 10-second iPhone check, now on partyreel.com** (milestone 29 carries it): in an album (`partyreel.com/demo`), one
+  tap on Save opens the system sheet (a photo, a video, a finished clip), and a shared photo arrives as a photograph.
