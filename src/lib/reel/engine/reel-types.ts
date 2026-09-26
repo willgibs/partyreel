@@ -1,6 +1,6 @@
 // The reel render config — the props the canvas engine is parameterized by, driving BOTH the live
 // player AND the on-device WebCodecs export from one draw function. The real composer sources these from
-// reel_items + media + the theme/seed the host picks (see src/lib/reel/build-reel-props.ts).
+// media + the theme/seed the host picks (see src/lib/reel/build-reel-props.ts).
 
 import type { Orientation } from "./constants";
 

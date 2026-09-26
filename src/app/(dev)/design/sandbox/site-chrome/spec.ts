@@ -12,7 +12,7 @@ import { defineExploration } from "@/components/lab/exploration";
  * love to see a couple additional explorations of footers that work well
  * with that closing CTA pattern above." This round is that ask, by name.
  *
- * Seven of round one's eight decisions are ruled and landing on the real
+ * Seven of round one's eight decisions already answered and land on the real
  * chrome via `chrome-wiring` at the same time as this round (the header, the
  * panel, the phone's menu, the material); none of that is reopened here. The
  * eighth, `foot-job`, is this board's one surviving subject, recut into three
@@ -24,15 +24,15 @@ import { defineExploration } from "@/components/lab/exploration";
  * stands under the rebuilt `/how-it-works` close (a real `CtaBand`, imported,
  * never redrawn) and `foot-alone` under `/about`'s real final section, the one
  * route that runs straight from ordinary content into the footer with nothing
- * above it. Round one's own `foot-job` and `foot-door` are decided, not
+ * above it. Round one's own `foot-job` and `foot-door` already answered, not
  * reopened: every option here draws the CTA unconditionally, the coupling to
  * `DEMO_EVENT_URL` already gone.
  *
  * ★ WHY `foot-alone` STAGES AND `foot-phone` DOES NOT. `foot-alone`'s own
- * options ("the full sign-off regardless" against "whatever `foot-after`
- * picked") are only a real choice once `foot-after` has an answer to be
- * "whatever" about; `foot-phone` asks a third, independent thing (how the
- * frame travels to a screen nobody can scan) that carries no such dependency.
+ * options are only a real choice once `foot-after` has an answer to measure
+ * against; `foot-phone` asks a third, independent thing (how the invitation
+ * travels to a screen nobody can scan with itself) that carries no such
+ * dependency.
  *
  * ★ THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21). `demo-event` round two
  * ("the closing sitting's second batch") retired the
@@ -44,23 +44,31 @@ import { defineExploration } from "@/components/lab/exploration";
  * gains a fifth real route: `pricing-page` round two now closes on its own
  * folded questions rather than an invitation, so it reaches the footer the
  * same way `/about`, `/press`, `/careers` and the 404 already do.
- * `foot-phone` leans harder toward the two options that commit either way,
- * now that `first-event` round one has ruled a code's real home is printed
- * stock: a phone's copy of it was always decoration, and that is no longer
- * this ask's own guess.
+ *
+ * ★ THE REFRESH'S OWN PASS (2026-09-24). Two of the three were fenced by
+ * something outside themselves rather than judged on their own case, so both
+ * are reopened here rather than only reworded. `foot-alone` was a straight
+ * binary (give a standalone page the full register, or make it match whatever
+ * a closed page gets); a third path, a closing line built for the page that
+ * asked nothing else, is drawn beside them. `foot-phone` had settled on
+ * "hidden" partly because a different board's ruling made "small" read as the
+ * weakest of the three, which fences an option by an argument that was never
+ * about this ask; judged fresh, the real tension is what a QR is FOR on a
+ * screen that cannot scan itself, and a fourth path, a code revealed on a tap
+ * for someone standing next to the reader, answers that directly instead of
+ * only picking between showing one and hiding one.
  */
 export const SITE_CHROME = defineExploration({
   id: "site-chrome",
   title: "The site's chrome",
   round: {
     n: 2,
-    date: "2026-09-21",
+    date: "2026-09-24",
     changed:
-      "foot-after redrawn for the shipped framed photograph, not the pile it was written against; foot-alone names pricing-page's folded close as a fifth bare route; foot-phone leans hidden vs none, small weakened now a code's home is ruled printed stock. The other seven stay out of scope (chrome-wiring).",
+      "foot-alone gains a third path: a closing line built for a page that asked nothing else. foot-phone judged fresh, not pre-weighted by an unrelated ruling: a fourth path, a code revealed on a tap for someone nearby, joins hidden, small and none. The other seven stay out of scope (chrome-wiring).",
   },
   context:
     'Will, round one (the fourth batch): he kept the sign-off over a bigger close because most pages now end on a CtaBand "in the same rough shape", and back to back "would feel very repetitive, would rather them work together"; his ask was "a couple additional explorations of footers that work well with that closing CTA pattern above". Three decisions, drawn under a real close and under a real page with none.',
-  bible: [2, 8, 11, 16, 21, 22],
   asks: [
     {
       id: "foot-after",
@@ -118,6 +126,12 @@ export const SITE_CHROME = defineExploration({
             "A page with nothing else asking keeps today's whole invitation, whatever a closed page above picks instead.",
         },
         {
+          id: "line",
+          label: "A closing line, built for this page",
+          means:
+            "Its own short heading and one sentence, plus the code: lighter than the full register, more deliberate than a footnote to a close that, here, was never asked.",
+        },
+        {
           id: "same",
           label: "One footer everywhere",
           means:
@@ -128,9 +142,9 @@ export const SITE_CHROME = defineExploration({
       because:
         "Five real routes now reach the footer having asked nothing more of the reader, whether that is silence or a closed FAQ; the footer is the only closing gesture any of them have, so it should not go quiet for the sake of consistency with pages that already had one.",
       overrule:
-        "If those five routes are rare enough to matter less than one predictable footer everywhere, the same answer belongs on every page.",
+        "If full feels like too much for a page as short as the 404, line is the built-for-it middle path; if routes like that are rare, same is the plain answer.",
       lands:
-        "Whether the footer special-cases a page with no CtaBand above it, or draws one register everywhere.",
+        "Whether the footer special-cases a page with no CtaBand above it, and if so, with the shipped register or one built for the case.",
       after: { ask: "foot-after" },
     },
     {
@@ -138,7 +152,7 @@ export const SITE_CHROME = defineExploration({
       label: "The phone's foot",
       question: "How should the footer's demo invitation travel to a phone?",
       context:
-        "A QR is not part of the mobile answer: nobody scans their own screen. first-event r1 now rules a code's real home is printed stock, so a phone copy was always decoration; today the frame hides below its breakpoint, a link instead.",
+        "A phone showing its own QR code cannot scan it: a footer code on that screen is dead weight to the person reading it, not to a friend standing beside them. Today the frame hides below its breakpoint, a link stands in its place.",
       options: [
         {
           id: "hidden",
@@ -147,10 +161,16 @@ export const SITE_CHROME = defineExploration({
             "As today: no code at all here, a single tap-through line in its place.",
         },
         {
+          id: "reveal",
+          label: "A code revealed on a tap",
+          means:
+            "The footer stays a plain link until asked; a tap grows a real code sized for someone else's camera, not this screen's own.",
+        },
+        {
           id: "small",
           label: "A small code",
           means:
-            "The code stays, small, beside the heading: decoration by his own ruling now (first-event r1), not just this board's guess, and the weakest of the three.",
+            "The code stays, small and always visible, beside the heading: familiar, even though this exact screen can never be the one that scans it.",
         },
         {
           id: "none",
@@ -159,13 +179,13 @@ export const SITE_CHROME = defineExploration({
             "No demo mention at all on a phone: the footer opens straight to the index.",
         },
       ],
-      recommended: "hidden",
+      recommended: "reveal",
       because:
-        "A code nobody can scan is dead weight on the one surface that cannot use it, more so now a code's real home is ruled to be printed stock rather than a phone screen; the tap-through link already gets a visitor to the demo in one motion.",
+        "A QR's whole job is to be read by a camera that is not the screen showing it, so hiding it outright throws away the one real use a phone code has: showing someone standing next to the reader. A tap keeps the footer quiet by default and only pays the space when that moment happens.",
       overrule:
-        "If even a tap-through link is too much for a quiet close, none drops it outright; small is the weaker hold, its code now ruled to have no real home here.",
+        "If even a tap is more than a footer should ask, hidden's plain link is simpler; small keeps a code visible that this screen can't use; none drops it outright.",
       lands:
-        "Whether a phone ever shows a QR code in the footer, or only ever a link.",
+        "Whether a phone ever shows a QR code in the footer, and whether showing one costs a tap or nothing at all.",
       tile: "phone",
     },
   ],

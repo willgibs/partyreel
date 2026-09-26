@@ -139,6 +139,31 @@ async function generateVideoPreview(
 }
 
 /**
+ * THE CLIP'S POSTER, AS ITS PREVIEW (the live reel's clip seam). The on-device creator
+ * already holds the frame it wants the album to show for a clip (it drew it), so `addClipToAlbum`
+ * hands that image in rather than asking this module to seek into a freshly encoded video, which a
+ * browser that just encoded it may still be unable to decode. It is re-encoded to the preview's own
+ * WebP at the preview's own size, so the presigned PUT's content type and length bind exactly as
+ * they do for every other preview. Null on any failure: the generated preview is then the fallback.
+ */
+export async function posterPreview(
+  poster: Blob,
+): Promise<GeneratedPreview | null> {
+  try {
+    const bmp = await createImageBitmap(poster);
+    try {
+      const { width: tw, height: th } = previewTargetSize(bmp.width, bmp.height);
+      const blob = await sourceToWebpBlob(bmp, tw, th);
+      return blob ? { blob, ext: "webp" } : null;
+    } finally {
+      bmp.close();
+    }
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Generate a small WebP preview blob for an upload, or null (skip — the tile serves the original).
  * `measured` is the width/height/duration the uploader already read for the row (reused here).
  */

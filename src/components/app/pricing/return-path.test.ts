@@ -1,4 +1,3 @@
-// @contract-for: src/components/app/pricing/return-path.ts
 import { describe, expect, it } from "vitest";
 
 import {

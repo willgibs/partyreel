@@ -1,13 +1,3 @@
-// ★ PENDING, NOT ABANDONED: strip "-pending" to publish these contracts on the
-// library page. The collector indexes every file a @contract-for names, and an
-// indexed file owes a `for` line in rules/component-notes.ts (gallery.test.ts
-// fails without one). That file and the collector's COMPONENT_DIRS are the
-// lab-library and lab-rules lanes, so the nine lines are asked for in this
-// track's Handoff with the exact patch. The tests below RUN either way: the
-// marker publishes a contract, it does not create one.
-// @contract-for: src/components/lab/index.ts
-// @contract-for: src/components/lab/frame.tsx
-// @contract-for: src/components/lab/apply.tsx
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 

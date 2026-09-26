@@ -125,7 +125,7 @@ export type Verdict = {
 
 export type Departure<SectionId extends string = string> = {
   id: string;
-  /** A bible rule number (1..22), a standing ruling, or precedent. */
+  /** A bible principle by number (1..10), or a shipped decision the idea departs from ("ruling" or "precedent"). */
   from: number | "ruling" | "precedent";
   /** The departure and its cost, not the argument. */
   text: string;
@@ -165,10 +165,9 @@ export type Candidate<SectionId extends string = string> = {
   /** The Moment card's facts, generalised: label and value pairs under the preview. */
   facts?: readonly (readonly [string, string])[];
   /**
-   * The Library entry this card became, once it has one: the component id, the
-   * last segment of its /design/library URL. A kept idea is promoted to the
-   * Library (Will, 2026-09-16), and the card then carries the link so the
-   * catalog says where the ruling went rather than sitting there as history.
+   * The catalog entry this card became, once it has one: the entry id, the last
+   * segment of its /design/library URL. A kept idea is built into the catalog,
+   * and the card then carries the link, so the board says where the idea went.
    */
   library?: string;
   /** What keeping this card lands as, platform-wide: the token, component or rule, in words. */
@@ -293,8 +292,6 @@ export type Round = { n: number; date: string; changed: string };
 export type WalkPage = { label: string; path: string; note?: string };
 
 export type BoardLinks = {
-  /** The bible rules in play, by number. */
-  bible: readonly number[];
   /** Defaults to docs/tracks/<id>.md. */
   track?: string;
   /** docs/specs/<id>.md when one exists. */

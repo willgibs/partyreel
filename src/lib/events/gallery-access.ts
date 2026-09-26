@@ -3,8 +3,9 @@
  *
  * The gated-gallery security core: an account-required (or password) event must NOT hand the full
  * album to an unauthenticated viewer. We resolve a viewer to one of three levels and enforce it
- * IDENTICALLY in the RSC and the gallery poll (the only two media surfaces), so withheld media never
- * leaves the server (it survives dev-tools / direct API calls, not a CSS blur over a loaded gallery).
+ * IDENTICALLY in the RSC, the album's routes (`/api/album/guest/{sync,media,manifest}`) and the
+ * guest export, so withheld media never leaves the server (it survives dev-tools / direct API calls,
+ * not a CSS blur over a loaded gallery).
  *
  * This module is PURE (no `server-only` import) so it stays unit-testable; the data loaders that touch
  * the admin client live in `gallery-access.server.ts`.
@@ -14,12 +15,12 @@ import type { GuestEvent } from "@/lib/db/queries/guest-events";
 export type GalleryAccess = "none" | "teaser" | "full";
 
 /**
- * WHICH DOOR STANDS IN FRONT OF THIS VIEWER (the door as three steps, Will 2026-09-21).
+ * WHICH DOOR STANDS IN FRONT OF THIS VIEWER.
  *
  * The access LEVEL says how much media leaves the server; the GATE says why, and the guest door's
  * step machine (`lib/guest/entry-steps.ts`) reads it to pick the step. They are separate answers
- * because `teaser` now has two causes -- an unconfirmed email and an unmade contribution -- and a
- * level alone could no longer tell them apart.
+ * because `teaser` has two causes -- an unconfirmed email and an unmade contribution -- and a
+ * level alone could not tell them apart.
  */
 export type GalleryGate = "password" | "account" | "upload";
 
@@ -32,34 +33,33 @@ export type GalleryDecision = {
 // How many newest approved PHOTOS an un-gated viewer sees as the teaser (the rest are withheld
 // server-side, surfaced only as a "+N more" count). Photos only: a teaser is a quick visual taste and
 // video is heavier + Pro-gated. Tunable. NOTE: a gallery with <= TEASER_LIMIT photos shows them all to
-// a teaser viewer (the gate still applies to upload + withholds any video); revisit the sizing in P2.
+// a teaser viewer (the gate still applies to upload + withholds any video); revisit the sizing.
 export const TEASER_LIMIT = 9;
 
 /**
- * Resolve a viewer's decision for an event's gallery. The SINGLE source of truth, reached by the RSC
- * and the poll through `resolveViewerDecision` (gallery-access.server.ts). `private` is handled by
- * the caller BEFORE this (the RSC master-lock early-return; the poll returns []), so this is only
- * ever called for `open` / `password`.
+ * Resolve a viewer's decision for an event's gallery. The SINGLE source of truth, reached by the RSC,
+ * the album's routes and the export through `resolveViewerDecision` (gallery-access.server.ts).
+ * `private` is handled by the caller BEFORE this (the RSC master-lock early-return; the routes answer
+ * a private album as gone), so this is only ever called for `open` / `password`.
  *
  * The order IS the door's order, and it is load-bearing:
- *   1. owner (the host) -> full. Everyone but the host is gated (Will: "everyone but the host").
+ *   1. owner (the host) -> full. Everyone but the host is gated.
  *   2. password event, not yet unlocked -> none / `password` (no real teaser before the password).
  *   3. verified emails required, viewer not confirmed -> teaser / `account`.
  *   4. an upload required, this viewer could make one and has not -> teaser / `upload`.
  *   5. otherwise -> full.
  *
  * ★ THE CONTEXT REQUIRES `hasContributed` AND `canContribute`, deliberately without defaults, and
- * `resolveGalleryAccess` was RETIRED rather than wrapped (2026-09-21) for the same reason: every
- * caller is a TYPE ERROR until it learns the gate. Two of them (`/api/export/guest` and
- * `/api/reel/download`) hand a viewer the real bytes, and a defaulted context would have let a held
- * guest zip every original.
+ * with no wrapper that supplies them, for the same reason: every caller is a TYPE ERROR until it
+ * learns the gate. One of them (`/api/export/guest`) hands a viewer the real bytes, and a defaulted
+ * context would let a held guest zip every original.
  *
  * ★ `canContribute` IS THE FAIL-OPEN, AND IT IS THE SERVER'S. `accepting_uploads && !albumFull`: a
  * guest is never held at a step they could not pass, so an event with uploads closed, or a host
  * whose storage is full, opens the album instead (the same pair the presign ladder refuses
  * `cap_reached` on, carried verbatim by `get_upload_gate`).
  *
- * ★ AND THE EMPTY ALBUM HOLDS THE GATE (his to overrule): no count condition here. A host who asks
+ * ★ AND THE EMPTY ALBUM HOLDS THE GATE: no count condition here. A host who asks
  * for a photo before the album is asking the first guest most of all, and "Nothing here yet. Add the
  * first photo and the album opens." is a truer first screen than an empty grid.
  */
@@ -88,8 +88,8 @@ export function resolveGalleryDecision(
     return { access: "none", gate: "password" };
   }
 
-  // ★ Keyed on `require_verified_email` since the identity reshape (2026-09-21). The host who asks
-  // for a proved email asks for it before the album as well as before an upload.
+  // ★ Keyed on `require_verified_email`: the host who asks for a proved email asks for it before
+  // the album as well as before an upload.
   if (event.require_verified_email && !ctx.isAuthed) {
     return { access: "teaser", gate: "account" };
   }

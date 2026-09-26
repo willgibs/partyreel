@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { CalendarPlus } from "lucide-react";
 
@@ -30,18 +30,28 @@ import {
   type EventListRow,
 } from "@/lib/dashboard/events-view";
 import { resolveNextSteps } from "@/lib/dashboard/next-step";
+import {
+  calendarDayInZone,
+  resolveViewerZone,
+  serverZone,
+  VIEWER_ZONE_HEADER,
+} from "@/lib/dashboard/viewer-day";
 import { getMyClaimableGuestRows } from "@/lib/db/queries/claims";
 import {
   countActiveEvents,
   getEventCardStats,
+  getEventCardStills,
   getEventCoverUrls,
+  getReelProgress,
   listEvents,
   listRecentlyDeletedEvents,
 } from "@/lib/db/queries/events";
-import { getEventsWithReels, getPulse } from "@/lib/db/queries/pulse";
+import { getLiveReelServerFacts } from "@/lib/db/queries/guest-events-admin";
+import { getPulse } from "@/lib/db/queries/pulse";
 import { getProfile } from "@/lib/db/queries/profile";
 import { getMyGuestEventCards } from "@/lib/db/queries/social";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
+import { formatDateInZone } from "@/lib/format/date-in-zone";
 import { binCountdownLabel } from "@/lib/lifecycle/recently-deleted";
 import { overStandbyBudget } from "@/lib/lifecycle/recently-deleted";
 import { getSiteUrl } from "@/lib/site-url";
@@ -111,6 +121,7 @@ export default async function DashboardPage({
     storage,
     siteUrl,
     jar,
+    headerList,
   ] = await Promise.all([
     listEvents(),
     countActiveEvents(),
@@ -120,6 +131,7 @@ export default async function DashboardPage({
     getHostStorageSummary(),
     getSiteUrl(),
     cookies(),
+    headers(),
   ]);
 
   // Onboarding gate: every account must set a public display name (Phase 1) before reaching the
@@ -139,32 +151,58 @@ export default async function DashboardPage({
   // ONE clock reading for the whole render, taken HERE rather than inside any
   // component: a Date read during render is impure (react-hooks purity), and
   // two readings could straddle midnight and disagree about what "today" is.
-  // Local parts, not UTC — `events.event_date` is a date-only column the whole
-  // app already treats as the host's own calendar day (see formatEventDate).
-  const clock = new Date();
-  const now = clock.getTime();
-  const startOfToday = new Date(
-    clock.getFullYear(),
-    clock.getMonth(),
-    clock.getDate(),
-  ).getTime();
-  const today = `${clock.getFullYear()}-${String(clock.getMonth() + 1).padStart(2, "0")}-${String(clock.getDate()).padStart(2, "0")}`;
+  //
+  // ★ "TODAY" IS THE VIEWER'S OWN CALENDAR DAY, NEVER THE SERVER'S (the
+  // 1,000-row round's follow-on, 2026-09-24). The server's clock is UTC on
+  // Vercel, so from evening on in any zone west of UTC the server's "today"
+  // is already tomorrow: the pulse's "N today" undercounted a live evening,
+  // and "Print the code" (next-step.ts, an event dated tomorrow) disappeared
+  // the one evening before the event that it matters most. The viewer's own
+  // IANA zone comes from the request Vercel already carries
+  // (`x-vercel-ip-timezone`; validated, falling back to the server's own zone
+  // on a missing or bad value — never a guess), and `calendarDayInZone` reads
+  // that zone's calendar day DST-safely (`lib/dashboard/viewer-day.ts`). The
+  // zone is used only to render and is never stored or logged (host-app.md).
+  const viewerZone = resolveViewerZone(
+    headerList.get(VIEWER_ZONE_HEADER),
+    serverZone(),
+  );
+  const now = new Date().getTime();
+  const { today, startOfTodayMs: startOfToday } = calendarDayInZone(
+    now,
+    viewerZone,
+  );
 
   const eventIds = events.map((e) => e.id);
-  // Cover art for the owned AND recently-deleted cards, per-event stats, which
-  // events already have a reel, the pulse's own strips, and the claim
-  // ticket's rows (the guest identity round, 2026-09-22): fetched HERE,
-  // after the nameless-profile redirect above, so a profile that is about to
-  // bounce to /welcome never pays for a query it will not render. Keys never
-  // reach the browser — everything is presigned server-side. In parallel.
-  const [coverUrls, eventStats, reeledIds, pulse, claimableRows] =
-    await Promise.all([
-      getEventCoverUrls([...events, ...deletedEvents].map((e) => e.id)),
-      getEventCardStats(eventIds),
-      getEventsWithReels(eventIds),
-      getPulse(eventIds, now, startOfToday),
-      getMyClaimableGuestRows(),
-    ]);
+  // The hosted cards' covers and the stills they dissolve through in turn, the
+  // binned cards' covers, per-event stats, how far each event's live reel is,
+  // the pulse's own strips, and the claim ticket's rows: fetched HERE, after the
+  // nameless-profile redirect above, so a profile that is about to bounce to
+  // /welcome never pays for a query it will not render. Keys never reach the
+  // browser — everything is presigned server-side. In parallel.
+  const [
+    cardStills,
+    binCovers,
+    eventStats,
+    reelProgress,
+    pulse,
+    claimableRows,
+    liveReelFacts,
+  ] = await Promise.all([
+    getEventCardStills(eventIds),
+    getEventCoverUrls(deletedEvents.map((e) => e.id)),
+    getEventCardStats(eventIds),
+    getReelProgress(eventIds),
+    getPulse(eventIds, now, startOfToday),
+    getMyClaimableGuestRows(),
+    // reel-teardown: the platform lever (`ops_flags.live_reel_enabled`) is ONE global fact, not a
+    // per-event one — the function takes an eventId only because the guest-facing read it mirrors
+    // also derives that event's host tier (unused here), so any of the host's own events answers
+    // the same lever. `true` (fail open, matching the lever's own default) when the host has none.
+    eventIds.length > 0
+      ? getLiveReelServerFacts(eventIds[0])
+      : Promise.resolve({ liveReelEnabled: true, tier: null }),
+  ]);
 
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
   // Stacked Event Passes (billing-caps.md): event_slots is the webhook-derived concurrent-pass
@@ -179,7 +217,10 @@ export default async function DashboardPage({
   // Storage gauge (storage-cap model): ACTIVE bytes vs the effective cap (explicit override else
   // the tier default). Active bytes = non-removed media in non-deleted events — what the cap is
   // enforced against, so deleting visibly frees room. The StorageMeter owns the display.
-  const storageCap = effectiveStorageCap(tier, profile?.storage_cap_bytes ?? null);
+  const storageCap = effectiveStorageCap(
+    tier,
+    profile?.storage_cap_bytes ?? null,
+  );
   const storageUsed = storage.activeBytes;
   const standbyBytes = storage.standbyBytes;
   const overBudget = overStandbyBudget(standbyBytes, storageCap);
@@ -190,20 +231,14 @@ export default async function DashboardPage({
   const hasBilling = Boolean(profile?.stripe_customer_id);
   const passExpiry =
     tier === "event_pass" && profile?.tier_expires_at
-      ? new Date(profile.tier_expires_at).toLocaleDateString(undefined, {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })
+      ? formatDateInZone(profile.tier_expires_at, viewerZone)
       : null;
   // Over-capacity grace (set by the lifecycle cron when a lapsed account is over cap). High-urgency
   // (its deadline costs the user data), so it stays a top-level red banner, NEVER inside the meter.
+  // Rendered in the VIEWER's own zone (above): a deadline is a day the host has to act by, and the
+  // server's UTC day can read as the wrong one from evening on anywhere west of it.
   const graceDeadline = profile?.storage_grace_until
-    ? new Date(profile.storage_grace_until).toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
+    ? formatDateInZone(profile.storage_grace_until, viewerZone)
     : null;
 
   // Band one: the rule, over the state above.
@@ -212,9 +247,10 @@ export default async function DashboardPage({
       id: e.id,
       name: e.name,
       pending: eventStats.get(e.id)?.pending ?? 0,
-      items: eventStats.get(e.id)?.approved ?? 0,
       acceptingUploads: e.accepting_uploads,
-      hasReel: reeledIds.has(e.id),
+      showReel: e.show_reel,
+      liveReelEnabled: liveReelFacts.liveReelEnabled,
+      reelItems: reelProgress.get(e.id) ?? 0,
       eventDate: e.event_date,
     })),
     storagePct,
@@ -237,7 +273,9 @@ export default async function DashboardPage({
         kind: "hosted",
         name: event.name,
         href: `/dashboard/${event.id}`,
-        coverUrl: coverUrls.get(event.id) ?? null,
+        // The cover the card paints first IS the first of its stills.
+        coverUrl: cardStills.get(event.id)?.[0] ?? null,
+        stills: cardStills.get(event.id) ?? [],
         dateLabel: event.event_date
           ? formatEventDate(event.event_date)
           : "No date set",
@@ -258,6 +296,7 @@ export default async function DashboardPage({
         name: card.name,
         href: card.href,
         coverUrl: card.coverUrl,
+        stills: [],
         dateLabel: card.dateLabel,
         sortDate: card.lastUploadAt,
         items: 0,
@@ -276,7 +315,8 @@ export default async function DashboardPage({
         kind: "deleted",
         name: event.name,
         href: null,
-        coverUrl: coverUrls.get(event.id) ?? null,
+        coverUrl: binCovers.get(event.id) ?? null,
+        stills: [],
         dateLabel: event.event_date
           ? formatEventDate(event.event_date)
           : "No date set",
@@ -293,7 +333,12 @@ export default async function DashboardPage({
   ];
 
   return (
-    <div className="space-y-6">
+    // ★ WIDE, LIKE THE ALBUM (his `album-columns` note: "it feels weird that
+    // the host dash is width constrained but the event album is wide. Host
+    // dash should go wide the same way"). `data-app-wide` drops the shell's
+    // 1280 cap and takes the album's gutter (app-shell.tsx); the event cards
+    // fill more columns as the window grows (`EVENT_CARD_GRID`).
+    <div data-app-wide className="space-y-6">
       {/* A guest's first visit is its welcome: marked once, from the client,
           since this server component cannot write with the visitor's cookies
           after it renders. It draws nothing; the Guest card below leads. */}

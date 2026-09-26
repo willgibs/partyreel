@@ -17,9 +17,11 @@ import { defineExploration } from "@/components/lab/exploration";
  * its own arc question later). The other four are independent.
  *
  * Not in this round: any production byte; the kit's files under public/press/ and its
- * build script; the killed sitewide "media kit" (an unrelated project); brand-guidelines
- * plates (clear space, minimum size, misuse), cut from the page by the 2026-08-28 ruling
- * and not reopened here.
+ * build script; the killed sitewide "media kit" (an unrelated project); a full internal
+ * brand-book guidelines section (clear space, minimum size, misuse) — that stays off the
+ * page, re-argued below rather than inherited: those rules serve a design team, not a
+ * press reader. What IS press's own business, one plain line on how the marks may be
+ * used, is drawn now as `the-sheet`'s fourth option.
  *
  * ★ THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21) TOUCHES TWO OF SEVEN.
  * `the-sheet`'s `brand-in-use` gains a second addendum, the app's own
@@ -27,9 +29,18 @@ import { defineExploration } from "@/components/lab/exploration";
  * sign, a poster, at real millimetre sizes, not a hypothetical "real
  * screen" alone. `the-arc` names pricing-page's own re-cut chapter order
  * (overview, then the table, then the questions, r2) as the precedent its
- * recommendation now stands on. Neither recommendation changed; `who-for`,
- * `the-words`, `the-facts`, `a-human` and `the-close` stand: no badge named
- * them.
+ * recommendation now stands on. `who-for`, `the-words`, `the-facts`,
+ * `a-human` and `the-close` stand as drawn.
+ *
+ * ★ THE REFRESH (2026-09-24) RE-JUDGES THE BRAND-GUIDELINES CUT ON ITS OWN
+ * CASE RATHER THAN CARRYING IT FORWARD UNEXAMINED. The production page's own
+ * comment (press/page.tsx) still has the right reason: clear space and
+ * minimum-size plates are internal brand-book material a reporter never
+ * asked for, and that audience mismatch has not changed. What HAS changed
+ * is that nothing on the sheet today tells a publication what it may
+ * actually do with the marks it just downloaded; `the-sheet` now draws that
+ * one narrow, genuinely press-relevant line as its own option rather than
+ * leaving the whole question silently closed.
  */
 export const PRESS_PAGE = defineExploration({
   id: "press-page",
@@ -42,7 +53,6 @@ export const PRESS_PAGE = defineExploration({
   },
   context:
     "Will's stacking steer (2026-09-19): /press is unprotected, open to relitigate from the ground up. Seven decisions on PageHero, PressSection, PressSheet and the copy buttons. Not in this round: any production byte, the kit's build script, or the killed sitewide media kit.",
-  bible: [6, 16, 18, 19, 21, 22],
   asks: [
     /* ── 1. Who the page is for ─────────────────────────────────────────── */
     {
@@ -104,12 +114,18 @@ export const PRESS_PAGE = defineExploration({
           means:
             "The same eight plates, plus the mark over a real guest album and on the app's own printed stock (table cards, a sign, a poster): two addenda now.",
         },
+        {
+          id: "usage-note",
+          label: "Eight plates, plus how they may be used",
+          means:
+            "The same eight plates, plus one line: use the marks as provided, no recolouring or stretching. Not the brand book's rules, just what a publication needs.",
+        },
       ],
-      recommended: "eight-plates",
+      recommended: "usage-note",
       because:
-        "The placeholder marks are a delivery gap, not a design one; pulling plates now fixes the wrong problem and leaves the sheet thinner until the icon lands anyway.",
+        "A publication downloading these marks today is told nothing about what it may do with them; one line closes that real gap without reopening the internal brand book (clear space, minimum size), which is a design team's own business, not a press reader's.",
       overrule:
-        "If a half-finished sheet undersells the kit more than a full one, marks-only; brand-in-use is fullest now, holding real print objects too.",
+        "If even one line reads as a brand book creeping onto a press page, the plain eight plates stay the cleaner, silent version; a curious editor can still ask.",
       lands: "press-sheet.tsx's Frame list; PRESS_KIT's shape stays whatever wins.",
     },
 

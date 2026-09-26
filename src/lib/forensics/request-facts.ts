@@ -1,15 +1,16 @@
 /**
- * Pure request-header → forensic-facts shaping (trust-safety-forensics.md A3-lite). Extracted from the capture seam
+ * Pure request-header → forensic-facts shaping (trust-safety-forensics.md, "What each upload
+ * captures"). Extracted from the capture seam
  * so the shaping is unit-testable without a live Request. No I/O; runs anywhere Headers exists
  * (Node 22 / edge / Vitest).
  *
- * SCOPE GUARD: this is the ENTIRE per-upload capture set the ruling allows — IP, timestamp
+ * SCOPE GUARD: this is the ENTIRE per-upload capture set trust-safety-forensics.md allows — IP, timestamp
  * (DB-side default), UA, UA client hints, Vercel coarse geo. The pre-strip EXIF capture is
- * counsel-gated (trust-safety-forensics.md decision 1); do not widen this without that sign-off.
+ * counsel-gated (trust-safety-forensics.md, "No pre-strip EXIF capture"); do not widen this without that sign-off.
  */
 
 export type ForensicRequestFacts = {
-  /** The client IP as Vercel resolved it (raw, by ruling; the table is deny-all). */
+  /** The client IP as Vercel resolved it (raw; the table is deny-all). */
   ip: string | null;
   userAgent: string | null;
   /** Every `sec-ch-*` request header, verbatim (low-entropy hints arrive unprompted on Chromium). */

@@ -4,7 +4,7 @@ import "./export-flow.css";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
-import { Check, ListChecks } from "lucide-react";
+import { Check, Download, Image as ImageIcon, ListChecks } from "lucide-react";
 
 import { ExplorationBoard, Frame } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
@@ -48,9 +48,9 @@ import {
  * ★ THE SURFACE IS THE ONE RESPONSIVE SHEET (guest-shape r1, folded in by the
  * overtaken audit 2026-09-21): a bottom sheet in a hand, a side panel at a
  * desk. The shipped export dialog is still a centred `Dialog`, and drawing it
- * that way would have every option of this board answered on a surface the
- * ruling has already replaced. The reshaped questions are asked on the sheet;
- * the swap itself is the wiring lane's, not a question here.
+ * that way would have every option of this board answered on a surface
+ * production has already moved past. The reshaped questions are asked on the
+ * sheet; the swap itself is the wiring lane's, not a question here.
  *
  * ★ THE GROUND IS TODAY'S PRODUCT EXCEPT WHERE A DECISION IS STAGED. Every
  * picture is the shipped surface with ONE thing changed, so a decision never
@@ -223,21 +223,35 @@ const capRead: Reader = (root) => {
 
 const objectRead: Reader = (root, win) => {
   const d = dialogFacts(root, win);
-  if (!d) {
-    const bar = root.querySelector("[data-xf-bar]");
-    return `Measured: no sheet, ${bar ? "the select bar is the only chrome" : "nothing between the tap and the file"}, and the chips are nowhere on the screen.`;
+  if (d) {
+    const chips = root.querySelectorAll("[data-xf-chip]").length;
+    return `Measured: the sheet is ${d.w} by ${d.h} px, ${d.share} percent of the screen, and holds ${chips} chips, the size and the button.`;
   }
-  const chips = root.querySelectorAll("[data-xf-chip]").length;
-  return `Measured: the sheet is ${d.w} by ${d.h} px, ${d.share} percent of the screen, and holds ${chips} chips, the size and the button.`;
+  const menu = root.querySelector<HTMLElement>("[data-xf-menu]");
+  if (menu) {
+    const b = menu.getBoundingClientRect();
+    const chips = root.querySelectorAll("[data-xf-chip]").length;
+    return `Measured: the menu is ${Math.round(b.width)} by ${Math.round(b.height)} px, ${pct(b.width * b.height, win.innerWidth * win.innerHeight)} percent of the screen, and holds ${chips} chips, the size and the button.`;
+  }
+  const bar = root.querySelector("[data-xf-bar]");
+  return `Measured: no sheet, ${bar ? "the select bar is the only chrome" : "nothing between the tap and the file"}, and the chips are nowhere on the screen.`;
 };
 
 const phoneRead: Reader = (root) => {
   const sheet = root.querySelector<HTMLElement>("[data-xf-sheet]");
+  if (sheet) {
+    const lead = root.querySelector("[data-xf-lead]");
+    return lead
+      ? `Measured: the phone's own share sheet takes over, its own top row already reading "${lead.textContent?.trim()}" before anything is saved.`
+      : `Measured: the phone's own sheet takes ${Math.round(sheet.getBoundingClientRect().height)} px, and the zip is named on it before anything is saved.`;
+  }
   const body = text(root);
-  const names = /Files/.test(body);
-  if (sheet)
-    return `Measured: the phone's own sheet takes ${Math.round(sheet.getBoundingClientRect().height)} px, and the zip is named on it before anything is saved.`;
-  return `Measured: ${names ? "the words on the screen name where the file lands" : "nothing on the screen names where the file lands"}, and the only sign of it is the browser's own arrow.`;
+  const photos = /Save to Photos/.test(body);
+  const files = /to Files/.test(body);
+  if (photos && files)
+    return "Measured: the foot offers both, Save to Photos first and the zip to Files second.";
+  if (photos) return "Measured: the foot's own button already says Save to Photos.";
+  return `Measured: ${files ? "the words on the screen name where the file lands" : "nothing on the screen names where the file lands"}, and the only sign of it is the browser's own arrow.`;
 };
 
 /* ── the frame ───────────────────────────────────────────────────────────── */
@@ -392,23 +406,26 @@ function Ground({
   screen,
   count,
   under,
+  /** `object=menu`'s own door, anchored where the real one sits. */
+  door,
   children,
 }: {
   who: Who;
   screen: ScreenId;
   count: number;
   under?: ReactNode;
+  door?: ReactNode;
   children?: ReactNode;
 }) {
   return who === "guest" ? (
-    <GuestAlbum screen={screen} count={count}>
+    <GuestAlbum screen={screen} count={count} row={door}>
       {/* The guest album has no section header to hang a line under, so the
           wait's line rides the same slot the sheet and the toast do. */}
       {under}
       {children}
     </GuestAlbum>
   ) : (
-    <HostGallery screen={screen} count={count} under={under}>
+    <HostGallery screen={screen} count={count} under={under} action={door}>
       {children}
     </HostGallery>
   );
@@ -456,14 +473,21 @@ function WaitScreen({ shape, s }: { shape: WaitShape; s: BoardState }) {
 
 /* ── 4. a tap with no answer ─────────────────────────────────────────────── */
 
-/** `forever` is dropped: a failure's ways out are ruled onto real buttons. */
-type StuckShape = "timeout" | "cancel";
+/**
+ * `forever` is dropped: a failure's way out belongs on a real button. `retry`
+ * is the new middle door (boards refresh, 2026-09-24): quiet and automatic
+ * where `timeout` and `cancel` are both something a person has to read or
+ * press.
+ */
+type StuckShape = "timeout" | "cancel" | "retry";
 
 const STUCK_CAPTION: Record<StuckShape, string> = {
   timeout:
     "The same ten seconds, given up on. The button is back and the way forward is named.",
   cancel:
     "The first second, with the way out already there. It costs a control on every download that works.",
+  retry:
+    "Two silent re-attempts in, still inside the same ten seconds. Nothing to read, nothing to press; a third miss becomes the timeout.",
 };
 
 function StuckScreen({ shape, s }: { shape: StuckShape; s: BoardState }) {
@@ -476,7 +500,9 @@ function StuckScreen({ shape, s }: { shape: StuckShape; s: BoardState }) {
 
   const said = failed
     ? "Couldn't start that download."
-    : "Preparing your download…";
+    : shape === "retry"
+      ? "Still trying to start your download…"
+      : "Preparing your download…";
 
   return (
     <Screen
@@ -519,12 +545,18 @@ function StuckScreen({ shape, s }: { shape: StuckShape; s: BoardState }) {
             <Head description="" />
             <div className="flex flex-col gap-3" data-xf-work>
               <p className="text-sm font-medium" data-xf-said>
-                {failed ? "That download did not start" : "Building your zip"}
+                {failed
+                  ? "That download did not start"
+                  : shape === "retry"
+                    ? "Still building your zip"
+                    : "Building your zip"}
               </p>
               <p className="text-xs text-muted-foreground">
                 {failed
                   ? "Nothing came back. Your album has not changed."
-                  : `${total.count.toLocaleString("en-US")} items, ${formatBytes(total.bytes)}`}
+                  : shape === "retry"
+                    ? "One attempt didn't answer. Trying again on its own."
+                    : `${total.count.toLocaleString("en-US")} items, ${formatBytes(total.bytes)}`}
               </p>
               <div className="flex justify-end gap-2">
                 {failed ? (
@@ -547,14 +579,21 @@ function StuckScreen({ shape, s }: { shape: StuckShape; s: BoardState }) {
 
 /* ── 5. a zip with nothing in it ─────────────────────────────────────────── */
 
-/** `silence` is dropped: he refuses a gap a person has to check for themselves. */
-type HollowShape = "after" | "refuse";
+/**
+ * `silence` is dropped: nobody should have to check for themselves whether a
+ * download really has everything in it. `offer` is the new third (boards
+ * refresh, 2026-09-24): the same count as `after`, with the one-tap way out
+ * `refuse` already offers, on every wait surface rather than only the panel.
+ */
+type HollowShape = "after" | "refuse" | "offer";
 
 const HOLLOW_CAPTION: Record<HollowShape, string> = {
   after:
     "The same moment, counted. What really reached the file is on the screen, whether that is six missing or all of them.",
   refuse:
     "Nothing is saved at all. The album says it changed, and the only thing offered is another go.",
+  offer:
+    "The same count as 'It says what did not make it', with Try again beside it wherever the wait is shown.",
 };
 
 function HollowScreen({ shape, s }: { shape: HollowShape; s: BoardState }) {
@@ -564,11 +603,15 @@ function HollowScreen({ shape, s }: { shape: HollowShape; s: BoardState }) {
   const total = totalFor(album.summary, "all", false);
   const wait = waitOf(s.wait);
   const kept = Math.max(0, total.count - 6);
+  // `after` and `offer` share the same counted line; `offer` and `refuse`
+  // share the one-tap way out, drawn on every wait surface for `offer` rather
+  // than only where `WorkBody`'s own fallback happens to add one.
+  const counted = shape !== "refuse";
+  const offersRetry = shape !== "after";
 
-  const said =
-    shape === "after"
-      ? `${kept.toLocaleString("en-US")} of ${total.count.toLocaleString("en-US")} items are in your zip. Six could not be found.`
-      : "The album changed while your zip was being made.";
+  const said = counted
+    ? `${kept.toLocaleString("en-US")} of ${total.count.toLocaleString("en-US")} items are in your zip. Six could not be found.`
+    : "The album changed while your zip was being made.";
 
   return (
     <Screen
@@ -583,10 +626,7 @@ function HollowScreen({ shape, s }: { shape: HollowShape; s: BoardState }) {
         count={total.count}
         under={
           wait === "line" ? (
-            <UnderLine
-              icon="warn"
-              action={shape === "refuse" ? "Try again" : undefined}
-            >
+            <UnderLine icon="warn" action={offersRetry ? "Try again" : undefined}>
               {said}
             </UnderLine>
           ) : undefined
@@ -595,6 +635,11 @@ function HollowScreen({ shape, s }: { shape: HollowShape; s: BoardState }) {
         {wait === "toast" ? (
           <Toast screen={screen} tone="error">
             {said}
+            {offersRetry ? (
+              <span className="ml-2 font-medium underline underline-offset-2">
+                Try again
+              </span>
+            ) : null}
           </Toast>
         ) : null}
         {wait === "panel" ? (
@@ -604,7 +649,8 @@ function HollowScreen({ shape, s }: { shape: HollowShape; s: BoardState }) {
               summary={album.summary}
               types="all"
               percent={100}
-              state={shape === "after" ? "partial" : "failed"}
+              state={counted ? "partial" : "failed"}
+              retry={offersRetry}
             />
           </Shell>
         ) : null}
@@ -616,9 +662,12 @@ function HollowScreen({ shape, s }: { shape: HollowShape; s: BoardState }) {
 /* ── 6. the limit ────────────────────────────────────────────────────────── */
 
 /**
- * ★ `bite` IS DROPPED (a refusal that names no number is ruled out). `CapMode`
+ * ★ `bite` IS DROPPED (a refusal that names no number helps nobody). `CapMode`
  * keeps the word because it is `Foot`'s DEFAULT, which is what every other
- * decision's foot draws; only this ask lost it as an answer.
+ * decision's foot draws; only this ask lost it as an answer. `auto` is the new
+ * third (boards refresh, 2026-09-24): `Foot` trims to the ceiling itself
+ * rather than either warning about it (`near`) or working around it in several
+ * files (`split`).
  */
 type CapShape = Exclude<CapMode, "bite">;
 
@@ -626,6 +675,7 @@ const CAP_CAPTION: Record<CapShape, string> = {
   near: "The same album, with the number said. It is still a refusal, but the host knows what they are up against.",
   split:
     "The same album, taken home. The foot says how many files it will be and the button says it too.",
+  auto: "The same album, taken home at once: the newest 2,000 zip immediately, and the foot names what it left behind.",
 };
 
 function CapScreen({ shape, s }: { shape: CapShape; s: BoardState }) {
@@ -658,16 +708,48 @@ function CapScreen({ shape, s }: { shape: CapShape; s: BoardState }) {
 
 /* ── 7. what keeping it means ────────────────────────────────────────────── */
 
-/** `link` is dropped: the album's address and its copy sit twice on the page. */
-type ObjectShape = "zip" | "straight";
+/**
+ * `link` is dropped: the album's address and its copy sit twice on the page
+ * already. `menu` is the new third (boards refresh, 2026-09-24): the same
+ * chips, size and button as `zip`, anchored under Download as a popover
+ * rather than taking the responsive sheet's own posture.
+ */
+type ObjectShape = "zip" | "straight" | "menu";
 const objectOf = (v: string | undefined): ObjectShape =>
-  v === "straight" ? "straight" : "zip";
+  v === "straight" ? "straight" : v === "menu" ? "menu" : "zip";
 
 const OBJECT_CAPTION: Record<ObjectShape, string> = {
   zip: "Today. Three chips, a size and a button, on the sheet every other decision here happens on.",
   straight:
     "The sheet is gone entirely: the tap starts the download, and anyone who wants less picks tiles instead.",
+  menu: "The same chips, size and button, in a popover under Download rather than a sheet over the album.",
 };
+
+/**
+ * `object=menu`'s own door: Download stays where it is and the couple of
+ * bundle choices open right under it. `position: absolute`, not fixed like
+ * `.xf-dialog`: every capture here starts scrolled to the top and the anchor
+ * is a few pixels down in the header, so nothing here has a scroll position
+ * to fall out of view at (`export-flow.css`'s own note on why the sheet is
+ * fixed does not apply to a popover that never has to survive a scroll).
+ */
+function MenuDoor({ children }: { children: ReactNode }) {
+  return (
+    <div className="relative mb-3 flex justify-end" data-xf-door>
+      <Button type="button" variant="outline" size="sm" tabIndex={-1}>
+        <Download /> Download
+      </Button>
+      <div
+        className="xf-menu absolute top-full right-0 z-20 mt-1.5"
+        data-xf-menu
+        role="menu"
+        aria-label="Download album"
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 
 function ObjectScreen({ shape, s }: { shape: ObjectShape; s: BoardState }) {
   const screen = screenFor(s);
@@ -688,6 +770,31 @@ function ObjectScreen({ shape, s }: { shape: ObjectShape; s: BoardState }) {
             Your download is starting.
           </Toast>
         </Ground>
+      </Screen>
+    );
+  }
+  if (shape === "menu") {
+    return (
+      <Screen
+        id={`object-${shape}`}
+        screen={screen}
+        read={objectRead}
+        caption={OBJECT_CAPTION[shape]}
+      >
+        <Ground
+          who={who}
+          screen={screen}
+          count={total.count}
+          door={
+            <MenuDoor>
+              <ChipRow summary={album.summary} types="all" />
+              {who === "host" ? (
+                <HiddenRow summary={album.summary} checked={false} />
+              ) : null}
+              <Foot summary={album.summary} types="all" />
+            </MenuDoor>
+          }
+        />
       </Screen>
     );
   }
@@ -714,16 +821,56 @@ function ObjectScreen({ shape, s }: { shape: ObjectShape; s: BoardState }) {
 
 /* ── 8. where the file lands ─────────────────────────────────────────────── */
 
-type PhoneShape = "today" | "files" | "share";
+type PhoneShape = "zip" | "batch" | "both";
 
 const PHONE_CAPTION: Record<PhoneShape, string> = {
-  today:
-    "Today. The attachment goes to the browser and the only sign of it is Safari's own arrow, which no copy anywhere mentions.",
-  files:
-    "The button says where it is going before the tap, so the arrow is a confirmation rather than the whole story.",
-  share:
-    "The phone's own sheet takes the file. It can be saved, sent on, or dropped to a laptop, and it needs the whole zip in memory first.",
+  zip: "The zip lands in Files, exactly as it always has: the fastest single file, never the native library a phone expects.",
+  batch:
+    "Every file goes to the share sheet at once: its own Save leads straight into Photos, no zip involved, no button of ours at all.",
+  both: "The sheet's own button saves straight to Photos; a quieter line under it still offers the one zip, to Files.",
 };
+
+/**
+ * `both`'S OWN FOOT: Photos leads, Files stays one quiet tap away (his note:
+ * "not looking to reduce ways to download, just include the expected native
+ * way as the default"). A sibling of `Foot`, not a mode on it: the shared one
+ * answers every OTHER decision's own cap and wait states too, and none of
+ * them needs a second button.
+ */
+function PhoneBothFoot({
+  total,
+}: {
+  total: { count: number; bytes: number };
+}) {
+  return (
+    <div className="mt-1 flex flex-col items-end gap-1.5" data-xf-foot>
+      <div className="flex w-full items-center justify-between gap-3">
+        <div>
+          <span className="text-2xl font-medium tabular-nums" data-xf-size>
+            {formatBytes(total.bytes)}
+          </span>
+          <div
+            className="text-xs tabular-nums text-muted-foreground"
+            data-xf-count
+          >
+            {total.count.toLocaleString("en-US")}{" "}
+            {total.count === 1 ? "item" : "items"}
+          </div>
+        </div>
+        <Button type="button" data-xf-go tabIndex={-1}>
+          <ImageIcon /> Save to Photos
+        </Button>
+      </div>
+      <button
+        type="button"
+        className="text-xs text-muted-foreground underline underline-offset-4"
+        tabIndex={-1}
+      >
+        or the zip, to Files
+      </button>
+    </div>
+  );
+}
 
 function PhoneScreen({ shape, s }: { shape: PhoneShape; s: BoardState }) {
   // ★ ALWAYS 375. This decision is about what a phone does, so the board's
@@ -734,6 +881,10 @@ function PhoneScreen({ shape, s }: { shape: PhoneShape; s: BoardState }) {
   const album = albumFor(s);
   const total = totalFor(album.summary, "all", false);
   const object = objectOf(s.object);
+  // `batch` always jumps straight to the OS sheet, as the old `share` did;
+  // `both` does too once `object` leaves no dialog to hold its second button.
+  const toShareSheet =
+    shape === "batch" || (shape === "both" && object === "straight");
   return (
     <Screen
       id={`phone-${shape}`}
@@ -742,11 +893,11 @@ function PhoneScreen({ shape, s }: { shape: PhoneShape; s: BoardState }) {
       caption={PHONE_CAPTION[shape]}
     >
       <GuestAlbum screen={screen} count={total.count}>
-        {shape === "share" ? (
-          <ShareSheet size={formatBytes(total.bytes)} />
+        {toShareSheet ? (
+          <ShareSheet size={formatBytes(total.bytes)} photos={total.count} />
         ) : object === "straight" ? (
           <Toast screen={screen} tone="success">
-            {shape === "files"
+            {shape === "zip"
               ? "Saved to Files, in Downloads."
               : "Your download is starting."}
           </Toast>
@@ -754,14 +905,14 @@ function PhoneScreen({ shape, s }: { shape: PhoneShape; s: BoardState }) {
           <Shell>
             <Head />
             <ChipRow summary={album.summary} types="all" />
-            <Foot
-              summary={album.summary}
-              types="all"
-              saysWhere={shape === "files"}
-            />
+            {shape === "both" ? (
+              <PhoneBothFoot total={total} />
+            ) : (
+              <Foot summary={album.summary} types="all" saysWhere />
+            )}
           </Shell>
         )}
-        <IosBar lit={shape !== "share"} />
+        <IosBar lit={shape === "zip"} />
       </GuestAlbum>
     </Screen>
   );
@@ -780,19 +931,23 @@ const PREVIEWS: PreviewsFor<typeof EXPORT_FLOW> = {
 
   "stuck.timeout": (s) => <StuckScreen shape="timeout" s={s} />,
   "stuck.cancel": (s) => <StuckScreen shape="cancel" s={s} />,
+  "stuck.retry": (s) => <StuckScreen shape="retry" s={s} />,
 
   "hollow.after": (s) => <HollowScreen shape="after" s={s} />,
   "hollow.refuse": (s) => <HollowScreen shape="refuse" s={s} />,
+  "hollow.offer": (s) => <HollowScreen shape="offer" s={s} />,
 
   "cap.near": (s) => <CapScreen shape="near" s={s} />,
   "cap.split": (s) => <CapScreen shape="split" s={s} />,
+  "cap.auto": (s) => <CapScreen shape="auto" s={s} />,
 
   "object.zip": (s) => <ObjectScreen shape="zip" s={s} />,
   "object.straight": (s) => <ObjectScreen shape="straight" s={s} />,
+  "object.menu": (s) => <ObjectScreen shape="menu" s={s} />,
 
-  "phone.today": (s) => <PhoneScreen shape="today" s={s} />,
-  "phone.files": (s) => <PhoneScreen shape="files" s={s} />,
-  "phone.share": (s) => <PhoneScreen shape="share" s={s} />,
+  "phone.zip": (s) => <PhoneScreen shape="zip" s={s} />,
+  "phone.batch": (s) => <PhoneScreen shape="batch" s={s} />,
+  "phone.both": (s) => <PhoneScreen shape="both" s={s} />,
 };
 
 export function ExportFlowBoard() {

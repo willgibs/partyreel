@@ -16,6 +16,8 @@ import {
   Output,
 } from "mediabunny";
 
+import { MAX_REEL_SECONDS } from "@/lib/constants/tiers";
+
 import { DEFAULT_BITRATE, FPS, reelDimensions } from "./constants";
 import type { ReelProps } from "./reel-types";
 import { loadReelAssets, type ReelAssets } from "./assets";
@@ -30,6 +32,29 @@ import {
 // bundle); re-exported so the dev parity harness + the budget parity test keep
 // their existing import path.
 export { ENCODE_BITRATES, DEFAULT_BITRATE } from "./constants";
+
+/**
+ * THE CEILING EVERY ENCODE RUNS UNDER, AS A CONSTANT OF THE ENCODER ITSELF.
+ *
+ * A clip is made on the viewer's device and leaves as a file; nothing on a server mints, bounds or
+ * blesses it any more (the stored reel's size-capped presign went with the stored reel). The length
+ * a clip may run is the host's plan's (`ClipFacts.maxSeconds`, tier-derived on the server), and the
+ * creator hands the engine props already capped to it. This is the encoder's own backstop under
+ * that: no props, however they were built, run it past the longest any plan allows plus the tail a
+ * style's intro, outro and last transition add (`capToLength` keeps whole moments inside the
+ * length, then the style draws its own ends). A bug that planned a ten-minute clip fails here, at
+ * once, before a byte is decoded, instead of spending a phone's battery on a file nobody asked for.
+ *
+ * ★ THE TAIL IS 20 s, NOT THE OLD BUDGET'S 15, BECAUSE A TREATMENT RUNS PAST ITS CAP.
+ * `buildReelProps` caps on the mood timeline, and Layered parallax, capped at 60 s that way, runs
+ * 75.1 s. The creator fits every style on its own duration (`clip-selection.ts`), so a clip never
+ * comes near this; the lab's builders still cap the old way and must still encode.
+ * `encode-ceiling.test.ts` holds every style, capped at the longest plan, under it.
+ */
+export const ENCODE_TAIL_SEC = 20;
+export const MAX_ENCODE_SECONDS =
+  Math.max(...Object.values(MAX_REEL_SECONDS)) + ENCODE_TAIL_SEC;
+export const MAX_ENCODE_FRAMES = MAX_ENCODE_SECONDS * FPS;
 
 export type EncodeReelOptions = {
   /** Target video bitrate in bps (default 5 Mbps). */
@@ -76,6 +101,11 @@ export async function encodeReel(
   } = options;
   const { width, height } = reelDimensions(props.orientation);
   const totalFrames = engineStyleDuration(props.styleId, props);
+  if (!(totalFrames > 0) || totalFrames > MAX_ENCODE_FRAMES) {
+    throw new RangeError(
+      `reel encode refused: ${totalFrames} frames is outside the encoder's ceiling of ${MAX_ENCODE_FRAMES}`,
+    );
+  }
 
   const assets =
     options.assets ??

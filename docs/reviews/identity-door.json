@@ -1,0 +1,75 @@
+{
+  "board": "identity-door",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-25",
+      "answers": [
+        {
+          "ask": "walk",
+          "choice": "separate",
+          "note": "I like a more focused welcome screen. Guests may scan the code with no context, so this allows us to intro the idea before asking for their info, feeling more deserving. Could feel scary scanning a QR code and getting asked your name immediately. The option 2 with name/email on welcome feels too crowded and makes it easy to try to click 'continue' without noticing the input fields. Clicking 'continue' from the first welcome page makes the next form input feel more focused. However, I hate our welcome flow UI right now - doesn't feel alive or engaging, which is critical to making users want to continue, not just feel they have to for the sake of the host. We should also blur and subtle overlay behind welcome to feel more focused. Very important: we may need to rethink our mobile sheet UI for welcome flow, as it feels super buggy when the mobile keyboard opens to type.",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        },
+        {
+          "ask": "field",
+          "choice": "ghost",
+          "note": "I don't expect many guests to voluntarily input their email at this step for name-only events, so making email more subtle and easily skippable will likely be appreciated by guests. We're more likely to win them over and get their email once they start seeing the value of entering their email beyond this screen. However, right now the 'Add an email to come back anytime' is breaking to 2 lines, should be shortened to stay 1 line (or smaller text for more subtlety, this optional email tap could use more polish anyway)",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        },
+        {
+          "ask": "nudge",
+          "choice": null,
+          "note": "I have a totally different solution that'll alleviate us from having to cleverly weave in sign ups and logins to this flow. After the welcome screen, let's simply have a screen for guests to select how to proceed. For name-only events: 'Continue as guest' (primary), create account, or log in. Much easier handling with intentional paths. The 'continue as guest' name step can keep the subtle tap for email selection made previously. For verification events: with magic link/codes, there should be no different handling between create account vs login (new vs existing user guests), since we're simply collecting name + email to send the magic link either way.",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        },
+        {
+          "ask": "gate",
+          "choice": "line",
+          "note": "Not sure if I kept or deleted this previous note, but our welcome flow UI could be drastically better. As is for this selection, I like the one line copy we have and the rest of the options' designs feel ugly, but I think it's more due to the current bland design of the sheets themselves.",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        },
+        {
+          "ask": "menu",
+          "choice": "card",
+          "note": "However, let's add the name + 'Unverified' stack above the 'add your email' card in the menu, and change the 'You're Unverified: anyone can type a name.\" copy in the card to \"Save this event for later\" to feel more beneficial. This keeps their name in the menu, keeps one instance of unverified, but shifts adding their email to a direct benefit instead of scare tactics.",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        },
+        {
+          "ask": "remove",
+          "choice": null,
+          "note": "Tell me what you think of this: once an email has been added, it may only be changed (to send new verification email, or to change account email but requires extra confirmation email for immediate proof), not fully removed. Account deletion is always an option too. But if we make removing their email for a names-only event a simple click away, every guest is going to go name-only for the lame blanket excuse of \"privacy\" (truly it's anonymity, no consequences)",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        }
+      ],
+      "notes": [
+        {
+          "on": null,
+          "text": "On remove: agreed for a confirmed address. It is changed, never removed, and the new address confirms by code before it replaces the old; deleting the account stays the way out. Two refinements, his to decide: an address typed but never confirmed could be withdrawn (no host ever sees a pending address, the mark says Unverified either way and the upload record keeps what was typed, so nothing accountable is lost, while a name-only guest has no account to delete); and deletion has to take the address with it, because today a deleted account's confirmed address stays on its guest rows in other hosts' events and their galleries still show it. The scrub is built going forward; clearing past rows waits for his yes.",
+          "by": "ai:orchestrator",
+          "at": "2026-09-25T08:46:18Z"
+        },
+        {
+          "on": null,
+          "text": "On nudge: his chooser is the answer, round 2's ground and the door's build: name-only events offer Continue as guest (the name step keeps the ghost email tap), Create account and Log in; verification events keep one name-and-email path to a code, the same for new and existing guests.",
+          "by": "ai:orchestrator",
+          "at": "2026-09-25T08:46:18Z"
+        },
+        {
+          "on": null,
+          "text": "Round 2 asks the door's look, alive, with a blur and a soft overlay over the live album behind the welcome, carried across welcome, chooser, name, code, the gate line and the menu card as amended, the phone frames drawn with the keyboard up. The keyboard bug has concrete causes (the name and code fields autofocus mid-animation; vaul pins a stale height across steps of different heights), fixed in production with the door's flow.",
+          "by": "ai:orchestrator",
+          "at": "2026-09-25T08:46:18Z"
+        }
+      ],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

@@ -27,14 +27,17 @@ import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import {
+  cardStillKeys,
   coverKey,
   parseEventCardStats,
   parseEventCovers,
+  parseEventStills,
   type EventCardStats,
 } from "@/lib/dashboard/card-facts";
-import { QueryFailedError } from "@/lib/db/must-query";
-import { readAllPages } from "@/lib/db/read-all";
+import { mustQuery, QueryFailedError } from "@/lib/db/must-query";
+import { inChunks, readAllPages } from "@/lib/db/read-all";
 import type { Database, Tables } from "@/lib/db/types";
+import { REEL_MINIMUM } from "@/lib/event/reel-progress";
 import {
   RECENTLY_DELETED_WINDOW_DAYS,
   binCountdownDays,
@@ -177,6 +180,72 @@ export async function getEventCoverUrls(
   return readCoverUrls(supabase, eventIds, "dashboard: event covers");
 }
 
+/** How many stills a dashboard card dissolves through: its cover and three more. */
+export const CARD_STILLS = 4;
+
+/**
+ * THE HOSTED CARDS' COVERS AND THEIR CROSSFADE (`reel-host`, Will 2026-09-25: `pulse`, his note:
+ * "event cards having a crossfade background would be a cool effect... if they went in order one
+ * at a time"). Per event, the stills its card shows in turn: the cover first (`event_covers`, the
+ * newest approved photo, its preview when it has one), then the newest previewed photos
+ * (`event_stills`), none twice, at most `CARD_STILLS` (`cardStillKeys`). An event with no approved
+ * photo is absent, and its card falls back to the no-cover surface.
+ *
+ * Two jsonb answers for any number of events, the ids in the POST body, run together; every key
+ * is presigned here, once (a cover and a still of the same photo are one key), and `stable`, so a
+ * refresh inside the half hour hands the card the same urls and the browser its cached images.
+ * Keys never reach the browser.
+ */
+export async function getEventCardStills(
+  eventIds: string[],
+): Promise<Map<string, string[]>> {
+  const out = new Map<string, string[]>();
+  if (eventIds.length === 0) return out;
+
+  const { supabase, user } = await getRequestAuth();
+  if (!user) return out;
+
+  const ids = [...new Set(eventIds)];
+  const [covers, stills] = await Promise.all([
+    supabase.rpc("event_covers", { p_event_ids: ids }),
+    supabase.rpc("event_stills", {
+      p_event_ids: ids,
+      p_per_event: CARD_STILLS,
+    }),
+  ]);
+  if (covers.error) {
+    throw new QueryFailedError("dashboard: event covers", covers.error);
+  }
+  if (stills.error) {
+    throw new QueryFailedError("dashboard: event stills", stills.error);
+  }
+  const coverKeys = parseEventCovers(covers.data);
+  const stillKeys = parseEventStills(stills.data);
+
+  const keysByEvent = new Map<string, string[]>();
+  for (const id of ids) {
+    const keys = cardStillKeys(
+      coverKeys.get(id),
+      stillKeys.get(id),
+      CARD_STILLS,
+    );
+    if (keys.length > 0) keysByEvent.set(id, keys);
+  }
+  const unique = [...new Set([...keysByEvent.values()].flat())];
+  const signed = new Map(
+    await Promise.all(
+      unique.map(
+        async (key) =>
+          [key, await presignDownload({ key, stable: true })] as const,
+      ),
+    ),
+  );
+  for (const [id, keys] of keysByEvent) {
+    out.set(id, keys.map((key) => signed.get(key) ?? "").filter(Boolean));
+  }
+  return out;
+}
+
 /**
  * Soft-deleted events still within the recovery window, for the dashboard's "Recently deleted"
  * tab. The INVERSE of listEvents(): `deleted_at IS NOT NULL` and within
@@ -263,4 +332,54 @@ export async function getEventCardStats(
     if (stats.has(id)) stats.set(id, s);
   }
   return stats;
+}
+
+/**
+ * THE LIVE REEL'S PROGRESS, PER EVENT: how many items can play, counted only as far as the reel's
+ * minimum (0, 1, or `REEL_MINIMUM` meaning "that many or more"), which is all a state needs
+ * (`reelState`, `lib/event/reel-progress.ts`). The dashboard's What needs you band and the old
+ * Studio route's redirect read it; the hub counts off the album it already holds.
+ *
+ * ★ "CAN PLAY" IS SPELLED AS THE GUEST'S `isReelEligible` IS: approved and outside the bin, not a
+ * clip someone added to the album (`reel_eligible`), and something drawable (a photo, or a video
+ * with its poster, since the reel draws a video's still and never its file). A looser "approved"
+ * count would tell a host the reel is live on an album whose guests see no reel.
+ *
+ * One row per event with at most `REEL_MINIMUM` media embedded, the filter a logic tree on the
+ * embed (the pulse's newest-per-event shape), so the read is as long as the chunk whatever the
+ * albums hold, and an event with nothing that plays comes back with an empty embed. The events are
+ * the host's own through RLS; every asked-for id is in the answer, zero where nothing plays.
+ */
+const PLAYABLE_IN_REEL =
+  "and(status.eq.approved,removed_at.is.null,reel_eligible.is.true,or(type.eq.photo,preview_key.not.is.null))";
+
+export async function getReelProgress(
+  eventIds: string[],
+): Promise<Map<string, number>> {
+  const progress = new Map<string, number>();
+  if (eventIds.length === 0) return progress;
+  for (const id of eventIds) progress.set(id, 0);
+
+  const { supabase, user } = await getRequestAuth();
+  if (!user) return progress;
+
+  const rows = await inChunks(
+    "host: reel progress",
+    eventIds,
+    async (chunk) =>
+      (await mustQuery(
+        supabase
+          .from("events")
+          .select("id, media!media_event_id_fkey(id)")
+          .in("id", chunk)
+          .or(PLAYABLE_IN_REEL, { referencedTable: "media" })
+          .limit(REEL_MINIMUM, { referencedTable: "media" }),
+        "host: reel progress",
+      )) ?? [],
+  );
+  for (const row of rows) {
+    if (!progress.has(row.id)) continue;
+    progress.set(row.id, Math.min(row.media?.length ?? 0, REEL_MINIMUM));
+  }
+  return progress;
 }

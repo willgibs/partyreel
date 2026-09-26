@@ -1,0 +1,98 @@
+/* ── THE VIEWER'S OWN SHEET (media-lightbox.tsx, media-viewer r1) ──────────
+
+   Beside the component and imported by it (matching `arrival.css`), so
+   the rules that move a photograph live with the code that moves it. The swipe
+   track's own settle stays in globals.css; everything here rides it.
+
+   ★ UNLAYERED ON PURPOSE. These rules sit outside Tailwind's layers, so they
+   beat a utility on the same element whatever its specificity: a hidden
+   chrome's `pointer-events: none` must win over the `pointer-events-auto` every
+   control inside it carries.
+
+   ★ THE STATES APPLY UNDER EVERY MOTION SETTING; ONLY THE TRANSITIONS ARE
+   GATED. A reduced-motion visitor gets the same quiet slivers and
+   the same hidden chrome, arriving at once. */
+
+/* Hidden while a photograph flies in or out, or is being pulled down. */
+[data-lightbox-chrome][data-hidden],
+[data-lightbox-content][data-dismissing] [data-lightbox-chrome] {
+  opacity: 0;
+}
+[data-lightbox-chrome][data-hidden] *,
+[data-lightbox-content][data-dismissing] [data-lightbox-chrome] * {
+  pointer-events: none;
+}
+
+/* The neighbours step out of the way of a flight, a close-up and a pull down:
+   a sliver beside a photograph that is not at rest is a sliver of nothing. */
+[data-lightbox-track][data-quiet]
+  [data-lightbox-slot]:not([data-current])
+  [data-lightbox-media],
+[data-lightbox-content][data-dismissing]
+  [data-lightbox-slot]:not([data-current])
+  [data-lightbox-media] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* A capsule with nothing to offer is no capsule (the recovery bin passes no
+   save, no share and no curate group, and a like needs a provider): its
+   controls render nothing, and an empty pane of glass is not left behind. */
+[data-lightbox-capsule]:empty {
+  display: none;
+}
+
+/* The full file fades in over the tile's preview once it has loaded, so the
+   picture a guest tapped is never replaced by a blank while the original
+   arrives. */
+[data-lightbox-full]:not([data-loaded]) {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* A neighbour's media rides the track's settle, on the same clock and the
+     same curve, so a sliver arrives centred exactly when the track lands.
+     While a finger drags, it follows one to one (the track's own
+     [data-dragging] rule kills the track's transition in the same frame). */
+  [data-lightbox-track] [data-lightbox-media] {
+    transition:
+      transform var(--lightbox-settle, 240ms) var(--ease-emphasis),
+      opacity 160ms var(--ease-emphasis);
+  }
+  [data-lightbox-track][data-dragging="true"] [data-lightbox-media] {
+    transition: opacity 160ms var(--ease-emphasis);
+  }
+
+  /* A sliver entering the window after a swap fades in rather than popping. */
+  [data-lightbox-slot]:not([data-current]) [data-lightbox-media] {
+    @starting-style {
+      opacity: 0;
+    }
+  }
+
+  /* The chrome arrives after the photograph has landed, and leaves faster
+     than it came (exits faster than entrances). */
+  [data-lightbox-chrome] {
+    transition: opacity 180ms var(--ease-emphasis);
+  }
+  [data-lightbox-chrome][data-hidden],
+  [data-lightbox-content][data-dismissing] [data-lightbox-chrome] {
+    transition-duration: 110ms;
+  }
+
+  [data-lightbox-full] {
+    transition: opacity 200ms var(--ease-emphasis);
+  }
+
+  /* "Ready": the word a lapsed tap leaves on its button. It arrives, it does
+     not appear, so the change reads as the button answering. */
+  [data-lightbox-ready] {
+    transition:
+      opacity 150ms var(--ease-emphasis),
+      transform 150ms var(--ease-emphasis);
+    @starting-style {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+  }
+}

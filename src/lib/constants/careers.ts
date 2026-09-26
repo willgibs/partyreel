@@ -43,22 +43,22 @@ export type JobOpening = {
 
 // The slug stays `reels-engineer` (no dead URLs) while the TITLE is searchable:
 // "Reels Engineer" was invented nomenclature that named no discipline and no
-// seniority, so nobody looking for this work would ever type it (renamed by
-// Will's ruling, 2026-08-28).
+// seniority, so nobody looking for this work would ever type it (renamed
+// accordingly).
 const reelEngineer: JobOpening = {
   slug: "reels-engineer",
   title: "Graphics Engineer, Reel",
   team: "Engineering",
   type: "Full-time",
   location: "Remote",
-  hook: "Own the highlight reel, the moment every event has been building toward.",
+  hook: "Own the highlight reel, the event playing back on every screen.",
   summary:
-    "Every Partyreel album can end as a short film: the best moments of an event, cut together and ready to share. The engine that makes them runs entirely in the browser, renders on the host's own phone, and ships fourteen distinct looks today. We are looking for the person to own it and take it much further.",
+    "Every Partyreel album plays as a live highlight reel from its second photo: the event cutting itself together while it is still happening, on every guest's phone and on the screen at the front of the room, with a clip anyone can make and take home. The engine runs entirely in the browser, draws on each viewer's own device, and ships fourteen distinct looks today. We are looking for the person to own it and take it much further.",
   responsibilities: [
-    "Own the reel end to end, from the styles a host picks from to the video they download.",
+    "Own the reel end to end, from the live composer on every phone to the clip a guest makes and shares.",
     "Design and ship new looks: layout, timing, colour, and typography in motion that flatter whatever mix of photos and videos a real event produces.",
     "Keep the reel fast and dependable on the phones people actually own, not just the ones we test on.",
-    "Shape the experience around it, from the host's studio to the moment guests see the finished film.",
+    "Shape the experience around it, from the tile at the top of the album to the screen at the front of the room.",
   ],
   requirements: [
     "Real experience with graphics on the web: canvas or WebGL, animation timing, colour, and type in motion.",
@@ -70,7 +70,7 @@ const reelEngineer: JobOpening = {
   // is really meant to spark a conversation... competitive compensation is
   // totally fine and fairly commonplace on job listings. If we get more serious
   // and really want to recruit, we'll start getting more specific later."
-  // The one change he ruled: "Remote-friendly" became "Remote", because it
+  // The one change made: "Remote-friendly" became "Remote", because it
   // contradicted the Remote location badge rendered on the same screen.
   offer: [
     "Remote",
@@ -130,7 +130,7 @@ export function getJob(slug: string): JobOpening | undefined {
 // headings plus the catch-all. Vary the verb before adding a heading.
 export const CAREERS_INTRO = {
   eyebrow: "Careers",
-  // Ruled plain and confident: the photography carries the hero, so the words
+  // Kept plain and confident: the photography carries the hero, so the words
   // do not have to. It only works while the contact sheet is genuinely good.
   headline: "Join our team",
   subhead:
@@ -172,7 +172,7 @@ export const CAREERS_STORY: StoryBeat[] = [
   {
     eyebrow: "The highlights",
     title: "And turn the best into a highlight reel.",
-    body: "The whole event, cut down to something worth sending. That is the surface we are hiring for.",
+    body: "The whole event, playing back on every phone and on the screen in the room, with a clip for anyone to send. That is the surface we are hiring for.",
   },
 ];
 

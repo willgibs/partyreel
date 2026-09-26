@@ -44,11 +44,14 @@ const whoForPreview = (variant: "one-page" | "two-doors" | "folded-into-about") 
 
 /* ── 2. What the sheet shows ──────────────────────────────────────────── */
 
-const sheetPreview = (variant: "eight-plates" | "marks-only" | "brand-in-use") => {
+const sheetPreview = (
+  variant: "eight-plates" | "marks-only" | "brand-in-use" | "usage-note",
+) => {
   const heights = {
     "eight-plates": [700, 1150],
     "marks-only": [430, 480],
     "brand-in-use": [1350, 2050],
+    "usage-note": [820, 1270],
   } as const;
   const [desktopH, phoneH] = heights[variant];
   return (
@@ -181,6 +184,7 @@ const PREVIEWS: PreviewsFor<typeof PRESS_PAGE> = {
   "the-sheet.eight-plates": sheetPreview("eight-plates"),
   "the-sheet.marks-only": sheetPreview("marks-only"),
   "the-sheet.brand-in-use": sheetPreview("brand-in-use"),
+  "the-sheet.usage-note": sheetPreview("usage-note"),
 
   "the-words.paragraph-and-line": wordsPreview("paragraph-and-line"),
   "the-words.three-lengths": wordsPreview("three-lengths"),

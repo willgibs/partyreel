@@ -17,7 +17,7 @@
  * ★ GLASS IS MEDIA CHROME, NEVER A POPOVER. `ui/floating-layer.ts` refuses a
  * backdrop filter on a floating PANEL, and the glass ruling does not lift that
  * refusal: a menu, a tooltip, a dialog and a sheet are opaque surfaces with a
- * step and a ring (bible 15). Glass exists where a photograph is the ground.
+ * step and a ring (the floating-layer contract). Glass exists where a photograph is the ground.
  */
 
 /** The class every glass surface in the product wears. */
@@ -82,8 +82,8 @@ export const GLASS_TOKENS = {
 export type GlassToken = keyof typeof GLASS_TOKENS;
 
 /**
- * The floating primitives the material may NOT reach, by file. Bible 15's layer
- * is opaque and stays opaque; `floating-layer.test.ts` already refuses a
+ * The floating primitives the material may NOT reach, by file. The floating-layer
+ * contract's layer is opaque and stays opaque; `floating-layer.test.ts` already refuses a
  * `backdrop-filter` inside its own family, and this list is the glass side of
  * the same fence so the refusal survives a rename on either side.
  */

@@ -5,8 +5,7 @@ import { useCallback, useSyncExternalStore } from "react";
 import { storedKeysWithPrefixes } from "@/lib/guest/session-tokens";
 
 /**
- * THE NAME THIS BROWSER TYPED, beside the session token it belongs to (the
- * identity reshape, 2026-09-21).
+ * THE NAME THIS BROWSER TYPED, beside the session token it belongs to.
  *
  * A name-only guest's identity lives in the `guests` row; this is the LOCAL copy,
  * kept for exactly two jobs the server cannot do from here:
@@ -33,11 +32,11 @@ export const GUEST_NAME_PREFIX = "pr_guest_name_";
 export const GUEST_NAME_LAST_KEY = "pr_guest_name_last";
 
 /**
- * ★ WHETHER THIS DEVICE PUT AN ADDRESS ON THIS EVENT'S ROW — AND NEVER WHICH ONE
- * (the 2026-09-22 identity ruling). The flag is `"1"` or absent, and it decides
- * exactly two things in the guest's OWN menu: the label under their name reads
- * "Email not confirmed" instead of the public mark's word, and the row offers
- * "Confirm your email" instead of "Add your email".
+ * ★ WHETHER THIS DEVICE PUT AN ADDRESS ON THIS EVENT'S ROW — AND NEVER WHICH ONE.
+ * The flag is `"1"` or absent, and it decides exactly two things in the guest's
+ * OWN menu: the label under their name reads "Email not confirmed" instead of
+ * the public mark's word, and the row offers "Confirm your email" instead of
+ * "Add your email".
  *
  * ★ THE ADDRESS ITSELF IS NEVER WRITTEN HERE, and that is a rule rather than an
  * omission: this is a phone that gets passed around a party, and the whole
@@ -90,11 +89,11 @@ export function setStoredName(qrToken: string, value: string | null) {
 }
 
 /**
- * Write ONLY the cross-event prefill, never a per-event name (the door as three steps,
- * 2026-09-21). The verified door's HELD name is exactly this case: the guest has typed a name but
- * no row exists to carry it yet, and `pr_guest_name_<qr>` means "this device is named AT this
- * event", which would be a claim about a row that is not there. The magic-link round trip that
- * loses the modal's own `typedName` recovers from this key.
+ * Write ONLY the cross-event prefill, never a per-event name. The verified door's HELD name is
+ * exactly this case: the guest has typed a name but no row exists to carry it yet, and
+ * `pr_guest_name_<qr>` means "this device is named AT this event", which would be a claim about a
+ * row that is not there. The magic-link round trip that loses the modal's own `typedName` recovers
+ * from this key.
  */
 export function setLastName(value: string) {
   try {
@@ -129,9 +128,9 @@ export function setStoredEmailAttached(qrToken: string, value: boolean) {
 }
 
 /**
- * FORGET WHO THIS DEVICE WAS AT ONE EVENT (the upload-owner lane, 2026-09-23): the name and the
- * address flag that belonged to a ticket the device is putting down because it was not the
- * viewer's (`dropGuestTicket` in use-stored-session.ts, which clears the ticket itself beside it).
+ * FORGET WHO THIS DEVICE WAS AT ONE EVENT: the name and the address flag that belonged to a ticket
+ * the device is putting down because it was not the viewer's (`dropGuestTicket` in
+ * use-stored-session.ts, which clears the ticket itself beside it).
  *
  * ★ AND THE PREFILL, WHEN IT IS THAT SAME NAME. `pr_guest_name_last` is a kindness for the next
  * party one person scans; here the device has just been shown to be in different hands, so a
@@ -155,8 +154,8 @@ export function forgetStoredGuest(qrToken: string) {
 
 /**
  * FORGET EVERY NAME AND ADDRESS FLAG ON THE DEVICE, the prefill included (the account sign-out's
- * half of "the next person on a shared phone starts clean", 2026-09-23). The prefill goes too: it
- * is the last name typed on this phone, and after a sign-out the next hand on it is anybody's.
+ * half of a shared phone starting clean for the next person). The prefill goes too: it is the last
+ * name typed on this phone, and after a sign-out the next hand on it is anybody's.
  */
 export function forgetAllStoredGuests() {
   try {

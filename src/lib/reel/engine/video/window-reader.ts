@@ -1,4 +1,4 @@
-// THE RANGE-WINDOW VIDEO READER (the reel round, 2026-09-22; Will's ruling "Range-window decode on
+// THE RANGE-WINDOW VIDEO READER (the reel round: "range-window decode on
 // device"). A window of the ORIGINAL upload, fetched by byte range and decoded on the viewer's
 // device into a small ring of canvases the synchronous draw reads. Nothing is stored, nothing is
 // transcoded, R2 egress is free; the cost is transfer on the viewer's side, which budget.ts bounds

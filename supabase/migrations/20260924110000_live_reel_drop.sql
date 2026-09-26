@@ -1,0 +1,188 @@
+-- =============================================================================================
+-- THE LIVE REEL, part 2 of 2: the DROP (lane `reel-migration`).
+--
+-- ★ APPLY ONLY after the live-reel wiring's alias build is red-teamed, on Will's yes (destructive).
+--
+-- The stored reel leaves: one host-curated mp4 per event (highlight_reels, reel_items,
+-- reel_render_log, the reel_status enum and five RPCs), the reel-ready email preference and the
+-- render kill switch. The live reel (part 1, 20260924100000_live_reel_expand.sql) is composed on
+-- each viewer's device and stores nothing, which is the point ("we never have to deal with reel
+-- storage files"). This file never touches media.reel_eligible, tier_limits() (max_reel_seconds is
+-- the cut's length cap now), or anything part 1 added.
+--
+-- ★ WHAT partyreel.com's OLDER BUILD (milestone-28) LOSES until a milestone ships the wiring
+-- (docs/PROGRAM.md, "Before launch": a contract lands once the alias's build no longer calls what it
+-- drops, even before the milestone that ships it):
+--   * the host's Reel page, the Studio and the reel panel: every read of highlight_reels and
+--     reel_items, and add_to_reel, reorder_reel, upsert_reel_config and set_reel_guest_visible,
+--     answer an error;
+--   * the guest reel: get_event_reel_by_qr_token is gone, so the album's reel and
+--     /api/reel/download answer an error;
+--   * the render pipeline and /admin/reels (reel_render_log, the reel_render_enabled flag);
+--   * the host's pulse, which embeds highlight_reels (src/lib/db/queries/pulse.ts);
+--   * the notification settings: getNotificationPrefs names notify_reel_ready in its select, so the
+--     settings read errors, and so does the save that writes it.
+--   No cron, Worker or backend job reads these objects (the purge cron and account deletion name
+--   only the R2 key, events/<id>/reel/reel.mp4, never a table).
+--
+-- ★ THE ONE STORED REEL LEFT, and the R2 object it points at. highlight_reels holds one row (the
+-- "Partyreel Demo" event's, status ready), whose output_key events/2485e1e6-12b1-4d02-aee3-1e2bb5d38d4f/
+-- reel/reel.mp4 is not media-shaped: the orphan sweep never deletes it ("not ours"), and only
+-- sweepExpiredEvents and account deletion append it by name. Once this row is gone nothing names
+-- the object, so delete it from R2 (and its backup copy, if the media backup mirrored it) when this
+-- file applies, or keep those two appends until the event itself is deleted.
+--
+-- DROP ORDER, every statement `if exists` so a re-run is a no-op, and NO CASCADE anywhere (a cascade
+-- would hide a dependency this inventory missed; a plain drop fails loudly on one instead):
+--   1. the five RPCs, before the tables their bodies read (no pg_depend edge ties a function body to
+--      a table, so the order is for the reader: no function outlives what it reads);
+--   2. reel_items (FKs to events and media), reel_render_log (no FK), highlight_reels (FKs to events
+--      and media; its status column is the enum's only user). Their indexes, policies, the
+--      highlight_reels_set_updated_at trigger, their defaults, constraints, grants and the
+--      never-committed live columns (highlight_reels.style_id and orientation, with
+--      highlight_reels_orientation_chk) go with the tables;
+--   3. the reel_status enum;
+--   4. notification_prefs.notify_reel_ready (its column grants go with it);
+--   5. the reel_render_enabled flag.
+--
+-- THE INVENTORY (the live catalog, read-only, 2026-09-24):
+--   * pg_depend on the three tables: only each table's own FKs, primary key, CHECK, defaults,
+--     indexes, policies, toast table, row type and (highlight_reels) its updated_at trigger. No
+--     view, foreign key, publication or other table depends on any of them.
+--   * pg_depend on reel_status: highlight_reels.status and its default, and the array type.
+--   * pg_depend on the five functions: nothing.
+--   * Every function body in every schema: only the five RPCs name a reel table, the enum, the flag
+--     or notify_reel_ready (no purge, restore, deletion or profile function does).
+--   * Views, materialized views, policies, column defaults and publications: none name them outside
+--     the three tables' own policies and defaults. pg_cron is not installed.
+--   * notification_prefs.notify_reel_ready: no index, constraint, policy or function names it; its
+--     only dependents are its two column grants (insert and update to authenticated). The table
+--     holds 0 rows. (profiles carries no such column.)
+--   * Rows: highlight_reels 1, reel_items 0, reel_render_log 128.
+--
+-- APPLY PROTOCOL (database-security.md -> Workflow):
+--   (0) Part 1 is applied (media.reel_eligible defaults true; ops_flags holds live_reel_enabled).
+--   (1) The alias's build names none of these objects, its red-team is green, and Will said yes.
+--       On that build's tree this answers nothing outside the generated types and the two guards
+--       that pin this file (40 files answer on the tree this file landed on; a comment that still
+--       names an object is stale, so it goes with its reader):
+--         git grep -lE 'highlight_reels|reel_items|reel_render_log|reel_status|notify_reel_ready|reel_render_enabled|add_to_reel|reorder_reel|upsert_reel_config|set_reel_guest_visible|get_event_reel_by_qr_token' -- src scripts workers ':!src/lib/db/types.ts' ':!src/lib/db/migration-guards.test.ts' ':!src/lib/db/row-cap-sql.test.ts'
+--   (2) Read-only, the one dependent a plain drop cannot see: a function body is not in pg_depend,
+--       so none outside the five may name a dropped object. Zero rows on 2026-09-24; expect zero:
+--         select p.oid::regprocedure from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+--          where n.nspname not in ('pg_catalog', 'information_schema')
+--            and p.proname not in ('add_to_reel', 'reorder_reel', 'upsert_reel_config',
+--                                  'set_reel_guest_visible', 'get_event_reel_by_qr_token')
+--            and p.prosrc ~ '(highlight_reels|reel_items|reel_render_log|reel_status|notify_reel_ready|reel_render_enabled)';
+--       Every other kind of dependent (a view, a foreign key or a policy elsewhere, a column of the
+--       enum's type) makes its plain drop refuse, and this file's one transaction rolls back whole.
+--       Then apply verbatim.
+--   (3) get_advisors. EXPECTED DELTA: 0028 (anon SECURITY DEFINER) loses get_event_reel_by_qr_token,
+--       5 -> 4; 0029 (authenticated SECURITY DEFINER) loses it and add_to_reel, reorder_reel,
+--       upsert_reel_config and set_reel_guest_visible, 32 -> 27; rls_enabled_no_policy loses
+--       reel_render_log, 15 -> 14; the performance advisor's unindexed_foreign_keys loses
+--       reel_items_media_id_fkey, 6 -> 5.
+--   (4) The rolled-back contract check at the foot.
+--   (5) Regenerate src/lib/db/types.ts (the three tables, the enum, the five functions and the
+--       notification_prefs column leave it).
+-- =============================================================================================
+
+-- 1. The five RPCs (their live signatures; each is the only one of its name).
+drop function if exists public.get_event_reel_by_qr_token(text);
+drop function if exists public.set_reel_guest_visible(uuid, boolean);
+drop function if exists public.upsert_reel_config(uuid, text, text, bigint, integer, uuid);
+drop function if exists public.reorder_reel(uuid, uuid[]);
+drop function if exists public.add_to_reel(uuid);
+
+-- 2. The three tables.
+drop table if exists public.reel_items;
+drop table if exists public.reel_render_log;
+drop table if exists public.highlight_reels;
+
+-- 3. The enum, whose only user was highlight_reels.status.
+drop type if exists public.reel_status;
+
+-- 4. The reel-ready email preference.
+alter table public.notification_prefs drop column if exists notify_reel_ready;
+
+-- 5. The render kill switch (the live reel's own lever, live_reel_enabled, stays).
+delete from public.ops_flags where key = 'reel_render_enabled';
+
+-- =============================================================================================
+-- THE ROLLED-BACK CONTRACT CHECK. The Orchestrator's, run AFTER the apply in one execute_sql call; it
+-- ends in a deliberate raise, so nothing it touches persists. The error it ends on must read
+-- `ROLLED BACK: every live_reel_drop contract held`.
+-- =============================================================================================
+-- do $$
+-- declare
+--   v_n integer;
+--   v_total integer;
+--   v_eligible integer;
+-- begin
+--   -- ── 1. Every stored-reel object is gone ──
+--   if to_regprocedure('public.add_to_reel(uuid)') is not null
+--      or to_regprocedure('public.reorder_reel(uuid, uuid[])') is not null
+--      or to_regprocedure('public.upsert_reel_config(uuid, text, text, bigint, integer, uuid)') is not null
+--      or to_regprocedure('public.set_reel_guest_visible(uuid, boolean)') is not null
+--      or to_regprocedure('public.get_event_reel_by_qr_token(text)') is not null
+--      or exists (select 1 from pg_proc p where p.pronamespace = 'public'::regnamespace
+--                  and p.proname in ('add_to_reel', 'reorder_reel', 'upsert_reel_config',
+--                                    'set_reel_guest_visible', 'get_event_reel_by_qr_token')) then
+--     raise exception 'FAIL: a stored-reel RPC survived';
+--   end if;
+--   if to_regclass('public.highlight_reels') is not null or to_regclass('public.reel_items') is not null
+--      or to_regclass('public.reel_render_log') is not null or to_regtype('public.reel_status') is not null then
+--     raise exception 'FAIL: a stored-reel table or the enum survived';
+--   end if;
+--   if exists (select 1 from information_schema.columns
+--               where table_schema = 'public' and column_name = 'notify_reel_ready') then
+--     raise exception 'FAIL: notify_reel_ready survived';
+--   end if;
+--   if exists (select 1 from public.ops_flags where key = 'reel_render_enabled') then
+--     raise exception 'FAIL: the reel_render_enabled flag survived';
+--   end if;
+--   raise notice 'OK: the five RPCs, the three tables, the enum, the preference and the flag are gone';
+--
+--   -- ── 2. Nothing left behind names them ──
+--   select count(*) into v_n
+--     from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+--    where n.nspname not in ('pg_catalog', 'information_schema')
+--      and p.prosrc ~ '(highlight_reels|reel_items|reel_render_log|reel_status|notify_reel_ready|reel_render_enabled|add_to_reel|reorder_reel|upsert_reel_config|set_reel_guest_visible|get_event_reel_by_qr_token)';
+--   if v_n <> 0 then raise exception 'FAIL: % function bodies still name a dropped object', v_n; end if;
+--   select count(*) into v_n from pg_views
+--    where definition ~ '(highlight_reels|reel_items|reel_render_log|reel_status|notify_reel_ready)';
+--   if v_n <> 0 then raise exception 'FAIL: % views still name a dropped object', v_n; end if;
+--   raise notice 'OK: no function body or view names a dropped object';
+--
+--   -- ── 3. What part 1 added, and what the drop must never touch, still stands ──
+--   if (select column_default from information_schema.columns
+--        where table_schema = 'public' and table_name = 'media' and column_name = 'reel_eligible') is distinct from 'true' then
+--     raise exception 'FAIL: media.reel_eligible lost its default';
+--   end if;
+--   if not exists (select 1 from information_schema.columns
+--                   where table_schema = 'public' and table_name = 'events' and column_name = 'show_reel')
+--      or not exists (select 1 from information_schema.columns
+--                   where table_schema = 'public' and table_name = 'events' and column_name = 'reel_style_id') then
+--     raise exception 'FAIL: an events column part 1 added is gone';
+--   end if;
+--   if (select enabled from public.ops_flags where key = 'live_reel_enabled') is distinct from true then
+--     raise exception 'FAIL: live_reel_enabled is gone or off';
+--   end if;
+--   if (select max_reel_seconds from public.tier_limits('pro'::public.tier_type)) is null then
+--     raise exception 'FAIL: tier_limits() lost max_reel_seconds (the cut''s length cap)';
+--   end if;
+--   select count(*), count(*) filter (where r.reel_eligible) into v_total, v_eligible
+--     from public.get_event_media_by_qr_token('d02631f1bfb3455188d224e41bf9510f') r;
+--   if v_total <= 1000 or v_eligible <> v_total then
+--     raise exception 'FAIL: the probe''s album answered % of % items reel_eligible', v_eligible, v_total;
+--   end if;
+--   if (select count(*) from information_schema.columns
+--        where table_schema = 'public' and table_name = 'notification_prefs'
+--          and column_name in ('notify_album_shared', 'notify_new_uploads_digest', 'notify_new_follower', 'marketing_opt_in')) <> 4
+--      or not has_column_privilege('authenticated', 'public.notification_prefs', 'notify_album_shared', 'update') then
+--     raise exception 'FAIL: a sibling notification preference or its grant went with the dropped one';
+--   end if;
+--   raise notice 'OK: reel_eligible, the events columns, live_reel_enabled, tier_limits and the other preferences stand';
+--
+--   raise exception 'ROLLED BACK: every live_reel_drop contract held';
+-- end $$;

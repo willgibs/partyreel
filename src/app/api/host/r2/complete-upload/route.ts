@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import { createMediaAsHost } from "@/lib/db/mutations/host-media";
 import { createClient } from "@/lib/supabase/server";
@@ -8,6 +9,18 @@ import {
 } from "@/lib/upload/server-pipeline";
 import { hostCompleteUploadSchema } from "@/lib/validation/upload";
 
+/**
+ * THE HOST COMPLETION'S SHAPE: the shared schema, plus the live reel's one field. `reel_eligible`
+ * is false only for a clip the host adds to the album from the reel (the clip lane's client add is
+ * its one caller), so the live reel never plays a reel it made; absent is the column's default
+ * (true), which is every photo and video a host uploads. Extended here, as the guest route extends
+ * its own, rather than in the shared validation module. Not a trust boundary: the worst a forged
+ * `false` does is keep the host's own upload out of their own reel.
+ */
+const hostCompleteSchema = hostCompleteUploadSchema.extend({
+  reel_eligible: z.boolean().optional(),
+});
+
 // Host twin of /api/r2/complete-upload, a thin strategy over the shared
 // pipeline engine. The auth gate stays HERE (401-before-body-parse); the
 // strategy is a factory over the verified user because create_media_as_host
@@ -15,9 +28,9 @@ import { hostCompleteUploadSchema } from "@/lib/validation/upload";
 // records status always 'approved'). A duplicate media_id maps to success.
 function hostCompleteStrategy(
   hostId: string,
-): CompleteStrategy<typeof hostCompleteUploadSchema> {
+): CompleteStrategy<typeof hostCompleteSchema> {
   return {
-    schema: hostCompleteUploadSchema,
+    schema: hostCompleteSchema,
     captureLabel: "create_media_as_host",
     createRecord(parsed, kind, realSize) {
       return createMediaAsHost({
@@ -31,6 +44,8 @@ function hostCompleteStrategy(
         width: parsed.width ?? null,
         height: parsed.height ?? null,
         previewKey: parsed.preview_key ?? null,
+        // Only a clip says anything here; every other upload leaves the column's default.
+        reelEligible: parsed.reel_eligible,
       });
     },
     errorStatus(code) {

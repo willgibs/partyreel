@@ -1,4 +1,3 @@
-// @contract-for: src/components/shared/route-skeleton.tsx
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -9,19 +8,19 @@ import { RouteSkeleton } from "@/components/shared/route-skeleton";
 
 /**
  * `app-vocabulary` r1, `loading=asneeded`: one shared skeleton, wired to
- * exactly the three routes with a real pre-paint wait. What this guards is
- * that the three shapes stay DISTINCT (the Studio is not the app's light
- * chrome wearing a dark tint) and that the three routes still delegate here
- * rather than drifting back to a hand-rolled fallback — never a size, a
- * count or a color.
+ * exactly the routes with a real pre-paint wait. What this guards is that the
+ * shapes stay bare app-shell content and that both routes still delegate here
+ * rather than drifting back to a hand-rolled fallback, never a size, a count
+ * or a color. (The Studio's fixed dark shape and its two tests left with the
+ * Studio: the reel no longer has a room of its own to load into.)
  */
 
 const ROOT = process.cwd();
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
 
 describe("RouteSkeleton", () => {
-  it("marks all three shapes busy for assistive tech", () => {
-    for (const variant of ["pulse", "hub", "studio"] as const) {
+  it("marks every shape busy for assistive tech", () => {
+    for (const variant of ["pulse", "hub"] as const) {
       const { container, unmount } = render(
         <RouteSkeleton variant={variant} />,
       );
@@ -46,30 +45,8 @@ describe("RouteSkeleton", () => {
     }
   });
 
-  it("draws the studio as the room itself: fixed, full-bleed, always dark", () => {
-    // The real Studio (reel-studio.tsx) sits OUTSIDE the (app) shell's light
-    // chrome on purpose ("its own world"); its skeleton has to match, or the
-    // app's own background flashes for one frame first.
-    const { container } = render(<RouteSkeleton variant="studio" />);
-    const root = container.firstElementChild;
-    expect(root?.className ?? "").toMatch(/\bfixed\b/);
-    expect(root?.className ?? "").toMatch(/inset-x-0/);
-    expect(root?.className ?? "").toMatch(/oklch\(0\.11_0_0\)/);
-  });
-
-  it("never tints the studio's blocks off the theme's --color-foreground", () => {
-    // A theme-aware shimmer reads as a stray light patch on this room's
-    // literal near-black in light mode (the room ignores the site's
-    // light/dark preference); the studio shape hand-composes its own white
-    // shimmer instead of the shared Skeleton's foreground-tinted gradient.
-    const { container } = render(<RouteSkeleton variant="studio" />);
-    const html = container.innerHTML;
-    expect(html).not.toMatch(/--color-foreground/);
-    expect(html).toMatch(/bg-white\/10/);
-  });
-
   it("honours reduced motion on every shape", () => {
-    for (const variant of ["pulse", "hub", "studio"] as const) {
+    for (const variant of ["pulse", "hub"] as const) {
       const { container, unmount } = render(
         <RouteSkeleton variant={variant} />,
       );
@@ -81,16 +58,15 @@ describe("RouteSkeleton", () => {
     }
   });
 
-  it("is what all three loading.tsx files delegate to, on their own shape", () => {
+  it("is what both loading.tsx files delegate to, on their own shape", () => {
+    // The Studio's route became a redirect (`reel-host`, `home=view`) and lost
+    // its loading.tsx with it: a skeleton of a room that never renders would
+    // flash on the way to the view.
     const cases: { rel: string; variant: string }[] = [
       { rel: "src/app/(app)/dashboard/loading.tsx", variant: "pulse" },
       {
         rel: "src/app/(app)/dashboard/[eventId]/loading.tsx",
         variant: "hub",
-      },
-      {
-        rel: "src/app/(app)/dashboard/[eventId]/reel/loading.tsx",
-        variant: "studio",
       },
     ];
     for (const { rel, variant } of cases) {
@@ -98,10 +74,9 @@ describe("RouteSkeleton", () => {
       expect(src, `${rel} stopped importing RouteSkeleton`).toMatch(
         /import \{ RouteSkeleton \} from "@\/components\/shared\/route-skeleton"/,
       );
-      expect(
-        src,
-        `${rel} stopped rendering the "${variant}" shape`,
-      ).toMatch(new RegExp(`variant="${variant}"`));
+      expect(src, `${rel} stopped rendering the "${variant}" shape`).toMatch(
+        new RegExp(`variant="${variant}"`),
+      );
     }
   });
 });

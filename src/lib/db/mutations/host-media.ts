@@ -101,6 +101,11 @@ export async function createMediaAsHost(input: {
   durationSeconds?: number | null;
   width?: number | null;
   height?: number | null;
+  /**
+   * `media.reel_eligible`, write-once: false only for a clip made from the live reel and added to
+   * the album, so the reel never plays itself. Omitted, the RPC's default (true) applies.
+   */
+  reelEligible?: boolean;
 }): Promise<CreateHostMediaResult> {
   // Server-mediated (H1): create_media_as_host is service-role-only now, so it can't be called directly via
   // PostgREST with a spoofed size. The admin client has no auth.uid(), so we pass the route's
@@ -117,6 +122,7 @@ export async function createMediaAsHost(input: {
     p_duration_seconds: input.durationSeconds ?? undefined,
     p_width: input.width ?? undefined,
     p_height: input.height ?? undefined,
+    p_reel_eligible: input.reelEligible ?? undefined,
   });
 
   if (error) {

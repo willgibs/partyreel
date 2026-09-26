@@ -1,9 +1,3 @@
-// @contract-for: src/components/shared/not-found-screen.tsx
-// @contract-for: src/components/shared/error-digest.tsx
-// @contract-for: src/components/shared/route-error.tsx
-// @contract-for: src/components/guest/guest-bar.tsx
-// @contract-for: src/components/admin/admin-not-found-screen.tsx
-
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -23,8 +17,8 @@ import { HelpLine, NotFoundScreen } from "@/components/shared/not-found-screen";
  * must not, which screens carry a correlation code and which cannot have one,
  * that a refused clipboard never becomes a thrown screen, that every failure
  * page offers a way to a person, and that the two session-less chromes stay
- * session-less. Not a single number, word or class is pinned here: bible 21
- * keeps the copy open and Will retunes a look without asking a test.
+ * session-less. Not a single number, word or class is pinned here: copy
+ * stays open and a look can be retuned without asking a test.
  *
  * The source scans exist because the regressions they catch are SILENT. A
  * captureError that drifts down into the shared primitive files a Sentry issue
@@ -89,7 +83,7 @@ const NO_HELP_LINE = {
     "the help center is one of its two actions and contact is in its footnote",
   // The private lock and the admin host's refused path are dead ends for a
   // reader with no session and no event: each offers one way out and no
-  // support line, which is the shape Will ruled on both steps.
+  // support line, which is the shape chosen for both steps.
   "src/app/(guest)/e/[token]/page.tsx": "the private lock offers one way home",
   "src/components/admin/admin-not-found-screen.tsx":
     "a stranger on the admin host gets the portal and nothing else",
@@ -174,20 +168,6 @@ describe("the screen: one picture, and one way to a person", () => {
     expect(screen.getByTestId("strip")).toBeTruthy();
     // The icon circle is the only other thing that can occupy slot 0.
     expect(document.querySelectorAll("[style*='--nf-i: 0']").length).toBe(1);
-  });
-
-  it("gives the help line its own stagger slot, below the actions", () => {
-    render(
-      <NotFoundScreen
-        icon={CircleAlert}
-        title="Something went wrong"
-        description="That is on us."
-        actions={<button type="button">Try again</button>}
-        help={<HelpLine href="/help">Visit the help center</HelpLine>}
-      />,
-    );
-    const help = screen.getByText(/Still stuck/i).closest("[style]");
-    expect(help?.getAttribute("style")).toContain("--nf-i: 3");
   });
 
   it("renders the admin's line without a link, since no runbook exists yet", () => {

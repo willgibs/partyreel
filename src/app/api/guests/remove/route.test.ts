@@ -1,7 +1,7 @@
 /**
- * A GUEST REMOVES THEIR OWN PHOTOGRAPH, anonymously (Will, `yours`, 2026-09-20:
- * "A guest can delete any photo they've personally uploaded, ever"; final for
- * the host too).
+ * A GUEST REMOVES THEIR OWN PHOTOGRAPH, anonymously (a guest can delete any
+ * photo they personally uploaded, with no time limit, and the delete is final
+ * for the host too).
  *
  * What this file guards is the ROUTE's half of that: the shape it accepts, the
  * answers it is allowed to give, and the two it must never confuse. Ownership

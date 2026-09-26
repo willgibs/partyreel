@@ -1,5 +1,5 @@
 /**
- * THE WINDOW — a plan over N clips of the take, handed over mid-hold (the live reel, 2026-09-22).
+ * THE WINDOW — a plan over N clips of the take, handed over mid-hold.
  *
  * The shipped composer is FIXED-LENGTH: every clip decoded up front, one plan, one duration. A reel
  * over a 300-photograph album cannot work that way (300 decodes before the first frame, and a plan
@@ -13,12 +13,13 @@
  * two-layer resolver is never asked to hold three), and the clip on screen is the SAME clip before
  * and after, so the swap has nothing to hide.
  *
- * ★ AND IT IS SEAMLESS, because the windows share the loop's seed and differ only by
- * `indexOffset` (layout.ts): window N+1's clip 0 is the loop's clip k, exactly as window N's last
- * clip was, with the same hold, the same Ken-Burns and the same entering gap. The next window
- * resumes at `handoverOffset`, the phase that clip had already reached, so the picture does not move
- * at all across the swap. Seeding each window independently instead would re-roll `panFrac`, and
- * `baseZoom` is `1 + 2 * panFrac + 0.015`: a ~5% scale jump every window, forever.
+ * ★ AND IT IS SEAMLESS, because every window shares the SESSION's motion seed (take.ts's
+ * `motionSeed`) and differs only by `indexOffset` (layout.ts), a clip ORDINAL that never resets:
+ * window N+1's clip 0 is ordinal k, exactly as window N's last clip was, with the same hold and the
+ * same Ken-Burns. The next window resumes at `handoverOffset`, the phase that clip had already
+ * reached, so the picture does not move at all across the swap. Seeding each window (or each LOOP)
+ * independently instead would re-roll `panFrac`, and `baseZoom` is `1 + 2 * panFrac + 0.015`: a ~5%
+ * scale jump at every boundary, which for an album of six or fewer is every handover.
  *
  * Pure: no DOM, no React, no clock.
  */
@@ -47,13 +48,13 @@ export const DEFAULT_WINDOW_SIZE = 6;
 /** What a viewer's controls change. Every field is a knob on `reel-view` / `reel-screen`. */
 export type ReelLook = {
   /** A MOOD id. A treatment falls back to the default mood: the six treatments compose a finite set
-   *  (a polaroid stack has a fixed number of cards) and belong to a cut, not to an endless loop. */
+   *  (a polaroid stack has a fixed number of cards) and belong to a clip, not to an endless loop. */
   styleId: string;
   surface: Surface;
-  /** The board's pacing multiplier on top of the surface factor. */
+  /** The caller's pacing multiplier on top of the surface factor (the viewer's Hold, via `holdScaleFor`). */
   holdScale?: number;
   orientation?: Orientation;
-  /** The live reel carries NO mark on any tier (the ruling); the knob exists for the harness. */
+  /** The live reel carries NO mark on any tier; the knob exists for the harness. */
   watermark?: boolean;
   /** Whether a video plays its motion window. Until `reel-engine-video` lands this only changes the
    *  hold: a poster-only video holds like a photograph, a motion video holds its window. */
@@ -64,7 +65,11 @@ export type ReelWindow = {
   /** Monotonic across the whole session, never reset (loop boundaries included). */
   index: number;
   loopIndex: number;
-  /** This window's first clip as an index into its loop's take (== the plan's `indexOffset`). */
+  /**
+   * This window's first clip as a session ORDINAL (== the plan's `indexOffset`): how many clips
+   * played before it, never reset at a loop boundary, so the clip a boundary carries keeps its
+   * motion (the header, and take.ts's `motionSeed`).
+   */
   startIndex: number;
   ids: string[];
   props: PlanProps;
@@ -83,13 +88,48 @@ export function resolveLiveStyleId(styleId: string | null | undefined): string {
   return entry.kind === "mood" ? entry.id : DEFAULT_STYLE_ID;
 }
 
-/** The theme a look plays: the mood's kit, scaled by the surface's one pacing factor. */
+/** The theme a look plays: the mood's kit, scaled by the surface's one pacing factor, filled edge to
+ *  edge in a landscape composition (`fillLandscape`). */
 export function themeFor(look: ReelLook): ReelTheme {
-  return pacedTheme(
-    resolveTheme(resolveLiveStyleId(look.styleId)),
-    look.surface,
-    look.holdScale,
+  return fillLandscape(
+    pacedTheme(
+      resolveTheme(resolveLiveStyleId(look.styleId)),
+      look.surface,
+      look.holdScale,
+    ),
+    look.orientation,
   );
+}
+
+/**
+ * ★ FILL IN LANDSCAPE: when the reel's composition is landscape (a laptop, an event screen) every
+ * mood fills the frame edge to edge, because the reel should feel like a full-screen experience,
+ * one that fills the big screens at events rather than sitting between bars. Three things in the
+ * kits keep a landscape frame from filling, and all three are set aside here, for the live reel only
+ * (a clip and the export keep their moods whole):
+ *
+ * - Cinematic's LETTERBOX bars (13% top and bottom, drawn in landscape only);
+ * - Editorial's INSET paper card (an 8% margin on every side);
+ * - the flat negative space around MISMATCHED media (a portrait photograph in a landscape frame
+ *   draws contained, `framing.ts`'s `fit`, on the theme's colour or paper). It becomes the
+ *   photograph's own darkened blur instead (`backdrop: "blur"`, the look Noir and Float already
+ *   wear), so the frame is filled by the picture while the picture itself is never cropped: a
+ *   phone's portrait shot of a table of guests keeps every head.
+ *
+ * Portrait is unchanged: a phone keeps every mood exactly as it was designed.
+ */
+export function fillLandscape(
+  theme: ReelTheme,
+  orientation: Orientation | undefined,
+): ReelTheme {
+  if (orientation !== "landscape") return theme;
+  const { inset: _inset, paper: _paper, ...signature } = theme.signature ?? {};
+  return {
+    ...theme,
+    overlays: (theme.overlays ?? []).filter((kind) => kind !== "letterbox"),
+    backdrop: "blur",
+    ...(theme.signature ? { signature } : {}),
+  };
 }
 
 /** The clips for a run of ids, read from the LATEST items (a missing id simply drops out). */
@@ -118,9 +158,15 @@ export type BuildWindowArgs = {
   startIndex: number;
   ids: readonly string[];
   itemFor: (id: string) => LiveMediaItem | undefined;
-  /** The LOOP's seed (never a per-window one: see the header). */
+  /** The SESSION's motion seed (never a per-window or per-loop one: see the header). */
   seed: number;
   look: ReelLook;
+  /**
+   * The album has exactly one playable item: a one-clip window then HOLDS (it never hands over),
+   * because every window after it would be the same clip at the same ordinal, and handing over to
+   * an identical plan once a tick is work for nothing. See `handoverOf`.
+   */
+  alone?: boolean;
 };
 
 /** Plan one window. Null when nothing in `ids` still resolves to a drawable item. */
@@ -138,7 +184,9 @@ export function buildWindow(args: BuildWindowArgs): ReelWindow | null {
     indexOffset: args.startIndex,
   };
   const plan = planReel(props);
-  const { handoverFrame, handoverOffset } = handoverOf(plan);
+  const { handoverFrame, handoverOffset } = handoverOf(plan, {
+    alone: args.alone,
+  });
 
   return {
     index: args.index,
@@ -161,17 +209,29 @@ export function buildWindow(args: BuildWindowArgs): ReelWindow | null {
  * without compositing two of them. Earliest on purpose: the longer the reel waits, the more of the
  * overlap clip's hold is spent twice over in two plans that must agree about it.
  *
- * A window of one clip has nobody to share: it hands over at the end of its own hold and the next
- * window starts fresh at frame 0 (`overlapIndex` null tells the source so).
+ * ★ THE PLAYER RESUMES AT `handoverOffset` PLUS HOWEVER FAR PAST `handoverFrame` IT SWAPPED, both
+ * read off the window it is LEAVING: the next window's clip 0 is this window's last clip at the
+ * same ordinal, so the local frame into that clip is the one number both plans share.
+ *
+ * ★ A WINDOW OF ONE CLIP. Its clip is also the next window's clip 0 (the source carries it by id,
+ * at the same ordinal), so the two plans agree at EVERY frame of its hold and it hands over at once
+ * (`handoverFrame` 0, resuming at the frame it was on). Holding to its last frame and handing the
+ * next window frame 0 would restart the same photograph's Ken-Burns: at one clip the motion would
+ * snap back every hold. And when it is the album's ONLY clip (`alone`) it never hands over at all,
+ * since every window after it is the same plan: it plays its move once and rests on its last frame
+ * until an upload splices in.
  */
-export function handoverOf(plan: ReelPlan): {
+export function handoverOf(
+  plan: ReelPlan,
+  opts: { alone?: boolean } = {},
+): {
   handoverFrame: number;
   handoverOffset: number;
 } {
   const m = plan.clips.length - 1;
   if (m < 1) {
     return {
-      handoverFrame: Math.max(0, plan.totalFrames - 1),
+      handoverFrame: opts.alone ? Number.POSITIVE_INFINITY : 0,
       handoverOffset: 0,
     };
   }

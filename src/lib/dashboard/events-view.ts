@@ -106,6 +106,11 @@ export type EventListRow = {
   /** null = an unopenable card (a guest album since made private, or the bin). */
   href: string | null;
   coverUrl: string | null;
+  /**
+   * Hosted rows only: the stills the cover card dissolves through in its turn, the cover first
+   * (`getEventCardStills`). Empty on guest and deleted rows, which hold their cover.
+   */
+  stills: string[];
   dateLabel: string;
   /**
    * The row's recency for the "Newest" order: a hosted event's creation, a
@@ -145,14 +150,18 @@ export function sortEventRows(
 ): EventListRow[] {
   const out = [...rows];
   if (sort === "name") {
-    out.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+    out.sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { numeric: true }),
+    );
     return out;
   }
   if (sort === "waiting") {
     out.sort((a, b) => b.pending - a.pending);
     return out;
   }
-  out.sort((a, b) => (a.sortDate < b.sortDate ? 1 : a.sortDate > b.sortDate ? -1 : 0));
+  out.sort((a, b) =>
+    a.sortDate < b.sortDate ? 1 : a.sortDate > b.sortDate ? -1 : 0,
+  );
   return out;
 }
 

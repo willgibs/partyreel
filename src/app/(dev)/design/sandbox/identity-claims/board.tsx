@@ -15,15 +15,24 @@ import {
   ConfirmInlineTicket,
   ConfirmSecondScreen,
   DashboardScene,
+  DoorBeat,
   MomentCard,
   OneAtATimeCard,
+  PhotoGridTicket,
   PointerLine,
   ShippedTicket,
   TicketBanner,
   TicketBellDrawer,
   TicketSheetPanel,
 } from "./parts";
-import { AlbumGround, Scene, screenOf, Scrim, ToastVisual } from "./scene";
+import {
+  AlbumGround,
+  Scene,
+  type ScreenId,
+  screenOf,
+  Scrim,
+  ToastVisual,
+} from "./scene";
 import { IDENTITY_CLAIMS } from "./spec";
 
 /**
@@ -31,8 +40,10 @@ import { IDENTITY_CLAIMS } from "./spec";
  * Every option holds Priya's own screen at today's shape everywhere but the
  * one thing its decision asks: `ticket` varies only where the ticket sits;
  * `pointer` varies only what the moment card gains; `pass` varies only how
- * the two events are worked through; `confirm` varies only the warning before
- * a deletion; `after` varies only what stands on the page once Finish lands.
+ * she works through what is waiting (its fourth option, `photos`, is the one
+ * place on this board that also changes the RPCs' own grain, event to
+ * photograph); `confirm` varies only the warning before a deletion; `after`
+ * varies only what stands on the page once Finish lands.
  *
  * ★ THE BASELINE FOR `confirm` AND `after` IS THE SAME STORY: Tom's Leaving
  * Do already marked Claim, Beach Bonfire left over. `confirm`'s three options
@@ -98,8 +109,46 @@ function ticketScreen(id: "card" | "banner" | "bell", s: BoardState) {
   );
 }
 
+/**
+ * ★ `pointer` IS DRAWN IN BOTH PLACES SHE CAN CONFIRM (the door's round two):
+ * the album's moment card, as before, and now the door's own "You're in", since
+ * the verification door, Create account and Log in all confirm her before any
+ * upload. Stacked, so the option stays one phone wide on the step.
+ */
 function pointerScreen(id: "quiet" | "line" | "toast", s: BoardState) {
   const sc = screenOf(s.screen as string);
+  const door = (
+    <Scene
+      id={`pointer-${id}-door`}
+      screen={sc}
+      title="The pointer at the door"
+      caption={
+        id === "line"
+          ? `At the door: You're in gains the same line, ${TOTAL_WAITING} photos from ${CLAIMABLE_ROWS.length} other events are waiting for you.`
+          : id === "toast"
+            ? "At the door: the same toast appears once, over the beat."
+            : "At the door: You're in names only this event; nothing points elsewhere."
+      }
+    >
+      <DoorBeat line={id === "line"} desk={sc === "1440"} />
+      {id === "toast" && (
+        <ToastVisual
+          lines={[
+            `${TOTAL_WAITING} photos from ${CLAIMABLE_ROWS.length} other events are waiting for you.`,
+          ]}
+        />
+      )}
+    </Scene>
+  );
+  return (
+    <div className="flex flex-col gap-6">
+      {pointerAlbum(id, sc)}
+      {door}
+    </div>
+  );
+}
+
+function pointerAlbum(id: "quiet" | "line" | "toast", sc: ScreenId) {
   if (id === "line") {
     return (
       <Scene
@@ -147,8 +196,23 @@ function pointerScreen(id: "quiet" | "line" | "toast", s: BoardState) {
   );
 }
 
-function passScreen(id: "rows" | "cards" | "checklist", s: BoardState) {
+function passScreen(
+  id: "rows" | "cards" | "checklist" | "photos",
+  s: BoardState,
+) {
   const sc = screenOf(s.screen as string);
+  if (id === "photos") {
+    return (
+      <Scene
+        id="pass-photos"
+        screen={sc}
+        title="Working through more than one"
+        caption={`Every one of the ${TOTAL_WAITING} waiting photos in its own tile, Mine or Not mine each.`}
+      >
+        <DashboardScene ticket={<PhotoGridTicket />} />
+      </Scene>
+    );
+  }
   if (id === "cards") {
     return (
       <Scene
@@ -222,7 +286,9 @@ function confirmScreen(
       caption={`A centred dialog: ${IMPOSTOR.uploadCount} photos and videos, at ${IMPOSTOR.eventName}, Delete and finish or Go back.`}
     >
       <DashboardScene
-        ticket={<ShippedTicket initialDecisions={{ [HERS.eventId]: "claim" }} />}
+        ticket={
+          <ShippedTicket initialDecisions={{ [HERS.eventId]: "claim" }} />
+        }
         overlay={<ConfirmDialog />}
       />
     </Scene>
@@ -285,6 +351,7 @@ const PREVIEWS: PreviewsFor<typeof IDENTITY_CLAIMS> = {
   "pass.rows": (s) => passScreen("rows", s),
   "pass.cards": (s) => passScreen("cards", s),
   "pass.checklist": (s) => passScreen("checklist", s),
+  "pass.photos": (s) => passScreen("photos", s),
 
   "confirm.dialog": (s) => confirmScreen("dialog", s),
   "confirm.inline": (s) => confirmScreen("inline", s),

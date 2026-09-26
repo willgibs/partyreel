@@ -1,8 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import Link from "next/link";
-import { Mail, UserCheck, UserPlus } from "lucide-react";
+import {
+  Camera,
+  Check,
+  Clock,
+  ListChecks,
+  Loader2,
+  LogIn,
+  Mail,
+  Pencil,
+  UserCheck,
+  UserPlus,
+  XCircle,
+} from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -11,7 +23,16 @@ import { Label } from "@/components/ui/label";
 import { GLASS_MARK } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
-import { EVENT, GUESTS, HOST, PRIYA } from "./fixtures";
+import {
+  EVENT,
+  GUESTS,
+  HOST,
+  PRIYA,
+  TRACKER_ITEMS,
+  TRACKER_WORDS,
+  type TrackerItem,
+  type TrackerStatus,
+} from "./fixtures";
 import { HandleGlyph, SettledMark } from "./scene";
 
 /**
@@ -403,6 +424,244 @@ export function NameStepCard() {
       <Button size="default" className="w-full">
         Save and continue
       </Button>
+    </div>
+  );
+}
+
+/**
+ * The `told` option's own addition: the moment card stands exactly as
+ * `silent` draws it, plus a toast naming the written name aloud. Quoted from
+ * sonner's own plain/info treatment (`ui/sonner.tsx`'s `--normal-*` vars):
+ * `bg-popover`, `shadow-layer`, `rounded-float`. `fixed`, never `absolute`
+ * (`OfferSheet`'s own note: the frame IS the viewport), pinned near the
+ * frame's true top rather than the page's, and drawn at rest rather than
+ * mid-toast, since every option on this board is judged at rest. `top-20`
+ * (5rem) is the shipped Toaster's own offset (`ui/sonner.tsx`), which clears
+ * every header in the product rather than just this one.
+ */
+export function NameToldNotice() {
+  return (
+    <div
+      aria-hidden
+      className="fixed inset-x-0 top-20 z-[70] flex justify-center px-4"
+    >
+      <div
+        data-gc-name-notice
+        className="flex items-center gap-2 rounded-float border border-border bg-popover px-4 py-2.5 text-sm text-popover-foreground shadow-layer"
+      >
+        <Check className="size-4 shrink-0 text-success" aria-hidden />
+        <span>You&rsquo;re on as {PRIYA.name}. Change it in Account.</span>
+      </div>
+    </div>
+  );
+}
+
+/* ── the tracker: his own idea, on a MODERATED event (`tracker`) ─────────── */
+
+const TRACKER_ICON: Record<TrackerStatus, typeof Check> = {
+  uploading: Loader2,
+  held: Clock,
+  approved: Check,
+  refused: XCircle,
+};
+
+const TRACKER_TONE: Record<TrackerStatus, string> = {
+  uploading: "text-muted-foreground",
+  held: "text-warning",
+  approved: "text-success",
+  refused: "text-muted-foreground",
+};
+
+/** One row of her batch, the shape every sheet option lists it in. */
+export function TrackerRow({ item }: { item: TrackerItem }) {
+  const Icon = TRACKER_ICON[item.status];
+  return (
+    <div
+      className="flex items-center gap-3 py-2.5"
+      data-gc-tracker-row={item.status}
+    >
+      <div
+        className="size-11 shrink-0 overflow-hidden bg-black/10"
+        style={{ borderRadius: "var(--radius-tile)" }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- stand-in still */}
+        <img src={item.url} alt="" className="size-full object-cover" />
+      </div>
+      <p
+        className={cn(
+          "flex min-w-0 flex-1 items-center gap-1.5 text-sm",
+          TRACKER_TONE[item.status],
+        )}
+      >
+        <Icon
+          className={cn(
+            "size-4 shrink-0",
+            item.status === "uploading" && "animate-spin",
+          )}
+          aria-hidden
+        />
+        <span className="truncate text-foreground">
+          {TRACKER_WORDS[item.status]}
+        </span>
+      </p>
+    </div>
+  );
+}
+
+/** The sheet's own shell, quoted (a real Sheet would portal to the lab page,
+ *  `OfferSheet`'s own note above): `fixed`, never `absolute`, so it pins to
+ *  this frame's true foot rather than to wherever the album happens to end. */
+export function TrackerSheet({
+  title,
+  above,
+  children,
+}: {
+  title: string;
+  above?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div data-gc-tracker="sheet" className="fixed inset-0">
+      <div className="absolute inset-0 bg-black/10" />
+      <div className="fixed inset-x-0 bottom-0 flex max-h-[70vh] flex-col gap-1 overflow-y-auto border-t border-border bg-popover bg-clip-padding p-4 text-popover-foreground shadow-layer">
+        {above}
+        <p className="font-heading text-card-title font-medium text-foreground">
+          {title}
+        </p>
+        <div className="divide-y divide-border/60">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * HER MENU, OPEN, WITH THE TRACKER'S ROW (the `menu` option, redrawn for the
+ * door's round two). `identity-door.menu` was answered `card`, not `sheet`, so
+ * there is no single "Your photos" sheet to grow: the menu he amended is her
+ * name over one "Unverified", then a card reading "Save this event for later"
+ * with Add your email, then its rows. The tracker is one more row, under that
+ * card, opening the same list every option shows. Quoted markup, anchored under
+ * the header's trigger; a real DropdownMenu would portal to the lab page.
+ */
+export function TrackerMenu() {
+  return (
+    <div
+      data-gc-tracker="menu"
+      className="absolute top-14 right-3 z-50 w-64 rounded-float bg-popover p-1 text-popover-foreground shadow-layer ring-1 ring-foreground/10"
+    >
+      <div className="flex flex-col gap-0.5 px-2 pt-1 pb-1.5">
+        <span className="truncate text-sm leading-tight font-medium">
+          {PRIYA.name}
+        </span>
+        <span className="truncate text-xs leading-tight text-muted-foreground">
+          Unverified
+        </span>
+      </div>
+      <div data-gc-menu-card className="m-1 rounded-lg bg-muted/60 p-3">
+        <p className="text-sm leading-snug font-medium text-foreground">
+          Save this event for later
+        </p>
+        <Button type="button" size="sm" className="mt-2.5 w-full" tabIndex={-1}>
+          <Mail /> Add your email
+        </Button>
+      </div>
+      <div
+        data-gc-tracker-entry
+        className="flex items-center gap-2 rounded-[calc(var(--radius-float)_-_4px)] bg-accent px-2 py-1.5 text-sm text-accent-foreground"
+      >
+        <ListChecks className="size-4 text-muted-foreground" aria-hidden />
+        Your photos
+        <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+          {TRACKER_ITEMS.length}
+        </span>
+      </div>
+      <div className="flex items-center gap-2 rounded-[calc(var(--radius-float)_-_4px)] px-2 py-1.5 text-sm">
+        <Pencil className="size-4 text-muted-foreground" aria-hidden />
+        Change name
+      </div>
+      <div className="-mx-1 my-1 h-px bg-border" />
+      <div className="flex items-center gap-2 rounded-[calc(var(--radius-float)_-_4px)] px-2 py-1.5 text-sm">
+        <LogIn className="size-4 text-muted-foreground" aria-hidden />
+        Log in
+      </div>
+    </div>
+  );
+}
+
+/** The `button` option's own new control: a round icon beside Add photos,
+ *  never a text label (the row beside it already carries one). */
+export function TrackerButton() {
+  return (
+    <button
+      type="button"
+      aria-label="Track your uploads"
+      data-gc-tracker="button"
+      className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-layer"
+    >
+      <ListChecks className="size-4" aria-hidden />
+    </button>
+  );
+}
+
+/** The album's own Add photos row, quoted at rest and never pressable, like
+ *  every other control this board draws: `tracker` sits beside it only for
+ *  the `button` option. */
+export function AddPhotosRow({ tracker }: { tracker?: ReactNode }) {
+  return (
+    <div className="flex items-center justify-end gap-2">
+      {tracker}
+      <span className="pointer-events-none inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-foreground">
+        <Camera className="size-4" aria-hidden />
+        Add photos
+      </span>
+    </div>
+  );
+}
+
+/** The `inline` option's own ground: no sheet, no new button, the status
+ *  rides each of her tiles directly (voice-guest.waiting's own words). */
+export function TrackerInlineStrip() {
+  return (
+    <div data-gc-tracker="inline" className="grid grid-cols-2 gap-3 px-4 pb-6">
+      {TRACKER_ITEMS.map((item) => {
+        const Icon = TRACKER_ICON[item.status];
+        return (
+          <div key={item.id} className="space-y-1.5">
+            <div
+              className="overflow-hidden bg-black/10"
+              style={{
+                aspectRatio: "4 / 5",
+                borderRadius: "var(--radius-tile)",
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- stand-in still */}
+              <img
+                src={item.url}
+                alt=""
+                className={cn(
+                  "size-full object-cover",
+                  item.status !== "approved" && "opacity-60",
+                )}
+              />
+            </div>
+            <p
+              className={cn(
+                "flex items-center gap-1.5 text-xs",
+                TRACKER_TONE[item.status],
+              )}
+            >
+              <Icon
+                className={cn(
+                  "size-3.5 shrink-0",
+                  item.status === "uploading" && "animate-spin",
+                )}
+                aria-hidden
+              />
+              <span className="truncate">{TRACKER_WORDS[item.status]}</span>
+            </p>
+          </div>
+        );
+      })}
     </div>
   );
 }

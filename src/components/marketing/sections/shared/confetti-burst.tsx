@@ -3,9 +3,9 @@
 import { useEffect, useRef, type RefObject } from "react";
 
 /**
- * THE CELEBRATORY BEAT (the 2026-08-25 achromatic ruling): confetti with real
- * physics, ported from the transitions-pro exploration Will ruled should keep
- * being referenced, and now COLORED — the ruling reframed the identity from
+ * THE CELEBRATORY BEAT (the achromatic reshape): confetti with real
+ * physics, ported from the transitions-pro exploration, and now COLORED — the
+ * reshape moved the identity from
  * monochromatic to ACHROMATIC-plus-tasteful-accents, and confetti is the
  * canonical accent moment. Colors come ONLY from the sanctioned
  * `--mkt-confetti-*` tokens in marketing.css (no brand hue; a festive set at

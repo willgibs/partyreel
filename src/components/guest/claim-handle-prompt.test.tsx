@@ -1,5 +1,3 @@
-// @contract-for: src/components/guest/claim-handle-prompt.tsx
-// @contract-for: src/components/guest/follow-moment-card.tsx
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -74,10 +72,10 @@ function mount(
 }
 
 /**
- * THE POST-UPLOAD SLOT'S CONTRACT (the profile wiring, 2026-09-19).
+ * THE POST-UPLOAD SLOT'S CONTRACT.
  *
- * The pinned function is the SEQUENCE, because the whole point of Will's
- * `claim=after` pick is that the offer arrives without getting in the way: one
+ * The pinned function is the SEQUENCE, because the whole point of offering the
+ * claim after the upload is that it arrives without getting in the way: one
  * card stands at a time, chosen by what the person actually needs next. Signed
  * out means there is no account to hang a page on, so the save prompt goes
  * first; signed in without a handle is the one state this card is for; somebody
@@ -122,12 +120,11 @@ describe("ClaimHandlePrompt", () => {
 });
 
 /**
- * THE CAPTURE FLOW'S PINS (the identity reshape, 2026-09-21; guest by upload,
- * 2026-09-22). The album page decides that a confirmation from this album just
- * claimed its uploads (lib/guest/use-confirm-return.ts, its own contract) and
- * hands the slot `moment`; what is pinned here is what stands when it does, that
- * it stands with nothing uploaded this visit (a Google or magic-link return),
- * and that the typed name reaches a profile that has none.
+ * THE CAPTURE FLOW'S PINS. The album page decides that a confirmation from this
+ * album just claimed its uploads (lib/guest/use-confirm-return.ts, its own
+ * contract) and hands the slot `moment`; what is pinned here is what stands when
+ * it does, that it stands with nothing uploaded this visit (a Google or
+ * magic-link return), and that the typed name reaches a profile that has none.
  */
 describe("ClaimHandlePrompt: the moment after confirming", () => {
   it("stands the follow moment up when the album says a confirmation landed", async () => {
@@ -139,7 +136,7 @@ describe("ClaimHandlePrompt: the moment after confirming", () => {
 
   it("without the album's word it is the ordinary ladder, whatever storage holds", async () => {
     stub({ signedIn: true, slug: null });
-    // The marker is the album page's to read now, never this card's.
+    // The marker is the album page's to read, never this card's.
     localStorage.setItem("pr_pending_offer_tok-1", "1");
     mount(3, { host: HOST });
     expect(await screen.findByRole("link", { name: /claim/i })).toBeVisible();

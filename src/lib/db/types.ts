@@ -35,6 +35,67 @@ export type Database = {
         }
         Relationships: []
       }
+      album_changes: {
+        Row: {
+          album_version: number | null
+          event_id: string
+          host_version: number
+          media_id: string
+        }
+        Insert: {
+          album_version?: number | null
+          event_id: string
+          host_version: number
+          media_id: string
+        }
+        Update: {
+          album_version?: number | null
+          event_id?: string
+          host_version?: number
+          media_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "album_changes_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "album_state"
+            referencedColumns: ["event_id"]
+          },
+        ]
+      }
+      album_state: {
+        Row: {
+          album_max: number
+          attr_version: number
+          event_id: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          album_max?: number
+          attr_version?: number
+          event_id: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          album_max?: number
+          attr_version?: number
+          event_id?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "album_state_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       announcements: {
         Row: {
           body: string
@@ -180,9 +241,12 @@ export type Database = {
           purge_at: string | null
           qr_style: string
           qr_token: string
+          reel_hold_sec: number | null
+          reel_style_id: string | null
           require_upload_to_view: boolean
           require_verified_email: boolean
           show_guest_list: boolean
+          show_reel: boolean
           updated_at: string
           visibility: Database["public"]["Enums"]["event_visibility"]
         }
@@ -203,9 +267,12 @@ export type Database = {
           purge_at?: string | null
           qr_style?: string
           qr_token?: string
+          reel_hold_sec?: number | null
+          reel_style_id?: string | null
           require_upload_to_view?: boolean
           require_verified_email?: boolean
           show_guest_list?: boolean
+          show_reel?: boolean
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
         }
@@ -226,9 +293,12 @@ export type Database = {
           purge_at?: string | null
           qr_style?: string
           qr_token?: string
+          reel_hold_sec?: number | null
+          reel_style_id?: string | null
           require_upload_to_view?: boolean
           require_verified_email?: boolean
           show_guest_list?: boolean
+          show_reel?: boolean
           updated_at?: string
           visibility?: Database["public"]["Enums"]["event_visibility"]
         }
@@ -367,87 +437,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      highlight_reels: {
-        Row: {
-          cover_media_id: string | null
-          created_at: string
-          event_id: string
-          guest_visible: boolean
-          id: string
-          length_seconds: number | null
-          orientation: string
-          output_key: string | null
-          render_cost_usd: number | null
-          render_error: string | null
-          render_id: string | null
-          render_started_at: string | null
-          rendered_at: string | null
-          rendered_hash: string | null
-          seed: number
-          status: Database["public"]["Enums"]["reel_status"]
-          style_id: string
-          theme: string
-          updated_at: string
-        }
-        Insert: {
-          cover_media_id?: string | null
-          created_at?: string
-          event_id: string
-          guest_visible?: boolean
-          id?: string
-          length_seconds?: number | null
-          orientation?: string
-          output_key?: string | null
-          render_cost_usd?: number | null
-          render_error?: string | null
-          render_id?: string | null
-          render_started_at?: string | null
-          rendered_at?: string | null
-          rendered_hash?: string | null
-          seed?: number
-          status?: Database["public"]["Enums"]["reel_status"]
-          style_id?: string
-          theme?: string
-          updated_at?: string
-        }
-        Update: {
-          cover_media_id?: string | null
-          created_at?: string
-          event_id?: string
-          guest_visible?: boolean
-          id?: string
-          length_seconds?: number | null
-          orientation?: string
-          output_key?: string | null
-          render_cost_usd?: number | null
-          render_error?: string | null
-          render_id?: string | null
-          render_started_at?: string | null
-          rendered_at?: string | null
-          rendered_hash?: string | null
-          seed?: number
-          status?: Database["public"]["Enums"]["reel_status"]
-          style_id?: string
-          theme?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "highlight_reels_cover_media_id_fkey"
-            columns: ["cover_media_id"]
-            isOneToOne: false
-            referencedRelation: "media"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "highlight_reels_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
             referencedColumns: ["id"]
           },
         ]
@@ -753,7 +742,6 @@ export type Database = {
           notify_album_shared: boolean
           notify_new_follower: boolean
           notify_new_uploads_digest: boolean
-          notify_reel_ready: boolean
           updated_at: string
           user_id: string
         }
@@ -763,7 +751,6 @@ export type Database = {
           notify_album_shared?: boolean
           notify_new_follower?: boolean
           notify_new_uploads_digest?: boolean
-          notify_reel_ready?: boolean
           updated_at?: string
           user_id: string
         }
@@ -773,7 +760,6 @@ export type Database = {
           notify_album_shared?: boolean
           notify_new_follower?: boolean
           notify_new_uploads_digest?: boolean
-          notify_reel_ready?: boolean
           updated_at?: string
           user_id?: string
         }
@@ -913,78 +899,6 @@ export type Database = {
           tier_expires_at?: string | null
           updated_at?: string
           welcomed_at?: string | null
-        }
-        Relationships: []
-      }
-      reel_items: {
-        Row: {
-          added_at: string
-          event_id: string
-          media_id: string
-          position: number
-        }
-        Insert: {
-          added_at?: string
-          event_id: string
-          media_id: string
-          position?: number
-        }
-        Update: {
-          added_at?: string
-          event_id?: string
-          media_id?: string
-          position?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reel_items_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reel_items_media_id_fkey"
-            columns: ["media_id"]
-            isOneToOne: false
-            referencedRelation: "media"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      reel_render_log: {
-        Row: {
-          cost_usd: number | null
-          created_at: string
-          duration_sec: number | null
-          error: string | null
-          event_id: string | null
-          id: string
-          outcome: string
-          render_id: string | null
-          requester_hash: string | null
-        }
-        Insert: {
-          cost_usd?: number | null
-          created_at?: string
-          duration_sec?: number | null
-          error?: string | null
-          event_id?: string | null
-          id?: string
-          outcome: string
-          render_id?: string | null
-          requester_hash?: string | null
-        }
-        Update: {
-          cost_usd?: number | null
-          created_at?: string
-          duration_sec?: number | null
-          error?: string | null
-          event_id?: string | null
-          id?: string
-          outcome?: string
-          render_id?: string | null
-          requester_hash?: string | null
         }
         Relationships: []
       }
@@ -1308,10 +1222,30 @@ export type Database = {
         }
         Returns: Json
       }
-      add_to_reel: { Args: { p_media_id: string }; Returns: Json }
       admin_metrics_snapshot: {
         Args: { p_fortnight_days?: number; p_window_days?: number }
         Returns: Json
+      }
+      album_changes_since: {
+        Args: {
+          p_after: number
+          p_event_id: string
+          p_limit?: number
+          p_scope: string
+        }
+        Returns: Json
+      }
+      album_flush: { Args: never; Returns: undefined }
+      album_remember: {
+        Args: { p_event_id: string; p_scope: string }
+        Returns: undefined
+      }
+      album_scope: {
+        Args: {
+          p_is: Database["public"]["Enums"]["media_status"]
+          p_was: Database["public"]["Enums"]["media_status"]
+        }
+        Returns: number
       }
       block_user: { Args: { p_blocked: string }; Returns: undefined }
       capture_guest_email: {
@@ -1354,6 +1288,7 @@ export type Database = {
           p_media_id: string
           p_original_key: string
           p_preview_key?: string
+          p_reel_eligible?: boolean
           p_session_token: string
           p_type: Database["public"]["Enums"]["media_type"]
           p_width?: number
@@ -1370,6 +1305,7 @@ export type Database = {
           p_media_id: string
           p_original_key: string
           p_preview_key?: string
+          p_reel_eligible?: boolean
           p_type: Database["public"]["Enums"]["media_type"]
           p_width?: number
         }
@@ -1386,6 +1322,10 @@ export type Database = {
       event_card_stats: { Args: { p_event_ids: string[] }; Returns: Json }
       event_covers: { Args: { p_event_ids: string[] }; Returns: Json }
       event_link_totals: { Args: { p_event_id: string }; Returns: Json }
+      event_stills: {
+        Args: { p_event_ids: string[]; p_per_event: number }
+        Returns: Json
+      }
       follow_user: { Args: { p_followee: string }; Returns: undefined }
       get_event_by_qr_token: {
         Args: { p_qr_token: string }
@@ -1401,8 +1341,11 @@ export type Database = {
           name: string
           qr_style: string
           qr_token: string
+          reel_hold_sec: number
+          reel_style_id: string
           require_upload_to_view: boolean
           require_verified_email: boolean
+          show_reel: boolean
           visibility: Database["public"]["Enums"]["event_visibility"]
         }[]
       }
@@ -1427,21 +1370,9 @@ export type Database = {
           id: string
           original_key: string
           preview_key: string
+          reel_eligible: boolean
           type: Database["public"]["Enums"]["media_type"]
           width: number
-        }[]
-      }
-      get_event_reel_by_qr_token: {
-        Args: { p_qr_token: string }
-        Returns: {
-          cover_media_id: string
-          item_ids: string[]
-          length_seconds: number
-          mp4_ready: boolean
-          orientation: string
-          seed: number
-          style_id: string
-          watermark: boolean
         }[]
       }
       get_host_upload_context: {
@@ -1512,6 +1443,7 @@ export type Database = {
           standby_bytes: number
         }[]
       }
+      like_many: { Args: { p_media_ids: string[] }; Returns: Json }
       like_media: { Args: { p_media_id: string }; Returns: Json }
       list_guest_rows_by_email: {
         Args: { p_after_at?: string; p_after_id?: string; p_limit?: number }
@@ -1527,6 +1459,10 @@ export type Database = {
         }[]
       }
       mark_password_set: { Args: never; Returns: undefined }
+      media_like_counts: {
+        Args: { p_event_id: string; p_media_ids: string[] }
+        Returns: Json
+      }
       monthly_ingress_cap: {
         Args: {
           p_storage_cap_bytes: number
@@ -1555,10 +1491,6 @@ export type Database = {
         Args: { p_media_id: string; p_session_token: string }
         Returns: Json
       }
-      reorder_reel: {
-        Args: { p_event_id: string; p_media_ids: string[] }
-        Returns: Json
-      }
       restore_event: { Args: { p_event_id: string }; Returns: Json }
       restore_media: { Args: { p_media_id: string }; Returns: Json }
       set_event_password: {
@@ -1575,10 +1507,6 @@ export type Database = {
       }
       set_guest_pending_email: {
         Args: { p_email: string; p_session_token: string }
-        Returns: Json
-      }
-      set_reel_guest_visible: {
-        Args: { p_event_id: string; p_visible: boolean }
         Returns: Json
       }
       standby_hosts: {
@@ -1598,17 +1526,6 @@ export type Database = {
           monthly_ingress_bytes: number
         }[]
       }
-      upsert_reel_config: {
-        Args: {
-          p_cover_media_id?: string
-          p_event_id: string
-          p_length_seconds?: number
-          p_orientation: string
-          p_seed: number
-          p_style_id: string
-        }
-        Returns: Json
-      }
       verify_current_password: {
         Args: { p_password: string }
         Returns: boolean
@@ -1624,7 +1541,6 @@ export type Database = {
       media_status: "pending" | "approved" | "hidden" | "removed"
       media_type: "photo" | "video"
       moderation_mode: "live" | "hold_for_approval"
-      reel_status: "pending" | "processing" | "ready"
       report_status: "open" | "reviewed" | "dismissed" | "actioned"
       tier_type: "free" | "event_pass" | "pro" | "max"
     }
@@ -1759,7 +1675,6 @@ export const Constants = {
       media_status: ["pending", "approved", "hidden", "removed"],
       media_type: ["photo", "video"],
       moderation_mode: ["live", "hold_for_approval"],
-      reel_status: ["pending", "processing", "ready"],
       report_status: ["open", "reviewed", "dismissed", "actioned"],
       tier_type: ["free", "event_pass", "pro", "max"],
     },

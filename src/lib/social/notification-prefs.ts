@@ -9,22 +9,23 @@
  *     sent. Deliberately NO column and NO field here, so it can never be
  *     toggled off by code that "just maps the table".
  *   - Tier 2 (relationship/service) is default-ON with per-category opt-out for
- *     ACCOUNT holders only: the four notify* fields.
+ *     ACCOUNT holders only: the notify* fields. (The reel-ready email left with
+ *     the stored reel: the live reel is never "ready", it plays from the second
+ *     photo, and its column drops with the stored reel's tables.)
  *   - Tier 3 (marketing) is explicit OPT-IN: marketingOptIn defaults false.
  *   - Anonymous-email guests never have a row (no account): they receive nothing
  *     beyond explicitly requested one-shots.
  *
  * Rows are LAZY: an absent row means "all defaults", so these constants MUST
  * mirror the column defaults in the migration. A Vitest parity test
- * (notification-prefs.test.ts) pins the two together by parsing the migration
- * SQL — change one, change both.
+ * (notification-prefs.test.ts) pins the two together by parsing the migrations'
+ * SQL (the create, less any column a later migration drops): change one,
+ * change both.
  *
  * Import-safe from client components (constants + pure logic, no secrets).
  */
 
 export type NotificationPrefs = {
-  /** Tier 2: "your highlight reel is ready" (reel generation done). */
-  notifyReelReady: boolean;
   /** Tier 2: a host shared/published an album you uploaded to. */
   notifyAlbumShared: boolean;
   /** Tier 2: digest of new uploads landing in your event (hosts). */
@@ -36,7 +37,6 @@ export type NotificationPrefs = {
 };
 
 export const NOTIFICATION_PREF_DEFAULTS: NotificationPrefs = {
-  notifyReelReady: true,
   notifyAlbumShared: true,
   notifyNewUploadsDigest: true,
   notifyNewFollower: true,
@@ -50,7 +50,6 @@ export const NOTIFICATION_PREF_DEFAULTS: NotificationPrefs = {
  * does, this shape stays structurally identical, so nothing needs to change.
  */
 export type NotificationPrefsRow = {
-  notify_reel_ready: boolean;
   notify_album_shared: boolean;
   notify_new_uploads_digest: boolean;
   notify_new_follower: boolean;
@@ -68,7 +67,6 @@ export function resolveNotificationPrefs(
 ): NotificationPrefs {
   if (!row) return { ...NOTIFICATION_PREF_DEFAULTS };
   return {
-    notifyReelReady: row.notify_reel_ready,
     notifyAlbumShared: row.notify_album_shared,
     notifyNewUploadsDigest: row.notify_new_uploads_digest,
     notifyNewFollower: row.notify_new_follower,

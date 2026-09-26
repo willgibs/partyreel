@@ -17,7 +17,7 @@ export type UrgencyShape = "one" | "door" | "stated";
 const BUG_HINT = CONTACT_TOPICS.find((t) => t.value === "bug")!.hint!;
 
 /** Placeholder timing, judged for its size and wrapping, never its words
- *  (the copy is open, bible 21): the point is that a bug reads first and a
+ *  (the copy is open, bible 10): the point is that a bug reads first and a
  *  press ask reads slower, stated rather than left to guesswork. */
 const STATED_TIME: Record<string, string> = {
   bug: "Read first, ahead of the rest.",

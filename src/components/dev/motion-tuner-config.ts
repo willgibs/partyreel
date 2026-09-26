@@ -9,19 +9,19 @@
  * keeps it in a store that survives a Replay, a navigation out of the cinema
  * group and a reload (tuner-store.ts).
  *
- * THE RULE OF THE PANEL (Will, 2026-09-12: "some of the labels aren't very
- * clear"; ruled at the rounding round): every knob carries a `description` (what
+ * THE RULE OF THE PANEL ("some of the labels aren't very
+ * clear"): every knob carries a `description` (what
  * moves, in a sentence) and `ships` (where it lands in the product), and every
  * knob has a SPECIMEN somewhere the tuner mounts: the motion playground
  * (/design/lab/tools/motion) for the app's beats, the real cinema pages for the marketing
  * knobs, the Library's radius section (/design/library/foundations#radius) for
- * the radius tokens (the rounding board was, until its ruling retired it). A knob
+ * the radius tokens (the rounding board was, until it retired). A knob
  * without a specimen is retired from the panel rather than left as a dead
- * slider: the reel reveal's seven and the reel experience's two (ratified at T1,
- * revisit-only) and the event feed's swap and reorder (ratified 2026-06-22) left
- * the panel here; their vars and baked values are untouched (the three-place
- * contract in src/components/reel/reveal-constants.ts still holds), and a
- * revisit re-adds a knob WITH its specimen in the same commit.
+ * slider: the event feed's swap and reorder (ratified 2026-06-22) left the
+ * panel here; their vars and baked values are untouched, and a revisit re-adds
+ * a knob WITH its specimen in the same commit. (The reel reveal's seven and
+ * the reel experience's two left the same way; their vars are since gone too
+ * — housekeeping, not a revisit.)
  *
  * GROWS PER INCREMENT: an increment APPENDS its controls here in the SAME commit
  * it wires the matching `var()` into the CSS, with a description, a ships line
@@ -171,7 +171,7 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
 ];
 
 /**
- * THE ROUNDING KNOBS (staged 2026-09-01; ruled 2026-09-18: family C, the steps
+ * THE ROUNDING KNOBS (staged 2026-09-01; family C, the steps
  * in quarters). --radius is the base every rounded-* utility derives from
  * (theme.css: sm 0.5x, md 0.75x, lg 1x, xl 1.25x, 2xl 1.5x; 3xl and 4xl are
  * dropped), so one knob restyles every surface at once; --radius-float and
@@ -184,8 +184,8 @@ export const EVENT_PAGE_TUNER_CONTROLS: TunerControl[] = [
  * inline value outranks the :root token, and a soft navigation carries them
  * across pages. The specimen is the Library's radius section
  * (/design/library/foundations#radius), which reads the live tokens, and every
- * real page the tuner mounts on. (The rounding board was the specimen until its
- * ruling retired it; the 48px action knob left with its one call site.)
+ * real page the tuner mounts on. (The rounding board was the specimen until it
+ * retired; the 48px action knob left with its one call site.)
  */
 export const ROUNDING_TUNER_CONTROLS: TunerControl[] = [
   {
@@ -280,9 +280,9 @@ export const ROUNDING_TUNER_CONTROLS: TunerControl[] = [
  */
 export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
   ...ROUNDING_TUNER_CONTROLS,
-  // ── The lamps' cadence (ruled at the sitting, 2026-09-17) ──
-  // Every lamp reads --spill-cadence (globals.css, 8s since Will's ruling of
-  // 2026-09-17, down from the 11s the footer shipped at). The Aurora's field is
+  // ── The lamps' cadence ──
+  // Every lamp reads --spill-cadence (globals.css, 8s,
+  // down from the 11s the footer shipped at). The Aurora's field is
   // not on this knob directly: it follows at three laps, through
   // --aurora-cadence. On <html> like the radius knobs.
   // ★ `default` IS LOAD-BEARING: setTunerValue compares against it to decide
@@ -294,7 +294,7 @@ export const MARKETING_TUNER_CONTROLS: TunerControl[] = [
     label: "Lamp cadence",
     group: "lamps",
     description:
-      "One full cycle of every lamp's drift, ruled 8s on the whole page (2026-09-17); the Aurora's field follows at three laps of it.",
+      "One full cycle of every lamp's drift, set to 8s on the whole page; the Aurora's field follows at three laps of it.",
     ships:
       "the footer seam, the film strip, the reel pool, the feature heroes' screen lamps",
     min: 6,

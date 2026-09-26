@@ -13,8 +13,8 @@
  *                   in. One pass of light, once, on the newest only.
  *
  * Neither is a state colour: the album's tiles are photographs on a dark page,
- * so white reads over every one of them, and a hue here would be a claim (bible:
- * the media is the colour). The green check this replaced was a state on a
+ * so white reads over every one of them, and a hue here would be a claim
+ * (the media is the colour). The green check this replaced was a state on a
  * photograph for two and a half seconds with no exit at all.
  *
  * ★ THE TIMING TRAVELS WITH THE SHEET, AND ALWAYS WILL. Two things have to
@@ -27,14 +27,14 @@
  * `--arrival-glow-ms` / `--arrival-sweep-ms` and each keyframe's duration is the
  * variable. One edit moves both, and there is no second copy to drift. This
  * module is `lib/guest/arrival-glow.ts` grown up: the guest's own file could not
- * be shared with the host, which is exactly what his ruling asks for.
+ * be shared with the host, which is exactly the point of pulling it out.
  */
 import { useEffect, useRef, useState } from "react";
 
 /**
  * Two seconds for the glow: long enough for a guest whose eye is somewhere else
  * on a busy album to catch it, short enough that a lively party is not a page of
- * blinking rims. It sits deliberately outside bible 12's ~300ms interaction
+ * blinking rims. It sits deliberately outside the ~300ms interaction
  * ceiling, which governs a control answering a tap; this is an ambient mark on
  * content that arrived by itself.
  */
@@ -46,6 +46,18 @@ export const ARRIVAL_GLOW_MS = 2000;
  * over rather than a light going out.
  */
 export const ARRIVAL_SWEEP_MS = 900;
+
+/**
+ * THE GLIDE: how long the rows an arrival reflows take to reach their new
+ * places in a justified album (`AlbumRows`), and how long a step change takes
+ * to re-lay the photographs a reader can see. Ambient like the glow, so it is
+ * allowed past the 300ms a control's answer gets, but it is the album MOVING,
+ * so it stays well under the glow: long enough for the eye to follow a
+ * photograph to its new row, short enough to be over before a thumb comes
+ * back. The album box reads `--arrival-glide-ms` first (the tuner, a lab
+ * option), so this is the default, not a second copy.
+ */
+export const ARRIVAL_GLIDE_MS = 450;
 
 export type ArrivalMarks = {
   /** Ids that take the glow: everything that arrived by itself. */

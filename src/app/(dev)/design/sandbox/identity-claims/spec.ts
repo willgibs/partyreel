@@ -3,28 +3,23 @@ import { defineExploration } from "@/components/lab/exploration";
 import { SCREEN } from "./scene";
 
 /**
- * THE CLAIM TICKET (a NEW board on his word, 2026-09-22; "the morning
- * after the identity round": "I'd like to run most of this through
- * the lab once our foundation is complete... this introduces lots of new UI
- * and flows"; the plan-review feedback on the same page: "new claim tickets
- * should be from the dashboard, not tucked under the accounts page. This'll
- * be a future notification too.").
+ * THE CLAIM TICKET (the refresh, round one, 2026-09-24).
  *
- * The foundation is whole and shipped, `deliberately plain`
- * (`claims-card.tsx`): one card at the head of Your events, every event a
- * row, Claim or Not mine, Claim all, Finish, a confirmation whenever Finish
- * would delete something unclaimed. This board is its refinement catalog,
- * lab-only, no production byte: five decisions over Priya (`guest-capture`'s
- * and `media-viewer`'s own guest), who confirmed her email this morning at
- * Maya and Jay's wedding and finds two older events waiting under that
- * address: Tom's leaving do, really hers, and a beach bonfire she never
- * attended, uploaded under her email by someone else.
+ * The foundation shipped `deliberately plain` (`claims-card.tsx`): one card
+ * at the head of Your events, every event a row, Claim or Not mine, Claim
+ * all, Finish, a confirmation whenever Finish would delete something
+ * unclaimed. This board is its refinement catalog, lab-only, no production
+ * byte: five decisions over Priya (`guest-capture`'s and `media-viewer`'s own
+ * guest), who confirmed her email this morning at Maya and Jay's wedding and
+ * finds two older events waiting under that address: Tom's leaving do,
+ * really hers, and a beach bonfire she never attended, uploaded under her
+ * email by someone else.
  *
- * ★ THE TICKET CANNOT TELL THE TWO APART (verbatim: "the host
- * can't see the attributed email of an unconfirmed account"). Both render as
- * ordinary rows; the distinction lives only in Priya's own memory, which is
- * exactly what lets `pass`, `confirm` and `after` show a mixed state, one
- * claimed and one left over, rather than two identical decisions.
+ * ★ THE TICKET CANNOT TELL THE TWO APART: the host cannot see the attributed
+ * email of an unconfirmed account. Both render as ordinary rows; the
+ * distinction lives only in Priya's own memory, which is exactly what lets
+ * `pass`, `confirm` and `after` show a mixed state, one claimed and one left
+ * over, rather than two identical decisions.
  *
  * ★ ALL FIVE ARE ROOTS. Each holds the other four at today's shape and moves
  * only its own piece (`guest-capture`'s own note, carried here): where the
@@ -32,13 +27,14 @@ import { SCREEN } from "./scene";
  * one event, how she is warned before a deletion, and what Finish leaves her
  * looking at.
  *
- * ★ WHAT IS DELIBERATELY NOT ASKED. The model itself is ruled (three levels
- * of trust, the per-event name until a claim, the public mark's word
- * "Unverified", the removal of unclaimed uploads at Finish): a confirmed
- * caller with rows waiting is the premise this board stands on, not a
- * question inside it. The RPCs (`claim_guest_rows_by_email`,
- * `disown_guest_rows_by_email`) and the grouping-by-event rule are unmoved;
- * every option here changes only what a screen says and where it says it.
+ * ★ WHAT ELSE IS HELD STEADY. The three levels of trust, the per-event name
+ * until a claim, the public mark's word "Unverified", and Finish removing
+ * what stays unclaimed: a confirmed caller with rows waiting is the premise
+ * this board stands on, not a question inside it. Four of the five decisions
+ * below hold the RPCs (`claim_guest_rows_by_email`, `disown_guest_rows_by_email`)
+ * and their per-event grouping exactly as shipped; `pass`'s fourth option is
+ * the one place a real build would ask them for a photograph's own id
+ * instead, not only an event's.
  */
 
 const IDENTITY_CLAIMS_DRAFT = defineExploration({
@@ -46,13 +42,12 @@ const IDENTITY_CLAIMS_DRAFT = defineExploration({
   title: "Photos waiting for you",
   round: {
     n: 1,
-    date: "2026-09-22",
+    date: "2026-09-24",
     changed:
-      "New board, cut once the identity round's foundation was whole on the alias, on his word.",
+      "The refresh: pass gains a fourth option that decides by photograph instead of by event. Redrawn for the door's round two: pointer's moment can come at the door now, so every option is drawn at the album and at the door.",
   },
   context:
     "Priya confirmed her email this morning at Maya and Jay's wedding (guest-capture's own world). Two older events wait under that address: Tom's leaving do, really hers, and a beach bonfire she never attended, uploaded under her email by someone else. Five decisions on the ticket that lets her sort the two: where it lives, how the album points to it, how she works through more than one, how she is warned before a deletion, and where Finish leaves her.",
-  bible: [4, 14, 15, 19, 22],
   asks: [
     {
       id: "ticket",
@@ -97,30 +92,30 @@ const IDENTITY_CLAIMS_DRAFT = defineExploration({
       question:
         "When Priya confirms and rows wait elsewhere, how should she learn about them?",
       context:
-        "Nothing at the album says anything today. She just confirmed at Maya and Jay's wedding; two older events wait under her now-proven email.",
+        "She confirms at the album's moment card, or now at the door itself before any upload (the verification door, Create account, Log in). Two older events wait under her email; each option is drawn in both places.",
       options: [
         {
           id: "quiet",
           label: "Nothing here, the dashboard's the one place",
           means:
-            "The moment card names only this event; what waits elsewhere stays a dashboard-only surface until she visits it.",
+            "The moment card and the door's You're in name only this event; what waits elsewhere stays on the dashboard until she visits it.",
         },
         {
           id: "line",
-          label: "A line on the moment card, with a link",
+          label: "A line where she lands, with a link",
           means:
-            "The moment card gains a line, six photos from two other events are waiting for you, linking to the dashboard.",
+            "The moment card, or the door's You're in, gains a line: six photos from two other events are waiting for you, linking to the dashboard.",
         },
         {
           id: "toast",
           label: "A toast right after confirming",
           means:
-            "A second toast surfaces once alongside the moment card; missed it, the dashboard still holds every row.",
+            "A second toast surfaces once, over the moment card or the door's You're in; missed, the dashboard still holds every row.",
         },
       ],
       recommended: "line",
       because:
-        "She is certainly reading the moment card already, so a line inside it costs nothing extra to notice, while a toast can be missed and leaves six photographs unmentioned.",
+        "She is certainly reading where she lands, the moment card or the door's You're in, so a line there costs nothing extra to notice; a toast can be missed and leaves six photographs unmentioned.",
       overrule:
         "If the moment should stay narrowly about this event, naming what waits elsewhere may dilute it.",
       lands:
@@ -133,7 +128,7 @@ const IDENTITY_CLAIMS_DRAFT = defineExploration({
       label: "Working through more than one",
       question: "How should Priya work through more than one waiting event?",
       context:
-        "One card lists every event as a row today, Claim or Not mine beside each. She has two: Tom's leaving do, hers, and a beach bonfire she never attended.",
+        "One card lists every event as a row today, Claim or Not mine beside each. She has two: Tom's leaving do, hers, and a bonfire she never attended. The RPCs decide per event; a photo grid would need their own grain instead.",
       options: [
         {
           id: "rows",
@@ -153,14 +148,20 @@ const IDENTITY_CLAIMS_DRAFT = defineExploration({
           means:
             "Both events list as rows that open to a small photo grid right there, before Claim or Not mine.",
         },
+        {
+          id: "photos",
+          label: "Every photo, one flat grid",
+          means:
+            "All six photos from both events sit in one grid; a tap marks each Mine or Not mine, no event-level step at all.",
+        },
       ],
       recommended: "rows",
       because:
-        "Two events is not a queue: seeing both at once with a Claim all shortcut is faster than stepping through one at a time or opening every row's photos first.",
+        "Two events is not a queue: seeing both at once with a Claim all shortcut is faster than stepping through one at a time, opening every row's photos, or judging photo by photo.",
       overrule:
-        "If recognising a fake upload takes seeing the actual photograph, the checklist earns its extra height.",
+        "If one event ever mixed a real photo with a stranger's, only the flat grid can split it; rows, cards and the checklist all still decide by event, whole.",
       lands:
-        "Whether deciding a handful of events is one glance or a small photo review each time.",
+        "Whether deciding a handful of events is one glance, a small photo review each time, or a decision the RPCs make photo by photo.",
       tile: "phone",
       configs: [SCREEN],
     },
@@ -206,7 +207,7 @@ const IDENTITY_CLAIMS_DRAFT = defineExploration({
       label: "What Finish leaves her looking at",
       question: "What should Finish leave Priya looking at?",
       context:
-        "A toast says it today: Added 4 photos to your account. Tonight's ruling adds more: claiming now settles Tom's leaving do into Your events as a Guest card too, the ticket gone. She claimed it and let the bonfire go.",
+        "A toast says it today: Added 4 photos to your account. Claiming also settles Tom's leaving do into Your events as a Guest card, the ticket gone, since an upload alone is what makes her a guest of it. She claimed it and let the bonfire go.",
       options: [
         {
           id: "toast",

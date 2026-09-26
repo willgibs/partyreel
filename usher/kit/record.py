@@ -37,5 +37,6 @@ if rec.get("roadmap") or rec.get("retire_roadmap"):
         for line in reversed(rec.get("roadmap", [])): lines.insert(first, line.rstrip("\n")); print("ROADMAP: line added under Now")
         return "\n".join(lines)
     rw("docs/ROADMAP.md", f)
-st = len(pathlib.Path("docs/STATUS.md").read_text().split("\n"))
+# Counted as record-depth-policy.test.ts counts it (and `wc -l`): a trailing newline ends the last line, it adds none.
+st = len(pathlib.Path("docs/STATUS.md").read_text().removesuffix("\n").split("\n"))
 print(f"caps: STATUS {st} of 80 lines{' (OVER)' if st > 80 else ''}")

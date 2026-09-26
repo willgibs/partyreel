@@ -1,16 +1,41 @@
-// @contract-for: src/components/shared/masonry.tsx
 import { Download, EyeOff } from "lucide-react";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 
 import type { GridMedia } from "@/components/app/media-grid";
 import { LikesProvider } from "@/components/likes/likes-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import {
+  CLASS_BREAKS,
+  ROWS_FIRST_PAINT,
+  steadyWidth,
+} from "@/components/shared/album-window";
+import {
+  abortUnfinishedImages,
   columnsFor,
   distributeColumns,
   MasonryColumns,
+  placeColumns,
   type TileAction,
 } from "@/components/shared/masonry";
+import { rowRatio } from "@/lib/media/tile-aspect";
+import { layoutRows, perRowFor, ROW_CLASSES } from "@/lib/shared/album-rows";
+
+// The lazy wrapper is next/dynamic, which resolves after the pin is over; the
+// address pins need the real viewer, so it mounts synchronously here (closed, it
+// renders nothing, so every other pin in this file sees the grid it always saw).
+vi.mock("@/components/shared/media-lightbox.lazy", async () => {
+  const { MediaLightbox } = await import("@/components/shared/media-lightbox");
+  return { MediaLightboxLazy: MediaLightbox, preloadMediaLightbox: () => {} };
+});
+
+// The rows' glide is `runFlip`'s own contract (use-flip.test.tsx); here only
+// WHEN the grid asks for one is pinned, so the pass itself is a spy.
+const runFlipSpy = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/shared/use-flip", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/shared/use-flip")>()),
+  runFlip: runFlipSpy,
+}));
 
 /**
  * THE ONE ALBUM TILE'S CONTRACT (Will, `tiles`, 2026-09-20, in his own words:
@@ -98,13 +123,13 @@ describe("the desk's hover set is ONE pane, declared per surface", () => {
     );
     const bars = container.querySelectorAll("[data-tile-actions]");
     expect(bars).toHaveLength(2);
-    // `row=bar` (Will, 2026-09-20): the row is ONE blurred region, so the bar
-    // wears the material and the glyphs inside it carry no surface of their own.
+    // The glyphs inside the bar carry no material of their own: a backdrop
+    // filter per glyph would stack one blur per action under every scroll.
+    // (Never below `md`, and not drawn at all at rest: that is the sheet's,
+    // pinned by "the desk's row is not drawn at rest" below, since the bar
+    // carries no display utility of its own any more.)
     for (const bar of bars) {
-      expect(bar).toHaveClass("glass");
-      expect(bar.className).toContain("md:flex");
-      // Never below `md`: a phone tile is marks only.
-      expect(bar.className).toContain("hidden");
+      expect(bar.className).not.toMatch(/(^|\s)(md:)?(flex|hidden)(\s|$)/);
       for (const glyph of bar.children)
         expect(glyph.className).not.toContain("glass");
     }
@@ -168,7 +193,14 @@ describe("renderOverlay stays the per-surface chrome slot", () => {
       />,
     );
     const box = container.querySelector("[data-album-grid]")!;
-    expect(box.firstElementChild).toBe(screen.getByTestId("pending"));
+    // The head's own box comes first (a `contents` box in the flow, the first
+    // column's head once measured), holding the in-flight tiles.
+    const head = box.firstElementChild!;
+    expect(head.hasAttribute("data-album-head")).toBe(true);
+    expect(head.contains(screen.getByTestId("pending"))).toBe(true);
+    expect(box.querySelector("[data-media-tile]")!.previousElementSibling).toBe(
+      head,
+    );
   });
 });
 
@@ -387,6 +419,148 @@ describe("distributeColumns keeps an album still when one lands", () => {
  * it replaced. jsdom has no layout, so the box's width and computed style are
  * stubbed with what Chrome reports for the album box.
  */
+/**
+ * ★ THE MEASURED COLUMNS ARE THE SAME BOX, RESTYLED (the album-window lane).
+ * The columns used to be one wrapper each, so the first measure (and every
+ * filter) moved every tile to a new parent, and React remounts a node that
+ * changes parent: a second entrance and every photograph decoded again. Now
+ * the one box flows in columns and each tile's column is its `order`, counted
+ * from the column's oldest end, so an arrival restyles no tile already there.
+ */
+describe("the measured columns place tiles in the one box", () => {
+  const album: GridMedia[] = Array.from({ length: 11 }, (_, i) => ({
+    id: `c${i}`,
+    type: "photo",
+    url: `/${i}.jpg`,
+    width: 100,
+    height: [150, 100, 75][i % 3],
+  }));
+
+  it("flows each column by order, counted from its oldest end, under the head", () => {
+    const box = { cols: 3, width: 908, gap: 4 };
+    const placed = placeColumns(album, box, false, 50);
+    expect(placed.colWidth).toBe(300);
+    const cols = distributeColumns(album, 3, false);
+    let tallest = 0;
+    cols.forEach((col, c) => {
+      let y = c === 0 ? 50 : 0;
+      col.forEach((item, k) => {
+        const at = placed.box.get(item.id)!;
+        expect(at.width).toBe(300);
+        expect(at.marginLeft).toBe(c > 0 ? 4 : 0);
+        // The column's stride, the oldest at its end.
+        expect(at.order).toBe((c + 1) * 100_000 - (col.length - k));
+        y += (300 * (item.height ?? 1)) / (item.width ?? 1) + 4;
+      });
+      tallest = Math.max(tallest, y);
+    });
+    // Each column ends at a break; the head leads the first column.
+    expect(placed.breaks).toEqual([100_000, 200_000]);
+    expect(placed.headOrder).toBeLessThan(
+      Math.min(...cols[0].map((m) => placed.box.get(m.id)!.order as number)),
+    );
+    // The first row: each column's head.
+    expect([...placed.first].sort()).toEqual(
+      cols.map((col) => col[0].id).sort(),
+    );
+    // The box stands as tall as its tallest column, and a little more (the
+    // browser rounds each tile; a box a hair short would wrap a column).
+    expect(placed.height).toBeGreaterThan(tallest);
+    expect(placed.height).toBeLessThan(tallest + 4);
+  });
+
+  it("restyles no tile already there when one lands at a column's head", () => {
+    const box = { cols: 3, width: 908, gap: 4 };
+    const before = placeColumns(album, box, false);
+    const arrival: GridMedia = {
+      id: "new",
+      type: "photo",
+      url: "/n.jpg",
+      width: 100,
+      height: 120,
+    };
+    const after = placeColumns([arrival, ...album], box, false);
+    for (const m of album)
+      expect(after.box.get(m.id), `${m.id} restyled`).toEqual(
+        before.box.get(m.id),
+      );
+    expect(after.box.has("new")).toBe(true);
+  });
+
+  it("balances a clamped host album on its real shapes, not as squares", () => {
+    // The clamped spelling is one number ("1.5"), which the balance once read
+    // as a square: every tile counted 1, whatever its shape. Newest first: two
+    // wide photographs, then a tall one (clamped to 0.66, 1.5 widths tall).
+    const shot = (id: string, w: number, h: number): GridMedia => ({
+      id,
+      type: "photo",
+      url: `/${id}.jpg`,
+      width: w,
+      height: h,
+    });
+    const album = [
+      shot("a", 300, 100),
+      shot("b", 300, 100),
+      shot("tall", 100, 300),
+    ];
+    const cols = distributeColumns(album, 2, true);
+    // On the real shapes the tall one stands alone and the two wide share a
+    // column (1.5 against 0.67 + 0.67); read as squares, "a" joined the tall one.
+    expect(cols.map((c) => c.map((m) => m.id))).toEqual([["tall"], ["a", "b"]]);
+  });
+
+  it("measures without remounting a single tile, and filters without remounting either", () => {
+    // jsdom measures every box at 0 wide, which keeps the pre-measure paint;
+    // here the box reports a desk's width once a ResizeObserver asks again.
+    let width = 0;
+    const width$ = vi
+      .spyOn(HTMLElement.prototype, "clientWidth", "get")
+      .mockImplementation(() => width);
+    const observers: (() => void)[] = [];
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        constructor(cb: () => void) {
+          observers.push(cb);
+        }
+        observe() {}
+        disconnect() {}
+      },
+    );
+    try {
+      const { container, rerender } = render(<MasonryColumns items={album} />);
+      const box = container.querySelector<HTMLElement>("[data-album-grid]")!;
+      expect(box.className).toContain("columns-2");
+      const nodes = new Map(
+        [...box.querySelectorAll<HTMLElement>("[data-media-tile]")].map((t) => [
+          t.dataset.mediaId,
+          t,
+        ]),
+      );
+      width = 1200;
+      act(() => observers.forEach((o) => o()));
+      expect(box.className).not.toContain("columns-2");
+      expect(parseFloat(box.style.height)).toBeGreaterThan(0);
+      for (const [id, node] of nodes) {
+        const now = box.querySelector(`[data-media-id="${id}"]`);
+        expect(now, `${id} was remounted by the measure`).toBe(node);
+        expect(now!.getAttribute("style")).toMatch(/order: \d+/);
+      }
+      // The Yours filter keeps what it keeps, node for node.
+      rerender(<MasonryColumns items={album.filter((_, i) => i % 2 === 0)} />);
+      for (const [id, node] of nodes) {
+        const now = box.querySelector(`[data-media-id="${id}"]`);
+        if (Number(id!.slice(1)) % 2 === 0)
+          expect(now, `${id} was remounted by the filter`).toBe(node);
+        else expect(now).toBeNull();
+      }
+    } finally {
+      width$.mockRestore();
+      vi.unstubAllGlobals();
+    }
+  });
+});
+
 describe("columnsFor counts on the gap the box resolves", () => {
   const boxAt = (width: number) => {
     const el = document.createElement("div");
@@ -420,5 +594,554 @@ describe("columnsFor counts on the gap the box resolves", () => {
     vi.stubGlobal("getComputedStyle", () => albumBoxStyle);
     expect(columnsFor(boxAt(335))).toBe(2);
     expect(columnsFor(boxAt(0))).toBe(0);
+  });
+});
+
+/**
+ * THE PHOTOGRAPH'S OWN ADDRESS (media-viewer r1: `?photo=<id>`). Opening writes
+ * it beside the page's other params (a refresh comes back), the grid reads it
+ * once on mount, and ACCESS STAYS EXACTLY AS IT WAS: it opens only an item this
+ * viewer already holds, so an unknown, held or hidden id opens the album
+ * plainly with no error and no sign the item exists.
+ */
+describe("the open photograph rides the address", () => {
+  const TooltipWrap = ({ children }: { children: React.ReactNode }) => (
+    <TooltipProvider>{children}</TooltipProvider>
+  );
+  const frame = () =>
+    act(async () => {
+      await new Promise((r) => setTimeout(r, 40));
+    });
+  const here = () => `${window.location.pathname}${window.location.search}`;
+
+  beforeEach(() => window.history.replaceState(null, "", "/e/tok?reel"));
+  afterEach(() => window.history.replaceState(null, "", "/"));
+
+  it("carries each photograph's id on its tile, for the way back", () => {
+    const { container } = render(<MasonryColumns items={items} />);
+    const tiles = container.querySelectorAll("[data-media-tile]");
+    expect(tiles[0].getAttribute("data-media-id")).toBe("a");
+    expect(tiles[1].getAttribute("data-media-id")).toBe("b");
+  });
+
+  it("writes ?photo= beside the page's other params on open, and clears it on close", async () => {
+    render(<MasonryColumns items={items} />, { wrapper: TooltipWrap });
+    fireEvent.click(screen.getByLabelText("View photo"));
+    expect(here()).toBe("/e/tok?reel&photo=a");
+    await frame();
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(here()).toBe("/e/tok?reel");
+  });
+
+  // A beat past the quiet a step waits for (`ADDRESS_STEP_QUIET_MS`).
+  const quiet = () =>
+    act(async () => {
+      await new Promise((r) => setTimeout(r, 360));
+    });
+
+  it("follows the viewer once a step rests, so a refresh returns to where it is", async () => {
+    render(<MasonryColumns items={items} />, { wrapper: TooltipWrap });
+    fireEvent.click(screen.getByLabelText("View photo"));
+    await frame();
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    // A step waits for a beat of quiet (the browsers' caps on the history API).
+    expect(here()).toBe("/e/tok?reel&photo=a");
+    await quiet();
+    expect(here()).toBe("/e/tok?reel&photo=b");
+  });
+
+  it("writes a walk's address once, when it rests, and a close straight after a walk clears it", async () => {
+    const walk: GridMedia[] = Array.from({ length: 40 }, (_, i) => ({
+      id: `p${i}`,
+      type: "photo" as const,
+      url: `/p${i}.jpg`,
+      width: 800,
+      height: 600,
+    }));
+    const replace = vi.spyOn(window.history, "replaceState");
+    try {
+      const { unmount } = render(<MasonryColumns items={walk} />, {
+        wrapper: TooltipWrap,
+      });
+      fireEvent.click(screen.getAllByLabelText("View photo")[0]);
+      await frame();
+      expect(here()).toBe("/e/tok?reel&photo=p0");
+      // A held arrow key: thirty steps, and not one write among them.
+      replace.mockClear();
+      for (let i = 0; i < 30; i++)
+        fireEvent.keyDown(window, { key: "ArrowRight" });
+      expect(
+        screen.getByRole("dialog", { name: "Photo 31 of 40" }),
+      ).toBeTruthy();
+      expect(replace).not.toHaveBeenCalled();
+      await quiet();
+      expect(replace).toHaveBeenCalledTimes(1);
+      expect(here()).toBe("/e/tok?reel&photo=p30");
+      // Straight on and straight out: the close clears it at once, and the step still waiting never lands.
+      fireEvent.keyDown(window, { key: "ArrowRight" });
+      fireEvent.click(screen.getByRole("button", { name: "Close" }));
+      expect(here()).toBe("/e/tok?reel");
+      await quiet();
+      expect(here()).toBe("/e/tok?reel");
+      unmount();
+    } finally {
+      replace.mockRestore();
+    }
+  });
+
+  it("opens the photograph a refresh lands on", async () => {
+    window.history.replaceState(null, "", "/e/tok?photo=b");
+    render(<MasonryColumns items={items} />, { wrapper: TooltipWrap });
+    await frame();
+    expect(screen.getByRole("dialog", { name: "Video 2 of 2" })).toBeTruthy();
+  });
+
+  it("opens the album plainly on an id this viewer does not hold: no viewer, no error, no trace", async () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    window.history.replaceState(null, "", "/e/tok?photo=held-or-hidden");
+    render(<MasonryColumns items={items} />, { wrapper: TooltipWrap });
+    await frame();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(errors).not.toHaveBeenCalled();
+    errors.mockRestore();
+  });
+
+  it("is claimed by one grid when two could open it", async () => {
+    window.history.replaceState(null, "", "/e/tok?photo=a");
+    render(
+      <>
+        <MasonryColumns items={items} />
+        <MasonryColumns items={items} />
+      </>,
+      { wrapper: TooltipWrap },
+    );
+    await frame();
+    expect(screen.getAllByRole("dialog")).toHaveLength(1);
+  });
+
+  it("waits behind a door that is already open, then opens", async () => {
+    window.history.replaceState(null, "", "/e/tok?photo=a");
+    const door = document.createElement("div");
+    door.setAttribute("role", "dialog");
+    document.body.appendChild(door);
+    render(<MasonryColumns items={items} />, { wrapper: TooltipWrap });
+    await frame();
+    expect(document.querySelector("[data-lightbox-content]")).toBeNull();
+    await act(async () => {
+      door.remove();
+      await new Promise((r) => setTimeout(r, 40));
+    });
+    expect(screen.getByRole("dialog", { name: "Photo 1 of 2" })).toBeTruthy();
+  });
+
+  it("leaves the address alone on a grid that is not the page's subject", () => {
+    render(<MasonryColumns items={items} photoAddress={false} />, {
+      wrapper: TooltipWrap,
+    });
+    fireEvent.click(screen.getByLabelText("View photo"));
+    expect(here()).toBe("/e/tok?reel");
+  });
+});
+
+/**
+ * THE JUSTIFIED ALBUM ON THE ONE GRID (`album-columns`, Will's
+ * `layout=justified`). The engine's rules are `album-rows.test.ts`; these pin
+ * the BOX: the rows fill it, a tile keeps everything a tile carries, the head
+ * slots seat the in-flight tiles, and a reflow moves breaks, never tiles.
+ *
+ * ★ jsdom measures every element at 800px (vitest.setup.ts) and resolves no
+ * gap, so the rows here are real engine rows at 800 with a gap of 0.
+ *
+ * ★ AND IN A VIEW TALL ENOUGH TO HOLD EVERY ROW. The rows are windowed (one
+ * viewport behind, two ahead; `album-window.test.ts` and the window's own pins
+ * below), and jsdom's window is 768px tall with the album at its top: these pins
+ * are about the rows themselves, so they stand in a view that mounts them all.
+ */
+describe('layout="rows": the justified album on the one grid', () => {
+  const tall = Object.getOwnPropertyDescriptor(window, "innerHeight");
+  beforeEach(() => {
+    Object.defineProperty(window, "innerHeight", {
+      configurable: true,
+      value: 100_000,
+    });
+  });
+  afterEach(() => {
+    if (tall) Object.defineProperty(window, "innerHeight", tall);
+  });
+
+  const album: GridMedia[] = Array.from({ length: 23 }, (_, i) => ({
+    id: `r${i}`,
+    type: i === 3 ? "video" : "photo",
+    url: `/${i}.jpg`,
+    width: [300, 400, 400, 1600, 100][i % 5],
+    height: [400, 300, 500, 900, 100][i % 5],
+    likeCount: i === 2 ? 5 : 0,
+  }));
+
+  /** The tiles, row by row, as the breaks divide them. */
+  const rowsOf = (grid: Element) => {
+    const rows: HTMLElement[][] = [[]];
+    for (const el of Array.from(grid.children) as HTMLElement[]) {
+      if (el.hasAttribute("data-row-break")) rows.push([]);
+      else if (el.hasAttribute("data-rows-key")) rows[rows.length - 1].push(el);
+    }
+    return rows;
+  };
+  const gridOf = (container: HTMLElement) =>
+    container.querySelector('[data-album-grid][data-album-layout="rows"]')!;
+
+  beforeEach(() => runFlipSpy.mockClear());
+
+  it("leaves masonry the default", () => {
+    const { container } = render(<MasonryColumns items={album} />);
+    expect(container.querySelector("[data-album-layout]")).toBeNull();
+  });
+
+  it("lays every photograph in rows that fill the box, one height a row", () => {
+    const { container } = render(
+      <MasonryColumns items={album} layout="rows" />,
+    );
+    const rows = rowsOf(gridOf(container));
+    expect(rows.length).toBeGreaterThan(2);
+    expect(rows.flat().map((t) => t.getAttribute("data-media-id"))).toEqual(
+      album.map((m) => m.id),
+    );
+    for (const row of rows) {
+      // Whole pixels summing to the box (800, no gap): no gap at the edge.
+      const widths = row.map((t) => Number(t.style.flexGrow));
+      expect(widths.every(Number.isInteger)).toBe(true);
+      expect(widths.reduce((a, b) => a + b, 0)).toBe(800);
+      expect(new Set(row.map((t) => t.style.height)).size).toBe(1);
+    }
+  });
+
+  it("keeps everything a tile carries: marks, the viewer's hooks, the arrival marks", () => {
+    const { container } = render(
+      <MasonryColumns
+        items={album}
+        layout="rows"
+        mineIds={new Set(["r1"])}
+        arrivedIds={new Set(["r0"])}
+        landedIds={new Set(["r1"])}
+      />,
+    );
+    const tile = (id: string) =>
+      container.querySelector<HTMLElement>(
+        `[data-media-tile][data-media-id="${id}"]`,
+      )!;
+    expect(tile("r3").querySelector("svg.lucide-play")).not.toBeNull();
+    expect(tile("r2").querySelector('[data-tile-mark="like"]')).not.toBeNull();
+    expect(tile("r1").querySelector('[data-tile-mark="mine"]')).not.toBeNull();
+    expect(tile("r0").hasAttribute("data-arrived")).toBe(true);
+    expect(tile("r1").hasAttribute("data-landed")).toBe(true);
+    expect(tile("r4").hasAttribute("data-lit")).toBe(true);
+  });
+
+  it("takes the step as photographs per row, never pixels", () => {
+    const { container, rerender } = render(
+      <MasonryColumns items={album} layout="rows" rowStep={0} />,
+    );
+    const sparse = rowsOf(gridOf(container)).length;
+    rerender(<MasonryColumns items={album} layout="rows" rowStep={2} />);
+    const dense = rowsOf(gridOf(container)).length;
+    // 800px is the tablet class: 2 a row at the largest, 4 at the densest.
+    expect(sparse).toBeGreaterThan(dense * 2 - 1);
+  });
+
+  it("seats each head tile in a slot of its own before the first photograph", () => {
+    const { container, rerender } = render(
+      <MasonryColumns
+        items={album}
+        layout="rows"
+        prefix={
+          <>
+            {false}
+            <div data-testid="stack">in flight</div>
+            {[
+              <div key="held" data-testid="held">
+                waiting
+              </div>,
+            ]}
+          </>
+        }
+      />,
+    );
+    const grid = gridOf(container);
+    const first = rowsOf(grid)[0];
+    expect(first[0].hasAttribute("data-rows-head")).toBe(true);
+    expect(first[1].hasAttribute("data-rows-head")).toBe(true);
+    expect(first[0].contains(screen.getByTestId("stack"))).toBe(true);
+    expect(first[1].contains(screen.getByTestId("held"))).toBe(true);
+    // The masonry's bottom margin gives way to the row: the slot is the box.
+    expect(first[0].className).toContain("[&>*]:!mb-0");
+    // An empty head is no slot at all (the guest's head is a fragment always).
+    rerender(
+      <MasonryColumns items={album} layout="rows" prefix={<>{false}</>} />,
+    );
+    expect(grid.querySelector("[data-rows-head]")).toBeNull();
+  });
+
+  it("moves breaks, never tiles: an arrival keeps every tile's node", () => {
+    const { container, rerender } = render(
+      <MasonryColumns items={album} layout="rows" />,
+    );
+    const before = new Map(
+      Array.from(
+        container.querySelectorAll<HTMLElement>("[data-media-tile]"),
+      ).map((t) => [t.getAttribute("data-media-id"), t]),
+    );
+    const arrival: GridMedia = {
+      id: "new",
+      type: "photo",
+      url: "/n.jpg",
+      width: 400,
+      height: 300,
+    };
+    rerender(<MasonryColumns items={[arrival, ...album]} layout="rows" />);
+    for (const [id, node] of before)
+      expect(
+        container.querySelector(`[data-media-tile][data-media-id="${id}"]`),
+        `${id} was remounted`,
+      ).toBe(node);
+    expect(container.querySelector('[data-media-id="new"]')).not.toBeNull();
+  });
+
+  it("glides an arrival and a step change, and nothing on the first layout", () => {
+    const { rerender } = render(<MasonryColumns items={album} layout="rows" />);
+    expect(runFlipSpy).not.toHaveBeenCalled();
+    const arrival: GridMedia = {
+      id: "new",
+      type: "photo",
+      url: "/n.jpg",
+      width: 400,
+      height: 300,
+    };
+    rerender(<MasonryColumns items={[arrival, ...album]} layout="rows" />);
+    expect(runFlipSpy).toHaveBeenCalledTimes(1);
+    const [nodes, was, options] = runFlipSpy.mock.calls[0];
+    // Every photograph already on screen was snapshotted; the newcomer was not.
+    expect((was as Map<string, DOMRect>).has("r0")).toBe(true);
+    expect((was as Map<string, DOMRect>).has("new")).toBe(false);
+    expect((nodes as Map<string, HTMLElement>).has("new")).toBe(true);
+    expect(options).toMatchObject({ scale: true, visibleOnly: true });
+    rerender(
+      <MasonryColumns items={[arrival, ...album]} layout="rows" rowStep={2} />,
+    );
+    expect(runFlipSpy).toHaveBeenCalledTimes(2);
+    // An equal list in a new array lays nothing and glides nothing.
+    rerender(
+      <MasonryColumns
+        items={[arrival, ...album].map((m) => ({ ...m }))}
+        layout="rows"
+        rowStep={2}
+      />,
+    );
+    expect(runFlipSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it("centres an album too small to fill a row", () => {
+    const { container } = render(
+      <MasonryColumns items={album.slice(0, 1)} layout="rows" rowStep={2} />,
+    );
+    const grid = gridOf(container);
+    expect(grid.className).toContain("justify-center");
+    const tile = grid.querySelector<HTMLElement>("[data-media-tile]")!;
+    expect(tile.style.flex).toMatch(/^0 0 \d+px$/);
+  });
+
+  it("keeps the first paint's width classes on the engine's own breakpoints", () => {
+    const queried = [
+      ...ROWS_FIRST_PAINT.matchAll(
+        /@min-\[(\d+)px\]:\[--rows-fill:var\(--rows-fill(\d)\)\]/g,
+      ),
+    ].map((m) => [Number(m[2]), Number(m[1])]);
+    expect(queried).toEqual(ROW_CLASSES.slice(1).map((c, i) => [i + 1, c.min]));
+    expect(ROWS_FIRST_PAINT).toContain("[--rows-fill:var(--rows-fill0)]");
+    expect(ROW_CLASSES[0].min).toBe(0);
+    // The rest's height follows the same classes.
+    const rests = [
+      ...ROWS_FIRST_PAINT.matchAll(
+        /@min-\[(\d+)px\]:\[--rows-rest:var\(--rows-rest(\d)\)\]/g,
+      ),
+    ].map((m) => [Number(m[2]), Number(m[1])]);
+    expect(rests).toEqual(queried);
+    // And each class's breaks show inside exactly its own range.
+    const bounds = [...ROW_CLASSES.map((c) => c.min), Infinity];
+    CLASS_BREAKS.forEach((cls, i) => {
+      const min = cls.match(/@min-\[(\d+)px\]/);
+      const max = cls.match(/@max-\[(\d+)px\]/);
+      expect(min ? Number(min[1]) : 0).toBe(bounds[i]);
+      expect(max ? Number(max[1]) : Infinity).toBe(bounds[i + 1]);
+    });
+  });
+
+  it("holds the narrower width when the rows summon and dismiss their own scrollbar", () => {
+    // 1385 with no scrollbar, 1370 with one, back to 1385 a frame later: the loop.
+    expect(
+      steadyWidth([
+        { width: 1385, at: 0 },
+        { width: 1370, at: 16 },
+        { width: 1385, at: 33 },
+      ]),
+    ).toBe(1370);
+    // A person resizing is not a loop: too slow, too far, or not back where it was.
+    expect(
+      steadyWidth([
+        { width: 1385, at: 0 },
+        { width: 1370, at: 400 },
+        { width: 1385, at: 800 },
+      ]),
+    ).toBe(1385);
+    expect(
+      steadyWidth([
+        { width: 1400, at: 0 },
+        { width: 1100, at: 16 },
+        { width: 1400, at: 33 },
+      ]),
+    ).toBe(1400);
+    expect(
+      steadyWidth([
+        { width: 1385, at: 0 },
+        { width: 1370, at: 16 },
+        { width: 1360, at: 33 },
+      ]),
+    ).toBe(1360);
+    expect(steadyWidth([{ width: 800, at: 0 }])).toBe(800);
+  });
+
+  it("paints the engine's own rows, per width class, before the box is measured", () => {
+    const rect = vi
+      .spyOn(Element.prototype, "getBoundingClientRect")
+      .mockReturnValue({
+        width: 0,
+        height: 0,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      } as DOMRect);
+    const { container } = render(
+      <MasonryColumns items={album} layout="rows" />,
+    );
+    const grid = gridOf(container);
+    // Greedy wrapping re-broke every row on screen once measured (a layout
+    // shift of 0.76 on a throttled phone): the first paint is the engine's
+    // rows at each class's nominal width, each class's breaks shown only there.
+    const breaks = [
+      ...grid.querySelectorAll<HTMLElement>(":scope > [data-row-break]"),
+    ];
+    expect(breaks.length).toBeGreaterThan(0);
+    for (const b of breaks) {
+      expect(b.className).toContain("hidden");
+      expect(CLASS_BREAKS.some((c) => b.className.includes(c))).toBe(true);
+    }
+    // The desk's breaks fall exactly after the desk's rows.
+    const desk = layoutRows(
+      album.map((m) => ({ id: m.id, ratio: rowRatio(m) })),
+      { width: 1400, gap: 4, perRow: perRowFor(1400, 1) },
+    );
+    const deskBreaks = breaks
+      .filter((b) => b.className.includes(CLASS_BREAKS[3]))
+      .map((b) => (b.previousElementSibling as HTMLElement).dataset.mediaId);
+    let end = 0;
+    const deskRowEnds: string[] = [];
+    for (const row of desk.rows) {
+      end += row.ids.length;
+      if (end > album.length) break;
+      deskRowEnds.push(row.ids[row.ids.length - 1]);
+    }
+    expect(deskBreaks).toEqual(deskRowEnds);
+    // Each line justified by its shapes: a zero basis (so only a drawn break
+    // ends a line), a width in proportion to its ratio, the line's height.
+    const tile = grid.querySelector<HTMLElement>("[data-media-tile]")!;
+    expect(tile.style.flexBasis).toMatch(/^0(px)?$/);
+    expect(Number(tile.style.flexGrow)).toBeGreaterThan(0);
+    expect(tile.style.aspectRatio).not.toBe("");
+    rect.mockRestore();
+  });
+});
+
+/**
+ * THE HIDDEN MARK (host-app: a hidden photograph dims to 30% in the host's own
+ * album). The dim was glued onto `active:scale-[0.98]` with no space between,
+ * one class nobody emits, so a hidden photograph sat at full brightness.
+ */
+describe("dimItem dims the media", () => {
+  it("writes opacity-30 as a class of its own on a dimmed tile, and only there", () => {
+    render(<MasonryColumns items={items} dimItem={(m) => m.id === "a"} />);
+    const dimmed = screen.getByLabelText("View photo");
+    const plain = screen.getByLabelText("Play video");
+    expect(dimmed.classList.contains("opacity-30")).toBe(true);
+    expect(dimmed.classList.contains("active:scale-[0.98]")).toBe(true);
+    expect(plain.classList.contains("opacity-30")).toBe(false);
+  });
+});
+
+/**
+ * A TILE THAT LEAVES TAKES ITS DOWNLOAD WITH IT (`abortUnfinishedImages`). A browser never cancels an
+ * image because its element left the page, and R2 answers over HTTP/1.1 (six connections), so the
+ * screen a scroll through a big album stopped on waited behind every photograph it passed: 13 to 18 s
+ * at the bottom of the scale probe, 0.5 to 0.8 s once a leaving tile clears its `src`.
+ */
+describe("a tile that leaves takes its unfinished download with it", () => {
+  const finished = (img: HTMLImageElement, done: boolean) =>
+    Object.defineProperty(img, "complete", {
+      configurable: true,
+      get: () => done,
+    });
+
+  it("clears an unfinished image's source by the attribute (no error to read as an expiry), and keeps a drawn one", () => {
+    const box = document.createElement("div");
+    const pending = document.createElement("img");
+    const drawn = document.createElement("img");
+    pending.setAttribute("src", "https://r2.test/p/1.webp");
+    pending.setAttribute("srcset", "https://r2.test/p/1.webp 1x");
+    drawn.setAttribute("src", "https://r2.test/p/2.webp");
+    finished(pending, false);
+    finished(drawn, true);
+    box.append(pending, drawn);
+    const error = vi.fn();
+    pending.addEventListener("error", error);
+    abortUnfinishedImages(box);
+    expect(pending.hasAttribute("src")).toBe(false);
+    expect(pending.hasAttribute("srcset")).toBe(false);
+    expect(drawn.getAttribute("src")).toBe("https://r2.test/p/2.webp");
+    expect(error).not.toHaveBeenCalled();
+  });
+
+  it("runs as a tile leaves the grid, and never on a tile that stays", () => {
+    // The grid's one observer is what hears a tile leave; jsdom has none of its own.
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+    try {
+      const two: GridMedia[] = [
+        { id: "a", type: "photo", url: "/a.jpg", width: 800, height: 1200 },
+        { id: "c", type: "photo", url: "/c.jpg", width: 800, height: 600 },
+      ];
+      const { container, rerender } = render(<MasonryColumns items={two} />);
+      const leaving = container.querySelector<HTMLImageElement>(
+        '[data-media-id="a"] img',
+      )!;
+      const staying = container.querySelector<HTMLImageElement>(
+        '[data-media-id="c"] img',
+      )!;
+      finished(leaving, false);
+      finished(staying, false);
+      rerender(<MasonryColumns items={[two[1]]} />);
+      expect(leaving.isConnected).toBe(false);
+      expect(leaving.hasAttribute("src")).toBe(false);
+      expect(staying.getAttribute("src")).toBe("/c.jpg");
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

@@ -6,7 +6,6 @@ import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
 import { updateEventAction } from "@/app/(app)/dashboard/actions";
-import { DangerZoneSection } from "@/components/app/event-settings/danger-zone-section";
 import { DetailsSection } from "@/components/app/event-settings/details-section";
 import { UploadsSection } from "@/components/app/event-settings/uploads-section";
 import { VisibilitySection } from "@/components/app/event-settings/visibility-section";
@@ -43,7 +42,8 @@ type EventSettingsFormProps = {
  * (FormProvider), the one dirty state, and the one "Save changes" button. The
  * field cards are section components that read the form via useFormContext
  * (details / visibility / uploads), so the file stays small while the form stays
- * unified. The danger zone is self-contained and lives OUTSIDE the form.
+ * unified. The instant-save cards (the Highlight reel, Profile & guests) and the
+ * danger zone live OUTSIDE it, in the sheet, the danger zone last of all.
  *
  * Preserved invariants: isDirty + form.reset(values) re-baseline on save; the
  * password sub-panel re-baselines visibility via resetField (in VisibilitySection);
@@ -117,29 +117,25 @@ export function EventSettingsForm({
   }
 
   return (
-    <div className="space-y-6">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <DetailsSection />
-          <VisibilitySection event={event} passwordLocked={passwordLocked} />
-          <UploadsSection
-            event={event}
-            videosAllowed={videosAllowed}
-            pendingCount={pendingCount}
-          />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <DetailsSection />
+        <VisibilitySection event={event} passwordLocked={passwordLocked} />
+        <UploadsSection
+          event={event}
+          videosAllowed={videosAllowed}
+          pendingCount={pendingCount}
+        />
 
-          <div className="flex justify-end">
-            <Button
-              type="submit"
-              disabled={isSaving || !isDirty || passwordSelectedWithoutHash}
-            >
-              {isSaving ? "Saving…" : "Save changes"}
-            </Button>
-          </div>
-        </form>
-      </Form>
-
-      <DangerZoneSection eventId={event.id} eventName={event.name} />
-    </div>
+        <div className="flex justify-end">
+          <Button
+            type="submit"
+            disabled={isSaving || !isDirty || passwordSelectedWithoutHash}
+          >
+            {isSaving ? "Saving…" : "Save changes"}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }

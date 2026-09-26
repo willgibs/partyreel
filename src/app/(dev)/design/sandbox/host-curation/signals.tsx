@@ -3,24 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, Mail, TriangleAlert } from "lucide-react";
 
-import { EventCard } from "@/components/app/event-card";
 import { FeedSectionHeader } from "@/components/app/event-feed/feed-section-header";
 import { ReviewActions } from "@/components/app/event-feed/review-actions";
 import { ReviewGrid } from "@/components/app/event-feed/review-grid";
 import { MasonryColumns } from "@/components/shared/masonry";
 import { Button } from "@/components/ui/button";
-import { DropdownMenuHeader } from "@/components/ui/dropdown-menu";
-import { floatingPanel, floatingRow } from "@/components/ui/floating-layer";
+import { floatingPanel } from "@/components/ui/floating-layer";
 import { cn } from "@/lib/utils";
 
-import {
-  BELL,
-  EVENTS,
-  JUST_LANDED,
-  MY_UPLOADS,
-  PENDING_TOTAL,
-  QUEUE,
-} from "./fixtures";
+import { JUST_LANDED, MY_UPLOADS, QUEUE } from "./fixtures";
 import { type ScreenId } from "./scene";
 import { type LabToast, useLabTriage } from "./triage";
 
@@ -226,133 +217,6 @@ export function ArrivalsShowcase({
   );
 }
 
-/* ── the count ───────────────────────────────────────────────────────────── */
-
-export type CountOption = "three" | "deeplink" | "one";
-export const countOf = (v: string | undefined): CountOption =>
-  v === "deeplink" ? "deeplink" : v === "one" ? "one" : "three";
-
-/**
- * THE THREE PLACES A NUMBER IS SAID, IN ONE PICTURE: the header bell (an
- * aggregate that links `/dashboard`), the dashboard card's amber chip, and the
- * event page's own Review header. The bell's rows come from the REAL builder
- * (`buildNotifications`), so the copy and the href are the shipped ones, not a
- * guess; the panel is the real `DropdownMenuHeader` on the real floating-layer
- * contract, because the shipped bell opens a dropdown whose `onOpenChange`
- * runs a Server Function and a board may not.
- *
- * ★ TWO MORE MAY SAY IT, AND THEY ARE NOT DRAWN HERE. A corner count on the
- * venue wall is `reel-screen.review`'s question and a line in the host's reel
- * view is `reel-host.review`'s, so this picture never draws either; one line
- * says what each answer here would mean for them, which is all this
- * question owns of them. It is said first, above the three, because a sentence
- * under a grid that fills the frame is a sentence nobody sees.
- */
-const OTHER_VOICES: Record<CountOption, string> = {
-  three:
-    "Whatever the wall or the reel view says would be a fourth and a fifth count, each reading the queue its own way.",
-  deeplink:
-    "The wall and the reel view, wherever they say it, read this same number and lead to this queue.",
-  one: "Nothing else counts: the wall and the reel view would carry no number either.",
-};
-export function CountShowcase({
-  option,
-  screen,
-}: {
-  option: CountOption;
-  screen: ScreenId;
-}) {
-  const reviewRow = BELL.items.find((i) => i.kind === "review");
-  const hosted = EVENTS.filter((e) => e.pending > 0);
-
-  return (
-    <div className="space-y-6">
-      {/* The two voices this question does not draw, said first so they are
-          on the screen at both widths rather than under the fold. */}
-      <p data-hc-voices className="text-xs text-muted-foreground">
-        {OTHER_VOICES[option]}
-      </p>
-      <div className="space-y-2">
-        <Note>The header bell, open</Note>
-        <div className={cn("w-80 max-w-full p-1", floatingPanel)}>
-          <DropdownMenuHeader
-            meta={option === "one" ? undefined : `${PENDING_TOTAL} new`}
-          >
-            Notifications
-          </DropdownMenuHeader>
-          {option === "one" ? (
-            <p className="px-2 py-6 text-center text-sm text-muted-foreground">
-              You&rsquo;re all caught up.
-            </p>
-          ) : (
-            <div className={cn("flex gap-2 px-2 py-2", floatingRow)}>
-              <span
-                className="mt-1.5 size-1.5 shrink-0 rounded-full bg-brand"
-                aria-hidden
-              />
-              <div className="space-y-0.5">
-                <p className="text-sm leading-tight font-medium">
-                  {option === "deeplink"
-                    ? `${hosted[0].pending} uploads to review`
-                    : reviewRow?.title}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {option === "deeplink"
-                    ? `${hosted[0].name}, and ${hosted[1].pending} more at ${hosted[1].name}`
-                    : reviewRow?.body}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-        <Note>
-          {option === "deeplink"
-            ? "It names the event and lands on that queue."
-            : option === "one"
-              ? "The bell carries no review row at all."
-              : `It lands on /dashboard, counts every event, and still says ${PENDING_TOTAL} after one is cleared.`}
-        </Note>
-      </div>
-
-      <div className="space-y-2">
-        <Note>The dashboard&rsquo;s events</Note>
-        <div
-          className={
-            screen === "375"
-              ? "pointer-events-none grid grid-cols-1 gap-3"
-              : "pointer-events-none grid grid-cols-3 gap-4"
-          }
-        >
-          {EVENTS.map((e) => (
-            <EventCard
-              key={e.id}
-              href={`/dashboard/${e.id}`}
-              name={e.name}
-              coverUrl={e.cover}
-              dateLabel={e.dateLabel}
-              itemsLabel={e.items}
-              statusLabel="Open"
-              pendingCount={e.pending}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Note>The event page&rsquo;s own header, on the first event</Note>
-        <FeedSectionHeader label="Review" count={EVENTS[0].pending} amber />
-        <ReviewGrid
-          items={QUEUE.slice(0, screen === "375" ? 2 : 6)}
-          selectMode={false}
-          selected={new Set()}
-          exiting={new Set()}
-          onToggle={() => {}}
-        />
-      </div>
-    </div>
-  );
-}
-
 /* ── the guest told ──────────────────────────────────────────────────────── */
 
 export type ToldOption = "never" | "line" | "message";
@@ -370,6 +234,11 @@ export const toldOf = (v: string | undefined): ToldOption =>
  * account's shows only the events its owner chose, so the only place a refusal
  * could ever be said is her own copy: her tiles, and this feed. A message can
  * reach only a confirmed address; a typed one is never mailed on its own.
+ *
+ * ★ `line`'S SURFACE IS HER TRACKER, NAMED (the desk re-cut): guest-capture's
+ * new ask draws the tracker itself (a sheet, or her tiles inline); this grid
+ * stands in for whichever shape wins, so the words say "tracker" rather than
+ * name a surface that ask may not build.
  *
  * ★ THE GRID IS INERT: a tap opens the shipped lightbox, which is a portal-
  * bound Dialog and would land outside the frame.
@@ -410,7 +279,7 @@ export function ToldShowcase({
           {option === "never"
             ? "Her uploads, with the refused photograph simply absent."
             : option === "line"
-              ? "Her uploads, with the refused photograph still hers, and seen by nobody else."
+              ? "Her tracker, with the refused photograph still hers, and seen by nobody else."
               : "Her uploads, unchanged. The notice above, to a confirmed address, does the telling."}
         </Note>
         <div className="pointer-events-none">

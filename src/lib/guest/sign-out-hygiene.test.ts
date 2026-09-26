@@ -1,8 +1,8 @@
 /**
- * THE ACCOUNT SIGN-OUT PUTS DOWN EVERY GUEST TICKET'S SERVER HALF (the upload-owner lane,
- * 2026-09-23). `signOutAction` is the account menu's sign-out; the menu's form clears the
- * localStorage half on submit, and this pins that the action expires every `pr_guest_*` cookie on
- * its own response, before it signs out and leaves for /login, and touches no other family.
+ * THE ACCOUNT SIGN-OUT PUTS DOWN EVERY GUEST TICKET'S SERVER HALF. `signOutAction` is the account
+ * menu's sign-out; the menu's form clears the localStorage half on submit, and this pins that the
+ * action expires every `pr_guest_*` cookie on its own response, before it signs out and leaves for
+ * /login, and touches no other family.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

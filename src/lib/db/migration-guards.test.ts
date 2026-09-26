@@ -53,6 +53,18 @@
  *      mode, empty search_path and grants; the album's order, cursor and limit; the like counts'
  *      liked-only join; the claim card's keyset; the sweeps' predicates. The paging POLICY across
  *      every function is row-cap-sql.test.ts.
+ *  13. The live reel (migrations 20260924100000 + 20260924110000): the expand's columns, grants and
+ *      backfill, create_media and create_media_as_host carrying every guard plus p_reel_eligible,
+ *      the two guest reads' new keys beside their paging and redaction, the platform flag; and the
+ *      drop removing exactly the stored reel, never reel_eligible or tier_limits.
+ *  14. The host's reel defaults (migration 20260925100000): the hold column with its envelope and
+ *      its bare column grant, get_event_by_qr_token carried from the expand with only the hold
+ *      appended, and event_stills' shape, scoping, clamp and grants.
+ *  15. The paged album's version and change log (migration 20260926100000): two deny-all tables the
+ *      service role only reads; nine functions no client role can run; the album row written ONLY by
+ *      the deferred stamps at commit, every event of a transaction bumped in event-id order (the
+ *      lock-order rule, database-security.md); the note before the stamp by name; the reader's one
+ *      snapshot and its clamp.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -287,13 +299,19 @@ describe("the identity contract — the legacy twin is gone and stays gone", () 
   // dropped object's old pins would stay green while false: what is pinned here is the DROP, and
   // that nothing later in the set brings any of it back (the save objects' pattern, at the foot).
   const sql = collapse(allMigrations().replace(/--[^\n]*/g, ""));
+  const columnDrop = sql.lastIndexOf(
+    "alter table public.events drop column allow_anonymous_uploads;",
+  );
+  // Each statement's last occurrence AT OR BEFORE the column drop: a later file may drop and
+  // recreate get_event_by_qr_token for its own reasons (the live reel's expand, 20260924100000,
+  // does), which says nothing about this contract's order.
   const drops = [
     "create or replace function public.get_public_profile(",
     "drop function public.get_event_by_qr_token(text);",
     "drop trigger events_sync_verified_email_flags on public.events;",
     "drop function public.sync_event_verified_email_flags();",
     "alter table public.events drop column allow_anonymous_uploads;",
-  ].map((statement) => sql.lastIndexOf(statement));
+  ].map((statement) => sql.lastIndexOf(statement, columnDrop));
 
   it("drops the trigger, then its function, then the column, after replacing every reader", () => {
     expect(drops.every((at) => at > -1)).toBe(true);
@@ -1173,8 +1191,10 @@ describe("the row cap: the SQL shapes the 1,000-row fixes read", () => {
 
   describe("get_event_media_by_qr_token: the guest album, paged on its display order", () => {
     it("keeps p_qr_token and adds the cursor and the page size, each defaulting to null", () => {
+      // The live reel's expand (20260924100000) appended reel_eligible, last; the four parameters
+      // are the row cap's, unchanged, since PostgREST resolves the call by their names.
       expect(code("get_event_media_by_qr_token")).toContain(
-        "create function public.get_event_media_by_qr_token( p_qr_token text, p_before_created_at timestamptz default null, p_before_id uuid default null, p_limit integer default null ) returns table( id uuid, type public.media_type, original_key text, preview_key text, width integer, height integer, duration_seconds double precision, created_at timestamptz )",
+        "create function public.get_event_media_by_qr_token( p_qr_token text, p_before_created_at timestamptz default null, p_before_id uuid default null, p_limit integer default null ) returns table( id uuid, type public.media_type, original_key text, preview_key text, width integer, height integer, duration_seconds double precision, created_at timestamptz, reel_eligible boolean )",
       );
     });
 
@@ -1197,9 +1217,11 @@ describe("the row cap: the SQL shapes the 1,000-row fixes read", () => {
     });
 
     it("replaces the old signature in the same file and re-grants anon (one of the five 0028 reads)", () => {
+      // The winning file drops the definition before it: the four-parameter signature since the
+      // live reel's expand grew the RETURNS TABLE (a drop and a create, never create-or-replace).
       const file = grants("get_event_media_by_qr_token");
       const drop = file.indexOf(
-        "drop function public.get_event_media_by_qr_token(text);",
+        "drop function public.get_event_media_by_qr_token(text, timestamptz, uuid, integer);",
       );
       expect(drop).toBeGreaterThan(-1);
       expect(drop).toBeLessThan(
@@ -1431,5 +1453,739 @@ describe("the row cap: the SQL shapes the 1,000-row fixes read", () => {
         ),
       );
     }
+  });
+});
+
+describe("the live reel: the expand (20260924100000) and the drop (20260924110000)", () => {
+  // Will, 2026-09-22: the reel is a live montage each viewer's device composes from the album, never
+  // stored ("we never have to deal with reel storage files"); a CUT is a clip anyone renders on a
+  // device, and a paid event can save one to its album. The expand lands that data model beside the
+  // stored reel and is applied before the wiring; the drop removes the stored reel after the wiring's
+  // red-team, on Will's yes. Each pin reads CODE (comments stripped), so a comment that names a
+  // clause can never stand in for it.
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+  const grants = (name: string) =>
+    collapse(latestDefinition(name).file.replace(/--[^\n]*/g, ""));
+  const executableOf = (file: string) =>
+    collapse(
+      readFileSync(join(MIGRATIONS_DIR, file), "utf8").replace(/--[^\n]*/g, ""),
+    );
+  const EXPAND = "20260924100000_live_reel_expand.sql";
+  const DROP = "20260924110000_live_reel_drop.sql";
+  const expand = executableOf(EXPAND);
+  const drop = executableOf(DROP);
+
+  describe("events: the host's default mood and the off switch", () => {
+    it("adds reel_style_id with no default and show_reel default on", () => {
+      expect(expand).toContain(
+        "alter table public.events add column reel_style_id text, add column show_reel boolean not null default true;",
+      );
+    });
+
+    it("never puts a CHECK or an enum on reel_style_id: a new mood needs no migration", () => {
+      const sql = collapse(allMigrations().replace(/--[^\n]*/g, ""));
+      expect(sql).not.toMatch(/check \([^)]*\breel_style_id\b/);
+      expect(sql).not.toMatch(/\breel_style_id public\./);
+    });
+
+    it("the host writes both by a bare additive column grant, and the file revokes nothing on events", () => {
+      expect(expand).toContain(
+        "grant insert (show_reel, reel_style_id), update (show_reel, reel_style_id) on public.events to authenticated;",
+      );
+      // ★ A table-level revoke cascades to every column grant on events and takes the host app
+      // down (database-security.md, Gotchas): adding a column is the bare grant and nothing else.
+      expect(expand).not.toMatch(/revoke [^;]* on (?:table )?public\.events\b/);
+      expect(expand).not.toMatch(
+        /grant [^;]* on public\.events to [^;]*\banon\b/,
+      );
+    });
+  });
+
+  describe("media.reel_eligible: plays in the live reel", () => {
+    it("defaults true, then backfills every existing row with its two writing triggers paused around the one statement", () => {
+      const steps = [
+        "alter table public.media alter column reel_eligible set default true;",
+        "alter table public.media disable trigger media_set_updated_at, disable trigger media_set_purge_at;",
+        "update public.media set reel_eligible = true where not reel_eligible;",
+        "alter table public.media enable trigger media_set_updated_at, enable trigger media_set_purge_at;",
+      ].map((statement) => expand.indexOf(statement));
+      expect(steps.every((at) => at > -1)).toBe(true);
+      expect([...steps].sort((a, b) => a - b)).toEqual(steps);
+      // The backfill is the file's one media update, and it writes reel_eligible alone: with
+      // media_set_updated_at on, every row's updated_at (the gallery ETag's key) would move.
+      expect(expand.match(/update public\.media set /g)).toHaveLength(1);
+    });
+
+    it("no migration leaves a trigger it paused disabled", () => {
+      for (const { file, sql } of executableMigrations()) {
+        for (const [, name] of sql.matchAll(/disable trigger ([a-z_]+)/g)) {
+          expect(
+            sql.split(`enable trigger ${name}`).length,
+            `${file}: ${name} is disabled and never re-enabled`,
+          ).toBe(sql.split(`disable trigger ${name}`).length);
+        }
+      }
+    });
+
+    it("stays write-once: no client role may update it, and the host still reads it", () => {
+      const sql = collapse(allMigrations().replace(/--[^\n]*/g, ""));
+      expect(sql).not.toMatch(
+        /grant [^;]*update \([^)]*\breel_eligible\b[^)]*\) on public\.media/,
+      );
+      expect(sql).toContain(
+        "reel_eligible, highlight_score, clip_start_seconds, clip_end_seconds ) on public.media to authenticated;",
+      );
+    });
+  });
+
+  describe("create_media and create_media_as_host: p_reel_eligible, last, every guard kept", () => {
+    const shapes = {
+      create_media: {
+        params:
+          "p_session_token text, p_media_id uuid, p_type public.media_type, p_original_key text, p_file_size_bytes bigint, p_preview_key text default null, p_duration_seconds double precision default null, p_width integer default null, p_height integer default null, p_reel_eligible boolean default true",
+        before:
+          "text, uuid, public.media_type, text, bigint, text, double precision, integer, integer",
+        guest: "v_guest.id",
+        guards: [
+          "if not found then raise exception 'Invalid guest session.' using errcode = 'no_data_found'; end if;",
+          "if v_event.deleted_at is not null then raise exception 'This event no longer exists.'",
+          "if not v_event.accepting_uploads then raise exception 'This event is not accepting uploads.'",
+          "if v_event.require_verified_email and v_guest.verified_at is null then raise exception 'This event is not accepting uploads without a verified email.'",
+          "if v_event.max_upload_bytes is not null and p_file_size_bytes > v_event.max_upload_bytes then raise exception",
+          "when v_event.moderation_mode = 'live' then 'approved'::public.media_status else 'pending'::public.media_status",
+        ],
+      },
+      create_media_as_host: {
+        params:
+          "p_host_id uuid, p_event_id uuid, p_media_id uuid, p_type public.media_type, p_original_key text, p_file_size_bytes bigint, p_preview_key text default null, p_duration_seconds double precision default null, p_width integer default null, p_height integer default null, p_reel_eligible boolean default true",
+        before:
+          "uuid, uuid, uuid, public.media_type, text, bigint, text, double precision, integer, integer",
+        guest: "null",
+        guards: [
+          "where id = p_event_id and host_id = p_host_id and deleted_at is null; if not found then raise exception 'Event not found or not owned by you.'",
+          "v_status public.media_status := 'approved'::public.media_status;",
+        ],
+      },
+    } as const;
+    // Both paths: the key binding, the ceiling, QA #17's lock, the paid-only video gate (which is
+    // what keeps a saved cut to a paid event), the ingress meter and the active-bytes cap.
+    const shared = [
+      "if p_original_key not like 'events/' || v_event.id::text || '/%' then raise exception 'Object key does not belong to this event.'",
+      "if p_preview_key is not null and p_preview_key not like 'events/' || v_event.id::text || '/%' then raise exception 'Preview key does not belong to this event.'",
+      "if p_file_size_bytes > c_max_upload_bytes then raise exception 'File exceeds the 10 GB maximum.'",
+      "from public.profiles where id = v_event.host_id for update;",
+      "if p_type = 'video' and v_profile.tier = 'free' then raise exception 'Video uploads are available on paid plans.'",
+      "if coalesce(v_month_bytes, 0) + p_file_size_bytes > v_ingress_cap then raise exception 'Monthly upload limit reached for this plan.'",
+      "if public.host_active_bytes(v_event.host_id) + p_file_size_bytes > v_cap + (v_cap / 10) then raise exception 'Storage capacity exceeded for this plan.'",
+    ];
+
+    for (const [name, shape] of Object.entries(shapes)) {
+      const after = `${shape.before}, boolean`;
+
+      it(`${name}: every earlier parameter by name, then p_reel_eligible defaulting to true`, () => {
+        // PostgREST resolves by argument names, so the deployed calls (without the new one) still
+        // land here, and the default makes what they upload play in the live reel.
+        expect(code(name)).toContain(
+          `create function public.${name}( ${shape.params} ) returns jsonb language plpgsql security definer set search_path`,
+        );
+      });
+
+      it(`${name}: keeps every guard of its last definition`, () => {
+        for (const guard of [...shared, ...shape.guards]) {
+          expect(code(name), guard).toContain(guard);
+        }
+      });
+
+      it(`${name}: writes reel_eligible, and an explicit null reads as the default`, () => {
+        expect(code(name)).toContain(
+          `insert into public.media ( id, event_id, guest_id, type, original_key, preview_key, file_size_bytes, duration_seconds, width, height, status, reel_eligible ) values ( p_media_id, v_event.id, ${shape.guest}, p_type, p_original_key, p_preview_key, p_file_size_bytes, p_duration_seconds, p_width, p_height, v_status, coalesce(p_reel_eligible, true) );`,
+        );
+      });
+
+      it(`${name}: replaces its one signature in the same file and stays service-role only`, () => {
+        const file = grants(name);
+        const dropped = file.indexOf(
+          `drop function public.${name}(${shape.before});`,
+        );
+        expect(dropped).toBeGreaterThan(-1);
+        expect(dropped).toBeLessThan(
+          file.indexOf(`create function public.${name}(`),
+        );
+        expect(file).toContain(
+          `revoke execute on function public.${name}(${after}) from public, anon, authenticated;`,
+        );
+        expect(file).toContain(
+          `grant execute on function public.${name}(${after}) to service_role;`,
+        );
+        expect(collapse(allMigrations().replace(/--[^\n]*/g, ""))).not.toMatch(
+          new RegExp(
+            `grant execute on function public\\.${name}\\(${after.replace(/[()[\]]/g, "\\$&")}\\) to [^;]*\\b(?:anon|authenticated|public)\\b`,
+          ),
+        );
+      });
+    }
+
+    it("the host's per-event cap still binds guests only", () => {
+      expect(code("create_media_as_host")).not.toContain(
+        "v_event.max_upload_bytes",
+      );
+    });
+  });
+
+  describe("the guest reads carry the new keys", () => {
+    it("get_event_media_by_qr_token returns reel_eligible, last, off the row", () => {
+      expect(code("get_event_media_by_qr_token")).toContain(
+        "select m.id, m.type, m.original_key, m.preview_key, m.width, m.height, m.duration_seconds, m.created_at, m.reel_eligible from public.media m",
+      );
+    });
+
+    it("get_event_media_by_qr_token keeps anon, authenticated and service_role, never PUBLIC", () => {
+      const file = grants("get_event_media_by_qr_token");
+      expect(file).toContain(
+        "revoke all on function public.get_event_media_by_qr_token(text, timestamptz, uuid, integer) from public;",
+      );
+      expect(file).toContain(
+        "grant execute on function public.get_event_media_by_qr_token(text, timestamptz, uuid, integer) to service_role;",
+      );
+    });
+
+    it("get_event_by_qr_token returns show_reel and reel_style_id unredacted, after the host's name", () => {
+      // Presentation settings like qr_style, never the identifying metadata QA #40 withholds (the
+      // redaction itself is pinned above, latest-wins). They were the last columns until the reel
+      // defaults (20260925100000) appended the hold after them; that tail is pinned there.
+      const body = code("get_event_by_qr_token");
+      expect(body).toContain(
+        "custom_slug text, host_display_name text, show_reel boolean, reel_style_id text,",
+      );
+      expect(body).toContain(
+        "case when r.hide_meta then null else p.display_name end, e.show_reel, e.reel_style_id,",
+      );
+    });
+
+    it("get_event_by_qr_token restates today's whole ACL: the client roles, PUBLIC and service_role", () => {
+      const file = grants("get_event_by_qr_token");
+      expect(file).toContain(
+        "grant execute on function public.get_event_by_qr_token(text) to public, service_role;",
+      );
+    });
+  });
+
+  describe("the platform lever", () => {
+    it("seeds live_reel_enabled on, beside reel_render_enabled, which only the drop deletes", () => {
+      expect(expand).toContain(
+        "insert into public.ops_flags (key, enabled) values ('live_reel_enabled', true) on conflict (key) do nothing;",
+      );
+      expect(expand).not.toContain("reel_render_enabled");
+      expect(drop).not.toContain("live_reel_enabled");
+    });
+  });
+
+  describe("the drop removes exactly the stored reel", () => {
+    const statements = [
+      "drop function if exists public.get_event_reel_by_qr_token(text);",
+      "drop function if exists public.set_reel_guest_visible(uuid, boolean);",
+      "drop function if exists public.upsert_reel_config(uuid, text, text, bigint, integer, uuid);",
+      "drop function if exists public.reorder_reel(uuid, uuid[]);",
+      "drop function if exists public.add_to_reel(uuid);",
+      "drop table if exists public.reel_items;",
+      "drop table if exists public.reel_render_log;",
+      "drop table if exists public.highlight_reels;",
+      "drop type if exists public.reel_status;",
+      "alter table public.notification_prefs drop column if exists notify_reel_ready;",
+      "delete from public.ops_flags where key = 'reel_render_enabled';",
+    ];
+
+    it("runs its list and nothing else, in dependency order, with no cascade", () => {
+      // The functions before the tables their bodies read, the tables before the enum their
+      // column holds, then the preference and the flag. A cascade would hide a dependent the
+      // inventory missed; a plain drop fails loudly on one instead.
+      const executed = drop
+        .split(";")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .map((s) => `${s};`);
+      expect(executed).toEqual(statements);
+      expect(drop).not.toMatch(/\bcascade\b/);
+    });
+
+    it("never touches reel_eligible, tier_limits or anything the expand added", () => {
+      for (const kept of [
+        "reel_eligible",
+        "tier_limits",
+        "max_reel_seconds",
+        "show_reel",
+        "reel_style_id",
+        "live_reel_enabled",
+        "public.media",
+        "public.events",
+      ]) {
+        expect(drop, kept).not.toContain(kept);
+      }
+    });
+
+    it("carries its apply gate in its header", () => {
+      expect(readFileSync(join(MIGRATIONS_DIR, DROP), "utf8")).toContain(
+        "APPLY ONLY after the live-reel wiring's alias build is red-teamed, on Will's yes (destructive)",
+      );
+    });
+
+    it("nothing later in the set brings a dropped object back", () => {
+      const sql = collapse(allMigrations().replace(/--[^\n]*/g, ""));
+      const after = sql.slice(
+        sql.lastIndexOf(statements[statements.length - 1]),
+      );
+      for (const revival of [
+        /create (?:or replace )?function public\.(?:get_event_reel_by_qr_token|set_reel_guest_visible|upsert_reel_config|reorder_reel|add_to_reel)\(/,
+        /create table (?:if not exists )?public\.(?:reel_items|reel_render_log|highlight_reels)\b/,
+        /create type public\.reel_status\b/,
+        /add column (?:if not exists )?notify_reel_ready\b/,
+        /'reel_render_enabled'/,
+      ]) {
+        expect(
+          after.slice(statements[statements.length - 1].length),
+        ).not.toMatch(revival);
+      }
+    });
+  });
+
+  it("leaves highlight_score, the clip columns and max_reel_seconds to a later change", () => {
+    // They sit in the host's column-scoped SELECT grant and MEDIA_HOST_COLUMNS, where a stale list is
+    // a runtime 400 on every host read; max_reel_seconds is the cut's length cap now.
+    for (const sql of [expand, drop]) {
+      for (const kept of [
+        "highlight_score",
+        "clip_start_seconds",
+        "clip_end_seconds",
+        "max_reel_seconds",
+      ]) {
+        expect(sql).not.toContain(kept);
+      }
+    }
+  });
+});
+
+describe("the host's reel defaults (20260925100000)", () => {
+  // Will, reel-host round 1 (2026-09-25): `style=both`, the reel's look and hold set for everyone
+  // from the view and from Settings, and `pulse`, the dashboard cards crossfading through their
+  // stills. Each pin reads CODE (comments stripped), so a comment that names a clause can never
+  // stand in for it.
+  const FILE = "20260925100000_reel_host_defaults.sql";
+  const executableOf = (file: string) =>
+    collapse(
+      readFileSync(join(MIGRATIONS_DIR, file), "utf8").replace(/--[^\n]*/g, ""),
+    );
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+  const grants = (name: string) =>
+    collapse(latestDefinition(name).file.replace(/--[^\n]*/g, ""));
+  /** One file's own definition of a function, from `create` to its closing dollar-quote. */
+  const definitionIn = (file: string, name: string) => {
+    const sql = executableOf(file);
+    const start = sql.indexOf(`create function public.${name}(`);
+    expect(start, `${file} defines no ${name}`).toBeGreaterThan(-1);
+    const tag = sql.slice(start).match(/ as (\$[a-z_]*\$)/)![1];
+    const open = sql.indexOf(` as ${tag}`, start) + ` as ${tag}`.length;
+    return sql.slice(start, sql.indexOf(`${tag};`, open) + tag.length + 1);
+  };
+  const sql = executableOf(FILE);
+
+  describe("events.reel_hold_sec: the host's default hold", () => {
+    it("adds a nullable numeric with no default, inside the envelope", () => {
+      // NULL is the default hold; the app validates the steps, the CHECK only refuses a flicker, a
+      // stall, NaN and Infinity (NaN sorts above every number, so the upper bound is load-bearing).
+      expect(sql).toContain(
+        "alter table public.events add column reel_hold_sec numeric constraint events_reel_hold_sec_range check (reel_hold_sec is null or (reel_hold_sec >= 0.5 and reel_hold_sec <= 30));",
+      );
+      expect(sql).toContain("comment on column public.events.reel_hold_sec is");
+    });
+
+    it("the host writes it by a bare additive column grant, and the file revokes nothing on events", () => {
+      expect(sql).toContain(
+        "grant insert (reel_hold_sec), update (reel_hold_sec) on public.events to authenticated;",
+      );
+      // ★ A table-level revoke cascades to every column grant on events and takes the host app
+      // down (database-security.md, Gotchas).
+      expect(sql).not.toMatch(/revoke [^;]* on (?:table )?public\.events\b/);
+      expect(sql).not.toMatch(/grant [^;]* on public\.events to [^;]*\banon\b/);
+    });
+  });
+
+  describe("get_event_by_qr_token: the hold, last and unredacted", () => {
+    it("is the expand's definition with only the hold appended (QA #40 and `limit 1` verbatim)", () => {
+      // Every other character is carried, so the redaction, the slug path and the one-row limit
+      // cannot drift in a recreate that was only meant to grow the RETURNS TABLE.
+      const carried = definitionIn(
+        "20260924100000_live_reel_expand.sql",
+        "get_event_by_qr_token",
+      )
+        .replace(
+          "show_reel boolean, reel_style_id text)",
+          "show_reel boolean, reel_style_id text, reel_hold_sec numeric)",
+        )
+        .replace(
+          "e.show_reel, e.reel_style_id from",
+          "e.show_reel, e.reel_style_id, e.reel_hold_sec from",
+        );
+      expect(code("get_event_by_qr_token")).toBe(carried);
+      expect(latestDefinition("get_event_by_qr_token").file).toContain(
+        "reel_hold_sec",
+      );
+    });
+
+    it("returns the hold after the reel's two settings, as a SECURITY DEFINER read with an empty search_path", () => {
+      const body = code("get_event_by_qr_token");
+      expect(body).toContain(
+        "show_reel boolean, reel_style_id text, reel_hold_sec numeric) language sql stable security definer set search_path to ''",
+      );
+      expect(body).toContain(
+        "e.show_reel, e.reel_style_id, e.reel_hold_sec from public.events e",
+      );
+      expect(body).toContain(
+        "order by (e.qr_token = p_qr_token) desc limit 1;",
+      );
+    });
+
+    it("drops the old signature first and restates the whole ACL (the client roles, PUBLIC and service_role)", () => {
+      const file = grants("get_event_by_qr_token");
+      const dropped = file.indexOf(
+        "drop function public.get_event_by_qr_token(text);",
+      );
+      expect(dropped).toBeGreaterThan(-1);
+      expect(dropped).toBeLessThan(
+        file.indexOf("create function public.get_event_by_qr_token("),
+      );
+      expect(file).toContain(
+        "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated;",
+      );
+      expect(file).toContain(
+        "grant execute on function public.get_event_by_qr_token(text) to public, service_role;",
+      );
+    });
+  });
+
+  describe("event_stills: the dashboard cards' stills, one jsonb", () => {
+    it("is SECURITY INVOKER with an empty search_path and answers one jsonb (the row cap cannot cut it)", () => {
+      expect(code("event_stills")).toContain(
+        "create function public.event_stills(p_event_ids uuid[], p_per_event integer) returns jsonb language sql stable security invoker set search_path = ''",
+      );
+      expect(code("event_stills")).not.toContain("security definer");
+    });
+
+    it("answers the newest approved, previewed photos outside the bin, clamped to 12 an event", () => {
+      const body = code("event_stills");
+      expect(body).toContain(
+        "select coalesce(jsonb_object_agg(e.id::text, s.preview_keys), '{}'::jsonb) from public.events e cross join lateral",
+      );
+      expect(body).toContain(
+        "jsonb_agg(newest.preview_key order by newest.created_at desc, newest.id desc) as preview_keys",
+      );
+      // ★ A null or non-positive N answers nothing: `greatest` ignores the null, so the limit is 0,
+      // never the unbounded read a null p_limit means on a paged function.
+      expect(body).toContain(
+        "where m.event_id = e.id and m.status = 'approved' and m.type = 'photo' and m.removed_at is null and m.preview_key is not null order by m.created_at desc, m.id desc limit least(greatest(p_per_event, 0), 12)",
+      );
+      // An event with no previewed photo is absent; the ids are the caller's, scoped by RLS.
+      expect(body).toContain(
+        "where e.id = any(p_event_ids) and s.preview_keys is not null;",
+      );
+    });
+
+    it("reads only media columns the host's SELECT grant holds (an invoker read of any other errors)", () => {
+      // The grant, replayed statement by statement: a table-level revoke empties it, a column-level
+      // grant adds its columns (database-security.md: SELECT on media is column-scoped).
+      let granted = new Set<string>();
+      const statement =
+        /\b(grant|revoke) ([a-z_, ]+?)(?: \(([^)]*)\))? on (?:table )?([^;]*?) (?:to|from) ([^;]*);/g;
+      for (const { sql: each } of executableMigrations()) {
+        for (const [
+          ,
+          verb,
+          privileges,
+          named,
+          objects,
+          grantees,
+        ] of each.matchAll(statement)) {
+          if (!/(?:^|[\s,])public\.media(?=$|[\s,])/.test(objects)) continue;
+          if (!grantees.split(",").some((g) => g.trim() === "authenticated"))
+            continue;
+          const privs = privileges.split(",").map((p) => p.trim());
+          if (
+            !privs.some((p) => ["select", "all", "all privileges"].includes(p))
+          )
+            continue;
+          const cols = named?.split(",").map((c) => c.trim());
+          if (verb === "revoke") {
+            if (cols) cols.forEach((c) => granted.delete(c));
+            else granted = new Set();
+          } else {
+            (cols ?? ["*"]).forEach((c) => granted.add(c));
+          }
+        }
+      }
+      expect(granted.has("*")).toBe(false);
+      const read = [
+        ...new Set(
+          [...code("event_stills").matchAll(/\bm\.([a-z_]+)/g)].map(
+            ([, c]) => c,
+          ),
+        ),
+      ];
+      expect(read.length).toBeGreaterThan(0);
+      for (const column of read) expect(granted, column).toContain(column);
+    });
+
+    it("is authenticated-only: every client role revoked, then one grant, and never anon anywhere", () => {
+      expect(grants("event_stills")).toContain(
+        "revoke all on function public.event_stills(uuid[], integer) from public, anon, authenticated; grant execute on function public.event_stills(uuid[], integer) to authenticated;",
+      );
+      expect(collapse(allMigrations().replace(/--[^\n]*/g, ""))).not.toMatch(
+        /grant execute on function public\.event_stills\(uuid\[\], integer\) to [^;]*\b(?:anon|public)\b/,
+      );
+    });
+  });
+});
+
+describe("the paged album's version and change log (20260926100000)", () => {
+  // The lock-order rule (database-security.md, Grants): an album row is always a transaction's LAST
+  // lock, taken at COMMIT by the deferred stamps, every event of the transaction in event-id order.
+  // Each pin reads CODE (comments stripped), latest-wins across the set, so a later file that replaces
+  // a body, moves a write mid-transaction or grants a client role fails here.
+  const FILE = "20260926100000_album_version.sql";
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+  const everything = () => collapse(allMigrations().replace(/--[^\n]*/g, ""));
+  const fileSql = collapse(
+    readFileSync(join(MIGRATIONS_DIR, FILE), "utf8").replace(/--[^\n]*/g, ""),
+  );
+  const FUNCTIONS = [
+    "album_scope(public.media_status, public.media_status)",
+    "album_remember(text, uuid)",
+    "album_flush()",
+    "album_note_media()",
+    "album_stamp_media()",
+    "album_note_guest()",
+    "album_note_profile()",
+    "album_flush_trigger()",
+    "album_changes_since(uuid, text, bigint, integer)",
+  ];
+
+  describe("the tables: deny-all, read by the service role alone", () => {
+    it("album_state hangs off events and album_changes off album_state, both cascading", () => {
+      expect(fileSql).toContain(
+        "create table public.album_state ( event_id uuid primary key references public.events (id) on delete cascade, version bigint not null default 0, album_max bigint not null default 0, attr_version bigint not null default 0, updated_at timestamptz not null default now() );",
+      );
+      // No foreign key to media: a purged item's row is its tombstone, how a client learns it left.
+      expect(fileSql).toContain(
+        "create table public.album_changes ( event_id uuid not null references public.album_state (event_id) on delete cascade, media_id uuid not null, host_version bigint not null, album_version bigint, primary key (event_id, media_id) );",
+      );
+    });
+
+    it("both are RLS-on with no policy, revoked from every role and read by service_role only", () => {
+      expect(fileSql).toContain(
+        "alter table public.album_state enable row level security; alter table public.album_changes enable row level security;",
+      );
+      expect(fileSql).toContain(
+        "revoke all on table public.album_state, public.album_changes from public, anon, authenticated, service_role; grant select on table public.album_state, public.album_changes to service_role;",
+      );
+      const sql = everything();
+      expect(sql).not.toMatch(
+        /create policy [^;]* on public\.album_(state|changes)\b/,
+      );
+      expect(sql).not.toMatch(
+        /grant [^;]* on (?:table )?[^;]*public\.album_(state|changes)\b[^;]* to [^;]*\b(anon|authenticated|public)\b/,
+      );
+      expect(sql).not.toMatch(
+        /grant (?:all|insert|update|delete)[^;]* on (?:table )?[^;]*public\.album_(state|changes)\b/,
+      );
+    });
+
+    it("every event starts with a row; the change log starts empty", () => {
+      expect(fileSql).toContain(
+        "insert into public.album_state (event_id) select e.id from public.events e on conflict (event_id) do nothing;",
+      );
+      expect(fileSql).not.toMatch(
+        /insert into public\.album_changes[^;]* select [^;]* from public\.media/,
+      );
+    });
+  });
+
+  describe("the functions: nine, pinned, never a client role's", () => {
+    it("each pins an empty search_path", () => {
+      for (const signature of FUNCTIONS) {
+        const name = signature.slice(0, signature.indexOf("("));
+        expect(code(name), name).toMatch(/ set search_path = '' as \$\$/);
+      }
+    });
+
+    it("each revokes EXECUTE from public, anon and authenticated; only the reader is granted, to service_role", () => {
+      for (const signature of FUNCTIONS) {
+        expect(fileSql, signature).toContain(
+          `revoke all on function public.${signature} from public, anon, authenticated;`,
+        );
+      }
+      expect(fileSql).toContain(
+        "grant execute on function public.album_changes_since(uuid, text, bigint, integer) to service_role;",
+      );
+      expect(everything()).not.toMatch(
+        /grant execute on function public\.album_[a-z_]+\([^)]*\) to [^;]*\b(anon|authenticated|public)\b/,
+      );
+    });
+
+    it("the writers are SECURITY DEFINER, the reader and the helpers INVOKER", () => {
+      for (const name of [
+        "album_flush",
+        "album_note_media",
+        "album_stamp_media",
+        "album_note_guest",
+        "album_note_profile",
+        "album_flush_trigger",
+      ]) {
+        expect(code(name), name).toContain(
+          " security definer set search_path = ''",
+        );
+      }
+      expect(code("album_changes_since")).toContain(
+        " returns jsonb language sql stable security invoker set search_path = ''",
+      );
+      expect(code("album_remember")).toContain(
+        " security invoker set search_path = ''",
+      );
+      expect(code("album_scope")).toContain(
+        " language sql immutable set search_path = ''",
+      );
+    });
+  });
+
+  describe("the lock-order rule: the album row is every transaction's last lock", () => {
+    it("the stamps are DEFERRABLE INITIALLY DEFERRED constraint triggers; the notes are plain", () => {
+      expect(fileSql).toContain(
+        "create trigger media_album_note after insert or update of status or delete on public.media for each row execute function public.album_note_media();",
+      );
+      expect(fileSql).toContain(
+        "create constraint trigger media_album_stamp after insert or update of status or delete on public.media deferrable initially deferred for each row execute function public.album_stamp_media();",
+      );
+      for (const table of ["guests", "profiles"]) {
+        expect(fileSql).toMatch(
+          new RegExp(
+            `create trigger ${table}_album_note after update of [^;]* on public\\.${table} for each row when \\([^;]*\\) execute function public\\.album_note_${table === "guests" ? "guest" : "profile"}\\(\\);`,
+          ),
+        );
+        expect(fileSql).toMatch(
+          new RegExp(
+            `create constraint trigger ${table}_album_stamp after update of [^;]* on public\\.${table} deferrable initially deferred for each row when \\([^;]*\\) execute function public\\.album_flush_trigger\\(\\);`,
+          ),
+        );
+      }
+    });
+
+    it("each table's note sorts before its stamp BY NAME (both fire at a statement's end in name order under set constraints all immediate)", () => {
+      for (const table of ["media", "guests", "profiles"]) {
+        expect(`${table}_album_note` < `${table}_album_stamp`).toBe(true);
+      }
+    });
+
+    it("the notes touch no table: an event id into a transaction-local setting, nothing else", () => {
+      for (const name of ["album_note_media", "album_remember"]) {
+        expect(code(name), name).not.toMatch(
+          /\b(insert into|update public\.|delete from)\b/,
+        );
+      }
+      expect(code("album_remember")).toContain(
+        "perform pg_catalog.set_config(v_key, v_set || p_event_id::text || ',', true);",
+      );
+    });
+
+    it("the flush bumps every noted event once, one upsert each, in event-id order, skipping a vanished event", () => {
+      const flush = code("album_flush");
+      expect(flush).toContain(
+        "for v_event in select x.id from unnest(v_host || v_album || v_attr) as x(id) where exists (select 1 from public.events e where e.id = x.id) group by x.id order by x.id loop insert into public.album_state as s",
+      );
+      expect(flush).toContain(
+        "on conflict (event_id) do update set version = s.version + excluded.version, album_max = s.album_max + excluded.album_max, attr_version = s.attr_version + excluded.attr_version, updated_at = now(); end loop;",
+      );
+      // Where the last flush stopped, so a set that grew is flushed from there and never twice.
+      expect(flush).toContain(
+        "if length(v_h) = v_fh and length(v_a) = v_fa and length(v_t) = v_ft then return; end if;",
+      );
+    });
+
+    it("the media stamp flushes before it writes, and writes the change at its event's new versions", () => {
+      const stamp = code("album_stamp_media");
+      const flush = stamp.indexOf("perform public.album_flush();");
+      const write = stamp.indexOf("insert into public.album_changes as c");
+      expect(flush).toBeGreaterThan(-1);
+      expect(write).toBeGreaterThan(flush);
+      expect(stamp).toContain(
+        "select v_event, v_media, s.version, case when v_scope & 2 = 2 then s.album_max end from public.album_state s where s.event_id = v_event on conflict (event_id, media_id) do update set host_version = excluded.host_version, album_version = coalesce(excluded.album_version, c.album_version);",
+      );
+    });
+
+    it("nothing but the flush and the media stamp ever writes an album table (the backfill aside)", () => {
+      const writers = new Set<string>();
+      const fn = /create (?:or replace )?function public\.([a-z_0-9]+)\(/g;
+      for (const { sql } of executableMigrations()) {
+        const starts = [...sql.matchAll(fn)];
+        starts.forEach((m, i) => {
+          const body = sql.slice(m.index, starts[i + 1]?.index ?? sql.length);
+          if (
+            /\b(insert into|update|delete from) public\.album_(state|changes)\b/.test(
+              body,
+            )
+          ) {
+            writers.add(m[1]);
+          }
+        });
+      }
+      expect([...writers].sort()).toEqual(["album_flush", "album_stamp_media"]);
+    });
+  });
+
+  describe("the scopes: only what a viewer can see moves a version", () => {
+    it("album_scope: 1 for the host's scope, +2 across approved, 0 for a move inside the bin or no move", () => {
+      expect(code("album_scope")).toContain(
+        "select case when p_was is not distinct from p_is then 0 when coalesce(p_was, 'removed') = 'removed' and coalesce(p_is, 'removed') = 'removed' then 0 else 1 + case when (p_was is not distinct from 'approved') <> (p_is is not distinct from 'approved') then 2 else 0 end end;",
+      );
+    });
+
+    it("a guest row moves attribution only with a live upload; a profile moves its hosted events and its verified-guest ones", () => {
+      expect(code("album_note_guest")).toContain(
+        "if exists ( select 1 from public.media m where m.guest_id = new.id and m.status <> 'removed' ) then perform public.album_remember('t', new.event_id);",
+      );
+      expect(code("album_note_profile")).toContain(
+        "select e.id from public.events e where e.host_id = new.id union select g.event_id from public.guests g where g.user_id = new.id and g.verified_at is not null and exists ( select 1 from public.media m where m.guest_id = g.id and m.status <> 'removed' )",
+      );
+    });
+  });
+
+  describe("album_changes_since: one jsonb, one snapshot", () => {
+    it("keysets each scope on its own version, clamped to 1,000, a null limit reading all", () => {
+      const reader = code("album_changes_since");
+      for (const scope of ["host", "album"]) {
+        const column = scope === "host" ? "host_version" : "album_version";
+        expect(reader).toContain(
+          `where p_scope = '${scope}' and ch.event_id = p_event_id and ch.${column} > p_after order by ch.${column}, ch.media_id limit case when p_limit is null then null else least(p_limit, 1000) end)`,
+        );
+      }
+    });
+
+    it("hands the guest scope no guest_id and no moderation counts", () => {
+      const reader = code("album_changes_since");
+      expect(reader).toContain(
+        "case when p_scope = 'host' then m.guest_id end",
+      );
+      expect(reader).toContain(
+        "'hidden', case when p_scope = 'host' then ( select count(*) from public.media m where m.event_id = p_event_id and m.status = 'hidden') end",
+      );
+      expect(reader).toContain(
+        "'pending', case when p_scope = 'host' then ( select count(*) from public.media m where m.event_id = p_event_id and m.status = 'pending') end",
+      );
+    });
+
+    it("carries created_at as whole microseconds, the manifest's `t`", () => {
+      expect(code("album_changes_since")).toContain(
+        "(extract(epoch from m.created_at) * 1000000)::bigint",
+      );
+    });
   });
 });

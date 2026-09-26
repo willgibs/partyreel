@@ -224,3 +224,132 @@ describe("runFlip, the one pass the sortable grid shares", () => {
     expect(prev.get("a")!.top).toBe(100);
   });
 });
+
+/**
+ * THE ROWS' EXTENSIONS (the album-rows lane): a justified album moves a photograph between rows,
+ * which changes its SIZE as well as its place, and an arrival shifts hundreds of tiles at once.
+ */
+describe("runFlip for a justified album", () => {
+  type Rect = { top: number; left: number; width: number; height: number };
+  function sized(
+    el: HTMLElement,
+    rect: () => Rect,
+    log?: string[],
+    key?: string,
+  ) {
+    el.getBoundingClientRect = () => {
+      log?.push(`read:${key}`);
+      const { top, left, width, height } = rect();
+      return {
+        top,
+        left,
+        width,
+        height,
+        right: left + width,
+        bottom: top + height,
+        x: left,
+        y: top,
+        toJSON: () => ({}),
+      } as DOMRect;
+    };
+  }
+
+  it("inverts the size too, about the tile's own centre", () => {
+    const el = document.createElement("div");
+    let r: Rect = { top: 0, left: 0, width: 200, height: 100 };
+    sized(el, () => r);
+    const nodes = new Map([["a", el]]);
+    const prev = new Map<string, DOMRect>();
+    runFlip(nodes, prev, { scale: true });
+    // It moves to the next row and shrinks: 200x100 at (0,0) -> 100x50 at (300,120).
+    r = { top: 120, left: 300, width: 100, height: 50 };
+    runFlip(nodes, prev, { scale: true });
+    // Centre (100,50) was, centre (350,145) is: back -250,-95, and twice the size.
+    expect(el.style.transform).toBe("translate(-250px, -95px) scale(2, 2)");
+  });
+
+  it("does not animate sub-pixel drift", () => {
+    const el = document.createElement("div");
+    let r: Rect = { top: 0, left: 0, width: 200, height: 100 };
+    sized(el, () => r);
+    const nodes = new Map([["a", el]]);
+    const prev = new Map<string, DOMRect>();
+    runFlip(nodes, prev, { scale: true });
+    r = { top: 0.1, left: 0.2, width: 200.2, height: 100.1 };
+    runFlip(nodes, prev, { scale: true });
+    expect(el.style.transform).toBe("");
+  });
+
+  it("is instant at a duration of zero", () => {
+    const el = document.createElement("div");
+    let r: Rect = { top: 0, left: 0, width: 10, height: 10 };
+    sized(el, () => r);
+    const nodes = new Map([["a", el]]);
+    const prev = new Map<string, DOMRect>();
+    runFlip(nodes, prev, { duration: 0 });
+    r = { top: 500, left: 0, width: 10, height: 10 };
+    runFlip(nodes, prev, { duration: 0 });
+    expect(el.style.transform).toBe("");
+    // ...and still re-baselined, so the next pass starts from where it is.
+    expect(prev.get("a")!.top).toBe(500);
+  });
+
+  it("leaves a tile that is off screen before and after to simply move", () => {
+    const near = document.createElement("div");
+    const far = document.createElement("div");
+    const rects: Record<string, Rect> = {
+      near: { top: 100, left: 0, width: 10, height: 10 },
+      far: { top: 9000, left: 0, width: 10, height: 10 },
+    };
+    sized(near, () => rects.near);
+    sized(far, () => rects.far);
+    const nodes = new Map([
+      ["near", near],
+      ["far", far],
+    ]);
+    const prev = new Map<string, DOMRect>();
+    runFlip(nodes, prev, { visibleOnly: true });
+    rects.near = { top: 300, left: 0, width: 10, height: 10 };
+    rects.far = { top: 9200, left: 0, width: 10, height: 10 };
+    runFlip(nodes, prev, { visibleOnly: true });
+    expect(near.style.transform).toBe("translate(0px, -200px)");
+    expect(far.style.transform).toBe("");
+    expect(prev.get("far")!.top).toBe(9200);
+  });
+
+  it("reads every rect before it writes a single style", () => {
+    const log: string[] = [];
+    const nodes = new Map<string, HTMLElement>();
+    const rects: Record<string, Rect> = {};
+    for (const key of ["a", "b", "c"]) {
+      const el = document.createElement("div");
+      rects[key] = { top: 0, left: 0, width: 10, height: 10 };
+      sized(el, () => rects[key], log, key);
+      // Record every transform write, in order with the reads.
+      let value = "";
+      Object.defineProperty(el.style, "transform", {
+        get: () => value,
+        set: (v: string) => {
+          log.push(`write:${key}`);
+          value = v;
+        },
+      });
+      nodes.set(key, el);
+    }
+    const prev = new Map<string, DOMRect>();
+    runFlip(nodes, prev);
+    for (const key of ["a", "b", "c"]) rects[key] = { ...rects[key], top: 50 };
+    log.length = 0;
+    runFlip(nodes, prev);
+    const lastRead = log.lastIndexOf(
+      log.filter((l) => l.startsWith("read")).at(-1)!,
+    );
+    const firstWrite = log.findIndex((l) => l.startsWith("write"));
+    expect(firstWrite).toBeGreaterThan(lastRead);
+    expect(log.filter((l) => l.startsWith("write"))).toEqual([
+      "write:a",
+      "write:b",
+      "write:c",
+    ]);
+  });
+});

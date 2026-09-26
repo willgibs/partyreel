@@ -4,7 +4,7 @@ import { resolveGalleryDecision } from "@/lib/events/gallery-access";
 
 // Minimal event shapes (only the three fields the resolver reads). Keyed on the host's switches:
 // `require_verified_email` false is a name-only event, true is one that asks a guest to prove an
-// email before the album; `require_upload_to_view` is the door round's own switch (2026-09-21).
+// email before the album; `require_upload_to_view` true asks for an upload before it.
 const open = {
   visibility: "open" as const,
   require_verified_email: false,
@@ -22,8 +22,8 @@ const pwAcct = { ...pw, require_verified_email: true };
 const pwUpload = { ...pw, require_upload_to_view: true };
 
 // An anonymous, not-unlocked, non-owner viewer who has not contributed but could (the strictest
-// context a guest can arrive in). The two new fields are REQUIRED by the type on purpose: every
-// caller had to learn the gate at this change, including the two that hand out real bytes.
+// context a guest can arrive in). The two contribution fields are REQUIRED by the type on purpose:
+// every caller has to answer the gate, including the two that hand out real bytes.
 const anon = {
   isOwner: false,
   isAuthed: false,
@@ -103,7 +103,7 @@ describe("resolveGalleryDecision", () => {
   });
 
   /* ────────────────────────────────────────────────────────────────────────
-     REQUIRE AN UPLOAD TO VIEW (Will, 2026-09-21).
+     REQUIRE AN UPLOAD TO VIEW.
      ──────────────────────────────────────────────────────────────────────── */
 
   it("the switch ON gates a name-only viewer who has not contributed", () => {

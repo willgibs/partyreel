@@ -11,13 +11,17 @@ import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 import { GOLDEN_LINES } from "@/lib/constants/marketing-voice";
 
 import { AmbientReelVideo } from "./ambient-reel-video";
-import { formatReelSeconds, HERO_REEL } from "./style-facets";
+import { HERO_REEL } from "./style-facets";
 
 /**
  * /reel section 1 — the reel hero (LOUD). Will's 2026-08-25 ruling: this H1 is DISTINCT
  * from the home reel-SECTION header; the hero carries the big golden line (reelThesis).
- * A REAL engine-rendered loop plays poster-first beside it: the honesty argument from the
- * T2.5 substrate ruling made visible in the first viewport.
+ * ★ THE H1 WAITS FOR `reel-story` ROUND 2 (its `card` ask gives the hub's reel card its own
+ * line and, as ground, this heading takes it), so it stays as it is even where it is stale;
+ * the subhead under it already tells the live reel. A REAL engine-rendered loop plays
+ * poster-first beside it: the honesty argument from the T2.5 substrate ruling made visible
+ * in the first viewport, captioned as the recording it is (the live reel never ends, so no
+ * duration).
  *
  * Register: the TEXT lines ride the cinema cut (data-mkt-cut inside Reveal, the
  * SectionShell "cinema" grammar hand-marked because the hero is a split layout, not a
@@ -48,7 +52,7 @@ export function ReelHero() {
               className="max-w-xl text-copy text-pretty text-muted-foreground"
             >
               {
-                "Your guests' photos, cut into a cinematic highlight video, automatically. You pick the style, the engine does the editing."
+                "Your guests are already capturing the best of it. The album plays it all back as a reel from the second photo, and nobody has to edit a thing."
               }
             </p>
             <div
@@ -69,9 +73,8 @@ export function ReelHero() {
                 sizes="320px"
                 className="rounded-2xl border bg-black ring-1 ring-foreground/5"
               />
-              <Caption className="mt-3 text-center tabular-nums">
-                A real Partyreel reel ·{" "}
-                {formatReelSeconds(HERO_REEL.durationSeconds)}
+              <Caption className="mt-3 text-center">
+                Recorded from the reel&rsquo;s own engine
               </Caption>
             </div>
           </div>

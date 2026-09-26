@@ -20,13 +20,13 @@ import "./welcome-flow.css";
 // First-time onboarding (app-door round two, `tour=film`, 2026-09-20). Two phases, both reached
 // via the /dashboard + /dashboard/new gates:
 //   1. "name" — a REQUIRED display name (Phase 1 identity foundation), shown when the account has
-//      none. UNTOUCHED by this round's ruling: no skip, the public name on every upload, prefilled
+//      none. UNTOUCHED by this round: no skip, the public name on every upload, prefilled
 //      from an OAuth name if present.
 //   2. "tour" — four screens where the original shipped three dot-tracked cards: three of the
 //      marketing site's own bespoke how-it-works pictures (StepPicture, QUOTED from
 //      sections/how-it-works/ rather than redrawn, so a host's first minute looks like the site
 //      that just sold them on the product) breathing under a copy plate, then a closing beat on
-//      ReelPicture into the same primary-and-skippable pair as always. His ruling fixed both ends
+//      ReelPicture into the same primary-and-skippable pair as always. Both ends stayed fixed
 //      (the name step and the closing pair); the drift (welcome-flow.css) is the one thing this
 //      round adds to a picture the marketing site already drew.
 // A brand-new account does name -> tour; an already-welcomed but nameless account does name only

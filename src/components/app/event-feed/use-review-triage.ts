@@ -140,7 +140,11 @@ export function useReviewTriage({
       setBeatKind(kind);
       sel.exitSelect();
       if (reduced) {
-        if (pendingRef.current.length === 0) toast.success("All caught up");
+        // ★ NOT `pendingRef` here: no render has run since `setPending(remaining)` above (the
+        // reduced path skips the exit's await), so the ref still holds the queue from before the
+        // run and the confirmation never fired. There is no beat for an arrival to land in, and
+        // `isLast` already says the queue this run saw is empty.
+        toast.success("All caught up");
       } else {
         setCaughtUp(true);
         await wait(readCssMs("--tune-review-beat-ms", 2500));

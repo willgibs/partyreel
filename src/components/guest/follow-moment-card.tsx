@@ -6,12 +6,12 @@ import { AtSign, Check } from "lucide-react";
 import { FollowButton } from "@/components/social/follow-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { formatCount } from "@/lib/format/count";
 
 /**
- * THE MOMENT AFTER CONFIRMING (the identity reshape, 2026-09-21; Will's own
- * words for the flow he asked for: "a flow for us to capture non-user guests
- * after their uploads to save the event/uploads to a profile, follow host/other
- * guests, etc.").
+ * THE MOMENT AFTER CONFIRMING, where the capture flow pays off: a guest who had
+ * no account now keeps the event and their uploads on a profile, and can follow
+ * the host and the other guests.
  *
  * The sequence a name-only guest walks is three beats and this is the third:
  * they add photographs, the offer card asks them to keep the photographs, and
@@ -21,15 +21,15 @@ import { Button } from "@/components/ui/button";
  * which of the three stands (guest-upload.tsx's own note on that sequencing).
  *
  * ★ THE HOST IS THE ONE FOLLOW WORTH OFFERING HERE. The other guests are
- * already on this page, in the Guests list, where a signed-in viewer's chips now
+ * already on this page, in the Guests list, where a signed-in viewer's chips
  * carry their own Follow (`social/guest-list.tsx`): a second copy of those names
  * inside this card would be the same list twice on one screen. The host is the
  * person this guest actually came for and the only one the album never lists.
  *
- * ★ AND "CLAIM YOUR HANDLE" IS ITS SECOND LINE, not a fourth card. It was its
- * own card (`claim-handle-prompt.tsx`, `claim=after`, 2026-09-19) and it still
- * is for a guest who was ALREADY signed in when they uploaded; for the one who
- * just confirmed, it is the same breath as everything else they just gained.
+ * ★ AND "CLAIM YOUR HANDLE" IS ITS SECOND LINE, not a fourth card. It is its
+ * own card (`claim-handle-prompt.tsx`) only for a guest who was ALREADY signed
+ * in when they uploaded; for the one who just confirmed, it is the same breath
+ * as everything else they just gained.
  *
  * ★ NOTHING HERE IS SHOWN WITHOUT ITS OBJECT. No host card resolved means no
  * host row (a locked or hostless event, or a host with no public page); a
@@ -83,15 +83,15 @@ export function FollowMomentCard({
           </p>
           {/* ★ "In your account", never "on your profile": the claim puts the
               photographs in the account and the event comes with them (a Guest
-              card on the dashboard: guest by upload, 2026-09-22), while a
-              profile shows nothing until its owner chooses it
-              (profiles-social.md), so a profile line here would be false. */}
+              card on the dashboard), while a profile shows nothing until its
+              owner chooses it (profiles-social.md), so a profile line here
+              would be false. */}
           <p className="mt-0.5 text-reading text-pretty text-muted-foreground">
             {count === 1
               ? "It is in your account now, and this event came with it."
               : count === null
                 ? "They are in your account now, and this event came with them."
-                : `All ${count} are in your account now, and this event came with them.`}
+                : `All ${formatCount(count)} are in your account now, and this event came with them.`}
           </p>
         </div>
       </div>

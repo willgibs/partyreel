@@ -1,5 +1,3 @@
-// @contract-for: src/components/shared/backdrop/photo-section.tsx
-
 import { act, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -19,13 +17,13 @@ import { ROOM_FRAMES, SCROLL_STEPS } from "./room-frames";
  *  2  it SAYS SOMETHING WHEN NOTHING CAN MOVE. Every photograph is in the first
  *     paint and the sheet stands the section on the first of them, so a reader
  *     with scripting off, a reader who asked for less motion and a crawler all
- *     get a room rather than a black box (bible 13, bible 14).
+ *     get a room rather than a black box.
  *  3  it COSTS NOTHING WHEN NOBODY IS MOVING. No frame loop off screen, none
  *     under reduced motion, and none once a photograph has landed and the
  *     reader has stopped: the case Will asked the phone rule for, where someone
  *     stops scrolling to read.
  *  4  THE TWO READERS GET THE TWO RULES. A cursor scrubs the whole pool by
- *     position and lights the rail; a reader without one passes the ruled
+ *     position and lights the rail; a reader without one passes a fixed
  *     number of photographs at scroll steps, with no tap anywhere and not one
  *     layout read.
  *
@@ -217,7 +215,7 @@ describe("it is atmosphere, and the copy is the only thing in it", () => {
   });
 
   it("plates the copy, and takes no plate when there is none", () => {
-    // The plate is the ruled legibility treatment (Will, `legibility=plate`),
+    // The plate is the legibility treatment (`legibility=plate`),
     // so copy is never laid straight onto a photograph; a section used purely
     // to separate two chapters carries no pane at all.
     const withCopy = render(
@@ -264,7 +262,7 @@ describe("it says something when nothing can move", () => {
       </PhotoSection>,
     );
     // No loop, no observer, no listener, nothing written: the sheet's first
-    // photograph carries the section on its own (bible 14).
+    // photograph carries the section on its own.
     expect(asked).toBe(0);
     expect(TestIO.instances).toHaveLength(0);
     for (const frame of framesOf(container))
@@ -326,7 +324,7 @@ describe("it costs nothing when nobody is moving", () => {
 });
 
 describe("the reader without a cursor: steps, no taps, no measuring", () => {
-  it("lays one trip wire per ruled step, and nothing else to tap", () => {
+  it("lays one trip wire per fixed step, and nothing else to tap", () => {
     const { container } = render(<PhotoSection />);
     expect(container.querySelectorAll("[data-bkd-wire]")).toHaveLength(
       SCROLL_STEPS,

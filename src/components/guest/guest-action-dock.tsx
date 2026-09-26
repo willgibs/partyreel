@@ -1,42 +1,43 @@
 "use client";
 
 /**
- * THE GUEST'S ACTIONS, DOCKED ONCE THE ROW HAS SCROLLED AWAY (`chrome=both`,
- * Will 2026-09-20, verbatim: "I like this because you see the actions higher on
- * the page when first landing, and then keep them visible as you continue.").
+ * THE GUEST'S ACTIONS, DOCKED ONCE THE ROW HAS SCROLLED AWAY: a guest sees the
+ * actions high on the page on landing, and they stay in view however far the
+ * guest scrolls.
  *
  * ★ IT IS THE SECOND HALF OF ONE ANSWER, NOT A SECOND PLACE FOR THE ACTIONS.
- * Round one's `chrome=dock` carried his own objection to a dock ALONE ("having
- * the actions tucked in the bottom right is one of the last places a guest's
- * eye will reach, especially if they don't know to look for upload in the first
- * place"), and round two answered it: the page still lands on the full-width
- * row under the event's name, and this bar takes over the moment that row
- * leaves the screen. So a guest never has to discover the dock to find Add —
- * they have already used or read the row it grew out of.
+ * A dock ALONE tucks the actions into the bottom right, one of the last places
+ * a guest's eye reaches, especially if they do not know to look for upload in
+ * the first place. So the page still lands on the full-width row under the
+ * event's name, and this bar takes over the moment that row leaves the screen:
+ * a guest never has to discover the dock to find Add — they have already used
+ * or read the row it grew out of.
  *
- * ★ AND IT REPLACES THE FLOATING PILL OUTRIGHT. The pill carried Add and only
- * Add, which left Invite unreachable past the first screen of a 200-photograph
- * album — the gap his "always accessible, no matter how deep into the album you
- * get" names. `floating-add-button.tsx` stays on disk (three lab boards and the
- * Library draw it) but nothing in the product mounts it any more.
+ * ★ AND IT CARRIES BOTH ACTIONS, NOT ADD ALONE. A floating Add by itself leaves
+ * Invite unreachable past the first screen of a 200-photograph album, where both
+ * should stay within reach however deep into the album a guest gets. The Add-only
+ * pill (`floating-add-button.tsx`) is drawn by the Library alone; nothing in the
+ * product mounts it.
  *
  * ★ A GRADIENT, NOT A HAIRLINE. The album runs to the window's edge, so the
  * dock's ground is photographs: a 1px rule across them reads as a crop, where a
  * scrim lets the last row dissolve into the page's own paper under the buttons.
  * No glass either — `lib/glass.ts` is media chrome (a tile's marks, the
- * lightbox), and bible 15 keeps a surface the page lives behind opaque.
+ * lightbox), and a surface the page lives behind stays opaque, like the rest
+ * of the floating family it belongs to.
  *
  * ★ HIDDEN IS `inert`, NOT UNMOUNTED, so the bar can travel out the way it
  * travelled in (an unmount has no exit) while its two buttons leave the tab
  * order and the accessibility tree entirely at the top of the page. The clock
  * is the floating layer's own edge beat — this is a surface crossing an edge,
- * which is exactly what `floatingClock.edge` is for — read off the contract
- * rather than typed here (bible 15).
+ * which is exactly what `floatingClock.edge` is for — read off the floating
+ * layer's contract rather than typed here, like every surface in that family.
  */
 import { ImageUp } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
 export function GuestActionDock({
@@ -47,7 +48,7 @@ export function GuestActionDock({
 }: {
   /** The row is still on screen: the dock waits, inert, off the bottom edge. */
   hidden: boolean;
-  /** The live queue count, in the same words the pill used to say them. */
+  /** The live queue count, worn on Add as "N uploading". */
   uploadingCount: number;
   /**
    * Omitted where the ROW omits Add too — uploads closed, a teaser, or an empty
@@ -118,7 +119,7 @@ export function GuestActionDock({
             <ImageUp /> Add photos
             {uploadingCount > 0 && (
               <span className="rounded-full bg-primary-foreground/20 px-2 py-0.5 text-micro tabular-nums">
-                {uploadingCount} uploading
+                {formatCount(uploadingCount)} uploading
               </span>
             )}
           </Button>

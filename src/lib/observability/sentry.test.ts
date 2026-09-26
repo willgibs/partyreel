@@ -1,4 +1,3 @@
-// @contract-for: src/lib/observability/sentry.ts
 /**
  * DEFECT 3 (the alias red-team, 2026-09-21): a server capture now schedules a
  * flush, a client one never does. `@sentry/nextjs` is mocked wholesale — this

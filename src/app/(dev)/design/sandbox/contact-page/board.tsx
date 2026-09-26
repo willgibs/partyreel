@@ -123,6 +123,7 @@ const RECEIPT_H: Record<ReceiptShape, { d: number; p: number }> = {
   card: { d: 560, p: 620 },
   email: { d: 780, p: 840 },
   reference: { d: 620, p: 680 },
+  modal: { d: 640, p: 720 },
 };
 
 const receiptPreview = (shape: ReceiptShape) => (
@@ -171,6 +172,7 @@ const PREVIEWS: PreviewsFor<typeof CONTACT_PAGE> = {
   "receipt.card": receiptPreview("card"),
   "receipt.email": receiptPreview("email"),
   "receipt.reference": receiptPreview("reference"),
+  "receipt.modal": receiptPreview("modal"),
 
   "beside.facts": besidePreview("facts"),
   "beside.directory": besidePreview("directory"),

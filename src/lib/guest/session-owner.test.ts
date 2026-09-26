@@ -1,10 +1,9 @@
 /**
- * WHOSE TICKET IS THIS (the upload-owner lane, 2026-09-23): the one rule, the code both halves read
- * by name, and the server check that applies it. The alias red-team found a browser that kept a
- * confirmed guest's ticket crediting the next person's photograph to that guest, signed in as
- * someone else or signed out; these pin that an account's row writes only for that account, that a
- * confirmed row whose account is gone writes for nobody, and that a name-only row stays the
- * device's ticket.
+ * WHOSE TICKET IS THIS: the one rule, the code both halves read by name, and the server check that
+ * applies it. A browser that kept a confirmed guest's ticket would credit the next person's
+ * photograph to that guest, signed in as someone else or signed out; these pin that an account's
+ * row writes only for that account, that a confirmed row whose account is gone writes for nobody,
+ * and that a name-only row stays the device's ticket.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

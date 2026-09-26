@@ -14,25 +14,27 @@ import { defineExploration } from "@/components/lab/exploration";
  * the sake of the exploration", and asked instead for "tighter comparisons of
  * copy in real cases, one at a time", building the voice from the winners. So
  * every decision here is ONE real line in its real place (the phone, the
- * sheet, the tile it ships on), and bible 21 says why: "the voice is built one
+ * sheet, the tile it ships on), and bible 10 says why: "the voice is built one
  * won line at a time, in its real place".
  *
- * ★ THE REGISTERS ARE THE SAME FOUR KEYS ON EVERY DECISION: `today` (the
- * shipped words), `warm` (plain and warm), `bright` (bright and playful),
- * `exact` (quiet and exact), the three the brief asks the candidates to span.
- * Each is written for its place rather than as a costume, and each option's
- * `means` ends with what the same register sounds like on another of these
- * lines, so a pick carries. His answers then read as a voice at a glance
- * (welcome=bright, failed=warm, ...), and the voice is whatever they share.
+ * ★ THE REGISTERS SPAN FIVE KEYS, NOT A FIXED FOUR: `today` (the shipped
+ * words), `warm` (plain and warm), `bright` (bright and playful), `exact`
+ * (quiet and exact), the three the brief first asked the candidates to span,
+ * and `tender` (soft and tender), tried this round as a genuinely different
+ * fifth direction rather than another costume on the same three. Each is
+ * written for its place rather than as a costume, and each option's `means`
+ * ends with what the same register sounds like on another of these lines, so
+ * a pick carries. His answers then read as a voice at a glance (welcome=bright,
+ * failed=warm, ...), and the voice is whatever they share.
  *
  * ★ THE GUIDANCE HIS WORDS BECAME BINDS EVERY CANDIDATE (`guidance.md`): "An
  * ask says what it gives, where that comes naturally ... where a benefit
  * would be forced, the line is natural or at least neutral, never worded as a
  * rule or in regulatory language. The first welcome reads fun, safe, easy and
- * quick." Lines he ruled verbatim stay verbatim and are never re-asked: "No
- * app required." rides every welcome, "The album starts with you" heads the
- * empty album, the name step's lede and the verified gate's line are not
- * drawn at all, and "Almost in" keeps the password step's eyebrow.
+ * quick." Some lines are already settled and are not reopened here: "No app
+ * required." rides every welcome, "The album starts with you" heads the empty
+ * album, the name step's lede and the verified gate's line are not drawn at
+ * all, and "Almost in" keeps the password step's eyebrow.
  *
  * ★ WHAT THE STANDING BOARDS ASK, THIS ONE DOES NOT, and each context names
  * its neighbour: `identity-door` (the field, the member nudge, the verified
@@ -51,13 +53,12 @@ export const VOICE_GUEST = defineExploration({
   title: "The voice of the guest journey",
   round: {
     n: 1,
-    date: "2026-09-23",
+    date: "2026-09-24",
     changed:
-      "New board, the voice's first, on his word to nail the voice in the lab starting with the guest journey: seven real lines, each in its real place on a phone, with today's words beside three registers.",
+      "The refresh: a fifth register, tender, tried on all seven lines beside today/warm/bright/exact, so no ask is fenced to the same three costumes. No other line changed.",
   },
   context:
-    "Will, 2026-09-22: \"Still need to nail our voice in the lab, across all main and micro copy.\" The guest journey first: seven lines Priya reads between scanning Maya and Jay's code and keeping her photos, each set where it lives on a 375 phone, today's words beside plain and warm, bright and playful, quiet and exact. The lines he picks build the voice one won line at a time, and each option says what its register sounds like on another of the seven, so a pick carries to the host app's board and marketing's after it.",
-  bible: [4, 12, 14, 19, 20, 21, 22],
+    "Will, 2026-09-22: \"Still need to nail our voice in the lab, across all main and micro copy.\" The guest journey first: seven lines Priya reads between scanning Maya and Jay's code and keeping her photos, each set where it lives on a 375 phone, today's words beside plain and warm, bright and playful, quiet and exact, and this round's soft and tender. The lines he picks build the voice one won line at a time, and each option says what its register sounds like on another of the seven, so a pick carries to the host app's board and marketing's after it.",
   carried: [
     {
       id: "world",
@@ -91,13 +92,13 @@ export const VOICE_GUEST = defineExploration({
       question:
         "What should the welcome say under the event's name, the first words a guest reads after scanning?",
       context:
-        "The held sheet a guest meets off the code, 48 photos in. Only the two rows under the name change; \"No app required.\" is ruled, so every option keeps it. A sign-in row on this sheet is identity-door's question.",
+        "The held sheet a guest meets off the code, 48 photos in. Only the two rows under the name change; \"No app required.\" is already settled, so every option keeps it. A sign-in row on this sheet is identity-door's question.",
       options: [
         {
           id: "today",
           label: "As shipped: \"shots land in one album\"",
           means:
-            "Its first row is the voice board's ruled pick, as swept to \"No app required.\"; its second was never asked. Elsewhere: \"Everything else is in Maya's album.\"",
+            "Its first row is already settled, swept to \"No app required.\"; its second was never asked. Elsewhere: \"Everything else is in Maya's album.\"",
         },
         {
           id: "warm",
@@ -117,6 +118,12 @@ export const VOICE_GUEST = defineExploration({
           means:
             "What to do, then the count, in the fewest words. Nothing to misread and nothing warm. Elsewhere: \"6 added.\"",
         },
+        {
+          id: "tender",
+          label: "Soft and tender: \"only you caught\"",
+          means:
+            "What she saw matters, and the count says how many already trust the album. Elsewhere: \"Kept safe until the host looks.\"",
+        },
       ],
       recommended: "bright",
       today: "today",
@@ -133,7 +140,7 @@ export const VOICE_GUEST = defineExploration({
       label: "The password's ask",
       question: "When the host has set a password, how should the door ask for it?",
       context:
-        "The same wedding with a password set: the door's second step, over the locked page. Only the sentence under the title changes. The verified gate's line is ruled and its framing is identity-door's.",
+        "The same wedding with a password set: the door's second step, over the locked page. Only the sentence under the title changes. The verified gate's line is already settled and its framing is identity-door's.",
       options: [
         {
           id: "today",
@@ -145,7 +152,7 @@ export const VOICE_GUEST = defineExploration({
           id: "warm",
           label: "Plain and warm: \"One password and you're in\"",
           means:
-            "Why, then the cost, in the ruled gate's own cadence (\"One tap and you're in\"). Elsewhere: \"The host sees it first.\"",
+            "Why, then the cost, in the shipped gate's own cadence (\"One tap and you're in\"). Elsewhere: \"The host sees it first.\"",
         },
         {
           id: "bright",
@@ -159,11 +166,17 @@ export const VOICE_GUEST = defineExploration({
           means:
             "One instruction and nothing else: neutral, never a rule. Elsewhere: \"Only you see this for now.\"",
         },
+        {
+          id: "tender",
+          label: "Soft and tender: \"kept for the people\"",
+          means:
+            "Privacy as care, not a rule, and still says where to look. Elsewhere: \"All 6, kept safe in the album.\"",
+        },
       ],
       recommended: "warm",
       today: "today",
       because:
-        "The ruled gate line already set how a door asks: whose choice, why, what it costs. The password's line in the same shape makes the two doors one voice, and \"just for the guests\" is a benefit that needs no forcing.",
+        "The gate's shipped line already set how a door asks: whose choice, why, what it costs. The password's line in the same shape makes the two doors one voice, and \"just for the guests\" is a benefit that needs no forcing.",
       overrule:
         "If guests stall hunting for the password, only today's line and the bright one say where it is: on the invite.",
       lands:
@@ -176,7 +189,7 @@ export const VOICE_GUEST = defineExploration({
       question:
         "When the last of her photos lands, should the stack tile say so, and in which words?",
       context:
-        "Priya sent six. The stack at the album's head counts \"N to go\"; today it leaves as the last lands, with a pass of light, and the others hold it a beat with a line. Tom is signed in; his may name his account. The reel's chip is reel-front's.",
+        "Priya sent six. The stack at the album's head counts \"N to go\"; today it leaves as the last lands, with a light. Tom is signed in; his may name his account. Reel-front's toast and guest-capture's tracker are its neighbours.",
       options: [
         {
           id: "today",
@@ -202,13 +215,19 @@ export const VOICE_GUEST = defineExploration({
           means:
             "A count and a verb; Tom's adds \"in your account\". Elsewhere: \"2 of 8 didn't upload.\"",
         },
+        {
+          id: "tender",
+          label: "Soft and tender: \"kept safe\"",
+          means:
+            "Marks the moment quietly and tells Tom his account keeps it too. Elsewhere: \"Start it with one of yours.\"",
+        },
       ],
       recommended: "bright",
       today: "today",
       because:
         "Words reach the guests the light never does (reduced motion, a screen reader), and this line fits the tile's width in one line, in the verb the welcome already uses for the album. Tom's \"Yours to keep\" is the capture card's offer, already true for him.",
       overrule:
-        "If the reel's \"Yours is in it\" lands in the same second, two lines saying one thing is one too many, and today's silence is right.",
+        "If the reel's one-time toast lands in the same second, two lines saying one thing is one too many, and today's silence is right.",
       lands:
         "Whether the guest's main act is answered in words, and whether a member ever hears that uploading saved the event.",
     },
@@ -244,6 +263,12 @@ export const VOICE_GUEST = defineExploration({
           means:
             "The whole run in five words, and \"Retry both\" names exactly what the tap does. Elsewhere: \"Add photos.\"",
         },
+        {
+          id: "tender",
+          label: "Soft and tender: \"didn't come through\"",
+          means:
+            "Failure without blame, a signal that didn't land, and what stays safe. Elsewhere: \"Kept for the people who were there.\"",
+        },
       ],
       recommended: "warm",
       today: "today",
@@ -260,7 +285,7 @@ export const VOICE_GUEST = defineExploration({
       label: "The empty album's button",
       question: "Under \"The album starts with you\", what should the one button say?",
       context:
-        "An album nobody has added to yet, met by a guest who skipped the door's upload step: the ghost river, the ruled heading and one button, since the page's own Add steps aside at zero. Only the button changes.",
+        "An album nobody has added to yet, met by a guest who skipped the door's upload step: the ghost river, the shipped heading and one button, since the page's own Add steps aside at zero. Only the button changes.",
       options: [
         {
           id: "today",
@@ -278,13 +303,19 @@ export const VOICE_GUEST = defineExploration({
           id: "bright",
           label: "Bright: \"Get it started\"",
           means:
-            "A party verb for the album's first moment, the rare beat bible 12 saves delight for. Elsewhere: \"Take it with you.\"",
+            "A party verb for the album's first moment, the rare beat bible 5 saves delight for. Elsewhere: \"Take it with you.\"",
         },
         {
           id: "exact",
           label: "Quiet and exact: \"Add photos\"",
           means:
             "The label the album's Add button wears everywhere else, so one act has one name. Elsewhere: \"Keep your 6 photos.\"",
+        },
+        {
+          id: "tender",
+          label: "Soft and tender: \"one of yours\"",
+          means:
+            "Answers the heading's own word rather than saying \"first\" twice. Elsewhere: \"Hold onto today.\"",
         },
       ],
       recommended: "warm",
@@ -303,7 +334,7 @@ export const VOICE_GUEST = defineExploration({
       question:
         "On a photo the host is holding for review, what should its tile say to the guest who sent it?",
       context:
-        "Uploads held for review: Priya's two sit dimmed at the album's head with a clock, seen by her phone alone until Maya lets them in. The line sits on a pane about 150px wide. Whether a refusal is ever told is host-curation's.",
+        "Uploads held for review: Priya's two sit dimmed at the album's head with a clock, on a pane about 150px wide. Whether a refusal is told is host-curation's; guest-capture's tracker may reuse this line inline.",
       options: [
         {
           id: "today",
@@ -328,6 +359,12 @@ export const VOICE_GUEST = defineExploration({
           label: "Quiet and exact: \"Only you see this for now\"",
           means:
             "Why the photo is dim (nobody else sees it yet), with the host left out. Elsewhere: \"Enter the password the host shared with guests.\"",
+        },
+        {
+          id: "tender",
+          label: "Soft and tender: \"kept safe for now\"",
+          means:
+            "The photo is cared for, not just delayed, with no promise of the outcome. Elsewhere: \"2 didn't come through.\"",
         },
       ],
       recommended: "warm",
@@ -371,6 +408,12 @@ export const VOICE_GUEST = defineExploration({
           label: "Quiet and exact: \"Keep your 6 photos\"",
           means:
             "One sentence of what confirming does, and nothing more. Elsewhere: \"6 added.\"",
+        },
+        {
+          id: "tender",
+          label: "Soft and tender: \"Hold onto today\"",
+          means:
+            "The day, not just the photos, is what she is really keeping. Elsewhere: \"They'll join Maya's album, 48 kept safe there already.\"",
         },
       ],
       recommended: "warm",

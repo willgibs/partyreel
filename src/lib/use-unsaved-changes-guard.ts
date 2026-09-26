@@ -6,10 +6,9 @@ import { useEffect } from "react";
  * it down the moment the form is clean (or the component unmounts). The browser shows
  * its own native "leave site?" prompt - the copy and buttons are not customizable.
  *
- * SCOPE: this covers HARD navigations only. SOFT (client-side) navigation away from
- * the settings page is guarded separately, at the back-link (onNavigate -> a confirm
- * Dialog, in settings-with-guard.tsx). Out of scope BY DESIGN: every other app-shell
- * link and the browser BACK button (popstate) - see the wrapper.
+ * SCOPE: this covers HARD navigations only. The SOFT ways out of the settings sheet
+ * (its scrim, Escape and close button) are guarded by the sheet itself, with a confirm
+ * Dialog (event-settings-sheet.tsx).
  */
 export function useUnsavedChangesGuard(dirty: boolean) {
   useEffect(() => {

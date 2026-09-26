@@ -1,4 +1,3 @@
-// @contract-for: src/components/app/dashboard/events-section.tsx
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -52,6 +51,7 @@ const row = (over: Partial<EventListRow>): EventListRow => ({
   name: "Event",
   href: "/dashboard/e",
   coverUrl: null,
+  stills: [],
   dateLabel: "No date set",
   sortDate: "2026-09-01T00:00:00.000Z",
   items: 3,
@@ -153,7 +153,9 @@ describe("the order", () => {
     expect(names()[0]).toContain("Quiet party");
 
     openMenu(/newest/i);
-    fireEvent.click(screen.getByRole("menuitemradio", { name: /most waiting/i }));
+    fireEvent.click(
+      screen.getByRole("menuitemradio", { name: /most waiting/i }),
+    );
     expect(names()[0]).toContain("Busy party");
   });
 
@@ -198,10 +200,9 @@ describe("the lens", () => {
       />,
     );
     expect(screen.queryByRole("button", { name: /restore/i })).toBeNull();
-    expect(screen.getByRole("link", { name: /friend's wedding/i })).toHaveAttribute(
-      "href",
-      "/e/qr-friend",
-    );
+    expect(
+      screen.getByRole("link", { name: /friend's wedding/i }),
+    ).toHaveAttribute("href", "/e/qr-friend");
   });
 
   it("offers the create hero only to a host with nothing at all", () => {

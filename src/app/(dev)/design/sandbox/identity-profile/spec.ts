@@ -2,31 +2,28 @@ import type { Control } from "@/components/lab/board-spec";
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * THE PROFILE-SETUP BOARD, ROUND ONE (2026-09-22).
+ * THE PROFILE-SETUP BOARD (the refresh, round one, 2026-09-24).
  *
- * A NEW BOARD ON HIS WORD ("guest identity" and "the
- * morning after the identity round"): "I'd like to run most of this through
- * the lab once our foundation is complete (including the flow around
- * '...event claim UI, profile setup, etc - this introduces lots of new UI and
- * flows)". The foundation (the door, the claim, the mark) is whole on the
- * alias; this board is the profile-setup piece of that promise, folding in the
- * ROADMAP's own standing line: a wizard "claiming a unique handle and the rest
- * the way the event wizard does".
+ * The profile-setup piece of the identity foundation (the door, the claim,
+ * the mark), whole on the alias: five decisions on how a verified guest turns
+ * her attendance into a page, folding in the ROADMAP's own standing line, a
+ * wizard "claiming a unique handle and the rest the way the event wizard
+ * does".
  *
  * ★ ONE GUEST, PAST THE POINT THE OTHER TWO IDENTITY BOARDS LEAVE HER.
  * `identity-door` asks about the sheet that first meets a guest; `identity-
  * claims` asks about sorting her inbox of past events. This board's Priya has
- * already done both: verified, added photos to three events, and (her own
- * line, the manifest's) "none shown yet." Every option is her, in that same world
- * (fixtures.ts).
+ * already done both: verified, added photos to three events, and shown none
+ * of them yet. Every option is her, in that same world (fixtures.ts).
  *
- * ★ WHAT IS DELIBERATELY NOT ASKED (DECIDED ALREADY, this round's identity
- * ruling): the three trust levels, the per-event name until a claim, the
- * typed address staying inert, the public mark's two states and its word
- * "Unverified", unclaimed uploads removed at Finish, and the standing model
- * this board builds ON TOP of - nothing on a profile until Priya chooses it.
- * That last one is this board's floor, not one of its four questions: every
- * option below still ships with every event off by default.
+ * ★ WHAT ELSE IS HELD STEADY, OUTSIDE THIS BOARD. The three trust levels, the
+ * per-event name until a claim, the typed address staying inert, the public
+ * mark's two states and its word "Unverified", and unclaimed uploads removed
+ * at Finish: `identity-door` and `identity-claims` are where those live.
+ * `profile_shown_events` starting empty (nothing on a profile until Priya
+ * chooses) is this board's own premise everywhere except its fifth question,
+ * `default`, which is the one place that silence itself is asked rather than
+ * assumed.
  */
 
 const SCREEN: Control = {
@@ -44,20 +41,19 @@ const DRAFT = defineExploration({
   title: "Setting up a page",
   round: {
     n: 1,
-    date: "2026-09-22",
+    date: "2026-09-24",
     changed:
-      "New board, cut on his word once the identity foundation stood whole on the alias.",
+      "The refresh: a fifth question tests the default-off floor itself. Redrawn for the door's round two: prompt's follow option also lands at the door's You're in, where her email can now confirm, every option kept.",
   },
   context:
-    "Priya is verified, has added photos to three events (Maya and Jay's wedding among them, each one making her a guest of it), and has shown none of them: the guest identity round's own floor. This board asks four things left open once she is ready to make her page real: how setup actually happens, how she chooses what shows, when the app ever invites her to, and what a visitor meets if she claims a handle and stops there.",
-  bible: [1, 4, 12, 15, 19, 21, 22],
+    "Priya is verified, has added photos to three events (Maya and Jay's wedding among them, each one making her a guest of it), and has shown none of them. This board asks five things once she is ready to make her page real: whether that starting silence should even be the default, how setup actually happens, how she chooses what shows, when the app ever invites her to, and what a visitor meets if she claims a handle and stops there.",
   asks: [
     {
       id: "setup",
       label: "How it's set up",
       question: "How should a person actually set up their page?",
       context:
-        "Today the handle, bio and events switches live inside the Public profile card, one of six on the account page. Will's ruling: a confirmed account must still visit its page to set it up, echoing the ROADMAP's own wizard line.",
+        "Today the handle, bio and events switches live in the Public profile card, one of six on the account page. Setup still means visiting it, since claiming a handle is the consent act; the ROADMAP points at a wizard instead.",
       options: [
         {
           id: "cards",
@@ -93,7 +89,7 @@ const DRAFT = defineExploration({
       label: "What shows",
       question: "How should Priya actually choose which events show?",
       context:
-        "The account page already lists the three events she added photos to as switches, each off until turned on (profiles-social.md: 'nothing until chosen'). This asks how that choice gets made, never whether it defaults off.",
+        "The account page lists the three events she added photos to as switches, each off until turned on ('nothing until chosen', profiles-social.md). This asks how that choice gets made; the next question, `default`, asks if it should start off.",
       options: [
         {
           id: "switches",
@@ -119,7 +115,45 @@ const DRAFT = defineExploration({
         "A cover Priya recognizes at a glance is a faster, more honest decision than a row of names and dates, and it turns the choice into the same curatorial moment the profile page's own card grid already is.",
       overrule:
         "If the switch list's plain honesty (no cover means no photograph judgment at all) is worth more than the extra visual weight, the list costs nothing to keep.",
-      lands: "Whether choosing what shows is a settings decision or a visual one.",
+      lands:
+        "Whether choosing what shows is a settings decision or a visual one.",
+      tile: "phone",
+      configs: [SCREEN],
+    },
+    {
+      id: "default",
+      label: "The starting default",
+      question:
+        "Should a newly attended event default to hidden, or could setup ask once and apply it to all?",
+      context:
+        "Every option above opens an event's switch off; `profile_shown_events` is opt-in, so nothing publishes until Priya chooses (a one-way door: /privacy and the Terms word it too). This asks if 'off' is the only shape a default can take.",
+      options: [
+        {
+          id: "off",
+          label: "Off, every time, as shipped",
+          means:
+            "A newly attended event always starts hidden; Priya turns each one on herself, whenever she gets to it.",
+        },
+        {
+          id: "asked",
+          label: "Asked once, applied to all",
+          means:
+            "Setup asks a single yes-or-no, 'Show your events on your page?'; her answer sets every current event at once.",
+        },
+        {
+          id: "on",
+          label: "On, every time",
+          means:
+            "A newly attended event starts shown; she turns off what she'd rather keep back. Touches /privacy and the Terms, not only this screen.",
+        },
+      ],
+      recommended: "off",
+      because:
+        "profile_shown_events is opt-in by design: a page that publishes nothing until its owner chooses is the consent story /privacy and the Terms already tell, and flipping the default changes that story, not only this screen.",
+      overrule:
+        "If most guests would show most events anyway, asking once spares a repeat visit to flip several switches, without publishing one she never saw.",
+      lands:
+        "Whether 'nothing until chosen' stays a silent default forever, becomes one deliberate question, or could ever start on.",
       tile: "phone",
       configs: [SCREEN],
     },
@@ -138,9 +172,9 @@ const DRAFT = defineExploration({
         },
         {
           id: "follow",
-          label: "At the follow moment",
+          label: "Right after her email confirms",
           means:
-            "Right after her email confirms inside an album, alongside the offer to follow the host.",
+            "Inside the album beside the offer to follow the host, or at the door's You're in when she confirms there, before any upload.",
         },
         {
           id: "account",
@@ -200,7 +234,7 @@ const DRAFT = defineExploration({
 /**
  * ONE KNOB PER ID (`media-viewer`'s own finding, carried by every board since):
  * every ask declares the same SCREEN control on its own strip, so the
- * constructor would draw it four times without this dedupe.
+ * constructor would draw it five times without this dedupe.
  */
 export const IDENTITY_PROFILE: typeof DRAFT = {
   ...DRAFT,

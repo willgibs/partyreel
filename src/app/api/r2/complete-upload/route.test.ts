@@ -1,5 +1,5 @@
 /**
- * THE GUEST COMPLETION, HELD TO THE TICKET'S OWNER (the upload-owner lane, 2026-09-23).
+ * THE GUEST COMPLETION, HELD TO THE TICKET'S OWNER.
  *
  * A presign outlives a sign-out by up to two hours, so the owner check is asked again at the write
  * that actually credits a photograph to a row. The REAL route, pipeline and owner check run here;
@@ -13,6 +13,8 @@ const mayUploadPastLock = vi.fn();
 const headObjectSize = vi.fn();
 const rowRead = vi.fn();
 const getUser = vi.fn();
+const checkAbuseRate = vi.fn();
+const recordAbuseEvent = vi.fn();
 
 vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({
@@ -50,6 +52,14 @@ vi.mock("@/lib/supabase/admin", () => ({
 }));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({ auth: { getUser: () => getUser() } }),
+}));
+vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
+  abuseHashes: (ip: string, kind: string, scope: string) => ({
+    ipHash: `ip:${ip}`,
+    scopeHash: `scope:${kind}:${scope}`,
+  }),
+  checkAbuseRate: (...args: unknown[]) => checkAbuseRate(...args),
+  recordAbuseEvent: (...args: unknown[]) => recordAbuseEvent(...args),
 }));
 
 const { POST } = await import("@/app/api/r2/complete-upload/route");
@@ -94,7 +104,7 @@ function callerIs(userId: string | null) {
   getUser.mockResolvedValue({ data: { user: userId ? { id: userId } : null } });
 }
 
-async function complete() {
+async function complete(extra: Record<string, unknown> = {}) {
   const res = await POST(
     new Request("https://partyreel.com/api/r2/complete-upload", {
       method: "POST",
@@ -107,6 +117,7 @@ async function complete() {
         size_bytes: 1000,
         upload_id: null,
         parts: [],
+        ...extra,
       }),
     }),
   );
@@ -129,6 +140,7 @@ beforeEach(() => {
   });
   ticketBelongsTo(null);
   callerIs(null);
+  checkAbuseRate.mockResolvedValue({ allowed: true });
 });
 
 describe("an account's ticket completes only for that account", () => {
@@ -200,5 +212,63 @@ describe("the ladder around it", () => {
     expect(status).toBe(403);
     expect(body.code).toBe("unauthorized");
     expect(rowRead).not.toHaveBeenCalled();
+  });
+});
+
+describe("the live reel's one field (a clip added to the album)", () => {
+  it("writes a clip as not reel-eligible, so the live reel never plays a reel", async () => {
+    const { status } = await complete({ reel_eligible: false });
+    expect(status).toBe(200);
+    expect(createMedia).toHaveBeenCalledWith(
+      expect.objectContaining({ reelEligible: false }),
+    );
+  });
+
+  it("says nothing for every other upload (the column's default decides)", async () => {
+    await complete();
+    expect(createMedia.mock.calls[0][0].reelEligible).toBeUndefined();
+  });
+
+  it("refuses a malformed flag rather than guessing", async () => {
+    const { status, body } = await complete({ reel_eligible: "no" });
+    expect(status).toBe(400);
+    expect(body.code).toBe("bad_request");
+    expect(createMedia).not.toHaveBeenCalled();
+  });
+});
+
+describe("the clip-add limiter (reel_clip_add)", () => {
+  it("checks the limiter first, keyed to the guest's OWN session, then records only a real write", async () => {
+    const { status } = await complete({ reel_eligible: false });
+    expect(status).toBe(200);
+    expect(checkAbuseRate).toHaveBeenCalledWith(
+      "reel_clip_add",
+      "ip:unknown",
+      `scope:reel_clip_add:${TOKEN}`,
+    );
+    expect(recordAbuseEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it("refuses once the daily budget is spent, before the pipeline ever writes", async () => {
+    checkAbuseRate.mockResolvedValue({ allowed: false, retryAfterSec: 3600 });
+    const { status, body } = await complete({ reel_eligible: false });
+    expect(status).toBe(429);
+    expect(body.code).toBe("rate_limited");
+    expect(createMedia).not.toHaveBeenCalled();
+    expect(recordAbuseEvent).not.toHaveBeenCalled();
+  });
+
+  it("never checks or counts an ordinary (non-clip) upload", async () => {
+    await complete();
+    expect(checkAbuseRate).not.toHaveBeenCalled();
+    expect(recordAbuseEvent).not.toHaveBeenCalled();
+  });
+
+  it("never counts a clip write the pipeline itself refused", async () => {
+    ticketBelongsTo(OWNER);
+    callerIs(OTHER);
+    const { status } = await complete({ reel_eligible: false });
+    expect(status).toBe(403);
+    expect(recordAbuseEvent).not.toHaveBeenCalled();
   });
 });

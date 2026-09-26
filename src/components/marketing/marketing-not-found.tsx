@@ -16,8 +16,8 @@ import { cn } from "@/lib/utils";
 export function MarketingNotFound({
   /**
    * ★ THE STRIP YIELDS WHERE THE TRAIL RUNS (the trail-wiring lane, 2026-09-19).
-   * The root 404 now stands on the image trail Will ruled onto it
-   * (`home=notfound`, 2026-09-19), and the strip says the same sentence in a
+   * The root 404 now stands on the image trail
+   * (`home=notfound`), and the strip says the same sentence in a
    * quieter voice: photographs, one of them missing. Two devices making one
    * point is noise, and the weaker of the two here is a row of grey placeholder
    * tiles sitting among real photographs, which reads as something still
@@ -43,7 +43,7 @@ export function MarketingNotFound({
   return (
     <NotFoundScreen
       // The marketing half, so the title takes the `prose` step and not the
-      // app's `page` step (Will's type ruling, 2026-09-17). Declared, never
+      // app's `page` step. Declared, never
       // sniffed: the root 404 renders OUTSIDE (marketing), so [data-mkt] is
       // absent there and an ancestor selector would read it as the app.
       surface="marketing"

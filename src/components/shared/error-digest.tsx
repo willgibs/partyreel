@@ -87,8 +87,8 @@ export function ErrorDigest({
           "flex items-center gap-1.5 rounded bg-muted px-1.5 py-0.5 text-foreground/80",
           // 150ms and the site's emphasis curve: this is an occasional control
           // on a screen nobody plans to see, so it gets standard feedback, not
-          // a flourish (bible 12). The press scale is the one movement, and it
-          // is gone under reduced motion (bible 14).
+          // a flourish. The press scale is the one movement, and it
+          // is gone under reduced motion (both bible 5).
           "transition-[background-color,color,transform] duration-150 ease-emphasis",
           "hover:bg-muted/70 hover:text-foreground active:scale-[0.97] motion-reduce:active:scale-100",
           "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",

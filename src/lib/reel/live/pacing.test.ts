@@ -54,7 +54,9 @@ describe("pacing", () => {
 
   it("clamps the knob so the reel is never a strobe or a still", () => {
     expect(pacingFactor("wall", 0)).toBe(pacingFactor("wall", 0.25));
-    expect(pacingFactor("wall", 99)).toBe(pacingFactor("wall", 3));
+    expect(pacingFactor("wall", 99)).toBe(pacingFactor("wall", 6));
+    // The Hold control's slowest step on the fastest mood (7 s over Kinetic's 1.4 s) is inside it.
+    expect(pacingFactor("wall", 5)).toBe(5);
   });
 
   it("keeps the edit's proportions, so a faster surface stays a real reel", () => {

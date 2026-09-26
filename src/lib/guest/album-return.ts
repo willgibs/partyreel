@@ -1,5 +1,5 @@
 /**
- * THE WAY BACK TO AN ALBUM AFTER A CONFIRM DOOR (guest by upload, 2026-09-22).
+ * THE WAY BACK TO AN ALBUM AFTER A CONFIRM DOOR.
  *
  * Three doors on an album confirm a guest's email: the offer card under a first upload, the
  * Unverified mark on their own credit, and the header's name menu. Each one CLAIMS the guest's

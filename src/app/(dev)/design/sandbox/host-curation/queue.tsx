@@ -25,12 +25,7 @@ import { Button } from "@/components/ui/button";
 import { GLASS, GLASS_BEHIND, GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
-import {
-  ALBUM_WITH_HIDDEN,
-  PEEKED,
-  PEEKED_POSITION,
-  QUEUE,
-} from "./fixtures";
+import { ALBUM_WITH_HIDDEN, PEEKED, QUEUE } from "./fixtures";
 import { type ScreenId } from "./scene";
 import { stillTriage, useLabTriage } from "./triage";
 
@@ -292,27 +287,33 @@ function VerbBar({ option, count }: { option: VerbOption; count: number }) {
  * renders. Its per-tile overlay is not exported and every chip on it calls
  * `setMediaStatusAction`, so the one chip this decision needs — the persistent
  * amber Show — is quoted from it at its own classes and the rest is left out.
+ *
+ * ★ ONE PILL, TOP RIGHT, NEVER THE OWN-ITEM MARK'S CORNER (the desk re-cut:
+ * his r1 note, "Don't love our 'own photo' marker or placement"). The word
+ * used to stand in a second chip at top left, `MineMark`'s own corner
+ * (`masonry.tsx:189-242`); `chip` now grows the SAME amber pill the eye
+ * already wears instead, so the tile's only other mark is left untouched by
+ * this decision, whichever shape `media-viewer` round 2 gives it.
  */
 function HiddenChip({ label }: { label?: boolean }) {
   return (
-    <>
-      <span
-        // ACTION_BASE, quoted from host-media-grid.tsx: the amber Show that
-        // persists off-hover, which is today the ONLY mark a hidden tile wears.
-        className="absolute top-1.5 right-1.5 z-10 ml-1 flex size-7 items-center justify-center rounded-full bg-black/40 text-warning backdrop-blur-sm"
-        aria-label="Show"
-      >
-        <Eye className="size-4 fill-warning/25" />
-      </span>
-      {label && (
-        <span
-          data-hc-chip
-          className="absolute top-1.5 left-1.5 z-10 flex h-5 items-center gap-1 rounded-full bg-warning/90 px-2 text-[10px] font-semibold text-black"
-        >
-          <EyeOff className="size-2.5" /> Hidden
-        </span>
+    <span
+      // ACTION_BASE, quoted from host-media-grid.tsx: the amber Show that
+      // persists off-hover, which is today the ONLY mark a hidden tile wears.
+      // `label` grows it into a pill with the word rather than adding a
+      // second mark elsewhere on the tile.
+      data-hc-chip={label ? "" : undefined}
+      className={cn(
+        "absolute top-1.5 right-1.5 z-10 flex items-center gap-1 rounded-full bg-black/40 text-warning backdrop-blur-sm",
+        label
+          ? "h-7 pr-2.5 pl-1.5 text-[11px] font-semibold"
+          : "size-7 justify-center",
       )}
-    </>
+      aria-label="Show"
+    >
+      <Eye className="size-4 fill-warning/25" />
+      {label && "Hidden"}
+    </span>
   );
 }
 
@@ -413,15 +414,22 @@ function UnverifiedDot() {
  *
  * The shipped peek is private state inside `SelectableMediaGrid` and cannot be
  * opened from outside it, so its surface is quoted exactly: the same fixed full
- * bleed on the lightbox's ruled ground (`GLASS_BEHIND`, the queue behind it
- * blurred at half brightness), the same `max-h-[88vh] max-w-[94vw]` contain, the
- * same glass close at the top right. What each option adds sits on that
- * identical ground, over whichever grid the queue decision settled.
+ * bleed on the lightbox's own ground (`GLASS_BEHIND`, the queue behind it
+ * blurred at half brightness), the same glass close at the top right. What
+ * each option adds sits on that identical ground, over whichever grid the
+ * queue decision settled.
  *
  * ★ THE UPLOAD IS A GUEST'S, CREDITED ON THE IDENTITY MODEL. Every uploader
  * passed a door that asked a name, so the viewer option's credit is a name, and
  * the Unverified mark where nobody proved it (`PEEKED`); the host sees no
  * address behind a typed name, and there is no anonymous fallback left to draw.
+ *
+ * ★ `viewer` NOW WEARS `media-viewer` R1 (the desk re-cut): a face-led credit
+ * top left rather than a centred pill under the photograph (`who=face`), the
+ * neighbours peeking at each edge instead of chevrons (`next=peek`), and the
+ * actions split into two stacked pills — Save/Share/Remove above Hide/Approve
+ * — rather than one bar (`holds=pills`). The "i of N" counter is gone with
+ * it, exactly as that board's own call: the neighbours say there is more.
  */
 export function PeekShowcase({
   option,
@@ -433,18 +441,59 @@ export function PeekShowcase({
   screen: ScreenId;
 }) {
   const item = PEEKED;
+  const at = QUEUE.findIndex((m) => m.id === item.id);
+  const before = at > 0 ? QUEUE[at - 1] : undefined;
+  const after = at >= 0 && at < QUEUE.length - 1 ? QUEUE[at + 1] : undefined;
 
   return (
     <div className="relative min-h-full">
       <ReviewSurface triage={stillTriage(QUEUE)} mode={queue} screen={screen} />
 
       <div className={cn("hc-overlay", GLASS_BEHIND)} data-hc-peek>
-        {/* eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL; next/image 400s on it */}
-        <img
-          src={item.url}
-          alt=""
-          className="max-h-[88vh] max-w-[94vw] rounded-md object-contain"
-        />
+        {option === "viewer" ? (
+          <div className="flex h-[88vh] w-[94vw] max-w-full items-stretch justify-center gap-1.5">
+            {before && (
+              <div
+                aria-hidden
+                className="w-8 shrink-0 overflow-hidden rounded-md opacity-45 sm:w-14"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL; next/image 400s on it */}
+                <img
+                  src={before.url}
+                  alt=""
+                  className="size-full object-cover"
+                />
+              </div>
+            )}
+            {/* eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL; next/image 400s on it */}
+            <img
+              src={item.url}
+              alt=""
+              className="max-w-[80%] rounded-md object-contain"
+            />
+            {after && (
+              <div
+                aria-hidden
+                className="w-8 shrink-0 overflow-hidden rounded-md opacity-45 sm:w-14"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL; next/image 400s on it */}
+                <img
+                  src={after.url}
+                  alt=""
+                  className="size-full object-cover"
+                />
+              </div>
+            )}
+          </div>
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL; next/image 400s on it
+          <img
+            src={item.url}
+            alt=""
+            className="max-h-[88vh] max-w-[94vw] rounded-md object-contain"
+          />
+        )}
+
         <button
           type="button"
           aria-label="Close preview"
@@ -457,22 +506,21 @@ export function PeekShowcase({
         </button>
 
         {option === "viewer" && (
-          <>
-            <button
-              type="button"
-              aria-label="Previous"
-              className="absolute top-1/2 left-3 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm"
+          <div
+            data-hc-credit
+            className="absolute top-4 left-4 flex max-w-[65%] items-center gap-2 rounded-full bg-black/55 py-1 pr-3 pl-1 backdrop-blur-sm"
+          >
+            <span
+              aria-hidden
+              className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white/20 text-[11px] font-semibold text-white"
             >
-              <ChevronLeft className="size-5" />
-            </button>
-            <button
-              type="button"
-              aria-label="Next"
-              className="absolute top-1/2 right-3 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm"
-            >
-              <ChevronRight className="size-5" />
-            </button>
-          </>
+              {(item.uploaderName ?? "A").slice(0, 1)}
+            </span>
+            <span className="flex min-w-0 items-center gap-1.5 text-xs text-white/90">
+              <span className="truncate">{item.uploaderName ?? "A guest"}</span>
+              {item.isVerified === false && <UnverifiedDot />}
+            </span>
+          </div>
         )}
 
         {option === "readonly" ? (
@@ -482,35 +530,25 @@ export function PeekShowcase({
         ) : (
           <div className="absolute inset-x-0 bottom-5 flex flex-col items-center gap-2">
             {option === "viewer" && (
-              <div className="flex max-w-[88%] flex-col items-center rounded-full bg-black/55 px-3 py-1 text-center backdrop-blur-sm">
-                <span
-                  data-hc-credit
-                  className="inline-flex items-center gap-1.5 text-xs text-white/85"
-                >
-                  {item.uploaderName ?? "A guest"}
-                  {item.isVerified === false && <UnverifiedDot />}
-                  <span className="text-white/60">· {PEEKED_POSITION}</span>
-                </span>
+              <div
+                data-hc-media-pill
+                className="flex items-center gap-3 rounded-full bg-black/55 px-4 py-2 backdrop-blur-sm"
+              >
+                <button type="button" aria-label="Save" className="text-white/80">
+                  <Download className="size-4" />
+                </button>
+                <button type="button" aria-label="Share" className="text-white/80">
+                  <Share2 className="size-4" />
+                </button>
+                <button type="button" aria-label="Remove" className="text-white/80">
+                  <Trash2 className="size-4" />
+                </button>
               </div>
             )}
             <div
               data-hc-verdict
               className="flex items-center gap-4 rounded-full bg-black/55 px-5 py-2.5 backdrop-blur-sm"
             >
-              {option === "viewer" && (
-                <>
-                  <button type="button" aria-label="Save" className="text-white/80">
-                    <Download className="size-5" />
-                  </button>
-                  <button type="button" aria-label="Share" className="text-white/80">
-                    <Share2 className="size-5" />
-                  </button>
-                  <button type="button" aria-label="Remove" className="text-white/80">
-                    <Trash2 className="size-5" />
-                  </button>
-                  <span className="h-5 w-px bg-white/25" aria-hidden />
-                </>
-              )}
               <button
                 type="button"
                 className="flex items-center gap-1.5 text-sm text-white/85"

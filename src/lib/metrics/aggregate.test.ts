@@ -104,10 +104,13 @@ describe("summarizeAccounts", () => {
 });
 
 describe("summarizeEngagement", () => {
-  it("takes the lifetime sums", () => {
+  it("folds scans and the frozen legacy album-view count into one figure", () => {
+    // Album views retired as its own writer (`37707d80`, "one link per
+    // event"): every visit is a qr_scan now, so the honest reading is both
+    // counts together, matching the host's own event page.
     expect(
       summarizeEngagement({ qr_scans: 12_000, album_views: 30_500, by_day: {} }),
-    ).toEqual({ qrScans: 12_000, albumViews: 30_500 });
+    ).toEqual({ linkVisits: 42_500 });
   });
 });
 
@@ -161,7 +164,7 @@ describe("buildSignupTrend", () => {
 });
 
 describe("buildEngagementTrend", () => {
-  it("zero-fills scans and views per day", () => {
+  it("zero-fills one link-visits figure per day, scans plus the frozen album-view count", () => {
     const trend = buildEngagementTrend(
       {
         "2026-06-01": { qr_scans: 16, album_views: 4 },
@@ -171,20 +174,14 @@ describe("buildEngagementTrend", () => {
       30,
     );
     expect(trend).toHaveLength(30);
-    expect(trend[29]).toEqual({
-      day: "2026-06-01",
-      qrScans: 16,
-      albumViews: 4,
-    });
-    expect(trend[28]).toEqual({ day: "2026-05-31", qrScans: 2, albumViews: 0 });
-    expect(trend[0]).toEqual({ day: "2026-05-03", qrScans: 0, albumViews: 0 });
+    expect(trend[29]).toEqual({ day: "2026-06-01", linkVisits: 20 });
+    expect(trend[28]).toEqual({ day: "2026-05-31", linkVisits: 2 });
+    expect(trend[0]).toEqual({ day: "2026-05-03", linkVisits: 0 });
   });
 
   it("no traffic → an all-zero series of the requested length", () => {
     const trend = buildEngagementTrend({}, NOW, 7);
     expect(trend).toHaveLength(7);
-    expect(trend.every((d) => d.qrScans === 0 && d.albumViews === 0)).toBe(
-      true,
-    );
+    expect(trend.every((d) => d.linkVisits === 0)).toBe(true);
   });
 });

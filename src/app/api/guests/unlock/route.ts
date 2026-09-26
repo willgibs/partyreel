@@ -8,11 +8,18 @@
  * The cookie is set HERE because a Route Handler can write cookies; an RSC can't
  * (see lib/supabase/server.ts). Failures return a GENERIC 401 — we never distinguish
  * "wrong password" from "no such event" / "not password-protected".
+ *
+ * The cookie is signed for the event's PASSWORD VERSION (unlock-cookie.ts), so a
+ * password change signs everyone out; the version is read before the check (below).
  */
 import { NextResponse } from "next/server";
 
-import { signUnlock } from "@/lib/events/unlock-cookie";
-import { captureWarning } from "@/lib/observability/sentry";
+import {
+  readUnlockStateByToken,
+  signUnlock,
+  type UnlockState,
+} from "@/lib/events/unlock-cookie";
+import { captureError, captureWarning } from "@/lib/observability/sentry";
 import { clientIp } from "@/lib/security/unlock-rate-limit";
 import {
   checkUnlockRate,
@@ -74,6 +81,24 @@ export async function POST(request: Request) {
     );
   }
 
+  // ★ THE PASSWORD STATE IS READ BEFORE THE PASSWORD IS CHECKED, and the cookie is signed for
+  // exactly what was read. Read after the check, a host changing the password between the bcrypt
+  // match and the read would have the NEW state signed for a guess against the OLD one: a guest who
+  // knew only the retired password would walk in under its replacement. Read before, that race can
+  // only fail closed: the check runs against the new hash and refuses, or the cookie carries the old
+  // version and is refused on its first read.
+  let state: UnlockState | null;
+  try {
+    state = await readUnlockStateByToken(qr_token);
+  } catch (e) {
+    // Nothing to sign against. An outage, not a wrong password: no rate-limit failure recorded.
+    captureError("security", e, { phase: "unlock_state_read" });
+    return NextResponse.json(
+      { ok: false, code: "unavailable" },
+      { status: 503 },
+    );
+  }
+
   // Service-role admin client: verify_event_password is now revoked from anon/authenticated, so this
   // route is the ONLY caller -> every guess is forced through the rate limiter above (H2).
   const supabase = createAdminClient();
@@ -82,8 +107,10 @@ export async function POST(request: Request) {
     p_password: password,
   });
 
-  // null event id = wrong password / not a password event / no such event. Generic.
-  if (error || !eventId) {
+  // null event id = wrong password / not a password event / no such event. Generic. A match with no
+  // state read before it, or a state naming another event, cannot happen (the match needs the hash
+  // the read found, on the same link); if it ever did, it fails closed the same way.
+  if (error || !eventId || !state || state.eventId !== eventId) {
     // Record the failure for the rate-limiter (best-effort; never blocks the response).
     if (rlTokenHash && rlIpHash) {
       await recordUnlockFailure(rlTokenHash, rlIpHash).catch(() => {});
@@ -102,7 +129,7 @@ export async function POST(request: Request) {
 
   let cookie: { name: string; value: string; maxAge: number };
   try {
-    cookie = signUnlock(eventId);
+    cookie = signUnlock(state);
   } catch {
     // UNLOCK_COOKIE_SECRET unset — fail closed rather than mint an unsigned cookie.
     return NextResponse.json(

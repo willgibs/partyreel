@@ -110,3 +110,32 @@ describe("updateEvent: the patch is the save, nothing more", () => {
     ]);
   });
 });
+
+describe("updateEvent: the reel's defaults patch as sent", () => {
+  it("writes each default alone, and null as null (back to the product's default)", async () => {
+    await updateEvent("event-1", updateEventSchema.parse({ show_reel: false }));
+    await updateEvent(
+      "event-1",
+      updateEventSchema.parse({ reel_style_id: "mono" }),
+    );
+    await updateEvent("event-1", updateEventSchema.parse({ reel_hold_sec: 5 }));
+    await updateEvent(
+      "event-1",
+      updateEventSchema.parse({ reel_style_id: null, reel_hold_sec: null }),
+    );
+    expect(patches).toEqual([
+      { show_reel: false },
+      { reel_style_id: "mono" },
+      { reel_hold_sec: 5 },
+      { reel_style_id: null, reel_hold_sec: null },
+    ]);
+  });
+
+  it("a whole-form save that never sent them writes none of them", async () => {
+    await updateEvent(
+      "event-1",
+      updateEventSchema.parse({ name: "Backyard party", qr_style: "dots" }),
+    );
+    expect(patches).toEqual([{ name: "Backyard party", qr_style: "dots" }]);
+  });
+});

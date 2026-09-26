@@ -14,6 +14,7 @@ import {
 } from "./fixtures";
 import {
   arrivedOf,
+  HeadAgainShowcase,
   QuickLookShowcase,
   ViewAllPage,
   ViewAllShowcase,
@@ -23,6 +24,7 @@ import {
   Ground,
   measureBack,
   measureCard,
+  measureHead,
   measureList,
   Scene,
   screenOf,
@@ -129,6 +131,23 @@ function wayBack(s: BoardState, option: "pill" | "menu" | "none") {
   );
 }
 
+/* ── head, asked again ────────────────────────────────────────────────────── */
+
+function headAgain(s: BoardState, option: "today" | "quiet" | "bare") {
+  return (
+    <Scene
+      id={`head-${option}-${whoOf(s.who as string)}`}
+      screen={screen(s)}
+      title="What stands above them"
+      measure={measureHead}
+    >
+      <Ground>
+        <HeadAgainShowcase option={option} person={who(s)} />
+      </Ground>
+    </Scene>
+  );
+}
+
 const PREVIEWS: PreviewsFor<typeof PROFILE_PAGE> = {
   "view-all.inline": (s) => viewAll(s, "inline"),
   "view-all.sheet": (s) => viewAll(s, "sheet"),
@@ -142,6 +161,10 @@ const PREVIEWS: PreviewsFor<typeof PROFILE_PAGE> = {
   "way-back.pill": (s) => wayBack(s, "pill"),
   "way-back.menu": (s) => wayBack(s, "menu"),
   "way-back.none": (s) => wayBack(s, "none"),
+
+  "head.today": (s) => headAgain(s, "today"),
+  "head.quiet": (s) => headAgain(s, "quiet"),
+  "head.bare": (s) => headAgain(s, "bare"),
 };
 
 export function ProfilePageBoard() {

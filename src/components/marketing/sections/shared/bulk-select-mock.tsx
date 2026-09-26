@@ -1,4 +1,4 @@
-import { Check, Clapperboard, Download, EyeOff, X } from "lucide-react";
+import { Check, Download, EyeOff, Heart, X } from "lucide-react";
 import Image from "next/image";
 import type { ReactNode } from "react";
 
@@ -9,16 +9,18 @@ import { cn } from "@/lib/utils";
  * THE SELECT-MODE MOCK, shared (2026-09-01). The app's bulk-select state,
  * quoted for marketing: a photo tile carrying the selection scrim + corner
  * check (selectable-media-grid.tsx) and the floating action pill the
- * selection summons (event-feed-action-bar.tsx wrapping gallery-actions.tsx's
+ * selection summons (the album header's bulk slot holding gallery-actions.tsx's
  * GalleryBulkBar). Two consumers: /features/curation's bulk-tools section (a
  * 4x2 sweep) and the home's curation section (a compact 2x2 beside the host's
  * three controls). Extracted rather than duplicated so the two can never
  * drift, and so a change in the app's bar has one place to be mirrored.
  * Static on purpose: resting shapes, never controls.
  *
- * The bar shows the three actions the copy names (add to reel, hide,
- * download) in the app's own state hues; Like and the destructive Delete are
- * left out rather than restated in marketing, and nothing here invents a label.
+ * The bar shows the three actions the copy names (like, hide, download) in the
+ * app's own state hues (gallery-actions.tsx's GalleryBulkBar: `like`,
+ * `warning`, `save`); the destructive Delete is left out rather than restated
+ * in marketing, and nothing here invents a label. The reel action left the
+ * host's bar with the stored reel, so it left this mock too.
  */
 
 /** One icon action inside the mock bar (a resting shape, never a control). */
@@ -50,14 +52,14 @@ export function BulkBarMock({ count }: { count: number }) {
       <span className="px-0.5 text-xs text-muted-foreground tabular-nums">
         {count}
       </span>
-      <BarAction label="Add to reel">
-        <Clapperboard className="size-4 text-reel" />
+      <BarAction label="Like">
+        <Heart className="size-4 text-like" />
       </BarAction>
       <BarAction label="Hide">
         <EyeOff className="size-4 text-warning" />
       </BarAction>
       <BarAction label="Download">
-        <Download className="size-4 text-muted-foreground" />
+        <Download className="size-4 text-save" />
       </BarAction>
       <BarAction label="Cancel selection">
         <X className="size-4" />

@@ -2,7 +2,8 @@ import { defineExploration } from "@/components/lab/exploration";
 
 /**
  * THE PRIVACY PAGE'S HERO, ROUND THREE: A NEW CONCEPT (2026-09-19); A FOURTH
- * ADDED BY THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21).
+ * ADDED BY THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21); TWO OF THOSE FOUR
+ * MERGED AND A REAL FOURTH DRAWN IN THEIR PLACE BY THE REFRESH (2026-09-24).
  *
  * Round one (a turning nozzle of photographs) answered none. Round two (two
  * spiralling arms with a decaying trail) got a `?` on its own arrival: "I
@@ -29,26 +30,29 @@ import { defineExploration } from "@/components/lab/exploration";
  * close. `concepts.ts` holds every number this ask states, and
  * `concepts.test.ts` holds this file's prose to it.
  *
- * ★ THE FOURTH CONCEPT IS THE RESHAPE ITSELF, NOT DECORATION ON TOP OF IT.
- * By the time the overtaken audit reopened this board, three things this
- * round could only imagine had shipped: a named glass material (Crystal,
- * glass r2), copy running over bespoke pictures in motion (the welcome tour,
- * app-door r2), and the product's own arrival grammar, one pass of light
- * across a tile (`landing=sweep`, guest-upload r1). `sweep` builds the
- * access grid's clearing from that last one instead of a bespoke crossfade,
- * which is what "more fitting for its theme" now has to mean: not just still
- * over flying, but the product's own mechanism over an invented one.
+ * ★ SWEEP ANSWERED "MORE FITTING FOR ITS THEME" WITH THE PRODUCT'S OWN
+ * MECHANISM OVER AN INVENTED ONE. By the time the overtaken audit reopened
+ * this board, the product had its own arrival grammar, one pass of light
+ * across a tile (`landing=sweep`, guest-upload r1); `sweep` built the access
+ * grid's clearing from that instead of a bespoke crossfade.
+ *
+ * ★ THE REFRESH'S OWN PASS (2026-09-24): ACCESS AND SWEEP WERE ONE CONCEPT,
+ * NOT TWO. Both drew the exact same eight-and-six-tile grid at the same
+ * cycle, differing only in how a tile cleared; that is a finding, not a pair
+ * of real contenders. `access` retires (its geometry lives on as `sweep`'s
+ * own), and `veil` draws a genuinely different fourth mechanism in the slot
+ * that opens up: a single photograph, never wholly visible at once, with a
+ * small clearing drifting across it rather than many tiles taking turns.
  */
 export const PRIVACY_HERO = defineExploration({
   id: "privacy-hero",
   title: "The privacy page's hero",
   round: {
     n: 3,
-    date: "2026-09-21",
+    date: "2026-09-24",
     changed:
-      "The overtaken audit's reshape adds a fourth concept, sweep: the access grid cleared by the product's own arrival sweep (guest-upload r1) rather than a bespoke crossfade, now recommended over access. The three from 19 Sep stand; none of them flew photographs.",
+      "access and sweep drew the same grid twice, differing only in how a tile cleared; access retires and veil takes its place: one photograph, never wholly visible, with a clearing drifting across it. sweep still leads on product consistency; veil is the fresh, purely thematic case.",
   },
-  bible: [1, 13, 14, 22],
   context:
     "Round one (a turning nozzle) answered none; round two (two spiralling arms with a trail) answered a question mark on its arrival. The page ships PageHero with no backdrop on purpose, the site's quietest: a concept has to earn its place against that, so every one here sits still, or nearly still, and the thing that moves is each one's own visibility rather than its position.",
   asks: [
@@ -57,19 +61,13 @@ export const PRIVACY_HERO = defineExploration({
       label: "The concept",
       question: "Which concept should carry the privacy page's hero?",
       context:
-        "Four mechanisms, none a photograph in flight. Frosted is a named material now (Crystal, glass r2); the tour runs words over bespoke pictures (app-door r2); the product has its own arrival, one pass of light on a tile (guest-upload r1).",
+        "Three mechanisms show a photograph or tiles becoming visible; veil, added in the refresh, is the one where a single photograph is never wholly visible at once. The product's own arrival is one pass of light on a tile (guest-upload r1).",
       options: [
         {
           id: "aperture",
           label: "The aperture",
           means:
             "A blurred photograph breathes behind the words with a hairline ring: 360 to 430px, 12 to 20% opacity, one breath every 10 seconds. The calmest of the four.",
-        },
-        {
-          id: "access",
-          label: "The access grid",
-          means:
-            "8 small tiles flank the words, frosted at rest. One clears to full colour for 0.64s and fades back over 0.77s, in turn, a circuit every 6.4s. The most literal.",
         },
         {
           id: "sweep",
@@ -83,12 +81,18 @@ export const PRIVACY_HERO = defineExploration({
           means:
             "3 photographs rest under a drawn cover at the page's foot. One lifts from 55% to 8% covered for 0.36s, in turn, every 2.4 seconds. The most tactile.",
         },
+        {
+          id: "veil",
+          label: "The veil",
+          means:
+            "One photograph, blurred 44px at 55% opacity always. A 230px clearing drifts, never settling: one full drift every 9 seconds. Never the whole photo at once.",
+        },
       ],
       recommended: "sweep",
       because:
-        "It is the one concept built entirely from what the product now ships: Crystal's own frost, and the exact pass of light a real arrival wears (guest-upload r1), rather than a tween invented before that grammar existed. Access said the theme right; sweep says it in the product's own words.",
+        "Sweep is built entirely from what the product now ships, Crystal's own frost and its real arrival pass, rather than an invented tween; that consistency is why it still leads. Veil is the fresh case: the only mechanism where privacy is one photograph's own surface, not a grid of many.",
       overrule:
-        "If eight tiles clearing on their own timing reads calmer than a pass borrowed from a live moment, access is the quieter hold; seal is still the most tactile.",
+        "If one photograph's own privacy reads truer than a grid's, veil is the more thematic pick; aperture or seal are the calmer, more tactile holds.",
       lands:
         "The privacy page's first screen: what sits behind the words, on a laptop and a phone.",
     },

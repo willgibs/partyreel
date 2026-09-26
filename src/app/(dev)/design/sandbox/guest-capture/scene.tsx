@@ -1,24 +1,20 @@
 "use client";
 
 import { type CSSProperties, type ReactNode, useState } from "react";
-import { AtSign, Check, Sparkles } from "lucide-react";
+import { AtSign, Check } from "lucide-react";
 
 import { Fit, Frame, Measured } from "@/components/lab";
 import type { Control } from "@/components/lab/board-spec";
 import type { GridMedia } from "@/components/app/media-grid";
 import { MediaTile } from "@/components/app/media-grid";
-import { formatReelMeta, PosterCard } from "@/components/reel/poster-card";
+import { PosterCard } from "@/components/reel/poster-card";
 import { GALLERY_COLUMNS } from "@/components/shared/masonry";
 import { Logo } from "@/components/shared/logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  DEFAULT_STYLE_ID,
-  resolveStyleEntry,
-} from "@/lib/reel/engine/style-registry";
 import { cn } from "@/lib/utils";
 
-import { EVENT, PRIYA, REEL_STILL } from "./fixtures";
+import { PRIYA, REEL_STILL } from "./fixtures";
 
 /**
  * THE ONE FRAME EVERY DECISION DRAWS IN, AND THE GROUND UNDER IT.
@@ -144,7 +140,7 @@ export function Header({ state }: { state: "cta" | "named" | "confirmed" }) {
   );
 }
 
-/** One photograph on the ruled column rule, in the shipped tile. */
+/** One photograph on the shipped column rule, in the shipped tile. */
 function StripTile({ item }: { item: GridMedia }) {
   return (
     <div
@@ -162,8 +158,9 @@ function StripTile({ item }: { item: GridMedia }) {
   );
 }
 
-/** The strip of tiles under the ask, laid out on the ruled column rule with
- *  the shipped tile — `gallery-width`'s law, worn here rather than re-judged.
+/** The strip of tiles under the ask, laid out on the shipped column rule with
+ *  the shipped tile: `gallery-width`'s own decision, held steady rather than
+ *  re-judged here.
  *
  *  ★ A CAPTION RIDES INSIDE ITS TILE'S OWN COLUMN BLOCK. The album is one CSS
  *  multi-column box, so "a line under one photograph" can only be drawn by
@@ -201,44 +198,29 @@ export function AlbumStrip({
   );
 }
 
-/** The corner mark the reel's tile wears once a guest's photograph is in the
- *  take: `reel-front`'s own drawing of its recommended `yours=badge`, quoted
- *  so this board can show the beat that lands beside the offer without asking
- *  about it (that board asks; this one only stands next to it). */
-function YoursChip() {
-  return (
-    <span className="flex items-center gap-1.5 rounded-full bg-[oklch(0.32_0.09_300)]/90 px-2 py-0.5 text-label font-semibold text-white uppercase backdrop-blur-sm">
-      <Sparkles className="size-2.5" aria-hidden />
-      Yours is in it
-    </span>
-  );
-}
-
 /**
  * THE REEL'S TILE, AT THE ALBUM'S HEAD. The reel is the event's own live
- * montage from its third item, with no host action, and its tile is its own
- * slot directly above the album's first row, which puts it between the words
- * column (where this board's offer and moment cards stand) and her
- * photographs. Every scene here has well over three items, so every scene
- * draws it: each ask is judged beside the tile that really stands under it.
+ * montage from its second item now (his dropped minimum), with no host
+ * action, and its tile is its own slot directly above the album's first row,
+ * which puts it between the words column (where this board's offer and
+ * moment cards stand) and her photographs.
  *
- * Drawn on the shipped reel face (`PosterCard`, `formatReelMeta`), resting on
- * one still, because this board is not about the tile: `reel-front` asks what
- * it is, whether it plays and what its corner says, and its recommendations
- * are what it wears here. `data-gc-reel`, never `data-media-tile`, so the
+ * `reel-front` r1 heads it "Highlight reel" and describes it "Make your own
+ * clip to share": no style name, no moment count, and no corner badge (his
+ * own contribution to the reel is a one-time toast now, `reel-front.yours`,
+ * never a chip on this tile: `Ground` below draws it only where the toast's
+ * moderated world applies, and this board's own names-mode wedding is not
+ * that world, so nothing else here ever wears one either). Drawn on the
+ * shipped reel face (`PosterCard`), resting on one still, because this board
+ * is not about the tile. `data-gc-reel`, never `data-media-tile`, so the
  * `moment` count of photographs never counts the reel as one of them.
  */
-export function ReelTile({ count }: { count: number }) {
-  const meta = formatReelMeta({
-    styleLabel: resolveStyleEntry(DEFAULT_STYLE_ID).label,
-    momentCount: count,
-  });
+export function ReelTile() {
   return (
     <div data-gc-reel>
       <PosterCard
-        eventName={EVENT.name}
-        meta={meta}
-        chip={<YoursChip />}
+        eventName="Highlight reel"
+        meta="Make your own clip to share"
         media={
           <div className="relative aspect-[2/1] w-full sm:aspect-[21/9]">
             {/* eslint-disable-next-line @next/next/no-img-element -- a local fixture still standing in for the engine's resting frame */}
@@ -275,7 +257,8 @@ export function Ground({
   stripHeading?: ReactNode;
   caption?: { id: string; node: ReactNode };
   after?: ReactNode;
-  /** What the reel counts: the whole album, even when a filter shows less. */
+  /** What the reel counts: the whole album, even when a filter shows less.
+   *  Below his dropped minimum of two the tile is absent (`states=nothing`). */
   reelCount?: number;
 }) {
   return (
@@ -285,9 +268,11 @@ export function Ground({
         <div className="mx-auto max-w-[640px] px-4 pt-5">{action}</div>
       )}
       <div className="mx-auto max-w-[640px]">
-        <div className="px-4 pt-5 pb-4">
-          <ReelTile count={reelCount} />
-        </div>
+        {reelCount >= 2 && (
+          <div className="px-4 pt-5 pb-4">
+            <ReelTile />
+          </div>
+        )}
         <AlbumStrip items={items} heading={stripHeading} caption={caption} />
       </div>
       {after && (

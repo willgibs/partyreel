@@ -36,11 +36,11 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
         },
       };
     }
-    // QA #18 (host-app.md ruling 2): the write path re-checks the event's LOCK per request, so a
-    // session token minted while the event was open dies the moment the host locks it (the
-    // leaked-link remediation). The lock outranks every other upload state — a viewer who can't
-    // see the album learns nothing else about it. `private` refuses everyone (owner uploads ride
-    // the host routes); `password` accepts the unlock cookie or the owner (mayUploadPastLock).
+    // The write path inherits the read gate (database-security.md): it re-checks the event's LOCK
+    // per request, so a session token minted while the event was open dies the moment the host
+    // locks it (the leaked-link remediation). The lock outranks every other upload state — a viewer
+    // who can't see the album learns nothing else about it. `private` refuses everyone (owner uploads
+    // ride the host routes); `password` accepts the unlock cookie or the owner (mayUploadPastLock).
     if (ctx.data.visibility === "private") {
       return {
         ok: false,
@@ -74,14 +74,13 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
         },
       };
     }
-    // ★ WHOSE TICKET IS THIS (the upload-owner lane, 2026-09-23; lib/guest/session-owner.ts). A row
-    // that carries an account writes only for that signed-in account, so a browser that kept a
-    // confirmed guest's ticket can no longer credit the next person's photograph to them (another
-    // account, or anyone signed out, past Require verified emails). Under the lock and the closed
-    // switch, which are the truer sentences when they hold for everybody; ABOVE the identity gate,
-    // because a ticket that is not yours says nothing about whether YOU have confirmed an email.
-    // The client reads the code by name, puts the ticket down and joins as whoever is holding the
-    // phone, so this sentence is almost never seen.
+    // ★ WHOSE TICKET IS THIS (lib/guest/session-owner.ts). A row that carries an account writes only
+    // for that signed-in account, so a browser that kept a confirmed guest's ticket cannot credit the
+    // next person's photograph to them (another account, or anyone signed out, past Require verified
+    // emails). Under the lock and the closed switch, which are the truer sentences when they hold for
+    // everybody; ABOVE the identity gate, because a ticket that is not yours says nothing about
+    // whether YOU have confirmed an email. The client reads the code by name, puts the ticket down
+    // and joins as whoever is holding the phone, so this sentence is almost never seen.
     const owner = await checkSessionOwner(parsed.session_token);
     if (!owner.ok) {
       return {
@@ -89,15 +88,15 @@ const guestPresignStrategy: PresignStrategy<typeof presignUploadSchema> = {
         refusal: { status: 403, code: owner.code, message: owner.message },
       };
     }
-    // ★ THE IDENTITY GATE, RE-CHECKED PER REQUEST (the identity reshape, 2026-09-21). A session
-    // token minted while the event was name-only would otherwise upload forever after the host
-    // flipped Require verified emails ON; create_media refuses it anyway, but only after the file
-    // has already gone to R2, so the honest place to say so is here, before the bytes move. Read
-    // from the CONTEXT (the RPC's own view of the event and this guest's standing), never from
-    // anything the client sent. Sits under accepting_uploads on purpose: when uploads are closed
-    // for everybody, "uploads are closed" is the truer sentence than "prove an email".
+    // ★ THE IDENTITY GATE, RE-CHECKED PER REQUEST. A session token minted while the event was
+    // name-only would otherwise upload forever after the host flipped Require verified emails ON;
+    // create_media refuses it anyway, but only after the file has already gone to R2, so the honest
+    // place to say so is here, before the bytes move. Read from the CONTEXT (the RPC's own view of
+    // the event and this guest's standing), never from anything the client sent. Sits under
+    // accepting_uploads on purpose: when uploads are closed for everybody, "uploads are closed" is
+    // the truer sentence than "prove an email".
     if (ctx.data.require_verified_email && !ctx.data.guest_verified) {
-      // R1.14: a flip's fallout must be VISIBLE. This is the signal that says a real party started
+      // A flip's fallout must be VISIBLE. This is the signal that says a real party started
       // refusing real guests, and it is the difference between noticing within the hour and
       // hearing about it from the host.
       captureWarning("security", "upload_refused_unverified", {

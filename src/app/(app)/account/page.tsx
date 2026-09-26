@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { AccountAvatarForm } from "@/components/app/account-avatar-form";
 import { AccountDeleteCard } from "@/components/app/account-delete-card";
+import { parseEmailChangeHint } from "./email-change";
+import { EmailSection } from "./email-section";
+import { getAccountEmailState } from "./email-state";
 import { PasskeysCard } from "./passkeys-card";
 import { AccountSecurityForm } from "@/components/app/account-security-form";
 import { DisplayNameForm } from "@/components/app/display-name-form";
@@ -48,6 +52,13 @@ import {
 import { hasPassword } from "@/lib/db/queries/account";
 import { getProfile } from "@/lib/db/queries/profile";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
+import {
+  resolveViewerZone,
+  serverZone,
+  VIEWER_ZONE_HEADER,
+} from "@/lib/dashboard/viewer-day";
+import { formatDateInZone } from "@/lib/format/date-in-zone";
+import { formatCount } from "@/lib/format/count";
 import { formatBytes } from "@/lib/utils";
 import {
   getMyAttendedEvents,
@@ -108,20 +119,26 @@ function PersonRow({
 // (app) gate, so getUser() already ran; getProfile re-checks defensively. Next
 // 16: searchParams is a Promise. ?reset=1 arrives from the forgot-password flow
 // (after a fresh OTP verify) and forces the Security form into "set" mode;
-// ?welcome=pro is where Stripe lands a buyer who started here (`back=finish`).
+// ?welcome=pro is where Stripe lands a buyer who started here (`back=finish`);
+// ?email_change= is where /auth/callback lands a tapped email-change link.
 //
-// ★ NEITHER PARAM MAY EVER DECIDE A PLAN. They open a form mode and a modal;
-// every entitlement on this page is read from the RLS-scoped profile row below,
-// and plan-card.test.ts pins the searchParams type for exactly that reason.
+// ★ NO PARAM MAY EVER DECIDE A PLAN. They open a form mode, a modal and a line
+// of copy; every entitlement on this page is read from the RLS-scoped profile
+// row below, and plan-card.test.ts pins the searchParams type for exactly that
+// reason.
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ reset?: string; welcome?: string }>;
+  searchParams: Promise<{
+    reset?: string;
+    welcome?: string;
+    email_change?: string;
+  }>;
 }) {
   const [
     profile,
     passwordSet,
-    { reset, welcome },
+    { reset, welcome, email_change },
     slug,
     attendedEvents,
     following,
@@ -132,6 +149,8 @@ export default async function AccountPage({
     onNewsletterList,
     liveEventCount,
     storage,
+    headerList,
+    accountEmail,
   ] = await Promise.all([
     getProfile(),
     hasPassword(),
@@ -148,8 +167,21 @@ export default async function AccountPage({
     isOnNewsletterList(),
     countMyLiveEvents(),
     getHostStorageSummary(),
+    headers(),
+    // The address the email change's current code goes to, and the change still waiting on its
+    // codes, off the request's one getUser().
+    getAccountEmailState(),
   ]);
   if (!profile) redirect("/login");
+
+  // The viewer's own zone (never stored or logged; rendering only — see the
+  // dashboard's own note, host-app.md), for the pass expiry below: the day a
+  // pass expires should read as the day it expires where the viewer is, not
+  // the server's UTC day.
+  const viewerZone = resolveViewerZone(
+    headerList.get(VIEWER_ZONE_HEADER),
+    serverZone(),
+  );
 
   const avatarUrl = await getAvatarUrl(profile.id, profile.avatar_updated_at);
   // Server-side SHA-256 of the account id (the sixth batch, `seed=account`):
@@ -183,11 +215,7 @@ export default async function AccountPage({
   const planCapacity = planCap ? friendlyCapacity(planCap) : null;
   const passExpiry =
     tier === "event_pass" && profile.tier_expires_at
-      ? new Date(profile.tier_expires_at).toLocaleDateString(undefined, {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })
+      ? formatDateInZone(profile.tier_expires_at, viewerZone)
       : null;
   const hasBilling = Boolean(profile.stripe_customer_id);
 
@@ -250,7 +278,7 @@ export default async function AccountPage({
               </dt>
               <dd className="text-sm">
                 {planCapacity
-                  ? `About ${planCapacity.photos.toLocaleString()} photos or ${planCapacity.videoMinutes.toLocaleString()} min of video`
+                  ? `About ${formatCount(planCapacity.photos)} photos or ${formatCount(planCapacity.videoMinutes)} min of video`
                   : `${formatBytes(planUsed)} used`}
               </dd>
             </div>
@@ -331,12 +359,13 @@ export default async function AccountPage({
             seed={seed}
           />
           <DisplayNameForm displayName={profile.display_name} />
-          <div className="space-y-1.5">
-            <p className="text-sm font-medium">Email</p>
-            <p className="text-sm text-muted-foreground">
-              {profile.email ?? "No email on file"}
-            </p>
-          </div>
+          {/* Changed, never removed (lp/identity-email): the auth user's address, since that is
+              where the current code goes; the database keeps profiles.email equal to it. */}
+          <EmailSection
+            email={accountEmail.email ?? profile.email}
+            pending={accountEmail.pending}
+            hint={parseEmailChangeHint(email_change)}
+          />
         </CardContent>
       </Card>
 
@@ -348,7 +377,8 @@ export default async function AccountPage({
           <CardTitle>Public profile</CardTitle>
           <CardDescription>
             Your page on Partyreel: the events you host and choose to share,
-            plus events you added photos to. Follower counts stay private to you.
+            plus events you added photos to. Follower counts stay private to
+            you.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -379,7 +409,7 @@ export default async function AccountPage({
               ? "No one follows you yet."
               : followCounts.followers === 1
                 ? "1 person follows you."
-                : `${followCounts.followers} people follow you.`}{" "}
+                : `${formatCount(followCounts.followers)} people follow you.`}{" "}
             Only you can see this.
           </CardDescription>
         </CardHeader>

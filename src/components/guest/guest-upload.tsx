@@ -12,18 +12,17 @@ import { UploadFailureSheet } from "@/components/guest/upload/failure-sheet";
 import { UploadIntentSheet } from "@/components/guest/upload/intent-sheet";
 import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
-// The queue MACHINE moved to `event-experience.tsx` at the door round; only its
-// item type is read here now (the hook import lingered unused after that lift).
+// The queue MACHINE lives in `event-experience.tsx`; only its item type is read
+// here.
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 
 export type { UploadedItem } from "@/lib/guest/use-upload-queue";
 
 export type GuestUploadHandle = {
   /**
-   * Open the ADD SHEET (the row's Add, the dock's Add, the empty album's CTA).
-   * It was `openPicker` and it clicked one hidden input straight into the
-   * phone's own chooser; `tap=sheet` put our surface in front of that, so every
-   * Add affordance now opens the same two named acts.
+   * Open the ADD SHEET (the row's Add, the dock's Add, the empty album's CTA),
+   * never the phone's own chooser directly: the intent sheet puts our surface
+   * in front of it, so every Add affordance opens the same two named acts.
    */
   openAdd: () => void;
   /** Reset an errored queue item and re-run (the failure sheet's Retry). */
@@ -31,26 +30,25 @@ export type GuestUploadHandle = {
 };
 
 /**
- * The upload ENGINE, and the two SHEETS the act now speaks through (the
- * `guest-upload` board, ruled whole 2026-09-21).
+ * The upload ENGINE, and the two SHEETS the act speaks through.
  *
- * The queue machine still lives in `useUploadQueue`; the visible upload UI still
- * lives in the GALLERY (the stack at the album's head, a waiting tile on a held
- * event). What changed is both ends of the act:
+ * The queue machine lives in `useUploadQueue`; the visible upload UI lives in
+ * the GALLERY (the stack at the album's head, a waiting tile on a held event).
+ * This owns both ends of the act:
  *
- * ★ THE FRONT (`tap=sheet`): one tap opens `UploadIntentSheet` — take a photo,
- * or choose from your album — and the picker returns INTO that sheet as a review
- * step, so an accidental pick is one tap from gone before anything is sent (his
- * "It may be helpful to preview the photos before upload"). Files reach
- * `addFiles` only once the guest has said Send.
+ * ★ THE FRONT: one tap opens `UploadIntentSheet` — take a photo, or choose
+ * from your album — and the picker returns INTO that sheet as a review step, so
+ * a guest previews what they picked and an accidental pick is one tap from gone
+ * before anything is sent. Files reach `addFiles` only once the guest has said
+ * Send.
  *
- * ★ THE BACK (`failed=sheet`): nothing interrupts while the files go, and when
- * the RUN ENDS with anything refused, `UploadFailureSheet` opens itself once
- * with a line and a Retry per file. Both upload toasts retired with it — the
- * error toast that had usually gone by the time it was read, and the "Sent,
- * waiting for host approval" toast the waiting TILE now says better.
+ * ★ THE BACK: nothing interrupts while the files go, and when the RUN ENDS with
+ * anything refused, `UploadFailureSheet` opens itself once with a line and a
+ * Retry per file. No upload toasts: an error toast has usually gone by the time
+ * it is read, and the waiting TILE says what a "Sent, waiting for host
+ * approval" toast would, better.
  *
- * Joining stays just-in-time and SILENT (account-required events are gated at
+ * Joining is just-in-time and SILENT (account-required events are gated at
  * the PAGE level; a signed-in uploader sets a display name first).
  * `onQueueChange` mirrors every queue snapshot upward for the tile subscribers.
  */
@@ -76,11 +74,10 @@ export function GuestUpload({
   qrToken: string;
   sessionToken: string | null;
   /**
-   * ★ THE QUEUE IS THE PAGE'S NOW (the door as three steps, 2026-09-21). It used to be created
-   * here, which meant it only existed at full access, inside the album: the door's third step
-   * asks for the first photograph BEFORE either, and the run it starts has to outlive the door.
-   * `event-experience.tsx` owns it and both surfaces read it. This component keeps what it was
-   * always really about: the album's two sheets and what follows an upload.
+   * ★ THE QUEUE IS THE PAGE'S. Created here, it would exist only at full access, inside the
+   * album: the door's third step asks for the first photograph BEFORE either, and the run it
+   * starts has to outlive the door. `event-experience.tsx` owns it and both surfaces read it. This
+   * component keeps the album's two sheets and what follows an upload.
    */
   queue: readonly QueueItem[];
   onAddFiles: (files: File[]) => void;
@@ -95,17 +92,17 @@ export function GuestUpload({
   /** The event's host as a public card, for the capture flow's follow moment. */
   host?: FollowMomentHost | null;
   /**
-   * The address this guest typed at the door THIS VISIT (the optional field,
-   * 2026-09-22), passed straight through to the offer card's door so it opens
-   * prefilled. Held in the page's state, never in storage, and null on every
-   * later visit: the door asks again rather than a shared phone remembering.
+   * The address this guest typed at the door THIS VISIT (the optional field),
+   * passed straight through to the offer card's door so it opens prefilled.
+   * Held in the page's state, never in storage, and null on every later visit:
+   * the door asks again rather than a shared phone remembering.
    */
   hintEmail?: string | null;
   /**
    * A confirmation from this album just claimed its uploads (the page's
    * `useConfirmReturn`): the slot stands up the follow moment even when
    * nothing was uploaded this visit, which is exactly a Google or magic-link
-   * return (guest by upload, 2026-09-22).
+   * return.
    */
   moment?: boolean;
   /**
@@ -123,7 +120,7 @@ export function GuestUpload({
   }));
 
   /* ────────────────────────────────────────────────────────────────────────
-     THE END OF A RUN, which is the only moment `failed=sheet` fires on.
+     THE END OF A RUN, which is the only moment the failure sheet opens on.
 
      A run is over when nothing is queued and nothing is uploading — not when
      one file resolves, because the queue runs ONE at a time and a refusal in
@@ -155,8 +152,8 @@ export function GuestUpload({
    * itself re-checks each id's LIVE status rather than trusting the list: a
    * retried id already reads "queued" by the time this runs, so it survives.
    * Closing without ever touching Retry drops every listed failure for good,
-   * so the next run's end judges itself only by what is STILL in the queue
-   * (`failed=sheet`'s "a dismissed failure does not re-open the sheet").
+   * so the next run's end judges itself only by what is STILL in the queue: a
+   * dismissed failure never re-opens the sheet.
    */
   const closeFailures = (open: boolean) => {
     if (!open) {
@@ -201,18 +198,16 @@ export function GuestUpload({
       />
 
       {holdForApproval && (
-        // KEPT, and only resized (`words=read`): he declined the option that
-        // removed it, and it is the one place the rule can be read BEFORE a
-        // first upload. The waiting tile says what happened to YOURS; this says
-        // what happens on this event at all.
+        // The one place the rule can be read BEFORE a first upload. The
+        // waiting tile says what happened to YOURS; this says what happens on
+        // this event at all.
         <p className="rounded-md bg-muted px-3 py-2 text-center text-reading text-muted-foreground">
           The host reviews uploads before they appear in the album.
         </p>
       )}
 
-      {/* The post-upload slot, one card at a time (Will, `claim=after`,
-          2026-09-19; the capture flow folded in at the identity reshape,
-          2026-09-21). ClaimHandlePrompt resolves the viewer and decides: signed
+      {/* The post-upload slot, one card at a time (the capture flow's cards
+          included). ClaimHandlePrompt resolves the viewer and decides: signed
           out gets the offer card counting what just landed, a guest who has just
           CONFIRMED gets the follow moment, signed in without a handle gets the
           claim line, and somebody who already has a page gets none of them.
@@ -239,11 +234,11 @@ export function GuestUpload({
 }
 
 /**
- * `try=turn` (Will, the sixth batch, 2026-09-20): "The same upload, then one
- * card... that is what your guests would see, and here is how you get one."
- * The sentence the demo's simulated upload used to end without — the demo's
- * ONE piece of proof, and the moment a visitor is likeliest to become a host,
- * for the cost of one card. Rendered by event-experience.tsx directly above
+ * THE TURN CARD: the demo's upload is the one a guest makes, then one card tells
+ * the visitor that this is what their guests would see, and how to get one.
+ * The sentence the demo's simulated upload would otherwise end without — the
+ * demo's ONE piece of proof, and the moment a visitor is likeliest to become a
+ * host, for the cost of one card. Rendered by event-experience.tsx directly above
  * the album's first tile (the photograph the visitor just added, the album
  * being newest-first), never here in the upload panel's own column: see its
  * own comment for why the position is the point.

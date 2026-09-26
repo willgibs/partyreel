@@ -7,6 +7,7 @@ import { DestructiveSheet } from "@/components/admin/destructive-sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { AnnouncementListItem } from "@/lib/db/queries/announcements";
+import { formatAdminTimestamp } from "@/lib/format/admin-time";
 
 // `scheduled` (published_at in the future) is computed on the SERVER (in the query) and passed in, so
 // this client component never reads the clock during render (the React-Compiler purity rule forbids it).
@@ -45,8 +46,8 @@ function AnnouncementRow({
           {scheduled ? <Badge variant="secondary">Scheduled</Badge> : null}
         </div>
         <p className="text-sm text-muted-foreground">{announcement.body}</p>
-        <p className="text-xs text-muted-foreground" suppressHydrationWarning>
-          {new Date(announcement.published_at).toLocaleString()}
+        <p className="text-xs text-muted-foreground">
+          {formatAdminTimestamp(announcement.published_at)}
         </p>
       </div>
       <Button

@@ -71,7 +71,7 @@ import {
 export const AlbumStreamPause = createContext<(() => boolean) | null>(null);
 
 /** The stand-in photograph for a frame: the home hero's own twelve, through the
- *  media manifest (bible 18), so the two compositions share one set until the
+ *  media manifest, so the two compositions share one set until the
  *  Higgsfield month replaces them by id (ASSETS row 22). */
 const photoOf = (i: number) =>
   marketingImage(STREAM_FRAMES[i % STREAM_FRAMES.length]);
@@ -198,6 +198,9 @@ function Layer({
     <div
       ref={ref}
       className={`als-layer ${at === "lg" ? "als-at-lg" : "als-at-base"}`}
+      // Read only by album-stream.css's own per-variant glow (bloom's), never
+      // by the loop above: a variant's LOOK stays declared in the sheet.
+      data-variant={variant}
       style={
         {
           // The album's top edge, measured UP from the hero's foot. One number,

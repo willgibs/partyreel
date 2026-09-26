@@ -7,8 +7,7 @@ import { useEffect, useRef } from "react";
  * THE MORPH DELEGATE — a clicked card's plate grows into the destination page's
  * plate instead of the two pages cutting.
  *
- * ★ ONE COMPONENT, TWO CONSUMERS (collapsed at the careers merge, 2026-08-29,
- * on Will's ruling). The blog round and the careers round built this in
+ * ★ ONE COMPONENT, TWO CONSUMERS (collapsed at the careers merge). The blog round and the careers round built this in
  * parallel, arrived at the same mechanism and the same four guards, and shipped
  * two files that differed in exactly three strings. The careers author left the
  * call to the integrator: "these two delegates are near-duplicates by necessity,

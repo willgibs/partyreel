@@ -1,8 +1,8 @@
 /**
- * Behavior pins for the password gate (Phase 4.5 S2): the NO-AUTOFOCUS rule
- * (the iOS keyboard ambush fix - R3), the error copy, and the unlock call
- * contract. The 5-strikes/20s cooldown machinery predates this phase and is
- * exercised via its copy. Behaviors only - no classes, no timings.
+ * Behavior pins for the password gate: the NO-AUTOFOCUS rule (an autofocused
+ * field would ambush a guest with the iOS keyboard), the error copy, and the
+ * unlock call contract. The 5-strikes/20s cooldown machinery is exercised via
+ * its copy. Behaviors only - no classes, no timings.
  */
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -73,7 +73,7 @@ describe("PasswordGate", () => {
     expect(vi.mocked(global.fetch)).toHaveBeenCalledTimes(1);
   });
 
-  it("the ratified in-place morph: the gate stays planted and the button turns success", async () => {
+  it("the in-place morph: the gate stays planted and the button turns success", async () => {
     vi.mocked(global.fetch).mockResolvedValue({ ok: true } as Response);
     renderGate(vi.fn());
     submit("right-password");

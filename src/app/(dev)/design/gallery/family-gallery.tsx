@@ -12,16 +12,10 @@ import {
 } from "./registry";
 
 /**
- * A FAMILY PAGE (the gallery round, 2026-09-12; on the shell's templates since
- * the Library x Lab round, 2026-09-15): the same block for every component of
- * one family, in declared order, under its section headings.
- *
- * The five family pages used to be five hand-written documents of <Spec>
- * blocks, which is why three of them had drifted into different orders,
- * different heading depths and different amounts of detail. They are now one
- * renderer over five declarations, so a change to how a component READS is one
- * edit for the whole library, and adding a component is an entry rather than a
- * page edit.
+ * A FAMILY PAGE: the same block for every component of one family, in declared
+ * order, under its section headings. One renderer over five declarations, so a
+ * change to how a component READS is one edit for the whole catalog, and adding
+ * a component is an entry rather than a page edit.
  *
  * The sections are the shell's `Section` and every component's name is an h3
  * with an id, which is what makes the right-hand table of contents a list of
@@ -39,7 +33,7 @@ export function FamilyGallery({
   title: string;
   blurb: string;
   link: (href: string) => string;
-  /** Anything the family keeps outside the gallery (foundations' tokens). */
+  /** Anything the family keeps outside the gallery (the brand kit's tokens). */
   children?: React.ReactNode;
 }) {
   const items = familyItems(family);
@@ -63,10 +57,6 @@ export function FamilyGallery({
             items.reduce((n, i) => n + i.entry.specimens.length, 0),
           ],
           ["variants", items.reduce((n, i) => n + countVariants(i.entry), 0)],
-          [
-            "contracts",
-            items.reduce((n, i) => n + (i.record?.contracts.length ?? 0), 0),
-          ],
         ]}
       />
 

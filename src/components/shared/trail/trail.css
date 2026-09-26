@@ -22,8 +22,8 @@
   /* ★ THE TRAIL ARRIVES, IT DOES NOT BLINK ON. The composition is solved from
      the box the browser measures, so nothing can be drawn until the page has
      laid itself out; the fade turns that one unavoidable frame into the beat it
-     should have been anyway. A 404 is a rare moment and may carry real delight
-     (bible 22), and the words land first either way: the [data-not-found]
+     should have been anyway. A 404 is a rare moment and may carry real delight,
+     and the words land first either way: the [data-not-found]
      stagger is already running when this starts. */
   opacity: 0;
 }
@@ -36,9 +36,9 @@
    Two gradients, one per axis, whose opaque regions UNION: a pixel is whole
    unless it is inside both bands, which is exactly the block's rectangle, and
    the ramps are the soft edge a photograph dissolves over as it crosses. The
-   trail is at `--trl-shy-a` on each gradient there, whose union is the ruled
+   trail is at `--trl-shy-a` on each gradient there, whose union is the fixed
    floor, and the layer isolates, so the floor holds however many photographs
-   overlap inside it. Nothing is ever laid OVER a photograph (bible 1): the
+   overlap inside it. Nothing is ever laid OVER a photograph: the
    photograph yields, which is what reads as passing behind the words. */
 .trl-layer[data-trail-shy] {
   --trl-shy: rgb(0 0 0 / var(--trl-shy-a));
@@ -92,7 +92,7 @@
 
 /* On paper the hairline has to go the other way, or a photograph over light
    ground wears a white edge nobody can see and floats with no boundary. The 404
-   is the ruled home (Will, `home=notfound`), so this is the branch that ships:
+   is the chosen home (`home=notfound`), so this is the branch that ships:
    dark hairlines on the paper ground. */
 [data-mkt-skin="paper"] .trl-photo,
 .surface-paper .trl-photo {

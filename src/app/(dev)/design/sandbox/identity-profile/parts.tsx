@@ -167,7 +167,11 @@ export function SetupWizard() {
               const active = n === step;
               const done = n < step;
               return (
-                <li key={label} data-ip-step className="flex items-center gap-2">
+                <li
+                  key={label}
+                  data-ip-step
+                  className="flex items-center gap-2"
+                >
                   <span
                     className={cn(
                       "flex size-5 items-center justify-center rounded-full text-micro font-medium",
@@ -375,6 +379,77 @@ export function AttendedSwitches({
   );
 }
 
+/* ── default: whether a newly attended event opens off, on, or is asked once ── */
+
+/** `default`'s `off` and `on`: the same switch list, seeded at the starting
+ *  value the option asks about, with its own controlled state (the
+ *  uncontrolled fallback above only ever seeds from `ATTENDED` itself, which
+ *  would ignore a caller-chosen start). */
+function SeededAttendedSwitches({ startShown }: { startShown: boolean }) {
+  const [events, setEvents] = useState(() =>
+    ATTENDED.map((e) => ({ ...e, shown: startShown })),
+  );
+  function toggle(id: string, shown: boolean) {
+    setEvents((all) => all.map((e) => (e.id === id ? { ...e, shown } : e)));
+  }
+  return <AttendedSwitches events={events} onToggle={toggle} />;
+}
+
+export function DefaultOff() {
+  return (
+    <div data-ip-relevant className="p-4">
+      <SeededAttendedSwitches startShown={false} />
+    </div>
+  );
+}
+
+export function DefaultOn() {
+  return (
+    <div data-ip-relevant className="p-4">
+      <SeededAttendedSwitches startShown={true} />
+    </div>
+  );
+}
+
+/** `default=asked`: setup itself asks once, before any switch shows at all;
+ *  answering either way seeds every switch at that one answer. */
+export function DefaultAsked() {
+  const [answered, setAnswered] = useState<"yes" | "no" | null>(null);
+  if (answered) {
+    return (
+      <div className="p-4">
+        <SeededAttendedSwitches startShown={answered === "yes"} />
+      </div>
+    );
+  }
+  return (
+    <div className="p-4">
+      <Card data-ip-relevant>
+        <CardHeader>
+          <CardTitle>Show your events on your page?</CardTitle>
+          <CardDescription>
+            Applies to all 3 events you&rsquo;ve added photos to; change any one
+            afterward.
+          </CardDescription>
+        </CardHeader>
+        <CardFooter className="justify-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setAnswered("no")}
+          >
+            Not yet
+          </Button>
+          <Button type="button" size="sm" onClick={() => setAnswered("yes")}>
+            Show them
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+}
+
 /* ── attended: a picker of event covers you tap to show, the chosen ones
    lifting ────────────────────────────────────────────────────────────────── */
 
@@ -395,17 +470,17 @@ export function AttendedPicker() {
           aria-pressed={event.shown}
           onClick={() => toggle(event.id)}
           className={cn(
-            "relative flex flex-col overflow-hidden rounded-[var(--radius-tile)] text-left transition-transform duration-200 ease-emphasis focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 motion-reduce:transition-none",
+            "relative flex flex-col overflow-hidden rounded-[var(--radius-tile)] text-left transition-transform duration-200 ease-emphasis focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none motion-reduce:transition-none",
             event.shown ? "-translate-y-1 shadow-lift" : "shadow-layer",
           )}
         >
           <span
             className={cn(
               "relative aspect-[4/5] w-full overflow-hidden bg-black/10",
-              event.shown && "ring-2 ring-inset ring-brand",
+              event.shown && "ring-2 ring-brand ring-inset",
             )}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element -- stand-in still, bible 18 */}
+            {/* eslint-disable-next-line @next/next/no-img-element -- stand-in still, bible 9 */}
             <img src={event.cover} alt="" className="size-full object-cover" />
             {event.shown && (
               <span className="absolute top-2 right-2 flex size-6 items-center justify-center rounded-full bg-brand text-brand-foreground">
@@ -429,13 +504,17 @@ export function AttendedPicker() {
 
 /* ── attended: each event's own album, once you are verified ────────────────── */
 
-export function AttendedGuestMenu({ event = EVENT }: { event?: AttendedEvent }) {
+export function AttendedGuestMenu({
+  event = EVENT,
+}: {
+  event?: AttendedEvent;
+}) {
   const [shown, setShown] = useState(event.shown);
   return (
     <div className="p-4">
       <div className="overflow-hidden rounded-xl border border-border/60">
         <div className="relative aspect-video w-full bg-black/10">
-          {/* eslint-disable-next-line @next/next/no-img-element -- stand-in still, bible 18 */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- stand-in still, bible 9 */}
           <img src={event.cover} alt="" className="size-full object-cover" />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3">
             <p className="text-sm font-medium text-white">{event.name}</p>
@@ -453,7 +532,10 @@ export function AttendedGuestMenu({ event = EVENT }: { event?: AttendedEvent }) 
         <MenuRow label="Download my photos" />
         <div className="my-1 h-px bg-border/60" />
         <div className="flex items-center justify-between gap-3 rounded-md px-2 py-1.5">
-          <Label htmlFor="ip-menu-toggle" className="cursor-pointer text-sm font-normal">
+          <Label
+            htmlFor="ip-menu-toggle"
+            className="cursor-pointer text-sm font-normal"
+          >
             Show this on your page
           </Label>
           <Switch
@@ -480,9 +562,7 @@ export function PromptClaim() {
       <Card className="opacity-50">
         <CardHeader>
           <CardTitle>Photos waiting for you</CardTitle>
-          <CardDescription>
-            Claimed. Added photos to 3 events.
-          </CardDescription>
+          <CardDescription>Claimed. Added photos to 3 events.</CardDescription>
         </CardHeader>
       </Card>
       <Card
@@ -542,6 +622,75 @@ export function PromptFollow() {
           </Button>
         </CardFooter>
       </Card>
+    </div>
+  );
+}
+
+/**
+ * ★ THE SAME INVITATION AT THE DOOR (the door's round two): her email can now
+ * confirm at the door itself, before any upload (the verification door, Create
+ * account, Log in), so `follow` means right after it confirms WHEREVER that
+ * is, and the door's own "You're in" beat is its second place. Quoted: the
+ * held sheet over the blurred album, its own scrim element, the beat's check
+ * and two lines, then the invitation card under them.
+ */
+export function PromptFollowDoor({ desk }: { desk: boolean }) {
+  return (
+    <div className="relative min-h-full">
+      <div
+        className={cn("grid gap-1 p-4", desk ? "grid-cols-4" : "grid-cols-2")}
+      >
+        {ATTENDED.concat(ATTENDED).map((e, i) => (
+          <div
+            key={i}
+            className="aspect-[4/5] overflow-hidden bg-black/10"
+            style={{ borderRadius: "var(--radius-tile)" }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- a local fixture still */}
+            <img src={e.cover} alt="" className="size-full object-cover" />
+          </div>
+        ))}
+      </div>
+      <div
+        aria-hidden
+        className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[16px]"
+      />
+      <div
+        className={cn(
+          "fixed z-50 flex flex-col gap-4 bg-popover px-6 text-popover-foreground shadow-layer ring-1 ring-foreground/10",
+          desk
+            ? "inset-y-0 right-0 w-[448px] pt-24"
+            : "inset-x-0 bottom-0 rounded-t-float pt-5 pb-6",
+        )}
+      >
+        <div className="flex flex-col items-center gap-4 py-4 text-center">
+          <div className="flex size-14 items-center justify-center rounded-full bg-success text-success-foreground">
+            <Check className="size-7" aria-hidden />
+          </div>
+          <div>
+            <p className="font-heading text-page">You&rsquo;re in</p>
+            <p className="mt-1 text-base text-muted-foreground">
+              Welcome to the party
+            </p>
+          </div>
+        </div>
+        <Card
+          data-ip-prompt="the door's own You're in"
+          className="ring-1 ring-brand/40"
+        >
+          <CardHeader>
+            <CardTitle>Set up your page too</CardTitle>
+            <CardDescription>
+              Choose what {EVENT.name} shows before anyone visits.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Button type="button" size="sm" variant="outline">
+              Set up your page
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 }
@@ -607,7 +756,7 @@ export function PageNothing() {
 export function PageCount() {
   // The same door a shown "guest at" line would stand behind: a stranger who
   // has never passed The Block Party's Require-an-upload-to-view gate cannot
-  // be told it exists either, even inside a bare count (tonight's ruling).
+  // be told it exists either, even inside a bare count.
   const visibleCount = ATTENDED.filter((e) => !e.requireUpload).length;
   return (
     <div className="mx-auto w-full max-w-[420px] px-5 py-10">
@@ -625,7 +774,10 @@ export function PageCount() {
 
 export function PageNotFound() {
   return (
-    <div data-ip-404 className="flex flex-1 flex-col items-center justify-center px-5 py-16">
+    <div
+      data-ip-404
+      className="flex flex-1 flex-col items-center justify-center px-5 py-16"
+    >
       <NotFoundScreen
         icon={UserRoundSearch}
         eyebrow="Profile"

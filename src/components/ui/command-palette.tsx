@@ -167,7 +167,7 @@ function CommandPaletteContent({
           "fixed top-[12vh] left-1/2 z-50 flex w-[min(40rem,calc(100vw-2rem))] -translate-x-1/2 flex-col overflow-hidden outline-none",
           floatingPanel,
           floatingEntrance,
-          // Opened a few times a session, and worth a beat (bible 12).
+          // Opened a few times a session, and worth a beat.
           floatingClock.standard,
           className
         )}
@@ -308,7 +308,7 @@ function CommandPaletteList({
       role="listbox"
       aria-label={label}
       // The floating family's rail: `p-1` with every row on `floatingRow`, the
-      // panel's corner minus this padding (bible 9).
+      // panel's corner minus this padding.
       className={cn("max-h-[min(26rem,55vh)] overflow-y-auto p-1", className)}
       {...props}
     >

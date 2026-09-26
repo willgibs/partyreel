@@ -37,12 +37,12 @@ import { useFlip } from "@/lib/shared/use-flip";
 import { cn } from "@/lib/utils";
 
 /**
- * THE BLOG INDEX (the composite Will ruled on 2026-08-28, from the four blog-identity lab
+ * THE BLOG INDEX (the composite chosen from the four blog-identity lab
  * directions, on the record at git show 3ffe0d56:docs/decisions/design-record.md, #blog-identity): the Cutting Room as the base, the Broadsheet's small masthead and drawn rule as the
  * page intro (reading "Blog", his word), the margin index made STICKY, and the library as a two-
  * to-three column wall of media-forward cards instead of full-width slabs.
  *
- * WHY THIS IS ONE CLIENT ISLAND rather than a server page with a client list: the ruled hero rule
+ * WHY THIS IS ONE CLIENT ISLAND rather than a server page with a client list: the hero-visibility rule
  * couples the two halves. The staged lead exists ONLY in the unfiltered view (see blog-index.ts for
  * why an always-lifted hero renders empty tags), so picking a tag has to collapse something that
  * lives on the cinema stage while the grid below reflows. Splitting that across a server/client
@@ -65,7 +65,7 @@ const LEAD_DEVELOP_INDEX = 6;
  * The address bar as an external store.
  *
  * NEVER `useSearchParams`: on this static route it would demand a Suspense boundary or deopt the
- * page (the /contact + motion-tuner precedent). And never a mount effect that setStates either -
+ * page (the same pattern already used at /contact and in the motion tuner). And never a mount effect that setStates either -
  * the repo's react-hooks lint bans setState-in-effect, and rightly: the URL is an external system,
  * which is exactly what useSyncExternalStore is for. The server snapshot is null, so SSR and the
  * hydrating render both produce the unfiltered first page and React corrects on the client pass
@@ -162,7 +162,7 @@ export function BlogList({ posts }: { posts: BlogListItem[] }) {
 
       // A superset (nothing removed) has no beat 1 to wait for. Neither does reduced
       // motion: the exit is animation-only, so waiting out its clock there would be a
-      // dead pause before the set changes. The review queue sets the same precedent -
+      // dead pause before the set changes. The review queue does the same -
       // it never writes [data-exiting] under reduce, it just commits.
       const reduce = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
@@ -191,7 +191,7 @@ export function BlogList({ posts }: { posts: BlogListItem[] }) {
       {/* ── The cinema stage: masthead, then the featured card. ─────────────────────────── */}
       <section className="pt-14 pb-0 sm:pt-20">
         <Container>
-          {/* THE MASTHEAD (Broadsheet's, ruled in): a small title and a drawn rule, not a display
+          {/* THE MASTHEAD (Broadsheet's): a small title and a drawn rule, not a display
               headline, so the featured article owns the stage. `Blog` stays the h1 even though the
               article title is visually larger: it is what the page IS, it never collapses under a
               filter the way the featured card does, and it keeps the document outline stable in
@@ -449,7 +449,7 @@ function PagerStep({
 }
 
 /**
- * THE MARGIN INDEX, sticky at lg+ (Will's ruling). A ruled ledger in the body margin: words and
+ * THE MARGIN INDEX, sticky at lg+. A ruled ledger in the body margin: words and
  * numerals only (the registry LABEL, never an icon; an icon column is the one move that collapses
  * this into /help's emblem strip), counts from the FULL set so a row's number is a promise about
  * what it will show, in REGISTRY order so the rail never reshuffles as posts land.

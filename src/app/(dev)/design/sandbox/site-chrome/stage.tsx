@@ -189,9 +189,9 @@ export function Scene({
             its content both run an entrance animation on mount, and the board
             opens a panel WITHOUT a pointer, so a capture taken during those
             200 ms reads as a half-faded, half-slid panel. Nothing here asks
-            about the entrance (the 2026-08-28 nav round ruled it), so it is
-            pinned open and every capture can be trusted. The `.mkt-line` and
-            reveal registers are the same story. */}
+            about the entrance (the 2026-08-28 nav round answered it), so it
+            is pinned open and every capture can be trusted. The `.mkt-line`
+            and reveal registers are the same story. */}
         <style>{`
 [data-slot=navigation-menu-viewport],[data-slot=navigation-menu-content]{animation:none!important;opacity:1!important;transform:none!important;filter:none!important}
 [data-mkt] .mkt-line{opacity:1!important;transform:none!important;filter:none!important}`}</style>

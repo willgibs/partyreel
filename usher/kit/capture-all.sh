@@ -1,9 +1,10 @@
 #!/bin/zsh
 # capture-all.sh <dir> [port]: every board on the desk, in desk order, through one dev server; the pictures for a review sheet.
+# Its default port is capture.sh's (3140, outside the gate's and the lanes'), since it too kills what holds it.
 source ~/.nvm/nvm.sh >/dev/null 2>&1; nvm use >/dev/null 2>&1
 cd /Users/gibby/local/ai/partyreel
-DIR="$1"; PORT="${2:-3137}"; KIT="$(cd "$(dirname "$0")" && pwd)"
-eval "$(sed -n 7p "$KIT/gate-lane.sh")"   # the key line, the gate's own way
+DIR="$1"; PORT="${2:-3140}"; KIT="$(cd "$(dirname "$0")" && pwd)"
+export DESIGN_PREVIEW_KEY="$(grep '^DESIGN_PREVIEW_KEY=' .env.local | cut -d= -f2- | tr -d '"')"
 BOARDS=$(node -e 'import("./src/app/(dev)/design/touchpoints.ts").catch(()=>null)' 2>/dev/null); [ -n "$BOARDS" ] || BOARDS=$(node "$KIT/board-card.mjs" --desk 2>/dev/null | awk '{print $2}')
 lsof -ti tcp:$PORT | xargs -r kill 2>/dev/null; sleep 1
 (pnpm dev -p $PORT >"/tmp/dev$PORT.log" 2>&1 &)

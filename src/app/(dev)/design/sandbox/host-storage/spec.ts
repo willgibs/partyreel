@@ -9,7 +9,7 @@ import { defineExploration } from "@/components/lab/exploration";
  * needed. Should be a separate view than the media cards themselves because
  * including the storage on each card makes the gallery less beautiful, and
  * including it in the lightbox exclusively makes the host have to hunt
- * through each media item individually." It follows his ruling that no plan
+ * through each media item individually." It follows the rule that no plan
  * change may leave a host storing more than the new plan's cap: "show them
  * their total storage used now and ask them to delete media to get under the
  * storage cap of their selected pro plan before being able to switch."
@@ -31,7 +31,7 @@ import { defineExploration } from "@/components/lab/exploration";
  * host's plan sheet shows only Manage billing; the over-cap grace banner says
  * "largest files first" with no way to find one.
  *
- * ★ NEVER ASKED AGAIN, EACH NAMED WHERE IT IS CARRIED. `host-curation` ruled
+ * ★ NEVER ASKED AGAIN, EACH NAMED WHERE IT IS CARRIED. `host-curation` settled
  * the bulk-act toast (Undo) and what a tap opens; this board's own Remove
  * bulk act reuses that toast rather than re-litigating it, and no row here
  * opens a viewer. `export-flow` owns how a download reads, its cap and its
@@ -39,9 +39,9 @@ import { defineExploration } from "@/components/lab/exploration";
  * there. `media-viewer`'s open `holds` question (what stands beside a photo-
  * graph) is why no size is drawn in a lightbox here. `reel-host`'s own
  * question is whether the reel ever explains a waiting queue; storage is not
- * that queue and is not reasked here. The ruled `app-pricing` row keeps every
+ * that queue and is not reasked here. The `app-pricing` row keeps every
  * pricing door on the ONE sheet (decisions 4 and 5 stay inside it, never a
- * second surface); the ruled `app-vocabulary` row keeps every view option
+ * second surface); the `app-vocabulary` row keeps every view option
  * inside the ONE View menu (the `album` option below adds a group to it,
  * never a second button).
  *
@@ -70,12 +70,12 @@ const DRAFT = defineExploration({
   title: "Where the largest files are",
   round: {
     n: 1,
-    date: "2026-09-22",
-    changed: "First round.",
+    date: "2026-09-24",
+    changed:
+      "The boards refresh: order and goal, the two binaries here, each gain a genuine third (grouped-but-worst-first, a quiet toast at the goal); authority language reworded throughout.",
   },
   context:
     "A host near a cap cannot find what is filling it: sizes are stored but no screen shows one. Five decisions, drawn over one wedding videographer's account at 110.8 GB across four events, on the shipped Plan card, storage meter, grace banner, View menu and pricing sheet.",
-  bible: [1, 7, 12, 15, 21, 22],
   carried: [
     {
       id: "row-contents",
@@ -151,12 +151,17 @@ const DRAFT = defineExploration({
           label: "Grouped by event, largest within each",
           means: "Each event's own total first, its heaviest items under it, before diving into any one of them.",
         },
+        {
+          id: "hybrid",
+          label: "Grouped, worst event first",
+          means: "Each event's own total and heaviest items, but the events themselves sort by their single largest file.",
+        },
       ],
       recommended: "flat",
       because:
         "Freeing space for a plan switch is about the biggest offenders, not about any one event; a flat rank gets a host to them in one glance.",
       overrule:
-        "If a host thinks in events first, grouping keeps the total-per-event story a flat rank buries.",
+        "If a host thinks in events first, the hybrid keeps that story and still opens on the event actually worth checking.",
       lands: "How the account-wide list reads, and whether an event's own total is ever the headline.",
       after: { ask: "where" },
       configs: [SCREEN],
@@ -178,12 +183,17 @@ const DRAFT = defineExploration({
           label: "Plain totals, the plan named",
           means: "A static line states what is stored, what the plan holds and the gap; switching happens back in the sheet.",
         },
+        {
+          id: "toast",
+          label: "Quiet, then a toast when it's enough",
+          means: "No running strip: the moment enough is freed, a toast says so and offers Switch, instead of a number counting down.",
+        },
       ],
       recommended: "live",
       because:
         "The whole reason a host is on this screen is to close one gap; watching the count reach zero is the confirmation, and finishing the switch on the spot saves a second trip.",
       overrule:
-        "If Storage should only ever find files and never sell a plan, the plain line keeps the two rooms honestly separate.",
+        "If a running strip is more furniture than a host wants while just selecting files, the toast keeps the screen quiet until there is actually news.",
       lands: "Whether the list ever knows why a host is looking at it, and whether a switch can finish there.",
       after: { ask: "order" },
       configs: [SCREEN],
@@ -193,7 +203,7 @@ const DRAFT = defineExploration({
       label: "The refusal",
       question: "How should the pricing sheet refuse a size that would not fit?",
       context:
-        "His ruling: a plan change may never leave a host storing more than the new cap. Today nothing enforces or explains that; tapping a smaller Pro size just starts checkout.",
+        "A plan change may never leave a host storing more than the new cap, in his own words. Today nothing enforces or explains that; tapping a smaller Pro size just starts checkout.",
       options: [
         {
           id: "inline",

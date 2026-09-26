@@ -3,8 +3,8 @@ import type { Database } from "@/lib/db/types";
 export type Visibility = Database["public"]["Enums"]["event_visibility"];
 
 /**
- * The word for each visibility state, single-sourced (Will's ruling, 2026-09-02:
- * "Public sounds much clearer than open"). "Open" is the ACCEPTING-UPLOADS state and
+ * The word for each visibility state, single-sourced ("Public sounds much clearer
+ * than open"). "Open" is the ACCEPTING-UPLOADS state and
  * never a visibility word: the two were written separately once, so the settings
  * selector said Public while the event header chip said Open, for the same
  * `visibility = 'open'` row. Read this record; do not re-type a label next to the enum.

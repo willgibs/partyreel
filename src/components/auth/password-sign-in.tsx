@@ -15,7 +15,7 @@ import { createClient } from "@/lib/supabase/client";
 /**
  * THE PASSWORD DOOR, now a SECOND door rather than the lead.
  *
- * ★ RULED (Will, 2026-09-20, `app-door` r1 `lead=code`): one email field, the
+ * ★ CHOSEN (`app-door` r1 `lead=code`): one email field, the
  * same address signs in or creates the account, Google beside it, and a password
  * drops to a quiet link. So the account-CREATION flow that used to live here
  * (the "Create account" link, the OTP verify, then "Pick a password") is gone:
@@ -239,11 +239,13 @@ export function SetInitialPassword({
       <div className="space-y-1.5">
         <Label htmlFor="create-password">Password</Label>
         <div className="relative">
+          {/* No autofocus: this screen mounts after a code verifies, outside any tap, where
+              iOS raises no keyboard for it, and on a guest's door the keyboard moves only when
+              the person does (door-flow's focus rules). */}
           <Input
             id="create-password"
             type={show ? "text" : "password"}
             autoComplete="new-password"
-            autoFocus
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="pr-10"

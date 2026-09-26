@@ -1,6 +1,3 @@
-// @contract-for: src/components/shared/backdrop/backdrop-engine.ts
-// @contract-for: src/components/shared/backdrop/room-frames.ts
-
 import { describe, expect, it } from "vitest";
 
 import {
@@ -71,7 +68,7 @@ describe("the rest state", () => {
     expect(s.stack[0].t).toBe(1);
     // ★ And it is genuinely at rest, so the component never starts a loop for
     // a reader who has not moved. This is the whole no-JavaScript / crawler /
-    // reduced-motion picture (bible 13, bible 14).
+    // reduced-motion picture.
     expect(atRest(s, POINTER, 0)).toBe(true);
     expect(atRest(s, SCROLL, 0)).toBe(true);
   });
@@ -128,7 +125,7 @@ describe("the band: the section is a thing you scrub", () => {
 });
 
 describe("the phone: four or five at steps, never the whole pool", () => {
-  it("passes exactly the ruled number of photographs across the section", () => {
+  it("passes exactly the fixed number of photographs across the section", () => {
     const seen = new Set<number>();
     for (let i = 0; i <= 200; i++)
       seen.add(stepIndex(i / 200, POINTER.pool, SCROLL_STEPS));
@@ -329,14 +326,14 @@ describe("the pool", () => {
   });
 
   it("is small enough that a full-bleed decode stays inside the measured budget", () => {
-    // The board measured eight full-bleed stand-ins at 17.4 MB decoded and Will
-    // ruled on that section; six at the same served width is the ceiling this
+    // The board measured eight full-bleed stand-ins at 17.4 MB decoded; six at
+    // the same served width is the ceiling this
     // lane keeps. Nothing here pins WHICH photographs, only how many.
     expect(ROOM_FRAMES.length).toBeGreaterThanOrEqual(5);
     expect(ROOM_FRAMES.length).toBeLessThanOrEqual(6);
   });
 
-  it("leaves a phone fewer photographs than a cursor, which is the ruling", () => {
+  it("leaves a phone fewer photographs than a cursor, by design", () => {
     expect(SCROLL_STEPS).toBeLessThan(ROOM_FRAMES.length);
     expect(SCROLL_STEPS).toBeGreaterThanOrEqual(4);
   });

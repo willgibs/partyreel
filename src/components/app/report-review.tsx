@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { ReportStatus, ReviewReport } from "@/lib/db/queries/reports";
+import { formatAdminTimestamp } from "@/lib/format/admin-time";
 
 // Operator review list. The page (server) does the gating + presigning and hands down
 // serializable reports; this client layer wires the resolve actions (useTransition + toast).
@@ -78,13 +79,14 @@ function ReportCard({ report }: { report: ReviewReport }) {
           <CardTitle>{report.event?.name ?? "Unknown event"}</CardTitle>
           <Badge variant={meta.badge}>{meta.label}</Badge>
         </div>
-        {/* toLocaleString() renders in the server's tz/locale during SSR and the browser's on
-            hydration -> a text mismatch (React #418). Suppress it; the client value wins. */}
-        <p className="text-xs text-muted-foreground" suppressHydrationWarning>
-          {new Date(report.created_at).toLocaleString()}
+        {/* clocks-and-counts (outside this file's own lane, one line): admin timestamps now render
+            through the shared UTC-labelled formatter (admin-observability.md), which is deterministic
+            across server and client, so the suppressHydrationWarning this needed is gone with it. */}
+        <p className="text-xs text-muted-foreground">
+          {formatAdminTimestamp(report.created_at)}
           {report.media ? " · item reported" : " · album reported"}
           {report.resolved_at
-            ? ` · resolved ${new Date(report.resolved_at).toLocaleString()}`
+            ? ` · resolved ${formatAdminTimestamp(report.resolved_at)}`
             : ""}
         </p>
       </CardHeader>

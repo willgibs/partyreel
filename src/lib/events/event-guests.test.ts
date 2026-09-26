@@ -1,4 +1,3 @@
-// @contract-for: src/lib/events/event-guests.ts
 import { describe, expect, it } from "vitest";
 
 import {

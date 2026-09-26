@@ -19,9 +19,17 @@ import { defineExploration } from "@/components/lab/exploration";
  *
  * ★ THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21) TOUCHES FOUR OF SIX, TEXT
  * ONLY. `page`, `topic`, `urgency` and `receipt` each gained a precedent a
- * later ruling shipped since 19 Sep (named in their own context/because
+ * later decision shipped since 19 Sep (named in their own context/because
  * lines below); every option and every recommendation across all six asks
  * is unchanged. `reach` and `beside` stand as drawn: no badge named them.
+ *
+ * ★ THE REFRESH (2026-09-24) DRAWS THE FOURTH RECEIPT OPTION THE FIRST ROUND
+ * ONLY NAMED. `receipt`'s own overrule already flagged a modal as the
+ * shipped precedent for a confirmation "worth feeling" (`welcome-to-pro.tsx`)
+ * and left it undrawn; it is drawn now, quoted as plain markup rather than
+ * mounted through `Dialog` itself (a radix portal that would cover the whole
+ * board rather than sit inside its own tile, `profile-page`'s landmine). The
+ * other five asks stand as drawn.
  */
 export const CONTACT_PAGE = defineExploration({
   id: "contact-page",
@@ -32,7 +40,6 @@ export const CONTACT_PAGE = defineExploration({
     changed:
       "The overtaken audit's reshape touches four of six: page cites pricing-page's own paper-hero precedent; topic cites first-event's style=step; urgency's premise is confirmed by the shipped failure sheet; receipt names the app's own modal precedent. reach and beside stand unbadged.",
   },
-  bible: [16, 19, 21, 22],
   context:
     "Will (2026-09-19, stack the lab): /contact is unprotected like the rest, a board that keeps nothing deleted at no cost. Six decisions on the real desk, drawn on a host mid-event, a planner weighing a plan, and a reporter on background.",
   asks: [
@@ -78,7 +85,7 @@ export const CONTACT_PAGE = defineExploration({
       label: "The page's identity",
       question: "Should /contact leave paper for the site's cinema rhythm?",
       context:
-        "/contact is the last (paper) page, forced light, while /help, /press and /careers open dark (bible 16). pricing-page proved the fix the other way: a paper hero now opens above its own dark chapter (pricing-page r1, r2).",
+        "/contact is the last (paper) page, forced light, while /help, /press and /careers open dark. pricing-page proved the fix the other way: a paper hero now opens above its own dark chapter (pricing-page r1, r2).",
       options: [
         {
           id: "desk",
@@ -208,14 +215,20 @@ export const CONTACT_PAGE = defineExploration({
           means:
             "The success card adds a short code to quote if they follow up, with no status page behind it yet.",
         },
+        {
+          id: "modal",
+          label: "A modal, like the app's own welcome",
+          means:
+            "The form dims behind a centered dialog: the same check and reply line, no confetti or upgrade copy, closed with one Done rather than left as the page.",
+        },
       ],
       recommended: "card",
       because:
-        "A second email is a send to an address nobody verified, a real abuse surface (spoofed sends, inbox bombing); the reference line gets most reassurance for one string, and a note is not the celebration a Pro upgrade is (app-pricing r1).",
+        "A second email is a send to an address nobody verified, a real abuse surface (spoofed sends, inbox bombing); the reference line gets most reassurance for one string; and a plain card already matches a note's own weight without borrowing a celebration's mechanism for something that is not one.",
       overrule:
-        "If a note ever deserves that same feeling, the shipped precedent is a modal, not a bigger card: a fourth option this board does not draw yet.",
+        "If a note ever deserves the app's own weight of acknowledgement, the modal draws that honestly; short of that, interrupting the page over-dresses a note.",
       lands:
-        "Whether sendOnce gains a second recipient, and whether contact_submissions.id ever reaches a visitor.",
+        "Whether sendOnce gains a second recipient, whether contact_submissions.id reaches a visitor, and whether success ever leaves the page for a dialog.",
       after: { ask: "reach" },
     },
 

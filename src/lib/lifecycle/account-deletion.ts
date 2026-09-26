@@ -1,15 +1,16 @@
 /**
  * Account deletion: the anonymisation shape, and the sweep that finishes the job.
  *
- * THE TWO HALVES (Will's rulings, 2026-09-02: immediate, no undo, an active plan
+ * THE TWO HALVES (immediate, no undo, an active plan
  * auto-cancelled at the request):
  *
  *   1. THE REQUEST (src/lib/db/mutations/account.ts, driven by the /account card
  *      and the /admin/accounts/[id] operator trigger) cancels the subscription,
  *      stamps `profiles.deletion_requested_at`, soft-deletes every hosted event
  *      into the existing 30-day bin, removes the address from the newsletter,
- *      anonymises the profile, and bans the auth user from signing in. All of it
- *      is immediate and none of it is reversible.
+ *      scrubs the account's guest rows in other hosts' events, anonymises the
+ *      profile, and bans the auth user from signing in. All of it is immediate
+ *      and none of it is reversible.
  *
  *   2. THE SWEEP (here, called once from the daily purge cron) hard-deletes what
  *      the request only marked: R2 objects FIRST, then the media rows through
@@ -27,7 +28,7 @@
  * ★ A FORENSIC HOLD OUTRANKS THE DELETION REQUEST (trust-safety-forensics.md). An event holding
  * ANY held media is skipped WHOLE (the cascade is all-or-nothing), so a held
  * account never reaches zero events and its auth user survives. It stays
- * anonymised the entire time, which is the ruled behaviour: anonymised at once,
+ * anonymised the entire time, which is the intended behaviour: anonymised at once,
  * deleted when the hold lifts. The account is not told, and the hold columns are
  * not readable by it (database-security.md's column-scoped SELECT).
  *
@@ -72,8 +73,6 @@ import {
   type StoppedEarly,
 } from "@/lib/lifecycle/sweep-budget";
 import { captureError, captureWarning } from "@/lib/observability/sentry";
-import { deleteR2Objects } from "@/lib/r2/delete";
-import { reelOutputKey } from "@/lib/r2/keys";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { removeAvatar } from "@/lib/supabase/avatar-storage";
 
@@ -103,6 +102,53 @@ export const ANONYMISED_PROFILE_PATCH = {
   slug: null,
   avatar_updated_at: null,
 } as const;
+
+/**
+ * What the account's guest rows lose, in every event it added photographs to (lp/identity-email;
+ * Will, identity-door r1 `remove`: "Account deletion is always an option too", and it takes the
+ * address with it). The rows themselves stay, as the FK and `/privacy` promise, and so do their
+ * uploads and each upload's `upload_forensics` record, which is the abuse trail by design.
+ *
+ *   - `email`: the confirmed address a host sees under the name. Left behind, the host's viewer kept
+ *     printing it beside a nameless photograph after the account was gone.
+ *   - `pending_email` + `pending_email_at`: an address typed and never proved (inert, but the
+ *     person's).
+ *   - `display_name`: a typed name, which only an unconfirmed account's row carries (a verified row's
+ *     name is the profile's, anonymised above).
+ *
+ * ★ `verified_at` STAYS, and so does the row's link until the FK takes it: a confirmed row whose
+ * account was deleted writes for nobody precisely because it keeps its proof (guest-flow.md). The
+ * same four columns are cleared by `scrub_account_guest_rows`, the BEFORE DELETE trigger on
+ * `profiles` (20260926200000_identity.sql), so a deletion that never passes through this code still
+ * takes them.
+ */
+export const SCRUBBED_GUEST_PATCH = {
+  email: null,
+  pending_email: null,
+  pending_email_at: null,
+  display_name: null,
+} as const;
+
+/**
+ * Take the account's identity off its guest rows. ONE write, keyed on the account (no id list rides
+ * the URL, however many events it joined) and narrowed to the rows still carrying something, so the
+ * count is what actually changed and a re-run is a quiet zero. THROWS on failure: the sweep's
+ * re-anonymise must stop before `deleteUser` rather than purge an account whose rows still name it.
+ */
+export async function scrubAccountGuestRows(
+  admin: AdminClient,
+  userId: string,
+): Promise<number> {
+  const { count, error } = await admin
+    .from("guests")
+    .update(SCRUBBED_GUEST_PATCH, { count: "exact" })
+    .eq("user_id", userId)
+    .or(
+      "email.not.is.null,pending_email.not.is.null,pending_email_at.not.is.null,display_name.not.is.null",
+    );
+  if (error) throw new QueryFailedError("scrubAccountGuestRows", error);
+  return count ?? 0;
+}
 
 /**
  * PostgREST codes that mean "the deletion column is not in the live database
@@ -141,6 +187,8 @@ export type AccountDeletionSweepResult = {
   accounts_held: number;
   /** Accounts the deadline caught mid-purge: they finish on a later run. */
   accounts_unfinished: number;
+  /** Guest rows in other hosts' events that lost an account's address or typed name this run. */
+  guest_rows_scrubbed: number;
   events: number;
   hold_blocked_events: number;
   media_rows: number;
@@ -161,6 +209,8 @@ export type AccountPurgeResult = {
    * deadline stopped the purge before its event rows could go.
    */
   outcome: "deleted" | "held" | "unfinished";
+  /** The account's guest rows the re-anonymise scrubbed (0 once an earlier pass cleared them). */
+  guest_rows_scrubbed: number;
   events: number;
   hold_blocked_events: number;
   media_rows: number;
@@ -175,6 +225,7 @@ function emptyResult(): AccountDeletionSweepResult {
     accounts_deleted: 0,
     accounts_held: 0,
     accounts_unfinished: 0,
+    guest_rows_scrubbed: 0,
     events: 0,
     hold_blocked_events: 0,
     media_rows: 0,
@@ -194,14 +245,26 @@ function emptyResult(): AccountDeletionSweepResult {
  * The avatar OBJECT goes first, then the marker, so a throw leaves the marker
  * set and the next run re-deletes rather than stranding a public object behind
  * a cleared pointer.
+ *
+ * ★ THE GUEST ROWS ARE SCRUBBED HERE, BEFORE THE PROFILE, AND A FAILED SCRUB
+ * THROWS: purgeAccount then stops before it deletes anything, `deleteUser`
+ * included, and the next run tries again. This pass is the one that reaches a
+ * HELD account, which never gets to `deleteUser` (and so never fires the
+ * BEFORE DELETE trigger that is the net under all of this). Returns the rows
+ * it scrubbed.
  */
-async function reanonymise(admin: AdminClient, userId: string): Promise<void> {
+async function reanonymise(
+  admin: AdminClient,
+  userId: string,
+): Promise<number> {
   await removeAvatar(userId);
+  const scrubbed = await scrubAccountGuestRows(admin, userId);
   const { error } = await admin
     .from("profiles")
     .update(ANONYMISED_PROFILE_PATCH)
     .eq("id", userId);
   if (error) throw new Error(`re-anonymise ${userId}: ${error.message}`);
+  return scrubbed;
 }
 
 /** EVERY event the account hosts, soft-deleted or not, whole, by keyset on id. */
@@ -246,6 +309,7 @@ export async function purgeAccount(
 ): Promise<AccountPurgeResult> {
   const result: AccountPurgeResult = {
     outcome: "held",
+    guest_rows_scrubbed: 0,
     events: 0,
     hold_blocked_events: 0,
     media_rows: 0,
@@ -254,10 +318,10 @@ export async function purgeAccount(
     freed_bytes: 0,
   };
 
-  await reanonymise(admin, userId);
+  result.guest_rows_scrubbed = await reanonymise(admin, userId);
 
   // EVERY event, soft-deleted or not: the request already binned them, and the
-  // ruling is immediate, so there is no 30-day wait here (that window is for a
+  // the request is immediate, so there is no 30-day wait here (that window is for a
   // host who may want their event BACK).
   const eventIds = await readHostedEventIds(admin, userId);
 
@@ -316,14 +380,6 @@ export async function purgeAccount(
         result.hold_blocked_events += chunk.length - doomed.length;
         if (doomed.length === 0) return [true];
 
-        // The rendered reel .mp4 is a derived artifact with no media row and a
-        // non-media-shaped key, so the orphan sweep would never reclaim it; its
-        // deterministic key is safe to delete whether or not a reel was ever
-        // rendered (deleting an absent key is a success).
-        const reels = await deleteR2Objects(doomed.map(reelOutputKey));
-        result.r2_deleted += reels.deleted;
-        result.r2_errored += reels.errored.length;
-
         // Safe now: the media is gone, so the FK cascade has nothing of value
         // left to destroy.
         const { error: delErr } = await admin
@@ -346,8 +402,8 @@ export async function purgeAccount(
 
     if (result.r2_errored > 0) {
       // We still reclaim the rows (matching the expired-events sweep): the orphan sweep is the
-      // backstop for a stranded media object. Said loudly, because a reel .mp4 that fails here
-      // leaks silently forever.
+      // backstop for a stranded media object. Said loudly, because a leak here would otherwise be
+      // silent forever.
       captureWarning("cron", "account_deletion_r2_partial", {
         user_id: userId,
         errored: result.r2_errored,
@@ -449,7 +505,7 @@ async function countQueueAfter(
  *
  * `_now` is accepted for signature symmetry with the sibling sweeps (the cron
  * hands one `now` to all of them). This sweep has no time window: deletion is
- * immediate by ruling, so every stamped account is due on the next run.
+ * immediate by design, so every stamped account is due on the next run.
  */
 export async function sweepDeletedAccounts(
   admin: AdminClient,
@@ -492,7 +548,7 @@ export async function sweepDeletedAccounts(
 
     // ★ PER-ROW ISOLATION (QA #27). One account whose R2 delete or auth delete threw used to abort
     // the whole sweep, so every account BEHIND it waited another day, for a deletion that is
-    // immediate by ruling. Each account is isolated; `rows_failed` travels with the tally so the
+    // immediate by design. Each account is isolated; `rows_failed` travels with the tally so the
     // sweep's own run still closes RED (src/lib/jobs/purge-sweeps.ts reads it), and the next run
     // retries the failed ones.
     const tally = await forEachIsolated(
@@ -500,6 +556,7 @@ export async function sweepDeletedAccounts(
       async ({ id: userId }) => {
         result.accounts += 1;
         const one = await purgeAccount(admin, userId, handled, deadline);
+        result.guest_rows_scrubbed += one.guest_rows_scrubbed;
         result.events += one.events;
         result.hold_blocked_events += one.hold_blocked_events;
         result.media_rows += one.media_rows;

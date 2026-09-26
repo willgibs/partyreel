@@ -1,4 +1,3 @@
-// @contract-for: src/components/marketing/sections/pricing/configurator.tsx
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -9,9 +8,9 @@ import { Configurator, printsAt, STOP_GB } from "./configurator";
 import { recommendPlan } from "./recommend";
 
 /**
- * THE CONFIGURATOR'S FUNCTION, never its look (`pricing-page` r2, `fit=split`,
- * Will 2026-09-20). Four things have to hold or the block stops being the one
- * he ruled on:
+ * THE CONFIGURATOR'S FUNCTION, never its look (`pricing-page` r2, `fit=split`).
+ * Four things have to hold or the block stops being the one
+ * that was chosen:
  *
  *  1. THE LADDER CARRIES THE REAL WALLS. The slider's stops are a curated
  *     ladder rather than a byte range, and the product's two walls have to BE
@@ -29,7 +28,7 @@ import { recommendPlan } from "./recommend";
  *  4. THE DECK NEVER OVERDRAWS. The fan is derived from the stop, so an
  *     off-by-one would either hide the whole deck or index past it.
  *
- * Copy is never pinned (bible 21): every control is found by role, and every
+ * Copy is never pinned: every control is found by role, and every
  * number comes back out of tiers.ts. The price is not asserted as a string at
  * all, because `PricePop` splits it across elements per digit.
  */

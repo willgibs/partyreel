@@ -11,30 +11,25 @@ import { describe, expect, it, vi } from "vitest";
 // no react-server condition, so the marker module is stubbed out here.
 vi.mock("server-only", () => ({}));
 
-import { RULINGS, SANDBOX } from "../touchpoints";
+import { SANDBOX } from "../touchpoints";
 import {
-  DOCS,
   createHeadingIds,
   headingsOf,
   inlineText,
-  landminesOf,
   listSpecs,
   listTracks,
   nodeText,
   readDoc,
-  sectionOf,
-  sectionsMatching,
 } from "./docs";
 import { TRACED_DOC_GLOBS } from "./legacy-routes";
-import { DOC_FILES } from "./links";
 
 /**
- * The lab's doc reader against the real repo files (the Library x Lab round,
- * 2026-09-15): every readable doc is traced into the shell's functions, the
- * reader refuses anything outside its allow-list, the heading ids equal the
- * anchors touchpoints.ts writes by hand AND the ids the renderer emits, and
- * every doc the shell renders compiles in the renderer's pipeline (format
- * "md" + GFM), so a doc that breaks the page fails here with its path.
+ * The lab's doc reader against the real repo files: every doc the shell
+ * renders is traced into its functions (a read the build cannot see would
+ * ENOENT on Vercel), the reader refuses anything outside its allow-list, and
+ * every rendered doc compiles in the renderer's pipeline (format "md" + GFM)
+ * with the heading ids `headingsOf` predicts, so a doc that breaks the page
+ * fails here with its path.
  */
 const root = process.cwd();
 
@@ -55,55 +50,19 @@ function globToRegExp(glob: string): RegExp {
 const traced = TRACED_DOC_GLOBS.map(globToRegExp);
 const isTraced = (path: string) => traced.some((re) => re.test(path));
 
-/**
- * Anchors that point AHEAD of the doc: an open exploration's ruling names the
- * heading its ratification will add. Each entry must still be missing (the
- * second assertion), so the set empties itself the day the heading lands.
- */
-// EMPTY since 2026-09-17, which is the set working rather than the set being
-// abandoned: its one entry was the floating-layer contract, and that heading
-// landed with the `floating-surfaces` wiring the day its board was ruled.
-const PENDING_ANCHORS = new Set<string>([]);
-
-/** Every file the shell renders: the doctrine, the design README and guidance, any proposal, the manifests. */
+/** Every file the shell renders: any proposal and the manifests. */
 function renderedDocs(): string[] {
   const manifests = readdirSync(join(root, "docs", "tracks"))
     .filter((f) => f.endsWith(".md") && f !== "README.md")
     .map((f) => `docs/tracks/${f}`);
-  return [
-    ...Object.values(DOCS).map((d) => d.path),
-    "docs/design/README.md",
-    "docs/design/guidance.md",
-    ...listSpecs().map((s) => `docs/specs/${s.slug}.md`),
-    ...manifests,
-  ];
+  return [...listSpecs().map((s) => `docs/specs/${s.slug}.md`), ...manifests];
 }
 
-describe("DOCS", () => {
-  it("names five docs that exist and are traced into the shell's functions", () => {
-    const entries = Object.entries(DOCS);
-    expect(entries).toHaveLength(5);
-    for (const [id, doc] of entries) {
-      expect(existsSync(join(root, doc.path)), `${id}: ${doc.path}`).toBe(true);
-      expect(isTraced(doc.path), `${doc.path} is not in TRACED_DOC_GLOBS`).toBe(
-        true,
-      );
-      expect(doc.title.length).toBeGreaterThan(0);
-    }
-  });
-
-  it("names the same five files the link resolver knows as doctrine", () => {
-    // Two tables, one truth: links.ts maps a file to its doc page, DOCS maps
-    // the page to its file. A path changed in one place must change in both.
-    for (const [id, doc] of Object.entries(DOCS)) {
-      expect(DOC_FILES[id as keyof typeof DOC_FILES], id).toBe(doc.path);
-    }
-    expect(Object.keys(DOC_FILES).sort()).toEqual(Object.keys(DOCS).sort());
-  });
-
-  it("traces the design docs, any proposal and the manifests too", () => {
+describe("the traced docs", () => {
+  it("cover every doc the shell renders", () => {
     for (const path of renderedDocs()) {
-      expect(isTraced(path), path).toBe(true);
+      expect(existsSync(join(root, path)), path).toBe(true);
+      expect(isTraced(path), `${path} is not in TRACED_DOC_GLOBS`).toBe(true);
     }
   });
 });
@@ -115,10 +74,11 @@ describe("readDoc", () => {
       "docs/../src/lib/env.ts",
       "src/lib/env.ts",
       "/etc/passwd",
+      "CLAUDE.md",
       "CLAUDE.md/../package.json",
       "docs/./PROGRAM.md",
       "docs//PROGRAM.md",
-      ".agents/skills/transitions-dev/SKILL.md",
+      ".agents/skills/emil-design-eng/SKILL.md",
       "AGENTS.md",
       "",
     ]) {
@@ -127,15 +87,10 @@ describe("readDoc", () => {
   });
 
   it("reads the allow-listed files and splits frontmatter", () => {
-    const guide = readDoc("CLAUDE.md");
-    expect(guide.body).toContain("# Partyreel");
-    expect(guide.data).toEqual({});
-
-    const craft = readDoc(DOCS.craft.path);
-    expect(craft.data.name).toBe("emil-design-eng");
-    expect(craft.body.startsWith("---")).toBe(false);
-
-    expect(readDoc("docs/design/guidance.md").body).toContain("## ");
+    const pickup = readDoc("docs/tracks/orchestrator.md");
+    expect(pickup.data.track).toBe("orchestrator");
+    expect(pickup.body.startsWith("---")).toBe(false);
+    expect(pickup.body).toContain("# ");
   });
 });
 
@@ -195,88 +150,13 @@ describe("heading ids", () => {
       "real-2",
     ]);
   });
-
-  it("produces every anchor the touchpoints registry writes for the two system docs", () => {
-    const anchors = RULINGS.flatMap((r) => r.lives).filter((l) =>
-      /^docs\/systems\/(design-system|marketing-content)\.md#/.test(l),
-    );
-    expect(anchors.length).toBeGreaterThanOrEqual(8);
-    const idsOf = new Map<string, Set<string>>();
-    for (const anchor of anchors) {
-      const [path, id] = anchor.split("#");
-      if (!idsOf.has(path)) {
-        idsOf.set(
-          path,
-          new Set(headingsOf(readDoc(path).body).map((h) => h.id)),
-        );
-      }
-      const present = idsOf.get(path)!.has(id);
-      if (PENDING_ANCHORS.has(anchor)) {
-        expect(present, `${anchor} landed: drop it from PENDING_ANCHORS`).toBe(
-          false,
-        );
-      } else {
-        expect(present, `${anchor} matches no heading id`).toBe(true);
-      }
-    }
-  });
-});
-
-describe("sections", () => {
-  const { body } = readDoc(DOCS["design-system"].path);
-
-  it("sectionOf returns the section from its heading to the next peer", () => {
-    const section = sectionOf(body, "the-craft-guidance-stack");
-    expect(section).not.toBeNull();
-    expect(section!.startsWith("## The craft guidance stack")).toBe(true);
-    expect(section!.length).toBeGreaterThan(200);
-    expect(section).not.toContain("\n## ");
-    expect(sectionOf(body, "no-such-heading")).toBeNull();
-  });
-
-  it("a ### section ends at the next ### or ##, never at a ####", () => {
-    const section = sectionOf(body, "the-shipped-light");
-    expect(section!.startsWith("### The shipped light")).toBe(true);
-    expect(section).not.toContain("\n### ");
-    expect(section).not.toContain("\n## ");
-  });
-
-  it("sectionsMatching finds the ## headings whose text matches", () => {
-    const gotchas = sectionsMatching(body, /^Gotchas/);
-    expect(gotchas).toHaveLength(1);
-    expect(gotchas[0].id).toBe("gotchas-dont-revert");
-    expect(gotchas[0].body.startsWith("- ★")).toBe(true);
-    expect(sectionsMatching(body, /^The /g).length).toBeGreaterThan(2);
-    expect(sectionsMatching(body, /zzz/)).toEqual([]);
-  });
-
-  it("landminesOf lists every ★ block with the heading above it", () => {
-    const mines = landminesOf(body);
-    expect(mines.length).toBeGreaterThan(10);
-    const ids = new Set(headingsOf(body).map((h) => h.id));
-    for (const mine of mines) {
-      expect(mine.text.startsWith("★"), mine.text).toBe(false);
-      expect(mine.text.length).toBeGreaterThan(20);
-      expect(mine.under.length, mine.text).toBeGreaterThan(0);
-      expect(ids.has(mine.underId), mine.underId).toBe(true);
-    }
-    const bareCode = mines.find((m) => m.text.startsWith("**A bare `<code>`"));
-    expect(bareCode?.under).toBe("Gotchas / don't-revert");
-    expect(bareCode?.text).toContain("preflight");
-    // A bold opener keeps its bold once the glyph is lifted out.
-    expect(
-      mines.some((m) => m.text.startsWith("**The vaul motion gotcha:**")),
-    ).toBe(true);
-    // A ★ mentioned mid-sentence is prose, not a landmine.
-    expect(mines.some((m) => m.text.startsWith("is never a rule"))).toBe(false);
-  });
 });
 
 describe("listings", () => {
   it("listSpecs returns every proposal document, and none is a retired board's", () => {
     // A board's argument lives in its own spec.ts; a docs/specs document is
     // written only when a board needs one, and it leaves with its board, so
-    // what is decided lives in the rule it made rather than in a spec.
+    // what is decided lives in production rather than in a spec.
     const standing = new Set<string>(SANDBOX.map((r) => r.id));
     for (const spec of listSpecs()) {
       expect(spec.title.length, spec.slug).toBeGreaterThan(0);
@@ -305,9 +185,9 @@ describe("listings", () => {
 
 describe("every rendered doc compiles as markdown", () => {
   const docs = renderedDocs();
-  // The five doctrine files and the two design docs always render; the
-  // manifests come and go with the lanes, so they are never counted on.
-  expect(docs.length).toBeGreaterThanOrEqual(Object.keys(DOCS).length + 2);
+  // The Orchestrator's pickup always renders; the other manifests come and go
+  // with the lanes, so they are never counted on.
+  expect(docs).toContain("docs/tracks/orchestrator.md");
 
   for (const path of docs) {
     it.concurrent(

@@ -1,0 +1,91 @@
+{
+  "board": "media-viewer",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-24",
+      "answers": [
+        {
+          "ask": "opening",
+          "choice": "grow",
+          "by": "Will",
+          "at": "2026-09-24T05:55:51Z"
+        },
+        {
+          "ask": "holds",
+          "choice": "pills",
+          "note": "This is more of a selection on the floating UI versus tucking at the bottom. More visible in the lightbox. Additionally, it gives more room for longer guest names by stacking the actions. I'm still open to any redesign ideas, but of these, this is my favorite selection. Don't love our 'own photo' marker or placement.",
+          "by": "Will",
+          "at": "2026-09-24T05:55:51Z"
+        },
+        {
+          "ask": "who",
+          "choice": "face",
+          "note": "This is already a great step in the right direction of my previous note about redesigning the floating UI",
+          "by": "Will",
+          "at": "2026-09-24T05:55:51Z"
+        },
+        {
+          "ask": "next",
+          "choice": "peek",
+          "note": "I almost selected the filmstrip, but I like this balance of a more focused lightbox with the quick ability to exit the lightbox and continue in the gallery. However, where we have more room on desktop lightboxes, a more subtle film strip may be cool to include.",
+          "by": "Will",
+          "at": "2026-09-24T05:55:51Z"
+        },
+        {
+          "ask": "closeup",
+          "choice": "pinch",
+          "by": "Will",
+          "at": "2026-09-24T05:55:51Z"
+        },
+        {
+          "ask": "video",
+          "choice": "auto",
+          "note": "However, the sound icon will need to be moved based on a prior selection of moving the uploader credit chip. Video should also have at least a scrubber (right word for time control UI bar?) to control the video (to rewatch or skip to certain points).",
+          "by": "Will",
+          "at": "2026-09-24T05:55:51Z"
+        },
+        {
+          "ask": "wayout",
+          "choice": "down",
+          "note": "Also clicking on any blank space around the media should close. At some point, I requested an agent to make the clickable sides larger (so it wasn't a small button for back/next) and now if I tap anywhere on the left or right side, it goes the neighboring media. Feels weird when I tap the empty space expecting a close.",
+          "by": "Will",
+          "at": "2026-09-24T05:55:51Z"
+        },
+        {
+          "ask": "link",
+          "choice": "file",
+          "note": "By default, share should send the picture itself, since it's the expected behavior. However, we could also include a 'copy link' share action that sends a link to the photograph, like in the option 2 demo. Multiple share options is good. Additionally, I noticed that when clicking download, there wasn't a clean flow to get media into my iPhone's native Photos library, just downloading to my Files app. Most users would likely prefer a priority option of native photo library (especially on mobile), with the rest as secondary options. We're not looking to reduce ways to download, just include the expected native way as the default.",
+          "by": "Will",
+          "at": "2026-09-24T05:55:51Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-25",
+      "answers": [
+        {
+          "ask": "mine",
+          "choice": "ring",
+          "note": "I'm split on this. I can already see that neighboring uploads from the same user would have overlapping rings, but this is far less intrusive than the glass dot or worded corner. Curious if you could solve it even better, maybe in this direction, maybe new idea. If not, we'll scratch and go nothing at all. Simply use a filter to find yours.",
+          "by": "Will",
+          "at": "2026-09-25T08:45:43Z"
+        }
+      ],
+      "notes": [
+        {
+          "on": null,
+          "text": "Round 3 draws on the real rows engine with runs of your own photos side by side, which round 2 never showed: the ring moved inside the tile, one outline around each run, a baseline, and none (the shipped Yours filter in View). Round 2's ring sat outside the tile and was exactly as wide as the 4px gutter, so neighbours merged as he foresaw.",
+          "by": "ai:orchestrator",
+          "at": "2026-09-25T08:46:18Z"
+        }
+      ],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

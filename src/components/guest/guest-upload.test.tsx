@@ -1,26 +1,23 @@
-// @contract-for: src/components/guest/guest-upload.tsx
-// @contract-for: src/lib/guest/use-upload-queue.ts
 /**
- * BEHAVIOR PINS for GuestUpload (program Phase 2, slice 1), and since the
- * `guest-upload` wiring (2026-09-21) the ENGINE's contract in the Library too.
+ * BEHAVIOR PINS for GuestUpload, and for the upload ENGINE under it
+ * (use-upload-queue.ts).
  *
- * The queue machine's pins are untouched and deliberately so: one-at-a-time
- * uploads, progress patching, the just-in-time silent join, demo simulation,
- * retry, and the rule that a rejected file errors only its own item while the
- * batch carries on. Those survived this board and must survive the next one.
+ * The queue machine's pins: one-at-a-time uploads, progress patching, the
+ * just-in-time silent join, demo simulation, retry, and the rule that a
+ * rejected file errors only its own item while the batch carries on. They must
+ * survive any redesign of the surface above the queue.
  *
- * What the board CHANGED is where files come from and where a refusal is read,
- * and both are pinned here: nothing reaches `addFiles` until a guest has said
- * Send on the review step (`tap=sheet` with his "preview the photos before
- * upload"), and a run that ends with anything refused opens the failure sheet
- * once instead of firing a toast (`failed=sheet`). Pins assert behavior
- * (payloads, callbacks, what is on screen), never styles.
+ * The surface's own pins are where files come from and where a refusal is read:
+ * nothing reaches `addFiles` until a guest has said Send on the review step (so
+ * a guest previews the photos before they upload), and a run that ends with
+ * anything refused opens the failure sheet once instead of firing a toast. Pins
+ * assert behavior (payloads, callbacks, what is on screen), never styles.
  *
- * ★ THE QUEUE IS THE PAGE'S NOW (the door as three steps, 2026-09-21), so these mount a HARNESS
- * that owns it exactly as `event-experience.tsx` does and hands `GuestUpload` the snapshot. That
- * is deliberate rather than a convenience: the door's upload step and the album's sheets read ONE
- * queue in production, and a pin that mocked it away would stop proving the thing that actually
- * has to hold. The engine's own contract line stays on this file for the same reason.
+ * ★ THE QUEUE IS THE PAGE'S, so these mount a HARNESS that owns it exactly as
+ * `event-experience.tsx` does and hands `GuestUpload` the snapshot. That is deliberate rather
+ * than a convenience: the door's upload step and the album's sheets read ONE queue in production,
+ * and a pin that mocked it away would stop proving the thing that actually has to hold. The
+ * engine's own pins live in this file for the same reason.
  */
 import {
   act,
@@ -37,6 +34,7 @@ import type { GuestEvent } from "@/lib/db/queries/guest-events";
 import {
   useUploadQueue,
   type QueueItem,
+  type QueueProgress,
   type UploadedItem,
 } from "@/lib/guest/use-upload-queue";
 import { uploadFile } from "@/lib/upload/uploader";
@@ -51,12 +49,12 @@ vi.mock("@/components/guest/save-account-prompt", () => ({
     <div data-testid="save-account-prompt" data-count={count} />
   ),
 }));
-// The claim prompt OWNS the post-upload slot since the profile wiring
-// (2026-09-19): it resolves the viewer and decides which single card stands,
-// which is its own contract (claim-handle-prompt.test.tsx) and its own supabase
-// call. Stubbed to render the card it was handed, so what stays pinned HERE is
-// the thing this file is about: the slot mounts on doneCount > 0, or on a
-// confirmation's return (`moment`, guest by upload), and never in the demo.
+// The claim prompt OWNS the post-upload slot: it resolves the viewer and
+// decides which single card stands, which is its own contract
+// (claim-handle-prompt.test.tsx) and its own supabase call. Stubbed to render
+// the card it was handed, so what stays pinned HERE is the thing this file is
+// about: the slot mounts on doneCount > 0, or on a confirmation's return
+// (`moment`), and never in the demo.
 vi.mock("@/components/guest/claim-handle-prompt", () => ({
   ClaimHandlePrompt: ({ savePrompt }: { savePrompt: React.ReactNode }) => (
     <>{savePrompt}</>
@@ -90,6 +88,7 @@ function Harness({
   onSession,
   onUploaded,
   onQueueChange,
+  onProgressStore,
   onVerificationRequired,
   isDemo = false,
   isVerified = false,
@@ -100,6 +99,7 @@ function Harness({
   onSession: (token: string | null) => void;
   onUploaded: (item: UploadedItem) => void;
   onQueueChange?: (items: QueueItem[]) => void;
+  onProgressStore?: (progress: QueueProgress) => void;
   onVerificationRequired?: (message: string) => void;
   isDemo?: boolean;
   isVerified?: boolean;
@@ -110,7 +110,7 @@ function Harness({
   removedIds?: ReadonlySet<string>;
 }) {
   const pendingRef = useRef<string | null>(null);
-  const { items, addFiles, retry, dismiss } = useUploadQueue({
+  const { items, progress, addFiles, retry, dismiss } = useUploadQueue({
     qrToken: "qr-token-1",
     sessionToken,
     onSession,
@@ -128,6 +128,9 @@ function Harness({
   useEffect(() => {
     onQueueChange?.(items);
   }, [items, onQueueChange]);
+  useEffect(() => {
+    onProgressStore?.(progress);
+  }, [progress, onProgressStore]);
   return (
     <GuestUpload
       ref={handleRef}
@@ -240,10 +243,11 @@ describe("GuestUpload: queue", () => {
     await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(2));
   });
 
-  // Phase 4: the per-file list UI moved into GALLERY TILES; progress now
-  // surfaces through the lifted queue snapshots (the same wiring the tiles
-  // read). Same coverage - onProgress reaches an observable output at 50%.
-  it("patches per-file progress through the onProgress callback", async () => {
+  // Per-file progress is drawn by the album's stack tile, which subscribes to the queue's PROGRESS
+  // STORE itself (album-guest-wiring: a tick used to rewrite `items` and re-render the page's whole
+  // shell once a frame). So onProgress reaches the store at 50%, and the snapshot a status change
+  // wrote stands untouched by the tick.
+  it("patches per-file progress through the onProgress callback, into the progress store", async () => {
     let report!: (f: number) => void;
     mockUploadFile.mockImplementation(
       ({ onProgress }) =>
@@ -251,17 +255,17 @@ describe("GuestUpload: queue", () => {
           report = onProgress!;
         }),
     );
-    const { addFiles, snapshots } = mountWithQueue();
+    const { addFiles, snapshots, store } = mountWithQueue();
     addFiles([makeFile()]);
 
     await waitFor(() => expect(mockUploadFile).toHaveBeenCalled());
+    const before = snapshots.length;
     report(0.5);
-    await waitFor(() => {
-      expect(snapshots.at(-1)?.[0]).toMatchObject({
-        status: "uploading",
-        progress: 50,
-      });
-    });
+    const item = snapshots.at(-1)![0];
+    await waitFor(() => expect(store.progress?.get(item.id)).toBe(50));
+    expect(item).toMatchObject({ status: "uploading", progress: 0 });
+    // The tick wrote no new snapshot: nothing that reads `items` re-rendered for it.
+    expect(snapshots.length).toBe(before);
   });
 
   it("approved outcome: reports onUploaded and mounts the growth prompt", async () => {
@@ -275,8 +279,8 @@ describe("GuestUpload: queue", () => {
     const file = makeFile();
     addFiles([file]);
 
-    // An approved upload's feedback IS the gallery tile (the sweep, as of
-    // `landing=sweep`); the contract here is the payload + the growth prompt.
+    // An approved upload's feedback IS the gallery tile (the landing sweep); the
+    // contract here is the payload + the growth prompt.
     await waitFor(() =>
       expect(onUploaded).toHaveBeenCalledWith({
         mediaId: "med-1",
@@ -302,7 +306,7 @@ describe("GuestUpload: queue", () => {
     const { addFiles, snapshots } = mountWithQueue({ event: HOLD_EVENT });
     addFiles([makeFile()]);
 
-    // `held=tile` (2026-09-21) retired the "Sent, waiting for host approval"
+    // The waiting tile answers, never a "Sent, waiting for host approval"
     // toast. What the album needs instead is on the queue item: the outcome AND
     // the media id, which is the only way its tile can tell it has been
     // approved later.
@@ -363,7 +367,7 @@ describe("GuestUpload: just-in-time join", () => {
     addFiles([makeFile()]);
 
     // The JOIN's toast stays: nothing was ever queued, so there is no run to
-    // end and no failure sheet to open. `failed=sheet` is about FILES.
+    // end and no failure sheet to open. The failure sheet is about FILES.
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith("Couldn't start uploading", {
         description: "Bad token",
@@ -389,10 +393,10 @@ describe("GuestUpload: just-in-time join", () => {
 });
 
 /**
- * THE IDENTITY RESHAPE'S PINS (2026-09-21). Three facts about WHO a queue
- * uploads as, all of them behaviour the door cannot see.
+ * WHO A QUEUE UPLOADS AS: three facts, all of them behaviour the door cannot
+ * see.
  */
-describe("GuestUpload: the identity reshape", () => {
+describe("GuestUpload: who a queue uploads as", () => {
   it("a stored session never joins again: the name was answered once", async () => {
     mockUploadFile.mockResolvedValue({
       ok: true,
@@ -458,15 +462,14 @@ describe("GuestUpload: the identity reshape", () => {
   });
 });
 
-/* ── DEFECT 1 (the alias red-team, 2026-09-21): the refresh waits for the
-   sheet. A mid-run verification_required used to call onVerificationRequired
-   (the caller's router.refresh()) in the SAME tick as the queue's own state
-   update, before the "run ended" effect below even ran — the access flip that
-   followed remounted this whole tree via key={access} and tore the failure
-   sheet down mid-read (measured on the alias: 503ms). A join-time refusal
-   (nothing ever queued) has no sheet to wait for and keeps firing at once. ── */
+/* ── The refresh waits for the failure sheet. A mid-run verification_required
+   must not call onVerificationRequired (the caller's router.refresh()) in the
+   SAME tick as the queue's own state update, before the "run ended" effect
+   below even runs: the access flip that follows remounts this whole tree via
+   key={access} and tears the failure sheet down mid-read. A join-time refusal
+   (nothing ever queued) has no sheet to wait for and fires at once. ── */
 
-describe("GuestUpload: the refresh waits for the failure sheet (DEFECT 1)", () => {
+describe("GuestUpload: the refresh waits for the failure sheet", () => {
   it("does not call onVerificationRequired while the mid-run sheet is open", async () => {
     mockUploadFile.mockResolvedValue({
       ok: false,
@@ -591,7 +594,7 @@ describe("GuestUpload: moderation copy", () => {
   });
 });
 
-/* ── The act's two ends (the `guest-upload` board, 2026-09-21) ────────────── */
+/* ── The act's two ends ───────────────────────────────────────────────────── */
 
 describe("GuestUpload: the add sheet is the only door in", () => {
   it("openAdd opens the sheet, and nothing is queued until Send", () => {
@@ -609,7 +612,7 @@ describe("GuestUpload: the add sheet is the only door in", () => {
     });
 
     // The review step is standing and the queue is still empty: this is the
-    // whole of "allow guests to catch an accidental selection".
+    // whole point of the step, a guest catching an accidental selection.
     expect(screen.getByRole("button", { name: "Send 2" })).toBeInTheDocument();
     expect(mockUploadFile).not.toHaveBeenCalled();
     expect(snapshots.at(-1) ?? []).toEqual([]);
@@ -634,7 +637,7 @@ describe("GuestUpload: a run that ends badly opens the failure sheet", () => {
     );
     expect(screen.getByText("That upload failed.")).toBeInTheDocument();
     expect(screen.getByText("a.jpg")).toBeInTheDocument();
-    // `failed=sheet` retired the upload error toast outright.
+    // A refused file is the sheet's to report, never an upload error toast's.
     expect(toast.error).not.toHaveBeenCalled();
   });
 
@@ -676,11 +679,10 @@ describe("GuestUpload: a run that ends badly opens the failure sheet", () => {
   });
 });
 
-/* ── A dismissed failure is GONE, not hidden (the alias red-team's DEFECT 1,
-   2026-09-21): "Not now" used to close the sheet without ever touching the
-   queue, so the same errored item sat there forever and the NEXT run's end -
-   however clean - saw it and reopened on it (reproduced: refuse notes.txt,
-   Not now, a clean twelve-file run still ended on "1 file did not go"). ── */
+/* ── A dismissed failure is GONE, not hidden: "Not now" retires the item from
+   the queue rather than only closing the sheet, or the same errored item would
+   sit there forever and the NEXT run's end - however clean - would see it and
+   reopen on it. ── */
 
 describe("GuestUpload: dismissing a failure retires it for good", () => {
   it("Not now drops it: a later clean run never resurrects it", async () => {
@@ -732,8 +734,8 @@ describe("GuestUpload: dismissing a failure retires it for good", () => {
       expect(screen.getByText("2 files did not go")).toBeInTheDocument(),
     );
     // Retry all closes the sheet on top of the very ids it just re-queued -
-    // the same `dismiss` DEFECT 1 needed must not treat a retried id as an
-    // abandoned one.
+    // the `dismiss` that retires a dismissed failure must not treat a retried
+    // id as an abandoned one.
     fireEvent.click(screen.getByRole("button", { name: /Retry all/ }));
 
     await waitFor(() => {
@@ -746,22 +748,27 @@ describe("GuestUpload: dismissing a failure retires it for good", () => {
   });
 });
 
-// ─── Phase 4 contracts: the lifted queue + the imperative handle ─────────────
+// ─── The lifted queue + the imperative handle ────────────────────────────────
 // These pin the subscriber surface (onQueueChange snapshots + handle.retry),
 // which the in-gallery tiles read.
 
 function mountWithQueue(props?: Record<string, unknown>) {
   const snapshots: QueueItem[][] = [];
+  const store: { progress: QueueProgress | null } = { progress: null };
   return {
     ...mount({
       ...props,
       onQueueChange: (items: QueueItem[]) => snapshots.push(items),
+      onProgressStore: (progress: QueueProgress) => {
+        store.progress = progress;
+      },
     }),
     snapshots,
+    store,
   };
 }
 
-describe("GuestUpload: the lifted queue contract (Phase 4)", () => {
+describe("GuestUpload: the lifted queue contract", () => {
   it("onQueueChange mirrors the lifecycle: queued -> uploading(progress) -> done", async () => {
     let report!: (f: number) => void;
     let resolveUpload!: (v: Awaited<ReturnType<typeof uploadFile>>) => void;
@@ -772,18 +779,16 @@ describe("GuestUpload: the lifted queue contract (Phase 4)", () => {
           resolveUpload = resolve;
         }),
     );
-    const { addFiles, snapshots } = mountWithQueue();
+    const { addFiles, snapshots, store } = mountWithQueue();
     addFiles([makeFile()]);
 
     await waitFor(() => expect(mockUploadFile).toHaveBeenCalled());
     report(0.5);
     await waitFor(() => {
       const last = snapshots.at(-1)!;
-      expect(last[0]).toMatchObject({
-        kind: "photo",
-        status: "uploading",
-        progress: 50,
-      });
+      expect(last[0]).toMatchObject({ kind: "photo", status: "uploading" });
+      // The live progress is the store's (see the progress pin above).
+      expect(store.progress?.get(last[0].id)).toBe(50);
     });
     resolveUpload({
       ok: true,
@@ -822,8 +827,8 @@ describe("GuestUpload: the lifted queue contract (Phase 4)", () => {
     expect(mockUploadFile).toHaveBeenCalledTimes(2);
   });
 
-  // QA #12: one dropped request used to freeze its tile at "uploading" (so the
-  // in-tile retry never appeared) AND break out of the sequential loop, silently
+  // One dropped request must never freeze its item at "uploading" (a stuck
+  // state no retry can reach) nor break out of the sequential loop, silently
   // abandoning the rest of the batch. These pin that a REJECTION is contained.
   it("a REJECTED upload errors only its own tile, never wedges it at uploading", async () => {
     mockUploadFile.mockRejectedValueOnce(new Error("network went away"));
@@ -886,15 +891,17 @@ describe("GuestUpload: the lifted queue contract (Phase 4)", () => {
 });
 
 /**
- * THE SLOT ON A CONFIRMATION'S RETURN (guest by upload, 2026-09-22). A guest who
- * confirmed through Google or a magic link comes back to a fresh page with
- * nothing uploaded this visit; when the album says a confirmation from here just
- * claimed their uploads, the slot stands anyway, so the follow moment can play.
+ * THE SLOT ON A CONFIRMATION'S RETURN. A guest who confirmed through Google or a
+ * magic link comes back to a fresh page with nothing uploaded this visit; when
+ * the album says a confirmation from here just claimed their uploads, the slot
+ * stands anyway, so the follow moment can play.
  */
 describe("GuestUpload: the slot on a confirmation's return", () => {
   it("stands with nothing uploaded this visit when the album says the moment is due", async () => {
     mount({ moment: true });
-    expect(await screen.findByTestId("save-account-prompt")).toBeInTheDocument();
+    expect(
+      await screen.findByTestId("save-account-prompt"),
+    ).toBeInTheDocument();
   });
 
   it("stays empty without it until something is uploaded", () => {
@@ -909,10 +916,10 @@ describe("GuestUpload: the slot on a confirmation's return", () => {
 });
 
 /**
- * THE CARD COUNTS WHAT IS STILL IN THE ALBUM (guest-followons, 2026-09-23). The post-upload
- * slot's number is "your N photos are on this album", so a finished upload the guest removed again
- * leaves it: the page hands down the ids this visit's removals took back out, and the slot leaves
- * once none of this visit's uploads is left.
+ * THE CARD COUNTS WHAT IS STILL IN THE ALBUM. The post-upload slot's number is "your N photos are
+ * on this album", so a finished upload the guest removed again leaves it: the page hands down the
+ * ids this visit's removals took back out, and the slot leaves once none of this visit's uploads
+ * is left.
  */
 describe("GuestUpload: the post-upload card counts what is still in the album", () => {
   it("drops a removed upload from the count, and unmounts once none is left", async () => {
@@ -943,7 +950,9 @@ describe("GuestUpload: the post-upload card counts what is still in the album", 
     const { rerender } = render(harness());
     act(() => handleRef.current!.openAdd());
     fireEvent.change(
-      document.querySelector('input[type="file"][multiple]') as HTMLInputElement,
+      document.querySelector(
+        'input[type="file"][multiple]',
+      ) as HTMLInputElement,
       { target: { files: [makeFile("a.jpg"), makeFile("b.jpg")] } },
     );
     fireEvent.click(screen.getByRole("button", { name: "Send 2" }));

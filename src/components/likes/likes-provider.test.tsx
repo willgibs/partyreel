@@ -10,16 +10,31 @@
  * with the ids in the body and ONE uuid[] back, its error reported, and only the ids not yet
  * answered are asked as the grid grows.
  */
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import { useEffect } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { toast } from "sonner";
 
-import { makeMockSupabase, type MockSupabase } from "@/lib/test-utils/mock-supabase";
+import {
+  makeMockSupabase,
+  type MockSupabase,
+} from "@/lib/test-utils/mock-supabase";
 import { createClient } from "@/lib/supabase/client";
 import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
 import { captureError } from "@/lib/observability/sentry";
 
-import { LikesProvider, useLikes } from "./likes-provider";
+import {
+  LikesProvider,
+  LocalLikesProvider,
+  useIsLiked,
+  useLikes,
+} from "./likes-provider";
 
 vi.mock("@/lib/supabase/client", () => ({ createClient: vi.fn() }));
 vi.mock("@/lib/guest/claim-uploads", () => ({
@@ -84,16 +99,24 @@ function likeCalls(supa: MockSupabase) {
   return supa.rpc.mock.calls.filter(([fn]) => fn === "like_media");
 }
 
-/** Context probe: renders liked state + a toggle trigger for one id. */
+/**
+ * Context probe: renders one id's liked state, SUBSCRIBED to that id the way
+ * every mark reads it (`useIsLiked`), plus a toggle trigger.
+ *
+ * ★ THE STATE IS "liked" OR "not liked", NEVER "unliked". These pins used to
+ * assert `toHaveTextContent(/^liked$/)` against a probe printing "liked" or
+ * "unliked", and the substring matched both, so every "it is liked now" here
+ * passed whether or not it was (found when the liked set became a per-id store
+ * and this probe stopped re-rendering, with every pin still green).
+ */
 function Probe({ id }: { id: string }) {
   const likes = useLikes();
+  const liked = useIsLiked(id);
   if (!likes) return <div>no-context</div>;
   return (
     <div>
       <button onClick={() => likes.toggle(id)}>toggle-{id}</button>
-      <span data-testid={`liked-${id}`}>
-        {likes.isLiked(id) ? "liked" : "unliked"}
-      </span>
+      <span data-testid={`liked-${id}`}>{liked ? "liked" : "not liked"}</span>
     </div>
   );
 }
@@ -142,7 +165,7 @@ describe("LikesProvider: session + seed", () => {
     const supa = signedIn(["m2"]);
     mount(supa, undefined, "m2");
     await waitFor(() =>
-      expect(screen.getByTestId("liked-m2")).toHaveTextContent("liked"),
+      expect(screen.getByTestId("liked-m2")).toHaveTextContent(/^liked$/),
     );
     expect(supa.rpc).toHaveBeenCalledWith("my_liked_media_ids", {
       p_media_ids: IDS,
@@ -154,7 +177,7 @@ describe("LikesProvider: session + seed", () => {
   it("initialLikedIds paints instantly, before any query resolves", () => {
     const supa = signedIn();
     mount(supa, { initialLikedIds: ["m1"] });
-    expect(screen.getByTestId("liked-m1")).toHaveTextContent("liked");
+    expect(screen.getByTestId("liked-m1")).toHaveTextContent(/^liked$/);
   });
 
   it("useLikes returns null outside a provider", () => {
@@ -178,7 +201,7 @@ describe("LikesProvider: the seed past a thousand items (M12)", () => {
       </LikesProvider>,
     );
     await waitFor(() =>
-      expect(screen.getByTestId(`liked-${late}`)).toHaveTextContent("liked"),
+      expect(screen.getByTestId(`liked-${late}`)).toHaveTextContent(/^liked$/),
     );
     expect(seedCalls(supa)).toEqual([ids]);
     expect(supa.client.from).not.toHaveBeenCalled();
@@ -201,7 +224,7 @@ describe("LikesProvider: the seed past a thousand items (M12)", () => {
     );
 
     await waitFor(() =>
-      expect(screen.getByTestId("liked-m4")).toHaveTextContent("liked"),
+      expect(screen.getByTestId("liked-m4")).toHaveTextContent(/^liked$/),
     );
     expect(seedCalls(supa)).toEqual([IDS, ["m4"]]);
   });
@@ -228,7 +251,7 @@ describe("LikesProvider: the seed past a thousand items (M12)", () => {
     expect(area).toBe("media");
     expect((error as Error).message).toContain("likes: my_liked_media_ids");
     expect(extra).toEqual({ ids: 3 });
-    expect(screen.getByTestId("liked-m1")).toHaveTextContent("unliked");
+    expect(screen.getByTestId("liked-m1")).toHaveTextContent("not liked");
     expect(toast.error).not.toHaveBeenCalled();
 
     // Nothing was marked answered, so the next change of the grid asks for all of them again.
@@ -239,9 +262,123 @@ describe("LikesProvider: the seed past a thousand items (M12)", () => {
       </LikesProvider>,
     );
     await waitFor(() =>
-      expect(screen.getByTestId("liked-m1")).toHaveTextContent("liked"),
+      expect(screen.getByTestId("liked-m1")).toHaveTextContent(/^liked$/),
     );
     expect(seedCalls(supa).at(-1)).toEqual([...IDS, "m9"]);
+  });
+});
+
+/**
+ * THE SEED FOLLOWS THE WINDOW (album-host-wiring). The paged album mounts only the rows around the
+ * viewport, so a windowed surface omits `mediaIds` and calls `seed(ids)` as its window moves: only
+ * the ids not yet answered are asked, a tick's calls share one request, and an id in flight is never
+ * asked twice.
+ */
+describe("LikesProvider: the window's seed", () => {
+  function Window({ asks }: { asks: string[][] }) {
+    const likes = useLikes();
+    return (
+      <button onClick={() => asks.forEach((ids) => likes!.seed(ids))}>
+        scroll
+      </button>
+    );
+  }
+
+  it("asks a window's ids once, a tick's asks in ONE request, and only what is new after", async () => {
+    const supa = signedIn(["w2"]);
+    vi.mocked(createClient).mockReturnValue(supa.client as never);
+    const { rerender } = render(
+      <LikesProvider>
+        <Window
+          asks={[
+            ["w1", "w2"],
+            ["w2", "w3"],
+          ]}
+        />
+        <Probe id="w2" />
+      </LikesProvider>,
+    );
+    fireEvent.click(screen.getByText("scroll"));
+    await waitFor(() =>
+      expect(screen.getByTestId("liked-w2")).toHaveTextContent(/^liked$/),
+    );
+    expect(seedCalls(supa)).toEqual([["w1", "w2", "w3"]]);
+
+    // The window moves on: the ids it already asked about are never asked again.
+    rerender(
+      <LikesProvider>
+        <Window asks={[["w3", "w4"]]} />
+        <Probe id="w2" />
+      </LikesProvider>,
+    );
+    fireEvent.click(screen.getByText("scroll"));
+    await waitFor(() => expect(seedCalls(supa)).toHaveLength(2));
+    expect(seedCalls(supa)[1]).toEqual(["w4"]);
+  });
+
+  it("signed out: asks nothing, whatever the window", async () => {
+    const supa = makeMockSupabase({ session: null });
+    vi.mocked(createClient).mockReturnValue(supa.client as never);
+    render(
+      <LikesProvider>
+        <Window asks={[["w1"]]} />
+      </LikesProvider>,
+    );
+    fireEvent.click(screen.getByText("scroll"));
+    await waitFor(() => expect(supa.getSession).toHaveBeenCalled());
+    expect(seedCalls(supa)).toEqual([]);
+  });
+});
+
+/**
+ * THE BULK LIKE, ONE CALL A BATCH (album-host-wiring, `like_many`): every not-yet-liked id hearted at
+ * once, one `like_many` request, and only the ids it refused reverted. It used to be one
+ * `like_media` per id, all at once.
+ */
+describe("LikesProvider: likeMany through like_many", () => {
+  function Bulk({
+    ids,
+    onDone,
+  }: {
+    ids: string[];
+    onDone: (n: number) => void;
+  }) {
+    const likes = useLikes();
+    return (
+      <button onClick={() => void likes!.likeMany(ids).then(onDone)}>
+        like-all
+      </button>
+    );
+  }
+
+  it("hearts every id, sends ONE like_many, and reverts exactly the refused ones", async () => {
+    const supa = signedIn([]);
+    supa.rpc.mockImplementation((fn: string) =>
+      Promise.resolve(
+        fn === "like_many"
+          ? { data: { ok: true, liked: 2, failed: ["m3"] }, error: null }
+          : { data: [], error: null },
+      ),
+    );
+    vi.mocked(createClient).mockReturnValue(supa.client as never);
+    const done = vi.fn();
+    render(
+      <LikesProvider mediaIds={IDS}>
+        <Bulk ids={IDS} onDone={done} />
+        <Probe id="m1" />
+        <Probe id="m3" />
+      </LikesProvider>,
+    );
+    await waitFor(() => expect(supa.getSession).toHaveBeenCalled());
+    await waitFor(() => expect(seedCalls(supa)).toHaveLength(1));
+    fireEvent.click(screen.getByText("like-all"));
+    await waitFor(() => expect(done).toHaveBeenCalledWith(2));
+    expect(supa.rpc.mock.calls.filter(([fn]) => fn === "like_many")).toEqual([
+      ["like_many", { p_media_ids: IDS }],
+    ]);
+    expect(likeCalls(supa)).toHaveLength(0);
+    expect(screen.getByTestId("liked-m1")).toHaveTextContent(/^liked$/);
+    expect(screen.getByTestId("liked-m3")).toHaveTextContent("not liked");
   });
 });
 
@@ -255,7 +392,7 @@ describe("LikesProvider: redirect-queued replay", () => {
       expect(supa.rpc).toHaveBeenCalledWith("like_media", { p_media_id: "m3" }),
     );
     await waitFor(() =>
-      expect(screen.getByTestId("liked-m3")).toHaveTextContent("liked"),
+      expect(screen.getByTestId("liked-m3")).toHaveTextContent(/^liked$/),
     );
     expect(localStorage.getItem(PENDING_PREFIX + "m3")).toBeNull();
     expect(toast.success).toHaveBeenCalledWith("Added to your likes");
@@ -270,7 +407,7 @@ describe("LikesProvider: redirect-queued replay", () => {
     await waitFor(() =>
       expect(localStorage.getItem(PENDING_PREFIX + "m3")).toBeNull(),
     );
-    expect(screen.getByTestId("liked-m3")).toHaveTextContent("unliked");
+    expect(screen.getByTestId("liked-m3")).toHaveTextContent("not liked");
     expect(toast.success).not.toHaveBeenCalled();
   });
 });
@@ -300,7 +437,7 @@ describe("LikesProvider: signed-out toggle", () => {
       expect(supa.rpc).toHaveBeenCalledWith("like_media", { p_media_id: "m1" }),
     );
     await waitFor(() =>
-      expect(screen.getByTestId("liked-m1")).toHaveTextContent("liked"),
+      expect(screen.getByTestId("liked-m1")).toHaveTextContent(/^liked$/),
     );
     expect(vi.mocked(claimAnonymousUploads)).toHaveBeenCalledWith({
       silent: true,
@@ -323,12 +460,12 @@ describe("LikesProvider: signed-in toggle", () => {
 
     fireEvent.click(screen.getByText("toggle-m1"));
     // Optimistic: liked immediately, before the rpc resolves.
-    expect(screen.getByTestId("liked-m1")).toHaveTextContent("liked");
+    expect(screen.getByTestId("liked-m1")).toHaveTextContent(/^liked$/);
 
     await waitFor(() =>
       expect(supa.rpc).toHaveBeenCalledWith("like_media", { p_media_id: "m1" }),
     );
-    expect(screen.getByTestId("liked-m1")).toHaveTextContent("liked");
+    expect(screen.getByTestId("liked-m1")).toHaveTextContent(/^liked$/);
   });
 
   it("like failure: reverts and toasts", async () => {
@@ -340,22 +477,22 @@ describe("LikesProvider: signed-in toggle", () => {
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith("Couldn't save that like."),
     );
-    expect(screen.getByTestId("liked-m1")).toHaveTextContent("unliked");
+    expect(screen.getByTestId("liked-m1")).toHaveTextContent("not liked");
   });
 
   it("unlike: owner delete path; success keeps it unliked", async () => {
     const supa = signedIn(["m1"]);
     await mountSignedIn(supa);
     await waitFor(() =>
-      expect(screen.getByTestId("liked-m1")).toHaveTextContent("liked"),
+      expect(screen.getByTestId("liked-m1")).toHaveTextContent(/^liked$/),
     );
 
     fireEvent.click(screen.getByText("toggle-m1"));
-    expect(screen.getByTestId("liked-m1")).toHaveTextContent("unliked");
+    expect(screen.getByTestId("liked-m1")).toHaveTextContent("not liked");
     await waitFor(() =>
       expect(supa.deleteEq).toHaveBeenCalledWith("media_id", "m1"),
     );
-    expect(screen.getByTestId("liked-m1")).toHaveTextContent("unliked");
+    expect(screen.getByTestId("liked-m1")).toHaveTextContent("not liked");
     expect(likeCalls(supa)).toHaveLength(0);
   });
 
@@ -364,14 +501,14 @@ describe("LikesProvider: signed-in toggle", () => {
     supa.deleteEq.mockResolvedValue({ error: { message: "nope" } });
     await mountSignedIn(supa);
     await waitFor(() =>
-      expect(screen.getByTestId("liked-m1")).toHaveTextContent("liked"),
+      expect(screen.getByTestId("liked-m1")).toHaveTextContent(/^liked$/),
     );
 
     fireEvent.click(screen.getByText("toggle-m1"));
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith("Couldn't remove that like."),
     );
-    expect(screen.getByTestId("liked-m1")).toHaveTextContent("liked");
+    expect(screen.getByTestId("liked-m1")).toHaveTextContent(/^liked$/);
   });
 
   it("double-tap collapses: the in-flight id ignores a second toggle", async () => {
@@ -400,7 +537,7 @@ describe("LikesProvider: signed-in toggle", () => {
       </LikesProvider>,
     );
     await waitFor(() =>
-      expect(screen.getByTestId("liked-m1")).toHaveTextContent("liked"),
+      expect(screen.getByTestId("liked-m1")).toHaveTextContent(/^liked$/),
     );
 
     fireEvent.click(screen.getByText("toggle-m1"));
@@ -417,11 +554,96 @@ describe("LikesProvider: signed-in toggle", () => {
       </LikesProvider>,
     );
     await waitFor(() =>
-      expect(screen.getByTestId("liked-m1")).toHaveTextContent("liked"),
+      expect(screen.getByTestId("liked-m1")).toHaveTextContent(/^liked$/),
     );
 
     fireEvent.click(screen.getByText("toggle-m1"));
     await waitFor(() => expect(supa.deleteEq).toHaveBeenCalled());
     expect(onRemoved).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ A HEART RE-RENDERS ONE MARK (the album-window lane). The liked set is a
+ * store read per id, and the context value never changes after mount, so a like
+ * notifies exactly the readers of that one id: on a 1,145-photograph album it
+ * used to re-render every tile and every mark.
+ */
+describe("LikesProvider: one id's like notifies that id's readers alone", () => {
+  function Counted({ id, seen }: { id: string; seen: string[] }) {
+    const liked = useIsLiked(id);
+    seen.push(id);
+    return <span data-testid={`c-${id}`}>{liked ? "liked" : "not liked"}</span>;
+  }
+
+  it("re-renders the liked id's reader and no other, and never the context's consumers", async () => {
+    const supa = signedIn();
+    vi.mocked(createClient).mockReturnValue(supa.client as never);
+    const seen: string[] = [];
+    const commits = { context: 0 };
+    function Consumer() {
+      useLikes();
+      useEffect(() => {
+        commits.context++;
+      });
+      return null;
+    }
+    render(
+      <LikesProvider mediaIds={IDS}>
+        <Consumer />
+        <Probe id="m1" />
+        <Counted id="m2" seen={seen} />
+        <Counted id="m3" seen={seen} />
+      </LikesProvider>,
+    );
+    await waitFor(() => expect(supa.getSession).toHaveBeenCalled());
+    await waitFor(() => expect(seedCalls(supa)).toHaveLength(1));
+    const before = { seen: seen.length, context: commits.context };
+    fireEvent.click(screen.getByText("toggle-m1"));
+    await waitFor(() =>
+      expect(screen.getByTestId("liked-m1")).toHaveTextContent(/^liked$/),
+    );
+    // Neither m2's nor m3's reader re-rendered, nor the context's consumer.
+    expect(seen.length).toBe(before.seen);
+    expect(commits.context).toBe(before.context);
+  });
+
+  it("reads false with no provider, so a surface without likes draws no heart", () => {
+    const seen: string[] = [];
+    render(<Counted id="m1" seen={seen} />);
+    expect(screen.getByTestId("c-m1")).toHaveTextContent("not liked");
+  });
+});
+
+describe("LocalLikesProvider: the store with no session and no network", () => {
+  it("flips a heart in memory, and likes many at once", async () => {
+    const grab: { likeMany?: (ids: string[]) => Promise<number> } = {};
+    function Grab() {
+      const likes = useLikes();
+      useEffect(() => {
+        grab.likeMany = likes!.likeMany;
+      });
+      return null;
+    }
+    render(
+      <LocalLikesProvider initialLikedIds={["m3"]}>
+        <Grab />
+        <Probe id="m1" />
+        <Probe id="m2" />
+        <Probe id="m3" />
+      </LocalLikesProvider>,
+    );
+    expect(screen.getByTestId("liked-m3")).toHaveTextContent(/^liked$/);
+    fireEvent.click(screen.getByText("toggle-m1"));
+    expect(screen.getByTestId("liked-m1")).toHaveTextContent(/^liked$/);
+    fireEvent.click(screen.getByText("toggle-m1"));
+    expect(screen.getByTestId("liked-m1")).toHaveTextContent("not liked");
+    let added = 0;
+    await act(async () => {
+      added = await grab.likeMany!(["m1", "m2", "m3"]);
+    });
+    // m3 was liked already, so two were added.
+    expect(added).toBe(2);
+    expect(screen.getByTestId("liked-m2")).toHaveTextContent(/^liked$/);
   });
 });

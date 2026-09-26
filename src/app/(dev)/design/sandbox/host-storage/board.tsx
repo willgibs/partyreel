@@ -27,11 +27,11 @@ type WhereOption = "account" | "album" | "sheet";
 const whereOf = (v: string | undefined): WhereOption =>
   v === "album" ? "album" : v === "sheet" ? "sheet" : "account";
 
-type OrderOption = "flat" | "grouped";
+type OrderOption = "flat" | "grouped" | "hybrid";
 const orderOf = (v: string | undefined): OrderOption =>
-  v === "grouped" ? "grouped" : "flat";
+  v === "grouped" ? "grouped" : v === "hybrid" ? "hybrid" : "flat";
 
-type GoalOption = "live" | "plain";
+type GoalOption = "live" | "plain" | "toast";
 
 const refusalOf = (v: string | undefined): RefusalOption =>
   v === "swap" ? "swap" : v === "banner" ? "banner" : "inline";
@@ -159,8 +159,10 @@ const PREVIEWS: PreviewsFor<typeof HOST_STORAGE> = {
   "where.sheet": (s) => where(s, "sheet"),
   "order.flat": (s) => order(s, "flat"),
   "order.grouped": (s) => order(s, "grouped"),
+  "order.hybrid": (s) => order(s, "hybrid"),
   "goal.live": (s) => goal(s, "live"),
   "goal.plain": (s) => goal(s, "plain"),
+  "goal.toast": (s) => goal(s, "toast"),
   "refusal.inline": (s) => refusal(s, "inline"),
   "refusal.swap": (s) => refusal(s, "swap"),
   "refusal.banner": (s) => refusal(s, "banner"),

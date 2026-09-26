@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { ClaimableEventRow } from "@/lib/db/queries/claims";
+import { formatCount } from "@/lib/format/count";
 import { formatEventDate } from "@/lib/utils";
 
 type Decision = "claim" | "disown";
@@ -47,8 +48,10 @@ function metaLine(row: ClaimableEventRow): string {
   return [
     row.eventDate ? formatEventDate(row.eventDate) : null,
     namesLabel(row.names),
-    `${row.uploadCount} photo${row.uploadCount === 1 ? "" : "s"}`,
-    row.lastUploadAt ? `last added ${formatUploadTimestamp(row.lastUploadAt)}` : null,
+    `${formatCount(row.uploadCount)} photo${row.uploadCount === 1 ? "" : "s"}`,
+    row.lastUploadAt
+      ? `last added ${formatUploadTimestamp(row.lastUploadAt)}`
+      : null,
   ]
     .filter((part): part is string => Boolean(part))
     .join(" · ");
@@ -64,12 +67,16 @@ function totalPhotos(list: ClaimableEventRow[]): number {
  * EITHER type (the RPC's `upload_count` never splits photos from videos), so
  * one upload reads "photo or video" (never "photo", which would lie when
  * the one upload is a video) and several read "photos and videos"; one event
- * reads "this event", several name the count.
+ * reads "this event", several name the count. Every count on the card goes
+ * through `formatCount` ("1,249", never "1249").
  */
 function confirmDeleteTitle(photos: number, events: number): string {
   const photoPhrase =
-    photos === 1 ? "1 photo or video" : `${photos} photos and videos`;
-  const eventPhrase = events === 1 ? "this event" : `these ${events} events`;
+    photos === 1
+      ? "1 photo or video"
+      : `${formatCount(photos)} photos and videos`;
+  const eventPhrase =
+    events === 1 ? "this event" : `these ${formatCount(events)} events`;
   return `Permanently delete the ${photoPhrase} added under your email at ${eventPhrase}?`;
 }
 
@@ -79,7 +86,7 @@ function confirmDeleteTitle(photos: number, events: number): string {
  * when `rows` is non-empty — a confirmed caller with events waiting under the
  * email on their account, from before it was confirmed.
  *
- * Deliberately plain: this is wave 1's wiring of a ruled model, not the
+ * Deliberately plain: this is wave 1's wiring of a settled model, not the
  * ticket's real shape ("The flows around the claim ticket ...
  * go to one identity-flows board once the foundation is on the tree"). One
  * card, one decision per EVENT (never per guest row: `getMyClaimableGuestRows`
@@ -89,8 +96,8 @@ function confirmDeleteTitle(photos: number, events: number): string {
  *     sends the RPC `null` ("every row of mine"), which needs no confirmation
  *     because nothing is being removed.
  *   - "Finish" reads the per-row picks: anything left NOT explicitly claimed
- *     (marked "Not mine", or simply never touched) is what Will's ruling
- *     calls "the guest effectively requesting 'get rid of that'" — so when
+ *     (marked "Not mine", or simply never touched) is treated as
+ *     "the guest effectively requesting 'get rid of that'" — so when
  *     that set is non-empty, a confirmation names the events and the count
  *     before anything is written; when every row was explicitly claimed,
  *     Finish commits at once.
@@ -133,7 +140,7 @@ export function ClaimsCard({ rows }: { rows: ClaimableEventRow[] }) {
       }
       if (photosClaimed > 0) {
         toast.success(
-          `Added ${photosClaimed} photo${photosClaimed === 1 ? "" : "s"} to your account.`,
+          `Added ${formatCount(photosClaimed)} photo${photosClaimed === 1 ? "" : "s"} to your account.`,
         );
       } else {
         toast.success("Done. Nothing was added to your account.");

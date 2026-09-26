@@ -14,6 +14,8 @@ import {
 import { requireAdmin } from "@/lib/auth/admin-context";
 import { getAccountDetail } from "@/lib/db/queries/accounts";
 import { getAccountDeletionState } from "@/lib/lifecycle/account-deletion";
+import { formatAdminDate, formatAdminTimestamp } from "@/lib/format/admin-time";
+import { formatCount } from "@/lib/format/count";
 import { formatBytes } from "@/lib/utils";
 import { PageHeading } from "@/components/shared/page-heading";
 import { DeleteAccountControl } from "./delete-account-control";
@@ -91,16 +93,12 @@ export default async function AdminAccountDetailPage({
           <Row label="Subscription">{subscriptionLabel}</Row>
           {profile.tier_expires_at ? (
             <Row label="Pass expires">
-              <span suppressHydrationWarning>
-                {new Date(profile.tier_expires_at).toLocaleDateString()}
-              </span>
+              <span>{formatAdminDate(profile.tier_expires_at)}</span>
             </Row>
           ) : null}
           {profile.storage_grace_until ? (
             <Row label="Over-cap grace until">
-              <span suppressHydrationWarning>
-                {new Date(profile.storage_grace_until).toLocaleDateString()}
-              </span>
+              <span>{formatAdminDate(profile.storage_grace_until)}</span>
             </Row>
           ) : null}
           <Row label="Stripe">
@@ -132,8 +130,8 @@ export default async function AdminAccountDetailPage({
           <Row label="Counter (real bytes)">
             {formatBytes(account.storageUsedBytes)}
           </Row>
-          <Row label="Events">{account.eventCount}</Row>
-          <Row label="Media">{account.mediaCount}</Row>
+          <Row label="Events">{formatCount(account.eventCount)}</Row>
+          <Row label="Media">{formatCount(account.mediaCount)}</Row>
         </CardContent>
       </Card>
 
@@ -143,14 +141,10 @@ export default async function AdminAccountDetailPage({
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <Row label="Created">
-            <span suppressHydrationWarning>
-              {new Date(profile.created_at).toLocaleString()}
-            </span>
+            <span>{formatAdminTimestamp(profile.created_at)}</span>
           </Row>
           <Row label="Last active">
-            <span suppressHydrationWarning>
-              {new Date(profile.last_active_at).toLocaleString()}
-            </span>
+            <span>{formatAdminTimestamp(profile.last_active_at)}</span>
           </Row>
           <Row label="User ID">
             <code className="rounded bg-muted px-1.5 py-0.5 font-sans text-xs tabular-nums select-all">
@@ -179,14 +173,16 @@ export default async function AdminAccountDetailPage({
           {deletion.requestedAt ? (
             <>
               <Row label="Requested">
-                <span suppressHydrationWarning>
-                  {new Date(deletion.requestedAt).toLocaleString()}
-                </span>
+                <span>{formatAdminTimestamp(deletion.requestedAt)}</span>
               </Row>
-              <Row label="Events left to purge">{deletion.eventCount}</Row>
+              <Row label="Events left to purge">
+                {formatCount(deletion.eventCount)}
+              </Row>
               {deletion.heldEventCount > 0 && (
                 <Row label="Blocked by a legal hold">
-                  <Badge variant="secondary">{deletion.heldEventCount}</Badge>
+                  <Badge variant="secondary">
+                    {formatCount(deletion.heldEventCount)}
+                  </Badge>
                 </Row>
               )}
               {deletion.eventCount === 0 && (

@@ -149,8 +149,6 @@ export type ExplorationInput = {
    * him where he is reading rather than in the round's record.
    */
   readonly carried?: readonly CarriedCall[];
-  /** The bible rules in play, by number. */
-  readonly bible?: readonly number[];
 };
 
 /**
@@ -305,6 +303,6 @@ export function defineExploration<const E extends ExplorationInput>(
       ...input.asks.map(controlFor),
       ...input.asks.flatMap((d) => d.configs ?? []),
     ]),
-    links: { bible: input.bible ?? [] },
+    links: {},
   });
 }

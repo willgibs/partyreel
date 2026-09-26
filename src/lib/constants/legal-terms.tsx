@@ -4,7 +4,7 @@ import { LEGAL_PARTY, note, ol, p, sub, ul, type LegalSection } from "./legal";
 
 /**
  * THE TERMS OF SERVICE (version 1.0, the legal round, 2026-09-01). Formal but
- * readable by ruling. Will's rulings baked in (2026-09-01): hosts 18+ and
+ * readable throughout. The choices baked in: hosts 18+ and
  * guests 13+; Pro non-refundable with cancel-anytime, Event Pass refundable
  * within 14 days if unused; informal resolution then the courts of [STATE]
  * with a class-action waiver and NO arbitration; the full DMCA procedure with
@@ -89,7 +89,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
     summary: "One QR code collects an event's photos into one album.",
     blocks: [
       p(
-        "Partyreel lets a host create an event and share one link, usually as a QR code. Guests open it and add photos and videos from their phones, without installing an app. Everything lands in one album that the host curates and that everyone with access can browse and download, and the album can be rendered into a short highlight reel.",
+        "Partyreel lets a host create an event and share one link, usually as a QR code. Guests open it and add photos and videos from their phones, without installing an app. Everything lands in one album that the host curates and that everyone with access can browse and download; the album also plays as a highlight reel, from which anyone with access can make a clip on their own device.",
       ),
       p(
         "We may change, add or remove features of the Service as it develops. Where a change materially reduces what a paid plan includes during a period you have paid for, we will tell you in advance and you may cancel under the refund section below.",
@@ -143,7 +143,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
       ),
       sub("license-to-hosts", "The license you give the host and the room"),
       p(
-        "When you upload to an event, you grant its host a non-exclusive, worldwide, royalty-free license to view, download, curate, hide, remove, and include your content in that event's album, guest list, downloads and highlight reels, and to share the album through the event's link, for as long as the content remains in the album. You also grant everyone the host allows into the album a license to view and download your content for their personal, non-commercial use. A host who wants to use guest content beyond the event (for example commercially) needs the uploader's separate permission.",
+        "When you upload to an event, you grant its host a non-exclusive, worldwide, royalty-free license to view, download, curate, hide, remove, and include your content in that event's album, guest list, downloads and clips, and to share the album through the event's link, for as long as the content remains in the album. You also grant everyone the host allows into the album a license to view and download your content for their personal, non-commercial use. Under that same license, anyone with access to the album may make a clip that includes your content and save or share it, for their personal, non-commercial use. A host who wants to use guest content beyond the event (for example commercially) needs the uploader's separate permission.",
       ),
       sub("your-promises", "What you promise about your content"),
       ul(
@@ -243,7 +243,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
       // tiers.ts: free = 1 event, photos only; pro = subscription (month or
       // year), unlimited events; event_pass = one-time, 1 event, ~1 year,
       // stacks (billing-caps.md); pass→pro = prorated credit; one Pro at a time
-      // (host-app.md); renewal extends never resets.
+      // (billing-caps.md); renewal extends never resets.
       sub("plans", "The plans"),
       ul(
         <>
@@ -286,9 +286,9 @@ export const TERMS_SECTIONS: LegalSection[] = [
           Each plan is a total storage cap, with a small buffer above it so an
           upload in progress is not cut off at the line. When an account reaches
           its cap, new uploads pause until space is freed or the plan grows;
-          existing media is untouched. Video uploads and highlight reels above
-          the free length are available on paid plans only. Per-file size limits
-          are shown in the uploader, and hosts may set a lower limit for their
+          existing media is untouched. Video uploads and clips above the free
+          length are available on paid plans only. Per-file size limits are
+          shown in the uploader, and hosts may set a lower limit for their
           event. Some event settings (a password, a custom link) are available
           on paid plans only; if your plan lapses you keep any such setting you
           already made but cannot create a new one. The current numbers live on
@@ -307,7 +307,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
     summary:
       "Cancel Pro any time and keep it to the end of the period; no refunds. An unused Event Pass is refundable within 14 days.",
     blocks: [
-      // Will's ruling (2026-09-01): Pro no refunds + cancel anytime; Event
+      // The policy: Pro no refunds + cancel anytime; Event
       // Pass refundable within 14 days if unused (no event created on the
       // slot); statutory rights preserved.
       ul(
@@ -402,10 +402,11 @@ export const TERMS_SECTIONS: LegalSection[] = [
   {
     id: "the-reel",
     title: "The highlight reel",
-    summary: "Free reels carry a small mark. Photos and albums never do.",
+    summary:
+      "A free event's clips carry a small mark. The reel, photos and albums never do.",
     blocks: [
       p(
-        "A host can render an event's album into a short highlight reel and share it. Reels rendered on the free tier carry a small partyreel.com mark; a paid plan removes it from the next render. Photos, videos and the album itself are never watermarked, on any plan. Reels are made from guest content under the licenses in the Your content section, and a guest who deletes an upload should expect it to leave the album immediately and any already-rendered reel at the next render.",
+        "Every event's album plays as a highlight reel for everyone the host lets into the album, composed on each viewer's own device from the album as it stands and never stored as a file. Anyone with access to the album may make a clip from the reel on their own device: a file that is theirs to save or share under the licenses in the Your content section, which we do not store unless they add it to the event's album, where it is content like any other upload. Clips made at an event on the free tier carry a small partyreel.com mark and a shorter maximum length; on a paid plan they carry no mark and may run longer. Photos, videos, the album and the reel itself are never watermarked, on any plan. A guest who deletes an upload should expect it to leave the album and the reel immediately; a clip someone made before then is a file on their own device, which we cannot recall.",
       ),
     ],
   },
@@ -469,7 +470,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
       "Close your account yourself, any time, in a couple of taps. We can close accounts that break the rules. Either way, download first, because deletion is real.",
     blocks: [
       // Self-serve since 2026-09-02, and the plan now goes WITH the account
-      // (Will's ruling: an active plan is auto-cancelled at the request), so
+      // (an active plan is auto-cancelled at the request), so
       // the old "cancelling is separate" sentence would have been wrong.
       p(
         <>
@@ -533,7 +534,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
       ),
       // Our own images, never a guest's: this sits after the sentence that
       // separates the two so it can only read as the "us" side. It is the
-      // whole disclosure by Will's ruling (2026-09-18): no mark on any image.
+      // whole disclosure: no mark on any image.
       p(
         "We may use generative artificial-intelligence tools to create some of the images and videos on our website, in our marketing and in our demo event.",
       ),
@@ -581,7 +582,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
     summary:
       "Talk to us first. If that fails, the courts of our home state decide, one person at a time.",
     blocks: [
-      // Will's ruling (2026-09-01): informal resolution first, then the courts
+      // The policy: informal resolution first, then the courts
       // of [STATE], class-action waiver; deliberately NO arbitration.
       sub("informal", "Talk to us first"),
       p(

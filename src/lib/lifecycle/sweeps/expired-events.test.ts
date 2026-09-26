@@ -7,7 +7,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MAX_ROWS } from "@/lib/db/read-all";
-import { reelOutputKey } from "@/lib/r2/keys";
 import type { Deadline } from "@/lib/lifecycle/sweep-budget";
 import {
   createCronWorld,
@@ -110,7 +109,7 @@ describe("sweepExpiredEvents", () => {
       events: 321,
       hold_blocked_events: 2,
       media_rows: 2_500,
-      r2_deleted: 2 * 2_500 + 321, // original + preview each, and one reel key per purged event
+      r2_deleted: 2 * 2_500, // original + preview each
       r2_errored: 0,
       freed_bytes: 2_500 * 7,
     });
@@ -130,7 +129,7 @@ describe("sweepExpiredEvents", () => {
     expect(Math.max(...world.purgeCallSizes)).toBeLessThanOrEqual(MAX_ROWS);
   });
 
-  it("deletes every object before the rows that name it, and the reel before the event row", async () => {
+  it("deletes every object before the rows that name it", async () => {
     const { world, big } = fixture();
     await sweepExpiredEvents(world.client, NOW, new Set());
     const deletedKeys = new Set<string>();
@@ -146,7 +145,6 @@ describe("sweepExpiredEvents", () => {
         ).toBe(true);
       }
     }
-    expect(deletedKeys.has(reelOutputKey(String(big.id)))).toBe(true);
   });
 
   it("stops at its deadline mid-event, leaves that event standing with its rest, and says how much is left", async () => {

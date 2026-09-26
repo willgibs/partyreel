@@ -6,7 +6,7 @@ import { DEMO_EVENT_URL } from "@/lib/demo";
 /**
  * `/demo` — THE SHORT WAY INTO THE LIVE DEMO EVENT.
  *
- * Will ruled it on river-card round one (`opens=short`, 2026-09-19): the QR
+ * Decided on river-card round one (`opens=short`): the QR
  * door's code encodes this path rather than the demo event's own link, because
  * the value IS the code's size. `https://partyreel.com/demo` is 25 modules and
  * scans at a 99 px plate; the event link is 33 modules and needs 123, which is

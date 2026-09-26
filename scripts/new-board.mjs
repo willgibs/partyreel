@@ -7,8 +7,7 @@
  *   node scripts/new-board.mjs <id> "<title>" --spots    one idea, many real places
  *   node scripts/new-board.mjs <id> "<title>" --plain    asks and sections only
  *
- * ★ A CATALOG IS THE DEFAULT SHAPE, and that is Will's ruling rather than a
- * preference (2026-09-16): a track "should return design catalogs of ideas to
+ * ★ A CATALOG IS THE DEFAULT SHAPE: a track "should return design catalogs of ideas to
  * ship in the lab" that he can "kill, refine, or promote the best to the
  * Library", in a "gallery view by default, notes per item". A board that is
  * genuinely one question with no candidates passes `--plain` and says so; every
@@ -358,7 +357,7 @@ ${catalog ? CATALOG_CONTROLS : PLAIN_CONTROLS}
     { section: "${catalog ? "catalog" : "TODO"}", note: "TODO: where to look first, and why." },
   ],
 
-  links: { bible: [] },
+  links: {},
 });
 `;
 

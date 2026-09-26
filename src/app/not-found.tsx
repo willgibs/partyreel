@@ -17,7 +17,7 @@ import { surface } from "@/lib/surface";
 // NOTE (Track B): this renders OUTSIDE (marketing), so marketing.css never loads here —
 // the chrome's --mkt-header-h fallback covers it; the marketing-side 404s live in
 // (marketing)/(cinema|paper)/not-found.tsx. FORCED LIGHT via `surface-paper` (globals.css,
-// so it works without marketing.css) per the 2026-08-26 ruling: marketing surfaces have
+// so it works without marketing.css): marketing surfaces have
 // authored themes, and this boundary is paper. No data-mkt: the [data-mkt] token rules
 // live in marketing.css, absent here — the attribute would be inert.
 export const metadata: Metadata = {
@@ -49,17 +49,17 @@ export default function NotFound() {
   return (
     <div className="surface-paper flex min-h-0 flex-1 flex-col bg-background text-foreground">
       <MarketingHeader />
-      {/* ★ THE TRAIL'S HOME (Will, `home=notfound`, 2026-09-19). A page nobody
-          plans to see is the classic place for a rare delight (bible 22), and
+      {/* ★ THE TRAIL'S HOME (`home=notfound`). A page nobody
+          plans to see is the classic place for a rare delight, and
           this is the marketing surface that stands on paper, so the photographs
           run over light ground with dark hairlines. The Trail IS the main's
           area: the words stand inside it and the photographs run behind them,
           which is also what makes the whole screen the surface a reader draws
-          on. It yields inside the words' own box rather than wearing a scrim
-          (bible 1), it walks its own figure until a hand arrives, and below
+          on. It yields inside the words' own box rather than wearing a scrim,
+          it walks its own figure until a hand arrives, and below
           640 px it walks and never waits for a finger (`phone=walks`). The two
           GROUP 404s stay as they ship: they are a notFound() inside a marketing
-          route, boxed at 60vh under their own chapter's skin, and the ruling
+          route, boxed at 60vh under their own chapter's skin, and the choice
           was for the 404 a lost visitor actually lands on. */}
       <main className="flex flex-1 flex-col">
         <Trail className="flex flex-1 flex-col items-center justify-center px-6 py-24 sm:py-32">

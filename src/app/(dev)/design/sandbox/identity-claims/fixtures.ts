@@ -22,7 +22,7 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
  * life to a folder it does not own. Priya's name and seed are retyped, not
  * imported, so her avatar wears the same colour a reader has already seen.
  *
- * ★ THE SAME TWELVE MARKETING STILLS EVERY BOARD REUSES (bible 18: no new
+ * ★ THE SAME TWELVE MARKETING STILLS EVERY BOARD REUSES (bible 9: no new
  * asset, nothing to track the rights of).
  */
 
@@ -78,9 +78,13 @@ export const IMPOSTOR_PHOTOS = Array.from(
 );
 
 /** The one event already on Priya's dashboard: the wedding, a live guest event
- *  the moment her confirmed upload counted her (tonight's ruling: a person is
- *  a guest through an upload alone, never a save). */
+ *  the moment her confirmed upload counted her (a person is a guest through
+ *  an upload alone, never a save). */
 export const CURRENT_EVENT_COVER = MARKETING_IMAGES[3].src;
 
 /** A newly-claimed cover for the `after=strip` option: Tom's leaving do, once it is hers. */
 export const CLAIMED_COVER = STILL(4);
+
+/** The wedding's album behind the door, for `pointer`'s door frame: she can
+ *  confirm there now, before any upload (the door's round two). */
+export const DOOR_ALBUM = Array.from({ length: 6 }, (_, i) => STILL(i + 1));

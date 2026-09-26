@@ -19,7 +19,7 @@ import {
   libraryRulings,
   windowNotesFor,
 } from "@/app/(dev)/design/review/ledger";
-import { COMPONENTS, componentTitle } from "@/app/(dev)/design/rules/rules";
+import { itemById } from "@/app/(dev)/design/gallery/registry";
 import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
 import { SANDBOX, SURFACE_LABEL } from "@/app/(dev)/design/touchpoints";
 
@@ -324,21 +324,21 @@ export default async function DeskPage({
         )}
       </Section>
 
-      {/* The redesign queue. A Library entry ruled `redesign` or `retire` is
+      {/* The redesign queue. A catalog entry marked `redesign` or `retire` is
           a track waiting to be cut, and it is the only thing on this page that
-          comes from outside a board. `keep` is not listed: an entry Will kept
-          needs nobody's attention, and printing ninety of them would bury the
-          three that do. */}
+          comes from outside a board. `keep` is not listed: a kept entry needs
+          nobody's attention, and printing ninety of them would bury the three
+          that do. */}
       {redesigns.length > 0 && (
         <Section
           id="redesigns"
           title="Redesigns you asked for"
-          blurb="From docs/reviews/_library.json: the Library entries you ruled redesign or retire while scrolling the components. This is the queue the Orchestrator cuts tracks from."
+          blurb="From docs/reviews/_library.json: the catalog entries you marked redesign or retire while scrolling the components. This is the queue the Orchestrator cuts tracks from."
           aside={<Tag>{redesigns.length}</Tag>}
         >
           <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
             {redesigns.map((r) => {
-              const entry = COMPONENTS.find((c) => c.id === r.entry);
+              const entry = itemById(r.entry);
               return (
                 <li
                   key={r.entry}
@@ -349,7 +349,7 @@ export default async function DeskPage({
                       href={`/design/library/${r.entry}`}
                       className="text-sm font-medium hover:underline"
                     >
-                      {componentTitle(entry)}
+                      {entry.title}
                     </LabLink>
                   ) : (
                     <span className="text-sm font-medium">{r.entry}</span>

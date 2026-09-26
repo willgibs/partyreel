@@ -101,8 +101,8 @@ async function PartyGrid({ profile }: { profile: PublicProfile }) {
       name: event.name,
       eventDate: event.event_date,
       role: "guest" as const,
-      // No link, by the doctrine. EventCard draws an unopenable card for
-      // href: null, which is exactly what this is.
+      // No link: being on a guest list is not a capability grant. EventCard
+      // draws an unopenable card for href: null, which is exactly what this is.
       href: null,
       coverUrl: attendedCovers.get(event.id) ?? null,
       statusLabel: null,
@@ -126,9 +126,8 @@ async function PartyGrid({ profile }: { profile: PublicProfile }) {
               party.eventDate ? formatEventDate(party.eventDate) : "No date set"
             }
             statusLabel={party.statusLabel}
-            // The marker on every card (Will, `made-of=covers`, 2026-09-19): one grid with a
-            // mark on it, not two grids sharing a heading. The dashboard's Guest cards wear the
-            // same object (event-card.tsx owns it).
+            // The marker on every card: one grid with a mark on it, not two grids sharing a
+            // heading. The dashboard's Guest cards wear the same object (event-card.tsx owns it).
             action={<RoleMarker role={party.role} />}
           />
         </li>
@@ -172,20 +171,18 @@ function GridSkeleton({ count }: { count: number }) {
 /**
  * The PUBLIC profile page (profiles-social.md: profiles are public by existence; the slug
  * is the address, and claiming it was the consent act). Logged-out visible via
- * the anon get_public_profile RPC. What renders is exactly the RPC's ruled
+ * the anon get_public_profile RPC. What renders is exactly the RPC's
  * composition: hosted events the host PUBLISHED (display_in_profile, with the
  * album link) + the events this person added photos to that their hosts' guest
  * lists surface and that the owner CHOSE to show (nothing until chosen), each
  * following its album's own doors for THIS viewer. Never any counts (follower
  * counts are owner-private) and never an email.
  *
- * ★ ONE GRID, TWO KINDS OF CARD (Will, `made-of=covers`, 2026-09-19): "This
- * makes profile pages feel much more full and incentivizes guests to upload to
- * get that beautiful event card on their profile... rather than a separate
- * 'also at' section, maybe we could just have host/guest UI on each event card
- * to denote within a single group. Don't think we need the photographs gallery
- * on the profile page, keeps it more event focused". So the grey "Also at" list
- * is gone, a party someone attended is a card with a cover, and the only
+ * ★ ONE GRID, TWO KINDS OF CARD. Event cards make a profile page feel full and
+ * give a guest a reason to upload (the event's card on their own profile); a host
+ * or guest mark on each card tells the two apart within one group, and the page
+ * carries no photographs gallery, keeping it about events. So a party someone
+ * attended is a card with a cover, and the only
  * difference a viewer can act on is the one that matters: a hosted card opens
  * the album the host published, and an ATTENDED CARD CARRIES NO LINK, because
  * being on a guest list is not a capability grant. The covers behind the
@@ -245,7 +242,7 @@ export default async function PublicProfilePage({ params }: PageProps) {
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      {/* The album's own header, with no album behind it (Will, `head=guest`):
+      {/* The album's own header, with no album behind it:
           one header for every guest-side page, so a signed-in visitor keeps
           their account menu the moment they tap somebody's name. */}
       <GuestHeader />
@@ -254,27 +251,24 @@ export default async function PublicProfilePage({ params }: PageProps) {
         {/* Identity block: avatar, name, handle, restraint (joined month only —
             no counts by design: the graph is private, profiles-social.md point 4).
 
-            ★ THE AVATAR IS CENTRED ON THE NAME ROW AND THE BIO SITS OUTSIDE IT
-            (Will, `identity=line`): "Profile picture (avatar) should be center
-            aligned to the name/meta group, so if a bio 1) doesn't exist it
-            looks correct, or 2) does exist and runs at any length, the avatar
-            is still aligned to the top name/meta, not centered lower due to a
-            long bio". A bio inside this flex row would drag the avatar down by
-            half of whatever the person wrote.
+            ★ THE AVATAR IS CENTRED ON THE NAME ROW AND THE BIO SITS OUTSIDE IT,
+            so the avatar stays aligned to the name and meta whether a bio is
+            missing or runs to any length. A bio inside this flex row would drag
+            the avatar down by half of whatever the person wrote.
 
-            ★ AND THE PHONE FIX IS `max-sm:` ONLY (the board's): the name column
+            ★ AND THE PHONE LAYOUT IS `max-sm:` ONLY: the name column
             takes the rest of the row and the actions wrap under it at 375,
-            where the shipped row squeezed all three into about 90px. Every
-            wider screen stays byte-identical to what shipped. */}
+            where a single row would squeeze all three into about 90px. No
+            wider screen is touched by it. */}
         <section
           data-arrive
           style={{ "--arrive-i": 0 } as CSSProperties}
           className="flex flex-wrap items-center gap-5"
         >
-          {/* `xl` (80px, a fourth size on the Avatar contract) folds this
-              row's own hand-rolled disc into the shared component, so the
-              seeded colour (and the clipping fix, avatar-wiring) reaches it
-              the same way every other avatar surface gets it. */}
+          {/* `xl` (80px, the Avatar's fourth size) keeps this row on the
+              shared component rather than a hand-rolled disc, so the seeded
+              colour and the component's clipping reach it the same way every
+              other avatar surface gets them. */}
           <Avatar size="xl" seed={seedFor(profile.id)}>
             <AvatarImage src={avatarUrl ?? undefined} alt="" />
             <AvatarFallback>{name.slice(0, 1).toUpperCase()}</AvatarFallback>
@@ -347,20 +341,11 @@ export default async function PublicProfilePage({ params }: PageProps) {
             aria-label="Events"
             className="mt-10 space-y-3"
           >
-            {/* The label sizes a child span, not the heading tag: the form
-                design-system.md allows for an Inter label inside an h2, and the
-                same one the guest album's own Guests heading uses.
-
-                ★ THE LABEL PAIR, NOT A ONE-OFF (`label=12-08`, Will
-                2026-09-20: "I think the tighter spacing looks better. Leaning
-                towards 12px for now since we're a consumer product"). Written
-                as STOCK CLASSES that equal the ruled step — text-xs IS 12 —
-                because `ladder-wiring` has not landed and Tailwind v4 emits no
-                utility at all for an undeclared token: `text-label` here would
-                silently inherit and nothing in the gate would catch it. The
-                mechanical swap to the step name happens after that lane. */}
+            {/* The label sizes a child span, not the heading tag: an Inter label
+                inside an h2, the same one the guest album's own Guests heading
+                uses (the `label` step: 12px on a 16px line, 0.08em tracking). */}
             <h2>
-              <span className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase">
+              <span className="text-label font-semibold text-muted-foreground uppercase">
                 Events
               </span>
             </h2>
@@ -371,16 +356,16 @@ export default async function PublicProfilePage({ params }: PageProps) {
         )}
 
         {/* ★ THE OWNER MODE, AND ★ NOT IN A loading.tsx. The paragraph at
-            PartyGrid above is the law here: a loading FILE would wrap this
+            PartyGrid above applies here: a loading FILE would wrap this
             whole route in Suspense, flush the shell before the page runs, and
             make a dead handle answer 200 instead of 404 on a public, indexable
             page. So the owner's three feeds stream behind their OWN in-page
             boundary, exactly as the card grid does, and the 404 decision stays
             at the top of the page where the RPC is.
 
-            A visitor's render is byte-identical to what it was: `isSelf` is
-            false, nothing below is constructed, and not one of the three
-            personal queries runs. */}
+            A visitor's render carries none of it: `isSelf` is false, nothing
+            below is constructed, and not one of the three personal queries
+            runs. */}
         {isSelf && (
           <Suspense fallback={<OwnerSkeleton />}>
             <OwnerSections />

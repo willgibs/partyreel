@@ -1,6 +1,3 @@
-// @contract-for: src/components/shared/tile-size-control.tsx
-// @contract-for: src/lib/shared/use-tile-size.ts
-// @contract-for: src/lib/shared/tile-size-cookie.ts
 import {
   act,
   fireEvent,
@@ -35,7 +32,9 @@ describe("resolveTileSize", () => {
   });
 
   it("falls back to the wired default on anything else", () => {
-    for (const raw of [undefined, null, "", "0", "999", "not-a-number"]) {
+    // "0" left this list when the cookie learned the rows' step index (0, 1,
+    // 2 read as the widths they stand for: `tile-size-cookie.test.ts`).
+    for (const raw of [undefined, null, "", "7", "999", "not-a-number"]) {
       expect(resolveTileSize(raw)).toBe(DEFAULT_TILE_SIZE);
     }
   });

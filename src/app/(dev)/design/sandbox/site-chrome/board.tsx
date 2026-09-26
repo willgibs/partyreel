@@ -78,10 +78,12 @@ const ALONE_H = { d: 1180, p: 1820 };
 const ALONE_NOTE: Record<FootAlone, string> = {
   full: "Today's whole invitation, whatever a closed page picks instead.",
   same: "The same footer this board is drawing everywhere else this round.",
+  line: "A closing sentence built for this page alone: lighter than the full register, more than a footnote.",
 };
 
 function footAloneScreen(alone: FootAlone, state: BoardState) {
-  const register = alone === "full" ? "today" : footAfterOf(state);
+  const register =
+    alone === "full" ? "today" : alone === "line" ? "line" : footAfterOf(state);
   return (
     <Widths
       id={`foot-alone-${alone}`}
@@ -106,9 +108,10 @@ const PHONE_H = 1900;
 const PHONE_NOTE: Record<FootPhone, string> = {
   hidden:
     "As today: no code (nobody can scan their own screen), a link instead.",
-  small:
-    "The code stays, small: decoration now by ruling (first-event r1), not just a guess.",
+  small: "The code stays, small and always visible, beside the heading.",
   none: "No demo mention at all on this width: straight into the index.",
+  reveal:
+    "Hidden behind a tap: a real code, sized for someone else's camera, not this screen's own.",
 };
 
 function footPhoneScreen(mode: FootPhone) {
@@ -136,10 +139,12 @@ const PREVIEWS: PreviewsFor<typeof SITE_CHROME> = {
 
   "foot-alone.full": (s) => footAloneScreen("full", s),
   "foot-alone.same": (s) => footAloneScreen("same", s),
+  "foot-alone.line": (s) => footAloneScreen("line", s),
 
   "foot-phone.hidden": footPhoneScreen("hidden"),
   "foot-phone.small": footPhoneScreen("small"),
   "foot-phone.none": footPhoneScreen("none"),
+  "foot-phone.reveal": footPhoneScreen("reveal"),
 };
 
 export function SiteChromeBoard(): ReactNode {

@@ -1,19 +1,27 @@
 /**
  * THE CLIP SOURCE's pins: what a payload change does to a loop that is already playing.
  *
- * The three behaviours the wiring lanes will lean on: an arrival is spliced in RIGHT AFTER the clip
+ * The three behaviours the reel's surfaces lean on: an arrival is spliced in RIGHT AFTER the clip
  * on screen and never rewrites the window being watched; a departure is cut from every planned
  * window at once; and the retains stay flat no matter how long the reel runs, because that is what
  * keeps a 300-photograph album costing what a six-photograph one costs.
+ *
+ * And on the paged album (a resolver): the take is planned from url-less manifest items, links are
+ * asked for ahead of their turn and read at the moment a window is built, a window waits for its
+ * stills only boundedly, and a still that failed is reported by id.
  */
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { ClipResolver } from "@/lib/album/resolver";
 import { createBitmapCache } from "@/lib/reel/engine/asset-cache";
 import type { CanvasImage } from "@/lib/reel/engine/canvas2d";
+import { THEME_IDS } from "@/lib/reel/engine/themes";
+import { frameStateAt } from "@/lib/reel/engine/timeline";
 
 import type { LiveMediaItem } from "./items";
-import { createClipSource } from "./source";
-import type { ReelLook } from "./window";
+import { createClipSource, LINK_WAIT_MS } from "./source";
+import { planTake } from "./take";
+import type { ReelLook, ReelWindow } from "./window";
 
 const LOOK: ReelLook = { styleId: "classic", surface: "hand" };
 const NEEDS = { washes: false };
@@ -126,17 +134,24 @@ describe("the windows", () => {
   it("roll into a new loop with a fresh take, carrying the clip on screen", () => {
     const { source: s } = source(album(7));
     let last = s.windowAt(0, LOOK)!;
+    let before: typeof last | null = null;
     let rolled: typeof last | null = null;
     for (let i = 1; i < 6 && !rolled; i++) {
       const win = s.windowAt(i, LOOK)!;
-      if (win.loopIndex !== last.loopIndex) rolled = win;
+      if (win.loopIndex !== last.loopIndex) {
+        rolled = win;
+        before = last;
+      }
       last = win;
     }
     expect(rolled).not.toBeNull();
     expect(rolled!.loopIndex).toBe(1);
-    expect(rolled!.startIndex).toBe(0);
-    // The new loop still opens on the clip the old one ended with, so the swap lands mid-hold.
-    expect(rolled!.ids[0]).toBeDefined();
+    // The new loop opens on the clip the old one ended with, AT THAT CLIP'S OWN ORDINAL: the
+    // ordinal never re-zeroes at a boundary, which is what keeps the carried clip's plan.
+    expect(rolled!.ids[0]).toBe(before!.ids[before!.ids.length - 1]);
+    expect(rolled!.startIndex).toBe(
+      before!.startIndex + before!.ids.length - 1,
+    );
     expect(s.stats().loopIndex).toBe(1);
   });
 
@@ -154,6 +169,120 @@ describe("the windows", () => {
     const { source: s } = source([]);
     expect(s.windowAt(0, LOOK)).toBeNull();
     expect(s.eligibleCount()).toBe(0);
+  });
+});
+
+/**
+ * ★ THE SMALL-ALBUM SEAM. With the shipped window of six, an album of six or fewer makes EVERY
+ * handover a loop boundary, and a boundary that re-planned the carried clip from the new loop's seed
+ * would jump its pan and zoom (~5%) mid-hold, every few seconds, on exactly the albums the reel
+ * meets first (it exists from the SECOND item). At one clip the move would snap back to its start
+ * every hold. These walk the real chain at exactly 1, 2 and 6 clips and hold the handover to what it
+ * claims: the same clip, the same plan, the same frame.
+ */
+describe("the small-album seam", () => {
+  const DEFAULT_SIZE = { windowSize: 6 };
+
+  /** The picture at the swap, on both sides: the leaving window at its handover frame, and the
+   *  incoming one at the frame the player resumes it on (window.ts's `handoverOf`). */
+  function expectSeamless(a: ReelWindow, b: ReelWindow, label: string) {
+    const lastA = a.plan.clips.length - 1;
+    expect(b.ids[0], `${label}: the carried clip`).toBe(a.ids[lastA]);
+    expect(b.startIndex, `${label}: its ordinal`).toBe(a.startIndex + lastA);
+    expect(b.plan.clips[0].motion, `${label}: its Ken-Burns`).toEqual(
+      a.plan.clips[lastA].motion,
+    );
+    expect(
+      b.plan.clips[0].durationInFrames,
+      `${label}: the hold the motion is a fraction of`,
+    ).toBe(a.plan.clips[lastA].durationInFrames);
+    if (lastA >= 1) {
+      const out = frameStateAt(a.plan, a.handoverFrame);
+      const into = frameStateAt(b.plan, a.handoverOffset);
+      expect(into.top.clipIndex, `${label}: resumes on clip 0`).toBe(0);
+      expect(into.top.localFrame, `${label}: at the frame it was on`).toBe(
+        out.top.localFrame,
+      );
+      expect(into.transition, `${label}: with nothing in flight`).toBeNull();
+    }
+  }
+
+  function walk(n: number, look: ReelLook, windows = 8) {
+    const { source: s } = source(album(n), DEFAULT_SIZE);
+    const seen: ReelWindow[] = [];
+    for (let i = 0; i < windows; i++) {
+      const win = s.windowAt(i, look);
+      if (!win) break;
+      seen.push(win);
+    }
+    return { s, seen };
+  }
+
+  it("at 6 clips: every handover is a boundary, and every one is seamless", () => {
+    for (const styleId of THEME_IDS) {
+      const { seen } = walk(6, { styleId, surface: "hand" });
+      expect(seen.length).toBe(8);
+      for (let i = 1; i < seen.length; i++) {
+        // Each window is a whole loop (six clips in a window of six), so each handover rolls one.
+        expect(seen[i].loopIndex).toBe(seen[i - 1].loopIndex + 1);
+        expectSeamless(seen[i - 1], seen[i], `${styleId} #${i}`);
+      }
+    }
+  });
+
+  it("at 2 clips: the two alternate, and the carried one never re-plans", () => {
+    for (const surface of ["hand", "wall"] as const) {
+      const { seen } = walk(2, { styleId: "classic", surface });
+      expect(seen.length).toBe(8);
+      for (let i = 1; i < seen.length; i++) {
+        expect(seen[i].ids).toHaveLength(2);
+        // It bounces between the two: whatever closed a window opens the next.
+        expect(seen[i].ids[1]).toBe(seen[i - 1].ids[0]);
+        expectSeamless(seen[i - 1], seen[i], `${surface} #${i}`);
+      }
+    }
+  });
+
+  it("at 1 clip: it plays its move once and holds, never snapping back", () => {
+    const { s, seen } = walk(1, LOOK, 3);
+    const first = seen[0];
+    expect(first.ids).toEqual(["m0"]);
+    // The album's only clip never hands over: every window after it is the same plan, and handing
+    // over to it would restart the move. It rests on its last frame until an upload splices in.
+    expect(first.handoverFrame).toBe(Number.POSITIVE_INFINITY);
+    for (let i = 1; i < seen.length; i++) {
+      expectSeamless(seen[i - 1], seen[i], `#${i}`);
+    }
+    // And the moment a second one arrives, the reel splices it in behind the clip on screen,
+    // without moving the clip.
+    s.setCurrentWindow(0);
+    s.setItems([...album(1), item(9, { id: "second" })]);
+    const rebuilt = s.rewindowAt(first, "m0", LOOK)!;
+    expect(rebuilt.ids).toEqual(["m0", "second"]);
+    expect(rebuilt.plan.clips[0].motion).toEqual(first.plan.clips[0].motion);
+    expect(Number.isFinite(rebuilt.handoverFrame)).toBe(true);
+  });
+
+  it("carries the plan across a boundary for a bigger album too", () => {
+    const { seen } = walk(9, LOOK, 12);
+    let boundaries = 0;
+    for (let i = 1; i < seen.length; i++) {
+      if (seen[i].loopIndex !== seen[i - 1].loopIndex) boundaries += 1;
+      expectSeamless(seen[i - 1], seen[i], `#${i}`);
+    }
+    expect(boundaries).toBeGreaterThan(1);
+  });
+
+  it("keeps the chain by id when a played clip leaves (the order shifts under it)", () => {
+    const { source: s } = source(album(20));
+    const w0 = s.windowAt(0, LOOK)!;
+    s.setCurrentWindow(0);
+    const w1 = s.windowAt(1, LOOK)!;
+    s.setCurrentWindow(1);
+    // A clip that already PLAYED leaves: every position in the loop behind it shifts by one.
+    s.drop([w0.ids[0]]);
+    const w2 = s.windowAt(2, LOOK)!;
+    expectSeamless(w1, w2, "after a drop behind the screen");
   });
 });
 
@@ -258,14 +387,52 @@ describe("a drop", () => {
     expect(cut.resumeFrame).toBeGreaterThan(0);
   });
 
-  it("tops the cutaway up from the loop when the window had nothing after it", () => {
+  it("still leaves FROM the clip on screen when the PAYLOAD drops it (the album's own path)", () => {
+    // A guest's payload loses a hidden photograph outright, so by the time it is dropped it is no
+    // longer in the items: the cutaway must serve it from what the source knew before.
+    const items = album(20);
+    const { source: s } = source(items);
+    const current = s.windowAt(0, LOOK)!;
+    s.setCurrentWindow(0);
+    const onScreen = current.ids[1];
+    expect(
+      s.setItems(items.filter((it) => it.id !== onScreen)).dropped,
+    ).toEqual([onScreen]);
+    const cut = s.cutawayFrom(current, onScreen, LOOK)!;
+    expect(cut.ids[0]).toBe(onScreen);
+    expect(cut.props.clips[0].url).toBe(current.props.clips[1].url);
+    expect(cut.resumeFrame).toBeGreaterThan(0);
+  });
+
+  it("tops the cutaway up from what comes NEXT when the window had nothing after it", () => {
     const { source: s } = source(album(20));
     const current = s.windowAt(0, LOOK)!;
+    s.setCurrentWindow(0);
+    const upNext = s.windowAt(1, LOOK)!; // opens on current's last clip, then what follows it
     const onScreen = current.ids[3]; // the last clip of the window
     s.drop([onScreen]);
     const cut = s.cutawayFrom(current, onScreen, LOOK)!;
     expect(cut.ids[0]).toBe(onScreen);
     expect(cut.ids.length).toBeGreaterThan(1);
+    // Never the loop's opening photographs again: the clip that was coming next.
+    expect(cut.ids[1]).toBe(upNext.ids[1]);
+    expect(current.ids).not.toContain(cut.ids[1]);
+  });
+
+  it("makes the cutaway the chain, so the next window opens on the clip it hands over on", () => {
+    const { source: s } = source(album(20));
+    const current = s.windowAt(0, LOOK)!;
+    s.setCurrentWindow(0);
+    s.windowAt(1, LOOK); // a prefetch from the order before the drop
+    const onScreen = current.ids[1];
+    s.drop([onScreen]);
+    const cut = s.cutawayFrom(current, onScreen, LOOK)!;
+    const next = s.windowAt(1, LOOK)!;
+    expect(next.ids[0]).toBe(cut.ids[cut.ids.length - 1]);
+    expect(next.startIndex).toBe(cut.startIndex + cut.ids.length - 1);
+    expect(next.plan.clips[0].motion).toEqual(
+      cut.plan.clips[cut.plan.clips.length - 1].motion,
+    );
   });
 });
 
@@ -330,10 +497,10 @@ describe("the retains", () => {
   });
 
   it("★ never deadlocks the chain when a PREFETCHED window is thrown away", async () => {
-    // The stall behind two soaks: `slotAt` walks forward from the last slot it built, so releasing a
-    // prefetched window (which a splice or a look change does) used to leave that pointer on a slot
-    // that no longer existed. Every request then answered null, the prefetch could never refill, and
-    // the reel held one photograph for ever.
+    // `slotAt` walks forward from the last slot it built, so releasing a prefetched window (which a
+    // splice or a look change does) could leave that pointer on a slot that no longer exists. Every
+    // request would then answer null, the prefetch could never refill, and the reel would hold one
+    // photograph for ever.
     const { source: s } = source(album(60));
     for (let i = 0; i <= 3; i++) {
       const win = s.windowAt(i, LOOK)!;
@@ -397,5 +564,312 @@ describe("the retains", () => {
     const assets = await s.prepare(s.windowAt(0, LOOK)!, { needs: NEEDS });
     expect(assets.clips).toEqual([null, null, null, null]);
     expect(assets.failures).toBe(4);
+  });
+});
+
+/** A manifest item of the paged album: no links at all, `drawable` says it has a still. */
+function unlinked(i: number, over: Partial<LiveMediaItem> = {}): LiveMediaItem {
+  return item(i, { url: "", previewUrl: null, drawable: true, ...over });
+}
+
+const manifest = (n: number) =>
+  Array.from({ length: n }, (_, i) => unlinked(i));
+
+/** A resolver over a hand-held link map: `land` mints, `remint` re-signs, `forget` drops. */
+function fakeResolver() {
+  const links = new Map<string, { tile: string; view: string }>();
+  const asked: string[][] = [];
+  let version = 1;
+  const resolver: ClipResolver = {
+    get: (id) => links.get(id),
+    ensure: async (ids) => {
+      asked.push([...ids]);
+    },
+  };
+  const land = (ids: readonly string[], tag = "") => {
+    for (const id of ids) {
+      links.set(id, {
+        tile: `/t/${id}${tag}.webp?v=${version}`,
+        view: `/v/${id}?v=${version}`,
+      });
+    }
+  };
+  return {
+    resolver,
+    asked,
+    land,
+    remint(ids: readonly string[]) {
+      version += 1;
+      land(ids);
+    },
+    forget(ids: readonly string[]) {
+      for (const id of ids) links.delete(id);
+    },
+  };
+}
+
+/** A loader whose `bad` urls fail to decode, recording what it was asked for. */
+function fakeLoadFailing(bad: (url: string) => boolean) {
+  const calls: string[][] = [];
+  const load = vi.fn(async (clips: readonly { url: string }[]) => {
+    calls.push(clips.map((clip) => clip.url));
+    return {
+      clips: clips.map((clip) =>
+        clip.url && !bad(clip.url)
+          ? {
+              image: fakeImage(clip.url),
+              width: 4,
+              height: 4,
+              wash: null,
+              halo: null,
+            }
+          : null,
+      ),
+      failures: clips.filter((clip) => clip.url && bad(clip.url)).length,
+      grain: null,
+    };
+  });
+  return { load: load as never, calls };
+}
+
+describe("on the paged album (a resolver)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("plans the take from url-less drawable items and asks for the first window's links, two windows past it", () => {
+    const items = manifest(20);
+    const r = fakeResolver();
+    const { source: s } = source(items, { resolver: r.resolver });
+    const take = planTake(items, { eventId: "e1", loopIndex: 0 });
+    expect(s.eligibleCount()).toBe(20);
+    // Nothing has landed: the window waits for its stills rather than planning theme-colour holds.
+    expect(s.windowAt(0, LOOK)).toBeNull();
+    expect(r.asked).toEqual([take.slice(0, 12)]); // windows of four: this one and about two more
+  });
+
+  it("builds a window once its links land, reading them at that moment", () => {
+    const items = manifest(20);
+    const r = fakeResolver();
+    const { source: s } = source(items, { resolver: r.resolver });
+    const take = planTake(items, { eventId: "e1", loopIndex: 0 });
+    expect(s.windowAt(0, LOOK)).toBeNull();
+    r.land(take.slice(0, 4)); // only this window's: the rest can still be on their way
+    const w0 = s.windowAt(0, LOOK)!;
+    expect(w0.ids).toEqual(take.slice(0, 4));
+    expect(w0.props.clips.map((clip) => clip.url)).toEqual(
+      take.slice(0, 4).map((id) => `/t/${id}.webp?v=1`),
+    );
+  });
+
+  it("asks ahead as the chain walks: every planned slot, across a loop boundary too", () => {
+    const items = manifest(7);
+    const r = fakeResolver();
+    r.land(items.map((it) => it.id));
+    const { source: s } = source(items, { resolver: r.resolver });
+    const take = planTake(items, { eventId: "e1", loopIndex: 0 });
+    const w0 = s.windowAt(0, LOOK)!;
+    const w1 = s.windowAt(1, LOOK)!;
+    // The second slot opens on the first's last clip (position 3) and asks from there.
+    expect(r.asked[1]).toEqual(take.slice(3, 15));
+    const w2 = s.windowAt(2, LOOK)!;
+    expect(w2.loopIndex).toBe(1);
+    // A new loop's take, carrying the clip on screen at its head, asked for as soon as it is planned.
+    const carry = w1.ids[w1.ids.length - 1];
+    const next = planTake(items, { eventId: "e1", loopIndex: 1 });
+    expect(r.asked[2]).toEqual([carry, ...next.filter((id) => id !== carry)]);
+    expect(w0.ids).toEqual(take.slice(0, 4));
+  });
+
+  it("waits for its stills only boundedly: past LINK_WAIT_MS it builds without them", async () => {
+    vi.useFakeTimers();
+    const onFailedIds = vi.fn();
+    const r = fakeResolver();
+    const { source: s } = source(manifest(12), {
+      resolver: r.resolver,
+      onFailedIds,
+    });
+    expect(s.windowAt(0, LOOK)).toBeNull();
+    vi.advanceTimersByTime(LINK_WAIT_MS - 1);
+    expect(s.windowAt(0, LOOK)).toBeNull();
+    vi.advanceTimersByTime(1);
+    const w0 = s.windowAt(0, LOOK)!;
+    expect(w0).not.toBeNull();
+    expect(w0.props.clips.every((clip) => clip.url === "")).toBe(true);
+    // A still that never came holds a theme colour, as a url-less clip always has: not a failure.
+    const assets = await s.prepare(w0, { needs: NEEDS });
+    expect(assets.failures).toBe(0);
+    expect(onFailedIds).not.toHaveBeenCalled();
+  });
+
+  it("never waits for an item that carries its own urls, and keeps them when the resolver has nothing", () => {
+    const r = fakeResolver();
+    const { source: s } = source(album(12), { resolver: r.resolver });
+    const w0 = s.windowAt(0, LOOK)!;
+    expect(w0).not.toBeNull();
+    expect(w0.props.clips.every((clip) => clip.url.startsWith("/p/"))).toBe(
+      true,
+    );
+    expect(s.itemFor("m3")).toMatchObject({
+      url: "/u/3.jpg",
+      previewUrl: "/p/3.webp",
+    });
+  });
+
+  it("merges links into itemFor fresh on every call, and never holds a stale url after a re-mint", () => {
+    const items = [
+      unlinked(0),
+      unlinked(1, { type: "video" }),
+      unlinked(2, { type: "video", drawable: false }),
+      ...manifest(12).slice(3),
+    ];
+    const r = fakeResolver();
+    r.land(items.map((it) => it.id));
+    const { source: s } = source(items, { resolver: r.resolver });
+    expect(s.itemFor("m0")).toMatchObject({
+      url: "/v/m0?v=1",
+      previewUrl: "/t/m0.webp?v=1",
+    });
+    // A video: the view is its original (the motion window), the tile its poster.
+    expect(s.itemFor("m1")).toMatchObject({
+      url: "/v/m1?v=1",
+      previewUrl: "/t/m1.webp?v=1",
+    });
+    // A posterless video's tile is the raw file, which is never a still.
+    expect(s.itemFor("m2")?.previewUrl).toBeNull();
+    expect(s.isLive("m2")).toBe(false);
+
+    s.windowAt(0, LOOK);
+    r.remint(items.map((it) => it.id));
+    expect(s.itemFor("m0")).toMatchObject({
+      url: "/v/m0?v=2",
+      previewUrl: "/t/m0.webp?v=2",
+    });
+    // The next window is built after the re-mint, so it reads the new links, never the old.
+    const w1 = s.windowAt(1, LOOK)!;
+    expect(w1.props.clips.every((clip) => clip.url.endsWith("?v=2"))).toBe(
+      true,
+    );
+  });
+
+  it("reports exactly the ids whose stills failed (onFailedIds), once per prepare", async () => {
+    const items = manifest(8);
+    const r = fakeResolver();
+    const take = planTake(items, { eventId: "e1", loopIndex: 0 });
+    const [a, b, c, d] = take.slice(0, 4);
+    r.land([a, d]);
+    r.land([b, c], "-bad");
+    const onFailedIds = vi.fn();
+    const { load } = fakeLoadFailing((url) => url.includes("-bad"));
+    const s = createClipSource({
+      eventId: "e1",
+      items,
+      windowSize: 4,
+      cache: createBitmapCache(async (url) => fakeImage(url)),
+      load,
+      resolver: r.resolver,
+      onFailedIds,
+    });
+    const assets = await s.prepare(s.windowAt(0, LOOK)!, { needs: NEEDS });
+    expect(assets.failures).toBe(2);
+    expect(onFailedIds).toHaveBeenCalledTimes(1);
+    expect([...onFailedIds.mock.calls[0][0]].sort()).toEqual([b, c].sort());
+  });
+
+  it("tries a failed still again in the next window that holds it, with the link it has by then", async () => {
+    const items = manifest(12);
+    const r = fakeResolver();
+    const take = planTake(items, { eventId: "e1", loopIndex: 0 });
+    const overlap = take[3]; // window 0's last clip is window 1's first
+    r.land(take);
+    r.land([overlap], "-bad");
+    const { load, calls } = fakeLoadFailing((url) => url.includes("-bad"));
+    const s = createClipSource({
+      eventId: "e1",
+      items,
+      windowSize: 4,
+      cache: createBitmapCache(async (url) => fakeImage(url)),
+      load,
+      resolver: r.resolver,
+    });
+    const w0 = s.windowAt(0, LOOK)!;
+    expect((await s.prepare(w0, { needs: NEEDS })).clips[3]).toBeNull();
+    r.remint([overlap]); // the watchdog's re-mint
+    const w1 = s.windowAt(1, LOOK)!;
+    expect(w1.ids[0]).toBe(overlap);
+    const assets = await s.prepare(w1, { needs: NEEDS });
+    // A remembered failure would have kept it blank for as long as any window held it.
+    expect(assets.clips[0]).not.toBeNull();
+    expect(calls.at(-1)).toContain(`/t/${overlap}.webp?v=2`);
+  });
+
+  it("splices an arrival on screen with its still, and waits for it only boundedly", () => {
+    vi.useFakeTimers();
+    const items = manifest(20);
+    const r = fakeResolver();
+    r.land(items.map((it) => it.id));
+    const { source: s } = source(items, { resolver: r.resolver });
+    const current = s.windowAt(0, LOOK)!;
+    s.setCurrentWindow(0);
+    const onScreen = current.ids[1];
+
+    s.setItems([...items, unlinked(99, { id: "fresh" })]);
+    // Asked for the moment it landed.
+    expect(r.asked.at(-1)).toEqual(["fresh"]);
+    // Its link is not in yet: no rewindow, and the queue is untouched for the next tick.
+    expect(s.rewindowAt(current, onScreen, LOOK)).toBeNull();
+    expect(s.pendingCount()).toBe(1);
+
+    r.land(["fresh"]);
+    const rebuilt = s.rewindowAt(current, onScreen, LOOK)!;
+    expect(rebuilt.ids.slice(0, 2)).toEqual([onScreen, "fresh"]);
+    expect(rebuilt.props.clips[1].url).toBe("/t/fresh.webp?v=1");
+
+    // A second arrival whose link never comes: spliced anyway once the wait runs out.
+    s.setItems([
+      ...items,
+      unlinked(99, { id: "fresh" }),
+      unlinked(98, { id: "late" }),
+    ]);
+    expect(s.rewindowAt(rebuilt, onScreen, LOOK)).toBeNull();
+    vi.advanceTimersByTime(LINK_WAIT_MS);
+    const anyway = s.rewindowAt(rebuilt, onScreen, LOOK)!;
+    expect(anyway.ids.slice(0, 2)).toEqual([onScreen, "late"]);
+  });
+
+  it("leaves on the still that was drawn, even once the album has forgotten the leaver's links", () => {
+    const items = manifest(20);
+    const r = fakeResolver();
+    r.land(items.map((it) => it.id));
+    const { source: s } = source(items, { resolver: r.resolver });
+    const current = s.windowAt(0, LOOK)!;
+    s.setCurrentWindow(0);
+    const onScreen = current.ids[1];
+    // The album drops an id's links when a delta removes it, before the reel hears of it.
+    r.forget([onScreen]);
+    s.setItems(items.filter((it) => it.id !== onScreen));
+    const cut = s.cutawayFrom(current, onScreen, LOOK)!;
+    expect(cut.ids[0]).toBe(onScreen);
+    expect(cut.props.clips[0].url).toBe(current.props.clips[1].url);
+    expect(cut.ids.length).toBeGreaterThan(1);
+  });
+
+  it("shrugs off a resolver that rejects or throws (the wait covers it)", () => {
+    vi.useFakeTimers();
+    for (const ensure of [
+      async () => {
+        throw new Error("offline");
+      },
+      () => {
+        throw new Error("broken");
+      },
+    ]) {
+      const { source: s } = source(manifest(8), {
+        resolver: { get: () => undefined, ensure } as ClipResolver,
+      });
+      expect(s.windowAt(0, LOOK)).toBeNull();
+      vi.advanceTimersByTime(LINK_WAIT_MS);
+      expect(s.windowAt(0, LOOK)).not.toBeNull();
+    }
   });
 });

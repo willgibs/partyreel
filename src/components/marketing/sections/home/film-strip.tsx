@@ -15,8 +15,8 @@ import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
  * and a linear marquee; ambient motion stays linear) with its sampled
  * underlight, and beneath it the WHOLE loop as a numbered stepper.
  *
- * ★ THE THREE SCENE CARDS ARE GONE (Will, 2026-09-19, ruling the walkthrough's
- * shape): "I made a previous question note about using a simpler three steps
+ * ★ THE THREE SCENE CARDS ARE GONE (the walkthrough's
+ * shape changed): "I made a previous question note about using a simpler three steps
  * for 'How It Works' sections, such as on the homepage, to point into the more
  * comprehensive How It Works page. However, I think a numbered stepper would
  * work better, where we can present the full flow within a regular height
@@ -24,9 +24,9 @@ import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
  * a six-step loop and then linked to a page that told six, so the teaser was
  * shallower than its own door; the stepper tells all six in the same room.
  *
- * ★ THE STRIP AND ITS LAMP STAY. His ruling was about the three cards, and the
+ * ★ THE STRIP AND ITS LAMP STAY. The change was about the three cards, and the
  * conveyor is this section's identity: the site's own photographs running edge
- * to edge (bible 18) over one of the four shipped lamps (design-system.md, "the
+ * to edge over one of the four shipped lamps (design-system.md, "the
  * shipped light"), whose whole design is a strip of frames above and an object
  * below positioned to CATCH the light. The stepper is that object now.
  *

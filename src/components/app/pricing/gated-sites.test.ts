@@ -1,4 +1,3 @@
-// @contract-for: src/components/app/pricing/lock-chip.tsx
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -25,7 +24,7 @@ import { describe, expect, it } from "vitest";
 const read = (...parts: string[]) =>
   readFileSync(join(process.cwd(), ...parts), "utf8");
 
-/** The four controls his ruling names, at their shipped paths. */
+/** The four controls this rule names, at their shipped paths. */
 const GATED_SITES = [
   ["the password panel", "src", "components", "app", "event-password-control.tsx"],
   [

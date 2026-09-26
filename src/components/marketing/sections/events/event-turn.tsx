@@ -6,10 +6,10 @@ import { cn } from "@/lib/utils";
 /**
  * THE TURN: the photograph a type page crosses on its way from cinema to paper.
  *
- * Will ruled `the-arc=chapter` (2026-09-19, verbatim): "This decision is more an
+ * `the-arc=chapter` was chosen, verbatim: "This decision is more an
  * answer to 'all dark, paper chapter, or paper chapter with photo transition'
- * with my answer being 'paper chapter with photo transition'." It is his own
- * earlier ruling made concrete (2026-09-18): "full image backgrounds sections
+ * with my answer being 'paper chapter with photo transition'." It makes an
+ * earlier idea concrete: "full image backgrounds sections
  * should commonly serve as chapter transitions, so we go straight from dark to
  * light or vice versa less often."
  *
@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
  * spends its one light chapter on the planning document alone, which is the
  * only thing on these pages a reader studies rather than skims.
  *
- * ★ ONE PHOTOGRAPH, NOT AN ENGINE. `PhotoSection` is the ruled switching band
+ * ★ ONE PHOTOGRAPH, NOT AN ENGINE. `PhotoSection` is the switching band
  * and it is the wrong tool here: a transition is a cut, and a cut that offers
  * five frames to walk through asks the reader to stop at the exact moment the
  * page is carrying them somewhere. One frame, one line, and the ground has
@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
  *
  * ★ THE LINE GETS ITS OWN GROUND, and it is a cast rather than a plate. White
  * type over the middle of a bright photograph is the legibility failure the
- * plate ruling exists for; a full plate here would turn the band into a card
+ * plate exists to fix; a full plate here would turn the band into a card
  * and the crossing into a section. A centred radial does the job and leaves the
  * photograph's edges intact, which is what keeps this a band.
  *

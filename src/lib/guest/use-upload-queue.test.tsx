@@ -1,20 +1,26 @@
 /**
- * THE QUEUE'S RECOVERY FROM SOMEBODY ELSE'S TICKET (the upload-owner lane, 2026-09-23).
+ * THE QUEUE'S RECOVERY FROM SOMEBODY ELSE'S TICKET.
  *
- * The routes now refuse a ticket whose row belongs to an account the viewer is not
- * (`session_other_account`). These pin what the queue does about it, which is the half of the fix a
- * guest actually lives through: the ticket goes down (token, name, cookie), the viewer joins again
+ * The routes refuse a ticket whose row belongs to an account the viewer is not
+ * (`session_other_account`). These pin what the queue does about it, which is the half of that rule
+ * a guest actually lives through: the ticket goes down (token, name, cookie), the viewer joins again
  * as whoever the server says they are, and the SAME file goes up on the new ticket, so no photograph
  * is lost and none is credited to the ticket's owner. A confirmed account never notices; anyone else
  * is handed to the door while the files wait, never failed.
  *
- * The engine's older pins live in guest-upload.test.tsx (its contract file); these run the hook on
+ * The engine's other pins live in guest-upload.test.tsx (its test file); these run the hook on
  * its own, because what they pin is the queue's side of a server rule rather than a sheet.
  */
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useUploadQueue, type QueueItem } from "@/lib/guest/use-upload-queue";
+import {
+  useLiveQueue,
+  useQueueProgress,
+  useUploadQueue,
+  type QueueItem,
+  type QueueProgress,
+} from "@/lib/guest/use-upload-queue";
 import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
 
 vi.mock("@/lib/upload/uploader", () => ({ uploadFile: vi.fn() }));
@@ -273,8 +279,8 @@ describe("a join nobody at the door could fix", () => {
 
 describe("the ticket is read per file, never once per run", () => {
   it("★ the verified re-join after a mid-run flip sends the refused file on the NEW ticket", async () => {
-    // Before this lane the run captured its ticket once, so this re-join re-sent the file on the
-    // SPENT ticket and failed the very run it was written to save.
+    // A run that captured its ticket once would re-send this file on the SPENT ticket and fail
+    // the very run the re-join exists to save.
     answer({
       "/api/guests": [
         { ok: true, body: { ok: true, session_token: "verified-token" } },
@@ -292,5 +298,136 @@ describe("the ticket is read per file, never once per run", () => {
     await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
     expect(sentOn(1)).toBe("verified-token");
     expect(q.onVerificationRequired).not.toHaveBeenCalled();
+  });
+});
+
+describe("the clip's seam (addClipToAlbum)", () => {
+  it("sends a clip through the ordinary queue, not reel-eligible, with its poster as the preview", async () => {
+    mockUploadFile.mockResolvedValue({
+      ok: true,
+      status: "approved",
+      mediaId: "clip-1",
+      kind: "video",
+    });
+    const clip = new File([new Uint8Array([1, 2, 3])], "clip.mp4", {
+      type: "video/mp4",
+    });
+    const poster = new Blob([new Uint8Array([9])], { type: "image/png" });
+    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+
+    act(() => q.result.current.addClip(clip, poster));
+
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    const sent = mockUploadFile.mock.calls[0][0];
+    expect(sent.file).toBe(clip);
+    expect(sent.reelEligible).toBe(false);
+    expect(sent.poster).toBe(poster);
+    expect(q.items()).toEqual([
+      expect.objectContaining({
+        status: "done",
+        kind: "video",
+        reelEligible: false,
+      }),
+    ]);
+  });
+
+  it("an ordinary add says nothing about the reel", async () => {
+    mockUploadFile.mockResolvedValue(landed("med-2"));
+    const q = mountQueue({ sessionToken: STALE, isVerified: false });
+    act(() => q.result.current.addFiles([makeFile()]));
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(mockUploadFile.mock.calls[0][0].reelEligible).toBeUndefined();
+    expect(mockUploadFile.mock.calls[0][0].poster).toBeUndefined();
+  });
+
+  it("waits for the silent join like any file when the device holds no ticket yet", async () => {
+    localStorage.clear();
+    answer({
+      "/api/guests": [
+        { ok: true, body: { ok: true, session_token: "fresh-token" } },
+      ],
+    });
+    mockUploadFile.mockResolvedValue({
+      ok: true,
+      status: "approved",
+      mediaId: "clip-2",
+      kind: "video",
+    });
+    const clip = new File([new Uint8Array([1])], "clip.webm", {
+      type: "video/webm",
+    });
+    const q = mountQueue({ sessionToken: null, isVerified: false });
+    act(() => q.result.current.addClip(clip, new Blob([new Uint8Array([1])])));
+    await waitFor(() => expect(q.onUploaded).toHaveBeenCalledTimes(1));
+    expect(sentOn(0)).toBe("fresh-token");
+    expect(mockUploadFile.mock.calls[0][0].reelEligible).toBe(false);
+  });
+});
+
+/* ── A PROGRESS TICK IS NOT A QUEUE CHANGE (album-guest-wiring): a tick lives in the queue's own
+   progress store, so what reads `items` (the page's whole shell) never re-renders for one; the bar
+   that draws it subscribes to its own item. ── */
+
+function fakeProgress(initial: Record<string, number> = {}) {
+  const values = new Map(Object.entries(initial));
+  const listeners = new Set<() => void>();
+  const store: QueueProgress & { tick: (id: string, v: number) => void } = {
+    get: (id) => values.get(id) ?? 0,
+    subscribe: (l) => {
+      listeners.add(l);
+      return () => listeners.delete(l);
+    },
+    tick: (id, v) => {
+      values.set(id, v);
+      for (const l of listeners) l();
+    },
+  };
+  return store;
+}
+
+const flying = (id: string, over: Partial<QueueItem> = {}): QueueItem => ({
+  id,
+  file: new File(["x"], `${id}.jpg`, { type: "image/jpeg" }),
+  kind: "photo",
+  status: "uploading",
+  progress: 0,
+  ...over,
+});
+
+describe("useQueueProgress", () => {
+  it("reads one item's live progress and re-renders on its ticks", () => {
+    const progress = fakeProgress({ q1: 10 });
+    const { result } = renderHook(() => useQueueProgress(progress, "q1"));
+    expect(result.current).toBe(10);
+    act(() => progress.tick("q1", 60));
+    expect(result.current).toBe(60);
+  });
+
+  it("is zero without a store or an id", () => {
+    const { result } = renderHook(() => useQueueProgress(null, "q1"));
+    expect(result.current).toBe(0);
+  });
+});
+
+describe("useLiveQueue", () => {
+  it("hands back the very same items while it is not live (nothing re-renders for a tick)", () => {
+    const progress = fakeProgress({ q1: 40 });
+    const items = [flying("q1")];
+    const { result } = renderHook(() => useLiveQueue(items, progress, false));
+    expect(result.current).toBe(items);
+    act(() => progress.tick("q1", 80));
+    expect(result.current).toBe(items);
+  });
+
+  it("folds each uploading item's live progress in while it is live", () => {
+    const progress = fakeProgress({ q1: 40 });
+    const items = [
+      flying("q1"),
+      flying("q2", { status: "done", progress: 100 }),
+    ];
+    const { result } = renderHook(() => useLiveQueue(items, progress, true));
+    expect(result.current.map((it) => it.progress)).toEqual([40, 100]);
+    act(() => progress.tick("q1", 90));
+    expect(result.current[0].progress).toBe(90);
   });
 });

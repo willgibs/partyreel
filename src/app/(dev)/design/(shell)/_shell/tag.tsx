@@ -5,8 +5,8 @@ import type { NavBadge } from "@/app/(dev)/design/_data/catalog";
 /**
  * A small label: the sidebar's badges and any page's status pills.
  *
- * FOUR TONES, ACHROMATIC (bible 1: the UI is achromatic and the media is the
- * colour, so a badge never earns a hue). The scale is weight and shape, which
+ * FOUR TONES, ACHROMATIC: the UI is achromatic and the media is the
+ * colour, so a badge never earns a hue. The scale is weight and shape, which
  * is what a reader actually scans:
  *
  *   strong   filled          `new`, `updated`   what a reviewer came to find

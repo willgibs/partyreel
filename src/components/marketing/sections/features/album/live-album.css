@@ -5,14 +5,14 @@
 /* ★ THE COLUMN COUNT IS THE PRODUCT'S, NOT THE STAGE'S. An earlier draft drove
    it from outside through a variable, because `GuestMasonry` was `columns-2` at
    every width and a marketing stage at 896 wanted three. `gallery-wiring` then
-   landed Will's own ruling on the same sitting (`tile=240`, `width=full`): the
+   landed its own answer on the same sitting (`tile=240`, `width=full`): the
    album asks for as many columns of about 220 px as its box holds, so at 896 it
    draws four and at a phone two, with no help from here. A stage whose whole
    value is that it IS the guest album may not then draw a different album, so
    the override is gone and `masonry.tsx`'s `--album-column` is the one knob.
    Left here as a note because the temptation to re-add it is obvious: three
    columns is what his `visual=live` note describes, and it is what the board
-   drew before the gallery ruling moved underneath it. */
+   drew before the gallery change moved underneath it. */
 
 /* THE STAGE'S TWO GEOMETRIES, chosen here so every number stays in the engine
    (`STAGE` and `GAP`, stream-engine.ts) and arrives as a custom property. A
@@ -36,7 +36,7 @@
    visual too tall, we can fade out the bottom. May look better either way." So
    the frame is clipped to a height and its last stretch fades to nothing, and
    the album reads as going on rather than as a box with a floor. A MASK, never
-   a scrim: nothing is laid over a photograph (bible 1). */
+   a scrim: nothing is laid over a photograph. */
 .alb-clip {
   height: var(--alb-h);
   overflow: hidden;
@@ -60,7 +60,7 @@
    from behind so its rim and chrome glow while the photographs stay clean." The
    frame's own card is lifted off it and laid UNDER the wash, so the light
    climbs the rim, the window bar and the header type from behind while the
-   face of the thing, the photographs, stays exactly as it is (bible 1).
+   face of the thing, the photographs, stays exactly as it is.
 
    ★ CLIPPED TO THE OBJECT, AND NOT WITH `overflow`. A halo is clipped to the
    thing it backlights (globals.css's halo block: rendered in a padded box AROUND

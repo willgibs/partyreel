@@ -1,11 +1,11 @@
 /**
- * THE OPEN ALBUM, WHOLE (the 1,000-row round, C7). `getEventMediaByQrToken` is the one read behind
+ * THE OPEN ALBUM, WHOLE (the whole-album read). `getEventMediaByQrToken` is the one read behind
  * the guest album, the gallery poll and the guest export. A single call of the set-returning RPC
- * was cut at 1,000 rows with no error, so the probe's 1,145-photo album showed its newest 1,000 and
- * the oldest never appeared. These pin the fix on the fake PostgREST, which clamps where PostgREST
- * does: every approved item comes back past 2,000, in the album's display order (`created_at desc,
- * id desc`, the order the grid, the reconcile and the ETag keep), paged on the last row's RAW
- * `(created_at, id)` with `p_limit` on every page.
+ * is cut at 1,000 rows with no error, so a 1,145-photo album (the scale probe's) would show its
+ * newest 1,000 and never its oldest. These pin the paging on the fake PostgREST, which clamps where
+ * PostgREST does: every approved item comes back past 2,000, in the album's display order
+ * (`created_at desc, id desc`, the order the grid, the reconcile and the ETag keep), paged on the
+ * last row's RAW `(created_at, id)` with `p_limit` on every page.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -28,7 +28,7 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => asSupabase(fake),
 }));
 
-const { getEventMediaByQrToken, olderThan } =
+const { getEventByQrToken, getEventMediaByQrToken, olderThan } =
   await import("@/lib/db/queries/guest-events");
 
 const OPEN_QR = "d02631f1bfb3455188d224e41bf9510f";
@@ -63,6 +63,8 @@ function album(
     width: 320,
     height: 240,
     duration_seconds: i % 9 === 0 ? 4.5 : null,
+    // A clip saved to the album now and then (the live reel's `reel_eligible`).
+    reel_eligible: i % 7 !== 3,
     created_at: ties.has(i - 1) ? stamp(i - 1, 644108) : stamp(i, 644108),
     status:
       i < pending ? "pending" : i < pending + removed ? "removed" : "approved",
@@ -113,7 +115,7 @@ beforeEach(() => {
 });
 
 describe("getEventMediaByQrToken: the open album, read whole", () => {
-  it("the platform's own behaviour: one unpaged call is cut at 1,000 (the bug this fixes)", async () => {
+  it("the platform's own behaviour: one unpaged call is cut at 1,000 (why the read pages)", async () => {
     const { handler } = albumRpc(album(2345));
     fake = createFakePostgrest({
       rpc: { get_event_media_by_qr_token: handler },
@@ -210,8 +212,32 @@ describe("getEventMediaByQrToken: the open album, read whole", () => {
       width: 320,
       height: 240,
       duration_seconds: null,
+      reel_eligible: true,
       created_at: stamp(4, 644108),
     });
+  });
+
+  it("carries reel_eligible through, and reads it as eligible when an older RPC omits it", async () => {
+    const media = album(5);
+    const { handler } = albumRpc(media);
+    fake = createFakePostgrest({
+      rpc: { get_event_media_by_qr_token: handler },
+    });
+    const rows = await getEventMediaByQrToken(OPEN_QR);
+    // uid(4) is index 3: the fixture's clip.
+    expect(rows.find((r) => r.id === uid(4))?.reel_eligible).toBe(false);
+
+    const bare = album(3).map((row) => {
+      const { reel_eligible: _dropped, ...rest } = row;
+      void _dropped;
+      return rest;
+    });
+    const older = albumRpc(bare);
+    fake = createFakePostgrest({
+      rpc: { get_event_media_by_qr_token: older.handler },
+    });
+    const legacy = await getEventMediaByQrToken(OPEN_QR);
+    expect(legacy.every((r) => r.reel_eligible === true)).toBe(true);
   });
 
   it("an album the RPC will not show (not open, deleted, a wrong token) is empty, in one request", async () => {
@@ -252,5 +278,55 @@ describe("olderThan: the table-read twin of the RPC's cursor", () => {
     ).toBe(
       `created_at.lt.2026-09-23T23:13:38.122749+00:00,and(created_at.eq.2026-09-23T23:13:38.122749+00:00,id.lt.${uid(7)})`,
     );
+  });
+});
+
+describe("getEventByQrToken: the live reel's event facts", () => {
+  function eventRow(over: Record<string, unknown> = {}): FakeRow {
+    return {
+      id: uid(900),
+      qr_token: OPEN_QR,
+      name: "Probe",
+      description: null,
+      moderation_mode: "live",
+      visibility: "open",
+      accepting_uploads: true,
+      require_verified_email: false,
+      require_upload_to_view: false,
+      event_date: null,
+      qr_style: "classic",
+      host_display_name: null,
+      custom_slug: null,
+      show_reel: true,
+      reel_style_id: null,
+      reel_hold_sec: null,
+      ...over,
+    };
+  }
+  function answer(row: FakeRow) {
+    fake = createFakePostgrest({ rpc: { get_event_by_qr_token: () => [row] } });
+  }
+
+  it("keeps a host's unset hold as NULL (the default), never as 0 s", async () => {
+    answer(eventRow());
+    const result = await getEventByQrToken(OPEN_QR);
+    expect(result.ok && result.data.reel_hold_sec).toBeNull();
+  });
+
+  it("carries the host's default hold when one is set", async () => {
+    answer(eventRow({ reel_hold_sec: 5, reel_style_id: "mono" }));
+    const result = await getEventByQrToken(OPEN_QR);
+    expect(result.ok && result.data.reel_hold_sec).toBe(5);
+    expect(result.ok && result.data.reel_style_id).toBe("mono");
+  });
+
+  it("reads an RPC from before the column as the defaults", async () => {
+    const row = eventRow();
+    delete row.reel_hold_sec;
+    delete row.show_reel;
+    answer(row);
+    const result = await getEventByQrToken(OPEN_QR);
+    expect(result.ok && result.data.reel_hold_sec).toBeNull();
+    expect(result.ok && result.data.show_reel).toBe(true);
   });
 });

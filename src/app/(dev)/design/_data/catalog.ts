@@ -1,14 +1,14 @@
 /**
- * THE NAVIGATION MODEL (the Library x Lab round, 2026-09-15): two areas, their
- * sections, their items. Pure data plus the helpers every piece of chrome
- * reads (the active item, the breadcrumbs, the neighbours), with NO heavy
- * imports, so the client sidebar and top bar can use them. The data itself is
- * built server-side by `nav.ts` (it reads the gallery registry, the manifests
- * and the specs) and handed to the chrome as props: the client never imports
- * a board or a component.
+ * THE NAVIGATION MODEL: two areas, their sections, their items. Pure data plus
+ * the helpers every piece of chrome reads (the active item, the breadcrumbs,
+ * the neighbours), with NO heavy imports, so the client sidebar and top bar
+ * can use them. The data itself is built server-side by `nav.ts` (it reads the
+ * gallery registry, the manifests and the specs) and handed to the chrome as
+ * props: the client never imports a board or a component.
  *
- * Vocabulary (the glossary at /design/library/glossary): the LIBRARY is
- * everything that binds or informs; the LAB is everything exploratory.
+ * Vocabulary (the glossary at /design/library/glossary): the LIBRARY is what
+ * exists (the brand kit, the catalog, the bible's ten); the LAB is everything
+ * exploratory.
  */
 
 export type Area = "library" | "lab";
@@ -146,8 +146,9 @@ export function filterNav(nav: Nav, query: string): Nav {
 }
 
 /**
- * Segments a component or board id may never take, because a section lives
- * there; pinned by catalog.test.ts against the registries.
+ * Segments a catalog entry or board id may never take, because a page lives
+ * there or a retired page's redirect holds the URL (legacy-routes.ts); pinned
+ * by catalog.test.ts against the registries.
  */
 export const RESERVED = {
   library: [

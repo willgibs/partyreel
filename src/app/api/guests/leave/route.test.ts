@@ -1,5 +1,5 @@
 /**
- * PUTTING THE TICKET DOWN, one event's or every one (the upload-owner lane, 2026-09-23).
+ * PUTTING THE TICKET DOWN, one event's or every one.
  *
  * The guest page's sign-out runs in the browser, which cannot read an HttpOnly cookie to name the
  * tickets it holds, so it asks for all of them; the route expires exactly the `pr_guest_*` names the
@@ -84,7 +84,7 @@ describe("{ all: true }: the sign-out's", () => {
   });
 });
 
-describe("{ qr_token }: one event's, as before", () => {
+describe("{ qr_token }: that one event's ticket", () => {
   it("expires that event's ticket alone", async () => {
     const res = await leave({ qr_token: "qr-token-1" });
     expect([...expired(res).keys()]).toEqual([`pr_guest_${EVENT_A}`]);

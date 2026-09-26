@@ -1,16 +1,18 @@
 /* THE FOUR CONCEPTS' SHEET (privacy-hero round three, 2026-09-19; `swp-`
-   added by the overtaken audit's reshape, 2026-09-21). Classes under `apr-`
-   (aperture), `acc-` (access grid), `seal-` (sealed cards) and `swp-` (the
-   access grid, cleared by the product's own sweep) only; each keyframe name
-   carries its concept's prefix
+   added by the overtaken audit's reshape, 2026-09-21; `vl-` by the refresh,
+   2026-09-24, replacing `acc-`: access and sweep drew the same grid, so the
+   crossfade retired and its classes went with it). Classes under `apr-`
+   (aperture), `seal-` (sealed cards), `swp-` (the grid, cleared by the
+   product's own sweep) and `vl-` (veil) only; each keyframe name carries its
+   concept's prefix
    (src/app/keyframe-uniqueness.test.ts reads every sheet under the lab).
 
-   ★ THE REST STATE IS THE DEFAULT (bible 13: nothing gates an h1, and
+   ★ THE REST STATE IS THE DEFAULT (bible 5: nothing gates an h1, and
    nothing here is an h1's neighbour either). Every base class below is the
    picture a reader with scripting off, a crawler or reduced motion sees:
    the aperture at its dimmest breath, a tile frosted, a card sealed. The
    `animation` declaration itself lives ONLY inside
-   `@media (prefers-reduced-motion: no-preference)` (bible 14), so reduced
+   `@media (prefers-reduced-motion: no-preference)` (bible 5), so reduced
    motion is not a special case to remember, it is what happens when the
    block below simply does not apply. */
 
@@ -101,57 +103,15 @@
   }
 }
 
-/* ── Access grid ──────────────────────────────────────────────────────────
-   Every tile wears the SAME keyframe; `--acc-i` (its index) staggers it via
-   a negative delay, which is what turns one rule into a rotation (concepts.ts,
-   `accessTiles`). The rest state is frosted: bible 13's default is the
-   picture a reader with scripting off sees, and it is also, here, an honest
-   one (nothing is shared until its turn). */
-
-.acc-tile {
-  position: absolute;
-  top: var(--acc-y);
-  left: var(--acc-x);
-  width: var(--acc-size);
-  height: var(--acc-size);
-  transform: translate(-50%, -50%);
-  border-radius: var(--radius-tile);
-  overflow: hidden;
-  box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.1);
-  filter: grayscale(1) blur(2px);
-  opacity: 0.4;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .acc-tile {
-    animation: acc-turn var(--acc-cycle) ease-in-out infinite;
-    animation-delay: calc(var(--acc-i) * -1 * var(--acc-step));
-  }
-}
-
-/* Percentages are of `--acc-cycle` (6400ms): 640ms clear (10%), a 770ms fade
- * back (to 22%), frosted for the rest (concepts.ts, ACCESS.holdMs/fadeMs). */
-@keyframes acc-turn {
-  0%,
-  10% {
-    filter: grayscale(0) blur(0);
-    opacity: 1;
-  }
-  22%,
-  100% {
-    filter: grayscale(1) blur(2px);
-    opacity: 0.4;
-  }
-}
-
-/* ── Sweep: the access grid, cleared by the product's own sweep (new, the
-   overtaken audit's reshape, 2026-09-21) ────────────────────────────────────
-   Same rotation as `.acc-tile` (`--swp-i` staggers it the same way, on the
-   same shared cycle and step, concepts.ts SWEEP), so the two read as one
-   family at rest. What differs is HOW a tile clears: `.swp-band` is the
-   product's own arrival sweep (components/shared/arrival.css,
-   `pr-arrival-sweep`), the same size and gradient, looped across the grid
-   here instead of played once on a landed photograph. */
+/* ── Sweep: the grid, cleared by the product's own sweep (new, the
+   overtaken audit's reshape, 2026-09-21; the refresh, 2026-09-24, retires the
+   crossfade this once shared the grid with) ─────────────────────────────────
+   `--swp-i` staggers every tile's turn on one shared cycle and step
+   (concepts.ts SWEEP), the same rotation the retired crossfade used. What a
+   turn actually looks like is `.swp-band`, the product's own arrival sweep
+   (components/shared/arrival.css, `pr-arrival-sweep`), the same size and
+   gradient, looped across the grid here instead of played once on a landed
+   photograph. */
 
 .swp-tile {
   position: absolute;
@@ -176,7 +136,7 @@
 
 /* Percentages are of `--swp-cycle` (6400ms, ACCESS's own): the pass itself is
  * 900ms (14%, concepts.ts SWEEP.sweepMs = ARRIVAL_SWEEP_MS), frosted again by
- * 22% — `acc-turn`'s own back edge, so the two concepts share one rhythm. */
+ * 22%, the same back edge the grid always used. */
 @keyframes swp-turn {
   0%,
   14% {
@@ -279,4 +239,82 @@
   100% {
     height: var(--seal-sealed);
   }
+}
+
+/* ── Veil: one photograph, mostly hidden, a soft clearing drifting across it
+   (the refresh, 2026-09-24) ─────────────────────────────────────────────────
+   `.vl-blur` is the whole photograph at a low, constant opacity: never fully
+   hidden, never fully shown. `.vl-clear` is the SAME photograph at full
+   clarity, masked to a small soft-edged circle whose POSITION drifts, the
+   same technique `background-position` itself animates with, so nothing here
+   needs a `@property` registration to interpolate smoothly. Reduced motion
+   leaves the mask parked at its first waypoint, one clearing rather than a
+   sweep across the whole photograph. */
+
+.vl-wash {
+  position: absolute;
+  top: var(--vl-cy);
+  left: var(--vl-cx);
+  width: var(--vl-size);
+  height: var(--vl-size);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.vl-blur,
+.vl-clear {
+  position: absolute;
+  inset: 0;
+}
+
+.vl-blur {
+  opacity: var(--vl-base-o);
+}
+
+.vl-clear {
+  mask-image: radial-gradient(circle, black 0%, black 55%, transparent 100%);
+  mask-repeat: no-repeat;
+  mask-size: var(--vl-porthole) var(--vl-porthole);
+  mask-position: 20% 30%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vl-clear {
+    animation: vl-drift var(--vl-cycle) ease-in-out infinite;
+  }
+}
+
+/* Four waypoints and back to the first: an organic drift rather than a
+ * corner-to-corner sweep, still nothing but ordinary `mask-position`
+ * percentages. */
+@keyframes vl-drift {
+  0%,
+  100% {
+    mask-position: 20% 30%;
+  }
+  25% {
+    mask-position: 78% 18%;
+  }
+  50% {
+    mask-position: 62% 78%;
+  }
+  75% {
+    mask-position: 15% 68%;
+  }
+}
+
+.vl-scrim {
+  position: absolute;
+  top: var(--vl-cy);
+  left: var(--vl-cx);
+  width: calc(var(--vl-size) * 1.15);
+  height: calc(var(--vl-size) * 0.78);
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--background) 78%, transparent) 0%,
+    transparent 72%
+  );
 }

@@ -13,23 +13,27 @@ import { defineExploration } from "@/components/lab/exploration";
  *
  * ★ THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21) TOUCHES FIVE OF THE SIX. The
  * charts' own context now names the admin portal that leads on them daily;
- * `faq-look` names pricing's own FAQ folding and closing the page last;
  * `review-photo`'s queue frame is redrawn on the real waiting tile
  * (guest-upload r1) and ranked against his own legibility test (demo-event
- * r2); `everywhere-pill` drops `hover` (ruled a desk verb, app-vocabulary
- * r1) for a new option, the product's own sweep (guest-upload r1). Only
- * `hero-tablet` and `phone-cycle` are untouched: no badge named them.
+ * r2); `everywhere-pill` drops `hover`, which has no touch equivalent and was
+ * a fiction on this very stage's own phone half (app-vocabulary r1's own
+ * finding), for a new option, the product's own sweep (guest-upload r1).
+ * Only `hero-tablet` and `phone-cycle` are untouched: no badge named them.
+ *
+ * ★ THE REFRESH'S OWN PASS (2026-09-24): `faq-look` JUDGED ON ITS OWN PAGE.
+ * Its recommendation used to lean partly on pricing-page's own order (closing
+ * on this look last); that is a fact about a different board, not a reason a
+ * FAQ look is the right one, so the case here now stands on the FAQ alone.
  */
 export const LOOSE_ENDS = defineExploration({
   id: "loose-ends",
   title: "Six loose ends",
   round: {
     n: 1,
-    date: "2026-09-21",
+    date: "2026-09-24",
     changed:
-      "The overtaken audit's reshape: the chart casts now name the portal's daily read (admin r1); faq-look notes pricing's FAQ folded and closing last; review-photo's queue box redrawn with the real waiting tile's dim and clock mark; everywhere-pill drops hover for the product's own sweep.",
+      "faq-look now judged on the FAQ alone, not pricing-page's own order; everywhere-pill's hover note restated as its own fact, not a citation. The overtaken audit's reshape stands: chart casts name the portal's daily read; review-photo's queue box redrawn on the real waiting tile.",
   },
-  bible: [1, 5, 12, 14],
   context:
     "Six ROADMAP one-liners nobody could pick from, each drawn on its own real surface rather than argued in prose: the admin chart ramp, one FAQ look, the home hero at a tablet width, and the album page's three ambient pieces.",
   asks: [
@@ -118,7 +122,7 @@ export const LOOSE_ENDS = defineExploration({
       label: "One FAQ look",
       question: "Which look should every FAQ on the site share?",
       context:
-        "Home and pricing set a question as a 16/600 heading; /events and every /features page set it quieter at 14/500 in a <summary>. Pricing's FAQ is folded and now closes last, after the overview and table (pricing-page r1, r2).",
+        "Home and pricing set a question as a 16/600 heading; /events and every /features page set it quieter at 14/500 in a <summary>, read by nothing as a heading. Pricing's own FAQ is folded, one section among several.",
       options: [
         {
           id: "card",
@@ -141,7 +145,7 @@ export const LOOSE_ENDS = defineExploration({
       ],
       recommended: "heading",
       because:
-        "It fixes the one real gap, a summary read by nothing as a heading, without making a nine-question feature page heavier; pricing's FAQ now carries more weight too, closing its page on this exact look last.",
+        "Judged on the FAQ alone: a <summary> is read by nothing as a heading today, wherever it sits, and this is the cheapest fix that exists for it. A nine-question feature page stays exactly as light as it is now.",
       overrule:
         "If one visual weight matters more than list density, the card step everywhere.",
       lands:
@@ -271,7 +275,7 @@ export const LOOSE_ENDS = defineExploration({
       question:
         "Should a tile in the Everywhere stage hint that it is a real photograph, not just decoration?",
       context:
-        "everywhere-stage.tsx shows a photograph landing on a laptop and phone at once; no tile hints it's real or openable. Hover is ruled a desk verb (app-vocabulary r1); the newest tile now takes one pass of light (guest-upload r1).",
+        "everywhere-stage.tsx shows a photograph landing on a laptop and phone at once; no tile hints it's real or openable. Hover has no touch equivalent, so the phone half never shows it; the newest tile takes one pass of light instead.",
       options: [
         {
           id: "none",

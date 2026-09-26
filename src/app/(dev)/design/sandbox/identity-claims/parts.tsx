@@ -2,10 +2,19 @@
 
 import { type ReactNode, useState } from "react";
 import Link from "next/link";
-import { AtSign, Bell, Check, Mail, UserCheck, UserPlus } from "lucide-react";
+import {
+  AtSign,
+  Bell,
+  Check,
+  Mail,
+  UserCheck,
+  UserPlus,
+  X,
+} from "lucide-react";
 
 import { EventCard } from "@/components/app/event-card";
 import { AppShell } from "@/components/shared/app-shell";
+import { Logo } from "@/components/shared/logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +35,7 @@ import {
   CLAIMED_COVER,
   CURRENT_EVENT,
   CURRENT_EVENT_COVER,
+  DOOR_ALBUM,
   HERS,
   HERS_PHOTOS,
   IMPOSTOR,
@@ -400,6 +410,70 @@ export function PointerLine() {
   );
 }
 
+/* ── `pointer`, at the door: she can confirm there now, before any upload ── */
+
+/**
+ * THE DOOR'S "YOU'RE IN", QUOTED (the door's round two drew it as ground): the
+ * held sheet over the wedding's blurred album, the green check and its two
+ * lines, then whatever the option puts where she lands. Its own scrim element,
+ * never a filter on the album's ancestor; `desk` is the panel's right-edge
+ * posture, chosen by prop rather than a breakpoint (a lab board's `sm:` only
+ * works where production uses that exact class).
+ */
+export function DoorBeat({ line, desk }: { line: boolean; desk: boolean }) {
+  return (
+    <div className="relative min-h-full bg-background text-foreground">
+      <header className="flex items-center justify-between gap-2 border-b border-border/60 px-5 py-3">
+        <Logo />
+        <span className="h-8" />
+      </header>
+      <div className="mx-auto max-w-[640px] px-4 py-5">
+        <p className="font-heading text-page">{CURRENT_EVENT.name}</p>
+        <div
+          className={cn(
+            "mt-4 grid gap-1",
+            desk ? "grid-cols-3" : "grid-cols-2",
+          )}
+        >
+          {DOOR_ALBUM.map((url, i) => (
+            <Thumb key={i} url={url} size={desk ? 200 : 164} />
+          ))}
+        </div>
+      </div>
+      <div
+        aria-hidden
+        className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[16px]"
+      />
+      <div
+        data-ic-door
+        className={cn(
+          "fixed z-50 bg-popover px-6 text-popover-foreground shadow-layer ring-1 ring-foreground/10",
+          desk
+            ? "inset-y-0 right-0 w-[448px] pt-24"
+            : "inset-x-0 bottom-0 rounded-t-float pt-5 pb-6",
+        )}
+      >
+        <div className="flex flex-col items-center gap-4 py-6 text-center">
+          <div className="flex size-14 items-center justify-center rounded-full bg-success text-success-foreground">
+            <Check className="size-7" />
+          </div>
+          <div>
+            <p className="font-heading text-page">You&rsquo;re in</p>
+            <p className="mt-1 text-base text-muted-foreground">
+              Welcome to the party
+            </p>
+          </div>
+        </div>
+        {line && (
+          <div data-ic-door-pointer>
+            <PointerLine />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ── `pass`: one event at a time, and the checklist ───────────────────────── */
 
 export function OneAtATimeCard() {
@@ -443,7 +517,8 @@ export function ChecklistTicket() {
       </CardHeader>
       <CardContent className="space-y-4">
         {CLAIMABLE_ROWS.map((row) => {
-          const photos = row.eventId === HERS.eventId ? HERS_PHOTOS : IMPOSTOR_PHOTOS;
+          const photos =
+            row.eventId === HERS.eventId ? HERS_PHOTOS : IMPOSTOR_PHOTOS;
           return (
             <div
               key={row.eventId}
@@ -462,6 +537,86 @@ export function ChecklistTicket() {
             </div>
           );
         })}
+      </CardContent>
+      <CardFooter className="justify-end gap-2">
+        <Button type="button" variant="outline" size="sm">
+          Claim all
+        </Button>
+        <Button type="button" size="sm">
+          Finish
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
+
+/**
+ * `pass=photos`: THE ONE OPTION THAT TOUCHES THE MODEL, NOT ONLY THE SCREEN.
+ * `claims.ts`'s own comment is explicit: both RPCs "act on every matching row
+ * for an event id in one call — so the ticket offers one decision per EVENT,
+ * never one per row", because a photo's own id never reaches this ticket
+ * today. This preview draws the grain a photo-level claim would need anyway:
+ * every waiting photo from both events in one grid, a Mine/Not-mine pair
+ * under each, decided one at a time. Building it for real asks the RPCs (and
+ * `list_guest_rows_by_email`) for a photo id, not only an event id.
+ */
+export function PhotoGridTicket() {
+  const items = [
+    ...HERS_PHOTOS.map((url) => ({ url, event: HERS.eventName })),
+    ...IMPOSTOR_PHOTOS.map((url) => ({ url, event: IMPOSTOR.eventName })),
+  ];
+  const [decisions, setDecisions] = useState<(Decision | undefined)[]>(() =>
+    items.map(() => undefined),
+  );
+  function decide(i: number, next: Decision) {
+    setDecisions((prev) =>
+      prev.map((d, idx) => (idx === i ? (d === next ? undefined : next) : d)),
+    );
+  }
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{TICKET_HEADING}</CardTitle>
+        <CardDescription>
+          Every photo waiting under your email, decided one at a time.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+          {items.map((item, i) => {
+            const decision = decisions[i];
+            return (
+              <div key={i} className="flex flex-col gap-1.5">
+                <Thumb url={item.url} size={88} />
+                <p className="truncate text-[10px] text-muted-foreground">
+                  {item.event}
+                </p>
+                <div className="flex gap-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={decision === "claim" ? "default" : "outline"}
+                    aria-pressed={decision === "claim"}
+                    className="flex-1 px-0"
+                    onClick={() => decide(i, "claim")}
+                  >
+                    <Check className="size-3.5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={decision === "disown" ? "destructive" : "ghost"}
+                    aria-pressed={decision === "disown"}
+                    className="flex-1 px-0"
+                    onClick={() => decide(i, "disown")}
+                  >
+                    <X className="size-3.5" />
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </CardContent>
       <CardFooter className="justify-end gap-2">
         <Button type="button" variant="outline" size="sm">
@@ -580,13 +735,12 @@ export function ConfirmSecondScreen() {
 /* ── the dashboard ground `ticket`, `pass`, `confirm` and `after` all share ─ */
 
 /**
- * ★ THE GUEST MARK, IN PLACE OF THE RETIRED SAVE BOOKMARK. Tonight's ruling:
- * a person is a guest of an event only through an upload, never a save, so no
- * board draws `EventCard`'s `saved` variant again (`guest-by-upload` is
- * retiring it from production the same night). This is `EventCard`'s own
- * `hosted` variant, which carries no QR chip and no pending chip (nothing
- * that claims Priya runs the event), with a small local marker laid over its
- * top-left corner instead of the bookmark that used to sit there.
+ * ★ THE GUEST MARK, IN PLACE OF THE RETIRED SAVE BOOKMARK. A person is a
+ * guest of an event only through an upload, never a save, so no board draws
+ * `EventCard`'s `saved` variant any more. This is `EventCard`'s own `hosted`
+ * variant, which carries no QR chip and no pending chip (nothing that claims
+ * Priya runs the event), with a small local marker laid over its top-left
+ * corner instead of the bookmark that used to sit there.
  */
 function GuestMark() {
   return (
@@ -644,8 +798,8 @@ export function GuestEventCard() {
 }
 
 /** Tom's leaving do, the instant Finish settles it into Your events like any
- *  other guest card: `after`'s own baseline now (tonight's ruling), since a
- *  claimed event no longer leaves the dashboard unchanged. */
+ *  other guest card: `after`'s own baseline, since an upload alone makes her
+ *  a guest of it and a claimed event no longer leaves the dashboard unchanged. */
 export function ClaimedEventCard() {
   return (
     <LocalGuestCard
@@ -671,7 +825,7 @@ export function DashboardScene({
   headerExtra?: ReactNode;
   /** A second card in Your events, once Finish has settled a claim there
    *  (the `after` ask's own baseline: a claimed event joins Your events as an
-   *  ordinary Guest card, tonight's ruling, not a dashboard left unchanged). */
+   *  ordinary Guest card, not a dashboard left unchanged). */
   extraCard?: ReactNode;
 }) {
   return (
@@ -688,7 +842,9 @@ export function DashboardScene({
           </span>
         }
       >
-        <div className={cn("space-y-6", dim && "pointer-events-none opacity-40")}>
+        <div
+          className={cn("space-y-6", dim && "pointer-events-none opacity-40")}
+        >
           {ticket}
           <div className="space-y-3">
             <h2 className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase">

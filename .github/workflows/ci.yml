@@ -6,7 +6,7 @@
 # that already mixed several branches. Running it per push turns an agent's own
 # branch red BEFORE the merge, which is the prerequisite for wider fan-out.
 #
-# The toolchain is pinned to the one CLAUDE.md pins: Node from `.nvmrc`, pnpm
+# The toolchain is pinned here: Node from `.nvmrc`, pnpm
 # 9.14.4, `--frozen-lockfile` (so a lockfile that drifted from package.json fails
 # here rather than resolving to something nobody has installed).
 #
@@ -96,7 +96,7 @@ jobs:
       # pnpm BEFORE node: `cache: true` caches the pnpm store keyed on
       # pnpm-lock.yaml, so a clean tree reinstalls from the store, not the
       # network. package.json has no `packageManager` field, so the version is
-      # named here and must track CLAUDE.md's pin.
+      # named here, the pin's one home.
       - name: Install pnpm
         uses: pnpm/action-setup@v6
         with:

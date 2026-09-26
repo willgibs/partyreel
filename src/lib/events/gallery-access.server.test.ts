@@ -1,7 +1,7 @@
 /**
  * THE ALBUM'S FULLNESS, AS THE PAGE READS IT; AND THE ALBUM'S SIZE, AS EVERY PAYLOAD CARRIES IT.
  *
- * `resolveViewerDecision` answers the page, the poll, the export and the reel download. The page
+ * `resolveViewerDecision` answers the page, the album's routes and the export. The page
  * alone also needs to know whether the album can take another upload: on a Require-an-upload-to-
  * view album the gate FAILS OPEN when it is full, so a guest's own last removal closes nothing and
  * the lightbox must not say it does. The gate reads the caps only for a viewer who has not
@@ -9,12 +9,28 @@
  * identity-less read; nobody else pays anything.
  *
  * `loadGalleryRowsForAccess` carries the album's head count beside the rows at `teaser` and `full`
- * (the 1,000-row round's C9), and `galleryEtagFor` hashes it, so the header's number is live even
- * where the loaded items are the nine-photo teaser.
+ * (the exact, live count), for "Download all", its one reader now.
+ *
+ * `loadGallerySeed` is the page's album seed (album-guest-wiring): at full, the manifest planned by
+ * the sync route's own function, its validator, and links for exactly the first paint's photographs;
+ * at the teaser, the nine inline; locked, nothing. A plan the reads' gate refuses is locked too,
+ * never a throw, and `streamGallerySeed` (what the page hands the client) can never be an unhandled
+ * rejection: build 10's crash of the host's own password album was both at once.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { planAlbumSync } from "@/lib/events/album-sync";
+
 vi.mock("server-only", () => ({}));
+const captureWarning = vi.fn();
+vi.mock("@/lib/observability/sentry", () => ({
+  captureWarning: (...args: unknown[]) => captureWarning(...args),
+}));
+// The owner idea's home (re-exported here) reads the request's own client: not this file's subject.
+vi.mock("@/lib/events/gallery-access-owner.server", () => ({
+  isEventOwner: vi.fn(),
+  isRequestOwner: vi.fn(),
+}));
 const getEventMediaByQrToken = vi.fn();
 vi.mock("@/lib/db/queries/guest-events", () => ({
   getEventMediaByQrToken: (...args: unknown[]) =>
@@ -23,16 +39,53 @@ vi.mock("@/lib/db/queries/guest-events", () => ({
 const countApprovedMedia = vi.fn();
 const getApprovedMediaForUnlock = vi.fn();
 const getApprovedPhotoTeaser = vi.fn();
+const getLiveReelServerFacts = vi.fn();
 vi.mock("@/lib/db/queries/guest-events-admin", () => ({
   countApprovedMedia: (...args: unknown[]) => countApprovedMedia(...args),
+  getLiveReelServerFacts: (...args: unknown[]) =>
+    getLiveReelServerFacts(...args),
   getApprovedMediaForUnlock: (...args: unknown[]) =>
     getApprovedMediaForUnlock(...args),
   getApprovedPhotoTeaser: (...args: unknown[]) =>
     getApprovedPhotoTeaser(...args),
   getUploaderIdentities: vi.fn().mockResolvedValue(new Map()),
 }));
-vi.mock("@/lib/r2/grid-items", () => ({ toGridItems: vi.fn() }));
-vi.mock("@/lib/r2/presign-bucket", () => ({ presignBucketId: () => "b1" }));
+const toGridItems = vi.fn();
+vi.mock("@/lib/r2/grid-items", () => ({
+  toGridItems: (...args: unknown[]) => toGridItems(...args),
+}));
+vi.mock("@/lib/r2/presign-bucket", () => ({ presignBucketId: () => "7" }));
+vi.mock("@/lib/r2/presign", () => ({
+  presignDownload: async ({
+    key,
+    downloadFilename,
+  }: {
+    key: string;
+    downloadFilename?: string;
+  }) => `https://r2.test/${key}${downloadFilename ? "?dl=1" : ""}`,
+}));
+// The plan's two reads behind the gate (the snapshot, then a manifest's first page), planned by the
+// REAL `planAlbumSync`, so the seed is proved to plan exactly as the sync route plans.
+const planRead = vi.fn();
+const planPage = vi.fn();
+const planGuestAlbumSync = vi.fn();
+const readGuestAlbumMedia = vi.fn();
+const readGuestAlbumVersions = vi.fn();
+const readGuestAttribution = vi.fn();
+vi.mock("@/lib/db/queries/album-guest", () => ({
+  planGuestAlbumSync: (...args: unknown[]) => planGuestAlbumSync(...args),
+  readGuestAlbumMedia: (...args: unknown[]) => readGuestAlbumMedia(...args),
+  readGuestAlbumVersions: (...args: unknown[]) =>
+    readGuestAlbumVersions(...args),
+  readGuestAttribution: (...args: unknown[]) => readGuestAttribution(...args),
+}));
+function planThroughTheGate() {
+  planGuestAlbumSync
+    .mockReset()
+    .mockImplementation(async (_event: unknown, since: number | null) =>
+      planAlbumSync({ scope: "album", since, read: planRead, page: planPage }),
+    );
+}
 vi.mock("@/lib/demo", () => ({ isDemoToken: () => false }));
 
 const getUploadGate = vi.fn();
@@ -40,8 +93,17 @@ vi.mock("@/lib/db/queries/guest-gate", () => ({
   getUploadGate: (...args: unknown[]) => getUploadGate(...args),
 }));
 
-const { galleryEtagFor, loadGalleryRowsForAccess, resolveViewerDecision } =
-  await import("@/lib/events/gallery-access.server");
+const {
+  loadGalleryReel,
+  loadGalleryRowsForAccess,
+  loadGallerySeed,
+  resolveViewerDecision,
+  streamGallerySeed,
+} = await import("@/lib/events/gallery-access.server");
+const { guestAlbumEtag } = await import("@/lib/events/album-validator");
+const { firstPaintIds } = await import("@/components/shared/album-window-plan");
+const { createReelItems } = await import("@/lib/guest/reconcile-album-items");
+const { tileStills } = await import("@/lib/guest/reel-tile");
 
 type Event = Parameters<typeof resolveViewerDecision>[0];
 
@@ -59,6 +121,9 @@ const EVENT = {
   event_date: null,
   qr_style: "classic",
   host_display_name: null,
+  show_reel: true,
+  reel_style_id: null,
+  reel_hold_sec: null,
 } as unknown as Event;
 
 const GUEST = {
@@ -160,7 +225,7 @@ const row = (id: string) => ({
   created_at: "2026-09-23T23:13:38.122749+00:00",
 });
 
-describe("loadGalleryRowsForAccess: the album's size rides beside the rows (C9)", () => {
+describe("loadGalleryRowsForAccess: the album's size rides beside the rows", () => {
   beforeEach(() => {
     countApprovedMedia.mockReset().mockResolvedValue(1145);
     getEventMediaByQrToken.mockReset().mockResolvedValue([row("a"), row("b")]);
@@ -202,14 +267,322 @@ describe("loadGalleryRowsForAccess: the album's size rides beside the rows (C9)"
     });
     expect(countApprovedMedia).not.toHaveBeenCalled();
   });
+});
 
-  it("the ETag moves with the count alone, the rows held still", async () => {
-    const decision = { access: "teaser" as const, gate: "account" as const };
-    const gallery = await loadGalleryRowsForAccess(EVENT, "teaser");
-    const before = galleryEtagFor(decision, gallery);
-    expect(
-      galleryEtagFor(decision, { ...gallery, approvedTotal: 1146 }),
-    ).not.toBe(before);
-    expect(galleryEtagFor(decision, { ...gallery })).toBe(before);
+describe("loadGallerySeed: the page's album seed", () => {
+  const T0 = 1_790_000_000_000_000;
+  const uuid = (i: number) =>
+    `00000000-0000-4000-8000-${String(i).padStart(12, "0")}`;
+  /** A 100-photograph album, newest first, 4:3, one video without a preview at the 3rd place. */
+  const ENTRIES = Array.from({ length: 100 }, (_, i) =>
+    i === 2
+      ? ([uuid(i), 640, 480, 1 | 4, T0 - i] as const)
+      : ([uuid(i), 640, 480, 4, T0 - i] as const),
+  );
+  const FIRST = { step: 1 as const, rhythm: "double" as const, seed: 42 };
+
+  beforeEach(() => {
+    captureWarning.mockReset();
+    getLiveReelServerFacts.mockReset().mockResolvedValue({
+      liveReelEnabled: true,
+      tier: "pro",
+    });
+    planThroughTheGate();
+    planRead.mockReset().mockResolvedValue({
+      version: 9,
+      albumMax: 7,
+      attrVersion: 3,
+      approved: 100,
+      hidden: null,
+      pending: null,
+      changes: [],
+    });
+    planPage.mockReset().mockResolvedValue({ entries: ENTRIES, next: null });
+    readGuestAlbumMedia.mockReset().mockImplementation(async (_e, ids) => ({
+      // One asked id is no longer in the album (hidden since): it comes back missing.
+      rows: (ids as string[])
+        .filter((id) => id !== uuid(1))
+        .map((id) => ({
+          id,
+          type: "photo",
+          original_key: `e/${id}/original.jpg`,
+          preview_key: null,
+        })),
+      identities: new Map([
+        [
+          uuid(0),
+          {
+            displayName: "Maya",
+            isHost: false,
+            isVerified: true,
+            email: "never@leaks.test",
+          },
+        ],
+      ]),
+    }));
+  });
+
+  it("at full: the manifest planned as the sync route plans it, with the route's own validator", async () => {
+    const seed = await loadGallerySeed(
+      EVENT,
+      { access: "full", gate: null },
+      { ...FIRST, width: null },
+    );
+    if (seed.kind !== "full") throw new Error("expected a full seed");
+    expect(seed.sync).toMatchObject({
+      kind: "manifest",
+      access: "full",
+      v: 7, // the guest scope's version is album_max
+      attr: 3,
+      total: 100,
+      next: null,
+    });
+    expect(seed.sync.entries).toHaveLength(100);
+    // Planned through the reads' own gate, with no version: a first load.
+    expect(planGuestAlbumSync).toHaveBeenCalledWith(EVENT, null);
+    // The version and the counts were read BEFORE the first page (album-sync.ts, rule one).
+    expect(planRead).toHaveBeenCalledWith(0, 0);
+    expect(planRead.mock.invocationCallOrder[0]).toBeLessThan(
+      planPage.mock.invocationCallOrder[0],
+    );
+    expect(seed.etag).toBe(
+      guestAlbumEtag({
+        eventId: EVENT.id,
+        access: "full",
+        gate: null,
+        albumMax: 7,
+        attrVersion: 3,
+        reel: seed.sync.reel,
+      }),
+    );
+  });
+
+  it("mints links for exactly the first paint's photographs (the reel off), and reports the ones gone", async () => {
+    getLiveReelServerFacts.mockResolvedValue({
+      liveReelEnabled: false,
+      tier: "pro",
+    });
+    const seed = await loadGallerySeed(
+      EVENT,
+      { access: "full", gate: null },
+      { ...FIRST, width: 1400 },
+    );
+    if (seed.kind !== "full") throw new Error("expected a full seed");
+    const expected = firstPaintIds(
+      ENTRIES.map(([id, width, height]) => ({ id, width, height })),
+      { ...FIRST, width: 1400 },
+    );
+    expect(expected.length).toBeGreaterThan(0);
+    expect(expected.length).toBeLessThan(100);
+    const asked = readGuestAlbumMedia.mock.calls[0][1] as string[];
+    expect(asked).toEqual(expected);
+    expect(seed.links.links.map((l) => l[0])).toEqual(
+      expected.filter((id) => id !== uuid(1)),
+    );
+    expect(seed.links.missing).toEqual([uuid(1)]);
+    expect(seed.links.b).toBe(7);
+  });
+
+  it("with a reel, the Highlight reel tile's stills ride the seed too, after the first paint's", async () => {
+    const seed = await loadGallerySeed(
+      EVENT,
+      { access: "full", gate: null },
+      { ...FIRST, width: 1400 },
+    );
+    if (seed.kind !== "full") throw new Error("expected a full seed");
+    const paint = firstPaintIds(
+      ENTRIES.map(([id, width, height]) => ({ id, width, height })),
+      { ...FIRST, width: 1400 },
+    );
+    const stills = tileStills(createReelItems()(ENTRIES), {
+      eventId: EVENT.id,
+    }).map((s) => s.id);
+    const asked = readGuestAlbumMedia.mock.calls[0][1] as string[];
+    expect(asked.slice(0, paint.length)).toEqual(paint);
+    expect(new Set(asked)).toEqual(new Set([...paint, ...stills]));
+    // The one playable-but-posterless video is never a still.
+    expect(stills).not.toContain(uuid(2));
+  });
+
+  it("a guest's attribution is a name and two flags, never an address", async () => {
+    const seed = await loadGallerySeed(
+      EVENT,
+      { access: "full", gate: null },
+      { ...FIRST, width: null },
+    );
+    if (seed.kind !== "full") throw new Error("expected a full seed");
+    const maya = seed.links.links.find((l) => l[0] === uuid(0))!;
+    expect(maya[4]).toEqual(["Maya", 2]);
+    expect(JSON.stringify(seed)).not.toContain("never@leaks.test");
+  });
+
+  it("at the teaser: the nine inline, the true size, and a validator that rolls with the bucket", async () => {
+    readGuestAlbumVersions
+      .mockReset()
+      .mockResolvedValue({ version: 9, albumMax: 7, attrVersion: 3 });
+    countApprovedMedia.mockReset().mockResolvedValue(1145);
+    getApprovedPhotoTeaser
+      .mockReset()
+      .mockResolvedValue({ rows: [row("a")], total: 1100 });
+    readGuestAttribution.mockReset().mockResolvedValue(new Map());
+    toGridItems.mockReset().mockResolvedValue([{ id: "a" }]);
+    const seed = await loadGallerySeed(
+      EVENT,
+      { access: "teaser", gate: "account" },
+      { ...FIRST, width: null },
+    );
+    expect(seed).toMatchObject({
+      kind: "teaser",
+      sync: {
+        kind: "teaser",
+        gate: "account",
+        items: [{ id: "a" }],
+        teaserTotal: 1100,
+        approvedTotal: 1145,
+      },
+      etag: guestAlbumEtag({
+        eventId: EVENT.id,
+        access: "teaser",
+        gate: "account",
+        albumMax: 7,
+        attrVersion: 3,
+        reel: null,
+        bucketId: "7",
+      }),
+    });
+    expect(planGuestAlbumSync).not.toHaveBeenCalled();
+  });
+
+  it("locked: nothing read at all", async () => {
+    const seed = await loadGallerySeed(
+      EVENT,
+      { access: "none", gate: "password" },
+      { ...FIRST, width: null },
+    );
+    expect(seed).toEqual({ kind: "locked" });
+    expect(planGuestAlbumSync).not.toHaveBeenCalled();
+    expect(readGuestAlbumMedia).not.toHaveBeenCalled();
+  });
+
+  it("★ a plan the reads' gate refuses is LOCKED, never a throw, and the disagreement is reported", async () => {
+    planGuestAlbumSync.mockResolvedValue(null);
+    const seed = await loadGallerySeed(
+      { ...EVENT, visibility: "password" } as Event,
+      { access: "full", gate: null },
+      { ...FIRST, width: null },
+    );
+    expect(seed).toEqual({ kind: "locked" });
+    expect(readGuestAlbumMedia).not.toHaveBeenCalled();
+    expect(captureWarning).toHaveBeenCalledWith(
+      "security",
+      "album: the reads refused a viewer the decision let in",
+      { eventId: EVENT.id, surface: "seed" },
+    );
+  });
+
+  it("a FAILED plan rejects the seed, and the reel's read racing it is never left unheld", async () => {
+    planGuestAlbumSync.mockRejectedValue(new Error("album: changes since"));
+    // The reel's facts fail AFTER the plan has: were they read apart from it, nobody would be
+    // holding them when they did (Vitest fails the run on an unhandled rejection).
+    getLiveReelServerFacts.mockImplementation(
+      () =>
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("reel facts")), 5),
+        ),
+    );
+    await expect(
+      loadGallerySeed(
+        EVENT,
+        { access: "full", gate: null },
+        { ...FIRST, width: null },
+      ),
+    ).rejects.toThrow("album: changes since");
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(captureWarning).not.toHaveBeenCalled();
+  });
+});
+
+const FIRST_COLD = {
+  step: 1 as const,
+  rhythm: "double" as const,
+  seed: 42,
+  width: null,
+};
+
+describe("streamGallerySeed: the seed as the page hands it over, un-awaited", () => {
+  beforeEach(() => {
+    planThroughTheGate();
+    getLiveReelServerFacts.mockReset().mockResolvedValue({
+      liveReelEnabled: false,
+      tier: "pro",
+    });
+  });
+
+  it("★ a seed that fails before anyone reads it is never an unhandled rejection, and still fails where it is read", async () => {
+    planRead.mockReset().mockRejectedValue(new Error("album: changes since"));
+    const seed = streamGallerySeed(
+      EVENT,
+      { access: "full", gate: null },
+      FIRST_COLD,
+    );
+    // The page's own awaited reads run here, long enough for the seed to fail with nobody reading
+    // it yet: without the handler, Node reports an unhandled rejection (on Vercel, exit 128).
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    await expect(seed).rejects.toThrow("album: changes since");
+  });
+
+  it("a good seed streams unchanged", async () => {
+    planRead.mockReset().mockResolvedValue({
+      version: 1,
+      albumMax: 1,
+      attrVersion: 0,
+      approved: 0,
+      hidden: null,
+      pending: null,
+      changes: [],
+    });
+    planPage.mockReset().mockResolvedValue({ entries: [], next: null });
+    const seed = await streamGallerySeed(
+      EVENT,
+      { access: "full", gate: null },
+      FIRST_COLD,
+    );
+    expect(seed).toMatchObject({ kind: "full", sync: { total: 0 } });
+  });
+});
+
+describe("loadGalleryReel: the live reel's facts for one viewer", () => {
+  beforeEach(() => {
+    getLiveReelServerFacts.mockReset();
+    getLiveReelServerFacts.mockResolvedValue({
+      liveReelEnabled: true,
+      tier: "free",
+    });
+  });
+
+  it("reads nothing and says nothing below full access", async () => {
+    expect(await loadGalleryReel(EVENT, "teaser")).toBeNull();
+    expect(await loadGalleryReel(EVENT, "none")).toBeNull();
+    expect(getLiveReelServerFacts).not.toHaveBeenCalled();
+  });
+
+  it("joins the event's own switch and mood to the lever and the plan", async () => {
+    const reel = await loadGalleryReel(
+      {
+        ...EVENT,
+        show_reel: false,
+        reel_style_id: "warm",
+        reel_hold_sec: 5,
+      } as Event,
+      "full",
+    );
+    expect(reel).toEqual({
+      showReel: false,
+      liveReelEnabled: true,
+      styleId: "warm",
+      holdSec: 5,
+      clip: { videoAllowed: false, watermark: true, maxSeconds: 30 },
+    });
+    expect(getLiveReelServerFacts).toHaveBeenCalledWith("event-1");
   });
 });

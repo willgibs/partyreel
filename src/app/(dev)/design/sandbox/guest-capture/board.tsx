@@ -9,16 +9,24 @@ import {
   AFTER_TENTH,
   ALBUM,
   MINE,
+  TRACKER_ITEMS,
   YOURS_ALBUM_COUNT,
   YOURS_ONLY,
 } from "./fixtures";
 import {
+  AddPhotosRow,
   GuestsSection,
   MomentCard,
   NameStepCard,
+  NameToldNotice,
   OfferCaption,
   OfferCard,
   OfferSheet,
+  TrackerButton,
+  TrackerInlineStrip,
+  TrackerMenu,
+  TrackerRow,
+  TrackerSheet,
 } from "./parts";
 import { Ground, Header, Scene, screenOf, type ScreenId } from "./scene";
 import { GUEST_CAPTURE } from "./spec";
@@ -28,8 +36,8 @@ import { GUEST_CAPTURE } from "./spec";
  * today's shape everywhere but the one thing its decision asks (`media-viewer`'s
  * own rule, carried here): the `moment` options vary only the trigger and the
  * count it counts; the `shape` options vary only how the ask is built; `follow`
- * varies only where the follow of Maya lives; `name` varies only what stands
- * where the moment card would be.
+ * varies only where the follow of Maya lives; `name` varies what stands where
+ * the moment card would be, or adds a toast beside it.
  *
  * ★ EVERY SCENE IS THE WHOLE PAGE IN ITS REAL ORDER: the post-upload slot in
  * the words column, the reel's tile at the album's head, the album, and, where
@@ -235,16 +243,29 @@ function followScreen(id: "card" | "list" | "jump", s: BoardState) {
 
 const measureName: Reader = (root) => {
   const fields = root.querySelectorAll("input").length;
-  return `Measured: ${fields} field${fields === 1 ? "" : "s"} to fill before she reaches the moment card.`;
+  const base = `Measured: ${fields} field${fields === 1 ? "" : "s"} to fill before she reaches the moment card`;
+  const notice = root.querySelector<HTMLElement>("[data-gc-name-notice]");
+  if (!notice) return `${base}.`;
+  const words = (notice.textContent ?? "").trim();
+  const card = root.querySelector<HTMLElement>("[data-gc-moment]");
+  const overlap = card
+    ? Math.round(
+        notice.getBoundingClientRect().bottom -
+          card.getBoundingClientRect().top,
+      )
+    : 0;
+  if (overlap > 0)
+    return `${base}; a toast reads "${words}", covering the card's own top ${overlap}px while it is up.`;
+  return `${base}; a toast reads "${words}".`;
 };
 
-function nameScreen(id: "silent" | "confirm", s: BoardState) {
+function nameScreen(id: "silent" | "confirm" | "told", s: BoardState) {
   const sc = screen(s);
   const content =
-    id === "silent" ? (
-      <MomentCard count={4} hostFollow="card" />
-    ) : (
+    id === "confirm" ? (
       <NameStepCard />
+    ) : (
+      <MomentCard count={4} hostFollow="card" />
     );
   return (
     <Scene
@@ -254,7 +275,102 @@ function nameScreen(id: "silent" | "confirm", s: BoardState) {
       measure={measureName}
     >
       <Ground header="confirmed" action={content} items={ALBUM} />
+      {id === "told" && <NameToldNotice />}
     </Scene>
+  );
+}
+
+/* ── tracker: his own idea, on a MODERATED event (`tracker`) ─────────────── */
+
+/** Her menu with the tracker's row: where the row sits and what it counts. */
+const measureTrackerMenu: Reader = (root) => {
+  const menu = root.querySelector('[data-gc-tracker="menu"]');
+  const entry = menu?.querySelector<HTMLElement>("[data-gc-tracker-entry]");
+  const card = menu?.querySelector("[data-gc-menu-card]");
+  if (!menu || !entry || !card) return null;
+  const under =
+    entry.getBoundingClientRect().top >= card.getBoundingClientRect().bottom;
+  const words = (entry.innerText || "").trim().replace(/\s+/g, " ");
+  return `Measured: her menu holds a row reading "${words}", ${under ? "under" : "above"} the card that saves the event.`;
+};
+
+/** Whether a sheet opened, and from what: honest either way, never asserted. */
+const measureTracker: Reader = (root) => {
+  const rows = root.querySelectorAll("[data-gc-tracker-row]").length;
+  if (!rows) return null;
+  const sheet = root.querySelector('[data-gc-tracker="sheet"]');
+  const button = root.querySelector('[data-gc-tracker="button"]');
+  if (sheet) {
+    return `Measured: ${rows} of her own uploads listed in the open sheet${
+      button ? ", opened from a new button beside Add photos" : ""
+    }.`;
+  }
+  return `Measured: ${rows} of her own tiles, each carrying its own status inline, no new surface opened.`;
+};
+
+function trackerScreen(id: "button" | "menu" | "inline") {
+  if (id === "inline") {
+    return (
+      <Scene
+        id="tracker-inline"
+        screen="375"
+        title="Her tracker"
+        measure={measureTracker}
+      >
+        <div className="min-h-full bg-background text-foreground">
+          <Header state="named" />
+          <div className="mx-auto max-w-[640px] pt-5">
+            <TrackerInlineStrip />
+          </div>
+        </div>
+      </Scene>
+    );
+  }
+  const sheet = (
+    <Scene
+      id={`tracker-${id}`}
+      screen="375"
+      title={
+        id === "menu" ? "Her tracker, the list the row opens" : "Her tracker"
+      }
+      measure={measureTracker}
+    >
+      <Ground
+        header="named"
+        action={
+          <AddPhotosRow
+            tracker={id === "button" ? <TrackerButton /> : undefined}
+          />
+        }
+        items={ALBUM}
+      />
+      <TrackerSheet title={id === "menu" ? "Your photos" : "Your uploads"}>
+        {TRACKER_ITEMS.map((item) => (
+          <TrackerRow key={item.id} item={item} />
+        ))}
+      </TrackerSheet>
+    </Scene>
+  );
+  if (id !== "menu") return sheet;
+  // ★ TWO FRAMES, STACKED, SO THE OPTION STAYS ONE PHONE WIDE: her menu with
+  // the row under its card, then the list that row opens (the door's round
+  // two answered `identity-door.menu` with a card, so the row joins that menu
+  // rather than a single "Your photos" sheet that was never picked).
+  return (
+    <div className="flex flex-col gap-6">
+      <Scene
+        id="tracker-menu-row"
+        screen="375"
+        title="Her tracker, a row in her menu"
+        measure={measureTrackerMenu}
+      >
+        <div className="relative min-h-full">
+          <Ground header="named" action={<AddPhotosRow />} items={ALBUM} />
+          <TrackerMenu />
+        </div>
+      </Scene>
+      {sheet}
+    </div>
   );
 }
 
@@ -275,6 +391,11 @@ const PREVIEWS: PreviewsFor<typeof GUEST_CAPTURE> = {
 
   "name.silent": (s) => nameScreen("silent", s),
   "name.confirm": (s) => nameScreen("confirm", s),
+  "name.told": (s) => nameScreen("told", s),
+
+  "tracker.button": () => trackerScreen("button"),
+  "tracker.menu": () => trackerScreen("menu"),
+  "tracker.inline": () => trackerScreen("inline"),
 };
 
 export function GuestCaptureBoard() {

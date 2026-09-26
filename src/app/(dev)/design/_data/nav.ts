@@ -1,56 +1,44 @@
 import "server-only";
 
-import { BIBLE, BIBLE_GROUP_LABEL, BIBLE_GROUPS } from "../rules/bible";
+import { BIBLE, BIBLE_GROUP_LABEL } from "../rules/bible";
 import {
+  CATALOG_FAMILIES,
   FAMILY_LABEL,
+  FAMILY_ROUTE,
   familyItems,
   type GalleryFamily,
+  type GalleryItem,
   ITEMS,
 } from "../gallery/registry";
-import { COMPONENTS, componentTitle } from "../rules/rules";
 import { boardSpec } from "../sandbox/registry";
-import { RULED, SANDBOX, SURFACE_LABEL, type Surface } from "../touchpoints";
+import { SANDBOX, SURFACE_LABEL, type Surface } from "../touchpoints";
 import { flatten, type Nav, type NavItem, type NavSection } from "./catalog";
-import {
-  DOCS,
-  type DocId,
-  headingsOf,
-  landminesOf,
-  listSpecs,
-  listTracks,
-  readDoc,
-} from "./docs";
+import { listSpecs, listTracks } from "./docs";
 import { GLOSSARY, RETIRED } from "./glossary";
-import { POLICY_TESTS } from "./links";
 import type { SearchEntry, SearchIndex } from "./search";
 
 /**
- * BUILDS THE NAV (server-only; the Library x Lab round, 2026-09-15): the two
- * areas from the registries and the docs, as plain data the client chrome
- * receives as props. Reading the gallery registry here (and never in a client
- * file) is what keeps every production component out of the sidebar's bundle.
+ * BUILDS THE NAV (server-only): the two areas from the registries, as plain
+ * data the client chrome receives as props. Reading the gallery registry here
+ * (and never in a client file) is what keeps every production component out
+ * of the sidebar's bundle.
  *
- * Badges are data, never dates: a `new`/`updated` mark is set on a gallery
+ * The Library is three parts, in this order: the brand kit, the catalog (its
+ * four families open by default, so a reader sees what exists before anything
+ * else), and the bible's ten. The glossary is a quiet link on the ten's page.
+ *
+ * Badges are data, never dates: a `new`/`updated` mark is set on a catalog
  * entry or a board and cleared by the Orchestrator at a window's close, so a
  * Vercel build (which has no git) prints the same badge as the dev server.
  */
 
-const FAMILIES: GalleryFamily[] = [
-  "components",
-  "patterns",
-  "compositions",
-  "marketing",
-  "foundations",
-];
-
 const FAMILY_NOTE: Record<GalleryFamily, string> = {
-  components: "The real UI primitives, rendered from production source.",
-  patterns: "The composed shared pieces: logo, empty states, dead ends.",
-  compositions: "The real product components from sample props.",
-  marketing:
-    "The marketing system and the shared section atoms, on the real skin.",
+  components: "The UI primitives, rendered from production source.",
+  patterns: "The composed shared pieces: the logo, empty states, dead ends.",
+  compositions: "The product's own components, from sample props.",
+  marketing: "The marketing system and its section pieces, on the real skin.",
   foundations:
-    "Colour, type, radius, motion, elevation and light as live swatches.",
+    "Colour, type, radius, motion, elevation and light, from the live tokens.",
 };
 
 const SURFACE_ORDER: Surface[] = [
@@ -93,6 +81,12 @@ const TOOLS: NavItem[] = [
     note: "Three streaming shapes against the production runtime.",
   },
   {
+    href: "/design/lab/tools/keyboard-sheet",
+    label: "Keyboard sheet",
+    badge: "tool",
+    note: "The door's sheet over a fake album under a software keyboard, the viewport read out live.",
+  },
+  {
     href: "/design/lab/tools/boom",
     label: "Error boundary",
     badge: "tool",
@@ -101,53 +95,51 @@ const TOOLS: NavItem[] = [
 ];
 
 /**
- * A BOARD'S ROUND COMES OFF ITS OWN SPEC (the sweep, 2026-09-16), never off the
- * track manifests. It used to count a manifest's `merged_round_N` keys, and
- * since `44090827` a manifest is DELETED at the merge that integrates it, so
- * every standing board's badge would have quietly gone blank the moment its
- * track retired. `spec.round.n` is the board's own record of which round it is
- * in, it survives the track, and a board with no spec simply has no badge.
+ * A BOARD'S ROUND COMES OFF ITS OWN SPEC, never off the track manifests: a
+ * manifest is deleted at the merge that integrates it, so a badge counted from
+ * manifests would go blank the moment its track retired. `spec.round.n` is the
+ * board's own record of which round it is in, and a board with no spec simply
+ * has no badge.
  */
 function roundBadge(id: string): NavItem["badge"] {
   const n = boardSpec(id)?.round.n;
   return n ? `round ${n}` : undefined;
 }
 
+/** One catalog entry as a sidebar row. */
+function entryItem(it: GalleryItem): NavItem {
+  return {
+    href: it.href,
+    label: it.title,
+    id: it.entry.id,
+    note: it.entry.for,
+    badge: it.entry.badge,
+    match: "exact",
+    keywords: [it.file],
+  };
+}
+
+/** A family as an open section: its gallery page first, then every entry. */
+function familySection(family: GalleryFamily): NavSection {
+  return {
+    id: `family-${family}`,
+    label: FAMILY_LABEL[family],
+    href: FAMILY_ROUTE[family],
+    items: [
+      {
+        href: FAMILY_ROUTE[family],
+        label: `The ${FAMILY_LABEL[family].toLowerCase()} gallery`,
+        match: "exact",
+        note: FAMILY_NOTE[family],
+      },
+      ...familyItems(family).map(entryItem),
+    ],
+  };
+}
+
 export async function buildNav(): Promise<Nav> {
   const specs = listSpecs();
   const trackList = listTracks();
-
-  // One section per family: the family page first (the gallery, or the
-  // tokens for foundations), then its components by permalink.
-  const families: NavSection[] = FAMILIES.map((family) => ({
-    id: `family-${family}`,
-    label: FAMILY_LABEL[family],
-    href: `/design/library/${family}`,
-    collapsed: true,
-    items: [
-      {
-        href: `/design/library/${family}`,
-        label:
-          family === "foundations"
-            ? "The tokens"
-            : `The ${FAMILY_LABEL[family].toLowerCase()} gallery`,
-        match: "exact" as const,
-        note: FAMILY_NOTE[family],
-      },
-      ...familyItems(family).map((it) => ({
-        href: it.href,
-        label: it.title,
-        id: it.entry.id,
-        note: it.note?.for,
-        // The entry's own mark ("new"/"updated"), set by the registry and
-        // cleared by the Orchestrator at a window's close, so a Vercel build
-        // (which has no git) prints the same badge as the dev server.
-        badge: it.entry.badge,
-        match: "exact" as const,
-        keywords: [it.file ?? ""],
-      })),
-    ],
-  }));
 
   const boards: NavSection[] = SURFACE_ORDER.flatMap((surface) => {
     const items = SANDBOX.filter((r) => r.surface === surface);
@@ -160,10 +152,8 @@ export async function buildNav(): Promise<Nav> {
           href: `/design/lab/${r.id}`,
           label: r.title,
           id: r.id,
-          note: r.board?.note ?? r.why,
-          badge: r.shipped
-            ? ("shipped" as const)
-            : (roundBadge(r.id) ?? ("exploring" as const)),
+          note: r.board.note,
+          badge: roundBadge(r.id) ?? ("exploring" as const),
           match: "prefix" as const,
         })),
       },
@@ -176,79 +166,49 @@ export async function buildNav(): Promise<Nav> {
       label: "Library",
       href: "/design/library",
       blurb:
-        "Everything that binds or informs design work: the rules, the policies, the guidance, the rulings, the doctrine, the components with their contracts.",
+        "The brand kit, the component catalog and the bible's ten principles: what exists today, and what design starts from.",
       sections: [
         {
-          id: "start",
-          label: "Start here",
+          id: "brand-kit",
+          label: "Brand kit",
+          href: FAMILY_ROUTE.foundations,
           items: [
             {
-              href: "/design/library",
-              label: "Every component",
+              href: FAMILY_ROUTE.foundations,
+              label: "The brand kit",
               match: "exact",
-              note: "The index: every component with its for-line and its contracts; what binds you.",
+              note: FAMILY_NOTE.foundations,
             },
-            {
-              href: "/design/library/glossary",
-              label: "Glossary",
-              note: "The words this app uses, and the ones it retired.",
-            },
+            ...familyItems("foundations").map(entryItem),
           ],
         },
         {
-          id: "rules",
-          label: "Rules",
+          id: "catalog",
+          label: "Catalog",
+          href: "/design/library",
+          items: [
+            {
+              href: "/design/library",
+              label: "The index",
+              match: "exact",
+              note: "Every component, searchable, under the design recipe.",
+            },
+          ],
+        },
+        ...CATALOG_FAMILIES.map(familySection),
+        {
+          id: "ten",
+          label: "The ten",
           href: "/design/library/rules",
           items: [
             {
               href: "/design/library/rules",
-              label: "The bible",
-              note: `${BIBLE.length} rules in ${BIBLE_GROUPS.length} groups: Will's global working rules.`,
-              keywords: BIBLE_GROUPS.map((g) => BIBLE_GROUP_LABEL[g]),
-            },
-            {
-              href: "/design/library/policies",
-              label: "Policies and landmines",
-              note: "The tests that hold a line across the tree, and the silent breakages a revert would cause.",
-            },
-            {
-              href: "/design/library/guidance",
-              label: "Guidance",
-              note: "The craft stack and the skills: the default you leave on purpose.",
-            },
-            {
-              href: "/design/library/rules#rulings",
-              label: "Rulings",
-              note: "What Will ruled for each component and page: the rule it holds today, and why.",
-            },
-            {
-              href: "/design/library/doctrine/design-system",
-              label: "Doctrine: the design system",
-              note: "The system doc, rendered: precedent, not law.",
-            },
-            {
-              href: "/design/library/doctrine/marketing-content",
-              label: "Doctrine: marketing",
-              note: "The marketing content doc, rendered.",
-            },
-            {
-              href: "/design/library/doctrine/program",
-              label: "Doctrine: the program",
-              note: "How a round works.",
-            },
-            {
-              href: "/design/library/doctrine/agent-guide",
-              label: "Doctrine: the agent guide",
-              note: "CLAUDE.md, rendered.",
-            },
-            {
-              href: "/design/library/doctrine/craft",
-              label: "Doctrine: the craft skill",
-              note: "The installed design-engineering skill, declared primary.",
+              label: "The bible's ten",
+              note: "The ten principles every design starts from, each with its reason.",
+              keywords: Object.values(BIBLE_GROUP_LABEL),
             },
           ],
         },
-        ...families,
       ],
     },
     {
@@ -283,8 +243,7 @@ export async function buildNav(): Promise<Nav> {
                   label: s.title,
                   id: s.slug,
                   badge: "proposal" as const,
-                  note:
-                    s.status ?? "A board's argument; not law until Will rules.",
+                  note: s.status ?? "A board's argument, waiting on Will.",
                 })),
               },
             ]
@@ -342,26 +301,16 @@ const entry = (
     : undefined,
 });
 
-/** The doctrine whose headings are worth an index entry, shallowest first. */
-const INDEXED_DOCS: DocId[] = [
-  "design-system",
-  "marketing-content",
-  "program",
-  "agent-guide",
-  "craft",
-];
-
 /**
  * ONE INDEX OVER EVERYTHING THE SHELL RENDERS (server-only, built beside the
- * nav and handed to the palette as props). Doc headings are taken at depth 2
- * on purpose: every `###` of five long documents would double the payload the
- * layout ships for hits a reader reaches through the page's own table of
- * contents anyway.
+ * nav and handed to the palette as props): the ten, every catalog entry, every
+ * board, the proposals, the tracks and the glossary, then the pages no kind
+ * above already answers.
  */
 export function buildSearchIndex(nav: Nav): SearchIndex {
   const out: SearchIndex = [];
-  // The nav lists every component and every board as an item of its own, and
-  // each of those already has a richer entry below (its file, its family, its
+  // The nav lists every entry and every board as an item of its own, and each
+  // of those already has a richer entry below (its file, its family, its
   // surface). The page entries are therefore added LAST and any whose href a
   // specific kind already claims is dropped, or "Glow" would answer twice.
   const pages = flatten(nav);
@@ -372,31 +321,23 @@ export function buildSearchIndex(nav: Nav): SearchIndex {
         "rule",
         r.id,
         `${r.n}. ${r.statement}`,
-        `/design/library/rules/${r.id}`,
+        `/design/library/rules#${r.id}`,
         r.why,
-        [
-          `bible ${r.n}`,
-          String(r.n),
-          BIBLE_GROUP_LABEL[r.group],
-          r.status ?? "",
-        ],
+        [`bible ${r.n}`, String(r.n), BIBLE_GROUP_LABEL[r.group]],
       ),
     );
 
-  const galleryById = new Map(ITEMS.map((i) => [i.entry.id, i]));
-  for (const c of COMPONENTS) {
-    const g = galleryById.get(c.id);
+  for (const it of ITEMS)
     out.push(
       entry(
         "component",
-        c.id,
-        g?.title ?? componentTitle(c),
-        `/design/library/${c.id}`,
-        g?.note?.for ?? g?.entry.lede ?? c.file,
-        [c.file, ...c.names, g ? FAMILY_LABEL[g.entry.family] : ""],
+        it.entry.id,
+        it.title,
+        it.href,
+        it.entry.for ?? it.entry.lede ?? it.file,
+        [it.file, FAMILY_LABEL[it.entry.family]],
       ),
     );
-  }
 
   for (const r of SANDBOX)
     out.push(
@@ -405,48 +346,10 @@ export function buildSearchIndex(nav: Nav): SearchIndex {
         r.id,
         r.title,
         `/design/lab/${r.id}`,
-        r.board?.note ?? r.why,
-        [SURFACE_LABEL[r.surface], ...(r.board?.tracks ?? [])],
+        r.board.note,
+        [SURFACE_LABEL[r.surface], ...(r.board.tracks ?? [])],
       ),
     );
-
-  for (const [id, file] of Object.entries(POLICY_TESTS))
-    out.push(
-      entry("policy", id, id, `/design/library/policies#${id}`, file, [file]),
-    );
-
-  for (const doc of ["design-system", "marketing-content"] as const) {
-    const { path, title } = DOCS[doc];
-    landminesOf(readDoc(path).body).forEach((mine, i) => {
-      const text = mine.text.replace(/[*`]/g, "").trim();
-      out.push(
-        entry(
-          "landmine",
-          `${doc}-${i}`,
-          clip(text, 90),
-          "/design/library/policies#landmines",
-          `★ in ${title}, under ${mine.under}`,
-          [mine.under],
-        ),
-      );
-    });
-  }
-
-  for (const doc of INDEXED_DOCS) {
-    const { path, title } = DOCS[doc];
-    for (const h of headingsOf(readDoc(path).body, 2))
-      if (h.depth === 2)
-        out.push(
-          entry(
-            "doc",
-            `${doc}#${h.id}`,
-            h.text,
-            `/design/library/doctrine/${doc}#${h.id}`,
-            title,
-            [title],
-          ),
-        );
-  }
 
   for (const s of listSpecs())
     out.push(
@@ -468,18 +371,6 @@ export function buildSearchIndex(nav: Nav): SearchIndex {
         `/design/lab/tracks/${t.name}`,
         t.status,
         [t.status],
-      ),
-    );
-
-  for (const r of RULED)
-    out.push(
-      entry(
-        "ruling",
-        r.id,
-        r.title,
-        `/design/library/rules#ruling-${r.id}`,
-        r.ruled,
-        [SURFACE_LABEL[r.surface]],
       ),
     );
 
@@ -517,7 +408,7 @@ export function buildSearchIndex(nav: Nav): SearchIndex {
   }
 
   // `key` must stay unique for React even when two entries of a kind share an
-  // href (every landmine points at the same anchor).
+  // href (two glossary terms can point at one page).
   const keys = new Set<string>();
   return out.filter((e) => {
     if (keys.has(e.key)) return false;

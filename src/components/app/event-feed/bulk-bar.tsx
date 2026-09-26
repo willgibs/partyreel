@@ -19,6 +19,7 @@ import {
   TooltipSlide,
   TooltipSlideGroup,
 } from "@/components/shared/tooltip-slide";
+import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
 
 /**
@@ -52,15 +53,9 @@ import { cn } from "@/lib/utils";
  * hydration pass itself — so it cannot repeat that regression.
  */
 
-export type BulkBarActionColor =
-  | "reel"
-  | "like"
-  | "warning"
-  | "save"
-  | "destructive";
+export type BulkBarActionColor = "like" | "warning" | "save" | "destructive";
 
 const COLOR_CLASS: Record<BulkBarActionColor, string> = {
-  reel: "text-reel",
   like: "text-like",
   warning: "text-warning",
   save: "text-save",
@@ -109,7 +104,7 @@ function useHydrated(): boolean {
 
 // The house press feedback for an icon-only control over a photograph's own
 // chrome (host-media-grid.tsx's tile overlay, like-button.tsx, the lightbox's
-// pill — bible 12): a stronger 10% squish than the shared <Button>'s own 3%,
+// pill — bible 5): a stronger 10% squish than the shared <Button>'s own 3%,
 // so it needs `!` to win against Button's baked-in active:not-aria-[haspopup]
 // rule (a plain class of the same specificity loses to that :not() selector).
 const ICON_BUTTON = cn(
@@ -271,8 +266,8 @@ export function BulkBar({
       >
         {allSelected ? "Clear" : "All"}
       </Button>
-      <span className="px-0.5 text-xs tabular-nums text-muted-foreground">
-        {count}
+      <span className="px-0.5 text-xs text-muted-foreground tabular-nums">
+        {formatCount(count)}
       </span>
       {actions.map((action, i) => (
         <BulkBarActionButton

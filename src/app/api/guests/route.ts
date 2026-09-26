@@ -26,19 +26,18 @@ import {
 // event's qr_token) and returns an opaque session_token — the guest's capability
 // for subsequent uploads (database-security.md).
 //
-// ★ THE IDENTITY RESHAPE (Will, 2026-09-21): every join now carries an identity, and which one is
-// the host's switch. `require_verified_email` ON: nothing but a CONFIRMED session passes. OFF: the
-// guest types a display name at the door and joins unverified under it. The name requirement is
-// THIS ROUTE'S 422 first (with the profanity check, which SQL cannot own); `create_guest` refuses a
-// nameless unconfirmed mint too ("Add your name to upload."), the belt under it.
+// ★ EVERY JOIN CARRIES AN IDENTITY, and which one is the host's switch. `require_verified_email`
+// ON: nothing but a CONFIRMED session passes. OFF: the guest types a display name at the door and
+// joins unverified under it. The name requirement is THIS ROUTE'S 422 first (with the profanity
+// check, which SQL cannot own); `create_guest` refuses a nameless unconfirmed mint too ("Add your
+// name to upload."), the belt under it.
 //
-// ★ AND THE OPTIONAL ADDRESS UNDER IT (the guest identity round, Will 2026-09-22): on a names-mode
-// door the guest may also type an email. It is stored UNPROVED in `guests.pending_email` and is
-// inert by construction — never shown to the host or another guest, never attributed to an account,
-// NEVER MAILED, never expiring; his words, "a name with an invisible claim number (the email)". A
-// confirmed address later claims those rows from the dashboard. The response says WHETHER one was
-// stored and never WHAT: echoing a stranger's address back would put it on a wire it has no reason
-// to ride.
+// ★ AND THE OPTIONAL ADDRESS UNDER IT: on a names-mode door the guest may also type an email. It is
+// stored UNPROVED in `guests.pending_email` and is inert by construction — never shown to the host
+// or another guest, never attributed to an account, NEVER MAILED, never expiring: an invisible claim
+// number on the guest's name. A confirmed address later claims those rows from the dashboard. The
+// response says WHETHER one was stored and never WHAT: echoing a stranger's address back would put
+// it on a wire it has no reason to ride.
 export async function POST(request: Request) {
   let body: unknown;
   try {
@@ -89,7 +88,7 @@ export async function POST(request: Request) {
     joinKeys = null;
   }
 
-  // QA #18 (host-app.md ruling 2): the write path inherits the read gate — resolve the event's
+  // The write path inherits the read gate (database-security.md) — resolve the event's
   // visibility BEFORE minting. `private` never mints (the /e/ page master-locks everyone, owner
   // included; a 403 leaks nothing the page didn't already show any link-holder). `password`
   // requires the unlock cookie or ownership (mayUploadPastLock — the owner reads the album
@@ -127,7 +126,7 @@ export async function POST(request: Request) {
     }
   }
 
-  // create_guest is service-role-only (H3); derive the TRUSTED identity here from the verified session
+  // create_guest is service-role-only; derive the TRUSTED identity here from the verified session
   // (or null for a name-only guest). The RPC re-reads the email AND its confirmation from auth.users
   // for this id, so the client can never supply either.
   const supabase = await createClient();
@@ -135,9 +134,9 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // ★ VERIFIED MEANS A CONFIRMED EMAIL, NEVER "HAS A USER ID" (wave 0's finding). An unconfirmed
-  // sign-up carries a perfectly good `user.id` and would sail through a `user !== null` test while
-  // having proved nothing at all — which is the exact hole this whole reshape closes.
+  // ★ VERIFIED MEANS A CONFIRMED EMAIL, NEVER "HAS A USER ID". An unconfirmed sign-up carries a
+  // perfectly good `user.id` and would sail through a `user !== null` test while having proved
+  // nothing at all — which is the exact hole this check closes.
   const isVerifiedSession = Boolean(user?.email_confirmed_at);
 
   // The identity, decided before the mint so the refusal can say which one was missing. A verified
@@ -246,12 +245,12 @@ export async function POST(request: Request) {
     // ★ WHETHER, NEVER WHAT. The address never appears in a response body.
     email_attached: result.data.emailAttached,
   });
-  /* ★ THE SESSION ALSO GOES ON A COOKIE (the door as three steps, 2026-09-21). Require an upload
-     to view is resolved SERVER-SIDE, in the RSC and the poll, and neither can read the localStorage
-     copy the browser is about to make. `pr_guest_<eventId>` is that same token, HttpOnly, so the
-     next render knows which guest is asking. It is a READ capability only: every write route still
-     takes its token from the BODY (pinned by body-token-source.test.ts), so the CSRF surface does
-     not move. Skipped when the request already carried this exact token. */
+  /* ★ THE SESSION ALSO GOES ON A COOKIE. Require an upload to view is resolved SERVER-SIDE, in the
+     RSC and the poll, and neither can read the localStorage copy the browser is about to make.
+     `pr_guest_<eventId>` is that same token, HttpOnly, so the next render knows which guest is
+     asking. It is a READ capability only: every write route still takes its token from the BODY
+     (pinned by body-token-source.test.ts), so the CSRF surface does not move. Skipped when the
+     request already carried this exact token. */
   applyGuestCookies(response, [
     await guestSessionCookieIfChanged(
       result.data.event_id,

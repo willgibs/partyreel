@@ -45,8 +45,11 @@ vi.mock("@/lib/supabase/request-auth", () => ({
 }));
 
 const {
+  CARD_STILLS,
   getEventCardStats,
+  getEventCardStills,
   getEventCoverUrls,
+  getReelProgress,
   listEvents,
   listRecentlyDeletedEvents,
 } = await import("@/lib/db/queries/events");
@@ -114,7 +117,8 @@ describe("listEvents: every live event, newest first", () => {
   it("never carries the password hash, only whether there is one", async () => {
     fake = createFakePostgrest({ tables: { events: [event(0), event(1)] } });
     const rows = await listEvents();
-    for (const row of rows) expect(row).not.toHaveProperty("event_password_hash");
+    for (const row of rows)
+      expect(row).not.toHaveProperty("event_password_hash");
     expect(rows.find((r) => r.id === uuid("e", 0))?.has_password).toBe(true);
     expect(rows.find((r) => r.id === uuid("e", 1))?.has_password).toBe(false);
   });
@@ -319,6 +323,156 @@ function newestBody(fn: string): string {
     .replace(/\s+/g, " ")
     .toLowerCase();
 }
+
+describe("getEventCardStills: each hosted card's cover and the stills it dissolves through", () => {
+  it("★ asks both functions once for every event, in the body, and leads each list with its cover", async () => {
+    const ids = Array.from({ length: 2500 }, (_, i) => uuid("e", i));
+    fake = createFakePostgrest({
+      rpc: {
+        event_covers: () => ({
+          [ids[0]]: { preview_key: "p-new", original_key: "o-new" },
+          [ids[1]]: { preview_key: null, original_key: "o-only" },
+        }),
+        event_stills: (args: Record<string, unknown>) => {
+          // The card's own cap, asked of the function, which clamps it again in SQL.
+          expect(args.p_per_event).toBe(CARD_STILLS);
+          return {
+            [ids[0]]: ["p-new", "p-2", "p-3", "p-4"],
+            [ids[2]]: ["q-1"],
+          };
+        },
+      },
+    });
+
+    const stills = await getEventCardStills(ids);
+
+    // The cover once, then the others, capped: the cover's preview is never a second still.
+    expect(stills.get(ids[0])).toEqual([
+      "signed:p-new",
+      "signed:p-2",
+      "signed:p-3",
+      "signed:p-4",
+    ]);
+    // A photo with no preview keeps its original as the cover, and nothing else to show.
+    expect(stills.get(ids[1])).toEqual(["signed:o-only"]);
+    // Stills with no cover still make a card's list.
+    expect(stills.get(ids[2])).toEqual(["signed:q-1"]);
+    // An event with no photo is absent: its card keeps the no-cover surface.
+    expect(stills.has(ids[3])).toBe(false);
+    expect(fake.requests.map((r) => r.name).sort()).toEqual([
+      "event_covers",
+      "event_stills",
+    ]);
+    for (const request of fake.requests) {
+      expect(request.method).toBe("POST");
+      expect(request.urlLength).toBeLessThan(200);
+    }
+  });
+
+  it("throws on either failed read rather than showing cards with no covers", async () => {
+    fake = createFakePostgrest({
+      rpc: {
+        event_covers: () => ({}),
+        event_stills: () => {
+          throw new FakeRpcError("42501", "permission denied");
+        },
+      },
+    });
+    await expect(getEventCardStills(["a"])).rejects.toThrow(
+      /dashboard: event stills/,
+    );
+    fake = createFakePostgrest({
+      rpc: {
+        event_covers: () => ({}),
+        event_stills: () => ({ a: "not a list" }),
+      },
+    });
+    await expect(getEventCardStills(["a"])).rejects.toThrow(/event_stills/);
+  });
+
+  it("reads nothing for no events or a signed-out caller", async () => {
+    fake = createFakePostgrest({
+      rpc: { event_covers: () => ({}), event_stills: () => ({}) },
+    });
+    expect((await getEventCardStills([])).size).toBe(0);
+    signedIn = false;
+    expect((await getEventCardStills(["a"])).size).toBe(0);
+    expect(fake.requests).toEqual([]);
+  });
+});
+
+describe("getReelProgress: how far each event's live reel is, counted to two", () => {
+  /** An event row with `n` playable media embedded, the way PostgREST answers the embed. */
+  const withMedia = (i: number, n: number): FakeRow => ({
+    id: uuid("e", i),
+    media: Array.from({ length: n }, (_, k) => ({ id: uuid("m", i * 10 + k) })),
+  });
+
+  it("★ answers 2,500 events in chunks one row an event, each counted only to the minimum", async () => {
+    const eventIds = Array.from({ length: 2500 }, (_, i) => uuid("e", i));
+    fake = createFakePostgrest({
+      tables: {
+        // The fake answers the embed whole; the real one stops it at the limit asked for.
+        events: eventIds.map((_, i) =>
+          withMedia(i, i % 3 === 0 ? 0 : i % 3 === 1 ? 1 : 5),
+        ),
+      },
+    });
+
+    const progress = await getReelProgress(eventIds);
+
+    expect(progress.size).toBe(2500);
+    expect(progress.get(uuid("e", 0))).toBe(0);
+    expect(progress.get(uuid("e", 1))).toBe(1);
+    // Five that play reads as two: past the minimum, the state is all a caller needs.
+    expect(progress.get(uuid("e", 2))).toBe(2);
+    const chunks = fake.requests.filter((r) => r.name === "events");
+    expect(chunks.length).toBeGreaterThanOrEqual(17);
+    for (const chunk of chunks) {
+      expect(chunk.failed).toBe(false);
+      expect(chunk.urlLength).toBeLessThan(8000);
+      expect(chunk.returned).toBeLessThanOrEqual(150);
+    }
+  });
+
+  it("asks for exactly what the live reel plays, and never more than two of them", async () => {
+    fake = createFakePostgrest({ tables: { events: [withMedia(0, 1)] } });
+    await getReelProgress([uuid("e", 0)]);
+    const read = fake.requests.find((r) => r.name === "events");
+    // The guest's isReelEligible, spelled in SQL: approved outside the bin, not a clip added to
+    // the album, and something drawable (a photo, or a video with its poster).
+    expect(read?.filters).toContainEqual({
+      column: "media.or",
+      op: "or",
+      value:
+        "and(status.eq.approved,removed_at.is.null,reel_eligible.is.true,or(type.eq.photo,preview_key.not.is.null))",
+    });
+    expect(decodeURIComponent(read?.url ?? "")).toContain("media.limit=2");
+  });
+
+  it("every asked-for event is present, at zero where nothing came back", async () => {
+    fake = createFakePostgrest({ tables: { events: [withMedia(1, 2)] } });
+    const progress = await getReelProgress([uuid("e", 0), uuid("e", 1)]);
+    expect(progress.get(uuid("e", 0))).toBe(0);
+    expect(progress.get(uuid("e", 1))).toBe(2);
+  });
+
+  it("throws on a failed read rather than telling a host the reel has not started", async () => {
+    fake = createFakePostgrest({ tables: {} });
+    await expect(getReelProgress([uuid("e", 0)])).rejects.toThrow(
+      /host: reel progress/,
+    );
+  });
+
+  it("reads nothing for no events or a signed-out caller", async () => {
+    fake = createFakePostgrest({ tables: { events: [withMedia(0, 2)] } });
+    expect((await getReelProgress([])).size).toBe(0);
+    signedIn = false;
+    const progress = await getReelProgress([uuid("e", 0)]);
+    expect(progress.get(uuid("e", 0))).toBe(0);
+    expect(fake.requests).toEqual([]);
+  });
+});
 
 describe("the card functions' definitions", () => {
   it("event_card_stats counts approved and pending only, outside the bin: a withdrawal (removed) never counts", () => {

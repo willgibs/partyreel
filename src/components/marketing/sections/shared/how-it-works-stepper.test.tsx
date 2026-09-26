@@ -1,4 +1,3 @@
-// @contract-for: src/components/marketing/sections/shared/how-it-works-stepper.tsx
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -38,9 +37,9 @@ beforeAll(() => {
  * THE OVERVIEW STEPPER'S FUNCTION, never its look (a contract guards what the
  * component is FOR; Will retunes the rest without asking a test).
  *
- * Three things have to hold or the section stops being the thing Will ruled
+ * Three things have to hold or the section stops being the thing that was chosen
  * ("a numbered stepper... where we can present the full flow within a regular
- * height section", 2026-09-19):
+ * height section"):
  *
  *  1. ONE step is on screen. If all six render, this is the walkthrough again
  *     and the whole point of the shape is gone. It is also the accessibility

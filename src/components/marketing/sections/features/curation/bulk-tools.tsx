@@ -12,14 +12,14 @@ import { SectionShell } from "@/components/marketing/system/section-shell";
  * Curation page section 5: the bulk sweep (copy absorbed from FEATURE_GROUPS
  * hosts "Approve in bulk"). The visual quotes the gallery selection state
  * (selectable-media-grid.tsx's scrim + corner check) AND the bar it summons
- * (event-feed-action-bar.tsx's floating pill wrapping gallery-actions.tsx's
+ * (the album header's bulk slot holding gallery-actions.tsx's
  * GalleryBulkBar). Static on purpose: the interactive triage lives in the
  * signature demo above; this one shows that selection scales to a batch, and
  * ends where the app ends it, on the actions.
  *
- * The bar shows the three actions this section's copy names (add to reel, hide,
- * download) in the app's own state hues; Like and the destructive Delete are
- * left out rather than restated in marketing, and nothing here invents a label.
+ * The bar shows the three actions this section's copy names (like, hide,
+ * download) in the app's own state hues; the destructive Delete is left out
+ * rather than restated in marketing, and nothing here invents a label.
  */
 
 const GRID: { id: string; selected: boolean }[] = [
@@ -42,7 +42,7 @@ export function BulkTools() {
     <SectionShell
       eyebrow="Bulk tools"
       heading="Sweep dozens in one pass."
-      subhead="Big events fill fast, so the tools scale with them. Long-press any photo to start a selection, then feature, hide, or download the whole batch together. Curation takes minutes, not the morning after."
+      subhead="Big events fill fast, so the tools scale with them. Long-press any photo to start a selection, then like, hide, or download the whole batch together. Curation takes minutes, not the morning after."
     >
       <Reveal className="mx-auto mt-10 max-w-2xl">
         <div

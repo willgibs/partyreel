@@ -1,49 +1,72 @@
 /**
- * THE DOOR, AS AN ITINERARY (Will, 2026-09-21, "the door as three steps").
+ * THE DOOR, AS AN ITINERARY.
  *
  * Pure step-derivation for the guest entry sheet (`entry-modal.tsx`). Kept separate + pure so it is
  * unit-testable and has no client/server imports.
  *
- * The door is now ONE HELD SHEET WITH NO EXIT that a guest passes through BEFORE the album: the
- * welcome, the password when the event has one, the name, the email held until it is confirmed when
- * the host requires verified emails, and the first upload asked actively. The nine-tile teaser sits
- * blurred behind it the whole way. His words for why there is no way out: "Including 'just
- * browsing' defeats this entire purpose of using the album to justify the name or email friction.
- * No exit."
+ * The door is ONE HELD SHEET WITH NO EXIT that a guest passes through BEFORE the album: the
+ * welcome, the password when the event has one, then who they are, and the first upload asked
+ * actively. The album sits blurred behind it the whole way. There is no way out because the album
+ * is what justifies the name and email friction, and a "just browsing" exit would defeat that
+ * purpose.
+ *
+ * ★ WHO THEY ARE IS ASKED TWO WAYS, BY THE HOST'S SWITCH (Will, `identity-door` r1 `nudge`: "let's
+ * simply have a screen for guests to select how to proceed"):
+ *   - a NAME-ONLY event offers the chooser: Continue as guest (the name, with the optional email),
+ *     Create account (a name and an email, confirmed by code), or Log in;
+ *   - a VERIFICATION event has one path, `identify`, a name and an email confirmed by code, the
+ *     same for a new guest and a returning member, because a code creates or signs in alike.
  *
  * ★ THE MACHINE IS HALF SERVER AND HALF CLIENT, AND THAT IS THE ONE STRUCTURAL FACT HERE. The
  * server knows the password and the email (they change `gate`, and the RSC drop re-derives); it
- * cannot know whether THIS BROWSER typed a name, and before the cookie it could not know whether
- * this browser had contributed either. So the ordered steps are derived from BOTH: the server's
- * decision, and the client's own facts. `computeEntry` was the old server-only shape and is gone
- * with the exemption it encoded.
+ * cannot know whether THIS BROWSER typed a name, or which way in the guest just picked. So the
+ * ordered steps are derived from BOTH: the server's decision, and the client's own facts.
  */
-import type {
-  GalleryAccess,
-  GalleryGate,
-} from "@/lib/events/gallery-access";
+import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 
-export type EntryStep = "welcome" | "password" | "name" | "email" | "upload";
+export type EntryStep =
+  | "welcome"
+  | "password"
+  | "chooser"
+  | "name"
+  | "identify"
+  | "signin"
+  | "upload";
+
+/**
+ * The way in a guest picked at the chooser. It lives in the modal's state for this visit alone:
+ * going back to the chooser clears it, and nothing ever persists it, because a phone at a party
+ * belongs to whoever is holding it and the next person picks their own way in.
+ */
+export type DoorPath = "guest" | "create" | "login";
+
+/** Where each way in leads: the name (with the optional email), a name and email by code, or Log in. */
+export const PATH_STEP: Record<DoorPath, EntryStep> = {
+  guest: "name",
+  create: "identify",
+  login: "signin",
+};
 
 /**
  * Derive the ordered itinerary + whether the sheet should auto-open.
  *
- * The rules, in order, and each one is a line of his ruling:
- *  - the owner gets no sheet at all (the host previewing their own event is not a guest);
- *  - the welcome comes first, once per browser per event (round one's `door=today` stands);
- *  - `access === "none"` is the password, and nothing after it is knowable yet (the RSC is
- *    redacted), so the itinerary STOPS there and re-derives after the unlock's refresh;
- *  - the name, unless this browser already has one (a typed name, or a confirmed account's), and
- *    never in the demo;
- *  - the email, when the server says the gate is `account`, and the itinerary STOPS there too
- *    (behind an unmet gate the server has no opinion about the gates after it);
- *  - the upload, when uploads are open and this guest has not contributed: unconditionally when
- *    the host requires one, and otherwise only for a guest who has neither skipped this pass nor
- *    come back to an album they already hold a session for.
+ * The rules, in order:
+ *  1. the owner gets no sheet at all (the host previewing their own event is not a guest), and the
+ *     welcome comes first, once per browser per event;
+ *  2. `access === "none"` is the password, and nothing after it is knowable yet (the RSC is
+ *     redacted), so the itinerary STOPS there and re-derives after the unlock's refresh;
+ *  3. a verification event (`gate === "account"`, which the server only answers to a viewer with
+ *     no confirmed email) is `identify`, and the itinerary STOPS there too: behind an unmet gate
+ *     the server has no opinion about the gates after it;
+ *  4. on a name-only event, with no name, not confirmed and not the demo, the CHOOSER, until a way
+ *     in is picked: `guest` is the name, `create` is `identify`, `login` is `signin`;
+ *  5. a confirmed account with no name yet is the name (the modal asks it in `profile` mode);
+ *  6. the upload, when uploads are open and this guest has not contributed: unconditionally when
+ *     the host requires one, and otherwise only for a guest who has neither skipped this pass nor
+ *     come back to an album they already hold a session for.
  *
- * ★ `autoOpen` IS TRUE WHENEVER A STEP EXISTS. The account gate's old "browse the teaser first"
- * exemption (a returning guest met the sheet only via "See all N") is retired by "No exit": the
- * whole point of the teaser behind the sheet is that it is the reward being teased, not a lobby.
+ * ★ `autoOpen` IS TRUE WHENEVER A STEP EXISTS, with no "browse the teaser first" exemption: the
+ * whole point of the album behind the sheet is that it is the reward being teased, not a lobby.
  *
  * ★ "RETURNING" IS SNAPSHOTTED AT HYDRATION, never re-read. It means "this browser already held a
  * session for this event when the page loaded", and it is what keeps the OFF-state upload step
@@ -64,6 +87,10 @@ export function computeDoor(input: {
   welcomeSeen: boolean;
   /** This browser has a name for this event (typed here, or a confirmed account's profile name). */
   hasName: boolean;
+  /** The viewer holds a CONFIRMED account (a confirmed email is its own way in: no chooser). */
+  isVerified: boolean;
+  /** The way in picked at the chooser this visit, or null before a pick (or after going back). */
+  path: DoorPath | null;
   /** This browser's own upload has completed this visit (the client half of `hasContributed`). */
   contributed: boolean;
   /** The guest took the soft skip on the upload step this pass (OFF only; ON offers none). */
@@ -71,7 +98,7 @@ export function computeDoor(input: {
   /** This browser already held a session when the page loaded (snapshotted at hydration). */
   returning: boolean;
   isOwner: boolean;
-  /** The demo: it asks no name (his answer, "No name, upload offered"), and offers the upload. */
+  /** The demo: it asks no name, and offers the upload. */
   isDemo: boolean;
 }): { steps: EntryStep[]; autoOpen: boolean } {
   const {
@@ -82,6 +109,8 @@ export function computeDoor(input: {
     requireUpload,
     welcomeSeen,
     hasName,
+    isVerified,
+    path,
     contributed,
     skipped,
     returning,
@@ -100,20 +129,26 @@ export function computeDoor(input: {
     return { steps, autoOpen: true };
   }
 
-  // ★ THE DEMO ASKS NO NAME (his answer at approval, "No name, upload offered (Recommended)").
-  // Nothing it adds is persisted, so there is no row to name and a form between the tap and the
-  // picture would be the one lie the demo tells. Its welcome is the role step, and its upload step
-  // wears "Look around" as the skip.
-  if (!hasName && !isDemo) steps.push("name");
-
   // ★ A SERVER GATE IS TERMINAL FOR THE STEPS BEHIND IT, for the same reason the password is: the
   // resolver answers the FIRST unmet gate and never evaluates the ones after it, so behind an
   // unconfirmed email the server has no opinion at all about whether this guest has contributed.
-  // The itinerary stops here and re-derives on the confirmation's refresh, which is exactly his
-  // sequence: the email "would hold there for confirmation prior to the final upload step".
+  // The itinerary stops here and re-derives on the confirmation's refresh. There is no chooser on
+  // this event: a code signs a member in and creates a newcomer alike, so one path serves both.
   if (gate === "account") {
-    steps.push("email");
+    steps.push("identify");
     return { steps, autoOpen: true };
+  }
+
+  // ★ THE DEMO ASKS NO NAME. Nothing it adds is persisted, so there is no row to name and a form
+  // between the tap and the picture would be the one lie the demo tells. Its welcome is the role
+  // step, and its upload step wears "Look around" as the skip.
+  if (!hasName && !isDemo) {
+    if (isVerified) {
+      // A confirmed account is already somebody; only its name is missing.
+      steps.push("name");
+    } else {
+      steps.push(path === null ? "chooser" : PATH_STEP[path]);
+    }
   }
 
   if (
@@ -132,14 +167,61 @@ export function computeDoor(input: {
   return { steps, autoOpen: steps.length > 0 };
 }
 
+/** Where the back chevron goes: a view over the machine (welcome, name) or the chooser itself. */
+export type DoorBack = "welcome" | "chooser" | "name";
+
 /**
- * WHEN THE CLIENT'S HALF OF "HAS CONTRIBUTED" RETIRES (guest by upload, Will 2026-09-22: "Own deletes
- * close it").
+ * THE BACK CHEVRON, DECIDED IN ONE PLACE.
+ *
+ * - The welcome has nothing behind it; the password and the chooser go back to it (the guest can
+ *   always re-read what this is).
+ * - A step reached by a way in picked at the chooser goes back to the CHOOSER, which clears the
+ *   pick (a real change of the machine's input, so a second pick starts clean).
+ * - The same step reached any other way (a verification event's `identify`, a confirmed account's
+ *   name) goes back to the welcome.
+ * - The upload goes back to the name, the step it followed; the demo asks no name and a confirmed
+ *   account's name is not this album's to revisit, so theirs goes back to the welcome.
+ *
+ * The welcome and the name are transient VIEWS over the machine (the modal shows them without
+ * touching `markSeen` or the steps); only the chooser changes an input.
+ */
+export function doorBack(input: {
+  current: EntryStep | null;
+  path: DoorPath | null;
+  gate: GalleryGate | null;
+  isVerified: boolean;
+  isDemo: boolean;
+}): DoorBack | null {
+  const { current, path, gate, isVerified, isDemo } = input;
+  switch (current) {
+    case null:
+    case "welcome":
+      return null;
+    case "password":
+    case "chooser":
+      return "welcome";
+    case "name":
+    case "identify":
+    case "signin": {
+      const viaChooser =
+        path !== null &&
+        gate !== "account" &&
+        !isVerified &&
+        PATH_STEP[path] === current;
+      return viaChooser ? "chooser" : "welcome";
+    }
+    case "upload":
+      return isDemo || isVerified ? "welcome" : "name";
+  }
+}
+
+/**
+ * WHEN THE CLIENT'S HALF OF "HAS CONTRIBUTED" RETIRES.
  *
  * `computeDoor` closes the upload step on EITHER half: the server's `hasContributed`, or the
  * browser's own `contributed` (an upload completed this visit, before any refresh landed), because
  * right after a first upload the page still carries the server's stale `upload` gate and the step
- * must drop at once. But on a Require-an-upload-to-view event the server can now TAKE a contribution
+ * must drop at once. But on a Require-an-upload-to-view event the server can TAKE a contribution
  * back (a guest's own delete stops counting), and the browser's flag, true all visit, would then
  * hold the step shut against a server that says "upload": a guest who removed their only upload
  * would be stranded at the teaser with no door at all.

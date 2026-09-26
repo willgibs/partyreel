@@ -1,19 +1,17 @@
-// @contract-for: src/components/guest/guest-action-dock.tsx
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 
 import { GuestActionDock } from "@/components/guest/guest-action-dock";
 
 /**
- * THE DOCK'S CONTRACT (`chrome=both`, Will 2026-09-20: "you see the actions
- * higher on the page when first landing, and then keep them visible as you
- * continue").
+ * THE DOCK'S CONTRACT. A guest sees the actions high on the page on landing,
+ * and the dock keeps them visible as they scroll on.
  *
  * FUNCTION ONLY. Nothing here reads a gradient, a corner or a travel distance:
  * what is pinned is that the bar carries BOTH of the row's actions, that it is
  * genuinely gone — off the tab order and out of the accessibility tree — while
  * the row is still on screen, and that it never invents an action the page
- * above it does not offer. The look is Will's.
+ * above it does not offer. The look is free to retune.
  */
 const invite = <button type="button">Invite</button>;
 
@@ -32,7 +30,7 @@ describe("the dock carries the row's own two actions", () => {
     const group = screen.getByRole("group", { name: "Album actions" });
     expect(group).toBeInTheDocument();
     // Both reachable as real controls, which is the whole of "reachable at any
-    // depth" — the pill this replaced only ever had one of them.
+    // depth": a bar carrying only one of them would fail it.
     expect(
       screen.getByRole("button", { name: /Add photos/ }),
     ).toBeInTheDocument();

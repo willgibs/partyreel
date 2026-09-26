@@ -25,17 +25,16 @@ describe("collectStoredSessionTokens", () => {
         pr_session_def: "tok-b",
         pr_pending_offer_abc: "1", // the return marker, a different pr_* key — must be ignored
         pr_save_prompt_abc: "1", // ditto
-        // ★ THE NAME KEYS ARE NOT CAPABILITIES (the identity reshape,
-        // 2026-09-21). `pr_guest_name_<qr>` and `pr_guest_name_last` sit beside
-        // the session and hold a LABEL; handing either to
-        // `claim_anonymous_uploads` as a token would be a name posted to an RPC
-        // that expects a secret. The prefixes differ, so this is already true:
-        // it is pinned rather than left to a reading of the code.
+        // ★ THE NAME KEYS ARE NOT CAPABILITIES. `pr_guest_name_<qr>` and
+        // `pr_guest_name_last` sit beside the session and hold a LABEL; handing
+        // either to `claim_anonymous_uploads` as a token would be a name posted
+        // to an RPC that expects a secret. The prefixes differ, so this is
+        // already true: it is pinned rather than left to a reading of the code.
         pr_guest_name_abc: "Sam",
         pr_guest_name_last: "Sam",
-        // ★ AND NEITHER IS THE EMAIL FLAG (the door's optional field,
-        // 2026-09-22). `pr_guest_email_attached_<qr>` holds "1" and says only
-        // that this device put an unconfirmed address on that event's row; the
+        // ★ AND NEITHER IS THE EMAIL FLAG (the door's optional field).
+        // `pr_guest_email_attached_<qr>` holds "1" and says only that this
+        // device put an unconfirmed address on that event's row; the
         // ADDRESS is never written anywhere at all. Handing "1" to
         // `claim_anonymous_uploads` would post a literal where a secret is
         // expected, so the whole `pr_guest_email_` family is pinned out of the

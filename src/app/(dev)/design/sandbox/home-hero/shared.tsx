@@ -23,14 +23,14 @@ import { cn } from "@/lib/utils";
  * in production now) and `DemoQr` (the hero owns its own).
  *
  * What the compositions here hold fixed:
- *  - the media at 100% (bible 1): no darkening layer over a photograph;
- *  - the h1 at paint and never gated (bible 13): no data-mkt-cut, no
+ *  - the media at 100% (bible 6): no darkening layer over a photograph;
+ *  - the h1 at paint and never gated (bible 5): no data-mkt-cut, no
  *    data-mkt-reveal, no .mkt-line on an h1. marketing-h1-policy scans the
  *    marketing tree and not the lab, so on a board it is discipline rather
  *    than a test, and a hero that fails it here fails it at wiring;
- *  - the ladder (bible 5): LADDER below, resolved per canvas;
+ *  - the ladder (bible 8): LADDER below, resolved per canvas;
  *  - every animation inside `prefers-reduced-motion: no-preference` with a
- *    designed rest state (bible 14), and the loop paused on a hidden tab
+ *    designed rest state (bible 5), and the loop paused on a hidden tab
  *    through the stage's data-paused.
  *
  * Board mechanics a composition here must respect:
@@ -49,7 +49,7 @@ import { cn } from "@/lib/utils";
  *    in useAmbientPause, which also pauses off-screen;
  *  - keyframes live in a composition's OWN sheet with its prefix;
  *    keyframe-uniqueness.test.ts reads every sheet under the lab;
- *  - the media manifest is the only source of paths (bible 18).
+ *  - the media manifest is the only source of paths (bible 9).
  */
 
 /** Mode, CANVAS and useTabHidden are the kit's; re-exported so a concept file
@@ -57,7 +57,7 @@ import { cn } from "@/lib/utils";
 export { CANVAS, useTabHidden, type Mode } from "@/components/lab";
 import type { Mode } from "@/components/lab";
 
-/** The ladder's two cinema steps, RESOLVED per canvas (bible 5): PageHero's
+/** The ladder's two cinema steps, RESOLVED per canvas (bible 8): PageHero's
  *  ramps key off the real viewport, never the stage, so a board that shows a
  *  1440 canvas and a 375 canvas on one page resolves each end by hand.
  *  `xl` is text-5xl..text-8xl, `lg` is text-4xl..text-7xl. Retune PageHero's

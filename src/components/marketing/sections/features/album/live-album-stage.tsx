@@ -24,12 +24,12 @@ import { useSampledPaletteFromDom } from "@/lib/shared/sampled-palette";
  * a mechanic) and shows the album ITSELF, which is what the page is about.
  *
  * ★ IT IS THE SHIPPED COMPONENT, COMPOSED, NOT A MOCK. The masonry is
- * `GuestMasonry`, the real guest album, under the host's own header (bible 4: a
+ * `GuestMasonry`, the real guest album, under the host's own header (a
  * guest surface is the host's, so no Partyreel mark inside the frame). Its
  * column count is set from OUTSIDE, through a variable the sheet reads, so the
  * product is never forked for a marketing stage.
  *
- * ★ 896, THE SCALE'S STEP. Will ruled 880 on the album hero's width step; the
+ * ★ 896, THE SCALE'S STEP. 880 was picked for the album hero's width step; the
  * container scale's nearest step is `max-w-4xl` (896), so the column takes that
  * and the page gains no one-off width. At a phone it is the container less the
  * page's gutter, which is what the product ships on a phone.
@@ -48,7 +48,7 @@ import { useSampledPaletteFromDom } from "@/lib/shared/sampled-palette";
  *
  * ★ THE MEDIA IS A SLOT (his note: "We will replace the album media before
  * launch, likely with Higgsfield generations", ASSETS row 22). Every frame is
- * resolved through the media manifest by id (bible 18), so the swap is a data
+ * resolved through the media manifest by id, so the swap is a data
  * change and nothing here names a picture.
  */
 
@@ -113,9 +113,9 @@ function Halo({
           "--glw-core": "38%",
           "--glw-strength": "0.9",
           "--glw-base": "0.75",
-          // The one lamp clock, read from its token (Will ruled 8s on the whole
-          // page, 2026-09-17): never a literal, or this lamp drifts out of the
-          // page's register the next time the ruling moves.
+          // The one lamp clock, read from its token (8s on the whole
+          // page): never a literal, or this lamp drifts out of the
+          // page's register the next time that number changes.
           "--glw-dur": "var(--spill-cadence)",
         }}
       />
@@ -126,7 +126,7 @@ function Halo({
 
 export function LiveAlbumStage() {
   const host = useRef<HTMLDivElement | null>(null);
-  // Law 3: the light is the colour of what the visitor is looking at, read off
+  // Colour: the light is the colour of what the visitor is looking at, read off
   // the photographs once they have painted; the house five stand in until then.
   const colors = useSampledPaletteFromDom(host, { limit: 6 });
 

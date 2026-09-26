@@ -45,7 +45,7 @@ function NamedContact() {
       <ContactRow value={`${FIXTURE_NAME}, ${ROLE_EMAIL}`} />
       <FixtureNote>
         {FIXTURE_NAME} is a fixture name for this board only, standing in for
-        whoever a real ruling would name.
+        whoever a real answer would name.
       </FixtureNote>
     </dl>
   );

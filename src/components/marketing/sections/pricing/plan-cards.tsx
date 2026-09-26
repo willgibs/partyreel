@@ -35,11 +35,11 @@ import { formatBytes } from "@/lib/utils";
  * no new tokens at all. Light/dark is tier identity here; the page's chapter
  * alternation stays brand rhythm (note 4).
  *
- * VISUAL IDENTITY = V2 "Stacked photos" (Will's sitting ruling, 2026-08-27:
- * "within the card v2 has a nice balance"): a small physical stack of real
+ * VISUAL IDENTITY = V2 "Stacked photos" ("within the card v2 has a nice
+ * balance"): a small physical stack of real
  * event photos above each card head, wearing `shadow-lift`. This was the
  * back-pocket exception ("shadows may return where photos physically stack")
- * and it is the rule since the light ruling (2026-09-17): prints lying on
+ * and it has been the rule since the light pass: prints lying on
  * prints are the overlap the small shadow exists for. It reads on the ink card
  * with paper's alphas because it lands on the white border of the print below.
  * Free stacks two, grayscale (your photos, before the color arrives); Pro
@@ -130,7 +130,7 @@ export function PhotoStack({
                 width={88}
                 height={88}
                 className={cn(
-                  // Stacked prints: the overlap the small shadow was ruled for.
+                  // Stacked prints: the overlap the small shadow is for.
                   "size-20 rounded-md border-4 object-cover shadow-lift",
                   "transition-transform duration-300 ease-emphasis motion-reduce:transition-none",
                   "group-hover:translate-x-(--sx) group-hover:rotate-(--sr)",
@@ -325,7 +325,7 @@ export function PlanPair() {
   const free = planById("free");
   const proPlans = plansForTier("pro");
   const [proId, setProId] = useState(proPlans[0].id);
-  // The billing cadence (annual ruled 2026-08-27: x10 monthly, two months
+  // The billing cadence (annual: x10 monthly, two months
   // free). Size and cadence are independent axes: the switcher picks the
   // MONTHLY plan, the toggle resolves its annual sibling for price + checkout.
   const [cadence, setCadence] = useState<"month" | "year">("month");
@@ -412,7 +412,7 @@ export function PlanPair() {
             <Item>Verified-email uploads, on by default</Item>
             <Item limit>Photos only</Item>
             <Item limit>
-              {MAX_REEL_SECONDS.free}-second reel with a small mark
+              {MAX_REEL_SECONDS.free}-second clips with a small mark
             </Item>
           </ul>
 
@@ -455,7 +455,7 @@ export function PlanPair() {
           <PhotoStack ink />
           <div className="flex flex-col gap-2">
             <h2 className="font-heading text-subsection">Pro</h2>
-            {/* RULED (Will, 2026-09-19, voice r1 `pro-line=video`). It used to
+            {/* CHANGED (voice r1 `pro-line=video`). It used to
                 read "For hosts who host again.", which describes the buyer
                 rather than what they get; his line names the two things Pro
                 actually unlocks, video first. The one home is marketing-voice.ts
@@ -477,7 +477,7 @@ export function PlanPair() {
             <Item ink>
               {videosAllowedForTier("pro") ? "Photos and video" : "Photos"}
             </Item>
-            <Item ink>{MAX_REEL_SECONDS.pro}-second reels, no watermark</Item>
+            <Item ink>{MAX_REEL_SECONDS.pro}-second clips, no watermark</Item>
             <Item ink>
               {GATED_EVENT_SETTINGS.includes("password")
                 ? "Password-locked albums"
@@ -488,8 +488,8 @@ export function PlanPair() {
           </ul>
 
           <div className="mt-6">
-            {/* The size, as one slider from the smallest room to the largest
-                (his ruling): the price above, the stats below and the button
+            {/* The size, as one slider from the smallest room to the largest:
+                the price above, the stats below and the button
                 under them all follow the thumb. */}
             <SizeSlider plans={proPlans} value={proId} onPick={setProId} />
 

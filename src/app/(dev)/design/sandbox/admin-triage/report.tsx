@@ -36,19 +36,27 @@ import { StateChip } from "./shell";
  * primitives: same `Button` variants, same sizes, same words.
  */
 
-export type LookShape = "frame" | "split";
-export type ReasonShape = "last" | "chrono";
-export type VerdictShape = "two" | "note";
-export type ClosedShape = "line" | "undo";
+/**
+ * Each of the four gains a genuine third (boards refresh, 2026-09-24), none of
+ * them the shape the shell's own rail or bar already settled: `grid` is a
+ * different QUEUE shape (many thumbnails, one open at a time), `marked` a
+ * different note on a wordless report (a tag, never a reorder), `always` a
+ * stronger `note` (required, not offered), `window` a longer `undo` (the
+ * product's own 30-day Trash, not a second admin clock).
+ */
+export type LookShape = "frame" | "split" | "grid";
+export type ReasonShape = "last" | "chrono" | "marked";
+export type VerdictShape = "two" | "note" | "always";
+export type ClosedShape = "line" | "undo" | "window";
 
 export const lookOf = (v: string | undefined): LookShape =>
-  v === "frame" ? v : "split";
+  v === "frame" ? v : v === "grid" ? v : "split";
 export const reasonOf = (v: string | undefined): ReasonShape =>
-  v === "last" ? v : "chrono";
+  v === "last" ? v : v === "marked" ? v : "chrono";
 export const verdictOf = (v: string | undefined): VerdictShape =>
-  v === "two" ? v : "note";
+  v === "two" ? v : v === "always" ? v : "note";
 export const closedOf = (v: string | undefined): ClosedShape =>
-  v === "line" ? v : "undo";
+  v === "line" ? v : v === "window" ? v : "undo";
 
 /* ── The parts a card is made of ─────────────────────────────────────────── */
 
@@ -137,12 +145,13 @@ function Meta({ row, className }: { row: ReportRow; className?: string }) {
 }
 
 /**
- * The reason, two ways, now that an empty block is ruled absent rather than
- * drawn hollow (app-shape r2): neither answer here ever fakes a sentence
- * where none was typed. `chrono` draws nothing at all, keeping the wordless
- * report's place in the queue. `last` draws one small line explaining why the
- * report sank to the foot, which is a status note rather than a stand-in
- * reason.
+ * The reason, three ways, now that an empty block draws absent rather than
+ * hollow (app-shape r2): no answer here ever fakes a sentence where none was
+ * typed. `chrono` draws nothing at all, keeping the wordless report's place in
+ * the queue. `last` draws one small line explaining why the report sank to the
+ * foot, which is a status note rather than a stand-in reason. `marked` is the
+ * new middle (boards refresh, 2026-09-24): the queue's order never moves, but
+ * a quiet tag still catches the eye `chrono`'s blank space does not.
  */
 function Reason({ row, shape }: { row: ReportRow; shape: ReasonShape }) {
   if (row.reason) return <p className="text-sm">{row.reason}</p>;
@@ -152,6 +161,12 @@ function Reason({ row, shape }: { row: ReportRow; shape: ReasonShape }) {
         <span className="font-medium text-foreground">Nothing said.</span> Ranked
         under every report that carries a sentence.
       </p>
+    );
+  if (shape === "marked")
+    return (
+      <span className="inline-flex items-center rounded border border-dashed px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
+        No reason given
+      </span>
     );
   return null;
 }
@@ -169,8 +184,12 @@ function VerdictBar({
   acting?: boolean;
 }) {
   const remove = row.media ? "Remove item and action" : "Action";
+  // `always` (boards refresh, 2026-09-24) is `note` with the field required on
+  // BOTH verbs, named in the overrule `verdict.note` already carried: Dismiss
+  // no longer gets to skip the line Remove already has to write.
+  const notes = shape === "note" || shape === "always";
 
-  if (shape === "note" && acting)
+  if (notes && acting)
     return (
       <div className="w-full space-y-2">
         <div className="flex flex-wrap items-center gap-2">
@@ -182,7 +201,9 @@ function VerdictBar({
           </Button>
         </div>
         <div className="rounded-md border border-dashed bg-background px-3 py-2 text-sm text-muted-foreground">
-          Add a note. Optional, and nobody outside this portal reads it.
+          {shape === "always"
+            ? "Add a note. Required before either verb commits."
+            : "Add a note. Optional, and nobody outside this portal reads it."}
         </div>
       </div>
     );
@@ -195,9 +216,9 @@ function VerdictBar({
       <Button type="button" variant="destructive" size="sm">
         {remove}
       </Button>
-      {shape === "note" ? (
+      {notes ? (
         <span className="text-xs text-muted-foreground underline underline-offset-4">
-          Add a note
+          {shape === "always" ? "Add a note (required)" : "Add a note"}
         </span>
       ) : null}
     </div>
@@ -273,7 +294,26 @@ export function OpenReport({ row, world }: { row: ReportRow; world: CardWorld })
   );
 }
 
-/* ── A closed report, two ways ───────────────────────────────────────────── */
+/* ── A closed report, three ways ─────────────────────────────────────────── */
+
+/**
+ * `window` (boards refresh, 2026-09-24): the same Undo, but for as long as the
+ * removed item would exist anyway. `lifecycle-recovery.md`'s own 30-day Trash
+ * is the real number; the fixture's four closed reports are dated so it and
+ * `undo`'s 24 hours pick out different rows, never the same one.
+ */
+const UNDO_WINDOW_DAYS = { undo: 1, window: 30 } as const;
+
+/** Days since `resolved.when`, read off the fixture's own dated strings. */
+function daysSinceResolved(row: ReportRow): number | null {
+  if (!row.resolved) return null;
+  if (row.when.startsWith("Tonight") || row.when.startsWith("Yesterday"))
+    return row.when.startsWith("Tonight") ? 0 : 1;
+  // "15 September, 09:10" / "8 September, 23:37" against today, 24 September.
+  const day = Number(row.resolved.when.match(/^(\d+)/)?.[1]);
+  if (!day) return null;
+  return 24 - day;
+}
 
 function ClosedReport({
   row,
@@ -311,13 +351,14 @@ function ClosedReport({
       <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
         {row.resolved?.when}
       </span>
-      {shape === "undo" ? (
+      {shape === "undo" || shape === "window" ? (
         row.held ? (
           <span className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
             <ShieldAlert className="size-3.5" />
             Held
           </span>
-        ) : row.status === "actioned" && row.when.startsWith("Yesterday") ? (
+        ) : row.status === "actioned" &&
+          (daysSinceResolved(row) ?? Infinity) <= UNDO_WINDOW_DAYS[shape] ? (
           <Button type="button" variant="outline" size="sm" className="shrink-0">
             <Undo2 className="size-3.5" />
             Undo
@@ -353,6 +394,54 @@ function Filters({ active }: { active: "open" | "all" }) {
   );
 }
 
+/**
+ * `look=grid` (boards refresh, 2026-09-24): the bolder third shape. Not a row
+ * each and not one card at a time, but every waiting report as a thumbnail at
+ * once, with the words and the verdict open beneath whichever is selected. The
+ * first report is drawn selected: nothing here is interactive, so a real tap
+ * would move the outline, never the words underneath it.
+ */
+function ReportGrid({
+  rows,
+  world,
+}: {
+  rows: ReportRow[];
+  world: CardWorld & { reason: ReasonShape };
+}) {
+  const active = rows[0];
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-3 gap-2">
+        {rows.map((row) => (
+          <div
+            key={row.id}
+            className={cn(
+              "relative overflow-hidden rounded-lg outline-2 -outline-offset-2",
+              row.id === active.id ? "outline-foreground" : "outline-transparent",
+            )}
+          >
+            <Shot row={row} size="fill" />
+            <span className="absolute top-1.5 right-1.5">
+              <StatusChip row={row} />
+            </span>
+          </div>
+        ))}
+      </div>
+      <Card className="p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <Reason row={active} shape={world.reason} />
+            <Meta row={active} className="mt-1.5" />
+          </div>
+        </div>
+        <div className="mt-3">
+          <VerdictBar row={active} shape={world.verdict} acting={world.acting} />
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 export function ReportsSurface({
   world,
   reason = "chrono",
@@ -381,6 +470,22 @@ export function ReportsSurface({
         )
       : OPEN_REPORTS;
   const queue = only === undefined ? sorted : [OPEN_REPORTS[only]];
+
+  // `only` draws one already-isolated report: `grid` has nothing to be a grid
+  // of there, so it falls through to the same single card `escalate` and the
+  // history's "still open" rows already use.
+  if (world.look === "grid" && only === undefined) {
+    return (
+      <>
+        <Filters active="open" />
+        {children}
+        <ReportGrid
+          rows={queue}
+          world={{ ...world, reason, acting: acting === 0 }}
+        />
+      </>
+    );
+  }
 
   return (
     <>
@@ -463,10 +568,13 @@ export function HistorySurface({
               <ClosedReport key={row.id} row={row} shape={shape} />
             ))}
           </div>
-          {shape === "undo" ? (
+          {shape === "undo" || shape === "window" ? (
             <p className="mt-2 text-xs text-muted-foreground">
-              An Undo restores the item and reopens the report for a day. A
-              held item has no Undo: only Forensics releases a hold.
+              An Undo restores the item and reopens the report
+              {shape === "undo"
+                ? " for a day"
+                : " for as long as a removed item would exist anyway, the product's own 30-day Trash"}
+              . A held item has no Undo: only Forensics releases a hold.
             </p>
           ) : null}
         </div>
@@ -477,18 +585,25 @@ export function HistorySurface({
 
 /* ── The same act in a hand ──────────────────────────────────────────────── */
 
-export type PhoneShape = "act" | "all";
+/**
+ * `hold` (boards refresh, 2026-09-24): `act`'s one verb, plus a way to start a
+ * legal hold before the moment passes. Not "typed with a thumb" like `all`: the
+ * hold opens untyped, and only its note waits for a desk, because evidence a
+ * party keeps deleting cannot always wait until morning either.
+ */
+export type PhoneShape = "act" | "all" | "hold";
 
 export const phoneOf = (v: string | undefined): PhoneShape =>
-  v === "all" ? v : "act";
+  v === "all" ? v : v === "hold" ? v : "act";
 
 export function PhoneQueue({ shape }: { shape: PhoneShape }) {
   const row = OPEN_REPORTS[0];
 
-  // SEE IT AND STOP IT: the frame, the reason, and the one verb that cannot
-  // wait. The report stays open until the record is written on a laptop, which
-  // is the honest cost of taking a photograph down from a party.
-  if (shape === "act")
+  // SEE IT AND STOP IT (`hold` shares this half): the frame, the reason, and
+  // the one verb that cannot wait. The report stays open until the record is
+  // written on a laptop, which is the honest cost of taking a photograph down
+  // from a party.
+  if (shape === "act" || shape === "hold")
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -503,9 +618,16 @@ export function PhoneQueue({ shape }: { shape: PhoneShape }) {
             <Button type="button" variant="destructive" className="w-full">
               Take it down now
             </Button>
+            {shape === "hold" ? (
+              <Button type="button" variant="outline" className="w-full">
+                <ShieldAlert className="size-4" />
+                Preserve for the record
+              </Button>
+            ) : null}
             <p className="text-xs text-muted-foreground">
-              It leaves the album at once. The report stays open until you write
-              the record.
+              {shape === "hold"
+                ? "Preserve opens the hold now, untyped. Its note, and the rest of the runbook, wait for a desk."
+                : "It leaves the album at once. The report stays open until you write the record."}
             </p>
           </div>
         </Card>

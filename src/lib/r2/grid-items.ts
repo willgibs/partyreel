@@ -4,12 +4,14 @@
  * three presigns per item: an INLINE url (grid/lightbox render) and an `attachment`
  * download url (the lightbox Save) from the original key, plus the small tile preview
  * from `preview_key` when the row has one (`toModerationFeedItems` mints the first two
- * alone). Single source so the public album, the guest event page, and the gallery poll
- * route all presign identically.
+ * alone). Single source so every surface that still hands a whole list of linked items
+ * presigns identically: the guest album's teaser (its nine, inline), the personal feeds and
+ * the operator's. The paged album mints its links by id instead (`album-guest-links.ts`).
  */
 import "server-only";
 
 import type { GridMedia } from "@/components/app/media-grid";
+import type { GalleryItem } from "@/lib/events/gallery-reel";
 import { buildDownloadFilename } from "@/lib/media/download-filename";
 import type { MediaKind } from "@/lib/media/limits";
 import type { UploaderIdentity } from "@/lib/media/uploader-identity";
@@ -29,17 +31,20 @@ type MediaRow = {
   width?: number | null;
   height?: number | null;
   duration_seconds?: number | null;
+  /** `media.reel_eligible` (the live reel): false only for a clip added to the album. Absent reads
+   *  as eligible, so a caller that never selected it cannot empty a reel. */
+  reel_eligible?: boolean | null;
 };
 
 export async function toGridItems(
   media: MediaRow[],
   eventName: string,
-  // Optional uploader attribution (Phase 2), keyed by media id. GUEST callers pass this to show the
+  // Optional uploader attribution, keyed by media id. GUEST callers pass this to show the
   // name; they pass the WHOLE map but we copy ONLY name/isHost/isVerified here, NEVER email -- so a
   // guest GridMedia can never carry an email (the host gallery builds its items separately, with
   // email).
   identities?: Map<string, UploaderIdentity>,
-): Promise<GridMedia[]> {
+): Promise<GalleryItem[]> {
   return Promise.all(
     media.map(async (m) => {
       const [url, downloadUrl, previewUrl] = await Promise.all([
@@ -78,11 +83,14 @@ export async function toGridItems(
         // attribution at all (uploaderName is null), so `false` can never draw a false claim,
         // while `true` would be one waiting to happen.
         isVerified: who?.isVerified ?? false,
-        // Masonry geometry + video badge data (Phase 4). Immutable per id, so
-        // they ride OUTSIDE the gallery ETag fingerprint (gallery-fingerprint.ts).
+        // The tile's geometry + video badge data. Immutable per id (write-once
+        // at create_media, like the paged album's manifest entries).
         width: m.width ?? null,
         height: m.height ?? null,
         durationSeconds: m.duration_seconds ?? null,
+        // THE LIVE REEL reads the album's own payload (no second RPC, no second presign), so the
+        // one column it needs rides here. Write-once like the dimensions, so outside the ETag too.
+        reelEligible: m.reel_eligible ?? true,
       };
     }),
   );
@@ -124,7 +132,7 @@ export async function toModerationFeedItems(
 }
 
 // One row of the personal "Uploads"/"Likes" feed -- the user's own/liked media across MANY events.
-// width/height/durationSeconds (Phase 5 S2a) feed the masonry tile aspect ratio; null on
+// width/height/durationSeconds feed the masonry tile aspect ratio; null on
 // pre-measure-era rows (the masonry falls back to a 1:1 tile, like the guest gallery).
 export type MyUploadRow = {
   id: string;
@@ -171,7 +179,7 @@ export async function toMyUploadsItems(
         eventName: m.eventName,
         eventDateLabel: m.eventDateLabel,
         eventQrToken: m.eventQrToken,
-        // Masonry geometry (Phase 5 S2a): null on pre-measure rows -> 1:1 tile.
+        // Masonry geometry: null on pre-measure rows -> 1:1 tile.
         width: m.width,
         height: m.height,
         durationSeconds: m.durationSeconds,

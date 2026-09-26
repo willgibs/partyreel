@@ -80,8 +80,9 @@ export function SoftwareApplicationJsonLd() {
         featureList: [
           "Guests upload photos and videos by scanning one QR code, from the browser, with no app required",
           "One live shared album per event, full resolution, never watermarked",
-          "Automatic highlight reel cut from the album, rendered on-device",
-          "Host moderation: approve, hide, and feature anything",
+          "A live highlight reel that plays from the album as it fills, on every phone and on the room's screen",
+          "Clips anyone with album access can make from the reel, rendered on their own device and never stored",
+          "Host moderation: approve, hide, and remove anything",
           "No per-guest fees and no guest limit; plans are sized by storage",
           `An inactive free album is eventually removed after about ${Math.round(INACTIVE_DAYS / 30)} months; every other album never expires, and deletions wait ${RECENTLY_DELETED_WINDOW_DAYS} days in Deleted`,
           // ★ The ruled short form (Will, 2026-09-02): the clause "for the

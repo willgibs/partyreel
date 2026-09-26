@@ -24,9 +24,11 @@ import { Images, QrCode, Sparkles, type LucideIcon } from "lucide-react";
  * ★ THE TITLES ARE VERB-FIRST AND PARALLEL ACROSS BOTH SETS (his note on the
  * same pick: "These headings could be adjusted a bit to feel more clean"). Six
  * short phrases a reader can hold in their head, the two sides ending on the
- * same object from opposite ends: the host CUTS the reel, the guest GETS it.
+ * same object from opposite ends (`reel-story` r1 `steps=grow-clip`): the reel
+ * makes itself, so the host's last step is ambient and WATCHES it grow, while
+ * the guest keeps the one real action left and MAKES a clip of it.
  *
- * Copy is open (bible 21) and lives here alone: a rewrite is one edit, never a
+ * Copy is open and lives here alone: a rewrite is one edit, never a
  * hunt through three surfaces.
  */
 
@@ -50,7 +52,7 @@ export type LoopPictureId =
   | "add"
   | "room"
   | "save"
-  | "arrives";
+  | "clip";
 
 export type LoopStep = {
   /** Stable across a copy rewrite; the React key and the picture's id. */
@@ -102,8 +104,8 @@ const HOST_STEPS: readonly LoopStep[] = [
   },
   {
     id: "reel",
-    title: "Cut the reel",
-    body: "One tap on Create reel and the event cuts itself into a highlight video. Pick a style from the catalog and render it free, right on your phone.",
+    title: "Watch the reel grow",
+    body: "The highlight reel starts itself at the second photo and takes in every upload after it, on every phone and on any screen in the room. Nothing to make: pick the look everyone starts on, or leave it.",
     href: "/reel",
     linkLabel: "Everything about the reel",
   },
@@ -151,9 +153,9 @@ const GUEST_STEPS: readonly LoopStep[] = [
     linkLabel: "Sharing and downloads",
   },
   {
-    id: "arrives",
-    title: "Get the reel",
-    body: "When the host cuts the highlight reel, it lands in the same album you have been adding to. Watch it, save it, send it to whoever missed it.",
+    id: "clip",
+    title: "Make your clip",
+    body: "The reel plays at the top of the album. Tap Make your own, pick the moments, a look and a length, and your phone makes the clip to save or send to whoever missed it.",
     href: "/reel",
     linkLabel: "Everything about the reel",
   },

@@ -1,74 +1,104 @@
 "use client";
 
 /**
- * THE ONE ALBUM TILE, AND THE ONE GRID THAT LAYS IT OUT (the `glass` board's
- * wiring, 2026-09-20; `app-vocabulary`'s `tile-grammar` call taken with it).
+ * THE ONE GRID EVERY ALBUM IS LAID OUT BY (the `glass` board's wiring,
+ * 2026-09-20; `app-vocabulary`'s `tile-grammar` call taken with it).
  *
- * Every album grid in the product is this component now: the guest album
+ * Every album grid in the product is this component: the guest album
  * (`GuestMasonry` is a thin wrapper over it), the host's moderation gallery, the
  * recovery bin and the two personal feeds. The admin's `ModerationTile` stays
- * its own thing on purpose — a report is not an album.
+ * its own thing on purpose — a report is not an album. What a tile carries
+ * (marks, and on the desk one declared set of verbs) is `album-tile.tsx`'s.
  *
- * ★ A TILE SHOWS STATE, NOT CONTROLS (Will, `tiles`, 2026-09-20, his own
- * alternative to the board's options): "Having icons visible on every image card
- * on mobile is going to get way too crowded and overwhelming immediately. Aside
- * from an active like icon..., a video play icon..., or a like count..., let's
- * handle all actions and controls (like, download, etc) in the lightbox
- * controls." So a tile carries exactly THREE MARKS and nothing else: an active
- * like, a play mark, a subtle count. On a phone that is the whole tile.
- *
- * ★ AND THE DESK KEEPS ITS HOVER ROW, BECAUSE THE RULE WAS A MOBILE RULE (his
- * `bulk-toolbar` note, 2026-09-20: "every action on a photograph lives in the
- * lightbox" was a MOBILE rule and the desk keeps hover controls on cards). The
- * set is a PER-SURFACE prop (`tileActions`) rather than a flag per verb: guest =
- * like + download, host = like + download + hide/show, the bin = restore +
- * delete forever, the personal feeds = none.
- *
- * ★ THE ROW IS ONE PANE, NOT THREE DISCS (`row=bar`, Will 2026-09-20: "This
- * feels much cleaner and more cohesive"). One `.glass` bar holds every glyph, so
- * the row is ONE blurred region rather than three, and the `[data-reveal-chip]`
- * collapse now runs on the BAR: one width opening instead of three chips
- * sliding. A glyph inside it carries no surface of its own.
+ * ★ ONE CLICK AND ONE LONG-PRESS, ON THE GRID (the album-window lane). A tile
+ * holds no handler: the open button, the hover verbs and the yours mark carry
+ * `data-` attributes, and this grid answers them from one delegated click and
+ * one long-press, reading the latest callbacks from a ref. So a render of the
+ * grid hands every tile the same props it had, and the memoized tile skips it:
+ * a like, a progress tick and a quiet poll re-render no tile at all.
  *
  * ★ EXPLICIT COLUMNS, NOT CSS `columns`. The album used to be a `columns-*` box,
  * and a browser re-flows EVERY column of one of those when an item is inserted:
  * a photograph landing live shoved the whole album about, which is the opposite
  * of `live=land` ("a new photograph grows into its column... the album re-flows
- * around it, nothing else moves"). Items are distributed to real column
- * elements, OLDEST FIRST into the shortest column, so the assignment of every
- * existing tile is untouched when a newer one is prepended — the arrival grows
- * one column and the others hold still. It is also what makes the stagger
- * honest, since a tile's position no longer depends on the browser's balancing.
+ * around it, nothing else moves"). Items are distributed to columns OLDEST FIRST
+ * into the shortest one, so the assignment of every existing tile is untouched
+ * when a newer one is prepended — the arrival grows one column and the others
+ * hold still.
  *
- * ★ THE PRE-MEASURE RENDER IS TODAY'S BOX, ON PURPOSE. The column COUNT needs
- * the container's width, which the server does not have, so the first paint is
- * the CSS-columns box this file has always shipped and the measured layout takes
- * over in a layout effect. Same rule, same count, same gap: the swap is a
- * re-balance, never a jump in height.
+ * ★ THE PRE-MEASURE RENDER IS TODAY'S BOX, AND THE MEASURED ONE IS THE SAME
+ * BOX. The column COUNT needs the container's width, which the server does not
+ * have, so the first paint is the CSS-columns box this file has always shipped.
+ * The measured columns keep every tile in that SAME box, in the same DOM order,
+ * flowing in columns by `order` (`placeColumns`): a tile that changed parent
+ * would remount, and the columns used to be one wrapper each, so the first
+ * measure remounted every tile (a second entrance, every image decoded again),
+ * and so did every filter. Now the measure is a restyle.
+ *
+ * ★ AND `layout="rows"` IS THE JUSTIFIED ALBUM (`album-columns`: Will's
+ * `layout=justified`), opt-in beside masonry, which stays the default until the
+ * surfaces switch. Its engine is `lib/shared/album-rows.ts`; its box, windowed,
+ * is `album-window.tsx`.
  */
 // THE ARRIVAL GRAMMAR'S SHEET, on the ONE grid every album is made of: the glow
-// an arriving tile takes (`data-arrived`, anyone's) and the sweep a guest's own
-// landing takes (`data-landed`). It used to be `guest/live-gallery.css`, where
-// the host could not reach it, which is exactly what `landing=sweep` refused.
+// an arriving tile takes (`data-arrived`, anyone's), the sweep a guest's own
+// landing takes (`data-landed`) and the rows' push (`data-entering`). It used to
+// be `guest/live-gallery.css`, where the host could not reach it, which is
+// exactly what `landing=sweep` refused.
 import "./arrival.css";
 
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
-import { Play } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useImperativeHandle,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import type {
+  CSSProperties,
+  FocusEvent,
+  MouseEvent,
+  ReactNode,
+  Ref,
+} from "react";
 
-import { MediaTile, type GridMedia } from "@/components/app/media-grid";
-import { TileLikeMark } from "@/components/likes/like-button";
+import type { GridMedia } from "@/components/app/media-grid";
+import {
+  AlbumTile,
+  type AlbumTileProps,
+  type TileAction,
+} from "@/components/shared/album-tile";
+import {
+  AlbumRows,
+  headSlots,
+  type AlbumHandle,
+  type RowRhythm,
+  type RowTile,
+} from "@/components/shared/album-window";
+import type { ViewerOrigin } from "@/components/shared/media-lightbox";
 import {
   MediaLightboxLazy,
   preloadMediaLightbox,
 } from "@/components/shared/media-lightbox.lazy";
-import { GLASS, GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
-// The tile aspect-ratio math lives in a pure module (node-unit tested + reusable
-// by host grids without pulling this client component's lightbox graph in).
-import { tileAspect, UNIFORM_TILE_ASPECT } from "@/lib/media/tile-aspect";
+import { readPhotoParam, withPhotoParam } from "@/lib/media/share-save";
+import { tileAspect } from "@/lib/media/tile-aspect";
+import type { RowAnchor, RowStep } from "@/lib/shared/album-rows";
 import { useLongPress } from "@/lib/shared/use-long-press";
 import { cn } from "@/lib/utils";
+
+export {
+  CornerPlayBadge,
+  type TileAction,
+} from "@/components/shared/album-tile";
+// The rows' box, for a board that draws its own tile (the media-viewer board).
+export {
+  AlbumRows,
+  type AlbumHandle,
+  type RowTileBox,
+} from "@/components/shared/album-window";
 
 /**
  * THE ALBUM'S COLUMN RULE — the one place a gallery's columns are decided
@@ -124,222 +154,81 @@ const PHONE_MAX = 640;
 const COLUMN_FLOOR = 220;
 
 /**
- * The subtle corner play marker for video tiles (one of Will's three permitted
- * marks). In the one material at the mark's blur: the tint, the edges and the
- * backdrop are Crystal's, the 42px is not, because a tile carries one of these
- * on every video of an album and a phone pays for each of them.
+ * THE PHOTOGRAPH'S OWN ADDRESS (media-viewer r1, the brief's `?photo=`).
+ * Opening a photograph writes `?photo=<id>` beside the page's other params, so
+ * a refresh comes back to it; the grid reads it once, on mount, and opens that
+ * item. ★ ACCESS STAYS EXACTLY AS IT WAS: the address opens only an item
+ * already in this viewer's payload (the server decided that list), so an
+ * unknown, held or hidden id matches nothing and the album simply opens, with
+ * no error and no sign the item exists. Behind a door the payload is the door's
+ * (nothing at a password, the teaser at a gate), and the viewer waits for any
+ * dialog already open (the door) to close before it opens over the album.
+ *
+ * ★ ONE GRID CLAIMS IT. A page can mount two grids (the profile's uploads and
+ * likes; the host's album beside its bin), and a photograph in both must open
+ * once. The claim is released when its grid unmounts, so the album a door
+ * remounts at `full` can take it.
  */
-export function CornerPlayBadge() {
-  return (
-    <span
-      aria-hidden
-      className={cn(
-        "pointer-events-none absolute bottom-1.5 left-1.5 flex size-5 items-center justify-center rounded-full",
-        GLASS_MARK,
-      )}
-    >
-      <Play
-        className={cn("ml-px size-2.5 fill-white text-white", GLASS_MARK_LIT)}
-      />
-    </span>
+let addressClaim: string | null = null;
+
+/** How long a walk through the viewer rests before the address follows it (see `addressAfterStep`). */
+const ADDRESS_STEP_QUIET_MS = 300;
+
+/** Write the open photograph into the address (null clears it), history untouched. */
+function writeAddress(id: string | null) {
+  if (typeof window === "undefined") return;
+  try {
+    const next = withPhotoParam(window.location.href, id);
+    const here = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    // `null` state: Next's patched replaceState copies its own history state
+    // in and tells the router, so useSearchParams sees the new address.
+    if (next !== here) window.history.replaceState(null, "", next);
+  } catch {
+    // An address the browser will not rewrite leaves the viewer working.
+  }
+}
+
+/** A dialog someone else opened (the album's door), which the address waits behind. */
+function foreignDialogOpen() {
+  return !!document.querySelector(
+    "[role='dialog']:not([data-lightbox-content]), [role='alertdialog']",
+  );
+}
+
+/** A tile's box by the id of the photograph in it. */
+function tileFor(root: HTMLElement | null, id: string): HTMLElement | null {
+  if (!root) return null;
+  const safe = id.replace(/["\\]/g, "\\$&");
+  return root.querySelector<HTMLElement>(
+    `[data-media-tile][data-media-id="${safe}"]`,
   );
 }
 
 /**
- * ONE ACTION IN A SURFACE'S HOVER ROW. Declared rather than rendered by the
- * caller, so the row stays ONE pane whoever fills it: a caller handing us JSX
- * would bring its own chip back, which is the shape `row=bar` retired.
+ * ★ A TILE THAT LEAVES TAKES ITS DOWNLOAD WITH IT. R2's presigned endpoint answers over HTTP/1.1, so
+ * a browser keeps six connections to it and queues the rest; a scroll through a big album asks for
+ * every photograph it passes, and a browser never cancels an image because its element left the
+ * page (clearing the element's `src` does). So the screen a scroll stopped on waited behind hundreds
+ * of photographs nobody would see: on the scale probe at 1440, paging down 1,145 photographs left
+ * about 800 still in flight at the bottom, whose own took 13 to 18 s to draw. The attribute goes
+ * rather than emptying, because an empty `src` fires `error`, which the presign watchdog reads as an
+ * expired link. A photograph already drawn keeps its bytes in the browser's cache either way.
  */
-export type TileAction = {
-  id: string;
-  /** The native tooltip and the accessible name (tiles use `title`, not radix). */
-  label: string;
-  icon: LucideIcon;
-  /** The hue on direct hover (emil: monochrome at rest, colour on hover/state). */
-  tone?: "save" | "warning" | "destructive" | "success" | "like";
-  /** A state the glyph KEEPS off-hover (the liked heart, the hidden marker's amber eye). */
-  active?: boolean;
-  /** A link action (Save the original) — rendered as an `<a download>`. */
-  href?: string;
-  onSelect?: () => void;
-  disabled?: boolean;
-};
-
-/**
- * THE FOURTH MARK: THIS ONE IS YOURS (`theirs=mark`, Will 2026-09-20). A guest
- * can already remove any photograph they uploaded, for ever (`yours`, wired);
- * what no surface said was WHICH of 68 tiles are theirs, so the answer rides
- * the tile rather than a new control above the album — his own note on the
- * option he did not take: "rather than just adding more and more configs here".
- *
- * ★ IT TAKES THE TOP-LEFT CORNER, AND THAT IS THE ONLY CORNER FREE AT EVERY
- * WIDTH. The play mark and the like mark own the two bottom corners, and the
- * desk's hover row owns the top right (`row=bar`, one pane). The board drew
- * this mark top-right on a PHONE, where there is no hover row at all; on a
- * laptop that corner is the bar's, so the mark moves to the corner nobody else
- * claims rather than living under a pane that opens over it. (A guest's own
- * just-landed check shares this corner for about two seconds after an upload
- * and paints over it, which is the right order: the news wins, then the mark.)
- *
- * ★ THE GLYPH CARRIES ITS OWN LIGHT, like every other mark on a photograph:
- * `GLASS_MARK` is the material at the marks' cheaper blur and `GLASS_MARK_LIT`
- * is the dark halo that keeps a white glyph legible over a bright sky, which no
- * pane can do for it (`lib/glass.ts`).
- */
-function MineMark({
-  onSelect,
-  selected,
-}: {
-  onSelect?: () => void;
-  selected?: boolean;
-}) {
-  const body = (
-    <span
-      aria-hidden
-      className={cn("size-1.5 rounded-full bg-white", GLASS_MARK_LIT)}
-    />
-  );
-  const box = cn(
-    "absolute top-1.5 left-1.5 z-10 flex size-5 items-center justify-center rounded-full",
-    GLASS_MARK,
-  );
-  // No handler = a marker, not a control: a surface that cannot filter must not
-  // hand a screen reader a button that does nothing.
-  if (!onSelect)
-    return (
-      <span
-        data-tile-mark="mine"
-        aria-hidden
-        className={cn("pointer-events-none", box)}
-      >
-        {body}
-      </span>
-    );
-  const label = selected
-    ? "Showing only your photos. Show the whole album."
-    : "Yours. Show only your photos.";
-  return (
-    <button
-      type="button"
-      data-tile-mark="mine"
-      aria-label={label}
-      aria-pressed={selected ?? false}
-      title={label}
-      onClick={(e) => {
-        // The tile underneath opens the lightbox; this one does not.
-        e.stopPropagation();
-        onSelect();
-      }}
-      className={cn(
-        box,
-        "cursor-pointer transition-transform duration-150 ease-emphasis outline-none",
-        "focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100",
-      )}
-    >
-      {body}
-    </button>
-  );
+export function abortUnfinishedImages(el: HTMLElement) {
+  for (const img of el.getElementsByTagName("img")) {
+    if (img.complete) continue;
+    img.removeAttribute("srcset");
+    img.removeAttribute("src");
+  }
 }
 
-/**
- * ONE COLOUR LANGUAGE FOR EVERY SURFACE'S ROW (Will, 2026-06-20: the action SET
- * differs by role, the colour language does not). Monochrome at rest, the hue on
- * direct hover, and the hue KEPT with a soft fill when the verb is a state you
- * are already in.
- */
-const TONE: Record<NonNullable<TileAction["tone"]>, string> = {
-  save: "hover:text-save",
-  warning: "hover:text-warning",
-  destructive: "hover:text-destructive",
-  success: "hover:text-success",
-  like: "hover:text-like",
-};
-const TONE_ACTIVE: Record<NonNullable<TileAction["tone"]>, string> = {
-  save: "text-save",
-  warning: "text-warning",
-  destructive: "text-destructive",
-  success: "text-success",
-  like: "text-like",
-};
-const TONE_FILL: Record<NonNullable<TileAction["tone"]>, string> = {
-  save: "fill-save/25",
-  warning: "fill-warning/25",
-  destructive: "fill-destructive/25",
-  success: "fill-success/25",
-  like: "fill-like/25",
-};
-
-/**
- * THE DESK'S ROW, AS ONE PANE. `data-reveal-chip` rides the BAR rather than each
- * glyph (globals.css owns the collapse), so the whole row opens to one width on
- * tile hover instead of three chips sliding independently; `--reveal-max` is
- * sized from the count so a two-verb surface does not reserve a five-verb row.
- * Hidden below `md` by construction: a phone tile shows marks and nothing else.
- */
-function TileActionBar({ actions }: { actions: readonly TileAction[] }) {
-  if (actions.length === 0) return null;
+/** The photograph a click or a press landed on: its tile's id, for a target inside its open button. */
+function openedTileId(target: EventTarget | null): string | null {
+  const el = target as Element | null;
+  if (!el?.closest?.("[data-tile-open]")) return null;
   return (
-    <div
-      data-reveal-chip
-      data-tile-actions
-      style={
-        { "--reveal-max": `${actions.length * 1.75 + 0.5}rem` } as CSSProperties
-      }
-      className={cn(
-        "absolute top-1.5 right-1.5 z-10 hidden items-center gap-0.5 rounded-full p-0.5 md:flex",
-        GLASS,
-      )}
-    >
-      {actions.map((a) => {
-        const Icon = a.icon;
-        const glyph = (
-          <Icon
-            className={cn(
-              "size-4",
-              GLASS_MARK_LIT,
-              a.active && a.tone && TONE_FILL[a.tone],
-            )}
-          />
-        );
-        const className = cn(
-          "flex size-6 cursor-pointer items-center justify-center rounded-full text-white outline-none",
-          "transition-[color,transform] duration-150 ease-emphasis",
-          "focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100",
-          a.tone && (a.active ? TONE_ACTIVE[a.tone] : TONE[a.tone]),
-          a.disabled && "pointer-events-none opacity-50",
-        );
-        // A link action saves the original; everything else is a button. Both
-        // stop the click so the lightbox never opens behind a control.
-        return a.href ? (
-          <a
-            key={a.id}
-            href={a.href}
-            download
-            aria-label={a.label}
-            title={a.label}
-            onClick={(e) => e.stopPropagation()}
-            className={className}
-          >
-            {glyph}
-          </a>
-        ) : (
-          <button
-            key={a.id}
-            type="button"
-            aria-label={a.label}
-            title={a.label}
-            disabled={a.disabled}
-            onClick={(e) => {
-              e.stopPropagation();
-              a.onSelect?.();
-            }}
-            className={className}
-          >
-            {glyph}
-          </button>
-        );
-      })}
-    </div>
+    el.closest<HTMLElement>("[data-media-tile][data-media-id]")?.dataset
+      .mediaId ?? null
   );
 }
 
@@ -367,10 +256,38 @@ export function columnsFor(el: HTMLElement): number {
   // then ran one column past the CSS box wherever a window sat just over a
   // boundary (a 1490 window: six 238px columns under a 240 floor, where the
   // rule, the pre-measure paint and the skeleton all lay five), so the album
-  // jumped a column as it hydrated. Both boxes this grid draws set
-  // `gap: var(--gap-gallery)`, and a real length property computes to pixels.
-  const gap = parseFloat(style.columnGap) || 0;
+  // jumped a column as it hydrated. A real length property computes to pixels.
+  const gap = resolvedGap(el, style);
   return Math.max(PHONE_COLUMNS, Math.floor((width + gap) / (floor + gap)));
+}
+
+/**
+ * The gallery gap as a box resolves it: its own column gap in the flow (the
+ * pre-measure box sets `gap: var(--gap-gallery)`), and once measured, when the
+ * box carries no gap of its own (its tiles carry it), a tile's bottom margin,
+ * which is the same token.
+ */
+function resolvedGap(el: HTMLElement, style = getComputedStyle(el)): number {
+  const own = parseFloat(style.columnGap);
+  if (own) return own;
+  const tile = el.querySelector<HTMLElement>(":scope > [data-media-tile]");
+  return tile ? parseFloat(getComputedStyle(tile).marginBottom) || 0 : 0;
+}
+
+/**
+ * A tile's height in widths (h / w), from the same aspect its box is drawn at,
+ * in either of `tileAspect`'s spellings ("w / h", or one number for a clamped
+ * ratio).
+ *
+ * ★ THE CLAMPED SPELLING USED TO READ AS A SQUARE. The balance parsed "w / h"
+ * only, so a clamped host album's "1.5" split into one number, failed its own
+ * guard and counted every tile as square: the host's columns were balanced on
+ * the wrong shapes and ran uneven.
+ */
+function heightInWidths(aspect: string): number {
+  const parts = aspect.split("/").map((n) => parseFloat(n));
+  const ratio = parts.length === 2 ? parts[0] / parts[1] : parts[0];
+  return Number.isFinite(ratio) && ratio > 0 ? 1 / ratio : 1;
 }
 
 /**
@@ -383,7 +300,7 @@ export function columnsFor(el: HTMLElement): number {
  * double render and a poll's reconcile give the same answer.
  */
 export function distributeColumns<T extends GridMedia>(
-  items: T[],
+  items: readonly T[],
   cols: number,
   clampAspect: boolean,
 ): T[][] {
@@ -398,39 +315,109 @@ export function distributeColumns<T extends GridMedia>(
     // A column's height in tile-widths: h / w per tile. The gap is a constant
     // per tile and drops out of the comparison; this only has to RANK, the real
     // pixels are the browser's.
-    const [w, h] = String(tileAspect(item, clampAspect))
-      .split("/")
-      .map((n) => parseFloat(n));
-    heights[shortest] += h > 0 && w > 0 ? h / w : 1;
+    heights[shortest] += heightInWidths(tileAspect(item, clampAspect));
   }
   // Newest at the head of its own column (the array was filled oldest-first).
   for (const col of out) col.reverse();
   return out;
 }
 
-export function MasonryColumns<T extends GridMedia>({
-  items,
-  onDeleteItem,
-  stagger = false,
-  clampAspect = false,
-  viewerIsHost = false,
-  renderOverlay,
-  tileActions,
-  hideLikeMark = false,
-  dimItem,
-  shareUrl,
-  onSetStatus,
-  onRemove,
-  onTileLongPress,
-  layout = "masonry",
-  arrivedIds,
-  landedIds,
-  canDelete,
-  prefix,
-  mineIds,
-  onSelectMine,
-  mineSelected,
-}: {
+/** A measured masonry box: how many columns, its width and its gap, in px. */
+export type ColumnBox = { cols: number; width: number; gap: number };
+
+/** The `order` stride of one column: more photographs than any column will hold. */
+const COLUMN_ORDER = 100_000;
+
+/**
+ * THE MEASURED COLUMNS, AS ONE FLEX BOX FLOWING IN COLUMNS: each tile's
+ * `order` and box, the column breaks' orders, the box's height, and the first
+ * tile of each column (the album's first row). The box is `flex-direction:
+ * column` wrapped at its tallest column's height, a full-height break after
+ * each column, and every tile a direct child of it in the album's own DOM
+ * order, so a measure or a filter moves no tile to a new parent.
+ *
+ * ★ A TILE'S ORDER COUNTS FROM ITS COLUMN'S OLDEST END, SO AN ARRIVAL RESTYLES
+ * NOTHING. Its column is its `order` stride and its place in it is counted up
+ * from the bottom, so a photograph landing at a column's head takes the next
+ * smaller order and every tile already there keeps its style: the column moves
+ * down by layout alone, which is all the old flex columns ever paid. Placing
+ * tiles absolutely instead cost a restyle per moved tile (573 tiles and 28ms of
+ * style an arrival at a phone's two columns, measured).
+ *
+ * The height has slack: a column's real height is the browser's sum of its
+ * tiles' rounded heights, and a box a hair too short would wrap a column's
+ * last photograph into a column of its own.
+ */
+export function placeColumns<T extends GridMedia>(
+  items: readonly T[],
+  { cols, width, gap }: ColumnBox,
+  clampAspect: boolean,
+  headHeight = 0,
+): {
+  box: Map<string, CSSProperties>;
+  breaks: number[];
+  headOrder: number;
+  colWidth: number;
+  height: number;
+  first: Set<string>;
+} {
+  const colWidth = Math.max(0, (width - (cols - 1) * gap) / cols);
+  const box = new Map<string, CSSProperties>();
+  const first = new Set<string>();
+  let height = 0;
+  distributeColumns(items, cols, clampAspect).forEach((column, c) => {
+    let h = c === 0 ? headHeight : 0;
+    column.forEach((item, k) => {
+      if (k === 0) first.add(item.id);
+      const aspect = tileAspect(item, clampAspect);
+      box.set(item.id, {
+        // Newest at the head: the oldest takes the column's largest order.
+        order: (c + 1) * COLUMN_ORDER - (column.length - k),
+        width: colWidth,
+        marginLeft: c > 0 ? gap : 0,
+        // The box is the tile's whole style, so it carries the shape too.
+        aspectRatio: aspect,
+      });
+      h += colWidth * heightInWidths(aspect) + gap;
+    });
+    // A sixty-fourth of a pixel a tile is the most a browser's rounding adds.
+    height = Math.max(height, h + column.length / 32 + 2);
+  });
+  return {
+    box,
+    breaks: Array.from({ length: cols - 1 }, (_, c) => (c + 1) * COLUMN_ORDER),
+    headOrder: 0,
+    colWidth,
+    height,
+    first,
+  };
+}
+
+/**
+ * THE SAME LIST, KEPT: an array whose items are the same objects in the same
+ * order as the last render's answers the last array. A surface that copies its
+ * list every render (the guest album's filter always does) then hands every memo
+ * below an unchanged list, so a progress tick recomputes no layout.
+ */
+function useSameList<T>(items: readonly T[]): readonly T[] {
+  const [kept, setKept] = useState(items);
+  let same = kept.length === items.length;
+  for (let i = 0; same && i < items.length; i++)
+    if (kept[i] !== items[i]) same = false;
+  if (same) return kept;
+  setKept(items);
+  return items;
+}
+
+/** The selection a surface's select mode hands the grid: every tile becomes a toggle. */
+export type TileSelection = {
+  selected: ReadonlySet<string>;
+  onToggle: (id: string) => void;
+  /** Tiles on their way out (the removal beat, `[data-exiting]`). */
+  exiting?: ReadonlySet<string>;
+};
+
+export function MasonryColumns<T extends GridMedia>(props: {
   items: T[];
   /** Surfaces the lightbox Delete (the personal Uploads feed); omitted = read-only. */
   onDeleteItem?: (id: string) => void;
@@ -467,14 +454,48 @@ export function MasonryColumns<T extends GridMedia>({
   stagger?: boolean;
   clampAspect?: boolean;
   /** "masonry" = explicit, height-balanced columns (the Gallery "wow"). "uniform" = a fixed-aspect
-   *  CSS grid (the Reel + Review, where uniformity makes drag-order / selection legible). Only the
-   *  container and the per-tile aspect change; the marks / lightbox / dimItem paths are identical. */
-  layout?: "masonry" | "uniform";
+   *  CSS grid (the Reel + Review, where uniformity makes drag-order / selection legible). "rows" =
+   *  the justified album, windowed (`AlbumRows`, opt-in until each surface switches). Only the box
+   *  and the per-tile box change; the marks / lightbox / dimItem paths are identical. */
+  layout?: "masonry" | "uniform" | "rows";
+  /** Rows only: the density step, photographs per row (`lib/shared/album-rows.ts`). */
+  rowStep?: RowStep;
+  /**
+   * Rows only: a pinch, a trackpad pinch or ctrl and the wheel over the album
+   * asks for the next step here (`density-control.tsx`). Omitted = no gesture.
+   */
+  onRowStepChange?: (step: RowStep) => void;
+  /** Rows only: the fixed end, "end" (the default) for a newest-first album. */
+  rowAnchor?: RowAnchor;
+  /** Rows only: plain rows (the default) or a feature row now and then. */
+  rowRhythm?: RowRhythm;
+  /** Rows only: the visit's seed for the rhythm's picks, held for the visit. */
+  rhythmSeed?: number;
+  /** Rows only: the photographs the window mounts, whenever that changes (links and likes load per window). */
+  onWindowChange?: (ids: readonly string[]) => void;
+  /** Rows only: the width the album last laid its rows at, remembered by the surface (`AlbumRows`). */
+  firstPaintWidth?: number | null;
+  /** Rows only: the width the rows are laid at, whenever it changes. */
+  onBoxWidth?: (width: number) => void;
+  /**
+   * THE VIEWER'S LINK SOURCE on a paged album: the grid holds every photograph, most without links
+   * yet, and the viewer asks for the ones it is about to show (the photograph and its neighbours,
+   * the filmstrip's reach). Omitted where every item carries its links already.
+   */
+  onViewerNeedLinks?: (ids: readonly string[]) => void;
+  /** The album's handle (`scrollToId`, for a deep link). */
+  albumRef?: Ref<AlbumHandle>;
   /** Threads to the lightbox (host viewer affordances). Default false (guest/read-only). */
   viewerIsHost?: boolean;
   /** Tap-and-hold a tile to enter the gallery album bulk-select, seeded with that id. Omitted
    *  everywhere except the host gallery, so the guest / recovery grids get no long-press. */
   onTileLongPress?: (id: string) => void;
+  /**
+   * SELECT MODE ON THE ONE GRID: every tile a toggle wearing the selection's
+   * marks, so a host's select mode can run on the album it is looking at
+   * instead of swapping to another grid and remounting every tile.
+   */
+  selection?: TileSelection;
   /**
    * THE DESK'S HOVER SET FOR THIS SURFACE, and the whole of it. Omitted = a tile with marks and
    * nothing else, which is what a phone gets everywhere and what the profile feeds get at any
@@ -494,7 +515,57 @@ export function MasonryColumns<T extends GridMedia>({
   shareUrl?: string;
   onSetStatus?: (item: GridMedia, status: "approved" | "hidden") => void;
   onRemove?: (item: GridMedia) => void;
+  /**
+   * The recovery bin's two verbs in the viewer (its tile pane is a desk's, so on a phone the viewer
+   * is the only place they live): Restore at once, Delete permanently behind its confirm. Each
+   * shrinks the bin, so the viewer closes first (as Remove does). Omitted everywhere but the bin.
+   */
+  onRestore?: (item: GridMedia) => void;
+  onPurge?: (item: GridMedia) => void;
+  /**
+   * The open photograph rides the page's address as `?photo=<id>` (on by default; see
+   * `writeAddress`). Off for a grid that is not the page's subject.
+   */
+  photoAddress?: boolean;
 }) {
+  const {
+    onDeleteItem,
+    stagger = false,
+    clampAspect = false,
+    viewerIsHost = false,
+    renderOverlay,
+    tileActions,
+    hideLikeMark = false,
+    dimItem,
+    shareUrl,
+    onSetStatus,
+    onRemove,
+    onRestore,
+    onPurge,
+    onTileLongPress,
+    layout = "masonry",
+    rowStep,
+    onRowStepChange,
+    rowAnchor,
+    rowRhythm,
+    rhythmSeed,
+    onWindowChange,
+    firstPaintWidth,
+    onBoxWidth,
+    onViewerNeedLinks,
+    albumRef,
+    selection,
+    arrivedIds,
+    landedIds,
+    canDelete,
+    prefix,
+    mineIds,
+    onSelectMine,
+    mineSelected,
+    photoAddress = true,
+  } = props;
+  const items = useSameList(props.items) as T[];
+
   /**
    * ★ THE OPEN ITEM IS AN ID, NEVER A POSITION. `items` mutates under an open
    * lightbox (a doorbell prepends newly-approved media, an optimistic upload
@@ -504,162 +575,457 @@ export function MasonryColumns<T extends GridMedia>({
    * now that it IS the guest album.
    */
   const [openId, setOpenId] = useState<string | null>(null);
+  // Where the open photograph grew from (`opening=grow`): the tile's rect at
+  // the tap. None when it opened from the address (its tile may be far down
+  // the page), so it fades in, and still drops back into its tile.
+  const [origin, setOrigin] = useState<ViewerOrigin | undefined>(undefined);
   const openAt = openId ? items.findIndex((m) => m.id === openId) : -1;
   // -1 covers both "closed" and "the open item just vanished", which the
   // lightbox reads as closed.
   const openIndex = openAt >= 0 ? openAt : null;
   // Only the FIRST render staggers (later arrivals enter instantly). Captured
   // once via the useState initializer (no ref-in-render). Unused when stagger=false.
-  const [seededIds] = useState(() => new Set(items.map((m) => m.id)));
+  // ★ THE SEED INDEX, NOT TODAY'S: a tile's `--tile-i` is its place in the seed
+  // render and stays that, because an arrival that shifted every index rewrote
+  // an inline custom property on every tile and restyled the whole album for a
+  // delay that only ever mattered at mount.
+  const [seedIndex] = useState(
+    () => new Map(items.map((m, i) => [m.id, i] as const)),
+  );
   const uniform = layout === "uniform";
-  // One long-press machine for the grid (a single press at a time). bind() is a no-op without
-  // onTileLongPress, so non-host grids are unaffected.
-  const longPress = useLongPress(onTileLongPress);
+  const rows = layout === "rows";
+
+  // The latest props, for the one click and the one long-press (read at the
+  // moment of the tap, never during render).
+  const latest = useRef(props);
+  useEffect(() => {
+    latest.current = props;
+  });
+  const longPress = useLongPress(onTileLongPress, { resolve: openedTileId });
 
   // null until the box is measured: the first paint is the CSS-columns box (see
   // the head comment), so the server HTML and the hydrated tree hold the same
   // height and the swap is a re-balance rather than a jump.
-  const [cols, setCols] = useState<number | null>(null);
+  const [cols, setCols] = useState<ColumnBox | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
+  // The grid's root in every layout.
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const handle = useRef<AlbumHandle | null>(null);
+  useImperativeHandle(albumRef, () => ({
+    scrollToId: (id) =>
+      handle.current?.scrollToId(id) ?? tileFor(rootRef.current, id),
+  }));
+
+  /**
+   * The tile of the photograph showing at close, brought on screen if the
+   * viewer walked it out of view, so the photograph drops into ITS tile. In a
+   * windowed album the tile may not be mounted at all: the window scrolls to it
+   * and mounts it first.
+   */
+  const returnTo = useCallback((item: GridMedia) => {
+    if (handle.current) return handle.current.scrollToId(item.id);
+    const tile = tileFor(rootRef.current, item.id);
+    if (!tile) return null;
+    const r = tile.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > window.innerHeight)
+      tile.scrollIntoView({ block: "center" });
+    return tile;
+  }, []);
+
+  /**
+   * ★ A WALK WRITES THE ADDRESS WHEN IT PAUSES. Browsers cap the history API
+   * (Chrome drops calls past 200 in 10 s, Safari refuses past 100), and a
+   * viewer stepped with a held arrow key wrote one a step: walking the scale
+   * probe, the address stopped following at the hundredth photograph, and the
+   * close's own write was dropped too, leaving a closed viewer's `?photo=`
+   * behind for a refresh to reopen. So a step waits for a beat of quiet, and an
+   * open, a close and a vanish write at once (cancelling a step still waiting).
+   */
+  const addressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const addressNow = useCallback(
+    (id: string | null) => {
+      if (addressTimer.current !== null) clearTimeout(addressTimer.current);
+      addressTimer.current = null;
+      if (photoAddress) writeAddress(id);
+    },
+    [photoAddress],
+  );
+  const addressAfterStep = (id: string | null) => {
+    if (!photoAddress) return;
+    if (addressTimer.current !== null) clearTimeout(addressTimer.current);
+    addressTimer.current = setTimeout(() => {
+      addressTimer.current = null;
+      writeAddress(id);
+    }, ADDRESS_STEP_QUIET_MS);
+  };
+  useEffect(
+    () => () => {
+      if (addressTimer.current !== null) clearTimeout(addressTimer.current);
+    },
+    [],
+  );
+
+  const openItem = (id: string, tile: Element | null) => {
+    setOpenId(id);
+    setOrigin(
+      tile
+        ? { kind: "tile", rect: tile.getBoundingClientRect(), returnTo }
+        : undefined,
+    );
+    addressNow(id);
+  };
+
+  const closeItem = () => {
+    setOpenId(null);
+    addressNow(null);
+  };
+
+  // The address, read once on mount (see `writeAddress`). Async on purpose: a
+  // frame lets the page settle and a door open first, and a door that is
+  // open is waited out.
+  const claimId = useId();
+  useEffect(() => {
+    if (!photoAddress) return;
+    const id = readPhotoParam(window.location.search);
+    if (!id) return;
+    let observer: MutationObserver | null = null;
+    let raf = 0;
+    const tryOpen = () => {
+      if (addressClaim && addressClaim !== claimId) return;
+      if (!latest.current.items.some((m) => m.id === id)) return;
+      if (foreignDialogOpen()) {
+        if (!observer && typeof MutationObserver !== "undefined") {
+          observer = new MutationObserver(() => {
+            if (!foreignDialogOpen()) {
+              observer?.disconnect();
+              observer = null;
+              tryOpen();
+            }
+          });
+          observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ["role", "data-state"],
+          });
+        }
+        return;
+      }
+      addressClaim = claimId;
+      setOpenId(id);
+      // It did not grow from anywhere on screen (its tile may be far down the
+      // page), so it fades in; it still drops back into its tile.
+      setOrigin({ kind: "tile", rect: null, returnTo });
+    };
+    raf = requestAnimationFrame(tryOpen);
+    return () => {
+      cancelAnimationFrame(raf);
+      observer?.disconnect();
+      if (addressClaim === claimId) addressClaim = null;
+    };
+  }, [photoAddress, claimId, returnTo]);
+
+  // The open photograph vanished under the viewer (removed, filtered away):
+  // the address stops naming it.
+  useEffect(() => {
+    if (openId && openAt < 0) addressNow(null);
+  }, [addressNow, openId, openAt]);
+
   const measure = useCallback(() => {
     const el = boxRef.current;
     if (!el) return;
-    setCols((prev) => {
-      const next = columnsFor(el);
-      // An unmeasurable box keeps whatever it had (see columnsFor).
-      if (next === 0) return prev;
-      return prev === next ? prev : next;
-    });
+    const count = columnsFor(el);
+    // An unmeasurable box keeps whatever it had (see columnsFor).
+    if (count === 0) return;
+    const width = el.clientWidth;
+    const gap = resolvedGap(el);
+    setCols((prev) =>
+      prev && prev.cols === count && prev.width === width && prev.gap === gap
+        ? prev
+        : { cols: count, width, gap },
+    );
   }, []);
   useLayoutEffect(() => {
-    if (uniform) return;
+    // The rows measure their own box (`AlbumRows`).
+    if (uniform || rows) return;
     measure();
     const el = boxRef.current;
     if (!el || typeof ResizeObserver === "undefined") return;
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [uniform, measure]);
+  }, [uniform, rows, measure]);
 
-  const tileOf = (item: T, i: number) => (
-    <div
-      key={item.id}
-      data-media-tile
-      data-arrived={arrivedIds?.has(item.id) ? "" : undefined}
-      data-landed={landedIds?.has(item.id) ? "" : undefined}
-      data-mine={mineIds?.has(item.id) ? "" : undefined}
-      // The bright edge (globals.css, [data-lit]): this div owns the tile
-      // radius and clips the photo, so the hook sits here and nowhere
-      // above it. No value: a tile has no border for the light to land on.
-      data-lit=""
-      // Host tiles (stagger off) opt out of the arrival fade-rise (emil: no
-      // entrance theater on host); the guest album (stagger on) keeps it.
-      data-static={stagger ? undefined : ""}
-      style={
-        {
-          // Uniform = the one fixed aspect (object-cover crops); masonry = natural ratio.
-          aspectRatio: uniform
-            ? UNIFORM_TILE_ASPECT
-            : tileAspect(item, clampAspect),
-          borderRadius: "var(--radius-tile)",
-          ...(stagger ? { "--tile-i": seededIds.has(item.id) ? i : 0 } : {}),
-        } as CSSProperties
-      }
-      // Uniform: the CSS-grid gap spaces tiles. Masonry: the gap is the tile's own
-      // bottom margin, because neither a `columns` box nor a column element has a row gap.
-      className={
-        uniform
-          ? "group relative w-full overflow-hidden bg-black/10"
-          : "group relative mb-[var(--gap-gallery)] w-full break-inside-avoid overflow-hidden bg-black/10"
-      }
-    >
-      <button
-        type="button"
-        {...longPress.bind(item.id)}
-        onClick={() => {
-          // Suppress the click the browser synthesizes after a long-press (else the hold that
-          // entered select mode would also open the lightbox).
-          if (longPress.consumeClick()) return;
-          setOpenId(item.id);
-        }}
-        aria-label={item.type === "photo" ? "View photo" : "Play video"}
-        className={`size-full cursor-pointer transition-[transform,opacity] duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-inset active:scale-[0.98]${
-          dimItem?.(item) ? "opacity-30" : ""
-        }`}
-      >
-        <MediaTile item={item} playBadge="none" />
-      </button>
-
-      {/* THE MARKS — state, never controls, and the whole of a phone tile. The
-          fourth ("yours") is the one exception his own ruling asked for: it is
-          a mark that the guest album also makes tappable, because the filter it
-          opens is the answer to "where are mine" at 68 photographs. */}
-      {item.type === "video" && <CornerPlayBadge />}
-      {!hideLikeMark && <TileLikeMark item={item} count={item.likeCount} />}
-      {mineIds?.has(item.id) && (
-        <MineMark onSelect={onSelectMine} selected={mineSelected} />
-      )}
-
-      {/* The desk's hover row, as one pane. A sibling of the open button, so a
-          control's tap is captured by the control and never opens the lightbox. */}
-      {tileActions && <TileActionBar actions={tileActions(item)} />}
-
-      {/* Per-tile chrome LAST so it paints over everything; its own buttons
-          capture the tap (the lightbox never opens behind them). */}
-      {renderOverlay?.(item)}
-    </div>
+  // THE HEAD'S HEIGHT, for the measured columns: the first column starts under
+  // it. Measured before paint on every render (a new upload tile appears in the
+  // same commit that needs the room) and watched for what loads inside it.
+  const headRef = useRef<HTMLDivElement | null>(null);
+  const [headHeight, setHeadHeight] = useState(0);
+  const hasHead = headSlots(prefix).length > 0;
+  const placed = useMemo(
+    () =>
+      uniform || rows || cols === null
+        ? null
+        : placeColumns(items, cols, clampAspect, headHeight),
+    [uniform, rows, cols, items, clampAspect, headHeight],
   );
+  useLayoutEffect(() => {
+    const read = () =>
+      setHeadHeight(
+        placed && headRef.current ? headRef.current.offsetHeight : 0,
+      );
+    read();
+    const el = headRef.current;
+    if (!placed || !el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(read);
+    ro.observe(el);
+    return () => ro.disconnect();
+  });
 
-  const columns =
-    uniform || cols === null
-      ? null
-      : distributeColumns(items, cols, clampAspect);
+  /**
+   * THE SHIMMER RUNS ONLY WHERE SOMEONE CAN SEE IT: one observer for the grid
+   * writes `data-inview` on the tiles on screen (`album-tile.css` runs the
+   * skeleton's shimmer under it, after a beat). A thousand photographs below the
+   * fold each ran a shimmer every frame for nobody (measured: 1,110 running
+   * animations on the scale page). An attribute, not state: the tile does not
+   * re-render to learn it is seen. Its cleanup is the tile leaving, which
+   * cancels the tile's unfinished download (`abortUnfinishedImages`).
+   */
+  const [observe] = useState(() => {
+    if (typeof IntersectionObserver === "undefined") return undefined;
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries)
+        e.target.toggleAttribute("data-inview", e.isIntersecting);
+    });
+    return (el: HTMLElement | null) => {
+      if (!el) return;
+      io.observe(el);
+      return () => {
+        io.unobserve(el);
+        abortUnfinishedImages(el);
+      };
+    };
+  });
+
+  // THE ONE CLICK (see the head note): the verb, the mark or the open button
+  // under the tap, answered from the latest props.
+  const onGridClick = (e: MouseEvent<HTMLElement>) => {
+    const target = e.target as Element | null;
+    const tile = target?.closest?.<HTMLElement>(
+      "[data-media-tile][data-media-id]",
+    );
+    if (!target || !tile || !e.currentTarget.contains(tile)) return;
+    const id = tile.dataset.mediaId!;
+    const now = latest.current;
+    const verb = target.closest<HTMLElement>("[data-tile-action]");
+    if (verb && tile.contains(verb)) {
+      // A link verb (Save) does its own work; a button verb is the surface's.
+      if (verb.tagName === "A") return;
+      const item = now.items.find((m) => m.id === id);
+      const action = item
+        ? now.tileActions?.(item).find((a) => a.id === verb.dataset.tileAction)
+        : undefined;
+      if (action && !action.disabled) action.onSelect?.();
+      return;
+    }
+    if (target.closest('[data-tile-mark="mine"]')) {
+      now.onSelectMine?.();
+      return;
+    }
+    if (!target.closest("[data-tile-open]")) return;
+    // Suppress the click the browser synthesizes after a long-press (else the
+    // hold that entered select mode would also open the lightbox).
+    if (longPress.consumeClick()) return;
+    if (now.selection) {
+      now.selection.onToggle(id);
+      return;
+    }
+    openItem(id, tile);
+  };
+
+  // THE KEYBOARD'S HOVER: a tile the keyboard is inside shows its desk row the
+  // way a hovered one does (`album-tile.css`, `data-kbd-focus`). An attribute
+  // rather than `:has(:focus-visible)`, which matches but does not reliably
+  // repaint in Chromium; and focus-visible only, so a click never pins it open.
+  const onGridFocus = (e: FocusEvent<HTMLElement>) => {
+    const target = e.target as Element;
+    const tile = target.closest?.("[data-media-tile][data-media-id]");
+    if (!tile) return;
+    let keyboard = false;
+    try {
+      keyboard = target.matches(":focus-visible");
+    } catch {
+      // An engine without the selector (jsdom) gets no keyboard hover.
+    }
+    if (keyboard) tile.setAttribute("data-kbd-focus", "");
+  };
+  const onGridBlur = (e: FocusEvent<HTMLElement>) => {
+    const tile = (e.target as Element).closest?.(
+      "[data-media-tile][data-media-id]",
+    );
+    const next = e.relatedTarget as Node | null;
+    if (tile && !(next && tile.contains(next)))
+      tile.removeAttribute("data-kbd-focus");
+  };
+
+  const gridProps = {
+    onClick: onGridClick,
+    onFocus: onGridFocus,
+    onBlur: onGridBlur,
+    ...longPress.handlers,
+    onPointerEnter: preloadMediaLightbox,
+    onTouchStart: preloadMediaLightbox,
+  };
+
+  /** What every layout hands a tile, from the item and the surface's sets. */
+  const tileProps = (item: T): AlbumTileProps => ({
+    item,
+    layout,
+    clampAspect,
+    enter: stagger,
+    seedIndex: stagger ? (seedIndex.get(item.id) ?? 0) : undefined,
+    arrived: arrivedIds?.has(item.id),
+    landed: landedIds?.has(item.id),
+    mine: mineIds?.has(item.id)
+      ? onSelectMine
+        ? "control"
+        : "marker"
+      : undefined,
+    mineSelected,
+    dimmed: dimItem?.(item),
+    hideLikeMark,
+    actions: tileActions?.(item),
+    overlay: renderOverlay?.(item),
+    selecting: !!selection,
+    selected: selection?.selected.has(item.id),
+    exiting: selection?.exiting?.has(item.id),
+    observe,
+  });
+
+  // The rows' tile: the engine's box, entering once, pushing on arrival.
+  const rowTile = (item: T, t: RowTile) => (
+    <AlbumTile
+      key={item.id}
+      {...tileProps(item)}
+      box={t.style}
+      rowsKey={t.rowsKey}
+      enter={stagger && t.fresh}
+      entering={t.entering}
+      eager={t.eager}
+      listItem
+    />
+  );
 
   return (
     <>
-      {columns ? (
-        <div
-          ref={boxRef}
-          data-album-grid
-          className="flex w-full items-start gap-[var(--gap-gallery)]"
-          onPointerEnter={preloadMediaLightbox}
-          onTouchStart={preloadMediaLightbox}
-        >
-          {columns.map((column, c) => (
-            <div key={c} className="min-w-0 flex-1">
-              {c === 0 && prefix}
-              {column.map((item) => tileOf(item, items.indexOf(item)))}
-            </div>
-          ))}
-        </div>
+      {rows ? (
+        <AlbumRows
+          items={items}
+          step={rowStep}
+          anchor={rowAnchor}
+          rhythm={rowRhythm}
+          seed={rhythmSeed}
+          clampAspect={clampAspect}
+          head={prefix}
+          renderTile={rowTile}
+          onStepChange={onRowStepChange}
+          onWindowChange={onWindowChange}
+          firstPaintWidth={firstPaintWidth}
+          onBoxWidth={onBoxWidth}
+          handleRef={handle}
+          gridRef={(el) => {
+            rootRef.current = el;
+          }}
+          gridProps={gridProps}
+        />
       ) : (
         <div
-          ref={uniform ? undefined : boxRef}
+          {...gridProps}
+          ref={(el) => {
+            if (!uniform) boxRef.current = el;
+            rootRef.current = el;
+          }}
           data-album-grid
-          className={uniform ? GALLERY_UNIFORM_COLUMNS : GALLERY_COLUMNS}
-          onPointerEnter={preloadMediaLightbox}
-          onTouchStart={preloadMediaLightbox}
+          // ★ ONE PLACEHOLDER IN A SESSION REPLAY, NOT A THOUSAND PHOTOGRAPHS.
+          // Sentry's replay (instrumentation-client.ts) buffers every session
+          // to send on an error, so it serializes every node the album mounts,
+          // and its media blocking measures each photograph's box, one forced
+          // layout per image (measured: the largest single cost of a throttled
+          // phone's fling through the windowed rows). The photographs are
+          // blocked from replays already (`blockAllMedia`); blocking the grid
+          // keeps its place and size in the recording and skips the rest.
+          data-sentry-block=""
+          className={
+            uniform
+              ? GALLERY_UNIFORM_COLUMNS
+              : placed
+                ? // The measured columns: the same box, restyled (`placeColumns`);
+                  // the tiles carry the gap (a bottom margin, a left one past
+                  // the first column), so a column break adds none.
+                  "flex w-full flex-col flex-wrap content-start"
+                : GALLERY_COLUMNS
+          }
+          style={placed ? { height: placed.height } : undefined}
         >
-          {prefix}
-          {items.map((item, i) => tileOf(item, i))}
+          {hasHead && (
+            <div
+              ref={headRef}
+              data-album-head
+              // In the flow the head's tiles are the columns' own (`contents`);
+              // measured, it stands at the first column's head.
+              className={cn(placed ? "flow-root" : "contents")}
+              style={
+                placed
+                  ? { order: placed.headOrder, width: placed.colWidth }
+                  : undefined
+              }
+            >
+              {prefix}
+            </div>
+          )}
+          {items.map((item, i) => (
+            <AlbumTile
+              key={item.id}
+              {...tileProps(item)}
+              box={placed?.box.get(item.id)}
+              // The first row fetches first: each column's head once measured,
+              // the first two before (the top of the first CSS column).
+              eager={placed ? placed.first.has(item.id) : !uniform && i < 2}
+            />
+          ))}
+          {placed?.breaks.map((order) => (
+            // A column ends here: a full-height line of its own, no width.
+            <div
+              key={`column:${order}`}
+              aria-hidden
+              data-column-break
+              style={{ order, flexBasis: "100%", width: 0 }}
+            />
+          ))}
         </div>
       )}
 
       <MediaLightboxLazy
         items={items}
         index={openIndex}
-        onClose={() => setOpenId(null)}
+        origin={origin}
+        onClose={closeItem}
         // Swipe/arrow navigation still speaks in positions; translate straight
         // back to the id so the next mutation can't shift it either.
-        onIndexChange={(i) => setOpenId(items[i]?.id ?? null)}
+        onIndexChange={(i) => {
+          const id = items[i]?.id ?? null;
+          setOpenId(id);
+          addressAfterStep(id);
+        }}
         viewerIsHost={viewerIsHost}
         shareUrl={shareUrl}
+        onNeedLinks={onViewerNeedLinks}
         onSetStatus={onSetStatus}
         canDelete={canDelete}
         onDeleteCurrent={
           onDeleteItem
             ? (item) => {
-                setOpenId(null);
+                closeItem();
                 onDeleteItem(item.id);
               }
             : undefined
@@ -668,8 +1034,25 @@ export function MasonryColumns<T extends GridMedia>({
         onRemove={
           onRemove
             ? (item) => {
-                setOpenId(null);
+                closeItem();
                 onRemove(item);
+              }
+            : undefined
+        }
+        // The bin's two verbs shrink the bin the same way: close, then run.
+        onRestore={
+          onRestore
+            ? (item) => {
+                closeItem();
+                onRestore(item);
+              }
+            : undefined
+        }
+        onPurge={
+          onPurge
+            ? (item) => {
+                closeItem();
+                onPurge(item);
               }
             : undefined
         }

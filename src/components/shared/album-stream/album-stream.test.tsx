@@ -1,5 +1,3 @@
-// @contract-for: src/components/shared/album-stream/album-stream.tsx
-
 import { render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -16,9 +14,9 @@ import { STAGE, STREAMS, VARIANTS } from "./stream-engine";
  *     elapsed-0 transform and opacity as custom properties the sheet paints, so
  *     a crawler, a throttled tab, a reader with scripting off and a reader who
  *     asked for less motion all get the SETTLED composition rather than an
- *     empty hero. Will ruled that on the album hero's round three
+ *     empty hero. This was set on the album hero's round three
  *     (`no-script=settled`), and it only holds because the engine is pure and
- *     the rest state is server HTML (bible 13, bible 14).
+ *     the rest state is server HTML.
  *  2  IT IS PURE ATMOSPHERE. A screen reader hears the page's words, never two
  *     dozen photographs from other people's events; a keyboard walks straight
  *     past it; it adds no door of its own.

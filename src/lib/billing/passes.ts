@@ -10,7 +10,7 @@
  *   • STACKING (Will, 2026-08-27): concurrent passes are rows whose windows overlap
  *     "now". Active-now count IS the entitlement: count x 75 GB storage, count event
  *     slots (profiles.event_slots -> the SQL enforce_event_limit override).
- *   • RENEWAL EXTENDS, NEVER RESETS (billing-caps.md ruling 1, preserved): a renewal is a
+ *   • RENEWAL EXTENDS, NEVER RESETS (billing-caps.md): a renewal is a
  *     NEW row whose window starts where the soonest-expiring active pass ends, so it
  *     never grants a second concurrent slot and an untouched renewal year credits
  *     at 100%.

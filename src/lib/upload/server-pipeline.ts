@@ -1,8 +1,8 @@
 /**
- * THE UPLOAD PIPELINE (Phase 3 consolidation). One engine for the four
- * presign/complete route handlers — the guest (capability-token) and host
- * (authenticated) pairs were near copy-paste; the spine now lives here once
- * and the routes are thin strategy adapters.
+ * THE UPLOAD PIPELINE. One engine for the four presign/complete route
+ * handlers — the guest (capability-token) and host (authenticated) pairs
+ * share one spine, which lives here once, and the routes are thin strategy
+ * adapters.
  *
  * The spine (presign): parse -> zod -> classify/derive ext server-side ->
  * universal validateUpload -> strategy.resolveEvent (ALL per-strategy gates)
@@ -16,11 +16,10 @@
  * - The client NEVER influences the key (server-built via mediaObjectKey).
  * - file_size_bytes comes from headObjectSize, never the client.
  * - An over-stuffed multipart is ABORTED, never assembled.
- * - Response JSON shapes/key order are the uploadFile() client contract —
- *   byte-for-byte identical to the pre-consolidation routes (curl-fixture
- *   verified). Do not reorder fields.
+ * - Response JSON shapes/key order are the uploadFile() client contract.
+ *   Do not reorder fields.
  * - The auth boundary stays in the ROUTES: the host routes gate on getUser()
- *   BEFORE calling the engine (401-before-body-parse ordering preserved);
+ *   BEFORE calling the engine (so a 401 comes before any body parse);
  *   guest authorization happens inside the strategy's RPCs.
  */
 import "server-only";
@@ -88,7 +87,7 @@ export type PresignStrategy<Schema extends z.ZodType<PresignCommon>> = {
   /**
    * Resolve + authorize the target event and apply EVERY per-strategy gate
    * (session/ownership, event state, video gating, caps, the guests-only
-   * per-event max_upload_bytes) with the exact legacy status/code/message.
+   * per-event max_upload_bytes) with its route's exact status/code/message.
    */
   resolveEvent(
     parsed: z.output<Schema>,
@@ -244,6 +243,14 @@ type CompleteCommon = {
   height?: number;
   /** The preview R2 key (set only when the client uploaded one); recorded as media.preview_key. */
   preview_key?: string;
+  /**
+   * `media.reel_eligible` for the row this completion creates (the live reel): sent as
+   * false ONLY for a clip added to the album (`addClipToAlbum`), so the live reel never plays a reel;
+   * absent means eligible (the column's default). The engine carries it to either strategy, guest
+   * or host, and each writes it once through its create_media* call. Not a trust boundary: the
+   * worst a forged `false` does is keep the sender's own upload out of the reel.
+   */
+  reel_eligible?: boolean;
   upload_id: string | null;
   parts: { partNumber: number; eTag: string }[];
   /** Capture-only device UUID (trust-safety-forensics.md) — forwarded to the forensic record, nothing else. */
@@ -256,12 +263,11 @@ type CreateRecordOutcome =
       ok: true;
       data: { media_id: string; status: string } | { idempotent: true };
       /**
-       * ★ COOKIES THE STRATEGY WANTS ON THE SUCCESS RESPONSE (the door as three steps,
-       * 2026-09-21). The guest route heals `pr_guest_<eventId>` here, because a completed upload
-       * is the LAST moment before the album is supposed to open and the one act that proves the
-       * token is real. Optional, and the host strategy never sets it: a host has an account and
-       * no guest session. The engine applies them verbatim to the 200 and to nothing else, so a
-       * refused upload never writes one.
+       * ★ COOKIES THE STRATEGY WANTS ON THE SUCCESS RESPONSE. The guest route heals
+       * `pr_guest_<eventId>` here, because a completed upload is the LAST moment before the album
+       * is supposed to open and the one act that proves the token is real. Optional, and the host
+       * strategy never sets it: a host has an account and no guest session. The engine applies
+       * them verbatim to the 200 and to nothing else, so a refused upload never writes one.
        */
       setCookies?: readonly (GuestCookieWrite | null | undefined)[];
     }
@@ -275,7 +281,7 @@ export type CompleteStrategy<Schema extends z.ZodType<CompleteCommon>> = {
     kind: MediaKind,
     realSize: number,
   ): Promise<CreateRecordOutcome>;
-  /** HTTP status per failure code — the legacy per-route mapping, verbatim. */
+  /** HTTP status per failure code — each route's own mapping. */
   errorStatus(code: string): number;
   /** Sentry label for unexpected create failures (bad_key/unknown). */
   captureLabel: string;
@@ -357,7 +363,7 @@ export async function runCompletePipeline<
     });
   }
 
-  // ★ VARIANT/KIND/EXT BINDING (QA #6), the second half of the key binding above. The key IS the
+  // ★ VARIANT/KIND/EXT BINDING, the second half of the key binding above. The key IS the
   // issuance record: presign minted <kind>/<variant>.<ext> from ITS content_type, so requiring the
   // echoed content_type to re-derive the same segments transitively pins complete-time
   // content_type to presign-time content_type with zero stored state. Closes the variant swap

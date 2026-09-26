@@ -62,13 +62,13 @@ export const footJobOf = (s: BoardState): FootJob =>
  * The three below are this round's whole state.
  */
 export type FootAfter = "today" | "quiet" | "merged" | "tucked";
-export type FootAlone = "full" | "same";
-export type FootPhone = "hidden" | "small" | "none";
+export type FootAlone = "full" | "same" | "line";
+export type FootPhone = "hidden" | "small" | "none" | "reveal";
 
 export const footAfterOf = (s: BoardState): FootAfter =>
   pick(s["foot-after"], ["today", "quiet", "merged", "tucked"], "quiet");
 export const footAloneOf = (s: BoardState): FootAlone =>
-  pick(s["foot-alone"], ["full", "same"], "full");
+  pick(s["foot-alone"], ["full", "same", "line"], "full");
 
 /* ── The groups, taken out of the shipped nav ────────────────────────────── */
 

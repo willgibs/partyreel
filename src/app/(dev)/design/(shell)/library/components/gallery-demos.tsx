@@ -47,14 +47,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuFooter,
@@ -324,6 +316,9 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
      specimens are the only eye `lab:smoke` has on them. */
   {
     id: "table",
+    file: "src/components/ui/table.tsx",
+    for: "the portal's dense row, and the only table in the product: `tone` writes `data-tone`, and `tableRowVariants` is the same rule set the inbox list and the home's queue wear on an <li>, so a failed run tints identically wherever it is drawn",
+    test: "src/components/ui/table.test.tsx",
     badge: "new",
     family: "components",
     // ★ A SECTION OF THEIR OWN, and not "Surfaces" and "Overlays". A family
@@ -334,7 +329,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     // brings its own heading.
     section: "The operations portal",
     title: "Table",
-    lede: "The portal's dense row, and the one thing it adds to shadcn's: `tone` as a data attribute, so a failed run tints its own row and takes a leading edge (`colour=rows`, Will 2026-09-20, with his note: \"Makes it a bit harder to miss\"). The same rules ride an <li> in the inbox list and the home's queue, which is why they are scoped by data value rather than split into four class strings.",
+    lede: "The portal's dense row, and the one thing it adds to shadcn's: `tone` as a data attribute, so a failed run tints its own row and takes a leading edge, which makes it harder to miss. The same rules ride an <li> in the inbox list and the home's queue, which is why they are scoped by data value rather than split into four class strings.",
     specimens: [
       {
         label: "Recent runs",
@@ -345,6 +340,9 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "command-palette",
+    file: "src/components/ui/command-palette.tsx",
+    for: "a combobox in a dialog and nothing else: no index, no ranking, no router, no skin. The active row is read from the DOM rather than a registry, because the order an arrow key means is the order a reader sees",
+    test: "src/components/ui/command-palette.test.tsx",
     badge: "new",
     family: "components",
     section: "The operations portal",
@@ -360,11 +358,14 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "destructive-sheet",
+    file: "src/components/admin/destructive-sheet.tsx",
+    for: "the ONE panel every destructive act in the portal opens, sized to the damage: it lists what an act touches before it happens, and only a permanent act with something to identify asks you to type. `GuardedSwitch` beside it is the same panel on a kill switch's OFF edge, since turning one back on is free",
+    test: "src/components/admin/destructive-sheet.test.tsx",
     badge: "new",
     family: "components",
     section: "The operations portal",
     title: "DestructiveSheet",
-    lede: "One panel for every destructive act in the portal, sized to the damage (`destructive=sheet`, Will 2026-09-20). It had four grammars and the severity did not line up with the friction: a typed dialog for an account, a plain one for a photograph, an arm-then-confirm for a legal hold, and a bare switch for the purge sweep. Every act now lists what it touches before it happens, and only the permanent one makes you type.",
+    lede: "One panel for every destructive act in the portal, sized to the damage: every act lists what it touches before it happens, and only the permanent one makes you type, so the friction follows the severity.",
     specimens: [
       {
         label: "Reversible, and permanent",
@@ -378,14 +379,17 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
      another's; the Orchestrator keeps every side at the merge). */
   {
     id: "album-stream",
+    file: "src/components/shared/album-stream/album-stream.tsx",
+    for: "photographs falling out of the room around a hero's words and into the album beneath it; decorative, and its resting frame is server HTML so a reader with no script still meets the composition",
+    test: "src/components/shared/album-stream/album-stream.test.tsx",
     badge: "new",
     family: "components",
     section: "Surfaces",
-    lede: "Photographs falling out of the room around a hero's words and into the album beneath it, and the album they fall into: the live guest masonry under the host's own header, its foot dissolving, lit from behind by the Glow halo. Will ruled both on the album page (visual=live, motion=stream, light=halo, 2026-09-19).",
+    lede: "Photographs falling out of the room around a hero's words and into the album beneath it, and the album they fall into: the live guest masonry under the host's own header, its foot dissolving, lit from behind by the Glow halo.",
     specimens: [
       {
         label: "The album, at the scale's 896 step",
-        hint: "the halo lights the frame's rim, its window bar and the header type from BEHIND, so the photographs stay exactly as they are (bible 1); the foot dissolves under a mask rather than a scrim, so the album reads as going on",
+        hint: "the halo lights the frame's rim, its window bar and the header type from BEHIND, so the photographs stay exactly as they are; the foot dissolves under a mask rather than a scrim, so the album reads as going on",
         node: <CinemaGround>{<LiveAlbumStage />}</CinemaGround>,
       },
       {
@@ -422,10 +426,13 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   // render perfectly and ship with no code panel.
   {
     id: "trail",
+    file: "src/components/shared/trail/trail.tsx",
+    for: "photographs laid down behind a cursor, or behind a figure walked on its own; decorative, and the words it is given stand inside it rather than over it",
+    test: "src/components/shared/trail/trail.test.tsx",
     badge: "new",
     family: "components",
     section: "Surfaces",
-    lede: "Photographs laid down behind a moving point, each sliding after it and then fading and shrinking away where it lies. Will ruled its look and its home on 2026-09-19: 140 px of travel between photographs, three seconds to go, thrown the way the hand went, 180 px and 100 at a phone, and the root 404 as the page it lives on. It is decorative, it takes no pointer, and it never lays anything over the words: inside their own box a photograph yields instead, which is what keeps the type the loudest thing on the screen.",
+    lede: "Photographs laid down behind a moving point, each sliding after it and then fading and shrinking away where it lies, thrown the way the hand went; the root 404 is where it lives today. It is decorative, it takes no pointer, and it never lays anything over the words: inside their own box a photograph yields instead, which keeps the type the loudest thing on the screen.",
     specimens: [
       {
         label: "On paper, under a cursor",
@@ -471,11 +478,14 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "qr-plate",
+    file: "src/components/shared/river/qr-plate.tsx",
+    for: "the real scannable code a river is born from inside a feature door; server-rendered, no link and no label, and sized off its own value so a module never drops under the scan floor",
+    test: "src/components/shared/river/qr-plate.test.tsx",
     badge: "new",
     family: "components",
     section: "Surfaces",
     title: "The QR door's picture",
-    lede: "The album pouring out of a real scannable code, which is what fills the QR feature door. Will ruled the pair on river-card (2026-09-19): the code a tenth of the way down the tall door, the whole card streaming behind the copy, no label at all, and /demo as what it opens. Every length is a fraction of the door's width, so the code, the birth point and the flow agree at any size with nothing measured and no resize listener.",
+    lede: "The album pouring out of a real scannable code, which is what fills the QR feature door: the code near the top of the tall door, the whole card streaming behind the copy, and /demo as what it opens. Every length is a fraction of the door's width, so the code, the birth point and the flow agree at any size with nothing measured and no resize listener.",
     specimens: [
       // The two widths the door is really drawn at: (1024 - 32) / 3 in the
       // /features grid at 1440, and 375 minus the site's gutters on a phone.
@@ -510,6 +520,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "button",
+    file: "src/components/ui/button.tsx",
+    for: "every action in the product: the round family whose radius rides its height",
     badge: "updated",
     family: "components",
     section: "Actions",
@@ -575,6 +587,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "badge",
+    file: "src/components/ui/badge.tsx",
+    for: "the small status pill; the admin portal's states are most of its work",
     family: "components",
     section: "Actions",
     play: "badge",
@@ -605,6 +619,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
 
   {
     id: "input",
+    file: "src/components/ui/input.tsx",
+    for: "the one text field, from the guest password gate to the admin console",
     family: "components",
     section: "Inputs",
     specimens: [
@@ -633,6 +649,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "textarea",
+    file: "src/components/ui/textarea.tsx",
+    for: "the long-form field: an event description, a report, an announcement",
     family: "components",
     section: "Inputs",
     specimens: [
@@ -645,6 +663,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "label",
+    file: "src/components/ui/label.tsx",
+    for: "the field label in Inter 500: the per-setting tier under a card's title",
     family: "components",
     section: "Inputs",
     specimens: [
@@ -668,6 +688,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "switch",
+    file: "src/components/ui/switch.tsx",
+    for: "the settings toggle, from an event's upload rules to the admin kill switches",
     family: "components",
     section: "Inputs",
     variants: [
@@ -698,10 +720,13 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "confirm-switch",
+    file: "src/components/ui/confirm-switch.tsx",
+    for: "the switch that asks first: the glyph and the deferred-open confirm dance owned once, for any switch whose consequential edge should not flip silently",
+    test: "src/components/ui/confirm-switch.test.tsx",
     badge: "new",
     family: "components",
     section: "Inputs",
-    lede: "The switch that asks first (`app-vocabulary` r1, `confirm-switch=primitive`): one component owns the glyph beside the label and the deferred-open confirm dance, so a consequential switch never flips silently and the setTimeout dodge for radix's dismissable layer is written once. uploads-section.tsx's two hand-rolled pairs retired into it.",
+    lede: "The switch that asks first: one component owns the glyph beside the label and the deferred-open confirm dance, so a consequential switch never flips silently and the setTimeout dodge for radix's dismissable layer is written once.",
     specimens: [
       {
         label: "Turn it off to see the ask",
@@ -712,6 +737,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "select",
+    file: "src/components/ui/select.tsx",
+    for: "the option picker; the contact form's topic is its one call site today",
     family: "components",
     section: "Inputs",
     specimens: [
@@ -737,6 +764,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "form",
+    file: "src/components/ui/form.tsx",
+    for: "the react-hook-form field stack, hand-authored: the radix-nova registry has no form item",
     family: "components",
     section: "Inputs",
     specimens: [
@@ -749,6 +778,9 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "input-otp",
+    file: "src/components/ui/input-otp.tsx",
+    title: "InputOTP",
+    for: "the six-slot code field: the emailed sign-in code, and the delete-account confirm",
     family: "components",
     section: "Inputs",
     specimens: [
@@ -758,6 +790,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
 
   {
     id: "card",
+    file: "src/components/ui/card.tsx",
+    for: "the panel the settings, dashboard, admin and auth surfaces are built out of",
     family: "components",
     section: "Surfaces",
     specimens: [
@@ -787,6 +821,9 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "avatar",
+    file: "src/components/ui/avatar.tsx",
+    for: "the account face: the user menu, the account page, a guest in the list; seeded into a colour by seedFor(profiles.id) until a photo replaces it",
+    test: "src/components/ui/avatar.test.tsx",
     family: "components",
     section: "Surfaces",
     play: "avatar",
@@ -807,6 +844,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "separator",
+    file: "src/components/ui/separator.tsx",
+    for: "the hairline rule, and the or divider between the two sign-in paths",
     family: "components",
     section: "Surfaces",
     specimens: [
@@ -824,6 +863,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "skeleton",
+    file: "src/components/ui/skeleton.tsx",
+    for: "the loading block: a shimmer sweep that goes static under reduced motion",
     family: "components",
     section: "Surfaces",
     specimens: [
@@ -841,6 +882,9 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "river",
+    file: "src/components/shared/river/river.tsx",
+    for: "a flow of photographs falling through a box, sized by its container; decorative, and a placement that wants it quiet filters its own wrapper",
+    test: "src/components/guest/gallery-empty-state.test.tsx",
     badge: "new",
     family: "components",
     section: "Surfaces",
@@ -879,7 +923,7 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
         // that do not exist), NOT to the river. Everywhere else it pours at
         // full luminance, and a placement that wants it quiet filters its own
         // wrapper rather than dimming the component or laying a scrim over the
-        // photographs (bible 1).
+        // photographs.
         label: "The river itself, unfaded",
         hint: "decorative, aria-hidden, nothing focusable; one rAF loop, paused off screen and under reduced motion",
         node: (
@@ -893,10 +937,13 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
 
   {
     id: "photo-section",
+    file: "src/components/shared/backdrop/photo-section.tsx",
+    for: "a section standing on a full-bleed photograph that switches as the reader moves, its copy on a glass plate; the device that carries a chapter cut",
+    test: "src/components/shared/backdrop/photo-section.test.tsx",
     badge: "new",
     family: "components",
     section: "Surfaces",
-    lede: "A section that stands on a full-bleed photograph and switches it as the reader moves, with its copy on a glass plate. Will ruled it a PAGE device on 2026-09-18: a full-image section can close a chapter, open one, or separate two, used sometimes and never at every cut, so a page turns through a picture instead of over a hairline. Its first home closes the home page's first chapter.",
+    lede: "A section that stands on a full-bleed photograph and switches it as the reader moves, with its copy on a glass plate. It is a page device: a full-image section can close a chapter, open one, or separate two, so a page turns through a picture instead of over a hairline. Today it closes the home page's first chapter.",
     specimens: [
       {
         label: "The room, under a cursor",
@@ -931,6 +978,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
 
   {
     id: "tabs",
+    file: "src/components/ui/tabs.tsx",
+    for: "the tab group, filled or underlined; only the design lab mounts it today",
     family: "components",
     section: "Navigation",
     variants: [
@@ -985,6 +1034,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "navigation-menu",
+    file: "src/components/ui/navigation-menu.tsx",
+    for: "the mega-menu primitive behind the marketing header, held to the floating-layer contract",
     family: "components",
     section: "Navigation",
     lede: "The mega-menu primitive behind the marketing header: one sliding viewport shared by every trigger.",
@@ -1038,6 +1089,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
 
   {
     id: "progress",
+    file: "src/components/ui/progress.tsx",
+    for: "the determinate bar: an upload's bytes, a reel's stitch, a guest's download",
     family: "components",
     section: "Feedback",
     play: "progress",
@@ -1055,6 +1108,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "password-strength-meter",
+    file: "src/components/shared/password-strength-meter.tsx",
+    for: "soft guidance while a new password is typed; never a gate, the validators enforce",
     family: "components",
     section: "Feedback",
     specimens: [
@@ -1067,6 +1122,10 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "sonner",
+    file: "src/components/ui/sonner.tsx",
+    title: "Toaster",
+    for: "the themed Toaster: top-center under the tallest bar in the product, always expanded rather than sonner's hover-to-open pile, an error held open behind a close control until dismissed while every other kind clears on its own clock, and one trailing action slot every toast reserves (a named door, Undo, Retry)",
+    test: "src/components/ui/sonner.test.tsx",
     family: "components",
     section: "Feedback",
     specimens: [
@@ -1080,6 +1139,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
 
   {
     id: "dialog",
+    file: "src/components/ui/dialog.tsx",
+    for: "the modal, plus the fullScreen takeover a whole-screen surface asks for",
     family: "components",
     section: "Overlays",
     lede: "Trigger-anchored where it belongs; the live components, fully interactive.",
@@ -1113,6 +1174,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "sheet",
+    file: "src/components/ui/sheet.tsx",
+    for: "the edge panel; the marketing mobile menu is what it carries today",
     family: "components",
     section: "Overlays",
     specimens: [
@@ -1139,35 +1202,9 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
     ],
   },
   {
-    id: "drawer",
-    family: "components",
-    section: "Overlays",
-    specimens: [
-      {
-        label: "Drawer",
-        hint: "vaul · bottom, drag to dismiss",
-        node: (
-          <Drawer>
-            <DrawerTrigger asChild>
-              <Button variant="outline" size="sm">
-                Open drawer
-              </Button>
-            </DrawerTrigger>
-            <DrawerContent>
-              <DrawerHeader>
-                <DrawerTitle>Add to your event</DrawerTitle>
-                <DrawerDescription>
-                  The mobile sheet pattern, with drag-to-dismiss.
-                </DrawerDescription>
-              </DrawerHeader>
-            </DrawerContent>
-          </Drawer>
-        ),
-      },
-    ],
-  },
-  {
     id: "popover",
+    file: "src/components/ui/popover.tsx",
+    for: "the tap-to-open note: the storage meter's breakdown, the Anonymous explainer",
     family: "components",
     section: "Overlays",
     specimens: [
@@ -1193,10 +1230,13 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "dropdown-menu",
+    file: "src/components/ui/dropdown-menu.tsx",
+    for: "the menu behind the user menu, the notification bell and the admin controls",
+    test: "src/components/ui/dropdown-menu.test.tsx",
     family: "components",
     section: "Overlays",
-    // CARD, AS THE WORKING VERSION (Will, floating-surfaces r7, 2026-09-17:
-    // "Card is my overall favorite"). Two specimens, because the ruling is two
+    // CARD, AS THE WORKING VERSION (floating-surfaces r7:
+    // "Card is my overall favorite"). Two specimens, because the point is two
     // claims: the parts exist, AND a menu with nothing to say wears none of
     // them. The full anatomy alone would read as a house style every overflow
     // has to obey, which is the cost Card was judged against.
@@ -1274,6 +1314,8 @@ export const COMPONENT_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "tooltip",
+    file: "src/components/ui/tooltip.tsx",
+    for: "the hover and focus label; useless on touch, where a Popover is the honest answer",
     family: "components",
     section: "Overlays",
     specimens: [

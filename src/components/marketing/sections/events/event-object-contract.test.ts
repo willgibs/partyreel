@@ -1,4 +1,3 @@
-// @contract-for: src/components/marketing/sections/events/event-object.tsx
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -15,15 +14,15 @@ import { isMarketingImageId } from "@/lib/constants/marketing-media";
  * THE OBJECT HERO'S CONTRACT: the object is a DOOR, and only when there is
  * something behind it.
  *
- * Will ruled `hero-theme=object` because it "conveys more about how we actually
+ * `hero-theme=object` was chosen because it "conveys more about how we actually
  * help that event (such as incorporating the QR)", so a lit object with a
- * decorative code in it would be the ruling missed entirely, and one with a
+ * decorative code in it would be the point missed entirely, and one with a
  * code that points nowhere would be worse. Both fail silently: a drawn QR looks
  * exactly like a real one in a screenshot, and a dead `/demo` link looks exactly
  * like a live one until somebody taps it.
  *
- * Source-scanned where the rule is about the file (the footer-contract
- * precedent) and evaluated where it is about data. It cannot be a render test:
+ * Source-scanned where the rule is about the file (matching the footer-contract's
+ * approach) and evaluated where it is about data. It cannot be a render test:
  * `lib/demo.ts` reads `lib/env.ts`, which is deliberately not Vitest-importable.
  *
  * ★ NOT PINNED HERE: how any object LOOKS. A contract guards function, and Will
@@ -50,7 +49,7 @@ describe("the event object hero", () => {
   });
 
   it("encodes /demo rather than the event link", () => {
-    // Will's river-card ruling `opens=short`: 25 modules against 33, so a plate
+    // `opens=short` (river-card): 25 modules against 33, so a plate
     // this size stays well above the screen-scanning floor. /demo is a 307 to
     // the configured event.
     expect(source).toContain("`${SITE_URL}/demo`");
@@ -152,7 +151,7 @@ describe("the per-type media slots", () => {
 
   it("draws the badges rather than photographing them", () => {
     // The conference object is the one with no photograph in it, on purpose:
-    // the manifest has no honest conference subject and the ruling is that a
+    // the manifest has no honest conference subject and the choice is that a
     // picture never promises the wrong event.
     for (const type of EVENT_TYPES.filter((t) => t.object === "badges")) {
       expect(type.media.object, type.slug).toEqual([]);

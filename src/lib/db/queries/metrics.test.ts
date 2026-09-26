@@ -132,7 +132,7 @@ describe("getPlatformDbMetrics", () => {
       tierMix: { free: 1850, pro: 400, event_pass: 250 },
       eventPassHolders: 250,
     });
-    expect(m.engagement).toMatchObject({ qrScans: 120_000, albumViews: 480_000 });
+    expect(m.engagement).toMatchObject({ linkVisits: 600_000 });
     // Blank and null sources merge into "direct".
     expect(m.growth.bySource).toEqual([
       { source: "footer", count: 1500 },
@@ -172,8 +172,7 @@ describe("getPlatformDbMetrics", () => {
     });
     expect(m.engagement.trend.at(-1)).toEqual({
       day: "2026-09-23",
-      qrScans: 500,
-      albumViews: 2000,
+      linkVisits: 2500,
     });
   });
 

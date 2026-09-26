@@ -39,15 +39,15 @@ import { defineExploration } from "@/components/lab/exploration";
  * scene, wearing that board's recommendations, and never asked about.
  *
  * ★ WHAT IS DELIBERATELY NOT ASKED. Whether an event requires a verified
- * email at all is ruled; a name-only guest existing is the premise this board
- * stands on, not a question inside it. The Unverified mark's own material,
- * the album's column rule and the guest header's shell are
- * `guest-shape`/`gallery-width`'s and worn here as law. The claim's mechanics
- * (the claim by capability session, the claim by a confirmed address per
- * event, one email one identity) are unmoved; every option changes only what
- * a screen says and where it says it. And what confirming keeps is not a
- * question either: the event and every photograph, in her account; nothing
- * reaches a profile until she chooses it.
+ * email at all is already settled; a name-only guest existing is the premise
+ * this board stands on, not a question inside it. The Unverified mark's own
+ * material, the album's column rule and the guest header's shell belong to
+ * `guest-shape`/`gallery-width`, held steady here rather than re-asked. The
+ * claim's mechanics (the claim by capability session, the claim by a
+ * confirmed address per event, one email one identity) are unmoved; every
+ * option changes only what a screen says and where it says it. And what
+ * confirming keeps is not a question either: the event and every
+ * photograph, in her account; nothing reaches a profile until she chooses it.
  */
 
 const SCREEN: Control = {
@@ -65,13 +65,12 @@ const DRAFT = defineExploration({
   title: "Keeping what she just added",
   round: {
     n: 1,
-    date: "2026-09-22",
+    date: "2026-09-24",
     changed:
-      "Rechecked against the identity and reel rounds: the offer is the second ask now (the door's optional email comes first), the reel's tile stands at the album's head, the copy promises her account, never a profile, the landing is gone, and the name keeps silent against confirm.",
+      "The refresh: name gains a third path, told (write silently, then say so in a toast), now the recommendation. Redrawn for the door's round two: tracker's menu option is a Your photos row under her menu's card, every option kept.",
   },
   context:
     "Every option is the same guest at the same wedding, Priya at Maya and Jay's, a names-mode party, with only the piece being asked moved. The door already offered her an optional email under her name (identity-door); this board asks about the second ask, once her first photographs land: when it reaches her, what it looks like, where she is offered a follow of Maya once she confirms, and what becomes of the name she typed. Confirming keeps the event and every photo in her account; nothing reaches a profile until she chooses it. The reel's tile sits at the album's head throughout (reel-front).",
-  bible: [4, 14, 15, 19, 22],
   asks: [
     {
       id: "moment",
@@ -79,13 +78,13 @@ const DRAFT = defineExploration({
       question:
         "The door already offered an optional email. When should the second ask, to keep what she added, first reach Priya?",
       context:
-        'Today it waits from the moment her first photo lands, in the door\'s sheet, so it meets her as the album opens. She skipped the door\'s optional email (typed, it prefills this door). The reel\'s tile below wears reel-front\'s "Yours is in it".',
+        "Today it waits from her first photo, in the door's sheet, meeting her as the album opens. She skipped the door's optional email. The reel's tile below wears his r1 look; its toast needs a moderated event, which this is not.",
       options: [
         {
           id: "first",
           label: "After the first photo, as shipped",
           means:
-            'The instant she has sent anything: the card waits as the album opens, a minute after the door\'s own ask, above the reel\'s "Yours is in it".',
+            "The instant she has sent anything: the card waits as the album opens, a minute after the door's own ask, above the reel's \"Yours is in it\".",
         },
         {
           id: "tenth",
@@ -139,7 +138,7 @@ const DRAFT = defineExploration({
       ],
       recommended: "inline",
       because:
-        'A line under the photograph she just added says "this one" without new chrome, the restraint bible 4 asks of a guest surface, and it leaves the album\'s head to the reel\'s tile instead of stacking a second large object above it.',
+        "A line under the photograph she just added says \"this one\" without new chrome, the restraint bible 7 asks of a guest surface, and it leaves the album's head to the reel's tile instead of stacking a second large object above it.",
       overrule:
         "A caption in a grid she is scrolling past is the easiest of the three to miss; a card is the only shape certain to be seen once.",
       lands:
@@ -190,11 +189,11 @@ const DRAFT = defineExploration({
       question:
         "When the name Priya typed becomes her account's name, should she get one look at it first?",
       context:
-        "The shipped write is silent: Will's identity ruling names a nameless profile from the claimed row, editable from Account. That name then credits her wherever she adds photos. Her handle is identity-profile.setup's question.",
+        "The shipped write is silent: the identity round's decision names a nameless profile from the claimed row, editable from Account. That name then credits her wherever she adds photos. Her handle is identity-profile.setup's question.",
       options: [
         {
           id: "silent",
-          label: "Silent, as ruled and shipped",
+          label: "Silent, as shipped",
           means:
             "Named the instant she confirms, from whatever she typed at the door; she can change it from Account later.",
         },
@@ -204,16 +203,58 @@ const DRAFT = defineExploration({
           means:
             '"Is this right?", one editable field, stands between confirming and the name being written anywhere.',
         },
+        {
+          id: "told",
+          label: "Named silently, then told",
+          means:
+            'Writes it at once, like silent, then a toast names it: "You\'re on as Priya. Change it in Account." Nothing blocks her, nothing goes unsaid.',
+        },
       ],
-      recommended: "silent",
+      recommended: "told",
       because:
-        "The name has credited her all evening already and the ruling keeps it editable; asking again at the moment of success is a second question whose answer is almost always the same.",
+        "A confirm step is a second question whose answer is almost always the same, and silence leaves a wrong nickname for her to stumble on later; a toast keeps the instant write and still tells her where to fix it.",
       overrule:
-        'If a name typed for one party (a nickname, "Priya from work") is often wrong everywhere else, one field now is cheaper than an edit she never finds.',
+        "If a toast covering the card's own heading for its first moment reads as clutter rather than care, silence costs her nothing to notice at all.",
       lands:
         "Whether a guest's name at every party after this one is ever chosen on purpose, or carried over from one door.",
       tile: "phone",
       configs: [SCREEN],
+    },
+    {
+      id: "tracker",
+      label: "Her tracker",
+      question:
+        "For a moderated event, should Priya get a way to track her own batch's status?",
+      context:
+        "His own idea, at a MODERATED event (Review on): guests \"track their batch's progress or approval status, so they aren't left wondering\". Every option marks four of her own uploads: sending, held, approved, refused.",
+      options: [
+        {
+          id: "button",
+          label: "A floating button beside Add photos",
+          means:
+            "A round icon rides beside Add photos; tapping it opens a sheet listing her batch, each row its own status.",
+        },
+        {
+          id: "menu",
+          label: "A Your photos row in her menu",
+          means:
+            "Her menu, her name over Unverified and the card that saves the event, gains a Your photos row under that card, opening the same list.",
+        },
+        {
+          id: "inline",
+          label: "The status rides each tile itself",
+          means:
+            "voice-guest.waiting's own words sit on her tiles directly: sending, held, approved, refused, no new surface at all.",
+        },
+      ],
+      recommended: "button",
+      because:
+        "It is his own first idea, verbatim, and a floating icon meets her exactly where she just tapped Add photos, rather than waiting for her to go looking in a menu she may never open.",
+      overrule:
+        "If one status surface beats two, her menu already opens from her name: a Your photos row under its card keeps her surfaces to one.",
+      lands:
+        "Whether a moderated guest gets a dedicated tracker at all, and whether it is a new control or an existing surface grown.",
+      tile: "phone",
     },
   ],
 });

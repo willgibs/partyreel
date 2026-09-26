@@ -52,43 +52,25 @@ describe("abuseRateDecision", () => {
     ).toBe(false);
   });
 
-  it("reel_render: tight per-(IP,event) cap + cross-event breadth guard", () => {
-    // Normal: a host rendering their own reel a few times is fine.
-    expect(abuseRateDecision("reel_render", 1, 3).allowed).toBe(true);
-    // A shuffle→render abuse loop on one event trips the backstop.
+  it("reel_clip_add: a daily per-guest-session budget, breadth disabled", () => {
+    // The case this limiter exists to NOT break: a real guest adding a handful of clips over a
+    // night, whatever else is happening on their venue's shared WiFi.
+    expect(abuseRateDecision("reel_clip_add", 1, 5).allowed).toBe(true);
+    // The per-(IP,session) daily ceiling still exists for one session hammering the route.
     expect(
-      abuseRateDecision("reel_render", 1, ABUSE_LIMITS.reel_render.scopeMax)
+      abuseRateDecision("reel_clip_add", 1, ABUSE_LIMITS.reel_clip_add.scopeMax)
         .allowed,
     ).toBe(false);
-    // One IP forcing renders across many DISTINCT events trips breadth.
-    expect(
-      abuseRateDecision("reel_render", ABUSE_LIMITS.reel_render.breadthMax, 0)
-        .allowed,
-    ).toBe(false);
-  });
-
-  it("reel_guest_download: venue-generous scope, breadth as the harvester guard", () => {
-    // The case this limiter exists to NOT break: thirty guests behind one venue NAT all tapping
-    // Download on the SAME reel at the end of the night.
-    expect(abuseRateDecision("reel_guest_download", 1, 30).allowed).toBe(true);
-    // Runaway ceiling on that one (IP, event) still exists.
+    // Breadth (distinct SESSIONS per IP) is deliberately disabled: a big party legitimately has
+    // many distinct guest sessions behind one venue NAT, so it is never the scraper signal here.
+    expect(ABUSE_LIMITS.reel_clip_add.breadthMax).toBe(Infinity);
     expect(
       abuseRateDecision(
-        "reel_guest_download",
-        1,
-        ABUSE_LIMITS.reel_guest_download.scopeMax,
+        "reel_clip_add",
+        9999,
+        ABUSE_LIMITS.reel_clip_add.scopeMax - 1,
       ).allowed,
-    ).toBe(false);
-    // One IP harvesting reels across many DISTINCT events is the real abuse shape.
-    expect(
-      abuseRateDecision(
-        "reel_guest_download",
-        ABUSE_LIMITS.reel_guest_download.breadthMax,
-        0,
-      ).allowed,
-    ).toBe(false);
-    // A venue is ONE event, so breadth can never trip on legitimate party traffic.
-    expect(ABUSE_LIMITS.reel_guest_download.breadthMax).toBeGreaterThan(1);
+    ).toBe(true);
   });
 
   it("contact + careers: per-IP only, and tight enough to protect the email quota", () => {
@@ -131,5 +113,21 @@ describe("abuseRateDecision", () => {
     expect(r.allowed).toBe(false);
     // The per-scope window is reported (backstop is checked first).
     expect(r.retryAfterSec).toBe(ABUSE_LIMITS.join.scopeWindowMin * 60);
+  });
+
+  it("email_change: per account, six an hour for requests and code attempts together, breadth disabled", () => {
+    // An account is not venue-shaped: there is nothing to be broad across.
+    expect(ABUSE_LIMITS.email_change.breadthMax).toBe(Infinity);
+    expect(abuseRateDecision("email_change", 9999, 0).allowed).toBe(true);
+
+    // An honest change is three calls (the request and two codes); a full redo is three more.
+    for (let spent = 0; spent < 6; spent++) {
+      expect(abuseRateDecision("email_change", 0, spent).allowed).toBe(true);
+    }
+    // The seventh in an hour is refused, the hour quoted back.
+    expect(abuseRateDecision("email_change", 0, 6)).toEqual({
+      allowed: false,
+      retryAfterSec: 3600,
+    });
   });
 });

@@ -238,6 +238,19 @@ export function groupedByEvent(
   }).filter((g) => g.items.length > 0);
 }
 
+/**
+ * The same groups, ordered by each one's own worst offender rather than by
+ * event (`order=hybrid`, boards refresh, 2026-09-24): the account-wide
+ * ranking's instinct, kept inside the browsing-by-event shape.
+ */
+export function groupedByWorstFirst(
+  items: readonly StorageItem[] = STORAGE_ITEMS,
+): EventGroup[] {
+  return [...groupedByEvent(items)].sort(
+    (a, b) => (b.items[0]?.fileSizeBytes ?? 0) - (a.items[0]?.fileSizeBytes ?? 0),
+  );
+}
+
 /** The single event `where=album` scopes to: the heaviest one, so the option
  *  that can only see one event at a time is judged on the event most worth
  *  seeing sizes for. */

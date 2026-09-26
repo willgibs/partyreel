@@ -4,6 +4,7 @@ import * as React from "react"
 import { Dialog as SheetPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
+import { useKeyboardInset } from "@/lib/use-keyboard-inset"
 import { Button } from "@/components/ui/button"
 import {
   floatingClock,
@@ -11,6 +12,9 @@ import {
   floatingEdgeEntranceResponsive,
 } from "@/components/ui/floating-layer"
 import { XIcon } from "lucide-react"
+
+/** The desk half of the responsive sheet: a side panel, with no keyboard to rise into it. */
+const DESK = "(min-width: 640px)"
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
@@ -59,6 +63,9 @@ function SheetContent({
   side = "right",
   responsive = false,
   showCloseButton = true,
+  overlayClassName,
+  onOpenAutoFocus,
+  ref,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left"
@@ -73,14 +80,57 @@ function SheetContent({
    * that has no desk posture, and the design shell's panel is furniture. This
    * is the sheet `guest-shape`'s dialogs, `profile-page`'s quick-look and
    * `app-pricing`'s object inherit.
+   *
+   * ★ AND ITS PHONE HALF IS KEYBOARD-SAFE (door-flow). While a text field
+   * inside holds focus, `useKeyboardInset` stands the sheet on the keyboard's
+   * top edge and caps it at the visible height; the posture reads the two
+   * variables it writes, and a sheet nobody is typing in never gets them.
    */
   responsive?: boolean
   showCloseButton?: boolean
+  /** Classes for this sheet's own scrim (the guest door's, whose look is its own). */
+  overlayClassName?: string
 }) {
+  // The element itself, as state: Radix mounts the content a render after its
+  // portal, so the keyboard hook needs the node when it arrives, not a ref's
+  // first (empty) reading.
+  const [node, setNode] = React.useState<HTMLDivElement | null>(null)
+  const composedRef = React.useCallback(
+    (el: HTMLDivElement | null) => {
+      setNode(el)
+      if (typeof ref === "function") ref(el)
+      else if (ref) ref.current = el
+    },
+    [ref]
+  )
+  useKeyboardInset(node, responsive)
+
   return (
     <SheetPortal>
-      <SheetOverlay />
+      <SheetOverlay className={overlayClassName} />
       <SheetPrimitive.Content
+        ref={composedRef}
+        /* ★ NO FIELD TAKES FOCUS WHEN A PHONE SHEET OPENS. Radix focuses the
+           first tabbable on open, and when that is a field the iOS keyboard
+           rises into a sheet that is still sliding up: half of why the door
+           read as buggy. Under 640px, and wherever a consumer prevents it too,
+           focus lands on the panel itself: inside the dialog, so a screen
+           reader and Tab both start there, with no keyboard raised. A desk
+           keeps Radix's own choice. */
+        onOpenAutoFocus={(event) => {
+          onOpenAutoFocus?.(event)
+          if (!event.defaultPrevented) {
+            if (!responsive || window.matchMedia(DESK).matches) return
+            event.preventDefault()
+          }
+          const panel = event.currentTarget
+          if (
+            panel instanceof HTMLElement &&
+            !panel.contains(document.activeElement)
+          ) {
+            panel.focus({ preventScroll: true })
+          }
+        }}
         data-slot="sheet-content"
         // A side of its own, so none of the four fixed-side rules below can
         // match and fight the responsive constant for the same properties.

@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 /**
  * THE PROOF: A DOOR WITH PHOTOGRAPHS POURING THROUGH IT, AND THE REEL BESIDE IT.
  *
- * Will ruled `the-proof=door` (2026-09-19, verbatim): "The left side is
+ * `the-proof=door` was chosen, verbatim: "The left side is
  * beautiful with the river, but the real car [card] on the right could use a
  * redesign. Good layout, though. I like the asymmetrical two-column, with demo
  * a bit wider." Behind it, the two sentences the option was built to answer:

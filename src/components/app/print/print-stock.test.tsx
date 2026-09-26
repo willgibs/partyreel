@@ -1,4 +1,3 @@
-// @contract-for: src/components/app/print/print-stock.tsx
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 

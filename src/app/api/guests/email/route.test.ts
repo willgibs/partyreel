@@ -1,5 +1,5 @@
 /**
- * THE ATTACH DOOR (the guest identity round, Will 2026-09-22), on the rename door's pattern.
+ * THE ATTACH DOOR, on the rename door's pattern.
  *
  * `set_guest_pending_email` is service-role-only, so this route is not a thin wrapper over a public
  * RPC: it IS the gate for the things SQL cannot do (the shape refusal a guest can read, the rate
@@ -11,7 +11,8 @@
  *   ★ NULL IS THE DETACH, AND IT IS NOT AN ERROR. "Clear it" and "set it to nothing" are one intent.
  *   ★ THE TOKEN COMES FROM THE BODY. A write route that read the session cookie as identity would be
  *     CSRF-able by any page that can make the browser POST.
- *   ★ THE READ GATE COMES FIRST (QA #18): a private event refuses before the row is ever touched.
+ *   ★ THE WRITE PATH INHERITS THE READ GATE, AND IT COMES FIRST: a private event refuses before the
+ *     row is ever touched.
  */
 import { readFileSync } from "node:fs";
 import { join as joinPath } from "node:path";
@@ -51,8 +52,8 @@ vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => undefined }),
 }));
-// Whose ticket is this (the upload-owner lane, 2026-09-23): the rule itself is pinned in
-// lib/guest/session-owner.test.ts against the real clients; here it is the route's gate.
+// Whose ticket is this: the rule itself is pinned in lib/guest/session-owner.test.ts against the
+// real clients; here it is the route's gate.
 const checkSessionOwner = vi.fn();
 vi.mock("@/lib/guest/session-owner.server", () => ({
   checkSessionOwner: (...args: unknown[]) => checkSessionOwner(...args),
@@ -95,7 +96,7 @@ beforeEach(() => {
   checkSessionOwner.mockResolvedValue({ ok: true });
 });
 
-describe("an account's row takes an address only from that account (upload-owner)", () => {
+describe("an account's row takes an address only from that account", () => {
   it("★ 403 session_other_account for a ticket whose row is someone else's: no write, no cookie", async () => {
     checkSessionOwner.mockResolvedValue({
       ok: false,
@@ -301,7 +302,7 @@ describe("the detach", () => {
   });
 });
 
-describe("the read gate the write inherits (QA #18) still comes first", () => {
+describe("the read gate the write inherits still comes first", () => {
   it("404s a dead link before the row is touched", async () => {
     getEventByQrToken.mockResolvedValue({ ok: false });
     expect(
@@ -434,9 +435,8 @@ describe("the session cookie", () => {
     expect(res.headers.get("set-cookie")).toBeNull();
   });
 
-  /* ★ THE CSRF SURFACE DOES NOT MOVE. `session-cookie.test.ts` keeps the same pin for the write
-     routes that existed before this one; this route is new, so it carries its own copy here rather
-     than reaching into another lane's file to extend that list. */
+  /* ★ THE CSRF SURFACE DOES NOT MOVE. `session-cookie.test.ts` keeps the same pin for the other
+     write routes; this route's copy lives here. */
   it("★ never READS the session cookie: the token comes from the body and only the body", () => {
     const source = readFileSync(
       joinPath(process.cwd(), "src/app/api/guests/email/route.ts"),

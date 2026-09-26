@@ -13,6 +13,7 @@ import {
   friendlyCapacity,
   toBillingTier,
 } from "@/lib/constants/tiers";
+import { formatCount } from "@/lib/format/count";
 import { cn, formatBytes } from "@/lib/utils";
 
 /**
@@ -102,8 +103,8 @@ export function StorageMeter({
         {capacity && (
           <p className="text-xs text-muted-foreground">
             Your {planName} plan holds about{" "}
-            {capacity.photos.toLocaleString()} photos or{" "}
-            {capacity.videoMinutes.toLocaleString()} min of video.{" "}
+            {formatCount(capacity.photos)} photos or{" "}
+            {formatCount(capacity.videoMinutes)} min of video.{" "}
             {/* "Need more?" used to LEAVE the app for a static, tier-blind
                 page. It opens the sheet on `room` now (`first=trigger`), which
                 is the one door here that already knows how full the host is.

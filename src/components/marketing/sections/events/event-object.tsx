@@ -15,7 +15,7 @@ import { AttendeeBadge } from "./event-artifacts";
 /**
  * ONE STILL LIFE PER EVENT TYPE, LIT, AND EVERY ONE OF THEM IS A DOOR.
  *
- * Will ruled `hero-theme=object` (2026-09-19, verbatim): "While I like the room
+ * `hero-theme=object` was chosen, verbatim: "While I like the room
  * behind the words to kind of 'theme' each event hero, I think the 'one bespoke
  * object, lit' per page conveys more about how we actually help that event
  * (such as incorporating the QR). With the future Higgsfield generations, the
@@ -116,7 +116,7 @@ function ScanLine({
  * these read as objects. Every one of these still lifes stands on the cinema
  * ground, where `bg-card` is near-black: a "border" in it is a GAP, so six
  * prints in a row read as a thumbnail strip and the pile reads as a toolbar.
- * Paper is white in a dark room, the photograph is the colour (bible 1), and
+ * Paper is white in a dark room, the photograph is the colour, and
  * the border is what says somebody held this. Same family as the white QR
  * plate beside it, which is white for the scanner's sake and lands as the other
  * piece of paper in the composition.

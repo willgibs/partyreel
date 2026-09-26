@@ -7,7 +7,7 @@ import { SANDBOX } from "../touchpoints";
 import { LAB_REDIRECTS, TRACED_DOC_GLOBS } from "./legacy-routes";
 
 /**
- * THE OLD LAB URLS, HELD AGAINST THE TREE (the Library x Lab round, 2026-09-15).
+ * THE OLD LAB URLS, HELD AGAINST THE TREE.
  *
  * A redirect is a promise made in config and nothing in Next keeps it: a
  * destination that names no page 307s straight into a 404, the key it forwarded
@@ -57,9 +57,13 @@ describe("the table itself", () => {
     for (const d of destinations) expect(sources, d).not.toContain(d);
   });
 
-  it("carries every dynamic segment across (the same params on both sides)", () => {
+  it("names no dynamic segment in a destination that its source lacks", () => {
+    // A retired dynamic page may land on one page for every value (its param
+    // dropped); a destination naming a param the source never captured would
+    // redirect to a literal `:param`.
     for (const { source, destination } of LAB_REDIRECTS)
-      expect(params(destination), source).toEqual(params(source));
+      for (const p of params(destination))
+        expect(params(source), `${source} -> ${destination}`).toContain(p);
   });
 });
 

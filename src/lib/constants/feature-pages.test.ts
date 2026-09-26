@@ -1,4 +1,3 @@
-// @contract-for: src/lib/constants/feature-pages.ts
 import { describe, expect, it } from "vitest";
 
 import { FEATURE_PAGES, featurePage } from "./feature-pages";

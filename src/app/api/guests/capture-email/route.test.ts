@@ -1,17 +1,17 @@
 /**
- * THE NEWSLETTER CAPTURE, AND THE CRACK IT USED TO BE (the guest identity round, Will 2026-09-22).
+ * THE NEWSLETTER CAPTURE, AND THE CRACK IT CLOSES.
  *
  * `capture_guest_email` writes into `guests.email`, the column whose single invariant is "CONFIRMED,
  * the row's own account's address". Two readers treat it as proof: `upload_forensics.guest_email`,
  * and the uploader resolver, whose verified case the host's credit prints (no client role reads
- * `guests` at all since the guests grant tidy, 20260922213000). This route derived the
- * address from the session rather than the body, which closed the victim-poisoning surface — but it
- * tested `user.email` and NOT `email_confirmed_at`, and an UNCONFIRMED sign-up carries a perfectly
- * real `user.email`. Anyone could sign up as someone else's address, decline to confirm it, and walk
+ * `guests` at all since the guests grant tidy, 20260922213000). This route derives the address
+ * from the session rather than the body, which closes the victim-poisoning surface, but a test on
+ * `user.email` alone would leave a crack: an UNCONFIRMED sign-up carries a perfectly real
+ * `user.email`, so anyone could sign up as someone else's address, decline to confirm it, and walk
  * it into the proved column through here.
  *
- * `email_confirmed_at` is the only thing that means verified anywhere in this reshape, so it is the
- * test here too. An unproved address has its own home now (`guests.pending_email`) and reaches
+ * `email_confirmed_at` is the only thing that means verified anywhere in the identity model, so it
+ * is the test here too. An unproved address has its own home (`guests.pending_email`) and reaches
  * `guests.email` only by a claim that proves it.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";

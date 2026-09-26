@@ -1,12 +1,10 @@
 "use client";
 
 /**
- * THE THIRD STEP: THE FIRST UPLOAD, ASKED (Will, 2026-09-21, "the door as three steps", verbatim:
- * "It's a big miss that after we ask for the name in the new welcome flow, we aren't actively
- * prompting for users to upload their event media as the final third step. This is a big 'don't
- * make me think' win where they scan the code and effectively get asked for their media upfront,
- * rather than us telling them about Partyreel's purpose but passively waiting for them to find the
- * 'Add photos' button once they get in the album.").
+ * THE THIRD STEP: THE FIRST UPLOAD, ASKED. Once the name is in, the door asks for the guest's
+ * event media as its final step: they scan the code and are asked for their photographs upfront,
+ * with nothing to work out, rather than being told what Partyreel is for and left to find the
+ * "Add photos" button once they reach the album.
  *
  * It renders INSIDE the entry sheet, on the intent sheet's own body (`UploadIntentBody`), so the
  * hidden inputs live inside the open dialog on both shells and Safari's synchronous `.click()`
@@ -60,9 +58,9 @@ export function classifyRefusal(code: string | undefined): RefusalClass {
     case "unlock_required":
       return "refresh";
     case "invalid_session":
-    // A ticket that was not this viewer's (the upload-owner lane, 2026-09-23). The queue never
-    // leaves it on a file (the ticket goes down and the file waits for a new one), so this is the
-    // ladder staying complete: the capability is the problem, never the photograph.
+    // A ticket that was not this viewer's. The queue never leaves it on a file (the ticket goes
+    // down and the file waits for a new one), so this is the ladder staying complete: the
+    // capability is the problem, never the photograph.
     case SESSION_OTHER_ACCOUNT:
       return "session";
     case "verification_required":
@@ -108,7 +106,7 @@ export function UploadStep({
 }: {
   isDemo: boolean;
   /** The host's switch: ON there is no skip, and the ON line says so (never whose ask it is —
-   *  the host goes unnamed there, "the door's first look", 2026-09-21). */
+   *  the host goes unnamed there). */
   requireUpload: boolean;
   /** Nothing in the album yet: the line offers the first photograph instead of a queue. */
   albumEmpty: boolean;
@@ -281,9 +279,7 @@ export function UploadStep({
  * already open (the step is a nudge with a skip under it), so a line promising it opens would be a
  * small lie told at the door; OFF says what is true instead: add one now, or look first.
  *
- * ★ THE HOST GOES UNNAMED HERE (Will, 2026-09-21, "the door's first look", overruling a
- * `door-steps` call that named the host: "Instead of naming the host in the 'XYZ has asked...',
- * let's simply say 'The host has asked...' to account for long host names breaking good design.").
+ * ★ THE HOST GOES UNNAMED HERE ("The host has asked...", never "XYZ has asked...").
  * The name step's own lede still names the host (with "the host" as its fallback) — this is the
  * ONE line on the door that deliberately never does, so no host's name is ever the reason this
  * sentence wraps or overflows a small screen.

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,6 +12,7 @@ import {
   type DoorActionHandlers,
 } from "@/components/auth/failure-paths";
 import { Button } from "@/components/ui/button";
+import { floatingKeyboardFoot } from "@/components/ui/floating-layer";
 import {
   Form,
   FormControl,
@@ -25,6 +27,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { CODE_LENGTH } from "@/lib/auth/code-length";
 import {
   doorFailure,
   isRateLimited,
@@ -32,20 +35,13 @@ import {
   type DoorFailureKind,
 } from "@/lib/auth/door-failure";
 import { createClient } from "@/lib/supabase/client";
+import { isTextField } from "@/lib/use-keyboard-inset";
 import { cn } from "@/lib/utils";
 
 const emailSchema = z.object({
   email: z.email("Enter a valid email address."),
 });
 type EmailValues = z.infer<typeof emailSchema>;
-
-// MUST stay in lockstep with the Supabase "Email OTP Length" setting (Dashboard →
-// Authentication → Sign In / Providers → Email). Supabase enforces a 6-digit MINIMUM for
-// email OTP (a 4-digit email code isn't offered), and 6 is the standard. This is a
-// hand-synced pair, like tier_limits() ↔ tiers.ts: if the dashboard length changes, change
-// this constant (it drives both the input maxLength and the rendered slot count). The OTP
-// won't verify if the two drift.
-const OTP_LENGTH = 6;
 
 // Resend cooldown (seconds) — matches the custom-SMTP per-user minimum interval (Supabase
 // Auth → Emails → SMTP → "Minimum interval per user", 60 s). Below that, a resend silently
@@ -67,6 +63,13 @@ export type DoorVerified = {
   email: string;
 };
 
+/**
+ * The caller's say at submit, before a code is sent: `false` stops the send (a field of the
+ * caller's own, in `leading`, was refused in place), or `data` to ride the sign-up as the new
+ * user's metadata (`raw_user_meta_data`; GoTrue keeps it only when the code CREATES the account).
+ */
+export type BeforeSend = () => false | { data?: Record<string, unknown> };
+
 // Shared dual-path email sign-in. Entering an email sends ONE Supabase email that contains
 // BOTH a 6-digit code AND a magic link (signInWithOtp). The user can either type the code
 // here (verifyOtp — no redirect, the robust path that survives the iPhone-PWA magic-link
@@ -74,15 +77,28 @@ export type DoorVerified = {
 //
 // The component owns NO navigation: the caller's `onVerified` runs after a successful code
 // verify (the link path instead navigates through the callback route). Consumers: every wear
-// of `<AccountDoor>` (the host `/login`, the guest gate, Save, Likes).
+// of `<AccountDoor>` (the host `/login`, the guest door's identify and Log in, the confirm
+// doors, Likes).
+//
+// ★ THE KEYBOARD IS HANDED OVER, NEVER DROPPED (door-flow). The email field and the code field
+// are two different inputs, and on iOS removing a focused input takes the keyboard down with it,
+// while a programmatic focus outside a tap cannot raise it again. So when the code is sent while
+// the email field holds focus, that field lets go and the code field takes focus in the SAME task
+// (`flushSync`), and the keyboard simply changes to digits. When nothing held focus (the guest
+// dismissed the keyboard, then tapped the button) the code screen arrives with no keyboard at
+// all under `codeFocus="follow"`, which every guest door wears; `/login` keeps focusing it.
 export function EmailSignIn({
   emailRedirectTo,
   shouldCreateUser = true,
   onVerified,
   inputClassName,
   buttonClassName,
+  buttonSize = "default",
   hintEmail,
   sentAt,
+  leading,
+  beforeSend,
+  codeFocus = "always",
 }: {
   emailRedirectTo: string;
   shouldCreateUser?: boolean;
@@ -90,13 +106,17 @@ export function EmailSignIn({
    * Fires after a successful in-page verify, with what the SERVER knows about
    * the account the code just opened (`existing=tell`, Will 2026-09-20). Callers
    * that only need "we're in" can ignore the argument, which is why every
-   * existing `() => {}` call site still type-checks.
+   * existing `() => {}` call site still type-checks. The code screen reads
+   * "Verifying…" until it settles, so a door with more to do after the code
+   * (the guest door's four writes) never shows an idle screen meanwhile.
    */
   onVerified: (result: DoorVerified) => void | Promise<void>;
-  /** Optional size overrides (the guest gate bumps to h-11; /login keeps
-   *  the default). Defaults preserve every existing call site. */
+  /** Optional size overrides (the guest doors bump the field to h-11 16px;
+   *  /login keeps the default). Defaults preserve every existing call site. */
   inputClassName?: string;
   buttonClassName?: string;
+  /** The submit's rung: the guest doors' primary is the 44px `cta`. */
+  buttonSize?: "default" | "cta";
   /**
    * An address this DEVICE remembers, prefilled into the field. A hint, never
    * an authorization, and never passed by a surface a stranger's phone can
@@ -110,6 +130,15 @@ export function EmailSignIn({
    * password?" link under a code screen are two ways to lose the code.
    */
   sentAt?: (email: string | null) => void;
+  /** A field of the caller's own inside this form, above the email (the guest door's name). */
+  leading?: ReactNode;
+  /** Runs at submit before anything is sent (see `BeforeSend`). */
+  beforeSend?: BeforeSend;
+  /**
+   * `follow`: the code field takes focus only if a field held focus at submit (every guest door,
+   * so no keyboard rises that the guest had put away). `always`: it takes focus regardless.
+   */
+  codeFocus?: "follow" | "always";
 }) {
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [code, setCode] = useState("");
@@ -123,6 +152,12 @@ export function EmailSignIn({
     kind: DoorFailureKind;
     seconds?: number;
   } | null>(null);
+  const otpRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  // Whether a field held focus when the form was sent (read at the submit event, synchronously).
+  const fieldAtSubmit = useRef(false);
+  // The metadata the last send carried, so a resend carries the same.
+  const sendData = useRef<Record<string, unknown> | undefined>(undefined);
 
   // Tick the resend cooldown down to 0 (re-armed each second via the resendIn dep).
   useEffect(() => {
@@ -152,6 +187,22 @@ export function EmailSignIn({
     sentAt?.(email);
   }
 
+  /**
+   * Swap the screen (the email form and the code screen) without ever unmounting a focused
+   * field: the one holding focus lets go, the new screen commits, and `focusNext` takes focus in
+   * the same task, so iOS keeps the keyboard up and only changes its keys.
+   */
+  function swapScreen(
+    change: () => void,
+    focusNext: () => HTMLElement | null,
+    handOver: boolean,
+  ) {
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && isTextField(active)) active.blur();
+    flushSync(change);
+    if (handOver) focusNext()?.focus();
+  }
+
   const form = useForm<EmailValues>({
     resolver: zodResolver(emailSchema),
     defaultValues: { email: hintEmail ?? "" },
@@ -161,7 +212,11 @@ export function EmailSignIn({
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser, emailRedirectTo },
+      options: {
+        shouldCreateUser,
+        emailRedirectTo,
+        ...(sendData.current ? { data: sendData.current } : {}),
+      },
     });
     if (error) {
       // A 429 is its own kind with its own recovery (wait), and the seconds
@@ -182,13 +237,18 @@ export function EmailSignIn({
 
   async function onEmailSubmit(values: EmailValues) {
     if (await sendCode(values.email)) {
-      openCodeScreen(values.email);
+      const handOver = fieldAtSubmit.current || codeFocus === "always";
+      swapScreen(
+        () => openCodeScreen(values.email),
+        () => otpRef.current,
+        handOver,
+      );
       setResendIn(RESEND_COOLDOWN_S);
     }
   }
 
   async function onCodeComplete(value: string) {
-    if (!sentTo) return;
+    if (!sentTo || verifying) return;
     setVerifying(true);
     setFailure(null);
     const supabase = createClient();
@@ -215,8 +275,13 @@ export function EmailSignIn({
     } catch {
       // see above: the door opens either way.
     }
-    setVerifying(false);
-    await onVerified(result);
+    try {
+      await onVerified(result);
+    } finally {
+      // After the caller has settled (a door with writes to make after the code keeps the
+      // screen saying so); a no-op when the caller has already moved on and unmounted this.
+      setVerifying(false);
+    }
   }
 
   async function resend() {
@@ -231,11 +296,19 @@ export function EmailSignIn({
   }
 
   function useDifferentEmail() {
-    setSentTo(null);
-    sentAt?.(null);
-    setCode("");
-    setFailure(null);
-    form.reset({ email: "" });
+    // The guest's own tap: the keyboard follows them back to the email field if it was up.
+    const handOver = isTextField(document.activeElement);
+    swapScreen(
+      () => {
+        setSentTo(null);
+        sentAt?.(null);
+        setCode("");
+        setFailure(null);
+        form.reset({ email: "" });
+      },
+      () => emailRef.current,
+      handOver,
+    );
   }
 
   const handlers: DoorActionHandlers = {
@@ -261,20 +334,26 @@ export function EmailSignIn({
         </div>
         <div className="flex flex-col items-center gap-2">
           <InputOTP
-            maxLength={OTP_LENGTH}
-            autoFocus
+            ref={otpRef}
+            maxLength={CODE_LENGTH}
             inputMode="numeric"
             autoComplete="one-time-code"
+            aria-label="Your code"
             value={code}
-            disabled={verifying}
+            // ★ NOT `disabled` WHILE VERIFYING: a disabled field loses focus, and on iOS the
+            // keyboard goes down with it, so a wrong code (measured on the simulator) left the
+            // guest tapping the field again to retry. The field keeps focus and simply ignores
+            // typing until the answer lands; "Verifying…" says why.
+            aria-busy={verifying || undefined}
             onChange={(v) => {
+              if (verifying) return;
               setCode(v);
               if (failure) setFailure(null);
             }}
             onComplete={onCodeComplete}
           >
             <InputOTPGroup>
-              {Array.from({ length: OTP_LENGTH }, (_, i) => (
+              {Array.from({ length: CODE_LENGTH }, (_, i) => (
                 <InputOTPSlot key={i} index={i} />
               ))}
             </InputOTPGroup>
@@ -327,7 +406,22 @@ export function EmailSignIn({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onEmailSubmit)} className="space-y-3">
+      <form
+        noValidate
+        onSubmit={(e) => {
+          e.preventDefault();
+          fieldAtSubmit.current = isTextField(document.activeElement);
+          // The caller's own field is judged first, so both refusals show together; the email's
+          // own check still runs, and nothing is sent unless both pass.
+          const gate = beforeSend ? beforeSend() : {};
+          if (gate !== false) sendData.current = gate.data;
+          void form.handleSubmit(async (values) => {
+            if (gate === false) return;
+            await onEmailSubmit(values);
+          })(e);
+        }}
+        className="space-y-3"
+      >
         {failure && (
           <FailurePaths
             failure={doorFailure(failure.kind, failure.seconds)}
@@ -335,6 +429,7 @@ export function EmailSignIn({
             suppress={NOT_MINE}
           />
         )}
+        {leading}
         <FormField
           control={form.control}
           name="email"
@@ -346,25 +441,38 @@ export function EmailSignIn({
                   type="email"
                   inputMode="email"
                   autoComplete="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  enterKeyHint="send"
                   placeholder="you@email.com"
                   className={inputClassName}
                   {...field}
+                  ref={(el) => {
+                    field.ref(el);
+                    emailRef.current = el;
+                  }}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button
-          type="submit"
-          className={cn(
-            "w-full active:scale-[0.99] motion-reduce:active:scale-100",
-            buttonClassName,
-          )}
-          disabled={form.formState.isSubmitting}
+        <div
+          data-sheet-primary
+          className={cn("relative", floatingKeyboardFoot)}
         >
-          {form.formState.isSubmitting ? "Sending…" : "Email me a code"}
-        </Button>
+          <Button
+            type="submit"
+            size={buttonSize}
+            className={cn(
+              "w-full active:scale-[0.99] motion-reduce:active:scale-100",
+              buttonClassName,
+            )}
+            disabled={form.formState.isSubmitting}
+          >
+            {form.formState.isSubmitting ? "Sending…" : "Email me a code"}
+          </Button>
+        </div>
       </form>
     </Form>
   );

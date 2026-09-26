@@ -6,6 +6,7 @@ import { TriageStatusControl } from "@/components/admin/triage-status-control";
 import { Badge } from "@/components/ui/badge";
 import { TRIAGE_STATUS_META, type TriageStatus } from "@/lib/constants/triage";
 import type { JobApplication } from "@/lib/db/queries/applications";
+import { formatAdminTimestamp } from "@/lib/format/admin-time";
 
 /**
  * THE APPLICANTS INBOX, on the same pane as Support (`density=hybrid`, Will
@@ -65,12 +66,9 @@ export function ApplicantsList({
               <p className="font-heading text-card-title font-medium">
                 {open.roleTitle}
               </p>
-              <p
-                className="text-caption text-muted-foreground"
-                suppressHydrationWarning
-              >
+              <p className="text-caption text-muted-foreground">
                 {open.name}, {open.email},{" "}
-                {new Date(open.created_at).toLocaleString()}
+                {formatAdminTimestamp(open.created_at)}
               </p>
             </div>
             <TriageStatusControl

@@ -5,7 +5,16 @@
  */
 import "server-only";
 
-import type { GridMedia } from "@/components/app/media-grid";
+import {
+  firstPaintIds,
+  type RowRhythm,
+} from "@/components/shared/album-window-plan";
+import {
+  planGuestAlbumSync,
+  readGuestAlbumMedia,
+  readGuestAlbumVersions,
+  readGuestAttribution,
+} from "@/lib/db/queries/album-guest";
 import {
   getEventMediaByQrToken,
   type GuestEvent,
@@ -15,53 +24,38 @@ import {
   countApprovedMedia,
   getApprovedMediaForUnlock,
   getApprovedPhotoTeaser,
+  getLiveReelServerFacts,
   getUploaderIdentities,
 } from "@/lib/db/queries/guest-events-admin";
 import { getUploadGate } from "@/lib/db/queries/guest-gate";
 import { isDemoToken } from "@/lib/demo";
+import { toGuestAlbumLinks } from "@/lib/events/album-guest-links";
+import { guestAlbumEtag } from "@/lib/events/album-validator";
+import type { AlbumManifestPart } from "@/lib/events/album-wire";
 import {
   resolveGalleryDecision,
   TEASER_LIMIT,
   type GalleryAccess,
   type GalleryDecision,
 } from "@/lib/events/gallery-access";
-import { galleryEtag } from "@/lib/events/gallery-fingerprint";
+import {
+  liveReelAvailable,
+  reelFactsFor,
+  type GalleryReel,
+} from "@/lib/events/gallery-reel";
+import type { GallerySeed } from "@/lib/events/gallery-seed";
+import { createReelItems } from "@/lib/guest/reconcile-album-items";
+import { tileStills } from "@/lib/guest/reel-tile";
 import type { UploaderIdentity } from "@/lib/media/uploader-identity";
+import { captureWarning } from "@/lib/observability/sentry";
 import { toGridItems } from "@/lib/r2/grid-items";
+import { presignDownload } from "@/lib/r2/presign";
 import { presignBucketId } from "@/lib/r2/presign-bucket";
+import type { RowStep } from "@/lib/shared/album-rows";
 
-// The exact type `createClient()` resolves to, with no top-level import (so generic arity can never
-// drift from the real server client).
-type ServerSupabaseClient = Awaited<
-  ReturnType<typeof import("@/lib/supabase/server").createClient>
->;
-
-/**
- * Is `userId` the host of this event? The owner bypass for the gallery gate.
- *
- * Matches `host_id = userId` EXPLICITLY rather than relying on the `events` SELECT RLS policy alone
- * (which also permits reading any `open` event, so an id-only select would wrongly treat any signed-in
- * viewer as the owner). With the host_id filter the RLS-scoped read returns a row ONLY for the real
- * host. Reuses the caller's RLS-scoped client; run only when a user is present.
- */
-export async function isEventOwner(
-  eventId: string,
-  userId: string,
-  supabase: ServerSupabaseClient,
-): Promise<boolean> {
-  // DELIBERATE SWALLOW (fail CLOSED): this decides the OWNER BYPASS on the guest
-  // album. A failed read must resolve to "not the owner" (the viewer sees the
-  // guest album) rather than throw and 500 the page a guest is standing in front
-  // of at a venue. Degrade, never escalate, never crash.
-  // eslint-disable-next-line partyreel/no-swallowed-db-error
-  const { data } = await supabase
-    .from("events")
-    .select("id")
-    .eq("id", eventId)
-    .eq("host_id", userId)
-    .maybeSingle();
-  return Boolean(data);
-}
+// The owner idea's home is `gallery-access-owner.server.ts` (so the album's reads can ask it without
+// importing this module, which reads through them); its callers keep importing it from here.
+export { isEventOwner } from "@/lib/events/gallery-access-owner.server";
 
 /**
  * The decision, plus one fact only the upload gate knows: the album cannot take another upload
@@ -72,11 +66,11 @@ export async function isEventOwner(
 export type ViewerDecision = GalleryDecision & { albumFull: boolean };
 
 /**
- * THE ONE SERVER ENTRY FOR "WHAT DOES THIS VIEWER GET" (the door as three steps, 2026-09-21).
+ * THE ONE SERVER ENTRY FOR "WHAT DOES THIS VIEWER GET".
  *
- * The page RSC and the gallery poll used to carry the same eight lines of resolution each; the
- * upload gate would have made it eleven, in two places, with a service-role read in the middle. So
- * the block lives here once and both callers ask this.
+ * The page RSC, the album's routes (`album-viewer.server.ts`) and the export all ask this rather than
+ * each carrying the same resolution: with the upload gate it is eleven lines with a service-role
+ * read in the middle, which belongs in one place.
  *
  * ★ IT RESOLVES TWICE, AND THE FIRST PASS IS THE CHEAP ONE. Assuming a contribution short-circuits
  * the upload clause, so the password and account gates answer with NO extra read at all: a locked
@@ -84,7 +78,7 @@ export type ViewerDecision = GalleryDecision & { albumFull: boolean };
  * a viewer who would otherwise see the full album, on an event whose switch is ON and whose uploads
  * are open, costs the round trip -- and that is exactly the population the gate is about.
  *
- * ★ THE DEMO NEVER REACHES HERE (both callers short-circuit it to full), and the host is the owner,
+ * ★ THE DEMO NEVER REACHES HERE (every caller short-circuits it to full), and the host is the owner,
  * whom the resolver answers first.
  *
  * ★ `albumFull` COSTS A SECOND READ FOR A GUEST WHO HAS CONTRIBUTED, AND ONLY ON REQUEST. The gate
@@ -155,22 +149,16 @@ export type GalleryRows = {
   rows: GuestMediaRow[];
   identities: Map<string, UploaderIdentity> | undefined;
   teaserTotal: number | null;
-  /**
-   * The album's size, photos and videos: `countApprovedMedia`'s head count, read beside the rows at
-   * `teaser` and `full` (null at `none`, where the locked page's own stats say it and no gallery
-   * mounts). It is the header's "N photos & videos" at every level the header shows it, so it
-   * rides every payload, and the ETag hashes it: a video approved behind a nine-photo teaser changes
-   * neither the rows nor `teaserTotal`, and without it in the hash that poll would 304 past the
-   * new number.
-   */
+  /** The album's size, photos and videos: `countApprovedMedia`'s head count (null at `none`). */
   approvedTotal: number | null;
 };
 
 /**
- * Fetch + cap the gallery ROWS for a resolved access level (no presigning -- the poll route
- * fingerprints these first and skips presigning entirely on a 304). The full set is NEVER fetched
- * for `teaser`; `none` fetches nothing. Identities, media and the album's head count load in
- * parallel (they're independent). Identity resolution skipped for the demo, matching the page.
+ * Fetch + cap the gallery ROWS for a resolved access level, WHOLE: the one reader that needs every
+ * row a viewer may have is "Download all" (`/api/export/guest`), which zips exactly what the album
+ * shows this viewer. The album itself pages (`loadGallerySeed`, then links by id). The full set is
+ * NEVER fetched for `teaser`; `none` fetches nothing. Identities, media and the album's head count
+ * load in parallel. Identity resolution skipped for the demo.
  */
 export async function loadGalleryRowsForAccess(
   event: GuestEvent,
@@ -207,7 +195,7 @@ export async function loadGalleryRowsForAccess(
   const [identities, rows, approvedTotal] = await Promise.all([
     identitiesPromise,
     event.visibility === "password"
-      ? getApprovedMediaForUnlock(event.id) // self-guarded by the unlock cookie
+      ? getApprovedMediaForUnlock(event.id) // self-guarded: the unlock cookie, or the host
       : getEventMediaByQrToken(event.qr_token), // anon RPC, gates on visibility='open'
     approvedTotalPromise,
   ]);
@@ -215,69 +203,212 @@ export async function loadGalleryRowsForAccess(
 }
 
 /**
- * The conditional-request validator for a loaded gallery: hashes the viewer-visible content
- * (ids in order + attribution exactly as toGridItems would emit it + the album's size) + the whole
- * DECISION + the current presign bucket. MUST mirror toGridItems' identity fallbacks
- * (`?? null/false`) or a 304 could hide an attribution change. Dimensions/duration are
- * deliberately NOT hashed (write-once per id - see gallery-fingerprint.ts).
- *
- * ★ THE GATE IS IN THE HASH, NOT JUST THE LEVEL (the door as three steps, 2026-09-21). `teaser`
- * has two causes now, and the poll carries the gate to the client's step machine: two decisions
- * that differ only in WHY must never validate each other, or a guest whose gate moved from
- * `account` to `upload` would 304 onto the wrong step.
+ * THE LIVE REEL'S FACTS FOR THIS VIEWER: null below full access (nothing is read at all), else the
+ * host's switch and mood off the event row this request already holds, beside the platform lever
+ * and the host's plan (`getLiveReelServerFacts`, cached). The page and the poll both carry the
+ * result, and the ETag hashes it, so a host's switch reaches an open album on the next poll. The
+ * demo is full access and reads the same way.
  */
-export function galleryEtagFor(
-  decision: GalleryDecision,
-  gallery: GalleryRows,
-): string {
-  return galleryEtag({
-    access: decision.access,
-    gate: decision.gate,
-    teaserTotal: gallery.teaserTotal,
-    approvedTotal: gallery.approvedTotal,
-    bucketId: presignBucketId(Date.now()),
-    items: gallery.rows.map((r) => {
-      const who = gallery.identities?.get(r.id);
-      return {
-        id: r.id,
-        type: r.type,
-        uploaderName: who?.displayName ?? null,
-        isHost: who?.isHost ?? false,
-        isVerified: who?.isVerified ?? false,
-      };
-    }),
+export async function loadGalleryReel(
+  event: GuestEvent,
+  access: GalleryAccess,
+): Promise<GalleryReel | null> {
+  if (access !== "full") return null;
+  const facts = await getLiveReelServerFacts(event.id);
+  return reelFactsFor({
+    access,
+    showReel: event.show_reel,
+    liveReelEnabled: facts.liveReelEnabled,
+    styleId: event.reel_style_id,
+    holdSec: event.reel_hold_sec,
+    tier: facts.tier,
   });
 }
 
-/** Presign loaded rows into render-ready GridMedia (the expensive step a 304 skips). */
-export async function presignGalleryRows(
+/**
+ * THE GUEST ALBUM'S SEED, FOR THE PAGE'S RENDER (the album-guest-wiring lane): exactly what the album's
+ * own routes would answer this viewer's first asks with, so the client store adopts it as its first
+ * sync (`gallery-seed.ts`) and the first screen paints with no round trip.
+ *
+ *  - `full`: the manifest's first answer, planned by the SAME function the sync route runs
+ *    (`planGuestAlbumSync` with no version: through the guest reads' own gate, the versions and the
+ *    approved count in one snapshot, then the first manifest page), its validator (the sync route's,
+ *    so the first real poll can 304), and the links of exactly the photographs the first paint draws
+ *    (`firstPaintIds`, the rows' own first-paint plan), minted the way the links route mints them.
+ *  - `teaser`: today's tiny inline teaser (the nine newest photographs, links and names, never an
+ *    address), with the teaser's rolling validator.
+ *  - `locked`: nothing; a locked page mounts no album. Also the answer when the reads' gate refuses
+ *    a viewer the decision let in, exactly as the sync route answers it.
+ *
+ * ★ THE PAGE PAYS FOR A SCREEN, NOT FOR THE ALBUM. The old seed read the whole album and presigned
+ * three links an item (about 2 MB for 1,145 photographs); this reads the album as light tuples and
+ * presigns only the first paint's photographs. The rest arrive by id, per window, from the browser.
+ */
+export async function loadGallerySeed(
   event: GuestEvent,
-  gallery: GalleryRows,
-): Promise<GridMedia[]> {
-  return toGridItems(gallery.rows, event.name, gallery.identities);
+  decision: GalleryDecision,
+  firstPaint: {
+    step: RowStep;
+    rhythm: RowRhythm;
+    seed: number;
+    /** The width the album last laid its rows at (`pr_album_w`), or null cold. */
+    width: number | null;
+  },
+): Promise<GallerySeed> {
+  if (decision.access === "none") return { kind: "locked" };
+  const isDemo = isDemoToken(event.qr_token);
+
+  if (decision.access === "teaser") {
+    const [versions, teaser, approvedTotal] = await Promise.all([
+      readGuestAlbumVersions(event),
+      getApprovedPhotoTeaser(event, TEASER_LIMIT),
+      countApprovedMedia(event),
+    ]);
+    // Attribution for the nine alone, and never an address (the paged album's by-id read).
+    const identities = isDemo
+      ? undefined
+      : ((await readGuestAttribution(
+          event,
+          teaser.rows.map((r) => r.id),
+        )) ?? undefined);
+    const items = await toGridItems(teaser.rows, event.name, identities);
+    return {
+      kind: "teaser",
+      sync: {
+        ok: true,
+        kind: "teaser",
+        access: "teaser",
+        gate: decision.gate,
+        items,
+        teaserTotal: teaser.total,
+        approvedTotal,
+      },
+      etag: versions
+        ? guestAlbumEtag({
+            eventId: event.id,
+            access: "teaser",
+            gate: decision.gate,
+            albumMax: versions.albumMax,
+            attrVersion: versions.attrVersion,
+            reel: null,
+            bucketId: presignBucketId(Date.now()),
+          })
+        : null,
+    };
+  }
+
+  // The plan and the reel's facts read in parallel and awaited TOGETHER: one left running while the
+  // other failed would reject later with nobody holding it (an unhandled rejection).
+  const [plan, reel] = await Promise.all([
+    planGuestAlbumSync(event, null),
+    loadGalleryReel(event, "full"),
+  ]);
+  // ★ A REFUSAL IS LOCKED, NEVER A THROW (album-guest.ts): the page mounts no album, and the
+  // disagreement between the decision and the reads is reported rather than silent.
+  if (!plan) {
+    reportAlbumRefused(event.id, "seed");
+    return { kind: "locked" };
+  }
+  // No version was sent, so the plan is always a manifest (album-sync.ts, the first rule).
+  const part = plan.part as AlbumManifestPart;
+
+  // The first paint's photographs get their links in the render, and so do the Highlight reel
+  // tile's stills (the reel's own first pass, `tileStills`), so the tile stands with its pictures
+  // from the first byte rather than arriving late and pushing the album down.
+  const ids = firstPaintIds(
+    part.entries.map(([id, width, height]) => ({ id, width, height })),
+    firstPaint,
+  );
+  const reelItems = createReelItems()(part.entries);
+  if (liveReelAvailable(reel, reelItems)) {
+    const have = new Set(ids);
+    for (const { id } of tileStills(reelItems, { eventId: event.id }))
+      if (!have.has(id)) {
+        have.add(id);
+        ids.push(id);
+      }
+  }
+  const bucket = Number(presignBucketId(Date.now()));
+  const now = Date.now();
+  const media =
+    ids.length > 0
+      ? await readGuestAlbumMedia(event, ids, { attribute: !isDemo })
+      : { rows: [], identities: null };
+  const links = media
+    ? await toGuestAlbumLinks(media.rows, {
+        eventName: event.name,
+        presign: (key, downloadFilename) =>
+          presignDownload({ key, stable: true, downloadFilename }),
+        identities: media.identities,
+      })
+    : [];
+  const found = new Set(links.map((l) => l[0]));
+
+  return {
+    kind: "full",
+    sync: {
+      ...part,
+      ok: true,
+      access: "full",
+      gate: null,
+      total: plan.read.approved,
+      reel,
+    },
+    etag: guestAlbumEtag({
+      eventId: event.id,
+      access: "full",
+      gate: null,
+      albumMax: plan.read.albumMax,
+      attrVersion: plan.read.attrVersion,
+      reel,
+    }),
+    links: {
+      ok: true,
+      access: "full",
+      gate: null,
+      b: bucket,
+      now,
+      links,
+      missing: ids.filter((id) => !found.has(id)),
+    },
+  };
 }
 
 /**
- * The RSC composition: rows -> etag -> presigned items in one call, so the page and the poll
- * route share one source for "what media does THIS viewer get" (the route uses the split
- * phases directly to answer 304 before presigning). Takes the whole DECISION because the ETag
- * does: the first poll after the page must be able to 304 against what the page baked in.
+ * THE SEED AS THE PAGE STREAMS IT: `loadGallerySeed`, handed to the client UN-awaited so the shell
+ * paints first, with a handler attached the moment the promise exists.
+ *
+ * ★ WHY THE HANDLER. React attaches its own only when it serializes the prop, after every read the
+ * page still awaits (the stats, the guest list, the host card). A seed that failed before then had no
+ * handler at all: Node reports an unhandled rejection, and on Vercel the function exits (status 128),
+ * which is how the host's own password album died in build 10's red-team. The handler only marks the
+ * rejection handled: the failure still reaches `use()` and the guest error screen, and React still
+ * reports it.
  */
-export async function loadGalleryForAccess(
-  event: GuestEvent,
-  decision: GalleryDecision,
-): Promise<{
-  items: GridMedia[];
-  teaserTotal: number | null;
-  approvedTotal: number | null;
-  etag: string;
-}> {
-  const gallery = await loadGalleryRowsForAccess(event, decision.access);
-  const etag = galleryEtagFor(decision, gallery);
-  return {
-    items: await presignGalleryRows(event, gallery),
-    teaserTotal: gallery.teaserTotal,
-    approvedTotal: gallery.approvedTotal,
-    etag,
-  };
+export function streamGallerySeed(
+  ...args: Parameters<typeof loadGallerySeed>
+): Promise<GallerySeed> {
+  const seed = loadGallerySeed(...args);
+  seed.catch(() => {});
+  return seed;
+}
+
+/**
+ * The album's reads refused a viewer its decision let in (`teaser` or `full`): the two lines of the
+ * gate disagree, which only a race or a bug can make. Whoever meets it answers locked; this makes
+ * the disagreement a signal rather than a silence (the routes answered the host's own password album
+ * locked without a word; only the page's crash on the same refusal showed it).
+ */
+export function reportAlbumRefused(
+  eventId: string,
+  surface: "seed" | "sync" | "media" | "manifest",
+): void {
+  captureWarning(
+    "security",
+    "album: the reads refused a viewer the decision let in",
+    {
+      eventId,
+      surface,
+    },
+  );
 }

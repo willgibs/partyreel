@@ -1,6 +1,6 @@
 /**
  * WHICH PHOTOGRAPHS ARE THIS ANONYMOUS GUEST'S — the list that decides whether
- * a Remove control appears at all (Will, `yours`, 2026-09-20).
+ * a Remove control appears at all.
  *
  * The rule under every case here: the answer is whatever the SERVER read for
  * the token that was posted, and every kind of "no" looks the same from a

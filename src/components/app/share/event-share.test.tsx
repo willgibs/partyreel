@@ -1,12 +1,3 @@
-// @contract-for: src/components/app/share/event-share-provider.tsx
-// @contract-for: src/components/app/share/event-code-door.tsx
-// @contract-for: src/components/app/share/event-code-modal.tsx
-// @contract-for: src/components/app/share/event-link-row.tsx
-// @contract-for: src/components/app/share/event-share-sheet.tsx
-// @contract-for: src/components/app/event-qr.tsx
-// @contract-for: src/components/app/share/event-sheets.tsx
-// @contract-for: src/components/app/share/use-copy-link.ts
-
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 

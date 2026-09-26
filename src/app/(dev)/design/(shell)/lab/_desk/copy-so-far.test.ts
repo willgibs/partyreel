@@ -1,4 +1,3 @@
-// @contract-for: src/app/(dev)/design/(shell)/lab/_desk/copy-so-far.tsx
 import { describe, expect, it } from "vitest";
 
 import {

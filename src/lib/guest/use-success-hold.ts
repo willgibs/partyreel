@@ -3,12 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
- * THE SUCCESS HOLD (Phase 4.5 S5). On unlock, the gate forms fire
- * router.refresh() and the derived-open machine would slam the sheet shut the
- * instant the RSC drops the gate - no success feedback, an abrupt swap (Will's
- * "zero feedback" note). This hook holds the sheet on a success BEAT (the
- * entry surface shows "You're in") that also MASKS the ~200-400ms refresh
- * roundtrip, then releases into the reveal.
+ * THE SUCCESS HOLD. On unlock, the gate forms fire router.refresh() and the
+ * derived-open machine would slam the sheet shut the instant the RSC drops the
+ * gate - no success feedback, an abrupt swap. This hook holds the sheet on a
+ * success BEAT (the entry surface shows "You're in") that also MASKS the
+ * ~200-400ms refresh roundtrip, then releases into the reveal.
  *
  * The contract:
  * - onUnlocked() records the step that succeeded and starts the hold.

@@ -27,9 +27,9 @@ const OTHER = "b".repeat(64);
 beforeEach(() => cookieJar.clear());
 
 /**
- * THE GUEST SESSION COOKIE (Will, 2026-09-21, "the door as three steps"). Require an upload to
- * view is resolved in an RSC, which cannot read localStorage, so the session got a server-readable
- * half. It carries the capability itself, so what is pinned here is the narrowness of it.
+ * THE GUEST SESSION COOKIE. Require an upload to view is resolved in an RSC, which cannot read
+ * localStorage, so the session has a server-readable half. It carries the capability itself, so
+ * what is pinned here is the narrowness of it.
  */
 describe("the shape guard", () => {
   it("accepts a real session token and nothing else", () => {
@@ -109,9 +109,9 @@ describe("the CSRF surface does not move", () => {
   const ROOT = process.cwd();
   const WRITE_ROUTES = [
     "src/app/api/guests/name/route.ts",
-    // The optional address's own route (2026-09-22): it heals the cookie on the
-    // way out exactly as the name route does, and takes its identity from the
-    // BODY token alone, which is the property this list exists to hold.
+    // The optional address's own route: it heals the cookie on the way out
+    // exactly as the name route does, and takes its identity from the BODY
+    // token alone, which is the property this list exists to hold.
     "src/app/api/guests/email/route.ts",
     "src/app/api/guests/mine/route.ts",
     "src/app/api/guests/remove/route.ts",

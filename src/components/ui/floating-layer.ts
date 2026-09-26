@@ -1,8 +1,8 @@
 /**
- * THE FLOATING-LAYER CONTRACT, AS ONE MODULE (bible 15, wired 2026-09-17 from
- * the `floating-surfaces` board's rulings).
+ * THE FLOATING-LAYER CONTRACT, AS ONE MODULE (wired from
+ * the `floating-surfaces` board).
  *
- * Bible 15 says every floating surface rides one contract: ONE RADIUS, ONE
+ * Every floating surface rides one contract: ONE RADIUS, ONE
  * ENTRANCE, ONE LIGHT. Until this file it was a sentence with `enforcedBy:
  * "review"` under it, and the family drifted exactly as you would expect: the
  * nav shipped `rounded-lg` and a stock shadow (fixed in the 2026-08-28 nav
@@ -35,10 +35,10 @@
 export const floatingCorner = "rounded-float"
 
 /**
- * THE ROW'S CORNER, DERIVED, NEVER TYPED. Bible 9 asks a nested corner to share
+ * THE ROW'S CORNER, DERIVED, NEVER TYPED. A nested corner shares
  * a centre with the one around it: inner = outer minus the gap. The gap is the
  * panel's 4px of padding, so the row is `--radius-float` minus 4px, which is
- * exactly the pair Will ruled. The rows before the floating wiring were
+ * exactly the pair chosen. The rows before the floating wiring were
  * `rounded-md` (a step of the surface corner, 1.6px then), so the panel's arc
  * missed its rows' by six times.
  *
@@ -50,7 +50,7 @@ export const floatingRow = "rounded-[calc(var(--radius-float)_-_4px)]"
 
 /**
  * THE MATERIAL: opaque popover ink, a hairline ring, and the LAYER shadow (the
- * light board's ruling, 2026-09-17: the larger of the two shadows goes under
+ * light board's rule: the larger of the two shadows goes under
  * anything the page keeps living behind). `src/lib/elevation-policy.test.ts`
  * owns the shadow half and this module never re-declares it.
  */
@@ -65,9 +65,9 @@ export const floatingPanel = `${floatingCorner} ${floatingSurface} shadow-layer`
  * middle of the screen: a fade, a hair of scale, and 8px of travel from the
  * side it is anchored to, all on `--ease-emphasis`.
  *
- * ★ THE LANGUAGE IS SHARED AND THE CLOCK IS NOT, which is how bible 15 and
- * bible 12 stop disagreeing. Read 15 as one entrance LANGUAGE with 12 setting
- * the speed inside it, and `entrance=by-frequency` (Will, 2026-09-17) is a
+ * ★ THE LANGUAGE IS SHARED AND THE CLOCK IS NOT: one entrance LANGUAGE with
+ * the frequency rule setting
+ * the speed inside it, and `entrance=by-frequency` is a
  * choice of clock per surface rather than a stray entrance. Every surface still
  * arrives the same WAY; the ones a host opens fifty times a night simply get
  * there sooner.
@@ -117,21 +117,64 @@ export const floatingEdgeEntrance = [
  * `data-side="responsive"`, which NONE of the four fixed-side rules above
  * match, so this constant owns its position and its entrance outright at both
  * widths with no specificity race. The default `side` is untouched, which is
- * what `marketing/chrome/mobile-menu.tsx` and the design shell keep drawing,
- * and `drawer.tsx` is NOT retired: the lab's gallery demos draw it and vaul's
- * drag is a different affordance from a panel that arrives on a curve.
+ * what `marketing/chrome/mobile-menu.tsx` and the design shell keep drawing.
  *
  * ★ THE CORNER IS THE FAMILY'S TOKEN, not one of its own. A bottom sheet's top
  * edge is the only edge of it that is not the viewport's, so that edge — and
  * only that edge — takes `--radius-float` through the same token `floatingCorner`
  * reads. A radius typed here would be the tenth className nobody can hold.
+ *
+ * ★ IT STANDS ON THE KEYBOARD (door-flow: the door's sheet "feels super buggy
+ * when the mobile keyboard opens to type"). The sheet writes `--kb-inset`,
+ * `--vv-h` and `--vv-top` on itself only while a text field inside it holds
+ * focus on a touch screen (`src/lib/use-keyboard-inset.ts`). The phone half's
+ * foot sits on the keyboard's top edge and its ceiling is the visible area less
+ * 12px; the desk half, which a landscape phone reaches by width, spans exactly
+ * the visible band between the top of the visual viewport and the keyboard.
+ * With no field focused every variable falls back to exactly the posture every
+ * sheet had before: `bottom: 0`, `85svh` (always the smaller of the two
+ * ceilings), and a panel from `top: 0` to `bottom: 0`.
+ *
+ * ★ THE LIFT GLIDES ON `bottom`, `top` AND `max-height` ALONE, together (the
+ * ceiling snapping while the foot glides would drop the sheet's top edge for a
+ * frame before it rose: measured on an iPhone SE), spelled as the whole
+ * `transition` shorthand on purpose. A `duration-*` or `ease-*` utility here
+ * would also set `--tw-duration` / `--tw-ease`, which the entrance KEYFRAMES
+ * read, and retime every sheet's arrival; the shorthand leaves both alone (the
+ * entrance never used a transition on this element, so nothing else is taken
+ * from it).
  */
 export const floatingEdgeEntranceResponsive = [
-  "data-[side=responsive]:max-sm:inset-x-0 data-[side=responsive]:max-sm:top-auto data-[side=responsive]:max-sm:bottom-0 data-[side=responsive]:max-sm:h-auto data-[side=responsive]:max-sm:max-h-[85svh] data-[side=responsive]:max-sm:w-full data-[side=responsive]:max-sm:border-t",
+  "data-[side=responsive]:max-sm:inset-x-0 data-[side=responsive]:max-sm:top-auto data-[side=responsive]:max-sm:bottom-[var(--kb-inset,0px)] data-[side=responsive]:max-sm:h-auto data-[side=responsive]:max-sm:max-h-[min(85svh,calc(var(--vv-h,100svh)_-_12px))] data-[side=responsive]:max-sm:w-full data-[side=responsive]:max-sm:border-t",
+  "data-[side=responsive]:[transition:bottom_200ms_var(--ease-emphasis),top_200ms_var(--ease-emphasis),max-height_200ms_var(--ease-emphasis)]",
   "data-[side=responsive]:max-sm:rounded-t-float",
-  "data-[side=responsive]:sm:inset-y-0 data-[side=responsive]:sm:right-0 data-[side=responsive]:sm:h-full data-[side=responsive]:sm:w-3/4 data-[side=responsive]:sm:max-w-md data-[side=responsive]:sm:border-l",
+  "data-[side=responsive]:sm:top-[var(--vv-top,0px)] data-[side=responsive]:sm:bottom-[var(--kb-inset,0px)] data-[side=responsive]:sm:right-0 data-[side=responsive]:sm:h-auto data-[side=responsive]:sm:w-3/4 data-[side=responsive]:sm:max-w-md data-[side=responsive]:sm:border-l",
   "data-[side=responsive]:max-sm:data-open:slide-in-from-bottom-10 data-[side=responsive]:max-sm:data-closed:slide-out-to-bottom-10",
   "data-[side=responsive]:sm:data-open:slide-in-from-right-10 data-[side=responsive]:sm:data-closed:slide-out-to-right-10",
+].join(" ")
+
+/**
+ * THE SHEET'S FOOT WHILE THE KEYBOARD IS UP: the primary action sticks to the
+ * bottom of the sheet's scrollport, on an opaque ground with a short fade above
+ * it, so the button that sends what is being typed never scrolls out of reach
+ * on a short phone. It reads the sheet's own `data-keyboard` through
+ * `in-data-keyboard:`, so anywhere else (a desk, a sheet nobody is typing in,
+ * `/login`) it is inert: the same button in the same place as before.
+ *
+ * Wear it on a wrapper around the primary, never the button itself (whose
+ * rounded corners would show the content scrolling behind them), marked
+ * `data-sheet-primary` so the keyboard hook knows where the foot begins when
+ * it scrolls a field into view above it. The foot carries its own bottom
+ * space (`pb-4`, on its opaque ground), because a sticky element stops at the
+ * scroller's padding edge and content would show through the padding under it:
+ * a sheet drops its own bottom padding while `data-keyboard="open"`. It stays
+ * in the flow under `data-keyboard="tight"` (a landscape phone, where a stuck
+ * foot would sit on the field itself). An `overflow: hidden` ancestor between
+ * the wrapper and the sheet defeats `sticky`; use `overflow: clip` there.
+ */
+export const floatingKeyboardFoot = [
+  "in-data-[keyboard=open]:sticky in-data-[keyboard=open]:bottom-0 in-data-[keyboard=open]:z-10 in-data-[keyboard=open]:bg-popover in-data-[keyboard=open]:pt-2 in-data-[keyboard=open]:pb-4",
+  "in-data-[keyboard=open]:before:pointer-events-none in-data-[keyboard=open]:before:absolute in-data-[keyboard=open]:before:inset-x-0 in-data-[keyboard=open]:before:bottom-full in-data-[keyboard=open]:before:h-4 in-data-[keyboard=open]:before:bg-linear-to-t in-data-[keyboard=open]:before:from-popover in-data-[keyboard=open]:before:to-transparent in-data-[keyboard=open]:before:content-['']",
 ].join(" ")
 
 /**
@@ -139,7 +182,7 @@ export const floatingEdgeEntranceResponsive = [
  * QR mini-modal (`share=room` with his note: "clicking it opens a view
  * transition animation-style mini-modal").
  *
- * ★ THIS IS A HOLE IN BIBLE 15, CUT DELIBERATELY AND EXACTLY ONCE. Every other
+ * ★ THIS IS A DELIBERATE HOLE IN THE CONTRACT, CUT EXACTLY ONCE. Every other
  * surface in the family arrives by animating ITSELF. This one arrives because
  * the header's small code and the modal's big code are THE SAME OBJECT
  * continuing across a state change: the View Transitions API tweens between the
@@ -175,9 +218,9 @@ export const floatingTransitionEntrance = [
  * (`navigation-menu.tsx`'s `data-[motion=...]` block, the -8 travel and the
  * 3px blur, both its own numbers already), not re-derived from the house
  * "page side by side" recipe's literal 8px (`.claude/skills/transitions-dev/
- * 08-page-side-by-side.md`) — that skill is the PRECEDENT for the shape
+ * 08-page-side-by-side.md`) — that skill is the SOURCE for the shape
  * (content slides past its neighbour rather than swapping in place), the nav
- * is the precedent for the NUMBERS, and bible 15 wants one family, not two.
+ * is the source for the NUMBERS, and one family is wanted, not two.
  * `--ease-emphasis` is the family's own curve, not the skill's cubic-bezier.
  *
  * ★ A SECOND CONSUMER READS THIS, THE FIRST STILL SPELLS ITS OWN. The bulk
@@ -189,7 +232,7 @@ export const floatingTransitionEntrance = [
  *
  * ★ THE BASELINE IS A FADE, ALWAYS, WHICH IS ALSO REDUCED MOTION'S WHOLE
  * STORY. The direction and the blur are `motion-safe:` only (the house
- * idiom, `event-feed-action-bar.tsx`'s own starting-style fade), so
+ * idiom, a starting-style fade), so
  * `prefers-reduced-motion: reduce` drops the travel and the blur and keeps
  * exactly the cross-fade every state already carries — never a translate at
  * zero distance, which would leave two motion declarations racing instead of
@@ -204,8 +247,8 @@ export const floatingCrossSlide = [
 ].join(" ")
 
 /**
- * THE THREE CLOCKS, CHOSEN BY HOW OFTEN A SURFACE IS OPENED (bible 12's
- * frequency law; `entrance=by-frequency`, Will 2026-09-17). Every exit is
+ * THE THREE CLOCKS, CHOSEN BY HOW OFTEN A SURFACE IS OPENED
+ * (`entrance=by-frequency`). Every exit is
  * faster than its entrance, which is the house rule the whole site already
  * keeps. Which surface takes which, and why, is written at each call site, so
  * the reason lives where the decision is read.

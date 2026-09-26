@@ -17,6 +17,11 @@
  * over one. So those two fail CLOSED on a limiter error, in `public-form-limit.ts`. They are also not
  * event-shaped, so breadth is meaningless (there is nothing to be broad across) and the scope is the bare IP,
  * exactly like `capture`.
+ *
+ * ★ THE ACCOUNT KINDS ARE THE OTHER EXCEPTION (`email_change`). Their requester is a signed-in ACCOUNT, not a
+ * venue: the key is the user's id (HMAC'd in the store, `accountAbuseHashes`), so no NAT is shared and no
+ * breadth applies, and the gate (`checkAccountAbuseRate`) fails CLOSED, because for this abuse the limiter is
+ * the only bound (the kind's comment below says why).
  */
 
 export type AbuseKind =
@@ -26,10 +31,13 @@ export type AbuseKind =
   | "report"
   | "capture"
   | "export"
-  | "reel_render"
-  | "reel_guest_download"
+  | "reel_clip_add"
   | "contact"
-  | "careers";
+  | "careers"
+  | "email_change";
+
+/** The kinds keyed on a signed-in account rather than an IP (see the header's second ★). */
+export type AccountAbuseKind = Extract<AbuseKind, "email_change">;
 
 type Limit = {
   /** # of DISTINCT events one IP may touch in `breadthWindowMin` before it reads as a scraper. */
@@ -109,31 +117,22 @@ export const ABUSE_LIMITS: Record<AbuseKind, Limit> = {
     scopeWindowMin: 15,
     scopeMax: 100,
   },
-  // Reel .mp4 renders, scope = (IP, event). Each render costs Lambda compute, so this is TIGHTER than
-  // export — but the cache (an unchanged reel re-serves the existing mp4 for $0) means the natural rate is
-  // near zero; only config churn forces re-encodes. A host shuffle→render→shuffle→render loop is the abuse
-  // shape, bounded per-(IP,event); breadth catches one IP rendering many events. getUser + host-owns is
-  // the real gate, so the route fails OPEN on a limiter error.
-  reel_render: {
+  // A GUEST'S "Add to event" (the on-device clip creator's write, complete-upload's `reel_eligible:
+  // false`), scope = the guest's OWN session token — UNLIKE every other kind above, whose scope is the
+  // EVENT (venue-shaped: many guests sharing one legitimate flood behind one NAT). A clip add is
+  // unlike a download or the old render: it costs real storage and a moderation slot, and the budget
+  // reel-teardown's brief asks for is per GUEST, not a shared venue envelope a handful of enthusiastic
+  // uploaders could drain for everyone else at the same party. So breadth (distinct SESSIONS per IP)
+  // is not the scraper signal it is elsewhere — a big party legitimately has many distinct guest
+  // sessions behind one venue WiFi — and is disabled here (mirrors `capture`'s per-IP-only shape); the
+  // per-(IP, session) backstop alone carries the guard, a full day wide ("a daily budget"). A handful
+  // of clips a night sits comfortably inside it; a script hammering one session does not. The host's
+  // own adds never reach this: they ride the host route, metered by storage instead.
+  reel_clip_add: {
     breadthWindowMin: 60,
-    breadthMax: 10,
-    scopeWindowMin: 60,
-    scopeMax: 20,
-  },
-  // A GUEST downloading the event's reel video, scope = (IP, event). This is the most venue-shaped
-  // limiter we have: at the end of the night, thirty guests on ONE venue WiFi all tap Download on the
-  // SAME reel within a couple of minutes, and every one of them is legitimate. So the per-(IP,event)
-  // scope is deliberately generous (matching `export`, the other end-of-night burst), and BREADTH does
-  // the actual abuse work: one IP pulling reels from 15+ DISTINCT events in an hour is a harvester,
-  // never a party (a venue is exactly ONE event, so it can never trip it). Cheap on our side too - a
-  // hit is a presign over an already-rendered mp4 on R2, whose egress is free; the guest NEVER gets a
-  // render or write path. Access (gallery access FULL + guest_visible) is the real gate, so the route
-  // fails OPEN on a limiter error.
-  reel_guest_download: {
-    breadthWindowMin: 60,
-    breadthMax: 15,
-    scopeWindowMin: 15,
-    scopeMax: 100,
+    breadthMax: Infinity,
+    scopeWindowMin: 1440,
+    scopeMax: 10,
   },
   // The public /contact form. Unauthenticated and unthrottled until now: every accepted submission is
   // one service-role insert plus one Resend send, so a few thousand requests drain the monthly email
@@ -155,6 +154,20 @@ export const ABUSE_LIMITS: Record<AbuseKind, Limit> = {
     breadthMax: Infinity,
     scopeWindowMin: 60,
     scopeMax: 5,
+  },
+  // The account page's email change (requestEmailChangeAction, confirmEmailChangeAction), scope = the
+  // signed-in ACCOUNT. GoTrue answers `email_exists` BEFORE it sends anything, so the requester's own
+  // current inbox stays empty exactly when the new address already has an account: an oracle for which
+  // addresses hold Partyreel accounts, which Supabase's email limits never meter because nothing was
+  // sent. This kind is that oracle's only bound, so it counts every request AND every code attempt (a
+  // code guesser draws on the same budget). Six an hour: an honest change is three calls (the request
+  // and two codes), so six is a change plus one full redo (a lost email, a code typed wrong twice), and
+  // a prober gets six addresses an hour per account. No breadth: an account is not venue-shaped.
+  email_change: {
+    breadthWindowMin: 60,
+    breadthMax: Infinity,
+    scopeWindowMin: 60,
+    scopeMax: 6,
   },
 };
 

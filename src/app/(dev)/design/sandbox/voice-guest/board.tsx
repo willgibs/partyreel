@@ -1,19 +1,13 @@
 "use client";
 
+import "@/components/guest/door.css";
+
 import { ExplorationBoard, ReplayButton, useReplay } from "@/components/lab";
 import type { GridMedia } from "@/components/app/media-grid";
 import { optionId, optionLabel } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
-import {
-  EVENT,
-  HELD,
-  LAST_OF_PICK,
-  PICK,
-  PRIYA,
-  strip,
-  TOM,
-} from "./fixtures";
+import { HELD, LAST_OF_PICK, PICK, PRIYA, strip, TOM } from "./fixtures";
 import { LANDED, type Register, WAITING } from "./lines";
 import {
   EmptyState,
@@ -73,6 +67,7 @@ const SHORT: Record<Register, string> = {
   warm: "Plain and warm",
   bright: "Bright",
   exact: "Quiet and exact",
+  tender: "Soft and tender",
 };
 
 /* ── the grounds the decisions share ──────────────────────────────────────── */
@@ -92,9 +87,6 @@ const LAST: GridMedia = {
   height: LAST_OF_PICK.height,
 };
 
-/** The reel counts the whole album, hers included once they are approved. */
-const AFTER_PICK = EVENT.approvedTotal + PICK;
-
 const priya = <GuestHeader who={{ kind: "named", name: PRIYA.name }} />;
 const tom = (
   <GuestHeader who={{ kind: "member", name: TOM.name, seed: TOM.seed }} />
@@ -110,7 +102,7 @@ const text = (el: Element | null | undefined) =>
 const measureDoor =
   (before: string): Reader =>
   (root) => {
-    const line = root.querySelector("[data-entry-drawer] [data-vg-line]");
+    const line = root.querySelector("[data-entry-sheet] [data-vg-line]");
     const n = lineCount(line);
     if (!line || !n) return null;
     return `Measured: ${lines(n)} and ${wordCount(text(line))} words at 375, before ${before}.`;
@@ -133,7 +125,9 @@ const measureLanded: Reader = (root, win) => {
   const n = lineCount(line);
   if (!tile || !pane || !n) return null;
   const t = tile.getBoundingClientRect();
-  const share = Math.round((pane.getBoundingClientRect().height / t.height) * 100);
+  const share = Math.round(
+    (pane.getBoundingClientRect().height / t.height) * 100,
+  );
   return `Measured: ${lines(n)} on a ${Math.round(t.width)}px tile; the pane covers ${share}% of the photograph.`;
 };
 
@@ -231,7 +225,6 @@ function LandedAlbum({
       // column (held at today's words: `keep` asks them); a signed-in member
       // has nothing to be offered.
       slot={member ? undefined : <OfferCard register="today" />}
-      reel={{ count: AFTER_PICK, yours: true }}
       prefix={
         line ? (
           <StackLastBeat key={runId} still={LAST_OF_PICK} line={line} />
@@ -288,7 +281,6 @@ function FailedScene({ register }: { register: Register }) {
       <AlbumGround
         header={priya}
         slot={<OfferCard register="today" />}
-        reel={{ count: AFTER_PICK, yours: true }}
         items={ALBUM}
         overlay={
           <BottomSheet>
@@ -334,9 +326,6 @@ function WaitingScene({ register }: { register: Register }) {
     >
       <AlbumGround
         header={priya}
-        // Held photographs are not in the approved take, so the reel's corner
-        // says nothing of hers yet.
-        reel={{ count: EVENT.approvedTotal, yours: false }}
         prefix={HELD.map((still) => (
           <HeldTile key={still.src} still={still} line={WAITING[register]} />
         ))}
@@ -353,7 +342,6 @@ function KeepPreview({ register }: { register: Register }) {
     <AlbumGround
       header={priya}
       slot={<OfferCard register={register} />}
-      reel={{ count: AFTER_PICK, yours: true }}
       items={ALBUM}
       overlay={overlay}
     />
@@ -389,36 +377,43 @@ const PREVIEWS: PreviewsFor<typeof VOICE_GUEST> = {
   "welcome.warm": <WelcomeScene register="warm" />,
   "welcome.bright": <WelcomeScene register="bright" />,
   "welcome.exact": <WelcomeScene register="exact" />,
+  "welcome.tender": <WelcomeScene register="tender" />,
 
   "ask.today": <AskScene register="today" />,
   "ask.warm": <AskScene register="warm" />,
   "ask.bright": <AskScene register="bright" />,
   "ask.exact": <AskScene register="exact" />,
+  "ask.tender": <AskScene register="tender" />,
 
   "landed.today": <LandedPreview register="today" />,
   "landed.warm": <LandedPreview register="warm" />,
   "landed.bright": <LandedPreview register="bright" />,
   "landed.exact": <LandedPreview register="exact" />,
+  "landed.tender": <LandedPreview register="tender" />,
 
   "failed.today": <FailedScene register="today" />,
   "failed.warm": <FailedScene register="warm" />,
   "failed.bright": <FailedScene register="bright" />,
   "failed.exact": <FailedScene register="exact" />,
+  "failed.tender": <FailedScene register="tender" />,
 
   "empty.today": <EmptyScene register="today" />,
   "empty.warm": <EmptyScene register="warm" />,
   "empty.bright": <EmptyScene register="bright" />,
   "empty.exact": <EmptyScene register="exact" />,
+  "empty.tender": <EmptyScene register="tender" />,
 
   "waiting.today": <WaitingScene register="today" />,
   "waiting.warm": <WaitingScene register="warm" />,
   "waiting.bright": <WaitingScene register="bright" />,
   "waiting.exact": <WaitingScene register="exact" />,
+  "waiting.tender": <WaitingScene register="tender" />,
 
   "keep.today": <KeepPreview register="today" />,
   "keep.warm": <KeepPreview register="warm" />,
   "keep.bright": <KeepPreview register="bright" />,
   "keep.exact": <KeepPreview register="exact" />,
+  "keep.tender": <KeepPreview register="tender" />,
 };
 
 export function VoiceGuestBoard() {

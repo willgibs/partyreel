@@ -95,4 +95,36 @@ describe("EventCard (V3 stat-forward)", () => {
     expect(screen.getByTestId("restore")).toBeInTheDocument();
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
+
+  it("living: a card with stills paints its cover first and takes its turn; one still is a plain cover", () => {
+    // `reel-host`, his `pulse` note: the dashboard's cards dissolve through their stills in turn.
+    const { container, rerender } = render(
+      <EventCard
+        href="/dashboard/e1"
+        name="Maya and Jay"
+        coverUrl="cover.jpg"
+        dateLabel="June 14"
+        living={{ id: "e1", stills: ["cover.jpg", "next.jpg"] }}
+      />,
+    );
+    const layer = container.querySelector("[data-living='2']");
+    expect(layer).not.toBeNull();
+    expect(layer?.querySelector("img.opacity-100")?.getAttribute("src")).toBe(
+      "cover.jpg",
+    );
+
+    rerender(
+      <EventCard
+        href="/dashboard/e1"
+        name="Maya and Jay"
+        coverUrl="cover.jpg"
+        dateLabel="June 14"
+        living={{ id: "e1", stills: ["cover.jpg"] }}
+      />,
+    );
+    expect(container.querySelector("[data-living]")).toBeNull();
+    expect(container.querySelector("img")?.getAttribute("src")).toBe(
+      "cover.jpg",
+    );
+  });
 });

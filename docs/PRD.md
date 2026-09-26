@@ -41,8 +41,9 @@ next host. **North-star metric: a host creates a second event.**
    for a signed-out visitor; after a guest's first upload, a one-time offer invites them to confirm an email, which
    keeps their photos in an account and brings the event with them onto their dashboard, then offers the host to
    follow. There is no separate save: uploading to an event is what keeps it.
-5. **Reel**: a highlight reel stitched from the best clips (host curation, the canvas engine,
-   on-device export, guest surfacing).
+5. **Reel**: from the album's second photo, the event plays as its own highlight reel on every viewer's phone and on
+   the room's screen, taking in uploads as they land with nothing for the host to make; anyone with the album makes a
+   clip of it on their own device to keep or send, and on a paid event can add it to the album.
 
 ## Monetization and anti-abuse (the why behind the schema)
 
@@ -57,7 +58,8 @@ Pro's case and the Stripe setup are in [`PRICING.md`](PRICING.md).
   in the media's destruction once its recovery window closes.
 - **A monthly upload meter, unmarketed**, against fill, delete, re-upload bandwidth burn: generous, never refunded on
   delete, and seen only as a monthly upload limit when an upload is refused.
-- **No watermark on any uploaded photo or video, or on the album, on any plan.**
+- **No watermark on any uploaded photo or video, on the album, or on the live reel, on any plan.** The one mark is on a
+  free event's clips, beside their shorter length: the free levers are never quality.
 - **Plans**: Free is one event, photos only, the whole album; the first-event experience must still shine, since it
   sells the upgrade. The Event Pass is one-time and per event, with video and every paid control for a year,
   renewable, and passes stack. Pro is a subscription (monthly or yearly) with a storage selector and unlimited events,

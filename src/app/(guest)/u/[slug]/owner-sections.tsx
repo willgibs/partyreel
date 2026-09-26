@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 
 import { EmptySectionTeaser } from "@/components/app/dashboard/empty-section-teaser";
 import { FeedSection } from "@/components/app/dashboard/feed-section";
@@ -9,17 +10,19 @@ import { listEvents } from "@/lib/db/queries/events";
 import { getMyLikeCards } from "@/lib/db/queries/my-likes";
 import { getMyUploadCards } from "@/lib/db/queries/my-uploads";
 import { getMyFollowing } from "@/lib/db/queries/social";
+import {
+  resolveRowStep,
+  TILE_SIZE_COOKIE,
+} from "@/lib/shared/tile-size-cookie";
 import { withAvatarUrls } from "@/lib/social/cards";
 
 /**
  * THE OWNER MODE: what only the person themselves sees on their own page.
  *
- * Will answered `you=?` in his own note (2026-09-20): "Your own photos, likes,
- * connections, etc should be on your profile page... However, plans, billing,
- * etc should live under an account page". So the three personal feeds left the
- * host's home — where they never belonged, since your own likes are not a
- * hosting job — and landed here, private, under the public page that is
- * already about this person.
+ * Your own photos, likes and connections belong on your profile page, while
+ * plans, billing and the like live under an account page. So the three personal
+ * feeds live here, private, under the public page that is already about this
+ * person, and not on the host's home: your own likes are not a hosting job.
  *
  * ★ THE GATE IS THE QUERY, NOT THE BOOLEAN. Every read below is an
  * `auth.uid()`-scoped RPC or an owner-RLS select: `get_my_uploads`,
@@ -32,13 +35,12 @@ import { withAvatarUrls } from "@/lib/social/cards";
  * kind worth putting in front of a growth surface that anonymous strangers
  * read all day.
  *
- * ★ AND FOLLOWERS ARE NEVER LISTED. "Connections" means the people you follow,
- * exactly as the dashboard's Following section meant. The graph is
- * owner-private by ruling (profiles-social.md) and there is still no public
- * count anywhere; this section is the owner reading their own half of it.
+ * ★ AND FOLLOWERS ARE NEVER LISTED. "Connections" means the people you follow.
+ * The graph is owner-private (profiles-social.md) and there is no public count
+ * anywhere; this section is the owner reading their own half of it.
  *
- * ★ YOUR UPLOADS SAY WHICH DELETES YOU CAN TAKE BACK (delete-final, Will
- * 2026-09-23: a guest's own delete is final, and says so). The feed holds two
+ * ★ YOUR UPLOADS SAY WHICH DELETES YOU CAN TAKE BACK (a guest's own delete is
+ * final, and says so). The feed holds two
  * kinds of upload that one Trash removes differently: one you added to
  * SOMEBODY ELSE's event is gone for good (`remove_my_upload`'s guest arm marks
  * it `removed_by_uploader`, which no host surface shows or restores), while one
@@ -49,14 +51,22 @@ import { withAvatarUrls } from "@/lib/social/cards";
  * `listEvents()` is an owner-RLS read (`events_host_all`), so like every read
  * above it answers for the caller alone, and the gate stays one you can only
  * fail safely.
+ *
+ * ★ THE FEEDS ARE THE JUSTIFIED ROWS, WINDOWED (album-guest-wiring), at the one
+ * step the shared `pr_tile_size` cookie holds for the album and the hub alike, so
+ * a person who picked the largest photographs there sees them here too. Each
+ * keeps its 200 cap (the feed queries'), and the rows mount only what is in view.
  */
 export async function OwnerSections() {
-  const [uploads, likes, following, hostedEvents] = await Promise.all([
-    getMyUploadCards(),
-    getMyLikeCards(),
-    getMyFollowing(),
-    listEvents(),
-  ]);
+  const [uploads, likes, following, hostedEvents, cookieJar] =
+    await Promise.all([
+      getMyUploadCards(),
+      getMyLikeCards(),
+      getMyFollowing(),
+      listEvents(),
+      cookies(),
+    ]);
+  const rowStep = resolveRowStep(cookieJar.get(TILE_SIZE_COOKIE)?.value);
   const hostedTokens = new Set(hostedEvents.map((event) => event.qr_token));
   const uploadItems = uploads.items.map((item) =>
     item.eventQrToken != null && hostedTokens.has(item.eventQrToken)
@@ -84,6 +94,7 @@ export async function OwnerSections() {
           <MyUploadsGallery
             items={uploadItems}
             truncated={uploads.truncated}
+            rowStep={rowStep}
           />
         </FeedSection>
       )}
@@ -95,7 +106,11 @@ export async function OwnerSections() {
         />
       ) : (
         <FeedSection heading="Your likes">
-          <MyLikesGallery items={likes.items} truncated={likes.truncated} />
+          <MyLikesGallery
+            items={likes.items}
+            truncated={likes.truncated}
+            rowStep={rowStep}
+          />
         </FeedSection>
       )}
 
@@ -126,7 +141,7 @@ export async function OwnerSections() {
                   {item.slug ? (
                     <Link
                       href={`/u/${item.slug}`}
-                      className="flex max-w-56 items-center gap-2 rounded-full border border-border py-1 pr-3 pl-1 outline-none transition-[background-color,transform] duration-150 ease-emphasis hover:bg-muted/40 active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-ring/50 motion-reduce:active:scale-100"
+                      className="flex max-w-56 items-center gap-2 rounded-full border border-border py-1 pr-3 pl-1 transition-[background-color,transform] duration-150 ease-emphasis outline-none hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.97] motion-reduce:active:scale-100"
                     >
                       {identity}
                     </Link>

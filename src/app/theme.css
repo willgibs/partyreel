@@ -15,8 +15,8 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  /* --font-mono left the theme at the review wave (2026-09-14, bible 7):
-     there is no mono face in the product. Never re-add. */
+  /* --font-mono left the theme at the review wave: there is no mono face in
+     the product. Never re-add. */
 
   /* Headings: the brand face is Urbanist (the font-heading utility bakes its own
      700 weight; the -0.03em there is now only a FALLBACK, see the ladder below).
@@ -78,7 +78,7 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
 
-  /* The rounding system (values in globals.css; the ruling in its header).
+  /* The rounding system (values in globals.css; the rationale in its header).
      THE DERIVED STEPS CLIMB IN QUARTERS of --radius (Will, 2026-09-18,
      `ladder=quarters`: "This keeps the final pixel calculations much
      cleaner"): 4 / 6 / 8 / 10 / 12px under the 8px surface, where the old
@@ -132,7 +132,7 @@
 }
 
 /*
-  ═══════ THE TYPE LADDER (Will's rulings, 2026-09-17 and 2026-09-18) ═══════
+  ═══════ THE TYPE LADDER ═══════
 
   Ten HEADING steps, one set, both halves of the site. `display` through
   `subhead` are marketing's rungs and `page` through `card-title` are the app's,
@@ -141,22 +141,22 @@
   Six BODY steps follow them in the same block (2026-09-20, `body-type` r1),
   with their own header; sixteen in all, and everything below is about the ten.
 
-  ★ THE LAW IS THE ORDER, NOT THE TRAVEL (2026-09-18). Every size here sits on
+  ★ WHAT MUST HOLD IS THE ORDER, NOT THE TRAVEL. Every size here sits on
   a rung of one set (12, 14, 16, 18, 20, 24, 28, 34, 42, 52, 64, 80, 100, 128,
   160; the ratio widens as it climbs, because one ratio cannot serve a 160px
-  masthead and a 14px label). A step's desktop end is the size Will ruled at
+  masthead and a 14px label). A step's desktop end is the size fixed at
   1440; its phone end is the rung that keeps every heading ABOVE the one it
   heads at 375. The first wiring moved every marketing step exactly four rungs
   instead, which put the paper h2 (`prose`) a size UNDER its own sub-head at a
   phone, and Will: "We should have a very clear heading hierarchy on mobile as
-  well." Marketing still travels further than the app (bible 2, "marketing may
+  well." Marketing still travels further than the app ("marketing may
   be louder, scale included"), only as far as the order allows, and
   type-ladder-policy.test.ts reads the paper stack (title > prose > subhead)
   off these tokens at both ends.
 
   ★ EVERY NUMBER IS GENERATED, NONE IS TYPED. The block was printed by the
   type-scale board's `fluid()` from each step's two rungs (git keeps it:
-  41dcd591^, sandbox/type-scale/ladders.ts), and the second ruling's two steps
+  41dcd591^, sandbox/type-scale/ladders.ts), and the later addition's two steps
   came out of the same function after it had regenerated the other 27
   declarations byte for byte. Each rung carries its own leading and tracking
   (that file's OPTICS table), so a step never invents its own optics. The clamp
@@ -186,8 +186,8 @@
   print each step's own numbers, and a token that exists only when some page
   happens to wear it is not a token. 30 declarations is a rounding error.
 
-  The steps' one home for WHAT WEARS WHAT is docs/systems/design-system.md; the
-  Library draws them at true size at /design/library/foundations#type.
+  The brand kit draws the steps at true size; a grep of `text-<step>` finds what
+  wears each.
 */
 @theme static {
   /* ★ THE CHART ALIASES ARE STATIC, NOT INLINE (2026-09-18). Tailwind emits a
@@ -249,7 +249,7 @@
   --text-card-title--line-height: 1.4rem;
   --text-card-title--letter-spacing: -0.006em;
 
-  /* ══════ THE BODY LADDER (Will's ruling, 2026-09-20, `body-type` r1) ══════
+  /* ══════ THE BODY LADDER (`body-type` r1) ══════
 
      Six steps under the ten above, so the sentence a person READS is on a
      ladder too. Before this, everything under `card-title` was chosen site by
@@ -284,9 +284,9 @@
      byte identical to `--text-page` above, which is the proof the function was
      run rather than the numbers typed.
 
-     ★ THE TRACKINGS FOLLOW THE OPTICS TABLE'S LAW, NOT THE HEADING VALUES.
+     ★ THE TRACKINGS FOLLOW THE OPTICS TABLE'S RULE, NOT THE HEADING VALUES.
      That table (same file) reaches 12 at +0.005em and stops; below it the
-     written law is "letter-spacing and line-height run inverse to size", so 10
+     rule is "letter-spacing and line-height run inverse to size", so 10
      takes +0.01em. THE TWO 16px STEPS TAKE 0, NOT card-title's -0.006em: that
      value is URBANIST's correction at 16 and these steps are read in Inter.
      `label` carries his 0.08em, which is why no call site needs a `tracking-*`
@@ -307,7 +307,7 @@
      is allowed and BOUNDED: `copy` is for a SECTION's lede and paragraphs,
      never for the body inside a block whose title is `card-title`, where it
      would outrank its own heading (an FAQ answer louder than its question).
-     Such a block keeps `reading`. It is the same order law that made 17 the
+     Such a block keeps `reading`. It is the same rule about order that made 17 the
      wrong answer for reading; docs/systems/design-system.md carries the rule.
 
      A step added here is added to TYPE_STEPS in src/lib/utils.ts in the SAME

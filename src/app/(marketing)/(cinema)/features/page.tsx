@@ -19,7 +19,7 @@ import { STYLE_CATALOG } from "@/lib/reel/engine/style-registry";
 
 export const metadata: Metadata = {
   title: "Features",
-  description: `The full media kit for any event: a live album, a styled QR code, host curation, full-quality sharing and downloads, guest profiles, privacy controls, and a highlight reel in ${STYLE_CATALOG.length} styles.`,
+  description: `The full media kit for any event: a live album, a styled QR code, host curation, full-quality sharing and downloads, guest profiles, privacy controls, and a highlight reel that plays itself, with clips in ${STYLE_CATALOG.length} looks.`,
   alternates: { canonical: "/features" },
 };
 
@@ -56,7 +56,7 @@ export default function FeaturesPage() {
            breath and two lines at most on desktop: "people tend not to read
            most copy on a site, especially not dense blocks". */
         heading="The full media kit for any event"
-        subhead="Guests scan one code. You get the whole event in one album, and a reel at the end."
+        subhead="Guests scan one code. You get the whole event in one album, playing as a reel while it fills."
         actions={
           /* A balanced pair, then the longer demo line on its own row beneath
              (Will, 2026-09-02): a button beside a sentence-length link read

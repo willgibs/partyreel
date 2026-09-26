@@ -8,11 +8,10 @@ import { Button } from "@/components/ui/button";
 
 /**
  * Tailored 404 for a handle that resolves to nothing (notFound() in
- * u/[slug]/page). Until this file existed the profile 404 fell through to the
- * ROOT not-found, which wears marketing chrome: a guest who tapped a name on an
- * album landed in a different half of the site, which was the one gap left in
- * Will's `surround=shell` ruling ("every failure screen renders inside its real
- * surface's shell, guest included").
+ * u/[slug]/page). Without it the profile 404 would fall through to the ROOT
+ * not-found, which wears marketing chrome: a guest who tapped a name on an
+ * album would land in a different half of the site. Every failure screen
+ * renders inside its real surface's shell, guest included.
  *
  * ★ IT SAYS NOTHING ABOUT WHY, and that is the privacy rule rather than vague
  * copy: the page never distinguishes "no such person" from "they released their

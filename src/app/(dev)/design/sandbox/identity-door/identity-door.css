@@ -1,0 +1,620 @@
+/* THE DOOR'S MOTION AND ITS KEYBOARD, AS PLAIN CSS.
+
+   Why CSS and never JS (`reel-front.css`'s own finding): a Frame's portalled
+   scene runs its JSX in the board's realm and only its DOM lands in the
+   iframe, so a timer or a media query read from JS would belong to the LAB
+   PAGE. A CSS animation needs no realm: the frame's own engine drives it and
+   its own `prefers-reduced-motion` stills it. Every keyframe below lives
+   behind `no-preference`, and every animated element's resting style IS the
+   still frame it settles on, so reduced motion shows exactly that.
+
+   Bible 5 sets the clocks: the door is met once per event, the rare case that
+   may delight, so its arrivals take a beat (a fan rising, a stamp landing, a
+   message arriving); what repeats (the lamp's drift, the crossfade) runs on the
+   house's ambient clocks, linear and slow. */
+
+/* ── the caret a drawn field holds while it is "focused" ─────────────────── */
+.door-caret {
+  display: inline-block;
+  width: 1.5px;
+  height: 1.15em;
+  margin-left: 1px;
+  background: var(--color-ring, currentColor);
+  vertical-align: middle;
+  border-radius: 1px;
+}
+.door-caret-light {
+  background: rgb(255 255 255 / 0.9);
+  height: 1em;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .door-caret {
+    animation: door-caret 1.05s steps(1, end) infinite;
+  }
+}
+@keyframes door-caret {
+  0%,
+  55% {
+    opacity: 1;
+  }
+  56%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ── the ghost tap's one line: "anytime" only where the row has room ──────── */
+.door-ghost {
+  container-type: inline-size;
+}
+.door-ghost-more {
+  display: none;
+}
+/* 18rem: the row's content box must hold the icon, the whole line and the
+   trailing plus (about 286 px, measured); a 375 phone gives it 303, a 320
+   phone 246, so "anytime" rides at 375 and steps aside at 320. */
+@container (min-width: 18rem) {
+  .door-ghost-more {
+    display: inline;
+  }
+}
+
+/* ── a keyboard-up body that runs past its fold fades into the foot ─────── */
+.door-scroll-fade {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 calc(100% - 20px),
+    transparent
+  );
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 20px), transparent);
+}
+
+/* ── the album's arrival light, held at its peak (`arrival.css`'s rim and
+      wash, unanimated: motion lives only in the sheet) ────────────────────── */
+[data-door-arrived]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 2px rgb(255 255 255 / 0.9),
+    inset 0 0 26px 3px rgb(255 255 255 / 0.38);
+}
+
+/* ══ PEEK: the sleeve ═════════════════════════════════════════════════════ */
+.door-fan-tile {
+  transform-origin: 50% 100%;
+  transform: translate(var(--fx), var(--fy)) rotate(var(--fr));
+}
+.door-fan-side {
+  transform-origin: 100% 50%;
+}
+.door-fan-held > * {
+  filter: blur(2.5px) brightness(0.62) saturate(0.7);
+}
+.door-fan-glow {
+  border-radius: 9999px;
+  background: radial-gradient(
+    closest-side,
+    rgb(255 255 255 / 0.55),
+    rgb(255 255 255 / 0) 70%
+  );
+  filter: blur(8px);
+}
+/* The front still wears the album's own arrival light now and then, the rim
+   and wash of `arrival.css`, as the party keeps landing behind the door. */
+.door-arrive-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-tile);
+  pointer-events: none;
+  opacity: 0;
+  box-shadow:
+    inset 0 0 0 2px rgb(255 255 255 / 0.9),
+    inset 0 0 26px 3px rgb(255 255 255 / 0.38);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .door-arrive-glow {
+    animation: door-arrive 7s var(--ease-emphasis, ease-out) 1.6s infinite;
+  }
+  /* Rising out of the sleeve, one after another, from behind the paper. */
+  .door-fan-tile {
+    animation: door-fan-in 620ms var(--ease-emphasis, ease-out) both;
+    animation-delay: calc(120ms + var(--fi) * 70ms);
+  }
+  /* At a desk they slide out of the panel's side instead of rising. */
+  .door-fan-side {
+    animation-name: door-fan-in-side;
+  }
+  /* The landing: the fan opens wide once her way in is confirmed. */
+  [data-door-fan-mode="landed"] .door-fan-tile {
+    animation: door-fan-land 760ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+    animation-delay: calc(80ms + var(--fi) * 50ms);
+  }
+  /* The code step brightens them: the held filter lifts. */
+  [data-door-fan-mode="bright"] .door-fan-tile > * {
+    animation: door-fan-brighten 900ms ease-out both;
+  }
+  .door-fan-glow {
+    animation: door-glow-in 900ms ease-out backwards;
+  }
+}
+@keyframes door-arrive {
+  0% {
+    opacity: 0;
+  }
+  4% {
+    opacity: 1;
+  }
+  30%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes door-fan-in {
+  from {
+    opacity: 0;
+    transform: translate(0, 72px) rotate(0deg) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translate(var(--fx), var(--fy)) rotate(var(--fr));
+  }
+}
+@keyframes door-fan-in-side {
+  from {
+    opacity: 0;
+    transform: translate(90px, 0) rotate(0deg) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translate(var(--fx), var(--fy)) rotate(var(--fr));
+  }
+}
+@keyframes door-fan-land {
+  from {
+    transform: translate(calc(var(--fx) * 0.78), calc(var(--fy) + 12px))
+      rotate(calc(var(--fr) * 0.68));
+  }
+  to {
+    transform: translate(var(--fx), var(--fy)) rotate(var(--fr));
+  }
+}
+@keyframes door-fan-brighten {
+  from {
+    filter: blur(2.5px) brightness(0.62) saturate(0.7);
+  }
+  to {
+    filter: none;
+  }
+}
+@keyframes door-glow-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ══ LIT: the screen lamp ═════════════════════════════════════════════════ */
+/* The register is the ground's (sampled-palette.ts, SPILL_REGISTER): a lighter,
+   calmer paper light on white so a wash reads as light rather than stain, the
+   atmosphere register on dark. Hue is the only thing the album decides. */
+.door-lamp {
+  --lit-l: 0.88;
+  --lit-c: 0.09;
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0.95;
+}
+.dark .door-lamp {
+  --lit-l: 0.72;
+  --lit-c: 0.15;
+  opacity: 0.72;
+}
+.door-lamp-top {
+  inset: 0 0 auto 0;
+  height: 190px;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    rgb(0 0 0 / 0.45) 42%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    rgb(0 0 0 / 0.45) 42%,
+    transparent 100%
+  );
+}
+.door-lamp-top.door-lamp-bloom {
+  height: 330px;
+}
+.door-lamp-card {
+  inset: 0 0 auto 0;
+  height: 96px;
+  -webkit-mask-image: linear-gradient(to bottom, #000, transparent);
+  mask-image: linear-gradient(to bottom, #000, transparent);
+}
+.door-lamp-left {
+  inset: 0 auto 0 0;
+  width: 230px;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    #000 0%,
+    rgb(0 0 0 / 0.4) 45%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    #000 0%,
+    rgb(0 0 0 / 0.4) 45%,
+    transparent 100%
+  );
+}
+.door-lamp-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(30px);
+}
+.door-lamp-b1 {
+  background: oklch(var(--lit-l) var(--lit-c) var(--lit-h1));
+}
+.door-lamp-b2 {
+  background: oklch(var(--lit-l) var(--lit-c) var(--lit-h2));
+}
+.door-lamp-b3 {
+  background: oklch(var(--lit-l) var(--lit-c) var(--lit-h3));
+}
+.door-lamp-top .door-lamp-b1,
+.door-lamp-card .door-lamp-b1 {
+  left: -12%;
+  top: -64px;
+  width: 58%;
+  height: 150px;
+}
+.door-lamp-top .door-lamp-b2,
+.door-lamp-card .door-lamp-b2 {
+  left: 24%;
+  top: -80px;
+  width: 54%;
+  height: 150px;
+}
+.door-lamp-top .door-lamp-b3,
+.door-lamp-card .door-lamp-b3 {
+  right: -14%;
+  top: -60px;
+  width: 56%;
+  height: 150px;
+}
+.door-lamp-left .door-lamp-b1 {
+  left: -90px;
+  top: 6%;
+  width: 220px;
+  height: 36%;
+}
+.door-lamp-left .door-lamp-b2 {
+  left: -110px;
+  top: 34%;
+  width: 230px;
+  height: 34%;
+}
+.door-lamp-left .door-lamp-b3 {
+  left: -90px;
+  top: 62%;
+  width: 220px;
+  height: 36%;
+}
+.door-lamp-bright .door-lamp-blob {
+  filter: blur(26px) saturate(1.25);
+}
+.door-lamp-bloom .door-lamp-blob {
+  filter: blur(34px) saturate(1.3);
+  transform: scale(1.25);
+}
+.door-lamp-edge {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1.5px;
+  background: linear-gradient(
+    90deg,
+    oklch(var(--lit-l) calc(var(--lit-c) * 1.4) var(--lit-h1)),
+    oklch(var(--lit-l) calc(var(--lit-c) * 1.4) var(--lit-h2)),
+    oklch(var(--lit-l) calc(var(--lit-c) * 1.4) var(--lit-h3))
+  );
+}
+.door-lamp-left .door-lamp-edge {
+  inset: 0 auto 0 0;
+  width: 1.5px;
+  height: auto;
+  background: linear-gradient(
+    180deg,
+    oklch(var(--lit-l) calc(var(--lit-c) * 1.4) var(--lit-h1)),
+    oklch(var(--lit-l) calc(var(--lit-c) * 1.4) var(--lit-h2)),
+    oklch(var(--lit-l) calc(var(--lit-c) * 1.4) var(--lit-h3))
+  );
+}
+@media (prefers-reduced-motion: no-preference) {
+  .door-lamp-b1 {
+    animation: door-drift-a calc(var(--spill-cadence, 8s) * 1.5) ease-in-out
+      infinite alternate;
+  }
+  .door-lamp-b2 {
+    animation: door-drift-b calc(var(--spill-cadence, 8s) * 1.5) ease-in-out
+      infinite alternate;
+  }
+  .door-lamp-b3 {
+    animation: door-drift-a calc(var(--spill-cadence, 8s) * 1.5) ease-in-out -4s
+      infinite alternate-reverse;
+  }
+  /* `backwards`, so the lamp comes up from nothing and then rests on its
+     own register's opacity rather than the keyframe's full one. */
+  .door-lamp {
+    animation: door-glow-in 700ms ease-out backwards;
+  }
+}
+@keyframes door-drift-a {
+  from {
+    translate: -14px 0;
+  }
+  to {
+    translate: 18px 8px;
+  }
+}
+@keyframes door-drift-b {
+  from {
+    translate: 16px 4px;
+  }
+  to {
+    translate: -18px -6px;
+  }
+}
+
+/* The count, ticking once per photograph that landed: 48, 49, then the 50 it
+   rests on. The settled number is the one a still frame shows. */
+.door-ticker {
+  display: inline-grid;
+  overflow: hidden;
+  vertical-align: bottom;
+  line-height: inherit;
+}
+.door-tick {
+  grid-area: 1 / 1;
+}
+.door-tick-0,
+.door-tick-1 {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .door-tick-0 {
+    animation: door-tick-out 3600ms ease-in-out both;
+  }
+  .door-tick-1 {
+    animation: door-tick-mid 3600ms ease-in-out both;
+  }
+  .door-tick-2 {
+    animation: door-tick-last 3600ms ease-in-out both;
+  }
+}
+@keyframes door-tick-out {
+  0%,
+  38% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  46%,
+  100% {
+    opacity: 0;
+    transform: translateY(-70%);
+  }
+}
+@keyframes door-tick-mid {
+  0%,
+  38% {
+    opacity: 0;
+    transform: translateY(70%);
+  }
+  46%,
+  78% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  86%,
+  100% {
+    opacity: 0;
+    transform: translateY(-70%);
+  }
+}
+@keyframes door-tick-last {
+  0%,
+  78% {
+    opacity: 0;
+    transform: translateY(70%);
+  }
+  86%,
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ══ TICKET: the reel tile's card ═════════════════════════════════════════ */
+/* The tile's own crossfade (reel-front's cycle), three stills on its 3.2 s
+   hold; still, the first one holds the card. */
+.door-xfade {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+}
+.door-xfade[data-door-xfade-first] {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .door-xfade {
+    animation: door-xfade 9.6s linear infinite;
+    animation-delay: calc(var(--xi) * 3.2s - 9.6s);
+  }
+  .door-xfade[data-door-xfade-first] {
+    opacity: 0;
+  }
+  /* The stub arrives torn from the card: it grows down out of nothing. */
+  .door-stub {
+    animation: door-stub-in 520ms var(--ease-emphasis, ease-out) both;
+    transform-origin: 50% 0;
+  }
+  .door-stamp {
+    animation: door-stamp 420ms cubic-bezier(0.2, 1.6, 0.4, 1) 360ms both;
+  }
+}
+@keyframes door-xfade {
+  0% {
+    opacity: 0;
+  }
+  4% {
+    opacity: 1;
+  }
+  33.3% {
+    opacity: 1;
+  }
+  37.3% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes door-stub-in {
+  from {
+    opacity: 0;
+    transform: scaleY(0.4) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* `scale` alone: the stamp's tilt is its own `rotate` utility, and a
+   `transform` here would stack a second tilt on top of it. */
+@keyframes door-stamp {
+  from {
+    opacity: 0;
+    scale: 1.8;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+/* ══ HOST: her words, arriving ════════════════════════════════════════════ */
+.door-bubble-dots {
+  display: none;
+}
+.door-bubble-dots i {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 4px;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.35;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .door-bubble-dots {
+    display: flex;
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    translate: 0 -50%;
+    animation: door-dots-out 1400ms ease-out both;
+  }
+  .door-bubble-dots i {
+    animation: door-dot 900ms ease-in-out infinite;
+  }
+  .door-bubble-dots i:nth-child(2) {
+    animation-delay: 150ms;
+  }
+  .door-bubble-dots i:nth-child(3) {
+    animation-delay: 300ms;
+  }
+  .door-bubble-text {
+    animation: door-words-in 520ms var(--ease-emphasis, ease-out) 1150ms both;
+  }
+  .door-bubble {
+    animation: door-bubble-in 380ms var(--ease-emphasis, ease-out) 260ms both;
+    transform-origin: 0 0;
+  }
+}
+@keyframes door-dots-out {
+  0%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes door-dot {
+  0%,
+  100% {
+    opacity: 0.25;
+    translate: 0 0;
+  }
+  50% {
+    opacity: 0.6;
+    translate: 0 -2px;
+  }
+}
+@keyframes door-words-in {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes door-bubble-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ══ THE KEYBOARD'S THEME (iOS's light and dark keyboards, flat) ═══════════ */
+[data-door-kb] {
+  --kb-bg: #d1d4da;
+  --kb-key: #ffffff;
+  --kb-mod: #abb0bb;
+  --kb-ink: #000000;
+  --kb-glyph: #50525a;
+  --kb-shadow: #888a8f;
+  --kb-sep: #b3b6bd;
+  --kb-go: #0a84ff;
+  --kb-home: #000000;
+}
+.dark [data-door-kb] {
+  --kb-bg: #2c2c2e;
+  --kb-key: #6b6b6f;
+  --kb-mod: #464649;
+  --kb-ink: #ffffff;
+  --kb-glyph: #d6d6da;
+  --kb-shadow: #141416;
+  --kb-sep: #48484c;
+  --kb-go: #0a84ff;
+  --kb-home: #ffffff;
+}

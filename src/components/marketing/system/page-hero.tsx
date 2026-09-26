@@ -9,7 +9,7 @@ import { Reveal } from "./reveal";
 
 /**
  * THE PAGE HERO LOCKUP: eyebrow, heading, subhead, actions, in that order, on
- * one shared rhythm. Will's ruling (2026-08-28): the identity pages "share
+ * one shared rhythm: the identity pages "share
  * grammar, page picks scale". This owns the grammar; `scale` picks the type.
  *
  * It exists because four pages were about to hand-roll four heroes. /about,
@@ -74,8 +74,8 @@ export type HeroScale = "display" | "xl" | "lg";
 /**
  * The heading + its optical trim, per step. Add a step, do not inline one.
  *
- * ★ THE SIZE IS A LADDER TOKEN, NEVER A NUMBER HERE (Will's type ruling,
- * 2026-09-17). `text-display`, `text-hero` and `text-title` each carry their own
+ * ★ THE SIZE IS A LADDER TOKEN, NEVER A NUMBER HERE.
+ * `text-display`, `text-hero` and `text-title` each carry their own
  * font-size, line-height and letter-spacing as one clamp through (375, phone)
  * and (1440, desktop), declared once in `src/app/theme.css`. The four-breakpoint
  * ramps this table used to hold are gone: a step is a pair, not a list of
@@ -102,7 +102,7 @@ const HERO_SCALE: Record<
    * ★ THE TRACKING SQUEEZE BELONGS TO THE STEP, not to /about. `.mkt-name`
    * (marketing.css) opens the tracking and closes it to the heading face's own
    * -0.03em when the lockup comes into view: any masthead at this size arrives
-   * that way. Ruled 2026-08-29 when /press took this step.
+   * that way, since /press took this step.
    */
   display: {
     heading:
@@ -132,7 +132,7 @@ const HERO_SCALE: Record<
 
 /**
  * THE NAMED ENTRANCES. The feature-pages round settled the first two
- * (2026-09-01); Will's hero ruling of 2026-09-02 named the third: "every page
+ * (2026-09-01); a later pass named the third: "every page
  * does not need to have a single templated hero... but maintaining common
  * design systems around the hero variations we do create is deeply
  * encouraged, so please ensure we don't have tons of very minor variants."
@@ -189,7 +189,7 @@ export function PageHero({
    * THE BACKDROP: what sits BEHIND the lockup (careers' contact sheet and its
    * scrim), rendered before the Container, which turns `relative` so the type
    * stacks above it. Never in front and never beside: an object beside the
-   * lockup is a bespoke hero (/qr, the home), by the same ruling.
+   * lockup is a bespoke hero (/qr, the home), by the same rule.
    */
   backdrop?: ReactNode;
 }) {

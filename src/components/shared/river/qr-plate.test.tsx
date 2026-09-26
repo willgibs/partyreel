@@ -1,7 +1,3 @@
-// @contract-for: src/components/shared/river/qr-plate.tsx
-// @contract-for: src/components/shared/river/qr-door-frames.ts
-// @contract-for: src/components/marketing/sections/features/shared/feature-door.tsx
-
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 

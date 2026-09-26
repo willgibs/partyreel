@@ -1,12 +1,16 @@
 /**
  * THE TAKE's pins. Deterministic per (items, eventId, loopIndex); every eligible item placed exactly
  * once; the quick-add brain's guarantees holding LOCALLY, in the part of the loop a viewer is
- * actually watching; cuts never in the order; "yours first" leading with the guest's newest.
+ * actually watching, and in EVERY pass rather than only the first; clips never in the order; "yours
+ * first" leading with the guest's newest; a cut-short take exactly the whole one's head; and the
+ * whole take cheap enough to re-plan on every arrival at any album size.
  */
 import { describe, expect, it } from "vitest";
 
+import { mulberry32 } from "@/lib/reel/engine/seed";
+
 import type { LiveMediaItem } from "./items";
-import { planTake, seedFor, takeSeed } from "./take";
+import { planTake, seedFor, TAKE_PASS, takeSeed } from "./take";
 
 const HOUR = 3_600_000;
 const BASE = Date.parse("2026-08-15T18:00:00.000Z");
@@ -169,6 +173,165 @@ describe("planTake", () => {
     // The much-liked photograph (an old one) is pulled forward; the guest payload, which carries no
     // counts at all, is unaffected.
     expect(liked.indexOf("m17")).toBeLessThan(blind.indexOf("m17"));
+  });
+});
+
+/** A seeded party: uneven uploaders (one prolific phone, a long tail), a share of videos. */
+function party(
+  n: number,
+  opts: { seed: number; uploaders: number; videoShare: number },
+): LiveMediaItem[] {
+  const rand = mulberry32(opts.seed);
+  return Array.from({ length: n }, (_, i) =>
+    item(i, {
+      type: rand() < opts.videoShare ? "video" : "photo",
+      // Skewed: the square pulls most items onto the first few guests.
+      uploaderKey: `g${Math.floor(rand() ** 2 * opts.uploaders)}`,
+      createdAt: new Date(BASE - i * 90_000).toISOString(),
+    }),
+  );
+}
+
+/** The take cut into its passes, each with what was left to place when it began. */
+function passesOf(items: LiveMediaItem[], take: string[]) {
+  const byId = new Map(items.map((i) => [i.id, i]));
+  const placed = new Set<string>();
+  const out: { pass: LiveMediaItem[]; left: LiveMediaItem[] }[] = [];
+  for (let at = 0; at < take.length; at += TAKE_PASS) {
+    const left = items.filter((i) => !placed.has(i.id));
+    const pass = take.slice(at, at + TAKE_PASS).map((id) => byId.get(id)!);
+    for (const it of pass) placed.add(it.id);
+    out.push({ pass, left });
+  }
+  return out;
+}
+
+const countBy = (items: LiveMediaItem[], key: (i: LiveMediaItem) => string) => {
+  const counts = new Map<string, number>();
+  for (const it of items) counts.set(key(it), (counts.get(key(it)) ?? 0) + 1);
+  return counts;
+};
+
+describe("every pass, not only the first", () => {
+  it("never shows a guest twice before every guest with something left has shown once", () => {
+    for (const seed of [1, 2, 3]) {
+      const items = party(150, { seed, uploaders: 7, videoShare: 0 });
+      const take = planTake(items, { eventId: "e1", loopIndex: seed });
+      for (const [p, { pass, left }] of passesOf(items, take).entries()) {
+        const shown = countBy(pass, (i) => i.uploaderKey!);
+        const had = countBy(left, (i) => i.uploaderKey!);
+        // The round-robin: counts inside a pass differ by at most one, except for a guest the pass
+        // ran out of (everything they had left is in it).
+        for (const [u, n] of shown) {
+          for (const [v, stock] of had) {
+            const m = shown.get(v) ?? 0;
+            if (m === stock) continue;
+            expect(
+              n - m,
+              `seed ${seed}, pass ${p}: ${u} vs ${v}`,
+            ).toBeLessThanOrEqual(1);
+          }
+        }
+      }
+    }
+  });
+
+  it("gives a pass to the guests whose best is strongest when there are more guests than room", () => {
+    // Thirty guests with one photograph each, an hour apart: each guest's best is their only one, so
+    // the strongest guests are the newest, and those are the ones a pass has room for.
+    const items = Array.from({ length: 30 }, (_, i) =>
+      item(i, { uploaderKey: `solo${i}` }),
+    );
+    const take = planTake(items, { eventId: "e1", loopIndex: 0 });
+    const age = (id: string) => Number(id.slice(1));
+    const mean = (xs: number[]) => xs.reduce((s, x) => s + x, 0) / xs.length;
+    expect(take.slice(0, TAKE_PASS)).toContain("m0");
+    expect(mean(take.slice(0, TAKE_PASS).map(age))).toBeLessThan(10);
+    expect(take.slice(-6)).toContain("m29");
+  });
+
+  it("holds a video in every pass while any remain", () => {
+    for (const seed of [4, 5]) {
+      // Five videos in two hundred items: the first passes each get one, never a run of stills.
+      const items = party(200, { seed, uploaders: 9, videoShare: 0 }).map(
+        (it, i) => (i % 37 === 36 ? { ...it, type: "video" as const } : it),
+      );
+      const take = planTake(items, { eventId: "e1", loopIndex: seed });
+      for (const [p, { pass, left }] of passesOf(items, take).entries()) {
+        if (!left.some((i) => i.type === "video")) continue;
+        expect(
+          pass.some((i) => i.type === "video"),
+          `seed ${seed}, pass ${p}`,
+        ).toBe(true);
+      }
+    }
+  });
+
+  it("caps a pass near a third videos while photographs remain, and fills from videos after", () => {
+    const items = party(120, { seed: 6, uploaders: 5, videoShare: 0.6 });
+    const take = planTake(items, { eventId: "e1", loopIndex: 0 });
+    expect(take).toHaveLength(120);
+    const cut = passesOf(items, take);
+    for (const [p, { pass }] of cut.entries()) {
+      const videos = pass.filter((i) => i.type === "video").length;
+      const photosLater = cut
+        .slice(p + 1)
+        .some(({ pass: later }) => later.some((i) => i.type === "photo"));
+      if (photosLater) {
+        expect(videos, `pass ${p}`).toBeLessThanOrEqual(
+          Math.max(1, Math.floor(pass.length / 3)),
+        );
+      }
+    }
+  });
+});
+
+describe("a cut-short take (passes)", () => {
+  it("is exactly the head of the whole take, pass for pass", () => {
+    const items = party(100, { seed: 7, uploaders: 6, videoShare: 0.2 });
+    const whole = planTake(items, { eventId: "e1", loopIndex: 2 });
+    for (const passes of [1, 2, 3]) {
+      expect(planTake(items, { eventId: "e1", loopIndex: 2, passes })).toEqual(
+        whole.slice(0, TAKE_PASS * passes),
+      );
+    }
+    expect(
+      planTake(items, { eventId: "e1", loopIndex: 2, passes: 99 }),
+    ).toEqual(whole);
+  });
+
+  it("still leads with the device's own newest, even one the whole take places late", () => {
+    const items = album(60); // an hour apart: m59 is the oldest, placed in a late pass
+    const ownIds = new Set(["m59"]);
+    expect(
+      planTake(items, { eventId: "e1", loopIndex: 0 }).indexOf("m59"),
+    ).toBeGreaterThanOrEqual(TAKE_PASS);
+    const whole = planTake(items, { eventId: "e1", loopIndex: 0, ownIds });
+    const first = planTake(items, {
+      eventId: "e1",
+      loopIndex: 0,
+      ownIds,
+      passes: 1,
+    });
+    expect(first[0]).toBe("m59");
+    expect(first).toHaveLength(TAKE_PASS);
+    expect(first).toEqual(whole.slice(0, TAKE_PASS));
+  });
+});
+
+describe("the cost", () => {
+  it("plans a 6,000-item album well inside a re-plan's budget (one sort, not a pick per pass)", () => {
+    // The take used to re-run the whole quick-add pick over what was left, pass after pass: about
+    // 600 ms here. Scored once and walked with a heap it is a few milliseconds; the bound is loose on
+    // purpose (a busy CI box), and still far below where the quadratic lived.
+    const items = party(6000, { seed: 8, uploaders: 60, videoShare: 0.15 });
+    planTake(items, { eventId: "e1", loopIndex: 0 }); // warm the JIT
+    const start = performance.now();
+    const take = planTake(items, { eventId: "e1", loopIndex: 1 });
+    const elapsed = performance.now() - start;
+    expect(take).toHaveLength(6000);
+    expect(new Set(take).size).toBe(6000);
+    expect(elapsed).toBeLessThan(150);
   });
 });
 

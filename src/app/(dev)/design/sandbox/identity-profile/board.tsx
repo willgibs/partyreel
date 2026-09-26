@@ -8,17 +8,27 @@ import {
   AttendedGuestMenu,
   AttendedPicker,
   AttendedSwitches,
+  DefaultAsked,
+  DefaultOff,
+  DefaultOn,
   PageCount,
   PageNothing,
   PageNotFound,
   PromptAccountOnly,
   PromptClaim,
   PromptFollow,
+  PromptFollowDoor,
   SetupCards,
   SetupSheet,
   SetupWizard,
 } from "./parts";
-import { AppHeader, GuestHeader, Scene, screenOf, type ScreenId } from "./scene";
+import {
+  AppHeader,
+  GuestHeader,
+  Scene,
+  screenOf,
+  type ScreenId,
+} from "./scene";
 import { IDENTITY_PROFILE } from "./spec";
 
 /**
@@ -26,8 +36,9 @@ import { IDENTITY_PROFILE } from "./spec";
  * here). Every option holds the rest of the picture steady and moves only the
  * one thing its ask is about: `setup`'s three options vary how the handle,
  * name and events get set, never the world they're set in; `attended` varies
- * only how the choice is made; `prompt` varies only whether and where an
- * invitation appears; `page` varies only what a visitor reads.
+ * only how the choice is made; `default` varies only what an event's switch
+ * reads BEFORE Priya ever touches it; `prompt` varies only whether and where
+ * an invitation appears; `page` varies only what a visitor reads.
  *
  * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED: a field count, a row
  * count, an invitation's own words. When the words above a frame and the
@@ -51,7 +62,11 @@ const measureSetup: Reader = (root) => {
 function setupScreen(id: "cards" | "wizard" | "sheet", s: BoardState) {
   const sc = screen(s);
   const label =
-    id === "cards" ? "Account" : id === "wizard" ? "Set up your page" : "Dashboard";
+    id === "cards"
+      ? "Account"
+      : id === "wizard"
+        ? "Set up your page"
+        : "Dashboard";
   const body =
     id === "cards" ? (
       <SetupCards />
@@ -83,7 +98,10 @@ const measureAttended: Reader = (root) => {
   return `Measured: ${rows} of 3 events showing their toggle here, ${images} with a cover photograph.`;
 };
 
-function attendedScreen(id: "switches" | "picker" | "guest-menu", s: BoardState) {
+function attendedScreen(
+  id: "switches" | "picker" | "guest-menu",
+  s: BoardState,
+) {
   const sc = screen(s);
   if (id === "guest-menu") {
     return (
@@ -121,6 +139,45 @@ function attendedScreen(id: "switches" | "picker" | "guest-menu", s: BoardState)
   );
 }
 
+/* ── default: whether an event's switch opens off, on, or asked once first ──── */
+
+const measureDefault: Reader = (root) => {
+  const prompt = root.querySelector<HTMLElement>("[data-ip-relevant]");
+  if (prompt?.innerText?.includes("Show your events")) {
+    return "Measured: a single yes-or-no stands before any switch is drawn.";
+  }
+  const rows = root.querySelectorAll("[data-ip-attended-row]");
+  const on = [...rows].filter((r) =>
+    r.querySelector('[data-state="checked"]'),
+  ).length;
+  return `Measured: ${on} of ${rows.length} events start switched on.`;
+};
+
+function defaultScreen(id: "off" | "asked" | "on", s: BoardState) {
+  const sc = screen(s);
+  const body =
+    id === "off" ? (
+      <DefaultOff />
+    ) : id === "on" ? (
+      <DefaultOn />
+    ) : (
+      <DefaultAsked />
+    );
+  return (
+    <Scene
+      id={`default-${id}`}
+      screen={sc}
+      title="The starting default"
+      measure={measureDefault}
+    >
+      <div className="min-h-full bg-background text-foreground">
+        <AppHeader label="Account" />
+        {body}
+      </div>
+    </Scene>
+  );
+}
+
 /* ── prompt: whether an invitation is drawn at all, and what it says ────────── */
 
 const measurePrompt: Reader = (root) => {
@@ -136,18 +193,34 @@ const measurePrompt: Reader = (root) => {
 function promptScreen(id: "claim" | "follow" | "account", s: BoardState) {
   const sc = screen(s);
   if (id === "follow") {
+    // ★ BOTH PLACES HER EMAIL CAN CONFIRM (the door's round two): the album's
+    // follow moment, and the door's own "You're in". Stacked, so the option
+    // stays one phone wide on the step beside the other two.
     return (
-      <Scene
-        id="prompt-follow"
-        screen={sc}
-        title="When it's offered"
-        measure={measurePrompt}
-      >
-        <div className="min-h-full bg-background text-foreground">
-          <GuestHeader as="priya" />
-          <PromptFollow />
-        </div>
-      </Scene>
+      <div className="flex flex-col gap-6">
+        <Scene
+          id="prompt-follow"
+          screen={sc}
+          title="When it's offered"
+          measure={measurePrompt}
+        >
+          <div className="min-h-full bg-background text-foreground">
+            <GuestHeader as="priya" />
+            <PromptFollow />
+          </div>
+        </Scene>
+        <Scene
+          id="prompt-follow-door"
+          screen={sc}
+          title="When it's offered, at the door"
+          measure={measurePrompt}
+        >
+          <div className="min-h-full bg-background text-foreground">
+            <GuestHeader as="visitor" />
+            <PromptFollowDoor desk={sc === "1440"} />
+          </div>
+        </Scene>
+      </div>
     );
   }
   return (
@@ -215,6 +288,10 @@ const PREVIEWS: PreviewsFor<typeof IDENTITY_PROFILE> = {
   "attended.switches": (s) => attendedScreen("switches", s),
   "attended.picker": (s) => attendedScreen("picker", s),
   "attended.guest-menu": (s) => attendedScreen("guest-menu", s),
+
+  "default.off": (s) => defaultScreen("off", s),
+  "default.asked": (s) => defaultScreen("asked", s),
+  "default.on": (s) => defaultScreen("on", s),
 
   "prompt.claim": (s) => promptScreen("claim", s),
   "prompt.follow": (s) => promptScreen("follow", s),

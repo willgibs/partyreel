@@ -111,6 +111,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   /* ─────────────────────────────── Shells ─────────────────────────────── */
   {
     id: "section-shell",
+    file: "src/components/marketing/system/section-shell.tsx",
+    for: "the marketing section wrapper: eyebrow, heading, subhead, clamp and arrival register",
     family: "marketing",
     section: "Shells",
     play: "section-shell",
@@ -194,6 +196,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "paper-chapter",
+    file: "src/components/marketing/system/paper-chapter.tsx",
+    for: "a run of sections forced onto paper inside a cinema page; the flip is a chapter cut",
     family: "marketing",
     section: "Shells",
     specimens: [
@@ -217,17 +221,20 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "section-light",
+    file: "src/components/marketing/system/section-light.tsx",
+    for: "the Aurora at chapter scale: a section's own two edges lit, and never on a light ground",
+    test: "src/components/marketing/system/section-light.test.ts",
     title: "SectionLight",
     badge: "new",
     family: "marketing",
     section: "Shells",
-    lede: "The Aurora at chapter scale, composed for the place. The register and the clock are fixed (the accent register, three laps slower than a lamp); the geometry is the call site's: which edges carry the light, how deep a band reaches, where a cast starts. There is no default placement on purpose, and two sections on one page never take the same composition. Dark grounds only, by construction.",
+    lede: "The Aurora at chapter scale, composed for the place. The register and the clock are shared (the accent register, three laps slower than a lamp); the geometry is the call site's: which edges carry the light, how deep a band reaches, where a cast starts. There is no default placement, so each section composes its own, and it lives on dark grounds.",
     variants: [
       {
         prop: "placement",
         source: "prop",
         options: ["both", "top", "bottom", "room"],
-        note: "Required, with no default: Will ruled the placement a mix, custom to each place. `middle` and `behind` are not values: the copy then sits IN the light instead of in the clean band beside it, which is the half of the grammar a call site is most likely to get wrong.",
+        note: "Required, with no default: each place composes its own placement. `middle` and `behind` are not values: the copy then sits IN the light instead of in the clean band beside it, which is the half of the grammar a call site is most likely to get wrong.",
       },
       {
         prop: "from",
@@ -374,6 +381,9 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   /* ─────────────────────────────── Heroes ─────────────────────────────── */
   {
     id: "page-hero",
+    file: "src/components/marketing/system/page-hero.tsx",
+    for: "the shared hero lockup for the identity pages: eyebrow, heading, subhead, actions",
+    test: "src/components/marketing/system/page-hero-contract.test.ts",
     badge: "updated",
     family: "marketing",
     section: "Heroes",
@@ -478,6 +488,9 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "screen-lamp",
+    file: "src/components/marketing/system/screen-lamp.tsx",
+    for: "the one underlight: a lit object throws light down, as a SIBLING and never from inside",
+    test: "src/components/marketing/system/screen-lamp.test.ts",
     badge: "updated",
     family: "marketing",
     section: "Heroes",
@@ -541,6 +554,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   /* ────────────────────── Type atoms and links ─────────────────────────── */
   {
     id: "eyebrow",
+    file: "src/components/marketing/system/eyebrow.tsx",
+    for: "the section eyebrow atom: Inter, uppercase, tracked",
     family: "marketing",
     section: "Type atoms and links",
     play: "eyebrow",
@@ -551,6 +566,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "caption",
+    file: "src/components/marketing/system/caption.tsx",
+    for: "the one caption atom: every label, hint and descriptor on the site, data included, on the body face",
     badge: "new",
     family: "marketing",
     section: "Type atoms and links",
@@ -569,6 +586,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "learn-more-link",
+    file: "src/components/marketing/sections/shared/learn-more-link.tsx",
+    for: "the recurring see-more link: the chevron's arms spread on hover, pure CSS",
     family: "marketing",
     section: "Type atoms and links",
     specimens: [
@@ -580,6 +599,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "learn-chevron",
+    file: "src/components/marketing/sections/shared/learn-chevron.tsx",
+    for: "the bare learn-more chevron, for a row that is already a link and cannot nest another",
     family: "marketing",
     section: "Type atoms and links",
     lede: "The bare chevron, for a card or row Link where nesting a LearnMoreLink (its own Link) would be invalid HTML.",
@@ -601,6 +622,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "texts-reveal",
+    file: "src/components/marketing/sections/shared/texts-reveal.tsx",
+    for: "trips a group of lines into their staggered rise; that recipe keys a class, not a flag",
     family: "marketing",
     section: "Type atoms and links",
     specimens: [
@@ -613,6 +636,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "reveal",
+    file: "src/components/marketing/system/reveal.tsx",
+    for: "the in-view trigger firing the marketing arrival grammar; CSS owns every bit of motion",
     family: "marketing",
     section: "Type atoms and links",
     specimens: [
@@ -627,6 +652,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   /* ─────────────────────────────── Media ──────────────────────────────── */
   {
     id: "card-grid",
+    file: "src/components/marketing/system/card-grid.tsx",
+    for: "the recurring card grid; server-first, and the tilt island is opt-in per grid",
     family: "marketing",
     section: "Media",
     variants: [
@@ -667,6 +694,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "tilt-card",
+    file: "src/components/marketing/system/tilt-card.tsx",
+    for: "the 3D pointer tilt; mouse only, because a finger on a card must scroll the page",
     family: "marketing",
     section: "Media",
     lede: "Mouse-only by deliberate deviation from the recipe: a finger over a marketing card must scroll the page, not tilt a tile.",
@@ -688,6 +717,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "media-split",
+    file: "src/components/marketing/system/media-split.tsx",
+    for: "the media-and-copy split; the media half gets the wider run, because media is the color",
     family: "marketing",
     section: "Media",
     variants: [
@@ -752,6 +783,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "conveyor",
+    file: "src/components/marketing/system/conveyor.tsx",
+    for: "the marquee shell: renders its children twice, and owns the loop-pause contract",
     family: "marketing",
     section: "Media",
     lede: "The marquee shell, and the owner of the loop-pause contract: offscreen and hidden-tab freeze it, and reduced motion never mounts the marquee at all.",
@@ -781,6 +814,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "inline-reel-player",
+    file: "src/components/marketing/sections/shared/inline-reel-player.tsx",
+    for: "the poster-first reel surface: no video bytes until someone asks to play",
     family: "marketing",
     section: "Media",
     lede: "The one playback surface: the reel teaser's inline sample and the hero's overlay both render this, so the transport contract lives once and no video bytes load without intent.",
@@ -797,6 +832,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   /* ─────────────────────────────── Frames ─────────────────────────────── */
   {
     id: "browser-frame",
+    file: "src/components/marketing/frames/browser-frame.tsx",
+    for: "the browser card every media frame is built on: one card look, one window bar",
     family: "marketing",
     section: "Frames",
     lede: "The media-frame library: a set of distinct frames, never one visual reused. All share BrowserFrame's tokens, all aria-hidden and reduced-motion-safe.",
@@ -818,6 +855,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "phone-frame",
+    file: "src/components/marketing/frames/phone-frame.tsx",
+    for: "the phone bezel (PhoneShell) and the guest-upload mock that fills it",
     family: "marketing",
     section: "Frames",
     title: "PhoneFrame",
@@ -843,6 +882,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "album-frame",
+    file: "src/components/marketing/frames/album-frame.tsx",
+    for: "the browser-album mock: an even grid of tiles holding event media, decorative",
     family: "marketing",
     section: "Frames",
     specimens: [
@@ -851,6 +892,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "gallery-frame",
+    file: "src/components/marketing/frames/gallery-frame.tsx",
+    for: "the lightbox-style album mock: one big frame on the dark gallery ground, plus a filmstrip",
     family: "marketing",
     section: "Frames",
     lede: "The lightbox read of an album, deliberately distinct from AlbumFrame's even grid: one large media area on the dark gallery surface over a thumbnail strip.",
@@ -860,6 +903,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "qr-frame",
+    file: "src/components/marketing/frames/qr-frame.tsx",
+    for: "the scan-to-join card: a drawn QR block, or the live demo code when a URL is passed",
     family: "marketing",
     section: "Frames",
     specimens: [
@@ -872,6 +917,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "reel-frame",
+    file: "src/components/marketing/frames/reel-frame.tsx",
+    for: "the video-player frame; pass real media and the painted-on transport steps aside",
     family: "marketing",
     section: "Frames",
     specimens: [
@@ -884,6 +931,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "live-qr",
+    file: "src/components/marketing/frames/live-qr.tsx",
+    for: "the real, scannable demo QR; client only, since qr-code-styling touches window",
     family: "marketing",
     section: "Frames",
     lede: "The one frame that is not a picture of a thing: the app's own renderer on a real white plate, with the quiet zone a scanner needs.",
@@ -904,6 +953,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   /* ─────────────────────────────── Beats ──────────────────────────────── */
   {
     id: "stat-band",
+    file: "src/components/marketing/system/stat-band.tsx",
+    for: "the counter band: numbers that roll or pop once, when the band scrolls into view",
     badge: "updated",
     family: "marketing",
     section: "Beats",
@@ -932,6 +983,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "confetti-burst",
+    file: "src/components/marketing/sections/shared/confetti-burst.tsx",
+    for: "the celebratory beat: confetti with real physics, one shot per fire, never an ambient loop",
     family: "marketing",
     section: "Beats",
     lede: "A one-shot beat with real physics, in the sanctioned confetti tokens. Never an ambient loop, so it sits outside the loop-pause contract by construction.",
@@ -945,6 +998,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "sample-reel-overlay.lazy",
+    file: "src/components/marketing/sections/shared/sample-reel-overlay.lazy.tsx",
+    for: "the watch-a-sample-reel overlay, lazy so the home page never carries it",
     family: "marketing",
     section: "Beats",
     title: "SampleReelOverlay",
@@ -958,6 +1013,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "morph-delegate",
+    file: "src/components/marketing/system/morph-delegate.tsx",
+    for: "one delegated listener grows a clicked card into the page it opens; the cards stay server",
     family: "marketing",
     section: "Beats",
     lede: "A delegate renders nothing and listens, so N cards cost one listener and each of them stays a server component. The other invisible piece, WebAnalytics, is a document singleton the library lists and never mounts.",
@@ -1001,6 +1058,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   /* ──────────────────────────── Conversion ────────────────────────────── */
   {
     id: "cta-band",
+    file: "src/components/marketing/system/cta-band.tsx",
+    for: "the closing conversion band, with the credit line that ends a page",
     badge: "updated",
     family: "marketing",
     section: "Conversion",
@@ -1033,6 +1092,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "demo-ticket",
+    file: "src/components/marketing/system/demo-ticket.tsx",
+    for: "DemoFrame, the one object every demo door wears (a photograph in a plain mat, the code tucked into its corner), presentational for the hero, footer, line and nav mounts that own their own door; DemoTicket is its complete, self-contained door for the Library's specimen and the site-chrome board",
     badge: "updated",
     family: "marketing",
     section: "Conversion",
@@ -1065,6 +1126,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "demo-cta-link",
+    file: "src/components/marketing/system/demo-cta-link.tsx",
+    for: "the recurring live-demo link, gated on a configured demo event so it is never dead",
     family: "marketing",
     section: "Conversion",
     specimens: [
@@ -1079,6 +1142,9 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   /* ─────────────────────────── Feature pieces ─────────────────────────── */
   {
     id: "feature-door",
+    file: "src/components/marketing/sections/features/shared/feature-door.tsx",
+    for: "a feature's door card: the photograph IS the card, plus the chip that surface draws",
+    test: "src/components/marketing/sections/features/shared/feature-door.test.ts",
     family: "marketing",
     section: "Feature pieces",
     lede: "The shared furniture of the six feature pages (the album is the model). A door's labels and lines are read off src/lib/constants/feature-pages.ts, so its copy can never drift from the nav.",
@@ -1138,6 +1204,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "feature-hero-eyebrow",
+    file: "src/components/marketing/sections/features/shared/feature-hero-eyebrow.tsx",
+    for: "the feature hero's one eyebrow",
     family: "marketing",
     section: "Feature pieces",
     specimens: [
@@ -1150,6 +1218,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "ghost-grid",
+    file: "src/components/marketing/sections/features/shared/ghost-grid.tsx",
+    for: "the locked-gallery tease: the app's ghost grid, shape and count, zero pixels",
     family: "marketing",
     section: "Feature pieces",
     title: "GhostBackdrop",
@@ -1167,6 +1237,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "text-swap",
+    file: "src/components/marketing/sections/features/shared/text-swap.tsx",
+    for: "swaps one line of text for another: the old blurs up and out, the new rises in",
     family: "marketing",
     section: "Feature pieces",
     specimens: [
@@ -1179,6 +1251,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "related-features",
+    file: "src/components/marketing/sections/features/shared/related-features.tsx",
+    for: "the sibling-features band that opens every feature page's closing chapter",
     family: "marketing",
     section: "Feature pieces",
     variants: [
@@ -1201,6 +1275,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "feature-faq",
+    file: "src/components/marketing/sections/features/shared/feature-faq.tsx",
+    for: "the one FAQ band all six feature pages share, and the only place their JSON-LD is emitted",
     family: "marketing",
     section: "Feature pieces",
     lede: "One FAQ band for all six feature pages: the shared accordion and the FAQPage JSON-LD over the same items, so the structured data cannot drift from what is on screen.",
@@ -1224,6 +1300,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "go-deeper",
+    file: "src/components/marketing/sections/features/shared/go-deeper.tsx",
+    for: "the quiet pointer to the help center, so a marketing page never becomes documentation",
     family: "marketing",
     section: "Feature pieces",
     specimens: [
@@ -1243,6 +1321,8 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   },
   {
     id: "bulk-select-mock",
+    file: "src/components/marketing/sections/shared/bulk-select-mock.tsx",
+    for: "the app's select tile and bulk bar, quoted for marketing: resting shapes, never controls",
     family: "marketing",
     section: "Feature pieces",
     title: "BulkBarMock",

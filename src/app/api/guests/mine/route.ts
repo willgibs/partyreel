@@ -2,8 +2,8 @@
  * WHICH PHOTOGRAPHS IN THIS ALBUM ARE THIS ANONYMOUS GUEST'S. Body:
  * `{ qr_token, session_token }` → `{ ok: true, ids: [...] }`.
  *
- * Will, `yours`, 2026-09-20: "A guest can delete any photo they've personally
- * uploaded, ever." A signed-in viewer's list is computed in the page RSC (it
+ * A guest can delete any photo they personally uploaded, with no time limit.
+ * A signed-in viewer's list is computed in the page RSC (it
  * already has the user); an ANONYMOUS guest's identity is the device-bound
  * session token, which the page never sees — it lives in the browser's own
  * storage — so the browser asks for the list here and `live-gallery.tsx` caches

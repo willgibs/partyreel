@@ -35,7 +35,7 @@ import {
  * `guest-photos=ghost`, 2026-09-18), where the placement fades it, and the QR
  * feature door, where it falls out of the real scannable code (`place=tenth`,
  * `fall=behind`, 2026-09-19); the visual itself is always at full luminance and
- * never carries a layer over a photograph (bible 1). The arithmetic lives in
+ * never carries a layer over a photograph. The arithmetic lives in
  * `river-engine.ts`.
  *
  * ★ DECORATIVE, ENTIRELY. aria-hidden, every image `alt=""`, nothing in it
@@ -49,7 +49,7 @@ import {
  * needs no listener, and the loop never measures anything.
  *
  * ★ IT COSTS NOTHING WHEN NOBODY IS LOOKING: one rAF loop, stopped off screen
- * and on a hidden tab (useAmbientPause, the home hero's precedent), never
+ * and on a hidden tab (useAmbientPause, matching the home hero), never
  * started under reduced motion, and writing transform and opacity alone.
  */
 
@@ -207,7 +207,7 @@ export function River({
                   nodes.current[i] = el;
                 }}
                 // The lift: two photographs overlapping is the one place a
-                // photograph takes a shadow (bible 10), declared by its role.
+                // photograph takes a shadow, declared by its role.
                 className="rvr-card bg-muted shadow-lift"
                 style={
                   {

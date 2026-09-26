@@ -33,11 +33,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
-
-// Lockstep with the Supabase "Email OTP Length" setting, exactly like
-// email-sign-in.tsx. The two are hand-synced; the code will not verify if they
-// drift.
-const OTP_LENGTH = 6;
+import { CODE_LENGTH } from "@/lib/auth/code-length";
 
 /**
  * Account · Danger zone. The self-serve deletion the privacy policy promises.
@@ -115,7 +111,7 @@ export function AccountDeleteCard({
 
   const canDelete = hasPassword
     ? password.length > 0
-    : code.length === OTP_LENGTH;
+    : code.length === CODE_LENGTH;
 
   return (
     <Card className="border-destructive/30">
@@ -181,7 +177,8 @@ export function AccountDeleteCard({
                     <span className="text-foreground">
                       other people&rsquo;s events
                     </span>{" "}
-                    stay in those albums. Ask the host if you want them removed.
+                    stay in those albums, without your name or email. Ask the
+                    host if you want them removed.
                   </li>
                   <li>
                     Your account cannot be restored, and this email can start
@@ -215,7 +212,7 @@ export function AccountDeleteCard({
                         auto-submitting on the sixth keystroke would delete an
                         account without a final deliberate press. */}
                     <InputOTP
-                      maxLength={OTP_LENGTH}
+                      maxLength={CODE_LENGTH}
                       autoFocus
                       inputMode="numeric"
                       autoComplete="one-time-code"
@@ -224,7 +221,7 @@ export function AccountDeleteCard({
                       onChange={setCode}
                     >
                       <InputOTPGroup>
-                        {Array.from({ length: OTP_LENGTH }, (_, i) => (
+                        {Array.from({ length: CODE_LENGTH }, (_, i) => (
                           <InputOTPSlot key={i} index={i} />
                         ))}
                       </InputOTPGroup>

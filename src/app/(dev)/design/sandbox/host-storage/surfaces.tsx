@@ -14,6 +14,7 @@ import {
   CURRENT_PLAN,
   EVENTS,
   groupedByEvent,
+  groupedByWorstFirst,
   largestFirst,
   TOTAL_ACTIVE_BYTES,
 } from "./fixtures";
@@ -233,7 +234,7 @@ export function AlbumScope({
   goal,
   screen,
 }: {
-  goal: "live" | "plain" | null;
+  goal: "live" | "plain" | "toast" | null;
   screen: ScreenId;
 }) {
   const [tab, setTab] = useState<"album" | "sizes">("sizes");
@@ -302,8 +303,8 @@ export function SheetScope({
   goal,
   screen,
 }: {
-  order: "flat" | "grouped";
-  goal: "live" | "plain" | null;
+  order: "flat" | "grouped" | "hybrid";
+  goal: "live" | "plain" | "toast" | null;
   screen: ScreenId;
 }) {
   return (
@@ -319,8 +320,14 @@ export function SheetScope({
         <div className="flex-1 space-y-3 overflow-y-auto px-4 pb-4">
           <StorageSurface
             items={order === "flat" ? largestFirst() : []}
-            groups={order === "grouped" ? groupedByEvent() : undefined}
-            mode={order}
+            groups={
+              order === "grouped"
+                ? groupedByEvent()
+                : order === "hybrid"
+                  ? groupedByWorstFirst()
+                  : undefined
+            }
+            mode={order === "flat" ? "flat" : "grouped"}
             goal={goal}
             screen={screen}
           />

@@ -1,6 +1,6 @@
 /**
  * THE IMAGE TRAIL'S ARITHMETIC (promoted from the `image-trail` board,
- * 2026-09-19, at the look Will ruled on it).
+ * at the look chosen for it).
  *
  * OURS, WRITTEN FROM SCRATCH, with Codrops' "Image Trail Effects" demo one read
  * once for its numbers and nothing else: no file, no photograph and no line of
@@ -22,7 +22,7 @@
  * ★ THE SOURCE IS AN INTERFACE, which is the whole reason one engine serves a
  * cursor and a phone. `advance` takes one sample and never asks where it came
  * from, so a pointer feeds it a hand and a PATH feeds it a curve walked at a
- * pace. Will ruled both on the same board (`entrance=flick` for the hand,
+ * pace. Both were chosen on the same board (`entrance=flick` for the hand,
  * `phone=walks` for the curve), and they are one mechanism rather than two.
  *
  * ★ THE STILL IS A REPLAY, NOT A SPECIAL CASE. `replay` walks a path from zero
@@ -94,7 +94,7 @@ export const ROLLS = [-3.5, 2, -1.5, 3, -2.5, 1.5, -3, 2.5] as const;
 export type TrailSpec = {
   /**
    * DENSITY: px of source travel between one birth and the next. The whole feel
-   * of the effect lives here, and Will ruled it at 140 ("This makes it feel a
+   * of the effect lives here, and it was set at 140 ("This makes it feel a
    * lot less overwhelming while still providing the overlap that keeps the
    * trail continuous with no gaps").
    */
@@ -139,7 +139,7 @@ export type TrailSpec = {
    * The house answer to media under type is to MEASURE a clear lane and place
    * the words outside it (`hero-stream.ts`), and that answer is unavailable
    * here, because the lane is wherever the cursor is. The other reachable
-   * answer, a scrim over the photographs, is the one thing bible 1 refuses. So
+   * answer, a scrim over the photographs, is the one thing ruled out. So
    * the photograph yields instead: inside the words' own box a card fades to
    * `floor` and comes back over a soft edge, which reads as the trail passing
    * BEHIND the words rather than as anything being dimmed on top of them, and
@@ -165,7 +165,7 @@ export type TrailSpec = {
 };
 
 /**
- * HOW A PHOTOGRAPH ARRIVES. Will ruled `flick` and that is the only one the
+ * HOW A PHOTOGRAPH ARRIVES. `flick` is the only one the
  * site draws (`RULED` below); the other two stay because the shape of a card's
  * arrival is part of the engine's interface rather than part of its look, and a
  * source that is not a cursor reaches for a different one (a path-drawn
@@ -179,7 +179,7 @@ export const lifeMs = (s: TrailSpec) =>
 
 /**
  * ★ THE CEILING IS A DESIGN NUMBER, NOT A SAFETY ONE. Every node in the ring is
- * a real `next/image`, and the arithmetic below asks for twenty-two at the ruled
+ * a real `next/image`, and the arithmetic below asks for twenty-two at the fixed
  * density with a hurried hand. Twenty holds the DOM at a size a dead-end page
  * can afford and lets the fastest strokes recycle, which costs a photograph that
  * was already at its faintest and which nobody was going to look at.
@@ -251,8 +251,8 @@ export type TrailFrame = {
 };
 
 /**
- * ★ THE FLICK'S TURN, in degrees at full sideways travel, and it is the ruling
- * (Will, `entrance=flick`: "Following the way it was thrown rather than the
+ * ★ THE FLICK'S TURN, in degrees at full sideways travel
+ * (`entrance=flick`: "Following the way it was thrown rather than the
  * cursor feels a lot more natural and fluid"). A card is born behind the source,
  * slides after it, and turns the way it was thrown; a vertical stroke leaves it
  * square, which is what a hand does with a photograph.
@@ -460,8 +460,8 @@ export function advance(
       seq,
       slot,
       bornAt: t,
-      // Born BEHIND the source and heading for it, which is the half of the
-      // ruling that is not the turn ("Keeping the image trail behind the cursor
+      // Born BEHIND the source and heading for it, which is the half of
+      // `flick` that is not the turn ("Keeping the image trail behind the cursor
       // also allows better cursor visibility/tracking"). `drift` is the one
       // arrival that is laid at the mark and carries on past it instead.
       from: spec.entrance === "drift" ? { ...lastBirth } : { ...lag },
@@ -754,11 +754,11 @@ export function factsOf(
 /* ── THE RULED LOOK ──────────────────────────────────────────────────────── */
 
 /**
- * ★ ONE LOOK, WILL'S, AND NO OPTIONS. The board offered three densities, three
- * decays, three entrances, three sizes and four phone answers; he answered each
- * one (2026-09-19) and the matrix collapses to the table below. A number here is
- * a RULING, so changing one is a design decision and not a tune: the board's
- * option tables retired with the board, and the table below holds his words.
+ * ★ ONE LOOK, AND NO OPTIONS. The board offered three densities, three
+ * decays, three entrances, three sizes and four phone answers; each was
+ * answered and the matrix collapses to the table below. A number here comes
+ * from `RULED` below, so changing one is a design decision and not a tune: the board's
+ * option tables retired with the board, and the table below holds the reasons.
  *
  *   density  d140  "less overwhelming while still providing the overlap that
  *                   keeps the trail continuous with no gaps"
@@ -786,9 +786,9 @@ const RULED = {
 
 /**
  * ★ THE SHY FADE, AND WHY IT IS A WINDOW RATHER THAN A DIMMER (the trail-wiring
- * lane, 2026-09-19). The mechanism is Will's and it is kept: a photograph goes
+ * lane). The mechanism stays: a photograph goes
  * faint where it crosses the words and comes back over a soft edge, so the trail
- * reads as passing BEHIND them and never as a scrim laid on top (bible 1). What
+ * reads as passing BEHIND them and never as a scrim laid on top. What
  * changed is where it is applied, and measurement is what changed it.
  *
  * The board dimmed each CARD by how much of its own area lay over the block.
@@ -851,7 +851,7 @@ export function shyWindow(
  * ★ A PHONE IS NOT A SMALL DESKTOP. Only the card's size changes, and the
  * density follows it, because both are a share of the column rather than a pixel
  * count; the decay, the slide and the lag are the same clocks at both, which is
- * what keeps one ruling covering both screens.
+ * what keeps one spec covering both screens.
  *
  * `walk` is the pace the path travels at when nothing is driving the trail, and
  * it is the pace the board's own scripted hand measured at (about 500 px a
@@ -882,7 +882,7 @@ export const screenOf = (box: Box) =>
   box.w < PHONE_BELOW ? SCREEN.phone : SCREEN.desktop;
 
 /**
- * The ruled spec for a real box. The words it has to stay off are not in here:
+ * The spec for a real box. The words it has to stay off are not in here:
  * they are a WINDOW on the layer (`shyWindow`), measured off the rendered block
  * rather than declared, so the shy fade tracks the actual lines at any width
  * instead of a table that was true at two.
@@ -903,7 +903,7 @@ export function trailSpec(box: Box): TrailSpec {
 }
 
 /**
- * The walk for a real box: the whole box wandered at the ruled pace, reaching to
+ * The walk for a real box: the whole box wandered at the fixed pace, reaching to
  * within a tenth of each edge so photographs land in the strips the words leave
  * clear and not only behind them (the board's capture at 375 drew every card
  * behind the type until its stroke was widened).

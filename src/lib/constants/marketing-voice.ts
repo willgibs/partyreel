@@ -4,17 +4,17 @@
  * 1. GOLDEN_LINES: the eight lines Will ratified verbatim in the voice round (2026-07-08,
  *    round 2). The historical palette the site was drafted around; kept as reference and for
  *    lines still standing unchanged.
- * 2. THE 2026-08-25 IN-CHAT RULING (supersedes the boards' grouping question): Will supplied the
- *    site thesis, the hero subhead, and a per-section header map directly. Ruled lines are final;
+ * 2. THE SITE THESIS AND HEADER MAP (supersedes the boards' grouping question): Will supplied the
+ *    site thesis, the hero subhead, and a per-section header map directly. These lines ship as-is;
  *    "provisional" ones are HIS OWN words that he explicitly wants alternatives for (his notes in
- *    each entry), so they ship as the working line until a replacement is ruled.
+ *    each entry), so they ship as the working line until a replacement is drafted.
  *
- * The ruled voice around all of it: warm-host ease x big-event stakes, disciplined by concise
+ * The voice around all of it: warm-host ease x big-event stakes, disciplined by concise
  * clarity; "night" is BANNED as identity language; collection value co-leads the reel. Byte-match
  * pins make any rewrite a deliberate act, never drift.
  *
  * ───────────────────────────────────────────────────────────────────────────────────────────────
- * ★ THE ACCOUNT RULE (Will, 2026-09-19, `voice` r1 `absence=named`; bible 20 ruled PERMISSIVE).
+ * ★ THE ACCOUNT RULE (`voice` r1 `absence=named`).
  *
  * NEVER PROMISE "NO ACCOUNT" ANYWHERE. A host may require one, and Require verified emails
  * DEFAULTS ON for a new event, so "No app, no account." was a promise the product breaks on most
@@ -50,8 +50,7 @@
  * about to exist and puts the reader at the start of it. It never describes the void, and it
  * never waits.
  * ───────────────────────────────────────────────────────────────────────────────────────────────
- * ★ THE IDENTITY RULE (the identity reshape, 2026-09-21; "the identity
- * reshape"). Anonymity left the product on Will's ruling: the host's switch is Require verified
+ * ★ THE IDENTITY RULE (the identity reshape). Anonymity left the product: the host's switch is Require verified
  * emails, on by default; off, a guest still types a display name at the door and uploads under
  * it, shown with a small unverified mark. NEVER WRITE "ANONYMOUS": every upload carries a name,
  * verified or marked, so no surface may call an upload, a guest, or a contributor anonymous again.
@@ -72,12 +71,12 @@ export const GOLDEN_LINES = {
   curation: "Every moment, and you decide what stays",
 } as const;
 
-/** RULED (Will, 2026-08-25). The kinetic hero renders it as "The whole {word}, in one album." */
+/** RULED. The kinetic hero renders it as "The whole {word}, in one album." */
 export const SITE_THESIS = "The whole event, in one album.";
 export const SITE_THESIS_STATUS: "provisional" | "ruled" = "ruled";
 
 /**
- * RULED (Will, 2026-09-19, `voice` r1 `hero-sub`), VERBATIM: his own alternate answer, supplied in
+ * RULED (`voice` r1 `hero-sub`), VERBATIM: his own alternate answer, supplied in
  * the note rather than picked from the four drawn candidates. It supersedes the 2026-08-25 line,
  * which opened on the mechanism ("with one QR code") and asserted what we do before the reader had
  * anything at stake.
@@ -101,7 +100,7 @@ export const SITE_SUBHEAD =
  *
  * ★ WHY IT IS NOT THE SUBHEAD ANY MORE. `SITE_DESCRIPTION` was
  * `${SITE_THESIS} ${SITE_SUBHEAD}`, which was fine while the subhead was one
- * sentence. His ruled hero line is three and runs 144 characters on its own, so
+ * sentence. The ruled hero line is three and runs 144 characters on its own, so
  * the composed form hit 175 and every search result and unfurl cut it mid-clause
  * at roughly 160, losing precisely the closing benefit the sentence was built to
  * land. A hero subhead and a meta description are read by different people in
@@ -115,7 +114,7 @@ export const SITE_DESCRIPTION_LINE =
   "Partyreel collects your guests’ photos and videos with one easy link, so nobody chases a group chat the next day.";
 
 /**
- * The Pro plan's one-liner, RULED (Will, 2026-09-19, `voice` r1 `pro-line=video`), verbatim:
+ * The Pro plan's one-liner, RULED (`voice` r1 `pro-line=video`), verbatim:
  * "Close, but let's go with 'For videos and unlimited events.' States direct benefit, but longer
  * reel isn't as important. Videos and unlimited events is huge."
  *
@@ -131,9 +130,9 @@ export const PRO_LINE = "For videos and unlimited events.";
 export type HeaderStatus = "ruled" | "provisional";
 
 /**
- * The home-arc section headers (Will, 2026-08-25). status "provisional" = his line ships as the
- * working copy while alternatives go to him (his appetite recorded in `note`); NEVER silently
- * replace a line here: a change lands with his ruling and a pin update.
+ * The home-arc section headers. status "provisional" = the current line ships as the
+ * working copy while alternatives are drafted (the appetite for a change recorded in `note`); NEVER silently
+ * replace a line here: a change lands with a status change and a pin update.
  */
 export const SECTION_HEADERS: Record<
   string,
@@ -146,12 +145,12 @@ export const SECTION_HEADERS: Record<
   noApp: {
     line: "Nothing to install. Just the browser they already have.",
     status: "provisional",
-    note: "Round 2 (2026-09-01): the guest-side wind-down Will asked for above the live demo. Draft line; his ruling pending. Second half rewritten 2026-09-19 (voice r1, absence=named): it read 'Nothing to sign up for', which is the account promise the rule now forbids. The replacement keeps the parallel shape and says the true thing, that the album opens where they already are.",
+    note: "The guest-side wind-down above the live demo. Draft line; still open. Second half rewritten (voice r1, absence=named): it read 'Nothing to sign up for', which is the account promise the rule now forbids. The replacement keeps the parallel shape and says the true thing, that the album opens where they already are.",
   },
   fullQuality: {
     line: "Everything they shoot, at the size they shot it.",
     status: "provisional",
-    note: "Round 2 (2026-09-01): the second wind-down section, full-quality originals and video. Draft line; his ruling pending.",
+    note: "The second wind-down section, full-quality originals and video. Draft line; still open.",
   },
   liveDemo: {
     line: "Watch your album fill up.",
@@ -161,7 +160,7 @@ export const SECTION_HEADERS: Record<
   album: {
     line: "Every photo comes to you first.",
     status: "provisional",
-    note: "Wants more distinctness from the live demo before it and curation after it. Round 2, second pass (2026-09-01): the section is now the paper chapter's opener (a left masthead at the lg tier, the print laid on the desk below-right; the straddle is off and the body no longer repeats chapter 1), so the distinctness is designed in. The line itself still awaits his ruling.",
+    note: "Wants more distinctness from the live demo before it and curation after it. Round 2, second pass: the section is now the paper chapter's opener (a left masthead at the lg tier, the print laid on the desk below-right; the straddle is off and the body no longer repeats chapter 1), so the distinctness is designed in. The line itself is still open.",
   },
   curation: {
     line: "Every moment, and you decide what stays.",
@@ -184,7 +183,7 @@ export const SECTION_HEADERS: Record<
 /**
  * The decomposition band's facts, in the order the band stacks them.
  *
- * RULED (Will, 2026-08-25): the closing fact warmed from "Edited by no one."
+ * RULED: the closing fact warmed from "Edited by no one."
  * RESHAPED (Will, 2026-09-17, the `counts=hero` pick): the band used to run
  * three facts across one baseline row ("Built from 214 photos." / "Shot by 23
  * guests." / "Created for you."), quoting the demo event's real numbers. He
@@ -212,9 +211,9 @@ export const DEMO_CTA_LABEL = "Try the live demo, no signup.";
  * it is here so a human-facing surface can spend it without forking the line.
  * /about was to be the first, and its second rebuild reworded the idea into the
  * story instead, so llms.ts is still the only consumer. Kept because this is
- * the golden-copy home and the line is ruled (since the "less is more" reset,
- * 2026-09-12, no copy is pinned by a test; this file is the one home and a
- * rewrite is a ruling): the next page that wants it takes it from here rather
+ * the golden-copy home and the line is fixed (since the "less is more" reset,
+ * no copy is pinned by a test; this file is the one home and a
+ * rewrite is a deliberate edit): the next page that wants it takes it from here rather
  * than retyping it.
  *
  * ★ The LOWERCASE CLAUSE only, never the whole sentence: llms.ts writes the

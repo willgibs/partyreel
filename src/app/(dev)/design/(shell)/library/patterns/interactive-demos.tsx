@@ -10,7 +10,10 @@ import { RouteSkeleton } from "@/components/shared/route-skeleton";
 import { SetNameStep } from "@/components/shared/set-name-step";
 import { TileSizeControl } from "@/components/shared/tile-size-control";
 import { Button } from "@/components/ui/button";
-import { DEFAULT_TILE_SIZE, type TileSize } from "@/lib/shared/tile-size-cookie";
+import {
+  DEFAULT_TILE_SIZE,
+  type TileSize,
+} from "@/lib/shared/tile-size-cookie";
 
 import { Row } from "@/app/(dev)/design/reference/reference-ui";
 
@@ -29,14 +32,9 @@ export function TileSizeControlDemo() {
   return <TileSizeControl value={size} onChange={setSize} />;
 }
 
-/** RouteSkeleton: the pulse and the hub are the bare app-shell content the
- *  real loading.tsx files return, safe to show inline. The Studio shape is
- *  the real fixed, full-bleed dark room (reel-studio.tsx's own shape), so —
- *  same house pattern as FloatingAddButton above — it is shown ON DEMAND
- *  rather than inline: it appears over the WHOLE viewport, not this frame,
- *  for a few seconds. */
+/** RouteSkeleton: the pulse and the hub, the bare app-shell content the real
+ *  loading.tsx files return, safe to show inline. */
 export function RouteSkeletonDemo() {
-  const [showStudio, setShowStudio] = useState(false);
   return (
     <div className="space-y-4">
       <div className="overflow-hidden rounded-lg border border-border">
@@ -55,23 +53,6 @@ export function RouteSkeletonDemo() {
           <RouteSkeleton variant="hub" />
         </div>
       </div>
-      <Row>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            setShowStudio(true);
-            window.setTimeout(() => setShowStudio(false), 4000);
-          }}
-        >
-          Show the Studio shape for 4 seconds
-        </Button>
-        <span className="text-sm text-muted-foreground">
-          Fixed and full-bleed, always dark, like the real room: it appears
-          over the whole viewport, not this frame.
-        </span>
-      </Row>
-      {showStudio && <RouteSkeleton variant="studio" />}
     </div>
   );
 }

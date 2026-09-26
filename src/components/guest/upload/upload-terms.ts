@@ -1,13 +1,10 @@
 /**
- * THE ONE QUIET LINE THE UPLOAD ACT SAYS BEFORE ANYTHING FLIES (Will,
- * `warning=both`, 2026-09-21, with the design note attached: "Terms either need
- * a better design or to be scrapped").
+ * THE ONE QUIET LINE THE UPLOAD ACT SAYS BEFORE ANYTHING FLIES.
  *
- * It was scrapped as TERMS and kept as FACTS. What a guest at a party actually
- * needs before tapping is what this album takes and how big it may be — the two
- * things the page has always known and never said, so today the only place that
- * number appears is inside a refusal, after the picker has closed and the bytes
- * have started.
+ * It states FACTS, not TERMS. What a guest at a party actually needs before
+ * tapping is what this album takes and how big it may be — the two things the
+ * page knows, and without this line the only place that number would appear is
+ * inside a refusal, after the picker has closed and the bytes have started.
  *
  * ★ NOTHING ABOUT RIGHTS, OWNERSHIP OR LICENSES LIVES HERE, AND NOTHING EVER
  * WILL. `lib/constants/legal-terms.tsx` ("Your content") is where the license a
@@ -17,7 +14,7 @@
  *
  * ★ THE NUMBER IS THE PRODUCT'S CEILING UNTIL THE HOST'S REACHES THE GUEST.
  * A host may set a STRICTER per-event cap (`events.max_upload_bytes`), and the
- * option Will chose says "in the host's own number" — but the guest page never
+ * line should state it in the host's own number — but the guest page never
  * receives it: `get_event_by_qr_token` does not return the column, so honouring
  * it needs a migration, a types regeneration and a query change, all of which
  * are the Orchestrator's to land. `capBytes` is that seam, already wired and

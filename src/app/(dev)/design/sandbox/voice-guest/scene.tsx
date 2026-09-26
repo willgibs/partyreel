@@ -7,22 +7,18 @@ import {
   useContext,
   useState,
 } from "react";
-import { Lock, Sparkles, XIcon } from "lucide-react";
+import { Lock, XIcon } from "lucide-react";
 
 import { Fit, Frame, Measured } from "@/components/lab";
 import type { GridMedia } from "@/components/app/media-grid";
 import { MediaTile } from "@/components/app/media-grid";
 import { GhostRiver } from "@/components/guest/gallery-empty-state";
-import { formatReelMeta, PosterCard } from "@/components/reel/poster-card";
+import { PosterCard } from "@/components/reel/poster-card";
 import { Logo } from "@/components/shared/logo";
 import { GALLERY_COLUMNS } from "@/components/shared/masonry";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { floatingPanel } from "@/components/ui/floating-layer";
-import {
-  DEFAULT_STYLE_ID,
-  resolveStyleEntry,
-} from "@/lib/reel/engine/style-registry";
 
 import { EVENT, HOST, REEL_STILL } from "./fixtures";
 
@@ -91,13 +87,7 @@ export function Scene({
   const [measured, setMeasured] = useState("measuring");
   return (
     <Fit w={PHONE.w}>
-      <Frame
-        id={id}
-        w={PHONE.w}
-        h={PHONE.h}
-        title={title}
-        caption={measured}
-      >
+      <Frame id={id} w={PHONE.w} h={PHONE.h} title={title} caption={measured}>
         <Measured probe={measure} deps={[id]} onMeasure={setMeasured}>
           {children}
         </Measured>
@@ -255,7 +245,7 @@ export function EventHead({
   );
 }
 
-/** One photograph on the ruled column rule, in the shipped tile. `landed`
+/** One photograph on the shipped column rule, in the shipped tile. `landed`
  *  writes the grid's own `data-landed`, so arrival.css (which the masonry
  *  import above brings in) plays its one pass of light across it. */
 function AlbumTile({ item, landed }: { item: GridMedia; landed: boolean }) {
@@ -277,7 +267,7 @@ function AlbumTile({ item, landed }: { item: GridMedia; landed: boolean }) {
 }
 
 /**
- * THE ALBUM, ON THE SHIPPED COLUMN RULE (`gallery-width`'s law, worn): a
+ * THE ALBUM, ON THE SHIPPED COLUMN RULE (`gallery-width`'s own decision): a
  * column WIDTH, so a 375 phone lays two columns. `prefix` is what stands at
  * the album's head before the first photograph (a stack in flight, a held
  * tile), exactly the seam `guest-masonry.tsx` renders it through.
@@ -314,35 +304,20 @@ export function Album({
   );
 }
 
-/** The corner the reel's tile wears once a guest's photograph is in the take:
- *  `reel-front`'s drawing of its recommended `yours=badge`, quoted (that board
- *  asks; this one only stands beside it, as `guest-capture` does). */
-function YoursChip() {
-  return (
-    <span className="flex items-center gap-1.5 rounded-full bg-[oklch(0.32_0.09_300)]/90 px-2 py-0.5 text-label font-semibold text-white uppercase backdrop-blur-sm">
-      <Sparkles className="size-2.5" aria-hidden />
-      Yours is in it
-    </span>
-  );
-}
-
 /**
  * THE REEL'S TILE AT THE ALBUM'S HEAD, on the shipped reel face (`PosterCard`),
- * resting on one still. The reel is the event's live montage from its third
- * item, so every album scene here has one; `yours` draws its corner only when
- * one of the viewer's own photographs is in the approved take.
+ * resting on one still. `reel-front` r1 heads it "Highlight reel" and describes
+ * it "Make your own clip to share", with no style name, no moment count and no
+ * corner badge: his own contribution to the reel is a one-time toast now
+ * (`reel-front.yours`), never a chip on this tile, so the tile no longer takes
+ * a count or a `yours` flag at all.
  */
-export function ReelTile({ count, yours }: { count: number; yours: boolean }) {
-  const meta = formatReelMeta({
-    styleLabel: resolveStyleEntry(DEFAULT_STYLE_ID).label,
-    momentCount: count,
-  });
+export function ReelTile() {
   return (
     <div data-vg-reel className="px-5 pt-5 pb-4">
       <PosterCard
-        eventName={EVENT.name}
-        meta={meta}
-        chip={yours ? <YoursChip /> : undefined}
+        eventName="Highlight reel"
+        meta="Make your own clip to share"
         media={
           <div className="relative aspect-[2/1] w-full">
             {/* eslint-disable-next-line @next/next/no-img-element -- a local still standing in for the engine's resting frame */}
@@ -364,7 +339,6 @@ export function ReelTile({ count, yours }: { count: number; yours: boolean }) {
 export function AlbumGround({
   header,
   slot,
-  reel,
   prefix,
   items,
   landedId,
@@ -373,7 +347,6 @@ export function AlbumGround({
   header: ReactNode;
   /** The post-upload slot's card, or nothing. */
   slot?: ReactNode;
-  reel: { count: number; yours: boolean };
   prefix?: ReactNode;
   items: GridMedia[];
   landedId?: string;
@@ -384,7 +357,7 @@ export function AlbumGround({
     <div className="min-h-full bg-background text-foreground">
       {header}
       {slot && <div className="px-5 pt-5">{slot}</div>}
-      <ReelTile {...reel} />
+      <ReelTile />
       <Album items={items} prefix={prefix} landedId={landedId} />
       {overlay}
     </div>
@@ -395,11 +368,13 @@ export function AlbumGround({
 
 /**
  * THE DOOR'S PHONE HALF, QUOTED (`entry-shell.tsx`): the overlay, then the
- * vaul drawer's own classes, HELD (no handle: the door has no exit). The
- * `data-entry-drawer` hook is the shipped one, so globals.css gives the
- * welcome its ratified 55svh presence here exactly as on a phone (`svh`
- * inside a frame is the frame's own height). `relative pt-1` is the step
- * container every step sits in (`entry-modal.tsx`).
+ * Sheet's own classes, HELD (no handle: the door has no exit). The
+ * `data-entry-sheet` hook is the shipped one, but door.css itself doesn't
+ * ride along with a quoted primitive (it loads only where `entry-shell.tsx`
+ * is rendered, never here), so `board.tsx` imports it directly: that is what
+ * gives the welcome its ratified 55svh presence here exactly as on a phone
+ * (`svh` inside a frame is the frame's own height). `relative pt-1` is the
+ * step container every step sits in (`entry-modal.tsx`).
  */
 export function DoorGround({
   locked,
@@ -441,7 +416,7 @@ export function DoorGround({
       <div className="fixed inset-0">
         <div className="absolute inset-0 bg-black/10 supports-backdrop-filter:backdrop-blur-xs" />
         <div
-          data-entry-drawer
+          data-entry-sheet
           className="fixed inset-x-0 bottom-0 flex max-h-[85svh] flex-col overflow-y-auto rounded-t-float bg-popover px-6 pt-3 pb-6 text-sm text-popover-foreground shadow-layer ring-1 ring-foreground/10 outline-none"
         >
           <div className="relative pt-1">{children}</div>

@@ -1,12 +1,12 @@
 /**
- * THE GUEST ALBUM'S ADMIN READS, PAST THE 1,000-ROW CAP (the 1,000-row round, 2026-09-23).
+ * THE GUEST ALBUM'S ADMIN READS, PAST THE 1,000-ROW CAP.
  *
  * PostgREST cuts every read at 1,000 rows with no error, so each read here is proved on the fake
  * PostgREST (`src/lib/db/testing/fake-postgrest.ts`), which clamps exactly where the platform does,
  * with fixtures past 2,000 rows:
  *
- *  - `getApprovedMediaForUnlock` (C8): the unlocked password album, every approved item in the
- *    open album's own order (`created_at desc, id desc`), paged on the composite cursor, a
+ *  - `getApprovedMediaForUnlock`: the unlocked password album, read whole, every approved item in
+ *    the open album's own order (`created_at desc, id desc`), paged on the composite cursor, a
  *    timestamp tie straddling a page boundary included;
  *  - `getUploaderIdentities`: the credits reach every item (the host's album, its review room, its
  *    reel pages and the guest album all read them), through `readAllPages` on `id`;
@@ -30,6 +30,11 @@ const isUnlocked = vi.fn();
 vi.mock("@/lib/events/unlock-cookie", () => ({
   isUnlocked: (...args: unknown[]) => isUnlocked(...args),
 }));
+// The host of the event, as the album's reads ask it (gallery-access-owner.server.test.ts's own).
+const isRequestOwner = vi.fn();
+vi.mock("@/lib/events/gallery-access-owner.server", () => ({
+  isRequestOwner: (...args: unknown[]) => isRequestOwner(...args),
+}));
 vi.mock("@/lib/db/queries/social", () => ({
   getEventGuests: vi.fn().mockResolvedValue({
     verifiedUserIds: [],
@@ -37,6 +42,10 @@ vi.mock("@/lib/db/queries/social", () => ({
   }),
 }));
 vi.mock("@/lib/supabase/avatar-storage", () => ({ getAvatarUrl: vi.fn() }));
+const captureWarning = vi.fn();
+vi.mock("@/lib/observability/sentry", () => ({
+  captureWarning: (...args: unknown[]) => captureWarning(...args),
+}));
 // guest-events.ts (the cursor helpers' home) imports the server client; nothing here reads through
 // it, and its env check would refuse the unit runner.
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
@@ -52,7 +61,9 @@ const {
   getApprovedMediaForUnlock,
   getApprovedPhotoTeaser,
   getGalleryStats,
+  getLiveReelServerFacts,
   getUploaderIdentities,
+  resetLiveReelServerFactsCache,
 } = await import("@/lib/db/queries/guest-events-admin");
 
 const EVENT = "e0000000-0000-4000-8000-000000000001";
@@ -94,6 +105,8 @@ function album(
     width: 320,
     height: 240,
     duration_seconds: null,
+    // Now and then a clip saved to the album (the live reel's `reel_eligible`).
+    reel_eligible: i % 5 !== 4,
     created_at: ties.has(i - 1) ? stamp(i - 1, 250) : stamp(i, 250),
     guest_id: i % 2 === 0 ? `g${i}` : null,
     guests:
@@ -129,10 +142,11 @@ function seed(media: FakeRow[]) {
 
 beforeEach(() => {
   isUnlocked.mockReset();
+  isRequestOwner.mockReset().mockResolvedValue(false);
   seed([]);
 });
 
-describe("getApprovedMediaForUnlock: the unlocked password album, read whole (C8)", () => {
+describe("getApprovedMediaForUnlock: the unlocked password album, read whole", () => {
   it("returns every approved item of more than 2,000 in the open album's order, past the cap", async () => {
     isUnlocked.mockResolvedValue(true);
     // 2,600 rows: every tenth pending and every thirteenth removed, two ties, and another event's
@@ -161,6 +175,11 @@ describe("getApprovedMediaForUnlock: the unlocked password album, read whole (C8
     // The raw timestamp rides every row (the next page's cursor, never a Date).
     expect(rows[0].created_at).toBe(approved[0].created_at);
     expect(rows.at(-1)?.created_at).toMatch(/\.\d{6}\+00:00$/);
+    // The live reel's column rides the unlocked album too, so a password event's clips stay out.
+    expect(rows.map((r) => r.reel_eligible)).toEqual(
+      approved.map((r) => r.reel_eligible),
+    );
+    expect(rows.some((r) => r.reel_eligible === false)).toBe(true);
     // Every page asked for MAX_ROWS, none failed, and each page after the first carried the
     // composite cursor.
     const pages = fake.requests.filter((r) => r.name === "media");
@@ -195,6 +214,21 @@ describe("getApprovedMediaForUnlock: the unlocked password album, read whole (C8
     seed(album(20));
     expect(await getApprovedMediaForUnlock(EVENT)).toEqual([]);
     expect(fake.requests).toHaveLength(0);
+    expect(isRequestOwner).toHaveBeenCalledWith(EVENT);
+  });
+
+  it("★ reads the whole album for its HOST, who never holds the cookie (their own Download all)", async () => {
+    isUnlocked.mockResolvedValue(false);
+    isRequestOwner.mockResolvedValue(true);
+    seed(album(20));
+    expect(await getApprovedMediaForUnlock(EVENT)).toHaveLength(20);
+  });
+
+  it("an unlocked guest never costs an owner check", async () => {
+    isUnlocked.mockResolvedValue(true);
+    seed(album(3));
+    expect(await getApprovedMediaForUnlock(EVENT)).toHaveLength(3);
+    expect(isRequestOwner).not.toHaveBeenCalled();
   });
 });
 
@@ -302,5 +336,82 @@ describe("getApprovedPhotoTeaser: the nine newest photographs, in the album's or
     );
     expect(teaser.rows[0].created_at).toBe(photos[0].created_at);
     expect(teaser.total).toBe(photos.length);
+  });
+});
+
+describe("getLiveReelServerFacts: the lever and the plan behind the live reel", () => {
+  beforeEach(() => {
+    resetLiveReelServerFactsCache();
+    captureWarning.mockReset();
+  });
+
+  function seedFacts(opts: {
+    flag?: boolean | null;
+    tier?: string | null;
+    host?: string | null;
+  }) {
+    fake = createFakePostgrest({
+      tables: {
+        ops_flags:
+          opts.flag === null
+            ? []
+            : [{ key: "live_reel_enabled", enabled: opts.flag ?? true }],
+        events: [{ id: EVENT, host_id: opts.host === undefined ? "host-1" : opts.host }],
+        profiles:
+          opts.tier === null
+            ? []
+            : [{ id: "host-1", tier: opts.tier ?? "pro" }],
+      },
+    });
+  }
+
+  it("reads the lever and the host's plan", async () => {
+    seedFacts({ flag: false, tier: "pro" });
+    expect(await getLiveReelServerFacts(EVENT)).toEqual({
+      liveReelEnabled: false,
+      tier: "pro",
+    });
+  });
+
+  it("reads a genuinely absent lever as the seeded default, on", async () => {
+    seedFacts({ flag: null, tier: "free" });
+    expect(await getLiveReelServerFacts(EVENT)).toEqual({
+      liveReelEnabled: true,
+      tier: "free",
+    });
+  });
+
+  it("maps a legacy tier onto the billing tier (max reads as pro)", async () => {
+    seedFacts({ tier: "max" });
+    expect((await getLiveReelServerFacts(EVENT)).tier).toBe("pro");
+  });
+
+  it("never guesses a plan it could not read: null, reported, and not remembered", async () => {
+    seedFacts({ tier: null });
+    expect(await getLiveReelServerFacts(EVENT)).toEqual({
+      liveReelEnabled: true,
+      tier: null,
+    });
+    expect(captureWarning).toHaveBeenCalledWith(
+      "reel",
+      "live reel: the host's plan could not be read",
+      expect.objectContaining({ eventId: EVENT }),
+    );
+    // The next ask reads again rather than serving the gap for the whole TTL.
+    seedFacts({ tier: "event_pass" });
+    expect((await getLiveReelServerFacts(EVENT)).tier).toBe("event_pass");
+  });
+
+  it("serves a good answer from the cache for half a minute (the poll asks every call)", async () => {
+    seedFacts({ flag: true, tier: "pro" });
+    await getLiveReelServerFacts(EVENT);
+    const reads = fake.requests.length;
+    seedFacts({ flag: false, tier: "free" });
+    expect(await getLiveReelServerFacts(EVENT)).toEqual({
+      liveReelEnabled: true,
+      tier: "pro",
+    });
+    expect(fake.requests.length).toBe(0);
+    expect(reads).toBeGreaterThan(0);
   });
 });
