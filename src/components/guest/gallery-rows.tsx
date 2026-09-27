@@ -96,9 +96,6 @@ export function GalleryRows({
   canDelete,
   arrivedIds,
   landedIds,
-  mineIds,
-  onSelectMine,
-  mineSelected,
 }: {
   items: GridMedia[];
   /** This device's in-flight and held files, drawn FIRST, at the head. */
@@ -126,10 +123,6 @@ export function GalleryRows({
   /** The two arrival marks: another's photograph glows, this device's own sweeps. */
   arrivedIds?: ReadonlySet<string>;
   landedIds?: ReadonlySet<string>;
-  /** THE FOURTH MARK, on a guest's own tiles: the ids, the mark's tap, and whether Yours is on. */
-  mineIds?: ReadonlySet<string>;
-  onSelectMine?: () => void;
-  mineSelected?: boolean;
 }) {
   const likeAction = useLikeAction();
 
@@ -177,9 +170,6 @@ export function GalleryRows({
       canDelete={canDelete}
       arrivedIds={arrivedIds}
       landedIds={landedIds}
-      mineIds={mineIds}
-      onSelectMine={onSelectMine}
-      mineSelected={mineSelected}
       tileActions={tileActions}
       prefix={
         <>

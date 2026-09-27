@@ -34,9 +34,6 @@ export function GuestMasonry({
   arrivedIds,
   landedIds,
   prefix,
-  mineIds,
-  onSelectMine,
-  mineSelected,
 }: {
   items: GridMedia[];
   /**
@@ -50,14 +47,6 @@ export function GuestMasonry({
   arrivedIds?: ReadonlySet<string>;
   landedIds?: ReadonlySet<string>;
   prefix?: ReactNode;
-  /**
-   * THE FOURTH MARK, the one on a guest's own tiles: the ids that are this
-   * guest's own, the mark's tap, and whether the Yours filter is already on.
-   * Straight through to the one grid, like the four above.
-   */
-  mineIds?: ReadonlySet<string>;
-  onSelectMine?: () => void;
-  mineSelected?: boolean;
   /** This device's in-flight and held files, rendered FIRST. */
   pending?: PendingTile[];
   /** The event JOIN url for the lightbox Share button (guest surface only). */
@@ -101,9 +90,6 @@ export function GuestMasonry({
       canDelete={canDelete}
       arrivedIds={arrivedIds}
       landedIds={landedIds}
-      mineIds={mineIds}
-      onSelectMine={onSelectMine}
-      mineSelected={mineSelected}
       tileActions={tileActions}
       prefix={
         <>
