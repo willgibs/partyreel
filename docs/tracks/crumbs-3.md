@@ -1,7 +1,7 @@
 ---
 track: crumbs-3
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "19bd4c39"            # the launch-prep SHA the branch was cut from
+cut: "a1c8f89e"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/components/lab/dock.tsx
@@ -17,7 +17,6 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/guest/guest-share.tsx
   - content/help/find-your-uploads-and-events.mdx
   - content/help/how-guests-join-and-upload.mdx
-  - .prettierignore
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/guest-flow.md
   - docs/systems/marketing-content.md
@@ -27,7 +26,7 @@ reads:                  # single-sources you depend on: never duplicate, never e
 
 # lp/crumbs-3
 
-**Goal.** Seven small leftovers from batch 4 and build 11's red-team, none a design decision: the lab dock's prefetch 404s, the door lamp's sampler walking past colourless previews, the teaser's loop paused under the open player, two copy nits, two help pages told the keep and the told name, two lab trap lines, and one prettier ignore.
+**Goal.** Six small leftovers from batch 4 and build 11's red-team, none a design decision: the lab dock's prefetch 404s, the door lamp's sampler walking past colourless previews, the teaser's loop paused under the open player, two copy nits, two help pages told the keep and the told name, and two lab trap lines.
 
 ## The brief
 
@@ -44,8 +43,6 @@ Each is small and independent; build each as a working version, and list anythin
 5. **Two help pages told the door's keep and the told name** (ROADMAP, Help, from `guest-door`): `content/help/find-your-uploads-and-events.mdx` and `how-guests-join-and-upload.mdx` still call the keep a card under the first upload; it is the door's last screen after her first file lands (Maybe later puts it down for that event on that device), and a name typed at the door becomes the account's ("You're on as ...", with a Change). `guest-flow.md` is the truth. Leave `a-photo-is-missing-from-the-album` alone (it follows `host-curation`'s open `told`).
 
 6. **Two lab trap lines** (ROADMAP, The lab): in `src/components/lab/traps.ts`, in its own grammar: the door's "You're in" is a held beat of about a second (`use-success-hold.ts`), never a place for a button (two boards drew one there); and the lab's utilities compile into a sublayer (`utilities.lab`) that loses to production's own layer, so a lab-only variant paired with a production class on one property silently loses (`hidden lg:contents` stayed hidden at 1440; `sm:max-w-md` beside production's `max-w-[calc(100%-2rem)]` drew a 1408px dialog).
-
-7. **`.prettierignore` gains `src/app/(dev)/design/gallery/specimens.generated.json`** (ROADMAP, Code hygiene, from `reel-marketing`): `pnpm format` re-flows the collector's output into a thousand lines of churn.
 
 In the Handoff, name the ROADMAP lines each item closes (the Orchestrator retires them). Verify: the four new boards (`/design/lab/popups`, `identity-door`, `identity-claims`, `reel-story`) load with no console error on your dev server; the door's lamp on an album whose newest previews are grey; the teaser's loop paused while the player is open; `pnpm lab:smoke` whole.
 
