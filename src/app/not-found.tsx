@@ -67,9 +67,10 @@ export default function NotFound() {
         </Trail>
       </main>
       {/* Renders outside (marketing), so marketing.css and [data-mkt] are both
-          absent: the seam glow and the photo-stack fan simply do not fire here.
-          The footer needs no prop for that any more, because nothing in it is
-          collapsed by default. */}
+          absent: the demo pile stands at rest with no hover fan (its box and
+          rest pose ride the component), and the seam glow, which is
+          globals.css's, lights as it does on every page. The footer needs no
+          prop for either, because nothing in it is collapsed by default. */}
       <MarketingFooter />
     </div>
   );

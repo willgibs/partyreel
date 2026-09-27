@@ -2,10 +2,9 @@
  * The bare learn-more-hover chevron (24-learn-more-hover, marketing.css chapter
  * 2): arms spread into an arrow while the glyph slides, keyed off an ANCESTOR
  * carrying .mkt-learn — so it can sit inside a card/row Link where nesting
- * LearnMoreLink (its own <Link>) would be invalid HTML. Same markup DemoCtaLink
- * and LearnMoreLink ship inline; new paper surfaces compose this instead of
- * re-duplicating the SVG. (Folding the existing inline copies onto this atom is
- * a one-move cleanup left to the owning tracks.)
+ * LearnMoreLink (its own <Link>) would be invalid HTML. The one copy of the
+ * markup: LearnMoreLink and DemoCtaLink compose it too, so a surface never
+ * re-duplicates the SVG.
  */
 export function LearnChevron() {
   return (

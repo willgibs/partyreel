@@ -14,7 +14,12 @@ import { describe, expect, it } from "vitest";
  *  - THE RIVER TAKING FOCUS. It is twelve photographs in flight behind the
  *    promise; announced or focusable it would be twelve unlabelled images
  *    between a heading and its button.
- *  - A REEL THAT LOADS BEFORE ANYONE ASKED. The player is poster-first.
+ *  - A REEL THAT MOVES OR LOADS BEFORE ANYONE ASKED. The twin beside the door
+ *    is a still (`reel-story` r2 `wall=pair`: "the motion in both cancels each
+ *    other out, and I prefer the river"), and its film costs nothing until a
+ *    press opens the contained player. It was a poster-first player in the
+ *    column until then; the rule it kept is the bytes, the one it gained is the
+ *    stillness.
  *
  * How the door looks (its columns, its gradient, the poster's size) is the
  * Library's to show.
@@ -64,8 +69,21 @@ describe("the events door proof", () => {
     expect(beforeRiver).not.toContain("<button");
   });
 
-  it("shows the reel as a poster, with no bytes until a tap", () => {
-    expect(source).toContain("InlineReelPlayer");
-    expect(source).not.toContain("autoStart");
+  it("keeps the reel's twin still, with no film until a press", () => {
+    const code = source.replace(/\/\*[\s\S]*?\*\//g, "");
+    // Nothing in the section plays by itself: no player, no loop, no video.
+    for (const moving of [
+      "<video",
+      "InlineReelPlayer",
+      "AmbientReelVideo",
+      "LiveReelPlayer",
+      "autoPlay",
+      "autoStart",
+    ]) {
+      expect(code, `${moving} in the proof section`).not.toContain(moving);
+    }
+    // The film arrives only through the contained player, opened on a press.
+    expect(code).toContain("useReelPlayer");
+    expect(code).toMatch(/onClick=\{\(e\) => open\(e\.currentTarget\)\}/);
   });
 });
