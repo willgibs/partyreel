@@ -573,10 +573,10 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
-  "identity-door",
   "popups",
-  "reel-story",
+  "identity-door",
   "identity-claims",
+  "reel-story",
   "guest-capture",
   "voice-guest",
   "host-curation",
