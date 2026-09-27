@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Fingerprint } from "lucide-react";
 
 import {
+  CODE_SCREEN_TITLE,
+  codeSentLine,
   EmailSignIn,
   type BeforeSend,
   type DoorVerified,
@@ -11,6 +13,7 @@ import {
 import { FailurePaths } from "@/components/auth/failure-paths";
 import { GoogleIcon } from "@/components/auth/google-icon";
 import { SetInitialPassword, SignIn } from "@/components/auth/password-sign-in";
+import { DoorHeading, type DoorHead } from "@/components/guest/door/heading";
 import { LegalConsentLine } from "@/components/shared/legal-consent-line";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -174,6 +177,7 @@ export function AccountDoor({
   buttonSize,
   leading,
   beforeSend,
+  head,
   className,
   children,
 }: {
@@ -215,6 +219,15 @@ export function AccountDoor({
   leading?: React.ReactNode;
   /** The surface's say before the code is sent (see `BeforeSend`). */
   beforeSend?: BeforeSend;
+  /**
+   * A guest door's own heading (the door's one heading scale, `door/heading.tsx`), drawn here so
+   * the code screen can take its place: "Check your email" heads every code screen (`identity-door`
+   * r3, Will's `code=mail`), keeping the heading's eyebrow (the gate's "Almost in" is still the
+   * gate). The surface names its dialog with the same words, so the resting heading is hidden from
+   * assistive tech and the code's is not. With `chrome="full"` the wear's own centred heading
+   * swaps the same way (the host's `/login`).
+   */
+  head?: DoorHead;
   className?: string;
   /**
    * One extra control, under the field and above the divider. The offer card's
@@ -228,9 +241,13 @@ export function AccountDoor({
   const [failure, setFailure] = useState<DoorFailureKind | null>(
     initialFailure,
   );
-  // True while six digits are being typed: the ladder under the field steps
-  // aside, because a Google button beside a code screen is a way to lose the code.
-  const [coding, setCoding] = useState(false);
+  // The address a code went to, while six digits are being typed: the ladder under the field steps
+  // aside, because a Google button beside a code screen is a way to lose the code, and the heading
+  // becomes "Check your email" over that address.
+  const [sentTo, setSentTo] = useState<string | null>(null);
+  const coding = sentTo !== null;
+  // The code heading's sentence describes the code field (where the code went).
+  const codeLineId = useId();
   const [hint, setHint] = useState<string | undefined>(hintEmail);
   const [hintMethod, setHintMethod] = useState<string | null>(null);
   const [passkeyReady, setPasskeyReady] = useState(false);
@@ -532,7 +549,11 @@ export function AccountDoor({
           // guest wear hands focus to the code field only from a field that held it. `/login`, a
           // host at a desk more often than not, keeps focusing it.
           codeFocus={wear === "login" ? "always" : "follow"}
-          sentAt={(email) => setCoding(Boolean(email))}
+          sentAt={setSentTo}
+          // The code screen reads the way its heading does: centred under `/login`'s, from the left
+          // under a guest door's.
+          align={chrome === "full" ? "center" : "start"}
+          codeDescribedBy={codeLineId}
           onVerified={handleVerified}
         />
         {/* The ladder under the field disappears while a code is being typed. */}
@@ -571,16 +592,40 @@ export function AccountDoor({
     );
   };
 
+  /* ★ "CHECK YOUR EMAIL" HEADS EVERY CODE SCREEN (`identity-door` r3, Will's `code=mail`), by
+     construction: while a code is out, the heading above the slots is the code's (where to look,
+     then the address), whether the surface handed the door its heading or not. The surface's
+     eyebrow stays, because a gate is still the gate; its title and reason come back with "Use a
+     different email". */
+  const doorHead =
+    chrome === "full" || step.k === "passkey" ? null : sentTo !== null ? (
+      <DoorHeading
+        key="code"
+        eyebrow={head?.eyebrow}
+        title={CODE_SCREEN_TITLE}
+        reason={codeSentLine(sentTo)}
+        reasonId={codeLineId}
+      />
+    ) : head ? (
+      <DoorHeading key="head" {...head} hidden />
+    ) : null;
+
   return (
     <div data-account-door={wear} className={cn("space-y-4", className)}>
       {chrome === "full" && step.k !== "existing" && step.k !== "passkey" && (
         <div className="space-y-1.5 text-center">
           <p className="font-heading text-subsection text-balance">
-            {copy.heading}
+            {coding ? CODE_SCREEN_TITLE : copy.heading}
           </p>
-          <p className="text-sm text-muted-foreground">{copy.reason}</p>
+          <p
+            id={coding ? codeLineId : undefined}
+            className="text-sm text-muted-foreground"
+          >
+            {sentTo !== null ? codeSentLine(sentTo) : copy.reason}
+          </p>
         </div>
       )}
+      {doorHead}
       {body()}
       {consent && (
         <LegalConsentLine

@@ -4,7 +4,7 @@ import { defineExploration } from "@/components/lab/exploration";
 /**
  * GETTING EVERYTHING OUT, ROUND ONE (2026-09-19; reshaped by the overtaken
  * audit, 2026-09-21; a genuine third added to every binary, boards refresh,
- * 2026-09-24).
+ * 2026-09-24; `object` retired at its answer, desk-trim, 2026-09-27).
  *
  * Will (2026-09-19): the app and the guest pages are unprotected, "absolutely
  * everything is up for relitigation or reconcepting from the ground up".
@@ -16,7 +16,7 @@ import { defineExploration } from "@/components/lab/exploration";
  * the dialog; from there the browser's own download UI is the only thing that
  * knows anything. So a mint that never answers spins forever, a zip that comes
  * back with nothing in it says nothing, and a phone that puts the file
- * somewhere is never named. Three of the seven decisions are that one gap.
+ * somewhere is never named. Three of the six decisions are that one gap.
  *
  * ★ THE PHONE LEADS. A guest at a party is holding one, and the guest half of
  * this flow has never been designed for anything else: 375 is the default on
@@ -43,6 +43,13 @@ import { defineExploration } from "@/components/lab/exploration";
  * door, none of them the option the hard requirement above dropped: a quiet
  * retry, an offer to finish the job, an automatic trim, and a popover in place
  * of the sheet.
+ *
+ * ★ `object` RETIRES (desk-trim, 2026-09-27): Will's `popups` r1 answer
+ * (`choices=menu`, "a row is the act") is this board's own `object` ask
+ * settled with its own `menu` option, now built (`export-dialog.tsx` on
+ * `ui/responsive-menu.tsx`). The ask and its three drawings leave the board;
+ * `phone`, the one ask that read its answer, no longer stages behind it and
+ * is grounded in the shipped menu in its place.
  *
  * ★ WHAT IS DELIBERATELY NOT ASKED. No option re-encodes a byte or touches the
  * originals invariant (metadata is stripped at upload, never here). The bulk
@@ -276,41 +283,6 @@ const DRAFT = defineExploration({
       configs: [SCREEN, ALBUM, WHO],
     },
     {
-      id: "object",
-      label: "Whether it opens at all",
-      question: "Should Download open a sheet of bundles, or simply start?",
-      context:
-        "Download album offers a zip of the originals. The album's own address and its copy button now sit on the event page twice over, so this sheet no longer has to lead with the promise that it outlives a copy.",
-      options: [
-        {
-          id: "zip",
-          label: "The sheet of bundles, as today",
-          means:
-            "Pick a bundle, get a file. The chips, the size, the host's hidden switch and the wait all keep the one home they have.",
-        },
-        {
-          id: "straight",
-          label: "No sheet: it just starts",
-          means:
-            "Download takes everything immediately. Anyone who wants less uses select mode, where the chips would have to live.",
-        },
-        {
-          id: "menu",
-          label: "A short menu, not a full sheet",
-          means:
-            "A small popover under Download: the same chips, size and button, anchored rather than taking over the screen.",
-        },
-      ],
-      recommended: "zip",
-      because:
-        "Everything else this board decides lives on that surface: the bundles, the chip that says why, the number before the limit bites, and the only place a hollow file or a hung mint could ever be said. Starting straight away has to find all four another home.",
-      overrule:
-        "If a sheet is heavier than a handful of chips and a button deserve, the popover keeps the same content without the takeover.",
-      lands:
-        "Whether Download opens a surface at all, and how much of the screen that surface is allowed to take.",
-      configs: [SCREEN, ALBUM, WHO],
-    },
-    {
       id: "phone",
       label: "Where the file lands",
       question:
@@ -344,7 +316,9 @@ const DRAFT = defineExploration({
         "If holding every file in memory before the sheet opens is too slow on a party network, the zip alone is the safe default and Photos becomes the special case.",
       lands:
         "Whether a phone's bulk download ever reaches the native Photos library, or stays inside Files.",
-      after: { ask: "object" },
+      // No longer staged behind `object` (desk-trim, 2026-09-27): that ask
+      // retired once `popups` settled it as `menu`, so this ask's own ground
+      // is now that shipped menu rather than a live answer to wait on.
       // No screen knob: this one is only ever a phone, so the tile IS that column.
       tile: "phone",
       configs: [ALBUM],

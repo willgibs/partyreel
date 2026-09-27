@@ -32,6 +32,21 @@ export type DismissMode = "free" | "held";
  */
 
 /**
+ * THE DOOR'S SHEET, ITS PADDING AND POSTURE, worn by the held door and by every sheet of the door's
+ * family that opens over the album (the confirm, add and change sheets, the like door), so one
+ * guest meets one door. The panel runs to its own edges, so the padding the step content was
+ * written for lives here rather than in the primitive (the same division GuestShare's body makes).
+ * On a phone the foot keeps clear of the home indicator while the keyboard is down. While it is up
+ * (`data-keyboard`, the Sheet's own) the keyboard covers that inset: `open` hands the bottom space
+ * to the sticky primary, which carries its own 16px, and a screen with no sticky primary (the code
+ * screen: the sixth digit sends it) keeps those same 16px itself, or its last line would sit on the
+ * keyboard's edge (ROADMAP's line, measured about 6px off it); `tight` (a landscape phone's thin
+ * band) keeps just enough padding for the field.
+ */
+export const DOOR_SHEET =
+  "gap-0 overflow-y-auto overscroll-contain p-6 text-sm outline-none data-[keyboard=open]:pb-0 data-[keyboard=open]:not-has-[[data-sheet-primary]]:pb-4 data-[keyboard=tight]:py-2 max-sm:pt-5 max-sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))]";
+
+/**
  * THE DOOR'S SHELL: the ONE product Sheet (`SheetContent responsive`) at both
  * widths, a bottom sheet in a hand and a full-height panel from the right edge
  * at a desk, with no centred float anywhere. Anchored to an edge rather than
@@ -104,14 +119,7 @@ export function EntryShell({
         // Never yank focus to a fallback target over the freshly revealed
         // gallery when the sheet closes (there is no trigger to return to).
         onCloseAutoFocus={(e) => e.preventDefault()}
-        // The panel runs to its own edges, so the padding the step content was
-        // written for lives here rather than in the primitive (the same division
-        // GuestShare's body makes). On a phone the foot keeps clear of the home
-        // indicator while the keyboard is down. While it is up (`data-keyboard`,
-        // the Sheet's own) the keyboard covers that inset: `open` hands the
-        // bottom space to the sticky foot, which carries its own, and `tight` (a
-        // landscape phone's thin band) keeps just enough padding for the field.
-        className="gap-0 overflow-y-auto overscroll-contain p-6 text-sm outline-none data-[keyboard=open]:pb-0 data-[keyboard=tight]:py-2 max-sm:pt-5 max-sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
+        className={DOOR_SHEET}
         data-door-lit=""
       >
         <DoorLamp edge="free" strength={lamp} />

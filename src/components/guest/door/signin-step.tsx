@@ -32,15 +32,11 @@ export function SigninStep({
       : `/auth/callback?next=/e/${qrToken}`;
 
   return (
-    <div data-signin-step className="flex flex-col gap-4">
-      {/* For the eye; the shell announces the same two sentences as the sheet's name. */}
-      <div aria-hidden>
-        <p className="font-heading text-page text-balance">{copy.title}</p>
-        <p className="mt-2 text-base leading-relaxed text-muted-foreground">
-          {copy.reason}
-        </p>
-      </div>
+    <div data-signin-step>
       <AccountDoor
+        // The door draws the heading, so the code screen can head itself "Check your email" in its
+        // place (`code=mail`); the shell announces the same two sentences as the sheet's name.
+        head={{ title: copy.title, reason: copy.reason }}
         wear="signin"
         methods={{ code: true, google: true, password: true }}
         emailRedirectTo={emailRedirectTo}

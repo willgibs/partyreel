@@ -30,6 +30,7 @@ import {
   type UploadFailure,
 } from "@/components/guest/upload/failure-sheet";
 import type { Pick } from "@/components/guest/upload/review-step";
+import { DoorHeading } from "@/components/guest/door/heading";
 import { Button } from "@/components/ui/button";
 import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
@@ -47,7 +48,12 @@ import type { QueueItem } from "@/lib/guest/use-upload-queue";
  *   retry     transport, R2, a bad key, a failed completion: the same file may well go next time.
  *   choose    the file itself is the problem, so only a different file can help.
  */
-export type RefusalClass = "refresh" | "session" | "verify" | "retry" | "choose";
+export type RefusalClass =
+  | "refresh"
+  | "session"
+  | "verify"
+  | "retry"
+  | "choose";
 
 export function classifyRefusal(code: string | undefined): RefusalClass {
   switch (code) {
@@ -146,11 +152,8 @@ export function UploadStep({
   if (sending) {
     return (
       <div data-upload-step="sending" className="flex flex-col gap-4 pt-1">
-        <div aria-hidden>
-          <p className="font-heading text-page text-balance">
-            Sending your photos
-          </p>
-        </div>
+        {/* The step's own views change in place, so their headings reveal (the text reveal). */}
+        <DoorHeading title="Sending your photos" hidden />
         <ul className="flex flex-col gap-3">
           {queue
             .filter((it) => it.status !== "error")
@@ -182,22 +185,23 @@ export function UploadStep({
   if (showFailures) {
     return (
       <div data-upload-step="failed" className="flex flex-col gap-4 pt-1">
-        <div aria-hidden>
-          <p className="font-heading text-page text-balance">
-            {stuck
+        <DoorHeading
+          hidden
+          title={
+            stuck
               ? // The server's own sentence is the heading here: "This album is full right now"
                 // says more than a count of files ever could.
                 (failures[0]?.error ?? "That did not go")
-              : uploadFailureHeading(failures.length)}
-          </p>
-          {!stuck && (
-            <p className="mt-2 text-base leading-relaxed text-muted-foreground">
-              {verdict === "choose"
+              : uploadFailureHeading(failures.length)
+          }
+          reason={
+            stuck
+              ? undefined
+              : verdict === "choose"
                 ? uploadStepChooseAgain(requireUpload)
-                : "Give it one more go."}
-            </p>
-          )}
-        </div>
+                : "Give it one more go."
+          }
+        />
         {/* THE FAILURE VIEW NEVER CARRIES THE SOFT SKIP. A guest here has tried; the way out is
             the server's, or another photograph. */}
         {stuck ? (
@@ -236,17 +240,20 @@ export function UploadStep({
     <div data-upload-step="pick" className="flex flex-col gap-4 pt-1">
       {/* The shell carries these as its sr-only name and description, so the eye reads them here
           and a screen reader does not hear them twice (the name step's own division). */}
-      <div aria-hidden>
-        {/* The step's own heading, not the album sheet's: "Add photos" is a BUTTON's words on a
-            surface a guest opened; this is the door asking, so it asks for theirs. The review
-            heading ("Send this one?") is shared, because that question is the same question. */}
-        <p className="font-heading text-page text-balance">
-          {heading.reviewing ? heading.title : "Add your photos"}
-        </p>
-        <p className="mt-2 text-base leading-relaxed text-muted-foreground">
-          {heading.reviewing ? heading.description : uploadStepReason({ isDemo, requireUpload, albumEmpty })}
-        </p>
-      </div>
+      {/* The step's own heading, not the album sheet's: "Add photos" is a BUTTON's words on a
+          surface a guest opened; this is the door asking, so it asks for theirs. The review
+          heading ("Send this one?") is shared, because that question is the same question. Keyed
+          by which it is, so the review's question reveals in place when a pick comes back. */}
+      <DoorHeading
+        key={heading.reviewing ? "review" : "pick"}
+        hidden
+        title={heading.reviewing ? heading.title : "Add your photos"}
+        reason={
+          heading.reviewing
+            ? heading.description
+            : uploadStepReason({ isDemo, requireUpload, albumEmpty })
+        }
+      />
       <UploadIntentBody
         picks={picks}
         onPicks={setPicks}

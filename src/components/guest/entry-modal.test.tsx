@@ -262,11 +262,37 @@ describe("the chooser: how a guest comes in on a name-only event", () => {
     const chooser = baseElement.querySelector<HTMLElement>(
       "[data-door-chooser]",
     )!;
+    // By their accessible names: each button's small line is its description, not its name.
     expect(
       within(chooser)
         .getAllByRole("button")
-        .map((b) => b.textContent),
+        .map((b) => b.getAttribute("aria-label")),
     ).toEqual(["Continue as guest", "Create account", "Log in"]);
+  });
+
+  /* ★ EACH WAY IN SAYS WHAT IT GIVES (`identity-door` r3, Will's `chooser=told`): the sentence over
+     the three is gone, and each button carries its own small line, read after its name. */
+  it("each way in carries its own line, and the sentence over them is gone", () => {
+    seeWelcome();
+    const { baseElement } = renderModal();
+    const chooser = baseElement.querySelector<HTMLElement>(
+      "[data-door-chooser]",
+    )!;
+    const way = (name: string) => within(chooser).getByRole("button", { name });
+    expect(way("Continue as guest")).toHaveAccessibleDescription(
+      "Just your name",
+    );
+    expect(way("Create account")).toHaveAccessibleDescription(
+      "Every photo you add stays with you",
+    );
+    expect(way("Log in")).toHaveAccessibleDescription(
+      "The photos you add join your account",
+    );
+    expect(
+      within(chooser).queryByText(
+        "A name is all it takes. With an account, every photo you add stays with you.",
+      ),
+    ).toBeNull();
   });
 
   it("Continue as guest is the name step, the email a closed ghost line under it", () => {
@@ -765,10 +791,9 @@ describe("the name step (Continue as guest)", () => {
       expect(screen.getByText("Check that email address.")).toBeInTheDocument(),
     );
     expect(global.fetch).not.toHaveBeenCalled();
-    // The name's own hint is untouched: each refusal sits under its question.
-    expect(
-      screen.getByText("Just a name. Nobody has to prove a name."),
-    ).toBeInTheDocument();
+    // The name's own hint is untouched: each refusal sits under its question. (The hint's words
+    // moved with `hint=change`, identity-door r3; the pin is the untouched slot, as it was.)
+    expect(screen.getByText("You can change it anytime.")).toBeInTheDocument();
   });
 
   // The row is the truth: a verified-required event and a confirmed session
@@ -1301,5 +1326,53 @@ describe("the door's light", () => {
         .querySelector("[data-door-lamp]")
         ?.getAttribute("data-door-lamp"),
     ).toBe("bloom");
+  });
+
+  /* ★ THE BEAT IN THE ALBUM'S LIGHT (`identity-door` r3, Will's `beat=lit`, overruling `hers`):
+     "You're in" leads with the lit check, never the success green's disc, and it arrives IN PLACE
+     (its own check and words are its entrance, so no side-by-side slide stacks on them). */
+  it("'You're in' leads with the lit check and arrives in place", async () => {
+    seeWelcome();
+    renderModal({ ...VERIFY_EVENT, storedName: "Priya" });
+    fireEvent.click(screen.getByTestId("stub-verify"));
+    await waitFor(() =>
+      expect(screen.getByText("You’re in")).toBeInTheDocument(),
+    );
+    const beat = document.querySelector('[data-door-beat="in"]');
+    expect(beat?.querySelector('[data-door-check="mark"]')).not.toBeNull();
+    expect(beat?.closest("[data-entry-step]")).toHaveAttribute(
+      "data-dir",
+      "place",
+    );
+  });
+
+  /* ★ THE PROMISES STAND IN THE ALBUM'S LIGHT (`icons=lit`): each of the welcome's rows leads with a
+     pool of one of the lamp's hues, in turn. */
+  it("the welcome's promises lead with pools of the lamp's hues", () => {
+    renderModal({ mediaTotal: 48 });
+    const pools = [...document.querySelectorAll("[data-door-pool]")];
+    expect(pools.map((p) => p.getAttribute("data-door-pool"))).toEqual([
+      "1",
+      "2",
+    ]);
+  });
+});
+
+/* ★ THE LINE UNDER HER NAME (`identity-door` r3, Will's `hint=change`): "You can change it
+   anytime." where she is asked for a name, and nothing on the door that changes one. */
+describe("the line under her name", () => {
+  it("joining says she can change it anytime; Change name says nothing", () => {
+    atNameStep();
+    expect(screen.getByLabelText("Your name")).toHaveAccessibleDescription(
+      "You can change it anytime.",
+    );
+    cleanup();
+    seeWelcome();
+    const { ref } = renderModal({ storedName: "Priya", returning: true });
+    act(() => ref.current!.openToName("edit"));
+    expect(
+      screen.getByLabelText("Your name"),
+    ).not.toHaveAccessibleDescription();
+    expect(screen.queryByText("You can change it anytime.")).toBeNull();
   });
 });
