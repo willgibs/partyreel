@@ -22,8 +22,8 @@ const NEWEST = 3;
  *
  * ★ PREVIEWS, NEVER ORIGINALS (`sampled-palette.ts`'s own rule): the URL form decodes CORS-clean
  * with `no-store`, so it samples presigned R2 media, and the ~16KB preview is the only thing worth
- * fetching to read 32px of. An item with no link yet (the manifest's placeholders) is skipped; a
- * video offers its poster preview or nothing.
+ * fetching to read 32px of. An item with no link yet (the manifest's placeholders) is skipped, and
+ * so is one with no preview; a video offers its poster preview or nothing.
  *
  * ★ SAMPLED ONLY WHILE A LAMP IS LIT, and only when the newest three CHANGE: the album keeps
  * arriving all night, and a light nobody is looking at is not worth three previews an arrival. The
@@ -37,12 +37,14 @@ export function AlbumLightSampler() {
   const lit = useAnyLampLit();
   const items = live?.items;
 
-  // The newest three with a preview (or a photo's own link): ids and urls, the urls read when the
-  // ids were first seen, so a link re-minted under the same photographs does not re-sample.
+  // The newest three with a preview: ids and urls, the urls read when the ids were first seen, so a
+  // link re-minted under the same photographs does not re-sample. An item with no preview (a row
+  // from before previews, a video with no poster) is passed over rather than sampled from its
+  // original, the full-resolution file `sampled-palette.ts` warns against.
   const newest = useMemo(() => {
     const picked: { id: string; src: string }[] = [];
     for (const item of items ?? []) {
-      const src = item.previewUrl || (item.type === "photo" ? item.url : "");
+      const src = item.previewUrl;
       if (!src) continue;
       picked.push({ id: item.id, src });
       if (picked.length === NEWEST) break;

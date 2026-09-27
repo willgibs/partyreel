@@ -78,7 +78,8 @@ export function useLampLit() {
     lit += 1;
     emit(litListeners);
     return () => {
-      lit -= 1;
+      // Never below none (a reset between two mounts must not leave the next lamp unlit).
+      lit = Math.max(0, lit - 1);
       emit(litListeners);
     };
   }, []);
