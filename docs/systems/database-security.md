@@ -54,7 +54,9 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
     authorize it and `user_id is null` guards against theft.
   - ★ **The claim by address never takes an address.** The three `*_guest_rows_by_email` functions key on the
     caller's own CONFIRMED address, read from `auth.users` under definer privilege, so nothing can answer "is this
-    address a Partyreel guest?", and an unconfirmed caller gets an empty set even for their own address.
+    address a Partyreel guest?", and an unconfirmed caller gets an empty set even for their own address. Its answer is
+    the allow-list: names, counts, the event's door and up to four of the row's own approved preview keys from an open
+    album, never the album's link (a claim's follow-up read gives that, for an event the caller is now a guest of).
   - **A like is only as visible as its media.** `like_media` accepts media the caller can see, and `like_many`
     (authenticated, SECURITY INVOKER, at most 2,000 ids a call) sends each id through it, so `like_media` stays the
     only insert; `get_my_likes` re-applies that predicate, so a like on media that has since closed never presigns.

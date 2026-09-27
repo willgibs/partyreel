@@ -1,7 +1,7 @@
 # Host app: dashboard, events, QR and print, the event page, moderation
 
 Open this before you:
-- change the dashboard (its bands, the events list, the Guest cards, the claim ticket);
+- change the dashboard (its bands, the events list, the Guest cards, the claims review);
 - change how an event is created or an event setting;
 - change the QR designer, a code's size or the print sheet;
 - touch the custom event link;
@@ -45,14 +45,23 @@ has no filter chips and no personal feeds (those are the profile's owner mode, [
   (`viewer-day.ts`); "N today", "an event dated tomorrow", the Event Pass expiry and the grace deadline
   (`format/date-in-zone.ts`) all read it. The zone is used only to render and is never stored or logged, so no privacy
   text changes for it.
-- **The claim ticket** appears when `getMyClaimableGuestRows()` finds rows typed under the account's own CONFIRMED email
-  at a names-mode door before that email was proved: per event, Claim or Not mine, then Finish, which removes whatever
-  is unclaimed under a named confirmation (`claims-actions.ts` → `claim_guest_rows_by_email`,
-  `disown_guest_rows_by_email`), since that is the guest saying those uploads were not theirs. An unclaimed name leaves
-  the guest list and the Guests room with its uploads, and the empty guest row survives for the device that minted it.
-  A nameless profile meets the name gate first ([auth-accounts.md](auth-accounts.md)), prefilled from the newest
-  claimable row's typed name. A Finish that added photos says so with a second line pointing at the page, and once no
-  claim waits the page setup's invitation takes the ticket's place ([profiles-social.md](profiles-social.md)).
+- **The claims review** appears when `getMyClaimableGuestRows()` finds rows typed under the account's own CONFIRMED
+  email at a names-mode door before that email was proved: one banner line above the events with Review, which opens
+  the list kind (`claims-review.tsx`: a side panel at a desk, its own screen in a hand) and goes through them one event
+  at a time (`claims-card.tsx`), each with up to four of its own approved photographs from an open album, presigned on
+  the server (a password or private album shows a lock and the count). Every decision is written as it is made, one
+  event a call (`claims-actions.ts`): Claim through `claim_guest_rows_by_email`, Not mine through
+  `disown_guest_rows_by_email` once its confirm dialog at the card says Delete, since that is the guest saying those
+  uploads were not theirs; an event she never reaches waits, and the banner counts it. ★ An answer names its card, a
+  card waits for its write, and an arriving card holds its answers 250 ms, so a double tap never claims the next event
+  (`claims-batch.ts`). ★ The album link never rides the list (a Not mine is an event she was never at): a claimed row's
+  Open album and quieter Follow come from the claim's own follow-up read (`getClaimedEventNext`), for an event she is
+  now a guest of. The writes never revalidate; the review refreshes the page behind itself as each lands and keeps its
+  own account of her decisions. A disowned name leaves the guest list and the Guests room with its uploads, and the
+  empty guest row survives for the device that minted it. A nameless profile meets the name gate first
+  ([auth-accounts.md](auth-accounts.md)), prefilled from the newest claimable row's typed name. One toast as the review
+  closes counts what that opening added, its second line pointing at the page unless the page setup's invitation is
+  about to take the banner's place ([profiles-social.md](profiles-social.md)): one pointer a beat.
 
 ## Events and the create flow
 

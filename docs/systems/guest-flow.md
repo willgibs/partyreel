@@ -84,7 +84,8 @@ your uploads to your account." alone when only other events moved. The (app) lay
 whenever uploads moved.
 
 ★ The follow moment
-offers the HOST alone: the other guests already carry their own Follow on each handled chip
+offers the HOST alone, with the quieter Follow (`FollowButton`'s `quiet`, a small ghost button: his "Follow doesn't
+have to be pushed as hard"): the other guests already carry their own Follow on each handled chip
 ([`guest-list.tsx`](../../src/components/social/guest-list.tsx)), and a second copy would be one list twice
 on one screen. Its card is `getHostCard(eventId)` from the page RSC; no card means no host row, never a
 stub.
@@ -325,7 +326,7 @@ the presign would refuse. An unreachable `get_upload_gate` resolves to `{contrib
 with a captured warning, which opens the album. ★ **OWN DELETES CLOSE IT**: an upload counts whatever the host
 does to it (pending, approved, hidden, or removed by
 the host, an admin or the system: a door that re-closed on the host's curation would leak it to the guest), and
-stops counting once the guest removes it themselves (`removed_by_uploader`, a disown at the claim ticket included).
+stops counting once the guest removes it themselves (`removed_by_uploader`, a Not mine in the claims review included).
 So a guest who uploads, looks and deletes has not contributed, and the door is theirs again. The EMPTY album still
 holds the gate (no count condition), and the host never meets it. `require_upload_to_view` is OFF by default and
 free on every tier.
@@ -596,13 +597,14 @@ asked, credits nobody.
    (a mark that changed would announce that an address exists). Only the guest's own menu says "Email not
    confirmed". A member's address is accepted like any other, so there is no enumeration oracle
    (→ [auth-accounts.md](auth-accounts.md)). Once confirmed, the address claims its rows from the
-   dashboard's claim ticket; what it leaves unclaimed is removed (→ [host-app.md](host-app.md)).
+   dashboard's claims review, one event at a time; what she says was not hers is removed once she confirms it, and
+   what she never reaches waits (→ [host-app.md](host-app.md)).
 3. **A confirmed account**, the only identity that uploads as itself.
 
 One gap is accepted. On a names-mode event anyone can type any name and any unproven address. An unconfirmed
 address is inert (never shown to the host, never attributed, never mailed), so a false one borrows nobody's
 identity; a host facing a risky crowd turns on a password, Require verified emails or moderation, and an
-address's owner disowns what was not theirs at Finish.
+address's owner disowns what was not theirs in the claims review.
 
 The address is ONE optional field under the name, in `join` mode only: "Email (optional)", the benefit line
 "Come back to this album anytime, with every photo you add.", unfocused and never prefilled (the name's
