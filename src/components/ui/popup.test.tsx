@@ -7,6 +7,7 @@
  * by the phone's own Back and leaves no dead history entry behind. How any shape looks is the
  * contract's (`floating-layer.ts`) and the Library's.
  */
+import { useState } from "react"
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 
@@ -165,6 +166,36 @@ describe("where focus lands when it opens", () => {
     const { panel } = mount("settings", { routed: true })
     expect(screen.getByLabelText("Reason")).not.toHaveFocus()
     expect(panel()).toHaveFocus()
+  })
+})
+
+describe("where focus goes back to when it closes", () => {
+  it("a popup opened by something other than its trigger gives focus back to that control", async () => {
+    // A menu's row, a toast's action, a switch: Radix gives focus back to the
+    // trigger, and a popup with none would drop it on the page.
+    function Opener() {
+      const [open, setOpen] = useState(false)
+      return (
+        <>
+          <button type="button" onClick={() => setOpen(true)}>
+            More options
+          </button>
+          <Popup open={open} onOpenChange={setOpen}>
+            <PopupContent kind="confirm" aria-describedby={undefined}>
+              <PopupHeader title="Block Maya?" />
+            </PopupContent>
+          </Popup>
+        </>
+      )
+    }
+    render(<Opener />)
+    const opener = screen.getByRole("button", { name: "More options" })
+    act(() => opener.focus())
+    fireEvent.click(opener)
+    const dialog = screen.getByRole("dialog", { name: "Block Maya?" })
+    fireEvent.keyDown(dialog, { key: "Escape" })
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
+    expect(opener).toHaveFocus()
   })
 })
 

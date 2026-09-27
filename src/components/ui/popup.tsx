@@ -48,7 +48,42 @@ import {
  * `deskFocus` says (a form is typed into at once, a place is read first).
  */
 
-type PopupState = { open: boolean; setOpen: (open: boolean) => void }
+/** Anything that is a layer of its own: focus inside one is not a way back to the page. */
+const LAYER = "[role='dialog'], [role='alertdialog'], [role='menu'], [role='listbox']"
+
+/**
+ * THE LAST CONTROL ON THE PAGE ITSELF that was pressed or focused, outside any
+ * layer. A popup opened by something that is not its own trigger (a menu's
+ * row, a toast's action, a switch) hands focus back here when it closes;
+ * Radix would give it to the trigger, and with none, drop it on the page. A
+ * press counts as well as a focus because Safari does not focus a button it
+ * clicks. Watched from the capture phase, once, for the whole document.
+ */
+let lastOnPage: HTMLElement | null = null
+
+function watchTheOpener(event: Event) {
+  const target = event.target
+  if (!(target instanceof Element)) return
+  const control = target.closest<HTMLElement>(
+    "button, a[href], input, select, textarea, [tabindex]"
+  )
+  if (control && control !== document.body && !control.closest(LAYER)) {
+    lastOnPage = control
+  }
+}
+
+if (typeof document !== "undefined") {
+  document.addEventListener("focusin", watchTheOpener, true)
+  document.addEventListener("pointerdown", watchTheOpener, true)
+}
+
+type PopupState = {
+  open: boolean
+  setOpen: (open: boolean) => void
+  /** Whether the popup has a trigger of its own (`PopupTrigger`) to give focus back to. */
+  hasTrigger: () => boolean
+  setTrigger: (el: HTMLElement | null) => void
+}
 
 const PopupStateContext = React.createContext<PopupState | null>(null)
 const PopupShapeContext = React.createContext<DialogShape>("dialog")
@@ -71,6 +106,11 @@ function Popup({
   const [own, setOwn] = React.useState(defaultOpen)
   const controlled = openProp !== undefined
   const open = controlled ? openProp : own
+  const triggerRef = React.useRef<HTMLElement | null>(null)
+  const setTrigger = React.useCallback((el: HTMLElement | null) => {
+    triggerRef.current = el
+  }, [])
+  const hasTrigger = React.useCallback(() => triggerRef.current !== null, [])
   const setOpen = React.useCallback(
     (next: boolean) => {
       if (!controlled) setOwn(next)
@@ -78,7 +118,10 @@ function Popup({
     },
     [controlled, onOpenChange]
   )
-  const state = React.useMemo(() => ({ open, setOpen }), [open, setOpen])
+  const state = React.useMemo(
+    () => ({ open, setOpen, hasTrigger, setTrigger }),
+    [open, setOpen, hasTrigger, setTrigger]
+  )
   return (
     <PopupStateContext.Provider value={state}>
       <PopupPrimitive.Root open={open} onOpenChange={setOpen} {...props} />
@@ -87,9 +130,25 @@ function Popup({
 }
 
 function PopupTrigger({
+  ref,
   ...props
 }: React.ComponentProps<typeof PopupPrimitive.Trigger>) {
-  return <PopupPrimitive.Trigger data-slot="popup-trigger" {...props} />
+  const setTrigger = React.useContext(PopupStateContext)?.setTrigger
+  const composedRef = React.useCallback(
+    (el: HTMLButtonElement | null) => {
+      setTrigger?.(el)
+      if (typeof ref === "function") ref(el)
+      else if (ref) ref.current = el
+    },
+    [ref, setTrigger]
+  )
+  return (
+    <PopupPrimitive.Trigger
+      ref={composedRef}
+      data-slot="popup-trigger"
+      {...props}
+    />
+  )
 }
 
 function PopupClose({
@@ -130,6 +189,7 @@ function PopupContent({
   className,
   children,
   onOpenAutoFocus,
+  onCloseAutoFocus,
   ref,
   ...props
 }: React.ComponentProps<typeof PopupPrimitive.Content> & {
@@ -180,6 +240,11 @@ function PopupContent({
   )
   useKeyboardInset(node, true)
 
+  // Where focus goes back to when it closes, for a popup opened without its
+  // own trigger: the control on the page that opened it (`lastOnPage`), which
+  // for a menu's row is the menu's own button.
+  const returnTo = React.useRef<HTMLElement | null>(null)
+
   return (
     <PopupShapeContext.Provider value={shape}>
       <PopupPrimitive.Portal>
@@ -195,6 +260,7 @@ function PopupContent({
           data-shape={shape}
           data-size={size}
           onOpenAutoFocus={(event) => {
+            returnTo.current = lastOnPage
             onOpenAutoFocus?.(event)
             if (!event.defaultPrevented) {
               if (desk && row.deskFocus === "first") return
@@ -206,6 +272,15 @@ function PopupContent({
               !panel.contains(document.activeElement)
             ) {
               panel.focus({ preventScroll: true })
+            }
+          }}
+          onCloseAutoFocus={(event) => {
+            onCloseAutoFocus?.(event)
+            if (event.defaultPrevented || state?.hasTrigger()) return
+            const back = returnTo.current
+            if (back?.isConnected) {
+              event.preventDefault()
+              back.focus({ preventScroll: true })
             }
           }}
           className={cn(CONTENT, floatingPopupShapes, className)}

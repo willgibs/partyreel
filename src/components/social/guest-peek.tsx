@@ -96,7 +96,7 @@ function LookActions({
           initialFollowing={false}
         />
       ) : null}
-      <Button asChild size="sm" className="w-full">
+      <Button asChild className="w-full">
         <Link href={`/u/${item.slug}`}>Open full profile</Link>
       </Button>
     </div>

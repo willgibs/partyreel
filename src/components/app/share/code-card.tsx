@@ -249,7 +249,10 @@ export function CodeCard({
   );
 }
 
-/** The link as a person reads it: no scheme, nothing to type. */
+/**
+ * The link as a person reads it: no scheme and no query (the demo's own share
+ * link carries a pairing id, which is the copy's business, never the eye's).
+ */
 export function readableLink(url: string): string {
-  return url.replace(/^https?:\/\//, "");
+  return url.replace(/^https?:\/\//, "").replace(/[?#].*$/, "");
 }

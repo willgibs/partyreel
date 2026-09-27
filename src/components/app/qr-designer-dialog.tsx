@@ -77,7 +77,9 @@ function StyleChoices({
           <ResponsiveMenuItem
             key={key}
             aria-current={key === current ? "true" : undefined}
-            icon={<StylePreview styleKey={key} joinUrl={joinUrl} />}
+            icon={
+              <StylePreview styleKey={key} joinUrl={joinUrl} className="w-24" />
+            }
             onSelect={() => onChoose(key)}
             className={cn(
               "flex-col gap-1.5 p-2 text-center text-xs font-medium",
