@@ -1,6 +1,6 @@
 "use client";
 
-import { type Dispatch, type ReactNode, useState } from "react";
+import { type Dispatch, type ReactNode, useEffect, useState } from "react";
 import { Check, ChevronLeft, Lock, UserCheck, UserPlus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -190,8 +190,10 @@ function ReviewBody({
           <CardStack
             row={top}
             behind={rows.length - at - 1}
-            onClaim={() => dispatch({ type: "claim" })}
-            onNotMine={() => dispatch({ type: "not-mine" })}
+            onClaim={() => dispatch({ type: "claim", eventId: top.eventId })}
+            onNotMine={() =>
+              dispatch({ type: "not-mine", eventId: top.eventId })
+            }
           />
         </>
       ) : (
@@ -246,6 +248,20 @@ function Progress({
 const PEEK = 6;
 const INSET = 10;
 
+/**
+ * ★ A CARD THAT ARRIVES HOLDS ITS ANSWERS FOR A BEAT. Every decision is
+ * written the moment it is made (`save=once`), so a double tap on Claim would
+ * claim the NEXT event too: the second tap lands on the card that just slid
+ * in, whose name she has not read (measured on this board, round three: two
+ * quick Claims took Tom's Leaving Do and the beach bonfire). Two guards: every
+ * answer names the card it was pressed on (`batch.ts`, so a second tap on the
+ * card that left is dropped), and an arriving card's two answers are held for
+ * as long as it takes to arrive (so a second tap that lands on the new card is
+ * too), reduced motion or not, since this guards the answer and not the
+ * motion. The shipped review adds the wait for the write itself.
+ */
+const SETTLE_MS = 250;
+
 function CardStack({
   row,
   behind,
@@ -276,48 +292,84 @@ function CardStack({
           }}
         />
       ))}
-      <article
+      <TopCard
         key={row.eventId}
-        className={cn(
-          "relative flex flex-col gap-3 rounded-xl border border-border bg-card p-4",
-          row.eventId !== first && "ic-enter",
-        )}
-      >
-        <div className="min-w-0">
-          <p className="truncate font-heading text-subsection">
-            {row.eventName}
-          </p>
-          <div className="mt-0.5 text-xs text-muted-foreground">
-            {row.eventDate && <p>{formatEventDate(row.eventDate)}</p>}
-            <p>{whoLine(row)}</p>
-          </div>
-        </div>
-        {row.gated ? (
-          // QA #40 carried to the preview: a password event's photographs stay
-          // behind its door exactly as its date does.
-          <div className="flex items-center gap-2.5 rounded-lg bg-muted/60 px-3 py-3 text-xs text-muted-foreground">
-            <Lock className="size-3.5 shrink-0" aria-hidden />
-            {/* One expression: a JSX text run right after a number was
-                compiling away the space between them (round one's finding). */}
-            <span>{`${formatCount(row.uploadCount)} photos stay behind the host’s password`}</span>
-          </div>
-        ) : (
-          <div className="grid grid-cols-4 gap-1.5">
-            {row.photos.map((url, i) => (
-              <Thumb key={i} url={url} />
-            ))}
-          </div>
-        )}
-        <div className="grid grid-cols-2 gap-2">
-          <Button type="button" variant="ghost" onClick={onNotMine}>
-            Not mine
-          </Button>
-          <Button type="button" onClick={onClaim}>
-            Claim
-          </Button>
-        </div>
-      </article>
+        row={row}
+        arriving={row.eventId !== first}
+        onClaim={onClaim}
+        onNotMine={onNotMine}
+      />
     </div>
+  );
+}
+
+function TopCard({
+  row,
+  arriving,
+  onClaim,
+  onNotMine,
+}: {
+  row: WaitingEvent;
+  arriving: boolean;
+  onClaim: () => void;
+  onNotMine: () => void;
+}) {
+  const [settled, setSettled] = useState(!arriving);
+  useEffect(() => {
+    if (settled) return;
+    const t = setTimeout(() => setSettled(true), SETTLE_MS);
+    return () => clearTimeout(t);
+  }, [settled]);
+  return (
+    <article
+      className={cn(
+        "relative flex flex-col gap-3 rounded-xl border border-border bg-card p-4",
+        arriving && "ic-enter",
+      )}
+    >
+      <div className="min-w-0">
+        <p className="truncate font-heading text-subsection">{row.eventName}</p>
+        <div className="mt-0.5 text-xs text-muted-foreground">
+          {row.eventDate && <p>{formatEventDate(row.eventDate)}</p>}
+          <p>{whoLine(row)}</p>
+        </div>
+      </div>
+      {row.gated ? (
+        // QA #40 carried to the preview: a password event's photographs stay
+        // behind its door exactly as its date does.
+        <div className="flex items-center gap-2.5 rounded-lg bg-muted/60 px-3 py-3 text-xs text-muted-foreground">
+          <Lock className="size-3.5 shrink-0" aria-hidden />
+          {/* One expression: a JSX text run right after a number was
+              compiling away the space between them (round one's finding). */}
+          <span>{`${formatCount(row.uploadCount)} photos stay behind the host’s password`}</span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-4 gap-1.5">
+          {row.photos.map((url, i) => (
+            <Thumb key={i} url={url} />
+          ))}
+        </div>
+      )}
+      {/* Held by the handler, not `disabled`: the Button's disabled look would
+          blink half-faded on every arrival, and the arrival already says wait. */}
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          type="button"
+          variant="ghost"
+          aria-disabled={settled ? undefined : true}
+          onClick={() => settled && onNotMine()}
+        >
+          Not mine
+        </Button>
+        <Button
+          type="button"
+          aria-disabled={settled ? undefined : true}
+          onClick={() => settled && onClaim()}
+        >
+          Claim
+        </Button>
+      </div>
+    </article>
   );
 }
 

@@ -40,16 +40,25 @@ export type Batch = {
   toast: number | null;
 };
 
+/**
+ * ★ AN ANSWER NAMES ITS CARD. Claim and Not mine carry the event they were
+ * pressed on, and the reducer drops one that no longer names the card on top:
+ * a double tap on Claim otherwise claims the next event as well (the second
+ * tap's dispatch reads whatever card is on top by then), which a machine that
+ * writes every decision the moment it is made cannot take back. It is also
+ * the shipped call's shape: `claim_guest_rows_by_email` takes the one id.
+ */
 export type Action =
-  | { type: "claim" }
-  | { type: "not-mine" }
+  | { type: "claim"; eventId: string }
+  | { type: "not-mine"; eventId: string }
   | { type: "delete" }
   | { type: "go-back" }
   | { type: "close" }
   | { type: "open" };
 
-/** A scripted press: an action, or `rest` (decide every card left the way
- *  her memory would, saying Delete to each dialog a card raises). */
+/** A scripted press: an action on whatever card is on top, or `rest` (decide
+ *  every card left the way her memory would, saying Delete to each dialog a
+ *  card raises). */
 export type Step = Action["type"] | "rest";
 
 export const EMPTY: Batch = {
@@ -89,14 +98,14 @@ export function reduce(
   const top = rows[topOf(b, rows)];
   switch (a.type) {
     case "claim":
-      if (!top || b.asking) return b;
+      if (!top || b.asking || a.eventId !== top.eventId) return b;
       return {
         ...b,
         decided: { ...b.decided, [top.eventId]: "claim" },
         added: b.added + top.uploadCount,
       };
     case "not-mine":
-      if (!top || b.asking) return b;
+      if (!top || b.asking || a.eventId !== top.eventId) return b;
       return { ...b, asking: top.eventId };
     case "delete":
       if (!b.asking) return b;
@@ -132,7 +141,16 @@ export function play(
   const act = (a: Action) => {
     b = reduce(b, a, rows);
   };
+  /** A press on the card on top, whichever it is when the script gets there. */
+  const onTop = (type: "claim" | "not-mine") => {
+    const top = rows[topOf(b, rows)];
+    if (top) act({ type, eventId: top.eventId });
+  };
   for (const step of script) {
+    if (step === "claim" || step === "not-mine") {
+      onTop(step);
+      continue;
+    }
     if (step !== "rest") {
       act({ type: step });
       continue;
@@ -141,7 +159,7 @@ export function play(
     for (let guard = 0; guard < rows.length; guard++) {
       const top = rows[topOf(b, rows)];
       if (!top) break;
-      act({ type: top.hers ? "claim" : "not-mine" });
+      onTop(top.hers ? "claim" : "not-mine");
       if (b.asking) act({ type: "delete" });
     }
   }
