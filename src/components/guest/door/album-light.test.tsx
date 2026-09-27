@@ -8,8 +8,10 @@ import { DoorLamp } from "./lit";
 
 /**
  * THE LAMP'S SOURCE (`identity-door` r2: "coloured from the album's three newest photos through
- * sampled-palette"). Pinned: it samples the three newest items' PREVIEWS (never an original, never
- * a placeholder with no link), only while a lamp is lit, and hands every lamp the hues.
+ * sampled-palette"). Pinned: it samples the newest items' PREVIEWS within a bounded lookback (never
+ * an original, never a placeholder with no link), only while a lamp is lit, and hands every lamp the
+ * hues; the lookback is widened past a colourless run at the album's head (`crumbs-3`, build 11's
+ * red-team), never unbounded.
  */
 const { live, sampled } = vi.hoisted(() => ({
   live: {
@@ -79,7 +81,7 @@ describe("AlbumLightSampler", () => {
     expect(sampled.calls.every((src) => src === null)).toBe(true);
   });
 
-  it("samples the three newest previews once a lamp is lit, never an original, a placeholder or a video with no poster", () => {
+  it("samples the newest previews once a lamp is lit, never an original, a placeholder or a video with no poster", () => {
     render(
       <>
         <AlbumLightSampler />
@@ -91,6 +93,27 @@ describe("AlbumLightSampler", () => {
       "https://r2/c-poster.webp",
       "https://r2/f.webp",
     ]);
+  });
+
+  it("looks past a colourless run to a dozen newest previews, not only the newest three", () => {
+    // build 11's red-team: an album whose three newest items are grey clip posters must still
+    // reach whatever ordinary, colourful photographs sit just behind them.
+    live.current.items = Array.from({ length: 14 }, (_, i) => ({
+      id: `p${i}`,
+      type: "photo" as const,
+      url: `https://r2/p${i}.jpg`,
+      previewUrl: `https://r2/p${i}.webp`,
+    }));
+    render(
+      <>
+        <AlbumLightSampler />
+        <DoorLamp edge="free" />
+      </>,
+    );
+    // Bounded at a dozen (his to overrule), and reaching well past the old newest-three.
+    expect(sampled.calls.at(-1)).toEqual(
+      Array.from({ length: 12 }, (_, i) => `https://r2/p${i}.webp`),
+    );
   });
 
   it("hands every lamp the album's hues when the sample lands", () => {

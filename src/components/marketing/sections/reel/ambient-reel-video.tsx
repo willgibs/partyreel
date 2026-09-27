@@ -32,6 +32,7 @@ export function AmbientReelVideo({
   preloadPoster = false,
   sizes,
   className,
+  paused: heldPaused = false,
 }: {
   reel: MarketingReel;
   /** True ONLY for the hero instance (it is the page's LCP element). */
@@ -39,8 +40,16 @@ export function AmbientReelVideo({
   /** next/image responsive sizes for the poster. */
   sizes: string;
   className?: string;
+  /**
+   * True while a caller has taken the screen over (the contained player is up): the loop stops
+   * decoding rather than playing on, unheard and unseen, underneath it, and resumes the moment this
+   * goes false again (`reel-player.tsx`'s `ReelPlayScreen`). Composed with the ambient-pause signal
+   * below, never a replacement for it.
+   */
+  paused?: boolean;
 }) {
-  const { ref, paused } = useAmbientPause<HTMLDivElement>();
+  const { ref, paused: ambientPaused } = useAmbientPause<HTMLDivElement>();
+  const paused = heldPaused || ambientPaused;
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [live, setLive] = useState(false);
 

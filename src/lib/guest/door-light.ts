@@ -7,7 +7,8 @@ import { useEffect, useSyncExternalStore } from "react";
  * album's own colour lights the sheet's edge").
  *
  * Every lamp the door wears (the held sheet's free edge, her menu's card, the change and confirm
- * sheets) is one light, so it is one colour: the album's three newest photographs, sampled through
+ * sheets) is one light, so it is one colour: the album's newest previews, within a bounded lookback
+ * past any that turn out colourless (`album-light.tsx`'s `LOOKBACK`), sampled through
  * `useSampledPalette` (the sampler the site's lamps use, CORS-clean on presigned previews), kept as
  * HUES alone, so the register (paper in light, the atmosphere register in dark) stays the
  * stylesheet's to pick (`door/lit.css`).

@@ -397,9 +397,10 @@ One shell ([`entry-shell.tsx`](../../src/components/guest/entry-shell.tsx)) rend
 ([design-system.md](design-system.md), the floating layer), and from 640 up a full-height panel from the right edge;
 the door's own CSS lives in `door.css`. ★ **THE DOOR IS LIT** ([`door/lit.tsx`](../../src/components/guest/door/lit.tsx),
 `door/lit.css`): `DOOR_SCRIM` is the lightbox's ground at a gentler dim (30% black, a 28px blur, brightness .72), and
-a lamp on the sheet's free edge (the top in a hand, the left at a desk) wears the hues of the album's three newest
-previews, sampled only while a lamp is lit ([`door-light.ts`](../../src/lib/guest/door-light.ts),
-`door/album-light.tsx`; the house five until the sample lands and at a password event); stronger on the code screen,
+a lamp on the sheet's free edge (the top in a hand, the left at a desk) wears the hues of the album's newest
+previews, within a bounded lookback past any that turn out colourless, sampled only while a lamp is lit
+([`door-light.ts`](../../src/lib/guest/door-light.ts), `door/album-light.tsx`; the house five until the sample lands,
+at a password event, and wherever nothing in the lookback carries colour); stronger on the code screen,
 blooming on "You're in"; the change and confirm sheets and her menu's card wear it too. In dark the resting lamp is
 spent inside the sheet's padding (a muted word inside the atmosphere register reads 2:1, measured); light keeps the
 wash. ★ **NO CENTRED FLOAT AT A DESK**: an edge sheet leaves more of the blurred

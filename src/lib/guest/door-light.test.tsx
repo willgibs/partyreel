@@ -12,10 +12,10 @@ import {
 } from "@/lib/guest/door-light";
 
 /**
- * THE DOOR'S LIGHT, ITS COLOUR (`identity-door` r2, `look=lit`). Every lamp wears the album's three
- * newest photographs' hues once the sample lands and the house five until then (and wherever
- * nothing can be sampled, a password event before its unlock); the album samples only while a lamp
- * is lit.
+ * THE DOOR'S LIGHT, ITS COLOUR (`identity-door` r2, `look=lit`). Every lamp wears the album's newest
+ * previews' hues once the sample lands and the house five until then (and wherever nothing can be
+ * sampled, a password event before its unlock, or a run of previews with no colour anywhere in the
+ * lookback window); the album samples only while a lamp is lit.
  */
 afterEach(() => {
   resetDoorLightForTests();
