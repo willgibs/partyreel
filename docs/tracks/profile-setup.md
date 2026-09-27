@@ -1,6 +1,6 @@
 ---
 track: profile-setup
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "0b2af407"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -63,6 +63,14 @@ working.
 
 Each is built as recommended and is Will's to overrule.
 
+- **The legal pages need one clause for the count (not this lane's files; a one-way door's wording).** The Terms
+  ("Profiles and social features") and the Privacy Policy both say nothing you attend appears on your profile until
+  you turn it on (`src/lib/constants/legal-terms.tsx:422`, `legal-privacy.tsx:311`). "2 private events" is a number of
+  exactly those events, though only of the ones the visitor could already see her on through their hosts' guest lists.
+  Recommended: add to both, "A profile with nothing on it may say how many events it keeps private, counting only
+  events whose guest lists the visitor can already see." Before partyreel.com carries the count; nobody reads it until
+  then.
+
 - **The wizard's route is `/account/profile`** (named at boot, for `guest-door`'s "Claim a handle" row). Once a page
   exists it redirects to `/account#public-profile`: the wizard is the first time, Account holds the later edits.
 - **"Set up" means a claimed handle.** Finish writes her event choices first and claims the handle last, so an
@@ -90,21 +98,81 @@ Each is built as recommended and is Will's to overrule.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/profiles-social.md`: the consent model's opt-in bullet (no EVENT until chosen, and the empty page's
+  count scoped to the host's key; the cover picker is the one control; the wizard's one-time choice applies to the
+  events she has at Finish); `getMyAttendedEvents` (the picker's events, masked
+  through `guestEventCardProps`); the public profile (the empty page's count, its rule and its disclosure); handles
+  (the setup at `/account/profile`, "set up" = a claimed handle, the order at Finish, the invitation and Not now).
+- `docs/systems/host-app.md`: the claim ticket (the finish toast's second line; the invitation in the ticket's place).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Profile: the line on a handle-less account's owner mode (likes and connections unreachable without a handle) narrows
+  rather than closes: the setup at `/account/profile` and the dashboard's invitation put a page one guided step away,
+  but an account that declines one still reaches neither.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed:** `62ee18cd` (these Questions, the route named at boot), `8e6bf232` (the work), `5c0f94ae` (the
+  board retired, one commit), `756e4af3` (one consent-model line in profiles-social.md, docs only), and this manifest. **No sync commit:** launch-prep moved to `96f46a3f` (mine-none merged
+  at `89095cff`, then records), which touches nothing in this lane's reads, and a trial `git merge --no-commit
+  origin/launch-prep` auto-resolved cleanly (the three lab registry files included), then was aborted.
+- **Gates on `5c0f94ae`, each on its own exit code** (logs: `/Users/gibby/local/ai/partyreel-wt/_scratch/profile-setup/gate*.log`,
+  summary `gate.log`): `pnpm typecheck` 0; `pnpm lint` 0 (0 errors, 6 warnings, none in a touched file); `pnpm test` 0
+  (491 files, 5,531 tests); `zsh scripts/build-lock.sh pnpm build` 0 (`/account/profile` in the route table);
+  `pnpm lab:smoke --base http://localhost:3133` 0 (255 checks, 0 failing); `pnpm test` again on `756e4af3` (the doc
+  line alone after the gate) 0, 5,531 tests (`gate-test-final.log`). `/design/lab/identity-profile` answers 404;
+  the desk's remaining mentions are this track's own goal and other boards' prose.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): every path is under `owns`, this file, or a system
+  doc listed above, except the retirement's three named exceptions, `src/app/(dev)/design/sandbox/registry.ts`,
+  `src/app/(dev)/design/(shell)/lab/boards.ts` and `src/app/(dev)/design/touchpoints.ts` (the brief's own).
+- **The route, for `guest-door`:** the setup is `/account/profile` (`PROFILE_SETUP_PATH`,
+  `src/app/(app)/account/profile/invite.ts`); a set-up account is sent to `/account#public-profile`, so the album's
+  "Claim a handle" row can point at it unconditionally.
+- **Items:**
+  - `setup=wizard`: `src/components/social/profile-setup-wizard.tsx` on `src/app/(app)/account/profile/page.tsx`;
+    Finish is `finishProfileSetupAction` (choices, then the handle through `setProfileSlugAction`); the first screen
+    opens on her display name as a free handle (`handle-suggestion.ts` over `slugify`, `firstFreeHandle`).
+  - `attended=picker`: `AttendedEventTiles` / `AttendedEventsVisibility` (`src/components/social/attended-events-visibility.tsx`)
+    in Account and on screen three; tiles from `getMyAttendedEventPicks`. The handle field is one piece for both
+    places (`src/components/social/handle-field.tsx`, lifted out of `profile-slug-control.tsx`).
+  - `default=off`: Show all / Keep all private on screen three, sent as a mode and applied server-side to the events
+    she has at Finish (`applyShownEvents`, owner-RLS, chunked, `on conflict do nothing`).
+  - `prompt=claim`: `PageInviteCard` in the claim ticket's place on `/dashboard`, decided by `shouldInviteToPage`;
+    Not now is `dismissPageInviteAction` (httpOnly `pr_page_invite`, the account's seed).
+  - `page=count`: `emptyPageLine` on `/u/[slug]`; `supabase/migrations/20260927100000_profile_private_count.sql`;
+    `src/lib/db/queries/profile.private-count.test.ts` holds the count's predicate to the attended arm's.
+  - `identity-claims` `after=profile`: the finish toast's second line (`claims-card.tsx`, prop `pageHref` from
+    `pageChoicesHref`); only the toast was touched.
+  - `identity-profile` retired (`5c0f94ae`); the ledger `docs/reviews/identity-profile.json` is yours to delete.
+- **Proofs on the live schema, every one rolled back** (function md5 `4d0686c3...` unchanged after each):
+  `_scratch/profile-setup/proof-result.json` (ten steps: anon 0 behind the upload door, the event's host 1, the owner
+  1, a signed-in stranger 0, both doors open 2, a password album leaves it, withheld as null once a line or a hosted
+  card shows, an unclaimed handle null, the grants); the migration's own foot check, dry-run: held; owner-RLS for the
+  batch write: `insert ... on conflict do nothing` as `authenticated` is idempotent, another user's row refused 42501.
+- **Captures** (the real components with fixture props, in an uncommitted harness, since the route needs a session):
+  `_scratch/profile-setup/cdp/harness-375-light.png`, `harness-375-dark.png`, `harness-1440-light.png` (375 over
+  device emulation: `scrollWidth` 375 of 375).
+- Assets requested from Will: none.
+- **Board ideas:**
+  - A chosen event that can never appear (its host keeps the guest list off, or the album is not open) is chosen
+    silently; the picker could say so on the tile.
+  - The user menu's handle-less "Your profile" and event settings' "Claim your handle to publish the page" could open
+    `/account/profile` directly (each reaches it through Account's door, one tap more).
+  - The invitation's button repeats its title ("Set up your page", as drawn); it could carry the reason instead.
+- **Proposed migrations:** `20260927100000_profile_private_count.sql`: apply any time (a key added, none removed; this
+  build reads a missing key as no count, partyreel.com's ignores it); its header holds the protocol; expected advisor
+  delta none; the types should not change (same signature, `Json`). Worker / Vercel / Stripe / env: none.
+- **Calls his to overrule:** the Questions above, each built as answered; and the owner of an empty page gets "Choose
+  what shows" under the count (one tap to her picker); the first screen arrives with her name as a free handle; a
+  tile says its name and state, not its date (as drawn); an empty page's line drops production's explanation too.
+- **Look at first:**
+  - The first Question: the Terms and the Privacy Policy say nothing you attend appears on a profile until chosen, and
+    the count is an aggregate of those events; their clause should land before partyreel.com carries it.
+  - Apply the migration before the live walk: until it lands, every empty page says "No events here yet".
+  - Walk the wizard as partyr33l@gmail.com (no handle, one attended event, so its dashboard shows the invitation) or
+    hi@willgibs.com; willg97 holds `willg`, so `/account/profile` sends him to Account.
+  - The count, live, once hi@willgibs.com's page exists with nothing shown: anonymously "No events here yet",
+    willg97 (the host of "Gallery width (disposable)") "1 private event", partyr33l "No events here yet" (that album
+    requires an upload to view).
+  - The claims toast needs a claimable row (an address typed at a names-mode door before it was confirmed).
