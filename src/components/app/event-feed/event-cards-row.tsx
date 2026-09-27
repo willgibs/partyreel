@@ -257,7 +257,7 @@ export function EventCardsRow({
               })}
             >
               <QrCode className="size-4 shrink-0" aria-hidden />
-              Share
+              Invite
             </button>
           )}
         </div>

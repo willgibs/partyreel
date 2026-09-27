@@ -25,7 +25,7 @@ The **left-editorial** layout ([`event-experience.tsx`](../../src/components/gue
 the shell): `font-heading` event name → byline ("Hosted by" name+avatar · date) → the **stats line** ("N
 photos & videos from M guests") → the description → the **action block**: a full-width primary **Add
 photos** over a full-width **`[Invite]`** row. Every Add opens the ADD SHEET (`GuestUpload`'s `openAdd`,
-below). `GuestShare` is the Invite trigger + sheet (QR + Copy + native Share + Download).
+below). `GuestShare` is the Invite trigger onto the event's code card (the code, Copy link, the phone's own Share, Download).
 
 ★ **THE ROW ON LANDING, A DOCK ONCE IT LEAVES.** [`guest-action-dock.tsx`](../../src/components/guest/guest-action-dock.tsx)
 takes the row's place at the foot once the row's `IntersectionObserver` sentinel
@@ -79,7 +79,7 @@ claim moved this album's own uploads, with no upload needed this visit (a full-r
 claim that actually runs spends the marker either way. ★ **A CONFIRMATION IS ONE BEAT, NEVER STACKED
 TOASTS** ([`confirm-beat.ts`](../../src/lib/guest/confirm-beat.ts)): when the moment plays, its card says the other
 events once and tells the name; when it does not, the doors report and the page says it once, after the door's hold:
-"You're on as Priya." with a Change (the name door's `account` mode) and the other events as its line, or "We added
+"You're on as Priya." with a Change (a small name form, [`confirm-beat-name.tsx`](../../src/lib/guest/confirm-beat-name.tsx), the account's own write) and the other events as its line, or "We added
 your uploads to your account." alone when only other events moved. The (app) layout's own mount still says it
 whenever uploads moved.
 
@@ -89,15 +89,13 @@ offers the HOST alone: the other guests already carry their own Follow on each h
 on one screen. Its card is `getHostCard(eventId)` from the page RSC; no card means no host row, never a
 stub.
 
-★ **THE GUEST'S OVERLAYS WEAR THE ONE RESPONSIVE SHEET**: `SheetContent responsive`
-([`ui/sheet.tsx`](../../src/components/ui/sheet.tsx)), a side panel at a desk and a bottom sheet in a hand:
-Invite ([`guest-share.tsx`](../../src/components/guest/guest-share.tsx)), Report
-([`report-dialog.tsx`](../../src/components/guest/report-dialog.tsx)), the add and failure sheets, and the
-DOOR at both widths, the confirm door (`ConfirmEmailDialog`) and the header menu's Add your email
-([`add-email-dialog.tsx`](../../src/components/guest/add-email-dialog.tsx)). "Download all" (`ExportDialog`, shared
-with host surfaces) is still a centred Dialog. The Sheet's phone half is keyboard-safe for every consumer
-([design-system.md](design-system.md), the floating layer): it stands on the keyboard with its primary action sticky
-at the foot, so no dialog carries its own keyboard fix.
+★ **THE GUEST'S POPUPS OPEN THROUGH THEIR KINDS** ([design-system.md](design-system.md), the floating layer): the
+DOOR and its held sheets (the confirm door `ConfirmEmailDialog`, the header menu's Add your email,
+[`add-email-dialog.tsx`](../../src/components/guest/add-email-dialog.tsx)) and the upload failure sheet wear the
+responsive Sheet ([`ui/sheet.tsx`](../../src/components/ui/sheet.tsx)); every other guest popup opens through its kind:
+Invite the code card ([`guest-share.tsx`](../../src/components/guest/guest-share.tsx)), Report a form
+([`report-dialog.tsx`](../../src/components/guest/report-dialog.tsx)), her uploads a list, Add photos and Download a
+choice. Every shape is keyboard-safe, so no popup carries its own keyboard fix.
 
 - **Stats**: `getGalleryStats(event)` ([`guest-events-admin.ts`](../../src/lib/db/queries/guest-events-admin.ts))
   → `{approvedTotal, guestCount}`: a head count of approved media (`countApprovedMedia`, request-scoped, so the
@@ -139,18 +137,19 @@ at the foot, so no dialog carries its own keyboard fix.
   ([`guest-upload.tsx`](../../src/components/guest/guest-upload.tsx)) reads its snapshot and owns the album's
   two sheets and the post-upload slot behind a `{openAdd, retry}` handle; it draws no tile. Three surfaces
   and one session rule:
-  - ★ **THE ADD SHEET**: every Add opens
-    [`upload/intent-sheet.tsx`](../../src/components/guest/upload/intent-sheet.tsx) on the responsive Sheet,
+  - ★ **THE ADD CHOICE**: every Add opens
+    [`upload/intent-sheet.tsx`](../../src/components/guest/upload/intent-sheet.tsx) on the responsive menu,
     *Take a photo* over *Choose from your album*, then the terms line
     ([`upload-terms.ts`](../../src/components/guest/upload/upload-terms.ts): kinds and the universal ceiling
     from `media/limits.ts`, since the guest page never receives the host's own cap; nothing about rights,
-    ever). TWO hidden inputs INSIDE `SheetContent`, because `capture` cannot be both: the camera row
+    ever). TWO hidden inputs in the page beside the menu, where they outlive it, because `capture` cannot be both: the camera row
     (`accept="image/*" capture="environment"`) takes ONE photograph (iOS ignores `multiple` under `capture`;
     Android adds a Camera/Camcorder chooser once video is accepted); the album row is
     `accept="image/*,video/*" multiple`. ★ **Each is `.click()`ed SYNCHRONOUSLY from its row's tap**: one
     `await` in between and Safari silently drops the picker.
-  - ★ **THE REVIEW STEP** catches an accidental selection: the picker returns INTO the same sheet
-    ([`upload/review-step.tsx`](../../src/components/guest/upload/review-step.tsx)) as tiles with a one-tap
+  - ★ **THE REVIEW STEP** catches an accidental selection: it opens as a confirmation (a centred dialog) once the
+    picker answers ([`upload/review-step.tsx`](../../src/components/guest/upload/review-step.tsx)), taking out the
+    last pick asking the two rows again, as tiles with a one-tap
     remove and a `Send N` primary; only then does `addFiles(kept)` run. A file the browser cannot draw (an
     iPhone `.mov`, a HEIC outside Safari) is a NAMED stand-in with its size
     ([`upload/pick-preview.tsx`](../../src/components/guest/upload/pick-preview.tsx); `onError` is the only
@@ -422,7 +421,7 @@ through flags in the sheet. No step counter to desync.
   already, so the rule stays drawer-scoped.
 - **THE AFFORDANCE TABLE IS ONE ROW**: every step of the door is HELD (no X, no drag handle, Escape and the
   backdrop inert), and so is a closed/exiting shell. The one FREE surface is the name door over the album, from the
-  menu's "Change name" (`openToName("edit")`) or the told name's Change (`openToName("account", name)`, which writes
+  menu's "Change name" (`openToName("edit")`), the told name's Change opening its own small form instead (it writes
   the account's name); it stands over an album the guest already reached and posts nothing when it closes. The teaser's "See all N" re-asserts the sheet (`openToGate`, a no-op mid-hold),
   whose only remaining job is to undo the OFF-state soft skip.
 - **The CONTINUOUS step container**
@@ -606,8 +605,8 @@ who to thank"; a long host name breaks the line). `guest-name-step.tsx` has FOUR
 the ONLY mode with the address, a ghost line that opens into the field: rename a held row first, else mint under the
 typed name), `edit` (the album menu's, the one dismissible door) and `profile` (a confirmed account with no profile
 name writes the PROFILE's; the album has no inline name panel, and the shared `SetNameStep` serves the host's
-`/welcome` and the Library's demo) and `account` (the told name's Change: the account's display name through
-`updateDisplayNameAction`, dismissible like `edit`). No unique name is claimed at the door.
+`/welcome` and the Library's demo) and `account` (the account's display name through `updateDisplayNameAction`, dismissible like `edit`;
+no caller since the told name's Change opens its own form). No unique name is claimed at the door.
 
 ★ **THE CONFIRMATION'S FOUR WRITES, IN ORDER, ARE THE MODAL'S,** shared by `identify` (name and email to a code:
 Create account, and every verification event) and `signin` (Log in, the email alone), and `entry-modal.tsx` owns the

@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Download } from "lucide-react";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useRef, useState, type CSSProperties } from "react";
 
 import { StyledQr, type StyledQrHandle } from "@/components/app/styled-qr";
 import { TextSwap } from "@/components/marketing/sections/features/shared/text-swap";
@@ -22,8 +22,10 @@ import { cn } from "@/lib/utils";
  * (QR_PRESETS is the same constants module the in-app designer reads, and
  * StyledQr the same renderer, so "the designer is real" is literally true).
  * The mock quotes the shipped designer's control shapes: a 2x2 swatch grid
- * with a check on the selected preset and one "Save QR style" button; the
- * downloads echo the app's exact framings and, when the demo event is
+ * with a check on the selected preset, where pressing a swatch IS the save
+ * (the app's designer is a menu whose row is the act, `popups` r1, so it has
+ * no Save button to quote); the downloads echo the app's exact framings and,
+ * when the demo event is
  * configured, REALLY download the styled code via StyledQr's imperative
  * handle. Bold's coral corner markers are product truth inside the render;
  * the chrome around it stays achromatic.
@@ -40,19 +42,10 @@ const QR_VALUE = DEMO_EVENT_URL ?? "https://partyreel.com/e/demo";
  * (scannable) demo URL: only the style SAMPLES trade payload for legibility.
  */
 const SWATCH_VALUE = "https://partyreel.com";
-const SAVED_FLASH_MS = 1600;
 
 export function PresetSwitcher() {
   const [selected, setSelected] = useState<QrStyleKey>("classic");
-  const [saved, setSaved] = useState(false);
   const qrRef = useRef<StyledQrHandle>(null);
-  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (savedTimer.current) clearTimeout(savedTimer.current);
-    };
-  }, []);
 
   const preset = QR_PRESETS[selected];
 
@@ -114,7 +107,7 @@ export function PresetSwitcher() {
           </p>
         </div>
 
-        {/* The designer, quoted: the app's 2x2 swatch grid + save. */}
+        {/* The designer, quoted: the app's 2x2 swatch grid, a swatch its own save. */}
         <div
           data-mkt-reveal
           style={{ "--i": 4 } as CSSProperties}
@@ -156,25 +149,6 @@ export function PresetSwitcher() {
                 );
               })}
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                // A wink, not a form: the flash is the whole save (nothing
-                // persists on a marketing page).
-                setSaved(true);
-                if (savedTimer.current) clearTimeout(savedTimer.current);
-                savedTimer.current = setTimeout(
-                  () => setSaved(false),
-                  SAVED_FLASH_MS,
-                );
-              }}
-              className="mt-4 flex h-9 w-full items-center justify-center gap-1.5 rounded-md bg-primary text-sm font-medium text-primary-foreground transition-transform duration-150 active:scale-[0.98]"
-            >
-              {/* R4: the label trades on the .mkt-text-swap grammar instead of a
-                  hard conditional. The shipped button carries no icon at all
-                  ("Saving…" / "Save QR style"), so the wink is the WORD. */}
-              <TextSwap value={saved ? "Saved" : "Save QR style"} />
-            </button>
           </div>
 
           {DEMO_EVENT_URL ? (

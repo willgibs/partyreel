@@ -5,15 +5,13 @@ import { X, type LucideIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Popup,
+  PopupClose,
+  PopupContent,
+  PopupFooter,
+  PopupHeader,
+  PopupTrigger,
+} from "@/components/ui/popup";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   TooltipSlide,
@@ -205,10 +203,13 @@ function BulkBarActionButton({
   }
 
   // Delete's tooltip nests its dialog trigger, exactly as the lightbox does
-  // (media-lightbox.tsx: <Dialog><ActionTooltip><DialogTrigger asChild>).
-  const trigger = <DialogTrigger asChild>{glyph}</DialogTrigger>;
+  // (media-lightbox.tsx: <Dialog><ActionTooltip><DialogTrigger asChild>). The
+  // question is a CONFIRMATION (`popups` r1, `confirm=dialog`: "These are all
+  // rarer destructive actions, so a focused confirmation over an undo is far
+  // more helpful"), so it names its kind and the one table places it.
+  const trigger = <PopupTrigger asChild>{glyph}</PopupTrigger>;
   return (
-    <Dialog>
+    <Popup>
       {interactive ? (
         <TooltipSlide index={index} label={action.label}>
           {trigger}
@@ -216,25 +217,25 @@ function BulkBarActionButton({
       ) : (
         trigger
       )}
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{action.confirm.title}</DialogTitle>
-          <DialogDescription>{action.confirm.description}</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <DialogClose asChild>
+      <PopupContent kind="confirm">
+        <PopupHeader
+          title={action.confirm.title}
+          description={action.confirm.description}
+        />
+        <PopupFooter>
+          <PopupClose asChild>
             <Button variant="outline">
               {action.confirm.cancelLabel ?? "Cancel"}
             </Button>
-          </DialogClose>
-          <DialogClose asChild>
+          </PopupClose>
+          <PopupClose asChild>
             <Button variant="destructive" onClick={action.onRun}>
               {action.confirm.confirmLabel}
             </Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </PopupClose>
+        </PopupFooter>
+      </PopupContent>
+    </Popup>
   );
 }
 

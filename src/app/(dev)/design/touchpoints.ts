@@ -25,14 +25,13 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 
 /** The boards standing in sandbox/, one row each below. */
 export type SandboxId =
-  | "popups"
   | "identity-claims"
+  | "hero-card"
   | "voice-guest"
   | "site-chrome"
   | "profile-page"
   | "export-flow"
   | "admin-triage"
-  | "reel-story"
   | "emails"
   | "help-center"
   | "host-curation"
@@ -61,56 +60,46 @@ export type Ruling = {
 
 export const RULINGS: Ruling[] = [
   {
-    id: "popups",
-    title: "Where a popup opens",
-    surface: "shared",
-    asks: "which surface each kind of popup opens in (confirmations, short forms, lists, quick choices, share, plans, settings, a quick look), each option a rule the Dialog and the Sheet would follow",
-    why: "His identity-claims note: the sheet has become every popup's answer. One question per kind, so the app stops reaching for one pattern by default.",
-    lives: [
-      "docs/systems/design-system.md",
-      "src/components/ui/sheet.tsx",
-      "src/components/ui/dialog.tsx",
-      "src/components/ui/floating-layer.ts",
-      "src/components/app/pricing/pricing-sheet.tsx",
-      "src/components/app/event-settings/event-settings-sheet.tsx",
-      "src/components/guest/guest-share.tsx",
-      "src/components/guest/report-dialog.tsx",
-      "src/components/guest/upload/intent-sheet.tsx",
-    ],
-    board: {
-      note: "Eight kinds of popup, one question each, every option a rule the Dialog and the Sheet would follow, drawn on the kind's real screens at 1440 over three 375s with the keyboard up wherever a field is focused; profile-page's view-all and quick-look, host-storage's where and event-safety's Block moved here, every option kept",
-      variants: [
-        "Lists",
-        "Confirmations",
-        "Short forms",
-        "Quick choices",
-        "Share",
-        "Plans",
-        "Settings",
-        "A quick look",
-      ],
-    },
-  },
-  {
     id: "identity-claims",
     title: "Photos waiting for you",
     surface: "host",
-    asks: "when a choice in the one-at-a-time review is saved, where the dialog before a deletion sits, what a claimed event offers as she goes, and what the album says about the rest",
-    why: "Round one settled the banner, one card at a time, the dialog and the page toast, and asked for one batch; round two draws it and asks what makes it a good one.",
+    asks: "where Priya first meets the one review of the four events waiting under her email: nothing at the album, a line to her dashboard, a line opening it over the album, the four named, or a count on her avatar and bell",
+    why: "Rounds one and two settled the review itself; pointer came back twice asking for the best options, so round three draws five whole strategies for where she meets it.",
     lives: [
       "docs/systems/host-app.md",
+      "docs/systems/guest-flow.md",
       "docs/systems/profiles-social.md",
       "src/components/app/dashboard/claims-card.tsx",
       "src/app/(app)/dashboard/claims-actions.ts",
       "src/components/guest/follow-moment-card.tsx",
+      "src/components/guest/claim-handle-prompt.tsx",
+      "src/components/guest/guest-account-menu.tsx",
+      "src/lib/notifications/build.ts",
     ],
     board: {
-      note: "Round two draws one batch on his round one picks (the banner's review, one event at a time, a dialog before any deletion, the page toast) over Priya and four waiting events: when a choice is saved, where the deletion's dialog sits, what a claimed event offers as she goes, and what the album says about the rest",
+      note: "Round three asks pointer alone, five answers each drawn as a whole strategy over Priya and four waiting events: the moment at Maya and Jay's album, where she sorts the four in popups' side panel, and her dashboard a week on if she never does",
+      variants: ["Where she meets the review"],
+    },
+  },
+  {
+    id: "hero-card",
+    title: "The home hero's card",
+    surface: "marketing",
+    asks: "which compact event card stands at the centre of the home hero, an album with its one link and next to no words, the band streaming out of it",
+    why: "His reel-story note on the hero: a compact event card, several photographs and the QR as one face of one link, so the first screen reads as a shareable event.",
+    lives: [
+      "docs/systems/marketing-content.md",
+      "src/components/marketing/sections/home/cinema-hero.tsx",
+      "src/components/marketing/sections/home/hero-stream.ts",
+      "src/components/marketing/system/demo-ticket.tsx",
+    ],
+    board: {
+      note: "One decision, drawn in the real first screen at 1440 with 375 on the knob (the header, the band on its own tables, the eyebrow, the block): today's framed photograph beside three compact event cards, the album on paper with its code as a tile, the event's own page as a guest sees it, and the link with the album rising out of it",
       variants: [
-        "When a choice is saved",
-        "Where the deletion's dialog sits",
-        "What a claimed event offers",
-        "Pointing from the album",
+        "Today",
+        "The album on a card",
+        "The event's own page",
+        "The link",
       ],
     },
   },
@@ -232,30 +221,6 @@ export const RULINGS: Ruling[] = [
         "The legal hold",
         "Once it is closed",
         "Who is told",
-      ],
-    },
-  },
-  {
-    id: "reel-story",
-    title: "The marketing story of the reel",
-    surface: "marketing",
-    asks: "the home hero's album and code made polished, what stands beside the demo link now the frame has left it, and a clearer line for the reel's door and the /reel heading",
-    why: "Round two is wired. His notes on it: the hero's album and code needs a ton of polish, the frame beside the demo link looked silly, and the reel's line could say more.",
-    lives: [
-      "docs/systems/marketing-content.md",
-      "src/components/marketing/sections/home/cinema-hero.tsx",
-      "src/components/marketing/system/demo-ticket.tsx",
-      "src/components/marketing/system/demo-cta-link.tsx",
-      "src/components/marketing/sections/features/shared/feature-door.tsx",
-      "src/components/marketing/sections/reel/reel-hero.tsx",
-      "src/lib/constants/marketing-voice.ts",
-    ],
-    board: {
-      note: "Three decisions, each in its real place in a real frame at 1440 with 375 on the knob: the hero's object in the real first screen with the band running, the demo line in the home's close and the /reel hero, and the reel's line in its three places",
-      variants: [
-        "The hero's album and code",
-        "Beside the demo link",
-        "The reel's line",
       ],
     },
   },
@@ -513,9 +478,8 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
-  "popups",
   "identity-claims",
-  "reel-story",
+  "hero-card",
   "voice-guest",
   "host-curation",
   "host-storage",

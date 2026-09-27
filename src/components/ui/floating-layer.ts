@@ -154,6 +154,68 @@ export const floatingEdgeEntranceResponsive = [
 ].join(" ")
 
 /**
+ * THE POPUP'S SHAPES (`popups` r1, 2026-09-27): every place one Radix Dialog
+ * element can stand, each scoped to its own `data-shape`, which the one table
+ * (`popup-kinds.ts`) picks per kind and per width. The Dialog wears `dialog`
+ * always; `PopupContent` wears whatever its kind's row says.
+ *
+ * ★ ONE ATTRIBUTE, SET BY THE ELEMENT FOR THE WIDTH IT IS AT, rather than a
+ * pair of media-prefixed postures. A popup mounts only on the client (Radix
+ * portals it after hydration), so it can read the breakpoint when it opens, and
+ * every rule below is then one selector with no media query: none of them can
+ * race another for a property, and `floating-layer.test.ts` refuses a rule
+ * that is not scoped to a shape of its own.
+ *
+ * ★ EVERY SHAPE STANDS IN WHAT THE KEYBOARD LEAVES (`keyboard-dialog`: "the
+ * Dialog learns the Sheet's keyboard rule"). `useKeyboardInset` writes
+ * `--kb-inset`, `--vv-h` and `--vv-top` only while a text field inside holds
+ * focus on a touch screen, and every fallback below is exactly the resting
+ * posture: a centred shape's `top` is `var(--vv-top) + var(--vv-h) / 2`, which
+ * with nothing written is `0 + 100% / 2`, the `top-1/2` the Dialog always had,
+ * and with the keyboard up is the middle of the band above it (the old Dialog
+ * centred in the layout viewport, so on a phone its lower half sat under the
+ * keyboard: the account's password, Report a person's reason). The edge shapes
+ * stand on the keyboard's top edge, as the Sheet does.
+ *
+ * ★ THE LIFT GLIDES ON THE SHEET'S OWN TERMS (see the responsive sheet above):
+ * the whole `transition` shorthand, so the entrance keyframes keep their clock.
+ *
+ * The shapes, by width: a desk has `dialog`, `wide` and `panel`; a hand has
+ * `dialog`, `screen`, `cover` and `sheet`.
+ */
+export const floatingPopupShapes = [
+  // dialog: centred, sized to what it says (`data-size`), capped and scrolled.
+  "data-[shape=dialog]:top-[calc(var(--vv-top,0px)_+_var(--vv-h,100%)_/_2)] data-[shape=dialog]:left-1/2 data-[shape=dialog]:w-[calc(100%_-_2rem)] data-[shape=dialog]:max-h-[calc(var(--vv-h,100%)_-_2rem)] data-[shape=dialog]:-translate-x-1/2 data-[shape=dialog]:-translate-y-1/2",
+  "data-[shape=dialog]:max-w-sm data-[shape=dialog]:data-[size=md]:max-w-md data-[shape=dialog]:data-[size=lg]:max-w-xl",
+  "data-[shape=dialog]:rounded-float data-[shape=dialog]:ring-1 data-[shape=dialog]:ring-foreground/10",
+  "data-[shape=dialog]:ease-emphasis data-[shape=dialog]:duration-200 data-[shape=dialog]:data-closed:duration-150 data-[shape=dialog]:data-open:zoom-in-95 data-[shape=dialog]:data-closed:zoom-out-95",
+  "data-[shape=dialog]:[transition:top_200ms_var(--ease-emphasis),max-height_200ms_var(--ease-emphasis)]",
+  // wide: the dialog, wide enough for a plan's cards stacked (a desk only).
+  "data-[shape=wide]:top-[calc(var(--vv-top,0px)_+_var(--vv-h,100%)_/_2)] data-[shape=wide]:left-1/2 data-[shape=wide]:w-[calc(100%_-_2rem)] data-[shape=wide]:max-w-xl data-[shape=wide]:max-h-[calc(var(--vv-h,100%)_-_4rem)] data-[shape=wide]:-translate-x-1/2 data-[shape=wide]:-translate-y-1/2",
+  "data-[shape=wide]:rounded-float data-[shape=wide]:ring-1 data-[shape=wide]:ring-foreground/10",
+  "data-[shape=wide]:ease-emphasis data-[shape=wide]:duration-200 data-[shape=wide]:data-closed:duration-150 data-[shape=wide]:data-open:zoom-in-95 data-[shape=wide]:data-closed:zoom-out-95",
+  "data-[shape=wide]:[transition:top_200ms_var(--ease-emphasis),max-height_200ms_var(--ease-emphasis)]",
+  // panel: beside the screen from its right edge (the responsive sheet's desk half).
+  "data-[shape=panel]:top-[var(--vv-top,0px)] data-[shape=panel]:bottom-[var(--kb-inset,0px)] data-[shape=panel]:right-0 data-[shape=panel]:w-3/4 data-[shape=panel]:max-w-md data-[shape=panel]:border-l",
+  "data-[shape=panel]:ease-drawer data-[shape=panel]:duration-300 data-[shape=panel]:data-closed:duration-200 data-[shape=panel]:data-open:slide-in-from-right-10 data-[shape=panel]:data-closed:slide-out-to-right-10",
+  "data-[shape=panel]:[transition:top_200ms_var(--ease-emphasis),bottom_200ms_var(--ease-emphasis)]",
+  // screen: the whole screen, pushed in from the right like any screen a phone
+  // opens under a back arrow. Opaque page ground: it is a screen, not a layer.
+  "data-[shape=screen]:inset-x-0 data-[shape=screen]:top-[var(--vv-top,0px)] data-[shape=screen]:bottom-[var(--kb-inset,0px)] data-[shape=screen]:bg-background data-[shape=screen]:shadow-none",
+  "data-[shape=screen]:ease-drawer data-[shape=screen]:duration-300 data-[shape=screen]:data-closed:duration-200 data-[shape=screen]:data-open:slide-in-from-right-10 data-[shape=screen]:data-closed:slide-out-to-right-10",
+  "data-[shape=screen]:[transition:top_200ms_var(--ease-emphasis),bottom_200ms_var(--ease-emphasis)]",
+  // cover: the whole screen, risen from the foot like any screen a phone
+  // presents over what was there (a plan, met in the middle of something).
+  "data-[shape=cover]:inset-x-0 data-[shape=cover]:top-[var(--vv-top,0px)] data-[shape=cover]:bottom-[var(--kb-inset,0px)] data-[shape=cover]:bg-background data-[shape=cover]:shadow-none",
+  "data-[shape=cover]:ease-drawer data-[shape=cover]:duration-300 data-[shape=cover]:data-closed:duration-200 data-[shape=cover]:data-open:slide-in-from-bottom-10 data-[shape=cover]:data-closed:slide-out-to-bottom-10",
+  "data-[shape=cover]:[transition:top_200ms_var(--ease-emphasis),bottom_200ms_var(--ease-emphasis)]",
+  // sheet: the bottom sheet, the responsive sheet's phone half exactly.
+  "data-[shape=sheet]:inset-x-0 data-[shape=sheet]:bottom-[var(--kb-inset,0px)] data-[shape=sheet]:max-h-[min(85svh,calc(var(--vv-h,100svh)_-_12px))] data-[shape=sheet]:rounded-t-float data-[shape=sheet]:border-t",
+  "data-[shape=sheet]:ease-drawer data-[shape=sheet]:duration-300 data-[shape=sheet]:data-closed:duration-200 data-[shape=sheet]:data-open:slide-in-from-bottom-10 data-[shape=sheet]:data-closed:slide-out-to-bottom-10",
+  "data-[shape=sheet]:[transition:bottom_200ms_var(--ease-emphasis),max-height_200ms_var(--ease-emphasis)]",
+].join(" ")
+
+/**
  * THE SHEET'S FOOT WHILE THE KEYBOARD IS UP: the primary action sticks to the
  * bottom of the sheet's scrollport, on an opaque ground with a short fade above
  * it, so the button that sends what is being typed never scrolls out of reach

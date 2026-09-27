@@ -2,13 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  PopupClose,
+  PopupContent,
+  PopupFooter,
+  PopupHeader,
+} from "@/components/ui/popup";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
 /**
@@ -16,6 +14,10 @@ import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
  * opened from the bin's tile pane at a desk and from its viewer at every width
  * (each wraps its own trigger in a `Dialog` around this content). It skips the
  * window, so it names the window it skips, read off the constant.
+ *
+ * ★ A CONFIRMATION, NAMED AS ONE (`popups` r1, `confirm=dialog`). Its
+ * content is the Popup's, which rides the same Radix Dialog root the two
+ * callers wrap it in (a `Dialog` or a `Popup`), so neither changes.
  *
  * ★ A MODULE OF ITS OWN, not the capsule's: the bin's grid imports it for its
  * pane, and an import of `actions.tsx` would pull the viewer's capsule, which
@@ -30,24 +32,26 @@ export function PurgeConfirmContent({
   disabled?: boolean;
 }) {
   return (
-    <DialogContent>
-      <DialogHeader>
-        <DialogTitle>Delete permanently?</DialogTitle>
-        <DialogDescription>
-          This skips the {RECENTLY_DELETED_WINDOW_DAYS}-day recovery window and
-          deletes the file for good. It can&rsquo;t be undone.
-        </DialogDescription>
-      </DialogHeader>
-      <DialogFooter>
-        <DialogClose asChild>
+    <PopupContent kind="confirm">
+      <PopupHeader
+        title="Delete permanently?"
+        description={
+          <>
+            This skips the {RECENTLY_DELETED_WINDOW_DAYS}-day recovery window
+            and deletes the file for good. It can&rsquo;t be undone.
+          </>
+        }
+      />
+      <PopupFooter>
+        <PopupClose asChild>
           <Button variant="outline">Cancel</Button>
-        </DialogClose>
-        <DialogClose asChild>
+        </PopupClose>
+        <PopupClose asChild>
           <Button variant="destructive" disabled={disabled} onClick={onConfirm}>
             Delete permanently
           </Button>
-        </DialogClose>
-      </DialogFooter>
-    </DialogContent>
+        </PopupClose>
+      </PopupFooter>
+    </PopupContent>
   );
 }

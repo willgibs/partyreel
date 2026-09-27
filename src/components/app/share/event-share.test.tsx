@@ -93,15 +93,22 @@ describe("the code's morph", () => {
 describe("what the sharing surfaces encode", () => {
   it("gives the code and every copy control the PERMANENT link", () => {
     // The pretty url is for reading aloud. Anything a guest can keep — a
-    // scanned code, a pasted link — must be the qr_token url.
-    const modal = read("event-code-modal.tsx");
+    // scanned code, a pasted link — must be the qr_token url. The mini-modal's
+    // drawing became the code card every share opens (`popups` r1,
+    // `share=card`), so the pin moved with it: every door hands the card the
+    // permanent link as `joinUrl`, and the card encodes and copies that.
+    const card = read("code-card.tsx");
     expect(
-      /<StyledQr[\s\S]{0,200}value=\{joinUrl\}/.test(modal),
-      "the mini-modal's code stopped encoding the permanent link",
+      /<StyledQr[\s\S]{0,200}value=\{joinUrl\}/.test(card),
+      "the code card's code stopped encoding the permanent link",
     ).toBe(true);
     expect(
-      /useCopyLink\(joinUrl\)/.test(modal),
-      "the mini-modal copies something other than the permanent link",
+      /useCopyLink\(joinUrl\)/.test(card),
+      "the code card copies something other than the permanent link",
+    ).toBe(true);
+    expect(
+      /joinUrl=\{joinUrl\}/.test(read("event-code-modal.tsx")),
+      "the event page's card is handed something other than the permanent link",
     ).toBe(true);
     expect(
       /useCopyLink\(permanentUrl\)/.test(read("event-link-row.tsx")),

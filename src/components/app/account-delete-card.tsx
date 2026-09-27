@@ -16,16 +16,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   InputOTP,
@@ -33,6 +23,15 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
+import {
+  Popup,
+  PopupBody,
+  PopupClose,
+  PopupContent,
+  PopupFooter,
+  PopupHeader,
+  PopupTrigger,
+} from "@/components/ui/popup";
 import { CODE_LENGTH } from "@/lib/auth/code-length";
 
 /**
@@ -43,6 +42,12 @@ import { CODE_LENGTH } from "@/lib/auth/code-length";
  * vague "your events". This is the one place in the product where being a
  * little slower is the point: the consequence list, then a re-verification,
  * then a destructive button.
+ *
+ * ★ A CONFIRMATION, AND ONE THAT IS TYPED INTO (`popups` r1, `confirm=dialog`,
+ * `md` since it lists what leaves). Its password field used to sit under an
+ * iPhone's keyboard, because the Dialog centred in the layout viewport; the
+ * confirm kind stands in the band the keyboard leaves, and on a phone it opens
+ * with focus on itself, so the keyboard rises only when the field is tapped.
  *
  * ★ The re-verification here is the PROMPT, not the enforcement. The proof is
  * sent with the request and checked inside deleteMyAccountAction, because a
@@ -123,7 +128,7 @@ export function AccountDeleteCard({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Dialog
+        <Popup
           open={open}
           onOpenChange={(next) => {
             if (done) return; // never yank the confirmation out from under them
@@ -131,129 +136,127 @@ export function AccountDeleteCard({
             if (!next) reset();
           }}
         >
-          <DialogTrigger asChild>
+          <PopupTrigger asChild>
             <Button variant="destructive">
               <Trash2 /> Delete account
             </Button>
-          </DialogTrigger>
-          <DialogContent>
+          </PopupTrigger>
+          <PopupContent kind="confirm" size="md">
             {done ? (
-              <DialogHeader>
-                <DialogTitle>Your account is deleted</DialogTitle>
-                <DialogDescription>
-                  You are signed out. Thanks for trying Partyreel.
-                </DialogDescription>
-              </DialogHeader>
+              <PopupHeader
+                title="Your account is deleted"
+                description="You are signed out. Thanks for trying Partyreel."
+              />
             ) : (
               <>
-                <DialogHeader>
-                  <DialogTitle>Delete your account?</DialogTitle>
-                  <DialogDescription>
-                    This happens right away and cannot be undone.
-                  </DialogDescription>
-                </DialogHeader>
+                <PopupHeader
+                  title="Delete your account?"
+                  description="This happens right away and cannot be undone."
+                />
 
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  {eventCount > 0 && (
+                <PopupBody className="space-y-4">
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    {eventCount > 0 && (
+                      <li>
+                        <span className="text-foreground">
+                          {eventCount === 1
+                            ? "Your event is deleted"
+                            : `Your ${eventCount} events are deleted`}
+                        </span>
+                        , with everything guests uploaded to them.
+                      </li>
+                    )}
+                    {hasPlan && (
+                      <li>
+                        <span className="text-foreground">
+                          Your plan is cancelled
+                        </span>{" "}
+                        as part of this. You will not be billed again.
+                      </li>
+                    )}
                     <li>
+                      Photos you added to{" "}
                       <span className="text-foreground">
-                        {eventCount === 1
-                          ? "Your event is deleted"
-                          : `Your ${eventCount} events are deleted`}
-                      </span>
-                      , with everything guests uploaded to them.
-                    </li>
-                  )}
-                  {hasPlan && (
-                    <li>
-                      <span className="text-foreground">
-                        Your plan is cancelled
+                        other people&rsquo;s events
                       </span>{" "}
-                      as part of this. You will not be billed again.
+                      stay in those albums, without your name or email. Ask the
+                      host if you want them removed.
                     </li>
-                  )}
-                  <li>
-                    Photos you added to{" "}
-                    <span className="text-foreground">
-                      other people&rsquo;s events
-                    </span>{" "}
-                    stay in those albums, without your name or email. Ask the
-                    host if you want them removed.
-                  </li>
-                  <li>
-                    Your account cannot be restored, and this email can start
-                    over only as a brand new account.
-                  </li>
-                </ul>
+                    <li>
+                      Your account cannot be restored, and this email can start
+                      over only as a brand new account.
+                    </li>
+                  </ul>
 
-                {hasPassword ? (
-                  <div className="space-y-1.5">
-                    <Label htmlFor="delete-password">
-                      Enter your password to confirm
-                    </Label>
-                    <Input
-                      id="delete-password"
-                      type="password"
-                      autoComplete="current-password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </div>
-                ) : codeSent ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <p className="text-sm text-muted-foreground">
-                      Enter the 6-digit code we sent to{" "}
-                      <span className="font-medium text-foreground">
-                        {email}
-                      </span>
-                      .
-                    </p>
-                    {/* Deliberately NO onComplete, unlike the sign-in OTP:
+                  {hasPassword ? (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="delete-password">
+                        Enter your password to confirm
+                      </Label>
+                      <Input
+                        id="delete-password"
+                        type="password"
+                        autoComplete="current-password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                    </div>
+                  ) : codeSent ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <p className="text-sm text-muted-foreground">
+                        Enter the 6-digit code we sent to{" "}
+                        <span className="font-medium text-foreground">
+                          {email}
+                        </span>
+                        .
+                      </p>
+                      {/* Deliberately NO onComplete, unlike the sign-in OTP:
                         auto-submitting on the sixth keystroke would delete an
                         account without a final deliberate press. */}
-                    <InputOTP
-                      maxLength={CODE_LENGTH}
-                      autoFocus
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      value={code}
-                      disabled={deleting}
-                      onChange={setCode}
-                    >
-                      <InputOTPGroup>
-                        {Array.from({ length: CODE_LENGTH }, (_, i) => (
-                          <InputOTPSlot key={i} index={i} />
-                        ))}
-                      </InputOTPGroup>
-                    </InputOTP>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      We will email a confirmation code to{" "}
-                      <span className="font-medium text-foreground">
-                        {email}
-                      </span>
-                      .
-                    </p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      disabled={sending}
-                      onClick={onSendCode}
-                    >
-                      {sending ? "Sending…" : "Send code"}
-                    </Button>
-                  </div>
-                )}
+                      <InputOTP
+                        maxLength={CODE_LENGTH}
+                        autoFocus
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                        value={code}
+                        disabled={deleting}
+                        onChange={setCode}
+                      >
+                        <InputOTPGroup>
+                          {Array.from({ length: CODE_LENGTH }, (_, i) => (
+                            <InputOTPSlot key={i} index={i} />
+                          ))}
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        We will email a confirmation code to{" "}
+                        <span className="font-medium text-foreground">
+                          {email}
+                        </span>
+                        .
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={sending}
+                        onClick={onSendCode}
+                      >
+                        {sending ? "Sending…" : "Send code"}
+                      </Button>
+                    </div>
+                  )}
+                </PopupBody>
               </>
             )}
 
             {!done && (
-              <DialogFooter>
-                <DialogClose asChild>
+              <PopupFooter>
+                <PopupClose asChild>
                   <Button variant="outline">Keep my account</Button>
-                </DialogClose>
+                </PopupClose>
                 <Button
                   variant="destructive"
                   disabled={deleting || !canDelete}
@@ -261,10 +264,10 @@ export function AccountDeleteCard({
                 >
                   {deleting ? "Deleting…" : "Delete my account"}
                 </Button>
-              </DialogFooter>
+              </PopupFooter>
             )}
-          </DialogContent>
-        </Dialog>
+          </PopupContent>
+        </Popup>
       </CardContent>
     </Card>
   );

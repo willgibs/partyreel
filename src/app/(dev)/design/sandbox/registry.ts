@@ -1,14 +1,13 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 
-import { POPUPS } from "./popups/spec";
 import { IDENTITY_CLAIMS } from "./identity-claims/spec";
+import { HERO_CARD } from "./hero-card/spec";
 import { VOICE_GUEST } from "./voice-guest/spec";
 import { SITE_CHROME } from "./site-chrome/spec";
 import { PROFILE_PAGE } from "./profile-page/spec";
 import { EXPORT_FLOW } from "./export-flow/spec";
 import { ADMIN_TRIAGE } from "./admin-triage/spec";
-import { REEL_STORY } from "./reel-story/spec";
 import { EMAILS } from "./emails/spec";
 import { HELP_CENTER } from "./help-center/spec";
 import { HOST_CURATION } from "./host-curation/spec";
@@ -49,8 +48,8 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
  * missing from `DESK_ORDER` sorts to the foot until the Orchestrator places it.
  */
 const REGISTERED: readonly BoardSpec[] = [
-  POPUPS,
   IDENTITY_CLAIMS,
+  HERO_CARD,
 
   VOICE_GUEST,
 
@@ -59,7 +58,6 @@ const REGISTERED: readonly BoardSpec[] = [
   EVENT_SAFETY,
   EXPORT_FLOW,
   ADMIN_TRIAGE,
-  REEL_STORY,
   HELP_CENTER,
   EMAILS,
   SITE_CHROME,
