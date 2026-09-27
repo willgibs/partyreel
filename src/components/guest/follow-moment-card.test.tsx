@@ -131,6 +131,16 @@ describe("FollowMomentCard", () => {
     expect(updateDisplayName).not.toHaveBeenCalled();
   });
 
+  it("offers the host the quieter Follow, never the card's loudest button", () => {
+    // His guest-capture note: "Follow doesn't have to be pushed as hard as a feature relative to
+    // uploads/verifications/etc."
+    render(<FollowMomentCard host={HOST} needsHandle={false} count={2} />);
+    expect(screen.getByRole("button", { name: "Follow" })).toHaveAttribute(
+      "data-variant",
+      "ghost",
+    );
+  });
+
   it("the handle row points at the page's own setup", () => {
     render(<FollowMomentCard host={null} needsHandle count={1} />);
     expect(screen.getByRole("link", { name: "Claim" })).toHaveAttribute(

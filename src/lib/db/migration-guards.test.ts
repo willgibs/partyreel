@@ -1361,14 +1361,50 @@ describe("the row cap: the SQL shapes the 1,000-row fixes read", () => {
       );
     });
 
-    it("replaces the no-argument signature in the same file (PostgREST forbids overloads)", () => {
-      const file = grants("list_guest_rows_by_email");
-      const drop = file.indexOf(
-        "drop function public.list_guest_rows_by_email();",
+    it("never leaves an overload standing: each file drops the signature it replaces before it creates (PostgREST forbids overloads)", () => {
+      // Replayed statement by statement across the set rather than pinned to the file that first
+      // did it: the row cap replaced the no-argument signature (20260924020000), and the claims
+      // review's previews replaced the three-argument one with itself (20260927200000), because a
+      // RETURNS TABLE cannot change in place. A bare create over a standing signature fails to
+      // apply; one beside a different signature leaves an overload PostgREST cannot choose between.
+      const statement =
+        /\b(create (?:or replace )?function|drop function(?: if exists)?) public\.list_guest_rows_by_email ?\(([^)]*)\)/g;
+      const typesOf = (list: string, named: boolean) =>
+        list
+          .split(",")
+          .map((p) => p.trim())
+          .filter(Boolean)
+          .map((p) => (named ? p.split(" ")[1] : p))
+          .join(", ");
+      const live = new Set<string>();
+      for (const { file, sql } of executableMigrations()) {
+        for (const [, verb, list] of sql.matchAll(statement)) {
+          if (verb.startsWith("drop")) {
+            live.delete(typesOf(list, false));
+            continue;
+          }
+          const types = typesOf(list, true);
+          const replaces = verb.includes("or replace") && live.has(types);
+          expect(
+            replaces ? [] : [...live],
+            `${file} creates (${types}) beside a standing signature`,
+          ).toEqual([]);
+          live.add(types);
+        }
+      }
+      expect([...live]).toEqual(["timestamptz, uuid, integer"]);
+    });
+
+    it("★ previews a row's own photographs only where its album shows them to anyone: open, approved, live, four at most", () => {
+      // The claims review's cards (identity-claims r1, `pass=cards`): the keys of the row's OWN
+      // media, never the album's, and nothing from a password or private album (the guest album's
+      // `visibility = 'open'` gate) or from an upload the album shows nobody yet (held or hidden).
+      const body = code("list_guest_rows_by_email");
+      expect(body).toContain(
+        "case when e.visibility = 'open' then coalesce(p.keys, '{}'::text[]) end",
       );
-      expect(drop).toBeGreaterThan(-1);
-      expect(drop).toBeLessThan(
-        file.indexOf("create function public.list_guest_rows_by_email("),
+      expect(body).toContain(
+        "where y.guest_id = g.id and e.visibility = 'open' and y.status = 'approved' and y.removed_at is null and y.preview_key is not null order by y.created_at desc, y.id desc limit 4",
       );
     });
   });
