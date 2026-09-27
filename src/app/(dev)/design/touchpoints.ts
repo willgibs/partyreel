@@ -28,6 +28,7 @@ export type SandboxId =
   | "identity-door"
   | "popups"
   | "identity-claims"
+  | "hero-card"
   | "voice-guest"
   | "site-chrome"
   | "profile-page"
@@ -144,6 +145,28 @@ export const RULINGS: Ruling[] = [
         "Where the deletion's dialog sits",
         "What a claimed event offers",
         "Pointing from the album",
+      ],
+    },
+  },
+  {
+    id: "hero-card",
+    title: "The home hero's card",
+    surface: "marketing",
+    asks: "which compact event card stands at the centre of the home hero, an album with its one link and next to no words, the band streaming out of it",
+    why: "His reel-story note on the hero: a compact event card, several photographs and the QR as one face of one link, so the first screen reads as a shareable event.",
+    lives: [
+      "docs/systems/marketing-content.md",
+      "src/components/marketing/sections/home/cinema-hero.tsx",
+      "src/components/marketing/sections/home/hero-stream.ts",
+      "src/components/marketing/system/demo-ticket.tsx",
+    ],
+    board: {
+      note: "One decision, drawn in the real first screen at 1440 with 375 on the knob (the header, the band on its own tables, the eyebrow, the block): today's framed photograph beside three compact event cards, the album on paper with its code as a tile, the event's own page as a guest sees it, and the link with the album rising out of it",
+      variants: [
+        "Today",
+        "The album on a card",
+        "The event's own page",
+        "The link",
       ],
     },
   },
@@ -525,6 +548,7 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "popups",
   "identity-door",
   "identity-claims",
+  "hero-card",
   "voice-guest",
   "host-curation",
   "host-storage",
