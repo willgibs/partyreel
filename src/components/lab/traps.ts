@@ -198,4 +198,24 @@ export const TRAPS: readonly Trap[] = [
     instead: "The mark is in the LABEL: `Cell`'s `proposed` dot.",
     file: "src/components/lab/specimen.tsx",
   },
+  {
+    id: "a-button-in-the-success-hold",
+    tried:
+      "Draw a next step, a link or a button inside the door's held success view, 'You're in'.",
+    breaks:
+      "The hold is a fixed beat, about 900ms (`useSuccessHold`'s `minBeatMs`), that releases the instant the server's refresh lands, whichever comes last: a control there is reachable for however long the beat happens to run and then it is gone, never a screen a reader gets to act on. Two boards drew one there anyway, because the held view sits still long enough to look like a settled screen.",
+    instead:
+      "Treat the held step as a transition, not a screen: its one job is to mask the refresh round-trip and hand off to whatever comes next (the reveal, or the next gate). A next action belongs on the surface the hold reveals, never inside the hold.",
+    file: "src/lib/guest/use-success-hold.ts",
+  },
+  {
+    id: "lab-utility-loses-to-production",
+    tried:
+      "Pair a lab-only responsive utility with a production class on the same element to preview a variant (e.g. `hidden lg:contents` beside a production class, or `sm:max-w-md` beside production's `max-w-[calc(100%-2rem)]`).",
+    breaks:
+      "The lab's own utilities compile into their `utilities.lab` sub-layer, which loses to production's own layer whatever the source order or specificity says: `hidden lg:contents` stayed hidden at 1440, and `sm:max-w-md` beside production's `max-w-[calc(100%-2rem)]` drew a 1408px dialog. Nothing errors, and DevTools still shows the lab class matching, so the board looks like it is showing the variant when production quietly won.",
+    instead:
+      "Override production through the board's own sheet or `cn()`, never a bare Tailwind utility competing with a production class on the same element.",
+    file: "src/app/(dev)/design/design.css",
+  },
 ];
