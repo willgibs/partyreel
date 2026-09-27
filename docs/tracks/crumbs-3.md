@@ -1,6 +1,6 @@
 ---
 track: crumbs-3
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "a1c8f89e"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -57,7 +57,11 @@ working.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/guest-flow.md` (the door's lamp source line): "the album's three newest previews" narrowed
+  to "the album's newest previews, within a bounded lookback past any that turn out colourless" (and the
+  fallback clause widened to name that case), so the doc doesn't keep claiming a fixed three once
+  `album-light.tsx`'s `LOOKBACK` is 12. Not in `owns`; a single-fact exception under CLAUDE.md's "Record
+  subtractively" (the fact this lane's own item 2 changed).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
@@ -65,13 +69,77 @@ working.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commits: six, one per item, `00f5d646`..`6ccda924` on top of the cut `1875a133`
+  (`git log --oneline 1875a133..6ccda924`); this manifest's own commit follows and is the head reported in
+  the chat line. `launch-prep` had not moved from the cut (re-fetched immediately before this handoff), so
+  no sync commit.
+- Gates, all run on `6ccda924` (the tree after all six work commits, before this manifest-only commit),
+  each on its own exit code:
+  - `pnpm typecheck`: clean.
+  - `pnpm lint`: 0 errors; 5 pre-existing warnings, all in files this lane never touched
+    (`_desk/review-session.tsx`, `(paper)/contact/contact-form.tsx`, `features/album/album-fill-grid.tsx`,
+    `features/album/review-switch.tsx`).
+  - `pnpm test`: 5615 passed, 0 failed, 499 files.
+  - `zsh scripts/build-lock.sh pnpm build`: exit 0, full route manifest printed.
+  - `pnpm lab:smoke --base http://localhost:3131`: 264 checks, 0 failing (includes the four named boards).
+  - `board: none`, so no `lab:demo` run.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` is the 12 owned files below plus this
+  manifest, plus ONE exception: `docs/systems/guest-flow.md` (a single fact narrowed, listed above under
+  System-doc edits; not in `owns`, sanctioned by CLAUDE.md's "Record subtractively"). No other file touched.
+- The items, one line each:
+  1. `src/components/lab/dock.tsx`: Prev/Next/Desk now carry `prefetch={false}`, same fix `LabLink` already
+     uses and for the same reason (viewport prefetch drops `?key=`). Verified live: all four named boards
+     load with an empty console and no keyless `/design/lab/*` request in the network log (checked
+     individually: popups, identity-door, identity-claims, reel-story).
+  2. `src/components/guest/door/album-light.tsx` (+ `door-light.ts`'s doc comment): the lamp's sampling
+     window widened from a fixed newest-3 to a bounded newest-12 (`LOOKBACK`); `pickSpillHues` already
+     discounts a pixel with no real chroma, so widening the pool lets whichever of the twelve DOES carry
+     colour drive the light, and a window with none anywhere still falls back to the house five exactly as
+     before. `sampled-palette.ts` needed no change (its per-pixel math was already correct; only the
+     caller's window was too narrow). New test: "looks past a colourless run to a dozen newest previews,
+     not only the newest three" (`album-light.test.tsx`), proving the window reaches ids 4-12, not just the
+     old 1-3. A live re-check against a real album whose newest items are grey clip posters (build 11's
+     exact probe) is the natural final confirmation; I did not reconstruct that fixture here.
+  3. `ambient-reel-video.tsx` + `reel-player.tsx`: `AmbientReelVideo` takes a `paused` prop, OR'd with the
+     existing `useAmbientPause` signal; `useReelPlayer` now returns `active` (`host !== null`), and
+     `ReelPlayScreen` passes `paused={active}` to the teaser loop. Verified live: opening "Play a sample
+     highlight reel" mounts the contained player (a second `<video>`, `role="dialog"`) and closing it
+     unmounts cleanly back to one video, so `active` toggles correctly end to end. The video's own paused
+     DOM state could not be visually confirmed in this pane: `document.hidden` stays true here (a documented
+     tool limitation, `testing-verification.md`, "`useAmbientPause` consumers report paused"), which already
+     forces every ambient video to paused regardless of my new prop, so it could not isolate the new signal.
+  4. Two copy nits: `intent-sheet.tsx`'s "Everything you add joins {host}'s album." now curls its apostrophe
+     (`’`), matching `failure-sheet.tsx`'s `&rsquo;` and the house pattern (`save-account-prompt.tsx`).
+     `guest-share.tsx`'s native share text now says "and" instead of "&", matching the host's own three
+     call sites (`event-code-modal.tsx`, `event-share-sheet.tsx`, `create-event-wizard.tsx` all already said
+     "and"; the guest's was the one holdout), so house style is "and" for this line, said here per the brief.
+  5. `find-your-uploads-and-events.mdx` and `how-guests-join-and-upload.mdx`: both stop calling the keep "a
+     card"; it's the door reopening as its last screen. The fuller article also now says the typed name
+     becomes the account's, with a Change if it's wrong, and that Maybe later is scoped to that event on
+     that device (not gone for good). Both `updated` bumped to 2026-09-27. Verified live (rendered page
+     text) on both routes.
+  6. `src/components/lab/traps.ts`: two new entries, `a-button-in-the-success-hold` (the door's "You're in"
+     is a ~900ms `useSuccessHold` beat, never a place for a control) and `lab-utility-loses-to-production`
+     (a lab-only utility paired with a production class on one property silently loses to
+     `utilities.lab`'s sub-layer). Verified live on `/design/lab/kit`: both render.
+- Assets requested from Will: none.
+- Board ideas: none beyond this lane's own six items.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule:
+  - Item 2's window is 12 (`LOOKBACK` in `album-light.tsx`), a guess at "a small bounded window" per the
+    brief; a real album's grey-poster run could be longer or shorter than the build-11 probe's three.
+  - Item 4's "and" vs "&": picked "and" on a 3-to-1 count of existing native-share call sites; either is a
+    one-line flip in `guest-share.tsx` if he'd rather standardize the other way.
+- ROADMAP lines this closes (four of six items had one; items 1 and 2 were sourced straight from build 11's
+  red-team report, never a ROADMAP line, so nothing to retire for them):
+  - Marketing / `reel-marketing`'s teaser-loop line (item 3): closes whole.
+  - Shared / `popups`'s copy-nits line (item 4): only the "two copy nits" half is done; its other half (a
+    QR-designer Cancel and the clip's "Add to event" close, both waiting on `popups` being wired) is
+    untouched and should stay open, so the line wants narrowing rather than deleting.
+  - Help / `guest-door`'s keep/told-name line (item 5): only the `find-your-uploads-and-events` +
+    `how-guests-join-and-upload` half is done; its `a-photo-is-missing-from-the-album` clause is
+    untouched on purpose (the brief: "follows `host-curation`'s open `told`"), so this line also wants
+    narrowing, not deleting.
+  - The lab / trap-lines line (item 6): closes whole.
+- Look at first: `src/components/guest/door/album-light.tsx` (the widened lookback, item 2, the only real
+  logic change) and the two help articles' new prose (item 5, quick to eyeball for tone).
