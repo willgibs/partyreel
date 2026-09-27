@@ -1,14 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import {
-  Camera,
-  Check,
-  Eye,
-  ImageUp,
-  Images,
-  QrCode,
-} from "lucide-react";
+import { Camera, Check, Eye, ImageUp, Images, QrCode } from "lucide-react";
 
 import { DOOR_WEAR } from "@/components/auth/account-door";
 import { GoogleIcon } from "@/components/auth/google-icon";
@@ -126,10 +119,7 @@ function Field({
     >
       {shown ? (
         <span
-          className={cn(
-            "truncate text-foreground",
-            mask && "tracking-[0.2em]",
-          )}
+          className={cn("truncate text-foreground", mask && "tracking-[0.2em]")}
         >
           {shown}
         </span>
@@ -258,9 +248,18 @@ function welcome(w: World, desk: boolean): StepSpec {
     lamp: "base",
     kb: null,
     node: (
-      <div data-door-step="welcome" data-welcome-step className="flex flex-col gap-5">
+      <div
+        data-door-step="welcome"
+        data-welcome-step
+        className="flex flex-col gap-5"
+      >
         <LitHero desk={desk} />
-        <div className={cn("flex flex-col", w.icons === "lit" ? "gap-4" : "gap-3.5")}>
+        <div
+          className={cn(
+            "flex flex-col",
+            w.icons === "lit" ? "gap-4" : "gap-3.5",
+          )}
+        >
           <PromiseRow icon={Camera} hue={1} w={w}>
             Add your photos and videos in seconds. No app required.
           </PromiseRow>
@@ -289,7 +288,11 @@ function demo(w: World, desk: boolean): StepSpec {
     lamp: "base",
     kb: null,
     node: (
-      <div data-door-step="demo" data-welcome-step className="flex flex-col gap-5">
+      <div
+        data-door-step="demo"
+        data-welcome-step
+        className="flex flex-col gap-5"
+      >
         <div className="flex flex-col">
           <p className="text-label font-medium text-muted-foreground uppercase">
             A live demo
@@ -307,7 +310,12 @@ function demo(w: World, desk: boolean): StepSpec {
             {`This is a real album, exactly as ${HOST.name}’s guests see it.`}
           </p>
         </div>
-        <div className={cn("flex flex-col", w.icons === "lit" ? "gap-4" : "gap-3.5")}>
+        <div
+          className={cn(
+            "flex flex-col",
+            w.icons === "lit" ? "gap-4" : "gap-3.5",
+          )}
+        >
           <PromiseRow icon={ImageUp} hue={1} w={w}>
             Add a photo the way a guest would. Nothing you add is saved.
           </PromiseRow>
@@ -390,9 +398,7 @@ function chooser(w: World): StepSpec {
     ) : (
       <Heading
         title={CHOOSER.title}
-        reason={
-          w.chooser === "told" ? undefined : CHOOSER.reason
-        }
+        reason={w.chooser === "told" ? undefined : CHOOSER.reason}
       />
     );
   const buttons =
@@ -562,7 +568,13 @@ function passwordHead(w: World) {
   );
 }
 
-function PasswordField({ focused, value }: { focused: boolean; value: string }) {
+function PasswordField({
+  focused,
+  value,
+}: {
+  focused: boolean;
+  value: string;
+}) {
   return (
     <Field
       id="password"
@@ -631,7 +643,10 @@ function unlock(w: World): StepSpec {
                 : "bg-success text-success-foreground hover:bg-success",
             )}
           >
-            <span data-unlock-success className="relative flex items-center gap-2">
+            <span
+              data-unlock-success
+              className="relative flex items-center gap-2"
+            >
               <Check className="size-4.5" />
               You&rsquo;re in
             </span>
@@ -687,8 +702,7 @@ function IdentifyName({ focused = false }: { focused?: boolean }) {
       <FieldLabel>Your name</FieldLabel>
       <Field id="name" value={PRIYA.name} focused={focused} />
       <p className="text-reading text-muted-foreground">
-        If you already have a Partyreel account, its name is the one that
-        shows.
+        If you already have a Partyreel account, its name is the one that shows.
       </p>
     </div>
   );
@@ -961,7 +975,10 @@ function upload(demoRun: boolean): StepSpec {
     lamp: "base",
     kb: null,
     node: (
-      <div data-door-step={demoRun ? "demo-upload" : "upload"} className="flex flex-col gap-4 pt-1">
+      <div
+        data-door-step={demoRun ? "demo-upload" : "upload"}
+        className="flex flex-col gap-4 pt-1"
+      >
         <Heading
           title="Add your photos"
           reason={
@@ -1063,9 +1080,7 @@ function inBeat(w: World): StepSpec {
         <InMark beat={w.beat} />
         <div>
           <p data-door-beat-words className="font-heading text-page">
-            {w.beat === "hers"
-              ? `You’re in, ${PRIYA.name}`
-              : "You’re in"}
+            {w.beat === "hers" ? `You’re in, ${PRIYA.name}` : "You’re in"}
           </p>
           <p className="mt-1 text-base text-muted-foreground">
             Welcome to the party

@@ -145,7 +145,7 @@ const DRAFT = defineExploration({
           id: "today",
           label: "As shipped: a line above three buttons",
           means:
-            "\"How do you want to join?\" and one sentence on what a name and an account each give, over three full-width buttons, the last two alike.",
+            '"How do you want to join?" and one sentence on what a name and an account each give, over three full-width buttons, the last two alike.',
         },
         {
           id: "told",
@@ -157,7 +157,7 @@ const DRAFT = defineExploration({
           id: "link",
           label: "Log in steps down to a link",
           means:
-            "Two buttons under the question, then \"Already on Partyreel? Log in\": a member finds it where members look, and the loud choice is guest or account.",
+            'Two buttons under the question, then "Already on Partyreel? Log in": a member finds it where members look, and the loud choice is guest or account.',
         },
         {
           id: "bare",
@@ -184,13 +184,13 @@ const DRAFT = defineExploration({
       options: [
         {
           id: "today",
-          label: "As shipped: \"Nobody has to prove a name\"",
+          label: 'As shipped: "Nobody has to prove a name"',
           means:
-            "\"Just a name. Nobody has to prove a name.\" says nothing is being checked, since every other door she meets asks her to prove something.",
+            '"Just a name. Nobody has to prove a name." says nothing is being checked, since every other door she meets asks her to prove something.',
         },
         {
           id: "change",
-          label: "\"You can change it anytime\"",
+          label: '"You can change it anytime"',
           means:
             "The reassurance that is also a fact: her menu's Change name edits it later, so a hurried name costs nothing. Change name itself shows no line.",
         },
@@ -221,11 +221,11 @@ const DRAFT = defineExploration({
           id: "today",
           label: "As shipped: the code under the step's head",
           means:
-            "The step's title and line stay, \"Enter your code\" small and centred under them; its last line still says \"to sign in\", where the door says Log in.",
+            'The step\'s title and line stay, "Enter your code" small and centred under them; its last line still says "to sign in", where the door says Log in.',
         },
         {
           id: "mail",
-          label: "\"Check your email\" heads it",
+          label: '"Check your email" heads it',
           means:
             "The code takes the heading like every step: Check your email, the address, six slots full width, then the link and the resend.",
         },
@@ -239,7 +239,7 @@ const DRAFT = defineExploration({
       recommended: "mail",
       today: "today",
       because:
-        "The code is the moment she leaves for her inbox; one heading that says where to look is the whole screen's job, and it drops the \"sign in\" the rest of the door no longer says.",
+        'The code is the moment she leaves for her inbox; one heading that says where to look is the whole screen\'s job, and it drops the "sign in" the rest of the door no longer says.',
       overrule:
         "If a mistyped address is the likelier failure, the code under her filled email lets her see it, at the cost of a taller screen.",
       lands:
@@ -256,7 +256,7 @@ const DRAFT = defineExploration({
           id: "today",
           label: "As shipped: a green check",
           means:
-            "The success green: a check in a disc over \"You're in\", the password's button turning green, and \"Sent\" with nothing beside it.",
+            'The success green: a check in a disc over "You\'re in", the password\'s button turning green, and "Sent" with nothing beside it.',
         },
         {
           id: "lit",

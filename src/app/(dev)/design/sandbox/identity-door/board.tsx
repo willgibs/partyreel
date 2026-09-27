@@ -87,11 +87,7 @@ function DoorBody({
   };
   return (
     <div className="relative min-h-screen" style={vars}>
-      <AlbumGround
-        who={WHO[step] ?? "stranger"}
-        description
-        locked={locked}
-      />
+      <AlbumGround who={WHO[step] ?? "stranger"} description locked={locked} />
       <Scrim spec={LIT_SCRIM} />
       {desk ? (
         <DeskPanel {...parts} />
@@ -156,8 +152,7 @@ function hueSaid(color: string): string {
 
 const words = (el: Element | null) =>
   el
-    ? ((el as HTMLElement).innerText.match(/[A-Za-z0-9’'&@.-]+/g) ?? [])
-        .length
+    ? ((el as HTMLElement).innerText.match(/[A-Za-z0-9’'&@.-]+/g) ?? []).length
     : 0;
 
 /** What the sheet asks her to read, counted off the paper. */
@@ -266,9 +261,7 @@ function chooserSaid(root: HTMLElement, win: Window): string {
   if (!buttons.length) return "";
   const first = buttons[0].getBoundingClientRect();
   const last = buttons[buttons.length - 1].getBoundingClientRect();
-  const lines = [
-    ...step.querySelectorAll<HTMLElement>("[data-door-way-line]"),
-  ];
+  const lines = [...step.querySelectorAll<HTMLElement>("[data-door-way-line]")];
   const wrapped = lines.filter(
     (l) =>
       l.getBoundingClientRect().height >
