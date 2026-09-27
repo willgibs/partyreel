@@ -62,12 +62,7 @@ function mount(
   props: Partial<React.ComponentProps<typeof ClaimHandlePrompt>> = {},
 ) {
   return render(
-    <ClaimHandlePrompt
-      doneCount={doneCount}
-      qrToken="tok-1"
-      savePrompt={<div data-testid="save-account-prompt" />}
-      {...props}
-    />,
+    <ClaimHandlePrompt doneCount={doneCount} qrToken="tok-1" {...props} />,
   );
 }
 
@@ -77,10 +72,10 @@ function mount(
  * The pinned function is the SEQUENCE, because the whole point of offering the
  * claim after the upload is that it arrives without getting in the way: one
  * card stands at a time, chosen by what the person actually needs next. Signed
- * out means there is no account to hang a page on, so the save prompt goes
- * first; signed in without a handle is the one state this card is for; somebody
- * who already has a page is offered nothing at all. Copy and layout are
- * precedent.
+ * out, the slot is empty: the ask to keep what she added is the door's own last
+ * screen now (`guest-capture` r1), never a card under the album; signed in
+ * without a handle is the one state this card is for; somebody who already has
+ * a page is offered nothing at all. Copy and layout are precedent.
  */
 beforeEach(() => {
   vi.clearAllMocks();
@@ -88,11 +83,12 @@ beforeEach(() => {
 });
 
 describe("ClaimHandlePrompt", () => {
-  it("signed out: the save-account prompt stands, and no handle is mentioned", async () => {
+  it("signed out: nothing at all (the keep is the door's last screen, never a card here)", async () => {
     stub({ signedIn: false, slug: null });
-    mount();
-    await screen.findByTestId("save-account-prompt");
-    expect(screen.queryByRole("link", { name: /claim/i })).toBeNull();
+    const { container } = mount();
+    await waitFor(() => expect(mockCreateClient).toHaveBeenCalled());
+    await waitFor(() => expect(container).toBeEmptyDOMElement());
+    expect(screen.queryByText(/keep (this|these) photo/i)).toBeNull();
   });
 
   it("signed in without a handle: the claim offer, with a door to the account", async () => {
@@ -100,22 +96,21 @@ describe("ClaimHandlePrompt", () => {
     mount();
     const door = await screen.findByRole("link", { name: /claim/i });
     expect(door).toHaveAttribute("href", "/account#public-profile");
-    expect(screen.queryByTestId("save-account-prompt")).toBeNull();
   });
 
   it("signed in with a handle: nothing at all", async () => {
     stub({ signedIn: true, slug: "maya" });
     const { container } = mount();
-    await waitFor(() =>
-      expect(mockCreateClient).toHaveBeenCalledTimes(1),
-    );
+    await waitFor(() => expect(mockCreateClient).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(container).toBeEmptyDOMElement());
   });
 
   it("counts the photographs that landed", async () => {
     stub({ signedIn: true, slug: null });
     mount(1);
-    expect(await screen.findByText(/your photo is on this album/i)).toBeVisible();
+    expect(
+      await screen.findByText(/your photo is on this album/i),
+    ).toBeVisible();
   });
 });
 
@@ -158,20 +153,13 @@ describe("ClaimHandlePrompt: the moment after confirming", () => {
   it("the moment arrives AFTER an in-page confirmation, and the card re-resolves for it", async () => {
     stub({ signedIn: false, slug: null });
     const view = mount(3, { host: HOST });
-    await screen.findByTestId("save-account-prompt");
+    await waitFor(() => expect(mockCreateClient).toHaveBeenCalled());
     // The confirmation lands: a session exists now, and the album hands the word down.
     stub({ signedIn: true, slug: null });
     view.rerender(
-      <ClaimHandlePrompt
-        doneCount={3}
-        qrToken="tok-1"
-        savePrompt={<div data-testid="save-account-prompt" />}
-        host={HOST}
-        moment
-      />,
+      <ClaimHandlePrompt doneCount={3} qrToken="tok-1" host={HOST} moment />,
     );
     expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
-    expect(screen.queryByTestId("save-account-prompt")).toBeNull();
   });
 
   it("is never hidden behind the handle card's dismissal", async () => {
@@ -207,5 +195,44 @@ describe("ClaimHandlePrompt: the moment after confirming", () => {
     mount(2, { host: HOST, moment: true });
     await screen.findAllByText(/your photos are safe/i);
     expect(updateDisplayName).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * THE ONE BEAT (`guest-capture` r1: `follow=card` within any multi-claim handling, `name=told`).
+ * The moment card says everything a confirmation has to say: the other events once, and the name
+ * her photographs now carry, whenever she typed one here, whichever name won.
+ */
+describe("ClaimHandlePrompt: the moment is the confirmation's one beat", () => {
+  it("tells the name she is on as when she typed one here, the account's own name winning", async () => {
+    localStorage.setItem("pr_guest_name_tok-1", "Priya");
+    stub({ signedIn: true, slug: null, displayName: "Priya Shah" });
+    mount(2, { host: HOST, moment: true });
+    expect(await screen.findByText(/You're on as Priya Shah\./)).toBeVisible();
+    expect(screen.getByRole("button", { name: "Change" })).toBeInTheDocument();
+  });
+
+  it("tells the typed name once it became the account's name", async () => {
+    localStorage.setItem("pr_guest_name_tok-1", "Priya");
+    stub({ signedIn: true, slug: null, displayName: null });
+    mount(2, { host: HOST, moment: true });
+    expect(await screen.findByText(/You're on as Priya\./)).toBeVisible();
+  });
+
+  it("tells no name when none was typed on this album", async () => {
+    stub({ signedIn: true, slug: null, displayName: "Priya Shah" });
+    mount(2, { host: HOST, moment: true });
+    await screen.findByText(/your photos are safe/i);
+    expect(screen.queryByText(/You're on as/)).toBeNull();
+  });
+
+  it("says the other events once, inside the card", async () => {
+    stub({ signedIn: true, slug: null });
+    mount(2, { host: HOST, moment: true, elsewhere: 2 });
+    expect(
+      await screen.findByText(
+        /Your uploads from other events are in your account too\./,
+      ),
+    ).toBeVisible();
   });
 });

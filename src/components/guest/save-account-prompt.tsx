@@ -1,226 +1,213 @@
 "use client";
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import { MailCheck } from "lucide-react";
+import { useState } from "react";
+import { Check, MailCheck } from "lucide-react";
 
-import { ConfirmEmailDialog } from "@/components/auth/confirm-email-dialog";
+import { AccountDoor, DOOR_WEAR } from "@/components/auth/account-door";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { formatCount } from "@/lib/format/count";
-import { markPendingOffer } from "@/lib/guest/album-return";
-import { createClient } from "@/lib/supabase/client";
 
 /**
- * THE OFFER, RIGHT AFTER A GUEST'S FIRST PHOTOGRAPHS LAND, where it reads as the
- * natural next step rather than a random Save button above an album. It opens
- * the CAPTURE FLOW, which lets a guest with no account keep the event and their
- * uploads on a profile and follow the host and the other guests.
+ * THE KEEP: THE DOOR'S LAST SCREEN (`guest-capture` r1, Will's `moment=first` and
+ * `shape=sheet-step`: "I like bubbling it up front and center, so its clearly visible to either
+ * input email or dismissed... At this point, we've already gotten the guest's value to the host
+ * (uploads), so we're simply trying to capture the guest as a Partyreel user now.").
  *
- * ★ IT COUNTS WHAT THEY JUST ADDED, and that is the whole difference between a
- * growth card and an offer: "Keep your 7 photos" is about the thing in front of
- * them, "create a free account" is about us.
+ * The instant her first file lands, the door does not close onto the album: its last screen is the
+ * ask to keep what she added, in the same held sheet that offered the optional email a minute
+ * earlier. It says her photo went ("Sent", and where it went), then the offer, then Confirm your
+ * email (the account door, in this sheet) or Maybe later (the door closes onto the album, and the
+ * ask is put down for this event on this device: `lib/guest/keep-ask.ts`). The machine that raises
+ * it is `computeDoor`'s `keep` rule; the modal owns the sequence a confirmation runs.
  *
- * ★ CONFIRMING CLAIMS, AND THE CLAIM IS THE WHOLE KEEP. What the address buys is
- * the event, saved under the account for the future, and uploading to an event
- * already amounts to saving it. There is no save step behind this door: the
- * claim puts the photographs in the account, and the event comes with them
- * as a Guest card on the dashboard, which is exactly what the card promises.
+ * ★ IT COUNTS WHAT SHE ADDED, and that is the whole difference between an offer and a growth card:
+ * "Keep these photos" is about the thing in front of her, "create a free account" is about us.
  *
- * ★ IT MARKS THE DOOR'S OPENING (`pr_pending_offer_<qr_token>`, through
- * `markPendingOffer`) so the beat AFTER a confirmation is the same on every
- * path: the album page's claim consumes the marker and stands the follow moment
- * up, whether the guest typed the code here or left for Google or a magic link
- * and came back. Written on OPEN rather than on success, because by the time a
- * redirect happens there is no code of ours running.
+ * ★ CONFIRMING CLAIMS, AND THE CLAIM IS THE WHOLE KEEP: the photographs become the account's and
+ * the event comes with them (a Guest card on the dashboard). "In your account", never "on your
+ * profile": a profile publishes nothing until its owner chooses it.
  *
- * ★ AND THE NEWSLETTER SWITCH LIVES IN THIS CARD'S DOOR, its one place in the
- * product: "Send me occasional Partyreel updates", written only on an in-page
- * confirmation, through `/api/guests/capture-email`, which derives the address
- * from the confirmed session (never from this page).
+ * ★ AND THE NEWSLETTER SWITCH RIDES THIS DOOR, its one place in the product: "Send me occasional
+ * Partyreel updates", written only on a confirmation made here, through `/api/guests/capture-email`,
+ * which derives the address from the confirmed session (never from this page).
  *
- * The file's name says "save", though the thing it offers is a confirmation:
- * the lab's touchpoints list it by this name, and the links test checks it
- * exists.
+ * The file keeps its name (the offer card it held is retired into this step): the lab's touchpoints
+ * and `voice-guest`'s `keep` ask read the capture's words here.
  */
 
-function promptKey(qrToken: string) {
-  return `pr_save_prompt_${qrToken}`;
+/** The offer's two sentences, counting the way the card always did: the heading singular for
+ *  exactly one photograph, so it never reads as a mismatch beside "it stays". */
+export function keepCopy(count: number): { title: string; reason: string } {
+  return {
+    title: count === 1 ? "Keep this photo" : "Keep these photos",
+    reason: `Confirm your email and ${
+      count === 1
+        ? "it stays"
+        : count > 1
+          ? `all ${formatCount(count)} stay`
+          : "they stay"
+    } with you: this event in your account, and everything you added to it.`,
+  };
 }
 
-// Same-tab subscribers — the native `storage` event only fires in OTHER tabs. Mirrors
-// the use-stored-session localStorage gate; server snapshot is `true` so the card never
-// flashes before hydration.
-const listeners = new Set<() => void>();
-function emit() {
-  for (const listener of listeners) listener();
-}
-
-function useDismissed(key: string): [boolean, () => void] {
-  const subscribe = useCallback((cb: () => void) => {
-    listeners.add(cb);
-    window.addEventListener("storage", cb);
-    return () => {
-      listeners.delete(cb);
-      window.removeEventListener("storage", cb);
-    };
-  }, []);
-
-  const dismissed = useSyncExternalStore(
-    subscribe,
-    () => localStorage.getItem(key) === "1",
-    () => true,
-  );
-
-  const dismiss = useCallback(() => {
-    localStorage.setItem(key, "1");
-    emit();
-  }, [key]);
-
-  return [dismissed, dismiss];
-}
-
-export function SaveAccountPrompt({
-  qrToken,
-  sessionToken,
-  count = 0,
-  hintEmail,
-}: {
-  qrToken: string;
-  sessionToken: string;
-  /** Photographs this guest added in this session (the sentence's number). */
-  count?: number;
-  /**
-   * The address typed at the DOOR this visit (the optional field), so the door
-   * behind this card opens on it. The card's own words do not
-   * change: a guest who typed an address is being offered the same thing, one
-   * tap cheaper. Null for everyone who skipped the field and on every later
-   * visit, because the page holds it in memory alone.
-   */
-  hintEmail?: string | null;
-}) {
-  const [dismissed, dismiss] = useDismissed(promptKey(qrToken));
-  const [open, setOpen] = useState(false);
-  const [optIn, setOptIn] = useState(false);
-  // ★ The belt: this card is for somebody WITHOUT an account. The slot's owner
-  // (`claim-handle-prompt.tsx`) already renders it only for a signed-out guest;
-  // a card that finds a session anyway hides itself rather than asking an
-  // account holder to confirm an email they have. Checked once, at mount, so a
-  // confirmation made through this very card never pulls it out from under its
-  // own open door.
-  const [hasSession, setHasSession] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    void (async () => {
-      const {
-        data: { session },
-      } = await createClient().auth.getSession();
-      if (active && session) setHasSession(true);
-    })();
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  // Best-effort, never blocking: a newsletter write must never fail the
-  // confirmation it rides on. The route derives the confirmed address from the
-  // session (getUser()), so nothing here can put somebody else's on the list.
-  async function captureNewsletter() {
-    if (!sessionToken) return;
-    try {
-      await fetch("/api/guests/capture-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_token: sessionToken,
-          newsletter_opt_in: true,
-        }),
-      });
-    } catch {
-      // swallowed on purpose (see above)
-    }
+/**
+ * Where what she sent went: into the album (the host's, by name, when the host has one), or, on an
+ * event that holds uploads for the host, to the host first. Never "joined the album" for a
+ * photograph the album does not show yet.
+ */
+export function keepSentLine(input: {
+  count: number;
+  held: boolean;
+  hostName?: string | null;
+}): string {
+  const { count, held } = input;
+  const host = input.hostName?.trim();
+  const subject =
+    count === 1 ? "Your photo" : `Your ${formatCount(count)} photos`;
+  if (held) {
+    return `${subject} ${count === 1 ? "is" : "are"} waiting for the host.`;
   }
+  return `${subject} joined ${host ? `${host}’s album` : "the album"}.`;
+}
 
-  if (dismissed || hasSession) return null;
-
+/** The ask itself: what went, the offer, and the two ways on. */
+export function KeepOffer({
+  count,
+  held,
+  hostName,
+  onConfirm,
+  onLater,
+}: {
+  /** The photographs of hers that landed this visit (live: it grows as the rest land). */
+  count: number;
+  /** The event holds uploads for the host. */
+  held: boolean;
+  hostName?: string | null;
+  onConfirm: () => void;
+  onLater: () => void;
+}) {
+  const copy = keepCopy(count);
   return (
-    <div
-      data-media-tile
-      className="rounded-xl border border-border bg-card p-5 text-center"
-    >
-      <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
-        <MailCheck className="size-5" />
+    <div data-keep-step="offer" className="flex flex-col gap-5">
+      {/* For the eye; the shell announces the offer's two sentences as the sheet's name. */}
+      <div aria-hidden>
+        <p className="flex items-center gap-1.5 text-label font-medium text-muted-foreground uppercase">
+          <Check className="size-3.5 text-success" strokeWidth={3} />
+          Sent
+        </p>
+        <p className="mt-1.5 text-working text-muted-foreground">
+          {keepSentLine({ count, held, hostName })}
+        </p>
+        <p className="mt-5 font-heading text-page text-balance">{copy.title}</p>
+        <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+          {copy.reason}
+        </p>
       </div>
-      {/* A prompt tile's title: the app's quiet middle, `subsection`. The
-          NUMBER rides the sentence under it, where it belongs: "Keep these
-          photos" is the offer, "these 7" is what is in front of them. ★ THE
-          HEADING COUNTS TOO, for exactly one: the body says "it stays" in the
-          singular, so a heading that said "photos" would read as a mismatch
-          beside its own sentence. Every other count keeps the constant
-          plural a help article quotes
-          (content/help/find-your-uploads-and-events.mdx). */}
-      <p className="font-heading text-subsection">
-        {count === 1 ? "Keep this photo" : "Keep these photos"}
-      </p>
-      {/* ★ "In your account", never "on your profile": confirming claims the
-          photographs into the account and the event arrives with them, while a
-          profile shows nothing until its owner chooses it (profiles-social.md). */}
-      <p className="mx-auto mt-1 mb-4 max-w-xs text-reading text-muted-foreground">
-        Confirm your email and{" "}
-        {count === 1 ? "it stays" : count > 1 ? `all ${formatCount(count)} stay` : "they stay"}{" "}
-        with you: this event in your account, and everything you added to it.
-      </p>
-      <div className="flex justify-center">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="active:scale-[0.98] motion-reduce:active:scale-100"
-          onClick={() => {
-            // BEFORE the door opens: Google and a magic link leave the page.
-            markPendingOffer(qrToken);
-            setOpen(true);
-          }}
-        >
+      <div className="flex flex-col gap-2">
+        <Button type="button" size="cta" className="w-full" onClick={onConfirm}>
           <MailCheck /> Confirm your email
         </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full text-muted-foreground"
+          onClick={onLater}
+        >
+          Maybe later
+        </Button>
       </div>
-      <button
-        type="button"
-        onClick={dismiss}
-        className="mt-3 text-xs text-muted-foreground underline-offset-4 hover:underline"
-      >
-        Maybe later
-      </button>
+    </div>
+  );
+}
 
-      <ConfirmEmailDialog
-        open={open}
-        onOpenChange={setOpen}
-        hintEmail={hintEmail}
-        onConfirmed={async () => {
-          if (optIn) await captureNewsletter();
-          setOpen(false);
-          // Confirmed: the card's job is done. The slot's owner plays the
-          // follow moment in its place once the album hears the claim land.
-          dismiss();
-        }}
+/**
+ * CONFIRM YOUR EMAIL, IN THE SAME SHEET: the account door in its `keep` wear, opening on the
+ * address she typed under her name this visit when she typed one (a convenience, never an
+ * authorization: the code still has to land in that inbox). No second sheet over the held one:
+ * one thing to answer, one way back (the door's own chevron, to the offer).
+ */
+export function KeepConfirm({
+  qrToken,
+  hintEmail,
+  onVerified,
+}: {
+  qrToken: string;
+  hintEmail?: string | null;
+  /** The code confirmed; `newsletter` is the switch's answer. The modal runs the claim. */
+  onVerified: (result: { newsletter: boolean }) => void | Promise<void>;
+}) {
+  const [optIn, setOptIn] = useState(false);
+  // Built at render from the album she is standing on, so a magic link or the Google round trip
+  // comes back to it (a custom slug included) and its mount-time claim plays the moment.
+  const emailRedirectTo =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/auth/callback?next=${window.location.pathname}`
+      : `/auth/callback?next=/e/${qrToken}`;
+  return (
+    <div data-keep-step="confirm" className="flex flex-col gap-4">
+      <div aria-hidden>
+        <p className="font-heading text-page text-balance">
+          {DOOR_WEAR.keep.heading}
+        </p>
+        <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+          {DOOR_WEAR.keep.reason}
+        </p>
+      </div>
+      <AccountDoor
+        wear="keep"
+        methods={{ code: true, google: true }}
+        emailRedirectTo={emailRedirectTo}
+        // The welcome carried the Terms line every guest passes once.
+        consent={false}
+        chrome="none"
+        intent="create"
+        // This device holds the tickets a claim would move (she just added to one), so a code the
+        // address already had holds on "you already had an account" before anything is claimed.
+        hold
+        hintEmail={hintEmail ?? undefined}
+        inputClassName="h-11 text-base"
+        buttonSize="cta"
+        buttonClassName="h-11"
+        onVerified={() => onVerified({ newsletter: optIn })}
       >
         <div className="flex items-center gap-2">
           <Switch
-            id="pr-offer-newsletter"
+            id="pr-keep-newsletter"
             size="sm"
             checked={optIn}
             onCheckedChange={setOptIn}
           />
           <Label
-            htmlFor="pr-offer-newsletter"
+            htmlFor="pr-keep-newsletter"
             className="text-xs font-normal text-muted-foreground"
           >
             Send me occasional Partyreel updates
           </Label>
         </div>
-      </ConfirmEmailDialog>
+      </AccountDoor>
     </div>
   );
+}
+
+/**
+ * The newsletter's write, best-effort and never blocking: it must never fail the confirmation it
+ * rides on. The route derives the confirmed address from the session (`getUser()`), so nothing here
+ * can put somebody else's on the list.
+ */
+export async function captureKeepNewsletter(sessionToken: string | null) {
+  if (!sessionToken) return;
+  try {
+    await fetch("/api/guests/capture-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session_token: sessionToken,
+        newsletter_opt_in: true,
+      }),
+    });
+  } catch {
+    // swallowed on purpose (see above)
+  }
 }

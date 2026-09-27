@@ -48,7 +48,7 @@ import { MAX_GUEST_EMAIL_LENGTH } from "@/lib/validation/upload";
  * at the moment they go to contribute. As a quick gate in front of the reward it is paid once, and
  * uploading feels seamless from inside the album.
  *
- * ★ THREE MODES, BECAUSE THREE DOORS ASK THE SAME QUESTION, AND ONLY ONE OF THEM
+ * ★ FOUR MODES, BECAUSE FOUR DOORS ASK THE SAME QUESTION, AND ONLY ONE OF THEM
  *   CARRIES THE ADDRESS:
  *   `join`    Continue as guest, and the ONLY mode with the optional email. A held session renames
  *             its row (then attaches the address on a second call); otherwise the join mints one
@@ -57,6 +57,9 @@ import { MAX_GUEST_EMAIL_LENGTH } from "@/lib/validation/upload";
  *   `edit`    the album menu's "Change name", and the one dismissible door.
  *   `profile` a CONFIRMED account with no profile name: `updateDisplayNameAction`. No address: a
  *             confirmed account already has the only one that counts.
+ *   `account` the same dismissible door as `edit`, for a CONFIRMED account: the told name's Change
+ *             (`guest-capture` r1, Will's "a simple 'Change' link to actually do so"), written to
+ *             the profile the way `profile` writes it, since a confirmed row carries no name.
  * (A verification event asks the name and the address together, on `identify-step.tsx`, so the
  * name is never held here waiting for a code.)
  *
@@ -81,8 +84,8 @@ import { MAX_GUEST_EMAIL_LENGTH } from "@/lib/validation/upload";
  * `verification_required`: the host flipped the switch while the guest stood
  * here, so the caller re-gates rather than this form arguing with it.
  */
-/** The three doors that ask one question; see the head comment. */
-export type GuestNameMode = "join" | "edit" | "profile";
+/** The four doors that ask one question; see the head comment. */
+export type GuestNameMode = "join" | "edit" | "profile" | "account";
 
 export function GuestNameStep({
   qrToken,
@@ -94,7 +97,7 @@ export function GuestNameStep({
   onVerificationRequired,
 }: {
   qrToken: string;
-  /** See the three modes in this file's head comment. */
+  /** See the four modes in this file's head comment. */
   mode: GuestNameMode;
   /**
    * Kept for the callers and the lab's fixtures, and not read: the lede
@@ -136,9 +139,10 @@ export function GuestNameStep({
   const [saving, startSave] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
-  const editing = mode === "edit";
+  // The two dismissible doors that CHANGE a name rather than ask one.
+  const editing = mode === "edit" || mode === "account";
   const copy = guestNameCopy(mode, hostName);
-  // The one mode that asks. See the head comment for why the other two do not.
+  // The one mode that asks. See the head comment for why the other three do not.
   const asksEmail = mode === "join";
 
   /** The step is about to hand forward to one with no field: the keyboard goes down first. */
@@ -181,10 +185,10 @@ export function GuestNameStep({
     }
     const typedEmail = checkedEmail.email;
 
-    /* ★ A CONFIRMED ACCOUNT WITH NO PROFILE NAME WRITES THE PROFILE. Their identity is the
-       account's, so there is no guest row to name: `create_guest` nulls a typed name beside a
-       confirmed session anyway. So the question is asked once, at the door, like every other. */
-    if (mode === "profile") {
+    /* ★ A CONFIRMED ACCOUNT WRITES THE PROFILE, whether it has no name yet (`profile`) or is
+       changing the one it was just told (`account`). Their identity is the account's, so there is
+       no guest row to name: `create_guest` nulls a typed name beside a confirmed session anyway. */
+    if (mode === "profile" || mode === "account") {
       startSave(async () => {
         setRefusal(null);
         const result = await updateDisplayNameAction(name);
@@ -482,7 +486,8 @@ export function guestNameCopy(
   /** Ignored (see the `join` branch); kept so callers compile. */
   _hostName?: string | null,
 ): { title: string; reason: string } {
-  if (mode === "edit") {
+  // A change is a change whoever's name it is: the account's door says the edit door's words.
+  if (mode === "edit" || mode === "account") {
     return {
       title: "Change your name",
       reason: "Your new name shows on everything you have already added.",

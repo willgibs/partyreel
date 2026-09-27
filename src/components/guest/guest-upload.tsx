@@ -7,7 +7,6 @@ import { Sparkles } from "lucide-react";
 
 import { ClaimHandlePrompt } from "@/components/guest/claim-handle-prompt";
 import type { FollowMomentHost } from "@/components/guest/follow-moment-card";
-import { SaveAccountPrompt } from "@/components/guest/save-account-prompt";
 import { UploadFailureSheet } from "@/components/guest/upload/failure-sheet";
 import { UploadIntentSheet } from "@/components/guest/upload/intent-sheet";
 import { Button } from "@/components/ui/button";
@@ -56,7 +55,6 @@ export function GuestUpload({
   ref,
   event,
   qrToken,
-  sessionToken,
   queue,
   onAddFiles,
   onRetry,
@@ -65,14 +63,14 @@ export function GuestUpload({
   onFailuresClosed,
   isDemo,
   host,
-  hintEmail,
   moment = false,
+  elsewhere = 0,
+  onAccountRenamed,
   removedIds,
 }: {
   ref?: Ref<GuestUploadHandle>;
   event: GuestEvent;
   qrToken: string;
-  sessionToken: string | null;
   /**
    * ★ THE QUEUE IS THE PAGE'S. Created here, it would exist only at full access, inside the
    * album: the door's third step asks for the first photograph BEFORE either, and the run it
@@ -83,7 +81,8 @@ export function GuestUpload({
   onAddFiles: (files: File[]) => void;
   onRetry: (id: string) => void;
   onDismiss: (ids: string[]) => void;
-  /** The door's own step is showing this run's failures; one run never gets two surfaces. */
+  /** The door is showing this run's failures, or its keep stands in front of the album; one run
+   *  never gets two surfaces, so the failure sheet waits. */
   suppressFailures?: boolean;
   /** The failure sheet closed: the page flushes any deferred re-gate (its own note explains). */
   onFailuresClosed?: () => void;
@@ -92,19 +91,16 @@ export function GuestUpload({
   /** The event's host as a public card, for the capture flow's follow moment. */
   host?: FollowMomentHost | null;
   /**
-   * The address this guest typed at the door THIS VISIT (the optional field),
-   * passed straight through to the offer card's door so it opens prefilled.
-   * Held in the page's state, never in storage, and null on every later visit:
-   * the door asks again rather than a shared phone remembering.
-   */
-  hintEmail?: string | null;
-  /**
    * A confirmation from this album just claimed its uploads (the page's
    * `useConfirmReturn`): the slot stands up the follow moment even when
    * nothing was uploaded this visit, which is exactly a Google or magic-link
    * return.
    */
   moment?: boolean;
+  /** The same claim's rows at other events, which the moment says once. */
+  elsewhere?: number;
+  /** The told name was changed in the moment's own line (the page trues up the credits). */
+  onAccountRenamed?: (displayName: string) => void;
   /**
    * The media ids this visit's own removals took back out of the album (the
    * page keeps them). A finished upload that was removed again is not "on this
@@ -206,27 +202,21 @@ export function GuestUpload({
         </p>
       )}
 
-      {/* The post-upload slot, one card at a time (the capture flow's cards
-          included). ClaimHandlePrompt resolves the viewer and decides: signed
-          out gets the offer card counting what just landed, a guest who has just
-          CONFIRMED gets the follow moment, signed in without a handle gets the
-          claim line, and somebody who already has a page gets none of them.
-          Shown once a guest has contributed this visit, or the moment a
-          confirmation from this album claimed their uploads; never in the demo. */}
+      {/* The post-upload slot, one card at a time. ClaimHandlePrompt resolves
+          the viewer and decides: a guest who has just CONFIRMED gets the follow
+          moment, signed in without a handle gets the claim line, and everyone
+          else gets nothing (a signed-out guest's ask to keep is the door's own
+          last screen now, `guest-capture` r1). Shown once a guest has
+          contributed this visit, or the moment a confirmation from this album
+          claimed their uploads; never in the demo. */}
       {(doneCount > 0 || moment) && !isDemo && (
         <ClaimHandlePrompt
           doneCount={doneCount}
           qrToken={qrToken}
           host={host}
           moment={moment}
-          savePrompt={
-            <SaveAccountPrompt
-              qrToken={qrToken}
-              sessionToken={sessionToken ?? ""}
-              count={doneCount}
-              hintEmail={hintEmail}
-            />
-          }
+          elsewhere={elsewhere}
+          onAccountRenamed={onAccountRenamed}
         />
       )}
     </div>

@@ -18,11 +18,13 @@
  */
 
 /**
- * ★ "edit" IS THE ONLY MODE. The name is one of the door's ordered steps and nothing outside the
- * door raises it; the header's "Change name" row is the one request from outside, and it needs
- * this channel because it is a sibling island of the sheet that answers it.
+ * ★ TWO MODES, ONE DOOR. The name is one of the door's ordered steps and nothing outside the door
+ * raises it in its asking modes; what is raised from outside is only its CHANGE: `edit`, the
+ * header's "Change name" row for a guest's own row (a sibling island of the sheet that answers
+ * it, hence this channel), and `account`, the told name's Change for a CONFIRMED account
+ * (`confirm-beat.ts`), which writes the profile's name, since a confirmed row carries none.
  */
-export type NameDoorMode = "edit";
+export type NameDoorMode = "edit" | "account";
 
 type Listener = (mode: NameDoorMode) => void;
 

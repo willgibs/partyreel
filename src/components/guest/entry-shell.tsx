@@ -3,6 +3,11 @@
 import "./door.css";
 
 import {
+  DOOR_SCRIM,
+  DoorLamp,
+  type LampStrength,
+} from "@/components/guest/door/lit";
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -19,12 +24,12 @@ import {
 export type DismissMode = "free" | "held";
 
 /**
- * THE DOOR'S SCRIM, today's (10% black, a 4px blur where the browser can), held
- * here as the door's own so round 2 of `identity-door` can land its look as a
- * one-line restyle: the scrim is the one place the blur and the overlay live,
- * because the panel itself is opaque (`floating-layer.ts`).
+ * ★ THE DOOR IS LIT (`identity-door` r2, Will's `look=lit`), every step of it: the lit scrim
+ * behind (`DOOR_SCRIM`, the one place the blur and the overlay live, because the panel itself is
+ * opaque) and the album's own light on the sheet's free edge (`DoorLamp`). Both are the SHELL's
+ * rather than any step's, so the welcome, the password, the chooser, the name, the code, the
+ * upload, the keep and the stalled beat all stand in the same light.
  */
-const DOOR_SCRIM = "bg-black/10 supports-backdrop-filter:backdrop-blur-xs";
 
 /**
  * THE DOOR'S SHELL: the ONE product Sheet (`SheetContent responsive`) at both
@@ -61,6 +66,7 @@ export function EntryShell({
   onDismiss,
   title,
   description,
+  lamp = "base",
   children,
 }: {
   /** The panel, for the modal's own "is focus inside the door" checks. */
@@ -72,6 +78,8 @@ export function EntryShell({
   /** sr-only accessible name + description (steps render visible headings). */
   title: string;
   description: string;
+  /** The lamp blooms on "You're in"; the code screen's lean is the stylesheet's (`lit.css`). */
+  lamp?: LampStrength;
   children: React.ReactNode;
 }) {
   const held = dismissMode === "held";
@@ -104,7 +112,9 @@ export function EntryShell({
         // bottom space to the sticky foot, which carries its own, and `tight` (a
         // landscape phone's thin band) keeps just enough padding for the field.
         className="gap-0 overflow-y-auto overscroll-contain p-6 text-sm outline-none data-[keyboard=open]:pb-0 data-[keyboard=tight]:py-2 max-sm:pt-5 max-sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
+        data-door-lit=""
       >
+        <DoorLamp edge="free" strength={lamp} />
         <SheetTitle className="sr-only">{title}</SheetTitle>
         <SheetDescription className="sr-only">{description}</SheetDescription>
         {children}

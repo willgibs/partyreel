@@ -506,3 +506,107 @@ describe("contributionAnswered: the door comes back after your own last delete",
     ).toBe(true);
   });
 });
+
+/**
+ * THE KEEP, THE DOOR'S LAST SCREEN (`guest-capture` r1, `moment=first` and `shape=sheet-step`).
+ * Whether it is due is the page's rule (`keepDue`); the machine only puts it LAST, never ahead of a
+ * step she still owes, never past a server gate, never in the demo, never for the host.
+ */
+describe("computeDoor: the keep", () => {
+  it("after her first file lands, the door does not close: the keep is its last screen", () => {
+    // The upload step drops on the client's own contribution, and the keep stands in its place.
+    expect(
+      computeDoor({
+        ...base,
+        welcomeSeen: true,
+        hasName: true,
+        contributed: true,
+        keepDue: true,
+      }),
+    ).toEqual({ steps: ["keep"], autoOpen: true });
+  });
+
+  it("a door with nothing else left opens for the keep alone (her first photo came from the album)", () => {
+    expect(
+      computeDoor({
+        ...base,
+        welcomeSeen: true,
+        hasName: true,
+        returning: true,
+        keepDue: true,
+      }),
+    ).toEqual({ steps: ["keep"], autoOpen: true });
+  });
+
+  it("is never ahead of a step she still owes: the server took her contribution back", () => {
+    expect(
+      computeDoor({
+        ...base,
+        welcomeSeen: true,
+        hasName: true,
+        requireUpload: true,
+        access: "teaser",
+        gate: "upload",
+        keepDue: true,
+      }).steps,
+    ).toEqual(["upload", "keep"]);
+  });
+
+  it("never past a server gate: the password and the email end the itinerary where they stand", () => {
+    expect(
+      computeDoor({
+        ...base,
+        access: "none",
+        gate: "password",
+        keepDue: true,
+      }).steps,
+    ).toEqual(["welcome", "password"]);
+    expect(
+      computeDoor({
+        ...base,
+        welcomeSeen: true,
+        access: "teaser",
+        gate: "account",
+        keepDue: true,
+      }).steps,
+    ).toEqual(["identify"]);
+  });
+
+  it("never in the demo, never for the host, and absent unless due", () => {
+    expect(
+      computeDoor({
+        ...base,
+        isDemo: true,
+        welcomeSeen: true,
+        contributed: true,
+        keepDue: true,
+      }).steps,
+    ).toEqual([]);
+    expect(computeDoor({ ...base, isOwner: true, keepDue: true })).toEqual({
+      steps: [],
+      autoOpen: false,
+    });
+    expect(
+      computeDoor({
+        ...base,
+        welcomeSeen: true,
+        hasName: true,
+        contributed: true,
+      }).steps,
+    ).toEqual([]);
+  });
+});
+
+describe("doorBack: the keep", () => {
+  it("goes back nowhere: what it follows is done, and its two ways on are on its face", () => {
+    expect(
+      doorBack({
+        current: "keep",
+        path: "guest",
+        gate: null,
+        isVerified: false,
+        isDemo: false,
+      }),
+    ).toBeNull();
+  });
+});

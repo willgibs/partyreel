@@ -5,10 +5,10 @@
  * unit-testable and has no client/server imports.
  *
  * The door is ONE HELD SHEET WITH NO EXIT that a guest passes through BEFORE the album: the
- * welcome, the password when the event has one, then who they are, and the first upload asked
- * actively. The album sits blurred behind it the whole way. There is no way out because the album
- * is what justifies the name and email friction, and a "just browsing" exit would defeat that
- * purpose.
+ * welcome, the password when the event has one, then who they are, the first upload asked
+ * actively, and, once her first file lands, the ask to keep what she added. The album sits blurred
+ * behind it the whole way. There is no way out because the album is what justifies the name and
+ * email friction, and a "just browsing" exit would defeat that purpose.
  *
  * ★ WHO THEY ARE IS ASKED TWO WAYS, BY THE HOST'S SWITCH (Will, `identity-door` r1 `nudge`: "let's
  * simply have a screen for guests to select how to proceed"):
@@ -31,7 +31,8 @@ export type EntryStep =
   | "name"
   | "identify"
   | "signin"
-  | "upload";
+  | "upload"
+  | "keep";
 
 /**
  * The way in a guest picked at the chooser. It lives in the modal's state for this visit alone:
@@ -63,7 +64,14 @@ export const PATH_STEP: Record<DoorPath, EntryStep> = {
  *  5. a confirmed account with no name yet is the name (the modal asks it in `profile` mode);
  *  6. the upload, when uploads are open and this guest has not contributed: unconditionally when
  *     the host requires one, and otherwise only for a guest who has neither skipped this pass nor
- *     come back to an album they already hold a session for.
+ *     come back to an album they already hold a session for;
+ *  7. the KEEP, when it is due, as the door's LAST screen (`guest-capture` r1, `moment=first` and
+ *     `shape=sheet-step`): the instant a signed-out guest's first file lands, the door does not
+ *     close onto the album, it asks her to keep what she added. Whether it is due is the page's to
+ *     say (`keepDue`: nobody signed in, not the demo, a landing this visit, the ask not put down on
+ *     this device), because only the page holds the queue and the session; the machine only puts it
+ *     last. A door with nothing else left opens for it alone (her first photo came from the album's
+ *     own Add).
  *
  * ★ `autoOpen` IS TRUE WHENEVER A STEP EXISTS, with no "browse the teaser first" exemption: the
  * whole point of the album behind the sheet is that it is the reward being teased, not a lobby.
@@ -100,6 +108,8 @@ export function computeDoor(input: {
   isOwner: boolean;
   /** The demo: it asks no name, and offers the upload. */
   isDemo: boolean;
+  /** The ask to keep what she added is due (the page's rule; see rule 7). Absent reads as not. */
+  keepDue?: boolean;
 }): { steps: EntryStep[]; autoOpen: boolean } {
   const {
     gate,
@@ -116,6 +126,7 @@ export function computeDoor(input: {
     returning,
     isOwner,
     isDemo,
+    keepDue = false,
   } = input;
 
   if (isOwner) return { steps: [], autoOpen: false };
@@ -164,6 +175,12 @@ export function computeDoor(input: {
     steps.push("upload");
   }
 
+  // ★ THE KEEP IS LAST, AND NEVER IN FRONT OF A STEP SHE STILL OWES. A landing is what makes it due,
+  // so the upload step it follows has already dropped (the client's `contributed`); if the server
+  // takes the contribution back (her own delete on a require-upload album), the upload step returns
+  // ahead of it rather than behind it. Never the demo: nothing it adds is kept.
+  if (keepDue && !isDemo) steps.push("keep");
+
   return { steps, autoOpen: steps.length > 0 };
 }
 
@@ -181,6 +198,8 @@ export type DoorBack = "welcome" | "chooser" | "name";
  *   name) goes back to the welcome.
  * - The upload goes back to the name, the step it followed; the demo asks no name and a confirmed
  *   account's name is not this album's to revisit, so theirs goes back to the welcome.
+ * - The keep goes back nowhere: what it follows (the upload) is done, and its own two ways on are
+ *   on its face. Its confirm view's way back to the offer is the modal's, not the machine's.
  *
  * The welcome and the name are transient VIEWS over the machine (the modal shows them without
  * touching `markSeen` or the steps); only the chooser changes an input.
@@ -212,6 +231,8 @@ export function doorBack(input: {
     }
     case "upload":
       return isDemo || isVerified ? "welcome" : "name";
+    case "keep":
+      return null;
   }
 }
 

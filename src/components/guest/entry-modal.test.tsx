@@ -28,6 +28,12 @@ import {
   EntryModal,
   type EntryModalHandle,
 } from "@/components/guest/entry-modal";
+import {
+  onConfirmBeat,
+  recordMomentPlayed,
+  type ConfirmBeat,
+} from "@/lib/guest/confirm-beat";
+import { resetKeepAskForTests } from "@/lib/guest/keep-ask";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
 
 const refresh = vi.fn();
@@ -152,12 +158,20 @@ function atNameStep(
 }
 const VERIFY_EVENT = { access: "teaser", gate: "account" } as const;
 
+const beats: ConfirmBeat[] = [];
+let stopBeats: () => void = () => {};
+
 beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
   profileName.value = null;
   sent.gates.length = 0;
   global.fetch = vi.fn();
+  resetKeepAskForTests();
+  recordMomentPlayed(QR, false);
+  beats.length = 0;
+  stopBeats();
+  stopBeats = onConfirmBeat((beat) => beats.push(beat));
 });
 
 describe("no exit: the affordance table is one row", () => {
@@ -992,5 +1006,287 @@ describe("the back affordance", () => {
     expect(
       screen.getByRole("button", { name: "Continue as guest" }),
     ).toBeInTheDocument();
+  });
+});
+
+/**
+ * THE KEEP, THE DOOR'S LAST SCREEN (`guest-capture` r1, `moment=first` and `shape=sheet-step`: "I
+ * like bubbling it up front and center, so its clearly visible to either input email or
+ * dismissed"). The page says when it is due; the door asks: what went, the offer, Confirm your
+ * email in this same sheet, or Maybe later.
+ */
+describe("the keep: the door's last screen", () => {
+  /** A named guest back on the album, her first photos just landed. */
+  function atKeep(
+    props: Partial<React.ComponentProps<typeof EntryModal>> = {},
+  ) {
+    seeWelcome();
+    return renderModal({
+      storedName: "Priya",
+      returning: true,
+      keepDue: true,
+      keepCount: 2,
+      hostName: "Maya",
+      ...props,
+    });
+  }
+
+  it("says what went, then asks to keep it, counting what landed", () => {
+    atKeep();
+    expect(screen.getByText("Sent")).toBeInTheDocument();
+    expect(
+      screen.getByText("Your 2 photos joined Maya\u2019s album."),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText("Keep these photos").length).toBeGreaterThan(0);
+    expect(
+      screen.getByRole("button", { name: /confirm your email/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Maybe later" }),
+    ).toBeInTheDocument();
+  });
+
+  it("on an event that holds uploads, never says it joined the album", () => {
+    atKeep({ keepHeld: true, keepCount: 1 });
+    expect(
+      screen.getByText("Your photo is waiting for the host."),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText("Keep this photo").length).toBeGreaterThan(0);
+  });
+
+  it("is HELD like every step: no X, Escape inert, and no chevron back into a finished upload", () => {
+    atKeep();
+    expect(closeButton()).not.toBeInTheDocument();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(
+      screen.getByRole("button", { name: "Maybe later" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /^Back/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("Maybe later puts it down for this event on this device", () => {
+    atKeep();
+    fireEvent.click(screen.getByRole("button", { name: "Maybe later" }));
+    expect(localStorage.getItem(`pr_save_prompt_${QR}`)).toBe("1");
+  });
+
+  it("Confirm writes the album's return marker BEFORE the account door shows, and claims nothing yet", () => {
+    atKeep();
+    expect(localStorage.getItem(`pr_pending_offer_${QR}`)).toBeNull();
+    fireEvent.click(
+      screen.getByRole("button", { name: /confirm your email/i }),
+    );
+    expect(localStorage.getItem(`pr_pending_offer_${QR}`)).toBe("1");
+    expect(screen.getAllByText("Keep your photos").length).toBeGreaterThan(0);
+    expect(screen.getByTestId("email-sign-in")).toBeInTheDocument();
+    expect(claimAnonymousUploads).not.toHaveBeenCalled();
+  });
+
+  it("the account door's chevron goes back to the offer", () => {
+    atKeep();
+    fireEvent.click(
+      screen.getByRole("button", { name: /confirm your email/i }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Back to keeping your photos" }),
+    );
+    expect(
+      screen.getByRole("button", { name: "Maybe later" }),
+    ).toBeInTheDocument();
+  });
+
+  it("a verified code: the claim, awaited, then the page stops asking and refreshes", async () => {
+    const onKeepAnswered = vi.fn();
+    atKeep({ onKeepAnswered, sessionToken: "sess-1" });
+    fireEvent.click(
+      screen.getByRole("button", { name: /confirm your email/i }),
+    );
+    fireEvent.click(screen.getByTestId("stub-verify"));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(claimAnonymousUploads).toHaveBeenCalledWith({ silent: true });
+    expect(onKeepAnswered).toHaveBeenCalled();
+    expect(claimAnonymousUploads.mock.invocationCallOrder[0]).toBeLessThan(
+      onKeepAnswered.mock.invocationCallOrder[0],
+    );
+    // The newsletter switch was off, so nothing was written for it.
+    expect(
+      vi
+        .mocked(global.fetch)
+        .mock.calls.some((c) => c[0] === "/api/guests/capture-email"),
+    ).toBe(false);
+  });
+
+  it("writes the newsletter only when she turned it on", async () => {
+    atKeep({ sessionToken: "sess-1" });
+    fireEvent.click(
+      screen.getByRole("button", { name: /confirm your email/i }),
+    );
+    fireEvent.click(
+      screen.getByRole("switch", {
+        name: /send me occasional partyreel updates/i,
+      }),
+    );
+    fireEvent.click(screen.getByTestId("stub-verify"));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    const call = vi
+      .mocked(global.fetch)
+      .mock.calls.find((c) => c[0] === "/api/guests/capture-email");
+    expect(call).toBeTruthy();
+    expect(JSON.parse((call![1] as RequestInit).body as string)).toEqual({
+      session_token: "sess-1",
+      newsletter_opt_in: true,
+    });
+  });
+
+  it("★ one beat: a claim that played the follow moment reports nothing (its card says it all)", async () => {
+    claimAnonymousUploads.mockImplementationOnce(async () => {
+      recordMomentPlayed(QR, true);
+      return { album: QR, here: 2, elsewhere: 1 };
+    });
+    atKeep();
+    fireEvent.click(
+      screen.getByRole("button", { name: /confirm your email/i }),
+    );
+    fireEvent.click(screen.getByTestId("stub-verify"));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(beats).toEqual([]);
+  });
+
+  it("★ one beat: a claim that played none reports the other events once, the name for the page to settle", async () => {
+    claimAnonymousUploads.mockImplementationOnce(async () => ({
+      album: QR,
+      here: 0,
+      elsewhere: 2,
+    }));
+    atKeep();
+    fireEvent.click(
+      screen.getByRole("button", { name: /confirm your email/i }),
+    );
+    fireEvent.click(screen.getByTestId("stub-verify"));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(beats).toEqual([
+      { album: QR, name: null, elsewhere: 2, settle: true },
+    ]);
+  });
+});
+
+/**
+ * NAME=TOLD AT THE DOOR (`guest-capture` r1): a confirmation at the door that wrote the typed name
+ * as the account's reports it as the beat, for the page to say once the door has closed; Log in
+ * types no name and tells none.
+ */
+describe("the confirmation's one beat", () => {
+  const verifiedJoin = () =>
+    vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ok: true,
+        session_token: "sess-verified",
+        event_id: "evt-1",
+        display_name: null,
+        verified: true,
+      }),
+    } as Response);
+
+  it("identify with a typed name: the name her photos now carry is reported", async () => {
+    verifiedJoin();
+    seeWelcome();
+    renderModal(VERIFY_EVENT);
+    fireEvent.change(screen.getByLabelText("Your name"), {
+      target: { value: "Priya" },
+    });
+    fireEvent.click(screen.getByTestId("stub-send"));
+    fireEvent.click(screen.getByTestId("stub-verify"));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(beats).toEqual([{ album: QR, name: "Priya", elsewhere: 0 }]);
+  });
+
+  it("the account's own name wins, and that is the name told", async () => {
+    profileName.value = "Priyanka";
+    verifiedJoin();
+    seeWelcome();
+    renderModal(VERIFY_EVENT);
+    fireEvent.change(screen.getByLabelText("Your name"), {
+      target: { value: "Priya" },
+    });
+    fireEvent.click(screen.getByTestId("stub-send"));
+    fireEvent.click(screen.getByTestId("stub-verify"));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(beats).toEqual([{ album: QR, name: "Priyanka", elsewhere: 0 }]);
+  });
+
+  it("Log in types no name and tells none; the other events it carried are still said once", async () => {
+    verifiedJoin();
+    claimAnonymousUploads.mockImplementationOnce(async () => ({
+      album: QR,
+      here: 0,
+      elsewhere: 3,
+    }));
+    seeWelcome();
+    renderModal();
+    pick("Log in");
+    fireEvent.click(screen.getByTestId("stub-verify"));
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(beats).toEqual([{ album: QR, name: null, elsewhere: 3 }]);
+  });
+});
+
+/** The account's Change (`name=told`'s): the free name door, writing the profile's own name. */
+describe("the told name's Change: the account's edit door", () => {
+  it("opens free, prefilled with the account's name, and writes the profile", async () => {
+    const onNamed = vi.fn();
+    seeWelcome();
+    const { ref } = renderModal({
+      isVerified: true,
+      hasProfileName: true,
+      storedName: "Priya",
+      returning: true,
+      onNamed,
+    });
+    act(() => ref.current?.openToName("account", "Priya Shah"));
+    expect(screen.getAllByText("Change your name").length).toBeGreaterThan(0);
+    const field = screen.getByLabelText("Your name") as HTMLInputElement;
+    expect(field.value).toBe("Priya Shah");
+    expect(closeButton()).toBeInTheDocument();
+    fireEvent.change(field, { target: { value: "Priya S." } });
+    fireEvent.click(screen.getByRole("button", { name: "Save name" }));
+    await waitFor(() =>
+      expect(updateDisplayNameAction).toHaveBeenCalledWith("Priya S."),
+    );
+    expect(global.fetch).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(onNamed).toHaveBeenCalledWith(
+        expect.objectContaining({ displayName: "Priya S.", source: "edit" }),
+      ),
+    );
+  });
+});
+
+/** THE DOOR IS LIT (`identity-door` r2, `look=lit`): the lamp on every step, blooming on "You're in". */
+describe("the door's light", () => {
+  it("every step stands in the lamp, and the welcome's count is the page's live number", () => {
+    renderModal({ mediaTotal: 48 });
+    const lamp = document.querySelector("[data-door-lamp]");
+    expect(lamp).not.toBeNull();
+    expect(lamp?.getAttribute("data-door-lamp")).toBe("base");
+    expect(
+      document.querySelector("[data-door-count-settled]")?.textContent,
+    ).toBe("48");
+  });
+
+  it("the lamp blooms on the success beat", async () => {
+    seeWelcome();
+    renderModal({ ...VERIFY_EVENT, storedName: "Priya" });
+    fireEvent.click(screen.getByTestId("stub-verify"));
+    await waitFor(() =>
+      expect(screen.getByText("You’re in")).toBeInTheDocument(),
+    );
+    expect(
+      document
+        .querySelector("[data-door-lamp]")
+        ?.getAttribute("data-door-lamp"),
+    ).toBe("bloom");
   });
 });
