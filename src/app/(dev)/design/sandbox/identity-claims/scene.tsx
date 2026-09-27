@@ -7,15 +7,15 @@ import { Fit, Frame, Measured } from "@/components/lab";
 import { SCREENS, type ScreenId } from "./screens";
 
 /**
- * THE ONE FRAME EVERY DECISION DRAWS IN, AND WHAT IT SAYS UNDER ITSELF.
+ * THE ONE FRAME EVERY OPTION DRAWS IN, AND WHAT IT SAYS UNDER ITSELF.
  *
  * ★ NOTHING HERE MAY MOUNT A RADIX PORTAL OR REACH A SESSION (the landmine
  * `guest-capture/scene.tsx` and `host-curation` both name). A Sheet, Dialog or
  * DropdownMenu would portal to the LAB PAGE's own document from inside a frame,
- * and the shipped `ClaimsCard` fires a real server action on Finish, so every
- * sheet, dialog and toast on this board is QUOTED markup on `fixed`
- * positioning (the frame IS the viewport) with local state, the shipped
- * classes and copy verbatim where production already says them.
+ * and the shipped `ClaimsCard` fires a real server action, so every panel,
+ * dialog, menu and toast on this board is QUOTED markup on `fixed` positioning
+ * (the frame IS the viewport) with local state, the shipped classes and copy
+ * verbatim where production already says them.
  *
  * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER COMPUTED (docs/PROGRAM.md,
  * "Measure every tile before it ships"): `measure` probes the frame's own
@@ -112,33 +112,70 @@ function Remeasure({
   );
 }
 
-/** Two frames of one option, one above the other, so the option stays one
- *  phone wide on the step beside the others. */
-export function Pair({ children }: { children: ReactNode }) {
-  return <div className="flex flex-col gap-6">{children}</div>;
+/**
+ * THE THREE FRAMES OF ONE OPTION, read left to right as time runs: the moment
+ * at the album, where she sorts the four, a week on.
+ *
+ * ★ PHONES IN A ROW, LAPTOPS IN A COLUMN. Five options never fit side by side
+ * on a desk's stage, so the step flips through them one at a time, and three
+ * phones in a row (1,173 px) put an option's whole story on one screen: a flip
+ * compares the same three frames in the same three places. The row wraps where
+ * the stage is narrower (a wide monitor's side-by-side stage gives each option
+ * one phone's width, and there they stack), and three 1440 frames stack, each
+ * the stage's width.
+ */
+export function Trio({ row, children }: { row: boolean; children: ReactNode }) {
+  return (
+    <div
+      className={
+        row ? "flex flex-wrap items-start gap-6" : "flex flex-col gap-6"
+      }
+    >
+      {children}
+    </div>
+  );
 }
 
 /* ── the measuring: one reader, told which facts a frame is about ─────────── */
 
 export type Fact =
-  | "sheet"
-  | "top"
-  | "rows"
-  | "follow"
-  | "dialog"
-  | "end"
+  | "moment"
+  | "avatar"
+  | "menu"
+  | "review"
+  | "bell"
   | "banner"
-  | "toast"
   | "events"
-  | "invite"
-  | "pointer";
+  | "dialog"
+  | "toast";
 
 const text = (el: Element | null | undefined) =>
   (el?.textContent ?? "").replace(/\s+/g, " ").trim();
 
 /** Quoted inside a caption that ends in its own full stop. */
 const quote = (el: Element | null | undefined) =>
-  `"${text(el).replace(/\.$/, "")}"`;
+  `"${text(el).replace(/[.:]$/, "")}"`;
+
+/** "a, b and c", for the names a caption lists. */
+const listed = (names: string[]) =>
+  names.length <= 1
+    ? names.join("")
+    : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+
+const PLACE: Record<string, string> = {
+  album: "the album",
+  dashboard: "her dashboard",
+};
+
+/** The facts about the page itself, rather than the review over it. */
+const PAGE_FACTS: readonly Fact[] = [
+  "moment",
+  "avatar",
+  "menu",
+  "bell",
+  "banner",
+  "events",
+];
 
 /**
  * A caption built from what the frame shows, one clause per fact asked for.
@@ -147,47 +184,77 @@ const quote = (el: Element | null | undefined) =>
  */
 export function measureOf(...facts: Fact[]) {
   return (root: HTMLElement): string | null => {
-    if (!root.querySelector("[data-ic-ground]")) return null;
+    const ground = root.querySelector("[data-ic-ground]");
+    if (!ground) return null;
+    const page = ground.getAttribute("data-ic-ground");
+    const where = PLACE[page ?? ""] ?? "";
     const said: string[] = [];
-    // The progress label says "3 of 4" and carries the card's own name.
-    const topEl = root.querySelector("[data-ic-top]");
-    const top = topEl
-      ? `${text(topEl)}, ${topEl.getAttribute("data-ic-top")}`
-      : null;
+    // A fact about a page the frame is not showing says nothing: a press can
+    // turn an album frame into the dashboard (`pointer=line`), and a caption
+    // about a bell the album does not have would be about nothing. And while
+    // the review is open it is the subject: in a hand it is the whole screen,
+    // and at a desk the page sits blurred under its scrim.
+    const onAlbum = page === "album";
+    const covered = Boolean(root.querySelector("[data-ic-review]"));
     for (const fact of facts) {
-      if (fact === "sheet") {
+      if (covered && PAGE_FACTS.includes(fact)) continue;
+      if ((fact === "avatar" || fact === "menu") && !onAlbum) continue;
+      if (
+        (fact === "bell" || fact === "banner" || fact === "events") &&
+        onAlbum
+      )
+        continue;
+      if (fact === "moment") {
+        if (!root.querySelector("[data-ic-moment]")) continue;
+        const line = root.querySelector("[data-ic-pointer]");
+        if (!line) {
+          said.push("the moment card names only this event");
+          continue;
+        }
+        const act = root.querySelector("[data-ic-pointer-act]");
+        const names = [...root.querySelectorAll("[data-ic-named]")].map(
+          (n) => n.getAttribute("data-ic-named") ?? "",
+        );
         said.push(
-          root.querySelector("[data-ic-sheet]")
-            ? `the review is open${top ? ` at ${top}` : ""}`
-            : "the review is closed",
+          `the moment card says ${quote(line)}${names.length ? `, names ${listed(names)}` : ""}${act ? ` and offers ${quote(act)}` : ""}`,
         );
       }
-      if (fact === "top" && top) said.push(`${top} on top`);
-      if (fact === "rows") {
-        const rows = [...root.querySelectorAll("[data-ic-row]")].map(
-          (row) =>
-            `${row.getAttribute("data-name")} reads ${quote(row.querySelector("[data-ic-status]"))}`,
+      if (fact === "avatar") {
+        const count = root.querySelector("[data-ic-avatar-count]");
+        said.push(
+          count
+            ? `her avatar counts ${text(count)}`
+            : "her avatar carries no count",
         );
-        if (rows.length) said.push(rows.join(", "));
       }
-      if (fact === "follow") {
-        const rows = [
-          ...root.querySelectorAll("[data-ic-row][data-state='claimed']"),
-        ].map((row) => {
-          const offers = [...row.querySelectorAll("[data-ic-offer]")].map((o) =>
-            o.getAttribute("data-ic-offer"),
-          );
-          return `${row.getAttribute("data-name")} offers ${offers.length ? offers.join(" and ") : "nothing"}`;
-        });
-        said.push(rows.length ? rows.join("; ") : "no claimed event yet");
+      if (fact === "menu") {
+        const row = root.querySelector("[data-ic-menu-row]");
+        if (row) said.push(`her menu's first row reads ${quote(row)}`);
       }
-      if (fact === "dialog") {
-        const d = root.querySelector("[data-ic-dialog]");
-        said.push(d ? `a dialog asks ${quote(d)}` : "no dialog");
+      if (fact === "review") {
+        const panel = root.querySelector("[data-ic-review]");
+        if (!panel) {
+          said.push("the review is closed");
+          continue;
+        }
+        const top = root.querySelector("[data-ic-top]");
+        const end = root.querySelector("[data-ic-end]");
+        const at = top
+          ? ` at ${text(top)}, ${top.getAttribute("data-ic-top")}`
+          : end
+            ? ` reading ${quote(end)}`
+            : "";
+        const back = root.querySelector("[data-ic-back]");
+        said.push(
+          `the review is open over ${where}${at}${back ? `, its Back reading ${quote(back)}` : ""}`,
+        );
       }
-      if (fact === "end") {
-        const e = root.querySelector("[data-ic-end]");
-        if (e) said.push(`the review reads ${quote(e)}`);
+      if (fact === "bell") {
+        const count = root.querySelector("[data-ic-bell-count]");
+        const row = root.querySelector("[data-ic-bell-row]");
+        said.push(
+          `${count ? `the bell counts ${text(count)}` : "the bell counts nothing"}${row ? ` and its row reads ${quote(row)}` : ""}`,
+        );
       }
       if (fact === "banner") {
         const words = root.querySelector("[data-ic-banner-words]");
@@ -195,28 +262,17 @@ export function measureOf(...facts: Fact[]) {
           words ? `the banner reads ${quote(words)}` : "no banner on the page",
         );
       }
-      if (fact === "toast") {
-        const t = root.querySelector("[data-ic-toast]");
-        said.push(t ? `the toast reads ${quote(t)}` : "no toast");
-      }
       if (fact === "events") {
         const n = root.querySelectorAll("[data-ic-card]").length;
         said.push(`Your events holds ${n} card${n === 1 ? "" : "s"}`);
       }
-      if (fact === "invite") {
-        const i = root.querySelector("[data-ic-invite]");
-        if (i)
-          said.push(
-            `${quote(i.querySelector("[data-ic-invite-title]"))} stands where the banner was`,
-          );
+      if (fact === "dialog") {
+        const d = root.querySelector("[data-ic-dialog]");
+        if (d) said.push(`a dialog asks ${quote(d)}`);
       }
-      if (fact === "pointer") {
-        const p = root.querySelector("[data-ic-pointer]");
-        said.push(
-          p
-            ? `the moment card's last line reads ${quote(p)}`
-            : "the moment card names only this event",
-        );
+      if (fact === "toast") {
+        const t = root.querySelector("[data-ic-toast]");
+        if (t) said.push(`the toast reads ${quote(t)}`);
       }
     }
     if (!said.length) return null;
@@ -255,9 +311,9 @@ export function Thumb({
 /**
  * THE SCRIM, QUOTED from `SheetOverlay` and `DialogOverlay`: a tenth of black
  * with the extra-small blur where the browser supports it. `layer` lifts the
- * dialog's own scrim over the sheet it opens above.
+ * dialog's own scrim over the panel it opens above.
  */
-export function Scrim({ layer = "sheet" }: { layer?: "sheet" | "dialog" }) {
+export function Scrim({ layer = "panel" }: { layer?: "panel" | "dialog" }) {
   return (
     <div
       aria-hidden

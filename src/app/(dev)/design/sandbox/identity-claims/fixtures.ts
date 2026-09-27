@@ -2,7 +2,8 @@ import type { ClaimableEventRow } from "@/lib/db/queries/claims";
 import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
 
 /**
- * ONE GUEST, FOUR OLDER EVENTS UNDER HER ADDRESS (round two, 2026-09-27).
+ * ONE GUEST, FOUR OLDER EVENTS UNDER HER ADDRESS (round two, carried into round
+ * three unchanged, 2026-09-27).
  *
  * Priya (`guest-capture`'s own guest) confirmed her email this morning at Maya
  * and Jay's wedding. Four older rows wait under that address, Will's own
@@ -32,9 +33,17 @@ import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
 export const PRIYA = {
   name: "Priya",
   seed: "gc-priya",
+  // A reserved domain: her account menu's second line, never a real address.
+  email: "priya@example.com",
 } as const;
 
 const STILL = (i: number) => MARKETING_IMAGES[i % MARKETING_IMAGES.length].src;
+
+/** A still with its own shape, for the album's justified row. */
+const SHAPED = (i: number) => {
+  const m = MARKETING_IMAGES[i % MARKETING_IMAGES.length];
+  return { src: m.src, ratio: m.width / m.height };
+};
 
 /** The wedding she confirmed at this morning: already a Guest card on her
  *  dashboard, since an upload alone makes a person a guest of an event. */
@@ -46,6 +55,11 @@ export const CURRENT_EVENT = {
   seed: "gc-maya",
   date: "2026-09-26",
   cover: STILL(10),
+  /** The album's stats line ("212 photos & videos from 38 guests"). */
+  photos: 212,
+  guests: 38,
+  /** The album's newest photographs, hers first: the row under the card. */
+  album: [SHAPED(11), SHAPED(7), SHAPED(0), SHAPED(4), SHAPED(1), SHAPED(10)],
 } as const;
 
 /** An event's host as the album and the moment card know one: a public page
