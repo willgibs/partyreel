@@ -43,11 +43,10 @@ a lane").
 | `popups-wiring` | the popups board's eight kinds at their source (one table; lists in a panel, confirm and forms in keyboard-safe dialogs, choices in a menu, Invite then the code card then Share, plans wide and stacked, settings unfocused, peek a card); retires `popups` | building (agent af9df098c720f6767) | Opus, 3131 | |
 | `door-r3-wiring` | `identity-door` r3's five (lit icons, the told chooser, the smaller hint, Check your email, the lit beat with motion) and the door's roadmap lines; the Like door into the held sheet; retires `identity-door` | building (agent ad8d98fbd9a81d1ee) | Opus, 3132 | |
 | `demo-doors` | the live dot in the credit line's place, "Try our demo event" over the hero's H1, one demo modal on a desk (a new tab on a phone), the reel's new line; retires `reel-story` | building (agent a3ef18cb8c0dfabc6) | Opus, 3133 | |
-| `claims-r3` | board `identity-claims` r3: `pointer` alone, the best options on his r2 answers | drawing (agent a7b4c56ab7347cbaf) | Opus, 3135 | |
 
 Batch 3 closed at milestone 29 (`ab30a7f8`, 2026-09-26); batch 4 (nine lanes with `crumbs-3`) is on build 11.
 
-Merged in batch 5 (their records carry the rest): hero-card.
+Merged in batch 5 (their records carry the rest): hero-card, claims-r3.
 
 ## Next, in order
 
@@ -60,7 +59,9 @@ Merged in batch 5 (their records carry the rest): hero-card.
    r1 and r2's answers (the banner, one event at a time with its own photos, each decision saved as it's made, the
    dialog at the Not mine card, Open album and a quieter `FollowButton` variant the moment card takes too), the
    ROADMAP's two claims lines (the moment card's two other-events lines; the toast and the invitation pointing at one
-   page), a read for each card's photos (none for a password event), perhaps a migration; `pointer` once r3 answers.
+   page), a read for each card's photos (none for a password event), perhaps a migration; the double-tap guard
+   `claims-r3` found (an answer names its card, an arriving card holds its answers 250 ms, and the wait for the write);
+   `pointer` once r3 answers.
 3. **Build 12** once batch 5 lands: `[preview]`, `alias-ensure`, the desk checked, its red-team (the standing scope in
    `../partyreel-wt/_scratch/redteam-11/brief.md`, plus the popups on real screens with the keyboard up, the door's
    motion and code screens, the demo modal from every pointer, the claims review), then Will's sitting:

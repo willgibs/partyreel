@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The lab: `lab:demo`'s same-picture check compares an option's first frame only, so an option whose difference lives in a later frame reads as the same picture (`identity-claims` r3's quiet and bell); comparing every frame of the stage ends it (from `claims-r3`).
+- The lab: a portalled `Frame` copies the lab's `<html>` theme class once per load (`frame.tsx`'s `themeClass` never re-subscribes), so the lab's theme toggle leaves every open frame in the old theme until a reload (from `claims-r3`).
 - Marketing: the event pages' table and tent cards (`sections/events/event-object.tsx`) print a code and "Scan to add your photos" but no address; the custom address under the code would carry the one-link idea onto the objects that stand in for the product there (from `hero-card`).
 - Shared: `AvatarGroup` (`ui/avatar.tsx`) overlaps a fixed 8 px at every size, hiding a third of a 24 px face and its initial; an overlap that is a share of the face (`hero-card`'s `Faces`) fixes it wherever a face row reads it (from `hero-card`).
 - Shared: direct invites: a host invites guests from Partyreel itself (an email or a text sent on the host's behalf, with its spam and deliverability rules); Will floated it on `popups`' share answer and chose later (2026-09-27), a board when a seat is free.
