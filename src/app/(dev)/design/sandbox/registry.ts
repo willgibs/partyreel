@@ -2,7 +2,6 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 
 import { IDENTITY_DOOR } from "./identity-door/spec";
-import { POPUPS } from "./popups/spec";
 import { IDENTITY_CLAIMS } from "./identity-claims/spec";
 import { VOICE_GUEST } from "./voice-guest/spec";
 import { SITE_CHROME } from "./site-chrome/spec";
@@ -51,7 +50,6 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
  */
 const REGISTERED: readonly BoardSpec[] = [
   IDENTITY_DOOR,
-  POPUPS,
   IDENTITY_CLAIMS,
 
   VOICE_GUEST,
