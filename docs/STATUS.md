@@ -4,7 +4,7 @@
 > [`systems/`](systems); what might be next is [`ROADMAP.md`](ROADMAP.md); what runs this minute is
 > [`tracks/orchestrator.md`](tracks/orchestrator.md); what shipped is `git log`.
 
-**Updated:** 2026-09-26
+**Updated:** 2026-09-27
 
 ## The era
 
@@ -13,21 +13,23 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoin
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: after milestone 29, Will's sitting on build 10
+## The current round: batch 4, from Will's sitting on build 10
 
-- **Milestone 29 is live** (`ab30a7f8`, 2026-09-26), batch 3 whole: the live reel in place of the stored one (its
-  schema dropped, its files swept), every album paged and windowed on both surfaces, Will's door on the phone Sheet,
-  an email change confirmed at both addresses, one-tap Save on an iPhone; 49 lanes since milestone 28, and
-  `launch-prep` holds no product change past `main`.
-- **Next**: his verdicts on build 10's desk become lanes (`reel-marketing`, the door's look, the mark's wiring), then
-  the lab revamp ([`tracks/orchestrator.md`](tracks/orchestrator.md)).
+- **Milestone 29 is live** (`ab30a7f8`, 2026-09-26), batch 3 whole: the live reel in place of the stored one, every
+  album paged and windowed, Will's door on the phone Sheet, an email change confirmed at both addresses, one-tap Save
+  on an iPhone.
+- **Batch 4 is in flight** (eight lanes, cut `1a455e5f`): his sitting on build 10 answered 21 asks on six boards.
+  Wiring: the door lit and guest-capture's five, no mark on a guest's own tiles, the profile's setup wizard, and the
+  reel's marketing with the footer's stack back and the demo link bare. Boards: `popups` (new), `identity-door` r3,
+  `identity-claims` r2, `reel-story` r3. Build 11 carries all eight to his next sitting.
 
 ## The desk
 
-21 boards at `/design/lab?key=`, in leverage order: `identity-door` (r2, the door's look), `reel-story` (r2),
-`media-viewer` (r3), `identity-claims`, `identity-profile`, `guest-capture`, `voice-guest`, `host-curation`,
+Build 10's desk (21 boards) is answered through `guest-capture`; the next desk, on build 11, reads in leverage order:
+`popups` (new), `identity-door` (r3), `identity-claims` (r2), `reel-story` (r3), then `voice-guest`, `host-curation`,
 `host-storage`, `event-safety`, `export-flow`, `admin-triage`, `help-center`, `emails`, `site-chrome`, `profile-page`,
-`privacy-hero`, `album-motion`, `loose-ends`, `contact-page`, `press-page`.
+`privacy-hero`, `album-motion`, `loose-ends`, `contact-page`, `press-page` (`media-viewer`, `guest-capture` and
+`identity-profile` retire as their picks are built).
 
 ## Live state
 
@@ -38,8 +40,8 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   console error, the lab and `/admin/reels` 404, the admin door redirects, no runtime error.
   `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel`
   (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 10 (`43b82591`), the desk for
-  his sitting; everything past it shipped in milestone 29, so the next build carries his verdicts' lanes. No push
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 10 (`43b82591`), whose desk
+  he has answered; build 11 comes when batch 4 lands. No push
   deploys; each `[preview]` record gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
@@ -67,6 +69,6 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **His sitting on build 10**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
-- **A 10-second iPhone check, now on partyreel.com** (milestone 29 carries it): in an album (`partyreel.com/demo`), one
+- **His next sitting, on build 11**, once batch 4 lands: `popups` first.
+- **A 10-second iPhone check on partyreel.com** (milestone 29 carries it): in an album (`partyreel.com/demo`), one
   tap on Save opens the system sheet (a photo, a video, a finished clip), and a shared photo arrives as a photograph.

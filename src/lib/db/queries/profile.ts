@@ -13,6 +13,7 @@ import { cache } from "react";
 
 import { mustQuery } from "@/lib/db/must-query";
 import type { Tables } from "@/lib/db/types";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getRequestAuth, getRequestClient } from "@/lib/supabase/request-auth";
 
 export type ProfileRow = Tables<"profiles">;
@@ -82,4 +83,36 @@ export async function getProfileMenu(userId: string): Promise<{
     // the webhook remains its sole writer (billing-caps.md).
     tier: data?.tier ?? null,
   };
+}
+
+/**
+ * The first of `candidates` no other account holds as its handle, for the setup wizard's prefilled
+ * first screen (`handleCandidates`, account/profile/handle-suggestion.ts); null when every one is
+ * taken, or on a failed read (the field then opens empty and the live check answers as she types).
+ *
+ * ★ SIGNED-IN ONLY, AND NOTHING THE LIVE CHECK DOES NOT ALREADY SAY. Availability is the same fact a
+ * save attempt reveals (`checkProfileSlugAction` answers it per keystroke), asked here for at most ten
+ * spellings of the caller's OWN display name, after `getUser()`: it can never become an anonymous
+ * enumeration surface. Admin read because profiles RLS is own-row; the SELECT names only `slug`.
+ */
+export async function firstFreeHandle(
+  candidates: string[],
+): Promise<string | null> {
+  const asked = candidates.slice(0, 10);
+  if (asked.length === 0) return null;
+  const { user } = await getRequestAuth();
+  if (!user) return null;
+
+  // row-cap: a fixed handful, at most ten spellings of one display name (`handleCandidates`), so
+  // neither the list in the URL nor the rows that answer it can grow.
+  const { data, error } = await createAdminClient()
+    .from("profiles")
+    .select("slug")
+    .in("slug", asked)
+    .neq("id", user.id)
+    .limit(asked.length);
+  // A suggestion is a convenience: a failed read offers none rather than failing the page.
+  if (error) return null;
+  const taken = new Set((data ?? []).map((row) => row.slug));
+  return asked.find((slug) => !taken.has(slug)) ?? null;
 }

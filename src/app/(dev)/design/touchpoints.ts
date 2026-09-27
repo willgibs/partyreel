@@ -27,7 +27,6 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 export type SandboxId =
   | "identity-door"
   | "identity-claims"
-  | "identity-profile"
   | "guest-capture"
   | "voice-guest"
   | "site-chrome"
@@ -35,7 +34,6 @@ export type SandboxId =
   | "export-flow"
   | "admin-triage"
   | "reel-story"
-  | "media-viewer"
   | "emails"
   | "help-center"
   | "host-curation"
@@ -89,46 +87,22 @@ export const RULINGS: Ruling[] = [
     id: "identity-claims",
     title: "Photos waiting for you",
     surface: "host",
-    asks: "where the claim ticket lives on the dashboard, how the album or the door points to it, working through more than one event, the warning before a deletion, and what Finish leaves",
-    why: "The claim ticket ships deliberately plain; this board refines it on the shipped pieces and never gates the shipped flow.",
+    asks: "when a choice in the one-at-a-time review is saved, where the dialog before a deletion sits, what a claimed event offers as she goes, and what the album says about the rest",
+    why: "Round one settled the banner, one card at a time, the dialog and the page toast, and asked for one batch; round two draws it and asks what makes it a good one.",
     lives: [
       "docs/systems/host-app.md",
       "docs/systems/profiles-social.md",
       "src/components/app/dashboard/claims-card.tsx",
+      "src/app/(app)/dashboard/claims-actions.ts",
       "src/components/guest/follow-moment-card.tsx",
-      "src/components/app/notification-bell.tsx",
     ],
     board: {
-      note: "Five decisions on the shipped claim ticket's real pieces, over Priya from guest-capture's own world: where it lives on the dashboard, how the album and now the door point to it, how she works through more than one event, how she is warned before a deletion, and what Finish leaves her looking at",
+      note: "Round two draws one batch on his round one picks (the banner's review, one event at a time, a dialog before any deletion, the page toast) over Priya and four waiting events: when a choice is saved, where the deletion's dialog sits, what a claimed event offers as she goes, and what the album says about the rest",
       variants: [
-        "The ticket's home",
-        "The pointer from the album",
-        "Working through more than one",
-        "Warning before a deletion",
-        "What Finish leaves her looking at",
-      ],
-    },
-  },
-  {
-    id: "identity-profile",
-    title: "Setting up a page",
-    surface: "guest",
-    asks: "how a verified guest sets up her page, how she chooses what shows, whether that choice should even default to hidden, when the app offers the setup, and what an empty page says to a visitor",
-    why: "A profile publishes nothing until its owner chooses, so the setup is how a page fills; drawn on the account page's real cards and the public page.",
-    lives: [
-      "docs/systems/profiles-social.md",
-      "src/components/social/attended-events-visibility.tsx",
-      "src/app/(guest)/u/[slug]/page.tsx",
-      "src/app/(app)/account/page.tsx",
-    ],
-    board: {
-      note: "Five decisions on the account page's real cards and the public profile page, over Priya, verified, with photos added to three events and none shown: how setup itself happens, how she chooses what shows, whether that choice should even default to hidden, when the app ever invites the setup, and what an empty claimed page says to a visitor",
-      variants: [
-        "How it's set up",
-        "What shows",
-        "The starting default",
-        "When it's offered",
-        "The empty page",
+        "When a choice is saved",
+        "Where the deletion's dialog sits",
+        "What a claimed event offers",
+        "Pointing from the album",
       ],
     },
   },
@@ -301,29 +275,6 @@ export const RULINGS: Ruling[] = [
         "The reel beside the door",
         "Where the play mark leads",
       ],
-    },
-  },
-  {
-    id: "media-viewer",
-    title: "What a photograph opens as",
-    surface: "shared",
-    asks: "how the album marks the photos that are yours now that they arrive in bursts: a ring inside each tile, one outline round each run, an underline under each run, or nothing but View's Yours filter",
-    why: "Round two's ring sat outside the tile, exactly as wide as the 4px gutter, so a guest's neighbouring uploads met; round three draws a real burst on the real rows.",
-    lives: [
-      "docs/systems/guest-flow.md",
-      "src/components/shared/masonry.tsx",
-      "src/components/guest/guest-masonry.tsx",
-      "src/components/guest/live-gallery.tsx",
-    ],
-    board: {
-      note: "One decision on the real rows at 375 and 1440, light and dark: a guest's pick of five lands side by side at the head and wraps, three singles of hers sit further down, and her tiles wear a ring apiece, one outline per run, an underline per run, or nothing with View's Showing drawn open; every caption read off the frame",
-      variants: [
-        "A ring inside each tile",
-        "One outline round each run",
-        "An underline under each run",
-        "Nothing on the tiles",
-      ],
-      tracks: ["mark-r3"],
     },
   },
   {
@@ -582,9 +533,7 @@ export const RULINGS: Ruling[] = [
 export const DESK_ORDER: readonly SandboxId[] = [
   "identity-door",
   "reel-story",
-  "media-viewer",
   "identity-claims",
-  "identity-profile",
   "guest-capture",
   "voice-guest",
   "host-curation",

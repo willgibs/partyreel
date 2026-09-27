@@ -16,9 +16,9 @@
  *   draws (a poll hands down equal photographs in new objects), its box by its
  *   values, its hover set by what each action shows (`sameActions`: never the
  *   `onSelect` closure, which is new every render and read at tap time).
- * ★ NO HANDLER ON A TILE. The open button, the hover verbs and the yours mark
- *   carry `data-` attributes, and the GRID holds one delegated click and one
- *   long-press (`masonry.tsx`), reading the latest callbacks from a ref.
+ * ★ NO HANDLER ON A TILE. The open button and the hover verbs carry `data-`
+ *   attributes, and the GRID holds one delegated click and one long-press
+ *   (`masonry.tsx`), reading the latest callbacks from a ref.
  * ★ A LIKE IS READ PER ID. The heart mark and the like glyph subscribe to their
  *   own photograph's like (`useIsLiked`), so a like re-renders one mark and one
  *   glyph and never this tile, let alone the grid.
@@ -97,79 +97,6 @@ export function CornerPlayBadge() {
         className={cn("ml-px size-2.5 fill-white text-white", GLASS_MARK_LIT)}
       />
     </span>
-  );
-}
-
-/**
- * THE FOURTH MARK: THIS ONE IS YOURS (`theirs=mark`, Will 2026-09-20). A guest
- * can already remove any photograph they uploaded, for ever (`yours`, wired);
- * what no surface said was WHICH of 68 tiles are theirs, so the answer rides
- * the tile rather than a new control above the album — his own note on the
- * option he did not take: "rather than just adding more and more configs here".
- *
- * ★ IT TAKES THE TOP-LEFT CORNER, AND THAT IS THE ONLY CORNER FREE AT EVERY
- * WIDTH. The play mark and the like mark own the two bottom corners, and the
- * desk's hover row owns the top right (`row=bar`, one pane). The board drew
- * this mark top-right on a PHONE, where there is no hover row at all; on a
- * laptop that corner is the bar's, so the mark moves to the corner nobody else
- * claims rather than living under a pane that opens over it. (A guest's own
- * just-landed check shares this corner for about two seconds after an upload
- * and paints over it, which is the right order: the news wins, then the mark.)
- *
- * ★ THE GLYPH CARRIES ITS OWN LIGHT, like every other mark on a photograph:
- * `GLASS_MARK` is the material at the marks' cheaper blur and `GLASS_MARK_LIT`
- * is the dark halo that keeps a white glyph legible over a bright sky, which no
- * pane can do for it (`lib/glass.ts`).
- *
- * As a control it is a button the grid's one click handler answers (the
- * `data-tile-mark` attribute is how it finds it); as a marker it is not a button
- * at all, so a surface that cannot filter hands a screen reader nothing dead.
- */
-function MineMark({
-  control,
-  selected,
-}: {
-  control: boolean;
-  selected?: boolean;
-}) {
-  const body = (
-    <span
-      aria-hidden
-      className={cn("size-1.5 rounded-full bg-white", GLASS_MARK_LIT)}
-    />
-  );
-  const box = cn(
-    "absolute top-1.5 left-1.5 z-10 flex size-5 items-center justify-center rounded-full",
-    GLASS_MARK,
-  );
-  if (!control)
-    return (
-      <span
-        data-tile-mark="mine"
-        aria-hidden
-        className={cn("pointer-events-none", box)}
-      >
-        {body}
-      </span>
-    );
-  const label = selected
-    ? "Showing only your photos. Show the whole album."
-    : "Yours. Show only your photos.";
-  return (
-    <button
-      type="button"
-      data-tile-mark="mine"
-      aria-label={label}
-      aria-pressed={selected ?? false}
-      title={label}
-      className={cn(
-        box,
-        "cursor-pointer transition-transform duration-150 ease-emphasis outline-none",
-        "focus-visible:ring-2 focus-visible:ring-white/70 active:scale-90 motion-reduce:active:scale-100",
-      )}
-    >
-      {body}
-    </button>
   );
 }
 
@@ -357,9 +284,6 @@ export type AlbumTileProps = {
   entering?: boolean;
   arrived?: boolean;
   landed?: boolean;
-  /** The viewer's own: a marker, or a control the grid answers. */
-  mine?: "marker" | "control";
-  mineSelected?: boolean;
   dimmed?: boolean;
   /** The first row: fetched at once and first. */
   eager?: boolean;
@@ -440,8 +364,6 @@ function sameTileProps(a: AlbumTileProps, b: AlbumTileProps): boolean {
     !!a.entering === !!b.entering &&
     !!a.arrived === !!b.arrived &&
     !!a.landed === !!b.landed &&
-    a.mine === b.mine &&
-    !!a.mineSelected === !!b.mineSelected &&
     !!a.dimmed === !!b.dimmed &&
     !!a.eager === !!b.eager &&
     !!a.hideLikeMark === !!b.hideLikeMark &&
@@ -466,8 +388,6 @@ function AlbumTileBody({
   entering,
   arrived,
   landed,
-  mine,
-  mineSelected,
   dimmed,
   eager,
   hideLikeMark,
@@ -492,7 +412,6 @@ function AlbumTileBody({
       data-arrived={arrived ? "" : undefined}
       data-landed={landed ? "" : undefined}
       data-entering={entering ? "" : undefined}
-      data-mine={mine ? "" : undefined}
       data-exiting={exiting ? "" : undefined}
       data-selected={selecting && selected ? "" : undefined}
       // The lightbox finds a photograph's tile by it, to drop back into; the
@@ -573,16 +492,13 @@ function AlbumTileBody({
         )}
       </button>
 
-      {/* THE MARKS — state, never controls, and the whole of a phone tile. The
-          fourth ("yours") is the one exception his own ruling asked for: a mark
-          the guest album also makes tappable. Select mode wears its own marks
-          instead, and keeps only the play mark. */}
+      {/* THE MARKS — state, never controls, and the whole of a phone tile
+          (`mine=none`, Will 2026-09-27: no mark rides a guest's own upload any
+          more; the Yours filter in View is how she finds them). Select mode
+          wears its own marks instead, and keeps only the play mark. */}
       {item.type === "video" && <CornerPlayBadge />}
       {!selecting && !hideLikeMark && (
         <TileLikeMark item={item} count={item.likeCount} />
-      )}
-      {!selecting && mine && (
-        <MineMark control={mine === "control"} selected={mineSelected} />
       )}
 
       {/* The desk's hover row, as one pane. A sibling of the open button, so a
