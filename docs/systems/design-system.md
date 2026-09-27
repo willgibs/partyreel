@@ -499,7 +499,9 @@ The guest's arrival is a sanctioned exception to the 300ms ceiling, because it h
 marketing's reveal are the others): the entry sheet enters on the Sheet's edge clock (300ms) after a 700ms beat,
 while everything repeated stays fast. Its attributes (`data-arrive`, the step handoffs, `data-unlock-success`,
 `data-reveal` behind `[data-reveal-curtain]`) are `@starting-style` with reduced-motion fades; the timings live in
-`use-arrival-beat.ts` and `use-success-hold.ts`.
+`use-arrival-beat.ts` and `use-success-hold.ts`. The door's beats take transitions.dev's recipes at their 500ms, the
+same sanctioned exception: the text reveal (`[data-door-line]`, `door.css`) and the success check (`door/lit.css`, its
+bob on the house bounce written inline, since `--mkt-ease-pop` lives on `[data-mkt]`).
 
 ## Errors: the taxonomy and the boundaries
 
