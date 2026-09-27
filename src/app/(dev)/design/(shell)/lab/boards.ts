@@ -3,7 +3,6 @@ import type { ComponentType } from "react";
 import { IdentityDoorBoard } from "@/app/(dev)/design/sandbox/identity-door/board";
 import { PopupsBoard } from "@/app/(dev)/design/sandbox/popups/board";
 import { IdentityClaimsBoard } from "@/app/(dev)/design/sandbox/identity-claims/board";
-import { GuestCaptureBoard } from "@/app/(dev)/design/sandbox/guest-capture/board";
 import { VoiceGuestBoard } from "@/app/(dev)/design/sandbox/voice-guest/board";
 import { SiteChromeBoard } from "@/app/(dev)/design/sandbox/site-chrome/board";
 import { ProfilePageBoard } from "@/app/(dev)/design/sandbox/profile-page/board";
@@ -43,7 +42,6 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   popups: { Component: PopupsBoard },
   "identity-claims": { Component: IdentityClaimsBoard },
 
-  "guest-capture": { Component: GuestCaptureBoard },
   "voice-guest": { Component: VoiceGuestBoard },
 
   "site-chrome": { Component: SiteChromeBoard },

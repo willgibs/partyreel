@@ -112,3 +112,42 @@ describe("hidden means GONE, not merely invisible", () => {
     expect(dock()).not.toBeNull();
   });
 });
+
+/**
+ * HER TRACKER RIDES THE DOCK TOO (`guest-capture` r1, `tracker=button`): the dock carries what the
+ * row carries, so the round button sits beside Add there as it does above.
+ */
+describe("the dock carries her tracker", () => {
+  it("draws the tracker slot inside the group, after Add", () => {
+    render(
+      <GuestActionDock
+        hidden={false}
+        uploadingCount={0}
+        onAdd={() => {}}
+        invite={invite}
+        tracker={<button type="button">Your uploads</button>}
+      />,
+    );
+    const group = screen.getByRole("group", { name: "Album actions" });
+    const tracker = screen.getByRole("button", { name: "Your uploads" });
+    expect(group).toContainElement(tracker);
+    const add = screen.getByRole("button", { name: /Add photos/ });
+    // Beside Add: it follows it in the bar's own order.
+    expect(
+      add.compareDocumentPosition(tracker) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("is only a slot: nothing to track draws nothing, and the bar is unchanged", () => {
+    render(
+      <GuestActionDock
+        hidden={false}
+        uploadingCount={0}
+        onAdd={() => {}}
+        invite={invite}
+        tracker={null}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: /Your uploads/ })).toBeNull();
+  });
+});

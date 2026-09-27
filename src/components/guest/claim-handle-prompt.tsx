@@ -1,58 +1,62 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AtSign } from "lucide-react";
 
 import { updateDisplayNameAction } from "@/app/(app)/account/actions";
+import { PROFILE_SETUP_PATH } from "@/app/(app)/account/profile/invite";
 import {
   FollowMomentCard,
   type FollowMomentHost,
 } from "@/components/guest/follow-moment-card";
 import { Button } from "@/components/ui/button";
 import { formatCount } from "@/lib/format/count";
-import { GUEST_NAME_PREFIX } from "@/lib/guest/use-stored-name";
+import { readTypedName } from "@/lib/guest/confirm-beat";
 import { createClient } from "@/lib/supabase/client";
 
 /**
- * THE OFFER, AT THE ONE MOMENT ANYONE CARES, which captures a guest without
- * getting in the way of their uploading. A guest who has just added photographs
- * to a wedding is named on that album from now on; this card is where they
- * learn a handle exists at all, and without one most chips on a guest list go
- * nowhere.
+ * THE SLOT UNDER A GUEST'S UPLOADS, which captures a guest without getting in the way of their
+ * uploading. A guest who has just added photographs to a wedding is named on that album from now
+ * on; this is where they learn a handle exists at all, and without one most chips on a guest list
+ * go nowhere.
  *
  * ★ IT OWNS THE WHOLE POST-UPLOAD SLOT, one card at a time, and the ladder is:
- *   signed OUT              -> the offer card (keep your N photos), counting
- *                              what they just added.
- *   just CONFIRMED          -> the follow moment: what they gained, the host to
- *                              follow, and the handle line folded in.
- *   signed IN, no handle    -> the handle card (a guest who was already signed
- *                              in when they uploaded: nothing was captured, so
- *                              there is no moment to mark).
- *   signed IN, with handle  -> nothing. They already have the page; the album
- *                              is not the place to congratulate them about it.
- * Rendering two would stack growth cards under a gallery a guest came here to
- * look at, which is exactly getting in the way, so the offer card arrives as a
- * prop and this component decides which one stands.
+ *   just CONFIRMED          -> the follow moment: what they gained, the other events said once,
+ *                              the name they are now on as (with its Change), the host to follow,
+ *                              and the handle line folded in.
+ *   signed IN, no handle    -> the handle card (a guest who was already signed in when they
+ *                              uploaded: nothing was captured, so there is no moment to mark).
+ *   signed IN, with handle  -> nothing. They already have the page; the album is not the place
+ *                              to congratulate them about it.
+ *   signed OUT              -> nothing. The ask to keep what they added is the DOOR's last screen
+ *                              now (`guest-capture` r1, `moment=first` and `shape=sheet-step`): it
+ *                              meets every signed-out guest the instant their first file lands,
+ *                              whichever Add sent it, and a guest who put it down there is not
+ *                              asked again under the album. What the old offer card was left with
+ *                              has a home each: a guest back later has her menu's "Save this event
+ *                              for later" card; the demo never asked (its turn card is its own);
+ *                              and an album whose uploads are closed has nothing new to keep.
+ * Rendering two would stack growth cards under a gallery a guest came here to look at, which is
+ * exactly getting in the way, so this component decides which one stands.
  *
- * ★ "JUST CONFIRMED" IS THE ALBUM'S DECISION, HANDED IN. Every confirm door
- * writes `pr_pending_offer_<qr_token>` when it OPENS, and the album page
- * (`use-confirm-return.ts`) hears every claim made on it: when a claim moved
- * this album's own uploads and that marker was there, it sets `moment`, and
- * this card plays the moment exactly once, identically whether the guest typed
- * the code in place or came back from Google or a magic link through a full
- * reload, and with no upload needed this visit.
+ * ★ "JUST CONFIRMED" IS THE ALBUM'S DECISION, HANDED IN. Every confirm door writes
+ * `pr_pending_offer_<qr_token>` when it OPENS, and the album page (`use-confirm-return.ts`) hears
+ * every claim made on it: when a claim moved this album's own uploads and that marker was there, it
+ * sets `moment`, and this card plays the moment exactly once, identically whether the guest typed
+ * the code in place or came back from Google or a magic link through a full reload, and with no
+ * upload needed this visit.
  *
- * ★ AND THE TYPED NAME BECOMES THE PROFILE NAME, when the profile has none.
- * `claim_anonymous_uploads` deliberately stamps `user_id` onto the guest rows
- * and stops there; a brand-new account would otherwise land nameless while the
- * person is standing on an album that has been calling them Sam all evening.
- * One call to `updateDisplayNameAction` (the single, profanity-checked write
- * path) closes that, and it never overwrites a name that already exists.
+ * ★ AND THE TYPED NAME BECOMES THE PROFILE NAME, when the profile has none, THEN SHE IS TOLD
+ * (`guest-capture` r1, Will's `name=told`). `claim_anonymous_uploads` names a nameless profile from
+ * the newest row it claimed; one call to `updateDisplayNameAction` (the single, profanity-checked
+ * write path) is the belt for a typed name that never reached a row, and it never overwrites a name
+ * that already exists. The card then says the name her photographs carry now, whenever she typed one
+ * here, whichever name won (`confirm-beat.ts`), with a Change that changes it.
  *
- * ★ RESOLVING RENDERS NOTHING, on purpose. getSession() is local (no network),
- * so the wait is a tick; drawing the offer card first and swapping it for the
- * moment would be a visible flicker on the surface that is meant to be quiet.
+ * ★ RESOLVING RENDERS NOTHING, on purpose. getSession() is local (no network), so the wait is a
+ * tick; drawing one card first and swapping it for another would be a visible flicker on the
+ * surface that is meant to be quiet.
  */
 type State = "resolving" | "anon" | "moment" | "no-handle" | "has-handle";
 
@@ -60,29 +64,18 @@ function dismissKey(qrToken: string) {
   return `pr_claim_prompt_${qrToken}`;
 }
 
-/** The name this device typed at this event, read once without the hook's subscription. */
-function readTypedName(qrToken: string): string | null {
-  try {
-    const value = localStorage.getItem(`${GUEST_NAME_PREFIX}${qrToken}`);
-    return value && value.trim() ? value : null;
-  } catch {
-    return null;
-  }
-}
-
 export function ClaimHandlePrompt({
   doneCount,
   qrToken,
-  savePrompt,
   host,
   moment = false,
+  elsewhere = 0,
+  onAccountRenamed,
 }: {
   /** Photographs that landed in this session (the sentence's number). */
   doneCount: number;
   /** Keys the per-event dismissal and the typed name this device holds. */
   qrToken: string;
-  /** What a signed-OUT guest gets instead: the offer card. */
-  savePrompt: ReactNode;
   /** The event's host as a public card, for the follow moment's one row. */
   host?: FollowMomentHost | null;
   /**
@@ -90,12 +83,17 @@ export function ClaimHandlePrompt({
    * `useConfirmReturn`): the follow moment is due, whatever the slot showed.
    */
   moment?: boolean;
+  /** The same claim's rows at other events, said once in the moment. */
+  elsewhere?: number;
+  /** The told name was changed in the moment's own line. */
+  onAccountRenamed?: (displayName: string) => void;
 }) {
   const [state, setState] = useState<State>("resolving");
   const [needsHandle, setNeedsHandle] = useState(false);
-  // A plain flag rather than the save prompt's cross-tab store: nothing else
-  // writes this key, so a same-tab state update is the whole requirement, and a
-  // second copy of that hook is a second thing to keep in step.
+  // The name her photographs carry now, told in the moment; null when she typed none here.
+  const [toldName, setToldName] = useState<string | null>(null);
+  // A plain flag rather than a cross-tab store: nothing else writes this key, so a same-tab state
+  // update is the whole requirement.
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
@@ -132,17 +130,20 @@ export function ClaimHandlePrompt({
       if (!active) return;
       const hasHandle = Boolean(data?.slug);
 
-      if (moment && !data?.display_name) {
-        const typed = readTypedName(qrToken);
+      let name = data?.display_name?.trim() || null;
+      const typed = moment ? readTypedName(qrToken) : null;
+      if (moment && !name && typed) {
         // Best effort, and never fatal: the profile can always be named from
         // /account, and a nameless account is the state it was already in.
         // (The claim names a nameless profile from the rows it moved; this is
         // the belt for a typed name that never reached a row.)
-        if (typed) await updateDisplayNameAction(typed);
+        const saved = await updateDisplayNameAction(typed);
+        if (saved.ok) name = typed;
       }
 
       if (!active) return;
       setNeedsHandle(!hasHandle);
+      setToldName(typed ? name : null);
       setState(moment ? "moment" : hasHandle ? "has-handle" : "no-handle");
     })();
     return () => {
@@ -152,7 +153,6 @@ export function ClaimHandlePrompt({
     // this very page, when the session this effect first found absent exists.
   }, [qrToken, moment]);
 
-  if (state === "anon") return <>{savePrompt}</>;
   if (state === "moment") {
     // Never behind the handle card's dismissal: the moment is a one-off the
     // guest just earned, not the nudge they declined.
@@ -163,6 +163,12 @@ export function ClaimHandlePrompt({
         // A return from Google or a magic link lands with nothing uploaded
         // this visit: the card then speaks of the photos without a number.
         count={doneCount > 0 ? doneCount : null}
+        elsewhere={elsewhere}
+        toldName={toldName}
+        onRenamed={(renamed) => {
+          setToldName(renamed);
+          onAccountRenamed?.(renamed);
+        }}
       />
     );
   }
@@ -204,10 +210,10 @@ export function ClaimHandlePrompt({
           Not now
         </button>
       </div>
-      {/* The door lands ON the handle field, not at the top of a five-card
-          account page: the offer and the box that answers it are one act. */}
+      {/* The door is the page's own setup (profile-setup's wizard, where the handle is claimed
+          last, at Finish): the offer and the act that answers it are one. */}
       <Button asChild size="sm" variant="outline">
-        <Link href="/account#public-profile">Claim</Link>
+        <Link href={PROFILE_SETUP_PATH}>Claim</Link>
       </Button>
     </div>
   );

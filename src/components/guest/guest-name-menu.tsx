@@ -9,6 +9,7 @@ import {
   AddEmailDialog,
   PENDING_EMAIL_REMOVABLE,
 } from "@/components/guest/add-email-dialog";
+import { DoorLamp } from "@/components/guest/door/lit";
 import { UNVERIFIED_LABEL } from "@/components/shared/unverified-mark";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -134,8 +135,14 @@ export function GuestNameMenu({
             </span>
           </DropdownMenuLabel>
           {/* THE CARD: the benefit, then the one act that buys it. Its actions are menu items,
-              so arrow keys and typeahead reach them like every other row. */}
-          <div data-menu-card className="m-1 rounded-md bg-muted/60 p-3">
+              so arrow keys and typeahead reach them like every other row. Its top edge is lit by
+              the album (`identity-door` r2, `look=lit`): `isolate` makes the card the stacking
+              context the lamp sits inside, above its ground and under its words. */}
+          <div
+            data-menu-card
+            className="relative isolate m-1 overflow-hidden rounded-md bg-muted/60 p-3"
+          >
+            <DoorLamp edge="card" />
             <p className="text-reading text-pretty text-foreground">
               Save this event for later
             </p>

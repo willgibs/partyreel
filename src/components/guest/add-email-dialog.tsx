@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { DOOR_SCRIM, DoorLamp } from "@/components/guest/door/lit";
 import { Button } from "@/components/ui/button";
 import { floatingKeyboardFoot } from "@/components/ui/floating-layer";
 import { Input } from "@/components/ui/input";
@@ -54,7 +55,9 @@ export const REMOVE_CONSEQUENCE =
  * (door-flow), whose phone half stands on the keyboard while the field is
  * focused. The door's steps are HELD and ordered, and a guest who reaches this
  * has already been through them; reopening the itinerary to add one optional
- * field would be re-gating an album they are already inside.
+ * field would be re-gating an album they are already inside. It wears the
+ * door's light all the same (`identity-door` r2, `look=lit`: the lit scrim and
+ * the album's lamp), because it is the door's email, met again from her menu.
  *
  * ★ TWO ACTS. `add`: the address, and "Confirm it now instead" for the guest who
  * would rather be done. `change`: a new address replaces the pending one (the
@@ -188,7 +191,13 @@ export function AddEmailDialog({
         else close();
       }}
     >
-      <SheetContent responsive className="overflow-y-auto overscroll-contain">
+      <SheetContent
+        responsive
+        className="overflow-y-auto overscroll-contain"
+        overlayClassName={DOOR_SCRIM}
+        data-door-lit=""
+      >
+        <DoorLamp edge="free" />
         <SheetHeader>
           <SheetTitle>
             {changing ? "Change your email" : "Add your email"}

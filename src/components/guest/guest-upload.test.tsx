@@ -42,22 +42,16 @@ import { uploadFile } from "@/lib/upload/uploader";
 import { GuestUpload, type GuestUploadHandle } from "./guest-upload";
 
 vi.mock("@/lib/upload/uploader", () => ({ uploadFile: vi.fn() }));
-// Out of scope for these pins (own state machine + supabase); doneCount>0
-// gating is pinned via the stub's presence.
-vi.mock("@/components/guest/save-account-prompt", () => ({
-  SaveAccountPrompt: ({ count }: { count?: number }) => (
-    <div data-testid="save-account-prompt" data-count={count} />
-  ),
-}));
 // The claim prompt OWNS the post-upload slot: it resolves the viewer and
 // decides which single card stands, which is its own contract
-// (claim-handle-prompt.test.tsx) and its own supabase call. Stubbed to render
-// the card it was handed, so what stays pinned HERE is the thing this file is
-// about: the slot mounts on doneCount > 0, or on a confirmation's return
-// (`moment`), and never in the demo.
+// (claim-handle-prompt.test.tsx) and its own supabase call. Stubbed to a marker
+// carrying the count it was handed, so what stays pinned HERE is the thing this
+// file is about: the slot mounts on doneCount > 0, or on a confirmation's return
+// (`moment`), and never in the demo. (A signed-out guest's ask to keep is the
+// door's last screen now, `entry-modal.test.tsx`, never a card in this slot.)
 vi.mock("@/components/guest/claim-handle-prompt", () => ({
-  ClaimHandlePrompt: ({ savePrompt }: { savePrompt: React.ReactNode }) => (
-    <>{savePrompt}</>
+  ClaimHandlePrompt: ({ doneCount }: { doneCount: number }) => (
+    <div data-testid="post-upload-slot" data-count={doneCount} />
   ),
 }));
 
@@ -136,7 +130,6 @@ function Harness({
       ref={handleRef}
       event={rest.event ?? EVENT}
       qrToken="qr-token-1"
-      sessionToken={sessionToken}
       queue={items}
       onAddFiles={addFiles}
       onRetry={retry}
@@ -268,7 +261,7 @@ describe("GuestUpload: queue", () => {
     expect(snapshots.length).toBe(before);
   });
 
-  it("approved outcome: reports onUploaded and mounts the growth prompt", async () => {
+  it("approved outcome: reports onUploaded and mounts the post-upload slot", async () => {
     mockUploadFile.mockResolvedValue({
       ok: true,
       status: "approved",
@@ -280,7 +273,7 @@ describe("GuestUpload: queue", () => {
     addFiles([file]);
 
     // An approved upload's feedback IS the gallery tile (the landing sweep); the
-    // contract here is the payload + the growth prompt.
+    // contract here is the payload + the post-upload slot.
     await waitFor(() =>
       expect(onUploaded).toHaveBeenCalledWith({
         mediaId: "med-1",
@@ -292,8 +285,8 @@ describe("GuestUpload: queue", () => {
         status: "approved",
       }),
     );
-    // doneCount > 0 mounts the save-account growth prompt (non-demo).
-    await screen.findByTestId("save-account-prompt");
+    // doneCount > 0 mounts the post-upload slot (non-demo).
+    await screen.findByTestId("post-upload-slot");
   });
 
   it("a HELD outcome says nothing here: the waiting TILE is the whole answer", async () => {
@@ -570,8 +563,8 @@ describe("GuestUpload: demo mode", () => {
     );
     expect(global.fetch).not.toHaveBeenCalled();
     expect(mockUploadFile).not.toHaveBeenCalled();
-    // The growth prompt never shows in demo.
-    expect(screen.queryByTestId("save-account-prompt")).not.toBeInTheDocument();
+    // The post-upload slot never shows in the demo.
+    expect(screen.queryByTestId("post-upload-slot")).not.toBeInTheDocument();
   });
 });
 
@@ -899,19 +892,17 @@ describe("GuestUpload: the lifted queue contract", () => {
 describe("GuestUpload: the slot on a confirmation's return", () => {
   it("stands with nothing uploaded this visit when the album says the moment is due", async () => {
     mount({ moment: true });
-    expect(
-      await screen.findByTestId("save-account-prompt"),
-    ).toBeInTheDocument();
+    expect(await screen.findByTestId("post-upload-slot")).toBeInTheDocument();
   });
 
   it("stays empty without it until something is uploaded", () => {
     mount();
-    expect(screen.queryByTestId("save-account-prompt")).toBeNull();
+    expect(screen.queryByTestId("post-upload-slot")).toBeNull();
   });
 
   it("never stands in the demo, moment or not", () => {
     mount({ moment: true, isDemo: true, sessionToken: null });
-    expect(screen.queryByTestId("save-account-prompt")).toBeNull();
+    expect(screen.queryByTestId("post-upload-slot")).toBeNull();
   });
 });
 
@@ -958,16 +949,16 @@ describe("GuestUpload: the post-upload card counts what is still in the album", 
     fireEvent.click(screen.getByRole("button", { name: "Send 2" }));
     await waitFor(() =>
       expect(
-        screen.getByTestId("save-account-prompt").getAttribute("data-count"),
+        screen.getByTestId("post-upload-slot").getAttribute("data-count"),
       ).toBe("2"),
     );
 
     rerender(harness(new Set(["med-1"])));
     expect(
-      screen.getByTestId("save-account-prompt").getAttribute("data-count"),
+      screen.getByTestId("post-upload-slot").getAttribute("data-count"),
     ).toBe("1");
 
     rerender(harness(new Set(["med-1", "med-2"])));
-    expect(screen.queryByTestId("save-account-prompt")).toBeNull();
+    expect(screen.queryByTestId("post-upload-slot")).toBeNull();
   });
 });

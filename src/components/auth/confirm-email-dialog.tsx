@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 
 import { AccountDoor, DOOR_WEAR } from "@/components/auth/account-door";
+import { DOOR_SCRIM, DoorLamp } from "@/components/guest/door/lit";
 import {
   Sheet,
   SheetContent,
@@ -10,21 +11,32 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { currentAlbum } from "@/lib/guest/album-return";
 import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
+import {
+  lastClaimPlayedMoment,
+  reportConfirmBeat,
+} from "@/lib/guest/confirm-beat";
 
 /**
- * THE CONFIRM DOOR ON AN ALBUM, ONE OBJECT FOR THE THREE PLACES THAT OPEN IT (guest by upload,
- * 2026-09-22): the offer card under a first upload, the Unverified mark on a guest's own credit, and
- * the header's name menu (which also opens it as Log in). They were three hand-built dialogs that
- * each claimed the uploads and then SAVED the event; save is gone ("uploading to an event is now
- * effectively saving"), so all three now do one thing, in one order, here:
+ * THE CONFIRM DOOR ON AN ALBUM, ONE OBJECT FOR THE PLACES THAT OPEN IT OVER THE ALBUM (guest by
+ * upload, 2026-09-22): the Unverified mark on a guest's own credit and the header's name menu (which
+ * also opens it as Log in). The ask after a first upload is the door's own last screen now (the keep,
+ * `save-account-prompt.tsx`), which wears the same account door inside the held sheet. Save is gone
+ * ("uploading to an event is now effectively saving"), so the door does one thing, in one order:
  *
  *   1. the account door in its `keep` wear (or `signin`), whose words hold before an upload too,
  *      since the name menu offers it the moment a name is typed;
  *   2. on a verified code, the CLAIM, awaited: the guest's uploads (and with them their events)
  *      become the account's before anything redraws, because a refresh that overtook the claim
  *      would redraw the very credit the guest just paid an email to fix;
- *   3. then the opener's own follow-through (a newsletter write, a dismissal, a refresh).
+ *   3. the ONE BEAT (`confirm-beat.ts`): when the claim plays the follow moment its card says
+ *      everything; otherwise the claim's other events are reported, and the page settles the name
+ *      her photos now carry before it says both once;
+ *   4. then the opener's own follow-through (a dismissal, a refresh).
+ *
+ * ★ IT WEARS THE DOOR'S LIGHT (`identity-door` r2, `look=lit`): the lit scrim and the album's lamp
+ * on its free edge, since it is the door's own sheet opened again over the album.
  *
  * A Google or magic-link confirmation never reaches step 2 here: it leaves the page and comes back
  * to the album's mount-time claim instead. That is why every opener writes the return marker
@@ -77,7 +89,13 @@ export function ConfirmEmailDialog({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent responsive className="overflow-y-auto overscroll-contain">
+      <SheetContent
+        responsive
+        className="overflow-y-auto overscroll-contain"
+        overlayClassName={DOOR_SCRIM}
+        data-door-lit=""
+      >
+        <DoorLamp edge="free" />
         <SheetHeader>
           <SheetTitle>{copy.heading}</SheetTitle>
           <SheetDescription>{description ?? copy.reason}</SheetDescription>
@@ -99,7 +117,20 @@ export function ConfirmEmailDialog({
           // this once, and a null would read as a hint of empty rather than as no hint.
           hintEmail={hintEmail ?? undefined}
           onVerified={async () => {
-            await claimAnonymousUploads({ silent: true });
+            const claimed = await claimAnonymousUploads({ silent: true });
+            // The one beat: nothing to report when the claim played the follow moment (every
+            // opener wrote the album's marker before opening this), whose card says it all.
+            const album = claimed?.album ?? currentAlbum();
+            if (album && !lastClaimPlayedMoment(album)) {
+              // The page settles the name (it is the one place that may reach the account's
+              // Server Function) and says the beat once.
+              reportConfirmBeat({
+                album,
+                name: null,
+                elsewhere: claimed?.elsewhere ?? 0,
+                settle: true,
+              });
+            }
             await onConfirmed?.();
           }}
         >

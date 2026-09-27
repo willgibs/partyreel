@@ -6,6 +6,7 @@ import { Lock } from "lucide-react";
 import { DOOR_NAME_KEY } from "@/app/(auth)/door-name-key";
 import { AccountDoor, DOOR_WEAR } from "@/components/auth/account-door";
 import type { DoorVerified } from "@/components/auth/email-sign-in";
+import { LiveCount } from "@/components/guest/door/lit";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatMediaCount } from "@/lib/format/count";
@@ -86,7 +87,20 @@ export function IdentifyStep({
             {DOOR_WEAR.gate.heading}
           </p>
         )}
-        <p className="font-heading text-page text-balance">{copy.title}</p>
+        <p className="font-heading text-page text-balance">
+          {verification && mediaTotal && mediaTotal > 0 ? (
+            // The gate's title counts what waits, ticking as photos land (`identity-door` r2's lit
+            // count); the same words `identifyCopy` hands the shell, the number its own node.
+            <>
+              <LiveCount value={mediaTotal} />
+              {mediaTotal === 1
+                ? " photo or video is waiting"
+                : " photos & videos are waiting"}
+            </>
+          ) : (
+            copy.title
+          )}
+        </p>
         <p className="mt-2 text-base leading-relaxed text-muted-foreground">
           {copy.reason}
         </p>

@@ -45,6 +45,7 @@ export function GuestActionDock({
   uploadingCount,
   onAdd,
   invite,
+  tracker,
 }: {
   /** The row is still on screen: the dock waits, inert, off the bottom edge. */
   hidden: boolean;
@@ -62,6 +63,12 @@ export function GuestActionDock({
    * code is; this way the bar is exactly its own layout and its own entrance.
    */
   invite?: ReactNode;
+  /**
+   * Her tracker's round button (`guest-capture` r1, `tracker=button`), riding beside Add as it
+   * does in the row, so the dock still carries what the row carries. A slot like Invite, and it
+   * draws nothing where she has nothing to track.
+   */
+  tracker?: ReactNode;
 }) {
   // Nothing to dock is nothing to draw, scrim included.
   if (!onAdd && !invite) return null;
@@ -124,6 +131,7 @@ export function GuestActionDock({
             )}
           </Button>
         )}
+        {tracker}
       </div>
     </div>
   );
