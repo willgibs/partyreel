@@ -21,9 +21,10 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   while attribution is already public by name on the same album. A guest who wants no linkage can decline to upload,
   and a host can turn off Require verified emails, which trades a confirmed identity for a marked name, never for no
   name. So the GDPR posture rests on legitimate interest over already-public attribution, not opt-in consent.
-- **A guest's own profile publishes nothing until chosen:** `profile_shown_events` is an opt-in (never backfilled,
+- **A guest's own profile publishes no event until chosen:** `profile_shown_events` is an opt-in (never backfilled,
   which would publish what must stay private until chosen), while the guest stays on each event's own list, the
-  host's key, either way. A person is on a list, a count or a profile line only through an approved upload of theirs.
+  host's key, either way. An empty page says only how many it keeps private, of the events the visitor could already
+  see her on through that key (The public profile, below). A person is on a list, a count or a profile line only through an approved upload of theirs.
   Choosing is one control, the cover picker (`attended-events-visibility.tsx`), in Account and in the setup wizard;
   the wizard's Show all / Keep all private applies once, to the events she has at Finish, and later ones start private.
 - **Follows are open any-to-any, and the graph is owner-private:** lists and counts render only to their owner (as on
