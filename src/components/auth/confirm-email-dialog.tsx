@@ -4,11 +4,11 @@ import type { ReactNode } from "react";
 
 import { AccountDoor, DOOR_WEAR } from "@/components/auth/account-door";
 import { DOOR_SCRIM, DoorLamp } from "@/components/guest/door/lit";
+import { DOOR_SHEET } from "@/components/guest/entry-shell";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
 import { currentAlbum } from "@/lib/guest/album-return";
@@ -36,7 +36,10 @@ import {
  *   4. then the opener's own follow-through (a dismissal, a refresh).
  *
  * ★ IT WEARS THE DOOR'S LIGHT (`identity-door` r2, `look=lit`): the lit scrim and the album's lamp
- * on its free edge, since it is the door's own sheet opened again over the album.
+ * on its free edge, since it is the door's own sheet opened again over the album. And the door's
+ * heading and padding (`DOOR_SHEET`, `door/heading.tsx`): its title on the page step every door
+ * step heads with, never a Sheet's card title, so one guest meets one size of heading; the door
+ * draws it, so the code screen can head itself "Check your email" in its place (`code=mail`).
  *
  * A Google or magic-link confirmation never reaches step 2 here: it leaves the page and comes back
  * to the album's mount-time claim instead. That is why every opener writes the return marker
@@ -91,17 +94,18 @@ export function ConfirmEmailDialog({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         responsive
-        className="overflow-y-auto overscroll-contain"
+        className={DOOR_SHEET}
         overlayClassName={DOOR_SCRIM}
         data-door-lit=""
       >
         <DoorLamp edge="free" />
-        <SheetHeader>
-          <SheetTitle>{copy.heading}</SheetTitle>
-          <SheetDescription>{description ?? copy.reason}</SheetDescription>
-        </SheetHeader>
+        {/* The dialog's name and description; the door draws the same words for the eye. */}
+        <SheetTitle className="sr-only">{copy.heading}</SheetTitle>
+        <SheetDescription className="sr-only">
+          {description ?? copy.reason}
+        </SheetDescription>
         <AccountDoor
-          className="px-4 pb-6"
+          head={{ title: copy.heading, reason: description ?? copy.reason }}
           // The guest door's field and button: 16px (no iOS focus zoom) and the 44px primary.
           inputClassName="h-11 text-base"
           buttonSize="cta"

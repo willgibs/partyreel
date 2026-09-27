@@ -13,13 +13,14 @@ import {
 import { toast } from "sonner";
 
 import { AccountDoor, DOOR_WEAR } from "@/components/auth/account-door";
+import { DOOR_SCRIM, DoorLamp } from "@/components/guest/door/lit";
+import { DOOR_SHEET } from "@/components/guest/entry-shell";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { QueryFailedError } from "@/lib/db/must-query";
 import { likeManyInBatches } from "@/lib/db/mutations/likes";
 import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
@@ -436,28 +437,49 @@ export function LikesProvider({
     <LikesContext.Provider value={value}>
       {children}
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          {/* The Dialog owns the title and the description for a11y (Radix
-              wires aria-labelledby / -describedby to these), so the words come
-              from the door's own wear table rather than being retyped here. */}
-          <DialogHeader>
-            <DialogTitle>{DOOR_WEAR.like.heading}</DialogTitle>
-            <DialogDescription>{DOOR_WEAR.like.reason}</DialogDescription>
-          </DialogHeader>
+      {/* ★ THE LIKE DOOR WEARS THE DOOR'S SHEET (ROADMAP's line, `door-r3-wiring`): it was the one
+          account door drawn as a centred dialog, its email field focused the moment it opened, so a
+          phone's keyboard rose into a box still arriving. It opens now as every door a guest meets
+          does: the responsive Sheet (a bottom sheet in a hand, keyboard-safe, a side panel at a
+          desk), the lit scrim and the album's lamp, the door's heading, and no field focused on
+          open at either width (the panel takes focus). Liking is optional, so unlike the held door
+          it closes (its X, Escape, the backdrop), and focus goes back to the heart that opened it.
+          The Sheet owns the title and the description for a11y (Radix wires aria-labelledby and
+          -describedby to them), so the words come from the door's own wear table. */}
+      <Sheet open={dialogOpen} onOpenChange={setDialogOpen}>
+        <SheetContent
+          responsive
+          className={DOOR_SHEET}
+          overlayClassName={DOOR_SCRIM}
+          data-door-lit=""
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          <DoorLamp edge="free" />
+          <SheetTitle className="sr-only">{DOOR_WEAR.like.heading}</SheetTitle>
+          <SheetDescription className="sr-only">
+            {DOOR_WEAR.like.reason}
+          </SheetDescription>
           {/* ★ THE LIKE WEAR (Will, 2026-09-20, `surfaces=one`): the one
               account door, in its like wear, so the Terms line and every
               failure path are the door's own rather than a copy of them. */}
           <AccountDoor
+            head={{
+              title: DOOR_WEAR.like.heading,
+              reason: DOOR_WEAR.like.reason,
+            }}
             wear="like"
             methods={{ code: true, google: true }}
             emailRedirectTo={emailRedirectTo}
             chrome="none"
             intent="create"
+            // The guest door's field and button: 16px (no iOS focus zoom) and the 44px primary.
+            inputClassName="h-11 text-base"
+            buttonSize="cta"
+            buttonClassName="h-11"
             onVerified={onVerified}
           />
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </LikesContext.Provider>
   );
 }

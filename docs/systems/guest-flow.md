@@ -47,7 +47,7 @@ stranger has not seen yet.
 account; then follow the host; the copy says "in your account", never "on your profile", since a profile publishes
 nothing until its owner chooses). It is due the instant a signed-out guest's first file lands this visit, from the
 door's upload step or the album's Add, never in the demo or for the host (`keepDue`, `event-experience.tsx`): the door
-reopens on "Sent" over what went ("Your photo joined Maya's album.", or "Your photo is waiting for the host." where
+reopens on "Sent", beside a check blooming in the album's light, over what went ("Your photo joined Maya's album.", or "Your photo is waiting for the host." where
 uploads are held), the ask, Confirm your email (the account door in the same held sheet, its `keep` wear, a code or
 Google, carrying the product's one newsletter opt-in through `/api/guests/capture-email`) and Maybe later (put down for
 that event on that device, `pr_save_prompt_<qr>`, [`keep-ask.ts`](../../src/lib/guest/keep-ask.ts)).
@@ -91,11 +91,14 @@ stub.
 
 ★ **THE GUEST'S POPUPS OPEN THROUGH THEIR KINDS** ([design-system.md](design-system.md), the floating layer): the
 DOOR and its held sheets (the confirm door `ConfirmEmailDialog`, the header menu's Add your email,
-[`add-email-dialog.tsx`](../../src/components/guest/add-email-dialog.tsx)) and the upload failure sheet wear the
+[`add-email-dialog.tsx`](../../src/components/guest/add-email-dialog.tsx), and the like door, "Like this",
+`likes-provider.tsx`) and the upload failure sheet wear the
 responsive Sheet ([`ui/sheet.tsx`](../../src/components/ui/sheet.tsx)); every other guest popup opens through its kind:
 Invite the code card ([`guest-share.tsx`](../../src/components/guest/guest-share.tsx)), Report a form
 ([`report-dialog.tsx`](../../src/components/guest/report-dialog.tsx)), her uploads a list, Add photos and Download a
-choice. Every shape is keyboard-safe, so no popup carries its own keyboard fix.
+choice. Every shape is keyboard-safe, so no popup carries its own keyboard fix. The door's family heads with the
+door's one heading scale (`door/heading.tsx`: the page step, from the left) and pads as `DOOR_SHEET`
+(`entry-shell.tsx`).
 
 - **Stats**: `getGalleryStats(event)` ([`guest-events-admin.ts`](../../src/lib/db/queries/guest-events-admin.ts))
   → `{approvedTotal, guestCount}`: a head count of approved media (`countApprovedMedia`, request-scoped, so the
@@ -385,7 +388,8 @@ The itinerary is `welcome | password | chooser | name | identify | signin | uplo
 when due, never ahead of a step she still owes), its rules in
 [`entry-steps.ts`](../../src/lib/guest/entry-steps.ts). The cases: the owner `[]` (no sheet); password-only
 `[welcome?, password]` then the rest; names mode `[welcome?, chooser → name | identify | signin, upload?]` (the
-chooser's Continue as guest, Create account and Log in; the chevron is `doorBack()`, and a way in returns to the chooser
+chooser's Continue as guest, Create account and Log in, each carrying its small line of what it gives; the chevron is
+`doorBack()`, and a way in returns to the chooser
 and clears the pick); verified mode `[welcome?, identify]` then `[upload?]`; both, in that order; the demo `[welcome (its role step), upload]`, which asks no name; a returning guest with a name and
 (when required) a contribution `[]`; the mid-visit flip `[email]`. ★ **THE NAME STEP CARRIES AN OPTIONAL
 ADDRESS in names mode**, a one-line ghost under the name that opens into the labelled field: it adds no step, and
@@ -400,7 +404,10 @@ a lamp on the sheet's free edge (the top in a hand, the left at a desk) wears th
 previews, within a bounded lookback past any that turn out colourless, sampled only while a lamp is lit
 ([`door-light.ts`](../../src/lib/guest/door-light.ts), `door/album-light.tsx`; the house five until the sample lands,
 at a password event, and wherever nothing in the lookback carries colour); stronger on the code screen,
-blooming on "You're in"; the change and confirm sheets and her menu's card wear it too. In dark the resting lamp is
+blooming on "You're in"; the change and confirm sheets, her menu's card and the like door wear it too. Its light
+reaches the words (`icons=lit`): the welcome's promises lead with pools of its hues (`DoorPool`) and the small glyphs,
+the Lock beside "Almost in" and the envelope, take it (`DoorGlyph`); a control keeps its monochrome glyph. Every beat
+blooms in it ("You're in"'s check, the unlock's button, the keep's Sent; `DoorCheck`). In dark the resting lamp is
 spent inside the sheet's padding (a muted word inside the atmosphere register reads 2:1, measured); light keeps the
 wash. ★ **NO CENTRED FLOAT AT A DESK**: an edge sheet leaves more of the blurred
 album in view, and that preview is the incentive the door runs on. The phone half keeps `max-h-[85svh]` at rest, so
@@ -413,7 +420,7 @@ through flags in the sheet. No step counter to desync.
   (`openToGate`) is instant.
 - **welcome = THE INVITATION**: a "You're invited to" eyebrow over the event name large beside the host's
   face, "Hosted by" over the date (self-hiding on locked pages via the redacted shellEvent), the count as social
-  proof, ticking as photographs land (`LiveCount`; the gate's title ticks too; reduced motion lands the number), two warm `text-base` rows, one primary that always reads "Continue"
+  proof, ticking as photographs land (`LiveCount`; the gate's title ticks too; reduced motion lands the number), two warm `text-base` rows, each on a pool of the lamp's hues, one primary that always reads "Continue"
   (something always follows it), and the legal consent line. Shown on the FIRST visit per device
   (`pr_welcome_<qrToken>` via [`use-welcome-seen.ts`](../../src/lib/guest/use-welcome-seen.ts); server
   snapshot "seen" = no flash). The demo's welcome is its `RoleStep` (see "Demo mode"). Inside the drawer it
@@ -429,16 +436,23 @@ through flags in the sheet. No step counter to desync.
   feeds the content's px height into a 300ms height glide (step swaps AND same-step growth, e.g. the error
   line); steps slide directionally (`[data-entry-step][data-dir]`); the outgoing step leaves an inert
   attribute-stripped clone that fades opposite (`[data-entry-exit]`; `el.isConnected` discriminates real
-  deletions from dev StrictMode cycles). The back chevron is a transient VIEW over the machine (never
+  deletions from dev StrictMode cycles). ★ "You're in" arrives IN PLACE (`place`): its check and words are its
+  entrance, and the step it replaces fades where it stood; a sliding layer carries `data-settled` once its move lands,
+  and the box reaches 12px into the sheet's padding so its clip never shaves a focus ring. ★ THE TEXT REVEAL
+  (`[data-door-line]`, `door.css`): a heading's lines rise out of a blur, 40ms apart, wherever words arrive in place
+  (the first step as the sheet lands, "You're in", the unlock's words, "Check your email", the upload step's own
+  views) and stand down on a step that arrives by the side-by-side move; the exit clone replays no entrance. The back
+  chevron is a transient VIEW over the machine (never
   touches markSeen/steps): the password, the name and the email go back to the welcome, the upload to the
   name (the demo's to its role step). ★ THE REVISITED WELCOME'S OWN PRIMARY ALWAYS READS "CONTINUE", never
   "Back": back is not bidirectional, and only the CHEVRON's label says "Back to X".
 - **The SUCCESS HOLD + REVEAL** ([`use-success-hold.ts`](../../src/lib/guest/use-success-hold.ts), min beat
   900ms) plays ONCE, on the step the album is directly behind; an earlier step's success hands forward with
   no beat. A password unlock blurs the field (the keyboard retracts during the beat, never mid-exit) and
-  fires `onUnlocked` + `router.refresh()` together; the gate stays PLANTED and its button morphs `--success`
-  green ("You're in" + `data-unlock-success`). The email confirmation's hold shows the centred SuccessStep
-  (the code machinery has no single button to morph). Release = beat done AND the refresh landed (`current`
+  fires `onUnlocked` + `router.refresh()` together; the gate stays PLANTED and its button fills with the
+  album's light, its check drawing ("You're in" + `data-unlock-success`, `data-unlock-lit`). The email
+  confirmation's hold shows "You're in" in place, its check blooming in the album's light with the success-check
+  motion (the code machinery has no single button to morph). Release = beat done AND the refresh landed (`current`
   moved off the held step). A full unlock exits the sheet (250ms via an `animation-duration` override:
   vaul's close is a KEYFRAME, not a transition) while the REVEAL CURTAIN lifts (`[data-reveal-curtain]` via
   `onHoldingChange`): the new header rises (`data-reveal`, 150ms + 50ms steps) and the masonry stagger
@@ -477,6 +491,10 @@ through flags in the sheet. No step counter to desync.
   rises on an intentional tap. Gate inputs are h-11/16px (16px also stops the iOS focus auto-zoom). No
   door field autofocuses at either width (a source test pins it); the code field takes focus only from a field that
   held it when the code was sent.
+- **Every code screen heads "Check your email"** (`code=mail`, `/login` included): `AccountDoor` draws it in the
+  surface's heading's place (`head`), a gate keeping its "Almost in", then the address, six slots across the full
+  width, "Or tap the link in the same email." and the resend; with no sticky primary the sheet keeps 16px above the
+  keyboard (`DOOR_SHEET`).
 
 ## Invariants (don't break)
 
@@ -606,7 +624,8 @@ the ONLY mode with the address, a ghost line that opens into the field: rename a
 typed name), `edit` (the album menu's, the one dismissible door) and `profile` (a confirmed account with no profile
 name writes the PROFILE's; the album has no inline name panel, and the shared `SetNameStep` serves the host's
 `/welcome` and the Library's demo) and `account` (the account's display name through `updateDisplayNameAction`, dismissible like `edit`;
-no caller since the told name's Change opens its own form). No unique name is claimed at the door.
+no caller since the told name's Change opens its own form). The line under the name reads "You can change it anytime." (the working step); the two doors that
+change a name show none. No unique name is claimed at the door.
 
 ★ **THE CONFIRMATION'S FOUR WRITES, IN ORDER, ARE THE MODAL'S,** shared by `identify` (name and email to a code:
 Create account, and every verification event) and `signin` (Log in, the email alone), and `entry-modal.tsx` owns the

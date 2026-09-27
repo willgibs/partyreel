@@ -33,9 +33,7 @@ function submit(value: string) {
   fireEvent.change(screen.getByLabelText("Event password"), {
     target: { value },
   });
-  fireEvent.submit(
-    screen.getByLabelText("Event password").closest("form")!,
-  );
+  fireEvent.submit(screen.getByLabelText("Event password").closest("form")!);
 }
 
 describe("PasswordGate", () => {
@@ -73,7 +71,7 @@ describe("PasswordGate", () => {
     expect(vi.mocked(global.fetch)).toHaveBeenCalledTimes(1);
   });
 
-  it("the in-place morph: the gate stays planted and the button turns success", async () => {
+  it("the in-place morph: the gate stays planted and the button turns into the beat", async () => {
     vi.mocked(global.fetch).mockResolvedValue({ ok: true } as Response);
     renderGate(vi.fn());
     submit("right-password");
@@ -83,6 +81,11 @@ describe("PasswordGate", () => {
     expect(screen.getByLabelText("Event password")).toBeInTheDocument();
     expect(screen.getByLabelText("Event password")).toBeDisabled();
     expect(screen.getByText("Opening the album")).toBeInTheDocument();
+    // ★ In the album's light (`identity-door` r3, Will's `beat=lit`), its check drawn: the green
+    // it wore before is the product's one success colour, and the door's beats are the album's.
+    const button = screen.getByText(/You(’|')re in/).closest("button");
+    expect(button).toHaveAttribute("data-unlock-lit");
+    expect(button?.querySelector('[data-door-check="stroke"]')).not.toBeNull();
   });
 
   it("a stalled hold turns the button into Retry (the form never re-enables)", async () => {
@@ -126,7 +129,9 @@ describe("PasswordGate", () => {
     renderGate();
     submit("wrong");
     expect(
-      await screen.findByText("That password didn't work. Give it another try."),
+      await screen.findByText(
+        "That password didn't work. Give it another try.",
+      ),
     ).toBeInTheDocument();
     expect(refresh).not.toHaveBeenCalled();
     fireEvent.change(screen.getByLabelText("Event password"), {

@@ -42,11 +42,10 @@ a lane").
 | --- | --- | --- | --- | --- |
 | `claims-wiring` | `identity-claims` r1 and r2's answers: the banner, the review in the lists panel, one event at a time with its photos, saved as decided, the dialog at the card, Open album and a quieter Follow (the moment card too), the double-tap guard; maybe a migration | building (agent a50fd7c2bc01e0754) | Opus, 3131 | |
 | `desk-trim` | board `export-flow`: its `object` ask retires (popups' `choices=menu` answered it) | drawing (agent a8c60c10c4d0bc91e) | Sonnet, 3133 | |
-| `door-r3-wiring` | `identity-door` r3's five (lit icons, the told chooser, the smaller hint, Check your email, the lit beat with motion) and the door's roadmap lines; the Like door into the held sheet; retires `identity-door` | building (agent ad8d98fbd9a81d1ee) | Opus, 3132 | |
 
 Batch 3 closed at milestone 29 (`ab30a7f8`, 2026-09-26); batch 4 (nine lanes with `crumbs-3`) is on build 11.
 
-Merged in batch 5 (their records carry the rest): hero-card, claims-r3, demo-doors, popups-wiring.
+Merged in batch 5 (their records carry the rest): hero-card, claims-r3, demo-doors, popups-wiring, door-r3-wiring.
 
 ## Next, in order
 

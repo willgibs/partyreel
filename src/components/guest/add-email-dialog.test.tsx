@@ -26,7 +26,9 @@ function respond(status: number, body: unknown) {
   } as Response);
 }
 
-function mount(props: Partial<React.ComponentProps<typeof AddEmailDialog>> = {}) {
+function mount(
+  props: Partial<React.ComponentProps<typeof AddEmailDialog>> = {},
+) {
   return render(
     <AddEmailDialog
       qrToken="tok-1"
@@ -50,11 +52,13 @@ beforeEach(() => {
 describe("AddEmailDialog", () => {
   it("makes the door's own promise, word for word", () => {
     mount();
+    // The sheet's own description (the door's heading draws the same words for the eye, hidden
+    // from the tree, since it heads with the door's one heading scale now).
     expect(
-      screen.getByText(
-        "Come back to this album anytime, with every photo you add.",
-      ),
-    ).toBeInTheDocument();
+      screen.getByRole("dialog", { name: "Add your email" }),
+    ).toHaveAccessibleDescription(
+      "Come back to this album anytime, with every photo you add.",
+    );
   });
 
   it("sends the token and the address in the BODY, never a URL", async () => {
