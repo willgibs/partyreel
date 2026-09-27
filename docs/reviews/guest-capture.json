@@ -1,0 +1,48 @@
+{
+  "board": "guest-capture",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-27",
+      "answers": [
+        {
+          "ask": "moment",
+          "choice": "first",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        },
+        {
+          "ask": "shape",
+          "choice": "sheet-step",
+          "note": "I like bubbling it up front and center, so its clearly visible to either input email or dismissed. The other two options are easier to skip by. At this point, we've already gotten the guest's value to the host (uploads), so we're simply trying to capture the guest as a Partyreel user now.",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        },
+        {
+          "ask": "follow",
+          "choice": "card",
+          "note": "I like this option the most, but needs to work within any multi-claim handling. Follow doesn't have to be pushed as hard as a feature relative to uploads/verifications/etc.",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        },
+        {
+          "ask": "name",
+          "choice": "told",
+          "note": "Rather than 'Change it in Account', we could likely have a simple 'Change' link to actually do so. This is better UX.",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        },
+        {
+          "ask": "tracker",
+          "choice": "button",
+          "note": "Maybe the button could have a little status icon (like notification buttons tend to in nav) to display the item count (number only) of pending items. This makes the button feel more clickable (\"what's that 12? oh my uploads waiting for approval\")",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

@@ -70,6 +70,22 @@
       ],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-27",
+      "answers": [
+        {
+          "ask": "look",
+          "choice": "lit",
+          "note": "The remaining icon + copy items could likely be redesigned within this as well.",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

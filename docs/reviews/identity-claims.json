@@ -1,0 +1,49 @@
+{
+  "board": "identity-claims",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-27",
+      "answers": [
+        {
+          "ask": "ticket",
+          "choice": "banner",
+          "note": "This allows users to handle when they'd like to, rather than filling the screen with a tall card immediately. Are we using sheets everywhere now? Feels like a less common pattern for users in general, especially used for everything. Many popups would benefit from a different layout/UI. This question also conflicts with the next, where if we're handling multiple events on a screen here but the next question suggests each claim leads to its own confirmation page, we need a consensus - batch handling with in-batch confirmations, or separate handling? Likely batch, with an action to 'enter'/follow up on each claimed event as you go.",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        },
+        {
+          "ask": "pointer",
+          "choice": null,
+          "note": "How is this handled with the previous batch of claimable events? For example, I have 4 claimable events - am I visiting a separate follow up confirmation page for each event I claim?",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        },
+        {
+          "ask": "pass",
+          "choice": "cards",
+          "note": "One at a time gracefully forces the handling of each to continue, rather than allowing them to stack endlessly.",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        },
+        {
+          "ask": "confirm",
+          "choice": "dialog",
+          "note": "Popping up a modal is a very clear way to ensure confirmation. A second in-flow click more easily allows users to think the action was performed without confirmation.",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        },
+        {
+          "ask": "after",
+          "choice": "profile",
+          "note": "Nice way to provide confirmation while pointing into a potentially undiscovered feature.",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

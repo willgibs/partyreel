@@ -63,6 +63,43 @@
       ],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-27",
+      "answers": [
+        {
+          "ask": "close",
+          "choice": "starts",
+          "note": "However, when we replaced the QR in the home hero with the album + QR, I didn't realize we were replacing every instance of the photos stacked behind a QR that pop out on hover with the album + QR too. It looks really silly here beside the 'Try the live demo...' CTA link. Would like something totally new here (or nothing at all beside the link), as well as swap back in the old version for the footer instance. The home hero version also needs a ton of work to feel more polished. Effectively, we're taking the 3 instances of its usage (home hero, here, footer) and handling each separately.",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        },
+        {
+          "ask": "card",
+          "choice": "as-it-happens",
+          "note": "Could use a few better options though. The 'everyone's photos... live' and 'every new photo joins' from the other options also added value beyond this version's 'Your event', which is less clear.",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        },
+        {
+          "ask": "wall",
+          "choice": "pair",
+          "note": "The card side-by-side looks the cleanest, with each content being self-encapsulated. However, the motion in both cancels each other out, and I prefer the river. Maybe the reel card adds secondary info more statically (maybe a really cool bg image) rather than fighting the river demo card for attention.",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        },
+        {
+          "ask": "play",
+          "choice": "modal",
+          "note": "We don't need to lean super hard into making our demo cohesive across every marketing surface when referenced. The demo is meant to be an experience within itself, but I'm disliking how much we're leaning on it specifically for all of our content as opposed to using more customized content at each point to really nail our goal. For example, an exciting intro/feature/reel video made for its own purpose in a section will always beat using a generic reel from a fake demo that our site visitors aren't auditing. If we're putting feature demos in front of them to understand the product, they don't care all the demos don't track back to one universal dataset. The contained player here keeps them in the marketing lane, rather than just dropping them off in an app demo without realizing, so the video may be framed contextually as needed.",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

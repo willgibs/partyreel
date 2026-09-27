@@ -1,0 +1,47 @@
+{
+  "board": "identity-profile",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-27",
+      "answers": [
+        {
+          "ask": "setup",
+          "choice": "wizard",
+          "note": "Their first profile setup should be a guided wizard to provide all helpful context. Then, follow-up edits can feel more like account settings for quick direct edits.",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        },
+        {
+          "ask": "attended",
+          "choice": "picker",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        },
+        {
+          "ask": "default",
+          "choice": "off",
+          "note": "However, drawing ideas from option 2, maybe there's a clean way to allow users to make a one-time selection (maybe within the profile setup wizard) to select and show all/hide all initially, then direct handling of events under profile from there.",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        },
+        {
+          "ask": "prompt",
+          "choice": "claim",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        },
+        {
+          "ask": "page",
+          "choice": "count",
+          "note": "This design should be simplified into a more '2 private events' tone. Doesn't need to do a ton of explaining, similar to option 1. However, it helps differentiate an active private user from a no-events private user with no public events.",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

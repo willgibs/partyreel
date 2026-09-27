@@ -86,6 +86,21 @@
       ],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 3,
+      "opened": "2026-09-27",
+      "answers": [
+        {
+          "ask": "mine",
+          "choice": "none",
+          "by": "Will",
+          "at": "2026-09-27T04:25:31Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }
