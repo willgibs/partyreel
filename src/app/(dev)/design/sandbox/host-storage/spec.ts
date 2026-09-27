@@ -16,7 +16,7 @@ import { defineExploration } from "@/components/lab/exploration";
  *
  * ★ A CATALOG, NOTHING WIRING PRODUCTION. `storage-guard` is building the
  * server-side check and a plain refusal right now, in parallel; this board
- * draws where a host finds sizes, how they free space, and the plan sheet's
+ * draws how the size list reads, how a host frees space, and the plan sheet's
  * two new faces. No button here starts Checkout, opens the real billing
  * portal, or calls a Server Function — every act is local, resolved-promise
  * state (`storage-list.tsx`), the same convention `host-curation` set.
@@ -40,10 +40,15 @@ import { defineExploration } from "@/components/lab/exploration";
  * graph) is why no size is drawn in a lightbox here. `reel-host`'s own
  * question is whether the reel ever explains a waiting queue; storage is not
  * that queue and is not reasked here. The `app-pricing` row keeps every
- * pricing door on the ONE sheet (decisions 4 and 5 stay inside it, never a
- * second surface); the `app-vocabulary` row keeps every view option
- * inside the ONE View menu (the `album` option below adds a group to it,
- * never a second button).
+ * pricing door on the ONE sheet (`refusal` and `prices` stay inside it, never
+ * a second surface); the `app-vocabulary` row keeps every view option inside
+ * the ONE View menu.
+ *
+ * ★ WHERE SIZES LIVE MOVED TO THE `popups` BOARD (2026-09-27), every option
+ * kept: an account page, the album's own list and a sheet from the meter are
+ * three of its `lists` options (a page, in place, the Sheet), asked once for
+ * every list rather than for this one. The questions left here are drawn on
+ * the account-wide list, the one where the order truly chooses.
  *
  * ★ THE FIXTURES ARE THIS BOARD'S OWN (`fixtures.ts`), not
  * `sandbox/gallery-fixtures.ts`, which still mints a nameless anonymous
@@ -75,7 +80,7 @@ const DRAFT = defineExploration({
       "The boards refresh: order and goal, the two binaries here, each gain a genuine third (grouped-but-worst-first, a quiet toast at the goal); authority language reworded throughout.",
   },
   context:
-    "A host near a cap cannot find what is filling it: sizes are stored but no screen shows one. Five decisions, drawn over one wedding videographer's account at 110.8 GB across four events, on the shipped Plan card, storage meter, grace banner, View menu and pricing sheet.",
+    "A host near a cap cannot find what is filling it: sizes are stored but no screen shows one. Four decisions (where the list opens is popups.lists), drawn over one wedding videographer's account at 110.8 GB across four events, on the shipped Plan card, storage meter, grace banner, View menu and pricing sheet.",
   carried: [
     {
       id: "row-contents",
@@ -104,42 +109,11 @@ const DRAFT = defineExploration({
   ],
   asks: [
     {
-      id: "where",
-      label: "Where sizes live",
-      question: "Where should a host see each item's size?",
-      context:
-        "Sizes are stored but shown nowhere. A host near a cap needs to find the largest files fast, from wherever the cap already comes up: the Plan card, the meter's popover, a refusal, the grace banner.",
-      options: [
-        {
-          id: "account",
-          label: "An account-level Storage page",
-          means: "Every live event's items in one place, reached from the Plan card, the meter and any refusal.",
-        },
-        {
-          id: "album",
-          label: "A details list in the View menu",
-          means: "Per event, from the album's own View menu; the largest-first sort finally has somewhere to lead.",
-        },
-        {
-          id: "sheet",
-          label: "A Storage sheet from the meter",
-          means: "The meter's popover gains View details, opening the same list as a sheet instead of a page.",
-        },
-      ],
-      recommended: "account",
-      because:
-        "The cap is account-wide, so the one screen that explains it should be too; a per-event list sends a host hunting across events for the same total the meter already knows.",
-      overrule:
-        "If a host almost always has one event live, the album's own list is one tap closer and never leaves it.",
-      lands: "Whether Storage gets a page of its own, and what every surface that mentions the cap links to.",
-      configs: [SCREEN],
-    },
-    {
       id: "order",
       label: "The order",
       question: "Should the list read largest-first across every event, or grouped by event?",
       context:
-        "Freeing space for a plan switch favours one flat ranking; browsing what one event cost favours a total per event. The album option is one event already, so only the account-wide surfaces truly choose here.",
+        "Freeing space for a plan switch favours one flat ranking; browsing what one event cost favours a total per event. Drawn on the account-wide list: where it opens is popups.lists, and in place it is one event with nothing to order.",
       options: [
         {
           id: "flat",
@@ -163,7 +137,6 @@ const DRAFT = defineExploration({
       overrule:
         "If a host thinks in events first, the hybrid keeps that story and still opens on the event actually worth checking.",
       lands: "How the account-wide list reads, and whether an event's own total is ever the headline.",
-      after: { ask: "where" },
       configs: [SCREEN],
     },
     {
@@ -255,7 +228,7 @@ const DRAFT = defineExploration({
       ],
       recommended: "matrix",
       because:
-        "Six honest numbers fit in one glance with no toggle hiding four of them, and the size that does not fit wears whichever refusal decision 4 chose, right inside the grid a host is already scanning.",
+        "Six honest numbers fit in one glance with no toggle hiding four of them, and the size that does not fit wears whichever refusal the question before chose, right inside the grid a host is already scanning.",
       overrule:
         "If six numbers at once reads as a spreadsheet, the toggle keeps the sheet to three at a time, closer to how it reads today.",
       lands: "Whether Pro ever compares its own sizes inside the sheet, and how the size that does not fit sits among the rest.",
@@ -268,8 +241,8 @@ const DRAFT = defineExploration({
 /**
  * ★ ONE KNOB PER ID, NOT ONE PER DECISION THAT USES IT. `defineExploration`
  * flattens every decision's `configs` into the board's controls, so the
- * screen knob all five decisions share would arrive five times: the dock
- * would draw it five times and React would warn on the duplicate key.
+ * screen knob all four decisions share would arrive four times: the dock
+ * would draw it four times and React would warn on the duplicate key.
  */
 export const HOST_STORAGE: typeof DRAFT = {
   ...DRAFT,

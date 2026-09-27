@@ -125,24 +125,6 @@ export function measureHead(root: HTMLElement, win: Window): string {
   return `${tall}px of chrome above them, and the name starts ${top}px down a ${win.innerHeight}px screen`;
 }
 
-/** How tall the guest list really stands, which is the whole of `list`. */
-export function measureList(root: HTMLElement, win: Window): string {
-  const list = root.querySelector<HTMLElement>("[data-pp-list]");
-  if (!list) return "measuring";
-  const r = list.getBoundingClientRect();
-  const rows = [...list.querySelectorAll<HTMLElement>("li")].reduce(
-    (tops: number[], el) => {
-      const t = Math.round(el.getBoundingClientRect().top);
-      return tops.some((p) => Math.abs(p - t) < 6) ? tops : [...tops, t];
-    },
-    [],
-  );
-  const n = Math.max(1, rows.length);
-  return `the list stands ${Math.round(r.height)}px in ${n} row${
-    n === 1 ? "" : "s"
-  }, on a ${win.innerHeight}px screen`;
-}
-
 /** How much of the identity row the controls take, and how far down they sit:
  *  a claim about an affordance has to be a claim about the room it costs. */
 export function measureReach(root: HTMLElement, win: Window): string {
@@ -154,25 +136,6 @@ export function measureReach(root: HTMLElement, win: Window): string {
   return `the controls take ${Math.round(r.width)}px${
     share ? ` of a ${Math.round(row!.width)}px row (${share}%)` : ""
   }, ${Math.round(r.top)}px down`;
-}
-
-/** How big a quick-look surface stands against the screen it opened on, which
- *  is the whole of `quick-look`: a peek that costs half the screen is not a
- *  peek. Absent on purpose for the option that skips a surface entirely, and
- *  for a name with no page behind it there is then nothing at all to open. */
-export function measureCard(root: HTMLElement, win: Window): string {
-  const card = root.querySelector<HTMLElement>("[data-pp-card]");
-  if (!card && root.querySelector("[data-pp-inert]"))
-    return "no look and no page: a tap on this name opens nothing at all";
-  if (!card)
-    return "no quick-look card on this option: a tap opens the full page directly";
-  const r = card.getBoundingClientRect();
-  const pct = Math.round(
-    ((r.width * r.height) / (win.innerWidth * win.innerHeight)) * 100,
-  );
-  return `the card stands ${Math.round(r.width)}x${Math.round(
-    r.height,
-  )}px, ${pct}% of a ${win.innerWidth}x${win.innerHeight} screen`;
 }
 
 /** What `way-back` actually added, wherever it lives: a pill under the header

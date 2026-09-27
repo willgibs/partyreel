@@ -23,8 +23,8 @@ import type { ScreenId } from "./scene";
  * THE PLAN SHEET'S TWO NEW FACES, quoted from `pricing-sheet.tsx`'s own
  * private pieces (`PlanCard`, `holds()`) rather than imported: neither is
  * exported, both are re-typed here class for class, and the real `Sheet` is a
- * radix `Dialog` that would portal out of this frame (`surfaces.tsx`'s own
- * `.hs-sheet`/`.hs-scrim` are reused for the same reason).
+ * radix `Dialog` that would portal out of this frame (the board's own
+ * `.hs-sheet`/`.hs-scrim` are the quoted sheet for the same reason).
  *
  * ★ NOTHING HERE STARTS CHECKOUT OR OPENS THE REAL PORTAL. Every button is
  * drawn, never wired: `billing-caps.md`'s own rule that a Pro SWITCH finishes in
