@@ -413,7 +413,7 @@ describe("LikesProvider: redirect-queued replay", () => {
 });
 
 describe("LikesProvider: signed-out toggle", () => {
-  it("stashes the intent + opens the create-account dialog, no rpc", async () => {
+  it("stashes the intent + opens the create-account door, no rpc", async () => {
     const supa = makeMockSupabase({ session: null });
     mount(supa);
     await waitFor(() => expect(supa.getSession).toHaveBeenCalled());
@@ -421,8 +421,34 @@ describe("LikesProvider: signed-out toggle", () => {
     fireEvent.click(screen.getByText("toggle-m1"));
 
     expect(localStorage.getItem(PENDING_PREFIX + "m1")).toBe("1");
-    expect(await screen.findByText("Like this")).toBeDefined();
+    // Named by the like wear's own words (the door draws the same for the eye, hidden from the
+    // tree, so the dialog's name is the one a screen reader hears).
+    expect(
+      await screen.findByRole("dialog", { name: "Like this" }),
+    ).toBeDefined();
     expect(supa.rpc).not.toHaveBeenCalled();
+  });
+
+  /* ★ THE LIKE DOOR WEARS THE DOOR'S SHEET (ROADMAP's line, door-r3-wiring): it was the one account
+     door drawn as a centred dialog with its email field focused the moment it opened, which on a
+     phone raised the keyboard into a box still arriving. Pinned: it is the responsive Sheet in the
+     door's light, and nothing inside it takes focus when it opens. */
+  it("opens as the door's lit sheet, with no field focused", async () => {
+    const supa = makeMockSupabase({ session: null });
+    mount(supa);
+    await waitFor(() => expect(supa.getSession).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByText("toggle-m1"));
+
+    const door = await screen.findByRole("dialog", { name: "Like this" });
+    expect(door).toHaveAttribute("data-side", "responsive");
+    expect(door).toHaveAttribute("data-door-lit");
+    expect(door.querySelector("[data-door-lamp]")).not.toBeNull();
+    // Focus rests on the panel itself, never on a field inside it.
+    await waitFor(() =>
+      expect(door.contains(document.activeElement)).toBe(true),
+    );
+    expect(document.activeElement?.tagName).not.toBe("INPUT");
   });
 
   it("in-page verify completes the pending like inline", async () => {

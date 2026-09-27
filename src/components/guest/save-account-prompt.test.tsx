@@ -99,6 +99,25 @@ describe("KeepOffer", () => {
     fireEvent.click(screen.getByRole("button", { name: /maybe later/i }));
     expect(onLater).toHaveBeenCalledTimes(1);
   });
+
+  /* ★ HER FIRST PHOTO SENT IS A BEAT IN THE ALBUM'S LIGHT (`identity-door` r3, Will's `beat=lit`):
+     "Sent" beside the lit check, over where it went, and said to a screen reader as well (it is
+     what happened, which the sheet's own name, the offer, does not say). */
+  it("heads with the lit check beside Sent, read aloud", () => {
+    const { container } = render(
+      <KeepOffer
+        count={1}
+        held
+        hostName="Maya"
+        onConfirm={vi.fn()}
+        onLater={vi.fn()}
+      />,
+    );
+    const sent = container.querySelector("[data-keep-sent]");
+    expect(sent?.querySelector('[data-door-check="sent"]')).not.toBeNull();
+    expect(sent?.closest("[aria-hidden]")).toBeNull();
+    expect(sent).toHaveTextContent("SentYour photo is waiting for the host.");
+  });
 });
 
 describe("KeepConfirm", () => {

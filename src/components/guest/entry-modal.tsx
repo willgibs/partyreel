@@ -8,23 +8,30 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  type CSSProperties,
+  type ReactNode,
 } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Camera,
-  Check,
   ChevronLeft,
   ImageUp,
   Images,
   QrCode,
+  type LucideIcon,
 } from "lucide-react";
 
 import { updateDisplayNameAction } from "@/app/(app)/account/actions";
 import { initial } from "@/components/app/user-menu";
 import { DOOR_WEAR } from "@/components/auth/account-door";
 import { chooserCopy, DoorChooser } from "@/components/guest/door/chooser";
-import { LiveCount } from "@/components/guest/door/lit";
+import {
+  DoorCheck,
+  DoorPool,
+  LiveCount,
+  type LitHue,
+} from "@/components/guest/door/lit";
 import { SigninStep, signinCopy } from "@/components/guest/door/signin-step";
 import { EntryShell, type DismissMode } from "@/components/guest/entry-shell";
 import { EntryStepTransition } from "@/components/guest/entry-step-transition";
@@ -693,10 +700,16 @@ export const EntryModal = forwardRef<
       // The lamp blooms on "You're in" (the success beat, and the password's in-place morph), and
       // rests while a stalled beat offers its retry. ★ The keep rests too, though the board draws
       // its "Sent" blooming: its words stand at the sheet's top, where a bloom's wash reads 2:1 in
-      // dark (`lit.css`); "You're in" stands below it.
+      // dark (`lit.css`); "You're in" stands below it. The keep's own lit check is its beat.
       lamp={holding && !stalled ? "bloom" : "base"}
     >
-      <EntryStepTransition stepKey={displayKey} direction={direction}>
+      {/* ★ "YOU'RE IN" ARRIVES IN PLACE (`beat=lit`): its check blooms and its words reveal where
+          the step stood, and the step it replaces fades there, rather than one more slide from
+          the right (the text reveal and the side-by-side move never stack: door.css). */}
+      <EntryStepTransition
+        stepKey={displayKey}
+        direction={displayKey === "success" ? "place" : direction}
+      >
         <div className="relative pt-1">
           {displayKey === "success" && (
             <SuccessStep
@@ -963,12 +976,29 @@ export function entrySheetCopy(input: {
   return { title: copy.title, description: copy.reason };
 }
 
-// THE SUCCESS BEAT: the held "You're in" view that masks the
-// refresh roundtrip. A --success green check (the system's sanctioned feedback
-// color), "You're in", and "Opening the album" once it runs slow. If the
-// refresh hangs past the watchdog, a Retry (the unlock cookie is already set,
-// so it always recovers). On the full path this exits into the reveal; on a
-// password->account hop it hands forward to the account step.
+/**
+ * A line of a step that arrives in place, in the text reveal's stagger (`door.css`'s
+ * `[data-door-line]`): its place in the stagger, and a base delay for a group that waits on
+ * something (the beat's words wait for its check).
+ */
+function lineStyle(i: number, baseMs = 0): CSSProperties {
+  return {
+    "--door-line-i": i,
+    ...(baseMs ? { "--door-line-base": `${baseMs}ms` } : {}),
+  } as CSSProperties;
+}
+
+// THE SUCCESS BEAT: the held "You're in" view that masks the refresh roundtrip. The check in the
+// album's light (`identity-door` r3, Will's `beat=lit`, overruling `hers`: the success green
+// swapped for the lamp's hues), "You're in", and "Opening the album" once it runs slow. If the
+// refresh hangs past the watchdog, a Retry (the unlock cookie is already set, so it always
+// recovers). On the full path this exits into the reveal; on a password->account hop it hands
+// forward to the account step.
+//
+// ★ IT ARRIVES AS A DELIGHT (his note: transitions.dev's success-check plus texts-reveal). The check
+// blooms (a fade, a turn upright, a blur sharpening and a bob, its stroke drawing), and the words
+// reveal just behind it, the headline first. The view arrives IN PLACE (the step transition's
+// `place`), so no slide stacks on either. Reduced motion shows the end state.
 function SuccessStep({
   slow,
   stalled,
@@ -980,13 +1010,24 @@ function SuccessStep({
 }) {
   if (stalled) {
     return (
-      <div className="flex flex-col items-center gap-4 py-6 text-center">
+      <div
+        data-door-beat="stalled"
+        className="flex flex-col items-center gap-4 py-6 text-center"
+      >
         {/* The sheet's title slot keeps the event name's step on every screen
             of the flow (the welcome, the gate, this stall and the arrival). */}
-        <p className="font-heading text-page text-balance">
+        <p
+          data-door-line
+          style={lineStyle(0)}
+          className="font-heading text-page text-balance"
+        >
           That took longer than it should
         </p>
-        <p className="max-w-xs text-base leading-relaxed text-muted-foreground">
+        <p
+          data-door-line
+          style={lineStyle(1)}
+          className="max-w-xs text-base leading-relaxed text-muted-foreground"
+        >
           You&rsquo;re unlocked, the album just didn&rsquo;t open. Give it one
           more tap.
         </p>
@@ -997,13 +1038,27 @@ function SuccessStep({
     );
   }
   return (
-    <div className="flex flex-col items-center gap-4 py-8 text-center">
-      <div className="flex size-14 items-center justify-center rounded-full bg-success text-success-foreground">
-        <Check className="size-7" />
-      </div>
+    <div
+      data-door-beat="in"
+      className="flex flex-col items-center gap-4 py-8 text-center"
+    >
+      <DoorCheck size="mark" />
       <div>
-        <p className="font-heading text-page">You&rsquo;re in</p>
-        <p className="mt-1 text-base text-muted-foreground">
+        <p
+          data-door-line
+          style={lineStyle(0, 140)}
+          className="font-heading text-page"
+        >
+          You&rsquo;re in
+        </p>
+        {/* Keyed by what it says: a slow refresh's "Opening the album" arrives with the same
+            reveal, in place, rather than swapping under her eyes. */}
+        <p
+          key={slow ? "slow" : "welcome"}
+          data-door-line
+          style={slow ? lineStyle(0) : lineStyle(1, 140)}
+          className="mt-1 text-base text-muted-foreground"
+        >
           {slow ? "Opening the album" : "Welcome to the party"}
         </p>
       </div>
@@ -1011,9 +1066,42 @@ function SuccessStep({
   );
 }
 
+/**
+ * A promise of the welcome (and the demo's): its glyph on a pool of the album's light
+ * (`identity-door` r3, Will's `icons=lit`: "each row leads with a round of the lamp's own sampled
+ * hue"), then the line. The rows take the lamp's hues in turn, and reveal in the welcome's stagger.
+ */
+function PromiseRow({
+  icon: Icon,
+  hue,
+  line,
+  children,
+}: {
+  icon: LucideIcon;
+  hue: LitHue;
+  /** Its place in the welcome's reveal. */
+  line: number;
+  children: ReactNode;
+}) {
+  return (
+    <p
+      data-door-promise
+      data-door-line
+      style={lineStyle(line)}
+      className="flex items-center gap-3.5 text-base leading-relaxed"
+    >
+      <DoorPool hue={hue}>
+        <Icon strokeWidth={1.75} />
+      </DoorPool>
+      <span>{children}</span>
+    </p>
+  );
+}
+
 // THE INVITATION: the warm front door. An eyebrow over the event name as the
-// Instrument Serif hero, the host's byline, the count as social proof, then two
-// reading rows in the host's event voice (minimal Partyreel branding).
+// heading face's hero, the host's byline, the count as social proof, then two
+// reading rows in the host's event voice (minimal Partyreel branding), each on a
+// pool of the album's light.
 //
 // ★ ONE PRIMARY, AND IT IS ALWAYS "CONTINUE". No second exit ("View the album" when nothing
 // follows, or a ghost "Just browsing" that dismisses to the teaser): there is always something
@@ -1028,7 +1116,10 @@ function SuccessStep({
 // only ever moves forward again, so it only ever says so. There is no `continueLabel` prop: one
 // button, one word, whichever step is behind it.
 //
-// The whole block staggers in on mount.
+// ★ ITS WORDS SHARPEN AS THE SHEET LANDS (the text reveal): the first step of the door arrives
+// on the sheet's own edge entrance, so its lines rise into focus one after another, the event's
+// name first after its eyebrow. A revisit through the chevron slides in from the left instead, and
+// its words ride the slide (door.css).
 function WelcomeStep({
   eventName,
   hostName,
@@ -1049,6 +1140,7 @@ function WelcomeStep({
   const host = hostName?.trim();
   const hasByline = Boolean(host || eventDate);
   const count = mediaTotal ?? 0;
+  const byline = hasByline ? 1 : 0;
 
   return (
     // data-welcome-step: the "tall" presence (~55svh) applies ONLY
@@ -1061,17 +1153,27 @@ function WelcomeStep({
           hero step in a hand and the section step at a desk, where the sheet is a 448px panel
           rather than the window the ladder's clamp measures (the board drew exactly that pair). */}
       <div className="flex flex-col">
-        <p className="text-label font-medium text-muted-foreground uppercase">
+        <p
+          data-door-line
+          style={lineStyle(0)}
+          className="text-label font-medium text-muted-foreground uppercase"
+        >
           You&rsquo;re invited to
         </p>
         <p
           data-door-lit-name
+          data-door-line
+          style={lineStyle(1)}
           className="mt-1.5 font-heading text-hero text-balance sm:text-section"
         >
           {eventName}
         </p>
         {hasByline && (
-          <div className="mt-3 flex items-center gap-2.5">
+          <div
+            data-door-line
+            style={lineStyle(2)}
+            className="mt-3 flex items-center gap-2.5"
+          >
             {host && (
               // Every host wears their seeded colour here, photo or not: a raw <img> would skip
               // entirely without an avatar, and the fallback initial means the face is never bare.
@@ -1098,26 +1200,24 @@ function WelcomeStep({
         )}
       </div>
 
-      <div className="flex flex-col gap-3.5">
-        <p className="flex items-start gap-3 text-base leading-relaxed">
-          <Camera className="mt-0.5 size-4.5 shrink-0 text-muted-foreground" />
+      <div className="flex flex-col gap-4">
+        <PromiseRow icon={Camera} hue={1} line={2 + byline}>
           Add your photos and videos in seconds. No app required.
-        </p>
-        <p className="flex items-start gap-3 text-base leading-relaxed">
-          <Images className="mt-0.5 size-4.5 shrink-0 text-muted-foreground" />
+        </PromiseRow>
+        <PromiseRow icon={Images} hue={2} line={3 + byline}>
           {/* The count ticks as photos land behind the door (`LiveCount`, the page's live number).
               Its words are separate strings beside the number, never one template, so the tick
               has a node of its own to move. */}
           {count > 0 ? (
-            <span>
+            <>
               {"Everyone's shots land in one album. "}
               <LiveCount value={count} />
               {count === 1 ? " is already inside." : " are already inside."}
-            </span>
+            </>
           ) : (
             "Everyone's shots land in one album, yours included."
           )}
-        </p>
+        </PromiseRow>
       </div>
 
       <div className="mt-auto flex flex-col gap-1">
@@ -1136,7 +1236,9 @@ function WelcomeStep({
 // THE DEMO'S OWN ARRIVAL.
 // It is the SAME "welcome" step every guest gets (entry-steps.ts), wearing
 // different words, so its DESIGN stays exactly WelcomeStep's (a redesign
-// redraws both together). Three things a visitor here needs and the ordinary
+// redraws both together: `identity-door` r3 drew it in lit, the event's name at
+// the welcome's hero size inside its own sentence, its promises on the same
+// pools). Three things a visitor here needs and the ordinary
 // welcome's copy does not give them: what this is (a real album, standing in
 // for theirs), where they are standing (in a guest's shoes, at somebody's
 // party), and the one thing to try. The two reading rows deliberately MIRROR WelcomeStep's own two
@@ -1158,27 +1260,40 @@ function RoleStep({
   return (
     <div data-welcome-step className="flex flex-col gap-5">
       <div className="flex flex-col">
-        <p className="text-label font-medium text-muted-foreground uppercase">
+        <p
+          data-door-line
+          style={lineStyle(0)}
+          className="text-label font-medium text-muted-foreground uppercase"
+        >
           A live demo
         </p>
-        <p className="mt-1.5 font-heading text-page text-balance">
-          You&rsquo;re a guest at {eventName}
+        <p
+          data-door-line
+          style={lineStyle(1)}
+          className="mt-1.5 font-heading text-balance"
+        >
+          <span className="block text-page">You&rsquo;re a guest at</span>
+          <span data-door-lit-name className="block text-hero sm:text-section">
+            {eventName}
+          </span>
         </p>
-        <p className="mt-2 text-working text-muted-foreground">
+        <p
+          data-door-line
+          style={lineStyle(2)}
+          className="mt-2 text-working text-muted-foreground"
+        >
           This is a real album, exactly as {host ? `${host}’s` : "the host’s"}{" "}
           guests see it.
         </p>
       </div>
 
-      <div className="flex flex-col gap-3.5">
-        <p className="flex items-start gap-3 text-base leading-relaxed">
-          <ImageUp className="mt-0.5 size-4.5 shrink-0 text-muted-foreground" />
+      <div className="flex flex-col gap-4">
+        <PromiseRow icon={ImageUp} hue={1} line={3}>
           Add a photo the way a guest would. Nothing you add is saved.
-        </p>
-        <p className="flex items-start gap-3 text-base leading-relaxed">
-          <QrCode className="mt-0.5 size-4.5 shrink-0 text-muted-foreground" />
+        </PromiseRow>
+        <PromiseRow icon={QrCode} hue={2} line={4}>
           One code did all of this. Yours takes about a minute.
-        </p>
+        </PromiseRow>
       </div>
 
       {/* ★ NO "LOOK AROUND" HERE: it is the DEMO's own skip on the upload step, where looking

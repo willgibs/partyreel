@@ -5,11 +5,14 @@ import {
   useRef,
   useState,
   useTransition,
+  type CSSProperties,
   type FormEvent,
 } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Eye, EyeOff, Lock } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
+import { AlmostIn, DoorHeading } from "@/components/guest/door/heading";
+import { DoorCheckStroke, useDoorLitVars } from "@/components/guest/door/lit";
 import { Button } from "@/components/ui/button";
 import { floatingKeyboardFoot } from "@/components/ui/floating-layer";
 import { Input } from "@/components/ui/input";
@@ -19,8 +22,6 @@ type PasswordGateProps = {
   // The event's qr_token (the single link); the unlock cookie is event-scoped.
   token: string;
   eventName: string;
-  // Kept for the polished view-only redesign; /e/ uses the default light.
-  variant?: "light" | "dark";
   /** Fired the instant the unlock succeeds, so the entry surface can hold the
    *  "You're in" beat over the router.refresh() roundtrip. */
   onUnlocked?: () => void;
@@ -33,7 +34,6 @@ type PasswordGateProps = {
 export function PasswordGate({
   token,
   eventName,
-  variant = "light",
   onUnlocked,
   stalled = false,
   onRetry,
@@ -45,7 +45,9 @@ export function PasswordGate({
   const [done, setDone] = useState(false);
   const [pending, start] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
-  const dark = variant === "dark";
+  // The album's light for the unlock's fill (`beat=lit`): the house five here, since a locked
+  // album shows nothing to sample before it opens.
+  const litVars = useDoorLitVars();
 
   // Client-side first barrier (cost/DDoS): after a burst of wrong guesses, impose a short cooldown
   // BEFORE the next server hit, so honest hammering doesn't cost a Vercel invocation per try. The
@@ -95,33 +97,19 @@ export function PasswordGate({
     <div className="flex w-full flex-col gap-4">
       {/* Rendered as the entry modal's password STEP (the modal provides the
           surface + entrance + the back chevron); no full-screen wrapper. The
-          warm "almost in" framing: protection, not a wall. */}
-      <div className="flex flex-col">
-        <p
-          className={cn(
-            "flex items-center justify-center gap-1.5 text-label font-medium uppercase",
-            dark ? "text-white/60" : "text-muted-foreground",
-          )}
-        >
-          <Lock className="size-3" aria-hidden />
-          Almost in
-        </p>
-        {/* The guest title step (`page`), the same one the entry sheet's
-            event name and the album's own h1 wear. */}
-        <h1 className="mt-1.5 text-center font-heading text-page text-balance">
-          {eventName} is private
-        </h1>
-        <p
-          className={cn(
-            "mt-2 text-center text-base leading-relaxed",
-            dark ? "text-white/60" : "text-muted-foreground",
-          )}
-        >
-          {/* album, not gallery: the site, the app and the reel all say album. */}
-          The host keeps this album private for guests. Enter the password from
-          your invite to come in.
-        </p>
-      </div>
+          warm "almost in" framing: protection, not a wall.
+          ★ FROM THE LEFT (the carried call `password-left`, identity-door r3):
+          it reads the way every other step of the door reads, lit like them
+          (the Lock in the lamp's light), its words untouched (voice-guest's
+          `ask` asks them). The title keeps its h1, the guest title step the
+          album's own h1 wears. */}
+      <DoorHeading
+        eyebrow={<AlmostIn>Almost in</AlmostIn>}
+        titleAs="h1"
+        title={`${eventName} is private`}
+        // album, not gallery: the site, the app and the reel all say album.
+        reason="The host keeps this album private for guests. Enter the password from your invite to come in."
+      />
       <form onSubmit={onSubmit} className="w-full space-y-3">
         <div className="relative">
           <Input
@@ -150,24 +138,15 @@ export function PasswordGate({
                 ? "password-gate-error"
                 : undefined
             }
-            className={cn(
-              // h-11 + 16px text: the gate input size (16px also
-              // stops the iOS focus auto-zoom).
-              "h-11 pr-10 text-base",
-              dark &&
-                "border-white/20 bg-white/5 text-white placeholder:text-white/40",
-            )}
+            // h-11 + 16px text: the gate input size (16px also stops the iOS
+            // focus auto-zoom).
+            className="h-11 pr-10 text-base"
           />
           <button
             type="button"
             onClick={() => setShow((s) => !s)}
             aria-label={show ? "Hide password" : "Show password"}
-            className={cn(
-              "absolute inset-y-0 right-0 flex items-center px-3 transition active:scale-90",
-              dark
-                ? "text-white/50 hover:text-white"
-                : "text-muted-foreground hover:text-foreground",
-            )}
+            className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground transition hover:text-foreground active:scale-90"
           >
             {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
           </button>
@@ -178,22 +157,23 @@ export function PasswordGate({
             // role="alert" so a wrong password is ANNOUNCED the moment it
             // renders. Without it the only failure signal would be colour.
             role="alert"
-            className={cn(
-              "text-sm",
-              dark ? "text-red-300" : "text-destructive",
-            )}
+            className="text-sm text-destructive"
           >
             {cooldownLeft > 0
               ? `Too many tries. You can go again in ${cooldownLeft}s.`
               : error}
           </p>
         )}
-        {/* THE SUCCESS MORPH: the gate stays PLANTED and the Unlock button
-            itself morphs to --success green with a re-keyed check + "You're in"
-            for the whole held beat; the subtext says what's happening. If the
-            refresh hangs past the watchdog, the button becomes the Retry (the
-            cookie is set, so it always recovers; the form never re-enables). */}
-        <div data-sheet-primary className={cn("relative", floatingKeyboardFoot)}>
+        {/* THE SUCCESS MORPH, IN THE ALBUM'S LIGHT (`identity-door` r3, Will's `beat=lit`): the
+            gate stays PLANTED and the Unlock button itself fills with the lamp's hues (the house
+            five: a locked album shows nothing to sample), its check drawing in and "You're in"
+            revealed, for the whole held beat; the subtext says what's happening. If the refresh
+            hangs past the watchdog, the button becomes the Retry (the cookie is set, so it always
+            recovers; the form never re-enables). */}
+        <div
+          data-sheet-primary
+          className={cn("relative", floatingKeyboardFoot)}
+        >
           {done && stalled ? (
             <Button
               type="button"
@@ -207,14 +187,13 @@ export function PasswordGate({
             <Button
               type="submit"
               size="cta"
+              data-unlock-lit={done ? "" : undefined}
               className={cn(
-                "w-full transition-colors duration-200",
-                done &&
-                  "bg-success text-success-foreground hover:bg-success disabled:opacity-100",
+                "relative w-full",
+                done && "door-bloom-button disabled:opacity-100",
               )}
-              disabled={
-                pending || done || !password.trim() || cooldownLeft > 0
-              }
+              style={done ? litVars : undefined}
+              disabled={pending || done || !password.trim() || cooldownLeft > 0}
             >
               {done ? (
                 <span
@@ -222,8 +201,18 @@ export function PasswordGate({
                   data-unlock-success
                   className="flex items-center gap-2"
                 >
-                  <Check className="size-4.5" />
-                  You&rsquo;re in
+                  <DoorCheckStroke className="size-4.5" />
+                  <span
+                    data-door-line
+                    style={
+                      {
+                        "--door-line-rise": "6px",
+                        "--door-line-base": "60ms",
+                      } as CSSProperties
+                    }
+                  >
+                    You&rsquo;re in
+                  </span>
                 </span>
               ) : pending ? (
                 "Unlocking…"
@@ -236,11 +225,16 @@ export function PasswordGate({
           )}
         </div>
         {done && (
+          // Keyed by what it says, so a stall's sentence arrives with the same reveal.
           <p
-            className={cn(
-              "text-center text-sm",
-              dark ? "text-white/60" : "text-muted-foreground",
-            )}
+            key={stalled ? "stalled" : "opening"}
+            data-door-line
+            style={
+              {
+                "--door-line-base": stalled ? "0ms" : "140ms",
+              } as CSSProperties
+            }
+            className="text-center text-sm text-muted-foreground"
           >
             {stalled
               ? "You're unlocked, the album just didn't open. Give it one more tap."

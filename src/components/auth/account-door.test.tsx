@@ -50,15 +50,37 @@ vi.mock("@/lib/supabase/client", () => ({
   }),
 }));
 
-vi.mock("@/components/auth/email-sign-in", () => ({
+vi.mock("@/components/auth/email-sign-in", async (orig) => ({
+  // The code screen's words are the real ones (their one home); the machinery is the stub.
+  CODE_SCREEN_TITLE: (
+    await orig<typeof import("@/components/auth/email-sign-in")>()
+  ).CODE_SCREEN_TITLE,
+  codeSentLine: (await orig<typeof import("@/components/auth/email-sign-in")>())
+    .codeSentLine,
   EmailSignIn: ({
     onVerified,
     hintEmail,
+    sentAt,
   }: {
     onVerified: (r: { existing: boolean; email: string }) => void;
     hintEmail?: string;
+    sentAt?: (email: string | null) => void;
   }) => (
     <div data-testid="email-sign-in" data-hint={hintEmail ?? ""}>
+      <button
+        type="button"
+        data-testid="stub-send"
+        onClick={() => sentAt?.("nadia@example.com")}
+      >
+        send
+      </button>
+      <button
+        type="button"
+        data-testid="stub-back"
+        onClick={() => sentAt?.(null)}
+      >
+        different email
+      </button>
       <button
         type="button"
         data-testid="stub-verify-existing"
@@ -71,7 +93,9 @@ vi.mock("@/components/auth/email-sign-in", () => ({
       <button
         type="button"
         data-testid="stub-verify-new"
-        onClick={() => onVerified({ existing: false, email: "new@example.com" })}
+        onClick={() =>
+          onVerified({ existing: false, email: "new@example.com" })
+        }
       >
         verify new
       </button>
@@ -193,6 +217,66 @@ describe("the wears", () => {
       />,
     );
     expect(screen.getByText(/Have a password/i)).toBeTruthy();
+  });
+});
+
+/* ★ "CHECK YOUR EMAIL" HEADS EVERY CODE SCREEN (`identity-door` r3, Will's `code=mail`), the
+   host's `/login` included: while a code is out the door's heading is the code's, the surface's
+   eyebrow kept, and the surface's own comes back when the code screen closes. */
+describe("the code screen's heading", () => {
+  it("/login's centred heading becomes 'Check your email' over the address", () => {
+    render(
+      <AccountDoor
+        wear="login"
+        methods={{ code: true, google: true, password: true }}
+        emailRedirectTo="/auth/callback"
+        onVerified={vi.fn()}
+      />,
+    );
+    act(() => screen.getByTestId("stub-send").click());
+    expect(screen.getByText("Check your email")).toBeTruthy();
+    expect(screen.queryByText(DOOR_WEAR.login.heading)).toBeNull();
+    expect(
+      screen.getByText(
+        (_, el) =>
+          el?.tagName === "P" &&
+          el.textContent === "We sent a 6-digit code to nadia@example.com.",
+      ),
+    ).toBeTruthy();
+    act(() => screen.getByTestId("stub-back").click());
+    expect(screen.getByText(DOOR_WEAR.login.heading)).toBeTruthy();
+  });
+
+  it("a guest door's heading gives way to it, keeping its eyebrow", () => {
+    render(
+      <AccountDoor
+        wear="gate"
+        methods={{ code: true }}
+        emailRedirectTo="/auth/callback"
+        chrome="none"
+        head={{ eyebrow: "Almost in", title: "4 photos are waiting" }}
+        onVerified={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("4 photos are waiting")).toBeTruthy();
+    act(() => screen.getByTestId("stub-send").click());
+    expect(screen.getByText("Check your email")).toBeTruthy();
+    expect(screen.getByText("Almost in")).toBeTruthy();
+    expect(screen.queryByText("4 photos are waiting")).toBeNull();
+  });
+
+  it("heads a code screen even where the surface handed it no heading", () => {
+    render(
+      <AccountDoor
+        wear="keep"
+        methods={{ code: true }}
+        emailRedirectTo="/auth/callback"
+        chrome="none"
+        onVerified={vi.fn()}
+      />,
+    );
+    act(() => screen.getByTestId("stub-send").click());
+    expect(screen.getByText("Check your email")).toBeTruthy();
   });
 });
 

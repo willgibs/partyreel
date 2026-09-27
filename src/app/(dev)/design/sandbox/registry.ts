@@ -1,7 +1,6 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 
-import { IDENTITY_DOOR } from "./identity-door/spec";
 import { IDENTITY_CLAIMS } from "./identity-claims/spec";
 import { HERO_CARD } from "./hero-card/spec";
 import { VOICE_GUEST } from "./voice-guest/spec";
@@ -49,7 +48,6 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
  * missing from `DESK_ORDER` sorts to the foot until the Orchestrator places it.
  */
 const REGISTERED: readonly BoardSpec[] = [
-  IDENTITY_DOOR,
   IDENTITY_CLAIMS,
   HERO_CARD,
 

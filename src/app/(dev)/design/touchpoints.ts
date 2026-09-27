@@ -25,7 +25,6 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 
 /** The boards standing in sandbox/, one row each below. */
 export type SandboxId =
-  | "identity-door"
   | "identity-claims"
   | "hero-card"
   | "voice-guest"
@@ -60,39 +59,6 @@ export type Ruling = {
 };
 
 export const RULINGS: Ruling[] = [
-  {
-    id: "identity-door",
-    title: "Asking for an email at the door",
-    surface: "guest",
-    asks: "inside lit, his pick: the door's icons and its beats across every screen a guest meets, and the words of his chooser, the line under her name and the code screen",
-    why: "He picked lit and wrote that the remaining icons and copy could be redesigned within it; round three draws them over every screen, five for the first time.",
-    lives: [
-      "docs/systems/guest-flow.md",
-      "src/components/guest/entry-modal.tsx",
-      "src/components/guest/entry-shell.tsx",
-      "src/components/guest/door/chooser.tsx",
-      "src/components/guest/door/signin-step.tsx",
-      "src/components/guest/guest-name-step.tsx",
-      "src/components/guest/identify-step.tsx",
-      "src/components/guest/password-gate.tsx",
-      "src/components/guest/upload-step.tsx",
-      "src/components/guest/guest-name-menu.tsx",
-      "src/components/guest/add-email-dialog.tsx",
-      "src/components/auth/account-door.tsx",
-      "src/components/auth/email-sign-in.tsx",
-    ],
-    board: {
-      note: "Five asks inside lit, his round-two pick, drawn from production over every screen a guest meets (the password step, the upload step, the demo's welcome, a stall and the keep screen for the first time): the icons' language and the beats across the door, and the words of his chooser, the line under her name and the code screen",
-      variants: [
-        "The door's icons",
-        "The chooser",
-        "Under her name",
-        "The code screen",
-        "The beats",
-      ],
-      tracks: ["door-r3"],
-    },
-  },
   {
     id: "identity-claims",
     title: "Photos waiting for you",
@@ -512,7 +478,6 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
-  "identity-door",
   "identity-claims",
   "hero-card",
   "voice-guest",

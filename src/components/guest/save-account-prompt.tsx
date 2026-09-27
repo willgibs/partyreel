@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Check, MailCheck } from "lucide-react";
+import { MailCheck } from "lucide-react";
 
 import { AccountDoor, DOOR_WEAR } from "@/components/auth/account-door";
+import { DoorHeading } from "@/components/guest/door/heading";
+import { DoorCheck } from "@/components/guest/door/lit";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -72,7 +74,16 @@ export function keepSentLine(input: {
   return `${subject} joined ${host ? `${host}’s album` : "the album"}.`;
 }
 
-/** The ask itself: what went, the offer, and the two ways on. */
+/**
+ * The ask itself: what went, the offer, and the two ways on.
+ *
+ * ★ THE KEEP AS DRAWN (`identity-door` r3's carried call: the keep screen as guest-capture's offer
+ * sheet), with its head a beat in the album's light (Will's `beat=lit`): "Sent" beside a check that
+ * blooms in the lamp's hues, over where it went, then the ask. The ask heads with the door's one
+ * heading scale, from the left like every step (the drawing centred it a step smaller; one heading
+ * scale for every guest sheet is the door's rule, a call for Will to overrule). Its words are
+ * `voice-guest`'s (`keep`, held as today).
+ */
 export function KeepOffer({
   count,
   held,
@@ -91,20 +102,23 @@ export function KeepOffer({
   const copy = keepCopy(count);
   return (
     <div data-keep-step="offer" className="flex flex-col gap-5">
-      {/* For the eye; the shell announces the offer's two sentences as the sheet's name. */}
-      <div aria-hidden>
-        <p className="flex items-center gap-1.5 text-label font-medium text-muted-foreground uppercase">
-          <Check className="size-3.5 text-success" strokeWidth={3} />
-          Sent
-        </p>
-        <p className="mt-1.5 text-working text-muted-foreground">
-          {keepSentLine({ count, held, hostName })}
-        </p>
-        <p className="mt-5 font-heading text-page text-balance">{copy.title}</p>
-        <p className="mt-2 text-base leading-relaxed text-muted-foreground">
-          {copy.reason}
-        </p>
+      {/* WHAT WENT: the beat of her first photo sent. A check in the album's light blooms beside
+          "Sent" (its own success-check motion, wherever the keep arrives from), then where it
+          went. Said to the eye and to a screen reader alike: the shell names the sheet with the
+          offer, and this is what happened just before it. */}
+      <div data-keep-sent className="flex items-center gap-3">
+        <DoorCheck size="sent" />
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <p className="font-heading text-card-title font-medium text-foreground">
+            Sent
+          </p>
+          <p className="text-working text-muted-foreground">
+            {keepSentLine({ count, held, hostName })}
+          </p>
+        </div>
       </div>
+      {/* For the eye; the shell announces the offer's two sentences as the sheet's name. */}
+      <DoorHeading title={copy.title} reason={copy.reason} hidden />
       <div className="flex flex-col gap-2">
         <Button type="button" size="cta" className="w-full" onClick={onConfirm}>
           <MailCheck /> Confirm your email
@@ -146,16 +160,14 @@ export function KeepConfirm({
       ? `${window.location.origin}/auth/callback?next=${window.location.pathname}`
       : `/auth/callback?next=/e/${qrToken}`;
   return (
-    <div data-keep-step="confirm" className="flex flex-col gap-4">
-      <div aria-hidden>
-        <p className="font-heading text-page text-balance">
-          {DOOR_WEAR.keep.heading}
-        </p>
-        <p className="mt-2 text-base leading-relaxed text-muted-foreground">
-          {DOOR_WEAR.keep.reason}
-        </p>
-      </div>
+    <div data-keep-step="confirm">
       <AccountDoor
+        // The door draws the heading, so the code screen can head itself "Check your email" in its
+        // place (`code=mail`); the shell announces the same two sentences as the sheet's name.
+        head={{
+          title: DOOR_WEAR.keep.heading,
+          reason: DOOR_WEAR.keep.reason,
+        }}
         wear="keep"
         methods={{ code: true, google: true }}
         emailRedirectTo={emailRedirectTo}
