@@ -41,11 +41,10 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `claims-wiring` | `identity-claims` r1 and r2's answers: the banner, the review in the lists panel, one event at a time with its photos, saved as decided, the dialog at the card, Open album and a quieter Follow (the moment card too), the double-tap guard; maybe a migration | building (agent a50fd7c2bc01e0754) | Opus, 3131 | |
-| `desk-trim` | board `export-flow`: its `object` ask retires (popups' `choices=menu` answered it) | drawing (agent a8c60c10c4d0bc91e) | Sonnet, 3133 | |
 
 Batch 3 closed at milestone 29 (`ab30a7f8`, 2026-09-26); batch 4 (nine lanes with `crumbs-3`) is on build 11.
 
-Merged in batch 5 (their records carry the rest): hero-card, claims-r3, demo-doors, popups-wiring, door-r3-wiring.
+Merged in batch 5 (their records carry the rest): hero-card, claims-r3, demo-doors, popups-wiring, door-r3-wiring, desk-trim.
 
 ## Next, in order
 
