@@ -41,7 +41,8 @@ Build 10's desk (21 boards) is answered through `guest-capture`; the next desk, 
   `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel`
   (`=app`).
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 11 (`eff5b3f0`): batch 4
-  whole, the desk popups-first (its boards load clean); its red-team is walking. No push
+  whole, the desk popups-first; its red-team passed seven journeys of eight (the eighth's lab 404s older than the
+  build), no blocker or major, the 100-minute soak clean. No push
   deploys; each `[preview]` record gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in

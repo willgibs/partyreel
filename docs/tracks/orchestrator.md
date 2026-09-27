@@ -40,6 +40,7 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `crumbs-3` | build 11's two red-team minors (the lab dock's prefetch 404s, the lamp past colourless previews) and batch 4's small leftovers (the teaser paused under the player, two copy nits, two help pages, two lab traps) | building (agent a5779bdab205b968f) | Sonnet, 3131 | |
 
 Batch 3 closed at milestone 29 (`ab30a7f8`, 2026-09-26): 49 lanes since milestone 28, their merge commits carrying
 the rest.
@@ -49,8 +50,12 @@ Merged in batch 4 (their records carry the rest): mine-none, claims-r2, profile-
 ## Next, in order
 
 1. **Build 11 is live** (`eff5b3f0`, both aliases; the desk's boards load clean) and Will's sitting is on it,
-   `popups` first. Its red-team (brief `../partyreel-wt/_scratch/redteam-11/brief.md`) walks the scope of a full
-   red-team, as build 10's walked it:
+   `popups` first. Its red-team reported: seven journeys of eight pass, the eighth's console 404s older than the build
+   (the lab dock's prefetch, in `crumbs-3`), no blocker or major, the 100-minute soak clean; its other minors: the
+   lamp's fallback on colourless previews (`crumbs-3`) and the setup's "Showing on your page" over an event whose host
+   keeps the list off (Will's copy call; ROADMAP's picker line). Not driven, Will's: a real first upload (the keep, the
+   badge, the one beat, the told name's Change). `crumbs-3` lands on `launch-prep` and waits for build 12. The scope of
+   a full red-team, as builds 10 and 11 walked it (brief `../partyreel-wt/_scratch/redteam-11/brief.md`):
    - the reel on the album's data path: the tile, the view, clips, access, the password event, the demo;
    - `?reel=screen` soaked headless at 1920x1080 for 100 minutes (a hidden pane throttles the page);
    - the door at 375 on the Sheet, now lit, with the keep after a real first upload at a held-uploads event, the
