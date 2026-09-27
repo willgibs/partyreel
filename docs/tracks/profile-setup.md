@@ -61,7 +61,32 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and is Will's to overrule.
+
+- **The wizard's route is `/account/profile`** (named at boot, for `guest-door`'s "Claim a handle" row). Once a page
+  exists it redirects to `/account#public-profile`: the wizard is the first time, Account holds the later edits.
+- **"Set up" means a claimed handle.** Finish writes her event choices first and claims the handle last, so an
+  abandoned or failed setup never leaves a public page half-chosen; the name and photo on screen two save as her
+  account's own (they credit her wherever she uploads, not only on the page).
+- **Account's Public profile card, before a handle exists, is the wizard's door** (one line and Set up your page); the
+  handle, bio and picker appear once the page does. Every door already aimed at `#public-profile` (the user menu, event
+  settings, the guest prompts) reaches the wizard through it, with none of their files touched.
+- **The invitation reaches every confirmed guest with an event her page could show and no handle, once no claim is
+  waiting**: it appears the moment a claim's Finish settles, and also for a guest who never had anything to claim (a
+  Require verified emails party, the default, makes no claim). Claimers only would need a stamp at Finish inside the
+  claims flow `identity-claims` r2 is redrawing.
+- **Not now dismisses the invitation on this device** (an httpOnly cookie, the events view's precedent): no schema.
+  Every device at once would be a `profiles` column.
+- **The empty page reads "2 private events"**, one quiet line with no icon and no explanation; a page with none reads
+  "No events here yet", now also one quiet line. The count is the guest arm's (a hosted event its host kept off the
+  page is nothing a visitor could confirm from here), and the RPC returns it only while the page shows nothing, so the
+  anonymous read discloses no more than the page it backs.
+- **A picker tile follows its album's masking, as the dashboard's Guest cards do**: an open album shows its cover, a
+  password album its name with no cover, a private album neither ("Private event").
+- **The claims toast's pointer rides a Finish that added photos**; "Done. Nothing was added to your account." gets none.
+- **Finish lands on her page** (`/u/<handle>`), so the flow returns somewhere useful.
+- **The wizard's events step is the guest arm**: events she hosts keep their per-event switch in the event's settings.
+- **The bio stays out of the wizard** (screen two is name and photo, as drawn); Account shows it once the page exists.
 
 ## System-doc edits (in place, owned facts only)
 
