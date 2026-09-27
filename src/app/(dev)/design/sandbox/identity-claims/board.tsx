@@ -1,365 +1,231 @@
 "use client";
 
+import "./identity-claims.css";
+
 import { ExplorationBoard } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
-import { CLAIMABLE_ROWS, HERS, IMPOSTOR } from "./fixtures";
-import {
-  AfterToastLines,
-  BellButton,
-  ChecklistTicket,
-  ClaimedEventCard,
-  ClaimedStrip,
-  ConfirmDialog,
-  ConfirmInlineTicket,
-  ConfirmSecondScreen,
-  DashboardScene,
-  DoorBeat,
-  MomentCard,
-  OneAtATimeCard,
-  PhotoGridTicket,
-  PointerLine,
-  ShippedTicket,
-  TicketBanner,
-  TicketBellDrawer,
-  TicketSheetPanel,
-} from "./parts";
-import {
-  AlbumGround,
-  Scene,
-  type ScreenId,
-  screenOf,
-  Scrim,
-  ToastVisual,
-} from "./scene";
+import type { Confirm, Mode, Next, Save, Step } from "./batch";
+import { measureOf, Pair, Scene } from "./scene";
+import { screenOf } from "./screens";
 import { IDENTITY_CLAIMS } from "./spec";
+import { ClaimsWorld } from "./world";
 
 /**
- * THE PREVIEWS, AND NOTHING ELSE (`guest-capture/board.tsx`'s own discipline).
- * Every option holds Priya's own screen at today's shape everywhere but the
- * one thing its decision asks: `ticket` varies only where the ticket sits;
- * `pointer` varies only what the moment card gains; `pass` varies only how
- * she works through what is waiting (its fourth option, `photos`, is the one
- * place on this board that also changes the RPCs' own grain, event to
- * photograph); `confirm` varies only the warning before a deletion; `after`
- * varies only what stands on the page once Finish lands.
+ * THE PREVIEWS, AND NOTHING ELSE: each option is the one review played in its
+ * mode, two frames stacked so the option stays one phone wide on the step.
  *
- * ★ THE BASELINE FOR `confirm` AND `after` IS THE SAME STORY: Tom's Leaving
- * Do already marked Claim, Beach Bonfire left over. `confirm`'s three options
- * are three shapes of the warning that leftover state would trigger on
- * Finish; `after`'s three are three shapes of what Finish leaves behind once
- * it is confirmed. Every caption states a fact the fixtures and the markup
- * both already carry, never an assertion loosely made.
+ * ★ EVERY FRAME IS A SCRIPT, NOT A PICTURE (`batch.ts`). Midway is "claim Tom's
+ * Leaving Do, say Not mine to the bonfire"; the end is "decide the rest as her
+ * memory would, then Finish". The frame opens where the machine lands and is
+ * live from there, so what a caption reads is what the mode really does.
+ *
+ * ★ WHAT EACH ASK HOLDS STEADY. `save` draws each option with its dialog where
+ * it naturally sits (Finish's at the end, as-you-go's at the card), the one
+ * place a preview reads a knob of its own rather than the board's; `confirm`
+ * and `next` are drawn in the world of the `save` answer the step wears (both
+ * are staged behind it); `pointer` draws the album and where each option lands.
  */
 
-const TOTAL_WAITING = HERS.uploadCount + IMPOSTOR.uploadCount;
+const saveOf = (s: BoardState): Save => (s.save === "once" ? "once" : "finish");
+const confirmOf = (s: BoardState): Confirm =>
+  s.confirm === "card" ? "card" : "end";
+const nextOf = (s: BoardState): Next =>
+  s.next === "album" || s.next === "host" ? s.next : "both";
 
-function ticketScreen(id: "card" | "banner" | "bell", s: BoardState) {
-  const sc = screenOf(s.screen as string);
-  if (id === "banner") {
-    return (
-      <Scene
-        id="ticket-banner"
-        screen={sc}
-        title="The ticket's home"
-        caption="One banner line above the feed; the sheet holds both rows on its own panel."
-      >
-        <DashboardScene
-          ticket={<TicketBanner />}
-          overlay={
-            <>
-              <Scrim />
-              <TicketSheetPanel />
-            </>
-          }
-        />
-      </Scene>
-    );
-  }
-  if (id === "bell") {
-    return (
-      <Scene
-        id="ticket-bell"
-        screen={sc}
-        title="The ticket's home"
-        caption="The bell reads 2; Your events keeps its one card, unchanged."
-      >
-        <DashboardScene
-          headerExtra={<BellButton badge={CLAIMABLE_ROWS.length} />}
-          overlay={
-            <>
-              <Scrim />
-              <TicketBellDrawer />
-            </>
-          }
-        />
-      </Scene>
-    );
-  }
+/** A world keyed by everything that shapes it, so a new option starts fresh. */
+const keyOf = (mode: Mode, tag: string) =>
+  `${mode.save}-${mode.confirm}-${mode.next}-${tag}`;
+
+/** Tom's Leaving Do claimed, the bonfire said to be not hers. */
+const MIDWAY = (mode: Mode): Step[] =>
+  mode.confirm === "card"
+    ? ["claim", "not-mine", "delete"]
+    : ["claim", "not-mine"];
+
+/**
+ * What closing the review after two leaves on her dashboard first, because
+ * that is where the two answers part at a glance (a toast, a shorter banner
+ * and a new Guest card, or a banner still counting all four); the review
+ * midway second, where the same difference sits in the list under the card.
+ */
+function saveScreen(id: Save, s: BoardState) {
+  const sc = screenOf(s.screen);
+  const mode: Mode = {
+    save: id,
+    confirm: id === "once" ? "card" : "end",
+    next: nextOf(s),
+  };
   return (
-    <Scene
-      id="ticket-card"
-      screen={sc}
-      title="The ticket's home"
-      caption="One card, two rows, both decisions and Claim all sit at the head of Your events."
-    >
-      <DashboardScene ticket={<ShippedTicket />} />
-    </Scene>
+    <Pair>
+      <Scene
+        id={`save-${id}-closed`}
+        screen={sc}
+        title="She closes the review after two"
+        measure={measureOf("banner", "toast", "events")}
+      >
+        <ClaimsWorld
+          key={keyOf(mode, "closed")}
+          mode={mode}
+          script={[...MIDWAY(mode), "close"]}
+        />
+      </Scene>
+      <Scene
+        id={`save-${id}-midway`}
+        screen={sc}
+        title="The review midway, two decided"
+        measure={measureOf("top", "rows", "events")}
+      >
+        <ClaimsWorld
+          key={keyOf(mode, "midway")}
+          mode={mode}
+          script={MIDWAY(mode)}
+        />
+      </Scene>
+    </Pair>
+  );
+}
+
+function confirmScreen(id: Confirm, s: BoardState) {
+  const sc = screenOf(s.screen);
+  const mode: Mode = { save: saveOf(s), confirm: id, next: nextOf(s) };
+  return (
+    <Pair>
+      <Scene
+        id={`confirm-${id}-tap`}
+        screen={sc}
+        title="Not mine, on Beach Bonfire"
+        measure={measureOf("dialog", "top", "rows")}
+      >
+        <ClaimsWorld
+          key={keyOf(mode, "tap")}
+          mode={mode}
+          script={["claim", "not-mine"]}
+        />
+      </Scene>
+      <Scene
+        id={`confirm-${id}-end`}
+        screen={sc}
+        title="After the last card"
+        measure={measureOf("dialog", "end")}
+      >
+        <ClaimsWorld
+          key={keyOf(mode, "end")}
+          mode={mode}
+          // At the card the dialogs are behind her, so the end is Finish and
+          // done; at the end, Finish is what raises the one dialog.
+          script={id === "card" ? ["done"] : ["rest", "finish"]}
+        />
+      </Scene>
+    </Pair>
   );
 }
 
 /**
- * ★ `pointer` IS DRAWN IN BOTH PLACES SHE CAN CONFIRM (the door's round two):
- * the album's moment card, as before, and now the door's own "You're in", since
- * the verification door, Create account and Log in all confirm her before any
- * upload. Stacked, so the option stays one phone wide on the step.
+ * The finished review first: every claimed row and what it offers, in either
+ * world. Kept until Finish, nothing is offered as she goes (a held claim has no
+ * album of hers yet), so the frame of the first claim reads the same for all
+ * three and comes second.
  */
-function pointerScreen(id: "quiet" | "line" | "toast", s: BoardState) {
-  const sc = screenOf(s.screen as string);
-  const door = (
-    <Scene
-      id={`pointer-${id}-door`}
-      screen={sc}
-      title="The pointer at the door"
-      caption={
-        id === "line"
-          ? `At the door: You're in gains the same line, ${TOTAL_WAITING} photos from ${CLAIMABLE_ROWS.length} other events are waiting for you.`
-          : id === "toast"
-            ? "At the door: the same toast appears once, over the beat."
-            : "At the door: You're in names only this event; nothing points elsewhere."
-      }
-    >
-      <DoorBeat line={id === "line"} desk={sc === "1440"} />
-      {id === "toast" && (
-        <ToastVisual
-          lines={[
-            `${TOTAL_WAITING} photos from ${CLAIMABLE_ROWS.length} other events are waiting for you.`,
-          ]}
-        />
-      )}
-    </Scene>
-  );
+function nextScreen(id: Next, s: BoardState) {
+  const sc = screenOf(s.screen);
+  const mode: Mode = { save: saveOf(s), confirm: confirmOf(s), next: id };
   return (
-    <div className="flex flex-col gap-6">
-      {pointerAlbum(id, sc)}
-      {door}
-    </div>
-  );
-}
-
-function pointerAlbum(id: "quiet" | "line" | "toast", sc: ScreenId) {
-  if (id === "line") {
-    return (
+    <Pair>
       <Scene
-        id="pointer-line"
+        id={`next-${id}-done`}
         screen={sc}
-        title="The pointer from the album"
-        caption={`One more line: ${TOTAL_WAITING} photos from ${CLAIMABLE_ROWS.length} other events are waiting for you.`}
+        title="The review done"
+        measure={measureOf("end", "follow")}
       >
-        <AlbumGround>
-          <MomentCard extra={<PointerLine />} />
-        </AlbumGround>
+        <ClaimsWorld key={keyOf(mode, "done")} mode={mode} script={["done"]} />
       </Scene>
-    );
-  }
-  if (id === "toast") {
-    return (
       <Scene
-        id="pointer-toast"
+        id={`next-${id}-first`}
         screen={sc}
-        title="The pointer from the album"
-        caption="A second toast appears once, beside the moment card that stays as it was."
+        title="Tom's Leaving Do, just claimed"
+        measure={measureOf("top", "follow")}
       >
-        <AlbumGround>
-          <MomentCard />
-        </AlbumGround>
-        <ToastVisual
-          lines={[
-            `${TOTAL_WAITING} photos from ${CLAIMABLE_ROWS.length} other events are waiting for you.`,
-          ]}
+        <ClaimsWorld
+          key={keyOf(mode, "first")}
+          mode={mode}
+          script={["claim"]}
         />
       </Scene>
-    );
-  }
-  return (
-    <Scene
-      id="pointer-quiet"
-      screen={sc}
-      title="The pointer from the album"
-      caption="The moment card names Maya and Jay's wedding only; nothing else is said here."
-    >
-      <AlbumGround>
-        <MomentCard />
-      </AlbumGround>
-    </Scene>
+    </Pair>
   );
 }
 
-function passScreen(
-  id: "rows" | "cards" | "checklist" | "photos",
-  s: BoardState,
-) {
-  const sc = screenOf(s.screen as string);
-  if (id === "photos") {
-    return (
-      <Scene
-        id="pass-photos"
-        screen={sc}
-        title="Working through more than one"
-        caption={`Every one of the ${TOTAL_WAITING} waiting photos in its own tile, Mine or Not mine each.`}
-      >
-        <DashboardScene ticket={<PhotoGridTicket />} />
-      </Scene>
-    );
-  }
-  if (id === "cards") {
-    return (
-      <Scene
-        id="pass-cards"
-        screen={sc}
-        title="Working through more than one"
-        caption="1 of 2: Tom's Leaving Do fills the card; Beach Bonfire waits behind it."
-      >
-        <DashboardScene ticket={<OneAtATimeCard />} />
-      </Scene>
-    );
-  }
-  if (id === "checklist") {
-    return (
-      <Scene
-        id="pass-checklist"
-        screen={sc}
-        title="Working through more than one"
-        caption={`Both rows open at once, ${HERS.uploadCount} and ${IMPOSTOR.uploadCount} small photos shown under each.`}
-      >
-        <DashboardScene ticket={<ChecklistTicket />} />
-      </Scene>
-    );
-  }
+/**
+ * Where each option lands first, since that is what tells the three apart (two
+ * of them say the same line at the album); the moment card that says it second.
+ */
+function pointerScreen(id: "quiet" | "line" | "here", s: BoardState) {
+  const sc = screenOf(s.screen);
+  const mode: Mode = {
+    save: saveOf(s),
+    confirm: confirmOf(s),
+    next: nextOf(s),
+  };
   return (
-    <Scene
-      id="pass-rows"
-      screen={sc}
-      title="Working through more than one"
-      caption="Both events listed at once: Tom's Leaving Do and Beach Bonfire, Claim all beneath."
-    >
-      <DashboardScene ticket={<ShippedTicket />} />
-    </Scene>
-  );
-}
-
-function confirmScreen(
-  id: "dialog" | "inline" | "second-screen",
-  s: BoardState,
-) {
-  const sc = screenOf(s.screen as string);
-  if (id === "inline") {
-    return (
+    <Pair>
       <Scene
-        id="confirm-inline"
+        id={`pointer-${id}-lands`}
         screen={sc}
-        title="Warning before a deletion"
-        caption="Beach Bonfire's row turns destructive in place; Tom's Leaving Do stays claimed above it."
-      >
-        <DashboardScene ticket={<ConfirmInlineTicket />} />
-      </Scene>
-    );
-  }
-  if (id === "second-screen") {
-    return (
-      <Scene
-        id="confirm-second-screen"
-        screen={sc}
-        title="Warning before a deletion"
-        caption={`${IMPOSTOR.uploadCount} photos from Beach Bonfire shown small before Delete and finish.`}
-      >
-        <DashboardScene ticket={<ConfirmSecondScreen />} />
-      </Scene>
-    );
-  }
-  return (
-    <Scene
-      id="confirm-dialog"
-      screen={sc}
-      title="Warning before a deletion"
-      caption={`A centred dialog: ${IMPOSTOR.uploadCount} photos and videos, at ${IMPOSTOR.eventName}, Delete and finish or Go back.`}
-    >
-      <DashboardScene
-        ticket={
-          <ShippedTicket initialDecisions={{ [HERS.eventId]: "claim" }} />
+        title={
+          id === "quiet"
+            ? "Her dashboard, whenever she goes"
+            : id === "line"
+              ? "Where Review all 4 lands"
+              : "Review all 4, opened over the album"
         }
-        overlay={<ConfirmDialog />}
-      />
-    </Scene>
-  );
-}
-
-function afterScreen(id: "toast" | "profile" | "strip", s: BoardState) {
-  const sc = screenOf(s.screen as string);
-  if (id === "profile") {
-    return (
-      <Scene
-        id="after-profile"
-        screen={sc}
-        title="What Finish leaves her looking at"
-        caption="Tom's Leaving Do settles into Your events as the toast plays; a second line adds Choose what shows on your page."
+        measure={
+          id === "here" ? measureOf("sheet") : measureOf("sheet", "banner")
+        }
       >
-        <DashboardScene
-          extraCard={<ClaimedEventCard />}
-          overlay={<AfterToastLines withProfile />}
+        <ClaimsWorld
+          key={keyOf(mode, `lands-${id}`)}
+          mode={mode}
+          open={id !== "quiet"}
+          where={id === "here" ? "album" : "dashboard"}
+          pointer={id === "here"}
+          reviewInPlace={id === "here"}
         />
       </Scene>
-    );
-  }
-  if (id === "strip") {
-    return (
       <Scene
-        id="after-strip"
+        id={`pointer-${id}-album`}
         screen={sc}
-        title="What Finish leaves her looking at"
-        caption="A Just claimed strip singles Tom's Leaving Do out above Your events, instead of letting it settle in quietly like the baseline."
+        title="The moment card at Maya & Jay"
+        measure={measureOf("pointer")}
       >
-        <DashboardScene ticket={<ClaimedStrip />} />
+        <ClaimsWorld
+          key={keyOf(mode, `album-${id}`)}
+          mode={mode}
+          open={false}
+          where="album"
+          pointer={id !== "quiet"}
+          reviewInPlace={id === "here"}
+        />
       </Scene>
-    );
-  }
-  return (
-    <Scene
-      id="after-toast"
-      screen={sc}
-      title="What Finish leaves her looking at"
-      caption={`Added ${HERS.uploadCount} photos to your account. Tom's Leaving Do settles quietly into Your events as an ordinary Guest card, the ticket gone.`}
-    >
-      <DashboardScene
-        extraCard={<ClaimedEventCard />}
-        overlay={<AfterToastLines withProfile={false} />}
-      />
-    </Scene>
+    </Pair>
   );
 }
 
 const PREVIEWS: PreviewsFor<typeof IDENTITY_CLAIMS> = {
-  "ticket.card": (s) => ticketScreen("card", s),
-  "ticket.banner": (s) => ticketScreen("banner", s),
-  "ticket.bell": (s) => ticketScreen("bell", s),
+  "save.finish": (s) => saveScreen("finish", s),
+  "save.once": (s) => saveScreen("once", s),
+
+  "confirm.card": (s) => confirmScreen("card", s),
+  "confirm.end": (s) => confirmScreen("end", s),
+
+  "next.album": (s) => nextScreen("album", s),
+  "next.host": (s) => nextScreen("host", s),
+  "next.both": (s) => nextScreen("both", s),
 
   "pointer.quiet": (s) => pointerScreen("quiet", s),
   "pointer.line": (s) => pointerScreen("line", s),
-  "pointer.toast": (s) => pointerScreen("toast", s),
-
-  "pass.rows": (s) => passScreen("rows", s),
-  "pass.cards": (s) => passScreen("cards", s),
-  "pass.checklist": (s) => passScreen("checklist", s),
-  "pass.photos": (s) => passScreen("photos", s),
-
-  "confirm.dialog": (s) => confirmScreen("dialog", s),
-  "confirm.inline": (s) => confirmScreen("inline", s),
-  "confirm.second-screen": (s) => confirmScreen("second-screen", s),
-
-  "after.toast": (s) => afterScreen("toast", s),
-  "after.profile": (s) => afterScreen("profile", s),
-  "after.strip": (s) => afterScreen("strip", s),
+  "pointer.here": (s) => pointerScreen("here", s),
 };
 
 export function IdentityClaimsBoard() {
