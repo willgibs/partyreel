@@ -5,6 +5,8 @@ import { flushSync } from "react-dom";
 import { Mail } from "lucide-react";
 
 import { updateDisplayNameAction } from "@/app/(app)/account/actions";
+import { DoorHeading } from "@/components/guest/door/heading";
+import { DoorGlyph } from "@/components/guest/door/lit";
 import { Button } from "@/components/ui/button";
 import { floatingKeyboardFoot } from "@/components/ui/floating-layer";
 import { Input } from "@/components/ui/input";
@@ -144,6 +146,8 @@ export function GuestNameStep({
   const copy = guestNameCopy(mode, hostName);
   // The one mode that asks. See the head comment for why the other three do not.
   const asksEmail = mode === "join";
+  // The line under her name (`guestNameHint`): none on the two doors that change a name.
+  const hint = guestNameHint(mode);
 
   /** The step is about to hand forward to one with no field: the keyboard goes down first. */
   function letGo() {
@@ -350,12 +354,7 @@ export function GuestNameStep({
           and hidden from the a11y tree, because unlike the welcome's eyebrow
           they are word-for-word the same sentences: a screen reader that read
           both would say each of them twice. */}
-      <div aria-hidden>
-        <p className="font-heading text-page text-balance">{copy.title}</p>
-        <p className="mt-2 text-base leading-relaxed text-muted-foreground">
-          {copy.reason}
-        </p>
-      </div>
+      <DoorHeading title={copy.title} reason={copy.reason} hidden />
       <div className="space-y-1.5">
         {/* ★ THE QUESTION IS THE HEADING. The title IS the question at the door, so a visible
             label would ask it twice in one sheet. The label stays for the a11y tree, naming the
@@ -384,7 +383,7 @@ export function GuestNameStep({
           inputMode="text"
           enterKeyHint={asksEmail && emailOpen ? "next" : "go"}
           aria-invalid={refusal ? true : undefined}
-          aria-describedby="pr-guest-name-hint"
+          aria-describedby={refusal || hint ? "pr-guest-name-hint" : undefined}
           className="h-11 text-base"
         />
         {refusal ? (
@@ -392,14 +391,18 @@ export function GuestNameStep({
             {refusal.message}
           </p>
         ) : (
-          // The reassurance is that nothing is being proved, because every
-          // other door this guest has met asked them to prove something.
-          <p
-            id="pr-guest-name-hint"
-            className="text-reading text-muted-foreground"
-          >
-            Just a name. Nobody has to prove a name.
-          </p>
+          hint && (
+            // ★ A SMALL NOTE, SET SMALL (Will's `hint=change`: "Since this is a small note, the
+            // font size should be smaller on this line"): the working step under the field's 16px,
+            // the size of the email row beneath it.
+            <p
+              id="pr-guest-name-hint"
+              data-name-hint
+              className="text-working text-muted-foreground"
+            >
+              {hint}
+            </p>
+          )
         )}
       </div>
       {asksEmail &&
@@ -457,7 +460,13 @@ export function GuestNameStep({
             onClick={openEmail}
             className="flex min-h-11 w-full items-center gap-2 rounded-lg border border-dashed border-border px-3 text-left text-working text-muted-foreground transition-colors duration-150 ease-emphasis outline-none hover:border-foreground/30 hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
-            <Mail className="size-4 shrink-0 max-[359px]:hidden" aria-hidden />
+            {/* The envelope is a glyph inside a line, so it takes the lamp's light (`icons=lit`);
+                under 360px it steps aside so the words still hold one line at 320. */}
+            <DoorGlyph
+              icon={Mail}
+              hue={3}
+              className="size-4 max-[359px]:hidden"
+            />
             Add an email to come back anytime
           </button>
         ))}
@@ -473,6 +482,19 @@ export function GuestNameStep({
       </div>
     </form>
   );
+}
+
+/**
+ * THE LINE UNDER HER NAME (`identity-door` r3, Will's `hint=change`): "You can change it anytime.",
+ * the reassurance that is also a fact, since her menu's Change name edits it later, so a name typed
+ * in a dark room is not final. It replaced "Nobody has to prove a name", which answered a worry the
+ * step never raised. The two doors that CHANGE a name (`edit`, `account`) show no line: she is
+ * already changing it.
+ */
+export function guestNameHint(mode: GuestNameMode): string | null {
+  return mode === "edit" || mode === "account"
+    ? null
+    : "You can change it anytime.";
 }
 
 /**

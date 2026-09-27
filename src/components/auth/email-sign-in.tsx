@@ -70,6 +70,26 @@ export type DoorVerified = {
  */
 export type BeforeSend = () => false | { data?: Record<string, unknown> };
 
+/**
+ * THE CODE SCREEN'S HEADING, "Check your email" (`identity-door` r3, Will's `code=mail`), in its one
+ * home. The moment the code is on its way is the moment she leaves for her inbox, so the screen
+ * says where to look, then which address to look in. The door around this component draws it in
+ * place of the surface's own heading (`AccountDoor`), on every code screen this component draws:
+ * the gate, Create account, Log in, the keep's and the confirm sheet's, the like door's, and the
+ * host's `/login`.
+ */
+export const CODE_SCREEN_TITLE = "Check your email";
+
+/** "We sent a 6-digit code to <address>.", the address in the ink it is checked in. */
+export function codeSentLine(email: string): ReactNode {
+  return (
+    <>
+      We sent a {CODE_LENGTH}-digit code to{" "}
+      <span className="font-medium break-words text-foreground">{email}</span>.
+    </>
+  );
+}
+
 // Shared dual-path email sign-in. Entering an email sends ONE Supabase email that contains
 // BOTH a 6-digit code AND a magic link (signInWithOtp). The user can either type the code
 // here (verifyOtp — no redirect, the robust path that survives the iPhone-PWA magic-link
@@ -99,6 +119,8 @@ export function EmailSignIn({
   leading,
   beforeSend,
   codeFocus = "always",
+  align = "center",
+  codeDescribedBy,
 }: {
   emailRedirectTo: string;
   shouldCreateUser?: boolean;
@@ -125,9 +147,10 @@ export function EmailSignIn({
   hintEmail?: string;
   /**
    * Fires with the address when the code screen opens, and with null when it
-   * closes. The door around this component uses it to step its own ladder
-   * aside while six digits are being typed: a Google button and a "have a
-   * password?" link under a code screen are two ways to lose the code.
+   * closes (or this component leaves with it open). The door around this
+   * component uses it to step its own ladder aside while six digits are being
+   * typed (a Google button and a "have a password?" link under a code screen
+   * are two ways to lose the code), and to head the screen "Check your email".
    */
   sentAt?: (email: string | null) => void;
   /** A field of the caller's own inside this form, above the email (the guest door's name). */
@@ -139,6 +162,13 @@ export function EmailSignIn({
    * so no keyboard rises that the guest had put away). `always`: it takes focus regardless.
    */
   codeFocus?: "follow" | "always";
+  /**
+   * The code screen's alignment, following the heading the door draws above it: from the left
+   * under a guest door's heading, centred under `/login`'s centred one.
+   */
+  align?: "start" | "center";
+  /** The id of the sentence above the slots that says where the code went (the door's heading). */
+  codeDescribedBy?: string;
 }) {
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [code, setCode] = useState("");
@@ -158,6 +188,17 @@ export function EmailSignIn({
   const fieldAtSubmit = useRef(false);
   // The metadata the last send carried, so a resend carries the same.
   const sendData = useRef<Record<string, unknown> | undefined>(undefined);
+
+  // ★ A CODE SCREEN THAT LEAVES SAYS SO. The door heads the screen "Check your email" off `sentAt`,
+  // and this component can unmount with the code screen still open (a verified code handing to
+  // "the account you already had", Log in's password or reset view); without a closing report the
+  // door would keep the code's heading over a screen that no longer has a code. The latest
+  // callback is read at unmount, so an inline arrow never re-arms this.
+  const latestSentAt = useRef(sentAt);
+  useEffect(() => {
+    latestSentAt.current = sentAt;
+  });
+  useEffect(() => () => latestSentAt.current?.(null), []);
 
   // Tick the resend cooldown down to 0 (re-armed each second via the resendIn dep).
   useEffect(() => {
@@ -323,22 +364,22 @@ export function EmailSignIn({
   };
 
   if (sentTo) {
+    /* ★ THE CODE SCREEN, UNDER "CHECK YOUR EMAIL" (`code=mail`): the heading and the address are the
+       door's (`CODE_SCREEN_TITLE`, `codeSentLine`, drawn by `AccountDoor` where the surface's own
+       heading stood), then the six slots across the full width, then the link in the same email and
+       the resend. Its words say "the link", never "to sign in": the guest door says Log in. */
+    const centred = align === "center";
     return (
-      <div data-otp-entry className="space-y-4 text-center">
-        <div className="space-y-1">
-          <p className="text-sm font-medium">Enter your code</p>
-          <p className="text-sm text-muted-foreground">
-            We sent a 6-digit code to{" "}
-            <span className="font-medium text-foreground">{sentTo}</span>.
-          </p>
-        </div>
-        <div className="flex flex-col items-center gap-2">
+      <div data-otp-entry className={cn("space-y-4", centred && "text-center")}>
+        <div className="flex flex-col gap-2">
           <InputOTP
             ref={otpRef}
             maxLength={CODE_LENGTH}
             inputMode="numeric"
             autoComplete="one-time-code"
             aria-label="Your code"
+            aria-describedby={codeDescribedBy}
+            containerClassName="w-full"
             value={code}
             // ★ NOT `disabled` WHILE VERIFYING: a disabled field loses focus, and on iOS the
             // keyboard goes down with it, so a wrong code (measured on the simulator) left the
@@ -352,9 +393,16 @@ export function EmailSignIn({
             }}
             onComplete={onCodeComplete}
           >
-            <InputOTPGroup>
+            {/* Six equal slots across the whole width, each a thumb's target: `flex-1` shares the
+                row, and the height beats the primitive's square `size-11` (tailwind-merge keeps
+                both, so the height is marked important rather than left to stylesheet order). */}
+            <InputOTPGroup className="w-full gap-2">
               {Array.from({ length: CODE_LENGTH }, (_, i) => (
-                <InputOTPSlot key={i} index={i} />
+                <InputOTPSlot
+                  key={i}
+                  index={i}
+                  className="h-12! min-w-0 flex-1"
+                />
               ))}
             </InputOTPGroup>
           </InputOTP>
@@ -370,35 +418,40 @@ export function EmailSignIn({
             className="text-left"
           />
         )}
-        <p className="text-xs text-muted-foreground">
-          Or tap the link in the same email to sign in.
-        </p>
-        <div
-          // Promoting a link means the link goes: while a failure is up, its
-          // buttons ARE the resend and the different address.
-          hidden={Boolean(failure)}
-          className="flex items-center justify-center gap-3 text-xs"
-        >
-          <button
-            type="button"
-            onClick={resend}
-            disabled={resending || resendIn > 0}
-            className="text-muted-foreground underline-offset-4 hover:underline disabled:opacity-50"
+        <div className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            Or tap the link in the same email.
+          </p>
+          <div
+            // Promoting a link means the link goes: while a failure is up, its
+            // buttons ARE the resend and the different address.
+            hidden={Boolean(failure)}
+            className={cn(
+              "flex items-center gap-3 text-xs",
+              centred ? "justify-center" : "justify-start",
+            )}
           >
-            {resending
-              ? "Sending…"
-              : resendIn > 0
-                ? `Resend in ${resendIn}s`
-                : "Resend code"}
-          </button>
-          <span className="text-faint">·</span>
-          <button
-            type="button"
-            onClick={useDifferentEmail}
-            className="text-muted-foreground underline-offset-4 hover:underline"
-          >
-            Use a different email
-          </button>
+            <button
+              type="button"
+              onClick={resend}
+              disabled={resending || resendIn > 0}
+              className="text-muted-foreground underline-offset-4 hover:underline disabled:opacity-50"
+            >
+              {resending
+                ? "Sending…"
+                : resendIn > 0
+                  ? `Resend in ${resendIn}s`
+                  : "Resend code"}
+            </button>
+            <span className="text-faint">·</span>
+            <button
+              type="button"
+              onClick={useDifferentEmail}
+              className="text-muted-foreground underline-offset-4 hover:underline"
+            >
+              Use a different email
+            </button>
+          </div>
         </div>
       </div>
     );
