@@ -34,7 +34,6 @@ export type SandboxId =
   | "profile-page"
   | "export-flow"
   | "admin-triage"
-  | "reel-story"
   | "emails"
   | "help-center"
   | "host-curation"
@@ -288,30 +287,6 @@ export const RULINGS: Ruling[] = [
         "The legal hold",
         "Once it is closed",
         "Who is told",
-      ],
-    },
-  },
-  {
-    id: "reel-story",
-    title: "The marketing story of the reel",
-    surface: "marketing",
-    asks: "the home hero's album and code made polished, what stands beside the demo link now the frame has left it, and a clearer line for the reel's door and the /reel heading",
-    why: "Round two is wired. His notes on it: the hero's album and code needs a ton of polish, the frame beside the demo link looked silly, and the reel's line could say more.",
-    lives: [
-      "docs/systems/marketing-content.md",
-      "src/components/marketing/sections/home/cinema-hero.tsx",
-      "src/components/marketing/system/demo-ticket.tsx",
-      "src/components/marketing/system/demo-cta-link.tsx",
-      "src/components/marketing/sections/features/shared/feature-door.tsx",
-      "src/components/marketing/sections/reel/reel-hero.tsx",
-      "src/lib/constants/marketing-voice.ts",
-    ],
-    board: {
-      note: "Three decisions, each in its real place in a real frame at 1440 with 375 on the knob: the hero's object in the real first screen with the band running, the demo line in the home's close and the /reel hero, and the reel's line in its three places",
-      variants: [
-        "The hero's album and code",
-        "Beside the demo link",
-        "The reel's line",
       ],
     },
   },
@@ -573,7 +548,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "identity-door",
   "identity-claims",
   "hero-card",
-  "reel-story",
   "voice-guest",
   "host-curation",
   "host-storage",

@@ -1,8 +1,7 @@
 import Image from "next/image";
-import Link from "next/link";
 import type { CSSProperties } from "react";
 
-import { trackAttrs } from "@/lib/analytics/events";
+import { DemoDoor } from "@/components/marketing/system/demo-modal/demo-door";
 import { marketingImage } from "@/lib/constants/marketing-media";
 
 import { FooterQr } from "./footer-qr";
@@ -106,11 +105,14 @@ const CARDS = [
 ] as const;
 
 export function FooterDemo({ href, value }: { href: string; value: string }) {
+  // A demo door (`system/demo-modal/`): at a desk a press on the pile opens the
+  // demo modal, its code larger and the demo one button away; the footer draws
+  // a text link in the pile's place below `sm`.
   return (
-    <Link
+    <DemoDoor
       href={href}
+      source="footer-qr"
       aria-label="Explore a demo event"
-      {...trackAttrs("demo_open", { source: "footer-qr" })}
       className="mkt-stack relative block shrink-0"
       style={{ width: 200, height: 196 }}
     >
@@ -169,6 +171,6 @@ export function FooterDemo({ href, value }: { href: string; value: string }) {
       >
         <FooterQr value={value} size={QR_PX} />
       </span>
-    </Link>
+    </DemoDoor>
   );
 }

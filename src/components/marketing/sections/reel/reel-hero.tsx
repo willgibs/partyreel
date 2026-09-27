@@ -15,8 +15,8 @@ import { HERO_REEL } from "./style-facets";
 
 /**
  * /reel section 1 — the reel hero (LOUD). Will's 2026-08-25 ruling: this H1 is DISTINCT
- * from the home reel-SECTION header. ★ IT IS THE REEL DOOR'S LINE (`reel-story` r2
- * `card=as-it-happens`, `REEL_LINE`): the door on the hub says it and this room answers with
+ * from the home reel-SECTION header. ★ IT IS THE REEL DOOR'S LINE (`reel-story` r3
+ * `line=as-they-land`, `REEL_LINE`): the door on the hub says it and this room answers with
  * the same words, so a reader who pressed the door lands on the sentence they pressed. A REAL
  * engine-rendered loop plays poster-first beside it: the honesty argument from the T2.5
  * substrate ruling made visible in the first viewport, captioned as the recording it is (the

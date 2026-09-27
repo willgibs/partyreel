@@ -307,7 +307,8 @@
       "<>\n  <MorphDelegate\n    name=\"blog-cover\"\n    linkAttr=\"data-cover-morph\"\n    plateAttr=\"data-cover-plate\"\n  />\n  <Link\n    href={`/blog/${LIBRARY_MORPH_SLUG}`}\n    data-cover-morph=\"\"\n    className=\"group relative block aspect-4/5 max-w-[14rem] overflow-hidden rounded-lg bg-muted\"\n  >\n    <span data-cover-plate=\"\" className=\"absolute inset-0\">\n      <Image\n        src={morphCover.src}\n        alt=\"\"\n        fill\n        sizes=\"224px\"\n        className=\"object-cover\"\n      />\n    </span>\n  </Link>\n  <p className=\"mt-3 text-xs text-muted-foreground\">\n    Click the cover: the plate grows into the article&rsquo;s own\n    plate where the browser supports view transitions, and navigates\n    plainly where it does not.\n  </p>\n</>"
     ],
     "cta-band": [
-      "<CtaBand\n  heading=\"Your next event starts here.\"\n  subhead=\"A sample band: the primary defaults to the marketing CTA.\"\n  demoLink\n  credit\n  className=\"py-12\"\n/>"
+      "<CtaBand\n  heading=\"Your next event starts here.\"\n  subhead=\"A sample band: the primary defaults to the marketing CTA.\"\n  demoLink\n  className=\"py-12\"\n/>",
+      "<CtaBand\n  heading=\"Your next event starts here.\"\n  subhead=\"A sample band: the primary defaults to the marketing CTA.\"\n  credit\n  className=\"py-12\"\n/>"
     ],
     "demo-ticket": [
       "<div className=\"rounded-lg bg-gallery p-4\">\n  <DemoTicket />\n</div>",
@@ -315,6 +316,9 @@
     ],
     "demo-cta-link": [
       "<DemoCtaLink source=\"library\" />"
+    ],
+    "demo-door": [
+      "<DemoDoor\n  href={DEMO_EVENT_URL ?? \"/demo\"}\n  source=\"library\"\n  className=\"mkt-learn inline-flex items-center gap-2 text-label font-medium text-muted-foreground uppercase hover:text-foreground\"\n>\n  <LiveDot />\n  <span className=\"inline-flex items-center gap-1\">\n    Try our demo event\n    <LearnChevron />\n  </span>\n</DemoDoor>"
     ],
     "feature-door": [
       "<div className=\"max-w-sm\">\n  <FeatureDoor slug=\"album\" copy=\"long\" />\n</div>",

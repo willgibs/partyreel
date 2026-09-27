@@ -106,10 +106,16 @@ describe("the band leaves the type its measured lane", () => {
     expect(axisMin).toBeGreaterThanOrEqual(64);
     expect(minH).toBe(axisMin + below);
     // And it has to be a height a real window has: the shortest laptop the hero
-    // is verified on is 720 and the shortest phone 667.
+    // is verified on is 720 and the shortest phone 667. The phone fits it
+    // whole, the air under the actions included. ★ THE 720 LAPTOP FITS THE
+    // BLOCK AND GIVES UP ITS FOOT'S AIR (demo-doors, 2026-09-27): the "Try our
+    // demo event" eyebrow over the headline is 28px that window does not have,
+    // so there the actions still end on screen and the air under them scrolls
+    // (the whole hero needs 744 at `lg`). It held the air too until then.
     const shortest = bp === "lg" ? 720 : 667;
+    const givesUp = bp === "lg" ? GEO.lg.airFoot : 0;
     expect(
-      minH,
+      minH - givesUp,
       `${bp}: the hero cannot fit its block in the shortest window it is verified on`,
     ).toBeLessThanOrEqual(shortest);
   });
