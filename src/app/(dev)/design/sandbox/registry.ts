@@ -4,6 +4,7 @@ import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 import { IDENTITY_DOOR } from "./identity-door/spec";
 import { POPUPS } from "./popups/spec";
 import { IDENTITY_CLAIMS } from "./identity-claims/spec";
+import { HERO_CARD } from "./hero-card/spec";
 import { VOICE_GUEST } from "./voice-guest/spec";
 import { SITE_CHROME } from "./site-chrome/spec";
 import { PROFILE_PAGE } from "./profile-page/spec";
@@ -53,6 +54,7 @@ const REGISTERED: readonly BoardSpec[] = [
   IDENTITY_DOOR,
   POPUPS,
   IDENTITY_CLAIMS,
+  HERO_CARD,
 
   VOICE_GUEST,
 
