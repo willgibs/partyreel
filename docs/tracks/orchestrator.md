@@ -48,24 +48,22 @@ Merged in batch 4 (their records carry the rest): mine-none, claims-r2, profile-
 
 ## Next, in order
 
-1. **Batch 4 lands** (cut `1a455e5f` from Will's sitting on build 10, his ledgers at `0b2af407`; his chat calls
-   2026-09-27: `popups` first on the desk, the demo link bare everywhere while `story-r3` explores, the door's other
-   icons and copy through `door-r3` first). Integrate each as it hands off. The records carry: the three retirements'
-   ledgers deleted (`guest-capture`, `media-viewer`, `identity-profile`: each lane retires its own board's folder and
-   lines); `DESK_ORDER` as `popups`, `identity-door`, `identity-claims`, `reel-story`, then the 15 unchanged boards;
-   `reel-marketing`'s asset slots into `docs/ASSETS.md` and row 1 no longer "made from the demo album";
-   `profile-setup`'s migration by the protocol if it brings one; and, once the four boards land, their new asks read
-   side by side (`board-card.mjs --desk`), any two that ask one decision merged.
-2. **Build 11** once all eight land: `[preview]`, `alias-ensure`, `page-console` on the desk's boards, then tell Will
-   the desk is ready, `popups` first. Its red-team walks the scope of a full red-team, as build 10's walked it:
+1. **Build 11** (batch 4 whole, cut `1a455e5f`, every lane merged green): `[preview]`, `alias-ensure`, the prune,
+   `page-console` on the desk's boards, then tell Will the desk is ready, `popups` first. Its red-team walks the scope
+   of a full red-team, as build 10's walked it:
    - the reel on the album's data path: the tile, the view, clips, access, the password event, the demo;
    - `?reel=screen` soaked headless at 1920x1080 for 100 minutes (a hidden pane throttles the page);
-   - the door at 375 on the Sheet, now lit, with the keep screen after the first upload and the told name;
+   - the door at 375 on the Sheet, now lit, with the keep after a real first upload at a held-uploads event, the
+     tracker's count falling as Review approves, one confirm beat and the told name's Change;
    - the album at scale on both surfaces, with no mark on a guest's own tiles, a hide just above a deep guest's view
      moving nothing in it, and the bin's viewer restoring and deleting on a phone as a signed-in host;
    - the owner's own password album, plain, `?reel` and `?reel=screen`, and its Download all;
-   - the tracker's count, the setup wizard, the private page's count from a second viewer and anonymously, the
-     marketing pages (the 19 bare demo links, the footer's stack, the still twin card, the contained player).
+   - the setup wizard (as partyr33l or hi@willgibs, no handle), the private page's count from a second viewer and
+     anonymously, the marketing pages (the 19 bare demo links, the footer's pile, the still twin card, the one
+     contained player).
+2. **Milestone 30** on his yes, once the count's legal clause (his wording, below) is in the Terms and the Privacy
+   Policy; after it, `kit/`'s screens re-captured from partyreel.com (the home's close and teaser and the demo's doors
+   changed).
 3. **After his sitting on build 11**: the wiring of his picks on `popups`, `identity-door` r3, `identity-claims` r2 and
    `reel-story` r3.
 4. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
