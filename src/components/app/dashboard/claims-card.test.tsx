@@ -27,6 +27,9 @@ vi.mock("@/app/(app)/dashboard/claims-actions", () => ({
  * nothing was affirmatively claimed.
  */
 
+/** Where the finish toast's second line points before she has a page (`after=profile`). */
+const PAGE = "/account/profile";
+
 const rowA: ClaimableEventRow = {
   eventId: "e-a",
   eventName: "Maya & Theo's Wedding",
@@ -57,14 +60,14 @@ beforeEach(() => {
 
 describe("an empty ticket", () => {
   it("renders nothing", () => {
-    const { container } = render(<ClaimsCard rows={[]} />);
+    const { container } = render(<ClaimsCard pageHref={PAGE} rows={[]} />);
     expect(container).toBeEmptyDOMElement();
   });
 });
 
 describe("a grouped row", () => {
   it("shows the event, its date, every typed name and its photo count", () => {
-    render(<ClaimsCard rows={[rowA]} />);
+    render(<ClaimsCard pageHref={PAGE} rows={[rowA]} />);
     expect(screen.getByText(rowA.eventName)).toBeInTheDocument();
     const meta = screen.getByText(/Added as Priya/);
     expect(meta.textContent).toContain(formatEventDate("2026-10-01"));
@@ -72,7 +75,7 @@ describe("a grouped row", () => {
   });
 
   it("withholds a gated date and an untyped name rather than inventing either", () => {
-    render(<ClaimsCard rows={[rowB]} />);
+    render(<ClaimsCard pageHref={PAGE} rows={[rowB]} />);
     expect(screen.queryByText(/Added as/)).not.toBeInTheDocument();
     expect(screen.getByText(/1 photo\b/)).toBeInTheDocument();
   });
@@ -87,14 +90,14 @@ describe("a count past 999", () => {
   const big: ClaimableEventRow = { ...rowA, uploadCount: 1249 };
 
   it("is grouped on the row", () => {
-    render(<ClaimsCard rows={[big]} />);
+    render(<ClaimsCard pageHref={PAGE} rows={[big]} />);
     expect(screen.getByText(/Added as Priya/).textContent).toContain(
       "1,249 photos",
     );
   });
 
   it("is grouped in the confirmation", () => {
-    render(<ClaimsCard rows={[big]} />);
+    render(<ClaimsCard pageHref={PAGE} rows={[big]} />);
     fireEvent.click(screen.getByRole("button", { name: "Finish" }));
     expect(
       within(screen.getByRole("dialog")).getByText(
@@ -108,11 +111,12 @@ describe("a count past 999", () => {
       ok: true,
       claimedEvents: 1,
     });
-    render(<ClaimsCard rows={[big]} />);
+    render(<ClaimsCard pageHref={PAGE} rows={[big]} />);
     fireEvent.click(screen.getByRole("button", { name: "Claim all" }));
     await waitFor(() =>
       expect(toast.success).toHaveBeenCalledWith(
         "Added 1,249 photos to your account.",
+        expect.objectContaining({ description: expect.anything() }),
       ),
     );
   });
@@ -124,7 +128,7 @@ describe("Claim all", () => {
       ok: true,
       claimedEvents: 2,
     });
-    render(<ClaimsCard rows={[rowA, rowB]} />);
+    render(<ClaimsCard pageHref={PAGE} rows={[rowA, rowB]} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Claim all" }));
 
@@ -138,6 +142,57 @@ describe("Claim all", () => {
     await waitFor(() =>
       expect(toast.success).toHaveBeenCalledWith(
         "Added 4 photos to your account.",
+        expect.objectContaining({ description: expect.anything() }),
+      ),
+    );
+  });
+});
+
+/**
+ * ★ THE SECOND LINE (`identity-claims` r1, `after=profile`, Will: "Nice way to provide confirmation
+ * while pointing into a potentially undiscovered feature"): a Finish that added photos says so and
+ * points at the page, the setup before one exists and its choices after (the page decides which).
+ * A Finish that added nothing has nothing new for a page to show, so it carries no pointer.
+ */
+describe("the finish toast's page pointer", () => {
+  function lastSuccessDescription() {
+    const calls = vi.mocked(toast.success).mock.calls;
+    const options = calls[calls.length - 1]?.[1] as
+      | { description?: React.ReactNode }
+      | undefined;
+    return options?.description;
+  }
+
+  it("links 'Choose what shows on your page' to where the dashboard points it", async () => {
+    vi.mocked(finishClaimsAction).mockResolvedValue({
+      ok: true,
+      claimedEvents: 1,
+    });
+    render(<ClaimsCard pageHref="/account#public-profile" rows={[rowA]} />);
+    fireEvent.click(screen.getByRole("button", { name: "Claim all" }));
+    await waitFor(() => expect(toast.success).toHaveBeenCalled());
+
+    render(<>{lastSuccessDescription()}</>);
+    expect(
+      screen.getByRole("link", { name: "Choose what shows on your page" }),
+    ).toHaveAttribute("href", "/account#public-profile");
+  });
+
+  it("stays off a Finish that added nothing", async () => {
+    vi.mocked(finishClaimsAction).mockResolvedValue({
+      ok: true,
+      claimedEvents: 0,
+    });
+    render(<ClaimsCard pageHref={PAGE} rows={[rowA]} />);
+    fireEvent.click(screen.getByRole("button", { name: "Finish" }));
+    fireEvent.click(
+      within(screen.getByRole("dialog")).getByRole("button", {
+        name: "Delete and finish",
+      }),
+    );
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith(
+        "Done. Nothing was added to your account.",
       ),
     );
   });
@@ -149,7 +204,7 @@ describe("Finish", () => {
       ok: true,
       claimedEvents: 2,
     });
-    render(<ClaimsCard rows={[rowA, rowB]} />);
+    render(<ClaimsCard pageHref={PAGE} rows={[rowA, rowB]} />);
 
     fireEvent.click(rowButton(rowA.eventName, "Claim"));
     fireEvent.click(rowButton(rowB.eventName, "Claim"));
@@ -169,7 +224,7 @@ describe("Finish", () => {
       ok: true,
       claimedEvents: 1,
     });
-    render(<ClaimsCard rows={[rowA, rowB]} />);
+    render(<ClaimsCard pageHref={PAGE} rows={[rowA, rowB]} />);
 
     fireEvent.click(rowButton(rowA.eventName, "Claim"));
     // rowB is left untouched entirely — still counts as "unclaimed".
@@ -196,7 +251,7 @@ describe("Finish", () => {
       ok: true,
       claimedEvents: 1,
     });
-    render(<ClaimsCard rows={[rowA, rowB]} />);
+    render(<ClaimsCard pageHref={PAGE} rows={[rowA, rowB]} />);
 
     fireEvent.click(rowButton(rowA.eventName, "Claim"));
     fireEvent.click(rowButton(rowB.eventName, "Not mine"));
@@ -252,7 +307,7 @@ describe("Finish", () => {
         "Permanently delete the 2 photos and videos added under your email at these 2 events?",
     },
   ])("reads correctly for $title", ({ rows, title }) => {
-    render(<ClaimsCard rows={rows} />);
+    render(<ClaimsCard pageHref={PAGE} rows={rows} />);
 
     // Nobody claims anything, so every row is left over at Finish.
     fireEvent.click(screen.getByRole("button", { name: "Finish" }));
@@ -262,7 +317,7 @@ describe("Finish", () => {
   });
 
   it("Go back cancels without writing anything", () => {
-    render(<ClaimsCard rows={[rowA, rowB]} />);
+    render(<ClaimsCard pageHref={PAGE} rows={[rowA, rowB]} />);
 
     fireEvent.click(rowButton(rowA.eventName, "Claim"));
     fireEvent.click(screen.getByRole("button", { name: "Finish" }));
@@ -277,7 +332,7 @@ describe("Finish", () => {
       ok: false,
       message: "Try again.",
     });
-    render(<ClaimsCard rows={[rowA]} />);
+    render(<ClaimsCard pageHref={PAGE} rows={[rowA]} />);
 
     fireEvent.click(rowButton(rowA.eventName, "Claim"));
     fireEvent.click(screen.getByRole("button", { name: "Finish" }));

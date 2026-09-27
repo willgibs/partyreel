@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { Mail } from "lucide-react";
 import { toast } from "sonner";
 
@@ -107,7 +108,17 @@ function confirmDeleteTitle(photos: number, events: number): string {
  * revalidates behind it) or toasts the failure and leaves the picks standing
  * so the guest can retry.
  */
-export function ClaimsCard({ rows }: { rows: ClaimableEventRow[] }) {
+export function ClaimsCard({
+  rows,
+  pageHref,
+}: {
+  rows: ClaimableEventRow[];
+  /**
+   * Where the finish toast's second line points (`identity-claims` r1, `after=profile`): the page
+   * setup while she has no page, the page's choices once she does (`pageChoicesHref`).
+   */
+  pageHref: string;
+}) {
   const [decisions, setDecisions] = useState<Record<string, Decision>>({});
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [finished, setFinished] = useState(false);
@@ -139,8 +150,21 @@ export function ClaimsCard({ rows }: { rows: ClaimableEventRow[] }) {
         return;
       }
       if (photosClaimed > 0) {
+        // ★ THE SECOND LINE POINTS AT THE PAGE (`after=profile`, Will: "Nice way to provide
+        // confirmation while pointing into a potentially undiscovered feature"). Only a Finish
+        // that added photos carries it: those are what a page would show.
         toast.success(
           `Added ${formatCount(photosClaimed)} photo${photosClaimed === 1 ? "" : "s"} to your account.`,
+          {
+            description: (
+              <Link
+                href={pageHref}
+                className="text-foreground underline underline-offset-4"
+              >
+                Choose what shows on your page
+              </Link>
+            ),
+          },
         );
       } else {
         toast.success("Done. Nothing was added to your account.");

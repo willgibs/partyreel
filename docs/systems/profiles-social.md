@@ -21,9 +21,12 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   while attribution is already public by name on the same album. A guest who wants no linkage can decline to upload,
   and a host can turn off Require verified emails, which trades a confirmed identity for a marked name, never for no
   name. So the GDPR posture rests on legitimate interest over already-public attribution, not opt-in consent.
-- **A guest's own profile publishes nothing until chosen:** `profile_shown_events` is an opt-in (never backfilled,
+- **A guest's own profile publishes no event until chosen:** `profile_shown_events` is an opt-in (never backfilled,
   which would publish what must stay private until chosen), while the guest stays on each event's own list, the
-  host's key, either way. A person is on a list, a count or a profile line only through an approved upload of theirs.
+  host's key, either way. An empty page says only how many it keeps private, of the events the visitor could already
+  see her on through that key (The public profile, below). A person is on a list, a count or a profile line only through an approved upload of theirs.
+  Choosing is one control, the cover picker (`attended-events-visibility.tsx`), in Account and in the setup wizard;
+  the wizard's Show all / Keep all private applies once, to the events she has at Finish, and later ones start private.
 - **Follows are open any-to-any, and the graph is owner-private:** lists and counts render only to their owner (as on
   VSCO), `get_public_profile` returns no follow data, and no public count exists. Blocking is mutual severance,
   private, and prevents a re-follow.
@@ -42,9 +45,10 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   address ([guest-flow.md](guest-flow.md)).
 - **Every card paints its person's colour** from `seedFor(card.id)` (`withAvatarUrls`), a server-side hash, so one
   person is one colour everywhere and no raw id reaches a browser ([auth-accounts.md](auth-accounts.md)).
-- **`getMyAttendedEvents`** (the account page's show-on-profile switches) takes an approved upload on a PROVED row and
-  deliberately ignores `show_guest_list`, visibility and the album's viewer gates: the switch is the guest's own key,
-  settable whatever the host chose.
+- **`getMyAttendedEvents`** (the picker's events) takes an approved upload on a PROVED row and deliberately ignores
+  `show_guest_list`, visibility and the album's viewer gates: the choice is the guest's own key, settable whatever the
+  host chose. `getMyAttendedEventPicks` masks each tile by the album's own rules through `guestEventCardProps`, as her
+  dashboard's Guest card is: an open album's cover, a password album's name with no cover, a private album neither.
 
 ## The public profile
 
@@ -73,12 +77,23 @@ A one-way door; `/privacy` and the Terms word it, so a change here changes them 
   sections (your uploads, your likes, the people you follow, never your followers) stream behind their own in-page
   `<Suspense>`, and a visitor's render runs none of their queries. A like count is the host's alone and appears on no
   profile.
+- **An empty page says how many events it keeps private** ("2 private events", `private_event_count`, migration
+  20260927100000): the attended arm's predicate with only the owner's choice inverted, so a viewer counts only what
+  she could confirm (a Require-an-upload-to-view album she has not passed stays out). The RPC returns it only while the
+  page shows nothing, null otherwise, since the page reads it only then; `profile.private-count.test.ts` holds the two
+  predicates equal.
 - ★ **`/u/[slug]` never gets a `loading.tsx`.** A loading file wraps the route in Suspense, so Next flushes the shell
   before the page runs and a dead handle answers 200 instead of 404 (throwing from `generateMetadata` does not help).
   The page decides the 404 at the top and streams only the card grid.
 
 ## Handles, bios, reports, blocks, preferences
 
+- **A page is set up once, at `/account/profile`**: the handle, then name and photo, then which events show. Set up
+  means a claimed handle, and Finish writes her choices before it claims the handle (the page's existence), so an
+  abandoned setup leaves nothing public; a set-up account is sent to Account's card, which before a handle is the
+  wizard's door. The dashboard invites the setup (`shouldInviteToPage`) once no claim waits, to an account with an
+  event its page could show (which proves a confirmed address) and no handle; Not now is an httpOnly cookie holding the
+  account's seed, per device.
 - **`profiles.slug` is service-role-write-only;** its format is a CHECK (lowercase, 3 to 30 of `[a-z0-9-]`, no edge
   hyphen) plus a PLAIN partial unique index, since the CHECK already forces lowercase and the RPC's
   `slug = lower(trim(input))` can use only a plain index. The handle is free on every tier; custom EVENT slugs are the

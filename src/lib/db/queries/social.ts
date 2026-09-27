@@ -373,6 +373,14 @@ export type PublicProfile = {
   created_at: string;
   hosted_events: PublicProfileHostedEvent[];
   attended_events: PublicProfileAttendedEvent[];
+  /**
+   * The empty page's count (migration 20260927100000, `identity-profile` `page=count`): the events
+   * the owner added photos to that THIS viewer could see here if she chose them, and has not. It is
+   * the attended arm's own rule with the owner's choice inverted, so a gated album this viewer has
+   * not passed stays out of it. A number only while the page shows nothing, null otherwise; absent
+   * before the migration is applied, which reads as no count.
+   */
+  private_event_count?: number | null;
 };
 
 /**
@@ -677,6 +685,26 @@ export type AttendedEventSetting = {
   event_date: string | null;
   /** In my profile_shown_events set: I have chosen to publish this one. Default FALSE. */
   shownOnProfile: boolean;
+  /** The album's own door, which the picker's tile follows (`getMyAttendedEventPicks`). */
+  visibility: Database["public"]["Enums"]["event_visibility"];
+  /** Server-side only: the masking helper takes it, and nothing hands it to a browser. */
+  qrToken: string;
+};
+
+/**
+ * One tile of the picker (`identity-profile` r1, `attended=picker`: "tap an event's own cover to
+ * show it"), the ONE way a person chooses what her page shows, in Account and in the setup wizard.
+ * Only what the tile draws crosses to the client: no token, no host, no link.
+ */
+export type AttendedEventPick = {
+  id: string;
+  /** "Private event" while its host keeps the album private, as her dashboard's card says. */
+  name: string;
+  shownOnProfile: boolean;
+  /** The album's newest approved photograph, presigned, and only while the album is open. */
+  coverUrl: string | null;
+  /** The host made the album private: the tile wears a lock and no name, never a cover. */
+  locked: boolean;
 };
 
 /**
@@ -714,7 +742,9 @@ export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
           (await mustQuery(
             admin
               .from("events")
-              .select("id, name, event_date, host_id, created_at")
+              .select(
+                "id, name, event_date, host_id, created_at, visibility, qr_token",
+              )
               .in("id", chunk)
               .neq("host_id", user.id)
               .is("deleted_at", null),
@@ -733,11 +763,57 @@ export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
         name: e.name,
         event_date: e.event_date,
         shownOnProfile: shown.has(e.id),
+        visibility: e.visibility,
+        qrToken: e.qr_token,
       }));
   } catch (error) {
     if (isSocialSchemaMissing(error)) return [];
     throw error;
   }
+}
+
+/**
+ * The events I added photos to, as the picker's tiles: `getMyAttendedEvents`, each masked by its
+ * album's own rules and given its cover.
+ *
+ * ★ THE MASKING IS THE DASHBOARD'S GUEST CARD'S, BY CONSTRUCTION (`guestEventCardProps`, the one home
+ * of "a card is a window onto somebody else's album and must never show more than the album
+ * would"): an open album shows its newest approved photograph, a password album its name and no
+ * cover, a private album neither. The same person sees one event the same way on her dashboard and
+ * in her picker. A private album's tile still toggles: the choice is hers whatever the host does,
+ * and a choice she can see is one she can take back.
+ *
+ * Covers come through `adminCoverUrls` for the open albums only, the ids this function's own
+ * scoped read produced (the caller's approved uploads on a proved row), so nothing new is read.
+ */
+export async function getMyAttendedEventPicks(): Promise<AttendedEventPick[]> {
+  const events = await getMyAttendedEvents();
+  if (events.length === 0) return [];
+  const covers = await adminCoverUrls(
+    events.filter((e) => e.visibility === "open").map((e) => e.id),
+  );
+  return events.map((e) => {
+    const card = guestEventCardProps(
+      {
+        eventId: e.id,
+        name: e.name,
+        eventDate: e.event_date,
+        visibility: e.visibility,
+        qrToken: e.qrToken,
+        hostName: null,
+        // The card's recency key; a pick keeps the list's own order, so it is never read.
+        lastUploadAt: "",
+      },
+      covers.get(e.id) ?? null,
+    );
+    return {
+      id: e.id,
+      name: card.name,
+      shownOnProfile: e.shownOnProfile,
+      coverUrl: card.coverUrl,
+      locked: !card.accessible,
+    };
+  });
 }
 
 /**
