@@ -317,7 +317,7 @@ harness (nodes, animations, a fling's frames, renders per like, tick and poll, a
 a production build; `?surface=host` is the hub's album there (its store, select mode, bin and View menu) over one fake
 server answering the poll, the writes and the bin's routes as the real ones do.
 
-- **A tile shows state, not controls**: at most an active like, a play mark, a like count and the guest's `MineMark`;
+- **A tile shows state, not controls**: at most an active like, a play mark and a like count;
   on a phone that is the whole tile, and every action lives in the viewer. At a desk the surface's `tileActions` ride
   one glass pane (the host's verbs: [host-app.md](host-app.md)), `display:none` until the tile is hovered or the
   keyboard is inside it (`data-kbd-focus`, written by the grid, since `:has(:focus-visible)` does not reliably

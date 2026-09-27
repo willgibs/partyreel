@@ -40,7 +40,6 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `guest-door` | lit's own pieces on every door screen; `guest-capture`'s five (the keep ask as the door's last screen, the told name with Change, one confirm beat, the tracker and its count); retires `guest-capture` | building (agent a2cd842994c0d4f98) | Opus, 3131 | |
-| `mine-none` | no mark on her own tiles (`MineMark` out); retires `media-viewer` | building (agent a78979075b49d80b0) | Sonnet, 3132 | |
 | `profile-setup` | `identity-profile`'s five (the wizard, the cover picker, off with a one-time choice, the prompt after a claim, the private count) and the claims toast's page line; retires `identity-profile`; may bring a migration | building (agent a80f91261f8069030) | Opus, 3133 | |
 | `reel-marketing` | `reel-story` r2's four with his notes; the footer's stack back; the demo link alone in 19 places; marketing's own content principle; ASSETS asks | building (agent af73905e2c6c564c7) | Opus, 3134 | |
 | `story-r3` | board `reel-story` r3: the hero polished, beside the demo link, the reel's line | drawing (agent a6e566ce3c8f95382) | Opus, 3135 | |
@@ -50,6 +49,8 @@ a lane").
 
 Batch 3 closed at milestone 29 (`ab30a7f8`, 2026-09-26): 49 lanes since milestone 28, their merge commits carrying
 the rest.
+
+Merged in batch 4 (their records carry the rest): mine-none.
 
 ## Next, in order
 
