@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "ab30a7f8"          # the launch-prep SHA this state was written at
+cut: "1a455e5f"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/theme.css
   - src/app/(marketing)/marketing.css
@@ -39,24 +39,41 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `guest-door` | lit's own pieces on every door screen; `guest-capture`'s five (the keep ask as the door's last screen, the told name with Change, one confirm beat, the tracker and its count); retires `guest-capture` | building (agent a2cd842994c0d4f98) | Opus, 3131 | |
+| `mine-none` | no mark on her own tiles (`MineMark` out); retires `media-viewer` | building (agent a78979075b49d80b0) | Sonnet, 3132 | |
+| `profile-setup` | `identity-profile`'s five (the wizard, the cover picker, off with a one-time choice, the prompt after a claim, the private count) and the claims toast's page line; retires `identity-profile`; may bring a migration | building (agent a80f91261f8069030) | Opus, 3133 | |
+| `reel-marketing` | `reel-story` r2's four with his notes; the footer's stack back; the demo link alone in 19 places; marketing's own content principle; ASSETS asks | building (agent af73905e2c6c564c7) | Opus, 3134 | |
+| `story-r3` | board `reel-story` r3: the hero polished, beside the demo link, the reel's line | drawing (agent a6e566ce3c8f95382) | Opus, 3135 | |
+| `door-r3` | board `identity-door` r3: the remaining icons and copy within lit | drawing (agent a3e1caeac781e84b4) | Opus, 3136 | |
+| `claims-r2` | board `identity-claims` r2: the batch he leans to, `pointer` reworded | drawing (agent a72d60ed8fe32ec5d) | Opus, 3137 | |
+| `popups` | new board `popups` r1: the surface for each kind of popup; absorbs other boards' surface asks | drawing (agent a9ebbc2cd1742f5c5) | Opus, 3138 | |
 
 Batch 3 closed at milestone 29 (`ab30a7f8`, 2026-09-26): 49 lanes since milestone 28, their merge commits carrying
-the rest; `launch-prep` holds no product change past `main`, and no lane, worktree or dev server is open.
+the rest.
 
 ## Next, in order
 
-1. **Will's sitting on build 10** (the alias, `43b82591`, the desk's 21 boards): his paste goes through
-   `pnpm lab:review` on STDIN (`--dry` first), then the verdicts become lanes: `reel-marketing` (his `reel-story` r2),
-   the door's look (his `identity-door` r2) over `door-flow`, the mark's wiring (his `media-viewer` r3). The alias
-   stays on build 10 until his sitting ends; build 11 carries those lanes.
-2. **Build 11's red-team**, once they land. The scope of a full red-team, as build 10's walked it:
+1. **Batch 4 lands** (cut `1a455e5f` from Will's sitting on build 10, his ledgers at `0b2af407`; his chat calls
+   2026-09-27: `popups` first on the desk, the demo link bare everywhere while `story-r3` explores, the door's other
+   icons and copy through `door-r3` first). Integrate each as it hands off. The records carry: the three retirements'
+   ledgers deleted (`guest-capture`, `media-viewer`, `identity-profile`: each lane retires its own board's folder and
+   lines); `DESK_ORDER` as `popups`, `identity-door`, `identity-claims`, `reel-story`, then the 15 unchanged boards;
+   `reel-marketing`'s asset slots into `docs/ASSETS.md` and row 1 no longer "made from the demo album";
+   `profile-setup`'s migration by the protocol if it brings one; and, once the four boards land, their new asks read
+   side by side (`board-card.mjs --desk`), any two that ask one decision merged.
+2. **Build 11** once all eight land: `[preview]`, `alias-ensure`, `page-console` on the desk's boards, then tell Will
+   the desk is ready, `popups` first. Its red-team walks the scope of a full red-team, as build 10's walked it:
    - the reel on the album's data path: the tile, the view, clips, access, the password event, the demo;
    - `?reel=screen` soaked headless at 1920x1080 for 100 minutes (a hidden pane throttles the page);
-   - the door at 375 on the Sheet;
-   - the album at scale on both surfaces, and album-fixes' live walks it never had: a hide just above a deep guest's
-     view moves nothing in it, and the bin's viewer restores and deletes on a phone as a signed-in host;
-   - the owner's own password album, plain, `?reel` and `?reel=screen`, and its Download all.
-3. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
+   - the door at 375 on the Sheet, now lit, with the keep screen after the first upload and the told name;
+   - the album at scale on both surfaces, with no mark on a guest's own tiles, a hide just above a deep guest's view
+     moving nothing in it, and the bin's viewer restoring and deleting on a phone as a signed-in host;
+   - the owner's own password album, plain, `?reel` and `?reel=screen`, and its Download all;
+   - the tracker's count, the setup wizard, the private page's count from a second viewer and anonymously, the
+     marketing pages (the 19 bare demo links, the footer's stack, the still twin card, the contained player).
+3. **After his sitting on build 11**: the wiring of his picks on `popups`, `identity-door` r3, `identity-claims` r2 and
+   `reel-story` r3.
+4. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
    self-registering folder, its metadata in its spec, lab checks scoped to the lane's own boards, the authoring API
    trimmed, a fresh agent proving it; with library-lean's board ideas (a `Surfaces` family of live frames per route
    with guest entries, the Library's sidebar open by default, a plain-text view of Library pages, a
@@ -65,7 +82,8 @@ the rest; `launch-prep` holds no product change past `main`, and no lane, worktr
 
 ## Waiting on Will
 
-- **His sitting on build 10**: `identity-door` r2 first, then `reel-story` r2 and `media-viewer` r3.
+- **His next sitting, on build 11** once batch 4 lands: `popups` first, then `identity-door` r3, `identity-claims` r2
+  and `reel-story` r3, then the 15 boards build 10's sitting did not reach.
 - **A 10-second iPhone check on partyreel.com**: one tap on Save opens the system sheet (a photo, a video, a finished
   clip), and a shared photo arrives as a photograph.
 - **The calls his to overrule** from the last lanes, relayed in chat on 2026-09-26: reel-and-copy's screens following
