@@ -1,248 +1,253 @@
 import { defineExploration } from "@/components/lab/exploration";
 
-import { SCREEN } from "./scene";
+import { SCREEN } from "./screens";
 
 /**
- * THE CLAIM TICKET (the refresh, round one, 2026-09-24).
+ * PHOTOS WAITING FOR YOU, ROUND TWO: THE BATCH HIS NOTES LEAN TO (2026-09-27).
  *
- * The foundation shipped `deliberately plain` (`claims-card.tsx`): one card
- * at the head of Your events, every event a row, Claim or Not mine, Claim
- * all, Finish, a confirmation whenever Finish would delete something
- * unclaimed. This board is its refinement catalog, lab-only, no production
- * byte: five decisions over Priya (`guest-capture`'s and `media-viewer`'s own
- * guest), who confirmed her email this morning at Maya and Jay's wedding and
- * finds two older events waiting under that address: Tom's leaving do,
- * really hers, and a beach bonfire she never attended, uploaded under her
- * email by someone else.
+ * Round one answered (docs/reviews/identity-claims.json): the banner above the
+ * feed opens the review (`ticket=banner`), one event at a time with its own
+ * small preview (`pass=cards`), a dialog before any deletion (`confirm=dialog`),
+ * and the finish toast points to her page (`after=profile`). His note under
+ * all of it: "we need a consensus - batch handling with in-batch confirmations,
+ * or separate handling? Likely batch, with an action to 'enter'/follow up on
+ * each claimed event as you go." And `pointer` came back as a question: "I
+ * have 4 claimable events - am I visiting a separate follow up confirmation
+ * page for each event I claim?"
  *
- * ★ THE TICKET CANNOT TELL THE TWO APART: the host cannot see the attributed
- * email of an unconfirmed account. Both render as ordinary rows; the
- * distinction lives only in Priya's own memory, which is exactly what lets
- * `pass`, `confirm` and `after` show a mixed state, one claimed and one left
- * over, rather than two identical decisions.
+ * ★ SO THIS ROUND DRAWS ONE BATCH AND ASKS WHAT MAKES IT A GOOD ONE. The four
+ * picks are ground in every frame; round one's five asks are gone from `asks`
+ * (a round replaces its questions; the ledger keeps the answers). Three asks
+ * shape the batch and one rewrites `pointer`:
+ *   - `save`: whether a choice waits for Finish (today) or is written as she
+ *     makes it;
+ *   - `confirm`, after `save`: whether his dialog stops her at the card that
+ *     says Not mine, or once at the end (today);
+ *   - `next`, after `save`: what a claimed event offers as she goes, carrying
+ *     `guest-capture`'s follow note ("needs to work within any multi-claim
+ *     handling. Follow doesn't have to be pushed as hard");
+ *   - `pointer`: one review, never a page per event, and where it opens.
  *
- * ★ ALL FIVE ARE ROOTS. Each holds the other four at today's shape and moves
- * only its own piece (`guest-capture`'s own note, carried here): where the
- * ticket lives, how the album points to it, how she works through more than
- * one event, how she is warned before a deletion, and what Finish leaves her
- * looking at.
+ * ★ `confirm` AND `next` ARE DRAWN IN THE WORLD OF HIS `save`. The dialog
+ * belongs where its deletion happens, and a follow-up needs a written claim, so
+ * both look different under the two answers; staging them (`after`) means he
+ * is asked each in the world he chose. `save`'s own two options are each drawn
+ * with the dialog where it naturally sits (Finish's at the end, as-you-go's at
+ * the card), which its option lines say.
  *
- * ★ WHAT ELSE IS HELD STEADY. The three levels of trust, the per-event name
- * until a claim, the public mark's word "Unverified", and Finish removing
- * what stays unclaimed: a confirmed caller with rows waiting is the premise
- * this board stands on, not a question inside it. Four of the five decisions
- * below hold the RPCs (`claim_guest_rows_by_email`, `disown_guest_rows_by_email`)
- * and their per-event grouping exactly as shipped; `pass`'s fourth option is
- * the one place a real build would ask them for a photograph's own id
- * instead, not only an event's.
+ * ★ OUT OF THIS ROUND: where the review opens (a side sheet here, as round one
+ * drew it) is the `popups` board's question; the toast's page line is being
+ * wired by `profile-setup`; the door's "You're in" words are `identity-door`
+ * round three's. Nothing here asks any of them.
  */
 
 const IDENTITY_CLAIMS_DRAFT = defineExploration({
   id: "identity-claims",
   title: "Photos waiting for you",
   round: {
-    n: 1,
-    date: "2026-09-24",
+    n: 2,
+    date: "2026-09-27",
     changed:
-      "The refresh: pass gains a fourth option that decides by photograph instead of by event. Redrawn for the door's round two: pointer's moment can come at the door now, so every option is drawn at the album and at the door.",
+      "One batch, as his notes lean: the banner's review, one event at a time, each claimed event followed up as she goes. Three asks shape it (when a choice is saved, where the deletion's dialog sits, what a claim offers); pointer is rewritten as one review.",
   },
+  history: [
+    {
+      n: 1,
+      date: "2026-09-24",
+      changed:
+        "Five decisions on the plain claim ticket: its home, the album's pointer, working through more than one, the warning before a deletion, what Finish leaves. He took the banner, one card at a time, the dialog and the profile toast.",
+    },
+  ],
   context:
-    "Priya confirmed her email this morning at Maya and Jay's wedding (guest-capture's own world). Two older events wait under that address: Tom's leaving do, really hers, and a beach bonfire she never attended, uploaded under her email by someone else. Five decisions on the ticket that lets her sort the two: where it lives, how the album points to it, how she works through more than one, how she is warned before a deletion, and where Finish leaves her.",
+    "Priya confirmed her email this morning at Maya and Jay's wedding, and four older events wait under it: Tom's Leaving Do, Ana's 30th (a password event) and Quiz Night were hers; a beach bonfire was someone else typing her email. His round one picks are ground: the banner above Your events opens the review in round one's side sheet, one event at a time with its own photos, a dialog before any deletion, and a finish toast that points to her page.",
+  carried: [
+    {
+      id: "decided-list",
+      question: "Where does an event go once she decides it?",
+      taken:
+        "Into a list under the card, with its follow-up, while the next card comes up: four events are four taps, never a stop per event.",
+      overrule:
+        "If each claim deserves a beat of its own, the card turns to Yours now with its follow-up and a Next.",
+    },
+    {
+      id: "unreached",
+      question: "What happens to an event she never reaches?",
+      taken:
+        "It waits: only a Not mine deletes, and the banner keeps counting it. Today's Finish reads an untouched row as not mine.",
+      overrule:
+        "If walking away should count as not mine, closing the review asks before deleting what is left.",
+    },
+    {
+      id: "gated-photos",
+      question: "What does a password event's card show?",
+      taken:
+        "No photos, as its date is already withheld (QA #40): a lock and the count, so a gated album never shows itself to an address.",
+      overrule:
+        "If she needs to see them to decide, the card asks for that event's password before showing any.",
+    },
+    {
+      id: "door-beat",
+      question: "Does the door's You're in point to the waiting events too?",
+      taken:
+        "No: it is a held beat of about a second while the album loads, with nothing to press, so a line there goes unread; she meets the banner instead.",
+      overrule:
+        "If the door should point too, its beat waits for her with the line and a Continue, which is identity-door's to draw.",
+    },
+    {
+      id: "no-toast",
+      question: "Is a toast still a way to point from the album?",
+      taken:
+        "No: the confirm return is becoming one beat (guest-door is building it), and a toast would stack on top of it.",
+      overrule:
+        "If a toast should point, it replaces the moment card's line rather than joining it.",
+    },
+  ],
   asks: [
     {
-      id: "ticket",
-      label: "The ticket's home",
+      id: "save",
+      label: "When a choice is saved",
       question:
-        "Where should the claim ticket live when Priya reaches her dashboard?",
+        "When Priya decides an event in the review, when should her choice be saved?",
       context:
-        "Today one plain card sits at the head of Your events, every row shown with Claim or Not mine. Drawn only when a confirmed account has rows waiting under its own address.",
+        "Claim adds an event's photos to her account; Not mine deletes them. Today one Finish writes every choice at once. Drawn after two (Tom's claimed, the bonfire not hers): her dashboard if she stops there, then the review.",
       options: [
         {
-          id: "card",
-          label: "The plain card, as shipped",
+          id: "finish",
+          label: "Kept in the review until Finish",
           means:
-            "Sits at the head of Your events with every event's Claim or Not mine already open.",
+            "Every choice waits with an Undo, and Finish writes them all, as today, one dialog there covering the deletions. Closed early, nothing is saved yet.",
         },
         {
-          id: "banner",
-          label: "A slim banner that opens a sheet",
+          id: "once",
+          label: "Saved the moment she decides",
           means:
-            "One line above the feed with a Review button; the detail opens in a side sheet, the feed itself untouched.",
-        },
-        {
-          id: "bell",
-          label: "A bell notification, feed untouched",
-          means:
-            "The bell's badge counts it; its drawer holds the same rows and Your events never grows a new card.",
+            "A claim is added as she taps it and joins Your events; a Not mine is deleted once its dialog says so. Closed early, what she did stays done.",
         },
       ],
-      recommended: "card",
+      today: "finish",
+      recommended: "once",
       because:
-        "The events list is where a host already looks first, and a confirmed caller with rows waiting is rare enough that a permanent card costs nothing the rest of the time it is gone.",
+        "It makes his three notes one flow: each event handled is done for good, so the stack truly shrinks; she can stop and come back; and a claimed event can be entered as she goes. A deletion still waits for its dialog.",
       overrule:
-        "If the ticket should feel like an inbox item rather than a fixture of the page, the bell keeps Your events completely undisturbed.",
+        "If a mis-tapped claim must be undoable, keeping choices until Finish gives each an Undo, and the follow-ups wait for Finish.",
       lands:
-        "Whether claiming photographs is a fixture of the dashboard or a notification a host opens on purpose.",
-      tile: "phone",
-      configs: [SCREEN],
-    },
-    {
-      id: "pointer",
-      label: "The pointer from the album",
-      question:
-        "When Priya confirms and rows wait elsewhere, how should she learn about them?",
-      context:
-        "She confirms at the album's moment card, or now at the door itself before any upload (the verification door, Create account, Log in). Two older events wait under her email; each option is drawn in both places.",
-      options: [
-        {
-          id: "quiet",
-          label: "Nothing here, the dashboard's the one place",
-          means:
-            "The moment card and the door's You're in name only this event; what waits elsewhere stays on the dashboard until she visits it.",
-        },
-        {
-          id: "line",
-          label: "A line where she lands, with a link",
-          means:
-            "The moment card, or the door's You're in, gains a line: six photos from two other events are waiting for you, linking to the dashboard.",
-        },
-        {
-          id: "toast",
-          label: "A toast right after confirming",
-          means:
-            "A second toast surfaces once, over the moment card or the door's You're in; missed, the dashboard still holds every row.",
-        },
-      ],
-      recommended: "line",
-      because:
-        "She is certainly reading where she lands, the moment card or the door's You're in, so a line there costs nothing extra to notice; a toast can be missed and leaves six photographs unmentioned.",
-      overrule:
-        "If the moment should stay narrowly about this event, naming what waits elsewhere may dilute it.",
-      lands:
-        "Whether confirming an email surfaces everything waiting under it at once, or only what happened here.",
-      tile: "phone",
-      configs: [SCREEN],
-    },
-    {
-      id: "pass",
-      label: "Working through more than one",
-      question: "How should Priya work through more than one waiting event?",
-      context:
-        "One card lists every event as a row today, Claim or Not mine beside each. She has two: Tom's leaving do, hers, and a bonfire she never attended. The RPCs decide per event; a photo grid would need their own grain instead.",
-      options: [
-        {
-          id: "rows",
-          label: "Every event as a row, as shipped",
-          means:
-            "Both events sit in one list at once; Claim or Not mine per row, Claim all and Finish beneath.",
-        },
-        {
-          id: "cards",
-          label: "One event at a time, as cards",
-          means:
-            "Tom's leaving do fills the card alone with its own small preview; deciding it advances to the bonfire.",
-        },
-        {
-          id: "checklist",
-          label: "A checklist, photos shown small",
-          means:
-            "Both events list as rows that open to a small photo grid right there, before Claim or Not mine.",
-        },
-        {
-          id: "photos",
-          label: "Every photo, one flat grid",
-          means:
-            "All six photos from both events sit in one grid; a tap marks each Mine or Not mine, no event-level step at all.",
-        },
-      ],
-      recommended: "rows",
-      because:
-        "Two events is not a queue: seeing both at once with a Claim all shortcut is faster than stepping through one at a time, opening every row's photos, or judging photo by photo.",
-      overrule:
-        "If one event ever mixed a real photo with a stranger's, only the flat grid can split it; rows, cards and the checklist all still decide by event, whole.",
-      lands:
-        "Whether deciding a handful of events is one glance, a small photo review each time, or a decision the RPCs make photo by photo.",
+        "Whether the review is a form sent at the end or a queue that saves as it goes.",
       tile: "phone",
       configs: [SCREEN],
     },
     {
       id: "confirm",
-      label: "Warning before a deletion",
+      label: "Where the deletion's dialog sits",
       question:
-        "How should Priya be warned before an unclaimed event's uploads are deleted?",
+        "Where should the dialog before a deletion appear in the review?",
       context:
-        "Finish with anything unclaimed opens a dialog today, naming the events and the count. She left the bonfire's two untouched, which reads as not mine, delete it.",
+        "Your pick is a dialog before any deletion. It can stop her at the card that says Not mine, or wait and cover every Not mine at once at the end. Drawn with your answer on saving.",
       options: [
         {
-          id: "dialog",
-          label: "A dialog, as shipped",
+          id: "card",
+          label: "At the card, when she says Not mine",
           means:
-            "Finish opens a centred dialog naming the event and the count, Delete and finish or Go back.",
+            "Not mine opens the dialog for that one event while its photos are still in view; she confirms it there and the next card comes up.",
         },
         {
-          id: "inline",
-          label: "The leftover row turns red inline",
+          id: "end",
+          label: "Once at the end, for every Not mine",
           means:
-            "Tapping Finish turns the bonfire's row destructive in place with its count, one Delete button.",
-        },
-        {
-          id: "second-screen",
-          label: "A second screen listing every photo",
-          means:
-            "Finish advances to one more screen: every photo the bonfire would lose, small, before deleting.",
+            "Not mine marks the card and moves on; after the last card one dialog names every marked event and deletes them together, as today's Finish does.",
         },
       ],
-      recommended: "dialog",
+      today: "end",
+      recommended: "card",
       because:
-        "A permanent deletion is the one action here that cannot be undone, and a dialog stops her before it happens rather than beside a row she might tap past.",
+        "She confirms a deletion while she is looking at the photos it deletes, never a list of names to recall at the end, and with choices saved as she goes it sits exactly where the deletion happens.",
       overrule:
-        "If losing photographs is the risk that matters most, only the second screen shows her what she would lose before she loses it.",
+        "If several Not mines should cost one confirmation, the end's single dialog covers them all.",
       lands:
-        "How hard it is to delete a stranger's upload by accident on the way to keeping your own.",
+        "Whether a deletion is confirmed one event at a time or in one sweep at the end.",
+      after: { ask: "save" },
       tile: "phone",
       configs: [SCREEN],
     },
     {
-      id: "after",
-      label: "What Finish leaves her looking at",
-      question: "What should Finish leave Priya looking at?",
+      id: "next",
+      label: "What a claimed event offers",
+      question:
+        "What should each event Priya claims offer her right there in the review?",
       context:
-        "A toast says it today: Added 4 photos to your account. Claiming also settles Tom's leaving do into Your events as a Guest card, the ticket gone, since an upload alone is what makes her a guest of it. She claimed it and let the bonfire go.",
+        "Your note: a way to enter or follow up on each claimed event as she goes; your guest-capture note: follow works in a batch without being pushed. A claimed event's row in the review offers it once the claim is saved.",
       options: [
         {
-          id: "toast",
-          label: "The toast, as shipped",
+          id: "album",
+          label: "Open its album",
           means:
-            "Added 4 photos to your account. Tom's leaving do settles quietly into Your events as an ordinary Guest card, the ticket gone.",
+            "Every claimed row carries Open album, so she can step into Tom's Leaving Do now or keep going. Nothing here follows a host.",
         },
         {
-          id: "profile",
-          label: "The toast, plus a profile pointer",
+          id: "host",
+          label: "Follow its host",
           means:
-            "The same toast gains a second line, Choose what shows on your page, linking to the profile.",
+            "Every claimed row carries its host's face and Follow, as the moment card does. A host with no page (Quiz Night's) leaves the row empty.",
         },
         {
-          id: "strip",
-          label: "The claimed event opens in a strip",
+          id: "both",
+          label: "Its album, with a quieter Follow",
           means:
-            "Unlike the baseline's quiet settle, Tom's leaving do gets one highlighted 'Just claimed' beat, expanding into a small strip with its photos right there.",
+            "Open album on every row, and a small Follow beside it where the host has a page: entering leads, following is there when she wants it.",
         },
       ],
-      recommended: "profile",
+      recommended: "both",
       because:
-        "Nothing today tells a fresh confirmer a profile even exists to choose from, and the instant after claiming photographs is exactly when that matters most.",
+        "Open album answers 'enter as you go' on every row, even where the host has no page, and a quiet Follow keeps follow inside the batch without pushing it, as your guest-capture note asks.",
       overrule:
-        "If the moment should stay small, the plain toast already closes the loop without sending her anywhere new.",
+        "If one action per row is calmer, Open album alone keeps the list quiet; a host is followed from their own page.",
       lands:
-        "Whether claiming photographs doubles as the moment a new profile gets introduced.",
+        "What a claim turns into on the spot: a way into the event, a person to follow, or both.",
+      after: { ask: "save" },
+      tile: "phone",
+      configs: [SCREEN],
+    },
+    {
+      id: "pointer",
+      label: "Pointing from the album",
+      question:
+        "When Priya confirms at one album and 4 more events wait under her email, what should the album say?",
+      context:
+        "Your question: with 4 waiting, is each claim a page of its own? Never: every option points to one review holding all 4, one card at a time. Drawn where each option lands, then at the album's moment card.",
+      options: [
+        {
+          id: "quiet",
+          label: "Nothing; her dashboard's banner",
+          means:
+            "The moment card names this event only. All 4 wait behind one banner on her dashboard, in one review, whenever she next goes there.",
+        },
+        {
+          id: "line",
+          label: "One line: Review all 4 on her dashboard",
+          means:
+            "The moment card gains one line counting the 4; Review all 4 takes her to her dashboard with the one review open at 1 of 4.",
+        },
+        {
+          id: "here",
+          label: "One line: the review opens right here",
+          means:
+            "The same line, but Review all 4 opens that one review over this album, so she sorts all 4 without leaving the party.",
+        },
+      ],
+      recommended: "line",
+      because:
+        "She is reading the moment card anyway, so one line costs nothing to notice, and landing on her dashboard shows her where claimed events live from now on.",
+      overrule:
+        "If the party should keep her, the review opens over the album; if the moment should stay about Maya, say nothing.",
+      lands:
+        "Whether confirming at one album surfaces the rest at once, and where she sorts them.",
       tile: "phone",
       configs: [SCREEN],
     },
   ],
 });
 
-/** One knob per id (`guest-capture`'s own dedupe): every ask declares the
- *  same SCREEN control, so the constructor would draw it five times without this. */
+/** One knob per id: every ask declares the same SCREEN control
+ *  (`defineExploration` dedupes too; deduping twice is deduping once). */
 export const IDENTITY_CLAIMS: typeof IDENTITY_CLAIMS_DRAFT = {
   ...IDENTITY_CLAIMS_DRAFT,
   controls: IDENTITY_CLAIMS_DRAFT.controls?.filter(
