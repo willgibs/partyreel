@@ -98,7 +98,9 @@ is near it; **beam** marks the object that is the live subject. Ink tends to tak
 
 - **Spill** has a named source (an object, or the place it lights, as the footer's seam does), a direction, the colour
   of the lit thing (sampled media, or the lamp set where there is none; never a house or state colour, or the glow
-  becomes a second palette) and a falloff that draws no edge, sits behind content and keeps an always-on base.
+  becomes a second palette) and a falloff that draws no edge, sits behind content and keeps an always-on base. ★ Spill in dark stays off
+  the words: under a muted word the atmosphere register reads about 2:1, so a lamp behind copy spends itself in the
+  padding in dark (the door's, `door/lit.css`, measured).
 - **Beam** marks the live subject (uploading, publishing, live), one per view, and ends when the state ends. The Get
   Pro card, lit at rest, is the one exception.
 - **Scarcity is a distance**: roughly a viewport of unlit page between lamps.
