@@ -1,6 +1,6 @@
 ---
 track: mine-none
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "0b2af407"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -62,25 +62,89 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- none: r3's ruling ("Nothing on the tiles... View's Showing... finds them... the viewer still credits yours as
+  You") left nothing to interpret; built as written.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: `design-system.md` and `guest-flow.md` are this lane's `reads`; their lines are in the Handoff, for the
+  Orchestrator.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Scratch artifacts (gate logs) are in `/Users/gibby/local/ai/partyreel-wt/_scratch/mine-none/`; never the repo.
+- Work commits `784d7500` (the mark's removal; View's Showing is the one door) and `24e302e6` (media-viewer
+  retires). No sync commit: `origin/launch-prep` moved once since the cut (`1a455e5f` → `1de4fd42`), a record-only
+  "pickup" touching `docs/STATUS.md` and `docs/tracks/orchestrator.md` alone (PROGRAM.md: a sync that only brings
+  records costs a full gate for nothing). Both commits pushed on `lp/mine-none`; the head is this manifest's own
+  commit.
+- Gates on the synced tree (`24e302e6`, unsynced per above — record-only upstream), each on its own exit code
+  (logs in `_scratch/mine-none/gate-*.log`): `pnpm typecheck` 0; `pnpm lint` 0 (0 errors; its 6 warnings sit in 5
+  files this lane never touched); `pnpm test` 0, 5,472 passed across 484 files; `zsh scripts/build-lock.sh pnpm
+  build` 0; `pnpm lab:smoke --base http://localhost:3132` 0, 255 checks, 0 failing (the one 500 is
+  `/design/lab/tools/boom`, its own permanent intentional boundary probe, unrelated).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = 13 owned paths (`album-tile.tsx`; `masonry.tsx`
+  and its test; `unverified-mark.tsx`; `gallery-rows.tsx`; `guest-masonry.tsx`; `live-gallery.tsx` and its test; all
+  five files of `sandbox/media-viewer/`, deleted) + 3 named exceptions (`(shell)/lab/boards.ts`,
+  `sandbox/registry.ts`, `touchpoints.ts` — the manifest's own retirement lines) + this file.
+- The items:
+  - **No mark rides a guest's own tile, ever.** `MineMark` (`album-tile.tsx`), the `mine`/`mineSelected` tile
+    props, `data-mine`, and `MasonryColumns`' `mineIds`/`onSelectMine`/`mineSelected` props and the
+    `data-tile-mark="mine"` branch of its one click handler (`masonry.tsx`) are deleted outright, not hidden
+    behind a flag: no prop is left that could reintroduce the mark. `GalleryRows` and `GuestMasonry` lost the same
+    three pass-through props (`GuestMasonry`'s were already dead — no real caller ever passed them, checked
+    repo-wide: the marketing stage and every lab board that mount it pass only `items`).
+    - Pins: `masonry.test.tsx`, "a tile carries MARKS, and a phone carries nothing else" gains "never wears a
+      mine mark: no id set, no tap, nothing to render it with", replacing the five-test "yours mark" describe
+      block (it pinned a mechanism with no code path left to exercise); the rows-layout "keeps everything a tile
+      carries" test drops its `mineIds` line and assertion.
+  - **View's Showing is the one door**, unchanged: the "Showing" group already existed only once
+    `ownedCount > 0` and its Yours option already filtered the album (`buildGuestViewGroups`, `yoursView`,
+    neither touched) — the mark was a second, redundant door onto the same state, now closed.
+    `live-gallery.tsx` still keeps `showMine`/`setShowMine` for the View menu and the "Showing yours · Show all"
+    line, whose own comment no longer credits the mark as the other exit.
+    - Pin: `live-gallery.test.tsx`, "a signed-in guest's new photograph is theirs the moment it lands (Trash and
+      the Yours filter)" — reshaped from "(Trash and mark)": drops the `mineIds` assertion (the prop is gone) for
+      a real one, opening View and picking "Yours (1)" to prove the same upload is found by the filter now that a
+      tap on the tile can't do it.
+  - **The viewer's "You" is untouched** (`media-lightbox-parts/credit.tsx:82`): outside this lane's `owns` and
+    outside its diff.
+  - **`media-viewer` retires**, its three rounds all built: `SandboxId`, its `RULINGS` row and its `DESK_ORDER`
+    line out of `touchpoints.ts`, its spec out of `sandbox/registry.ts`, its component out of `(shell)/lab/boards.ts`,
+    `sandbox/media-viewer/` off the tree — the album-columns retirement (`95c8aa56`) is the template, followed
+    exactly (no disagreement to log this time). Only `registry.ts` and `boards.ts` imported the folder (checked
+    repo-wide); `masonry.tsx`'s re-export of `AlbumRows`/`RowTileBox` existed only for media-viewer's own album
+    (its sole importer) and is trimmed to the `AlbumHandle` type other surfaces still use. Every other
+    "media-viewer" hit left in the tree (`masonry.tsx`'s and its test's own `?photo=` WHY-comments,
+    `media-lightbox.tsx`, `media-lightbox-parts/*`, `share-save.ts`, `moderation-grid.test.tsx`, `host-curation`'s
+    own board) is a round-1 prose citation — the precedent's own carve-out for exactly this.
+  - **Not driven from this lane: a live click-through as a guest who owns an upload.** Reproducing "she sees no
+    dot, View finds her upload, the viewer says You" needs a session (join, then upload) this worktree cannot
+    mint: both are allow-list-gated and refuse off localhost (CLAUDE.md). Verified instead by the DOM-level pins
+    above (real renders of `MasonryColumns` → `AlbumTile`, and of `LiveGallery` wired to the real
+    `yoursView`/`buildGuestViewGroups`, only the leaf `GalleryRows` mocked), a repo-wide audit finding zero
+    remaining path that could draw the mark, and a real-browser look at `/design/library/masonry` and
+    `/design/library/host-media-grid` (both render clean; the host grid was never wired to `mineIds` to begin
+    with). The live pass belongs to the alias red-team.
+- Doc lines for the Orchestrator (this lane's `reads`, never edited here):
+  - `design-system.md:320`, "A tile shows state, not controls": "at most an active like, a play mark, a like
+    count and the guest's `MineMark`" becomes "at most an active like, a play mark and a like count" (three
+    states now, the fourth is gone).
+  - `guest-flow.md:202`, the credit paragraph: "a typed one wears [`unverified-mark.tsx`](...) (MineMark's
+    material, tap to open, ..." — `MineMark` no longer exists; repoint at the material itself, e.g. "(the album
+    tile's own mark material, tap to open, ...".
+  - `guest-flow.md:802-810`, "And WHICH tiles are a guest's own": the whole paragraph describes `mineIds`,
+    `data-mine` and "a FOURTH mark" reaching the grid, none of which exist any more; needs rewriting to say the
+    grid derives ownership only for the Yours filter (`yoursView`), with no id-set prop and no mark, and that
+    View's Showing is the filter's only door (the "besides a mark" clause drops).
+- Assets requested from Will: none.
+- Board ideas: none beyond this lane.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule: none — r3's ruling was unambiguous and left no built-vs-not-built alternative.
+- Look at first: `masonry.tsx`'s `onGridClick` (the deleted `data-tile-mark="mine"` branch, to confirm nothing
+  else answers that attribute) and `live-gallery.tsx`'s `GalleryRows` call (to confirm the three props are gone
+  and nothing quietly re-adds them); then the live pass this lane could not drive (above).
