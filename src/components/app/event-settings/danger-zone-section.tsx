@@ -14,15 +14,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Popup,
+  PopupClose,
+  PopupContent,
+  PopupFooter,
+  PopupHeader,
+  PopupTrigger,
+} from "@/components/ui/popup";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
 // Settings · Danger zone. Self-contained (outside the settings <Form>): owns the
@@ -59,33 +57,31 @@ export function DangerZoneSection({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Dialog>
-          <DialogTrigger asChild>
+        {/* A CONFIRMATION over the settings (`popups` r1: `confirm=dialog`, and
+            the carried call `stacked`: a confirmation over a popup is a centred
+            dialog, at every width). */}
+        <Popup>
+          <PopupTrigger asChild>
             <Button variant="destructive">
               <Trash2 /> Delete event
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Delete “{eventName}”?</DialogTitle>
-              {/* TRUTHFUL (QA #16): this path is softDeleteEvent — the trigger stamps
-                  purge_at = +30 days and Deleted has a working restore. "Permanently...
-                  can't be undone" would be wrong in BOTH directions: a host who deleted by
-                  mistake would never think to look for it, and a host deleting for privacy
-                  would be misinformed about what we still hold. The place is named with the
-                  app's one word for it, "Deleted": the dashboard's filter, the album's View
-                  menu and the lifecycle emails all say it, never "Trash" or "bin". */}
-              <DialogDescription>
-                This removes the event and everything guests uploaded from your
-                album right away. It moves to Deleted, where you can restore it
-                for {RECENTLY_DELETED_WINDOW_DAYS} days before it is deleted for
-                good.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <DialogClose asChild>
+          </PopupTrigger>
+          <PopupContent kind="confirm">
+            {/* TRUTHFUL (QA #16): this path is softDeleteEvent — the trigger stamps
+                purge_at = +30 days and Deleted has a working restore. "Permanently...
+                can't be undone" would be wrong in BOTH directions: a host who deleted by
+                mistake would never think to look for it, and a host deleting for privacy
+                would be misinformed about what we still hold. The place is named with the
+                app's one word for it, "Deleted": the dashboard's filter, the album's View
+                menu and the lifecycle emails all say it, never "Trash" or "bin". */}
+            <PopupHeader
+              title={`Delete “${eventName}”?`}
+              description={`This removes the event and everything guests uploaded from your album right away. It moves to Deleted, where you can restore it for ${RECENTLY_DELETED_WINDOW_DAYS} days before it is deleted for good.`}
+            />
+            <PopupFooter>
+              <PopupClose asChild>
                 <Button variant="outline">Cancel</Button>
-              </DialogClose>
+              </PopupClose>
               <Button
                 variant="destructive"
                 disabled={isDeleting}
@@ -93,9 +89,9 @@ export function DangerZoneSection({
               >
                 {isDeleting ? "Deleting…" : "Delete event"}
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </PopupFooter>
+          </PopupContent>
+        </Popup>
       </CardContent>
     </Card>
   );

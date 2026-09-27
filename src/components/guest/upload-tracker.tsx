@@ -14,12 +14,11 @@ import { useGalleryLive } from "@/components/guest/gallery-live";
 import { PickPreview } from "@/components/guest/upload/pick-preview";
 import { Button } from "@/components/ui/button";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Popup,
+  PopupBody,
+  PopupContent,
+  PopupHeader,
+} from "@/components/ui/popup";
 import { formatCount } from "@/lib/format/count";
 import {
   buildTrackerRows,
@@ -50,8 +49,10 @@ import { cn } from "@/lib/utils";
  * own rows are read once at mount and again whenever she opens the list (the only place a refusal
  * can be learned, `/api/guests/mine` with `statuses`).
  *
- * ★ THE LIST OPENS IN THE ONE RESPONSIVE SHEET (the board's drawing), until `popups` answers what
- * the product's floating surfaces become.
+ * ★ HER UPLOADS ARE A LIST, SO THEY OPEN AS ONE (`popups` r1, `lists=panel`, Will 2026-09-27): a
+ * side panel beside the album at a desk, and in a hand the whole screen under a back arrow that says
+ * "Album", the phone's own Back closing it. A list is a place she moves through, not a question: no
+ * 85 percent cap and no album peeking over her rows.
  */
 
 type TrackerSnapshot = { show: boolean; waiting: number };
@@ -234,45 +235,46 @@ export function UploadTracker({
   );
 
   return (
-    <Sheet open={open && show} onOpenChange={onOpenChange}>
-      <SheetContent
-        responsive
-        className="overflow-y-auto overscroll-contain"
-        data-upload-tracker-sheet
-      >
-        <SheetHeader>
-          <SheetTitle>Your uploads</SheetTitle>
-          {/* The album's own sentence for this event's rule, so one rule has one wording. */}
-          <SheetDescription>
-            The host reviews uploads before they appear in the album.
-          </SheetDescription>
-        </SheetHeader>
-        <ul className="divide-y divide-border/60 px-4 pb-6">
-          {rows.map((row) => {
-            const queued = row.queueId ? queueById.get(row.queueId) : null;
-            const localUrl = row.queueId
-              ? live?.pendingUrls.get(row.queueId)
-              : undefined;
-            const linked = row.mediaId ? byId?.get(row.mediaId) : undefined;
-            const src = linked ? linked.previewUrl || linked.url : "";
-            return (
-              <TrackerRowView
-                key={row.key}
-                row={row}
-                picture={
-                  queued && localUrl ? (
-                    <PickPreview file={queued.file} url={localUrl} />
-                  ) : src ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- a presigned album link or this device's own object URL
-                    <img src={src} alt="" className="size-full object-cover" />
-                  ) : null
-                }
-              />
-            );
-          })}
-        </ul>
-      </SheetContent>
-    </Sheet>
+    <Popup open={open && show} onOpenChange={onOpenChange}>
+      <PopupContent kind="list" data-upload-tracker-sheet>
+        {/* The album's own sentence for this event's rule, so one rule has one wording. */}
+        <PopupHeader
+          title="Your uploads"
+          description="The host reviews uploads before they appear in the album."
+          back="Album"
+        />
+        <PopupBody>
+          <ul className="divide-y divide-border/60 pb-2">
+            {rows.map((row) => {
+              const queued = row.queueId ? queueById.get(row.queueId) : null;
+              const localUrl = row.queueId
+                ? live?.pendingUrls.get(row.queueId)
+                : undefined;
+              const linked = row.mediaId ? byId?.get(row.mediaId) : undefined;
+              const src = linked ? linked.previewUrl || linked.url : "";
+              return (
+                <TrackerRowView
+                  key={row.key}
+                  row={row}
+                  picture={
+                    queued && localUrl ? (
+                      <PickPreview file={queued.file} url={localUrl} />
+                    ) : src ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- a presigned album link or this device's own object URL
+                      <img
+                        src={src}
+                        alt=""
+                        className="size-full object-cover"
+                      />
+                    ) : null
+                  }
+                />
+              );
+            })}
+          </ul>
+        </PopupBody>
+      </PopupContent>
+    </Popup>
   );
 }
 

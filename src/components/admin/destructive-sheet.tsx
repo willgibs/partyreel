@@ -9,17 +9,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Popup,
+  PopupBody,
+  PopupContent,
+  PopupFooter,
+  PopupHeader,
+} from "@/components/ui/popup";
 
 /**
- * ONE SHEET FOR EVERY DESTRUCTIVE ACT, SIZED TO THE DAMAGE
- * (`destructive=sheet`, Will 2026-09-20).
+ * ONE CONFIRMATION FOR EVERY DESTRUCTIVE ACT, SIZED TO THE DAMAGE
+ * (`destructive=sheet`, Will 2026-09-20; its surface moved by `popups` r1).
  *
  * The portal had four grammars and the severity did not line up with the
  * friction: deleting an account made you retype an address, removing a photo
@@ -34,10 +33,13 @@ import {
  * type. That last rule is the whole of the sizing: typing is friction worth
  * paying exactly where nothing comes back.
  *
- * ★ IT IS THE PRODUCT'S ONE RESPONSIVE SHEET, NOT A SECOND PANEL. `responsive`
- * on `ui/sheet.tsx` (`settings=sheet`, his words: "we likely want to apply this
- * sheet concept everywhere"), so it is a side panel at a desk and a bottom
- * sheet in a hand, on the family's corner, clock and light.
+ * ★ IT IS A CONFIRMATION, SO IT OPENS AS ONE (`popups` r1, `confirm=dialog`,
+ * Will 2026-09-27: "These are all rarer destructive actions, so a focused
+ * confirmation over an undo is far more helpful"). A centred dialog at every
+ * width, `md` because it lists what it touches, and keyboard-safe where an
+ * address is typed. The names `DestructiveSheet` and `GuardedSwitch` stay:
+ * their callers live in `src/app/admin/`, and a rename is one line each for
+ * the next lane there.
  *
  * ★ THE TYPED CONFIRMATION IS A SECOND LOCK, NEVER THE LOCK. Every server
  * action behind this re-verifies for itself (the account delete compares the
@@ -82,28 +84,24 @@ export function DestructiveSheet(props: {
   successMessage: string;
 }) {
   return (
-    <Sheet open={props.open} onOpenChange={props.onOpenChange}>
-      <SheetContent
-        responsive
-        data-severity={props.severity}
-        className="gap-0 overflow-y-auto"
-      >
+    <Popup open={props.open} onOpenChange={props.onOpenChange}>
+      <PopupContent kind="confirm" size="md" data-severity={props.severity}>
         {/*
           ★ THE BODY IS A CHILD OF THE PANEL, AND THAT IS WHAT CLEARS THE FIELD.
           A half-typed confirmation must not survive the panel closing:
           reopening it and finding the button already armed is the opposite of
-          what typing is for. Radix unmounts a closed sheet's content, so state
+          what typing is for. Radix unmounts a closed popup's content, so state
           that lives in here is gone the moment the panel is, with no reset
           effect (a setState inside an effect, and one that misses whenever a
-          parent closes the sheet by setting its own state directly).
+          parent closes the popup by setting its own state directly).
         */}
-        <SheetBody {...props} />
-      </SheetContent>
-    </Sheet>
+        <ConfirmBody {...props} />
+      </PopupContent>
+    </Popup>
   );
 }
 
-function SheetBody({
+function ConfirmBody({
   onOpenChange,
   title,
   lede,
@@ -148,12 +146,9 @@ function SheetBody({
 
   return (
     <>
-      <SheetHeader className="gap-2">
-        <SheetTitle>{title}</SheetTitle>
-        <SheetDescription>{lede}</SheetDescription>
-      </SheetHeader>
+      <PopupHeader title={title} description={lede} />
 
-      <div className="px-4">
+      <PopupBody>
         <div className="rounded-md border bg-muted/50 px-3 py-2.5">
           <p className="mb-1.5 text-label font-medium text-muted-foreground uppercase">
             What this touches
@@ -190,13 +185,12 @@ function SheetBody({
             />
           </div>
         ) : null}
-      </div>
+      </PopupBody>
 
-      <SheetFooter className="flex-row justify-end gap-2">
+      <PopupFooter>
         <Button
           type="button"
           variant="outline"
-          size="sm"
           onClick={() => onOpenChange(false)}
           disabled={pending}
         >
@@ -205,13 +199,12 @@ function SheetBody({
         <Button
           type="button"
           variant={severity === "permanent" ? "destructive" : "default"}
-          size="sm"
           onClick={confirm}
           disabled={!matched || pending}
         >
           {pending ? "Working" : verb}
         </Button>
-      </SheetFooter>
+      </PopupFooter>
     </>
   );
 }

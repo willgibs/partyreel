@@ -13,6 +13,12 @@ import {
 import { HostAlbumProvider } from "./host-album";
 import { LaunchList, launchItems } from "./launch-list";
 
+// The Invite is the event page's own door onto its code card (the share
+// provider's island); here it only has to be there or not.
+vi.mock("@/components/app/share/invite-button", () => ({
+  InviteButton: () => <button type="button">Invite</button>,
+}));
+
 /**
  * WHAT AN EMPTY EVENT SAYS, AND WHAT MARKS THE FIRST PHOTOGRAPH (Will,
  * `empty=list` and `first=live`, 2026-09-21).
@@ -137,13 +143,13 @@ describe("the launch list", () => {
 
   it("offers the code as a fourth door only when the list has room", () => {
     // The code is already in the page header and on the dashboard card, so a
-    // fourth door to it earns its place only once the setup is finished.
-    const { rerender, container } = render(
+    // fourth door to it earns its place only once the setup is finished. It is
+    // an Invite onto the code card now (`popups` r1, `share=card`), where it
+    // was a link to the kit: the scar is the "only when there is room" rule.
+    const { rerender } = render(
       <LaunchList eventId={EVENT_ID} eventDate={null} description={null} />,
     );
-    expect(
-      container.querySelector(`a[href="/dashboard/${EVENT_ID}?room=share"]`),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: "Invite" })).toBeNull();
     rerender(
       <LaunchList
         eventId={EVENT_ID}
@@ -151,9 +157,7 @@ describe("the launch list", () => {
         description="A note"
       />,
     );
-    expect(
-      container.querySelector(`a[href="/dashboard/${EVENT_ID}?room=share"]`),
-    ).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Invite" })).toBeInTheDocument();
   });
 });
 

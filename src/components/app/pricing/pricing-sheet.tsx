@@ -15,14 +15,12 @@ import {
 import { usePlanFacts } from "@/components/app/pricing/use-plan-facts";
 import { Button } from "@/components/ui/button";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+  Popup,
+  PopupBody,
+  PopupContent,
+  PopupHeader,
+  PopupTrigger,
+} from "@/components/ui/popup";
 import { trackAttrs } from "@/lib/analytics/events";
 import {
   formatBytesUp,
@@ -46,10 +44,21 @@ import { cn, formatBytes } from "@/lib/utils";
  * `learn=foot` + `pass=line`, Will 2026-09-20).
  *
  * Eleven pricing clicks in the host app used to leave it for a static,
- * tier-blind marketing page. This is what they open instead: the ONE responsive
- * Sheet (a bottom sheet in a hand, a side panel at a desk), led by the reason
+ * tier-blind marketing page. This is what they open instead: led by the reason
  * it opened, carrying two cards and a price, the pass on one line, and a quiet
  * foot to the full page.
+ *
+ * ★ ITS KIND IS `plan` (`popups` r1, `plans=wide`, Will 2026-09-27): a wide
+ * dialog at a desk, over whatever held the limit (a lock in Settings, the clip
+ * maker), and in a hand the whole screen under a close, which the phone's Back
+ * closes too (the carried call `stacked`: a plan replaces what it opened over,
+ * and Back returns). The name `PricingSheet` stays for its nine callers, their
+ * headlines unchanged.
+ *
+ * ★ THE PLANS STACK (his note: "it'd likely make more sense to stack this
+ * rather than a 2col row to give the plan features more room without tight line
+ * breaking"). Free over Pro, each the dialog's full width, so the benefit lines
+ * read as lines rather than a column of fragments.
  *
  * ★ HIS `carry` RULING OVERRULED THE BOARD, AND THE HEIGHT IS THE REASON.
  * "This is a much cleaner design. It feels more intuitive about what to do next
@@ -77,7 +86,7 @@ import { cn, formatBytes } from "@/lib/utils";
  *
  * ★ IT IS BOTH A TRIGGERED AND A CONTROLLED SURFACE. A door that is a BUTTON
  * (the Plan card's Upgrade, the storage meter's Need more, the lock chip)
- * passes `children` and lets the Sheet own its own state; a door that is a
+ * passes `children` and lets the popup own its own state; a door that is a
  * TOAST ACTION or a refusal has no element to hang a trigger on, so those
  * callers drive `open` / `onOpenChange` themselves.
  */
@@ -193,7 +202,11 @@ function Benefit({ children }: { children: ReactNode }) {
   );
 }
 
-/** One plan as a card. Pro is the same sheet in ink, the pair's shipped read. */
+/**
+ * One plan as a card, the popup's full width (the plans stack). Pro is the same
+ * card in ink, the pair's shipped read; the plan a host holds says so beside
+ * its name, where a stacked card has the room for it.
+ */
 function PlanCard({
   plan,
   ink = false,
@@ -209,37 +222,41 @@ function PlanCard({
     <div
       data-plan={plan.id}
       className={cn(
-        "flex min-w-0 flex-1 flex-col gap-3 rounded-xl border p-4",
+        "flex min-w-0 flex-col gap-3 rounded-xl border p-4",
         ink ? "border-transparent bg-foreground" : "bg-card",
       )}
     >
-      <div className="space-y-1">
-        <p
-          className={cn(
-            "text-sm font-medium",
-            ink ? "text-background" : "text-foreground",
-          )}
-        >
-          {plan.name}
-        </p>
-        <p
-          className={cn(
-            "font-heading text-subsection tabular-nums",
-            ink && "text-background",
-          )}
-        >
-          {plan.priceLabel}
-        </p>
-        <p className={cn("text-xs", ink ? "text-background/70" : "text-faint")}>
-          {holds(plan.storageBytes, plan.tier !== "free")}
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <p
+            className={cn(
+              "text-sm font-medium",
+              ink ? "text-background" : "text-foreground",
+            )}
+          >
+            {plan.name}
+          </p>
+          <p
+            className={cn(
+              "font-heading text-subsection tabular-nums",
+              ink && "text-background",
+            )}
+          >
+            {plan.priceLabel}
+          </p>
+          <p
+            className={cn("text-xs", ink ? "text-background/70" : "text-faint")}
+          >
+            {holds(plan.storageBytes, plan.tier !== "free")}
+          </p>
+        </div>
+        {held ? (
+          <span className="inline-flex h-7 shrink-0 items-center justify-center rounded-action-sm border border-border px-2.5 text-xs text-muted-foreground">
+            Your plan
+          </span>
+        ) : null}
       </div>
       {children}
-      {held ? (
-        <span className="mt-auto inline-flex h-7 items-center justify-center rounded-action-sm border border-border text-xs text-muted-foreground">
-          Your plan
-        </span>
-      ) : null}
     </div>
   );
 }
@@ -292,21 +309,12 @@ export function PricingSheet({
     planHolds(opening, stored);
 
   return (
-    <Sheet open={isOpen} onOpenChange={changeOpen}>
-      {children ? <SheetTrigger asChild>{children}</SheetTrigger> : null}
-      <SheetContent
-        responsive
-        data-pricing-sheet={trigger.kind}
-        className="overflow-y-auto"
-      >
-        <SheetHeader className="pr-10">
-          <SheetTitle className="text-pretty">{head.title}</SheetTitle>
-          <SheetDescription className="text-pretty">
-            {head.sub}
-          </SheetDescription>
-        </SheetHeader>
+    <Popup open={isOpen} onOpenChange={changeOpen}>
+      {children ? <PopupTrigger asChild>{children}</PopupTrigger> : null}
+      <PopupContent kind="plan" data-pricing-sheet={trigger.kind}>
+        <PopupHeader title={head.title} description={head.sub} />
 
-        <div className="space-y-3 px-4">
+        <PopupBody className="space-y-3">
           {tier === "pro" ? (
             /* A subscriber is told she subscribes, and her plan is six prices
                with hers marked. Sizes and cadences change HERE, through the
@@ -323,7 +331,7 @@ export function PricingSheet({
             </>
           ) : (
             <>
-              <div className="flex gap-3">
+              <div className="flex flex-col gap-3">
                 {/* ★ FREE IS A PEER ONLY FOR A FREE HOST. His `carry` ruling is
                     "Free beside one Pro size", and that pair is the FREE host's
                     moment: this is what you have, this is the step up. A pass
@@ -344,7 +352,7 @@ export function PricingSheet({
                     onRefused={setRefusal}
                     size="sm"
                     variant="secondary"
-                    className="mt-auto w-full"
+                    className="w-full"
                     {...trackAttrs("cta_click", {
                       cta: "pricing-sheet-pro",
                       location: trigger.kind,
@@ -410,18 +418,18 @@ export function PricingSheet({
               </div>
             </>
           )}
-        </div>
 
-        {/* THE QUIET FOOT (`learn=foot`). The door to the full comparison
-            exists and does not compete with buying, and it opens in a NEW tab
-            so the host keeps their place in the app: leaving by default is the
-            thing this whole round exists to stop doing. */}
-        <SheetFooter>
+          {/* THE QUIET FOOT (`learn=foot`). The door to the full comparison
+              exists and does not compete with buying, and it opens in a NEW tab
+              so the host keeps their place in the app: leaving by default is
+              the thing this whole round exists to stop doing. It ends the
+              scroll rather than pinning a band under it: a quiet link is not an
+              act. */}
           <Button
             asChild
             variant="link"
             size="sm"
-            className="h-auto justify-start p-0 text-xs text-muted-foreground"
+            className="h-auto justify-start p-0 pt-1 text-xs text-muted-foreground"
           >
             <a
               href="/pricing"
@@ -435,8 +443,8 @@ export function PricingSheet({
               See every plan <ArrowUpRight />
             </a>
           </Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+        </PopupBody>
+      </PopupContent>
+    </Popup>
   );
 }

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 
 import { UnverifiedMark } from "@/components/shared/unverified-mark";
 import { FollowButton } from "@/components/social/follow-button";
+import { GuestPeek } from "@/components/social/guest-peek";
 import {
   Avatar,
   AvatarFallback,
@@ -12,6 +12,13 @@ import {
   AvatarGroupCount,
   AvatarImage,
 } from "@/components/ui/avatar";
+import {
+  Popup,
+  PopupBody,
+  PopupContent,
+  PopupHeader,
+  PopupTrigger,
+} from "@/components/ui/popup";
 import type { ProfileCardItem } from "@/lib/social/cards";
 
 /**
@@ -20,8 +27,11 @@ import type { ProfileCardItem } from "@/lib/social/cards";
  * page section and the guest album), so the two can never drift. Items arrive fully
  * hydrated (avatar URLs, never storage paths).
  *
- * A guest WITH a handle links to /u/<slug>; one without renders as a plain chip
- * (no dead link, no "claim a handle" nudge on someone else's album).
+ * ★ EVERY NAME OPENS A LOOK (`popups` r1, `peek=card`, Will 2026-09-27): a
+ * card beside the name at a desk, the Sheet in a hand (`guest-peek.tsx`). A
+ * name with a page reaches it from the look's Open full profile; a name without
+ * one still opens the look, where before it opened nothing (and still no dead
+ * link, no "claim a handle" nudge on someone else's album).
  *
  * ★ NAME-ONLY GUESTS ARE ON IT NOW, MARKED (Will, at the identity reshape's
  * approval, 2026-09-21, verbatim: "Listed, with the mark"). Anonymity left the
@@ -49,20 +59,17 @@ import type { ProfileCardItem } from "@/lib/social/cards";
  * is an ordinary wedding, and at a phone that is the tallest thing between the
  * album and the footer.
  *
- * ★ THE EXPANSION HERE IS THE INTERIM, AND IT SAYS SO. He asked for an
- * exploration of HOW View all opens ("modal, sheet, page, going down existing
- * spot on page") and that is round two's board (profile-reach). Until it lands,
- * the row expands IN PLACE, a page of names at a time, which is the option that
- * cannot be wrong: it adds no new surface for the winner to have to remove, and
- * the thousand-guest edge case is answered by the page size rather than by a
- * container. Replace the expanded branch with round two's winner; the faces row
- * itself is ruled.
+ * ★ AND THE ROW OPENS THE LIST AS A LIST (`popups` r1, `lists=panel`, which
+ * answered his "modal, sheet, page, going down existing spot on page"): a side
+ * panel beside the album at a desk, and in a hand the whole screen under a back
+ * arrow, the phone's own Back closing it. Inside, still a page of names at a
+ * time: the thousand-guest edge case is answered by the page size, never by the
+ * container.
  *
- * ★ WHY THIS FILE IS A CLIENT ISLAND NOW. It was server-renderable and the
- * chips still are, but "expand in place" is state, and the alternative was a
- * second component wrapping this one on both surfaces, which is exactly the
- * drift the one-component rule exists to prevent. Its props stay plain data, so
- * both server callers pass what they always passed.
+ * ★ WHY THIS FILE IS A CLIENT ISLAND. The panel and the looks are state, and
+ * the alternative was a second component wrapping this one on both surfaces,
+ * which is exactly the drift the one-component rule exists to prevent. Its
+ * props stay plain data, so both server callers pass what they always passed.
  *
  * ★ THE HOST SEES A CONFIRMED GUEST'S ADDRESS UNDER THE NAME, AND NOBODY ELSE
  * DOES (Will, 2026-09-23: "Guests should not see other confirmed guests'
@@ -107,6 +114,10 @@ const FACES = 6;
 
 /** One page of names when the row is opened. */
 const PAGE = 24;
+
+/** A name, as the button that opens its look: the chip's own face and words. */
+const NAME_BUTTON =
+  "transition-transform duration-150 ease-emphasis outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.97] motion-reduce:active:scale-100";
 
 const CHIP =
   "flex h-8 items-center gap-2 rounded-full border border-border py-1 pr-3 pl-1 text-sm";
@@ -209,12 +220,21 @@ function Chips({
             <li key={item.id}>
               {/* No link, and no nudge: there is no page behind a name nobody
                   proved, and telling somebody else's guest to go and prove it
-                  is not this album's business. The mark carries the why. */}
+                  is not this album's business. The mark carries the why, and
+                  sits BESIDE the name's button, never inside it (it is a
+                  button of its own). */}
               <span className={`${CHIP} text-muted-foreground`}>
-                <Face item={item} />
-                <span className="max-w-40 truncate">
-                  {item.displayName ?? "A guest"}
-                </span>
+                <GuestPeek item={item} canFollow={false}>
+                  <button
+                    type="button"
+                    className={`-my-1 -ml-1 flex min-w-0 items-center gap-2 rounded-full py-1 pr-1 pl-1 ${NAME_BUTTON}`}
+                  >
+                    <Face item={item} />
+                    <span className="max-w-40 truncate">
+                      {item.displayName ?? "A guest"}
+                    </span>
+                  </button>
+                </GuestPeek>
                 <UnverifiedMark name={item.displayName} />
               </span>
             </li>
@@ -246,24 +266,20 @@ function Chips({
         // real page to follow, and not one they already follow.
         const canFollow = Boolean(
           viewerId &&
-            item.slug &&
-            item.id !== viewerId &&
-            !followingIds?.has(item.id),
+          item.slug &&
+          item.id !== viewerId &&
+          !followingIds?.has(item.id),
         );
         return (
           <li key={item.id} className="flex items-center gap-1.5">
-            {item.slug ? (
-              <Link
-                href={`/u/${item.slug}`}
-                className={`${chipClass} text-foreground transition-transform duration-150 ease-emphasis outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.97] motion-reduce:active:scale-100`}
+            <GuestPeek item={item} email={email} canFollow={canFollow}>
+              <button
+                type="button"
+                className={`${chipClass} ${item.slug ? "text-foreground" : "text-muted-foreground"} ${NAME_BUTTON}`}
               >
                 {chip}
-              </Link>
-            ) : (
-              <span className={`${chipClass} text-muted-foreground`}>
-                {chip}
-              </span>
-            )}
+              </button>
+            </GuestPeek>
             {canFollow && item.slug && (
               <FollowButton
                 profileId={item.id}
@@ -296,10 +312,6 @@ export function GuestList({
    */
   emails?: ReadonlyMap<string, string>;
 }) {
-  // How many names are showing. 0 = the condensed row (the list is past the
-  // threshold and nobody has opened it yet).
-  const [shown, setShown] = useState(0);
-
   if (items.length === 0) {
     // [] means the host's key is ON and nobody has added a photograph yet. null
     // (the key is off) never reaches this component: both callers gate on it,
@@ -325,52 +337,79 @@ export function GuestList({
     );
   }
 
-  if (shown === 0) {
-    const faces = items.slice(0, FACES);
-    return (
-      // THE WHOLE ROW IS THE BUTTON, not a "View all" beside it: the faces are
-      // what a thumb aims at, and a few characters of text next to a row of
-      // portraits is the wrong hit area on the surface this ships on.
-      <button
-        type="button"
-        onClick={() => setShown(PAGE)}
-        aria-expanded={false}
-        className="flex items-center gap-3 rounded-full text-left transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.99] motion-reduce:active:scale-100"
-      >
-        <AvatarGroup>
-          {faces.map((item) => (
-            <Face key={item.id} item={item} />
-          ))}
-          <AvatarGroupCount className="size-6 text-[10px]">
-            +{items.length - faces.length}
-          </AvatarGroupCount>
-        </AvatarGroup>
-        <span className="text-sm text-muted-foreground">
-          {items.length} guests added photos
-        </span>
-      </button>
-    );
-  }
+  return (
+    <GuestListPanel
+      items={items}
+      viewerId={viewerId}
+      followingIds={followingIds}
+      emails={emails}
+    />
+  );
+}
 
+/**
+ * THE FACES ROW AND THE LIST IT OPENS (`lists=panel`). The whole row is the
+ * button, not a "View all" beside it: the faces are what a thumb aims at, and a
+ * few characters of text next to a row of portraits is the wrong hit area on
+ * the surface this ships on.
+ */
+function GuestListPanel({
+  items,
+  viewerId,
+  followingIds,
+  emails,
+}: {
+  items: GuestListItem[];
+  viewerId?: string | null;
+  followingIds?: ReadonlySet<string>;
+  emails?: ReadonlyMap<string, string>;
+}) {
+  // How many names the open list shows, a page at a time; back to one page
+  // whenever it closes, so it always opens at its head.
+  const [shown, setShown] = useState(PAGE);
+  const faces = items.slice(0, FACES);
   const page = items.slice(0, shown);
   const rest = items.length - page.length;
+  const count = `${items.length} guests added photos`;
+
   return (
-    <div className="space-y-2">
-      <Chips
-        items={page}
-        viewerId={viewerId}
-        followingIds={followingIds}
-        emails={emails}
-      />
-      {rest > 0 && (
+    <Popup onOpenChange={(open) => !open && setShown(PAGE)}>
+      <PopupTrigger asChild>
         <button
           type="button"
-          onClick={() => setShown((n) => n + PAGE)}
-          className={`${CHIP} border-dashed pl-3 text-muted-foreground transition-transform duration-150 ease-emphasis outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.97] motion-reduce:active:scale-100`}
+          className="flex items-center gap-3 rounded-full text-left transition-transform duration-150 ease-emphasis outline-none focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.99] motion-reduce:active:scale-100"
         >
-          Show {rest > PAGE ? PAGE : rest} more
+          <AvatarGroup>
+            {faces.map((item) => (
+              <Face key={item.id} item={item} />
+            ))}
+            <AvatarGroupCount className="size-6 text-[10px]">
+              +{items.length - faces.length}
+            </AvatarGroupCount>
+          </AvatarGroup>
+          <span className="text-sm text-muted-foreground">{count}</span>
         </button>
-      )}
-    </div>
+      </PopupTrigger>
+      <PopupContent kind="list" data-guest-list-panel>
+        <PopupHeader title="Guests" description={count} />
+        <PopupBody className="space-y-2">
+          <Chips
+            items={page}
+            viewerId={viewerId}
+            followingIds={followingIds}
+            emails={emails}
+          />
+          {rest > 0 && (
+            <button
+              type="button"
+              onClick={() => setShown((n) => n + PAGE)}
+              className={`${CHIP} border-dashed pl-3 text-muted-foreground transition-transform duration-150 ease-emphasis outline-none hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.97] motion-reduce:active:scale-100`}
+            >
+              Show {rest > PAGE ? PAGE : rest} more
+            </button>
+          )}
+        </PopupBody>
+      </PopupContent>
+    </Popup>
   );
 }

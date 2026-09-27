@@ -18,7 +18,7 @@ import type { GridMedia } from "@/components/app/media-grid";
 import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
 import { MasonryColumns } from "@/components/shared/masonry";
 import { PurgeConfirmContent } from "@/components/shared/media-lightbox-parts/purge-confirm";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Popup, PopupTrigger } from "@/components/ui/popup";
 import { createLinkStore, type LinkStore } from "@/lib/album/links";
 import { DEFAULT_TIER, toBillingTier } from "@/lib/constants/tiers";
 import {
@@ -162,11 +162,11 @@ function BinTileOverlay({
       {/* The bin's two verbs, in the one pane the grid draws. Restore is
           capacity-gated in the RPC (safe + reversible, no confirm); Delete
           permanently skips the 30-day window, so it stays behind a confirm
-          (the viewer's own, `PurgeConfirmContent`). The Dialog lives HERE
+          (the viewer's own, `PurgeConfirmContent`). The Popup lives HERE
           rather than in the row because the row is a declared action set and
           a trigger is a component. */}
       <div className="absolute top-1.5 right-1.5 z-10 hidden md:block">
-        <Dialog>
+        <Popup>
           <div
             data-reveal-chip
             style={{ "--reveal-max": "4rem" } as CSSProperties}
@@ -185,7 +185,7 @@ function BinTileOverlay({
             >
               <Undo2 className="size-4" />
             </button>
-            <DialogTrigger asChild>
+            <PopupTrigger asChild>
               <button
                 type="button"
                 disabled={isPending}
@@ -195,10 +195,10 @@ function BinTileOverlay({
               >
                 <Trash2 className="size-4" />
               </button>
-            </DialogTrigger>
+            </PopupTrigger>
           </div>
           <PurgeConfirmContent disabled={isPending} onConfirm={onPurge} />
-        </Dialog>
+        </Popup>
       </div>
     </>
   );

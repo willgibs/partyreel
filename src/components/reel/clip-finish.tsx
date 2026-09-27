@@ -13,14 +13,12 @@ import {
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Popup,
+  PopupClose,
+  PopupContent,
+  PopupFooter,
+  PopupHeader,
+} from "@/components/ui/popup";
 import {
   saveChoices,
   type Platform,
@@ -310,6 +308,10 @@ export function FailedFinish({
  * ADD TO EVENT'S CONFIRM, like the host's own confirms (Will: "so they know what they're doing and
  * don't accidentally click"). The words are `addConfirmWords`'s: the host's clip lands approved and
  * costs her storage; a guest on a moderated album learns the host sees it first.
+ *
+ * ★ A CONFIRMATION, WITH THE CLOSE IT LACKED (`popups` r1, `confirm=dialog`): it shipped with
+ * `showCloseButton={false}`, so the only way out on a phone was Cancel or a tap on the scrim; the
+ * confirm kind gives it the corner close every other question has.
  */
 export function AddConfirm({
   open,
@@ -325,19 +327,16 @@ export function AddConfirm({
   onConfirm: () => void;
 }) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{body}</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <DialogClose asChild>
+    <Popup open={open} onOpenChange={onOpenChange}>
+      <PopupContent kind="confirm">
+        <PopupHeader title={title} description={body} />
+        <PopupFooter>
+          <PopupClose asChild>
             <Button variant="outline">Cancel</Button>
-          </DialogClose>
+          </PopupClose>
           <Button onClick={onConfirm}>Add to event</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </PopupFooter>
+      </PopupContent>
+    </Popup>
   );
 }

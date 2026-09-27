@@ -8,31 +8,34 @@ import { HighlightReelCard } from "@/components/app/event-settings/highlight-ree
 import { ProfileSocialCard } from "@/components/app/event-settings/profile-social-card";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Popup,
+  PopupBody,
+  PopupClose,
+  PopupContent,
+  PopupFooter,
+  PopupHeader,
+} from "@/components/ui/popup";
 import type { Tier } from "@/lib/constants/tiers";
 import type { HostEvent } from "@/lib/db/queries/events";
 import { useUnsavedChangesGuard } from "@/lib/use-unsaved-changes-guard";
 
 /**
- * SETTINGS AS A SHEET OVER THE ALBUM (Will, `settings=sheet`: "This does feel
+ * SETTINGS AS A PANEL BESIDE THE ALBUM (Will, `settings=sheet`: "This does feel
  * cleaner and accessible than a page of cards per event" — and the reason it is
- * a sheet rather than a page is that the album it GOVERNS stays behind it. A
- * host changing who can see this event watches the photographs it applies to
- * while they change it).
+ * not a page is that the album it GOVERNS stays beside it. A host changing who
+ * can see this event watches the photographs it applies to while they change
+ * it).
+ *
+ * ★ ITS KIND IS `settings` (`popups` r1, `settings=panel`, Will 2026-09-27): his
+ * panel at a desk, unchanged; in a hand the whole screen under a back arrow
+ * that names the event, the longest form in the app with nothing above it, and
+ * no strip of album over seventeen controls. It rides `?room=settings`, so the
+ * page already puts it in history (`routed`).
+ *
+ * ★ IT OPENS UNFOCUSED, at every width (his note: "Let's not open focused, so
+ * more settings are visible and one tap away rather than always having to
+ * escape typing in the event name input"): the kind's `deskFocus` is the panel
+ * itself, so Radix no longer drops the caret into the event's name.
  *
  * ★ THE PAGE OF CARDS IS NOT REBUILT HERE. `EventSettingsForm` is imported
  * whole — it is the orchestrator over details / visibility / uploads / danger,
@@ -41,10 +44,11 @@ import { useUnsavedChangesGuard } from "@/lib/use-unsaved-changes-guard";
  * frame around it.
  *
  * ★ THE UNSAVED GUARD SURVIVED THE MOVE, AND GREW A THIRD DOOR. The route
- * guarded a hard nav and its back-LINK; a sheet has no back-link, and the ways
- * out are the scrim, Escape and the close button. All three land on
- * `requestClose`, so a dirty form confirms before the panel goes, and
- * `beforeunload` still covers a reload.
+ * guarded a hard nav and its back-LINK; the panel's ways out are the scrim,
+ * Escape, the close button and, in a hand, its back arrow. All of them land on
+ * `requestClose`, so a dirty form confirms before the panel goes (a centred
+ * dialog over it, the carried call `stacked`), and `beforeunload` still covers
+ * a reload.
  *
  * ★ THE BIN IS NOT HERE. His `settings` note folded it into the album ("The
  * photo bin joins the album as a filter"), so "Deleted" names exactly one thing
@@ -97,18 +101,15 @@ export function EventSettingsSheet({
 
   return (
     <>
-      <Sheet open={open} onOpenChange={requestClose}>
-        <SheetContent
-          responsive
-          className="overflow-y-auto"
-          aria-describedby={undefined}
-        >
-          <SheetHeader>
-            <SheetTitle>Settings</SheetTitle>
-            <SheetDescription>{event.name}</SheetDescription>
-          </SheetHeader>
+      <Popup open={open} onOpenChange={requestClose}>
+        <PopupContent kind="settings" routed>
+          <PopupHeader
+            title="Settings"
+            description={event.name}
+            back={event.name}
+          />
 
-          <div className="flex flex-col gap-6 px-4 pb-6">
+          <PopupBody className="flex flex-col gap-6 pb-6">
             <EventSettingsForm
               event={event}
               tier={tier}
@@ -131,22 +132,20 @@ export function EventSettingsSheet({
               />
             )}
             <DangerZoneSection eventId={event.id} eventName={event.name} />
-          </div>
-        </SheetContent>
-      </Sheet>
+          </PopupBody>
+        </PopupContent>
+      </Popup>
 
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Discard changes?</DialogTitle>
-            <DialogDescription>
-              You have unsaved changes. Closing settings will discard them.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose asChild>
+      <Popup open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <PopupContent kind="confirm">
+          <PopupHeader
+            title="Discard changes?"
+            description="You have unsaved changes. Closing settings will discard them."
+          />
+          <PopupFooter>
+            <PopupClose asChild>
               <Button variant="outline">Keep editing</Button>
-            </DialogClose>
+            </PopupClose>
             <Button
               variant="destructive"
               onClick={() => {
@@ -157,9 +156,9 @@ export function EventSettingsSheet({
             >
               Discard changes
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </PopupFooter>
+        </PopupContent>
+      </Popup>
     </>
   );
 }
