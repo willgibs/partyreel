@@ -109,7 +109,10 @@ export type Geo = {
    * changes: copy is open, and this is the one number a rewrite can
    * invalidate. The height is the block's own, gaps included, and at `base` it
    * carries the action row WRAPPED, because two buttons do not fit on a 375
-   * line and pretending otherwise costs 57px of fold.
+   * line and pretending otherwise costs 57px of fold. Its first line is the
+   * "Try our demo event" eyebrow with its air (28px at `lg`, 36 at `base`),
+   * measured with it at 1440 and 375 (demo-doors, 2026-09-27); `lg` had read
+   * 323 since before the subhead took three lines, 33px short of the page.
    */
   blockW: number;
   blockH: number;
@@ -153,7 +156,7 @@ export const GEO: Record<Bp, Geo> = {
     perspective: 360,
     fade: "16%",
     blockW: 343,
-    blockH: 353,
+    blockH: 361,
     h1Max: 343,
     lowMax: 343,
     margin: 28,
@@ -170,7 +173,7 @@ export const GEO: Record<Bp, Geo> = {
     perspective: 700,
     fade: "12%",
     blockW: 720,
-    blockH: 323,
+    blockH: 384,
     h1Max: 920,
     lowMax: 576,
     margin: 26,

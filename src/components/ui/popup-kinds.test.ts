@@ -43,6 +43,8 @@ const LEFT_ALONE: Record<string, string> = {
     "the viewer's own questions, already the Dialog's confirm shape (`left-alone`: the viewer)",
   "src/components/app/dashboard/claims-card.tsx":
     "the claims review, claims-wiring's to move onto the list panel",
+  "src/components/marketing/system/demo-modal/demo-modal.tsx":
+    "the demo's own code card on the marketing site, its kind (`share`) named in its comment; moving it onto the card is marketing's line",
 }
 
 const ROOT = process.cwd()

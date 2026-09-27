@@ -5,17 +5,13 @@ import type { Control } from "@/components/lab/board-spec";
  * `spec.ts` can declare it without importing React into a module `registry.ts`
  * hands to a server page (`registry.test.ts`'s own rule).
  *
- * ★ EVERY FRAME IS A REAL VIEWPORT AT ITS OWN WIDTH (round 1's lesson). Round
- * one drew each option in a plain box, so every `sm:` and `lg:` inside answered
- * the LAB WINDOW's width: the "375" events column laid out as a desktop grid
- * squeezed into a phone. Round two portals every option into a `Frame` (a
- * same-origin iframe), where a breakpoint and a `vw` clamp read the width the
- * caption names.
- *
- * ★ 1440 FIRST. The home, the hub and an event page are read at a desk first;
- * the phone is one press away. The heights are a phone's and a laptop's real
- * screens, which only the `play` ask uses as they stand (a layer over the page
- * covers exactly one screen); every other frame is as tall as what it draws.
+ * ★ EVERY FRAME IS A REAL VIEWPORT AT ITS OWN WIDTH (`reel-story`'s lesson,
+ * carried here whole because that board retires with `demo-doors`): the hero's
+ * `lg:` pair, its `vw` type and its 50cqw band all answer the width they lay
+ * out in, and only a same-origin iframe claims a width of its own. 1440 first,
+ * because the home is read at a desk first; the phone is one press away. The
+ * heights are a laptop's and a phone's real screens, because the hero is
+ * exactly one screen tall (`cinema-hero.css`'s 100svh).
  */
 export const SCREEN: Control = {
   id: "screen",

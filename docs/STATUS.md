@@ -13,23 +13,22 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoin
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: batch 4 landed; Will's sitting on build 11
+## The current round: batch 5, from Will's sitting on build 11
 
-- **Milestone 29 is live** (`ab30a7f8`, 2026-09-26), batch 3 whole: the live reel in place of the stored one, every
-  album paged and windowed, Will's door on the phone Sheet, an email change confirmed at both addresses, one-tap Save
-  on an iPhone.
-- **Batch 4 landed** (eight lanes from his sitting on build 10, 2026-09-27): the door lit, with the keep as its last
-  step, one confirm beat, the told name and her upload tracker; no mark on a guest's own tiles; the profile's setup
-  wizard and a private page's quiet count; the reel's marketing with the footer's pile back and the demo link bare.
-  Boards: `popups` (new), `identity-door` r3, `identity-claims` r2, `reel-story` r3, on build 11's desk.
+- **Milestone 29 is live** (`ab30a7f8`, 2026-09-26). **Batch 4** (the door lit with the keep and her tracker, no mark
+  on her own tiles, the profile's setup, the reel's marketing) is on build 11, red-teamed clean.
+- **Batch 5 is in flight** (cut `ebfb1581`): the popups board's kinds wired at their source, the door's r3 (lit icons,
+  the told chooser, Check your email, the lit beat with motion), the demo's doors (a live dot, "Try our demo event", one
+  demo modal on a desk) and the reel's new line; boards `hero-card` (new) and `identity-claims` r3; `claims-wiring`
+  after `popups-wiring`.
 
 ## The desk
 
-Build 10's desk (21 boards) is answered through `guest-capture`; the next desk, on build 11, reads in leverage order:
-`popups` (new), `identity-door` (r3), `identity-claims` (r2), `reel-story` (r3), then `voice-guest`, `host-curation`,
-`host-storage`, `event-safety`, `export-flow`, `admin-triage`, `help-center`, `emails`, `site-chrome`, `profile-page`,
-`privacy-hero`, `album-motion`, `loose-ends`, `contact-page`, `press-page` (`media-viewer`, `guest-capture` and
-`identity-profile` retire as their picks are built).
+Build 11's desk is answered through `reel-story`; the next desk, on build 12, reads in leverage order:
+`identity-claims` (r3), `hero-card` (new), then `voice-guest`, `host-curation`, `host-storage`, `event-safety`,
+`export-flow`, `admin-triage`, `help-center`, `emails`, `site-chrome`, `profile-page`, `privacy-hero`, `album-motion`,
+`loose-ends`, `contact-page`, `press-page` (`popups`, `identity-door` and `reel-story` retire as their picks are
+built).
 
 ## Live state
 
@@ -70,6 +69,6 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **His next sitting, on build 11**, once batch 4 lands: `popups` first.
+- **His next sitting, on build 12**, once batch 5 lands: `identity-claims` r3 first.
 - **A 10-second iPhone check on partyreel.com** (milestone 29 carries it): in an album (`partyreel.com/demo`), one
   tap on Save opens the system sheet (a photo, a video, a finished clip), and a shared photo arrives as a photograph.

@@ -5,9 +5,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
+import { DemoDoor } from "@/components/marketing/system/demo-modal/demo-door";
 import { DemoFrame } from "@/components/marketing/system/demo-ticket";
 import { NavigationMenuLink } from "@/components/ui/navigation-menu";
-import { trackAttrs } from "@/lib/analytics/events";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { type NavGroup, type NavLink } from "@/lib/constants/marketing-nav";
 import { DEMO_EVENT_URL } from "@/lib/demo";
@@ -243,15 +243,31 @@ function FeaturedDemo({ href, value }: { href: string; value: string }) {
       asChild
       className="flex-col items-stretch gap-0 overflow-hidden rounded-lg border bg-card p-0"
     >
-      <Link
+      {/* A demo door (`system/demo-modal/`): the pane opens the demo modal. The
+          panel closes under it (radix dismisses its content once focus leaves
+          the menu), so the pane is gone by the time the modal closes and focus
+          goes back to the panel's own trigger, where the reader opened it. */}
+      <DemoDoor
         href={href}
+        source="nav-panel"
         aria-label="Explore the live demo"
-        {...trackAttrs("demo_open", { source: "nav-panel" })}
+        returnFocus={openTrigger}
       >
         <span className="flex aspect-[16/9] w-full items-center justify-center">
           <DemoFrame value={value} size="nav" />
         </span>
-      </Link>
+      </DemoDoor>
     </NavigationMenuLink>
+  );
+}
+
+/** The trigger of the panel a pane sits in, read while that panel is open. */
+function openTrigger(pane: HTMLElement): HTMLElement | null {
+  return (
+    pane
+      .closest('[data-slot="navigation-menu"]')
+      ?.querySelector<HTMLElement>(
+        '[data-slot="navigation-menu-trigger"][data-state="open"]',
+      ) ?? null
   );
 }

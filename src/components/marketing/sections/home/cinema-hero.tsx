@@ -17,6 +17,11 @@ import {
   useState,
 } from "react";
 
+import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
+import {
+  DemoDoor,
+  LiveDot,
+} from "@/components/marketing/system/demo-modal/demo-door";
 import { DemoFrame } from "@/components/marketing/system/demo-ticket";
 import { Button } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
@@ -328,6 +333,30 @@ export function CinemaHero() {
           className="absolute inset-x-0 z-20 px-4 text-center sm:px-6 lg:px-8"
           style={{ top: "calc(var(--hhs-axis) + var(--hhs-low))" }}
         >
+          {/* ★ THE EYEBROW IS THE DEMO'S DOOR (Will, 2026-09-27: "an eyebrow
+              over the H1 that says 'Try our demo event' and when clicked,
+              opens a modal (on desktop)... On mobile, it'd simply open in a
+              new tab"). It wears the eyebrow's own register, the demo link's
+              live dot and the learn chevron that says it goes somewhere.
+              It is the block's first line, so it is inside the measured box
+              (`GEO.blockH`, `hero-stream.ts`), and below `lg` it keeps a
+              little air under the object's corner plate, which hangs over its
+              right half there. No demo, no eyebrow: never a dead door. */}
+          {DEMO_EVENT_URL && (
+            <div className="mt-3 mb-2 flex justify-center lg:mt-0 lg:mb-3">
+              <DemoDoor
+                href={DEMO_EVENT_URL}
+                source="hero-eyebrow"
+                className="mkt-learn inline-flex items-center gap-2 text-label font-medium text-muted-foreground uppercase transition-colors duration-150 hover:text-foreground"
+              >
+                <LiveDot />
+                <span className="inline-flex items-center gap-1">
+                  Try our demo event
+                  <LearnChevron />
+                </span>
+              </DemoDoor>
+            </div>
+          )}
           <h1
             className="mx-auto font-heading text-hero text-balance text-white"
             style={{ maxWidth: "var(--hhs-h1-max)" }}

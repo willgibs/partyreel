@@ -2,12 +2,12 @@
 
 import { Play } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { requireReel } from "@/components/marketing/sections/shared/inline-reel-player";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
 import { useReelPlayer } from "@/components/marketing/sections/shared/reel-player";
+import { DemoDoor } from "@/components/marketing/system/demo-modal/demo-door";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { River } from "@/components/shared/river/river";
@@ -141,13 +141,12 @@ export function EventDoor({
                     <p className="max-w-md font-heading text-page text-balance text-white">
                       {PROMISE}
                     </p>
+                    {/* A demo door (`system/demo-modal/`): the demo modal
+                        at a desk, the demo in a new tab on a phone. */}
                     <Button asChild size="cta" className="mt-1">
-                      <Link
-                        href="/demo"
-                        {...trackAttrs("demo_open", { source: "events-door" })}
-                      >
+                      <DemoDoor href="/demo" source="events-door">
                         Explore the demo
-                      </Link>
+                      </DemoDoor>
                     </Button>
                   </div>
                 </div>

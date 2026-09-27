@@ -32,6 +32,10 @@ import { CardGrid } from "@/components/marketing/system/card-grid";
 import { Conveyor } from "@/components/marketing/system/conveyor";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { DemoCtaLink } from "@/components/marketing/system/demo-cta-link";
+import {
+  DemoDoor,
+  LiveDot,
+} from "@/components/marketing/system/demo-modal/demo-door";
 import { DemoTicket } from "@/components/marketing/system/demo-ticket";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { MediaSplit } from "@/components/marketing/system/media-split";
@@ -43,6 +47,7 @@ import { SectionLight } from "@/components/marketing/system/section-light";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { TiltCard } from "@/components/marketing/system/tilt-card";
 import { marketingImage } from "@/lib/constants/marketing-media";
+import { DEMO_EVENT_URL } from "@/lib/demo";
 
 import type { GalleryEntry } from "@/app/(dev)/design/gallery/entry";
 import {
@@ -535,7 +540,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     family: "marketing",
     section: "Heroes",
     file: "src/components/marketing/sections/home/cinema-hero.tsx",
-    lede: "The home's own first screen, and the one hero that is not a PageHero: the album streams out of the real demo code and the type sits where the band is measured never to reach.",
+    lede: "The home's own first screen, and the one hero that is not a PageHero: the album streams out of the real demo code and the type sits where the band is measured never to reach, under a Try our demo event eyebrow that is a demo door.",
     specimens: [
       {
         // The REAL section at its real height, which is the only honest way to
@@ -545,7 +550,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
         // It is fluid by construction, so the frame's own width is what the
         // band measures itself against.
         label: "The home hero",
-        hint: "the real section · the band runs, the code is the live demo's, the loop pauses off screen",
+        hint: "the real section · the band runs, the code is the live demo's, the eyebrow opens the demo modal, the loop pauses off screen",
         bleed: true,
         node: <CinemaHero />,
       },
@@ -1084,11 +1089,11 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   {
     id: "cta-band",
     file: "src/components/marketing/system/cta-band.tsx",
-    for: "the closing conversion band, with the credit line that ends a page",
+    for: "the closing conversion band, its foot the demo link or, in a band without one, the credit line",
     badge: "updated",
     family: "marketing",
     section: "Conversion",
-    lede: "The one conversion band, composed from SectionShell so its heading scale and its entrance stay with every other section.",
+    lede: "The one conversion band, composed from SectionShell so its heading scale and its entrance stay with every other section. The demo link stands a beat below the buttons, in the credit's place.",
     variants: [
       {
         prop: "reveal",
@@ -1100,14 +1105,26 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     ],
     specimens: [
       {
-        label: "With the demo link and the credit",
-        hint: "demoLink · credit",
+        label: "With the demo link",
+        hint: "demoLink · at the foot, in the credit's place",
         bleed: true,
         node: (
           <CtaBand
             heading="Your next event starts here."
             subhead="A sample band: the primary defaults to the marketing CTA."
             demoLink
+            className="py-12"
+          />
+        ),
+      },
+      {
+        label: "With the credit",
+        hint: "credit · a band with no demo line",
+        bleed: true,
+        node: (
+          <CtaBand
+            heading="Your next event starts here."
+            subhead="A sample band: the primary defaults to the marketing CTA."
             credit
             className="py-12"
           />
@@ -1152,15 +1169,44 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   {
     id: "demo-cta-link",
     file: "src/components/marketing/system/demo-cta-link.tsx",
-    for: "the recurring live-demo link, words alone, gated on a configured demo event so it is never dead",
+    for: "the recurring live-demo link: the live dot inside the words, a demo door, gated on a configured demo event so it is never dead",
     badge: "updated",
     family: "marketing",
     section: "Conversion",
     specimens: [
       {
         label: "DemoCtaLink",
-        hint: "source=library · null without a demo",
+        hint: "source=library · the modal at a desk, a new tab on a phone · null without a demo",
         node: <DemoCtaLink source="library" />,
+      },
+    ],
+  },
+  {
+    id: "demo-door",
+    file: "src/components/marketing/system/demo-modal/demo-door.tsx",
+    for: "a door to the demo: a real link that opens the demo modal at a desk (the code to scan with a phone, the short link, the demo one press away) and the demo in a new tab on a phone; every demo pointer renders through it",
+    test: "src/components/marketing/system/demo-modal/demo-door.test.tsx",
+    badge: "new",
+    family: "marketing",
+    section: "Conversion",
+    lede: "Presentation stays the caller's: the hero's eyebrow, DemoCtaLink, the footer's pile, the nav pane and the event pages' button each keep their own look, name and analytics source, and take the door's behaviour. The modal is a popup of the share kind, the code card's family, and always paper so the code stands on white.",
+    specimens: [
+      {
+        label: "DemoDoor",
+        hint: "href · source · press it at a desk for the modal",
+        node: (
+          <DemoDoor
+            href={DEMO_EVENT_URL ?? "/demo"}
+            source="library"
+            className="mkt-learn inline-flex items-center gap-2 text-label font-medium text-muted-foreground uppercase hover:text-foreground"
+          >
+            <LiveDot />
+            <span className="inline-flex items-center gap-1">
+              Try our demo event
+              <LearnChevron />
+            </span>
+          </DemoDoor>
+        ),
       },
     ],
   },

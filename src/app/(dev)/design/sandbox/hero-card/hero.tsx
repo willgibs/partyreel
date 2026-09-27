@@ -10,7 +10,6 @@ import Link from "next/link";
 import { type CSSProperties, type ReactNode, useEffect, useRef } from "react";
 
 import type { BoardState } from "@/components/lab/board-spec";
-import { FooterQr } from "@/components/marketing/chrome/footer-qr";
 import { MarketingHeader } from "@/components/marketing/chrome/marketing-header";
 import {
   type Bp,
@@ -25,249 +24,69 @@ import {
   revealEase,
   STREAM_FRAMES,
 } from "@/components/marketing/sections/home/hero-stream";
-import { DemoFrame } from "@/components/marketing/system/demo-ticket";
-import { qrSpanOf } from "@/components/shared/river/qr-plate";
+import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
 import { Button } from "@/components/ui/button";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
 import { SITE_SUBHEAD, SITE_THESIS } from "@/lib/constants/marketing-voice";
-import { SITE_URL } from "@/lib/constants/site";
-import { DEMO_EVENT_URL } from "@/lib/demo";
 import { useAmbientPause } from "@/lib/shared/use-ambient-pause";
 import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion";
-import { cn } from "@/lib/utils";
 
-import { px, useOffStage } from "./parts";
-import { CinemaRoom, Scene, stopLinks } from "./scene";
+import { AlbumObject, LinkObject, PageObject, TodayObject } from "./cards";
+import { CinemaRoom, px, Scene, stopLinks, useOffStage } from "./scene";
 import { type ScreenId, screenOf } from "./screens";
 
 /**
- * THE HOME HERO'S OBJECT, POLISHED: FOUR OBJECTS IN THE ONE REAL HERO.
+ * THE HOME'S FIRST SCREEN, WITH ONE THING CHANGED: THE OBJECT.
  *
  * Everything but the object is `cinema-hero.tsx` as it ships: the site header
  * over it, the band on `hero-stream.ts`'s own tables and loop, the ruled block
- * at the measured clear line. Only the thing the album streams out of changes,
- * so the four frames differ in exactly what the question asks.
+ * at the measured clear line. Two things are added, and both are said here so
+ * nobody mistakes them for a proposal:
  *
- * ★ WHAT TODAY'S OBJECT GETS WRONG, MEASURED ON THE SHIPPED HERO (2026-09-27).
- * Its mat is `bg-card`, which on the cinema ground is near-black, so the mat
- * reads as a dark box with a grey hairline rather than as anything held: the
- * exact failure `event-object.tsx` names ("a border in it is a GAP") and
- * solves with literal white paper. Its code hangs off the corner on a white
- * plate of its own, off the band's axis in a composition that is otherwise
- * symmetric about it. And it sits centred on the axis, so at 375 it ends 6px
- * above the headline with 100px of air over it (24 and 131 at 1440).
+ * ★ THE EYEBROW IS `demo-doors`' AND IS DRAWN AS A STAND-IN. His "Try our demo
+ * event" over the H1 is being built beside this board; until it lands it is
+ * drawn in the eyebrow atom's own register (`system/eyebrow.tsx`: the label
+ * step, uppercase, muted) with the learn chevron, as the FIRST LINE OF THE
+ * BLOCK, so it hangs at the measured clear line and the headline moves down
+ * under it. Every caption measures the object's air to the eyebrow, because
+ * that is now the nearest word.
  *
- * ★ THE POLISHED TAKES' CODE IS `/demo`, THE QR DOOR'S VALUE (Will's
- * `opens=short`): 25 modules against the event link's 33, so the same pixels
- * scan (`qr-plate.tsx`'s floor, 3px a module). A carried call, his to overrule.
- *
- * The object is drawn at both breakpoints as a CSS pair, exactly as `DemoQr`
- * does, so a frame at 375 and one at 1440 each wear the size the page would.
+ * ★ A CARD STANDS IN THE MIDDLE OF ITS AIR, NOT ON THE AXIS (a carried call,
+ * his to overrule). Today's object is centred on the axis, which leaves it
+ * 131px under the header and 25px over the words at 1440 (100 and 7 at 375).
+ * A card stands at the midpoint between the header's foot and the block's top
+ * instead, the axis passing through its lower half, so the band still leaves
+ * from behind it and its air is even. The midpoint is a `calc()` on the
+ * hero's own numbers, so it holds at any screen height.
  */
 
-export type HeroId = "today" | "refined" | "print" | "plate";
+export type HeroId = "today" | "album" | "page" | "link";
 
-/** What today's object encodes: `DemoQr`'s own value. */
-const TODAY_VALUE = DEMO_EVENT_URL ?? "https://partyreel.com";
-
-/** What the polished takes encode: the QR door's short value. */
-const SHORT_VALUE = `${SITE_URL}/demo`;
-
-/* ── The objects ─────────────────────────────────────────────────────────── */
+const OBJECTS: Record<HeroId, { Obj: () => ReactNode; place: Place }> = {
+  today: { Obj: TodayObject, place: "axis" },
+  album: { Obj: AlbumObject, place: "mid" },
+  page: { Obj: PageObject, place: "mid" },
+  link: { Obj: LinkObject, place: "mid" },
+};
 
 /**
- * Both breakpoints' drawings at once, one hidden by CSS: `DemoQr`'s pair.
+ * Where an object's centre stands: on the band's axis, or mid-air.
  *
- * ★ ONE DISPLAY UTILITY PER BOX, NEVER A PAIR. The lab's utilities compile
- * into a sublayer of production's (`utilities.lab`), and a rule directly in a
- * layer beats every rule in its sublayers, so `hidden lg:contents` stays
- * hidden at 1440: production generates `hidden` and only the lab generates
- * `lg:contents` (measured, 2026-09-27). A lone `max-lg:hidden` has nothing to
- * lose to.
+ * ★ FOR THE WIRING ROUND: THE MIDPOINT NEEDS A FLOOR IN PRODUCTION. The board
+ * draws two real screens (900 and 812 tall), where the axis runs through a
+ * card's lower half. The axis rides 36 percent of the hero (32 below `lg`)
+ * while the midpoint rides half of it, so on a tall enough screen (at `lg`,
+ * about 1450px for the album card and 1150 for the link's shorter object) the
+ * card lifts clear of the axis and the band would be born in the open under
+ * it. Production's calc takes the larger of the midpoint and `axis - (half the
+ * card - about 30px)`, so the card always covers where the frames are born.
  */
-function ByBp({ base, lg }: { base: ReactNode; lg: ReactNode }) {
-  return (
-    <>
-      <div className="lg:hidden">{base}</div>
-      <div className="max-lg:hidden">{lg}</div>
-    </>
-  );
-}
+type Place = "axis" | "mid";
 
-/** Paper: literal white, never `bg-card` (`event-object.tsx`'s own rule).
- *  A flex box, so a code inside it is never sat on a line box (an
- *  inline-flex child of a block paper grew six pixels of descender under the
- *  code, measured). */
-function Paper({
-  className,
-  style,
-  children,
-}: {
-  className?: string;
-  style?: CSSProperties;
-  children: ReactNode;
-}) {
-  return (
-    <span
-      className={cn("flex bg-white ring-1 ring-black/10", className)}
-      style={style}
-    >
-      {children}
-    </span>
-  );
-}
-
-/** A photograph in its window, the tile radius, filling the box it is given. */
-function Photo({ id, w, h }: { id: string; w: number; h: number }) {
-  const img = marketingImage(id);
-  return (
-    <span
-      className="relative block overflow-hidden rounded-[var(--radius-tile)]"
-      style={{ width: w, height: h }}
-    >
-      <Image
-        src={img.src}
-        alt=""
-        fill
-        sizes={`${w}px`}
-        className="object-cover"
-      />
-    </span>
-  );
-}
-
-/** The one still every take carries, as today's does: the wedding arch. */
-const STILL = "wedding-arch";
-
-/** `today`: the shipped `DemoFrame`, centred on the axis as `DemoQr` sets it. */
-function TodayObject() {
-  return (
-    <span data-hero-object className="block -translate-x-1/2 -translate-y-1/2">
-      <ByBp
-        base={<DemoFrame value={TODAY_VALUE} size="heroCompact" />}
-        lg={<DemoFrame value={TODAY_VALUE} size="hero" />}
-      />
-    </span>
-  );
-}
-
-/**
- * `refined`: TODAY'S ANATOMY, MADE WITH CARE. The same two pieces, a
- * photograph and its code, each on paper: the print white with a thin border,
- * and the code on a card of the same stock set into its corner at a slight
- * turn, so the overlap reads as a card someone tucked there rather than a
- * badge stuck on. Lifted a little off the axis so the air over and under it
- * evens out (today's is all over it).
- */
-const REFINED = {
-  lg: { photo: { w: 184, h: 220 }, pad: 6, code: 100, off: 26 },
-  base: { photo: { w: 124, h: 148 }, pad: 5, code: 72, off: 16 },
-} as const;
-
-function RefinedAt({ bp }: { bp: Bp }) {
-  const g = REFINED[bp];
-  return (
-    <span className="relative block -translate-x-1/2 -translate-y-[57%]">
-      <Paper className="rounded-[8px] shadow-layer" style={{ padding: g.pad }}>
-        <Photo id={STILL} {...g.photo} />
-      </Paper>
-      <Paper
-        className="absolute rotate-[4deg] rounded-[8px] shadow-lift"
-        style={{ padding: g.pad, right: -g.off, bottom: -g.off }}
-      >
-        <FooterQr value={SHORT_VALUE} size={g.code} className="p-0" />
-      </Paper>
-    </span>
-  );
-}
-
-function RefinedObject() {
-  return (
-    <span data-hero-object className="block">
-      <ByBp base={<RefinedAt bp="base" />} lg={<RefinedAt bp="lg" />} />
-    </span>
-  );
-}
-
-/**
- * `print`: ONE PIECE OF PAPER, THE CODE PRINTED ON IT. The photograph above,
- * the code in the print's deeper foot, and the print hung so the CODE sits on
- * the band's axis: the album leaves the code again, as the hero's own concept
- * says, and the photograph stands above the band. The code's quiet zone is the
- * paper's own margin (FooterQr bakes four modules into its box), so nothing is
- * a second plate. `lift` is how far the print rises over the axis: its
- * photograph and top margin, plus half the code.
- */
-const PRINT = {
-  lg: { photo: 160, pad: 10, code: 104, gap: 2, foot: 4 },
-  base: { photo: 108, pad: 8, code: 84, gap: 2, foot: 3 },
-} as const;
-
-function PrintAt({ bp }: { bp: Bp }) {
-  const g = PRINT[bp];
-  const lift = g.pad + g.photo + g.gap + g.code / 2;
-  return (
-    <span
-      className="block"
-      style={{ transform: `translate(-50%, -${lift}px)` }}
-    >
-      <Paper
-        className="flex flex-col items-center rounded-[8px] shadow-layer"
-        style={{
-          padding: `${g.pad}px ${g.pad}px ${g.foot}px`,
-          gap: g.gap,
-        }}
-      >
-        <Photo id={STILL} w={g.photo} h={g.photo} />
-        <FooterQr value={SHORT_VALUE} size={g.code} className="p-0" />
-      </Paper>
-    </span>
-  );
-}
-
-function PrintObject() {
-  return (
-    <span data-hero-object className="block">
-      <ByBp base={<PrintAt bp="base" />} lg={<PrintAt bp="lg" />} />
-    </span>
-  );
-}
-
-/**
- * `plate`: THE CODE ALONE, AT THE QR DOOR'S FINISH. The object the band's
- * geometry was solved for (`GEO.qr`, 144 and 128, and `PLATE_PAD`), dressed
- * the way the QR door dresses its plate (`.rvr-plate`: white, the tile
- * radius, a deep two-part shadow), which Will called the first truly
- * beautiful card. Nothing else: the band is the photographs.
- */
-const PLATE_SHADOW =
-  "0 8px 16px -4px oklch(0 0 0 / 0.45), 0 16px 32px -8px oklch(0 0 0 / 0.55)";
-
-function PlateAt({ bp }: { bp: Bp }) {
-  return (
-    <span
-      className="flex -translate-x-1/2 -translate-y-1/2 rounded-[var(--radius-tile)] bg-white p-2"
-      style={{ boxShadow: PLATE_SHADOW }}
-    >
-      <FooterQr value={SHORT_VALUE} size={GEO[bp].qr} className="p-0" />
-    </span>
-  );
-}
-
-function PlateObject() {
-  return (
-    <span data-hero-object className="block">
-      <ByBp base={<PlateAt bp="base" />} lg={<PlateAt bp="lg" />} />
-    </span>
-  );
-}
-
-const OBJECTS: Record<HeroId, () => ReactNode> = {
-  today: TodayObject,
-  refined: RefinedObject,
-  print: PrintObject,
-  plate: PlateObject,
+const PLACE: Record<Place, string> = {
+  axis: "var(--hhs-axis)",
+  mid: "calc((var(--mkt-header-h, 4rem) + var(--hhs-axis) + var(--hhs-low)) / 2)",
 };
 
 /* ── The hero ────────────────────────────────────────────────────────────── */
@@ -314,7 +133,7 @@ const LAYOUT = Object.fromEntries(
 ) as CSSProperties;
 
 /** The home's first screen, the object in its slot. */
-export function HeroDrawn({ object }: { object: ReactNode }) {
+function HeroDrawn({ object, place }: { object: ReactNode; place: Place }) {
   const section = useRef<HTMLElement | null>(null);
   const nodes = useRef<(HTMLDivElement | null)[]>([]);
   const zNow = useRef<number[]>([]);
@@ -425,15 +244,12 @@ export function HeroDrawn({ object }: { object: ReactNode }) {
             </div>
           </div>
 
-          {/* The axis point. Each object places itself against it, because
-              the print hangs by its code rather than by its middle. */}
-          <div
-            className="absolute left-1/2 z-10"
-            style={{ top: "var(--hhs-axis)" }}
-          >
+          {/* The object's point: the axis, or the middle of its air. Each
+              object centres itself on it. */}
+          <div className="absolute left-1/2 z-10" style={{ top: PLACE[place] }}>
             <Link
               href="/demo"
-              aria-label="Scan with your phone, or tap to open the live demo"
+              aria-label="Open the live demo"
               className="block transition-transform duration-150 active:scale-[0.99]"
             >
               {object}
@@ -444,6 +260,19 @@ export function HeroDrawn({ object }: { object: ReactNode }) {
             className="absolute inset-x-0 z-20 px-4 text-center sm:px-6 lg:px-8"
             style={{ top: "calc(var(--hhs-axis) + var(--hhs-low))" }}
           >
+            {/* demo-doors' eyebrow, drawn as a stand-in (the header note).
+                One margin at both sizes: a lab-only `lg:` beside production's
+                `mb-4` would lose to it (the kit's
+                `lab-utility-loses-to-production` trap). */}
+            <p data-hero-eyebrow className="mb-4 flex justify-center">
+              <Link
+                href="/demo"
+                className="mkt-learn inline-flex items-center gap-1 text-label font-medium text-white/70 uppercase transition-colors duration-150 hover:text-white"
+              >
+                Try our demo event
+                <LearnChevron />
+              </Link>
+            </p>
             <h1
               data-hero-h1
               className="mx-auto font-heading text-hero text-balance text-white"
@@ -480,10 +309,10 @@ export function HeroDrawn({ object }: { object: ReactNode }) {
 /* ── The measurement ─────────────────────────────────────────────────────── */
 
 /**
- * Every PAINTED box under an element, unioned: the plate that hangs off the
- * corner is part of the object a reader sees. Painted means a photograph, a
- * code or a filled surface; a wrapper's own layout box is not, because an
- * object translated off its anchor leaves that box behind at the anchor.
+ * Every PAINTED box under an element, unioned: a plate hanging off a corner
+ * or a print standing out of a card is part of the object a reader sees.
+ * Painted means a photograph, a code or a filled surface; a wrapper's own
+ * layout box is not.
  */
 function extentOf(el: Element, win: Window) {
   let top = Infinity;
@@ -492,6 +321,7 @@ function extentOf(el: Element, win: Window) {
   let right = -Infinity;
   for (const node of [el, ...el.querySelectorAll("*")]) {
     const cs = win.getComputedStyle(node);
+    if (cs.display === "none" || cs.visibility === "hidden") continue;
     const painted =
       node.tagName === "IMG" ||
       node.tagName.toLowerCase() === "svg" ||
@@ -508,38 +338,64 @@ function extentOf(el: Element, win: Window) {
   return { top, bottom, w: right - left, h: bottom - top };
 }
 
+/** The one visible copy of a thing, when a breakpoint pair draws two. */
+function shown<T extends Element>(all: NodeListOf<T> | T[]): T | undefined {
+  return [...all].find((n) => n.getBoundingClientRect().width > 0);
+}
+
 function measureHero(id: HeroId, root: HTMLElement, win: Window) {
   const obj = root.querySelector("[data-hero-object]");
-  const h1 = root.querySelector("[data-hero-h1]");
+  const brow = root.querySelector("[data-hero-eyebrow]");
   const header = root.querySelector("header");
-  const svg = [...(obj?.querySelectorAll("svg") ?? [])].find(
+  if (!obj || !brow || !header) return null;
+  const box = extentOf(obj, win);
+  if (!Number.isFinite(box.top)) return null;
+  const over = box.top - header.getBoundingClientRect().bottom;
+  const under = brow.getBoundingClientRect().top - box.bottom;
+  const where = `${px(box.w)} by ${px(box.h)}, ${px(over)} under the header and ${px(under)} over the eyebrow`;
+  if (id === "today") {
+    return `The object is ${where}. One photograph; its code ${px(codeOf(obj))} on the corner plate.`;
+  }
+  const drawn = (sel: string) =>
+    [...obj.querySelectorAll(sel)].filter(
+      (n) => n.getBoundingClientRect().width > 0,
+    ).length;
+  const photos = drawn("[data-card-photo]");
+  const videos = drawn("[data-card-video]");
+  const code = codeOf(obj);
+  const slug = shown(obj.querySelectorAll<HTMLElement>("[data-hero-slug]"));
+  const size = slug
+    ? Number.parseFloat(win.getComputedStyle(slug).fontSize)
+    : 0;
+  const faces = shown(obj.querySelectorAll("[data-card-faces]"));
+  const people = faces
+    ? faces.querySelectorAll("[data-slot=avatar]").length
+    : 0;
+  const code_ = code > 0 ? `the code ${px(code)}` : "the QR chip";
+  const who = people > 0 ? `, ${people} guests' faces` : "";
+  const film = videos > 0 ? ` (${videos} a video)` : "";
+  return `The card is ${where}: ${photos} photographs${film}, ${code_}, the link at ${px(size)}${who}.`;
+}
+
+/** The drawn code's edge (FooterQr's svg, quiet zone included), or 0. */
+function codeOf(obj: Element): number {
+  const svg = [...obj.querySelectorAll("svg[shape-rendering=crispEdges]")].find(
     (s) => s.getBoundingClientRect().width > 0,
   );
-  if (!obj || !h1 || !header || !svg) return null;
-  const box = extentOf(obj, win);
-  // The svg's own layout width, never its box on screen: a turned card's
-  // bounding box is wider than the code it holds.
-  const code = svg.clientWidth || svg.getBoundingClientRect().width;
-  const span = qrSpanOf(id === "today" ? TODAY_VALUE : SHORT_VALUE);
-  const per = code / span;
-  const over = box.top - header.getBoundingClientRect().bottom;
-  const under = h1.getBoundingClientRect().top - box.bottom;
-  const scans = per >= 3 ? "scans" : "under the 3px scan floor";
-  return `The object is ${px(box.w)} by ${px(box.h)}, ${px(over)} under the header and ${px(under)} over the headline. Its code is ${px(code)} for ${span} modules, quiet zone included: ${per.toFixed(1)}px a module (${scans}).`;
+  return svg ? svg.getBoundingClientRect().width : 0;
 }
 
 export function heroPreview(s: BoardState, id: HeroId) {
   const screen: ScreenId = screenOf(s.screen);
-  const Obj = OBJECTS[id];
+  const { Obj, place } = OBJECTS[id];
   return (
     <Scene
-      id={`hero-${id}`}
+      id={`card-${id}`}
       screen={screen}
-      viewport="screen"
       title="The home's first screen"
       measure={(root, win) => measureHero(id, root, win)}
     >
-      <HeroDrawn object={<Obj />} />
+      <HeroDrawn object={<Obj />} place={place} />
     </Scene>
   );
 }
