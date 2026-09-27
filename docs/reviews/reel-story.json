@@ -100,6 +100,35 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 3,
+      "opened": "2026-09-27",
+      "answers": [
+        {
+          "ask": "hero",
+          "choice": "print",
+          "note": "This selection is far from perfect, just inspired a better idea: let's design the item so be a compact version of an event card, not text-heavy (if at all) but kind of showcasing multiple images in an album rather than 1 and a QR code, plus whatever other design touches you can think of. This hero sets the stage for the platform, and this item inherently is the core to that as the source of the photo stream. Want visitors to get an immediate impression of \"oh, I make a shareable event and everyone uploads to it, cool!\". The QR code alone feels limiting, like our product revolves around QRs-only rather than a \"one link\" concept, for which QRs are a huge contributor and key feature, but not defining. Reduces the idea of how easily this is to send a link in a group chat/email blast or simply write your custom link for people to copy/type.",
+          "by": "Will",
+          "at": "2026-09-27T20:45:40Z"
+        },
+        {
+          "ask": "beside",
+          "choice": "live",
+          "note": "I like this, feels a bit more subtle but still cool versus the guest row (which i considered heavily, but since this CTA section will often be followed by the footer, the guest row visual would be immediately followed by the footer's visual also pointing to the demo back-to-back, maybe that'd be great somewhere else). However, let's replace the 'A Partyreel production · partyreel.com' further down with this link so its a bit more spaced from the 'Start free' primary CTA button.",
+          "by": "Will",
+          "at": "2026-09-27T20:45:40Z"
+        },
+        {
+          "ask": "line",
+          "choice": "as-they-land",
+          "by": "Will",
+          "at": "2026-09-27T20:45:40Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

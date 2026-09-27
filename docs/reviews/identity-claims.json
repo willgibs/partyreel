@@ -44,6 +44,41 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-27",
+      "answers": [
+        {
+          "ask": "save",
+          "choice": "once",
+          "by": "Will",
+          "at": "2026-09-27T20:45:40Z"
+        },
+        {
+          "ask": "confirm",
+          "choice": "card",
+          "note": "Individual, immediate handling 1 by 1 is likely best for claims here. Batch feels intimidating if they stack, and confirming at the end leaves users with unfinished claim batches believing the handling decisions they had made were saved, rather than requiring a final review delete confirm later on completion.",
+          "by": "Will",
+          "at": "2026-09-27T20:45:40Z"
+        },
+        {
+          "ask": "next",
+          "choice": "both",
+          "by": "Will",
+          "at": "2026-09-27T20:45:40Z"
+        },
+        {
+          "ask": "pointer",
+          "choice": null,
+          "note": "Coming off of some of my prior selections, I just wanted to flag this to be sure we have our best options on the table.",
+          "by": "Will",
+          "at": "2026-09-27T20:45:40Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }
