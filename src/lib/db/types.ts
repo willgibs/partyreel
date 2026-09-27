@@ -1452,9 +1452,11 @@ export type Database = {
           event_date: string
           event_id: string
           event_name: string
+          event_visibility: Database["public"]["Enums"]["event_visibility"]
           guest_id: string
           last_upload_at: string
           pending_email_at: string
+          preview_keys: string[]
           upload_count: number
         }[]
       }
