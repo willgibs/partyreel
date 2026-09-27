@@ -1,6 +1,6 @@
 ---
 track: demo-doors
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "8d202ed1"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -51,25 +51,108 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended and is Will's to overrule.
+
+- **The eyebrow's look.** Recommended and built: the house eyebrow register (the uppercase label step, muted, white
+  on hover) with the demo link's live dot before it and the learn chevron after it, as one link; no pill. Overrule:
+  a pill or chip, or the words without the dot.
+- **The modal's words.** Built: the code, "Try our demo event", "Scan the code with your phone to join as a guest
+  would, or open it here.", the short link in words (`partyreel.com/demo`, selectable), and one button, "Open the
+  demo", in a new tab. No Copy link (the brief asked for the code and the direct link). Overrule: a Copy link beside
+  it, or other words.
+- **What a desk is.** Built: 640 and up with a fine pointer, the Sheet's own split; a tablet (a coarse pointer at any
+  width) opens the demo in a new tab like a phone. Overrule: a tablet gets the modal too.
+- **The hero's object keeps its own link.** The brief left `DemoQr` as it is while `hero-card` draws its successor,
+  so a press on the object still opens the demo in the same tab; making it a demo door is one line when
+  `hero-card`'s object lands. Overrule: make it a door now.
+- **The eyebrow costs the home hero 28px at a desk (36 on a phone).** Built: it is the block's first line, so the
+  block is re-measured (`hero-stream.ts` `blockH`: 384 at `lg`, 361 at `base`), and on a 720-tall laptop the air
+  under the actions scrolls (the whole hero needs 744 there; the test is reshaped with its scar). 780 and taller fit
+  whole with their air. Overrule: a smaller eyebrow gap, or the eyebrow at `lg` only.
+- **The reel card's noun.** Built: every type's noun reads well ("Everyone's wedding / party / trip / conference
+  photos, live as they land."), two lines at 1440 and 375 on all four; the /events hub keeps the plain line, since
+  "Everyone's event photos" is the noun padding the line. Overrule: the plain line on every page.
+- **The credit.** Built: a band carrying the demo link loses the credit line to it (the home's close asks for both
+  and the link wins); a band without a demo line keeps the credit, and it comes back if the demo is ever unset.
+- **Analytics.** Built: each door keeps its own `demo_open` source on the press, at a desk and on a phone alike,
+  and the modal's own button fires `demo_open` with `source: demo-modal`, so a desk visitor who opens the demo
+  from the modal counts once as intent (the door) and once as the open. Overrule: a new event name for the modal
+  (the taxonomy is append-only, `events.test.ts`).
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/marketing-content.md`, "The demo (marketing side)": the doors bullet refined in place
+  (`DemoCtaLink` is the live dot and the words, beside the button in five heroes and at a closing band's foot in the
+  credit's place; the hero's eyebrow is the block's first line inside `blockH`), and one new bullet: every pointer
+  to the demo is a demo door (a real new-tab link; a plain press at a desk opens the one modal), ★ the modal belongs
+  to the page, not the door (the nav's pane leaves with its panel), and which pointers are still plain links.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Marketing: the demo pointers outside this lane are still plain same-tab links: the home hero's object
+  (`cinema-hero.tsx` `DemoQr`, with `hero-card`'s object), the event objects (`events/event-object.tsx`), /how-it-works'
+  proof (`how-it-works/demo-door.tsx`) and the footer's phone link (`marketing-footer.tsx`); each is one
+  `DemoDoor` (`system/demo-modal/demo-door.tsx`).
+- Marketing: the home hero's `axisMin` is solved for the old bare 144px code (72 + 8 over the axis) while the frame
+  stands 129 over it at `lg`, so on desk windows under about 773 tall the frame's top runs under the transparent
+  header band (the code itself never does); re-solve it with `hero-card`'s object.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Commits, pushed on `lp/demo-doors` (branched at `ebfb1581`, the cut commit itself): the work `5beb986a`, the
+  board's retirement `0acc0832`, and the sync `ce1dd535` (a merge of `origin/launch-prep` at `eeebb5bd`, which
+  brought `hero-card` r1; its one conflict was `DESK_ORDER` in `touchpoints.ts`, resolved to `hero-card` standing
+  and `reel-story` gone). This manifest's own commit follows and is the head in the chat line.
+- Gates, all on the synced tree `ce1dd535`, each on its own exit code (logs in
+  `/Users/gibby/local/ai/partyreel-wt/_scratch/demo-doors/gate-*.log`):
+  - `pnpm typecheck`: exit 0.
+  - `pnpm lint`: exit 0; 0 errors, the 5 pre-existing warnings, none in a touched file.
+  - `pnpm test`: exit 0; 501 files, 5633 tests.
+  - `zsh scripts/build-lock.sh pnpm build`: exit 0, no warning in the log.
+  - `pnpm lab:smoke --base http://localhost:3133`: 249 checks, 0 failing (the one 500 is `/design/lab/tools/boom`,
+    the permanent probe); `/design/lab/reel-story` now 404s.
+  - `board: none`, so no `lab:demo`.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` is the owned paths plus this file, with these named
+  exceptions: `hero-stream.ts` (two numbers, `GEO.blockH` at both breakpoints: the eyebrow is the block's first line
+  and the block's height is the number its own comment says a copy change must re-measure; the `lg` one had also
+  read 323 against a page that measured 356 before the eyebrow), `hero-stream.test.ts` (the `lg` fit, reshaped with
+  its scar: a 720 laptop fits the block and gives up its foot's air), `gallery/specimens.generated.json` (derived:
+  the collector's output for the Library entries), and the retirement's `touchpoints.ts`, `sandbox/registry.ts`,
+  `(shell)/lab/boards.ts` and `sandbox/reel-story/` (named in the brief).
+- The items, one line each:
+  1. The live dot rides inside `DemoCtaLink` in all its places (`system/demo-cta-link.tsx`, `LiveDot` in
+     `demo-modal/demo-door.tsx`): the success dot on the house pulse, paused off screen (`useAmbientPause`, measured:
+     the band's dot `paused` while the hero's runs on /reel) and still under reduced motion (`animation-name: none`).
+  2. In every closing band carrying the link, it moves to the credit's place, 64px under the buttons (measured on
+     `/` at 1440 and 375), and the credit goes (`system/cta-band.tsx`); the home's close no longer shows the credit.
+  3. "Try our demo event" over the home hero's headline (`sections/home/cinema-hero.tsx`), a demo door: at 1440x900
+     the composition still ends 28px over the fold, at 375x667 25px over it (`home-hero-*.png` in the scratch dir).
+  4. One demo modal (`system/demo-modal/`): opened at 1440 from the eyebrow, `DemoCtaLink` (heroes and bands), the
+     footer's pile, the nav's pane and "Explore the demo" on `/`, `/reel`, `/features`, `/events/weddings`,
+     `/pricing`, `/features/album` and `/contact`: every one opened the card with its code and its link, Escape
+     closed it and focus went back to the opener (the nav's pane: to the Features trigger); the scrim closes it;
+     "Open the demo" opens a new tab. The code, read off the rendered pixels by the browser's `BarcodeDetector`,
+     decodes to `https://partyreel.com/demo`. At 375 (touch) every pointer's tap on those pages is left to the link
+     (not prevented, no modal), as are the eyebrow's on an 820 tablet and a Cmd-click at 1440. Console clean on
+     every page.
+  5. The reel's line (`lib/constants/marketing-voice.ts`): `REEL_LINE` "Everyone's photos, live as they land." on
+     the hub's lead door and the related rows (one line at 1440 and 375) and as the /reel heading (two lines at 1440
+     and 375); `reelLineFor` on the event pages (two lines at both widths for all four types).
+  6. `reel-story` retired (`0acc0832`); its ledger stays for the record.
+  7. The Library (`library/marketing/gallery-demos.tsx`): the band's two feet as two specimens, the link's dot, the
+     hero's eyebrow in its lede, and a new `DemoDoor` entry with its test (`demo-door.test.tsx`: the door is a real
+     new-tab link, opens the modal at a desk, hands focus back on Escape, keeps the modal when the door unmounts,
+     leaves a phone's and a modified press alone; `opens.test.ts` holds the rule).
+- Verified locally on :3133 with an isolated headless Chrome (the shared Browser pane was busy with another lane's
+  :3134), scripts and captures in `/Users/gibby/local/ai/partyreel-wt/_scratch/demo-doors/` (`s2.mjs` every
+  pointer desk and phone, `s3.mjs` the nav's pane, a Cmd-click and a tablet, `s5.mjs` the code's decode, the scrim
+  and the button). Live was not run: a lane push deploys nothing; every surface here is public marketing with no
+  allow-list gate, and the same scripts take the alias once it builds (`BASE=<alias> node s2.mjs`).
+- Assets requested from Will: none.
+- Board ideas: the nav's Features pane draws the frame in the top 16:9 of a pane stretched to the two-column
+  list's height, leaving an empty well under it (production before this lane: `nav-pane-open-1440.png` beside
+  `alias-nav-pane-open-1440.png`).
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule: the Questions above, each built as recommended.
+- Look at first: the home hero at 1440 (the eyebrow's air to the object and to the headline), then any demo link at
+  a desk (the modal), then the nav's Features pane (the modal outliving its panel).
