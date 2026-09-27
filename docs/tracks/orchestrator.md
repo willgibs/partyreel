@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "1a455e5f"          # the launch-prep SHA this state was written at
+cut: "ebfb1581"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/theme.css
   - src/app/(marketing)/marketing.css
@@ -40,37 +40,34 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `popups-wiring` | the popups board's eight kinds at their source (one table; lists in a panel, confirm and forms in keyboard-safe dialogs, choices in a menu, Invite then the code card then Share, plans wide and stacked, settings unfocused, peek a card); retires `popups` | building (agent af9df098c720f6767) | Opus, 3131 | |
+| `door-r3-wiring` | `identity-door` r3's five (lit icons, the told chooser, the smaller hint, Check your email, the lit beat with motion) and the door's roadmap lines; the Like door into the held sheet; retires `identity-door` | building (agent ad8d98fbd9a81d1ee) | Opus, 3132 | |
+| `demo-doors` | the live dot in the credit line's place, "Try our demo event" over the hero's H1, one demo modal on a desk (a new tab on a phone), the reel's new line; retires `reel-story` | building (agent a3ef18cb8c0dfabc6) | Opus, 3133 | |
+| `hero-card` | new board `hero-card` r1: the hero's object as a compact album card, the code baked in | drawing (agent aa47974ca626174cd) | Opus, 3134 | |
+| `claims-r3` | board `identity-claims` r3: `pointer` alone, the best options on his r2 answers | drawing (agent a7b4c56ab7347cbaf) | Opus, 3135 | |
 
-Batch 3 closed at milestone 29 (`ab30a7f8`, 2026-09-26): 49 lanes since milestone 28, their merge commits carrying
-the rest.
-
-Merged in batch 4 (their records carry the rest): mine-none, claims-r2, profile-setup, story-r3, reel-marketing, door-r3, popups, guest-door, crumbs-3.
+Batch 3 closed at milestone 29 (`ab30a7f8`, 2026-09-26); batch 4 (nine lanes with `crumbs-3`) is on build 11.
 
 ## Next, in order
 
-1. **Build 11 is live** (`eff5b3f0`, both aliases; the desk's boards load clean) and Will's sitting is on it,
-   `popups` first. Its red-team reported: seven journeys of eight pass, the eighth's console 404s older than the build
-   (the lab dock's prefetch, in `crumbs-3`), no blocker or major, the 100-minute soak clean; its other minors: the
-   lamp's fallback on colourless previews (`crumbs-3`) and the setup's "Showing on your page" over an event whose host
-   keeps the list off (Will's copy call; ROADMAP's picker line). Not driven, Will's: a real first upload (the keep, the
-   badge, the one beat, the told name's Change). `crumbs-3` merged and waits for build 12. The scope of
-   a full red-team, as builds 10 and 11 walked it (brief `../partyreel-wt/_scratch/redteam-11/brief.md`):
-   - the reel on the album's data path: the tile, the view, clips, access, the password event, the demo;
-   - `?reel=screen` soaked headless at 1920x1080 for 100 minutes (a hidden pane throttles the page);
-   - the door at 375 on the Sheet, now lit, with the keep after a real first upload at a held-uploads event, the
-     tracker's count falling as Review approves, one confirm beat and the told name's Change;
-   - the album at scale on both surfaces, with no mark on a guest's own tiles, a hide just above a deep guest's view
-     moving nothing in it, and the bin's viewer restoring and deleting on a phone as a signed-in host;
-   - the owner's own password album, plain, `?reel` and `?reel=screen`, and its Download all;
-   - the setup wizard (as partyr33l or hi@willgibs, no handle), the private page's count from a second viewer and
-     anonymously, the marketing pages (the 19 bare demo links, the footer's pile, the still twin card, the one
-     contained player).
-2. **Milestone 30** on his yes, once the count's legal clause (his wording, below) is in the Terms and the Privacy
-   Policy; after it, `kit/`'s screens re-captured from partyreel.com (the home's close and teaser and the demo's doors
-   changed).
-3. **After his sitting on build 11**: the wiring of his picks on `popups`, `identity-door` r3, `identity-claims` r2 and
-   `reel-story` r3.
-4. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
+1. **Batch 5 lands** (cut `ebfb1581` from his sitting on build 11, his ledgers at `8d202ed1`; his chat calls
+   2026-09-27: Invite then the card then Share, direct invites later; the hero's code need not scan, a "Try our demo
+   event" eyebrow opening a demo modal on a desk). Integrate each as it hands off; the records carry the retirements'
+   ledgers (`popups`, `identity-door`, `reel-story`), `DESK_ORDER` as `identity-claims`, `hero-card`, then the 15
+   unchanged boards, and the lanes' asset slots.
+2. **`claims-wiring`**, cut once `popups-wiring` merges (the review in its lists panel, built once): `identity-claims`
+   r1 and r2's answers (the banner, one event at a time with its own photos, each decision saved as it's made, the
+   dialog at the Not mine card, Open album and a quieter `FollowButton` variant the moment card takes too), the
+   ROADMAP's two claims lines (the moment card's two other-events lines; the toast and the invitation pointing at one
+   page), a read for each card's photos (none for a password event), perhaps a migration; `pointer` once r3 answers.
+3. **Build 12** once batch 5 lands: `[preview]`, `alias-ensure`, the desk checked, its red-team (the standing scope in
+   `../partyreel-wt/_scratch/redteam-11/brief.md`, plus the popups on real screens with the keyboard up, the door's
+   motion and code screens, the demo modal from every pointer, the claims review), then Will's sitting:
+   `identity-claims` r3, `hero-card`, then the 15.
+4. **Milestone 30** on his yes, once the count's legal clause (his wording, below) is in the Terms and the Privacy
+   Policy; after it, `kit/`'s screens re-captured from partyreel.com (the home's close, teaser, eyebrow and the demo's
+   doors changed).
+5. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
    self-registering folder, its metadata in its spec, lab checks scoped to the lane's own boards, the authoring API
    trimmed, a fresh agent proving it; with library-lean's board ideas (a `Surfaces` family of live frames per route
    with guest entries, the Library's sidebar open by default, a plain-text view of Library pages, a
@@ -79,15 +76,15 @@ Merged in batch 4 (their records carry the rest): mine-none, claims-r2, profile-
 
 ## Waiting on Will
 
-- **The private count's legal clause** (before a milestone ships it): the Terms ("Profiles and social features",
+- **The private count's legal clause** (before milestone 30): the Terms ("Profiles and social features",
   `src/lib/constants/legal-terms.tsx:422`) and the Privacy Policy (`legal-privacy.tsx:311`) promise nothing you attend
   appears on a profile until you choose it, and an empty page now says "2 private events". The lane's wording, his to
   change: "A profile with nothing on it may say how many events it keeps private, counting only events whose guest
   lists the visitor can already see."
-- **His next sitting, on build 11** once batch 4 lands: `popups` first, then `identity-door` r3, `identity-claims` r2
-  and `reel-story` r3, then the 15 boards build 10's sitting did not reach.
-- **A 10-second iPhone check on partyreel.com**: one tap on Save opens the system sheet (a photo, a video, a finished
-  clip), and a shared photo arrives as a photograph.
-- **The calls his to overrule** from the last lanes, relayed in chat on 2026-09-26: reel-and-copy's screens following
-  a new default at the next hold; owner-album's Download all fix and a failed read staying a failure; album-fixes'
-  three (the viewer closes on the bin's verbs, a sliver of a row counts as in view, the hold below the view too).
+- **A 2-minute real-upload check on the alias**: a first photo as a signed-out guest at a held-uploads event (the
+  keep, "waiting for the host", the tracker's badge), then Confirm your email (the one beat, the told name's Change).
+- **A 10-second iPhone check on partyreel.com**: one tap on Save opens the system sheet, and a shared photo arrives as
+  a photograph.
+- **A copy call**: the setup's "Showing on your page" over an event whose host keeps the guest list off (ROADMAP's
+  picker line).
+- **His next sitting, on build 12**, once batch 5 lands.

@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Shared: direct invites: a host invites guests from Partyreel itself (an email or a text sent on the host's behalf, with its spam and deliverability rules); Will floated it on `popups`' share answer and chose later (2026-09-27), a board when a seat is free.
 - Help: `a-photo-is-missing-from-the-album` promises hosts hide "silently" while her tracker says "Not in the album"; it follows `host-curation`'s `told` (from `guest-door`).
 - Guests: her tracker draws a picture only for what is in the album; her earlier held or refused items show a placeholder, since a guest is never presigned media outside the album (`grid-items.ts`), so drawing them needs an own-media presign rule (from `guest-door`).
 - Guests: a refusal reaches her tracker at its next read (mount or opening), since the album's sync moves only in and out of approved; a live refusal needs its own signal (from `guest-door`).
