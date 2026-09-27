@@ -17,6 +17,7 @@ reads:
   - CLAUDE.md
   - docs/PROGRAM.md
 announces:
+  - "profile-setup merged at 853093a6 (2026-09-27): the profile setup is `/account/profile` (`PROFILE_SETUP_PATH` in `src/app/(app)/account/profile/invite.ts`); an account that already has a page is sent to `/account#public-profile`, so a \"Claim a handle\" row can point at the setup unconditionally. `get_public_profile` carries `private_event_count` (applied; null unless the page shows nothing)."
   - "album-guest-wiring merged at a474d130 (2026-09-25): every album is the windowed rows; the viewer takes `onNeedLinks` (an item with `url: \"\"` is a placeholder); `MasonryColumns`/`AlbumRows` take `firstPaintWidth` and `onBoxWidth`; `album-window-plan.ts` holds the first paint (`firstPaintIds`, `ALBUM_WIDTH_COOKIE`, the served plan); `/api/guests/gallery` is gone; `yours-filter` lives in `src/lib/guest/`."
   - "album-host-wiring merged at 7130d26d (2026-09-25): `HostAlbumLinksBody` (the host's links answer plus `likes`) in `@/lib/events/album-wire`; `likes-provider.tsx` seeds likes per window and bulk-likes through `like_many`; `lib/events/host-fingerprint.ts` and `/api/events/[eventId]/live` are gone; the bin is `/api/events/<id>/bin` and `bin/media`."
   - "reel-defaults-migration merged at 71cfea65 (2026-09-25), its migration applied: `events.reel_hold_sec` (NULL = the default hold; read it with `resolveHoldSec(row.reel_hold_sec)`, since the generated type says `number`), returned last by `get_event_by_qr_token`; `HOLD_STEPS_SEC`, `DEFAULT_HOLD_SEC`, `nearestHoldStep`, `REEL_MOOD_IDS` in `@/lib/reel/defaults` (their one home: the guest lane drops its copies); `setReelDefaults({ eventId, showReel?, styleId?, holdSec? })` in `@/lib/reel/defaults-action` for the view's Set for everyone and Settings; `event_stills(uuid[], int)` (authenticated, one jsonb of preview keys an event, presigned server-side like `readCoverUrls`). reel-guest-wiring and reel-host-wiring merge origin/launch-prep past it."
@@ -40,7 +41,6 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `guest-door` | lit's own pieces on every door screen; `guest-capture`'s five (the keep ask as the door's last screen, the told name with Change, one confirm beat, the tracker and its count); retires `guest-capture` | building (agent a2cd842994c0d4f98) | Opus, 3131 | |
-| `profile-setup` | `identity-profile`'s five (the wizard, the cover picker, off with a one-time choice, the prompt after a claim, the private count) and the claims toast's page line; retires `identity-profile`; may bring a migration | building (agent a80f91261f8069030) | Opus, 3133 | |
 | `reel-marketing` | `reel-story` r2's four with his notes; the footer's stack back; the demo link alone in 19 places; marketing's own content principle; ASSETS asks | building (agent af73905e2c6c564c7) | Opus, 3134 | |
 | `story-r3` | board `reel-story` r3: the hero polished, beside the demo link, the reel's line | drawing (agent a6e566ce3c8f95382) | Opus, 3135 | |
 | `door-r3` | board `identity-door` r3: the remaining icons and copy within lit | drawing (agent a3e1caeac781e84b4) | Opus, 3136 | |
@@ -49,7 +49,7 @@ a lane").
 Batch 3 closed at milestone 29 (`ab30a7f8`, 2026-09-26): 49 lanes since milestone 28, their merge commits carrying
 the rest.
 
-Merged in batch 4 (their records carry the rest): mine-none, claims-r2.
+Merged in batch 4 (their records carry the rest): mine-none, claims-r2, profile-setup.
 
 ## Next, in order
 
@@ -82,6 +82,11 @@ Merged in batch 4 (their records carry the rest): mine-none, claims-r2.
 
 ## Waiting on Will
 
+- **The private count's legal clause** (before a milestone ships it): the Terms ("Profiles and social features",
+  `src/lib/constants/legal-terms.tsx:422`) and the Privacy Policy (`legal-privacy.tsx:311`) promise nothing you attend
+  appears on a profile until you choose it, and an empty page now says "2 private events". The lane's wording, his to
+  change: "A profile with nothing on it may say how many events it keeps private, counting only events whose guest
+  lists the visitor can already see."
 - **His next sitting, on build 11** once batch 4 lands: `popups` first, then `identity-door` r3, `identity-claims` r2
   and `reel-story` r3, then the 15 boards build 10's sitting did not reach.
 - **A 10-second iPhone check on partyreel.com**: one tap on Save opens the system sheet (a photo, a video, a finished
