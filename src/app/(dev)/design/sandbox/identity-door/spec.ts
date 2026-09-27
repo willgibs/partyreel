@@ -180,7 +180,7 @@ const DRAFT = defineExploration({
       label: "Under her name",
       question: "What should the line under her name say?",
       context:
-        "The name step, Continue as guest's own screen: his heading and line, Priya typed with the keyboard up, the email row under it; the same line sits under Change name. Only that line moves.",
+        "The name step, Continue as guest's own screen: its heading and his line, Priya typed with the keyboard up, the email row under it; the same line sits under Change name. Only that line moves.",
       options: [
         {
           id: "today",
@@ -192,7 +192,7 @@ const DRAFT = defineExploration({
           id: "change",
           label: "\"You can change it anytime\"",
           means:
-            "The reassurance that is also a fact: her menu's Change name edits it later, so a name typed in a hurry costs nothing.",
+            "The reassurance that is also a fact: her menu's Change name edits it later, so a hurried name costs nothing. Change name itself shows no line.",
         },
         {
           id: "none",
@@ -250,7 +250,7 @@ const DRAFT = defineExploration({
       label: "The beats",
       question: "How should the door answer her the moment she is in?",
       context:
-        "The door's beats: a password opening the album, a code confirmed (the \"You're in\"), and her first photo sent at the head of the keep screen. Lit already blooms its light on each; only the mark beside the words moves.",
+        "The door's beats: a password opening the album, a code confirmed (the \"You're in\"), and her first photo sent at the head of the keep screen. Lit already blooms on each; only the mark moves, and in one option her name joins the words.",
       options: [
         {
           id: "today",

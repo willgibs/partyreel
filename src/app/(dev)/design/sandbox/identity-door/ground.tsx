@@ -1,7 +1,13 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { Download, ImageUp, Share2, SlidersHorizontal } from "lucide-react";
+import {
+  Download,
+  ImageUp,
+  Lock,
+  Share2,
+  SlidersHorizontal,
+} from "lucide-react";
 
 import { MediaTile } from "@/components/app/media-grid";
 import { PosterCard } from "@/components/reel/poster-card";
@@ -131,18 +137,60 @@ function Tile({ item }: { item: (typeof ALBUM)[number] }) {
 }
 
 /**
+ * THE LOCKED PAGE, behind a password event's door: `event-experience.tsx` at
+ * `access === "none"` renders the name alone, the count beside a lock, and the
+ * ghosted river of stand-in frames (`GhostRiver`: the guest-ghost pack at its
+ * `opacity-40 grayscale-[85%]`), never a pixel of the album. Drawn here as the
+ * river's frames standing still, since the scrim's blur is all that shows of it.
+ */
+function LockedPage() {
+  return (
+    <div
+      data-door-ground="locked"
+      className="flex min-h-screen flex-col bg-background text-foreground"
+    >
+      <Header who="stranger" />
+      <div className="w-full max-w-2xl px-5 pt-8">
+        <h1 className="font-heading text-page text-balance">{EVENT.name}</h1>
+        <div className="mt-8 space-y-4">
+          <div className="flex items-center justify-center gap-2 text-muted-foreground">
+            <Lock className="size-4" aria-hidden />
+            <p className="text-reading">{`${EVENT.approvedTotal} photos & videos inside`}</p>
+          </div>
+          <div className="grid grid-cols-3 gap-2 opacity-40 grayscale-[85%]">
+            {Array.from({ length: 9 }, (_, i) => (
+              // eslint-disable-next-line @next/next/no-img-element -- the river's own stand-in frames
+              <img
+                key={i}
+                src={`/guest-ghost/g0${i + 1}.webp`}
+                alt=""
+                className="aspect-square w-full rounded-[var(--radius-tile)] object-cover"
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
  * The whole page behind the door. `who` is the header's state: a stranger at
  * the door, then Priya once she is inside (her name menu's trigger, and the
- * action row's Add photos, which only a named guest is offered).
+ * action row's Add photos, which only a named guest is offered); `locked`, a
+ * password event's page before the unlock.
  */
 export function AlbumGround({
   who,
   description,
+  locked = false,
 }: {
   who: Who;
-  /** Maya wrote a description (the `greeting` knob): the page shows it too. */
+  /** Maya wrote a description: the page shows it under its stats line. */
   description: boolean;
+  locked?: boolean;
 }) {
+  if (locked) return <LockedPage />;
   const inside = who !== "stranger";
   return (
     <div

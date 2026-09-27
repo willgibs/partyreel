@@ -59,6 +59,15 @@ export function LitProvider({ children }: { children: ReactNode }) {
   return <HueContext.Provider value={hues}>{children}</HueContext.Provider>;
 }
 
+/**
+ * A PASSWORD EVENT'S LIGHT: the house five, because nothing of the album can
+ * be sampled before the unlock (the locked page leaks the name and the count,
+ * never a pixel of its media), which is how production lights that door.
+ */
+export function HouseLight({ children }: { children: ReactNode }) {
+  return <HueContext.Provider value={null}>{children}</HueContext.Provider>;
+}
+
 export function useHues(): { hues: readonly number[]; sampled: boolean } {
   const hues = useContext(HueContext);
   return { hues: hues ?? HOUSE_HUES, sampled: hues !== null };

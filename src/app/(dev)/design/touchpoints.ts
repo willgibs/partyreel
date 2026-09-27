@@ -93,6 +93,7 @@ export const RULINGS: Ruling[] = [
         "The code screen",
         "The beats",
       ],
+      tracks: ["door-r3"],
     },
   },
   {

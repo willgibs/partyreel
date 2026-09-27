@@ -10,7 +10,7 @@ import { DeskPanel, PhoneSheet, Scrim } from "./door";
 import { CODE } from "./fixtures";
 import { AlbumGround } from "./ground";
 import { Keyboard } from "./keyboard";
-import { Lamp, LIT_SCRIM, LitProvider, useHueVars } from "./lit";
+import { HouseLight, Lamp, LIT_SCRIM, LitProvider, useHueVars } from "./lit";
 import { NameMenu } from "./menu";
 import { type PhoneScene, type Reader, Scenes } from "./scene";
 import { type DoorStep, stepSpec } from "./steps";
@@ -46,14 +46,29 @@ const WHO: Partial<Record<Screen, "named" | "emailed">> = {
   "menu-email": "emailed",
 };
 
-function DoorScreen({
+/** A password event's two steps: the locked page behind, the house five above. */
+const LOCKED: readonly DoorStep[] = ["password", "unlock"];
+
+function DoorScreen(props: { step: DoorStep; size: Size; world: World }) {
+  return LOCKED.includes(props.step) ? (
+    <HouseLight>
+      <DoorBody {...props} locked />
+    </HouseLight>
+  ) : (
+    <DoorBody {...props} locked={false} />
+  );
+}
+
+function DoorBody({
   step,
   size,
   world,
+  locked,
 }: {
   step: DoorStep;
   size: Size;
   world: World;
+  locked: boolean;
 }) {
   const desk = size === "desk";
   // The album's three hues on the screen's root, so every lit thing in the
@@ -72,7 +87,11 @@ function DoorScreen({
   };
   return (
     <div className="relative min-h-screen" style={vars}>
-      <AlbumGround who={WHO[step] ?? "stranger"} description />
+      <AlbumGround
+        who={WHO[step] ?? "stranger"}
+        description
+        locked={locked}
+      />
       <Scrim spec={LIT_SCRIM} />
       {desk ? (
         <DeskPanel {...parts} />
@@ -152,14 +171,17 @@ function wordsSaid(root: HTMLElement): string {
  * code's slot) clear it, and how much album stays above the sheet.
  */
 function keyboardSaid(root: HTMLElement): string {
+  const ground = root.querySelector("[data-door-ground='locked']")
+    ? "the locked page"
+    : "album";
   const paper = root.querySelector<HTMLElement>("[data-door-paper]");
   const kb = root.querySelector("[data-door-kb]");
   if (!paper) return "";
   const box = paper.getBoundingClientRect();
   if (paper.dataset.doorSheet === "desk")
-    return `the panel is ${px(box.width)} wide beside ${px(box.left)} of album`;
+    return `the panel is ${px(box.width)} wide beside ${px(box.left)} of ${ground}`;
   const top = box.top;
-  if (!kb) return `${px(top)} of album above the sheet`;
+  if (!kb) return `${px(top)} of ${ground} above the sheet`;
   const kbTop = kb.getBoundingClientRect().top;
   const scroll = root.querySelector("[data-door-scroll]");
   const fold = scroll?.getBoundingClientRect().bottom ?? kbTop;
@@ -192,7 +214,7 @@ function keyboardSaid(root: HTMLElement): string {
         : `${what} is hidden under the ${visibleTo < fold ? "primary" : "fold"} by ${px(f.bottom - visibleTo)}`,
     );
   }
-  parts.push(`${px(top)} of album above the sheet`);
+  parts.push(`${px(top)} of ${ground} above the sheet`);
   return parts.join(", ");
 }
 
@@ -221,10 +243,14 @@ function iconsSaid(root: HTMLElement, win: Window): string {
     bits.push(
       `${promise.length} grey glyph${promise.length === 1 ? "" : "s"} at ${px(promise[0].getBoundingClientRect().width)} leading the rows`,
     );
+  // The house five light a password event's door: nothing is sampled there.
+  const source = root.querySelector("[data-door-sampled]")
+    ? "the album's"
+    : "the house five's";
   for (const g of inline) {
     const lit = g.classList.contains("door-glyph-lit");
     bits.push(
-      `a ${px(g.getBoundingClientRect().width)} ${lit ? `glyph in the album's ${hueSaid(win.getComputedStyle(g).color)}` : "grey glyph"} inside a line`,
+      `a ${px(g.getBoundingClientRect().width)} ${lit ? `glyph in ${source} ${hueSaid(win.getComputedStyle(g).color)}` : "grey glyph"} inside a line`,
     );
   }
   const said = bits.length ? bits.join("; ") : "none but the controls";
@@ -292,7 +318,7 @@ function beatSaid(root: HTMLElement, win: Window): string {
         ? "the photo she sent, a check on its corner"
         : "her own initial in her colour, a check on its corner"
       : kind === "lit"
-        ? `a check in the album's light (hues ${lamp?.dataset.doorHues ?? ""})`
+        ? `a check in ${lamp?.hasAttribute("data-door-sampled") ? "the album's light" : "the house five's light"} (hues ${lamp?.dataset.doorHues ?? ""})`
         : `a check on the success green (${hueSaid(win.getComputedStyle(mark).backgroundColor)})`;
   const size = mark.tagName === "BUTTON" ? "the button itself" : px(box.width);
   return `The mark: ${what}, ${size}${spoken ? `; it says "${spoken}"` : ""}${light}.`;

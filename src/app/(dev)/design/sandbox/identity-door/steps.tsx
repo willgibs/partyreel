@@ -438,9 +438,12 @@ function chooser(w: World): StepSpec {
 
 /* ── the name (`hint`), its email opened, and the edit door ────────────── */
 
-/** The line under her name, the one thing `hint` moves. */
-function NameHint({ w }: { w: World }) {
-  if (w.hint === "none") return null;
+/**
+ * The line under her name, the one thing `hint` moves. `change` says nothing
+ * on Change name itself, where she is already changing it.
+ */
+function NameHint({ w, editing = false }: { w: World; editing?: boolean }) {
+  if (w.hint === "none" || (w.hint === "change" && editing)) return null;
   return (
     <p data-door-hint className="text-reading text-muted-foreground">
       {w.hint === "change"
@@ -523,7 +526,7 @@ function edit(w: World): StepSpec {
         <div className="space-y-1.5">
           <FieldLabel hidden>Your name</FieldLabel>
           <Field id="name" value={PRIYA.name} focused />
-          <NameHint w={w} />
+          <NameHint w={w} editing />
         </div>
         <KbFoot>
           <Primary>Save name</Primary>
