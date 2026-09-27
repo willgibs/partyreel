@@ -40,6 +40,8 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `claims-wiring` | `identity-claims` r1 and r2's answers: the banner, the review in the lists panel, one event at a time with its photos, saved as decided, the dialog at the card, Open album and a quieter Follow (the moment card too), the double-tap guard; maybe a migration | building (agent a50fd7c2bc01e0754) | Opus, 3131 | |
+| `desk-trim` | board `export-flow`: its `object` ask retires (popups' `choices=menu` answered it) | drawing (agent a8c60c10c4d0bc91e) | Sonnet, 3133 | |
 | `door-r3-wiring` | `identity-door` r3's five (lit icons, the told chooser, the smaller hint, Check your email, the lit beat with motion) and the door's roadmap lines; the Like door into the held sheet; retires `identity-door` | building (agent ad8d98fbd9a81d1ee) | Opus, 3132 | |
 
 Batch 3 closed at milestone 29 (`ab30a7f8`, 2026-09-26); batch 4 (nine lanes with `crumbs-3`) is on build 11.
@@ -53,7 +55,7 @@ Merged in batch 5 (their records carry the rest): hero-card, claims-r3, demo-doo
    event" eyebrow opening a demo modal on a desk). Integrate each as it hands off; the records carry the retirements'
    ledgers (`popups`, `identity-door`, `reel-story`), `DESK_ORDER` as `identity-claims`, `hero-card`, then the 15
    unchanged boards, and the lanes' asset slots.
-2. **`claims-wiring`**, cut once `popups-wiring` merges (the review in its lists panel, built once): `identity-claims`
+2. **`claims-wiring`** (in flight since `popups-wiring` merged) (the review in its lists panel, built once): `identity-claims`
    r1 and r2's answers (the banner, one event at a time with its own photos, each decision saved as it's made, the
    dialog at the Not mine card, Open album and a quieter `FollowButton` variant the moment card takes too), the
    ROADMAP's two claims lines (the moment card's two other-events lines; the toast and the invitation pointing at one
