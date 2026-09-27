@@ -128,22 +128,29 @@ export const SITE_DESCRIPTION_LINE =
 export const PRO_LINE = "For videos and unlimited events.";
 
 /**
- * THE REEL'S LINE (`reel-story` r2 `card=as-it-happens`): what the highlight reel IS, in the one
+ * THE REEL'S LINE (`reel-story` r3 `line=as-they-land`): what the highlight reel IS, in the one
  * place a reader meets it by name. Its door says it at both sizes (the hub's lead and the related
- * row) and the /reel hero takes it as the heading, so the door and the room it opens agree; an
- * event page's reel card names its own event in it (`reelLineFor("wedding")`).
- *
- * The working line, not a ruling: his note asks for better ones ("'everyone's photos... live' and
- * 'every new photo joins'... added value beyond this version's 'Your event', which is less clear"),
- * which `reel-story` r3 draws. The noun a type page puts in its place is the same clarity, local.
+ * row) and the /reel hero takes it as the heading, so the door and the room it opens agree. It
+ * carries what his r2 note asked of the working line ("'everyone's photos... live' and 'every new
+ * photo joins'... added value beyond this version's 'Your event', which is less clear"): whose
+ * photos, that it is live, and that each one arrives into it, at the old line's length (two lines
+ * on /reel at 1440, one on each door).
  *
  * ★ NEVER THE HOME'S CLOSE AS WELL (r1: the home and the reel's door are "for different purposes"),
  * which is why `cinema-close.tsx` carries its own words and `GOLDEN_LINES.reelThesis` has no reader.
  */
+export const REEL_LINE = "Everyone's photos, live as they land.";
+
+/**
+ * The line on an event page's reel card, with the type's own noun where it reads as the thing
+ * guests shoot ("Everyone's wedding photos", "trip photos", "party photos", "conference photos").
+ * The generic "event" is the /events hub's, and "Everyone's event photos" is the noun padding the
+ * line rather than naming anything, so the hub keeps the plain line.
+ */
 export function reelLineFor(event: string): string {
-  return `Your ${event}, playing as it happens.`;
+  if (event === "event") return REEL_LINE;
+  return `Everyone's ${event} photos, live as they land.`;
 }
-export const REEL_LINE = reelLineFor("event");
 
 export type HeaderStatus = "ruled" | "provisional";
 

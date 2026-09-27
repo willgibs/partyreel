@@ -1,8 +1,9 @@
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
-import { trackAttrs } from "@/lib/analytics/events";
 import { DEMO_CTA_LABEL } from "@/lib/constants/marketing-voice";
 import { DEMO_EVENT_URL } from "@/lib/demo";
 import { cn } from "@/lib/utils";
+
+import { DemoDoor, LiveDot } from "./demo-modal/demo-door";
 
 /**
  * The recurring live-demo CTA (Track B system layer): renders the single-sourced
@@ -12,11 +13,15 @@ import { cn } from "@/lib/utils";
  * `source` labels the demo_open analytics event; distinctive placements (the
  * CtaBand) pass their own, the long tail ships as "inline".
  *
- * ★ THE WORDS STAND ALONE, in all nineteen places (fourteen closing bands and
- * five page heroes). The demo frame rode beside them for a round and read "really
- * silly here beside the 'Try the live demo...' CTA link" (Will, `reel-story` r2);
- * his call is the bare link while `reel-story` r3 asks whether anything new
- * belongs here. The frame stays the hero's plate and the nav pane's, never this.
+ * ★ THE LIVE DOT RIDES INSIDE THE ONE LINK, in all nineteen places (fourteen
+ * closing bands and five page heroes): `reel-story` r3 `beside=live`, "feels a
+ * bit more subtle but still cool". The frame that stood here for a round read
+ * "really silly" beside the words (r2), so the mark is the smallest new thing,
+ * and it is part of the link: one tap target, one accessible name (the words).
+ *
+ * ★ IT IS A DEMO DOOR (`demo-modal/`): at a desk a press opens the demo modal
+ * (the code to scan, the demo one press away); on a phone it opens the demo in
+ * a new tab.
  */
 export function DemoCtaLink({
   className,
@@ -27,16 +32,19 @@ export function DemoCtaLink({
 }) {
   if (!DEMO_EVENT_URL) return null;
   return (
-    <a
+    <DemoDoor
       href={DEMO_EVENT_URL}
-      {...trackAttrs("demo_open", { source })}
+      source={source}
       className={cn(
-        "mkt-learn inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground",
+        "mkt-learn inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground",
         className,
       )}
     >
-      {DEMO_CTA_LABEL}
-      <LearnChevron />
-    </a>
+      <LiveDot />
+      <span className="inline-flex items-center gap-1">
+        {DEMO_CTA_LABEL}
+        <LearnChevron />
+      </span>
+    </DemoDoor>
   );
 }
