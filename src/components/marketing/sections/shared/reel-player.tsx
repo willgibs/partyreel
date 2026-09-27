@@ -41,7 +41,9 @@ export function useReelPlayer(reelId: string) {
         host,
       )
     : null;
-  return { open, layer };
+  // True from the tap that opens the contained player until its onClose: the teaser loop underneath
+  // reads this to stop decoding while it cannot be seen (build 11's red-team).
+  return { open, layer, active: host !== null };
 }
 
 /**
@@ -50,8 +52,10 @@ export function useReelPlayer(reelId: string) {
  * mark"): a short muted loop, playing on its own, with a play mark that opens
  * the whole film in the contained player. The loop is decoration and says so
  * (`AmbientReelVideo` is aria-hidden and keeps the loop-pause contract:
- * offscreen, a hidden tab and reduced motion all hold its poster); the one
- * control is the button laid over it, never a wrapper around it.
+ * offscreen, a hidden tab and reduced motion all hold its poster, and so does
+ * this screen's own contained player once it is up: `active` holds it too,
+ * so the loop is not decoding, unseen, underneath the film it just opened);
+ * the one control is the button laid over it, never a wrapper around it.
  *
  * `reelId` is the section's own film; the loop is its first seconds until a
  * short cut of its own exists. This box owns the corner and the bright edge
@@ -72,7 +76,7 @@ export function ReelPlayScreen({
   className?: string;
 }) {
   const reel = requireReel(reelId);
-  const { open, layer } = useReelPlayer(reelId);
+  const { open, layer, active } = useReelPlayer(reelId);
   return (
     <>
       <div
@@ -82,7 +86,7 @@ export function ReelPlayScreen({
           className,
         )}
       >
-        <AmbientReelVideo reel={reel} sizes={sizes} />
+        <AmbientReelVideo reel={reel} sizes={sizes} paused={active} />
         <button
           type="button"
           aria-label={label}
