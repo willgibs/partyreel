@@ -209,7 +209,8 @@ function SignOff() {
               way a guest arrives. No app required.
             </span>
             <span className="sm:hidden">
-              A real event album, exactly the way a guest arrives. No app required.
+              A real event album, exactly the way a guest arrives. No app
+              required.
             </span>
           </p>
           <Link
@@ -338,7 +339,13 @@ function FooterLink({ link }: { link: NavLink }) {
     <li>
       <Link
         href={link.href}
-        className={cn(FOOTER_LINK, hiring && "flex items-center gap-2")}
+        // Wraps rather than overflows: at 375 a column is ~155px and the word
+        // plus the badge ~168, so the badge drops under the word instead of
+        // running past the screen's edge (measured 4px over before the wrap).
+        className={cn(
+          FOOTER_LINK,
+          hiring && "flex flex-wrap items-center gap-x-2 gap-y-1",
+        )}
       >
         {link.label}
         {hiring && (

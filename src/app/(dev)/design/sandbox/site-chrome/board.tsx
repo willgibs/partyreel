@@ -42,7 +42,7 @@ const AFTER_H: Record<FootAfter, { d: number; p: number }> = {
 
 const AFTER_NOTE: Record<FootAfter, string> = {
   today:
-    "The framed photograph, its corner code, heading and copy, directly under the close above it.",
+    "The code on its pile of photographs, heading and copy, directly under the close above it.",
   quiet: "One slim row, a small code and a line: no section of its own.",
   merged:
     "One ink background, no seam; the close's own demo line is the only one.",

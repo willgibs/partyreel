@@ -8,20 +8,19 @@ import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { MARKETING_CTA } from "@/lib/constants/marketing-nav";
-import { GOLDEN_LINES } from "@/lib/constants/marketing-voice";
+import { REEL_LINE } from "@/lib/constants/marketing-voice";
 
 import { AmbientReelVideo } from "./ambient-reel-video";
 import { HERO_REEL } from "./style-facets";
 
 /**
  * /reel section 1 — the reel hero (LOUD). Will's 2026-08-25 ruling: this H1 is DISTINCT
- * from the home reel-SECTION header; the hero carries the big golden line (reelThesis).
- * ★ THE H1 WAITS FOR `reel-story` ROUND 2 (its `card` ask gives the hub's reel card its own
- * line and, as ground, this heading takes it), so it stays as it is even where it is stale;
- * the subhead under it already tells the live reel. A REAL engine-rendered loop plays
- * poster-first beside it: the honesty argument from the T2.5 substrate ruling made visible
- * in the first viewport, captioned as the recording it is (the live reel never ends, so no
- * duration).
+ * from the home reel-SECTION header. ★ IT IS THE REEL DOOR'S LINE (`reel-story` r2
+ * `card=as-it-happens`, `REEL_LINE`): the door on the hub says it and this room answers with
+ * the same words, so a reader who pressed the door lands on the sentence they pressed. A REAL
+ * engine-rendered loop plays poster-first beside it: the honesty argument from the T2.5
+ * substrate ruling made visible in the first viewport, captioned as the recording it is (the
+ * live reel never ends, so no duration).
  *
  * Register: the TEXT lines ride the cinema cut (data-mkt-cut inside Reveal, the
  * SectionShell "cinema" grammar hand-marked because the hero is a split layout, not a
@@ -45,7 +44,7 @@ export function ReelHero() {
                 pinned by marketing-h1-policy.test.ts); the slots around it
                 do the arriving. */}
             <h1 className="font-heading text-title text-balance">
-              {GOLDEN_LINES.reelThesis}.
+              {REEL_LINE}
             </h1>
             <p
               {...cut(2)}

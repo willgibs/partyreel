@@ -34,16 +34,15 @@ import { defineExploration } from "@/components/lab/exploration";
  * travels to a screen nobody can scan with itself) that carries no such
  * dependency.
  *
- * ★ THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21). `demo-event` round two
- * ("the closing sitting's second batch") retired the
- * photo pile this round was written against: every demo door, the footer
- * included, now shares ONE object, a photograph in a plain mat with the live
- * code tucked into its corner (`FooterDemo` → `DemoFrame`,
- * `components/marketing/system/demo-ticket.tsx`). `foot-after` is redrawn on
- * that shipped object rather than the pile it was drawn against. `foot-alone`
- * gains a fifth real route: `pricing-page` round two now closes on its own
- * folded questions rather than an invitation, so it reaches the footer the
- * same way `/about`, `/press`, `/careers` and the 404 already do.
+ * ★ THE PILE IS BACK (`reel-story` r2, 2026-09-27). `demo-event` round two
+ * had put one framed photograph on every demo door, the footer included, and
+ * `foot-after` was redrawn on it; his note on `reel-story` sent the footer back
+ * to the photo pile under the code (`FooterDemo`, as it was at `d1f38489`).
+ * So `today` draws the pile again, the shipped component itself, and every
+ * option is unchanged. `foot-alone` keeps its fifth real route: `pricing-page`
+ * round two closes on its own folded questions rather than an invitation, so
+ * it reaches the footer the same way `/about`, `/press`, `/careers` and the
+ * 404 already do.
  *
  * ★ THE REFRESH'S OWN PASS (2026-09-24). Two of the three were fenced by
  * something outside themselves rather than judged on their own case, so both
@@ -76,13 +75,13 @@ export const SITE_CHROME = defineExploration({
       question:
         "What should the footer show directly under a page that already closes with its own invitation?",
       context:
-        "Most marketing pages end on a CtaBand. The register right after used to be a photo pile; it is one framed photograph now (demo-event r2). Does a second closing object belong right under a page that already asked once?",
+        "Most marketing pages end on a CtaBand, and the register right after it is the demo's code on a pile of photographs that fans out on hover. Does a second closing object belong right under a page that already asked once?",
       options: [
         {
           id: "today",
-          label: "The framed photograph, unchanged",
+          label: "The photo pile, unchanged",
           means:
-            "The same framed photograph and its corner code, the same heading and copy, directly under the page's own close. The shipped shape, held up next to a real one.",
+            "The same code on its pile of photographs, the same heading and copy, directly under the page's own close. The shipped shape, held up next to a real one.",
         },
         {
           id: "quiet",
@@ -105,11 +104,11 @@ export const SITE_CHROME = defineExploration({
       ],
       recommended: "quiet",
       because:
-        "A single framed photograph is a smaller repeat than the old pile, but it is still a second closing object under a page that already asked once, which is the exact repetition he flagged; a slim strip keeps the mention alive without competing with the close for the last word.",
+        "The pile is a second closing object under a page that already asked once, which is the exact repetition he flagged; a slim strip keeps the mention alive without competing with the close for the last word.",
       overrule:
-        "If the frame's restraint reads different enough from the close above, today is the cheaper hold; if the close feels complete, merged or tucked is cleaner.",
+        "If the pile's one moment of delight earns its place under the close, today is the cheaper hold; if the close feels complete, merged or tucked is cleaner.",
       lands:
-        "Whether the shipped framed register survives next to a real closing CTA, and in what shape.",
+        "Whether the shipped pile survives next to a real closing CTA, and in what shape.",
     },
     {
       id: "foot-alone",
@@ -152,11 +151,11 @@ export const SITE_CHROME = defineExploration({
       label: "The phone's foot",
       question: "How should the footer's demo invitation travel to a phone?",
       context:
-        "A phone showing its own QR code cannot scan it: a footer code on that screen is dead weight to the person reading it, not to a friend standing beside them. Today the frame hides below its breakpoint, a link stands in its place.",
+        "A phone showing its own QR code cannot scan it: a footer code on that screen is dead weight to the person reading it, not to a friend standing beside them. Today the pile hides below its breakpoint, a link stands in its place.",
       options: [
         {
           id: "hidden",
-          label: "The frame hidden, a link",
+          label: "The pile hidden, a link",
           means:
             "As today: no code at all here, a single tap-through line in its place.",
         },

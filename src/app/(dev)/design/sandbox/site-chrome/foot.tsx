@@ -52,7 +52,7 @@ const INLINE_LINK =
 const LEGAL_LINK =
   "block py-1 text-xs text-muted-foreground transition-colors duration-150 hover:text-foreground";
 
-/** A stand-in URL so the frame and its code draw when the env has no demo. */
+/** A stand-in URL so the pile and its code draw when the env has no demo. */
 const DEMO_URL = DEMO_EVENT_URL ?? "https://partyreel.com/e/demo";
 
 /**
@@ -105,17 +105,18 @@ function StartFree({ className }: { className?: string }) {
 /* ── Register one, four ways ─────────────────────────────────────────────── */
 
 /**
- * "TODAY": the shipped register, unchanged, at any width — one framed
- * photograph with its code tucked into the corner (`FooterDemo`, demo-event
- * r2). The one register a phone can further narrow (`frameMode`), because it
- * is the only one that carries the frame to begin with.
+ * "TODAY": the shipped register, unchanged, at any width — the code on its
+ * pile of photographs (`FooterDemo`, back from the frame at `reel-story` r2),
+ * the shipped component itself, so it fans on hover here as it does on the
+ * site. The one register a phone can further narrow (`frameMode`), because it
+ * is the only one that carries the pile to begin with.
  */
 function RegisterToday({
   phone,
   frameMode = "hidden",
 }: {
   phone: boolean;
-  /** Phone only: how the frame travels to a screen nobody can scan. */
+  /** Phone only: how the pile travels to a screen nobody can scan. */
   frameMode?: FootPhone;
 }) {
   if (phone && frameMode === "none") return null;
@@ -132,9 +133,10 @@ function RegisterToday({
         <div className="flex flex-col items-start gap-4">
           <h2 className="font-heading text-section">Explore a demo event.</h2>
           <p className="max-w-sm text-[17px] text-pretty text-muted-foreground">
+            {/* The shipped footer's words, verbatim (the account rule's). */}
             {phone
-              ? "A real event album, exactly the way a guest arrives. No app, no account."
-              : "Scan the code for a real event album on your phone, exactly the way a guest arrives. No app, no account."}
+              ? "A real event album, exactly the way a guest arrives. No app required."
+              : "Scan the code for a real event album on your phone, exactly the way a guest arrives. No app required."}
           </p>
           {phone && frameMode === "hidden" ? (
             <Link
@@ -155,9 +157,8 @@ function RegisterToday({
 
 /**
  * "QUIET": one slim row, a small code and a single line, standing where the
- * old register's air used to be. No framed photograph, no separate heading:
- * the strip reads as a footnote to the index below it rather than a section
- * of its own.
+ * old register's air used to be. No photo pile, no separate heading: the strip
+ * reads as a footnote to the index below it rather than a section of its own.
  */
 function RegisterQuiet() {
   return (
@@ -180,7 +181,7 @@ function RegisterQuiet() {
 /**
  * "LINE": a closing sentence built for the page that asked nothing else,
  * judged on its own rather than borrowed from either extreme. Not the full
- * register (no framed photograph, no section-sized heading) and not a
+ * register (no photo pile, no section-sized heading) and not a
  * footnote either (its own short heading, not a strip that reads as a
  * follow-up to a close that, here, was never asked).
  */

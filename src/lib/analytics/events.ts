@@ -31,7 +31,8 @@ export const WEB_EVENTS = [
   "cta_click",
   // Any doorway into the demo event. Props: source (hero-ticket | footer-qr | ...).
   "demo_open",
-  // The hero's sample-reel overlay was opened.
+  // The contained reel player was opened. Props: source (home-teaser |
+  // events-door; the hero's button sends none).
   "reel_play",
   // A Stripe checkout was initiated from marketing. Props: plan.
   "checkout_start",
