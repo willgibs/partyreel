@@ -11,20 +11,19 @@ import {
 } from "@/app/(guest)/u/[slug]/actions";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
+import {
+  Popup,
+  PopupBody,
+  PopupContent,
+  PopupFooter,
+  PopupHeader,
+} from "@/components/ui/popup";
 import { Textarea } from "@/components/ui/textarea";
 
 /**
@@ -39,6 +38,11 @@ import { Textarea } from "@/components/ui/textarea";
  * nowhere to take a complaint about a person, which was true until this round
  * and is not any more: the row writes a real row into the same queue that holds
  * reported photographs (/admin/reports).
+ *
+ * ★ EACH ROW OPENS THE KIND IT IS (`popups` r1): Report is a FORM, a small
+ * centred dialog that stands above the keyboard while its reason is typed (it
+ * sat under an iPhone keyboard before the Dialog learned the Sheet's rule), and
+ * Block is a CONFIRMATION, a centred dialog that asks before it acts.
  *
  * Blocking is PRIVATE: the other side is never notified and can't see it, so
  * the confirm copy says so (unchanged, profiles-social.md point 5). After a
@@ -163,17 +167,20 @@ export function ProfileActionsMenu({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Dialog open={reportOpen} onOpenChange={setReportOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Report {name}?</DialogTitle>
-            <DialogDescription>
-              Tell us what&rsquo;s wrong and our team will review it. They
-              won&rsquo;t be told who reported them. Reporting someone
-              doesn&rsquo;t block them, and it doesn&rsquo;t change what you see.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
+      <Popup open={reportOpen} onOpenChange={setReportOpen}>
+        <PopupContent kind="form">
+          <PopupHeader
+            title={`Report ${name}?`}
+            description={
+              <>
+                Tell us what&rsquo;s wrong and our team will review it. They
+                won&rsquo;t be told who reported them. Reporting someone
+                doesn&rsquo;t block them, and it doesn&rsquo;t change what you
+                see.
+              </>
+            }
+          />
+          <PopupBody className="space-y-2">
             <Label htmlFor="profile-report-reason">
               Reason{" "}
               <span className="font-normal text-muted-foreground">
@@ -188,8 +195,8 @@ export function ProfileActionsMenu({
               onChange={(e) => setReason(e.target.value)}
               placeholder="What's the problem here?"
             />
-          </div>
-          <DialogFooter>
+          </PopupBody>
+          <PopupFooter>
             <Button
               type="button"
               variant="outline"
@@ -201,22 +208,24 @@ export function ProfileActionsMenu({
             <Button type="button" onClick={runReport} disabled={reporting}>
               {reporting ? "Sending…" : "Send report"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </PopupFooter>
+        </PopupContent>
+      </Popup>
 
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Block {name}?</DialogTitle>
-            <DialogDescription>
-              You&rsquo;ll stop following each other, and neither of you can
-              follow the other again while the block is on. They won&rsquo;t be
-              notified, and they can&rsquo;t see that you blocked them. You can
-              undo this anytime from your account settings.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
+      <Popup open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <PopupContent kind="confirm">
+          <PopupHeader
+            title={`Block ${name}?`}
+            description={
+              <>
+                You&rsquo;ll stop following each other, and neither of you can
+                follow the other again while the block is on. They won&rsquo;t
+                be notified, and they can&rsquo;t see that you blocked them. You
+                can undo this anytime from your account settings.
+              </>
+            }
+          />
+          <PopupFooter>
             <Button
               type="button"
               variant="outline"
@@ -233,9 +242,9 @@ export function ProfileActionsMenu({
             >
               {pending ? "Blocking…" : "Block"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </PopupFooter>
+        </PopupContent>
+      </Popup>
     </>
   );
 }

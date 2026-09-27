@@ -12,13 +12,11 @@ import { CopyShareLink } from "@/components/app/copy-share-link";
 import { LockChip } from "@/components/app/pricing/lock-chip";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Popup,
+  PopupContent,
+  PopupFooter,
+  PopupHeader,
+} from "@/components/ui/popup";
 import { Input } from "@/components/ui/input";
 import { eventUrl } from "@/lib/events/share-urls";
 import { evaluateSlugInput, suggestSlug } from "@/lib/slug";
@@ -234,7 +232,7 @@ export function EventSlugControl({
                 autoCapitalize="none"
                 autoCorrect="off"
                 spellCheck={false}
-                className="pl-9 pr-9"
+                className="pr-9 pl-9"
               />
               <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                 {status.kind === "checking" && (
@@ -313,27 +311,30 @@ export function EventSlugControl({
       )}
 
       {/* Change / remove confirmation — both warn that the old link breaks (no redirect). */}
-      <Dialog
+      <Popup
         open={confirm !== null}
         onOpenChange={(open) => {
           if (!open) setConfirm(null);
         }}
       >
-        <DialogContent>
+        <PopupContent kind="confirm">
           {confirm?.mode === "change" ? (
             <>
-              <DialogHeader>
-                <DialogTitle>Change your custom link?</DialogTitle>
-                <DialogDescription>
-                  Your current link{" "}
-                  <span className="font-medium break-all text-foreground">
-                    {host}/e/{slug}
-                  </span>{" "}
-                  stops working right away, with no redirect. Anyone who saved it
-                  will need the new one. Your permanent link always keeps working.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
+              <PopupHeader
+                title="Change your custom link?"
+                description={
+                  <>
+                    Your current link{" "}
+                    <span className="font-medium break-all text-foreground">
+                      {host}/e/{slug}
+                    </span>{" "}
+                    stops working right away, with no redirect. Anyone who saved
+                    it will need the new one. Your permanent link always keeps
+                    working.
+                  </>
+                }
+              />
+              <PopupFooter>
                 <Button
                   type="button"
                   variant="outline"
@@ -349,21 +350,23 @@ export function EventSlugControl({
                 >
                   {saving ? "Saving…" : "Change link"}
                 </Button>
-              </DialogFooter>
+              </PopupFooter>
             </>
           ) : confirm?.mode === "remove" ? (
             <>
-              <DialogHeader>
-                <DialogTitle>Remove your custom link?</DialogTitle>
-                <DialogDescription>
-                  <span className="font-medium break-all text-foreground">
-                    {host}/e/{slug}
-                  </span>{" "}
-                  stops working right away. Your permanent link always keeps
-                  working.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
+              <PopupHeader
+                title="Remove your custom link?"
+                description={
+                  <>
+                    <span className="font-medium break-all text-foreground">
+                      {host}/e/{slug}
+                    </span>{" "}
+                    stops working right away. Your permanent link always keeps
+                    working.
+                  </>
+                }
+              />
+              <PopupFooter>
                 <Button
                   type="button"
                   variant="outline"
@@ -380,11 +383,11 @@ export function EventSlugControl({
                 >
                   {clearing ? "Removing…" : "Remove link"}
                 </Button>
-              </DialogFooter>
+              </PopupFooter>
             </>
           ) : null}
-        </DialogContent>
-      </Dialog>
+        </PopupContent>
+      </Popup>
     </div>
   );
 }

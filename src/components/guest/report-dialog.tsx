@@ -5,17 +5,16 @@ import { Flag } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
+import {
+  Popup,
+  PopupBody,
+  PopupClose,
+  PopupContent,
+  PopupFooter,
+  PopupHeader,
+  PopupTrigger,
+} from "@/components/ui/popup";
 import { Textarea } from "@/components/ui/textarea";
 
 /**
@@ -24,12 +23,12 @@ import { Textarea } from "@/components/ui/textarea";
  * /api/reports. Reporting NEVER hides content — it queues an operator review
  * (anti-griefing; see `create_report`). The trigger stays a muted link.
  *
- * ★ IT WEARS THE ONE PRODUCT SHEET, like the Invite beside it.
- *
- * ★ AND IT IS THE ONE WITH A FIELD IN IT, which is no longer a special risk:
- * the responsive Sheet's phone half is keyboard-safe (`src/lib/use-keyboard-inset.ts`),
- * the same ground the guest door's own steps stand on, so this textarea rides
- * the one product Sheet like everything else — no per-dialog exception needed.
+ * ★ IT IS A FORM, AND OPENS AS ONE (`popups` r1, `forms=dialog`, Will
+ * 2026-09-27): a small centred dialog, the same object as a confirmation,
+ * because it is one question with a field in it. It stands in what the
+ * keyboard leaves while the reason is typed (the Dialog learned the Sheet's
+ * keyboard rule, `use-keyboard-inset.ts`), and on a phone it opens with focus
+ * on itself, so the keyboard rises only when the field is tapped.
  */
 export function ReportDialog({ qrToken }: { qrToken: string }) {
   const [open, setOpen] = useState(false);
@@ -67,8 +66,8 @@ export function ReportDialog({ qrToken }: { qrToken: string }) {
   }
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
+    <Popup open={open} onOpenChange={setOpen}>
+      <PopupTrigger asChild>
         <Button
           variant="ghost"
           size="sm"
@@ -76,16 +75,18 @@ export function ReportDialog({ qrToken }: { qrToken: string }) {
         >
           <Flag /> Report
         </Button>
-      </SheetTrigger>
-      <SheetContent responsive className="overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>Report this event</SheetTitle>
-          <SheetDescription>
-            Tell us what&rsquo;s wrong and our team will review it. Reports are
-            anonymous.
-          </SheetDescription>
-        </SheetHeader>
-        <div className="space-y-2 px-4">
+      </PopupTrigger>
+      <PopupContent kind="form">
+        <PopupHeader
+          title="Report this event"
+          description={
+            <>
+              Tell us what&rsquo;s wrong and our team will review it. Reports
+              are anonymous.
+            </>
+          }
+        />
+        <PopupBody className="space-y-2">
           <Label htmlFor="report-reason">
             Reason{" "}
             <span className="font-normal text-muted-foreground">
@@ -100,18 +101,16 @@ export function ReportDialog({ qrToken }: { qrToken: string }) {
             onChange={(e) => setReason(e.target.value)}
             placeholder="What's the problem here?"
           />
-        </div>
-        {/* A panel's footer stacks (it has a column, not a dialog's row of two);
-            the primary leads, because the way out of a sheet is also its edge. */}
-        <SheetFooter>
+        </PopupBody>
+        <PopupFooter>
+          <PopupClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </PopupClose>
           <Button disabled={isPending} onClick={onSubmit}>
             {isPending ? "Sending…" : "Submit report"}
           </Button>
-          <SheetClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </SheetClose>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+        </PopupFooter>
+      </PopupContent>
+    </Popup>
   );
 }

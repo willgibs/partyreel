@@ -65,6 +65,7 @@ import {
   onConfirmBeat,
   type ConfirmBeat,
 } from "@/lib/guest/confirm-beat";
+import { openToldNameChange, ToldNameForm } from "@/lib/guest/confirm-beat-name";
 import { closesOnLastRemoval as lastRemovalCloses } from "@/lib/guest/delete-consequence";
 import { contributionAnswered } from "@/lib/guest/entry-steps";
 import { useKeepAskPutDown } from "@/lib/guest/keep-ask";
@@ -613,8 +614,8 @@ export function EventExperience({
      ONE BEAT PER CONFIRMATION (`confirm-beat.ts`). A confirmation that plays the follow moment says
      everything in its card; any other reports its beat here (the name her photos now carry, the
      other events), and the page says it ONCE, as one toast, and only once the door has closed, so
-     it never lands on a sheet she is still answering. The name's Change is the toast's action: the
-     door's own name sheet, in the account's mode.
+     it never lands on a sheet she is still answering. The name's Change is the toast's action: a
+     small name form (`confirm-beat-name.tsx`, `popups` r1's `forms=dialog`), mounted below.
      ──────────────────────────────────────────────────────────────────────── */
   const pendingBeatRef = useRef<ConfirmBeat | null>(null);
   const welcomePendingRef = useRef(welcomePending);
@@ -635,7 +636,7 @@ export function EventExperience({
         action: name
           ? {
               label: "Change",
-              onClick: () => entryRef.current?.openToName("account", name),
+              onClick: () => openToldNameChange(name),
             }
           : undefined,
       });
@@ -1357,6 +1358,12 @@ export function EventExperience({
               <ReportDialog qrToken={qrToken} />
             </footer>
           )}
+          <ToldNameForm
+            onRenamed={(renamed) => {
+              galleryRef.current?.renameMine(renamed);
+              router.refresh();
+            }}
+          />
           {/* The demo's closing card at the foot, in the slot a real event gives
               the report footer (hidden here — nothing to report in a demo) and,
               once uploads are ever closed, the reel. Below the whole album on

@@ -26,7 +26,6 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 /** The boards standing in sandbox/, one row each below. */
 export type SandboxId =
   | "identity-door"
-  | "popups"
   | "identity-claims"
   | "hero-card"
   | "voice-guest"
@@ -92,37 +91,6 @@ export const RULINGS: Ruling[] = [
         "The beats",
       ],
       tracks: ["door-r3"],
-    },
-  },
-  {
-    id: "popups",
-    title: "Where a popup opens",
-    surface: "shared",
-    asks: "which surface each kind of popup opens in (confirmations, short forms, lists, quick choices, share, plans, settings, a quick look), each option a rule the Dialog and the Sheet would follow",
-    why: "His identity-claims note: the sheet has become every popup's answer. One question per kind, so the app stops reaching for one pattern by default.",
-    lives: [
-      "docs/systems/design-system.md",
-      "src/components/ui/sheet.tsx",
-      "src/components/ui/dialog.tsx",
-      "src/components/ui/floating-layer.ts",
-      "src/components/app/pricing/pricing-sheet.tsx",
-      "src/components/app/event-settings/event-settings-sheet.tsx",
-      "src/components/guest/guest-share.tsx",
-      "src/components/guest/report-dialog.tsx",
-      "src/components/guest/upload/intent-sheet.tsx",
-    ],
-    board: {
-      note: "Eight kinds of popup, one question each, every option a rule the Dialog and the Sheet would follow, drawn on the kind's real screens at 1440 over three 375s with the keyboard up wherever a field is focused; profile-page's view-all and quick-look, host-storage's where and event-safety's Block moved here, every option kept",
-      variants: [
-        "Lists",
-        "Confirmations",
-        "Short forms",
-        "Quick choices",
-        "Share",
-        "Plans",
-        "Settings",
-        "A quick look",
-      ],
     },
   },
   {
@@ -544,7 +512,6 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
-  "popups",
   "identity-door",
   "identity-claims",
   "hero-card",

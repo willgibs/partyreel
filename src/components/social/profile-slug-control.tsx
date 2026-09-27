@@ -16,13 +16,11 @@ import {
 } from "@/components/social/handle-field";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Popup,
+  PopupContent,
+  PopupFooter,
+  PopupHeader,
+} from "@/components/ui/popup";
 
 /**
  * Claim / change / release the public profile handle (/u/[slug]).
@@ -178,27 +176,29 @@ export function ProfileSlugControl({
       )}
 
       {/* Change / remove confirmation — both warn the old address breaks. */}
-      <Dialog
+      <Popup
         open={confirm !== null}
         onOpenChange={(open) => {
           if (!open) setConfirm(null);
         }}
       >
-        <DialogContent>
+        <PopupContent kind="confirm">
           {confirm?.mode === "change" ? (
             <>
-              <DialogHeader>
-                <DialogTitle>Change your handle?</DialogTitle>
-                <DialogDescription>
-                  Your current address{" "}
-                  <span className="font-medium break-all text-foreground">
-                    {host}/u/{slug}
-                  </span>{" "}
-                  stops working right away, with no redirect, and the old handle
-                  becomes available to anyone.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
+              <PopupHeader
+                title="Change your handle?"
+                description={
+                  <>
+                    Your current address{" "}
+                    <span className="font-medium break-all text-foreground">
+                      {host}/u/{slug}
+                    </span>{" "}
+                    stops working right away, with no redirect, and the old
+                    handle becomes available to anyone.
+                  </>
+                }
+              />
+              <PopupFooter>
                 <Button
                   type="button"
                   variant="outline"
@@ -214,22 +214,24 @@ export function ProfileSlugControl({
                 >
                   {saving ? "Saving…" : "Change handle"}
                 </Button>
-              </DialogFooter>
+              </PopupFooter>
             </>
           ) : confirm?.mode === "remove" ? (
             <>
-              <DialogHeader>
-                <DialogTitle>Remove your handle?</DialogTitle>
-                <DialogDescription>
-                  Your profile page at{" "}
-                  <span className="font-medium break-all text-foreground">
-                    {host}/u/{slug}
-                  </span>{" "}
-                  stops working right away, and the handle becomes available to
-                  anyone. Your account and events aren&rsquo;t affected.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
+              <PopupHeader
+                title="Remove your handle?"
+                description={
+                  <>
+                    Your profile page at{" "}
+                    <span className="font-medium break-all text-foreground">
+                      {host}/u/{slug}
+                    </span>{" "}
+                    stops working right away, and the handle becomes available
+                    to anyone. Your account and events aren&rsquo;t affected.
+                  </>
+                }
+              />
+              <PopupFooter>
                 <Button
                   type="button"
                   variant="outline"
@@ -246,11 +248,11 @@ export function ProfileSlugControl({
                 >
                   {clearing ? "Removing…" : "Remove handle"}
                 </Button>
-              </DialogFooter>
+              </PopupFooter>
             </>
           ) : null}
-        </DialogContent>
-      </Dialog>
+        </PopupContent>
+      </Popup>
     </div>
   );
 }

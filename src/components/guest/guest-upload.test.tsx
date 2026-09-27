@@ -592,9 +592,11 @@ describe("GuestUpload: moderation copy", () => {
 describe("GuestUpload: the add sheet is the only door in", () => {
   it("openAdd opens the sheet, and nothing is queued until Send", () => {
     const { handleRef, snapshots } = mountWithQueue();
-    // Closed, the sheet is not in the document at all — which is also why both
-    // inputs live inside it rather than on the page.
-    expect(document.querySelector('input[type="file"]')).toBeNull();
+    // Closed, the choice is not in the document at all; its two inputs are, in
+    // the page, because they must outlive the menu a row closes (`popups` r1,
+    // `choices=menu`: the inputs once lived inside the sheet, a reason expired).
+    expect(document.querySelector('[data-slot^="responsive-menu"]')).toBeNull();
+    expect(document.querySelectorAll('input[type="file"]')).toHaveLength(2);
 
     act(() => handleRef.current!.openAdd());
     const album = document.querySelector(

@@ -203,13 +203,9 @@ const ENTRIES: ParityEntry[] = [
     literal: "Videos",
   },
   // QR page (/features/qr) <-> the host's real QR designer + download menu.
-  {
-    label: "qr page save button",
-    marketingFile:
-      "src/components/marketing/sections/features/qr/preset-switcher.tsx",
-    appFile: "src/components/app/qr-designer-dialog.tsx",
-    literal: "Save QR style",
-  },
+  // (No "Save QR style" pair: the designer is a menu whose row is the act,
+  // `popups` r1's `choices=menu`, so the app has no Save to quote and the mock
+  // dropped its own; the swatches' words are the shared QR_PRESETS.)
   {
     label: "qr page svg download option",
     marketingFile:

@@ -24,8 +24,15 @@ vi.mock("@/app/(guest)/u/[slug]/actions", () => ({
  * the condensed row is a single control rather than a label with a link beside
  * it, that opening it pages instead of dumping a thousand names, and that a
  * handle-less guest gets no dead link. Nothing here asserts a colour, a radius,
- * a duration or a word: round two replaces how View all opens, and this file
- * must not stand in its way.
+ * a duration or a word.
+ *
+ * ★ RESHAPED ON PURPOSE BY `popups` r1 (2026-09-27), the round this file said
+ * it must not stand in the way of: View all opens the LIST in its panel
+ * (`lists=panel`) rather than in place, and every name opens a LOOK
+ * (`peek=card`) rather than linking straight to its page. The scars kept: the
+ * list still pages, and a name without a page still links nowhere (its look
+ * has no door); the expired reason dropped: "opens IN PLACE" and "a chip is a
+ * link", which were the interim this file named as one.
  */
 function guests(n: number, withSlug = false): ProfileCardItem[] {
   return Array.from({ length: n }, (_, i) => ({
@@ -42,12 +49,16 @@ function guests(n: number, withSlug = false): ProfileCardItem[] {
 }
 
 describe("GuestList", () => {
-  it("names everyone, in chips, at or under the threshold", () => {
+  it("names everyone, in chips, at or under the threshold, each name its own button", () => {
     render(<GuestList items={guests(GUEST_LIST_FACES_THRESHOLD)} />);
     expect(screen.getAllByRole("listitem")).toHaveLength(
       GUEST_LIST_FACES_THRESHOLD,
     );
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    // No condensed row: every button here is a name that opens its look.
+    expect(screen.getAllByRole("button")).toHaveLength(
+      GUEST_LIST_FACES_THRESHOLD,
+    );
+    expect(screen.queryByText(/guests added photos/)).not.toBeInTheDocument();
   });
 
   it("condenses to ONE button past the threshold, and the button carries the count", () => {
@@ -59,10 +70,11 @@ describe("GuestList", () => {
     expect(screen.queryByText("Guest 0")).not.toBeInTheDocument();
   });
 
-  it("opens IN PLACE, one page at a time, never the whole list at once", () => {
+  it("opens the list in its panel, one page at a time, never the whole list at once", () => {
     // 60 guests: a page, then a page, then the tail.
     render(<GuestList items={guests(60)} />);
     fireEvent.click(screen.getByRole("button"));
+    expect(screen.getByRole("dialog", { name: "Guests" })).toBeInTheDocument();
     expect(screen.getAllByRole("listitem")).toHaveLength(24);
 
     fireEvent.click(screen.getByRole("button", { name: /show \d+ more/i }));
@@ -76,7 +88,7 @@ describe("GuestList", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("links a guest WITH a handle and leaves one without unlinked", () => {
+  it("opens a look for every name: a handle's look links its page, and one without links nowhere", () => {
     render(
       <GuestList
         items={[
@@ -85,11 +97,24 @@ describe("GuestList", () => {
         ]}
       />,
     );
-    expect(screen.getByRole("link", { name: /maya/i })).toHaveAttribute(
-      "href",
-      "/u/maya",
+    // The list itself links nowhere now: a name opens its look first.
+    expect(screen.queryByRole("link")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: /maya/i }));
+    expect(
+      screen.getByRole("link", { name: /open full profile/i }),
+    ).toHaveAttribute("href", "/u/maya");
+  });
+
+  it("gives a name with no page a look with no door", () => {
+    render(
+      <GuestList
+        items={[{ ...guests(1)[0], id: "b", displayName: "Priya", slug: null }]}
+      />,
     );
-    expect(screen.queryByRole("link", { name: /priya/i })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /priya/i }));
+    expect(screen.getByText(/confirmed their email/i)).toBeInTheDocument();
+    expect(screen.queryByRole("link")).toBeNull();
   });
 
   it("says so when the host's key is on and nobody has added a photo yet", () => {
@@ -112,12 +137,17 @@ describe("GuestList: unverified guests", () => {
     displayName: "Sam",
   };
 
-  it("names an unverified guest, marks the name, and links nowhere", () => {
+  it("names an unverified guest, marks the name, and links nowhere, look and all", () => {
     render(<GuestList items={[unverified]} />);
     expect(screen.getByText("Sam")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: UNVERIFIED_LABEL }),
     ).toBeInTheDocument();
+    expect(screen.queryByRole("link")).toBeNull();
+
+    // Its look says what kind of name it is, and still has no door.
+    fireEvent.click(screen.getByRole("button", { name: /sam/i }));
+    expect(screen.getByText(/anyone can type a name/i)).toBeInTheDocument();
     expect(screen.queryByRole("link")).toBeNull();
   });
 
@@ -195,7 +225,7 @@ describe("GuestList: the host's addresses", () => {
         }
       />,
     );
-    expect(screen.getByRole("link", { name: /maya/i })).toHaveTextContent(
+    expect(screen.getByRole("button", { name: /maya/i })).toHaveTextContent(
       "maya@example.com",
     );
     expect(screen.getByText("priya@example.com")).toBeInTheDocument();

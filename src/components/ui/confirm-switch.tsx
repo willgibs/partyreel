@@ -5,16 +5,14 @@ import { ShieldCheck } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import {
+  Popup,
+  PopupClose,
+  PopupContent,
+  PopupFooter,
+  PopupHeader,
+} from "@/components/ui/popup"
 import { Switch } from "@/components/ui/switch"
 
 /**
@@ -127,20 +125,20 @@ export function ConfirmSwitch({
         onCheckedChange={handleCheckedChange}
       />
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{dialogTitle}</DialogTitle>
-            <DialogDescription>{dialogDescription}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose asChild>
+      {/* A confirmation, named as one (`popups` r1, `confirm=dialog`): the
+          settings panel it asks from stays under it, the carried call
+          `stacked`. */}
+      <Popup open={open} onOpenChange={setOpen}>
+        <PopupContent kind="confirm">
+          <PopupHeader title={dialogTitle} description={dialogDescription} />
+          <PopupFooter>
+            <PopupClose asChild>
               <Button variant="outline">{cancelLabel}</Button>
-            </DialogClose>
+            </PopupClose>
             <Button onClick={confirm}>{confirmLabel}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </PopupFooter>
+        </PopupContent>
+      </Popup>
     </div>
   )
 }

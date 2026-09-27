@@ -4,11 +4,13 @@ import * as React from "react"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
+import { useKeyboardInset } from "@/lib/use-keyboard-inset"
 import { Button } from "@/components/ui/button"
 import {
   floatingClock,
   floatingEntrance,
   floatingPanel,
+  floatingPopupShapes,
 } from "@/components/ui/floating-layer"
 import { XIcon } from "lucide-react"
 
@@ -60,6 +62,8 @@ function DialogContent({
   children,
   showCloseButton = true,
   fullScreen = false,
+  size = "sm",
+  ref,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
@@ -69,7 +73,33 @@ function DialogContent({
   // trap, scroll-lock, and Escape for free. Pair with showCloseButton={false} +
   // your own header close.
   fullScreen?: boolean
+  /**
+   * How wide it is, by what it says (the `dialog` shape's `data-size`). A
+   * width class would lose to the shape's own scoped rule, so size it here.
+   */
+  size?: "sm" | "md" | "lg"
 }) {
+  // ★ THE DIALOG LEARNED THE SHEET'S KEYBOARD RULE (`popups` r1, the carried
+  // call `keyboard-dialog`). It used to centre in the layout viewport, so on a
+  // phone the lower half of any dialog with a field sat under the keyboard. It
+  // now wears the contract's `dialog` shape (`floatingPopupShapes`), which
+  // centres in the band `useKeyboardInset` measures while a field inside holds
+  // focus on a touch screen and falls back to exactly `top-1/2` otherwise, so a
+  // dialog nobody types in never moves. A kind of popup opens through
+  // `PopupContent` (`ui/popup.tsx`); this stays the primitive for the dialogs
+  // the popups board left alone (Welcome to Pro, the cropper, the viewer's own).
+  // The element, as state: Radix mounts the content a render after its portal.
+  const [node, setNode] = React.useState<HTMLDivElement | null>(null)
+  const composedRef = React.useCallback(
+    (el: HTMLDivElement | null) => {
+      setNode(el)
+      if (typeof ref === "function") ref(el)
+      else if (ref) ref.current = el
+    },
+    [ref]
+  )
+  useKeyboardInset(node, !fullScreen)
+
   return (
     <DialogPortal>
       {/* fullScreen content is opaque + edge-to-edge, so an overlay behind it is
@@ -79,7 +109,10 @@ function DialogContent({
           on Content, not the Overlay. */}
       {!fullScreen && <DialogOverlay />}
       <DialogPrimitive.Content
+        ref={composedRef}
         data-slot="dialog-content"
+        data-shape={fullScreen ? undefined : "dialog"}
+        data-size={fullScreen ? undefined : size}
         className={cn(
           // A dialog wants a decision, so it is the surface Will kept a beat
           // for when he chose entrances by frequency: the standard clock, in
@@ -94,11 +127,14 @@ function DialogContent({
               "fixed inset-0 z-50 flex flex-col bg-background ease-emphasis outline-none data-open:animate-in data-open:fade-in-0 data-open:slide-in-from-bottom-2 data-closed:animate-out data-closed:fade-out-0 data-closed:slide-out-to-bottom-2"
             : // The floating layer: the family's corner, material and light,
               // and its entrance (the `data-[side]` travel in that language
-              // simply never matches a centred panel).
+              // simply never matches a centred panel); where it stands, how
+              // wide it is and its cap are the `dialog` shape's. A dialog
+              // taller than what is left of the screen scrolls inside itself.
               cn(
-                "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 p-4 text-sm outline-none sm:max-w-sm",
+                "fixed z-50 grid gap-4 overflow-x-hidden overflow-y-auto overscroll-contain p-4 text-sm outline-none",
                 floatingPanel,
-                floatingEntrance
+                floatingEntrance,
+                floatingPopupShapes
               ),
           className
         )}
