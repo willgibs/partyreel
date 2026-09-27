@@ -43,10 +43,11 @@ a lane").
 | `popups-wiring` | the popups board's eight kinds at their source (one table; lists in a panel, confirm and forms in keyboard-safe dialogs, choices in a menu, Invite then the code card then Share, plans wide and stacked, settings unfocused, peek a card); retires `popups` | building (agent af9df098c720f6767) | Opus, 3131 | |
 | `door-r3-wiring` | `identity-door` r3's five (lit icons, the told chooser, the smaller hint, Check your email, the lit beat with motion) and the door's roadmap lines; the Like door into the held sheet; retires `identity-door` | building (agent ad8d98fbd9a81d1ee) | Opus, 3132 | |
 | `demo-doors` | the live dot in the credit line's place, "Try our demo event" over the hero's H1, one demo modal on a desk (a new tab on a phone), the reel's new line; retires `reel-story` | building (agent a3ef18cb8c0dfabc6) | Opus, 3133 | |
-| `hero-card` | new board `hero-card` r1: the hero's object as a compact album card, the code baked in | drawing (agent aa47974ca626174cd) | Opus, 3134 | |
 | `claims-r3` | board `identity-claims` r3: `pointer` alone, the best options on his r2 answers | drawing (agent a7b4c56ab7347cbaf) | Opus, 3135 | |
 
 Batch 3 closed at milestone 29 (`ab30a7f8`, 2026-09-26); batch 4 (nine lanes with `crumbs-3`) is on build 11.
+
+Merged in batch 5 (their records carry the rest): hero-card.
 
 ## Next, in order
 
