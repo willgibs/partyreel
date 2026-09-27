@@ -17,6 +17,10 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Guest door: the code screen (`email-sign-in.tsx`) still says "Or tap the link in the same email to sign in" where the guest door says Log in everywhere else; every non-today `identity-door` `code` option drops it, and if today wins the word still wants the fix (from `door-r3`).
+- Guest door: the code screen has no primary, so with the keyboard up (`entry-shell.tsx`'s `data-[keyboard=open]:pb-0` hands the bottom space to a sticky primary) its last line may sit about 6 px off the keyboard; check it on a phone (from `door-r3`).
+- Guest door: when `identity-door` r3's `code` pick is wired, scope it: the host's `/login` shares `EmailSignIn`'s code screen, so a pick lands there too unless the wiring decides the two differ (from `door-r3`).
+- Guest door: the change and confirm sheets opened from her menu head with a Sheet's card title while every door step heads with the page step; one heading scale for every guest sheet (`popups` asks the surface, not the heading) (from `door-r3`).
 - Code hygiene: `.prettierignore` gains `src/app/(dev)/design/gallery/specimens.generated.json`; `pnpm format` re-flows the collector's output into prettier's shape, a thousand lines of churn for any lane that touches a Library specimen (from `reel-marketing`).
 - Marketing: the home teaser's muted loop keeps decoding under the open player; `AmbientReelVideo` could take a `paused` prop that `ReelPlayScreen` sets while its player is up (from `reel-marketing`).
 - Marketing: a landscape phone gets a small, scrolling contained player (812x375 draws it 325 wide); a landscape posture that fills the glass could be drawn once the films land (from `reel-marketing`).
