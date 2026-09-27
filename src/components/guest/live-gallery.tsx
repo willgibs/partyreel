@@ -299,8 +299,8 @@ function LiveGalleryView({
   // The header's number is the provider's (`albumCount`); the CTA below says the same one.
   const rawCount = items.length;
 
-  // THE YOURS FILTER, which the mark on a guest's own tiles toggles, over the WHOLE album (the
-  // manifest: `yoursView`'s own note). The intent is this tab's alone.
+  // THE YOURS FILTER (`mine=none`: View's Showing is its one door now, no mark on the tiles),
+  // over the WHOLE album (the manifest: `yoursView`'s own note). The intent is this tab's alone.
   const [showMine, setShowMine] = useState(false);
   const yours = yoursView(items, ownIds, showMine);
 
@@ -390,8 +390,8 @@ function LiveGalleryView({
               )}
             </div>
           )}
-          {/* THE YOURS LINE, for the filter the mark on a guest's own tiles toggles: a line and not a
-              chip, only while the filter is live, and its only exit besides the mark. */}
+          {/* THE YOURS LINE, for the View-menu filter (`mine=none`): a line and not a chip, only
+              while the filter is live, and its only exit. */}
           {yours.on && (
             <div className="mb-3 flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">
@@ -432,10 +432,6 @@ function LiveGalleryView({
               // apply (the demo, a locked gallery) rather than passed with an empty set.
               canDelete={canRemove ? (item) => ownIds.has(item.id) : undefined}
               onDeleteItem={canRemove ? (id) => void removeOwn(id) : undefined}
-              // THE FOURTH MARK, and what its tap does. Same gate as Remove.
-              mineIds={canRemove && ownIds.size > 0 ? ownIds : undefined}
-              onSelectMine={() => setShowMine((on) => !on)}
-              mineSelected={yours.on}
             />
           </DeleteConsequence.Provider>
         </LikesProvider>

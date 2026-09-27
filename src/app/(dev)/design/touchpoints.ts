@@ -35,7 +35,6 @@ export type SandboxId =
   | "export-flow"
   | "admin-triage"
   | "reel-story"
-  | "media-viewer"
   | "emails"
   | "help-center"
   | "host-curation"
@@ -304,29 +303,6 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
-    id: "media-viewer",
-    title: "What a photograph opens as",
-    surface: "shared",
-    asks: "how the album marks the photos that are yours now that they arrive in bursts: a ring inside each tile, one outline round each run, an underline under each run, or nothing but View's Yours filter",
-    why: "Round two's ring sat outside the tile, exactly as wide as the 4px gutter, so a guest's neighbouring uploads met; round three draws a real burst on the real rows.",
-    lives: [
-      "docs/systems/guest-flow.md",
-      "src/components/shared/masonry.tsx",
-      "src/components/guest/guest-masonry.tsx",
-      "src/components/guest/live-gallery.tsx",
-    ],
-    board: {
-      note: "One decision on the real rows at 375 and 1440, light and dark: a guest's pick of five lands side by side at the head and wraps, three singles of hers sit further down, and her tiles wear a ring apiece, one outline per run, an underline per run, or nothing with View's Showing drawn open; every caption read off the frame",
-      variants: [
-        "A ring inside each tile",
-        "One outline round each run",
-        "An underline under each run",
-        "Nothing on the tiles",
-      ],
-      tracks: ["mark-r3"],
-    },
-  },
-  {
     id: "emails",
     title: "Every email Partyreel sends",
     surface: "shared",
@@ -582,7 +558,6 @@ export const RULINGS: Ruling[] = [
 export const DESK_ORDER: readonly SandboxId[] = [
   "identity-door",
   "reel-story",
-  "media-viewer",
   "identity-claims",
   "identity-profile",
   "guest-capture",
