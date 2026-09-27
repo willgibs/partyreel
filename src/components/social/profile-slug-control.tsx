@@ -1,16 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
-  checkProfileSlugAction,
   clearProfileSlugAction,
   setProfileSlugAction,
 } from "@/app/(app)/account/social-actions";
 import { CopyShareLink } from "@/components/app/copy-share-link";
+import {
+  HandleField,
+  HandleStatusLine,
+  useHandleStatus,
+} from "@/components/social/handle-field";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,23 +23,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { profileSlugSchema } from "@/lib/validation/profile";
-import { cn } from "@/lib/utils";
-
-// The live status of what's in the input — the EventSlugControl state machine,
-// re-derived here for the PROFILE handle (whose validity source is
-// profileSlugSchema and whose availability source is a signed-in server action,
-// not the event RPC).
-type Status =
-  | { kind: "idle" }
-  | { kind: "invalid"; message: string }
-  | { kind: "current" }
-  | { kind: "checking"; slug: string }
-  | { kind: "available"; slug: string }
-  | { kind: "taken"; slug: string };
-
-const DEBOUNCE_MS = 400;
 
 /**
  * Claim / change / release the public profile handle (/u/[slug]).
@@ -67,63 +53,11 @@ export function ProfileSlugControl({
     null | { mode: "change"; slug: string } | { mode: "remove" }
   >(null);
 
-  // The async availability verdict for ONE candidate; set only inside the
-  // debounced callback (never synchronously in the effect body).
-  const [availability, setAvailability] = useState<{
-    slug: string;
-    available: boolean;
-  } | null>(null);
-  const reqId = useRef(0);
-
+  // The live status of what's in the input: the one machine the setup wizard's first screen
+  // shares (handle-field.tsx). The host is the site's own, so an available handle reads as the
+  // address it will be.
+  const { status, markTaken } = useHandleStatus(value, slug);
   const host = siteUrl.replace(/^https?:\/\//, "").replace(/\/+$/, "");
-
-  // Pure, synchronous classification. Only a valid, non-current candidate needs
-  // the network check.
-  const trimmed = value.trim().toLowerCase();
-  const parsed = trimmed ? profileSlugSchema.safeParse(trimmed) : null;
-  const evaluated:
-    | { kind: "idle" }
-    | { kind: "invalid"; message: string }
-    | { kind: "current" }
-    | { kind: "check"; normalized: string } = !trimmed
-    ? { kind: "idle" }
-    : !parsed || !parsed.success
-      ? {
-          kind: "invalid",
-          message:
-            parsed?.error.issues[0]?.message ?? "That handle isn't available.",
-        }
-      : parsed.data === slug
-        ? { kind: "current" }
-        : { kind: "check", normalized: parsed.data };
-  const checkTarget = evaluated.kind === "check" ? evaluated.normalized : null;
-
-  useEffect(() => {
-    if (!checkTarget) {
-      reqId.current += 1; // invalidate any in-flight check
-      return;
-    }
-    const id = ++reqId.current;
-    const timer = setTimeout(async () => {
-      const { available } = await checkProfileSlugAction(checkTarget);
-      if (id !== reqId.current) return; // superseded by a newer keystroke
-      setAvailability({ slug: checkTarget, available });
-    }, DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [checkTarget]);
-
-  const status: Status =
-    evaluated.kind === "idle"
-      ? { kind: "idle" }
-      : evaluated.kind === "invalid"
-        ? { kind: "invalid", message: evaluated.message }
-        : evaluated.kind === "current"
-          ? { kind: "current" }
-          : availability && availability.slug === evaluated.normalized
-            ? availability.available
-              ? { kind: "available", slug: evaluated.normalized }
-              : { kind: "taken", slug: evaluated.normalized }
-            : { kind: "checking", slug: evaluated.normalized };
 
   function runSave(target: string) {
     startSave(async () => {
@@ -135,6 +69,8 @@ export function ProfileSlugControl({
         setConfirm(null);
         return;
       }
+      // Taken between the check and the write: the field says so too, without asking again.
+      if (result.taken) markTaken(target);
       toast.error("Couldn't save your handle.", {
         description: result.message,
       });
@@ -202,35 +138,12 @@ export function ProfileSlugControl({
       ) : (
         <div className="space-y-2">
           <div className="flex flex-wrap gap-2">
-            <div className="relative min-w-48 flex-1">
-              <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-muted-foreground">
-                /u/
-              </span>
-              <Input
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                placeholder="your-name"
-                aria-label="Profile handle"
-                aria-invalid={
-                  status.kind === "taken" || status.kind === "invalid"
-                }
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-                className="pr-9 pl-9"
-              />
-              <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                {status.kind === "checking" && (
-                  <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                )}
-                {status.kind === "available" && (
-                  <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400" />
-                )}
-                {(status.kind === "taken" || status.kind === "invalid") && (
-                  <AlertCircle className="size-4 text-destructive" />
-                )}
-              </span>
-            </div>
+            <HandleField
+              value={value}
+              onChange={setValue}
+              status={status}
+              className="min-w-48 flex-1"
+            />
             <Button
               type="button"
               onClick={onSaveClick}
@@ -252,34 +165,15 @@ export function ProfileSlugControl({
             )}
           </div>
 
-          {status.kind === "idle" ? (
-            !slug ? (
-              <p className="text-xs text-muted-foreground">
-                Your public profile address. Lowercase letters, numbers, and
-                hyphens. Events you choose to share appear there.
-              </p>
-            ) : null
-          ) : (
-            <p
-              key={status.kind}
-              data-slug-status
-              className={cn(
-                "text-xs",
-                status.kind === "available"
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : status.kind === "taken" || status.kind === "invalid"
-                    ? "text-destructive"
-                    : "text-muted-foreground",
-              )}
-            >
-              {status.kind === "checking" && "Checking availability…"}
-              {status.kind === "available" &&
-                `${host}/u/${status.slug} is available.`}
-              {status.kind === "taken" && "That handle is taken. Try another."}
-              {status.kind === "invalid" && status.message}
-              {status.kind === "current" && "This is your current handle."}
-            </p>
-          )}
+          <HandleStatusLine
+            status={status}
+            host={host}
+            idleHint={
+              slug
+                ? undefined
+                : "Your public profile address. Lowercase letters, numbers, and hyphens. Events you choose to share appear there."
+            }
+          />
         </div>
       )}
 

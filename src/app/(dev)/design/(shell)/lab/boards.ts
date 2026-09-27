@@ -3,7 +3,6 @@ import type { ComponentType } from "react";
 import { IdentityDoorBoard } from "@/app/(dev)/design/sandbox/identity-door/board";
 import { PopupsBoard } from "@/app/(dev)/design/sandbox/popups/board";
 import { IdentityClaimsBoard } from "@/app/(dev)/design/sandbox/identity-claims/board";
-import { IdentityProfileBoard } from "@/app/(dev)/design/sandbox/identity-profile/board";
 import { GuestCaptureBoard } from "@/app/(dev)/design/sandbox/guest-capture/board";
 import { VoiceGuestBoard } from "@/app/(dev)/design/sandbox/voice-guest/board";
 import { SiteChromeBoard } from "@/app/(dev)/design/sandbox/site-chrome/board";
@@ -11,7 +10,6 @@ import { ProfilePageBoard } from "@/app/(dev)/design/sandbox/profile-page/board"
 import { ExportFlowBoard } from "@/app/(dev)/design/sandbox/export-flow/board";
 import { AdminTriageBoard } from "@/app/(dev)/design/sandbox/admin-triage/board";
 import { ReelStoryBoard } from "@/app/(dev)/design/sandbox/reel-story/board";
-import { MediaViewerBoard } from "@/app/(dev)/design/sandbox/media-viewer/board";
 import { EmailsBoard } from "@/app/(dev)/design/sandbox/emails/board";
 import { HelpCenterBoard } from "@/app/(dev)/design/sandbox/help-center/board";
 import { HostCurationBoard } from "@/app/(dev)/design/sandbox/host-curation/board";
@@ -45,7 +43,6 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   popups: { Component: PopupsBoard },
   "identity-claims": { Component: IdentityClaimsBoard },
 
-  "identity-profile": { Component: IdentityProfileBoard },
   "guest-capture": { Component: GuestCaptureBoard },
   "voice-guest": { Component: VoiceGuestBoard },
 
@@ -54,7 +51,6 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "export-flow": { Component: ExportFlowBoard },
   "admin-triage": { Component: AdminTriageBoard },
   "reel-story": { Component: ReelStoryBoard },
-  "media-viewer": { Component: MediaViewerBoard },
   emails: { Component: EmailsBoard },
   "help-center": { Component: HelpCenterBoard },
   "host-curation": { Component: HostCurationBoard },

@@ -4,17 +4,25 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { CalendarPlus } from "lucide-react";
 
+import {
+  isPageInviteDismissed,
+  PAGE_INVITE_COOKIE,
+  pageChoicesHref,
+  shouldInviteToPage,
+} from "@/app/(app)/account/profile/invite";
 import { MarkWelcomedOnMount } from "@/app/(app)/welcome/mark-welcomed";
 import { ClaimsCard } from "@/components/app/dashboard/claims-card";
 import { EventsSection } from "@/components/app/dashboard/events-section";
 import { JustArrived } from "@/components/app/dashboard/just-arrived";
 import { NextStepBand } from "@/components/app/dashboard/next-step-band";
+import { PageInviteCard } from "@/components/app/dashboard/page-invite-card";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
 import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
 import { WELCOME_VALUE } from "@/components/app/pricing/return-path";
 import { WelcomeToPro } from "@/components/app/pricing/welcome-to-pro";
 import { Button } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
+import { seedFor } from "@/lib/avatar/seed";
 import {
   DEFAULT_TIER,
   MAX_EVENTS,
@@ -49,8 +57,12 @@ import {
 import { getLiveReelServerFacts } from "@/lib/db/queries/guest-events-admin";
 import { getPulse } from "@/lib/db/queries/pulse";
 import { getProfile } from "@/lib/db/queries/profile";
-import { getMyGuestEventCards } from "@/lib/db/queries/social";
+import {
+  getMyAttendedEvents,
+  getMyGuestEventCards,
+} from "@/lib/db/queries/social";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
+import { captureError } from "@/lib/observability/sentry";
 import { formatDateInZone } from "@/lib/format/date-in-zone";
 import { binCountdownLabel } from "@/lib/lifecycle/recently-deleted";
 import { overStandbyBudget } from "@/lib/lifecycle/recently-deleted";
@@ -203,6 +215,36 @@ export default async function DashboardPage({
       ? getLiveReelServerFacts(eventIds[0])
       : Promise.resolve({ liveReelEnabled: true, tier: null }),
   ]);
+
+  // THE PAGE SETUP'S INVITATION (`identity-profile` r1, `prompt=claim`), decided here from server
+  // facts alone (account/profile/invite.ts). The read of what her page could show runs only when
+  // it could still change the answer: an account with a page, a claim waiting or a Not now pays
+  // nothing for it.
+  const hasHandle = Boolean(profile?.slug);
+  const inviteDismissed = profile
+    ? isPageInviteDismissed(
+        jar.get(PAGE_INVITE_COOKIE)?.value,
+        seedFor(profile.id),
+      )
+    : true;
+  const showableEvents =
+    !hasHandle && claimableRows.length === 0 && !inviteDismissed
+      ? await getMyAttendedEvents().then(
+          (attended) => attended.length,
+          (error: unknown) => {
+            // An invitation is never worth the page: a failed read withholds it (the quiet
+            // direction) and says so where failures are read.
+            captureError("account", error, { seam: "page_invite" });
+            return 0;
+          },
+        )
+      : 0;
+  const invitePage = shouldInviteToPage({
+    hasHandle,
+    claimsWaiting: claimableRows.length,
+    showableEvents,
+    dismissed: inviteDismissed,
+  });
 
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
   // Stacked Event Passes (billing-caps.md): event_slots is the webhook-derived concurrent-pass
@@ -468,8 +510,15 @@ export default async function DashboardPage({
       {/* THE CLAIM TICKET — above the events feed, rendered only when
           claimable rows exist (ClaimsCard returns null otherwise); sits
           above the create-first teaser too, since EventsSection decides
-          that swap on its own `rows` prop independently of this one. */}
-      <ClaimsCard rows={claimableRows} />
+          that swap on its own `rows` prop independently of this one. Its
+          finish toast points at the page (`after=profile`): the setup
+          before one exists, its choices after. */}
+      <ClaimsCard rows={claimableRows} pageHref={pageChoicesHref(hasHandle)} />
+
+      {/* THE PAGE SETUP'S INVITATION, in the ticket's own place: it waits for
+          no claim to be pending, so it arrives the moment Finish settles the
+          ticket away (`prompt=claim`). */}
+      {invitePage && <PageInviteCard />}
 
       {/* BAND 3 — your events, cover cards or rows, the choice remembered. */}
       <EventsSection

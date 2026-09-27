@@ -273,7 +273,6 @@ type RowsProps = {
   step: RowStep;
   canDelete?: (item: GridMedia) => boolean;
   onDeleteItem?: (id: string) => void;
-  mineIds?: ReadonlySet<string>;
   onWindowChange?: (ids: readonly string[]) => void;
 };
 const lastRows = () => rowsSpy.mock.calls.at(-1)![0] as RowsProps;
@@ -595,7 +594,7 @@ const { removeMyUploadGuestAction } =
 const aFile = () => new File(["x"], "x.jpg", { type: "image/jpeg" });
 
 describe("LiveGallery: a visit's own adds and removals, on either identity", () => {
-  it("a signed-in guest's new photograph is theirs the moment it lands (Trash and mark)", async () => {
+  it("a signed-in guest's new photograph is theirs the moment it lands (Trash and the Yours filter)", async () => {
     const ref = createRef<LiveGalleryHandle>();
     await mount({ ref, isAuthed: true, canDeleteIds: [] });
     await act(async () => {
@@ -607,11 +606,16 @@ describe("LiveGallery: a visit's own adds and removals, on either identity", () 
         status: "approved",
       });
     });
-    const props = lastRows();
     expect(shownIds()[0]).toBe("m9");
+    const props = lastRows();
     expect(props.canDelete?.({ id: "m9" } as GridMedia)).toBe(true);
-    expect(props.mineIds?.has("m9")).toBe(true);
     expect(props.canDelete?.({ id: "m2" } as GridMedia)).toBe(false);
+
+    // No mark rides the tile any more (`mine=none`): View's Showing, not a tap
+    // on the tile, is how she finds it.
+    openViewMenu();
+    fireEvent.click(screen.getByRole("menuitemradio", { name: "Yours (1)" }));
+    expect(shownIds()).toEqual(["m9"]);
   });
 
   it("passes each removed id up, takes it off at once, and a removal leaves the count on a signed-in guest too", async () => {

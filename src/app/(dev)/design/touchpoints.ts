@@ -28,7 +28,6 @@ export type SandboxId =
   | "identity-door"
   | "popups"
   | "identity-claims"
-  | "identity-profile"
   | "guest-capture"
   | "voice-guest"
   | "site-chrome"
@@ -36,7 +35,6 @@ export type SandboxId =
   | "export-flow"
   | "admin-triage"
   | "reel-story"
-  | "media-viewer"
   | "emails"
   | "help-center"
   | "host-curation"
@@ -68,22 +66,33 @@ export const RULINGS: Ruling[] = [
     id: "identity-door",
     title: "Asking for an email at the door",
     surface: "guest",
-    asks: "which look makes the door feel alive enough that a guest wants to keep going, walked through his settled flow from the welcome and his chooser to her menu, with the phone's keyboard up",
-    why: "His flow is settled and the door did not feel alive to him; round two asks only its look, across the whole walk, over the album blurred behind.",
+    asks: "inside lit, his pick: the door's icons and its beats across every screen a guest meets, and the words of his chooser, the line under her name and the code screen",
+    why: "He picked lit and wrote that the remaining icons and copy could be redesigned within it; round three draws them over every screen, five for the first time.",
     lives: [
       "docs/systems/guest-flow.md",
       "src/components/guest/entry-modal.tsx",
       "src/components/guest/entry-shell.tsx",
+      "src/components/guest/door/chooser.tsx",
+      "src/components/guest/door/signin-step.tsx",
       "src/components/guest/guest-name-step.tsx",
       "src/components/guest/identify-step.tsx",
+      "src/components/guest/password-gate.tsx",
+      "src/components/guest/upload-step.tsx",
       "src/components/guest/guest-name-menu.tsx",
       "src/components/guest/add-email-dialog.tsx",
       "src/components/auth/account-door.tsx",
       "src/components/auth/email-sign-in.tsx",
     ],
     board: {
-      note: "One ask on his note that the door does not feel alive: four looks, each borrowed from a pattern he picked (the screen lamp, the trips page's sleeve, the reel tile's card, a profile's identity line), each walked through his settled flow on the stage knob, a 1440 frame over three 375 frames, every field drawn with its keyboard up",
-      variants: ["The door's look"],
+      note: "Five asks inside lit, his round-two pick, drawn from production over every screen a guest meets (the password step, the upload step, the demo's welcome, a stall and the keep screen for the first time): the icons' language and the beats across the door, and the words of his chooser, the line under her name and the code screen",
+      variants: [
+        "The door's icons",
+        "The chooser",
+        "Under her name",
+        "The code screen",
+        "The beats",
+      ],
+      tracks: ["door-r3"],
     },
   },
   {
@@ -121,46 +130,22 @@ export const RULINGS: Ruling[] = [
     id: "identity-claims",
     title: "Photos waiting for you",
     surface: "host",
-    asks: "where the claim ticket lives on the dashboard, how the album or the door points to it, working through more than one event, the warning before a deletion, and what Finish leaves",
-    why: "The claim ticket ships deliberately plain; this board refines it on the shipped pieces and never gates the shipped flow.",
+    asks: "when a choice in the one-at-a-time review is saved, where the dialog before a deletion sits, what a claimed event offers as she goes, and what the album says about the rest",
+    why: "Round one settled the banner, one card at a time, the dialog and the page toast, and asked for one batch; round two draws it and asks what makes it a good one.",
     lives: [
       "docs/systems/host-app.md",
       "docs/systems/profiles-social.md",
       "src/components/app/dashboard/claims-card.tsx",
+      "src/app/(app)/dashboard/claims-actions.ts",
       "src/components/guest/follow-moment-card.tsx",
-      "src/components/app/notification-bell.tsx",
     ],
     board: {
-      note: "Five decisions on the shipped claim ticket's real pieces, over Priya from guest-capture's own world: where it lives on the dashboard, how the album and now the door point to it, how she works through more than one event, how she is warned before a deletion, and what Finish leaves her looking at",
+      note: "Round two draws one batch on his round one picks (the banner's review, one event at a time, a dialog before any deletion, the page toast) over Priya and four waiting events: when a choice is saved, where the deletion's dialog sits, what a claimed event offers as she goes, and what the album says about the rest",
       variants: [
-        "The ticket's home",
-        "The pointer from the album",
-        "Working through more than one",
-        "Warning before a deletion",
-        "What Finish leaves her looking at",
-      ],
-    },
-  },
-  {
-    id: "identity-profile",
-    title: "Setting up a page",
-    surface: "guest",
-    asks: "how a verified guest sets up her page, how she chooses what shows, whether that choice should even default to hidden, when the app offers the setup, and what an empty page says to a visitor",
-    why: "A profile publishes nothing until its owner chooses, so the setup is how a page fills; drawn on the account page's real cards and the public page.",
-    lives: [
-      "docs/systems/profiles-social.md",
-      "src/components/social/attended-events-visibility.tsx",
-      "src/app/(guest)/u/[slug]/page.tsx",
-      "src/app/(app)/account/page.tsx",
-    ],
-    board: {
-      note: "Five decisions on the account page's real cards and the public profile page, over Priya, verified, with photos added to three events and none shown: how setup itself happens, how she chooses what shows, whether that choice should even default to hidden, when the app ever invites the setup, and what an empty claimed page says to a visitor",
-      variants: [
-        "How it's set up",
-        "What shows",
-        "The starting default",
-        "When it's offered",
-        "The empty page",
+        "When a choice is saved",
+        "Where the deletion's dialog sits",
+        "What a claimed event offers",
+        "Pointing from the album",
       ],
     },
   },
@@ -314,48 +299,24 @@ export const RULINGS: Ruling[] = [
     id: "reel-story",
     title: "The marketing story of the reel",
     surface: "marketing",
-    asks: "the home's close, the reel's card and the /reel heading it gives, the reel beside the demo door on the event pages, and where the home teaser's play mark leads",
-    why: "Round one's thesis lines were all turned down and the close and the card split; the reel beside the demo door needs a real redesign, and the teaser's play a destination.",
+    asks: "the home hero's album and code made polished, what stands beside the demo link now the frame has left it, and a clearer line for the reel's door and the /reel heading",
+    why: "Round two is wired. His notes on it: the hero's album and code needs a ton of polish, the frame beside the demo link looked silly, and the reel's line could say more.",
     lives: [
       "docs/systems/marketing-content.md",
-      "src/lib/constants/marketing-voice.ts",
-      "src/components/marketing/sections/home/cinema-close.tsx",
+      "src/components/marketing/sections/home/cinema-hero.tsx",
+      "src/components/marketing/system/demo-ticket.tsx",
+      "src/components/marketing/system/demo-cta-link.tsx",
       "src/components/marketing/sections/features/shared/feature-door.tsx",
       "src/components/marketing/sections/reel/reel-hero.tsx",
-      "src/components/marketing/sections/events/event-door.tsx",
-      "src/components/marketing/sections/home/reel-teaser.tsx",
+      "src/lib/constants/marketing-voice.ts",
     ],
     board: {
-      note: "Four decisions, each in its real section in a real frame at 1440 with 375 on the knob, the reel on the real engine: the home's close, the reel's card in its three places, the reel beside the demo door, and where the teaser's play mark leads, drawn pressed",
+      note: "Three decisions, each in its real place in a real frame at 1440 with 375 on the knob: the hero's object in the real first screen with the band running, the demo line in the home's close and the /reel hero, and the reel's line in its three places",
       variants: [
-        "The home's close",
-        "The reel's card",
-        "The reel beside the door",
-        "Where the play mark leads",
+        "The hero's album and code",
+        "Beside the demo link",
+        "The reel's line",
       ],
-    },
-  },
-  {
-    id: "media-viewer",
-    title: "What a photograph opens as",
-    surface: "shared",
-    asks: "how the album marks the photos that are yours now that they arrive in bursts: a ring inside each tile, one outline round each run, an underline under each run, or nothing but View's Yours filter",
-    why: "Round two's ring sat outside the tile, exactly as wide as the 4px gutter, so a guest's neighbouring uploads met; round three draws a real burst on the real rows.",
-    lives: [
-      "docs/systems/guest-flow.md",
-      "src/components/shared/masonry.tsx",
-      "src/components/guest/guest-masonry.tsx",
-      "src/components/guest/live-gallery.tsx",
-    ],
-    board: {
-      note: "One decision on the real rows at 375 and 1440, light and dark: a guest's pick of five lands side by side at the head and wraps, three singles of hers sit further down, and her tiles wear a ring apiece, one outline per run, an underline per run, or nothing with View's Showing drawn open; every caption read off the frame",
-      variants: [
-        "A ring inside each tile",
-        "One outline round each run",
-        "An underline under each run",
-        "Nothing on the tiles",
-      ],
-      tracks: ["mark-r3"],
     },
   },
   {
@@ -615,9 +576,7 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "identity-door",
   "popups",
   "reel-story",
-  "media-viewer",
   "identity-claims",
-  "identity-profile",
   "guest-capture",
   "voice-guest",
   "host-curation",

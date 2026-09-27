@@ -13,9 +13,9 @@ import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion
 import { cn } from "@/lib/utils";
 
 /**
- * The recurring poster-first reel playback surface: the reel-teaser's inline
- * sample and the hero's sample-reel overlay both render THIS, so the transport
- * contract lives once. Poster (next/image) paints immediately; the <video>
+ * The recurring poster-first reel playback surface: the contained player that
+ * every "watch" on the site opens (`sample-reel-overlay.lazy.tsx`) and the
+ * careers reel both render THIS, so the transport contract lives once. Poster (next/image) paints immediately; the <video>
  * mounts only once playback is requested (zero video bytes without intent),
  * fades over the poster on its first frames, and a rejected play() leaves the
  * poster standing, never a spinner. The play/pause badge rides the icon-swap

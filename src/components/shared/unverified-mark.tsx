@@ -26,9 +26,10 @@ import { cn } from "@/lib/utils";
  * verifying." So this is the quietest thing on the surface AND, on your OWN
  * credit, the shortest route to fixing it.
  *
- * ★ IT WEARS `MineMark`'S MATERIAL, not a warning icon's: a dot inside a small
- * disc (`shared/masonry.tsx`), because the album already taught a guest that a
- * small disc on a photograph is a fact about the photograph and not an alarm. Two
+ * ★ IT WEARS THE ALBUM TILE'S OWN MARK MATERIAL, not a warning icon's: a dot
+ * inside a small disc (`GLASS_MARK`, `shared/album-tile.tsx`), because the
+ * album already taught a guest that a small disc on a photograph is a fact
+ * about the photograph and not an alarm. Two
  * tones, and they are about what is BEHIND the mark, never about severity:
  * `lit` over a photograph (the glass disc, with the glyph's own halo, since no
  * pane can keep a white dot legible over a bright sky) and `paper` on a chip.

@@ -199,7 +199,7 @@ at the foot, so no dialog carries its own keyboard fix.
   the host's curate group behind a divider; in the recovery bin, its Restore and Delete permanently alone) and a
   clip's TRANSPORT (play, a scrubber, the time) above it. ★ **EVERY
   UPLOAD CARRIES A NAME**: a confirmed guest's profile name stands plain, a typed one wears
-  [`unverified-mark.tsx`](../../src/components/shared/unverified-mark.tsx) (MineMark's material, tap to open, one
+  [`unverified-mark.tsx`](../../src/components/shared/unverified-mark.tsx) (the tiles' glass mark material, `GLASS_MARK`, tap to open, one
   extra sentence for the host, and on YOUR OWN credit a "Confirm your email" opening the one confirm door). A row with
   no name renders no credit at all, never an invented stand-in: a row minted before names were asked (`create_guest`
   refuses a new one) and a verified row whose account has no profile name (a deleted account's surviving upload).
@@ -799,17 +799,14 @@ had" holds only when this device holds a guest ticket a claim would move.
   surfaces own, so a prop cannot reach it), counting the guest's own ids plus any held file still waiting. When
   that removal lands, the page refreshes onto the server's answer at once rather than holding the album until the
   guest's next act (the stricter-drift rule is for a host's switch, not the guest's own choice).
-- **And WHICH tiles are a guest's own:** the same server-read set reaches the grid again as `mineIds`; the
-  ONE grid ([`shared/masonry.tsx`](../../src/components/shared/masonry.tsx)) writes `data-mine` and gives
-  each a FOURTH mark in the marks' material (`GLASS_MARK` + the `glass-mark-lit` halo) in the TOP-LEFT
-  corner, the only one free at every width (play and like own the bottom corners, the desk's hover row the
-  top right). A tap toggles the **Yours filter** ([`yours-filter.ts`](../../src/lib/guest/yours-filter.ts),
-  pure): the album narrows under a "Showing yours · Show all" line, the count line keeps saying how big the
-  WHOLE album is, and the filter cannot stay live once the guest owns nothing, so removing your last
-  photograph never strands you in an empty view. The line is the filter's receipt and its only exit
-  besides a mark; Yours also sits in the ONE View menu ([`view-menu.tsx`](../../src/components/shared/view-menu.tsx),
-  the host gallery's own object) beside "Download all" in [`live-gallery.tsx`](../../src/components/guest/live-gallery.tsx):
-  a Showing group (Everyone's / Yours (n)) only while the guest owns something, and a Size group (`kind:
+- **And WHICH tiles are a guest's own:** the same server-read set feeds only the **Yours filter**
+  ([`yours-filter.ts`](../../src/lib/guest/yours-filter.ts), pure); a guest's own tiles wear no mark, so the ONE View
+  menu ([`view-menu.tsx`](../../src/components/shared/view-menu.tsx), the host gallery's own object) beside "Download
+  all" in [`live-gallery.tsx`](../../src/components/guest/live-gallery.tsx) is the filter's one door: a Showing group
+  (Everyone's / Yours (n)) only while the guest owns something. Yours narrows the album under a "Showing yours · Show
+  all" line, the filter's receipt and its way out; the count line keeps saying how big the WHOLE album is, and the
+  filter cannot stay live once the guest owns nothing, so removing your last photograph never strands you in an empty
+  view. The menu also carries a Size group (`kind:
   "density"`: `album-columns` r2's three steps, in their plain names before the album has measured its box
   and in photographs a row after). ★ **THE STEP ITSELF IS SERVER-RESOLVED, NEVER A CLIENT-ONLY READ**: the
   page reads the shared `pr_tile_size` cookie the host dashboard does

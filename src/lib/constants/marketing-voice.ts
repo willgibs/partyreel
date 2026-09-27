@@ -127,6 +127,24 @@ export const SITE_DESCRIPTION_LINE =
  */
 export const PRO_LINE = "For videos and unlimited events.";
 
+/**
+ * THE REEL'S LINE (`reel-story` r2 `card=as-it-happens`): what the highlight reel IS, in the one
+ * place a reader meets it by name. Its door says it at both sizes (the hub's lead and the related
+ * row) and the /reel hero takes it as the heading, so the door and the room it opens agree; an
+ * event page's reel card names its own event in it (`reelLineFor("wedding")`).
+ *
+ * The working line, not a ruling: his note asks for better ones ("'everyone's photos... live' and
+ * 'every new photo joins'... added value beyond this version's 'Your event', which is less clear"),
+ * which `reel-story` r3 draws. The noun a type page puts in its place is the same clarity, local.
+ *
+ * ★ NEVER THE HOME'S CLOSE AS WELL (r1: the home and the reel's door are "for different purposes"),
+ * which is why `cinema-close.tsx` carries its own words and `GOLDEN_LINES.reelThesis` has no reader.
+ */
+export function reelLineFor(event: string): string {
+  return `Your ${event}, playing as it happens.`;
+}
+export const REEL_LINE = reelLineFor("event");
+
 export type HeaderStatus = "ruled" | "provisional";
 
 /**
