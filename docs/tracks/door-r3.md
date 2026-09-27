@@ -10,7 +10,6 @@ reads:                  # single-sources you depend on: never duplicate, never e
   - src/components/guest/
   - src/components/auth/
   - src/app/(dev)/design/sandbox/voice-guest/spec.ts
-  - src/app/(dev)/design/sandbox/guest-capture/parts.tsx
   - docs/systems/guest-flow.md
 ---
 
