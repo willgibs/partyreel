@@ -13,15 +13,15 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoin
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: batch 4, from Will's sitting on build 10
+## The current round: batch 4 landed; Will's sitting on build 11
 
 - **Milestone 29 is live** (`ab30a7f8`, 2026-09-26), batch 3 whole: the live reel in place of the stored one, every
   album paged and windowed, Will's door on the phone Sheet, an email change confirmed at both addresses, one-tap Save
   on an iPhone.
-- **Batch 4 is in flight** (eight lanes, cut `1a455e5f`): his sitting on build 10 answered 21 asks on six boards.
-  Wiring: the door lit and guest-capture's five, no mark on a guest's own tiles, the profile's setup wizard, and the
-  reel's marketing with the footer's stack back and the demo link bare. Boards: `popups` (new), `identity-door` r3,
-  `identity-claims` r2, `reel-story` r3. Build 11 carries all eight to his next sitting.
+- **Batch 4 landed** (eight lanes from his sitting on build 10, 2026-09-27): the door lit, with the keep as its last
+  step, one confirm beat, the told name and her upload tracker; no mark on a guest's own tiles; the profile's setup
+  wizard and a private page's quiet count; the reel's marketing with the footer's pile back and the demo link bare.
+  Boards: `popups` (new), `identity-door` r3, `identity-claims` r2, `reel-story` r3, on build 11's desk.
 
 ## The desk
 
@@ -40,13 +40,13 @@ Build 10's desk (21 boards) is answered through `guest-capture`; the next desk, 
   console error, the lab and `/admin/reels` 404, the admin door redirects, no runtime error.
   `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel`
   (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 10 (`43b82591`), whose desk
-  he has answered; build 11 comes when batch 4 lands. No push
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 11 (`eff5b3f0`): batch 4
+  whole, the desk popups-first (its boards load clean); its red-team is walking. No push
   deploys; each `[preview]` record gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** about 5,460 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
+- **Tests:** about 5,600 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
 - **Jobs:** the daily purge cron (Vercel Hobby fires it at 04:48 UTC; its first run on milestone 28's sweeps was green:
   every sweep ok, none stopped early, the orphan scan read 1,368 objects and deleted none, the standby budget's one host
   willg97 with the withdrawals out), the media-backup Worker and the daily DB-backup Action are live; the deletion-aware

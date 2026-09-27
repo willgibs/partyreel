@@ -48,9 +48,9 @@ Merged in batch 4 (their records carry the rest): mine-none, claims-r2, profile-
 
 ## Next, in order
 
-1. **Build 11** (batch 4 whole, cut `1a455e5f`, every lane merged green): `[preview]`, `alias-ensure`, the prune,
-   `page-console` on the desk's boards, then tell Will the desk is ready, `popups` first. Its red-team walks the scope
-   of a full red-team, as build 10's walked it:
+1. **Build 11 is live** (`eff5b3f0`, both aliases; the desk's boards load clean) and Will's sitting is on it,
+   `popups` first. Its red-team (brief `../partyreel-wt/_scratch/redteam-11/brief.md`) walks the scope of a full
+   red-team, as build 10's walked it:
    - the reel on the album's data path: the tile, the view, clips, access, the password event, the demo;
    - `?reel=screen` soaked headless at 1920x1080 for 100 minutes (a hidden pane throttles the page);
    - the door at 375 on the Sheet, now lit, with the keep after a real first upload at a held-uploads event, the
