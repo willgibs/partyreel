@@ -71,7 +71,10 @@ export function GuestShare({
     try {
       await navigator.share({
         title: eventName,
-        text: `Add your photos & videos to ${eventName}`,
+        // "and", never "&": the house style for this native-share line (the host's own
+        // event-code-modal.tsx, event-share-sheet.tsx and create-event-wizard.tsx all say "and";
+        // this was the one holdout, crumbs-3).
+        text: `Add your photos and videos to ${eventName}`,
         url: joinUrl,
       });
     } catch {

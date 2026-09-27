@@ -69,7 +69,10 @@ export function uploadIntentHeading(pickCount: number): {
     return { title: "Add photos", description: "", reviewing: false };
   }
   return {
-    title: pickCount === 1 ? "Send this one?" : `Send these ${formatCount(pickCount)}?`,
+    title:
+      pickCount === 1
+        ? "Send this one?"
+        : `Send these ${formatCount(pickCount)}?`,
     description: "Tap the cross on anything you did not mean to pick.",
     reviewing: true,
   };
@@ -217,7 +220,7 @@ export function UploadIntentSheet({
           <SheetDescription>
             {heading.reviewing
               ? heading.description
-              : `Everything you add joins ${hostName}'s album.`}
+              : `Everything you add joins ${hostName}’s album.`}
           </SheetDescription>
         </SheetHeader>
 
