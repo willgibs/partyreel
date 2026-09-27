@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AtSign } from "lucide-react";
 
 import { updateDisplayNameAction } from "@/app/(app)/account/actions";
+import { PROFILE_SETUP_PATH } from "@/app/(app)/account/profile/invite";
 import {
   FollowMomentCard,
   type FollowMomentHost,
@@ -209,10 +210,10 @@ export function ClaimHandlePrompt({
           Not now
         </button>
       </div>
-      {/* The door lands ON the handle field, not at the top of a five-card
-          account page: the offer and the box that answers it are one act. */}
+      {/* The door is the page's own setup (profile-setup's wizard, where the handle is claimed
+          last, at Finish): the offer and the act that answers it are one. */}
       <Button asChild size="sm" variant="outline">
-        <Link href="/account#public-profile">Claim</Link>
+        <Link href={PROFILE_SETUP_PATH}>Claim</Link>
       </Button>
     </div>
   );

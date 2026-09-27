@@ -6,6 +6,7 @@ import Link from "next/link";
 import { AtSign, Check } from "lucide-react";
 
 import { updateDisplayNameAction } from "@/app/(app)/account/actions";
+import { PROFILE_SETUP_PATH } from "@/app/(app)/account/profile/invite";
 import { FollowButton } from "@/components/social/follow-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -165,10 +166,11 @@ export function FollowMomentCard({
             />
             Claim a handle and your name becomes a page.
           </p>
-          {/* The door lands ON the handle field, not at the top of a five-card
-              account page: the offer and the box that answers it are one act. */}
+          {/* The door is the page's own setup (profile-setup's wizard, where the handle is
+              claimed last, at Finish): the offer and the act that answers it are one. An
+              account that already has a page is sent on to its choices by the setup itself. */}
           <Button asChild size="sm" variant="outline" className="shrink-0">
-            <Link href="/account#public-profile">Claim</Link>
+            <Link href={PROFILE_SETUP_PATH}>Claim</Link>
           </Button>
         </div>
       )}

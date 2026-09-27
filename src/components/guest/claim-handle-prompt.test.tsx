@@ -91,11 +91,11 @@ describe("ClaimHandlePrompt", () => {
     expect(screen.queryByText(/keep (this|these) photo/i)).toBeNull();
   });
 
-  it("signed in without a handle: the claim offer, with a door to the account", async () => {
+  it("signed in without a handle: the claim offer, with a door to the page's own setup", async () => {
     stub({ signedIn: true, slug: null });
     mount();
     const door = await screen.findByRole("link", { name: /claim/i });
-    expect(door).toHaveAttribute("href", "/account#public-profile");
+    expect(door).toHaveAttribute("href", "/account/profile");
   });
 
   it("signed in with a handle: nothing at all", async () => {
@@ -174,7 +174,11 @@ describe("ClaimHandlePrompt: the moment after confirming", () => {
     mount(2, { moment: true });
     expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
     expect(screen.queryByRole("button", { name: "Follow" })).toBeNull();
-    expect(screen.getByRole("link", { name: /claim/i })).toBeInTheDocument();
+    // The row points at the page's own setup (profile-setup's PROFILE_SETUP_PATH).
+    expect(screen.getByRole("link", { name: /claim/i })).toHaveAttribute(
+      "href",
+      "/account/profile",
+    );
   });
 
   it("a profile that already has a handle gets no second line", async () => {
