@@ -4,7 +4,7 @@ import "./export-flow.css";
 
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
-import { Check, Download, Image as ImageIcon, ListChecks } from "lucide-react";
+import { Check, Image as ImageIcon, ListChecks } from "lucide-react";
 
 import { ExplorationBoard, Frame } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
@@ -54,10 +54,12 @@ import {
  *
  * ★ THE GROUND IS TODAY'S PRODUCT EXCEPT WHERE A DECISION IS STAGED. Every
  * picture is the shipped surface with ONE thing changed, so a decision never
- * arrives quietly wearing an answer he has not given. The three staged
- * decisions (`stuck`, `hollow`, `phone`) ARE drawn wearing the answer they
- * wait on, because that is what the staging is for: what a hollow zip should
- * say has no shape until the wait has one.
+ * arrives quietly wearing an answer he has not given. The two staged
+ * decisions (`stuck`, `hollow`) ARE drawn wearing the answer they wait on,
+ * because that is what the staging is for: what a hollow zip should say has
+ * no shape until the wait has one. `phone` no longer joins them (desk-trim,
+ * 2026-09-27): it used to read `object`'s answer, which is retired and
+ * settled, so its own ground is now the shipped menu rather than a wait.
  *
  * ★ THE NUMBERS UNDER EVERY FRAME ARE MEASURED, NEVER COMPUTED (docs/PROGRAM.md:
  * a board once drew an option with its formula's sign backwards, and the tile
@@ -219,22 +221,6 @@ const capRead: Reader = (root) => {
   if (!go) return null;
   const said = warn || count;
   return `Measured: the button reads "${text(go)}" and is ${go.disabled ? "dead" : "live"}; the foot says "${said}", which ${/2,000|2,440/.test(said) ? "names the number" : "names no number"}.`;
-};
-
-const objectRead: Reader = (root, win) => {
-  const d = dialogFacts(root, win);
-  if (d) {
-    const chips = root.querySelectorAll("[data-xf-chip]").length;
-    return `Measured: the sheet is ${d.w} by ${d.h} px, ${d.share} percent of the screen, and holds ${chips} chips, the size and the button.`;
-  }
-  const menu = root.querySelector<HTMLElement>("[data-xf-menu]");
-  if (menu) {
-    const b = menu.getBoundingClientRect();
-    const chips = root.querySelectorAll("[data-xf-chip]").length;
-    return `Measured: the menu is ${Math.round(b.width)} by ${Math.round(b.height)} px, ${pct(b.width * b.height, win.innerWidth * win.innerHeight)} percent of the screen, and holds ${chips} chips, the size and the button.`;
-  }
-  const bar = root.querySelector("[data-xf-bar]");
-  return `Measured: no sheet, ${bar ? "the select bar is the only chrome" : "nothing between the tap and the file"}, and the chips are nowhere on the screen.`;
 };
 
 const phoneRead: Reader = (root) => {
@@ -406,26 +392,23 @@ function Ground({
   screen,
   count,
   under,
-  /** `object=menu`'s own door, anchored where the real one sits. */
-  door,
   children,
 }: {
   who: Who;
   screen: ScreenId;
   count: number;
   under?: ReactNode;
-  door?: ReactNode;
   children?: ReactNode;
 }) {
   return who === "guest" ? (
-    <GuestAlbum screen={screen} count={count} row={door}>
+    <GuestAlbum screen={screen} count={count}>
       {/* The guest album has no section header to hang a line under, so the
           wait's line rides the same slot the sheet and the toast do. */}
       {under}
       {children}
     </GuestAlbum>
   ) : (
-    <HostGallery screen={screen} count={count} under={under} action={door}>
+    <HostGallery screen={screen} count={count} under={under}>
       {children}
     </HostGallery>
   );
@@ -706,119 +689,6 @@ function CapScreen({ shape, s }: { shape: CapShape; s: BoardState }) {
   );
 }
 
-/* ── 7. what keeping it means ────────────────────────────────────────────── */
-
-/**
- * `link` is dropped: the album's address and its copy sit twice on the page
- * already. `menu` is the new third (boards refresh, 2026-09-24): the same
- * chips, size and button as `zip`, anchored under Download as a popover
- * rather than taking the responsive sheet's own posture.
- */
-type ObjectShape = "zip" | "straight" | "menu";
-const objectOf = (v: string | undefined): ObjectShape =>
-  v === "straight" ? "straight" : v === "menu" ? "menu" : "zip";
-
-const OBJECT_CAPTION: Record<ObjectShape, string> = {
-  zip: "Today. Three chips, a size and a button, on the sheet every other decision here happens on.",
-  straight:
-    "The sheet is gone entirely: the tap starts the download, and anyone who wants less picks tiles instead.",
-  menu: "The same chips, size and button, in a popover under Download rather than a sheet over the album.",
-};
-
-/**
- * `object=menu`'s own door: Download stays where it is and the couple of
- * bundle choices open right under it. `position: absolute`, not fixed like
- * `.xf-dialog`: every capture here starts scrolled to the top and the anchor
- * is a few pixels down in the header, so nothing here has a scroll position
- * to fall out of view at (`export-flow.css`'s own note on why the sheet is
- * fixed does not apply to a popover that never has to survive a scroll).
- */
-function MenuDoor({ children }: { children: ReactNode }) {
-  return (
-    <div className="relative mb-3 flex justify-end" data-xf-door>
-      <Button type="button" variant="outline" size="sm" tabIndex={-1}>
-        <Download /> Download
-      </Button>
-      <div
-        className="xf-menu absolute top-full right-0 z-20 mt-1.5"
-        data-xf-menu
-        role="menu"
-        aria-label="Download album"
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function ObjectScreen({ shape, s }: { shape: ObjectShape; s: BoardState }) {
-  const screen = screenFor(s);
-  const who = whoFor(s);
-  const album = albumFor(s);
-  const total = totalFor(album.summary, "all", false);
-  if (shape === "straight") {
-    return (
-      <Screen
-        id={`object-${shape}`}
-        screen={screen}
-        read={objectRead}
-        caption={OBJECT_CAPTION[shape]}
-      >
-        <Ground who={who} screen={screen} count={total.count}>
-          <SelectBar n={MINE.size} />
-          <Toast screen={screen} tone="success">
-            Your download is starting.
-          </Toast>
-        </Ground>
-      </Screen>
-    );
-  }
-  if (shape === "menu") {
-    return (
-      <Screen
-        id={`object-${shape}`}
-        screen={screen}
-        read={objectRead}
-        caption={OBJECT_CAPTION[shape]}
-      >
-        <Ground
-          who={who}
-          screen={screen}
-          count={total.count}
-          door={
-            <MenuDoor>
-              <ChipRow summary={album.summary} types="all" />
-              {who === "host" ? (
-                <HiddenRow summary={album.summary} checked={false} />
-              ) : null}
-              <Foot summary={album.summary} types="all" />
-            </MenuDoor>
-          }
-        />
-      </Screen>
-    );
-  }
-  return (
-    <Screen
-      id={`object-${shape}`}
-      screen={screen}
-      read={objectRead}
-      caption={OBJECT_CAPTION[shape]}
-    >
-      <Ground who={who} screen={screen} count={total.count}>
-        <Shell>
-          <Head />
-          <ChipRow summary={album.summary} types="all" />
-          {who === "host" ? (
-            <HiddenRow summary={album.summary} checked={false} />
-          ) : null}
-          <Foot summary={album.summary} types="all" />
-        </Shell>
-      </Ground>
-    </Screen>
-  );
-}
-
 /* ── 8. where the file lands ─────────────────────────────────────────────── */
 
 type PhoneShape = "zip" | "batch" | "both";
@@ -880,11 +750,12 @@ function PhoneScreen({ shape, s }: { shape: PhoneShape; s: BoardState }) {
   const screen: ScreenId = "375";
   const album = albumFor(s);
   const total = totalFor(album.summary, "all", false);
-  const object = objectOf(s.object);
-  // `batch` always jumps straight to the OS sheet, as the old `share` did;
-  // `both` does too once `object` leaves no dialog to hold its second button.
-  const toShareSheet =
-    shape === "batch" || (shape === "both" && object === "straight");
+  // `batch` always jumps straight to the OS sheet, as the old `share` did.
+  // `both` used to as well whenever `object=straight` left no dialog to hold
+  // its second button; `object` is retired now, settled on `menu` (desk-trim,
+  // 2026-09-27), which is always a surface, so that case cannot arise any
+  // more and `both` always keeps its own shell.
+  const toShareSheet = shape === "batch";
   return (
     <Screen
       id={`phone-${shape}`}
@@ -895,12 +766,6 @@ function PhoneScreen({ shape, s }: { shape: PhoneShape; s: BoardState }) {
       <GuestAlbum screen={screen} count={total.count}>
         {toShareSheet ? (
           <ShareSheet size={formatBytes(total.bytes)} photos={total.count} />
-        ) : object === "straight" ? (
-          <Toast screen={screen} tone="success">
-            {shape === "zip"
-              ? "Saved to Files, in Downloads."
-              : "Your download is starting."}
-          </Toast>
         ) : (
           <Shell>
             <Head />
@@ -940,10 +805,6 @@ const PREVIEWS: PreviewsFor<typeof EXPORT_FLOW> = {
   "cap.near": (s) => <CapScreen shape="near" s={s} />,
   "cap.split": (s) => <CapScreen shape="split" s={s} />,
   "cap.auto": (s) => <CapScreen shape="auto" s={s} />,
-
-  "object.zip": (s) => <ObjectScreen shape="zip" s={s} />,
-  "object.straight": (s) => <ObjectScreen shape="straight" s={s} />,
-  "object.menu": (s) => <ObjectScreen shape="menu" s={s} />,
 
   "phone.zip": (s) => <PhoneScreen shape="zip" s={s} />,
   "phone.batch": (s) => <PhoneScreen shape="batch" s={s} />,

@@ -178,7 +178,7 @@ export const RULINGS: Ruling[] = [
     id: "export-flow",
     title: "Getting everything out",
     surface: "shared",
-    asks: "what Download hands a guest, the wait, a request that never answers, a hollow zip, the item limit, keeping the album, and where the file lands on a phone",
+    asks: "what Download hands a guest, the wait, a request that never answers, a hollow zip, the item limit, and where the file lands on a phone",
     why: "Taking everything home is where a host and a guest end, so it is asked from the foundation on the real download dialog, phone first.",
     lives: [
       "docs/systems/uploads-and-r2.md",
