@@ -132,6 +132,113 @@ export async function listAccountMediaIds(input: {
 }
 
 /**
+ * Where one of her uploads stands, as her own tracker says it: waiting for the
+ * host, in the album, or refused (hidden or removed by the host, an operator or
+ * the system). Never an identity and never a link: the tracker's thumbnails come
+ * from what the page already holds, because a pending or hidden item is never
+ * presigned for a guest (`r2/grid-items.ts`).
+ */
+export type OwnUploadStatus = "pending" | "approved" | "refused";
+
+export type OwnUpload = { id: string; status: OwnUploadStatus };
+
+/**
+ * HER UPLOADS HERE, WITH WHERE EACH STANDS (`guest-capture` r1, Will's
+ * `tracker=button`: "track their batch's progress or approval status, so they
+ * aren't left wondering"). The source of truth for a held photograph's fate is
+ * its own row, never the approved album: the album's sync moves only on
+ * transitions into or out of `approved` (`album_max`, so a guest never learns
+ * how busy moderation is), which carries an approval to her and never a refusal.
+ *
+ * The rows are the ones this viewer may speak for, exactly the "mine" reads
+ * above: the session token's own unclaimed row, and, signed in, the account's
+ * rows at this event. A photograph she withdrew herself is not listed (it is
+ * hers to forget, and the host never sees it either); one the host, an operator
+ * or the system removed is `refused`, like one the host hid.
+ *
+ * Newest first, read whole (the 1,000-row rule) and, like every read here, FAIL
+ * CLOSED, LOUDLY: an empty list and a captured error, never a thrown page.
+ */
+export async function listOwnUploadStatuses(input: {
+  eventId: string;
+  sessionToken?: string | null;
+  userId?: string | null;
+}): Promise<OwnUpload[]> {
+  const token = input.sessionToken?.trim() ?? "";
+  const admin = createAdminClient();
+  try {
+    const guestIds = new Set<string>();
+    if (token.length >= MIN_SESSION_TOKEN) {
+      // row-cap: a session token names one guest row (guests.session_token is unique)
+      const rows = await mustQuery(
+        admin
+          .from("guests")
+          .select("id")
+          .eq("event_id", input.eventId)
+          .eq("session_token", token)
+          .is("user_id", null),
+        "own uploads: session row",
+      );
+      for (const row of rows ?? []) guestIds.add(row.id);
+    }
+    if (input.userId) {
+      // row-cap: one account's guest rows in one event: one per session it claimed, a handful
+      const rows = await mustQuery(
+        admin
+          .from("guests")
+          .select("id")
+          .eq("event_id", input.eventId)
+          .eq("user_id", input.userId),
+        "own uploads: account rows",
+      );
+      for (const row of rows ?? []) guestIds.add(row.id);
+    }
+    if (guestIds.size === 0) return [];
+
+    const media = await inChunks(
+      "own uploads: media",
+      [...guestIds],
+      async (chunk) => {
+        const { rows } = await readAllPages(
+          "own uploads: media",
+          (after: string | null, limit) => {
+            let q = admin
+              .from("media")
+              .select("id, status, created_at")
+              .eq("event_id", input.eventId)
+              .in("guest_id", chunk)
+              .eq("removed_by_uploader", false)
+              .order("id", { ascending: true })
+              .limit(limit);
+            if (after) q = q.gt("id", after);
+            return q;
+          },
+          (m) => m.id,
+        );
+        return rows;
+      },
+    );
+    return media
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))
+      .map((m) => ({
+        id: m.id,
+        status:
+          m.status === "approved"
+            ? "approved"
+            : m.status === "pending"
+              ? "pending"
+              : "refused",
+      }));
+  } catch (error) {
+    captureError("media", error, {
+      seam: "own_upload_statuses_fail_closed",
+      eventId: input.eventId,
+    });
+    return [];
+  }
+}
+
+/**
  * The shared second half: guest rows in, media ids out. Scoped to the event a
  * second time on purpose — the guest rows are already event-scoped, and a media
  * row cannot belong to a guest of another event, so this is belt and braces on
