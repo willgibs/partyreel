@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Code hygiene: `.prettierignore` gains `src/app/(dev)/design/gallery/specimens.generated.json`; `pnpm format` re-flows the collector's output into prettier's shape, a thousand lines of churn for any lane that touches a Library specimen (from `reel-marketing`).
+- Marketing: the home teaser's muted loop keeps decoding under the open player; `AmbientReelVideo` could take a `paused` prop that `ReelPlayScreen` sets while its player is up (from `reel-marketing`).
+- Marketing: a landscape phone gets a small, scrolling contained player (812x375 draws it 325 wide); a landscape posture that fills the glass could be drawn once the films land (from `reel-marketing`).
 - Marketing: the home hero stands in no light while every event page stands its object in the house light (`SectionLight placement="room"`); a board could ask whether the hero's object gets a pool of its own (from `story-r3`).
 - Profile: the setup's small follow-ons (from `profile-setup`): a chosen event that can never appear (its host keeps the guest list off, or the album is not open) says so on its picker tile; the user menu's handle-less "Your profile" and event settings' "Claim your handle to publish the page" open `/account/profile` directly rather than through Account's door; the invitation's button carries its reason rather than repeating its title.
 - Identity: when `identity-claims` r2 is wired, the moment card's two other-events lines (uploads already added elsewhere, from `guest-door`'s one beat; rows waiting to decide, from `pointer`) stay apart or fold into one, and the finish toast's page line (`after=profile`) and the page invitation card (`prompt=claim`) stop pointing to the same page in one beat (from `claims-r2`).

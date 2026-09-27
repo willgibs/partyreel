@@ -41,14 +41,13 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `guest-door` | lit's own pieces on every door screen; `guest-capture`'s five (the keep ask as the door's last screen, the told name with Change, one confirm beat, the tracker and its count); retires `guest-capture` | building (agent a2cd842994c0d4f98) | Opus, 3131 | |
-| `reel-marketing` | `reel-story` r2's four with his notes; the footer's stack back; the demo link alone in 19 places; marketing's own content principle; ASSETS asks | building (agent af73905e2c6c564c7) | Opus, 3134 | |
 | `door-r3` | board `identity-door` r3: the remaining icons and copy within lit | drawing (agent a3e1caeac781e84b4) | Opus, 3136 | |
 | `popups` | new board `popups` r1: the surface for each kind of popup; absorbs other boards' surface asks | drawing (agent a9ebbc2cd1742f5c5) | Opus, 3138 | |
 
 Batch 3 closed at milestone 29 (`ab30a7f8`, 2026-09-26): 49 lanes since milestone 28, their merge commits carrying
 the rest.
 
-Merged in batch 4 (their records carry the rest): mine-none, claims-r2, profile-setup, story-r3.
+Merged in batch 4 (their records carry the rest): mine-none, claims-r2, profile-setup, story-r3, reel-marketing.
 
 ## Next, in order
 
