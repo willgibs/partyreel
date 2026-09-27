@@ -63,7 +63,7 @@ are exempt); `qr_style` is plain text, app-validated, so presets grow without a 
 - **The sole create path is the `/dashboard/new` wizard** (`create-event-wizard.tsx`): Name, Style, then the beat. It
   creates once, at commit (an abandoned wizard leaves no row), through the non-redirecting `createEventInWizard`, which
   returns the id and token so the beat can draw the real code. Only the name is required; everything else is edited in
-  the settings sheet (`event-settings-form.tsx`, one form and one Save). `enforce_event_limit` guards `MAX_EVENTS` in SQL.
+  Settings (`event-settings-form.tsx`, one form and one Save). `enforce_event_limit` guards `MAX_EVENTS` in SQL.
 - ★ **The beat happens once in an event's life, by construction**: only pressing Create reaches it. It draws the real
   code in a plain mat, two doors out (print the table cards; share the link) and one into the event; the custom link
   belongs to the share sheet.
@@ -103,7 +103,7 @@ are exempt); `qr_style` is plain text, app-validated, so presets grow without a 
 
 - **`qr-code-styling` is imported dynamically inside a `useEffect`** (`app/styled-qr.tsx`): it touches `window` on
   construction and would crash the SSR pass. The presets live in `constants/qr-presets.ts` (unknown values resolve to
-  `classic`); `StyledQr` draws every code a host sees on a screen, and the designer lives in the share sheet.
+  `classic`); `StyledQr` draws every code a host sees on a screen, and the designer is the kit's Customize, a menu whose style is the act (`qr-designer-dialog.tsx`).
 - **Every preset keeps dark data modules on white**; colour only tints the corner finder patterns, and those tints (the
   legacy coral among them) are deliberate exceptions to the token palette, because existing events keep their rendering
   and scanners find corners by shape. Prove a new preset by scanning it on the launch-prep alias.
@@ -176,17 +176,20 @@ beneath, newest first.
   because a remount would drop the QR pill's `view-transition-name` mid-morph. ★ Share's place in the row is a QR pill
   that exists only while the header's code is off screen, carrying the morph's name while it is the code on screen. On
   a phone at rest the row is a 2x2 grid of two-line cards (`event-feed/room-card.ts`), so all four doors show at 375.
-- **Review and Guests are rooms (routes with a crumb); Settings and Share are sheets; the Highlight reel is a door.**
+- **Review and Guests are rooms (routes with a crumb); Settings and the share kit are places in the settings kind (a panel at a desk, the whole screen in a hand); the Highlight reel is a door.**
   ★ The crumb trail lands at hydration (a page cannot hand a prop up, and CSS cannot carry an event's name); the bar's
   fixed height keeps it from shifting anything.
-- ★ **The two sheets ride `?room=`, and it IS the state** (`share/event-share-provider.tsx`, read from
+- ★ **The two places ride `?room=`, and it IS the state** (`share/event-share-provider.tsx`, read from
   `useSearchParams` with no mirrored `useState`, so a `router.refresh()` after a settings action cannot close the
   panel). Opening pushes a history entry whose marker is a FIELD on the state Next merges: Next's patched `pushState`
   copies `__NA` onto the object it is handed and its `popstate` handler reloads without it, so replacing the state
   wholesale turns Back into a full reload. Closing calls `history.back()` only when the marker is ours.
-- **Share is the one sharing surface** (`share/event-share-sheet.tsx`: the code, Copy link, Share, Open and Print, the
-  downloads, the designer, the custom link). ★ Never draw the code in a second sharing surface, or a fix lands in only
-  one of them. The dashboard card's QR chip is a plain link to `?room=share`.
+- **The code card is every share's first surface** (`share/code-card.tsx`: the code on white filling a phone, a 384
+  card at a desk, Copy link, the device's own Share where it has one, and Everything into the kit,
+  `share/event-share-sheet.tsx`, which holds the downloads, the designer and the custom link). Every door to it reads
+  Invite: the header's code, the sticky row's pill, the launch list (`share/invite-button.tsx`) and the dashboard card's
+  QR chip, which opens the card in place. ★ Never draw the code in a second sharing surface, or a fix lands in only one
+  of them.
 - **Settings** imports the settings form whole (Details, Visibility, Guest uploads, one Save), with one unsaved-changes
   guard behind the scrim, Escape and the close button, and `beforeunload` for a reload; then the instant-save cards, the
   Highlight reel first, then Profile & guests, and the Danger zone last. `/settings` survives as a redirect: it is a
