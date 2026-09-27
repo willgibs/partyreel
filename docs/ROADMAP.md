@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Marketing: the demo pointers still plain same-tab links: the home hero's object (`cinema-hero.tsx` `DemoQr`, with `hero-card`'s object), the event objects (`events/event-object.tsx`), /how-it-works' proof (`how-it-works/demo-door.tsx`) and the footer's phone link (`marketing-footer.tsx`); each is one `DemoDoor` (`system/demo-modal/demo-door.tsx`) (from `demo-doors`).
+- Marketing: the home hero's `axisMin` is solved for the old bare 144 px code while the frame stands 129 over the axis at `lg`, so on desk windows under about 773 tall the frame's top runs under the transparent header band; re-solve it with `hero-card`'s object (from `demo-doors`).
+- Marketing: the nav's Features pane draws the demo frame in the top 16:9 of a pane stretched to the two-column list's height, leaving an empty well under it (from `demo-doors`).
 - The lab: `lab:demo`'s same-picture check compares an option's first frame only, so an option whose difference lives in a later frame reads as the same picture (`identity-claims` r3's quiet and bell); comparing every frame of the stage ends it (from `claims-r3`).
 - The lab: a portalled `Frame` copies the lab's `<html>` theme class once per load (`frame.tsx`'s `themeClass` never re-subscribes), so the lab's theme toggle leaves every open frame in the old theme until a reload (from `claims-r3`).
 - Marketing: the event pages' table and tent cards (`sections/events/event-object.tsx`) print a code and "Scan to add your photos" but no address; the custom address under the code would carry the one-link idea onto the objects that stand in for the product there (from `hero-card`).
