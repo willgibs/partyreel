@@ -3,37 +3,33 @@
 import { ExplorationBoard } from "@/components/lab";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
-import { cardPreview } from "./card";
-import { closePreview } from "./close";
-import { playPreview } from "./play";
+import { besidePreview } from "./beside";
+import { heroPreview } from "./hero";
+import { linePreview } from "./line";
 import { REEL_STORY } from "./spec";
-import { wallPreview } from "./wall";
 
 /**
  * THE PREVIEWS, AND NOTHING ELSE: every option is its real section in a real
- * frame at the width the screen knob names (`scene.tsx`), the reel on the real
- * engine over the board's demo album (`fixtures.ts`, `parts.tsx`). The close
- * is the shipped `SectionLight` and `CtaBand`; the card is drawn in its three
- * places; the wall stands beside the shipped door; the play mark's options
- * are drawn pressed, over the home's reel section.
+ * frame at the width the screen knob names (`scene.tsx`). The hero's object
+ * is drawn in the real first screen with the band running on its own loop;
+ * the demo line in the home's close and the /reel hero; the reel's line in
+ * its three places.
  */
 const PREVIEWS: PreviewsFor<typeof REEL_STORY> = {
-  "close.starts": (s) => closePreview(s, "starts"),
-  "close.every-photo": (s) => closePreview(s, "every-photo"),
-  "close.big-screen": (s) => closePreview(s, "big-screen"),
-  "close.hosting": (s) => closePreview(s, "hosting"),
+  "hero.today": (s) => heroPreview(s, "today"),
+  "hero.refined": (s) => heroPreview(s, "refined"),
+  "hero.print": (s) => heroPreview(s, "print"),
+  "hero.plate": (s) => heroPreview(s, "plate"),
 
-  "card.as-it-happens": (s) => cardPreview(s, "as-it-happens"),
-  "card.cut-together": (s) => cardPreview(s, "cut-together"),
-  "card.joins": (s) => cardPreview(s, "joins"),
+  "beside.none": (s) => besidePreview(s, "none"),
+  "beside.live": (s) => besidePreview(s, "live"),
+  "beside.faces": (s) => besidePreview(s, "faces"),
+  "beside.peek": (s) => besidePreview(s, "peek"),
 
-  "wall.pair": (s) => wallPreview(s, "pair"),
-  "wall.screen": (s) => wallPreview(s, "screen"),
-  "wall.bleed": (s) => wallPreview(s, "bleed"),
-
-  "play.overlay": (s) => playPreview(s, "overlay"),
-  "play.route": (s) => playPreview(s, "route"),
-  "play.modal": (s) => playPreview(s, "modal"),
+  "line.as-it-happens": (s) => linePreview(s, "as-it-happens"),
+  "line.as-they-land": (s) => linePreview(s, "as-they-land"),
+  "line.new-photo": (s) => linePreview(s, "new-photo"),
+  "line.two-beats": (s) => linePreview(s, "two-beats"),
 };
 
 export function ReelStoryBoard() {
