@@ -1,6 +1,6 @@
 /**
- * THE KEYBOARD, AS ONE FLAT SVG (the manifest: "every 375 frame with a field
- * draws an iOS keyboard").
+ * THE KEYBOARD, AS ONE FLAT SVG: every 375 frame with a field focused draws the
+ * iOS keyboard it raises, its action key the field's own `enterKeyHint`.
  *
  * ★ 335 PT ON A 375 x 812 PHONE, SUGGESTIONS BAR INCLUDED, which is the frame
  * the door is read in (an iPhone X-class screen: four rows of 42 pt keys on a
@@ -9,12 +9,11 @@
  * number (`KEYBOARD_H`), so the visible area every caption measures against is
  * 812 minus it, never a second guess.
  *
- * ★ NOT MEASURED ON A SIMULATOR THIS ROUND. A booted simulator hides its
- * software keyboard behind the host's hardware one, and turning that off is a
- * preference on Will's machine this lane did not change. The number is the one
- * the manifest names; the Handoff says so, and notes that Safari's own form bar
- * (arrows and Done) can sit on top of it, which is why production reads the
- * visual viewport rather than any constant.
+ * ★ A DRAWN NUMBER, NOT A SIMULATOR'S. A booted simulator hides its software
+ * keyboard behind the host's hardware one, and Safari's own form bar (arrows
+ * and Done) can sit on top of the keys, which is why production reads the
+ * visual viewport rather than any constant; this board only needs the one
+ * height every caption measures against.
  *
  * ★ AN SVG IN JSX, NOT A FILE BEHIND AN <img>, so it can wear the frame's theme:
  * its colours are CSS variables (`identity-door.css`), light and dark, the way
@@ -88,7 +87,8 @@ const KEY_W = 31.5;
 const Y = [53, 107, 161, 215];
 
 function Letters({ kind, enter }: { kind: "text" | "email"; enter: string }) {
-  const go = enter === "go";
+  // iOS paints its action keys blue (go, send, done); next and return stay grey.
+  const go = ["go", "send", "done"].includes(enter);
   return (
     <>
       {ROW1.map((c, i) => (
@@ -237,7 +237,7 @@ export function Keyboard({
   code,
 }: {
   kind: Kind;
-  /** The return key's own label (`enterKeyHint`): "go" on the name field. */
+  /** The return key's own label (`enterKeyHint`): production's own per field. */
   enter?: string;
   /** What the QuickType bar offers a one-time-code field. */
   code?: string;

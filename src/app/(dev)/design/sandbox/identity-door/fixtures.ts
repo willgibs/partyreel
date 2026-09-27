@@ -2,7 +2,7 @@ import type { GridMedia } from "@/components/app/media-grid";
 import { marketingImage } from "@/lib/constants/marketing-media";
 
 /**
- * ONE WEDDING, ONE GUEST, THE WHOLE DOOR (round two).
+ * ONE WEDDING, ONE GUEST, THE WHOLE DOOR (rounds two and three).
  *
  * Maya and Jay's wedding, hosted by Maya, 14 June, the world `guest-capture`,
  * `identity-claims` and `identity-profile` all draw; Priya is the guest at its
@@ -31,8 +31,9 @@ export const EVENT = {
  * THE HOST, as the byline draws her: a photograph over her seeded colour.
  *
  * ★ A STAND-IN FACE. The golden-hour couple is the nearest thing the twelve
- * hold to a portrait of Maya herself, and `host` is the direction a real face
- * matters most to; the Handoff asks for the portrait that replaces it.
+ * hold to a portrait of Maya herself, and lit's hero sets her face beside the
+ * event's name on every welcome, so a real portrait replaces it the day one is
+ * made.
  */
 export const HOST = {
   name: EVENT.host,
@@ -41,9 +42,8 @@ export const HOST = {
 } as const;
 
 /**
- * WHAT MAYA WROTE, when the `greeting` knob says she wrote something. It is the
- * event's own description (the field the album page already shows under its
- * stats line), so the door quoting it invents no words for a host.
+ * WHAT MAYA WROTE: the event's own description, which the album page behind
+ * the door shows under its stats line.
  */
 export const DESCRIPTION =
   "Thank you for celebrating with us! Add every photo you take tonight, even the blurry ones.";
@@ -86,8 +86,12 @@ export const ALBUM: readonly GridMedia[] = ORDER.map((id, i) => ({
   height: i % 3 === 1 ? 5 : i % 3 === 2 ? 4 : 3,
 }));
 
-/** The head of the album: what `peek` fans, `lit` samples and `ticket` plays. */
+/** The head of the album: what the lamp samples its three hues from. */
 export const NEWEST = ORDER.slice(0, 3).map(S);
+
+/** The photograph Priya sends from the door's upload step: not in the album
+ *  yet, so it is none of the nine above. */
+export const SENT_PHOTO = S("party-balloons");
 
 /** The reel tile's resting still (the tile behind the door stays still). */
 export const REEL_STILL = S("reception-hall");
