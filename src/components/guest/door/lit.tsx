@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * THE DOOR, LIT: its own pieces (`identity-door` r2, Will's `look=lit`, overruling `peek`). What
- * the board drew in `sandbox/identity-door/looks.tsx` (`LitProvider`, `Lamp`, `Ticker`) and its
+ * the board drew in `sandbox/identity-door/lit.tsx` (`LitProvider`, `Lamp`, `Ticker`) and its
  * stylesheet, carried into production: the scrim behind every sheet of the door's family, the lamp
  * on the sheet's free edge coloured from the album's three newest photographs, and the live count.
  * The welcome's hero (the event's name large beside the host's face) is drawn in the welcome step

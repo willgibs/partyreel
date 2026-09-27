@@ -1,5 +1,5 @@
 /* THE DOOR, LIT (`identity-door` r2, Will's `look=lit`, drawn in the board's
-   `looks.tsx` and `identity-door.css`, carried here to every held sheet the door
+   `lit.tsx` and `identity-door.css`, carried here to every held sheet the door
    shows and to the change and confirm sheets that open over the album).
 
    Two pieces live here: the LAMP, the album's own sampled light on the sheet's
@@ -171,6 +171,55 @@
         oklch(var(--lit-l) calc(var(--lit-c) * 1.4) var(--lit-h1)),
         oklch(var(--lit-l) calc(var(--lit-c) * 1.4) var(--lit-h2)),
         oklch(var(--lit-l) calc(var(--lit-c) * 1.4) var(--lit-h3))
+      );
+    }
+  }
+
+  /* ★ IN DARK, THE LIGHT IS SPENT IN THE MARGIN (measured, not judged). The
+     atmosphere register is mid-luminance, so the percent masks above left the
+     words at a resting sheet's free edge inside the light: a muted eyebrow read
+     2.3:1 and the first line under it 3.1:1 on a phone, and a line's first
+     letters about 3:1 at a desk (the paper register clears 5:1 in light, so light
+     keeps the wash). Here the resting lamp spends itself inside the sheet's own
+     24px padding, which is what "the mask spends the light before it reaches the
+     words" asks: every word clears 4.5:1 (eyebrow 5.0, first line 5.5) and the
+     light stays at the edge as a rim of the album's colour. The bloom keeps its
+     wash, because "You're in" and its line stand below it (5.9:1). */
+  .dark .door-lamp-free[data-door-lamp="base"] {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0px,
+      rgb(0 0 0 / 0.6) 11px,
+      rgb(0 0 0 / 0.24) 22px,
+      rgb(0 0 0 / 0.08) 42px,
+      transparent 90px
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 0px,
+      rgb(0 0 0 / 0.6) 11px,
+      rgb(0 0 0 / 0.24) 22px,
+      rgb(0 0 0 / 0.08) 42px,
+      transparent 90px
+    );
+  }
+  @media (width >= 40rem) {
+    .dark .door-lamp-free[data-door-lamp="base"] {
+      -webkit-mask-image: linear-gradient(
+        to right,
+        #000 0px,
+        rgb(0 0 0 / 0.62) 11px,
+        rgb(0 0 0 / 0.3) 21px,
+        rgb(0 0 0 / 0.1) 40px,
+        transparent 90px
+      );
+      mask-image: linear-gradient(
+        to right,
+        #000 0px,
+        rgb(0 0 0 / 0.62) 11px,
+        rgb(0 0 0 / 0.3) 21px,
+        rgb(0 0 0 / 0.1) 40px,
+        transparent 90px
       );
     }
   }

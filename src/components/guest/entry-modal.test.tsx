@@ -1084,6 +1084,19 @@ describe("the keep: the door's last screen", () => {
     expect(claimAnonymousUploads).not.toHaveBeenCalled();
   });
 
+  it("★ the keep rests the lamp, offer and confirm alike: its words stand at the sheet's top, where a bloom reads 2:1 in dark", () => {
+    atKeep();
+    const lamp = () =>
+      document
+        .querySelector("[data-door-lamp]")
+        ?.getAttribute("data-door-lamp");
+    expect(lamp()).toBe("base");
+    fireEvent.click(
+      screen.getByRole("button", { name: /confirm your email/i }),
+    );
+    expect(lamp()).toBe("base");
+  });
+
   it("the account door's chevron goes back to the offer", () => {
     atKeep();
     fireEvent.click(

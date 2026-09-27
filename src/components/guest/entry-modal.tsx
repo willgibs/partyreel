@@ -691,7 +691,9 @@ export const EntryModal = forwardRef<
       // nothing and risks the one flow with no account behind it.
       description={sheetCopy.description}
       // The lamp blooms on "You're in" (the success beat, and the password's in-place morph), and
-      // rests while a stalled beat offers its retry.
+      // rests while a stalled beat offers its retry. ★ The keep rests too, though the board draws
+      // its "Sent" blooming: its words stand at the sheet's top, where a bloom's wash reads 2:1 in
+      // dark (`lit.css`); "You're in" stands below it.
       lamp={holding && !stalled ? "bloom" : "base"}
     >
       <EntryStepTransition stepKey={displayKey} direction={direction}>
