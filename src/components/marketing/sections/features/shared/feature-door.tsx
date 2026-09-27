@@ -18,7 +18,7 @@ import {
   marketingImage,
   MARKETING_REELS,
 } from "@/lib/constants/marketing-media";
-import { GOLDEN_LINES } from "@/lib/constants/marketing-voice";
+import { REEL_LINE } from "@/lib/constants/marketing-voice";
 import { SITE_URL } from "@/lib/constants/site";
 import { cn } from "@/lib/utils";
 
@@ -34,14 +34,14 @@ import { cn } from "@/lib/utils";
  *
  * Each door carries a SIGNATURE: the feature's own photograph plus the small
  * chip its surface actually draws (the live dot, the approved check, the name
- * chip, the lock, the play badge), so the six doors read as six different
- * rooms rather than six crops of the same album. The QR door is the one that
- * is not a still: the album pours out of a real scannable code standing on
- * ink (Will's `code=in`, `place=tenth`, `fall=behind`, 2026-09-19), which is
- * the card visual he called the first truly beautiful one. The old hub used
- * hand-drawn motifs on bare cards for the same "seven identical rectangles"
- * problem; photographs solve it at the size a door deserves, and the motif
- * code went with them.
+ * chip, the lock, the reel view's resting bar), so the six doors read as six
+ * different rooms rather than six crops of the same album. The QR door is the
+ * one that is not a still: the album pours out of a real scannable code
+ * standing on ink (Will's `code=in`, `place=tenth`, `fall=behind`,
+ * 2026-09-19), which is the card visual he called the first truly beautiful
+ * one. The old hub used hand-drawn motifs on bare cards for the same "seven
+ * identical rectangles" problem; photographs solve it at the size a door
+ * deserves, and the motif code went with them.
  *
  * ★ NO LAMP HERE, BY RULING (the event cards' lesson): a row of lit doors is
  * the every-section-gets-a-version failure. The photograph is the colour.
@@ -195,9 +195,22 @@ function reelPoster() {
   return reel;
 }
 
-function formatDuration(seconds: number): string {
-  const whole = Math.round(seconds);
-  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
+/**
+ * ★ THE REEL'S CHIP IS THE VIEW'S RESTING BAR, WITH NO LENGTH (`reel-story` r2
+ * `card=as-it-happens`). The live reel has no length and no end, so no number:
+ * what its view draws at rest is the slim bar (play and progress), and the chip
+ * is that bar in miniature. The track's fill is a still point on it; the chip
+ * never moves, since the door's poster already carries the picture.
+ */
+function ReelBarChip() {
+  return (
+    <Chip>
+      <Play className="size-3 fill-white" />
+      <span className="relative h-1 w-7 flex-none overflow-hidden rounded-full bg-white/25">
+        <span className="absolute inset-y-0 left-0 w-[42%] rounded-full bg-white/85" />
+      </span>
+    </Chip>
+  );
 }
 
 /**
@@ -235,11 +248,14 @@ export function doorFor(slug: DoorSlug): {
   long: string;
 } {
   if (slug === "reel") {
+    // One line at both sizes (the hub's lead and the related row), and the
+    // /reel hero's heading is the same line, so the door says what the room
+    // it opens says first.
     return {
       href: "/reel",
       title: "The highlight reel",
-      line: `${GOLDEN_LINES.reelThesis}.`,
-      long: "The whole event, cut into a minute. Restyle it in a tap, send it tonight.",
+      line: REEL_LINE,
+      long: REEL_LINE,
     };
   }
   const page = featurePage(slug);
@@ -357,14 +373,7 @@ export function FeatureDoor({
             title + line. */}
         {(signature || reel) && (
           <span aria-hidden className="absolute top-3 left-3">
-            {reel ? (
-              <Chip>
-                <Play className="size-3 fill-white" />
-                {formatDuration(reel.durationSeconds)}
-              </Chip>
-            ) : (
-              signature?.chip
-            )}
+            {reel ? <ReelBarChip /> : signature?.chip}
           </span>
         )}
 

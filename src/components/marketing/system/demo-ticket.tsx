@@ -8,26 +8,28 @@ import { DEMO_EVENT_URL } from "@/lib/demo";
 import { cn } from "@/lib/utils";
 
 /**
- * THE DEMO FRAME (`door=frame`, round two, 2026-09-20/21, overriding round
- * one's `doors=pile`; "the closing sitting's second
- * batch": "this visual is the same height as the image banner behind, and
- * isn't as noticeable as it could be" was his note on the board's own
- * drawing). One photograph in a plain mat, the live code tucked into its
- * corner: the ONE object every demo door now shares (the hero's plate, the
- * footer's invitation, a feature page's line, the nav panel's featured pane),
- * replacing four different treatments — a bare QR, a four-photo fan, a bare
- * text line, an empty pane — with one. The board's `FrameObject`
+ * THE DEMO FRAME (`door=frame`, round two, 2026-09-20/21; "this visual is the
+ * same height as the image banner behind, and isn't as noticeable as it could
+ * be" was his note on the board's own drawing). One photograph in a plain mat,
+ * the live code tucked into its corner. The board's `FrameObject`
  * (`sandbox/demo-event/doors.tsx`, round two) is the drawing; the sizes below
  * are its production retuning against the REAL hero rather than the lab's
  * flat 140px mock (cinema-hero.tsx's own note carries the measurement).
  *
+ * ★ TWO PLACES, NOT EVERY DOOR (`reel-story` r2). It shipped as the one object
+ * every demo door shared, and his note on the result split it three ways: the
+ * footer went back to its photo pile under the plate (`footer-demo.tsx`), the
+ * demo link stands alone as words (`demo-cta-link.tsx`), and the home hero's
+ * plate stays for `reel-story` r3 to rework. So it is the hero's object and
+ * the nav panel's featured pane, and nothing else.
+ *
  * PRESENTATIONAL ONLY, deliberately: no link, no env gate. Every mount below
  * already owns a `<Link>` of its own (its own aria-label, its own
  * `demo_open` source), so this never wraps one — nesting a second anchor
- * inside another is invalid HTML, and the four callers' analytics stay
- * exactly as distinct as they were. `DemoTicket`, below, is the one
- * exception: the Library's specimen and the site-chrome sandbox still call
- * it bare, with no surrounding door of their own.
+ * inside another is invalid HTML, and the callers' analytics stay exactly as
+ * distinct as they were. `DemoTicket`, below, is the one exception: the
+ * Library's specimen and the site-chrome sandbox still call it bare, with no
+ * surrounding door of their own.
  *
  * ★ THE CODE READS AS AN ACCENT, NOT AS THE OBJECT, WHICH COSTS SCANNABILITY
  * AND IS A DELIBERATE CALL (his to overrule). `hero-stream.ts`'s own
@@ -40,13 +42,10 @@ import { cn } from "@/lib/utils";
  * 2.24px/module, shipped for months with no complaint on the one door that
  * was ever a photo-and-code combination rather than a bare plate): a code
  * that reads as a symbol and a tap target, never assumed scannable at arm's
- * length. `footer` keeps a bigger badge (108px) because its copy explicitly
- * promises a scan ("Scan the code… on your phone") and the footer has no
- * hero's tight vertical budget to spend it in. `line` and `nav` sit beside or
- * inside other content, where the retired ticket already accepted the same
- * trade at its own smaller sizes.
+ * length. `nav` sits inside the panel's pane, where the retired ticket already
+ * accepted the same trade at its own smaller size.
  */
-export type DemoFrameSize = "hero" | "heroCompact" | "footer" | "line" | "nav";
+export type DemoFrameSize = "hero" | "heroCompact" | "nav";
 
 /** The photograph's own window at each place, before the mat's padding. A
  *  portrait crop of a landscape still (object-cover), same ratio throughout
@@ -58,9 +57,7 @@ export type DemoFrameSize = "hero" | "heroCompact" | "footer" | "line" | "nav";
 const FRAME_PHOTO: Record<DemoFrameSize, { w: number; h: number }> = {
   hero: { w: 200, h: 240 },
   heroCompact: { w: 144, h: 173 },
-  footer: { w: 172, h: 206 },
   nav: { w: 84, h: 101 },
-  line: { w: 40, h: 48 },
 };
 
 /** The code's rendered edge, quiet zone included (see the header note for
@@ -68,9 +65,7 @@ const FRAME_PHOTO: Record<DemoFrameSize, { w: number; h: number }> = {
 const FRAME_QR: Record<DemoFrameSize, number> = {
   hero: 92,
   heroCompact: 72,
-  footer: 108,
   nav: 34,
-  line: 22,
 };
 
 /** The one still every frame carries (the fixture the site already holds,
@@ -107,9 +102,9 @@ export function DemoFrame({
       className={cn(
         "relative inline-flex shrink-0 rounded-[var(--radius-tile)] border bg-card p-2",
         // The LAYER shadow is the noticeability the ruling asked for: a mat
-        // floating over whatever runs behind it (the corridor, the ink
-        // footer, a paper line) wears the floating-object shadow, never the
-        // card-on-card contact shadow the corner plate wears below.
+        // floating over whatever runs behind it (the hero's corridor, the nav
+        // panel) wears the floating-object shadow, never the card-on-card
+        // contact shadow the corner plate wears below.
         "shadow-layer",
         className,
       )}
@@ -153,11 +148,7 @@ export function DemoFrame({
  * neither caller needed an edit; `row` reads as the hero's size, `column` as
  * the nav pane's.
  */
-export function DemoTicket({
-  layout = "row",
-}: {
-  layout?: "row" | "column";
-}) {
+export function DemoTicket({ layout = "row" }: { layout?: "row" | "column" }) {
   if (!DEMO_EVENT_URL) return null;
   return (
     <Link

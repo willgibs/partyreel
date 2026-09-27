@@ -6,431 +6,503 @@ import { ExplorationBoard } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
-import { DeskPanel, PhoneSheet, Scrim, TODAY_SCRIM } from "./door";
+import { DeskPanel, PhoneSheet, Scrim } from "./door";
 import { CODE } from "./fixtures";
 import { AlbumGround } from "./ground";
 import { Keyboard } from "./keyboard";
-import { LitProvider, type Look, LOOKS, type Where } from "./looks";
+import { HouseLight, Lamp, LIT_SCRIM, LitProvider, useHueVars } from "./lit";
+import { NameMenu } from "./menu";
 import { type PhoneScene, type Reader, Scenes } from "./scene";
-import {
-  BackChevron,
-  CloseMark,
-  type DoorStep,
-  GhostTap,
-  keyboardFor,
-  NameMenu,
-  stepParts,
-} from "./steps";
+import { type DoorStep, stepSpec } from "./steps";
 import { IDENTITY_DOOR } from "./spec";
+import { type World, worldKey, worldOf } from "./world";
 
 /**
- * THE PREVIEWS: one ask, four directions, each walked through the whole door
- * on the `stage` knob, one 1440 frame above three 375 frames per stage.
+ * THE PREVIEWS: five asks, each drawn as whole moments of the door in lit (his
+ * round-two pick), a 1440 frame above its phones.
  *
- * ★ EVERY CAPTION IS READ OFF ITS OWN FRAME, NEVER ASSERTED (the discipline
- * every board over this wedding holds): whether the primary action and the
- * focused field clear the keyboard, how much album shows above the sheet, the
- * scrim's blur and opacity as the frame computes them, how many times
- * "Unverified" is on screen, and what the direction itself put there (the
- * fan's rise, the lamp's sampled hues, the ticket's height, the host's face).
- * If the words above a frame and the number under it disagree, the number is
- * the truth.
+ * ★ EVERY CAPTION IS READ OFF ITS OWN FRAME, NEVER ASSERTED: what heads the
+ * screen, how many words it asks her to read, what each icon is and what
+ * colours it, whether the primary and the focused field clear the keyboard,
+ * how much album shows above the sheet. If the words above a frame and the
+ * number under it disagree, the number is the truth.
  *
- * ★ EVERY OPTION IS A COMPONENT, NEVER A CALL: `lit` samples the album through
- * a hook, and a preview invoked as a plain function inside the step's render
- * would hang that hook off whatever component happened to be rendering.
+ * ★ EVERY OPTION IS DRAWN IN THE WORLD HIS OTHER ANSWERS MADE. A step hands
+ * its preview the board's state with every answer he has already given worn,
+ * and `worldOf` reads all five axes from it, so the code screen is judged
+ * with the icons he picked, not today's.
  */
 
-type Stage = "arriving" | "typing" | "accounts" | "inside";
 type Screen = DoorStep | "menu" | "menu-email";
-type World = { scrim: "own" | "today"; greeting: boolean };
-
-const STAGES: Record<
-  Stage,
-  {
-    title: string;
-    desk: Screen;
-    phones: readonly [Screen, Screen, Screen];
-    titles: readonly [string, string, string];
-  }
-> = {
-  arriving: {
-    title: "arriving",
-    desk: "welcome",
-    phones: ["welcome", "chooser", "name"],
-    titles: ["the welcome", "his chooser", "her name, its field focused"],
-  },
-  typing: {
-    title: "typing",
-    desk: "name-email",
-    phones: ["name-email", "gate", "code"],
-    titles: [
-      "the email, opened from its tap",
-      "a verification event, name and email",
-      "the code",
-    ],
-  },
-  accounts: {
-    title: "with an account",
-    desk: "login",
-    phones: ["login", "create", "in"],
-    titles: ["Log in", "Create account", "the “You’re in” beat"],
-  },
-  inside: {
-    title: "inside",
-    desk: "menu",
-    phones: ["menu", "menu-email", "change"],
-    titles: [
-      "her menu, name only",
-      "her menu, an email added",
-      "changing or removing it",
-    ],
-  },
-};
-
-const TITLE: Record<Look, string> = {
-  lit: "Lit by the album",
-  peek: "The newest photos peek out",
-  ticket: "A ticket she keeps",
-  host: "The host leads",
-};
-
-const stageOf = (v: string | undefined): Stage =>
-  v === "typing" || v === "accounts" || v === "inside" ? v : "arriving";
-
-const worldOf = (s: BoardState): World => ({
-  scrim: s.scrim === "today" ? "today" : "own",
-  greeting: s.greeting !== "none",
-});
+type Size = "phone" | "desk" | "small";
 
 /* ── the screens ─────────────────────────────────────────────────────────── */
 
-function DoorScreen({
-  look,
+/** Whose header the album behind shows: a stranger at the door, Priya inside. */
+const WHO: Partial<Record<Screen, "named" | "emailed">> = {
+  edit: "named",
+  change: "emailed",
+  menu: "named",
+  "menu-email": "emailed",
+};
+
+/** A password event's two steps: the locked page behind, the house five above. */
+const LOCKED: readonly DoorStep[] = ["password", "unlock"];
+
+function DoorScreen(props: { step: DoorStep; size: Size; world: World }) {
+  return LOCKED.includes(props.step) ? (
+    <HouseLight>
+      <DoorBody {...props} locked />
+    </HouseLight>
+  ) : (
+    <DoorBody {...props} locked={false} />
+  );
+}
+
+function DoorBody({
   step,
   size,
   world,
+  locked,
 }: {
-  look: Look;
   step: DoorStep;
-  size: "phone" | "desk";
+  size: Size;
   world: World;
+  locked: boolean;
 }) {
-  const def = LOOKS[look];
-  const kb = size === "phone" ? keyboardFor(step) : null;
-  const where: Where = {
-    step,
-    size,
-    keyboard: Boolean(kb),
-    greeting: world.greeting,
+  const desk = size === "desk";
+  // The album's three hues on the screen's root, so every lit thing in the
+  // sheet (a pool, a glyph, the beat's bloom) reads the lamp's own.
+  const vars = useHueVars();
+  const spec = stepSpec(step, world, desk ? "desk" : "phone");
+  // Only the 375 phone carries a keyboard: the sheet's rule reads its height.
+  const kb = size === "phone" ? spec.kb : null;
+  const glow = <Lamp edge={desk ? "left" : "top"} strength={spec.lamp} />;
+  const parts = {
+    glow,
+    back: spec.back,
+    close: spec.close,
+    pad: spec.pad,
+    children: spec.node,
   };
-  const parts = stepParts(step, def.slots(where));
-  const lookHead = def.head?.(where);
-  const head =
-    parts.back || parts.close || lookHead ? (
-      <div className="flex min-h-9 items-center gap-2">
-        {parts.back && <BackChevron />}
-        <div className="min-w-0 flex-1">{lookHead}</div>
-        {parts.close && <CloseMark />}
-        {/* The chevron's width again on the right, so a centred head (the
-            compact fan) sits on the sheet's centre line, not beside it. */}
-        {parts.back && look === "peek" && lookHead && (
-          <span aria-hidden className="w-7 shrink-0" />
-        )}
-      </div>
-    ) : null;
-  const sheet = {
-    behind: def.behind?.(where),
-    glow: def.glow?.(where),
-    head,
-    body: parts.body,
-    foot: parts.foot,
-  };
-  const inside = step === "change";
   return (
-    <div className="relative min-h-screen">
-      <AlbumGround
-        who={inside ? "emailed" : "stranger"}
-        description={world.greeting}
-      />
-      <Scrim spec={world.scrim === "today" ? TODAY_SCRIM : def.scrim} />
-      {size === "desk" ? (
-        <DeskPanel {...sheet} />
+    <div className="relative min-h-screen" style={vars}>
+      <AlbumGround who={WHO[step] ?? "stranger"} description locked={locked} />
+      <Scrim spec={LIT_SCRIM} />
+      {desk ? (
+        <DeskPanel {...parts} />
       ) : (
-        <PhoneSheet keyboard={Boolean(kb)} {...sheet} />
+        <PhoneSheet keyboard={Boolean(kb)} {...parts} />
       )}
       {kb && <Keyboard kind={kb.kind} enter={kb.enter} code={CODE.sent} />}
-      {step === "name" && size === "phone" && (
-        // THE 320 PROBE: the same ghost tap in the content box a 320 phone
-        // gives it (320 minus the sheet's 24 px each side), drawn off screen
-        // so the caption can say what the line does there, read, not computed.
-        <div
-          aria-hidden
-          data-door-probe-320
-          className="pointer-events-none fixed top-0 -left-[2000px] w-[272px]"
-        >
-          <GhostTap />
-        </div>
-      )}
     </div>
   );
 }
 
-function MenuScreen({
-  look,
-  emailed,
-  size,
-  world,
-}: {
-  look: Look;
-  emailed: boolean;
-  size: "phone" | "desk";
-  world: World;
-}) {
-  const where: Where = {
-    step: emailed ? "menu-email" : "menu",
-    size,
-    keyboard: false,
-    greeting: world.greeting,
-  };
+function MenuScreen({ emailed, size }: { emailed: boolean; size: Size }) {
   return (
     <div className="relative min-h-screen">
-      <AlbumGround
-        who={emailed ? "emailed" : "named"}
-        description={world.greeting}
-      />
-      <NameMenu
-        emailed={emailed}
-        slots={LOOKS[look].slots(where)}
-        wide={size === "desk"}
-      />
+      <AlbumGround who={emailed ? "emailed" : "named"} description />
+      <NameMenu emailed={emailed} wide={size === "desk"} />
     </div>
   );
 }
 
 function ScreenNode({
-  look,
   screen,
   size,
   world,
 }: {
-  look: Look;
   screen: Screen;
-  size: "phone" | "desk";
+  size: Size;
   world: World;
 }) {
   if (screen === "menu" || screen === "menu-email")
-    return (
-      <MenuScreen
-        look={look}
-        emailed={screen === "menu-email"}
-        size={size}
-        world={world}
-      />
-    );
-  return <DoorScreen look={look} step={screen} size={size} world={world} />;
+    return <MenuScreen emailed={screen === "menu-email"} size={size} />;
+  return <DoorScreen step={screen} size={size} world={world} />;
 }
 
 /* ── the readers ─────────────────────────────────────────────────────────── */
 
 const px = (n: number) => `${Math.round(n)}px`;
 
-/** The scrim as the frame computes it: its blur and its black. */
-function scrimSaid(root: HTMLElement, win: Window): string | null {
-  const scrim = root.querySelector("[data-door-scrim]");
-  if (!scrim) return null;
-  const cs = win.getComputedStyle(scrim);
-  const filter =
-    cs.backdropFilter ||
-    (cs as CSSStyleDeclaration & { webkitBackdropFilter?: string })
-      .webkitBackdropFilter ||
-    "";
-  const blur = /blur\(([\d.]+)px\)/.exec(filter)?.[1] ?? "0";
-  const alpha = /rgba?\([^)]*?,\s*([\d.]+)\)|\/\s*([\d.]+)\)/.exec(
-    cs.backgroundColor,
-  );
-  const a = alpha ? Number(alpha[1] ?? alpha[2]) : 1;
-  const dim = /brightness\(([\d.]+)\)/.exec(filter)?.[1];
-  return `scrim ${blur}px blur, ${Math.round(a * 100)}% black${
-    dim ? ` at ${Math.round(Number(dim) * 100)}% brightness` : ""
-  }`;
+/**
+ * An element's words as a still frame shows them: the count's two ticks that
+ * fade out (48, 49) are dropped, so a heading reads "50 photos", not "484950".
+ */
+function said(el: Element | null | undefined): string {
+  if (!el) return "";
+  const copy = el.cloneNode(true) as Element;
+  copy
+    .querySelectorAll(".door-tick-0, .door-tick-1")
+    .forEach((t) => t.remove());
+  return (copy.textContent ?? "").replace(/\s+/g, " ").trim();
 }
 
-/** A sentence's first letter up: the direction's own words follow a full stop. */
-const cap = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
-
-/** What the direction itself put on this frame, read off it. */
-function lookSaid(look: Look, root: HTMLElement): string {
-  const paper = root.querySelector("[data-door-paper]");
-  const top = paper?.getBoundingClientRect().top ?? 0;
-  // In her menu the direction dresses the card, not a sheet.
-  const inMenu = Boolean(root.querySelector("[data-door-menu]"));
-  if (look === "peek") {
-    const fan = root.querySelector<HTMLElement>("[data-door-fan]");
-    if (!fan) return "";
-    const tiles = [...fan.querySelectorAll("[data-door-fan-tile]")];
-    const credit = fan
-      .querySelector("[data-door-credit-name]")
-      ?.textContent?.trim();
-    const where = fan.dataset.doorFan;
-    const mode = fan.dataset.doorFanMode;
-    if (where === "card")
-      return " Three of the album's newest stand small on her card, a fan of their own.";
-    const said =
-      where === "edge"
-        ? `${tiles.length} stills rise ${px(top - Math.min(...tiles.map((t) => t.getBoundingClientRect().top)))} above the sheet's edge`
-        : where === "desk"
-          ? `${tiles.length} stills reach ${px((paper?.getBoundingClientRect().left ?? 0) - Math.min(...tiles.map((t) => t.getBoundingClientRect().left)))} out of the panel's left edge`
-          : `the fan rides inside the sheet, ${px(fan.getBoundingClientRect().height)} tall`;
-    const state =
-      mode === "held"
-        ? ", the album's two held back"
-        : mode === "bright"
-          ? ", brightened"
-          : mode === "landed"
-            ? ", opened wide"
-            : "";
-    return ` ${cap(said)}${state}${credit ? `, her name "${credit}" on the front tile` : ""}.`;
+/** A colour as a person reads it: its hue in degrees, from lab() or oklch(). */
+function hueSaid(color: string): string {
+  const lab = /lab\(\s*([\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)/.exec(color);
+  if (lab) {
+    const h = (Math.atan2(Number(lab[3]), Number(lab[2])) * 180) / Math.PI;
+    return `hue ${Math.round((h + 360) % 360)}`;
   }
-  if (look === "lit") {
-    const lamp = root.querySelector<HTMLElement>("[data-door-lamp]");
-    if (!lamp) return "";
-    const from =
-      lamp.dataset.doorSampled !== undefined
-        ? "sampled from the album"
-        : "the house five, until the sample lands";
-    const ticker = root.querySelector("[data-door-tick-settled]")?.textContent;
-    return ` ${inMenu ? "Her card's edge is lit by hues" : "The light holds hues"} ${lamp.dataset.doorHues}, ${from}${ticker ? `; the count settles on ${ticker}` : ""}.`;
-  }
-  if (look === "ticket") {
-    const card = root.querySelector('[data-door-ticket="card"]');
-    const stub = root.querySelector('[data-door-ticket="stub"]');
-    if (card)
-      return ` The ticket is ${px(card.getBoundingClientRect().height)} tall.`;
-    if (stub && inMenu)
-      return " The ticket's stub heads her card, the event she can keep.";
-    if (stub)
-      return ` The stub rides at ${px(stub.getBoundingClientRect().height)}${
-        root.querySelector("[data-door-stamp]") ? ", stamped" : ""
-      }.`;
-    return "";
-  }
-  const host = root.querySelector("[data-door-host]");
-  if (host) {
-    const face = host.querySelector('[data-slot="avatar"]');
-    const said = root.querySelector("[data-door-greeting]")
-      ? "her own words greet"
-      : "she wrote none, so no greeting";
-    return ` Her face at ${px(face?.getBoundingClientRect().width ?? 0)}; ${said}.`;
-  }
-  if (!root.querySelector("[data-door-host-chip]")) return "";
-  return inMenu
-    ? " Her host's face heads her card."
-    : " Her face rides the sheet's head.";
+  const lch = /oklch\(\s*[\d.]+\s+[\d.]+\s+([\d.]+)/.exec(color);
+  return lch ? `hue ${Math.round(Number(lch[1]))}` : color;
 }
 
-/** The ghost tap, at 375 and in the 320 probe. */
-function ghostSaid(root: HTMLElement): string {
-  const ghost = root.querySelector<HTMLElement>("[data-door-ghost]");
-  const line = ghost?.querySelector<HTMLElement>("[data-door-ghost-line]");
-  if (!ghost || !line) return "";
-  // The room left between the line's last word and whatever ends the row: the
-  // trailing plus (less the row's 10 px gap), or the row's own padding.
-  const room = (g: HTMLElement, l: HTMLElement) => {
-    const plus = g.querySelector("[data-door-ghost-plus]");
-    const end = plus
-      ? plus.getBoundingClientRect().left - 10
-      : g.getBoundingClientRect().right - 12;
-    return Math.round(end - l.getBoundingClientRect().right);
-  };
-  const probe = root.querySelector<HTMLElement>(
-    "[data-door-probe-320] [data-door-ghost]",
-  );
-  const probeLine = probe?.querySelector<HTMLElement>("[data-door-ghost-line]");
-  const at320 =
-    probe && probeLine
-      ? ` At 320 it reads "${probeLine.innerText.trim()}", ${room(probe, probeLine) >= 0 ? "still one line" : "past its row"}.`
+const words = (el: Element | null) =>
+  el
+    ? ((el as HTMLElement).innerText.match(/[A-Za-z0-9’'&@.-]+/g) ?? []).length
+    : 0;
+
+/** What the sheet asks her to read, counted off the paper. */
+function wordsSaid(root: HTMLElement): string {
+  const n = words(root.querySelector("[data-door-paper]"));
+  return `${n} words on the sheet`;
+}
+
+/**
+ * The keyboard's facts: whether the primary and the focused field (or the
+ * code's slot) clear it, and how much album stays above the sheet.
+ */
+function keyboardSaid(root: HTMLElement): string {
+  const ground = root.querySelector("[data-door-ground='locked']")
+    ? "the locked page"
+    : "album";
+  const paper = root.querySelector<HTMLElement>("[data-door-paper]");
+  const kb = root.querySelector("[data-door-kb]");
+  if (!paper) return "";
+  const box = paper.getBoundingClientRect();
+  if (paper.dataset.doorSheet === "desk")
+    return `the panel is ${px(box.width)} wide beside ${px(box.left)} of ${ground}`;
+  const top = box.top;
+  if (!kb) return `${px(top)} of ${ground} above the sheet`;
+  const kbTop = kb.getBoundingClientRect().top;
+  const scroll = root.querySelector("[data-door-scroll]");
+  const fold = scroll?.getBoundingClientRect().bottom ?? kbTop;
+  const focus = root.querySelector("[data-door-focus]");
+  const primary = root.querySelector("[data-door-primary]");
+  const parts: string[] = [];
+  if (primary) {
+    const b = primary.getBoundingClientRect();
+    parts.push(
+      b.bottom <= fold + 1
+        ? `the primary clears the keyboard by ${px(kbTop - b.bottom)}`
+        : `the primary is under the fold by ${px(b.bottom - fold)}`,
+    );
+  } else parts.push("no button (the sixth digit sends the code)");
+  if (focus) {
+    const f = focus.getBoundingClientRect();
+    const what = focus.hasAttribute("data-door-slot")
+      ? "the code's next slot"
+      : "the focused field";
+    // A sticky primary covers the scroll's last stretch, so a focused thing
+    // is only in view above whatever the primary's wrapper covers.
+    const sticky = root
+      .querySelector("[data-sheet-primary]")
+      ?.getBoundingClientRect();
+    const visibleTo =
+      sticky && primary && sticky.top < fold ? sticky.top : fold;
+    parts.push(
+      f.bottom <= visibleTo + 1
+        ? `${what} is in view`
+        : `${what} is hidden under the ${visibleTo < fold ? "primary" : "fold"} by ${px(f.bottom - visibleTo)}`,
+    );
+  }
+  parts.push(`${px(top)} of ${ground} above the sheet`);
+  return parts.join(", ");
+}
+
+/** The icons, read: every decorative glyph and pool, its size and its colour. */
+function iconsSaid(root: HTMLElement, win: Window): string {
+  const pools = [...root.querySelectorAll<HTMLElement>("[data-door-pool]")];
+  const promise = [
+    ...root.querySelectorAll<SVGElement>("[data-door-icon='promise']"),
+  ].filter((g) => !g.closest("[data-door-pool]"));
+  const inline = [
+    ...root.querySelectorAll<SVGElement>("[data-door-icon='inline']"),
+  ].filter((g) => g.getBoundingClientRect().width > 0);
+  const controls = [
+    ...root.querySelectorAll<HTMLElement>("[data-door-control]"),
+  ].map((c) => c.dataset.doorControl);
+  const bits: string[] = [];
+  if (pools.length) {
+    const hues = pools.map((p) =>
+      Math.round(Number(win.getComputedStyle(p).getPropertyValue("--pool-h"))),
+    );
+    bits.push(
+      `${pools.length} in pools ${px(pools[0].getBoundingClientRect().width)} wide, lit by hues ${hues.join(" and ")}`,
+    );
+  }
+  if (promise.length)
+    bits.push(
+      `${promise.length} grey glyph${promise.length === 1 ? "" : "s"} at ${px(promise[0].getBoundingClientRect().width)} leading the rows`,
+    );
+  // The house five light a password event's door: nothing is sampled there.
+  const source = root.querySelector("[data-door-sampled]")
+    ? "the album's"
+    : "the house five's";
+  for (const g of inline) {
+    const lit = g.classList.contains("door-glyph-lit");
+    bits.push(
+      `a ${px(g.getBoundingClientRect().width)} ${lit ? `glyph in ${source} ${hueSaid(win.getComputedStyle(g).color)}` : "grey glyph"} inside a line`,
+    );
+  }
+  const said = bits.length ? bits.join("; ") : "none but the controls";
+  return `Icons: ${said}. Controls: ${controls.length ? controls.join(", ") : "none"}.`;
+}
+
+/** The chooser's three ways in, read. */
+function chooserSaid(root: HTMLElement, win: Window): string {
+  const step = root.querySelector("[data-door-step='chooser']");
+  if (!step) return "";
+  const title = said(step.querySelector("[data-door-heading] p"));
+  const buttons = [...step.querySelectorAll("button")];
+  if (!buttons.length) return "";
+  const first = buttons[0].getBoundingClientRect();
+  const last = buttons[buttons.length - 1].getBoundingClientRect();
+  const lines = [...step.querySelectorAll<HTMLElement>("[data-door-way-line]")];
+  const wrapped = lines.filter(
+    (l) =>
+      l.getBoundingClientRect().height >
+      parseFloat(win.getComputedStyle(l).lineHeight) * 1.5,
+  ).length;
+  const link = step.querySelector("[data-door-login-link]");
+  const extra = lines.length
+    ? `; each way's small line ${wrapped ? `wraps on ${wrapped}` : "holds one line"}`
+    : link
+      ? `; Log in is a line of text under them`
       : "";
-  return ` The email is a ${px(ghost.getBoundingClientRect().height)} ghost tap, "${line.innerText.trim()}" on one line with ${px(room(ghost, line))} to spare.${at320}`;
+  return `Headed "${title}"; ${buttons.length} buttons stand ${px(last.bottom - first.top)} tall together${extra}; ${wordsSaid(root)}.`;
 }
 
-const readDoor =
-  (look: Look, screen: Screen, size: "phone" | "desk"): Reader =>
+/** The line under her name, read. */
+function hintSaid(root: HTMLElement): string {
+  const hint = said(root.querySelector("[data-door-hint]"));
+  return `${hint ? `Under her name: "${hint}"` : "Nothing under her name"}; ${wordsSaid(root)}.`;
+}
+
+/** What heads the code screen, and the code's own sentence, read. */
+function codeSaid(root: HTMLElement): string {
+  const head = root.querySelector("[data-door-heading] .font-heading");
+  const slots = [...root.querySelectorAll("[data-door-slot]")];
+  if (!head || slots.length !== 6) return "";
+  const a = slots[0].getBoundingClientRect();
+  const b = slots[5].getBoundingClientRect();
+  const signIn = /to sign in/.test(root.innerText);
+  return `Headed "${said(head)}"; six slots span ${px(b.right - a.left)}, each ${px(a.width)}${signIn ? '; its last line still says "to sign in"' : ""}; ${wordsSaid(root)}.`;
+}
+
+/** The beat's mark and words, read. */
+function beatSaid(root: HTMLElement, win: Window): string {
+  const mark = root.querySelector<HTMLElement>("[data-door-mark]");
+  const lamp = root.querySelector<HTMLElement>("[data-door-lamp]");
+  const spoken = said(root.querySelector("[data-door-beat-words]"));
+  const light = lamp ? `; the lamp at ${lamp.dataset.doorLamp}` : "";
+  if (!mark) {
+    const sent = root.querySelector("[data-door-sent]");
+    return sent ? `"Sent" with no mark beside it${light}.` : "";
+  }
+  const box = mark.getBoundingClientRect();
+  const kind = mark.dataset.doorMark;
+  const what =
+    kind === "hers"
+      ? mark.querySelector("img")
+        ? "the photo she sent, a check on its corner"
+        : "her own initial in her colour, a check on its corner"
+      : kind === "lit"
+        ? `a check in ${lamp?.hasAttribute("data-door-sampled") ? "the album's light" : "the house five's light"} (hues ${lamp?.dataset.doorHues ?? ""})`
+        : `a check on the success green (${hueSaid(win.getComputedStyle(mark).backgroundColor)})`;
+  const size = mark.tagName === "BUTTON" ? "the button itself" : px(box.width);
+  return `The mark: ${what}, ${size}${spoken ? `; it says "${spoken}"` : ""}${light}.`;
+}
+
+type Ask = "icons" | "chooser" | "hint" | "code" | "beat";
+
+const read =
+  (ask: Ask, screen: Screen): Reader =>
   (root, win) => {
     if (screen === "menu" || screen === "menu-email") {
       const menu = root.querySelector("[data-door-menu]");
       if (!menu) return null;
       const n = (root.innerText.match(/\bUnverified\b/g) ?? []).length;
-      const status = menu.querySelector("[data-door-status]")?.textContent;
-      const action = menu.querySelector("[data-door-card-action]")?.textContent;
-      const rows = menu.querySelectorAll("[data-door-menu-row]").length;
-      return `Measured: "Unverified" appears ${n} time${n === 1 ? "" : "s"} on screen; under her name, "${status}"; the card, "Save this event for later" with ${action}; ${rows} rows under it.${lookSaid(look, root)}`;
+      return `Measured: her menu, the same under every ask; "Unverified" ${n} time${n === 1 ? "" : "s"} on screen, ${menu.querySelectorAll("[data-door-menu-row]").length} rows under the card.`;
     }
     const paper = root.querySelector("[data-door-paper]");
-    const scrim = scrimSaid(root, win);
-    if (!paper || !scrim || !root.querySelector("img")) return null;
-    const box = paper.getBoundingClientRect();
-    const extra =
-      lookSaid(look, root) + (screen === "name" ? ghostSaid(root) : "");
-    if (size === "desk") {
-      return `Measured at 1440: the panel is ${px(box.width)} wide beside ${px(box.left)} of album; ${scrim}.${extra}`;
-    }
-    const kb = root.querySelector("[data-door-kb]");
-    if (kb) {
-      const kbTop = kb.getBoundingClientRect().top;
-      const body = root
-        .querySelector("[data-door-body]")
-        ?.getBoundingClientRect();
-      const primary = root.querySelector("[data-door-primary]");
-      const focus = root.querySelector("[data-door-focus]");
-      if (!focus || !body) return null;
-      const f = focus.getBoundingClientRect();
-      const shown = f.bottom <= body.bottom + 1;
-      const what = focus.hasAttribute("data-door-field")
-        ? "the focused field"
-        : "the code's focused slot";
-      const fieldSaid = shown
-        ? `${what} by ${px(kbTop - f.bottom)}`
-        : `${what} is under the foot by ${px(f.bottom - body.bottom)}`;
-      const primarySaid = primary
-        ? `the primary action clears the keyboard by ${px(kbTop - primary.getBoundingClientRect().bottom)}`
-        : "no button (the sixth digit submits)";
-      return `Measured: ${primarySaid}, ${fieldSaid}; ${px(box.top)} of album above the sheet; ${scrim}.${extra}`;
-    }
-    return `Measured: the sheet is ${px(box.height)} tall with ${px(box.top)} of album above it; ${scrim}.${extra}`;
+    if (!paper || !root.querySelector("img")) return null;
+    const own =
+      ask === "icons"
+        ? iconsSaid(root, win)
+        : ask === "chooser"
+          ? chooserSaid(root, win)
+          : ask === "hint"
+            ? hintSaid(root)
+            : ask === "code"
+              ? codeSaid(root)
+              : beatSaid(root, win);
+    if (!own) return null;
+    return `Measured: ${own} ${keyboardSaid(root)}.`;
   };
 
-/* ── one preview per direction ───────────────────────────────────────────── */
+/* ── the moments each ask is drawn across ────────────────────────────────── */
 
-function DoorPreview({ look, s }: { look: Look; s: BoardState }) {
-  const stage = stageOf(s.stage);
+type Moment = {
+  title: string;
+  desk: Screen;
+  phones: readonly { screen: Screen; title: string; small?: boolean }[];
+};
+
+/** `icons` walks the whole door on its stage knob. */
+const STAGES: Record<string, Moment> = {
+  arriving: {
+    title: "arriving",
+    desk: "welcome",
+    phones: [
+      { screen: "welcome", title: "the welcome" },
+      { screen: "chooser", title: "his chooser" },
+      { screen: "name", title: "her name, the keyboard up" },
+    ],
+  },
+  proving: {
+    title: "proving who she is",
+    desk: "gate",
+    phones: [
+      { screen: "password", title: "a password event" },
+      { screen: "gate", title: "a verification event" },
+      { screen: "code-gate", title: "its code" },
+    ],
+  },
+  accounts: {
+    title: "with an account",
+    desk: "login",
+    phones: [
+      { screen: "login", title: "Log in" },
+      { screen: "create", title: "Create account" },
+      { screen: "code-create", title: "its code" },
+    ],
+  },
+  landing: {
+    title: "landing",
+    desk: "upload",
+    phones: [
+      { screen: "upload", title: "the upload step" },
+      { screen: "keep", title: "the keep screen, after her first photo" },
+      { screen: "in", title: "the “You’re in” beat" },
+    ],
+  },
+  inside: {
+    title: "inside",
+    desk: "menu",
+    phones: [
+      { screen: "menu", title: "her menu, name only" },
+      { screen: "menu-email", title: "her menu, an email added" },
+      { screen: "change", title: "changing that email" },
+    ],
+  },
+  edges: {
+    title: "at the edges",
+    desk: "demo",
+    phones: [
+      { screen: "demo", title: "the demo's welcome" },
+      { screen: "demo-upload", title: "the demo's upload" },
+      { screen: "stalled", title: "a stalled opening" },
+    ],
+  },
+};
+
+const MOMENTS: Record<Exclude<Ask, "icons">, Moment> = {
+  chooser: {
+    title: "his chooser",
+    desk: "chooser",
+    phones: [
+      { screen: "chooser", title: "his chooser" },
+      { screen: "chooser", title: "his chooser", small: true },
+    ],
+  },
+  hint: {
+    title: "her name",
+    desk: "name",
+    phones: [
+      { screen: "name", title: "her name, the keyboard up" },
+      { screen: "name-email", title: "the email opened" },
+      { screen: "edit", title: "Change name, from her menu" },
+    ],
+  },
+  code: {
+    title: "the code",
+    desk: "code-gate",
+    phones: [
+      { screen: "code-gate", title: "a verification event's code" },
+      { screen: "code-create", title: "Create account's code" },
+      { screen: "code-login", title: "Log in's code" },
+    ],
+  },
+  beat: {
+    title: "the beats",
+    desk: "in",
+    phones: [
+      { screen: "unlock", title: "a password opening the album" },
+      { screen: "in", title: "a code confirmed" },
+      { screen: "keep", title: "her first photo sent" },
+    ],
+  },
+};
+
+const LABEL: Record<Ask, string> = {
+  icons: "The door's icons",
+  chooser: "The chooser",
+  hint: "Under her name",
+  code: "The code screen",
+  beat: "The beats",
+};
+
+function Preview({ ask, s }: { ask: Ask; s: BoardState }) {
   const world = worldOf(s);
-  const def = STAGES[stage];
-  const id = `look-${look}-${stage}-${world.scrim}-${world.greeting ? "g" : "n"}`;
-  const phones: PhoneScene[] = def.phones.map((screen, i) => ({
-    title: def.titles[i],
-    measure: readDoor(look, screen, "phone"),
-    node: <ScreenNode look={look} screen={screen} size="phone" world={world} />,
+  const stage = s.stage && STAGES[s.stage] ? s.stage : "arriving";
+  const moment = ask === "icons" ? STAGES[stage] : MOMENTS[ask];
+  const id = `${ask}-${ask === "icons" ? stage : "m"}-${worldKey(world)}`;
+  const phones: PhoneScene[] = moment.phones.map((p) => ({
+    title: p.title,
+    small: p.small,
+    measure: read(ask, p.screen),
+    node: (
+      <ScreenNode
+        screen={p.screen}
+        size={p.small ? "small" : "phone"}
+        world={world}
+      />
+    ),
   }));
-  const scenes = (
-    <Scenes
-      id={id}
-      title={`${TITLE[look]}, ${def.title}`}
-      laptop={
-        <ScreenNode look={look} screen={def.desk} size="desk" world={world} />
-      }
-      measure={readDoor(look, def.desk, "desk")}
-      phones={phones}
-    />
+  return (
+    <LitProvider>
+      <Scenes
+        id={id}
+        title={ask === "icons" ? `${LABEL[ask]}, ${moment.title}` : LABEL[ask]}
+        laptop={<ScreenNode screen={moment.desk} size="desk" world={world} />}
+        measure={read(ask, moment.desk)}
+        phones={phones}
+      />
+    </LitProvider>
   );
-  return look === "lit" ? <LitProvider>{scenes}</LitProvider> : scenes;
 }
 
 const PREVIEWS: PreviewsFor<typeof IDENTITY_DOOR> = {
-  "look.lit": (s) => <DoorPreview look="lit" s={s} />,
-  "look.peek": (s) => <DoorPreview look="peek" s={s} />,
-  "look.ticket": (s) => <DoorPreview look="ticket" s={s} />,
-  "look.host": (s) => <DoorPreview look="host" s={s} />,
+  "icons.today": (s) => <Preview ask="icons" s={s} />,
+  "icons.lit": (s) => <Preview ask="icons" s={s} />,
+  "icons.bare": (s) => <Preview ask="icons" s={s} />,
+  "chooser.today": (s) => <Preview ask="chooser" s={s} />,
+  "chooser.told": (s) => <Preview ask="chooser" s={s} />,
+  "chooser.link": (s) => <Preview ask="chooser" s={s} />,
+  "chooser.bare": (s) => <Preview ask="chooser" s={s} />,
+  "hint.today": (s) => <Preview ask="hint" s={s} />,
+  "hint.change": (s) => <Preview ask="hint" s={s} />,
+  "hint.none": (s) => <Preview ask="hint" s={s} />,
+  "code.today": (s) => <Preview ask="code" s={s} />,
+  "code.mail": (s) => <Preview ask="code" s={s} />,
+  "code.inplace": (s) => <Preview ask="code" s={s} />,
+  "beat.today": (s) => <Preview ask="beat" s={s} />,
+  "beat.lit": (s) => <Preview ask="beat" s={s} />,
+  "beat.hers": (s) => <Preview ask="beat" s={s} />,
 };
 
 export function IdentityDoorBoard() {

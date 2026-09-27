@@ -5,10 +5,10 @@ import { type ReactNode, useState } from "react";
 import { Fit, Frame, Measured } from "@/components/lab";
 
 /**
- * THE FRAMES EVERY DIRECTION DRAWS IN (`reel-cut/scene.tsx`'s layout, the
- * manifest's own instruction): one stage of the door is one 1440 frame above
- * three 375 frames, so the laptop and the hand are read together and a
- * direction is judged across a whole stretch of her walk, never one screen.
+ * THE FRAMES EVERY ANSWER DRAWS IN (`reel-cut/scene.tsx`'s layout): one
+ * moment of the door is one 1440 frame above its phones, so the laptop and the
+ * hand are read together and an answer is judged across a stretch of her
+ * walk, never one screen.
  *
  * ★ STACKED, NEVER ALL IN ONE ROW. A 1440 frame beside three phones is 2,613 px,
  * which the board's column clips; stacked, the widest thing on the stage is the
@@ -48,7 +48,14 @@ function Screen({
   const [said, setSaid] = useState("measuring");
   return (
     <Frame id={id} w={w} h={h} title={title} caption={said}>
-      <Measured probe={measure} deps={[id]} onMeasure={setSaid}>
+      {/* A late read too: the lamp's sample (and the hues a caption names)
+          can land after the default schedule's last read. */}
+      <Measured
+        probe={measure}
+        deps={[id]}
+        onMeasure={setSaid}
+        timers={[200, 900, 1800, 3600]}
+      >
         {children}
       </Measured>
     </Frame>
@@ -60,11 +67,16 @@ export type PhoneScene = {
   title: string;
   measure: Reader;
   node: ReactNode;
+  /** A smaller phone than the 375 the door is read in (the 320 SE). */
+  small?: boolean;
 };
 
+/** The smallest phone the door has to hold: an SE, 320 by 568. */
+export const SMALL = { w: 320, h: 568 } as const;
+
 /**
- * One stage of one direction, whole: the laptop above, three moments of the
- * phone beneath. Every caption is read off its own frame's document.
+ * One moment of the door, whole: the laptop above, its phones beneath. Every
+ * caption is read off its own frame's document.
  */
 export function Scenes({
   id,
@@ -95,10 +107,10 @@ export function Scenes({
           {phones.map((p, i) => (
             <Screen
               key={i}
-              id={`${id}-375-${i}`}
-              w={PHONE.w}
-              h={PHONE.h}
-              title={`In a hand, ${p.title}`}
+              id={`${id}-${p.small ? SMALL.w : PHONE.w}-${i}`}
+              w={p.small ? SMALL.w : PHONE.w}
+              h={p.small ? SMALL.h : PHONE.h}
+              title={`${p.small ? "On a 320 phone" : "In a hand"}, ${p.title}`}
               measure={p.measure}
             >
               {p.node}

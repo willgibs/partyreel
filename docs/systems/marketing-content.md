@@ -44,14 +44,16 @@ routes.
   two-way mirror by a test. One idea has one page and two doors: the Resources panel's featured card is the primary door
   to `/how-it-works`, the Features panel's footnote the second.
 - **The footer is the ink slab** (`.surface-ink`, never a nested `.dark` or `bg-gallery`), with three registers: the
-  demo invitation (a scannable frame from `sm` up, since a phone cannot scan itself; phones get a link), the index and
-  the legal bar. ★ `Start free` renders at every width in both branches of the `if (!DEMO_EVENT_URL)` return, because
+  demo invitation (the demo's code on a pile of photographs that fans on hover, from `sm` up, since a phone cannot scan
+  itself; phones get a link), the index and the legal bar. ★ `Start free` renders at every width in both branches of the `if (!DEMO_EVENT_URL)` return, because
   the pages with no `CtaBand` would otherwise end with nothing to do whenever the demo is unset.
 - **The footer's index shows everything**: four columns (Features, Events, Product, Resources, with About and Careers as
   Resources' tail), the hubs linked from the Features and Events titles, Privacy and Terms in the legal bar with
   `/llms.txt`. Nothing is collapsed: the sitemap is small enough to show whole, and a test refuses an accordion.
 - **The root 404 renders the same footer outside `(marketing)`**, where marketing.css never loads, so the footer carries
-  everything it needs itself: the slab's tokens, the seam glow and the demo frame's own radius, border and shadow.
+  everything it needs itself: the slab's tokens, the seam glow, and the pile's box, size and rest pose. ★ The rest pose
+  is a layered utility on purpose: the `.mkt-stack` recipe is unlayered, so on a marketing page its rest pose and hover
+  fan win, and an inline pose would outrank the fan everywhere.
 
 ## The claims every page shares
 
@@ -85,6 +87,11 @@ routes.
 
 ## Pages and their single sources
 
+- **Each section's media is made for its own point, never borrowed from the demo**: a film for the home's reel teaser,
+  a still for a card, each a `marketing-media.ts` entry named by the component that shows it, and nothing has to trace
+  back to one dataset (a feature demo needs to explain the product, not to agree with the demo album). The demo stays an
+  experience a visitor opens on purpose, through its labelled doors (below). Every Watch opens the one contained player
+  (`sections/shared/reel-player.tsx`), which keeps the reader on the page with the film framed and Start free beside it.
 - **The home**: `sections/home/section-ids.ts` is the one source of the sections' order and surface, consecutive paper
   ids rendering inside one `PaperChapter`; the headers read `SECTION_HEADERS` in `marketing-voice.ts`.
   `constants/features.ts` and `features-layout.ts` are dead scaffold that only their own test reads.
@@ -109,7 +116,8 @@ routes.
   component names a still of its own. ★ **Every event object carries the demo's real code, never a dead link**: the
   pages server-render it as `footer-qr.tsx` does (`qrcode-generator` is DOM-free, so the matrix ships as inert markup at
   zero client JS), encoding `/demo`, never the event link; with no demo configured each object drops the piece carrying
-  the code and the door proof loses its door. ★ **The prints are literal `bg-white`, never `bg-card`**: they stand on the
+  the code and the door proof loses its door. The proof's reel is the door's STILL twin, its film behind a press: the
+  river is the section's one motion, and two moving cards cancel each other out. ★ **The prints are literal `bg-white`, never `bg-card`**: they stand on the
   cinema ground, where the card token is near-black and a paper border would render as a gap. The FAQ is native
   `<details>` with the page's own `FaqPageJsonLd`.
 - **The frame library** (`marketing/frames/`): a `BrowserFrame` base and a vocabulary (album, gallery, reel, phone, QR),
@@ -119,7 +127,9 @@ routes.
 - **`/reel`**: the live style switcher is the engine's proof (the canvas arrives only behind its lazy island), then the
   live reel, the screen and the clip. The tile is the app's own `PosterCard` over `LivingStills`, so the motion a
   visitor meets there is the one they meet on their album; the screen's corner code is the demo's real one and drops
-  with the demo; the clip table reads `MAX_REEL_SECONDS` and `TIER_NAMES`.
+  with the demo; the clip table reads `MAX_REEL_SECONDS` and `TIER_NAMES`. The hero's heading is `REEL_LINE`
+  (`marketing-voice.ts`), the reel door's line at both sizes, so the door and the room it opens agree; the home's close
+  keeps words of its own.
 - **`/pricing`**: one paper chapter (the Free and Pro pair, the Event Pass, the configurator closing it), then one dark
   room (the unlock tiles, the matrix, the FAQ). ★ The order is deliberate: a reader sizes their event while the pair is
   still in their eye, and the room proves where Free ends. ★ It stays in `(cinema)` although it opens on paper, because
@@ -316,9 +326,10 @@ The demo is one real curated event, switched on by one public env var and needin
 - **`lib/demo.ts` is the single source** (`DEMO_EVENT_URL`, `isDemoToken`). Set, every demo door links the real event
   and the `/features/qr` code scans; unset, no demo link exists anywhere and each door stands down.
 - **`/demo` (`app/demo/route.ts`) is a 307**, never a cached 308, because the demo row can be re-seeded or retired.
-- **One `DemoFrame` is every demo door** (`system/demo-ticket.tsx`): the home hero's plate, the footer invitation, a
-  feature page's demo line and the Features panel. Its corner code trades scannability for proportion, a symbol and a tap
-  target at the hero sizes; the footer's is bigger, because its copy promises a scan.
+- **The demo's doors are three objects, each built for its place**: `DemoFrame` (`system/demo-ticket.tsx`, a photograph
+  in a mat with the code in its corner) is the home hero's plate and the Features panel's pane, its code a symbol and a
+  tap target rather than a scan; the footer's invitation is the code on its photo pile (`chrome/footer-demo.tsx`),
+  scannable because its copy promises a scan; `DemoCtaLink` is the words alone, in the closing bands and the heroes.
 - The guest-side demo mode is [guest-flow.md](guest-flow.md)'s; the in-app QR designer and the welcome are
   [host-app.md](host-app.md)'s; the marketing analytics and the OG-driven growth are
   [notifications-analytics-growth.md](notifications-analytics-growth.md)'s.

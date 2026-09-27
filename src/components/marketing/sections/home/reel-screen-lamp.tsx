@@ -9,7 +9,7 @@ import { useSampledPaletteFromDom } from "@/lib/shared/sampled-palette";
  * THE SCREEN'S LIGHT, THROWN DOWN ONTO THE FLOOR. The reel player is a screen
  * in a dark room, the most literal emitting object on the page, so SOURCE is
  * answered by the object itself. Its light falls DOWN out of its bottom edge
- * onto the dark beneath it, where the style strip and the pointer sit in the
+ * onto the dark beneath it, where the pointer to /reel sits in the
  * pool: the projector-on-the-floor image, and the same mechanic the film strip
  * and the footer use -- a seam anchored on a real edge.
  *

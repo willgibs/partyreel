@@ -300,11 +300,14 @@
     "sample-reel-overlay.lazy": [
       "<OverlayDemo />"
     ],
+    "reel-player": [
+      "<div className=\"mx-auto max-w-xl\">\n  <ReelPlayScreen reelId={LIBRARY_REEL_ID} source=\"library\" />\n</div>"
+    ],
     "morph-delegate": [
       "<>\n  <MorphDelegate\n    name=\"blog-cover\"\n    linkAttr=\"data-cover-morph\"\n    plateAttr=\"data-cover-plate\"\n  />\n  <Link\n    href={`/blog/${LIBRARY_MORPH_SLUG}`}\n    data-cover-morph=\"\"\n    className=\"group relative block aspect-4/5 max-w-[14rem] overflow-hidden rounded-lg bg-muted\"\n  >\n    <span data-cover-plate=\"\" className=\"absolute inset-0\">\n      <Image\n        src={morphCover.src}\n        alt=\"\"\n        fill\n        sizes=\"224px\"\n        className=\"object-cover\"\n      />\n    </span>\n  </Link>\n  <p className=\"mt-3 text-xs text-muted-foreground\">\n    Click the cover: the plate grows into the article&rsquo;s own\n    plate where the browser supports view transitions, and navigates\n    plainly where it does not.\n  </p>\n</>"
     ],
     "cta-band": [
-      "<CtaBand\n  heading=\"Your next event ends with a reel.\"\n  subhead=\"A sample band: the primary defaults to the marketing CTA.\"\n  demoLink\n  credit\n  className=\"py-12\"\n/>"
+      "<CtaBand\n  heading=\"Your next event starts here.\"\n  subhead=\"A sample band: the primary defaults to the marketing CTA.\"\n  demoLink\n  credit\n  className=\"py-12\"\n/>"
     ],
     "demo-ticket": [
       "<div className=\"rounded-lg bg-gallery p-4\">\n  <DemoTicket />\n</div>",
@@ -315,7 +318,8 @@
     ],
     "feature-door": [
       "<div className=\"max-w-sm\">\n  <FeatureDoor slug=\"album\" copy=\"long\" />\n</div>",
-      "<div className=\"max-w-[14rem]\">\n  <FeatureDoor slug=\"qr\" aspect=\"portrait\" />\n</div>"
+      "<div className=\"max-w-[14rem]\">\n  <FeatureDoor slug=\"qr\" aspect=\"portrait\" />\n</div>",
+      "<div className=\"max-w-[14rem]\">\n  <FeatureDoor slug=\"reel\" aspect=\"portrait\" />\n</div>"
     ],
     "feature-hero-eyebrow": [
       "<FeatureHeroEyebrow label=\"The live album\" />"

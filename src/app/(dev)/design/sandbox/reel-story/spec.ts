@@ -3,53 +3,58 @@ import { defineExploration } from "@/components/lab/exploration";
 import { SCREEN } from "./screens";
 
 /**
- * THE MARKETING STORY OF THE REEL, ROUND TWO (2026-09-25).
+ * THE MARKETING STORY OF THE REEL, ROUND THREE (2026-09-27).
  *
- * Round one is answered (`docs/reviews/reel-story.json`) and its picks are
- * reel-sweep's to build tonight, so they are drawn here as ground: the /reel
- * page runs the live reel, then the screen, then clips (the party, then the
- * morning after); the pricing rows name the clip; the loop's last steps are
- * "Watch the reel grow" and "Make your clip"; the help category stays
- * "Highlight reel"; clip is the noun; no two pages close on the same reel
- * beat; no centred portrait video leaves a desktop blank beside it.
+ * Round two is answered (`docs/reviews/reel-story.json`) and `reel-marketing`
+ * is wiring its four picks tonight, so they are ground here and their
+ * drawings left the board (git holds them): the close invites ("Your next
+ * event starts here."), the reel's door and the /reel heading say "Your event,
+ * playing as it happens.", the event pages' reel is the demo door's still
+ * twin, the teaser opens a contained player, the footer has its photo stack
+ * back and the demo link stands alone in all 19 places.
  *
  * ★ HIS NOTES, AS DIRECTION.
- * - thesis, none picked: "The home screen and the feature hub's reel door
- *   don't have to be tied together with this copy... they're for different
- *   purposes", and "Roll credits on the group chat" made readers "think too
- *   much". So the one constant splits: `close` is the home's last invitation
- *   in its own words (a direction that never names the reel is fair), `card`
- *   is what the reel is, on its door and, as ground his to overrule, as the
- *   /reel hero's heading, so the door and the room it opens agree.
- * - events=wall: "the left card is beautiful for production, only needing
- *   shorter copy that reduces it to 2 lines max", and the right side "could
- *   use a ton of redesign work around the reel presentation". So the door is
- *   ground (its line cut, measured in the real type at both widths) and
- *   `wall` redraws only the reel's side, as the door's equal.
- * - teaser=poster, as a short looped clip with a play mark that launches "a
- *   demo reel experience", or a modal "that contextualizes what they're
- *   watching with some CTA". `play` draws where the press leads: the
- *   Orchestrator's overlay (his two merged), his route, his modal.
+ * - close, on the album and code: "when we replaced the QR in the home hero
+ *   with the album + QR, I didn't realize we were replacing every instance...
+ *   It looks really silly here beside the 'Try the live demo...' CTA link.
+ *   Would like something totally new here (or nothing at all beside the
+ *   link)... The home hero version also needs a ton of work to feel more
+ *   polished." So `hero` grades polished takes against today's object, and
+ *   `beside` draws new marks with nothing as one of them. The footer is his
+ *   "swap back in the old version", the wiring's, and `site-chrome` asks the
+ *   footer's own questions.
+ * - card=as-it-happens: "Could use a few better options though. The
+ *   'everyone's photos... live' and 'every new photo joins' from the other
+ *   options also added value beyond this version's 'Your event', which is
+ *   less clear." So `line` draws lines that carry those two, graded against
+ *   the working one.
+ * - play=modal, the principle for every preview: "an exciting
+ *   intro/feature/reel video made for its own purpose in a section will
+ *   always beat using a generic reel from a fake demo that our site visitors
+ *   aren't auditing." Round two drew every option on the demo album's live
+ *   reel; this round draws on the media registry's stand-ins for each slot
+ *   and names what a pick would need made.
  *
- * ★ ROUND ONE'S FRAMES RETIRED. They were plain boxes, so every breakpoint
- * inside answered the lab window instead of the frame (the "375" events column
- * was the desktop grid squeezed); git has them. Every option now draws in a
- * real frame at its own width, with the reel on the real engine.
- *
- * Nothing here asks what another standing board asks: the footer under the
- * close is `site-chrome`'s (`foot-after`), the reel view's own chrome is
- * `reel-view`'s, and the album tile is `reel-front`'s.
+ * Nothing here asks what another standing board asks: the footer is
+ * `site-chrome`'s, the hero at a tablet width is `loose-ends`' `hero-tablet`
+ * (this board draws 1440 and 375 only), and a popup's surface is `popups`'.
  */
 export const REEL_STORY = defineExploration({
   id: "reel-story",
   title: "The marketing story of the reel",
   round: {
-    n: 2,
-    date: "2026-09-25",
+    n: 3,
+    date: "2026-09-27",
     changed:
-      "The thesis splits into the home's close and the reel's card, each in its own words; the events column becomes the reel beside the demo door, redrawn as its equal; the poster becomes a looped clip, and the ask is where its play mark leads. Every frame is a real viewport now.",
+      "Three new questions from your round-two notes: the hero's album and code, polished and graded against today's; what stands beside the demo link now the frame has gone; and better lines for the reel. Round two's answers are being wired, so their drawings left the board.",
   },
   history: [
+    {
+      n: 2,
+      date: "2026-09-25",
+      changed:
+        "The thesis split into the home's close and the reel's card, each in its own words; the events column became the reel beside the demo door, redrawn as its equal; the poster became a looped clip, and the ask was where its play mark leads. Every frame became a real viewport.",
+    },
     {
       n: 1,
       date: "2026-09-25",
@@ -58,189 +63,169 @@ export const REEL_STORY = defineExploration({
     },
   ],
   context:
-    "Round one's answers are ground: the /reel page runs the live reel, then the screen, then clips; the pricing rows and the loop's last steps name the clip; help stays Highlight reel. You turned down every thesis line and asked that the home's close and the reel's card stop sharing one, and for a redesign of the reel beside the demo door. Four asks, each in its real section, in a real frame at 1440 and 375, the reel on the real engine.",
+    "Round two is being wired: the close invites, the reel's door and heading say \"Your event, playing as it happens.\", the event pages' reel stands still beside the demo door, the teaser opens a contained player. Your notes open three questions. The album and code that replaced the hero's QR had replaced the mark beside every demo link and the footer's stack too; the footer gets its stack back, and the other two are asked here, each on its own. Every frame is real, at 1440 and 375.",
   carried: [
     {
-      id: "door-line",
-      question: "What does the demo door say, cut to two lines?",
+      id: "hero-code",
+      question: "What should the hero's code encode?",
       taken:
-        '"A real album, open with no sign-up." Read off the frame: two lines at 1440 and at 375.',
+        "The QR door's short /demo link (your opens=short): 25 modules against the event link's 33, so each polished take's code scans at the size drawn.",
       overrule:
-        "Any line that measures two at 375 in the door's type; /how-it-works keeps its longer subhead either way.",
+        "The event link again, at a code about a quarter bigger than each take draws it.",
     },
     {
-      id: "start-label",
-      question: "What does the button in the overlay and the modal say?",
+      id: "hero-ground",
+      question: "Does anything but the object change in the hero?",
       taken:
-        '"Start free", the site\'s one start label, rather than a new "Start your event".',
+        "No: the band, its tables and the headline block are production's. The print hangs by its code; the pair on paper sits a little high, for air over the headline.",
       overrule:
-        "A label for one place is one string; everywhere else keeps the one.",
+        "A take that wants the axis or the block moved is a hero-stream.ts retune, drawn next round.",
     },
     {
-      id: "teaser-words",
-      question: "What do the teaser's own words say around the play mark?",
+      id: "peek-phone",
+      question: "What does the peek do on a phone?",
       taken:
-        "Its heading as shipped, a stand-in line where the retired style-picking subhead was, and no style strip, judged for size.",
+        "Nothing: a phone has no hover, so the link stands alone there and a tap opens the demo, as it does today.",
       overrule:
-        "The section's words are the wiring's; this round asks only where the press leads.",
+        "A first tap could open the peek and a second the demo, at the cost of a tap.",
     },
     {
-      id: "card-sizes",
-      question: "Does the reel door keep a longer second line on the hub?",
+      id: "line-sizes",
+      question:
+        "Does the reel's line stay one string at both door sizes and as the /reel heading?",
       taken:
-        "No: one line at both sizes (the hub's lead and the related row), and the /reel heading takes it.",
+        "Yes, as round two carried it and the wiring lands it; the hub's longer door line stays retired.",
       overrule:
-        "A longer hub line can come back as the door's second string, and the heading would take the short one.",
+        "A longer hub line can come back as the door's second string, with the heading keeping this one.",
     },
   ],
   asks: [
     {
-      id: "close",
-      label: "The home's close",
+      id: "hero",
+      label: "The hero's album and code",
       question:
-        "How should the home page close: its heading, the line under it and its buttons?",
+        "What should the object at the centre of the home hero be, the one the album streams out of?",
       context:
-        'The home\'s last section, above the footer (the footer is site-chrome\'s). Today it reads "Roll credits on the group chat." over "Every event ends with a reel." Its job: the last invitation to start, read in one pass.',
+        "The home's first screen: the album streams out of this object along the band's axis, and pressing it opens the demo. You asked for today's, a framed photograph with its code on a corner plate, much more polished. Drawn in the real hero.",
       options: [
         {
-          id: "starts",
-          label: '"Your next event starts here."',
+          id: "today",
+          label: "Today: the framed photograph",
           means:
-            "The plainest invitation, on the verb you picked for the empty states, with free to host and one scan for guests under it.",
+            "A photograph in a dark mat, its code on a white plate hung off the corner, centred on the axis. The reference every take is graded against.",
         },
         {
-          id: "every-photo",
-          label: '"Get every photo from your next event."',
+          id: "refined",
+          label: "The same pair, on paper",
           means:
-            "Names the payoff every section above it promised, the photos collected, as the reason to start. No reel in it.",
+            "Today's two pieces made with care: the photograph on white paper, and the code on a card of the same stock tucked into its corner at a slight turn.",
         },
         {
-          id: "big-screen",
-          label: '"Put your next event on the big screen."',
+          id: "print",
+          label: "One print, its code on the axis",
           means:
-            "Ends on the reel's most vivid use, the screen at the party, with the demo reel as a second button: the one close on the site built on the reel.",
+            "A white print with the code in its deeper foot, hung so the code sits on the band's axis: the album leaves the code, the photograph above it.",
         },
         {
-          id: "hosting",
-          label: '"Hosting something soon?"',
+          id: "plate",
+          label: "The code alone, as the QR door",
           means:
-            "A question in the reader's own words, low pressure, with the minute it takes and the one album it makes under it.",
+            "The white plate the band was drawn around, finished like the QR door's code you called the first truly beautiful card. The band is the photographs.",
         },
       ],
-      recommended: "starts",
+      today: "today",
+      recommended: "print",
       because:
-        "It is the last invitation and says only that, in words nobody has to decode, on the verb you picked because it invites the first move; a visitor who signs up meets the same verb on their first empty album.",
+        "It keeps the photograph your frame pick added, makes the object one piece of paper rather than a dark box with a plate stuck on, and puts the code back where the album leaves from, on the axis, at a size that scans.",
       overrule:
-        "If the close should restate why rather than invite, the photos; if the page should end on the reel it just showed, the big screen.",
+        "If the photograph is what felt unfinished, the code alone; if only the finish was off, the same pair on paper.",
       lands:
-        "The close's heading, line and buttons in cinema-close.tsx, which stops reading the shared thesis constant.",
+        "The object DemoQr mounts in cinema-hero.tsx and what its code encodes; the footer and the demo line keep their own.",
       configs: [SCREEN],
     },
     {
-      id: "card",
-      label: "The reel's card",
+      id: "beside",
+      label: "Beside the demo link",
       question:
-        "Which line should tell a reader what the highlight reel is, on its card and as the /reel page's heading?",
+        'What, if anything, should stand beside the "Try the live demo, no signup." link?',
       context:
-        "The hub's lead door (its title kept), the same door in /features/sharing's related row, and the /reel hero, whose heading takes the line. Today all three say \"Every event ends with a reel.\" by a 0:08 chip; the live reel has neither.",
+        "The line under the buttons in 14 closing bands and five heroes; the framed photograph left it at your note. Each mark rides inside the one link, drawn beside the real words in the home's close and in the /reel hero.",
+      options: [
+        {
+          id: "none",
+          label: "Nothing: the link alone",
+          means:
+            "The words and the chevron, as the wiring leaves them in all 19 places. The reference.",
+        },
+        {
+          id: "live",
+          label: "A live dot",
+          means:
+            'The dot the album door\'s "Filling live" chip wears, breathing on the house pulse and still under reduced motion: the album behind the link is live.',
+        },
+        {
+          id: "faces",
+          label: "The guests' faces",
+          means:
+            "Three of the demo album's guests in the guest list's own face row. Seeded avatars stand in until portraits made for the line land.",
+        },
+        {
+          id: "peek",
+          label: "A peek on hover",
+          means:
+            "Nothing at rest; a pointer or a focus opens a card of the album under the link: three photographs, its name and its count. A phone keeps the link alone.",
+        },
+      ],
+      recommended: "live",
+      because:
+        "It is the smallest thing that is new: one dot in the product's own live colour, which says what the link opens is alive, costs no asset, reads the same at 375 and never outweighs the words, the frame's failure.",
+      overrule:
+        "If anything beside the words is too much, nothing; if a visitor should see the album before the press, the peek.",
+      lands:
+        "What DemoCtaLink draws inside its one link in all 19 places (demo-cta-link.tsx).",
+      configs: [SCREEN],
+    },
+    {
+      id: "line",
+      label: "The reel's line",
+      question:
+        "Which line should tell a reader what the highlight reel is, on its door and as the /reel heading?",
+      context:
+        'The hub\'s lead door, the same door in a related row, and the /reel heading. You picked "Your event, playing as it happens." and asked for lines carrying "everyone\'s photos, live" and "every new photo joins".',
       options: [
         {
           id: "as-it-happens",
           label: '"Your event, playing as it happens."',
           means:
-            "The one new fact, that it is live, said the way a guest would say it. The chip is the view's own resting bar, with no length on it.",
+            "The working line the wiring round is landing: that it is live, said the way a guest would say it. The reference.",
         },
         {
-          id: "cut-together",
-          label: '"Everyone\'s photos, cut together live."',
+          id: "as-they-land",
+          label: '"Everyone\'s photos, live as they land."',
           means:
-            "What it is made of and that nobody edits it: every guest's photos and videos, cut into one reel as they arrive.",
+            "Whose photos, that it is live and that each one arrives into it, at the working line's own length: two lines on /reel, one on each door.",
         },
         {
-          id: "joins",
-          label: '"Every new photo joins it in seconds."',
+          id: "new-photo",
+          label: '"Every new photo plays as it lands."',
           means:
-            "The concrete proof that it is alive, with the arrival beat the view draws when a guest adds one as its chip.",
+            "Said from the photo's side: every new one plays the moment it lands, which is the reel growing as the party goes on.",
+        },
+        {
+          id: "two-beats",
+          label: '"Everyone\'s photos, live. Every new one joins."',
+          means:
+            "Your two round-two picks as two short beats: the fullest of the four, and the one that takes a third line on /reel at 1440 and a second on the small door.",
         },
       ],
-      recommended: "as-it-happens",
+      today: "as-it-happens",
+      recommended: "as-they-land",
       because:
-        "It is the shortest true answer to what the reel is, the only one a reader feels rather than parses, and it carries a heading's weight on /reel as well as a door's line on the hub.",
+        "It carries what both your round-two picks said, whose photos, that it is live, that each one lands in it, at the working line's own length: two lines on /reel, one on each door. Nothing in it needs decoding.",
       overrule:
-        "If the card should say what the reel is made of rather than how it feels, everyone's photos; if it should prove it, the arrival.",
+        "If each photo's arrival is the point, every new photo plays; if your two picks should stand as written, the two beats, at a third line.",
       lands:
-        "The reel door's line (one string at both sizes), its chip, and the /reel hero's heading.",
-      configs: [SCREEN],
-    },
-    {
-      id: "wall",
-      label: "The reel beside the door",
-      question:
-        "How should the reel stand beside the demo door on the event pages?",
-      context:
-        "The event pages' proof: the demo door as shipped, its line cut to two, and the reel beside it as its equal, never a thumbnail. The same words and the demo album's live reel in every option; only how the reel stands changes.",
-      options: [
-        {
-          id: "pair",
-          label: "The door's twin card",
-          means:
-            "The reel takes the door's own card: its corner, ring, floor and height beside it, playing full bleed with the words on its floor. Your seven and five stay.",
-        },
-        {
-          id: "screen",
-          label: "The screen at the party",
-          means:
-            "The reel as the screen it plays on at the event, wearing the real screen's code plate (it scans to the demo); the columns even out so the wall stands tall.",
-        },
-        {
-          id: "bleed",
-          label: "Past the page's edge",
-          means:
-            "No box at all: the reel runs from the door to the window's edge, as tall as the door, the words on its floor; on a phone, edge to edge.",
-        },
-      ],
-      recommended: "pair",
-      because:
-        "Equal reads fastest when the two share a shape: the same card at the same height is a designed pair, keeps the layout you liked, and gives the reel as much of the page as the album.",
-      overrule:
-        "If the reel should show where it plays rather than match the door, the screen; if the page should feel boldest, the bleed.",
-      lands:
-        "The reel side of event-door.tsx on every type page, and the door's shorter line.",
-      configs: [SCREEN],
-    },
-    {
-      id: "play",
-      label: "Where the play mark leads",
-      question: "Where should the home teaser's play mark lead?",
-      context:
-        "The home's reel section plays a short muted loop with a play mark (a stand-in video until the demo album's own clip exists). Each option is drawn pressed; press Close to see where it returns.",
-      options: [
-        {
-          id: "overlay",
-          label: "The demo's reel, over the page",
-          means:
-            "The view full screen over the home page, with one line of context, Start free and the demo album a press away. Close returns to the teaser.",
-        },
-        {
-          id: "route",
-          label: "Into the demo album, reel open",
-          means:
-            "A new page: the demo album with its reel open, and Close lands in the album. Today the demo's welcome comes first, so it would wait for the reel to close.",
-        },
-        {
-          id: "modal",
-          label: "A contained player",
-          means:
-            "A landscape player in a panel over the dimmed page, with a caption and Start free; small on a phone. Close returns to the teaser.",
-        },
-      ],
-      recommended: "overlay",
-      because:
-        "It shows a visitor the real reel a host gets, full screen, without leaving the page they were deciding on, and turns watching into starting with one line and one button; the album stays a press away.",
-      overrule:
-        "If the demo album is a better argument than its reel, the route; if a full-screen takeover is too much for a homepage, the modal.",
-      lands:
-        "What the teaser's play mark opens, and whether the home mounts the reel's view over itself.",
+        "The reel door's line at both sizes and the /reel hero's heading (feature-door.tsx, reel-hero.tsx, marketing-voice.ts).",
       configs: [SCREEN],
     },
   ],
