@@ -27,7 +27,6 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 export type SandboxId =
   | "identity-door"
   | "identity-claims"
-  | "identity-profile"
   | "guest-capture"
   | "voice-guest"
   | "site-chrome"
@@ -106,29 +105,6 @@ export const RULINGS: Ruling[] = [
         "Working through more than one",
         "Warning before a deletion",
         "What Finish leaves her looking at",
-      ],
-    },
-  },
-  {
-    id: "identity-profile",
-    title: "Setting up a page",
-    surface: "guest",
-    asks: "how a verified guest sets up her page, how she chooses what shows, whether that choice should even default to hidden, when the app offers the setup, and what an empty page says to a visitor",
-    why: "A profile publishes nothing until its owner chooses, so the setup is how a page fills; drawn on the account page's real cards and the public page.",
-    lives: [
-      "docs/systems/profiles-social.md",
-      "src/components/social/attended-events-visibility.tsx",
-      "src/app/(guest)/u/[slug]/page.tsx",
-      "src/app/(app)/account/page.tsx",
-    ],
-    board: {
-      note: "Five decisions on the account page's real cards and the public profile page, over Priya, verified, with photos added to three events and none shown: how setup itself happens, how she chooses what shows, whether that choice should even default to hidden, when the app ever invites the setup, and what an empty claimed page says to a visitor",
-      variants: [
-        "How it's set up",
-        "What shows",
-        "The starting default",
-        "When it's offered",
-        "The empty page",
       ],
     },
   },
@@ -584,7 +560,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "reel-story",
   "media-viewer",
   "identity-claims",
-  "identity-profile",
   "guest-capture",
   "voice-guest",
   "host-curation",
