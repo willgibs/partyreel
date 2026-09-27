@@ -27,7 +27,6 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 export type SandboxId =
   | "identity-door"
   | "identity-claims"
-  | "guest-capture"
   | "voice-guest"
   | "site-chrome"
   | "profile-page"
@@ -103,31 +102,6 @@ export const RULINGS: Ruling[] = [
         "Where the deletion's dialog sits",
         "What a claimed event offers",
         "Pointing from the album",
-      ],
-    },
-  },
-  {
-    id: "guest-capture",
-    title: "Keeping what she just added",
-    surface: "guest",
-    asks: "when the second ask to keep her photos reaches a guest the door already offered an email, the ask's shape, whom she can follow once she confirms, whether her typed name is written silently, confirmed or told, and whether a moderated event gives her a tracker",
-    why: "The capture flow after a name-only guest's first upload is live; this board refines it and never gates the shipped flow.",
-    lives: [
-      "docs/systems/guest-flow.md",
-      "src/components/guest/save-account-prompt.tsx",
-      "src/components/guest/follow-moment-card.tsx",
-      "src/components/guest/claim-handle-prompt.tsx",
-      "src/components/guest/guest-header.tsx",
-      "src/components/shared/unverified-mark.tsx",
-    ],
-    board: {
-      note: "Five decisions on the shipped capture flow's real pieces, over Priya, an Unverified guest: when the second ask first reaches her, what shape it takes, whom she can follow once she confirms, whether the name she typed at the door is silent, confirmed or told, and whether a moderated event gives her a tracker for her own batch",
-      variants: [
-        "The moment",
-        "The offer's shape",
-        "The follow surface",
-        "What the name becomes",
-        "Her tracker",
       ],
     },
   },
@@ -534,7 +508,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "identity-door",
   "reel-story",
   "identity-claims",
-  "guest-capture",
   "voice-guest",
   "host-curation",
   "host-storage",
