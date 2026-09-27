@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { Suspense, type CSSProperties } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Sparkles } from "lucide-react";
 
 import { EventCard, RoleMarker } from "@/components/app/event-card";
+import { PAGE_CHOICES_PATH } from "@/app/(app)/account/profile/invite";
+import { emptyPageLine } from "@/app/(guest)/u/[slug]/empty-page";
 import { OwnerSections } from "@/app/(guest)/u/[slug]/owner-sections";
 import { GuestHeader } from "@/components/guest/guest-header";
 import { FollowButton } from "@/components/social/follow-button";
@@ -175,8 +176,9 @@ function GridSkeleton({ count }: { count: number }) {
  * composition: hosted events the host PUBLISHED (display_in_profile, with the
  * album link) + the events this person added photos to that their hosts' guest
  * lists surface and that the owner CHOSE to show (nothing until chosen), each
- * following its album's own doors for THIS viewer. Never any counts (follower
- * counts are owner-private) and never an email.
+ * following its album's own doors for THIS viewer. Never a follow count (the
+ * graph is owner-private) and never an email; the one number is an empty page's
+ * "2 private events", held to those same doors.
  *
  * ★ ONE GRID, TWO KINDS OF CARD. Event cards make a profile page feel full and
  * give a guest a reason to upload (the event's card on their own profile); a host
@@ -327,11 +329,21 @@ export default async function PublicProfilePage({ params }: PageProps) {
             style={{ "--arrive-i": 2 } as CSSProperties}
             className="mt-10"
           >
+            {/* ★ ONE QUIET LINE (`page=count`): "2 private events" tells a visitor this is an
+                active person who keeps her events to herself, where "No events here yet" is a
+                page with nothing behind it. The number is the RPC's, scoped to what THIS viewer
+                could confirm, so it can never say more than a shown line would. The owner alone
+                gets the way to change it, one tap from the thing it changes. */}
             <EmptyState
               variant="quiet"
-              icon={Sparkles}
-              title="No events here yet"
-              description={`When ${name} shares an event, it shows up here.`}
+              title={emptyPageLine(profile.private_event_count)}
+              action={
+                isSelf ? (
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={PAGE_CHOICES_PATH}>Choose what shows</Link>
+                  </Button>
+                ) : undefined
+              }
             />
           </div>
         ) : (

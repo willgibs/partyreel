@@ -21,6 +21,7 @@ import "server-only";
 import type { TablesUpdate } from "@/lib/db/types";
 
 import type { MutationResult } from "@/lib/db/mutations/events";
+import { inChunks } from "@/lib/db/read-all";
 import type { NotificationPrefs } from "@/lib/social/notification-prefs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -283,6 +284,73 @@ export async function hideEventFromProfile(
     };
   }
   return { ok: true, data: { id: eventId } };
+}
+
+/**
+ * THE SETUP'S ONE-TIME CHOICE, APPLIED ONCE (`identity-profile` r1, `default=off` with Will's note:
+ * "a one-time selection ... to select and show all/hide all initially, then direct handling of
+ * events under profile from there"). The wizard's Finish hands over what to publish and what to take
+ * back, already narrowed to the caller's own attended events by the action; this writes both through
+ * the same owner-RLS rows `showEventOnProfile` and `hideEventFromProfile` write one at a time.
+ *
+ * Idempotent in both directions: a choice already made is `on conflict do nothing` (PostgREST's
+ * ignore-duplicates upsert, which needs only the INSERT the table grants), and a release of a row
+ * that is not there deletes nothing. Every id list is chunked (`inChunks`): the delete's ids ride the
+ * URL, and a keen guest's events grow without bound. Publishing runs AFTER releasing, so a failure
+ * halfway leaves the page showing less than she chose, never more.
+ */
+export async function applyShownEvents(choice: {
+  show: string[];
+  hide: string[];
+}): Promise<MutationResult<{ shown: number; hidden: number }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return UNAUTHORIZED;
+
+  const failed = {
+    ok: false as const,
+    code: "unknown" as const,
+    message: "Couldn't save what shows on your page. Please try again.",
+  };
+  try {
+    if (choice.hide.length > 0) {
+      await inChunks(
+        "social: release shown events",
+        choice.hide,
+        async (chunk) => {
+          const { error } = await supabase
+            .from("profile_shown_events")
+            .delete()
+            .eq("user_id", user.id)
+            .in("event_id", chunk);
+          if (error) throw error;
+          return [];
+        },
+      );
+    }
+    if (choice.show.length > 0) {
+      await inChunks(
+        "social: choose shown events",
+        choice.show,
+        async (chunk) => {
+          const { error } = await supabase.from("profile_shown_events").upsert(
+            chunk.map((eventId) => ({ user_id: user.id, event_id: eventId })),
+            { onConflict: "user_id,event_id", ignoreDuplicates: true },
+          );
+          if (error) throw error;
+          return [];
+        },
+      );
+    }
+  } catch {
+    return failed;
+  }
+  return {
+    ok: true,
+    data: { shown: choice.show.length, hidden: choice.hide.length },
+  };
 }
 
 /**

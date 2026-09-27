@@ -51,7 +51,8 @@ has no filter chips and no personal feeds (those are the profile's owner mode, [
   `disown_guest_rows_by_email`), since that is the guest saying those uploads were not theirs. An unclaimed name leaves
   the guest list and the Guests room with its uploads, and the empty guest row survives for the device that minted it.
   A nameless profile meets the name gate first ([auth-accounts.md](auth-accounts.md)), prefilled from the newest
-  claimable row's typed name.
+  claimable row's typed name. A Finish that added photos says so with a second line pointing at the page, and once no
+  claim waits the page setup's invitation takes the ticket's place ([profiles-social.md](profiles-social.md)).
 
 ## Events and the create flow
 

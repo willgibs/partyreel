@@ -6,7 +6,7 @@ import {
   hideEventFromProfileAction,
   showEventOnProfileAction,
 } from "@/app/(app)/account/social-actions";
-import type { AttendedEventSetting } from "@/lib/db/queries/social";
+import type { AttendedEventPick } from "@/lib/db/queries/social";
 
 import { AttendedEventsVisibility } from "./attended-events-visibility";
 
@@ -16,25 +16,43 @@ vi.mock("@/app/(app)/account/social-actions", () => ({
 }));
 
 /**
- * THE DEFAULT FLIPPED (the guest identity round, 2026-09-22): a guest's
- * attended event publishes on their profile only once THEY turn it on —
- * `shownOnProfile: false` renders unchecked, and checking the switch is what
+ * THE DEFAULT FLIPPED (the guest identity round, 2026-09-22): a guest's attended event publishes on
+ * her page only once SHE turns it on. `shownOnProfile: false` renders off, and turning it on is what
  * calls the PUBLISH action (`showEventOnProfileAction`), never the reverse.
+ *
+ * ★ RESHAPED ON PURPOSE (`identity-profile` r1, `attended=picker`): the switch list became a grid of
+ * covers she taps, the chosen ones lifted. The contract under it is unchanged and every case below
+ * still holds it; only the control's shape moved, from `role="switch"` + `aria-checked` to a toggle
+ * button + `aria-pressed`. The one new case is the album's own masking on a tile.
  */
 
-const shownEvent: AttendedEventSetting = {
+const shownEvent: AttendedEventPick = {
   id: "e-shown",
   name: "Maya & Theo's Wedding",
-  event_date: "2026-10-01",
   shownOnProfile: true,
+  coverUrl: "https://r2.example/cover-a.webp",
+  locked: false,
 };
 
-const hiddenEvent: AttendedEventSetting = {
+const hiddenEvent: AttendedEventPick = {
   id: "e-hidden",
   name: "Summer BBQ",
-  event_date: null,
   shownOnProfile: false,
+  coverUrl: null,
+  locked: false,
 };
+
+const lockedEvent: AttendedEventPick = {
+  id: "e-locked",
+  name: "Private event",
+  shownOnProfile: true,
+  coverUrl: null,
+  locked: true,
+};
+
+function tile(name: RegExp) {
+  return screen.getByRole("button", { name });
+}
 
 beforeEach(() => {
   vi.mocked(showEventOnProfileAction).mockReset();
@@ -42,26 +60,27 @@ beforeEach(() => {
 });
 
 describe("no attended events", () => {
-  it("renders the empty state, not a bare list", () => {
+  it("renders the empty state, not a bare grid", () => {
     render(<AttendedEventsVisibility events={[]} />);
     expect(screen.getByText(/None yet/)).toBeInTheDocument();
-    expect(screen.queryByRole("switch")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 });
 
 describe("default OFF", () => {
-  it("an event nobody has shown renders unchecked", () => {
+  it("an event nobody has shown renders unpressed", () => {
     render(<AttendedEventsVisibility events={[hiddenEvent]} />);
-    expect(
-      screen.getByRole("switch", { name: /Show Summer BBQ/ }),
-    ).toHaveAttribute("aria-checked", "false");
+    expect(tile(/Show Summer BBQ/)).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByText("Private")).toBeInTheDocument();
   });
 
-  it("an event already shown renders checked", () => {
+  it("an event already shown renders pressed", () => {
     render(<AttendedEventsVisibility events={[shownEvent]} />);
-    expect(
-      screen.getByRole("switch", { name: /Show Maya & Theo's Wedding/ }),
-    ).toHaveAttribute("aria-checked", "true");
+    expect(tile(/Show Maya & Theo's Wedding/)).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByText("Showing on your page")).toBeInTheDocument();
   });
 });
 
@@ -70,10 +89,10 @@ describe("turning one on", () => {
     vi.mocked(showEventOnProfileAction).mockResolvedValue({ ok: true });
     render(<AttendedEventsVisibility events={[hiddenEvent]} />);
 
-    const toggle = screen.getByRole("switch", { name: /Show Summer BBQ/ });
+    const toggle = tile(/Show Summer BBQ/);
     fireEvent.click(toggle);
 
-    expect(toggle).toHaveAttribute("aria-checked", "true"); // optimistic
+    expect(toggle).toHaveAttribute("aria-pressed", "true"); // optimistic
     await waitFor(() =>
       expect(showEventOnProfileAction).toHaveBeenCalledWith("e-hidden"),
     );
@@ -87,32 +106,54 @@ describe("turning one on", () => {
     });
     render(<AttendedEventsVisibility events={[hiddenEvent]} />);
 
-    const toggle = screen.getByRole("switch", { name: /Show Summer BBQ/ });
+    const toggle = tile(/Show Summer BBQ/);
     fireEvent.click(toggle);
 
     await waitFor(() =>
-      expect(toggle).toHaveAttribute("aria-checked", "false"),
+      expect(toggle).toHaveAttribute("aria-pressed", "false"),
     );
     expect(toast.error).toHaveBeenCalledWith("Couldn't save that.");
   });
 });
 
 describe("turning one off", () => {
-  it("calls the release action, and never removes the event from the list", async () => {
+  it("calls the release action, and never removes the event from the grid", async () => {
     vi.mocked(hideEventFromProfileAction).mockResolvedValue({ ok: true });
     render(<AttendedEventsVisibility events={[shownEvent]} />);
 
-    const toggle = screen.getByRole("switch", {
-      name: /Show Maya & Theo's Wedding/,
-    });
+    const toggle = tile(/Show Maya & Theo's Wedding/);
     fireEvent.click(toggle);
 
-    expect(toggle).toHaveAttribute("aria-checked", "false");
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
     await waitFor(() =>
       expect(hideEventFromProfileAction).toHaveBeenCalledWith("e-shown"),
     );
     expect(showEventOnProfileAction).not.toHaveBeenCalled();
-    // The row itself is never conditioned on the switch's own state.
+    // The tile itself is never conditioned on its own state.
     expect(screen.getByText("Maya & Theo's Wedding")).toBeInTheDocument();
+  });
+});
+
+describe("a tile is the album's own window", () => {
+  it("draws a cover only where the album gave one", () => {
+    const { container } = render(
+      <AttendedEventsVisibility events={[shownEvent, hiddenEvent]} />,
+    );
+    const covers = container.querySelectorAll("img");
+    expect(covers).toHaveLength(1);
+    expect(covers[0]).toHaveAttribute("src", shownEvent.coverUrl);
+  });
+
+  it("a private album's tile still toggles, so a choice she can see is one she can take back", async () => {
+    vi.mocked(hideEventFromProfileAction).mockResolvedValue({ ok: true });
+    const { container } = render(
+      <AttendedEventsVisibility events={[lockedEvent]} />,
+    );
+    expect(container.querySelector("img")).toBeNull();
+
+    fireEvent.click(tile(/Show Private event/));
+    await waitFor(() =>
+      expect(hideEventFromProfileAction).toHaveBeenCalledWith("e-locked"),
+    );
   });
 });
