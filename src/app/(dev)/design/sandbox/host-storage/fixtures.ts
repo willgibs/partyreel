@@ -250,11 +250,3 @@ export function groupedByWorstFirst(
     (a, b) => (b.items[0]?.fileSizeBytes ?? 0) - (a.items[0]?.fileSizeBytes ?? 0),
   );
 }
-
-/** The single event `where=album` scopes to: the heaviest one, so the option
- *  that can only see one event at a time is judged on the event most worth
- *  seeing sizes for. */
-export const ALBUM_SCOPE_EVENT_ID: EventId = "e1";
-export const ALBUM_SCOPE_ITEMS = largestFirst(
-  STORAGE_ITEMS.filter((i) => i.eventId === ALBUM_SCOPE_EVENT_ID),
-);

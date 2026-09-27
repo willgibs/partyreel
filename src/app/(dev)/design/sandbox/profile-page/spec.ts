@@ -2,40 +2,31 @@ import type { Control } from "@/components/lab/board-spec";
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * WHAT A PERSON IS ON PARTYREEL, ROUND TWO: THE THREE HE LEFT OPEN
- * (2026-09-19); A FOURTH, `head`, ASKED AGAIN BY THE REFRESH (2026-09-24).
+ * WHAT A PERSON IS ON PARTYREEL, ROUND TWO: WHAT HE LEFT OPEN (2026-09-19);
+ * `head` ASKED AGAIN BY THE REFRESH (2026-09-24).
  *
  * Round one answered whole (docs/reviews/profile-page.json; the fourth
  * batch, verbatim): whether a person has a page,
  * what stands above it, what fills it, what its top says, block, who is
  * named, the claim, and the closed shape of a big guest list (`list=faces`).
  * `profile-wiring` lands all eight on the real profile and guest list at this
- * same cut. Three of his own notes on that batch stayed questions rather than
- * answers, and this round is those three, drawn on the SAME board:
+ * same cut. His own notes on that batch that stayed questions are drawn on
+ * the SAME board:
  *
- *  - `list=faces`, verbatim: "let's add an option to expand that into the
- *    full list. For bigger lists, we should continue to have pagination to
- *    expand into groups. I can imagine an edge case with a thousand guests,
- *    and you click 'View All', and all of a sudden you have a page 100
- *    screens tall all at once. Could use an exploration on how to view all
- *    from this condensed view (modal, sheet, page, going down existing spot
- *    on page, etc)." → `view-all`.
- *  - `exists=page`, verbatim: "the 'cards/sheets that open' can be used as a
- *    'quick-look' mini version of looking at profiles, with the full page at
- *    its own address as the complete version a second click away. That way
- *    if I'm looking at a guest list and click 10 different guests, I can see
- *    a little more about each." → `quick-look`.
  *  - `head=guest`, verbatim: "Seems like it'd be very easy to get far away
  *    from the original event you scanned if you start clicking guests,
  *    risking not getting back in certain cases... maybe not the best overall
  *    solution for our nav in general here." → `way-back`.
  *
+ * ★ `view-all` AND `quick-look` MOVED TO THE `popups` BOARD (2026-09-27), every
+ * option kept: how the full guest list opens is its `lists` ask, and what a
+ * tapped name opens first is its `peek`. Both were a choice of surface, which
+ * that board now asks once per kind of popup rather than once per screen.
+ *
  * ★ ROUND ONE'S EIGHT ASKS ARE GONE FROM `asks` ON PURPOSE (the `privacy-hero`
  * precedent: a round replaces its questions rather than accreting them). The
  * ledger keeps their answers for ever; the board only ever carries what is
- * still open. `album.tsx` keeps its bases (`AlbumHead`, `Album`, `Section`,
- * `FacesRow`, `NamesSheet`) and drops the three retired showcases; `reach.tsx`
- * holds one function per question.
+ * still open. `reach.tsx` holds one function per question.
  *
  * ★ THE REFRESH ASKS `head` AGAIN (2026-09-24), BECAUSE ITS OWN PREMISE
  * CHANGED. Round one won `guest` (the album's own header) on ONE argument:
@@ -48,40 +39,22 @@ import { defineExploration } from "@/components/lab/exploration";
  * grows that one case. The recommendation still holds today's header, but for
  * a narrower reason than it first won on, stated in the ask itself.
  *
- * ★ A 240-NAME FIXTURE, BECAUSE THE QUESTION IS COST AT SCALE. `view-all`'s
- * `count` control switches the wedding between round one's 24 (`GUESTS`) and
- * `GUESTS_BIG`, a quarter of the thousand Will imagined: every option is read
- * at both, not asserted at one and described at the other.
- *
  * ★ THE GROUND IS THE IDENTITY MODEL (rechecked 2026-09-22). A guest is a
  * typed name (Unverified: the plain disc, the mark, no page), a confirmed
  * account without a handle (no page), or an account with a handle, whose page
- * shows only the events its owner turned on. The wedding is a names-mode
- * party, so its list is mostly typed names, drawn after the confirmed ones
- * exactly as the album lists them. `quick-look` is reshaped for that: most
- * names have no page, so it asks what a tap on ANY name opens, with a knob of
- * its own (`tapped`) for the three kinds. What a claimed page with nothing on
- * it says is `identity-profile.page`'s question, so Noor, who stood for that
- * page here, left the cast; `way-back` draws Maya's page and Priya's.
+ * shows only the events its owner turned on. What a claimed page with
+ * nothing on it says is `identity-profile.page`'s question; `way-back` draws
+ * Maya's page and Priya's.
  *
  * ★ THE PRIVACY DOCTRINE STILL BINDS (profiles-social.md), unchanged by any
  * option here: no public counts, the follow graph stays owner-private, and a
  * "way back" is a link to an event the viewer already reached (their own
  * recent navigation), never a new grant to anyone who has not been there.
  *
- * ★ THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21). `view-all`'s bespoke "centred
- * modal" is renamed `centred` and re-argued against a real precedent (the
- * shipped welcome-to-Pro dialog, app-pricing r1) rather than "as drawn";
- * `inline` moves to the back of the array as the cheap fourth it always was.
- * `quick-look`'s bespoke "popover at 1440" is gone: `app-shape r1` shipped
- * both the responsive Sheet and a mini-modal, so the option set is
- * now those two real objects (`sheet`, renamed `mini-modal`), and the
- * recommendation flips to the Sheet now that its real desk shape (a
- * right-edge panel, never full-width) already answers the objection that
- * used to favour a split. `way-back` keeps its three options; its context
- * folds in where the crumb trail actually lives (the host's own bar, not a
- * guest's), the guest's own second-round chrome, and the account menu's
- * standing-row precedent.
+ * ★ THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21): `way-back` keeps its three
+ * options; its context folds in where the crumb trail actually lives (the
+ * host's own bar, not a guest's), the guest's own second-round chrome, and
+ * the account menu's standing-row precedent.
  */
 
 /**
@@ -112,31 +85,6 @@ const WHO: Control = {
   default: "priya",
 };
 
-/** `quick-look`'s own knob: one name of each kind the guest list holds. Nina
- *  first and by default, because at a names-mode party hers is the commonest. */
-const TAPPED: Control = {
-  id: "tapped",
-  label: "Whose name is tapped",
-  options: [
-    { id: "nina", label: "Nina, a typed name (Unverified)" },
-    { id: "jay", label: "Jay, confirmed, no handle" },
-    { id: "priya", label: "Priya, a page with two events" },
-  ],
-  default: "nina",
-};
-
-/** `view-all`'s own knob: the wedding at round one's ordinary size, and at
- *  Will's imagined edge case, a quarter scale. */
-const COUNT: Control = {
-  id: "count",
-  label: "Party size",
-  options: [
-    { id: "small", label: "24, an ordinary wedding" },
-    { id: "big", label: "240, Will's edge case" },
-  ],
-  default: "big",
-};
-
 /** `way-back`'s own knob: whether this visit began on the album a chip was
  *  tapped from, or landed on the profile some other way (a shared link, a
  *  search result, a second tab). Only `pill` and `menu` read it. */
@@ -160,87 +108,8 @@ const DRAFT = defineExploration({
       "A fourth question, head, asked again: way-back now answers the exact worry that decided it in round one, so the header no longer has to carry that argument alone. A new quiet option (logo, no menu) joins today's header and bare; today still holds, for a narrower reason.",
   },
   context:
-    "Maya hosts; Priya has a page and chose two events for it; Jay confirmed and never claimed a handle; Nina typed a name: a names-mode wedding, so most of its guest list is Unverified. Every option is the shipped guest list or the shipped profile with one thing changed, phone first with 1440 on the knob. view-all reads the list at 24 and at 240, a quarter of the thousand Will imagined. Nothing here reaches a Server Function or a row: the social controls stay forked to local state, as round one forked them.",
+    "Maya hosts; Priya has a page and chose two events for it. Every option is the shipped profile with one thing changed, phone first with 1440 on the knob. How the full guest list opens and what a tapped name opens moved to the popups board (lists, peek), every option kept. Nothing here reaches a Server Function or a row: the social controls stay forked to local state, as round one forked them.",
   asks: [
-    {
-      id: "view-all",
-      label: "View all",
-      question: "How should the full guest list open from the faces row?",
-      context:
-        "The faces row is settled; the list opens in place, 24 at a time: the confirmed, then each typed name, marked. The Sheet ships (app-shape r1); no centred float survives at a desk (guest-shape r2), but Pro's modal centres (app-pricing r1).",
-      options: [
-        {
-          id: "sheet",
-          label: "A sheet over the album",
-          means:
-            "The one responsive Sheet the app ships now (bottom in a hand, a right-edge panel at a desk): its own capped scroll, the row and album beneath never resizing.",
-        },
-        {
-          id: "page",
-          label: "Its own page, /e/<token>/guests",
-          means:
-            "A real destination: a heading, a count, ordinary document flow. The only option allowed to be long, because a page is meant to scroll.",
-        },
-        {
-          id: "centred",
-          label: "The centred list",
-          means:
-            "A capped, centred dialog like the one the app already celebrates Pro in: scrolling within itself, closer to a decision moment than a browse.",
-        },
-        {
-          id: "inline",
-          label: "Expand in place, in groups",
-          means:
-            "The row becomes the list, 24 at a time with Back and Next. The album keeps growing under it: the cheap fourth, free of a new surface.",
-        },
-      ],
-      recommended: "sheet",
-      because:
-        "It is now the product's own dialog primitive (guest-shape r1, app-shape r1), not just this board's favourite: it keeps the album's own height untouched at 24 or 240 alike, with no pagination clicks, and it reads as how a phone already shows a list of people.",
-      overrule:
-        "A centred list is real again too (Pro's own modal centres at a laptop): a decision moment beats a browse there; inline is the free answer already shipped.",
-      lands:
-        "Whether View all opens a new surface at all, and whether the guest list ever gets a page of its own.",
-      tile: "phone",
-      configs: [SCREEN, COUNT],
-    },
-    {
-      id: "quick-look",
-      label: "Quick-look",
-      question:
-        "What should tapping a name in the guest list open first, when most names have no page behind them?",
-      context:
-        "Most names at a names-mode party are Unverified, and a confirmed account without a handle has no page either; a page shows only what its owner chose. Today a name without a page opens nothing. An empty page is identity-profile.page's.",
-      options: [
-        {
-          id: "sheet",
-          label: "A look in the one Sheet, for every name",
-          means:
-            "Any name opens the face, the mark where it is Unverified and what they added to this album; a page adds its events and Open full profile.",
-        },
-        {
-          id: "mini-modal",
-          label: "The same look, in the mini-modal",
-          means:
-            "The same look in the small centred dialog the app already opens the QR in: capped, anchored to nothing, closer to a peek than a page.",
-        },
-        {
-          id: "none",
-          label: "Straight to the page, as shipped",
-          means:
-            "A name with a page links straight to it (ten taps, ten page loads); every other name opens nothing, which at a names-mode party is most of the list.",
-        },
-      ],
-      recommended: "sheet",
-      because:
-        "A look that opens only for a page leaves most of the list inert; the photographs a guest added here are the one thing every name has, already public on the album, and the Sheet shows them without leaving the list (a right-edge panel at a desk).",
-      overrule:
-        "If a look should stay a peek at a page, the mini-modal is its closer cousin; if names with no page should stay quiet, as shipped costs nothing.",
-      lands:
-        "Whether a name on the guest list always opens something, and whether a look is one component or two.",
-      tile: "phone",
-      configs: [SCREEN, TAPPED],
-    },
     {
       id: "way-back",
       label: "Way back",
@@ -263,7 +132,8 @@ const DRAFT = defineExploration({
         {
           id: "none",
           label: "Nothing: the browser's own back",
-          means: "No new surface. A shared link or a second tab has no back at all.",
+          means:
+            "No new surface. A shared link or a second tab has no back at all.",
         },
       ],
       recommended: "pill",

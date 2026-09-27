@@ -27,18 +27,22 @@ import { defineExploration } from "@/components/lab/exploration";
  * ★ THE FACTS THE DRAWINGS RESPECT. A block keys on the account, the confirmed
  * address or the guest row, never a device or an IP (device ids are
  * capture-only; a venue shares one IP), so on a names-only party it holds on
- * one browser, and the block's sheet offers Require verified emails. The host
+ * one browser, and the block's confirmation offers Require verified emails. The host
  * sees a confirmed address, a guest never sees another's, and a typed
  * address shows to nobody. A password change evicts nobody for up to 12
  * hours, so no option draws one as a way to close an event.
  *
- * ★ THIRTEEN NARROW STEPS WHERE THE BRIEF NAMED NINE (the manifest's first
- * Question). Four of the nine each held two independent choices: where the
- * blocked list lives AND what comes back when someone is let in; the waiting
- * door AND the host's queue; the closed door AND how "already in" reads; the
- * invite list's editor AND the unlisted person's door. Each pair is two steps
- * now, the second staged behind the first with `after`, so every step is one
- * pick.
+ * ★ NARROW STEPS WHERE THE BRIEF NAMED NINE (the manifest's first Question).
+ * Four of the nine each held two independent choices: where the blocked list
+ * lives AND what comes back when someone is let in; the waiting door AND the
+ * host's queue; the closed door AND how "already in" reads; the invite list's
+ * editor AND the unlisted person's door. Each pair is two steps now, the
+ * second staged behind the first with `after`, so every step is one pick.
+ *
+ * ★ WHAT BLOCK OPENS MOVED TO THE `popups` BOARD (2026-09-27): whether it says
+ * what leaves first in a sheet, acts at once with Undo, or asks again in
+ * place is its `confirm` ask, every option kept, drawn on Rick's block with
+ * its one-browser note and switch. `entry` still asks where Block lives.
  *
  * ★ NEVER ASKED HERE, EACH NAMED WHERE IT IS CARRIED. The credit's own shape
  * is `media-viewer.who`'s (Block rides TODAY's capsule); the door's field, the
@@ -46,7 +50,7 @@ import { defineExploration } from "@/components/lab/exploration";
  * email are `identity-door`'s; the bulk act, its toast and Undo, the waiting
  * count and a mid-visit arrival are `host-curation`'s (the block's own Undo is
  * a different, heavier act; the door's queue is people, not uploads); how
- * the full guest list opens from its faces row is `profile-page.view-all`'s;
+ * the full guest list opens from its faces row is `popups.lists`'s;
  * and the seven lines of `voice-guest` (the welcome, the password ask, the
  * landing, the failure sheet, the empty album, the held photo, the keep) are
  * worn as today's words wherever a door here shows them.
@@ -66,17 +70,6 @@ const SCREEN: Control = {
     { id: "1440", label: "1440, a laptop" },
   ],
   default: "375",
-};
-
-/** Whose block the sheet is judged on: a confirmed address, or a typed name. */
-const PERSON: Control = {
-  id: "person",
-  label: "Who is blocked",
-  options: [
-    { id: "confirmed", label: "Dom, a confirmed address" },
-    { id: "typed", label: "Rick, a typed name" },
-  ],
-  default: "confirmed",
 };
 
 /** When the blocked person meets the door: at the link, or mid-visit. */
@@ -100,7 +93,7 @@ export const EVENT_SAFETY = defineExploration({
       "The boards refresh: newcomer, the one binary here, gains a real third door (the honest line plus a way to ask); his three founding answers kept, reframed as the brief's own terms rather than a wall.",
   },
   context:
-    "Will, 2026-09-23: a bad actor with a verified email can be hidden photo by photo but never stopped. His three answers bound the board: a block puts the person out with their uploads; approve newcomers, close to newcomers and an invite list keep an event closed; all free on every plan. Drawn on Maya and Jay's wedding at 375, 1440 on the knob. Asked elsewhere, never here: the credit's shape (media-viewer.who), identity-door's five, host-curation's bulk act, undo, count and arrivals, profile-page.view-all, and voice-guest's seven lines.",
+    "Will, 2026-09-23: a bad actor with a verified email can be hidden photo by photo but never stopped. His three answers bound the board: a block puts the person out with their uploads; approve newcomers, close to newcomers and an invite list keep an event closed; all free on every plan. Drawn on Maya and Jay's wedding at 375, 1440 on the knob. Asked elsewhere, never here: the credit's shape (media-viewer.who), identity-door's five, host-curation's bulk act, undo, count and arrivals, popups' lists and confirmations, and voice-guest's seven lines.",
   carried: [
     {
       id: "phone-first",
@@ -175,43 +168,6 @@ export const EVENT_SAFETY = defineExploration({
         "If a block should be deliberate, the Guests room alone keeps it a careful place away from a stray tap in the viewer.",
       lands: "Which surfaces carry Block, and that every one opens the same act.",
       configs: [SCREEN],
-    },
-    {
-      id: "sheet",
-      label: "The block itself",
-      question:
-        "Should Block say what leaves with the person first, or act at once with an Undo?",
-      context:
-        "A block puts the person out and moves their uploads to Deleted, where each can be restored. A typed name is blocked on one browser only, so Require verified emails is offered right there.",
-      options: [
-        {
-          id: "confirm",
-          label: "A sheet that says what leaves",
-          means:
-            "Who, their uploads, their place on the list and the closed door they will meet, then one red Block.",
-        },
-        {
-          id: "undo",
-          label: "At once, with Undo on the toast",
-          means:
-            "One tap and they are out. The toast counts the uploads moved and offers Undo; the one-browser note rides under it.",
-        },
-        {
-          id: "inline",
-          label: "The menu asks a second time",
-          means:
-            "Block grows in place into what leaves and one more tap. No sheet, no toast, nothing left to dismiss.",
-        },
-      ],
-      recommended: "confirm",
-      because:
-        "A block takes a person's photographs out of a live album and turns them away, the one act here heavy enough to read before it happens, and the only shape with room for the one-browser note and its switch.",
-      overrule:
-        "If a host acting mid-party should never meet a sheet, at once with Undo is faster and just as reversible.",
-      lands:
-        "Whether a block ever happens in one tap, and where the one-browser note and the verified-emails switch appear.",
-      after: { ask: "entry" },
-      configs: [SCREEN, PERSON],
     },
     {
       id: "door",

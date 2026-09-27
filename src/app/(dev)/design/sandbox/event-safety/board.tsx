@@ -14,12 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
-import {
-  BlockSheet,
-  BlockToast,
-  InlineConfirm,
-  UnblockDialog,
-} from "./block";
+import { UnblockDialog } from "./block";
 import {
   BLOCKED,
   DOM,
@@ -39,8 +34,6 @@ import {
   PASTED_BAD,
   PASTED_FOUND,
   type Person,
-  RICK,
-  RICK_UPLOADS,
   UNLISTED,
   WAITING,
 } from "./fixtures";
@@ -103,9 +96,10 @@ import { EVENT_SAFETY } from "./spec";
  * real surface at a real viewport with the one thing it proposes drawn in.
  * The screen knob every decision shares lives in `scene.tsx`; a staged
  * decision reads the answer it waits on off the board's own state (`entry`
- * before the block and the blocked list, `choose` before the three closed
- * doors' settings, `door` before the two other doors), wearing its parent's
- * recommendation until he answers, the kit's own rule.
+ * before the blocked list, `choose` before the three closed doors' settings,
+ * `door` before the two other doors), wearing its parent's recommendation
+ * until he answers, the kit's own rule. (The block's own confirmation moved
+ * to the `popups` board.)
  */
 
 /* ── reading the board's state ────────────────────────────────────────────── */
@@ -116,8 +110,6 @@ const pick = <T extends string>(all: readonly T[], v: unknown, fallback: T): T =
 const screen = (s: BoardState): ScreenId => screenOf(s.screen as string);
 
 type Entry = "credit" | "guests" | "review" | "all";
-const entryOf = (s: BoardState): Entry =>
-  pick(["credit", "guests", "review", "all"] as const, s.entry, "all");
 
 type DoorForm = "private" | "held" | "gone";
 const doorOf = (s: BoardState): DoorForm =>
@@ -130,17 +122,6 @@ const chooseOf = (s: BoardState): ChooseForm =>
 type BlockedPlace = "foot" | "settings" | "tab";
 const blockedOf = (s: BoardState): BlockedPlace =>
   pick(["foot", "settings", "tab"] as const, s.blocked, "foot");
-
-/** The person a block is judged on, and the party that person belongs to. */
-function who(s: BoardState) {
-  const typed = s.person === "typed";
-  const person: Person = typed ? RICK : DOM;
-  const uploads = typed ? RICK_UPLOADS : DOM_UPLOADS;
-  const item = typed ? { ...RICK_UPLOADS[1], likeCount: 0 } : OPEN_ITEM;
-  const position = typed ? "12 of 44" : OPEN_POSITION;
-  const people = GUESTS.map((p) => (p.id === DOM.id ? person : p));
-  return { typed, person, uploads, item, position, people };
-}
 
 /**
  * The viewer's menu pinned over the pill stack, opening up from the credit and
@@ -234,122 +215,6 @@ const entry = (s: BoardState, option: Entry) => {
       {entryScene("guests", scr, true)}
       {entryScene("review", scr, true)}
     </Several>
-  );
-};
-
-/* ── decision 2: the block itself (reads `entry`, and the person knob) ───── */
-
-type SheetShape = "confirm" | "undo" | "inline";
-
-function blockGround(s: BoardState, shape: SheetShape): ReactNode {
-  const scr = screen(s);
-  const w = who(s);
-  const at = entryOf(s);
-  const ground: Exclude<Entry, "all"> = at === "all" ? "credit" : at;
-  const sheet =
-    shape === "confirm" ? (
-      <BlockSheet
-        screen={scr}
-        person={w.person}
-        uploads={w.uploads}
-        typedParty={w.typed}
-      />
-    ) : shape === "undo" ? (
-      <BlockToast
-        screen={scr}
-        person={w.person}
-        uploads={w.uploads.length}
-        typedParty={w.typed}
-      />
-    ) : null;
-  const inline = (
-    <InlineConfirm
-      person={w.person}
-      uploads={w.uploads.length}
-      typedParty={w.typed}
-    />
-  );
-
-  if (ground === "credit") {
-    // At once: the viewer has closed, the album no longer holds them.
-    if (shape === "undo")
-      return (
-        <Hub
-          screen={scr}
-          photos={EVENT.photos - w.uploads.length}
-          guests={EVENT.guests - 1}
-          overlay={sheet}
-        />
-      );
-    return (
-      <HostViewer
-        screen={scr}
-        item={w.item}
-        position={w.position}
-        credit={
-          <Credit item={w.item} position={w.position} pressed={shape === "inline"} />
-        }
-        menu={
-          shape === "inline" ? (
-            <PersonMenu person={w.person} style={overCredit(w.person)} foot={inline} />
-          ) : undefined
-        }
-        overlay={sheet}
-      />
-    );
-  }
-  if (ground === "guests") {
-    const after = w.people.filter((p) => p.id !== w.person.id);
-    return (
-      <GuestsRoom
-        screen={scr}
-        people={shape === "undo" ? after : w.people}
-        menuFor={shape === "inline" ? w.person.id : undefined}
-        menu={
-          shape === "inline" ? (
-            <PersonMenu person={w.person} foot={inline} />
-          ) : undefined
-        }
-        overlay={sheet}
-      />
-    );
-  }
-  return (
-    <ReviewRoom
-      screen={scr}
-      gone={HIDDEN_IDS}
-      notice={
-        shape === "undo" ? undefined : (
-          <HiddenNotice
-            screen={scr}
-            person={w.person}
-            sent={w.uploads}
-            actions={shape === "inline" ? inline : undefined}
-          />
-        )
-      }
-      overlay={sheet}
-    />
-  );
-}
-
-const SHEET_TITLE = {
-  confirm: "The block's sheet",
-  undo: "Blocked at once, with Undo",
-  inline: "The menu asking a second time",
-} as const;
-
-const sheet = (s: BoardState, shape: SheetShape) => {
-  const scr = screen(s);
-  return (
-    <Scene
-      id={`sheet-${shape}-${s.person === "typed" ? "typed" : "confirmed"}-${entryOf(s)}`}
-      screen={scr}
-      title={SHEET_TITLE[shape]}
-      measure={reach(shape === "undo" ? "Undo" : "Block")}
-    >
-      {blockGround(s, shape)}
-    </Scene>
   );
 };
 
@@ -1322,9 +1187,6 @@ const PREVIEWS: PreviewsFor<typeof EVENT_SAFETY> = {
   "entry.guests": (s) => entry(s, "guests"),
   "entry.review": (s) => entry(s, "review"),
   "entry.all": (s) => entry(s, "all"),
-  "sheet.confirm": (s) => sheet(s, "confirm"),
-  "sheet.undo": (s) => sheet(s, "undo"),
-  "sheet.inline": (s) => sheet(s, "inline"),
   "door.private": (s) => door(s, "private"),
   "door.held": (s) => door(s, "held"),
   "door.gone": (s) => door(s, "gone"),

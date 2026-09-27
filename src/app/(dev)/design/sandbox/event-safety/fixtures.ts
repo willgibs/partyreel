@@ -207,17 +207,6 @@ export const OPEN_ITEM: GridMedia = { ...DOM_UPLOADS[1], likeCount: 0 };
 /** Its place in the album, as the credit's counter reads it. */
 export const OPEN_POSITION = "17 of 48";
 
-/** Rick's five, on the names-only party. */
-export const RICK_UPLOADS: readonly GridMedia[] = DOM_UPLOADS.slice(0, 5).map(
-  (m, i) => ({
-    ...m,
-    id: `r${i + 1}`,
-    uploaderName: RICK.name,
-    isVerified: false,
-    uploaderEmail: null,
-  }),
-);
-
 /**
  * THE REVIEW QUEUE on a moderated night: Dom's three waiting among four of
  * everyone else's. What Maya hides here is what the `review` entry answers.
