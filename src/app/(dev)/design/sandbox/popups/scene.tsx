@@ -7,10 +7,11 @@ import { Fit, Frame, Measured } from "@/components/lab";
 import { KEYBOARD_H } from "./keyboard";
 
 /**
- * THE FRAMES EVERY OPTION DRAWS IN (`identity-door/scene.tsx`'s layout): one
- * 1440 frame above three 375 frames, so a rule is judged at a laptop and in a
- * hand together, and across three real screens of its kind rather than one.
- * The laptop's screen is the kind's own knob; the three phones are fixed.
+ * THE FRAMES EVERY OPTION DRAWS IN (`identity-door/scene.tsx`'s layout, its
+ * order set per kind by `lead`): three 375 frames and one 1440 frame, so a
+ * rule is judged in a hand and at a laptop together, and across three real
+ * screens of its kind rather than one. The laptop's screen is the kind's own
+ * knob; the three phones are fixed.
  *
  * ★ STACKED, NEVER ALL IN ONE ROW. A 1440 frame beside three phones is 2,613
  * px, which the board's column clips; stacked, the widest thing on the stage
@@ -69,8 +70,16 @@ export type PhoneScene = {
 };
 
 /**
- * One option of one kind, whole: the laptop above, three real screens of the
- * kind in a hand beneath. Every caption is read off its own frame.
+ * One option of one kind, whole: three real screens of the kind in a hand and
+ * the laptop, every caption read off its own frame.
+ *
+ * ★ THE SIZE WHERE THE OPTIONS PART LEADS (`lead`). Most options here differ
+ * only in a hand (the Sheet and a side panel are the same panel at a desk; a
+ * form's dialog and its own screen are the same dialog there), so the phones
+ * come first by default: a reviewer flipping options sees the change without
+ * scrolling to it, which is the failure `lab:demo` exists to catch. A kind
+ * whose options part at a desk (a quick look's card at the name) leads with
+ * the laptop instead.
  */
 export function Scenes({
   id,
@@ -78,6 +87,7 @@ export function Scenes({
   laptop,
   laptopTitle,
   phones,
+  lead = "hand",
 }: {
   id: string;
   /** The option, in words: "a centred dialog". */
@@ -85,33 +95,40 @@ export function Scenes({
   laptop: ReactNode;
   laptopTitle: string;
   phones: readonly PhoneScene[];
+  lead?: "hand" | "laptop";
 }) {
+  const desk = (
+    <Screen
+      id={`${id}-1440`}
+      w={DESK.w}
+      h={DESK.h}
+      title={`${title}: ${laptopTitle}, at a laptop`}
+      measure={readPopup}
+    >
+      {laptop}
+    </Screen>
+  );
+  const hand = (
+    <div className="flex items-start gap-6">
+      {phones.map((p, i) => (
+        <Screen
+          key={i}
+          id={`${id}-375-${i}`}
+          w={PHONE.w}
+          h={PHONE.h}
+          title={`In a hand, ${p.title}`}
+          measure={readPopup}
+        >
+          {p.node}
+        </Screen>
+      ))}
+    </div>
+  );
   return (
     <Fit w={DESK.w}>
       <div className="flex flex-col gap-6">
-        <Screen
-          id={`${id}-1440`}
-          w={DESK.w}
-          h={DESK.h}
-          title={`${title}: ${laptopTitle}, at a laptop`}
-          measure={readPopup}
-        >
-          {laptop}
-        </Screen>
-        <div className="flex items-start gap-6">
-          {phones.map((p, i) => (
-            <Screen
-              key={i}
-              id={`${id}-375-${i}`}
-              w={PHONE.w}
-              h={PHONE.h}
-              title={`In a hand, ${p.title}`}
-              measure={readPopup}
-            >
-              {p.node}
-            </Screen>
-          ))}
-        </div>
+        {lead === "hand" ? hand : desk}
+        {lead === "hand" ? desk : hand}
       </div>
     </Fit>
   );

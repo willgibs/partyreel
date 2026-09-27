@@ -242,6 +242,9 @@ export function PeekPreview({
       laptop={draw(option, TAPPED[at], "desk")}
       laptopTitle={TAP_TITLE[at]}
       phones={phones}
+      // The card at the name is a desk's own shape; in a hand it is the
+      // Sheet, so the laptop is where these options part.
+      lead="laptop"
     />
   );
 }
