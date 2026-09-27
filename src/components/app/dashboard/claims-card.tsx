@@ -1,77 +1,58 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import Link from "next/link";
-import { Mail } from "lucide-react";
-import { toast } from "sonner";
+import { type Ref, useEffect, useState } from "react";
+import { Loader2, Lock } from "lucide-react";
 
-import { finishClaimsAction } from "@/app/(app)/dashboard/claims-actions";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import type { ClaimableEventRow } from "@/lib/db/queries/claims";
+import type { ClaimableEvent } from "@/lib/db/queries/claims";
 import { formatCount } from "@/lib/format/count";
-import { formatEventDate } from "@/lib/utils";
+import { cn, formatEventDate } from "@/lib/utils";
 
-type Decision = "claim" | "disown";
+import { photoCount } from "./claims-batch";
 
-function namesLabel(names: string[]): string | null {
+/**
+ * ONE WAITING EVENT, ON TOP OF THE CLAIMS REVIEW (`identity-claims` r1, `pass=cards`: "One at a
+ * time gracefully forces the handling of each to continue, rather than allowing them to stack
+ * endlessly"). Its name, its date where the album shows one, who it was added as and how many, a
+ * few of the photographs so she can tell hers from someone else's, and the two answers.
+ *
+ * ★ AN ARRIVING CARD HOLDS ITS ANSWERS FOR A BEAT (`SETTLE_MS`). Every answer writes at once
+ * (`save=once`), so a second tap that lands on the card that just slid in would answer an event she
+ * has not read (the board measured it: two quick Claims took two events). The hold is on the
+ * handler, not `disabled`, so the answers never blink half-faded on every arrival, and it holds with
+ * reduced motion too: it guards the answer, not the motion. The first card the review opens on
+ * stands still and answers at once.
+ */
+
+/** How long an arriving card holds its answers: the arrival's own length. */
+export const SETTLE_MS = 250;
+
+/** How long a write runs before its button says so: a quick write never flashes a spinner. */
+const SLOW_MS = 300;
+
+/** "Added as Priya", "Added as Priya and P.", "Added as A, B, and C": the typed names. */
+export function namesLabel(names: readonly string[]): string | null {
   if (names.length === 0) return null;
   if (names.length === 1) return `Added as ${names[0]}`;
   if (names.length === 2) return `Added as ${names[0]} and ${names[1]}`;
   return `Added as ${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
 }
 
-function formatUploadTimestamp(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
-function metaLine(row: ClaimableEventRow): string {
-  return [
-    row.eventDate ? formatEventDate(row.eventDate) : null,
-    namesLabel(row.names),
-    `${formatCount(row.uploadCount)} photo${row.uploadCount === 1 ? "" : "s"}`,
-    row.lastUploadAt
-      ? `last added ${formatUploadTimestamp(row.lastUploadAt)}`
-      : null,
-  ]
-    .filter((part): part is string => Boolean(part))
+/** The card's line under the date: who it was added as, and how many. */
+export function whoLine(row: ClaimableEvent): string {
+  return [namesLabel(row.names), photoCount(row.uploadCount)]
+    .filter(Boolean)
     .join(" · ");
 }
 
-function totalPhotos(list: ClaimableEventRow[]): number {
-  return list.reduce((sum, r) => sum + r.uploadCount, 0);
-}
-
 /**
- * The confirm-delete title, pluralised for every count (pinned in
- * claims-card.test.tsx for all four forms below). The count is of uploads of
- * EITHER type (the RPC's `upload_count` never splits photos from videos), so
- * one upload reads "photo or video" (never "photo", which would lie when
- * the one upload is a video) and several read "photos and videos"; one event
- * reads "this event", several name the count. Every count on the card goes
- * through `formatCount` ("1,249", never "1249").
+ * The confirm-delete title, pluralised for every count (pinned in claims-card.test.tsx). The count
+ * is of uploads of EITHER type (the RPC's `upload_count` never splits photos from videos), so one
+ * upload reads "photo or video" (never "photo", which would lie when the one upload is a video) and
+ * several read "photos and videos"; one event reads "this event", several name the count. Every
+ * count goes through `formatCount` ("1,249", never "1249").
  */
-function confirmDeleteTitle(photos: number, events: number): string {
+export function confirmDeleteTitle(photos: number, events: number): string {
   const photoPhrase =
     photos === 1
       ? "1 photo or video"
@@ -81,229 +62,146 @@ function confirmDeleteTitle(photos: number, events: number): string {
   return `Permanently delete the ${photoPhrase} added under your email at ${eventPhrase}?`;
 }
 
-/**
- * THE CLAIM TICKET (the guest identity round, 2026-09-22; "guest
- * identity: name only, unconfirmed email, verified account"). Rendered only
- * when `rows` is non-empty — a confirmed caller with events waiting under the
- * email on their account, from before it was confirmed.
- *
- * Deliberately plain: this is wave 1's wiring of a settled model, not the
- * ticket's real shape ("The flows around the claim ticket ...
- * go to one identity-flows board once the foundation is on the tree"). One
- * card, one decision per EVENT (never per guest row: `getMyClaimableGuestRows`
- * already grouped rows that share an event), two ways to finish:
- *
- *   - "Claim all" is a SHORTCUT that bypasses the per-row picks entirely and
- *     sends the RPC `null` ("every row of mine"), which needs no confirmation
- *     because nothing is being removed.
- *   - "Finish" reads the per-row picks: anything left NOT explicitly claimed
- *     (marked "Not mine", or simply never touched) is treated as
- *     "the guest effectively requesting 'get rid of that'" — so when
- *     that set is non-empty, a confirmation names the events and the count
- *     before anything is written; when every row was explicitly claimed,
- *     Finish commits at once.
- *
- * Nothing here is optimistic: this writes real deletions, so every commit
- * waits for the server and either toasts success and hides (the parent page
- * revalidates behind it) or toasts the failure and leaves the picks standing
- * so the guest can retry.
- */
-export function ClaimsCard({
-  rows,
-  pageHref,
+/** Why a gated album shows no photographs: its door, said in the card's own voice. */
+export function lockWords(row: ClaimableEvent): string {
+  const photos = photoCount(row.uploadCount);
+  const stay = row.uploadCount === 1 ? "stays" : "stay";
+  return row.gate === "private"
+    ? `${photos} ${stay} in an album the host made private`
+    : `${photos} ${stay} behind the host’s password`;
+}
+
+/** Whether a write has run long enough to say so. */
+function useSlow(pending: boolean): boolean {
+  const [slow, setSlow] = useState(false);
+  const [was, setWas] = useState(pending);
+  if (pending !== was) {
+    setWas(pending);
+    if (!pending) setSlow(false);
+  }
+  useEffect(() => {
+    if (!pending) return;
+    const t = setTimeout(() => setSlow(true), SLOW_MS);
+    return () => clearTimeout(t);
+  }, [pending]);
+  return slow;
+}
+
+export function ClaimCard({
+  row,
+  arriving,
+  pending,
+  cardRef,
+  onClaim,
+  onNotMine,
 }: {
-  rows: ClaimableEventRow[];
-  /**
-   * Where the finish toast's second line points (`identity-claims` r1, `after=profile`): the page
-   * setup while she has no page, the page's choices once she does (`pageChoicesHref`).
-   */
-  pageHref: string;
+  row: ClaimableEvent;
+  /** It slid in after a decision: it arrives, and holds its answers for a beat. */
+  arriving: boolean;
+  /** Its own answer is being written: nothing answers until it lands. */
+  pending: "claim" | "disown" | null;
+  /** The card itself, which focus moves to when it arrives. */
+  cardRef?: Ref<HTMLElement>;
+  onClaim: () => void;
+  onNotMine: () => void;
 }) {
-  const [decisions, setDecisions] = useState<Record<string, Decision>>({});
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [finished, setFinished] = useState(false);
-  const [isPending, startTransition] = useTransition();
-
-  if (rows.length === 0 || finished) return null;
-
-  const claimedRows = rows.filter((r) => decisions[r.eventId] === "claim");
-  const leftoverRows = rows.filter((r) => decisions[r.eventId] !== "claim");
-
-  function decide(eventId: string, next: Decision) {
-    setDecisions((prev) => {
-      const copy = { ...prev };
-      if (copy[eventId] === next) delete copy[eventId];
-      else copy[eventId] = next;
-      return copy;
-    });
-  }
-
-  function runFinish(
-    claimIds: string[] | null,
-    disownIds: string[],
-    photosClaimed: number,
-  ) {
-    startTransition(async () => {
-      const result = await finishClaimsAction({ claimIds, disownIds });
-      if (!result.ok) {
-        toast.error(result.message);
-        return;
-      }
-      if (photosClaimed > 0) {
-        // ★ THE SECOND LINE POINTS AT THE PAGE (`after=profile`, Will: "Nice way to provide
-        // confirmation while pointing into a potentially undiscovered feature"). Only a Finish
-        // that added photos carries it: those are what a page would show.
-        toast.success(
-          `Added ${formatCount(photosClaimed)} photo${photosClaimed === 1 ? "" : "s"} to your account.`,
-          {
-            description: (
-              <Link
-                href={pageHref}
-                className="text-foreground underline underline-offset-4"
-              >
-                Choose what shows on your page
-              </Link>
-            ),
-          },
-        );
-      } else {
-        toast.success("Done. Nothing was added to your account.");
-      }
-      setFinished(true);
-    });
-  }
-
-  function handleClaimAll() {
-    runFinish(null, [], totalPhotos(rows));
-  }
-
-  function handleFinish() {
-    if (leftoverRows.length > 0) {
-      setConfirmOpen(true);
-      return;
-    }
-    runFinish(
-      claimedRows.map((r) => r.eventId),
-      [],
-      totalPhotos(claimedRows),
-    );
-  }
-
-  function confirmFinish() {
-    setConfirmOpen(false);
-    runFinish(
-      claimedRows.map((r) => r.eventId),
-      leftoverRows.map((r) => r.eventId),
-      totalPhotos(claimedRows),
-    );
-  }
-
-  const leftoverPhotos = totalPhotos(leftoverRows);
+  const [settled, setSettled] = useState(!arriving);
+  useEffect(() => {
+    if (settled) return;
+    const t = setTimeout(() => setSettled(true), SETTLE_MS);
+    return () => clearTimeout(t);
+  }, [settled]);
+  const slow = useSlow(pending === "claim");
+  const answers = settled && pending === null;
 
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            <span className="flex items-center gap-2">
-              <Mail className="size-4 text-muted-foreground" aria-hidden />
-              Photos waiting for you
-            </span>
-          </CardTitle>
-          <CardDescription>
-            Added at events with the email on this account, before it was
-            confirmed.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ul className="divide-y divide-border/60">
-            {rows.map((row) => {
-              const decision = decisions[row.eventId];
-              return (
-                <li
-                  key={row.eventId}
-                  className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-foreground">
-                      {row.eventName}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {metaLine(row)}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1.5">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={decision === "claim" ? "default" : "outline"}
-                      aria-pressed={decision === "claim"}
-                      disabled={isPending}
-                      onClick={() => decide(row.eventId, "claim")}
-                    >
-                      Claim
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={decision === "disown" ? "destructive" : "ghost"}
-                      aria-pressed={decision === "disown"}
-                      disabled={isPending}
-                      onClick={() => decide(row.eventId, "disown")}
-                    >
-                      Not mine
-                    </Button>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </CardContent>
-        <CardFooter className="justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={isPending}
-            onClick={handleClaimAll}
-          >
-            Claim all
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            disabled={isPending}
-            onClick={handleFinish}
-          >
-            Finish
-          </Button>
-        </CardFooter>
-      </Card>
+    <article
+      ref={cardRef}
+      tabIndex={-1}
+      aria-label={row.eventName}
+      data-claim-card={row.eventId}
+      className={cn(
+        "relative flex flex-col gap-3 rounded-xl border border-border bg-card p-4 outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+        arriving &&
+          "animate-in duration-200 ease-emphasis fade-in-0 slide-in-from-right-3 motion-reduce:animate-none",
+      )}
+    >
+      <div className="min-w-0">
+        <p className="truncate font-heading text-subsection">{row.eventName}</p>
+        <div className="mt-0.5 text-xs text-muted-foreground">
+          {row.eventDate && <p>{formatEventDate(row.eventDate)}</p>}
+          <p>{whoLine(row)}</p>
+        </div>
+      </div>
+      {row.gate ? (
+        // QA #40 carried to the preview: a gated album's photographs stay behind its door, as its
+        // date already does.
+        <div className="flex items-center gap-2.5 rounded-lg bg-muted/60 px-3 py-3 text-xs text-muted-foreground">
+          <Lock className="size-3.5 shrink-0" aria-hidden />
+          <span>{lockWords(row)}</span>
+        </div>
+      ) : row.previews.length > 0 ? (
+        <div className="grid grid-cols-4 gap-1.5">
+          {row.previews.map((url) => (
+            <Thumb key={url} url={url} />
+          ))}
+        </div>
+      ) : null}
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          type="button"
+          variant="ghost"
+          data-claim-not-mine=""
+          aria-disabled={answers ? undefined : true}
+          onClick={() => answers && onNotMine()}
+        >
+          Not mine
+        </Button>
+        <Button
+          type="button"
+          aria-disabled={answers ? undefined : true}
+          aria-busy={pending === "claim" ? true : undefined}
+          onClick={() => answers && onClaim()}
+        >
+          {slow && (
+            <Loader2
+              className="animate-spin motion-reduce:animate-none"
+              aria-hidden
+            />
+          )}
+          Claim
+        </Button>
+      </div>
+    </article>
+  );
+}
 
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {confirmDeleteTitle(leftoverPhotos, leftoverRows.length)}
-            </DialogTitle>
-            <DialogDescription>
-              {leftoverRows.map((r) => r.eventName).join(", ")}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Go back</Button>
-            </DialogClose>
-            <Button
-              variant="destructive"
-              disabled={isPending}
-              onClick={confirmFinish}
-            >
-              Delete and finish
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+/**
+ * A small rounded photograph, presigned on the server. One that fails to load (a link that
+ * outlived its hour on a dashboard left open) keeps its square, empty, rather than a broken image.
+ */
+export function Thumb({ url, size }: { url: string; size?: number }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <span
+      className="block shrink-0 overflow-hidden bg-muted"
+      style={{
+        width: size ?? "100%",
+        height: size,
+        aspectRatio: size ? undefined : "1 / 1",
+        borderRadius: "var(--radius-tile)",
+      }}
+    >
+      {!failed && (
+        // eslint-disable-next-line @next/next/no-img-element -- a presigned R2 preview, never optimizable
+        <img
+          src={url}
+          alt=""
+          decoding="async"
+          onError={() => setFailed(true)}
+          className="size-full object-cover"
+        />
+      )}
+    </span>
   );
 }

@@ -15,6 +15,13 @@ import {
 
 vi.mock("server-only", () => ({}));
 
+const presign = vi.fn(
+  async ({ key }: { key: string }) => `https://signed.test/${key}`,
+);
+vi.mock("@/lib/r2/presign", () => ({
+  presignDownload: (args: { key: string }) => presign(args),
+}));
+
 type RpcRow = {
   guest_id: string;
   event_id: string;
@@ -24,6 +31,9 @@ type RpcRow = {
   upload_count: number;
   last_upload_at: string | null;
   pending_email_at: string;
+  // `20260927200000_claim_previews`: absent on a database without it.
+  event_visibility?: "open" | "password" | "private";
+  preview_keys?: string[] | null;
 };
 
 let rows: RpcRow[] = [];
@@ -42,7 +52,19 @@ vi.mock("@/lib/supabase/request-auth", () => ({
   getRequestAuth: async () => ({ supabase: client, user }),
 }));
 
-const { getMyClaimableGuestRows } = await import("@/lib/db/queries/claims");
+/** The service role's tables, for the claimed event's follow-up read. */
+let admin = createFakePostgrest({});
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => asSupabase(admin),
+}));
+const blocked = vi.fn(async (_viewer: string, _profile: string) => false);
+vi.mock("@/lib/db/queries/social", () => ({
+  isBlockedEitherWay: (viewer: string, profile: string) =>
+    blocked(viewer, profile),
+}));
+
+const { getClaimedEventNext, getMyClaimableGuestRows } =
+  await import("@/lib/db/queries/claims");
 
 const row = (over: Partial<RpcRow>): RpcRow => ({
   guest_id: "g1",
@@ -61,6 +83,9 @@ beforeEach(() => {
   user = { id: "u1" };
   client = { rpc };
   rpc.mockClear();
+  presign.mockClear();
+  blocked.mockClear();
+  blocked.mockResolvedValue(false);
 });
 
 describe("signed out", () => {
@@ -83,6 +108,8 @@ describe("one row per event", () => {
         names: ["Priya"],
         uploadCount: 2,
         lastUploadAt: "2026-10-02T10:00:00Z",
+        gate: null,
+        previews: [],
       },
     ]);
   });
@@ -94,7 +121,10 @@ describe("one row per event", () => {
   });
 
   it("drops a blank or missing typed name rather than listing an empty string", async () => {
-    rows = [row({ display_name: null }), row({ event_id: "e2", display_name: "  " })];
+    rows = [
+      row({ display_name: null }),
+      row({ event_id: "e2", display_name: "  " }),
+    ];
     const result = await getMyClaimableGuestRows();
     expect(result.map((r) => r.names)).toEqual([[], []]);
   });
@@ -224,7 +254,8 @@ describe("the claim card, read whole", () => {
     return (args: Record<string, unknown>) => {
       const at = args.p_after_at as string | undefined;
       const id = args.p_after_id as string | undefined;
-      const limit = args.p_limit == null ? Infinity : Math.min(Number(args.p_limit), 1000);
+      const limit =
+        args.p_limit == null ? Infinity : Math.min(Number(args.p_limit), 1000);
       return order
         .filter(
           (r) =>
@@ -259,5 +290,173 @@ describe("the claim card, read whole", () => {
     expect(fake.requests.map((r) => r.returned)).toEqual([1000, 1000, 500]);
     // Every page past the first carried the last row's own keys.
     expect(fake.requests.every((r) => !r.failed)).toBe(true);
+  });
+});
+
+/**
+ * THE REVIEW'S PHOTOGRAPHS (`identity-claims` r1, `pass=cards`: each event "with its own small
+ * preview"). The list hands back a few of each row's own preview keys, only for an album that shows
+ * them to anyone (`20260927200000_claim_previews`); the query merges an event's rows in the list's
+ * order, four at most, and presigns them here, so a key never reaches the browser.
+ */
+describe("the review's previews", () => {
+  it("merges an event's rows in the list's order, four at most, each presigned once", async () => {
+    rows = [
+      row({
+        guest_id: "g1",
+        event_visibility: "open",
+        preview_keys: ["k1", "k2", "k3"],
+      }),
+      row({
+        guest_id: "g2",
+        event_visibility: "open",
+        preview_keys: ["k2", "k4", "k5"],
+      }),
+    ];
+    const [result] = await getMyClaimableGuestRows({ previews: true });
+    expect(result.gate).toBeNull();
+    expect(result.previews).toEqual([
+      "https://signed.test/k1",
+      "https://signed.test/k2",
+      "https://signed.test/k3",
+      "https://signed.test/k4",
+    ]);
+    expect(presign.mock.calls.map(([args]) => args.key)).toEqual([
+      "k1",
+      "k2",
+      "k3",
+      "k4",
+    ]);
+  });
+
+  it("★ a password or private album carries its door and never a photograph, whatever a row held", async () => {
+    rows = [
+      row({
+        event_id: "e-pw",
+        event_date: null,
+        event_visibility: "password",
+        preview_keys: ["leak"],
+      }),
+      row({
+        event_id: "e-priv",
+        guest_id: "g2",
+        event_visibility: "private",
+        preview_keys: null,
+      }),
+    ];
+    const result = await getMyClaimableGuestRows({ previews: true });
+    expect(result.map((r) => [r.gate, r.previews])).toEqual([
+      ["password", []],
+      ["private", []],
+    ]);
+    expect(presign).not.toHaveBeenCalled();
+  });
+
+  it("presigns nothing unless asked (the welcome page reads the list for a name)", async () => {
+    rows = [row({ event_visibility: "open", preview_keys: ["k1"] })];
+    const [result] = await getMyClaimableGuestRows();
+    expect(result.previews).toEqual([]);
+    expect(presign).not.toHaveBeenCalled();
+  });
+
+  it("reads a list without the two columns as an open album with nothing to show", async () => {
+    rows = [row({})];
+    const [result] = await getMyClaimableGuestRows({ previews: true });
+    expect(result).toMatchObject({ gate: null, previews: [] });
+  });
+});
+
+/**
+ * WHAT A CLAIMED EVENT OFFERS NEXT (`identity-claims` r2, `next=both`), read after the claim and only
+ * for an event she is now a guest of: the album's link never rides the list of events she has not
+ * claimed, so an event id she is no guest of answers nothing, forged or not.
+ */
+describe("the claimed event's follow-up", () => {
+  const ME = "u1";
+  const EVENT = "e1";
+
+  function world({
+    visibility = "open",
+    hostId = "host-1",
+    slug = "tom" as string | null,
+    displayName = "Tom" as string | null,
+    mine = true,
+    following = false,
+    deleted = false,
+  } = {}) {
+    admin = createFakePostgrest({
+      tables: {
+        media: [
+          {
+            id: "m1",
+            event_id: EVENT,
+            status: "approved",
+            guests: { user_id: mine ? ME : "someone-else" },
+          },
+        ],
+        events: [
+          {
+            id: EVENT,
+            visibility,
+            qr_token: "qr-e1",
+            host_id: hostId,
+            deleted_at: deleted ? "2026-09-01T00:00:00+00:00" : null,
+          },
+        ],
+        profiles: [{ id: "host-1", slug, display_name: displayName }],
+      },
+    });
+    const session = createFakePostgrest({
+      tables: {
+        user_follows: following
+          ? [{ follower_id: ME, followee_id: "host-1" }]
+          : [],
+      },
+    });
+    return { supabase: asSupabase(session), user: { id: ME } } as never;
+  }
+
+  it("offers the album and its host, followed or not", async () => {
+    await expect(getClaimedEventNext(world(), EVENT)).resolves.toEqual({
+      href: "/e/qr-e1",
+      host: { id: "host-1", slug: "tom", name: "Tom", following: false },
+    });
+    await expect(
+      getClaimedEventNext(world({ following: true }), EVENT),
+    ).resolves.toMatchObject({ host: { following: true } });
+  });
+
+  it("★ answers nothing for an event she is no guest of", async () => {
+    await expect(
+      getClaimedEventNext(world({ mine: false }), EVENT),
+    ).resolves.toBeNull();
+    await expect(
+      getClaimedEventNext(world({ deleted: true }), EVENT),
+    ).resolves.toBeNull();
+  });
+
+  it("a private album opens for nobody: no album, no host", async () => {
+    await expect(
+      getClaimedEventNext(world({ visibility: "private" }), EVENT),
+    ).resolves.toEqual({ href: null, host: null });
+  });
+
+  it("offers no Follow for a host with no page, for herself, or across a block", async () => {
+    for (const w of [
+      world({ slug: null }),
+      world({ displayName: "  " }),
+      world({ hostId: ME }),
+    ]) {
+      await expect(getClaimedEventNext(w, EVENT)).resolves.toEqual({
+        href: "/e/qr-e1",
+        host: null,
+      });
+    }
+    blocked.mockResolvedValueOnce(true);
+    await expect(getClaimedEventNext(world(), EVENT)).resolves.toEqual({
+      href: "/e/qr-e1",
+      host: null,
+    });
+    expect(blocked).toHaveBeenLastCalledWith(ME, "host-1");
   });
 });

@@ -38,8 +38,9 @@ import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
  * guests are already on this page, in the Guests list, where a signed-in viewer's chips carry their
  * own Follow (`social/guest-list.tsx`): a second copy of those names inside this card would be the
  * same list twice on one screen. His note ("Follow doesn't have to be pushed as hard as a feature
- * relative to uploads/verifications") is the card's ORDER: what she keeps and who she is now lead,
- * the host's row follows them, and the handle comes last.
+ * relative to uploads/verifications") is the card's ORDER and its Follow's WEIGHT: what she keeps and
+ * who she is now lead, the host's row follows them with the quieter Follow (`FollowButton`'s `quiet`,
+ * the one a claimed event's row in the claims review wears too), and the handle comes last.
  *
  * ★ NOTHING HERE IS SHOWN WITHOUT ITS OBJECT. No host card resolved means no host row (a locked or
  * hostless event, or a host with no public page); a profile that already has a handle means no
@@ -153,6 +154,7 @@ export function FollowMomentCard({
             profileId={host.id}
             slug={host.slug}
             initialFollowing={false}
+            quiet
           />
         </div>
       )}
