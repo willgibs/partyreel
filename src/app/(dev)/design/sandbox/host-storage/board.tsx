@@ -6,113 +6,71 @@ import { ExplorationBoard } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
-import { type PricesLayout, PricesShowcase, type RefusalOption, RefusalShowcase } from "./pricing";
-import { HostGround, Scene, screenOf, type ScreenId } from "./scene";
+import { TOO_SMALL } from "./fixtures";
+import type { PricesOption } from "./prices";
+import { Pair, Scene } from "./scene";
+import { SCREENS, screenOf } from "./screens";
 import { HOST_STORAGE } from "./spec";
-import { AccountScope } from "./storage-list";
+import { PlanWorld } from "./world";
 
 /**
- * THE PREVIEWS, AND NOTHING ELSE: every option is the real host pieces at a
- * real viewport, one thing changed. The screen knob all four decisions share
- * lives in `scene.tsx`; a staged decision reads the earlier answers off the
- * board's own state (`order` before `goal`, `refusal` before `prices`), the
- * same "wears its parent's recommendation until he answers" rule every
- * exploration in the kit follows. Every list is the account-wide one: where
- * it opens moved to the `popups` board's `lists`, every option kept.
+ * THE PREVIEWS, AND NOTHING ELSE: each of `prices`' five answers drawn twice
+ * on the plan as it ships, read as time runs (`Pair`: a row of phones, a
+ * column of laptops).
+ *
+ *   1. OPENED FROM HER PLAN CARD, on Account: the plan as it arrives, every
+ *      price where the option puts it.
+ *   2. PRO 100 GB TAPPED, from the storage meter on her dashboard (its popover
+ *      still open under the plan): the size that cannot hold her 110.8 GB,
+ *      flipped in place, full width.
+ *
+ * ★ EVERY FRAME IS LIVE. A price that fits shows production's "Opening…" beat;
+ * the size too small flips; "See what's using space" opens his round-one list
+ * over the plan, whose strip counts down as she selects and finishes the
+ * switch at zero. The caption under each frame is read off it after every
+ * press (`scene.tsx`).
  */
 
-const screen = (s: BoardState): ScreenId => screenOf(s.screen as string);
-
-type OrderOption = "flat" | "grouped" | "hybrid";
-const orderOf = (v: string | undefined): OrderOption =>
-  v === "grouped" ? "grouped" : v === "hybrid" ? "hybrid" : "flat";
-
-type GoalOption = "live" | "plain" | "toast";
-
-const refusalOf = (v: string | undefined): RefusalOption =>
-  v === "swap" ? "swap" : v === "banner" ? "banner" : "inline";
-
-/* ── decision 1: order ───────────────────────────────────────────────────── */
-
-const order = (s: BoardState, option: OrderOption) => {
-  const scr = screen(s);
+function pricesFor(s: BoardState, option: PricesOption) {
+  const screen = screenOf(s.screen);
+  const desk = SCREENS[screen].desk;
   return (
-    <Scene id={`order-${option}`} screen={scr} title="The order">
-      <HostGround screen={scr}>
-        <AccountScope order={option} goal={null} screen={scr} />
-      </HostGround>
-    </Scene>
+    <Pair screen={screen}>
+      <Scene
+        id={`prices-${option}-open`}
+        screen={screen}
+        title="Opened from her Plan card"
+      >
+        <PlanWorld
+          key={`${option}-${screen}-open`}
+          option={option}
+          desk={desk}
+          door="account"
+        />
+      </Scene>
+      <Scene
+        id={`prices-${option}-refused`}
+        screen={screen}
+        title={`${TOO_SMALL.name} tapped, from the storage meter`}
+      >
+        <PlanWorld
+          key={`${option}-${screen}-refused`}
+          option={option}
+          desk={desk}
+          door="dashboard"
+          refused={TOO_SMALL}
+        />
+      </Scene>
+    </Pair>
   );
-};
-
-/* ── decision 2: goal (reads `order`) ────────────────────────────────────── */
-
-const goal = (s: BoardState, option: GoalOption) => {
-  const scr = screen(s);
-  const o = orderOf(s.order as string);
-  return (
-    <Scene id={`goal-${option}`} screen={scr} title="The goal">
-      <HostGround screen={scr}>
-        <AccountScope order={o} goal={option} screen={scr} />
-      </HostGround>
-    </Scene>
-  );
-};
-
-/* ── decision 3: refusal ──────────────────────────────────────────────────── */
-
-const refusal = (s: BoardState, option: RefusalOption) => {
-  const scr = screen(s);
-  return (
-    <Scene
-      id={`refusal-${option}`}
-      screen={scr}
-      title="The refusal"
-      caption={
-        option === "swap"
-          ? "Tapping the too-small size replaces the whole sheet; this is what that screen shows"
-          : undefined
-      }
-    >
-      <HostGround screen={scr}>
-        <AccountScope order="flat" goal={null} screen={scr} />
-      </HostGround>
-      <RefusalShowcase option={option} screen={scr} />
-    </Scene>
-  );
-};
-
-/* ── decision 4: prices (reads `refusal`) ────────────────────────────────── */
-
-const prices = (s: BoardState, option: PricesLayout) => {
-  const scr = screen(s);
-  return (
-    <Scene id={`prices-${option}`} screen={scr} title="The six prices">
-      <HostGround screen={scr}>
-        <AccountScope order="flat" goal={null} screen={scr} />
-      </HostGround>
-      <PricesShowcase
-        layout={option}
-        refusal={refusalOf(s.refusal as string)}
-        screen={scr}
-      />
-    </Scene>
-  );
-};
+}
 
 const PREVIEWS: PreviewsFor<typeof HOST_STORAGE> = {
-  "order.flat": (s) => order(s, "flat"),
-  "order.grouped": (s) => order(s, "grouped"),
-  "order.hybrid": (s) => order(s, "hybrid"),
-  "goal.live": (s) => goal(s, "live"),
-  "goal.plain": (s) => goal(s, "plain"),
-  "goal.toast": (s) => goal(s, "toast"),
-  "refusal.inline": (s) => refusal(s, "inline"),
-  "refusal.swap": (s) => refusal(s, "swap"),
-  "refusal.banner": (s) => refusal(s, "banner"),
-  "prices.rows": (s) => prices(s, "rows"),
-  "prices.cards": (s) => prices(s, "cards"),
-  "prices.matrix": (s) => prices(s, "matrix"),
+  "prices.shipped": (s) => pricesFor(s, "shipped"),
+  "prices.sizes": (s) => pricesFor(s, "sizes"),
+  "prices.moves": (s) => pricesFor(s, "moves"),
+  "prices.pick": (s) => pricesFor(s, "pick"),
+  "prices.advised": (s) => pricesFor(s, "advised"),
 };
 
 export function HostStorageBoard() {

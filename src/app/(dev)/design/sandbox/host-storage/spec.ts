@@ -1,252 +1,143 @@
-import type { Control } from "@/components/lab/board-spec";
 import { defineExploration } from "@/components/lab/exploration";
 
+import { SCREEN } from "./screens";
+
 /**
- * WHERE THE LARGEST FILES ARE, ROUND ONE (Will, 2026-09-22).
+ * WHERE THE LARGEST FILES ARE, ROUND TWO: THE SIX PRICES ALONE (2026-09-28).
  *
- * His words, verbatim: "media size per item should be included for hosts
- * somewhere, so they know how to get rid of the largest files first if
- * needed. Should be a separate view than the media cards themselves because
- * including the storage on each card makes the gallery less beautiful, and
- * including it in the lightbox exclusively makes the host have to hunt
- * through each media item individually." It follows the rule that no plan
- * change may leave a host storing more than the new plan's cap: "show them
- * their total storage used now and ask them to delete media to get under the
- * storage cap of their selected pro plan before being able to switch."
+ * Round one's answers (docs/reviews/host-storage.json): `order=flat`, with his
+ * note asking for a filter of All or one event ("offering both is a great mini
+ * feature"); `goal=live`, the strip that counts down and finishes the switch;
+ * `refusal=inline`, with his note: stacked vertically, "so each card's lines
+ * don't break". `prices` came back unclear: "I don't believe these are the
+ * best ideas we can come up with here. Would also like to bake in previous
+ * selection so I have a more current idea how this gets entered at this
+ * point."
  *
- * ★ A CATALOG, NOTHING WIRING PRODUCTION. `storage-guard` is building the
- * server-side check and a plain refusal right now, in parallel; this board
- * draws how the size list reads, how a host frees space, and the plan sheet's
- * two new faces. No button here starts Checkout, opens the real billing
- * portal, or calls a Server Function — every act is local, resolved-promise
- * state (`storage-list.tsx`), the same convention `host-curation` set.
+ * ★ SO THIS ROUND IS `prices` ALONE, WITH THE WIDEST GOOD SET: five whole
+ * strategies for the same six numbers, each answering a different first
+ * question (every price; how much room; what to change; build the plan; the
+ * one change that suits her), production's plain rows among them as the
+ * reference, since they shipped after round one was drawn.
  *
- * ★ THE FACTS EVERY OPTION IS DRAWN OVER (`billing-caps.md`,
- * `lifecycle-recovery.md`). The cap counts ACTIVE bytes (non-removed media in
- * non-deleted events), so a Remove frees room at once; Pro is 100 GB / 500 GB
- * / 2 TB, monthly or yearly, and passes stack; the standby (Deleted) budget is
- * one multiple of the cap, so a shrink purges its oldest items sooner; per-
- * item sizes are stored (`media.file_size_bytes`) but no screen shows one
- * today; the album's View menu keeps Sort disabled ("Coming soon"); a Pro
- * host's plan sheet shows only Manage billing; the over-cap grace banner says
- * "largest files first" with no way to find one.
+ * ★ HIS NOTE IS THE GROUND. Every frame is the plan as it ships for a Pro host
+ * (`pricing-sheet.tsx`, kind `plan`: popups' wide dialog at a desk, the whole
+ * screen under a close in a hand), opened from a real door (the Plan card on
+ * Account, the storage meter on the dashboard), and his round-one picks are
+ * built in and live: the tapped size flips in place, full width, and See
+ * what's using space opens the flat list with its event filter and the strip
+ * that finishes the switch. Round one's other asks left `asks` (the ledger
+ * keeps their answers) and `storage-wiring` builds them after this round.
  *
- * ★ NEVER ASKED AGAIN, EACH NAMED WHERE IT IS CARRIED. `host-curation` settled
- * the bulk-act toast (Undo) and what a tap opens; this board's own Remove
- * bulk act reuses that toast rather than re-litigating it, and no row here
- * opens a viewer. `export-flow` owns how a download reads, its cap and its
- * failure states; the Download entry beside Remove hands off to it and stops
- * there. `media-viewer`'s open `holds` question (what stands beside a photo-
- * graph) is why no size is drawn in a lightbox here. `reel-host`'s own
- * question is whether the reel ever explains a waiting queue; storage is not
- * that queue and is not reasked here. The `app-pricing` row keeps every
- * pricing door on the ONE sheet (`refusal` and `prices` stay inside it, never
- * a second surface); the `app-vocabulary` row keeps every view option inside
- * the ONE View menu.
- *
- * ★ WHERE SIZES LIVE MOVED TO THE `popups` BOARD (2026-09-27), every option
- * kept: an account page, the album's own list and a sheet from the meter are
- * three of its `lists` options (a page, in place, the Sheet), asked once for
- * every list rather than for this one. The questions left here are drawn on
- * the account-wide list, the one where the order truly chooses.
- *
- * ★ THE FIXTURES ARE THIS BOARD'S OWN (`fixtures.ts`), not
- * `sandbox/gallery-fixtures.ts`, which still mints a nameless anonymous
- * uploader the identity reshape retired — an impossible person on a screen
- * whose whole subject is "who added it." One host, four events (three
- * clients' weddings she shoots and hosts herself, plus her own kid's
- * birthday), 64 real items, real byte counts: a handful of near-the-ceiling
- * 4K files account for most of the 110.8 GB total, which is the whole point
- * — the largest files are the story, not the count of small ones.
+ * ★ A CATALOG, NOTHING WIRING PRODUCTION: no button here starts Checkout, the
+ * change-plan route or the billing portal (`world.tsx`), and every figure is
+ * read from `tiers.ts` and the storage guard's own functions.
  */
 
-const SCREEN: Control = {
-  id: "screen",
-  label: "Screen",
-  options: [
-    { id: "1440", label: "1440, a laptop" },
-    { id: "375", label: "375, a phone" },
-  ],
-  default: "1440",
-};
-
-const DRAFT = defineExploration({
+export const HOST_STORAGE = defineExploration({
   id: "host-storage",
   title: "Where the largest files are",
   round: {
-    n: 1,
-    date: "2026-09-24",
+    n: 2,
+    date: "2026-09-28",
     changed:
-      "The boards refresh: order and goal, the two binaries here, each gain a genuine third (grouped-but-worst-first, a quiet toast at the goal); authority language reworded throughout.",
+      "Prices alone, five answers drawn whole on the plan as it ships (popups' wide dialog, a whole screen in a hand): opened from her Plan card, then from the storage meter with Pro 100 GB tapped. Your round-one picks are the ground: the flip, the list, the strip.",
   },
+  history: [
+    {
+      n: 1,
+      date: "2026-09-24",
+      changed:
+        "Four decisions over one videographer's 110.8 GB. You took largest first with an All or per-event filter, the live strip that finishes the switch, and the tapped size flipping in place, stacked; prices came back asking for better ideas.",
+    },
+  ],
   context:
-    "A host near a cap cannot find what is filling it: sizes are stored but no screen shows one. Four decisions (where the list opens is popups.lists), drawn over one wedding videographer's account at 110.8 GB across four events, on the shipped Plan card, storage meter, grace banner, View menu and pricing sheet.",
+    "Priya Anand, a wedding videographer on Pro 500 GB monthly, stores 110.8 GB across four events, so her plan meets every case: a size too small (100 GB), her own size yearly, and a size up (2 TB). Each answer is drawn twice on the shipped plan: opened from her Plan card, then from the storage meter with Pro 100 GB tapped. Your round-one picks are live in both: the flip in place, and See what's using space opening the list and its strip.",
   carried: [
     {
-      id: "row-contents",
-      question: "What should a row in the size list carry?",
-      taken: "A thumbnail, the size (and duration for video), the event, who added it, and the date.",
-      overrule: "Drop the uploader and the date if the row should read faster with less.",
+      id: "list-stacks",
+      question: "Where does See what's using space open from the plan?",
+      taken:
+        "Popups' side panel, stacked over the plan at a desk; its own screen in a hand, whose Back says Your plan. Closing it returns to the plan.",
+      overrule:
+        "If the plan should close first, the list opens alone and its strip is the only way back to a switch.",
     },
     {
-      id: "bulk-remove",
-      question: "How does a host act on several large items at once?",
-      taken: "Multi-select with a Remove to Deleted bulk action, on the same bar host-curation ships.",
-      overrule: "A one-at-a-time Remove is simpler if bulk feels premature on this screen.",
+      id: "strip-removes",
+      question:
+        "What does the strip's button do while items are only selected?",
+      taken:
+        "Remove and switch: they go to Deleted first, since the check counts what is stored. Once they have gone, it reads Switch.",
+      overrule:
+        "If a switch should never remove anything by itself, the button waits until Remove has run.",
     },
     {
-      id: "download-first",
-      question: "Should a host be offered a copy before removing anything?",
-      taken: "A Download entry sits beside Remove; the download itself is export-flow's own flow.",
-      overrule: "Skip it if Remove to Deleted's own 30-day window already reads as the safety net.",
+      id: "keep-plan",
+      question:
+        "What is the refusal's second way out when the size that fits is hers?",
+      taken:
+        "Keep Pro 500 GB, which flips it back. Tapped yearly, it offers Pro 500 GB, yearly instead, a real switch.",
+      overrule:
+        "If every refusal should offer a switch, it names the next size up instead.",
     },
     {
-      id: "deleted-shrinks",
-      question: "Does the Deleted bin's own budget change when a host shrinks their plan?",
-      taken: "One line says Deleted only holds items up to the new plan's size, so older ones purge sooner.",
-      overrule: "Leave it unsaid if the standby sweep already covers it quietly enough.",
+      id: "head-stays",
+      question: "Does the plan's head change with the prices?",
+      taken:
+        "No: every answer wears production's You are on Pro already and its line, so only the six prices differ.",
+      overrule:
+        "If the head should name her plan, it becomes Pro 500 GB, monthly, and the line moves under it.",
     },
   ],
   asks: [
     {
-      id: "order",
-      label: "The order",
-      question: "Should the list read largest-first across every event, or grouped by event?",
-      context:
-        "Freeing space for a plan switch favours one flat ranking; browsing what one event cost favours a total per event. Drawn on the account-wide list: where it opens is popups.lists, and in place it is one event with nothing to order.",
-      options: [
-        {
-          id: "flat",
-          label: "Largest first, every event mixed",
-          means: "One ranked list, so the files actually filling the cap sit at the top regardless of event.",
-        },
-        {
-          id: "grouped",
-          label: "Grouped by event, largest within each",
-          means: "Each event's own total first, its heaviest items under it, before diving into any one of them.",
-        },
-        {
-          id: "hybrid",
-          label: "Grouped, worst event first",
-          means: "Each event's own total and heaviest items, but the events themselves sort by their single largest file.",
-        },
-      ],
-      recommended: "flat",
-      because:
-        "Freeing space for a plan switch is about the biggest offenders, not about any one event; a flat rank gets a host to them in one glance.",
-      overrule:
-        "If a host thinks in events first, the hybrid keeps that story and still opens on the event actually worth checking.",
-      lands: "How the account-wide list reads, and whether an event's own total is ever the headline.",
-      configs: [SCREEN],
-    },
-    {
-      id: "goal",
-      label: "The goal",
-      question: "How should freeing space read when a smaller plan is the reason a host is here?",
-      context:
-        "A host who tapped a Pro size that does not fit lands on this same list. Nothing today distinguishes that visit from ordinary tidying, or tells them when they have freed enough.",
-      options: [
-        {
-          id: "live",
-          label: "A live count that finishes the switch",
-          means: "A sticky strip counts down as items are selected for Remove; at zero its own button finishes the switch.",
-        },
-        {
-          id: "plain",
-          label: "Plain totals, the plan named",
-          means: "A static line states what is stored, what the plan holds and the gap; switching happens back in the sheet.",
-        },
-        {
-          id: "toast",
-          label: "Quiet, then a toast when it's enough",
-          means: "No running strip: the moment enough is freed, a toast says so and offers Switch, instead of a number counting down.",
-        },
-      ],
-      recommended: "live",
-      because:
-        "The whole reason a host is on this screen is to close one gap; watching the count reach zero is the confirmation, and finishing the switch on the spot saves a second trip.",
-      overrule:
-        "If a running strip is more furniture than a host wants while just selecting files, the toast keeps the screen quiet until there is actually news.",
-      lands: "Whether the list ever knows why a host is looking at it, and whether a switch can finish there.",
-      after: { ask: "order" },
-      configs: [SCREEN],
-    },
-    {
-      id: "refusal",
-      label: "The refusal",
-      question: "How should the pricing sheet refuse a size that would not fit?",
-      context:
-        "A plan change may never leave a host storing more than the new cap, in his own words. Today nothing enforces or explains that; tapping a smaller Pro size just starts checkout.",
-      options: [
-        {
-          id: "inline",
-          label: "The tapped card itself flips to the refusal",
-          means: "In place, over the same size: what is stored, what it holds, the gap, then the two ways out.",
-        },
-        {
-          id: "swap",
-          label: "A dedicated refusal screen replaces the grid",
-          means: "The whole sheet swaps to one focused screen; a back arrow returns to the prices.",
-        },
-        {
-          id: "banner",
-          label: "A banner up front, the size just disabled",
-          means: "The sheet opens already warning which size would not fit; that one is greyed rather than tappable.",
-        },
-      ],
-      recommended: "inline",
-      because:
-        "The refusal belongs exactly where the host reached for the wrong size, with the least travel back to the one that fits or to the file list.",
-      overrule:
-        "If a refusal deserves more room than a card can hold, the swap gives the numbers and the two ways out a full screen.",
-      lands: "What tapping an undersized plan does, and the numbers and ways out every option has to carry.",
-      after: { ask: "goal" },
-      configs: [SCREEN],
-    },
-    {
       id: "prices",
       label: "The six prices",
-      question: "How should a Pro host's six prices sit in the sheet, including a size that does not fit?",
+      question:
+        "How should a Pro host's six prices sit in her plan, including the size that cannot hold what she stores?",
       context:
-        "A Pro host opening the sheet sees only Manage billing today; every size and interval change happens blind, inside Stripe's own portal.",
+        "Your note asked for better ideas, seen where a host meets them: five strategies, each on the plan as it ships, as it opens and with Pro 100 GB tapped. Press anything; See what's using space opens your round-one list.",
       options: [
         {
-          id: "rows",
-          label: "Three rows, one interval toggle above",
-          means: "The sizes stacked as compact rows; Monthly/Yearly above changes every price at once.",
+          id: "shipped",
+          label: "Six rows, as it ships today",
+          means:
+            "Production's list: every price a row, hers marked, Switch on the rest. The one change is your pick: Too small now flips its row to the refusal.",
         },
         {
-          id: "cards",
-          label: "Three cards, the current one held",
-          means: "The same ink PlanCard the sheet already uses, one per size, the current plan marked Your plan.",
+          id: "sizes",
+          label: "Three sizes, her bytes in each",
+          means:
+            "A card per size shows how full her 110.8 GB would make it, and its monthly and yearly prices are its two switches. All six at once, no toggle.",
         },
         {
-          id: "matrix",
-          label: "A small grid, every price already visible",
-          means: "Sizes down, Monthly and Yearly across: all six numbers at once, no toggle to miss one behind.",
+          id: "moves",
+          label: "Her plan, then the ways to change it",
+          means:
+            "Her plan held on top; under it pay yearly, more room and less room, each price saying what it costs against today, such as $20 more a month.",
+        },
+        {
+          id: "pick",
+          label: "A size and a billing, then one button",
+          means:
+            "Two choices opening on hers, one price, and one button naming the exact change. The shortest plan; the other prices wait behind the choices.",
+        },
+        {
+          id: "advised",
+          label: "The change that suits her, then every price",
+          means:
+            "It leads with the one change what she stores makes sensible (yearly, $38 less a year), then production's six rows under it.",
         },
       ],
-      recommended: "matrix",
+      today: "shipped",
+      recommended: "sizes",
       because:
-        "Six honest numbers fit in one glance with no toggle hiding four of them, and the size that does not fit wears whichever refusal the question before chose, right inside the grid a host is already scanning.",
+        "Every price in one glance with no toggle, stacked as your plans note asked, and fit drawn before a tap: the size that cannot hold 110.8 GB is visibly full, and tapping either of its prices flips that card in place.",
       overrule:
-        "If six numbers at once reads as a spreadsheet, the toggle keeps the sheet to three at a time, closer to how it reads today.",
-      lands: "Whether Pro ever compares its own sizes inside the sheet, and how the size that does not fit sits among the rest.",
-      after: { ask: "refusal" },
+        "If a host thinks in changes rather than sizes, moves prices each against today; if a phone's length matters most, pick is the shortest.",
+      lands:
+        "What `pro-price-list.tsx` becomes: how the six prices sit in the plan, and how a size too small reads before and after a tap.",
       configs: [SCREEN],
     },
   ],
 });
-
-/**
- * ★ ONE KNOB PER ID, NOT ONE PER DECISION THAT USES IT. `defineExploration`
- * flattens every decision's `configs` into the board's controls, so the
- * screen knob all four decisions share would arrive four times: the dock
- * would draw it four times and React would warn on the duplicate key.
- */
-export const HOST_STORAGE: typeof DRAFT = {
-  ...DRAFT,
-  controls: DRAFT.controls?.filter(
-    (c, i, all) => all.findIndex((d) => d.id === c.id) === i,
-  ),
-};
