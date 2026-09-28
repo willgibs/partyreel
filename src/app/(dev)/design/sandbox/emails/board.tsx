@@ -30,8 +30,18 @@ import {
   toHex,
 } from "./mock";
 import {
+  AFTER_MAIL,
+  CaseInboxes,
+  CODE_MAIL,
+  type InboxCase,
+  KEPT_MAIL,
+  LET_IN_MAIL,
+  LINK_MAIL,
+  NOTE_MAIL,
+  REMOVED_MAIL,
+} from "./inboxes";
+import {
   DORMANT_ROSTER,
-  GUEST_ROSTER,
   IDENTITY_ROSTER,
   MomentsRoster,
   RetiredSwitchesStub,
@@ -454,17 +464,26 @@ function codeScreen(shape: CodeShape, s: BoardState) {
 type MomentsShape = "shipped" | "retired" | "identity";
 
 const MOMENTS_CAPTION: Record<MomentsShape, string> = {
-  shipped: "Thirteen rows: the three dormant switches now have a real subject each.",
+  shipped:
+    "Thirteen rows: the three dormant switches now have a real subject each.",
   retired:
     "Ten rows stand; Account settings drops to the one switch that is real.",
   identity:
-    "Ten rows, plus one new: an account confirmed, the moment the three dormant switches never anticipated.",
+    "Ten rows, plus one new: sent once she confirms at the keep, after her upload, in the dashboard banner's own words.",
 };
 
 const momentsRead: Reader = (root) => {
-  const rows = root.querySelectorAll('[data-inbox-row] > div').length;
-  const dormant = root.querySelectorAll("[data-inbox-dormant-switch]").length;
-  return `Measured: ${rows} rows on the roster${dormant ? `, ${dormant} live switch${dormant === 1 ? "" : "es"} with nothing behind ${dormant === 1 ? "it" : "them"}` : ", no dormant switches left standing"}.`;
+  const rows = root.querySelectorAll("[data-inbox-row] > div").length;
+  // The rows nothing sends yet are the option's own words, so their subjects
+  // are read out whole (a reader of dormant switches stood here and matched
+  // nothing: no frame ever drew one).
+  const proposed = [
+    ...root.querySelectorAll<HTMLElement>(
+      "[data-inbox-proposed] p:first-child",
+    ),
+  ].map((p) => `"${(p.textContent ?? "").replace(/\s+/g, " ").trim()}"`);
+  const stub = root.querySelector("[data-inbox-real-switch]") !== null;
+  return `Measured: ${rows} rows on the roster, ${proposed.length ? `${proposed.length} not yet built (${proposed.join(", ")})` : "every one of them shipped"}${stub ? ", and Account settings down to its one real switch" : ""}.`;
 };
 
 function momentsScreen(shape: MomentsShape, s: BoardState) {
@@ -482,7 +501,12 @@ function momentsScreen(shape: MomentsShape, s: BoardState) {
       read={momentsRead}
       caption={MOMENTS_CAPTION[shape]}
     >
-      <div data-inbox-screen={screen} className="flex h-full flex-col bg-neutral-100">
+      {/* `min-h-screen`: the frame's body is only as tall as what it holds,
+          so a full-height root left the frame's foot unpainted. */}
+      <div
+        data-inbox-screen={screen}
+        className="flex min-h-screen flex-col bg-neutral-100"
+      >
         {screen === "1440" ? <DesktopChrome /> : <PhoneChrome />}
         <div className="flex-1 overflow-auto px-4 py-4">
           <div
@@ -505,49 +529,132 @@ function momentsScreen(shape: MomentsShape, s: BoardState) {
   );
 }
 
-/* ── 7. the guest's (after moments) ───────────────────────────────────────  */
+/* ── 7. the guest's link (after moments) ─────────────────────────────────  */
 
-type GuestShape = "none" | "link" | "both";
-
-const GUEST_CAPTION: Record<GuestShape, string> = {
-  none: "Empty. The address is stored; nothing ever arrives.",
-  link: "One mail: the album's link, sent once.",
-  both: "Two: the link, and a later one once the party is behind them.",
+/**
+ * ★ EVERY ONE OF THESE THREE ASKS IS TWO INBOXES (inboxes.tsx), over the two
+ * cases that tell its options apart, so no two options are one picture; the
+ * reader counts the mails in each.
+ */
+const casesRead: Reader = (root) => {
+  const cases = [...root.querySelectorAll<HTMLElement>("[data-inbox-case]")];
+  if (cases.length === 0) return null;
+  const said = cases.map((c) => {
+    const n = c.querySelectorAll("[data-inbox-mail]").length;
+    return `${c.dataset.inboxCase}, ${n === 0 ? "nothing" : `${n} mail${n === 1 ? "" : "s"}`}`;
+  });
+  return `Measured: ${said.join("; ")}.`;
 };
 
-const guestRead: Reader = (root) => {
-  const empty = root.querySelector("[data-inbox-empty]");
-  const rows = root.querySelectorAll("[data-inbox-list-subject]").length;
-  return `Measured: ${empty ? "an empty inbox" : `${rows} mail${rows === 1 ? "" : "s"} from Partyreel`}.`;
-};
-
-function guestScreen(shape: GuestShape, s: BoardState) {
+function casesScreen(
+  id: string,
+  caption: string,
+  cases: InboxCase[],
+  s: BoardState,
+) {
   const screen = screenFor(s);
-  const source =
-    shape === "none"
-      ? []
-      : shape === "link"
-        ? GUEST_ROSTER.slice(0, 1)
-        : GUEST_ROSTER;
-  const rows: ListRow[] = source.map((r, i) => ({
-    from: SYSTEM_SENDER.name,
-    subject: r.subject,
-    preview: r.trigger,
-    when: i === 0 ? "Sat" : "3 weeks later",
-  }));
   return (
-    <Stage
-      id={`guest-${shape}`}
-      screen={screen}
-      read={guestRead}
-      caption={GUEST_CAPTION[shape]}
-    >
-      <InboxList screen={screen} rows={rows} />
+    <Stage id={id} screen={screen} read={casesRead} caption={caption}>
+      <CaseInboxes screen={screen} cases={cases} />
     </Stage>
   );
 }
 
-/* ── 8. the dark inbox (after brand) ──────────────────────────────────────  */
+type GuestShape = "none" | "link" | "both";
+
+const GUEST_CAPTION: Record<GuestShape, string> = {
+  none: "Today. The guest who confirms gets her code; the one who said Maybe later, nothing.",
+  link: "The one who said Maybe later gets one mail, once: her album's link, and a way to say it wasn't her.",
+  both: "Two for her: the link, and a later one once the party is behind her.",
+};
+
+/** The guest who confirmed is drawn alike under every option: her code is today's. */
+const CONFIRMED: InboxCase = {
+  label: "Confirmed at the keep",
+  rows: [CODE_MAIL],
+};
+
+function guestScreen(shape: GuestShape, s: BoardState) {
+  const later: InboxCase = {
+    label: "Maybe later, her address typed at the door",
+    rows:
+      shape === "none"
+        ? []
+        : shape === "link"
+          ? [LINK_MAIL]
+          : [LINK_MAIL, AFTER_MAIL],
+    empty: "Her address is stored, and never mailed.",
+  };
+  return casesScreen(
+    `guest-${shape}`,
+    GUEST_CAPTION[shape],
+    [CONFIRMED, later],
+    s,
+  );
+}
+
+/* ── 8. a newcomer let in ─────────────────────────────────────────────────  */
+
+type LetInShape = "none" | "always" | "left";
+
+const LETIN_CAPTION: Record<LetInShape, string> = {
+  none: "No mail either way: the door opened while she watched, and the one who left has to check back.",
+  always: "One mail either way, the door open or not.",
+  left: "The door that opened while she watched sends nothing; the one who left gets the mail that brings her back.",
+};
+
+function letinScreen(shape: LetInShape, s: BoardState) {
+  const stayed: InboxCase = {
+    label: "Waited on the door until Maya let her in",
+    rows: shape === "always" ? [LET_IN_MAIL] : [],
+    empty: "The door opened onto the album while she watched.",
+  };
+  const gone: InboxCase = {
+    label: "Closed the page before Maya decided",
+    rows: shape === "none" ? [] : [LET_IN_MAIL],
+    empty: "She finds out only if she comes back to look.",
+  };
+  return casesScreen(`letin-${shape}`, LETIN_CAPTION[shape], [stayed, gone], s);
+}
+
+/* ── 9. the reporter ──────────────────────────────────────────────────────  */
+
+type ReporterShape = "none" | "note" | "outcome";
+
+const REPORTER_CAPTION: Record<ReporterShape, string> = {
+  none: "Today. The report closes in silence, whatever the operator did.",
+  note: "One note either way, in the same words: nothing in it says what was decided.",
+  outcome: "One note either way, each saying what was decided.",
+};
+
+function reporterScreen(shape: ReporterShape, s: BoardState) {
+  const rowsFor = (removed: boolean) =>
+    shape === "none"
+      ? []
+      : shape === "note"
+        ? [NOTE_MAIL]
+        : [removed ? REMOVED_MAIL : KEPT_MAIL];
+  const empty = "The report closed; nobody kept her name.";
+  return casesScreen(
+    `reporter-${shape}`,
+    REPORTER_CAPTION[shape],
+    [
+      {
+        label: "An operator removed what she reported",
+        rows: rowsFor(true),
+        empty,
+      },
+      {
+        label: "An operator looked and left it up",
+        rows: rowsFor(false),
+        empty,
+      },
+    ],
+    s,
+  );
+}
+
+/* ── 10. the dark inbox (after brand) ──────────────────────────────────────  */
 
 const DARK_CAPTION: Record<DarkId, string> = {
   today:
@@ -615,6 +722,14 @@ const PREVIEWS: PreviewsFor<typeof EMAILS> = {
   "guest.none": (s) => guestScreen("none", s),
   "guest.link": (s) => guestScreen("link", s),
   "guest.both": (s) => guestScreen("both", s),
+
+  "letin.none": (s) => letinScreen("none", s),
+  "letin.always": (s) => letinScreen("always", s),
+  "letin.left": (s) => letinScreen("left", s),
+
+  "reporter.none": (s) => reporterScreen("none", s),
+  "reporter.note": (s) => reporterScreen("note", s),
+  "reporter.outcome": (s) => reporterScreen("outcome", s),
 
   "dark.today": (s) => darkScreen("today", s),
   "dark.light": (s) => darkScreen("light", s),

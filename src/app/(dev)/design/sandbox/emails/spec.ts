@@ -24,6 +24,22 @@ import { defineExploration } from "@/components/lab/exploration";
  * out of this repo, and the four dormant switches, wired to nothing) a mock
  * labelled as one. No preview imports `send.ts` or `client.ts`; nothing here
  * sends.
+ *
+ * ★ THE FLOW REFRESH (2026-09-28). Two reached asks redrawn, and two asks
+ * moved in from other boards; `shell`, `brand`, `sender`, `foot`, `code` and
+ * `dark` are untouched, word for word and drawing for drawing.
+ *  - `moments`: Will's `identity-claims` r3 `pointer=line` keeps the event
+ *    self-contained, so `identity` is one mail sent after she confirms at the
+ *    keep, echoing the dashboard banner claims-wiring built, never from a
+ *    confirmation before her first upload.
+ *  - `guest`: the keep (guest-door) mails every confirming guest a code, so
+ *    "nothing ever arrives" was false; the ask narrows to the one guest with
+ *    an address and nothing sent, the one who said Maybe later.
+ *  - `letin` (event-safety `waiting`'s mail half, its three roads) and
+ *    `reporter` (admin-triage `notice`'s `both`, plus the outcome said as a
+ *    genuine third) are their own asks: three triggers to three people are
+ *    three decisions, and forcing them into one would draw its options as
+ *    combinations rather than contenders.
  */
 
 /** The knob every decision shares, so one inbox width is on the stage at a
@@ -43,12 +59,31 @@ const DRAFT = defineExploration({
   title: "Every email Partyreel sends",
   round: {
     n: 1,
-    date: "2026-09-21",
+    date: "2026-09-28",
     changed:
-      "The overtaken audit's reshape: four questions reframed with app-vocabulary r1, app-door r1, first-event r1, app-shape r2 and the identity reshape folded in; moments gains a new option, the set the identity door implies.",
+      "The flow refresh: moments' identity mail follows the keep and echoes the dashboard banner; guest narrows to Maybe later; the let-in mail (event-safety) and the reporter's note (admin-triage) join as their own asks.",
   },
   context:
-    "Ten templates ship today, all from one address, none to a guest, in two hand-maintained wrappers. Every option here is the real function in templates.ts, read inside an inbox mock at a phone's width and a laptop's.",
+    "Ten templates ship today from templates.ts, all from one address, in two hand-maintained wrappers; a guest's only mail is her sign-in code, a Supabase template. Every option here is the real function where one exists, read inside an inbox mock at a phone's width and a laptop's.",
+  carried: [
+    {
+      id: "three-asks",
+      question:
+        "Are a guest's link, a let-in mail and a reporter's note one decision?",
+      taken:
+        "Three: three triggers to three people, each its own ask over two inboxes, every option the two boards had kept.",
+      overrule:
+        "Fold them back into one guest ask if a single question about a guest's mail reads faster.",
+    },
+    {
+      id: "outcome-third",
+      question: "What is the reporter ask's third road?",
+      taken:
+        "A note that says what was decided, beside silence and a note in the same words whatever happened.",
+      overrule:
+        "Drop it if an operator's decision should never leave the portal.",
+    },
+  ],
   asks: [
     /* ── 1. One shell ────────────────────────────────────────────────── */
     {
@@ -240,32 +275,36 @@ const DRAFT = defineExploration({
       id: "moments",
       label: "The moments",
       question:
-        "Which moments should really send a mail now: the three as drawn, nothing yet, or the set the new door implies?",
+        "Which moments should really send a mail now: the three as drawn, nothing yet, or one after the keep's confirm?",
       context:
-        "A dead switch is ruled absent, never drawn empty (app-shape r2): the reel's own is impossible now, not unbuilt. What's open is what gets built for real; identity adds a candidate the three never saw.",
+        "A dead switch is ruled absent, never drawn empty (app-shape r2). His pointer=line keeps the event self-contained: a guest's other waiting events are hers to handle on her dashboard later, never a pointer out before she uploads.",
       options: [
         {
           id: "shipped",
           label: "The three as drawn",
-          means: "The three switches gain real sends, drawn here as labelled subjects.",
+          means:
+            "The three switches gain real sends, drawn here as labelled subjects.",
         },
         {
           id: "retired",
           label: "Build nothing yet",
-          means: "The dead switches leave; no replacement mail ships this round, the roster stays at ten.",
+          means:
+            "The dead switches leave; no replacement mail ships this round, the roster stays at ten.",
         },
         {
           id: "identity",
-          label: "The set the new door implies",
-          means: "Retire the three as drawn; wire the moment the identity reshape's capture flow creates instead, an email confirmed into an account.",
+          label: "One mail after the keep's confirm",
+          means:
+            "Retire the three; when a guest confirms at the keep and other events wait under her address, one mail says what the dashboard's banner says.",
         },
       ],
       recommended: "identity",
       because:
-        "The three as drawn were written before an email could ever make an account; the identity reshape's own door is the moment most worth a real send right now, and it costs no more than one of the three it replaces.",
+        "The three as drawn were written before an email could make an account. The moment worth a real send is her confirm at the keep, after her upload: one mail in the banner's own words, pointing at her dashboard, never out of the event before she has added to it.",
       overrule:
-        "If identity-claims settles on a bell or banner, wire this mail as its echo; if guest-capture's own offer differs, follow that instead of the three as drawn.",
-      lands: "Whether notification-prefs-form.tsx keeps any dormant rows, and which template templates.ts gains next.",
+        "If the banner is enough on its own (she meets it the next time she opens her dashboard), build nothing and keep the roster at ten.",
+      lands:
+        "Whether notification-prefs-form.tsx keeps any dormant rows, and which template templates.ts gains next.",
       tile: "phone",
       configs: [SCREEN],
     },
@@ -273,39 +312,124 @@ const DRAFT = defineExploration({
     /* ── 7. The guest's (after moments) ──────────────────────────────── */
     {
       id: "guest",
-      label: "The guest's",
+      label: "The guest's link",
       question:
-        "Should a guest ever get a mail from Partyreel, now confirming an email makes the account?",
+        "Should a guest who said Maybe later, but left her address at the door, get her album's link once?",
       context:
-        "Guest-shape r1 takes the address on a promise to keep the album. The identity round (2026-09-22): a names-mode door captures an optional unconfirmed email, never mailed alone; a one-shot album mail only after a completed upload.",
+        "Confirming at the keep, after her first upload, mails a guest her code. One guest gets nothing: she typed an address at the door, uploaded, then chose Maybe later. It is unproved and never mailed alone; ROADMAP holds a one-shot link.",
       options: [
         {
           id: "none",
-          label: "Nothing, as today",
-          means: "The address is stored; no mail ever follows it.",
+          label: "Only the code, as today",
+          means:
+            "A guest who confirms gets her code; one who said Maybe later hears nothing, her address stored and never mailed.",
         },
         {
           id: "link",
-          label: "The album link, once",
-          means: "One mail on their first completed upload, once an address is on file, carrying their album's link.",
+          label: "Her album's link, once",
+          means:
+            "Maybe later with an address on file sends one mail, once, with her album's link and a This wasn't me that takes the address off.",
         },
         {
           id: "both",
           label: "The link, and one after the party",
-          means: "The link mail, plus a later \"your photographs are in.\"",
+          means:
+            'The link mail, plus a later "your photographs are in" once the party is behind her.',
         },
       ],
       recommended: "link",
+      today: "none",
       because:
-        "The second mail still needs a \"the party is over\" signal the product doesn't have (events have no end date, by design), so the one thing worth sending stays the link, whether it rides inside the verification or right after it.",
-      overrule: "If a real end-of-event signal ever lands, the second mail becomes cheap.",
-      lands: "Whether the capture-email route gains a sendOnce call and a new template.",
+        "A guest who put the keep down still left an address and her photographs; her album's link, once, is the one thing worth sending, and This wasn't me undoes a mistyped address. The party has no end (events have no end date) to time a second mail by.",
+      overrule:
+        "If mailing an address nobody proved is one risk too many, her code stays the only mail a guest ever gets.",
+      lands:
+        "Whether the keep's Maybe later sends one sendOnce mail (guest_event_link) to her unproved address.",
       after: { ask: "moments" },
       tile: "phone",
       configs: [SCREEN],
     },
 
-    /* ── 8. The dark inbox (after brand) ─────────────────────────────── */
+    /* ── 8. Let in (from event-safety) ───────────────────────────────── */
+    {
+      id: "letin",
+      label: "A newcomer let in",
+      question:
+        "When a host lets a waiting newcomer in, should Partyreel mail her?",
+      context:
+        "If Approve newcomers or an invite list ships (event-safety), a newcomer with a confirmed email waits at the door until the host lets her in, and the door opens by itself. That board kept the door; its mail half moved here.",
+      options: [
+        {
+          id: "none",
+          label: "No mail: the door opens itself",
+          means:
+            "The held door opens onto the album the moment the host lets her in. Nothing is sent; one who left checks back.",
+        },
+        {
+          id: "always",
+          label: "A mail every time she's let in",
+          means:
+            "The door still opens by itself, and a You're in mail with the album's link follows every let-in.",
+        },
+        {
+          id: "left",
+          label: "A mail only if she has left",
+          means:
+            "The door opens while she watches; only if she closed it before the host decided does a You're in mail bring her back.",
+        },
+      ],
+      recommended: "left",
+      because:
+        "At a party a host decides in minutes, so the door should open by itself while she watches; one who pocketed her phone should not have to keep checking back. Her address is confirmed here, so the mail reaches her and no one else.",
+      overrule:
+        "If one more mail per guest is more than a party needs, the door alone is simpler and sends nothing.",
+      lands:
+        "Whether letting a waiting guest in sends a mail, and whether the door knows she has gone.",
+      tile: "phone",
+      configs: [SCREEN],
+    },
+
+    /* ── 9. The reporter (from admin-triage) ─────────────────────────── */
+    {
+      id: "reporter",
+      label: "The reporter",
+      question:
+        "When an operator closes a report, should the guest who sent it hear back?",
+      context:
+        "A report queues an operator's review and hides nothing. No report keeps who sent it (no reporter column, by choice: a privacy decision of its own), and only a confirmed address is ever mailed. The host's line stays in admin-triage.",
+      options: [
+        {
+          id: "none",
+          label: "Nothing, as today",
+          means:
+            "The report closes in silence and keeps no one's name. She sees what she reported gone or still there, and is told nothing.",
+        },
+        {
+          id: "note",
+          label: "A closing note, the same words",
+          means:
+            "One mail as it closes: we looked, thank you, the same words whatever the operator did. Who sent it is kept only until then.",
+        },
+        {
+          id: "outcome",
+          label: "A note that says what happened",
+          means:
+            "One mail as it closes, saying whether what she reported was removed or stays up. Who sent it is kept only until then.",
+        },
+      ],
+      recommended: "note",
+      today: "none",
+      because:
+        "A report that vanishes teaches a guest not to report again. One note, the same words whatever was decided, closes the loop without saying what an operator did, so a legal hold still reads like any other review.",
+      overrule:
+        "If keeping who reported whom, even until the report closes, is a privacy line not to cross, the report stays anonymous and silent.",
+      lands:
+        "Whether a report keeps who sent it until it closes, and whether an operator's close sends a note.",
+      tile: "phone",
+      configs: [SCREEN],
+    },
+
+    /* ── 10. The dark inbox (after brand) ─────────────────────────────── */
     {
       id: "dark",
       label: "The dark inbox",

@@ -1,16 +1,19 @@
-import type { GridMedia } from "@/components/app/media-grid";
 import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
-import type { ExportSummary, ExportTypeFilter } from "@/lib/export/build-manifest";
+import type {
+  ExportSummary,
+  ExportTypeFilter,
+} from "@/lib/export/build-manifest";
 
 /**
- * THE STAND-IN CONTENT for `export-flow`: one wedding, four albums, and the
- * numbers the dialog's foot is made of.
+ * THE STAND-IN CONTENT for `export-flow`: one wedding, three albums, and the
+ * numbers the Download menu's rows are made of.
  *
- * ★ EVERY NUMBER HERE IS A BYTE COUNT, NEVER A STRING. The dialog's foot is
- * `formatBytes(bytes)` over a sum of buckets, so a fixture that wrote "2.6 GB"
- * would be a claim the board could not check. These carry counts and bytes, the
- * real `ExportSummary` shape the summary endpoint returns, and every caption on
- * the board is read back off the laid-out DOM (board.tsx).
+ * ★ EVERY NUMBER HERE IS A BYTE COUNT, NEVER A STRING. A menu row's hint is
+ * `formatCount(count) · formatBytes(bytes)` over a sum of buckets, so a fixture
+ * that wrote "2.6 GB" would be a claim the board could not check. These carry
+ * counts and bytes, the real `ExportSummary` shape the summary endpoint
+ * returns, and every caption on the board is read back off the laid-out DOM
+ * (board.tsx).
  *
  * ★ NO NEW ASSET. Every tile is one of the bootstrap stills every other board
  * reuses (`MARKETING_IMAGES`), so there is nothing to ask Will for and nothing
@@ -19,7 +22,11 @@ import type { ExportSummary, ExportTypeFilter } from "@/lib/export/build-manifes
 
 export const EVENT = {
   name: "Mia & Theo's Wedding",
-  /** The album's own address, which is what the `link` option offers. */
+  /** The host's name on the guest page's byline. */
+  host: "Mia",
+  date: "15 August 2026",
+  guests: 34,
+  /** The album's own address, which the phone's share sheet names. */
   url: "partyreel.com/e/mia-and-theo",
 } as const;
 
@@ -27,7 +34,10 @@ export const EVENT = {
 const PHOTO = 4_410_000;
 const VIDEO = 98_200_000;
 
-const bucket = (count: number, each: number) => ({ count, bytes: count * each });
+const bucket = (count: number, each: number) => ({
+  count,
+  bytes: count * each,
+});
 
 const summary = (
   photos: number,
@@ -46,61 +56,49 @@ export type AlbumId = "wedding" | "small" | "over";
 
 export type Album = {
   readonly id: AlbumId;
-  /** What the dock calls it. */
-  readonly label: string;
   readonly summary: ExportSummary;
-  /** What the guest who is looking added themselves, for the `mine` option. */
+  /** What the guest who is looking added herself: View's Yours, and `mine`'s row. */
   readonly mine: ExportSummary;
-  /** How many tiles the ground draws behind the dialog. */
-  readonly tiles: number;
 };
 
 /**
- * THREE ALBUMS, BECAUSE THE DIALOG IS THREE DIFFERENT OBJECTS IN THEM. A
- * wedding is the ordinary case; twelve photographs is the case the cap copy
- * never applies to; 2,440 items is where the refusal fires.
+ * THREE ALBUMS, BECAUSE THE MENU IS THREE DIFFERENT OBJECTS IN THEM. A wedding
+ * is the ordinary case; twelve photographs is the case where a row counts
+ * nothing (no videos); 2,440 items is where the limit disables rows.
  *
- * ★ THE TEASER LEFT WITH `chips` (the identity/reel recheck, 2026-09-22). It
- * drew a signed-out visitor reaching this sheet at all, which the door no
- * longer lets happen: a teaser viewer is held at an inert backdrop the whole
- * way (docs/systems/guest-flow.md, "no exit"), so she never sees Download,
- * let alone a chip on it.
+ * ★ THE TEASER LEFT WITH `chips` (the identity/reel recheck, 2026-09-22): a
+ * teaser viewer is held at an inert backdrop the whole way
+ * (docs/systems/guest-flow.md, "no exit"), so she never sees Download.
  */
 export const ALBUMS: Record<AlbumId, Album> = {
   wedding: {
     id: "wedding",
-    label: "A wedding, 148 items",
     summary: summary(126, 22, 6, 1),
     mine: summary(11, 3),
-    tiles: 18,
   },
   small: {
     id: "small",
-    label: "A small album, 12",
     summary: summary(12, 0),
     mine: summary(4, 0),
-    tiles: 12,
   },
   over: {
     id: "over",
-    label: "Over the limit, 2,440",
     summary: summary(2280, 160, 0, 0),
     mine: summary(31, 4),
-    tiles: 18,
   },
 };
 
 export const albumOf = (v: string | undefined): Album =>
   v === "small" || v === "over" ? ALBUMS[v] : ALBUMS.wedding;
 
-/* ── the dialog's own arithmetic, copied from the shipped component ──────── */
+/* ── the menu's own arithmetic, copied from the shipped component ────────── */
 
 /**
  * ★ `bucketFor` AND `totalFor` ARE PRIVATE TO `export-dialog.tsx`, so they are
  * reproduced here rather than imported, and reproduced EXACTLY: every count and
- * size on this board is the sum the shipped dialog would show for the same
- * summary. If the dialog's arithmetic ever changes, this is the copy that has
- * to move with it (there is no seam to import, and adding one is an edit to a
+ * size on this board is the sum the shipped menu would show for the same
+ * summary. If the menu's arithmetic ever changes, this is the copy that has to
+ * move with it (there is no seam to import, and adding one is an edit to a
  * shipped file this lane does not own).
  */
 function bucketFor(
@@ -132,38 +130,29 @@ export function totalFor(
 export const hasHidden = (s: ExportSummary) =>
   s.hidden.photo.count + s.hidden.video.count > 0;
 
-/* ── the tiles behind the dialog ─────────────────────────────────────────── */
+/* ── the photographs the album draws ──────────────────────────────────────── */
 
-const RATIOS: readonly [number, number][] = [
-  [4, 5],
-  [1, 1],
-  [3, 4],
-  [4, 3],
-  [16, 10],
-  [3, 2],
-  [2, 3],
-  [5, 4],
-];
+/** Each still's own shape, as the rows lay it (width over height). */
+const RATIOS = [4 / 5, 1, 3 / 4, 4 / 3, 16 / 10, 3 / 2, 2 / 3, 5 / 4];
 
-function tile(i: number, overrides: Partial<GridMedia> = {}): GridMedia {
-  const img = MARKETING_IMAGES[i % MARKETING_IMAGES.length];
-  const [width, height] = RATIOS[i % RATIOS.length];
-  return {
-    id: `xf-${i}`,
-    type: "photo",
-    url: img.src,
-    previewUrl: img.src,
-    downloadUrl: img.src,
-    status: "approved",
-    width,
-    height,
-    likeCount: 0,
-    createdAt: "2026-08-15T18:00:00.000Z",
-    ...overrides,
-  };
-}
+export type Still = {
+  readonly id: string;
+  readonly src: string;
+  readonly ratio: number;
+};
 
-export const TILES: GridMedia[] = Array.from({ length: 18 }, (_, i) => tile(i));
+export const STILLS: readonly Still[] = Array.from({ length: 20 }, (_, i) => ({
+  id: `xf-${i}`,
+  src: MARKETING_IMAGES[i % MARKETING_IMAGES.length].src,
+  ratio: RATIOS[i % RATIOS.length],
+}));
 
-/** Which of the album's tiles this guest took, for the `mine` and `picked` options. */
-export const MINE = new Set(["xf-1", "xf-4", "xf-7", "xf-9", "xf-12", "xf-15"]);
+/** Which of the album's stills this guest ticked, for the `picked` option. */
+export const PICKED = new Set([
+  "xf-1",
+  "xf-4",
+  "xf-7",
+  "xf-9",
+  "xf-12",
+  "xf-15",
+]);
