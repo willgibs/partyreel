@@ -112,7 +112,7 @@ const measureSent: Reader = (root) => {
   } else if (toast) {
     const n = lineCount(toast);
     if (!n) return null;
-    where = `a ${wordCount(text(toast))}-word toast on ${lines(n)}, nothing of hers in the album`;
+    where = `a toast of ${wordCount(text(toast))} words on ${lines(n)}, nothing of hers in the album`;
   } else {
     where = "nothing of hers in the album";
   }
