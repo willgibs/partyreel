@@ -54,6 +54,26 @@ export const ALBUM_MOTION = defineExploration({
   },
   context:
     "The album page's hero stands on the live guest album with photographs falling out of the room around the words into its top edge, which you asked for (`motion=stream`). This asks the one thing left open: which fall. The album itself now lays out in rows and takes a new photograph by opening its row, so every option is drawn on that album, over production's own falls.",
+  // The two calls the push and its stage rest on, taken by the marketing
+  // refresh on its own recommendation (its manifest's Questions).
+  carried: [
+    {
+      id: "side",
+      question: "Which side does the push draw its photographs from?",
+      taken:
+        "The head's only: a newest-first album opens top left, so every frame lands over the head; one born on the right would cross under the words to get there.",
+      overrule:
+        "Both sides, every frame still opening the head: balanced, but a right-hand photograph goes in on the right and reappears on the left.",
+    },
+    {
+      id: "rows",
+      question: "What does the stage's album lay out as?",
+      taken:
+        "The guest album's rows, laid plain: its rhythm leads a row now and then with a landscape at twice the height, which on a stage two rows tall is one photograph.",
+      overrule:
+        "The rhythm on, as a guest's album has it: now and then a single landscape fills the stage, and a push can open a double-height row.",
+    },
+  ],
   asks: [
     {
       id: "fall",
