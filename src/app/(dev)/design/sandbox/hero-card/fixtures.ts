@@ -1,5 +1,4 @@
 import { SITE_URL } from "@/lib/constants/site";
-import { DEMO_EVENT_URL } from "@/lib/demo";
 
 import { EVENT } from "../gallery-fixtures";
 
@@ -20,9 +19,6 @@ export const CARD_EVENT = {
   slug: "mia-and-theo",
 } as const;
 
-/** What today's object encodes: `DemoQr`'s own value. */
-export const TODAY_VALUE = DEMO_EVENT_URL ?? "https://partyreel.com";
-
 /**
  * What a card's code encodes: the QR door's short value (`opens=short`), 25
  * modules against the event link's 33. The code no longer has to scan here
@@ -34,10 +30,22 @@ export const TODAY_VALUE = DEMO_EVENT_URL ?? "https://partyreel.com";
 export const CARD_VALUE = `${SITE_URL}/demo`;
 
 /**
+ * The link as it unfurls in a group chat, in the product's own words: an open
+ * event's pasted link is titled exactly this (`generateMetadata` in
+ * `(guest)/e/[token]/page.tsx`), so `chat` quotes the real unfurl rather than
+ * writing a marketing line.
+ */
+export const CHAT_TITLE = {
+  lead: "Add photos to",
+  name: EVENT.name,
+} as const;
+
+/**
  * The album a card shows, in the order it lays them out. Stand-ins from the
  * twelve bootstrap stills, which the band shows too; a pick names the
- * photographs made for the card (the Handoff's asset ask), and they replace
- * these by id.
+ * photographs made for the card (ASSETS row 33), and they replace these by id.
+ * Eight, because `spread` fans the whole of a small album; every other card
+ * shows the first four.
  */
 export const CARD_STILLS = [
   "wedding-toast",
@@ -46,6 +54,8 @@ export const CARD_STILLS = [
   "reception-table",
   "wedding-golden",
   "wedding-arch",
+  "reception-hall",
+  "party-dj",
 ] as const;
 
 /** The one the album holds as a video: a toast is what a guest films. */
@@ -57,3 +67,13 @@ export const CARD_FACES = [
   { seed: "demo-guest-sam", initial: "S" },
   { seed: "demo-guest-theo", initial: "T" },
 ] as const;
+
+/** The guests who added the prints `guests` pins them to, one each: the
+ *  three faces the other cards show, and one more. */
+export const CARD_GUESTS = [
+  ...CARD_FACES,
+  { seed: "demo-guest-jules", initial: "J" },
+] as const;
+
+/** How many are in: the shared event's own guest count. */
+export const CARD_GUEST_COUNT = EVENT.guests;

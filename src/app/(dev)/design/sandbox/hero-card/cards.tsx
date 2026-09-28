@@ -1,33 +1,38 @@
 "use client";
 
-import { ImageUp } from "lucide-react";
+import { Play } from "lucide-react";
 import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
 
 import { FooterQr } from "@/components/marketing/chrome/footer-qr";
-import { CornerPlayBadge } from "@/components/shared/album-tile";
-import { DemoFrame } from "@/components/marketing/system/demo-ticket";
 import { Avatar, AvatarFallback, AvatarGroup } from "@/components/ui/avatar";
 import { marketingImage } from "@/lib/constants/marketing-media";
+import { GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
 import {
   CARD_EVENT,
   CARD_FACES,
+  CARD_GUEST_COUNT,
+  CARD_GUESTS,
   CARD_STILLS,
   CARD_VALUE,
   CARD_VIDEO,
-  TODAY_VALUE,
+  CHAT_TITLE,
 } from "./fixtures";
 
 /**
- * THE HERO'S OBJECT, FOUR WAYS: today's framed photograph, and three compact
- * event cards, each an album with its one link (the custom address and the
- * code as one of its faces, never the whole) and next to no words.
+ * THE LINK CARD, ROUND TWO: round one's `link` exactly as he picked it, and
+ * the branches off it, each keeping what he liked (compact and low, read at a
+ * glance, one link with the code as one face of it, the guests and the photos
+ * inside it) and pushing ONE idea further.
  *
- * ★ EVERY CARD IS DRAWN AT BOTH BREAKPOINTS AS A CSS PAIR, exactly as `DemoQr`
- * draws today's, so a frame at 375 and one at 1440 each wear the size the page
- * would (`ByBp`).
+ * ★ EVERY CARD IS DRAWN AT THREE SIZES. `base` and `lg` are the page's own
+ * breakpoint pair, drawn as a CSS pair exactly as `DemoQr` draws today's
+ * object (`BySize`), so a frame at 375, 900 and 1440 each wears the size the
+ * page would. `tablet` is the size the `tablet` ask's composed geometry would
+ * give it, drawn alone: every length `base`'s plus the same `t` of the way to
+ * `lg`'s that `tablet.ts` composes the band with (`compose`).
  *
  * ★ PAPER IS LITERAL WHITE, and its words wear `.surface-paper`'s ink. On the
  * cinema ground `bg-card` is near-black, which is today's failure (a dark box
@@ -37,39 +42,78 @@ import {
  * subtree, because `.surface-paper` re-declares `--shadow-*` at paper's alphas,
  * which vanish on the room.
  *
- * ★ NOTHING HERE MOVES. The band is the hero's one motion; a card that also
- * moved would be two things fighting for one eye (his river-and-reel note on
- * `reel-story` r2: "the motion in both cancels each other out"). The code does
- * not have to scan any more, so its stillness is compositional now, not
- * functional: the source stands still while the album leaves it.
+ * ★ NOTHING HERE MOVES (the carried `still`). The band is the hero's one
+ * motion; his `reel-story` note on two moving things side by side was "the
+ * motion in both cancels each other out".
  */
 
-export type Bp = "base" | "lg";
+export type Size = "base" | "tablet" | "lg";
+
+/** The same step `tablet.ts` composes the band's middle geometry with. */
+const T = (900 - 375) / (1440 - 375);
+
+type Num = number | readonly Num[] | { readonly [k: string]: Num };
 
 /**
- * Both breakpoints' drawings at once, one hidden by CSS.
+ * A card's tablet size, composed from its two drawn ones: every number
+ * `base + T * (lg - base)`, rounded as the drawn sizes are set. Structural, so
+ * a card's table stays the one place its sizes are written.
+ */
+function compose<V extends Num>(base: V, lg: V): V {
+  if (typeof base === "number")
+    return (Math.round((base + T * ((lg as number) - base)) * 10) /
+      10) as unknown as V;
+  if (Array.isArray(base))
+    return base.map((b: Num, i) =>
+      compose(b, (lg as readonly Num[])[i]),
+    ) as unknown as V;
+  const out: Record<string, Num> = {};
+  for (const k of Object.keys(base))
+    out[k] = compose(
+      (base as Record<string, Num>)[k],
+      (lg as Record<string, Num>)[k],
+    );
+  return out as unknown as V;
+}
+
+/** A card's three sizes from its two drawn ones. */
+function sized<V extends Num>(t: { base: V; lg: V }): Record<Size, V> {
+  return { base: t.base, lg: t.lg, tablet: compose(t.base, t.lg) };
+}
+
+/**
+ * Both breakpoints' drawings at once, one hidden by CSS; or one size alone,
+ * when the `tablet` ask names the geometry a frame wears.
  *
  * ★ ONE DISPLAY UTILITY PER BOX, NEVER A PAIR. The lab's utilities compile into
  * a sublayer of production's, so `hidden lg:contents` stays hidden at 1440
  * (the kit's `lab-utility-loses-to-production` trap); a lone `max-lg:hidden`
  * has nothing to lose to.
  */
-function ByBp({ base, lg }: { base: ReactNode; lg: ReactNode }) {
+function BySize({ size, draw }: { size?: Size; draw: (s: Size) => ReactNode }) {
+  if (size) return <>{draw(size)}</>;
   return (
     <>
-      <div className="lg:hidden">{base}</div>
-      <div className="max-lg:hidden">{lg}</div>
+      <div className="lg:hidden">{draw("base")}</div>
+      <div className="max-lg:hidden">{draw("lg")}</div>
     </>
+  );
+}
+
+/** Where every object centres itself: on the slot `hero.tsx` stands it in. */
+function Centred({ children }: { children: ReactNode }) {
+  return (
+    <span data-hero-object className="block -translate-x-1/2 -translate-y-1/2">
+      {children}
+    </span>
   );
 }
 
 /**
  * A photograph in its window at the tile radius, filling the box it is given.
- * The one the album holds as a video wears the album tile's own play mark
- * (`CornerPlayBadge`), so a card whose tiles show their foot says photos AND
- * videos in the product's own mark rather than in a caption. The link's
- * prints tuck their foot under the card, where a mark would be hidden, so it
- * marks none.
+ * `marked` puts the album tile's own play mark on the one the album holds as a
+ * video, so a card says photos AND videos in the product's own mark rather
+ * than in a caption.
  */
 function Photo({
   id,
@@ -77,17 +121,12 @@ function Photo({
   h,
   radius,
   marked = false,
-  className,
-  style,
 }: {
   id: string;
   w: number;
   h: number;
   radius?: number;
-  /** Whether a video here wears its play mark (the card shows tiles' feet). */
   marked?: boolean;
-  className?: string;
-  style?: CSSProperties;
 }) {
   const img = marketingImage(id);
   const video = marked && id === CARD_VIDEO;
@@ -95,11 +134,8 @@ function Photo({
     <span
       data-card-photo
       data-card-video={video ? "" : undefined}
-      className={cn(
-        "relative block shrink-0 overflow-hidden rounded-[var(--radius-tile)]",
-        className,
-      )}
-      style={{ width: w, height: h, borderRadius: radius, ...style }}
+      className="relative block shrink-0 overflow-hidden rounded-[var(--radius-tile)]"
+      style={{ width: w, height: h, borderRadius: radius }}
     >
       <Image
         src={img.src}
@@ -108,7 +144,38 @@ function Photo({
         sizes={`${Math.ceil(w)}px`}
         className="object-cover"
       />
-      {video ? <CornerPlayBadge /> : null}
+      {video ? <PlayMark size={Math.round(w * 0.24)} /> : null}
+    </span>
+  );
+}
+
+/**
+ * The album tile's play mark (`CornerPlayBadge`'s glass and glyph), sized to
+ * the print it sits on. Not in the tile's corner: a print's foot is tucked
+ * under the card, so the mark stands in the middle of what SHOWS of it, two
+ * fifths down rather than half.
+ */
+function PlayMark({ size }: { size: number }) {
+  const edge = Math.max(18, size);
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "pointer-events-none absolute flex items-center justify-center rounded-full",
+        GLASS_MARK,
+      )}
+      style={{
+        width: edge,
+        height: edge,
+        left: "50%",
+        top: "40%",
+        transform: "translate(-50%, -50%)",
+      }}
+    >
+      <Play
+        className={cn("fill-white text-white", GLASS_MARK_LIT)}
+        style={{ width: edge * 0.46, height: edge * 0.46, marginLeft: 1 }}
+      />
     </span>
   );
 }
@@ -124,12 +191,54 @@ function Code({ size, className }: { size: number; className?: string }) {
   );
 }
 
+/** The code in its hairline tile, as round one set it beside the address. */
+function CodeTile({ size }: { size: number }) {
+  return (
+    <span className="flex shrink-0 overflow-hidden rounded-[var(--radius-tile)] ring-1 ring-black/10">
+      <Code size={size} />
+    </span>
+  );
+}
+
 /**
- * Three of the album's guests, the guest list's own collapsed face row. The
- * overlap is a share of the face, never the group's fixed 8px: at a card's
- * 18px a fixed overlap hid a third of each face and the initial with it.
+ * One guest's face: the guest list's seeded avatar at any size.
+ *
+ * ★ THE OVERLAP IN A ROW IS A SHARE OF THE FACE, never the group's fixed 8px:
+ * at a card's 18px a fixed overlap hid a third of each face and the initial
+ * with it (ROADMAP's `AvatarGroup` line).
  */
-function Faces({ size, ring }: { size: number; ring: string }) {
+function Face({
+  seed,
+  initial,
+  size,
+  ring = "ring-white",
+  style,
+}: {
+  seed: string;
+  initial: string;
+  size: number;
+  ring?: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <Avatar
+      size="sm"
+      seed={seed}
+      className={cn("ring-2", ring)}
+      style={{ width: size, height: size, ...style }}
+    >
+      <AvatarFallback
+        className="font-semibold"
+        style={{ fontSize: Math.round(size * 0.42) }}
+      >
+        {initial}
+      </AvatarFallback>
+    </Avatar>
+  );
+}
+
+/** Three of the album's guests, the guest list's own collapsed face row. */
+function Faces({ size, ring = "ring-white" }: { size: number; ring?: string }) {
   return (
     <AvatarGroup
       aria-hidden
@@ -137,47 +246,27 @@ function Faces({ size, ring }: { size: number; ring: string }) {
       className="space-x-0 *:data-[slot=avatar]:ring-0"
     >
       {CARD_FACES.map((f, i) => (
-        <Avatar
+        <Face
           key={f.seed}
-          size="sm"
           seed={f.seed}
-          className={cn("ring-2", ring)}
-          style={{
-            width: size,
-            height: size,
-            marginLeft: i === 0 ? 0 : -Math.round(size * 0.22),
-          }}
-        >
-          <AvatarFallback
-            className="font-semibold"
-            style={{ fontSize: Math.round(size * 0.42) }}
-          >
-            {f.initial}
-          </AvatarFallback>
-        </Avatar>
+          initial={f.initial}
+          size={size}
+          ring={ring}
+          style={{ marginLeft: i === 0 ? 0 : -Math.round(size * 0.22) }}
+        />
       ))}
     </AvatarGroup>
   );
 }
 
-/**
- * A ROW LAID LIKE THE ALBUM LAYS ONE (`lib/shared/album-rows.ts`'s idea, at a
- * card's size): every photograph at one height, the widths their aspects give,
- * the row filling its width exactly. Whole pixels, the last tile taking the
- * rounding, so no seam opens on a fractional edge.
- */
-function justify(aspects: readonly number[], width: number, gap: number) {
-  const sum = aspects.reduce((a, b) => a + b, 0);
-  const h = Math.round((width - gap * (aspects.length - 1)) / sum);
-  const ws = aspects.map((a) => Math.round(a * h));
-  const drawn = ws.reduce((a, b) => a + b, 0) + gap * (aspects.length - 1);
-  ws[ws.length - 1] += width - drawn;
-  return { h, ws };
-}
-
 /** The paper's own shadow: the QR door's plate (`.rvr-plate`), see the header. */
 const PAPER_SHADOW =
   "0 8px 16px -4px oklch(0 0 0 / 0.45), 0 16px 32px -8px oklch(0 0 0 / 0.55)";
+
+/** The same two shadows as a filter, for a sheet whose outline is not a box
+ *  (the message's tail): a box-shadow would leave the tail unshadowed. */
+const PAPER_DROP =
+  "drop-shadow(0 6px 7px oklch(0 0 0 / 0.4)) drop-shadow(0 14px 14px oklch(0 0 0 / 0.45))";
 
 /** A sheet of white paper, its shadow outside the paper's token set. */
 function Paper({
@@ -245,201 +334,91 @@ function Address({
   );
 }
 
-/* ── today ───────────────────────────────────────────────────────────────── */
+/** A print: a photograph on white paper standing up out of the card. */
+type Print = { x: number; y: number; r: number };
 
-/** `today`: the shipped `DemoFrame`, centred on the axis as `DemoQr` sets it. */
-export function TodayObject() {
+function Prints({
+  prints,
+  order,
+  w,
+  h,
+  border,
+  radius,
+  photoRadius = 3,
+  width,
+  marked,
+  faces,
+}: {
+  prints: readonly Print[];
+  /** Which of the album's stills each print shows, by index; in order when left out. */
+  order?: readonly number[];
+  w: number;
+  h: number;
+  border: number;
+  radius: number;
+  photoRadius?: number;
+  /** The object's width: `x` is from its centre. */
+  width: number;
+  /** Whether the one filmed wears its play mark. */
+  marked?: boolean;
+  /** A guest's face pinned to each print's top corner, at this size. */
+  faces?: number;
+}) {
   return (
-    <span data-hero-object className="block -translate-x-1/2 -translate-y-1/2">
-      <ByBp
-        base={<DemoFrame value={TODAY_VALUE} size="heroCompact" />}
-        lg={<DemoFrame value={TODAY_VALUE} size="hero" />}
-      />
-    </span>
-  );
-}
-
-/* ── album: the album on a card ──────────────────────────────────────────── */
-
-/**
- * `album`: A SHEET OF PAPER WITH THE ALBUM ON IT. Four photographs laid in two
- * justified rows with the code as the fifth tile (bottom left, standing over
- * the address it is the other face of), and at the foot the custom address
- * and three of the guests who filled it. The card reads top to bottom as the
- * sentence the hero wants: an album, its link, everyone in it.
- */
-const ALBUM = {
-  lg: {
-    w: 288,
-    pad: 9,
-    gap: 4,
-    top: [1.25, 0.8],
-    bottom: [1, 1.34, 1],
-    foot: { gap: 12, inset: 5, bottom: 11, domain: 12, slug: 17, face: 26 },
-  },
-  base: {
-    w: 200,
-    pad: 7,
-    gap: 4,
-    top: [1.25, 0.8],
-    bottom: [1, 1.34, 1],
-    foot: { gap: 9, inset: 3, bottom: 8, domain: 10, slug: 13, face: 20 },
-  },
-} as const;
-
-function AlbumAt({ bp }: { bp: Bp }) {
-  const g = ALBUM[bp];
-  const inner = g.w - g.pad * 2;
-  const top = justify(g.top, inner, g.gap);
-  const bottom = justify(g.bottom, inner, g.gap);
-  const [a, b, c, d] = CARD_STILLS;
-  return (
-    // The corner is the tile's plus the padding, so the paper and the
-    // photographs read as one shape (design-system.md's nested-corner rule).
-    <Paper radius={4 + g.pad} style={{ width: g.w, padding: g.pad }}>
-      <span className="flex flex-col" style={{ gap: g.gap }}>
-        <span className="flex" style={{ gap: g.gap }}>
-          <Photo id={a} w={top.ws[0]} h={top.h} marked />
-          <Photo id={b} w={top.ws[1]} h={top.h} marked />
-        </span>
-        <span className="flex" style={{ gap: g.gap }}>
+    <>
+      {prints.map((f, i) => {
+        const id = CARD_STILLS[(order?.[i] ?? i) % CARD_STILLS.length];
+        const guest = faces ? CARD_GUESTS[i % CARD_GUESTS.length] : null;
+        return (
           <span
-            className="flex shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-tile)] bg-white ring-1 ring-black/10 ring-inset"
-            style={{ width: bottom.ws[0], height: bottom.h }}
+            key={`${id}-${i}`}
+            className="absolute block bg-white shadow-lift ring-1 ring-black/10"
+            style={{
+              left: width / 2 + f.x - w / 2,
+              top: f.y,
+              width: w,
+              height: h,
+              padding: border,
+              borderRadius: radius,
+              transform: `rotate(${f.r}deg)`,
+              transformOrigin: "50% 100%",
+            }}
           >
-            <Code size={bottom.h - 2} />
+            <Photo
+              id={id}
+              w={w - border * 2}
+              h={h - border * 2}
+              radius={photoRadius}
+              marked={marked}
+            />
+            {guest && faces ? (
+              // Pinned over the print's corner like a name on a print passed
+              // round the table: it turns with the print it belongs to.
+              <span
+                data-card-guest
+                className="absolute"
+                style={{ left: -faces * 0.3, top: -faces * 0.3 }}
+              >
+                <Face seed={guest.seed} initial={guest.initial} size={faces} />
+              </span>
+            ) : null}
           </span>
-          <Photo id={c} w={bottom.ws[1]} h={bottom.h} marked />
-          <Photo id={d} w={bottom.ws[2]} h={bottom.h} marked />
-        </span>
-      </span>
-      <span
-        className="flex items-end justify-between gap-3"
-        style={{
-          marginTop: g.foot.gap,
-          padding: `0 ${g.foot.inset}px ${g.foot.bottom}px`,
-        }}
-      >
-        <Address domain={g.foot.domain} slug={g.foot.slug} />
-        <Faces size={g.foot.face} ring="ring-white" />
-      </span>
-    </Paper>
+        );
+      })}
+    </>
   );
 }
 
-export function AlbumObject() {
-  return (
-    <span data-hero-object className="block -translate-x-1/2 -translate-y-1/2">
-      <ByBp base={<AlbumAt bp="base" />} lg={<AlbumAt bp="lg" />} />
-    </span>
-  );
-}
-
-/* ── page: the event's own page, as a guest meets it ─────────────────────── */
+/* ── link: round one's link, the reference ──────────────────────────────── */
 
 /**
- * `page`: THE EVENT'S OWN PAGE, COMPACT, AS A GUEST MEETS IT. Its identity at
- * the head, the way the event page's header stands a live code beside its
- * title (host-app.md, "The header is one object"): the code as the event's
- * badge, the custom address as its name, the guests at the end; then the
- * album; then the one action a guest has, the product's own Add photos. The
- * only card whose words say "everyone uploads to it" as a thing you can do.
+ * `link` (round one's pick, drawn exactly as he picked it): THE LINK IS THE
+ * OBJECT, AND THE ALBUM RISES OUT OF IT. A white card the size of a share chip
+ * carrying the link's two faces side by side, the code and the custom address,
+ * with the guests at its end and four prints standing up out of its top edge
+ * like photographs in a sleeve.
  */
-const PAGE = {
-  lg: {
-    w: 288,
-    pad: 10,
-    gap: 4,
-    code: 44,
-    domain: 12,
-    slug: 17,
-    face: 24,
-    top: [0.8, 1.25, 0.8],
-    bottom: [1.34, 1, 1.34],
-    button: { h: 36, text: 13, icon: 16, corner: 0.9 },
-  },
-  base: {
-    w: 200,
-    pad: 7,
-    gap: 4,
-    code: 32,
-    domain: 10,
-    slug: 13,
-    face: 18,
-    top: [0.8, 1.25, 0.8],
-    bottom: [1.34, 1, 1.34],
-    button: { h: 28, text: 11, icon: 13, corner: 0.7 },
-  },
-} as const;
-
-function PageAt({ bp }: { bp: Bp }) {
-  const g = PAGE[bp];
-  const inner = g.w - g.pad * 2;
-  const top = justify(g.top, inner, g.gap);
-  const bottom = justify(g.bottom, inner, g.gap);
-  const row = (ids: readonly string[], r: { h: number; ws: number[] }) => (
-    <span className="flex" style={{ gap: g.gap }}>
-      {ids.map((id, i) => (
-        <Photo key={id} id={id} w={r.ws[i]} h={r.h} marked />
-      ))}
-    </span>
-  );
-  return (
-    <Paper
-      radius={4 + g.pad}
-      className="flex flex-col"
-      style={{ width: g.w, padding: g.pad, gap: g.pad }}
-    >
-      <span className="flex items-center" style={{ gap: g.pad }}>
-        <span className="flex shrink-0 overflow-hidden rounded-[var(--radius-tile)] ring-1 ring-black/10">
-          <Code size={g.code} />
-        </span>
-        <Address domain={g.domain} slug={g.slug} className="flex-1" />
-        <Faces size={g.face} ring="ring-white" />
-      </span>
-      <span className="flex flex-col" style={{ gap: g.gap }}>
-        {row([CARD_STILLS[0], CARD_STILLS[1], CARD_STILLS[2]], top)}
-        {row([CARD_STILLS[3], CARD_STILLS[4], CARD_STILLS[5]], bottom)}
-      </span>
-      {/* The guest's one action, in the product's own words and button: ink
-          on paper, its corner riding its height (button.tsx's ratio). */}
-      <span
-        data-card-action
-        className="flex items-center justify-center gap-1.5 bg-primary font-medium text-primary-foreground"
-        style={{
-          height: g.button.h,
-          fontSize: g.button.text,
-          borderRadius: `calc(var(--radius-action) * ${g.button.corner})`,
-        }}
-      >
-        <ImageUp
-          style={{ width: g.button.icon, height: g.button.icon }}
-          aria-hidden
-        />
-        Add photos
-      </span>
-    </Paper>
-  );
-}
-
-export function PageObject() {
-  return (
-    <span data-hero-object className="block -translate-x-1/2 -translate-y-1/2">
-      <ByBp base={<PageAt bp="base" />} lg={<PageAt bp="lg" />} />
-    </span>
-  );
-}
-
-/* ── link: the link, its album rising out of it ──────────────────────────── */
-
-/**
- * `link`: THE LINK IS THE OBJECT, AND THE ALBUM RISES OUT OF IT. A white card
- * the size of a share chip carrying the link's two faces side by side, the
- * code and the custom address, with the guests at its end and four prints
- * standing up out of its top edge like photographs in a sleeve. The band then
- * reads as the rest of them leaving: one link, and the album pours out of it.
- */
-const LINK = {
+const LINK = sized({
   lg: {
     w: 312,
     h: 80,
@@ -476,60 +455,563 @@ const LINK = {
       { x: 62, r: 13, y: 14 },
     ],
   },
-} as const;
+});
 
-function LinkAt({ bp }: { bp: Bp }) {
-  const g = LINK[bp];
+function LinkAt({ size }: { size: Size }) {
+  const g = LINK[size];
   return (
     <span
       className="relative block"
       style={{ width: g.w, height: g.rise + g.h }}
     >
-      {/* The prints, behind the card: each stands on the card's top edge and
-          tucks under it, so none reads as loose on the room. */}
-      {g.fan.map((f, i) => (
-        <span
-          key={CARD_STILLS[i]}
-          className="absolute block rounded-[6px] bg-white shadow-lift ring-1 ring-black/10"
-          style={{
-            left: g.w / 2 + f.x - g.print.w / 2,
-            top: f.y,
-            width: g.print.w,
-            height: g.print.h,
-            padding: g.print.border,
-            transform: `rotate(${f.r}deg)`,
-            transformOrigin: "50% 100%",
-          }}
-        >
-          <Photo
-            id={CARD_STILLS[i]}
-            w={g.print.w - g.print.border * 2}
-            h={g.print.h - g.print.border * 2}
-            radius={3}
-          />
-        </span>
-      ))}
+      <Prints
+        prints={g.fan}
+        w={g.print.w}
+        h={g.print.h}
+        border={g.print.border}
+        radius={6}
+        width={g.w}
+      />
       <span className="absolute inset-x-0 bottom-0 block">
         <Paper
           radius={g.radius}
           className="flex items-center"
           style={{ height: g.h, padding: g.pad, gap: g.pad + 2 }}
         >
-          <span className="flex shrink-0 overflow-hidden rounded-[var(--radius-tile)] ring-1 ring-black/10">
-            <Code size={g.code} />
-          </span>
+          <CodeTile size={g.code} />
           <Address domain={g.domain} slug={g.slug} className="flex-1" />
-          <Faces size={g.face} ring="ring-white" />
+          <Faces size={g.face} />
         </Paper>
       </span>
     </span>
   );
 }
 
-export function LinkObject() {
+export function LinkObject({ size }: { size?: Size }) {
   return (
-    <span data-hero-object className="block -translate-x-1/2 -translate-y-1/2">
-      <ByBp base={<LinkAt bp="base" />} lg={<LinkAt bp="lg" />} />
+    <Centred>
+      <BySize size={size} draw={(s) => <LinkAt size={s} />} />
+    </Centred>
+  );
+}
+
+/* ── guests: every print, the guest who added it ─────────────────────────── */
+
+/**
+ * `guests`: THE FACES LEAVE THE CARD'S END AND GO TO THE PHOTOGRAPHS THEY
+ * TOOK. Each print wears the guest who added it, pinned to its corner, so
+ * "everyone uploads to it" is read off the album itself rather than off a row
+ * of faces beside the link; the one a guest filmed wears the album's play
+ * mark. The card keeps the link's two faces, and where the faces stood it
+ * counts the rest of the guests in.
+ */
+const GUESTS = sized({
+  lg: {
+    w: 312,
+    h: 80,
+    radius: 16,
+    code: 58,
+    pad: 11,
+    domain: 12,
+    slug: 18,
+    count: 30,
+    face: 26,
+    print: { w: 104, h: 130, border: 4 },
+    rise: 98,
+    fan: [
+      { x: -92, r: -12, y: 16 },
+      { x: -33, r: -4, y: 0 },
+      { x: 29, r: 5, y: 4 },
+      { x: 88, r: 13, y: 20 },
+    ],
+  },
+  base: {
+    w: 224,
+    h: 60,
+    radius: 13,
+    code: 42,
+    pad: 9,
+    domain: 10,
+    slug: 14,
+    count: 22,
+    face: 19,
+    print: { w: 74, h: 92, border: 3 },
+    rise: 70,
+    fan: [
+      { x: -65, r: -12, y: 12 },
+      { x: -23, r: -4, y: 0 },
+      { x: 21, r: 5, y: 3 },
+      { x: 62, r: 13, y: 14 },
+    ],
+  },
+});
+
+function GuestsAt({ size }: { size: Size }) {
+  const g = GUESTS[size];
+  const rest = CARD_GUEST_COUNT - CARD_GUESTS.length;
+  return (
+    <span
+      className="relative block"
+      style={{ width: g.w, height: g.rise + g.h }}
+    >
+      <Prints
+        prints={g.fan}
+        order={[1, 2, 3, 0]}
+        w={g.print.w}
+        h={g.print.h}
+        border={g.print.border}
+        radius={6}
+        width={g.w}
+        marked
+        faces={g.face}
+      />
+      <span className="absolute inset-x-0 bottom-0 block">
+        <Paper
+          radius={g.radius}
+          className="flex items-center"
+          style={{ height: g.h, padding: g.pad, gap: g.pad + 2 }}
+        >
+          <CodeTile size={g.code} />
+          <Address domain={g.domain} slug={g.slug} className="flex-1" />
+          {/* The rest of the guests, in the guest list's own count chip. */}
+          <span
+            data-card-count
+            className="flex shrink-0 items-center justify-center rounded-full bg-muted font-semibold text-muted-foreground tabular-nums"
+            style={{
+              height: g.count,
+              minWidth: g.count,
+              padding: `0 ${Math.round(g.count * 0.22)}px`,
+              fontSize: Math.round(g.count * 0.4),
+            }}
+          >
+            +{rest}
+          </span>
+        </Paper>
+      </span>
     </span>
   );
 }
+
+export function GuestsObject({ size }: { size?: Size }) {
+  return (
+    <Centred>
+      <BySize size={size} draw={(s) => <GuestsAt size={s} />} />
+    </Centred>
+  );
+}
+
+/* ── chat: the link as it lands in the group chat ────────────────────────── */
+
+/**
+ * `chat`: THE LINK AS IT LANDS IN THE GROUP CHAT (his `reel-story` r3 note:
+ * "how easily this is to send a link in a group chat"). The card is the
+ * message the host drops in the chat, unfurled in the product's own words
+ * (`CHAT_TITLE`, the real unfurl's title) with the code as its picture and the
+ * custom address under it; the guests are the chat, in a reaction pill hanging
+ * off its foot; the album rises out of the message as it rises out of the
+ * link.
+ *
+ * ★ THE BUBBLE IS WHITE PAPER, NOT A MESSENGER'S BLUE: the chrome carries no
+ * hue (design-system.md's identity), and a coloured bubble would be the one
+ * coloured thing in a hero whose colour is its photographs. The tail alone
+ * says "message". Its shadow is a filter because a box-shadow would leave the
+ * tail bare.
+ */
+const CHAT = sized({
+  lg: {
+    w: 332,
+    h: 82,
+    radius: 20,
+    code: 56,
+    pad: 12,
+    title: 15,
+    link: 12,
+    tail: 20,
+    face: 22,
+    pill: { h: 30, pad: 4, count: 12 },
+    print: { w: 104, h: 130, border: 4 },
+    rise: 98,
+    fan: [
+      { x: -92, r: -12, y: 16 },
+      { x: -33, r: -4, y: 0 },
+      { x: 29, r: 5, y: 4 },
+      { x: 88, r: 13, y: 20 },
+    ],
+  },
+  base: {
+    w: 244,
+    h: 62,
+    radius: 16,
+    code: 42,
+    pad: 9,
+    title: 11.5,
+    link: 9.5,
+    tail: 15,
+    face: 17,
+    pill: { h: 23, pad: 3, count: 9.5 },
+    print: { w: 74, h: 92, border: 3 },
+    rise: 70,
+    fan: [
+      { x: -65, r: -12, y: 12 },
+      { x: -23, r: -4, y: 0 },
+      { x: 21, r: 5, y: 3 },
+      { x: 62, r: 13, y: 14 },
+    ],
+  },
+});
+
+/**
+ * The message's tail: the bubble's own corner drawn out into the curl a sent
+ * message wears, in the bubble's white. The box overlaps the bubble by eight
+ * of its fourteen units, so the curl leaves the right edge and returns under
+ * the foot with no seam; the bubble keeps that corner square for it.
+ */
+function Tail({ size }: { size: number }) {
+  const w = (size * 14) / 18;
+  return (
+    <svg
+      aria-hidden
+      width={w}
+      height={size}
+      viewBox="0 0 14 18"
+      className="absolute"
+      style={{ right: -(w * 6) / 14, bottom: 0 }}
+    >
+      <path d="M0 0H8C8 8.5 10 13.5 14 18C8.5 18 3.5 16 0 12.5Z" fill="#fff" />
+    </svg>
+  );
+}
+
+function ChatAt({ size }: { size: Size }) {
+  const g = CHAT[size];
+  const rest = CARD_GUEST_COUNT - CARD_FACES.length;
+  const line = Math.round(g.title * 1.25);
+  return (
+    <span
+      className="relative block"
+      style={{ width: g.w, height: g.rise + g.h + g.pill.h / 2 }}
+    >
+      <Prints
+        prints={g.fan}
+        w={g.print.w}
+        h={g.print.h}
+        border={g.print.border}
+        radius={6}
+        width={g.w}
+      />
+      <span
+        className="absolute inset-x-0 block"
+        style={{ top: g.rise, filter: PAPER_DROP }}
+      >
+        <span
+          data-card-surface
+          className="surface-paper relative flex items-center bg-white text-foreground"
+          style={{
+            height: g.h,
+            padding: g.pad,
+            gap: g.pad + 1,
+            borderRadius: `${g.radius}px ${g.radius}px 0 ${g.radius}px`,
+          }}
+        >
+          <CodeTile size={g.code} />
+          <span
+            data-hero-link
+            className="flex min-w-0 flex-1 flex-col text-left"
+          >
+            {/* The unfurl's title as a narrow preview sets it: the verb on
+                one line, the event's name whole on the next. */}
+            <span
+              data-chat-title
+              className="font-semibold text-foreground"
+              style={{ fontSize: g.title, lineHeight: `${line}px` }}
+            >
+              <span className="block">{CHAT_TITLE.lead}</span>
+              <span className="block truncate">{CHAT_TITLE.name}</span>
+            </span>
+            <span
+              className="truncate text-muted-foreground"
+              style={{
+                fontSize: g.link,
+                lineHeight: `${g.link + 4}px`,
+                marginTop: Math.round(g.pad / 4),
+              }}
+            >
+              {CARD_EVENT.domain}
+              <span data-hero-slug className="font-medium text-foreground">
+                {CARD_EVENT.slug}
+              </span>
+            </span>
+          </span>
+          <Tail size={g.tail} />
+        </span>
+      </span>
+      {/* The chat, hanging off the message's foot as a reaction does. */}
+      <span
+        className="absolute flex items-center rounded-full bg-white ring-1 ring-black/10"
+        style={{
+          left: g.pad + 2,
+          top: g.rise + g.h - g.pill.h / 2,
+          height: g.pill.h,
+          padding: `0 ${g.pill.pad * 2.5}px 0 ${g.pill.pad}px`,
+          gap: g.pill.pad * 1.5,
+          boxShadow: PAPER_SHADOW,
+        }}
+      >
+        <Faces size={g.face} />
+        <span
+          className="font-semibold text-muted-foreground tabular-nums"
+          style={{ fontSize: g.pill.count }}
+        >
+          +{rest}
+        </span>
+      </span>
+    </span>
+  );
+}
+
+export function ChatObject({ size }: { size?: Size }) {
+  return (
+    <Centred>
+      <BySize size={size} draw={(s) => <ChatAt size={s} />} />
+    </Centred>
+  );
+}
+
+/* ── spread: lower still, the whole album fanned along its edge ──────────── */
+
+/**
+ * `spread`: LOWER STILL, AND THE WHOLE ALBUM ALONG ITS EDGE. His one reason
+ * for the link was that it is low and reads at a glance where everything else
+ * stood too tall, so this pushes exactly that: eight smaller prints spread
+ * across the card's top edge in one even arc, like a deck fanned on a table,
+ * rising little more than half as high. More of the album shows and the object
+ * is a quarter shorter than the link (137px against 181 at 1440, measured);
+ * each photograph is smaller, which is the cost.
+ */
+const SPREAD = sized({
+  lg: {
+    w: 312,
+    h: 80,
+    radius: 16,
+    code: 58,
+    pad: 11,
+    domain: 12,
+    slug: 18,
+    face: 26,
+    print: { w: 66, h: 84, border: 3 },
+    rise: 56,
+    arc: { half: 124, turn: 15, drop: 12 },
+  },
+  base: {
+    w: 224,
+    h: 60,
+    radius: 13,
+    code: 42,
+    pad: 9,
+    domain: 10,
+    slug: 14,
+    face: 18,
+    print: { w: 48, h: 61, border: 2.5 },
+    rise: 41,
+    arc: { half: 89, turn: 15, drop: 9 },
+  },
+});
+
+/** Eight prints on one even arc: turned and dropped by how far out they sit. */
+function arcOf(a: { half: number; turn: number; drop: number }, n: number) {
+  return Array.from({ length: n }, (_, i) => {
+    const u = (i / (n - 1)) * 2 - 1;
+    return { x: u * a.half, r: u * a.turn, y: a.drop * u * u };
+  });
+}
+
+function SpreadAt({ size }: { size: Size }) {
+  const g = SPREAD[size];
+  return (
+    <span
+      className="relative block"
+      style={{ width: g.w, height: g.rise + g.h }}
+    >
+      <Prints
+        prints={arcOf(g.arc, 8)}
+        w={g.print.w}
+        h={g.print.h}
+        border={g.print.border}
+        radius={5}
+        photoRadius={2.5}
+        width={g.w}
+      />
+      <span className="absolute inset-x-0 bottom-0 block">
+        <Paper
+          radius={g.radius}
+          className="flex items-center"
+          style={{ height: g.h, padding: g.pad, gap: g.pad + 2 }}
+        >
+          <CodeTile size={g.code} />
+          <Address domain={g.domain} slug={g.slug} className="flex-1" />
+          <Faces size={g.face} />
+        </Paper>
+      </span>
+    </span>
+  );
+}
+
+export function SpreadObject({ size }: { size?: Size }) {
+  return (
+    <Centred>
+      <BySize size={size} draw={(s) => <SpreadAt size={s} />} />
+    </Centred>
+  );
+}
+
+/* ── typed: the address leads ────────────────────────────────────────────── */
+
+/**
+ * `typed`: THE CUSTOM ADDRESS LEADS, AS IT IS TYPED (his `reel-story` r3 note:
+ * "or simply write your custom link for people to copy/type"). The card
+ * becomes the one line a host claims and a guest types: the whole address on
+ * one line at a size read across a table, the slug in ink with the caret
+ * still after it, in a field's rounded shape. The code shrinks to the
+ * address's badge at its start, the other face of the same link; the guests
+ * stay at its end.
+ */
+const TYPED = sized({
+  lg: {
+    w: 396,
+    h: 56,
+    code: 40,
+    pad: 8,
+    text: 16,
+    face: 24,
+    print: { w: 104, h: 130, border: 4 },
+    rise: 98,
+    fan: [
+      { x: -92, r: -12, y: 16 },
+      { x: -33, r: -4, y: 0 },
+      { x: 29, r: 5, y: 4 },
+      { x: 88, r: 13, y: 20 },
+    ],
+  },
+  base: {
+    w: 296,
+    h: 42,
+    code: 30,
+    pad: 6,
+    text: 12,
+    face: 17,
+    print: { w: 74, h: 92, border: 3 },
+    rise: 70,
+    fan: [
+      { x: -65, r: -12, y: 12 },
+      { x: -23, r: -4, y: 0 },
+      { x: 21, r: 5, y: 3 },
+      { x: 62, r: 13, y: 14 },
+    ],
+  },
+});
+
+function TypedAt({ size }: { size: Size }) {
+  const g = TYPED[size];
+  return (
+    <span
+      className="relative block"
+      style={{ width: g.w, height: g.rise + g.h }}
+    >
+      <Prints
+        prints={g.fan}
+        w={g.print.w}
+        h={g.print.h}
+        border={g.print.border}
+        radius={6}
+        width={g.w}
+      />
+      <span className="absolute inset-x-0 bottom-0 block">
+        <Paper
+          radius={g.h / 2}
+          className="flex items-center"
+          style={{
+            height: g.h,
+            padding: `0 ${g.pad * 2}px 0 ${g.pad}px`,
+            gap: g.pad * 1.5,
+          }}
+        >
+          {/* The badge's corner is two fifths of its edge, not the pill's
+              corner less its inset: that would make it a circle and cut the
+              code's finder squares. */}
+          <span
+            className="flex shrink-0 overflow-hidden ring-1 ring-black/10"
+            style={{ borderRadius: Math.round(g.code * 0.4) }}
+          >
+            <Code size={g.code} />
+          </span>
+          <span
+            data-hero-link
+            className="flex min-w-0 flex-1 items-center text-left whitespace-nowrap"
+            style={{ fontSize: g.text, lineHeight: `${g.text + 6}px` }}
+          >
+            <span className="text-muted-foreground">{CARD_EVENT.domain}</span>
+            <span
+              data-hero-slug
+              className="font-semibold tracking-[-0.01em] text-foreground"
+            >
+              {CARD_EVENT.slug}
+            </span>
+            {/* The caret, standing still after the slug: a field just typed. */}
+            <span
+              aria-hidden
+              className="ml-px inline-block bg-foreground"
+              style={{
+                width: Math.max(1.5, g.text / 9),
+                height: g.text * 1.15,
+              }}
+            />
+          </span>
+          <Faces size={g.face} />
+        </Paper>
+      </span>
+    </span>
+  );
+}
+
+export function TypedObject({ size }: { size?: Size }) {
+  return (
+    <Centred>
+      <BySize size={size} draw={(s) => <TypedAt size={s} />} />
+    </Centred>
+  );
+}
+
+/* ── the registry the hero reads ─────────────────────────────────────────── */
+
+export type CardId = "link" | "guests" | "chat" | "spread" | "typed";
+
+const each = (f: (s: Size) => number): Record<Size, number> => ({
+  base: f("base"),
+  tablet: f("tablet"),
+  lg: f("lg"),
+});
+
+/**
+ * Every card, and the height of the box it centres on at each size: the
+ * hero's floor needs it (`hero.tsx`, the card never lifts clear of the axis
+ * the band is born on).
+ */
+export const CARDS: Record<
+  CardId,
+  { Obj: (p: { size?: Size }) => ReactNode; height: Record<Size, number> }
+> = {
+  link: { Obj: LinkObject, height: each((s) => LINK[s].rise + LINK[s].h) },
+  guests: {
+    Obj: GuestsObject,
+    height: each((s) => GUESTS[s].rise + GUESTS[s].h),
+  },
+  chat: {
+    Obj: ChatObject,
+    height: each((s) => CHAT[s].rise + CHAT[s].h + CHAT[s].pill.h / 2),
+  },
+  spread: {
+    Obj: SpreadObject,
+    height: each((s) => SPREAD[s].rise + SPREAD[s].h),
+  },
+  typed: { Obj: TypedObject, height: each((s) => TYPED[s].rise + TYPED[s].h) },
+};
