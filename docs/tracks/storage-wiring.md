@@ -10,6 +10,13 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/app/dashboard/storage-meter
   - src/lib/billing/storage-guard
   - src/lib/db/queries/storage-list
+  # added at build: the list's Server Functions, the Plan card's one rounding, the plan's re-read
+  # after a removal, and the Library specimen that mounts the list and the refusal over inert data
+  - src/app/(app)/dashboard/storage-actions
+  - src/app/(app)/account/page.tsx
+  - src/components/app/pricing/use-plan-facts
+  - src/app/(dev)/design/(shell)/library/compositions/composition-demos.tsx
+  - src/app/(dev)/design/(shell)/library/compositions/gallery-demos.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/host-storage.json
   - docs/systems/billing-caps.md
