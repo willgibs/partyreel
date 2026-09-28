@@ -1,6 +1,6 @@
 ---
 track: event-settings
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "69afdbc5"            # the launch-prep SHA the branch was cut from
 board: event-settings
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -44,25 +44,46 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each built on its answer and drawn on the board as a carried call or in every option, so it reaches Will where he reads:
+
+- **What does the structure question hold?** Today's settings alone (Who can see as today's three, the lock and idle settings as today draws them), so five structures are compared holding the same things; the join modes are asked on their own step, in the structure he picks. Recommended and built.
+- **Which screen first?** 375: settings is its own screen in a hand, where every row costs a scroll; 1440 on every knob (carried `phone-first`).
+- **When does a change save?** As it is made, a field when you leave it, a consequential switch still confirming; no Save, so no Discard changes (carried `saves`).
+- **How much does a setting say?** One line; the long explanations move into the confirm a consequential switch already opens (carried `one-line`).
+- **Where does the size cap per upload go?** Under videos, Pro only, named Largest upload: its smallest step is 25 MB, so on Free it caps nothing a photo reaches (carried `size-cap`).
+- **A switch another choice holds on?** Drawn on and still, its reason under it (a list and letting people in need a confirmed email) (carried `held-on`).
+- **Where does Delete go?** A quiet red row at the foot of every new structure, still behind its confirm; the Danger zone card goes. Drawn in every option, so it rides the structure pick.
+- **Where does Show on my profile go?** Into This event, beside the name, the note and the date; the Profile & guests card goes with the guest list's switch.
+- **What happened to `choose`'s switches form?** Dropped: three switches of which one at most is on is one choice wearing three controls. The six-rung ladder stands in its place beside the two forms kept (two choices, the door in steps).
+- **What stands behind a waiting door?** Nothing real, the ghost river (event-safety's `nothing-behind`, carried again because `waiting` moved here).
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: a board ships no production byte, so no system doc changes.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits**, pushed to `lp/event-settings`: `a1ae5c3a` (the board, round one) and `6eb970a8` (a group opened in place stands on its own shade). No sync commit: launch-prep moved (locked-door merged at `661f41dc`, pricing-wiring cut at `ba7d20aa`), but nothing landed in this lane's reads and `git merge-tree --write-tree HEAD origin/launch-prep` merges cleanly, so Agent boot calls for none.
+- **Gates on `6eb970a8`**, each its own exit 0: `pnpm typecheck`; `pnpm lint` (0 errors; its 5 warnings all sit in files this lane never touched); `pnpm test` (520 files, 5,863 tests); `zsh scripts/build-lock.sh pnpm build`; `pnpm lab:smoke --base http://localhost:3131` (216 checks, 0 failing; event-settings reads 869 words of 1,200); `pnpm lab:demo --board event-settings --base http://localhost:3131` (9 steps, 0 failing, every step draws its options).
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): everything under `src/app/(dev)/design/sandbox/event-settings/`, this file, and the brief's three named exceptions, the board's registration lines directly after help-center: `sandbox/registry.ts`, `(shell)/lab/boards.ts`, `touchpoints.ts` (its `SandboxId`, its row and its `DESK_ORDER` line, which `registry.test.ts` needs to hold; the Orchestrator places it).
+- **The items**, nine decisions on Maya and Jay's wedding (Free, after his shift), every option drawn on the real dashboard at 1440 (the panel beside the album) and 375 (its own screen):
+  - `structure` (first): today's seven cards (the reference, as they ship with his answers worn), four groups in view, a sentence per group with its detail one tap in (recommended), the settings read as sentences whose words are the controls, and presets over an Adjust fold. Each drawn as it opens (captioned with the screens it runs and the settings a host meets first: today 3.5 screens at 375, groups 2.2, summary 1, sentences 1, presets 1.9) and as Maya pauses uploads (captioned with where the act sits: today's is its Save, below the screen).
+  - `opens` (after `structure=summary`): its own page under a back arrow (recommended) or in place.
+  - `idle` (after `structure`): a setting that does nothing yet, the reel's look and hold with the reel off and A photo first with uploads paused, side by side: gone until it applies (recommended), greyed with its reason, or live with a note (today).
+  - `lock` (after `structure`, a Plan knob for Pro): today's lock chip, a Videos switch that opens the plans, or one quiet line gone on Pro (recommended).
+  - `join` (after `structure`, event-safety's `choose` reshaped): one choice of six from open to closed (recommended), two choices, or the door step by step, drawn on People you let in so the held-on email switch shows.
+  - `waiting`, `queue`, `inside`, `editor`: event-safety's four staged asks, ported from `69afdbc5` with their drawings copied (event-safety retires in `safety-wiring`), staged behind `join` and drawn in the picked structure; the Guests room wears his `room=always` and `blocked=foot`.
+  - Carried on the board: `phone-first`, `saves`, `one-line`, `size-cap`, `held-on`, `nothing-behind`, and his answered `newcomer=same` and `unlisted=ask`.
+- **Assets requested from Will:** none.
+- **Board ideas:**
+  - A "See it as a guest" row in settings, opening the album as a guest meets it with the door's steps: every door setting is about what a guest meets, and today a host can only guess.
+  - The settings kind's head in a hand says the event's name twice (the back arrow and the line under the bar); `popups` could drop the line wherever the back arrow already names it.
+  - With videos the only lock left, `LockChip`'s password and custom link rows retire in `pricing-wiring`; if `lock=line` wins, settings has no chip left either, and the component could fold into the pricing sheet's trigger.
+  - The hub's Settings card says "Public"; under the ladder it could say the rung ("Anyone with the link"), the one place a host sees the door from the hub.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none. Wiring the join modes will need one (a join mode beside `events.visibility` and an invite list table, with the door's RPCs re-checking them), the wiring lane's to write.
+- **Calls his to overrule:** the ten under Questions above, each drawn or carried on the board.
+- **Look at first:** the structure step at 375 (`/design/lab/event-settings?session=event-settings.structure`): today's seven cards against the sentence per group, then the four groups; then flip the Screen knob to 1440 for the panel beside the album.
