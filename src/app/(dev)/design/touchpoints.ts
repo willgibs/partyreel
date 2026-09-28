@@ -85,8 +85,8 @@ export const RULINGS: Ruling[] = [
     id: "hero-card",
     title: "The home hero's card",
     surface: "marketing",
-    asks: "which compact event card stands at the centre of the home hero, an album with its one link and next to no words, the band streaming out of it",
-    why: "His reel-story note on the hero: a compact event card, several photographs and the QR as one face of one link, so the first screen reads as a shareable event.",
+    asks: "which version of his link card stands at the centre of the home hero, then, drawn in the one he picks, its own light and the hero's geometry on a tablet",
+    why: "He took the link in round one and asked for more ideas branching from it; the tablet's geometry moved here from loose-ends, since it sizes the hero round this card.",
     lives: [
       "docs/systems/marketing-content.md",
       "src/components/marketing/sections/home/cinema-hero.tsx",
@@ -94,12 +94,11 @@ export const RULINGS: Ruling[] = [
       "src/components/marketing/system/demo-ticket.tsx",
     ],
     board: {
-      note: "One decision, drawn in the real first screen at 1440 with 375 on the knob (the header, the band on its own tables, the eyebrow, the block): today's framed photograph beside three compact event cards, the album on paper with its code as a tile, the event's own page as a guest sees it, and the link with the album rising out of it",
+      note: "Round two, drawn in the real first screen at 1440, 900 and 375: his link beside four branches (the guests on the photographs they added, the link as it lands in the group chat, the album spread lower along it, the address typed out in front), then the card's own light and the tablet's geometry in the card he picks",
       variants: [
-        "Today",
-        "The album on a card",
-        "The event's own page",
-        "The link",
+        "The link card",
+        "The card's own light",
+        "The hero at a tablet",
       ],
     },
   },
