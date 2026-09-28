@@ -31,6 +31,8 @@ export const EVENT = {
   photos: 48,
   /** THE ONE COUNT (`getEventGuests`): approved uploaders, never the host. */
   guests: 9,
+  /** The link's views, as the hub's metadata row counts them. */
+  views: 112,
 } as const;
 
 export const HOST = {
@@ -64,8 +66,8 @@ export const DOM: Person = {
 
 /**
  * The same trouble on a names-only party: a typed name and one browser. A block
- * on Rick holds on that browser alone, which is why the block's sheet offers
- * Require verified emails beside him.
+ * on Rick holds on that browser alone, which is why the block's confirmation
+ * offers Require verified emails beside him.
  */
 export const RICK: Person = {
   id: "rick",
@@ -82,15 +84,63 @@ export const RICK: Person = {
  * block takes him off.
  */
 export const GUESTS: readonly Person[] = [
-  { id: "leah", name: "Leah Park", email: "leah.park@example.com", verified: true, seed: "es-leah", uploads: 9 },
-  { id: "sam", name: "Sam Okafor", email: "sam.okafor@example.com", verified: true, seed: "es-sam", uploads: 6 },
+  {
+    id: "leah",
+    name: "Leah Park",
+    email: "leah.park@example.com",
+    verified: true,
+    seed: "es-leah",
+    uploads: 9,
+  },
+  {
+    id: "sam",
+    name: "Sam Okafor",
+    email: "sam.okafor@example.com",
+    verified: true,
+    seed: "es-sam",
+    uploads: 6,
+  },
   DOM,
-  { id: "ana", name: "Ana Ruiz", email: "ana.ruiz@example.com", verified: true, seed: "es-ana", uploads: 5 },
-  { id: "noor", name: "Noor Haddad", email: "noor.haddad@example.com", verified: true, seed: "es-noor", uploads: 4 },
-  { id: "theo", name: "Theo Grant", email: "theo.grant@example.com", verified: true, seed: "es-theo", uploads: 3 },
-  { id: "marcus", name: "Marcus Lee", email: "marcus.lee@example.com", verified: true, seed: "es-marcus", uploads: 2 },
+  {
+    id: "ana",
+    name: "Ana Ruiz",
+    email: "ana.ruiz@example.com",
+    verified: true,
+    seed: "es-ana",
+    uploads: 5,
+  },
+  {
+    id: "noor",
+    name: "Noor Haddad",
+    email: "noor.haddad@example.com",
+    verified: true,
+    seed: "es-noor",
+    uploads: 4,
+  },
+  {
+    id: "theo",
+    name: "Theo Grant",
+    email: "theo.grant@example.com",
+    verified: true,
+    seed: "es-theo",
+    uploads: 3,
+  },
+  {
+    id: "marcus",
+    name: "Marcus Lee",
+    email: "marcus.lee@example.com",
+    verified: true,
+    seed: "es-marcus",
+    uploads: 2,
+  },
   { id: "priya", name: "Priya", email: null, verified: false, uploads: 4 },
-  { id: "rose", name: "Grandma Rose", email: null, verified: false, uploads: 2 },
+  {
+    id: "rose",
+    name: "Grandma Rose",
+    email: null,
+    verified: false,
+    uploads: 2,
+  },
 ];
 
 /** The same list once Dom is out: off the list and every count in one step. */
@@ -100,8 +150,20 @@ export const GUESTS_AFTER: readonly Person[] = GUESTS.filter(
 
 /** Two newcomers who confirmed an address and wait for Maya (approve newcomers). */
 export const NEWCOMERS = [
-  { id: "ben", name: "Ben Ortiz", email: "ben.ortiz@example.com", seed: "es-ben", when: "2 min ago" },
-  { id: "chloe", name: "Chloe Tan", email: "chloe.tan@example.com", seed: "es-chloe", when: "Just now" },
+  {
+    id: "ben",
+    name: "Ben Ortiz",
+    email: "ben.ortiz@example.com",
+    seed: "es-ben",
+    when: "2 min ago",
+  },
+  {
+    id: "chloe",
+    name: "Chloe Tan",
+    email: "chloe.tan@example.com",
+    seed: "es-chloe",
+    when: "Just now",
+  },
 ] as const;
 
 /** Who is blocked, as the host's list reads them after this evening. */
@@ -141,8 +203,14 @@ export const PASTED_FOUND = 36;
 export const PASTED_BAD = ["jay's mum", "kim.ng@example"] as const;
 
 /** The two doors of an invite list: an address on it, and one that is not. */
-export const LISTED = { name: "Ana Ruiz", email: "ana.ruiz@example.com" } as const;
-export const UNLISTED = { name: "Kev", email: "kev.m.1991@example.com" } as const;
+export const LISTED = {
+  name: "Ana Ruiz",
+  email: "ana.ruiz@example.com",
+} as const;
+export const UNLISTED = {
+  name: "Kev",
+  email: "kev.m.1991@example.com",
+} as const;
 
 /* ── the photographs ─────────────────────────────────────────────────────── */
 
@@ -172,14 +240,32 @@ function still(
 
 /** The wedding's own album: the photographs everyone came for. */
 export const ALBUM: readonly GridMedia[] = [
-  still("a1", "wedding-petals", { uploaderName: "Leah Park", isVerified: true }),
-  still("a2", "wedding-golden", { uploaderName: "Sam Okafor", isVerified: true }),
+  still("a1", "wedding-petals", {
+    uploaderName: "Leah Park",
+    isVerified: true,
+  }),
+  still("a2", "wedding-golden", {
+    uploaderName: "Sam Okafor",
+    isVerified: true,
+  }),
   still("a3", "wedding-toast", { uploaderName: "Priya", isVerified: false }),
-  still("a4", "reception-table", { uploaderName: "Ana Ruiz", isVerified: true }),
-  still("a5", "wedding-rings", { uploaderName: "Noor Haddad", isVerified: true }),
+  still("a4", "reception-table", {
+    uploaderName: "Ana Ruiz",
+    isVerified: true,
+  }),
+  still("a5", "wedding-rings", {
+    uploaderName: "Noor Haddad",
+    isVerified: true,
+  }),
   still("a6", "wedding-arch", { uploaderName: "Theo Grant", isVerified: true }),
-  still("a7", "reception-hall", { uploaderName: "Leah Park", isVerified: true }),
-  still("a8", "party-balloons", { uploaderName: "Grandma Rose", isVerified: false }),
+  still("a7", "reception-hall", {
+    uploaderName: "Leah Park",
+    isVerified: true,
+  }),
+  still("a8", "party-balloons", {
+    uploaderName: "Grandma Rose",
+    isVerified: false,
+  }),
 ];
 
 /**
@@ -204,8 +290,26 @@ export const DOM_UPLOADS: readonly GridMedia[] = [
 
 /** The photograph Maya has open when she decides: one of Dom's, credited. */
 export const OPEN_ITEM: GridMedia = { ...DOM_UPLOADS[1], likeCount: 0 };
-/** Its place in the album, as the credit's counter reads it. */
-export const OPEN_POSITION = "17 of 48";
+/** Its place in the album (the viewer's counter went, so only the filmstrip reads it). */
+export const OPEN_INDEX = 16;
+/**
+ * Its neighbours in the album, which the viewer shows as a sliver each side
+ * (media-viewer's `next=peek`): the album's own photograph before it, and the
+ * next of Dom's after it.
+ */
+export const OPEN_NEIGHBOURS: readonly [GridMedia, GridMedia] = [
+  ALBUM[3],
+  DOM_UPLOADS[2],
+];
+
+/**
+ * THE TWO DOM SENDS AFTER THE BLOCK, mid-visit, with the album still open on
+ * his phone: neither goes, and the failure sheet names both.
+ */
+export const REFUSED = [
+  { name: "IMG_2231.jpg", url: DOM_UPLOADS[3].url },
+  { name: "IMG_2232.jpg", url: DOM_UPLOADS[0].url },
+] as const;
 
 /**
  * THE REVIEW QUEUE on a moderated night: Dom's three waiting among four of
@@ -220,5 +324,15 @@ export const WAITING: readonly GridMedia[] = [
   { ...DOM_UPLOADS[2], id: "w6", status: "pending" },
   still("w7", "wedding-rings", { status: "pending" }),
 ];
-/** The three of Dom's Maya has just hidden. */
+/** The three of Dom's Maya has just rejected (host-curation's `verb=reject`). */
 export const HIDDEN_IDS: ReadonlySet<string> = new Set(["w2", "w4", "w6"]);
+
+/**
+ * THE QUEUE WHILE NEWCOMERS WAIT (the `queue` ask's Review): everyone else's
+ * four, with three more landed since the host opened the room, which his
+ * `arrivals=prompt` keeps behind a line rather than sliding in under a thumb.
+ */
+export const QUEUE_OTHERS: readonly GridMedia[] = WAITING.filter(
+  (m) => !HIDDEN_IDS.has(m.id),
+);
+export const JUST_LANDED = 3;

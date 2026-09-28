@@ -3,11 +3,13 @@
 import { type ReactNode, useEffect, useRef } from "react";
 import {
   ChevronRight,
+  Clapperboard,
   DoorClosed,
   Globe,
   type LucideIcon,
   MailCheck,
   UserCheck,
+  Users,
 } from "lucide-react";
 
 import { VisibilitySelector } from "@/components/app/visibility-selector";
@@ -19,24 +21,32 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { guestExperienceSummary } from "@/lib/events/guest-experience-summary";
 import { VISIBILITY_HINTS } from "@/lib/events/visibility-labels";
 import { UPLOAD_CAP_PRESETS } from "@/lib/media/limits";
 import { cn } from "@/lib/utils";
 
 import { EVENT } from "./fixtures";
 import { Hub, SwitchRow } from "./host";
+import { PopupQuote } from "./kinds";
 import type { ScreenId } from "./scene";
 
 /**
- * THE EVENT'S SETTINGS SHEET, QUOTED (`event-settings-sheet.tsx` over
- * `EventSettingsForm`): the responsive Sheet over the hub, its header, and the
- * cards in the form's own order. The real form needs a `FormProvider`, a
- * server action and `ConfirmSwitch`'s dialog, and a portal would leave the
- * frame, so the cards are redrawn from the same primitives (`Card`, `Switch`,
- * the shipped `VisibilitySelector` itself) with the shipped words.
+ * THE EVENT'S SETTINGS, AS THE SETTINGS KIND (`event-settings-sheet.tsx`:
+ * `PopupContent kind="settings" routed`, popups-wiring `3e7952e3`): his
+ * unfocused panel beside the album at a desk, and in a hand the whole screen
+ * under a back arrow that names the event. The shape is read off the one table
+ * (`kinds.tsx`), so this board moves when the kind does. The cards inside are
+ * `EventSettingsForm`'s in its own order with its own words (Details, Visibility
+ * & access, Guest uploads, its one Save), then the instant cards and the Danger
+ * zone last, redrawn from the same primitives (`Card`, `Switch`, the shipped
+ * `VisibilitySelector` itself, the summary line from `guestExperienceSummary`):
+ * the real form needs a `FormProvider`, a Server Function and `ConfirmSwitch`'s
+ * dialog, and a proposal has to stand inside its cards.
  *
  * ★ EVERY DOOR ON THIS BOARD IS FREE ON EVERY PLAN (his answer, "Both free on
- * every plan"), so no lock chip and no upgrade prompt appears anywhere here.
+ * every plan"), so no lock chip and no upgrade prompt appears anywhere here;
+ * Maya's plan carries video, so the cards show none of their own either.
  */
 
 export type JoinId = "anyone" | "approve" | "closed" | "list";
@@ -80,7 +90,7 @@ export const needsVerified = (join: JoinId) =>
 /**
  * "WHO CAN JOIN?" as the visibility selector's own material: the muted track
  * and the lifted segment (`visibility-selector.tsx`), stood on end because
- * four labels this long do not fit the sheet's 28rem across without being cut
+ * four labels this long do not fit the panel's 28rem across without being cut
  * ("Approve newc..." was the first draft's finding). Its hint line speaks for
  * the chosen one, the way `VISIBILITY_HINTS` does for visibility.
  */
@@ -121,7 +131,9 @@ export function JoinChoice({
 function WhoCanSee() {
   return (
     <div className="space-y-3">
-      <p className="text-sm leading-none font-medium">Who can see this album?</p>
+      <p className="text-sm leading-none font-medium">
+        Who can see this album?
+      </p>
       <VisibilitySelector value="open" onValueChange={() => {}} />
       <p className="text-sm text-muted-foreground">{VISIBILITY_HINTS.open}</p>
     </div>
@@ -153,11 +165,13 @@ export function AccessCard({
 }
 
 /**
- * GUEST UPLOADS, the shipped card's switches in the shipped order: pause,
- * the size cap, Review, the two that shape the door, then whatever a decision
- * adds. `verifiedLock` is the reason Require verified emails cannot be turned
- * off while approving or a list needs it; `door` false leaves the two
- * door switches out (they moved into The door).
+ * GUEST UPLOADS, the shipped card (`uploads-section.tsx`) in its own order and
+ * words: pause, the size cap, Review, the two that shape the door (each a
+ * `ConfirmSwitch`, its shield after the label), whatever a decision adds, the
+ * live line that says what a guest will meet, and the video status.
+ * `verifiedLock` is the reason Require verified emails cannot be turned off
+ * while approving or a list needs it; `door` false leaves the two door
+ * switches out (they moved into The door).
  */
 export function UploadsCard({
   verifiedLock,
@@ -172,7 +186,9 @@ export function UploadsCard({
     <Card>
       <CardHeader>
         <CardTitle>Guest uploads</CardTitle>
-        <CardDescription>Control whether and how guests contribute.</CardDescription>
+        <CardDescription>
+          Control whether and how guests contribute.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <SwitchRow
@@ -180,33 +196,62 @@ export function UploadsCard({
           description="Turn off to freeze the album. Guests can still view it."
           checked
         />
-        <div className="space-y-1.5">
-          <p className="text-sm leading-none font-medium">Max size per upload</p>
+        <div className="grid gap-2">
+          <p className="text-sm leading-none font-medium">
+            Max size per upload
+          </p>
           <span className="flex h-8 w-full items-center rounded-lg border border-input px-2.5 text-sm">
             {UPLOAD_CAP_PRESETS[0].label}
           </span>
+          <p className="text-sm text-muted-foreground">
+            Cap how large any single guest upload can be, so one guest
+            can&rsquo;t fill your storage. Your own uploads aren&rsquo;t
+            affected.
+          </p>
         </div>
         <SwitchRow
           label="Review uploads before they appear"
           description="Hold new photos for your approval instead of showing them live."
           checked={false}
+          guarded
         />
         {door && (
           <>
             <SwitchRow
               label="Require verified emails"
-              description="Guests confirm their email once before they see the full album or add photos."
+              description="On (recommended): guests confirm their email once before they see the full album or add photos (a few previews show first), so every upload has a verified email behind it. Off: guests type a display name and add photos straight away, with nothing to prove who they are."
               checked
               locked={verifiedLock}
+              guarded
             />
             <SwitchRow
               label="Require an upload to view"
-              description="Guests add one photo or video before they can see the full album."
+              description="On: guests add one photo or video before they can see the full album, so nobody just looks. Off (the default): the album opens once a guest has given a name, or confirmed their email."
               checked={false}
+              guarded
             />
           </>
         )}
         {extra}
+        <p className="text-sm text-muted-foreground">
+          {guestExperienceSummary({
+            visibility: "open",
+            requireVerifiedEmail: true,
+            acceptingUploads: true,
+            requireUploadToView: false,
+          })}
+        </p>
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium">Video uploads</p>
+            <p className="text-sm text-muted-foreground">
+              Guests and you can upload photos and video.
+            </p>
+          </div>
+          <span className="shrink-0 rounded-full border border-border px-2.5 py-0.5 text-xs text-muted-foreground">
+            Photos &amp; video
+          </span>
+        </div>
       </CardContent>
     </Card>
   );
@@ -214,7 +259,7 @@ export function UploadsCard({
 
 /**
  * A ROW THAT OPENS SOMETHING, inside a card: a label, its value, a chevron.
- * The Blocked row and the invite list's Edit both wear it.
+ * The Blocked row wears it.
  */
 export function OpenRow({
   label,
@@ -240,11 +285,12 @@ export function OpenRow({
 }
 
 /**
- * SCROLLS ITS OWN CONTAINER TO ITSELF, ONCE THE FRAME HAS SETTLED. A sheet's
- * card a decision is about can sit below the fold of a phone's bottom sheet,
- * and a picture that starts on the Details card shows the wrong question. It
- * scrolls the nearest scrolling ancestor (the sheet), else the frame's own
- * window, and re-runs as the webfont lands; a second run is a no-op.
+ * SCROLLS ITS OWN CONTAINER TO ITSELF, ONCE THE FRAME HAS SETTLED. A card a
+ * decision is about can sit below the fold of the settings' own scroller, and
+ * a picture that starts on the Details card shows the wrong question. It
+ * scrolls the nearest scrolling ancestor (the panel's or the screen's body),
+ * else the frame's own window, and re-runs as the webfont lands; a second run
+ * is a no-op.
  */
 export function ScrollHere({ offset = 12 }: { offset?: number }) {
   const ref = useRef<HTMLSpanElement | null>(null);
@@ -256,7 +302,10 @@ export function ScrollHere({ offset = 12 }: { offset?: number }) {
       let box: HTMLElement | null = el.parentElement;
       while (box) {
         const oy = win.getComputedStyle(box).overflowY;
-        if ((oy === "auto" || oy === "scroll") && box.scrollHeight > box.clientHeight)
+        if (
+          (oy === "auto" || oy === "scroll") &&
+          box.scrollHeight > box.clientHeight
+        )
           break;
         box = box.parentElement;
       }
@@ -272,11 +321,44 @@ export function ScrollHere({ offset = 12 }: { offset?: number }) {
   return <span ref={ref} aria-hidden className="block h-0" />;
 }
 
+/** A card the decision is not about, folded to its head (the order is still the form's). */
+function FoldedCard({
+  title,
+  Icon,
+  description,
+  destructive = false,
+}: {
+  title: string;
+  Icon?: LucideIcon;
+  description: string;
+  destructive?: boolean;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className={cn(destructive && "text-destructive")}>
+          {Icon ? (
+            <span className="flex items-center gap-2">
+              <Icon className="size-4 text-muted-foreground" aria-hidden />
+              {title}
+            </span>
+          ) : (
+            title
+          )}
+        </CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+    </Card>
+  );
+}
+
 /**
- * THE SHEET ITSELF over the hub: the scrim, the responsive panel (`es-sheet`,
- * a bottom sheet in a hand and a side panel at a desk), its title and the
- * event it governs, then the cards. The Details card stands first, folded to
- * its fields, because it is first in the real form.
+ * THE SETTINGS OVER THE HUB, IN THE SETTINGS KIND: its title and the event it
+ * governs (a hand's bar also naming the event its back arrow returns to), then
+ * the form's cards with the decision's own drawn between Details and the Save,
+ * then the reel, Profile & guests and the Danger zone, folded to their heads
+ * because nothing here is about them. `overlay` is what a decision stands over
+ * the settings (the blocked list, a confirm).
  */
 export function SettingsSheet({
   screen,
@@ -292,31 +374,44 @@ export function SettingsSheet({
       screen={screen}
       overlay={
         <>
-          <div className="es-scrim" />
-          <div className="es-sheet" data-screen={screen} data-es-sheet>
-            <div className="flex flex-col gap-0.5 p-4">
-              <p className="font-heading text-card-title font-medium text-foreground">
-                Settings
-              </p>
-              <p className="text-sm text-muted-foreground">{EVENT.name}</p>
-            </div>
-            <div className="flex flex-col gap-6 px-4 pb-6">
+          <PopupQuote
+            kind="settings"
+            screen={screen}
+            title="Settings"
+            description={EVENT.name}
+            back={EVENT.name}
+            bodyClassName="flex flex-col gap-6 pb-6"
+          >
+            <div className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Details</CardTitle>
                   <CardDescription>
-                    {`${EVENT.name} · ${EVENT.date}`}
+                    What guests see when they land on the join page.
                   </CardDescription>
                 </CardHeader>
               </Card>
               {children}
               <div className="flex justify-end">
-                <Button size="sm" tabIndex={-1}>
-                  Save changes
-                </Button>
+                <Button tabIndex={-1}>Save changes</Button>
               </div>
             </div>
-          </div>
+            <FoldedCard
+              title="Highlight reel"
+              Icon={Clapperboard}
+              description="The album’s own reel, made from every photo guests can see."
+            />
+            <FoldedCard
+              title="Profile & guests"
+              Icon={Users}
+              description="How this event shows up beyond its own link."
+            />
+            <FoldedCard
+              title="Danger zone"
+              description="Deleting an event removes it and frees up a slot on your plan."
+              destructive
+            />
+          </PopupQuote>
           {overlay}
         </>
       }

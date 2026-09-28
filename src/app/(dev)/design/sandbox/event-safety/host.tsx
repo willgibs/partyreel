@@ -6,13 +6,16 @@ import {
   Check,
   Clapperboard,
   Download,
+  Eye,
   EyeOff,
   Heart,
   Images,
+  Link2,
   ListChecks,
   MoreHorizontal,
   Settings,
   Share2,
+  ShieldCheck,
   Trash2,
   UserCheck,
   Users,
@@ -21,33 +24,52 @@ import {
 
 import { FeedSectionEmpty } from "@/components/app/event-feed/feed-section-empty";
 import { FeedSectionHeader } from "@/components/app/event-feed/feed-section-header";
+import { ReviewGrid } from "@/components/app/event-feed/review-grid";
+import {
+  reviewCardFace,
+  ROOM_CARD_BASE,
+  ROOM_CARD_QUIET,
+  ROOM_CARD_VALUE,
+  roomCardSize,
+  roomRowLayout,
+} from "@/components/app/event-feed/room-card";
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
 import { FooterQr } from "@/components/marketing/chrome/footer-qr";
+import { LIGHTBOX_ACTION } from "@/components/shared/media-lightbox-parts/actions";
+import { FaceCredit } from "@/components/shared/media-lightbox-parts/credit";
+import { FILMSTRIP_REACH } from "@/components/shared/media-lightbox-parts/filmstrip";
+import {
+  CHROME,
+  peekMetrics,
+} from "@/components/shared/media-lightbox-parts/geometry";
 import { GALLERY_COLUMNS } from "@/components/shared/masonry";
 import { PageHeading } from "@/components/shared/page-heading";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { floatingPanel, floatingRow } from "@/components/ui/floating-layer";
 import { Switch } from "@/components/ui/switch";
-import { GLASS, GLASS_BEHIND, GLASS_MARK_LIT } from "@/lib/glass";
+import { EVENT_ROOMS } from "@/lib/event/sections";
+import { GLASS, GLASS_BEHIND } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 
 import {
   ALBUM,
   BLOCKED,
+  DOM_UPLOADS,
   EVENT,
   NEWCOMERS,
   type Person,
   WAITING,
 } from "./fixtures";
-import { HostPage, Mark, type ScreenId } from "./scene";
+import { HostPage, Mark, SCREENS, type ScreenId } from "./scene";
 
 /**
  * THE HOST'S SURFACES, QUOTED: the viewer with its credit, the Guests room,
  * the Review room and the event's hub. Each is the shipped markup at the
- * app's tokens with the one thing an option adds drawn into it; the menus
- * are the shipped `DropdownMenu` anatomy (a header naming the subject, the
- * rows, and the destructive act on its own footer rail) held open.
+ * app's tokens with the one thing an option adds drawn into it, and wherever
+ * production's own piece is presentational it is imported, not redrawn (the
+ * viewer's face-led credit, its geometry and its capsule's glyph class; the
+ * hub's room cards; the Review queue's grid), so the board cannot drift from
+ * the surfaces it proposes to change (the refresh, 2026-09-28).
  *
  * ★ NOTHING HERE IS WIRED. A Block, a Let in and an Unblock carry
  * `tabIndex={-1}` and no handler: this is a catalog of what a host would meet,
@@ -123,21 +145,65 @@ const CARD_ICON = {
   settings: Settings,
 } as const;
 
-/** The cards row, quoted at rest (`event-cards-row.tsx`): four doors, Settings last. */
+/**
+ * THE CARDS ROW, AT REST (`event-cards-row.tsx` on `room-card.ts`'s one shell,
+ * imported): a phone's 2x2 grid of two-line cards, every door whole, and the
+ * row of tiles from `sm`. The Highlight reel is its live card, a still of the
+ * album behind its words (`reel-card.tsx`'s `LiveCard`), since a wedding with
+ * 48 photographs is well past the reel's minimum.
+ */
 function CardsRow({ cards }: { cards: readonly HubCard[] }) {
   return (
-    <div className="flex gap-2 overflow-hidden py-0.5">
+    <div role="group" aria-label="This event" className={roomRowLayout(false)}>
       {cards.map((card) => {
         const Icon = CARD_ICON[card.id];
+        if (card.id === "reel") {
+          return (
+            <span
+              key={card.id}
+              data-es-card={card.id}
+              className={cn(
+                ROOM_CARD_BASE,
+                roomCardSize(false),
+                "relative overflow-hidden border-transparent text-white",
+              )}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- a local still standing in for the reel's living stills */}
+              <img
+                src={ALBUM[5].url}
+                alt=""
+                className="absolute inset-0 size-full object-cover"
+              />
+              <span
+                aria-hidden
+                className="absolute inset-0 bg-linear-to-t from-black/80 via-black/50 to-black/30"
+              />
+              <Icon
+                className="relative size-4 shrink-0 text-white/85"
+                aria-hidden
+              />
+              <span className="relative font-heading text-card-title font-medium">
+                {card.label}
+              </span>
+              <span
+                className={cn(
+                  "relative truncate text-xs text-white/85",
+                  ROOM_CARD_VALUE,
+                )}
+              >
+                {card.value}
+              </span>
+            </span>
+          );
+        }
         return (
           <span
             key={card.id}
             data-es-card={card.id}
             className={cn(
-              "flex h-24 w-36 shrink-0 flex-col justify-between gap-1 rounded-xl border p-3",
-              card.amber
-                ? "border-warning/40 bg-warning/5"
-                : "border-border",
+              ROOM_CARD_BASE,
+              roomCardSize(false),
+              card.amber ? "border-warning/40 bg-warning/5" : ROOM_CARD_QUIET,
             )}
           >
             <Icon
@@ -153,6 +219,7 @@ function CardsRow({ cards }: { cards: readonly HubCard[] }) {
             <span
               className={cn(
                 "truncate text-xs tabular-nums",
+                ROOM_CARD_VALUE,
                 card.amber
                   ? "font-medium text-warning"
                   : "text-muted-foreground",
@@ -167,22 +234,31 @@ function CardsRow({ cards }: { cards: readonly HubCard[] }) {
   );
 }
 
-/** Today's four cards, with whatever a decision changes on them. */
+/**
+ * Today's four cards in the row's own order and words (`EVENT_ROOMS`, and the
+ * Review card's face from `reviewCardFace`: review is off at this wedding),
+ * with whatever a decision changes on them.
+ */
 export function hubCards(
   over: Partial<Record<HubCard["id"], Partial<HubCard>>> = {},
 ): HubCard[] {
-  const base: HubCard[] = [
-    { id: "review", label: "Review", value: "Nothing waiting" },
-    { id: "reel", label: "Reel", value: "24 moments" },
-    { id: "guests", label: "Guests", value: `${EVENT.guests} guests` },
-    { id: "settings", label: "Settings", value: "Public" },
-  ];
-  return base.map((c) => ({ ...c, ...over[c.id] }));
+  const value: Record<HubCard["id"], string> = {
+    review: reviewCardFace(false, 0).value,
+    reel: "Live for guests",
+    guests: `${EVENT.guests} guests`,
+    settings: "Public",
+  };
+  return EVENT_ROOMS.map((room) => ({
+    id: room.id,
+    label: room.label,
+    value: value[room.id],
+    ...over[room.id],
+  }));
 }
 
 /**
  * THE EVENT'S HUB, quoted (`/dashboard/[eventId]`): the live code beside the
- * title and its metadata, the cards row, then the album. `strip` is what a
+ * title and its metadata row, the cards row, then the album. `strip` is what a
  * decision stands between the cards and the album.
  */
 export function Hub({
@@ -203,7 +279,6 @@ export function Hub({
   photos?: number;
   guests?: number;
 }) {
-  const phone = screen === "375";
   // The Guests card says the one count, so a block that took someone off the
   // list takes them off the card too (unless an option wrote the card itself).
   const shown = cards.map((c) =>
@@ -214,18 +289,41 @@ export function Hub({
   return (
     <HostPage screen={screen} trail={[EVENT.name]} overlay={overlay}>
       <div className="space-y-6">
-        <div className="flex items-start gap-4">
-          <span className="shrink-0 rounded-lg bg-white p-1.5 ring-1 ring-border">
-            <FooterQr value={`https://partyreel.com/e/${EVENT.token}`} size={phone ? 64 : 96} />
+        {/* The header as one object (`page.tsx`): the code's height is the
+            title, the metadata row and the link, at 112 px at every width. */}
+        <div className="flex items-center gap-4 sm:gap-5">
+          <span className="shrink-0 rounded-lg bg-white p-2">
+            <FooterQr
+              value={`https://partyreel.com/e/${EVENT.token}`}
+              size={112}
+            />
           </span>
-          <div className="min-w-0 space-y-1.5">
-            <PageHeading>{EVENT.name}</PageHeading>
-            <p className="text-xs text-muted-foreground">
-              {`${EVENT.date} · ${photos} photos & videos · ${guests} guests`}
-            </p>
-            <p className="truncate text-xs text-muted-foreground">
-              partyreel.com/e/{EVENT.token}
-            </p>
+          <div className="min-w-0 flex-1 space-y-1">
+            <PageHeading className="truncate">{EVENT.name}</PageHeading>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+              <span>{EVENT.date}</span>
+              <span className="flex items-center gap-1.5">
+                <Images className="size-3.5" aria-hidden />
+                {photos}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Users className="size-3.5" aria-hidden />
+                {guests}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Eye className="size-3.5" aria-hidden />
+                {EVENT.views}
+              </span>
+            </div>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <Link2
+                className="size-3.5 shrink-0 text-muted-foreground"
+                aria-hidden
+              />
+              <span className="min-w-0 truncate text-xs text-muted-foreground">
+                partyreel.com/e/{EVENT.token}
+              </span>
+            </div>
           </div>
         </div>
         <CardsRow cards={shown} />
@@ -241,180 +339,214 @@ export function Hub({
 
 /* ── the viewer ───────────────────────────────────────────────────────────── */
 
-const PILL_ICON = `text-white/80 ${GLASS_MARK_LIT}`;
+/** A still of the photograph beside the open one, for the neighbours' slivers. */
+function Sliver({
+  item,
+  side,
+  width,
+  top,
+  bottom,
+}: {
+  item: GridMedia;
+  side: "left" | "right";
+  width: number;
+  top: number;
+  bottom: number;
+}) {
+  return (
+    <div
+      aria-hidden
+      className="absolute overflow-hidden"
+      style={{
+        [side]: 0,
+        width,
+        top,
+        bottom,
+        borderRadius: "var(--radius-tile)",
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element -- a local still standing in for a presigned photograph */}
+      <img
+        src={item.url}
+        alt=""
+        className="size-full object-cover"
+        style={{ objectPosition: side === "left" ? "right" : "left" }}
+      />
+    </div>
+  );
+}
 
 /**
- * THE HOST'S VIEWER, QUOTED (`shared/media-lightbox.tsx`): the hub behind it
- * blurred at half brightness (`behind=album`, on its own element), the close
- * circle, the photograph in its slot, and the pill stack at the foot, the
- * host's full set over today's credit capsule. `credit` is that capsule with
- * whatever an option does to it; `menu` floats above it.
+ * THE DESK'S FILMSTRIP, QUOTED (`media-lightbox-parts/filmstrip.tsx`): the
+ * frames either side of the open photograph within its reach, the current one
+ * lifted and ringed. The real one wraps each frame in a tooltip, which would
+ * portal out of the frame, so it is drawn still from its own classes.
+ */
+function FilmstripQuote({ at }: { at: number }) {
+  const frames = FILMSTRIP_REACH * 2 + 1;
+  const stills = [...ALBUM, ...DOM_UPLOADS];
+  return (
+    <div aria-hidden className="relative h-11" style={{ width: frames * 30 }}>
+      {Array.from({ length: frames }, (_, i) => {
+        const k = i - FILMSTRIP_REACH;
+        const current = k === 0;
+        return (
+          <span
+            key={k}
+            className={cn(
+              "absolute bottom-0 left-1/2 -ml-3 h-9 w-6 overflow-hidden rounded-[3px] bg-white/10",
+              current ? "opacity-100 ring-2 ring-white" : "opacity-45",
+            )}
+            style={{
+              transform: `translateX(${k * 30}px) scale(${current ? 1.12 : 1})`,
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- a local still standing in for a presigned photograph */}
+            <img
+              src={stills[(at + k + stills.length) % stills.length].url}
+              alt=""
+              className="size-full object-cover"
+            />
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * THE HOST'S VIEWER, AS IT SHIPS (`shared/media-lightbox.tsx`, media-viewer
+ * `7eb190de`): the hub behind it blurred at half brightness (`behind=album`, on
+ * its own element); the face-led credit at the top left (the real `FaceCredit`,
+ * with the address only the host reads) opposite the close circle; the
+ * photograph at fit in the box the chrome leaves (`CHROME`), a sliver of each
+ * neighbour at the edges (`peekMetrics`); the action capsule at the foot, the
+ * host's curate group after its rule; and at a desk the filmstrip under it.
+ *
+ * `pressed` rings the credit as a door the moment it is tapped, and `look` is
+ * what that door opens: at a desk its card stands under the credit, in a hand
+ * it arrives as its own Sheet and is drawn by the caller.
  */
 export function HostViewer({
   screen,
   item,
-  position,
-  credit,
-  menu,
+  neighbours,
+  at,
+  pressed = false,
+  look,
   overlay,
 }: {
   screen: ScreenId;
   item: GridMedia;
-  position: string;
-  credit?: ReactNode;
-  menu?: ReactNode;
+  neighbours: readonly [GridMedia, GridMedia];
+  /** Where the open photograph sits in the album, for the filmstrip. */
+  at: number;
+  pressed?: boolean;
+  /** The card the credit opens at a desk, anchored under it. */
+  look?: ReactNode;
   overlay?: ReactNode;
 }) {
+  const { w } = SCREENS[screen];
+  const desk = screen === "1440";
+  const { peek, gap } = peekMetrics(w);
+  // A fine pointer at 1024 and up shows the filmstrip, which lifts the capsule.
+  const strip = desk;
+  const foot = CHROME.bottom + (strip ? CHROME.filmstrip : 0);
   return (
     <div className="relative min-h-full">
       <Hub screen={screen} />
       <div className={cn("fixed inset-0 z-40", GLASS_BEHIND)} />
-      <div className="fixed inset-0 z-40 flex flex-col">
+      <div className="fixed inset-0 z-40 overflow-hidden">
+        <Sliver
+          item={neighbours[0]}
+          side="left"
+          width={peek}
+          top={CHROME.top}
+          bottom={foot}
+        />
+        <div
+          className="absolute flex items-center justify-center"
+          style={{
+            left: peek + gap,
+            right: peek + gap,
+            top: CHROME.top,
+            bottom: foot,
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- a local still standing in for a presigned photograph */}
+          <img
+            src={item.url}
+            alt=""
+            className="max-h-full max-w-full object-contain select-none"
+            style={{ borderRadius: "var(--radius-tile)" }}
+          />
+        </div>
+        <Sliver
+          item={neighbours[1]}
+          side="right"
+          width={peek}
+          top={CHROME.top}
+          bottom={foot}
+        />
+
+        <div
+          className="absolute left-2.5 z-20 flex max-w-[calc(100%-4rem)]"
+          style={{ top: "0.625rem" }}
+        >
+          <span
+            data-es-credit
+            className={cn(
+              "relative flex min-w-0 rounded-full",
+              pressed && "ring-2 ring-white/70",
+            )}
+          >
+            <FaceCredit item={item} viewerIsHost isOwn={false} />
+            {look}
+          </span>
+        </div>
         <span
           className={cn(
-            "absolute top-2.5 right-2.5 z-20 flex size-8 items-center justify-center rounded-full text-white",
+            "absolute right-2.5 z-20 flex size-8 items-center justify-center rounded-full text-white",
             GLASS,
           )}
+          style={{ top: "0.625rem" }}
         >
-          <X className={cn("size-4", GLASS_MARK_LIT)} aria-hidden />
+          <X className="size-4" aria-hidden />
         </span>
-        <div className="relative min-h-0 flex-1 overflow-hidden">
-          <div className="relative flex h-full items-center justify-center px-2 pb-6">
-            {/* eslint-disable-next-line @next/next/no-img-element -- a local still standing in for a presigned photograph */}
-            <img
-              src={item.url}
-              alt=""
-              className="max-h-full max-w-full rounded-md object-contain select-none"
-            />
-          </div>
-          <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex flex-col items-center gap-1.5">
-            <div
-              className={cn(
-                "pointer-events-auto flex items-center gap-4 rounded-full px-5 py-2.5",
-                GLASS,
-              )}
-            >
-              <Heart className={cn("size-5", PILL_ICON)} aria-hidden />
-              <Download className={cn("size-5", PILL_ICON)} aria-hidden />
-              <Share2 className={cn("size-5", PILL_ICON)} aria-hidden />
-              <span aria-hidden className="h-5 w-px shrink-0 bg-white/20" />
-              <Clapperboard className={cn("size-5", PILL_ICON)} aria-hidden />
-              <EyeOff className={cn("size-5", PILL_ICON)} aria-hidden />
-              <Trash2 className={cn("size-5", PILL_ICON)} aria-hidden />
-            </div>
-            {credit ?? <Credit item={item} position={position} />}
+
+        <div
+          className="absolute inset-x-0 z-10 flex flex-col items-center gap-2"
+          style={{ bottom: CHROME.capsuleGap + (strip ? CHROME.filmstrip : 0) }}
+        >
+          <div
+            className={cn(
+              "flex max-w-[calc(100vw-1.5rem)] items-center gap-3 rounded-full px-4 py-2.5 sm:gap-4 sm:px-5",
+              GLASS,
+            )}
+          >
+            {[Heart, Download, Share2, Link2].map((Icon, i) => (
+              <span key={i} className={LIGHTBOX_ACTION}>
+                <Icon className="size-5" aria-hidden />
+              </span>
+            ))}
+            <span aria-hidden className="h-5 w-px shrink-0 bg-white/20" />
+            {[EyeOff, Trash2].map((Icon, i) => (
+              <span key={i} className={LIGHTBOX_ACTION}>
+                <Icon className="size-5" aria-hidden />
+              </span>
+            ))}
           </div>
         </div>
-        {menu}
+        {strip && (
+          <div
+            className="absolute inset-x-0 flex justify-center"
+            style={{ bottom: "0.75rem" }}
+          >
+            <FilmstripQuote at={at} />
+          </div>
+        )}
       </div>
       {overlay}
-    </div>
-  );
-}
-
-/**
- * TODAY'S CREDIT CAPSULE (`AttributionPill`), the one `media-viewer.who` asks
- * the shape of: the name, the counter, and for the host alone the confirmed
- * address under it. `pressed` is the capsule the day it becomes a door, which
- * its own comment already anticipates ("it changes behaviour and not
- * appearance"): the press state and nothing else.
- */
-export function Credit({
-  item,
-  position,
-  pressed = false,
-}: {
-  item: GridMedia;
-  position: string;
-  pressed?: boolean;
-}) {
-  return (
-    <div
-      data-es-credit
-      className={cn(
-        "pointer-events-auto flex max-w-[88vw] flex-col items-center gap-1 rounded-full px-3 py-1 text-center",
-        GLASS,
-        pressed && "scale-[0.98] ring-2 ring-white/70",
-      )}
-    >
-      <span
-        className={cn(
-          "inline-flex items-center gap-1.5 text-caption font-medium text-white/90",
-          GLASS_MARK_LIT,
-        )}
-      >
-        <span>{item.uploaderName}</span>
-        {item.isVerified === false && <Mark tone="lit" />}
-        <span className="text-white/40">·</span>
-        <span className="text-white/70 tabular-nums">{position}</span>
-      </span>
-      {item.uploaderEmail && (
-        <span className="text-[10px] text-white/55">{item.uploaderEmail}</span>
-      )}
-    </div>
-  );
-}
-
-/* ── the menu, held open ──────────────────────────────────────────────────── */
-
-const MENU_ROW = cn(
-  "flex items-center gap-2 px-2 py-1.5 text-sm [&_svg]:size-4 [&_svg]:shrink-0",
-  floatingRow,
-);
-
-/**
- * A PERSON'S MENU, the shipped `DropdownMenu` anatomy held open: the header
- * names who it is about (and, for the host, the address they proved), a row
- * that narrows to their uploads, and the act that cannot be undone on its
- * own footer rail. `foot` replaces the rail when an option asks a second time
- * right there.
- */
-export function PersonMenu({
-  person,
-  foot,
-  className,
-  style,
-}: {
-  person: Person;
-  foot?: ReactNode;
-  className?: string;
-  style?: CSSProperties;
-}) {
-  const him = person.name.split(" ")[0];
-  return (
-    <div
-      data-es-menu
-      className={cn("es-menu overflow-hidden", floatingPanel, className)}
-      style={style}
-    >
-      <div className="-mx-1 -mt-1 mb-1 flex items-baseline justify-between gap-3 border-b border-border px-3 py-2">
-        <div className="min-w-0">
-          <p className="flex items-center gap-1.5 text-sm leading-tight font-semibold tracking-tight">
-            <span className="truncate">{person.name}</span>
-            {!person.verified && <Mark />}
-          </p>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            {person.email ?? "Typed a name, no email"}
-          </p>
-        </div>
-        <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-          {`${person.uploads} uploads`}
-        </span>
-      </div>
-      <div className="flex flex-col gap-0.5">
-        <span className={MENU_ROW}>
-          <Images className="text-muted-foreground" aria-hidden />
-          {`See ${him}'s uploads`}
-        </span>
-      </div>
-      <div className="-mx-1 -mb-1 mt-1 flex flex-col gap-0.5 border-t border-border bg-muted/40 p-1">
-        {foot ?? (
-          <span data-es-reach className={cn(MENU_ROW, "text-destructive")}>
-            <Ban aria-hidden />
-            Block from this event
-          </span>
-        )}
-      </div>
     </div>
   );
 }
@@ -427,18 +559,29 @@ export function PersonMenu({
  * sees it; a typed address never shows), how many photographs, and the row's
  * menu. Rows rather than the album's chips: a row has room for an address, a
  * count and a menu (the board's `room-rows` call).
+ *
+ * `looks` is the room where every name opens its look (`guest-peek.tsx`, as
+ * production's chips already do), so the row keeps its count and loses the
+ * menu it no longer needs; `open` is the name just tapped, its look standing
+ * under it at a desk (`look`).
  */
 export function GuestRow({
   person,
   screen,
-  menu,
+  looks = false,
+  open = false,
+  look,
   trailing,
   muted = false,
 }: {
   person: Person;
   screen: ScreenId;
-  /** The row's menu, drawn open under its trigger. */
-  menu?: ReactNode;
+  /** Every name opens its look, so there is no menu to draw. */
+  looks?: boolean;
+  /** This name was just tapped. */
+  open?: boolean;
+  /** Its look at a desk, anchored under the name. */
+  look?: ReactNode;
   /** Replaces the count and the menu trigger (a Let in, an Unblock). */
   trailing?: ReactNode;
   muted?: boolean;
@@ -446,7 +589,10 @@ export function GuestRow({
   return (
     <li
       data-es-row={person.id}
-      className={cn("relative flex items-center gap-3 px-4 py-3", menu && "z-10")}
+      className={cn(
+        "relative flex items-center gap-3 px-4 py-3",
+        open && "z-10 bg-muted/60",
+      )}
     >
       <Face person={person} />
       <div className="min-w-0 flex-1">
@@ -468,19 +614,20 @@ export function GuestRow({
           <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
             {screen === "375" ? person.uploads : `${person.uploads} photos`}
           </span>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            tabIndex={-1}
-            aria-label={`More for ${person.name}`}
-            className={cn(menu && "bg-muted")}
-          >
-            <MoreHorizontal />
-          </Button>
+          {!looks && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              tabIndex={-1}
+              aria-label={`More for ${person.name}`}
+            >
+              <MoreHorizontal />
+            </Button>
+          )}
         </>
       )}
-      {menu && (
-        <div className="absolute top-full right-3 z-20 -mt-1">{menu}</div>
+      {look && (
+        <div className="absolute top-full left-3 z-20 mt-1.5">{look}</div>
       )}
     </li>
   );
@@ -526,8 +673,9 @@ export function RoomSection({
 export function GuestsRoom({
   screen,
   people,
-  menuFor,
-  menu,
+  looks = false,
+  lookFor,
+  look,
   line,
   top,
   foot,
@@ -537,9 +685,12 @@ export function GuestsRoom({
 }: {
   screen: ScreenId;
   people: readonly Person[];
-  /** The id of the row whose menu is drawn open. */
-  menuFor?: string;
-  menu?: ReactNode;
+  /** Every name opens its look (`GuestRow`'s `looks`). */
+  looks?: boolean;
+  /** The id of the row whose name was just tapped. */
+  lookFor?: string;
+  /** Its look at a desk, anchored under the name. */
+  look?: ReactNode;
   /** A line or a control under the heading. */
   line?: ReactNode;
   top?: ReactNode;
@@ -571,7 +722,9 @@ export function GuestsRoom({
                 key={p.id}
                 person={p}
                 screen={screen}
-                menu={p.id === menuFor ? menu : undefined}
+                looks={looks}
+                open={p.id === lookFor}
+                look={p.id === lookFor ? look : undefined}
               />
             ))}
           </ul>
@@ -717,11 +870,19 @@ export function BlockedSection({ screen }: { screen: ScreenId }) {
 
 /* ── the Review room ──────────────────────────────────────────────────────── */
 
+/** Nothing selected and nothing leaving: the queue at rest. */
+const NONE: ReadonlySet<string> = new Set();
+
 /**
- * THE REVIEW ROOM, QUOTED (`review-section.tsx` pending): the amber header
- * with its count and its two actions, then the uniform 4:5 grid
- * (`UNIFORM_TILE_ASPECT`). `hidden` leaves the grid, which is what a Hide does
- * to a waiting upload; `notice` stands between the header and the grid.
+ * THE REVIEW ROOM (`review/page.tsx` over `review-section.tsx` pending): the
+ * page's heading, then the amber header with its count and its browse pair,
+ * then the queue on the real `ReviewGrid`, the uniform 4:5 grid Will kept
+ * (host-curation `queue=uniform`), imported whole. `gone` leaves the grid,
+ * which is what a Reject does to a waiting upload (his `verb=reject`); `notice`
+ * and `above` stand between the header and the grid, and `prompt` stands
+ * directly on the grid it folds into (his `arrivals=prompt`). `keys` rings the
+ * photograph the arrows stand on (his `keys=arrows`, with no hint row: arrows
+ * move, Enter approves, Backspace rejects).
  */
 export function ReviewRoom({
   screen,
@@ -729,70 +890,66 @@ export function ReviewRoom({
   gone,
   notice,
   above,
+  prompt,
+  keys = false,
   overlay,
 }: {
   screen: ScreenId;
   items?: readonly GridMedia[];
-  /** Ids a Hide has just taken off the queue. */
+  /** Ids a Reject has just taken off the queue. */
   gone?: ReadonlySet<string>;
   notice?: ReactNode;
   /** A group above the uploads (people waiting to join). */
   above?: ReactNode;
+  /** The line that folds new arrivals in, on the grid. */
+  prompt?: ReactNode;
+  /** The keyboard's place, on the first photograph. */
+  keys?: boolean;
   overlay?: ReactNode;
 }) {
   const left = items.filter((m) => !gone?.has(m.id));
-  const phone = screen === "375";
   return (
     <HostPage screen={screen} trail={[EVENT.name, "Review"]} overlay={overlay}>
       <div className="space-y-6">
-      <PageHeading>Review</PageHeading>
-      <section aria-label="Review" className="space-y-2.5">
-        <FeedSectionHeader
-          label="Review"
-          count={left.length}
-          amber
-          action={
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" tabIndex={-1}>
-                <ListChecks /> Select
-              </Button>
-              <Button size="sm" tabIndex={-1}>
-                <Check /> Approve all
-              </Button>
-            </div>
-          }
-        />
-        {notice}
-        {above}
-        <div
-          className="grid gap-[var(--gap-gallery)]"
-          style={{
-            gridTemplateColumns: phone
-              ? "repeat(3, minmax(0, 1fr))"
-              : "repeat(auto-fill, minmax(var(--album-column, 220px), 1fr))",
-          }}
-        >
-          {left.map((item) => (
-            <div
-              key={item.id}
-              className="relative aspect-[4/5] overflow-hidden bg-black/10"
-              style={{ borderRadius: "var(--radius-tile)" }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element -- a local still standing in for a presigned photograph */}
-              <img src={item.url} alt="" className="size-full object-cover" />
-            </div>
-          ))}
-        </div>
-      </section>
+        <PageHeading>Review</PageHeading>
+        <section aria-label="Review" className="space-y-2.5">
+          <FeedSectionHeader
+            label="Review"
+            count={left.length}
+            amber
+            action={
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" tabIndex={-1}>
+                  <ListChecks /> Select
+                </Button>
+                <Button size="sm" tabIndex={-1}>
+                  <Check /> Approve all
+                </Button>
+              </div>
+            }
+          />
+          {notice}
+          {above}
+          {prompt}
+          <div data-es-keys={keys ? "" : undefined}>
+            <ReviewGrid
+              items={[...left]}
+              selectMode={false}
+              selected={NONE as Set<string>}
+              exiting={NONE as Set<string>}
+              onToggle={() => {}}
+            />
+          </div>
+        </section>
       </div>
     </HostPage>
   );
 }
 
 /**
- * THE LINE A DECLINE LEAVES in Review's own header band (never the toast,
- * which is `host-curation.undo`'s question): who sent what the host just hid,
- * and the block one tap away.
+ * THE LINE A REJECT LEAVES in Review's own header band (the bulk act's toast,
+ * with its Undo, is host-curation's answered `undo`): who sent what the host
+ * just rejected, and the block one tap away.
  */
 export function HiddenNotice({
   screen,
@@ -837,7 +994,7 @@ export function HiddenNotice({
             </span>
           )}
           <span className="text-muted-foreground">
-            {" sent all 3 you just hid."}
+            {` sent all ${sent.length} you just rejected.`}
             {!phone && person.email && ` ${person.email}`}
           </span>
         </p>
@@ -864,23 +1021,37 @@ export function HiddenNotice({
 
 /* ── small furniture the rooms share ─────────────────────────────────────── */
 
-/** A switch row as a form lays it out (`FormItem` over `Switch`), still. */
+/**
+ * A switch row as a form lays it out (`FormItem` over `Switch`), still.
+ * `guarded` is `ConfirmSwitch`'s row, which asks before its consequential
+ * direction and says so with the small shield after its label.
+ */
 export function SwitchRow({
   label,
   description,
   checked,
   locked,
+  guarded = false,
 }: {
   label: string;
   description?: ReactNode;
   checked: boolean;
   /** Held on by another choice: drawn disabled with its reason. */
   locked?: string;
+  guarded?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="space-y-0.5">
-        <p className="text-sm leading-none font-medium">{label}</p>
+        <p className="text-sm leading-none font-medium">
+          {label}
+          {guarded && (
+            <ShieldCheck
+              aria-hidden
+              className="ml-2 inline size-3.5 align-[-2px] text-muted-foreground"
+            />
+          )}
+        </p>
         {description && (
           <p className="text-sm text-muted-foreground">{description}</p>
         )}
