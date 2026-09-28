@@ -13,24 +13,20 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoin
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: batch 6 whole, the desk to zero
+## The current round: batch 7, the desk to zero
 
-- **Milestone 29 is live** (`ab30a7f8`, 2026-09-26). Batches 4 to 6 ride `launch-prep` toward milestone 30.
-- **Will's sitting on build 12, part one** is transcribed (2026-09-28, 20 answers). An audit found 30 of the other
-  boards' 68 asks drawn before his recent picks were built, and 5 already answered.
-- **Batch 6's wave 1 landed whole** (eight lanes, gates green): hero-card, voice-guest and host-storage in their second
-  rounds; event-safety, admin-triage, export-flow, emails, help-center, contact-page, album-motion, loose-ends and
-  press-page redrawn on production as it stands; site-chrome and profile-page retired as answered.
-- **Wave 2 landed whole** (build 14): his curation picks in the review room (Reject, the peek's verdict, the keys,
-  Undo, the "N new" line), the pointer's one line, the voice lines and small fixes, and the storage list with its
-  goal strip and inline refusal; identity-claims and host-curation retired. Build 14's red-team findings are fixed
-  (`crumbs-7`: a toast's Undo over an open modal, the peek's keys, the "N new" pill).
+- **Milestone 29 is live** (`ab30a7f8`, 2026-09-26). Batches 4 to 7 ride `launch-prep` toward milestone 30.
+- **Batch 6 landed whole** (sixteen lanes, builds 13 to 15, red-teamed live).
+- **Will's sitting on build 15** is transcribed (2026-09-28, 21 answers): the hero's `guests` card, the guest voice's
+  last three, host-storage's prices, event-safety's block, export-flow's six. Wave A draws three new boards
+  (event-settings, locked-door, disposable-mode) and builds the per-event block; wave B wires pricing (his free/pro
+  shift: Free at 100 MB with the password, custom link and 60 s reels), the voice, the export flow and the hero.
 
 ## The desk
 
-Build 13's desk: 71 open asks on 13 boards, in desk order `hero-card` r2 (the card, then its light and the tablet),
-`voice-guest` r2, `host-storage` r2, `event-safety`, `export-flow`, `admin-triage`, `help-center`, `emails`,
-`privacy-hero`, `album-motion`, `loose-ends`, `contact-page`, `press-page`. His aim is zero before his other to-dos.
+Build 15's desk has 38 open asks: `help-center`, `emails`, `privacy-hero`, `album-motion`, `loose-ends`,
+`contact-page`, `press-page`. Build 16 adds `event-settings`, `locked-door` and `disposable-mode`. His aim is zero
+before his other to-dos.
 
 ## Live state
 
