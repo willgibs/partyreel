@@ -1,12 +1,13 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import {
   actionReportAction,
   dismissReportAction,
 } from "@/app/admin/reports/actions";
+import { DestructiveSheet } from "@/components/admin/destructive-sheet";
 import { MediaTile } from "@/components/app/media-grid";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/card";
 import type { ReportStatus, ReviewReport } from "@/lib/db/queries/reports";
 import { formatAdminTimestamp } from "@/lib/format/admin-time";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
 // Operator review list. The page (server) does the gating + presigning and hands down
 // serializable reports; this client layer wires the resolve actions (useTransition + toast).
@@ -37,6 +39,11 @@ const REPORT_STATUS_META: Record<
 
 function ReportCard({ report }: { report: ReviewReport }) {
   const [isPending, startTransition] = useTransition();
+  // admin-observability.md: "Every destructive act opens destructive-sheet.tsx" — Action was the
+  // one holdout, firing at once on the click that opened it (crumbs-6). Reversible (the item is
+  // soft-removed, same as Albums' own Remove), so no typed confirmation; whether the confirm
+  // carries a note is admin-triage's `verdict`, still on the desk, so this asks for none.
+  const [asking, setAsking] = useState(false);
   const meta = REPORT_STATUS_META[report.status];
 
   function onDismiss() {
@@ -47,26 +54,6 @@ function ReportCard({ report }: { report: ReviewReport }) {
         return;
       }
       toast.error("Couldn't dismiss the report.", {
-        description: result.message,
-      });
-    });
-  }
-
-  function onAction() {
-    startTransition(async () => {
-      const result = await actionReportAction(
-        report.id,
-        report.media?.id ?? null,
-      );
-      if (result.ok) {
-        toast.success(
-          report.media
-            ? "Item removed and report actioned."
-            : "Report actioned.",
-        );
-        return;
-      }
-      toast.error("Couldn't action the report.", {
         description: result.message,
       });
     });
@@ -116,12 +103,45 @@ function ReportCard({ report }: { report: ReviewReport }) {
             variant="destructive"
             size="sm"
             disabled={isPending}
-            onClick={onAction}
+            onClick={() => setAsking(true)}
           >
             {report.media ? "Remove item & action" : "Action"}
           </Button>
         </CardFooter>
       )}
+      <DestructiveSheet
+        open={asking}
+        onOpenChange={setAsking}
+        title={
+          report.media
+            ? "Remove this item and action the report?"
+            : "Action this report?"
+        }
+        lede={
+          report.media
+            ? "It leaves the guest album now, and you can restore it until the grace ends."
+            : "The report moves to Actioned; nothing else changes."
+        }
+        verb={report.media ? "Remove & action" : "Action"}
+        touches={
+          report.media
+            ? [
+                `1 ${report.media.type} in ${report.event?.name ?? "this event"}`,
+                `Restorable for ${RECENTLY_DELETED_WINDOW_DAYS} days, then the purge deletes the bytes`,
+                "At an event that reviews uploads, her uploads list already says Not in the album",
+              ]
+            : ["This report moves to Actioned", "The album itself is unchanged"]
+        }
+        severity="reversible"
+        successMessage={
+          report.media
+            ? "Item removed and report actioned."
+            : "Report actioned."
+        }
+        onConfirm={() =>
+          actionReportAction(report.id, report.media?.id ?? null)
+        }
+      />
     </Card>
   );
 }

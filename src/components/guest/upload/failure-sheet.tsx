@@ -43,11 +43,23 @@ import { formatCount } from "@/lib/format/count";
 /** One file that did not go: the queue's id, its file, and the server's words. */
 export type UploadFailure = { id: string; file: File; error?: string };
 
-/** The sheet's own heading, in one place: the door's in-step view says the same words. */
-export function uploadFailureHeading(count: number): string {
+/**
+ * The sheet's own heading, in one place: the door's in-step view says the same words.
+ * voice-guest r1 `failed=exact` (Will: clear about the failure, clarity without coldness): the
+ * whole run's count, never just the failed ones, so a guest reads what fraction of THIS batch
+ * did not make it rather than a bare number with no scale.
+ */
+export function uploadFailureHeading(failed: number, sent: number): string {
   // Quoted verbatim by /features/album's cap mock (`how-much-fits.tsx`);
   // mock-parity.test.ts is the proof.
-  return count === 1 ? "1 file did not go" : `${formatCount(count)} files did not go`;
+  return `${formatCount(failed)} of ${formatCount(sent)} didn't upload`;
+}
+
+/** The list's one retry-everything button, in one place (`UploadFailureList` below). */
+export function uploadFailureRetryLabel(failed: number): string {
+  if (failed === 1) return "Retry";
+  if (failed === 2) return "Retry both";
+  return `Retry all ${formatCount(failed)}`;
 }
 
 /**
@@ -82,7 +94,7 @@ export function UploadFailureList({
           onRetryAll?.();
         }}
       >
-        <RefreshCw /> {one ? "Try again" : "Retry all"}
+        <RefreshCw /> {uploadFailureRetryLabel(failures.length)}
       </Button>
       <ul data-upload-failures className="flex flex-col gap-3">
         {failures.map((f) => (
@@ -120,12 +132,15 @@ export function UploadFailureSheet({
   open,
   onOpenChange,
   failures,
+  sent,
   hostName,
   onRetry,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   failures: readonly UploadFailure[];
+  /** The whole run's count (failed + landed), for the exact heading's denominator. */
+  sent: number;
   hostName: string;
   /** Re-queues one file (the queue's own `retry`). */
   onRetry: (id: string) => void;
@@ -136,24 +151,34 @@ export function UploadFailureSheet({
      "Not now" calls `onOpenChange(false)`, and the parent's own close handler
      DISMISSES every listed failure in the same tick. A live list would empty
      about 33 ms before the sheet leaves the DOM, so for the remaining ~200 ms of
-     the exit animation the panel would read "0 files did not go" over a "Retry
-     all" with nothing to retry: the last thing a guest sees of a failure would
-     be a lie about it.
+     the exit animation the panel would read "0 of 8 didn't upload" over a
+     "Retry all 8" with nothing to retry: the last thing a guest sees of a
+     failure would be a lie about it.
 
      The guard is the intent sheet's own idiom, one floor down: the content LATCHES
      while the surface is open and the latch is what renders while it closes, so
      the words a guest read on the way in are the words they see on the way out.
      Only a non-empty list ever latches, so the first open is never empty either.
+     `sent` latches WITH `failures`, as one fact, so the heading's denominator
+     never drifts from the list it counts.
      ──────────────────────────────────────────────────────────────────────── */
-  const [latched, setLatched] = useState<readonly UploadFailure[]>(failures);
-  if (open && failures.length > 0 && failures !== latched) setLatched(failures);
-  const shown = open && failures.length > 0 ? failures : latched;
+  const [latched, setLatched] = useState<{
+    failures: readonly UploadFailure[];
+    sent: number;
+  }>({ failures, sent });
+  if (open && failures.length > 0 && failures !== latched.failures) {
+    setLatched({ failures, sent });
+  }
+  const shown =
+    open && failures.length > 0 ? { failures, sent } : latched;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent responsive className="overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>{uploadFailureHeading(shown.length)}</SheetTitle>
+          <SheetTitle>
+            {uploadFailureHeading(shown.failures.length, shown.sent)}
+          </SheetTitle>
           <SheetDescription>
             Everything else is in {hostName}&rsquo;s album.
           </SheetDescription>
@@ -161,7 +186,7 @@ export function UploadFailureSheet({
 
         <div className="px-4">
           <UploadFailureList
-            failures={shown}
+            failures={shown.failures}
             onRetry={onRetry}
             onRetryAll={() => onOpenChange(false)}
           />

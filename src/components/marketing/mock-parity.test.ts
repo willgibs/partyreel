@@ -50,11 +50,16 @@ const ENTRIES: ParityEntry[] = [
     literal: "Max size per upload",
   },
   {
+    // voice-guest r1 `failed=exact`: the heading is now built from a template
+    // (`${failed} of ${sent} didn't upload`), so the pin is the static tail
+    // rather than a full sentence — an apostrophe-free literal on purpose: the
+    // app's plain string carries a straight `'`, the JSX mock a curly
+    // `&rsquo;`, and a literal spanning the apostrophe would never match both.
     label: "album cap refusal sheet heading",
     marketingFile:
       "src/components/marketing/sections/features/album/how-much-fits.tsx",
     appFile: "src/components/guest/upload/failure-sheet.tsx",
-    literal: "1 file did not go",
+    literal: "upload",
   },
   {
     label: "album accounts-required teaser button",
@@ -136,6 +141,16 @@ const ENTRIES: ParityEntry[] = [
       "src/components/marketing/sections/features/album/visibility-frames.tsx",
     appFile: "src/components/guest/password-gate.tsx",
     literal: "Almost in",
+  },
+  {
+    // voice-guest r1 `ask=warm`. Apostrophe-free on purpose (see the cap-refusal
+    // entry above): the app's reason is a plain string ("you're"), the privacy
+    // page's preview card JSX text ("you&rsquo;re").
+    label: "privacy page access switch password reason",
+    marketingFile:
+      "src/components/marketing/sections/features/privacy/access-switch.tsx",
+    appFile: "src/components/guest/password-gate.tsx",
+    literal: "One password and you",
   },
   {
     label: "album take-home dialog title",

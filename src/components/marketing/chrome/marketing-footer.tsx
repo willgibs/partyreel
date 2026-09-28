@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
+import { DemoDoor } from "@/components/marketing/system/demo-modal/demo-door";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { Container } from "@/components/shared/container";
 import { Logo } from "@/components/shared/logo";
@@ -213,14 +214,18 @@ function SignOff() {
               required.
             </span>
           </p>
-          <Link
+          {/* crumbs-6: this straggler still opened same-tab, missed by demo-doors' sweep
+              (`77cfdfe9`) because it lives beside the desktop pile (`FooterDemo`, already a
+              `DemoDoor`) rather than inside it. Routed through the same door now: a real
+              new-tab link on a phone, same `source` the plain Link carried. */}
+          <DemoDoor
             href={DEMO_EVENT_URL}
-            {...trackAttrs("demo_open", { source: "footer-mobile" })}
+            source="footer-mobile"
             className="mkt-learn -my-1 inline-flex items-center gap-1 py-2 text-working font-medium text-foreground transition-transform duration-150 active:scale-[0.99] sm:hidden"
           >
             Open the demo album
             <LearnChevron />
-          </Link>
+          </DemoDoor>
         </div>
       </div>
       {/* It also gives the register a right edge; without it the row left

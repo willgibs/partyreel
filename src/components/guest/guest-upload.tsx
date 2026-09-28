@@ -128,10 +128,31 @@ export function GuestUpload({
   const [failuresOpen, setFailuresOpen] = useState(false);
   const wasRunning = useRef(false);
   const failures = items.filter((it) => it.status === "error");
+  /**
+   * ★ crumbs-6, one line into a lane it does not own, why: the exact register's failure heading
+   * ("N of SENT didn't upload", `failure-sheet.tsx`'s `uploadFailureHeading`) needs the whole
+   * run's count, and only the queue's own owner ever sees a run's start — `upload-step.tsx` tracks
+   * the identical baseline for the door's OWN inline failure view, but that instance's ref dies
+   * the moment the door closes, and a run can still be going when it does (`suppressFailures`
+   * above is proof two surfaces watch one queue). `runBaseline` is `items.length` from the render
+   * just BEFORE this run's files were appended (one render lagged, via `prevItemsLen`, so the new
+   * files are never counted in their own baseline), so `sent = items.length - runBaseline` is
+   * exactly this run's own total.
+   *
+   * ★ STARTS AT 0, NOT `items.length`: a mount that never witnessed its run start (this slot can
+   * remount under `key={access}`, mid-run, with `items` handed straight in) must count everything
+   * already there as THIS run, or `sent` reads short. 0 is exactly that.
+   *
+   * ★ STATE, NOT A REF: `sentThisRun` below reads it during render, and a ref's `.current` may
+   * only be read inside an effect or a handler (React Compiler's own rule).
+   */
+  const [runBaseline, setRunBaseline] = useState(0);
+  const prevItemsLen = useRef(items.length);
   useEffect(() => {
     const running = items.some(
       (it) => it.status === "queued" || it.status === "uploading",
     );
+    if (running && !wasRunning.current) setRunBaseline(prevItemsLen.current);
     if (
       wasRunning.current &&
       !running &&
@@ -140,7 +161,9 @@ export function GuestUpload({
       setFailuresOpen(true);
     }
     wasRunning.current = running;
+    prevItemsLen.current = items.length;
   }, [items]);
+  const sentThisRun = items.length - runBaseline;
   /**
    * "Not now" AND every other way the sheet closes (backdrop, Escape, the X)
    * all funnel through this one `onOpenChange` — Retry-all closes through it
@@ -189,6 +212,7 @@ export function GuestUpload({
           file: it.file,
           error: it.error,
         }))}
+        sent={sentThisRun}
         hostName={hostName}
         onRetry={onRetry}
       />

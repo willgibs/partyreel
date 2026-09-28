@@ -95,7 +95,20 @@ export function UploadStackTile({
         </>
       )}
       <div data-media-tile data-lit="" className={cn(TILE_BOX, "rounded-tile")}>
-        <PickPreview file={file} url={url} fit="natural" />
+        {/* ROADMAP's landscape head-slot line (`voice-r2`): this slot is a NOMINAL square
+            (`album-window-plan.ts`'s `HEAD_RATIO`, "the one that crops either orientation
+            least" — cropping is the plan, not a bug here), so the photograph covers it rather
+            than sitting at its own natural height and leaving a grey band under a landscape
+            file. `absolute inset-0` (not a plain child): the row layout forces this tile's own
+            height onto `data-media-tile` from the OUTSIDE (`album-window.tsx`'s
+            `[&_[data-media-tile]]:h-full`), and a plain block child does not inherit a
+            percentage height through this parent otherwise. */}
+        <PickPreview
+          file={file}
+          url={url}
+          fit="cover"
+          className="absolute inset-0"
+        />
         <div
           style={READING_PANE}
           className={cn(
@@ -154,8 +167,10 @@ export function WaitingTile({ file, url }: { file: File; url: string }) {
       data-lit=""
       className={cn(TILE_BOX, "rounded-tile")}
     >
-      <div className="opacity-65">
-        <PickPreview file={file} url={url} fit="natural" />
+      {/* voice-r2's landscape head-slot fix (see UploadStackTile's own note): cover the square
+          rather than a natural-height file leaving a grey band under it. */}
+      <div className="absolute inset-0 opacity-65">
+        <PickPreview file={file} url={url} fit="cover" className="size-full" />
       </div>
       <span
         aria-hidden
