@@ -17,6 +17,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/app/pricing/use-plan-facts
   - src/app/(dev)/design/(shell)/library/compositions/composition-demos.tsx
   - src/app/(dev)/design/(shell)/library/compositions/gallery-demos.tsx
+  - src/app/(dev)/design/gallery/specimens.generated.json
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/host-storage.json
   - docs/systems/billing-caps.md
