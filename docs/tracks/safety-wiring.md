@@ -17,6 +17,37 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/db/queries/social
   - content/help/profiles-guest-lists-and-following.mdx
   - src/app/(dev)/design/sandbox/event-safety/
+  - src/components/app/event-blocks/
+  - src/lib/events/closed-door
+  - src/lib/events/event-blocks
+  - src/lib/events/album-viewer.server
+  - src/app/(guest)/e/[token]/card/route.tsx
+  - src/app/api/guests/route.ts
+  - src/app/api/guests/route.test.ts
+  - src/app/api/guests/name/
+  - src/app/api/guests/email/
+  - src/app/api/guests/mine/
+  - src/app/api/guests/remove/
+  - src/app/api/guests/unlock/
+  - src/app/api/export/guest/
+  - src/app/api/album/guest/
+  - src/lib/db/mutations/guest.ts
+  - src/lib/db/mutations/guest.test.ts
+  - src/components/shared/media-lightbox-parts/credit.tsx
+  - src/app/(app)/dashboard/[eventId]/page.tsx
+  - src/app/(app)/dashboard/actions.ts
+  - src/components/app/event-settings/event-settings-sheet.tsx
+  - src/components/guest/event-experience.tsx
+  - src/lib/db/migration-guards.test.ts
+  - src/lib/social/public-profile-visibility.test.ts
+  - src/lib/db/queries/profile.private-count.test.ts
+  - content/help/reporting-and-safety.mdx
+  - content/help/what-guests-can-and-cant-see.mdx
+  - content/help/display-name-and-profile-photo.mdx
+  - content/help/your-event-page-explained.mdx
+  - content/help/who-can-see-your-event.mdx
+  - content/help/your-public-profile-following-and-blocking.mdx
+  - content/help/event-settings-explained.mdx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/event-safety.json
   - docs/systems/trust-safety-forensics.md
