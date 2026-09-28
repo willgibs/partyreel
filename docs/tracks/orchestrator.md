@@ -106,7 +106,7 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
      - `search=visible`: Search rows in the header and footer; the help palette never mounts in admin.
 
      Retires help-center.
-3. **Build 16** (wave A's three boards, a lab-only round: the red-team's carve-out) is going to the alias for his
+3. **Build 16 is live** (`49269fad`; wave A's three boards, a lab-only round: the red-team's carve-out) for his
    sitting. **Build 17** carries the wiring as it lands. Its red-team:
    - the block, live (partyr33l blocked at a willg97 test event, then let back in with and without restore);
    - the pricing page and plan sheet;
