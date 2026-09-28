@@ -47,22 +47,14 @@ Merged in batch 5 (their records carry the rest): hero-card, claims-r3, demo-doo
 
 ## Next, in order
 
-1. **Batch 5 lands** (cut `ebfb1581` from his sitting on build 11, his ledgers at `8d202ed1`; his chat calls
-   2026-09-27: Invite then the card then Share, direct invites later; the hero's code need not scan, a "Try our demo
-   event" eyebrow opening a demo modal on a desk). Integrate each as it hands off; the records carry the retirements'
-   ledgers (`popups`, `identity-door`, `reel-story`), `DESK_ORDER` as `identity-claims`, `hero-card`, then the 15
-   unchanged boards, and the lanes' asset slots.
-2. **`claims-wiring`** (in flight since `popups-wiring` merged) (the review in its lists panel, built once): `identity-claims`
-   r1 and r2's answers (the banner, one event at a time with its own photos, each decision saved as it's made, the
-   dialog at the Not mine card, Open album and a quieter `FollowButton` variant the moment card takes too), the
-   ROADMAP's two claims lines (the moment card's two other-events lines; the toast and the invitation pointing at one
-   page), a read for each card's photos (none for a password event), perhaps a migration; the double-tap guard
-   `claims-r3` found (an answer names its card, an arriving card holds its answers 250 ms, and the wait for the write);
-   `pointer` once r3 answers.
-3. **Build 12** once batch 5 lands: `[preview]`, `alias-ensure`, the desk checked, its red-team (the standing scope in
-   `../partyreel-wt/_scratch/redteam-11/brief.md`, plus the popups on real screens with the keyboard up, the door's
-   motion and code screens, the demo modal from every pointer, the claims review), then Will's sitting:
-   `identity-claims` r3, `hero-card`, then the 15.
+1. **Batch 5 landed whole** (cut `ebfb1581`; eight lanes merged green, `claims-wiring`'s migration applied with the
+   types): the popups' kinds, the door's r3, the demo's doors, the claims review, the boards `hero-card` r1 and
+   `identity-claims` r3.
+2. **The pointer's wiring** after Will's `identity-claims` r3 pick, folding the moment card's other-events lines
+   (ROADMAP's Identity line), and `hero-card`'s pick into the hero.
+3. **Build 12**, going out now: `[preview]`, `alias-ensure`, the desk checked, its red-team
+   (`../partyreel-wt/_scratch/redteam-12/brief.md`), then Will's sitting: `identity-claims` r3, `hero-card`, then the
+   15.
 4. **Milestone 30** on his yes, once the count's legal clause (his wording, below) is in the Terms and the Privacy
    Policy; after it, `kit/`'s screens re-captured from partyreel.com (the home's close, teaser, eyebrow and the demo's
    doors changed).
