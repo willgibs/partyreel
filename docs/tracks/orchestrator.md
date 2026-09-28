@@ -42,7 +42,6 @@ a lane").
 | --- | --- | --- | --- | --- |
 | `hero-r2` | hero-card r2: ideas branching from Will's `link`, each at 1440, 900 and 375 (loose-ends' `hero-tablet` folds in) | running, agent `a00ce4ac21e78f21f` | Opus, :3131 | |
 | `safety-refresh` | event-safety's nine stale asks onto the settings panel, the lit door and the review room | running, agent `a572968d03e1b1dce` | Opus, :3134 | |
-| `flow-refresh` | export-flow's five onto the Download menu; emails' `moments` and `guest` (the two mail halves merge in) | running, agent `a6836c656ed9c1490` | Opus, :3136 | |
 | `help-refresh` | help-center's `hub`, `article`, `from-product`; contact-page's `page`, `receipt`, `topic`'s claim | running, agent `a99a4eddf05853f52` | Opus, :3137 | |
 | `marketing-refresh` | album-motion `fall`, loose-ends `review-photo` (`hero-tablet` leaves), press-page `who-for`; site-chrome and profile-page retire | running, agent `a009b032d9ff73f1b` | Opus, :3138 | |
 
@@ -51,14 +50,14 @@ answers on identity-claims, hero-card, voice-guest, host-curation, host-storage)
 boards found 30 of their 68 asks drawn before his recent picks were built and 5 already answered: wave 1 is the eight
 lanes that make his next desk; wave 2 (the wiring) waits for free seats.
 
-Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-refresh.
+Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-refresh, flow-refresh.
 
 ## Next, in order
 
 1. **Wave 1 lands**, each integrated as it hands off (refresh lanes kept each board's round number, so a build-12 paste
    still transcribes). At `marketing-refresh`'s record delete `docs/reviews/site-chrome.json` and `profile-page.json`.
-   After the last: `node usher/kit/board-card.mjs --desk` (no two asks repeat; emails' `guest` holds the two mail
-   halves from event-safety `waiting` and admin-triage `notice`).
+   After the last: `node usher/kit/board-card.mjs --desk` (no two asks repeat; emails holds the two mail halves as
+   asks of their own, `letin` and `reporter`, beside `guest`).
 2. **Wave 2 as seats free** (specs from the ledgers; each brief carries his notes):
    - `curation-wiring` (Opus): host-curation's seven. Reject at the door, with Hide kept for an approved photo (the
      review bar, the viewer, the settings line). Approve and Reject on the desk's peek. Arrows, Enter and Backspace with

@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The lab and the kit: `ui/responsive-menu.tsx` cannot be drawn in a lab frame (it portals to the lab page and reads the lab page's media query), so export-flow quotes its private `DESK_ROW` and `HAND_ROW`; exported row classes or a shape-and-container seam would let a board draw the real menu (from `flow-refresh`).
+- The lab and the kit: `MasonryColumns` and `GuestMasonry` inside a lab frame lose every lazy image to `abortUnfinishedImages`, so a board grounding on them draws blank tiles (from `flow-refresh`).
 - Admin: the report's Remove (`report-review.tsx`'s `onAction`) acts at once, the one destructive act in the portal that skips `DestructiveSheet` against admin-observability.md's rule; routing it through the confirm can go straight whatever `verdict` answers (from `triage-refresh`).
 - Admin: Albums' Remove confirm (`moderation-grid.tsx`) says "Restorable for seven days" where the one window is 30 (lifecycle-recovery.md), and "The guest who uploaded it is not told" where her uploads list says Not in the album at an event that reviews uploads (from `triage-refresh`).
 - Admin: the People arm prints "No reason given." at full weight (`person-report-list.tsx`) where the album arm prints a muted "No reason provided." (`report-review.tsx`); one line for both rides `reason`'s wiring (from `triage-refresh`).
