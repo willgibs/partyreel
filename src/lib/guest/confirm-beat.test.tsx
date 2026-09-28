@@ -6,6 +6,7 @@ import {
   lastClaimPlayedMoment,
   mergeConfirmBeats,
   onConfirmBeat,
+  otherEventsLine,
   readTypedName,
   recordMomentPlayed,
   reportConfirmBeat,
@@ -48,6 +49,75 @@ describe("confirmBeatToast", () => {
 
   it("has nothing to say about nothing", () => {
     expect(confirmBeatToast({ name: null, elsewhere: 0 })).toBeNull();
+  });
+
+  it("★ before her first upload: the toast (a confirmation that plays no moment) never speaks of the events waiting under her email", () => {
+    // `identity-claims` r3: "Don't want too many complications around this, especially prior to
+    // upload." The toast takes no count of them at all; whatever it is handed, it says nothing
+    // that points to her dashboard.
+    for (const name of [null, "Priya"]) {
+      for (const elsewhere of [0, 1, 4]) {
+        const words = confirmBeatToast({ name, elsewhere });
+        const said = `${words?.title ?? ""} ${words?.description ?? ""}`;
+        expect(said).not.toMatch(/dashboard|waiting/i);
+      }
+    }
+  });
+});
+
+/**
+ * THE OTHER EVENTS, SAID ONCE (`identity-claims` r3, Will's `pointer=line`, as his note shapes it:
+ * "Simply acknowledging the existence of other events and allowing that to be handled back on the
+ * dashboard later is enough"). Two facts can be about other events: her uploads there, which the
+ * claim carried into her account, and events waiting under her email on her dashboard. The line is
+ * true in each case and says "other events" at most once.
+ */
+describe("otherEventsLine", () => {
+  const otherEvents = (line: string | null) =>
+    (line?.match(/other events/g) ?? []).length;
+
+  it("here only: nothing about other events", () => {
+    expect(otherEventsLine({ elsewhere: 0, waiting: 0 })).toBeNull();
+  });
+
+  it("elsewhere only: the claim's other events, in the words the toast says too", () => {
+    expect(otherEventsLine({ elsewhere: 3, waiting: 0 })).toBe(ELSEWHERE_LINE);
+    expect(ELSEWHERE_LINE).toBe(
+      "Your uploads from other events are in your account too.",
+    );
+  });
+
+  it("waiting only: they are on her dashboard whenever she likes, counted as his tile counted them", () => {
+    expect(otherEventsLine({ elsewhere: 0, waiting: 4 })).toBe(
+      "4 more events have photos waiting on your dashboard, whenever you like.",
+    );
+    expect(otherEventsLine({ elsewhere: 0, waiting: 1 })).toBe(
+      "Another event has photos waiting on your dashboard, whenever you like.",
+    );
+    expect(otherEventsLine({ elsewhere: 0, waiting: 1234 })).toBe(
+      "1,234 more events have photos waiting on your dashboard, whenever you like.",
+    );
+  });
+
+  it("both: one line says both, and says other events once", () => {
+    const four = otherEventsLine({ elsewhere: 2, waiting: 4 });
+    expect(four).toBe(
+      "Your uploads from other events are in your account too, and 4 more events have photos waiting on your dashboard, whenever you like.",
+    );
+    expect(otherEvents(four)).toBe(1);
+    expect(otherEventsLine({ elsewhere: 1, waiting: 1 })).toBe(
+      "Your uploads from other events are in your account too, and another event has photos waiting on your dashboard, whenever you like.",
+    );
+  });
+
+  it("every case says other events at most once", () => {
+    for (const elsewhere of [0, 1, 2]) {
+      for (const waiting of [0, 1, 4]) {
+        expect(
+          otherEvents(otherEventsLine({ elsewhere, waiting })),
+        ).toBeLessThanOrEqual(1);
+      }
+    }
   });
 });
 

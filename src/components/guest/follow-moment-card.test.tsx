@@ -156,3 +156,110 @@ describe("FollowMomentCard", () => {
     expect(container).toBeEmptyDOMElement();
   });
 });
+
+/**
+ * THE OTHER EVENTS, ONE LINE THAT ACKNOWLEDGES AND NEVER LEADS OUT (`identity-claims` r3, Will's
+ * `pointer=line`: "not attempt to point guests out of the event to their dashboard or past events.
+ * Simply acknowledging the existence of other events and allowing that to be handled back on the
+ * dashboard later is enough"). Pinned in each case: her uploads elsewhere alone finish the keep's
+ * sentence; events waiting under her email stand as one row with nothing to press; both are that
+ * one row, and the card says "other events" once.
+ */
+describe("FollowMomentCard: the other events, once", () => {
+  const KEEP = /All 2 are in your account now, and this event came with them\./;
+  const row = (container: HTMLElement) =>
+    container.querySelector<HTMLElement>("[data-follow-moment-others]");
+  const otherEvents = (container: HTMLElement) =>
+    (container.textContent?.match(/other events/g) ?? []).length;
+
+  it("here only: no line about other events at all", () => {
+    const { container } = render(
+      <FollowMomentCard host={HOST} needsHandle={false} count={2} />,
+    );
+    expect(screen.getByText(KEEP)).toBeInTheDocument();
+    expect(row(container)).toBeNull();
+    expect(container.textContent).not.toMatch(
+      /other events|more events|another event|dashboard/,
+    );
+  });
+
+  it("elsewhere only: they finish the keep's sentence, with no row of their own", () => {
+    const { container } = render(
+      <FollowMomentCard
+        host={HOST}
+        needsHandle={false}
+        count={2}
+        elsewhere={3}
+      />,
+    );
+    expect(screen.getByText(KEEP)).toHaveTextContent(
+      "Your uploads from other events are in your account too.",
+    );
+    expect(row(container)).toBeNull();
+    expect(otherEvents(container)).toBe(1);
+  });
+
+  it("★ waiting only: one row, under what she keeps and above the host, with nothing to press", () => {
+    const { container } = render(
+      <FollowMomentCard
+        host={HOST}
+        needsHandle
+        count={2}
+        waiting={4}
+        toldName="Priya"
+      />,
+    );
+    const line = row(container);
+    expect(line).toHaveTextContent(
+      "4 more events have photos waiting on your dashboard, whenever you like.",
+    );
+    // No Review, no link: the album stays the host's, and her dashboard sorts them later.
+    expect(line!.querySelector("a, button")).toBeNull();
+    expect(
+      screen.queryByRole("link", { name: /review|dashboard/i }),
+    ).toBeNull();
+    expect(screen.queryByRole("button", { name: /review/i })).toBeNull();
+    // The keep's sentence says only what she keeps.
+    expect(screen.getByText(KEEP)).not.toHaveTextContent(/events/);
+    // Right under what she keeps (the told name included), above the host's row and the handle.
+    const told = container.querySelector("[data-told-name]")!;
+    const hostRow = container.querySelector("[data-follow-moment-host]")!;
+    expect(
+      told.compareDocumentPosition(line!) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      line!.compareDocumentPosition(hostRow) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("both: the one row says both, and the card says other events once", () => {
+    const { container } = render(
+      <FollowMomentCard
+        host={HOST}
+        needsHandle={false}
+        count={2}
+        elsewhere={2}
+        waiting={1}
+      />,
+    );
+    expect(row(container)).toHaveTextContent(
+      "Your uploads from other events are in your account too, and another event has photos waiting on your dashboard, whenever you like.",
+    );
+    expect(screen.getByText(KEEP)).not.toHaveTextContent(/other events/);
+    expect(otherEvents(container)).toBe(1);
+  });
+
+  it("the waiting events are enough on their own for the card to stand", () => {
+    const { container } = render(
+      <FollowMomentCard
+        host={null}
+        needsHandle={false}
+        count={1}
+        waiting={2}
+      />,
+    );
+    expect(row(container)).toHaveTextContent(
+      "2 more events have photos waiting on your dashboard, whenever you like.",
+    );
+  });
+});

@@ -54,7 +54,9 @@ that event on that device, `pr_save_prompt_<qr>`, [`keep-ask.ts`](../../src/lib/
 `ClaimHandlePrompt` owns the album's post-upload slot, ONE card at a time, never in the demo: signed out → nothing
 (the door asked, and her menu's card is the ask's standing home); **just confirmed** →
 [`follow-moment-card.tsx`](../../src/components/guest/follow-moment-card.tsx) (what they now hold, the told name with
-its Change, the other events said once, the host to follow, and "Claim a handle and your name becomes a page." with a
+its Change, the other events said once in one line that never leads out (`otherEventsLine`: her uploads
+elsewhere finish the keep's sentence; events waiting under her email stand as one row with the banner's envelope and
+nothing to press), the host to follow, and "Claim a handle and your name becomes a page." with a
 Claim to the profile setup, `PROFILE_SETUP_PATH`; with nothing uploaded this visit it speaks of the photos without a
 number); signed in without a handle → the handle card (its Claim to the same setup); with one → nothing.
 
@@ -78,7 +80,9 @@ live upload, so the result says HERE and ELSEWHERE apart. The follow moment play
 claim moved this album's own uploads, with no upload needed this visit (a full-reload return included); the first
 claim that actually runs spends the marker either way. ★ **A CONFIRMATION IS ONE BEAT, NEVER STACKED
 TOASTS** ([`confirm-beat.ts`](../../src/lib/guest/confirm-beat.ts)): when the moment plays, its card says the other
-events once and tells the name; when it does not, the doors report and the page says it once, after the door's hold:
+events once and tells the name (the events waiting under her email are the moment's alone, counted on the server
+from the dashboard banner's own list and never this album, [`confirm-beat-action.ts`](../../src/lib/guest/confirm-beat-action.ts),
+so a confirmation before her first upload here, and every toast, says nothing of them); when it does not, the doors report and the page says it once, after the door's hold:
 "You're on as Priya." with a Change (a small name form, [`confirm-beat-name.tsx`](../../src/lib/guest/confirm-beat-name.tsx), the account's own write) and the other events as its line, or "We added
 your uploads to your account." alone when only other events moved. The (app) layout's own mount still says it
 whenever uploads moved.

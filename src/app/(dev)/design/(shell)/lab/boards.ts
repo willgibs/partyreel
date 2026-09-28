@@ -1,6 +1,5 @@
 import type { ComponentType } from "react";
 
-import { IdentityClaimsBoard } from "@/app/(dev)/design/sandbox/identity-claims/board";
 import { HeroCardBoard } from "@/app/(dev)/design/sandbox/hero-card/board";
 import { VoiceGuestBoard } from "@/app/(dev)/design/sandbox/voice-guest/board";
 import { ExportFlowBoard } from "@/app/(dev)/design/sandbox/export-flow/board";
@@ -34,7 +33,6 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
-  "identity-claims": { Component: IdentityClaimsBoard },
   "hero-card": { Component: HeroCardBoard },
 
   "voice-guest": { Component: VoiceGuestBoard },
