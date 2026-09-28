@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { flushSync } from "react-dom";
 import Link from "next/link";
-import { AtSign, Check } from "lucide-react";
+import { AtSign, Check, Mail } from "lucide-react";
 
 import { updateDisplayNameAction } from "@/app/(app)/account/actions";
 import { PROFILE_SETUP_PATH } from "@/app/(app)/account/profile/invite";
@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatCount } from "@/lib/format/count";
-import { ELSEWHERE_LINE, toldNameLine } from "@/lib/guest/confirm-beat";
+import { otherEventsLine, toldNameLine } from "@/lib/guest/confirm-beat";
 import { checkDisplayName } from "@/lib/guest/join";
 import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
 
@@ -29,10 +29,18 @@ import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
  *
  * ★ IT IS THE CONFIRMATION'S ONE BEAT (`guest-capture` r1, Will's `follow=card`: "needs to work
  * within any multi-claim handling"; `confirm-beat.ts`). Everything the confirmation has to say is
- * said here and nowhere else: what she keeps here, her uploads at OTHER events (said once, a line,
- * never a second toast), the name her photographs now carry (`name=told`, with a Change that changes
- * it in place), the host to follow, the handle. How a batch of claimed events is worked through on
- * the dashboard is `identity-claims`' question.
+ * said here and nowhere else: what she keeps here, OTHER events (said once, in one line, never a
+ * second toast), the name her photographs now carry (`name=told`, with a Change that changes it in
+ * place), the host to follow, the handle.
+ *
+ * ★ THE OTHER EVENTS ARE ONE LINE THAT ACKNOWLEDGES AND NEVER LEADS OUT (`identity-claims` r3,
+ * `pointer=line`: "Main goal after confirmation is still acting as an active, contributing guest at
+ * that event"). Her uploads at other events alone finish the sentence about what she keeps, since
+ * they are what she keeps too. Events waiting under her email are a row of their own, right under
+ * what she keeps and above the host (the order his `line` tile drew, its carried `line-place`), with
+ * the dashboard banner's envelope and no button or link: they are sorted on her dashboard, whenever
+ * she likes, and the album stays the host's. When both are true the row says both
+ * (`otherEventsLine`), so the card never says "other events" twice.
  *
  * ★ THE HOST IS THE ONE FOLLOW WORTH OFFERING HERE, in the card's own row, as shipped. The other
  * guests are already on this page, in the Guests list, where a signed-in viewer's chips carry their
@@ -62,6 +70,7 @@ export function FollowMomentCard({
   needsHandle,
   count,
   elsewhere = 0,
+  waiting = 0,
   toldName = null,
   onRenamed,
 }: {
@@ -78,6 +87,11 @@ export function FollowMomentCard({
   count: number | null;
   /** The same claim's rows at other events: said once, as a line. */
   elsewhere?: number;
+  /**
+   * Other events with photos waiting under her confirmed email in her dashboard's claims review,
+   * never this album (the server's count, `confirm-beat-action.ts`): said in the same one line.
+   */
+  waiting?: number;
   /** The name her photographs carry now, when she typed one here; null tells none. */
   toldName?: string | null;
   /** The told name was changed here. */
@@ -85,7 +99,10 @@ export function FollowMomentCard({
 }) {
   const hostName = host?.displayName?.trim() || null;
   const canFollowHost = Boolean(host?.slug && hostName);
-  if (!canFollowHost && !needsHandle && !toldName && elsewhere <= 0) {
+  const others = otherEventsLine({ elsewhere, waiting });
+  // Waiting events stand as their own row; her uploads elsewhere alone finish the keep's sentence.
+  const othersRow = others !== null && waiting > 0;
+  if (!canFollowHost && !needsHandle && !toldName && !others) {
     return null;
   }
 
@@ -114,7 +131,7 @@ export function FollowMomentCard({
               : count === null
                 ? "They are in your account now, and this event came with them."
                 : `All ${formatCount(count)} are in your account now, and this event came with them.`}
-            {elsewhere > 0 && ` ${ELSEWHERE_LINE}`}
+            {others && !othersRow && ` ${others}`}
           </p>
           {toldName && (
             <ToldName
@@ -125,6 +142,19 @@ export function FollowMomentCard({
           )}
         </div>
       </div>
+
+      {othersRow && (
+        <p
+          data-follow-moment-others
+          className="flex items-start gap-2.5 border-t border-border/60 pt-4 text-reading text-pretty text-muted-foreground"
+        >
+          <Mail
+            className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+            aria-hidden
+          />
+          {others}
+        </p>
+      )}
 
       {canFollowHost && host?.slug && hostName && (
         <div
