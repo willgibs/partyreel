@@ -16,6 +16,35 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-28",
+      "answers": [
+        {
+          "ask": "card",
+          "choice": "guests",
+          "note": "This option does a lot of small things \"right\" (my opinion) versus the rest. Guest on the photos shows clear credits/guests feature, the split link feels less bulky (top partyreel link could be a subtler color to put focus on slug), QR taller becuase of the split link, feels much cleaner overall. Really like this mini digital invite-esque card direction to represent our platform.",
+          "by": "Will",
+          "at": "2026-09-28T21:22:42Z"
+        },
+        {
+          "ask": "light",
+          "choice": "bloom",
+          "by": "Will",
+          "at": "2026-09-28T21:22:42Z"
+        },
+        {
+          "ask": "tablet",
+          "choice": "tablet",
+          "note": "This looks phenomenally better than simply rounding tablet to either desktop or phone.",
+          "by": "Will",
+          "at": "2026-09-28T21:22:42Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

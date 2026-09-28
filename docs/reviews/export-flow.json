@@ -1,0 +1,56 @@
+{
+  "board": "export-flow",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-28",
+      "answers": [
+        {
+          "ask": "means",
+          "choice": "mine",
+          "note": "I was going to say let's cut 'Yours' since most guests likely upload from library, but it does support getting any pictures/videos you took live in-app. This also opens up a new event feature/mode/whatever I was considering - some of our main competitors are built around a 'disposables' idea (check out https://pov.camera/), and if we simply restricted both a guest's ability to add with only taking live photos in-app (no library uploads) plus an upload count limit, that's effectively a disposables mode we could market as well, but simply within our product rather than being built around it. Swallow all of https://pov.camera/ future potential users. Curious to har your ideas around this. Remember, we're building a platform that is meant to feel limitless but effortless, so hosts shouldn't have to feel they're having to study docs or fight UI to set up an event how they'd like.",
+          "by": "Will",
+          "at": "2026-09-28T21:22:42Z"
+        },
+        {
+          "ask": "wait",
+          "choice": "toast",
+          "note": "This keeps users visibly in the loop, rather than at the top of the page where they have to intentionally monitor. Flag this if bad call.",
+          "by": "Will",
+          "at": "2026-09-28T21:22:42Z"
+        },
+        {
+          "ask": "stuck",
+          "choice": "retry",
+          "note": "We should include a subtle x icon on the right side to cancel if desired. Interruptibility is a huge win in UX.",
+          "by": "Will",
+          "at": "2026-09-28T21:22:42Z"
+        },
+        {
+          "ask": "hollow",
+          "choice": "refuse",
+          "note": "Copy should be cleaner and 1 line.",
+          "by": "Will",
+          "at": "2026-09-28T21:22:42Z"
+        },
+        {
+          "ask": "cap",
+          "choice": "split",
+          "note": "Download all should be as easy as possible, even over 2000 items/20GB. Would hate for someone to think they downloaded everything then delete the event not knowing. However, rather than messily saying \", in 2 zips\" that should just be made clear and walked through in the download flow. Nobody in my family would understand \"in 2 zips\" when trying to download event photos, which is a good measure that it's not framed helpfully as is.",
+          "by": "Will",
+          "at": "2026-09-28T21:22:42Z"
+        },
+        {
+          "ask": "phone",
+          "choice": null,
+          "note": "Download all does not need to download straight into native photos the way individual media should. This can be catered toward the best big download path(s), like saving directly to files. Second-layer benefit is that a lot of casual users who'd download all into photos (using our app resources) likely wouldn't do the same when saving to files, targeting individual media instead. Small savings on our resources versus every guest getting a little too trigger-happy tapping the download all button.",
+          "by": "Will",
+          "at": "2026-09-28T21:22:42Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

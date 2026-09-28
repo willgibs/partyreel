@@ -56,6 +56,35 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-28",
+      "answers": [
+        {
+          "ask": "held",
+          "choice": "uploads",
+          "by": "Will",
+          "at": "2026-09-28T21:22:42Z"
+        },
+        {
+          "ask": "status",
+          "choice": "approval",
+          "note": "A bit more clear, I don't think anyone's feelings will be hurt by direct wording here since it offers clarity. We should have a note for the host when making approvals that they can always hide an approved photo later, so they're more lenient on 'accept and hide' vs 'reject'..",
+          "by": "Will",
+          "at": "2026-09-28T21:22:42Z"
+        },
+        {
+          "ask": "keep",
+          "choice": "warm",
+          "note": "'Keep this event' is best because they likely already have their own photos saved, the incentivize is everything else in the event.",
+          "by": "Will",
+          "at": "2026-09-28T21:22:42Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }
