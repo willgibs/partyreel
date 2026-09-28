@@ -70,7 +70,7 @@ integrated as it stands.
 3. Commit the manifests alone; push; add the lane's In-flight row to `orchestrator.md` (its agent id, model and port).
 4. Spawn with the Agent tool: `spawn-prompt.txt` filled (`{track}`, `{port}`, and `{scratch}` the absolute path of
    `../partyreel-wt/_scratch`, never `$S`: a session's scratchpad dies with it, captures included), one port each from 3131 to
-   3139, at most eight lanes at once (`memory_pressure` first), their production builds taking turns through
+   3139, at most four lanes at once (`memory_pressure` first; eight ran Will's Mac out of memory, 2026-09-28), their production builds taking turns through
    `scripts/build-lock.sh`. The model is your call on every spawn: Opus for
    big, ambiguous, multi-file work, Sonnet for fast, direct UI work.
 

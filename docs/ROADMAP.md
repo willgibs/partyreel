@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Guests: in the album's rows a landscape photograph in flight or waiting for the host fills only the top of its square head slot, a grey band under it: `upload/stack-tile.tsx` draws the file at its natural height (`PickPreview fit="natural"`) inside the square `album-window-plan.ts` gives a head slot (`HEAD_RATIO`); cover the square (from `voice-r2`).
 - Shared: a link inside a hand's place popup (the claims review's Open album, the look's Open full profile) navigates away and leaves the place's same-URL history entry behind, one dead Back; the place could take its entry back as a link inside it navigates (`ui/popup-back.ts`) (from `claims-wiring`).
 - Guest door: the moment card's Follow starts on Follow even when she already follows the host (`claim-handle-prompt.tsx` hands `FollowMomentCard` no follow state); reading it beside `getHostCard` ends it (from `claims-wiring`).
 - Code hygiene: the retired claim ticket's Finish is still named in `account/profile/invite.ts` (`shouldInviteToPage`'s note), `sandbox/admin-triage/spec.ts:334`, and as "claim ticket" in comments in `migration-guards.test.ts` and `validation/upload.test.ts` (from `claims-wiring`).
