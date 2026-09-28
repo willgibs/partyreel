@@ -50,6 +50,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - content/help/who-can-see-your-event.mdx
   - content/help/your-public-profile-following-and-blocking.mdx
   - content/help/event-settings-explained.mdx
+  - src/components/app/event-settings-form.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/event-safety.json
   - docs/systems/trust-safety-forensics.md
