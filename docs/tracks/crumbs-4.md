@@ -1,6 +1,6 @@
 ---
 track: crumbs-4
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "f1ab3e24"            # the launch-prep SHA the branch was cut from
 board: export-flow
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -62,13 +62,68 @@ working.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed on `lp/crumbs-4`** (base `c449e06e`, the `origin/launch-prep` tip at boot): the sync was a clean
+  fast-forward to `e86b9142` (claims-wiring's merge + record commit; it moved two of this lane's `reads`,
+  `guest-flow.md` and `host-app.md` — checked, neither touches anything this lane's five items rely on) landed
+  *before* any work commit existed, so there is no separate sync commit sha; the work commit, `14809f56`, sits
+  directly on `e86b9142`. The head is in the chat line.
+- Every claim below names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
+- **Gates on the synced tree at `14809f56`** (== `e86b9142` + this lane's one diff), each its own exit code, logs in
+  `../partyreel-wt/_scratch/crumbs-4/`: `pnpm typecheck` 0 (`typecheck.log`); `pnpm lint` 0 (`lint.log`: 0 errors,
+  the 5 standing warnings, none in a touched file); `pnpm test` 0 four times (`test-run1.log`, `test-run2.log`,
+  `test-run3.log`, `test-final.log`: 510 files, 5718 tests, zero unhandled errors, every run) plus
+  `email-section.test.tsx` alone, 5 runs (`email-section-alone.log`), 7/7 clean every time — item 1's flake, gone;
+  `zsh scripts/build-lock.sh pnpm build` 0 (`build.log`); `pnpm lab:smoke --base http://localhost:3132` 0
+  (`lab-smoke.log`: 244 checks, 0 failing — 245 pre-sync, minus one of claims-wiring's retired routes); `pnpm
+  lab:demo --board export-flow --base http://localhost:3132` 0 (`lab-demo.log`: 6 steps — means, wait, stuck,
+  hollow, cap, phone — 0 failing, every option still drawing). The six help articles read live at `:3132`
+  (`/help/the-email-code-didnt-arrive` etc.); the keyboard bench's Code tab checked at 1440 and 375.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): the 13 owned files
+  (`email-section.test.tsx`, the six `.mdx` files, `keyboard-bench.tsx`, `guest-action-dock.tsx`, `entry-shell.tsx`,
+  `board.tsx`, `export-flow.css`, `spec.ts`) plus one exception the manifest itself grants,
+  `src/app/(dev)/design/touchpoints.ts` ("correct the row's `note` and `variants` (your named exception: that row
+  only)"; I also corrected that same row's `why`, one line beyond the two named keys — see Calls his to overrule),
+  plus this file.
+- **The items:**
+  - Item 1 (the input-otp test flake) closes ROADMAP's Code hygiene line 29 (`email-section.test.tsx` flakes under
+    a full run). `identify-step.test.tsx` renders the same real `InputOTP` but never gives it real DOM focus (its
+    `codeFocus="follow"` never fires since the test drives fields with `fireEvent.change`, not `userEvent`), so it
+    never arms the long password-manager-badge timers this fix targets; its existing 80ms flush already covers its
+    own, smaller exposure (the short, unconditional timers). Not touched (not owned).
+  - Item 2 (six help articles) closes ROADMAP's Help lines 24 and 31.
+  - Item 3 (the keyboard bench) closes ROADMAP's "The lab" line 25.
+  - Item 4 (two stale comments) closes only the "stale comments in `guest-action-dock.tsx`... and
+    `entry-shell.tsx:109`" clause of ROADMAP's Code hygiene line 33; the rest of that line (`DestructiveSheet`,
+    `GuardedSwitch`, `PricingSheet`, `QrDesignerDialog`, `ExportDialog`, `UploadIntentSheet`, `EventShareSheet`,
+    `EventSettingsSheet` naming surfaces they no longer are, and `create-flow.test.tsx`, `claims-wiring`'s) stays
+    open — the Orchestrator trims the line rather than deleting it.
+  - Item 5 (export-flow's ground) has no dedicated ROADMAP line: it closes what desk-trim's own Handoff
+    (`104a091b`) flagged as out of its narrow grant — the "Board ideas" note that `board.tsx`/`export-flow.css`'s
+    "still a centred `Dialog`" framing was stale, and that `touchpoints.ts`'s `export-flow.board.note`/`.variants`
+    were "already independently stale" — and its paired "Calls his to overrule" entry about the same framing.
+- **Assets requested from Will:** none.
+- **Board ideas:** desk-trim's Handoff offered two paths for export-flow's own framing once it went stale: "reconcile
+  those five asks' own hand-drawn 'one responsive sheet' with what actually shipped... or judge them content-only
+  regardless of chrome." I took the second: `means`/`wait`/`stuck`/`hollow`/`cap`'s "today" now says the menu in
+  words, but the board's own reproduction (`dialog.tsx`'s `Shell`/`ChipRow`/`Foot`, still a chips-then-button
+  sheet) is untouched, the same way `phone` was already grounded without a visual rebuild. A pixel-accurate redraw
+  of the board's own mock as the shipped menu's real chrome (an anchored dropdown at a desk, rows rising to the
+  thumb in a hand, per `ui/responsive-menu.tsx`) is a real design pass across five asks, not a crumb; a future round
+  could still take it up if the container's own look is ever worth asking about again.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:**
+  - `touchpoints.ts`'s `why` field ("the real download dialog" -> "menu") corrected alongside the named `note` and
+    `variants`, one line beyond the manifest's literal grant — leaving it stale one line under my own fix read as
+    an oversight, not a boundary worth keeping. Overrule if the exception should have stayed to exactly those two
+    keys.
+  - `entry-shell.tsx:109`: the manifest named the location, not the fix. Reading the surrounding "THE PHONE HALF
+    LEFT VAUL" paragraph against `package.json` (vaul confirmed gone entirely, not merely disabled for held steps)
+    found its claim that the door "never drags (every step is held)" backwards: nothing drags product-wide now,
+    including the one *free* surface ("Change name"), so "held" was never the reason. Corrected that causal claim.
+    Overrule if a different sentence in that comment was actually meant.
+  - Fake timers were tried first for item 1 and reverted (they hung every interactive test in the file — jsdom's
+    own scheduler under this Vitest setup ties to the same `setTimeout`/`setInterval` React's does) in favor of a
+    file-level `afterAll` that waits the real ~6s out once per file rather than per test. Overrule if the seven-test
+    cost (~7s added to this one file) is worse than it looks from here.
+- **Look at first:** `src/app/(dev)/design/sandbox/export-flow/spec.ts`'s extended "`object` RETIRES" paragraph and
+  the `stuck`/`cap`/`wait` context rewrites, then `src/components/guest/entry-shell.tsx`'s corrected paragraph.
