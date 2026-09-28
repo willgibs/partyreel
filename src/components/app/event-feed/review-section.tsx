@@ -18,10 +18,18 @@ import { type ReviewTriage } from "./use-review-triage";
 const KEY_HINT =
   "Enter approves, Backspace rejects, Space opens it, and the arrow keys move between uploads.";
 
+/**
+ * ★ HIS HOST NOTE, THE ROOM'S ONE LINE OF ADVICE (Will, `voice-guest` r2 on `status`: "We should
+ * have a note for the host when making approvals that they can always hide an approved photo
+ * later, so they're more lenient on 'accept and hide' vs 'reject'"). True as said: Hide takes any
+ * photograph off every guest's album at once, and Show puts it back.
+ */
+export const REVIEW_NOTE = "Anything you approve can still be hidden later.";
+
 // The Review room's body. Every state leads with the shared `FeedSectionHeader`, then a body:
-//   pending        → the amber header (label + count + the Select/Approve-all action slot), and
-//                    the triage grid, with the line over its head when uploads arrived since the
-//                    queue was drawn;
+//   pending        → the amber header (label + count + the Select/Approve-all action slot), the
+//                    host note, and the triage grid, with the line over its head when uploads
+//                    arrived since the queue was drawn;
 //   beat           → the all-caught-up success pop ([data-unlock-success]), un-carded;
 //   caught-up      → the shared centered empty body;
 //   moderation-off → the shared centered teaser body + a one-tap "Turn on review".
@@ -151,6 +159,15 @@ export function ReviewSection({
         amber
         action={<ReviewActions triage={triage} />}
       />
+      {/* The host note: one quiet sentence where approvals are made, only while there is a queue
+          to judge, and never a hint row (`keys=arrows` gave the keys none). It sits above the
+          grid box, so the floating line over the grid's head never covers it. */}
+      <p
+        data-review-note
+        className="text-working text-pretty text-muted-foreground"
+      >
+        {REVIEW_NOTE}
+      </p>
       <div
         ref={gridBox}
         // An emptied queue with uploads behind the line is the line alone: the box holds it.

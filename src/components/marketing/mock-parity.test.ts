@@ -107,12 +107,22 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/guest/entry-modal.tsx",
     literal: "Continue",
   },
+  // voice-guest r2 (`held=uploads`, `status=approval`): the album's waiting tile retired, and a held
+  // photograph shows only in her uploads, so the phone plate quotes her uploads' row and the
+  // switch's hint names it in the same words.
   {
-    label: "album review switch guest waiting tile",
+    label: "album review switch guest's uploads row",
     marketingFile:
       "src/components/marketing/sections/features/album/review-switch.tsx",
-    appFile: "src/components/guest/upload/stack-tile.tsx",
-    literal: "Waiting for the host",
+    appFile: "src/lib/guest/upload-tracker.ts",
+    literal: "Waiting for approval",
+  },
+  {
+    label: "album your-call review hint",
+    marketingFile:
+      "src/components/marketing/sections/features/album/album-copy.ts",
+    appFile: "src/lib/guest/upload-tracker.ts",
+    literal: "Waiting for approval",
   },
   {
     label: "album review switch bulk-approve button",

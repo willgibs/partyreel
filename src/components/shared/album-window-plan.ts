@@ -51,10 +51,10 @@ export const isPhoto = (id: string) => !id.startsWith(HEAD_ID);
 
 /**
  * THE HEAD SLOT'S NOMINAL SHAPE. What stands at the album's head (the guest's
- * upload stack, a held photograph waiting for the host) has no dimensions the
- * grid can see, so it takes a square: the shape a photograph nobody measured
- * takes too (`ROW_FALLBACK_RATIO`), and the one that crops either orientation
- * least.
+ * upload stack; a held photograph stands nowhere in the album, `held=uploads`)
+ * has no dimensions the grid can see, so it takes a square: the shape a
+ * photograph nobody measured takes too (`ROW_FALLBACK_RATIO`), and the one that
+ * crops either orientation least.
  */
 const HEAD_RATIO = 1;
 

@@ -16,12 +16,16 @@ import { readCssMs } from "@/lib/shared/read-css-ms";
 import {
   arrivals,
   departed,
+  knownIds,
   nextAfter,
+  ownWrite,
   putBack,
   ranked,
   rankedAbove,
+  readBack,
   verdictWords,
   type LiveQueue,
+  type OwnWrites,
   type QueueItem,
   type ReviewKind,
 } from "./review-queue";
@@ -101,11 +105,13 @@ export const REVIEW_WRITES: ReviewWrites = {
 /**
  * THE LIVE QUEUE the room reads from the host's album (`review-live.ts`): what the server holds
  * waiting and decided, the tiles of uploads the room has not shown, and a catch-up to ask for once
- * a write lands. Null off the room (the Library's specimen), where only a server render moves it.
+ * a write lands, settled once the album has answered it (the moment the room's write is the album's
+ * to speak for again, `OwnWrites`). Null off the room (the Library's specimen), where only a server
+ * render moves it.
  */
 export type ReviewLive = LiveQueue & {
   media: (ids: readonly string[]) => Promise<GridMedia[]>;
-  sync: () => void;
+  sync: () => Promise<void>;
 };
 
 export type ReviewTriage = ReturnType<typeof useReviewTriage>;
@@ -130,13 +136,13 @@ export function useReviewTriage({
   const [bulkRuns, setBulkRuns] = useState(0);
   const [peekId, setPeekId] = useState<string | null>(null);
   const [folding, setFolding] = useState(false);
-  // Every upload this visit has shown, folded in or acted on: one the server holds waiting outside
-  // it is NEW, and waits behind the line.
-  const [known, setKnown] = useState<ReadonlySet<string>>(
-    () => new Set(items.map((i) => i.id)),
-  );
-  // Every upload this visit acted on: from then on the room's own writes are its truth (`departed`).
-  const [touched, setTouched] = useState<ReadonlySet<string>>(() => new Set());
+  // What the room acted on that the album has not read back yet (`OwnWrites`): the room's own write
+  // is each one's truth until then, and each write's serial says which write a read-back settles.
+  const [unread, setUnread] = useState<OwnWrites>(() => new Map());
+  const writeSerial = useRef(0);
+  // Every upload the room counts as shown, its grid and its unread writes: one the server holds
+  // waiting outside it is NEW, and waits behind the line (`knownIds`).
+  const known = knownIds(pending, unread);
   // Every upload the live album has said was waiting: one of them gone from it now was taken back.
   const [seen, setSeen] = useState<ReadonlySet<string>>(() => new Set());
   // Tiles a server render of the queue handed over for uploads the room has not shown yet.
@@ -166,13 +172,12 @@ export function useReviewTriage({
     setSyncedKey(itemsKey);
     const served = new Set(items.map((i) => i.id));
     const gone = pending
-      .filter((p) => !served.has(p.id) && !touched.has(p.id))
+      .filter((p) => !served.has(p.id) && !unread.has(p.id))
       .map((p) => p.id);
     if (gone.length > 0) {
+      // Off the grid, so out of `known`: one that comes back into the queue (an Undo in another
+      // tab, a restore) is new again, behind the line.
       setPending((prev) => prev.filter((p) => !gone.includes(p.id)));
-      // Forgotten, so one that comes back into the queue (an Undo in another tab, a restore) is
-      // new again, behind the line.
-      setKnown((prev) => without(prev, gone));
     }
     const fresh = items.filter((i) => !known.has(i.id) && !held.has(i.id));
     if (fresh.length > 0) {
@@ -183,20 +188,23 @@ export function useReviewTriage({
   }
 
   // ★ THE LIVE ALBUM, THE SAME WAY: every snapshot (the first included) grows what has been seen
-  // waiting, and drops from the grid what left the queue somewhere else (never what the room itself
-  // acted on).
+  // waiting, and drops from the grid what left the queue somewhere else (never what the room's own
+  // unread write speaks for). ★ AGAIN WHEN A WRITE IS READ BACK, against the snapshot that read it:
+  // an upload put back here and decided elsewhere meanwhile leaves the moment the album is its
+  // truth again, not at the album's next change.
   const liveWaiting = live?.waiting ?? null;
   const [syncedWaiting, setSyncedWaiting] = useState<readonly string[] | null>(
     null,
   );
-  if (live && liveWaiting !== syncedWaiting) {
+  const [syncedUnread, setSyncedUnread] = useState<OwnWrites>(unread);
+  if (live && (liveWaiting !== syncedWaiting || unread !== syncedUnread)) {
     setSyncedWaiting(liveWaiting);
+    setSyncedUnread(unread);
     const nextSeen = union(seen, live.waiting);
     if (nextSeen.size !== seen.size) setSeen(nextSeen);
-    const gone = departed(pending, live, nextSeen, touched);
+    const gone = departed(pending, live, nextSeen, unread);
     if (gone.size > 0) {
       setPending((prev) => prev.filter((p) => !gone.has(p.id)));
-      setKnown((prev) => without(prev, gone));
       if (peekId && gone.has(peekId)) setPeekId(null);
     }
   }
@@ -227,6 +235,27 @@ export function useReviewTriage({
     heldRef.current = held;
   });
 
+  /** The room writes `ids` (a verdict, its Undo, an Undo refused): its truth until read back. */
+  function own(ids: readonly string[]): number {
+    const serial = ++writeSerial.current;
+    setUnread((prev) => ownWrite(prev, ids, serial));
+    return serial;
+  }
+
+  /**
+   * Ask the album to catch up on write `serial`, and once it has answered, the album speaks for
+   * those uploads again. Off the room (no live album, the Library's specimen) nothing can read a
+   * write back, so the room's own writes stay its truth against every server render.
+   */
+  function askAlbum(ids: readonly string[], serial: number) {
+    const asked = liveRef.current?.sync();
+    if (!asked) return;
+    // A catch-up that failed settles too: the album's own poll and doorbell ask again, and the
+    // write is theirs to report from then on.
+    const settled = () => setUnread((prev) => readBack(prev, ids, serial));
+    void asked.then(settled, settled);
+  }
+
   /**
    * ONE VERDICT, ON ANY NUMBER OF UPLOADS: the bar's and Approve all's (`bulk`, which clears the
    * selection and holds the bar while it runs), the keys' and the peek's (one upload, holding
@@ -253,7 +282,7 @@ export function useReviewTriage({
       list.every((p) => leaving.has(p.id)) && newIdsRef.current.length === 0;
     const reduced = prefersReducedMotion();
 
-    setTouched((prev) => union(prev, actedIds));
+    const verdict = own(actedIds);
     if (bulk) {
       sel.clear();
       setBulkRuns((n) => n + 1);
@@ -312,12 +341,17 @@ export function useReviewTriage({
         setExiting((prev) => without(prev, actedIds));
         if (act.removed) setPending((prev) => putBack(prev, acted));
         setCaughtUp(false);
+        // Nothing the room wrote is left to read back: the album's word stands at once (and a batch
+        // of a split verdict that did land leaves the grid when the album says so).
+        setUnread((prev) => readBack(prev, actedIds, verdict));
         toast.error(
           result.message || "Couldn't update those. Please try again.",
         );
         return;
       }
-      liveRef.current?.sync();
+      askAlbum(actedIds, verdict);
+      // The Undo is the room's next write on these uploads: its own serial, read back on its own.
+      let undoWrite = 0;
       showUndoToast({
         id: VERDICT_TOAST_ID,
         message: verdictWords(kind, acted),
@@ -325,6 +359,7 @@ export function useReviewTriage({
         onUndo: () => {
           act.reverted = true;
           for (const id of actedIds) inFlight.current.add(id);
+          undoWrite = own(actedIds);
           setExiting((prev) => without(prev, actedIds));
           setCaughtUp(false);
           setPending((prev) => putBack(prev, acted));
@@ -342,9 +377,12 @@ export function useReviewTriage({
             for (const id of actedIds) inFlight.current.delete(id);
           }
         },
-        onUndoFailed: () =>
-          setPending((prev) => prev.filter((p) => !idSet.has(p.id))),
-        onUndone: () => liveRef.current?.sync(),
+        onUndoFailed: () => {
+          // The verdict stands: off the grid again, and the album is asked what it holds.
+          setPending((prev) => prev.filter((p) => !idSet.has(p.id)));
+          askAlbum(actedIds, own(actedIds));
+        },
+        onUndone: () => askAlbum(actedIds, undoWrite),
       });
     });
 
@@ -402,7 +440,6 @@ export function useReviewTriage({
       topRank.current -= media.length;
       const joinedIds = joined.map((m) => m.id);
       setPending((prev) => putBack(prev, joined));
-      setKnown((prev) => union(prev, joinedIds));
       setHeld((prev) => {
         const next = new Map(prev);
         for (const id of joinedIds) next.delete(id);

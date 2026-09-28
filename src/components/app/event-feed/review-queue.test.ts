@@ -6,7 +6,7 @@
  * counts in the right noun; the keys walk every tile of a grid, a shorter last row included, and
  * land on the next upload once one leaves; and the live album's word on the queue holds new
  * uploads behind the line and drops only what left it somewhere else, never what the room just
- * acted on.
+ * acted on, until the album has read that write back.
  */
 import { describe, expect, it } from "vitest";
 
@@ -16,10 +16,13 @@ import {
   arrivals,
   departed,
   isGridKey,
+  knownIds,
   nextAfter,
+  ownWrite,
   putBack,
   ranked,
   rankedAbove,
+  readBack,
   stepIndex,
   uploadsWords,
   verdictWords,
@@ -148,5 +151,52 @@ describe("what the live album says about the queue", () => {
         new Set(["b"]),
       ),
     ]).toEqual([]);
+  });
+});
+
+describe("the room's own writes, until the album reads them back", () => {
+  it("holds what the room acted on as known beside its grid, so a stale poll never counts it new", () => {
+    const writes = ownWrite(new Map(), ["a"], 1);
+    const known = knownIds([{ id: "b" }], writes);
+    expect([...known].sort()).toEqual(["a", "b"]);
+    expect(arrivals(["a", "b", "n"], known)).toEqual(["n"]);
+  });
+
+  it("★ lets it go once its write is read back, so its return from elsewhere is an arrival", () => {
+    const writes = readBack(ownWrite(new Map(), ["a"], 1), ["a"], 1);
+    expect(writes.size).toBe(0);
+    expect(arrivals(["a", "b"], knownIds([{ id: "b" }], writes))).toEqual([
+      "a",
+    ]);
+  });
+
+  it("a read-back settles only its own write: a later write on the upload keeps the room's claim", () => {
+    // Approved (1), then its Undo (2) before the verdict's catch-up answered.
+    const writes = ownWrite(ownWrite(new Map(), ["a", "b"], 1), ["a"], 2);
+    const after = readBack(writes, ["a", "b"], 1);
+    expect([...after.entries()]).toEqual([["a", 2]]);
+    expect(readBack(after, ["a"], 2).size).toBe(0);
+  });
+
+  it("hands back the same map when nothing it names is still on that write", () => {
+    const writes = ownWrite(new Map(), ["a"], 3);
+    expect(readBack(writes, ["a"], 2)).toBe(writes);
+    expect(readBack(writes, ["z"], 3)).toBe(writes);
+  });
+
+  it("drops an upload put back here and decided elsewhere once its Undo is read back", () => {
+    const live = { waiting: [], decided: new Set(["a"]) };
+    const unread = ownWrite(new Map(), ["a"], 2);
+    expect([...departed([{ id: "a" }], live, new Set(["a"]), unread)]).toEqual(
+      [],
+    );
+    expect([
+      ...departed(
+        [{ id: "a" }],
+        live,
+        new Set(["a"]),
+        readBack(unread, ["a"], 2),
+      ),
+    ]).toEqual(["a"]);
   });
 });

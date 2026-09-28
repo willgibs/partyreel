@@ -1075,7 +1075,13 @@ describe("the keep: the door's last screen", () => {
     expect(
       screen.getByText("Your 2 photos joined Maya\u2019s album."),
     ).toBeInTheDocument();
-    expect(screen.getAllByText("Keep these photos").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Keep this event").length).toBeGreaterThan(0);
+    // The event she is keeping, by name, and hers counted inside it.
+    expect(
+      screen.getAllByText(
+        "Confirm your email and Test Wedding stays in your account with your 2 photos, to come back to anytime.",
+      ).length,
+    ).toBeGreaterThan(0);
     expect(
       screen.getByRole("button", { name: /confirm your email/i }),
     ).toBeInTheDocument();
@@ -1087,9 +1093,9 @@ describe("the keep: the door's last screen", () => {
   it("on an event that holds uploads, never says it joined the album", () => {
     atKeep({ keepHeld: true, keepCount: 1 });
     expect(
-      screen.getByText("Your photo is waiting for the host."),
+      screen.getByText("Your photo is waiting for approval."),
     ).toBeInTheDocument();
-    expect(screen.getAllByText("Keep this photo").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Keep this event").length).toBeGreaterThan(0);
   });
 
   it("is HELD like every step: no X, Escape inert, and no chevron back into a finished upload", () => {

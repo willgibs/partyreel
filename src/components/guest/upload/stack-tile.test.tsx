@@ -1,21 +1,23 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import {
-  UploadStackTile,
-  WaitingTile,
-} from "@/components/guest/upload/stack-tile";
+import { UploadStackTile } from "@/components/guest/upload/stack-tile";
 
 /**
- * THE TWO TILES THIS DEVICE DRAWS AT THE ALBUM'S HEAD: one stack per pick,
- * and a waiting tile per held upload.
+ * THE ONE TILE THIS DEVICE DRAWS AT THE ALBUM'S HEAD: one stack per pick.
  *
  * FUNCTION ONLY. Nothing here reads an alpha, a blur or an offset: the scrim's
  * darkness and the ghost edges are free to retune without asking a test. What
- * is held is what each tile SAYS and the one structural rule both live under —
+ * is held is what the tile SAYS and the one structural rule it lives under —
  * the bright edge, because a photograph must not gain or lose an edge at the
  * moment it finishes uploading, and `lit-edge-contract.test.ts` holds the other
  * half of that from the closed list's side.
+ *
+ * ★ THE WAITING TILE'S THREE PINS LEFT WITH THE TILE (voice-guest r2, Will's
+ * `held=uploads`: a held photograph shows only in her uploads). What they
+ * guarded is gone from the product, not reshaped, so they were deleted rather
+ * than retargeted; `live-gallery.test.tsx` pins that a held upload hands the
+ * album's head nothing.
  */
 const file = (name = "a.jpg") =>
   new File([new Uint8Array([1])], name, { type: "image/jpeg" });
@@ -69,27 +71,5 @@ describe("one pick is one object", () => {
     expect(
       container.querySelector("[data-media-tile][data-lit]"),
     ).not.toBeNull();
-  });
-});
-
-describe("a held photograph waits in place", () => {
-  it("says what it is waiting for, and offers nothing to press", () => {
-    render(<WaitingTile file={file()} url="blob:x" />);
-    expect(screen.getByText("Waiting for the host")).toBeInTheDocument();
-    // No button: there is nothing a guest can do about a host's queue,
-    // and a control that does nothing is worse than none.
-    expect(screen.queryByRole("button")).toBeNull();
-  });
-
-  it("wears the album tile's bright edge too", () => {
-    const { container } = render(<WaitingTile file={file()} url="blob:x" />);
-    expect(
-      container.querySelector("[data-media-tile][data-lit]"),
-    ).not.toBeNull();
-  });
-
-  it("draws no progress: its bytes are already in", () => {
-    const { container } = render(<WaitingTile file={file()} url="blob:x" />);
-    expect(container.querySelector("[data-pending-progress]")).toBeNull();
   });
 });

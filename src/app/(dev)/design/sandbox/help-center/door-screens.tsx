@@ -436,12 +436,13 @@ export function PhotoShot() {
 
 export function KeepShot() {
   return (
-    <Shot label="Sent, then Keep this photo">
+    <Shot label="Sent, then Keep this event">
       <DoorSheet back={false}>
         <KeepOffer
           count={1}
           held={false}
           hostName={HOST}
+          eventName={EVENT_NAME}
           onConfirm={noop}
           onLater={noop}
         />

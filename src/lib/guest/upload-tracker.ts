@@ -13,10 +13,11 @@
  *   - THE ALBUM'S SYNC, live (the manifest's ids): a held photograph the host approves turns up in
  *     the album, so the doorbell and the poll the album already runs carry every approval to her.
  *     And an approved one that LEAVES the album while still hers was taken down by somebody else.
- *   - HER OWN ROWS, READ ON DEMAND (`/api/guests/mine` with `statuses`: once at mount and again
- *     each time she opens the list): the only place a refusal can be learned, because the album's
- *     sync moves only in and out of `approved`, by design (`album_max`: a guest never learns how
- *     busy moderation is). It also brings back what an earlier visit sent.
+ *   - HER OWN ROWS, READ ON DEMAND (`/api/guests/mine` with `statuses`: once at mount, again
+ *     each time she opens the list, and again when one of hers arrives in the album): the only
+ *     place a refusal can be learned, because the album's sync moves only in and out of
+ *     `approved`, by design (`album_max`: a guest never learns how busy moderation is). It also
+ *     brings back what an earlier visit sent.
  *
  * ★ A PHOTOGRAPH SHE REMOVED HERSELF IS NOT LISTED: it is hers to forget.
  */
@@ -24,21 +25,29 @@
 export type TrackerStatus = "sending" | "waiting" | "approved" | "refused";
 
 /**
- * ★ WHETHER HER TRACKER TELLS HER A PHOTOGRAPH WAS REFUSED: the one line that carries the answer to
- * `host-curation`'s open `told` ask ("Should a guest whose photograph was refused ever be told?"),
- * whose recommended answer, `line`, is exactly this tracker's "Not in the album". `false` puts back
+ * ★ WHETHER HER TRACKER TELLS HER A PHOTOGRAPH WAS REFUSED: the one line that carries
+ * `host-curation`'s `told=line` (a guest whose photograph was refused is told, in her own list and
+ * nowhere else), worded by `voice-guest` r2's `status=approval` ("Not approved"). `false` puts back
  * `never`, as wired before the tracker: her own rows read never say refused (the route drops them),
  * and a held photograph she sent this visit keeps waiting until the visit ends.
  */
 export const TRACKER_TELLS_REFUSAL = true;
 
-/** The words each status wears. "Waiting for the host" is the album's own waiting tile's line, so
- *  one state has one name on the page; "Not in the album" is `host-curation`'s `told=line`. */
+/**
+ * The words each status wears (`voice-guest` r2, Will's `status=approval`: "A bit more clear, I
+ * don't think anyone's feelings will be hurt by direct wording here since it offers clarity").
+ * Both name the review she read about when she sent them ("The host reviews uploads before they
+ * appear in the album."), so the why is the event's rule rather than a person's choice.
+ *
+ * ★ ONE STATE, ONE NAME, EVERYWHERE IT IS SAID: the badge's spoken count, the keep's Sent line on
+ * a held event (`save-account-prompt.tsx`), the help and the album feature page's mock
+ * (`review-switch.tsx`, pinned by `mock-parity.test.ts`) all say "waiting for approval".
+ */
 export const TRACKER_WORDS: Record<TrackerStatus, string> = {
   sending: "Sending…",
-  waiting: "Waiting for the host",
+  waiting: "Waiting for approval",
   approved: "In the album",
-  refused: "Not in the album",
+  refused: "Not approved",
 };
 
 /** Where one of her rows stands on the server (the wire of `/api/guests/mine`'s `statuses`). */
@@ -145,7 +154,38 @@ export function buildTrackerRows(input: {
     : rows.filter((row) => row.status !== "refused");
 }
 
-/** The badge's number: her photographs waiting for the host (number only, never "sending"). */
+/**
+ * HERS THE ALBUM HOLDS THAT THIS DEVICE HAD NOT SEEN THERE YET (`approvedOnce` grows by `ids`), and
+ * whether any of them ARRIVED out of waiting (held when it finished sending, or pending on her rows
+ * when they were read).
+ *
+ * ★ AN ARRIVAL RE-READS HER ROWS (`voice-guest` r2's carried call `refusal-read`, under
+ * `held=uploads`): a host decides a pick in one go, so the moment one of hers is let in is the
+ * moment to learn the one left out beside it, and the badge stops counting it without her opening
+ * the list. No new poll: the album's own sync is what brings the arrival.
+ */
+export function newlyInAlbum(input: {
+  queue: readonly TrackerQueueItem[];
+  own: readonly OwnUploadWire[] | null;
+  album: ReadonlySet<string>;
+  approvedOnce: ReadonlySet<string>;
+}): { ids: string[]; arrived: boolean } {
+  const { queue, own, album, approvedOnce } = input;
+  const ids: string[] = [];
+  let arrived = false;
+  const take = (id: string, waiting: boolean) => {
+    if (!album.has(id) || approvedOnce.has(id) || ids.includes(id)) return;
+    ids.push(id);
+    if (waiting) arrived = true;
+  };
+  for (const item of queue) {
+    if (item.mediaId) take(item.mediaId, item.mediaStatus === "pending");
+  }
+  for (const o of own ?? []) take(o.id, o.status === "pending");
+  return { ids, arrived };
+}
+
+/** The badge's number: her photographs waiting for approval (number only, never "sending"). */
 export function waitingCount(rows: readonly TrackerRow[]): number {
   return rows.filter((r) => r.status === "waiting").length;
 }

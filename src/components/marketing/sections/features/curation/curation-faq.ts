@@ -8,7 +8,7 @@ import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 export const CURATION_FAQ: FaqItem[] = [
   {
     q: "Do guests see hidden or removed photos?",
-    a: "No. Hiding takes a photo off the guest album instantly, and removing deletes it; hidden ones stay dimmed in your own view. At an event that reviews uploads, the guest who sent one sees it marked as not in the album in their own uploads, and nobody else sees a trace of it.",
+    a: "No. Hiding takes a photo off the guest album instantly, and removing deletes it; hidden ones stay dimmed in your own view. At an event that reviews uploads, the guest who sent one sees it marked Not approved in their own uploads, and nobody else sees a trace of it.",
   },
   {
     q: "Can I approve uploads before anyone sees them?",

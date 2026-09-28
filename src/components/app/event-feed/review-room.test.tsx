@@ -238,3 +238,38 @@ describe("the line", () => {
     expect(screen.queryByRole("button", { name: /new/i })).toBeNull();
   });
 });
+
+/**
+ * ★ HIS HOST NOTE (voice-guest r2 on `status`, Will: "a note for the host when making approvals that
+ * they can always hide an approved photo later"): one quiet line while there is a queue to judge,
+ * and nothing where no approval is made (caught up, or review off).
+ */
+describe("the host note", () => {
+  const note = () => document.querySelectorAll("[data-review-note]");
+
+  it("says once, over the queue, that anything approved can still be hidden", () => {
+    room();
+    expect(note()).toHaveLength(1);
+    expect(note()[0]).toHaveTextContent(
+      "Anything you approve can still be hidden later.",
+    );
+  });
+
+  it("is gone once the room is caught up, and while review is off", async () => {
+    room([item(1)]);
+    fireEvent.click(screen.getByRole("button", { name: /approve all/i }));
+    await waitFor(() => expect(note()).toHaveLength(0));
+    render(
+      <TooltipProvider>
+        <ReviewRoom
+          eventId="ev-2"
+          moderationOn={false}
+          pendingItems={[]}
+          writes={writes as unknown as ReviewWrites}
+          claimPage={false}
+        />
+      </TooltipProvider>,
+    );
+    expect(note()).toHaveLength(0);
+  });
+});

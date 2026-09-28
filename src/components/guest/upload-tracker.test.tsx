@@ -96,7 +96,7 @@ describe("the button", () => {
     mount();
     await waitFor(() =>
       expect(tracker()).toHaveAccessibleName(
-        "Your uploads, 2 waiting for the host",
+        "Your uploads, 2 waiting for approval",
       ),
     );
     expect(
@@ -154,14 +154,20 @@ describe("the button", () => {
     expect(tracker()).toHaveAccessibleName("Your uploads");
   });
 
-  it("★ an approval reaches the badge live through the album's own sync, with no new read", async () => {
+  // ★ RESHAPED (voice-wiring). This pinned "with no new read": an approval moved the badge through
+  // the album's sync and her rows were never asked again. voice-guest r2's carried `refusal-read`
+  // made an arrival re-read her rows (the next test), so that half expired. The scar kept is the
+  // live half: the badge moves on the album's own sync, before any read of her rows answers.
+  it("★ an approval reaches the badge live through the album's own sync, before her rows answer", async () => {
     statuses([{ id: "m1", status: "pending" }]);
     const view = mount();
     await waitFor(() =>
       expect(tracker()).toHaveAccessibleName(
-        "Your uploads, 1 waiting for the host",
+        "Your uploads, 1 waiting for approval",
       ),
     );
+    // Her rows' next read never answers: whatever moves the badge now is the album's.
+    vi.mocked(global.fetch).mockReturnValue(new Promise<Response>(() => {}));
     live.current.serverIds = new Set(["m1"]);
     view.rerender(
       <>
@@ -182,6 +188,67 @@ describe("the button", () => {
       </>,
     );
     await waitFor(() => expect(tracker()).toHaveAccessibleName("Your uploads"));
+  });
+
+  // voice-guest r2's carried `refusal-read`: a host decides a pick in one go, so the arrival of one
+  // of hers re-reads her rows, and the one left out beside it stops counting without an opening.
+  it("★ one of hers arriving in the album re-reads her rows, so the one left out stops counting", async () => {
+    statuses([
+      { id: "m1", status: "pending" },
+      { id: "m2", status: "pending" },
+    ]);
+    const view = mount();
+    await waitFor(() =>
+      expect(tracker()).toHaveAccessibleName(
+        "Your uploads, 2 waiting for approval",
+      ),
+    );
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    // Maya lets m1 in and leaves m2 out; the album's sync brings m1, and only her rows say m2.
+    statuses([
+      { id: "m1", status: "approved" },
+      { id: "m2", status: "refused" },
+    ]);
+    live.current.serverIds = new Set(["m1"]);
+    view.rerender(
+      <>
+        <UploadTrackerButton store={view.store} onOpen={() => {}} />
+        <UploadTracker
+          store={view.store}
+          queue={[]}
+          qrToken={QR}
+          sessionToken={TOKEN}
+          isAuthed={false}
+          moderated
+          isDemo={false}
+          isOwner={false}
+          removedIds={new Set()}
+          open={false}
+          onOpenChange={() => {}}
+        />
+      </>,
+    );
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(tracker()).toHaveAccessibleName("Your uploads"));
+    expect(document.querySelector("[data-upload-tracker-count]")).toBeNull();
+  });
+
+  it("what her first read says is in the album is no arrival: nothing is read again", async () => {
+    statuses([
+      { id: "m1", status: "approved" },
+      { id: "m2", status: "pending" },
+    ]);
+    live.current.serverIds = new Set(["m1"]);
+    mount();
+    await waitFor(() =>
+      expect(tracker()).toHaveAccessibleName(
+        "Your uploads, 1 waiting for approval",
+      ),
+    );
+    // Give a stray re-read the chance to fire before saying it did not.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
     expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
@@ -235,8 +302,8 @@ describe("the list", () => {
       ...document.querySelectorAll("[data-upload-tracker-row]"),
     ].map((row) => row.getAttribute("data-upload-tracker-row"));
     expect(rows).toEqual(["waiting", "refused", "approved"]);
-    expect(screen.getByText("Waiting for the host")).toBeInTheDocument();
-    expect(screen.getByText("Not in the album")).toBeInTheDocument();
+    expect(screen.getByText("Waiting for approval")).toBeInTheDocument();
+    expect(screen.getByText("Not approved")).toBeInTheDocument();
     expect(screen.getByText("In the album")).toBeInTheDocument();
     // The album's own link draws what is in it; nothing else is ever presigned for a guest.
     expect(

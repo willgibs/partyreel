@@ -24,8 +24,10 @@ import { formatCount } from "@/lib/format/count";
  * ask is put down for this event on this device: `lib/guest/keep-ask.ts`). The machine that raises
  * it is `computeDoor`'s `keep` rule; the modal owns the sequence a confirmation runs.
  *
- * ★ IT COUNTS WHAT SHE ADDED, and that is the whole difference between an offer and a growth card:
- * "Keep these photos" is about the thing in front of her, "create a free account" is about us.
+ * ★ IT OFFERS THE EVENT, WITH HERS COUNTED INSIDE IT (`voice-guest` r2, Will's `keep=warm`: "'Keep
+ * this event' is best because they likely already have their own photos saved, the incentivize is
+ * everything else in the event"). That is the whole difference between an offer and a growth card:
+ * "Keep this event" is about the thing in front of her, "create a free account" is about us.
  *
  * ★ CONFIRMING CLAIMS, AND THE CLAIM IS THE WHOLE KEEP: the photographs become the account's and
  * the event comes with them (a Guest card on the dashboard). "In your account", never "on your
@@ -36,28 +38,39 @@ import { formatCount } from "@/lib/format/count";
  * which derives the address from the confirmed session (never from this page).
  *
  * The file keeps its name (the offer card it held is retired into this step): the lab's touchpoints
- * and `voice-guest`'s `keep` ask read the capture's words here.
+ * read the capture's words here.
  */
 
-/** The offer's two sentences, counting the way the card always did: the heading singular for
- *  exactly one photograph, so it never reads as a mismatch beside "it stays". */
-export function keepCopy(count: number): { title: string; reason: string } {
+/** The keep's title, and her name menu's card's (`guest-name-menu.tsx`): the ask's two homes. */
+export const KEEP_TITLE = "Keep this event";
+
+/**
+ * The offer's two sentences: the event first, and the future ("to come back to anytime"), with her
+ * photographs counted inside it, one of them said in the singular. The event by name where it has
+ * one; "this event" otherwise, so the sentence never reads with a hole in it.
+ */
+export function keepCopy(
+  count: number,
+  eventName?: string | null,
+): { title: string; reason: string } {
+  const event = eventName?.trim() || "this event";
+  const photos =
+    count === 1
+      ? "your photo"
+      : count > 1
+        ? `your ${formatCount(count)} photos`
+        : "your photos";
   return {
-    title: count === 1 ? "Keep this photo" : "Keep these photos",
-    reason: `Confirm your email and ${
-      count === 1
-        ? "it stays"
-        : count > 1
-          ? `all ${formatCount(count)} stay`
-          : "they stay"
-    } with you: this event in your account, and everything you added to it.`,
+    title: KEEP_TITLE,
+    reason: `Confirm your email and ${event} stays in your account with ${photos}, to come back to anytime.`,
   };
 }
 
 /**
  * Where what she sent went: into the album (the host's, by name, when the host has one), or, on an
- * event that holds uploads for the host, to the host first. Never "joined the album" for a
- * photograph the album does not show yet.
+ * event that holds uploads for the host, waiting for approval, in her uploads' own words for it
+ * (`TRACKER_WORDS.waiting`: one state, one name). Never "joined the album" for a photograph the
+ * album does not show yet.
  */
 export function keepSentLine(input: {
   count: number;
@@ -69,7 +82,7 @@ export function keepSentLine(input: {
   const subject =
     count === 1 ? "Your photo" : `Your ${formatCount(count)} photos`;
   if (held) {
-    return `${subject} ${count === 1 ? "is" : "are"} waiting for the host.`;
+    return `${subject} ${count === 1 ? "is" : "are"} waiting for approval.`;
   }
   return `${subject} joined ${host ? `${host}’s album` : "the album"}.`;
 }
@@ -82,12 +95,13 @@ export function keepSentLine(input: {
  * blooms in the lamp's hues, over where it went, then the ask. The ask heads with the door's one
  * heading scale, from the left like every step (the drawing centred it a step smaller; one heading
  * scale for every guest sheet is the door's rule, a call for Will to overrule). Its words are
- * `voice-guest`'s (`keep`, held as today).
+ * `voice-guest` r2's `keep=warm` (`keepCopy`).
  */
 export function KeepOffer({
   count,
   held,
   hostName,
+  eventName,
   onConfirm,
   onLater,
 }: {
@@ -96,10 +110,12 @@ export function KeepOffer({
   /** The event holds uploads for the host. */
   held: boolean;
   hostName?: string | null;
+  /** The event she is keeping, by name (`keepCopy`'s "this event" without one). */
+  eventName?: string | null;
   onConfirm: () => void;
   onLater: () => void;
 }) {
-  const copy = keepCopy(count);
+  const copy = keepCopy(count, eventName);
   return (
     <div data-keep-step="offer" className="flex flex-col gap-5">
       {/* WHAT WENT: the beat of her first photo sent. A check in the album's light blooms beside

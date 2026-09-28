@@ -143,7 +143,8 @@ type LiveGalleryProps = {
   onCountChange?: (count: number) => void;
   /**
    * What this DEVICE has sent that is not in the album yet: everything still in flight, plus
-   * anything a hold-for-approval event is keeping back (a refused file is not among them).
+   * anything a hold-for-approval event is keeping back (a refused file is not among them). Only
+   * what is in flight draws at the head; a held one lives in her uploads (`upload-tracker.tsx`).
    */
   pendingUploads?: QueueItem[];
   /** Present only when the viewer can upload — the empty state's CTA opens the ADD SHEET. */
@@ -225,7 +226,6 @@ function LiveGalleryView({
   const {
     qrToken,
     items,
-    serverIds,
     count,
     arrivals,
     ownLandings,
@@ -267,30 +267,26 @@ function LiveGalleryView({
   const landedIds = useArrivalMarks(landedList, ARRIVAL_SWEEP_MS, true);
 
   /* ────────────────────────────────────────────────────────────────────────
-     WHAT THIS DEVICE DRAWS AT THE ALBUM'S HEAD, and the three things it does
-     NOT: a FAILURE draws nothing (the run's end opens a sheet listing every
-     refusal with its own Retry); an APPROVED completion draws nothing either
-     (it IS the album by then, through the optimistic tile); a HELD one draws a
-     waiting tile until the host approves it, which is the moment its media id
-     turns up in the manifest.
+     WHAT THIS DEVICE DRAWS AT THE ALBUM'S HEAD: the files still in the air,
+     as one stack, and the three things it does NOT draw. A FAILURE draws
+     nothing (the run's end opens a sheet listing every refusal with its own
+     Retry); an APPROVED completion draws nothing either (it IS the album by
+     then, through the optimistic tile); and ★ a HELD one draws nothing
+     (`voice-guest` r2, Will's `held=uploads`: "not a fan of adding notices
+     within the media cards"): it shows only in her uploads, the badge beside
+     the Add she just pressed counting it, until the host lets it in and the
+     manifest brings it as any other photograph.
      ──────────────────────────────────────────────────────────────────────── */
   const pendingTiles: PendingTile[] = pendingUploads.flatMap((q) => {
     const url = pendingUrls.get(q.id);
-    if (!url || q.status === "error") return [];
-    const held = q.status === "done" && q.mediaStatus === "pending";
-    if (q.status === "done" && !held) return [];
-    if (held && q.mediaId && serverIds.has(q.mediaId)) return [];
+    if (!url || (q.status !== "queued" && q.status !== "uploading")) return [];
     return [
       {
         queueId: q.id,
         url,
         file: q.file,
         kind: q.kind,
-        status: held
-          ? ("held" as const)
-          : q.status === "queued"
-            ? ("queued" as const)
-            : ("uploading" as const),
+        status: q.status,
         progress: q.progress,
       },
     ];

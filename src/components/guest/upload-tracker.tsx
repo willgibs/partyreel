@@ -22,6 +22,7 @@ import {
 import { formatCount } from "@/lib/format/count";
 import {
   buildTrackerRows,
+  newlyInAlbum,
   TRACKER_WORDS,
   trackerShows,
   waitingCount,
@@ -35,9 +36,13 @@ import { cn } from "@/lib/utils";
 /**
  * HER TRACKER (`guest-capture` r1, Will's `tracker=button`): a round button beside Add photos opens
  * her own batch, each row with where it stands, and the button wears the count of what waits for
- * the host ("what's that 12? oh my uploads waiting for approval"), the number only. Only where she
+ * approval ("what's that 12? oh my uploads waiting for approval"), the number only. Only where she
  * has something sent at a moderated event; never in the demo. The rules are `lib/guest/upload-
  * tracker.ts`'s, as data; this is the drawing and the wiring.
+ *
+ * ★ IT IS THE ONLY PLACE A HELD PHOTOGRAPH SHOWS TO HER (`voice-guest` r2, Will's `held=uploads`):
+ * nothing of hers stands in the album until the host lets it in, so the badge beside the Add she
+ * just pressed is what says it went, and her list is where she learns what the host decided.
  *
  * ★ TWO HALVES, BECAUSE THE PAGE HAS TWO BOXES. The button sits in the words column and the dock,
  * ABOVE the album's live provider; the list needs what only the provider knows (the album's ids,
@@ -46,8 +51,9 @@ import { cn } from "@/lib/utils";
  * small store the page creates once: a sync re-renders the tracker, never the page's shell.
  *
  * ★ NO NEW POLL. Her queue is live; the album's own doorbell and poll carry every approval; her
- * own rows are read once at mount and again whenever she opens the list (the only place a refusal
- * can be learned, `/api/guests/mine` with `statuses`).
+ * own rows are read once at mount, again whenever she opens the list, and again when one of hers
+ * arrives in the album (the only place a refusal can be learned, `/api/guests/mine` with
+ * `statuses`; the arrival's re-read is `newlyInAlbum`'s note).
  *
  * ★ HER UPLOADS ARE A LIST, SO THEY OPEN AS ONE (`popups` r1, `lists=panel`, Will 2026-09-27): a
  * side panel beside the album at a desk, and in a hand the whole screen under a back arrow that says
@@ -178,23 +184,25 @@ export function UploadTracker({
   const [approvedOnce, setApprovedOnce] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
-  const newlyIn: string[] = [];
-  for (const item of queue) {
-    if (
-      item.mediaId &&
-      album.has(item.mediaId) &&
-      !approvedOnce.has(item.mediaId)
-    ) {
-      newlyIn.push(item.mediaId);
-    }
-  }
-  for (const o of own ?? []) {
-    if (album.has(o.id) && !approvedOnce.has(o.id)) newlyIn.push(o.id);
-  }
+  // How many times one of hers has arrived in the album out of waiting: each one re-reads her rows.
+  const [arrivals, setArrivals] = useState(0);
+  const newlyIn = newlyInAlbum({ queue, own, album, approvedOnce });
   // The sanctioned adjust-state-during-render pattern: remembered in the render that first saw it.
-  if (newlyIn.length > 0) {
-    setApprovedOnce((prev) => new Set([...prev, ...newlyIn]));
+  if (newlyIn.ids.length > 0) {
+    setApprovedOnce((prev) => new Set([...prev, ...newlyIn.ids]));
+    if (newlyIn.arrived) setArrivals((n) => n + 1);
   }
+  useEffect(() => {
+    // The arrival's re-read (`newlyInAlbum`): the refusal decided beside it is learned with it.
+    if (!canAsk || arrivals === 0) return;
+    let active = true;
+    void readOwnStatuses(qrToken, sessionToken).then((items) => {
+      if (active && items) setOwn(items);
+    });
+    return () => {
+      active = false;
+    };
+  }, [canAsk, arrivals, qrToken, sessionToken]);
 
   const rows = useMemo(
     () =>
@@ -335,9 +343,9 @@ function TrackerRowView({
 }
 
 /**
- * THE ROUND BUTTON BESIDE ADD PHOTOS, with its count: the number of hers waiting for the host, the
- * number only, like a notification badge. Nothing to count, no badge; nothing of hers sent at a
- * moderated event, no button at all.
+ * THE ROUND BUTTON BESIDE ADD PHOTOS, with its count: the number of hers waiting for approval, the
+ * number only, like a notification badge; a screen reader hears the list's own words for it.
+ * Nothing to count, no badge; nothing of hers sent at a moderated event, no button at all.
  */
 export function UploadTrackerButton({
   store,
@@ -361,7 +369,7 @@ export function UploadTrackerButton({
       data-upload-tracker
       aria-label={
         waiting > 0
-          ? `Your uploads, ${formatCount(waiting)} waiting for the host`
+          ? `Your uploads, ${formatCount(waiting)} waiting for approval`
           : "Your uploads"
       }
       className="relative shrink-0 rounded-full"
