@@ -41,10 +41,9 @@ Build 13's desk: 71 open asks on 13 boards, in desk order `hero-card` r2 (the ca
   console error, the lab and `/admin/reels` 404, the admin door redirects, no runtime error.
   `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel`
   (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 14 (`1b26221c`): batch 6
-  whole, the desk `hero-card` r2 first; every desk page loads with no console error (14 pages, headless) and the four
-  retired boards answer 404. Its red-team passed every signed-out journey; the host and admin pass waits on Will's
-  Chrome (walked on the Library's specimens meanwhile), and its findings are in `crumbs-7`.
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 15 (`60b4e4ea`): batch 6
+  whole with build 14's red-team fixes; every desk page loads with no console error (14 pages, headless). Build 14's
+  red-team passed every signed-out journey; its host and admin pass waits on Will's Chrome.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).

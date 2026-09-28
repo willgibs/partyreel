@@ -54,7 +54,7 @@ Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-r
    phone's demo door, the album at scale, the reel, the desk, six new Server Functions refusing a signed-out call), the
    host and admin journeys walked on the Library's specimens only, because Will's Chrome was not connected to this
    account. Its one major (a toast's Undo under an open modal) and three minors are fixed in `crumbs-7` (merged at
-   `bc6edd33`, riding build 15).
+   `bc6edd33`, on the alias as build 15, `60b4e4ea`).
 2. **The live host and admin pass** once his Chrome is back (`../partyreel-wt/_scratch/redteam-14/brief.md` journeys 1,
    2, 4 and 5's host parts, after `crumbs-7` lands on a build). The refusal and the goal strip need a host who stores
    more than a smaller Pro size (willg97 stores about 98 MB), so they stay the Library's unless one is staged. The
