@@ -51,8 +51,6 @@ export type Reader = {
   cause: "closed" | "private" | "blocked";
   /** The frame's title: who is at the door and why. */
   title: string;
-  /** The same, short enough for a knob. */
-  short: string;
 };
 
 export const READERS: Record<ReaderId, Reader> = {
@@ -63,7 +61,6 @@ export const READERS: Record<ReaderId, Reader> = {
     wasIn: false,
     cause: "closed",
     title: "A newcomer, the album closed to newcomers",
-    short: "A newcomer, closed out",
   },
   priya: {
     id: "priya",
@@ -72,7 +69,6 @@ export const READERS: Record<ReaderId, Reader> = {
     wasIn: true,
     cause: "private",
     title: "Priya, who was in, the album made private",
-    short: "Priya, who was in",
   },
   dom: {
     id: "dom",
@@ -81,11 +77,16 @@ export const READERS: Record<ReaderId, Reader> = {
     wasIn: true,
     cause: "blocked",
     title: "Dom, who was in, blocked",
-    short: "Dom, blocked",
   },
 };
 
-export const READER_ORDER: readonly ReaderId[] = ["newcomer", "priya", "dom"];
+/**
+ * THE TRIO'S ORDER: the two who were in side by side, since their words must
+ * match whatever the line, then the newcomer, the reference theirs may differ
+ * from. It also puts a frame that changes with the line first, which is the one
+ * `lab:demo` compares (the largest frame, the first of three equals).
+ */
+export const READER_ORDER: readonly ReaderId[] = ["priya", "dom", "newcomer"];
 
 /**
  * THE ALBUM'S COVER, for the one option that shows it: its newest approved

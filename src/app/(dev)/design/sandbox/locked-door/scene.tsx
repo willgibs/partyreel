@@ -116,10 +116,10 @@ const noop = () => {};
 
 /**
  * THE THREE PEOPLE THE DOOR STOPS, IN ONE ROW (phones side by side; laptops
- * stacked, since three at 1440 are never side by side at 1:1). Above them, the
- * one comparison the `previous` ask exists for, read off the frames: whether
- * Dom's words are Priya's, word for word, and whether Priya's are the
- * newcomer's.
+ * stacked, since three at 1440 are never side by side at 1:1), in
+ * `READER_ORDER`. Above them, the one comparison the `previous` ask exists
+ * for, read off the frames: whether Dom's words are Priya's, word for word,
+ * and whether Priya's are the newcomer's.
  */
 export function Trio({
   screen,
