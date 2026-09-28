@@ -1,7 +1,6 @@
 import type { ComponentType } from "react";
 
 import { HeroCardBoard } from "@/app/(dev)/design/sandbox/hero-card/board";
-import { VoiceGuestBoard } from "@/app/(dev)/design/sandbox/voice-guest/board";
 import { ExportFlowBoard } from "@/app/(dev)/design/sandbox/export-flow/board";
 import { AdminTriageBoard } from "@/app/(dev)/design/sandbox/admin-triage/board";
 import { EmailsBoard } from "@/app/(dev)/design/sandbox/emails/board";
@@ -36,8 +35,6 @@ export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   "hero-card": { Component: HeroCardBoard },
-
-  "voice-guest": { Component: VoiceGuestBoard },
 
   "export-flow": { Component: ExportFlowBoard },
   "admin-triage": { Component: AdminTriageBoard },
