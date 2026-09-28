@@ -1,6 +1,6 @@
 ---
 track: safety-refresh
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "e199f43f"            # the launch-prep SHA the branch was cut from
 board: event-safety
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -42,25 +42,78 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended; none is a one-way door (the board ships no production byte).
+
+- Does the viewer's credit open the same look a Guests-room name opens (face, "Confirmed their email", the host-only
+  address, Block), or a menu of its own? Recommended: the same look (`kinds.tsx`'s `PersonLook`, drawn from
+  `guest-peek.tsx`), so `all` is three doors onto one look and one block.
+- With its mail half gone to `emails.guest`, does `waiting` keep two forms, the lit door or a waiting page? Recommended:
+  yes. `both` folded into `held` (without the mail they were one answer), `email` became `page`; `held` recommended.
+- Does a refusal a block causes mid-visit keep the failure sheet's Retry? Recommended: keep it, as the sheet ships for
+  every refusal, in his `failed=exact` words ("2 of 2 didn't upload", Retry both), so a block never reads different
+  from any other refusal (the board drew Close alone before).
+- In `queue.review`, which line comes first? Recommended: Waiting to join first (a person at the door outranks a
+  photograph), then his "3 new" on the grid it folds into, the arrows ringed on the first photograph and never on a
+  person.
+- Where does the blocked list open from its settings row? Recommended: as a list kind (a panel over the settings
+  panel at a desk, a screen under "Settings" in a hand), drawn as two frames: the row, then the list.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (a lab board; no system fact moved)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- The lab and the kit: `PopupQuote` (a popup kind drawn still in a frame, its shape read off `popup-kinds.ts` on
+  production's own shape classes) is local to `event-safety/kinds.tsx` and copies `popup.tsx`'s private content and
+  overlay strings; a kit candidate beside `Several` and `ScrollHere`, or `popup.tsx` exports the two.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Work commit `5d16b19a` (the board and its touchpoints row), pushed; this manifest's commit is the head in the chat
+  line. No sync: launch-prep moved to `9a121eca` (voice-r2 at `0abfdeac` and records), none of it in my `reads`, and
+  `git merge-tree --write-tree HEAD origin/launch-prep` is clean (touchpoints.ts: a different row).
+- Gates on `5d16b19a`, each on its own exit code, heavy steps one at a time through the lock per the pacing note:
+  `zsh scripts/build-lock.sh pnpm typecheck` 0; `pnpm lint` 0 (5 warnings, all in files this lane never opened);
+  `zsh scripts/build-lock.sh pnpm test` 0 (510 files, 5738 tests); `zsh scripts/build-lock.sh pnpm build` 0;
+  `pnpm lab:smoke --base http://localhost:3134` 0 (231 checks, event-safety 811 words of 1200);
+  `pnpm lab:demo --board event-safety --base http://localhost:3134` 0 (12 steps, 0 failing).
+- Re-run, and why: before the pacing note the whole gate ran once on the pre-commit tree (green); one `lab:demo` of it
+  timed out in the door step's evaluate (60 s) while the Mac was short of memory and a headless Chrome from my own
+  capture script had outlived a timed-out run (killed, its profiles removed; the script now kills its Chrome on any
+  exit); three reruns clean, then the gate above on the commit. Nothing lost.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the eight files under
+  `src/app/(dev)/design/sandbox/event-safety/` + `src/app/(dev)/design/touchpoints.ts` (the event-safety row only:
+  asks, note, variants, lives, which the brief gives this lane) + this file.
+- The settings kind (blocked, choose, inside, editor): `SettingsSheet` reads its shape off `popup-kinds.ts`
+  (`kinds.tsx`), his unfocused panel at a desk and a screen under "‹ Maya & Jay" in a hand; the cards carry the
+  shipped words (the ShieldCheck of each `ConfirmSwitch`, the size cap's line, the `guestExperienceSummary` line, video).
+- The lit door (door `held`, waiting, unlisted, and `newcomer` whenever `door` is answered `held`): `DoorLamp`,
+  `DoorHeading`, `DoorGlyph`, `AlmostIn` and `DoorCheck` imported, the Sheet quoted from `SheetContent`'s classes,
+  `floatingEdgeEntranceResponsive`, `DOOR_SHEET` and `DOOR_SCRIM`; "You're in" blooms (`lamp="bloom"`).
+- door: the mid-visit failure sheet is the shipped sheet's structure in `failed=exact`'s words; the held door says
+  "2 of 2 didn't upload" on its way shut (`guest.tsx`'s `REFUSED_HEADING`, one home for both).
+- entry: the viewer is production's (the real `FaceCredit` top left, `CHROME` and `peekMetrics` for the photograph and
+  its neighbours' slivers, `LIGHTBOX_ACTION` in the capsule, the desk filmstrip); Block sits in the look at every door;
+  the Guests room's rows drop their menu in `guests` only; Review rejects, and its notice names the three rejected.
+- queue: Review on the real `ReviewGrid` in his curation picks; the hub's cards on `room-card.ts` (`roomRowLayout`,
+  `roomCardSize`, `reviewCardFace`, `EVENT_ROOMS`), so the counting card's caption now reads "whole on screen".
+- waiting: the mail half left for `emails.guest`, which `flow-refresh` adds to that question as an option.
+- Trims: the touchpoints row no longer says "the block's sheet", "Thirteen decisions" or "The block itself"; the
+  spec's "asked elsewhere" and its header comment name no retired board (media-viewer, identity-door, popups).
+- Untouched: `restore`, `room`, `newcomer` keep ids, words and drawings; their default worlds capture pixel-identical
+  before and after at 375 and 1440 (a stash-and-compare, 0.000% on all 18 frames).
+- Assets requested from Will: none.
+- Board ideas: `waiting` could offer a third road, a newcomer adding photos while they wait (held with them until let
+  in, gone with a decline); the look a host blocks from shows no count or strip of that person's uploads yet
+  (popups-wiring's deferred strip), which is the context a block most wants.
+- Stale ROADMAP lines for the Orchestrator: "Host: at 375 the hub's cards row runs past the phone's edge" (fixed by
+  `room-card.ts`'s 2x2, its own comment citing this board) and "Host: the Review peek ... never listens for" Escape
+  (`selectable-media-grid.tsx` now closes on Escape).
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule: Block as a destructive button on the look's foot; the look in a hand as the peek's Sheet over
+  the viewer; the settings' unrelated cards folded to their heads; the Review card reading "Off" on the hub (review is
+  off at this wedding); people declined with "Decline" while photographs are rejected; `entry.guests` rows without
+  their menu while `room`, `blocked` and `queue`'s rows keep theirs (untouched, so `room-rows`' "a menu" still reads).
+- Look at first: `entry` at 375 and 1440 (the credit's look and the room's), `door` at 375 with When on mid-visit,
+  then `unlisted`'s "You're in" in light and dark.
