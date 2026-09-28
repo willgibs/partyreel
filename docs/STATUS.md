@@ -13,14 +13,13 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoin
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: batch 5, from Will's sitting on build 11
+## The current round: batch 5 on build 12, Will's next sitting
 
-- **Milestone 29 is live** (`ab30a7f8`, 2026-09-26). **Batch 4** (the door lit with the keep and her tracker, no mark
-  on her own tiles, the profile's setup, the reel's marketing) is on build 11, red-teamed clean.
-- **Batch 5 is in flight** (cut `ebfb1581`): the popups board's kinds wired at their source, the door's r3 (lit icons,
-  the told chooser, Check your email, the lit beat with motion), the demo's doors (a live dot, "Try our demo event", one
-  demo modal on a desk) and the reel's new line; boards `hero-card` (new) and `identity-claims` r3; `claims-wiring`
-  after `popups-wiring`.
+- **Milestone 29 is live** (`ab30a7f8`, 2026-09-26). Batches 4 and 5 ride `launch-prep` toward milestone 30.
+- **Batch 5 landed** (eight lanes, 2026-09-27): every popup opens through its kind (lists in a panel, confirmations and
+  forms in keyboard-safe dialogs, choices in a menu, Invite onto the code card, plans stacked, settings unfocused); the
+  door's r3 (lit icons, the told chooser, Check your email, the lit beat with motion); the demo's doors (a live dot,
+  "Try our demo event", one demo modal on a desk); the claims review; boards `hero-card` r1 and `identity-claims` r3.
 
 ## The desk
 
@@ -39,14 +38,13 @@ built).
   console error, the lab and `/admin/reels` 404, the admin door redirects, no runtime error.
   `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel`
   (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 11 (`eff5b3f0`): batch 4
-  whole, the desk popups-first; its red-team passed seven journeys of eight (the eighth's lab 404s older than the
-  build), no blocker or major, the 100-minute soak clean. No push
-  deploys; each `[preview]` record gets one build by API ([`usher/kit/README.md`](../usher/kit/README.md)).
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 12 (`044aa2a5`): batch 5
+  whole, the desk `identity-claims` r3 first (its boards load clean; the retired `popups`, `identity-door` and
+  `reel-story` 404); its red-team is walking.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** about 5,600 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
+- **Tests:** about 5,700 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
 - **Jobs:** the daily purge cron (Vercel Hobby fires it at 04:48 UTC; its first run on milestone 28's sweeps was green:
   every sweep ok, none stopped early, the orphan scan read 1,368 objects and deleted none, the standby budget's one host
   willg97 with the withdrawals out), the media-backup Worker and the daily DB-backup Action are live; the deletion-aware
