@@ -41,7 +41,6 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `curation-wiring` | host-curation's seven into the review room (Reject at the door, the peek's verdict, the keys, Undo, the "N new" line); the silence claims follow `told=line`; the board retires | running, agent `a001be270345f031c` | Opus, :3131 | |
-| `pointer-wiring` | `pointer=line` as his note shapes it: one acknowledging line in the moment card, no way out of the event, `ELSEWHERE_LINE` folded in, nothing before a first upload; identity-claims retires | running, agent `a9d1ef9bcafe837cb` | Opus, :3132 | |
 | `crumbs-6` | voice-guest's three lines and their mocks, the footer's phone demo door, the reel's approval toast told true, the landscape head slot, a stale comment, two admin fixes, the failure sheet's help articles | running, agent `a8e0fab3d4643e969` | Sonnet, :3133 | |
 
 Batch 6 (cut `1708b049`, 2026-09-28) answers Will's sitting on build 12, part one (transcribed at `e199f43f`: 20
@@ -49,7 +48,7 @@ answers on identity-claims, hero-card, voice-guest, host-curation, host-storage)
 boards found 30 of their 68 asks drawn before his recent picks were built and 5 already answered: wave 1, the eight
 lanes that made his next desk, landed whole (build 13); wave 2 (the wiring) runs.
 
-Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-refresh, flow-refresh, safety-refresh, hero-r2, help-refresh, marketing-refresh.
+Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-refresh, flow-refresh, safety-refresh, hero-r2, help-refresh, marketing-refresh, pointer-wiring.
 
 ## Next, in order
 
@@ -57,7 +56,7 @@ Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-r
    carve-out, plus two help articles' words); then his sitting in desk order, `hero-card` r2 first. A build-12 paste
    transcribes as it stands (the refreshes kept every round), save one id: `help-center`'s `hub=sheet` is `strip` now.
 2. **Wave 2**, integrated as each lands:
-   - `curation-wiring`, `pointer-wiring` and `crumbs-6` are running (rows above).
+   - `curation-wiring` and `crumbs-6` are running (rows above).
    - `storage-wiring` (Opus) cuts once `curation-wiring` merges, so bulk Remove reuses its Undo toast. It builds
      host-storage's `order=flat` with an All / per-event filter, `goal=live`, and `refusal=inline` stacked full width.
      The size list goes in the lists panel, with r1's carried rows, bulk Remove with Undo, Download handing off to
@@ -66,8 +65,7 @@ Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-r
      - the Pro fit line's "or choose Pro 500 GB" means the yearly price;
      - one account's bytes print two ways in one flow (`formatBytes` nearest, `formatBytesUp` up);
      - a Pro host pressing Change plan is greeted "You are on Pro already".
-   - At `curation-wiring`'s record, delete `docs/reviews/host-curation.json` and close ROADMAP's "A guest" line. At
-     `pointer-wiring`'s, delete `identity-claims.json` and close the Identity line.
+   - At `curation-wiring`'s record, delete `docs/reviews/host-curation.json` and close ROADMAP's "A guest" line.
 3. **His next paste** (build 13's desk, or the 25 build-12 asks) transcribed, and the next wiring cut from it. The
    hero's wiring waits for hero-card r2's pick. voice-guest r2's wiring carries its `keep` pick to her name menu's card,
    which still says "Save this event for later".
@@ -89,7 +87,9 @@ Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-r
   pending_email = '<address>', pending_email_at = now() where id in (...)` on name-only rows with live uploads), a write
   the permission classifier refused the red-team; Will stages them (or walks it himself as partyr33l), and the restore
   puts `pending_email`, `email`, `user_id`, `verified_at` and `display_name` back (a claim writes `email` and nulls the
-  name). The pointer's line joins it once wired (only a real confirmation shows it).
+  name). The pointer's row rides it (build 14 on): with claimable rows at two or more other events, one photo uploaded
+  signed out at a names-mode album, then Confirm your email through the chooser, the moment card says "N more events
+  have photos waiting on your dashboard, whenever you like." with nothing to press, and the banner counts the same.
 - **Q1**: on a phone the code card fills the screen, but Back leaves the album (a look, not a place, by design); should
   Back close it like the other full-screen popups?
 - **The private count's legal clause** (before milestone 30): the Terms ("Profiles and social features",
