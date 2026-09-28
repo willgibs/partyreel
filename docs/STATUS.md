@@ -43,7 +43,7 @@ Build 13's desk: 71 open asks on 13 boards, in desk order `hero-card` r2 (the ca
   (`=app`).
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 15 (`60b4e4ea`): batch 6
   whole with build 14's red-team fixes; every desk page loads with no console error (14 pages, headless). Build 14's
-  red-team passed every signed-out journey; its host and admin pass waits on Will's Chrome.
+  red-team passed every signed-out journey, and build 15's live host and admin pass in Will's Chrome passed too.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).

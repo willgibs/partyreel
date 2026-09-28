@@ -50,16 +50,15 @@ Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-r
 
 ## Next, in order
 
-1. **Build 14 is live** (`1b26221c`), its red-team half walked: every signed-out journey passed (the voice lines, the
-   phone's demo door, the album at scale, the reel, the desk, six new Server Functions refusing a signed-out call), the
-   host and admin journeys walked on the Library's specimens only, because Will's Chrome was not connected to this
-   account. Its one major (a toast's Undo under an open modal) and three minors are fixed in `crumbs-7` (merged at
-   `bc6edd33`, on the alias as build 15, `60b4e4ea`).
-2. **The live host and admin pass** is walking on build 15, now that his Chrome is on this account. Red-team agent
-   `ade7341157a6a7a8f`; brief at `../partyreel-wt/_scratch/redteam-15/brief.md`. It covers the review room with
-   crumbs-7's fixes, the storage list's Undo with the list open and the Pro head, the admin's two confirms, and the
-   host's standing scope. The refusal and the goal strip need a host who stores more than a smaller Pro size (willg97
-   stores about 98 MB), so they stay the Library's.
+1. **Build 15 is live and red-teamed** (`60b4e4ea`): build 14's signed-out pass, and build 15's live host and admin
+   pass in Will's Chrome, walked every journey and passed, crumbs-7's fixes included.
+   - The review room: Reject, the peek's keys after a mouse verdict, Undo, the "N new" pill moving no tile.
+   - The storage list: Undo with it open at 1440 and 375, and the Pro head.
+   - The admin's Albums confirm.
+   - The host's standing scope.
+
+   Not driven: a report's Remove (no reports exist), and the refusal and goal strip (willg97 stores 98 MB). One minor
+   and two notes went to ROADMAP. The admin portal keeps partyr33l's verified session in Will's Chrome.
 3. **His next paste** (build 13's desk, or the 25 build-12 asks) transcribed, and the next wiring cut from it. The
    hero's wiring waits for hero-card r2's pick. voice-guest r2's wiring carries its `keep` pick to her name menu's card,
    which still says "Save this event for later".

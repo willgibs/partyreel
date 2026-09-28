@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Host: the review room loses an upload it decided that returns to pending from elsewhere (a second room tab's Undo, a direct write): ids it acted on never leave `known` (`use-review-triage.ts`), and `arrivals(waiting, known)` (`review-queue.ts`) filters them out, so the pill never counts it and Approve all can play "All caught up" while it waits, until a reload (build 15's red-team).
+- Admin: Albums' Remove confirm says "her uploads list already says Not in the album" as fixed text (`moderation-grid.tsx`), which reads as already true on an approved or pending item; it will say so once removed (build 15's red-team).
+- Host: in a hand the bulk bars' icon buttons are 28 by 28 and Download sits 32px from Remove to Deleted (AA, but under the 44px the peek's verdicts use) (build 15's red-team).
 - Host: a keyboard cannot reach a toast while a modal holds focus (Radix's trap pulls sonner's alt+T back into the modal), so the size list's Undo is pointer-only while it is open; a keyboard way to it may want a design, not only a focus rule (from `crumbs-7`).
 - Host: the Review room says "Review" twice at its top (the page's heading and the section's amber label over the grid) (from `crumbs-7`).
 - Utils: `formatBytes` prints "41.0 GB" for a value that rounds to a whole number (it tests the value before rounding; `formatBytesUp` tests after); the size list's event chips and rows show it (from `storage-wiring`).
