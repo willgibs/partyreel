@@ -17,6 +17,10 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Guests: a blocked guest's Guest card leaves her dashboard with her uploads (a card lives only while one of hers is live, `getMyGuestEventCards`), while a private album's card stays and says "The host made this event private" (`lib/dashboard/guest-events.ts`), so the dashboard tells a block apart; sent to `safety-wiring` (from `locked-door`).
+- Guests: the password gate titles a password album "{name} is private" (`password-gate.tsx`), the word the private lock owns; whichever words `locked-door`'s `lock` takes, the gate may want its own (from `locked-door`).
+- Guests: a door held over nothing (the ghost river under `DOOR_SCRIM`) reads as a flat grey slab in light mode, here and on the password door; a lighter scrim where nothing real stands behind would lift both (from `locked-door`).
+- Guests: a locked door could open by itself the moment the host lets her in (the album's doorbell or a slow poll), at the cost of a listener on every locked page, a blocked one's included (from `locked-door`).
 - Host: the review room loses an upload it decided that returns to pending from elsewhere (a second room tab's Undo, a direct write): ids it acted on never leave `known` (`use-review-triage.ts`), and `arrivals(waiting, known)` (`review-queue.ts`) filters them out, so the pill never counts it and Approve all can play "All caught up" while it waits, until a reload (build 15's red-team).
 - Admin: Albums' Remove confirm says "her uploads list already says Not in the album" as fixed text (`moderation-grid.tsx`), which reads as already true on an approved or pending item; it will say so once removed (build 15's red-team).
 - Host: in a hand the bulk bars' icon buttons are 28 by 28 and Download sits 32px from Remove to Deleted (AA, but under the 44px the peek's verdicts use) (build 15's red-team).

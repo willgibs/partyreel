@@ -41,13 +41,14 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `event-settings` | board r1: event settings from the ground up (his `choose` note), taking event-safety's who-can-join and its four staged asks | running, agent `a453cea95468466bd` | Opus, :3131 | |
-| `locked-door` | board r1: the one lock screen (private, closed, a block behind it) polished, and a previous guest's line | running, agent `a4176e991596ebd24` | Opus, :3132 | |
 | `disposable-mode` | board r1: a disposable-camera mode (in-app shots only, a shot limit, a reveal), his POV note | running, agent `a699e9169411db464` | Opus, :3133 | |
 | `safety-wiring` | event-safety's answers: the per-event block (a migration to apply), soft in every look, the private door, the Guests room's Blocked list, Let back in with a restore toggle; the guest list always on; event-safety retires | running, agent `a976ee6de796172b4` | Opus, :3134 | |
 
 Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcribed at `69afdbc5`: 21 answers on
 hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
 Wave B follows as seats free. Batch 6 (sixteen lanes) is merged whole; its records carry the rest.
+
+Merged in batch 7 (their records carry the rest): locked-door.
 
 ## Next, in order
 
