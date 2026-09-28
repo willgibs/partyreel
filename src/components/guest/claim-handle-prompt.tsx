@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { formatCount } from "@/lib/format/count";
 import { readTypedName } from "@/lib/guest/confirm-beat";
+import { countWaitingEventsAction } from "@/lib/guest/confirm-beat-action";
 import { createClient } from "@/lib/supabase/client";
 
 /**
@@ -54,6 +55,13 @@ import { createClient } from "@/lib/supabase/client";
  * that already exists. The card then says the name her photographs carry now, whenever she typed one
  * here, whichever name won (`confirm-beat.ts`), with a Change that changes it.
  *
+ * ★ THE EVENTS WAITING UNDER HER EMAIL ARE READ FOR THE MOMENT ALONE (`identity-claims` r3,
+ * `pointer=line`): the server counts them (`confirm-beat-action.ts`, the dashboard banner's own
+ * list, never this album) while the profile is read, and the card says them in its one line about
+ * other events. No other rung reads them, so a confirmation before her first upload here (which
+ * moves nothing of hers and plays no moment) says nothing about them: his "especially prior to
+ * upload", with her dashboard's banner holding them. A count that cannot be read is simply not said.
+ *
  * ★ RESOLVING RENDERS NOTHING, on purpose. getSession() is local (no network), so the wait is a
  * tick; drawing one card first and swapping it for another would be a visible flicker on the
  * surface that is meant to be quiet.
@@ -62,6 +70,16 @@ type State = "resolving" | "anon" | "moment" | "no-handle" | "has-handle";
 
 function dismissKey(qrToken: string) {
   return `pr_claim_prompt_${qrToken}`;
+}
+
+/** The server's count of other events waiting under her email; 0 when it cannot be read. */
+async function readWaitingEvents(qrToken: string): Promise<number> {
+  try {
+    return await countWaitingEventsAction(qrToken);
+  } catch {
+    // A dropped request costs the line and nothing else: the moment still plays.
+    return 0;
+  }
 }
 
 export function ClaimHandlePrompt({
@@ -92,6 +110,8 @@ export function ClaimHandlePrompt({
   const [needsHandle, setNeedsHandle] = useState(false);
   // The name her photographs carry now, told in the moment; null when she typed none here.
   const [toldName, setToldName] = useState<string | null>(null);
+  // Other events waiting under her email for her dashboard, said in the moment; 0 says nothing.
+  const [waiting, setWaiting] = useState(0);
   // A plain flag rather than a cross-tab store: nothing else writes this key, so a same-tab state
   // update is the whole requirement.
   const [dismissed, setDismissed] = useState(false);
@@ -116,6 +136,11 @@ export function ClaimHandlePrompt({
         setState("anon");
         return;
       }
+      // The moment's count of events waiting under her email, beside the
+      // profile read rather than after it; no other rung asks for it.
+      const waitingRead = moment
+        ? readWaitingEvents(qrToken)
+        : Promise.resolve(0);
       // Own-row read (profiles_select_own): the handle decides whether the
       // second line earns its place, the name decides whether the typed one is
       // still wanted. DELIBERATE swallow: a failed read leaves the state
@@ -140,10 +165,14 @@ export function ClaimHandlePrompt({
         const saved = await updateDisplayNameAction(typed);
         if (saved.ok) name = typed;
       }
+      // The card waits for the count and is drawn once (resolving renders
+      // nothing), so its line never arrives under a reader's eyes.
+      const waitingCount = await waitingRead;
 
       if (!active) return;
       setNeedsHandle(!hasHandle);
       setToldName(typed ? name : null);
+      setWaiting(waitingCount);
       setState(moment ? "moment" : hasHandle ? "has-handle" : "no-handle");
     })();
     return () => {
@@ -164,6 +193,7 @@ export function ClaimHandlePrompt({
         // this visit: the card then speaks of the photos without a number.
         count={doneCount > 0 ? doneCount : null}
         elsewhere={elsewhere}
+        waiting={waiting}
         toldName={toldName}
         onRenamed={(renamed) => {
           setToldName(renamed);

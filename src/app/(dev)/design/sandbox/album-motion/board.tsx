@@ -5,7 +5,6 @@ import { useCallback, useRef } from "react";
 import { ExplorationBoard, Frame } from "@/components/lab";
 import type { PreviewsFor } from "@/components/lab/exploration";
 import { MarketingHeader } from "@/components/marketing/chrome/marketing-header";
-import { ArrivalsHero } from "@/components/marketing/sections/features/album/arrivals-hero";
 import { AlbumStreamPause } from "@/components/shared/album-stream/album-stream";
 import {
   GAP,
@@ -15,23 +14,29 @@ import {
 } from "@/components/shared/album-stream/stream-engine";
 
 import { useFrameFilter } from "./frame-filter";
+import { PUSH } from "./push-engine";
+import { PushHero, RowsHero } from "./rows-hero";
 import { ALBUM_MOTION } from "./spec";
 
 /**
- * THE PREVIEWS, AND NOTHING ELSE: each option is the SHIPPED album hero at 1440
+ * THE PREVIEWS, AND NOTHING ELSE: each option is the album page's hero at 1440
  * and again at 375, in real viewports (a `Frame`, because the headline's step is
  * a `vw` clamp and a narrow div would draw the desktop's at both).
  *
- * ★ IT IS THE PRODUCTION COMPONENT, NOT A COPY OF IT. `ArrivalsHero` takes a
- * lab-only `variant` and everything else about the three tiles is identical,
- * because it IS the same file: whatever he picks is already wired, and the pick
- * is a one-word change to `SHIPPED` in the engine.
+ * ★ THE FALLS ARE PRODUCTION'S, THE ALBUM IS THE ONE THE PRODUCT HAS NOW. The
+ * first four are the shipped `AlbumStream` under its lab-only `variant`, so a
+ * pick among them is still a one-word change to `SHIPPED` in the engine; the
+ * fifth, `push`, is the board's own layer on the engine's pace and geometry
+ * (`push-engine.ts` says why it cannot be a recipe until it is picked). All
+ * five stand on the hero recomposed over the album in rows (`rows-hero.tsx`),
+ * because the shipped hero's stage still draws the masonry the album left.
  *
  * ★ THE PAUSE CROSSES THE FRAME BY CONTEXT. The step hides the options it is not
  * showing with `data-paused` in THIS document; the stream runs in the frame's,
  * whose DOM ancestors stop at its own body. Context does cross a portal, so the
  * reader is handed down and the loop holds its CLOCK on it: an un-held clock
- * teleports the composition on the way back from a hidden option.
+ * teleports the composition on the way back from a hidden option, and the push's
+ * album, whose arrivals ride that clock, holds still with it.
  */
 
 /** The hero's own height per width, plus the header's band it sits under: the
@@ -44,6 +49,12 @@ const heightOf = (mode: "desktop" | "phone") => {
   return HEADER + LOCKUP[mode] + GAP[bp] + STAGE[bp].h + STAGE[bp].floor + 24;
 };
 
+type Fall = Variant | "push";
+
+/** What each frame's caption reads: the engine's own measure of its field. */
+const captionOf = (fall: Fall, bp: "lg" | "base") =>
+  fall === "push" ? PUSH[bp].caption : STREAMS[fall][bp].caption;
+
 /** The host's own pause reader: this document's ancestors, and the tab. */
 function useHostPause() {
   const host = useRef<HTMLDivElement | null>(null);
@@ -55,7 +66,7 @@ function useHostPause() {
   return { host, isPaused };
 }
 
-function HeroScreens({ variant }: { variant: Variant }) {
+function HeroScreens({ fall }: { fall: Fall }) {
   const { host, isPaused } = useHostPause();
   return (
     <AlbumStreamPause.Provider value={isPaused}>
@@ -63,15 +74,13 @@ function HeroScreens({ variant }: { variant: Variant }) {
         {(["desktop", "phone"] as const).map((mode) => (
           <Frame
             key={mode}
-            id={`alm-${mode}-${variant}`}
+            id={`alm-${mode}-${fall}`}
             w={mode === "desktop" ? 1440 : 375}
             h={heightOf(mode)}
             title={mode === "desktop" ? "1440" : "375"}
-            caption={
-              STREAMS[variant][mode === "desktop" ? "lg" : "base"].caption
-            }
+            caption={captionOf(fall, mode === "desktop" ? "lg" : "base")}
           >
-            <Page variant={variant} />
+            <Page fall={fall} />
           </Frame>
         ))}
       </div>
@@ -80,7 +89,7 @@ function HeroScreens({ variant }: { variant: Variant }) {
 }
 
 /** The real page's first screen: the cinema skin, the header, the hero. */
-function Page({ variant }: { variant: Variant }) {
+function Page({ fall }: { fall: Fall }) {
   const root = useRef<HTMLDivElement | null>(null);
   useFrameFilter(root);
   return (
@@ -95,16 +104,17 @@ function Page({ variant }: { variant: Variant }) {
       }}
     >
       <MarketingHeader skin="cinema" />
-      <ArrivalsHero variant={variant} />
+      {fall === "push" ? <PushHero /> : <RowsHero variant={fall} />}
     </div>
   );
 }
 
 const PREVIEWS: PreviewsFor<typeof ALBUM_MOTION> = {
-  "fall.glide": <HeroScreens variant="glide" />,
-  "fall.gather": <HeroScreens variant="gather" />,
-  "fall.cascade": <HeroScreens variant="cascade" />,
-  "fall.bloom": <HeroScreens variant="bloom" />,
+  "fall.glide": <HeroScreens fall="glide" />,
+  "fall.gather": <HeroScreens fall="gather" />,
+  "fall.cascade": <HeroScreens fall="cascade" />,
+  "fall.bloom": <HeroScreens fall="bloom" />,
+  "fall.push": <HeroScreens fall="push" />,
 };
 
 export function AlbumMotionBoard() {

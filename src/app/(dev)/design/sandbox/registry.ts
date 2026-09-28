@@ -1,11 +1,8 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 
-import { IDENTITY_CLAIMS } from "./identity-claims/spec";
 import { HERO_CARD } from "./hero-card/spec";
 import { VOICE_GUEST } from "./voice-guest/spec";
-import { SITE_CHROME } from "./site-chrome/spec";
-import { PROFILE_PAGE } from "./profile-page/spec";
 import { EXPORT_FLOW } from "./export-flow/spec";
 import { ADMIN_TRIAGE } from "./admin-triage/spec";
 import { EMAILS } from "./emails/spec";
@@ -47,7 +44,6 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
  * missing from `DESK_ORDER` sorts to the foot until the Orchestrator places it.
  */
 const REGISTERED: readonly BoardSpec[] = [
-  IDENTITY_CLAIMS,
   HERO_CARD,
 
   VOICE_GUEST,
@@ -58,8 +54,6 @@ const REGISTERED: readonly BoardSpec[] = [
   ADMIN_TRIAGE,
   HELP_CENTER,
   EMAILS,
-  SITE_CHROME,
-  PROFILE_PAGE,
   PRIVACY_HERO,
   ALBUM_MOTION,
   LOOSE_ENDS,

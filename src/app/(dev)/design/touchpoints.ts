@@ -25,11 +25,8 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 
 /** The boards standing in sandbox/, one row each below. */
 export type SandboxId =
-  | "identity-claims"
   | "hero-card"
   | "voice-guest"
-  | "site-chrome"
-  | "profile-page"
   | "export-flow"
   | "admin-triage"
   | "emails"
@@ -58,28 +55,6 @@ export type Ruling = {
 };
 
 export const RULINGS: Ruling[] = [
-  {
-    id: "identity-claims",
-    title: "Photos waiting for you",
-    surface: "host",
-    asks: "where Priya first meets the one review of the four events waiting under her email: nothing at the album, a line to her dashboard, a line opening it over the album, the four named, or a count on her avatar and bell",
-    why: "Rounds one and two settled the review itself; pointer came back twice asking for the best options, so round three draws five whole strategies for where she meets it.",
-    lives: [
-      "docs/systems/host-app.md",
-      "docs/systems/guest-flow.md",
-      "docs/systems/profiles-social.md",
-      "src/components/app/dashboard/claims-card.tsx",
-      "src/app/(app)/dashboard/claims-actions.ts",
-      "src/components/guest/follow-moment-card.tsx",
-      "src/components/guest/claim-handle-prompt.tsx",
-      "src/components/guest/guest-account-menu.tsx",
-      "src/lib/notifications/build.ts",
-    ],
-    board: {
-      note: "Round three asks pointer alone, five answers each drawn as a whole strategy over Priya and four waiting events: the moment at Maya and Jay's album, where she sorts the four in popups' side panel, and her dashboard a week on if she never does",
-      variants: ["Where she meets the review"],
-    },
-  },
   {
     id: "hero-card",
     title: "The home hero's card",
@@ -122,49 +97,6 @@ export const RULINGS: Ruling[] = [
         "Her uploads' words",
         "Keeping it",
       ],
-    },
-  },
-  {
-    id: "site-chrome",
-    title: "The marketing site's chrome",
-    surface: "marketing",
-    asks: "the footer beneath a page's own closing call to action: its register, a page with none above it, and how its code reaches a phone",
-    why: "Most pages close on a call to action, so the footer's demo invitation has to work beneath one rather than repeat it; the rest of the chrome is built.",
-    lives: [
-      "docs/systems/marketing-content.md",
-      "src/components/marketing/chrome/marketing-header.tsx",
-      "src/components/marketing/chrome/header-shell.tsx",
-      "src/components/marketing/chrome/mega-panel.tsx",
-      "src/components/marketing/chrome/mobile-menu.tsx",
-      "src/components/marketing/chrome/marketing-footer.tsx",
-      "src/lib/constants/marketing-nav.ts",
-    ],
-    board: {
-      note: "Round two, the footer alone: what the footer's demo register should be right under a page's own closing CTA, whether a page with no CTA above it gets the same footer or a closing line built for it, and how its code reaches a phone (hidden, revealed on a tap, always shown, or dropped); every option drawn under a real CtaBand and under a real page with none, at 1440 and 375.",
-      variants: [
-        "The foot after a close",
-        "The foot where nothing closes the page",
-        "The phone's foot",
-      ],
-    },
-  },
-  {
-    id: "profile-page",
-    title: "What a person is here",
-    surface: "guest",
-    asks: "how the full guest list opens from the faces row, what a name opens first, how a profile keeps the scanned event reachable, and what should stand above it now that it does",
-    why: "A person's page ships; three pieces stay open, and a fourth, the header, is asked again now way-back changes what it has to solve alone.",
-    lives: [
-      "docs/systems/profiles-social.md",
-      "src/app/(guest)/u/[slug]/page.tsx",
-      "src/components/social/guest-list.tsx",
-      "src/components/social/follow-button.tsx",
-      "src/components/social/profile-actions-menu.tsx",
-      "src/components/social/profile-slug-control.tsx",
-    ],
-    board: {
-      note: "Four decisions on the shipped guest list and profile, phone first at 375 with 1440 on the knob, a 240-name fixture beside a 24-name one: how the full list opens from the faces row, what a name opens first, how a profile keeps the scanned event reachable, and, asked again now that it does, what should stand above the page at all",
-      variants: ["View all", "Quick-look", "Way back", "The head, asked again"],
     },
   },
   {
@@ -393,15 +325,17 @@ export const RULINGS: Ruling[] = [
     id: "album-motion",
     title: "The album's falling-in",
     surface: "marketing",
-    asks: "which way a photograph reaches the album on the /features/album hero: Glide, Gather, Cascade or Bloom",
-    why: "One decision, drawn on the wired hero so the pick is already built: the falling-in stays, and only its motion is asked.",
+    asks: "which way a photograph reaches the album on the /features/album hero, over its album in rows: Glide, Gather, Cascade, Bloom or Push",
+    why: "One decision, redrawn on the album as it now is (rows, and an arrival that opens its row): the falling-in stays, and only its motion is asked.",
     lives: [
       "src/components/shared/album-stream/stream-engine.ts",
+      "src/components/shared/album-stream/album-stream.tsx",
       "src/components/marketing/sections/features/album/arrivals-hero.tsx",
+      "src/components/marketing/sections/features/album/live-album-stage.tsx",
     ],
     board: {
-      note: "One decision, four whole variations of the falling-in drawn on the LIVE /features/album hero at 1440 and 375 (the shipped one among them): a pair sliding under the album's edge, a pair born large and dissolving into it, singles landing on it, and singles arriving lit by the product's own glow; every number under a tile measured off the engine against the home hero's",
-      variants: ["Glide", "Gather", "Cascade", "Bloom"],
+      note: "One decision, five whole variations of the falling-in on the /features/album hero at 1440 and 375, its album laid out in rows as the real one now is: a pair sliding under the album's edge (what ships), a pair born large and dissolving into it, singles landing on it, singles lit by the product's own glow, and singles from the head's side that go in and open the album's first row, the real push; every number under a tile measured against the home hero's",
+      variants: ["Glide", "Gather", "Cascade", "Bloom", "Push"],
     },
   },
   {
@@ -422,25 +356,23 @@ export const RULINGS: Ruling[] = [
   },
   {
     id: "loose-ends",
-    title: "Six loose ends",
+    title: "Five loose ends",
     surface: "shared",
-    asks: "the admin chart ramp's cast in each mode, one FAQ look, the home hero at a tablet width, and the album page's three ambient pieces",
+    asks: "the admin chart ramp's cast in each mode, one FAQ look, and the album page's three ambient pieces",
     why: "Small open questions drawn as decisions on their real surfaces rather than left as one-line tasks.",
     lives: [
       "src/app/globals.css",
       "src/components/marketing/faq-accordion.tsx",
-      "src/components/marketing/sections/home/hero-stream.ts",
       "src/components/marketing/sections/features/album/getting-in-stage.tsx",
       "src/components/marketing/sections/features/album/review-switch.tsx",
       "src/components/marketing/sections/features/album/everywhere-stage.tsx",
     ],
     board: {
-      note: "Seven asks, no page: the chart ramp's cast (light and dark, chosen separately) on the real MetricsCharts; one FAQ look on both the pricing and the album page's FAQ; the home hero's geometry at a real 900 px tablet width; and the album page's three ambient pieces (the phone's screen cycle, the Live | Review photograph, the lightbox pill), each on its real section at 1440 and 375",
+      note: "Six asks, no page: the chart ramp's cast (light and dark, chosen separately) on the real MetricsCharts; one FAQ look on both the pricing and the album page's FAQ; and the album page's three ambient pieces (the phone's screen cycle, the Live | Review photograph on the switch as production draws it, the lightbox pill), each on its real section at 1440 and 375",
       variants: [
         "Chart ramp, light",
         "Chart ramp, dark",
         "One FAQ look",
-        "The hero at tablet widths",
         "The phone's screen cycle",
         "The Live | Review photograph",
         "The lightbox pill",
@@ -462,7 +394,6 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
-  "identity-claims",
   "hero-card",
   "voice-guest",
   "host-storage",
@@ -471,8 +402,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "admin-triage",
   "help-center",
   "emails",
-  "site-chrome",
-  "profile-page",
   "privacy-hero",
   "album-motion",
   "loose-ends",

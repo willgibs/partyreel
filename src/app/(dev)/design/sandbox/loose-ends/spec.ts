@@ -2,40 +2,47 @@ import type { Control } from "@/components/lab/board-spec";
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * SIX ROADMAP LOOSE ENDS, EACH A DECISION (the loose-ends track, cut 2026-09-18).
+ * FIVE ROADMAP LOOSE ENDS, EACH A DECISION (the loose-ends track, cut 2026-09-18).
  *
- * Six one-liners the ROADMAP could not be picked from, each drawn on its own
- * real surface: the admin chart ramp's cast (light and dark, chosen
- * separately), one FAQ look for the two FAQs, the home hero between 768 and
- * 1023, and the album page's three ambient pieces (the phone's screen cycle,
- * the Live | Review photograph, the lightbox pill). No production byte moves
- * here; a pick is wired later, most in one small sweep.
+ * One-liners the ROADMAP could not be picked from, each drawn on its own real
+ * surface: the admin chart ramp's cast (light and dark, chosen separately),
+ * one FAQ look for the two FAQs, and the album page's three ambient pieces
+ * (the phone's screen cycle, the Live | Review photograph, the lightbox pill).
+ * No production byte moves here; a pick is wired later, most in one small
+ * sweep.
  *
- * ★ THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21) TOUCHES FIVE OF THE SIX. The
- * charts' own context now names the admin portal that leads on them daily;
- * `review-photo`'s queue frame is redrawn on the real waiting tile
- * (guest-upload r1) and ranked against his own legibility test (demo-event
- * r2); `everywhere-pill` drops `hover`, which has no touch equivalent and was
- * a fiction on this very stage's own phone half (app-vocabulary r1's own
- * finding), for a new option, the product's own sweep (guest-upload r1).
- * Only `hero-tablet` and `phone-cycle` are untouched: no badge named them.
+ * ★ THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21). The charts' own context names
+ * the admin portal that leads on them daily; `everywhere-pill` drops `hover`,
+ * which has no touch equivalent and was a fiction on this very stage's own
+ * phone half (app-vocabulary r1's own finding), for a new option, the
+ * product's own sweep (guest-upload r1).
  *
  * ★ THE REFRESH'S OWN PASS (2026-09-24): `faq-look` JUDGED ON ITS OWN PAGE.
  * Its recommendation used to lean partly on pricing-page's own order (closing
  * on this look last); that is a fact about a different board, not a reason a
  * FAQ look is the right one, so the case here now stands on the FAQ alone.
+ *
+ * ★ THE MARKETING REFRESH (2026-09-28): TWO ASKS MOVE, THE REST STAND.
+ * `hero-tablet` left: it sized the home hero at 900 around an object
+ * hero-card is replacing, and hero-card's round two draws every card option
+ * at 900 and owns that question now. `review-photo` is redrawn on production
+ * as it stands: the reshape above had dimmed the queue's tile and badged it
+ * with a clock in every option, `today` included, which production never drew
+ * (`review-photo.tsx` says why the host's queue is right not to), so the
+ * photograph is now the only thing its options differ in, and its case is
+ * re-read undimmed.
  */
 export const LOOSE_ENDS = defineExploration({
   id: "loose-ends",
-  title: "Six loose ends",
+  title: "Five loose ends",
   round: {
     n: 1,
-    date: "2026-09-24",
+    date: "2026-09-28",
     changed:
-      "faq-look now judged on the FAQ alone, not pricing-page's own order; everywhere-pill's hover note restated as its own fact, not a citation. The overtaken audit's reshape stands: chart casts name the portal's daily read; review-photo's queue box redrawn on the real waiting tile.",
+      "hero-tablet leaves for hero-card round 2, which draws every card at 900 and owns the tablet question now. review-photo is redrawn on production as it is, the host's queue undimmed and unbadged, so today is today and only the photograph differs. The other five stand as drawn.",
   },
   context:
-    "Six ROADMAP one-liners nobody could pick from, each drawn on its own real surface rather than argued in prose: the admin chart ramp, one FAQ look, the home hero at a tablet width, and the album page's three ambient pieces.",
+    "Five ROADMAP one-liners nobody could pick from, each drawn on its own real surface rather than argued in prose: the admin chart ramp, one FAQ look, and the album page's three ambient pieces.",
   asks: [
     /* ── 1. The admin chart ramp's cast (light, then dark, chosen separately) ── */
     {
@@ -163,42 +170,7 @@ export const LOOSE_ENDS = defineExploration({
       ],
     },
 
-    /* ── 3. The home hero between 768 and 1023 ── */
-    {
-      id: "hero-tablet",
-      label: "The hero at tablet widths",
-      question: "What should the home hero wear between 768 and 1023?",
-      context:
-        "hero-stream.ts solves a phone geometry and a desktop one, and a tablet gets the phone's below 1024: its own card size and type measure, just stretched wider. Drawn static at a real 900 px window; the phone and 1440 do not change.",
-      options: [
-        {
-          id: "today",
-          label: "Today: the phone's geometry",
-          means: "qr 128, card 155, a 343 px measure, unchanged from a phone.",
-        },
-        {
-          id: "tablet",
-          label: "A third geometry, composed",
-          means:
-            "qr 136, card 226, a 529 px measure: solved the same way, between the phone's and the desktop's.",
-        },
-        {
-          id: "early",
-          label: "The desktop geometry, early",
-          means:
-            "The desktop's own numbers (qr 144, card 300, a 920 px measure) starting at 768 instead of 1024.",
-        },
-      ],
-      recommended: "tablet",
-      because:
-        "A composed middle geometry is what a tablet gets everywhere else on this ladder; the desktop's numbers were solved for 1440 and crowd a 900 px window.",
-      overrule:
-        "If a third table is not worth the upkeep before launch, the phone's geometry is the cheaper hold.",
-      lands:
-        "hero-stream.ts's Bp union and its GEO/BEAT/SPAN tables, or LG_MIN moved to 768.",
-    },
-
-    /* ── 4. The album's ambient pieces: the phone's screen cycle ── */
+    /* ── 3. The album's ambient pieces: the phone's screen cycle ── */
     {
       id: "phone-cycle",
       label: "The phone's screen cycle",
@@ -233,14 +205,14 @@ export const LOOSE_ENDS = defineExploration({
       lands: "HOLD_MS in getting-in-stage.tsx.",
     },
 
-    /* ── 5. The album's ambient pieces: the Live | Review photograph ── */
+    /* ── 4. The album's ambient pieces: the Live | Review photograph ── */
     {
       id: "review-photo",
       label: "The Live | Review photograph",
       question:
         "Which photograph should travel through the Live | Review switch?",
       context:
-        "review-switch.tsx flies one photo from phone to queue to album, now dimmed with a clock mark like the real waiting tile (guest-upload r1). His test since (demo-event r2): a visual no louder than what's behind it isn't noticeable.",
+        "review-switch.tsx flies one photograph from a guest's phone to the host's queue, a plain 56px tile as the host's review grid draws it, then into the album. His test (demo-event r2): a visual no louder than what's behind it isn't noticeable.",
       options: [
         {
           id: "today",
@@ -262,13 +234,13 @@ export const LOOSE_ENDS = defineExploration({
       ],
       recommended: "rings",
       because:
-        "It stays legible at the queue's 56px size under the new dim, where today's photo turns to a dark blur his own legibility test would fail; it is still a personal, candid frame rather than a decor shot.",
+        "Read undimmed at the queue's 56px, its subject survives: two hands, a ring and a watch in open light. The toast's raised glass turns to warm texture there, and in the album it lands as quiet as the warm tiles beside it, which his test fails; the rings stay candid, not decor.",
       overrule:
         "If every plate should share the album's own palette instead, today's photograph already matches it.",
       lands: "The UPLOAD constant in review-switch.tsx.",
     },
 
-    /* ── 6. The album's ambient pieces: the lightbox pill ── */
+    /* ── 5. The album's ambient pieces: the lightbox pill ── */
     {
       id: "everywhere-pill",
       label: "The lightbox pill",

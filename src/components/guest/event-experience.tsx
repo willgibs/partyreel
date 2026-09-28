@@ -65,7 +65,10 @@ import {
   onConfirmBeat,
   type ConfirmBeat,
 } from "@/lib/guest/confirm-beat";
-import { openToldNameChange, ToldNameForm } from "@/lib/guest/confirm-beat-name";
+import {
+  openToldNameChange,
+  ToldNameForm,
+} from "@/lib/guest/confirm-beat-name";
 import { closesOnLastRemoval as lastRemovalCloses } from "@/lib/guest/delete-consequence";
 import { contributionAnswered } from "@/lib/guest/entry-steps";
 import { useKeepAskPutDown } from "@/lib/guest/keep-ask";
@@ -231,8 +234,10 @@ export function EventExperience({
      made on it, whichever door started it; `moment` is true once a confirm door
      opened here AND a claim moved this album's own uploads, and the post-upload
      slot then plays the follow moment with no upload needed this visit, saying
-     the other events (`elsewhere`) once. Never in the demo, never for the host.
-     (lib/guest/use-confirm-return.ts owns the rule.) */
+     the other events once, in one line: `elsewhere` from here, and the events
+     waiting under her email, which the slot reads for the moment alone. Never
+     in the demo, never for the host. (lib/guest/use-confirm-return.ts owns the
+     rule.) */
   const { moment, elsewhere } = useConfirmReturn(qrToken, !isDemo && !isOwner);
   const [sessionToken, setSessionToken] = useStoredSession(qrToken);
   // The name this device typed at this event. Beside the session, never

@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCount } from "@/lib/format/count";
 import { CLAIMED_TOAST } from "@/lib/guest/claim-uploads";
 import { GUEST_NAME_PREFIX } from "@/lib/guest/use-stored-name";
 
@@ -8,16 +9,20 @@ import { GUEST_NAME_PREFIX } from "@/lib/guest/use-stored-name";
  * within any multi-claim handling"; `name=told`: the name she typed becomes her account's name at
  * once, then she is told, with a Change that changes it).
  *
- * A confirmation says up to three things: what she now keeps HERE (and the host to follow), that
- * her uploads at OTHER events came too, and the name her photographs now carry. Said by three
- * surfaces they stacked (the follow moment, the claims toast, a name toast). So they are one:
+ * A confirmation says up to three things: what she now keeps HERE (and the host to follow), what
+ * became of OTHER events (her uploads there came too; photos typed under her email elsewhere wait on
+ * her dashboard), and the name her photographs now carry. Said by three surfaces they stacked (the
+ * follow moment, the claims toast, a name toast). So they are one:
  *
  *   - when the confirmation plays the FOLLOW MOMENT (a confirm door opened here and the claim moved
- *     this album's own uploads), the moment card says all of it: the other events once, the name
- *     with its Change, the host's row. Nothing toasts.
+ *     this album's own uploads), the moment card says all of it: the other events once, in one line
+ *     (`otherEventsLine`), the name with its Change, the host's row. Nothing toasts.
  *   - otherwise ONE toast says what there is to say (the name told, the other events said once),
  *     with the name's Change as its action, and only once the door has closed, so it never lands
- *     on a sheet the guest is still answering.
+ *     on a sheet the guest is still answering. The toast never speaks of the events waiting under
+ *     her email: it is said wherever no moment plays, which is every confirmation before her first
+ *     upload here (`identity-claims` r3: "Don't want too many complications around this,
+ *     especially prior to upload"), and her dashboard's banner holds them.
  *
  * The page (`event-experience.tsx`) is the one place the toast is said: every door reports its
  * beat here and the page decides when (the door's own `pending`) and whether (the moment already
@@ -84,9 +89,47 @@ export function toldNameLine(name: string): string {
   return `You're on as ${name}.`;
 }
 
+/** Her uploads at other events, which the claim carried into her account, without a stop. */
+const ELSEWHERE_WORDS =
+  "Your uploads from other events are in your account too";
+
 /** The other events, said once (in the moment card, or as the toast's second line). */
-export const ELSEWHERE_LINE =
-  "Your uploads from other events are in your account too.";
+export const ELSEWHERE_LINE = `${ELSEWHERE_WORDS}.`;
+
+/**
+ * THE OTHER EVENTS, IN THE MOMENT CARD'S ONE LINE (`identity-claims` r3, Will's `pointer=line`, as
+ * his note shapes it: "Simply acknowledging the existence of other events and allowing that to be
+ * handled back on the dashboard later is enough"). Two different facts can be about other events
+ * once she confirms, and the card says both in one line, so it never says "other events" twice:
+ *
+ *   - `elsewhere`: this device's uploads at other events, which the claim just carried into her
+ *     account (done, and `ELSEWHERE_LINE` alone, as the toast says it);
+ *   - `waiting`: other events whose photos were added under her email and that no claim moved,
+ *     waiting in her dashboard's claims review (the banner's own list, counted on the server by
+ *     `confirm-beat-action.ts`, never this album).
+ *
+ * ★ IT ACKNOWLEDGES AND NEVER LEADS OUT: the waiting events are on her dashboard whenever she
+ * likes, in the words his `line` tile showed ("4 more events have photos waiting on your
+ * dashboard"), and nothing in the line is pressable ("Events should feel mostly self-contained for
+ * the benefit of the host receiving guest uploads"; the tile's "Review all 4" is what his note
+ * dropped). Null when there is nothing to say.
+ */
+export function otherEventsLine({
+  elsewhere,
+  waiting,
+}: {
+  elsewhere: number;
+  waiting: number;
+}): string | null {
+  if (waiting <= 0) return elsewhere > 0 ? ELSEWHERE_LINE : null;
+  const events =
+    waiting === 1
+      ? "another event has"
+      : `${formatCount(waiting)} more events have`;
+  const line = `${events} photos waiting on your dashboard, whenever you like.`;
+  if (elsewhere > 0) return `${ELSEWHERE_WORDS}, and ${line}`;
+  return line.charAt(0).toUpperCase() + line.slice(1);
+}
 
 /**
  * The one toast a confirmation without a moment says, or null when it has nothing to say. The name
