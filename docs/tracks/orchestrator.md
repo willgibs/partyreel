@@ -40,7 +40,6 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `event-settings` | board r1: event settings from the ground up (his `choose` note), taking event-safety's who-can-join and its four staged asks | running, agent `a453cea95468466bd` | Opus, :3131 | |
 | `safety-wiring` | event-safety's answers: the per-event block (a migration to apply), soft in every look, the private door, the Guests room's Blocked list, Let back in with a restore toggle; the guest list always on; event-safety retires | running, agent `a976ee6de796172b4` | Opus, :3134 | |
 | `pricing-wiring` | host-storage `prices=sizes` on a monthly/yearly toggle with a yearly tag, iPhone-default estimates, his free/pro shift (Free 100 MB, 300 MB meter; password, custom link with a squatting guard, 60 s reels to Free); `tier_limits()` migration to apply; host-storage retires | running, agent `ad560f85ada04d064` | Opus, :3132 | |
 
@@ -48,7 +47,7 @@ Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcr
 hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
 Wave B follows as seats free. Batch 6 (sixteen lanes) is merged whole; its records carry the rest.
 
-Merged in batch 7 (their records carry the rest): locked-door, disposable-mode.
+Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings.
 
 ## Next, in order
 

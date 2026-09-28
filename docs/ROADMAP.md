@@ -17,6 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Host: a "See it as a guest" row in settings could open the album as a guest meets it, with the door's steps; every door setting is about what a guest meets, and today a host can only guess (from `event-settings`).
+- Host: the settings kind's head in a hand says the event's name twice (the back arrow and the line under the bar); popups could drop the line wherever the back arrow names it (from `event-settings`).
+- Host: the hub's Settings card says "Public"; once the join ladder ships it could say the rung ("Anyone with the link"), the one place a host sees the door from the hub (from `event-settings`).
 - Marketing: a disposable-camera page, and the site's link that opens Create with the camera already on (`pick=line`'s door), once the camera ships (from `disposable-mode`).
 - Reel: what the room's screen shows while a roll develops (the count ticking, then the roll's premiere at the reveal), asked once `disposable-mode`'s `reveal` is answered (from `disposable-mode`).
 - Guests: a blocked guest's Guest card leaves her dashboard with her uploads (a card lives only while one of hers is live, `getMyGuestEventCards`), while a private album's card stays and says "The host made this event private" (`lib/dashboard/guest-events.ts`), so the dashboard tells a block apart; sent to `safety-wiring` (from `locked-door`).
