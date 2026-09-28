@@ -1,6 +1,6 @@
 ---
 track: storage-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "f8b83bbc"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -80,25 +80,96 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built as recommended, his to overrule.
+
+- **Remove asks nothing first.** Built: the list's Remove runs at once with the product's one Undo (the brief), where
+  the album's Delete asks first (popups' `confirm=dialog`). Overrule: a count-named confirm, as the album's.
+- **One number, one rounding.** Built: what she stores and what she must free print rounded up wherever they appear
+  (the meter, the Plan card, the refusal and the fit line, the list's All chip, the strip); a file's, an event's or a
+  selection's size prints to the nearest tenth, since rounded up a file a hair past 9.4 GB read 9.5 GB. Overrule:
+  every figure in the flow rounded up.
+- **The Pro head.** Built: her plan with its billing ("Pro 500 GB, monthly"), "Your Pro plan" until the sheet's read
+  lands; the line under it unchanged. Overrule: "Your plan: Pro 500 GB, monthly".
+- **Billing in the sentence.** Built: a size offered instead is named with its billing everywhere ("or choose Pro 500
+  GB, monthly"), the routes' refusals included; the Pro list's fit line reads at her billing and offers nothing when
+  the size that fits is hers. Overrule: billing named in the Pro list alone.
+- **Download across events.** Built: one event's selection downloads at once (export-flow's zip); a selection across
+  events asks which event (the choice menu, one zip each), since an export is one event's. Overrule: Download waits
+  until the selection is one event's.
+- **The meter's door.** Built: "See what's using space" under the figure in the meter's popover, for any tier with
+  something stored, opening the list with no goal and a line that removed items stop counting at once and wait in
+  Deleted for 30 days. Overrule: a goal on it too when she is over her own cap.
+- **Who added it.** Built: "You" for her own uploads, a guest's name with the Unverified mark when unproved, nothing
+  for a nameless row. Overrule: her name with a Host badge (the board's drawing).
+- **The filter.** Built: All first (what she stores), then her events heaviest first, each with its total, shown once
+  she has two events. Overrule: events by date.
+- **Paging.** Built: 40 at a time with "Show more" and "40 of 1,234"; the bulk bar's All takes what is shown. Overrule:
+  an endless scroll, or All taking every item in the filter, loaded or not.
+- **The strip is the Pro flow's.** Built: only a refused Pro price opens the list with a goal (its switch is
+  change-plan); a pass holder's or Free host's sheet keeps its one card and its plain refusal line. Overrule: the
+  list's door on that refusal too, its switch a checkout.
+- **Catching up.** Built: the page behind refreshes, and the plan re-reads its facts, once, as the list closes (the
+  list opened from a refused price lives inside that price's row, so a re-read while open could unmount it). Overrule:
+  figures behind the list that move with each removal.
+- **Remove and switch's toast.** Built: the removal's Undo toast shows before Stripe's confirm page opens, so a refused
+  or failed switch leaves it there to take back. Overrule: no toast on that path.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `billing-caps.md` "Plan changes": a refusal names the size that fits with its billing; what a host stores prints
+  one way (rounded up) on every surface, a file's or an event's size to the nearest tenth.
+- `billing-caps.md` "The in-app pricing surface": a size too small is a door (the flip, the list, the goal strip that
+  only calls change-plan, removes first, counts from before this visit's removals and re-bases on a refusal).
+- `lifecycle-recovery.md` "Restoring": the list's Undo is one capacity-gated `restore_media` per item, so on a full
+  plan it puts back part of a removal and says so.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Utils: `formatBytes` prints "41.0 GB" for a value that rounds to a whole number (it tests the value before
+  rounding; `formatBytesUp` tests after); the size list's event chips and rows show it.
+- Lab: `host-storage`'s plan quote (`sandbox/host-storage/plan-sheet.tsx`, its TITLE) and its `head-stays` carried
+  call still say "You are on Pro already"; production leads with her plan now.
+- Billing follow-ons: the size list's per-event totals walk every active item's size (one keyset walk per 150
+  events); a `host_event_storage()` aggregate would answer one row per event once an account outgrows ~30,000 items.
+- Library: the StorageMeter entry's own specimen opens the list over the real Server Functions (a signed-out Library
+  reads "Couldn't load"); the StorageList entry is the inert one.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Commits on `origin/lp/storage-wiring`, cut from `2b28c9c9`: `283352b3` and `3c01b6a7` (the owns additions, the
+  manifest alone), `e05fb42b` (the work), and this handoff. No sync: launch-prep moved to `937d3a0a` (crumbs-6's merge
+  and records), touching none of this lane's paths or reads (`git diff --name-only HEAD...origin/launch-prep`: guest,
+  admin and marketing files, `reel.md`, ROADMAP, tracks).
+- Gates on `e05fb42b`, each its own exit code (`_scratch/storage-wiring/gate-*.log`): `pnpm typecheck` 0; `pnpm lint`
+  0 (5 warnings, none in a touched file); `pnpm test` 0 (520 files, 5,847 tests); `zsh scripts/build-lock.sh pnpm
+  build` 0; `pnpm lab:smoke --base http://localhost:3131` 0 (225 checks, 0 failing). No board, so no `lab:demo`.
+- Lane check: owned paths (with the seven added to `owns` at build: the list's Server Functions, the Plan card's
+  rounding, `use-plan-facts`, the Library's two compositions files and the regenerated `specimens.generated.json`) +
+  this file, and the record: `docs/systems/billing-caps.md`, `docs/systems/lifecycle-recovery.md`.
+- The list: `components/app/storage/` (`storage-list.tsx` the shell every door mounts, `storage-list-body.tsx` loaded
+  on first open, the rows, the filter, the strip, the refusal face; pure rules and one reducer beside them), opened
+  as popups' `list` kind: panel at a desk, screen in a hand whose Back says "Dashboard" or "Your plan".
+- The data: `lib/db/queries/storage-list.ts` (RLS-scoped, `events!inner` naming the host, paged by `(size, id)`
+  through `readAllPages`' budget; totals read whole; items presigned, credited without an address) behind
+  `dashboard/storage-actions.ts` (`getRequestAuth`, zod at the boundary, the cap in words; remove through
+  `removeMediaBulk` per event; Undo through `restore_media` per item). Checked on the real PostgREST (the keyset
+  continues a size tie by id) and under RLS as willg97 (`EXPLAIN ANALYZE`, rolled back: her 12 events' index, a top-N
+  sort of 1,273 rows, 2.3 ms).
+- The flip: `pro-price-list.tsx`'s Too small is a press; a server refusal flips its row the same way; the sheet
+  re-reads its facts when the list closes (`use-plan-facts`' `reads`), so a size that now fits is a price again.
+- Storage-r2's notes: `planWithBilling` and `proFitLine` (`storage-guard.ts`); `formatBytesUp` for what she stores on
+  the meter and the Plan card; the Pro head.
+- Verified locally on `/design/library/storage-list` (the meter's door and a refused price over an inert source) at
+  1440 and 375: the flip and Keep, the list stacked over the real plan dialog (its facts answered in the page for
+  the check), largest first, a chip reading one event, Show more (38 of 543, then 78), a selection reaching Remove and
+  switch, the removal and its Undo, focus back on the door when the list closes. The real Server Function answered a
+  signed-out read with its `unauthorized` shape through the lazy chunk, in dev and in the production build. The live
+  pass is build 14's red-team (sign-in cannot run locally); it stops before Stripe's confirm page.
+- Assets requested from Will: none.
+- Board ideas: the over-cap grace banner says "largest files first" with no door; it could open the size list with a
+  goal of her own cap. A goal on the meter's list whenever she is over her cap.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- Calls his to overrule: the twelve Questions above.
+- Look at first: `/design/library/storage-list` (tap Pro 100 GB's Too small, then See what's using space; tick two
+  videos to watch the strip reach Remove and switch; Undo on the toast), then on the alias as willg97 the Account
+  Plan card's Change plan and the dashboard meter's See what's using space.
