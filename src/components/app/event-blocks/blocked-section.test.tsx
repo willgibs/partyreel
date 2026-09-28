@@ -67,12 +67,10 @@ describe("BlockedSection", () => {
     );
     const rows = screen.getAllByRole("listitem");
     expect(rows).toHaveLength(2);
-    expect(
-      within(rows[0]).getByText("sam@example.com · Blocked Sep 28"),
-    ).toBeInTheDocument();
-    expect(
-      within(rows[1]).getByText("Typed a name · Blocked Sep 28"),
-    ).toBeInTheDocument();
+    // Who, then since when: two halves, so a hand can set them on two lines and never cut the date.
+    expect(within(rows[0]).getByText("sam@example.com")).toBeInTheDocument();
+    expect(within(rows[0]).getByText("Blocked Sep 28")).toBeInTheDocument();
+    expect(within(rows[1]).getByText("Typed a name")).toBeInTheDocument();
     expect(
       within(rows[1]).getByLabelText(new RegExp(UNVERIFIED_LABEL, "i")),
     ).toBeInTheDocument();

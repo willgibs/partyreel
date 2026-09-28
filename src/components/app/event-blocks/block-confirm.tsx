@@ -24,7 +24,7 @@ import {
   blockedToast,
   blockTitle,
   blockTouches,
-  NAMES_ONLY_OFFER,
+  namesOnlyOffer,
   type BlockPreview,
   type BlockTarget,
 } from "@/lib/events/event-blocks";
@@ -180,10 +180,10 @@ function BlockConfirmBody({
               className="min-w-0 flex-1 cursor-pointer flex-col items-start gap-1 font-normal"
             >
               <span className="text-sm font-medium text-foreground">
-                {NAMES_ONLY_OFFER.label}
+                {namesOnlyOffer(preview.verified).label}
               </span>
               <span className="text-xs leading-relaxed text-pretty text-muted-foreground">
-                {NAMES_ONLY_OFFER.description}
+                {namesOnlyOffer(preview.verified).description}
               </span>
             </Label>
             <Switch

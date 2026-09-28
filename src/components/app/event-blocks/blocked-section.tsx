@@ -20,7 +20,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import {
   BLOCKED_NOTE,
-  blockedLine,
+  blockedLineParts,
   blockName,
   letBackInLede,
   letBackInTitle,
@@ -69,6 +69,7 @@ function BlockedRow({
 }) {
   const [asking, setAsking] = useState(false);
   const who = blockName(person.name);
+  const parts = blockedLineParts(person);
   return (
     <li
       data-blocked-row={person.id}
@@ -90,8 +91,14 @@ function BlockedRow({
           <span className="truncate">{who}</span>
           {!person.verified && <UnverifiedMark name={person.name} />}
         </p>
-        <p className="truncate text-xs text-muted-foreground">
-          {blockedLine(person)}
+        {/* One line at a desk, two in a hand: the address may shorten, "since when" never does. */}
+        <p className="flex min-w-0 flex-wrap text-xs text-muted-foreground sm:flex-nowrap">
+          <span className="max-w-full min-w-0 truncate">{parts.who}</span>
+          <span aria-hidden className="hidden px-1 sm:inline">
+            ·
+          </span>
+          <span className="sr-only">, </span>
+          <span className="w-full shrink-0 sm:w-auto">{parts.when}</span>
         </p>
       </div>
       <Button
@@ -164,7 +171,7 @@ function LetBackInBody({
       />
       {offer ? (
         <PopupBody>
-          <div className="flex items-start justify-between gap-4 rounded-md border bg-muted/50 px-3 py-2.5">
+          <div className="flex items-start justify-between gap-4">
             <Label
               htmlFor={switchId}
               className="min-w-0 flex-1 cursor-pointer flex-col items-start gap-1 font-normal"

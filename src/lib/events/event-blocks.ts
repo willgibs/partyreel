@@ -101,12 +101,24 @@ function formatMediaUploads(n: number): string {
   return `${n.toLocaleString("en-US")} uploads`;
 }
 
-/** The names-only offer: why a block there holds on one phone, and what the switch does about it. */
-export const NAMES_ONLY_OFFER = {
-  label: "Also require verified emails",
-  description:
-    "This album takes a typed name, so a block holds on the phone they used. With this on, everyone confirms an email before adding, and they can't come back under a new name.",
-} as const;
+/**
+ * The names-only offer: why a block on an album that takes typed names can be walked around, and what
+ * the switch does about it. A typed name's block holds on the phone that used it; a confirmed guest's
+ * holds on their account and address, yet the album would still take them under a typed name. Either
+ * way the switch makes a new name alone not enough (a new confirmed address still is: the one thing
+ * no block keys on is a person, so the words never promise one).
+ */
+export function namesOnlyOffer(verified: boolean): {
+  label: string;
+  description: string;
+} {
+  return {
+    label: "Also require verified emails",
+    description: verified
+      ? "This album also takes typed names, so they could come back under one. With this on, everyone confirms an email before adding, so a new name alone can't bring them back."
+      : "They typed a name, so this block holds on the phone they used. With this on, everyone confirms an email before adding, so a new name alone can't bring them back.",
+  };
+}
 
 /** The success toast after a block. */
 export function blockedToast(
@@ -151,17 +163,24 @@ export type BlockedPerson = {
   restorableUntil: string | null;
 };
 
-/** The line under a blocked person's name. */
-export function blockedLine(person: BlockedPerson): string {
-  const parts = [person.email ?? "Typed a name", person.since];
+/**
+ * The line under a blocked person's name, in its two halves: who they were (the address the block keys
+ * on, or that they typed a name) and since when, with what waits in Deleted. The row sets them on one
+ * line at a desk and two in a hand, so "since when" is never the half a narrow screen cuts.
+ */
+export function blockedLineParts(person: BlockedPerson): {
+  who: string;
+  when: string;
+} {
+  const when = [person.since];
   if (person.restorable > 0) {
-    parts.push(
+    when.push(
       person.restorable === 1
         ? "1 upload in Deleted"
         : `${formatMediaUploads(person.restorable)} in Deleted`,
     );
   }
-  return parts.join(" · ");
+  return { who: person.email ?? "Typed a name", when: when.join(" · ") };
 }
 
 /** The way back's title and line. */

@@ -100,6 +100,26 @@ describe("BlockConfirm", () => {
     expect(refresh).toHaveBeenCalled();
   });
 
+  it("the offer's words fit who is blocked: a typed name's phone, a confirmed guest's typed-name way back", async () => {
+    previewBlockAction.mockResolvedValue(preview());
+    const { unmount } = render(
+      <BlockConfirm open onOpenChange={vi.fn()} target={TARGET} name="Theo" />,
+    );
+    expect(
+      await screen.findByText(/this block holds on the phone they used/),
+    ).toBeInTheDocument();
+    unmount();
+    previewBlockAction.mockResolvedValue(preview({ verified: true }));
+    render(
+      <BlockConfirm open onOpenChange={vi.fn()} target={TARGET} name="Theo" />,
+    );
+    expect(
+      await screen.findByText(
+        /also takes typed names, so they could come back under one/,
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("turning the switch on sends it on", async () => {
     previewBlockAction.mockResolvedValue(preview());
     blockFromEventAction.mockResolvedValue({

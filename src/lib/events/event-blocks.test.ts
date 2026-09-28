@@ -9,19 +9,19 @@ import { describe, expect, it } from "vitest";
 import {
   BLOCK_LEDE,
   BLOCKED_NOTE,
-  NAMES_ONLY_OFFER,
   blockName,
   blockTargetParams,
   blockTargetSchema,
   blockTitle,
   blockTouches,
-  blockedLine,
+  blockedLineParts,
   blockedSince,
   blockedToast,
   deletedUntil,
   letBackInLede,
   letBackInTitle,
   letBackInToast,
+  namesOnlyOffer,
   restoreOffer,
   type BlockedPerson,
 } from "@/lib/events/event-blocks";
@@ -109,9 +109,22 @@ describe("the confirm's words", () => {
     expect(BLOCK_LEDE).toContain("let them back in from Guests");
   });
 
-  it("the names-only offer says why a block holds on one phone, and what the switch does", () => {
-    expect(NAMES_ONLY_OFFER.label).toBe("Also require verified emails");
-    expect(NAMES_ONLY_OFFER.description).toContain(
+  it("the names-only offer says why a block can be walked around, fitted to who is blocked", () => {
+    expect(namesOnlyOffer(false).label).toBe("Also require verified emails");
+    expect(namesOnlyOffer(true).label).toBe("Also require verified emails");
+    // A typed name is held on its phone; a confirmed guest on their account, yet a typed name is open.
+    expect(namesOnlyOffer(true).description).toContain(
+      "could come back under one",
+    );
+    expect(namesOnlyOffer(true).description).not.toContain("phone");
+    // ★ Never a promise the switch cannot keep: a new confirmed address still gets anyone in.
+    for (const offer of [namesOnlyOffer(false), namesOnlyOffer(true)]) {
+      expect(offer.description).toContain(
+        "a new name alone can't bring them back",
+      );
+      expect(offer.description).not.toMatch(/can't come back|never come back/);
+    }
+    expect(namesOnlyOffer(false).description).toContain(
       "holds on the phone they used",
     );
   });
@@ -142,16 +155,19 @@ const person = (over: Partial<BlockedPerson> = {}): BlockedPerson => ({
 });
 
 describe("the Blocked list and the way back", () => {
-  it("a row says the address or that they typed a name, since when, and what waits in Deleted", () => {
-    expect(blockedLine(person())).toBe("sam@example.com · Blocked Sep 28");
-    expect(blockedLine(person({ email: null, verified: false }))).toBe(
-      "Typed a name · Blocked Sep 28",
+  it("a row says the address or that they typed a name, then since when and what waits in Deleted", () => {
+    expect(blockedLineParts(person())).toEqual({
+      who: "sam@example.com",
+      when: "Blocked Sep 28",
+    });
+    expect(blockedLineParts(person({ email: null, verified: false })).who).toBe(
+      "Typed a name",
     );
-    expect(blockedLine(person({ restorable: 1 }))).toBe(
-      "sam@example.com · Blocked Sep 28 · 1 upload in Deleted",
+    expect(blockedLineParts(person({ restorable: 1 })).when).toBe(
+      "Blocked Sep 28 · 1 upload in Deleted",
     );
-    expect(blockedLine(person({ restorable: 5 }))).toMatch(
-      / · 5 uploads in Deleted$/,
+    expect(blockedLineParts(person({ restorable: 5 })).when).toBe(
+      "Blocked Sep 28 · 5 uploads in Deleted",
     );
     expect(BLOCKED_NOTE).toMatch(/^Only you see this list\./);
   });
@@ -218,13 +234,14 @@ describe("the bible's copy rules hold in every sentence here", () => {
     const words = [
       BLOCK_LEDE,
       BLOCKED_NOTE,
-      NAMES_ONLY_OFFER.label,
-      NAMES_ONLY_OFFER.description,
+      namesOnlyOffer(false).label,
+      namesOnlyOffer(false).description,
+      namesOnlyOffer(true).description,
       blockTitle("Sam"),
       ...blockTouches(2),
       blockedToast("Sam", 2).title,
       blockedToast("Sam", 2).description ?? "",
-      blockedLine(person({ restorable: 2 })),
+      blockedLineParts(person({ restorable: 2 })).when,
       letBackInTitle("Sam"),
       letBackInLede("Party"),
       restoreOffer({ restorable: 2, restorableUntil: "October 28" })
