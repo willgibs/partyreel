@@ -125,3 +125,62 @@
 .tri-measure {
   font-variant-numeric: tabular-nums;
 }
+
+/* THE GRID'S PEEK (`look=grid`, the production refresh): the host review
+   queue's `peek=verdict` grammar, drawn open. FIXED, because the frame IS the
+   viewport; the ground is its own element under the photograph (GLASS_BEHIND's
+   rule), and the stage takes what the foot leaves, so a tall frame shrinks to
+   fit rather than pushing the verdict off the screen. */
+.tri-peek {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3.75rem 1.5rem 1.5rem;
+}
+
+.tri-peek-ground {
+  position: absolute;
+  inset: 0;
+}
+
+.tri-peek-stage {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.tri-peek-foot {
+  position: relative;
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+/* WHO IS TOLD (`notice`): four people side by side at a laptop, two by two
+   under 1024, one column in a hand. A media query here rather than a `lg:`
+   utility for the reason `.tri-row` gives above. */
+.tri-told {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .tri-told {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .tri-told {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

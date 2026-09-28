@@ -4,9 +4,11 @@ import { NAV, type NavItem } from "@/lib/admin/nav";
 /**
  * ONE OPERATOR'S SATURDAY NIGHT, AND EVERY OPTION ON THIS BOARD WEARS IT.
  *
- * Three reports are open and four are closed, which is the same Tuesday the
- * `admin` board draws (`ALERTS.reports = 3`) moved to the hour a wedding is
- * actually running. Every decision below draws the SAME seven rows, so a shape
+ * Three album and item reports are open and four are closed (`ALERTS.reports =
+ * 3`, the count the retired `admin` board drew), at the hour a wedding is
+ * actually running; the refreshed steps add the open report about a person
+ * that the page lists first (`PERSON_REPORTS`, below). Every decision draws the
+ * SAME seven album and item rows, so a shape
  * is judged on how it handles a real queue rather than on how much data its
  * author happened to give it. The fourth closed report (boards refresh,
  * 2026-09-24) is a removal several days old, neither "Yesterday" nor held: the
@@ -176,6 +178,54 @@ export const REPORTS: ReportRow[] = [
 export const OPEN_REPORTS = REPORTS.filter((r) => r.status === "open");
 export const CLOSED_REPORTS = REPORTS.filter((r) => r.status !== "open");
 
+/* ── The People section (the production refresh, 2026-09-28) ─────────────── */
+
+/**
+ * A REPORT ABOUT A PERSON, which `/admin/reports` lists FIRST whenever one is
+ * open (`PersonReportList` over `listProfileReports`, since 20260919130000):
+ * no event, no media, nothing to presign, only the name, the handle the page
+ * links to `/u/<slug>`, the reason and when. Nothing about the reporter,
+ * because nothing stores one.
+ *
+ * ★ KEPT OUT OF `REPORTS` ON PURPOSE. `phone`, `closed` and `idiom` were left
+ * untouched by the refresh (Will may be answering them), and all three read
+ * `OPEN_REPORTS` or count three open reports; folding this row in would have
+ * redrawn them. So the night on the refreshed steps is four open reports (the
+ * rail says so through `WITH_PEOPLE`), and the untouched ones keep the three
+ * they were drawn with.
+ */
+export type PersonReportRow = {
+  id: string;
+  /** The reported account's display name, the card's title. */
+  name: string;
+  /** Its public handle, a link to the live profile; null renders "No public handle". */
+  slug: string | null;
+  when: string;
+  reason: string | null;
+  status: ReportStatus;
+};
+
+export const PERSON_REPORTS: PersonReportRow[] = [
+  {
+    id: "3e81c5a9-47d2-4f60-b1e8-9a2c6d0f7b35",
+    name: "Jordan Pike",
+    slug: "jordanpike",
+    when: "Tonight, 21:37",
+    reason: "This account is using my name and a photo of me. It isn't me.",
+    status: "open",
+  },
+];
+
+export const OPEN_PEOPLE = PERSON_REPORTS.filter((r) => r.status === "open");
+
+/**
+ * The rail's and the bell's count where the People section is drawn: the
+ * page's own count reads every open report, either arm (`countOpenReports`).
+ */
+export const WITH_PEOPLE = {
+  reports: OPEN_REPORTS.length + OPEN_PEOPLE.length,
+};
+
 /** The still a reported frame draws. Throws on a typo rather than drawing a gap. */
 export const frameOf = (row: ReportRow) =>
   row.media ? marketingImage(row.media.image) : null;
@@ -298,20 +348,19 @@ export const AUDIT: AuditRow[] = [
 ];
 
 /**
- * The uploader behind tonight's first report, as `/admin/accounts` knows them.
- * The runbook's step 2 says to preserve the surrounding CONTEXT as well as the
- * one frame, so what else this person has in this album is part of the act.
+ * The uploader behind tonight's first report: a guest with no account, known
+ * by the name she typed at the door. The runbook's step 2 says to preserve the
+ * surrounding CONTEXT as well as the one frame, so what else she sent to this
+ * album is part of the hold (`escalate`), and `notice` draws what her own
+ * uploads list says afterwards. (The refresh dropped the cross-event count the
+ * first hold panel drew: it matched events by an address nobody proved.)
  */
 export const UPLOADER = {
-  label: "Guest, no account",
-  device: "pr_device 3f9c2a...",
-  email: "kerry.oshea@gmail.com",
+  name: "Kerry",
   inThisEvent: 14,
-  acrossEvents: 2,
-  firstSeen: "Tonight, 21:52",
 };
 
-/* ── The rail (the `admin` board's answer, worn as settled) ──────────────── */
+/* ── The rail (the retired `admin` board's answer, as it shipped) ────────── */
 
 export type NavEntry = NavItem & { count: number };
 
@@ -327,9 +376,20 @@ export const SURFACES: NavEntry[] = NAV.map((n) => ({
   count: COUNTS[n.href] ?? 0,
 }));
 
-export function surfaceGroups(): { group: string; items: NavEntry[] }[] {
+/**
+ * The rail's groups. `reports` overrides the Reports row's count on the steps
+ * that draw the People section (`WITH_PEOPLE`); every other step keeps the
+ * count it was drawn with.
+ */
+export function surfaceGroups(
+  over: { reports?: number } = {},
+): { group: string; items: NavEntry[] }[] {
   const out: { group: string; items: NavEntry[] }[] = [];
-  for (const item of SURFACES) {
+  for (const base of SURFACES) {
+    const item =
+      over.reports !== undefined && base.href === "/admin/reports"
+        ? { ...base, count: over.reports }
+        : base;
     const last = out.at(-1);
     if (last?.group === item.group) last.items.push(item);
     else out.push({ group: item.group, items: [item] });
