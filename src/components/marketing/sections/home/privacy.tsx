@@ -37,7 +37,8 @@ const CLAIMS: { title: string; body: string }[] = [
   },
   {
     title: "Three ways to share",
-    body: "Open, password-protected on paid plans, or fully private. A locked event shows only its name and a count.",
+    // Every plan since the free/pro shift (2026-09-28): the password came down to Free.
+    body: "Open, password-protected, or fully private, on every plan. A locked event shows only its name and a count.",
   },
   {
     title: "A verified email to upload",

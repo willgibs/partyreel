@@ -1,10 +1,5 @@
 import { smallestProFor } from "@/components/marketing/sections/pricing/recommend";
-import {
-  MAX_EVENTS,
-  MAX_REEL_SECONDS,
-  plansForTier,
-  type Plan,
-} from "@/lib/constants/tiers";
+import { MAX_EVENTS, plansForTier, type Plan } from "@/lib/constants/tiers";
 
 /**
  * WHY A PRICING SURFACE OPENED (`first=trigger`, Will 2026-09-20: "A locked
@@ -28,7 +23,12 @@ import {
  * both read it.
  */
 
-/** The three gated capabilities behind the app's four locked controls. */
+/**
+ * The capabilities a lock can stand in front of. Since the free/pro shift (Will, 2026-09-28) only
+ * `video` is locked anywhere: the password and the custom link are on every plan, and their
+ * entries stay so the controls' locked branches still read right the day either is gated again
+ * (`GATED_EVENT_SETTINGS` in tiers.ts, the one list that decides it).
+ */
 export type LockedFeature = "password" | "custom_slug" | "video";
 
 export type PricingTrigger =
@@ -94,6 +94,11 @@ export function openingPlanFor(trigger: PricingTrigger, storedBytes = 0): Plan {
  * a couple of benefits (Unlimited events, videos, more storage maybe? phrased
  * better) in this more minimal version").
  *
+ * ★ PRO IS WHAT FREE LACKS, AND NOTHING ELSE (the free/pro shift, his words:
+ * "videos, more storage, unlimited events, no reel watermarks"). The storage is
+ * the card itself (its name and what it holds); these are the other three.
+ * Passwords, custom links and clip length left the list when they came to Free.
+ *
  * ★ NOT A SECOND HOME FOR THE MARKETING COPY. /pricing's unlock grid is four
  * headed tiles with a Free line under each; this is three clauses inside a card
  * a thumb is holding, and every number in them is read from `tiers.ts` rather
@@ -108,6 +113,6 @@ export function proBenefitLines(): string[] {
       : MAX_EVENTS.free === 1
         ? "Unlimited events, not just the one"
         : `Unlimited events, not ${MAX_EVENTS.free}`,
-    `Password locks, custom links, ${MAX_REEL_SECONDS.pro}-second reels`,
+    "Clips with no watermark",
   ];
 }

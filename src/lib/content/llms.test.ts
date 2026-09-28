@@ -10,8 +10,10 @@ import { FAQ_ITEMS } from "@/components/marketing/faq-data";
 import { PRICING_FAQ_ITEMS } from "@/components/marketing/sections/pricing/pricing-faq-data";
 import { EVENT_TYPE_SLUGS } from "@/lib/constants/events";
 import { FEATURE_PAGE_SLUGS } from "@/lib/constants/feature-pages";
+import { monthlyIngressCap, PLANS } from "@/lib/constants/tiers";
 import { getPostListItems } from "@/lib/content/blog";
 import { LLMS_BLOG_LIMIT, LLMS_HELP_PER_SHELF } from "@/lib/content/llms";
+import { formatBytes } from "@/lib/utils";
 import { getAllArticles } from "@/lib/content/help";
 
 import { buildLlmsFullTxt, buildLlmsTxt } from "./llms";
@@ -75,16 +77,20 @@ describe("buildLlmsTxt", () => {
       "$39/mo",
       "$90/yr",
       "$390/yr",
-      "2 GB",
+      "100 MB", // Free since the free/pro shift (it was 2 GB)
       "75 GB",
       "10 GB",
     ]) {
       expect(txt, `mentions ${marketed}`).toContain(marketed);
     }
     // The unmarketed backstop numbers (also enforced by content-policy over
-    // this module's source; this asserts the generated OUTPUT too).
+    // this module's source; this asserts the generated OUTPUT too), derived
+    // from tiers.ts so a moved cap moves the fence with it.
     expect(txt).not.toMatch(/\bingress\b/i);
-    expect(txt).not.toMatch(/\b(?:225|300) ?GB\b|\b(?:1\.5|6) ?TB\b/);
+    for (const plan of PLANS) {
+      const bound = monthlyIngressCap(plan.tier, plan.storageBytes);
+      if (bound !== null) expect(txt).not.toContain(formatBytes(bound));
+    }
   });
 
   it("includes the honest-limits section (the trust anchor)", () => {

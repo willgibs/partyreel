@@ -162,7 +162,9 @@ the shared file or the blog's (each file's header says whose it is).
   `<PlanPrice id>`, `<ReelStyleCount />`, `<RecoveryWindowDays />`, `<InactiveDays />`,
   `<CapacityEstimate plan>`, `<Yes />` / `<No />` and the rest; the full table is in
   `../blog/AUTHORING.md`). One name, one number: `<OverCapGraceDays />` renders the
-  bare number on both surfaces, so write the unit in prose.
+  bare number on both surfaces, so write the unit in prose. An estimate always says
+  its camera: `<CapacityEstimate>` carries "at an iPhone's default camera settings",
+  and `basis="off"` is only for a sentence that says it once with `<EstimateBasis />`.
 
 ## The library map
 

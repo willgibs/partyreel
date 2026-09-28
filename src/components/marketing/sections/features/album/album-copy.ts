@@ -107,7 +107,8 @@ export const WHO_CAN_OPEN = {
   subhead:
     "One setting decides who sees the album. A new event asks guests for an email first.",
   facts: [
-    "Password protection comes with Pro and Event Pass.",
+    // Every plan since the free/pro shift (2026-09-28): the password came down to Free.
+    "Password protection comes with every plan, Free included.",
     "Album links are never listed by search engines.",
   ],
 };

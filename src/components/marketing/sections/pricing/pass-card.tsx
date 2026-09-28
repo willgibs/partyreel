@@ -11,7 +11,6 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 import {
   EVENT_PASS_RENEWAL_PRICE_LABEL,
   friendlyCapacity,
-  MAX_REEL_SECONDS,
   planById,
 } from "@/lib/constants/tiers";
 import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-cap";
@@ -50,6 +49,10 @@ import { formatBytes } from "@/lib/utils";
  * Both billing-caps.md promises render here because both are TRUE in the
  * product now: passes stack, and unused pass time converts to prorated credit
  * on Pro. Every number comes from tiers.ts.
+ *
+ * ★ ITS REASON IS WHAT IT WAS, WITHOUT THE LOCKS (the free/pro shift): one
+ * event, video, its own room, no subscription. The password and the custom
+ * link are on every plan now, so its lines name what a pass adds over Free.
  */
 
 /** The frame: the one big event a pass covers. */
@@ -153,12 +156,8 @@ export function PassCard() {
         <div className="flex flex-1 flex-col gap-4 p-6 sm:p-7">
           <ul className="flex flex-col gap-2.5">
             <PassPoint>Photos and video, like Pro</PassPoint>
-            <PassPoint>
-              {MAX_REEL_SECONDS.event_pass}-second clips, no watermark
-            </PassPoint>
-            <PassPoint>
-              Password lock, custom link, no inactivity sweep
-            </PassPoint>
+            <PassPoint>Clips with no watermark</PassPoint>
+            <PassPoint>No subscription, and no inactivity sweep</PassPoint>
             <PassPoint>
               Passes stack: each one adds an event and{" "}
               {formatBytes(pass.storageBytes)}

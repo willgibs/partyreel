@@ -91,7 +91,7 @@ export default function HowItWorksPage() {
           spend its own on the same door. */}
       <CtaBand
         heading="Start your first event free."
-        subhead={`${formatBytes(free.storageBytes)} covers a whole first event, and plans are sized by storage, not guest counts. Create the event, share one QR code, and the whole thing lands in one album.`}
+        subhead={`Free gives you ${formatBytes(free.storageBytes)} to try it on a small event, and paid plans are sized by storage, not guest counts. Create the event, share one QR code, and the whole thing lands in one album.`}
         secondary={{ label: "See full pricing", href: "/pricing" }}
         demoLink
       />

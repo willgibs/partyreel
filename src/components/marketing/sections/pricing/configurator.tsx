@@ -14,11 +14,17 @@ import {
   annualPlanFor,
   friendlyCapacity,
   GIGABYTE,
+  planById,
+  videosAllowedForTier,
 } from "@/lib/constants/tiers";
 import { cn, formatBytes } from "@/lib/utils";
 
 import { PhotoStack, StatRow } from "./plan-cards";
-import { recommendPlan, type Recommendation } from "./recommend";
+import {
+  capacityPhrase,
+  recommendPlan,
+  type Recommendation,
+} from "./recommend";
 
 /**
  * THE CONFIGURATOR (`pricing-page` r2, `fit=split`, Will 2026-09-20). Round
@@ -63,10 +69,27 @@ import { recommendPlan, type Recommendation } from "./recommend";
  * The island holds the controls and the frame, nothing else.
  */
 
-/** The curated stop ladder: meaningful detents (the 2 GB Free cap, the 75 GB
- *  pass, the three Pro sizes), clean keyboard steps, honest numbers. */
+/** The curated stop ladder: meaningful detents (the Free cap, the 75 GB pass,
+ *  the three Pro sizes), clean keyboard steps, honest numbers. The first stop
+ *  IS Free's cap, read from tiers.ts (100 MB since the free/pro shift, a
+ *  fraction of a GB), so the block can say "Free covers it" at the exact size
+ *  where that is true. */
 export const STOP_GB = [
-  1, 2, 5, 10, 25, 50, 75, 100, 150, 250, 500, 750, 1024, 1536, 2048,
+  planById("free").storageBytes / GIGABYTE,
+  1,
+  5,
+  10,
+  25,
+  50,
+  75,
+  100,
+  150,
+  250,
+  500,
+  750,
+  1024,
+  1536,
+  2048,
 ];
 
 /**
@@ -92,7 +115,6 @@ export function Configurator() {
     () => recommendPlan({ bytes, video, hostingAgain }),
     [bytes, video, hostingAgain],
   );
-  const need = friendlyCapacity(bytes);
 
   return (
     <SectionShell
@@ -150,15 +172,11 @@ export function Configurator() {
                   </span>
                 </div>
 
-                {/* The equivalence: what that room actually holds, live. */}
+                {/* The equivalence: what that room actually holds, live, and
+                    the camera it assumes (host-storage r2). The block's one
+                    basis: the reasons beside it do not repeat it. */}
                 <p className="mt-4 text-caption text-pretty text-muted-foreground">
-                  about {need.photos.toLocaleString()} photos
-                  {video &&
-                    ` or ${
-                      need.videoMinutes >= 120
-                        ? `${Math.round(need.videoMinutes / 60).toLocaleString()} hours`
-                        : `${need.videoMinutes.toLocaleString()} minutes`
-                    } of video`}
+                  {capacityPhrase(bytes, video)}
                 </p>
               </div>
 
@@ -303,7 +321,10 @@ function ResultCard({
               { value: formatBytes(rec.plan.storageBytes), label: "Storage" },
               { value: `≈ ${cap.photos.toLocaleString()}`, label: "Photos" },
               {
-                value: `${Math.round(cap.videoMinutes / 60).toLocaleString()} h`,
+                // A photos-only plan holds no video at all: "0 h" read as a size.
+                value: videosAllowedForTier(rec.plan.tier)
+                  ? `${Math.round(cap.videoMinutes / 60).toLocaleString()} h`
+                  : "None",
                 label: "Video",
               },
             ]}

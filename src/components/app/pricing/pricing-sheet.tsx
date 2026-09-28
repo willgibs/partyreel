@@ -5,6 +5,11 @@ import { ArrowUpRight, Check } from "lucide-react";
 
 import { CheckoutButton } from "@/components/app/checkout-button";
 import { ManageBillingButton } from "@/components/app/manage-billing-button";
+import {
+  HeldChip,
+  PlanCardHead,
+  planCardClass,
+} from "@/components/app/pricing/plan-card";
 import { ProPriceList } from "@/components/app/pricing/pro-price-list";
 import {
   LOCKED_FEATURES,
@@ -31,6 +36,7 @@ import {
 } from "@/lib/billing/storage-guard";
 import {
   DEFAULT_TIER,
+  ESTIMATE_BASIS_NOTE,
   TIER_NAMES,
   formatCapacity,
   planById,
@@ -38,7 +44,7 @@ import {
   type Plan,
   type Tier,
 } from "@/lib/constants/tiers";
-import { cn, formatBytes } from "@/lib/utils";
+import { formatBytes } from "@/lib/utils";
 
 /**
  * PRICING, INSIDE THE APP (`object=sheet` + `first=trigger` + `carry=cards` +
@@ -73,9 +79,19 @@ import { cn, formatBytes } from "@/lib/utils";
  * change leaves a host storing more than the new cap). When it opens it reads
  * `/api/stripe/plan-facts`, so it opens on the smallest Pro size that FITS
  * whatever door opened it, says which smaller sizes it skipped, and shows a Pro
- * host the six prices with theirs marked (`pro-price-list.tsx`), each switch
- * going through the storage check before Stripe's confirm page. The facts beat
- * the door's claim when they arrive: they are fresher and come from the server.
+ * host her three sizes under one Monthly / Yearly toggle with hers marked
+ * (`pro-price-list.tsx`, host-storage r2), each switch going through the
+ * storage check before Stripe's confirm page. The facts beat the door's claim
+ * when they arrive: they are fresher and come from the server.
+ *
+ * ★ ONE TOGGLE, AND ONLY FOR A PRO HOST. `carry` still holds for everyone
+ * choosing a first plan (one Pro size at one cadence, beside Free); a Pro host
+ * came to change hers, and his `prices=sizes` note is the one that asked for
+ * the Monthly / Yearly toggle on top of her sizes.
+ *
+ * ★ EVERY ESTIMATE SAYS ITS CAMERA (host-storage r2): the cards print "about N
+ * photos", and one line under them says what that assumes
+ * (`ESTIMATE_BASIS_NOTE`, an iPhone at its default settings).
  *
  * ★ NOTHING HERE DECIDES AN ENTITLEMENT, AND IT COULD NOT IF IT TRIED
  * (billing-caps.md). The tier, the bytes and the current price only pick which
@@ -121,9 +137,12 @@ export type PricingSheetProps = {
   onOpenChange?: (open: boolean) => void;
 };
 
-/** "about 25,600 photos or 10 hours of video", the shared formatter's sentence. */
+/**
+ * "about 29,257 photos or 26 hours of video", the shared formatter's sentence, without its
+ * basis: the sheet says the basis once, under its cards (`data-note="basis"`).
+ */
 function holds(bytes: number, video = true): string {
-  return `about ${formatCapacity(bytes, { video })}`;
+  return `about ${formatCapacity(bytes, { video, basis: false })}`;
 }
 
 /** The words at the top: the one thing a static /pricing can never say. */
@@ -211,7 +230,8 @@ function Benefit({ children }: { children: ReactNode }) {
 /**
  * One plan as a card, the popup's full width (the plans stack). Pro is the same
  * card in ink, the pair's shipped read; the plan a host holds says so beside
- * its name, where a stacked card has the room for it.
+ * its name, where a stacked card has the room for it. The grammar is
+ * `plan-card.tsx`'s, which a Pro host's three sizes wear too.
  */
 function PlanCard({
   plan,
@@ -225,43 +245,13 @@ function PlanCard({
   children?: ReactNode;
 }) {
   return (
-    <div
-      data-plan={plan.id}
-      className={cn(
-        "flex min-w-0 flex-col gap-3 rounded-xl border p-4",
-        ink ? "border-transparent bg-foreground" : "bg-card",
-      )}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="space-y-1">
-          <p
-            className={cn(
-              "text-sm font-medium",
-              ink ? "text-background" : "text-foreground",
-            )}
-          >
-            {plan.name}
-          </p>
-          <p
-            className={cn(
-              "font-heading text-subsection tabular-nums",
-              ink && "text-background",
-            )}
-          >
-            {plan.priceLabel}
-          </p>
-          <p
-            className={cn("text-xs", ink ? "text-background/70" : "text-faint")}
-          >
-            {holds(plan.storageBytes, plan.tier !== "free")}
-          </p>
-        </div>
-        {held ? (
-          <span className="inline-flex h-7 shrink-0 items-center justify-center rounded-action-sm border border-border px-2.5 text-xs text-muted-foreground">
-            Your plan
-          </span>
-        ) : null}
-      </div>
+    <div data-plan={plan.id} className={planCardClass(ink)}>
+      <PlanCardHead
+        plan={plan}
+        ink={ink}
+        holds={holds(plan.storageBytes, plan.tier !== "free")}
+        aside={held ? <HeldChip ink={ink} /> : null}
+      />
       {children}
     </div>
   );
@@ -327,11 +317,12 @@ export function PricingSheet({
 
         <PopupBody className="space-y-3">
           {tier === "pro" ? (
-            /* A subscriber is told she subscribes, and her plan is six prices
-               with hers marked. Sizes and cadences change HERE, through the
-               storage check; the portal keeps the card, the invoices and
-               cancelling (billing-caps.md). A size too small flips in place,
-               and its list of what is using space stacks over this plan. */
+            /* A subscriber is told she subscribes, and her plan is her three
+               sizes under one Monthly / Yearly toggle, hers marked. Sizes and
+               cadences change HERE, through the storage check; the portal keeps
+               the card, the invoices and cancelling (billing-caps.md). A size
+               too small flips in place, and its list of what is using space
+               stacks over this plan. */
             <>
               <ProPriceList
                 facts={facts}
@@ -401,6 +392,12 @@ export function PricingSheet({
                   the new size.
                 </p>
               ) : null}
+
+              {/* What both cards' "about N photos" assume, once, the quietest
+                  line under them (host-storage r2). */}
+              <p data-note="basis" className="text-xs text-pretty text-faint">
+                {ESTIMATE_BASIS_NOTE}
+              </p>
 
               {/* THE PASS ON ONE LINE (`pass=line`). It opens the same gate for
                   less, so leaving it out would be dishonest; giving it Pro's

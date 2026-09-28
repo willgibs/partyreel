@@ -5,6 +5,7 @@ import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import {
+  ESTIMATE_BASIS_NOTE,
   friendlyCapacity,
   MAX_EVENTS,
   planById,
@@ -165,6 +166,15 @@ export function HowMuchFits() {
             index={2}
           />
         </div>
+        {/* The strip's photo counts assume one camera, and say which
+            (host-storage r2): once, under the three columns. */}
+        <p
+          data-mkt-reveal
+          className="mt-4 text-center text-xs text-pretty text-faint"
+          style={{ "--i": 6 } as CSSProperties}
+        >
+          {ESTIMATE_BASIS_NOTE}
+        </p>
       </Reveal>
 
       {/* The cap, honestly: the guest's refusal in the app's own words, beside
@@ -182,7 +192,9 @@ export function HowMuchFits() {
         >
           <span className="mt-0.5 size-2 shrink-0 rounded-full bg-destructive" />
           <span className="flex flex-col gap-0.5">
-            <span className="text-sm font-medium">1 of 6 didn&rsquo;t upload</span>
+            <span className="text-sm font-medium">
+              1 of 6 didn&rsquo;t upload
+            </span>
             <span className="text-sm text-muted-foreground">
               This album is full right now. The host needs to free up space.
             </span>

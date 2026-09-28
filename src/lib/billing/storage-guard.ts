@@ -139,17 +139,20 @@ export function refusalSentence(
 }
 
 /**
- * THE PRO PRICE LIST'S FIT LINE: why some of her rows say Too small, read at HER
- * billing (monthly while it is not known). It names the largest size that cannot
- * hold what she stores (the cheapest move a removal buys) and the smallest that
- * can; when that smallest is her own plan it offers nothing, since she is on it
- * already, and the line ends at what to remove. Null when every size holds it.
+ * THE PRO PRICE LIST'S FIT LINE: why some of her sizes say Too small, read at the
+ * billing the list shows (hers by default, monthly while it is not known: the list's
+ * Monthly / Yearly toggle passes what it shows, so the line never names a price the
+ * cards are not showing). It names the largest size that cannot hold what she stores
+ * (the cheapest move a removal buys) and the smallest that can; when that smallest is
+ * her own plan it offers nothing, since she is on it already, and the line ends at
+ * what to remove. Null when every size holds it.
  */
 export function proFitLine(
   storedBytes: number,
   current: Plan | null,
+  interval: "month" | "year" = current?.interval ?? "month",
 ): string | null {
-  const sizes = plansForTier("pro", current?.interval ?? "month").sort(
+  const sizes = plansForTier("pro", interval).sort(
     (a, b) => a.storageBytes - b.storageBytes,
   );
   const tooSmall = sizes.filter((plan) => !planHolds(plan, storedBytes));

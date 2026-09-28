@@ -1,12 +1,13 @@
 /**
  * The calculator's decision tree pins the REAL product walls (free = photos-only
- * + 2 GB; a pass = one event + 75 GB; hosting again = Pro; smallest Pro that
- * fits). If a wall moves in tiers.ts these expectations move with it by
- * derivation, but the SHAPE of each branch is pinned here.
+ * + its cap, 100 MB since the free/pro shift; a pass = one event + 75 GB;
+ * hosting again = Pro; smallest Pro that fits). If a wall moves in tiers.ts
+ * these expectations move with it by derivation, but the SHAPE of each branch
+ * is pinned here.
  */
 import { describe, expect, it } from "vitest";
 
-import { GIGABYTE, TERABYTE } from "@/lib/constants/tiers";
+import { GIGABYTE, planById, TERABYTE } from "@/lib/constants/tiers";
 
 import { recommendPlan, smallestProFor } from "./recommend";
 
@@ -23,12 +24,21 @@ describe("smallestProFor", () => {
 describe("recommendPlan", () => {
   it("one small photos-only event → Free, with the pass as the honest alternative", () => {
     const rec = recommendPlan({
-      bytes: 1 * GIGABYTE,
+      bytes: planById("free").storageBytes,
       video: false,
       hostingAgain: false,
     });
     expect(rec.planId).toBe("free");
     expect(rec.alternative).toContain("Event Pass");
+  });
+
+  it("a gigabyte of photos is past Free now: the pass, not Free (the shift's 100 MB)", () => {
+    const rec = recommendPlan({
+      bytes: 1 * GIGABYTE,
+      video: false,
+      hostingAgain: false,
+    });
+    expect(rec.planId).toBe("event_pass");
   });
 
   it("video flips a small one-off event to the Event Pass (Free is photos-only)", () => {

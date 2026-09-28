@@ -31,9 +31,11 @@ import { PricingSheet, type PricingPlanFacts } from "./pricing-sheet";
  *     and says which smaller sizes it skipped.
  *  3. IT CARRIES TWO CARDS AND A PRICE, AND NOT THE MARKETING PAGE
  *     (`carry=cards`, which OVERRULED the board's `fitted`): no storage
- *     selector, no cadence toggle, no table. A reintroduced selector turns
- *     this red, which is the point of pinning an absence. A Pro host's six
- *     prices are a list of buttons, never a selector either.
+ *     selector, no cadence toggle, no table, for a host choosing a first plan.
+ *     A reintroduced selector turns this red, which is the point of pinning an
+ *     absence. A Pro host's six prices are three size cards under ONE
+ *     Monthly / Yearly toggle (host-storage r2, `prices=sizes`: his note asked
+ *     for exactly that toggle), and never a selector either.
  *  4. EVERY NUMBER COMES FROM tiers.ts. The plan ids the buy buttons carry are
  *     the ids the Stripe webhook and the SQL enforcement read, so a card
  *     selling a plan Checkout does not know is a red test rather than a 400.
@@ -101,6 +103,10 @@ function openSheet(
   return screen.getByRole("dialog");
 }
 
+/** The Pro list's Monthly / Yearly toggle, pressed by its billing. */
+const cadence = (dialog: HTMLElement, billing: "month" | "year") =>
+  dialog.querySelector(`[data-cadence="${billing}"]`) as HTMLElement;
+
 /** The ink card is the one selling a Pro plan; found by its plan id, not its look. */
 const proCard = (dialog: HTMLElement, planId = PRO_SIZES[0].id) =>
   dialog.querySelector(`[data-plan="${planId}"]`) as HTMLElement;
@@ -110,14 +116,15 @@ const row = (dialog: HTMLElement, planId: string) =>
 
 describe("it opens on the reason it opened", () => {
   it("names the locked control, on the control that refused you", () => {
+    // Video since the free/pro shift: the password lock this pinned is on every plan now.
     const dialog = openSheet({
-      trigger: { kind: "locked", feature: "password" },
+      trigger: { kind: "locked", feature: "video" },
     });
-    // The lock's own vocabulary reaches the heading: a host who tapped a
-    // password lock must not land on a generic plan catalogue.
+    // The lock's own vocabulary reaches the heading: a host who tapped the
+    // video lock must not land on a generic plan catalogue.
     expect(dialog.getAttribute("data-pricing-sheet")).toBe("locked");
     expect(
-      within(dialog).getByRole("heading", { name: /password/i }),
+      within(dialog).getByRole("heading", { name: /video/i }),
     ).toBeInTheDocument();
   });
 
@@ -149,19 +156,24 @@ describe("it opens on the reason it opened", () => {
       }),
     ).toBeInTheDocument();
     // No checkout card: a second subscription double-bills one cap
-    // (billing-caps.md). Her moves are the six prices, and the portal keeps
-    // the card, the invoices and cancelling.
+    // (billing-caps.md). Her moves are the six prices, three sizes at a time
+    // under the toggle, and the portal keeps the card, the invoices and
+    // cancelling.
     expect(dialog.querySelector("[data-plan]")).toBeNull();
-    expect(dialog.querySelectorAll("[data-price-row]")).toHaveLength(6);
+    expect(dialog.querySelectorAll("[data-price-row]")).toHaveLength(3);
     expect(
-      within(dialog).getByRole("button", { name: /billing/i }),
+      within(dialog).getByRole("button", { name: /manage billing/i }),
     ).toBeInTheDocument();
-    // Hers is marked, and is the one row with nothing to press.
+    // Hers is marked, and is the one card with nothing to press.
     await waitFor(() =>
       expect(row(dialog, "pro_500").getAttribute("data-current")).toBe("true"),
     );
     expect(within(row(dialog, "pro_500")).queryByRole("button")).toBeNull();
     expect(within(row(dialog, "pro_2tb")).getByRole("button")).toBeTruthy();
+    // The other three prices are one press away.
+    await userEvent.click(cadence(dialog, "year"));
+    expect(dialog.querySelectorAll("[data-price-row]")).toHaveLength(3);
+    expect(row(dialog, "pro_500_yr")).toBeTruthy();
   });
 });
 
@@ -221,19 +233,31 @@ describe("a Pro host's six prices", () => {
     await waitFor(() =>
       expect(row(dialog, "pro_100").getAttribute("data-fits")).toBe("false"),
     );
-    for (const id of ["pro_100", "pro_100_yr"]) {
+    const noSwitch = (id: string) =>
       expect(
         within(row(dialog, id)).queryByRole("button", { name: /switch/i }),
       ).toBeNull();
-    }
-    for (const id of ["pro_500", "pro_500_yr", "pro_2tb_yr"]) {
+    const aSwitch = (id: string) =>
       expect(
         within(row(dialog, id)).getByRole("button", { name: /switch/i }),
       ).toBeTruthy();
-    }
+    noSwitch("pro_100");
+    aSwitch("pro_500");
+    // Fit is drawn before a tap: the size too small is visibly over, by what she must free.
+    expect(row(dialog, "pro_100").textContent).toContain("over by 40 GB");
     // The numbers sentence, and the Deleted line (500 GB fits and is smaller).
     expect(dialog.querySelector('[data-note="fit"]')).toBeTruthy();
     expect(dialog.querySelector('[data-note="deleted"]')).toBeTruthy();
+
+    await userEvent.click(cadence(dialog, "year"));
+    noSwitch("pro_100_yr");
+    aSwitch("pro_500_yr");
+    // Her own size, yearly: the one switch that changes only how she pays, and says so.
+    expect(
+      within(row(dialog, "pro_2tb_yr")).getByRole("button", {
+        name: "Switch to yearly",
+      }),
+    ).toBeTruthy();
   });
 
   it("flips a too-small price in place to the refusal, with the list's door and a way back", async () => {
@@ -282,6 +306,10 @@ describe("a Pro host's six prices", () => {
     });
     const dialog = openSheet({ plan: PRO });
     await waitFor(() =>
+      expect(row(dialog, "pro_500").getAttribute("data-current")).toBe("true"),
+    );
+    await userEvent.click(cadence(dialog, "year"));
+    await waitFor(() =>
       expect(row(dialog, "pro_100_yr").getAttribute("data-fits")).toBe("false"),
     );
     await userEvent.click(
@@ -312,6 +340,28 @@ describe("a Pro host's six prices", () => {
     const line = dialog.querySelector('[data-note="fit"]')?.textContent ?? "";
     expect(line).toContain(planById("pro_100").name);
     expect(line).not.toMatch(/choose/i);
+  });
+
+  it("opens the toggle on her billing, and tags the saving beside Yearly", async () => {
+    served = facts({
+      tier: "pro",
+      hasBilling: true,
+      activeBytes: 10 * GIGABYTE,
+      capBytes: planById("pro_500_yr").storageBytes,
+      currentPlanId: "pro_500_yr",
+    });
+    const dialog = openSheet({ plan: PRO });
+    await waitFor(() =>
+      expect(cadence(dialog, "year").getAttribute("aria-pressed")).toBe("true"),
+    );
+    expect(row(dialog, "pro_500_yr").getAttribute("data-current")).toBe("true");
+    // Computed from the prices (ten months' price for twelve), never typed; beside Yearly, and
+    // named by it to a screen reader.
+    const tag = dialog.querySelector("[data-saving-tag]");
+    expect(tag?.textContent).toBe("2 months free");
+    expect(cadence(dialog, "year").getAttribute("aria-describedby")).toBe(
+      tag?.id,
+    );
   });
 
   it("leads with her plan, named with its billing", async () => {
@@ -357,7 +407,10 @@ describe("it carries two cards and a price, and not the marketing page", () => {
     expect(dialog.querySelector('[data-plan="free"]')).toBeTruthy();
   });
 
-  it("offers no storage selector and no cadence toggle (his `carry` overrule)", () => {
+  // Reshaped with host-storage r2 (`prices=sizes`): this pinned "no cadence toggle" for every face.
+  // His note put ONE Monthly / Yearly toggle on top of a Pro host's sizes; `carry` still holds for a
+  // host choosing a first plan, and no face has a storage selector.
+  it("offers no storage selector anywhere, and a cadence toggle only over a Pro host's sizes", () => {
     for (const plan of [FREE, PRO]) {
       const { unmount } = render(
         <PricingSheet
@@ -368,12 +421,33 @@ describe("it carries two cards and a price, and not the marketing page", () => {
         />,
       );
       const dialog = screen.getByRole("dialog");
-      // A selector would be one control per Pro size; a cadence toggle would be a
-      // switch or a pair of radios. Neither may come back without re-ruling, and a
-      // Pro host's six prices are buttons, not a selector.
+      // A selector would be one control per Pro size (a slider, radios); the sizes are
+      // cards with buttons, never a selector.
       expect(within(dialog).queryByRole("slider")).toBeNull();
       expect(within(dialog).queryByRole("switch")).toBeNull();
       expect(within(dialog).queryAllByRole("radio")).toHaveLength(0);
+      const toggles = dialog.querySelectorAll("[data-cadence-toggle]");
+      expect(toggles).toHaveLength(plan === PRO ? 1 : 0);
+      unmount();
+    }
+  });
+
+  it("says what its estimates assume, once, under the cards", async () => {
+    for (const plan of [FREE, PRO]) {
+      const { unmount } = render(
+        <PricingSheet
+          open
+          onOpenChange={() => {}}
+          trigger={{ kind: "plan" }}
+          plan={plan}
+        />,
+      );
+      const dialog = screen.getByRole("dialog");
+      const notes = dialog.querySelectorAll('[data-note="basis"]');
+      expect(notes).toHaveLength(1);
+      expect(notes[0].textContent).toContain(
+        "an iPhone's default camera settings",
+      );
       unmount();
     }
   });
@@ -394,12 +468,13 @@ describe("it carries two cards and a price, and not the marketing page", () => {
     expect(dialog.textContent).toContain(planById("free").priceLabel);
   });
 
-  it("prices every one of a Pro host's rows from tiers.ts", () => {
+  it("prices every one of a Pro host's rows from tiers.ts", async () => {
     const dialog = openSheet({ plan: PRO });
-    for (const plan of [
-      ...plansForTier("pro", "month"),
-      ...plansForTier("pro", "year"),
-    ]) {
+    for (const plan of plansForTier("pro", "month")) {
+      expect(row(dialog, plan.id).textContent).toContain(plan.priceLabel);
+    }
+    await userEvent.click(cadence(dialog, "year"));
+    for (const plan of plansForTier("pro", "year")) {
       expect(row(dialog, plan.id).textContent).toContain(plan.priceLabel);
     }
   });

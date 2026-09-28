@@ -240,7 +240,8 @@ describe(`tiers.ts <-> tier_limits() parity (${file})`, () => {
   it("reads real numbers out of the SQL (proves the parser is not vacuous)", () => {
     // If the parser ever silently returned empty/undefined everywhere, the assertions above would
     // pass only if TS were empty too. Pin one concrete SQL-derived value as the canary.
-    expect(sqlLimits.default_storage_cap_bytes.free).toBe(2 * 1024 ** 3);
+    // (Moved with the free/pro shift, 2026-09-28: Free was 2 GB.)
+    expect(sqlLimits.default_storage_cap_bytes.free).toBe(100 * 1024 ** 2);
     expect(sqlLimits.max_reel_seconds.pro).toBe(60);
     expect(sqlLimits.max_events.pro).toBeNull();
   });

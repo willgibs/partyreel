@@ -203,8 +203,9 @@ export function AccessSwitch() {
 
         {/* The plan truth, stated at body weight. It used to hide in 12px mono
             under the demo, which reads coy on the page whose whole job is
-            being straight with you; a paid gate on a trust page should be
-            legible at a glance. Same words the app uses. */}
+            being straight with you; a plan's line on a trust page should be
+            legible at a glance. Since the free/pro shift (2026-09-28) the
+            truth is that there is no gate: the password came down to Free. */}
         <p
           data-mkt-reveal
           className="mx-auto flex max-w-md items-start gap-2.5 rounded-lg border bg-card/60 px-3.5 py-2.5 text-sm text-muted-foreground"
@@ -213,9 +214,10 @@ export function AccessSwitch() {
           <KeyRound className="mt-0.5 size-4 shrink-0" strokeWidth={1.5} />
           <span>
             <span className="font-medium text-foreground">
-              Password protection is a Pro and Event Pass feature.
+              All three are on every plan, Free included.
             </span>{" "}
-            On the free plan the Password segment is disabled.
+            A password is one field in the event&rsquo;s settings; share it with
+            the invitation.
           </span>
         </p>
       </Reveal>

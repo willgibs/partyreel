@@ -187,6 +187,14 @@ describe("the Pro price list's fit line", () => {
   it("says nothing when every size holds what she stores", () => {
     expect(proFitLine(40 * GIGABYTE, pro500)).toBeNull();
   });
+
+  it("reads at the billing the list shows, so a yearly view offers a yearly price", () => {
+    // host-storage r2 (`prices=sizes` under one Monthly / Yearly toggle): on Pro 500 GB
+    // monthly, the yearly view's way out is her own size, yearly, a real switch.
+    const line = proFitLine(stored, pro500, "year");
+    expect(line).toContain(planWithBilling(planById("pro_500_yr")));
+    expect(line).not.toContain(planWithBilling(pro500));
+  });
 });
 
 describe("one number, one rounding", () => {
