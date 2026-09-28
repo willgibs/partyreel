@@ -42,7 +42,6 @@ a lane").
 | --- | --- | --- | --- | --- |
 | `hero-r2` | hero-card r2: ideas branching from Will's `link`, each at 1440, 900 and 375 (loose-ends' `hero-tablet` folds in) | running, agent `a00ce4ac21e78f21f` | Opus, :3131 | |
 | `safety-refresh` | event-safety's nine stale asks onto the settings panel, the lit door and the review room | running, agent `a572968d03e1b1dce` | Opus, :3134 | |
-| `triage-refresh` | admin-triage's five stale asks, two word fixes | running, agent `ac6a61904bd7b6090` | Opus, :3135 | |
 | `flow-refresh` | export-flow's five onto the Download menu; emails' `moments` and `guest` (the two mail halves merge in) | running, agent `a6836c656ed9c1490` | Opus, :3136 | |
 | `help-refresh` | help-center's `hub`, `article`, `from-product`; contact-page's `page`, `receipt`, `topic`'s claim | running, agent `a99a4eddf05853f52` | Opus, :3137 | |
 | `marketing-refresh` | album-motion `fall`, loose-ends `review-photo` (`hero-tablet` leaves), press-page `who-for`; site-chrome and profile-page retire | running, agent `a009b032d9ff73f1b` | Opus, :3138 | |
@@ -52,7 +51,7 @@ answers on identity-claims, hero-card, voice-guest, host-curation, host-storage)
 boards found 30 of their 68 asks drawn before his recent picks were built and 5 already answered: wave 1 is the eight
 lanes that make his next desk; wave 2 (the wiring) waits for free seats.
 
-Merged in batch 6 (their records carry the rest): voice-r2, storage-r2.
+Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-refresh.
 
 ## Next, in order
 
@@ -75,7 +74,9 @@ Merged in batch 6 (their records carry the rest): voice-r2, storage-r2.
      Also the footer's phone demo link (`marketing-footer.tsx`, a same-tab `Link`, should open a new tab like every
      demo door on a phone), `guest-header.tsx`'s stale "open question" comment, the reel's approval toast ("The host
      added your uploads" even when one of the same pick was left out: `guest/reel/live-reel.tsx`'s `ApprovalToast`;
-     a line true beside `told=line`), and ROADMAP's landscape head-slot line (from `voice-r2`).
+     a line true beside `told=line`), ROADMAP's landscape head-slot line (from `voice-r2`), and two admin fixes that
+     can go straight (ROADMAP: the report's Remove through `DestructiveSheet`; Albums' Remove confirm's seven days and
+     "not told") (from `triage-refresh`).
    - `storage-wiring` (Opus): host-storage's `order=flat` with an All / per-event filter, `goal=live` and
      `refusal=inline` stacked full width. The size list goes in the lists panel, with r1's carried rows, bulk Remove
      with Undo, Download handing off to export-flow, and the Deleted line. The six prices keep today's rows until
