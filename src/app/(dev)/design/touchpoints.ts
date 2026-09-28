@@ -28,8 +28,6 @@ export type SandboxId =
   | "identity-claims"
   | "hero-card"
   | "voice-guest"
-  | "site-chrome"
-  | "profile-page"
   | "export-flow"
   | "admin-triage"
   | "emails"
@@ -129,49 +127,6 @@ export const RULINGS: Ruling[] = [
         "A held photo",
         "Keeping it",
       ],
-    },
-  },
-  {
-    id: "site-chrome",
-    title: "The marketing site's chrome",
-    surface: "marketing",
-    asks: "the footer beneath a page's own closing call to action: its register, a page with none above it, and how its code reaches a phone",
-    why: "Most pages close on a call to action, so the footer's demo invitation has to work beneath one rather than repeat it; the rest of the chrome is built.",
-    lives: [
-      "docs/systems/marketing-content.md",
-      "src/components/marketing/chrome/marketing-header.tsx",
-      "src/components/marketing/chrome/header-shell.tsx",
-      "src/components/marketing/chrome/mega-panel.tsx",
-      "src/components/marketing/chrome/mobile-menu.tsx",
-      "src/components/marketing/chrome/marketing-footer.tsx",
-      "src/lib/constants/marketing-nav.ts",
-    ],
-    board: {
-      note: "Round two, the footer alone: what the footer's demo register should be right under a page's own closing CTA, whether a page with no CTA above it gets the same footer or a closing line built for it, and how its code reaches a phone (hidden, revealed on a tap, always shown, or dropped); every option drawn under a real CtaBand and under a real page with none, at 1440 and 375.",
-      variants: [
-        "The foot after a close",
-        "The foot where nothing closes the page",
-        "The phone's foot",
-      ],
-    },
-  },
-  {
-    id: "profile-page",
-    title: "What a person is here",
-    surface: "guest",
-    asks: "how the full guest list opens from the faces row, what a name opens first, how a profile keeps the scanned event reachable, and what should stand above it now that it does",
-    why: "A person's page ships; three pieces stay open, and a fourth, the header, is asked again now way-back changes what it has to solve alone.",
-    lives: [
-      "docs/systems/profiles-social.md",
-      "src/app/(guest)/u/[slug]/page.tsx",
-      "src/components/social/guest-list.tsx",
-      "src/components/social/follow-button.tsx",
-      "src/components/social/profile-actions-menu.tsx",
-      "src/components/social/profile-slug-control.tsx",
-    ],
-    board: {
-      note: "Four decisions on the shipped guest list and profile, phone first at 375 with 1440 on the knob, a 240-name fixture beside a 24-name one: how the full list opens from the faces row, what a name opens first, how a profile keeps the scanned event reachable, and, asked again now that it does, what should stand above the page at all",
-      variants: ["View all", "Quick-look", "Way back", "The head, asked again"],
     },
   },
   {
@@ -489,8 +444,6 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "admin-triage",
   "help-center",
   "emails",
-  "site-chrome",
-  "profile-page",
   "privacy-hero",
   "album-motion",
   "loose-ends",
