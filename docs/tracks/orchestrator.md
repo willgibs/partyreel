@@ -41,7 +41,6 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `hero-r2` | hero-card r2: ideas branching from Will's `link`, each at 1440, 900 and 375 (loose-ends' `hero-tablet` folds in) | running, agent `a00ce4ac21e78f21f` | Opus, :3131 | |
-| `safety-refresh` | event-safety's nine stale asks onto the settings panel, the lit door and the review room | running, agent `a572968d03e1b1dce` | Opus, :3134 | |
 | `help-refresh` | help-center's `hub`, `article`, `from-product`; contact-page's `page`, `receipt`, `topic`'s claim | running, agent `a99a4eddf05853f52` | Opus, :3137 | |
 | `marketing-refresh` | album-motion `fall`, loose-ends `review-photo` (`hero-tablet` leaves), press-page `who-for`; site-chrome and profile-page retire | running, agent `a009b032d9ff73f1b` | Opus, :3138 | |
 | `curation-wiring` | host-curation's seven into the review room (Reject at the door, the peek's verdict, the keys, Undo, the "N new" line); the silence claims follow `told=line`; the board retires | running, agent `a001be270345f031c` | Opus, :3131 | |
@@ -52,7 +51,7 @@ answers on identity-claims, hero-card, voice-guest, host-curation, host-storage)
 boards found 30 of their 68 asks drawn before his recent picks were built and 5 already answered: wave 1 is the eight
 lanes that make his next desk; wave 2 (the wiring) waits for free seats.
 
-Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-refresh, flow-refresh.
+Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-refresh, flow-refresh, safety-refresh.
 
 ## Next, in order
 

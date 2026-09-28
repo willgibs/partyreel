@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The lab and the kit: `PopupQuote` (a popup kind drawn still in a frame, its shape read off `popup-kinds.ts` on production's own shape classes) is local to `event-safety/kinds.tsx` and copies `popup.tsx`'s private content and overlay strings; a kit candidate beside `Several` and `ScrollHere`, or `popup.tsx` exports the two (from `safety-refresh`).
 - The lab and the kit: `ui/responsive-menu.tsx` cannot be drawn in a lab frame (it portals to the lab page and reads the lab page's media query), so export-flow quotes its private `DESK_ROW` and `HAND_ROW`; exported row classes or a shape-and-container seam would let a board draw the real menu (from `flow-refresh`).
 - The lab and the kit: `MasonryColumns` and `GuestMasonry` inside a lab frame lose every lazy image to `abortUnfinishedImages`, so a board grounding on them draws blank tiles (from `flow-refresh`).
 - Admin: the report's Remove (`report-review.tsx`'s `onAction`) acts at once, the one destructive act in the portal that skips `DestructiveSheet` against admin-observability.md's rule; routing it through the confirm can go straight whatever `verdict` answers (from `triage-refresh`).
@@ -206,8 +207,6 @@ The app:
 - Host: `lib/shared/use-active-section.ts` and `event-feed/event-filter-pills.tsx` lost their last importer with `event-feed.tsx`; delete them, and the comments that still name `event-feed-action-bar.tsx` (`bulk-tools.tsx`, `bulk-select-mock.tsx`, `floating-layer.ts`, `type-ladder-policy.test.ts`).
 - Guest: the last-removal line reads the album's fullness at render (`albumFull`, the page's second gate read); an album that fills or frees mid-visit keeps the old line until a refresh (the poll could carry it at one gate read per poll).
 - Social: `social/guest-list.tsx:216` draws "A guest" for a null `displayName`, a label the product retired (a nameless credit shows nothing).
-- Host: at 375 the hub's cards row runs past the phone's edge, so the third card (Guests) sits half off screen at rest (measured by the `event-safety` board's `queue` step, where a waiting count would live).
-- Host: the Review peek (`selectable-media-grid.tsx`), a third full-bleed viewer, promises an Escape in a comment and never listens for it.
 - Host: no test covers `useReviewTriage`.
 - Host: the gallery doorbell rings only when the approved-visible set changes, so a pending upload never wakes the host; the hub's store bridges it by polling the host's version (12s with the socket down, 60s up), which a host channel rung on every arrival (a migration on `media_gallery_doorbell`) would make instant.
 - Host: the album keeps its own arrival timers (`host-media-grid.tsx`'s `useArrivedIds`) beside the shared `useArrivalMarks` (`lib/shared/arrival.ts`); fold it onto the hook so both surfaces hold an arrival for one length.
