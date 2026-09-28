@@ -184,3 +184,58 @@ describe("the room's live queue", () => {
     expect(screen.queryByRole("button", { name: /new/i })).toBeNull();
   });
 });
+
+/**
+ * ★ ROADMAP's review-room line, through the real store (build 15's red-team): an upload the room
+ * decided that returns to pending from elsewhere (a second room tab's Undo, a direct write) was
+ * never counted again, because the room held it as shown for ever. Once the album has read the
+ * room's verdict back, the album speaks for it, and the line counts its return.
+ */
+describe("an upload the room decided, back from elsewhere", () => {
+  it("★ is counted behind the line once the album read the verdict back, and folds in", async () => {
+    room([entry("m1"), entry("m2")], [shown("m1"), shown("m2")]);
+    // Let the mount's own catch-ups (both 304) settle before the room writes anything.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    // The verdict's catch-up reads it back: m1 approved.
+    polls.push(() => ({
+      kind: "delta",
+      v: 2,
+      attr: 0,
+      upsert: [entry("m1", 0)],
+      remove: [],
+      ok: true,
+      counts: { album: 1, pending: 1 },
+    }));
+    const m1 = document.querySelector<HTMLElement>(
+      '[data-tile-id="m1"] [data-tile-button]',
+    )!;
+    m1.focus();
+    await act(async () => {
+      fireEvent.keyDown(m1, { key: "Enter" });
+    });
+    await waitFor(() => expect(tileIds()).toEqual(["m2"]));
+    expect(screen.queryByRole("button", { name: /new/i })).toBeNull();
+
+    // A second room tab's Undo returns m1 to the queue; the tab's return asks the album again.
+    polls.push(() => ({
+      kind: "delta",
+      v: 3,
+      attr: 0,
+      upsert: [entry("m1")],
+      remove: [],
+      ok: true,
+      counts: { album: 0, pending: 2 },
+    }));
+    await act(async () => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    const line = await screen.findByRole("button", { name: /1 new/i });
+    expect(tileIds()).toEqual(["m2"]);
+    await act(async () => {
+      fireEvent.click(line);
+    });
+    await waitFor(() => expect(tileIds()).toEqual(["m1", "m2"]));
+  });
+});

@@ -1,9 +1,14 @@
 "use client";
 
 /**
- * WHAT THIS DEVICE HAS SENT THAT IS NOT IN THE ALBUM YET — the two tiles that
- * stand at the album's head and nowhere else. Neither is a photograph in the
- * album: both are this browser's own knowledge, drawn on this browser only.
+ * WHAT THIS DEVICE IS SENDING — the one tile that stands at the album's head
+ * and nowhere else. It is not a photograph in the album: it is this browser's
+ * own knowledge, drawn on this browser only.
+ *
+ * ★ A HELD PHOTOGRAPH DRAWS NOTHING HERE (`voice-guest` r2, Will's
+ * `held=uploads`): once its bytes are in, a photograph the host is still
+ * deciding on shows only in her uploads (`upload-tracker.tsx`), the badge
+ * beside Add counting it, and the album shows only what is in it.
  *
  * ★ ONE PICK IS ONE OBJECT. The queue runs ONE file at a time, so twelve tiles
  * at the head of the album for twelve files would put eleven bars at zero across
@@ -23,13 +28,12 @@
  * ★ THE EDGE IS TWO BOXES, NOT A SHADOW. Lift is kept for one object really
  * sitting on another, and this IS eleven photographs sitting under one.
  *
- * ★ BOTH TILES CARRY `data-lit`, AND THAT IS THE WHOLE POINT OF BINDING THEM TO
+ * ★ THE TILE CARRIES `data-lit`, AND THAT IS THE WHOLE POINT OF BINDING IT TO
  * THE ALBUM'S RULE. A photograph must not gain or lose an edge at the moment it
- * finishes uploading, so these boxes wear the bright edge the landed tile wears
+ * finishes uploading, so this box wears the bright edge the landed tile wears
  * (`lit-edge-contract.test.ts` holds the closed list).
  */
 import type { CSSProperties } from "react";
-import { Clock } from "lucide-react";
 
 import { PickPreview } from "@/components/guest/upload/pick-preview";
 import { formatCount } from "@/lib/format/count";
@@ -58,7 +62,7 @@ import { cn } from "@/lib/utils";
  */
 const READING_PANE = { "--glass-tint": "0.34" } as CSSProperties;
 
-/** The album tile's box, worn by anything standing at the album's head. */
+/** The album tile's box, worn by what stands at the album's head. */
 const TILE_BOX =
   "relative mb-[var(--gap-gallery)] w-full overflow-hidden bg-black/10";
 
@@ -136,63 +140,6 @@ export function UploadStackTile({
           </span>
         </div>
       </div>
-    </div>
-  );
-}
-
-/**
- * A HELD PHOTOGRAPH THAT WAITS IN PLACE, as clear and clean as it can be.
- *
- * A finished upload on a hold-for-approval event sits at the album's head until
- * the host lets it in. Without the tile, one toast and the photograph is gone,
- * which reads as a failure, and the standing banner says the same sentence
- * whether or not anything of theirs is waiting.
- *
- * ★ ONLY THIS DEVICE EVER SEES IT. It is the guest's own pending row, which the
- * album's poll returns to nobody: the host's approval is what puts it in the
- * album for real, and the tile is replaced by the real one the moment the poll
- * carries it. Nothing here asserts anything to the server.
- *
- * ★ CLEANER IS: THE PHOTOGRAPH, LIGHTLY DIMMED, AND ONE LINE, rather than a wash
- * with a clock centred on top. The picture stays a picture, the clock is a mark
- * like every other mark a tile carries, and the sentence is on the same reading
- * pane the stack uses — one grammar for everything a tile in flight says. No
- * button: there is nothing for a guest to do about it.
- */
-export function WaitingTile({ file, url }: { file: File; url: string }) {
-  return (
-    <div
-      data-waiting-tile
-      data-media-tile
-      data-lit=""
-      className={cn(TILE_BOX, "rounded-tile")}
-    >
-      {/* voice-r2's landscape head-slot fix (see UploadStackTile's own note): cover the square
-          rather than a natural-height file leaving a grey band under it. */}
-      <div className="absolute inset-0 opacity-65">
-        <PickPreview file={file} url={url} fit="cover" className="size-full" />
-      </div>
-      <span
-        aria-hidden
-        style={READING_PANE}
-        className={cn(
-          GLASS_MARK,
-          "absolute top-1.5 left-1.5 flex size-6 items-center justify-center rounded-full",
-        )}
-      >
-        <Clock className={cn(GLASS_MARK_LIT, "size-3.5 text-white")} />
-      </span>
-      <p
-        style={READING_PANE}
-        className={cn(
-          GLASS_MARK,
-          "absolute inset-x-0 bottom-0 px-2 py-1.5 text-center text-reading",
-        )}
-      >
-        <span className={cn(GLASS_MARK_LIT, "text-white")}>
-          Waiting for the host
-        </span>
-      </p>
     </div>
   );
 }

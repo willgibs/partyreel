@@ -1,7 +1,7 @@
 ---
 track: voice-wiring
 status: open            # open -> handed-off; deleted in the merge commit that integrates it
-cut: "aed50c02"            # the launch-prep SHA the branch was cut from
+cut: "ae7f9ed1"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/lib/guest/upload-tracker
@@ -19,6 +19,19 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(dev)/design/sandbox/voice-guest/
   - src/components/marketing/sections/features/album/review-switch
   - src/components/marketing/sections/features/album/album-copy
+  - src/components/guest/gallery-rows
+  - src/components/guest/guest-masonry
+  - src/components/guest/live-gallery
+  - src/components/guest/event-experience
+  - src/components/guest/entry-modal
+  - src/components/guest/guest-upload
+  - src/lib/guest/use-upload-queue
+  - src/lib/guest/keep-ask
+  - src/components/marketing/sections/features/curation/curation-faq
+  - content/help/review-uploads-before-they-appear.mdx
+  - content/help/a-photo-is-missing-from-the-album.mdx
+  - content/help/hide-remove-and-restore.mdx
+  - content/help/moderate-and-curate-your-album.mdx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/voice-guest.json
   - docs/systems/guest-flow.md
@@ -56,15 +69,35 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **His host note's words and place.** Built: one quiet line under Review's amber header, over the queue and only
+  while there is one (never caught up, never with review off): "Anything you approve can still be hidden later."
+  (`review-section.tsx`, `REVIEW_NOTE`; 14px muted, one line at 375 and 1440). No noun, since the queue holds videos
+  too; true as said, since Hide takes any photo off every guest's album at once. Overrule: his own words, "You can
+  always hide an approved photo later.", or the line in the peek under Reject and Approve (where one is decided at a
+  time, but a host clearing the queue with Approve all never sees it).
+- **An empty album whose only photos of hers are held (this visit).** With no waiting tile the album's empty state
+  shows again, so built: the empty state stands without its "Add the first photo" and the row keeps its Add with her
+  badge beside it, one Add either way (`event-experience.tsx` passes the CTA only while `galleryEmpty`, which also
+  mends two Adds beside a failed upload on an empty album). Overrule: the empty state keeps its CTA and the row drops
+  its Add, which puts her badge beside Invite.
+- **The keep's line for one photo and for an event with no name.** The board drew six ("with your 6 photos"); built
+  "with your photo" for one, and "this event" where a name is missing. No other word moved.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/guest-flow.md`: the keep's Sent line ("waiting for approval") and its ask ("Keep this event",
+  `KEEP_TITLE`); the empty state's one-Add rule (`galleryEmpty`); the album's head (nothing for a held file, in place
+  of the WAITING tile bullet; the stack's lit edge, one tile); her tracker's words and its arrival re-read; her menu
+  card's title.
+- `docs/systems/host-app.md`: the Review room's host note (`REVIEW_NOTE`); the room's own writes held only until the
+  album has read them back (`OwnWrites`).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Guests: a returning guest whose only uploads wait on an empty held album meets the empty state's "Add the first
+  photo" with her badge beside Invite, since the row's Add returns only for this visit's files (`galleryEmpty`);
+  counting her waiting rows would move the Add in a beat after they load, so it wants a layout that does not jump
+  (from `voice-wiring`).
 
 ## Handoff (replaces the chat report)
 

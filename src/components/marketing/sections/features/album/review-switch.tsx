@@ -2,7 +2,7 @@
 
 import { Check, Clock, ListChecks, Radio, ShieldCheck } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 
 import { TextSwap } from "@/components/marketing/sections/features/shared/text-swap";
 import { marketingImage } from "@/lib/constants/marketing-media";
@@ -17,8 +17,9 @@ import { YOUR_CALL } from "./album-copy";
  * the finish pass THE UPLOAD MOVES. Two segments on the app's own lifted-pill
  * control drive one photograph's path along a real rule: in Live it flies
  * from the phone straight into the album; in Review it lands in the amber
- * queue and the guest's phone shows the real toast, until [Approve all], a
- * real button here, sends it on. Reduced motion jumps every state.
+ * queue and the guest's phone shows her uploads' own words for it, until
+ * [Approve all], a real button here, sends it on. Reduced motion jumps every
+ * state.
  */
 
 type Mode = "live" | "review";
@@ -35,11 +36,9 @@ const ALBUM = ["wedding-golden", "party-balloons", "reception-table"];
  *  remounts it and it flies in from the phone's side, settling small. */
 function Traveller({
   check,
-  dim,
   className,
 }: {
   check?: boolean;
-  dim?: boolean;
   className?: string;
 }) {
   const on = useEnteredFrame();
@@ -49,7 +48,6 @@ function Traveller({
       data-on={on ? "true" : undefined}
       className={cn(
         "relative block overflow-hidden rounded-tile bg-muted",
-        dim && "opacity-40",
         className,
       )}
       style={
@@ -148,17 +146,17 @@ export function ReviewSwitch() {
                 </span>
               </span>
             </span>
-            {/* The guest's own tile, exactly as the app draws it, only in
-                Review: `held=tile` (2026-09-21) retired the "Sent, waiting for
-                host approval" toast, and the photograph now waits at the album's
-                head under this line until the host lets it in. */}
+            {/* Her uploads' own row, in its words and its mark, only in
+                Review: a held photograph shows only in the guest's uploads
+                (`voice-guest` r2, `held=uploads`), the badge beside her Add
+                counting it, until the host lets it in. */}
             <span
               data-mkt-toast
               data-on={mode === "review" ? "true" : undefined}
               className="mx-auto mt-2 flex w-fit max-w-full items-center gap-1.5 rounded-full border bg-popover/95 px-2 py-1 text-[10px] leading-none font-medium"
             >
-              <Clock className="size-3 shrink-0" />
-              <span className="truncate">Waiting for the host</span>
+              <Clock className="size-3 shrink-0 text-warning" />
+              <span className="truncate">Waiting for approval</span>
             </span>
           </Plate>
 

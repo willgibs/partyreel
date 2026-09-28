@@ -289,7 +289,10 @@ describe("GuestUpload: queue", () => {
     await screen.findByTestId("post-upload-slot");
   });
 
-  it("a HELD outcome says nothing here: the waiting TILE is the whole answer", async () => {
+  // ★ RESHAPED (voice-wiring): the answer this names moved from the album's waiting tile to her
+  // uploads (voice-guest r2, `held=uploads`). The scar kept: no toast, and the queue item carries
+  // the outcome and the media id her tracker reads.
+  it("a HELD outcome says nothing here: her uploads' badge and list are the whole answer", async () => {
     mockUploadFile.mockResolvedValue({
       ok: true,
       status: "pending",
@@ -299,10 +302,9 @@ describe("GuestUpload: queue", () => {
     const { addFiles, snapshots } = mountWithQueue({ event: HOLD_EVENT });
     addFiles([makeFile()]);
 
-    // The waiting tile answers, never a "Sent, waiting for host approval"
-    // toast. What the album needs instead is on the queue item: the outcome AND
-    // the media id, which is the only way its tile can tell it has been
-    // approved later.
+    // Her tracker answers, never a toast. What it needs is on the queue item:
+    // the outcome AND the media id, which is the only way her uploads can tell
+    // it has been let in later.
     await waitFor(() =>
       expect(snapshots.at(-1)?.[0]).toMatchObject({
         status: "done",
@@ -696,9 +698,7 @@ describe("GuestUpload: dismissing a failure retires it for good", () => {
       expect(screen.getByText("1 of 1 didn't upload")).toBeInTheDocument(),
     );
     fireEvent.click(screen.getByRole("button", { name: "Not now" }));
-    expect(
-      screen.queryByText("1 of 1 didn't upload"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("1 of 1 didn't upload")).not.toBeInTheDocument();
 
     // A second, unrelated run - clean end to end - must judge itself only by
     // what is STILL in the queue, not by the failure dismissed a moment ago.

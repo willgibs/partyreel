@@ -42,7 +42,9 @@ export function useReviewLive(): ReviewLive | null {
       waiting,
       decided,
       media: (ids) => reviewMedia(album, entries, ids),
-      sync: () => void album.sync(),
+      // Settles once the store has answered (a coalesced ask runs again after the one in the air,
+      // so the answer is always to a question asked after the room's write landed).
+      sync: () => album.sync(),
     };
   }, [album, entries]);
 }

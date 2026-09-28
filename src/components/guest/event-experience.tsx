@@ -380,11 +380,11 @@ export function EventExperience({
     ? gate !== "upload"
     : false;
 
-  // WHAT THE ALBUM'S HEAD STILL OWES THIS DEVICE: everything in flight, AND
-  // anything a hold-for-approval event finished but is keeping back, as a
-  // waiting tile (a completed upload that vanished would read as a failure).
-  // A held item stays here until the poll shows the host approved it, and its
-  // object URL stays alive with it.
+  // WHAT THIS DEVICE HAS SENT THAT THE ALBUM DOES NOT SHOW YET: everything in
+  // flight (the head's stack), AND anything a hold-for-approval event finished
+  // but is keeping back, which draws nowhere in the album (`held=uploads`) but
+  // keeps its object URL alive for her uploads' picture of it, and counts
+  // toward her own-delete consequence, until the host decides.
   const inFlightUploads = queue.filter(
     (it) => it.status !== "done" || it.mediaStatus === "pending",
   );
@@ -498,12 +498,14 @@ export function EventExperience({
   );
   // At 0 items the PHOTOGRAPHIC-PROMISE empty state owns the primary Add
   // (its centered CTA), so the header drops its Add to avoid two primaries.
-  // ★ BUT ONLY WHILE THAT EMPTY STATE IS THE ONE SHOWING: a guest whose own
-  // files are in flight or held for the host sees them at the album's head
-  // instead (the album draws its grid for them), and with no CTA under it the
-  // row's Add is the only Add there is. At a moderated event whose album is
+  // ★ BUT ONLY WHILE NOTHING OF HERS IS ON THE WAY: a guest whose own files
+  // are in flight sees them at the album's head (the album draws its grid for
+  // them), and one whose files are held for the host has the album's empty
+  // state with no CTA of its own (the album shows only what is in it), so in
+  // both the row's Add is the only Add there is (the empty state's CTA is
+  // passed only while `galleryEmpty`). At a moderated event whose album is
   // still empty, that is every guest who has sent anything, and exactly the
-  // guest her tracker sits beside Add for.
+  // guest her tracker sits beside Add for, its badge counting what waits.
   const galleryEmpty = mediaCount === 0 && inFlightUploads.length === 0;
   // Her tracker (`guest-capture` r1, `tracker=button`): the two facts its button needs, kept
   // outside the page's state so a sync re-renders the tracker and never this shell.
@@ -1312,7 +1314,7 @@ export function EventExperience({
                     access={access}
                     isDemo={isDemo}
                     onOpenGate={() => entryRef.current?.openToGate()}
-                    onAddFirst={canUpload ? openAdd : undefined}
+                    onAddFirst={canUpload && galleryEmpty ? openAdd : undefined}
                     joinUrl={joinUrl}
                     initialRowStep={rowStep}
                     firstPaintWidth={firstPaintWidth}

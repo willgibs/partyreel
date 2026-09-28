@@ -32,8 +32,8 @@ export type GuestUploadHandle = {
  * The upload ENGINE, and the two SHEETS the act speaks through.
  *
  * The queue machine lives in `useUploadQueue`; the visible upload UI lives in
- * the GALLERY (the stack at the album's head, a waiting tile on a held event).
- * This owns both ends of the act:
+ * the GALLERY (the stack at the album's head) and, on a held event, in her
+ * uploads (the tracker's badge and list). This owns both ends of the act:
  *
  * ★ THE FRONT: one tap opens `UploadIntentSheet` — take a photo, or choose
  * from your album — and the picker returns INTO that sheet as a review step, so
@@ -44,8 +44,8 @@ export type GuestUploadHandle = {
  * ★ THE BACK: nothing interrupts while the files go, and when the RUN ENDS with
  * anything refused, `UploadFailureSheet` opens itself once with a line and a
  * Retry per file. No upload toasts: an error toast has usually gone by the time
- * it is read, and the waiting TILE says what a "Sent, waiting for host
- * approval" toast would, better.
+ * it is read, and on a held event the badge beside Add says what a "Sent,
+ * waiting for approval" toast would, where she already is.
  *
  * Joining is just-in-time and SILENT (account-required events are gated at
  * the PAGE level; a signed-in uploader sets a display name first).
@@ -218,9 +218,9 @@ export function GuestUpload({
       />
 
       {holdForApproval && (
-        // The one place the rule can be read BEFORE a first upload. The
-        // waiting tile says what happened to YOURS; this says what happens on
-        // this event at all.
+        // The one place the rule can be read BEFORE a first upload. Her
+        // uploads say what happened to YOURS; this says what happens on this
+        // event at all.
         <p className="rounded-md bg-muted px-3 py-2 text-center text-reading text-muted-foreground">
           The host reviews uploads before they appear in the album.
         </p>
