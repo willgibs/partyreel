@@ -50,8 +50,8 @@ import {
 import { ClaimCard, confirmDeleteTitle, Thumb } from "./claims-card";
 
 /**
- * THE CLAIMS REVIEW, AS WILL ANSWERED IT (`identity-claims` r1 and r2, 2026-09-27; the board
- * `sandbox/identity-claims/` draws it as its ground, `claims-batch.ts` is its machine).
+ * THE CLAIMS REVIEW, AS WILL ANSWERED IT (`identity-claims` r1 and r2, 2026-09-27;
+ * `claims-batch.ts` is its machine).
  *
  *   - `ticket=banner`: one slim line above her events with a Review button, the feed untouched ("This
  *     allows users to handle when they'd like to, rather than filling the screen with a tall card
