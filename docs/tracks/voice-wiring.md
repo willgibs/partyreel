@@ -1,6 +1,6 @@
 ---
 track: voice-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "ae7f9ed1"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -101,13 +101,80 @@ working.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed:** `438149ac` retires voice-guest alone (its folder, and its lines in `registry.ts`, `boards.ts`
+  and `touchpoints.ts`; its tree typechecked and its lab and content tests run on their own, 37 files, 599 tests);
+  `3a249d4d` is the wiring; the manifest's Handoff is the head. No sync: launch-prep gained only record commits since
+  `ae7f9ed1` (`19709ecd`..`1b394476`: STATUS, orchestrator.md, the help-center and emails ledgers).
+- **Gates on `3a249d4d`'s tree**, each on its own exit code (logs in `_scratch/voice-wiring/`): `pnpm typecheck` 0
+  (`typecheck2.log`); `pnpm lint` 0, 4 warnings, none in a lane file (review-session.tsx, contact-form.tsx,
+  album-fill-grid.tsx twice; review-switch.tsx's was one of the five and is gone) (`lint2.log`); `pnpm test` 0, 520
+  files, 5885 tests (`test2.log`); `zsh scripts/build-lock.sh pnpm build` 0 (`build2.log`); `pnpm lab:smoke --base
+  http://localhost:3133` 0, 217 checks, 0 failing, voice-guest off the desk (`smoke2.log`).
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): every path under `owns`, this file and the two
+  system docs above, and five exceptions in two groups: the retirement's `registry.ts`, `(shell)/lab/boards.ts` and
+  `touchpoints.ts` (the brief's named ones), and help-center's `from-product.tsx` (its menu card now reads
+  `KEEP_TITLE`, its note the shipped refused words) and `door-screens.tsx` (its keep shot's label "Sent, then Keep
+  this event", and the event's name passed): a board that quotes production, kept true for help-wiring's
+  `article=screen` and `from-product=contextual`.
+- **The items:**
+  - `held=uploads`: the album's head draws only files in the air (`live-gallery.tsx`'s `pendingTiles`;
+    `WaitingTile` gone from `stack-tile.tsx`, `gallery-rows.tsx`, `guest-masonry.tsx`; `PendingTile` loses `held`);
+    a held file keeps its object URL for her uploads' picture (`gallery-live.tsx`, `event-experience.tsx`); an empty
+    album with hers held keeps one Add (`onAddFirst` only while `galleryEmpty`). Pinned: `live-gallery.test.tsx`
+    ("a held photograph takes no head slot"; "an album of only her held photographs is the album's empty state").
+  - `status=approval`: `TRACKER_WORDS` "Waiting for approval" / "Not approved"; the badge says "Your uploads, N
+    waiting for approval"; the keep's Sent line "Your photo is waiting for approval." (a test ties it to
+    `TRACKER_WORDS.waiting`).
+  - `refusal-read` (the board's carried call, drawn in `uploads`' "later" frame): one of hers arriving in the album
+    out of waiting re-reads her rows (`newlyInAlbum`), so the one left out beside it stops counting without an
+    opening. Pinned in `upload-tracker.test.ts` and `.test.tsx`; the reshaped "with no new read" pin says why.
+  - `keep=warm`: `keepCopy(count, eventName)` "Keep this event" / "Confirm your email and {event} stays in your
+    account with your {n} photos, to come back to anytime."; `KEEP_TITLE` on her name menu's card; the confirm door
+    keeps its own wear (`keep-confirm`).
+  - His host note: `REVIEW_NOTE` over Review's queue (`review-section.tsx`); pinned in `review-room.test.tsx`.
+  - ROADMAP's review-room line: `known` is derived (`knownIds`: the grid and the room's unread writes), and a write
+    is the room's truth only until the album answers the catch-up after it (`OwnWrites`, `ownWrite`, `readBack`;
+    `ReviewLive.sync` now settles), so an upload decided here and returned from elsewhere is counted by the line, and
+    one put back here and decided elsewhere leaves. Pinned in `review-queue.test.ts`, `use-review-triage.test.tsx`
+    (the two new pins fail on the old hook) and `review-live.test.tsx` (through the real store; fails on the old
+    hook too).
+  - One name everywhere: the help (the two named articles, plus `review-uploads-before-they-appear`,
+    `a-photo-is-missing-from-the-album`, `hide-remove-and-restore`, `moderate-and-curate-your-album`, which named
+    the retired toast or "not in the album"; `messages-guests-might-see` gains her uploads' three words and the
+    keep), the curation FAQ, and `/features/album`'s phone plate and Review hint (`mock-parity.test.ts` moved to
+    `upload-tracker.ts`, with a pin for the hint).
+- **Verified locally on real rows** (a disposable name-only held event, a name-only "Priya" minted by `create_guest`,
+  three photos through an R2 PUT and `create_media`; soft-deleted after, purge 2026-10-28): her album at 375 and 1440
+  with no held tile and the badge beside Add (`shots/375-album.png`, `1440-album.png`); her uploads reading "Waiting
+  for approval", "Not approved", "In the album" (`375-uploads.png`, `1440-uploads.png`); after one was approved and
+  one hidden by SQL, the album's sync brought the approved photo within 15 seconds and the badge fell from 3 to 1
+  with the list closed (the arrival's re-read). Her menu's card (`375-menu.png`); the Library's Review room with the
+  note on one line at 375 and 1440 (`375-review.png`, `1440-review.png`, `375-light-review.png`); `/features/album`
+  in Review, the pill "Waiting for approval" uncut and the hint on two lines at 375, one at 1440 (`375-switch.png`,
+  `1440-switch.png`). Captures from a headless Chrome of the lane's own (`_scratch/voice-wiring/shoot.mjs`), closed.
+- **Not reachable on localhost** (R2's CORS refuses the browser's PUT; host sign-in is allow-listed): a real upload's
+  moment (the stack, then nothing at the head; the keep's words; the empty held album's one Add) is Will's real-upload
+  check on the alias; the review room live wants two tabs on a disposable held event: approve an upload in one, return
+  it to pending (the other tab's approve and Undo, or `status='pending'` by SQL), and the first tab's line says "1 new".
+- **ROADMAP lines to retire:** the review room's `known` line (Host); `/features/album`'s Review hint quoting the
+  retired toast (Marketing); `review-switch.tsx`'s unused `useEffect` and dead `dim` prop (Code hygiene); "tapping
+  her own waiting tile at the album's head could open her tracker" (Guests: the tile is gone).
+- **For triage-wiring:** `report-review.tsx` (the admin Reports confirm) says "her uploads list already says Not in
+  the album" beside `moderation-grid.tsx`'s same line; both take "Not approved". `admin-triage/notice.tsx` (triage-r2's)
+  draws `TRACKER_WORDS.refused`, so it reads "Not approved" from this merge, while its comment quotes the old words.
+- **A note on the shared Browser pane:** its one tab was another lane's (`localhost:3132/pricing`) the moment I
+  clicked it, and the click landed on that page and opened `/login`. I moved to a tab of my own, then to a private
+  headless Chrome for every capture; nothing but that navigation happened on :3132.
+- Assets requested from Will: none.
+- Board ideas: her uploads draw a plain placeholder for an earlier visit's held photo (nothing not in the album is
+  presigned for a guest); a thumbnail minted for its uploader's own ticket alone would let her see which one waits.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none.
+- **Calls his to overrule:**
+  - The host note's words and place (Questions).
+  - The empty held album's one Add (Questions).
+  - "Not approved" names every photo of hers not in the album, a Reject, a Hide after approval, a removal alike (the
+    tracker's rule, unchanged; his note makes approve-then-hide the common case). Overrule: a photo hidden after it was
+    in the album could keep "Not in the album".
+  - `/features/album`'s Review hint, "Every upload waits for you. The guest who sent it sees Waiting for approval."
+- **Look at first:** `use-review-triage.ts` with `review-queue.ts` (`OwnWrites`: when a write is read back, and the
+  live reconciliation re-running when it is); `event-experience.tsx`'s `onAddFirst`.
