@@ -1,0 +1,62 @@
+/* THE ONE THING THIS BOARD DRAWS FROM ITS OWN SHEET: the lit lock's spill
+   (`lit`, `parts.tsx`'s `LitLock`). Everything else wears production's own
+   classes: the not-found screen, the door's padding, scrim and posture, the
+   lamp's register, blobs and drift (`door/lit.css`).
+
+   ★ THE DOOR LAMP'S OWN BLOBS, LAID ROUND A LOCK INSTEAD OF ALONG AN EDGE.
+   `.door-lamp` supplies the register (paper in light, the atmosphere register
+   in dark), the blobs' colour and blur, the drift and its stillness under
+   reduced motion; this sheet only places them. The box sits a little above
+   the lock's centre and its mask is spent within a few pixels of the lock's
+   foot, so no light falls under the headline (in dark, a muted word inside the
+   atmosphere register reads about 2:1, design-system.md's "spill in dark stays
+   off the words").
+
+   ★ NO KEYFRAMES HERE (design-system.md: a lab keyframe name is document-wide
+   and would shadow production's); the drift is `lit.css`'s own. */
+
+.ld-spill {
+  left: 50%;
+  top: 50%;
+  width: 17rem;
+  height: 11rem;
+  translate: -50% -62%;
+  -webkit-mask-image: radial-gradient(
+    closest-side,
+    #000 0%,
+    rgb(0 0 0 / 0.55) 48%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    closest-side,
+    #000 0%,
+    rgb(0 0 0 / 0.55) 48%,
+    transparent 100%
+  );
+}
+.ld-spill .door-lamp-b1 {
+  left: 6%;
+  top: 30%;
+  width: 46%;
+  height: 58%;
+}
+.ld-spill .door-lamp-b2 {
+  left: 28%;
+  top: 8%;
+  width: 44%;
+  height: 58%;
+}
+.ld-spill .door-lamp-b3 {
+  right: 6%;
+  top: 30%;
+  width: 46%;
+  height: 58%;
+}
+
+/* A laptop's column has more room around it, so the light has more to fill. */
+@media (width >= 40rem) {
+  .ld-spill {
+    width: 24rem;
+    height: 14rem;
+  }
+}

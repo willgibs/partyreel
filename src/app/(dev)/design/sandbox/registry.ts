@@ -2,15 +2,17 @@ import type { BoardSpec } from "@/components/lab/board-spec";
 import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 
 import { HERO_CARD } from "./hero-card/spec";
-import { VOICE_GUEST } from "./voice-guest/spec";
 import { EXPORT_FLOW } from "./export-flow/spec";
 import { ADMIN_TRIAGE } from "./admin-triage/spec";
 import { EMAILS } from "./emails/spec";
+import { LOCKED_DOOR } from "./locked-door/spec";
 import { HELP_CENTER } from "./help-center/spec";
+import { EVENT_SETTINGS } from "./event-settings/spec";
 import { HOST_STORAGE } from "./host-storage/spec";
 
 import { PRESS_PAGE } from "./press-page/spec";
 import { CONTACT_PAGE } from "./contact-page/spec";
+import { DISPOSABLE_MODE } from "./disposable-mode/spec";
 import { ALBUM_MOTION } from "./album-motion/spec";
 
 import { LOOSE_ENDS } from "./loose-ends/spec";
@@ -45,17 +47,18 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
 const REGISTERED: readonly BoardSpec[] = [
   HERO_CARD,
 
-  VOICE_GUEST,
-
   HOST_STORAGE,
   EXPORT_FLOW,
   ADMIN_TRIAGE,
   HELP_CENTER,
+  EVENT_SETTINGS,
   EMAILS,
+  LOCKED_DOOR,
   PRIVACY_HERO,
   ALBUM_MOTION,
   LOOSE_ENDS,
   CONTACT_PAGE,
+  DISPOSABLE_MODE,
   PRESS_PAGE,
 ];
 

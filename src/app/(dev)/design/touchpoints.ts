@@ -26,14 +26,16 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 /** The boards standing in sandbox/, one row each below. */
 export type SandboxId =
   | "hero-card"
-  | "voice-guest"
   | "export-flow"
   | "admin-triage"
   | "emails"
+  | "locked-door"
   | "help-center"
+  | "event-settings"
   | "host-storage"
   | "press-page"
   | "contact-page"
+  | "disposable-mode"
   | "album-motion"
   | "loose-ends"
   | "privacy-hero";
@@ -72,29 +74,6 @@ export const RULINGS: Ruling[] = [
         "The link card",
         "The card's own light",
         "The hero at a tablet",
-      ],
-    },
-  },
-  {
-    id: "voice-guest",
-    title: "The voice of the guest journey",
-    surface: "guest",
-    asks: "where a held photo shows to the guest who sent it, what her uploads call one the host is deciding on and one left out, and the keep's words on the door's last screen",
-    why: 'Round one built five lines; a held photo and the keep came back unclear, and host-curation asked for clearer words than "Not in the album".',
-    lives: [
-      "docs/systems/guest-flow.md",
-      "src/components/guest/upload/stack-tile.tsx",
-      "src/components/guest/gallery-rows.tsx",
-      "src/components/guest/upload-tracker.tsx",
-      "src/lib/guest/upload-tracker.ts",
-      "src/components/guest/save-account-prompt.tsx",
-    ],
-    board: {
-      note: "Round two over Priya at Maya and Jay's wedding, every frame a 375 phone in the album as it ships: a held photo's place drawn as the moment, later and her uploads' own screen, her uploads' words for waiting and left out, and the keep's ask in round one's registers",
-      variants: [
-        "Where a held photo shows",
-        "Her uploads' words",
-        "Keeping it",
       ],
     },
   },
@@ -188,6 +167,25 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
+    id: "locked-door",
+    title: "The locked door",
+    surface: "guest",
+    asks: "the one screen a guest meets whenever she can't get in (the album private, closed to newcomers, or she was blocked), and whether someone who was in reads a line of her own",
+    why: "His event-safety notes made the private album's lock the blocked door and the closed door too, and asked for it polished, since it will be a high-traffic screen.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "src/app/(guest)/e/[token]/page.tsx",
+      "src/components/shared/not-found-screen.tsx",
+      "src/components/guest/entry-shell.tsx",
+      "src/components/guest/door/lit.tsx",
+      "src/components/guest/door/heading.tsx",
+    ],
+    board: {
+      note: "Two decisions at Maya and Jay's wedding, 375 first with 1440 on the knob: the locked screen drawn five ways, from today's to one over the album's cover, each in words true of a private album, a closed one and a block; then whether a guest who was in reads a line of her own, measured on a newcomer, Priya and Dom side by side",
+      variants: ["The locked screen", "A previous guest's line"],
+    },
+  },
+  {
     id: "help-center",
     title: "Where a problem lands",
     surface: "marketing",
@@ -215,6 +213,36 @@ export const RULINGS: Ruling[] = [
         "Feedback",
         "The dead end",
         "Search",
+      ],
+    },
+  },
+  {
+    id: "event-settings",
+    title: "An event's settings",
+    surface: "host",
+    asks: "how an event's settings are organised from the ground up, how a group opens, a setting that does nothing yet, the one Pro lock, and who can get in with its four asks",
+    why: "Will called settings some of the ugliest, least intuitive UI for the most critical controls, and asked for them rebuilt from the ground up, as streamlined as possible.",
+    lives: [
+      "docs/systems/host-app.md",
+      "src/components/app/event-settings/event-settings-sheet.tsx",
+      "src/components/app/event-settings-form.tsx",
+      "src/components/app/event-settings/visibility-section.tsx",
+      "src/components/app/event-settings/uploads-section.tsx",
+      "src/components/app/event-settings/highlight-reel-card.tsx",
+      "src/components/app/event-settings/profile-social-card.tsx",
+      "src/components/app/event-settings/danger-zone-section.tsx",
+      "src/components/app/visibility-selector.tsx",
+      "src/components/app/pricing/lock-chip.tsx",
+    ],
+    board: {
+      note: "Nine decisions on Maya and Jay's wedding, phone first with 1440 on every knob, drawn over production with his answers worn: five structures for the settings graded against today's seven cards, each as it opens and as she pauses uploads, then how a group opens, a setting that does nothing yet, the one Pro lock, and who can get in with event-safety's four join asks",
+      variants: [
+        "The structure",
+        "How a group opens",
+        "A setting that does nothing yet",
+        "The one Pro lock",
+        "Who can get in",
+        "The invite list",
       ],
     },
   },
@@ -286,6 +314,34 @@ export const RULINGS: Ruling[] = [
         "The topic picker",
         "The page's identity",
         "Beside the form",
+      ],
+    },
+  },
+  {
+    id: "disposable-mode",
+    title: "A disposable camera",
+    surface: "shared",
+    asks: "what a guest shoots with and its look, when the roll develops and what the album shows until then, how a host turns it on, and where it sits between Free, Event Pass and Pro",
+    why: "Will's note on export-flow: a disposable inside Partyreel (camera only, a shot limit), so POV's audience arrives without Partyreel being built around it.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "docs/systems/uploads-and-r2.md",
+      "docs/systems/billing-caps.md",
+      "src/components/guest/event-experience.tsx",
+      "src/components/guest/upload/intent-sheet.tsx",
+      "src/components/app/create-event-wizard.tsx",
+      "src/components/app/event-settings/uploads-section.tsx",
+      "src/lib/constants/tiers.ts",
+    ],
+    board: {
+      note: "Six decisions over Maya and Jay's wedding, every guest frame a 375 phone: the camera a guest shoots with (the phone's, the album's own, a disposable drawn) and its look, when the roll develops and what the album shows until then, how a host turns it on in Create and Settings (1440 on the knob), and its price against Free's new 100 MB",
+      variants: [
+        "The guest's camera",
+        "The camera's look",
+        "When it develops",
+        "While it develops",
+        "Turning it on",
+        "Its price",
       ],
     },
   },
@@ -363,16 +419,18 @@ export const RULINGS: Ruling[] = [
  */
 export const DESK_ORDER: readonly SandboxId[] = [
   "hero-card",
-  "voice-guest",
   "host-storage",
   "export-flow",
   "admin-triage",
   "help-center",
+  "event-settings",
   "emails",
+  "locked-door",
   "privacy-hero",
   "album-motion",
   "loose-ends",
   "contact-page",
+  "disposable-mode",
   "press-page",
 ];
 

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildTrackerRows,
+  newlyInAlbum,
+  TRACKER_WORDS,
   trackerShows,
   waitingCount,
   type OwnUploadWire,
@@ -175,6 +177,86 @@ describe("trackerShows", () => {
         rows: some,
       }),
     ).toBe(false);
+  });
+});
+
+describe("the words each status wears", () => {
+  // voice-guest r2, Will's `status=approval`: both lines name the review she read about when she
+  // sent them. One state, one name: the badge's spoken count and the keep's Sent line say it too.
+  it("names the review for a held photograph and for one the host left out", () => {
+    expect(TRACKER_WORDS.waiting).toBe("Waiting for approval");
+    expect(TRACKER_WORDS.refused).toBe("Not approved");
+    expect(TRACKER_WORDS.approved).toBe("In the album");
+  });
+});
+
+describe("newlyInAlbum", () => {
+  const input = (over: Partial<Parameters<typeof newlyInAlbum>[0]> = {}) => ({
+    queue: [],
+    own: null,
+    album: EMPTY,
+    approvedOnce: EMPTY,
+    ...over,
+  });
+
+  it("★ one of hers let in out of waiting is an arrival, and its re-read learns the rest of the pick", () => {
+    const out = newlyInAlbum(
+      input({
+        queue: [q("q1", "done", { mediaId: "m1", mediaStatus: "pending" })],
+        album: new Set(["m1"]),
+      }),
+    );
+    expect(out).toEqual({ ids: ["m1"], arrived: true });
+    // Pending on her rows when they were read, in the album now: an arrival too.
+    expect(
+      newlyInAlbum(
+        input({
+          own: [{ id: "m2", status: "pending" }],
+          album: new Set(["m2"]),
+        }),
+      ),
+    ).toEqual({ ids: ["m2"], arrived: true });
+  });
+
+  it("what her rows already said was in the album is remembered, never an arrival", () => {
+    const out = newlyInAlbum(
+      input({
+        own: [{ id: "m3", status: "approved" }],
+        album: new Set(["m3"]),
+      }),
+    );
+    expect(out).toEqual({ ids: ["m3"], arrived: false });
+  });
+
+  it("says nothing of what this device has already seen in the album, or what is not in it", () => {
+    expect(
+      newlyInAlbum(
+        input({
+          queue: [q("q1", "done", { mediaId: "m1", mediaStatus: "pending" })],
+          own: [{ id: "m1", status: "pending" }],
+          album: new Set(["m1"]),
+          approvedOnce: new Set(["m1"]),
+        }),
+      ),
+    ).toEqual({ ids: [], arrived: false });
+    expect(
+      newlyInAlbum(
+        input({
+          queue: [q("q1", "done", { mediaId: "m1", mediaStatus: "pending" })],
+        }),
+      ),
+    ).toEqual({ ids: [], arrived: false });
+  });
+
+  it("names an id once, whichever source knew it", () => {
+    const out = newlyInAlbum(
+      input({
+        queue: [q("q1", "done", { mediaId: "m1", mediaStatus: "pending" })],
+        own: [{ id: "m1", status: "pending" }],
+        album: new Set(["m1"]),
+      }),
+    );
+    expect(out.ids).toEqual(["m1"]);
   });
 });
 

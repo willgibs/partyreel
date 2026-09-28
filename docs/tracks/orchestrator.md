@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "662292ad"          # the launch-prep SHA this state was written at
+cut: "35601390"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/theme.css
   - src/app/(marketing)/marketing.css
@@ -40,32 +40,87 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `safety-wiring` | event-safety's answers: the per-event block (a migration to apply), soft in every look, the private door, the Guests room's Blocked list, Let back in with a restore toggle; the guest list always on; event-safety retires | running, agent `a976ee6de796172b4` | Opus, :3134 | |
+| `pricing-wiring` | host-storage `prices=sizes` on a monthly/yearly toggle with a yearly tag, iPhone-default estimates, his free/pro shift (Free 100 MB, 300 MB meter; password, custom link with a squatting guard, 60 s reels to Free); `tier_limits()` migration to apply; host-storage retires | running, agent `ad560f85ada04d064` | Opus, :3132 | |
+| `triage-r2` | admin-triage r2: a fast, batch-first reports queue with each report's whole context, asking a reporter for proof, `phone` reworded | running, agent `aa87a69da46b9875a` | Opus, :3131 | |
 
-Batch 6 (cut `1708b049`, 2026-09-28) answers Will's sitting on build 12, part one (transcribed at `e199f43f`: 20
-answers on identity-claims, hero-card, voice-guest, host-curation, host-storage). A read-only audit of the other 12
-boards found 30 of their 68 asks drawn before his recent picks were built and 5 already answered: wave 1, the eight
-lanes that made his next desk, landed whole (build 13); wave 2, the wiring of his picks, landed whole too (build 14).
+Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcribed at `69afdbc5`: 21 answers on
+hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
+Wave B follows as seats free. Batch 6 (sixteen lanes) is merged whole; its records carry the rest.
 
-Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-refresh, flow-refresh, safety-refresh, hero-r2, help-refresh, marketing-refresh, pointer-wiring, curation-wiring, crumbs-6, storage-wiring, crumbs-7.
+Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring.
 
 ## Next, in order
 
-1. **Build 15 is live and red-teamed** (`60b4e4ea`): build 14's signed-out pass, and build 15's live host and admin
-   pass in Will's Chrome, walked every journey and passed, crumbs-7's fixes included.
-   - The review room: Reject, the peek's keys after a mouse verdict, Undo, the "N new" pill moving no tile.
-   - The storage list: Undo with it open at 1440 and 375, and the Pro head.
-   - The admin's Albums confirm.
-   - The host's standing scope.
+1. **Integrate each running lane as it hands off** (rows above; wave A's three boards are merged).
+   - `safety-wiring`'s migration by protocol: drift check, apply verbatim, the rolled-back refusals, advisors, types.
+   - At its record, delete `docs/reviews/event-safety.json`.
+   - `pricing-wiring`'s and every later migration the same way, one at a time.
+2. **Wave B into each free seat**, in this order (his answers are in the ledgers; each brief carries his notes). `pricing-wiring`
+   is already running; its scope, for the record:
+     - host-storage `prices=sizes` with a monthly/yearly toggle and a discount tag on yearly, each card only its size;
+     - estimates from iPhone's default photo and video settings, said as such (`tiers.ts`' constants feed /pricing, the
+       plan sheet and the blog);
+     - his free/pro shift: Free 2 GB to 100 MB and its monthly upload meter 3× the cap (300 MB); Free gains the
+       password, the custom link (guard slug squatting) and 60 s reels; Pro keeps videos, storage, unlimited events and
+       no reel watermark; Event Pass keeps its reason;
+     - `tier_limits()` alone in its migration; every "2 GB" swept; `PRICING.md` and `billing-caps.md` refined; the
+       over-cap grace path checked at 100 MB.
 
-   Not driven: a report's Remove (no reports exist), and the refusal and goal strip (willg97 stores 98 MB). One minor
-   and two notes went to ROADMAP. The admin portal keeps partyr33l's verified session in Will's Chrome.
-3. **His next paste** (build 13's desk, or the 25 build-12 asks) transcribed, and the next wiring cut from it. The
-   hero's wiring waits for hero-card r2's pick. voice-guest r2's wiring carries its `keep` pick to her name menu's card,
-   which still says "Save this event for later".
-4. **Milestone 30** on his yes, once the count's legal clause (his wording, below) is in the Terms and the Privacy
-   Policy; after it, `kit/`'s screens re-captured from partyreel.com (the home's close, teaser, eyebrow and the demo's
-   doors changed).
-5. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
+     Retires host-storage.
+   - `export-wiring` (Opus):
+     - `means=mine`: the Yours row, filtered on the server;
+     - `wait=toast`: it stays until ready, with a subtle cancel × (`stuck`);
+     - `hollow=refuse`: one line;
+     - `cap=split`: parts walked through in plain words, never "in 2 zips", saying when every part is saved;
+     - a phone's Download all to Files.
+
+     The export Worker (`partyreel-export`, shared with partyreel.com) stays backward compatible with milestone 29's
+     app, proved by a test; I deploy it after the merge (`wrangler whoami` first). Retires export-flow.
+   - `hero-wiring` (Opus): the `guests` card with `partyreel.com/` quieter so the slug leads, the bloom light, the
+     tablet table; `ASSETS.md` row 34 becomes four portraits. Retires hero-card.
+   - `triage-wiring` (Opus), from his admin-triage r1 (`docs/reviews/admin-triage.json`):
+     - `reason=marked` (one muted line for both arms);
+     - `verdict=note` (Remove through the one confirm with an optional note, Dismiss's note, `resolution_note` written);
+     - `closed=window`;
+     - `escalate=door`;
+     - `idiom=shape`;
+     - `notice=deleted` built as his note refines it: a reported removal leaves the host's album and Deleted at once,
+       with nothing said; the event's copy purged on a sweep, never while a legal hold stands; the preservation copy
+       and the CSAM runbook's order kept;
+     - the admin confirm's "already says" line in voice-wiring's new words;
+     - report wording for the Terms and Privacy drafted under Questions (his "legal terms shouldn't imply every report
+       leads to takedown").
+
+     Its spec was drafted this session: owns `src/components/admin/`, `report-review`, `recently-deleted-grid`, the
+     report help, and a migration.
+   - `help-wiring` (Opus), from his help-center r1 (`docs/reviews/help-center.json`, all seven); `voice-wiring` merged
+     at `dbba6a0e`, so the refused row and the name menu are its paths now:
+     - `who-first=host`;
+     - `hub=strip`, the quick questions dropping from the focused search;
+     - `article=screen`;
+     - `from-product=contextual`, plus a Help row in the guest's and the host's menus;
+     - `feedback=beacon`: a rate-limited insert, never read back, an admin view with its health signal, a migration;
+     - `dead-end=rung`;
+     - `search=visible`: Search rows in the header and footer; the help palette never mounts in admin.
+
+     Retires help-center.
+3. **Build 16 is live** (`49269fad`; wave A's three boards, a lab-only round: the red-team's carve-out) for his
+   sitting. **Build 17** carries the wiring as it lands. Its red-team:
+   - the block, live (partyr33l blocked at a willg97 test event, then let back in with and without restore);
+   - the pricing page and plan sheet;
+   - the export flow, short of any download;
+   - the review room's new words;
+   - the standing scope.
+
+   Drafted specs for the queued lanes are in this session's scratchpad (`specs/<track>.json`); a new session writes
+   them from the lines above.
+4. **His paste** (build 16's 48 open asks) transcribed; the join doors (`newcomer=same`,
+   `unlisted=ask`) are built after `event-settings` picks how "who can join" is set.
+5. **Milestone 30** on his yes, once his legal wording is in (the private count; the guest list always on); after it,
+   `kit/`'s screens re-captured from partyreel.com (the home's hero, close, teaser and eyebrow, the demo's doors, the
+   pricing page).
+6. **The lab revamp**, once the desk's open boards close and before new explorations open: a board as one
    self-registering folder, its metadata in its spec, lab checks scoped to the lane's own boards, the authoring API
    trimmed, a fresh agent proving it; with library-lean's board ideas (a `Surfaces` family of live frames per route
    with guest entries, the Library's sidebar open by default, a plain-text view of Library pages, a
@@ -75,7 +130,11 @@ Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-r
 ## Waiting on Will
 
 - **His desk, first** (his aim: zero open questions before the to-dos below, which stay stacked until then): build
-  13's, 71 open asks on 13 boards, `hero-card` r2 first.
+  16's 48 open asks (emails, privacy-hero, album-motion, loose-ends, contact-page, press-page; new: event-settings,
+  locked-door, disposable-mode); admin-triage r2 follows.
+- **His legal wording for the guest list, always on** (with the private count's, before milestone 30): `safety-wiring`
+  drafts it under its Questions.
+- **A yes on dropping `events.show_guest_list`** (destructive), once no build reads it.
 - **The claims review's live walk**: it needs claimable rows staged for a test account (`update public.guests set
   pending_email = '<address>', pending_email_at = now() where id in (...)` on name-only rows with live uploads), a write
   the permission classifier refused the red-team; Will stages them (or walks it himself as partyr33l), and the restore
@@ -91,9 +150,10 @@ Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-r
   change: "A profile with nothing on it may say how many events it keeps private, counting only events whose guest
   lists the visitor can already see."
 - **A 2-minute real-upload check on the alias**: a first photo, landscape, as a signed-out guest at a held-uploads
-  event (the keep, "waiting for the host" on a head slot the photo now covers, the tracker's badge), then Confirm your
+  event (the keep; her uploads' "Waiting for approval" and the tracker's badge, with no held tile at the album's head
+  once `voice-wiring` lands), then Confirm your
   email (the one beat, the told name's Change).
 - **A 10-second iPhone check on partyreel.com**: one tap on Save opens the system sheet, and a shared photo arrives as
   a photograph.
 - **A copy call**: the setup's "Showing on your page" over an event whose host keeps the guest list off (ROADMAP's
-  picker line).
+  picker line). It retires once `safety-wiring` makes the guest list always on.

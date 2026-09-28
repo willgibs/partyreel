@@ -252,7 +252,9 @@ beneath, newest first.
 - **The Review room** reads and presigns the `pending` slice alone, whole; its states (pending, caught up, moderation
   off with a one-tap "Turn on review", the all-caught-up beat) live in `use-review-triage.ts`, its pure rules in
   `review-queue.ts`. Its grid is the shared `SelectableMediaGrid` on the uniform layout, because uniform tiles
-  standardize the selection targets and scan fast.
+  standardize the selection targets and scan fast. Over the queue, while there is one, sits its one line of advice,
+  "Anything you approve can still be hidden later." (`REVIEW_NOTE`, Will's host note: so a host is lenient toward
+  approve-and-hide over reject), a sentence and never a hint row.
 - **The refusing verb is Reject at the door, Hide in the album**: a rejected upload lands `hidden` (dimmed in the host's
   album, where Show approves it), the same row a Hide leaves; only the word differs. A tap opens the peek, which carries
   the verdict (Reject, Approve) under the photograph at every width and moves on to the next upload once one is
@@ -273,8 +275,11 @@ beneath, newest first.
   links) and `review-live.ts` reads the queue off it, so an arrival reaches the room when it reaches the hub's Review
   card. It never joins the grid on its own: a glass pill floating over the grid's head counts it ("3 new"), taking no
   room so no tile moves as it appears, and a tap folds it in at the head.
-  An upload decided elsewhere or taken back leaves the grid; one the room acted on never does, its own write being its
-  truth against a poll read before that write (or its Undo) landed.
+  An upload decided elsewhere or taken back leaves the grid; one the room acted on does not while that write (or its
+  Undo) is unread, its own write being its truth against a poll read before it landed. ★ **Only until the album has
+  answered the catch-up the room asks for once the write lands** (`OwnWrites`, `review-queue.ts`; a refused write at
+  once): from then on the album speaks for it again, so an upload decided here that returns to waiting from elsewhere
+  (a second tab's Undo) is an arrival the line counts, and one put back here that is decided elsewhere leaves.
 - **Turning moderation off with a queue** confirms with the count, and on save `approveAllPending` runs: the modal is the
   host's consent, the server the invariant (live mode never holds pending media).
 - **Clearing the last pending item plays the beat** (unless uploads wait behind the line), during which the

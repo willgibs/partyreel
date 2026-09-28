@@ -4,14 +4,18 @@
  * (when the keep is due, the marker on Confirm, Maybe later putting it down, the claim on a code)
  * are pinned beside the door in `entry-modal.test.tsx`; these are the words and the two views.
  *
- *   1. IT COUNTS WHAT LANDED, and the singular reads as a singular, heading included.
+ *   1. IT OFFERS THE EVENT (voice-guest r2, Will's `keep=warm`), by name, and counts what landed
+ *      inside it, the singular reading as a singular.
  *   2. IT SAYS WHERE WHAT SHE SENT WENT: into the host's album, or, on an event that holds uploads,
- *      to the host first (never "joined the album" for a photograph the album does not show).
+ *      waiting for approval in her uploads' own words (never "joined the album" for a photograph
+ *      the album does not show).
  *   3. ITS CONFIRM IS THE ACCOUNT DOOR IN THIS SHEET: the address typed at the door this visit in
  *      its field, the newsletter switch off until she turns it on.
  */
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { TRACKER_WORDS } from "@/lib/guest/upload-tracker";
 
 import {
   KeepConfirm,
@@ -35,21 +39,36 @@ beforeEach(() => {
 });
 
 describe("keepCopy", () => {
-  it("counts what landed, and says one photograph in the singular", () => {
-    expect(keepCopy(7).reason).toMatch(/all 7 stay with you/i);
-    expect(keepCopy(1).reason).toMatch(/it stays with you/i);
-    expect(keepCopy(1_250).reason).toMatch(/all 1,250 stay/);
+  // ★ RESHAPED (voice-wiring). These pinned "Keep these photos" over "all 7 stay with you", and a
+  // heading that counted ("Keep this photo" for one). Will's `keep=warm` (voice-guest r2) made the
+  // event the offer, so the heading no longer counts and the scar kept is the count inside the
+  // line, one photograph said in the singular.
+  it("offers the event, the future its reason", () => {
+    expect(keepCopy(6, "Maya & Jay")).toEqual({
+      title: "Keep this event",
+      reason:
+        "Confirm your email and Maya & Jay stays in your account with your 6 photos, to come back to anytime.",
+    });
   });
 
-  // A plural heading over one file reads as a typo beside its own "it stays".
-  it("the heading counts too: singular for exactly one, plural otherwise", () => {
-    expect(keepCopy(7).title).toBe("Keep these photos");
-    expect(keepCopy(1).title).toBe("Keep this photo");
+  it("counts what landed inside it, and says one photograph in the singular", () => {
+    expect(keepCopy(1, "Maya & Jay").reason).toMatch(/with your photo,/);
+    expect(keepCopy(1_250, "Maya & Jay").reason).toMatch(
+      /with your 1,250 photos,/,
+    );
+    expect(keepCopy(1, "Maya & Jay").title).toBe("Keep this event");
+  });
+
+  it("never reads with a hole where the event's name would be", () => {
+    expect(keepCopy(2).reason).toMatch(
+      /^Confirm your email and this event stays/,
+    );
+    expect(keepCopy(2, "  ").reason).toMatch(/and this event stays/);
   });
 
   it("promises the account, never a profile", () => {
-    expect(keepCopy(3).reason).toMatch(/in your account/);
-    expect(keepCopy(3).reason).not.toMatch(/profile/i);
+    expect(keepCopy(3, "Maya & Jay").reason).toMatch(/in your account/);
+    expect(keepCopy(3, "Maya & Jay").reason).not.toMatch(/profile/i);
   });
 });
 
@@ -65,10 +84,18 @@ describe("keepSentLine", () => {
 
   it("never says it joined the album on an event that holds uploads for the host", () => {
     expect(keepSentLine({ count: 1, held: true, hostName: "Maya" })).toBe(
-      "Your photo is waiting for the host.",
+      "Your photo is waiting for approval.",
     );
     expect(keepSentLine({ count: 2, held: true, hostName: "Maya" })).toBe(
-      "Your 2 photos are waiting for the host.",
+      "Your 2 photos are waiting for approval.",
+    );
+  });
+
+  // One state, one name (voice-guest r2 `status=approval`): the Sent line on a held event says
+  // what her uploads call the same photograph a moment later.
+  it("names a held photograph in her uploads' own words", () => {
+    expect(keepSentLine({ count: 1, held: true })).toContain(
+      TRACKER_WORDS.waiting.toLowerCase(),
     );
   });
 });
@@ -82,6 +109,7 @@ describe("KeepOffer", () => {
         count={2}
         held={false}
         hostName="Maya"
+        eventName="Maya & Jay"
         onConfirm={onConfirm}
         onLater={onLater}
       />,
@@ -90,7 +118,12 @@ describe("KeepOffer", () => {
     expect(
       screen.getByText("Your 2 photos joined Maya’s album."),
     ).toBeInTheDocument();
-    expect(screen.getByText("Keep these photos")).toBeInTheDocument();
+    expect(screen.getByText("Keep this event")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Confirm your email and Maya & Jay stays in your account with your 2 photos, to come back to anytime.",
+      ),
+    ).toBeInTheDocument();
 
     fireEvent.click(
       screen.getByRole("button", { name: /confirm your email/i }),
@@ -116,7 +149,7 @@ describe("KeepOffer", () => {
     const sent = container.querySelector("[data-keep-sent]");
     expect(sent?.querySelector('[data-door-check="sent"]')).not.toBeNull();
     expect(sent?.closest("[aria-hidden]")).toBeNull();
-    expect(sent).toHaveTextContent("SentYour photo is waiting for the host.");
+    expect(sent).toHaveTextContent("SentYour photo is waiting for approval.");
   });
 });
 

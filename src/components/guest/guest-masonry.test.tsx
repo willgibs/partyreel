@@ -12,15 +12,20 @@ import { LikesProvider } from "@/components/likes/likes-provider";
 /**
  * THE ALBUM'S HEAD: what a guest's own device puts there, and what it refuses to.
  *
- * FUNCTION ONLY. The two tiles' own drawings are `stack-tile.test.tsx`'s, and
- * the grid under them is `masonry.test.tsx`'s. What is held here is the SEAM: a
- * queue snapshot goes in, and exactly one stack plus one waiting tile per held
- * file comes out, with nothing at all for a file that did not go.
+ * FUNCTION ONLY. The stack's own drawing is `stack-tile.test.tsx`'s, and the
+ * grid under it is `masonry.test.tsx`'s. What is held here is the SEAM: the
+ * files in flight go in, and exactly one stack comes out.
  *
  * ★ EACH RULE BELOW STANDS AGAINST A FAILURE, WHICH IS WHY EACH IS WORTH A PIN:
- * twelve files drawing twelve tiles, a held upload drawing nothing at all and
- * reading as a failure, and a refused file turning a perfectly good photograph
- * into a button saying Tap to retry.
+ * twelve files drawing twelve tiles, and a stack whose bar sits at zero while
+ * another file's bytes are going.
+ *
+ * ★ RESHAPED (voice-wiring). A pin here drew one waiting tile per held file
+ * beside a live stack, against "a held upload drawing nothing at all and
+ * reading as a failure". Will's `held=uploads` (voice-guest r2) answered that
+ * the other way: a held photograph shows only in her uploads, the badge beside
+ * Add counting it, so the head no longer has a held state to draw, and the
+ * rule that a held upload hands it nothing is `live-gallery.test.tsx`'s.
  */
 const items: GridMedia[] = [
   { id: "a", type: "photo", url: "/a.jpg", width: 800, height: 1200 },
@@ -47,7 +52,6 @@ const pending = (
 });
 
 const stacks = () => document.querySelectorAll("[data-upload-stack]");
-const waiting = () => document.querySelectorAll("[data-waiting-tile]");
 
 describe("a pick in flight is ONE object at the album's head", () => {
   it("collapses a batch into a single stack that counts what is left", () => {
@@ -92,27 +96,6 @@ describe("a pick in flight is ONE object at the album's head", () => {
   it("draws no stack when nothing is flying", () => {
     render(album(<GuestMasonry items={items} pending={[]} />));
     expect(stacks()).toHaveLength(0);
-  });
-});
-
-describe("a held upload waits where the guest can see it", () => {
-  it("draws one waiting tile per held file, beside a live stack", () => {
-    render(
-      album(
-        <GuestMasonry
-          items={items}
-          pending={[
-            pending("1", "uploading", 10),
-            pending("2", "held"),
-            pending("3", "held"),
-          ]}
-        />,
-      ),
-    );
-    expect(stacks()).toHaveLength(1);
-    expect(waiting()).toHaveLength(2);
-    // A held file is NOT in the stack's count: its bytes are already in.
-    expect(screen.queryByText(/to go/)).toBeNull();
   });
 });
 

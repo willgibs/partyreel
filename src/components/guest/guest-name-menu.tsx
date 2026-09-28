@@ -10,6 +10,7 @@ import {
   PENDING_EMAIL_REMOVABLE,
 } from "@/components/guest/add-email-dialog";
 import { DoorLamp } from "@/components/guest/door/lit";
+import { KEEP_TITLE } from "@/components/guest/save-account-prompt";
 import { UNVERIFIED_LABEL } from "@/components/shared/unverified-mark";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -42,10 +43,12 @@ import { requestNameDoor } from "@/lib/guest/name-door";
  *   - The label: her name over "Unverified" (the mark's own word, read from it, so the two cannot
  *     drift), or over "Email not confirmed" once an address was added. "Unverified" appears
  *     exactly once in this menu.
- *   - The card: "Save this event for later", and the one act that does it. Name only: "Add your
- *     email" (`add-email-dialog.tsx`, the second chance at the door's optional field). An
- *     address added: "Confirm your email" straight into the code door (which opens EMPTY,
- *     because the address was never kept, and says so), with a quiet "Change or remove it".
+ *   - The card: the benefit, in the keep's own title ("Keep this event", `KEEP_TITLE`,
+ *     `voice-guest` r2's `keep=warm`: the door's last screen asks it, and this card is the ask's
+ *     standing home, so the two say one thing), and the one act that does it. Name only: "Add your email" (`add-email-dialog.tsx`, the second
+ *     chance at the door's optional field). An address added: "Confirm your email" straight into
+ *     the code door (which opens EMPTY, because the address was never kept, and says so), with a
+ *     quiet "Change or remove it".
  *   - "Change name" reopens the door in edit mode through `lib/guest/name-door.ts`, because this
  *     header is a SIBLING island of the page that owns the modal.
  *   - "Log in", the chooser's word, for somebody who already has an account and wants tonight's
@@ -144,7 +147,7 @@ export function GuestNameMenu({
           >
             <DoorLamp edge="card" />
             <p className="text-reading text-pretty text-foreground">
-              Save this event for later
+              {KEEP_TITLE}
             </p>
             {emailAttached || !hasRow ? (
               <DropdownMenuItem

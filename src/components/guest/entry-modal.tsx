@@ -856,6 +856,7 @@ export const EntryModal = forwardRef<
               count={keepCount}
               held={keepHeld}
               hostName={hostName}
+              eventName={eventName}
               onConfirm={() => {
                 // BEFORE the account door shows: Google and a magic link leave the page, and the
                 // marker is what plays the follow moment when they come back.
@@ -931,7 +932,7 @@ export function entrySheetCopy(input: {
     return { title: "Add your photos", description: uploadReason };
   }
   if (displayKey === "keep") {
-    const copy = keepCopy(keepCount);
+    const copy = keepCopy(keepCount, eventName);
     return { title: copy.title, description: copy.reason };
   }
   if (displayKey === "keep-confirm") {

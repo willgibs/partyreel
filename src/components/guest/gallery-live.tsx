@@ -222,7 +222,11 @@ export type GalleryLive = {
   canRemove: boolean;
   /** Take one of their own off the screen now, then tell the server (see its note). */
   removeOwn: (id: string) => Promise<void>;
-  /** What this device has in flight or held, and each one's object URL (the album's head tiles). */
+  /**
+   * What this device has in flight or held, and each one's object URL: the album's head draws the
+   * files in flight, and her uploads draw every one's picture, a held one's included, since
+   * nothing that is not in the album is ever presigned for a guest.
+   */
   pendingUploads: readonly QueueItem[];
   pendingUrls: ReadonlyMap<string, string>;
   /** The queue's live progress, which the head's stack tile subscribes to itself. */
@@ -564,7 +568,7 @@ export function GalleryLiveProvider({
   useImperativeHandle(ref, () => ({
     notifyUploaded(u) {
       // Only LIVE uploads are public immediately, so only those go in optimistically. A held one
-      // keeps its waiting tile at the head until the host's approval arrives in a delta.
+      // shows only in her uploads until the host's approval arrives in a delta.
       if (u.status === "approved") {
         const url =
           pendingBlobs.current.get(u.queueId) ?? URL.createObjectURL(u.file);

@@ -47,8 +47,9 @@ stranger has not seen yet.
 account; then follow the host; the copy says "in your account", never "on your profile", since a profile publishes
 nothing until its owner chooses). It is due the instant a signed-out guest's first file lands this visit, from the
 door's upload step or the album's Add, never in the demo or for the host (`keepDue`, `event-experience.tsx`): the door
-reopens on "Sent", beside a check blooming in the album's light, over what went ("Your photo joined Maya's album.", or "Your photo is waiting for the host." where
-uploads are held), the ask, Confirm your email (the account door in the same held sheet, its `keep` wear, a code or
+reopens on "Sent", beside a check blooming in the album's light, over what went ("Your photo joined Maya's album.", or "Your photo is waiting for approval." where
+uploads are held, her uploads' own words), the ask ("Keep this event": the event by name, her photos counted inside it,
+`keepCopy`; her name menu's card wears the same title, `KEEP_TITLE`), Confirm your email (the account door in the same held sheet, its `keep` wear, a code or
 Google, carrying the product's one newsletter opt-in through `/api/guests/capture-email`) and Maybe later (put down for
 that event on that device, `pr_save_prompt_<qr>`, [`keep-ask.ts`](../../src/lib/guest/keep-ask.ts)).
 `ClaimHandlePrompt` owns the album's post-upload slot, ONE card at a time, never in the demo: signed out → nothing
@@ -203,8 +204,9 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   40% opacity) is a class on the WRAPPER, never a layer over the photographs, and NOTHING sits at the top of
   the flow (the guest surface belongs to the host's event, so no Partyreel demo code sits in a host's own
   album). At 0 items the header and dock drop
-  their Add and the CTA owns it, only while nothing of hers is in flight or waiting: her tiles at the album's head
-  take its place, so the row's Add and her tracker return. ★ **That wrapper is `GhostRiver`, exported from this file and the ONE home of
+  their Add and the CTA owns it, only while nothing of hers is in flight or waiting (`galleryEmpty`): her stack at
+  the album's head, or on a held event an empty state with no CTA of its own, and the row's Add and her tracker
+  return, so there is always exactly one Add. ★ **That wrapper is `GhostRiver`, exported from this file and the ONE home of
   the depth**: the locked page draws the same picture, and two copies of a fade drift apart.
 - **Lightbox** (the SHARED [`media-lightbox.tsx`](../../src/components/shared/media-lightbox.tsx), its parts in
   `media-lightbox-parts/`): the photograph GROWS out of the tile it was tapped on (`origin`: the tile's rect and a
@@ -796,20 +798,24 @@ had" holds only when this device holds a guest ticket a claim would move.
     the air (the queue runs one at a time) with two ghost edges behind it and, at its foot, everything the
     tile SAYS — "N to go" and the progress bar on one pane. A single file is a stack of one and says no
     count.
-  - ★ **A WAITING tile per held file**: a completed upload on a `hold_for_approval` event sits dimmed under
-    a clock mark with "Waiting for the host" until the poll shows it approved (its `mediaId` rides on the
-    queue item for exactly that comparison) or the session ends, because drawing nothing reads as a
-    failure. Only this device ever sees it; nothing here asserts anything to the server.
+  - ★ **Nothing for a held file** (`voice-guest` r2, Will's `held=uploads`): a completed upload on a
+    `hold_for_approval` event shows only in her uploads, the tracker's badge beside Add counting it, until the host
+    lets it in and the manifest brings it like any other photograph. Its object URL stays alive for her uploads'
+    picture of it (nothing not in the album is presigned for a guest).
   - ★ **Her tracker says where each of hers stands**
     ([`upload-tracker.ts`](../../src/lib/guest/upload-tracker.ts), pure): this visit's queue plus her own rows through
-    `/api/guests/mine` `{statuses: true}`, read at mount and at each opening, never on a timer; an approval arrives
-    live through the album's sync, a refusal at the next read, as "Not in the album" (`TRACKER_TELLS_REFUSAL`); only
-    what is in the album draws its picture.
+    `/api/guests/mine` `{statuses: true}`, read at mount, at each opening and when one of hers arrives in the album
+    out of waiting (`newlyInAlbum`: a host decides a pick in one go, so the refusal beside it is learned with it),
+    never on a timer; an approval arrives live through the album's sync, a refusal at the next read. Its words
+    (`TRACKER_WORDS`, `status=approval`) are "Waiting for approval", "In the album" and "Not approved"
+    (`TRACKER_TELLS_REFUSAL`), the one name each state has wherever it is said (the badge's spoken count, the keep's
+    Sent line, the help, the album feature page's mock); only what is in the album draws its album link, a held
+    file this visit sent its own picture.
   - ★ **Nothing at all for a file that did not go** (the failure sheet owns it), and nothing for one already
     in the album.
-  ★ Both tiles wear the album tile's `data-lit` bright edge, bound by
+  ★ The stack wears the album tile's `data-lit` bright edge, bound by
   [`lit-edge-contract.test.ts`](../../src/components/shared/lit-edge-contract.test.ts)'s closed list, so a
-  photograph never gains or loses an edge at the moment it finishes uploading. Their pane is the ONE glass
+  photograph never gains or loses an edge at the moment it finishes uploading. Its pane is the ONE glass
   material at the marks' blur with `--glass-tint` re-pointed to 0.34, MEASURED for white over a pure-white
   photograph at 4.78:1 (the floor is 4.5:1).
 - **The ARRIVAL, one grammar for a guest and a host alike.** TWO marks, differing only in whose photograph
@@ -891,7 +897,7 @@ header wears [`guest-name-menu.tsx`](../../src/components/guest/guest-name-menu.
 stranger's CTA — the name, its label (read from the mark, so the two cannot drift), then the email row,
 Change name, and Log in (the `signin` wear, whose door reads "Log in" too). ★ **AND IT IS THE ONE SURFACE THAT KNOWS ABOUT AN UNCONFIRMED
 ADDRESS**: it reads the device flag `pr_guest_email_attached_<qr>` (never an address; none is stored) and
-draws two states above a card reading "Save this event for later". Name only → "Unverified" under the name and
+draws two states above a card reading "Keep this event" (the keep's own title). Name only → "Unverified" under the name and
 **Add your email**
 ([`add-email-dialog.tsx`](../../src/components/guest/add-email-dialog.tsx): one field, the door's own
 promise line, Save over `attachGuestEmail`, and "Confirm it now instead" handing to the code door). Address

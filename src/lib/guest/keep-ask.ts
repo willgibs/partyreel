@@ -8,7 +8,7 @@ import { useCallback, useSyncExternalStore } from "react";
  *
  * The ask to keep what she added arrives the instant her first file lands, as the door's last
  * screen, once per event per device: "Maybe later" puts it down for this event on this phone for
- * good (her menu's "Save this event for later" card keeps the same act one tap away), and a guest
+ * good (her menu's "Keep this event" card keeps the same act one tap away), and a guest
  * who confirms is no longer anybody the ask is for.
  *
  * ★ THE KEY IS THE OFFER CARD'S, `pr_save_prompt_<qr_token>`, kept on purpose: the card this step

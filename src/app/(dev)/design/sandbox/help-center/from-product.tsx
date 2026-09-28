@@ -17,6 +17,7 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 
 import { DoorLamp } from "@/components/guest/door/lit";
+import { KEEP_TITLE } from "@/components/guest/save-account-prompt";
 import { Logo } from "@/components/shared/logo";
 import { UNVERIFIED_LABEL } from "@/components/shared/unverified-mark";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -34,14 +35,14 @@ import { stopLinks } from "./vocab";
  * width (a desk's panels at 1440, a hand's sheet and screen at 375):
  *
  *  - HER MENU (`guest-name-menu.tsx`): her name over "Unverified", the card
- *    "Save this event for later" with Add your email, Change name, Log in.
+ *    "Keep this event" with Add your email, Change name, Log in.
  *    Report is not in the header: it sits at the album's foot
  *    (`event-experience.tsx`), drawn under the menu's crop.
  *  - THE FAILURE SHEET (`failure-sheet.tsx`), wearing voice-guest's
  *    `failed=exact` words ("2 of 8 didn't upload", Retry both), his pick and
  *    not yet wired, because that is the sheet a link would ship on.
- *  - HER UPLOADS (`upload-tracker.tsx`), a refused photo's row in today's
- *    words ("Not in the album"; voice-guest round 2 asks what it says).
+ *  - HER UPLOADS (`upload-tracker.tsx`), a refused photo's row in its shipped
+ *    words (`TRACKER_WORDS`: "Not approved", voice-guest r2's `status`).
  *
  * `menu` and `contextual` add only their links, marked in the tile's foot as
  * proposals. Nothing here mounts a Radix portal (the real menu, sheet and
@@ -152,7 +153,7 @@ function HerMenu({ help }: { help: boolean }) {
         <div className="relative isolate m-1 overflow-hidden rounded-md bg-muted/60 p-3">
           <DoorLamp edge="card" />
           <p className="text-reading text-pretty text-foreground">
-            Save this event for later
+            {KEEP_TITLE}
           </p>
           <div
             className={cn(
