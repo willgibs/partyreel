@@ -188,6 +188,22 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/app/event-feed/review-section.tsx",
     literal: "All caught up",
   },
+  // The refusing verb at the door (host-curation `verb=reject`) and the review switch's line that
+  // names both verdicts, quoted by the curation page (curation-wiring).
+  {
+    label: "curation demo reject button",
+    marketingFile:
+      "src/components/marketing/sections/features/curation/review-queue-demo.tsx",
+    appFile: "src/components/app/event-feed/review-actions.tsx",
+    literal: "Reject",
+  },
+  {
+    label: "curation modes, the review switch's line",
+    marketingFile:
+      "src/components/marketing/sections/features/curation/review-modes.tsx",
+    appFile: "src/components/app/event-settings/uploads-section.tsx",
+    literal: "Hold new photos until you approve or reject them, instead of",
+  },
   // Zip export demo (/features/sharing) <-> the real download dialog.
   {
     label: "zip demo dialog title",

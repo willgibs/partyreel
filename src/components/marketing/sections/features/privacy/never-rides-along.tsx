@@ -98,7 +98,7 @@ function SettingsMock() {
       <div className="mt-4 flex flex-col gap-4">
         <MockSwitchRow
           label="Review uploads before they appear"
-          helper="Hold new photos for your approval instead of showing them live."
+          helper="Hold new photos until you approve or reject them, instead of showing them live."
         />
         <MockSwitchRow
           label="Require verified emails"
