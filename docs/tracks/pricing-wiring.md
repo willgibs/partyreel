@@ -30,7 +30,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/marketing/sections/home/pricing-teaser.tsx
   - src/components/marketing/sections/home/privacy.tsx
   - src/components/marketing/sections/features/privacy/access-switch.tsx
-  - src/components/marketing/sections/features/album/
+  - src/components/marketing/sections/features/album/how-much-fits.tsx
   - src/components/marketing/mdx/spec-shared.tsx
   - src/lib/content/llms
   - src/lib/content/help.ts
