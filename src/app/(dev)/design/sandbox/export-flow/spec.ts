@@ -49,7 +49,10 @@ import { defineExploration } from "@/components/lab/exploration";
  * settled with its own `menu` option, now built (`export-dialog.tsx` on
  * `ui/responsive-menu.tsx`). The ask and its three drawings leave the board;
  * `phone`, the one ask that read its answer, no longer stages behind it and
- * is grounded in the shipped menu in its place.
+ * is grounded in the shipped menu in its place. Every other remaining ask is
+ * grounded there too (crumbs-4): each still asks its own question, and every
+ * option and recommendation stands exactly as drawn, but a "today" that said
+ * "the sheet" or "the dialog" now says the menu a row already acts on.
  *
  * ★ WHAT IS DELIBERATELY NOT ASKED. No option re-encodes a byte or touches the
  * originals invariant (metadata is stripped at upload, never here). The bulk
@@ -82,7 +85,7 @@ const ALBUM: Control = {
   default: "wedding",
 };
 
-/** Whose sheet it is: the host gets the hidden switch, the guest never does. */
+/** Whose menu it is: the host gets the hidden switch, the guest never does. */
 const WHO: Control = {
   id: "who",
   label: "Who is asking",
@@ -103,7 +106,7 @@ const DRAFT = defineExploration({
       "The boards refresh: stuck, hollow, cap and object each gain a genuine third (a quiet retry, an offer to finish the job, an automatic trim, a popover), none of them the overtaken audit's own drop.",
   },
   context:
-    "One surface serves both sides of the album. A host taps Download in the Gallery header; a guest taps Download all above the tiles. Both get Download album, three chips with live counts, a size, and a button that mints a signed token and hands it to a Worker that streams a zip. It is drawn here as the one responsive sheet the guest's dialogs now open on, at 375 by 812 with 1440 by 900 on the knob, over one wedding of 148 items. Every count and size is the real arithmetic over a fixture summary. Nothing here mints, signs, logs or reaches the Worker.",
+    "One surface serves both sides of the album. A host taps Download in the Gallery header; a guest taps Download all above the tiles. Both get the Download album menu: three bundle rows, each with a live count and a size, and a row is the act, so tapping Everything, Photos or Videos mints a signed token and hands it to a Worker that streams a zip the moment it is tapped. It is drawn here at 375 by 812 with 1440 by 900 on the knob, over one wedding of 148 items. Every count and size is the real arithmetic over a fixture summary. Nothing here mints, signs, logs or reaches the Worker.",
   asks: [
     {
       id: "means",
@@ -137,7 +140,7 @@ const DRAFT = defineExploration({
       overrule:
         "If the commonest tap is take the lot, a second bundle makes it one step longer and the album should lead.",
       lands:
-        "What a guest's Download all means, and how many bundles the shared sheet offers.",
+        "What a guest's Download all means, and how many bundles the shared menu offers.",
       configs: [SCREEN, ALBUM],
     },
     {
@@ -145,13 +148,13 @@ const DRAFT = defineExploration({
       label: "The wait",
       question: "What should the album show while the zip is being made?",
       context:
-        "The tap raises a toast, mints a token, posts it to the Worker and closes the sheet. Bytes in flight are narrated in place and silently, and a run that did not finish is read on one surface at its end.",
+        "The tap raises a toast, mints a token, posts it to the Worker, and the menu is already gone by then (a row is the act). Bytes in flight are narrated in place and silently, and a run that did not finish is read on one surface at its end.",
       options: [
         {
           id: "toast",
           label: "A toast, then the browser, as today",
           means:
-            "Preparing your download, then Your download is starting, then nothing. The sheet is already gone.",
+            "Preparing your download, then Your download is starting, then nothing. The menu is already gone.",
         },
         {
           id: "panel",
@@ -180,7 +183,7 @@ const DRAFT = defineExploration({
       label: "A tap with no answer",
       question: "What should happen when the mint never comes back?",
       context:
-        "The mint has no timeout and no cancel, so a request that hangs leaves the spinner going and the button dead. A failure's way out belongs on a real button, so a spinner nobody can end is gone.",
+        "The mint has no timeout and no cancel: a hang leaves the loading toast spinning forever, since the menu that asked for it is already gone. A failure's way out belongs on a real control, not a toast nobody can act on.",
       options: [
         {
           id: "timeout",
@@ -207,7 +210,7 @@ const DRAFT = defineExploration({
       overrule:
         "If a mint on a party network really does take many seconds, silent retries only delay the one control that actually helps: Cancel, from the first second.",
       lands:
-        "Whether a hung download is recoverable, and what the button does while it waits.",
+        "Whether a hung download is recoverable, and what the guest sees while it waits.",
       after: { ask: "wait" },
       configs: [SCREEN, WHO],
     },
@@ -250,9 +253,9 @@ const DRAFT = defineExploration({
     {
       id: "cap",
       label: "The limit",
-      question: "What should the sheet do about the 2,000 item limit?",
+      question: "What should the menu do about the 2,000 item limit?",
       context:
-        "An album over 2,000 items cannot be sent at once. Marketing states the figure and the sheet never has. A refusal that names no number helps nobody, and the act states its terms before the files fly.",
+        "An album over 2,000 items cannot be sent at once. Marketing states the figure and the menu never has. A refusal that names no number helps nobody, and the act states its terms before the files fly.",
       options: [
         {
           id: "near",

@@ -37,9 +37,12 @@
    ★ THE MEDIA QUERY IS THE FRAME'S OWN VIEWPORT, which is the whole reason one
    stage can draw both postures: each preview is an iframe at a real 375 or a
    real 1440, so the sheet answers the picture it is in rather than the lab page
-   around it. The shipped export dialog is still a centred `Dialog`; the swap is
-   the wiring lane's, and drawing it here is what lets a question about the
-   sheet be answered on a sheet. */
+   around it. Production's own Download is the responsive menu now (`object`
+   retired at desk-trim, 2026-09-27, into `export-dialog.tsx` on
+   `ui/responsive-menu.tsx`): a menu at a desk, its rows rising to the thumb in
+   a hand. Both are a floating surface of bundle rows and a size, which is all
+   six of this board's remaining decisions ever ask of it, so this sheet keeps
+   standing in for it rather than redrawing the menu's own chrome. */
 .xf-dialog {
   position: fixed;
   inset-inline: 0;

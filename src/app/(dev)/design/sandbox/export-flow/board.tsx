@@ -45,12 +45,16 @@ import {
  * THE PREVIEWS, AND NOTHING ELSE: the download sheet and the two surfaces it
  * opens over, at a real 375 by 812 and a real 1440 by 900, over one wedding.
  *
- * ★ THE SURFACE IS THE ONE RESPONSIVE SHEET (guest-shape r1, folded in by the
- * overtaken audit 2026-09-21): a bottom sheet in a hand, a side panel at a
- * desk. The shipped export dialog is still a centred `Dialog`, and drawing it
- * that way would have every option of this board answered on a surface
- * production has already moved past. The reshaped questions are asked on the
- * sheet; the swap itself is the wiring lane's, not a question here.
+ * ★ THE SURFACE STANDS IN FOR THE SHIPPED MENU. `object` retired at desk-trim
+ * (2026-09-27) into Will's `popups` r1 answer (`choices=menu`, "a row is the
+ * act"), built as `export-dialog.tsx` on `ui/responsive-menu.tsx`: a menu
+ * under the button at a desk, its rows rising to the thumb in a hand. Both are
+ * still a floating surface carrying bundle rows and a size, all these six
+ * decisions ever ask of it, so the bottom-sheet/side-panel reproduction below
+ * (`guest-shape` r1's stand-in, folded in by the overtaken audit 2026-09-21)
+ * keeps standing in for it rather than redrawing the menu's own chrome. The
+ * reshaped questions are asked on that stand-in; the container itself is
+ * answered and shipped, not a question here.
  *
  * ★ THE GROUND IS TODAY'S PRODUCT EXCEPT WHERE A DECISION IS STAGED. Every
  * picture is the shipped surface with ONE thing changed, so a decision never
@@ -71,9 +75,9 @@ import {
  *
  * ★ NOTHING HERE MINTS. `NoMint` (surfaces.tsx) refuses any `/api/export`
  * request for as long as a preview is mounted; the real triggers are drawn
- * inert; the dialog's own body is reproduced rather than opened, because the
- * shipped one is a radix Dialog that portals out of the frame AND fetches a
- * summary the moment it opens.
+ * inert; the menu's own body is reproduced rather than opened, because the
+ * shipped one portals out of the frame and calls
+ * `useExportDownload().fetchSummary` the moment it opens.
  */
 
 /* ── the measurement ─────────────────────────────────────────────────────── */
@@ -236,7 +240,8 @@ const phoneRead: Reader = (root) => {
   const files = /to Files/.test(body);
   if (photos && files)
     return "Measured: the foot offers both, Save to Photos first and the zip to Files second.";
-  if (photos) return "Measured: the foot's own button already says Save to Photos.";
+  if (photos)
+    return "Measured: the foot's own button already says Save to Photos.";
   return `Measured: ${files ? "the words on the screen name where the file lands" : "nothing on the screen names where the file lands"}, and the only sign of it is the browser's own arrow.`;
 };
 
@@ -502,7 +507,9 @@ function StuckScreen({ shape, s }: { shape: StuckShape; s: BoardState }) {
           wait === "line" ? (
             <UnderLine
               icon={failed ? "warn" : "spin"}
-              action={failed ? "Try again" : shape === "cancel" ? "Cancel" : undefined}
+              action={
+                failed ? "Try again" : shape === "cancel" ? "Cancel" : undefined
+              }
             >
               {said}
             </UnderLine>
@@ -609,7 +616,10 @@ function HollowScreen({ shape, s }: { shape: HollowShape; s: BoardState }) {
         count={total.count}
         under={
           wait === "line" ? (
-            <UnderLine icon="warn" action={offersRetry ? "Try again" : undefined}>
+            <UnderLine
+              icon="warn"
+              action={offersRetry ? "Try again" : undefined}
+            >
               {said}
             </UnderLine>
           ) : undefined
@@ -707,11 +717,7 @@ const PHONE_CAPTION: Record<PhoneShape, string> = {
  * answers every OTHER decision's own cap and wait states too, and none of
  * them needs a second button.
  */
-function PhoneBothFoot({
-  total,
-}: {
-  total: { count: number; bytes: number };
-}) {
+function PhoneBothFoot({ total }: { total: { count: number; bytes: number } }) {
   return (
     <div className="mt-1 flex flex-col items-end gap-1.5" data-xf-foot>
       <div className="flex w-full items-center justify-between gap-3">
@@ -720,7 +726,7 @@ function PhoneBothFoot({
             {formatBytes(total.bytes)}
           </span>
           <div
-            className="text-xs tabular-nums text-muted-foreground"
+            className="text-xs text-muted-foreground tabular-nums"
             data-xf-count
           >
             {total.count.toLocaleString("en-US")}{" "}

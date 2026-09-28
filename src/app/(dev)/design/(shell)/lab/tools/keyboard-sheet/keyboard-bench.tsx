@@ -8,6 +8,11 @@ import { GuestNameStep } from "@/components/guest/guest-name-step";
 import { Button } from "@/components/ui/button";
 import { floatingKeyboardFoot } from "@/components/ui/floating-layer";
 import { Input } from "@/components/ui/input";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -247,27 +252,35 @@ function IdentifyReplica() {
   );
 }
 
-/** The code screen at its measure: six digits, the one-time-code keyboard. */
+/** The code screen at its measure: production's heading, six full-width slots, the link
+ *  (`account-door.tsx`'s "Check your email", `email-sign-in.tsx`'s OTP group). Uncontrolled, like
+ *  every other replica here: nothing wired to send, so a walk can type freely. */
 function CodeReplica() {
   return (
-    <div className="space-y-4 text-center">
-      <div className="space-y-1">
-        <p className="text-sm font-medium">Enter your code</p>
-        <p className="text-sm text-muted-foreground">
+    <div className="space-y-4">
+      <div>
+        <p className="font-heading text-page text-balance">Check your email</p>
+        <p className="mt-2 text-base leading-relaxed text-muted-foreground">
           We sent a 6-digit code to{" "}
           <span className="font-medium text-foreground">priya@example.com</span>
           .
         </p>
       </div>
-      <Input
+      <InputOTP
         aria-label="Your code"
         inputMode="numeric"
         autoComplete="one-time-code"
         maxLength={6}
-        className="mx-auto h-11 max-w-48 text-center text-lg tracking-[0.5em]"
-      />
+        containerClassName="w-full"
+      >
+        <InputOTPGroup className="w-full gap-2">
+          {Array.from({ length: 6 }, (_, i) => (
+            <InputOTPSlot key={i} index={i} className="h-12! min-w-0 flex-1" />
+          ))}
+        </InputOTPGroup>
+      </InputOTP>
       <p className="text-xs text-muted-foreground">
-        Or tap the link in the same email to sign in.
+        Or tap the link in the same email.
       </p>
     </div>
   );

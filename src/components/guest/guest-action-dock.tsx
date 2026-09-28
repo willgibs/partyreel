@@ -58,9 +58,10 @@ export function GuestActionDock({
    */
   onAdd?: () => void;
   /**
-   * Invite, as a slot. The trigger owns a Sheet of its own (`GuestShare`), and
-   * a dock that imported it would be a chrome component that knows what a QR
-   * code is; this way the bar is exactly its own layout and its own entrance.
+   * Invite, as a slot. The trigger owns a code card of its own (`GuestShare`,
+   * the `share=card` popup kind), and a dock that imported it would be a
+   * chrome component that knows what a QR code is; this way the bar is
+   * exactly its own layout and its own entrance.
    */
   invite?: ReactNode;
   /**

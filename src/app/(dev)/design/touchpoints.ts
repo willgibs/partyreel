@@ -179,7 +179,7 @@ export const RULINGS: Ruling[] = [
     title: "Getting everything out",
     surface: "shared",
     asks: "what Download hands a guest, the wait, a request that never answers, a hollow zip, the item limit, and where the file lands on a phone",
-    why: "Taking everything home is where a host and a guest end, so it is asked from the foundation on the real download dialog, phone first.",
+    why: "Taking everything home is where a host and a guest end, so it is asked from the foundation on the real download menu, phone first.",
     lives: [
       "docs/systems/uploads-and-r2.md",
       "src/components/app/export/export-dialog.tsx",
@@ -189,11 +189,12 @@ export const RULINGS: Ruling[] = [
       "workers/export/src/index.ts",
     ],
     board: {
-      note: "Eight decisions on the real download dialog with fixture summaries, phone first at 375 with 1440 on the knob: what Download hands a guest, what a teaser's third chip does, what the album shows while the zip is made, what a mint that never answers does, what a hollow zip says, what the 2,000 item limit does, what the dialog offers as keeping the album, and where the file lands on a phone",
+      note: "Six decisions on the real download menu with fixture summaries, phone first at 375 with 1440 on the knob: what Download hands a guest, what the album shows while the zip is made, what a mint that never answers does, what a hollow zip says, what the 2,000 item limit does, and where the file lands on a phone",
       variants: [
         "What a guest takes",
         "The wait",
         "A tap with no answer",
+        "A zip with nothing in it",
         "The limit",
         "Where the file lands",
       ],
