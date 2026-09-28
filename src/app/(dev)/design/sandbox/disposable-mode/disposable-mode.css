@@ -1,0 +1,287 @@
+/* THE FEW SURFACES THIS BOARD DRAWS FROM ITS OWN SHEET: the film looks, the
+   two cameras production has no piece for yet, the darkroom and the
+   undeveloped frame. Everything a guest or a host already meets wears
+   production's own classes (`guest.tsx`, `host.tsx`).
+
+   ★ UNLAYERED ON PURPOSE. A lab utility compiles into the `utilities.lab`
+   sub-layer and loses to production's own layer on the same element
+   (`design.css`'s landmine), so every rule a proposal adds lives here, where an
+   unlayered rule wins.
+
+   ★ DRAWN AT REST. Nothing here animates, so reduced motion has nothing to
+   honour and `lab:demo` compares still pictures: a camera's shutter, a flash
+   and a wind are drawn as the moment they leave, never played. */
+
+/* ── the film looks ─────────────────────────────────────────────────────── */
+
+/* One photograph wearing a look. The look is BAKED into the saved shot in the
+   proposal (the camera draws the frame onto a canvas with it); here CSS stands
+   in for the bake, so the same still reads four ways side by side. */
+.dm-film {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #0b0b0b;
+}
+.dm-film > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.dm-film[data-look="warm"] > img {
+  filter: sepia(0.22) saturate(1.22) contrast(1.08) brightness(1.03);
+}
+.dm-film[data-look="cool"] > img {
+  filter: saturate(0.86) hue-rotate(-12deg) contrast(1.07) brightness(1.03);
+}
+.dm-film[data-look="mono"] > img {
+  filter: grayscale(1) contrast(1.2) brightness(1.03);
+}
+.dm-film-tint,
+.dm-film-vignette,
+.dm-film-grain {
+  position: absolute;
+  pointer-events: none;
+}
+.dm-film-tint {
+  inset: 0;
+  mix-blend-mode: soft-light;
+}
+.dm-film[data-look="warm"] .dm-film-tint {
+  background: rgb(255 146 56 / 0.3);
+}
+.dm-film[data-look="cool"] .dm-film-tint {
+  background: rgb(64 150 255 / 0.24);
+}
+.dm-film-vignette {
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 50% 46%,
+    transparent 58%,
+    rgb(0 0 0 / 0.34) 100%
+  );
+}
+/* The grain: fractal noise, tiled, laid over the photograph. */
+.dm-film-grain {
+  inset: 0;
+  opacity: 0.26;
+  mix-blend-mode: overlay;
+  background-size: 160px 160px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1.4 -0.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.dm-film[data-look="mono"] .dm-film-grain {
+  opacity: 0.34;
+}
+
+/* The date a disposable prints into the corner: seven-segment digits in the
+   imprint's orange, slightly slanted, with the glow of the lamp behind them.
+   Drawn as SVG (`film.tsx`), never a typeface: it is part of the photograph,
+   not the product's type, and the product has two faces. */
+.dm-stamp {
+  position: absolute;
+  right: 5%;
+  bottom: 4.5%;
+  height: 5.2%;
+  min-height: 6px;
+  max-height: 18px;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.18em;
+  color: #ff8b2c;
+  transform: skewX(-7deg);
+  filter: drop-shadow(0 0 1px rgb(255 128 32 / 0.95))
+    drop-shadow(0 0 4px rgb(255 96 0 / 0.55));
+  pointer-events: none;
+}
+.dm-stamp > svg {
+  display: block;
+  height: 100%;
+  width: auto;
+}
+.dm-stamp > .dm-stamp-gap {
+  width: 0.28em;
+}
+
+/* ── the album's own camera ─────────────────────────────────────────────── */
+
+/* The whole screen, black like every camera's: the photograph is the only
+   colour on it (bible 6). */
+.dm-cam {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  color: #fff;
+}
+.dm-shutter {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 999px;
+  border: 4px solid #fff;
+}
+.dm-shutter::after {
+  content: "";
+  width: 60px;
+  height: 60px;
+  border-radius: 999px;
+  background: #fff;
+}
+.dm-shutter[data-spent]::after {
+  background: rgb(255 255 255 / 0.55);
+  width: 54px;
+  height: 54px;
+}
+.dm-cam-round {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.12);
+  color: #fff;
+}
+
+/* ── a disposable, drawn ────────────────────────────────────────────────── */
+
+/* The camera's back, as the screen: moulded black plastic, a light across its
+   top edge, the event's name on its label. */
+.dm-body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: #f4f1ea;
+  background:
+    radial-gradient(
+      120% 60% at 50% -10%,
+      rgb(255 255 255 / 0.1),
+      transparent 60%
+    ),
+    linear-gradient(180deg, #232326 0%, #161618 55%, #0f0f10 100%);
+}
+.dm-body-label {
+  background: linear-gradient(180deg, #e9e2d3, #d8cfbc);
+  color: #1b1a17;
+}
+.dm-body-window {
+  position: relative;
+  border-radius: 14px;
+  padding: 7px;
+  background: linear-gradient(180deg, #050505, #1a1a1c);
+  box-shadow:
+    inset 0 2px 6px rgb(0 0 0 / 0.9),
+    0 1px 0 rgb(255 255 255 / 0.08);
+}
+.dm-body-window > .dm-film {
+  border-radius: 8px;
+}
+.dm-body-counter {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 40%, #1c1c1e, #050505);
+  box-shadow:
+    inset 0 2px 5px rgb(0 0 0 / 0.95),
+    0 0 0 3px #2a2a2d;
+}
+.dm-body-wheel {
+  width: 100%;
+  height: 40px;
+  border-radius: 10px;
+  background: repeating-linear-gradient(90deg, #3a3a3e 0 3px, #121214 3px 7px);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.06),
+    inset 0 6px 10px rgb(0 0 0 / 0.7),
+    inset 0 -6px 10px rgb(0 0 0 / 0.7);
+}
+.dm-body-wheel[data-due] {
+  outline: 2px solid #f4f1ea;
+  outline-offset: 4px;
+}
+.dm-body-shutter {
+  width: 84px;
+  height: 84px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 40% 32%, #ededea, #9b9a95 70%, #6f6e6a);
+  box-shadow:
+    0 0 0 5px #2c2c30,
+    0 6px 14px rgb(0 0 0 / 0.6);
+}
+.dm-body-shutter[data-locked] {
+  opacity: 0.4;
+}
+
+/* ── the phone's own camera (a stand-in, drawn plain) ───────────────────── */
+
+.dm-native {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  color: #fff;
+}
+.dm-native-shutter {
+  width: 70px;
+  height: 70px;
+  border-radius: 999px;
+  border: 3px solid #fff;
+  display: grid;
+  place-items: center;
+}
+.dm-native-shutter::after {
+  content: "";
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: #fff;
+}
+
+/* ── the darkroom and the undeveloped frame ─────────────────────────────── */
+
+/* The one colour here is LIGHT with a source (bible 6): the safelight a
+   darkroom works under, at the panel's top edge. */
+.dm-darkroom {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-tile);
+  background: #0c0909;
+  color: #f7efe9;
+}
+.dm-darkroom::before {
+  content: "";
+  position: absolute;
+  inset: -40% -10% auto;
+  height: 90%;
+  background: radial-gradient(
+    closest-side,
+    rgb(255 48 32 / 0.42),
+    rgb(255 48 32 / 0.08) 60%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* An undeveloped frame: film base under the safelight, the shot's shape and
+   time, nothing of its picture. */
+.dm-undeveloped {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-tile);
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgb(255 60 36 / 0.22), transparent 70%),
+    linear-gradient(160deg, #2b1a12 0%, #17100c 55%, #0e0a08 100%);
+  color: rgb(255 236 226 / 0.72);
+}
+.dm-undeveloped[data-mine] {
+  box-shadow: inset 0 0 0 1.5px rgb(255 236 226 / 0.55);
+}
+.dm-darkroom-soft {
+  color: rgb(247 239 233 / 0.72);
+}

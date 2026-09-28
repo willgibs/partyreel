@@ -35,6 +35,7 @@ export type SandboxId =
   | "event-safety"
   | "press-page"
   | "contact-page"
+  | "disposable-mode"
   | "album-motion"
   | "loose-ends"
   | "privacy-hero";
@@ -322,6 +323,34 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
+    id: "disposable-mode",
+    title: "A disposable camera",
+    surface: "shared",
+    asks: "what a guest shoots with and its look, when the roll develops and what the album shows until then, how a host turns it on, and where it sits between Free, Event Pass and Pro",
+    why: "Will's note on export-flow: a disposable inside Partyreel (camera only, a shot limit), so POV's audience arrives without Partyreel being built around it.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "docs/systems/uploads-and-r2.md",
+      "docs/systems/billing-caps.md",
+      "src/components/guest/event-experience.tsx",
+      "src/components/guest/upload/intent-sheet.tsx",
+      "src/components/app/create-event-wizard.tsx",
+      "src/components/app/event-settings/uploads-section.tsx",
+      "src/lib/constants/tiers.ts",
+    ],
+    board: {
+      note: "Six decisions over Maya and Jay's wedding, every guest frame a 375 phone: the camera a guest shoots with (the phone's, the album's own, a disposable drawn) and its look, when the roll develops and what the album shows until then, how a host turns it on in Create and Settings (1440 on the knob), and its price against Free's new 100 MB",
+      variants: [
+        "The guest's camera",
+        "The camera's look",
+        "When it develops",
+        "While it develops",
+        "Turning it on",
+        "Its price",
+      ],
+    },
+  },
+  {
     id: "album-motion",
     title: "The album's falling-in",
     surface: "marketing",
@@ -406,6 +435,7 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "album-motion",
   "loose-ends",
   "contact-page",
+  "disposable-mode",
   "press-page",
 ];
 

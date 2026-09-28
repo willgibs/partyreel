@@ -12,6 +12,7 @@ import { EVENT_SAFETY } from "./event-safety/spec";
 
 import { PRESS_PAGE } from "./press-page/spec";
 import { CONTACT_PAGE } from "./contact-page/spec";
+import { DISPOSABLE_MODE } from "./disposable-mode/spec";
 import { ALBUM_MOTION } from "./album-motion/spec";
 
 import { LOOSE_ENDS } from "./loose-ends/spec";
@@ -58,6 +59,7 @@ const REGISTERED: readonly BoardSpec[] = [
   ALBUM_MOTION,
   LOOSE_ENDS,
   CONTACT_PAGE,
+  DISPOSABLE_MODE,
   PRESS_PAGE,
 ];
 
