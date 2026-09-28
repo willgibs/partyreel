@@ -34,6 +34,8 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/db/mutations/guest.ts
   - src/lib/db/mutations/guest.test.ts
   - src/components/shared/media-lightbox-parts/credit.tsx
+  - src/components/app/event-feed/selectable-media-grid.tsx
+  - src/lib/events/album-viewer.server.test.ts
   - src/app/(app)/dashboard/[eventId]/page.tsx
   - src/app/(app)/dashboard/actions.ts
   - src/components/app/event-settings/event-settings-sheet.tsx
