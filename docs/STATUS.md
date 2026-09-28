@@ -23,7 +23,8 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   press-page redrawn on production as it stands; site-chrome and profile-page retired as answered.
 - **Wave 2 landed whole** (build 14): his curation picks in the review room (Reject, the peek's verdict, the keys,
   Undo, the "N new" line), the pointer's one line, the voice lines and small fixes, and the storage list with its
-  goal strip and inline refusal; identity-claims and host-curation retired.
+  goal strip and inline refusal; identity-claims and host-curation retired. Build 14's red-team findings are fixed
+  (`crumbs-7`: a toast's Undo over an open modal, the peek's keys, the "N new" pill).
 
 ## The desk
 
