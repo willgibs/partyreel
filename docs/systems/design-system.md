@@ -462,7 +462,9 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
   the phone's Back closes (`ui/popup-back.ts`: one same-URL history entry, its marker a field on the state Next merges,
   taken back one tick late so StrictMode's double effect cannot close it), unless its page already routes it
   (`routed`, `?room=`). ★ In a hand focus lands on the popup itself; at a desk the row's `deskFocus` says; a popup with
-  no trigger of its own gives focus back to the page control that opened it. ★ Size a dialog with `size`, never a width
+  no trigger of its own gives focus back to the control that opened it: inside the layer still open behind it when it
+  was stacked over one (a confirm over the viewer or Settings), else on the page; only a menu or a listbox, which close
+  as the next popup opens, is never a return target. ★ Size a dialog with `size`, never a width
   class: the shape's scoped rule outranks a plain utility.
 - ★ **Its phone half is keyboard-safe** (`src/lib/use-keyboard-inset.ts`): `visualViewport` sets `--kb-inset` and
   `--vv-h`, the sheet stands on the keyboard with its ceiling at the visible height, `data-keyboard` reads `open` (or
