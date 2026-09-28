@@ -106,11 +106,16 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
      - `search=visible`: Search rows in the header and footer; the help palette never mounts in admin.
 
      Retires help-center.
-3. **Build 16** once wave A's boards land. Its red-team:
+3. **Build 16** (wave A's three boards, a lab-only round: the red-team's carve-out) is going to the alias for his
+   sitting. **Build 17** carries the wiring as it lands. Its red-team:
    - the block, live (partyr33l blocked at a willg97 test event, then let back in with and without restore);
-   - the pricing, if it has landed;
+   - the pricing page and plan sheet;
    - the export flow, short of any download;
+   - the review room's new words;
    - the standing scope.
+
+   Drafted specs for the queued lanes are in this session's scratchpad (`specs/<track>.json`); a new session writes
+   them from the lines above.
 4. **His paste** (build 15's 38 open, then build 16's new boards) transcribed; the join doors (`newcomer=same`,
    `unlisted=ask`) are built after `event-settings` picks how "who can join" is set.
 5. **Milestone 30** on his yes, once his legal wording is in (the private count; the guest list always on); after it,

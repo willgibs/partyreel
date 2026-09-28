@@ -24,9 +24,11 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 ## The desk
 
-Build 15's desk has 38 open asks: `help-center`, `emails`, `privacy-hero`, `album-motion`, `loose-ends`,
-`contact-page`, `press-page`. Build 16 adds `event-settings`, `locked-door` and `disposable-mode`. His aim is zero
-before his other to-dos.
+Build 16's desk: 48 open asks.
+- **From build 15** (31): `emails`, `privacy-hero`, `album-motion`, `loose-ends`, `contact-page`, `press-page`.
+- **New** (17): `event-settings` (nine, its structure first), `locked-door` (two), `disposable-mode` (six).
+
+`admin-triage` r2 and the wiring follow. His aim is zero before his other to-dos.
 
 ## Live state
 
