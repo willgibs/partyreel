@@ -25,7 +25,6 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 
 /** The boards standing in sandbox/, one row each below. */
 export type SandboxId =
-  | "identity-claims"
   | "hero-card"
   | "voice-guest"
   | "export-flow"
@@ -57,28 +56,6 @@ export type Ruling = {
 };
 
 export const RULINGS: Ruling[] = [
-  {
-    id: "identity-claims",
-    title: "Photos waiting for you",
-    surface: "host",
-    asks: "where Priya first meets the one review of the four events waiting under her email: nothing at the album, a line to her dashboard, a line opening it over the album, the four named, or a count on her avatar and bell",
-    why: "Rounds one and two settled the review itself; pointer came back twice asking for the best options, so round three draws five whole strategies for where she meets it.",
-    lives: [
-      "docs/systems/host-app.md",
-      "docs/systems/guest-flow.md",
-      "docs/systems/profiles-social.md",
-      "src/components/app/dashboard/claims-card.tsx",
-      "src/app/(app)/dashboard/claims-actions.ts",
-      "src/components/guest/follow-moment-card.tsx",
-      "src/components/guest/claim-handle-prompt.tsx",
-      "src/components/guest/guest-account-menu.tsx",
-      "src/lib/notifications/build.ts",
-    ],
-    board: {
-      note: "Round three asks pointer alone, five answers each drawn as a whole strategy over Priya and four waiting events: the moment at Maya and Jay's album, where she sorts the four in popups' side panel, and her dashboard a week on if she never does",
-      variants: ["Where she meets the review"],
-    },
-  },
   {
     id: "hero-card",
     title: "The home hero's card",
@@ -443,7 +420,6 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
-  "identity-claims",
   "hero-card",
   "voice-guest",
   "host-curation",

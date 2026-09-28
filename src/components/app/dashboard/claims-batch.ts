@@ -3,8 +3,7 @@ import { formatCount } from "@/lib/format/count";
 
 /**
  * THE CLAIMS REVIEW AS A MACHINE (`identity-claims` r1 and r2, Will 2026-09-27): one pure reducer
- * the review is played on, the board's own (`sandbox/identity-claims/batch.ts`, its spec on the
- * RPCs' semantics) with the write in it.
+ * the review is played on, the board's own (its spec on the RPCs' semantics) with the write in it.
  *
  *   - `pass=cards`: one event at a time; deciding advances.
  *   - `save=once`: a decision is written the moment she makes it (a Claim at once, a Not mine once
