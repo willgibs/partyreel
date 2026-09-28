@@ -44,6 +44,8 @@ a lane").
 | `safety-refresh` | event-safety's nine stale asks onto the settings panel, the lit door and the review room | running, agent `a572968d03e1b1dce` | Opus, :3134 | |
 | `help-refresh` | help-center's `hub`, `article`, `from-product`; contact-page's `page`, `receipt`, `topic`'s claim | running, agent `a99a4eddf05853f52` | Opus, :3137 | |
 | `marketing-refresh` | album-motion `fall`, loose-ends `review-photo` (`hero-tablet` leaves), press-page `who-for`; site-chrome and profile-page retire | running, agent `a009b032d9ff73f1b` | Opus, :3138 | |
+| `curation-wiring` | host-curation's seven into the review room (Reject at the door, the peek's verdict, the keys, Undo, the "N new" line); the silence claims follow `told=line`; the board retires | running, agent `a001be270345f031c` | Opus, :3131 | |
+| `pointer-wiring` | `pointer=line` as his note shapes it: one acknowledging line in the moment card, no way out of the event, `ELSEWHERE_LINE` folded in, nothing before a first upload; identity-claims retires | running, agent `a9d1ef9bcafe837cb` | Opus, :3132 | |
 
 Batch 6 (cut `1708b049`, 2026-09-28) answers Will's sitting on build 12, part one (transcribed at `e199f43f`: 20
 answers on identity-claims, hero-card, voice-guest, host-curation, host-storage). A read-only audit of the other 12
