@@ -392,13 +392,16 @@ export function GuestNameStep({
           </p>
         ) : (
           hint && (
-            // ★ A SMALL NOTE, SET SMALL (Will's `hint=change`: "Since this is a small note, the
-            // font size should be smaller on this line"): the working step under the field's 16px,
-            // the size of the email row beneath it.
+            // ★ A SMALL NOTE, SET SMALL (Will's `hint=change` r3: "Since this is a small note,
+            // the font size should be smaller on this line"). The field beside it is `Input`'s
+            // own `text-base md:text-sm` (`ui/input.tsx`): 16px in a hand, 14px — `working`'s own
+            // size — at a desk, so `working` alone only reads smaller in a hand. The hint rides
+            // the same `md:` break one rung under the field at both: `working` (14px) under
+            // `md`, `caption` (12px) at `md:` and up.
             <p
               id="pr-guest-name-hint"
               data-name-hint
-              className="text-working text-muted-foreground"
+              className="text-working text-muted-foreground md:text-caption"
             >
               {hint}
             </p>

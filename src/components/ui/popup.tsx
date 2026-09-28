@@ -48,18 +48,30 @@ import {
  * `deskFocus` says (a form is typed into at once, a place is read first).
  */
 
-/** Anything that is a layer of its own: focus inside one is not a way back to the page. */
-const LAYER = "[role='dialog'], [role='alertdialog'], [role='menu'], [role='listbox']"
+/**
+ * A layer that closes as a SIDE EFFECT of the very interaction that opens the
+ * next popup, so its own control is gone by the time focus must return: a
+ * menu row (selecting it closes the menu) and a listbox option (Radix
+ * Select). A dialog or a sheet is not one of these — nothing about opening a
+ * popup over it closes it — so a control inside one is still there to give
+ * focus back to.
+ */
+const EPHEMERAL_LAYER = "[role='menu'], [role='listbox']"
 
 /**
- * THE LAST CONTROL ON THE PAGE ITSELF that was pressed or focused, outside any
- * layer. A popup opened by something that is not its own trigger (a menu's
- * row, a toast's action, a switch) hands focus back here when it closes;
- * Radix would give it to the trigger, and with none, drop it on the page. A
+ * THE LAST CONTROL STILL THERE TO GIVE FOCUS BACK TO: on the page itself, or
+ * inside a dialog or sheet left open behind the popup that is about to close
+ * (a STACKED popup — the one table's rows read on top of whatever opened
+ * them, `design-system.md`). A popup opened by something that is not its own
+ * trigger (a menu's row, a toast's action, a switch, a stacked confirm's
+ * opener) hands focus back here when it closes; Radix would give it to the
+ * trigger, and with none, this is what stands in — the CONTROL, never the
+ * page behind every open layer, or a confirm raised from inside a still-open
+ * panel or viewer would drop focus behind it instead of back inside it. A
  * press counts as well as a focus because Safari does not focus a button it
  * clicks. Watched from the capture phase, once, for the whole document.
  */
-let lastOnPage: HTMLElement | null = null
+let lastOpener: HTMLElement | null = null
 
 function watchTheOpener(event: Event) {
   const target = event.target
@@ -67,8 +79,12 @@ function watchTheOpener(event: Event) {
   const control = target.closest<HTMLElement>(
     "button, a[href], input, select, textarea, [tabindex]"
   )
-  if (control && control !== document.body && !control.closest(LAYER)) {
-    lastOnPage = control
+  if (
+    control &&
+    control !== document.body &&
+    !control.closest(EPHEMERAL_LAYER)
+  ) {
+    lastOpener = control
   }
 }
 
@@ -241,8 +257,9 @@ function PopupContent({
   useKeyboardInset(node, true)
 
   // Where focus goes back to when it closes, for a popup opened without its
-  // own trigger: the control on the page that opened it (`lastOnPage`), which
-  // for a menu's row is the menu's own button.
+  // own trigger: the last control still there to give it back to
+  // (`lastOpener`), which for a menu's row is the menu's own button, and for
+  // a stacked popup is the control inside the layer still open behind it.
   const returnTo = React.useRef<HTMLElement | null>(null)
 
   return (
@@ -260,7 +277,7 @@ function PopupContent({
           data-shape={shape}
           data-size={size}
           onOpenAutoFocus={(event) => {
-            returnTo.current = lastOnPage
+            returnTo.current = lastOpener
             onOpenAutoFocus?.(event)
             if (!event.defaultPrevented) {
               if (desk && row.deskFocus === "first") return
