@@ -1,6 +1,6 @@
 ---
 track: marketing-refresh
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "e199f43f"            # the launch-prep SHA the branch was cut from
 board: album-motion
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -49,25 +49,108 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The push draws from the head's side only?** Recommended and built: yes, the left. A newest-first album opens top
+  left, so every frame lands over the head; one born on the right would cross under the words, or go in where nothing
+  opens. Carried on the board (`call:side`). If he says both sides: `LANES` in `album-motion/push-engine.ts` gains the
+  mirror, every frame still opens the head, and a right-hand photograph reappears on the left.
+- **The stage's rows laid plain, without the guest album's `double` rhythm?** Recommended and built: plain
+  (`rows-hero.tsx` mounts the one grid in `layout="rows"` with no rhythm). The stills are all landscape, so a feature
+  row turns up often, and on a stage two rows tall it is one photograph. Carried (`call:rows`).
+- **The hero's stage moves to the rows whichever fall wins?** Recommended: yes, named in `fall`'s `lands`: the live
+  stage still mounts `GuestMasonry` (`live-album-stage.tsx`), which both albums left at milestone 29.
+- **The recommendation moves from bloom to push?** Recommended and built: push, the one fall whose album takes the
+  photograph in (clipped, never scaled, one glow at a time). Bloom was drawn for the grow-and-fade rule the push
+  replaced; glide stays the closest of the first four and still ships.
+- **review-photo: the brief's two roads (`today` undimmed, or the dim and badge named in `lands`).** Took undimmed,
+  every option on production's `review-switch.tsx` as it stands. The middle plate is the HOST's queue, which the
+  host's review grid draws plainly (`review-grid.tsx`); the dim and clock are the GUEST's `WaitingTile` grammar, which
+  the switch already carries as the phone plate's "Waiting for the host" pill. Re-read undimmed at 56px, rings stays
+  recommended with its case restated.
+- **who-for, one step past the context:** `lands` now names the split two doors would need (/contact's one "Press &
+  partnerships" topic, and the DB CHECK that mirrors it, `20260828001000_contact_topic.sql`), and the two-doors
+  drawing's partner note stopped repeating the false claim. The recommendation (one-page) is unchanged.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: no production byte moved; what the lane found in production is below, for the lanes that own it.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- The lab and the kit (refines ROADMAP's `bloom` line): `gather`, `cascade` and `bloom` all live in the shared engine
+  only for the board and leave it unless picked; `push` lives only in `album-motion/` (`push-engine.ts`,
+  `push-stream.tsx`) and becomes an engine recipe with an arrival hook only if picked.
+- The lab and the kit (refines the "A guest" line): `profile-page/album.tsx` retired with its board; host-curation's
+  and host-storage's halves stand.
+- The lab and the kit (refines the "No app, no account." line): `site-chrome/foot.tsx` retired with its board;
+  `help-center/who-first.tsx` stands.
+- The lab and the kit: under `pnpm dev` a client-rendered album tile paints empty: Strict Mode's rehearsal unmount runs
+  the tile's ref cleanup in `masonry.tsx`, whose `abortUnfinishedImages` strips the src of a photograph still loading,
+  and the remount keeps the stripped node. Every board drawing an album grid is judged blind in dev (album-motion's
+  stage at the base drew broken tiles); a production build paints them.
+- Marketing: `album-stream.css` shows the stream's desk composition from 1024 while `stream-engine.ts` solves and
+  tests it for 1280 (`STREAM_LG_MIN`, whose comment says the sheet agrees), and `album-stream.tsx` exports a second
+  `STREAM_LG_MIN` of 1024.
+- Marketing: /features/album's Review hint (`album-copy.ts`, `YOUR_CALL.hints.review`) still quotes the retired toast
+  "Guests see: Sent, waiting for host approval" under a switch whose pill says "Waiting for the host" (`held=tile`;
+  `guest-upload.test.tsx:302`: the waiting tile answers, never that toast).
+- Code hygiene: `review-switch.tsx` imports `useEffect` unused (one of the gate's five warnings) and its `Traveller`
+  keeps a `dim` prop nothing passes.
+- Code hygiene: with profile-page and site-chrome gone, `GuestListItem`'s optional `kind` (`guest-list.tsx:95`) and
+  the optional `seed` in `lib/social/cards.ts:19` have no lab caller left to protect; `DemoTicket` has one bare
+  caller left (the Library specimen), and its comments (`demo-ticket.tsx:31`, `:143`), `gallery-demos.tsx:1138`'s
+  Library text and `components/lab/scene.tsx:23` still name the retired boards.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed:** `b21eaca6` (the retirement), `7beda324` (the three refreshes), `c3d6c252` (album-motion's
+  carried calls). No sync: launch-prep moved only by `e541cb05`, a records commit (`docs/STATUS.md`,
+  `docs/tracks/orchestrator.md`).
+- **Gates on `c3d6c252`, each its own exit code** (logs in `partyreel-wt/_scratch/marketing-refresh/`):
+  `build-lock.sh pnpm typecheck` 0; `pnpm lint` 0 (0 errors, the 5 standing warnings in `review-session.tsx`,
+  `contact-form.tsx`, `album-fill-grid.tsx` and `review-switch.tsx`, none touched); `build-lock.sh pnpm test` 0
+  (510 files, 5,734 tests); `build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3138` 0 (223
+  checks, 0 failing); `pnpm lab:demo --board album-motion` 0 (1 step, 5 options drawn), `--board loose-ends` 0
+  (6 steps), `--board press-page` 0 (7 steps).
+- **Re-run under the memory crunch:** the first `lab:demo --board loose-ends` timed out on review-photo
+  (`Runtime.evaluate` 60s, load average near 40) and the first `--board press-page` never got its Chrome's debugging
+  port; both passed re-run alone, and the whole gate re-ran on `c3d6c252`, heavy steps under the lock one at a time.
+  The typecheck and test before `7beda324` ran outside the lock, before the pacing note. Nothing was lost; no Chrome
+  or capture script of this lane is left running, and the dev server on :3138 is stopped.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): everything under `album-motion/`,
+  `loose-ends/`, `press-page/`, `site-chrome/` and `profile-page/`, this file, and the three named exceptions:
+  `(shell)/lab/boards.ts` and `sandbox/registry.ts` (the two retired boards' lines only) and `touchpoints.ts` (the
+  retired rows, `SandboxId` and `DESK_ORDER` entries, and my three boards' rows).
+- **album-motion `fall`** (round 1 kept): all five stand on the hero recomposed over the album in rows
+  (`rows-hero.tsx`: `ArrivalsHero`'s lockup, `LiveAlbumStage` with the one grid in rows); the four are production's
+  `AlbumStream`, re-graded against the push; a fifth, `push` (`push-engine.ts`, `push-stream.tsx`): singles from the
+  head's side on the home hero's curve, never scaled, arriving falling straight over the head, and half through the
+  edge the stage prepends that photograph with its glow so the rows open it from its left edge. One every 1875ms,
+  evenly (the quicker lane launches later), each arrival a new photograph, the clock kept across a loop restart,
+  reduced motion a still rest state; its caption is measured as the engine's solve measures the others.
+- **loose-ends:** `hero-tablet` and its drawing gone (hero-card r2 owns 900); `review-photo` redrawn on production
+  (undimmed, unbadged, the "Waiting for the host" pill, the type tokens) and re-graded at 56px on screen; title "Five
+  loose ends".
+- **press-page `who-for`:** the context's false clause fixed (/contact's topic "Press & partnerships" since 08-28,
+  `45122266`); the other six asks untouched, and their lines too (the diff is the spec's four edits and the one note).
+- **Retired:** `site-chrome` (foot-after, foot-alone and foot-phone answered by `9277f933` and `77cfdfe9`) and
+  `profile-page` (way-back by popups `peek=card`, `guest-peek.tsx`'s "Open full profile"; head built, `/u/[slug]`
+  mounts `GuestHeader`), in the house convention (`95c8aa56`): RULINGS rows deleted whole. Their ledgers stand for
+  the record.
+- **Verified by eye** (captures in `_scratch/marketing-refresh/caps/`): the push at 1440 and 375 in bursts (a frame
+  goes in behind the edge over the head, the head tile opens from its left edge with the rim, the neighbours glide;
+  `sheet-push-arrival.jpg`, `sheet-push375b.jpg`), on a production build with the photographs painted
+  (`prod-push-1440.png`, `sheet-prod-push.jpg`), under reduced motion (`am-push-1440-reduced.png`), and across a
+  reduced-motion switch mid-visit (arrivals resume at fresh numbers); the four falls over the rows
+  (`am-glide-1440.png`); review-photo's three queues at 56px (`toast-plates.png`, `rings-plates.png`,
+  `arch-plates.png`); two-doors fitting its frame at both widths (656 of 700, 962 of 1350); each board page at 375
+  with no sideways scroll.
+- **Assets requested from Will:** none new. The album stage's stills are all 3:2 landscapes, so any stage in rows reads
+  as landscape rows; ASSETS row 22's replacement set could carry a party's real mix (mostly 3:4 portraits, a
+  landscape in four).
+- **Board ideas:** none beyond the Deferred lines.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:** the push from the head's side only; the stage's rows plain; the stage moving to the rows
+  whichever fall wins; push over bloom as the recommendation; review-photo undimmed rather than the dim named in
+  `lands`; who-for's `lands` and two-doors note naming the /contact split.
+- **Look at first:** `/design/lab/album-motion` at 1440, watching two or three arrivals open the head, then 375;
+  then loose-ends' review-photo (press Review inside a tile for the queue); then press-page's two-doors.
