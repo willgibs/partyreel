@@ -13,11 +13,15 @@ import { parsePlanFacts, type PlanFacts } from "@/lib/billing/plan-facts";
  * read. The sheet then keeps the facts its door passed, and the routes re-check
  * everything anyway, so a missing read costs a mark, never a wrong purchase.
  *
+ * `reads` asks again while it stays open: the size list stacked over the plan
+ * bumps it as it closes after a removal or an Undo, so the rows she returns to
+ * are marked on what she stores now.
+ *
  * State is set only in the fetch's callbacks, never synchronously in the effect
  * (the repo's `react-hooks/set-state-in-effect`), and a reply that lands after the
  * sheet closed or remounted is dropped by the abort.
  */
-export function usePlanFacts(open: boolean): PlanFacts | null {
+export function usePlanFacts(open: boolean, reads = 0): PlanFacts | null {
   const [facts, setFacts] = useState<PlanFacts | null>(null);
 
   useEffect(() => {
@@ -38,7 +42,7 @@ export function usePlanFacts(open: boolean): PlanFacts | null {
         // Offline, aborted or an HTML error page: keep what we have.
       });
     return () => controller.abort();
-  }, [open]);
+  }, [open, reads]);
 
   return facts;
 }

@@ -52,6 +52,7 @@ import {
 } from "@/lib/db/mutations/account";
 import { hasPassword } from "@/lib/db/queries/account";
 import { getProfile } from "@/lib/db/queries/profile";
+import { formatBytesUp } from "@/lib/billing/storage-guard";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
 import {
   resolveViewerZone,
@@ -253,9 +254,11 @@ export default async function AccountPage({
         <CardHeader>
           <CardTitle>Plan</CardTitle>
           <CardDescription>
+            {/* What she stores prints through the storage flow's one rounding
+                (`formatBytesUp`), as the meter and the plan's refusal print it. */}
             {planCap
-              ? `${planName} · ${formatBytes(planUsed)} of ${formatBytes(planCap)} used`
-              : `${planName} · ${formatBytes(planUsed)} used`}
+              ? `${planName} · ${formatBytesUp(planUsed)} of ${formatBytes(planCap)} used`
+              : `${planName} · ${formatBytesUp(planUsed)} used`}
             {passExpiry ? ` · expires ${passExpiry}` : ""}
           </CardDescription>
         </CardHeader>
@@ -281,7 +284,7 @@ export default async function AccountPage({
               <dd className="text-sm">
                 {planCapacity
                   ? `About ${formatCount(planCapacity.photos)} photos or ${formatCount(planCapacity.videoMinutes)} min of video`
-                  : `${formatBytes(planUsed)} used`}
+                  : `${formatBytesUp(planUsed)} used`}
               </dd>
             </div>
           </dl>

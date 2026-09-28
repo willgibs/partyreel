@@ -18,6 +18,7 @@ import {
   FilterChipsDemo,
   QrPresetPickerDemo,
   ReviewSectionDemo,
+  StorageListDemo,
   AdminHealthBandDemo,
   AdminQueueDemo,
   AdminRailDemo,
@@ -197,6 +198,24 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
             isEventPass={false}
           />
         ),
+      },
+    ],
+  },
+  {
+    id: "storage-list",
+    family: "compositions",
+    section: "Dashboard chrome",
+    file: "src/components/app/storage/storage-list.tsx",
+    test: "src/components/app/storage/storage-list.test.tsx",
+    title: "StorageList",
+    badge: "new",
+    for: "what is using space: every item a host stores, largest first, with All or one event, the bulk bar's Download and Remove with Undo, and the strip that finishes a smaller plan's switch",
+    lede: "Opened from the storage meter's popover, and from a Pro price too small for what she stores (tap its Too small, then See what's using space), where the goal strip counts down to that size and its button finishes the switch. Its reads and writes are inert here: they answer after a round trip's pause and change nothing, and the switch stops at a note.",
+    specimens: [
+      {
+        label: "Two doors",
+        hint: "the meter's popover · a refused price in the plan",
+        node: <StorageListDemo />,
       },
     ],
   },

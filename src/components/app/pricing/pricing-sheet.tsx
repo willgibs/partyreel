@@ -25,6 +25,7 @@ import { trackAttrs } from "@/lib/analytics/events";
 import {
   formatBytesUp,
   planHolds,
+  planWithBilling,
   refusalSentence,
   type StorageRefusal,
 } from "@/lib/billing/storage-guard";
@@ -132,10 +133,15 @@ function lead(
   opening: Plan,
   passExpiry?: string | null,
   switchBlocked = false,
+  current: Plan | null = null,
 ): { title: string; sub: string } {
   if (tier === "pro") {
     return {
-      title: `You are on ${TIER_NAMES.pro} already`,
+      // ★ HER PLAN LEADS (storage-r2's note: "You are on Pro already" was an
+      // upgrade door's greeting, and a Pro host who pressed Change plan came
+      // to change it). "Pro 500 GB, monthly" once the sheet's read names it;
+      // until then, and when it cannot, the tier's own name.
+      title: current ? planWithBilling(current) : `Your ${TIER_NAMES.pro} plan`,
       // Never promise a switch the list below cannot open.
       sub: switchBlocked
         ? "Here is every Pro size. This plan can't switch from here right now; the note under the list says why."
@@ -276,8 +282,12 @@ export function PricingSheet({
   const setOpen = controlled ? (onOpenChange ?? (() => {})) : setSelfOpen;
 
   // The server's answer, once it lands (null until then, and in the Library).
-  const facts = usePlanFacts(isOpen);
-  // A refusal a buy or switch came back with; cleared when the sheet closes.
+  // `reads` asks again after the size list stacked over the plan removed or
+  // put something back, so the Too small marks are true when she returns.
+  const [reads, setReads] = useState(0);
+  const facts = usePlanFacts(isOpen, reads);
+  // A refusal a buy came back with; cleared when the sheet closes. (A Pro
+  // switch's refusal flips its own row, inside the price list.)
   const [refusal, setRefusal] = useState<StorageRefusal | null>(null);
   function changeOpen(next: boolean) {
     if (!next) setRefusal(null);
@@ -298,6 +308,7 @@ export function PricingSheet({
     opening,
     passExpiry,
     Boolean(facts?.changeBlocked),
+    facts?.currentPlanId ? planById(facts.currentPlanId) : null,
   );
   const isFree = tier === "free";
   const note = fitNote(stored, opening);
@@ -319,13 +330,13 @@ export function PricingSheet({
             /* A subscriber is told she subscribes, and her plan is six prices
                with hers marked. Sizes and cadences change HERE, through the
                storage check; the portal keeps the card, the invoices and
-               cancelling (billing-caps.md). */
+               cancelling (billing-caps.md). A size too small flips in place,
+               and its list of what is using space stacks over this plan. */
             <>
               <ProPriceList
                 facts={facts}
                 returnTo={returnTo}
-                refusal={refusal}
-                onRefused={setRefusal}
+                onStorageChanged={() => setReads((n) => n + 1)}
               />
               {hasBilling ? <ManageBillingButton className="w-full" /> : null}
             </>
