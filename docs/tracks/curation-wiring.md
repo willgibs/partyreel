@@ -1,6 +1,6 @@
 ---
 track: curation-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "9427c912"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -19,6 +19,14 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/marketing/sections/features/curation/
   - src/components/marketing/sections/shared/bulk-select-mock
   - src/app/(dev)/design/sandbox/host-curation/
+  # added at build: Undo's reversal on the server, the room's live seed, the shared Undo toast,
+  # the guest-facing article that promised silence, and the Library specimen that mounts the room
+  - src/app/(app)/dashboard/[eventId]/actions
+  - src/lib/db/mutations/media
+  - src/app/(app)/dashboard/[eventId]/review/
+  - src/components/shared/undo-toast
+  - content/help/what-guests-can-and-cant-see.mdx
+  - src/app/(dev)/design/(shell)/library/compositions/composition-demos.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/host-curation.json
   - docs/systems/host-app.md
@@ -60,25 +68,93 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The phone's verdict.** The brief says the phone already has its verdict in the viewer's controls; production's
+  Review opened the same plain peek at every width (a waiting photo never reaches the viewer; its curate group says
+  so). Built: the verdict peek at every width, Reject and Approve under the photograph, moving on after each.
+  Overrule: the product's one viewer, curating, on a phone (the board's `viewer`, which his "yes/no before any
+  additional handling" note argued against). `media-lightbox-parts/actions.tsx` is untouched: nothing reaches it.
+- **Undo on every verdict, not only a bulk one.** Built: a key's or the peek's verdict is a bulk of one and toasts
+  with Undo too (a stray Backspace is the likeliest slip), one toast per room, a later verdict's replacing it.
+  Overrule: Undo on bulk acts only.
+- **Undo's window.** Built: 6 seconds (`UNDO_WINDOW_MS`), paused while hovered or the tab is hidden.
+- **Arrivals into an emptied queue.** Built: the line alone ("3 new" over an empty grid, never "all caught up"); a
+  tap folds them in. Overrule: fold in on their own when nothing is on screen.
+- **Keys beyond the pick.** Built: Delete rejects as Backspace does (a Windows keyboard's refusing key), Space opens
+  the peek (Quick Look), Home and End, Escape leaves select mode; in select mode no key gives a verdict (Space and
+  Enter toggle), and a key on any other control is that control's. Overrule any.
+- **The room's cadence.** Built: the hub's own (the host's version poll, 60 s with the doorbell's socket up, 12 s
+  down, at once after any verdict lands and on the tab's return), since the doorbell rings for the approved set
+  only. Overrule: a faster clock while the room is open (the same poll, shorter).
+- **Words.** Built: "Approved 5 photos", "Rejected 1 video", "4 uploads" for a mix (a reject's toast amber); the
+  settings line "Hold new photos until you approve or reject them, instead of showing them live."; the help says a
+  refused photo shows "marked as not in the album" in her uploads without quoting the tracker's words
+  (voice-guest r2's to redraw).
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/host-app.md` "Moderation and curation": Reject at the door and Hide in the album, the peek's
+  verdict, the keys, the bulk controls' Reject, Undo on every verdict with `returnToReview`'s scope, the room live
+  on the hub's store with its line, the beat's condition.
+- `docs/systems/design-system.md` "Toasts": the one Undo helper beside the two error helpers; sonner's global stub is
+  the component project's.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Help-sync: `day-of-checklist-for-hosts` sends a host to "the event page" to tap Approve all, which lives in Review.
+- Host: the review peek is `aria-modal` with no focus trap, so Tab walks out of it behind the look.
+- Lab: `event-safety/settings.tsx` quotes the old review line ("Hold new photos for your approval ..."); its next
+  refresh takes the settings line's new words.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- Commits, pushed: `f4d16b0c` the retirement (alone), `e921f238` the work, `52131cec` the sync merge of
+  launch-prep (pointer-wiring, marketing-refresh, crumbs-6's cut; auto-merged); the boot's first sync was a
+  fast-forward to `c6fa1370` before any lane commit (help-refresh's edit of an owned article, the Orchestrator's
+  note), so it has no commit. The head is in the chat line.
+- Gates on the synced tree `52131cec`, each on its own exit code: `pnpm typecheck` 0, `pnpm lint` 0 (5 warnings, none
+  in a touched file), `pnpm test` 0 (515 files, 5,793 tests), `zsh scripts/build-lock.sh pnpm build` 0
+  (`/dashboard/[eventId]/review` among the routes), `pnpm lab:smoke --base http://localhost:3131` 0 (224 checks, 0
+  failing; host-curation off the desk). No board, so no `lab:demo`.
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths (with the six added to `owns` at build)
+  + this file, and these exceptions: `registry.ts`, `boards.ts`, `touchpoints.ts` (the retirement's named lines);
+  `mock-parity.test.ts` (crumbs-6's; two pins in the curation block: the demo's Reject, the modes card's settings
+  line); `never-rides-along.tsx` (one line: the privacy page's verbatim quote of the settings line);
+  `library/compositions/gallery-demos.tsx` (the review-section entry's lede and specimen label, true to the new
+  specimen); `docs/systems/host-app.md` and `design-system.md` (the record above).
+- Reject at the door: the bar's glyph `CircleX` (the tracker's refused mark) in amber, the peek's pill, the settings
+  line; Hide kept in the album; the row still lands `hidden` (`review-actions.tsx`, `uploads-section.tsx`).
+- The peek's verdict: `SelectableMediaGrid`'s peek is controllable and carries Reject and Approve in the one glass
+  pill under the media (never over it or a video's controls), 44 px targets on a phone, the keys in each tooltip;
+  focus lands on the look, and on close on the tile it showed last (`selectable-media-grid.tsx`).
+- The keys: `review-keys.ts` (document listener, scoped to the room; the cursor is a `data-kbd-focus` ring outside
+  the tile, the album's own attribute pattern, since `:has(:focus-visible)` repaints unreliably in Chromium).
+- Undo: `shared/undo-toast.ts` (`showUndoToast`, built for storage-wiring's bulk Remove to reuse);
+  `returnToReviewAction` + `returnToReview` (allow-listed `from`, a real event id, refused once review is off, scoped
+  to the verdict's state); Review's verbs stop revalidating (`actions.ts`, its test reshaped with the scar).
+- The line: the review page seeds `HostAlbumProvider` like the hub (`review/page.tsx`: `planHubManifest`, no links);
+  `review-live.ts` reads waiting and decided off its manifest; the triage holds arrivals behind "N new", folds them in
+  at the head on a tap (tiles from the host's links route, or a server render's), drops what left elsewhere, never
+  what it acted on (`use-review-triage.ts`, pure rules in `review-queue.ts`).
+- The verdicts run beside each other (only an upload whose own verdict or Undo is in the air refuses a press); the
+  bar holds only for a bulk act. The review tile's lost `data-review-tile` hook is back, so the exit and a returning
+  tile's entrance play as globals.css always meant (the grid's extraction had dropped it).
+- told=line in public: `review-uploads-before-they-appear`, `a-photo-is-missing-from-the-album` ("instantly and
+  silently" gone), `moderate-and-curate-your-album`, `hide-remove-and-restore`, `bulk-select-and-batch-actions`,
+  `what-guests-can-and-cant-see` (the one own-uploads exception), the curation FAQ and its demo (Reject, the caption).
+- The retirement: `f4d16b0c` (the folder and its three registrations); the ledger is the Orchestrator's to delete.
+  ROADMAP lines 56 (the missing-photo article's "silently") and 141 (`host-curation/queue.tsx:490`) are settled.
+- Verified locally on the Library's specimen (the whole room over inert writes, `/design/library/review-section`) at
+  1440 and 375: the peek's verdict by tap and by key, arrows (5 columns at 1440), Enter and Backspace with the cursor
+  moving on, Escape back to the last tile, a selection held while "1 new" arrived and folded in at the head, a bulk
+  approve then Undo back in place, Approve all's beat undone mid-beat. Vitest: `review-queue`, `use-review-triage`
+  (Undo, arrivals, departures, the peek, concurrency), `review-room` (keys, peek, line), `review-live` (the real
+  store over a fake transport), `undo-toast`, `actions` and `media` (the reversal's scope). The live pass is the
+  red-team's on the next alias build (sign-in cannot run on localhost).
+- Assets requested from Will: none.
+- Board ideas: the peek could credit who sent the photograph (the board's `viewer` option carried the face-led
+  credit; a host judging a stranger's photograph may want the name before the verdict).
+- Proposed migrations / Worker / Vercel / Stripe / env changes: none (the host's column grant and `media_host_all`
+  already let a host write `pending`; the app allow-lists it for Undo alone).
+- Calls his to overrule: the seven Questions above, each built as recommended.
+- Look at first: `/design/library/review-section` (tap a tile, press the arrows, Enter, Backspace, Undo on the toast,
+  "A guest sends one" under a selection), then the real room on the alias with a moderated test event.
