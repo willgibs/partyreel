@@ -1,6 +1,6 @@
 ---
 track: crumbs-7
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "dc1b0eea"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -52,25 +52,74 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The "N new" line: float it, or reserve its room?** Recommended and built: **float**, a glass pill over the grid's
+  head that takes no room, so a room with nothing new looks exactly as it did. Reserve keeps his full-width line where
+  he picked it with nothing ever covered, at the cost of a 38 px empty band under the header on every visit (drawn and
+  measured: `_scratch/crumbs-7/reserve-idle-1440.png`, `reserve-idle-375-s.png`). The float's cost: while uploads wait
+  it covers the top of the first row, at a phone the middle tile's check in select mode (`select-pill-375.png`). His to
+  overrule; reserve is a few lines in `review-section.tsx`.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/design-system.md` Toasts: one ★ line, a toast is pressable over an open modal and a press on one is
+  inside every layer (the band's own pointer events and the DismissableLayer branch), with the keyboard's gap.
+- `docs/systems/host-app.md` Moderation: the keys line gains the peek's rule (a focused button keeps only Enter and
+  Space; a pressed verdict hands focus back to the look); the live room's "a line above the grid" is now the pill that
+  floats over its head and takes no room.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: a keyboard cannot reach a toast while a modal holds focus (Radix's trap pulls sonner's alt+T back into the
+  modal, measured on the storage list; with no modal alt+T lands in the band), so the list's Undo is pointer-only while
+  it is open.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits:** `9761298f` (the five fixes, their pins, the two system-doc lines) and `d1d82b69` (the pill's words wear
+  the glyph halo), pushed. No sync: launch-prep moved only by the record commit `5ee7525e` (STATUS.md,
+  orchestrator.md). The head is this manifest's commit.
+- **Gates on `d1d82b69`**, each its own exit code, logs in `_scratch/crumbs-7/gate2-*.log`: typecheck 0; lint 0 (0
+  errors, 5 warnings, none in a touched file); test 0 (520 files, 5,853 tests); `zsh scripts/build-lock.sh pnpm build`
+  0; `pnpm lab:smoke --base http://localhost:3131` 0 (224 checks, 0 failing). Also `lab:smoke --production --key`
+  against a `next start` of 9761298f's code (one comment apart): 230 checks, 0 failing (`smoke-prod.log`).
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): `sonner.tsx`, `sonner.test.tsx`,
+  `review-keys.ts`, `review-section.tsx`, `review-room.test.tsx`, `entry-modal.tsx`, `entry-modal.test.tsx`,
+  `help-center/dead-end.tsx`, the two `docs/systems/` files above, and this file. No exceptions: `popup.tsx` and
+  `dialog.tsx` needed no edit, since the fix lives in the band every layer reads (their behaviour is pinned).
+- **1, the toast over a modal (major):** `ui/sonner.tsx` gives the band `pointer-events: auto` and wraps it in
+  `DismissableLayer.Branch` (`radix-ui/internal`), so a press on any toast is inside every Radix layer (every popup,
+  the Dialog, the Sheet, the viewer, a menu). Pins in `sonner.test.tsx` on the real list popup (desk panel and hand
+  screen) and the Dialog, each with a scrim press as the control; all four fail on HEAD's code. The Library's storage
+  list, the red-team's steps: Undo takes and the list stays at 1440 (click) and 375 (touch taps), on dev and on the
+  production build (`_scratch/crumbs-7/st-undo-run.sh <port> click|tap`; `st-toast-tap.png`); on HEAD's code the
+  1440 run pressed `popup-overlay` and closed the list, nothing undone. Bundle: +159 B on the root layout
+  (`entry-js.mjs` against the primary checkout's launch-prep build). The peek's Undo still works (it stays open). Read
+  in code, not walked (no specimen, no staged rows): the claims review raises its error (with a close) and its "gone"
+  toast while its panel is open, a list popup like the pinned one; the bulk bar's confirms raise theirs after closing.
+- **2, the peek's keys:** a verdict pressed on the peek focuses the look (`review-section.tsx` `judge`), and
+  `review-keys.ts` stands down for a focused button's Enter and Space only. Pins in `review-room.test.tsx` (both fail
+  on HEAD). Chrome, 1440, dev and production: after a mouse Reject, Enter approved the next and, after a mouse Approve,
+  Backspace rejected the next, focus on the look throughout.
+- **3, the line:** floats in the one glass over the grid's head (`review-section.tsx`), its words in `GLASS_MARK_LIT`;
+  tile boxes identical before and after an arrival at 1440 and 375 on dev and production (`rv-arrive.sh`,
+  `prod-line-*.png`); a tap folds it in at the head; reduced motion shows it with no entrance. White on the pane
+  measured 5.1:1 over the ceiling photo and 3.5:1 over the near-white sky, where its words wear the halo the system
+  gives every mark on glass (`pill-bright-lit-zoom.png`).
+- **4, the gate's line:** the sheet's description is the step's own "This album is just for the guests. One password
+  and you're in."; `entry-modal.test.tsx` pins the door's accessible name and description to the visible heading's
+  words (fails on HEAD).
+- **5, lab:** `dead-end.tsx` draws plain anchors, as the board's other drawings do; on a production build the board's
+  dead-end frames (1440 and 375) mounted and the only request to its path was the keyed document (`board-sweep.mjs`),
+  no console entry.
+- **The live pass waits for Will's Chrome** (as the brief says): on the alias as willg97, the storage list's Undo at
+  1440 and 375, and in the Scale probe's Review a mouse Reject then Enter, and a real arrival's pill over a selection.
+- **Assets requested from Will:** none.
+- **Board ideas:** the Review room says "Review" twice at the top (the page's heading and the section's amber label
+  over the grid); a keyboard way to a toast's Undo while a modal is open (the Deferred line) may want a design, not
+  only a focus rule.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:** the line floats rather than reserving its room (the Question above); if it stands, the
+  help's "a line above the queue" (`review-uploads-before-they-appear`, `bulk-select-and-batch-actions`) still reads
+  true of a pill at the queue's head, one word from exact.
+- **Look at first:** the storage list's Undo at 375 (`st-toast-tap.png`, then `st-undo-run.sh 7815 tap`), then the
+  pill over a selection at 375 (`select-pill-375.png`) against the reserved band (`reserve-idle-375-s.png`).
