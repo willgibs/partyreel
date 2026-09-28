@@ -39,8 +39,8 @@ built).
   `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel`
   (`=app`).
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 12 (`044aa2a5`): batch 5
-  whole, the desk `identity-claims` r3 first (its boards load clean; the retired `popups`, `identity-door` and
-  `reel-story` 404); its red-team is walking.
+  whole, the desk `identity-claims` r3 first; its red-team passed every journey it drove, the claims review not walked
+  (its staging write refused by the permission classifier; Will's to stage).
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).

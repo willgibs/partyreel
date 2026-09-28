@@ -40,6 +40,7 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `crumbs-5` | build 12's red-team minors: focus back inside the layer after a stacked confirm (B1), the name hint smaller than its field at every width (B2), the profile menu's width | building (agent aab9b0ee70a30652f) | Sonnet, 3131 | |
 
 Batch 3 closed at milestone 29 (`ab30a7f8`, 2026-09-26); batch 4 (nine lanes with `crumbs-3`) is on build 11.
 
@@ -52,9 +53,12 @@ Merged in batch 5 (their records carry the rest): hero-card, claims-r3, demo-doo
    `identity-claims` r3.
 2. **The pointer's wiring** after Will's `identity-claims` r3 pick, folding the moment card's other-events lines
    (ROADMAP's Identity line), and `hero-card`'s pick into the hero.
-3. **Build 12**, going out now: `[preview]`, `alias-ensure`, the desk checked, its red-team
-   (`../partyreel-wt/_scratch/redteam-12/brief.md`), then Will's sitting: `identity-claims` r3, `hero-card`, then the
-   15.
+3. **Build 12 is live** (`044aa2a5`) and Will's sitting is on it: `identity-claims` r3, `hero-card`, then the 15. Its
+   red-team passed every journey it drove (the popups with the keyboard up, the door lit, the demo's doors, the standing
+   scope, the desk), with no console error: two minors in `crumbs-5` (B1 focus after a stacked confirm, B2 the hint's
+   size) and Q1 for Will (the code card fills a phone but Back leaves the album, by design). NOT walked: the claims review,
+   whose staging write (`guests.pending_email` on four test rows) the permission classifier refused; it waits on Will
+   (below).
 4. **Milestone 30** on his yes, once the count's legal clause (his wording, below) is in the Terms and the Privacy
    Policy; after it, `kit/`'s screens re-captured from partyreel.com (the home's close, teaser, eyebrow and the demo's
    doors changed).
@@ -67,6 +71,13 @@ Merged in batch 5 (their records carry the rest): hero-card, claims-r3, demo-doo
 
 ## Waiting on Will
 
+- **The claims review's live walk**: it needs claimable rows staged for a test account (`update public.guests set
+  pending_email = '<address>', pending_email_at = now() where id in (...)` on name-only rows with live uploads), a write
+  the permission classifier refused the red-team; Will stages them (or walks it himself as partyr33l), and the restore
+  puts `pending_email`, `email`, `user_id`, `verified_at` and `display_name` back (a claim writes `email` and nulls the
+  name).
+- **Q1**: on a phone the code card fills the screen, but Back leaves the album (a look, not a place, by design); should
+  Back close it like the other full-screen popups?
 - **The private count's legal clause** (before milestone 30): the Terms ("Profiles and social features",
   `src/lib/constants/legal-terms.tsx:422`) and the Privacy Policy (`legal-privacy.tsx:311`) promise nothing you attend
   appears on a profile until you choose it, and an empty page now says "2 private events". The lane's wording, his to
