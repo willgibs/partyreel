@@ -8,7 +8,6 @@ import { ADMIN_TRIAGE } from "./admin-triage/spec";
 import { EMAILS } from "./emails/spec";
 import { LOCKED_DOOR } from "./locked-door/spec";
 import { HELP_CENTER } from "./help-center/spec";
-import { HOST_STORAGE } from "./host-storage/spec";
 import { EVENT_SAFETY } from "./event-safety/spec";
 
 import { PRESS_PAGE } from "./press-page/spec";
@@ -49,7 +48,6 @@ const REGISTERED: readonly BoardSpec[] = [
 
   VOICE_GUEST,
 
-  HOST_STORAGE,
   EVENT_SAFETY,
   EXPORT_FLOW,
   ADMIN_TRIAGE,

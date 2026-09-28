@@ -32,7 +32,6 @@ export type SandboxId =
   | "emails"
   | "locked-door"
   | "help-center"
-  | "host-storage"
   | "event-safety"
   | "press-page"
   | "contact-page"
@@ -240,27 +239,6 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
-    id: "host-storage",
-    title: "Where the largest files are",
-    surface: "host",
-    asks: "how a Pro host's six prices sit in her plan, including the size that cannot hold what she stores: every price, how much room, what to change, build the plan, or the one change that suits her",
-    why: "Round one settled the list, the strip and the refusal; prices came back asking for better ideas, seen where a host really meets them, so round two draws five.",
-    lives: [
-      "docs/systems/billing-caps.md",
-      "src/lib/constants/tiers.ts",
-      "src/lib/billing/storage-guard.ts",
-      "src/components/ui/popup-kinds.ts",
-      "src/components/app/pricing/pricing-sheet.tsx",
-      "src/components/app/pricing/pro-price-list.tsx",
-      "src/components/app/dashboard/storage-meter.tsx",
-      "src/app/(app)/account/page.tsx",
-    ],
-    board: {
-      note: "Round two asks prices alone, five answers each drawn twice on the plan as it ships over one videographer's 110.8 GB on Pro 500 GB: opened from her Plan card, then from the storage meter with Pro 100 GB tapped, his round-one list and strip live under it",
-      variants: ["The six prices"],
-    },
-  },
-  {
     id: "event-safety",
     title: "Keeping an event safe",
     surface: "host",
@@ -416,7 +394,6 @@ export const RULINGS: Ruling[] = [
 export const DESK_ORDER: readonly SandboxId[] = [
   "hero-card",
   "voice-guest",
-  "host-storage",
   "event-safety",
   "export-flow",
   "admin-triage",
