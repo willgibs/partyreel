@@ -55,11 +55,11 @@ Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-r
    host and admin journeys walked on the Library's specimens only, because Will's Chrome was not connected to this
    account. Its one major (a toast's Undo under an open modal) and three minors are fixed in `crumbs-7` (merged at
    `bc6edd33`, on the alias as build 15, `60b4e4ea`).
-2. **The live host and admin pass**, walking on build 15 now that his Chrome is on this account (red-team agent
-   `ade7341157a6a7a8f`, brief `../partyreel-wt/_scratch/redteam-15/brief.md`); first planned (`../partyreel-wt/_scratch/redteam-14/brief.md` journeys 1,
-   2, 4 and 5's host parts, after `crumbs-7` lands on a build). The refusal and the goal strip need a host who stores
-   more than a smaller Pro size (willg97 stores about 98 MB), so they stay the Library's unless one is staged. The
-   Scale probe has no hidden row: for "N new", reject one in the room, reload, then flip it back to pending by SQL.
+2. **The live host and admin pass** is walking on build 15, now that his Chrome is on this account. Red-team agent
+   `ade7341157a6a7a8f`; brief at `../partyreel-wt/_scratch/redteam-15/brief.md`. It covers the review room with
+   crumbs-7's fixes, the storage list's Undo with the list open and the Pro head, the admin's two confirms, and the
+   host's standing scope. The refusal and the goal strip need a host who stores more than a smaller Pro size (willg97
+   stores about 98 MB), so they stay the Library's.
 3. **His next paste** (build 13's desk, or the 25 build-12 asks) transcribed, and the next wiring cut from it. The
    hero's wiring waits for hero-card r2's pick. voice-guest r2's wiring carries its `keep` pick to her name menu's card,
    which still says "Save this event for later".
