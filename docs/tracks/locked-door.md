@@ -1,6 +1,6 @@
 ---
 track: locked-door
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "69afdbc5"            # the launch-prep SHA the branch was cut from
 board: locked-door
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -37,25 +37,32 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Built on these answers, each carried on the board (`spec.ts`, `carried`), his to overrule:
+
+- **One render per cause?** Recommended yes, as `door=private` and `newcomer=same` have it: who is reading moves the header and the back-in line, never why she is out (`fixtures.ts` carries the cause for frame titles only; no drawing reads it).
+- **Where does "Already a guest? Confirm your email" stand?** Recommended on every cause, for anyone with no confirmed email on the phone. event-safety drew it under the closed door (`newcomer.same`) and not the blocked one (`door.private`), which told the causes apart.
+- **An ask-the-host button on the door?** Recommended none: `newcomer=same` left the closed door without one, and on a block it would hand the blocked person a way to reach the host. The invite list's own door (`unlisted=ask`) is `event-settings`'.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (a board ships no production byte; nothing in `reads` moved)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now, Guests: a blocked guest's Guest card leaves her dashboard with her uploads (a card lives only while one of hers is live, `getMyGuestEventCards`), while a private album's card stays and says "The host made this event private" (`lib/dashboard/guest-events.ts`), so an account holder can tell a block from a private album there, whatever the locked door says (from `locked-door`; `safety-wiring` may want it now).
+- Now, Guests: the password gate titles a password album "{name} is private" (`password-gate.tsx`), the word the private visibility and its lock own; whichever words `lock` takes, the gate may want its own (from `locked-door`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed on `lp/locked-door`:** `3ee43961` (the board and its three registrations), `33b3f9a0` (the trio's order, so `lab:demo` compares a frame that changes). No sync: `launch-prep` moved only by the record commit `3d9a04c3` (`docs/STATUS.md`, `docs/tracks/orchestrator.md`).
+- **Gates on `33b3f9a0`, each its own exit code:** `pnpm typecheck` 0; `pnpm lint` 0 (0 errors; 5 warnings, all in files outside the lane: `review-session.tsx`, `contact-form.tsx`, `album-fill-grid.tsx`, `review-switch.tsx`); `pnpm test` 0 (520 files, 5863 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3132` 0 ("209 checks, 0 failing", locked-door 419 of 1200 words); `pnpm lab:demo --board locked-door --base http://localhost:3132` 0 (`lock` moves up to 98.32%, `previous` up to 2.97%, "2 steps, 0 failing").
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): `src/app/(dev)/design/sandbox/locked-door/` (board, fixtures, locked-door.css, parts, scene, spec, words) + this file + the three named registration exceptions, each one line after `emails`: `sandbox/registry.ts`, `(shell)/lab/boards.ts`, `touchpoints.ts` (its `SandboxId`, row and `DESK_ORDER`).
+- **`lock`, the locked screen:** five whole screens, each one render for all three causes: today's as it ships (the reference), today's column lit (the real `NotFoundScreen` through its `visual` slot, the lock in a pool of the house light), the door held shut (the gate's heading, "Closed", the host as the way on), the host's door shut (recommended: the welcome's hero closed, the album's name beside Maya's face, "Only Maya can let you in"), and the host's door over its cover (its lamp sampled off the photograph). The Who knob shows the newcomer, Priya (was in, private) and Dom (was in, blocked).
+- **`previous`, a previous guest's line** (after `lock`, drawn in its pick): one screen for everyone (recommended), told it's private (his "private version"), told who can see it changed. Three phones (Priya, Dom, the newcomer); the caption above them measures Dom's words against Priya's, word for word, on every option.
+- **Every caption is read off the frame:** words and headline lines, what of the album it shows (found by its marks), the lamp's own `data-door-hues`, the sheet's height, the back-in line (`scene.tsx`, `measureLock`, `useReaderProbe`).
+- **Verified:** 375 and 1440, light and dark, reduced motion (`lab:demo` emulates it) and motion allowed (settles whole), in a private headless Chrome, never the shared pane.
+- **Assets requested from Will:** none (the cover is the bootstrap `wedding-golden` still).
+- **Board ideas:** a door held over nothing (the ghost river under `DOOR_SCRIM`) reads as a flat grey slab in light, here and on the password door; a lighter scrim where nothing real stands behind would lift both. · A locked door that opens by itself the moment the host lets her in (the album's doorbell or a slow poll), the strongest way back later; its cost is a listener on every locked page, a blocked one's included.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:** `lock=host` (a private album's lock starts showing its name and host, as a password album shows its name; the host-facing promise, "Guests see a friendly locked screen", holds). · `previous=one`. · Today's screen is option 1, the reference his "polished" is graded against, though its words are true of one cause. · `cover` is drawn though event-safety's carried `nothing-behind` keeps real media off a closed door: it is the far end of what a lock may show, its cost in its means. · The host is named, never a pronoun ("Only Maya can let you in"), since a display name can be anyone's. · The three carried calls above.
+- **Look at first:** `lock` at 375, the host's door against the held door, then flip Who is at the door to Dom (only the back-in line moves); then `previous`, the measured line over the three phones. And the first Deferred line: the dashboard, not the door, is where a block shows today.
