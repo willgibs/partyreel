@@ -5,6 +5,7 @@ import { Copy, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+import { ConfirmLook } from "./confirm";
 import {
   AUDIT,
   HOLDS,
@@ -17,8 +18,8 @@ import { StateChip } from "./shell";
 /**
  * THE ONE ACT ON THIS BOARD THAT IS PERFORMED UNDER PRESSURE.
  *
- * The runbook (docs/systems/trust-safety-forensics.md) is five steps, and step
- * two is "paste the media id and a reason". Today the report card renders no id
+ * The runbook (docs/systems/trust-safety-forensics.md) is six steps, and step
+ * two is "the media id and a reason". Today the report card renders no id
  * at all, so an operator reading a report at midnight has to leave it, find the
  * same frame in /admin/albums, read a UUID off that surface and retype it into
  * a free-text field on a third one. Thirty-six characters, typed once, with a
@@ -189,68 +190,41 @@ export function ForensicsPanel({ shape }: { shape: EscalateShape }) {
 }
 
 /**
- * The door, drawn OPEN, because a panel nobody can see is an option nobody can
- * judge. It says what the act touches before it happens, which is the same
- * grammar the `admin` board recommends for every destructive control, and it
- * carries the runbook's own step 2: preserve the surrounding context, not one
- * frame, because commingled content is part of the preservation duty.
+ * THE DOOR, DRAWN OPEN, AS THE PORTAL'S ONE CONFIRM (the production refresh,
+ * 2026-09-28). The first draft drew a bespoke preserve panel, "a sheet of its
+ * own", which never held: setting a hold is an inline form on
+ * /admin/forensics (`PreserveForm`), and only Release hold opens the confirm, a
+ * centred dialog since 3e7952e3. So the door opens THAT confirm, filled in from
+ * the report: what the hold touches, with the runbook's step 2 in it (preserve
+ * the surrounding context, what else this guest sent to this album, because
+ * commingled content is part of the preservation duty), and the reason on the
+ * record, which the confirm carries through the same proposed `note` the
+ * verdict's Remove uses.
+ *
+ * ★ "THEIR OTHER ALBUM" LEFT WITH THE BESPOKE PANEL. It crossed events by the
+ * address a guest typed at the door, which nobody proved. The runbook's
+ * context stops at the event; crossing events is the forensic record's work
+ * (the device id), read on /admin/forensics, never a one-click scope here.
  */
 export function HoldSheet() {
   const row = OPEN_REPORTS[0];
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-foreground/25 backdrop-blur-[1px]">
-      <section className="mt-20 w-[560px] overflow-hidden rounded-xl border bg-card shadow-2xl">
-        <div className="flex items-center gap-2 border-b px-5 py-3">
-          <ShieldAlert className="size-4" />
-          <p className="text-sm font-medium">Hold and preserve this item</p>
-        </div>
-        <div className="space-y-4 px-5 py-4">
-          <div className="space-y-1.5 text-xs">
-            <p className="font-medium">What this touches</p>
-            <div className="rounded-md border bg-muted/30 px-3 py-2">
-              <p className="flex justify-between py-0.5">
-                <span className="text-muted-foreground">This frame</span>
-                <span className="tabular-nums">{row.media?.id}</span>
-              </p>
-              <p className="flex justify-between py-0.5">
-                <span className="text-muted-foreground">
-                  Everything else this guest sent to this album
-                </span>
-                <span className="tabular-nums">
-                  {UPLOADER.inThisEvent} items
-                </span>
-              </p>
-              <p className="flex justify-between py-0.5">
-                <span className="text-muted-foreground">Their other album</span>
-                <span className="tabular-nums">
-                  {UPLOADER.acrossEvents} events
-                </span>
-              </p>
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <p className="text-xs font-medium">Reason, on the record</p>
-            <div className="rounded-md border bg-background px-3 py-2 text-sm">
-              report {row.id.slice(0, 8)}, CyberTipline filing
-              <span className="ml-0.5 inline-block h-4 w-px animate-pulse bg-foreground align-text-bottom" />
-            </div>
-          </div>
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            Held media is never hard deleted by any purge. The original and its
-            forensic record are copied to the preservation store, which is
-            emptied only by hand. The host is told nothing, and cannot restore
-            it.
-          </p>
-          <div className="flex items-center gap-2">
-            <Button type="button" size="sm">
-              Set the hold and preserve
-            </Button>
-            <Button type="button" variant="ghost" size="sm">
-              Cancel
-            </Button>
-          </div>
-        </div>
-      </section>
-    </div>
+    <ConfirmLook
+      title="Hold and preserve this photo?"
+      lede="It stays out of every purge until the hold is released from Forensics."
+      touches={[
+        `This photo in ${row.event}, and the ${UPLOADER.inThisEvent} others this guest sent there`,
+        "Each original and its forensic record, copied to the preservation store",
+        "Nothing tells anyone it is held: the host is sent nothing",
+      ]}
+      verb="Set hold and preserve"
+      severity="reversible"
+      note={{
+        label: "Reason, on the record",
+        required: true,
+        value: `report ${row.id.slice(0, 8)}, CyberTipline filing`,
+        placeholder: "e.g. report #123, CyberTipline filing",
+      }}
+    />
   );
 }

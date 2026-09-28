@@ -8,6 +8,7 @@ import { ExplorationBoard, Frame } from "@/components/lab";
 import type { BoardState } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
+import { ConfirmLook } from "./confirm";
 import {
   escalateOf,
   type EscalateShape,
@@ -17,8 +18,10 @@ import {
 } from "./escalate";
 import {
   type NavEntry,
+  OPEN_REPORTS,
   REPORTS_SURFACE,
   SUPPORT_SURFACE,
+  WITH_PEOPLE,
 } from "./fixtures";
 import { Inboxes, idiomOf, type IdiomShape } from "./inboxes";
 import { noticeOf, type NoticeShape, WhoIsTold } from "./notice";
@@ -34,10 +37,11 @@ import {
   type ReasonShape,
   reasonOf,
   ReportsSurface,
+  ScrollToWordless,
   type VerdictShape,
   verdictOf,
 } from "./report";
-import { Portal, PhonePortal, SurfaceHead } from "./shell";
+import { type Counts, Portal, PhonePortal, SurfaceHead } from "./shell";
 import { ADMIN_TRIAGE } from "./spec";
 
 /**
@@ -128,27 +132,67 @@ function Probe({
 
 const pct = (n: number, of: number) => Math.round((n / of) * 100);
 
-/** The frame, the card and the queue, as the browser actually laid them out. */
+/**
+ * The frame, the card and the queue, as the browser actually laid them out.
+ *
+ * ★ "ONE REPORT" IS THE FIRST PICTURE REPORT, NOT THE FIRST CARD. Since the
+ * refresh the People section leads the refreshed steps, and a person's card
+ * has no frame: measured as "one report" it would describe the one card that
+ * is not what the question is about. So the refreshed cards carry
+ * `data-tri-report` (the item cards `item`), every one of them counts toward
+ * the screen's share, and a surface without them (the phone's own cards) is
+ * read exactly as before.
+ */
 const queueRead: Reader = (root, win) => {
   const shot = root.querySelector<HTMLElement>("[data-tri-frame]");
-  const cards = root.querySelectorAll<HTMLElement>("[data-slot='card']");
+  const tagged = root.querySelectorAll<HTMLElement>("[data-tri-report]");
+  const cards =
+    tagged.length > 0
+      ? tagged
+      : root.querySelectorAll<HTMLElement>("[data-slot='card']");
   if (cards.length === 0) return null;
-  const first = Math.round(cards[0].getBoundingClientRect().height);
+  const lead =
+    root.querySelector<HTMLElement>("[data-tri-report='item']") ?? cards[0];
+  const first = Math.round(lead.getBoundingClientRect().height);
   if (first < 8) return null;
-  const edge = shot
-    ? Math.round(shot.getBoundingClientRect().width)
-    : null;
+  const edge = shot ? Math.round(shot.getBoundingClientRect().width) : null;
   // How much of the screen the reports themselves take, clipped to the viewport:
   // a card below the fold is a card the operator has not seen.
   let area = 0;
   cards.forEach((el) => {
     const b = el.getBoundingClientRect();
-    const w = Math.max(0, Math.min(b.right, win.innerWidth) - Math.max(b.left, 0));
-    const h = Math.max(0, Math.min(b.bottom, win.innerHeight) - Math.max(b.top, 0));
+    const w = Math.max(
+      0,
+      Math.min(b.right, win.innerWidth) - Math.max(b.left, 0),
+    );
+    const h = Math.max(
+      0,
+      Math.min(b.bottom, win.innerHeight) - Math.max(b.top, 0),
+    );
     area += w * h;
   });
   const share = pct(area, win.innerWidth * win.innerHeight);
   return `Measured: ${edge ? `the reported frame is ${edge} px wide, ` : "no frame on this one, "}one report stands ${first} px, and the reports on screen cover ${share} percent of it.`;
+};
+
+/**
+ * The grid in the review queue's grammar: how big a tile really is, how many
+ * the grid's own columns fit across, and how wide the peek really draws the
+ * report being judged.
+ */
+const gridRead: Reader = (root, win) => {
+  const tiles = root.querySelectorAll<HTMLElement>("[data-tri-tile]");
+  if (tiles.length === 0) return null;
+  const tile = tiles[0].getBoundingClientRect();
+  if (tile.height < 8) return null;
+  const grid = tiles[0].parentElement;
+  const across = grid
+    ? win.getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean)
+        .length
+    : 0;
+  const peek = root.querySelector<HTMLElement>("[data-tri-peek-frame]");
+  const edge = peek ? Math.round(peek.getBoundingClientRect().width) : null;
+  return `Measured: a tile is ${Math.round(tile.width)} by ${Math.round(tile.height)} px, ${across} fit across, and ${edge ? `the peek draws the report ${edge} px wide` : "the peek is closed"}.`;
 };
 
 /** What an answered report costs the page, once the history is on screen. */
@@ -202,6 +246,7 @@ function Screen({
   size,
   caption,
   read,
+  label,
   children,
 }: {
   id: string;
@@ -209,6 +254,8 @@ function Screen({
   caption: string;
   /** A reader whose measured line replaces the caption once it has one. */
   read?: Reader;
+  /** Which of an option's two frames this is, after its size. */
+  label?: string;
   children: ReactNode;
 }) {
   const [said, setSaid] = useState<string | null>(null);
@@ -218,7 +265,7 @@ function Screen({
       id={`triage-${id}`}
       w={w}
       h={h}
-      title={`${w} x ${h}`}
+      title={label ? `${w} x ${h}, ${label}` : `${w} x ${h}`}
       caption={said ? `${caption} ${said}` : caption}
     >
       {read ? (
@@ -270,37 +317,54 @@ const worldOf = (s: BoardState, over: Partial<World> = {}): World => ({
  * follows the live state, which is what makes a staged decision wear its
  * parent's answer. (`guest-upload` pinned its `words` axis for the same
  * reason.)
+ *
+ * ★ AND TODAY IS WHAT THE CARD PRINTS, NOT WHAT A SPEC SAID OF IT. Until the
+ * production refresh (2026-09-28) `reason` was pinned to `chrono`, a blank,
+ * because the ask said a wordless report draws nothing; `ReportCard` has
+ * printed a muted "No reason provided." in place since 734133d9, which is
+ * `marked`. Every step drew a report the product never showed.
  */
-const TODAY = { reason: "chrono", verdict: "two" } as const;
+const TODAY = { reason: "marked", verdict: "two" } as const;
 
 /**
  * ★ AT 375 THE BOARD COLLAPSES THE RAIL, AND THAT IS NOT AN ANSWER TO ANYTHING.
- * The shipped portal keeps its 232 px rail at every width, so the desk surface
- * at 375 leaves a 143 px column and every one of these questions becomes the
- * same unreadable picture. The first 375 capture pass was seven copies of that.
- * The rail is the `admin` board's, and what the PORTAL does at a phone is this
- * board's `phone` decision, whose first option draws today's rail at 375
- * exactly. So everywhere else the knob collapses it, and the question stays
- * about the content it was asking about.
+ * The shipped portal keeps its 232 px rail at `lg` and a dropdown below it, so
+ * the desk surface drawn with its rail at 375 leaves a 143 px column and every
+ * one of these questions becomes the same unreadable picture. The first 375
+ * capture pass was seven copies of that. What the PORTAL does at a phone is
+ * this board's `phone` decision, so everywhere else the knob collapses it, and
+ * the question stays about the content it was asking about.
  */
 function Surface({
   size,
   active,
+  counts,
   children,
 }: {
   size: Size;
   active: NavEntry;
+  /** The step's own open-report count (the refreshed steps count a person). */
+  counts?: Counts;
   children: ReactNode;
 }) {
   if (size === "375")
     return <PhonePortal active={active}>{children}</PhonePortal>;
-  return <Portal active={active}>{children}</Portal>;
+  return (
+    <Portal active={active} counts={counts}>
+      {children}
+    </Portal>
+  );
 }
 
+/** The page's own line, word for word (`/admin/reports`). */
 const REPORTS_LEDE =
-  "Guest-submitted reports. Actioning an item removes it; the purge cron reclaims its storage afterward.";
+  "Guest-submitted reports. Actioning an item removes it; the purge cron reclaims its storage afterward. A reported person is actioned out of band, so marking one handled only closes the report. Resolved reports are read-only.";
 
-/** The reports surface, which is where six of the eight decisions live. */
+/**
+ * The reports surface, which is where six of the eight decisions live.
+ * `counts` is set by the refreshed steps, which draw the People section and
+ * count its report; `closed` passes none and keeps the rail it was drawn with.
+ */
 function reportsScreen(
   id: string,
   w: World,
@@ -308,10 +372,12 @@ function reportsScreen(
   body: ReactNode,
   lede = REPORTS_LEDE,
   read: Reader = queueRead,
+  counts?: Counts,
+  label?: string,
 ) {
   return (
-    <Screen id={id} size={w.size} caption={caption} read={read}>
-      <Surface size={w.size} active={REPORTS_SURFACE}>
+    <Screen id={id} size={w.size} caption={caption} read={read} label={label}>
+      <Surface size={w.size} active={REPORTS_SURFACE} counts={counts}>
         <SurfaceHead title="Reports" lede={lede} />
         {body}
       </Surface>
@@ -323,31 +389,55 @@ function reportsScreen(
 
 const LOOK_CAPTION: Record<LookShape, string> = {
   frame:
-    "The reported frame at the card's full width, the sentence under it, the verdict beneath that.",
+    "The reported frame at the card's full width, the sentence under it, the verdict beneath that; the person above it has no frame to lead with.",
   split:
-    "One row each, admin r1's own shape: the frame on the left at a size you can judge, the words and the verdict on the right.",
-  grid: "Every waiting report as a thumbnail at once; the words and the verdict open beneath whichever is selected.",
+    "One row each: the frame on the left at a size you can judge, the words and the verdict on the right, the reported person first as the page lists them.",
+  grid: "The host's review queue's grammar: every report a 4:5 tile on the review grid's own columns, the reported person above as the page lists them, and no words until a tap.",
 };
+
+/** The grid's second frame: the tap its first one is waiting for. */
+const GRID_PEEK_CAPTION =
+  "A tap on the first: the peek, with its words and the verdict on it. Live in the frame: close it, tap another tile, or step with the arrows.";
+
+/** A report the grid's peek opens on, for a step whose question lives there. */
+const WORDLESS = OPEN_REPORTS.find((r) => !r.reason) ?? OPEN_REPORTS[0];
 
 function lookScreen(v: LookShape, s: BoardState) {
   const w = worldOf(s, { look: v, ...TODAY });
-  return reportsScreen(
-    `look-${v}`,
-    w,
-    LOOK_CAPTION[v],
-    <ReportsSurface
-      world={{ look: v, reason: w.reason, verdict: w.verdict }}
-      reason={w.reason}
-    />,
+  const screen = (peekOn: string | null, caption: string, label?: string) =>
+    reportsScreen(
+      peekOn ? `look-${v}-peek` : `look-${v}`,
+      w,
+      caption,
+      <ReportsSurface
+        world={{ look: v, reason: w.reason, verdict: w.verdict }}
+        reason={w.reason}
+        people
+        peekOn={peekOn}
+      />,
+      REPORTS_LEDE,
+      v === "grid" ? gridRead : queueRead,
+      WITH_PEOPLE,
+      label,
+    );
+  if (v !== "grid") return screen(null, LOOK_CAPTION[v]);
+  // ★ TWO FRAMES FOR THE ONE SHAPE WHOSE VERDICT IS A TAP AWAY: the queue as
+  // an operator scans it, and the peek it opens, because the peek's ground
+  // hides the queue and the queue hides the verdict (`ReportGrid`).
+  return (
+    <div className="flex min-w-0 flex-col gap-6">
+      {screen(null, LOOK_CAPTION.grid, "the queue")}
+      {screen(OPEN_REPORTS[0].id, GRID_PEEK_CAPTION, "a tap")}
+    </div>
   );
 }
 
 const REASON_CAPTION: Record<ReasonShape, string> = {
-  chrono:
-    "Nothing drawn where the reason would be, and no reordering: the wordless report keeps its place.",
-  last: "The wordless report falls under both written ones and says why it is there.",
   marked:
-    "Keeps its place in the queue, with a quiet 'No reason given' tag where the sentence would sit.",
+    "Today. The wordless report keeps its place and prints a muted 'No reason provided.' where the sentence would sit.",
+  chrono:
+    "Nothing drawn where the reason would be, and no reordering: the wordless report keeps its place and says nothing.",
+  last: "The wordless report falls under both written ones and says why it is there.",
 };
 
 function reasonScreen(v: ReasonShape, s: BoardState) {
@@ -356,10 +446,20 @@ function reasonScreen(v: ReasonShape, s: BoardState) {
     `reason-${v}`,
     w,
     REASON_CAPTION[v],
-    <ReportsSurface
-      world={{ look: w.look, reason: v, verdict: w.verdict }}
-      reason={v}
-    />,
+    <>
+      <ScrollToWordless />
+      <ReportsSurface
+        world={{ look: w.look, reason: v, verdict: w.verdict }}
+        reason={v}
+        people
+        // On the grid the words live on the peek, so it opens on the report
+        // this question is about.
+        peekOn={WORDLESS.id}
+      />
+    </>,
+    REPORTS_LEDE,
+    w.look === "grid" ? gridRead : queueRead,
+    WITH_PEOPLE,
   );
 }
 
@@ -367,24 +467,29 @@ const ESCALATE_CAPTION: Record<EscalateShape, string> = {
   retype:
     "Today. Nothing on a report is an id, and the form that needs one is two surfaces away.",
   copy: "The report reference and the media id on the card, and the same form with them pasted in.",
-  door: "One control on the report, and the panel it opens, saying what the hold touches.",
+  door: "One control on the report itself, Hold for forensics, with a line saying what it does: no id to find, nothing to paste.",
 };
+
+/** The door's second frame: the confirm its control opens. */
+const DOOR_OPEN_CAPTION =
+  "A tap on it: the portal's own confirm, filled in from the report, saying what the hold touches, with its reason on the record.";
 
 function escalateScreen(v: EscalateShape, s: BoardState) {
   const w = worldOf(s, { escalate: v, ...TODAY });
-  return (
+  const screen = (open: boolean, caption: string, label?: string) => (
     <Screen
-      id={`escalate-${v}`}
+      id={open ? `escalate-${v}-open` : `escalate-${v}`}
       size={w.size}
-      caption={ESCALATE_CAPTION[v]}
+      caption={caption}
       read={queueRead}
+      label={label}
     >
       {/* ★ THE SURFACE IS ALWAYS REPORTS. The first capture pass had the rail
           highlighting Forensics while the heading said Reports, because the
           forensics FORM is drawn here: an operator reading that picture would
           have been told they were on a page they were not on. The form below is
           an inset of the other surface and says so in its own head. */}
-      <Surface size={w.size} active={REPORTS_SURFACE}>
+      <Surface size={w.size} active={REPORTS_SURFACE} counts={WITH_PEOPLE}>
         <SurfaceHead
           title="Reports"
           lede="A guest has reported a photograph of a child. The runbook says: remove it from live, then hold and preserve."
@@ -408,19 +513,69 @@ function escalateScreen(v: EscalateShape, s: BoardState) {
           {v === "door" ? null : <ForensicsPanel shape={v} />}
         </div>
       </Surface>
-      {v === "door" ? <HoldSheet /> : null}
+      {open ? <HoldSheet /> : null}
     </Screen>
+  );
+  if (v !== "door") return screen(false, ESCALATE_CAPTION[v]);
+  // ★ TWO FRAMES FOR THE DOOR, as for the grid's peek: the portal's confirm is
+  // a centred dialog over a blurred page, so the control on the report that
+  // opens it would be behind the blur in the one picture that shows both.
+  return (
+    <div className="flex min-w-0 flex-col gap-6">
+      {screen(false, ESCALATE_CAPTION.door, "the report")}
+      {screen(true, DOOR_OPEN_CAPTION, "a tap")}
+    </div>
   );
 }
 
 /* ── The verdict, and what it leaves ─────────────────────────────────────── */
 
 const VERDICT_CAPTION: Record<VerdictShape, string> = {
-  two: "Today. Two presses, nothing typed, and the record is a status and a time.",
-  note: "The same two verbs with Add a note beside them, open on the one being answered.",
+  two: "Today. One press each, nothing typed and no confirm: Remove acts at once with a toast, and the record is a status and a time.",
+  note: "Remove opens the portal's one confirm, as Albums' Remove already does, with an optional note in it; Dismiss keeps one press, with Add a note beside it.",
   always:
-    "The same field, required on both verbs now: nothing commits, Dismiss included, until a line is typed.",
+    "The same confirm with the line required, and the verb waiting on it; Dismiss asks for its line the same way before it commits.",
 };
+
+/**
+ * THE REMOVE, THROUGH THE PORTAL'S ONE CONFIRM, for the report being answered.
+ * What it lists is what `actionReportAction` really does to an item report: a
+ * soft removal stamped as an operator's (restorable from Albums until the one
+ * 30-day window ends, `lifecycle-recovery.md`), and the report closed. The
+ * note is the proposed prop; `always` requires it, so the verb waits.
+ */
+function RemoveConfirm({ required }: { required: boolean }) {
+  const row = OPEN_REPORTS[0];
+  return (
+    <ConfirmLook
+      title="Remove this photo?"
+      lede="It leaves the album now, and the report closes as Actioned."
+      touches={[
+        `1 photo in ${row.event}`,
+        "Restorable from Albums for 30 days, then the purge deletes it",
+        "The report closes as Actioned, with the note on it",
+      ]}
+      verb="Remove"
+      severity="reversible"
+      note={
+        required
+          ? {
+              label: "Note",
+              required: true,
+              placeholder: "Why, in one line",
+              hint: "Nothing commits without it, Dismiss included. Only this portal reads it.",
+            }
+          : {
+              label: "Note",
+              required: false,
+              value: "Child in frame; her parent asked.",
+              placeholder: "Why, in one line",
+              hint: "Kept on the report. Only this portal reads it.",
+            }
+      }
+    />
+  );
+}
 
 function verdictScreen(v: VerdictShape, s: BoardState) {
   const w = worldOf(s, { verdict: v, reason: TODAY.reason });
@@ -428,16 +583,25 @@ function verdictScreen(v: VerdictShape, s: BoardState) {
     `verdict-${v}`,
     w,
     VERDICT_CAPTION[v],
-    <ReportsSurface
-      world={{ look: w.look, reason: w.reason, verdict: v }}
-      reason={w.reason}
-      acting={v === "two" ? undefined : 0}
-    />,
+    <>
+      <ReportsSurface
+        world={{ look: w.look, reason: w.reason, verdict: v }}
+        reason={w.reason}
+        people
+        // On the grid the verdict lives on the peek, open on the report the
+        // confirm is about.
+        peekOn={OPEN_REPORTS[0].id}
+      />
+      {v === "two" ? null : <RemoveConfirm required={v === "always"} />}
+    </>,
+    REPORTS_LEDE,
+    w.look === "grid" ? gridRead : queueRead,
+    WITH_PEOPLE,
   );
 }
 
 const CLOSED_CAPTION: Record<ClosedShape, string> = {
-  line: "The three still open, then the answered ones as a log under them, on the table the portal already draws.",
+  line: "The three still open, then the answered ones as a log under them, one line each where All draws every card today.",
   undo: "The same log, with a day's way back on the one removal that is not held.",
   window:
     "The same log, with a way back for as long as the item would exist anyway: the product's own 30-day Trash, not a second clock.",
@@ -513,21 +677,23 @@ function idiomScreen(v: IdiomShape, s: BoardState) {
 }
 
 const NOTICE_CAPTION: Record<NoticeShape, string> = {
-  silence: "Today. Two people are affected by the decision and neither is told it happened.",
-  host: "One line to the host, identical on every removal, so a held item reads like any other.",
-  both: "That line, and a closing note to a reporter the product has no address for.",
+  silence:
+    "Today. Her uploads list says Not in the album; the host is sent nothing and finds a Restore in her Deleted that cannot restore.",
+  deleted:
+    "Nothing is sent. Her Deleted says Removed by Partyreel with no Restore to fail, in the same words for a takedown and a hold.",
+  host: "One line to the host, identical on every removal, and her Deleted says the same, so a held photo reads like any other.",
 };
 
 function noticeScreen(v: NoticeShape, s: BoardState) {
-  const w = worldOf(s, { notice: v });
+  const w = worldOf(s, { notice: v, ...TODAY });
   return (
     <Screen id={`notice-${v}`} size={w.size} caption={NOTICE_CAPTION[v]}>
-      <Surface size={w.size} active={REPORTS_SURFACE}>
+      <Surface size={w.size} active={REPORTS_SURFACE} counts={WITH_PEOPLE}>
         <SurfaceHead
           title="After the verdict"
-          lede="The same removal, and everyone it reaches. The record on the right never changes; only how far outside the portal it travels."
+          lede="The same removal, and everyone it reaches. The record never changes; only what the host is told, and where."
         />
-        <WhoIsTold shape={v} />
+        <WhoIsTold shape={v} verdict={w.verdict} />
       </Surface>
     </Screen>
   );
@@ -565,8 +731,8 @@ const PREVIEWS: PreviewsFor<typeof ADMIN_TRIAGE> = {
   "idiom.one-inbox": (s) => idiomScreen("one-inbox", s),
 
   "notice.silence": (s) => noticeScreen("silence", s),
+  "notice.deleted": (s) => noticeScreen("deleted", s),
   "notice.host": (s) => noticeScreen("host", s),
-  "notice.both": (s) => noticeScreen("both", s),
 };
 
 export function AdminTriageBoard() {

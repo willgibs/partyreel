@@ -1,17 +1,23 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef } from "react";
-import { Copy, Play, ShieldAlert, Undo2 } from "lucide-react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
+import { Copy, Play, ShieldAlert, Undo2, X } from "lucide-react";
 
+import { GALLERY_UNIFORM_COLUMNS } from "@/components/shared/masonry";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { GLASS, GLASS_BEHIND, GLASS_MARK } from "@/lib/glass";
+import { UNIFORM_TILE_ASPECT } from "@/lib/media/tile-aspect";
 import { cn } from "@/lib/utils";
 
 import {
   CLOSED_REPORTS,
   frameOf,
+  OPEN_PEOPLE,
   OPEN_REPORTS,
+  type PersonReportRow,
   type ReportRow,
+  type ReportStatus,
 } from "./fixtures";
 import { StateChip } from "./shell";
 
@@ -37,12 +43,14 @@ import { StateChip } from "./shell";
  */
 
 /**
- * Each of the four gains a genuine third (boards refresh, 2026-09-24), none of
- * them the shape the shell's own rail or bar already settled: `grid` is a
- * different QUEUE shape (many thumbnails, one open at a time), `marked` a
- * different note on a wordless report (a tag, never a reorder), `always` a
- * stronger `note` (required, not offered), `window` a longer `undo` (the
- * product's own 30-day Trash, not a second admin clock).
+ * Each of the four gained a genuine third (boards refresh, 2026-09-24), and the
+ * production refresh (2026-09-28) redrew three of them on what ships: `grid` is
+ * the host's review queue's grammar now (`host-curation`'s `queue=uniform`,
+ * `peek=verdict`, `keys=arrows`: 4:5 tiles, the verdict on a peek), `marked` is
+ * what `ReportCard` has printed all along (a muted "No reason provided." in
+ * place, so it is today), and `note` and `always` send Remove through the
+ * portal's one confirm carrying its line. `window` is a longer `undo` (the
+ * product's own 30-day window, not a second admin clock), untouched.
  */
 export type LookShape = "frame" | "split" | "grid";
 export type ReasonShape = "last" | "chrono" | "marked";
@@ -110,7 +118,7 @@ function Shot({
   );
 }
 
-function StatusChip({ row }: { row: ReportRow }) {
+function StatusChip({ row }: { row: { status: ReportStatus } }) {
   // `shrink-0`, because the row puts it opposite a paragraph: without it a
   // 375 px column squeezes the chip on top of the first word of the reason,
   // which the first capture pass caught on the phone step.
@@ -145,69 +153,49 @@ function Meta({ row, className }: { row: ReportRow; className?: string }) {
 }
 
 /**
- * The reason, three ways, now that an empty block draws absent rather than
- * hollow (app-shape r2): no answer here ever fakes a sentence where none was
- * typed. `chrono` draws nothing at all, keeping the wordless report's place in
- * the queue. `last` draws one small line explaining why the report sank to the
- * foot, which is a status note rather than a stand-in reason. `marked` is the
- * new middle (boards refresh, 2026-09-24): the queue's order never moves, but
- * a quiet tag still catches the eye `chrono`'s blank space does not.
+ * What a wordless report prints in its place TODAY, word for word
+ * (`ReportCard`, since 734133d9): muted, in time order. The board drew a blank
+ * here as "today" until the production refresh read the card.
+ */
+export const NO_REASON = "No reason provided.";
+
+/**
+ * The reason, three ways. No answer fakes a sentence where none was typed.
+ * `marked` is today: `ReportCard`'s muted line, in place, the queue's order
+ * untouched. `chrono` draws nothing at all, as app-shape r2's absent-never-
+ * hollow rule would, keeping the place. `last` draws one small line saying why
+ * the report sank to the foot, a status note rather than a stand-in reason.
  */
 function Reason({ row, shape }: { row: ReportRow; shape: ReasonShape }) {
   if (row.reason) return <p className="text-sm">{row.reason}</p>;
   if (shape === "last")
     return (
       <p className="text-sm text-muted-foreground">
-        <span className="font-medium text-foreground">Nothing said.</span> Ranked
-        under every report that carries a sentence.
+        <span className="font-medium text-foreground">Nothing said.</span>{" "}
+        Ranked under every report that carries a sentence.
       </p>
     );
   if (shape === "marked")
-    return (
-      <span className="inline-flex items-center rounded border border-dashed px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
-        No reason given
-      </span>
-    );
+    return <p className="text-sm text-muted-foreground">{NO_REASON}</p>;
   return null;
 }
 
-/* ── The verdict, two ways ───────────────────────────────────────────────── */
+/* ── The verdict ─────────────────────────────────────────────────────────── */
 
+/**
+ * The two verbs on a card. `two` is today's pair and nothing else, pressed
+ * once each. Under `note` and `always` Dismiss gains its line beside the pair
+ * (optional or required) and Remove's own line lives in the portal's confirm,
+ * which the verdict step draws open over the queue (`ConfirmLook`).
+ */
 function VerdictBar({
-  row,
+  remove,
   shape,
-  /** True on the one card drawn mid-act, so a note field is open on exactly one. */
-  acting = false,
 }: {
-  row: ReportRow;
+  /** The destructive verb's words, which differ by what the report names. */
+  remove: string;
   shape: VerdictShape;
-  acting?: boolean;
 }) {
-  const remove = row.media ? "Remove item and action" : "Action";
-  // `always` (boards refresh, 2026-09-24) is `note` with the field required on
-  // BOTH verbs, named in the overrule `verdict.note` already carried: Dismiss
-  // no longer gets to skip the line Remove already has to write.
-  const notes = shape === "note" || shape === "always";
-
-  if (notes && acting)
-    return (
-      <div className="w-full space-y-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <Button type="button" variant="outline" size="sm">
-            Dismiss
-          </Button>
-          <Button type="button" variant="destructive" size="sm">
-            {remove}
-          </Button>
-        </div>
-        <div className="rounded-md border border-dashed bg-background px-3 py-2 text-sm text-muted-foreground">
-          {shape === "always"
-            ? "Add a note. Required before either verb commits."
-            : "Add a note. Optional, and nobody outside this portal reads it."}
-        </div>
-      </div>
-    );
-
   return (
     <div className="flex w-full flex-wrap items-center gap-2">
       <Button type="button" variant="outline" size="sm">
@@ -216,14 +204,17 @@ function VerdictBar({
       <Button type="button" variant="destructive" size="sm">
         {remove}
       </Button>
-      {notes ? (
+      {shape === "two" ? null : (
         <span className="text-xs text-muted-foreground underline underline-offset-4">
           {shape === "always" ? "Add a note (required)" : "Add a note"}
         </span>
-      ) : null}
+      )}
     </div>
   );
 }
+
+const removeOf = (row: ReportRow) =>
+  row.media ? "Remove item and action" : "Action";
 
 /* ── One report, in whichever shape leads ────────────────────────────────── */
 
@@ -236,12 +227,16 @@ export type CardWorld = {
    * report names no media row, so there is nothing to hold and nothing to copy.
    */
   escalate?: (row: ReportRow) => ReactNode;
-  /** The card drawn mid-act, for the verdict that asks for a line. */
-  acting?: boolean;
 };
 
-export function OpenReport({ row, world }: { row: ReportRow; world: CardWorld }) {
-  const { look, reason, verdict, escalate, acting } = world;
+export function OpenReport({
+  row,
+  world,
+}: {
+  row: ReportRow;
+  world: CardWorld;
+}) {
+  const { look, reason, verdict, escalate } = world;
   const hold = escalate?.(row) ?? null;
 
   // THE PICTURE FIRST: the reported frame takes the card's whole width and the
@@ -249,7 +244,11 @@ export function OpenReport({ row, world }: { row: ReportRow; world: CardWorld })
   // judging an image rather than reading a ticket.
   if (look === "frame")
     return (
-      <Card className="overflow-hidden py-0">
+      <Card
+        data-tri-report="item"
+        data-tri-wordless={row.reason ? undefined : ""}
+        className="overflow-hidden py-0"
+      >
         <Shot row={row} size="fill" className="rounded-none" />
         <div className="space-y-3 px-6 py-5">
           <div className="flex items-start justify-between gap-3">
@@ -260,7 +259,7 @@ export function OpenReport({ row, world }: { row: ReportRow; world: CardWorld })
             <StatusChip row={row} />
           </div>
           {hold}
-          <VerdictBar row={row} shape={verdict} acting={acting} />
+          <VerdictBar remove={removeOf(row)} shape={verdict} />
         </div>
       </Card>
     );
@@ -269,7 +268,10 @@ export function OpenReport({ row, world }: { row: ReportRow; world: CardWorld })
   // the left, the words and the verdict on the right. An album report with no
   // frame keeps the row and gives the words the whole width.
   return (
-    <Card>
+    <Card
+      data-tri-report="item"
+      data-tri-wordless={row.reason ? undefined : ""}
+    >
       {/* ★ THE ROW STACKS UNDER 640 px. At 375 a fixed 200 px frame leaves the
           words about 100 px, which renders one word a line with the status chip
           sitting on top of the first one: the first 375 capture pass caught it.
@@ -287,7 +289,7 @@ export function OpenReport({ row, world }: { row: ReportRow; world: CardWorld })
             <StatusChip row={row} />
           </div>
           {hold}
-          <VerdictBar row={row} shape={verdict} acting={acting} />
+          <VerdictBar remove={removeOf(row)} shape={verdict} />
         </div>
       </div>
     </Card>
@@ -315,13 +317,7 @@ function daysSinceResolved(row: ReportRow): number | null {
   return 24 - day;
 }
 
-function ClosedReport({
-  row,
-  shape,
-}: {
-  row: ReportRow;
-  shape: ClosedShape;
-}) {
+function ClosedReport({ row, shape }: { row: ReportRow; shape: ClosedShape }) {
   // A CLOSED REPORT IS ONE LINE: the verdict, the note it left, and who took
   // it. The queue reads as a log, and the thumbnail is small because the
   // decision has already been taken on it.
@@ -359,7 +355,12 @@ function ClosedReport({
           </span>
         ) : row.status === "actioned" &&
           (daysSinceResolved(row) ?? Infinity) <= UNDO_WINDOW_DAYS[shape] ? (
-          <Button type="button" variant="outline" size="sm" className="shrink-0">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="shrink-0"
+          >
             <Undo2 className="size-3.5" />
             Undo
           </Button>
@@ -394,50 +395,275 @@ function Filters({ active }: { active: "open" | "all" }) {
   );
 }
 
+/* ── A report about a person ─────────────────────────────────────────────── */
+
 /**
- * `look=grid` (boards refresh, 2026-09-24): the bolder third shape. Not a row
- * each and not one card at a time, but every waiting report as a thumbnail at
- * once, with the words and the verdict open beneath whichever is selected. The
- * first report is drawn selected: nothing here is interactive, so a real tap
- * would move the outline, never the words underneath it.
+ * THE PEOPLE SECTION'S CARD (`PersonReportList`), listed FIRST whenever one is
+ * open. A person has no frame to lead with in any shape, so it is the same card
+ * under all three: the name, the handle the page links to the live profile, the
+ * reason (or that arm's own "No reason given."), when, and two verbs. "Mark
+ * actioned" removes nothing: a person is actioned out of band, so marking one
+ * only closes the report, and it never opens the confirm.
+ */
+function PersonReport({
+  row,
+  verdict,
+}: {
+  row: PersonReportRow;
+  verdict: VerdictShape;
+}) {
+  return (
+    <Card data-tri-report="person">
+      <div className="flex flex-col gap-3 px-6 py-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium">
+              {row.name}{" "}
+              <span className="font-normal text-muted-foreground underline underline-offset-4">
+                {row.slug ? `@${row.slug}` : "No public handle"}
+              </span>
+            </p>
+            <p className="mt-1.5 text-sm">{row.reason ?? "No reason given."}</p>
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              {row.when} · person reported
+            </p>
+          </div>
+          <StatusChip row={row} />
+        </div>
+        <VerdictBar remove="Mark actioned" shape={verdict} />
+      </div>
+    </Card>
+  );
+}
+
+/** A section of the page under its label, exactly as `/admin/reports` heads one. */
+function Section({
+  label,
+  children,
+}: {
+  label: string | null;
+  children: ReactNode;
+}) {
+  return (
+    <section className="space-y-3">
+      {label ? (
+        <h2>
+          <span className="text-label font-semibold text-muted-foreground uppercase">
+            {label}
+          </span>
+        </h2>
+      ) : null}
+      {children}
+    </section>
+  );
+}
+
+/* ── The grid, in the review queue's grammar ─────────────────────────────── */
+
+/**
+ * `look=grid`, REDRAWN IN THE HOST'S REVIEW QUEUE'S GRAMMAR (the production
+ * refresh, 2026-09-28), so split and grid are judged against the product's
+ * other picture queue as Will picked it: `queue=uniform` (every item the same
+ * 4:5 box, on the review grid's own columns), `peek=verdict` (a tap opens it
+ * large on the lightbox's ground with the verdict ON it) and `keys=arrows` (the
+ * arrows step and Escape closes, with no hint row saying so). A report carries
+ * what an upload never does, a sentence, so the peek's foot carries the words
+ * above the verdict, on an opaque panel (glass is media chrome, never a panel).
+ *
+ * ★ DRAWN BOTH WAYS, AND REALLY BOUND. The peek's ground is the album blurred
+ * at half brightness, so a peek drawn open hides the very queue the option is
+ * about, and a grid drawn shut hides the verdict. So `look` draws two frames,
+ * the queue and a tap on it (`peekOn`), and a step whose question lives on the
+ * peek (the verdict, a wordless report's line) opens it on the report it is
+ * about. Inside a frame it is live either way: close it, tap a tile to open
+ * that one, and the arrows step. The frame's own window listens, never the lab
+ * page's, so no key on the board moves it.
  */
 function ReportGrid({
   rows,
   world,
+  peekOn,
 }: {
   rows: ReportRow[];
-  world: CardWorld & { reason: ReasonShape };
+  world: CardWorld;
+  /** The report the peek opens on, or null for the queue at rest. */
+  peekOn: string | null;
 }) {
-  const active = rows[0];
+  const grid = useRef<HTMLDivElement | null>(null);
+  const [at, setAt] = useState(() =>
+    Math.max(
+      0,
+      rows.findIndex((r) => r.id === peekOn),
+    ),
+  );
+  const [open, setOpen] = useState(peekOn !== null);
+  const last = rows.length - 1;
+
+  useEffect(() => {
+    const el = grid.current;
+    const win = el?.ownerDocument.defaultView;
+    if (!el || !win) return;
+    // Left and right step one report, on the grid and on the peek alike; up
+    // and down step a row of the grid's own columns, and nothing on the peek.
+    const across = () =>
+      win.getComputedStyle(el).gridTemplateColumns.split(" ").filter(Boolean)
+        .length || 1;
+    // A step past either end stays put, as a grid's own keys do.
+    const step = (by: number) =>
+      setAt((i) => (i + by >= 0 && i + by <= last ? i + by : i));
+    const onKey = (e: KeyboardEvent) => {
+      const peeking = Boolean(win.document.querySelector("[data-tri-peek]"));
+      if (e.key === "ArrowRight") step(1);
+      else if (e.key === "ArrowLeft") step(-1);
+      else if (e.key === "ArrowDown" && !peeking) step(across());
+      else if (e.key === "ArrowUp" && !peeking) step(-across());
+      else if (e.key === "Enter") setOpen(true);
+      else if (e.key === "Escape") setOpen(false);
+      else return;
+      e.preventDefault();
+    };
+    win.addEventListener("keydown", onKey);
+    return () => win.removeEventListener("keydown", onKey);
+  }, [last]);
+
+  const active = rows[Math.min(at, last)];
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-2">
-        {rows.map((row) => (
+    <div>
+      <div ref={grid} className={GALLERY_UNIFORM_COLUMNS}>
+        {rows.map((row, i) => {
+          const still = frameOf(row);
+          return (
+            <button
+              key={row.id}
+              type="button"
+              data-tri-tile
+              aria-label={`Open the report on ${row.event}`}
+              onClick={() => {
+                setAt(i);
+                setOpen(true);
+              }}
+              style={{ aspectRatio: UNIFORM_TILE_ASPECT }}
+              className={cn(
+                "relative w-full overflow-hidden rounded-tile bg-muted text-left outline-2 -outline-offset-2",
+                i === at ? "outline-foreground" : "outline-transparent",
+              )}
+            >
+              {still ? (
+                // eslint-disable-next-line @next/next/no-img-element -- a local still standing in for a presigned original
+                <img
+                  src={still.src}
+                  alt=""
+                  className="size-full object-cover"
+                  draggable={false}
+                />
+              ) : (
+                // An album report names no frame: its tile is its album.
+                <span className="flex size-full flex-col justify-end gap-1 p-3">
+                  <span className="text-xs text-muted-foreground">
+                    Album reported
+                  </span>
+                  <span className="text-sm font-medium">{row.event}</span>
+                </span>
+              )}
+              {row.media?.type === "video" ? (
+                <span
+                  aria-hidden
+                  className={cn(
+                    "absolute top-1/2 left-1/2 flex size-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full text-white",
+                    GLASS_MARK,
+                  )}
+                >
+                  <Play className="size-4 translate-x-px fill-current" />
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+      {open ? (
+        <Peek row={active} world={world} onClose={() => setOpen(false)} />
+      ) : null}
+    </div>
+  );
+}
+
+/** The peek: the report large on the lightbox's ground, the words and the verdict at its foot. */
+function Peek({
+  row,
+  world,
+  onClose,
+}: {
+  row: ReportRow;
+  world: CardWorld;
+  onClose: () => void;
+}) {
+  const still = frameOf(row);
+  return (
+    <div data-tri-peek className="tri-peek">
+      {/* The ground on its own element, never an ancestor of the photograph
+          (`GLASS_BEHIND`'s rule). */}
+      <div aria-hidden className={cn("tri-peek-ground", GLASS_BEHIND)} />
+      <div className="tri-peek-stage">
+        {still ? (
+          // eslint-disable-next-line @next/next/no-img-element -- a local still standing in for a presigned original
+          <img
+            data-tri-peek-frame
+            src={still.src}
+            alt=""
+            className="max-h-full max-w-full rounded-md object-contain"
+            draggable={false}
+          />
+        ) : (
           <div
-            key={row.id}
+            data-tri-peek-frame
+            className="flex h-full max-h-80 flex-col items-center justify-center gap-2 rounded-md bg-muted px-10 text-center"
+            style={{ aspectRatio: UNIFORM_TILE_ASPECT }}
+          >
+            <span className="text-xs text-muted-foreground">
+              The whole album was reported
+            </span>
+            <span className="text-base font-medium">{row.event}</span>
+          </div>
+        )}
+        {/* A video's still carries the tile's own play mark: the real peek
+            plays it, and a still with no mark would pass for a photograph. */}
+        {row.media?.type === "video" ? (
+          <span
+            aria-hidden
             className={cn(
-              "relative overflow-hidden rounded-lg outline-2 -outline-offset-2",
-              row.id === active.id ? "outline-foreground" : "outline-transparent",
+              "absolute top-1/2 left-1/2 flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full text-white",
+              GLASS_MARK,
             )}
           >
-            <Shot row={row} size="fill" />
-            <span className="absolute top-1.5 right-1.5">
-              <StatusChip row={row} />
-            </span>
-          </div>
-        ))}
+            <Play className="size-5 translate-x-px fill-current" />
+          </span>
+        ) : null}
       </div>
-      <Card className="p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <Reason row={active} shape={world.reason} />
-            <Meta row={active} className="mt-1.5" />
+      <button
+        type="button"
+        aria-label="Close"
+        onClick={onClose}
+        className={cn(
+          "absolute top-4 right-4 flex size-9 items-center justify-center rounded-full text-white",
+          GLASS,
+        )}
+      >
+        <X className="size-5" />
+      </button>
+      <div className="tri-peek-foot">
+        <div className="w-full max-w-xl rounded-float bg-popover p-4 text-popover-foreground shadow-layer ring-1 ring-foreground/10">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <Reason row={row} shape={world.reason} />
+              <Meta row={row} className="mt-1.5" />
+            </div>
+            <StatusChip row={row} />
+          </div>
+          <div className="mt-3">
+            <VerdictBar remove={removeOf(row)} shape={world.verdict} />
           </div>
         </div>
-        <div className="mt-3">
-          <VerdictBar row={active} shape={world.verdict} acting={world.acting} />
-        </div>
-      </Card>
+      </div>
     </div>
   );
 }
@@ -445,63 +671,113 @@ function ReportGrid({
 export function ReportsSurface({
   world,
   reason = "chrono",
-  /** Which report is drawn mid-act, by index in the open queue. */
-  acting,
   /**
    * Draw one report rather than the queue. The escalate decision needs the
    * report and the surface the hold is set on to be on one screen, and three
    * reports push the second one 1,100 px down a 900 px page.
    */
   only,
+  /**
+   * Draw the People section first, as the page does whenever a person report
+   * is open. The refreshed steps draw it; `closed`, `idiom` and `phone` keep
+   * the night they were drawn with (see `PERSON_REPORTS`).
+   */
+  people = false,
+  /** Under `look=grid`, the report whose peek is drawn open (null: the queue at rest). */
+  peekOn = null,
   children,
 }: {
   world: CardWorld;
   reason?: ReasonShape;
-  acting?: number;
   only?: number;
+  people?: boolean;
+  peekOn?: string | null;
   children?: ReactNode;
 }) {
   // The wordless report drops to the foot of the queue only under `last`; the
   // other two answers leave the newest-first order the query already has.
   const sorted =
     reason === "last"
-      ? [...OPEN_REPORTS].sort(
-          (a, b) => Number(!a.reason) - Number(!b.reason),
-        )
+      ? [...OPEN_REPORTS].sort((a, b) => Number(!a.reason) - Number(!b.reason))
       : OPEN_REPORTS;
   const queue = only === undefined ? sorted : [OPEN_REPORTS[only]];
+  const withPeople = people && only === undefined && OPEN_PEOPLE.length > 0;
 
   // `only` draws one already-isolated report: `grid` has nothing to be a grid
   // of there, so it falls through to the same single card `escalate` and the
   // history's "still open" rows already use.
-  if (world.look === "grid" && only === undefined) {
+  const items =
+    world.look === "grid" && only === undefined ? (
+      <ReportGrid rows={queue} world={{ ...world, reason }} peekOn={peekOn} />
+    ) : (
+      <div className="space-y-4">
+        {queue.map((row) => (
+          <OpenReport key={row.id} row={row} world={{ ...world, reason }} />
+        ))}
+      </div>
+    );
+
+  if (!withPeople)
     return (
       <>
         <Filters active="open" />
         {children}
-        <ReportGrid
-          rows={queue}
-          world={{ ...world, reason, acting: acting === 0 }}
-        />
+        {items}
       </>
     );
-  }
 
+  // PEOPLE FIRST, as the page lists them: "a report about a person is about
+  // somebody's conduct across the product, which outranks one photograph".
   return (
     <>
       <Filters active="open" />
       {children}
-      <div className="space-y-4">
-        {queue.map((row, i) => (
-          <OpenReport
-            key={row.id}
-            row={row}
-            world={{ ...world, reason, acting: acting === i }}
-          />
-        ))}
+      <div className="space-y-6">
+        <Section label="People">
+          <div className="space-y-3">
+            {OPEN_PEOPLE.map((row) => (
+              <PersonReport key={row.id} row={row} verdict={world.verdict} />
+            ))}
+          </div>
+        </Section>
+        <Section label="Albums and items">{items}</Section>
       </div>
     </>
   );
+}
+
+/**
+ * ★ THE REASON STEP IS SCROLLED TO ITS SUBJECT, ONCE, ON MOUNT (the production
+ * refresh). The People section now leads the queue, which pushed the one
+ * wordless report to the fold at 1440 by 900: the three answers differed in a
+ * strip at the foot of the frame, and `lab:demo` measured them 1.4 percent
+ * apart. So the frame starts with that report on screen, where an operator
+ * reading down the queue meets it anyway, with what sits above it in view. A
+ * grid has no card to scroll to (its words are on the peek), so it stays put.
+ */
+export function ScrollToWordless() {
+  const ref = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = ref.current;
+    const win = el?.ownerDocument.defaultView;
+    if (!el || !win) return;
+    const run = () => {
+      const target = el.ownerDocument.querySelector<HTMLElement>(
+        "[data-tri-wordless]",
+      );
+      if (!target) return;
+      const top =
+        target.getBoundingClientRect().top +
+        win.scrollY -
+        win.innerHeight * 0.4;
+      win.scrollTo({ top: Math.max(0, top), behavior: "auto" });
+    };
+    // The same three passes as the history's: the layout, the photographs
+    // decoding, and the board's own late reading.
+    const late = [400, 1200, 2100].map((ms) => win.setTimeout(run, ms));
+    return () => late.forEach((t) => win.clearTimeout(t));
+  }, []);
+  return <div ref={ref} aria-hidden />;
 }
 
 /**

@@ -13,14 +13,16 @@ import { ALERTS, type NavEntry, surfaceGroups } from "./fixtures";
 /**
  * THE PORTAL AROUND EVERY PICTURE ON THIS BOARD, AND IT IS NOT A DECISION HERE.
  *
- * The `admin` board is asking Will for the portal's shape and is on the desk
- * unanswered, so this board WEARS its recommendations rather than re-asking
- * them: the rail with its search row (`nav = rail-palette`, drawn
- * closed, because a palette is a thing you press and not a thing that is always
- * on screen), the 44 px devtool bar with a breadcrumb and a live tag
- * (`chrome = devtool`), and the four-hue state chip (`colour = badges`). What
- * this board asks about is what happens INSIDE that frame after the home's
- * "3 reports are open" row is clicked.
+ * It was drawn while the `admin` board was still asking for the portal's
+ * shape, wearing its recommendations; that board retired at 290bbd3e with its
+ * answers wired (`AdminShell`). The parts these questions lean on match what
+ * shipped: the 232 px rail with its search row (`nav = rail-palette`, drawn
+ * closed), the 44 px devtool bar with a breadcrumb and a live tag (`chrome =
+ * devtool`). The four-hue chip is the one piece that did not ship as drawn
+ * (`colour = rows`: stock badge tones, and the report cards still wear the
+ * stock Badge); it stays so the untouched steps stay as drawn, and no question
+ * here is about a chip's hue. What this board asks about is what happens
+ * INSIDE that frame after the home's "reports are open" row is clicked.
  *
  * ★ NO HEALTH BAND, AND THAT IS THE ADMIN BOARD'S OWN ANSWER RATHER THAN A
  * DEPARTURE FROM IT. Its recommended `portal` band is loud only when something
@@ -30,10 +32,10 @@ import { ALERTS, type NavEntry, surfaceGroups } from "./fixtures";
  * read through a red stripe that belongs to another board's question.
  *
  * ★ THE SHELL IS COPIED, NOT IMPORTED, AND THE REASON IS THE SEAM. The shipped
- * `AdminShell` is a SERVER component: it renders `<form action={signOutAction}>`
+ * `AdminShell` mounts a bar that imports `signOutAction` (a live server action)
  * and is handed its counts by a layout that has already called `requireAdmin()`.
- * A client board cannot mount a server component and the lab must never touch
- * that seam, so the markup is reproduced on the same primitives. `OperatorAlerts`
+ * The lab must never put a live action one click from a board or touch that
+ * seam, so the markup is reproduced on the same primitives. `OperatorAlerts`
  * is the REAL component (a client one that takes three numbers) and the rail's
  * icons come from the real `src/lib/admin/nav.ts`, so what is copied is layout
  * and nothing that could drift into a second source of truth.
@@ -120,7 +122,10 @@ function RailEntry({ item, active }: { item: NavEntry; active: boolean }) {
   );
 }
 
-function Rail({ active }: { active: NavEntry }) {
+/** A step's own count of open reports, where it differs from the board's three. */
+export type Counts = { reports?: number };
+
+function Rail({ active, counts }: { active: NavEntry; counts?: Counts }) {
   return (
     <nav className="tri-rail border-r bg-muted/25 px-3 py-4">
       <span className="mb-4 flex items-center gap-2 rounded-md border bg-background px-2.5 py-1.5 text-sm text-muted-foreground">
@@ -129,7 +134,7 @@ function Rail({ active }: { active: NavEntry }) {
         <kbd className="rounded border px-1 text-[10px] leading-4">{"⌘"}K</kbd>
       </span>
       <div className="flex flex-col gap-4">
-        {surfaceGroups().map(({ group, items }) => (
+        {surfaceGroups(counts).map(({ group, items }) => (
           <div key={group} className="flex flex-col gap-0.5">
             <p className="px-2.5 pb-1 text-[10px] font-medium tracking-wide text-muted-foreground/70 uppercase">
               {group}
@@ -150,7 +155,7 @@ function Rail({ active }: { active: NavEntry }) {
 
 /* ── The bar ─────────────────────────────────────────────────────────────── */
 
-function Bar({ active }: { active: NavEntry }) {
+function Bar({ active, counts }: { active: NavEntry; counts?: Counts }) {
   return (
     <header className="z-40 border-b bg-background/80 backdrop-blur">
       <div className="tri-bar flex items-center justify-between gap-4 px-6">
@@ -167,7 +172,10 @@ function Bar({ active }: { active: NavEntry }) {
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <OperatorAlerts {...ALERTS} />
+          <OperatorAlerts
+            {...ALERTS}
+            reports={counts?.reports ?? ALERTS.reports}
+          />
           <span className="flex size-7 items-center justify-center rounded-full bg-muted text-[11px] font-medium">
             P
           </span>
@@ -181,16 +189,19 @@ function Bar({ active }: { active: NavEntry }) {
 
 export function Portal({
   active,
+  counts,
   children,
 }: {
   active: NavEntry;
+  /** The step's own open-report count, where the People section is drawn. */
+  counts?: Counts;
   children: ReactNode;
 }) {
   return (
     <div className="tri-scope relative flex min-h-screen flex-col bg-background text-foreground">
-      <Bar active={active} />
+      <Bar active={active} counts={counts} />
       <div className="flex min-h-0 flex-1">
-        <Rail active={active} />
+        <Rail active={active} counts={counts} />
         <main className="min-w-0 flex-1">
           <div className="px-6 py-6">{children}</div>
         </main>
