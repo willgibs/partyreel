@@ -79,8 +79,16 @@ export function useReviewKeys({
           e.preventDefault();
           return;
         }
-        // Enter or Space on one of the peek's own buttons is that button's.
-        if (inPeek && target?.closest("button")) return;
+        // Enter or Space on one of the peek's own buttons is that button's: they are the keys a
+        // button acts on. Every other key there is still the peek's, so Backspace on a focused
+        // Reject or on the close rejects the photograph shown, as the help promises.
+        if (
+          inPeek &&
+          (e.key === "Enter" || e.key === " ") &&
+          target?.closest("button")
+        ) {
+          return;
+        }
         if (e.key === "Enter") {
           void t.decide("approve", shown);
         } else if (e.key === "Backspace" || e.key === "Delete") {

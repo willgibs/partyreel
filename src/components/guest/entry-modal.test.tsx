@@ -208,6 +208,21 @@ describe("no exit: the affordance table is one row", () => {
     expect(screen.getByLabelText("Event password")).toBeInTheDocument();
   });
 
+  // Build 14's red-team: the sheet still described the gate in words it no longer shows ("Enter
+  // the event password to view it.") under voice-guest's `ask=warm` line. The door announces what
+  // the step shows, so a screen reader hears one door.
+  it("names and describes the password step in its own heading's words", () => {
+    seeWelcome();
+    renderModal({ access: "none", gate: "password" });
+    const door = screen.getByRole("dialog");
+    const heading = door.querySelector("[data-door-heading]");
+    const title = heading?.querySelector("h1")?.textContent ?? "";
+    const reason = heading?.querySelector("h1 + p")?.textContent ?? "";
+    expect(reason).not.toBe("");
+    expect(door).toHaveAccessibleName(title);
+    expect(door).toHaveAccessibleDescription(reason);
+  });
+
   it("HOLDS identify: no close, and Escape leaves it standing", () => {
     seeWelcome();
     renderModal({ ...VERIFY_EVENT, storedName: "Priya" });
@@ -632,9 +647,7 @@ describe("the upload step", () => {
     expect(
       screen.queryByRole("button", { name: "Continue without adding" }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Retry" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
   });
 });
 
