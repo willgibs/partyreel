@@ -13,7 +13,7 @@ DEFINER RPCs validate inside; `anon` never touches a table. A feature's own RPC 
 
 ## The RPC inventory and the advisor set
 
-`get_advisors` (security) after every schema change reads 16 `rls_enabled_no_policy`, 4 in lint `0028` and 27 in
+`get_advisors` (security) after every schema change reads 16 `rls_enabled_no_policy`, 4 in lint `0028` and 29 in
 `0029`.
 Leaked Password Protection is on, so its WARN never shows. A function in the wrong list means a grant slipped.
 
@@ -26,7 +26,8 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
     an unlocked viewer's fields come back through a self-guarded admin re-read inside `getEventByQrToken`. Its
     switches and the reel's defaults (`accepting_uploads`, `require_verified_email`, `require_upload_to_view`,
     `show_reel`, `reel_style_id`, `reel_hold_sec`) come back unredacted, as presentation settings. A leak is fixed
-    in the payload, never by revoking the grant. `get_public_profile`'s attended arm applies the album's own gates ([profiles-social.md](profiles-social.md)).
+    in the payload, never by revoking the grant. ★ To an account or confirmed address the event blocked, it reads the
+    event as `private`, so every caller's private branch serves the block ([guest-flow.md](guest-flow.md)). `get_public_profile`'s attended arm applies the album's own gates ([profiles-social.md](profiles-social.md)).
   - ★ **A RETURNS TABLE is the allow-list, and changing one is DROP + CREATE, which drops the grants:** re-grant
     `anon` and `authenticated` explicitly. `get_event_by_qr_token` also keeps the PUBLIC EXECUTE its recreates
     inherited.
@@ -49,7 +50,8 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   `check_slug_available`, `has_password` / `verify_current_password` / `mark_password_set`, `get_my_uploads` /
   `remove_my_upload`, `claim_anonymous_uploads`, `list_guest_rows_by_email` / `claim_guest_rows_by_email` /
   `disown_guest_rows_by_email`, `restore_media` / `restore_event` / `purge_media_now`, `like_media` /
-  `get_my_likes` / `get_event_like_counts` and `follow_user` / `block_user`.
+  `get_my_likes` / `get_event_like_counts`, `follow_user` / `block_user`, and the per-event block's two host acts,
+  `block_from_event` / `let_back_in`.
   - `claim_anonymous_uploads` stays browser-callable because nothing in it is spoofable: the held `session_token`s
     authorize it and `user_id is null` guards against theft.
   - ★ **The claim by address never takes an address.** The three `*_guest_rows_by_email` functions key on the
@@ -69,7 +71,10 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
 - **Service-role only, never in either list:** the server-mediated set above, `action_rate`, `purge_media_rows`,
   `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `monthly_ingress_cap`, the paged album's reader
   `album_changes_since` (an INVOKER read the Next routes call after their own capability check), `media_like_counts`
-  (an INVOKER read the host's links route and the hub page call after their `getEvent` check), and the trigger
+  (an INVOKER read the host's links route and the hub page call after their `getEvent` check), the per-event block's
+  reads (`event_ticket_blocked` and `event_blocked_guest_ids`, INVOKER; `blocked_events_for`, DEFINER because it
+  reads `auth.users`, which the service role cannot) and its four predicates (INVOKER, run inside the guest paths'
+  DEFINER bodies), and the trigger
   functions, whose EXECUTE is revoked from the client roles and which still fire (EXECUTE is checked when a trigger
   is created, never when it fires).
 - ★ **Every SECURITY DEFINER function pins `set search_path = ''` and fully qualifies every name** (`public.events`,
@@ -106,6 +111,8 @@ under Gotchas).
   it holds `session_token` (the plaintext upload capability) and both addresses. The token also rides the
   `pr_guest_<eventId>` cookie ([guest-flow.md](guest-flow.md)), ★ as a READ capability only: every write route takes it from the body
   (`session-cookie.test.ts`), so the cookie adds no CSRF surface.
+- **`event_blocks`:** the host SELECTs its own events' rows (RLS) and nothing else: no client role writes it (the
+  two acts do) and `anon` reads nothing.
 - **`media_likes`:** owner RLS on select and delete; `like_media` is the only write (a raw insert would let a user
   like, then presign through `get_my_likes`, media they cannot see).
 - ★ **TWO EMAIL COLUMNS, AND ONLY `verified_at` IS PROOF.** `guests.email` is only ever a confirmed address of the
