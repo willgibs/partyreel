@@ -92,9 +92,33 @@
 --          'claim_guest_rows_by_email', 'disown_guest_rows_by_email', 'get_public_profile',
 --          'get_my_uploads', 'remove_my_upload')
 --        order by 1;
---   (2) The rolled-back check at the foot, on the live schema BEFORE the apply (it held on
---       2026-09-28; the proof rows are quoted there), then apply verbatim. The query in (1) then
---       reads the fourteen bodies at the md5s their own blocks below carry (hashed from this file).
+--   (2) The rolled-back check at the foot, on the live schema BEFORE the apply (it held there on
+--       2026-09-28 with this file's final text; its ten proof rows are quoted with it), then apply
+--       verbatim. The query in (1), widened to the nine new names, then reads (md5(prosrc), hashed
+--       from this file applied verbatim in the lane's local pre-flight):
+--         get_event_by_qr_token(text)                          88c98ced3318b420e9fd2bce367bebfe
+--         get_upload_context(text, media_type)                 e0b1255aee87c53c91b91d867fe2d2f9
+--         create_guest(text, uuid, boolean, text, text)        e114fa0ad87ab1bb3e1f621ccf6ae439
+--         create_media(... 10 args)                            770fbeaf63263b5f9846fa16b37c1a05
+--         set_guest_display_name(text, text)                   61bbf735fecd12771eada470021508a1
+--         set_guest_pending_email(text, text)                  f4ce9c0b5bec364d4011180fafc8a83a
+--         like_media(uuid)                                     9b448cf60af2e4e115921b5ee2bbd627
+--         claim_anonymous_uploads(text[])                      2f8a4266de2458bc092c4a1ffbf82998
+--         list_guest_rows_by_email(timestamptz, uuid, integer) 199f9898afc08c80dbe578f9656d969c
+--         claim_guest_rows_by_email(uuid[])                    a3d13d6ec80bbaade1a8c81e1ae78065
+--         disown_guest_rows_by_email(uuid[])                   f764812a87f291664f76cf766deb3d92
+--         get_public_profile(text)                             96e4f55223ed161cc91bbb22b3cec284
+--         get_my_uploads(integer)                              225179587963cd69ee9bf90e4a3a1cf3
+--         remove_my_upload(uuid)                               3e07cebeda7708bee85a2d3abcde3391
+--         event_block_names_row(uuid, text, uuid, guests)      4676ffcf0c7e2a8240b44a941d2e1bb5
+--         event_block_holds_row(guests)                        cd17ba202860670e8ca91021c5303ffc
+--         event_block_names_account(uuid, text, uuid)          4953e543479b76ee83c9b13624cdfdd8
+--         event_block_holds_account(uuid, uuid)                716564ca5321018ce3311098f8046ef3
+--         block_from_event(uuid, uuid, uuid, uuid, bool, bool) e53e14efa5138ba72fbb3c58c27bbbdf
+--         let_back_in(uuid, boolean)                           587368cdc99d8cc8201cd7a0e587fa3d
+--         event_ticket_blocked(uuid, text[])                   5581ac0a16e6dce1cbd0034a6ea6fd95
+--         event_blocked_guest_ids(uuid)                        372191b51ce5a03d364878d056447a80
+--         blocked_events_for(uuid)                             f82965a6145fc21fbfbfda57878d8d85
 --   (3) The grants, as the file restates them: the nine new functions and the table below; every
 --       replaced function exactly as today.
 --   (4) get_advisors (security). EXPECTED DELTA: 0029 grows by exactly two, block_from_event and
@@ -1993,3 +2017,534 @@ $$;
 
 revoke all on function public.remove_my_upload(uuid) from public, anon;
 grant execute on function public.remove_my_upload(uuid) to authenticated;
+
+
+-- =============================================================================================
+-- THE ROLLED-BACK CHECK. Proved on the live schema BEFORE applying (database-security.md, "An
+-- unapplied migration is proved on the live schema"): ONE execute_sql call of `begin;`, this file's
+-- statements verbatim, then
+--   create temp table event_blocks_proof (step text, ok boolean, detail text);
+--   create temp table ctx (event_id uuid, host_id uuid, other_id uuid);
+--   insert into ctx values (<an existing test event>, <its host>, <another host>);
+-- the block below, `select step, ok, detail from event_blocks_proof;` and `rollback;`. The block traps
+-- its own failure into the proof table, so the rollback always runs, and the call answers the rows.
+-- It rides an EXISTING event (creating one trips enforce_event_limit), made open and names-only inside
+-- the transaction, and makes its own people: three confirmed accounts (A, blocked by account through
+-- a photograph; C, the control; D, whose address is blocked and then deleted and signed up again), a
+-- typed name R blocked by its row, and their uploads. It proves, as each role would call it: the
+-- grants (anon nothing, the acts authenticated, the reads the service role, every replaced ACL as it
+-- was); another host and anon refused; the preview's count and the three blocks, their uploads moved
+-- to Deleted as the host's own removal and nobody else's touched; the blocked row, account and
+-- address each refused on every path in the private album's own words (the album's read, the join,
+-- the presign's context and create_media, the rename and the address, likes, both claims and the
+-- claims review), while her own lists, likes and feed read as a private album's guest's; the control
+-- and the host untouched; the profile's attended line hidden for a blocked owner and a blocked
+-- viewer; and let back in, refused to another host, restoring what fits newest first to the status
+-- each had, and opening the door and the review again.
+--
+-- Held on 2026-09-28 against the live schema (event 14bb4318-80cd-4eed-b219-92c097ee16c7, the table
+-- and the nine functions absent before and after, the fourteen bodies unchanged), and in the lane's
+-- local pre-flight on the file applied verbatim:
+--   setup                    | t | event 14bb4318-80cd-4eed-b219-92c097ee16c7, host 6cb5fdb5-ac8a-4c82-83ce-59b5a2cfcd0b, other 3fcf6405-ce4d-46ea-a11c-9ed68194b630
+--   grants                   | t | anon none; the acts authenticated; the reads service role; every replaced ACL as before
+--   another host, anon       | t | not_found for another host (act, preview, by photo); permission denied for anon
+--   the host blocks          | t | preview counts 3; a row, an account by photo, a deleted account's address; their uploads to Deleted as the host's own removal; nobody else touched; RLS scopes the list
+--   the blocked row          | t | private at presign and complete; create_media, rename and attach refuse in its words; the ticket holds; off the guest list; no claim, list or disown reaches it
+--   the blocked account      | t | reads private and nameless; no join, like, ticket claim, review row, upload or complete; her likes, feed and lists read as a private album's guest's, and her delete withdraws
+--   the blocked address      | t | a new account on the proved address reads private, joins, likes and uploads nothing; unconfirmed, it holds nothing
+--   the control and the host | t | open and named to the control, the host and anon; the control joins, likes, uploads and claims
+--   the profile              | t | the line: shown to anon, hidden for a blocked owner (a restored photo too) and from a blocked viewer; the host's card private to a blocked viewer
+--   let back in              | t | not_found for another host; the restore brings back what fits, newest first, to the status each had; without it nothing moves; the door and the review open again
+-- =============================================================================================
+-- do $$
+-- declare
+--   v_event uuid; v_host uuid; v_other uuid; v_qr text;
+--   c_pw constant text := 'x';
+--   u_a uuid := gen_random_uuid(); u_c uuid := gen_random_uuid(); u_d uuid := gen_random_uuid();
+--   e_a text := 'blocks-a-' || substr(md5(random()::text), 1, 8) || '@example.test';
+--   e_c text := 'blocks-c-' || substr(md5(random()::text), 1, 8) || '@example.test';
+--   e_d text := 'blocks-d-' || substr(md5(random()::text), 1, 8) || '@example.test';
+--   g_r uuid; g_a uuid; g_d uuid; g_c uuid; g_q uuid; g_t uuid;
+--   t_r text := md5('r' || random()) || md5('r2' || random());
+--   t_a text := md5('a' || random()) || md5('a2' || random());
+--   t_d text := md5('d' || random()) || md5('d2' || random());
+--   t_c text := md5('c' || random()) || md5('c2' || random());
+--   t_q text := md5('q' || random()) || md5('q2' || random());
+--   t_t text := md5('t' || random()) || md5('t2' || random());
+--   m_r1 uuid; m_r2 uuid; m_r3 uuid; m_a1 uuid; m_a2 uuid; m_d1 uuid; m_c1 uuid; m_q1 uuid; m_host uuid;
+--   b_r uuid; b_a uuid; b_d uuid;
+--   v jsonb; v_n integer; v_txt text; v_bool boolean; v_ids uuid[];
+--   v_vis public.event_visibility; v_name text; v_cap bigint;
+--   v_statuses text;
+--   s_c text; s_a text; s_h text;
+--   v_step text := 'setup';
+-- begin
+--   select event_id, host_id, other_id into v_event, v_host, v_other from ctx;
+--   select qr_token into v_qr from public.events where id = v_event;
+--   if v_qr is null then raise exception 'SETUP: no event'; end if;
+--   update public.events set visibility = 'open', require_verified_email = false, deleted_at = null,
+--          accepting_uploads = true, require_upload_to_view = false, display_in_profile = true
+--    where id = v_event;
+--
+--   -- Three new accounts, confirmed: A (to be blocked by account), C (the control), D (an address).
+--   insert into auth.users (id, email, email_confirmed_at) values
+--     (u_a, e_a, now()), (u_c, e_c, now()), (u_d, e_d, now());
+--   insert into public.profiles (id, email, display_name) values
+--     (u_a, e_a, 'Aye Blocked'), (u_c, e_c, 'Cee Control'), (u_d, e_d, 'Dee Again')
+--     on conflict (id) do update set display_name = excluded.display_name;
+--   update public.profiles set slug = 'blocks-cee-' || substr(md5(random()::text), 1, 6) where id = u_c;
+--   update public.profiles set slug = 'blocks-aye-' || substr(md5(random()::text), 1, 6) where id = u_a;
+--
+--   -- The rows: R a typed name (pending address = C's, for the review), A verified, D a verified row whose
+--   -- account is gone, C verified (the control), Q a typed name with A's address, T an empty typed row.
+--   insert into public.guests (event_id, session_token, display_name, pending_email, pending_email_at)
+--     values (v_event, t_r, 'Rowan Row', e_c, now()) returning id into g_r;
+--   insert into public.guests (event_id, session_token, user_id, email, verified_at)
+--     values (v_event, t_a, u_a, e_a, now()) returning id into g_a;
+--   insert into public.guests (event_id, session_token, user_id, email, verified_at)
+--     values (v_event, t_d, null, e_d, now()) returning id into g_d;
+--   insert into public.guests (event_id, session_token, user_id, email, verified_at)
+--     values (v_event, t_c, u_c, e_c, now()) returning id into g_c;
+--   insert into public.guests (event_id, session_token, display_name, pending_email, pending_email_at)
+--     values (v_event, t_q, 'Quinn Queue', e_a, now()) returning id into g_q;
+--   insert into public.guests (event_id, session_token, display_name)
+--     values (v_event, t_t, 'Tess Ticket') returning id into g_t;
+--
+--   insert into public.media (event_id, guest_id, type, original_key, file_size_bytes, status, created_at)
+--     values (v_event, g_r, 'photo', 'events/' || v_event || '/blocks-r1', 100, 'pending', now() - interval '3 minutes') returning id into m_r1;
+--   insert into public.media (event_id, guest_id, type, original_key, file_size_bytes, status, created_at)
+--     values (v_event, g_r, 'photo', 'events/' || v_event || '/blocks-r2', 100, 'approved', now() - interval '2 minutes') returning id into m_r2;
+--   insert into public.media (event_id, guest_id, type, original_key, file_size_bytes, status, created_at)
+--     values (v_event, g_r, 'photo', 'events/' || v_event || '/blocks-r3', 100, 'hidden', now() - interval '1 minute') returning id into m_r3;
+--   insert into public.media (event_id, guest_id, type, original_key, file_size_bytes, status)
+--     values (v_event, g_a, 'photo', 'events/' || v_event || '/blocks-a1', 100, 'approved') returning id into m_a1;
+--   insert into public.media (event_id, guest_id, type, original_key, file_size_bytes, status)
+--     values (v_event, g_a, 'photo', 'events/' || v_event || '/blocks-a2', 100, 'approved') returning id into m_a2;
+--   insert into public.media (event_id, guest_id, type, original_key, file_size_bytes, status)
+--     values (v_event, g_d, 'photo', 'events/' || v_event || '/blocks-d1', 100, 'approved') returning id into m_d1;
+--   insert into public.media (event_id, guest_id, type, original_key, file_size_bytes, status)
+--     values (v_event, g_c, 'photo', 'events/' || v_event || '/blocks-c1', 100, 'approved') returning id into m_c1;
+--   insert into public.media (event_id, guest_id, type, original_key, file_size_bytes, status)
+--     values (v_event, g_q, 'photo', 'events/' || v_event || '/blocks-q1', 100, 'approved') returning id into m_q1;
+--   insert into public.media (event_id, guest_id, type, original_key, file_size_bytes, status)
+--     values (v_event, null, 'photo', 'events/' || v_event || '/blocks-host', 100, 'approved') returning id into m_host;
+--   insert into public.media_likes (media_id, user_id) values (m_c1, u_a);
+--   insert into public.profile_shown_events (user_id, event_id) values (u_c, v_event), (u_a, v_event);
+--   insert into event_blocks_proof values ('setup', true, format('event %s, host %s, other %s', v_event, v_host, v_other));
+--
+--   -- ── 1. The grants: nothing for anon; the two acts for authenticated; the reads for the server. ──
+--   v_step := 'grants';
+--   if has_table_privilege('anon', 'public.event_blocks', 'select')
+--      or has_table_privilege('authenticated', 'public.event_blocks', 'insert')
+--      or has_table_privilege('authenticated', 'public.event_blocks', 'update')
+--      or has_table_privilege('authenticated', 'public.event_blocks', 'delete')
+--      or not has_table_privilege('authenticated', 'public.event_blocks', 'select')
+--      or not has_table_privilege('service_role', 'public.event_blocks', 'select') then
+--     raise exception 'FAIL: event_blocks grants';
+--   end if;
+--   if not (select relrowsecurity from pg_class where oid = 'public.event_blocks'::regclass) then
+--     raise exception 'FAIL: RLS is off on event_blocks';
+--   end if;
+--   for v_txt in select unnest(array[
+--       'public.block_from_event(uuid, uuid, uuid, uuid, boolean, boolean)',
+--       'public.let_back_in(uuid, boolean)']) loop
+--     if has_function_privilege('anon', v_txt, 'execute') or not has_function_privilege('authenticated', v_txt, 'execute') then
+--       raise exception 'FAIL: % is not authenticated-only', v_txt;
+--     end if;
+--   end loop;
+--   for v_txt in select unnest(array[
+--       'public.event_ticket_blocked(uuid, text[])', 'public.event_blocked_guest_ids(uuid)',
+--       'public.blocked_events_for(uuid)', 'public.event_block_names_row(uuid, text, uuid, public.guests)',
+--       'public.event_block_names_account(uuid, text, uuid)',
+--       'public.event_block_holds_row(public.guests)', 'public.event_block_holds_account(uuid, uuid)']) loop
+--     if has_function_privilege('anon', v_txt, 'execute') or has_function_privilege('authenticated', v_txt, 'execute')
+--        or not has_function_privilege('service_role', v_txt, 'execute') then
+--       raise exception 'FAIL: % is not service-role only', v_txt;
+--     end if;
+--   end loop;
+--   for v_txt in select unnest(array[
+--       'public.create_guest(text, uuid, boolean, text, text)',
+--       'public.create_media(text, uuid, public.media_type, text, bigint, text, double precision, integer, integer, boolean)',
+--       'public.set_guest_display_name(text, text)', 'public.set_guest_pending_email(text, text)']) loop
+--     if has_function_privilege('anon', v_txt, 'execute') or has_function_privilege('authenticated', v_txt, 'execute') then
+--       raise exception 'FAIL: % left the service role', v_txt;
+--     end if;
+--   end loop;
+--   for v_txt in select unnest(array[
+--       'public.like_media(uuid)', 'public.get_my_likes(integer)', 'public.claim_anonymous_uploads(text[])',
+--       'public.list_guest_rows_by_email(timestamptz, uuid, integer)', 'public.claim_guest_rows_by_email(uuid[])',
+--       'public.disown_guest_rows_by_email(uuid[])']) loop
+--     if has_function_privilege('anon', v_txt, 'execute') or not has_function_privilege('authenticated', v_txt, 'execute') then
+--       raise exception 'FAIL: % is not authenticated-only', v_txt;
+--     end if;
+--   end loop;
+--   for v_txt in select unnest(array['public.get_event_by_qr_token(text)', 'public.get_upload_context(text, public.media_type)',
+--       'public.get_public_profile(text)']) loop
+--     if not has_function_privilege('anon', v_txt, 'execute') then
+--       raise exception 'FAIL: % lost its anon read', v_txt;
+--     end if;
+--   end loop;
+--   insert into event_blocks_proof values ('grants', true, 'anon none; the acts authenticated; the reads service role; every replaced ACL as before');
+--
+--   -- ── 2. Another host, and anon, can do nothing. ──
+--   v_step := 'another host';
+--   perform set_config('request.jwt.claims', json_build_object('sub', v_other, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   v := public.block_from_event(p_guest_id := g_r);
+--   if v ->> 'reason' is distinct from 'not_found' then raise exception 'FAIL: another host blocked: %', v; end if;
+--   v := public.block_from_event(p_guest_id := g_r, p_preview := true);
+--   if v ->> 'reason' is distinct from 'not_found' then raise exception 'FAIL: another host previewed: %', v; end if;
+--   v := public.block_from_event(p_media_id := m_r1);
+--   if v ->> 'reason' is distinct from 'not_found' then raise exception 'FAIL: another host blocked by photo: %', v; end if;
+--   reset role;
+--   perform set_config('request.jwt.claims', '', true);
+--   set local role anon;
+--   begin
+--     perform public.block_from_event(p_guest_id := g_r);
+--     raise exception 'FAIL: anon ran block_from_event';
+--   exception when insufficient_privilege then null;
+--   end;
+--   begin
+--     perform count(*) from public.event_blocks;
+--     raise exception 'FAIL: anon read event_blocks';
+--   exception when insufficient_privilege then null;
+--   end;
+--   reset role;
+--   insert into event_blocks_proof values ('another host, anon', true, 'not_found for another host (act, preview, by photo); permission denied for anon');
+--
+--   -- ── 3. The host previews, then blocks, three ways. ──
+--   v_step := 'the host blocks';
+--   perform set_config('request.jwt.claims', json_build_object('sub', v_host, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   v := public.block_from_event(p_guest_id := g_r, p_preview := true);
+--   if (v ->> 'uploads')::int <> 3 or not (v ->> 'names_only')::boolean or (v ->> 'already')::boolean
+--      or (v ->> 'verified')::boolean or v ->> 'label' <> 'Rowan Row'
+--      or (v ->> 'event_id')::uuid is distinct from v_event then
+--     raise exception 'FAIL: the preview read %', v;
+--   end if;
+--   v := public.block_from_event(p_media_id := m_host);
+--   if v ->> 'reason' is distinct from 'not_a_guest' then raise exception 'FAIL: the host''s own upload: %', v; end if;
+--   v := public.block_from_event(p_guest_id := g_r);
+--   if not (v ->> 'ok')::boolean or (v ->> 'removed')::int <> 3
+--      or (v ->> 'event_id')::uuid is distinct from v_event then raise exception 'FAIL: block by row %', v; end if;
+--   b_r := (v ->> 'block_id')::uuid;
+--   v := public.block_from_event(p_guest_id := g_r);
+--   if not (v ->> 'already')::boolean or (v ->> 'block_id')::uuid <> b_r
+--      or (v ->> 'event_id')::uuid is distinct from v_event then raise exception 'FAIL: a second block %', v; end if;
+--   v := public.block_from_event(p_media_id := m_a1, p_preview := true);
+--   if (v ->> 'uploads')::int <> 2 or not (v ->> 'verified')::boolean or v ->> 'label' <> 'Aye Blocked' then
+--     raise exception 'FAIL: the preview by photo read %', v;
+--   end if;
+--   v := public.block_from_event(p_media_id := m_a1);
+--   if (v ->> 'removed')::int <> 2 then raise exception 'FAIL: block by photo %', v; end if;
+--   b_a := (v ->> 'block_id')::uuid;
+--   v := public.block_from_event(p_guest_id := g_d, p_require_verified_email := true);
+--   if (v ->> 'removed')::int <> 1 then raise exception 'FAIL: block the address %', v; end if;
+--   b_d := (v ->> 'block_id')::uuid;
+--   select count(*) into v_n from public.event_blocks where event_id = v_event;
+--   if v_n <> 3 then raise exception 'FAIL: the host reads % blocks through RLS', v_n; end if;
+--   reset role;
+--   perform set_config('request.jwt.claims', json_build_object('sub', v_other, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   select count(*) into v_n from public.event_blocks where event_id = v_event;
+--   reset role;
+--   if v_n <> 0 then raise exception 'FAIL: another host reads % blocks', v_n; end if;
+--   -- The keys, as written.
+--   if not exists (select 1 from public.event_blocks where id = b_r and guest_id = g_r and user_id is null and email is null)
+--      or not exists (select 1 from public.event_blocks where id = b_a and user_id = u_a and email = lower(e_a) and guest_id is null)
+--      or not exists (select 1 from public.event_blocks where id = b_d and email = lower(e_d) and guest_id = g_d and user_id is null) then
+--     raise exception 'FAIL: the keys';
+--   end if;
+--   select string_agg(status::text || '/' || coalesce(status_before_removed::text, '-'), ',' order by created_at)
+--     into v_statuses from public.media where id in (m_r1, m_r2, m_r3);
+--   if v_statuses <> 'removed/pending,removed/approved,removed/hidden' then raise exception 'FAIL: removed as %', v_statuses; end if;
+--   if exists (select 1 from public.media where id in (m_r1, m_a1, m_d1) and (removed_by_uploader or purge_at is null or removed_at <> (select created_at from public.event_blocks where id = b_r))) then
+--     raise exception 'FAIL: the removal is not the host''s, or not the block''s instant';
+--   end if;
+--   -- What her own lists said: the newest upload each block removed, and whether her picker offered it.
+--   if (select last_upload_at from public.event_blocks where id = b_r) <> (select created_at from public.media where id = m_r3)
+--      or (select profile_eligible from public.event_blocks where id = b_r)
+--      or (select last_upload_at from public.event_blocks where id = b_a) <> (select max(created_at) from public.media where id in (m_a1, m_a2))
+--      or not (select profile_eligible from public.event_blocks where id = b_a) then
+--     raise exception 'FAIL: the block kept the wrong place in her lists';
+--   end if;
+--   if (select status from public.media where id = m_c1) <> 'approved' or (select status from public.media where id = m_q1) <> 'approved' then
+--     raise exception 'FAIL: the block reached someone else';
+--   end if;
+--   if not (select require_verified_email from public.events where id = v_event) then
+--     raise exception 'FAIL: the names-only offer did not turn the switch on';
+--   end if;
+--   update public.events set require_verified_email = false where id = v_event;
+--   insert into event_blocks_proof values ('the host blocks', true,
+--     'preview counts 3; a row, an account by photo, a deleted account''s address; their uploads to Deleted as the host''s own removal; nobody else touched; RLS scopes the list');
+--
+--   -- ── 4. The blocked ROW, refused on every path its ticket reaches. ──
+--   v_step := 'the blocked row';
+--   set local role service_role;
+--   v := public.get_upload_context(t_r, 'photo');
+--   if v ->> 'visibility' <> 'private' then raise exception 'FAIL: get_upload_context read % for the row', v ->> 'visibility'; end if;
+--   begin
+--     perform public.create_media(t_r, gen_random_uuid(), 'photo', 'events/' || v_event || '/blocks-new', 100);
+--     raise exception 'FAIL: create_media took the row';
+--   exception when check_violation then
+--     if sqlerrm <> 'This event is private.' then raise; end if;
+--   end;
+--   begin
+--     perform public.set_guest_display_name(t_r, 'New Name');
+--     raise exception 'FAIL: set_guest_display_name took the row';
+--   exception when check_violation then
+--     if sqlerrm <> 'This event is private.' then raise; end if;
+--   end;
+--   begin
+--     perform public.set_guest_pending_email(t_r, 'x@example.test');
+--     raise exception 'FAIL: set_guest_pending_email took the row';
+--   exception when check_violation then
+--     if sqlerrm <> 'This event is private.' then raise; end if;
+--   end;
+--   reset role;
+--   -- The server's reads, as the server runs them (the service role).
+--   set local role service_role;
+--   v_bool := public.event_ticket_blocked(v_event, array[t_r]) and public.event_ticket_blocked(v_event, array[t_c, t_r])
+--      and not public.event_ticket_blocked(v_event, array[t_c]) and not public.event_ticket_blocked(v_event, array[t_t]);
+--   v_ids := public.event_blocked_guest_ids(v_event);
+--   reset role;
+--   if not v_bool then
+--     raise exception 'FAIL: event_ticket_blocked';
+--   end if;
+--   if not (g_r = any (v_ids) and g_a = any (v_ids) and g_d = any (v_ids)) or g_c = any (v_ids) or g_q = any (v_ids) then
+--     raise exception 'FAIL: event_blocked_guest_ids %', v_ids;
+--   end if;
+--   -- C, confirmed, claims this browser's tickets: the blocked row stays unclaimed, the empty one moves.
+--   perform set_config('request.jwt.claims', json_build_object('sub', u_c, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   v_n := public.claim_anonymous_uploads(array[t_r]);
+--   select count(*) into v_n from public.list_guest_rows_by_email() r where r.guest_id = g_r;
+--   v_n := v_n + public.claim_guest_rows_by_email(array[v_event]);
+--   v_n := v_n + public.disown_guest_rows_by_email(array[v_event]);
+--   reset role;
+--   if v_n <> 0 or (select user_id from public.guests where id = g_r) is not null
+--      or (select pending_email from public.guests where id = g_r) is distinct from e_c
+--      or exists (select 1 from public.media where guest_id = g_r and removed_by_uploader) then
+--     raise exception 'FAIL: a claim reached the blocked row (%)', v_n;
+--   end if;
+--   insert into event_blocks_proof values ('the blocked row', true,
+--     'private at presign and complete; create_media, rename and attach refuse in its words; the ticket holds; off the guest list; no claim, list or disown reaches it');
+--
+--   -- ── 5. The blocked ACCOUNT, and its rows, refused on every path. ──
+--   v_step := 'the blocked account';
+--   perform set_config('request.jwt.claims', json_build_object('sub', u_a, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   select r.visibility, r.name into v_vis, v_name from public.get_event_by_qr_token(v_qr) r;
+--   if v_vis <> 'private' or v_name is not null then raise exception 'FAIL: A reads the event as % named %', v_vis, v_name; end if;
+--   v := public.like_media(m_c1);
+--   if v ->> 'reason' is distinct from 'not_found' then raise exception 'FAIL: A liked: %', v; end if;
+--   -- Her own profile reads as a private album's guest's: her like still lists, and her own uploads
+--   -- the block removed still show in her feed until she deletes one (a withdrawal).
+--   select count(*) into v_n from public.get_my_likes() l where l.id = m_c1;
+--   if v_n <> 1 then raise exception 'FAIL: A''s own likes list changed'; end if;
+--   select count(*) into v_n from public.get_my_uploads() u where u.id in (m_a1, m_a2);
+--   if v_n <> 2 then raise exception 'FAIL: A''s own feed lost % of her two uploads', 2 - v_n; end if;
+--   v := public.remove_my_upload(m_a2);
+--   if not (v ->> 'ok')::boolean then raise exception 'FAIL: A could not delete her own upload: %', v; end if;
+--   select count(*) into v_n from public.get_my_uploads() u where u.id in (m_a1, m_a2);
+--   if v_n <> 1 then raise exception 'FAIL: A''s delete did not take (% left)', v_n; end if;
+--   v_n := public.claim_anonymous_uploads(array[t_t]);
+--   select v_n + count(*) into v_n from public.list_guest_rows_by_email() r where r.event_id = v_event;
+--   v_n := v_n + public.claim_guest_rows_by_email(null) + public.disown_guest_rows_by_email(array[v_event]);
+--   reset role;
+--   if not (select removed_by_uploader from public.media where id = m_a2)
+--      or (select removed_by_uploader from public.media where id = m_a1) then
+--     raise exception 'FAIL: her delete withdrew the wrong upload';
+--   end if;
+--   if v_n <> 0 or (select user_id from public.guests where id = g_t) is not null
+--      or (select user_id from public.guests where id = g_q) is not null
+--      or (select status from public.media where id = m_q1) <> 'approved' then
+--     raise exception 'FAIL: A''s review reached the event (%)', v_n;
+--   end if;
+--   set local role service_role;
+--   begin
+--     perform public.create_guest(v_qr, u_a);
+--     raise exception 'FAIL: A joined';
+--   exception when check_violation then
+--     if sqlerrm <> 'This event is private.' then raise; end if;
+--   end;
+--   if public.get_upload_context(t_a, 'photo') ->> 'visibility' <> 'private' then raise exception 'FAIL: A''s ticket uploads'; end if;
+--   begin
+--     perform public.create_media(t_a, gen_random_uuid(), 'photo', 'events/' || v_event || '/blocks-new-a', 100);
+--     raise exception 'FAIL: create_media took A''s ticket';
+--   exception when check_violation then
+--     if sqlerrm <> 'This event is private.' then raise; end if;
+--   end;
+--   reset role;
+--   -- Her own lists keep the event, as a private album's would: A's own block keeps its place and its
+--   -- picker tile; D's address (a new account with no history there) masks without keeping anything.
+--   set local role service_role;
+--   v := public.blocked_events_for(u_a);
+--   v_bool := (v -> v_event::text ->> 'own')::boolean
+--      and (v -> v_event::text ->> 'last_upload_at') is not null
+--      and (v -> v_event::text ->> 'profile_eligible')::boolean;
+--   v := public.blocked_events_for(u_d);
+--   v_bool := v_bool and v ? v_event::text and not (v -> v_event::text ->> 'own')::boolean
+--      and (v -> v_event::text ->> 'last_upload_at') is null;
+--   v := public.blocked_events_for(u_c);
+--   v_bool := v_bool and not (v ? v_event::text);
+--   v := public.blocked_events_for(v_host);
+--   v_bool := v_bool and not (v ? v_event::text);
+--   reset role;
+--   if not v_bool then
+--     raise exception 'FAIL: blocked_events_for';
+--   end if;
+--   insert into event_blocks_proof values ('the blocked account', true,
+--     'reads private and nameless; no join, like, ticket claim, review row, upload or complete; her likes, feed and lists read as a private album''s guest''s, and her delete withdraws');
+--
+--   -- ── 6. The blocked ADDRESS: a new account on it is out too. ──
+--   v_step := 'the blocked address';
+--   perform set_config('request.jwt.claims', json_build_object('sub', u_d, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   select r.visibility into v_vis from public.get_event_by_qr_token(v_qr) r;
+--   v := public.like_media(m_c1);
+--   reset role;
+--   if v_vis <> 'private' or v ->> 'reason' is distinct from 'not_found' then
+--     raise exception 'FAIL: D''s address reads % and likes %', v_vis, v;
+--   end if;
+--   set local role service_role;
+--   begin
+--     perform public.create_guest(v_qr, u_d);
+--     raise exception 'FAIL: D joined';
+--   exception when check_violation then
+--     if sqlerrm <> 'This event is private.' then raise; end if;
+--   end;
+--   if public.get_upload_context(t_d, 'photo') ->> 'visibility' <> 'private' then raise exception 'FAIL: the proved row uploads'; end if;
+--   reset role;
+--   -- An unconfirmed address is no address: the same account, unconfirmed, is let through.
+--   update auth.users set email_confirmed_at = null where id = u_d;
+--   perform set_config('request.jwt.claims', json_build_object('sub', u_d, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   select r.visibility into v_vis from public.get_event_by_qr_token(v_qr) r;
+--   reset role;
+--   if v_vis <> 'open' then raise exception 'FAIL: an unconfirmed address was held'; end if;
+--   update auth.users set email_confirmed_at = now() where id = u_d;
+--   insert into event_blocks_proof values ('the blocked address', true,
+--     'a new account on the proved address reads private, joins, likes and uploads nothing; unconfirmed, it holds nothing');
+--
+--   -- ── 7. The control and the host are untouched; anon reads the album as it is. ──
+--   v_step := 'the control and the host';
+--   perform set_config('request.jwt.claims', json_build_object('sub', u_c, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   select r.visibility, r.name into v_vis, v_name from public.get_event_by_qr_token(v_qr) r;
+--   v := public.like_media(m_c1);
+--   reset role;
+--   if v_vis <> 'open' or v_name is null or not (v ->> 'ok')::boolean then raise exception 'FAIL: the control reads % / likes %', v_vis, v; end if;
+--   set local role service_role;
+--   v := public.create_guest(v_qr, u_c);
+--   v_bool := public.get_upload_context(t_c, 'photo') ->> 'visibility' = 'open';
+--   reset role;
+--   if (v ->> 'session_token') is null then raise exception 'FAIL: the control cannot join'; end if;
+--   if not v_bool then raise exception 'FAIL: the control''s ticket'; end if;
+--   -- The claims still work for a ticket no block holds: the control claims T, which A could not.
+--   perform set_config('request.jwt.claims', json_build_object('sub', u_c, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   perform public.claim_anonymous_uploads(array[t_t]);
+--   reset role;
+--   if (select user_id from public.guests where id = g_t) is distinct from u_c then raise exception 'FAIL: the control could not claim T'; end if;
+--   perform set_config('request.jwt.claims', json_build_object('sub', v_host, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   select r.visibility, r.name into v_vis, v_name from public.get_event_by_qr_token(v_qr) r;
+--   v := public.like_media(m_c1);
+--   reset role;
+--   if v_vis <> 'open' or v_name is null or not (v ->> 'ok')::boolean then raise exception 'FAIL: the host reads % / likes %', v_vis, v; end if;
+--   perform set_config('request.jwt.claims', '', true);
+--   set local role anon;
+--   select r.visibility, r.name into v_vis, v_name from public.get_event_by_qr_token(v_qr) r;
+--   reset role;
+--   if v_vis <> 'open' or v_name is null then raise exception 'FAIL: anon reads %', v_vis; end if;
+--   insert into event_blocks_proof values ('the control and the host', true, 'open and named to the control, the host and anon; the control joins, likes, uploads and claims');
+--
+--   -- ── 8. The profile: the line follows the block both ways; the host's card reads private. ──
+--   v_step := 'the profile';
+--   -- A's line would show again with a photograph the host restores while A stays blocked.
+--   perform set_config('request.jwt.claims', json_build_object('sub', v_host, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   v := public.restore_media(m_a1);
+--   reset role;
+--   if not (v ->> 'ok')::boolean then raise exception 'FAIL: the host could not restore A''s photo: %', v; end if;
+--   select slug into s_c from public.profiles where id = u_c;
+--   select slug into s_a from public.profiles where id = u_a;
+--   select slug into s_h from public.profiles where id = v_host;
+--   perform set_config('request.jwt.claims', '', true);
+--   set local role anon;
+--   v := public.get_public_profile(s_c);
+--   v_bool := exists (select 1 from jsonb_array_elements(v -> 'attended_events') x where (x ->> 'id')::uuid = v_event);
+--   v := public.get_public_profile(s_a);
+--   reset role;
+--   if not v_bool then raise exception 'FAIL: anon cannot see the control''s line'; end if;
+--   if exists (select 1 from jsonb_array_elements(v -> 'attended_events') x where (x ->> 'id')::uuid = v_event) then
+--     raise exception 'FAIL: the blocked owner''s line shows';
+--   end if;
+--   perform set_config('request.jwt.claims', json_build_object('sub', u_a, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   v := public.get_public_profile(s_c);
+--   reset role;
+--   if exists (select 1 from jsonb_array_elements(v -> 'attended_events') x where (x ->> 'id')::uuid = v_event) then
+--     raise exception 'FAIL: a blocked viewer reads the control''s line';
+--   end if;
+--   if s_h is not null then
+--     perform set_config('request.jwt.claims', json_build_object('sub', u_a, 'role', 'authenticated')::text, true);
+--     set local role authenticated;
+--     v := public.get_public_profile(s_h);
+--     reset role;
+--     if (select x ->> 'visibility' from jsonb_array_elements(v -> 'hosted_events') x where (x ->> 'id')::uuid = v_event) <> 'private' then
+--       raise exception 'FAIL: the host''s card reads open to a blocked viewer';
+--     end if;
+--   end if;
+--   insert into event_blocks_proof values ('the profile', true,
+--     'the line: shown to anon, hidden for a blocked owner (a restored photo too) and from a blocked viewer; the host''s card private to a blocked viewer');
+--
+--   -- ── 9. Let back in: another host cannot; the host can, with the restore and within the cap. ──
+--   v_step := 'let back in';
+--   perform set_config('request.jwt.claims', json_build_object('sub', v_other, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   v := public.let_back_in(b_r, true);
+--   reset role;
+--   if v ->> 'reason' is distinct from 'not_found' then raise exception 'FAIL: another host let back in: %', v; end if;
+--   -- Room for two of the row's three: the newest two come back, the oldest waits in Deleted.
+--   select storage_cap_bytes into v_cap from public.profiles where id = v_host;
+--   update public.profiles set storage_cap_bytes = public.host_active_bytes(v_host) + 250 where id = v_host;
+--   perform set_config('request.jwt.claims', json_build_object('sub', v_host, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   v := public.let_back_in(b_r, true);
+--   reset role;
+--   update public.profiles set storage_cap_bytes = v_cap where id = v_host;
+--   if (v ->> 'restored')::int <> 2 or (v ->> 'no_room')::int <> 1
+--      or (v ->> 'event_id')::uuid is distinct from v_event then raise exception 'FAIL: the restore read %', v; end if;
+--   select string_agg(status::text, ',' order by created_at) into v_statuses from public.media where id in (m_r1, m_r2, m_r3);
+--   if v_statuses <> 'removed,approved,hidden' then raise exception 'FAIL: restored as %', v_statuses; end if;
+--   set local role service_role;
+--   v_bool := public.event_ticket_blocked(v_event, array[t_r]);
+--   reset role;
+--   if v_bool or exists (select 1 from public.event_blocks where id = b_r) then
+--     raise exception 'FAIL: the row is still held';
+--   end if;
+--   perform set_config('request.jwt.claims', json_build_object('sub', v_host, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   v := public.let_back_in(b_a, false);
+--   reset role;
+--   if (v ->> 'restored')::int <> 0 or (select status from public.media where id = m_a2) <> 'removed' then
+--     raise exception 'FAIL: letting A back in without the restore moved %', v;
+--   end if;
+--   perform set_config('request.jwt.claims', json_build_object('sub', u_a, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   select r.visibility into v_vis from public.get_event_by_qr_token(v_qr) r;
+--   reset role;
+--   if v_vis <> 'open' then raise exception 'FAIL: A still reads %', v_vis; end if;
+--   -- And the review offers R to its address's owner again, now that no block holds it.
+--   perform set_config('request.jwt.claims', json_build_object('sub', u_c, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   select count(*) into v_n from public.list_guest_rows_by_email() r where r.guest_id = g_r;
+--   reset role;
+--   if v_n <> 1 then raise exception 'FAIL: the review does not offer R once it is let back in'; end if;
+--   insert into event_blocks_proof values ('let back in', true,
+--     'not_found for another host; the restore brings back what fits, newest first, to the status each had; without it nothing moves; the door and the review open again');
+-- exception when others then
+--   insert into event_blocks_proof values (v_step, false, sqlerrm);
+-- end $$;
