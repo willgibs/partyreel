@@ -17,6 +17,11 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Utils: `formatBytes` prints "41.0 GB" for a value that rounds to a whole number (it tests the value before rounding; `formatBytesUp` tests after); the size list's event chips and rows show it (from `storage-wiring`).
+- The lab and the kit: `host-storage`'s plan quote (`sandbox/host-storage/plan-sheet.tsx`, its TITLE) and its `head-stays` carried call still say "You are on Pro already"; production leads with her plan now (from `storage-wiring`).
+- Billing follow-ons: the size list's per-event totals walk every active item's size (one keyset walk per 150 events); a `host_event_storage()` aggregate would answer one row per event once an account outgrows about 30,000 items (from `storage-wiring`).
+- Library: the StorageMeter entry's own specimen opens the size list over the real Server Functions (a signed-out Library reads "Couldn't load"); the StorageList entry is the inert one (from `storage-wiring`).
+- Host: the over-cap grace banner says "largest files first" with no door; it could open the size list with a goal of her own cap, and the meter's list could carry that goal whenever she is over it (from `storage-wiring`).
 - Help-sync: `day-of-checklist-for-hosts` sends a host to "the event page" to tap Approve all, which lives in Review (from `curation-wiring`).
 - Host: the review peek is `aria-modal` with no focus trap, so Tab walks out of it behind the look (from `curation-wiring`).
 - The lab and the kit: `event-safety/settings.tsx` quotes the old review line ("Hold new photos for your approval ..."); its next refresh takes the settings line's new words (from `curation-wiring`).

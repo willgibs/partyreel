@@ -40,14 +40,13 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `storage-wiring` | host-storage's three r1 picks: the size list (flat, All / per-event filter) in the lists panel, the live goal strip, the refusal inline and stacked; storage-r2's three notes; the six prices wait for `prices` r2 | running, agent `a4cd43612551f8fca` | Opus, :3131 | |
 
 Batch 6 (cut `1708b049`, 2026-09-28) answers Will's sitting on build 12, part one (transcribed at `e199f43f`: 20
 answers on identity-claims, hero-card, voice-guest, host-curation, host-storage). A read-only audit of the other 12
 boards found 30 of their 68 asks drawn before his recent picks were built and 5 already answered: wave 1, the eight
 lanes that made his next desk, landed whole (build 13); wave 2 (the wiring) runs.
 
-Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-refresh, flow-refresh, safety-refresh, hero-r2, help-refresh, marketing-refresh, pointer-wiring, curation-wiring, crumbs-6.
+Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-refresh, flow-refresh, safety-refresh, hero-r2, help-refresh, marketing-refresh, pointer-wiring, curation-wiring, crumbs-6, storage-wiring.
 
 ## Next, in order
 
