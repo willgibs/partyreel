@@ -108,7 +108,9 @@ export function PasswordGate({
         titleAs="h1"
         title={`${eventName} is private`}
         // album, not gallery: the site, the app and the reel all say album.
-        reason="The host keeps this album private for guests. Enter the password from your invite to come in."
+        // voice-guest r1 `ask=warm`: the shipped gate's own cadence (identify-step.tsx's "One tap
+        // and you're in") — why, then the cost, then "and you're in".
+        reason="This album is just for the guests. One password and you're in."
       />
       <form onSubmit={onSubmit} className="w-full space-y-3">
         <div className="relative">

@@ -19,6 +19,7 @@ import {
 import { DestructiveSheet } from "@/components/admin/destructive-sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 import { type ModerationGridItem } from "@/lib/moderation/operator-actions";
 
 // The operator moderation grid (admin Albums browser). Reuses the shared MediaTile +
@@ -125,8 +126,8 @@ function ModerationTile({
               verb="Remove"
               touches={[
                 `1 ${item.type} in ${item.eventName}`,
-                "Restorable for seven days, then the purge deletes the bytes",
-                "The guest who uploaded it is not told",
+                `Restorable for ${RECENTLY_DELETED_WINDOW_DAYS} days, then the purge deletes the bytes`,
+                "At an event that reviews uploads, her uploads list already says Not in the album",
               ]}
               severity="reversible"
               successMessage="Removed. It is pulled from the album."

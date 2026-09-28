@@ -447,7 +447,7 @@ describe("GuestUpload: who a queue uploads as", () => {
     // The run ENDED here rather than walking into a third refusal.
     expect(mockUploadFile).toHaveBeenCalledTimes(2);
     // One sheet, both remaining files on it, one true sentence.
-    const sheet = await screen.findByText("2 files did not go");
+    const sheet = await screen.findByText("2 of 3 didn't upload");
     expect(sheet).toBeInTheDocument();
     expect(
       screen.getAllByText("This event now needs a confirmed email."),
@@ -476,7 +476,7 @@ describe("GuestUpload: the refresh waits for the failure sheet", () => {
     });
     addFiles([makeFile()]);
 
-    await screen.findByText("1 file did not go");
+    await screen.findByText("1 of 1 didn't upload");
     expect(onVerificationRequired).not.toHaveBeenCalled();
   });
 
@@ -493,12 +493,12 @@ describe("GuestUpload: the refresh waits for the failure sheet", () => {
     });
     addFiles([makeFile()]);
 
-    await screen.findByText("1 file did not go");
+    await screen.findByText("1 of 1 didn't upload");
     fireEvent.click(screen.getByRole("button", { name: "Not now" }));
     expect(onVerificationRequired).toHaveBeenCalledTimes(1);
   });
 
-  it("Retry (Try again) also closes the sheet and fires the deferred refresh — the gate, never a dead stall", async () => {
+  it("Retry also closes the sheet and fires the deferred refresh — the gate, never a dead stall", async () => {
     mockUploadFile.mockResolvedValue({
       ok: false,
       code: "verification_required",
@@ -511,8 +511,8 @@ describe("GuestUpload: the refresh waits for the failure sheet", () => {
     });
     addFiles([makeFile()]);
 
-    await screen.findByText("1 file did not go");
-    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    await screen.findByText("1 of 1 didn't upload");
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
     expect(onVerificationRequired).toHaveBeenCalledTimes(1);
   });
 
@@ -539,7 +539,7 @@ describe("GuestUpload: the refresh waits for the failure sheet", () => {
     expect(onVerificationRequired).toHaveBeenCalledWith(
       "Confirm your email to join this event.",
     );
-    expect(screen.queryByText(/did not go/)).toBeNull();
+    expect(screen.queryByText(/didn't upload/)).toBeNull();
     expect(mockUploadFile).not.toHaveBeenCalled();
   });
 });
@@ -628,7 +628,7 @@ describe("GuestUpload: a run that ends badly opens the failure sheet", () => {
     addFiles([makeFile("a.jpg"), makeFile("b.jpg")]);
 
     await waitFor(() =>
-      expect(screen.getByText("1 file did not go")).toBeInTheDocument(),
+      expect(screen.getByText("1 of 2 didn't upload")).toBeInTheDocument(),
     );
     expect(screen.getByText("That upload failed.")).toBeInTheDocument();
     expect(screen.getByText("a.jpg")).toBeInTheDocument();
@@ -648,7 +648,7 @@ describe("GuestUpload: a run that ends badly opens the failure sheet", () => {
 
     await waitFor(() => expect(mockUploadFile).toHaveBeenCalled());
     await new Promise((r) => setTimeout(r, 30));
-    expect(screen.queryByText(/did not go/)).toBeNull();
+    expect(screen.queryByText(/didn't upload/)).toBeNull();
   });
 
   it("its Retry re-queues the file", async () => {
@@ -664,9 +664,9 @@ describe("GuestUpload: a run that ends badly opens the failure sheet", () => {
     addFiles([makeFile()]);
 
     await waitFor(() =>
-      expect(screen.getByText("1 file did not go")).toBeInTheDocument(),
+      expect(screen.getByText("1 of 1 didn't upload")).toBeInTheDocument(),
     );
-    fireEvent.click(screen.getByRole("button", { name: /Try again/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Retry/ }));
     await waitFor(() =>
       expect(snapshots.at(-1)?.[0]).toMatchObject({ status: "done" }),
     );
@@ -693,20 +693,22 @@ describe("GuestUpload: dismissing a failure retires it for good", () => {
     addFiles([makeFile("notes.txt")]);
 
     await waitFor(() =>
-      expect(screen.getByText("1 file did not go")).toBeInTheDocument(),
+      expect(screen.getByText("1 of 1 didn't upload")).toBeInTheDocument(),
     );
     fireEvent.click(screen.getByRole("button", { name: "Not now" }));
-    expect(screen.queryByText("1 file did not go")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("1 of 1 didn't upload"),
+    ).not.toBeInTheDocument();
 
     // A second, unrelated run - clean end to end - must judge itself only by
     // what is STILL in the queue, not by the failure dismissed a moment ago.
     addFiles([makeFile("clean.jpg")]);
     await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(2));
     await new Promise((r) => setTimeout(r, 30));
-    expect(screen.queryByText(/did not go/)).toBeNull();
+    expect(screen.queryByText(/didn't upload/)).toBeNull();
   });
 
-  it("Retry all still re-queues every listed file (the close behind it never eats them)", async () => {
+  it("Retry both still re-queues every listed file (the close behind it never eats them)", async () => {
     mockUploadFile
       .mockResolvedValueOnce({ ok: false, message: "Nope A." })
       .mockResolvedValueOnce({ ok: false, message: "Nope B." })
@@ -726,12 +728,12 @@ describe("GuestUpload: dismissing a failure retires it for good", () => {
     addFiles([makeFile("a.jpg"), makeFile("b.jpg")]);
 
     await waitFor(() =>
-      expect(screen.getByText("2 files did not go")).toBeInTheDocument(),
+      expect(screen.getByText("2 of 2 didn't upload")).toBeInTheDocument(),
     );
-    // Retry all closes the sheet on top of the very ids it just re-queued -
+    // Retry both closes the sheet on top of the very ids it just re-queued -
     // the `dismiss` that retires a dismissed failure must not treat a retried
     // id as an abandoned one.
-    fireEvent.click(screen.getByRole("button", { name: /Retry all/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Retry both/ }));
 
     await waitFor(() => {
       const last = snapshots.at(-1)!;
@@ -739,7 +741,7 @@ describe("GuestUpload: dismissing a failure retires it for good", () => {
       expect(last.every((it) => it.status === "done")).toBe(true);
     });
     expect(mockUploadFile).toHaveBeenCalledTimes(4);
-    expect(screen.queryByText(/did not go/)).toBeNull();
+    expect(screen.queryByText(/didn't upload/)).toBeNull();
   });
 });
 

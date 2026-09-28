@@ -182,7 +182,7 @@ export function HowMuchFits() {
         >
           <span className="mt-0.5 size-2 shrink-0 rounded-full bg-destructive" />
           <span className="flex flex-col gap-0.5">
-            <span className="text-sm font-medium">1 file did not go</span>
+            <span className="text-sm font-medium">1 of 6 didn&rsquo;t upload</span>
             <span className="text-sm text-muted-foreground">
               This album is full right now. The host needs to free up space.
             </span>

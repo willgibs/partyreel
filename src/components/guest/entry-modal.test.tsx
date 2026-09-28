@@ -633,7 +633,7 @@ describe("the upload step", () => {
       screen.queryByRole("button", { name: "Continue without adding" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Try again" }),
+      screen.getByRole("button", { name: "Retry" }),
     ).toBeInTheDocument();
   });
 });

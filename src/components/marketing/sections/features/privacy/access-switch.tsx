@@ -171,7 +171,7 @@ export function AccessSwitch() {
                       {EVENT_NAME} is private
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Enter the password from your invite to come in.
+                      One password and you&rsquo;re in.
                     </p>
                     <div className="mt-3 flex h-8 items-center rounded-md border bg-background px-2.5 text-xs tracking-[0.3em] text-muted-foreground">
                       ••••••••

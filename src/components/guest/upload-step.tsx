@@ -18,7 +18,7 @@
  * the guest would be walked back to the step they just left. The decision that comes back from the
  * refresh is the only thing that can open the album, and `canContribute` is what opens it.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   UploadIntentBody,
@@ -140,6 +140,34 @@ export function UploadStep({
   );
   const verdict = classifyRun(failures);
   const showFailures = !sending && failures.length > 0;
+
+  /**
+   * THE RUN'S OWN "SENT" (voice-guest r1 `failed=exact`'s "the whole run in its count"): the
+   * failure heading reads "N of SENT didn't upload", and `queue` can hold more than one run's
+   * worth of settled files (nothing here ever prunes a `done` item). `runBaseline` is `queue`'s
+   * length from the render just BEFORE this run's files were appended — captured the first time
+   * `sending` goes true, one render lagged so the new files are not already counted in it — so
+   * `sent = queue.length - runBaseline` is exactly this run's own total, never a prior run's
+   * carried-over successes.
+   *
+   * ★ STARTS AT 0, NOT `queue.length`: a mount that never observed its run START (an already-
+   * failed `queue` handed straight in, as a remount after `key={access}` can do, and as this
+   * file's own pins do) must count everything already there as THIS run, or `sent` reads short.
+   * 0 is exactly that: nothing subtracted until a LATER run's start is actually witnessed.
+   *
+   * ★ STATE, NOT A REF: `sent` reads it during render, and a ref's `.current` may only be read
+   * inside an effect or a handler (React Compiler's own rule) — a render-time read would not
+   * necessarily see a change, and would not re-render when it did.
+   */
+  const [runBaseline, setRunBaseline] = useState(0);
+  const prevQueueLen = useRef(queue.length);
+  const wasSending = useRef(false);
+  useEffect(() => {
+    if (sending && !wasSending.current) setRunBaseline(prevQueueLen.current);
+    wasSending.current = sending;
+    prevQueueLen.current = queue.length;
+  }, [sending, queue.length]);
+  const sent = queue.length - runBaseline;
   // The fail-open: nothing this guest can do about any of it.
   const stuck = showFailures && verdict === "refresh";
 
@@ -192,7 +220,7 @@ export function UploadStep({
               ? // The server's own sentence is the heading here: "This album is full right now"
                 // says more than a count of files ever could.
                 (failures[0]?.error ?? "That did not go")
-              : uploadFailureHeading(failures.length)
+              : uploadFailureHeading(failures.length, sent)
           }
           reason={
             stuck

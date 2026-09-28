@@ -24,12 +24,17 @@ const mount = (
   failures: ReturnType<typeof failure>[],
   onRetry = vi.fn(),
   onOpenChange = vi.fn(),
+  // Defaults to a fully-failed run (nothing this file pins the exact heading
+  // words against — see the note above — so any value that keeps `sent >=
+  // failures.length` is a fine stand-in).
+  sent = failures.length,
 ) => {
   render(
     <UploadFailureSheet
       open
       onOpenChange={onOpenChange}
       failures={failures}
+      sent={sent}
       hostName="Maya"
       onRetry={onRetry}
     />,
@@ -78,15 +83,19 @@ describe("everything on it is one tap from going again", () => {
       failure("a.jpg"),
       failure("b.jpg"),
     ]);
-    fireEvent.click(screen.getByRole("button", { name: /Retry all/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Retry both/ }));
     expect(onRetry.mock.calls.map(([id]) => id)).toEqual(["a.jpg", "b.jpg"]);
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
   it("offers ONE retry when one file failed, never two for the same act", () => {
+    // The lone failure's per-row button is the one hidden for count===1
+    // (the doc comment's "a second button for the same act is furniture"),
+    // and the primary shares its word ("Retry") — so exactly one renders,
+    // never a "Retry" and a redundant second beside it.
     const { onRetry } = mount([failure("a.jpg")]);
-    expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: /Try again/ }));
+    expect(screen.getAllByRole("button", { name: "Retry" })).toHaveLength(1);
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
     expect(onRetry).toHaveBeenCalledWith("a.jpg");
   });
 

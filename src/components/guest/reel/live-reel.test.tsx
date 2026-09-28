@@ -6,7 +6,7 @@
  * standing each take it away; a tap (or `?reel`) opens the view; the screen posture below the
  * minimum is the code alone; the tile wears the reel's glyph and says "Make your own clip to share"
  * only with a creator to make one, a line that opens the view with the creator asked for; and on a
- * moderated event the toast "The host added your uploads" with "Watch reel" plays once, when this
+ * moderated event the toast "One of yours is in the album" with "Watch reel" plays once, when this
  * device's held upload shows up approved.
  *
  * The view itself is stubbed (its own file pins it); the doorbell is the one seam driven by hand.
@@ -714,7 +714,7 @@ describe("the approval toast", () => {
     await pollWith([item(1), item(2), item(9)]);
     expect(toast).toHaveBeenCalledTimes(1);
     expect(toast).toHaveBeenCalledWith(
-      "The host added your uploads",
+      "One of yours is in the album",
       expect.objectContaining({
         action: expect.objectContaining({ label: "Watch reel" }),
       }),
