@@ -19,18 +19,34 @@ import { defineExploration } from "@/components/lab/exploration";
  * other five ask about a different part of the surface each (the article
  * body, the product's own links in, feedback, troubleshooting's dead end,
  * search's reach) and carry no order between them.
+ *
+ * ★ "AS TODAY" IS READ FROM THE FILES, NOT FROM THIS BOARD'S LAST DRAWING.
+ * Three asks had drifted from production (`hub` drew a page /help stopped
+ * being on 08-27, `article` a door two rewrites old, `from-product` a menu
+ * and a Report button that moved), so each was redrawn from the shipped
+ * page, door and menu at 2026-09-28; the other four stand as drawn.
  */
 export const HELP_CENTER = defineExploration({
   id: "help-center",
   title: "Where a problem lands",
   round: {
     n: 1,
-    date: "2026-09-24",
+    date: "2026-09-28",
     changed:
-      "The desk re-cut: the reel category's blurb now says \"the second photo\", matching his dropped minimum of two; no ask changed.",
+      "Redrawn on production: hub is /help as it ships (ten doors on the hero's edge, Start here, the numbers, the index) and asks if those doors grow; article follows the lit door and its keep; from-product's link leaves the photo tile for the failure sheet and her uploads.",
   },
   context:
-    "Will (2026-09-19, the overnight round): the help center is unprotected like the rest, reconceived from the ground up, \"at worst, net neutral and fully deleted\". Seven decisions on the real hub, article and search pieces, drawn on three real articles.",
+    'Will (2026-09-19, the overnight round): the help center is unprotected like the rest, reconceived from the ground up, "at worst, net neutral and fully deleted". Seven decisions on the real hub, article and search pieces, drawn on three real articles.',
+  carried: [
+    {
+      id: "keep-callout",
+      question: "Does the keep become a seventh step of the guest how-to?",
+      taken:
+        "No: the article tells it in its closing callout, so the article's six steps stand and the screen option pictures the keep beside that callout.",
+      overrule:
+        "If the keep belongs in the steps, the article gains a seventh step and every shape draws it there.",
+    },
+  ],
   asks: [
     {
       id: "who-first",
@@ -49,7 +65,7 @@ export const HELP_CENTER = defineExploration({
           id: "split",
           label: "Two doors, side by side",
           means:
-            "\"I'm hosting\" and \"I just scanned a code,\" equal weight, before any search field.",
+            '"I\'m hosting" and "I just scanned a code," equal weight, before any search field.',
         },
         {
           id: "context",
@@ -63,38 +79,44 @@ export const HELP_CENTER = defineExploration({
         "A phone landing here almost always just scanned a code, and a laptop almost always came from the host's own menu; matching the greeting to the device costs no new control and guesses right far more often than one fixed voice can.",
       overrule:
         "If search brings in as much traffic as the product itself, a device-based greeting guesses wrong often enough that the two-doors split is the honester default.",
-      lands: "Whether the hero's copy branches on viewport, and which line leads for a guest.",
+      lands:
+        "Whether the hero's copy branches on viewport, and which line leads for a guest.",
     },
     {
       id: "hub",
       label: "The hub",
       question:
-        "Should the full index still lead, or does help's own two-visitor mix want a quicker front door first?",
+        "The hub already opens on ten small doors and a three-guide start before its full index. Should the doors stay small, grow, or replace the index?",
       context:
-        "Who-first's own split is the real traffic: a phone almost always just scanned a code, a laptop came from the host's own menu. The sheet is also the one page search engines and llms.txt read end to end: real inventory, not just navigation.",
+        "Today: search, four quick questions and the guest line, then ten category doors across the hero's edge; below, Start here, the numbers and all fifty-nine guides, the index search engines and llms.txt read.",
       options: [
         {
-          id: "sheet",
-          label: "The sheet, as today",
-          means: "Every category's pane, right under the hero, before anything else.",
-        },
-        {
-          id: "doors",
-          label: "A few doors, sheet gone",
-          means: "Four bigger category doors and a chip row for the rest; no index at all.",
+          id: "strip",
+          label: "Ten small doors, as today",
+          means:
+            "The emblem strip across the hero's edge, then Start here, the numbers, and the whole index with every guide listed.",
         },
         {
           id: "hybrid",
-          label: "Doors, then the sheet",
-          means: "The same few doors first; the full index sheet still lives further down.",
+          label: "Four big doors, then the index",
+          means:
+            "Getting started, QR, For guests and Troubleshooting as big doors, the other six as chips, in the strip's place; the index stays below.",
+        },
+        {
+          id: "doors",
+          label: "Four big doors, index gone",
+          means:
+            "The same doors and chips over Start here and the numbers, and no index; each door then needs a category page to open.",
         },
       ],
-      recommended: "hybrid",
+      recommended: "strip",
+      today: "strip",
       because:
-        "That inventory is real reach: search engines and llms.txt read it, so deleting it costs both. But the phone visitor who just scanned a code for one broken thing should not have to scroll a full index first; doors serve that scanner, the sheet underneath still feeds everyone else.",
+        "The quicker front door the first round asked for is already there: search, four questions, the guest line and ten doors all sit above the index. Big doors would redo the strip's job at several times its height, and the index is what the strip's doors, search engines and llms.txt land on.",
       overrule:
-        "If search already lands most visitors on the one article they need, nobody scrolls to the sheet anyway, and the plain sheet earns being first again.",
-      lands: "Whether the index sheet survives at all, and how far down the page it sits.",
+        "If help links from the product start sending phone guests to the hub, a big For guests door serves them better than one cell in ten.",
+      lands:
+        "Whether the strip stays or gives way to big doors, and whether the index survives, a category page per door if it does not.",
       after: { ask: "who-first" },
     },
     {
@@ -113,51 +135,57 @@ export const HELP_CENTER = defineExploration({
         {
           id: "checklist",
           label: "A checklist first",
-          means: "The same steps as tickable items, remembered per device; the prose folds under each one.",
+          means:
+            "The same steps as tickable items, remembered per device; the prose folds under each one.",
         },
         {
           id: "screen",
           label: "The real screen beside each step",
-          means: "Each step keeps a small illustration of the surface it describes, next to the sentence.",
+          means:
+            "Each step keeps a small illustration of the surface it describes, next to the sentence.",
         },
       ],
       recommended: "screen",
       because:
         "The tour's own choice does not transfer: a first look earns a mood, a how-to earns accuracy, and today's articles quote a control without ever showing where it lives; a small illustration beside each step removes that last translation.",
       overrule:
-        "Troubleshooting spans too many surfaces for one settled screen; prose stays the cheaper, general answer there even if setup and sharing gain one.",
-      lands: "Whether help articles gain a per-step illustration slot, and how much heavier that makes fifty-nine articles to keep current.",
+        "If a screen cannot be drawn from the door's own pieces, it goes stale the way this board's did within six days, and prose is the honest answer.",
+      lands:
+        "Whether help articles gain a per-step illustration slot, and how much heavier that makes fifty-nine articles to keep current.",
     },
     {
       id: "from-product",
       label: "From the product",
-      question:
-        "How should a guest reach help, now the action block and a failure both have a settled home?",
+      question: "How should a guest reach help from inside the album?",
       context:
-        "The guest's action block is ruled now, a row on landing then a dock (guest-shape r2), its menu identity-door.menu's own shape. Guest-upload r1 gives a failed run its own surface, so a contextual link has a home: that sheet.",
+        "Today no guest surface links to help: her name menu holds the card that saves the event, Change name and Log in, and Report sits at the album's foot. A failed run opens its own sheet; a refused photo shows in her uploads.",
       options: [
         {
           id: "none",
           label: "Nothing, as today",
-          means: "Report stays the only control; a guest who wants an answer has to leave and guess a URL.",
+          means:
+            "Report at the album's foot stays the only way to reach anyone; an answer means leaving and guessing a URL.",
         },
         {
           id: "menu",
-          label: "A Help entry in the guest's menu",
-          means: "A standing row in the now-ruled action block, reachable any time, on every guest page.",
+          label: "A Help entry in her menu",
+          means:
+            "A standing Help center row under Log in, on every album page once she has a name.",
         },
         {
           id: "contextual",
           label: "A link at the moment of trouble",
-          means: "No standing entry; the end-of-run failure sheet carries its own link to the matching fix.",
+          means:
+            "No standing entry; the failure sheet and a refused photo's row in her uploads each link to the article that answers them.",
         },
       ],
       recommended: "contextual",
       because:
-        "The failure sheet guest-upload r1 already draws is exactly the moment a guest wants an answer, and it is a surface that exists now, not a hope for one; a link inside it costs one row and lands on the matching article.",
+        "A failure is the moment a guest wants an answer, and the sheet is a surface she is already reading: one quiet line there, and one on a refused photo's row, reaches her where she is, never as a notice on a photograph she will scroll past.",
       overrule:
-        "If guests hit the account menu far more than any single error, the now-ruled action block is cheap real estate for a standing entry instead.",
-      lands: "Whether the failure sheet and other error surfaces carry a help deep link, or one static menu entry does the job.",
+        "If guests look for help before anything goes wrong (the email ask, who sees their photos), only a standing entry in her menu reaches them.",
+      lands:
+        "Whether the failure sheet and her uploads' refused row carry a help link, or her name menu gains one standing Help row.",
     },
     {
       id: "feedback",
@@ -170,17 +198,20 @@ export const HELP_CENTER = defineExploration({
         {
           id: "ephemeral",
           label: "Ephemeral, as today",
-          means: "The click still means something to the reader; the count is thrown away.",
+          means:
+            "The click still means something to the reader; the count is thrown away.",
         },
         {
           id: "beacon",
           label: "A counted beacon",
-          means: "One insert per click, visible only in admin; the reader sees the same thank-you or sorry.",
+          means:
+            "One insert per click, visible only in admin; the reader sees the same thank-you or sorry.",
         },
         {
           id: "routed",
           label: "Routed and logged",
-          means: "A No opens a note that lands in the same queue a contact submission does.",
+          means:
+            "A No opens a note that lands in the same queue a contact submission does.",
         },
       ],
       recommended: "beacon",
@@ -188,29 +219,34 @@ export const HELP_CENTER = defineExploration({
         "A team keeping fifty-nine articles accurate cannot fix what it never sees failing; a beacon is one small table and one insert, cheap enough that the count exists whether or not anyone ever builds a screen for it.",
       overrule:
         "If every No deserves a person's eyes and not just a tally, route it into the same queue a contact note lands in instead of a count that risks going unread.",
-      lands: "Whether a beacon table ships at all, and whether admin, or anything else, ever surfaces it.",
+      lands:
+        "Whether a beacon table ships at all, and whether admin, or anything else, ever surfaces it.",
     },
     {
       id: "dead-end",
       label: "The dead end",
-      question: "What should a troubleshooting article do with no bigger picture to point to?",
+      question:
+        "What should a troubleshooting article do with no bigger picture to point to?",
       context:
         'Every other category ends on a "want the bigger picture" link to its marketing rung. Troubleshooting has none, so its eight articles simply stop after Related articles.',
       options: [
         {
           id: "blank",
           label: "Nothing, as today",
-          means: "The article ends; only the standing Contact band follows, unlabeled as an ending.",
+          means:
+            "The article ends; only the standing Contact band follows, unlabeled as an ending.",
         },
         {
           id: "band",
           label: "The Contact band, made explicit",
-          means: "The same band, with one sentence acknowledging it is the whole list of fixes.",
+          means:
+            "The same band, with one sentence acknowledging it is the whole list of fixes.",
         },
         {
           id: "rung",
           label: "A rung of its own",
-          means: "A link back to the calm, working version of the same act, in the de-silo line's own voice.",
+          means:
+            "A link back to the calm, working version of the same act, in the de-silo line's own voice.",
         },
       ],
       recommended: "rung",
@@ -232,17 +268,20 @@ export const HELP_CENTER = defineExploration({
         {
           id: "local",
           label: "Local, as today",
-          means: "Mounted on /help and /contact only; ⌘K with no visible hint elsewhere.",
+          means:
+            "Mounted on /help and /contact only; ⌘K with no visible hint elsewhere.",
         },
         {
           id: "sitewide",
           label: "Sitewide",
-          means: "The same provider mounts from the root layout; ⌘K works from any marketing page.",
+          means:
+            "The same provider mounts from the root layout; ⌘K works from any marketing page.",
         },
         {
           id: "visible",
           label: "A visible trigger, kept local",
-          means: "The mount stays local; the footer's Resources column and header panel each gain a plain Search row.",
+          means:
+            "The mount stays local; the footer's Resources column and header panel each gain a plain Search row.",
         },
       ],
       recommended: "visible",
@@ -250,7 +289,8 @@ export const HELP_CENTER = defineExploration({
         "The palette proving portable enough for a second, unrelated app argues for keeping it self-contained rather than rooting it sitewide; a visible trigger in the footer and header costs one row apiece and needs no second provider mounted everywhere.",
       overrule:
         "If the site's search intent is really pricing, features and the blog together, sitewide is worth the provider cost and the index should grow to match it.",
-      lands: "Whether HelpPaletteProvider mounts once at the root, and whether the footer and header gain a visible search entry.",
+      lands:
+        "Whether HelpPaletteProvider mounts once at the root, and whether the footer and header gain a visible search entry.",
     },
   ],
 });

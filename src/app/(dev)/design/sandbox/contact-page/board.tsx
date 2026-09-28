@@ -68,10 +68,12 @@ const reachPreview = (shape: ReachShape) => (
 
 /* ── 2. The page's identity ────────────────────────────────────────────── */
 
+// Measured against the real iframes (the content's own height), since `desk`
+// now carries the form chapter `chapter` does.
 const PAGE_H: Record<PageShape, { d: number; p: number }> = {
-  desk: { d: 780, p: 1000 },
-  cinema: { d: 880, p: 1050 },
-  chapter: { d: 1350, p: 2350 },
+  desk: { d: 1300, p: 1570 },
+  cinema: { d: 790, p: 710 },
+  chapter: { d: 1220, p: 1480 },
 };
 
 const pagePreview = (shape: PageShape) => (
@@ -119,11 +121,12 @@ const urgencyPreview = (shape: UrgencyShape) => (
 
 /* ── 5. The receipt ────────────────────────────────────────────────────── */
 
+// Measured the same way; the reference line fits inside the card's own
+// min-height, so `reference` stands exactly as tall as `card`.
 const RECEIPT_H: Record<ReceiptShape, { d: number; p: number }> = {
-  card: { d: 560, p: 620 },
-  email: { d: 780, p: 840 },
-  reference: { d: 620, p: 680 },
-  modal: { d: 640, p: 720 },
+  card: { d: 440, p: 430 },
+  email: { d: 590, p: 590 },
+  reference: { d: 440, p: 430 },
 };
 
 const receiptPreview = (shape: ReceiptShape) => (
@@ -172,7 +175,6 @@ const PREVIEWS: PreviewsFor<typeof CONTACT_PAGE> = {
   "receipt.card": receiptPreview("card"),
   "receipt.email": receiptPreview("email"),
   "receipt.reference": receiptPreview("reference"),
-  "receipt.modal": receiptPreview("modal"),
 
   "beside.facts": besidePreview("facts"),
   "beside.directory": besidePreview("directory"),

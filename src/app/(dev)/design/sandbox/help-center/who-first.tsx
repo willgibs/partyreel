@@ -1,7 +1,12 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { PageHero } from "@/components/marketing/system/page-hero";
-import { HelpPaletteProvider, HelpSearchTrigger } from "@/components/marketing/help/help-palette";
+import {
+  HelpPaletteProvider,
+  HelpSearchTrigger,
+} from "@/components/marketing/help/help-palette";
 
 import { CATEGORY_CHIPS, QUICK_LINKS, SEARCH_INDEX } from "./fixtures";
 import { stopLinks } from "./vocab";
@@ -25,14 +30,20 @@ function Nudge({ toGuest }: { toGuest: boolean }) {
       {toGuest ? (
         <>
           Just scanned a QR code?{" "}
-          <a href="#" className="font-medium text-foreground underline decoration-border underline-offset-4">
+          <a
+            href="#"
+            className="font-medium text-foreground underline decoration-border underline-offset-4"
+          >
             Start with the guest guides
           </a>
         </>
       ) : (
         <>
           Hosting an event instead?{" "}
-          <a href="#" className="font-medium text-foreground underline decoration-border underline-offset-4">
+          <a
+            href="#"
+            className="font-medium text-foreground underline decoration-border underline-offset-4"
+          >
             Start with getting started
           </a>
         </>
@@ -73,17 +84,41 @@ function Doors() {
 function DeviceTag({ mode }: { mode: "desktop" | "phone" }) {
   return (
     <span className="mb-1 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs text-muted-foreground">
-      {mode === "desktop" ? "This screen is a laptop, so: host-voiced" : "This screen is a phone, so: guest-voiced"}
+      {mode === "desktop"
+        ? "This screen is a laptop, so: host-voiced"
+        : "This screen is a phone, so: guest-voiced"}
     </span>
   );
 }
 
 /** Exported so `hub.tsx` (staged after this decision) draws the SAME hero
  *  wearing whichever answer the board carries, per `defineExploration`'s
- *  staging rule: a later decision's picture lives in the earlier one's world. */
-export function Hero({ shape, mode }: { shape: WhoFirstShape; mode: "desktop" | "phone" }) {
+ *  staging rule: a later decision's picture lives in the earlier one's world.
+ *
+ *  ★ `quickLinks` AND `strip` ARE THE HUB'S, and only the hub passes them.
+ *  /help's real hero carries both (the four quick questions under the search,
+ *  the ten-door strip straddling the cut), and the hub's "as today" has to BE
+ *  today; this decision's own tiles pass neither, so they draw exactly what
+ *  they drew before. */
+export function Hero({
+  shape,
+  mode,
+  quickLinks,
+  strip,
+}: {
+  shape: WhoFirstShape;
+  mode: "desktop" | "phone";
+  quickLinks?: readonly { label: string; href: string }[];
+  /** Straddles the cut, so the hero gives up its bottom padding for it. */
+  strip?: ReactNode;
+}) {
   const guestVoiced = shape === "context" && mode === "phone";
-  const heading = shape === "split" ? "What do you need help with?" : guestVoiced ? "Just scanned a code?" : "How can we help?";
+  const heading =
+    shape === "split"
+      ? "What do you need help with?"
+      : guestVoiced
+        ? "Just scanned a code?"
+        : "How can we help?";
   // "No app required" (never "no account": press.ts's voice r1 retired that
   // claim once identity-door made a confirmed account the default ask for a
   // new event's guests) and "the reel", reel-story.help's recommended stand-in
@@ -101,7 +136,11 @@ export function Hero({ shape, mode }: { shape: WhoFirstShape; mode: "desktop" | 
       eyebrow="Help center"
       heading={heading}
       subhead={subhead}
-      className="pt-14 pb-16 text-center sm:pt-16"
+      className={
+        strip
+          ? "pt-14 pb-0 text-center sm:pt-16"
+          : "pt-14 pb-16 text-center sm:pt-16"
+      }
     >
       <div className="mt-6 flex w-full flex-col items-center gap-2">
         {shape === "context" && <DeviceTag mode={mode} />}
@@ -110,13 +149,34 @@ export function Hero({ shape, mode }: { shape: WhoFirstShape; mode: "desktop" | 
         ) : (
           <HelpSearchTrigger variant="hero" className="mx-auto" />
         )}
+        {/* help/page.tsx's quick-link row, its classes quoted. */}
+        {quickLinks && shape !== "split" && (
+          <div className="mt-4 max-w-3xl text-center">
+            {quickLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="mx-1 mb-2 inline-flex rounded-full border px-3.5 py-1.5 text-working text-muted-foreground transition-colors duration-150 hover:border-foreground/40 hover:text-foreground"
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+        )}
         {shape !== "split" && <Nudge toGuest={!guestVoiced} />}
+        {strip}
       </div>
     </PageHero>
   );
 }
 
-export function WhoFirstPreview({ shape, mode }: { shape: WhoFirstShape; mode: "desktop" | "phone" }) {
+export function WhoFirstPreview({
+  shape,
+  mode,
+}: {
+  shape: WhoFirstShape;
+  mode: "desktop" | "phone";
+}) {
   return (
     <div onClickCapture={stopLinks} className="bg-background text-foreground">
       <HelpPaletteProvider
