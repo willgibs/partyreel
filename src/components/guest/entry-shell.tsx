@@ -62,10 +62,11 @@ export const DOOR_SHEET =
  * stacked with iOS's own pan; it pinned the drawer's height the first time the
  * keyboard opened and never reset it across steps of different heights; its
  * `touch-action: none` sat on the scroll container; and its scroll lock fixed
- * `body`. The door never drags (every step is held), so it wears the Sheet
- * every other guest surface wears, whose phone half is keyboard-safe for all of
- * them: it stands on the keyboard while a field is focused, caps itself at the
- * visible height less 12px, and keeps the primary action pinned at its foot.
+ * `body`. Nothing drags now that vaul is gone (not the door's held steps, and
+ * not the one free surface, "Change name," either), so every guest sheet
+ * wears the same plain, keyboard-safe Sheet: it stands on the keyboard while
+ * a field is focused, caps itself at the visible height less 12px, and keeps
+ * the primary action pinned at its foot.
  *
  * ★ NO FIELD IS FOCUSED WHEN THE DOOR OPENS, at either width: Radix's open
  * autofocus is prevented and the panel itself takes focus (the Sheet's own

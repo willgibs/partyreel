@@ -14,7 +14,7 @@
  */
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const state = vi.hoisted(() => ({
   request: vi.fn(),
@@ -70,6 +70,30 @@ beforeEach(() => {
   state.toastSuccess.mockClear();
   state.toastError.mockClear();
 });
+
+// ★ THE INPUT-OTP FLAKE, AT ITS SOURCE (gate 24 at door-r3-wiring's merge, twice in desk-trim's own
+// runs): this file is the one place that moves REAL focus between two live OTP sides (`verify`'s
+// `inputs.current[otherSide(side)]?.focus()`, proved by "sends each code..."'s own
+// `document.activeElement` assertion), which arms input-otp's password-manager-badge effect on each
+// side in turn - real 0ms/2000ms/5000ms/6000ms timeouts (`input-otp/dist/index.mjs`), not the
+// fake-timer kind. Ordinary per-test cleanup cancels them the moment a side unmounts, but that is a
+// React-level guarantee, not a scheduling one: nothing here forces the LAST side's timers to be
+// canceled before this file's own jsdom is torn down, and a real timer that survives that fires into
+// a `window` that no longer exists (`ReferenceError: window is not defined`, inside react-dom's
+// `resolveUpdatePriority`) as an unhandled error with no failing assertion to point at - it flips
+// `pnpm test`'s exit code well after every `it` above has reported green.
+//
+// Fake timers were tried and rejected: input-otp's own effects are exactly what needs faking, but
+// Vitest's `vi.useFakeTimers()` cannot fake only those without also freezing whatever jsdom uses
+// under the hood for React's scheduler, which hung every interactive test in this file. So this
+// waits the real 6+ seconds out instead, ONCE for the whole file (not per test - the other six
+// tests' own timers are already gone via normal cleanup by the time this runs), while the document
+// still exists, so nothing is left pending when the environment closes it.
+afterAll(async () => {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 6100));
+  });
+}, 10_000);
 
 describe("EmailSection", () => {
   it("shows the address with a way to change it", () => {
