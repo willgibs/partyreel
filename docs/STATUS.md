@@ -15,21 +15,19 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 ## The current round: batch 6, the desk to zero
 
-- **Milestone 29 is live** (`ab30a7f8`, 2026-09-26). Batches 4 and 5 ride `launch-prep` toward milestone 30.
-- **Will's sitting on build 12, part one** is transcribed (2026-09-28, 20 answers): identity-claims' pointer, the hero's
-  card (`link`, a round 2 asked), voice-guest's five lines, host-curation's seven, host-storage's three (`prices` asked
-  again).
-- **Batch 6's first wave** (eight lanes) draws his next desk: three second rounds (hero-card, voice-guest, host-storage)
-  and five refreshes. An audit found 30 of the other boards' 68 asks drawn before his recent picks were built, and 5
-  already answered (site-chrome and profile-page retire). The wiring (curation, pointer, storage, the voice lines)
-  follows as seats free.
+- **Milestone 29 is live** (`ab30a7f8`, 2026-09-26). Batches 4 to 6 ride `launch-prep` toward milestone 30.
+- **Will's sitting on build 12, part one** is transcribed (2026-09-28, 20 answers). An audit found 30 of the other
+  boards' 68 asks drawn before his recent picks were built, and 5 already answered.
+- **Batch 6's wave 1 landed whole** (eight lanes, gates green): hero-card, voice-guest and host-storage in their second
+  rounds; event-safety, admin-triage, export-flow, emails, help-center, contact-page, album-motion, loose-ends and
+  press-page redrawn on production as it stands; site-chrome and profile-page retired as answered. Wave 2 wires his
+  picks: curation, the pointer and the voice lines now, storage after curation.
 
 ## The desk
 
-His aim is zero open questions before his other to-dos. On build 12, 25 asks are current as drawn (privacy-hero,
-press-page, loose-ends, emails, contact-page and help-center, minus the asks being redrawn); the rest arrive on build
-13 in desk order: `hero-card` r2, `voice-guest` r2, `host-storage` r2, `event-safety`, `export-flow`,
-`admin-triage`, `help-center`, `emails`, then the marketing boards.
+Build 13's desk: 71 open asks on 13 boards, in desk order `hero-card` r2 (the card, then its light and the tablet),
+`voice-guest` r2, `host-storage` r2, `event-safety`, `export-flow`, `admin-triage`, `help-center`, `emails`,
+`privacy-hero`, `album-motion`, `loose-ends`, `contact-page`, `press-page`. His aim is zero before his other to-dos.
 
 ## Live state
 
