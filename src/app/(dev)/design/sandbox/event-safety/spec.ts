@@ -39,21 +39,25 @@ import { defineExploration } from "@/components/lab/exploration";
  * editor AND the unlisted person's door. Each pair is two steps now, the
  * second staged behind the first with `after`, so every step is one pick.
  *
- * ★ WHAT BLOCK OPENS MOVED TO THE `popups` BOARD (2026-09-27): whether it says
- * what leaves first in a sheet, acts at once with Undo, or asks again in
- * place is its `confirm` ask, every option kept, drawn on Rick's block with
- * its one-browser note and switch. `entry` still asks where Block lives.
+ * ★ WHAT BLOCK OPENS IS SETTLED: the popups board asked it and Will answered
+ * `confirm=dialog`, a centred confirm that says what leaves (built at
+ * `3e7952e3`). `entry` still asks where Block lives, and no option draws the
+ * confirm it opens.
  *
- * ★ NEVER ASKED HERE, EACH NAMED WHERE IT IS CARRIED. The credit's own shape
- * is `media-viewer.who`'s (Block rides TODAY's capsule); the door's field, the
- * member nudge, the verified gate's framing, the name menu and undoing an
- * email are `identity-door`'s; the bulk act, its toast and Undo, the waiting
- * count and a mid-visit arrival are `host-curation`'s (the block's own Undo is
- * a different, heavier act; the door's queue is people, not uploads); how
- * the full guest list opens from its faces row is `popups.lists`'s;
- * and the seven lines of `voice-guest` (the welcome, the password ask, the
- * landing, the failure sheet, the empty album, the held photo, the keep) are
- * worn as today's words wherever a door here shows them.
+ * ★ DRAWN ON PRODUCTION AS IT STANDS, WITH HIS PICKS WORN (the refresh,
+ * 2026-09-28, after a read-only audit found nine asks drawn on surfaces that
+ * had since moved): the viewer's face-led credit, every name's look (popups
+ * `peek=card`), the settings kind (his unfocused panel, a screen in a hand),
+ * the lit door (guest-door and door-r3), the hub's 2x2 cards; Review wears
+ * host-curation's `queue=uniform`, `verb=reject`, `arrivals=prompt` and
+ * `keys=arrows`, and a failed upload wears voice-guest's `failed=exact`.
+ *
+ * ★ NEVER ASKED HERE, EACH NAMED WHERE IT IS CARRIED. Whether a newcomer or an
+ * unlisted guest is ever mailed when let in is `emails.guest`'s (the waiting
+ * ask's mail half moved there); the bulk act's own Undo is host-curation's
+ * answered `undo` (the block's own way back is a different, heavier act); and
+ * the lines of `voice-guest` are worn as his picks, or today's words where he
+ * has not picked, wherever a door here shows them.
  */
 
 /**
@@ -88,12 +92,12 @@ export const EVENT_SAFETY = defineExploration({
   title: "Keeping an event safe",
   round: {
     n: 1,
-    date: "2026-09-24",
+    date: "2026-09-28",
     changed:
-      "The boards refresh: newcomer, the one binary here, gains a real third door (the honest line plus a way to ask); his three founding answers kept, reframed as the brief's own terms rather than a wall.",
+      "Nine asks redrawn on production as it stands: Block in the look every name opens and the face-led credit, the settings asks in the settings panel, every door lit, Review in his curation picks, a refused photo in his exact words. Waiting's mail moved to emails.guest.",
   },
   context:
-    "Will, 2026-09-23: a bad actor with a verified email can be hidden photo by photo but never stopped. His three answers bound the board: a block puts the person out with their uploads; approve newcomers, close to newcomers and an invite list keep an event closed; all free on every plan. Drawn on Maya and Jay's wedding at 375, 1440 on the knob. Asked elsewhere, never here: the credit's shape (media-viewer.who), identity-door's five, host-curation's bulk act, undo, count and arrivals, popups' lists and confirmations, and voice-guest's seven lines.",
+    "Will, 2026-09-23: a bad actor with a verified email can be hidden photo by photo but never stopped. His three answers bound the board: a block puts the person out with their uploads; approve newcomers, close to newcomers and an invite list keep an event closed; all free on every plan. Drawn on Maya and Jay's wedding at 375, 1440 on the knob, over production and his picks elsewhere. Asked elsewhere, never here: whether anyone is mailed when let in (emails.guest), and voice-guest's lines he has not picked.",
   carried: [
     {
       id: "phone-first",
@@ -121,7 +125,8 @@ export const EVENT_SAFETY = defineExploration({
     },
     {
       id: "back-in",
-      question: "How does someone already in get back on a new phone once the album is closed?",
+      question:
+        "How does someone already in get back on a new phone once the album is closed?",
       taken:
         "The closed door keeps a quiet 'Already a guest? Confirm your email' for anyone with a confirmed address.",
       overrule:
@@ -134,39 +139,40 @@ export const EVENT_SAFETY = defineExploration({
       label: "Where Block lives",
       question: "Where should a host be able to block someone from the event?",
       context:
-        "Today a host hides or removes a bad actor's photos one at a time, and nothing stops the next. A block puts them out of this event with their uploads, so it needs a door wherever the host meets them.",
+        "Today a host takes a bad actor's photos down one at a time, and nothing stops the next. A block puts them out of this event with their uploads, so it needs a door wherever the host meets them.",
       options: [
         {
           id: "credit",
           label: "On their name, in the viewer",
           means:
-            "Today's credit under an open photograph becomes a door: their address, their uploads, and Block from this event.",
+            "The face-led credit at the photograph's top left opens their look: the address only the host sees, and Block from this event.",
         },
         {
           id: "guests",
-          label: "On their row in the Guests room",
+          label: "On their name in the Guests room",
           means:
-            "Every row in the host's room carries a menu with Block, beside the address the room already shows.",
+            "Every name in the room already opens its look, which shows the host their address; Block from this event sits under it.",
         },
         {
           id: "review",
-          label: "In Review, when refusing theirs",
+          label: "In Review, when rejecting theirs",
           means:
-            "Hiding someone's waiting uploads names who sent them, with Block one tap away in the room itself.",
+            "Rejecting someone's waiting uploads, on the grid or its verdict peek, names who sent them, with Block one tap away in the room.",
         },
         {
           id: "all",
           label: "All three, into one block",
           means:
-            "The name, the row and Review each open the same block, so it is there wherever the host meets them.",
+            "The credit, the room's name and Review each open the same block, so it is there wherever the host meets them.",
         },
       ],
       recommended: "all",
       because:
-        "A host meets a bad actor wherever their photographs land: open in the album, held in Review, or by name in the room. Three doors into one act costs nothing to learn and never strands a host on the wrong screen.",
+        "A host meets a bad actor wherever their photographs land: open in the album, held in Review, or by name in the room. Two of the three doors are the look a name already opens, so three doors cost one act to learn and never strand a host.",
       overrule:
         "If a block should be deliberate, the Guests room alone keeps it a careful place away from a stray tap in the viewer.",
-      lands: "Which surfaces carry Block, and that every one opens the same act.",
+      lands:
+        "Which surfaces carry Block, and that every one opens the same act.",
       configs: [SCREEN],
     },
     {
@@ -175,7 +181,7 @@ export const EVENT_SAFETY = defineExploration({
       question:
         "What should a blocked person meet, arriving at the link or when a photo is refused mid-visit?",
       context:
-        "Every request is re-checked, so an album opened before the block closes at the next one. The door is plain and never says blocked; its words are placeholders, judged for size and tone.",
+        "Every request is re-checked, so an album opened before the block closes at the next one, a refused photo said in his exact failure words. The door never says blocked; its words are placeholders, judged for size and tone.",
       options: [
         {
           id: "private",
@@ -187,7 +193,7 @@ export const EVENT_SAFETY = defineExploration({
           id: "held",
           label: "The door itself, with nothing past it",
           means:
-            "The held door rises as it always does, with the album's name and one plain line where the steps would be.",
+            "The lit door rises as it always does, with the album's name and one plain line where the steps would be.",
         },
         {
           id: "gone",
@@ -208,7 +214,8 @@ export const EVENT_SAFETY = defineExploration({
     {
       id: "blocked",
       label: "The blocked list",
-      question: "Where should a host see who is blocked, and let someone back in?",
+      question:
+        "Where should a host see who is blocked, and let someone back in?",
       context:
         "A blocked person drops off the guest list and every count, so one place has to keep naming them. Letting them back means they can join again.",
       options: [
@@ -222,7 +229,7 @@ export const EVENT_SAFETY = defineExploration({
           id: "settings",
           label: "A row in the event's settings",
           means:
-            "The access card says Blocked, 2 people, and the row opens the list inside the sheet.",
+            "The access card says Blocked, 2 people; the row opens the list beside the album at a desk, its own screen in a hand.",
         },
         {
           id: "tab",
@@ -272,7 +279,8 @@ export const EVENT_SAFETY = defineExploration({
         "A host lets someone back for one of two reasons, a mistaken block or a forgiven person, and only the first wants the photographs back. One switch in the confirm answers both without a trip to Deleted.",
       overrule:
         "If a block is almost never a mistake, leaving the uploads in Deleted keeps one rule with nothing to decide.",
-      lands: "What letting someone back does to the photographs the block removed.",
+      lands:
+        "What letting someone back does to the photographs the block removed.",
       after: { ask: "blocked" },
       configs: [SCREEN],
     },
@@ -316,7 +324,8 @@ export const EVENT_SAFETY = defineExploration({
     {
       id: "choose",
       label: "Who can join",
-      question: "How should a host choose who can join, in the event's settings?",
+      question:
+        "How should a host choose who can join, in the event's settings?",
       context:
         "Three closed doors, free on every plan: approve newcomers, close to newcomers, an invite list, beside Require verified emails, Require an upload to view, Review and Pause. Approving and a list need a confirmed email.",
       options: [
@@ -354,34 +363,28 @@ export const EVENT_SAFETY = defineExploration({
       question:
         "With Approve newcomers on, what should a newcomer see while the host decides?",
       context:
-        "A newcomer confirms an email, then waits until the host lets them in or declines them, and a decline is a block. Nothing real shows behind a waiting door.",
+        "A newcomer confirms an email, then waits until the host lets them in or declines them, and a decline is a block. Nothing real shows behind a waiting door. Whether anyone is mailed when let in is emails.guest's question now.",
       options: [
         {
           id: "held",
-          label: "The door waits, and opens itself",
+          label: "The lit door waits, and opens itself",
           means:
-            "The held door says Maya will let you in, and opens onto the album the moment she does. Nothing is sent.",
+            "The door they confirmed in says Maya will let them in, and opens onto the album the moment she does, from the same sheet.",
         },
         {
-          id: "email",
-          label: "A waiting page, and an email",
+          id: "page",
+          label: "A waiting page, the closed door's family",
           means:
-            "A plain page says Maya has been asked; an email with the link arrives when she lets them in.",
-        },
-        {
-          id: "both",
-          label: "The door waits, and emails if they go",
-          means:
-            "The held door waits live as in the first; if they close it before Maya decides, an email brings them back.",
+            "A plain page like the private album's says Maya has been asked, and opens onto the album the moment she decides.",
         },
       ],
-      recommended: "both",
+      recommended: "held",
       because:
-        "At a party a host decides in minutes, so the door should open by itself; a newcomer who pockets their phone should not have to keep checking back.",
+        "The newcomer is standing in the door, having just confirmed an email in it; waiting there and opening from it keeps one place, where a page is a jump to a screen that has to learn to open.",
       overrule:
-        "If one more email per guest is more than this needs, the door alone is simpler and sends nothing.",
+        "If every not-yet screen should share the blocked door's locked page, the waiting page keeps that family whole.",
       lands:
-        "What a newcomer holds while waiting, and whether letting someone in ever sends an email.",
+        "What a newcomer holds while the host decides, and that it opens by itself.",
       after: { ask: "choose" },
       configs: [SCREEN],
     },
@@ -402,7 +405,7 @@ export const EVENT_SAFETY = defineExploration({
           id: "review",
           label: "In Review, beside held uploads",
           means:
-            "Review holds people as well as photographs: newcomers above the waiting uploads, one count on its card.",
+            "Newcomers wait above the new-photos line and the grid, one count on its card; the arrows, Enter and Backspace reach photos only.",
         },
         {
           id: "hub",
@@ -416,14 +419,16 @@ export const EVENT_SAFETY = defineExploration({
         "The room is where the host already sees every person, their address and Block, and letting someone in is the same kind of act as blocking someone.",
       overrule:
         "If a host already works through Review on a moderated event, one queue for everything waiting beats two rooms to check.",
-      lands: "Where newcomers wait for the host, and which hub card counts them.",
+      lands:
+        "Where newcomers wait for the host, and which hub card counts them.",
       after: { ask: "waiting" },
       configs: [SCREEN],
     },
     {
       id: "newcomer",
       label: "Closed to newcomers",
-      question: "When the album is closed to newcomers, what should someone new meet?",
+      question:
+        "When the album is closed to newcomers, what should someone new meet?",
       context:
         "Everyone already in keeps going and nobody new joins, so a newcomer arrives with a working link and gets no further. Someone already in, on a new phone, confirms their email to get back.",
       options: [
@@ -459,7 +464,8 @@ export const EVENT_SAFETY = defineExploration({
     {
       id: "inside",
       label: "Who is already in",
-      question: "When a host closes to newcomers, how should they see who is already in?",
+      question:
+        "When a host closes to newcomers, how should they see who is already in?",
       context:
         "Already in means everyone past the door, including people who have not added a photo and so are on no list or count. They keep adding; nobody new can join.",
       options: [
@@ -502,7 +508,8 @@ export const EVENT_SAFETY = defineExploration({
         {
           id: "one",
           label: "One at a time",
-          means: "A field and Add; each address becomes a row with its own remove.",
+          means:
+            "A field and Add; each address becomes a row with its own remove.",
         },
         {
           id: "paste",
@@ -529,7 +536,8 @@ export const EVENT_SAFETY = defineExploration({
     {
       id: "unlisted",
       label: "Not on the list",
-      question: "What should someone whose address is not on the invite list meet?",
+      question:
+        "What should someone whose address is not on the invite list meet?",
       context:
         "The list is checked after the email is confirmed, so the answer only ever describes an address its owner proved. A listed person goes straight in.",
       options: [

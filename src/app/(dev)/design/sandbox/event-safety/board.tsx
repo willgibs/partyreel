@@ -26,14 +26,17 @@ import {
   HOST,
   INVITED,
   INVITED_TOTAL,
+  JUST_LANDED,
   LISTED,
   NEWCOMERS,
+  OPEN_INDEX,
   OPEN_ITEM,
-  OPEN_POSITION,
+  OPEN_NEIGHBOURS,
   PASTED,
   PASTED_BAD,
   PASTED_FOUND,
   type Person,
+  QUEUE_OTHERS,
   UNLISTED,
   WAITING,
 } from "./fixtures";
@@ -48,13 +51,13 @@ import {
   InStep,
   LockedScreen,
   QuietWay,
+  REFUSED_HEADING,
   RefusedSheet,
   WaitingMark,
 } from "./guest";
 import {
   BlockedRow,
   BlockedSection,
-  Credit,
   DoorQueue,
   Face,
   GuestRow,
@@ -65,11 +68,11 @@ import {
   hubCards,
   HostViewer,
   NewcomerRow,
-  PersonMenu,
   ReviewRoom,
   RoomSection,
   SwitchRow,
 } from "./host";
+import { deskOf, PersonLook, PopupQuote } from "./kinds";
 import {
   doorLines,
   reach,
@@ -95,17 +98,24 @@ import { EVENT_SAFETY } from "./spec";
  * THE PREVIEWS, AND NOTHING ELSE: every option is the host's or the guest's
  * real surface at a real viewport with the one thing it proposes drawn in.
  * The screen knob every decision shares lives in `scene.tsx`; a staged
- * decision reads the answer it waits on off the board's own state (`entry`
- * before the blocked list, `choose` before the three closed doors' settings,
+ * decision reads the answer it waits on off the board's own state (`blocked`
+ * before letting back in, `choose` before the three closed doors' settings,
  * `door` before the two other doors), wearing its parent's recommendation
- * until he answers, the kit's own rule. (The block's own confirmation moved
- * to the `popups` board.)
+ * until he answers, the kit's own rule.
+ *
+ * ★ REDRAWN ON PRODUCTION AS IT STANDS (the refresh, 2026-09-28): the settings
+ * asks in the settings kind, every door lit, Review in his curation picks, and
+ * Block's doors on the look every name now opens. The block's own confirmation
+ * is settled (popups `confirm=dialog`), so no option draws it.
  */
 
 /* ── reading the board's state ────────────────────────────────────────────── */
 
-const pick = <T extends string>(all: readonly T[], v: unknown, fallback: T): T =>
-  all.includes(v as T) ? (v as T) : fallback;
+const pick = <T extends string>(
+  all: readonly T[],
+  v: unknown,
+  fallback: T,
+): T => (all.includes(v as T) ? (v as T) : fallback);
 
 const screen = (s: BoardState): ScreenId => screenOf(s.screen as string);
 
@@ -123,60 +133,80 @@ type BlockedPlace = "foot" | "settings" | "tab";
 const blockedOf = (s: BoardState): BlockedPlace =>
   pick(["foot", "settings", "tab"] as const, s.blocked, "foot");
 
-/**
- * The viewer's menu pinned over the pill stack, opening up from the credit and
- * over the action pill (a menu opened from a trigger covers what stands above
- * it). The credit is a line shorter without a confirmed address under the
- * name, so the menu sits a line lower for a typed name.
- */
-const overCredit = (person: Person) =>
-  ({
-    position: "fixed",
-    left: "50%",
-    bottom: person.email ? "3.9rem" : "2.9rem",
-    width: "17rem",
-    translate: "-50% 0",
-  }) as const;
-
 /* ── decision 1: where Block lives ────────────────────────────────────────── */
 
+/**
+ * THE LOOK A NAME OPENS, WHEREVER THE HOST TAPPED IT: at a desk the card stands
+ * under the name, drawn by the surface that holds the name; in a hand it is the
+ * peek kind's Sheet over that surface, drawn here.
+ */
+const handLook = (scr: ScreenId) =>
+  deskOf(scr) ? undefined : <PersonLook person={DOM} screen={scr} />;
+const deskLook = (scr: ScreenId) =>
+  deskOf(scr) ? <PersonLook person={DOM} screen={scr} /> : undefined;
+
+/**
+ * The viewer's credit as a door (production's `FaceCredit`, top left since
+ * media-viewer `7eb190de`): tapped, it opens the same look the Guests room's
+ * names open, with the address only the host reads and Block under it.
+ */
 function InViewer({ scr }: { scr: ScreenId }) {
   return (
     <HostViewer
       screen={scr}
       item={OPEN_ITEM}
-      position={OPEN_POSITION}
-      credit={<Credit item={OPEN_ITEM} position={OPEN_POSITION} pressed />}
-      menu={<PersonMenu person={DOM} style={overCredit(DOM)} />}
+      neighbours={OPEN_NEIGHBOURS}
+      at={OPEN_INDEX}
+      pressed
+      look={
+        deskOf(scr) ? (
+          <PersonLook
+            person={DOM}
+            screen={scr}
+            className="absolute top-full left-0 mt-1.5"
+          />
+        ) : undefined
+      }
+      overlay={handLook(scr)}
     />
   );
 }
 
+/**
+ * The Guests room, where every name already opens its look (popups
+ * `peek=card`, `guest-peek.tsx`, which shows the host the address): Dom's
+ * name tapped, Block in the look, and no row menu left to carry it.
+ */
 function InRoom({ scr }: { scr: ScreenId }) {
   return (
     <GuestsRoom
       screen={scr}
       people={GUESTS}
-      menuFor={DOM.id}
-      menu={<PersonMenu person={DOM} />}
+      looks
+      lookFor={DOM.id}
+      look={deskLook(scr)}
+      overlay={handLook(scr)}
     />
   );
 }
+
+/** What Maya has just rejected: Dom's three in the queue (his `verb=reject`). */
+const REJECTED = WAITING.filter((m) => HIDDEN_IDS.has(m.id));
 
 function InReview({ scr }: { scr: ScreenId }) {
   return (
     <ReviewRoom
       screen={scr}
       gone={HIDDEN_IDS}
-      notice={<HiddenNotice screen={scr} person={DOM} sent={DOM_UPLOADS} />}
+      notice={<HiddenNotice screen={scr} person={DOM} sent={REJECTED} />}
     />
   );
 }
 
 const ENTRY_TITLE = {
-  credit: "Block on the credit, in the viewer",
-  guests: "Block on a row, in the Guests room",
-  review: "Block in Review, after a Hide",
+  credit: "Block in the credit's look, in the viewer",
+  guests: "Block in a name's look, in the Guests room",
+  review: "Block in Review, after a Reject",
 } as const;
 
 function entryScene(
@@ -221,7 +251,11 @@ const entry = (s: BoardState, option: Entry) => {
 /* ── decision 3: the blocked door (reads the moment knob) ─────────────────── */
 
 /** The member Dom is to the header while his old session still holds the album. */
-const DOM_WHO = { kind: "member", name: DOM.name, seed: DOM.seed ?? "" } as const;
+const DOM_WHO = {
+  kind: "member",
+  name: DOM.name,
+  seed: DOM.seed ?? "",
+} as const;
 
 /** One closed door, in one form, with the words and what stands under them. */
 function ClosedDoor({
@@ -245,9 +279,11 @@ function ClosedDoor({
         who={midvisit ? DOM_WHO : undefined}
       >
         <DoorStep eyebrow={EVENT.name} words={words}>
+          {/* Mid-visit, the door itself is the refusal: it closes over the
+              album and says what did not go in his `failed=exact` words. */}
           {midvisit && (
-            <span className="mx-auto">
-              <EndedNotice text="Your photo wasn't added." />
+            <span className="flex">
+              <EndedNotice text={REFUSED_HEADING} />
             </span>
           )}
           {/* The dead end's one way out, as every closed door in the
@@ -262,13 +298,18 @@ function ClosedDoor({
   }
   const refused = midvisit ? (
     <RefusedSheet
-      screen={scr}
-      reason={form === "gone" ? "This event link didn't work." : `${words.title}.`}
+      reason={
+        form === "gone" ? "This event link didn't work." : `${words.title}.`
+      }
     />
   ) : null;
   return (
     <div className="relative min-h-full">
-      {form === "gone" ? <DeadLink /> : <LockedScreen words={words} below={below} />}
+      {form === "gone" ? (
+        <DeadLink />
+      ) : (
+        <LockedScreen words={words} below={below} />
+      )}
       {refused}
     </div>
   );
@@ -295,7 +336,7 @@ const door = (s: BoardState, form: DoorForm) => {
   );
 };
 
-/* ── decision 4: the blocked list (reads `entry` for its world only) ─────── */
+/* ── decision 4: the blocked list (asked after `entry`) ───────────────────── */
 
 /** The room's own switch between its two lists, on the selector's material. */
 function RoomTabs({ active }: { active: "guests" | "blocked" }) {
@@ -319,6 +360,56 @@ function RoomTabs({ active }: { active: "guests" | "blocked" }) {
   );
 }
 
+/** The settings with the Blocked row on the access card: where the list lives in `settings`. */
+function BlockedRowInSettings({ scr }: { scr: ScreenId }) {
+  return (
+    <SettingsSheet screen={scr}>
+      <ScrollHere />
+      <AccessCard>
+        <OpenRow label="Blocked" value={`${BLOCKED.length} people`} reach />
+      </AccessCard>
+      <UploadsCard />
+    </SettingsSheet>
+  );
+}
+
+/**
+ * THE BLOCKED LIST THE ROW OPENS, AS A LIST (popups `lists=panel`): beside the
+ * album at a desk, where it stands over the settings panel it came from, and
+ * its own screen in a hand with a back arrow to Settings.
+ */
+function BlockedListOpen({
+  scr,
+  overlay,
+}: {
+  scr: ScreenId;
+  overlay?: ReactNode;
+}) {
+  return (
+    <Hub
+      screen={scr}
+      overlay={
+        <>
+          <PopupQuote
+            kind="list"
+            screen={scr}
+            title="Blocked"
+            description="Only you see this. Blocked people meet a closed album."
+            back="Settings"
+          >
+            <ul className="divide-y divide-border rounded-lg border">
+              {BLOCKED.map((b, i) => (
+                <BlockedRow key={b.id} b={b} screen="375" reachable={i === 0} />
+              ))}
+            </ul>
+          </PopupQuote>
+          {overlay}
+        </>
+      }
+    />
+  );
+}
+
 function BlockedPlaceView({
   place,
   scr,
@@ -328,27 +419,8 @@ function BlockedPlaceView({
   scr: ScreenId;
   overlay?: ReactNode;
 }) {
-  if (place === "settings") {
-    return (
-      <SettingsSheet
-        screen={scr}
-        overlay={overlay}
-      >
-        <ScrollHere />
-        <AccessCard>
-          <div className="space-y-2">
-            <OpenRow label="Blocked" value={`${BLOCKED.length} people`} />
-            <ul className="divide-y divide-border rounded-lg border border-border/60 bg-muted/30">
-              {BLOCKED.map((b, i) => (
-                <BlockedRow key={b.id} b={b} screen="375" reachable={i === 0} />
-              ))}
-            </ul>
-          </div>
-        </AccessCard>
-        <UploadsCard />
-      </SettingsSheet>
-    );
-  }
+  if (place === "settings")
+    return <BlockedListOpen scr={scr} overlay={overlay} />;
   if (place === "tab") {
     return (
       <GuestsRoom
@@ -389,6 +461,31 @@ const BLOCKED_TITLE = {
 
 const blocked = (s: BoardState, place: BlockedPlace) => {
   const scr = screen(s);
+  if (place === "settings") {
+    // Two screens: the row where the list lives, and the list it opens.
+    return (
+      <Several screen={scr}>
+        <Scene
+          id="blocked-settings-row"
+          screen={scr}
+          title={BLOCKED_TITLE.settings}
+          measure={reach("The Blocked row")}
+          short
+        >
+          <BlockedRowInSettings scr={scr} />
+        </Scene>
+        <Scene
+          id="blocked-settings-list"
+          screen={scr}
+          title="The list the row opens"
+          measure={reach("Let back in")}
+          short
+        >
+          <BlockedListOpen scr={scr} />
+        </Scene>
+      </Several>
+    );
+  }
   return (
     <Scene
       id={`blocked-${place}`}
@@ -473,7 +570,12 @@ const restore = (s: BoardState, option: Restore) => {
         place={blockedOf(s)}
         scr={scr}
         overlay={
-          <UnblockDialog screen={scr} person={DOM} body={body} primary={primary} />
+          <UnblockDialog
+            screen={scr}
+            person={DOM}
+            body={body}
+            primary={primary}
+          />
         }
       />
     </Scene>
@@ -527,7 +629,11 @@ const room = (s: BoardState, option: RoomOff) => {
       screen={scr}
       title={ROOM_TITLE[option]}
       measure={option === "today" ? undefined : reach("The line")}
-      caption={option === "today" ? "Nothing listed while the album's list is off" : undefined}
+      caption={
+        option === "today"
+          ? "Nothing listed while the album's list is off"
+          : undefined
+      }
     >
       {body}
     </Scene>
@@ -614,11 +720,13 @@ function JoinSettings({
             description="Guests confirm their email before the full album or an upload."
             checked
             locked={lock}
+            guarded
           />
           <SwitchRow
             label="Add a photo first"
             description="Guests add one photo or video before the album opens."
             checked={false}
+            guarded
           />
         </AccessCard>
         <UploadsCard door={false} />
@@ -657,24 +765,30 @@ const choose = (s: BoardState, form: ChooseForm) => {
 
 /* ── decision 8: waiting at the door ──────────────────────────────────────── */
 
-type Waiting = "held" | "email" | "both";
-const NEWCOMER = NEWCOMERS[0];
+/**
+ * ★ THE MAIL LEFT THIS ASK (the refresh, 2026-09-28): whether a newcomer is
+ * ever mailed when let in is `emails.guest`'s question now ("Should a guest
+ * ever get a mail"), where `flow-refresh` carries it as an option. With it gone
+ * the old `both` was `held` by another name, so the two that remain are the
+ * two forms a live wait can take: the door's own sheet, or the closed-door
+ * family's page. Both open by themselves; neither sends anything.
+ */
+type Waiting = "held" | "page";
 const WAITING_WORDS: DoorWords = {
   title: `Waiting for ${HOST.first}`,
   line: `This opens by itself the moment ${HOST.first} lets you in.`,
 };
 
 const WAITING_TITLE = {
-  held: "Waiting on the held door",
-  email: "Waiting on a page, with an email",
-  both: "Waiting on the door, with an email if they go",
+  held: "Waiting on the lit door",
+  page: "Waiting on a page in the closed-door family",
 } as const;
 
 const waiting = (s: BoardState, option: Waiting) => {
   const scr = screen(s);
   const body =
-    option === "email" ? (
-      <div className="flex min-h-full flex-col bg-background text-foreground">
+    option === "page" ? (
+      <div className="flex min-h-svh flex-col bg-background text-foreground">
         <GuestTop />
         <main className="flex flex-1 flex-col items-center justify-center px-5 py-20">
           <NotFoundScreen
@@ -682,7 +796,7 @@ const waiting = (s: BoardState, option: Waiting) => {
             title={`${HOST.first} has been asked`}
             description={
               <span data-es-line>
-                {`We'll email ${NEWCOMER.email} the moment ${HOST.first} lets you in.`}
+                {`This page opens the album the moment ${HOST.first} lets you in.`}
               </span>
             }
             actions={
@@ -690,18 +804,16 @@ const waiting = (s: BoardState, option: Waiting) => {
                 What is Partyreel?
               </Button>
             }
+            footnote={<WaitingMark label="Asked 2 min ago" />}
           />
         </main>
       </div>
     ) : (
       <HeldDoor screen={scr}>
-        <DoorStep Icon={Clock} eyebrow={EVENT.name} words={WAITING_WORDS}>
-          <WaitingMark label="Asked 2 min ago" />
-          {option === "both" && (
-            <p className="text-sm text-pretty text-muted-foreground">
-              {`You can close this. We'll email ${NEWCOMER.email} when you're in.`}
-            </p>
-          )}
+        <DoorStep almost eyebrow={EVENT.name} words={WAITING_WORDS}>
+          <span className="flex">
+            <WaitingMark label="Asked 2 min ago" />
+          </span>
         </DoorStep>
       </HeldDoor>
     );
@@ -717,7 +829,7 @@ const waiting = (s: BoardState, option: Waiting) => {
   );
 };
 
-/* ── decision 9: letting newcomers in (reads `waiting` for its world) ────── */
+/* ── decision 9: letting newcomers in (asked after `waiting`) ─────────────── */
 
 type Queue = "room" | "review" | "hub";
 
@@ -735,7 +847,10 @@ function HubStrip({ scr }: { scr: ScreenId }) {
         <span className="flex -space-x-2">
           {NEWCOMERS.map((n) => (
             <span key={n.id} className="rounded-full ring-2 ring-background">
-              <Face person={{ name: n.name, verified: true, seed: n.seed }} size="sm" />
+              <Face
+                person={{ name: n.name, verified: true, seed: n.seed }}
+                size="sm"
+              />
             </span>
           ))}
         </span>
@@ -759,9 +874,10 @@ function HubStrip({ scr }: { scr: ScreenId }) {
 }
 
 /**
- * HOW MUCH OF THE COUNTING CARD IS ON SCREEN. The hub's cards row runs past a
- * phone's edge (it scrolls sideways, `event-cards-row.tsx`), so a count on the
- * third card is half a card at rest; this says how much, read off the frame.
+ * HOW MUCH OF THE COUNTING CARD IS ON SCREEN. The hub's cards row used to run
+ * past a phone's edge, the Guests card half off it at rest (measured on this
+ * board); production's row is a 2x2 grid on a phone now (`room-card.ts`), and
+ * this keeps saying so, read off the frame.
  */
 const cardShown =
   (id: "guests" | "review"): Reader =>
@@ -770,7 +886,10 @@ const cardShown =
     if (!el) return null;
     const r = el.getBoundingClientRect();
     if (r.width < 1) return null;
-    const shown = Math.max(0, Math.min(r.right, win.innerWidth) - Math.max(r.left, 0));
+    const shown = Math.max(
+      0,
+      Math.min(r.right, win.innerWidth) - Math.max(r.left, 0),
+    );
     const label = id === "guests" ? "The Guests card" : "The Review card";
     return shown >= r.width - 1
       ? `${label} is whole on screen`
@@ -779,15 +898,61 @@ const cardShown =
 
 const QUEUE_TITLE = {
   room: "The Guests room's At the door",
-  review: "Review, people beside uploads",
+  review: "Review, people above the photographs",
   hub: "A strip on the hub",
 } as const;
+
+/**
+ * REVIEW WITH PEOPLE IN IT, IN HIS CURATION PICKS: the people waiting to join
+ * first, since a person at the door outranks a photograph; then his
+ * `arrivals=prompt` line, which stays on the grid it folds into; then the grid,
+ * the arrows standing on its first photograph (`keys=arrows`, no hint row).
+ * The keys move through photographs only, so Enter never lets a person in and
+ * Backspace never declines one: a person is a tap on Let in or Decline.
+ */
+function ReviewWithPeople({ scr }: { scr: ScreenId }) {
+  return (
+    <ReviewRoom
+      screen={scr}
+      items={QUEUE_OTHERS}
+      keys
+      above={
+        <RoomSection
+          label="Waiting to join"
+          count={NEWCOMERS.length}
+          tone="amber"
+          note="Declining someone blocks them. You can let them back from Blocked."
+        >
+          {NEWCOMERS.map((n, i) => (
+            <NewcomerRow key={n.id} n={n} screen={scr} reachable={i === 0} />
+          ))}
+        </RoomSection>
+      }
+      prompt={
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full"
+          tabIndex={-1}
+        >
+          {`${JUST_LANDED} new`}
+        </Button>
+      }
+    />
+  );
+}
 
 const queue = (s: BoardState, option: Queue) => {
   const scr = screen(s);
   if (option === "hub") {
     return (
-      <Scene id="queue-hub" screen={scr} title={QUEUE_TITLE.hub} measure={reach("Let both in")}>
+      <Scene
+        id="queue-hub"
+        screen={scr}
+        title={QUEUE_TITLE.hub}
+        measure={reach("Let both in")}
+      >
         <Hub screen={scr} strip={<HubStrip scr={scr} />} />
       </Scene>
     );
@@ -795,22 +960,21 @@ const queue = (s: BoardState, option: Queue) => {
   const hubCard =
     option === "room"
       ? hubCards({ guests: { value: "2 at the door", amber: true } })
-      : hubCards({ review: { value: "3 uploads, 2 people", amber: true } });
+      : hubCards({
+          review: {
+            value: `${QUEUE_OTHERS.length} photos, ${NEWCOMERS.length} people`,
+            amber: true,
+          },
+        });
   const place =
     option === "room" ? (
-      <GuestsRoom screen={scr} people={GUESTS} top={<DoorQueue screen={scr} />} />
-    ) : (
-      <ReviewRoom
+      <GuestsRoom
         screen={scr}
-        items={WAITING.slice(0, 3)}
-        above={
-          <RoomSection label="Waiting to join" count={NEWCOMERS.length} tone="amber">
-            {NEWCOMERS.map((n, i) => (
-              <NewcomerRow key={n.id} n={n} screen={scr} reachable={i === 0} />
-            ))}
-          </RoomSection>
-        }
+        people={GUESTS}
+        top={<DoorQueue screen={scr} />}
       />
+    ) : (
+      <ReviewWithPeople scr={scr} />
     );
   return (
     <Several screen={scr}>
@@ -879,7 +1043,12 @@ const newcomer = (s: BoardState, option: Newcomer) => {
       measure={doorLines}
     >
       {option === "same" ? (
-        <ClosedDoor form={form} scr={scr} words={CLOSED} below={form === "gone" ? undefined : BACK_IN} />
+        <ClosedDoor
+          form={form}
+          scr={scr}
+          words={CLOSED}
+          below={form === "gone" ? undefined : BACK_IN}
+        />
       ) : (
         <ClosedDoor
           form={honestForm}
@@ -904,8 +1073,22 @@ const INSIDE_TITLE = {
 
 /** People past the door who have not added a photograph. */
 const NO_PHOTOS: readonly Person[] = [
-  { id: "ines", name: "Ines Varga", email: "ines.varga@example.com", verified: true, seed: "es-ines", uploads: 0 },
-  { id: "tom", name: "Tom Achebe", email: "tom.achebe@example.com", verified: true, seed: "es-tom", uploads: 0 },
+  {
+    id: "ines",
+    name: "Ines Varga",
+    email: "ines.varga@example.com",
+    verified: true,
+    seed: "es-ines",
+    uploads: 0,
+  },
+  {
+    id: "tom",
+    name: "Tom Achebe",
+    email: "tom.achebe@example.com",
+    verified: true,
+    seed: "es-tom",
+    uploads: 0,
+  },
   { id: "bea", name: "Aunt Bea", email: null, verified: false, uploads: 0 },
 ];
 
@@ -913,7 +1096,12 @@ const inside = (s: BoardState, option: Inside) => {
   const scr = screen(s);
   if (option === "list") {
     return (
-      <Scene id="inside-list" screen={scr} title={INSIDE_TITLE.list} measure={reach("The list")}>
+      <Scene
+        id="inside-list"
+        screen={scr}
+        title={INSIDE_TITLE.list}
+        measure={reach("The list")}
+      >
         <GuestsRoom
           screen={scr}
           people={GUESTS}
@@ -933,7 +1121,11 @@ const inside = (s: BoardState, option: Inside) => {
                       person={p}
                       screen={scr}
                       muted
-                      trailing={<span className="text-xs text-muted-foreground">No photos</span>}
+                      trailing={
+                        <span className="text-xs text-muted-foreground">
+                          No photos
+                        </span>
+                      }
                     />
                   ))}
                   <li className="px-4 py-2.5 text-xs text-muted-foreground">
@@ -961,9 +1153,14 @@ const inside = (s: BoardState, option: Inside) => {
         after={
           option === "count" ? (
             <p className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm">
-              <UsersRound className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+              <UsersRound
+                className="size-4 shrink-0 text-muted-foreground"
+                aria-hidden
+              />
               <span>
-                <span className="font-medium tabular-nums">31 people are in.</span>{" "}
+                <span className="font-medium tabular-nums">
+                  31 people are in.
+                </span>{" "}
                 <span className="text-muted-foreground">
                   {`${EVENT.guests} have added photos.`}
                 </span>
@@ -981,7 +1178,13 @@ const inside = (s: BoardState, option: Inside) => {
 type Editor = "one" | "paste" | "both";
 
 /** An address on the list, as a removable chip. */
-function AddressChip({ address, bad = false }: { address: string; bad?: boolean }) {
+function AddressChip({
+  address,
+  bad = false,
+}: {
+  address: string;
+  bad?: boolean;
+}) {
   return (
     <span
       className={cn(
@@ -1014,9 +1217,15 @@ function EditorBody({ option }: { option: Editor }) {
         </p>
         <ul className="divide-y divide-border rounded-lg border border-border">
           {INVITED.slice(0, 5).map((a) => (
-            <li key={a} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+            <li
+              key={a}
+              className="flex items-center justify-between gap-2 px-3 py-2 text-sm"
+            >
               <span className="truncate">{a}</span>
-              <X className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+              <X
+                className="size-3.5 shrink-0 text-muted-foreground"
+                aria-hidden
+              />
             </li>
           ))}
           <li className="px-3 py-2 text-xs text-muted-foreground">
@@ -1105,13 +1314,28 @@ const editor = (s: BoardState, option: Editor) => {
 
 type Unlisted = "same" | "another" | "ask";
 
-function UnlistedDoor({ option, scr, form }: { option: Unlisted; scr: ScreenId; form: DoorForm }) {
-  if (option === "same") return <ClosedDoor form={form} scr={scr} words={CLOSED} />;
+/**
+ * The two doors that say a list exists, on the lit door at the gate's own step
+ * ("Almost in", its Lock in the lamp's light): the address was proved a moment
+ * ago, so the person is still at the gate, never through it. The envelope rides
+ * its button as a control's monochrome glyph (`controls-stay`).
+ */
+function UnlistedDoor({
+  option,
+  scr,
+  form,
+}: {
+  option: Unlisted;
+  scr: ScreenId;
+  form: DoorForm;
+}) {
+  if (option === "same")
+    return <ClosedDoor form={form} scr={scr} words={CLOSED} />;
   if (option === "another") {
     return (
       <HeldDoor screen={scr}>
         <DoorStep
-          Icon={MailX}
+          almost
           eyebrow={EVENT.name}
           words={{
             title: "Not on the list",
@@ -1119,7 +1343,7 @@ function UnlistedDoor({ option, scr, form }: { option: Unlisted; scr: ScreenId; 
           }}
         >
           <Button size="cta" className="w-full" tabIndex={-1} data-es-reach>
-            Use a different email
+            <MailX /> Use a different email
           </Button>
           <p className="text-sm text-muted-foreground">
             {`Invited at another address? Confirm that one instead.`}
@@ -1131,7 +1355,7 @@ function UnlistedDoor({ option, scr, form }: { option: Unlisted; scr: ScreenId; 
   return (
     <HeldDoor screen={scr}>
       <DoorStep
-        Icon={MailX}
+        almost
         eyebrow={EVENT.name}
         words={{
           title: "Not on the list yet",
@@ -1172,7 +1396,7 @@ const unlisted = (s: BoardState, option: Unlisted) => {
         title={`On the list: ${LISTED.email}`}
         short
       >
-        <HeldDoor screen={scr}>
+        <HeldDoor screen={scr} lamp="bloom">
           <InStep line={`You're on ${HOST.first}'s list.`} />
         </HeldDoor>
       </Scene>
@@ -1203,8 +1427,7 @@ const PREVIEWS: PreviewsFor<typeof EVENT_SAFETY> = {
   "choose.switches": (s) => choose(s, "switches"),
   "choose.door": (s) => choose(s, "door"),
   "waiting.held": (s) => waiting(s, "held"),
-  "waiting.email": (s) => waiting(s, "email"),
-  "waiting.both": (s) => waiting(s, "both"),
+  "waiting.page": (s) => waiting(s, "page"),
   "queue.room": (s) => queue(s, "room"),
   "queue.review": (s) => queue(s, "review"),
   "queue.hub": (s) => queue(s, "hub"),

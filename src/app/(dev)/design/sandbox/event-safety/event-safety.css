@@ -1,10 +1,9 @@
-/* THE SURFACES THAT CANNOT BE THE REAL ONE, QUOTED RATHER THAN INVENTED.
-   A Sheet, a Dialog, a DropdownMenu and a sonner toast all portal to the
-   document.body of the wrong realm (the frame IS the viewport: a same-origin
-   iframe), so their shells are redrawn here at the app's own tokens, still, on
-   the ruled postures: the responsive Sheet (a side panel at a desk, a bottom
-   sheet in a hand, `ui/sheet.tsx` + `floatingEdgeEntranceResponsive`), the
-   centred Dialog (`ui/dialog.tsx`, `max-w-sm`), and the toast box.
+/* THE FEW SURFACES THIS BOARD STILL DRAWS FROM ITS OWN SHEET.
+   Everything floating that production shapes by a class now wears production's
+   own classes (the popup kinds' shapes, the responsive Sheet's posture, the
+   door's scrim and padding: `kinds.tsx`, `guest.tsx`), so what is left here is
+   the one confirm `restore` stands on, quoted from `ui/dialog.tsx` before the
+   popup kinds existed, and the board's own layout.
 
    ★ KEYED OFF `data-screen`, NEVER A BREAKPOINT CLASS. A `sm:` utility only
    this board wrote would lose to production's unprefixed one in the lab's
@@ -21,48 +20,15 @@
   align-items: start;
 }
 
+/* The confirm's scrim, over whatever the confirm stands on (a popup kind's
+   panel or screen included, which stands at z-50). */
 .es-scrim {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: 50;
   background: color-mix(in oklab, black 10%, transparent);
   /* `supports-backdrop-filter:backdrop-blur-xs`, the shipped overlays' own. */
   backdrop-filter: blur(4px);
-}
-
-/* The responsive Sheet: a full-height side panel at a desk. */
-.es-sheet {
-  position: fixed;
-  z-index: 50;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  inset-block: 0;
-  right: 0;
-  height: 100%;
-  width: 75%;
-  max-width: 28rem;
-  overflow-y: auto;
-  border-left: 1px solid var(--border);
-  background: var(--popover);
-  color: var(--popover-foreground);
-  box-shadow: var(--shadow-layer);
-  font-size: 0.875rem;
-}
-/* ...and a bottom sheet in a hand, exactly the Sheet's own posture below sm. */
-.es-sheet[data-screen="375"] {
-  inset-inline: 0;
-  top: auto;
-  right: auto;
-  bottom: 0;
-  height: auto;
-  max-height: 85svh;
-  width: 100%;
-  max-width: none;
-  border-top: 1px solid var(--border);
-  border-left: none;
-  border-top-left-radius: var(--radius-float);
-  border-top-right-radius: var(--radius-float);
 }
 
 /* The centred Dialog (`ui/dialog.tsx`): the floating panel, max-w-sm, and a
@@ -97,10 +63,10 @@
   justify-content: flex-end;
 }
 
-/* A menu drawn open: the dropdown panel at its width and padding. Where it
-   stands is its caller's (pinned over the viewer, or hung under a row). */
-.es-menu {
-  z-index: 50;
-  width: 16rem;
-  padding: 0.25rem;
+/* Where the arrows stand in Review (host-curation `keys=arrows`, with no hint
+   row): a ring on the first photograph of the real `ReviewGrid`, drawn by
+   position because the grid takes no prop for it. */
+[data-es-keys] > div:first-child > div:first-child {
+  outline: 3px solid var(--ring);
+  outline-offset: 3px;
 }
