@@ -17,6 +17,10 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Help-sync: `day-of-checklist-for-hosts` sends a host to "the event page" to tap Approve all, which lives in Review (from `curation-wiring`).
+- Host: the review peek is `aria-modal` with no focus trap, so Tab walks out of it behind the look (from `curation-wiring`).
+- The lab and the kit: `event-safety/settings.tsx` quotes the old review line ("Hold new photos for your approval ..."); its next refresh takes the settings line's new words (from `curation-wiring`).
+- Host: the review peek could credit who sent the photograph (the retired board's `viewer` option carried the face-led credit); a host judging a stranger's photograph may want the name before the verdict (from `curation-wiring`).
 - Guests: with events waiting under her email the moment card stands 411px at 375 (the keep, the told name, the waiting row, the host, the handle; 306 with none) under Add photos; a board could ask whether the handle's row waits for her next visit when the waiting row stands, keeping the album close under the upload (from `pointer-wiring`).
 - Marketing: `album-stream.css` shows the stream's desk composition from 1024 while `stream-engine.ts` solves and tests it for 1280 (`STREAM_LG_MIN`, whose comment says the sheet agrees), and `album-stream.tsx` exports a second `STREAM_LG_MIN` of 1024 (from `marketing-refresh`).
 - Marketing: /features/album's Review hint (`album-copy.ts`, `YOUR_CALL.hints.review`) still quotes the retired toast "Guests see: Sent, waiting for host approval" under a switch whose pill says "Waiting for the host" (from `marketing-refresh`).
@@ -53,7 +57,6 @@ below hold the rest by surface.
 - Marketing: the event pages' table and tent cards (`sections/events/event-object.tsx`) print a code and "Scan to add your photos" but no address; the custom address under the code would carry the one-link idea onto the objects that stand in for the product there (from `hero-card`).
 - Shared: `AvatarGroup` (`ui/avatar.tsx`) overlaps a fixed 8 px at every size, hiding a third of a 24 px face and its initial; an overlap that is a share of the face (`hero-card`'s `Faces`) fixes it wherever a face row reads it (from `hero-card`).
 - Shared: direct invites: a host invites guests from Partyreel itself (an email or a text sent on the host's behalf, with its spam and deliverability rules); Will floated it on `popups`' share answer and chose later (2026-09-27), a board when a seat is free.
-- Help: `a-photo-is-missing-from-the-album` promises hosts hide "silently" while her tracker says "Not in the album"; it follows `host-curation`'s `told` (from `guest-door`).
 - Guests: her tracker draws a picture only for what is in the album; her earlier held or refused items show a placeholder, since a guest is never presigned media outside the album (`grid-items.ts`), so drawing them needs an own-media presign rule (from `guest-door`).
 - Guests: a refusal reaches her tracker at its next read (mount or opening), since the album's sync moves only in and out of approved; a live refusal needs its own signal (from `guest-door`).
 - Guest door: a full-reload confirm return that moves nothing of this album plays no moment, so it says the other events but not the told name (the typed name reaches the account through `adoptDoorName` with no beat to carry it) (from `guest-door`).
@@ -138,7 +141,6 @@ below hold the rest by surface.
 - Design: a mark over media, if one ships (the shimmer is banked as a delight moment), needs from the glow engine a play-once sweep, a `runId` re-key for every shape (only a one-shot has one), an additive blend over a photograph, and `[data-glw-edge-rest]` under its travelling ring; `SectionLight` ships without a dither until the grain tile lands (ASSETS row 15).
 
 The lab and the kit:
-- `host-curation/queue.tsx:490` still draws "A guest" for a null uploader name; it leaves with the board.
 - `Several` (an option drawn as several screens: phones side by side on equal columns, laptops stacked and cut short) and `ScrollHere` (scroll a frame's sheet or page to the card a decision is about) are local to `event-safety`; `voice-guest`'s `Pair` is the same idea as `Several`: kit candidates.
 - `lab:demo` compares only an option's FIRST frame, so a composite option whose first frame matches another's prints "same picture" (`event-safety.entry`), and on a stage taller than about three screens a `--save-shots` capture lands misaligned (the lab's sticky bar inside it); compare every frame, each scrolled into view before its clip.
 - The kit's `Frame` exposes its pixel height to children (a CSS variable): a percentage `min-h-full` inside a frame collapses to 0 px, so a full-bleed child reaches for `fixed` or a hard-coded screen height today.
