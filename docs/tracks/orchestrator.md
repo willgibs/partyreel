@@ -41,7 +41,6 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `hero-r2` | hero-card r2: ideas branching from Will's `link`, each at 1440, 900 and 375 (loose-ends' `hero-tablet` folds in) | running, agent `a00ce4ac21e78f21f` | Opus, :3131 | |
-| `storage-r2` | host-storage r2: `prices` alone on today's plans dialog, his three r1 picks drawn in | running, agent `a28d87461d4859f66` | Opus, :3132 | |
 | `safety-refresh` | event-safety's nine stale asks onto the settings panel, the lit door and the review room | running, agent `a572968d03e1b1dce` | Opus, :3134 | |
 | `triage-refresh` | admin-triage's five stale asks, two word fixes | running, agent `ac6a61904bd7b6090` | Opus, :3135 | |
 | `flow-refresh` | export-flow's five onto the Download menu; emails' `moments` and `guest` (the two mail halves merge in) | running, agent `a6836c656ed9c1490` | Opus, :3136 | |
@@ -53,7 +52,7 @@ answers on identity-claims, hero-card, voice-guest, host-curation, host-storage)
 boards found 30 of their 68 asks drawn before his recent picks were built and 5 already answered: wave 1 is the eight
 lanes that make his next desk; wave 2 (the wiring) waits for free seats.
 
-Merged in batch 6 (their records carry the rest): voice-r2.
+Merged in batch 6 (their records carry the rest): voice-r2, storage-r2.
 
 ## Next, in order
 
@@ -80,7 +79,10 @@ Merged in batch 6 (their records carry the rest): voice-r2.
    - `storage-wiring` (Opus): host-storage's `order=flat` with an All / per-event filter, `goal=live` and
      `refusal=inline` stacked full width. The size list goes in the lists panel, with r1's carried rows, bulk Remove
      with Undo, Download handing off to export-flow, and the Deleted line. The six prices keep today's rows until
-     `prices` r2 picks.
+     `prices` r2 picks. Cut after `curation-wiring` merges, so bulk Remove reuses its Undo toast. Fold in storage-r2's
+     notes: the Pro fit line's "or choose Pro 500 GB" means the yearly price (`pro-price-list.tsx` feeds
+     `refusalSentence` yearly rows); one account's bytes print two ways in one flow (`formatBytes` nearest,
+     `formatBytesUp` up); a Pro host pressing Change plan is greeted "You are on Pro already".
 3. **Build 13** once wave 1 lands (whatever wiring has landed rides along): `[preview]`, `alias-ensure`, prune, the desk
    headless, its red-team; then tell Will which board to open first. The hero's wiring waits for hero-card r2's pick; voice-guest r2's
    wiring carries its `keep` pick to her name menu's card, which still says "Save this event for later".

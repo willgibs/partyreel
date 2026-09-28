@@ -125,7 +125,7 @@ below hold the rest by surface.
 - Design: a mark over media, if one ships (the shimmer is banked as a delight moment), needs from the glow engine a play-once sweep, a `runId` re-key for every shape (only a one-shot has one), an additive blend over a photograph, and `[data-glw-edge-rest]` under its travelling ring; `SectionLight` ships without a dither until the grain tile lands (ASSETS row 15).
 
 The lab and the kit:
-- Two boards still draw "A guest" for a null uploader name (`host-curation/queue.tsx:490`, `profile-page/album.tsx:149`), and `host-storage/spec.ts:49` still says `gallery-fixtures.ts` mints a nameless anonymous uploader, which it no longer does.
+- Two boards still draw "A guest" for a null uploader name (`host-curation/queue.tsx:490`, `profile-page/album.tsx:149`).
 - `Several` (an option drawn as several screens: phones side by side on equal columns, laptops stacked and cut short) and `ScrollHere` (scroll a frame's sheet or page to the card a decision is about) are local to `event-safety`; `voice-guest`'s `Pair` is the same idea as `Several`: kit candidates.
 - `lab:demo` compares only an option's FIRST frame, so a composite option whose first frame matches another's prints "same picture" (`event-safety.entry`), and on a stage taller than about three screens a `--save-shots` capture lands misaligned (the lab's sticky bar inside it); compare every frame, each scrolled into view before its clip.
 - The kit's `Frame` exposes its pixel height to children (a CSS variable): a percentage `min-h-full` inside a frame collapses to 0 px, so a full-bleed child reaches for `fixed` or a hard-coded screen height today.
