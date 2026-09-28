@@ -30,6 +30,7 @@ export type SandboxId =
   | "export-flow"
   | "admin-triage"
   | "emails"
+  | "locked-door"
   | "help-center"
   | "host-storage"
   | "event-safety"
@@ -186,6 +187,25 @@ export const RULINGS: Ruling[] = [
         "The reporter",
         "The dark inbox",
       ],
+    },
+  },
+  {
+    id: "locked-door",
+    title: "The locked door",
+    surface: "guest",
+    asks: "the one screen a guest meets whenever she can't get in (the album private, closed to newcomers, or she was blocked), and whether someone who was in reads a line of her own",
+    why: "His event-safety notes made the private album's lock the blocked door and the closed door too, and asked for it polished, since it will be a high-traffic screen.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "src/app/(guest)/e/[token]/page.tsx",
+      "src/components/shared/not-found-screen.tsx",
+      "src/components/guest/entry-shell.tsx",
+      "src/components/guest/door/lit.tsx",
+      "src/components/guest/door/heading.tsx",
+    ],
+    board: {
+      note: "Two decisions at Maya and Jay's wedding, 375 first with 1440 on the knob: the locked screen drawn five ways, from today's to one over the album's cover, each in words true of a private album, a closed one and a block; then whether a guest who was in reads a line of her own, measured on a newcomer, Priya and Dom side by side",
+      variants: ["The locked screen", "A previous guest's line"],
     },
   },
   {
@@ -402,6 +422,7 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "admin-triage",
   "help-center",
   "emails",
+  "locked-door",
   "privacy-hero",
   "album-motion",
   "loose-ends",
