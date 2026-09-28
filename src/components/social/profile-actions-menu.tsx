@@ -148,7 +148,11 @@ export function ProfileActionsMenu({
             a menu with something to say, and each of these is one verb. The
             destructive variant is the whole signal on the block, and each row's
             dialog is where the act is actually explained. */}
-        <DropdownMenuContent align="end">
+        {/* ★ WIDE ENOUGH FOR ITS LONGEST ROW: the icon trigger's own width falls
+            back to the panel's `min-w-32` (128px, `ui/dropdown-menu.tsx`), which
+            wraps "Report this person" onto two lines. `w-56`, the same override
+            every other icon-triggered menu in the app uses, fits it on one. */}
+        <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuItem onSelect={() => setReportOpen(true)}>
             <Flag /> Report this person
           </DropdownMenuItem>

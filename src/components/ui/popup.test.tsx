@@ -8,10 +8,16 @@
  * contract's (`floating-layer.ts`) and the Library's.
  */
 import { useState } from "react"
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import {
   Popup,
   PopupBody,
@@ -196,6 +202,90 @@ describe("where focus goes back to when it closes", () => {
     fireEvent.keyDown(dialog, { key: "Escape" })
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
     expect(opener).toHaveFocus()
+  })
+
+  it("a STACKED popup (no trigger, opened from inside a layer left open behind it) gives focus back to the control inside that layer, never the page behind it", async () => {
+    // event-settings-sheet.tsx's shape: a panel with no trigger of its own,
+    // whose own close routes through a guard (`requestClose`) that raises a
+    // confirm — also with no PopupTrigger — instead of ever closing, so the
+    // panel is still there when the confirm's own close runs.
+    function Stacked() {
+      const [panelOpen, setPanelOpen] = useState(true)
+      const [confirmOpen, setConfirmOpen] = useState(false)
+      function requestClose(next: boolean) {
+        if (next) setPanelOpen(true)
+        else setConfirmOpen(true) // always "dirty", for the test
+      }
+      return (
+        <>
+          <Popup open={panelOpen} onOpenChange={requestClose}>
+            <PopupContent kind="settings" aria-describedby={undefined}>
+              <PopupHeader title="Settings" />
+              <PopupBody>
+                <input aria-label="Event name" />
+              </PopupBody>
+            </PopupContent>
+          </Popup>
+          <Popup open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <PopupContent kind="confirm" aria-describedby={undefined}>
+              <PopupHeader title="Discard changes?" />
+              <PopupFooter>
+                <Button type="button" onClick={() => setConfirmOpen(false)}>
+                  Keep editing
+                </Button>
+              </PopupFooter>
+            </PopupContent>
+          </Popup>
+        </>
+      )
+    }
+    render(<Stacked />)
+    const field = screen.getByLabelText("Event name")
+    act(() => field.focus())
+    fireEvent.keyDown(field, { key: "Escape" })
+    const confirm = await screen.findByRole("dialog", { name: "Discard changes?" })
+    fireEvent.click(within(confirm).getByRole("button", { name: "Keep editing" }))
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Discard changes?" })).toBeNull()
+    )
+    expect(field).toHaveFocus()
+    expect(screen.getByRole("dialog", { name: "Settings" })).toBeInTheDocument()
+  })
+
+  it("the same, for a confirm's PopupContent wrapped in a plain Dialog/DialogTrigger rather than this file's Popup", async () => {
+    // media-lightbox-parts/actions.tsx's shape: `PurgeConfirmContent`'s
+    // `PopupContent` sits inside a bare `Dialog`/`DialogTrigger`
+    // (`ui/dialog.tsx`), never this file's `Popup`, so there is no
+    // `PopupStateContext` at all to say it has a trigger — same as none.
+    function ViewerWithPurge() {
+      return (
+        <Dialog defaultOpen>
+          <DialogContent aria-describedby={undefined}>
+            <DialogTitle>Viewer</DialogTitle>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button type="button">Delete permanently</button>
+              </DialogTrigger>
+              <PopupContent kind="confirm" aria-describedby={undefined}>
+                <PopupHeader title="Delete permanently?" />
+              </PopupContent>
+            </Dialog>
+          </DialogContent>
+        </Dialog>
+      )
+    }
+    render(<ViewerWithPurge />)
+    const viewer = screen.getByRole("dialog", { name: "Viewer" })
+    const trigger = within(viewer).getByRole("button", { name: "Delete permanently" })
+    act(() => trigger.focus())
+    fireEvent.click(trigger)
+    const confirm = await screen.findByRole("dialog", { name: "Delete permanently?" })
+    fireEvent.keyDown(confirm, { key: "Escape" })
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Delete permanently?" })).toBeNull()
+    )
+    expect(trigger).toHaveFocus()
+    expect(viewer).toBeInTheDocument()
   })
 })
 
