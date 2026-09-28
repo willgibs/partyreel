@@ -1,0 +1,60 @@
+{
+  "board": "help-center",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-28",
+      "answers": [
+        {
+          "ask": "who-first",
+          "choice": "host",
+          "note": "Our entire platform is paid for by hosts, not guests. Our experience should be primarily catered to them, as they are the ones who need more instruction on how to use the platform. Guests are smart enough to find the content they're looking for within our help library.",
+          "by": "Will",
+          "at": "2026-09-28T23:03:43Z"
+        },
+        {
+          "ask": "hub",
+          "choice": "strip",
+          "note": "To clean up the hero (lots going on currently), let's remove the preset questions below the input. Instead, when the input is selected, those can drop down as quick options. Much smoother design.",
+          "by": "Will",
+          "at": "2026-09-28T23:03:43Z"
+        },
+        {
+          "ask": "article",
+          "choice": "screen",
+          "by": "Will",
+          "at": "2026-09-28T23:03:43Z"
+        },
+        {
+          "ask": "from-product",
+          "choice": "contextual",
+          "note": "Let's also include the help center entry in the menu too. That way it's globally accessible for general questions as well, not only when encountering trouble.",
+          "by": "Will",
+          "at": "2026-09-28T23:03:43Z"
+        },
+        {
+          "ask": "feedback",
+          "choice": "beacon",
+          "by": "Will",
+          "at": "2026-09-28T23:03:43Z"
+        },
+        {
+          "ask": "dead-end",
+          "choice": "rung",
+          "by": "Will",
+          "at": "2026-09-28T23:03:43Z"
+        },
+        {
+          "ask": "search",
+          "choice": "visible",
+          "note": "However, admin can create its own component version of the command palette if helpful to differentiate features. That version would be used strictly in the admin portal, so this help palette should have zero conflicts with where they get used (admin vs main platform).",
+          "by": "Will",
+          "at": "2026-09-28T23:03:43Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

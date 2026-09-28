@@ -24,9 +24,11 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 ## The desk
 
-Build 15's desk has 38 open asks: `help-center`, `emails`, `privacy-hero`, `album-motion`, `loose-ends`,
-`contact-page`, `press-page`. Build 16 adds `event-settings`, `locked-door` and `disposable-mode`. His aim is zero
-before his other to-dos.
+Build 16's desk: 48 open asks.
+- **From build 15** (31): `emails`, `privacy-hero`, `album-motion`, `loose-ends`, `contact-page`, `press-page`.
+- **New** (17): `event-settings` (nine, its structure first), `locked-door` (two), `disposable-mode` (six).
+
+`admin-triage` r2 and the wiring follow. His aim is zero before his other to-dos.
 
 ## Live state
 
@@ -37,9 +39,9 @@ before his other to-dos.
   console error, the lab and `/admin/reels` 404, the admin door redirects, no runtime error.
   `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel`
   (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 15 (`60b4e4ea`): batch 6
-  whole with build 14's red-team fixes; every desk page loads with no console error (14 pages, headless). Build 14's
-  red-team passed every signed-out journey, and build 15's live host and admin pass in Will's Chrome passed too.
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 16 (`49269fad`): the desk's 48
+  open asks with the three new boards, loading clean headless. A lab-only round, the red-team's carve-out; build 17
+  carries the wiring and its red-team.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).

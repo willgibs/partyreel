@@ -8,10 +8,12 @@ import { ADMIN_TRIAGE } from "./admin-triage/spec";
 import { EMAILS } from "./emails/spec";
 import { LOCKED_DOOR } from "./locked-door/spec";
 import { HELP_CENTER } from "./help-center/spec";
+import { EVENT_SETTINGS } from "./event-settings/spec";
 import { EVENT_SAFETY } from "./event-safety/spec";
 
 import { PRESS_PAGE } from "./press-page/spec";
 import { CONTACT_PAGE } from "./contact-page/spec";
+import { DISPOSABLE_MODE } from "./disposable-mode/spec";
 import { ALBUM_MOTION } from "./album-motion/spec";
 
 import { LOOSE_ENDS } from "./loose-ends/spec";
@@ -52,12 +54,14 @@ const REGISTERED: readonly BoardSpec[] = [
   EXPORT_FLOW,
   ADMIN_TRIAGE,
   HELP_CENTER,
+  EVENT_SETTINGS,
   EMAILS,
   LOCKED_DOOR,
   PRIVACY_HERO,
   ALBUM_MOTION,
   LOOSE_ENDS,
   CONTACT_PAGE,
+  DISPOSABLE_MODE,
   PRESS_PAGE,
 ];
 

@@ -1,0 +1,81 @@
+{
+  "board": "emails",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-28",
+      "answers": [
+        {
+          "ask": "shell",
+          "choice": "unified",
+          "by": "Will",
+          "at": "2026-09-28T23:47:07Z"
+        },
+        {
+          "ask": "brand",
+          "choice": "wordmark",
+          "by": "Will",
+          "at": "2026-09-28T23:47:07Z"
+        },
+        {
+          "ask": "sender",
+          "choice": "tagged",
+          "note": "For newsletter and friendly announcements/updates (more personal-tone emails), we can also use 'Will @ Partyreel'. So ops is tagged subjects, host mail is Partyreel (noreply@), and Newsletter/updates is 'Will @ Partyreel'",
+          "by": "Will",
+          "at": "2026-09-28T23:47:07Z"
+        },
+        {
+          "ask": "foot",
+          "choice": "commercial",
+          "note": "Can we remove the address for now, or is that a legal thing? If so, lets replace the address with the 'you're receiving this because...' note under the divider for more subtlety on that.",
+          "by": "Will",
+          "at": "2026-09-28T23:47:07Z"
+        },
+        {
+          "ask": "code",
+          "choice": "promise",
+          "note": "We don't need to be so literal as to make every route exactly one-tap. We should offer the code as usual first (if easily copyable, make it that way in clean design) with primary button beneath that is the one-tap option (maybe a 'click/tap to confirm'?). This selection is mostly against option 3's non-primary button, not saying this email is designed beautifully yet.",
+          "by": "Will",
+          "at": "2026-09-28T23:47:07Z"
+        },
+        {
+          "ask": "moments",
+          "choice": "identity",
+          "note": "Let's continue building a bank/backlog of all our ideas, but I want to target emails in a later exploration once we feel more final on all features rather than allow them to start sending everywhere in whatever shape they're currently in now. Really want to be good about our email policy from the start so we never hit spam.",
+          "by": "Will",
+          "at": "2026-09-28T23:47:07Z"
+        },
+        {
+          "ask": "guest",
+          "choice": "link",
+          "by": "Will",
+          "at": "2026-09-28T23:47:07Z"
+        },
+        {
+          "ask": "letin",
+          "choice": "left",
+          "note": "How are we measuring \"leaving\" here?",
+          "by": "Will",
+          "at": "2026-09-28T23:47:07Z"
+        },
+        {
+          "ask": "reporter",
+          "choice": "note",
+          "note": "The verbiage should be better, this is almost annoyingly obscure. More like 'We have handled your report from... Thank you for telling us.\" Handled goes either way, but is less fluffy than \"we looked at\".",
+          "by": "Will",
+          "at": "2026-09-28T23:47:07Z"
+        },
+        {
+          "ask": "dark",
+          "choice": "light",
+          "note": "I believe this provides less opportunity for error as well (such as mismatched theme styles).",
+          "by": "Will",
+          "at": "2026-09-28T23:47:07Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

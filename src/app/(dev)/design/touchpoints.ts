@@ -32,9 +32,11 @@ export type SandboxId =
   | "emails"
   | "locked-door"
   | "help-center"
+  | "event-settings"
   | "event-safety"
   | "press-page"
   | "contact-page"
+  | "disposable-mode"
   | "album-motion"
   | "loose-ends"
   | "privacy-hero";
@@ -239,6 +241,36 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
+    id: "event-settings",
+    title: "An event's settings",
+    surface: "host",
+    asks: "how an event's settings are organised from the ground up, how a group opens, a setting that does nothing yet, the one Pro lock, and who can get in with its four asks",
+    why: "Will called settings some of the ugliest, least intuitive UI for the most critical controls, and asked for them rebuilt from the ground up, as streamlined as possible.",
+    lives: [
+      "docs/systems/host-app.md",
+      "src/components/app/event-settings/event-settings-sheet.tsx",
+      "src/components/app/event-settings-form.tsx",
+      "src/components/app/event-settings/visibility-section.tsx",
+      "src/components/app/event-settings/uploads-section.tsx",
+      "src/components/app/event-settings/highlight-reel-card.tsx",
+      "src/components/app/event-settings/profile-social-card.tsx",
+      "src/components/app/event-settings/danger-zone-section.tsx",
+      "src/components/app/visibility-selector.tsx",
+      "src/components/app/pricing/lock-chip.tsx",
+    ],
+    board: {
+      note: "Nine decisions on Maya and Jay's wedding, phone first with 1440 on every knob, drawn over production with his answers worn: five structures for the settings graded against today's seven cards, each as it opens and as she pauses uploads, then how a group opens, a setting that does nothing yet, the one Pro lock, and who can get in with event-safety's four join asks",
+      variants: [
+        "The structure",
+        "How a group opens",
+        "A setting that does nothing yet",
+        "The one Pro lock",
+        "Who can get in",
+        "The invite list",
+      ],
+    },
+  },
+  {
     id: "event-safety",
     title: "Keeping an event safe",
     surface: "host",
@@ -316,6 +348,34 @@ export const RULINGS: Ruling[] = [
         "The topic picker",
         "The page's identity",
         "Beside the form",
+      ],
+    },
+  },
+  {
+    id: "disposable-mode",
+    title: "A disposable camera",
+    surface: "shared",
+    asks: "what a guest shoots with and its look, when the roll develops and what the album shows until then, how a host turns it on, and where it sits between Free, Event Pass and Pro",
+    why: "Will's note on export-flow: a disposable inside Partyreel (camera only, a shot limit), so POV's audience arrives without Partyreel being built around it.",
+    lives: [
+      "docs/systems/guest-flow.md",
+      "docs/systems/uploads-and-r2.md",
+      "docs/systems/billing-caps.md",
+      "src/components/guest/event-experience.tsx",
+      "src/components/guest/upload/intent-sheet.tsx",
+      "src/components/app/create-event-wizard.tsx",
+      "src/components/app/event-settings/uploads-section.tsx",
+      "src/lib/constants/tiers.ts",
+    ],
+    board: {
+      note: "Six decisions over Maya and Jay's wedding, every guest frame a 375 phone: the camera a guest shoots with (the phone's, the album's own, a disposable drawn) and its look, when the roll develops and what the album shows until then, how a host turns it on in Create and Settings (1440 on the knob), and its price against Free's new 100 MB",
+      variants: [
+        "The guest's camera",
+        "The camera's look",
+        "When it develops",
+        "While it develops",
+        "Turning it on",
+        "Its price",
       ],
     },
   },
@@ -398,12 +458,14 @@ export const DESK_ORDER: readonly SandboxId[] = [
   "export-flow",
   "admin-triage",
   "help-center",
+  "event-settings",
   "emails",
   "locked-door",
   "privacy-hero",
   "album-motion",
   "loose-ends",
   "contact-page",
+  "disposable-mode",
   "press-page",
 ];
 

@@ -40,25 +40,25 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `event-settings` | board r1: event settings from the ground up (his `choose` note), taking event-safety's who-can-join and its four staged asks | running, agent `a453cea95468466bd` | Opus, :3131 | |
-| `disposable-mode` | board r1: a disposable-camera mode (in-app shots only, a shot limit, a reveal), his POV note | running, agent `a699e9169411db464` | Opus, :3133 | |
 | `safety-wiring` | event-safety's answers: the per-event block (a migration to apply), soft in every look, the private door, the Guests room's Blocked list, Let back in with a restore toggle; the guest list always on; event-safety retires | running, agent `a976ee6de796172b4` | Opus, :3134 | |
 | `pricing-wiring` | host-storage `prices=sizes` on a monthly/yearly toggle with a yearly tag, iPhone-default estimates, his free/pro shift (Free 100 MB, 300 MB meter; password, custom link with a squatting guard, 60 s reels to Free); `tier_limits()` migration to apply; host-storage retires | running, agent `ad560f85ada04d064` | Opus, :3132 | |
+| `triage-r2` | admin-triage r2: a fast, batch-first reports queue with each report's whole context, asking a reporter for proof, `phone` reworded | running, agent `aa87a69da46b9875a` | Opus, :3131 | |
+| `voice-wiring` | voice-guest r2: held photos only in her uploads, "Waiting for approval" / "Not approved", "Keep this event" (the name menu's card too), his host note in Review; the review room's `known` bug; voice-guest retires | running, agent `a835a78fe41672676` | Opus, :3133 | |
 
 Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcribed at `69afdbc5`: 21 answers on
 hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
 Wave B follows as seats free. Batch 6 (sixteen lanes) is merged whole; its records carry the rest.
 
-Merged in batch 7 (their records carry the rest): locked-door.
+Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings.
 
 ## Next, in order
 
-1. **Wave A lands** (rows above), each integrated as it hands off.
+1. **Integrate each running lane as it hands off** (rows above; wave A's three boards are merged).
    - `safety-wiring`'s migration by protocol: drift check, apply verbatim, the rolled-back refusals, advisors, types.
    - At its record, delete `docs/reviews/event-safety.json`.
-   - New boards go into `DESK_ORDER` after the standing ones (help-center, emails, contact-page are their neighbours).
-2. **Wave B into each free seat**, in this order (his answers are in the ledgers; each brief carries his notes):
-   - `pricing-wiring` (Opus):
+   - `pricing-wiring`'s and every later migration the same way, one at a time.
+2. **Wave B into each free seat**, in this order (his answers are in the ledgers; each brief carries his notes). `pricing-wiring`
+   is already running; its scope, for the record:
      - host-storage `prices=sizes` with a monthly/yearly toggle and a discount tag on yearly, each card only its size;
      - estimates from iPhone's default photo and video settings, said as such (`tiers.ts`' constants feed /pricing, the
        plan sheet and the blog);
@@ -69,14 +69,6 @@ Merged in batch 7 (their records carry the rest): locked-door.
        over-cap grace path checked at 100 MB.
 
      Retires host-storage.
-   - `voice-wiring` (Opus):
-     - `held=uploads` (no held tile at the album's head);
-     - `status=approval` ("Waiting for approval", "Not approved");
-     - `keep=warm` ("Keep this event", on the name menu's card too);
-     - his host note (a quiet line in Review that an approved photo can always be hidden later);
-     - plus ROADMAP's review-room `known` bug and the admin confirm's "already says" line.
-
-     Retires voice-guest.
    - `export-wiring` (Opus):
      - `means=mine`: the Yours row, filtered on the server;
      - `wait=toast`: it stays until ready, with a subtle cancel × (`stuck`);
@@ -88,12 +80,43 @@ Merged in batch 7 (their records carry the rest): locked-door.
      app, proved by a test; I deploy it after the merge (`wrangler whoami` first). Retires export-flow.
    - `hero-wiring` (Opus): the `guests` card with `partyreel.com/` quieter so the slug leads, the bloom light, the
      tablet table; `ASSETS.md` row 34 becomes four portraits. Retires hero-card.
-3. **Build 16** once wave A's boards land. Its red-team:
+   - `triage-wiring` (Opus), from his admin-triage r1 (`docs/reviews/admin-triage.json`):
+     - `reason=marked` (one muted line for both arms);
+     - `verdict=note` (Remove through the one confirm with an optional note, Dismiss's note, `resolution_note` written);
+     - `closed=window`;
+     - `escalate=door`;
+     - `idiom=shape`;
+     - `notice=deleted` built as his note refines it: a reported removal leaves the host's album and Deleted at once,
+       with nothing said; the event's copy purged on a sweep, never while a legal hold stands; the preservation copy
+       and the CSAM runbook's order kept;
+     - the admin confirm's "already says" line in voice-wiring's new words;
+     - report wording for the Terms and Privacy drafted under Questions (his "legal terms shouldn't imply every report
+       leads to takedown").
+
+     Its spec was drafted this session: owns `src/components/admin/`, `report-review`, `recently-deleted-grid`, the
+     report help, and a migration.
+   - `help-wiring` (Opus), from his help-center r1 (`docs/reviews/help-center.json`, all seven), cut after
+     `voice-wiring` merges (the refused row and the name menu are its paths until then):
+     - `who-first=host`;
+     - `hub=strip`, the quick questions dropping from the focused search;
+     - `article=screen`;
+     - `from-product=contextual`, plus a Help row in the guest's and the host's menus;
+     - `feedback=beacon`: a rate-limited insert, never read back, an admin view with its health signal, a migration;
+     - `dead-end=rung`;
+     - `search=visible`: Search rows in the header and footer; the help palette never mounts in admin.
+
+     Retires help-center.
+3. **Build 16 is live** (`49269fad`; wave A's three boards, a lab-only round: the red-team's carve-out) for his
+   sitting. **Build 17** carries the wiring as it lands. Its red-team:
    - the block, live (partyr33l blocked at a willg97 test event, then let back in with and without restore);
-   - the pricing, if it has landed;
+   - the pricing page and plan sheet;
    - the export flow, short of any download;
+   - the review room's new words;
    - the standing scope.
-4. **His paste** (build 15's 38 open, then build 16's new boards) transcribed; the join doors (`newcomer=same`,
+
+   Drafted specs for the queued lanes are in this session's scratchpad (`specs/<track>.json`); a new session writes
+   them from the lines above.
+4. **His paste** (build 16's 48 open asks) transcribed; the join doors (`newcomer=same`,
    `unlisted=ask`) are built after `event-settings` picks how "who can join" is set.
 5. **Milestone 30** on his yes, once his legal wording is in (the private count; the guest list always on); after it,
    `kit/`'s screens re-captured from partyreel.com (the home's hero, close, teaser and eyebrow, the demo's doors, the
@@ -108,8 +131,8 @@ Merged in batch 7 (their records carry the rest): locked-door.
 ## Waiting on Will
 
 - **His desk, first** (his aim: zero open questions before the to-dos below, which stay stacked until then): build
-  15's 38 open asks (help-center, emails, privacy-hero, album-motion, loose-ends, contact-page, press-page), then
-  build 16's new boards.
+  16's 48 open asks (emails, privacy-hero, album-motion, loose-ends, contact-page, press-page; new: event-settings,
+  locked-door, disposable-mode); admin-triage r2 follows.
 - **His legal wording for the guest list, always on** (with the private count's, before milestone 30): `safety-wiring`
   drafts it under its Questions.
 - **A yes on dropping `events.show_guest_list`** (destructive), once no build reads it.
@@ -128,9 +151,10 @@ Merged in batch 7 (their records carry the rest): locked-door.
   change: "A profile with nothing on it may say how many events it keeps private, counting only events whose guest
   lists the visitor can already see."
 - **A 2-minute real-upload check on the alias**: a first photo, landscape, as a signed-out guest at a held-uploads
-  event (the keep, "waiting for the host" on a head slot the photo now covers, the tracker's badge), then Confirm your
+  event (the keep; her uploads' "Waiting for approval" and the tracker's badge, with no held tile at the album's head
+  once `voice-wiring` lands), then Confirm your
   email (the one beat, the told name's Change).
 - **A 10-second iPhone check on partyreel.com**: one tap on Save opens the system sheet, and a shared photo arrives as
   a photograph.
 - **A copy call**: the setup's "Showing on your page" over an event whose host keeps the guest list off (ROADMAP's
-  picker line).
+  picker line). It retires once `safety-wiring` makes the guest list always on.

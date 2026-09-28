@@ -7,10 +7,12 @@ import { AdminTriageBoard } from "@/app/(dev)/design/sandbox/admin-triage/board"
 import { EmailsBoard } from "@/app/(dev)/design/sandbox/emails/board";
 import { LockedDoorBoard } from "@/app/(dev)/design/sandbox/locked-door/board";
 import { HelpCenterBoard } from "@/app/(dev)/design/sandbox/help-center/board";
+import { EventSettingsBoard } from "@/app/(dev)/design/sandbox/event-settings/board";
 import { EventSafetyBoard } from "@/app/(dev)/design/sandbox/event-safety/board";
 
 import { PressPageBoard } from "@/app/(dev)/design/sandbox/press-page/board";
 import { ContactPageBoard } from "@/app/(dev)/design/sandbox/contact-page/board";
+import { DisposableModeBoard } from "@/app/(dev)/design/sandbox/disposable-mode/board";
 import { AlbumMotionBoard } from "@/app/(dev)/design/sandbox/album-motion/board";
 import { LooseEndsBoard } from "@/app/(dev)/design/sandbox/loose-ends/board";
 import { PrivacyHeroBoard } from "@/app/(dev)/design/sandbox/privacy-hero/board";
@@ -41,10 +43,12 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   emails: { Component: EmailsBoard },
   "locked-door": { Component: LockedDoorBoard },
   "help-center": { Component: HelpCenterBoard },
+  "event-settings": { Component: EventSettingsBoard },
   "event-safety": { Component: EventSafetyBoard },
 
   "press-page": { Component: PressPageBoard },
   "contact-page": { Component: ContactPageBoard },
+  "disposable-mode": { Component: DisposableModeBoard },
   "album-motion": { Component: AlbumMotionBoard },
   "loose-ends": { Component: LooseEndsBoard },
   "privacy-hero": { Component: PrivacyHeroBoard },
