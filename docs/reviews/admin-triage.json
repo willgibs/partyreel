@@ -1,0 +1,65 @@
+{
+  "board": "admin-triage",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-28",
+      "answers": [
+        {
+          "ask": "look",
+          "choice": "split",
+          "note": "However, I don't believe these are our best ideas. I think some balance of this option plus option 3's review queue grid, but reshaped for better speed workflows (fast/batch handling) rather than slow, one at a time. Each report should provide all the context needed to handle or make a decision. I noticed in a few of your examples (\"my daughter...\", \"this person is faking me...\", etc) that while these reports warrant action if true, we may need some way to collect that proof (like email the reporter if needed). Otherwise, we risk taking down real media because of fake reports on the flip side of this. The report mechanism is truly meant for harmful content, not just a bad photo or something, to avoid wasting time at scale. I'll likely ignore/dismiss anything not clearly harmful without clear supporting proof, so our legal terms shouldn't imply every report leads to takedown without verifiable proof of harm.",
+          "by": "Will",
+          "at": "2026-09-28T22:39:03Z"
+        },
+        {
+          "ask": "reason",
+          "choice": "marked",
+          "by": "Will",
+          "at": "2026-09-28T22:39:03Z"
+        },
+        {
+          "ask": "verdict",
+          "choice": "note",
+          "by": "Will",
+          "at": "2026-09-28T22:39:03Z"
+        },
+        {
+          "ask": "closed",
+          "choice": "window",
+          "by": "Will",
+          "at": "2026-09-28T22:39:03Z"
+        },
+        {
+          "ask": "escalate",
+          "choice": "door",
+          "by": "Will",
+          "at": "2026-09-28T22:39:03Z"
+        },
+        {
+          "ask": "phone",
+          "choice": null,
+          "note": "Is this simply the mobile version of the question I just answered?",
+          "by": "Will",
+          "at": "2026-09-28T22:39:03Z"
+        },
+        {
+          "ask": "idiom",
+          "choice": "shape",
+          "by": "Will",
+          "at": "2026-09-28T22:39:03Z"
+        },
+        {
+          "ask": "notice",
+          "choice": "deleted",
+          "note": "No note to host, just removal - they'll likely assume a guest deleted an upload of their own. However, in the case of a report leading to media removal, it should be fully purged from the event, not moved to deleted. If there's CSAM uploaded and we immediately takedown from a guest report, the host shouldn't have that visible in their deleted, regardless of inability to recover.",
+          "by": "Will",
+          "at": "2026-09-28T22:39:03Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}
