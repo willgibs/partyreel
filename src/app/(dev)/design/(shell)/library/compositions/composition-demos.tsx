@@ -6,9 +6,10 @@ import { AdminRail } from "@/components/admin/admin-rail";
 import { HealthBand } from "@/components/admin/health-band";
 import { QueueList } from "@/components/admin/queue-list";
 import { FilterChips } from "@/components/app/dashboard/filter-chips";
-import { ReviewSection } from "@/components/app/event-feed/review-section";
-import { useReviewTriage } from "@/components/app/event-feed/use-review-triage";
+import { ReviewRoom } from "@/components/app/event-feed/review-room";
+import type { ReviewWrites } from "@/components/app/event-feed/use-review-triage";
 import { QrPresetPicker } from "@/components/app/qr-preset-picker";
+import { Button } from "@/components/ui/button";
 import type { QrStyleKey } from "@/lib/constants/qr-presets";
 import { buildOperatorQueue } from "@/lib/admin/queue";
 import type { FilterValue } from "@/lib/dashboard/filters";
@@ -50,21 +51,47 @@ export function QrPresetPickerDemo() {
   );
 }
 
-// The inline review section (the event feed's triage surface that replaced the pop-up takeover):
-// a hydration probe for the review island + its select mode. The bulk approve/hide need auth, so
-// they no-op (revert + toast) here; the value is the rendered grid + the select-mode choreography.
+// THE REVIEW ROOM, WHOLE AND INERT: the real room (its grid, the peek's verdict, the keys once a tile
+// has focus, the bar, the verdict's toast with its Undo) over writes that answer after the round trip
+// a real one costs and change nothing, so a reviewer here can never approve anyone's upload. "A guest
+// sends one" plays a server render that holds one more waiting upload, which is how the room's line
+// ("1 new") is seen without a live album behind it. Never claims a key pressed with nothing focused:
+// the Library holds other specimens, and a second copy (the light-and-dark split) would fight it.
+const ROUND_TRIP_MS = 320;
+const answered = () =>
+  new Promise<{ ok: true }>((resolve) =>
+    setTimeout(() => resolve({ ok: true }), ROUND_TRIP_MS),
+  );
+const DEMO_WRITES: ReviewWrites = {
+  approve: answered,
+  reject: answered,
+  undo: answered,
+};
+
 export function ReviewSectionDemo() {
-  const triage = useReviewTriage({
-    eventId: "demo",
-    items: SAMPLE_PENDING,
-    moderationOn: true,
-  });
+  const [items, setItems] = useState(SAMPLE_PENDING);
+  function guestSendsOne() {
+    setItems((prev) => {
+      const next = SAMPLE_MEDIA[prev.length % SAMPLE_MEDIA.length];
+      return [
+        { ...next, id: `arrived-${prev.length}`, status: "pending" as const },
+        ...prev,
+      ];
+    });
+  }
   return (
-    <ReviewSection
-      triage={triage}
-      onEnableModeration={() => {}}
-      enabling={false}
-    />
+    <div className="space-y-3">
+      <ReviewRoom
+        eventId="demo"
+        moderationOn
+        pendingItems={items}
+        writes={DEMO_WRITES}
+        claimPage={false}
+      />
+      <Button type="button" variant="ghost" size="sm" onClick={guestSendsOne}>
+        A guest sends one
+      </Button>
+    </div>
   );
 }
 

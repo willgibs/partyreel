@@ -219,6 +219,55 @@ export function hideBulk(eventId: string, mediaIds: string[]) {
   return bulkSetFromPending(eventId, mediaIds, "hidden");
 }
 
+/** The two states a review verdict lands in (approve, reject), so the two an Undo takes back. */
+export type ReviewVerdictStatus = "approved" | "hidden";
+
+/**
+ * UNDO FOR A REVIEW VERDICT (host-curation `undo=undo`): what an approve or a reject just decided
+ * goes back into the queue, `pending` again. The mirror of `bulkSetFromPending`, scoped the same
+ * narrow way: only rows still in the state the verdict put them in (`from`), so a crafted call
+ * moves nothing a host could not already move (RLS scopes it to their own events, where they may
+ * hide or show anything anyway), and a removed row never matches (nor could it leave the bin: the
+ * guard trigger refuses that). Whether the event still reviews is the action's check, before this.
+ */
+export async function returnToReview(
+  eventId: string,
+  mediaIds: string[],
+  from: ReviewVerdictStatus,
+): Promise<MutationResult<{ count: number }>> {
+  if (mediaIds.length === 0) return { ok: true, data: { count: 0 } };
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return UNAUTHORIZED;
+
+  try {
+    const rows = await inChunks(
+      "media: undo a review verdict",
+      mediaIds,
+      async (chunk) =>
+        (await mustQuery(
+          supabase
+            .from("media")
+            .update({ status: "pending" })
+            .eq("event_id", eventId)
+            .in("id", chunk)
+            .eq("status", from)
+            .select("id"),
+          "media: undo a review verdict",
+        )) ?? [],
+    );
+    return { ok: true, data: { count: rows.length } };
+  } catch {
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't put those back in Review. Please try again.",
+    };
+  }
+}
+
 /**
  * The GALLERY album bulk-select counterparts of setMediaStatus / removeMedia: the same
  * RLS-scoped, column-locked writes, batched with `.in('id', …)`. These act on the LIVE

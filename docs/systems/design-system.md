@@ -492,8 +492,10 @@ Its 5rem offset cannot read `--mkt-header-h`, which is scoped to `[data-mkt]`, a
   red for failure only. ★ The colours target sonner's `[data-sonner-toast][data-type]` with `!important`, because sonner
   injects a runtime `--normal-bg` rule that beats a class; verify a toast's computed background, not that the rule
   loaded.
-- The only helpers are `showErrorToast` and `showActionError` (`lib/errors/toast.ts`). `vitest.setup.ts` mocks sonner
-  globally; `vi.unmock("sonner")` is the escape.
+- The only helpers are `showErrorToast` and `showActionError` (`lib/errors/toast.ts`), and the one Undo,
+  `showUndoToast` (`shared/undo-toast.ts`): an act that already landed, named on its surface's one toast, whose Undo
+  puts the items back first and then reverses on the server. `vitest.setup.ts` mocks sonner globally for the component
+  project (a unit test mocks it itself); `vi.unmock("sonner")` is the escape.
 
 ## The arrival choreography ("Calm + 700ms")
 

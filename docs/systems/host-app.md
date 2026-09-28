@@ -247,19 +247,38 @@ beneath, newest first.
 `moderation_mode`.
 
 - **The Review room** reads and presigns the `pending` slice alone, whole; its states (pending, caught up, moderation
-  off with a one-tap "Turn on review", the all-caught-up beat) live in `use-review-triage.ts`. Its grid is the shared
-  `SelectableMediaGrid` on the uniform layout, because uniform tiles standardize the selection targets.
+  off with a one-tap "Turn on review", the all-caught-up beat) live in `use-review-triage.ts`, its pure rules in
+  `review-queue.ts`. Its grid is the shared `SelectableMediaGrid` on the uniform layout, because uniform tiles
+  standardize the selection targets and scan fast.
+- **The refusing verb is Reject at the door, Hide in the album**: a rejected upload lands `hidden` (dimmed in the host's
+  album, where Show approves it), the same row a Hide leaves; only the word differs. A tap opens the peek, which carries
+  the verdict (Reject, Approve) under the photograph at every width and moves on to the next upload once one is
+  decided. ★ **The keys** (`review-keys.ts`): arrows move a focused tile, Enter approves, Backspace or Delete rejects,
+  Space peeks; no hint row, only the verdict buttons' tooltips (and a screen reader's line) say so. They act only on a
+  tile, in the peek, or (the room's page alone) with nothing focused, never on another control, and never give a verdict
+  on a selection.
 - **The bulk controls live once, in the room's header, in both modes** (`review-actions.tsx`), which never goes empty,
-  or a host mid-selection loses Hide, Approve and Cancel. Approve all needs no confirm: it sends the queue's own ids
-  through `approveBulkAction` in consecutive batches of 2,000, so a host approves exactly what they saw, at any size.
+  or a host mid-selection loses Reject, Approve and Cancel. Approve all needs no confirm: it sends the queue's own ids
+  through `approveBulkAction` in consecutive batches of 2,000, so a host approves exactly what they saw, at any size. A
+  verdict never waits on another: only an upload whose own verdict is in the air refuses a second press.
+- ★ **Every verdict's toast carries Undo** (`shared/undo-toast.ts`, the product's one Undo; one toast per surface, a later
+  act's replacing it). Undo puts the uploads back in place, then `returnToReviewAction` returns them to `pending` from
+  the state that verdict left (`returnToReview`, scoped to it), refused once the event stopped reviewing. Review's verbs
+  revalidate nothing: a revalidating action refreshes the route that called it, which re-ran the room's page per key.
+- ★ **The room is live, on the hub's own signal**: the page seeds `HostAlbumProvider` as the hub does (the manifest, no
+  links) and `review-live.ts` reads the queue off it, so an arrival reaches the room when it reaches the hub's Review
+  card. It never joins the grid on its own: a line above the grid counts it ("3 new") and a tap folds it in at the head.
+  An upload decided elsewhere or taken back leaves the grid; one the room acted on never does, its own write being its
+  truth against a poll read before that write (or its Undo) landed.
 - **Turning moderation off with a queue** confirms with the count, and on save `approveAllPending` runs: the modal is the
   host's consent, the server the invariant (live mode never holds pending media).
-- **Clearing the last pending item plays the beat**, during which the just-approved photographs are preloaded: their
-  stable presigned URLs recur byte-identical in the album, so it paints from cache.
+- **Clearing the last pending item plays the beat** (unless uploads wait behind the line), during which the
+  just-approved photographs are preloaded: their stable presigned URLs recur byte-identical in the album, so it paints
+  from cache.
 - **Tiles render through the shared `MediaTile`, never `next/image`**, whose optimizer 400s on short-lived presigned R2
   URLs.
 - **The review pair `approveBulk` and `hideBulk` are scoped to `status='pending'`**, so a crafted call cannot flip
-  other media. **Remove is soft** (`status='removed'` and `removed_at`): it frees storage at once, and the cron reclaims
+  other media; Undo's `returnToReview` is scoped to the state its verdict left. **Remove is soft** (`status='removed'` and `removed_at`): it frees storage at once, and the cron reclaims
   after the recovery window ([lifecycle-recovery.md](lifecycle-recovery.md)).
 - **The host's tile verbs are a fixed three: like, download, hide/show** (one slot whose glyph swaps in place; the pane
   is [design-system.md](design-system.md)'s album tile). Delete is deliberately not a tile verb: a fan on a dense grid is
