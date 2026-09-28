@@ -95,6 +95,17 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
 
      Its spec was drafted this session: owns `src/components/admin/`, `report-review`, `recently-deleted-grid`, the
      report help, and a migration.
+   - `help-wiring` (Opus), from his help-center r1 (`docs/reviews/help-center.json`, all seven), cut after
+     `voice-wiring` merges (the refused row and the name menu are its paths until then):
+     - `who-first=host`;
+     - `hub=strip`, the quick questions dropping from the focused search;
+     - `article=screen`;
+     - `from-product=contextual`, plus a Help row in the guest's and the host's menus;
+     - `feedback=beacon`: a rate-limited insert, never read back, an admin view with its health signal, a migration;
+     - `dead-end=rung`;
+     - `search=visible`: Search rows in the header and footer; the help palette never mounts in admin.
+
+     Retires help-center.
 3. **Build 16** once wave A's boards land. Its red-team:
    - the block, live (partyr33l blocked at a willg97 test event, then let back in with and without restore);
    - the pricing, if it has landed;
