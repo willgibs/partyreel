@@ -42,6 +42,8 @@ a lane").
 | --- | --- | --- | --- | --- |
 | `safety-wiring` | event-safety's answers: the per-event block (a migration to apply), soft in every look, the private door, the Guests room's Blocked list, Let back in with a restore toggle; the guest list always on; event-safety retires | running, agent `a976ee6de796172b4` | Opus, :3134 | |
 | `pricing-wiring` | host-storage `prices=sizes` on a monthly/yearly toggle with a yearly tag, iPhone-default estimates, his free/pro shift (Free 100 MB, 300 MB meter; password, custom link with a squatting guard, 60 s reels to Free); `tier_limits()` migration to apply; host-storage retires | running, agent `ad560f85ada04d064` | Opus, :3132 | |
+| `triage-r2` | admin-triage r2: a fast, batch-first reports queue with each report's whole context, asking a reporter for proof, `phone` reworded | running, agent `aa87a69da46b9875a` | Opus, :3131 | |
+| `voice-wiring` | voice-guest r2: held photos only in her uploads, "Waiting for approval" / "Not approved", "Keep this event" (the name menu's card too), his host note in Review; the review room's `known` bug; voice-guest retires | running, agent `a835a78fe41672676` | Opus, :3133 | |
 
 Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcribed at `69afdbc5`: 21 answers on
 hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
@@ -67,14 +69,6 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
        over-cap grace path checked at 100 MB.
 
      Retires host-storage.
-   - `voice-wiring` (Opus):
-     - `held=uploads` (no held tile at the album's head);
-     - `status=approval` ("Waiting for approval", "Not approved");
-     - `keep=warm` ("Keep this event", on the name menu's card too);
-     - his host note (a quiet line in Review that an approved photo can always be hidden later);
-     - plus ROADMAP's review-room `known` bug and the admin confirm's "already says" line.
-
-     Retires voice-guest.
    - `export-wiring` (Opus):
      - `means=mine`: the Yours row, filtered on the server;
      - `wait=toast`: it stays until ready, with a subtle cancel × (`stuck`);
@@ -86,6 +80,21 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
      app, proved by a test; I deploy it after the merge (`wrangler whoami` first). Retires export-flow.
    - `hero-wiring` (Opus): the `guests` card with `partyreel.com/` quieter so the slug leads, the bloom light, the
      tablet table; `ASSETS.md` row 34 becomes four portraits. Retires hero-card.
+   - `triage-wiring` (Opus), from his admin-triage r1 (`docs/reviews/admin-triage.json`):
+     - `reason=marked` (one muted line for both arms);
+     - `verdict=note` (Remove through the one confirm with an optional note, Dismiss's note, `resolution_note` written);
+     - `closed=window`;
+     - `escalate=door`;
+     - `idiom=shape`;
+     - `notice=deleted` built as his note refines it: a reported removal leaves the host's album and Deleted at once,
+       with nothing said; the event's copy purged on a sweep, never while a legal hold stands; the preservation copy
+       and the CSAM runbook's order kept;
+     - the admin confirm's "already says" line in voice-wiring's new words;
+     - report wording for the Terms and Privacy drafted under Questions (his "legal terms shouldn't imply every report
+       leads to takedown").
+
+     Its spec was drafted this session: owns `src/components/admin/`, `report-review`, `recently-deleted-grid`, the
+     report help, and a migration.
 3. **Build 16** once wave A's boards land. Its red-team:
    - the block, live (partyr33l blocked at a willg97 test event, then let back in with and without restore);
    - the pricing, if it has landed;
