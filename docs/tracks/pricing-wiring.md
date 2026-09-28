@@ -53,6 +53,11 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - content/blog/group-trip-photo-sharing.mdx
   - content/blog/highlight-reel-renders-on-your-phone.mdx
   - content/blog/AUTHORING.md
+  - src/lib/events/gallery-reel.test.ts
+  - src/lib/events/gallery-access.server.test.ts
+  - src/app/(marketing)/(cinema)/how-it-works/page.tsx
+  - content/help/your-public-profile-following-and-blocking.mdx
+  - src/components/social/profile-slug-control.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/host-storage.json
   - docs/systems/billing-caps.md
