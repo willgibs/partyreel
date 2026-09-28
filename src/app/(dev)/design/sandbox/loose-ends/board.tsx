@@ -9,8 +9,6 @@ import type { PreviewsFor } from "@/components/lab/exploration";
 import { type CastId, ChartCastDemo } from "./chart-cast";
 import { type FaqLookId, FaqLookPanel, type FaqSourceId } from "./faq-look";
 import { GettingInPace } from "./getting-in-pace";
-import { type HeroTabletOption, tableForOption } from "./hero-tablet-engine";
-import { TabletHero } from "./hero-tablet";
 import { EverywherePill } from "./everywhere-pill";
 import { ReviewPhoto } from "./review-photo";
 import { LOOSE_ENDS } from "./spec";
@@ -19,7 +17,7 @@ import { LOOSE_ENDS } from "./spec";
  * THE PREVIEWS, and nothing else: every option is the real component (or the
  * one-prop copy the manifest's Handoff says why a copy exists) at a real
  * size. Decisions drawn at two widths reuse the same small `Widths` helper
- * everywhere so a reviewer meets one convention, not six.
+ * everywhere so a reviewer meets one convention, not one per decision.
  */
 
 /** Two real viewports, one above the other (album-page's own pattern): 1440
@@ -77,19 +75,7 @@ function faqPreviewFor(look: FaqLookId, s: BoardState) {
   );
 }
 
-/* ── 3. The home hero between 768 and 1023 ────────────────────────────────── */
-
-const heroPreview = (option: HeroTabletOption) => {
-  const table = tableForOption(option);
-  const h = Math.round(table.axisMin + table.below);
-  return (
-    <Frame id={`le-hero-${option}`} w={900} h={h} title="900">
-      <TabletHero option={option} />
-    </Frame>
-  );
-};
-
-/* ── 4. The phone's screen cycle ──────────────────────────────────────────── */
+/* ── 3. The phone's screen cycle ──────────────────────────────────────────── */
 
 const HOLD_MS: Record<string, number> = {
   today: 3200,
@@ -106,7 +92,7 @@ const phonePacePreview = (option: keyof typeof HOLD_MS) => (
   />
 );
 
-/* ── 5. The Live | Review photograph ──────────────────────────────────────── */
+/* ── 4. The Live | Review photograph ──────────────────────────────────────── */
 
 const REVIEW_PHOTO: Record<string, string> = {
   today: "wedding-toast",
@@ -123,7 +109,7 @@ const reviewPhotoPreview = (option: keyof typeof REVIEW_PHOTO) => (
   />
 );
 
-/* ── 6. The lightbox pill ──────────────────────────────────────────────────── */
+/* ── 5. The lightbox pill ──────────────────────────────────────────────────── */
 
 const pillPreview = (pill: "none" | "corner" | "sweep") => (
   <Widths
@@ -147,10 +133,6 @@ const PREVIEWS: PreviewsFor<typeof LOOSE_ENDS> = {
   "faq-look.card": (s) => faqPreviewFor("card", s),
   "faq-look.shared": (s) => faqPreviewFor("shared", s),
   "faq-look.heading": (s) => faqPreviewFor("heading", s),
-
-  "hero-tablet.today": heroPreview("today"),
-  "hero-tablet.tablet": heroPreview("tablet"),
-  "hero-tablet.early": heroPreview("early"),
 
   "phone-cycle.today": phonePacePreview("today"),
   "phone-cycle.beat": phonePacePreview("beat"),

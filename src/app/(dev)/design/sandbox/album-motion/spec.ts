@@ -1,45 +1,46 @@
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * THE FALLING-IN, NOW FOUR WAYS (2026-09-19; a fourth added 2026-09-24).
+ * THE FALLING-IN, FIVE WAYS (2026-09-19; a fourth 2026-09-24; a fifth and the
+ * album in rows 2026-09-28).
  *
  * Will, on the album page's hero: "I love the images falling into the album. I
  * was just curious to see maybe two to three variations of this concept to get
  * an idea of what the best version is. No specific direction on what
  * improvement means here yet." So this is one decision and nothing else, drawn
- * on the WIRED hero rather than on a mock of it: the shipped version is one of
- * the four, and his pick is a one-word change to `SHIPPED` in
- * `stream-engine.ts`.
+ * on the hero rather than argued: the shipped fall is one of the five.
  *
  * ★ EACH ONE IS A DIFFERENT ANSWER, NOT A DIFFERENT NUMBER. With no direction
  * on what improvement means, options a notch apart would waste the sitting, so
  * each varies on several axes at once: the arc of the fall, the size at birth
  * against the size at the landing, how often a photograph arrives and whether
  * it comes alone, and what happens at the moment it meets the album.
- * `stream-engine.test.ts` refuses two that draw the same thing.
+ * `stream-engine.test.ts` refuses two of the engine's four that draw the same
+ * thing.
  *
  * ★ EVERY NUMBER UNDER A TILE IS MEASURED, never claimed: the caption on each
- * frame is the engine's own reading of the composition it is drawing, against
- * the home hero's, which is the reference Will named ("home hero currently
- * feels perfect").
+ * frame is the engine's own reading of the composition it is drawing (the
+ * push's is read the same way, `push-engine.ts`), against the home hero's,
+ * which is the reference Will named ("home hero currently feels perfect").
  *
- * ★ THE OVERTAKEN AUDIT'S REDRAW (2026-09-21). The premise that motivated
- * `glide`'s recommendation ("the ALBUM is what acts") predates a fact the
- * product has since answered TWICE (guest-shape r1, guest-upload r1): a real
- * arrival grows into its column under a glow that fades, everywhere a
- * photograph lands. The three original trips were re-argued against that
- * shipped truth, and the honest read moved the recommendation from `glide` to
- * `cascade`, the one whose own numbers already grow-then-fade in place.
+ * ★ GRADED AGAINST THE PUSH, THE ALBUM'S ARRIVAL SINCE MILESTONE 29 (the
+ * marketing refresh). The earlier rounds graded the falls against "a real
+ * arrival grows into its column under a fading glow" (guest-shape r1,
+ * guest-upload r1), which is what moved the recommendation from `glide` to
+ * `cascade` and drew `bloom` for it. Milestone 29 replaced that grammar in both
+ * albums with album-columns r2's `arrival=push` (album-rows `30ac9b74`,
+ * album-window `eefe54d7`, `arrival.css`): a new photograph opens its row from
+ * its left edge, clipped and never scaled, its neighbours gliding aside, and
+ * only its glow fades. Against that, growing, shrinking and fading are all
+ * things a real arrival no longer does, and none of the four reaches the album
+ * at all: each is gone at its edge. So a fifth, `push`, is drawn for the
+ * grammar itself: it goes in over the album's head, and the album's first row
+ * opens for it.
  *
- * ★ THE REFRESH'S OWN PASS (2026-09-24): A FOURTH, DRAWN FOR THE FADE RULE
- * RATHER THAN A RESCORE. Flipping the recommendation between three trips that
- * all predate the fade rule answers "which reads truest of these three", not
- * "what does a fall built for the rule actually look like". `bloom` is that
- * build: born smaller and grown larger by its landing than any of the other
- * three, on a slower beat that gives each arrival room to be noticed, holding
- * longest before it fades, and lit by the same glow a real tile wears
- * (`arrival.css`'s rim and wash, ridden on the frame's own opacity rather than
- * animated a second time). His to overrule either way; `glide` still ships
+ * ★ AND THE ALBUM UNDER THEM IS THE ONE THE PRODUCT HAS. The shipped hero's
+ * stage still draws `GuestMasonry`, which both albums dropped for the rows, so
+ * every option now stands on the stage laid out in rows (`rows-hero.tsx`), and
+ * the stage's swap is named in `lands` whichever fall wins. `glide` still ships
  * until he answers.
  */
 export const ALBUM_MOTION = defineExploration({
@@ -47,53 +48,79 @@ export const ALBUM_MOTION = defineExploration({
   title: "Album motion",
   round: {
     n: 1,
-    date: "2026-09-24",
+    date: "2026-09-28",
     changed:
-      "A fourth option, bloom, built for the fade rule rather than a rescore: born smaller and grown larger than any of the first three, holding longest, lit by the product's own arrival glow. Cascade stood truest among the first three; bloom now tells it fullest. glide is still what ships.",
+      "Re-graded against the push (album-columns r2's arrival=push, in both albums since milestone 29): a fifth fall, push, goes in over the album's head and opens its row; all five now stand on the album in rows, as the real one is. Bloom was drawn for the fade rule the push replaced. Glide still ships.",
   },
   context:
-    "The album page's hero now stands on the live guest album with photographs falling out of the room around the words and into its top edge, which you asked for (`motion=stream`). This asks the one thing that was left open: which fall.",
+    "The album page's hero stands on the live guest album with photographs falling out of the room around the words into its top edge, which you asked for (`motion=stream`). This asks the one thing left open: which fall. The album itself now lays out in rows and takes a new photograph by opening its row, so every option is drawn on that album, over production's own falls.",
+  // The two calls the push and its stage rest on, taken by the marketing
+  // refresh on its own recommendation (its manifest's Questions).
+  carried: [
+    {
+      id: "side",
+      question: "Which side does the push draw its photographs from?",
+      taken:
+        "The head's only: a newest-first album opens top left, so every frame lands over the head; one born on the right would cross under the words to get there.",
+      overrule:
+        "Both sides, every frame still opening the head: balanced, but a right-hand photograph goes in on the right and reappears on the left.",
+    },
+    {
+      id: "rows",
+      question: "What does the stage's album lay out as?",
+      taken:
+        "The guest album's rows, laid plain: its rhythm leads a row now and then with a landscape at twice the height, which on a stage two rows tall is one photograph.",
+      overrule:
+        "The rhythm on, as a guest's album has it: now and then a single landscape fills the stage, and a push can open a double-height row.",
+    },
+  ],
   asks: [
     {
       id: "fall",
       label: "The fall",
       question:
-        "Which of the four tells the album's real arrival truly on the hero?",
+        "Which of the five tells the album's real arrival truly on the hero?",
       context:
-        "All four share the home hero's own speed. Since, a photograph's real arrival everywhere it lands grows into its column under a fading glow (guest-shape r1, guest-upload r1); bloom is drawn for that rule, not re-scored against it.",
+        "Since milestone 29 a new photograph opens its row from its left edge, clipped and never scaled, its neighbours gliding aside and only a glow fading (arrival=push). All five keep the home hero's pace; the live stage still draws masonry.",
       lands:
-        "The album page's hero, and the engine's shipped default, which is the one line that changes.",
+        "stream-engine.ts: SHIPPED for the first four, a push recipe with an arrival hook for the fifth; either way the hero's stage moves to the rows.",
       options: [
         {
           id: "glide",
           label: "Glide: a pair, sliding under the edge",
           means:
-            "Two every 1250ms, falling almost straight, born at 0.86 scale and barely growing to 1. Slides under the edge with no fade: gone, not handed over.",
+            "Two every 1250ms, born at 0.86 scale and barely growing, sliding under the edge and gone: nothing fades, as in the push, but the album never takes it in.",
         },
         {
           id: "gather",
           label: "Gather: drawn in and dissolving",
           means:
-            "The same pair and clock, born LARGER (1.08) than it lands (0.74): it shrinks, not grows, dissolving at the edge over its last stretch.",
+            "The same pair and clock, born larger (1.08) than it lands (0.74): it shrinks and dissolves at the edge, the two things a real arrival no longer does.",
         },
         {
           id: "cascade",
           label: "Cascade: one at a time, landing",
           means:
-            "One every 625ms, alone: born smallest (0.62), grows to its biggest (1.1) landing, holds on the edge, and fades there. The truest of the first three.",
+            "One every 625ms, grown 0.62 to 1.1, landing on the edge to hold and fade there: the grow-and-fade arrival the push replaced, told truest.",
         },
         {
           id: "bloom",
           label: "Bloom: arriving, lit from within",
           means:
-            "One every 1875ms, the slowest of the four: born and grown furthest of all (0.5 to 1.15), holding longest, glowing where it lands like a real tile.",
+            "One every 1875ms, grown furthest (0.5 to 1.15) and lit by the arrival's own glow, then fading on the edge: the glow is the push's; the growth and fade are not.",
+        },
+        {
+          id: "push",
+          label: "Push: it goes in and opens its row",
+          means:
+            "One every 1875ms, from the head's side only and never scaled; half through the edge over the head, the album's first row opens for it and only its glow fades.",
         },
       ],
-      recommended: "bloom",
+      recommended: "push",
       because:
-        "The rule is grow into place under a glow that fades. Cascade already told the shape truest of the first three; bloom adds the glow itself plus the widest birth-to-landing growth and the longest hold, so the arrival reads as a moment, not a blip.",
+        "It is the album's own arrival, so the hero shows the album working rather than a picture of it: the photograph goes in, and the row opens for it clipped, never scaled, one glow at a time. Of the four before it, glide comes closest (nothing fades), but its album never changes.",
       overrule:
-        "If the album's own agency matters more than the real arrival, glide already ships today; if a lit tile is too much, cascade keeps the growth with no glow.",
+        "If the hero should stay symmetric with its album still, glide already ships: pairs from both sides, nothing under the words moving.",
     },
   ],
 });
