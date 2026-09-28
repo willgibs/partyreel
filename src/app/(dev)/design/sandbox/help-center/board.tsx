@@ -17,13 +17,13 @@ import { type WhoFirstShape, WhoFirstPreview } from "./who-first";
 
 /**
  * THE PREVIEWS: every option is the real help pieces (`PageHero`,
- * `CategoryEmblem`, `HelpFactsBand`-adjacent fixtures, `ChipToc`/`ArticleToc`,
- * `Checklist`, `ArticleFeedback`, `ReportDialog`, `HelpPaletteProvider` +
- * `HelpSearchTrigger`) or a hand-authored one-prop copy where the real
- * component takes no prop for what is being varied, drawn at both 1440 and
- * 375 (the contact-page and press-page convention: two real iframes,
- * stacked, so a Tailwind breakpoint resolves against the width being
- * judged).
+ * `CategoryEmblem`, `HelpFactsBand`, `ChipToc`/`ArticleToc`, `Checklist`,
+ * `ArticleFeedback`, `HelpPaletteProvider` + `HelpSearchTrigger`), the guest
+ * door's own pieces (`door-screens.tsx`), or a copy with its classes quoted
+ * where the real component takes no prop for what is being varied or would
+ * portal out of its tile, drawn at both 1440 and 375 (the contact-page and
+ * press-page convention: two real iframes, stacked, so a Tailwind breakpoint
+ * resolves against the width being judged).
  */
 function Widths({
   id,
@@ -77,13 +77,14 @@ const whoFirstPreview = (shape: WhoFirstShape) => (
 /* ── 2. The hub (staged after who-first) ─────────────────────────────── */
 
 // Measured against the real rendered iframes (`contentDocument.scrollHeight`),
-// never guessed: `hybrid`'s desktop frame ran 48 px taller than its first
-// declared height, which the demo gate's pixel diff missed but a real read
-// of the DOM caught (PROGRAM.md, "measure every tile before it ships").
+// never guessed (PROGRAM.md, "measure every tile before it ships"): each is
+// the whole page, hero to the dark close, at that width, under who-first's
+// tallest hero (`context`, its device line; `host` runs ~40px shorter and
+// `split` ~150px, which the frame's foot absorbs).
 const HUB_H: Record<HubShape, { d: number; p: number }> = {
-  sheet: { d: 2150, p: 3550 },
-  doors: { d: 1350, p: 1950 },
-  hybrid: { d: 2610, p: 4200 },
+  strip: { d: 4800, p: 8510 },
+  hybrid: { d: 5230, p: 9690 },
+  doors: { d: 2510, p: 4280 },
 };
 
 // A named function, never a factory RETURNING an arrow (the `react/display-name`
@@ -96,7 +97,11 @@ function hubScreen(shape: HubShape, state: BoardState) {
       desktopH={HUB_H[shape].d}
       phoneH={HUB_H[shape].p}
       render={(mode) => (
-        <HubPreview shape={shape} mode={mode} whoFirst={whoFirstOf(state["who-first"])} />
+        <HubPreview
+          shape={shape}
+          mode={mode}
+          whoFirst={whoFirstOf(state["who-first"])}
+        />
       )}
     />
   );
@@ -104,14 +109,12 @@ function hubScreen(shape: HubShape, state: BoardState) {
 
 /* ── 3. The article ───────────────────────────────────────────────────── */
 
-// Measured the same way: the identity recheck's three added steps (name,
-// confirm, first photo, 2026-09-22) pushed every shape taller again — prose
-// +220/+40, checklist +310/+198, and `screen`'s three new illustrations the
-// most, desktop +756 px, phone +2072 px.
+// Measured the same way: the stage and the article's whole body, so `screen`
+// pays for its seven screens at their real size in both widths.
 const ARTICLE_H: Record<ArticleShape, { d: number; p: number }> = {
-  prose: { d: 1370, p: 1790 },
-  checklist: { d: 1410, p: 1898 },
-  screen: { d: 2326, p: 5052 },
+  prose: { d: 2740, p: 3600 },
+  checklist: { d: 2780, p: 3730 },
+  screen: { d: 4650, p: 6220 },
 };
 
 const articlePreview = (shape: ArticleShape) => (
@@ -125,10 +128,12 @@ const articlePreview = (shape: ArticleShape) => (
 
 /* ── 4. From the product ─────────────────────────────────────────────── */
 
+// Measured the same way: the three surfaces side by side at a desk, stacked
+// full width in a hand, where `contextual`'s sheet line adds its 40px.
 const PRODUCT_H: Record<ProductShape, { d: number; p: number }> = {
-  none: { d: 280, p: 300 },
-  menu: { d: 340, p: 360 },
-  contextual: { d: 280, p: 300 },
+  none: { d: 630, p: 1540 },
+  menu: { d: 630, p: 1540 },
+  contextual: { d: 630, p: 1580 },
 };
 
 const fromProductPreview = (shape: ProductShape) => (
@@ -136,7 +141,7 @@ const fromProductPreview = (shape: ProductShape) => (
     id={`from-product-${shape}`}
     desktopH={PRODUCT_H[shape].d}
     phoneH={PRODUCT_H[shape].p}
-    render={() => <FromProductPreview shape={shape} />}
+    render={(mode) => <FromProductPreview shape={shape} mode={mode} />}
   />
 );
 
@@ -196,9 +201,9 @@ const PREVIEWS: PreviewsFor<typeof HELP_CENTER> = {
   "who-first.split": whoFirstPreview("split"),
   "who-first.context": whoFirstPreview("context"),
 
-  "hub.sheet": (s) => hubScreen("sheet", s),
-  "hub.doors": (s) => hubScreen("doors", s),
+  "hub.strip": (s) => hubScreen("strip", s),
   "hub.hybrid": (s) => hubScreen("hybrid", s),
+  "hub.doors": (s) => hubScreen("doors", s),
 
   "article.prose": articlePreview("prose"),
   "article.checklist": articlePreview("checklist"),

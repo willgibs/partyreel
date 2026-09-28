@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import type { MouseEvent, ReactNode } from "react";
+import type { FormEvent, MouseEvent, ReactNode } from "react";
 import { useState } from "react";
 
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
@@ -36,6 +36,18 @@ import { marketingImage } from "@/lib/constants/marketing-media";
  *  privacy-hero precedent: `onClickCapture` on the option's own root). */
 export function stopLinks(e: MouseEvent) {
   if ((e.target as HTMLElement).closest?.("a[href]")) e.preventDefault();
+}
+
+/**
+ * And a Send inside one is looking too. The real `ContactForm` is mounted
+ * live wherever a preview draws it, so a reviewer who filled it in and
+ * pressed Send would write a real `contact_submissions` row and mail the
+ * inbox. Stopped in the capture phase, before react-hook-form's own
+ * `onSubmit` hears it: the form still takes typing, and never sends.
+ */
+export function stopSubmits(e: FormEvent) {
+  e.preventDefault();
+  e.stopPropagation();
 }
 
 /** The field grammar contact-form.tsx uses on the gray panel: fields read

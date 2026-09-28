@@ -1,9 +1,9 @@
 ---
 title: An upload won't finish
-description: "A stuck upload is almost always the connection: tap the dimmed tile to retry. A refused one tells you why (too large, wrong type, uploads closed). Big videos need a steady connection and time."
+description: "Almost always the connection: retry from the sheet that lists what didn't go. A refused file tells you why (too large, wrong type, uploads closed). Big videos need a steady connection and time."
 category: troubleshooting
 order: 2
-updated: "2026-09-01"
+updated: "2026-09-28"
 keywords:
   - upload stuck
   - upload failed
@@ -15,11 +15,11 @@ keywords:
   - session expired
 ---
 
-Uploads go one file at a time, and each one either lands with a green check or turns dim with <UiLabel>Tap to retry</UiLabel>. The message on the toast tells you which of these it is.
+Uploads go one file at a time, and each one lands with a green check. Once the rest are done, a sheet lists any that didn't go, each with its message and <UiLabel>Retry</UiLabel>; the message tells you which of these it is.
 
 ## It's stuck or dimmed, no reason given
 
-- <UiLabel>Your connection dropped. Check your signal and try again.</UiLabel> Venue wifi and crowded rooms do this. Tap the tile to retry; one retry usually finishes it. If wifi is hopeless, switch to mobile data.
+- <UiLabel>Your connection dropped. Check your signal and try again.</UiLabel> Venue wifi and crowded rooms do this. Retry it from the sheet; one retry usually finishes it. If wifi is hopeless, switch to mobile data.
 - <UiLabel>Something went wrong with that upload. Please try again.</UiLabel> A transient hiccup; retry.
 - **A very large video** uploads in pieces and needs to finish within a couple of hours of starting. Keep the browser open and in front until the check appears; a phone that locks for an hour mid-upload may need to start that file again.
 

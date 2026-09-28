@@ -8,7 +8,7 @@ import { PageHero } from "@/components/marketing/system/page-hero";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { REPLY_LINE } from "@/lib/constants/contact";
 
-import { Stationery, stopLinks } from "./pieces";
+import { Stationery, stopLinks, stopSubmits } from "./pieces";
 
 /**
  * DECISION 1: THE WAY IN. Does reaching a person require a form at all?
@@ -35,7 +35,11 @@ function Hero() {
 
 export function ReachPreview({ shape }: { shape: ReachShape }) {
   return (
-    <div onClickCapture={stopLinks} className="bg-background text-foreground">
+    <div
+      onClickCapture={stopLinks}
+      onSubmitCapture={stopSubmits}
+      className="bg-background text-foreground"
+    >
       <Hero />
       <SectionShell reveal="none" className="border-b">
         {shape === "routed" && (
@@ -58,8 +62,8 @@ export function ReachPreview({ shape }: { shape: ReachShape }) {
           <div className="mx-auto flex max-w-xl flex-col items-center gap-6 text-center">
             <h2 className="font-heading text-prose">Write to us directly</h2>
             <p className="max-w-md text-pretty text-muted-foreground">
-              No form, no topic to pick: one address, and a promise on how
-              long a reply takes.
+              No form, no topic to pick: one address, and a promise on how long
+              a reply takes.
             </p>
             <div className="w-full max-w-sm text-left">
               <ContactFacts />
