@@ -53,12 +53,12 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
 
 ## Next, in order
 
-1. **Wave A lands** (rows above), each integrated as it hands off.
+1. **Integrate each running lane as it hands off** (rows above; wave A's three boards are merged).
    - `safety-wiring`'s migration by protocol: drift check, apply verbatim, the rolled-back refusals, advisors, types.
    - At its record, delete `docs/reviews/event-safety.json`.
-   - New boards go into `DESK_ORDER` after the standing ones (help-center, emails, contact-page are their neighbours).
-2. **Wave B into each free seat**, in this order (his answers are in the ledgers; each brief carries his notes):
-   - `pricing-wiring` (Opus):
+   - `pricing-wiring`'s and every later migration the same way, one at a time.
+2. **Wave B into each free seat**, in this order (his answers are in the ledgers; each brief carries his notes). `pricing-wiring`
+   is already running; its scope, for the record:
      - host-storage `prices=sizes` with a monthly/yearly toggle and a discount tag on yearly, each card only its size;
      - estimates from iPhone's default photo and video settings, said as such (`tiers.ts`' constants feed /pricing, the
        plan sheet and the blog);
@@ -116,7 +116,7 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
 
    Drafted specs for the queued lanes are in this session's scratchpad (`specs/<track>.json`); a new session writes
    them from the lines above.
-4. **His paste** (build 15's 38 open, then build 16's new boards) transcribed; the join doors (`newcomer=same`,
+4. **His paste** (build 16's 48 open asks) transcribed; the join doors (`newcomer=same`,
    `unlisted=ask`) are built after `event-settings` picks how "who can join" is set.
 5. **Milestone 30** on his yes, once his legal wording is in (the private count; the guest list always on); after it,
    `kit/`'s screens re-captured from partyreel.com (the home's hero, close, teaser and eyebrow, the demo's doors, the
@@ -131,8 +131,8 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
 ## Waiting on Will
 
 - **His desk, first** (his aim: zero open questions before the to-dos below, which stay stacked until then): build
-  15's 38 open asks (help-center, emails, privacy-hero, album-motion, loose-ends, contact-page, press-page), then
-  build 16's new boards.
+  16's 48 open asks (emails, privacy-hero, album-motion, loose-ends, contact-page, press-page; new: event-settings,
+  locked-door, disposable-mode); admin-triage r2 follows.
 - **His legal wording for the guest list, always on** (with the private count's, before milestone 30): `safety-wiring`
   drafts it under its Questions.
 - **A yes on dropping `events.show_guest_list`** (destructive), once no build reads it.
@@ -151,9 +151,10 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
   change: "A profile with nothing on it may say how many events it keeps private, counting only events whose guest
   lists the visitor can already see."
 - **A 2-minute real-upload check on the alias**: a first photo, landscape, as a signed-out guest at a held-uploads
-  event (the keep, "waiting for the host" on a head slot the photo now covers, the tracker's badge), then Confirm your
+  event (the keep; her uploads' "Waiting for approval" and the tracker's badge, with no held tile at the album's head
+  once `voice-wiring` lands), then Confirm your
   email (the one beat, the told name's Change).
 - **A 10-second iPhone check on partyreel.com**: one tap on Save opens the system sheet, and a shared photo arrives as
   a photograph.
 - **A copy call**: the setup's "Showing on your page" over an event whose host keeps the guest list off (ROADMAP's
-  picker line).
+  picker line). It retires once `safety-wiring` makes the guest list always on.
