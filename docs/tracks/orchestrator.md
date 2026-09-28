@@ -43,13 +43,12 @@ a lane").
 | `safety-wiring` | event-safety's answers: the per-event block (a migration to apply), soft in every look, the private door, the Guests room's Blocked list, Let back in with a restore toggle; the guest list always on; event-safety retires | running, agent `a976ee6de796172b4` | Opus, :3134 | |
 | `pricing-wiring` | host-storage `prices=sizes` on a monthly/yearly toggle with a yearly tag, iPhone-default estimates, his free/pro shift (Free 100 MB, 300 MB meter; password, custom link with a squatting guard, 60 s reels to Free); `tier_limits()` migration to apply; host-storage retires | running, agent `ad560f85ada04d064` | Opus, :3132 | |
 | `triage-r2` | admin-triage r2: a fast, batch-first reports queue with each report's whole context, asking a reporter for proof, `phone` reworded | running, agent `aa87a69da46b9875a` | Opus, :3131 | |
-| `voice-wiring` | voice-guest r2: held photos only in her uploads, "Waiting for approval" / "Not approved", "Keep this event" (the name menu's card too), his host note in Review; the review room's `known` bug; voice-guest retires | running, agent `a835a78fe41672676` | Opus, :3133 | |
 
 Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcribed at `69afdbc5`: 21 answers on
 hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
 Wave B follows as seats free. Batch 6 (sixteen lanes) is merged whole; its records carry the rest.
 
-Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings.
+Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring.
 
 ## Next, in order
 
@@ -95,8 +94,8 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
 
      Its spec was drafted this session: owns `src/components/admin/`, `report-review`, `recently-deleted-grid`, the
      report help, and a migration.
-   - `help-wiring` (Opus), from his help-center r1 (`docs/reviews/help-center.json`, all seven), cut after
-     `voice-wiring` merges (the refused row and the name menu are its paths until then):
+   - `help-wiring` (Opus), from his help-center r1 (`docs/reviews/help-center.json`, all seven); `voice-wiring` merged
+     at `dbba6a0e`, so the refused row and the name menu are its paths now:
      - `who-first=host`;
      - `hub=strip`, the quick questions dropping from the focused search;
      - `article=screen`;
