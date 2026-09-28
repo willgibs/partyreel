@@ -42,7 +42,8 @@ Build 13's desk: 71 open asks on 13 boards, in desk order `hero-card` r2 (the ca
   (`=app`).
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 14 (`1b26221c`): batch 6
   whole, the desk `hero-card` r2 first; every desk page loads with no console error (14 pages, headless) and the four
-  retired boards answer 404. Its red-team is walking.
+  retired boards answer 404. Its red-team passed every signed-out journey; the host and admin pass waits on Will's
+  Chrome (walked on the Library's specimens meanwhile), and its findings are in `crumbs-7`.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).

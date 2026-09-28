@@ -40,6 +40,7 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `crumbs-7` | build 14's red-team findings: a toast's Undo under an open modal (the size list; fixed at the popup primitive and the toaster), the peek's keys after a mouse verdict, the "N new" line moving the grid, the gate's screen-reader line, a lab board's keyless prefetch | running, agent `a4b40c309b8f9e172` | Opus, :3131 | |
 
 Batch 6 (cut `1708b049`, 2026-09-28) answers Will's sitting on build 12, part one (transcribed at `e199f43f`: 20
 answers on identity-claims, hero-card, voice-guest, host-curation, host-storage). A read-only audit of the other 12
@@ -50,13 +51,14 @@ Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-r
 
 ## Next, in order
 
-1. **Build 14 on the alias** (batch 6 whole): `alias-ensure`, prune, the desk headless, then its red-team (Opus;
-   brief at `../partyreel-wt/_scratch/redteam-14/brief.md`: the review room, the storage list and refusal short of
-   Stripe, the voice lines, the footer's demo door, the admin's confirms, the standing scope, the desk). A build-12 or
-   build-13 paste transcribes as it stands (the refreshes kept every round), save one id: `help-center`'s `hub=sheet`
-   is `strip` now.
-2. **The red-team's findings** into a crumbs lane; the pointer's row and the reel's approval toast ride Will's staged
-   walk (below).
+1. **Build 14 is live** (`1b26221c`), its red-team half walked: every signed-out journey passed (the voice lines, the
+   phone's demo door, the album at scale, the reel, the desk, six new Server Functions refusing a signed-out call), the
+   host and admin journeys walked on the Library's specimens only, because Will's Chrome was not connected to this
+   account. One major (a toast's Undo under an open modal) and three minors go to `crumbs-7`.
+2. **The live host and admin pass** once his Chrome is back (`../partyreel-wt/_scratch/redteam-14/brief.md` journeys 1,
+   2, 4 and 5's host parts, after `crumbs-7` lands on a build). The refusal and the goal strip need a host who stores
+   more than a smaller Pro size (willg97 stores about 98 MB), so they stay the Library's unless one is staged. The
+   Scale probe has no hidden row: for "N new", reject one in the room, reload, then flip it back to pending by SQL.
 3. **His next paste** (build 13's desk, or the 25 build-12 asks) transcribed, and the next wiring cut from it. The
    hero's wiring waits for hero-card r2's pick. voice-guest r2's wiring carries its `keep` pick to her name menu's card,
    which still says "Save this event for later".
@@ -72,6 +74,7 @@ Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-r
 
 ## Waiting on Will
 
+- **His Chrome extension on this account** (about 10 seconds), so the red-team can drive the host and admin pass.
 - **His desk, first** (his aim: zero open questions before the to-dos below, which stay stacked until then): build
   13's, 71 open asks on 13 boards, `hero-card` r2 first.
 - **The claims review's live walk**: it needs claimable rows staged for a test account (`update public.guests set
