@@ -43,6 +43,7 @@ a lane").
 | `event-settings` | board r1: event settings from the ground up (his `choose` note), taking event-safety's who-can-join and its four staged asks | running, agent `a453cea95468466bd` | Opus, :3131 | |
 | `disposable-mode` | board r1: a disposable-camera mode (in-app shots only, a shot limit, a reveal), his POV note | running, agent `a699e9169411db464` | Opus, :3133 | |
 | `safety-wiring` | event-safety's answers: the per-event block (a migration to apply), soft in every look, the private door, the Guests room's Blocked list, Let back in with a restore toggle; the guest list always on; event-safety retires | running, agent `a976ee6de796172b4` | Opus, :3134 | |
+| `pricing-wiring` | host-storage `prices=sizes` on a monthly/yearly toggle with a yearly tag, iPhone-default estimates, his free/pro shift (Free 100 MB, 300 MB meter; password, custom link with a squatting guard, 60 s reels to Free); `tier_limits()` migration to apply; host-storage retires | running, agent `ad560f85ada04d064` | Opus, :3132 | |
 
 Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcribed at `69afdbc5`: 21 answers on
 hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
