@@ -41,6 +41,7 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `crumbs-6` | voice-guest's three lines and their mocks, the footer's phone demo door, the reel's approval toast told true, the landscape head slot, a stale comment, two admin fixes, the failure sheet's help articles | running, agent `a8e0fab3d4643e969` | Sonnet, :3133 | |
+| `storage-wiring` | host-storage's three r1 picks: the size list (flat, All / per-event filter) in the lists panel, the live goal strip, the refusal inline and stacked; storage-r2's three notes; the six prices wait for `prices` r2 | running, agent `a4cd43612551f8fca` | Opus, :3131 | |
 
 Batch 6 (cut `1708b049`, 2026-09-28) answers Will's sitting on build 12, part one (transcribed at `e199f43f`: 20
 answers on identity-claims, hero-card, voice-guest, host-curation, host-storage). A read-only audit of the other 12
@@ -55,8 +56,8 @@ Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-r
    carve-out, plus two help articles' words); then his sitting in desk order, `hero-card` r2 first. A build-12 paste
    transcribes as it stands (the refreshes kept every round), save one id: `help-center`'s `hub=sheet` is `strip` now.
 2. **Wave 2**, integrated as each lands:
-   - `curation-wiring` and `crumbs-6` are running (rows above).
-   - `storage-wiring` (Opus) cuts once `curation-wiring` merges, so bulk Remove reuses its Undo toast. It builds
+   - `crumbs-6` and `storage-wiring` are running (rows above).
+   - `storage-wiring` (Opus) reuses curation's `showUndoToast` for bulk Remove. It builds
      host-storage's `order=flat` with an All / per-event filter, `goal=live`, and `refusal=inline` stacked full width.
      The size list goes in the lists panel, with r1's carried rows, bulk Remove with Undo, Download handing off to
      export-flow, and the Deleted line. The six prices keep today's rows until `prices` r2 picks.
@@ -64,7 +65,6 @@ Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-r
      - the Pro fit line's "or choose Pro 500 GB" means the yearly price;
      - one account's bytes print two ways in one flow (`formatBytes` nearest, `formatBytesUp` up);
      - a Pro host pressing Change plan is greeted "You are on Pro already".
-   - At `curation-wiring`'s record, delete `docs/reviews/host-curation.json` and close ROADMAP's "A guest" line.
 3. **His next paste** (build 13's desk, or the 25 build-12 asks) transcribed, and the next wiring cut from it. The
    hero's wiring waits for hero-card r2's pick. voice-guest r2's wiring carries its `keep` pick to her name menu's card,
    which still says "Save this event for later".
