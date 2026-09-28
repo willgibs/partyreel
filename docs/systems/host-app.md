@@ -256,7 +256,8 @@ beneath, newest first.
   decided. ★ **The keys** (`review-keys.ts`): arrows move a focused tile, Enter approves, Backspace or Delete rejects,
   Space peeks; no hint row, only the verdict buttons' tooltips (and a screen reader's line) say so. They act only on a
   tile, in the peek, or (the room's page alone) with nothing focused, never on another control, and never give a verdict
-  on a selection.
+  on a selection. In the peek a focused button keeps only its own Enter and Space, and a verdict pressed there hands
+  focus back to the look (`review-section.tsx`), since a browser focuses the button a pointer presses.
 - **The bulk controls live once, in the room's header, in both modes** (`review-actions.tsx`), which never goes empty,
   or a host mid-selection loses Reject, Approve and Cancel. Approve all needs no confirm: it sends the queue's own ids
   through `approveBulkAction` in consecutive batches of 2,000, so a host approves exactly what they saw, at any size. A
@@ -267,7 +268,8 @@ beneath, newest first.
   revalidate nothing: a revalidating action refreshes the route that called it, which re-ran the room's page per key.
 - ★ **The room is live, on the hub's own signal**: the page seeds `HostAlbumProvider` as the hub does (the manifest, no
   links) and `review-live.ts` reads the queue off it, so an arrival reaches the room when it reaches the hub's Review
-  card. It never joins the grid on its own: a line above the grid counts it ("3 new") and a tap folds it in at the head.
+  card. It never joins the grid on its own: a glass pill floating over the grid's head counts it ("3 new"), taking no
+  room so no tile moves as it appears, and a tap folds it in at the head.
   An upload decided elsewhere or taken back leaves the grid; one the room acted on never does, its own write being its
   truth against a poll read before that write (or its Undo) landed.
 - **Turning moderation off with a queue** confirms with the count, and on save `approveAllPending` runs: the modal is the

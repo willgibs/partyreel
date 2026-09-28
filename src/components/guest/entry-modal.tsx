@@ -957,9 +957,13 @@ export function entrySheetCopy(input: {
     };
   }
   if (displayKey === "password") {
+    // The gate's own heading, word for word (voice-guest r1 `ask=warm`, `password-gate.tsx`): a
+    // screen reader hears one door, never an older line beside the one on screen. A pin holds the
+    // two as one (`entry-modal.test.tsx`).
     return {
       title: `${eventName} is private`,
-      description: "Enter the event password to view it.",
+      description:
+        "This album is just for the guests. One password and you're in.",
     };
   }
   if (displayKey === "chooser") {

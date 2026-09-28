@@ -488,6 +488,12 @@ Its 5rem offset cannot read `--mkt-header-h`, which is scoped to `[data-mkt]`, a
 - **An error waits for a press**, since a failure that vanishes unread repeats itself. ★ Sonner has no per-type
   duration, so `ui/sonner.tsx` patches `toast.error` once at load (`duration: Infinity`, a close button), guarded by a
   `Symbol.for` flag against Fast Refresh wrapping it twice.
+- ★ **A toast is pressable over an open modal, and a press on one is inside every layer.** An open Radix modal (every
+  popup, the Dialog, the Sheet, the viewer, a menu) sets `pointer-events: none` on the body and reads any press outside
+  it as its cue to close, so a toast's Undo under the storage list closed the list at a desk and went through to the
+  chip beneath in a hand. The band takes pointer events back itself and is a Radix `DismissableLayer.Branch`
+  (`radix-ui/internal`, the mechanism Radix's own Toast wears), in `ui/sonner.tsx` alone; `sonner.test.tsx` pins both
+  halves. A keyboard still cannot reach a toast while a modal holds focus (its trap pulls sonner's alt+T back).
 - **Colour is state**: success green (a destructive action that succeeded is a success), warning amber (a Hide), error
   red for failure only. ★ The colours target sonner's `[data-sonner-toast][data-type]` with `!important`, because sonner
   injects a runtime `--normal-bg` rule that beats a class; verify a toast's computed background, not that the rule

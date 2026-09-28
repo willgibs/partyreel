@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 import { Button } from "@/components/ui/button";
 
 import { stopLinks } from "./vocab";
@@ -13,27 +11,42 @@ import { stopLinks } from "./vocab";
  * feature" was read as "no rung". Drawn on the end matter of a fixture
  * troubleshooting article (`an-upload-wont-finish`), after its two related
  * articles, which are identical in every shape.
+ *
+ * Its links are a drawing's, plain anchors like the board's others: a
+ * `next/link` prefetches its `#` as the board's own route without `?key=`,
+ * which 404s in the console (build 14's red-team).
  */
 export type DeadEndShape = "blank" | "band" | "rung";
 
 const RELATED = [
   { slug: "messages-guests-might-see", title: "Messages guests might see" },
-  { slug: "the-qr-wont-scan-or-the-link-wont-open", title: "The QR won't scan, or the link won't open" },
+  {
+    slug: "the-qr-wont-scan-or-the-link-wont-open",
+    title: "The QR won't scan, or the link won't open",
+  },
 ];
 
 export function DeadEndPreview({ shape }: { shape: DeadEndShape }) {
   return (
-    <div onClickCapture={stopLinks} className="bg-background p-6 text-foreground">
+    <div
+      onClickCapture={stopLinks}
+      className="bg-background p-6 text-foreground"
+    >
       <div className="mx-auto max-w-2xl">
-        <p className="text-sm text-muted-foreground">…the rest of the article, above.</p>
+        <p className="text-sm text-muted-foreground">
+          …the rest of the article, above.
+        </p>
         <section className="mt-12 border-t pt-10">
           <h2 className="font-heading text-subhead">Related articles</h2>
           <ul className="mt-5 flex flex-col gap-3.5">
             {RELATED.map((item) => (
               <li key={item.slug}>
-                <Link href="#" className="font-medium text-foreground underline decoration-border underline-offset-4">
+                <a
+                  href="#"
+                  className="font-medium text-foreground underline decoration-border underline-offset-4"
+                >
                   {item.title}
-                </Link>
+                </a>
               </li>
             ))}
           </ul>
@@ -42,9 +55,12 @@ export function DeadEndPreview({ shape }: { shape: DeadEndShape }) {
         {shape === "rung" && (
           <p className="mt-10 text-sm text-muted-foreground">
             Working now?{" "}
-            <Link href="#" className="text-foreground underline decoration-border underline-offset-4">
+            <a
+              href="#"
+              className="text-foreground underline decoration-border underline-offset-4"
+            >
               See what a smooth upload looks like
-            </Link>
+            </a>
           </p>
         )}
 

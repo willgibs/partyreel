@@ -176,6 +176,46 @@ describe("the peek", () => {
     );
     expect(writes.approve).toHaveBeenCalledWith("ev-1", ["m2"]);
   });
+
+  // Build 14's red-team: a browser focuses the button a pointer presses, so after a Reject by
+  // mouse the next Enter pressed that button again, rejecting the next upload.
+  it("hands focus back to the look after a pressed verdict, so its keys decide the next", async () => {
+    room();
+    fireEvent.click(tile("m1"));
+    const reject = within(screen.getByRole("dialog")).getByRole("button", {
+      name: /reject/i,
+    });
+    reject.focus();
+    fireEvent.click(reject);
+    expect(writes.reject).toHaveBeenCalledWith("ev-1", ["m1"]);
+    expect(document.activeElement).toBe(screen.getByRole("dialog"));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("dialog").querySelector("img")?.getAttribute("src"),
+      ).toBe("signed:m2"),
+    );
+
+    fireEvent.keyDown(document.activeElement!, { key: "Enter" });
+    expect(writes.approve).toHaveBeenCalledWith("ev-1", ["m2"]);
+    expect(writes.reject).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves Enter and Space on a focused peek button to the button, and decides every other key", () => {
+    room();
+    fireEvent.click(tile("m1"));
+    const approve = within(screen.getByRole("dialog")).getByRole("button", {
+      name: /approve/i,
+    });
+    approve.focus();
+    // The keys a button acts on are its own: the browser presses it (jsdom does not).
+    fireEvent.keyDown(approve, { key: "Enter" });
+    fireEvent.keyDown(approve, { key: " " });
+    expect(writes.approve).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog")).toBeTruthy();
+
+    fireEvent.keyDown(approve, { key: "Backspace" });
+    expect(writes.reject).toHaveBeenCalledWith("ev-1", ["m1"]);
+  });
 });
 
 describe("the line", () => {
