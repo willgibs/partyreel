@@ -123,7 +123,9 @@ export function SummaryPanel({ m }: { m: Model }) {
               sentence={groupSentence(g, m)}
               open={m.focus === g}
             >
-              <div className="border-t border-border">
+              {/* Opened in place, its settings stand on a shade of their own,
+                  so they read as inside the row that opened them. */}
+              <div className="border-t border-border bg-muted/30">
                 <Body g={g} m={m} as="rows" />
               </div>
             </NavRow>
