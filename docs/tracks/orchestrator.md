@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "c5ab68d0"          # the launch-prep SHA this state was written at
+cut: "662292ad"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/theme.css
   - src/app/(marketing)/marketing.css
@@ -44,27 +44,19 @@ a lane").
 Batch 6 (cut `1708b049`, 2026-09-28) answers Will's sitting on build 12, part one (transcribed at `e199f43f`: 20
 answers on identity-claims, hero-card, voice-guest, host-curation, host-storage). A read-only audit of the other 12
 boards found 30 of their 68 asks drawn before his recent picks were built and 5 already answered: wave 1, the eight
-lanes that made his next desk, landed whole (build 13); wave 2 (the wiring) runs.
+lanes that made his next desk, landed whole (build 13); wave 2, the wiring of his picks, landed whole too (build 14).
 
 Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-refresh, flow-refresh, safety-refresh, hero-r2, help-refresh, marketing-refresh, pointer-wiring, curation-wiring, crumbs-6, storage-wiring.
 
 ## Next, in order
 
-1. **Build 13 is live** (`7961ab2b`, the desk clean on 16 pages): his sitting in desk order, `hero-card` r2 first. A
-   build-12 paste transcribes as it stands (the refreshes kept every round), save one id: `help-center`'s `hub=sheet`
+1. **Build 14 on the alias** (batch 6 whole): `alias-ensure`, prune, the desk headless, then its red-team (Opus;
+   brief at `../partyreel-wt/_scratch/redteam-14/brief.md`: the review room, the storage list and refusal short of
+   Stripe, the voice lines, the footer's demo door, the admin's confirms, the standing scope, the desk). A build-12 or
+   build-13 paste transcribes as it stands (the refreshes kept every round), save one id: `help-center`'s `hub=sheet`
    is `strip` now.
-2. **Build 14 once `storage-wiring` lands** (curation, pointer, crumbs-6 and storage merged by then): `[preview]`,
-   `alias-ensure`, prune, the desk headless, then a full red-team. Its scope:
-   - the review room: Reject, the peek's verdict, the keys, Undo, the "N new" line, on a moderated test event;
-   - the voice lines;
-   - the footer's demo door at 375;
-   - the admin report's Remove confirm;
-   - the storage list, its strip and the refusal, stopping before Stripe's confirm page;
-   - the standing scope.
-
-   The pointer's row and the reel's approval toast need a real confirmation or approval, so they are Will's, with
-   the claims walk. `storage-wiring` reuses curation's `showUndoToast`; the six prices keep today's rows until `prices`
-   r2 picks.
+2. **The red-team's findings** into a crumbs lane; the pointer's row and the reel's approval toast ride Will's staged
+   walk (below).
 3. **His next paste** (build 13's desk, or the 25 build-12 asks) transcribed, and the next wiring cut from it. The
    hero's wiring waits for hero-card r2's pick. voice-guest r2's wiring carries its `keep` pick to her name menu's card,
    which still says "Save this event for later".
