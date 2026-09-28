@@ -1,143 +1,101 @@
 /* THE SURFACES THAT CANNOT BE THE REAL ONE, QUOTED RATHER THAN INVENTED.
 
-   Two things in this flow portal to `document.body`, and the script inside a
-   lab frame runs in the BOARD PAGE's realm (the subtree is portalled into the
-   iframe document, so `document` is still the lab page's). A real radix
-   `DialogContent` and a real sonner toast would therefore land on the lab page
-   instead of inside the picture being judged. `guest-shape/dialogs.tsx` hit
-   this first for these same four guest dialogs; `host-curation.css` hit it for
-   the toast. So both boxes are reproduced here on the app's own tokens, and
-   everything INSIDE them is the shipped component.
+   A sonner toast portals to the lab page's own Toaster (the frame's script runs
+   in the BOARD PAGE's realm), so a real one would land on the desk instead of
+   inside the picture being judged. `host-curation.css` hit this first. So the
+   box is reproduced here on the app's own tokens; the Download menu is quoted in
+   `menu.tsx` for the same reason.
 
    ★ FIXED, NOT ABSOLUTE, EXACTLY AS THE ORIGINALS ARE. The frame IS the
    viewport, so a fixed box lands where a host or a guest really sees it; an
    absolute one inside a min-h-full column pins to the bottom of the CONTENT and
    falls out of the picture. */
 
-/* `DialogOverlay`: black at 10 percent with the backdrop blur behind it. */
-.xf-scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  background: color-mix(in oklab, black 10%, transparent);
-}
-@supports (backdrop-filter: blur(2px)) {
-  .xf-scrim {
-    backdrop-filter: blur(2px);
-  }
-}
-
-/* THE ONE RESPONSIVE SHEET the guest's dialogs are ruled onto (`guest-shape`
-   r1, folded in by the overtaken audit 2026-09-21): a bottom sheet in a hand, a
-   side panel from 640px up. The numbers are read off the shipped constant
-   (`floatingEdgeEntranceResponsive` in ui/floating-layer.ts) rather than
-   guessed: max-sm inset-x-0 bottom-0 h-auto max-h-[85svh] w-full border-t
-   rounded-t-float; sm inset-y-0 right-0 h-full w-3/4 max-w-md border-l.
-
-   ★ THE MEDIA QUERY IS THE FRAME'S OWN VIEWPORT, which is the whole reason one
-   stage can draw both postures: each preview is an iframe at a real 375 or a
-   real 1440, so the sheet answers the picture it is in rather than the lab page
-   around it. Production's own Download is the responsive menu now (`object`
-   retired at desk-trim, 2026-09-27, into `export-dialog.tsx` on
-   `ui/responsive-menu.tsx`): a menu at a desk, its rows rising to the thumb in
-   a hand. Both are a floating surface of bundle rows and a size, which is all
-   six of this board's remaining decisions ever ask of it, so this sheet keeps
-   standing in for it rather than redrawing the menu's own chrome. */
-.xf-dialog {
-  position: fixed;
-  inset-inline: 0;
-  bottom: 0;
-  z-index: 50;
-  display: grid;
-  align-content: start;
-  gap: 1rem;
-  width: 100%;
-  max-height: 85svh;
-  overflow: auto;
-  padding: 1rem;
-  font-size: 0.875rem;
-  border-top: 1px solid var(--border);
-  border-radius: var(--radius-float) var(--radius-float) 0 0;
-  background: var(--popover);
-  color: var(--popover-foreground);
-  box-shadow: var(--shadow-layer);
-}
-@media (min-width: 40rem) {
-  .xf-dialog {
-    inset-block: 0;
-    inset-inline: auto 0;
-    width: 75%;
-    max-width: 28rem;
-    max-height: none;
-    border-top: 0;
-    border-left: 1px solid var(--border);
-    border-radius: 0;
-  }
-}
-/* A grid item's `min-width: auto` lets one wide child push the column past the
-   panel, and then every row below it hangs out of the box. The shipped dialog
-   never hit it because nothing in it demanded the width; anything an option
-   adds can. */
-.xf-dialog > * {
-  min-width: 0;
-}
-
-/* sonner's box on the app's own tokens, at sonner's own 13px, drawn STILL: a
-   toast a reader cannot catch is a toast they cannot judge. */
+/* SONNER'S BOX (`ui/sonner.tsx`: `position="top-center"`, `offset` and
+   `mobileOffset` top 5rem, the `toasts` r1 `where=top` answer), with its own
+   metrics from sonner's stylesheet: 16px of padding, a 6px gap, 13px type, a
+   356px width at a desk and the full width less 16px a side under 600px. The
+   corner and the layer shadow are the app's (`--radius-float`, the two-shadows
+   rule in globals.css). Drawn STILL: a toast a reader cannot catch is a toast
+   they cannot judge. */
 .xf-toast {
   position: fixed;
   z-index: 60;
-  right: 1rem;
-  bottom: 1rem;
+  top: 5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 356px;
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  max-width: 22rem;
-  padding: 0.875rem 1rem;
+  gap: 6px;
+  padding: 16px;
   font-size: 13px;
-  line-height: 1.4;
   border-radius: var(--radius-float);
   border: 1px solid var(--border);
   background: var(--popover);
   color: var(--popover-foreground);
   box-shadow: var(--shadow-layer);
 }
-/* Sonner goes edge to edge under 600px, which is where a guest always is. */
 .xf-toast[data-screen="375"] {
-  right: 1rem;
-  left: 1rem;
-  max-width: none;
+  left: 16px;
+  right: 16px;
+  width: auto;
+  transform: none;
 }
-/* The ruled success tone (globals.css), so the copy is judged in its real ink. */
+/* The state tones, as globals.css maps sonner's `data-type`. */
 .xf-toast[data-tone="success"] {
   background: var(--success);
   color: var(--success-foreground);
   border-color: color-mix(in oklch, var(--success), black 12%);
 }
+.xf-toast[data-tone="warning"] {
+  background: var(--warning);
+  color: var(--warning-foreground);
+  border-color: color-mix(in oklch, var(--warning), black 12%);
+}
 .xf-toast[data-tone="error"] {
   background: var(--destructive);
-  color: var(--destructive-foreground);
+  color: oklch(0.99 0 0);
   border-color: color-mix(in oklch, var(--destructive), black 12%);
 }
-
-/* iOS Safari's own chrome, quoted only as far as the decision needs: the bar at
-   the foot of the screen with the download arrow lit, and the share sheet that
-   rises over it. Neither is ours to design; they are drawn so the option that
-   hands the file to one of them can be judged against the option that does not. */
-.xf-ios-bar {
-  position: fixed;
-  inset-inline: 0;
-  bottom: 0;
-  z-index: 40;
+.xf-toast-title {
+  min-width: 0;
+  font-weight: 500;
+  line-height: 1.5;
+}
+/* Sonner's action button: the toast's own ink, inverted, pushed to the end. */
+.xf-toast-button {
+  margin-left: auto;
+  flex-shrink: 0;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--popover);
+  background: var(--popover-foreground);
+}
+/* The close an error keeps (the app's `toast.error` persists with one), at
+   sonner's own top-left corner. */
+.xf-toast-close {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-35%, -35%);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.75rem 1.25rem 1.5rem;
-  border-top: 1px solid var(--border);
-  background: color-mix(in oklab, var(--background) 92%, var(--foreground));
-  color: var(--muted-foreground);
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--popover);
+  color: var(--popover-foreground);
 }
+
+/* iOS's own share sheet, quoted only as far as `phone=batch` needs: the sheet
+   that rises over the page. Not ours to design; drawn so the option that hands
+   every file to it can be judged against the ones that do not. */
 .xf-sheet {
   position: fixed;
   inset-inline: 0.5rem;

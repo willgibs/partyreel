@@ -2,61 +2,46 @@ import type { Control } from "@/components/lab/board-spec";
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * GETTING EVERYTHING OUT, ROUND ONE (2026-09-19; reshaped by the overtaken
- * audit, 2026-09-21; a genuine third added to every binary, boards refresh,
- * 2026-09-24; `object` retired at its answer, desk-trim, 2026-09-27).
+ * GETTING EVERYTHING OUT, ROUND ONE (2026-09-19; the overtaken audit,
+ * 2026-09-21; a genuine third to every binary, 2026-09-24; `object` retired at
+ * its answer, desk-trim, 2026-09-27; the flow refresh, 2026-09-28).
  *
- * Will (2026-09-19): the app and the guest pages are unprotected, "absolutely
- * everything is up for relitigation or reconcepting from the ground up".
- * Taking the album home is the act the whole product is
- * a promise about, and today it is one dialog, one toast and then silence.
+ * Taking the album home is the act the whole product is a promise about, and
+ * it is one menu, one toast and then the browser.
  *
  * ★ THE APP GOES BLIND AT THE TAP, AND THAT IS THE FINDING THAT SHAPED THE
- * ROUND. The click mints a signed token, form-POSTs it to the Worker and closes
- * the dialog; from there the browser's own download UI is the only thing that
- * knows anything. So a mint that never answers spins forever, a zip that comes
- * back with nothing in it says nothing, and a phone that puts the file
- * somewhere is never named. Three of the six decisions are that one gap.
+ * ROUND. A row mints a signed token, form-POSTs it to the Worker and the menu
+ * has already closed; from there the browser's own download UI is the only
+ * thing that knows anything. So a mint that never answers spins forever, a
+ * zip that comes back with nothing in it says nothing, and a phone that puts
+ * the file somewhere is never named. Three of the six decisions are that one
+ * gap.
  *
- * ★ THE PHONE LEADS. A guest at a party is holding one, and the guest half of
- * this flow has never been designed for anything else: 375 is the default on
+ * ★ THE PHONE LEADS. A guest at a party is holding one: 375 is the default on
  * every decision and 1440 is the knob.
  *
- * ★ THE OVERTAKEN AUDIT (Will, 2026-09-21: "For any open questions that have
- * been 'overtaken', please evaluate whether they should be reshaped or
- * removed... I'd rather you lean into reshape if you aren't confident in
- * removal"). Seven of this board's eight questions were reshaped in place;
- * five options that broke a hard requirement (a spinner nobody can end, a
- * refusal that names no number, a hollow zip nobody is told about, a keepsake
- * two other surfaces already carry) dropped from among them (`chips.three`,
- * `stuck.forever`, `hollow.silence`, `cap.bite`, `object.link`). The eighth,
- * `chips`, is gone outright as of the identity/reel recheck (2026-09-22): its
- * only case was a teaser viewer, and the door now holds her, backdrop and all,
- * before she ever reaches the album, let alone this sheet. The surface every
- * remaining question is drawn on is the one responsive sheet `guest-shape` r1
- * put every guest dialog onto: a side panel at a desk, a bottom sheet in a
- * hand. Nothing is answered; the round is still round one.
- *
- * ★ THE BOARDS REFRESH (2026-09-24): every ask stands on its own case, so a
- * drop from the overtaken audit is not treated as a wall against a NEW
- * direction. `stuck`, `hollow`, `cap` and `object` each gain a genuine third
- * door, none of them the option the hard requirement above dropped: a quiet
- * retry, an offer to finish the job, an automatic trim, and a popover in place
- * of the sheet.
- *
- * ★ `object` RETIRES (desk-trim, 2026-09-27): Will's `popups` r1 answer
- * (`choices=menu`, "a row is the act") is this board's own `object` ask
- * settled with its own `menu` option, now built (`export-dialog.tsx` on
- * `ui/responsive-menu.tsx`). The ask and its three drawings leave the board;
- * `phone`, the one ask that read its answer, no longer stages behind it and
- * is grounded in the shipped menu in its place. Every other remaining ask is
- * grounded there too (crumbs-4): each still asks its own question, and every
- * option and recommendation stands exactly as drawn, but a "today" that said
- * "the sheet" or "the dialog" now says the menu a row already acts on.
+ * ★ THE FLOW REFRESH (2026-09-28): the board is drawn on the menu that ships
+ * (`popups` r1 `choices=menu`: `export-dialog.tsx` on
+ * `ui/responsive-menu.tsx`), a menu under the button at a desk and rows at the
+ * thumb in a hand, no longer on the old centred sheet. Four asks moved:
+ *  - `means`: mine-none took the own-tile mark `mine` argued from, and View
+ *    beside Download all has Yours, so `mine` is a Yours row at the menu's top.
+ *  - `wait`: his voice-guest note ("notify the user where they are without
+ *    real interruption, if we even need to notify them at all") and a menu
+ *    that closes on tap left `panel` nothing to hold. It is today's toast
+ *    against a quiet line and the Download button itself (`button`, in
+ *    `panel`'s slot, the recommendation now); `stuck` and `hollow` wear it.
+ *  - `hollow`: his `failed=exact` ("2 of 8 didn't upload", Retry both) settles
+ *    how a short zip is said, so the ask narrows to whether an EMPTY zip is
+ *    refused. `after` (a count with no way to fix it) loses to `offer` and
+ *    leaves; a knob draws the settled short zip beside the empty one.
+ *  - `cap` and `phone`: redrawn on the menu's rows (a dead row, a row "in 2
+ *    zips", a row saying what it left out; Save to Photos above the rows).
+ * `stuck` is unchanged but for the ground and its `button` drawing.
  *
  * ★ WHAT IS DELIBERATELY NOT ASKED. No option re-encodes a byte or touches the
- * originals invariant (metadata is stripped at upload, never here). The bulk
- * bar's grammar and its Download icon are `app-vocabulary`'s; tier gating of
+ * originals invariant (metadata is stripped at upload, never here). The Album
+ * row's grammar and its Download icon are `app-vocabulary`'s; tier gating of
  * export sizes is `app-pricing`'s; the viewer's per-item Save and the reel's own
  * download are sibling lanes. Nothing on this board mints, signs, logs, reaches
  * the limiter or wakes the Worker.
@@ -73,7 +58,7 @@ const SCREEN: Control = {
   default: "375",
 };
 
-/** Which album is being taken home, which is what the foot is made of. */
+/** Which album is being taken home, which is what the rows are worth. */
 const ALBUM: Control = {
   id: "album",
   label: "The album",
@@ -96,86 +81,123 @@ const WHO: Control = {
   default: "host",
 };
 
+/**
+ * What the Worker found (`hollow`): the open question is the empty zip, drawn
+ * by default; the short one is settled by his `failed=exact` and drawn on the
+ * knob, the same under both options by design.
+ */
+const CAME: Control = {
+  id: "came",
+  label: "What came back",
+  options: [
+    { id: "none", label: "Nothing, all 148 gone" },
+    { id: "short", label: "142 of 148" },
+  ],
+  default: "none",
+};
+
 const DRAFT = defineExploration({
   id: "export-flow",
   title: "Getting everything out",
   round: {
     n: 1,
-    date: "2026-09-24",
+    date: "2026-09-28",
     changed:
-      "The boards refresh: stuck, hollow, cap and object each gain a genuine third (a quiet retry, an offer to finish the job, an automatic trim, a popover), none of them the overtaken audit's own drop.",
+      "The flow refresh: every ask drawn on the shipped Download menu. Mine becomes a Yours row; the wait is today's toast against a quiet line and the button itself; hollow asks only whether an empty zip is refused.",
   },
   context:
-    "One surface serves both sides of the album. A host taps Download in the Gallery header; a guest taps Download all above the tiles. Both get the Download album menu: three bundle rows, each with a live count and a size, and a row is the act, so tapping Everything, Photos or Videos mints a signed token and hands it to a Worker that streams a zip the moment it is tapped. It is drawn here at 375 by 812 with 1440 by 900 on the knob, over one wedding of 148 items. Every count and size is the real arithmetic over a fixture summary. Nothing here mints, signs, logs or reaches the Worker.",
+    "One surface serves both sides of the album. A host taps Download in the Album header; a guest taps Download all in the album's row. Both open the Download album menu, under the button at a desk and rows at the thumb with Cancel beneath in a hand: Everything, Photos and Videos, each with its count and size, and a row is the act. Drawn at 375 by 812 with 1440 by 900 on the knob, over one wedding of 148 items, every number the menu's own arithmetic over a fixture. Nothing here mints, signs, logs or reaches the Worker.",
+  carried: [
+    {
+      id: "panel-leaves",
+      question:
+        "Where does the wait's panel go, now the menu closes at the tap?",
+      taken:
+        "It leaves: the Download button itself takes its slot and the recommendation, and stuck and hollow are drawn there.",
+      overrule:
+        "Keep a fourth option, a menu that stays open until the browser has the zip, if a held surface is still wanted.",
+    },
+    {
+      id: "after-leaves",
+      question: "Does the hollow zip's bare count (after) stay an option?",
+      taken:
+        "No: it has no way to fix the failure, so it loses to offer and leaves; the ask is only whether an empty zip is refused.",
+      overrule:
+        "Keep it as a losing third if the count alone, with no Try again, should stay on the record.",
+    },
+  ],
   asks: [
     {
       id: "means",
       label: "What a guest takes",
       question: "What should Download hand a guest at a party?",
       context:
-        "A guest's download was her only way home; a cut (reel-cut's, on the device) is now a sibling, not asked here. What Download means is open: it bundles what she can see, and now knows her own for good, marked and filtered by the Yours lens.",
+        "Download all opens the menu: Everything, Photos or Videos of all she can see, a row the act. Her photos wear no mark on the tiles (mine-none); View beside it has Yours, the set she added. Her own cut (reel-cut) is a sibling.",
       options: [
         {
           id: "album",
           label: "The whole album, as today",
           means:
-            "One link, one zip of everything they can see. The 14 they took themselves are in there somewhere, unsorted.",
+            "Three rows, Everything, Photos or Videos, of the whole album. The 14 she took are in there somewhere, unsorted.",
         },
         {
           id: "mine",
-          label: "Their own shots first, the album under",
+          label: "A Yours row at the top",
           means:
-            "The sheet leads with the set the Yours lens already defines, and the whole album sits beneath it as the second bundle.",
+            "Yours, the set View already names, leads the menu as a fourth row with its own count and size; the album's three sit under it.",
         },
         {
           id: "picked",
           label: "Tap what you want, then take it",
           means:
-            "The guest gets a select mode of their own: tap tiles, and the bar takes exactly those. Download all stays for everything.",
+            "The guest gets a select mode of her own: tap tiles, and the bar takes exactly those. Download all stays for everything.",
         },
       ],
       recommended: "mine",
+      today: "album",
       because:
-        "A guest came back for the ones they took and the few they were in, and today those are buried in a few hundred files. The set is marked on every tile and filtered by a lens that ships, so leading with it costs the sheet one row and no new machinery, the same idea reel-cut's own fill mirrors.",
+        "A guest came back for the ones she took, buried in a few hundred files. View already calls that set Yours, beside Download all, so one row named the same takes it home in one tap and costs no new machinery.",
       overrule:
-        "If the commonest tap is take the lot, a second bundle makes it one step longer and the album should lead.",
+        "If Yours is too small a set to earn a row most nights, the album's three rows stay the whole menu.",
       lands:
-        "What a guest's Download all means, and how many bundles the shared menu offers.",
+        "What a guest's Download all offers, and whether the menu carries a row of her own.",
       configs: [SCREEN, ALBUM],
     },
     {
       id: "wait",
       label: "The wait",
-      question: "What should the album show while the zip is being made?",
+      question:
+        "Once a row is tapped and the menu closes, what should say the zip is coming?",
       context:
-        "The tap raises a toast, mints a token, posts it to the Worker, and the menu is already gone by then (a row is the act). Bytes in flight are narrated in place and silently, and a run that did not finish is read on one surface at its end.",
+        "A row is the act, so the menu is gone at the tap. The app mints a token and hands the zip to the browser, whose own bar shows the bytes; the app sees only the second between. Today a toast. His note: say it where she is, if at all.",
       options: [
         {
           id: "toast",
-          label: "A toast, then the browser, as today",
+          label: "A toast, as today",
           means:
-            "Preparing your download, then Your download is starting, then nothing. The menu is already gone.",
-        },
-        {
-          id: "panel",
-          label: "The sheet holds until it lands",
-          means:
-            "The sheet becomes the progress: what is being zipped, a bar, and Saved when the bytes reach the device. One thing to watch.",
+            "Preparing your download at the top of the screen, then Your download is starting, then the browser's own bar.",
         },
         {
           id: "line",
-          label: "A line under the header, and carry on",
+          label: "A quiet line under the album's row",
           means:
-            "The sheet closes and a quiet line sits under the album's own header until the file lands, then says where it went.",
+            "No toast: a line under the album's row says Preparing your zip, then Downloading, and goes once the browser has it.",
+        },
+        {
+          id: "button",
+          label: "On the Download button itself",
+          means:
+            "The button she tapped carries it: a spinner and Preparing, a tick and Downloading, then Download again. Nothing else appears.",
         },
       ],
-      recommended: "panel",
+      recommended: "button",
+      today: "toast",
       because:
-        "The person is standing at the one surface that could tell them and it goes quiet at the exact moment they care. The sheet is where the end of a run has to be said, and holding it gives cancelling, failing and a hollow file one home.",
+        "His note asks for it where she is, without interruption. The button she just tapped is exactly there: no new surface, no layout shift, only what the app knows, and the browser's own bar takes the bytes from there.",
       overrule:
-        "If a zip can take minutes on a phone, a sheet over the album is a cage and the quiet line is the narration in place.",
+        "If a failure or a missing file needs a sentence, a button has no room for one; the quiet line does.",
       lands:
-        "Whether the app watches its own download at all, and where a failure could ever be said.",
+        "Whether use-export-download keeps its toast, and where a failed or short download can be said.",
       configs: [SCREEN, ALBUM, WHO],
     },
     {
@@ -217,73 +239,67 @@ const DRAFT = defineExploration({
     {
       id: "hollow",
       label: "A zip with nothing in it",
-      question: "What should be said when the zip comes back hollow?",
+      question: "When nothing at all reaches the zip, should it be refused?",
       context:
-        "The Worker skips an object it cannot find, silently, so an album emptied between the mint and the stream downloads as a valid zip with nothing in it, a gap nobody should have to notice for themselves.",
+        "The Worker skips a file it cannot find and tells no one, so saying anything needs it to report. His failed=exact settles a short zip: 142 of 148 are in your zip, Try again for the 6. Open: a zip holding nothing (142 of 148 on the knob).",
       options: [
         {
-          id: "after",
-          label: "It says what did not make it",
-          means:
-            "The Worker reports what it skipped and the album says so: how many of the items asked for are really in the file.",
-        },
-        {
           id: "refuse",
-          label: "Nothing downloads at all",
+          label: "Refused: nothing downloads",
           means:
-            "A zip that would be empty is refused outright, and the album says it changed while the file was being made.",
+            "The Worker finds nothing and sends no file; the album says Nothing downloaded: the album changed, with Try again.",
         },
         {
           id: "offer",
-          label: "It says what's missing, and offers another go",
+          label: "It lands, said like a short one",
           means:
-            "What made it and what did not, counted exactly as above, with a Try again beside it so finishing the job is one tap.",
+            "The empty zip still downloads and is said as a short one is: None of the 148 are in your zip, with Try again.",
         },
       ],
-      recommended: "offer",
+      recommended: "refuse",
       because:
-        "Counting the common case, six of 148 missing, is the truth; leaving a person to reopen the sheet for the rest is a second search for something the app already knows how to fetch again.",
+        "An empty zip is a file that lies in her Files. Refusing it leaves nothing to clean up and says the one true thing, that the album changed; a short zip still lands, counted. A bare count (after) loses to both: it has no way to fix the failure.",
       overrule:
-        "If the count alone is what he wants on record, a bare 'after' keeps the sheet from ever looking like it is asking for a retry.",
+        "If one rule for every hollow zip is simpler to build and to read, the empty one lands and is counted like the rest.",
       lands:
-        "Whether a download that quietly lost everything can ever be noticed, and whether finishing it is ever one tap.",
+        "Whether the Worker reports what it skipped, and whether it may refuse a zip it would send empty.",
       after: { ask: "wait" },
-      configs: [SCREEN, ALBUM, WHO],
+      configs: [SCREEN, WHO, CAME],
     },
     {
       id: "cap",
       label: "The limit",
       question: "What should the menu do about the 2,000 item limit?",
       context:
-        "An album over 2,000 items cannot be sent at once. Marketing states the figure and the menu never has. A refusal that names no number helps nobody, and the act states its terms before the files fly.",
+        "A bundle over 2,000 items or 20 GB cannot be sent at once. The menu draws it as a dead row, and its note names no number (Too large to download all at once...), though here Photos is over too. Drawn on an album of 2,440.",
       options: [
         {
           id: "near",
-          label: "Said in the foot when it is close",
+          label: "The note names the number",
           means:
-            "A quiet line appears beside the size as the selection nears the limit, and the same line becomes the refusal.",
+            "The rows over it stay dead, and the note says why: a download holds up to 2,000 items or 20 GB, and which rows are over.",
         },
         {
           id: "split",
-          label: "The product splits it, and never refuses",
+          label: "The row takes it, in numbered zips",
           means:
-            "Over the limit the zip arrives in numbered parts, the foot says how many, and the button says so. No album is ever refused.",
+            "Over the limit the row still works and reads Everything, in 2 zips: the album comes home in parts and is never refused.",
         },
         {
           id: "auto",
-          label: "It keeps the newest 2,000, one zip",
+          label: "The row keeps the newest 2,000",
           means:
-            "No refusal and no parts: one zip holds the most recent 2,000 automatically, and the foot names how many it left out.",
+            "Over the limit the row still works, keeps the newest it can in one zip, and says how many it left out.",
         },
       ],
       recommended: "split",
       because:
-        "The refusal already tells the host exactly what to do, which means the product knows how to do it. Asking a person to hand simulate a batch loop is the defect; the limit is a Worker ceiling, not a promise to the host.",
+        "The refusal tells the host what to do, which means the product knows how to do it. Asking a person to hand-simulate a batch loop is the defect: the limit is a Worker ceiling, not a promise to the host.",
       overrule:
         "If one zip beats several files even at the cost of leaving some behind, the automatic trim is the simpler build and still never refuses.",
       lands:
         "Whether a big album can be taken home at all, and what the marketing figure has to match.",
-      configs: [SCREEN, ALBUM, WHO],
+      configs: [SCREEN, WHO],
     },
     {
       id: "phone",
@@ -291,37 +307,35 @@ const DRAFT = defineExploration({
       question:
         "A zip can never enter Photos: what should a phone's Download reach for first?",
       context:
-        "Only individual files reach the native Photos library, through the system share sheet's own Save; a zip can only ever reach Files. His note asks for the native way as the default, every existing way still offered.",
+        "On a phone Download all rises as rows at the thumb, each a zip, and a zip only reaches Files. Single files reach Photos through the share sheet's Save, which the viewer's Save already opens. His note: the native way first, every way kept.",
       options: [
         {
           id: "zip",
-          label: "The zip to Files",
+          label: "The zip to Files, as today",
           means:
-            "The button says it saves to Files before the tap, and the album says which folder it went to after. Never the native library.",
+            "The three rows as they ship, each one zip that lands in Files. Never the native library.",
         },
         {
           id: "batch",
           label: "Every file to the share sheet",
           means:
-            "No zip at all: every file goes to the system sheet at once, whose own Save leads straight into Photos. Needs them all in memory first.",
+            "No zip at all: a row hands its files to the system sheet at once, whose own Save leads into Photos. Needs them all in memory first.",
         },
         {
           id: "both",
-          label: "Both, Photos first",
+          label: "Save to Photos above the rows",
           means:
-            "The sheet's own button saves straight to Photos; a quieter line under it still offers the one zip, to Files, for anyone who wants one.",
+            "A Save to Photos row leads the menu, one tap to the share sheet as the viewer's Save is; the zip rows stay under it, to Files.",
         },
       ],
       recommended: "both",
+      today: "zip",
       because:
-        'His own note: the native library should lead, and "we\'re not looking to reduce ways to download, just include the expected native way as the default." Both keeps the zip and makes Photos the first tap.',
+        'His own note: the native library should lead, and "we\'re not looking to reduce ways to download, just include the expected native way as the default." One row above keeps every zip and makes Photos the first tap.',
       overrule:
         "If holding every file in memory before the sheet opens is too slow on a party network, the zip alone is the safe default and Photos becomes the special case.",
       lands:
         "Whether a phone's bulk download ever reaches the native Photos library, or stays inside Files.",
-      // No longer staged behind `object` (desk-trim, 2026-09-27): that ask
-      // retired once `popups` settled it as `menu`, so this ask's own ground
-      // is now that shipped menu rather than a live answer to wait on.
       // No screen knob: this one is only ever a phone, so the tile IS that column.
       tile: "phone",
       configs: [ALBUM],
@@ -332,9 +346,8 @@ const DRAFT = defineExploration({
 /**
  * ★ ONE KNOB PER ID, NOT ONE PER DECISION THAT USES IT.
  * `defineExploration` flattens every decision's `configs` into the board's
- * controls, so a knob six decisions share arrives six times and the dock draws
- * it six times (React warns on the duplicate key). Each decision keeps it on
- * its own strip, which is what `configs` is for; the board declares it once.
+ * controls and dedupes them by id itself now; this filter predates that and
+ * stays correct (deduping twice is deduping once).
  */
 export const EXPORT_FLOW: typeof DRAFT = {
   ...DRAFT,
