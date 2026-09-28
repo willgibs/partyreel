@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, EyeOff, ListChecks, RotateCcw, X } from "lucide-react";
+import { Check, CircleX, EyeOff, ListChecks, RotateCcw, X } from "lucide-react";
 import Image from "next/image";
 import {
   useEffect,
@@ -25,13 +25,13 @@ import { cn } from "@/lib/utils";
  * QUOTES the shipped review surface (feed-section-header.tsx + review-actions.tsx
  * + selectable-media-grid.tsx): the amber 11px REVIEW eyebrow + bare count pill,
  * the browse cluster [Select · Approve all], the select face
- * [All/Clear · count · Hide · Approve · X], a uniform bulk-only queue grid, and
+ * [All/Clear · count · Reject · Approve · X], a uniform bulk-only queue grid, and
  * the app's "All caught up" success beat, restyled to the marketing paper card.
  *
  * The state machine is deliberately small: pending -> approving (the mkt-check
- * draw) -> approved (the tile's album slot flies in below); Hide skips the check
- * and lands the tile dimmed in the album (hidden stays visible ONLY in the
- * host's own view, which this frame is). Reduced motion jumps every phase
+ * draw) -> approved (the tile's album slot flies in below); Reject skips the
+ * check and lands the tile dimmed in the album (a rejected upload lands hidden,
+ * visible ONLY in the host's own view, which this frame is). Reduced motion jumps every phase
  * (approve() sets final states directly; the CSS recipes degrade to fades).
  * Replay remounts the stage (the LiveDemo runId convention, never
  * setState-in-effect resets).
@@ -116,7 +116,8 @@ export function ReviewQueueDemo() {
           className="mt-4 text-center"
           style={{ "--i": 3 } as CSSProperties}
         >
-          the host view · hidden items land dimmed, and only you see them
+          the host view · what you reject lands dimmed in your album, where only
+          you see it
         </Caption>
       </Reveal>
     </SectionShell>
@@ -182,7 +183,7 @@ function QueueStage({ onReplay }: { onReplay: () => void }) {
     });
   }
 
-  function hide(ids: string[]) {
+  function reject(ids: string[]) {
     if (ids.length === 0) return;
     exitSelect();
     setStates((s) => {
@@ -241,9 +242,9 @@ function QueueStage({ onReplay }: { onReplay: () => void }) {
                     variant="outline"
                     size="sm"
                     disabled={selected.size === 0}
-                    onClick={() => hide([...selected])}
+                    onClick={() => reject([...selected])}
                   >
-                    <EyeOff className="text-warning" /> Hide
+                    <CircleX className="text-warning" /> Reject
                   </Button>
                   <Button
                     type="button"

@@ -1,42 +1,78 @@
 "use client";
 
-import { type CSSProperties, useEffect, useRef, useState } from "react";
-import { Check, Play, X } from "lucide-react";
+import {
+  type CSSProperties,
+  type FocusEvent,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import { Check, CircleX, Play, X } from "lucide-react";
 
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
+import { Kbd } from "@/components/shared/kbd";
 import {
   CornerPlayBadge,
   GALLERY_COLUMNS,
   GALLERY_UNIFORM_COLUMNS,
 } from "@/components/shared/masonry";
-import { GLASS, GLASS_BEHIND, GLASS_MARK } from "@/lib/glass";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { GLASS, GLASS_BEHIND, GLASS_MARK, GLASS_MARK_LIT } from "@/lib/glass";
 import { tileAspect, UNIFORM_TILE_ASPECT } from "@/lib/media/tile-aspect";
 import { cn } from "@/lib/utils";
 
-// The shared selectable masonry — one natural-ratio grid that BOTH the Review triage and the Gallery
-// album bulk-select render. Media-forward (columns, matching the album look). Reuses the shared CSS
-// hooks: [data-exiting] (the fade+scale removal beat) + [data-check-pop] (the checkmark micro-pop).
+// The shared selectable grid: the Review room's queue (uniform, with the peek). Media-forward,
+// matching the album look. Reuses the shared CSS hooks: [data-review-tile] (the tile's entrance and
+// its [data-exiting] fade+scale removal, globals.css) + [data-check-pop] (the checkmark micro-pop).
 // Plain MediaTile <img>/<video> poster — never next/image (its optimizer 400s on presigned R2 URLs).
 //
 // Two configurations:
 //   • enablePreview (Review) → a tap in BROWSE mode peeks the media full-bleed (you can't judge a video
 //     from a poster); a tap in SELECT mode toggles; the video ▶ always peeks.
-//   • no preview (Gallery)   → there is no browse mode (the grid only mounts while selecting), so every
-//     tap toggles; videos wear the static corner play badge, no peek graph pulled onto the album.
+//   • no preview → there is no browse mode (the grid only mounts while selecting), so every tap
+//     toggles; videos wear the static corner play badge, no peek graph pulled onto the surface.
+//
+// ★ THE DOM IS THE KEYBOARD'S CONTRACT (`review-keys.ts`): each tile carries `data-tile-id` and its
+// one focusable `data-tile-button`, the grid `data-review-grid` (the keys read its columns off the
+// computed grid), and the peek `data-review-peek`. A tile's focus draws on the tile, outside it, so
+// the keyboard's cursor reads over any photograph.
 export type SelectableMediaGridProps = {
   items: GridMedia[];
   selectMode: boolean;
   selected: Set<string>;
   exiting: Set<string>;
   onToggle: (id: string) => void;
-  /** Review = true (browse peek + preview modal). Gallery = false (tap always toggles). */
+  /** Review = true (browse peek + preview modal). False: a tap always toggles. */
   enablePreview?: boolean;
   /** Must MATCH the surface's normal grid so toggling select never reflows tile heights — the
    *  gallery clamps extreme ratios (MasonryColumns clampAspect), the review queue does not. */
   clampAspect?: boolean;
-  /** "masonry" (Gallery album select — the "wow") vs "uniform" (Review — a fixed-aspect grid for
-   *  standardized selection hit-targets). Mirrors MasonryColumns. */
+  /** "masonry" (natural shapes) vs "uniform" (Review — a fixed-aspect grid for standardized
+   *  selection hit-targets). Mirrors MasonryColumns. */
   layout?: "masonry" | "uniform";
+  /**
+   * The peek, CONTROLLED (the Review room: the keys, the grid and the verdict move one cursor).
+   * Omit `onPeekChange` and the grid keeps its own.
+   */
+  peekId?: string | null;
+  onPeekChange?: (id: string | null) => void;
+  /**
+   * THE VERDICT ON THE PEEK (host-curation `peek=verdict`, Will: "I like handling the yes/no review
+   * before any additional handling is available"): Reject and Approve under the photograph, where
+   * it is big enough to judge. Without it the peek is a look with one close button.
+   */
+  verdict?: {
+    onApprove: (id: string) => void;
+    onReject: (id: string) => void;
+  };
+  /** A screen reader's line for what a tile's keys do (the room's; no hint row is ever drawn). */
+  keyHint?: string;
 };
 
 export function SelectableMediaGrid({
@@ -48,41 +84,94 @@ export function SelectableMediaGrid({
   enablePreview = false,
   clampAspect = false,
   layout = "masonry",
+  peekId,
+  onPeekChange,
+  verdict,
+  keyHint,
 }: SelectableMediaGridProps) {
   const uniform = layout === "uniform";
-  // A lightweight peek overlay (browse mode only): inspect a photo/video before approving, without
-  // pulling the full gallery lightbox graph onto this surface.
-  const [preview, setPreview] = useState<GridMedia | null>(null);
-  const closeRef = useRef<HTMLButtonElement>(null);
+  const hintId = useId();
+  // A lightweight peek overlay: inspect a photo/video before judging it, without pulling the full
+  // gallery lightbox graph onto this surface. Held by the caller when it passes `onPeekChange`.
+  const [ownPeek, setOwnPeek] = useState<string | null>(null);
+  const controlled = onPeekChange !== undefined;
+  const shownId = controlled ? (peekId ?? null) : ownPeek;
+  const preview = shownId
+    ? (items.find((i) => i.id === shownId) ?? null)
+    : null;
+  const setPeek = (id: string | null) =>
+    controlled ? onPeekChange(id) : setOwnPeek(id);
 
-  // ★ THE PEEK IS A MODAL, SO IT BEHAVES AS ONE: Escape closes it, focus moves onto its close
-  // button when it opens (a keyboard host is inside it, not behind it), and returns to the tile
-  // that opened it when it closes, so the next Tab lands where the host was.
+  const gridRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  // The latest of each, for the open/close effect below, which runs only on the open edge.
+  const setPeekRef = useRef(setPeek);
+  const lastShown = useRef<string | null>(null);
+  const withVerdict = useRef(!!verdict);
+  useLayoutEffect(() => {
+    setPeekRef.current = setPeek;
+    withVerdict.current = !!verdict;
+    if (preview) lastShown.current = preview.id;
+  });
+
+  // ★ THE PEEK IS A MODAL, SO IT BEHAVES AS ONE: Escape closes it, focus moves inside it when it
+  // opens (onto the look itself where it carries the verdict, so Enter and Backspace are the
+  // verdict's; onto its close button where it is only a look), and when it closes, focus lands on
+  // the tile of the photograph it showed last (the keys may have walked it on), or the tile that
+  // opened it, or the queue's first tile, so the next key press starts where the host was.
+  const open = preview !== null;
   useEffect(() => {
-    if (!preview) return;
+    if (!open) return;
     const opener =
       document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null;
-    closeRef.current?.focus();
+    (withVerdict.current ? dialogRef.current : closeRef.current)?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setPreview(null);
+      if (e.key === "Escape") setPeekRef.current(null);
     };
     window.addEventListener("keydown", onKey);
+    const grid = gridRef.current;
     return () => {
       window.removeEventListener("keydown", onKey);
-      opener?.focus();
+      if (!grid?.isConnected) return;
+      const staying = [
+        ...grid.querySelectorAll<HTMLElement>(
+          "[data-tile-id]:not([data-exiting])",
+        ),
+      ];
+      const buttonOf = (tile: HTMLElement | undefined) =>
+        tile?.querySelector<HTMLElement>("[data-tile-button]") ?? null;
+      const back =
+        buttonOf(staying.find((t) => t.dataset.tileId === lastShown.current)) ??
+        (opener?.isConnected && grid.contains(opener) ? opener : null) ??
+        buttonOf(staying[0]);
+      back?.focus();
     };
-  }, [preview]);
+  }, [open]);
 
   return (
     <>
-      <div className={uniform ? GALLERY_UNIFORM_COLUMNS : GALLERY_COLUMNS}>
+      {keyHint && (
+        <p id={hintId} className="sr-only">
+          {keyHint}
+        </p>
+      )}
+      <div
+        ref={gridRef}
+        data-review-grid
+        className={uniform ? GALLERY_UNIFORM_COLUMNS : GALLERY_COLUMNS}
+        onFocus={markKeyboardTile}
+        onBlur={unmarkKeyboardTile}
+      >
         {items.map((it) => {
           const isSelected = selected.has(it.id);
           return (
             <div
               key={it.id}
+              data-tile-id={it.id}
+              data-review-tile={enablePreview ? "" : undefined}
               data-exiting={exiting.has(it.id) ? "" : undefined}
               style={
                 {
@@ -92,11 +181,14 @@ export function SelectableMediaGrid({
                   borderRadius: "var(--radius-tile)",
                 } as CSSProperties
               }
-              className={
-                uniform
-                  ? "relative w-full overflow-hidden bg-black/10 transition-[opacity,transform] duration-150 ease-emphasis"
-                  : "relative mb-[var(--gap-gallery)] w-full break-inside-avoid overflow-hidden bg-black/10 transition-[opacity,transform] duration-150 ease-emphasis"
-              }
+              className={cn(
+                "relative w-full overflow-hidden bg-black/10 transition-[opacity,transform] duration-150 ease-emphasis",
+                !uniform && "mb-[var(--gap-gallery)] break-inside-avoid",
+                // The keyboard's cursor: a ring OUTSIDE the tile in the focus colour, clear of the
+                // photograph by a hair of the page and lifted over its neighbours' edges, so it
+                // reads over a dark photograph and a bright one alike (`markKeyboardTile`).
+                "outline-offset-2 data-[kbd-focus]:z-10 data-[kbd-focus]:outline-2 data-[kbd-focus]:outline-ring",
+              )}
             >
               <MediaTile item={it} playBadge="none" />
 
@@ -104,28 +196,33 @@ export function SelectableMediaGrid({
                   (peek only exists when previews are enabled). */}
               <button
                 type="button"
+                data-tile-button
                 onClick={() =>
                   selectMode
                     ? onToggle(it.id)
                     : enablePreview
-                      ? setPreview(it)
+                      ? setPeek(it.id)
                       : undefined
                 }
                 aria-pressed={selectMode ? isSelected : undefined}
                 aria-label={
                   selectMode ? (isSelected ? "Deselect" : "Select") : "Preview"
                 }
-                className="absolute inset-0 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                aria-describedby={keyHint && !selectMode ? hintId : undefined}
+                className="absolute inset-0 outline-none"
               />
 
               {/* Video marker. With previews on, the ▶ sits above the select layer so a tap peeks the
-                  video instead of selecting (judge, then select). Without previews (the album), it's the
-                  shared static corner badge — non-interactive, the whole tile just toggles. */}
+                  video instead of selecting (judge, then select). Without previews, it's the shared
+                  static corner badge — non-interactive, the whole tile just toggles. ★ Out of the tab
+                  order: the tile's own button is the one stop per upload (Space peeks it), so a
+                  keyboard walking a queue of videos never lands twice on each. */}
               {it.type === "video" &&
                 (enablePreview ? (
                   <button
                     type="button"
-                    onClick={() => setPreview(it)}
+                    tabIndex={-1}
+                    onClick={() => setPeek(it.id)}
                     aria-label="Preview video"
                     className={cn(
                       "absolute top-1/2 left-1/2 flex size-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full text-white outline-none",
@@ -173,42 +270,64 @@ export function SelectableMediaGrid({
           Rendered at the feed root (fixed), so it sits above the sticky pills + the floating bar. */}
       {enablePreview && preview && (
         <div
+          ref={dialogRef}
           role="dialog"
           aria-modal="true"
           aria-label={
             preview.type === "video" ? "Video preview" : "Photo preview"
           }
+          data-review-peek
+          tabIndex={-1}
           className={cn(
-            "fixed inset-0 z-50 flex items-center justify-center p-4",
+            "fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 p-4 outline-none",
             // The peek stands on the same ground the lightbox does (`behind=album`):
             // the queue behind it, blurred at half brightness. Its children paint
             // above the filter, so the media it exists to show is never in it.
             GLASS_BEHIND,
           )}
-          onClick={() => setPreview(null)}
+          onClick={() => setPeek(null)}
         >
           {preview.type === "video" ? (
             <video
+              key={preview.id}
               src={preview.url}
               controls
               autoPlay
               playsInline
               onClick={(e) => e.stopPropagation()}
-              className="max-h-[88vh] max-w-[94vw] rounded-md"
+              className={cn(
+                "min-h-0 max-w-[94vw] rounded-md",
+                // Under the verdict the media keeps clear of it: the pill never covers the
+                // photograph it is judging, nor a video's own controls.
+                verdict ? "max-h-[calc(100svh-7.5rem)]" : "max-h-[88vh]",
+              )}
             />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element -- presigned R2 URL; next/image 400s on it
             <img
+              key={preview.id}
               src={preview.url}
               alt=""
               onClick={(e) => e.stopPropagation()}
-              className="max-h-[88vh] max-w-[94vw] rounded-md object-contain"
+              className={cn(
+                "min-h-0 max-w-[94vw] rounded-md object-contain",
+                verdict ? "max-h-[calc(100svh-7.5rem)]" : "max-h-[88vh]",
+              )}
+            />
+          )}
+          {verdict && (
+            <PeekVerdict
+              onReject={() => verdict.onReject(preview.id)}
+              onApprove={() => verdict.onApprove(preview.id)}
             />
           )}
           <button
             ref={closeRef}
             type="button"
-            onClick={() => setPreview(null)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setPeek(null);
+            }}
             aria-label="Close preview"
             className={cn(
               "absolute top-4 right-4 flex size-9 items-center justify-center rounded-full text-white outline-none",
@@ -222,4 +341,89 @@ export function SelectableMediaGrid({
       )}
     </>
   );
+}
+
+/** A verdict on the peek: its glyph in its state colour, its word in white, the key in its tooltip. */
+const VERDICT_BUTTON = cn(
+  // A thumb's full target on a phone (44px), a pointer's 40 at a desk.
+  "flex h-11 items-center gap-1.5 rounded-full px-4 text-sm font-medium text-white/85 outline-none sm:h-10",
+  "transition-[color,background-color,transform] duration-150 ease-emphasis hover:bg-white/10 hover:text-white",
+  "focus-visible:text-white focus-visible:ring-2 focus-visible:ring-white/70 active:scale-95 motion-reduce:active:scale-100",
+  GLASS_MARK_LIT,
+);
+
+/**
+ * THE YES/NO, ON THE LOOK (host-curation `peek=verdict`). One pill in the one material under the
+ * photograph, Reject then Approve, the order the bar keeps. The keys sit in each button's tooltip
+ * and nowhere else (`keys=arrows`: "no hints row ... maybe it can be nested somewhere subtly like
+ * a tooltip"). The peek mounts only on a tap, after hydration, so a radix Tooltip is safe here.
+ */
+function PeekVerdict({
+  onReject,
+  onApprove,
+}: {
+  onReject: () => void;
+  onApprove: () => void;
+}) {
+  return (
+    <div
+      data-review-verdict
+      onClick={(e) => e.stopPropagation()}
+      className={cn(
+        "flex shrink-0 items-center gap-0.5 rounded-full p-1",
+        GLASS,
+      )}
+    >
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button type="button" onClick={onReject} className={VERDICT_BUTTON}>
+            <CircleX className="size-4 text-warning" aria-hidden />
+            Reject
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          Reject <Kbd>Backspace</Kbd>
+        </TooltipContent>
+      </Tooltip>
+      <span aria-hidden className="h-5 w-px bg-white/20" />
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button type="button" onClick={onApprove} className={VERDICT_BUTTON}>
+            <Check className="size-4 text-success" aria-hidden />
+            Approve
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          Approve <Kbd>Enter</Kbd>
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  );
+}
+
+/**
+ * THE KEYBOARD'S CURSOR, AS AN ATTRIBUTE (`data-kbd-focus`, the album's own pattern in
+ * `masonry.tsx`): `:has(:focus-visible)` matches but does not reliably repaint in Chromium, so a
+ * ring drawn by it can linger on the tile the keys just left. Keyboard focus only, so a click never
+ * rings a tile; React never manages the attribute, so a re-render never clears it.
+ */
+function markKeyboardTile(e: FocusEvent<HTMLDivElement>) {
+  const target = e.target as Element;
+  const tile = target.closest?.("[data-tile-id]");
+  if (!tile) return;
+  let keyboard = false;
+  try {
+    keyboard = target.matches(":focus-visible");
+  } catch {
+    // An engine without the selector (jsdom) draws no cursor.
+  }
+  if (keyboard) tile.setAttribute("data-kbd-focus", "");
+}
+
+function unmarkKeyboardTile(e: FocusEvent<HTMLDivElement>) {
+  const tile = (e.target as Element).closest?.("[data-tile-id]");
+  const next = e.relatedTarget as Node | null;
+  if (tile && !(next && tile.contains(next))) {
+    tile.removeAttribute("data-kbd-focus");
+  }
 }

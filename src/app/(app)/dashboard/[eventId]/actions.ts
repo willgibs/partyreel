@@ -14,8 +14,10 @@ import {
   removeMediaBulk,
   restoreEvent,
   restoreMedia,
+  returnToReview,
   setMediaStatus,
   setMediaStatusBulk,
+  type ReviewVerdictStatus,
   type SettableMediaStatus,
 } from "@/lib/db/mutations/media";
 import { readHostManifestPage } from "@/lib/db/queries/album-host";
@@ -70,8 +72,11 @@ function refuseSelection(mediaIds: unknown): ActionResult | null {
  * "updates the UI immediately"), and the hub is a page of a dozen reads plus the album's manifest and
  * links: one hide used to re-run all of it. The hub's album is the page's store now, and each write's
  * caller asks it to catch up (`afterWrite`, one delta by id); the counts it shows ride the same poll.
- * The Review room's two bulk verbs below still revalidate: that room renders its queue on the server.
- * The same reason `clip-hidden-action.ts` gives for its own writes.
+ * The same reason `clip-hidden-action.ts` gives for its own writes. ★ And Review's three verbs
+ * (approve, reject, and Undo's return) do not either (curation-wiring): a revalidating action
+ * refreshes whatever route called it, so every verdict re-ran the Review room's page, re-reading
+ * and re-presigning the whole queue, once per key press with the keyboard. The room is a store over
+ * the host's album now (`review-room.tsx`), moved by its own acts and the host's poll.
  */
 export async function setMediaStatusAction(
   eventId: string,
@@ -96,10 +101,12 @@ export async function removeMediaAction(
   return { ok: true };
 }
 
-// Bulk approve / hide SELECTED pending items from the review surface (S3·3b·D).
-// Mirror purgeMediaNowAction's array shape: the wrapper is scoped to pending +
-// RLS-gated to the host's event; revalidate on success. The Review room's
-// Approve all reaches past MAX_BULK_ITEMS by batching (`inBulkBatches`).
+// Bulk approve / reject SELECTED pending items from the Review room. Mirror
+// purgeMediaNowAction's array shape: the wrapper is scoped to pending +
+// RLS-gated to the host's event. The room's Approve all reaches past
+// MAX_BULK_ITEMS by batching (`inBulkBatches`). Rejecting is `hideBulk`: a
+// refused upload lands hidden, the same row state a Hide in the album leaves
+// (host-curation `verb=reject` changed the word, never the state).
 export async function approveBulkAction(
   eventId: string,
   mediaIds: string[],
@@ -109,8 +116,6 @@ export async function approveBulkAction(
 
   const result = await approveBulk(eventId, mediaIds);
   if (!result.ok) return result;
-
-  revalidatePath(`/dashboard/${eventId}`);
   return { ok: true };
 }
 
@@ -123,8 +128,58 @@ export async function hideBulkAction(
 
   const result = await hideBulk(eventId, mediaIds);
   if (!result.ok) return result;
+  return { ok: true };
+}
 
-  revalidatePath(`/dashboard/${eventId}`);
+const REVIEW_VERDICTS: readonly ReviewVerdictStatus[] = ["approved", "hidden"];
+
+/**
+ * UNDO ON A REVIEW VERDICT'S TOAST (host-curation `undo=undo`): the items an approve (`approved`)
+ * or a reject (`hidden`) just decided go back into the queue. `from` is a raw client string, so it
+ * is allow-listed here like every status; the ids are refused past the cap like every bulk verb.
+ *
+ * ★ NEVER INTO A LIVE EVENT: a live event holds no pending media (turning review off approves the
+ * queue, and an upload lands pending only while the event reviews), so an Undo that outlived review
+ * being switched off is refused in words before any write. The event is read through RLS
+ * (`getEvent`), which is also the ownership check: another host's event, or a deleted one, reads as
+ * gone. The check and the write are two requests, so a switch saved in another tab in the moment
+ * between them could still leave one waiting; it would sit in Review until review is back on.
+ */
+export async function returnToReviewAction(
+  eventId: string,
+  mediaIds: string[],
+  from: string,
+): Promise<ActionResult> {
+  if (!(REVIEW_VERDICTS as readonly string[]).includes(from)) {
+    return { ok: false, code: "validation", message: "Unsupported status." };
+  }
+  const refused = refuseSelection(mediaIds);
+  if (refused) return refused;
+
+  const parsedEvent = z.uuid().safeParse(eventId);
+  const event = parsedEvent.success ? await getEvent(parsedEvent.data) : null;
+  if (!event) {
+    return {
+      ok: false,
+      code: "validation",
+      message: "That event is no longer available.",
+    };
+  }
+  if (event.moderation_mode !== "hold_for_approval") {
+    return {
+      ok: false,
+      code: "validation",
+      message:
+        "Review is off for this event, so there's no queue to put them back in.",
+    };
+  }
+
+  const result = await returnToReview(
+    eventId,
+    mediaIds,
+    from as ReviewVerdictStatus,
+  );
+  if (!result.ok) return result;
   return { ok: true };
 }
 

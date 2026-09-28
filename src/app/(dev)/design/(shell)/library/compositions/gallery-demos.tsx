@@ -368,11 +368,11 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     section: "Review surface",
     file: "src/components/app/event-feed/review-section.tsx",
     title: "ReviewSection",
-    lede: "The pending review, now inline in the event feed (the pop-up takeover is retired): the dense triage grid and its select mode, Select or Approve all, then the bulk bar. A reliable auth-free hydration probe for the review island; the bulk actions themselves need auth, so they no-op here.",
+    lede: "The Review room whole: the uniform queue, Select or Approve all, the bulk bar's Reject and Approve, the peek a tap opens with its verdict, the keys once a tile has focus, and each verdict's toast with its Undo. Its writes are inert here (they answer and change nothing); A guest sends one plays an upload arriving, which waits behind the line.",
     specimens: [
       {
-        label: "Review section",
-        hint: "inline triage · Select / Approve all",
+        label: "Review room",
+        hint: "triage · the peek's verdict · the keys · Undo · the line",
         node: <ReviewSectionDemo />,
       },
     ],

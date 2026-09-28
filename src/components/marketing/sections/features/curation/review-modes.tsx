@@ -116,8 +116,8 @@ export function ReviewModes() {
                   Review uploads before they appear
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Hold new photos for your approval instead of showing them
-                  live.
+                  Hold new photos until you approve or reject them, instead of
+                  showing them live.
                 </p>
               </div>
               <SwitchLook />

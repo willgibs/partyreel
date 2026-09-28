@@ -142,7 +142,7 @@ export function UploadsSection({
           render={({ field }) => (
             <ConfirmSwitch
               label="Review uploads before they appear"
-              description="Hold new photos for your approval instead of showing them live."
+              description="Hold new photos until you approve or reject them, instead of showing them live."
               checked={field.value === "hold_for_approval"}
               onCheckedChange={(checked) =>
                 field.onChange(checked ? "hold_for_approval" : "live")
@@ -154,8 +154,8 @@ export function UploadsSection({
                   {pendingCount === 1
                     ? "1 photo is under review. Turning this off approves it and shows it to everyone right away."
                     : `${pendingCount} photos are under review. Turning this off approves them and shows them to everyone right away.`}{" "}
-                  New uploads will then appear live without your review. You
-                  can turn this back on anytime.
+                  New uploads will then appear live without your review. You can
+                  turn this back on anytime.
                 </>
               }
               confirmLabel={

@@ -1,31 +1,37 @@
 "use client";
 
+import { useRef } from "react";
 import { Check, Eye, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { formatCount } from "@/lib/format/count";
 import { FeedSectionEmpty } from "./feed-section-empty";
 import { FeedSectionHeader } from "./feed-section-header";
 import { ReviewActions } from "./review-actions";
 import { ReviewGrid } from "./review-grid";
 import { type ReviewTriage } from "./use-review-triage";
 
-// The inline Review section — the always-present replacement for the gated Reviews tab + its pop-up takeover.
-// Every state leads with the shared `FeedSectionHeader` (so it reads + toggles consistently with Gallery /
-// Reel — same band, same top, no bounce), then a body:
-//   pending        → the amber header (label + count + the Select/Approve-all action slot) + the triage grid;
+/** What a tile's keys do, for a screen reader: no hint row is ever drawn (`keys=arrows`). */
+const KEY_HINT =
+  "Enter approves, Backspace rejects, Space opens it, and the arrow keys move between uploads.";
+
+// The Review room's body. Every state leads with the shared `FeedSectionHeader`, then a body:
+//   pending        → the amber header (label + count + the Select/Approve-all action slot), the
+//                    line when uploads arrived since the queue was drawn, and the triage grid;
 //   beat           → the all-caught-up success pop ([data-unlock-success]), un-carded;
-//   caught-up      → the shared centered empty body (sorted last);
-//   moderation-off → the shared centered teaser body + a one-tap "Turn on review" (sorted last).
-// caught-up + moderation-off dropped their bordered cards for the centered, card-less `FeedSectionEmpty` —
-// Will's preferred "Reel" treatment (2026-06-22).
+//   caught-up      → the shared centered empty body;
+//   moderation-off → the shared centered teaser body + a one-tap "Turn on review".
 export function ReviewSection({
   triage,
   onEnableModeration,
   enabling,
+  keys = false,
 }: {
   triage: ReviewTriage;
   onEnableModeration: () => void;
   enabling: boolean;
+  /** The room's keyboard is on (`review-keys.ts`), so a tile says what its keys do. */
+  keys?: boolean;
 }) {
   const {
     visualState,
@@ -35,7 +41,14 @@ export function ReviewSection({
     exiting,
     selectMode,
     toggle,
+    peekId,
+    setPeekId,
+    decide,
+    arrivals,
+    folding,
+    foldIn,
   } = triage;
+  const gridBox = useRef<HTMLDivElement>(null);
 
   if (visualState === "moderation-off") {
     return (
@@ -97,27 +110,85 @@ export function ReviewSection({
     );
   }
 
+  // The line's tap folds the new uploads in at the head of the queue; a keyboard on the line
+  // (which then leaves) gets the cursor on the first of them rather than on nothing.
+  async function fold() {
+    const hadFocus = document.activeElement;
+    const joined = await foldIn();
+    if (joined.length === 0) return;
+    const fromLine =
+      hadFocus instanceof HTMLElement &&
+      hadFocus.hasAttribute("data-review-arrivals");
+    if (fromLine) focusWhenDrawn(gridBox.current, joined[0]);
+  }
+
   // visualState === "pending"
   return (
     <section aria-label="Review" className="space-y-2.5">
-      {/* ReviewActions draws BOTH its own faces now (`app-vocabulary` r1,
-          `bulk-toolbar=icon`: the browse duo, and the shared BulkBar cluster
-          in select mode) — it no longer needs gating here. Gated the way it
-          used to read, select mode left the header's action slot empty, so a
-          host mid-selection had no visible Hide, Approve or even Cancel. */}
+      {/* ReviewActions draws BOTH its own faces (`app-vocabulary` r1, `bulk-toolbar=icon`: the
+          browse duo, and the shared BulkBar cluster in select mode), so the header's action slot
+          never goes empty: a host mid-selection always has Reject, Approve and Cancel. */}
       <FeedSectionHeader
         label="Review"
         count={pending.length}
         amber
         action={<ReviewActions triage={triage} />}
       />
-      <ReviewGrid
-        items={pending}
-        selectMode={selectMode}
-        selected={selected}
-        exiting={exiting}
-        onToggle={toggle}
-      />
+      {/* ★ THE LINE (host-curation `arrivals=prompt`, Will: "Fantastic catch on ensuring we don't
+          sneak live uploads into a current review"): uploads that land while the host is here
+          never join the grid on their own, under a selection or under a host working down it,
+          and an emptied queue never claims to be caught up while they wait. It says how many, and
+          a tap folds them in. A live region, so the count is heard as well as seen. */}
+      <div aria-live="polite">
+        {arrivals > 0 && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="w-full"
+            data-review-arrivals
+            disabled={folding}
+            onClick={() => void fold()}
+          >
+            {formatCount(arrivals)} new
+            <span className="sr-only">
+              {arrivals === 1 ? " upload" : " uploads"}, add to the queue
+            </span>
+          </Button>
+        )}
+      </div>
+      <div ref={gridBox}>
+        <ReviewGrid
+          items={pending}
+          selectMode={selectMode}
+          selected={selected}
+          exiting={exiting}
+          onToggle={toggle}
+          peekId={peekId}
+          onPeekChange={setPeekId}
+          verdict={{
+            onApprove: (id) => void decide("approve", id),
+            onReject: (id) => void decide("reject", id),
+          }}
+          keyHint={keys ? KEY_HINT : undefined}
+        />
+      </div>
     </section>
   );
+}
+
+/** Focuses a tile once the render that adds it has painted (a fold lands after an await). */
+function focusWhenDrawn(box: HTMLElement | null, id: string, tries = 3) {
+  requestAnimationFrame(() => {
+    const tile = [
+      ...(box?.querySelectorAll<HTMLElement>("[data-tile-id]") ?? []),
+    ].find((t) => t.dataset.tileId === id);
+    const button = tile?.querySelector<HTMLElement>("[data-tile-button]");
+    if (button) {
+      button.focus({ preventScroll: true });
+      tile?.scrollIntoView?.({ block: "nearest" });
+    } else if (tries > 1) {
+      focusWhenDrawn(box, id, tries - 1);
+    }
+  });
 }

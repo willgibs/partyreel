@@ -1,19 +1,23 @@
 "use client";
 
-import { Check, EyeOff, ListChecks } from "lucide-react";
+import { Check, CircleX, ListChecks } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { BulkBar, type BulkBarAction } from "./bulk-bar";
 import { type ReviewTriage } from "./use-review-triage";
 
-// The pending-review control cluster, authored ONCE and rendered in two places (DRY): inline in
-// the ReviewSection header (the at-top surface) AND inside the contextual floating action bar (the
-// scroll companion) — the same "action follows you on scroll" pattern the floating Add uses. Two
-// faces:
+// The review room's control cluster, in the header's action slot. Two faces:
 //   • browse → [Select] [Approve all]. Approve all is the FAST primary path (most moderation is a
 //     quick scroll-then-approve); Select opens deliberate triage so the "All" scroll never selects.
 //   • select → the shared BulkBar (`app-vocabulary` r1, `bulk-toolbar=icon`): Select all · N ·
-//     Hide · Approve · Cancel, icons with instant sliding tooltips, GalleryBulkBar's sibling.
+//     Reject · Approve · Cancel, icons with instant sliding tooltips, GalleryBulkBar's sibling.
+//
+// ★ REJECT AT THE DOOR, HIDE IN THE ALBUM (host-curation `verb=reject`, Will: "Reject offers a clear
+// yes/no decision to new uploads ... Hide gives no option to reject, which inherently accepts
+// everything"). Refusing an upload nobody has seen is Reject here; taking down a photograph that is
+// in the album stays Hide there. The row lands exactly where it did (hidden, dimmed in the host's
+// album, where Show approves it); only the word the host is told changed. Its mark is the one the
+// guest's own tracker wears on the same upload's refused row (`upload-tracker.tsx`).
 export function ReviewActions({ triage }: { triage: ReviewTriage }) {
   const {
     selectMode,
@@ -56,19 +60,19 @@ export function ReviewActions({ triage }: { triage: ReviewTriage }) {
   const none = selected.size === 0;
   const actions: BulkBarAction[] = [
     {
-      id: "hide",
-      label: "Hide",
-      icon: EyeOff,
+      id: "reject",
+      label: "Reject",
+      icon: CircleX,
       color: "warning",
       disabled: busy || none,
-      onRun: () => run("hide", [...selected]),
+      onRun: () => void run("reject", [...selected]),
     },
     {
       id: "approve",
       label: "Approve",
       icon: Check,
       disabled: busy || none,
-      onRun: () => run("approve", [...selected]),
+      onRun: () => void run("approve", [...selected]),
     },
   ];
 
