@@ -7,7 +7,6 @@ import { AdminTriageBoard } from "@/app/(dev)/design/sandbox/admin-triage/board"
 import { EmailsBoard } from "@/app/(dev)/design/sandbox/emails/board";
 import { HelpCenterBoard } from "@/app/(dev)/design/sandbox/help-center/board";
 import { HostStorageBoard } from "@/app/(dev)/design/sandbox/host-storage/board";
-import { EventSafetyBoard } from "@/app/(dev)/design/sandbox/event-safety/board";
 
 import { PressPageBoard } from "@/app/(dev)/design/sandbox/press-page/board";
 import { ContactPageBoard } from "@/app/(dev)/design/sandbox/contact-page/board";
@@ -41,7 +40,6 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
   emails: { Component: EmailsBoard },
   "help-center": { Component: HelpCenterBoard },
   "host-storage": { Component: HostStorageBoard },
-  "event-safety": { Component: EventSafetyBoard },
 
   "press-page": { Component: PressPageBoard },
   "contact-page": { Component: ContactPageBoard },
