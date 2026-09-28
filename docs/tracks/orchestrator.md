@@ -40,7 +40,6 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `crumbs-6` | voice-guest's three lines and their mocks, the footer's phone demo door, the reel's approval toast told true, the landscape head slot, a stale comment, two admin fixes, the failure sheet's help articles | running, agent `a8e0fab3d4643e969` | Sonnet, :3133 | |
 | `storage-wiring` | host-storage's three r1 picks: the size list (flat, All / per-event filter) in the lists panel, the live goal strip, the refusal inline and stacked; storage-r2's three notes; the six prices wait for `prices` r2 | running, agent `a4cd43612551f8fca` | Opus, :3131 | |
 
 Batch 6 (cut `1708b049`, 2026-09-28) answers Will's sitting on build 12, part one (transcribed at `e199f43f`: 20
@@ -48,7 +47,7 @@ answers on identity-claims, hero-card, voice-guest, host-curation, host-storage)
 boards found 30 of their 68 asks drawn before his recent picks were built and 5 already answered: wave 1, the eight
 lanes that made his next desk, landed whole (build 13); wave 2 (the wiring) runs.
 
-Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-refresh, flow-refresh, safety-refresh, hero-r2, help-refresh, marketing-refresh, pointer-wiring, curation-wiring.
+Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-refresh, flow-refresh, safety-refresh, hero-r2, help-refresh, marketing-refresh, pointer-wiring, curation-wiring, crumbs-6.
 
 ## Next, in order
 
@@ -56,7 +55,7 @@ Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-r
    carve-out, plus two help articles' words); then his sitting in desk order, `hero-card` r2 first. A build-12 paste
    transcribes as it stands (the refreshes kept every round), save one id: `help-center`'s `hub=sheet` is `strip` now.
 2. **Wave 2**, integrated as each lands:
-   - `crumbs-6` and `storage-wiring` are running (rows above).
+   - `storage-wiring` is running (its row above).
    - `storage-wiring` (Opus) reuses curation's `showUndoToast` for bulk Remove. It builds
      host-storage's `order=flat` with an All / per-event filter, `goal=live`, and `refusal=inline` stacked full width.
      The size list goes in the lists panel, with r1's carried rows, bulk Remove with Undo, Download handing off to
@@ -96,8 +95,9 @@ Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-r
   appears on a profile until you choose it, and an empty page now says "2 private events". The lane's wording, his to
   change: "A profile with nothing on it may say how many events it keeps private, counting only events whose guest
   lists the visitor can already see."
-- **A 2-minute real-upload check on the alias**: a first photo as a signed-out guest at a held-uploads event (the
-  keep, "waiting for the host", the tracker's badge), then Confirm your email (the one beat, the told name's Change).
+- **A 2-minute real-upload check on the alias**: a first photo, landscape, as a signed-out guest at a held-uploads
+  event (the keep, "waiting for the host" on a head slot the photo now covers, the tracker's badge), then Confirm your
+  email (the one beat, the told name's Change).
 - **A 10-second iPhone check on partyreel.com**: one tap on Save opens the system sheet, and a shared photo arrives as
   a photograph.
 - **A copy call**: the setup's "Showing on your page" over an event whose host keeps the guest list off (ROADMAP's
