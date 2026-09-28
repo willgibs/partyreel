@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Host: a keyboard cannot reach a toast while a modal holds focus (Radix's trap pulls sonner's alt+T back into the modal), so the size list's Undo is pointer-only while it is open; a keyboard way to it may want a design, not only a focus rule (from `crumbs-7`).
+- Host: the Review room says "Review" twice at its top (the page's heading and the section's amber label over the grid) (from `crumbs-7`).
 - Utils: `formatBytes` prints "41.0 GB" for a value that rounds to a whole number (it tests the value before rounding; `formatBytesUp` tests after); the size list's event chips and rows show it (from `storage-wiring`).
 - The lab and the kit: `host-storage`'s plan quote (`sandbox/host-storage/plan-sheet.tsx`, its TITLE) and its `head-stays` carried call still say "You are on Pro already"; production leads with her plan now (from `storage-wiring`).
 - Billing follow-ons: the size list's per-event totals walk every active item's size (one keyset walk per 150 events); a `host_event_storage()` aggregate would answer one row per event once an account outgrows about 30,000 items (from `storage-wiring`).
