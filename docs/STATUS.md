@@ -4,7 +4,7 @@
 > [`systems/`](systems); what might be next is [`ROADMAP.md`](ROADMAP.md); what runs this minute is
 > [`tracks/orchestrator.md`](tracks/orchestrator.md); what shipped is `git log`.
 
-**Updated:** 2026-09-27
+**Updated:** 2026-09-28
 
 ## The era
 
@@ -13,21 +13,23 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoin
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: batch 5 on build 12, Will's next sitting
+## The current round: batch 6, the desk to zero
 
 - **Milestone 29 is live** (`ab30a7f8`, 2026-09-26). Batches 4 and 5 ride `launch-prep` toward milestone 30.
-- **Batch 5 landed** (eight lanes, 2026-09-27): every popup opens through its kind (lists in a panel, confirmations and
-  forms in keyboard-safe dialogs, choices in a menu, Invite onto the code card, plans stacked, settings unfocused); the
-  door's r3 (lit icons, the told chooser, Check your email, the lit beat with motion); the demo's doors (a live dot,
-  "Try our demo event", one demo modal on a desk); the claims review; boards `hero-card` r1 and `identity-claims` r3.
+- **Will's sitting on build 12, part one** is transcribed (2026-09-28, 20 answers): identity-claims' pointer, the hero's
+  card (`link`, a round 2 asked), voice-guest's five lines, host-curation's seven, host-storage's three (`prices` asked
+  again).
+- **Batch 6's first wave** (eight lanes) draws his next desk: three second rounds (hero-card, voice-guest, host-storage)
+  and five refreshes. An audit found 30 of the other boards' 68 asks drawn before his recent picks were built, and 5
+  already answered (site-chrome and profile-page retire). The wiring (curation, pointer, storage, the voice lines)
+  follows as seats free.
 
 ## The desk
 
-Build 11's desk is answered through `reel-story`; the next desk, on build 12, reads in leverage order:
-`identity-claims` (r3), `hero-card` (new), then `voice-guest`, `host-curation`, `host-storage`, `event-safety`,
-`export-flow`, `admin-triage`, `help-center`, `emails`, `site-chrome`, `profile-page`, `privacy-hero`, `album-motion`,
-`loose-ends`, `contact-page`, `press-page` (`popups`, `identity-door` and `reel-story` retire as their picks are
-built).
+His aim is zero open questions before his other to-dos. On build 12, 25 asks are current as drawn (privacy-hero,
+press-page, loose-ends, emails, contact-page and help-center, minus the asks being redrawn); the rest arrive on build
+13 in desk order: `hero-card` r2, `voice-guest` r2, `host-storage` r2, `event-safety`, `export-flow`,
+`admin-triage`, `help-center`, `emails`, then the marketing boards.
 
 ## Live state
 
@@ -67,6 +69,5 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **His next sitting, on build 12**, once batch 5 lands: `identity-claims` r3 first.
-- **A 10-second iPhone check on partyreel.com** (milestone 29 carries it): in an album (`partyreel.com/demo`), one
-  tap on Save opens the system sheet (a photo, a video, a finished clip), and a shared photo arrives as a photograph.
+- **His desk to zero**, then the stacked to-dos (`tracks/orchestrator.md`): the claims review's live walk, Q1, the
+  private count's legal clause, a real-upload check, the iPhone Save check and one copy call.

@@ -1,7 +1,7 @@
 ---
 track: orchestrator
 status: open
-cut: "ebfb1581"          # the launch-prep SHA this state was written at
+cut: "1708b049"          # the launch-prep SHA this state was written at
 owns:                    # the standing claims no lane touches
   - src/app/theme.css
   - src/app/(marketing)/marketing.css
@@ -40,24 +40,46 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
+| `hero-r2` | hero-card r2: ideas branching from Will's `link`, each at 1440, 900 and 375 (loose-ends' `hero-tablet` folds in) | running, agent `a00ce4ac21e78f21f` | Opus, :3131 | |
+| `storage-r2` | host-storage r2: `prices` alone on today's plans dialog, his three r1 picks drawn in | running, agent `a28d87461d4859f66` | Opus, :3132 | |
+| `voice-r2` | voice-guest r2: `held`, `status` (with host-curation's `told` words), `keep` redrawn on the keep step | running, agent `a466c13d8d96d39c7` | Opus, :3133 | |
+| `safety-refresh` | event-safety's nine stale asks onto the settings panel, the lit door and the review room | running, agent `a572968d03e1b1dce` | Opus, :3134 | |
+| `triage-refresh` | admin-triage's five stale asks, two word fixes | running, agent `ac6a61904bd7b6090` | Opus, :3135 | |
+| `flow-refresh` | export-flow's five onto the Download menu; emails' `moments` and `guest` (the two mail halves merge in) | running, agent `a6836c656ed9c1490` | Opus, :3136 | |
+| `help-refresh` | help-center's `hub`, `article`, `from-product`; contact-page's `page`, `receipt`, `topic`'s claim | running, agent `a99a4eddf05853f52` | Opus, :3137 | |
+| `marketing-refresh` | album-motion `fall`, loose-ends `review-photo` (`hero-tablet` leaves), press-page `who-for`; site-chrome and profile-page retire | running, agent `a009b032d9ff73f1b` | Opus, :3138 | |
 
-Batch 3 closed at milestone 29 (`ab30a7f8`, 2026-09-26); batch 4 (nine lanes with `crumbs-3`) is on build 11.
-
-Merged in batch 5 (their records carry the rest): hero-card, claims-r3, demo-doors, popups-wiring, door-r3-wiring, desk-trim, claims-wiring, crumbs-4, crumbs-5.
+Batch 6 (cut `1708b049`, 2026-09-28) answers Will's sitting on build 12, part one (transcribed at `e199f43f`: 20
+answers on identity-claims, hero-card, voice-guest, host-curation, host-storage). A read-only audit of the other 12
+boards found 30 of their 68 asks drawn before his recent picks were built and 5 already answered: wave 1 is the eight
+lanes that make his next desk; wave 2 (the wiring) waits for free seats.
 
 ## Next, in order
 
-1. **Batch 5 landed whole** (cut `ebfb1581`; eight lanes merged green, `claims-wiring`'s migration applied with the
-   types): the popups' kinds, the door's r3, the demo's doors, the claims review, the boards `hero-card` r1 and
-   `identity-claims` r3.
-2. **The pointer's wiring** after Will's `identity-claims` r3 pick, folding the moment card's other-events lines
-   (ROADMAP's Identity line), and `hero-card`'s pick into the hero.
-3. **Build 12 is live** (`044aa2a5`) and Will's sitting is on it: `identity-claims` r3, `hero-card`, then the 15. Its
-   red-team passed every journey it drove (the popups with the keyboard up, the door lit, the demo's doors, the standing
-   scope, the desk), with no console error: two minors fixed in `crumbs-5` (B1 focus after a stacked confirm, B2 the
-   hint's size; merged at `c7bb995b`, riding the next build) and Q1 for Will (the code card fills a phone but Back leaves the album, by design). NOT walked: the claims review,
-   whose staging write (`guests.pending_email` on four test rows) the permission classifier refused; it waits on Will
-   (below).
+1. **Wave 1 lands**, each integrated as it hands off (refresh lanes kept each board's round number, so a build-12 paste
+   still transcribes). At `marketing-refresh`'s record delete `docs/reviews/site-chrome.json` and `profile-page.json`.
+   After the last: `node usher/kit/board-card.mjs --desk` (no two asks repeat; emails' `guest` holds the two mail
+   halves from event-safety `waiting` and admin-triage `notice`).
+2. **Wave 2 as seats free** (specs from the ledgers; each brief carries his notes):
+   - `curation-wiring` (Opus): host-curation's seven. Reject at the door, with Hide kept for an approved photo (the
+     review bar, the viewer, the settings line). Approve and Reject on the desk's peek. Arrows, Enter and Backspace with
+     no hint row (a tooltip at most). Undo on the bulk toast. The "3 new" arrivals line. The uniform grid as it is
+     (`review-grid.tsx`). `told=line` is built (`TRACKER_TELLS_REFUSAL`); the public words promising silence follow it,
+     and the tracker's words stay voice-guest r2's. Retires host-curation (its ledger at the record).
+   - `pointer-wiring` (Opus): `pointer=line` as his note shapes it. The moment card says once, in one line, that the
+     events waiting under her email are sorted from her dashboard later, with no button out of the event.
+     `ELSEWHERE_LINE` folds in (ROADMAP's Identity line). A confirmation before her first upload says nothing about
+     them. Retires identity-claims.
+   - `crumbs-6` (Sonnet): voice-guest's `ask=warm` ("One password and you're in"), `failed=exact` ("2 of 8 didn't
+     upload", Retry both) and `empty=warm` ("Add the first photo"), plus the mocks and help articles that quote them.
+     Also the footer's phone demo link (`marketing-footer.tsx`, a same-tab `Link`, should open a new tab like every
+     demo door on a phone) and `guest-header.tsx`'s stale "open question" comment.
+   - `storage-wiring` (Opus): host-storage's `order=flat` with an All / per-event filter, `goal=live` and
+     `refusal=inline` stacked full width. The size list goes in the lists panel, with r1's carried rows, bulk Remove
+     with Undo, Download handing off to export-flow, and the Deleted line. The six prices keep today's rows until
+     `prices` r2 picks.
+3. **Build 13** once wave 1 lands (whatever wiring has landed rides along): `[preview]`, `alias-ensure`, prune, the desk
+   headless, its red-team; then tell Will which board to open first. The hero's wiring waits for hero-card r2's pick.
 4. **Milestone 30** on his yes, once the count's legal clause (his wording, below) is in the Terms and the Privacy
    Policy; after it, `kit/`'s screens re-captured from partyreel.com (the home's close, teaser, eyebrow and the demo's
    doors changed).
@@ -70,11 +92,15 @@ Merged in batch 5 (their records carry the rest): hero-card, claims-r3, demo-doo
 
 ## Waiting on Will
 
+- **His desk, first** (his aim: zero open questions before the to-dos below, which stay stacked until then). On build
+  12 now, 25 asks are safe: privacy-hero; press-page but `who-for`; loose-ends but `hero-tablet` and `review-photo`;
+  emails but `moments` and `guest`; contact-page's `reach`, `urgency`, `beside`; help-center's `who-first`,
+  `feedback`, `dead-end`, `search`. The rest on build 13.
 - **The claims review's live walk**: it needs claimable rows staged for a test account (`update public.guests set
   pending_email = '<address>', pending_email_at = now() where id in (...)` on name-only rows with live uploads), a write
   the permission classifier refused the red-team; Will stages them (or walks it himself as partyr33l), and the restore
   puts `pending_email`, `email`, `user_id`, `verified_at` and `display_name` back (a claim writes `email` and nulls the
-  name).
+  name). The pointer's line joins it once wired (only a real confirmation shows it).
 - **Q1**: on a phone the code card fills the screen, but Back leaves the album (a look, not a place, by design); should
   Back close it like the other full-screen popups?
 - **The private count's legal clause** (before milestone 30): the Terms ("Profiles and social features",
@@ -88,4 +114,3 @@ Merged in batch 5 (their records carry the rest): hero-card, claims-r3, demo-doo
   a photograph.
 - **A copy call**: the setup's "Showing on your page" over an event whose host keeps the guest list off (ROADMAP's
   picker line).
-- **His next sitting, on build 12**, once batch 5 lands.
