@@ -5,7 +5,7 @@ import { ArrowUp, Check, Eye, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { formatCount } from "@/lib/format/count";
-import { GLASS } from "@/lib/glass";
+import { GLASS, GLASS_MARK_LIT } from "@/lib/glass";
 import { cn } from "@/lib/utils";
 import { FeedSectionEmpty } from "./feed-section-empty";
 import { FeedSectionHeader } from "./feed-section-header";
@@ -177,7 +177,7 @@ export function ReviewSection({
               disabled={folding}
               onClick={() => void fold()}
               className={cn(
-                "pointer-events-auto flex h-9 items-center gap-1.5 rounded-full px-3.5 text-sm font-medium text-white outline-none",
+                "pointer-events-auto flex h-9 items-center rounded-full px-3.5 text-sm font-medium text-white outline-none",
                 "transition-[background-color,transform,opacity] duration-150 ease-emphasis hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/70 active:scale-95 disabled:opacity-60 motion-reduce:active:scale-100",
                 // Occasional, so quick: it drops in a hair as it arrives, on the same clock, and
                 // simply is under reduced motion.
@@ -185,8 +185,12 @@ export function ReviewSection({
                 GLASS,
               )}
             >
-              <ArrowUp className="size-4" aria-hidden />
-              {formatCount(arrivals)} new
+              {/* Its words carry their own light, as every glyph on glass does: white over a
+                  near-white sky needs the halo the pane cannot give it. */}
+              <span className={cn("flex items-center gap-1.5", GLASS_MARK_LIT)}>
+                <ArrowUp className="size-4" aria-hidden />
+                {formatCount(arrivals)} new
+              </span>
               <span className="sr-only">
                 {arrivals === 1 ? " upload" : " uploads"}, add to the queue
               </span>
