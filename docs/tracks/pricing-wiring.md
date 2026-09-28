@@ -18,6 +18,41 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - content/help/reel-styles-length-and-layout.mdx
   - content/help/what-you-can-upload.mdx
   - src/app/(dev)/design/sandbox/host-storage/
+  - src/lib/constants/tier-limits-parity.test.ts
+  - src/lib/constants/reserved-slugs
+  - src/lib/lifecycle/sweeps/over-capacity
+  - src/lib/content-policy.test.ts
+  - src/lib/billing/storage-guard
+  - src/lib/stripe/provision.ts
+  - src/components/app/dashboard/storage-meter.tsx
+  - src/app/(app)/account/page.tsx
+  - src/app/(marketing)/(cinema)/pricing/page.tsx
+  - src/components/marketing/sections/home/pricing-teaser.tsx
+  - src/components/marketing/sections/home/privacy.tsx
+  - src/components/marketing/sections/features/privacy/access-switch.tsx
+  - src/components/marketing/sections/features/album/
+  - src/components/marketing/mdx/spec-shared.tsx
+  - src/lib/content/llms
+  - src/lib/content/help.ts
+  - src/lib/constants/legal-terms.tsx
+  - src/lib/constants/legal.ts
+  - content/help/storage-plans-and-limits.mdx
+  - content/help/how-partyreel-works.mdx
+  - content/help/upgrade-downgrade-or-cancel.mdx
+  - content/help/send-the-event-link.mdx
+  - content/help/create-your-first-event.mdx
+  - content/help/share-the-album-after-the-event.mdx
+  - content/help/who-can-see-your-event.mdx
+  - content/help/event-settings-explained.mdx
+  - content/help/AUTHORING.md
+  - content/blog/how-much-storage-for-event-photos.mdx
+  - content/blog/wedding-album-password.mdx
+  - content/blog/birthday-party-photo-sharing.mdx
+  - content/blog/qr-code-for-wedding-photos.mdx
+  - content/blog/corporate-event-photo-sharing-pricing.mdx
+  - content/blog/group-trip-photo-sharing.mdx
+  - content/blog/highlight-reel-renders-on-your-phone.mdx
+  - content/blog/AUTHORING.md
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/host-storage.json
   - docs/systems/billing-caps.md
