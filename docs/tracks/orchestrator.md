@@ -40,11 +40,10 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `crumbs-4` | the input-otp test flake at its source, six help articles, the keyboard bench's code screen, two stale comments, export-flow grounded on the Download menu | building (agent aceb9ac3c1bfd5a08) | Sonnet, 3132 | |
 
 Batch 3 closed at milestone 29 (`ab30a7f8`, 2026-09-26); batch 4 (nine lanes with `crumbs-3`) is on build 11.
 
-Merged in batch 5 (their records carry the rest): hero-card, claims-r3, demo-doors, popups-wiring, door-r3-wiring, desk-trim, claims-wiring.
+Merged in batch 5 (their records carry the rest): hero-card, claims-r3, demo-doors, popups-wiring, door-r3-wiring, desk-trim, claims-wiring, crumbs-4.
 
 ## Next, in order
 
