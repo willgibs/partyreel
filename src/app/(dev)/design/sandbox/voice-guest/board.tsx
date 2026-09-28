@@ -2,418 +2,350 @@
 
 import "@/components/guest/door.css";
 
-import { ExplorationBoard, ReplayButton, useReplay } from "@/components/lab";
-import type { GridMedia } from "@/components/app/media-grid";
+import { useMemo } from "react";
+
+import { ExplorationBoard } from "@/components/lab";
 import { optionId, optionLabel } from "@/components/lab/board-spec";
 import type { PreviewsFor } from "@/components/lab/exploration";
+import { WaitingTile } from "@/components/guest/upload/stack-tile";
 
-import { HELD, LAST_OF_PICK, PICK, PRIYA, strip, TOM } from "./fixtures";
-import { LANDED, type Register, WAITING } from "./lines";
 import {
-  EmptyState,
-  FailureSheetBody,
-  HeldTile,
-  InviteOnly,
-  KeepDoor,
-  OfferCard,
-  PasswordStep,
-  StackLastBeat,
-  WelcomeStep,
-} from "./parts";
+  ALBUM,
+  EVENT,
+  HELD_DECIDED,
+  HELD_IN,
+  HELD_OUT,
+  HER_UPLOADS,
+  LET_IN,
+  PICK,
+  type Still,
+} from "./fixtures";
 import {
-  AlbumGround,
-  BottomSheet,
-  CentredDialog,
-  DoorGround,
-  EventHead,
-  GuestHeader,
+  HELD_TOAST,
+  type HeldPlace,
+  type Register,
+  STATUS,
+  type StatusWords,
+  UPLOADS_TITLE,
+} from "./lines";
+import { HeldLine, KeepAsk, UploadsList } from "./parts";
+import {
+  AlbumPage,
+  HeldSheet,
+  isCut,
   lineCount,
   lines,
-  Pair,
+  PHONE,
+  QuotedToast,
   type Reader,
-  ReplayCtx,
   Scene,
-  useRunId,
+  Trio,
+  UploadsScreen,
   wordCount,
 } from "./scene";
 import { VOICE_GUEST } from "./spec";
 
 /**
- * THE PREVIEWS, AND NOTHING ELSE: every candidate line set in the place it
- * ships, on a 375 phone, with the rest of that place at today's words.
+ * THE PREVIEWS, AND NOTHING ELSE: every option drawn in the place it ships, on
+ * a 375 phone, with the rest of that place at today's words.
  *
- * ★ EVERY FRAME IS TITLED WITH ITS OPTION'S OWN LABEL (the guidance: "the
+ * ★ EVERY FRAME IS TITLED WITH ITS OPTION'S OWN NAME (the guidance: "the
  * specimen carries the option's name"), read off the spec rather than typed
- * twice, so the words on the stage head and the words over the phone are the
- * same words.
+ * twice, so the words on the stage head and the words over the phone agree.
  *
  * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED (`guest-capture`'s
- * discipline): how many lines a line runs at 375, how many words stand before
- * the button, how much of a photograph a pane covers. A line that looks short
- * in a spec and wraps to three on a tile is exactly what a voice board exists
- * to catch, and the number under the frame is the truth.
+ * discipline): how many of hers stand at the album's head, what the badge
+ * reads, how many lines a status runs and whether the row cut it short, how
+ * tall the keep's sheet stands. A line that looks short in a spec and is cut
+ * at 375 is exactly what a voice board exists to catch, and the number under
+ * the frame is the truth.
  */
 
-const LABEL = (ask: string, option: Register) => {
+const LABEL = (ask: string, option: string) => {
   const found = VOICE_GUEST.asks
     .find((a) => a.id === ask)
     ?.options.find((o) => optionId(o) === option);
   return found ? optionLabel(found) : option;
 };
 
-/** The register's short name, the words every option label opens with. */
-const SHORT: Record<Register, string> = {
-  today: "As shipped",
-  warm: "Plain and warm",
-  bright: "Bright",
-  exact: "Quiet and exact",
-  tender: "Soft and tender",
+/** `held`'s option names, short enough to head a frame's own moment. */
+const HELD_SHORT: Record<HeldPlace, string> = {
+  tiles: "At the album's head",
+  uploads: "Only in her uploads",
+  line: "One line at the album's head",
+  toast: "A toast, then her uploads",
 };
-
-/* ── the grounds the decisions share ──────────────────────────────────────── */
-
-/** The album behind the door and under every album scene: nine of the
- *  wedding's approved photographs, newest first. */
-const ALBUM = strip(9);
-
-/** Her last photograph as the album holds it once it has landed. */
-const LAST: GridMedia = {
-  id: "vg-last",
-  type: "photo",
-  url: LAST_OF_PICK.src,
-  downloadUrl: LAST_OF_PICK.src,
-  status: "approved",
-  width: LAST_OF_PICK.width,
-  height: LAST_OF_PICK.height,
-};
-
-const priya = <GuestHeader who={{ kind: "named", name: PRIYA.name }} />;
-const tom = (
-  <GuestHeader who={{ kind: "member", name: TOM.name, seed: TOM.seed }} />
-);
 
 /* ── what the frames read ──────────────────────────────────────────────────── */
 
 const text = (el: Element | null | undefined) =>
-  (el as HTMLElement | null)?.innerText ?? "";
+  ((el as HTMLElement | null)?.innerText ?? "").replace(/\s+/g, " ").trim();
 
-/** The door's step (`welcome`, `ask`): how long the line runs, and how much
- *  there is to read before the step's own control. */
-const measureDoor =
-  (before: string): Reader =>
-  (root) => {
-    const line = root.querySelector("[data-entry-sheet] [data-vg-line]");
+/** Her tracker's round button, as the frame draws it: its badge, or none. */
+const badgeOf = (root: HTMLElement) => {
+  const count = root.querySelector("[data-upload-tracker-count]");
+  if (count) return `the badge reads ${text(count)}`;
+  return root.querySelector("[data-upload-tracker]")
+    ? "no badge"
+    : "no round button";
+};
+
+/** The waiting tiles standing at the album's head, and their size. */
+const tilesOf = (root: HTMLElement) =>
+  Array.from(root.querySelectorAll<HTMLElement>("[data-waiting-tile]"));
+
+/** 1. The moment her two go. */
+const measureSent: Reader = (root) => {
+  if (!root.querySelector("[data-vg-rows] [data-vg-tile]")) return null;
+  const tiles = tilesOf(root);
+  const line = root.querySelector("[data-vg-held-line]");
+  const toast = root.querySelector("[data-vg-toast] [data-vg-line]");
+  let where: string;
+  if (tiles.length) {
+    const w = Math.round(tiles[0].getBoundingClientRect().width);
+    if (!w) return null;
+    where = `${tiles.length} of hers at the album's head, ${w}px squares`;
+  } else if (line) {
     const n = lineCount(line);
-    if (!line || !n) return null;
-    return `Measured: ${lines(n)} and ${wordCount(text(line))} words at 375, before ${before}.`;
-  };
-
-const measureLanded: Reader = (root, win) => {
-  const line = root.querySelector<HTMLElement>(
-    "[data-upload-stack] [data-vg-line]",
-  );
-  if (!line) {
-    if (!root.querySelector("[data-landed]")) return null;
-    return win.matchMedia("(prefers-reduced-motion: reduce)").matches
-      ? "Measured: no words, and under reduced motion no light either: nothing marks the landing."
-      : "Measured: no words; the newest tile takes one pass of light (Replay runs it again).";
+    if (!n) return null;
+    where = `nothing of hers in the album, ${lines(n)} at its head`;
+  } else if (toast) {
+    const n = lineCount(toast);
+    if (!n) return null;
+    where = `a toast of ${wordCount(text(toast))} words on ${lines(n)}, nothing of hers in the album`;
+  } else {
+    where = "nothing of hers in the album";
   }
-  const tile = root.querySelector<HTMLElement>(
-    "[data-upload-stack] [data-media-tile]",
+  return `Measured: ${where}; ${badgeOf(root)}.`;
+};
+
+/** 2. Later: Maya let one in and left one out. */
+const measureLater: Reader = (root) => {
+  const first = root.querySelector("[data-vg-rows] [data-vg-tile]");
+  // Not settled until the one Maya let in leads the rows, as every option has it.
+  if (first?.getAttribute("data-vg-tile") !== LET_IN.id) return null;
+  const tiles = tilesOf(root);
+  const head = tiles.length
+    ? `the one left out still waits at the head, "${text(tiles[0])}"`
+    : "nothing of hers waits in the album";
+  return `Measured: ${head}; ${badgeOf(root)}.`;
+};
+
+/**
+ * Her uploads, by what they show: how many of hers stand where, then how much
+ * room each status's words leave on their row. A row's words are one
+ * truncated line, so a status that grows is CUT, never wrapped: the room to
+ * spare is how close each option comes to that, and the caption says "cut"
+ * the moment it happens.
+ */
+const measureList: Reader = (root) => {
+  const screen = root.querySelector("[data-vg-screen]");
+  if (!screen) return null;
+  const rows = Array.from(screen.querySelectorAll("[data-upload-tracker-row]"));
+  if (!rows.length) return null;
+  const count = (status: string) =>
+    rows.filter((r) => r.getAttribute("data-upload-tracker-row") === status)
+      .length;
+  const tally = [
+    [count("waiting"), "waiting"],
+    [count("approved"), "in the album"],
+    [count("refused"), "left out"],
+  ]
+    .filter(([n]) => n)
+    .map(([n, what]) => `${n} ${what}`)
+    .join(", ");
+  const said: string[] = [];
+  for (const [status, name] of [
+    ["waiting", "waiting"],
+    ["refused", "left out"],
+  ] as const) {
+    const el = screen.querySelector(`[data-vg-status="${status}"]`);
+    const row = el?.parentElement;
+    if (!el || !row) continue;
+    if (isCut(el)) {
+      said.push(`${name} is cut short`);
+      continue;
+    }
+    const spare = Math.round(
+      row.getBoundingClientRect().right - el.getBoundingClientRect().right,
+    );
+    if (!el.getBoundingClientRect().width) return null;
+    said.push(`${name} fits with ${spare}px to spare`);
+  }
+  const why = screen.querySelector("[data-vg-why]");
+  if (why) {
+    const n = lineCount(why);
+    if (!n) return null;
+    said.push(`left out moves to its own section, its why on ${lines(n)}`);
+  }
+  return `Measured: ${tally}; ${said.join(", ")}.`;
+};
+
+/** The keep: how much there is to read before its button, and the sheet. */
+const measureKeep: Reader = (root) => {
+  const sheet = root.querySelector<HTMLElement>("[data-entry-sheet]");
+  const ask = root.querySelector("[data-entry-sheet] [data-vg-line]");
+  if (!sheet || !ask) return null;
+  const n = lineCount(ask);
+  const h = Math.round(sheet.getBoundingClientRect().height);
+  if (!n || !h) return null;
+  return `Measured: ${wordCount(text(ask))} words over ${lines(n)} before Confirm your email; the sheet stands ${h}px, ${Math.round((h / PHONE.h) * 100)}% of the phone.`;
+};
+
+/* ── 1. where a held photo shows ───────────────────────────────────────────── */
+
+/** The real waiting tile (`stack-tile.tsx`), on a File standing in for hers. */
+function Held({ still, name }: { still: Still; name: string }) {
+  const file = useMemo(
+    () => new File([], name, { type: "image/jpeg" }),
+    [name],
   );
-  const pane = line.parentElement;
-  const n = lineCount(line);
-  if (!tile || !pane || !n) return null;
-  const t = tile.getBoundingClientRect();
-  const share = Math.round(
-    (pane.getBoundingClientRect().height / t.height) * 100,
+  return <WaitingTile file={file} url={still.src} />;
+}
+
+function HeldPreview({ place }: { place: HeldPlace }) {
+  const tiles = place === "tiles";
+  const short = HELD_SHORT[place];
+  return (
+    <Trio>
+      {/* The moment her pick finishes: both of hers are with Maya. */}
+      <Scene
+        id={`vg-held-${place}-sent`}
+        title={`${short}: the moment her 2 go`}
+        measure={measureSent}
+      >
+        <AlbumPage
+          moderated
+          count={EVENT.approvedTotal}
+          tracker={2}
+          scroll
+          head={
+            tiles
+              ? [
+                  <Held key="in" still={HELD_IN} name="IMG_4821.jpg" />,
+                  <Held key="out" still={HELD_OUT} name="IMG_4826.jpg" />,
+                ]
+              : []
+          }
+          line={place === "line" ? <HeldLine n={2} /> : undefined}
+          items={ALBUM}
+          overlay={
+            place === "toast" ? (
+              <QuotedToast title={HELD_TOAST(2)} action={UPLOADS_TITLE} />
+            ) : undefined
+          }
+        />
+      </Scene>
+      {/* Later: Maya let the arch in and left the petals out. Today the album
+          never learns a refusal, so its tile waits on; every other option
+          holds nothing of hers that is not in the album. */}
+      <Scene
+        id={`vg-held-${place}-later`}
+        title={`${short}: later, one let in and one left out`}
+        measure={measureLater}
+      >
+        <AlbumPage
+          moderated
+          count={EVENT.approvedTotal + 1}
+          tracker={tiles ? 1 : 0}
+          scroll
+          head={
+            tiles
+              ? [<Held key="out" still={HELD_OUT} name="IMG_4826.jpg" />]
+              : []
+          }
+          items={[LET_IN, ...ALBUM]}
+        />
+      </Scene>
+      {/* Her uploads, opened: where she learns the one left out, in today's
+          words (`status` asks those). The same list in every option. */}
+      <Scene
+        id={`vg-held-${place}-list`}
+        title={`${short}: her uploads, opened`}
+        measure={measureList}
+      >
+        <AlbumPage
+          moderated
+          count={EVENT.approvedTotal + 1}
+          tracker={0}
+          items={[LET_IN, ...ALBUM]}
+          overlay={
+            <UploadsScreen>
+              <UploadsList uploads={HELD_DECIDED} words={STATUS.today} />
+            </UploadsScreen>
+          }
+        />
+      </Scene>
+    </Trio>
   );
-  return `Measured: ${lines(n)} on a ${Math.round(t.width)}px tile; the pane covers ${share}% of the photograph.`;
-};
+}
 
-const measureFailed: Reader = (root) => {
-  const words = root.querySelector("[data-vg-sheet] [data-vg-line]");
-  const retry = root.querySelector("[data-vg-retry]");
-  const n = lineCount(words);
-  if (!words || !retry || !n) return null;
-  return `Measured: the heading and its line run ${lines(n)}; ${wordCount(text(words)) + wordCount(text(retry))} words to the tap that retries.`;
-};
+/* ── 2. her uploads' words ─────────────────────────────────────────────────── */
 
-const measureEmpty: Reader = (root) => {
-  const button = root.querySelector<HTMLElement>("[data-vg-button]");
-  if (!button) return null;
-  const w = Math.round(button.getBoundingClientRect().width);
-  if (!w) return null;
-  return `Measured: one line, a ${w}px button, ${wordCount(text(button))} words under the heading.`;
-};
-
-const measureWaiting: Reader = (root) => {
-  const tile = root.querySelector<HTMLElement>("[data-waiting-tile]");
-  const line = tile?.querySelector("[data-vg-line]") ?? null;
-  const n = lineCount(line);
-  if (!tile || !n) return null;
-  return `Measured: ${lines(n)} on a ${Math.round(tile.getBoundingClientRect().width)}px tile.`;
-};
-
-const measureCard: Reader = (root) => {
-  const card = root.querySelector<HTMLElement>("[data-vg-card]");
-  const words = card?.querySelector("[data-vg-line]");
-  if (!card || !words) return null;
-  const h = Math.round(card.getBoundingClientRect().height);
-  if (!h) return null;
-  return `Measured: the card stands ${h}px tall, ${wordCount(text(words))} words before its button.`;
-};
-
-const measureKeepDoor: Reader = (root) => {
-  const words = root.querySelector("[data-vg-dialog] [data-vg-line]");
-  const n = lineCount(words);
-  if (!words || !n) return null;
-  return `Measured: ${wordCount(text(words))} words over ${lines(n)} before the email field.`;
-};
-
-/* ── 1. the welcome ────────────────────────────────────────────────────────── */
-
-function WelcomeScene({ register }: { register: Register }) {
+function StatusScene({ words }: { words: StatusWords }) {
   return (
     <Scene
-      id={`vg-welcome-${register}`}
-      title={LABEL("welcome", register)}
-      measure={measureDoor("Continue")}
+      id={`vg-status-${words}`}
+      title={LABEL("status", words)}
+      measure={measureList}
     >
-      <DoorGround locked={false} behind={ALBUM}>
-        <WelcomeStep register={register} />
-      </DoorGround>
-    </Scene>
-  );
-}
-
-/* ── 2. the password's ask ─────────────────────────────────────────────────── */
-
-function AskScene({ register }: { register: Register }) {
-  return (
-    <Scene
-      id={`vg-ask-${register}`}
-      title={LABEL("ask", register)}
-      measure={measureDoor("the field")}
-    >
-      <DoorGround locked>
-        <PasswordStep register={register} />
-      </DoorGround>
-    </Scene>
-  );
-}
-
-/* ── 3. the landing ────────────────────────────────────────────────────────── */
-
-/** What stands at the album's head as the last of the six lands: today the
- *  stack has already gone and the photograph is the album's newest tile,
- *  taking its light; a candidate holds the stack a beat with its line. */
-function LandedAlbum({
-  register,
-  member,
-}: {
-  register: Register;
-  member: boolean;
-}) {
-  const runId = useRunId();
-  const words = LANDED[register];
-  const line = words ? (member ? words.member(PICK) : words.guest(PICK)) : null;
-  return (
-    <AlbumGround
-      header={member ? tom : priya}
-      // A typed name's first photographs raise the capture card in the words
-      // column (held at today's words: `keep` asks them); a signed-in member
-      // has nothing to be offered.
-      slot={member ? undefined : <OfferCard register="today" />}
-      prefix={
-        line ? (
-          <StackLastBeat key={runId} still={LAST_OF_PICK} line={line} />
-        ) : undefined
-      }
-      items={line ? ALBUM : [LAST, ...ALBUM]}
-      landedId={line ? undefined : LAST.id}
-    />
-  );
-}
-
-/** The landing's own Replay: the light and the stack's arrival play once on
- *  mount, and a step mounts every option at once, so this remounts them. It
- *  sits with the evidence rather than in the dock because no other decision
- *  on the board moves. */
-function LandedPreview({ register }: { register: Register }) {
-  const { runId, replay } = useReplay();
-  return (
-    <div className="flex min-w-0 flex-col gap-3">
-      <div>
-        <ReplayButton runId={runId} onReplay={replay} />
-      </div>
-      <ReplayCtx.Provider value={runId}>
-        <Pair>
-          <Scene
-            id={`vg-landed-${register}-guest`}
-            title={`${SHORT[register]}: Priya, a typed name`}
-            measure={measureLanded}
-          >
-            <LandedAlbum register={register} member={false} />
-          </Scene>
-          <Scene
-            id={`vg-landed-${register}-member`}
-            title={`${SHORT[register]}: Tom, signed in`}
-            measure={measureLanded}
-          >
-            <LandedAlbum register={register} member />
-          </Scene>
-        </Pair>
-      </ReplayCtx.Provider>
-    </div>
-  );
-}
-
-/* ── 4. a failed upload ────────────────────────────────────────────────────── */
-
-function FailedScene({ register }: { register: Register }) {
-  return (
-    <Scene
-      id={`vg-failed-${register}`}
-      title={LABEL("failed", register)}
-      measure={measureFailed}
-    >
-      <AlbumGround
-        header={priya}
-        slot={<OfferCard register="today" />}
-        items={ALBUM}
+      <AlbumPage
+        moderated
+        count={EVENT.approvedTotal + 2}
+        tracker={1}
+        items={[LET_IN, ...ALBUM]}
         overlay={
-          <BottomSheet>
-            <FailureSheetBody register={register} />
-          </BottomSheet>
+          <UploadsScreen>
+            <UploadsList uploads={HER_UPLOADS} words={STATUS[words]} />
+          </UploadsScreen>
         }
       />
     </Scene>
   );
 }
 
-/* ── 5. the empty album ────────────────────────────────────────────────────── */
+/* ── 3. keeping it ─────────────────────────────────────────────────────────── */
 
-function EmptyScene({ register }: { register: Register }) {
+function KeepScene({ register }: { register: Register }) {
   return (
     <Scene
-      id={`vg-empty-${register}`}
-      title={LABEL("empty", register)}
-      measure={measureEmpty}
+      id={`vg-keep-${register}`}
+      title={LABEL("keep", register)}
+      measure={measureKeep}
     >
-      <div className="min-h-full bg-background text-foreground">
-        {priya}
-        <div className="px-5 pt-6 pb-10">
-          <EventHead count={0} contributors={0} />
-          <InviteOnly />
-          <div className="mt-7">
-            <EmptyState register={register} />
-          </div>
-        </div>
-      </div>
-    </Scene>
-  );
-}
-
-/* ── 6. a held photo ───────────────────────────────────────────────────────── */
-
-function WaitingScene({ register }: { register: Register }) {
-  return (
-    <Scene
-      id={`vg-waiting-${register}`}
-      title={LABEL("waiting", register)}
-      measure={measureWaiting}
-    >
-      <AlbumGround
-        header={priya}
-        prefix={HELD.map((still) => (
-          <HeldTile key={still.src} still={still} line={WAITING[register]} />
-        ))}
+      <AlbumPage
+        moderated={false}
+        count={EVENT.approvedTotal + PICK}
+        tracker={null}
         items={ALBUM}
+        overlay={
+          <HeldSheet>
+            <KeepAsk register={register} />
+          </HeldSheet>
+        }
       />
     </Scene>
-  );
-}
-
-/* ── 7. keeping it ─────────────────────────────────────────────────────────── */
-
-function KeepPreview({ register }: { register: Register }) {
-  const ground = (overlay?: React.ReactNode) => (
-    <AlbumGround
-      header={priya}
-      slot={<OfferCard register={register} />}
-      items={ALBUM}
-      overlay={overlay}
-    />
-  );
-  return (
-    <Pair>
-      <Scene
-        id={`vg-keep-${register}-card`}
-        title={`${SHORT[register]}: the card, once her photos land`}
-        measure={measureCard}
-      >
-        {ground()}
-      </Scene>
-      <Scene
-        id={`vg-keep-${register}-door`}
-        title={`${SHORT[register]}: the door its button opens`}
-        measure={measureKeepDoor}
-      >
-        {ground(
-          <CentredDialog>
-            <KeepDoor register={register} />
-          </CentredDialog>,
-        )}
-      </Scene>
-    </Pair>
   );
 }
 
 /* ── the map the step draws from ─────────────────────────────────────────── */
 
 const PREVIEWS: PreviewsFor<typeof VOICE_GUEST> = {
-  "welcome.today": <WelcomeScene register="today" />,
-  "welcome.warm": <WelcomeScene register="warm" />,
-  "welcome.bright": <WelcomeScene register="bright" />,
-  "welcome.exact": <WelcomeScene register="exact" />,
-  "welcome.tender": <WelcomeScene register="tender" />,
+  "held.tiles": <HeldPreview place="tiles" />,
+  "held.uploads": <HeldPreview place="uploads" />,
+  "held.line": <HeldPreview place="line" />,
+  "held.toast": <HeldPreview place="toast" />,
 
-  "ask.today": <AskScene register="today" />,
-  "ask.warm": <AskScene register="warm" />,
-  "ask.bright": <AskScene register="bright" />,
-  "ask.exact": <AskScene register="exact" />,
-  "ask.tender": <AskScene register="tender" />,
+  "status.today": <StatusScene words="today" />,
+  "status.host": <StatusScene words="host" />,
+  "status.approval": <StatusScene words="approval" />,
+  "status.apart": <StatusScene words="apart" />,
 
-  "landed.today": <LandedPreview register="today" />,
-  "landed.warm": <LandedPreview register="warm" />,
-  "landed.bright": <LandedPreview register="bright" />,
-  "landed.exact": <LandedPreview register="exact" />,
-  "landed.tender": <LandedPreview register="tender" />,
-
-  "failed.today": <FailedScene register="today" />,
-  "failed.warm": <FailedScene register="warm" />,
-  "failed.bright": <FailedScene register="bright" />,
-  "failed.exact": <FailedScene register="exact" />,
-  "failed.tender": <FailedScene register="tender" />,
-
-  "empty.today": <EmptyScene register="today" />,
-  "empty.warm": <EmptyScene register="warm" />,
-  "empty.bright": <EmptyScene register="bright" />,
-  "empty.exact": <EmptyScene register="exact" />,
-  "empty.tender": <EmptyScene register="tender" />,
-
-  "waiting.today": <WaitingScene register="today" />,
-  "waiting.warm": <WaitingScene register="warm" />,
-  "waiting.bright": <WaitingScene register="bright" />,
-  "waiting.exact": <WaitingScene register="exact" />,
-  "waiting.tender": <WaitingScene register="tender" />,
-
-  "keep.today": <KeepPreview register="today" />,
-  "keep.warm": <KeepPreview register="warm" />,
-  "keep.bright": <KeepPreview register="bright" />,
-  "keep.exact": <KeepPreview register="exact" />,
-  "keep.tender": <KeepPreview register="tender" />,
+  "keep.today": <KeepScene register="today" />,
+  "keep.warm": <KeepScene register="warm" />,
+  "keep.bright": <KeepScene register="bright" />,
+  "keep.exact": <KeepScene register="exact" />,
+  "keep.tender": <KeepScene register="tender" />,
 };
 
 export function VoiceGuestBoard() {

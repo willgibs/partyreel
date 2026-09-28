@@ -1,429 +1,240 @@
 import { defineExploration } from "@/components/lab/exploration";
 
 /**
- * THE VOICE OF THE GUEST JOURNEY, ROUND ONE (2026-09-23).
+ * THE VOICE OF THE GUEST JOURNEY, ROUND TWO (2026-09-28).
  *
- * A NEW BOARD ON HIS WORD (2026-09-22, verbatim): "Still need to nail our
- * voice in the lab, across all main and micro copy." Asked where the first
- * voice board should start, he picked the guest journey: the door, the name
- * step, the upload, the errors and the capture, the most-read micro copy and
- * where most asks live. A catalog, lab-only, no production byte.
+ * Round one's answers (docs/reviews/voice-guest.json): `welcome=today`,
+ * `ask=warm`, `landed=today`, `failed=exact`, `empty=warm`. Those five leave
+ * the asks and stand as he took them; none of their lines sits on a screen
+ * this round draws, so none is redrawn. Two came back unclear, and his notes
+ * are this round's direction:
  *
- * ★ THE FORM IS HIS, FROM THE LAST TWO VOICE BOARDS. He killed the first for
- * forcing each option into "a very specific tone so it felt differentiated for
- * the sake of the exploration", and asked instead for "tighter comparisons of
- * copy in real cases, one at a time", building the voice from the winners. So
- * every decision here is ONE real line in its real place (the phone, the
- * sheet, the tile it ships on), and bible 10 says why: "the voice is built one
- * won line at a time, in its real place".
+ *  - `waiting=?`: "Is this not being handled separately in a queue from a past
+ *    selection?" Partly: guest-capture's tracker (`tracker=button`) lists her
+ *    held photos in the same words, but the album still shows them as dim
+ *    tiles at its head, and a refused one keeps saying Waiting there until her
+ *    visit ends, because the album's sync moves only in and out of approved.
+ *    With his `landed` note ("not a fan of adding notices within the media
+ *    cards ... notify the user where they are without real interruption, if we
+ *    even need to notify them at all"), that becomes `held`: WHERE a held photo
+ *    shows, which also decides what a refused one does there.
+ *  - `keep=?`: "Want to ensure this is not a repeat question." It is not:
+ *    guest-capture r1 settled when the keep asks and its shape (the door's last
+ *    screen) and identity-door r3 its look; its words were never asked, and
+ *    round one drew them on the retired card. So `keep` is round one's
+ *    registers redrawn where the ask ships (`KeepOffer`).
  *
- * ★ THE REGISTERS SPAN FIVE KEYS, NOT A FIXED FOUR: `today` (the shipped
- * words), `warm` (plain and warm), `bright` (bright and playful), `exact`
- * (quiet and exact), the three the brief first asked the candidates to span,
- * and `tender` (soft and tender), tried this round as a genuinely different
- * fifth direction rather than another costume on the same three. Each is
- * written for its place rather than as a costume, and each option's `means`
- * ends with what the same register sounds like on another of these lines, so
- * a pick carries. His answers then read as a voice at a glance (welcome=bright,
- * failed=warm, ...), and the voice is whatever they share.
+ * ★ `status` FOLDS IN host-curation's `told=line` NOTE (that ledger leaves with
+ * its board: `git show e199f43f:docs/reviews/host-curation.json`): "maybe we
+ * can be more clear than 'Not in the album', because a guest may not
+ * immediately understand why not. 'Rejected' seems harsh ... Can you think of
+ * better language there? Or could we handle differently in the uploads
+ * queue?" So its options are better words AND one different handling (a
+ * section of its own with one sentence of why), and the registers differ in
+ * what they say (where, who, which rule), not in costume.
  *
- * ★ THE GUIDANCE HIS WORDS BECAME BINDS EVERY CANDIDATE (`guidance.md`): "An
- * ask says what it gives, where that comes naturally ... where a benefit
- * would be forced, the line is natural or at least neutral, never worded as a
- * rule or in regulatory language. The first welcome reads fun, safe, easy and
- * quick." Some lines are already settled and are not reopened here: "No app
- * required." rides every welcome, "The album starts with you" heads the empty
- * album, the name step's lede and the verified gate's line are not drawn at
- * all, and "Almost in" keeps the password step's eyebrow.
+ * ★ THE FORM IS HIS, FROM THE LAST VOICE BOARDS: "tighter comparisons of copy
+ * in real cases, one at a time". Every option is drawn in its real place on a
+ * 375 phone: the album as it ships today, her uploads where `popups`'
+ * `lists=panel` opens a list (the whole screen under a back arrow in a hand),
+ * the door's held sheet. `held` draws each option as a whole strategy over
+ * time (the moment, later, her uploads), `identity-claims` r3's shape.
  *
- * ★ WHAT THE STANDING BOARDS ASK, THIS ONE DOES NOT, and each context names
- * its neighbour: `identity-door` (the field, the member nudge, the verified
- * gate's framing, the menu, undoing an email), `guest-capture` (when the
- * capture asks, its shape, whom to follow, the name), `identity-claims`
- * (`pointer`, `after`), `export-flow`, `emails.guest`, `reel-front`'s tile
- * lines and small states, `reel-view`'s chrome, the copy of `reel-cut` and
- * `reel-screen`, and `host-curation.told` (whether a refused photo is ever
- * told, which `waiting`'s line only has to stay true beside).
+ * ★ WHAT THE STANDING BOARDS ASK, THIS ONE DOES NOT: which moments may mail a
+ * guest (`emails.guest`, where `flow-refresh` merges two more mail questions),
+ * whether a refusal is told at all (host-curation settled `told=line`), when
+ * the keep asks and its shape (guest-capture), its look (identity-door).
  *
- * All seven are roots: each holds the other six at today's words and moves
- * only its own line, so he can take them in any order.
+ * All three are roots: each holds the other two at today's words and moves
+ * only its own, so he can take them in any order.
  */
 export const VOICE_GUEST = defineExploration({
   id: "voice-guest",
   title: "The voice of the guest journey",
   round: {
-    n: 1,
-    date: "2026-09-24",
+    n: 2,
+    date: "2026-09-28",
     changed:
-      "The refresh: a fifth register, tender, tried on all seven lines beside today/warm/bright/exact, so no ask is fenced to the same three costumes. No other line changed.",
+      "Three questions from your round one notes: where a held photo shows to the guest who sent it, what her uploads call one the host is deciding on and one left out (host-curation's told note folded in), and the keep's words redrawn on the door's last screen.",
   },
+  history: [
+    {
+      n: 1,
+      date: "2026-09-24",
+      changed:
+        "Seven lines in five registers. You took today's welcome, the warm password ask, today's silent landing, the exact failure sheet and the warm empty button; a held photo came back asking about the queue, and the keep asking whether it was a repeat.",
+    },
+  ],
   context:
-    "Will, 2026-09-22: \"Still need to nail our voice in the lab, across all main and micro copy.\" The guest journey first: seven lines Priya reads between scanning Maya and Jay's code and keeping her photos, each set where it lives on a 375 phone, today's words beside plain and warm, bright and playful, quiet and exact, and this round's soft and tender. The lines he picks build the voice one won line at a time, and each option says what its register sounds like on another of the seven, so a pick carries to the host app's board and marketing's after it.",
+    "Round two, from your round one notes. Priya at Maya and Jay's wedding, signed out under the name she typed, every frame a 375 phone in the album as it ships today, her uploads opening where popups put a list: their own screen under a back arrow. Held and status imagine the wedding holding uploads for Maya's review; keep meets it open, where her 6 have just gone in. Round one's five picks left the asks and stand as you took them.",
   carried: [
     {
       id: "world",
       question: "Who and where are the lines read?",
       taken:
-        "Priya at Maya and Jay's wedding, identity-door's and guest-capture's own world; Tom, signed in, joins only where a line differs for a member.",
+        "Priya at Maya and Jay's wedding, signed out under her typed name; held and status imagine uploads held for Maya's review, keep the wedding open.",
       overrule:
-        "Nothing turns on the names. They are the desk's, so the page is familiar by the time a line is judged.",
+        "Nothing turns on the names: they are the desk's own, so the page is familiar by the time a line is judged.",
     },
     {
-      id: "phone",
-      question: "Is a laptop on a knob beside each phone?",
+      id: "refusal-read",
+      question: "When does her badge stop counting a photo Maya left out?",
       taken:
-        "No: every line is read on a phone at a party, so each frame is 375 by 812. The desk's panel sets the same lines at a similar measure.",
+        "When her uploads re-read her rows: at each opening, as today, and also when one of hers arrives in the album, since a host decides a pick in one go.",
       overrule:
-        "If a line must be read at a desk too, a Screen knob draws the panel posture beside every phone.",
+        "If her next look is soon enough, only an opening re-reads; if it must be live, her rows join the album's poll.",
     },
     {
-      id: "button",
-      question: "Does the capture card's button change with its words?",
+      id: "host-name",
+      question: "Do her uploads name the host?",
       taken:
-        "No: it reads \"Confirm your email\" in every option, because the Unverified mark and the name menu open the same door with those words.",
+        'No: "the host", as the list\'s own line and the upload area say it. Your round one picks twice took the line without her name.',
       overrule:
-        "If the button should say what it keeps, the three doors change together at the wiring.",
+        'If a name reads warmer, "Waiting for Maya" and "Maya didn\'t add this one" swap in at the wiring.',
+    },
+    {
+      id: "keep-confirm",
+      question:
+        "Does the screen Confirm your email opens take the ask's words?",
+      taken:
+        "No: it wears the account door's keep wear, which the Unverified mark and her name menu open before any upload, so it promises her photos first.",
+      overrule:
+        "If the keep's two screens should read as one, its confirm screen heads with the ask's own title and line.",
     },
   ],
   asks: [
     {
-      id: "welcome",
-      label: "The welcome",
+      id: "held",
+      label: "Where a held photo shows",
       question:
-        "What should the welcome say under the event's name, the first words a guest reads after scanning?",
+        "When the host reviews uploads, where should a photo still waiting show to the guest who sent it?",
       context:
-        "The held sheet a guest meets off the code, 48 photos in. Only the two rows under the name change; \"No app required.\" is already settled, so every option keeps it. A sign-in row on this sheet is identity-door's question.",
+        "Priya just sent 2 to Maya's held wedding. Each option is drawn three ways: the moment they go, later once Maya has let one in and left one out, and her uploads opened as their own screen. Your note: no notices inside media cards.",
       options: [
         {
-          id: "today",
-          label: "As shipped: \"shots land in one album\"",
+          id: "tiles",
+          label: "At the album's head, as today",
           means:
-            "Its first row is already settled, swept to \"No app required.\"; its second was never asked. Elsewhere: \"Everything else is in Maya's album.\"",
+            "Each waits dimmed under a clock until Maya lets it in or the visit ends. One left out keeps saying Waiting there, and the badge counts it until she looks.",
         },
         {
-          id: "warm",
-          label: "Plain and warm: \"in a few taps\"",
+          id: "uploads",
+          label: "Only in her uploads, the badge counting",
           means:
-            "Few taps, and the album is named as Maya's, so it reads as hers. Elsewhere: \"The other 6 are in Maya's album.\"",
+            "Nothing of hers stands in the album until Maya lets it in. The badge beside Add photos counts what waits; one left out is told only in her uploads.",
         },
         {
-          id: "bright",
-          label: "Bright: \"Caught something good?\"",
+          id: "line",
+          label: "One line at the album's head",
           means:
-            "A question to open, Maya's album, and a nudge to close (\"48 got there first\"). Elsewhere: \"All 6 landed.\"",
+            "Where her tiles stood, one quiet line in the Yours filter's grammar opens her uploads and goes when nothing waits. One left out is told only there.",
         },
         {
-          id: "exact",
-          label: "Quiet and exact: \"One shared album\"",
+          id: "toast",
+          label: "A toast as they go, then her uploads",
           means:
-            "What to do, then the count, in the fewest words. Nothing to misread and nothing warm. Elsewhere: \"6 added.\"",
-        },
-        {
-          id: "tender",
-          label: "Soft and tender: \"only you caught\"",
-          means:
-            "What she saw matters, and the count says how many already trust the album. Elsewhere: \"Kept safe until the host looks.\"",
+            "One toast in the keep's own Sent words as the stack finishes, then the badge counts. One left out is told only in her uploads.",
         },
       ],
-      recommended: "bright",
-      today: "today",
+      today: "tiles",
+      recommended: "uploads",
       because:
-        "His bar for the first welcome is fun, safe, easy and quick. Only this one is fun without losing the rest: the question invites, \"No app required.\" keeps it easy, and Maya's album keeps it hers rather than ours.",
+        "Your notes asked for no notices inside media cards, a word only where she is if at all, and pointed at the queue you picked. The badge sits on the Add she just pressed and rides the dock as she scrolls, and the album shows only what is in it.",
       overrule:
-        "If a question at the door reads like a sales line, the warm one keeps every fact, Maya's album included, with no wink.",
+        "If her photos leaving the album's head reads as a failure, the line keeps a word where the stack was, and opens the same list.",
       lands:
-        "The guest door's first impression, and the register every first-time moment after it can borrow.",
+        "The album's head on a held event, whether the waiting tile stays, and where a guest learns one of hers was left out.",
       tile: "phone",
     },
     {
-      id: "ask",
-      label: "The password's ask",
-      question: "When the host has set a password, how should the door ask for it?",
-      context:
-        "The same wedding with a password set: the door's second step, over the locked page. Only the sentence under the title changes. The verified gate's line is already settled and its framing is identity-door's.",
-      options: [
-        {
-          id: "today",
-          label: "As shipped: \"from your invite\"",
-          means:
-            "Why, then an instruction (\"Enter ... to come in\"). Elsewhere this register says \"Waiting for the host.\"",
-        },
-        {
-          id: "warm",
-          label: "Plain and warm: \"One password and you're in\"",
-          means:
-            "Why, then the cost, in the shipped gate's own cadence (\"One tap and you're in\"). Elsewhere: \"The host sees it first.\"",
-        },
-        {
-          id: "bright",
-          label: "Bright: \"Guests only, and that means you\"",
-          means:
-            "Turns the rule into a welcome and says where the password is. Elsewhere: \"Over to the host.\"",
-        },
-        {
-          id: "exact",
-          label: "Quiet and exact: \"the host shared\"",
-          means:
-            "One instruction and nothing else: neutral, never a rule. Elsewhere: \"Only you see this for now.\"",
-        },
-        {
-          id: "tender",
-          label: "Soft and tender: \"kept for the people\"",
-          means:
-            "Privacy as care, not a rule, and still says where to look. Elsewhere: \"All 6, kept safe in the album.\"",
-        },
-      ],
-      recommended: "warm",
-      today: "today",
-      because:
-        "The gate's shipped line already set how a door asks: whose choice, why, what it costs. The password's line in the same shape makes the two doors one voice, and \"just for the guests\" is a benefit that needs no forcing.",
-      overrule:
-        "If guests stall hunting for the password, only today's line and the bright one say where it is: on the invite.",
-      lands:
-        "How every door asks for what it needs: the reason and the cost, or an instruction.",
-      tile: "phone",
-    },
-    {
-      id: "landed",
-      label: "The landing",
+      id: "status",
+      label: "Her uploads' words",
       question:
-        "When the last of her photos lands, should the stack tile say so, and in which words?",
+        "In her uploads, what should a photo the host is still deciding on say, and one the host left out?",
       context:
-        "Priya sent six. The stack at the album's head counts \"N to go\"; today it leaves as the last lands, with a light. Tom is signed in; his may name his account. Reel-front's toast and guest-capture's tracker are its neighbours.",
+        'Later that evening Priya opens her uploads: 1 still with Maya, 2 in the album, 1 Maya left out. Your host-curation note: clearer than "Not in the album" without "Rejected"\'s edge. One option gives a left-out photo its own section.',
       options: [
         {
           id: "today",
-          label: "As shipped: no words, one pass of light",
+          label: 'As shipped: "Not in the album"',
           means:
-            "The photograph arriving is the whole reply; a screen reader or reduced motion gets none. Elsewhere this register shows, never says.",
+            'Says where it is and never why, so it can read as an upload of hers that failed. Waiting reads "Waiting for the host".',
         },
         {
-          id: "warm",
-          label: "Plain and warm: \"All 6 are in the album\"",
+          id: "host",
+          label: 'Plain: "The host didn\'t add this one"',
           means:
-            "Says it in full and tells Tom where the event went. Two lines on the tile. Elsewhere: \"2 didn't make it.\"",
+            "Waiting keeps its one name on the page; the left-out line says who decided, in the words a friend would use, and passes no verdict on the photo.",
         },
         {
-          id: "bright",
-          label: "Bright: \"All 6 landed\"",
+          id: "approval",
+          label: 'Exact: "Waiting for approval", "Not approved"',
           means:
-            "The welcome's own verb in one line; Tom hears \"Yours to keep\", the card's promise, kept. Elsewhere: \"Get it started.\"",
+            "Both lines name the review she read about when she sent them, so the why is the event's rule rather than a person's choice.",
         },
         {
-          id: "exact",
-          label: "Quiet and exact: \"6 added\"",
+          id: "apart",
+          label: "Left out in a section of its own",
           means:
-            "A count and a verb; Tom's adds \"in your account\". Elsewhere: \"2 of 8 didn't upload.\"",
-        },
-        {
-          id: "tender",
-          label: "Soft and tender: \"kept safe\"",
-          means:
-            "Marks the moment quietly and tells Tom his account keeps it too. Elsewhere: \"Start it with one of yours.\"",
+            'Rows keep today\'s words; a left-out photo moves to the foot under "Not added to the album" with one sentence of why, said once.',
         },
       ],
-      recommended: "bright",
       today: "today",
+      recommended: "host",
       because:
-        "Words reach the guests the light never does (reduced motion, a screen reader), and this line fits the tile's width in one line, in the verb the welcome already uses for the album. Tom's \"Yours to keep\" is the capture card's offer, already true for him.",
+        "It says why in five words: the host chose what went into the host's album, a curation rather than a verdict on her photo. The waiting line keeps its one name on the page, and the list stays one row a photo, the way it scans.",
       overrule:
-        "If the reel's one-time toast lands in the same second, two lines saying one thing is one too many, and today's silence is right.",
+        "If a left-out photo deserves its reason in a whole sentence, its own section says it once, at the list's foot.",
       lands:
-        "Whether the guest's main act is answered in words, and whether a member ever hears that uploading saved the event.",
-    },
-    {
-      id: "failed",
-      label: "A failed upload",
-      question:
-        "When some of her photos do not go, what should the sheet say, and its way out?",
-      context:
-        "Priya sent eight on the venue Wi-Fi and two did not go, so this sheet opens once over the album. Its heading, line and retry button change; each file's own reason (here \"That upload did not finish.\"), Retry and \"Not now\" stay.",
-      options: [
-        {
-          id: "today",
-          label: "As shipped: \"2 files did not go\"",
-          means:
-            "Counts files, reassures with \"Everything else\", retries all. No contractions. Elsewhere: \"Be the first to add a photo.\"",
-        },
-        {
-          id: "warm",
-          label: "Plain and warm: \"2 didn't make it\"",
-          means:
-            "How a friend would say it, counting what is safe, then \"Send them again\". Elsewhere: \"Add the first photo.\"",
-        },
-        {
-          id: "bright",
-          label: "Bright: \"2 got stuck on the way\"",
-          means:
-            "Light at the worst moment: stuck, not failed, then \"Give them another go\". Elsewhere: \"Over to the host.\"",
-        },
-        {
-          id: "exact",
-          label: "Quiet and exact: \"2 of 8 didn't upload\"",
-          means:
-            "The whole run in five words, and \"Retry both\" names exactly what the tap does. Elsewhere: \"Add photos.\"",
-        },
-        {
-          id: "tender",
-          label: "Soft and tender: \"didn't come through\"",
-          means:
-            "Failure without blame, a signal that didn't land, and what stays safe. Elsewhere: \"Kept for the people who were there.\"",
-        },
-      ],
-      recommended: "warm",
-      today: "today",
-      because:
-        "A failure at a party needs two things read at a glance: what is safe and what fixes the rest. \"The other 6 are in Maya's album\" answers the first with a number, \"Send them again\" the second in her words, and neither jokes at the worst moment.",
-      overrule:
-        "If the file names and reasons below are what a guest actually reads, the exact heading carries the count and gets out of their way.",
-      lands:
-        "The failure sheet, the door's upload step that shows the same list, and the /features/album mock that quotes its heading.",
-      tile: "phone",
-    },
-    {
-      id: "empty",
-      label: "The empty album's button",
-      question: "Under \"The album starts with you\", what should the one button say?",
-      context:
-        "An album nobody has added to yet, met by a guest who skipped the door's upload step: the ghost river, the shipped heading and one button, since the page's own Add steps aside at zero. Only the button changes.",
-      options: [
-        {
-          id: "today",
-          label: "As shipped: \"Be the first to add a photo\"",
-          means:
-            "Says \"first\" again under a heading that already puts her first. Elsewhere: \"Keep these photos.\"",
-        },
-        {
-          id: "warm",
-          label: "Plain and warm: \"Add the first photo\"",
-          means:
-            "The same invitation in four words: the heading says \"starts\", the button says \"first\". Elsewhere: \"Keep this event.\"",
-        },
-        {
-          id: "bright",
-          label: "Bright: \"Get it started\"",
-          means:
-            "A party verb for the album's first moment, the rare beat bible 5 saves delight for. Elsewhere: \"Take it with you.\"",
-        },
-        {
-          id: "exact",
-          label: "Quiet and exact: \"Add photos\"",
-          means:
-            "The label the album's Add button wears everywhere else, so one act has one name. Elsewhere: \"Keep your 6 photos.\"",
-        },
-        {
-          id: "tender",
-          label: "Soft and tender: \"one of yours\"",
-          means:
-            "Answers the heading's own word rather than saying \"first\" twice. Elsewhere: \"Hold onto today.\"",
-        },
-      ],
-      recommended: "warm",
-      today: "today",
-      because:
-        "The heading does the inviting, so the button's job is the act. \"Add the first photo\" names the act and the moment in four words without saying the heading's idea back to it.",
-      overrule:
-        "If one name for one act matters more than the moment, \"Add photos\" is the label the page already uses.",
-      lands:
-        "The empty album's one action, and whether a first-time act gets words of its own or the everyday label.",
-      tile: "phone",
-    },
-    {
-      id: "waiting",
-      label: "A held photo",
-      question:
-        "On a photo the host is holding for review, what should its tile say to the guest who sent it?",
-      context:
-        "Uploads held for review: Priya's two sit dimmed at the album's head with a clock, on a pane about 150px wide. Whether a refusal is told is host-curation's; guest-capture's tracker may reuse this line inline.",
-      options: [
-        {
-          id: "today",
-          label: "As shipped: \"Waiting for the host\"",
-          means:
-            "Clear, and stale the moment Maya decides: a refused photo keeps waiting. Elsewhere: \"2 files did not go.\"",
-        },
-        {
-          id: "warm",
-          label: "Plain and warm: \"The host sees it first\"",
-          means:
-            "Says why without promising the outcome, and stays true whatever Maya decides. Elsewhere: \"The other 6 are in Maya's album.\"",
-        },
-        {
-          id: "bright",
-          label: "Bright: \"Over to the host\"",
-          means:
-            "A light hand-off in one line, true whatever happens next. Elsewhere: \"Guests only, and that means you.\"",
-        },
-        {
-          id: "exact",
-          label: "Quiet and exact: \"Only you see this for now\"",
-          means:
-            "Why the photo is dim (nobody else sees it yet), with the host left out. Elsewhere: \"Enter the password the host shared with guests.\"",
-        },
-        {
-          id: "tender",
-          label: "Soft and tender: \"kept safe for now\"",
-          means:
-            "The photo is cared for, not just delayed, with no promise of the outcome. Elsewhere: \"2 didn't come through.\"",
-        },
-      ],
-      recommended: "warm",
-      today: "today",
-      because:
-        "It tells her the one thing the clock cannot, that Maya looks before the album does, and it is still true after Maya decides, which today's line is not (the silence host-curation.told names).",
-      overrule:
-        "If the pane must hold one line at 150px, \"Over to the host\" does, and says nearly as much.",
-      lands:
-        "The held tile's words, and whether a waiting state promises what comes next or only says what is true now.",
+        "Her uploads' two lines, the badge's spoken count, the keep's Sent line on a held event, and the marketing mock that quotes it.",
       tile: "phone",
     },
     {
       id: "keep",
       label: "Keeping it",
       question:
-        "After her first photos land, how should the card ask Priya to confirm her email and keep the event?",
+        "On the door's last screen, after her photos are sent, what should the ask to confirm her email say?",
       context:
-        "Priya added six under her typed name: the card, then the door it opens (her name menu opens it too, before any upload). Confirming keeps the event and her photos in her account. When and how it asks is guest-capture's.",
+        "Not a repeat: guest-capture settled when it asks and its shape, identity-door its look; its words were never asked on this screen. Priya's 6 just joined Maya's album. Only the ask's title and line change, in round one's registers.",
       options: [
         {
           id: "today",
-          label: "As shipped: \"Keep these photos\"",
+          label: 'As shipped: "Keep these photos"',
           means:
-            "The photos first, the event as an aside, in the card and its door, which holds before an upload too. Elsewhere: \"Waiting for the host.\"",
+            "The photos first and the event as an aside, counted again under a Sent line that has just counted them.",
         },
         {
           id: "warm",
-          label: "Plain and warm: \"Keep this event\"",
+          label: 'Plain and warm: "Keep this event"',
           means:
-            "The event first, and the future his note asks for: \"to come back to anytime\". Elsewhere: \"All 6 are in the album.\"",
+            'The event first, and the future your 22 September note asked for: "to come back to anytime".',
         },
         {
           id: "bright",
-          label: "Bright: \"Take it with you\"",
+          label: 'Bright: "Take it with you"',
           means:
-            "The event travels with her (\"goes where you go\"), her photos and the whole album with it. Elsewhere: \"All 6 landed.\"",
+            "The event goes where she goes, her photos and the whole album with it.",
         },
         {
           id: "exact",
-          label: "Quiet and exact: \"Keep your 6 photos\"",
-          means:
-            "One sentence of what confirming does, and nothing more. Elsewhere: \"6 added.\"",
+          label: 'Quiet and exact: "Keep your 6 photos"',
+          means: "One sentence of what confirming does, and nothing more.",
         },
         {
           id: "tender",
-          label: "Soft and tender: \"Hold onto today\"",
-          means:
-            "The day, not just the photos, is what she is really keeping. Elsewhere: \"They'll join Maya's album, 48 kept safe there already.\"",
+          label: 'Soft and tender: "Hold onto today"',
+          means: "The day, not just the photos, is what she is keeping.",
         },
       ],
-      recommended: "warm",
       today: "today",
+      recommended: "warm",
       because:
-        "His note asks the capture to \"incentivize the email to save the event under the account for the future\". This says exactly that, event first and \"to come back to anytime\", with nothing forced and the price, a free account, said last in the door.",
+        'Your 22 September note: the capture after upload "should incentivize the email to save the event under the account for the future". This says exactly that, the event first and to come back to anytime, and the Sent line above it has already counted her photos.',
       overrule:
-        "If the photos she just added pull harder at this moment than the event, today's heading keeps them first.",
+        "If the photos she just sent pull harder at this moment than the event, today's title keeps them first.",
       lands:
-        "The capture card and the door's keep words, which the Unverified mark and the name menu open too.",
+        "The keep's ask on the door's last screen. The account door's keep wear, which opens before an upload too, stays as it is.",
+      tile: "phone",
     },
   ],
 });

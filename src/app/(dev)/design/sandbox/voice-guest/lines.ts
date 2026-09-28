@@ -1,221 +1,143 @@
+import { keepCopy, keepSentLine } from "@/components/guest/save-account-prompt";
+import { TRACKER_WORDS } from "@/lib/guest/upload-tracker";
+
 /**
- * THE CANDIDATE LINES, AND NOTHING ELSE (the retired `voice` board's own
+ * THE CANDIDATE WORDS, AND NOTHING ELSE (the retired `voice` board's own
  * shape: the words in one pure module, so the preview that sets a line, the
  * reader that measures it and the Handoff that quotes it read one string).
  *
- * ★ FIVE KEYS PER LINE, NOT A FIXED FOUR: `today` is the shipped string, read
- * out of the file named above it; `warm`, `bright` and `exact` are the three
- * registers the brief first asked the candidates to span (plain and warm,
- * bright and playful, quiet and exact); `tender` (soft and tender) is this
- * round's addition, a fifth real direction rather than another costume on the
- * same three. The keys ARE the option ids, so a ledger of answers reads as a
- * voice at a glance: welcome=bright, failed=warm, and so on. Each register is
- * written for its place, never as a costume: a line that could not ship where
- * it is drawn is not a candidate.
+ * ★ TODAY IS READ OUT OF PRODUCTION, NEVER RETYPED. The tracker's words
+ * (`TRACKER_WORDS`), the keep's ask (`keepCopy`) and its Sent line
+ * (`keepSentLine`) are imported from the files that ship them, so an option
+ * that says "as shipped" is the shipped string to the letter, and a change in
+ * production shows here before a reviewer is shown a stale "today".
  *
  * ★ EVERY LINE CLEARS THE FENCES BEFORE IT IS A CANDIDATE: no em-dash, never
- * "no account", never "anonymous" (all the affirmative-only rule, bible 10),
- * the album is the noun, "in your account" and never "on your profile", no
- * promise of what the host will decide, and "night" never used as identity.
- * Two lines already ship unchanged inside every candidate that carries them
- * ("No app required.", "The album starts with you").
+ * "no account", never "anonymous", the album is the noun, "in your account"
+ * and never "on your profile", no promise of what the host will decide, and
+ * nothing cute at a moment that tells a guest something went against her (his
+ * `failed=exact` note: "we don't want to obscure the problem behind cute
+ * copy").
  *
- * The host's and the event's names are PARAMETERS, never typed into a line,
- * because the product fills them from the event; a candidate that only reads
- * well for "Maya" is not one.
+ * Round one's five picks left the asks and hold as he took them; nothing on
+ * these screens carries one of their lines, so none is re-typed here.
  */
 
+/* ── 1. held: where a held photograph shows to the guest who sent it ─────────── */
+
+export type HeldPlace = "tiles" | "uploads" | "line" | "toast";
+
+/**
+ * The words the two new places say, in TODAY's status words (`status` asks
+ * those; every decision holds the others as shipped). The line at the album's
+ * head counts hers and names where its tap goes; the toast is the keep's own
+ * Sent sentence for a held event, so one moment has one sentence wherever a
+ * guest meets it.
+ */
+export const HELD_LINE = (n: number) => `${n} of yours waiting for the host`;
+export const HELD_TOAST = (n: number) => keepSentLine({ count: n, held: true });
+/** Both open her uploads, and say so in the list's own title. */
+export const UPLOADS_TITLE = "Your uploads";
+
+/* ── 2. status: what her uploads call a waiting and a left-out photograph ─────── */
+
+export type StatusWords = "today" | "host" | "approval" | "apart";
+
+export type StatusLines = {
+  /** A photograph the host is still deciding on. */
+  waiting: string;
+  /** One the host left out, on its own row; null where the row says nothing. */
+  refused: string | null;
+  /** `apart`: the left-out ones gather in a section of their own at the foot. */
+  section?: { heading: string; why: (n: number) => string };
+};
+
+/** "In the album" in every option: the one status nobody asked about. */
+export const IN_THE_ALBUM = TRACKER_WORDS.approved;
+
+export const STATUS: Record<StatusWords, StatusLines> = {
+  today: {
+    waiting: TRACKER_WORDS.waiting,
+    refused: TRACKER_WORDS.refused,
+  },
+  // Plain and warm: the waiting line keeps its one name on the page, and the
+  // left-out one says who decided, in the words a friend would use.
+  host: {
+    waiting: TRACKER_WORDS.waiting,
+    refused: "The host didn’t add this one",
+  },
+  // Quiet and exact: both lines name the review she read about at upload
+  // ("The host reviews uploads before they appear in the album.").
+  approval: {
+    waiting: "Waiting for approval",
+    refused: "Not approved",
+  },
+  // Handled differently in the list: the rows keep today's words, and a
+  // left-out photograph leaves them for a section at the foot with one
+  // sentence of why, said once rather than squeezed into a row's label. The
+  // list's own line already says the host reviews every upload, so the why
+  // says only what she cannot infer: whose choice it was, and who sees it.
+  apart: {
+    waiting: TRACKER_WORDS.waiting,
+    refused: null,
+    section: {
+      heading: "Not added to the album",
+      why: (n) =>
+        n === 1
+          ? "The host chose not to add this one. Other guests don’t see it."
+          : "The host chose not to add these. Other guests don’t see them.",
+    },
+  },
+};
+
+/* ── 3. keep: the ask on the door's last screen ────────────────────────────── */
+
+/**
+ * ROUND ONE'S FIVE REGISTERS, KEPT AS HE READ THEM: `today` the shipped
+ * string, `warm` plain and warm, `bright` bright and playful, `exact` quiet and
+ * exact, `tender` soft and tender. The keys ARE the option ids.
+ */
 export type Register = "today" | "warm" | "bright" | "exact" | "tender";
 
-/** 1. The door's welcome: its two rows under the event's name
- *  (`entry-modal.tsx`, `WelcomeStep`). */
-export const WELCOME: Record<
+/**
+ * The ask's title and line (`save-account-prompt.tsx`, `KeepOffer`, which
+ * reads `keepCopy`), redrawn on the door's last screen under "Sent" and where
+ * her photos went. Round one's words, carried unchanged from the card they
+ * were first drawn on: he asked whether the question was a repeat, not for new
+ * words. Every one is true only after an upload, which is the only moment this
+ * screen exists; the account door's shared keep wear, which opens before one,
+ * is the carried call `keep-confirm`.
+ */
+export const KEEP_ASK: Record<
   Register,
-  { lead: string; album: (host: string, count: number) => string }
+  { title: (n: number) => string; reason: (n: number, event: string) => string }
 > = {
   today: {
-    lead: "Add your photos and videos in seconds. No app required.",
-    album: (_host, count) =>
-      `Everyone’s shots land in one album. ${count} are already inside.`,
+    title: (n) => keepCopy(n).title,
+    reason: (n) => keepCopy(n).reason,
   },
   warm: {
-    lead: "Add your photos and videos in a few taps. No app required.",
-    album: (host, count) =>
-      `They join everyone else’s in ${host}’s album. ${count} so far.`,
-  },
-  bright: {
-    lead: "Caught something good? Add it in seconds. No app required.",
-    album: (host, count) =>
-      `It all lands in ${host}’s album. ${count} got there first.`,
-  },
-  exact: {
-    lead: "Add photos and videos from your phone. No app required.",
-    album: (_host, count) => `One shared album. ${count} so far.`,
-  },
-  tender: {
-    lead: "Add the moments only you caught. No app required.",
-    album: (host, count) =>
-      `They’ll join ${host}’s album, ${count} kept safe there already.`,
-  },
-};
-
-/** 2. The password step's lede, under "Almost in" and "<event> is private"
- *  (`password-gate.tsx`). */
-export const ASK: Record<Register, string> = {
-  today:
-    "The host keeps this album private for guests. Enter the password from your invite to come in.",
-  // The shipped gate line's own shape (`account-door.tsx`, `gate`): why, then
-  // the cost, then "and you're in".
-  warm: "This album is just for the guests. One password and you’re in.",
-  bright: "Guests only, and that means you. The password is on your invite.",
-  exact: "Enter the password the host shared with guests.",
-  tender: "Kept for the people who were there. The password’s on your invite.",
-};
-
-/** 3. The stack tile's last beat, as the last of a pick lands
- *  (`upload/stack-tile.tsx`). `null` is today: the tile leaves and says
- *  nothing. `member` is the same line for a signed-in guest, whose upload is
- *  already the save. */
-export const LANDED: Record<
-  Register,
-  { guest: (n: number) => string; member: (n: number) => string } | null
-> = {
-  today: null,
-  warm: {
-    guest: (n) => `All ${n} are in the album`,
-    member: (n) => `All ${n} are in, and in your account`,
-  },
-  bright: {
-    guest: (n) => `All ${n} landed`,
-    member: (n) => `All ${n} landed. Yours to keep.`,
-  },
-  exact: {
-    guest: (n) => `${n} added`,
-    member: (n) => `${n} added · in your account`,
-  },
-  tender: {
-    guest: (n) => `All ${n}, kept safe in the album`,
-    member: (n) => `All ${n}, kept safe in your account`,
-  },
-};
-
-/** 4. The failure sheet's own words: its heading, its line, and the one
- *  button that retries (`upload/failure-sheet.tsx`). The rows under them
- *  carry the server's own sentence and stay as shipped. */
-export const FAILED: Record<
-  Register,
-  {
-    heading: (failed: number, sent: number) => string;
-    line: (host: string, landed: number) => string;
-    retry: (failed: number) => string;
-  }
-> = {
-  today: {
-    heading: (failed) =>
-      failed === 1 ? "1 file did not go" : `${failed} files did not go`,
-    line: (host) => `Everything else is in ${host}’s album.`,
-    retry: (failed) => (failed === 1 ? "Try again" : "Retry all"),
-  },
-  warm: {
-    heading: (failed) => `${failed} didn’t make it`,
-    line: (host, landed) => `The other ${landed} are in ${host}’s album.`,
-    retry: (failed) => (failed === 1 ? "Send it again" : "Send them again"),
-  },
-  bright: {
-    heading: (failed) => `${failed} got stuck on the way`,
-    line: (host, landed) =>
-      `The other ${landed} made it into ${host}’s album.`,
-    retry: (failed) =>
-      failed === 1 ? "Give it another go" : "Give them another go",
-  },
-  exact: {
-    heading: (failed, sent) => `${failed} of ${sent} didn’t upload`,
-    line: (_host, landed) => `The other ${landed} are in the album.`,
-    retry: (failed) =>
-      failed === 1 ? "Retry" : failed === 2 ? "Retry both" : `Retry all ${failed}`,
-  },
-  tender: {
-    heading: (failed) =>
-      failed === 1 ? "1 didn’t come through" : `${failed} didn’t come through`,
-    line: (host) => `The rest are safe in ${host}’s album.`,
-    retry: (failed) => (failed === 1 ? "Try it again" : "Try them again"),
-  },
-};
-
-/** 5. The empty album's one button, under the shipped heading
- *  (`gallery-empty-state.tsx`). */
-export const EMPTY_HEADING = "The album starts with you";
-export const EMPTY: Record<Register, string> = {
-  today: "Be the first to add a photo",
-  warm: "Add the first photo",
-  bright: "Get it started",
-  exact: "Add photos",
-  tender: "Start it with one of yours",
-};
-
-/** 6. A held photograph's own tile, as the guest who sent it sees it
- *  (`upload/stack-tile.tsx`, `WaitingTile`). */
-export const WAITING: Record<Register, string> = {
-  today: "Waiting for the host",
-  warm: "The host sees it first",
-  bright: "Over to the host",
-  exact: "Only you see this for now",
-  tender: "Kept safe until the host looks",
-};
-
-/** 7. The capture after her first photographs: the card's heading, reason
- *  and button (`save-account-prompt.tsx`), and the door it opens
- *  (`account-door.tsx`'s `keep` wear). The button holds at "Confirm your
- *  email" in every register: the Unverified mark and the name menu open the
- *  same door with those words (the board's carried `button` call). */
-export const KEEP_BUTTON = "Confirm your email";
-export const KEEP: Record<
-  Register,
-  {
-    heading: (n: number) => string;
-    body: (n: number, event: string) => string;
-    doorHeading: string;
-    doorReason: string;
-  }
-> = {
-  today: {
-    heading: (n) => (n === 1 ? "Keep this photo" : "Keep these photos"),
-    body: (n) =>
-      `Confirm your email and ${n === 1 ? "it stays" : `all ${n} stay`} with you: this event in your account, and everything you added to it.`,
-    doorHeading: "Keep your photos",
-    doorReason:
-      "Confirm your email and every photo you add here stays in your account, with this event. Confirming makes a free account.",
-  },
-  warm: {
-    heading: () => "Keep this event",
-    body: (n, event) =>
+    title: () => "Keep this event",
+    reason: (n, event) =>
       `Confirm your email and ${event} stays in your account with your ${n} photos, to come back to anytime.`,
-    doorHeading: "Keep this event",
-    doorReason:
-      "Confirm your email and this event stays in your account with every photo you add, to come back to anytime. Confirming makes a free account.",
   },
   bright: {
-    heading: () => "Take it with you",
-    body: (n, event) =>
+    title: () => "Take it with you",
+    reason: (n, event) =>
       `Confirm your email and ${event} goes where you go, with your ${n} photos and the whole album.`,
-    doorHeading: "Take it with you",
-    doorReason:
-      "Confirm your email and this event goes where you go, with every photo you add. Confirming makes a free account.",
   },
   exact: {
-    heading: (n) => `Keep your ${n} photos`,
-    body: () =>
+    title: (n) => `Keep your ${n} photos`,
+    reason: () =>
       "Confirm your email to keep this event and your photos in your account.",
-    doorHeading: "Keep your photos",
-    doorReason:
-      "Confirm your email to keep this event and your photos in your account. Confirming makes a free account.",
   },
   tender: {
-    heading: () => "Hold onto today",
-    body: (n, event) =>
+    title: () => "Hold onto today",
+    reason: (n, event) =>
       `Confirm your email and today stays with you: ${event}, your ${n} photos, kept safe in your account.`,
-    doorHeading: "Hold onto today",
-    doorReason:
-      "Confirm your email and today stays with you, every photo included, kept safe in your account. Confirming makes a free account.",
   },
 };
+
+/** What went, above the ask: the shipped Sent line, on the open wedding. */
+export const KEEP_SENT = (n: number, host: string) =>
+  keepSentLine({ count: n, held: false, hostName: host });
