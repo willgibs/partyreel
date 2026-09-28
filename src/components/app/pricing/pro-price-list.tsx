@@ -1,15 +1,22 @@
 "use client";
 
+import { useState } from "react";
+
 import { ChangePlanButton } from "@/components/app/pricing/change-plan-button";
+import { RefusalFace } from "@/components/app/storage/refusal-face";
 import {
   planHolds,
-  refusalSentence,
+  proFitLine,
   type StorageRefusal,
 } from "@/lib/billing/storage-guard";
 import { planById, type Plan } from "@/lib/constants/tiers";
 import type { PlanFacts } from "@/lib/billing/plan-facts";
 import { CHANGE_REFUSAL_MESSAGES } from "@/lib/stripe/change-plan";
-import { PRO_PLAN_IDS, type ProPlanId } from "@/lib/validation/checkout";
+import {
+  isProPlanId,
+  PRO_PLAN_IDS,
+  type ProPlanId,
+} from "@/lib/validation/checkout";
 
 /**
  * A PRO HOST'S PLAN, AS SIX PRICES (the storage guard, billing-caps.md). The general
@@ -17,11 +24,17 @@ import { PRO_PLAN_IDS, type ProPlanId } from "@/lib/validation/checkout";
  * host stores; this list is where sizes and cadences change now, and every row's
  * switch runs the storage check before Stripe's confirm page opens.
  *
- * ★ PLAIN ON PURPOSE. Its designed face comes from the `host-storage` board; this
- * pass ships the honest version: the six prices, the host's own marked, the sizes
- * that cannot hold what they store marked too, one sentence with the numbers, and
- * one line before a shrink about Deleted. Rows are buttons, never radios or a
- * slider, so the sheet's `carry=cards` contract (no selector) still holds.
+ * ★ TODAY'S SIX PLAIN ROWS, UNTIL `prices` ROUND TWO PICKS THEIR FACE. The six prices,
+ * hers marked, the sizes that cannot hold what she stores marked too, one sentence with
+ * the numbers, and one line before a shrink about Deleted. Rows are buttons, never
+ * radios or a slider, so the sheet's `carry=cards` contract (no selector) still holds.
+ *
+ * ★ TOO SMALL IS A PRESS NOW (host-storage r1, `refusal=inline`): the row she taps
+ * flips in place to the refusal, the list's full width (`RefusalFace`), with what she
+ * stores, what the size holds, the gap, and the two ways out; a switch the server
+ * refused (she stores more than when the sheet opened) flips its row the same way, on
+ * the refusal's own figure. A flipped row whose size holds her bytes again (she
+ * removed enough in the list and the sheet re-read) is a price again, with its Switch.
  */
 
 /** Size first, then monthly before yearly: how a host scans for "the same, yearly". */
@@ -37,44 +50,83 @@ const ROWS: (Plan & { id: ProPlanId })[] = PRO_PLAN_IDS.map((id) => ({
 export function ProPriceList({
   facts,
   returnTo,
-  refusal,
-  onRefused,
+  onStorageChanged,
 }: {
   /** The sheet's server read; null until it lands (or when it could not). */
   facts: PlanFacts | null;
   returnTo?: string;
-  /** A refusal a switch came back with (storage grew since the sheet opened). */
-  refusal: StorageRefusal | null;
-  onRefused: (refusal: StorageRefusal) => void;
+  /** Something was removed or put back from the list: the sheet re-reads its facts. */
+  onStorageChanged?: () => void;
 }) {
-  const stored = facts?.activeBytes ?? null;
-  const current = facts?.currentPlanId ?? null;
+  const [flipped, setFlipped] = useState<ProPlanId | null>(null);
+  // A refused switch's figure, fresher than the facts it beat; the next read supersedes it.
+  const [refusedAt, setRefusedAt] = useState<number | null>(null);
+  const [factsSeen, setFactsSeen] = useState(facts);
+  if (facts !== factsSeen) {
+    setFactsSeen(facts);
+    setRefusedAt(null);
+  }
+
+  const stored = refusedAt ?? facts?.activeBytes ?? null;
+  const current =
+    facts?.currentPlanId && isProPlanId(facts.currentPlanId)
+      ? planById(facts.currentPlanId)
+      : null;
   const blocked = facts?.changeBlocked ?? null;
+  const capBytes = facts?.capBytes ?? null;
   const fits = (plan: Plan) => stored === null || planHolds(plan, stored);
 
-  // The sentence names the LARGEST size that cannot hold what they store (the
-  // cheapest move a removal buys) and the smallest that can.
-  const tooSmall = ROWS.filter((plan) => !fits(plan));
-  const largestTooSmall = tooSmall[tooSmall.length - 1] ?? null;
-  const smallestFit = ROWS.find(
-    (plan) =>
-      fits(plan) &&
-      (!largestTooSmall || plan.interval === largestTooSmall.interval),
-  );
-  const capBytes = facts?.capBytes ?? null;
+  function refused(refusal: StorageRefusal) {
+    setRefusedAt(refusal.storedBytes);
+    if (isProPlanId(refusal.planId)) setFlipped(refusal.planId);
+  }
+
+  const showsRefusal =
+    flipped !== null &&
+    stored !== null &&
+    !planHolds(planById(flipped), stored);
+  const fitLine = stored === null ? null : proFitLine(stored, current);
   const offersShrink =
     capBytes !== null &&
     ROWS.some(
       (plan) =>
-        fits(plan) && plan.id !== current && plan.storageBytes < capBytes,
+        fits(plan) && plan.id !== current?.id && plan.storageBytes < capBytes,
     );
 
   return (
     <div className="space-y-3">
       <ul className="divide-y divide-border rounded-xl border">
         {ROWS.map((plan) => {
-          const isCurrent = plan.id === current;
+          const isCurrent = plan.id === current?.id;
           const holds = fits(plan);
+          if (
+            !isCurrent &&
+            showsRefusal &&
+            flipped === plan.id &&
+            stored !== null
+          ) {
+            return (
+              <li
+                key={plan.id}
+                data-price-row={plan.id}
+                data-fits="false"
+                data-flipped="true"
+                className="bg-destructive/5 p-3 first:rounded-t-xl last:rounded-b-xl"
+              >
+                <RefusalFace
+                  plan={plan}
+                  storedBytes={stored}
+                  current={current}
+                  capBytes={capBytes}
+                  canSwitch={!blocked}
+                  returnTo={returnTo}
+                  onKeep={() => setFlipped(null)}
+                  onRefused={refused}
+                  onStorageChanged={onStorageChanged}
+                />
+              </li>
+            );
+          }
           return (
             <li
               key={plan.id}
@@ -96,12 +148,20 @@ export function ProPriceList({
                   Your plan
                 </span>
               ) : !holds ? (
-                <span className="text-xs text-faint">Too small</span>
+                <button
+                  type="button"
+                  data-too-small={plan.id}
+                  aria-label={`${plan.name}, ${plan.priceLabel}: too small for what you store. See why`}
+                  onClick={() => setFlipped(plan.id)}
+                  className="-mr-1.5 inline-flex h-7 shrink-0 items-center rounded-action-sm px-1.5 text-xs text-muted-foreground underline-offset-4 transition-colors duration-150 ease-emphasis outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring/50"
+                >
+                  Too small
+                </button>
               ) : blocked ? null : (
                 <ChangePlanButton
                   planId={plan.id}
                   next={returnTo}
-                  onRefused={onRefused}
+                  onRefused={refused}
                   size="sm"
                   variant="outline"
                   className="shrink-0"
@@ -123,20 +183,15 @@ export function ProPriceList({
         </p>
       ) : null}
 
-      {refusal ? (
-        <p
-          role="alert"
-          data-note="refusal"
-          className="text-xs text-pretty text-foreground"
-        >
-          {refusal.message}
-        </p>
-      ) : stored !== null && largestTooSmall ? (
+      {/* FIT, plainly, while no row is flipped (the flipped row says it with
+          its own numbers): read at her billing, and never offering the plan
+          she is on (`proFitLine`). */}
+      {!showsRefusal && fitLine ? (
         <p
           data-note="fit"
           className="text-xs text-pretty text-muted-foreground"
         >
-          {refusalSentence(stored, largestTooSmall, smallestFit ?? null)}
+          {fitLine}
         </p>
       ) : null}
 

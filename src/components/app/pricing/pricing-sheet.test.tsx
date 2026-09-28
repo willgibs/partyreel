@@ -206,6 +206,9 @@ describe("it opens on the smallest size that fits what the host stores", () => {
 });
 
 describe("a Pro host's six prices", () => {
+  // Reshaped with host-storage r1 (`refusal=inline`): "Too small" was a label and is a press
+  // now, which flips its row to the refusal in place. What held and still holds: no row of a size
+  // too small offers a SWITCH.
   it("marks the sizes that cannot hold what she stores, and offers no switch to them", async () => {
     served = facts({
       tier: "pro",
@@ -219,14 +222,114 @@ describe("a Pro host's six prices", () => {
       expect(row(dialog, "pro_100").getAttribute("data-fits")).toBe("false"),
     );
     for (const id of ["pro_100", "pro_100_yr"]) {
-      expect(within(row(dialog, id)).queryByRole("button")).toBeNull();
+      expect(
+        within(row(dialog, id)).queryByRole("button", { name: /switch/i }),
+      ).toBeNull();
     }
     for (const id of ["pro_500", "pro_500_yr", "pro_2tb_yr"]) {
-      expect(within(row(dialog, id)).getByRole("button")).toBeTruthy();
+      expect(
+        within(row(dialog, id)).getByRole("button", { name: /switch/i }),
+      ).toBeTruthy();
     }
     // The numbers sentence, and the Deleted line (500 GB fits and is smaller).
     expect(dialog.querySelector('[data-note="fit"]')).toBeTruthy();
     expect(dialog.querySelector('[data-note="deleted"]')).toBeTruthy();
+  });
+
+  it("flips a too-small price in place to the refusal, with the list's door and a way back", async () => {
+    // Priya: Pro 500 GB monthly, 110.83 GB stored, taps Pro 100 GB.
+    served = facts({
+      tier: "pro",
+      hasBilling: true,
+      activeBytes: Math.round(110.83 * GIGABYTE),
+      capBytes: planById("pro_500").storageBytes,
+      currentPlanId: "pro_500",
+    });
+    const dialog = openSheet({ plan: PRO });
+    await waitFor(() =>
+      expect(row(dialog, "pro_100").getAttribute("data-fits")).toBe("false"),
+    );
+    await userEvent.click(
+      within(row(dialog, "pro_100")).getByRole("button", {
+        name: /too small/i,
+      }),
+    );
+    const flipped = row(dialog, "pro_100");
+    expect(flipped.getAttribute("data-flipped")).toBe("true");
+    // Her numbers, rounded one way (up), and the gap.
+    expect(flipped.textContent).toContain("110.9 GB");
+    expect(flipped.querySelector("[data-refusal-gap]")?.textContent).toBe(
+      "10.9 GB",
+    );
+    expect(
+      within(flipped).getByRole("button", { name: /what.s using space/i }),
+    ).toBeTruthy();
+    // The size that fits at the billing she tapped is hers: the way out is Keep, never a switch
+    // to the plan she is on. Keep flips it back.
+    await userEvent.click(
+      within(flipped).getByRole("button", { name: /keep/i }),
+    );
+    expect(row(dialog, "pro_100").getAttribute("data-flipped")).toBeNull();
+  });
+
+  it("offers the yearly price of her size, a real switch, when she tapped a yearly size", async () => {
+    served = facts({
+      tier: "pro",
+      hasBilling: true,
+      activeBytes: Math.round(110.83 * GIGABYTE),
+      capBytes: planById("pro_500").storageBytes,
+      currentPlanId: "pro_500",
+    });
+    const dialog = openSheet({ plan: PRO });
+    await waitFor(() =>
+      expect(row(dialog, "pro_100_yr").getAttribute("data-fits")).toBe("false"),
+    );
+    await userEvent.click(
+      within(row(dialog, "pro_100_yr")).getByRole("button", {
+        name: /too small/i,
+      }),
+    );
+    expect(
+      within(row(dialog, "pro_100_yr")).getByRole("button", {
+        name: /yearly instead/i,
+      }),
+    ).toBeTruthy();
+  });
+
+  it("says which price its fit line means, and never offers the plan she is on", async () => {
+    // storage-r2's note: the line told a Pro 500 GB monthly host "or choose Pro 500 GB".
+    served = facts({
+      tier: "pro",
+      hasBilling: true,
+      activeBytes: Math.round(110.83 * GIGABYTE),
+      capBytes: planById("pro_500").storageBytes,
+      currentPlanId: "pro_500",
+    });
+    const dialog = openSheet({ plan: PRO });
+    await waitFor(() =>
+      expect(dialog.querySelector('[data-note="fit"]')).toBeTruthy(),
+    );
+    const line = dialog.querySelector('[data-note="fit"]')?.textContent ?? "";
+    expect(line).toContain(planById("pro_100").name);
+    expect(line).not.toMatch(/choose/i);
+  });
+
+  it("leads with her plan, named with its billing", async () => {
+    // storage-r2's note: "You are on Pro already" greeted a host who came to change her plan.
+    served = facts({
+      tier: "pro",
+      hasBilling: true,
+      capBytes: planById("pro_500_yr").storageBytes,
+      currentPlanId: "pro_500_yr",
+    });
+    const dialog = openSheet({ plan: PRO });
+    await waitFor(() =>
+      expect(
+        within(dialog).getByRole("heading", {
+          name: /Pro 500 GB, yearly/,
+        }),
+      ).toBeInTheDocument(),
+    );
   });
 
   it("offers no switch at all when the subscription cannot change, and says why", async () => {

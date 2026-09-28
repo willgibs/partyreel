@@ -68,7 +68,8 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
   a direct PATCH that un-removes media or un-deletes an event is refused by a BEFORE trigger, so every restore
   inherits their guards ([database-security.md](database-security.md)). Each returns `{ ok, reason, … }` (an expected refusal does not raise).
 - **A restore is capacity-gated against the BASE cap,** never the 10% headroom (`insufficient_space` with
-  `needed_bytes`). `restore_event` re-checks the event slot and restores all or nothing; media removed on their own
+  `needed_bytes`), so the size list's Undo (one `restore_media` per item) can put back only part of a removal on a
+  full plan; the rest stays in Deleted and the toast says so. `restore_event` re-checks the event slot and restores all or nothing; media removed on their own
   stay in the bin, and the RPC reports how many (`media_still_removed`). `purge_media_now` deletes the R2 objects
   first in its wrapper, then the rows.
 - ★ **A restore returns an item to the status it HELD,** not to `approved`: `media_derive_removal_provenance` stamps

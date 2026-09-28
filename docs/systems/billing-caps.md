@@ -61,8 +61,10 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   room, so it is never refused; cancelling is as normal. The check compares ACTIVE bytes (`getHostStorageSummary`,
   never re-derived) with the target plan's PLAIN cap from `tiers.ts`, never the 10% headroom (a courtesy at upload,
   not room to buy into), and it ignores the current tier, so a Free host in the over-cap grace meets the same line.
-  A refusal (409 `over_new_cap`) names the smallest size that fits, rounding the stored figure and the gap UP so doing
-  exactly what it says is enough. A Pro Checkout session closes 31 minutes out (Stripe's floor is 30 by its own
+  A refusal (409 `over_new_cap`) names the smallest size that fits WITH its billing (a size has two prices), rounding
+  the stored figure and the gap UP so doing exactly what it says is enough; what a host stores prints that one way on
+  every surface that shows it (the meter, the Plan card, the size list), while a file's or an event's size prints to
+  the nearest tenth. A Pro Checkout session closes 31 minutes out (Stripe's floor is 30 by its own
   clock), so the check it passed stays true. The backstops stay: the webhook does no usage check, and the 45-day
   over-cap grace catches what the check cannot see (a cancellation, a pass running out, a dashboard change, growth
   between the check and Stripe's confirm).
@@ -146,6 +148,12 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   `/dashboard`, `/dashboard/<uuid>` with an optional `room=share|settings`, and `/account`; anything else returns to
   `/dashboard`, so no client value leaves the origin, and Stripe validates none of it. The list is also the set of
   pages that mount `WelcomeToPro`, so a new shape mounts the modal in the same change.
+- **A size too small for what she stores is a door, not a dead end** (`components/app/storage/`): its price flips in
+  place to the numbers, and "See what's using space" opens the size list (her active items largest first, read under
+  RLS) with a goal strip that finishes that switch. The strip only ever calls change-plan, which checks again, and its
+  button removes what is only selected first ("Remove and switch"), because the check counts active bytes and a
+  selection has freed nothing yet; it counts from what she stored before this visit's removals, so a removal is never
+  counted twice, and a refused switch re-bases it on the refusal's fresher figure.
 
 ## Verifying billing
 
