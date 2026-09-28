@@ -1,0 +1,41 @@
+{
+  "board": "host-storage",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-28",
+      "answers": [
+        {
+          "ask": "order",
+          "choice": "flat",
+          "note": "Filters should allow to go 'all' or by event for more granularity, rather than this being a selection between strictly 'all events' or 'grouped by event'. This is a case where users likely have different preferences, so offering that ability is a great mini feature.",
+          "by": "Will",
+          "at": "2026-09-28T04:56:44Z"
+        },
+        {
+          "ask": "goal",
+          "choice": "live",
+          "by": "Will",
+          "at": "2026-09-28T04:56:44Z"
+        },
+        {
+          "ask": "refusal",
+          "choice": "inline",
+          "note": "However, these should be stacked vertically so each card's lines don't break as quickly, like it does in this tight 3 column layout.",
+          "by": "Will",
+          "at": "2026-09-28T04:56:44Z"
+        },
+        {
+          "ask": "prices",
+          "choice": null,
+          "note": "I don't believe these are the best ideas we can come up with here. Would also like to bake in previous selection so I have a more current idea how this gets entered at this point.",
+          "by": "Will",
+          "at": "2026-09-28T04:56:44Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

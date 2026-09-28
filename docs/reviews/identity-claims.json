@@ -79,6 +79,22 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 3,
+      "opened": "2026-09-28",
+      "answers": [
+        {
+          "ask": "pointer",
+          "choice": "line",
+          "note": "Events should feel mostly self-contained for the benefit of the host receiving guest uploads, not attempt to point guests out of the event to their dashboard or past events. Simply acknowledging the existence of other events and allowing that to be handled back on the dashboard later is enough. Don't want too many complications around this, especially prior to upload. Main goal after confirmation is still acting as an active, contributing guest at that event.",
+          "by": "Will",
+          "at": "2026-09-28T04:56:44Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }

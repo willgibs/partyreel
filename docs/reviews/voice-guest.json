@@ -1,0 +1,61 @@
+{
+  "board": "voice-guest",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-28",
+      "answers": [
+        {
+          "ask": "welcome",
+          "choice": "today",
+          "note": "While not perfect, the current copy does do a good job of \"...in seconds\" for upfront expectations, \"no app required\" to know it's lightweight, \"everyone's shots in same album\" to know it's a group album, and a number of awaiting items to incentivize. Lots of small wins in there, will adjust slightly later with rest of platform copy.",
+          "by": "Will",
+          "at": "2026-09-28T04:56:44Z"
+        },
+        {
+          "ask": "ask",
+          "choice": "warm",
+          "by": "Will",
+          "at": "2026-09-28T04:56:44Z"
+        },
+        {
+          "ask": "landed",
+          "choice": "today",
+          "note": "This can be tracked via uploads queue or maybe a toast confirmation, but I'm not a fan of adding notices within the media cards, expecting they'll be scrolled past. Makes more sense to notify the user where they are without real interruption, if we even need to notify them at all for this based on past selections and accumulated flows prior to this question being written.",
+          "by": "Will",
+          "at": "2026-09-28T04:56:44Z"
+        },
+        {
+          "ask": "failed",
+          "choice": "exact",
+          "note": "For upload failures, we don't want to obscure the problem behind cute copy, we should be clear about the failure. However, this verbiage does a good of offering clarity without coldness. The rest felt too \"cute\" for an upload failure.",
+          "by": "Will",
+          "at": "2026-09-28T04:56:44Z"
+        },
+        {
+          "ask": "empty",
+          "choice": "warm",
+          "by": "Will",
+          "at": "2026-09-28T04:56:44Z"
+        },
+        {
+          "ask": "waiting",
+          "choice": null,
+          "note": "Is this not being handled separately in a queue from a past selection?",
+          "by": "Will",
+          "at": "2026-09-28T04:56:44Z"
+        },
+        {
+          "ask": "keep",
+          "choice": null,
+          "note": "Want to ensure this is not a repeat question that has been handled. Feel like we've addressed something similar before. If not, please keep this on the desk for my next review.",
+          "by": "Will",
+          "at": "2026-09-28T04:56:44Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}
