@@ -13,6 +13,7 @@ import { Check, CircleX, Play, X } from "lucide-react";
 
 import { MediaTile, type GridMedia } from "@/components/app/media-grid";
 import { Kbd } from "@/components/shared/kbd";
+import { FaceCredit } from "@/components/shared/media-lightbox-parts/credit";
 import {
   CornerPlayBadge,
   GALLERY_COLUMNS,
@@ -321,6 +322,22 @@ export function SelectableMediaGrid({
               onApprove={() => verdict.onApprove(preview.id)}
             />
           )}
+          {/* ★ WHO SENT IT, AS THE VIEWER SAYS IT (event-safety `entry=all`: "every road opens the
+              person's look", the uploader in Review among them): the viewer's own face-led credit,
+              top left, whose name opens the person's look with its quiet Block. This peek is the
+              Review room's alone, so its credit is the host's. A press inside it (or inside the look
+              it opens, whose clicks bubble here through React) never reaches the backdrop's close. */}
+          <div
+            className="absolute top-4 left-4 flex max-w-[calc(100%-5rem)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <FaceCredit
+              key={preview.id}
+              item={preview}
+              viewerIsHost
+              isOwn={false}
+            />
+          </div>
           <button
             ref={closeRef}
             type="button"

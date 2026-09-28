@@ -354,17 +354,19 @@ export async function applyShownEvents(choice: {
 }
 
 /**
- * The two profiles-social.md event keys, host-set from the event settings card:
- * display_in_profile (publish this event on MY public profile) and
- * show_guest_list (name every signed-in uploader on the album). Plain RLS
- * update: the migration added both columns to the events column-scoped
- * authenticated grant, and events RLS row-locks to the host. `.select("id")`
- * verifies a row actually changed (a foreign/deleted event updates 0 rows and
- * must not report success).
+ * The profiles-social.md event key, host-set from the event settings card:
+ * display_in_profile (publish this event on MY public profile). Plain RLS update:
+ * the column is in the events column-scoped authenticated grant, and events RLS
+ * row-locks to the host. `.select("id")` verifies a row actually changed (a
+ * foreign/deleted event updates 0 rows and must not report success).
+ *
+ * ★ THE GUEST LIST HAS NO KEY: it is always on (Will, event-safety `room=always`,
+ * 2026-09-28), so nothing writes `show_guest_list` any more (its column and grant
+ * wait for a contract migration to drop them).
  */
 export async function setEventSocialSettings(
   eventId: string,
-  patch: { displayInProfile?: boolean; showGuestList?: boolean },
+  patch: { displayInProfile?: boolean },
 ): Promise<MutationResult<{ id: string }>> {
   const supabase = await createClient();
   const {
@@ -375,8 +377,6 @@ export async function setEventSocialSettings(
   const update: TablesUpdate<"events"> = {};
   if (patch.displayInProfile !== undefined)
     update.display_in_profile = patch.displayInProfile;
-  if (patch.showGuestList !== undefined)
-    update.show_guest_list = patch.showGuestList;
   if (Object.keys(update).length === 0)
     return { ok: true, data: { id: eventId } };
 

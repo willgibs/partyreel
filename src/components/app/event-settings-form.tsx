@@ -42,7 +42,7 @@ type EventSettingsFormProps = {
  * (FormProvider), the one dirty state, and the one "Save changes" button. The
  * field cards are section components that read the form via useFormContext
  * (details / visibility / uploads), so the file stays small while the form stays
- * unified. The instant-save cards (the Highlight reel, Profile & guests) and the
+ * unified. The instant-save cards (the Highlight reel, Profile) and the
  * danger zone live OUTSIDE it, in the sheet, the danger zone last of all.
  *
  * Preserved invariants: isDirty + form.reset(values) re-baseline on save; the

@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og";
 
 import { BRAND_HEX } from "@/lib/constants/site";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
+import { isClosedToThisBrowser } from "@/lib/events/closed-door.server";
 import { EVENT_CARD_ALT, EVENT_CARD_SIZE } from "@/lib/guest/event-card";
 
 /**
@@ -13,6 +14,9 @@ import { EVENT_CARD_ALT, EVENT_CARD_SIZE } from "@/lib/guest/event-card";
  * unfurls as THAT photograph on an album anyone may open (page.tsx), and file-based metadata
  * outranks `generateMetadata` (Next's own rule), so no photograph could ever take the place of a
  * convention-file card. The page names this route as the image for every other link.
+ *
+ * ★ A VIEWER THE EVENT BLOCKED gets the generic card too, as for a private event (the closed door,
+ * `closed-door.server.ts`): an unfurler carries no ticket and costs nothing extra.
  */
 export async function GET(
   _request: Request,
@@ -21,7 +25,7 @@ export async function GET(
   const { token } = await params;
   const result = await getEventByQrToken(token);
   const eventName =
-    result.ok && result.data.visibility !== "private"
+    result.ok && !(await isClosedToThisBrowser(result.data))
       ? result.data.name
       : EVENT_CARD_ALT;
   // Guard against pathological names blowing out the layout.

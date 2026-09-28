@@ -187,8 +187,8 @@ export function EventExperience({
   hostSeed?: string | null;
   /** Viewer is the event host -> the entry modal is suppressed (the owner bypasses the gate). */
   isOwner: boolean;
-  /** The server-composed named Guests section (profiles-social.md) — non-null ONLY when the
-   *  host enabled show_guest_list AND access is full (the page owns that gate). */
+  /** The server-composed named Guests section (profiles-social.md) — non-null ONLY when access is
+   *  full and somebody is on the list (the page owns that gate; the list itself is always on). */
   guestListSlot?: React.ReactNode;
   /** The media ids in this album this SIGNED-IN viewer uploaded — resolved in the
    *  page RSC, never asserted by the browser. Empty for an anonymous guest, whose

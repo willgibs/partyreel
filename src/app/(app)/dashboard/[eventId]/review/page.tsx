@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { HostCreditLookProvider } from "@/components/app/event-blocks/credit-look";
 import { ReviewRoom } from "@/components/app/event-feed/review-room";
 import { SetCrumbs } from "@/components/shared/crumbs";
 import { PageHeading } from "@/components/shared/page-heading";
@@ -79,15 +80,19 @@ export default async function EventReviewPage({ params }: PageProps) {
         ]}
       />
       <PageHeading>Review</PageHeading>
-      <ReviewRoom
-        eventId={event.id}
-        moderationOn={event.moderation_mode === "hold_for_approval"}
-        pendingItems={pendingItems}
-        album={{
-          seed: seedFrom(event.id, plan, noLinks),
-          qrToken: event.qr_token,
-        }}
-      />
+      {/* The uploader's name on the peek opens their look, with its quiet Block (event-safety
+          `entry=all`, the uploader in Review). */}
+      <HostCreditLookProvider>
+        <ReviewRoom
+          eventId={event.id}
+          moderationOn={event.moderation_mode === "hold_for_approval"}
+          pendingItems={pendingItems}
+          album={{
+            seed: seedFrom(event.id, plan, noLinks),
+            qrToken: event.qr_token,
+          }}
+        />
+      </HostCreditLookProvider>
     </div>
   );
 }

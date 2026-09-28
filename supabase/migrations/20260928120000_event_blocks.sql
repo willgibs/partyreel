@@ -424,6 +424,7 @@ begin
     return jsonb_build_object(
       'ok', true,
       'preview', true,
+      'event_id', v_event.id,
       'label', v_label,
       'verified', v_verified,
       'uploads', v_live,
@@ -433,7 +434,8 @@ begin
   end if;
 
   if v_existing is not null then
-    return jsonb_build_object('ok', true, 'block_id', v_existing, 'already', true, 'removed', 0);
+    return jsonb_build_object('ok', true, 'event_id', v_event.id, 'block_id', v_existing,
+      'already', true, 'removed', 0);
   end if;
 
   if coalesce(p_require_verified_email, false) and not v_event.require_verified_email then
@@ -476,6 +478,7 @@ begin
 
   return jsonb_build_object(
     'ok', true,
+    'event_id', v_event.id,
     'block_id', v_block,
     'already', false,
     'removed', cardinality(v_removed)
@@ -562,7 +565,8 @@ begin
 
   delete from public.event_blocks where id = v_block.id;
 
-  return jsonb_build_object('ok', true, 'restored', v_restored, 'no_room', v_no_room);
+  return jsonb_build_object('ok', true, 'event_id', v_block.event_id, 'restored', v_restored,
+    'no_room', v_no_room);
 end;
 $$;
 

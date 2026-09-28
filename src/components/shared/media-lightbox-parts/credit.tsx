@@ -1,6 +1,12 @@
 "use client";
 
-import { memo } from "react";
+import {
+  createContext,
+  memo,
+  useContext,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import Link from "next/link";
 
 import type { GridMedia } from "@/components/app/media-grid";
@@ -30,6 +36,24 @@ export type CreditFace = {
 export type ViewerMedia = GridMedia & { uploaderFace?: CreditFace | null };
 
 /**
+ * HOST-ONLY: how a host's surface opens a person's look from a credit's name (event-safety
+ * `entry=all`). A context rather than a prop or an import, for the reason the Unverified mark carries
+ * its own door: the credit sits three modules deep under `shared/masonry.tsx`, and the look (with its
+ * Follow and its Block) is host machinery the guest album and this shared part must never pull in.
+ * The host's album and Review mount `HostCreditLookProvider` (`app/event-blocks/credit-look.tsx`); a
+ * surface without it (the guest album, the storage list) keeps today's plain credit.
+ */
+export type CreditLook = (props: {
+  item: ViewerMedia;
+  name: string;
+  unverified: boolean;
+  /** The name, as the button that opens the look. */
+  trigger: ReactElement;
+}) => ReactNode;
+
+export const CreditLookContext = createContext<CreditLook | null>(null);
+
+/**
  * THE FACE-LED CREDIT (`who=face`, Will 2026-09-24: "This is already a great
  * step in the right direction of my previous note about redesigning the
  * floating UI"). Top left, opposite the close circle, in the guest list's
@@ -48,6 +72,14 @@ export type ViewerMedia = GridMedia & { uploaderFace?: CreditFace | null };
  * stand-in (the identity reshape). The personal Uploads feed, whose items carry
  * no uploader because they are all yours, shows only the event they came from.
  *
+ * ★ FOR THE HOST, THE NAME OPENS THE PERSON'S LOOK (event-safety `entry=all`:
+ * "every road opens the person's look"): on a surface that provides one
+ * (`CreditLookContext`), the same look a name in the Guests room opens, social
+ * first (their face, the address only the host reads, their page), with a quiet
+ * Block at its foot for the photograph's sender. So the host's viewer and Review's
+ * peek are two of Block's three doors, and none of them opens onto a block-heavy
+ * screen. A guest's credit is unchanged, and the host's own uploads carry no look.
+ *
  * ★ IT ARRIVES WITH THE LINK, AND FADES IN. The paged album's attribution rides
  * an item's link (minted by id), so an item not linked yet names nobody and
  * draws nothing; when the link lands the caller hands a new item object, this
@@ -64,6 +96,8 @@ export const FaceCredit = memo(function FaceCredit({
   viewerIsHost: boolean;
   isOwn: boolean;
 }) {
+  // The host's look, where the surface provides one (read before any early return: a hook).
+  const look = useContext(CreditLookContext);
   const name = item.uploaderName?.trim() || null;
   // Undefined reads as VERIFIED, so a name is never marked on a guess; only an
   // explicit `false` beside a real name draws the mark.
@@ -76,9 +110,15 @@ export const FaceCredit = memo(function FaceCredit({
   if (!named && !eventLabel) return null;
 
   const face = named ? (item.uploaderFace ?? null) : null;
+  // The host's look, on a guest's photograph that names its sender (never the host's own upload,
+  // never the viewer's own), where the surface provides one: the name opens it, so the face and the
+  // name stop being a link here.
+  const hostLook =
+    look !== null && viewerIsHost && named && !item.isHost && !isOwn && !!name;
   // A typed name opens nothing, whatever an item claims: there is no page
   // behind a name nobody proved.
-  const door = named && !unverified && face?.href ? face.href : null;
+  const door =
+    !hostLook && named && !unverified && face?.href ? face.href : null;
   const said = isOwn ? "You" : name;
   const initial = (name ?? "?").slice(0, 1).toUpperCase();
   const pageLabel = `Open ${isOwn ? "your" : `${name ?? "their"}'s`} page`;
@@ -130,7 +170,26 @@ export const FaceCredit = memo(function FaceCredit({
         {named && (
           <span className="flex min-w-0 items-center gap-1.5">
             {said &&
-              (door ? (
+              (hostLook && name ? (
+                look({
+                  item,
+                  name,
+                  unverified,
+                  trigger: (
+                    <button
+                      type="button"
+                      data-credit-look=""
+                      className={cn(
+                        "truncate rounded-sm text-left text-working font-medium text-white outline-none",
+                        "transition-transform duration-150 ease-emphasis focus-visible:ring-2 focus-visible:ring-white/70 active:scale-[0.98] motion-reduce:active:scale-100",
+                        GLASS_MARK_LIT,
+                      )}
+                    >
+                      {said}
+                    </button>
+                  ),
+                })
+              ) : door ? (
                 <ActionTooltip label={pageLabel}>
                   <Link
                     href={door}
