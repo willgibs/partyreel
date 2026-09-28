@@ -51,19 +51,21 @@ Merged in batch 6 (their records carry the rest): voice-r2, storage-r2, triage-r
 
 ## Next, in order
 
-1. **Build 13 on the alias** (wave 1 whole): `alias-ensure`, prune, the desk headless (a lab-only round, the red-team's
-   carve-out, plus two help articles' words); then his sitting in desk order, `hero-card` r2 first. A build-12 paste
-   transcribes as it stands (the refreshes kept every round), save one id: `help-center`'s `hub=sheet` is `strip` now.
-2. **Wave 2**, integrated as each lands:
-   - `storage-wiring` is running (its row above).
-   - `storage-wiring` (Opus) reuses curation's `showUndoToast` for bulk Remove. It builds
-     host-storage's `order=flat` with an All / per-event filter, `goal=live`, and `refusal=inline` stacked full width.
-     The size list goes in the lists panel, with r1's carried rows, bulk Remove with Undo, Download handing off to
-     export-flow, and the Deleted line. The six prices keep today's rows until `prices` r2 picks.
-   - Fold in storage-r2's notes:
-     - the Pro fit line's "or choose Pro 500 GB" means the yearly price;
-     - one account's bytes print two ways in one flow (`formatBytes` nearest, `formatBytesUp` up);
-     - a Pro host pressing Change plan is greeted "You are on Pro already".
+1. **Build 13 is live** (`7961ab2b`, the desk clean on 16 pages): his sitting in desk order, `hero-card` r2 first. A
+   build-12 paste transcribes as it stands (the refreshes kept every round), save one id: `help-center`'s `hub=sheet`
+   is `strip` now.
+2. **Build 14 once `storage-wiring` lands** (curation, pointer, crumbs-6 and storage merged by then): `[preview]`,
+   `alias-ensure`, prune, the desk headless, then a full red-team. Its scope:
+   - the review room: Reject, the peek's verdict, the keys, Undo, the "N new" line, on a moderated test event;
+   - the voice lines;
+   - the footer's demo door at 375;
+   - the admin report's Remove confirm;
+   - the storage list, its strip and the refusal, stopping before Stripe's confirm page;
+   - the standing scope.
+
+   The pointer's row and the reel's approval toast need a real confirmation or approval, so they are Will's, with
+   the claims walk. `storage-wiring` reuses curation's `showUndoToast`; the six prices keep today's rows until `prices`
+   r2 picks.
 3. **His next paste** (build 13's desk, or the 25 build-12 asks) transcribed, and the next wiring cut from it. The
    hero's wiring waits for hero-card r2's pick. voice-guest r2's wiring carries its `keep` pick to her name menu's card,
    which still says "Save this event for later".
