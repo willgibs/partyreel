@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Marketing: a disposable-camera page, and the site's link that opens Create with the camera already on (`pick=line`'s door), once the camera ships (from `disposable-mode`).
+- Reel: what the room's screen shows while a roll develops (the count ticking, then the roll's premiere at the reveal), asked once `disposable-mode`'s `reveal` is answered (from `disposable-mode`).
 - Guests: a blocked guest's Guest card leaves her dashboard with her uploads (a card lives only while one of hers is live, `getMyGuestEventCards`), while a private album's card stays and says "The host made this event private" (`lib/dashboard/guest-events.ts`), so the dashboard tells a block apart; sent to `safety-wiring` (from `locked-door`).
 - Guests: the password gate titles a password album "{name} is private" (`password-gate.tsx`), the word the private lock owns; whichever words `locked-door`'s `lock` takes, the gate may want its own (from `locked-door`).
 - Guests: a door held over nothing (the ghost river under `DOOR_SCRIM`) reads as a flat grey slab in light mode, here and on the password door; a lighter scrim where nothing real stands behind would lift both (from `locked-door`).
