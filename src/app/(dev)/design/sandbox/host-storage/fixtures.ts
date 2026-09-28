@@ -1,24 +1,31 @@
 import { MARKETING_IMAGES } from "@/lib/constants/marketing-media";
-import { GIGABYTE, planById } from "@/lib/constants/tiers";
+import {
+  GIGABYTE,
+  plansForTier,
+  planById,
+  type Plan,
+} from "@/lib/constants/tiers";
 
 /**
- * THIS BOARD'S OWN FIXTURES, NOT `sandbox/gallery-fixtures.ts` (the manifest):
- * this board's whole subject is "who added it", at one host's scale. Every door
- * asks for a name, so every item below carries a real typed name, and
- * `isVerified: false` marks the ones nobody confirmed, never a null name.
+ * THIS BOARD'S OWN FIXTURES, NOT `sandbox/gallery-fixtures.ts`: the list's whole
+ * subject is "who added it", at one host's scale, so every item carries a real
+ * typed name, and `isVerified: false` marks the ones nobody confirmed.
  *
  * ★ ONE HOST, FOUR EVENTS, AND A REASON THE BYTES ADD UP. Priya Anand shoots
  * weddings and runs each client's event page herself (`HostUpload`'s own
  * copy: "a batch from your photographer"), so most of the heavy video below is
  * hers, host-uploaded, across three clients' weddings; the fourth event is her
- * own kid's birthday, small and mostly photos. That is what makes 110 GB
- * plausible on ONE account without inventing thousands of rows: a handful of
- * near-the-ceiling 4K files (`MAX_UPLOAD_BYTES` = 10 GB/file, `lib/media/
- * limits.ts`) do almost all of the work, exactly as `selectForAutoReduce`
- * (`lib/media/auto-reduce.ts`) already assumes when it reduces largest-first.
+ * own kid's birthday, small and mostly photos. A handful of near-the-ceiling
+ * 4K files (`MAX_UPLOAD_BYTES` = 10 GB/file, `lib/media/limits.ts`) do almost
+ * all of the work, exactly as `selectForAutoReduce` assumes.
  *
- * Every still is one of the fourteen bootstrap photographs every other board
- * reuses (`MARKETING_IMAGES`) — no new asset, no rights to track.
+ * ★ SHE IS ON PRO 500 GB, MONTHLY, STORING 110.8 GB, which is the one account
+ * that exercises every price's case at once: a size smaller than what she
+ * stores (100 GB, both billings), her own size at the other billing (yearly),
+ * and a size up (2 TB, both billings).
+ *
+ * Every still is one of the bootstrap photographs every other board reuses
+ * (`MARKETING_IMAGES`): no new asset, no rights to track.
  */
 
 export type StorageItem = {
@@ -28,7 +35,7 @@ export type StorageItem = {
   fileSizeBytes: number;
   /** Video only. */
   durationSeconds?: number;
-  eventId: string;
+  eventId: EventId;
   eventName: string;
   dateLabel: string;
   uploaderName: string;
@@ -47,7 +54,13 @@ export function formatDuration(seconds: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-const HOST = { name: "Priya Anand", isHost: true, isVerified: true } as const;
+export const HOST = {
+  name: "Priya Anand",
+  seed: "hs-priya",
+  isHost: true,
+  isVerified: true,
+} as const;
+
 const UPLOADERS = {
   host: HOST,
   marcus: { name: "Marcus Lee", isHost: false, isVerified: false },
@@ -57,17 +70,44 @@ const UPLOADERS = {
 } as const;
 type UploaderKey = keyof typeof UPLOADERS;
 
+const still = (id: string) =>
+  MARKETING_IMAGES.find((m) => m.id === id)?.src ?? MARKETING_IMAGES[0].src;
+
 export const EVENTS = [
-  { id: "e1", name: "The Alvarez–Cho Wedding", dateLabel: "14 Jun 2026" },
-  { id: "e2", name: "Whitfield Wedding, Lake House", dateLabel: "2 Jul 2026" },
-  { id: "e3", name: "Ito–Park Wedding", dateLabel: "19 Aug 2026" },
-  { id: "e4", name: "Nora's First Birthday", dateLabel: "30 Aug 2026" },
+  {
+    id: "e1",
+    name: "The Alvarez–Cho Wedding",
+    short: "Alvarez–Cho",
+    dateLabel: "14 Jun 2026",
+    cover: still("wedding-golden"),
+  },
+  {
+    id: "e2",
+    name: "Whitfield Wedding, Lake House",
+    short: "Whitfield",
+    dateLabel: "2 Jul 2026",
+    cover: still("wedding-arch"),
+  },
+  {
+    id: "e3",
+    name: "Ito–Park Wedding",
+    short: "Ito–Park",
+    dateLabel: "19 Aug 2026",
+    cover: still("reception-hall"),
+  },
+  {
+    id: "e4",
+    name: "Nora's First Birthday",
+    short: "Nora's birthday",
+    dateLabel: "30 Aug 2026",
+    cover: still("party-balloons"),
+  },
 ] as const;
-type EventId = (typeof EVENTS)[number]["id"];
+export type EventId = (typeof EVENTS)[number]["id"];
 const eventOf = (id: EventId) => EVENTS.find((e) => e.id === id)!;
 
 let imgAt = 0;
-/** Cycles the fourteen bootstrap stills for visual variety across 64 rows. */
+/** Cycles the bootstrap stills for visual variety across 64 rows. */
 function nextImage(): string {
   const img = MARKETING_IMAGES[imgAt % MARKETING_IMAGES.length];
   imgAt += 1;
@@ -84,39 +124,145 @@ type VideoSeed = {
 type PhotoSeed = { id: string; event: EventId; mb: number; by: UploaderKey };
 
 const VIDEOS: VideoSeed[] = [
-  // The Alvarez–Cho Wedding — nine files, almost all Priya's own coverage.
-  { id: "ceremony-4k", event: "e1", gb: 9.4, by: "host", seconds: 34 * 60 + 20 },
-  { id: "reception-drone", event: "e1", gb: 8.1, by: "host", seconds: 22 * 60 + 10 },
-  { id: "dance-floor-montage", event: "e1", gb: 5.2, by: "host", seconds: 9 * 60 + 5 },
+  // The Alvarez–Cho Wedding: nine files, almost all Priya's own coverage.
+  {
+    id: "ceremony-4k",
+    event: "e1",
+    gb: 9.4,
+    by: "host",
+    seconds: 34 * 60 + 20,
+  },
+  {
+    id: "reception-drone",
+    event: "e1",
+    gb: 8.1,
+    by: "host",
+    seconds: 22 * 60 + 10,
+  },
+  {
+    id: "dance-floor-montage",
+    event: "e1",
+    gb: 5.2,
+    by: "host",
+    seconds: 9 * 60 + 5,
+  },
   { id: "first-dance", event: "e1", gb: 4.6, by: "host", seconds: 7 * 60 + 40 },
-  { id: "rehearsal-dinner", event: "e1", gb: 3.9, by: "host", seconds: 14 * 60 + 15 },
+  {
+    id: "rehearsal-dinner",
+    event: "e1",
+    gb: 3.9,
+    by: "host",
+    seconds: 14 * 60 + 15,
+  },
   { id: "speeches", event: "e1", gb: 3.4, by: "host", seconds: 12 * 60 + 5 },
-  { id: "family-interviews", event: "e1", gb: 2.8, by: "host", seconds: 8 * 60 + 30 },
-  { id: "highlight-teaser", event: "e1", gb: 2.6, by: "host", seconds: 2 * 60 + 40 },
-  { id: "guest-toast", event: "e1", gb: 1.2, by: "marcus", seconds: 2 * 60 + 50 },
+  {
+    id: "family-interviews",
+    event: "e1",
+    gb: 2.8,
+    by: "host",
+    seconds: 8 * 60 + 30,
+  },
+  {
+    id: "highlight-teaser",
+    event: "e1",
+    gb: 2.6,
+    by: "host",
+    seconds: 2 * 60 + 40,
+  },
+  {
+    id: "guest-toast",
+    event: "e1",
+    gb: 1.2,
+    by: "marcus",
+    seconds: 2 * 60 + 50,
+  },
 
-  // Whitfield Wedding, Lake House — eight files.
-  { id: "ceremony-lakeside", event: "e2", gb: 8.9, by: "host", seconds: 29 * 60 + 50 },
-  { id: "reception-toasts", event: "e2", gb: 6.7, by: "host", seconds: 19 * 60 + 15 },
-  { id: "cocktail-hour", event: "e2", gb: 4.4, by: "host", seconds: 13 * 60 + 25 },
-  { id: "getting-ready", event: "e2", gb: 3.8, by: "host", seconds: 9 * 60 + 30 },
-  { id: "venue-drone-sunset", event: "e2", gb: 3.6, by: "host", seconds: 4 * 60 + 5 },
+  // Whitfield Wedding, Lake House: eight files.
+  {
+    id: "ceremony-lakeside",
+    event: "e2",
+    gb: 8.9,
+    by: "host",
+    seconds: 29 * 60 + 50,
+  },
+  {
+    id: "reception-toasts",
+    event: "e2",
+    gb: 6.7,
+    by: "host",
+    seconds: 19 * 60 + 15,
+  },
+  {
+    id: "cocktail-hour",
+    event: "e2",
+    gb: 4.4,
+    by: "host",
+    seconds: 13 * 60 + 25,
+  },
+  {
+    id: "getting-ready",
+    event: "e2",
+    gb: 3.8,
+    by: "host",
+    seconds: 9 * 60 + 30,
+  },
+  {
+    id: "venue-drone-sunset",
+    event: "e2",
+    gb: 3.6,
+    by: "host",
+    seconds: 4 * 60 + 5,
+  },
   { id: "bridal-prep", event: "e2", gb: 3.1, by: "host", seconds: 8 * 60 + 50 },
   { id: "family-dance", event: "e2", gb: 2.9, by: "ren", seconds: 5 * 60 + 20 },
   { id: "fireworks", event: "e2", gb: 1.6, by: "deja", seconds: 3 * 60 },
 
-  // Ito–Park Wedding — seven files.
+  // Ito–Park Wedding: seven files.
   { id: "ceremony", event: "e3", gb: 9.1, by: "host", seconds: 31 * 60 },
-  { id: "after-party", event: "e3", gb: 4.9, by: "host", seconds: 16 * 60 + 20 },
-  { id: "ceremony-b-cam", event: "e3", gb: 4.4, by: "host", seconds: 30 * 60 + 40 },
-  { id: "reception-speeches", event: "e3", gb: 5.4, by: "host", seconds: 16 * 60 + 40 },
+  {
+    id: "after-party",
+    event: "e3",
+    gb: 4.9,
+    by: "host",
+    seconds: 16 * 60 + 20,
+  },
+  {
+    id: "ceremony-b-cam",
+    event: "e3",
+    gb: 4.4,
+    by: "host",
+    seconds: 30 * 60 + 40,
+  },
+  {
+    id: "reception-speeches",
+    event: "e3",
+    gb: 5.4,
+    by: "host",
+    seconds: 16 * 60 + 40,
+  },
   { id: "drone-venue", event: "e3", gb: 4.2, by: "host", seconds: 8 * 60 + 15 },
   { id: "venue-tour", event: "e3", gb: 3.3, by: "host", seconds: 6 * 60 + 5 },
-  { id: "guest-dance", event: "e3", gb: 2.1, by: "marcus", seconds: 4 * 60 + 10 },
+  {
+    id: "guest-dance",
+    event: "e3",
+    gb: 2.1,
+    by: "marcus",
+    seconds: 4 * 60 + 10,
+  },
 
-  // Nora's First Birthday — two small clips.
-  { id: "cake-smash", event: "e4", gb: 0.58, by: "host", seconds: 1 * 60 + 40 },
-  { id: "backyard-games", event: "e4", gb: 0.41, by: "sam", seconds: 1 * 60 + 5 },
+  // Nora's First Birthday: two small clips.
+  // ★ 0.54, NOT ROUND 1's 0.58: it puts the account's total at 110.79 GB, where
+  // the meter's round-to-nearest (`formatBytes`) and the refusal's round-UP
+  // (`formatBytesUp`) both print 110.8, so one frame never shows the same bytes
+  // two ways. Production disagrees at other totals (the Handoff's board idea).
+  { id: "cake-smash", event: "e4", gb: 0.54, by: "host", seconds: 1 * 60 + 40 },
+  {
+    id: "backyard-games",
+    event: "e4",
+    gb: 0.41,
+    by: "sam",
+    seconds: 1 * 60 + 5,
+  },
 ];
 
 const PHOTOS: PhotoSeed[] = [
@@ -186,67 +332,81 @@ function toItem(seed: VideoSeed | PhotoSeed): StorageItem {
   };
 }
 
-/** Every item across every event, largest-first is NOT assumed here: the
- *  `order` decision's own showcase sorts it however that surface reads. */
+/** Every item across every event, in no promised order. */
 export const STORAGE_ITEMS: StorageItem[] = [...VIDEOS, ...PHOTOS].map(toItem);
 
 export function totalBytes(items: readonly StorageItem[]): number {
   return items.reduce((sum, i) => sum + i.fileSizeBytes, 0);
 }
 
-/** The account's real total, over ALL four events — the one number every
- *  surface below reads rather than re-typing. */
+/** The account's ACTIVE bytes over all four events: the one number every
+ *  surface below reads rather than re-typing (`host_active_bytes()`). */
 export const TOTAL_ACTIVE_BYTES = totalBytes(STORAGE_ITEMS);
 
-/** The plan-switch story every option is drawn over: Pro 500 GB today, Pro
- *  100 GB tapped and refused because the account would not fit under it. */
-export const CURRENT_PLAN = planById("pro_500");
-export const TARGET_PLAN = planById("pro_100");
-export const GAP_BYTES = Math.max(
-  0,
-  TOTAL_ACTIVE_BYTES - TARGET_PLAN.storageBytes,
-);
-
-/** Ranked largest-first, ties broken by insertion order (`order=flat`). */
+/** Ranked largest-first, ties by insertion (`order=flat`, his round-1 pick). */
 export function largestFirst(
   items: readonly StorageItem[] = STORAGE_ITEMS,
 ): StorageItem[] {
   return [...items].sort((a, b) => b.fileSizeBytes - a.fileSizeBytes);
 }
 
-export type EventGroup = {
-  eventId: string;
-  eventName: string;
-  dateLabel: string;
-  totalBytes: number;
-  items: StorageItem[];
-};
-
-/** One event, its total, its own items largest-first (`order=grouped`). */
-export function groupedByEvent(
-  items: readonly StorageItem[] = STORAGE_ITEMS,
-): EventGroup[] {
-  return EVENTS.map((event) => {
-    const own = largestFirst(items.filter((i) => i.eventId === event.id));
-    return {
-      eventId: event.id,
-      eventName: event.name,
-      dateLabel: event.dateLabel,
-      totalBytes: totalBytes(own),
-      items: own,
-    };
-  }).filter((g) => g.items.length > 0);
+/** One event's own bytes, for its chip in the All / per-event filter. */
+export function eventBytes(eventId: EventId): number {
+  return totalBytes(STORAGE_ITEMS.filter((i) => i.eventId === eventId));
 }
+
+/* ── the plan story ──────────────────────────────────────────────────────── */
+
+/** Her plan: Pro 500 GB, billed monthly. */
+export const CURRENT_PLAN = planById("pro_500");
+
+/** The size that cannot hold what she stores, whichever billing is tapped. */
+export const TOO_SMALL = planById("pro_100");
+
+/** What must go before Pro 100 GB fits (the plain cap, never the headroom). */
+export const GAP_BYTES = Math.max(
+  0,
+  TOTAL_ACTIVE_BYTES - TOO_SMALL.storageBytes,
+);
+
+export type Billing = "month" | "year";
+export const billingOf = (plan: Plan): Billing => plan.interval ?? "month";
+
+/** One Pro size with both of its prices: the pair every option draws from. */
+export type ProSize = { monthly: Plan; yearly: Plan; bytes: number };
+
+/** The three Pro sizes, smallest first, each with its monthly and yearly plan. */
+export const PRO_SIZES: readonly ProSize[] = plansForTier("pro", "month").map(
+  (monthly) => {
+    const yearly = plansForTier("pro", "year").find(
+      (y) => y.storageBytes === monthly.storageBytes,
+    )!;
+    return { monthly, yearly, bytes: monthly.storageBytes };
+  },
+);
+
+/** The size a plan belongs to. */
+export const sizeOf = (plan: Plan): ProSize =>
+  PRO_SIZES.find((s) => s.bytes === plan.storageBytes)!;
 
 /**
- * The same groups, ordered by each one's own worst offender rather than by
- * event (`order=hybrid`, boards refresh, 2026-09-24): the account-wide
- * ranking's instinct, kept inside the browsing-by-event shape.
+ * The whole dollars in a plan's display label ("$19/mo" is 19). `tiers.ts`
+ * carries labels only (Stripe Prices are the billing truth), so every saving
+ * and difference a tile prints is derived from the same labels the sheet
+ * shows, and can never disagree with them.
  */
-export function groupedByWorstFirst(
-  items: readonly StorageItem[] = STORAGE_ITEMS,
-): EventGroup[] {
-  return [...groupedByEvent(items)].sort(
-    (a, b) => (b.items[0]?.fileSizeBytes ?? 0) - (a.items[0]?.fileSizeBytes ?? 0),
-  );
+export function dollars(plan: Plan): number {
+  const m = plan.priceLabel.match(/\$(\d+(?:\.\d+)?)/);
+  return m ? Number(m[1]) : 0;
 }
+
+/** What a year costs on this plan: twelve months, or the one yearly price. */
+export const perYear = (plan: Plan): number =>
+  billingOf(plan) === "year" ? dollars(plan) : dollars(plan) * 12;
+
+/** The yearly saving over twelve monthly payments of the same size ($38). */
+export const yearlySaving = (size: ProSize): number =>
+  perYear(size.monthly) - perYear(size.yearly);
+
+export const money = (n: number): string =>
+  `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
