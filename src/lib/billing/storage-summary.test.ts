@@ -321,16 +321,20 @@ describe("host_storage_summary's filters, read off the migrations", () => {
   // removal left the host's Deleted (Will's `notice=deleted` note), and a held item outlives the window its list
   // shows, so "everything not active" counted bytes her Deleted never shows: the figure is now her two lists,
   // arm for arm.
-  it("★ standby is exactly her two Deleted lists: a removal that is neither a withdrawal nor an operator's, and a deleted event's live media, each inside the window", () => {
+  // ★ AND AGAIN (triage-r2-wiring, 2026-09-29; scar kept: the figure is her two lists, arm for arm). Her Delete
+  // permanently on a row a hold or an open report keeps ASKS it (`purge_asked_at`) rather than deleting it, and
+  // RLS drops an asked row from her Deleted, so the media bin's arm drops it too.
+  it("★ standby is exactly her two Deleted lists: a removal that is neither a withdrawal, nor an operator's, nor one she asked to delete, and a deleted event's live media, each inside the window", () => {
     const [activeFilter, standbyFilter] = summaryFilters();
     const arms = topLevelArms(standbyFilter).map((arm) => conjuncts(arm));
     expect(arms).toHaveLength(2);
-    // The media bin (listRecentlyDeletedMedia, RLS supplying the operator's arm there).
+    // The media bin (listRecentlyDeletedMedia, RLS supplying the operator's and the asked arms there).
     expect(arms[0]).toEqual(
       new Set([
         "m.status = 'removed'",
         "not m.removed_by_uploader",
         "not m.removed_by_admin",
+        "m.purge_asked_at is null",
         inWindow("m.removed_at"),
       ]),
     );

@@ -8,7 +8,7 @@ import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 export const PRIVACY_FAQ: FaqItem[] = [
   {
     q: "Who can see my album?",
-    a: "The people you let in. Every event has three visibility levels: Public (anyone with your link), Password (the link plus a password you set), or Private (only you). A locked event shows a visitor nothing but the event name and a photo count.",
+    a: "The people you let in. An album is Public (anyone with your link), Private (a gate you pick comes first: a password you set, your yes at the door, your invite list, or only the people already in), or Only me (just you). A gate shows a newcomer at most the album's name and a photo count.",
   },
   {
     q: "Are share links public on the internet?",

@@ -32,7 +32,11 @@ export type EntryStep =
   | "identify"
   | "signin"
   | "upload"
-  | "keep";
+  | "keep"
+  /** The held door (event-settings r1, `waiting=held`): the host will let her in, and it opens by itself. */
+  | "waiting"
+  /** A confirmed newcomer asks to be let in (letting each person in, or an invite list: `unlisted=ask`). */
+  | "ask";
 
 /**
  * The way in a guest picked at the chooser. It lives in the modal's state for this visit alone:
@@ -134,9 +138,20 @@ export function computeDoor(input: {
   const steps: EntryStep[] = [];
   if (!welcomeSeen) steps.push("welcome");
 
-  // The password reveals nothing behind it, so nothing behind it is derivable yet.
+  // The password reveals nothing behind it, so nothing behind it is derivable yet. ★ NOR DOES A GATE
+  // THE HOST ANSWERS (the doors, event-settings r1): a newcomer there confirms an email (`account` at
+  // `none`, over the ghost river rather than a teaser), asks (`ask`), or waits (`waiting`), each with
+  // nothing real behind her, and each terminal for the same reason the password is.
   if (access === "none") {
-    steps.push("password");
+    steps.push(
+      gate === "account"
+        ? "identify"
+        : gate === "waiting"
+          ? "waiting"
+          : gate === "ask"
+            ? "ask"
+            : "password",
+    );
     return { steps, autoOpen: true };
   }
 
@@ -231,9 +246,29 @@ export function doorBack(input: {
     }
     case "upload":
       return isDemo || isVerified ? "welcome" : "name";
+    case "ask":
+      return "welcome";
+    // The held door goes back nowhere: she has asked, and the door opens by itself.
+    case "waiting":
     case "keep":
       return null;
   }
+}
+
+/**
+ * WHETHER THE LAST STEP'S SUCCESS OPENS THE ALBUM, which is when "You're in" plays. At a gate the
+ * host answers, confirming an email or asking leads to the held door, never into the album, so the
+ * beat waits for the door itself (being let in) to open. Everywhere else the last step is the one the
+ * album is directly behind.
+ */
+export function stepOpensAlbum(input: {
+  access: GalleryAccess;
+  gate: GalleryGate | null;
+}): boolean {
+  return !(
+    input.access === "none" &&
+    (input.gate === "account" || input.gate === "ask")
+  );
 }
 
 /**

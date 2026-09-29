@@ -27,8 +27,8 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 ## The desk
 
-Build 21's desk: `locked-door` r2 (four asks: the door family's direction first) and `disposable-mode` r2 (eight: the
-camera first). Two older asks wait on the rounds that replace their boards (demo-framing's `names`, press-page's
+Build 22's desk: `locked-door` r2 (four asks: the door family's direction first) and `disposable-mode` r2 (eight: the
+camera first), every ask with its context (his lab friction, fixed at the source). Two older asks wait on the rounds that replace their boards (demo-framing's `names`, press-page's
 `a-human`).
 
 ## Live state

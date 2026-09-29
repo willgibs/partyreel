@@ -168,7 +168,7 @@ describe("getApprovedMediaForUnlock: the unlocked password album, read whole", (
     );
     expect(approved.length).toBeGreaterThan(2000);
 
-    const rows = await getApprovedMediaForUnlock(EVENT);
+    const rows = await getApprovedMediaForUnlock({ id: EVENT });
 
     expect(rows.map((r) => r.id)).toEqual(approved.map((r) => r.id));
     expect(new Set(rows.map((r) => r.id)).size).toBe(rows.length);
@@ -204,7 +204,7 @@ describe("getApprovedMediaForUnlock: the unlocked password album, read whole", (
     const expected = newestFirst(media);
     expect(expected[999].created_at).toBe(expected[1000].created_at);
 
-    const rows = await getApprovedMediaForUnlock(EVENT);
+    const rows = await getApprovedMediaForUnlock({ id: EVENT });
 
     expect(rows.map((r) => r.id)).toEqual(expected.map((r) => r.id));
   });
@@ -212,7 +212,7 @@ describe("getApprovedMediaForUnlock: the unlocked password album, read whole", (
   it("reads nothing at all without this request's unlock cookie (the self-guard)", async () => {
     isUnlocked.mockResolvedValue(false);
     seed(album(20));
-    expect(await getApprovedMediaForUnlock(EVENT)).toEqual([]);
+    expect(await getApprovedMediaForUnlock({ id: EVENT })).toEqual([]);
     expect(fake.requests).toHaveLength(0);
     expect(isRequestOwner).toHaveBeenCalledWith(EVENT);
   });
@@ -221,14 +221,44 @@ describe("getApprovedMediaForUnlock: the unlocked password album, read whole", (
     isUnlocked.mockResolvedValue(false);
     isRequestOwner.mockResolvedValue(true);
     seed(album(20));
-    expect(await getApprovedMediaForUnlock(EVENT)).toHaveLength(20);
+    expect(await getApprovedMediaForUnlock({ id: EVENT })).toHaveLength(20);
   });
 
   it("an unlocked guest never costs an owner check", async () => {
     isUnlocked.mockResolvedValue(true);
     seed(album(3));
-    expect(await getApprovedMediaForUnlock(EVENT)).toHaveLength(3);
+    expect(await getApprovedMediaForUnlock({ id: EVENT })).toHaveLength(3);
     expect(isRequestOwner).not.toHaveBeenCalled();
+  });
+
+  it("★ the door's pass reads the album for someone the door let in, with no cookie (the doors)", async () => {
+    isUnlocked.mockResolvedValue(false);
+    isRequestOwner.mockResolvedValue(false);
+    seed(album(4));
+    const { issueDoorPass } = await import("@/lib/event/door/pass.server");
+    const doorPass = issueDoorPass(EVENT);
+    expect(await getApprovedMediaForUnlock({ id: EVENT, doorPass })).toHaveLength(
+      4,
+    );
+    expect(isUnlocked).not.toHaveBeenCalled();
+  });
+
+  it("★ a pass for another album, or one built by hand, reads nothing", async () => {
+    isUnlocked.mockResolvedValue(false);
+    isRequestOwner.mockResolvedValue(false);
+    seed(album(4));
+    const { issueDoorPass } = await import("@/lib/event/door/pass.server");
+    const elsewhere = issueDoorPass(OTHER_EVENT);
+    expect(
+      await getApprovedMediaForUnlock({ id: EVENT, doorPass: elsewhere }),
+    ).toEqual([]);
+    expect(
+      await getApprovedMediaForUnlock({
+        id: EVENT,
+        doorPass: { eventId: EVENT },
+      }),
+    ).toEqual([]);
+    expect(fake.requests).toHaveLength(0);
   });
 });
 

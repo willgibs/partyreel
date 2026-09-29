@@ -42,6 +42,7 @@ import {
   type EventListRow,
 } from "@/lib/dashboard/events-view";
 import { resolveNextSteps } from "@/lib/dashboard/next-step";
+import { getHostDoorWaiting } from "@/lib/db/queries/event-doors";
 import {
   calendarDayInZone,
   resolveViewerZone,
@@ -205,6 +206,7 @@ export default async function DashboardPage({
     pulse,
     claimableRows,
     liveReelFacts,
+    doorWaiting,
   ] = await Promise.all([
     getEventCardStills(eventIds),
     getEventCoverUrls(deletedEvents.map((e) => e.id)),
@@ -219,6 +221,14 @@ export default async function DashboardPage({
     eventIds.length > 0
       ? getLiveReelServerFacts(eventIds[0])
       : Promise.resolve({ liveReelEnabled: true, tier: null }),
+    // Who waits at each event's door (the doors, event-settings r1), for the pulse's first band. A
+    // failed read costs the step for one render, never the page, and says so where failures are read.
+    profile?.id && eventIds.length > 0
+      ? getHostDoorWaiting(profile.id).catch((error: unknown) => {
+          captureError("db", error, { seam: "pulse_door_waiting" });
+          return new Map<string, number>();
+        })
+      : Promise.resolve(new Map<string, number>()),
   ]);
 
   // THE PAGE SETUP'S INVITATION (`identity-profile` r1, `prompt=claim`), decided here from server
@@ -293,6 +303,7 @@ export default async function DashboardPage({
     events: events.map((e) => ({
       id: e.id,
       name: e.name,
+      waiting: doorWaiting.get(e.id) ?? 0,
       pending: eventStats.get(e.id)?.pending ?? 0,
       acceptingUploads: e.accepting_uploads,
       showReel: e.show_reel,

@@ -4,9 +4,10 @@ import { Globe, KeyRound, Lock } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
+import type { DoorStep } from "@/lib/event/door/door";
 import {
-  VISIBILITY_HINTS,
-  VISIBILITY_LABELS,
+  DOOR_STEP_LABELS,
+  DOOR_STEP_LINES,
 } from "@/lib/events/visibility-labels";
 import { BrowserFrame } from "@/components/marketing/frames";
 import { GhostBackdrop } from "@/components/marketing/sections/features/shared/ghost-grid";
@@ -19,29 +20,28 @@ import { usePrefersReducedMotion } from "@/lib/shared/use-prefers-reduced-motion
 import { cn } from "@/lib/utils";
 
 /**
- * THE ACCESS SWITCH (this page's signature): an interactive quote of the app's
- * real visibility control (components/app/visibility-selector.tsx), stylized to
- * marketing. Same three segments (Public / Password / Private, same icons),
- * same one-line hints (imported from the app module, the sanctioned
- * "any future surface" single source), driving ONE event-card preview through
- * the three guest-side states. The pill slides with the app's own segment
- * look (bg-background on the muted track: a step and no shadow, exactly as
- * visibility-selector.tsx ships it) instead of .mkt-tabs' 48px-radius track so
- * the mock stays shape-faithful; reduced motion swaps instantly.
+ * THE ACCESS SWITCH (this page's signature): an interactive quote of the door's
+ * first step in the app (components/app/event-settings/door-page.tsx, "What the
+ * link opens"), stylized to marketing. Same three answers (Public / Private /
+ * Only me), same one-line hints (imported from the app's one words module),
+ * driving ONE event-card preview through the three guest-side states: the
+ * album, a Private album's gate (drawn as its password, the gate everyone
+ * knows), and the one closed screen Only me shows, with no name and no count.
+ * The pill slides with the app's own segment look (bg-background on the muted
+ * track: a step and no shadow) instead of .mkt-tabs' 48px-radius track so the
+ * mock stays shape-faithful; reduced motion swaps instantly.
  */
 
-type Mode = "open" | "password" | "private";
+type Mode = DoorStep;
 
 const SEGMENTS: { mode: Mode; label: string; Icon: typeof Globe }[] = [
-  { mode: "open", label: VISIBILITY_LABELS.open, Icon: Globe },
-  { mode: "password", label: VISIBILITY_LABELS.password, Icon: KeyRound },
-  { mode: "private", label: VISIBILITY_LABELS.private, Icon: Lock },
+  { mode: "public", label: DOOR_STEP_LABELS.public, Icon: Globe },
+  { mode: "private", label: DOOR_STEP_LABELS.private, Icon: KeyRound },
+  { mode: "only_me", label: DOOR_STEP_LABELS.only_me, Icon: Lock },
 ];
 
-// The site-wide fixture event (one coherent fictional album across pages) and
-// its count, matching the ruled decomposition fact "Built from 214 photos."
+// The site-wide fixture event (one coherent fictional album across pages).
 const EVENT_NAME = "Maya & Jay's Wedding";
-const PHOTO_COUNT = "214 photos";
 
 /** Same manifest sweep the home album card uses, for cross-page coherence. */
 const ALBUM_TILE_IDS = [
@@ -56,14 +56,14 @@ const ALBUM_TILE_IDS = [
 ];
 
 export function AccessSwitch() {
-  const [mode, setMode] = useState<Mode>("open");
+  const [mode, setMode] = useState<Mode>("public");
   const index = SEGMENTS.findIndex((s) => s.mode === mode);
 
   return (
     <SectionShell
-      eyebrow="Visibility"
+      eyebrow="Who can get in"
       heading="Three ways to share, one switch."
-      subhead="Every event answers one question: who can see the album. Try each answer below, exactly as the control works in the app."
+      subhead="Every album answers one question first: what its link opens. Try each answer below, exactly as the first step works in the app."
       /* THE PAPER CHAPTER'S OPENER (the attention arc): the heading a tier up
          and real air, on the standard rise rather than the cut. The quietest
          page on the site opens its desk firmly, not loudly; the three sections
@@ -80,7 +80,7 @@ export function AccessSwitch() {
             live hint line below carries the meaning). */}
         <div
           role="group"
-          aria-label="Who can see this album?"
+          aria-label="What the link opens"
           data-mkt-reveal
           className="relative grid grid-cols-3 gap-1 rounded-lg bg-muted p-1 select-none"
           style={{ "--i": 3 } as CSSProperties}
@@ -124,7 +124,7 @@ export function AccessSwitch() {
           className="min-h-5 text-center"
           style={{ "--i": 3 } as CSSProperties}
         >
-          <HintSwap text={VISIBILITY_HINTS[mode]} />
+          <HintSwap text={DOOR_STEP_LINES[mode]} />
         </p>
 
         {/* The guest-side preview: one card, three states, cross-faded in a
@@ -137,7 +137,7 @@ export function AccessSwitch() {
         >
           <BrowserFrame label="partyreel.com/a/maya-and-jay">
             <div className="grid">
-              <PreviewPanel active={mode === "open"}>
+              <PreviewPanel active={mode === "public"}>
                 <div className="grid grid-cols-4 gap-2">
                   {ALBUM_TILE_IDS.map((id) => {
                     const m = marketingImage(id);
@@ -159,7 +159,7 @@ export function AccessSwitch() {
                 </div>
               </PreviewPanel>
 
-              <PreviewPanel active={mode === "password"}>
+              <PreviewPanel active={mode === "private"}>
                 <GhostBackdrop />
                 <div className="z-10 flex items-center justify-center p-3 [grid-area:1/1]">
                   <div className="w-full max-w-[17rem] rounded-xl border bg-card/95 p-4 text-center shadow-layer backdrop-blur">
@@ -183,17 +183,19 @@ export function AccessSwitch() {
                 </div>
               </PreviewPanel>
 
-              <PreviewPanel active={mode === "private"}>
+              {/* Only me: the one closed screen every turned-away visitor meets, which
+                  names nothing and counts nothing (components/guest/door/shut-door.tsx). */}
+              <PreviewPanel active={mode === "only_me"}>
                 <GhostBackdrop />
                 <div className="z-10 flex items-center justify-center p-3 [grid-area:1/1]">
-                  <div className="flex flex-col items-center gap-2 rounded-xl border bg-card/95 px-8 py-6 text-center shadow-layer backdrop-blur">
+                  <div className="flex max-w-[17rem] flex-col items-center gap-2 rounded-xl border bg-card/95 px-8 py-6 text-center shadow-layer backdrop-blur">
                     <span className="flex size-9 items-center justify-center rounded-full border text-muted-foreground">
                       <Lock className="size-4" />
                     </span>
                     <p className="font-heading text-base text-balance sm:text-lg">
-                      {EVENT_NAME}
+                      This album is closed
                     </p>
-                    <Caption className="tabular-nums">{PHOTO_COUNT}</Caption>
+                    <Caption>Only the host can let you in.</Caption>
                   </div>
                 </div>
               </PreviewPanel>
@@ -205,7 +207,8 @@ export function AccessSwitch() {
             under the demo, which reads coy on the page whose whole job is
             being straight with you; a plan's line on a trust page should be
             legible at a glance. Since the free/pro shift (2026-09-28) the
-            truth is that there is no gate: the password came down to Free. */}
+            truth is that no plan holds a gate back: the password came down to
+            Free, and the doors (2026-09-29) shipped every other gate there. */}
         <p
           data-mkt-reveal
           className="mx-auto flex max-w-md items-start gap-2.5 rounded-lg border bg-card/60 px-3.5 py-2.5 text-sm text-muted-foreground"
@@ -216,8 +219,8 @@ export function AccessSwitch() {
             <span className="font-medium text-foreground">
               All three are on every plan, Free included.
             </span>{" "}
-            A password is one field in the event&rsquo;s settings; share it with
-            the invitation.
+            So is every gate a Private album keeps: a password, your yes at the
+            door, or an invite list.
           </span>
         </p>
       </Reveal>

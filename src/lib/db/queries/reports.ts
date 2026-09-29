@@ -25,14 +25,33 @@ import "server-only";
 
 import { readNewest } from "@/lib/admin/list-depth";
 import {
+  entryKeyOf,
+  type EntrySubject,
+  frontOrder,
+  laneOf,
+  newestFirst,
+  type QueueLane,
   type ReportFilter,
   type ReportStatus,
+  sameInstant,
+  subjectOf,
   type WayBack,
   wayBackOf,
 } from "@/lib/admin/reports";
-import { mustQuery } from "@/lib/db/must-query";
-import { inChunks } from "@/lib/db/read-all";
+import { mustCount, mustQuery } from "@/lib/db/must-query";
+import { inChunks, type PageResult } from "@/lib/db/read-all";
+import { seamFrom, seamRpc } from "@/lib/db/triage-seam";
+import {
+  resolveUploaderIdentity,
+  type UploaderRow,
+} from "@/lib/media/uploader-identity";
 import { presignDownload } from "@/lib/r2/presign";
+import {
+  INSTANT_HIDE_KIND,
+  parseReportKind,
+  type ReportKind,
+  worstKind,
+} from "@/lib/reports/kinds";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type { ReportFilter, ReportStatus } from "@/lib/admin/reports";
@@ -214,6 +233,82 @@ function standingOf(
   return m.removed_by_admin ? "operator" : "removed";
 }
 
+/**
+ * THE PORTAL'S OWN SIGNAL FOR A REPORT THAT CANNOT WAIT (admin-triage r2): the open child-abuse reports, hidden
+ * at once or still up, which the rail and the bell wear in the destructive tone beside the open count. A HEAD
+ * count, one per request through `readPendingWork`.
+ */
+export async function countUrgentReports(): Promise<number> {
+  return mustCount(
+    seamFrom(createAdminClient(), "reports")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "open")
+      .eq("kind", INSTANT_HIDE_KIND),
+    "admin reports: urgent count",
+  );
+}
+
+/**
+ * The proof mail's switch (`ops_flags.report_proof_mail_enabled`, seeded OFF): absent reads as off, because it
+ * sends a new product mail, and his rule holds every one for the email exploration until his yes flips it.
+ */
+export async function readProofMailEnabled(): Promise<boolean> {
+  const row = await mustQuery(
+    createAdminClient()
+      .from("ops_flags")
+      .select("enabled")
+      .eq("key", "report_proof_mail_enabled")
+      .maybeSingle(),
+    "admin reports: proof mail switch",
+  );
+  return row?.enabled ?? false;
+}
+
+/** Postgres' undefined_column: a column the migration adds, read before it is applied. */
+const UNDEFINED_COLUMN = "42703";
+
+/**
+ * WHAT AN ANSWER LINK OPENS (`/report/<token>`): the operator's question on the report the token names, while
+ * that report is open and unanswered, and the album's name. Null for anything else (a used, closed or unknown
+ * link reads the same). The token is compared by its hash; the reporter's address is never read here.
+ */
+export async function readProofAsk(tokenHash: string): Promise<{
+  question: string;
+  eventName: string | null;
+} | null> {
+  const admin = createAdminClient();
+  const { data, error } = await seamFrom(admin, "reports")
+    .select("id, status, event_id, proof_question, proof_answered_at")
+    .eq("proof_token_hash", tokenHash)
+    .maybeSingle();
+  // Before 20260929140000 the column is missing (42703) and no link can exist yet: the page reads as a spent link.
+  if (error?.code === UNDEFINED_COLUMN) return null;
+  if (error) throw new Error(`report answer: the ask: ${error.message}`);
+  const row = data as {
+    status: string;
+    event_id: string | null;
+    proof_question: string | null;
+    proof_answered_at: string | null;
+  } | null;
+  if (!row || row.status !== "open" || row.proof_answered_at) return null;
+  if (!row.proof_question) return null;
+  const eventName = row.event_id ? await readEventName(row.event_id) : null;
+  return { question: row.proof_question, eventName };
+}
+
+/** An event's name, for the operator's alert (the route's `after`). */
+export async function readEventName(eventId: string): Promise<string | null> {
+  const row = await mustQuery(
+    createAdminClient()
+      .from("events")
+      .select("name")
+      .eq("id", eventId)
+      .maybeSingle(),
+    "admin reports: event name",
+  );
+  return row?.name ?? null;
+}
+
 /** Open-report count for the Overview badge. Cheap head+count query. */
 export async function countOpenReports(): Promise<number> {
   const admin = createAdminClient();
@@ -353,4 +448,303 @@ export async function listProfileReports(
     })),
     more,
   };
+}
+
+// ── The open queue, one entry a thing reported (admin-triage r2, `look=grid`) ──────────────────
+
+/** One report inside an entry, as the queue shows it: never who sent it, only what her session proved. */
+export type EntryReport = {
+  id: string;
+  reason: string | null;
+  createdAt: string;
+  kind: ReportKind;
+  /** She was signed in (the carried call `reporter`: one fact, never who). */
+  signedIn: boolean;
+  /** A confirmed address is kept on the report (it is never printed: Ask for proof mails it). */
+  canAsk: boolean;
+  /** This report's instant hide took the item down at this instant. */
+  hidAt: string | null;
+  /** What was asked, and what came back (`proof=confirm`). */
+  proof: {
+    askedAt: string;
+    question: string;
+    answeredAt: string | null;
+    answer: string | null;
+  } | null;
+};
+
+/**
+ * ONE THING REPORTED, with every open report on it (the carried call `one-entry`): the verbs act through its
+ * newest report's id, and the server answers the whole entry. Every fact the grid, the front's cards and the
+ * peek print is here, decided on the server; the item's keys stay here, only presigned links leave.
+ */
+export type ReviewEntry = {
+  key: string;
+  /** The newest open report's id, which the verbs carry. */
+  reportId: string;
+  subject: EntrySubject;
+  lane: QueueLane;
+  /** The worst kind any of its reports names. */
+  kind: ReportKind;
+  newestAt: string;
+  /** Newest first. */
+  reports: EntryReport[];
+  event: {
+    id: string;
+    name: string;
+    /** The host's name or address, which an operator reads and a host never learns was read. */
+    host: string | null;
+    uploads: number | null;
+    guests: number | null;
+  } | null;
+  media: {
+    id: string;
+    type: "photo" | "video";
+    url: string;
+    previewUrl: string | null;
+    standing: ItemStanding;
+    held: boolean;
+    /** Down because one of its reports hid it at once (the hide's instant is its removal's). */
+    hidden: boolean;
+  } | null;
+  uploader: {
+    name: string | null;
+    verified: boolean;
+    isHost: boolean;
+    /** Her other items in this album, the reports on them, and how many of those are held. */
+    more: number | null;
+    otherReports: number | null;
+    held: number | null;
+  } | null;
+};
+
+type OpenRow = {
+  id: string;
+  reason: string | null;
+  created_at: string;
+  event_id: string | null;
+  media_id: string | null;
+  kind: string | null;
+  reporter_signed_in: boolean | null;
+  reporter_email: string | null;
+  hid_at: string | null;
+  proof_asked_at: string | null;
+  proof_question: string | null;
+  proof_answered_at: string | null;
+  proof_answer: string | null;
+};
+
+type QueueMediaRow = MediaRow & {
+  event_id: string;
+  guest_id: string | null;
+  guests: UploaderRow["guests"];
+};
+
+type QueueFacts = {
+  items?: Record<string, { more?: number; held?: number; reports?: number }>;
+  events?: Record<string, { uploads?: number; guests?: number }>;
+};
+
+const OPEN_COLUMNS =
+  "id, reason, created_at, event_id, media_id, kind, reporter_signed_in, reporter_email, hid_at, proof_asked_at, proof_question, proof_answered_at, proof_answer";
+
+/**
+ * THE OPEN QUEUE, AS ENTRIES: the newest `show` open album and item reports (the People arm is
+ * `listProfileReports`), grouped into one entry a thing reported, each carrying every fact the grid prints, and
+ * sorted into its lane (the front worst first then newest, the sweep newest first). The lookups ride `inChunks`,
+ * the facts are one `report_queue_facts` jsonb, and the presigns run at once. ★ The reporter's address never
+ * leaves this function: `canAsk` is its only trace.
+ */
+export async function listOpenEntries(
+  show: number,
+): Promise<{ entries: ReviewEntry[]; more: boolean }> {
+  const admin = createAdminClient();
+  const { rows, more } = await readNewest(
+    "admin reports: open queue",
+    show,
+    (after: NewestFirst, limit) => {
+      let q = seamFrom(admin, "reports")
+        .select(OPEN_COLUMNS)
+        .eq("status", "open")
+        .not("event_id", "is", null)
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+        .limit(limit);
+      if (after) {
+        q = q.or(
+          `created_at.lt.${after.at},and(created_at.eq.${after.at},id.lt.${after.id})`,
+        );
+      }
+      return q as unknown as PromiseLike<PageResult<OpenRow>>;
+    },
+    (row) => ({ at: row.created_at, id: row.id }),
+  );
+  if (rows.length === 0) return { entries: [], more };
+
+  const eventIds = [
+    ...new Set(rows.flatMap((r) => (r.event_id ? [r.event_id] : []))),
+  ];
+  const mediaIds = [
+    ...new Set(rows.flatMap((r) => (r.media_id ? [r.media_id] : []))),
+  ];
+
+  const [events, media, facts] = await Promise.all([
+    inChunks(
+      "admin reports: queue events",
+      eventIds,
+      async (chunk) =>
+        (await mustQuery(
+          admin.from("events").select("id, name, host_id").in("id", chunk),
+          "admin reports: queue events",
+        )) ?? [],
+    ),
+    inChunks(
+      "admin reports: queue media",
+      mediaIds,
+      async (chunk) =>
+        ((await mustQuery(
+          admin
+            .from("media")
+            .select(
+              "id, type, original_key, preview_key, status, removed_by_admin, removed_at, legal_hold_at, event_id, guest_id, guests!media_guest_id_fkey(user_id, email, display_name, verified_at, profiles!guests_user_id_fkey(display_name))",
+            )
+            .in("id", chunk),
+          "admin reports: queue media",
+        )) ?? []) as unknown as QueueMediaRow[],
+    ),
+    mustQuery(
+      seamRpc<QueueFacts>(admin, "report_queue_facts", {
+        p_media_ids: mediaIds,
+        p_event_ids: eventIds,
+      }),
+      "admin reports: queue facts",
+    ),
+  ]);
+
+  const hostIds = [...new Set(events.map((e) => e.host_id))];
+  const hosts = await inChunks(
+    "admin reports: queue hosts",
+    hostIds,
+    async (chunk) =>
+      (await mustQuery(
+        admin
+          .from("profiles")
+          .select("id, display_name, email")
+          .in("id", chunk),
+        "admin reports: queue hosts",
+      )) ?? [],
+  );
+  const hostById = new Map(hosts.map((h) => [h.id, h]));
+  const eventById = new Map(events.map((e) => [e.id, e]));
+  const mediaById = new Map(media.map((m) => [m.id, m]));
+
+  const signed = new Map(
+    await Promise.all(
+      media.map(
+        async (m) =>
+          [
+            m.id,
+            {
+              url: await presignDownload({ key: m.original_key }),
+              previewUrl: m.preview_key
+                ? await presignDownload({ key: m.preview_key })
+                : null,
+            },
+          ] as const,
+      ),
+    ),
+  );
+
+  // Group: every open report on one thing, newest first (the read's own order).
+  const groups = new Map<string, OpenRow[]>();
+  for (const row of rows) {
+    const key = entryKeyOf({ ...row, profile_id: null });
+    const list = groups.get(key);
+    if (list) list.push(row);
+    else groups.set(key, [row]);
+  }
+
+  const entries: ReviewEntry[] = [...groups.entries()].map(([key, list]) => {
+    const newest = list[0];
+    const subject = subjectOf(newest);
+    const reports: EntryReport[] = list.map((r) => ({
+      id: r.id,
+      reason: r.reason,
+      createdAt: r.created_at,
+      kind: parseReportKind(r.kind),
+      signedIn: Boolean(r.reporter_signed_in),
+      canAsk: Boolean(r.reporter_email),
+      hidAt: r.hid_at ?? null,
+      proof:
+        r.proof_asked_at && r.proof_question
+          ? {
+              askedAt: r.proof_asked_at,
+              question: r.proof_question,
+              answeredAt: r.proof_answered_at ?? null,
+              answer: r.proof_answer ?? null,
+            }
+          : null,
+    }));
+    const kind = worstKind(reports.map((r) => r.kind));
+    const event = newest.event_id ? eventById.get(newest.event_id) : undefined;
+    const host = event ? hostById.get(event.host_id) : undefined;
+    const eventFacts = event ? facts?.events?.[event.id] : undefined;
+    const row = newest.media_id ? mediaById.get(newest.media_id) : undefined;
+    const links = row ? signed.get(row.id) : undefined;
+    const itemFacts = row ? facts?.items?.[row.id] : undefined;
+    const identity = row
+      ? resolveUploaderIdentity(
+          { guest_id: row.guest_id, guests: row.guests },
+          host?.display_name ?? null,
+        )
+      : null;
+    return {
+      key,
+      reportId: newest.id,
+      subject,
+      lane: laneOf(subject, kind),
+      kind,
+      newestAt: newest.created_at,
+      reports,
+      event: event
+        ? {
+            id: event.id,
+            name: event.name,
+            host: host?.display_name ?? host?.email ?? null,
+            uploads: eventFacts?.uploads ?? null,
+            guests: eventFacts?.guests ?? null,
+          }
+        : null,
+      media:
+        row && links
+          ? {
+              id: row.id,
+              type: row.type,
+              url: links.url,
+              previewUrl: links.previewUrl,
+              standing: standingOf(row),
+              held:
+                row.legal_hold_at !== null && row.legal_hold_at !== undefined,
+              hidden:
+                row.status === "removed" &&
+                Boolean(row.removed_by_admin) &&
+                reports.some((r) => sameInstant(r.hidAt, row.removed_at)),
+            }
+          : null,
+      uploader: identity
+        ? {
+            name: identity.displayName,
+            verified: identity.isVerified,
+            isHost: identity.isHost,
+            more: itemFacts?.more ?? null,
+            otherReports: itemFacts?.reports ?? null,
+            held: itemFacts?.held ?? null,
+          }
+        : null,
+    };
+  });
+
+  const front = entries.filter((e) => e.lane === "front").sort(frontOrder);
+  const sweep = entries.filter((e) => e.lane !== "front").sort(newestFirst);
+  return { entries: [...front, ...sweep], more };
 }

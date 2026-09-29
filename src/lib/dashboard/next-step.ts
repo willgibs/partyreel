@@ -22,10 +22,17 @@
  * TESTED in. The existing `listRecentlyDeletedEvents` sets the same precedent.
  */
 
+import { peopleWaiting } from "@/lib/event/door/words";
 import { photosToGo, reelState } from "@/lib/event/reel-progress";
 import { formatCount } from "@/lib/format/count";
 
-export type NextStepKind = "review" | "paused" | "reel" | "print" | "storage";
+export type NextStepKind =
+  | "door"
+  | "review"
+  | "paused"
+  | "reel"
+  | "print"
+  | "storage";
 
 export type NextStep = {
   kind: NextStepKind;
@@ -49,6 +56,11 @@ export type NextStep = {
 export type NextStepEvent = {
   id: string;
   name: string;
+  /**
+   * Newcomers waiting at the door for the host to let them in (the doors, event-settings r1). Absent
+   * reads as none, which is every event before the doors.
+   */
+  waiting?: number;
   /** Media waiting on the host's review. */
   pending: number;
   acceptingUploads: boolean;
@@ -70,6 +82,11 @@ export const STORAGE_STEP_PCT = 85;
  * a reel one photo short, then an event dated tomorrow. First match wins,
  * because a host with four events and four steps each is back to an inbox.
  *
+ * ★ PEOPLE AT THE DOOR LEAD THE QUEUES (the doors, event-settings r1: a waiting newcomer counts
+ * "wherever the host is already told about held uploads (the pulse, the bell)"): a guest standing at
+ * a held door is waiting on the host right now, where a held photograph can wait for the evening. It
+ * opens the Guests room at its At the door section.
+ *
  * ★ THE REEL STEP TELLS THE TRUTH AND THEN LEAVES (`reel-host`, Will
  * 2026-09-25: `pulse=band`). The live reel makes itself from the second photo,
  * so there is nothing to "make": the one thing worth a host's attention is the
@@ -86,6 +103,18 @@ export function nextStepForEvent(
   today: string,
 ): NextStep | null {
   const href = `/dashboard/${event.id}`;
+
+  const waiting = event.waiting ?? 0;
+  if (waiting > 0) {
+    return {
+      kind: "door",
+      eventId: event.id,
+      label: `${peopleWaiting(waiting)} at the door of ${event.name}`,
+      short: `${peopleWaiting(waiting)} at the door`,
+      href: `${href}/guests#at-the-door`,
+      tone: "waiting",
+    };
+  }
 
   if (event.pending > 0) {
     return {

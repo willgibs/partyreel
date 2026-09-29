@@ -243,3 +243,27 @@ describe("the storage step's door", () => {
     expect(shelf?.href).toBeNull();
   });
 });
+
+describe("people at the door (the doors, event-settings r1)", () => {
+  it("★ lead the queues: someone waiting at a held door outranks a held photograph", () => {
+    const step = nextStepForEvent(
+      { ...base, waiting: 2, pending: 7, acceptingUploads: false },
+      TODAY,
+    );
+    expect(step?.kind).toBe("door");
+    expect(step?.tone).toBe("waiting");
+  });
+
+  it("open the Guests room at its At the door", () => {
+    const step = nextStepForEvent({ ...base, waiting: 1 }, TODAY);
+    expect(step?.href).toBe("/dashboard/e1/guests#at-the-door");
+    expect(step?.label).toContain(base.name);
+  });
+
+  it("an event with nobody at its door, or none read, steps as before", () => {
+    expect(nextStepForEvent({ ...base, waiting: 0, pending: 3 }, TODAY)?.kind).toBe(
+      "review",
+    );
+    expect(nextStepForEvent({ ...base, pending: 3 }, TODAY)?.kind).toBe("review");
+  });
+});

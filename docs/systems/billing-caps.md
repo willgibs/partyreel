@@ -39,7 +39,9 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   BOTH `create_media` and `create_media_as_host`, after `tier_limits()` loads: in the universal-limits block above it
   the tier is not loaded yet, and the check would silently pass everything. The upload contexts return an advisory
   `video_blocked` the presign routes fail fast on, worded around the EVENT for a guest so the host's plan never
-  leaks.
+  leaks. ★ A guest's video also needs the album's Videos switch (`events.allow_videos`, on by default, live on paid
+  plans only): `create_media` refuses it in the plan's own words and `video_blocked` says so first, while
+  `create_media_as_host` never reads the switch, as the per-upload cap binds guests alone.
 - **The paid gates on event settings live in their setter RPCs and mirror `GATED_EVENT_SETTINGS`,** which is empty:
   `set_event_password` and `set_event_slug` name no tier, and `tiers-sql.test.ts` fails a gate added to one half only
   (an app lock over an open RPC is walked around; an RPC refusal under an open control is a broken button). With

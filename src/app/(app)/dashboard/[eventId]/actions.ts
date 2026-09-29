@@ -21,12 +21,14 @@ import {
   type ReviewVerdictStatus,
   type SettableMediaStatus,
 } from "@/lib/db/mutations/media";
+import { setEventDoor } from "@/lib/db/mutations/event-doors";
 import { readHostManifestPage } from "@/lib/db/queries/album-host";
 import { getEvent } from "@/lib/db/queries/events";
 import { getLiveReelServerFacts } from "@/lib/db/queries/guest-events-admin";
 import { BULK_LIMIT_MESSAGE, MAX_BULK_ITEMS } from "@/lib/event/bulk-selection";
 import { readHubReel, readRestOfManifest } from "@/lib/event/host-album.server";
 import type { HubReel } from "@/lib/event/reel-progress";
+import { isDoor } from "@/lib/event/door/door";
 import { ALBUM_MANIFEST_PAGE } from "@/lib/events/album-wire";
 import { captureError } from "@/lib/observability/sentry";
 import { createClient } from "@/lib/supabase/server";
@@ -377,4 +379,59 @@ export async function refreshHubReelAction(
     captureError("reel", error, { action: "hub_reel_refresh", eventId });
     return { ok: false };
   }
+}
+
+/** The door's answer: what the database did beside the door it set. */
+export type SetEventDoorResult =
+  | {
+      ok: true;
+      /** The email step was held on with it (letting each person in and the list match an address). */
+      emailHeld: boolean;
+      /** People waiting at the door who came straight in because the album turned Public. */
+      admitted: number;
+    }
+  | {
+      ok: false;
+      code: "validation" | "unauthorized" | "no_password" | "unknown";
+      message: string;
+    };
+
+/**
+ * THE DOOR, SET (event-settings r1, `join=steps`): what the link opens and the gate it keeps, in one
+ * write (`set_event_door`, SECURITY DEFINER, which re-checks the caller hosts the event on
+ * `auth.uid()`, holds the email step on for an address gate, and lets everyone waiting in when the
+ * album turns Public). The door page's consequence line has already said what it does to anyone
+ * inside or at the door, before the host chose it.
+ *
+ * ★ THE CALLER'S VALUES ARE CHECKED HERE, AT THE BOUNDARY: a Server Function is a public endpoint, so
+ * the event id must be one and the door one of the six, before anything is asked.
+ */
+export async function setEventDoorAction(
+  eventId: string,
+  door: string,
+): Promise<SetEventDoorResult> {
+  if (!z.uuid().safeParse(eventId).success || !isDoor(door)) {
+    return { ok: false, code: "validation", message: "Unsupported door." };
+  }
+  const result = await setEventDoor(eventId, door);
+  if (!result.ok) {
+    if (result.code === "unknown" && result.cause) {
+      captureError("other", result.cause, { phase: "set_event_door" });
+    }
+    return {
+      ok: false,
+      code:
+        result.code === "unauthorized" || result.code === "no_password"
+          ? result.code
+          : "unknown",
+      message: result.message,
+    };
+  }
+  revalidatePath(`/dashboard/${eventId}`);
+  revalidatePath("/dashboard");
+  return {
+    ok: true,
+    emailHeld: result.data.emailHeld,
+    admitted: result.data.admitted,
+  };
 }

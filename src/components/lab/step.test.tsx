@@ -735,3 +735,162 @@ describe("a step on a catalog", () => {
     );
   });
 });
+
+/**
+ * ★ CONTEXT COMES BEFORE THE OPTIONS (Will, 2026-09-29: "for some questions
+ * I'm just getting dropped off in the middle of nowhere with no resources to
+ * help"). What is pinned is the ORDER and the presence: where it happens, the
+ * state that brings someone there, what it decides and why, and the
+ * recommendation's reason all precede the first option; the shown option's
+ * gain and cost travel with it; the board opens where the sitting enters it;
+ * a coined word is glossed on the step that says it. Never a look.
+ */
+const OPENING = {
+  about: "The door a guest meets before an album opens.",
+  settled: ["The welcome keeps today's words."],
+  earlier: ["You asked for the host's door, pushed further."],
+};
+
+const TERMS = [
+  {
+    term: "the lit column",
+    means: "One emblem in a pool of light, as today's not-found page.",
+  },
+  { term: "the welcome", means: "The first screen off the printed code." },
+  { term: "a gate", means: "A step a newcomer passes before the album." },
+];
+
+const FAMILY: AskStep = {
+  kind: "ask",
+  board: "door",
+  boardTitle: "The door family",
+  round: 2,
+  askId: "family",
+  question: "Which direction should the lit column take?",
+  where: ["Guest", "The album's door", "Before it opens"],
+  when: "A newcomer scans the code at a Private album.",
+  context: "Four frames each.",
+  lands: "The look of every door screen.",
+  matters: "It is the first thing of an album anyone sees.",
+  because: "Every state reads at a glance.",
+  options: [
+    {
+      id: "today",
+      label: "Today's door",
+      means: "As it ships.",
+      gains: "Nothing to build.",
+      costs: "Its words fit one reason of five.",
+      state: { family: "today" },
+    },
+    {
+      id: "doorway",
+      label: "The doorway",
+      means: "A door on the page.",
+      gains: "Every state at a glance.",
+      costs: "The album no longer sits behind the welcome.",
+      state: { family: "doorway" },
+    },
+  ],
+  recommended: "doorway",
+  evidence: null,
+  section: "family",
+  control: "family",
+  opening: OPENING,
+  terms: TERMS,
+  boardHref: "/design/lab/door",
+};
+
+const WAIT: AskStep = {
+  ...FAMILY,
+  askId: "wait",
+  question: "What should she hold while she waits at a gate?",
+  where: ["Guest", "The album's door", "Waiting"],
+  section: "wait",
+  control: "wait",
+  options: [
+    { ...FAMILY.options[0], state: { wait: "today" } },
+    { ...FAMILY.options[1], state: { wait: "doorway" } },
+  ],
+};
+
+const DOOR: SessionStep[] = [FAMILY, WAIT];
+
+describe("a step says where it is before it asks", () => {
+  it("prints where, when, what it decides and why, and the board's reason, before any option", () => {
+    const { container } = step("door.family", fakeBoard(), "door", DOOR);
+    const where = container.querySelector("[data-lab-where]")!;
+    expect(where).toHaveTextContent("Guest");
+    expect(where).toHaveTextContent("Before it opens");
+    expect(container.querySelector("[data-lab-when]")).toHaveTextContent(
+      FAMILY.when!,
+    );
+    expect(container.querySelector("[data-lab-matters]")).toHaveTextContent(
+      FAMILY.matters!,
+    );
+    const reason = container.querySelector("[data-lab-reason]")!;
+    expect(reason).toHaveTextContent("The doorway");
+    expect(reason).toHaveTextContent(FAMILY.because!);
+    // All of it precedes the stage: FOLLOWING (4) means the stage comes after.
+    const stage = container.querySelector("[data-lab-stage]")!;
+    for (const el of [where, reason])
+      expect(
+        el.compareDocumentPosition(stage) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+  });
+
+  it("carries the shown option's gain and cost with its preview", async () => {
+    const { container } = step("door.family", fakeBoard(), "door", DOOR);
+    // It lands on the recommendation, so its trade is the one over the stage.
+    const trade = () => container.querySelector("[data-lab-trade]")!;
+    expect(trade()).toHaveAttribute("data-lab-trade", "doorway");
+    expect(trade()).toHaveTextContent("Every state at a glance.");
+    expect(trade()).toHaveTextContent(
+      "The album no longer sits behind the welcome.",
+    );
+    await userEvent.click(chip("Today's door"));
+    expect(trade()).toHaveAttribute("data-lab-trade", "today");
+    expect(trade()).toHaveTextContent("Its words fit one reason of five.");
+  });
+
+  it("opens the board where the sitting enters it, and keeps it a line away after", () => {
+    const first = step("door.family", fakeBoard(), "door", DOOR);
+    const open = first.container.querySelector("[data-lab-opening]")!;
+    expect(open).not.toHaveAttribute("data-lab-opening", "folded");
+    expect(open).toHaveTextContent(OPENING.about);
+    expect(open).toHaveTextContent(OPENING.settled[0]);
+    expect(open).toHaveTextContent(OPENING.earlier[0]);
+    first.unmount();
+    const later = step("door.wait", fakeBoard(), "door", DOOR);
+    expect(later.container.querySelector("[data-lab-opening]")).toHaveAttribute(
+      "data-lab-opening",
+      "folded",
+    );
+  });
+
+  it("glosses a coined term on the step that says it, and only once", () => {
+    const { container } = step("door.family", fakeBoard(), "door", DOOR);
+    const head = container.querySelector(".lab-step-head")!;
+    const glossed = head.querySelector("[data-lab-terms]")!;
+    // "the lit column" is in the question.
+    expect(glossed).toHaveTextContent("the lit column");
+    expect(glossed).toHaveTextContent(TERMS[0].means);
+    // "the welcome" is in an option's cost AND the open opening, which glosses
+    // it first, so the head does not say it twice.
+    const opening = container.querySelector("[data-lab-opening]")!;
+    expect(opening.querySelector("[data-lab-terms]")).toHaveTextContent(
+      "the welcome",
+    );
+    expect(glossed).not.toHaveTextContent("the welcome");
+    // "a gate" is said only by the other step.
+    expect(container).not.toHaveTextContent("a gate");
+  });
+
+  it("glosses the opening's words under the question once the opening is folded", () => {
+    const { container } = step("door.wait", fakeBoard(), "door", DOOR);
+    const head = container.querySelector(".lab-step-head")!;
+    expect(head.querySelector("[data-lab-terms]")).toHaveTextContent(
+      "the welcome",
+    );
+    expect(head.querySelector("[data-lab-terms]")).toHaveTextContent("a gate");
+  });
+});

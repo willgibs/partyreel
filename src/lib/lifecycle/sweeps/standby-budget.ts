@@ -127,6 +127,8 @@ export async function readStandbyBin(
           .eq("removed_by_system", false)
           .eq("removed_by_uploader", false)
           .eq("removed_by_admin", false)
+          // Asked (20260929140000): her Delete permanently took it from her Deleted; a keeper holds its bytes.
+          .filter("purge_asked_at", "is", null)
           .filter("legal_hold_at", "is", null)
           .order("id", { ascending: true })
           .limit(limit);

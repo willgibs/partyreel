@@ -10,6 +10,7 @@ import {
   navGroups,
   pendingForHref,
   type PendingCounts,
+  urgentForHref,
 } from "@/lib/admin/nav";
 import { formatCount } from "@/lib/format/count";
 import { cn } from "@/lib/utils";
@@ -66,6 +67,8 @@ export function AdminRail({
             const Icon = item.icon;
             const current = isNavActive(pathname, item.href);
             const count = pendingForHref(counts, item.href);
+            // A report that cannot wait wears the destructive tone on its row's number (admin-triage r2).
+            const urgent = urgentForHref(counts, item.href);
             return (
               <Link
                 key={item.href}
@@ -84,8 +87,20 @@ export function AdminRail({
                 {count > 0 ? (
                   // The number, never a dot: "3" and "30" are different days
                   // and a dot says the same thing about both.
-                  <span className="text-caption tabular-nums opacity-70">
+                  <span
+                    className={cn(
+                      "text-caption tabular-nums",
+                      urgent > 0
+                        ? "font-medium text-destructive"
+                        : "opacity-70",
+                    )}
+                  >
                     {formatCount(count)}
+                    {urgent > 0 ? (
+                      <span className="sr-only">
+                        , {formatCount(urgent)} urgent
+                      </span>
+                    ) : null}
                   </span>
                 ) : null}
               </Link>

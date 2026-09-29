@@ -294,6 +294,14 @@ export default async function DeskPage({
                           ?.label ?? step.recommended}
                       </Tag>
                     )}
+                    {/* Where the question happens, on its own line, so the
+                        queue reads as places before it reads as questions
+                        (the context layer, 2026-09-29). */}
+                    {step.kind === "ask" && step.where?.length ? (
+                      <span className="text-[11px] text-muted-foreground sm:basis-full">
+                        {step.where.join(" › ")}
+                      </span>
+                    ) : null}
                   </LabLink>
                 </li>
               );
@@ -514,8 +522,12 @@ function BoardCard({
         ))}
       </div>
 
+      {/* A board with an opening says what it is about; one without says
+          its first recommendation, as it always did. */}
       <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted-foreground">
-        {row.spec ? row.spec.verdict.recommendation : row.note}
+        {row.spec
+          ? (row.spec.opening?.about ?? row.spec.verdict.recommendation)
+          : row.note}
       </p>
 
       {/* What you already said about THIS board, which is what the round it is
@@ -540,42 +552,42 @@ function BoardCard({
           {row.asks
             .filter((a) => !a.moot)
             .map((a) => (
-            <li key={a.ask.id}>
-              <LabLink
-                // An answered ask, or one marked unclear, is not in the walk:
-                // it opens the board rather than a step that is not there.
-                href={
-                  a.answer
-                    ? `/design/lab/${row.id}`
-                    : askHref(row.id, a.ask.id)
-                }
-                title={
-                  a.answer && a.answer.choice === null
-                    ? `Not clear to you: ${a.answer.note ?? ""}`
-                    : undefined
-                }
-                className={
-                  a.answer?.choice
-                    ? "inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-0.5 text-[11px] text-muted-foreground"
-                    : "inline-flex items-center gap-1.5 rounded-md bg-muted px-2 py-0.5 text-[11px] transition-colors duration-150 hover:bg-muted/60"
-                }
-              >
-                {a.ask.question}
-                {a.answer?.choice && (
-                  <span className="font-medium text-foreground">
-                    {optionLabel(
-                      a.ask.options.find(
-                        (o) => optionId(o) === a.answer?.choice,
-                      ) ?? a.answer.choice,
-                    )}
-                  </span>
-                )}
-                {a.answer && a.answer.choice === null && (
-                  <span className="font-medium text-foreground">
-                    not clear, waiting on a clearer question
-                  </span>
-                )}
-              </LabLink>
+              <li key={a.ask.id}>
+                <LabLink
+                  // An answered ask, or one marked unclear, is not in the walk:
+                  // it opens the board rather than a step that is not there.
+                  href={
+                    a.answer
+                      ? `/design/lab/${row.id}`
+                      : askHref(row.id, a.ask.id)
+                  }
+                  title={
+                    a.answer && a.answer.choice === null
+                      ? `Not clear to you: ${a.answer.note ?? ""}`
+                      : undefined
+                  }
+                  className={
+                    a.answer?.choice
+                      ? "inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-0.5 text-[11px] text-muted-foreground"
+                      : "inline-flex items-center gap-1.5 rounded-md bg-muted px-2 py-0.5 text-[11px] transition-colors duration-150 hover:bg-muted/60"
+                  }
+                >
+                  {a.ask.question}
+                  {a.answer?.choice && (
+                    <span className="font-medium text-foreground">
+                      {optionLabel(
+                        a.ask.options.find(
+                          (o) => optionId(o) === a.answer?.choice,
+                        ) ?? a.answer.choice,
+                      )}
+                    </span>
+                  )}
+                  {a.answer && a.answer.choice === null && (
+                    <span className="font-medium text-foreground">
+                      not clear, waiting on a clearer question
+                    </span>
+                  )}
+                </LabLink>
               </li>
             ))}
         </ul>

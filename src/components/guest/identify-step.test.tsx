@@ -280,3 +280,31 @@ describe("identifyCopy: the door's title says the true count, worded like the al
     });
   });
 });
+
+describe("identifyCopy at a gate (the doors, event-settings r1): who lets her in", () => {
+  it("★ names the host and never counts what waits, since nothing real stands behind it", () => {
+    for (const door of ["approve", "invite"] as const) {
+      const copy = identifyCopy({
+        verification: true,
+        mediaTotal: 40,
+        door,
+        hostName: "Maya",
+      });
+      expect(copy.title).toContain("Maya");
+      expect(`${copy.title} ${copy.reason}`).not.toMatch(/40|waiting/);
+    }
+  });
+
+  it("an invite list tells an address it does not name that she can still ask", () => {
+    expect(
+      identifyCopy({ verification: true, door: "invite", hostName: "Maya" })
+        .reason,
+    ).toMatch(/ask/i);
+  });
+
+  it("with no host name, the host", () => {
+    expect(
+      identifyCopy({ verification: true, door: "approve", hostName: " " }).title,
+    ).toMatch(/^The host/);
+  });
+});

@@ -31,7 +31,11 @@ import { z } from "zod";
 
 import { removeMyUploadBySession } from "@/lib/db/mutations/guest-media";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
-import { isClosedDoor } from "@/lib/events/closed-door.server";
+import {
+  doorCallerFor,
+  isThrough,
+  resolveGuestDoor,
+} from "@/lib/events/closed-door.server";
 import { captureWarning } from "@/lib/observability/sentry";
 import {
   abuseHashes,
@@ -90,16 +94,23 @@ export async function POST(request: Request) {
     keys = null;
   }
 
-  // The write inherits the page's read gate: a private event reveals nothing
-  // and accepts nothing (the RPC would refuse anyway — this is the belt). A
-  // ticket a block holds meets the same refusal (the closed door,
-  // `closed-door.server.ts`, asked with the body's ticket alone: a write route
-  // never reads the cookie).
+  // The write inherits the page's read gate: a door that does not let this
+  // ticket through (a block, a door that shut, a ticket still waiting on the
+  // host) reveals nothing and accepts nothing (`closed-door.server.ts`, asked
+  // with the body's ticket beside the account: a write route never reads the
+  // cookie; the RPC would refuse anyway — this is the belt).
   const event = await getEventByQrToken(qr_token);
   if (!event.ok) {
     return NextResponse.json({ ok: false, code: "not_found" }, { status: 404 });
   }
-  if (await isClosedDoor(event.data, [session_token])) {
+  const door = await resolveGuestDoor(
+    event.data,
+    await doorCallerFor(event.data.id, {
+      bodyTokens: [session_token],
+      cookie: false,
+    }),
+  );
+  if (!isThrough(door)) {
     return NextResponse.json(
       { ok: false, code: "unauthorized" },
       { status: 403 },

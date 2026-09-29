@@ -45,6 +45,8 @@ import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
 export function IdentifyStep({
   qrToken,
   verification,
+  door = null,
+  hostName,
   mediaTotal,
   storedName,
   onTypedName,
@@ -53,6 +55,13 @@ export function IdentifyStep({
   qrToken: string;
   /** A verification event's door (the gate line shows) rather than a name-only event's Create account. */
   verification: boolean;
+  /**
+   * The gate a newcomer stands at (the doors, event-settings r1): the email step then says who lets
+   * her in rather than selling an album that stays shut behind it. Null for the album's own gate.
+   */
+  door?: "approve" | "invite" | null;
+  /** The host's name, which the gate's words say again rather than give a pronoun. */
+  hostName?: string | null;
   /** Approved media count, for the verification door's "N photos are waiting". */
   mediaTotal?: number;
   /** The name this device already typed at THIS event, if any (the mid-visit flip). */
@@ -66,7 +75,7 @@ export function IdentifyStep({
   const [refusal, setRefusal] = useState<JoinRefusal | null>(null);
   // Read once, when the screen arrives: the tickets that could be claimed are the ones held now.
   const [claimable] = useState(deviceHoldsTickets);
-  const copy = identifyCopy({ verification, mediaTotal });
+  const copy = identifyCopy({ verification, mediaTotal, door, hostName });
 
   const emailRedirectTo =
     typeof window !== "undefined"
@@ -84,7 +93,7 @@ export function IdentifyStep({
             <AlmostIn>{DOOR_WEAR.gate.heading}</AlmostIn>
           ) : undefined,
           title:
-            verification && mediaTotal && mediaTotal > 0 ? (
+            verification && !door && mediaTotal && mediaTotal > 0 ? (
               // The gate's title counts what waits, ticking as photos land (`identity-door` r2's
               // lit count); the same words `identifyCopy` hands the shell, the number its own node.
               <>
@@ -191,8 +200,26 @@ function deviceHoldsTickets(): boolean {
 export function identifyCopy(input: {
   verification: boolean;
   mediaTotal?: number;
+  /** The gate a newcomer stands at, where confirming asks (or lets in an address the list names). */
+  door?: "approve" | "invite" | null;
+  hostName?: string | null;
 }): { title: string; reason: string } {
-  const { verification, mediaTotal } = input;
+  const { verification, mediaTotal, door = null } = input;
+  // ★ AT A GATE, THE STEP SAYS WHO LETS HER IN (the doors, event-settings r1). Nothing real stands
+  // behind it, so it never counts what waits; it names the host again rather than give a pronoun.
+  if (door) {
+    const host = input.hostName?.trim() || null;
+    const who = host ?? "the host";
+    return door === "approve"
+      ? {
+          title: host ? `${host} lets each guest in` : "The host lets each guest in",
+          reason: `Confirm your email to ask. The album opens the moment ${who} lets you in.`,
+        }
+      : {
+          title: host ? `${host} invited the guests` : "The host invited the guests",
+          reason: `Confirm the email ${who} invited, and the album opens. Not on the list? You can ask ${who} to let you in.`,
+        };
+  }
   if (!verification) {
     return {
       title: "Create your account",

@@ -21,7 +21,7 @@ export const ALBUM_FAQ: FaqItem[] = [
   },
   {
     q: "Do I need an account to host?",
-    a: "Yes. A free one, with an email or Google. Guests need nothing unless you require verified emails.",
+    a: "Yes. A free one, with an email or Google. Guests need nothing unless you ask for an email first.",
   },
   {
     q: "Do uploads go public before I see them?",
@@ -41,7 +41,7 @@ export const ALBUM_FAQ: FaqItem[] = [
   },
   {
     q: "What can guests upload?",
-    a: `Photos on every plan. Video on Pro and Event Pass, up to ${formatBytes(MAX_UPLOAD_BYTES)} a file, no compression, no duration cap.`,
+    a: `Photos on every plan. Video on Pro and Event Pass, up to ${formatBytes(MAX_UPLOAD_BYTES)} a file, no compression, no duration cap, and one switch keeps an album to photos.`,
   },
   {
     q: "Do I keep paying to keep the album?",

@@ -25,9 +25,7 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 
 /** The boards standing in sandbox/, one row each below. */
 export type SandboxId =
-  | "admin-triage"
   | "locked-door"
-  | "event-settings"
   | "press-page"
   | "contact-page"
   | "disposable-mode"
@@ -53,36 +51,6 @@ export type Ruling = {
 
 export const RULINGS: Ruling[] = [
   {
-    id: "admin-triage",
-    title: "Acting on a report",
-    surface: "admin",
-    asks: "the reports queue as a batch-first sweep with every fact on every report, what puts clear harm in front, how a reporter is asked for proof, and what a phone may do",
-    why: "Round two, from his notes: a fast, batch-first queue where each report says all it takes to decide, and a way to ask for proof before anything comes down.",
-    lives: [
-      "docs/systems/admin-observability.md",
-      "docs/systems/trust-safety-forensics.md",
-      "src/app/admin/reports/page.tsx",
-      "src/app/admin/reports/person-report-list.tsx",
-      "src/components/app/report-review.tsx",
-      "src/components/admin/destructive-sheet.tsx",
-      "src/components/guest/report-dialog.tsx",
-      "src/app/api/reports/route.ts",
-      "src/lib/validation/report.ts",
-      "src/lib/db/queries/reports.ts",
-      "src/lib/email/templates.ts",
-      "content/help/report-a-problem-as-a-guest.mdx",
-    ],
-    board: {
-      note: "Four decisions on a Saturday night of 15 open reports in the portal as it ships, wearing his round one picks: the queue four ways at 1440 (a sheet, a list beside the report, the review grid with words, grouped by album), each with every fact and a front no sweep can take; then, on his queue, what puts clear harm in front (the guest's Report at 375 beside it), how a reporter is asked for proof (her form, her inbox, the report), and what a phone may do at 375",
-      variants: [
-        "The queue",
-        "Clear harm, in front",
-        "Asking for proof",
-        "What a phone may do",
-      ],
-    },
-  },
-  {
     id: "locked-door",
     title: "The door family",
     surface: "guest",
@@ -106,36 +74,6 @@ export const RULINGS: Ruling[] = [
         "One design or four",
         "The wait",
         "The 404",
-      ],
-    },
-  },
-  {
-    id: "event-settings",
-    title: "An event's settings",
-    surface: "host",
-    asks: "how an event's settings are organised from the ground up, how a group opens, a setting that does nothing yet, the one Pro lock, and who can get in with its four asks",
-    why: "Will called settings some of the ugliest, least intuitive UI for the most critical controls, and asked for them rebuilt from the ground up, as streamlined as possible.",
-    lives: [
-      "docs/systems/host-app.md",
-      "src/components/app/event-settings/event-settings-sheet.tsx",
-      "src/components/app/event-settings-form.tsx",
-      "src/components/app/event-settings/visibility-section.tsx",
-      "src/components/app/event-settings/uploads-section.tsx",
-      "src/components/app/event-settings/highlight-reel-card.tsx",
-      "src/components/app/event-settings/profile-social-card.tsx",
-      "src/components/app/event-settings/danger-zone-section.tsx",
-      "src/components/app/visibility-selector.tsx",
-      "src/components/app/pricing/lock-chip.tsx",
-    ],
-    board: {
-      note: "Nine decisions on Maya and Jay's wedding, phone first with 1440 on every knob, drawn over production with his answers worn: five structures for the settings graded against today's seven cards, each as it opens and as she pauses uploads, then how a group opens, a setting that does nothing yet, the one Pro lock, and who can get in with event-safety's four join asks",
-      variants: [
-        "The structure",
-        "How a group opens",
-        "A setting that does nothing yet",
-        "The one Pro lock",
-        "Who can get in",
-        "The invite list",
       ],
     },
   },
@@ -317,8 +255,6 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
-  "admin-triage",
-  "event-settings",
   "locked-door",
   "privacy-hero",
   "album-motion",

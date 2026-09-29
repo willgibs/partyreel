@@ -1,79 +1,76 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 
-import { EventSettingsForm } from "@/components/app/event-settings-form";
-import { DangerZoneSection } from "@/components/app/event-settings/danger-zone-section";
-import { HighlightReelCard } from "@/components/app/event-settings/highlight-reel-card";
-import { ProfileSocialCard } from "@/components/app/event-settings/profile-social-card";
-import { Button } from "@/components/ui/button";
+import { AddsPage } from "@/components/app/event-settings/adds-page";
+import { DoorPage } from "@/components/app/event-settings/door-page";
+import { EventPage } from "@/components/app/event-settings/event-page";
+import { ReelPage } from "@/components/app/event-settings/reel-page";
+import type { SettingsPage } from "@/components/app/event-settings/settings-pages";
+import { SettingsRows } from "@/components/app/event-settings/settings-rows";
+import { SettingsProvider } from "@/components/app/event-settings/settings-state";
 import {
   Popup,
   PopupBody,
-  PopupClose,
   PopupContent,
-  PopupFooter,
   PopupHeader,
 } from "@/components/ui/popup";
 import type { Tier } from "@/lib/constants/tiers";
+import type { DoorCounts } from "@/lib/db/queries/event-doors";
 import type { HostEvent } from "@/lib/db/queries/events";
-import { useUnsavedChangesGuard } from "@/lib/use-unsaved-changes-guard";
+import { SETTINGS_GROUP_TITLES } from "@/lib/events/guest-experience-summary";
+
+/** Each page's head: the group's own title, the one its row stands under. */
+const PAGE_TITLE: Record<SettingsPage, string> = {
+  door: SETTINGS_GROUP_TITLES.door,
+  adds: SETTINGS_GROUP_TITLES.adds,
+  reel: SETTINGS_GROUP_TITLES.reel,
+  event: SETTINGS_GROUP_TITLES.event,
+};
 
 /**
- * SETTINGS AS A PANEL BESIDE THE ALBUM (Will, `settings=sheet`: "This does feel
- * cleaner and accessible than a page of cards per event" — and the reason it is
- * not a page is that the album it GOVERNS stays beside it. A host changing who
- * can see this event watches the photographs it applies to while they change
- * it).
+ * SETTINGS AS A PANEL BESIDE THE ALBUM (Will, `settings=sheet`: "This does feel cleaner and accessible
+ * than a page of cards per event", and the album it GOVERNS stays beside it), rebuilt from the ground
+ * up (event-settings r1, 2026-09-29): four rows, each a sentence of where its group stands with its key
+ * words live, each opening its own page under a back arrow (`opens=page`).
  *
- * ★ ITS KIND IS `settings` (`popups` r1, `settings=panel`, Will 2026-09-27): his
- * panel at a desk, unchanged; in a hand the whole screen under a back arrow
- * that names the event, the longest form in the app with nothing above it, and
- * no strip of album over seventeen controls. It rides `?room=settings`, so the
- * page already puts it in history (`routed`).
+ * ★ ITS KIND IS `settings` (`popups` r1, `settings=panel`): his panel at a desk; in a hand the whole
+ * screen under a back arrow that names the event. It rides `?room=settings`, and a page rides beside it
+ * (`&setting=door`, `settings-pages.ts`), so a link opens straight onto a page and a reload lands where
+ * the host was. One level in, the head is the page's own and its back arrow goes UP to the four rows
+ * (the popup's `up`), at a desk a small back row over the title, in a hand the bar's own arrow.
  *
- * ★ IT OPENS UNFOCUSED, at every width (his note: "Let's not open focused, so
- * more settings are visible and one tap away rather than always having to
- * escape typing in the event name input"): the kind's `deskFocus` is the panel
- * itself, so Radix no longer drops the caret into the event's name.
+ * ★ IT OPENS UNFOCUSED, at every width (his note: "Let's not open focused, so more settings are visible
+ * and one tap away"): the kind's `deskFocus` is the panel itself.
  *
- * ★ THE PAGE OF CARDS IS NOT REBUILT HERE. `EventSettingsForm` is imported
- * whole — it is the orchestrator over details / visibility / uploads / danger,
- * all reading one form through `useFormContext` — so the sheet and the old
- * route can never disagree about what a setting does. What changed is the
- * frame around it.
- *
- * ★ THE UNSAVED GUARD SURVIVED THE MOVE, AND GREW A THIRD DOOR. The route
- * guarded a hard nav and its back-LINK; the panel's ways out are the scrim,
- * Escape, the close button and, in a hand, its back arrow. All of them land on
- * `requestClose`, so a dirty form confirms before the panel goes (a centred
- * dialog over it, the carried call `stacked`), and `beforeunload` still covers
- * a reload.
- *
- * ★ THE BIN IS NOT HERE. His `settings` note folded it into the album ("The
- * photo bin joins the album as a filter"), so "Deleted" names exactly one thing
- * in the product now and it is a view of the album.
- *
- * ★ THE ORDER: the form's cards (Details, Visibility, Guest uploads) and its one
- * Save, then the instant cards, the Highlight reel first (`reel-host`, Will
- * 2026-09-25: its own section, placed after Guest uploads), then Profile (the
- * guest list is always on, so it has no switch here), and the Danger zone LAST,
- * so the one irreversible act on the sheet is never the thing between a host
- * and a setting.
+ * ★ NOTHING WAITS ON A SAVE, SO NOTHING GUARDS THE CLOSE. Every control saves itself (a typed field when
+ * it is left), so the retired form's Save, its dirty state and its "Discard changes?" are gone with it:
+ * Back, the X, Escape and the scrim simply close, from any page, a deep link included
+ * (`event-share-provider.tsx`).
  */
 export function EventSettingsSheet({
   open,
   onOpenChange,
+  page,
+  onOpenPage,
+  onClosePage,
   event,
   tier,
+  counts,
   pendingCount,
   social,
   reelSample,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** The page open inside Settings, or null for the four rows. */
+  page: SettingsPage | null;
+  onOpenPage: (page: SettingsPage) => void;
+  onClosePage: () => void;
   event: HostEvent;
   tier: Tier;
+  /** The door's own numbers (who is in, who waits, the list), read for the host. */
+  counts: DoorCounts;
   pendingCount: number;
   /** Null pre-apply (the graceful runtime seam), exactly as on the old route. */
   social: {
@@ -83,86 +80,77 @@ export function EventSettingsSheet({
   /** One of the event's own photographs to show the reel's looks on, or null before the first. */
   reelSample: string | null;
 }) {
-  const [dirty, setDirty] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  useUnsavedChangesGuard(dirty);
+  const guestsHref = `/dashboard/${event.id}/guests`;
 
-  function requestClose(next: boolean) {
-    if (next) {
-      onOpenChange(true);
+  // ★ FOCUS FOLLOWS THE LEVEL: into a page, onto its way back up; back up, onto the row that opened it.
+  // The control that was pressed is gone with the level it stood on, and focus must never fall to the
+  // page behind the panel.
+  const cameFrom = useRef<SettingsPage | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    if (page) {
+      cameFrom.current = page;
+      document
+        .querySelector<HTMLElement>("[data-popup-up]")
+        ?.focus({ preventScroll: true });
       return;
     }
-    if (dirty) {
-      setConfirmOpen(true);
-      return;
+    const from = cameFrom.current;
+    cameFrom.current = null;
+    if (from) {
+      document
+        .querySelector<HTMLElement>(`[data-settings-open="${from}"]`)
+        ?.focus({ preventScroll: true });
     }
-    onOpenChange(false);
-  }
+  }, [open, page]);
 
+  // ★ THE STATE OUTLIVES THE PANEL: the provider stands outside the popup, whose content unmounts as it
+  // closes, so a change saved a moment ago is still what the rows say when Settings opens again, before
+  // the row it wrote has come back.
   return (
-    <>
-      <Popup open={open} onOpenChange={requestClose}>
+    <SettingsProvider
+      event={event}
+      tier={tier}
+      counts={counts}
+      pendingCount={pendingCount}
+      social={social}
+      reelSample={reelSample}
+    >
+      <Popup open={open} onOpenChange={onOpenChange}>
         <PopupContent kind="settings" routed>
-          <PopupHeader
-            title="Settings"
-            description={event.name}
-            back={event.name}
-          />
-
-          {/* ★ BLOCK FLOW, as the form lays its own cards, NEVER A FLEX COLUMN: the body is
-              the scroller, a flex column shrinks its children to fit it, and a Card clips
-              (`overflow-hidden`), which zeroes its automatic minimum height. So a column
-              crushed every card past the form to its padding, Delete event (its only home)
-              with them. Block flow never shrinks a card: the body scrolls. */}
-          <PopupBody className="space-y-6 pb-6">
-            <EventSettingsForm
-              event={event}
-              tier={tier}
-              pendingCount={pendingCount}
-              onDirtyChange={setDirty}
+          {page ? (
+            <PopupHeader
+              title={PAGE_TITLE[page]}
+              up={{ label: "Settings", onUp: onClosePage }}
             />
-            <HighlightReelCard
-              eventId={event.id}
-              showReel={event.show_reel}
-              styleId={event.reel_style_id}
-              holdSec={event.reel_hold_sec}
-              sampleStill={reelSample}
+          ) : (
+            <PopupHeader
+              title="Settings"
+              description={event.name}
+              back={event.name}
             />
-            {social && (
-              <ProfileSocialCard
-                eventId={event.id}
-                displayInProfile={social.displayInProfile}
-                hostHasSlug={social.hostHasSlug}
-              />
+          )}
+          {/* ★ BLOCK FLOW, NEVER A FLEX COLUMN THAT SHRINKS ITS CHILDREN: the body is the scroller, and a
+              card clips, so a column once crushed every card past the first to its padding (build 17).
+              The popup's body keeps its children whole whatever a caller lays out. */}
+          <PopupBody
+            className="space-y-6 pb-6"
+            data-settings-page={page ?? "rows"}
+          >
+            {page === "door" ? (
+              <DoorPage guestsHref={guestsHref} />
+            ) : page === "adds" ? (
+              <AddsPage />
+            ) : page === "reel" ? (
+              <ReelPage />
+            ) : page === "event" ? (
+              <EventPage />
+            ) : (
+              <SettingsRows onOpenPage={onOpenPage} />
             )}
-            <DangerZoneSection eventId={event.id} eventName={event.name} />
           </PopupBody>
         </PopupContent>
       </Popup>
-
-      <Popup open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <PopupContent kind="confirm">
-          <PopupHeader
-            title="Discard changes?"
-            description="You have unsaved changes. Closing settings will discard them."
-          />
-          <PopupFooter>
-            <PopupClose asChild>
-              <Button variant="outline">Keep editing</Button>
-            </PopupClose>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                setConfirmOpen(false);
-                setDirty(false);
-                onOpenChange(false);
-              }}
-            >
-              Discard changes
-            </Button>
-          </PopupFooter>
-        </PopupContent>
-      </Popup>
-    </>
+    </SettingsProvider>
   );
 }

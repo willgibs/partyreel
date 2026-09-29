@@ -197,6 +197,52 @@ describe("sweepExpiredEvents", () => {
     expect(tally.media_rows).toBe(2_499);
   });
 
+  // ★ AN OPEN REPORT KEEPS ITS EVENT WHOLE (admin-triage r2, 20260929140000; Will: "an open report protects its
+  // item from every permanent delete ... an event's deletion"): the report cascades with its event row, so the
+  // event is what keeps the report, an item's or the album's, until it closes.
+  it("★ keeps an expired event whole while any report on it is open, and purges it once none is", async () => {
+    const expired = {
+      deleted_at: "2026-08-20T00:00:00.000000+00:00",
+      purge_at: PAST,
+    };
+    const itemReported = eventRow(uuidOf("e5", 1), HOST, expired);
+    const albumReported = eventRow(uuidOf("e5", 2), HOST, expired);
+    const plain = eventRow(uuidOf("e5", 3), HOST, expired);
+    const reported = mediaRow(uuidOf("m6", 0), itemReported);
+    const reports = [
+      {
+        id: "r1",
+        status: "open",
+        media_id: reported.id,
+        event_id: itemReported.id,
+      },
+      { id: "r2", status: "open", media_id: null, event_id: albumReported.id },
+    ];
+    const world = createCronWorld({
+      events: [itemReported, albumReported, plain],
+      media: [
+        reported,
+        mediaRow(uuidOf("m6", 1), itemReported),
+        mediaRow(uuidOf("m7", 0), albumReported),
+        mediaRow(uuidOf("m8", 0), plain),
+      ],
+      reports,
+    });
+    state.world = world;
+
+    const first = await sweepExpiredEvents(world.client, NOW, new Set());
+    expect(first).toMatchObject({ events: 1, hold_blocked_events: 2 });
+    expect(world.fake.tables.events.map((e) => e.id).sort()).toEqual(
+      [itemReported.id, albumReported.id].sort(),
+    );
+    expect(world.fake.tables.media).toHaveLength(3);
+
+    for (const r of reports) r.status = "dismissed";
+    const second = await sweepExpiredEvents(world.client, NOW, new Set());
+    expect(second).toMatchObject({ events: 2, hold_blocked_events: 0 });
+    expect(world.fake.tables.media).toHaveLength(0);
+  });
+
   it("reports nothing to do when nothing has expired", async () => {
     const live = eventRow(uuidOf("e", 1), HOST);
     const world = createCronWorld({ events: [live], media: [] });

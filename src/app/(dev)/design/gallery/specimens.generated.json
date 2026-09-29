@@ -47,6 +47,9 @@
     "confirm-switch": [
       "<ConfirmSwitchDemo />"
     ],
+    "dormant": [
+      "<DormantDemo />"
+    ],
     "select": [
       "<div className=\"max-w-xs\">\n  <Select defaultValue=\"public\">\n    <SelectTrigger className=\"w-full\">\n      <SelectValue placeholder=\"Visibility\" />\n    </SelectTrigger>\n    <SelectContent>\n      <SelectItem value=\"public\">Public</SelectItem>\n      <SelectItem value=\"password\">Password</SelectItem>\n      <SelectItem value=\"private\">Private</SelectItem>\n    </SelectContent>\n  </Select>\n</div>"
     ],
@@ -85,6 +88,9 @@
     ],
     "progress": [
       "<div className=\"space-y-3\">\n  <Progress value={32} />\n  <Progress value={72} />\n</div>"
+    ],
+    "consequence-line": [
+      "<ConsequenceLineDemo />"
     ],
     "password-strength-meter": [
       "<PasswordStrengthDemo />"
@@ -205,6 +211,15 @@
     ],
     "review-section": [
       "<ReviewSectionDemo />"
+    ],
+    "event-settings": [
+      "<SettingsDemo />",
+      "<SettingsDemo tier=\"free\" />",
+      "<DoorPageDemo />"
+    ],
+    "guests-door": [
+      "<AtTheDoorDemo />",
+      "<InvitedDemo />"
     ],
     "glow": [
       "<div className=\"dark\">\n  <div className=\"h-16 bg-muted\" />\n  <div className=\"surface-ink relative isolate bg-background\">\n    <Glow\n      shape=\"seam\"\n      vars={{\n        \"--glw-h\": \"210px\",\n        \"--glw-dur\": \"var(--spill-cadence)\",\n      }}\n    />\n    <div data-glw-seamline aria-hidden />\n    <div className=\"relative px-8 py-16 text-sm text-muted-foreground\">\n      The ink slab, lit from the cut above it.\n    </div>\n  </div>\n</div>",

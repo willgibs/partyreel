@@ -45,8 +45,14 @@
  * UI of our lab is covered by the answer UI, and I cannot scroll it to see the
  * full heights or labels on which height is which"). The step is now the page
  * with a dock, and a 1440x900 pass holds it there. A step FAILS when:
- *  - OUT OF REACH: the stage starts lower than `--reach-limit` (0.6) of a
- *    900px screen, so the preview is not the first thing under the question;
+ *  - OUT OF REACH: the stage starts more than `--reach-limit` (0.6) of a
+ *    900px screen under the top of the question's head, so the preview is not
+ *    the first thing under the question. ★ MEASURED FROM THE QUESTION, NOT THE
+ *    PAGE (the context layer, 2026-09-29): the board's opening stands above
+ *    the question on the step his sitting enters a board on, and is read once
+ *    per board; what sits between the question and the preview (where it
+ *    happens, why it matters, the reason, the shown option's gain and cost) is
+ *    capped a line each, and this is the check that it stays that short;
  *  - CLIPPED: anything around an option's preview cuts it short, which is the
  *    window he could not scroll;
  *  - UNLABELLED: the stage head does not name the option it is showing, which
@@ -77,7 +83,13 @@
  */
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  mkdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { inflateSync } from "node:zlib";
@@ -397,12 +409,15 @@ const PAGE_LIB = `
     /** Where the stage starts, how tall the step is, and how much it asks you to read. */
     geo() {
       const stage = this.stage();
+      const head = document.querySelector('main .lab-step-head');
       const words = (document.querySelector('main')?.innerText || '').trim().split(/\\s+/).length;
       // PIXELS, not screens: the caller divides by a nominal screen.
       return {
         height: document.documentElement.scrollHeight,
         words,
         top: stage ? Math.round(stage.getBoundingClientRect().top + scrollY) : null,
+        // The question's own head, which the reach is measured from.
+        head: head ? Math.round(head.getBoundingClientRect().top + scrollY) : 0,
         // What a step with no stage asks on instead: options in words, or a
         // catalog's own cards (a winner is pressed on the cards).
         kind: document.querySelector('main .lab-word-options') ? 'words' : 'cards',
@@ -711,10 +726,13 @@ try {
         continue;
       }
       const layout = [];
-      const outOfReach = geo.top > SCREEN * REACH_LIMIT;
+      // From the question's head, not the page's top: the board's opening sits
+      // above the question where a sitting enters the board (see the header).
+      const reach = geo.top - geo.head;
+      const outOfReach = reach > SCREEN * REACH_LIMIT;
       if (outOfReach)
         layout.push(
-          `OUT OF REACH: the stage starts ${(geo.top / SCREEN).toFixed(2)} of a screen down`,
+          `OUT OF REACH: the stage starts ${(reach / SCREEN).toFixed(2)} of a screen under the question`,
         );
       await evaluate(ws, "window.scrollTo(0, 0)");
       await sleep(150);
@@ -774,7 +792,8 @@ try {
           hash: createHash("sha1").update(png).digest("hex"),
           png,
         });
-        if (SAVE_SHOTS) writeFileSync(join(SAVE_SHOTS, `${step}.${id}-${W}.png`), png);
+        if (SAVE_SHOTS)
+          writeFileSync(join(SAVE_SHOTS, `${step}.${id}-${W}.png`), png);
       }
       if (shots.length < 2) {
         rows.push({

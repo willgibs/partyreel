@@ -337,3 +337,39 @@ describe("the body", () => {
     expect(classes).toEqual(expect.arrayContaining(["flex", "flex-col", "*:shrink-0"]))
   })
 })
+
+describe("a level in: a page's head goes up, never out (event-settings r1, `opens=page`)", () => {
+  function mountUp(onUp: () => void) {
+    return render(
+      <Popup defaultOpen>
+        <PopupContent kind="settings" routed aria-describedby={undefined}>
+          <PopupHeader title="Who can get in" up={{ label: "Settings", onUp }} />
+          <PopupBody>
+            <p>The door</p>
+          </PopupBody>
+        </PopupContent>
+      </Popup>,
+    )
+  }
+
+  it("in a hand, the bar's own arrow names where it goes and goes up, the popup staying open", () => {
+    setViewportWidth(375)
+    let ups = 0
+    mountUp(() => ups++)
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }))
+    expect(ups).toBe(1)
+    expect(document.querySelector('[data-slot="popup-content"]')).not.toBeNull()
+  })
+
+  it("at a desk, a small back row above the title does the same, the close staying in its corner", () => {
+    setViewportWidth(1024)
+    let ups = 0
+    mountUp(() => ups++)
+    const up = screen.getByRole("button", { name: "Settings" })
+    expect(up.hasAttribute("data-popup-up")).toBe(true)
+    fireEvent.click(up)
+    expect(ups).toBe(1)
+    expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument()
+    expect(document.querySelector('[data-slot="popup-content"]')).not.toBeNull()
+  })
+})

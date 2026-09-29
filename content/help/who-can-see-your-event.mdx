@@ -1,43 +1,59 @@
 ---
 title: Who can see your event and media
-description: "Your album opens only to people with its link. You choose how far that goes: Public, Password, or Private, plus whether guests confirm an email first, or add a photo before they see it."
+description: "Your album opens only to people with its link, and you set its door step by step: Public, Private with a gate, or Only me; then an email first, and a photo first."
 category: privacy-and-safety
 order: 0
-updated: "2026-09-28"
+updated: "2026-09-29"
 keywords:
   - privacy
   - private event
   - public
+  - only me
   - visibility
   - password
+  - approve guests
+  - invite list
   - who can see
   - guest list
-  - require an upload to view
+  - a photo first
 ---
 
-Every Partyreel album starts unlisted: nobody can find it without the link. From there, you decide how open it is to the people you give the link to.
+Every Partyreel album starts unlisted: nobody can find it without the link. From there, you decide how open it is to the people you give the link to, in the order a guest meets it.
+
+<Path>Dashboard › Your event › Settings › Who can get in</Path>
 
 ## The link is the door
 
 An event's address is a long random string. It isn't listed on Partyreel, it isn't linked from your profile unless you choose to publish it, and every event page asks search engines not to index it. So "anyone with the link" means your guests and whoever they pass it to, not the internet.
 
-## Three levels
+## Step 1: what the link opens
 
-<Path>Dashboard › Your event › Settings › Visibility & access</Path>
+- <UiLabel>Public</UiLabel>: anyone with the link or the code comes in. The default.
+- <UiLabel>Private</UiLabel>: guests meet a gate you pick before the album (step 2).
+- <UiLabel>Only me</UiLabel>: only you can open it. Guests meet a closed album, and the link's preview card shows nothing. Useful while you curate.
 
-- <UiLabel>Public</UiLabel>: anyone with the link can view the album. The default.
-- <UiLabel>Password</UiLabel>: anyone with the link and the password you set. Guests see the event's name and how many photos are inside, nothing else, until they enter it. On every plan; see [password-protect your event](/help/password-protect-your-event).
-- <UiLabel>Private</UiLabel>: only you. Guests see a friendly locked screen, and the link's preview card shows nothing. Useful while you curate.
+## Step 2: the gate, when it's Private
 
-## Whether guests confirm an email
+<UiLabel>Who may join</UiLabel> has four answers, each with its purpose one tap away behind the small (i) beside it, all four free on every plan:
 
-Separately, <UiLabel>Require verified emails</UiLabel> (on by default, free on every plan) means a guest sees a preview of the newest <TeaserCount /> photos and confirms an email before seeing the rest or adding to it. Turn it off and anyone with the link can view and add right away, under a typed display name that wears a small unverified mark. See [require verified emails, explained](/help/require-verified-emails-explained).
+- <UiLabel>A password</UiLabel>: the link, then the password you share with them. Guests see the event's name and how many photos are inside, nothing else, until they enter it. See [password-protect your event](/help/password-protect-your-event).
+- <UiLabel>You let each person in</UiLabel>: a newcomer confirms an email, then waits at the door with nothing of the album behind it, until you let them in from **Guests**, where they're listed under **At the door**. The moment you do, the album opens on their phone by itself. Declining someone blocks them: they meet a closed album and can't ask again, and you can let them back in from **Blocked**.
+- <UiLabel>Your invite list</UiLabel>: the addresses on your list come straight in once they confirm their email; anyone else can ask you, and waits at the door like a newcomer above. The list lives in **Guests**, under **Invited**.
+- <UiLabel>Only people already in</UiLabel>: everyone already in keeps adding; nobody new can join. Good for after the party.
 
-## Whether an upload is required first
+## Everyone already in
 
-Separately again, <UiLabel>Require an upload to view</UiLabel> (off by default, free on every plan) holds the full album until a guest has added one photo or video of their own; if uploads are closed or the album is full, it opens anyway rather than holding anyone at a step they can't finish. See [require an upload to view, explained](/help/require-an-upload-to-view-explained).
+A gate stops newcomers, never the people already inside: someone who's in keeps getting in on every device, past a password and every gate, and Settings says how many that is under the gate ("31 guests are already in"). Only two things put out someone already in: <UiLabel>Only me</UiLabel>, and blocking them. Choosing Only me while guests are in says it closes them out before anything changes, and it waits for you to confirm; they then read that you made the album private. Turning an album Public lets in everyone waiting at the door.
 
-Settings shows one live sentence describing exactly what a guest will experience with your current combination, right where you set it.
+## Step 3: an email first
+
+<UiLabel>An email first</UiLabel> (on by default, free on every plan) means a guest confirms an email before seeing everything or adding to it; at a Public album they see a preview of the newest <TeaserCount /> photos first. Turn it off and anyone with the link can view and add right away, under a typed display name that wears a small unverified mark. Letting each person in and the invite list both match a confirmed address, so they keep it on. See [an email first, explained](/help/require-verified-emails-explained).
+
+## Step 4: a photo first
+
+<UiLabel>A photo first</UiLabel> (off by default, free on every plan) holds the full album until a guest has added one photo or video of their own; if uploads are closed or the album is full, it opens anyway rather than holding anyone at a step they can't finish. See [a photo first, explained](/help/require-an-upload-to-view-explained).
+
+The <UiLabel>Who can get in</UiLabel> row at the top of Settings says your whole door in one sentence, and each of its underlined words changes that part right there.
 
 ## What's visible inside
 
@@ -49,6 +65,6 @@ Photos carry hidden location and device details. Partyreel strips them in the br
 
 <Callout type="tip" title="Leaked link?">
 
-If a link gets somewhere it shouldn't, switch the event to <UiLabel>Private</UiLabel> or add a password. Either one locks the existing link instantly; there's no way to make a new one, and no need. The rest of the host's playbook is in [reporting content and keeping your event safe](/help/reporting-and-safety).
+If a link gets somewhere it shouldn't, make the album Private with <UiLabel>Only people already in</UiLabel>: nobody new gets in, and everyone already in keeps going. <UiLabel>Only me</UiLabel> shuts everyone out, those already in too. Either one takes effect on the existing link instantly; there's no way to make a new one, and no need. The rest of the host's playbook is in [reporting content and keeping your event safe](/help/reporting-and-safety).
 
 </Callout>
