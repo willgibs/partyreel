@@ -422,8 +422,11 @@ export function getStartHereArticles(): HelpArticle[] {
 }
 
 /**
- * Quick-link chips under the hero search: the questions people actually arrive
- * with, one deliberately guest-voiced (the guest fast-lane). Labels PROVISIONAL.
+ * The questions people actually arrive with, one deliberately guest-voiced (the
+ * guest fast-lane). The palette's Suggested list everywhere it is mounted, which
+ * on /help drops from the hero's own field when it is pressed (help-center r1
+ * `hub=strip`: the chips under the field are gone), and /contact's chips.
+ * Labels PROVISIONAL.
  */
 export const HELP_QUICK_LINKS = [
   {
