@@ -32,10 +32,11 @@ function share(row: ArticleFeedbackSummaryRow): string {
  * ★ COLUMNS THAT FIT A PHONE (build 19's red-team: at 375 the five columns were a 617 px table in a
  * 343 px scroller, No cut mid-column and Helpful and Last click off-screen, with nothing saying it
  * scrolled). Below `sm` the table keeps the three columns the page is for, the article and its Yes and
- * No, and folds the rest the way a closed report's line does: the last click's day drops under the
- * article beside its shelf, and the Helpful share, which Yes and No and the row's tint already say,
- * waits for a wider screen. The title wraps there rather than being cut. It stays one table, so a
- * screen reader reads the same rows and headers at every width.
+ * No, and folds the rest into the article, the way a closed report's line drops its time under its
+ * note: the last click's day becomes the article's last line, under its shelf, and the Helpful
+ * share, which Yes and No and the row's tint already say, waits for a wider screen. The title wraps
+ * there rather than being cut. It stays one table, so a screen reader reads the same rows and headers
+ * at every width.
  */
 export function ByArticleTable({ rows }: { rows: ArticleFeedbackRow[] }) {
   return (
@@ -69,17 +70,12 @@ export function ByArticleTable({ rows }: { rows: ArticleFeedbackRow[] }) {
                 <span className="sm:truncate">{row.title}</span>
                 <ArrowUpRight className="ml-1 inline size-3.5 shrink-0 align-[-0.125em] text-muted-foreground sm:ml-0" />
               </a>
-              {/* The shelf gives way before the day does, as a closed report's line keeps its time. */}
-              <span className="flex min-w-0 items-baseline gap-1 text-xs text-muted-foreground">
-                <span className="min-w-0 truncate">
-                  {row.published ? row.categoryTitle : "No longer published"}
-                </span>
-                <span aria-hidden className="sm:hidden">
-                  ·
-                </span>
-                <span className="shrink-0 tabular-nums sm:hidden">
-                  {formatAdminDate(row.lastAt)}
-                </span>
+              <span className="block truncate text-xs text-muted-foreground">
+                {row.published ? row.categoryTitle : "No longer published"}
+              </span>
+              {/* A phone's Last click: its own line, so neither the shelf nor the day is cut. */}
+              <span className="block text-xs text-muted-foreground tabular-nums sm:hidden">
+                {formatAdminDate(row.lastAt)}
               </span>
             </TableCell>
             <TableCell className="text-right tabular-nums">
