@@ -41,9 +41,9 @@ a lane").
 | --- | --- | --- | --- | --- |
 | `crumbs-16` | build 23's HIGH bug at its root (a history call hands Next its own `__NA` state, so Settings rows never open their page and a page's back arrow never returns), the same shape swept and held by a policy test; triage-r2-wiring's relayed help article | handed back after gate 71: with its change `demo-framing.names` hangs (`Page.navigate` never answers; it passes on `61a4ee00` without the change), so the unpushed merge was undone; resumed to fix it at its root with a failing test and re-run `lab:demo` over every board (agent `a5ddc145d2b108533`; worktree `../partyreel-wt/crumbs-16`) | Sonnet, 3133 | |
 | `schema-pass` | the data architecture trimmed on Will's yes (asked "May the lane write its two migration files and run those proofs?", he answered "Yes, write and prove") | merged at `57b17ace` (gate 73); part 1 (`20260929160000`) reviewed by the Advisor (apply verbatim: nothing main reads is dropped or loses a grant) and drift-checked clean (6 columns, 4 indexes, 1 policy; 20 events inside the bounds), but the permission classifier refused its apply (2026-09-29 ~19:50Z): it waits on Will's explicit go-ahead, never a retry by another route; part 2 after milestone 31 | Opus, 3132 | `54f414f9` |
-| `event-ready` | r1, a board: how a host knows her event is ready (an event checklist, the settings' mini wizard and whether Create shares it, a never-empty "what needs you", the hub's code as the live door); the first board authored in the one-folder shape | running (agent `a758ad3af55bfe3a7`; worktree `../partyreel-wt/event-ready`) | Opus, 3135 | |
 | `album-motion-wiring` | album-motion r1: the hero's two symmetrical streams, each photograph drawn in and dissolving at the album's edge, then pushed into the album from the left as a real upload arrives; retires `sandbox/album-motion/` in-lane | running (agent `a59b9b5183feee95f`; worktree `../partyreel-wt/album-motion-wiring`) | Opus, 3131 | |
 | `window-notes` | a note of Will's binds only what it was given on: stop the lab merging board-less window notes into every board (his three brand-voice notes of 2026-09-17 have bound every board since), window notes expire with their sitting, program-wide notes are the Orchestrator's to fold in; a read-only audit of other board notes turned rules | running (agent `a8e2499b27081d552`; worktree `../partyreel-wt/window-notes`) | Sonnet, 3132 | |
+| `crumbs-17` | build 23's red-team finds: BUG-2 (the invited guest left at the door, likely a function replaced by migration), BUG-3 (the host's Report on her own album), LOW-2, the uncovered dismissed worst kind, eleven nits; two dead seams from crumbs-15 | running (agent `a6c1aa7bbba36b7fe`; worktree `../partyreel-wt/crumbs-17`) | Opus, 3135 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 Q1, the `demo-framing.names` hang: it changed the call (attribution unproven, since my A/B ran on two server
@@ -82,20 +82,20 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Batch 7 is merged whole; its records carry the rest.
 
 Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp
-stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune.
+stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1.
 
 ## Next, in order
 
 1. **Build 23 was red-teamed live** (2026-09-29, `../partyreel-wt/_scratch/redteam-23/ledger.txt`; the cleanup read back
    by SQL: no open report, its four events deleted, nothing held): settings 9 of 11 PASS (W5 not driven, a password;
    W8 is BUG-1, `crumbs-16`), triage 7 of 7 (T4's purge and T6's after-yes half not drivable). Its finds are
-   `crumbs-17`'s, the next free seat (Opus: BUG-2 touches the doors' SQL): BUG-2 MEDIUM (listing a waiting newcomer's
+   `crumbs-17`'s (running): BUG-2 MEDIUM (listing a waiting newcomer's
    address never admits her waiting row: she stays at the door, the pulse and the bell count her, Decline would block
    a joined guest), BUG-3 LOW (the host's own album through `/e/` offers Report; `viewerIsHost` reaches only the
    dashboard grids), LOW-2 (the operator cannot tell a host's report from a guest's), NIT-1 to NIT-11 (the ledger),
    and the ROADMAP's two dead-seam lines from `crumbs-15`. The calls to overrule and his two decisions (the proof mail,
    the instant-hide bar's permanence) went to him in one file.
-2. **Integrate each lane as it hands off** (crumbs-16 again, schema-pass, whose part 1 the Advisor reads before I apply it, event-ready, album-motion-wiring), each migration by
+2. **Integrate each lane as it hands off** (crumbs-16 again, window-notes, album-motion-wiring, crumbs-17), each migration by
    protocol, one at a time: drift check, apply verbatim, the rolled-back refusals, advisors, types. The two wiring
    lanes' ledgers are gone with their boards;
    `../partyreel-wt/_scratch/triage-r2-wiring/` goes after crumbs-16's merge (it holds the relayed help article).
@@ -109,8 +109,7 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
      `main` for every dropped name, the protocol, then a live smoke of the anonymous surfaces on partyreel.com and the
      alias (a guest page by token, a public profile, help feedback, the newsletter), since prod shares the database. A
      second classifier refusal: stop and tell him.
-   - The next crumbs lane: NIT-1, the red-team's findings, and the ROADMAP's two dead-seam lines from `crumbs-15`
-     (the account deletion's, and the untyped claims, notification-prefs and guest-events reads).
+   - `demo-framing` r2 next (Opus; its spec is drafted from the round's lines below).
    - Marketing rounds: `demo-framing` r2 (a slug in the host's voice, `my-party` or `our-wedding`, against a
      typewriter of slugs; the typewriter sharing the stage with the stream, or leading while the QR and stream move to
      the QR page's hero; a clickable touch in place of the "Try our demo event" eyebrow; an album spanning every kind of
@@ -142,8 +141,9 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
 
 ## Waiting on Will
 
-- **His desk:** `disposable-mode` r2 (eight asks) and, from build 24, `locked-door` r2 (four, redrawn from
-  production); `event-ready` r1 joins when it lands. Two older asks wait on the rounds that replace their boards: demo-framing's `names` (behind `story=?`) and
+- **His desk:** `disposable-mode` r2 (eight asks) and `locked-door` r2 (four, redrawn from production) on build 24;
+  `event-ready` r1 (five, merged at `5a027e53`; its three settled calls, ready never stored nor shown to a guest among
+  them, are his to overrule) reaches him with build 25. Two older asks wait on the rounds that replace their boards: demo-framing's `names` (behind `story=?`) and
   press-page's `a-human` (the About round).
 - **His answer on the calls file** (28 calls to overrule, numbered; sent 2026-09-29): A, the proof mail (recommended
   off until the emails round) and B, the instant-hide bar's permanence (recommended permanent until launch).
