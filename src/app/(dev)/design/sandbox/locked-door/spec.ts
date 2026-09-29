@@ -1,5 +1,4 @@
-import type { Control } from "@/components/lab/board-spec";
-import { defineExploration } from "@/components/lab/exploration";
+import { type Control, defineExploration } from "@/components/lab/exploration";
 
 /**
  * THE DOOR FAMILY, ROUND TWO (his locked-door r1 answers, 2026-09-29).

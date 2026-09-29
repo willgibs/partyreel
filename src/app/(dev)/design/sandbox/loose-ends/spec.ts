@@ -1,5 +1,4 @@
-import type { Control } from "@/components/lab/board-spec";
-import { defineExploration } from "@/components/lab/exploration";
+import { type Control, defineExploration } from "@/components/lab/exploration";
 
 /**
  * FIVE ROADMAP LOOSE ENDS, EACH A DECISION (the loose-ends track, cut 2026-09-18).

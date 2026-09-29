@@ -34,9 +34,7 @@ export default async function TrackPage({
   if (!state) notFound();
   const file = `docs/tracks/${track}.md`;
   const { body } = readDoc(file);
-  const board = BOARDS.find(
-    (b) => b.id === track || b.tracks?.includes(track),
-  );
+  const board = BOARDS.find((b) => b.id === track || b.tracks?.includes(track));
   const live = state.status !== "integrated";
   const lane: [string, string[]][] = [
     ["Owns", state.owns],

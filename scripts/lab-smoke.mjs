@@ -105,7 +105,9 @@ function inScope(route) {
   if (path === "/design") return scope.shell;
   const lab = path.match(/^\/design\/lab\/([a-z0-9-]+)/);
   if (lab)
-    return SHELL_PAGES.has(lab[1]) ? scope.shell : scope.boards.includes(lab[1]);
+    return SHELL_PAGES.has(lab[1])
+      ? scope.shell
+      : scope.boards.includes(lab[1]);
   return false;
 }
 

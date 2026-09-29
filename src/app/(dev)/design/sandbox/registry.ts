@@ -1,4 +1,8 @@
-import type { BoardSpec, DeskFacts, Surface } from "@/components/lab/board-spec";
+import type {
+  BoardSpec,
+  DeskFacts,
+  Surface,
+} from "@/components/lab/board-spec";
 
 /**
  * THE BOARD REGISTRY: every standing board, found by its folder.
@@ -141,7 +145,9 @@ export const BOARD_FOLDERS: readonly string[] = MODULES.map(
 
 /** The exports of each folder's spec, for the test that holds a spec to one. */
 export const SPEC_EXPORTS: Readonly<Record<string, readonly string[]>> =
-  Object.fromEntries(MODULES.map(([folder, mod]) => [folder, Object.keys(mod)]));
+  Object.fromEntries(
+    MODULES.map(([folder, mod]) => [folder, Object.keys(mod)]),
+  );
 
 /** Every spec as its folder wrote it, before PREDATES fills a gap (the tests read these). */
 export const SPECS: readonly BoardSpec[] = MODULES.flatMap(([, mod]) =>

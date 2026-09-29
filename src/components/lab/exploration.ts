@@ -14,6 +14,9 @@ import {
   type Term,
 } from "./board-spec";
 
+/** A spec's knobs are `Control`s: a spec imports the kit from this file alone. */
+export type { BoardState, Control } from "./board-spec";
+
 /**
  * AN EXPLORATION IS A LIST OF DECISIONS (Will, 2026-09-17).
  *
@@ -275,15 +278,49 @@ const controlFor = (d: Decision): Control => ({
 /**
  * ★ ONE KNOB PER ID, WHOEVER ASKED FOR IT (lab-tides, 2026-09-19). A screen
  * knob eight decisions share arrives eight times through `configs`, and the
- * dock then draws it eight times with React warning on the duplicate key.
- * Seven boards hit it and every one of them filed the same finding: the
- * constructor could dedupe by id itself. It does now, first declaration wins,
- * so a derived control is never displaced by a config of the same id, and the
- * hand-rolled filter those boards still carry stays correct (deduping twice is
- * deduping once).
+ * dock would draw it eight times with React warning on the duplicate key, so
+ * the constructor keeps the first. `refuseCollisions` has already made sure
+ * every copy it drops is the same knob.
  */
 const byId = (controls: readonly Control[]): Control[] =>
   controls.filter((c, i, all) => all.findIndex((d) => d.id === c.id) === i);
+
+/**
+ * ★ AN ID NAMES ONE THING ON A BOARD (the lab revamp, 2026-09-29). A
+ * decision's own control is derived under the decision's id and the board
+ * keeps one control per id, so a knob declared under a decision's id used to
+ * vanish without a word: `disposable-mode` r2's `screen` decision ate its
+ * Screen knob until the knob was renamed `wall`. Two decisions under one id,
+ * a knob under a decision's id, and two different knobs under one id are each
+ * refused where the spec is defined, which is the registry's import, the
+ * board's page and every test at once.
+ */
+function refuseCollisions(input: ExplorationInput): void {
+  const refuse = (why: string): never => {
+    throw new Error(`${input.id}/spec.ts: ${why}`);
+  };
+  const decisions = new Set<string>();
+  for (const d of input.asks) {
+    if (decisions.has(d.id))
+      refuse(`two decisions are "${d.id}"; an id names one decision`);
+    decisions.add(d.id);
+  }
+  const knobs = new Map<string, string>();
+  for (const d of input.asks) {
+    for (const c of d.configs ?? []) {
+      if (decisions.has(c.id))
+        refuse(
+          `the knob "${c.id}" on "${d.id}" has a decision's id, and that decision's own control would swallow it; rename the knob`,
+        );
+      const shape = JSON.stringify(c);
+      if ((knobs.get(c.id) ?? shape) !== shape)
+        refuse(
+          `two different knobs are "${c.id}"; declare it once and share it`,
+        );
+      knobs.set(c.id, shape);
+    }
+  }
+}
 
 const askFor = (d: Decision): Ask => ({
   id: d.id,
@@ -322,6 +359,7 @@ const askFor = (d: Decision): Ask => ({
 export function defineExploration<const E extends ExplorationInput>(
   input: E,
 ): Exploration<E> {
+  refuseCollisions(input);
   const first = input.asks[0];
   return defineBoard({
     id: input.id,

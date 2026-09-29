@@ -1,7 +1,6 @@
 "use client";
 
-import { ExplorationBoard } from "@/components/lab";
-import type { BoardState } from "@/components/lab/board-spec";
+import { type BoardState, ExplorationBoard } from "@/components/lab";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
 import { HumanPreview } from "./a-human";

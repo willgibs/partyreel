@@ -673,6 +673,25 @@ describe("a board is one folder", () => {
     }
   });
 
+  it("carries nothing the scaffold left to write", () => {
+    // `pnpm new-board` writes every line a board owes as a TODO, so a folder
+    // is a board only once each is written; the failure is the list of what
+    // is left, in the scaffold's own words.
+    const left: string[] = [];
+    for (const folder of BOARD_FOLDERS)
+      for (const file of ["spec.ts", "board.tsx"]) {
+        const lines = readFileSync(
+          join(ROOT, SANDBOX, folder, file),
+          "utf8",
+        ).split("\n");
+        lines.forEach((line, i) => {
+          if (/\bTODO\b/.test(line))
+            left.push(`${folder}/${file}:${i + 1} ${line.trim()}`);
+        });
+      }
+    expect(left, "write what the scaffold left").toEqual([]);
+  });
+
   it("carries its surface, its place on the desk and what it redraws", () => {
     // What a touchpoints.ts row said, in the board's own spec: the sidebar
     // groups by surface, the desk orders by place, and `lives` is where a
@@ -680,13 +699,19 @@ describe("a board is one folder", () => {
     // changes it). The boards PREDATES names are the only exception.
     for (const spec of SPECS) {
       if (spec.id in PREDATES) continue;
-      expect(spec.surface, `${spec.id}/spec.ts declares no surface`).toBeTruthy();
+      expect(
+        spec.surface,
+        `${spec.id}/spec.ts declares no surface`,
+      ).toBeTruthy();
       expect(
         Number.isFinite(spec.desk),
         `${spec.id}/spec.ts declares no desk place`,
       ).toBe(true);
       const lives = spec.lives ?? [];
-      expect(lives.length, `${spec.id}/spec.ts: lives is empty`).toBeGreaterThan(0);
+      expect(
+        lives.length,
+        `${spec.id}/spec.ts: lives is empty`,
+      ).toBeGreaterThan(0);
       expect(new Set(lives).size, `${spec.id}: lives repeats a path`).toBe(
         lives.length,
       );

@@ -52,8 +52,8 @@ export default async function ProposalPage({
   };
   const board = BOARDS.find((b) => b.id === slug);
   const tracks = readTrackStates();
-  const builders = (board?.tracks ?? (board ? [board.id] : [])).filter(
-    (n) => tracks.has(n),
+  const builders = (board?.tracks ?? (board ? [board.id] : [])).filter((n) =>
+    tracks.has(n),
   );
 
   return (

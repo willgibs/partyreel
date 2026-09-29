@@ -2,8 +2,7 @@
 
 import { type ReactNode, useState } from "react";
 
-import { Fit, Frame, Measured } from "@/components/lab";
-import type { BoardState } from "@/components/lab/board-spec";
+import { type BoardState, Fit, Frame, Measured } from "@/components/lab";
 import { HOUSE_HUES } from "@/lib/guest/door-light";
 
 import { EVENT, HOST } from "./fixtures";
