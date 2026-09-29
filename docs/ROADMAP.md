@@ -17,8 +17,9 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- The lab and the kit: `defineExploration` keeps the first control of an id, so an ask whose id equals a config knob's silently swallows the knob (`disposable-mode` r2's `screen` ate its Screen knob until it became `wall`), and `board-card.mjs` counts an earlier round's answer as this round's where an ask keeps its id (the desk itself does not); the registry refuses the collision, and the card reads the round (from `disposable-mode` r2).
 - Marketing: the home's pricing teaser breaks Pro's price after its 9 at 1440 ("from $9" over "/mo"), its digits inline-blocks in a column about 200 px wide (`pricing-teaser.tsx`, `price-pop.tsx`); with it, whether a unit beside a price ("from", "one-time", a clip's count) wears the heading face at all (from `crumbs-12`).
-- The lab and the kit: `type-ladder-policy`'s weight rule and `jsx-text-space-policy`'s scan both skip the lab, where 19 `font-heading` lines still carry a lighter weight (the admin-triage, contact-page, disposable-mode and event-settings boards, the keyboard bench) and `lab/kit/page.tsx:141` reads "sandbox/<name>/renders bare"; the lab revamp takes both rules in (from `crumbs-12`).
+- The lab and the kit: `type-ladder-policy`'s weight rule and `jsx-text-space-policy`'s scan both skip the lab, where `font-heading` lines still carry a lighter weight (the admin-triage, contact-page and event-settings boards, the keyboard bench) and `lab/kit/page.tsx:141` reads "sandbox/<name>/renders bare"; the lab revamp takes both rules in (from `crumbs-12`).
 - Code hygiene: `pnpm lint`'s three standing warnings: unused `useEffect`/`useState` in `album-fill-grid.tsx`, an unused `step` in `lab/_desk/review-session.tsx` (from `crumbs-10`).
 - Marketing: `/features/album`'s getting-in section (the phone's three screens) goes wider than its tight two columns on a desk, a line where a paragraph stands, and three new visuals, with the marketing revamp (`loose-ends` r1; its 3.2 s pace stays).
 - Marketing (performance): every page preloads the root 404's `trail.css` (a root `not-found.tsx`'s CSS is preloaded on every route: `/`, `/pricing`, `/help`, `/login`, `/about`), one "preloaded but not used" warning a load site-wide; fold the trail's rules into the global sheet or load the 404's `Trail` lazily (from `crumbs-10`).
@@ -51,7 +52,7 @@ below hold the rest by surface.
 - Guests: her uploads draw a plain placeholder for an earlier visit's held photo (nothing outside the album is presigned for a guest); a thumbnail presigned for its uploader's own ticket alone would let her see which one waits (from `voice-wiring`).
 - Host: a "See it as a guest" row in settings could open the album as a guest meets it, with the door's steps; every door setting is about what a guest meets, and today a host can only guess (from `event-settings`).
 - Host: the settings kind's head in a hand says the event's name twice (the back arrow and the line under the bar); popups could drop the line wherever the back arrow names it (from `event-settings`).
-- Marketing: a disposable-camera page, and the site's link that opens Create with the camera already on (`pick=line`'s door), once the camera ships (from `disposable-mode`).
+- Marketing: a disposable-camera page, and the site's link that opens Create's step with the camera picked (`pick=step`), once the camera ships (from `disposable-mode`).
 - Guests: the password gate titles a password album "{name} is private" (`password-gate.tsx`), the word the private lock owns; whichever words `locked-door`'s `lock` takes, the gate may want its own (from `locked-door`).
 - Guests: a door held over nothing (the ghost river under `DOOR_SCRIM`) reads as a flat grey slab in light mode, here and on the password door; a lighter scrim where nothing real stands behind would lift both (from `locked-door`).
 - Guests: a locked door could open by itself the moment the host lets her in (the album's doorbell or a slow poll), at the cost of a listener on every locked page, a blocked one's included (from `locked-door`).
@@ -365,6 +366,7 @@ The app:
   - Revoke the latent table-level TRUNCATE, REFERENCES and TRIGGER grants `anon` and `authenticated` hold on all 22 public tables (Supabase's default grant; PostgREST issues none of them, so none is reachable) in the next security pass.
   - Revoke the PUBLIC EXECUTE `get_event_by_qr_token` carries through its recreates (anon, authenticated and service_role hold it explicitly), in the same pass.
 - **Share studio (QR and share-content configurator):** an in-app generator for polished share outputs, so hosts never build their own; it builds on the QR designer in the share sheet and doubles as a growth lever (every output carries the QR).
+  - A disposable event's own wrapper as its printed table card and poster: the camera and the code wearing one design (from `disposable-mode` r2).
   - A gallery of printable QR designs to pick from (the print stock ships in one design).
   - Card presets (minimal ink and photo-backed), and stock cover images per common event type plus generic sets (hosts rarely have a cover before the event).
   - Toggles for the link, the date and the cover; phone and story formats beside printable ones; several file types; drag-and-drop placement as the stretch goal.

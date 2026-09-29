@@ -40,7 +40,6 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `settings-wiring` | every event-settings pick: settings as four sentences, the doors end to end, the Guests room, the hub | running (agent `aefdc4b3cecd92f74`) | Opus, 3131 | |
-| `disposable-mode` | r2: the camera, the waiting room, the room's screen, Create's step, video | running (agent `a1dbe1bf5ccc5042e`) | Opus, 3133 | |
 | `triage-r2-wiring` | admin-triage r2 wired; the hold rebuilt (Hold takes down by default; storage released at an operator's removal; an open report guards its item; the child-abuse instant hide) | running (agent `a432fe0336dc35587`) | Opus, 3134 | |
 | `crumbs-13` | device sign-out with Sign out everywhere in settings, the home's double preload, three lint warnings | running (agent `acefdcef3899da571`) | Opus, 3132 | |
 
@@ -48,13 +47,13 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Wave A: `settings-wiring` (all nine event-settings picks, the doors end to end), `locked-door` r2 (the door
 family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records carry the rest.
 
-Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2.
+Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2.
 
 ## Next, in order
 
-1. **Build 20 is live** (`18491027`, alias-ensure green, Vercel pruned, the desk served): crumbs-10 and crumbs-11. Its red-team (agent `a4f105c9a26336597`) runs from
-   `../partyreel-wt/_scratch/redteam-20/brief.md` in Will's Chrome (about an hour; his own alias checks wait for it or
-   use a private window); its findings go to the next crumbs lane.
+1. **Build 20 was red-teamed live** (`18491027`; every journey PASS, the ledger `../partyreel-wt/_scratch/redteam-20/ledger.txt`):
+   its two minors went to `crumbs-12` ("30 days", merged) and `crumbs-13` (the home's double preload), and its
+   observation (the global sign-out) is `crumbs-13`'s on his word.
 2. **Integrate each lane as it hands off**, each migration by protocol, one at a time: drift check, apply verbatim, the
    rolled-back refusals, advisors, types. `negative.sh` runs once before the first (the kit changed with
    merge-lane.sh's id-less sweep). `settings-wiring` owns every guest-path function replacement this batch; no other
@@ -63,7 +62,7 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2.
    stop reshaping off trickle-down changes). Drafted specs wait in this session's scratchpad (`specs/<track>.json`); a
    new session writes them from these lines.
    - `triage-r2-wiring` is running (its manifest carries admin-triage r2 and the hold's rebuild, his words whole).
-   - The lab revamp (step 8), once `locked-door` r2 and `disposable-mode` r2 merge; a board cut meanwhile is converted at
+   - The lab revamp (step 9), once `locked-door` r2 and `disposable-mode` r2 merge; a board cut meanwhile is converted at
      its sync, since lab work never delays a board.
    - `event-ready` r1 (Opus), once `settings-wiring` merges: his event checklist and the settings' mini wizard (and
      whether Create shares it), taking ROADMAP's "what needs you" and "the hub's code as the event's live door" lines
@@ -91,30 +90,35 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2.
      data architecture is the Orchestrator's, anything useless dropped, timed so partyreel.com's live build never
      reads a dropped thing.
    - `crumbs-13` is running (device sign-out, the home's double preload, three lint warnings).
-   - After their rounds: the disposable wiring (after `disposable-mode` r2's picks and `settings-wiring`'s merge, since
-     it rewrites the guest path) and the door family's wiring (if the doorway wins, its reveal: walking through the
+   - After their rounds: the disposable wiring (after `disposable-mode` r2's picks, Will's Measure a phone, and
+     `settings-wiring`'s merge, since it rewrites the guest path; with the lane's idea of the premiere on the wall, the
+     reel's screen counting down to the develop time and playing the roll as an event of its own) and the door family's wiring (if the doorway wins, its reveal: walking through the
      opened door into the album, drawn first as motion options; ASSETS row 36 if the host's door wins).
-4. **The claims walk** (his full permission, 2026-09-29), once the milestone's Chrome pass reports: three rows
+4. **Build 21** (this record's `[preview]`): `locked-door` r2 and `disposable-mode` r2 on his desk (4 and 8 asks,
+   the door family first), with crumbs-12's production changes. Its red-team rides the claims walk: crumbs-12's hub row at
+   1440, 768 and 375 resting and stuck, "restore it for 30 days", the reports lede, the headings at 700, /terms'
+   Termination.
+5. **The claims walk** (his full permission, 2026-09-29), once the milestone's Chrome pass reports: three rows
    staged 10:01Z with `pending_email = 'partyr33l@gmail.com'` (`ea7863de` Theo R. at Reel lane probe, to Claim;
    `ab7cc94d` Rt Legacy Named at Gallery width, Not mine's dialog then Cancel; `d61ebe2e` Will Test at the password
    Alias red-team, left waiting); each was a name-only row (`pending_email`, `pending_email_at`, `email`, `user_id`,
    `verified_at` all null; the names as given), and the Orchestrator restores all three after the walk (a claim
    writes `email`, `user_id`, `verified_at` and nulls the name). Its brief: `../partyreel-wt/_scratch/claims-walk/brief.md`.
-5. **Build 21** once `locked-door` r2 and `disposable-mode` r2 land, with the wiring merged by then; `settings-wiring`'s
-   build gets a red-team of its own (every door, both ways through each swap, the Guests room, the pages).
-6. **The demo event**, after `demo-framing` r2 (his full permission, 2026-09-29; the r1 board merged at `51db72fc`):
+6. **`settings-wiring`'s build** gets a red-team of its own (every door, both ways through each swap, the Guests room,
+   the pages).
+7. **The demo event**, after `demo-framing` r2 (his full permission, 2026-09-29; the r1 board merged at `51db72fc`):
    the demo renamed (or made) to its pick, its slug claimed so the card's printed address opens it (today
    `mia-and-theo`, held by no event, left as is on his word), one home for the slug in `lib/demo.ts` that the card
    prints and the seed sets, `OBJECT_EVENT` and `OBJECT_PRINTS` to match, a demo host account if `host` stands
    (`partyreel-demo` stays refused to anyone else by the brand family, `crumbs-11`), and ASSETS rows 5, 33 and 34
    unparked with the party's subjects.
-7. **Milestone 30 is live** (`7846a4c9`, tag `milestone-30`, 2026-09-29; gate `GATEm30` green on `77a4bd44`; both
+8. **Milestone 30 is live** (`7846a4c9`, tag `milestone-30`, 2026-09-29; gate `GATEm30` green on `77a4bd44`; both
    projects READY; launch-prep fast-forwarded to it): the headless pass is clean (sixteen public pages and both sign-in
    pages with no exception, `/pricing` at 100 MB and no "2 GB", the lab and `/admin/reels` 404, the admin door
    redirects). The Chrome pass (agent `aacad476e5cdfa021`, `../partyreel-wt/_scratch/prod-m30/brief.md`) runs, then
-   the claims walk (step 4). After it, `kit/`'s screens re-captured from partyreel.com (the home's hero, close,
+   the claims walk (step 5). After it, `kit/`'s screens re-captured from partyreel.com (the home's hero, close,
    teaser and eyebrow, the demo's doors, the pricing page).
-8. **The lab revamp**: a board as one self-registering folder, its metadata in its spec, lab checks scoped to the
+9. **The lab revamp**: a board as one self-registering folder, its metadata in its spec, lab checks scoped to the
    lane's own boards, the authoring API trimmed, a fresh agent proving it (the first board cut after it); with
    library-lean's board ideas (a `Surfaces` family of live frames per route with guest entries, the Library's sidebar
    open by default, a plain-text view of Library pages, a retire-or-reuse call on `anonymous-info.tsx` and
@@ -125,7 +129,9 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2.
 
 - **His desk: zero** after build 19's sitting. Two asks wait on the rounds that replace their boards: demo-framing's
   `names` (behind `story=?`) and press-page's `a-human` (the About round).
-- **The morning of 2026-09-30, on his phone** (his word): Q1 (on a phone the code card fills the screen, but Back
+- **The morning of 2026-09-30, on his phone** (his word): `disposable-mode` r2's Measure a phone on the alias (the
+  board's dock: Open the camera, Take a frame, the camera app's photo, on his iPhone and an Android if he has one; paste
+  the line back: the full-size promise rides on it); Q1 (on a phone the code card fills the screen, but Back
   leaves the album; should Back close it like the other full-screen popups?); the 2-minute real-upload check on the
   alias (a first photo, landscape, as a signed-out guest at a held-uploads event: the keep, her uploads' "Waiting for
   approval" and the tracker's badge, no held tile at the album's head; then Confirm your email, the one beat, the told

@@ -27,8 +27,9 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 ## The desk
 
-Zero open asks after build 19's sitting. Two wait on the rounds that replace their boards (demo-framing's `names`,
-press-page's `a-human`). The next desk is build 21's: `locked-door` r2 and `disposable-mode` r2.
+Build 21's desk: `locked-door` r2 (four asks: the door family's direction first) and `disposable-mode` r2 (eight: the
+camera first). Two older asks wait on the rounds that replace their boards (demo-framing's `names`, press-page's
+`a-human`).
 
 ## Live state
 
@@ -36,9 +37,9 @@ press-page's `a-human`). The next desk is build 21's: `locked-door` r2 and `disp
   public pages and both sign-in pages with no exception, `/pricing` at 100 MB, the lab and `/admin/reels` 404, the admin
   door redirects; the signed-in pass runs. `admin.partyreel.com` is served by `partyreel-admin`
   (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 20 (the batch-8 record): build
-  19's red-team fixes (`crumbs-10`) and the slug family with the sign-in return path (`crumbs-11`); red-teamed live,
-  every journey PASS, two minors (`crumbs-12`, `crumbs-13`).
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 21: the two rounds for his desk
+  and `crumbs-12` (the hub row in his order, every heading at 700, "30 days"); build 20 was red-teamed live, every
+  journey PASS.
 - **The shared database** runs seven migrations applied 2026-09-29 (the block, the free shift, the operator removal purge,
   the help's feedback, the pass reminders switch, likes on private albums, the slug family), which partyreel.com's milestone-30 build now
   matches; no Free account holds more than 100 MB.
