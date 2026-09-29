@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Accessibility: every confirm popup renders `role="dialog"` where a confirm is an `alertdialog`, and Sign out everywhere's confirm keeps its × enabled while "Signing out…" shows (it does nothing then) (from build 22's red-team).
 - The lab and the kit: on a phone the step a sitting enters a board on reads its opening for about two screens before the question (disposable-mode's five settled and four earlier lines at 375); fold the opening's two lists below `sm` (from `lab-revamp`).
 - The lab and the kit: a board's `opening.earlier` is authored; the ledger's own notes from the round before could ride in a fold under it, word for word, so his exact sentence is one press away from the summary (from `lab-revamp`).
 - Auth: the device Sign out ignores a refused GoTrue call (the network, the auth server) and still leaves for `/login`, which sends a still-signed-in host back to `/dashboard` as if nothing had happened; Sign out everywhere answers the same refusal (`src/app/(auth)/actions.ts`) (from `crumbs-13`).
