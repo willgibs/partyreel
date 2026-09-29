@@ -1,0 +1,28 @@
+{
+  "board": "demo-framing",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-29",
+      "answers": [
+        {
+          "ask": "story",
+          "choice": null,
+          "note": "These are all better options, but wanted to add a note: we'll be replacing our full media kit pre-launch, so not worried about which exact pictures we're using. Most focused on the best slug here that conveys the idea, almost like 'our-wedding' or 'my-party', which still allows us to fill the demo event with plenty of good content that'd catch a potential host of any event type. Unless we did some sort of typewriter effect on the slug, occasionally typing out different slugs for ways it can be used to show the customizability? Would like to see that exploration, but the variants in that exploration should attempt to get the stream and typewriter to either work together (both in full force would be overwhelming, eye goes everywhere), or let the typewriter effect take center stage with new more subtle surrounding animation and repurpose the centered qr + stream for the QR code page hero. Sorry, this was another big ramble with some different ideas.",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        },
+        {
+          "ask": "demo",
+          "choice": "one",
+          "note": "Let's drop the 'try our demo event' eyebrow and simply add a subtle touch to make the hero visual feel clickable. maybe a couple explorations on best way to do that?",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

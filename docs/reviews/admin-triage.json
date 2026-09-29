@@ -60,6 +60,40 @@
       "notes": [],
       "items": [],
       "calls": []
+    },
+    {
+      "n": 2,
+      "opened": "2026-09-29",
+      "answers": [
+        {
+          "ask": "look",
+          "choice": "grid",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        },
+        {
+          "ask": "harm",
+          "choice": "kinds",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        },
+        {
+          "ask": "proof",
+          "choice": "confirm",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        },
+        {
+          "ask": "phone",
+          "choice": "stop",
+          "note": "What's the functional difference between \"take it down\" and \"start a hold\"? May help to have both on mobile in case critical review items need one or the other instead of just taking it down.",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
     }
   ]
 }
