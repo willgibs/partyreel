@@ -1468,17 +1468,22 @@ describe("the row cap: the SQL shapes the 1,000-row fixes read", () => {
     // read of held rows). The expired reason: "the events that hold anything" meant a legal hold alone.
     // An operator's removal still inside its window keeps its event too (20260928140000), so a deleted
     // account cannot take the evidence before the runbook preserves it.
+    // ★ AND AGAIN (triage-r2-wiring, 2026-09-29; scar kept: ONE uuid[] per candidate set). An open report, an
+    // item's or the album's, keeps its event whole too (Will: "an open report protects its item from every
+    // permanent delete ... an event's deletion, an account's"), and the report cascades with its event row.
     it("held_event_ids answers ONE uuid[] of the events that hold anything the purge must keep", () => {
       expect(shape("held_event_ids")).toContain(
-        "create function public.held_event_ids(p_event_ids uuid[]) returns uuid[] language sql stable security invoker set search_path = '' as $$ select coalesce(array_agg(h.event_id order by h.event_id), '{}'::uuid[]) from ( select distinct m.event_id from public.media m where m.event_id = any(p_event_ids) and ( m.legal_hold_at is not null or (m.status = 'removed' and m.removed_by_admin and m.purge_at > now()) ) ) h; $$;",
+        "create function public.held_event_ids(p_event_ids uuid[]) returns uuid[] language sql stable security invoker set search_path = '' as $$ select coalesce(array_agg(h.event_id order by h.event_id), '{}'::uuid[]) from ( select m.event_id from public.media m where m.event_id = any(p_event_ids) and ( m.legal_hold_at is not null or (m.status = 'removed' and m.removed_by_admin and m.purge_at > now()) ) union select r.event_id from public.reports r where r.event_id = any(p_event_ids) and r.status = 'open' ) h; $$;",
       );
     });
 
     // ★ RESHAPED ON PURPOSE (triage-wiring, 2026-09-28; scar kept: exactly the budget's bin). The bin
     // now leaves out an operator's removal too: never the host's, and never evicted inside its window.
-    it("★ standby_hosts counts exactly the budget's bin: no system removal, no guest's own withdrawal, no operator's removal, no hold", () => {
+    // ★ AND AGAIN (triage-r2-wiring, 2026-09-29): nor a row she asked to delete permanently while a keeper holds
+    // it (`purge_asked_at`), which left her Deleted at her press.
+    it("★ standby_hosts counts exactly the budget's bin: no system removal, no guest's own withdrawal, no operator's removal, no asked row, no hold", () => {
       expect(shape("standby_hosts")).toContain(
-        "where m.legal_hold_at is null and ( (m.status = 'removed' and not m.removed_by_system and not m.removed_by_uploader and not m.removed_by_admin) or (m.status <> 'removed' and e.deleted_at is not null) )",
+        "where m.legal_hold_at is null and ( (m.status = 'removed' and not m.removed_by_system and not m.removed_by_uploader and not m.removed_by_admin and m.purge_asked_at is null) or (m.status <> 'removed' and e.deleted_at is not null) )",
       );
     });
 
@@ -2392,7 +2397,12 @@ describe("the per-event block and the always-on guest list (20260928120000)", ()
   });
 
   describe("the host's two acts", () => {
-    it("block_from_event re-checks the host, previews before it writes, skips a hold and keeps what the restore reads", () => {
+    // ★ RESHAPED ON PURPOSE (triage-r2-wiring, 2026-09-29; scar kept: the host re-checked, the preview before any
+    // write, the removal the host's own). The block no longer skips a held row: under a quiet hold the photograph
+    // stayed in the album the block emptied, and the confirm counted one fewer than she could see, the tell
+    // Will's quiet hold forbids ("the host's own delete of a quietly held item looks like any delete"). The
+    // expired reason: "a hold is immutable to the host". let_back_in still skips one (restore refused).
+    it("block_from_event re-checks the host, previews before it writes, takes a quietly held row like any other and keeps what the restore reads", () => {
       const act = code("block_from_event");
       expect(act).toContain("security definer set search_path = ''");
       expect(act).toContain(
@@ -2402,10 +2412,11 @@ describe("the per-event block and the always-on guest list (20260928120000)", ()
       expect(
         act.indexOf("if p_preview then return jsonb_build_object("),
       ).toBeLessThan(act.indexOf("insert into public.event_blocks"));
-      // Their uploads leave for Deleted in the same step, as the host's own removal, a held row skipped.
+      // Their uploads leave for Deleted in the same step, as the host's own removal, a held row with them.
       expect(act).toContain(
-        "update public.media m set status = 'removed', removed_at = now() from public.guests g where g.id = m.guest_id and g.event_id = v_event.id and m.event_id = v_event.id and m.status <> 'removed' and m.legal_hold_at is null and public.event_block_names_row(v_user, v_email, v_row, g)",
+        "update public.media m set status = 'removed', removed_at = now() from public.guests g where g.id = m.guest_id and g.event_id = v_event.id and m.event_id = v_event.id and m.status <> 'removed' and public.event_block_names_row(v_user, v_email, v_row, g)",
       );
+      expect(act).not.toContain("legal_hold_at");
       expect(act).not.toContain("removed_by_uploader");
       expect(act).toContain("set removed_media_ids = v_removed");
       // The host is never their own guest.
@@ -2505,14 +2516,20 @@ describe("the per-event block and the always-on guest list (20260928120000)", ()
   });
 
   describe("her own feed and lists read as a private album's", () => {
-    it("get_my_uploads keeps an approved upload a standing block removed, never a hold or a takedown, and her delete withdraws it", () => {
+    // ★ RESHAPED ON PURPOSE (triage-r2-wiring, 2026-09-29; scar kept: never a takedown, and her delete withdraws
+    // it). A block now takes a quietly held upload like any other, so her own feed keeps it like any other and
+    // her delete withdraws it: a feed that dropped it would tell the uploader, who may be the one investigated.
+    // The expired reason: "never a hold".
+    it("get_my_uploads keeps an approved upload a standing block removed, never a takedown, a quietly held one like any other, and her delete withdraws it", () => {
       const feed = code("get_my_uploads");
       expect(feed).toContain(
-        "or (m.status = 'removed' and m.status_before_removed = 'approved' and not m.removed_by_uploader and not m.removed_by_admin and m.legal_hold_at is null and exists (select 1 from public.event_blocks b where b.event_id = m.event_id and m.id = any (b.removed_media_ids) and m.removed_at = b.created_at))",
+        "or (m.status = 'removed' and m.status_before_removed = 'approved' and not m.removed_by_uploader and not m.removed_by_admin and exists (select 1 from public.event_blocks b where b.event_id = m.event_id and m.id = any (b.removed_media_ids) and m.removed_at = b.created_at))",
       );
+      expect(feed).not.toContain("legal_hold_at");
       expect(code("remove_my_upload")).toContain(
-        "update public.media m set removed_by_uploader = true where m.id = p_media_id and m.status = 'removed' and not m.removed_by_uploader and m.legal_hold_at is null",
+        "update public.media m set removed_by_uploader = true where m.id = p_media_id and m.status = 'removed' and not m.removed_by_uploader and exists (select 1 from public.event_blocks b",
       );
+      expect(code("remove_my_upload")).not.toContain("legal_hold_at");
     });
 
     it("blocked_events_for keeps her card's place and her picker's tile for her own blocks, as SECURITY DEFINER for the service role", () => {
@@ -2645,16 +2662,27 @@ describe("an operator's removal leaves the host's view (20260928140000)", () => 
     }
   });
 
-  it("★ her Delete permanently can never end a takedown's window, nor a hold's", () => {
+  // ★ RESHAPED ON PURPOSE (triage-r2-wiring, 2026-09-29; scar kept: never a takedown's window, and never a
+  // kept row's bytes). Her Delete permanently no longer skips a held row in silence (it came back in her
+  // Deleted, a tell): what a hold or an open report keeps is ASKED, gone from her view and her meter, and only
+  // the rest is purged. The expired reason: "refuses a held row".
+  it("★ her Delete permanently can never end a takedown's window, and only asks what a keeper holds", () => {
     const purge = code("purge_media_now");
     expect(purge).toContain(
-      "and e.host_id = (select auth.uid()) and m.status = 'removed' and not m.removed_by_admin and m.legal_hold_at is null;",
+      "and e.host_id = (select auth.uid()) and m.status = 'removed' and not m.removed_by_admin and m.purge_asked_at is null;",
+    );
+    expect(purge).toContain("v_kept := public.kept_media_ids(v_ids);");
+    expect(purge).toContain(
+      "update public.media set purge_asked_at = now() where id = any(v_kept) and purge_asked_at is null;",
+    );
+    expect(purge).toContain(
+      "select coalesce(array_agg(x), '{}'::uuid[]) into v_gone from unnest(v_ids) as x where not (x = any(v_kept));",
     );
   });
 
-  it("her restored event counts what her Deleted still shows of it, never a withdrawal, a takedown or a row past the window", () => {
+  it("her restored event counts what her Deleted still shows of it, never a withdrawal, a takedown, an asked row or a row past the window", () => {
     expect(code("restore_event")).toContain(
-      "select count(*) into v_still_removed from public.media where event_id = p_event_id and status = 'removed' and not removed_by_uploader and not removed_by_admin and removed_at >= now() - interval '30 days';",
+      "select count(*) into v_still_removed from public.media where event_id = p_event_id and status = 'removed' and not removed_by_uploader and not removed_by_admin and purge_asked_at is null and removed_at >= now() - interval '30 days';",
     );
   });
 

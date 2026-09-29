@@ -4,7 +4,7 @@ import { cache } from "react";
 
 import type { PendingCounts } from "@/lib/admin/nav";
 import { countApplicationsByStatus } from "@/lib/db/queries/applications";
-import { countOpenReports } from "@/lib/db/queries/reports";
+import { countOpenReports, countUrgentReports } from "@/lib/db/queries/reports";
 import { countContactByStatus } from "@/lib/db/queries/support";
 import { readJobHealth, type JobHealthReport } from "@/lib/jobs/health-summary";
 
@@ -27,24 +27,29 @@ import { readJobHealth, type JobHealthReport } from "@/lib/jobs/health-summary";
 
 export type PendingWork = PendingCounts & { health: JobHealthReport };
 
-export const readPendingWork = cache(async function readPendingWork(): Promise<PendingWork> {
-  const [support, applicants, reports, health] = await Promise.all([
-    countContactByStatus("new"),
-    countApplicationsByStatus("new"),
-    countOpenReports(),
-    readJobHealth(),
-  ]);
-  return {
-    support,
-    applicants,
-    reports,
-    // The bell and the rail have nowhere to put "unreadable", and a silent
-    // count would be the calm-empty-page lie; the band beside them says it
-    // in words (health-summary.ts).
-    jobs: health.readable ? health.unhealthy.length : 1,
-    health,
-  };
-});
+export const readPendingWork = cache(
+  async function readPendingWork(): Promise<PendingWork> {
+    const [support, applicants, reports, urgentReports, health] =
+      await Promise.all([
+        countContactByStatus("new"),
+        countApplicationsByStatus("new"),
+        countOpenReports(),
+        countUrgentReports(),
+        readJobHealth(),
+      ]);
+    return {
+      support,
+      applicants,
+      reports,
+      urgentReports,
+      // The bell and the rail have nowhere to put "unreadable", and a silent
+      // count would be the calm-empty-page lie; the band beside them says it
+      // in words (health-summary.ts).
+      jobs: health.readable ? health.unhealthy.length : 1,
+      health,
+    };
+  },
+);
 
 /**
  * ONE CLOCK READ PER REQUEST.

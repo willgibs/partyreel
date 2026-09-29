@@ -41,6 +41,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { marketingImage } from "@/lib/constants/marketing-media";
+import { KIND_WORDS, REPORT_KINDS } from "@/lib/reports/kinds";
 import { cn, formatEventDate } from "@/lib/utils";
 
 import type { PhoneScreenId } from "./registry";
@@ -464,6 +465,9 @@ function ReportScreen({ step }: { step: ReportStep }) {
       </div>
     );
   }
+  // The form as it opens (admin-triage r2, `harm=kinds`): what it is first, then the words; the reason step
+  // picks the kind a parent picks and says which photo, in the article's own example.
+  const picked = step === "reason" ? "consent" : null;
   const reason =
     step === "reason"
       ? "The third photo from the top is of my child, and nobody asked us before posting it."
@@ -478,11 +482,11 @@ function ReportScreen({ step }: { step: ReportStep }) {
             Report this event
           </p>
           <p className="text-sm text-pretty text-muted-foreground">
-            Tell us what&rsquo;s wrong and our team will review it. Reports are
-            anonymous.
+            Tell us what&rsquo;s wrong and our team will review it. The host is
+            never told who reported.
           </p>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 pb-4">
           <div
             className={cn(
               "flex flex-col gap-2 rounded-md",
@@ -490,6 +494,35 @@ function ReportScreen({ step }: { step: ReportStep }) {
                 "bg-warning/15 ring-2 ring-warning/70 ring-offset-2 ring-offset-popover",
             )}
           >
+            <p className="text-sm leading-none font-medium">What is it?</p>
+            <ul className="space-y-1">
+              {REPORT_KINDS.map((k) => (
+                <li
+                  key={k}
+                  className={cn(
+                    "flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-caption",
+                    picked === k
+                      ? "border-foreground bg-muted/60"
+                      : "border-border",
+                  )}
+                >
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "flex size-3.5 shrink-0 items-center justify-center rounded-full border",
+                      picked === k
+                        ? "border-foreground"
+                        : "border-muted-foreground/50",
+                    )}
+                  >
+                    {picked === k ? (
+                      <span className="size-1.5 rounded-full bg-foreground" />
+                    ) : null}
+                  </span>
+                  {KIND_WORDS[k]}
+                </li>
+              ))}
+            </ul>
             <Label>
               Reason{" "}
               <span className="font-normal text-muted-foreground">
@@ -497,7 +530,7 @@ function ReportScreen({ step }: { step: ReportStep }) {
               </span>
             </Label>
             <Textarea
-              rows={4}
+              rows={3}
               readOnly
               value={reason}
               placeholder="What's the problem here?"

@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Activity, Bell, Flag, LifeBuoy, Users } from "lucide-react";
+import {
+  Activity,
+  Bell,
+  Flag,
+  LifeBuoy,
+  ShieldAlert,
+  Users,
+} from "lucide-react";
 
 import {
   DropdownMenu,
@@ -24,6 +31,12 @@ export type OperatorAlertCounts = {
    * page is the authority (it draws the loud banner when it cannot read anything at all).
    */
   jobs?: number;
+  /**
+   * The open child-abuse reports among `reports` (admin-triage r2): named on their own row, first, in the
+   * destructive tone, and the badge turns with them. OPTIONAL for the same reason as `jobs`; absent is zero.
+   * Never added to the total, which already counts them among the open reports.
+   */
+  urgentReports?: number;
 };
 
 // Portal-wide "needs attention" bell for the operator (mirrors the host notification bell). Fed the
@@ -75,10 +88,12 @@ export function OperatorAlerts({
   applicants,
   reports,
   jobs = 0,
+  urgentReports = 0,
 }: OperatorAlertCounts) {
   const counts = { support, applicants, reports, jobs };
   const total = support + applicants + reports + jobs;
   const active = ALERTS.filter((a) => counts[a.key] > 0);
+  const urgent = urgentReports > 0;
 
   return (
     <DropdownMenu>
@@ -88,7 +103,13 @@ export function OperatorAlerts({
       >
         <Bell className="size-5" />
         {total > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold text-brand-foreground">
+          <span
+            className={
+              urgent
+                ? "absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-white"
+                : "absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-semibold text-brand-foreground"
+            }
+          >
             {total > 9 ? "9+" : total}
           </span>
         )}
@@ -103,6 +124,17 @@ export function OperatorAlerts({
           </p>
         ) : (
           <DropdownMenuGroup>
+            {urgent ? (
+              // First, and in words: a child-abuse report the operator is told of at once (the mail says the
+              // same), so a false instant hide lasts minutes and a real one is acted on.
+              <DropdownMenuItem asChild>
+                <Link href="/admin/reports" className="text-destructive">
+                  <ShieldAlert />
+                  <span>Urgent reports</span>
+                  <DropdownMenuMeta>{urgentReports} urgent</DropdownMenuMeta>
+                </Link>
+              </DropdownMenuItem>
+            ) : null}
             {active.map(({ key, href, icon: Icon, label, state }) => (
               <DropdownMenuItem key={key} asChild>
                 {/* The icon colour is the primitive's rail now, not a class

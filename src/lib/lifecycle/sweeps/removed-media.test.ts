@@ -98,11 +98,15 @@ describe("sweepRemovedMedia", () => {
     const { world, due } = fixture();
     const handled = new Set<string>();
     const tally = await sweepRemovedMedia(world.client, NOW, handled);
+    // ★ RESHAPED ON PURPOSE (triage-r2-wiring, 2026-09-29; scar kept: a held row is never touched). The three held
+    // rows past their window are now DEFERRED (`defer_kept_due_media`: asked, so their bytes leave the host's
+    // meter the night any other removal's would), and nothing of them is deleted.
     expect(tally).toEqual({
       media_rows: 2_500,
       r2_deleted: 5_000,
       r2_errored: 0,
       freed_bytes: 2_500_000,
+      deferred: 3,
     });
 
     const expected = [...due]
@@ -144,5 +148,121 @@ describe("sweepRemovedMedia", () => {
     const handled = new Set([String(due[0].id), String(due[1].id)]);
     const tally = await sweepRemovedMedia(world.client, NOW, handled);
     expect(tally.media_rows).toBe(2_498);
+  });
+});
+
+/**
+ * WHAT AN OPEN REPORT KEEPS (admin-triage r2, 20260929140000; Will: "an open report protects its item from every
+ * permanent delete until the report closes"). The sweep asks `kept_media_ids` before a single object goes, marks
+ * asked (`defer_kept_due_media`) a kept removal past its window so its bytes leave the host's meter the night any
+ * other removal's would, and takes an asked row the night its keeper lets go, whatever its own window says.
+ */
+describe("sweepRemovedMedia: what an open report keeps", () => {
+  function reportedWorld() {
+    const event = eventRow(uuidOf("e", 2), uuidOf("h", 2));
+    const reported = mediaRow(uuidOf("mr", 1), event, {
+      status: "removed",
+      removed_at: stamp(10),
+      purge_at: stamp(10),
+    });
+    const other = mediaRow(uuidOf("mo", 1), event, {
+      status: "removed",
+      removed_at: stamp(11),
+      purge_at: stamp(11),
+    });
+    const report = {
+      id: "r1",
+      status: "open",
+      media_id: reported.id,
+      event_id: event.id,
+    };
+    const world = createCronWorld({
+      events: [event],
+      media: [reported, other],
+      reports: [report],
+    });
+    state.world = world;
+    return { world, reported, other, report };
+  }
+
+  const r2Keys = (world: CronWorld) =>
+    world.log.flatMap((entry) => (entry.kind === "r2" ? entry.keys : []));
+
+  it("★ keeps a reported item past its window whole, off her meter, and takes it the night the report closes", async () => {
+    const { world, reported, report } = reportedWorld();
+    const first = await sweepRemovedMedia(world.client, NOW, new Set());
+    expect(first).toMatchObject({ media_rows: 1, deferred: 1 });
+    // Not one of its objects was deleted, and the batch asked before anything went.
+    expect(r2Keys(world)).not.toContain(reported.original_key);
+    expect(r2Keys(world)).not.toContain(reported.preview_key);
+    expect(world.keptCalls.flat()).toContain(reported.id);
+    const kept = world.fake.tables.media.find((m) => m.id === reported.id)!;
+    expect(kept.purge_asked_at).toEqual(expect.any(String));
+
+    report.status = "dismissed";
+    const second = await sweepRemovedMedia(world.client, NOW, new Set());
+    // Its bytes left her meter at the ask, so the purge frees nothing twice.
+    expect(second).toMatchObject({ media_rows: 1, freed_bytes: 0 });
+    expect(world.fake.tables.media).toHaveLength(0);
+    expect(r2Keys(world)).toContain(reported.original_key);
+  });
+
+  it("★ an album report keeps every item of its album, and an asked row goes the night it closes, window or not", async () => {
+    const event = eventRow(uuidOf("e", 3), uuidOf("h", 3));
+    // Her Delete permanently on a kept row: asked, its own window still weeks away.
+    const asked = mediaRow(uuidOf("ma", 1), event, {
+      status: "removed",
+      removed_at: stamp(20),
+      purge_at: "2026-10-20T00:00:00.000000+00:00",
+      purge_asked_at: "2026-09-22T00:00:00.000Z",
+    });
+    const due = mediaRow(uuidOf("md", 1), event, {
+      status: "removed",
+      removed_at: stamp(21),
+      purge_at: stamp(21),
+    });
+    const album = {
+      id: "r2",
+      status: "open",
+      media_id: null,
+      event_id: event.id,
+    };
+    const world = createCronWorld({
+      events: [event],
+      media: [asked, due],
+      reports: [album],
+    });
+    state.world = world;
+
+    const first = await sweepRemovedMedia(world.client, NOW, new Set());
+    expect(first).toMatchObject({ media_rows: 0, deferred: 1 });
+    expect(world.fake.tables.media).toHaveLength(2);
+
+    album.status = "actioned";
+    const second = await sweepRemovedMedia(world.client, NOW, new Set());
+    expect(second.media_rows).toBe(2);
+    expect(world.fake.tables.media).toHaveLength(0);
+  });
+
+  it("never marks an operator's removal asked: it waits on its own window, already off her meter", async () => {
+    const event = eventRow(uuidOf("e", 4), uuidOf("h", 4));
+    const operator = mediaRow(uuidOf("mx", 1), event, {
+      status: "removed",
+      removed_by_admin: true,
+      removed_at: stamp(30),
+      purge_at: stamp(30),
+    });
+    const world = createCronWorld({
+      events: [event],
+      media: [operator],
+      reports: [
+        { id: "r3", status: "open", media_id: operator.id, event_id: event.id },
+      ],
+    });
+    state.world = world;
+    const tally = await sweepRemovedMedia(world.client, NOW, new Set());
+    expect(tally.deferred).toBeUndefined();
+    expect(operator.purge_asked_at).toBeNull();
+    expect(world.fake.tables.media).toHaveLength(1);
   });
 });

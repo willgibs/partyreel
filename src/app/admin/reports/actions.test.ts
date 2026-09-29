@@ -48,6 +48,13 @@ vi.mock("@/lib/observability/sentry", () => ({
   captureWarning: () => {},
 }));
 vi.mock("@/lib/forensics/preserve", () => ({ preserveMedia: vi.fn() }));
+// The proof mail's two dependencies, which this file never sends: the canonical origin (it validates the
+// public env on import) and the one send path.
+vi.mock("@/lib/env", () => ({ env: {}, serverEnv: {} }));
+vi.mock("@/lib/email/send", () => ({ sendOnce: vi.fn() }));
+vi.mock("@/lib/db/queries/reports", () => ({
+  readProofMailEnabled: vi.fn(async () => false),
+}));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => asSupabase(fake),
 }));
@@ -112,9 +119,12 @@ describe("reopening a dismissed report", () => {
     const before = Date.now();
     await reopenReportAction(ID);
     const [patch] = writes();
+    // ★ RESHAPED ON PURPOSE (triage-r2-wiring, 2026-09-29; scar kept: the guards ride the write). A reopen is a
+    // SET now (a verdict answers its whole entry, and the sweep's Undo reopens every report its one press
+    // closed), so the named reports ride an `in` list; the status and the window's floor are unchanged.
     expect(patch.filters).toEqual(
       expect.arrayContaining([
-        { column: "id", op: "eq", value: ID },
+        { column: "id", op: "in", value: [ID] },
         { column: "status", op: "eq", value: "dismissed" },
       ]),
     );
