@@ -9,6 +9,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/api/export/
   - workers/export/
   - content/help/download-photos-videos-and-albums.mdx
+  - content/help/browse-the-album.mdx
   - src/app/(dev)/design/sandbox/export-flow/
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/export-flow.json
