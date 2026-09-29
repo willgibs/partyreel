@@ -47,7 +47,9 @@
 --   7. A QUIETLY HELD ROW TAKES THE HOST'S OWN ACTS (guard_media_privileged_transitions): the hold branch that
 --      skipped every client write to a held row goes, so her Remove, Hide and Show on an item she has no way to
 --      know is held land like on any other. Leaving Deleted stays the restore RPC's alone, and restore_media
---      still refuses a held row (in the discreet words it always used).
+--      still refuses a held row (in the discreet words it always used). Her block takes one too
+--      (block_from_event removes it and counts it; let_back_in leaves it in Deleted, as a restore would), and
+--      its uploader's own feed and delete read it as any other blocked upload (get_my_uploads, remove_my_upload).
 --   8. `report_queue_facts` answers the grid's facts in one jsonb: the same uploader's other items in the
 --      event, the reports on them and how many are held, and each album's uploads and guests.
 --
@@ -63,13 +65,15 @@
 -- resolve to it. Each body is its newest definition with only the named change: purge_media_rows
 -- 20260729150000, restore_media 20260729190000, guard_media_privileged_transitions 20260729180000,
 -- purge_media_now, held_event_ids, standby_hosts, host_storage_summary and restore_event 20260928140000,
+-- block_from_event, get_my_uploads and remove_my_upload 20260928120000,
 -- create_report 20260602183720 (live's body is that one less its one comment line; md5-checked 2026-09-29).
 --
 -- APPLY PROTOCOL (database-security.md -> Workflow): (1) the bodies before, for the diff:
 --   select p.oid::regprocedure, md5(regexp_replace(p.prosrc, '\s+', ' ', 'g')), p.proacl from pg_proc p
 --     join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname in
 --     ('create_report', 'purge_media_rows', 'purge_media_now', 'restore_media', 'held_event_ids', 'standby_hosts',
---      'host_storage_summary', 'restore_event', 'guard_media_privileged_transitions') order by 1;
+--      'host_storage_summary', 'restore_event', 'guard_media_privileged_transitions', 'block_from_event',
+--      'get_my_uploads', 'remove_my_upload') order by 1;
 -- (2) apply verbatim; (3) the same read after (the ACLs as restated below; create_report's new signature
 -- service-role only); (4) get_advisors, EXPECTED DELTA: NONE (every new function is INVOKER or a trigger's,
 -- EXECUTE revoked from every client role; no table, no policy added); (5) the rolled-back check at the foot;
@@ -694,7 +698,359 @@ $$;
 revoke execute on function public.guard_media_privileged_transitions() from public, anon, authenticated;
 
 -- =============================================================================================
--- 12. create_report: the kind, the reporter, and the instant hide.
+-- 12. The host's block takes a quietly held row like any other, and so does its uploader's feed.
+-- =============================================================================================
+-- The block's removal and its preview's count skipped a held row (20260928120000: "a hold is immutable to the
+-- host"), so under a quiet hold the photograph stayed in the album the block emptied and the confirm counted
+-- one fewer than she could see: the tell the quiet hold forbids. Now the block moves it to Deleted as any
+-- other and counts it; let_back_in still leaves it there (restore refused, as restore_media refuses it), and
+-- its uploader's own feed and delete read it as any other blocked upload. Each body is 20260928120000's less
+-- its hold line (block_from_event's two); signatures, security modes and grants as they stand.
+create or replace function public.block_from_event(
+  p_event_id uuid default null,
+  p_user_id uuid default null,
+  p_guest_id uuid default null,
+  p_media_id uuid default null,
+  p_require_verified_email boolean default false,
+  p_preview boolean default false
+)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := (select auth.uid());
+  v_media public.media;
+  v_event_id uuid := p_event_id;
+  v_event public.events;
+  v_guest public.guests;
+  v_verified boolean;
+  v_user uuid;
+  v_email text;
+  v_row uuid;
+  v_label text;
+  v_existing uuid;
+  v_live integer;
+  v_block uuid;
+  v_removed uuid[];
+  v_last_upload timestamptz;
+  v_profile_eligible boolean;
+begin
+  if v_uid is null then
+    return jsonb_build_object('ok', false, 'reason', 'unauthorized');
+  end if;
+  if num_nonnulls(p_user_id, p_guest_id, p_media_id) <> 1 then
+    return jsonb_build_object('ok', false, 'reason', 'bad_target');
+  end if;
+
+  -- A photograph and a guest row each name their own event (an account needs p_event_id). A named event
+  -- that disagrees, like an unknown id, is not_found.
+  if p_media_id is not null then
+    select m.* into v_media from public.media m where m.id = p_media_id;
+    if not found or (p_event_id is not null and v_media.event_id <> p_event_id) then
+      return jsonb_build_object('ok', false, 'reason', 'not_found');
+    end if;
+    v_event_id := v_media.event_id;
+  elsif p_guest_id is not null then
+    select g.event_id into v_event_id from public.guests g where g.id = p_guest_id;
+    if not found or (p_event_id is not null and v_event_id <> p_event_id) then
+      return jsonb_build_object('ok', false, 'reason', 'not_found');
+    end if;
+  end if;
+  if v_event_id is null then
+    return jsonb_build_object('ok', false, 'reason', 'bad_target');
+  end if;
+
+  if p_preview then
+    select e.* into v_event from public.events e
+     where e.id = v_event_id and e.host_id = v_uid and e.deleted_at is null;
+  else
+    select e.* into v_event from public.events e
+     where e.id = v_event_id and e.host_id = v_uid and e.deleted_at is null
+       for no key update;
+  end if;
+  if not found then
+    return jsonb_build_object('ok', false, 'reason', 'not_found');
+  end if;
+
+  if p_user_id is not null then
+    select g.* into v_guest from public.guests g
+     where g.event_id = v_event.id and g.user_id = p_user_id
+     order by (g.verified_at is not null) desc, g.created_at desc
+     limit 1;
+  else
+    select g.* into v_guest from public.guests g
+     where g.id = coalesce(p_guest_id, v_media.guest_id) and g.event_id = v_event.id;
+  end if;
+  -- The host's own upload rides no guest row; a row of another event is not this event's guest.
+  if not found then
+    return jsonb_build_object('ok', false, 'reason', 'not_a_guest');
+  end if;
+
+  v_verified := v_guest.verified_at is not null;
+  if v_verified then
+    v_user := v_guest.user_id;
+    v_email := lower(nullif(btrim(coalesce(v_guest.email, '')), ''));
+    if v_email is null and v_user is not null then
+      select lower(btrim(u.email)) into v_email
+        from auth.users u
+       where u.id = v_user and u.email_confirmed_at is not null;
+    end if;
+    -- A proved row whose account was since deleted keeps its own key beside the address.
+    v_row := case when v_user is null then v_guest.id end;
+  else
+    v_row := v_guest.id;
+    v_user := v_guest.user_id;
+    v_email := null;
+  end if;
+  -- An address the shape CHECK would refuse is no key at all (the account and the row still are).
+  if v_email is not null
+     and (char_length(v_email) not between 3 and 254 or position('@' in v_email) <= 1) then
+    v_email := null;
+  end if;
+  if v_row is null and v_user is null and v_email is null then
+    return jsonb_build_object('ok', false, 'reason', 'not_a_guest');
+  end if;
+  if v_user = v_event.host_id then
+    return jsonb_build_object('ok', false, 'reason', 'not_a_guest');
+  end if;
+
+  if v_verified and v_user is not null then
+    select nullif(btrim(p.display_name), '') into v_label
+      from public.profiles p where p.id = v_user;
+  end if;
+  v_label := left(coalesce(v_label, nullif(btrim(v_guest.display_name), '')), 120);
+
+  select b.id into v_existing
+    from public.event_blocks b
+   where b.event_id = v_event.id
+     and (b.user_id = v_user or b.email = v_email or b.guest_id = v_row)
+   limit 1;
+
+  select count(*)::integer into v_live
+    from public.media m
+    join public.guests g on g.id = m.guest_id
+   where m.event_id = v_event.id
+     and g.event_id = v_event.id
+     and m.status <> 'removed'
+     and public.event_block_names_row(v_user, v_email, v_row, g);
+
+  if p_preview then
+    return jsonb_build_object(
+      'ok', true,
+      'preview', true,
+      'event_id', v_event.id,
+      'label', v_label,
+      'verified', v_verified,
+      'uploads', v_live,
+      'names_only', not v_event.require_verified_email,
+      'already', v_existing is not null
+    );
+  end if;
+
+  if v_existing is not null then
+    return jsonb_build_object('ok', true, 'event_id', v_event.id, 'block_id', v_existing,
+      'already', true, 'removed', 0);
+  end if;
+
+  if coalesce(p_require_verified_email, false) and not v_event.require_verified_email then
+    update public.events set require_verified_email = true where id = v_event.id;
+  end if;
+
+  insert into public.event_blocks (event_id, user_id, email, guest_id, display_name)
+  values (v_event.id, v_user, v_email, v_row, v_label)
+  returning id into v_block;
+
+  -- ★ THEIR UPLOADS LEAVE FOR DELETED IN THE SAME STEP, as the host's own removal: removed_at is this
+  -- transaction's now(), the block's created_at to the microsecond, which is how the restore tells the
+  -- block's removal from any the host made before or after it.
+  -- The removal's RETURNING carries each row's prior status (media_derive_removal_provenance stamps
+  -- it as the row enters the bin), which is what her profile picker read.
+  with gone as (
+    update public.media m
+       set status = 'removed',
+           removed_at = now()
+      from public.guests g
+     where g.id = m.guest_id
+       and g.event_id = v_event.id
+       and m.event_id = v_event.id
+       and m.status <> 'removed'
+       and public.event_block_names_row(v_user, v_email, v_row, g)
+    returning m.id, m.created_at, m.status_before_removed, (g.verified_at is not null) as proved
+  )
+  select coalesce(array_agg(gone.id order by gone.id), '{}'::uuid[]),
+         max(gone.created_at),
+         coalesce(bool_or(gone.proved and gone.status_before_removed = 'approved'), false)
+    into v_removed, v_last_upload, v_profile_eligible
+    from gone;
+
+  update public.event_blocks
+     set removed_media_ids = v_removed,
+         last_upload_at = v_last_upload,
+         profile_eligible = v_profile_eligible
+   where id = v_block;
+
+  return jsonb_build_object(
+    'ok', true,
+    'event_id', v_event.id,
+    'block_id', v_block,
+    'already', false,
+    'removed', cardinality(v_removed)
+  );
+end;
+$$;
+
+revoke all on function public.block_from_event(uuid, uuid, uuid, uuid, boolean, boolean) from public, anon, authenticated;
+grant execute on function public.block_from_event(uuid, uuid, uuid, uuid, boolean, boolean) to authenticated;
+
+comment on function public.block_from_event(uuid, uuid, uuid, uuid, boolean, boolean) is
+  'The host puts one person out of one event (event-safety r1): named by an account, a guest row or a photograph; the caller must host the live event (else not_found). Inserts the block and moves every live upload of theirs to Deleted in the same step (a quietly held one too, as her own delete takes it), keeping the ids for let_back_in. p_preview answers the name, the live count, names_only and already, writing nothing; p_require_verified_email turns the switch on with it.';
+
+create or replace function public.get_my_uploads(p_limit integer default 200)
+returns table (
+  id               uuid,
+  type             public.media_type,
+  original_key     text,
+  preview_key      text,
+  created_at       timestamptz,
+  event_id         uuid,
+  event_name       text,
+  event_date       date,
+  event_qr_token   text,
+  is_host_upload   boolean,
+  width            integer,
+  height           integer,
+  duration_seconds double precision
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  -- HOST arm: media in MY events, host-added (no guest). I own the event, so name/date/token are mine.
+  select
+    m.id, m.type, m.original_key, m.preview_key, m.created_at,
+    m.event_id, e.name, e.event_date, e.qr_token, true,
+    m.width, m.height, m.duration_seconds
+  from public.media m
+  join public.events e on e.id = m.event_id and e.deleted_at is null
+  where e.host_id = (select auth.uid())
+    and m.guest_id is null
+    and m.status = 'approved'
+    and m.removed_at is null
+
+  union all
+
+  -- GUEST arm: media whose guest is ME (incl. retroactively-claimed anonymous uploads).
+  select
+    m.id, m.type, m.original_key, m.preview_key, m.created_at,
+    m.event_id, e.name, e.event_date, e.qr_token, false,
+    m.width, m.height, m.duration_seconds
+  from public.media m
+  join public.guests g on g.id = m.guest_id and g.user_id = (select auth.uid())
+  join public.events e on e.id = m.event_id and e.deleted_at is null
+  where e.host_id <> (select auth.uid())
+    and (
+      (m.status = 'approved'
+       and m.removed_at is null)
+      -- ★ THE SNEAKY BLOCK (20260928120000): an approved upload a standing block removed still shows its
+      -- uploader here, as a private album's uploads do, until the purge takes it or she deletes it
+      -- (remove_my_upload withdraws it). Never an operator's takedown; a quietly held one like any other.
+      or (m.status = 'removed'
+          and m.status_before_removed = 'approved'
+          and not m.removed_by_uploader
+          and not m.removed_by_admin
+          and exists (select 1 from public.event_blocks b
+                       where b.event_id = m.event_id
+                         and m.id = any (b.removed_media_ids)
+                         and m.removed_at = b.created_at))
+    )
+
+  order by created_at desc
+  limit p_limit;
+$$;
+
+revoke all on function public.get_my_uploads(integer) from public, anon;
+grant execute on function public.get_my_uploads(integer) to authenticated;
+
+create or replace function public.remove_my_upload(p_media_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := (select auth.uid());
+  v_is_host_upload boolean;
+  v_already_removed boolean;
+begin
+  -- Defense-in-depth (the grant already excludes anon); a missing session removes nothing.
+  if v_uid is null then
+    return jsonb_build_object('ok', false, 'reason', 'unauthorized');
+  end if;
+
+  -- Resolve ownership via the SAME two arms as get_my_uploads, capturing which arm matched. A row
+  -- matches AT MOST one arm (a host upload has guest_id NULL; a guest upload has a non-null guest_id
+  -- whose guests.user_id is the caller). The events join requires deleted_at IS NULL, matching
+  -- get_my_uploads -- media in a Trashed event isn't reachable in the tab and isn't removable here.
+  select
+    (e.host_id = v_uid and m.guest_id is null),   -- TRUE => host arm; FALSE => guest arm
+    (m.status = 'removed')
+  into v_is_host_upload, v_already_removed
+  from public.media m
+  join public.events e on e.id = m.event_id and e.deleted_at is null
+  left join public.guests g on g.id = m.guest_id
+  where m.id = p_media_id
+    and (
+      (e.host_id = v_uid and m.guest_id is null)        -- host arm
+      or (g.user_id = v_uid and e.host_id <> v_uid)     -- guest arm (incl. claimed-anonymous)
+    );
+
+  if not found then
+    return jsonb_build_object('ok', false, 'reason', 'not_found');
+  end if;
+
+  -- Idempotent: a repeat remove must NOT reset removed_at (that would extend how long the bytes
+  -- linger). Already-removed is success -- the end state is "removed" either way.
+  if v_already_removed then
+    -- ★ THE SNEAKY BLOCK (20260928120000): an approved upload a standing block removed still shows in
+    -- its uploader's own feed (get_my_uploads), so her delete there takes: it is withdrawn, final for
+    -- the host too, as every withdrawal is (removed_at stays the block's, so no window grows). Any
+    -- other removed row stays exactly as it was: a repeat remove is idempotent.
+    if not v_is_host_upload then
+      update public.media m
+         set removed_by_uploader = true
+       where m.id = p_media_id
+         and m.status = 'removed'
+         and not m.removed_by_uploader
+         and exists (select 1 from public.event_blocks b
+                      where b.event_id = m.event_id
+                        and m.id = any (b.removed_media_ids)
+                        and m.removed_at = b.created_at);
+    end if;
+    return jsonb_build_object('ok', true, 'already_removed', true);
+  end if;
+
+  -- Soft-remove. The media_set_purge_at BEFORE trigger derives purge_at on this UPDATE (do NOT set it
+  -- here, and purge_at is deliberately ungranted). removed_by_uploader = TRUE only for the guest arm,
+  -- making that removal private to the host.
+  update public.media
+     set status = 'removed',
+         removed_at = now(),
+         removed_by_uploader = not v_is_host_upload
+   where id = p_media_id and status <> 'removed';
+
+  return jsonb_build_object('ok', true, 'is_host_upload', v_is_host_upload);
+end;
+$$;
+
+revoke all on function public.remove_my_upload(uuid) from public, anon;
+grant execute on function public.remove_my_upload(uuid) to authenticated;
+
+-- =============================================================================================
+-- 13. create_report: the kind, the reporter, and the instant hide.
 -- =============================================================================================
 -- DROP + CREATE (four defaulted parameters after the old three, so the old build's call still resolves).
 -- Every reporter fact is server-derived by the route (getUser(): the id, the confirmed address, its HMAC), and
@@ -806,7 +1162,7 @@ comment on function public.create_report(text, uuid, text, public.report_kind, u
   'Files an album or item report (the qr_token is the capability). A child-abuse report of an item from a confirmed address hides the item at once as an operator''s removal (hid_at), never for the event''s host, an address a dismissed child-abuse report bars, or past 3 an address and 5 an event in 24 hours. Answers {report_id, hid, event_id}. Service-role only: the route derives every reporter fact from getUser().';
 
 -- =============================================================================================
--- 13. report_queue_facts: the grid's facts, one jsonb.
+-- 14. report_queue_facts: the grid's facts, one jsonb.
 -- =============================================================================================
 -- The same uploader, as the hold reaches them (admin/reports/actions.ts' readHoldScope): the item's guest row,
 -- every row the same account holds in the event, or, for the host's own upload, her other uploads there.
@@ -862,18 +1218,18 @@ comment on function public.report_queue_facts(uuid[], uuid[]) is
   'The reports grid''s counts in one jsonb: for each item, the same uploader''s other items in its event (more), how many of those are held (held) and the reports on them (reports); for each event, its uploads not removed and its guest rows. Service-role only; SECURITY INVOKER.';
 
 -- =============================================================================================
--- 14. The proof mail's switch, OFF until his yes.
+-- 15. The proof mail's switch, OFF until his yes.
 -- =============================================================================================
 insert into public.ops_flags (key, enabled) values ('report_proof_mail_enabled', false)
 on conflict (key) do nothing;
 
 -- ── THE ROLLED-BACK CHECK. Proved on the live schema 2026-09-29, before the apply, as ONE execute_sql call:
 -- `begin;` + this file + the block below (uncommented) + `select n, step, ok, detail from proof order by n;
--- rollback;`, every step ok (setup, 1 through 9) and nothing left behind (no report_kind, no purge_asked_at, the
--- old create_report, no switch row, profiles_set_updated_at enabled). After the apply, the same block runs alone
--- the same way: `begin;` + the block + that select + `rollback;`. It rides EXISTING rows (the newest event with
--- four live, unheld guest items and no report, hold or takedown in it) and writes only inside the transaction;
--- each step traps its own failure into the `proof` table, so one call reports all nine:
+-- rollback;`, every step ok (setup, 1 through 10) and nothing left behind (no report_kind, no purge_asked_at,
+-- the old create_report, no switch row, profiles_set_updated_at enabled). After the apply, the same block runs
+-- alone the same way: `begin;` + the block + that select + `rollback;`. It rides EXISTING rows (the newest event
+-- with five live, unheld guest items and no report, hold or takedown in it) and writes only inside the
+-- transaction; each step traps its own failure into the `proof` table, so one call reports them all:
 --   1. kept_media_ids names an item under an open item report and every item under an open album report, lets
 --      them go when the reports close, and keeps a held item.
 --   2. held_event_ids answers an event with an open report (item or album) and forgets it at the close.
@@ -893,11 +1249,13 @@ on conflict (key) do nothing;
 --      functions and authenticated none but purge_media_now, restore_media and restore_event; purge_asked_at is
 --      ungranted; the policy carries it; the switch is off; the updated_at trigger is back on.
 --   9. report_queue_facts answers its shape.
+--   10. Her block counts a quietly held upload as any other and takes it to Deleted; its uploader's own feed
+--      keeps it and her delete withdraws it; let_back_in leaves it in Deleted (restore refused).
 --
 -- create temp table proof (n serial, step text, ok boolean, detail text) on commit drop;
 -- create temp table fx (k text primary key, id uuid, bytes bigint, qr text) on commit drop;
 --
--- -- ── setup: the newest event with four live, unheld guest items and no report, hold or takedown in it ──
+-- -- ── setup: the newest event with five live, unheld guest items and no report, hold or takedown in it ──
 -- do $$
 -- declare
 --   v_event uuid; v_host uuid; v_qr text; v_other uuid; i int := 0; rec record;
@@ -906,7 +1264,7 @@ on conflict (key) do nothing;
 --     from public.events e
 --    where e.deleted_at is null
 --      and (select count(*) from public.media m
---            where m.event_id = e.id and m.status <> 'removed' and m.legal_hold_at is null and m.guest_id is not null) >= 4
+--            where m.event_id = e.id and m.status <> 'removed' and m.legal_hold_at is null and m.guest_id is not null) >= 5
 --      and not exists (select 1 from public.media m where m.event_id = e.id and (m.legal_hold_at is not null or m.removed_by_admin))
 --      and not exists (select 1 from public.reports r where r.event_id = e.id)
 --    order by e.created_at desc limit 1;
@@ -914,13 +1272,13 @@ on conflict (key) do nothing;
 --   insert into fx values ('event', v_event, null, v_qr), ('host', v_host, null, null);
 --   for rec in select m.id, m.file_size_bytes from public.media m
 --             where m.event_id = v_event and m.status <> 'removed' and m.legal_hold_at is null and m.guest_id is not null
---             order by m.created_at desc, m.id desc limit 4 loop
+--             order by m.created_at desc, m.id desc limit 5 loop
 --     i := i + 1;
 --     insert into fx values (chr(64 + i), rec.id, rec.file_size_bytes, null);
 --   end loop;
 --   select p.id into v_other from public.profiles p where p.id <> v_host order by p.created_at limit 1;
 --   insert into fx values ('other', v_other, null, null);
---   insert into proof (step, ok, detail) values ('setup', true, 'event ' || v_event || ', items A-D');
+--   insert into proof (step, ok, detail) values ('setup', true, 'event ' || v_event || ', items A-E');
 -- end $$;
 --
 -- -- ── 1. kept_media_ids: an open item report keeps its item, an open album report its album, a hold its row ──
@@ -1213,3 +1571,78 @@ on conflict (key) do nothing;
 -- exception when others then
 --   insert into proof (step, ok, detail) values ('9 report_queue_facts', false, sqlerrm);
 -- end $$;
+--
+-- -- ── 10. Her block takes a quietly held upload like any other; its uploader's feed keeps it; a restore refuses it ──
+-- do $$
+-- declare ev uuid; host uuid; e uuid; g uuid; uid uuid; prior text; res jsonb; n0 int; n1 int; seen int; v_block uuid;
+-- begin
+--   -- The subject: the newest approved upload a signed-in guest (never the host) sent to a live event with no
+--   -- block, hold or takedown in it, so her own feed and delete are checked too; else E, those two unchecked.
+--   select m.id, m.event_id, m.guest_id, gu.user_id, ev0.host_id into e, ev, g, uid, host
+--     from public.media m
+--     join public.events ev0 on ev0.id = m.event_id and ev0.deleted_at is null
+--     join public.guests gu on gu.id = m.guest_id
+--    where m.status = 'approved' and m.legal_hold_at is null and not m.removed_by_admin
+--      and gu.user_id is not null and gu.user_id <> ev0.host_id
+--      and not exists (select 1 from public.event_blocks b where b.event_id = ev0.id)
+--      and not exists (select 1 from public.media o
+--                       where o.event_id = ev0.id and (o.legal_hold_at is not null or o.removed_by_admin))
+--    order by m.created_at desc limit 1;
+--   if e is null then
+--     select id into ev from fx where k = 'event'; select id into host from fx where k = 'host';
+--     select id into e from fx where k = 'E';
+--     select m.guest_id into g from public.media m where m.id = e;
+--     select gu.user_id into uid from public.guests gu where gu.id = g;
+--   end if;
+--   select m.status::text into prior from public.media m where m.id = e;
+--   perform set_config('request.jwt.claims', json_build_object('sub', host, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   res := public.block_from_event(p_guest_id := g, p_preview := true);
+--   if res->>'reason' = 'not_a_guest' then raise exception 'SETUP 10: E''s uploader cannot be blocked (%)', res; end if;
+--   n0 := (res->>'uploads')::int;
+--   reset role;
+--   update public.media set legal_hold_at = now(), legal_hold_reason = 'proof: quiet block' where id = e;
+--   set local role authenticated;
+--   res := public.block_from_event(p_guest_id := g, p_preview := true);
+--   n1 := (res->>'uploads')::int;
+--   if n1 is distinct from n0 then raise exception 'the preview counts % with the hold, % without', n1, n0; end if;
+--   res := public.block_from_event(p_guest_id := g);
+--   v_block := (res->>'block_id')::uuid;
+--   if v_block is null then raise exception 'the block failed: %', res; end if;
+--   reset role;
+--   select count(*) into seen from public.media
+--    where id = e and status = 'removed' and not removed_by_admin and not removed_by_uploader;
+--   if seen <> 1 then raise exception 'the block skipped the quietly held upload'; end if;
+--   if uid is not null and prior = 'approved' then
+--     perform set_config('request.jwt.claims', json_build_object('sub', uid, 'role', 'authenticated')::text, true);
+--     set local role authenticated;
+--     select count(*) into seen from public.get_my_uploads(1000) u where u.id = e;
+--     if seen <> 1 then raise exception 'her feed dropped the held blocked upload'; end if;
+--     reset role;
+--   end if;
+--   perform set_config('request.jwt.claims', json_build_object('sub', host, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   res := public.let_back_in(v_block, true);
+--   reset role;
+--   select count(*) into seen from public.media where id = e and status = 'removed' and legal_hold_at is not null;
+--   if seen <> 1 then raise exception 'let_back_in restored a held upload: %', res; end if;
+--   -- ...and, blocked again, her own delete withdraws it like any other blocked upload.
+--   if uid is not null and prior = 'approved' then
+--     update public.media set status = 'approved', removed_at = null where id = e;
+--     perform set_config('request.jwt.claims', json_build_object('sub', host, 'role', 'authenticated')::text, true);
+--     set local role authenticated;
+--     res := public.block_from_event(p_guest_id := g);
+--     reset role;
+--     perform set_config('request.jwt.claims', json_build_object('sub', uid, 'role', 'authenticated')::text, true);
+--     set local role authenticated;
+--     res := public.remove_my_upload(e);
+--     reset role;
+--     select count(*) into seen from public.media where id = e and removed_by_uploader;
+--     if seen <> 1 then raise exception 'her delete did not withdraw the held blocked upload: %', res; end if;
+--   end if;
+--   insert into proof (step, ok, detail) values ('10 quiet hold and the block', true,
+--     format('preview %s = %s; her feed and delete checked: %s', n0, n1, uid is not null and prior = 'approved'));
+-- exception when others then
+--   insert into proof (step, ok, detail) values ('10 quiet hold and the block', false, sqlerrm);
+-- end $$;
+-- reset role;

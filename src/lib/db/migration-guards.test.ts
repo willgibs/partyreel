@@ -2378,7 +2378,12 @@ describe("the per-event block and the always-on guest list (20260928120000)", ()
   });
 
   describe("the host's two acts", () => {
-    it("block_from_event re-checks the host, previews before it writes, skips a hold and keeps what the restore reads", () => {
+    // ★ RESHAPED ON PURPOSE (triage-r2-wiring, 2026-09-29; scar kept: the host re-checked, the preview before any
+    // write, the removal the host's own). The block no longer skips a held row: under a quiet hold the photograph
+    // stayed in the album the block emptied, and the confirm counted one fewer than she could see, the tell
+    // Will's quiet hold forbids ("the host's own delete of a quietly held item looks like any delete"). The
+    // expired reason: "a hold is immutable to the host". let_back_in still skips one (restore refused).
+    it("block_from_event re-checks the host, previews before it writes, takes a quietly held row like any other and keeps what the restore reads", () => {
       const act = code("block_from_event");
       expect(act).toContain("security definer set search_path = ''");
       expect(act).toContain(
@@ -2388,10 +2393,11 @@ describe("the per-event block and the always-on guest list (20260928120000)", ()
       expect(
         act.indexOf("if p_preview then return jsonb_build_object("),
       ).toBeLessThan(act.indexOf("insert into public.event_blocks"));
-      // Their uploads leave for Deleted in the same step, as the host's own removal, a held row skipped.
+      // Their uploads leave for Deleted in the same step, as the host's own removal, a held row with them.
       expect(act).toContain(
-        "update public.media m set status = 'removed', removed_at = now() from public.guests g where g.id = m.guest_id and g.event_id = v_event.id and m.event_id = v_event.id and m.status <> 'removed' and m.legal_hold_at is null and public.event_block_names_row(v_user, v_email, v_row, g)",
+        "update public.media m set status = 'removed', removed_at = now() from public.guests g where g.id = m.guest_id and g.event_id = v_event.id and m.event_id = v_event.id and m.status <> 'removed' and public.event_block_names_row(v_user, v_email, v_row, g)",
       );
+      expect(act).not.toContain("legal_hold_at");
       expect(act).not.toContain("removed_by_uploader");
       expect(act).toContain("set removed_media_ids = v_removed");
       // The host is never their own guest.
@@ -2491,14 +2497,20 @@ describe("the per-event block and the always-on guest list (20260928120000)", ()
   });
 
   describe("her own feed and lists read as a private album's", () => {
-    it("get_my_uploads keeps an approved upload a standing block removed, never a hold or a takedown, and her delete withdraws it", () => {
+    // ★ RESHAPED ON PURPOSE (triage-r2-wiring, 2026-09-29; scar kept: never a takedown, and her delete withdraws
+    // it). A block now takes a quietly held upload like any other, so her own feed keeps it like any other and
+    // her delete withdraws it: a feed that dropped it would tell the uploader, who may be the one investigated.
+    // The expired reason: "never a hold".
+    it("get_my_uploads keeps an approved upload a standing block removed, never a takedown, a quietly held one like any other, and her delete withdraws it", () => {
       const feed = code("get_my_uploads");
       expect(feed).toContain(
-        "or (m.status = 'removed' and m.status_before_removed = 'approved' and not m.removed_by_uploader and not m.removed_by_admin and m.legal_hold_at is null and exists (select 1 from public.event_blocks b where b.event_id = m.event_id and m.id = any (b.removed_media_ids) and m.removed_at = b.created_at))",
+        "or (m.status = 'removed' and m.status_before_removed = 'approved' and not m.removed_by_uploader and not m.removed_by_admin and exists (select 1 from public.event_blocks b where b.event_id = m.event_id and m.id = any (b.removed_media_ids) and m.removed_at = b.created_at))",
       );
+      expect(feed).not.toContain("legal_hold_at");
       expect(code("remove_my_upload")).toContain(
-        "update public.media m set removed_by_uploader = true where m.id = p_media_id and m.status = 'removed' and not m.removed_by_uploader and m.legal_hold_at is null",
+        "update public.media m set removed_by_uploader = true where m.id = p_media_id and m.status = 'removed' and not m.removed_by_uploader and exists (select 1 from public.event_blocks b",
       );
+      expect(code("remove_my_upload")).not.toContain("legal_hold_at");
     });
 
     it("blocked_events_for keeps her card's place and her picker's tile for her own blocks, as SECURITY DEFINER for the service role", () => {

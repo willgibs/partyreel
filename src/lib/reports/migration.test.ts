@@ -67,7 +67,7 @@ function ownFunctions(): string[] {
 describe("the grants", () => {
   it("★ revokes EXECUTE from public and anon on every function it creates or replaces", () => {
     const names = ownFunctions();
-    expect(names).toHaveLength(14); // the set itself is pinned below
+    expect(names).toHaveLength(17); // the set itself is pinned below
     for (const name of names) {
       expect(OWN, `public.${name} keeps its inherited grants`).toMatch(
         new RegExp(
@@ -94,6 +94,9 @@ describe("the grants", () => {
       reports_forget_reporter: null,
       media_release_meter: null,
       guard_media_privileged_transitions: null,
+      block_from_event: "authenticated",
+      get_my_uploads: "authenticated",
+      remove_my_upload: "authenticated",
     };
     expect(ownFunctions().sort()).toEqual(Object.keys(callers).sort());
     for (const [name, role] of Object.entries(callers)) {
@@ -219,6 +222,13 @@ describe("the meter, the quiet hold and the switch", () => {
     expect(newest("purge_media_rows")).toContain(
       "sum(case when d.released then 0 else d.file_size_bytes end)",
     );
+  });
+
+  it("★ lets her block take a quietly held row like any other, and counts it; a restore still refuses it", () => {
+    expect(newest("block_from_event")).not.toContain("legal_hold_at");
+    expect(newest("get_my_uploads")).not.toContain("legal_hold_at");
+    expect(newest("remove_my_upload")).not.toContain("legal_hold_at");
+    expect(newest("let_back_in")).toContain("and m.legal_hold_at is null");
   });
 
   it("lets a quietly held row take her own acts, and only the restore RPC takes a row out of Deleted", () => {
