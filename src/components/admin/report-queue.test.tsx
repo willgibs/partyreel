@@ -613,9 +613,13 @@ describe("a reopened report whose item is gone is that item's (crumbs-21, migrat
       within(verbs).queryByRole("button", { name: "Hold for forensics…" }),
     ).toBeNull();
     await user.click(within(verbs).getByRole("button", { name: "Action…" }));
-    const confirm = screen
-      .getAllByRole("dialog")
-      .find((d) => within(d).queryByText("Close this report as Actioned?"))!;
+    // The confirm is found by its words whatever its role (a dialog today; crumbs-20 announces every
+    // confirm as an alertdialog): what this pins is what it says.
+    const confirm = [
+      ...screen.queryAllByRole("dialog"),
+      ...screen.queryAllByRole("alertdialog"),
+    ].find((d) => within(d).queryByText("Close this report as Actioned?"))!;
+    expect(confirm).toBeDefined();
     expect(
       within(confirm).getByText(
         "The photo is already deleted; the report closes as Actioned.",
