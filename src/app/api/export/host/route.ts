@@ -9,9 +9,10 @@
  * limiter + cap + token sign + log.
  *
  * ★ THE ALBUM IS READ WHOLE (the 1,000-row round): `listEventMedia` pages to the last row, so the
- * summary counts every item and the manifest's MAX_EXPORT_ITEMS (2,000) refuses an album past it
- * with a 413. Through one PostgREST request a 2,500-item album would arrive as its newest 1,000: the
- * summary would under-count, and the zip would silently leave out the oldest 1,500.
+ * summary counts every item and a walk's parts (`part`, `after`: `export-flow` r1's `cap=split`)
+ * cover every one; a request without a walk keeps the old 413 past one zip's 2,000 items. Through
+ * one PostgREST request a 2,500-item album would arrive as its newest 1,000: the summary would
+ * under-count, and the zip would silently leave out the oldest 1,500.
  */
 import { NextResponse } from "next/server";
 
@@ -20,6 +21,7 @@ import { z } from "zod";
 import { listEventMedia } from "@/lib/db/queries/media";
 import { BULK_LIMIT_MESSAGE } from "@/lib/event/bulk-selection";
 import {
+  EXPORT_CURSOR_RE,
   type ExportMediaRow,
   MAX_EXPORT_ITEMS,
 } from "@/lib/export/build-manifest";
@@ -41,6 +43,10 @@ const bodySchema = z.object({
   include_hidden: z.boolean().default(false),
   // Present only for bulk "Download selected" — narrows the set to these ids.
   ids: z.array(z.uuid()).min(1).max(MAX_EXPORT_ITEMS).optional(),
+  // THE WALK (`cap=split`): which part this mint is, and where the last one ended. Every current
+  // client sends `part`; without it, an album past one zip is the old 413 (build-manifest.ts).
+  part: z.number().int().min(1).max(10_000).optional(),
+  after: z.string().regex(EXPORT_CURSOR_RE).optional(),
 });
 
 function bad(message?: string) {
@@ -67,14 +73,20 @@ export async function POST(request: Request) {
   // The bar's other bulk verbs refuse the same selection in the same words (bulk-selection.ts).
   if (!parsed.success)
     return bad(overSelected(body) ? BULK_LIMIT_MESSAGE : undefined);
-  const { step, event_id, types, include_hidden, ids } = parsed.data;
+  const { step, event_id, types, include_hidden, ids, part, after } =
+    parsed.data;
+  // A position with no part to put it in is no request a client makes.
+  if (after && (!part || part < 2)) return bad();
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ ok: false, code: "unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      { ok: false, code: "unauthorized" },
+      { status: 401 },
+    );
   }
 
   // Own-event check + the name in one RLS-scoped read (explicit host_id, not the open-event policy).
@@ -98,10 +110,12 @@ export async function POST(request: Request) {
     mediaRows = mediaRows.filter((m) => set.has(m.id));
   }
   const rows: ExportMediaRow[] = mediaRows.map((m) => ({
+    id: m.id,
     type: m.type,
     original_key: m.original_key,
     file_size_bytes: m.file_size_bytes,
     status: m.status,
+    created_at: m.created_at,
   }));
 
   if (step === "summary") {
@@ -116,6 +130,7 @@ export async function POST(request: Request) {
     types,
     includeHidden: include_hidden,
     ip: clientIp(request.headers),
+    walk: part ? { part, after: after ?? null } : undefined,
   });
   return mintResponse(result);
 }

@@ -36,14 +36,23 @@ vi.mock("@/lib/events/gallery-access.server", () => ({
 vi.mock("@/lib/events/unlock-cookie", () => ({
   isUnlocked: vi.fn().mockResolvedValue(true),
 }));
+const readGuestSessionCookie = vi.fn();
 vi.mock("@/lib/guest/session-cookie", () => ({
-  readGuestSessionCookie: vi.fn().mockResolvedValue(null),
+  readGuestSessionCookie: (...a: unknown[]) => readGuestSessionCookie(...a),
 }));
-vi.mock("@/lib/demo", () => ({ isDemoToken: () => false }));
+let demo = false;
+vi.mock("@/lib/demo", () => ({ isDemoToken: () => demo }));
+/** Who `getUser()` says is asking (null: signed out). */
+let authUser: { id: string; email_confirmed_at: string | null } | null = null;
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
-    auth: { getUser: async () => ({ data: { user: null } }) },
+    auth: { getUser: async () => ({ data: { user: authUser } }) },
   }),
+}));
+// YOURS' OWN READ (`yours.server.ts`): what the server knows is hers, by account and by ticket.
+const ownMediaIds = vi.fn();
+vi.mock("@/lib/export/yours.server", () => ({
+  ownMediaIds: (...a: unknown[]) => ownMediaIds(...a),
 }));
 const mintExport = vi.fn();
 vi.mock("@/lib/export/export-service", () => ({
@@ -121,6 +130,10 @@ function galleryOf(rows: ReturnType<typeof album>["rows"]) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  demo = false;
+  authUser = null;
+  readGuestSessionCookie.mockResolvedValue(null);
+  ownMediaIds.mockResolvedValue(new Set());
   getEventByQrToken.mockResolvedValue({
     ok: true,
     data: {
@@ -278,4 +291,249 @@ describe("the closed door: an album closed to this browser exports nothing", () 
     expect(resolveViewerDecision).not.toHaveBeenCalled();
     expect(loadGalleryRowsForAccess).not.toHaveBeenCalled();
   });
+});
+
+/**
+ * ★ YOURS IS HER OWN, AS THE SERVER KNOWS IT (`export-flow` r1, `means=mine`). The Yours row and its
+ * zip come from `ownMediaIds` (her account's rows and this browser's ticket's, `yours.server.ts`),
+ * intersected with what she can see; nothing in the request ever makes a photograph hers.
+ */
+describe("Yours: her own uploads, filtered on the server", () => {
+  const TICKET = "a".repeat(64);
+
+  it("the summary counts Yours inside the album, and only what she can see of it", async () => {
+    const { rows, media } = album(30);
+    fake = createFakePostgrest({ tables: { media } });
+    loadGalleryRowsForAccess.mockResolvedValue(galleryOf(rows));
+    readGuestSessionCookie.mockResolvedValue(TICKET);
+    // Hers: three in the album, and one the album does not show her (held, or someone else's view).
+    ownMediaIds.mockResolvedValue(new Set([uid(1), uid(2), uid(11), uid(999)]));
+
+    const res = await post({ step: "summary", qr_token: QR });
+    const body = (await res.json()) as {
+      summary: ReturnType<typeof summarizeMedia>;
+      yours: ReturnType<typeof summarizeMedia> | null;
+    };
+
+    expect(ownMediaIds).toHaveBeenCalledWith({
+      eventId: "evt-1",
+      userId: null,
+      sessionToken: TICKET,
+    });
+    expect(
+      body.summary.shown.photo.count + body.summary.shown.video.count,
+    ).toBe(30);
+    // Every tenth row from the first is a video (uid 1 and uid 11); uid(999) is not in the album.
+    expect(body.yours?.shown.photo).toEqual({ count: 1, bytes: 1001 });
+    expect(body.yours?.shown.video).toEqual({ count: 2, bytes: 1000 + 1010 });
+  });
+
+  it("the summary says no Yours when she has nothing here", async () => {
+    const { rows, media } = album(5);
+    fake = createFakePostgrest({ tables: { media } });
+    loadGalleryRowsForAccess.mockResolvedValue(galleryOf(rows));
+
+    const res = await post({ step: "summary", qr_token: QR });
+    expect((await res.json()).yours).toBeNull();
+  });
+
+  it("a Yours zip holds hers alone, named for them, and measures only them", async () => {
+    const { rows, media } = album(400);
+    fake = createFakePostgrest({ tables: { media } });
+    loadGalleryRowsForAccess.mockResolvedValue(galleryOf(rows));
+    authUser = { id: "user-1", email_confirmed_at: "2026-09-01T00:00:00Z" };
+    ownMediaIds.mockResolvedValue(new Set([uid(3), uid(250)]));
+    mintExport.mockResolvedValue({ ok: true, token: "t", workerUrl: "w" });
+
+    await post({ step: "mint", qr_token: QR, set: "yours", part: 1 });
+
+    expect(ownMediaIds).toHaveBeenCalledWith({
+      eventId: "evt-1",
+      userId: "user-1",
+      sessionToken: null,
+    });
+    const input = mintExport.mock.calls[0][0] as {
+      rows: { id: string }[];
+      zipLabel?: string;
+      walk?: unknown;
+    };
+    expect(input.rows.map((r) => r.id)).toEqual([uid(3), uid(250)]);
+    expect(input.zipLabel).toBe("yours");
+    expect(input.walk).toEqual({ part: 1, after: null });
+    // Two sizes read, in one request: never the whole album's.
+    expect(fake.requests).toHaveLength(1);
+  });
+
+  it("ids in the request never make a photograph hers: they only narrow her own", async () => {
+    const { rows, media } = album(40);
+    fake = createFakePostgrest({ tables: { media } });
+    loadGalleryRowsForAccess.mockResolvedValue(galleryOf(rows));
+    ownMediaIds.mockResolvedValue(new Set([uid(4)]));
+    mintExport.mockResolvedValue({ ok: true, token: "t", workerUrl: "w" });
+
+    await post({
+      step: "mint",
+      qr_token: QR,
+      set: "yours",
+      ids: [uid(4), uid(5), uid(6)],
+      part: 1,
+    });
+
+    const input = mintExport.mock.calls[0][0] as { rows: { id: string }[] };
+    expect(input.rows.map((r) => r.id)).toEqual([uid(4)]);
+  });
+
+  it("a body's own session token is ignored: the ticket is this browser's cookie", async () => {
+    const { rows, media } = album(3);
+    fake = createFakePostgrest({ tables: { media } });
+    loadGalleryRowsForAccess.mockResolvedValue(galleryOf(rows));
+    mintExport.mockResolvedValue({ ok: true, token: "t", workerUrl: "w" });
+
+    await post({
+      step: "mint",
+      qr_token: QR,
+      set: "yours",
+      session_token: "b".repeat(64),
+      part: 1,
+    });
+
+    expect(ownMediaIds).toHaveBeenCalledWith({
+      eventId: "evt-1",
+      userId: null,
+      sessionToken: null,
+    });
+    // Nothing is hers, so nothing is in the zip (the mint says it is empty).
+    const input = mintExport.mock.calls[0][0] as { rows: unknown[] };
+    expect(input.rows).toEqual([]);
+  });
+
+  it("the demo has no Yours: nobody is anybody there", async () => {
+    demo = true;
+    const { rows, media } = album(3);
+    fake = createFakePostgrest({ tables: { media } });
+    loadGalleryRowsForAccess.mockResolvedValue(galleryOf(rows));
+
+    const res = await post({ step: "summary", qr_token: QR });
+
+    expect(ownMediaIds).not.toHaveBeenCalled();
+    expect(readGuestSessionCookie).not.toHaveBeenCalled();
+    expect((await res.json()).yours).toBeNull();
+  });
+
+  it("an album zip never asks who she is", async () => {
+    const { rows, media } = album(3);
+    fake = createFakePostgrest({ tables: { media } });
+    loadGalleryRowsForAccess.mockResolvedValue(galleryOf(rows));
+    mintExport.mockResolvedValue({ ok: true, token: "t", workerUrl: "w" });
+
+    await post({ step: "mint", qr_token: QR, part: 1 });
+
+    expect(ownMediaIds).not.toHaveBeenCalled();
+    expect(
+      (mintExport.mock.calls[0][0] as { rows: unknown[] }).rows,
+    ).toHaveLength(3);
+  });
+});
+
+describe("the album's own narrowing and walk", () => {
+  it("a zip's missed ones, asked again, are only ever what she can see", async () => {
+    const { rows, media } = album(20);
+    fake = createFakePostgrest({ tables: { media } });
+    loadGalleryRowsForAccess.mockResolvedValue(galleryOf(rows));
+    mintExport.mockResolvedValue({ ok: true, token: "t", workerUrl: "w" });
+    const foreign = "11111111-2222-4333-8444-555555555555";
+
+    await post({ step: "mint", qr_token: QR, ids: [uid(7), foreign], part: 1 });
+
+    const input = mintExport.mock.calls[0][0] as { rows: { id: string }[] };
+    expect(input.rows.map((r) => r.id)).toEqual([uid(7)]);
+  });
+
+  it("carries a walk's part and position to the mint, and none without one", async () => {
+    const { rows, media } = album(3);
+    fake = createFakePostgrest({ tables: { media } });
+    loadGalleryRowsForAccess.mockResolvedValue(galleryOf(rows));
+    mintExport.mockResolvedValue({ ok: true, token: "t", workerUrl: "w" });
+    const after = `1727130818122_${uid(2)}`;
+
+    await post({ step: "mint", qr_token: QR, part: 2, after });
+    await post({ step: "mint", qr_token: QR });
+
+    expect(mintExport.mock.calls[0][0]).toMatchObject({
+      walk: { part: 2, after },
+    });
+    expect(
+      (mintExport.mock.calls[1][0] as { walk?: unknown }).walk,
+    ).toBeUndefined();
+  });
+
+  it("refuses a position with no part, or one that is no position", async () => {
+    for (const body of [
+      { step: "mint", qr_token: QR, after: `1727130818122_${uid(2)}` },
+      { step: "mint", qr_token: QR, part: 1, after: `1727130818122_${uid(2)}` },
+      { step: "mint", qr_token: QR, part: 2, after: "'; drop table media; --" },
+      { step: "mint", qr_token: QR, set: "everyone" },
+      { step: "mint", qr_token: QR, ids: ["not-a-uuid"] },
+    ]) {
+      const res = await post(body);
+      expect(res.status).toBe(400);
+    }
+    expect(loadGalleryRowsForAccess).not.toHaveBeenCalled();
+    expect(mintExport).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ THE BLOCK'S DOOR STAYS ON EVERY EXPORT PATH (`safety-wiring`'s closed door). Yours, a narrowed
+ * retry and every part of a walk answer a ticket a block holds exactly as they answer a private
+ * album, and read nothing: not the album, not her own, not a size.
+ */
+describe("the closed door on every path export-flow added", () => {
+  const AFTER = `1727130818122_${uid(2)}`;
+  const variants: [string, Record<string, unknown>][] = [
+    ["the summary (Yours' counts)", { step: "summary" }],
+    ["a Yours zip", { step: "mint", set: "yours", part: 1 }],
+    ["a narrowed retry", { step: "mint", ids: [uid(1)], part: 1 }],
+    ["a walk's second part", { step: "mint", part: 2, after: AFTER }],
+    [
+      "Yours' second part",
+      { step: "mint", set: "yours", part: 2, after: AFTER },
+    ],
+  ];
+
+  it.each(variants)(
+    "%s: held exactly as a private album is",
+    async (_, extra) => {
+      const body = { qr_token: QR, ...extra };
+      readGuestSessionCookie.mockResolvedValue("c".repeat(64));
+
+      getEventByQrToken.mockResolvedValue({
+        ok: true,
+        data: { id: "evt-1", visibility: "private", qr_token: QR, name: "" },
+      });
+      const shut = await post(body);
+      const shutBody = await shut.json();
+
+      getEventByQrToken.mockResolvedValue({
+        ok: true,
+        data: {
+          id: "evt-1",
+          visibility: "open",
+          qr_token: QR,
+          name: "Scale probe",
+        },
+      });
+      ticketBlocked.mockResolvedValue(true);
+      const held = await post(body);
+      ticketBlocked.mockReset();
+
+      expect(held.status).toBe(shut.status);
+      expect(held.status).toBe(403);
+      expect(await held.json()).toEqual(shutBody);
+      expect(resolveViewerDecision).not.toHaveBeenCalled();
+      expect(loadGalleryRowsForAccess).not.toHaveBeenCalled();
+      expect(ownMediaIds).not.toHaveBeenCalled();
+      expect(mintExport).not.toHaveBeenCalled();
+    },
+  );
 });

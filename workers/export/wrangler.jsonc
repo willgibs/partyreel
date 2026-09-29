@@ -7,12 +7,16 @@
   "name": "partyreel-export",
   "main": "src/index.ts",
   "compatibility_date": "2026-06-22",
+  // `request.signal` fires when the client leaves, so the check (`/check`) stops reading the moment
+  // the app's cancel closes it. It changes nothing the stream answers (compat.test.ts).
+  "compatibility_flags": ["enable_request_signal"],
   "observability": { "enabled": true },
   // v1 ships on the *.workers.dev URL (EXPORT_WORKER_URL in the app points here); a custom
   // export.partyreel.com subdomain is a deferred polish.
   "workers_dev": true,
 
-  // Native R2 binding (no S3 creds in the Worker) — the live bucket, read-only use here (.get only).
+  // Native R2 binding (no S3 creds in the Worker) — the live bucket, read-only use here (.get to
+  // stream; .head and .list to check).
   "r2_buckets": [{ "binding": "PRIMARY", "bucket_name": "partyreel" }],
 
   // EXPORT_MODE is the kill-switch's redeploy layer ("on" default; flip to "off" + redeploy to hard-halt).
@@ -22,7 +26,7 @@
   "vars": { "EXPORT_MODE": "on" },
 
   // Store-only zip CPU is CRC32 over the bytes (I/O wait is NOT billed). Raise the CPU ceiling to the
-  // 5-min max for headroom on large albums; the app caps each export (<=2000 items / ~20 GB) so the
-  // worst case stays well under this.
+  // 5-min max for headroom on large albums; the app caps each zip (<=2000 items / ~20 GB, a bigger
+  // album comes in parts) so the worst case stays well under this.
   "limits": { "cpu_ms": 300000 }
 }
