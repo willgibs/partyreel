@@ -1,6 +1,6 @@
 ---
 track: settings-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off            # open -> handed-off; deleted in the merge commit that integrates it
 cut: "18491027"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -262,69 +262,86 @@ Each is built as recommended and is his to overrule; no one-way door was guessed
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits** on `lp/settings-wiring`, pushed (the head is in the chat line): `e865f622` phase 1 (the doors' backend
+  and its proof), `403aa329` phase 2 (the guest path), `170fc8c6` a sync, `384fafd7` the board retired, `46174f96`
+  phases 3 and 4 (settings as four sentences, the door's page), `b1c90382` phase 5 (the Guests room, the pulse, the
+  bell), `4d5531ea` phase 6 (the words, the gated album's Guest card), `96c55e9a` the sync with launch-prep at
+  `231534a0`, `b25d4595` a closed page keeps what was typed and the system docs, `f2b717bf` and `ea23fb59` the Guests
+  room's door in the Library (`77e78482` a checkpoint of this manifest between them), `1b55aa1f` the sync with launch-prep at `96a9c995` (it brings `docs/ROADMAP.md` and
+  `docs/tracks/orchestrator.md` alone), then this manifest.
+- **Gates on `ea23fb59`**, synced with launch-prep's code at `231534a0`, each on its own exit code: `pnpm typecheck` 0,
+  `pnpm lint` 0 (0 warnings), `pnpm test` 0 (586 files, 6,721 tests), `zsh scripts/build-lock.sh pnpm build` 0,
+  `pnpm lab:smoke --base http://localhost:3131` 0 (172 checks, 0 failing). The head reaches `ea23fb59` by docs alone.
+  Logs: `../partyreel-wt/_scratch/settings-wiring/` (`lib-*.log`, `final-*.log`).
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): owned paths, this manifest, and seven named
+  exceptions. The retirement's three shared lists (`src/app/(dev)/design/(shell)/lab/boards.ts`,
+  `src/app/(dev)/design/sandbox/registry.ts`, `src/app/(dev)/design/touchpoints.ts`; `384fafd7`, the brief's named
+  exceptions; lab-revamp owns them now, and the kit's diff3 resolver carries them). Three paths released to lanes cut
+  after mine, each edited here in `46174f96` before those cuts: `src/lib/db/migration-guards.test.ts` (the album read's
+  ACL guards reshaped with their scars, since the newest definition is this lane's; schema-pass owns it now),
+  `src/components/ui/popup.tsx` (`PopupHeader`'s `up`, the settings pages' back arrow; crumbs-14 owns it now for the
+  screen header's back label, so the two merges meet in `PopupHeader`) and
+  `src/components/app/event-feed/event-hub.test.tsx` (the settings card's pins reshaped; crumbs-14 owns it now). And
+  `docs/systems/billing-caps.md`, under System-doc edits.
+- **The items:**
+  - The doors' backend: `supabase/migrations/20260929120000_event_doors.sql` (the gate and its enum, `allow_videos`,
+    a guest's admission and check-in stamp, the invite list, the door's reads and acts, every guest-path function
+    replaced, `get_event_by_qr_token`'s ACL narrowed to the roles that call it), its rolled-back proof held on the live
+    schema (twelve rows, quoted in its foot, the ACL's own proof beside them).
+  - The guest path: one decision a request (`closed-door.server.ts`); the one shut screen and the previous guest's
+    line; the held door, which checks in every 30 s and opens itself; the ask at approve; the unlisted ask on the shut
+    door, built where locked-door r2 placed it (nothing in the code argued against it); the door's pass; every guest
+    route re-checking the door.
+  - Settings as four sentences: live words, a page each with a back arrow, every control saving itself; Dormant and
+    ConsequenceLine as Library primitives; the Videos switch, locked on Free and a switch on paid plans.
+  - The door's page: four steps, each gate's line and its (i), "N guests are already in", the consequence lines (Only
+    me with guests in, Public or closed with someone waiting), the invite and waiting pointers.
+  - Milestone 30's two bugs: a place opened from a link closes (a hydration gate; the settings pages and their back
+    arrow too; pinned in `event-share-provider.test.tsx`), and the custom link's error is announced (a live region and
+    `aria-describedby`).
+  - The Guests room: At the door (Let in; Decline is a block, with Undo), Invited (a typed or pasted list, capped at
+    500, Joined or Not yet), Invite on every door; the hub's Guests card says who waits, the pulse's first step, the
+    bell's rows.
+  - The words: every help article naming visibility, the password or who can join (the day-of checklist and
+    your-event-page-explained's card order among them), the privacy page's switch and the album's plate in the door's
+    words, the FAQs, JSON-LD, trust strip and pricing, the app's email-switch dialog and hints; `VISIBILITY_LABELS` and
+    `VISIBILITY_HINTS` retired. No legal words touched, per the relay.
+  - Found on the way: a gated album is stored private, so the Guest card, the picker's tile and a claim's Open album
+    locked for guests already in; they read its gate now (`readEventGates`). A guest's clip Add follows Videos. A typed
+    field keeps what was typed when its page closes (`event-page.test.tsx` fails without it). The Guests room's door
+    has a Library composition, since the room is sign-in-gated.
+  - The `event-settings` board retired (its ledger is the Orchestrator's to delete).
+- **Verified** in headless Chrome at 1440 and 375 with reduced motion: the Library's settings composition (the rows,
+  the door's page, the email step held under a gate), the Guests room's composition (At the door, Decline and its
+  toast, Invited with a paste and a flagged chip), the privacy page's three answers, the album's plate, pricing's row
+  and card, the trust strip, the help's held-door screen. The dashboard itself is sign-in-gated, so its sheet, the deep
+  link's close and the Guests room in place wait on the walks below.
+- Assets requested from Will: none.
+- **Board ideas:** the held door's waiting (his "a more engaging waiting experience", locked-door r2's to draw); the
+  invite list reading the phone's own contacts; an approve or invite album unfurling with its name.
+- **Proposed migrations:** `supabase/migrations/20260929120000_event_doors.sql`, by its APPLY PROTOCOL (the drift check
+  against the live bodies it lists, the rolled-back check at its foot on the live schema, apply verbatim, the hashes
+  after), then regenerate `src/lib/db/types.ts`. The code runs on either side (a typed and a runtime seam read a missing
+  schema as today's three doors, captured as `doors_schema_missing`), so apply and push go in either order. The
+  expected advisor delta: 0029 from 29 to 33 (the four host acts; Questions), 0028 and `rls_enabled_no_policy`
+  unchanged (`event_invites` keeps RLS and a host select policy). No Worker, Vercel, Stripe or env change.
+- Calls his to overrule: the thirteen under Questions.
+- **The live red-team's walks** (after the apply, on the launch-prep alias; partyr33l the newcomer, willg97 the host,
+  one test event): (1) Private, you let each person in: partyr33l confirms and waits; the Guests card, the pulse and
+  the bell count her; Let in, and her door opens by itself within 30 s. (2) Decline another newcomer: the shut screen
+  and no ask; Undo; Let back in under Blocked. (3) Your invite list: paste a list with an unreadable entry; her address
+  comes straight in and reads Joined; removing it leaves her in; an unlisted account meets the shut door's "Ask Maya to
+  let me in" and "Use a different email", and asking holds her at the door. (4) Only people already in: she keeps
+  adding; a fresh visitor meets "This album is closed". (5) A password: she passes without it; a signed-out window is
+  asked. (6) Both swaps: Only me with guests in (the consequence line; then she reads "This album is private" and her
+  Guest card locks) and Public with someone waiting (the held door opens); back to only people already in, her card
+  is named and linked again. (7) Videos off on Pro: photos only in the picker and the terms line, no clip Add for
+  guests, the host still adds a video; on Free the locked switch opens the plans. (8) The deep link:
+  `/dashboard/<id>/settings` and `?room=settings&setting=door` close with Escape, the X and the back arrow, Back closes
+  Settings, and Checkout's return with `?room=share` closes. (9) The custom link's refusal is announced and describes
+  its field. (10) A new event name typed and Escape pressed at once is saved. (11) Cross-tenant and abuse: another
+  host's session against the event's door and invite acts answers not found; `/api/guests/ask` and `/api/guests/door`
+  at a shut album answer the private album's words; a signed-out ask answers 422.
+- Look at first: the door's page at 375 (its steps, a gate's (i), a consequence line), then the Guests room's At the
+  door, then the shut door's unlisted ask.
 
-## Where I am (checkpoint for a respawned me, 2026-09-29)
-
-Working rules are the spawn brief's: dev server on 3131 only, `zsh scripts/build-lock.sh` for test, typecheck and
-build, captures and logs in `../partyreel-wt/_scratch/settings-wiring/`, an own Browser-pane tab, helpers in the
-foreground, never a question to the Orchestrator.
-
-**Done, on `lp/settings-wiring`:**
-- `e865f622` phase 1: the doors' backend (`supabase/migrations/20260929120000_event_doors.sql`, unapplied: the
-  Orchestrator applies it) and its rolled-back proof (twelve rows held on the live schema; the ACL proof in the foot).
-- `403aa329` phase 2: the guest path (`pageDoor`, the shut door, the held door, the ask, the unlisted ask on the shut
-  door, the door's pass, every guest route).
-- `384fafd7` the `event-settings` board retired (its folder; its lines in `registry.ts`, `boards.ts`, `touchpoints.ts`).
-- `46174f96` phases 3 and 4: settings as four sentences, Dormant, ConsequenceLine, the Videos switch, the door's page,
-  the deep-link close fix, the custom link's announced error, the PUBLIC EXECUTE revoke.
-- `b1c90382` phase 5: the Guests room (At the door, Invited, Invite), the hub's Guests card, the pulse, the bell.
-- `4d5531ea` phase 6: the words (help, marketing, pricing, the app), the gated album's Guest card (`readEventGates`),
-  the clip Add following Videos.
-- `96c55e9a` synced with launch-prep at `231534a0`; owns released to later cuts: `src/lib/db/migration-guards.test.ts`
-  (schema-pass), `src/components/ui/popup.tsx` and `src/components/app/event-feed/event-hub.test.tsx` (crumbs-14),
-  each edited here in `46174f96` before those cuts.
-- `b25d4595` a closed page keeps what was typed (`SavingField` commits on unmount, `event-page.test.tsx`), the upload
-  routes' comments, two help-sync lines, the three system docs. **The whole gate ran green on `b25d4595`:** typecheck 0,
-  lint 0 (0 warnings), test 0 (586 files, 6721 tests), build 0, `lab:smoke` 0 (171 checks, 0 failing).
-- `f2b717bf` WIP: an `acts` seam on `AtTheDoor` and `InvitedSection` (typecheck, lint, the room's tests green).
-- Verified headless at 1440 and 375 with reduced motion: the privacy page's switch (all three answers), the album
-  plate, the pricing row and card, the trust strip, the help's held-door screen, the Library's settings composition.
-
-**Half-done:** a Library composition for the Guests room's door (`guests-door` in
-`library/compositions/gallery-demos.tsx`, its demo beside `SettingsDemo` in `composition-demos.tsx` with inert acts
-like `SETTINGS_WRITES`: At the door with three waiting, Invited with a short list), then
-`node "src/app/(dev)/design/gallery/collect-specimens.mjs"`, then a capture of both at 1440 and 375 (the scratch
-`shoot.mjs`, headless Chrome over CDP, killed after): the room is auth-gated, so the Library is where it can be seen.
-
-**Next, in order:** (1) finish that composition; typecheck, lint, test; commit. (2) The whole gate on the final code sha,
-each step on its own exit code, the dev server killed after. (3) Fill the Handoff above: the commits, the gates and
-their sha, the lane check's seven exceptions (the three retirement lists, the three released paths, `billing-caps.md`),
-the items, the migration (its APPLY PROTOCOL; the advisor delta: 0029 from 29 to 33, 0028 and
-`rls_enabled_no_policy` unchanged) and the live red-team walks (partyr33l as the newcomer at a willg97 test event
-through every gate, after the apply). (4) `status: handed-off`, the manifest committed alone, pushed, and
-SubagentHandback "handed off at <sha>".
-
-**The Orchestrator's relays since the cut, kept:**
-- Skip the legal line entirely: neither edit nor draft any Terms or Privacy wording, and add no Questions for it.
-- crumbs-12 merged: the hub reads Highlight reel, Guests, Review, Settings; headings use `font-heading` alone at 700; a
-  number and its word are one string; `your-event-page-explained.mdx` named the cards in the old order (fixed, phase 6).
-- locked-door r2: `unlisted=ask` on the shut door itself, under the one message, as that reader's own foot ("Ask Maya to
-  let me in", "Use a different email"); asking takes her to the waiting door; a declined ask meets the shut door with no
-  ask; build it so unless the code argues against it, and say why in the Handoff if so (built so, phase 2).
-- Milestone 30's two bugs, taken in: a sheet opened from a link could not be closed (`event-share-provider.tsx`'s
-  fallback to `initialSheet`; the settings pages and their back arrow must close from a deep link too, pinned by a test;
-  done in `46174f96`), and the custom link's error line was not announced (a live region and `aria-describedby`; done).
-- `get_event_by_qr_token`'s replacement revokes EXECUTE from `public` explicitly and re-grants only the roles that must
-  call it, with a rolled-back check that the grants read exactly that (done in `46174f96`); schema-pass audits the rest
-  of the schema beside this lane and touches none of its functions or columns.
-- The account handover (this checkpoint): commit and push, keep this section, carry on.
