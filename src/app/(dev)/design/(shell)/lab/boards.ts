@@ -3,7 +3,6 @@ import type { ComponentType } from "react";
 import { HeroCardBoard } from "@/app/(dev)/design/sandbox/hero-card/board";
 import { ExportFlowBoard } from "@/app/(dev)/design/sandbox/export-flow/board";
 import { AdminTriageBoard } from "@/app/(dev)/design/sandbox/admin-triage/board";
-import { EmailsBoard } from "@/app/(dev)/design/sandbox/emails/board";
 import { LockedDoorBoard } from "@/app/(dev)/design/sandbox/locked-door/board";
 import { HelpCenterBoard } from "@/app/(dev)/design/sandbox/help-center/board";
 import { EventSettingsBoard } from "@/app/(dev)/design/sandbox/event-settings/board";
@@ -36,7 +35,6 @@ export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
 
   "export-flow": { Component: ExportFlowBoard },
   "admin-triage": { Component: AdminTriageBoard },
-  emails: { Component: EmailsBoard },
   "locked-door": { Component: LockedDoorBoard },
   "help-center": { Component: HelpCenterBoard },
   "event-settings": { Component: EventSettingsBoard },
