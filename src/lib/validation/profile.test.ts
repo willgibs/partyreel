@@ -3,6 +3,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { BRAND_NAME_MESSAGE } from "@/lib/constants/reserved-slugs";
 import {
   BIO_MAX_LENGTH,
   bioSchema,
@@ -100,6 +101,24 @@ describe("profileSlugSchema", () => {
   it("allows a handle that merely contains a reserved token", () => {
     expect(profileSlugSchema.parse("adminah")).toBe("adminah");
     expect(profileSlugSchema.parse("api-fans")).toBe("api-fans");
+  });
+
+  // ★ …but never the brand's, as a part (crumbs-11): /u/partyreel-support is the event link's
+  // phishing page by another path, and this schema is the handle's only gate.
+  it("refuses the brand's family, with its own sentence", () => {
+    for (const handle of [
+      "partyreel-support",
+      "the-partyreel-team",
+      "party-reel",
+      "partyr33l",
+    ]) {
+      const result = profileSlugSchema.safeParse(handle);
+      expect(result.success, handle).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0]?.message).toBe(BRAND_NAME_MESSAGE);
+      }
+    }
+    expect(profileSlugSchema.parse("party-relay")).toBe("party-relay");
   });
 });
 

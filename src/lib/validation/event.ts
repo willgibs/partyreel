@@ -32,7 +32,12 @@ import { z } from "zod";
 
 import { Constants } from "@/lib/db/types";
 import { QR_STYLE_KEYS } from "@/lib/constants/qr-presets";
-import { RESERVED_SLUGS } from "@/lib/constants/reserved-slugs";
+import {
+  BRAND_NAME_MESSAGE,
+  isBrandSlug,
+  RESERVED_SLUGS,
+  RESERVED_WORD_MESSAGE,
+} from "@/lib/constants/reserved-slugs";
 import { MAX_UPLOAD_BYTES, MIN_UPLOAD_CAP_BYTES } from "@/lib/media/limits";
 import { isHoldStep, isReelMoodId } from "@/lib/reel/defaults";
 
@@ -174,9 +179,9 @@ export type EventPasswordValues = z.output<typeof eventPasswordSchema>;
 
 // Custom event slug (every plan) — an optional human-friendly ALIAS for the /e/[token]
 // link. Normalized to lowercase, then validated. The DB RPC (set_event_slug) re-checks
-// format, the reserved words and uniqueness, and is the boundary (a host can call it past
-// the action); this is the shared client + action shape, and the friendly refusal for a
-// reserved word (lib/constants/reserved-slugs.ts, which the SQL array mirrors).
+// format, the reserved words, the brand's family and uniqueness, and is the boundary (a host can
+// call it past the action); this is the shared client + action shape, and the friendly refusal
+// for either reserved kind (lib/constants/reserved-slugs.ts, which the SQL mirrors word for word).
 export const eventSlugSchema = z.object({
   slug: z
     .string()
@@ -193,9 +198,9 @@ export const eventSlugSchema = z.object({
       (s) => !/^[0-9a-f]{32}$/.test(s),
       "That custom link isn't available.",
     )
-    .refine(
-      (s) => !RESERVED_SLUGS.has(s),
-      "That word is reserved. Try another.",
-    ),
+    .refine((s) => !RESERVED_SLUGS.has(s), RESERVED_WORD_MESSAGE)
+    // Any slug that CONTAINS the name, a hyphen or a look-alike digit included (`party-reel`,
+    // `p4rtyr33l`): the whole-word list above cannot see `partyreel-support`.
+    .refine((s) => !isBrandSlug(s), BRAND_NAME_MESSAGE),
 });
 export type EventSlugValues = z.output<typeof eventSlugSchema>;
