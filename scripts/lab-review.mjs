@@ -1395,11 +1395,10 @@ export function writeLedgers(root, ledgers) {
  * goes, since recording it is the one thing that must not happen by default.
  */
 export function unfiledAdvice(count) {
-  const them = count === 1 ? "it" : "them";
   return (
-    `${count} note${count === 1 ? "" : "s"} named no board, so nothing recorded ${them}: ` +
-    `if meant for the whole program, fold ${them} into the doc each one refines (synthesized, never quoted); ` +
-    `if given on a board, file ${them} there with review <board> r<n>: note: "...".`
+    `${count} note${count === 1 ? "" : "s"} named no board, so nothing was recorded: ` +
+    `if a note is meant for the whole program, fold it into the doc it refines (synthesized, never quoted); ` +
+    `if it was given on a board, file it there with review <board> r<n>: note: "...".`
   );
 }
 
