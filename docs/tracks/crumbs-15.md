@@ -70,8 +70,11 @@ Each recommended answer is BUILT and his to overrule; none is a one-way door (a 
   each captured. After the apply an absent object can only be a regression, so it throws (a route's 500, the page's
   error boundary, Sentry) exactly as a broken read does everywhere else. Nothing changes on build 23, where every
   object exists. The overrule: leave a degraded answer for the reads whose absence is safe.
-- **`readDoorStanding` loses its `visibility` argument**, whose only reader was the seam (today's three doors); its
-  caller and the tests that pinned it follow.
+- **What only the seam used goes with it.** `readDoorStanding` loses its `visibility` argument (its only reader was
+  today's three doors), `checkInAtDoor` its `null` answer and the route's branch for it, `setEventDoor` its
+  `not_ready` code and the `updateEvent` fallback, and `isTicketBlocked` (`queries/event-blocks.ts`) goes with its
+  tests, because the seam's `standingWithoutDoors` was its only caller (`event_door_standing` folds the block in;
+  the SQL function `event_ticket_blocked` stays). The overrule: keep `isTicketBlocked` as an unused helper.
 - **Not in this lane, left standing** (Deferred below): the same shape from other applied migrations
   (`isDeletionSchemaMissing`, the claims' defensive reads, `NotificationPrefsRow`), which neither the grep nor the two
   Handoffs name.
@@ -80,10 +83,17 @@ Each recommended answer is BUILT and his to overrule; none is a one-way door (a 
 
 - `guest-flow.md`, the held door's check-in line (a one-line exception, it is in `reads`): "a missing schema or event
   answers `moved`" becomes "a missing event answers `moved`", because a missing schema now throws.
+- `host-app.md`, the Guest cards' line (a one-line exception, not mine): `readEventGates` no longer "reads Only me
+  before the doors' migration"; the clause goes.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Lifecycle: `isDeletionSchemaMissing` and the `not_provisioned` answers of the account deletion
+  (`lifecycle/account-deletion.ts`, `db/mutations/account.ts`, the purge route's `skipped`) are the same dead seam for
+  migration 20260902130000, applied and typed, and neither the grep nor the two Handoffs name it (from `crumbs-15`).
+- Guest: `queries/claims.ts` reads `preview_keys` and `event_visibility` off an untyped row "until the types are
+  regenerated" (migration 20260927200000, applied and typed), and `social/notification-prefs.ts` declares
+  `NotificationPrefsRow` by hand for the same reason (from `crumbs-15`).
 
 ## Handoff (replaces the chat report)
 
