@@ -13,6 +13,7 @@ reads:
   - CLAUDE.md
   - docs/PROGRAM.md
 announces:
+  - "crumbs-13 merged at 3d2cfbd6 (2026-09-29): every `.signOut(` names its scope (`local` for Sign out, the guest header and the door's \"Not you?\"; `global` for an accepted account deletion and the new `signOutEverywhereAction`, whose card is `src/app/(app)/account/sign-out-everywhere-card.tsx`); `(shell)/lab/_desk/review-session.tsx` is free for `lab-revamp`; `pnpm lint` reads 0 warnings."
   - "crumbs-12 merged at 3e27e6fc (2026-09-29): `EVENT_ROOMS` runs Highlight reel, Guests, Review, Settings; the hub row's scroller is `edge-fade-scroller.tsx`; every heading is `font-heading` alone at 700, and `type-ladder-policy.test.ts` refuses a weight class beside it anywhere in `src/` outside the lab; a JSX text after an expression or element that holds an entity over several lines loses its leading space under SWC (write the number and its word as one string), and `jsx-text-space-policy.test.ts` refuses the shape."
   - "profile-setup merged at 853093a6 (2026-09-27): the profile setup is `/account/profile` (`PROFILE_SETUP_PATH` in `src/app/(app)/account/profile/invite.ts`); an account that already has a page is sent to `/account#public-profile`, so a \"Claim a handle\" row can point at the setup unconditionally. `get_public_profile` carries `private_event_count` (applied; null unless the page shows nothing)."
   - "album-guest-wiring merged at a474d130 (2026-09-25): every album is the windowed rows; the viewer takes `onNeedLinks` (an item with `url: \"\"` is a placeholder); `MasonryColumns`/`AlbumRows` take `firstPaintWidth` and `onBoxWidth`; `album-window-plan.ts` holds the first paint (`firstPaintIds`, `ALBUM_WIDTH_COOKIE`, the served plan); `/api/guests/gallery` is gone; `yours-filter` lives in `src/lib/guest/`."
@@ -39,14 +40,13 @@ a lane").
 | --- | --- | --- | --- | --- |
 | `settings-wiring` | every event-settings pick: settings as four sentences, the doors end to end, the Guests room, the hub | running (agent `aefdc4b3cecd92f74`) | Opus, 3131 | |
 | `triage-r2-wiring` | admin-triage r2 wired; the hold rebuilt (Hold takes down by default; storage released at an operator's removal; an open report guards its item; the child-abuse instant hide) | running (agent `a432fe0336dc35587`) | Opus, 3134 | |
-| `crumbs-13` | device sign-out with Sign out everywhere in settings, the home's double preload, three lint warnings | running (agent `acefdcef3899da571`) | Opus, 3132 | |
 | `lab-revamp` | a board as one self-registering folder, scoped lab checks, the trimmed API, the words renamed, the kit following (holds registry.ts and boards.ts; PROGRAM.md's lines come in its Handoff) | running (agent `a6b4519e3d363d7dd`) | Opus, 3133 | |
 
 Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcribed at `31de6aa0`: 41 answers on ten
 boards). Wave A: `settings-wiring` (all nine event-settings picks, the doors end to end), `locked-door` r2 (the door
 family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records carry the rest.
 
-Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2.
+Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13.
 
 ## Next, in order
 
@@ -92,13 +92,14 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, dis
      simplified, reported as a list. His standing permission (2026-09-29): the
      data architecture is the Orchestrator's, anything useless dropped, timed so partyreel.com's live build never
      reads a dropped thing.
-   - `crumbs-13` is running (device sign-out, the home's double preload, three lint warnings).
    - After their rounds: the disposable wiring (after `disposable-mode` r2's picks, Will's Measure a phone, and
      `settings-wiring`'s merge, since it rewrites the guest path; with the lane's idea of the premiere on the wall, the
      reel's screen counting down to the develop time and playing the roll as an event of its own) and the door family's wiring (if the doorway wins, its reveal: walking through the
      opened door into the album, drawn first as motion options; ASSETS row 36 if the host's door wins).
 4. **Build 21 is live** (`a13a3bd0`): `locked-door` r2 and `disposable-mode` r2 (4 and 8 asks), with crumbs-12's
-   production changes; his sitting waits for build 22's context layer (step 3's `lab-revamp` stage one). Its red-team rides the claims walk: crumbs-12's hub row at
+   production changes; his sitting waits for build 22's context layer (step 3's `lab-revamp` stage one). Build 22's
+   red-team also walks `crumbs-13`'s sign-out (its Handoff's four live walks: two browsers, the admin portal's session
+   kept, Sign out everywhere, the guest header). Its red-team rides the claims walk: crumbs-12's hub row at
    1440, 768 and 375 resting and stuck, "restore it for 30 days", the reports lede, the headings at 700, /terms'
    Termination.
 5. **The claims walk** (his full permission, 2026-09-29), once the milestone's Chrome pass reports: three rows
