@@ -4,11 +4,18 @@
  * has to SHOW its options. For each step it presses every option that carries a
  * picture and fails when the stage under the tiles does not visibly change.
  *
- *   pnpm lab:demo --base http://localhost:3131   # every open step, against YOUR dev server
- *   pnpm lab:demo --base ... --board floating-surfaces      # one board
+ *   pnpm lab:demo --base http://localhost:3131   # the open steps of the boards YOUR change reached
+ *   pnpm lab:demo --base ... --all               # every open step on the desk (or FULL=1)
+ *   pnpm lab:demo --base ... --board floating-surfaces      # named boards, comma-separated
+ *   pnpm lab:demo --base ... --since HEAD^1      # the boards a merge reached
  *   pnpm lab:demo --base ... --only floating-surfaces.radius
  *   pnpm lab:demo --base https://<alias>         # the key rides DESIGN_PREVIEW_KEY
  *   pnpm lab:demo --base ... --reach-limit 0.5   # a stricter travel budget
+ *
+ * ★ IT PRESSES WHAT THE CHANGE REACHED (the lab revamp, 2026-09-29): the boards
+ * `scripts/lab-scope.mjs` finds in this tree's change (its own folder, its
+ * ledger, a production file its drawings import), the whole desk only on
+ * `--all` or `FULL=1`; the scope is its first lines.
  *
  * `--base` is required (or `LAB_BASE` in the environment): there is no default,
  * because the only sane-looking default is the Orchestrator's own :3000 and a
@@ -94,6 +101,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { inflateSync } from "node:zlib";
 
+import { describeScope, scopeFromArgs } from "./lab-scope.mjs";
+
 const argv = process.argv.slice(2);
 const opt = (name, fallback) =>
   argv.includes(name) ? (argv[argv.indexOf(name) + 1] ?? fallback) : fallback;
@@ -126,8 +135,10 @@ const base = rawBase.replace(/\/+$/, "");
 // The key may ride the environment: pnpm echoes a script's argv into any log it is redirected to,
 // so `DESIGN_PREVIEW_KEY=... pnpm lab:demo` keeps it out of the log where `--key` would not.
 const key = opt("--key", process.env.DESIGN_PREVIEW_KEY ?? "");
-const onlyBoard = opt("--board", "");
 const onlyStep = opt("--only", "");
+// Which boards to press: the named ones, else the ones this change reached.
+const scope = scopeFromArgs(argv);
+for (const line of describeScope(scope)) console.log(line);
 const threshold = Number(opt("--threshold", 0.1));
 /**
  * THE SETTLE IS A FLOOR, AND THE READINESS CHECK RUNS PAST IT (lab-tides,
@@ -663,9 +674,17 @@ try {
   // layout can be measured on any step the board still declares.
   const wanted = onlyStep
     ? [onlyStep]
-    : steps.filter((s) => !onlyBoard || s.startsWith(`${onlyBoard}.`));
+    : steps.filter(
+        (s) => scope.all || scope.boards.includes(s.slice(0, s.indexOf("."))),
+      );
   if (wanted.length === 0) {
-    console.log("lab:demo found no open step to press.");
+    // Said with the scope, so "none to press" is never read as "your board has
+    // no open steps" when the change simply reached no board.
+    console.log(
+      scope.all
+        ? "lab:demo found no open step on the desk to press."
+        : `lab:demo found no open step to press on ${scope.boards.length ? scope.boards.join(", ") : "any board this change reached"}.`,
+    );
   }
 
   for (const step of wanted) {

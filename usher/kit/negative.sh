@@ -10,10 +10,8 @@ cd "$REPO"
 # 1. integrate.sh refuses a lane that does not exist, before any gate log is written
 S="$T" zsh "$KIT/integrate.sh" no-such-lane deadbeefcafe body-type /dev/null > "$T/integrate.out" 2>&1
 grep -q "^INTEGRATE DONE red" "$T/integrate.out" && ! ls "$T"/gate*.log >/dev/null 2>&1 && ok "integrate.sh refuses a missing lane and starts no gate" || bad "integrate.sh did not refuse a missing lane"
-# 1b. hand-merge.sh refuses a lane that does not exist and a head that is not the sha named, before touching the tree
-BEFORE=$(git -C "$REPO" status --short); S="$T" zsh "$KIT/hand-merge.sh" no-such-lane deadbeef /dev/null > "$T/hm1.out" 2>&1; grep -q "^REFUSED" "$T/hm1.out" && [ "$(git -C "$REPO" status --short)" = "$BEFORE" ] && ok "hand-merge.sh refuses a missing lane and leaves the tree as it was" || bad "hand-merge.sh missing lane"
 # 1c. every merge and gate script refuses to run with no scratchpad, before it touches anything
-for script in integrate.sh merge-lane.sh hand-merge.sh gate-lane.sh demo-rerun.sh; do env -u S zsh "$KIT/$script" no-such-lane deadbeef none /dev/null > "$T/nos.out" 2>&1; [ $? -ne 0 ] && grep -q "set S" "$T/nos.out" && ok "$script refuses to run without S" || bad "$script ran without S"; done
+for script in integrate.sh merge-lane.sh gate-lane.sh demo-rerun.sh; do env -u S zsh "$KIT/$script" no-such-lane deadbeef none /dev/null > "$T/nos.out" 2>&1; [ $? -ne 0 ] && grep -q "set S" "$T/nos.out" && ok "$script refuses to run without S" || bad "$script ran without S"; done
 # 2. merge-lane.sh refuses a full-length sha (it compares short ones) and leaves the tree untouched
 BEFORE="$(git status --short)"; S="$T" zsh "$KIT/merge-lane.sh" no-such-lane deadbeefcafe0123456789deadbeefcafe01234567 /dev/null > "$T/merge.out" 2>&1; [ "$(git status --short)" = "$BEFORE" ] && ! grep -q "^MERGED" "$T/merge.out" && ok "merge-lane.sh refuses a bad lane and leaves the tree as it was" || bad "merge-lane.sh merged or changed the tree on a bad lane"
 # 3. record.py refuses a changelog and a STATUS row, and writes nothing: what shipped lives in the merge commit, STATUS is a snapshot
@@ -37,6 +35,19 @@ zsh "$KIT/scope.sh" < /dev/null > /dev/null 2>&1; USAGE=$?
 # 8. record.py counts STATUS as record-depth-policy.test.ts does (a trailing newline ends a line, it adds none): OVER at 81, not at 80
 echo '{}' > "$T/rec2.json"; seq 80 > "$T/docs/STATUS.md"; (cd "$T" && python3 "$KIT/record.py" rec2.json > "$T/cap80.out" 2>&1); seq 81 > "$T/docs/STATUS.md"; (cd "$T" && python3 "$KIT/record.py" rec2.json > "$T/cap81.out" 2>&1)
 grep -q "STATUS 80 of 80 lines$" "$T/cap80.out" && grep -q "STATUS 81 of 80 lines (OVER)" "$T/cap81.out" && ok "record.py's cap reads 80 lines as under and 81 as OVER" || bad "record.py counts STATUS unlike the test"
+# 9. the lab's scope never narrows on doubt (the lab revamp): scope.sh's boards class answers `all` for a path it does not
+#    know and nothing for a test, and lab-scope.mjs answers the whole lab when git cannot read the revision
+[ "$(printf '%s\n' newdir/a | zsh "$KIT/scope.sh" boards)" = all ] && [ -z "$(printf '%s\n' src/lib/a.test.ts | zsh "$KIT/scope.sh" boards)" ] && node scripts/lab-scope.mjs --since no-such-revision-anywhere 2>/dev/null | head -1 | grep -q "^SCOPE all:" && ok "the lab's scope widens on an unknown path and a revision git cannot read" || bad "the lab's scope narrowed on doubt"
+# 10. predates-sweep.py drops the PREDATES entry of a board whose folder is gone and keeps one whose folder stands
+mkdir -p "$T/sandbox/admin-triage"; touch "$T/sandbox/admin-triage/spec.ts"; cp "src/app/(dev)/design/sandbox/registry.ts" "$T/sandbox/registry.ts"
+if grep -q '"event-settings": {' "$T/sandbox/registry.ts"; then python3 "$KIT/predates-sweep.py" "$T/sandbox/registry.ts" "$T/sandbox" > "$T/sweep.out" 2>&1; ! grep -q '"event-settings": {' "$T/sandbox/registry.ts" && grep -q '"admin-triage": {' "$T/sandbox/registry.ts" && ok "predates-sweep.py drops a retired board's facts and keeps a standing board's" || bad "predates-sweep.py kept a retired board or dropped a standing one"
+else ok "predates-sweep.py has no PREDATES to sweep (both boards retired)"; fi
+# 11. the lab's checks refuse to guess a server: lab:smoke and lab:demo exit 2 without --base (or LAB_BASE)
+env -u LAB_BASE node scripts/lab-smoke.mjs > "$T/smoke.out" 2>&1; R1=$?; env -u LAB_BASE node scripts/lab-demo.mjs > "$T/demo.out" 2>&1; R2=$?
+[ $R1 = 2 ] && [ $R2 = 2 ] && grep -q "needs the server" "$T/smoke.out" && grep -q "needs the server" "$T/demo.out" && ok "lab:smoke and lab:demo refuse to run without a server named" || bad "a lab check ran without --base"
+# 12. cut-lane.py refuses a board lane that owns a shared list (a board is its folder), and writes nothing
+mkdir -p "$T/cut/docs/tracks"; printf '%s' '{"track":"t","board":"b","owns":["src/app/(dev)/design/sandbox/registry.ts"],"goal":"g","brief":"b"}' > "$T/cut/s.json"
+(cd "$T/cut" && python3 "$KIT/cut-lane.py" deadbeef s.json > "$T/cut.out" 2>&1); [ $? != 0 ] && grep -q "never a shared list" "$T/cut.out" && [ ! -f "$T/cut/docs/tracks/t.md" ] && ok "cut-lane.py refuses a board lane owning a shared list" || bad "cut-lane.py cut a board lane onto a shared list"
 # the costs the refusals were written for, re-read from the system as it is now (a report, never a refusal; cost-readings.mjs)
 node "$KIT/cost-readings.mjs" 2>&1 | cut -c1-400 || echo "cost readings: the script failed (read it before the next integration)"
 rm -rf "$T"; echo "negative control: $([ $RC = 0 ] && echo all refusals hold || echo A REFUSAL HAS GONE QUIET)"; exit $RC

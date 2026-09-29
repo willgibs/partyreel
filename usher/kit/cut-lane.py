@@ -2,7 +2,13 @@
 """cut-lane.py <cut-sha> <spec.json> [<spec.json> ...]: writes docs/tracks/<track>.md for each lane spec.
 
 A spec is one JSON object: {"track", "board" ("none" for a production or docs lane), "owns": [prefixes],
-"reads": [paths], "goal": "<one paragraph>", "brief": "<markdown: everything the lane needs>", "verify": "<optional>"}.
+"reads": [paths], "goal": "<one paragraph>", "brief": "<markdown: everything the lane needs>", "verify": "<optional>",
+"desk": <optional: a new board's desk place, the number it takes by leverage>}.
+
+A board lane (`board` other than "none") owns its folder, `src/app/(dev)/design/sandbox/<board>/`, which is added when
+the spec leaves it out, and never a shared list: a spec whose owns name the registry, the retired touchpoints.ts or
+boards.ts is refused (a board is one self-registering folder since the lab revamp). Its brief gains the board's shape
+(BOARD_BRIEF) so the lane authors from the manifest and the docs alone.
 Specs live in the scratchpad and die with the round; nothing accumulates here. The manifest is the lane's whole init:
 a lane never reads the Orchestrator's plan. Run `pnpm vitest run src/lib/track-manifests.test.ts` after cutting, then
 commit the manifests alone.
@@ -20,9 +26,31 @@ PROD_VERIFY = ("The gate on the synced tree (CLAUDE.md's four steps), each step 
                "`pnpm lab:smoke --base http://localhost:<port>` whole when the lane changes anything under `src/` but tests "
                "(the Library renders the product's components); and the surfaces the Handoff is judged on, local and live.")
 
+SANDBOX = "src/app/(dev)/design/sandbox/"
+# The lists a board once registered itself in; a board lane never owns one (the registry finds its folder).
+SHARED = ("src/app/(dev)/design/sandbox/registry.ts", "src/app/(dev)/design/touchpoints.ts", "src/app/(dev)/design/(shell)/lab/boards.ts")
+
+def board_brief(board, desk):
+    place = f"`desk: {desk}`" if desk is not None else "the `desk` place this brief names"
+    return (f"**The board's shape.** The board is one folder, `{SANDBOX}{board}/`, and nothing else names it: the registry "
+            f"finds it, and retiring it is deleting it. `spec.ts` is `defineExploration` (`src/components/lab/exploration.ts`) "
+            f"and pure data: its id `{board}`, its title, `surface`, {place} (by leverage, lower first) and `lives` (the paths "
+            f"it redraws), its `opening` and `terms`, and every ask with its context layer (`where`, `when`, `matters` beside "
+            f"`lands`, each option's `gains` and `costs`, `because` in a line). `board.tsx` exports one component, "
+            f"`ExplorationBoard` with a preview per option (`PreviewsFor`). `registry.test.ts` holds all of it; "
+            f"`pnpm lab:smoke` and `pnpm lab:demo` run on the board your change reaches.")
+
 for arg in sys.argv[2:]:
     s = json.loads(pathlib.Path(arg).read_text())
     track, board = s["track"], s.get("board", "none")
+    if board != "none":
+        shared = [p for p in s["owns"] if any(p == x or x.startswith(p) for x in SHARED)]
+        if shared:
+            sys.exit(f"{track}: a board lane owns its folder and never a shared list; refused: {', '.join(shared)}")
+        folder = f"{SANDBOX}{board}/"
+        if folder not in s["owns"]:
+            s["owns"] = [folder] + s["owns"]
+        s["brief"] = s["brief"].rstrip() + "\n\n" + board_brief(board, s.get("desk"))
     owns = "\n".join(f"  - {p}" for p in s["owns"])
     reads = "\n".join(f"  - {p}" for p in s.get("reads", [])) or "  - CLAUDE.md"
     verify = s.get("verify") or (LAB_VERIFY if board != "none" else PROD_VERIFY)

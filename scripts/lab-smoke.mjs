@@ -18,6 +18,14 @@
  * in board-spec.ts. A board that truly needs more says why in its spec
  * (`reading: { words, why }`) and the smoke prints the reason.
  *
+ * ★ IT CRAWLS WHAT THE CHANGE TOUCHED (the lab revamp, 2026-09-29). Every
+ * lane's gate used to crawl every board on the desk; now `scripts/lab-scope.mjs`
+ * reads this tree's change (against where it left origin/launch-prep, or
+ * `--since <rev>`) and the crawl visits the boards it reached, the Library when a
+ * production path changed, and the lab's own pages when the desk could have
+ * moved. `--all` or `FULL=1` crawls the whole lab (and the legacy redirects);
+ * `--board a,b` names boards. The scope it ran on is its first lines.
+ *
  * `--production` adds the closed door (no key, wrong key: 404); `--base <origin>`
  * points elsewhere; `--timeout <ms>` widens the 20s a cold dev compile can
  * exceed; `--dry` prints the plan and fetches nothing. Exit 1 on any failure,
@@ -30,6 +38,8 @@
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+
+import { describeScope, scopeFromArgs } from "./lab-scope.mjs";
 
 const DATA = "src/app/(dev)/design/_data/legacy-routes.ts";
 const SPEC = "src/components/lab/board-spec.ts";
@@ -77,6 +87,27 @@ const production = argv.includes("--production");
 const dry = argv.includes("--dry");
 if (production && !key)
   throw new Error("--production needs --key: the gate is closed without one.");
+
+const scope = scopeFromArgs(argv);
+/** The lab's own pages that are not boards: the desk's neighbours. */
+const SHELL_PAGES = new Set(["kit", "tools", "tracks", "proposals"]);
+/**
+ * Whether a route is in this run's scope: the Library when a production path
+ * changed, a board when the change reached it, the desk and the lab's own pages
+ * when the desk could have moved. The whole lab answers yes to everything.
+ */
+function inScope(route) {
+  if (scope.all) return true;
+  const path = route.split("?")[0].split("#")[0];
+  if (path.startsWith("/design/library")) return scope.library;
+  // The desk lists every board, so a board in scope brings the desk with it.
+  if (path === "/design/lab") return scope.shell || scope.boards.length > 0;
+  if (path === "/design") return scope.shell;
+  const lab = path.match(/^\/design\/lab\/([a-z0-9-]+)/);
+  if (lab)
+    return SHELL_PAGES.has(lab[1]) ? scope.shell : scope.boards.includes(lab[1]);
+  return false;
+}
 
 function readTables() {
   const src = readFileSync(join(process.cwd(), DATA), "utf8");
@@ -362,10 +393,16 @@ function weigh(id, html, budget, override) {
 
 async function crawl() {
   const seen = new Set();
-  const queue = [...SEEDS, ...SCENES];
+  const queue = scope.all
+    ? [...SEEDS, ...SCENES]
+    : [
+        ...(scope.library ? ["/design/library"] : []),
+        ...(scope.shell || scope.boards.length > 0 ? ["/design/lab"] : []),
+        ...scope.boards.map((id) => `/design/lab/${id}`),
+      ];
   while (queue.length && seen.size < MAX_PAGES) {
     const route = bare(queue.shift());
-    if (seen.has(route)) continue;
+    if (seen.has(route) || !inScope(route)) continue;
     seen.add(route);
     const res = await get(url(route));
     if (res.status === 307 && res.location && labPath(res.location)) {
@@ -386,7 +423,7 @@ async function crawl() {
     for (const m of ok ? res.html.matchAll(/href="(\/design\/[^"#]*)/g) : [])
       queue.push(m[1].replace(/&amp;/g, "&"));
   }
-  if (queue.some((r) => !seen.has(bare(r))))
+  if (queue.some((r) => !seen.has(bare(r)) && inScope(bare(r))))
     report("(crawl)", "-", 0, `stopped at ${MAX_PAGES} pages`, false);
   return seen;
 }
@@ -469,10 +506,19 @@ function plan(redirects, globs) {
 const { redirects, globs } = readTables();
 const budget = readBudget();
 const boards = readBoards();
+for (const line of describeScope(scope)) console.log(line);
+const nothing =
+  !scope.all && !scope.library && !scope.shell && scope.boards.length === 0;
 if (dry) plan(redirects, globs);
-else {
+else if (nothing) {
+  // Nothing the lab renders changed (a test, a migration, prose): no page to
+  // fetch, which is a pass, said as one.
+  console.log("lab:smoke: nothing the lab renders changed; no page to crawl.");
+} else {
   const seen = await crawl();
-  await legacy(redirects, seen);
+  // The old URLs are the lab's as a whole: walked with the whole lab, and on a
+  // change to their table (which is the lab's shell, so `all`).
+  if (scope.all) await legacy(redirects, seen);
   if (production) await closedDoor(redirects);
   print();
 }
