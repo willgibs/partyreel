@@ -7,8 +7,9 @@
  * the row).
  *
  * The enumerated hard-delete paths and how each excludes holds:
- *   - removed_media sweep + standby eviction + purgeMediaNow → filter `legal_hold_at is null`
- *     on the candidate query (these helpers back the pure part).
+ *   - removed_media sweep + standby eviction → filter `legal_hold_at is null` on the candidate
+ *     query (these helpers back the pure part); purgeMediaNow and every `reclaimMedia` batch ask
+ *     `kept_media_ids` (a hold or an open report) before a single object is deleted (below).
  *   - expired_events sweep + account deletion → an event containing ANY held media is SKIPPED
  *     WHOLE (deleting the event row would FK-CASCADE the held media rows away, and its R2
  *     enumeration would delete the held objects). The event stays soft-deleted in the bin until
