@@ -1,6 +1,6 @@
 ---
 track: disposable-mode
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "18491027"            # the launch-prep SHA the branch was cut from
 board: disposable-mode
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -58,25 +58,103 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+The board's eight asks are his to answer on the desk; these are the calls the lane took and built on, each drawn
+on the board's "Calls the lane carried" (`spec.ts`, `carried`), his to overrule:
+
+- `size`, what size a shot from the album's camera is: the largest a phone gives a page, an iPhone's live-video
+  frame (at most 4032 by 3024 by WebKit's own capture source, `AVVideoCaptureSource.mm`'s `generatePresets` taking
+  the camera's video formats; Safari 27 ships no ImageCapture, caniuse) without night mode, and Android's full photo
+  through ImageCapture. If not: the phone's own camera app on an iPhone (24 MP and night mode, its Retake with it).
+  NOT MEASURED ON A PHONE: the board's dock carries Measure a phone for it (Look at first).
+- `refused`, what a guest does after Don't Allow: turn it back on (aA, Website Settings, Camera, Allow) and Try
+  again, or Use your phone's camera one photo at a time, counted the same, so nothing is a dead end (bible 3).
+- `spent`, whether deleting a shot from her stack refunds the frame: no, a frame is spent when she shoots it, and
+  Delete takes the shot out for everyone, the host included (the guest's own removal, final).
+- `ten`, a video's length: 10 seconds, about three photos' room at 1080p by tiers.ts's own estimates.
+- `sound`, whether a video carries sound: yes, so a paid event's first press asks for the camera and the microphone
+  in one prompt (drawn in `video`).
+- Two lane calls in the board's shape: video is two asks (how it is taken, what it costs; the second staged behind
+  the first), since the brief's one question has two winners; and a video is never called a clip anywhere on the
+  board (reel.md: the clip is the reel's).
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none: an exploration ships no production byte, and the capture-size facts wait for a phone's measure and the
+  wiring's own doc.
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Now: "Guest: the disposable camera's capture size measured on a real iPhone and an Android (the `disposable-mode`
+  board's Measure a phone, a minute a phone on the alias) before any surface promises a size; the numbers go in
+  uploads-and-r2.md with the camera's wiring (from `disposable-mode` r2)."
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed**: the work `0755cde2` (the board) and `f6da48df` (the hub row as production now draws it, and
+  no weight beside `font-heading` anywhere on the board); the sync `f8c535bd` (merge of origin/launch-prep at
+  `9232736f`, which carried crumbs-12's `3e27e6fc`: the hub row's order and every heading at 700, announced by the
+  Orchestrator mid-lane). launch-prep then moved to `e2b4d59e` with locked-door r2 alone (its own sandbox folder, its
+  touchpoints.ts row, records); `git merge-tree --write-tree HEAD origin/launch-prep` is clean and none of my
+  `reads` moved, so no second sync. The head is this manifest's commit.
+- **Gates on `f6da48df`** (the synced tree), each on its own exit code, logs in
+  `../partyreel-wt/_scratch/disposable-mode/gate2-*.log`: `pnpm typecheck` 0; `pnpm lint` 0 (0 errors, 4 warnings,
+  all in files this lane never touched: `review-session.tsx`, `contact-form.tsx`, `album-fill-grid.tsx`); `pnpm test`
+  0 (567 files, 6470 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base
+  http://localhost:3133` 0 (165 checks, 0 failing; disposable-mode 776 words of 1200); `pnpm lab:demo --board
+  disposable-mode --base http://localhost:3133` 0 (8 steps, 0 failing, every step drawing its options). Typecheck,
+  lint and test ran on the tree committed as `f6da48df`, just before the commit; build and the lab steps on the
+  commit. The board at 375 (`scrollWidth` 375, no sideways scroll) and at 1440; reduced motion stops the room's
+  safelight and the pile's landing (`animationName` read `none` under the emulation, `dm-land` without it).
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): `src/app/(dev)/design/sandbox/disposable-mode/`
+  (owned), `src/app/(dev)/design/touchpoints.ts` (this board's own row only: the manifest's grant) and this file.
+  `guest.tsx` is deleted (round one's album page, drawn by nothing now).
+- **The items**:
+  - The camera (`camera`, recommended `reel`): four cameras, each at framing her seventh, the moment after, and the
+    phone asking three ways (7:48 pm her first press, Don't Allow, 10:40 pm an iPhone asking again, with the page's
+    own line under Safari's prompt): round one's viewfinder pushed (24 ticks round the shutter, one going dark a
+    shot), round one's drawn disposable pushed (an optical window with its bright-line frame, the counter as a dial,
+    the ready light, a wheel that locks the shutter until she winds), a camera that shoots on a reel (the live
+    picture over a strip of 24 frames, exposed ones dark with their minutes, the edge print in the host's names), and
+    the event's own paper disposable (the host's names printed huge on a wrapper, a die-cut window and counter, a
+    barcode; its first press pulls the wrapper's tab). `cam-*.tsx`.
+  - The waiting room (`waiting`, recommended `pile`): his darkroom whole (her face-down stack), her shots coming up
+    in the tray (latent images), the party's pile landing live (face-down backs, hers with a folded corner, "+1 just
+    now", no name), her roll out of its canister; each opens her shots face up with a Delete, and the delete
+    confirms in the guest's own removal's words with the carried `spent`; 1440 on the knob. `waiting.tsx`.
+  - The room's screen (`wall`, recommended `slideshow`): the darkroom building to 9 am, his live slideshow ("On
+    this screen only. Phones get it all at 9 am."), a glimpse of each new shot; 16:9, at rest and as Priya's shot
+    lands, the reel's own arrival chip and corner code quoted. `wall.tsx`.
+  - The host's peek (`peek`, recommended `covered`): as it lands (marked Developing, one tile flagged "Taken before
+    the party?", the settled capture-time line), covered with Look anyway and Develop now, she waits (her Review
+    queue with review on, Develop now's confirm with it off); Review and 1440 on knobs; the hub row in
+    production's order at 700. `host.tsx`.
+  - Create's step (`create`, recommended `cards`): two big cards, one phone that shows the choice, the two row by
+    row; the camera's three defaults once it is picked, drawn in the camera he picks; 1440 on the knob. `host.tsx`,
+    `thumbs.tsx`.
+  - Taking a video (`video`, recommended `hold`) and what it costs (`cost`, recommended `one`), both staged behind
+    the camera and drawn in it: hold, a Photo and Video switch, a button of its own; one shot, three, a count of
+    their own; the microphone's prompt drawn.
+  - Saving the look (`save`, recommended `save`): the original always, Save wears it with Download all original,
+    hers to choose, always; Save in the viewer, her Photos, Download all; 1440 on the knob. `viewer.tsx`.
+  - The looks applied at display and never baked (`film.tsx`), the roll's look a knob on every photographic ask.
+  - Measure a phone (`measure.tsx`, the board's dock): opens the rear camera at its largest ideal (4032 by 3024),
+    takes a frame as the page would (JPEG 0.92), `takePhoto` where ImageCapture exists, and the camera app's photo
+    through `capture`, printing one line to copy; nothing leaves the phone. Driven end to end on Chrome's fake camera
+    (a 3840 by 2160 frame and takePhoto read back).
+- **Assets requested from Will**: none (the twelve marketing stills stand in for the camera and the roll).
+- **Board ideas**:
+  - The event's own wrapper as its printed table card and poster: the camera and the code wearing one design.
+  - The kit: `defineExploration` keeps the first control of an id, so an ask whose id equals a config knob's
+    silently swallows the knob (this board's `screen` ask ate the Screen knob until it became `wall`); a registry
+    check could refuse the collision.
+  - The premiere on the wall: at 9 am the reel's screen could count down and play the roll as an event of its own.
+- **Records for the Orchestrator**: ROADMAP's lab line (:21) lists this board among the lab's lighter headings; it
+  carries none now (`f6da48df`). ROADMAP :54 names `pick=line`'s door, but his round one pick was `step`, so the
+  site's link would open Create's step with the camera picked.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes**: none.
+- **Calls his to overrule**: the five carried calls above (size, refused, spent, ten, sound); each ask's
+  recommendation (reel, pile, slideshow, covered, cards, hold, one, save); video as two asks.
+- **Look at first**: the camera step (`/design/lab/disposable-mode?session=disposable-mode.camera`); then his one
+  action, a minute a phone once this is on the alias: the board's Measure a phone on his iPhone and on an Android
+  (Open the camera, Take a frame, the camera app's photo), and paste the line back, since the full-size promise and
+  the `size` call ride on it.
