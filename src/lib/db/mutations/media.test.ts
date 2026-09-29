@@ -15,6 +15,7 @@ import { IN_CHUNK } from "@/lib/db/read-all";
 import {
   asSupabase,
   createFakePostgrest,
+  FakeRpcError,
   type FakePostgrest,
   type FakeRow,
 } from "@/lib/db/testing/fake-postgrest";
@@ -269,36 +270,37 @@ describe("the bin's Delete forever", () => {
     expect(purgeCalls).toEqual([{ p_media_ids: ids(2501) }]);
   });
 
-  it("keeps the held ones on a database without kept_media_ids yet (the seam, until the apply)", async () => {
-    useAlbum(
-      ids(10).map((_, i) =>
-        row(i, {
-          status: "removed",
-          legal_hold_at: i === 3 ? "2026-09-21T12:00:00.000000+00:00" : null,
-        }),
-      ),
-      { purge_media_now: () => ({ ok: true, purged: 10 }) },
-    );
-    const result = await purgeMediaNow("ev-1", ids(10));
-    expect(result).toEqual({ ok: true, data: { purged: 10 } });
-    const keys = deleted.flat();
-    expect(keys.some((k) => k.includes(uuid(3)))).toBe(false);
-    expect(keys.some((k) => k.includes(uuid(4)))).toBe(true);
-  });
-
-  it("fails before any object is deleted when the hold check cannot be read", async () => {
-    useAlbum(ids(10).map((_, i) => row(i, { status: "removed" })));
-    // The selection read succeeds; the hold check (the second table read) is refused.
-    const original = fake.from.bind(fake);
-    let reads = 0;
-    fake.from = (table: string) => {
-      reads += 1;
-      return reads > 1 ? original("missing_table") : original(table);
-    };
-    const result = await purgeMediaNow("ev-1", ids(10));
-    expect(result).toMatchObject({ ok: false, code: "unknown" });
-    expect(deleted).toHaveLength(0);
-  });
+  // ★ RESHAPED ON PURPOSE (crumbs-15, 2026-09-29; scar kept: a kept item's OBJECT survives, and no object goes
+  // when what to keep cannot be known). Two tests read "keeps the held ones on a database without kept_media_ids
+  // yet (the seam, until the apply)", where a missing function fell back to the hold columns, and "fails before
+  // any object is deleted when the hold check cannot be read", which refused that fallback's table read. The
+  // migration is applied and the fallback went, so the keeper check is the one `kept_media_ids` call, and whatever
+  // stops it, the missing function the seam used to swallow included, stops the purge before a single object.
+  it.each([
+    ["the function is missing (PGRST202)", "PGRST202"],
+    ["the read fails", "57014"],
+  ])(
+    "★ deletes no object at all when what the purge must keep cannot be asked: %s",
+    async (_, code) => {
+      useAlbum(
+        ids(10).map((_row, i) =>
+          row(i, {
+            status: "removed",
+            legal_hold_at: i === 3 ? "2026-09-21T12:00:00.000000+00:00" : null,
+          }),
+        ),
+        {
+          kept_media_ids: () => {
+            throw new FakeRpcError(code, "the keeper check failed");
+          },
+          purge_media_now: () => ({ ok: true, purged: 10 }),
+        },
+      );
+      const result = await purgeMediaNow("ev-1", ids(10));
+      expect(result).toMatchObject({ ok: false, code: "unknown" });
+      expect(deleted).toHaveLength(0);
+    },
+  );
 });
 
 /**

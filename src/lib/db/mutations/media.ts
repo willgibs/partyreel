@@ -29,7 +29,6 @@ import "server-only";
 import { mustQuery } from "@/lib/db/must-query";
 import { type MutationResult } from "@/lib/db/mutations/events";
 import { inChunks } from "@/lib/db/read-all";
-import { seamRpc } from "@/lib/db/triage-seam";
 import { deleteR2Objects } from "@/lib/r2/delete";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -626,30 +625,20 @@ export async function purgeMediaNow(
 }
 
 /**
- * The ids among `ids` the purge must keep, as `kept_media_ids` answers it. ★ THE SEAM, UNTIL THE APPLY: before
- * 20260929140000 the function is missing (PGRST202), and the answer falls back to what the purge kept before it,
- * the held rows, so a host's Delete permanently keeps working on either side of the migration.
+ * The ids among `ids` the purge must keep, as `kept_media_ids` answers it (a hold, or an open report naming the
+ * item or its album). A failed read throws: a purge that cannot ask what to keep deletes nothing.
  */
 async function readKeptForPurge(
   admin: ReturnType<typeof createAdminClient>,
   ids: readonly string[],
 ): Promise<string[]> {
-  return inChunks("media: purge kept check", ids, async (chunk) => {
-    const { data, error } = await seamRpc<string[]>(admin, "kept_media_ids", {
-      p_media_ids: chunk,
-    });
-    if (!error) return data ?? [];
-    if (error.code !== "PGRST202") {
-      throw new Error(`media: purge kept check: ${error.message}`);
-    }
-    const held = await mustQuery(
-      admin
-        .from("media")
-        .select("id")
-        .in("id", chunk)
-        .filter("legal_hold_at", "not.is", null),
-      "media: purge hold check",
-    );
-    return (held ?? []).map((r) => r.id);
-  });
+  return inChunks(
+    "media: purge kept check",
+    ids,
+    async (chunk) =>
+      (await mustQuery(
+        admin.rpc("kept_media_ids", { p_media_ids: chunk }),
+        "media: purge kept check",
+      )) ?? [],
+  );
 }
