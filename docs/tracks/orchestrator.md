@@ -42,6 +42,7 @@ a lane").
 | `settings-wiring` | every event-settings pick: settings as four sentences, the doors end to end, the Guests room, the hub | running (agent `aefdc4b3cecd92f74`) | Opus, 3131 | |
 | `disposable-mode` | r2: the camera, the waiting room, the room's screen, Create's step, video | running (agent `a1dbe1bf5ccc5042e`) | Opus, 3133 | |
 | `triage-r2-wiring` | admin-triage r2 wired; the hold rebuilt (Hold takes down by default; storage released at an operator's removal; an open report guards its item; the child-abuse instant hide) | running (agent `a432fe0336dc35587`) | Opus, 3134 | |
+| `crumbs-13` | device sign-out with Sign out everywhere in settings, the home's double preload, three lint warnings | running (agent `acefdcef3899da571`) | Opus, 3132 | |
 
 Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcribed at `31de6aa0`: 41 answers on ten
 boards). Wave A: `settings-wiring` (all nine event-settings picks, the doors end to end), `locked-door` r2 (the door
@@ -89,11 +90,7 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2.
      simplified, reported as a list. His standing permission (2026-09-29): the
      data architecture is the Orchestrator's, anything useless dropped, timed so partyreel.com's live build never
      reads a dropped thing.
-   - `crumbs-13` (Opus): Sign out signs out this device only (`signOut({ scope: 'local' })`), and "Sign out
-     everywhere" sits deeper in the account's settings (Will, 2026-09-29: a host uses a desk and a phone for
-     different jobs; build 20's red-team found the global sign-out ending the admin portal's session too); the
-     home's golden photograph preloaded twice at 1440 on a pixel-ratio-1 screen (two `sizes`, so the 384 copy goes
-     unused; build 20's red-team, `../partyreel-wt/_scratch/redteam-20/ledger.txt`).
+   - `crumbs-13` is running (device sign-out, the home's double preload, three lint warnings).
    - After their rounds: the disposable wiring (after `disposable-mode` r2's picks and `settings-wiring`'s merge, since
      it rewrites the guest path) and the door family's wiring (if the doorway wins, its reveal: walking through the
      opened door into the album, drawn first as motion options; ASSETS row 36 if the host's door wins).
