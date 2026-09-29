@@ -97,12 +97,20 @@ function worldOf(story: Story, names: NamesId, demo: DemoId) {
   return { card, opens, elsewhere };
 }
 
-/** The four the month makes, under a party's frames. */
+/**
+ * EACH STAND-IN, NAMED, AND WHAT THE MONTH MAKES IN ITS PLACE, under a
+ * party's frames: the band's twelve stills cannot show a lake or a reunion,
+ * so the party is judged on the four photographs its card will really carry.
+ */
 function Makes({ story }: { story: Story }) {
   return (
     <p className="max-w-3xl text-sm text-pretty text-muted-foreground">
-      Stand-ins from the band&rsquo;s stills. The month makes the four prints:{" "}
-      {story.prints.map((p) => p.makes).join("; ")}.
+      Every photograph is a stand-in from the band&rsquo;s stills. The four
+      prints the month makes:{" "}
+      {story.prints
+        .map((p) => `${p.makes} (standing in: ${p.photo})`)
+        .join("; ")}
+      .
     </p>
   );
 }
@@ -226,7 +234,7 @@ function demoPreview(s: BoardState, option: DemoId): ReactNode {
           <Scene
             id={`df-demo-${story.id}-${names}-${option}-elsewhere`}
             screen="375"
-            title={`${name}: the footer, the nav and the event pages`}
+            title={`${name}: every other door (the footer, the nav, the event pages)`}
             measure={albumSays}
           >
             <AlbumPage album={elsewhere} />

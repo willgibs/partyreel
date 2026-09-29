@@ -8,7 +8,7 @@ import { defineExploration } from "@/components/lab/exploration";
  * hero (or even just modify our current demo), let's land on the best framing
  * of it."
  *
- * ★ WHERE IT STANDS, READ OFF THE LIVE ROW (2026-09-28). The home hero's card
+ * ★ WHERE IT STANDS, READ OFF THE LIVE ROW (2026-09-29). The home hero's card
  * (`hero-card` r2's `guests`, `cinema-hero-card.tsx`) prints
  * partyreel.com/e/mia-and-theo, and no event holds that slug: the homepage's
  * one printed address 404s, and any host on any plan could claim it and have
@@ -32,8 +32,8 @@ import { defineExploration } from "@/components/lab/exploration";
  * written in the host's own voice ("My 30th") stops reading.
  *
  * Nothing here asks what another standing board asks: the card's design is
- * production's (`hero-card` retired into it), and the demo modal is `popups`'
- * and ships.
+ * production's (`hero-card` retired into it), and the demo modal ships as it
+ * stands (a desk's press opens it; the album opens from it in a new tab).
  */
 export const DEMO_FRAMING = defineExploration({
   id: "demo-framing",

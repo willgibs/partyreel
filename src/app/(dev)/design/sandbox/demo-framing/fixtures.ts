@@ -340,7 +340,7 @@ export const NAMES_IDS: readonly NamesId[] = [
 ];
 
 /**
- * THE DEMO AS IT STANDS (read off the live row, 2026-09-28): "Partyreel Demo"
+ * THE DEMO AS IT STANDS (read off the live row, 2026-09-29): "Partyreel Demo"
  * at /e/partyreel-demo, hosted on Will's own account, dated July 9, 2026, nine
  * photographs and videos from three named guests, and a line that says it is
  * a demo. Its photographs are the seed's test fixtures; the stills here stand
