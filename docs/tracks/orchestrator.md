@@ -42,6 +42,7 @@ a lane").
 | `crumbs-16` | build 23's HIGH bug at its root (a history call hands Next its own `__NA` state, so Settings rows never open their page and a page's back arrow never returns), the same shape swept and held by a policy test; triage-r2-wiring's relayed help article | handed back after gate 71: with its change `demo-framing.names` hangs (`Page.navigate` never answers; it passes on `61a4ee00` without the change), so the unpushed merge was undone; resumed to fix it at its root with a failing test and re-run `lab:demo` over every board (agent `a5ddc145d2b108533`; worktree `../partyreel-wt/crumbs-16`) | Sonnet, 3133 | |
 | `schema-pass` | the data architecture audited, its migration refused by the classifier; resumed on Will's yes (2026-09-29): asked "May the lane write its two migration files and run those proofs?", he answered "Yes, write and prove"; told to close `public.reports`' default grants too (the red-team's note) | running (agent `ad2f22b2fb01a8a6e`; worktree `../partyreel-wt/schema-pass`) | Opus, 3132 | |
 | `event-ready` | r1, a board: how a host knows her event is ready (an event checklist, the settings' mini wizard and whether Create shares it, a never-empty "what needs you", the hub's code as the live door); the first board authored in the one-folder shape | running (agent `a758ad3af55bfe3a7`; worktree `../partyreel-wt/event-ready`) | Opus, 3135 | |
+| `album-motion-wiring` | album-motion r1: the hero's two symmetrical streams, each photograph drawn in and dissolving at the album's edge, then pushed into the album from the left as a real upload arrives; retires `sandbox/album-motion/` in-lane | running (agent `a59b9b5183feee95f`; worktree `../partyreel-wt/album-motion-wiring`) | Opus, 3131 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 its first question was the `demo-framing.names` hang. From another session, respawn it from `usher/kit/advisor-prompt.txt`.
@@ -113,8 +114,6 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
      second classifier refusal: stop and tell him.
    - The next crumbs lane: NIT-1, the red-team's findings, and the ROADMAP's two dead-seam lines from `crumbs-15`
      (the account deletion's, and the untyped claims, notification-prefs and guest-events reads).
-   - Marketing wirings, when no app lane is ready: `album-motion-wiring` (Opus: push, both streams kept, symmetrical,
-     each drawn in and dissolving while its photo pushes into the rows from the left).
    - Marketing rounds: `demo-framing` r2 (a slug in the host's voice, `my-party` or `our-wedding`, against a
      typewriter of slugs; the typewriter sharing the stage with the stream, or leading while the QR and stream move to
      the QR page's hero; a clickable touch in place of the "Try our demo event" eyebrow; an album spanning every kind of
