@@ -101,8 +101,9 @@ family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records
    prints and the seed sets, `OBJECT_EVENT` and `OBJECT_PRINTS` to match, a demo host account if `host` stands
    (`partyreel-demo` stays refused to anyone else by the brand family, `crumbs-11`), and ASSETS rows 5, 33 and 34
    unparked with the party's subjects.
-7. **Milestone 30** on his yes, once his legal wording is in (presented whole in chat, 2026-09-29; applied on his
-   approval); the moment partyreel.com is READY on it, drop `events.show_guest_list` and the three `notification_prefs`
+7. **Milestone 30** on his yes, asked 2026-09-29 for once build 20's red-team is clean (legal no longer gates a
+   milestone: Will, 2026-09-29, the Terms and Privacy are rewritten once right before launch, ROADMAP's launch
+   checkpoint); the moment partyreel.com is READY on it, drop `events.show_guest_list` and the three `notification_prefs`
    columns for mail nothing sends (his yes, 2026-09-29; the milestone-29 build reads them until then); after it, `kit/`'s screens re-captured from partyreel.com
    (the home's hero, close, teaser and eyebrow, the demo's doors, the pricing page).
 8. **The lab revamp**: a board as one self-registering folder, its metadata in its spec, lab checks scoped to the
@@ -116,15 +117,8 @@ family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records
 
 - **His desk: zero** after build 19's sitting. Two asks wait on the rounds that replace their boards: demo-framing's
   `names` (behind `story=?`) and press-page's `a-human` (the About round).
-- **His legal wording**, presented whole in chat (2026-09-29), now and proposed: the guest list always on (Terms :123,
-  :414, :425; Privacy :305), the host's block (Terms :425; Privacy :165, :311; the real call: a block keeps a
-  confirmed address after its account is deleted), the plans and clips paragraphs `pricing-wiring` edited, the reports
-  clause (Terms :433, :436; Privacy :675, :680, with the Orchestrator's addition for `proof=confirm`: a reporter's
-  confirmed address kept only until the report closes, "never told who filed one" in place of "anonymous"), and the
-  private count (Terms :419; Privacy :311). The drafts' sources: `git show 5d8c57c9:docs/tracks/safety-wiring.md`,
-  `git show c6bd5f5f:docs/tracks/triage-wiring.md`, `git show a2076912 -- src/lib/constants/legal-terms.tsx`. On his
-  approval the Orchestrator applies them (the one writer of the legal files for this) and prepares milestone 30. The
-  door's new words (Public, Private, Only me) bring a small set of their own with `settings-wiring`, for milestone 31.
+- **Milestone 30's yes** (asked 2026-09-29): it ships launch-prep as of build 20 once that build's red-team is
+  clean; the lanes in flight ride milestone 31.
 - **The hold doctrine**, explained in chat (2026-09-29), a yes or no on each of `triage-wiring`'s three (all
   recommended): a host's delete of a held item looks like any delete (her Deleted takes it; restore still refused,
   every purge still skips it), so a held photo no longer stays up beside the rest leaving; the host's read of
