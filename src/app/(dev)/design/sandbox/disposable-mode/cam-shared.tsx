@@ -98,9 +98,7 @@ export function CamBar({
         <X className="size-5" aria-hidden />
       </span>
       <div className="min-w-0 text-center">
-        <p className="truncate font-heading text-base font-medium">
-          {EVENT.name}
-        </p>
+        <p className="truncate font-heading text-base">{EVENT.name}</p>
         <p className="text-micro text-white/60">{sub}</p>
       </div>
       <span
@@ -262,7 +260,7 @@ export function Refused({
       <span className="mb-3 flex size-10 items-center justify-center rounded-full bg-muted">
         <Camera className="size-5" aria-hidden />
       </span>
-      <p className="font-heading text-lg font-medium" data-dm-say>
+      <p className="font-heading text-lg" data-dm-say>
         The camera is off for this page
       </p>
       <p className="mt-1.5 text-sm text-pretty text-muted-foreground">

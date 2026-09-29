@@ -378,7 +378,7 @@ function DevelopConfirm({ screen }: { screen: ReturnType<typeof screenOf> }) {
             className="fixed inset-x-4 top-1/2 z-50 mx-auto max-w-sm -translate-y-1/2 rounded-2xl border bg-popover p-5 text-popover-foreground shadow-layer"
             data-dm-confirm
           >
-            <p className="font-heading text-card-title font-medium" data-dm-say>
+            <p className="font-heading text-card-title" data-dm-say>
               Develop the roll now?
             </p>
             <p className="mt-2 text-sm text-pretty text-muted-foreground">

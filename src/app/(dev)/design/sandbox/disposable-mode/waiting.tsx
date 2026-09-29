@@ -77,9 +77,7 @@ function RoomBar() {
       )}
     >
       <div className="min-w-0">
-        <p className="truncate font-heading text-base font-medium">
-          {EVENT.name}
-        </p>
+        <p className="truncate font-heading text-base">{EVENT.name}</p>
         <p className="text-micro tracking-[0.14em] text-[#f7e9e4]/55 uppercase">
           Developing
         </p>
@@ -195,7 +193,7 @@ function Count({
     <div className="text-center" data-dm-count>
       <p
         className={cn(
-          "font-heading leading-none font-medium tabular-nums",
+          "font-heading leading-none tabular-nums",
           big ? "text-[64px]" : "text-[44px]",
         )}
       >
@@ -539,7 +537,7 @@ export function HerShots({
         )}
       >
         <div>
-          <p className="font-heading text-base font-medium">Your shots</p>
+          <p className="font-heading text-base">Your shots</p>
           <p className="text-micro text-[#f7e9e4]/55">{lead}</p>
         </div>
         <span className="dm-cam-round" aria-label="Close">
@@ -616,7 +614,7 @@ export function DeleteShot({
             />
           </span>
           <div className="min-w-0 space-y-1.5">
-            <p className="font-heading text-lg font-medium" data-dm-say>
+            <p className="font-heading text-lg" data-dm-say>
               Delete this shot?
             </p>
             <p className="text-sm text-pretty text-[#f7efe9]/70">

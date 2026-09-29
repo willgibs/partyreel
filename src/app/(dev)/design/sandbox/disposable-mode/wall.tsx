@@ -25,7 +25,7 @@ function CornerCode() {
   return (
     <div className="absolute right-8 bottom-8 flex items-end gap-4">
       <div className="max-w-[16rem] text-right">
-        <p className="dm-ink font-heading text-page font-semibold text-white">
+        <p className="dm-ink font-heading text-page text-white">
           Scan to add yours
         </p>
         <p className="dm-ink mt-1 text-copy break-all text-white/90">
@@ -81,10 +81,10 @@ export function DarkroomWall({ landing }: { landing: boolean }) {
       <span aria-hidden className="dm-room-light dm-room-light-wide" />
       <span aria-hidden className="dm-room-grain" />
       <div className="absolute top-1/2 left-20 -translate-y-1/2" data-dm-count>
-        <p className="font-heading text-[200px] leading-none font-medium tabular-nums">
+        <p className="font-heading text-[200px] leading-none tabular-nums">
           {shots}
         </p>
-        <p className="mt-4 font-heading text-[44px] leading-tight font-medium">
+        <p className="mt-4 font-heading text-[44px] leading-tight">
           shots developing
         </p>
         <p className="mt-6 text-[28px] text-[#f7e9e4]/75" data-dm-when>
@@ -169,10 +169,10 @@ export function GlimpseWall({
       <span aria-hidden className="dm-room-light dm-room-light-wide" />
       <span aria-hidden className="dm-room-grain" />
       <div className="absolute top-20 left-20" data-dm-count>
-        <p className="font-heading text-[120px] leading-none font-medium tabular-nums">
+        <p className="font-heading text-[120px] leading-none tabular-nums">
           {landing ? PARTY.shots + 1 : PARTY.shots}
         </p>
-        <p className="mt-3 font-heading text-[34px] leading-tight font-medium">
+        <p className="mt-3 font-heading text-[34px] leading-tight">
           shots developing
         </p>
         <p className="mt-5 text-[26px] text-[#f7e9e4]/75" data-dm-when>

@@ -52,7 +52,7 @@ export function WrapperCamera(p: CamProps) {
         <p className="text-micro font-semibold tracking-[0.2em] uppercase opacity-60">
           A disposable camera for
         </p>
-        <p className="mt-1 font-heading text-[54px] leading-[0.9] font-extrabold tracking-[-0.015em] uppercase">
+        <p className="mt-1 font-heading text-[54px] leading-[0.9] tracking-[-0.015em] uppercase">
           {EVENT.name}
         </p>
         <p className="mt-2 text-micro font-semibold tracking-[0.14em] uppercase opacity-70">
@@ -99,7 +99,7 @@ export function WrapperCamera(p: CamProps) {
                 {clock(p.seconds ?? 0)}
               </span>
             ) : (
-              <span className="font-heading text-xl font-bold tabular-nums">
+              <span className="font-heading text-xl tabular-nums">
                 {p.left}
               </span>
             )}

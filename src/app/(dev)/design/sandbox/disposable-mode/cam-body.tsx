@@ -53,7 +53,7 @@ export function BodyCamera(p: CamProps) {
       </div>
 
       <div className="dm-body-label mx-5 flex items-baseline justify-between rounded-md px-3 py-2">
-        <span className="font-heading text-[15px] font-semibold tracking-[0.18em] uppercase">
+        <span className="font-heading text-[15px] tracking-[0.18em] uppercase">
           {EVENT.name}
         </span>
         <span className="text-micro font-semibold tracking-[0.14em] uppercase">
@@ -100,7 +100,7 @@ export function BodyCamera(p: CamProps) {
                   {clock(p.seconds ?? 0)}
                 </span>
               ) : (
-                <span className="font-heading text-2xl font-semibold tabular-nums">
+                <span className="font-heading text-2xl tabular-nums">
                   {shown}
                 </span>
               )}
@@ -147,9 +147,7 @@ export function BodyCamera(p: CamProps) {
           ["3", "Shoot"],
         ].map(([n, word]) => (
           <span key={n} className="space-y-1">
-            <span className="dm-emboss block font-heading text-base font-semibold">
-              {n}
-            </span>
+            <span className="dm-emboss block font-heading text-base">{n}</span>
             <span className="dm-emboss block text-micro">{word}</span>
           </span>
         ))}

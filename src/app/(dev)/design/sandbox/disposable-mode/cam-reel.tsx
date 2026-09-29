@@ -213,7 +213,7 @@ export function ReelCamera(p: CamProps) {
         )}
         <div className="grid grid-cols-3 items-center px-6">
           <div className="justify-self-start" data-dm-say>
-            <p className="font-heading text-[26px] leading-none font-medium tabular-nums">
+            <p className="font-heading text-[26px] leading-none tabular-nums">
               {p.left}
             </p>
             <p className="mt-1 text-xs text-white/60">

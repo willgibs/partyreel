@@ -31,6 +31,7 @@ import {
   roomRowLayout,
 } from "@/components/app/event-feed/room-card";
 import { FeedSectionHeader } from "@/components/app/event-feed/feed-section-header";
+import { EVENT_ROOMS, type EventRoomId } from "@/lib/event/sections";
 import { FooterQr } from "@/components/marketing/chrome/footer-qr";
 import { Container } from "@/components/shared/container";
 import { Logo } from "@/components/shared/logo";
@@ -152,59 +153,56 @@ function HostPage({
 
 /* ── the hub ────────────────────────────────────────────────────────────── */
 
-/** The cards row at rest, on `room-card.ts`'s one shell and its Review face. */
+/**
+ * The cards row at rest, on `room-card.ts`'s one shell and its Review face,
+ * in production's own order (`EVENT_ROOMS`: Highlight reel, Guests, Review,
+ * Settings) and its own label (the heading face at its one weight).
+ */
 function Rooms({ review, pending }: { review: boolean; pending: number }) {
   const face = reviewCardFace(review, pending);
-  const rooms = [
-    {
-      id: "review",
-      label: "Review",
-      value: face.value,
-      Icon: ListChecks,
-      amber: face.amber,
-    },
-    {
-      id: "reel",
-      label: "Highlight reel",
-      value: `Premieres at ${ROLL.develops}`,
-      Icon: Clapperboard,
-    },
-    {
-      id: "guests",
-      label: "Guests",
-      value: `${PARTY.guests} guests`,
-      Icon: Users,
-    },
-    { id: "settings", label: "Settings", value: "Disposable", Icon: Settings },
-  ];
+  const cards: Record<
+    EventRoomId,
+    { value: string; Icon: typeof ListChecks; amber?: boolean }
+  > = {
+    reel: { value: `Premieres at ${ROLL.develops}`, Icon: Clapperboard },
+    guests: { value: `${PARTY.guests} guests`, Icon: Users },
+    review: { value: face.value, Icon: ListChecks, amber: face.amber },
+    settings: { value: "Disposable", Icon: Settings },
+  };
   return (
     <div role="group" aria-label="This event" className={roomRowLayout(false)}>
-      {rooms.map(({ id, label, value, Icon, amber }) => (
-        <span
-          key={id}
-          data-dm-room-card={id}
-          className={cn(
-            ROOM_CARD_BASE,
-            roomCardSize(false),
-            ROOM_CARD_QUIET,
-            amber && "border-warning/50",
-          )}
-        >
-          <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-          <span className="font-heading text-card-title font-medium">
-            {label}
-          </span>
+      {EVENT_ROOMS.map(({ id, label }) => {
+        const { value, Icon, amber } = cards[id];
+        return (
           <span
+            key={id}
+            data-dm-room-card={id}
             className={cn(
-              "truncate text-xs tabular-nums",
-              amber ? "text-warning" : "text-muted-foreground",
-              ROOM_CARD_VALUE,
+              ROOM_CARD_BASE,
+              roomCardSize(false),
+              amber ? "border-warning/40 bg-warning/5" : ROOM_CARD_QUIET,
             )}
           >
-            {value}
+            <Icon
+              className={cn(
+                "size-4 shrink-0",
+                amber ? "text-warning" : "text-muted-foreground",
+              )}
+              aria-hidden
+            />
+            <span className="font-heading text-card-title">{label}</span>
+            <span
+              className={cn(
+                "truncate text-xs tabular-nums",
+                ROOM_CARD_VALUE,
+                amber ? "font-medium text-warning" : "text-muted-foreground",
+              )}
+            >
+              {value}
+            </span>
           </span>
-        </span>
-      ))}
+        );
+      })}
     </div>
   );
 }

@@ -453,13 +453,16 @@
   outline: 2px solid #f4f1ea;
   outline-offset: 4px;
 }
-/* Letters moulded into the plastic. */
+/* Letters moulded into the plastic (a heading numeral keeps the face's one
+   weight; the plastic's small print is Inter's semibold). */
 .dm-emboss {
   color: rgb(244 241 234 / 0.5);
-  font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   text-shadow: 0 1px 0 rgb(0 0 0 / 0.7);
+}
+.dm-emboss:not(.font-heading) {
+  font-weight: 600;
 }
 .dm-emboss-lit {
   color: #f4f1ea;
@@ -1082,7 +1085,7 @@
 .dm-thumb-name {
   font-family: var(--font-heading);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 0.95;
   text-transform: uppercase;
 }
