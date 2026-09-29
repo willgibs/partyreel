@@ -134,6 +134,15 @@ function of elapsed time can be frozen at a chosen moment and shot.
   window stretches a 100vh hero), so `lab:demo`'s own scrolled capture is how subtle light is judged, and a capture
   with no variance at all is reported UNPAINTED, to be judged by eye (headless Chrome does not always rasterize a
   composited `backdrop-filter`).
+- ★ **`lab:demo` dying on `Page.navigate did not answer in 60000ms`,** while the dev server answers the page in about
+  200 ms and the renderer still runs timers, is a wedged dev image optimizer and not a hung page: `next dev` hands
+  every request for one image the same pending result, and a first request that is cancelled (an iframe's first
+  document going, with its images in flight) leaves it pending for ever, so the later requests never answer, the six
+  connections to the server fill and the next navigation cannot start (`curl`: sixty requests for one uncached image,
+  aborted after 10 ms, then an ordinary request for that image hangs while every other image answers; five aborted do
+  not). The server stays wedged (0% CPU, GBs resident) and fails every later run whatever the tree: restart it
+  (`rm -rf .next/dev`) before any A/B, then find what cancels the images (`Frame` once mounted every portalled scene
+  twice).
 
 ## The presign-roll soak
 

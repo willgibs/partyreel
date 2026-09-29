@@ -86,28 +86,44 @@ export function useBoardState(spec: BoardSpec): {
 
   const setState = useCallback(
     (patch: Record<string, string>) => {
-      try {
-        const url = new URL(window.location.href);
-        for (const c of controls) {
-          const v = patch[c.id];
-          if (!v || !c.options.some((o) => o.id === v)) continue;
-          if ((RESERVED_PARAMS as readonly string[]).includes(c.id)) continue;
-          if (v === c.default) url.searchParams.delete(c.id);
-          else url.searchParams.set(c.id, v);
+      // ★ THE WRITE WAITS ONE MICROTASK, AND HANDS NEXT NOTHING (crumbs-16).
+      //
+      // NEVER THE ENTRY'S OWN STATE: it carries Next's `__NA`, which makes
+      // Next's patched `replaceState` take the call for its own and apply no
+      // URL, so its copy of the address (`useSearchParams`: `CopyLink`, every
+      // sticky link in the shell) stayed on the last address it heard, and a
+      // `router.refresh()` wrote that address back over the bar.
+      //
+      // NOT BEFORE THE PATCH EXISTS: Next installs it in a passive effect of its
+      // Router, and a child's effect runs before its parent's, so a write from a
+      // mount effect (a step LANDING on a board sets its controls) reaches the
+      // browser's own `replaceState`, where `null` empties the entry's `__NA`
+      // and tree (a later Back onto it is then ignored by Next) and Next never
+      // hears the URL. lab-tides (2026-09-19) saw the emptied state and kept the
+      // entry's own, believing `null` throws Next's bookkeeping away: measured
+      // under `next dev`, a `null` write AFTER the patch keeps both (Next copies
+      // them from the entry), Back through it does not reload and no server round
+      // trip follows; and a microtask runs after the whole flush of a commit's
+      // effects, the Router's included. A click's write is a microtask late,
+      // which nothing can see: the store below re-reads the address on the event.
+      // `history-state-policy.test.ts` refuses the first shape everywhere.
+      queueMicrotask(() => {
+        try {
+          const url = new URL(window.location.href);
+          for (const c of controls) {
+            const v = patch[c.id];
+            if (!v || !c.options.some((o) => o.id === v)) continue;
+            if ((RESERVED_PARAMS as readonly string[]).includes(c.id)) continue;
+            if (v === c.default) url.searchParams.delete(c.id);
+            else url.searchParams.set(c.id, v);
+          }
+          window.history.replaceState(null, "", url);
+          window.dispatchEvent(new Event(URL_EVENT));
+        } catch {
+          // A sandboxed frame or a blocked history API. Nothing to fall back on:
+          // the URL is the state, so say nothing rather than drift from it.
         }
-        // ★ THE ENTRY'S STATE OBJECT IS KEPT, NOT REPLACED WITH NULL
-        // (lab-tides, 2026-09-19). Next's App Router keeps its own bookkeeping
-        // on `history.state` (the tree it restores, the scroll position), and
-        // `replaceState(null, ...)` throws it away: `step.tsx` passes
-        // `window.history.state` through on every step write and this one did
-        // not, so one knob flipped on a board quietly emptied what the router
-        // needs to go Back through that entry.
-        window.history.replaceState(window.history.state, "", url);
-        window.dispatchEvent(new Event(URL_EVENT));
-      } catch {
-        // A sandboxed frame or a blocked history API. Nothing to fall back on:
-        // the URL is the state, so say nothing rather than drift from it.
-      }
+      });
     },
     [controls],
   );
