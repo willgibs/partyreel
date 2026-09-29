@@ -1,6 +1,6 @@
 ---
 track: triage-r2-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "92334b26"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -10,14 +10,13 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/admin/albums/
   - src/components/admin/
   - src/components/app/report-review
-  - src/components/guest/report-dialog.tsx
-  - src/components/guest/report-answer-form.tsx
+  - src/components/guest/report-dialog
+  - src/components/guest/report-answer-form
   - src/app/api/reports/
   - src/app/(guest)/report/
-  - src/lib/validation/report.ts
+  - src/lib/validation/report
   - src/lib/db/queries/reports.ts
-  - src/lib/db/mutations/reports
-  - src/lib/db/mutations/report.ts
+  - src/lib/db/mutations/report
   - src/lib/db/mutations/media
   - src/lib/db/triage-seam.ts
   - src/lib/reports/
@@ -25,7 +24,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/admin/pending.ts
   - src/lib/admin/nav.ts
   - src/lib/guest/report-door.ts
-  - src/lib/email/templates.ts
+  - src/lib/email/templates
   - src/components/shared/media-lightbox-parts/
   - src/lib/lifecycle/
   - docs/systems/admin-observability.md
@@ -81,54 +80,158 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each recommended answer is BUILT and his to overrule; none is a one-way door (each is a function, a rule or a
+component a later change reverts).
+
+- **The kinds, their words and their order** (`lib/reports/kinds.ts`, the SQL enum's order under a parity test):
+  A child in sexual or abusive content · Nudity or sexual content · Violence, a threat or hate · Someone's private
+  details on show · Me or my child, and I want it down · Something else. The first two arrive covered in the queue;
+  only the first hides at once. The overrule: other words or another split.
+- **The instant hide's limits and its bar.** Built: at most 3 hides an address and 5 an event in any 24 hours, the
+  event's host never, and ANY dismissed child-abuse report from an address bars its instant hide for good (the
+  report itself is always filed and heads the queue). The overrule: other numbers, or a bar that lapses.
+- **A false report's hide comes back at its dismissal**, and the dismissal's Undo hides it again (`hideUndoOf`); a
+  held item stays down whatever the dismissal says.
+- **An album report keeps every item of its album** from every permanent delete until it closes (an album report
+  names no item, and "protects its item" read as the thing reported). The overrule: an album report keeps nothing.
+- **A child-abuse reporter's keyed hash outlives the report** (`reporter_hash`, an HMAC under
+  `UNLOCK_COOKIE_SECRET`, never the address), because the limits and the bar must know the address after the close
+  forgets it. For the legal pass: the Privacy Policy's reports line names it beside the confirmed address.
+- **Confirming on the form makes a free account** (the account door's own code; Google would leave the page and lose
+  the form) and claims nothing. **A proof answer is words only**: asking a stranger for pictures would invite what
+  must never be sent, and Ask for proof is never offered on the worst kind.
+- **The proof mail's switch** (`ops_flags.report_proof_mail_enabled`, seeded OFF): his yes flips it, `update
+  public.ops_flags set enabled = true where key = 'report_proof_mail_enabled'`; until then Ask for proof says so and
+  writes nothing.
+- **A phone's Take it down leaves the reports open** (`phone=stop`: the verdict and its note are a desk's); a phone's
+  Hold for forensics is one press, Take it down too on, the report's reference as the reason.
+- **The host's block takes a quietly held upload like any other** (event-safety r1 skipped one: under a quiet hold
+  the photograph stayed in the emptied album and the confirm counted one fewer than she could see); let back in
+  leaves it in Deleted, as restore_media refuses it; the list's count of what can come back leaves it out, as it
+  leaves out a withdrawal.
+- **An expired event an open report keeps** stays in the bin past its window (unseen by the host, off both of her
+  figures) and its bytes stay on the physical meter (`storage_used_bytes`, which gates nothing) until the report
+  closes; an item's kept delete leaves that meter at once (`purge_asked_at`).
+- **The worst kind's reporter line** reads "email confirmed" or "no confirmed email" (what decided the hide) where
+  every other kind reads "can be asked" or "can't be asked".
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `admin-observability.md` "Reports" (`9ea9919b`): the reporter the session's; the kinds' home; the instant hide
+  and its alerts; the review grid and a phone's two acts; a verdict over its whole entry; a dismissal's way back for
+  a hide; Hold for forensics with Take it down too on; Ask for proof behind its switch.
+- `trust-safety-forensics.md` (`9ea9919b`): a hold is for what police should see and the quiet hold is the unticked
+  one; what an open report keeps (`kept_media_ids`) and a kept delete deferred (`purge_asked_at`); a quietly held
+  row takes the host's own acts; an operator's removal leaves her storage at once; the runbook's steps 1, 2 and 5.
+- Relayed, not mine to edit (each a line the merge makes stale):
+  - `billing-caps.md` "Three counters": `storage_used_bytes` goes down at an operator's removal or a deferred delete
+    (`media_release_meter`, back up at an operator's restore) and in `purge_media_rows` only for a row not yet
+    released; still gates nothing.
+  - `lifecycle-recovery.md`: `purge_media_rows` never deletes a row `kept_media_ids` names (a hold, an open report);
+    "Held media is excluded" becomes held media and anything an open report names; the standby bin and the Deleted
+    figure also leave out an asked row (`purge_asked_at`); `purge_media_now` asks a kept row instead of deleting it
+    (gone from her view and meter, purged the night its keeper lets go); an expired or deleted account's event with
+    an open report is kept whole.
+  - `database-security.md` (schema-pass's this batch): the triggers bullet's "A held row is skipped, never refused"
+    is gone (a quietly held row takes the host's writes; leaving `removed` is still the restore RPC's alone);
+    `create_report`'s new signature stays in the service-role list; the new functions (`kept_media_ids`,
+    `defer_kept_due_media`, `report_queue_facts`: service role; `media_release_meter`, `reports_forget_reporter`:
+    triggers) and `media.purge_asked_at` ungranted like the hold columns.
+  - `host-app.md` (settings-wiring's) Block: "(a held one stays, as every host write leaves it)" becomes "(a quietly
+    held one too, as every host write takes it)".
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Admin: the reporter's closing note (`reporter=note`, admin-triage r2) stays banked: the report's close could tell a
+  reporter who confirmed an address what became of it (from `triage-r2-wiring`).
+- Admin: the People lane still wears round one's card inside the review grid; a person report in the grid's own look
+  (the reported profile, its reasons, Mark actioned) is a round of its own (from `triage-r2-wiring`).
+- Legal: the legal pass's reports line gains a child-abuse reporter's keyed hash, kept past the close for the instant
+  hide's limits and bar (from `triage-r2-wiring`).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
-
-## Where I am (checkpoint, 2026-09-29, for an agent resuming this worktree)
-
-**Done, pushed on `lp/triage-r2-wiring`:** `a154be1b` owns widened · `e3d8a53b` the wiring (grid, kinds, the
-reporter's confirm, the instant hide, the hold rebuilt, Ask for proof behind its switch, migration
-`20260929140000_triage_r2.sql`) · `120e701f` admin-triage retired (folder, registry.ts, boards.ts, touchpoints.ts) ·
-`0f7cfeea` the rules pinned (verdicts, routes, mutation seam, reporter, form, viewer Report, sweeps, migration
-contract, mails) and the rolled-back check at the migration's foot · `3d84447a` the host's block takes a quietly held
-upload like any other (block_from_event, get_my_uploads, remove_my_upload; step 10) · `9ea9919b` admin-observability.md
-Reports and trust-safety-forensics.md refined · `d4357d5a` the local walk's fixes. The rolled-back check ran on the
-live schema with the file whole: setup and steps 1 to 10 ok, nothing left behind. Walked locally on :3134: the
-Library's grid at 1440 and 375 (covered front, sweep ticks, peek verbs, Hold's confirm with Take it down too on and
-its quiet words, a phone's one-press acts with Undo, no overflow), the guest form (six kinds, Submit waits for one,
-the instant-hide lines, Confirm your email's code door and back), a video's own Report over the viewer and back, the
-answer page's spent state.
-
-**Half-done:** nothing mid-edit.
-
-**Next, in order:** (1) the gate on this tree, dev server killed first: `pnpm typecheck`, `pnpm lint`, `pnpm test`,
-`zsh scripts/build-lock.sh pnpm build`, then `pnpm dev -p 3134` and `pnpm lab:smoke --base http://localhost:3134`,
-then kill the server and close Browser tab `tab-4`. (2) Fill this manifest: `owns` prefixes for the new tests
-(`src/lib/validation/report`, `src/components/guest/report-dialog`, `src/components/guest/report-answer-form`,
-`src/lib/email/templates`); Questions with recommended answers; System-doc edits; Deferred; the Handoff with the lane
-check's exceptions (the Library's compositions demo and gallery entry, registry/boards/touchpoints as the brief
-names, the help step-screens' report picture and its test, storage-summary.test, db/migration-guards.test and
-db/queries/media.ts (schema-pass's), forensics/migration-guards.test and legal-hold.ts), the relays (the help
-article's words for settings-wiring's `content/help/`; host-app.md's block line; the billing-caps.md,
-lifecycle-recovery.md and database-security.md lines), the apply, the types regen and dropping `triage-seam.ts`'s
-seams, and the live red-team walks. (3) `status: handed-off`, commit the manifest alone, push, hand off.
+- **Commits, pushed to `lp/triage-r2-wiring`:** `a154be1b` owns widened · `e3d8a53b` the wiring and migration
+  `20260929140000_triage_r2.sql` · `120e701f` admin-triage retired · `0f7cfeea` the rules pinned and the
+  rolled-back check at the migration's foot · `3d84447a` the block takes a quietly held upload · `9ea9919b` the two
+  system docs · `d4357d5a` the local walk's fixes · `07f5d5f5` a checkpoint · and this manifest. **No sync:**
+  launch-prep moved (crumbs-13 `3d2cfbd6`, lab-revamp stage one `a17725c3`, disposable-mode r2 `5c152977`, records)
+  but nothing in my reads; the one shared path, `touchpoints.ts`, merges clean (`git merge-tree`: no conflict).
+- **Gates, each on its own exit code, on `07f5d5f5`** (its code is `d4357d5a`'s; logs in
+  `../partyreel-wt/_scratch/triage-r2-wiring/gate-*.log`): typecheck 0; lint 0 (3 warnings, none in a file I
+  touched: crumbs-13 removed them on launch-prep); test 0 (578 files, 6,584 tests); `build-lock.sh pnpm build` 0
+  (`/report/[token]` built); `lab:smoke --base http://localhost:3134` 0 (156 checks, 0 failing; admin-triage gone
+  from the lab). No board, so no `lab:demo`.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = the owned paths + the two system docs + this
+  file, and these exceptions, each with its why:
+  - `lab/boards.ts`, `sandbox/registry.ts`, `touchpoints.ts` (lab-revamp's): the board's retirement lines, as the
+    brief names them; `admin-bar.tsx`'s comment that named the board is owned.
+  - `library/compositions/composition-demos.tsx` and `gallery-demos.tsx`: the Library's Reports specimen mounts the
+    real `ReportQueue` over writes that change nothing (the card it redrew is gone); the portal's one local eye.
+  - `marketing/help/step-screens/door-screens.tsx` and `step-screens.test.ts`: the help's picture of the report form
+    quotes the form, so it wears the kinds and the new lede.
+  - `lib/billing/storage-summary.test.ts`: her Deleted figure leaves an asked row out (reshaped, scar kept).
+  - `lib/db/migration-guards.test.ts` (schema-pass's): the guards on functions this migration replaces
+    (held_event_ids, standby_hosts, purge_media_now, restore_event, block_from_event, get_my_uploads,
+    remove_my_upload), each reshaped with its scar; `lib/db/queries/media.ts` (schema-pass's): one Omit line,
+    `purge_asked_at` ungranted like the hold columns.
+  - `lib/forensics/migration-guards.test.ts` and `legal-hold.ts`: `purge_asked_at` joins the ungranted columns; the
+    hard-delete path list names `kept_media_ids`.
+- **Items:**
+  - `look=grid`: `components/admin/report-queue.tsx`, harm in front (split cards, the two sexual kinds covered until
+    View once), People between, the sweep (4:5 tiles, X ticks, Enter or the bar dismisses, Undo); Space opens a
+    report whole with every reason, the proof thread and the verbs; the rail's and the bell's urgent count.
+  - `harm=kinds`: the form asks the kind before Submit can send; `reports.kind`; the queue sorts and covers by it.
+  - `proof=confirm`: Confirm your email on the form (the door's code only); the address the session's, kept only
+    while the report is open; Ask for proof's record (`proof_*`, `/report/<token>`, the answer route), the mail
+    behind its switch, OFF.
+  - `phone=stop` with his note: Take it down now and Hold for forensics on a phone, one press each.
+  - The hold rebuilt: Take it down too, on by default, takes everything the hold reaches down before any copy
+    starts; unticked is the quiet hold; an operator's removal leaves her meter at once (and the backfill takes the
+    standing ones off); an open report keeps its item, its album's items and its event from every permanent delete,
+    a kept delete deferred (`purge_asked_at`); a quietly held row takes her own acts and her block.
+  - The instant hide: a confirmed child-abuse report of a photo hides it at once as an operator's removal, with its
+    limits, its bar and the host's exception; the ops inbox mailed and the portal signalled at once; a dismissal
+    puts it back.
+  - A photo's own Report in the viewer (only where the album's form listens), opening the form with it named.
+  - A verdict answers its whole entry; the sweep's one press; the phone takedown's Undo.
+  - Retired: the admin-triage board (the ledger `docs/reviews/admin-triage.json` is yours to delete).
+- **Proposed migration:** `supabase/migrations/20260929140000_triage_r2.sql`, its APPLY PROTOCOL in its header
+  (the md5 read before and after, advisors: no delta expected). Proved on the live schema 2026-09-29 as one
+  `begin … rollback` with the file whole: setup and steps 1 to 10 ok, nothing left behind (no `report_kind`, no
+  `purge_asked_at`, the old `create_report`, no switch row, the updated_at trigger on); live md5 of every replaced
+  body equals its source migration's. **Deploy right after the apply** (the old build's purge would delete a kept
+  item's object). Then regenerate `src/lib/db/types.ts` and drop the seams: `src/lib/db/triage-seam.ts`
+  (`seamFrom`/`seamRpc` to typed calls), `createReport`'s three-argument fallback, `purgeMediaNow`'s hold fallback
+  (`readKeptForPurge`), and the two 42703 maps (`readProofAsk`, `answerProof`). Env: none new
+  (`UNLOCK_COOKIE_SECRET`, `CONTACT_NOTIFY_EMAIL` exist). No Worker, Vercel or Stripe change.
+- **Relay, `content/help/report-a-problem-as-a-guest.mdx`** (settings-wiring's `content/help/`): the whole new
+  article is `../partyreel-wt/_scratch/triage-r2-wiring/report-a-problem-as-a-guest.mdx`, checked against the help
+  tests in place (labels, compile, links, screens: 271 passed) and restored. What changes: the description (report
+  the photo from the viewer, or the album from the foot); keywords "report a photo" and "child safety"; the two
+  doors (the photo's own Report first); the steps (Tap Report; Pick what it is, and say what's wrong; Submit); "the
+  host is never told who reported" and Confirm your email in place of "Reports are anonymous"; What happens next
+  without "Nothing is removed the instant a report arrives"; the callout "The report covers the event" replaced by
+  one on the worst kind (a confirmed email hides the photo at once, while we look).
+- **Live red-team walks (after the apply and the deploy), on disposable events:** (1) a report of each kind: the
+  grid's lanes, the covered front, the sweep's ticks and one Dismiss with its Undo; (2) a child-abuse report of a
+  photo from a confirmed test account: hidden at once, the ops-inbox mail and the urgent count; its Dismiss puts it
+  back and the Undo hides it again; a fourth from one address and a report after a false dismissal hide nothing;
+  (3) Hold both ways, desk and phone: with Take it down too the host's album, her Deleted and her storage figure
+  drop at once; quiet, the item stays and her Remove, Hide, Delete permanently and block of its uploader read like
+  any other, her restore refused in the vague words; (4) an open report: her Delete permanently of a reported
+  removal leaves her view and meter, the row waits for the close; (5) the photo's Report on a guest album, and none
+  on her own album, on her own upload or in the bin; (6) Ask for proof refused while off; after his yes, the mail,
+  the answer on the report, the link dead after one use and at the close; (7) anon and another host refused:
+  `create_report`, `kept_media_ids`, `report_queue_facts` not executable by `anon` or `authenticated`.
+- **Verified locally on :3134** (the portal cannot sign in locally): the Library's grid at 1440 and 375 (the covered
+  front with View once and the runbook line, the peek's verbs, Hold's confirm with Take it down too on and its quiet
+  words unticked, a phone's one-press acts with Undo, no horizontal scroll); the guest form on a disposable event
+  (six kinds, Submit waiting for one, the instant-hide lines for the album and a photo, Confirm your email's code
+  door and back with the kind kept); a video's own Report opening the form over the viewer and closing back to it;
+  `/report/<token>`'s spent page.
+- **Assets requested from Will:** none.
+- **Board ideas:** the People lane in the grid's own look (Deferred above); a lapse or an appeal for a barred
+  address (the Question on the bar).
+- **Look at first:** Hold for forensics' confirm (Take it down too, and the quiet words), the form's instant-hide
+  line, and the grid's front at 375.
