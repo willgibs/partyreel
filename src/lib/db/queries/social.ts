@@ -323,8 +323,8 @@ export type PublicProfile = {
    * The empty page's count (migration 20260927100000, `identity-profile` `page=count`): the events
    * the owner added photos to that THIS viewer could see here if she chose them, and has not. It is
    * the attended arm's own rule with the owner's choice inverted, so a gated album this viewer has
-   * not passed stays out of it. A number only while the page shows nothing, null otherwise; absent
-   * before the migration is applied, which reads as no count.
+   * not passed stays out of it. A number only while the page shows nothing, null otherwise; an absent
+   * key reads as no count.
    */
   private_event_count?: number | null;
 };
@@ -556,7 +556,7 @@ export async function getMyProfileSlug(): Promise<string | null> {
     .eq("id", user.id)
     .maybeSingle();
   if (error) throw error;
-  return (data as { slug: string | null } | null)?.slug ?? null;
+  return data?.slug ?? null;
 }
 
 // ── The events you added to (guest by upload) ───────────────────────────────

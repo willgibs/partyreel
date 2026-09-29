@@ -185,12 +185,11 @@ describe("the viewer", () => {
 describe("the shut door: a ticket a block holds is gone, as a private album is", () => {
   const COOKIE = "c".repeat(64);
   const blockedWhenHolding = (ticket: string) =>
-    readDoorStanding.mockImplementation(
-      async (_id: string, caller: Caller) =>
-        standing({
-          door: await servedDoor(),
-          blocked: caller.tickets.includes(ticket),
-        }),
+    readDoorStanding.mockImplementation(async (_id: string, caller: Caller) =>
+      standing({
+        door: await servedDoor(),
+        blocked: caller.tickets.includes(ticket),
+      }),
     );
 
   it("a body ticket the block holds is gone, and nothing is resolved", async () => {
