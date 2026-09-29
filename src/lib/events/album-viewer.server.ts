@@ -4,7 +4,10 @@
  * album's gates match today's by construction and no anon grant exists anywhere.
  *
  *  - The event through `get_event_by_qr_token` (the canonical capability; a private or unknown one
- *    is `gone`, and says nothing about which).
+ *    is `gone`, and says nothing about which). ★ So is one closed to this viewer by a block: an
+ *    account the event blocked reads it as private already, and a ticket a block holds (the body's
+ *    or the cookie's) closes it here, before the private branch, with the same work either way
+ *    (`closed-door.server.ts`).
  *  - The viewer through `getUser()`, never `getSession()`: a CONFIRMED email is `isAuthed`, and the
  *    owner is matched on `host_id` explicitly (`isEventOwner`).
  *  - The unlock cookie for a password album, and the guest's identity from the body's session token
@@ -22,6 +25,7 @@ import {
   type GuestEvent,
 } from "@/lib/db/queries/guest-events";
 import { isDemoToken } from "@/lib/demo";
+import { isClosedDoor } from "@/lib/events/closed-door.server";
 import type { GalleryDecision } from "@/lib/events/gallery-access";
 import {
   isEventOwner,
@@ -52,7 +56,15 @@ export async function resolveAlbumViewer(
   bodySessionToken: unknown,
 ): Promise<AlbumViewer> {
   const event = await getEventByQrToken(qrToken);
-  if (!event.ok || event.data.visibility === "private") return { kind: "gone" };
+  if (!event.ok) return { kind: "gone" };
+
+  const cookieToken = await readGuestSessionCookie(event.data.id);
+  const bodyToken = isSessionTokenShape(bodySessionToken)
+    ? bodySessionToken
+    : null;
+  if (await isClosedDoor(event.data, [bodyToken, cookieToken])) {
+    return { kind: "gone" };
+  }
 
   // The demo is always full and nobody's (the gallery poll's own short-circuit).
   const isDemo = isDemoToken(qrToken);
@@ -79,10 +91,6 @@ export async function resolveAlbumViewer(
       ? await isUnlocked(event.data.id)
       : true;
 
-  const cookieToken = await readGuestSessionCookie(event.data.id);
-  const bodyToken = isSessionTokenShape(bodySessionToken)
-    ? bodySessionToken
-    : null;
   const decision = await resolveViewerDecision(event.data, {
     isOwner,
     isAuthed,

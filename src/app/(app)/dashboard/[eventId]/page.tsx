@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { Eye, Images, Users } from "lucide-react";
 
+import { HostCreditLookProvider } from "@/components/app/event-blocks/credit-look";
 import { EventCardsRow } from "@/components/app/event-feed/event-cards-row";
 import { reviewCardFace } from "@/components/app/event-feed/room-card";
 import {
@@ -237,12 +238,9 @@ export default async function EventDetailPage({
     },
     {
       id: "guests" as const,
-      // The room behind this card lists the guests only while the host's list
-      // is on, so the card says the count when it can be opened onto, and the
-      // one step it needs when it cannot.
-      value: socialSettings?.showGuestList
-        ? `${formatCount(guestsCount)} ${guestsCount === 1 ? "guest" : "guests"}`
-        : "Turn on the list",
+      // The guest list is always on (Will, event-safety `room=always`), so the
+      // room behind this card always lists them, and the card says how many.
+      value: `${formatCount(guestsCount)} ${guestsCount === 1 ? "guest" : "guests"}`,
     },
     {
       id: "settings" as const,
@@ -353,36 +351,40 @@ export default async function EventDetailPage({
             </div>
           </div>
 
-          <HostAddProvider>
-            <HostSelectionProvider>
-              <EventCardsRow
-                eventId={event.id}
-                cards={cards}
-                reel={reel}
-                moderationOn={isModerationOn}
-              />
-              <EventGallery
-                eventId={event.id}
-                launchCount={launch.length}
-                videosAllowed={videosAllowedForTier(tier)}
-                initialStep={rowStep}
-                tier={tier}
-              >
-                <EventUploads
+          {/* A photograph's credit in the host's viewer opens its sender's look, with its quiet Block
+              (event-safety `entry=all`, the viewer's face-led credit). */}
+          <HostCreditLookProvider>
+            <HostAddProvider>
+              <HostSelectionProvider>
+                <EventCardsRow
                   eventId={event.id}
-                  shareUrl={eventLink}
-                  rhythmSeed={rhythmSeed}
-                  launchList={
-                    <LaunchList
-                      eventId={event.id}
-                      eventDate={event.event_date}
-                      description={event.description}
-                    />
-                  }
+                  cards={cards}
+                  reel={reel}
+                  moderationOn={isModerationOn}
                 />
-              </EventGallery>
-            </HostSelectionProvider>
-          </HostAddProvider>
+                <EventGallery
+                  eventId={event.id}
+                  launchCount={launch.length}
+                  videosAllowed={videosAllowedForTier(tier)}
+                  initialStep={rowStep}
+                  tier={tier}
+                >
+                  <EventUploads
+                    eventId={event.id}
+                    shareUrl={eventLink}
+                    rhythmSeed={rhythmSeed}
+                    launchList={
+                      <LaunchList
+                        eventId={event.id}
+                        eventDate={event.event_date}
+                        description={event.description}
+                      />
+                    }
+                  />
+                </EventGallery>
+              </HostSelectionProvider>
+            </HostAddProvider>
+          </HostCreditLookProvider>
         </HostAlbumProvider>
 
         <EventSheets
@@ -393,7 +395,6 @@ export default async function EventDetailPage({
             socialSettings
               ? {
                   displayInProfile: socialSettings.displayInProfile,
-                  showGuestList: socialSettings.showGuestList,
                   hostHasSlug: Boolean(myProfileSlug),
                 }
               : null

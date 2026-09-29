@@ -33,7 +33,6 @@ export type SandboxId =
   | "help-center"
   | "event-settings"
   | "host-storage"
-  | "event-safety"
   | "press-page"
   | "contact-page"
   | "disposable-mode"
@@ -269,37 +268,6 @@ export const RULINGS: Ruling[] = [
     },
   },
   {
-    id: "event-safety",
-    title: "Keeping an event safe",
-    surface: "host",
-    asks: "where a host blocks someone, the door a blocked person meets, the blocked list and letting back in, the Guests room with its list off, and the three closed doors",
-    why: "A bad actor with a verified email can be hidden photo by photo but never stopped; a block and three closed doors, all free, end that.",
-    lives: [
-      "docs/systems/guest-flow.md",
-      "docs/systems/host-app.md",
-      "docs/systems/trust-safety-forensics.md",
-      "src/components/shared/media-lightbox.tsx",
-      "src/components/shared/media-lightbox-parts/credit.tsx",
-      "src/components/social/guest-peek.tsx",
-      "src/app/(app)/dashboard/[eventId]/guests/page.tsx",
-      "src/components/app/event-feed/review-room.tsx",
-      "src/components/app/event-feed/review-section.tsx",
-      "src/components/app/event-settings/visibility-section.tsx",
-      "src/components/app/event-settings/uploads-section.tsx",
-      "src/components/guest/entry-modal.tsx",
-      "src/components/guest/upload/failure-sheet.tsx",
-    ],
-    board: {
-      note: "Twelve decisions over Maya and Jay's wedding, where Dom Hale keeps sending a nightclub to a wedding, at 375 with 1440 on the knob, drawn on production as it stands: where Block lives, the door a blocked person meets, the blocked list and what letting back in restores, the Guests room with its list off, how a host chooses who can join, and the doors of approving newcomers, closing to them and an invite list",
-      variants: [
-        "Where Block lives",
-        "The blocked door",
-        "Who can join",
-        "The invite list",
-      ],
-    },
-  },
-  {
     id: "press-page",
     title: "What Partyreel hands the world",
     surface: "marketing",
@@ -452,7 +420,6 @@ export const RULINGS: Ruling[] = [
 export const DESK_ORDER: readonly SandboxId[] = [
   "hero-card",
   "host-storage",
-  "event-safety",
   "export-flow",
   "admin-triage",
   "help-center",

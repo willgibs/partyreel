@@ -15,6 +15,30 @@ vi.mock("@/app/(guest)/u/[slug]/actions", () => ({
   followProfileAction: vi.fn().mockResolvedValue({ ok: true }),
   unfollowProfileAction: vi.fn().mockResolvedValue({ ok: true }),
 }));
+// The block screen is its own file's contract (event-blocks/block-confirm.test.tsx), and it reaches
+// the host's server actions; here it stands in as what it was opened for.
+vi.mock(
+  "@/components/app/event-blocks/block-look-action",
+  async (importOriginal) => ({
+    ...(await importOriginal<
+      typeof import("@/components/app/event-blocks/block-look-action")
+    >()),
+    LazyBlockConfirm: ({
+      open,
+      target,
+      name,
+    }: {
+      open: boolean;
+      target: unknown;
+      name: string | null;
+    }) =>
+      open ? (
+        <div data-testid="block-screen" data-target={JSON.stringify(target)}>
+          {name}
+        </div>
+      ) : null,
+  }),
+);
 
 /**
  * THE GUEST LIST'S CONTRACT (the profile wiring, 2026-09-19).
@@ -117,11 +141,13 @@ describe("GuestList", () => {
     expect(screen.queryByRole("link")).toBeNull();
   });
 
-  it("says so when the host's key is on and nobody has added a photo yet", () => {
-    // [] is "on, empty"; null (the key is OFF) never reaches this component,
-    // because both callers gate on it. That distinction is load-bearing.
+  it("says so when nobody has added a photo yet", () => {
+    // ★ Reshaped: [] was "the host's key is on, and empty", beside a null that meant OFF. The key is
+    // retired (event-safety `room=always`), so [] means only that nobody has added a photo yet.
     render(<GuestList items={[]} />);
-    expect(screen.getByText(/nobody has added photos yet/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/nobody has added photos yet/i),
+    ).toBeInTheDocument();
   });
 });
 
@@ -175,11 +201,7 @@ describe("GuestList: unverified guests", () => {
     unmount();
 
     render(
-      <GuestList
-        items={items}
-        viewerId="me"
-        followingIds={new Set(["b"])}
-      />,
+      <GuestList items={items} viewerId="me" followingIds={new Set(["b"])} />,
     );
     // Only Maya is left: "me" is the viewer, "b" is already followed.
     expect(screen.getAllByRole("button", { name: "Follow" })).toHaveLength(1);
@@ -268,13 +290,20 @@ describe("GuestList: the host's addresses", () => {
  * a screen reader still hears the whole address.
  */
 describe("GuestList: a long address", () => {
-  const maya = { ...guests(1)[0], id: "u-maya", displayName: "Maya", slug: "maya" };
+  const maya = {
+    ...guests(1)[0],
+    id: "u-maya",
+    displayName: "Maya",
+    slug: "maya",
+  };
 
   it("shortens from the middle and keeps the domain whole", () => {
     render(
       <GuestList
         items={[maya]}
-        emails={new Map([["u-maya", "priya.raman.1987.personal.inbox@outlook.com"]])}
+        emails={
+          new Map([["u-maya", "priya.raman.1987.personal.inbox@outlook.com"]])
+        }
       />,
     );
     expect(
@@ -289,7 +318,9 @@ describe("GuestList: a long address", () => {
     render(
       <GuestList
         items={[maya]}
-        emails={new Map([["u-maya", "alex@students.university-of-somewhere-far.edu"]])}
+        emails={
+          new Map([["u-maya", "alex@students.university-of-somewhere-far.edu"]])
+        }
       />,
     );
     expect(screen.getByText("alex@students.universit…")).toBeInTheDocument();
@@ -303,5 +334,66 @@ describe("GuestList: a long address", () => {
       />,
     );
     expect(screen.getAllByText("fakeemail@domain.com")).toHaveLength(1);
+  });
+});
+
+/**
+ * BLOCK, FROM A NAME'S LOOK, IN THE HOST'S ROOM ALONE (event-safety `entry=all`): the look stays
+ * social and Block is its last line, only where the Guests room passes `blockFrom`; pressing it
+ * closes the look and opens the one block screen, naming the person the way the room knows them (a
+ * confirmed guest by their account at this event, a typed name by its guest row).
+ */
+describe("GuestList: Block in the host's room", () => {
+  const maya = {
+    ...guests(1)[0],
+    id: "u-maya",
+    displayName: "Maya",
+    slug: "maya",
+  };
+  const sam = { kind: "unverified" as const, id: "g-sam", displayName: "Sam" };
+
+  it("no Block without `blockFrom` (the album's list, and every other caller)", () => {
+    render(<GuestList items={[maya, sam]} />);
+    fireEvent.click(screen.getByRole("button", { name: /maya/i }));
+    expect(
+      screen.queryByRole("button", { name: /block from this event/i }),
+    ).toBeNull();
+  });
+
+  it("★ a confirmed guest's look ends in Block, which opens the block screen for their account", () => {
+    render(<GuestList items={[maya]} blockFrom={{ eventId: "e-1" }} />);
+    fireEvent.click(screen.getByRole("button", { name: /maya/i }));
+    // Social first: the page is still the look's lead.
+    expect(
+      screen.getByRole("link", { name: /open full profile/i }),
+    ).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: /block from this event/i }),
+    );
+    const screenFor = screen.getByTestId("block-screen");
+    expect(JSON.parse(screenFor.dataset.target ?? "null")).toEqual({
+      kind: "account",
+      eventId: "e-1",
+      userId: "u-maya",
+    });
+    expect(screenFor).toHaveTextContent("Maya");
+    // The look closed as the screen opened.
+    expect(
+      screen.queryByRole("link", { name: /open full profile/i }),
+    ).toBeNull();
+  });
+
+  it("a typed name's Block names its guest row", () => {
+    render(<GuestList items={[sam]} blockFrom={{ eventId: "e-1" }} />);
+    fireEvent.click(screen.getByRole("button", { name: /sam/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /block from this event/i }),
+    );
+    expect(
+      JSON.parse(screen.getByTestId("block-screen").dataset.target ?? "null"),
+    ).toEqual({
+      kind: "row",
+      guestId: "g-sam",
+    });
   });
 });

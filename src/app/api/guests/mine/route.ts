@@ -34,6 +34,7 @@ import {
   listSessionMediaIds,
 } from "@/lib/db/mutations/guest-media";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
+import { isClosedDoor } from "@/lib/events/closed-door.server";
 import { TRACKER_TELLS_REFUSAL } from "@/lib/guest/upload-tracker";
 import { captureWarning } from "@/lib/observability/sentry";
 import {
@@ -107,8 +108,10 @@ async function answerStatuses(
   const refused = await breadthRefusal(request, input.qr_token);
   if (refused) return refused;
 
+  // A private album, or a ticket a block holds: the same empty answer (the closed door,
+  // `closed-door.server.ts`, asked with the body's ticket alone: this route never reads the cookie).
   const event = await getEventByQrToken(input.qr_token);
-  if (!event.ok || event.data.visibility === "private") {
+  if (!event.ok || (await isClosedDoor(event.data, [input.session_token]))) {
     return NextResponse.json({ ok: true, items: [] }, { headers: PRIVATE });
   }
   const supabase = await createClient();
@@ -154,7 +157,7 @@ export async function POST(request: Request) {
   if (refused) return refused;
 
   const event = await getEventByQrToken(qr_token);
-  if (!event.ok || event.data.visibility === "private") {
+  if (!event.ok || (await isClosedDoor(event.data, [session_token]))) {
     return NextResponse.json(NONE);
   }
 

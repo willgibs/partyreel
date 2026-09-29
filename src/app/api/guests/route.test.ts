@@ -49,6 +49,19 @@ vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => undefined }),
 }));
 
+// ★ THE CLOSED DOOR (the per-event block, 20260928120000): a private album, or a ticket a block holds.
+// Its own rule is closed-door.server.test.ts's; here a held ticket stands in for one, so the route's
+// answer to it can be read against its answer to a private album, word for word.
+const ticketBlocked = vi.fn();
+vi.mock("@/lib/events/closed-door.server", () => ({
+  isClosedToThisBrowser: async (
+    event: { visibility?: string },
+    tickets: unknown[] = [],
+  ) =>
+    event.visibility === "private" ||
+    (await ticketBlocked(event, tickets)) === true,
+}));
+
 const { POST } = await import("@/app/api/guests/route");
 
 const TOKEN = "qr-token-1234";
@@ -452,5 +465,27 @@ describe("POST /api/guests: the session cookie", () => {
     const res = await post({ qr_token: TOKEN });
     expect(res.status).toBe(422);
     expect(res.headers.get("set-cookie")).toBeNull();
+  });
+});
+
+describe("the closed door: a browser a block holds meets the private album's refusal", () => {
+  it("answers it exactly as it answers a private album, and mints nothing", async () => {
+    event(false, "private");
+    const shut = await post({ qr_token: TOKEN, display_name: "Sam" });
+    const shutBody = await shut.json();
+
+    event(false, "open");
+    ticketBlocked.mockResolvedValue(true);
+    const held = await post({ qr_token: TOKEN, display_name: "Sam" });
+    ticketBlocked.mockReset();
+
+    expect(held.status).toBe(shut.status);
+    expect(await held.json()).toEqual(shutBody);
+    expect(shutBody).toEqual({
+      ok: false,
+      code: "unauthorized",
+      message: "This event is private.",
+    });
+    expect(createGuest).not.toHaveBeenCalled();
   });
 });

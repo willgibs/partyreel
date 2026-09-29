@@ -37,6 +37,19 @@ vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
 }));
 vi.mock("@/lib/observability/sentry", () => ({ captureWarning: vi.fn() }));
 
+// ★ THE CLOSED DOOR (the per-event block, 20260928120000): a private album, or a ticket a block holds.
+// Its own rule is closed-door.server.test.ts's; here a held ticket stands in for one, so the route's
+// answer to it can be read against its answer to a private album, word for word.
+const ticketBlocked = vi.fn();
+vi.mock("@/lib/events/closed-door.server", () => ({
+  isClosedDoor: async (
+    event: { visibility?: string },
+    tickets: unknown[] = [],
+  ) =>
+    event.visibility === "private" ||
+    (await ticketBlocked(event, tickets)) === true,
+}));
+
 const { POST } = await import("@/app/api/guests/mine/route");
 
 const TOKEN = "qr-token-1234";
@@ -238,6 +251,40 @@ describe("statuses: her own uploads, with where each stands", () => {
       (await post({ qr_token: TOKEN, session_token: MINE, statuses: false }))
         .status,
     ).toBe(200);
+    expect(listOwnUploadStatuses).not.toHaveBeenCalled();
+  });
+});
+
+describe("the closed door: a ticket a block holds meets the private album's answer", () => {
+  it("answers both arms exactly as a private album's, asks with the body's ticket, and reads nothing", async () => {
+    const asked = [
+      { qr_token: TOKEN, session_token: MINE },
+      { qr_token: TOKEN, session_token: MINE, statuses: true },
+    ];
+    getEventByQrToken.mockResolvedValue({
+      ok: true,
+      data: { id: "event-1", visibility: "private" },
+    });
+    const shut = await Promise.all(
+      asked.map(async (body) => (await post(body)).json()),
+    );
+
+    getEventByQrToken.mockResolvedValue({
+      ok: true,
+      data: { id: "event-1", visibility: "open" },
+    });
+    ticketBlocked.mockResolvedValue(true);
+    const held = await Promise.all(
+      asked.map(async (body) => (await post(body)).json()),
+    );
+    expect(ticketBlocked).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "event-1" }),
+      [MINE],
+    );
+    ticketBlocked.mockReset();
+
+    expect(held).toEqual(shut);
+    expect(listSessionMediaIds).not.toHaveBeenCalled();
     expect(listOwnUploadStatuses).not.toHaveBeenCalled();
   });
 });

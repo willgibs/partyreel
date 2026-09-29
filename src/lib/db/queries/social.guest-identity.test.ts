@@ -89,12 +89,18 @@ function builderFor(table: string) {
  * the bin per asked-for event (the covers ride the function since the 1,000-row round, 2026-09-23).
  */
 function coversFor(eventIds: string[]) {
-  const out: Record<string, { preview_key: string | null; original_key: string }> =
-    {};
+  const out: Record<
+    string,
+    { preview_key: string | null; original_key: string }
+  > = {};
   for (const m of answers.media ?? []) {
     const id = m.event_id as string;
     if (!eventIds.includes(id) || out[id]) continue;
-    if (m.status !== "approved" || (m.type ?? "photo") !== "photo" || m.removed_at)
+    if (
+      m.status !== "approved" ||
+      (m.type ?? "photo") !== "photo" ||
+      m.removed_at
+    )
       continue;
     out[id] = {
       preview_key: (m.preview_key as string | undefined) ?? null,
@@ -104,6 +110,19 @@ function coversFor(eventIds: string[]) {
   return out;
 }
 
+/**
+ * What the per-event block's SQL answers (migration 20260928120000): the guest rows a block holds at
+ * the event, and the events that hold the signed-in account, as her own lists read them. Empty by
+ * default: nobody is blocked.
+ */
+const blocks = {
+  rows: new Set<string>(),
+  events: {} as Record<
+    string,
+    { own: boolean; last_upload_at: string | null; profile_eligible: boolean }
+  >,
+};
+
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({
     from: (table: string) => builderFor(table),
@@ -111,7 +130,14 @@ vi.mock("@/lib/supabase/admin", () => ({
       Promise.resolve(
         fn === "event_covers"
           ? { data: coversFor(args.p_event_ids), error: null }
-          : { data: null, error: { message: `no function ${fn}`, code: "PGRST202" } },
+          : fn === "event_blocked_guest_ids"
+            ? { data: [...blocks.rows], error: null }
+            : fn === "blocked_events_for"
+              ? { data: blocks.events, error: null }
+              : {
+                  data: null,
+                  error: { message: `no function ${fn}`, code: "PGRST202" },
+                },
       ),
   }),
 }));
@@ -122,6 +148,7 @@ const {
   getEventGuestList,
   getEventGuests,
   getHostCard,
+  getMyAttendedEventPicks,
   getMyAttendedEvents,
   getMyBlocks,
   getMyFollowing,
@@ -135,19 +162,103 @@ beforeEach(() => {
   for (const key of Object.keys(selected)) delete selected[key];
   for (const key of Object.keys(selects)) delete selects[key];
   for (const key of Object.keys(filters)) delete filters[key];
-  answers.events = [{ show_guest_list: true, host_id: "host-1" }];
+  answers.events = [{ host_id: "host-1" }];
   answers.media = [];
   answers.guests = [];
   answers.profiles = [];
+  blocks.rows = new Set();
+  blocks.events = {};
 });
 
-describe("getEventGuestList: the host key still decides", () => {
-  it("returns null when the key is off, whether or not unverified names are asked for", async () => {
-    answers.events = [{ show_guest_list: false }];
-    await expect(getEventGuestList(EVENT)).resolves.toBeNull();
+describe("getEventGuestList: always on (Will, event-safety `room=always`)", () => {
+  // ★ Reshaped: this pinned "the host key still decides" (null while `show_guest_list` was off). The
+  // key is retired ("Always on for everyone"), so the pin is now that nothing reads it and the list
+  // lists whatever the column holds.
+  it("lists its guests whatever the retired column holds, and never reads it", async () => {
+    answers.events = [{ show_guest_list: false, host_id: "host-1" }];
+    answers.guests = [
+      { id: "g-named", user_id: null, display_name: "Theo", verified_at: null },
+    ];
+    answers.media = [{ guest_id: "g-named" }];
     await expect(
       getEventGuestList(EVENT, { includeUnverified: true }),
-    ).resolves.toBeNull();
+    ).resolves.toEqual([
+      { kind: "unverified", id: "g-named", displayName: "Theo" },
+    ]);
+    for (const columns of selects.events ?? []) {
+      expect(columns).not.toContain("show_guest_list");
+    }
+  });
+});
+
+describe("the retired key is read and written by nothing (Will, `room=always`)", () => {
+  /** Every source file under a directory, recursively. */
+  function sources(dir: string): string[] {
+    return readdirSync(dir).flatMap((entry) => {
+      const full = join(dir, entry);
+      if (statSync(full).isDirectory()) return sources(full);
+      return /\.(ts|tsx)$/.test(entry) && !/\.test\.tsx?$/.test(entry)
+        ? [full]
+        : [];
+    });
+  }
+
+  it("★ no code in the tree names `show_guest_list` or `showGuestList` outside a comment", () => {
+    // The generated types keep the column until the contract migration drops it, and the Library's
+    // gallery fixture is a whole `events` row of those types, so both still spell it.
+    const allowed = new Set([
+      "src/lib/db/types.ts",
+      "src/app/(dev)/design/sandbox/gallery-fixtures.ts",
+    ]);
+    const naming = sources(join(process.cwd(), "src"))
+      .map((file) => relative(process.cwd(), file))
+      .filter((file) => !allowed.has(file))
+      .filter((file) => {
+        const code = readFileSync(join(process.cwd(), file), "utf8")
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/(^|[^:])\/\/.*$/gm, "$1");
+        return /show_guest_list|showGuestList/.test(code);
+      });
+    expect(naming).toEqual([]);
+  });
+});
+
+describe("a person the host blocked is on no list and in no count (the per-event block)", () => {
+  beforeEach(() => {
+    answers.guests = [
+      {
+        id: "g-verified",
+        user_id: "u1",
+        display_name: null,
+        verified_at: "2026-09-21T15:00:00Z",
+      },
+      { id: "g-named", user_id: null, display_name: "Theo", verified_at: null },
+    ];
+    answers.media = [{ guest_id: "g-verified" }, { guest_id: "g-named" }];
+    answers.profiles = [
+      { id: "u1", display_name: "Alex", slug: "alex", avatar_updated_at: null },
+    ];
+  });
+
+  it("the rows a block holds leave before the rows become people, even with a photograph approved", async () => {
+    blocks.rows = new Set(["g-named"]);
+    await expect(
+      getEventGuestList(EVENT, { includeUnverified: true }),
+    ).resolves.toEqual([
+      { id: "u1", displayName: "Alex", slug: "alex", avatarMarker: null },
+    ]);
+    const guests = await getEventGuests(EVENT);
+    expect(guests.unverifiedRows).toEqual([]);
+    expect(guests.verifiedUserIds).toEqual(["u1"]);
+  });
+
+  it("a blocked confirmed guest leaves the count too", async () => {
+    blocks.rows = new Set(["g-verified"]);
+    const guests = await getEventGuests(EVENT);
+    expect(guests.verifiedUserIds).toEqual([]);
+    expect(guests.unverifiedRows).toEqual([
+      { id: "g-named", displayName: "Theo" },
+    ]);
   });
 });
 
@@ -500,12 +611,173 @@ describe("the events you added to", () => {
       coverUrl: "https://cdn/signed",
       byline: "Hosted by Maya",
     });
-    expect(pass).toMatchObject({ href: "/e/qp", coverUrl: null, passwordProtected: true });
+    expect(pass).toMatchObject({
+      href: "/e/qp",
+      coverUrl: null,
+      passwordProtected: true,
+    });
     expect(priv).toMatchObject({
       href: null,
       coverUrl: null,
       name: "Private event",
       byline: null,
+    });
+  });
+
+  /**
+   * ★ THE BLOCK IS INVISIBLE ON HER OWN DASHBOARD (the Orchestrator's finding from the locked-door
+   * board, beside the door's own pin in `album-viewer.server.test.ts`): a private album's card stays and
+   * says so, its uploads still live, while a block moves hers to Deleted, so a card that vanished, or
+   * read any other way, would tell her what the door hides.
+   */
+  describe("★ a blocked event's Guest card reads exactly as a private album's", () => {
+    const PRIVATE_ALBUM = {
+      id: "e-priv",
+      name: "Secret party",
+      event_date: "2026-09-20",
+      visibility: "private",
+      qr_token: "qs",
+      host_id: "h1",
+    };
+    const BLOCKED_THERE = {
+      id: "e-blocked",
+      name: "Open party",
+      event_date: "2026-09-19",
+      visibility: "open",
+      qr_token: "qo",
+      host_id: "h1",
+    };
+    /** A card less the two fields that name which event and when: what she reads on it. */
+    const face = ({
+      eventId: _e,
+      lastUploadAt: _l,
+      ...rest
+    }: Record<string, unknown>) => rest;
+
+    beforeEach(() => {
+      answers.events = [PRIVATE_ALBUM, BLOCKED_THERE];
+      answers.profiles = [{ id: "h1", display_name: "Maya" }];
+      vi.mocked(presignDownload).mockClear();
+    });
+
+    it("stays with no live upload left (the block moved them all to Deleted), in the private album's words", async () => {
+      // Her one upload at the private album is live; every one of hers at the blocked album is in Deleted.
+      answers.media = [
+        {
+          event_id: "e-priv",
+          status: "approved",
+          created_at: "2026-09-20T10:00:00Z",
+          guests: { verified_at: null },
+          original_key: "k-priv",
+        },
+      ];
+      blocks.events = {
+        "e-blocked": {
+          own: true,
+          last_upload_at: "2026-09-21T10:00:00Z",
+          profile_eligible: true,
+        },
+      };
+
+      const cards = await getMyGuestEventCards();
+      // The block keeps the card's place: the newest upload it removed.
+      expect(cards.map((c) => [c.eventId, c.lastUploadAt])).toEqual([
+        ["e-blocked", "2026-09-21T10:00:00Z"],
+        ["e-priv", "2026-09-20T10:00:00Z"],
+      ]);
+      const [blocked, privateAlbum] = cards;
+      expect(blocked).toMatchObject({
+        href: null,
+        name: "Private event",
+        dateLabel: "The host made this event private",
+        byline: null,
+        coverUrl: null,
+        accessible: false,
+        passwordProtected: false,
+      });
+      expect(face(blocked)).toEqual(face(privateAlbum));
+    });
+
+    it("an upload the host restored while the block stands changes nothing, and no cover is presigned", async () => {
+      answers.media = [
+        {
+          event_id: "e-blocked",
+          status: "approved",
+          created_at: "2026-09-18T10:00:00Z",
+          guests: { verified_at: null },
+          original_key: "k-restored",
+        },
+        {
+          event_id: "e-priv",
+          status: "approved",
+          created_at: "2026-09-20T10:00:00Z",
+          guests: { verified_at: null },
+          original_key: "k-priv",
+        },
+      ];
+      blocks.events = {
+        "e-blocked": {
+          own: true,
+          last_upload_at: "2026-09-21T10:00:00Z",
+          profile_eligible: true,
+        },
+      };
+
+      const cards = await getMyGuestEventCards();
+      const blocked = cards.find((c) => c.eventId === "e-blocked");
+      const privateAlbum = cards.find((c) => c.eventId === "e-priv");
+      expect(blocked && face(blocked)).toEqual(
+        privateAlbum && face(privateAlbum),
+      );
+      // The open album has a photograph to cover it with, and the block keeps it from ever being read.
+      expect(presignDownload).not.toHaveBeenCalled();
+    });
+
+    it("a block on her address alone (never her account's history there) adds no card", async () => {
+      blocks.events = {
+        "e-blocked": {
+          own: false,
+          last_upload_at: null,
+          profile_eligible: false,
+        },
+      };
+      await expect(getMyGuestEventCards()).resolves.toEqual([]);
+    });
+
+    it("her profile picker keeps the blocked event's tile, locked and nameless like a private album's", async () => {
+      blocks.events = {
+        "e-blocked": {
+          own: true,
+          last_upload_at: "2026-09-21T10:00:00Z",
+          profile_eligible: true,
+        },
+      };
+      answers.media = [
+        {
+          event_id: "e-priv",
+          status: "approved",
+          created_at: "2026-09-20T10:00:00Z",
+          guests: { verified_at: "2026-09-20T09:00:00Z" },
+        },
+      ];
+      answers.profile_shown_events = [{ event_id: "e-blocked" }];
+
+      const picks = await getMyAttendedEventPicks();
+      const blocked = picks.find((p) => p.id === "e-blocked");
+      const privateAlbum = picks.find((p) => p.id === "e-priv");
+      expect(blocked).toEqual({
+        id: "e-blocked",
+        name: "Private event",
+        shownOnProfile: true,
+        coverUrl: null,
+        locked: true,
+      });
+      expect(privateAlbum).toMatchObject({
+        name: "Private event",
+        coverUrl: null,
+        locked: true,
+      });
+      expect(presignDownload).not.toHaveBeenCalled();
     });
   });
 
@@ -872,5 +1144,31 @@ describe("the album never passes `emails` to GuestList", () => {
       )
       .map((file) => relative(process.cwd(), file));
     expect(passing).toEqual([ROOM]);
+  });
+
+  it("★ Block rides the same one room: no file but the Guests room passes `blockFrom`", () => {
+    const passing = files(join(process.cwd(), "src"))
+      .filter((file) => !file.endsWith(".test.tsx"))
+      .filter((file) =>
+        guestListTags(readFileSync(file, "utf8")).some((tag) =>
+          /\bblockFrom\b/.test(tag),
+        ),
+      )
+      .map((file) => relative(process.cwd(), file));
+    expect(passing).toEqual([ROOM]);
+  });
+
+  it("★ and the credit's look (with its Block) is mounted by the host's two pages alone", () => {
+    const mounting = files(join(process.cwd(), "src"))
+      .filter((file) => !file.endsWith(".test.tsx"))
+      .filter((file) =>
+        /<HostCreditLookProvider\b/.test(readFileSync(file, "utf8")),
+      )
+      .map((file) => relative(process.cwd(), file))
+      .sort();
+    expect(mounting).toEqual([
+      "src/app/(app)/dashboard/[eventId]/page.tsx",
+      "src/app/(app)/dashboard/[eventId]/review/page.tsx",
+    ]);
   });
 });

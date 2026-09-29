@@ -32,6 +32,19 @@ vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
 }));
 vi.mock("@/lib/observability/sentry", () => ({ captureWarning: vi.fn() }));
 
+// ★ THE CLOSED DOOR (the per-event block, 20260928120000): a private album, or a ticket a block holds.
+// Its own rule is closed-door.server.test.ts's; here a held ticket stands in for one, so the route's
+// answer to it can be read against its answer to a private album, word for word.
+const ticketBlocked = vi.fn();
+vi.mock("@/lib/events/closed-door.server", () => ({
+  isClosedDoor: async (
+    event: { visibility?: string },
+    tickets: unknown[] = [],
+  ) =>
+    event.visibility === "private" ||
+    (await ticketBlocked(event, tickets)) === true,
+}));
+
 const { POST } = await import("@/app/api/guests/remove/route");
 
 const TOKEN = "qr-token-1234";
@@ -204,5 +217,30 @@ describe("the limiter", () => {
       (await post({ qr_token: TOKEN, session_token: SESSION, media_id: MEDIA }))
         .status,
     ).toBe(200);
+  });
+});
+
+describe("the closed door: a ticket a block holds meets the private album's refusal", () => {
+  it("answers it exactly as it answers a private album, asks with the body's ticket, and removes nothing", async () => {
+    const body = { qr_token: TOKEN, session_token: SESSION, media_id: MEDIA };
+    getEventByQrToken.mockResolvedValue({
+      ok: true,
+      data: { id: "event-1", visibility: "private" },
+    });
+    const shut = await post(body);
+    const shutBody = await shut.json();
+
+    getEventByQrToken.mockResolvedValue(openEvent);
+    ticketBlocked.mockResolvedValue(true);
+    const held = await post(body);
+    expect(ticketBlocked).toHaveBeenLastCalledWith(
+      expect.objectContaining({ visibility: "open" }),
+      [SESSION],
+    );
+    ticketBlocked.mockReset();
+
+    expect(held.status).toBe(shut.status);
+    expect(await held.json()).toEqual(shutBody);
+    expect(removeMyUploadBySession).not.toHaveBeenCalled();
   });
 });

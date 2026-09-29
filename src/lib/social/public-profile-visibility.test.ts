@@ -7,9 +7,11 @@
  * The ATTENDED arm must stay gated to OPEN events: the album-side guest list
  * renders only to viewers who can OPEN the album, and profiles-social.md preserves
  * "locked pages leak name + count only" to capability holders. Without the
- * visibility gate, flipping show_guest_list on a password/private event would
- * publish the event's name/date + every uploader's attendance to fully
- * anonymous viewers via the anon RPC (the parity-review catch, 2026-07-08).
+ * visibility gate, a password/private event would publish its name/date + every
+ * uploader's attendance to fully anonymous viewers via the anon RPC (the
+ * parity-review catch, 2026-07-08). Since the guest list became always on
+ * (event-safety `room=always`, 2026-09-28, migration 20260928120000) that gate is
+ * the arm's only album-side key: the host's `show_guest_list` switch is retired.
  *
  * ★ Since the guest identity round (2026-09-22, migration 20260922122000) that arm is an OPT-IN:
  * `profile_shown_events` replaced `profile_hidden_events`, so a profile publishes NO attended event
@@ -92,8 +94,15 @@ describe("get_public_profile consent scope (migration SQL)", () => {
   const attended = arm(body, "attended_events");
   const hosted = arm(body, "hosted_events");
 
-  it("the attended arm keeps every gate: host key, open-only, the album's own gate, approved media", () => {
-    expect(attended).toContain("e.show_guest_list");
+  it("the attended arm keeps every gate: open-only, the album's own gate, the block both ways, approved media", () => {
+    // ★ Reshaped by the always-on guest list (20260928120000): the host key it pinned first
+    // (`e.show_guest_list`) is retired, so the pin is now that no code reads it; every other gate
+    // stands, and the per-event block joins them both ways (the page's owner blocked there, and a
+    // viewer blocked there, who is withheld the album and so its membership).
+    expect(code(attended)).not.toContain("show_guest_list");
+    expect(code(attended).replace(/\s+/g, " ")).toContain(
+      "and not public.event_block_holds_account(e.id, p.id) and (e.host_id = (select auth.uid()) or not public.event_block_holds_account(e.id, (select auth.uid())))",
+    );
     // QA #36: an open album that requires a verified email hides its guest list from anyone
     // without a CONFIRMED email (and so from an anonymous viewer, who has no uid), so the reverse
     // surface must too. A replacement that drops this gate re-publishes that attendance.

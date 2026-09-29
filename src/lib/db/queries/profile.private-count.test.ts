@@ -85,9 +85,13 @@ describe("get_public_profile's private_event_count", () => {
     // The arm ends on the owner's choice, so the substitution below is the only difference.
     expect(arm.endsWith(`and ${CHOICE}`), arm).toBe(true);
     expect(counted).toBe(arm.replace(`and ${CHOICE}`, `and not ${CHOICE}`));
-    // And the gates it carries are the real ones, not an empty match.
+    // And the gates it carries are the real ones, not an empty match. ★ Reshaped by the always-on
+    // guest list (20260928120000): the retired host key (`e.show_guest_list`) left both predicates,
+    // and the per-event block joined both, both ways.
+    expect(counted).not.toContain("show_guest_list");
     for (const gate of [
-      "e.show_guest_list",
+      "not public.event_block_holds_account(e.id, p.id)",
+      "not public.event_block_holds_account(e.id, (select auth.uid()))",
       "e.visibility = 'open'",
       "not e.require_verified_email",
       "not e.require_upload_to_view",

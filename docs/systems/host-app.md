@@ -106,7 +106,10 @@ are exempt); `qr_style` is plain text, app-validated, so presets grow without a 
   where the account holds a live upload (pending, approved or hidden) and is not the host, read from the uploads
   themselves (`getMyGuestEventCards`: the admin client, the account's own rows only), so a card leaves with its last
   live upload and nothing else puts another host's event on a dashboard. The album's rules mask it
-  (`lib/dashboard/guest-events.ts`: a private album blank and locked, a password album with no cover).
+  (`lib/dashboard/guest-events.ts`: a private album blank and locked, a password album with no cover). ★ An event that
+  blocked her keeps its card, masked as a private album's, while the block stands (`blocked_events_for`, placed at the
+  newest upload the block removed): a block moves her uploads to Deleted, and a card that vanished would say what the
+  door hides.
 
 ## QR codes and print
 
@@ -309,6 +312,15 @@ beneath, newest first.
   `MAX_BULK_ITEMS` (`lib/event/bulk-selection.ts`).
 - **Host upload**: Add photos opens a dropzone (`host-upload.tsx`) straight into the album; its pipeline is
   [uploads-and-r2.md](uploads-and-r2.md)'s.
+- ★ **Block puts one person out of one event, with their uploads** (`block_from_event` on the host's own client, free
+  on every plan). It is the quiet last line of every person's look (a name in the Guests room, the uploader's credit in
+  the host's viewer and on Review's peek, `event-blocks/`), opening one confirm whose count is the act's own preview
+  and which offers Require verified emails, off, on a names-only album. It keys on the account, the confirmed address
+  or the guest row, never a device or an IP, so a typed name is held on the phone that used it. Their live uploads move
+  to Deleted in the same step as the host's own removal (a held one stays, as every host write leaves it). The Guests
+  room's foot lists the blocks (who, since when) with Let back in (`let_back_in`), whose restore is off unless the
+  host turns it on and brings back only what this block removed and still waits in Deleted, to the status each had,
+  newest first within the cap. What the person meets is [guest-flow.md](guest-flow.md)'s.
 
 ## The highlight reel, the host's side
 

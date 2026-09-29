@@ -14,6 +14,8 @@
  */
 import { NextResponse } from "next/server";
 
+import { getEventByQrToken } from "@/lib/db/queries/guest-events";
+import { isClosedToThisBrowser } from "@/lib/events/closed-door.server";
 import {
   readUnlockStateByToken,
   signUnlock,
@@ -99,17 +101,27 @@ export async function POST(request: Request) {
     );
   }
 
+  // ★ A VIEWER THIS EVENT BLOCKED UNLOCKS NOTHING, and hears what a private album's link hears: to
+  // them the album IS private (the closed door, `closed-door.server.ts`), and a private album has no
+  // password to prove, so the answer is the same generic refusal, counted the same way, and the
+  // password is never checked.
+  const door = await getEventByQrToken(qr_token);
+  const closed = door.ok && (await isClosedToThisBrowser(door.data));
+
   // Service-role admin client: verify_event_password is now revoked from anon/authenticated, so this
   // route is the ONLY caller -> every guess is forced through the rate limiter above (H2).
   const supabase = createAdminClient();
-  const { data: eventId, error } = await supabase.rpc("verify_event_password", {
-    p_qr_token: qr_token,
-    p_password: password,
-  });
+  const { data: eventId, error } = closed
+    ? { data: null, error: null }
+    : await supabase.rpc("verify_event_password", {
+        p_qr_token: qr_token,
+        p_password: password,
+      });
 
-  // null event id = wrong password / not a password event / no such event. Generic. A match with no
-  // state read before it, or a state naming another event, cannot happen (the match needs the hash
-  // the read found, on the same link); if it ever did, it fails closed the same way.
+  // null event id = wrong password / not a password event / no such event / closed to this viewer.
+  // Generic. A match with no state read before it, or a state naming another event, cannot happen
+  // (the match needs the hash the read found, on the same link); if it ever did, it fails closed the
+  // same way.
   if (error || !eventId || !state || state.eventId !== eventId) {
     // Record the failure for the rate-limiter (best-effort; never blocks the response).
     if (rlTokenHash && rlIpHash) {
