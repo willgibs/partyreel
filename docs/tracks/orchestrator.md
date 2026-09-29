@@ -40,10 +40,11 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `schema-pass` | the data architecture trimmed | merged at `57b17ace`; part 1 applied on Will's go-ahead (2026-09-29, his answer "Yes, apply part 1"; recorded `20260929210010`, the payload the file's md5; advisors 18/4/33; anon REST 42501; types regenerated at `c7a50adc`); a signed-in host walk on partyreel.com rides build 25's red-team as a follow-up; part 2 (`20260929170000`) after milestone 31 ships | Opus, 3132 | `54f414f9` |
-| `crumbs-19` | build 25's red-team finds (the app bar's trail on a route that sets none, the guest report article's screens drawing the photo's own Report) and crumbs-18's three follow-ups (the hub's sheet closed once on a double close, the reel's entry through a refresh, the text-distance test retired) | running (agent `a74fa1c6a2ff11799`; worktree `../partyreel-wt/crumbs-19`) | Sonnet, 3131 | |
+| `crumbs-19` | build 25's red-team finds (the app bar's trail on a route that sets none, the guest report article's screens drawing the photo's own Report) and crumbs-18's three follow-ups (the hub's sheet closed once on a double close, the reel's entry through a refresh, the text-distance test retired) | handed off; integrating (agent `a74fa1c6a2ff11799`) | Sonnet, 3131 | `98526129` |
 | `privacy-hero-r4` | privacy-hero r4, a board: the veil as drawn and three variations of it, the sealed cards out, the sweep and the aperture banked | running (agent `ac010b14ad42386af`; worktree `../partyreel-wt/privacy-hero-r4`) | Opus, 3133 | |
 | `crumbs-20` | five hardening items: no form sends its fields into the address before hydration, the brand family reaching display names, every 401 fallback and the renewal nudge's anchor surviving a sign-in, a confirm announced as one | running (agent `afcdac799225fed65`; worktree `../partyreel-wt/crumbs-20`) | Sonnet, 3135 | |
 | `crumbs-21` | four data-integrity items: a waiting newcomer's ticket settled when her door moves, the admin album covering the worst kind, what a report named outliving its photo's row, the host's like counts limited to what she sees (migrations, to apply by protocol) | running (agent `a34b45f3aca9068fc`; worktree `../partyreel-wt/crumbs-21`) | Opus, 3134 | |
+| `lab-focus` | on Will's note (2026-09-29, "a Jackson Pollock painting of text" above the options): the lab's question view rebuilt pictures first, the stage whole on the first screen at a desk and a phone, everything else one click away; a `lab:demo` reach gate | running (worktree `../partyreel-wt/lab-focus`) | Opus, 3131 | |
 
 **The Advisor** (Fable, read-only; the runbook's "Consult the Advisor"): agent `a381082be866b59e8`, spawned 2026-09-29;
 no question open (Q1, the `names` hang; Q2, schema-pass part 1; Q3, the notes-into-laws audit; Q4, the door migration:
@@ -86,9 +87,8 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
    (the brief and its ledger: `../partyreel-wt/_scratch/redteam-26/`; from another session, respawn from the brief after
    the ledger's last line). Then milestone 31
    is proposed to Will (his yes); schema-pass's part 2 applies after it ships.
-3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note): the lab's
-   phone fold (ROADMAP's line: at 375 every standing board's step starts its stage past a screen, found by three lanes).
-   After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
+3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note; `lab-focus`
+   took the lab's phone fold with it). After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
    `git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary redirect, the llms summary kept, the kit's files
    if none wins); the disposable wiring (after `disposable-mode` r2's picks and his Measure a phone; with the lane's
    idea of the premiere on the wall, the reel's screen counting down to the develop time and playing the roll as an
