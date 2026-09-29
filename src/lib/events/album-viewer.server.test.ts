@@ -46,6 +46,16 @@ vi.mock("@/lib/db/queries/event-doors", () => ({
   readDoorEventDetails: async () => null,
 }));
 
+/**
+ * The door a stranger meets at the album the read served last: its stored visibility, which is what the SQL
+ * question answers for her (Only me and a gate are stored private, as the anon read reads them).
+ */
+async function servedDoor(): Promise<string> {
+  const last = getEventByQrToken.mock.results.at(-1)?.value;
+  const served = (await last) as { data?: { visibility?: string } } | undefined;
+  return served?.data?.visibility ?? "open";
+}
+
 function standing(over: Record<string, unknown>) {
   return {
     found: true,
@@ -76,8 +86,8 @@ beforeEach(() => {
   resolveViewerDecision.mockResolvedValue({ access: "full", gate: null });
   isEventOwner.mockResolvedValue(false);
   isUnlocked.mockResolvedValue(false);
-  readDoorStanding.mockImplementation(async (_id: string, visibility: string) =>
-    standing({ door: visibility }),
+  readDoorStanding.mockImplementation(async () =>
+    standing({ door: await servedDoor() }),
   );
 });
 
@@ -176,8 +186,11 @@ describe("the shut door: a ticket a block holds is gone, as a private album is",
   const COOKIE = "c".repeat(64);
   const blockedWhenHolding = (ticket: string) =>
     readDoorStanding.mockImplementation(
-      async (_id: string, visibility: string, caller: Caller) =>
-        standing({ door: visibility, blocked: caller.tickets.includes(ticket) }),
+      async (_id: string, caller: Caller) =>
+        standing({
+          door: await servedDoor(),
+          blocked: caller.tickets.includes(ticket),
+        }),
     );
 
   it("a body ticket the block holds is gone, and nothing is resolved", async () => {
@@ -197,7 +210,7 @@ describe("the shut door: a ticket a block holds is gone, as a private album is",
   it("asks with every ticket the request holds, the body's and the cookie's, for this event", async () => {
     cookieJar.set("pr_guest_evt-1", COOKIE);
     await resolveAlbumViewer("qr-1", TOKEN);
-    expect(readDoorStanding).toHaveBeenCalledWith("evt-1", "open", {
+    expect(readDoorStanding).toHaveBeenCalledWith("evt-1", {
       userId: null,
       tickets: [TOKEN, COOKIE],
     });
@@ -209,7 +222,7 @@ describe("the shut door: a ticket a block holds is gone, as a private album is",
       data: { ...EVENT, visibility: "private" },
     });
     expect(await resolveAlbumViewer("qr-1", TOKEN)).toEqual({ kind: "gone" });
-    expect(readDoorStanding).toHaveBeenCalledWith("evt-1", "private", {
+    expect(readDoorStanding).toHaveBeenCalledWith("evt-1", {
       userId: null,
       tickets: [TOKEN],
     });

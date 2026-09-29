@@ -72,7 +72,7 @@ export function EventSettingsSheet({
   /** The door's own numbers (who is in, who waits, the list), read for the host. */
   counts: DoorCounts;
   pendingCount: number;
-  /** Null pre-apply (the graceful runtime seam), exactly as on the old route. */
+  /** Null when the event is not the host's own to read (`getEventSocialSettings`): the card hides. */
   social: {
     displayInProfile: boolean;
     hostHasSlug: boolean;

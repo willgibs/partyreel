@@ -22,6 +22,10 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/db/mutations/guest.ts
   - src/lib/db/mutations/events.ts
   - src/lib/db/queries/events.ts
+  - src/lib/db/queries/event-doors.test.ts
+  - src/lib/db/queries/social.test.ts
+  - src/app/api/album/guest/owner-gate.test.ts
+  - src/lib/db/mutations/event-doors.test.ts
   - src/lib/db/queries/guest-events.ts
   - src/lib/events/closed-door.server.ts
   - src/lib/events/closed-door.server.test.ts

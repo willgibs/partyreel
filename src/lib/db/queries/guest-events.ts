@@ -182,11 +182,8 @@ export const getEventByQrToken = cache(async function getEventByQrToken(
     // ★ Typed `number` by the generated RETURNS TABLE, yet NULL until a host sets it: kept as NULL
     // (the default), never coerced to 0 s. An RPC from before the column never returned it.
     reel_hold_sec: (row.reel_hold_sec as number | null | undefined) ?? null,
-    // The guest picker's flag (the doors' migration, 20260929120000). An RPC from before it never
-    // returned it: the picker then offers videos as it always did, and the presign still refuses one
-    // an album cannot take.
-    accepts_video:
-      (row as { accepts_video?: boolean | null }).accepts_video !== false,
+    // The guest picker's flag (the doors' migration, 20260929120000).
+    accepts_video: row.accepts_video,
   };
 
   return { ok: true, data: await rehydrateUnlockedDetails(event) };

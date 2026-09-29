@@ -158,8 +158,6 @@ export default async function AccountPage({
     getProfile(),
     hasPassword(),
     searchParams,
-    // The social reads all no-op gracefully pre-apply (see queries/social.ts'
-    // runtime seam), so this page renders fine before the migration lands.
     getMyProfileSlug(),
     getMyFollowing(),
     getMyFollowCounts(),

@@ -11,8 +11,6 @@
  */
 import "server-only";
 
-import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
-
 import type { Database } from "@/lib/db/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -218,11 +216,11 @@ export async function askToJoin(input: {
   qrToken: string;
   userId: string;
 }): Promise<CreateGuestResult> {
-  const supabase = createAdminClient() as unknown as SupabaseClient;
-  const { data, error } = (await supabase.rpc("ask_to_join", {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("ask_to_join", {
     p_qr_token: input.qrToken,
     p_user_id: input.userId,
-  })) as { data: unknown; error: PostgrestError | null };
+  });
   if (error) {
     if (error.code === NO_DATA_FOUND) {
       return {

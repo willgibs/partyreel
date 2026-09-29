@@ -4,18 +4,12 @@
  * hosts the event on `auth.uid()`, so each runs on the HOST'S OWN client after `getUser()` (the house
  * rule: every write re-verifies), never the admin client: a host can only ever act on an event they
  * own, whatever a client sends. A decline is a block, so it is the block's own act
- * (`mutations/event-blocks.ts`), and never here.
- *
- * ★ THE TYPED SEAM: the functions are new, so they are called by name through an untyped client until
- * `types.ts` regenerates, and every answer is read defensively (queries/event-doors.ts says why). A call
- * before the migration is applied answers "not ready" in words, never a crash.
+ * (`mutations/event-blocks.ts`), and never here. Every answer is a jsonb, read defensively.
  */
 import "server-only";
 
-import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
+import type { PostgrestError } from "@supabase/supabase-js";
 
-import { updateEvent } from "@/lib/db/mutations/events";
-import { isDoorSchemaMissing } from "@/lib/db/queries/event-doors";
 import type { Door } from "@/lib/event/door/door";
 import { createClient } from "@/lib/supabase/server";
 
@@ -27,7 +21,6 @@ export type DoorFailure = {
     | "no_password"
     | "blocked"
     | "too_many"
-    | "not_ready"
     | "unknown";
   message: string;
   /** An `unknown` failure's own error, for the Server Function to report (Sentry stays out of db/). */
@@ -68,7 +61,8 @@ function refusal(reason: unknown): DoorFailure {
       return {
         ok: false,
         code: "too_many",
-        message: "That's more addresses than one paste can take. Try fewer at a time.",
+        message:
+          "That's more addresses than one paste can take. Try fewer at a time.",
       };
     default:
       return {
@@ -79,9 +73,14 @@ function refusal(reason: unknown): DoorFailure {
   }
 }
 
+/**
+ * One of the host's acts: `call` runs the RPC on the host's own client, once `getUser()` has proved there
+ * is one, and its jsonb answer comes back as `{ ok: true, ... }` or the refusal in the host's words.
+ */
 async function hostRpc(
-  fn: string,
-  args: Record<string, unknown>,
+  call: (
+    supabase: Awaited<ReturnType<typeof createClient>>,
+  ) => PromiseLike<{ data: unknown; error: PostgrestError | null }>,
 ): Promise<{ ok: true; data: Record<string, unknown> } | DoorFailure> {
   const supabase = await createClient();
   const {
@@ -89,20 +88,8 @@ async function hostRpc(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  const { data, error } = (await (supabase as unknown as SupabaseClient).rpc(
-    fn,
-    args,
-  )) as { data: unknown; error: PostgrestError | null };
-  if (error) {
-    if (isDoorSchemaMissing(error)) {
-      return {
-        ok: false,
-        code: "not_ready",
-        message: "This isn't ready yet. Please try again in a little while.",
-      };
-    }
-    return { ...refusal("unknown"), cause: error };
-  }
+  const { data, error } = await call(supabase);
+  if (error) return { ...refusal("unknown"), cause: error };
   const answer = (data ?? {}) as Record<string, unknown>;
   if (answer.ok !== true) return refusal(answer.reason);
   return { ok: true, data: answer };
@@ -127,29 +114,9 @@ export async function setEventDoor(
     }
   | DoorFailure
 > {
-  const result = await hostRpc("set_event_door", {
-    p_event_id: eventId,
-    p_door: door,
-  });
-  // ★ BEFORE THE DOORS' MIGRATION, TODAY'S THREE DOORS STILL MOVE: Public, a password and Only me are
-  // the visibility column alone, written the way the settings always wrote it (`updateEvent`, which
-  // refuses a password with no hash behind it). A gate has nowhere to live yet, so it stays "not
-  // ready". Loud either way: `isDoorSchemaMissing` has already captured the miss.
-  if (!result.ok && result.code === "not_ready") {
-    if (door !== "open" && door !== "password" && door !== "private") {
-      return result;
-    }
-    const today = await updateEvent(eventId, { visibility: door });
-    if (!today.ok) {
-      if (today.code === "unauthorized") return UNAUTHORIZED;
-      return {
-        ok: false,
-        code: door === "password" ? "no_password" : "unknown",
-        message: today.message,
-      };
-    }
-    return { ok: true, data: { emailHeld: false, admitted: 0 } };
-  }
+  const result = await hostRpc((supabase) =>
+    supabase.rpc("set_event_door", { p_event_id: eventId, p_door: door }),
+  );
   if (!result.ok) return result;
   return {
     ok: true,
@@ -164,11 +131,15 @@ export async function setEventDoor(
 export async function letInAtDoor(
   eventId: string,
   guestId: string,
-): Promise<{ ok: true; data: { admitted: number; already: boolean } } | DoorFailure> {
-  const result = await hostRpc("let_in_at_door", {
-    p_event_id: eventId,
-    p_guest_id: guestId,
-  });
+): Promise<
+  { ok: true; data: { admitted: number; already: boolean } } | DoorFailure
+> {
+  const result = await hostRpc((supabase) =>
+    supabase.rpc("let_in_at_door", {
+      p_event_id: eventId,
+      p_guest_id: guestId,
+    }),
+  );
   if (!result.ok) return result;
   return {
     ok: true,
@@ -195,10 +166,12 @@ export async function addEventInvites(
   eventId: string,
   emails: readonly string[],
 ): Promise<{ ok: true; data: InviteAddResult } | DoorFailure> {
-  const result = await hostRpc("add_event_invites", {
-    p_event_id: eventId,
-    p_emails: [...emails],
-  });
+  const result = await hostRpc((supabase) =>
+    supabase.rpc("add_event_invites", {
+      p_event_id: eventId,
+      p_emails: [...emails],
+    }),
+  );
   if (!result.ok) return result;
   const d = result.data;
   return {
@@ -218,10 +191,12 @@ export async function removeEventInvite(
   eventId: string,
   email: string,
 ): Promise<{ ok: true; data: { removed: number } } | DoorFailure> {
-  const result = await hostRpc("remove_event_invite", {
-    p_event_id: eventId,
-    p_email: email,
-  });
+  const result = await hostRpc((supabase) =>
+    supabase.rpc("remove_event_invite", {
+      p_event_id: eventId,
+      p_email: email,
+    }),
+  );
   if (!result.ok) return result;
   return { ok: true, data: { removed: count(result.data.removed) } };
 }

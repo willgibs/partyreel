@@ -132,7 +132,7 @@ export async function resolveGuestDoor(
     event.visibility !== "private";
   const standing = strangerAtTheLink
     ? linkStanding(event)
-    : await readDoorStanding(event.id, event.visibility, caller);
+    : await readDoorStanding(event.id, caller);
   const decision = decideDoor(standing);
   return {
     decision,
