@@ -123,6 +123,9 @@ Each recommended answer is BUILT and his to overrule; none is a one-way door.
   holds (a fresh object or `null`, never `window.history.state`, and why), the mount-effect microtask, and a close that
   goes Back when the marker is ours or this page pushed the entry (a refresh drops the marker, and so does a reload,
   after which a panel closes like a bookmark's).
+- `testing-verification.md`, the Lab boards bullet (owned since the hand-back): one added line, a `lab:demo` navigation
+  that never answers while the dev server does is a wedged dev image optimizer and not a hung page (what cancels the
+  images, how to reproduce it with curl, and that a used server proves nothing in an A/B).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
@@ -142,34 +145,70 @@ Each recommended answer is BUILT and his to overrule; none is a one-way door.
   phone's place-shaped popup closed after a refresh skips its `history.back()` and leaves a dead entry; the provider's
   `pushedRef` is the shape of the fix (not driven at phone width) (from `crumbs-16`).
 - Lab and testing: `lab:demo` names nothing of what stopped a navigation ("Page.navigate did not answer in 60000ms"),
-  and a `Runtime.evaluate` ceiling would not have either (the renderer answered throughout): listing the requests
-  still pending when a navigation stalls (the script could already see them) would have named this cause in one run,
-  not in three lanes' bisects (from `crumbs-16`).
+  and a `Runtime.evaluate` ceiling would not either (the renderer ran timers throughout): listing the requests still
+  pending when a navigation stalls (the script already sees the network) would have named this cause in one run, not
+  in three lanes' bisects (from `crumbs-16`).
 - Help: `marketing/help/step-screens/phone-document.tsx` has the shape `Frame` had (its effect mounts the phone's
-  children into the iframe's first document at once, and again on `load`), so a phone screen probably mounts twice
-  and, on a dev server, cancels its first images the way the wedge above needed; not driven in a browser, and the fix
-  is `Frame`'s (wait for the first `load` unless the document reads `about:srcdoc`) (from `crumbs-16`).
+  children into the iframe's first document at once and again on `load`), so a phone screen probably mounts twice and,
+  on a dev server, cancels its first images; read, not driven in a browser; the fix is `Frame`'s (wait for the first
+  `load` unless the document reads `about:srcdoc`) (from `crumbs-16`).
 - Lab: `CopyLink` builds from the six lab params, so a board's own switches (`?welcome=gate&was=dom`) never ride the
   copied link though the address bar holds them, against `board-state.tsx`'s "the URL is the share format" (from
   `crumbs-16`).
 
 ## Handoff (replaces the chat report)
 
-- **Commits, pushed to `lp/crumbs-16`:** `daa95533` owns widened and the questions · `d1175c97` the fix, the sweep, the
-  stand-in, the policy test, the relayed article and host-app.md's bullet · `cd3b596f` the provider's header names what
-  a reload and a refresh-then-write do (measured) · `66abfefc` three comments say only what was measured · and this
-  manifest. **No sync:** launch-prep moved (crumbs-15
-  `7bc20d9e` and records) but nothing in my owns or in a read's code; `docs/systems/host-app.md` took crumbs-15's one
-  line in a region I did not touch, and `git merge-tree` of my head against `origin/launch-prep` is clean.
-- **Gates, each on its own exit code, on `cd3b596f`** (logs in `../partyreel-wt/_scratch/crumbs-16/gate3-*.log`):
-  typecheck 0; lint 0 (no warnings); `pnpm format --check` 0; test 0 (603 files, 7,007 tests); `build-lock.sh pnpm
-  build` 0; `lab:smoke --base http://localhost:3133` 0 (scope all: the lab's shell or kit changed; 171 checks). No
-  board, so the gate's `lab:demo` step does not apply; run anyway on the boards whose walks this lane's write moves:
-  disposable-mode (8 steps), locked-door (4) and press-page (1) press 13 of 13 ok (`labdemo.log`, `labdemo3.log`);
-  demo-framing.names timed out on `Page.navigate` here (the hand-back below found why; this pass wrongly blamed the
-  base's own lab files too). `66abfefc`
-  (comment-only edits to `help-search-signal.ts`, the policy header and `next-history.ts`) followed the gate: format,
-  typecheck, lint and the 28 test files of the areas it touches re-ran on it (292 tests, green).
+**Second handoff, on the coordinator's hand-back:** gate 71's `lab:demo` hung on `demo-framing.names` with this lane's
+change merged, and passed on launch-prep without it. The bullets down to "The first pass's gates" are the hand-back's;
+the rest (lane check, Items, Calls, Look at first) is the first handoff and still stands, except where a line says
+otherwise.
+
+- **The cause was `Frame`'s, not a write's, and it is fixed at its root** (`frame.tsx`, `frame.test.tsx`; the
+  Questions' bullet on the gate's hang has the account, the copy effect's comment the code's). Not a write loop, not a
+  hung renderer (no `Debugger.pause` was needed: the page's timers ran and the server answered the page in 200 ms).
+  Next hearing the landing write adds a RESTORE render, which put the frame's copy effect ahead of its srcdoc's
+  commit: every portalled scene mounted into the iframe's first `about:blank` document and again into the srcdoc one,
+  the first documents' images were cancelled, `next dev`'s image optimizer never answered the second asks, and the
+  demo's second `Page.navigate` starved for a connection. The effect now waits for the frame's `load` (or a document
+  that reads `about:srcdoc`). `frame.test.tsx` (2 tests, jsdom given the browser's two documents): the first fails on
+  the old Frame (`['first', 'stays']`, the scene mounted twice), the second fails on a `loads === 0` guard (a frame
+  whose srcdoc committed before hydration would stay empty).
+- **Measured on fresh servers (`.next/dev` cleared), one CDP probe and the demo:** the base's lab files: 15
+  `about:srcdoc` documents in one wave, 150 image requests, the second navigation answers, `demo-framing.names` ok;
+  this lane before the fix: 320 image requests in two waves (`about:blank` then `about:srcdoc` documents), the second
+  `Page.navigate` never answers; with the fix: 150, one wave, the second navigation answers in 157 ms. The narrow fix
+  (`board-state.tsx` router-silent) also turns it green and leaves the race, so it was not taken. The optimizer wedge
+  reproduces with curl alone (sixty requests for one uncached image aborted after 10 ms, then a normal request for it
+  hangs 15 s while another image answers in 65 ms) and it outlives the run: a wedged server fails every later run
+  whatever the tree, which is what made the first handoff wrongly say the base hangs too (its runs were on a server
+  earlier runs had wedged; base and fix both pass on fresh ones). The coordinator's 311 words is not this change's: the
+  base's lab files give the same text and the same 309 words on my server (diffed).
+- **Gates, each on its own exit code, on `856e0edc`** (the tree merged with launch-prep `18cb085f`, the fix in;
+  logs in `../partyreel-wt/_scratch/crumbs-16/gate5-*.log`; the two commits after it change docs only): typecheck 0;
+  lint 0 (no warnings); prettier check of the changed files 0; test 0 (612 files, 7,123 tests); `build-lock.sh pnpm
+  build` 0; `lab:smoke --base http://localhost:3133 --timeout 90000` 0 (scope all; 168 checks, 0 failing); `lab:demo
+  --base http://localhost:3133` 0 (scope all, the shell's `review-session.tsx`: 14 steps, 0 failing, locked-door 4,
+  disposable-mode 8, demo-framing 1, press-page 1); the kit's `usher/kit/demo-rerun.sh demo-framing` 0 on my port,
+  warm, on `3cc4ff2b` (the coordinator's own path).
+- **Coverage gap, named and not closed:** of the four lab writers this lane changed, `lab:demo` drives only
+  `board-state`'s `setState` (a step landing, then each option's press); `step.tsx`'s `goTo` and the catalog's card
+  write and `review-session.tsx`'s desk walk are held by `step.test.tsx` and this lane's hand checks under `next dev`
+  (Items below), not by a gate step.
+- **A slip of mine, for the Orchestrator:** at about 15:47 I ran `pkill -f next-server` to stop my own server and it
+  stopped every lane's dev server on the machine (album-motion-wiring's was back within seconds; a lane that finds
+  its server gone should restart it). Nothing else was touched; I kill by port since.
+- **Commits, pushed to `lp/crumbs-16`:** first pass: `daa95533` owns widened and the questions · `d1175c97` the fix, the
+  sweep, the stand-in, the policy test, the relayed article and host-app.md's bullet · `cd3b596f` the provider's header
+  names what a reload and a refresh-then-write do (measured) · `66abfefc` three comments say only what was measured ·
+  `7f2f556f` its manifest. The hand-back: `9d7b7f52` sync (crumbs-15, loose-ends, contact) · `f65be65b` owns widened
+  (Frame, its test, the testing doc) with the demo hang's question and Deferred lines · `87fbbf82` the Frame fix, its
+  test and the testing doc's line · `856e0edc` sync (desk-tune's door family, schema-pass's code and guards, the
+  Advisor's kit; nothing in my owns) · `3cc4ff2b` the wedge's reproduction in the testing doc · `13b7dc54` two
+  comments say what was measured (comment-only; typecheck, lint and the lab tests re-ran) · and this manifest.
+- **The first pass's gates**, on `cd3b596f` (logs `gate3-*.log`): typecheck 0; lint 0; format 0; test 0 (603 files,
+  7,007 tests); build 0; `lab:smoke` 0 (171 checks); `lab:demo` on disposable-mode (8), locked-door (4) and
+  press-page (1): 13 of 13 ok. `66abfefc` (comment-only edits) followed it with format, typecheck, lint and the 28 test
+  files of the areas it touches (292 tests, green). Its `demo-framing.names` timeout is the hand-back above.
 - **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = the owned paths + this file, and one exception,
   `docs/systems/host-app.md` (the two places' bullet, refined in place; it is in `reads`, listed above).
 - **Items** (the runtime evidence is `../partyreel-wt/_scratch/crumbs-16/runtime-before.md`):
@@ -212,6 +251,8 @@ Each recommended answer is BUILT and his to overrule; none is a one-way door.
 - **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
 - **Calls his to overrule, one line each** (the Questions above hold the reasons):
   - the lab's four writes tell Next (no exception); the overrule keeps them router-silent behind allow-list entries.
+  - the demo hang is fixed in `Frame` (a portalled scene waits for its iframe's first `load`); the overrule keeps
+    `board-state.tsx` router-silent behind an allow-list entry, which turns the demo green and leaves the race.
   - three first-commit writes wait a microtask; the overrule is a helper that senses the patch.
   - the provider remembers what it pushed (outside the brief's letter, same file); the overrule is marker only.
   - a refresh then a URL-applying write within ~20ms reloads the page (Next's; `openSheet` always could); accepted.
