@@ -21,10 +21,62 @@ import { createClient } from "@/lib/supabase/server";
 // `session-cookie.ts`: the account menu, a client component, imports this file,
 // and every component test that mounts it loads this module for real, where
 // `server-only` does not resolve.)
-export async function signOutAction() {
+//
+// ★ THE SCOPE IS ALWAYS NAMED, because auth-js's bare `signOut()` is GLOBAL:
+// it revokes the refresh token of every session the account holds, on every
+// device. That is how an operator signing out of the main site lost her admin
+// portal's session and had to pass Google and her second factor again (build
+// 20's red-team). No getUser() first, deliberately: a sign-out reads and writes
+// no data, GoTrue's /logout authenticates the token itself, and a visitor with
+// no session simply lands on /login.
+async function endSession(scope: "local" | "global") {
   expireGuestSessionCookies(await cookies());
   const supabase = await createClient();
-  await supabase.auth.signOut();
+  return supabase.auth.signOut({ scope });
+}
+
+/**
+ * SIGN OUT: THIS DEVICE ONLY. People keep one account open on a desk and a
+ * phone for different jobs (the dashboard on one, the camera on the other), so
+ * leaving one must not reach into the other. `local` deletes this session and
+ * its refresh token; every other session stands until it signs out itself or
+ * Sign out everywhere (`/account`) ends them all. The account menu, the admin
+ * bar and every other form that posts here share it.
+ */
+export async function signOutAction() {
+  await endSession("local");
+  redirect("/login");
+}
+
+export type SignOutEverywhereResult = { ok: false; message: string };
+
+/**
+ * SIGN OUT EVERYWHERE: every session the account holds, this one included,
+ * for a lost phone or a shared computer left signed in. It lives in /account's
+ * security corner, never the menu, because it is rare and it reaches devices
+ * the person is not holding.
+ *
+ * ★ A REFUSAL IS ANSWERED, NOT SWALLOWED. The device sign-out leaves for /login
+ * whatever GoTrue says; this one cannot, because the person pressing it is
+ * usually worried about a device they cannot see, and a failed call leaves
+ * every session standing, so "it worked" would be a lie. auth-js already counts
+ * a 401, 403 or 404 as done (the session was gone), so an error here is a real
+ * failure: the network, or the auth server.
+ *
+ * What no scope reaches: an access token already issued stays valid by its
+ * signature until its own expiry. Every gate here re-checks with `getUser()`,
+ * which refuses a revoked session at once, so only someone holding the raw
+ * token and calling the database directly could use what is left of it.
+ */
+export async function signOutEverywhereAction(): Promise<SignOutEverywhereResult> {
+  const { error } = await endSession("global");
+  if (error) {
+    return {
+      ok: false,
+      message:
+        "Couldn't sign out everywhere. Check your connection and try again.",
+    };
+  }
   redirect("/login");
 }
 

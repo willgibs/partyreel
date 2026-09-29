@@ -2,7 +2,7 @@
 
 import { Check, Play } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState, type CSSProperties } from "react";
+import type { CSSProperties } from "react";
 
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { useFlip } from "@/lib/shared/use-flip";

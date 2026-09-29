@@ -151,7 +151,9 @@ export function GuestHeader({
     // cookie. So it runs on an event-less page (/u/[slug]) too.
     leaveAllGuestSessions();
     setMenu(null);
-    await createClient().auth.signOut();
+    // ★ THIS DEVICE ONLY: a phone handed to the next guest ends the session it holds, and the
+    // account's own phone and laptop stay signed in (auth-accounts.md, "Signing out").
+    await createClient().auth.signOut({ scope: "local" });
     router.refresh();
   }, [router]);
 
@@ -165,7 +167,11 @@ export function GuestHeader({
         isDemo && "sticky top-0 z-20 bg-background",
       )}
     >
-      <Link href="/" aria-label="Partyreel home" className="flex items-center gap-2.5">
+      <Link
+        href="/"
+        aria-label="Partyreel home"
+        className="flex items-center gap-2.5"
+      >
         <Logo />
         {isDemo && (
           <span

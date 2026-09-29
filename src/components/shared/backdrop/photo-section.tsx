@@ -73,6 +73,15 @@ import { ROOM_FRAMES, roomFrame, SCROLL_STEPS } from "./room-frames";
  * visible. The next photograph is whichever way the reader moves, so there is
  * nothing to preload on demand: the pool IS the preload, and `next/image`
  * decodes each one once at the capped width `room-frames.ts` states.
+ *
+ * ★ AND NONE OF THEM IS A PAGE-LOAD PRELOAD. The section is never a page's
+ * first screen (it closes a chapter or separates two), so a preload here spends
+ * the first paint on a full-bleed photograph screens below it. On the home it
+ * was also the golden photograph's second preload, beside the hero's own copy,
+ * which the browser then left unused (build 20's red-team). So every frame
+ * loads lazily, which starts well before the section reaches the screen, and a
+ * reader with scripting off still gets them (the browser loads lazy images
+ * eagerly when scripting is disabled).
  */
 
 const FINE_POINTER_MQ = "(hover: hover) and (pointer: fine)";
@@ -355,9 +364,10 @@ export function PhotoSection({
                 // what this can ever fetch is the ASSET's own width, which
                 // room-frames.ts states and ASSETS row 20 asks for.
                 sizes="100vw"
-                // The first is the section's rest state, so it is never lazy;
-                // the rest are the pool and the browser fetches them as it can.
-                priority={i === 0}
+                // Lazy, the rest state included: the section is never a first
+                // screen, so nothing here may cost the first paint (the header
+                // says why). next/image's default, stated so no one "fixes" it.
+                loading="lazy"
                 className="object-cover"
               />
             </div>

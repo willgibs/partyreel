@@ -5,7 +5,12 @@ cut: "a40310f1"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/app/(auth)/actions.ts
+  - src/app/(auth)/actions.test.ts
   - src/app/(app)/account/
+  - src/components/auth/account-door.test.tsx
+  - src/components/guest/foreign-ticket.test.tsx
+  - src/components/shared/backdrop/photo-section.tsx
+  - src/components/shared/backdrop/photo-section.test.tsx
   - src/components/auth/account-door.tsx
   - src/components/guest/guest-header.tsx
   - src/app/api/guests/leave/route.ts

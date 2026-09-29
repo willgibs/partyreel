@@ -10,6 +10,7 @@ import { PROFILE_SETUP_PATH } from "./profile/invite";
 import { EmailSection } from "./email-section";
 import { getAccountEmailState } from "./email-state";
 import { PasskeysCard } from "./passkeys-card";
+import { SignOutEverywhereCard } from "./sign-out-everywhere-card";
 import { AccountSecurityForm } from "@/components/app/account-security-form";
 import { DisplayNameForm } from "@/components/app/display-name-form";
 import { NotificationPrefsForm } from "@/components/app/notification-prefs-form";
@@ -509,6 +510,9 @@ export default async function AccountPage({
       </Card>
       {/* door-wiring's one line (2026-09-20), placed by the Orchestrator once avatar-wiring, which owned this page, had landed: the passkey row under the Password card. */}
       <PasskeysCard />
+      {/* The security corner closes on the one act that reaches every device: the menu's Sign out
+          is this device's alone, so ending them all lives here, beside how the account signs in. */}
+      <SignOutEverywhereCard />
 
       <Card>
         <CardHeader>
