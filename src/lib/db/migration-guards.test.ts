@@ -79,12 +79,18 @@
  *      list's keys, RLS and cap; the standing and every read the service role's alone; the host's four
  *      acts re-checking the host; and every guest path (the join, the upload, the rename, likes, both
  *      claims, the ask) meeting the door in the private album's words.
+ *  19. The schema pass (migrations 20260929160000 + 20260929170000): the events CHECKs at the app's own
+ *      bounds, anon granted no table ever again, the default privileges left revoked, tier_limits kept
+ *      from the client roles across a recreate, the dropped columns never re-added, and the contract
+ *      dropping exactly the reel's three dormant columns behind its milestone-31 gate.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { QR_STYLE_KEYS } from "@/lib/constants/qr-presets";
+import { createEventSchema, updateEventSchema } from "@/lib/validation/event";
 import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/validation/profile";
 
 const ROOT = join(__dirname, "..", "..", "..");
@@ -1749,7 +1755,9 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
       // named; a fresh CREATE starts from the default privileges, so PUBLIC is revoked by name and
       // only the roles that call it are granted.
       const file = grants("get_event_by_qr_token");
-      expect(file).toContain("revoke all on function public.get_event_by_qr_token(text) from public;");
+      expect(file).toContain(
+        "revoke all on function public.get_event_by_qr_token(text) from public;",
+      );
       expect(file).toContain(
         "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated, service_role;",
       );
@@ -1838,8 +1846,9 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
   });
 
   it("leaves highlight_score, the clip columns and max_reel_seconds to a later change", () => {
-    // They sit in the host's column-scoped SELECT grant and MEDIA_HOST_COLUMNS, where a stale list is
-    // a runtime 400 on every host read; max_reel_seconds is the cut's length cap now.
+    // They sat in the host's column-scoped SELECT grant and MEDIA_HOST_COLUMNS, where a stale list is
+    // a runtime 400 on every host read, so the list let go first and the schema pass's contract
+    // (20260929170000) drops them; max_reel_seconds is the cut's length cap now.
     for (const sql of [expand, drop]) {
       for (const kept of [
         "highlight_score",
@@ -1951,7 +1960,9 @@ describe("the host's reel defaults (20260925100000)", () => {
       );
       const file = grants("get_event_by_qr_token");
       // ★ Reshaped by the doors (20260929120000), which narrowed the ACL (the test above says why).
-      expect(file).toContain("revoke all on function public.get_event_by_qr_token(text) from public;");
+      expect(file).toContain(
+        "revoke all on function public.get_event_by_qr_token(text) from public;",
+      );
       expect(file).toContain(
         "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated, service_role;",
       );
@@ -2546,8 +2557,8 @@ describe("the per-event block and the always-on guest list (20260928120000)", ()
   });
 
   it("no winning function body reads the retired guest-list switch", () => {
-    // The guest list is always on (Will, `room=always`). The column stays until a contract migration
-    // drops it (a destructive change, not this lane's), unread by every function.
+    // The guest list is always on (Will, `room=always`). 20260929160000 drops the column; no function
+    // body read it before, and none may name it again.
     const names = new Set<string>();
     for (const file of readdirSync(MIGRATIONS_DIR).filter((f) =>
       f.endsWith(".sql"),
@@ -2889,7 +2900,9 @@ describe("the doors: Public, Private with its gate, Only me (20260929120000)", (
         "if v_event.gate is not null and not v_in then if v_event.gate = 'closed' then raise exception 'This event is private.' using errcode = 'check_violation'; elsif v_event.gate = 'approve' then v_admission := 'waiting'; elsif not public.event_door_lists_account(v_event.id, v_uid) then raise exception 'Ask the host to let you in.' using errcode = 'check_violation'; end if; end if;",
       );
       // The gate is asked after the verified-email refusal, so an address gate never mints a typed name.
-      expect(join.indexOf("if v_event.gate is not null and not v_in then")).toBeGreaterThan(
+      expect(
+        join.indexOf("if v_event.gate is not null and not v_in then"),
+      ).toBeGreaterThan(
         join.indexOf(
           "if v_event.require_verified_email and (v_uid is null or v_confirmed is null) then",
         ),
@@ -2921,7 +2934,10 @@ describe("the doors: Public, Private with its gate, Only me (20260929120000)", (
     });
 
     it("the door's rename-first path refuses a waiting ticket and Only me in the private album's words", () => {
-      for (const name of ["set_guest_display_name", "set_guest_pending_email"]) {
+      for (const name of [
+        "set_guest_display_name",
+        "set_guest_pending_email",
+      ]) {
         expect(code(name), name).toContain(
           "if v_guest.admission = 'waiting' or exists ( select 1 from public.events e where e.id = v_guest.event_id and e.visibility = 'private' and e.gate is null ) then raise exception 'This event is private.' using errcode = 'check_violation'; end if;",
         );
@@ -2955,6 +2971,202 @@ describe("the doors: Public, Private with its gate, Only me (20260929120000)", (
         "(e.allow_videos and coalesce(p.tier <> 'free', false))",
       );
       expect(read).not.toContain("gate");
+    });
+  });
+});
+
+describe("the schema pass (20260929160000) and its contract (20260929170000)", () => {
+  // The data architecture audited under Will's standing permission (2026-09-29), each fact read off the
+  // executable SQL (comments stripped), so a comment quoting a clause can never stand in for it.
+  const PASS = "20260929160000_schema_pass.sql";
+  const CONTRACT = "20260929170000_schema_pass_contract.sql";
+  const executableOf = (file: string) =>
+    collapse(
+      readFileSync(join(MIGRATIONS_DIR, file), "utf8").replace(/--[^\n]*/g, ""),
+    );
+  const pass = executableOf(PASS);
+  /** Every file from the pass on, executable, in apply order. */
+  const fromThePass = () =>
+    executableMigrations().filter(({ file }) => file >= PASS);
+
+  describe("events holds the app's own bounds", () => {
+    type Lengths = { minLength: number | null; maxLength: number | null };
+    type Wrapped = Partial<Lengths> & { unwrap?: () => unknown };
+    /** A string field's own lengths, under however many optional wrappers the schema adds. */
+    const lengthsOf = (field: unknown): Lengths => {
+      let f = field as Wrapped;
+      while (typeof f.unwrap === "function") f = f.unwrap() as Wrapped;
+      return { minLength: f.minLength ?? null, maxLength: f.maxLength ?? null };
+    };
+
+    it("the name CHECK is the event schema's own length, on create and on update", () => {
+      const create = lengthsOf(createEventSchema.shape.name);
+      expect(create.minLength).toBe(1);
+      expect(create.maxLength).not.toBeNull();
+      expect(lengthsOf(updateEventSchema.shape.name)).toEqual(create);
+      expect(pass).toContain(
+        `add constraint events_name_len check (char_length(name) between ${create.minLength} and ${create.maxLength})`,
+      );
+    });
+
+    it("the description CHECK is the event schema's own cap", () => {
+      const { maxLength: cap } = lengthsOf(createEventSchema.shape.description);
+      expect(cap).not.toBeNull();
+      expect(lengthsOf(updateEventSchema.shape.description).maxLength).toBe(
+        cap,
+      );
+      expect(pass).toContain(
+        `add constraint events_description_len check (description is null or char_length(description) <= ${cap})`,
+      );
+    });
+
+    it("the QR key's CHECK is an envelope every preset fits, never the list", () => {
+      const envelope = pass.match(
+        /add constraint events_qr_style_len check \(char_length\(qr_style\) between (\d+) and (\d+)\)/,
+      );
+      expect(envelope).not.toBeNull();
+      for (const key of QR_STYLE_KEYS) {
+        expect(key.length).toBeGreaterThanOrEqual(Number(envelope![1]));
+        expect(key.length).toBeLessThanOrEqual(Number(envelope![2]));
+        // A new preset needs no migration: the CHECK never names one.
+        expect(pass).not.toContain(`'${key}'`);
+      }
+    });
+
+    it("no later migration drops one of the three", () => {
+      for (const { file, sql } of fromThePass()) {
+        expect(sql, file).not.toMatch(
+          /drop constraint (?:if exists )?events_(?:name|description|qr_style)_len/,
+        );
+      }
+    });
+  });
+
+  describe("the client roles keep only what their callers use", () => {
+    it("anon holds no table privilege from the pass on", () => {
+      expect(pass).toContain(
+        "revoke all on all tables in schema public from anon;",
+      );
+      for (const { file, sql } of fromThePass()) {
+        for (const [grant] of sql.matchAll(/\bgrant [^;]*;/g)) {
+          if (!/\bto [^;]*\banon\b/.test(grant)) continue;
+          // A capability read may still be granted to anon; a table never.
+          expect(grant, `${file}: ${grant}`).toMatch(/ on function /);
+        }
+      }
+    });
+
+    it("authenticated loses the latent privileges, MAINTAIN included, and SELECT on every deny-all table", () => {
+      expect(pass).toContain(
+        "revoke truncate, references, trigger, maintain on all tables in schema public from authenticated;",
+      );
+      const revoke = pass.match(
+        /revoke select on table ([^;]*) from authenticated;/,
+      );
+      expect(revoke).not.toBeNull();
+      expect(
+        revoke![1]
+          .split(",")
+          .map((t) => t.trim())
+          .sort(),
+      ).toEqual(
+        [
+          "public.action_attempts",
+          "public.contact_submissions",
+          "public.export_log",
+          "public.job_applications",
+          "public.job_runs",
+          "public.newsletter_signups",
+          "public.ops_flags",
+          "public.reports",
+          "public.sent_emails",
+          "public.storage_ledger",
+          "public.unlock_attempts",
+        ].sort(),
+      );
+      expect(pass).toContain(
+        "drop policy storage_ledger_host_select on public.storage_ledger;",
+      );
+    });
+
+    it("the default privileges stay revoked for anon and authenticated", () => {
+      for (const kind of ["tables", "sequences", "functions"]) {
+        expect(pass).toContain(
+          `alter default privileges for role postgres in schema public revoke all on ${kind} from anon, authenticated;`,
+        );
+      }
+      for (const { file, sql } of fromThePass()) {
+        expect(sql, file).not.toMatch(
+          /alter default privileges [^;]* grant [^;]* to [^;]*\b(?:anon|authenticated)\b/,
+        );
+      }
+    });
+
+    it("tier_limits stays the service role's: a recreate after the pass restates the revoke", () => {
+      expect(pass).toContain(
+        "revoke all on function public.tier_limits(public.tier_type) from public, anon, authenticated; grant execute on function public.tier_limits(public.tier_type) to service_role;",
+      );
+      const winning = executableMigrations().filter(({ sql }) =>
+        /create (?:or replace )?function public\.tier_limits\(/.test(sql),
+      );
+      const last = winning[winning.length - 1];
+      if (last.file > PASS) {
+        expect(last.sql).toContain(
+          "revoke all on function public.tier_limits(public.tier_type) from public, anon, authenticated;",
+        );
+      }
+    });
+
+    it("no function in public keeps PUBLIC's EXECUTE: get_upload_context's goes by name", () => {
+      expect(pass).toContain(
+        "revoke execute on function public.get_upload_context(text, public.media_type) from public;",
+      );
+    });
+  });
+
+  it("the dropped columns are never added back", () => {
+    for (const [table, column] of [
+      ["events", "show_guest_list"],
+      ["notification_prefs", "notify_album_shared"],
+      ["notification_prefs", "notify_new_uploads_digest"],
+      ["notification_prefs", "notify_new_follower"],
+      ["newsletter_signups", "opted_in_at"],
+      ["job_applications", "resume_url"],
+    ]) {
+      expect(pass).toContain(
+        `alter table public.${table} drop column ${column};`,
+      );
+      for (const { file, sql } of fromThePass()) {
+        expect(sql, `${file}: ${table}.${column}`).not.toMatch(
+          new RegExp(
+            `alter table (?:only )?public\\.${table} [^;]*add column (?:if not exists )?${column}\\b`,
+          ),
+        );
+      }
+    }
+  });
+
+  describe("the contract drops exactly the reel's three dormant columns, after milestone 31", () => {
+    const contract = executableOf(CONTRACT);
+
+    it("runs its three drops and nothing else, with no cascade", () => {
+      expect(
+        contract
+          .split(";")
+          .map((s) => s.trim())
+          .filter(Boolean)
+          .map((s) => `${s};`),
+      ).toEqual([
+        "alter table public.media drop column highlight_score;",
+        "alter table public.media drop column clip_start_seconds;",
+        "alter table public.media drop column clip_end_seconds;",
+      ]);
+    });
+
+    it("carries its apply gate in its header", () => {
+      expect(readFileSync(join(MIGRATIONS_DIR, CONTRACT), "utf8")).toContain(
+        "★ APPLY ONLY AFTER MILESTONE 31 SHIPS (destructive)",
+      );
     });
   });
 });

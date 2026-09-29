@@ -14,6 +14,12 @@
  *      hold columns - nor any of the later ungranted-by-design columns (removed_by_system,
  *      removed_by_admin, status_before_removed), which MediaRow must also strip from its row type.
  *      Text-parsed (not imported): queries/media.ts is `server-only`.
+ *      ★ Reshaped on purpose (the schema pass, 2026-09-29): the grant was read off
+ *      20260707150000's text, which can never see a column dropped later, so the reel's three
+ *      dormant columns could not leave the list before their drop. The grant is now REPLAYED
+ *      across the whole set (a table-level revoke empties it, a column grant adds, a column revoke
+ *      or a DROP COLUMN takes away), which reads 20260929170000's drops the moment the file exists.
+ *      The scar stays: the list and the grant still move together, as the migrations leave them.
  *
  * Both sources are parsed as TEXT because the truth lives in files, not runtime exports - the
  * same style as the tiers.ts <-> tier_limits() parity guard.
@@ -77,16 +83,62 @@ describe("restore_media replacement (finding: superseded-body revert)", () => {
   });
 });
 
-/** Column names out of the migration's `grant select ( ... ) on public.media` list. */
+/**
+ * The media columns `authenticated` can SELECT as the migrations leave them, REPLAYED statement by
+ * statement across the whole set (comments stripped: a grant quoted in prose is not a grant). A
+ * TABLE-level revoke of SELECT (or of all) empties the set, since it cascades to every column grant;
+ * a column grant adds its columns and a column revoke takes its own away; a DROP COLUMN takes the
+ * column with its grant. A table-level grant would replay as "*", every column at once.
+ */
 function migrationGrantColumns(): string[] {
-  const m = migration.match(
-    /grant select \(([\s\S]*?)\) on public\.media to authenticated;/,
-  );
-  expect(m).not.toBeNull();
-  return m![1]
-    .split(",")
-    .map((c) => c.trim())
-    .filter(Boolean);
+  let columns = new Set<string>();
+  const statement =
+    /\b(grant|revoke) ([a-z_, ]+?)(?: \(([^)]*)\))? on (?:table )?([^;]*?) (?:to|from) ([^;]*);|\balter table (?:only )?(?:if exists )?public\.media ([^;]*);/g;
+  // The media table alone, in a list, or schema-wide.
+  const namesMedia = (objects: string) =>
+    /(?:^|[\s,])public\.media(?=$|[\s,])/.test(objects) ||
+    /\ball tables in schema public\b/.test(objects);
+  const files = readdirSync(MIGRATIONS_DIR)
+    .filter((f) => f.endsWith(".sql"))
+    .sort();
+  for (const file of files) {
+    const sql = readFileSync(join(MIGRATIONS_DIR, file), "utf8")
+      .replace(/--[^\n]*/g, "")
+      .replace(/\s+/g, " ");
+    for (const [
+      ,
+      verb,
+      privileges,
+      named,
+      objects,
+      grantees,
+      altered,
+    ] of sql.matchAll(statement)) {
+      if (altered !== undefined) {
+        for (const [, column] of altered.matchAll(
+          /\bdrop column (?:if exists )?([a-z_0-9]+)/g,
+        )) {
+          columns.delete(column);
+        }
+        continue;
+      }
+      if (!namesMedia(objects)) continue;
+      if (!grantees.split(",").some((g) => g.trim() === "authenticated"))
+        continue;
+      const privs = privileges.split(",").map((p) => p.trim());
+      if (!privs.some((p) => ["select", "all", "all privileges"].includes(p)))
+        continue;
+      const cols = named?.split(",").map((c) => c.trim());
+      if (verb === "revoke") {
+        if (cols) cols.forEach((c) => columns.delete(c));
+        else columns = new Set();
+      } else {
+        (cols ?? ["*"]).forEach((c) => columns.add(c));
+      }
+    }
+  }
+  expect(columns.size).toBeGreaterThan(0);
+  return [...columns];
 }
 
 /** Column names out of MEDIA_HOST_COLUMNS in src/lib/db/queries/media.ts. */
@@ -167,6 +219,42 @@ describe("media SELECT column-scoping (finding: hold columns host-readable)", ()
     expect([...tsSelectColumns()].sort()).toEqual(
       [...migrationGrantColumns()].sort(),
     );
+  });
+
+  // The same truth read from the other side: MediaRow is the generated row less exactly what the list
+  // never selects. A generated column the list skips must be omitted (else the type claims a value the
+  // read never returns), and an omitted name must still be a generated column: when a drop's
+  // regeneration takes one away (the reel's three, after 20260929170000), this says to take it off.
+  it("MediaRow is the generated media row less exactly the columns the host list skips", () => {
+    const types = readFileSync(join(ROOT, "src/lib/db/types.ts"), "utf8");
+    const start = types.indexOf("      media: {\n        Row: {\n");
+    expect(start).toBeGreaterThan(-1);
+    const body = types.slice(start, types.indexOf("\n        }\n", start));
+    const generated = [...body.matchAll(/^ {10}([a-z_0-9]+)\??:/gm)].map(
+      (m) => m[1],
+    );
+    expect(generated).toContain("event_id");
+    const omitted = [
+      ...mediaQueries
+        .slice(
+          mediaQueries.indexOf("export type MediaRow"),
+          mediaQueries.indexOf(
+            ">;",
+            mediaQueries.indexOf("export type MediaRow"),
+          ),
+        )
+        .matchAll(/\|\s*"([a-z_0-9]+)"/g),
+    ].map((m) => m[1]);
+    const selected = tsSelectColumns();
+    for (const column of generated.filter((c) => !selected.includes(c))) {
+      expect(omitted, `${column} is never selected: omit it`).toContain(column);
+    }
+    for (const column of omitted) {
+      expect(
+        generated,
+        `${column} left the generated row: take it off MediaRow's Omit`,
+      ).toContain(column);
+    }
   });
 
   it('leaves no select("*") on media in the host query module', () => {

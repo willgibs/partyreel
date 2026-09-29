@@ -1,0 +1,71 @@
+-- =============================================================================================
+-- THE SCHEMA PASS, PART 2 OF 2: THE CONTRACT (lane `schema-pass`, 2026-09-29).
+--
+-- ★ APPLY ONLY AFTER MILESTONE 31 SHIPS (destructive). partyreel.com at milestone-30 still names all three
+-- columns in its host media select (MEDIA_HOST_COLUMNS), and a select naming a dropped column answers 42703,
+-- so every host album read on milestone-30 would fail. launch-prep stopped naming them in the commit that
+-- wrote this file: the list, MediaRow's Omit, and the forensics parity guard, which replays the host's
+-- column-scoped SELECT across the whole migration set and so already reads these drops.
+--
+-- WHAT IT DOES: drops the reel's three dormant media columns, written and read by nothing since the stored
+-- reel left (20260924110000): highlight_score, clip_start_seconds and clip_end_seconds. Every row holds null in
+-- all three, and no index, constraint, trigger or function body names them (2026-09-29). The host's SELECT on
+-- each (20260707150000's column list) goes with its column. The uploader's own video window, when it comes,
+-- adds columns of its own (the reel bucket's trim line).
+--
+-- APPLY PROTOCOL (database-security.md, Workflow):
+--  (1) milestone 31 is live, and `git grep -n "highlight_score\|clip_start_seconds\|clip_end_seconds" main --
+--      src workers scripts` answers only src/lib/db/types.ts; anything else, stop.
+--  (2) The rolled-back check at the foot, then apply verbatim.
+--  (3) get_advisors. EXPECTED DELTA: none.
+--  (4) Regenerate src/lib/db/types.ts (media loses the three), then take their three names off MediaRow's Omit
+--      (src/lib/db/queries/media.ts), which holds them only until the regeneration.
+-- =============================================================================================
+alter table public.media drop column highlight_score;
+alter table public.media drop column clip_start_seconds;
+alter table public.media drop column clip_end_seconds;
+
+-- =============================================================================================
+-- THE ROLLED-BACK CHECK. Proved on the live schema 2026-09-29 as ONE execute_sql call: `begin;` + `create temp
+-- table proof (n serial, step text, ok boolean, detail text) on commit drop;` + this file verbatim + the block
+-- below (uncommented) + `select n, step, ok, detail from proof order by n; rollback;`. Held, and afterwards the
+-- three columns stood with the host's SELECT on each, so nothing persisted:
+--   the contract | t | event 37ab40b1-f508-483d-be79-7b00baf17104: the new host list reads 2 rows; milestone-30's
+--                |   | list answers 42703; the host's column-scoped SELECT is exactly the new list
+-- Run it again right before the apply: the event it rides is the newest live one with a visible item.
+-- =============================================================================================
+--
+-- -- ── the new host list reads; milestone-30's answers 42703, the reason this waits; the grant is the new list ──
+-- do $$
+-- declare
+--   v_event uuid; v_host uuid; v_new int; v_err text; v_granted text; v_want text;
+--   v_list text := 'id, event_id, guest_id, type, original_key, preview_key, file_size_bytes, duration_seconds, width, height, status, created_at, updated_at, removed_at, purge_at, removed_by_uploader, reel_eligible';
+-- begin
+--   select e.id, e.host_id into v_event, v_host from public.events e
+--    where e.deleted_at is null
+--      and exists (select 1 from public.media m where m.event_id = e.id and m.status <> 'removed' and not m.removed_by_admin)
+--    order by e.created_at desc limit 1;
+--   if v_event is null then raise exception 'SETUP: no event fits'; end if;
+--   select string_agg(a.attname, ', ' order by a.attname collate "C") into v_granted
+--     from pg_attribute a
+--    where a.attrelid = 'public.media'::regclass and a.attnum > 0 and not a.attisdropped
+--      and has_column_privilege('authenticated', 'public.media', a.attname, 'SELECT');
+--   select string_agg(c, ', ' order by c collate "C") into v_want from unnest(string_to_array(v_list, ', ')) c;
+--   perform set_config('request.jwt.claims', json_build_object('sub', v_host, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   execute format('select count(*) from (select %s from public.media where event_id = %L and status <> %L) x', v_list, v_event, 'removed') into v_new;
+--   begin
+--     execute format('select count(*) from (select %s, highlight_score, clip_start_seconds, clip_end_seconds from public.media where event_id = %L) x', v_list, v_event);
+--     v_err := 'answered';
+--   exception when undefined_column then
+--     v_err := '42703';
+--   end;
+--   reset role;
+--   if v_new < 1 then raise exception 'the new list read % rows', v_new; end if;
+--   if v_err <> '42703' then raise exception 'milestone-30''s list %', v_err; end if;
+--   if v_granted is distinct from v_want then raise exception 'the host''s SELECT grant is %', v_granted; end if;
+--   insert into proof (step, ok, detail) values ('the contract', true,
+--     format('event %s: the new host list reads %s rows; milestone-30''s list answers 42703; the host''s column-scoped SELECT is exactly the new list', v_event, v_new));
+-- exception when others then
+--   insert into proof (step, ok, detail) values ('the contract', false, sqlerrm);
+-- end $$;
