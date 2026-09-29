@@ -9,7 +9,6 @@ import { type DoorProps, type Hues, seesAlbum } from "./door-props";
 import { HOST } from "./fixtures";
 import {
   AlbumBehind,
-  AskedMark,
   Eyebrow,
   Foot,
   Held,
@@ -26,6 +25,7 @@ import {
   RiverBehind,
   Rows,
   revealAt,
+  WaitHold,
   WelcomeFoot,
 } from "./furniture";
 import {
@@ -147,9 +147,9 @@ export function Plate({
   );
 }
 
-/** A state's eyebrow glyph: the lock wherever the door is not simply open. */
+/** A state's eyebrow glyph: today's clock while she waits, the lock where the door is shut. */
 const EYEBROW_MARK: Partial<Record<DoorProps["state"], Mark>> = {
-  wait: "lock",
+  wait: "clock",
   shut: "lock",
   "was-in": "lock",
   lost: "link",
@@ -190,17 +190,9 @@ export function HostDoor(p: DoorProps) {
           ? LOST_WORDS
           : shutWords("host", reader.wasIn);
 
-  const extra =
-    state === "wait" ? (
-      <div className="flex flex-col gap-4">
-        <span className="flex">
-          <AskedMark live={wait === "live"} hue={HOUSE[0]} />
-        </span>
-        {wait === "pick" && <PickBlock phase="ready" />}
-      </div>
-    ) : null;
-
   const align = p.container === "page" ? "center" : "start";
+  const extra =
+    state === "wait" ? <WaitHold wait={wait} align={align} /> : null;
   const foot =
     state === "welcome" || state === "wait" ? null : state === "lost" ? (
       <LostFoot align={align} />

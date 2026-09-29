@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { type DoorProps, type Hues, seesAlbum } from "./door-props";
 import {
   AlbumBehind,
-  AskedMark,
   AskPair,
   BackIn,
   BeatWords,
@@ -20,11 +19,11 @@ import {
   litVars,
   LostFoot,
   Page,
-  PickBlock,
   Pool,
   QuotedCheck,
   RiverBehind,
   revealAt,
+  WaitHold,
   WayOutButton,
   WelcomeFoot,
 } from "./furniture";
@@ -223,16 +222,7 @@ export function LitDoor(p: DoorProps) {
                 </p>
               ))}
             </div>
-            {state === "wait" && (
-              <div className="flex w-full flex-col items-center gap-4">
-                <AskedMark live={wait === "live"} hue={HOUSE[0]} />
-                {wait === "pick" && (
-                  <div className="w-full text-left">
-                    <PickBlock phase="ready" />
-                  </div>
-                )}
-              </div>
-            )}
+            {state === "wait" && <WaitHold wait={wait} align="center" />}
             <div className="mt-auto w-full pt-1">
               {state === "welcome" ? (
                 <WelcomeFoot />
@@ -310,14 +300,7 @@ function LitPage({
           eyebrow={words.eyebrow}
           title={words.title}
           description={<span data-ld-words>{prose(words.lines)}</span>}
-          actions={
-            wait === "pick" ? (
-              <div className="w-full max-w-sm text-left">
-                <PickBlock phase="ready" />
-              </div>
-            ) : null
-          }
-          footnote={<AskedMark live={wait === "live"} hue={HOUSE[0]} />}
+          actions={<WaitHold wait={wait} align="center" />}
         />
       </Page>
     );

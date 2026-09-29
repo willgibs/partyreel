@@ -36,10 +36,17 @@ import { type Control, defineExploration } from "@/components/lab/exploration";
  * proving it word for word); `newcomer=same` (one shut door for an Only me
  * album, a closed door, a decline, an address not on the list and a block, its
  * words true of all five); `unlisted=ask` (Ask Maya to let me in, then Use a
- * different email); `back-in` (a phone with nothing confirmed is offered its
- * way back). The vocabulary is `settings-wiring`'s, built beside this round:
- * Public, Private (a gate) and Only me; a gate stops newcomers, and only Only me
- * and a block shut out someone already in.
+ * different email); `back-in` (a visitor signed out is offered her way back,
+ * "Already a guest? Log in"). The vocabulary is `settings-wiring`'s: Public,
+ * Private (a gate) and Only me; a gate stops newcomers, and only Only me and a
+ * block shut out someone already in.
+ *
+ * ★ TODAY IS PRODUCTION. `settings-wiring` built the doors beside this round
+ * (the held door, the shut door with its unlisted foot, the ask), so today's
+ * door is drawn by those pieces themselves (`today.tsx`), and the directions
+ * say today's words wherever they say what today says (`words.ts`). Their
+ * files are in `lives`, so the next change to them raises this board's
+ * PREMISE line.
  *
  * ★ NEVER ASKED HERE: `disposable-mode` r2's waiting room, which is the
  * camera's, inside the album after the door (a sibling in mood, not in job);
@@ -116,6 +123,10 @@ export const LOCKED_DOOR = defineExploration({
     "src/components/guest/door/lit.tsx",
     "src/components/guest/door/lit.css",
     "src/components/guest/door/heading.tsx",
+    "src/components/guest/door/waiting-step.tsx",
+    "src/components/guest/door/shut-door.tsx",
+    "src/components/guest/door/ask-step.tsx",
+    "src/components/guest/door/unlisted-ask.tsx",
   ],
   round: {
     n: 2,
@@ -137,10 +148,10 @@ export const LOCKED_DOOR = defineExploration({
     about:
       "The door a guest meets before an album opens: its welcome, the wait while the host decides, the one shut door, and a dead link's page.",
     settled: [
-      "Someone who was in reads that Maya made it private (your round one pick); a guest Maya blocked reads the same line.",
-      "One shut door for all five ways a newcomer is kept out: Only me, a closed door, a decline, the invite list, a block.",
-      "An address not on the invite list is offered Ask Maya to let me in, then Use a different email.",
-      "The welcome keeps today's words; this round asks only how the door looks and behaves.",
+      "Someone who was in reads that Maya made it private (your round one pick, now built); a guest Maya blocked reads the same line.",
+      "One shut door for all five ways a newcomer is kept out, now built: Only me, a closed door, a decline, the invite list, a block.",
+      "An address not on the invite list is offered Ask Maya to let me in, then Use a different email, as now built.",
+      "The welcome and the wait keep today's words; this round asks how the door looks and behaves.",
     ],
     earlier: [
       "The host's door, 'not a direct selection': push it and today's lit column further, and try one fresh.",
@@ -204,7 +215,7 @@ export const LOCKED_DOOR = defineExploration({
       question:
         "Where does a guest whose address is not on the invite list get the way to ask?",
       taken:
-        "On the shut door, under its one message: Ask Maya to let me in, then Use a different email. Asking takes her to the wait.",
+        "On the shut door, under its one message, as now built: Ask Maya to let me in, then Use a different email. Asking takes her to the wait.",
       overrule:
         "Put the ask on the invite list's own step, and the shut door keeps one foot for everyone.",
     },
@@ -240,10 +251,10 @@ export const LOCKED_DOOR = defineExploration({
           id: "today",
           label: "Today's door, as it ships",
           means:
-            "Today's welcome and wait in the sheet over the album, then the not-found page with a lock, whose words say private.",
+            "Today's welcome and wait in the held sheet, then the not-found page with a lock: closed to a newcomer, private to someone who was in.",
           gains: "Nothing to build or learn: it is what guests meet now.",
           costs:
-            "The shut door says private, which is true of only one of five reasons she is out.",
+            "Its shut door is a plain page naming no album or host, unrelated to the sheet.",
         },
         {
           id: "host",
@@ -259,7 +270,7 @@ export const LOCKED_DOOR = defineExploration({
           id: "lit",
           label: "The lit column",
           means:
-            "One centred emblem per state in a pool of light: the album, an hourglass, the lock. Shut, it names no album and no host.",
+            "One centred emblem per state in a pool of light: the album, an hourglass, the lock. Shut, it is today's page and words, its lock lit.",
           gains:
             "The calmest: one emblem, one headline and one line per state.",
           costs:
@@ -351,18 +362,19 @@ export const LOCKED_DOOR = defineExploration({
       options: [
         {
           id: "still",
-          label: "A still wait, as it will ship",
+          label: "Today's wait, as it ships",
           means:
-            "One line and how long ago she asked. The door opens by itself when Maya lets her in; nothing moves while she waits.",
-          gains: "Simple and honest: one line, and the door opens itself.",
+            "Today's words (Maya will let you in; keep this link) over a dot that breathes while she waits. The door opens by itself when Maya lets her in.",
+          gains:
+            "Built and honest: today's words, a live dot, and the door opens itself.",
           costs:
-            "Nothing to do or watch, so a long wait feels like being ignored.",
+            "Nothing to do, and nothing says Maya knows she is there, so a long wait feels ignored.",
         },
         {
           id: "live",
           label: "A wait to watch",
           means:
-            "The door breathes and its clock ticks, and it says the one true thing about the other side: Maya has been told she is here.",
+            "Today's wait with its clock ticking and the whole door breathing, saying the one true thing about the other side: Maya has been told she is here.",
           gains:
             "She sees the wait is alive: Maya has been told, and the clock ticks.",
           costs:
@@ -372,7 +384,7 @@ export const LOCKED_DOOR = defineExploration({
           id: "pick",
           label: "A wait to spend",
           means:
-            "She chooses what she will add while she waits. Nothing leaves her phone until Maya lets her in, and then it goes straight in.",
+            "Today's wait, and she chooses what she will add meanwhile. Nothing leaves her phone until Maya lets her in, then it goes straight in.",
           gains:
             "She spends the wait choosing photos, which go in the moment she is let in.",
           costs:
