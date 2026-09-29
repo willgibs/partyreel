@@ -41,7 +41,8 @@ a lane").
 | `settings-wiring` | every event-settings pick: settings as four sentences, the doors end to end, the Guests room, the hub | running (agent `aefdc4b3cecd92f74`) | Opus, 3131 | |
 | `triage-r2-wiring` | admin-triage r2 wired; the hold rebuilt (Hold takes down by default; storage released at an operator's removal; an open report guards its item; the child-abuse instant hide) | running (agent `a432fe0336dc35587`) | Opus, 3134 | |
 | `lab-revamp` | a board as one self-registering folder, scoped lab checks, the trimmed API, the words renamed, the kit following (holds registry.ts and boards.ts; PROGRAM.md's lines come in its Handoff) | running (agent `a6b4519e3d363d7dd`) | Opus, 3133 | |
-| `schema-pass` | the data architecture audited and bettered (his four drops, the reel's dormant columns, the latent grants, anything nothing reads), clear of the two SQL lanes | running (agent `a0331d8060838304a`) | Opus, 3132 | |
+| `schema-pass` | the data architecture audited; its migration BLOCKED: the permission classifier refused the lane's write of the file (no retry). The audit is its manifest at `origin/lp/schema-pass` (`66794756`): Q1 his permission to write and prove, Q2 the reel's three columns wait for milestone 31 (main reads them), Q3 default privileges closed for anon and authenticated, Q4 the monthly meter deny-all, Q5 three CHECKs | handed off blocked; resumed on his yes | Opus | `66794756` |
+| `crumbs-14` | the hub row's stick loop, the screen popup's back label, the admin sign-in's asked page, a refused sign-out, the pricing teaser's price, a lowercase bullet | running (agent `a0de18f02690ad5a8`) | Opus, 3135 | |
 
 Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcribed at `31de6aa0`: 41 answers on ten
 boards). Wave A: `settings-wiring` (all nine event-settings picks, the doors end to end), `locked-door` r2 (the door
@@ -87,14 +88,8 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, dis
      and three variations; the sealed cards out).
    - `schema-pass` is running (cut before `settings-wiring`'s merge, clear of every function and column the two SQL
      lanes change; what it finds there waits in its Handoff for after their merges).
-   - `crumbs-14` (Opus), into the next free seat: the hub's cards row loops at its stick threshold (medium: a jump into
-     the band where the row meets the bar, as `masonry.tsx`'s `returnTo()` does when the viewer closes, flips the row
-     between the grid and the pills for ever at 375, since scroll anchoring compensates the row's condensation, the
-     IntersectionObserver un-sticks it and anchoring compensates back; the fades go stale meanwhile); the claims review's
-     back label truncating at 375 (`popup.tsx`'s screen header grid); `/admin/reports` signed out returning to `/admin`
-     after the sign-in; a device Sign out that ignores a refused GoTrue call (ROADMAP); the home's pricing teaser
-     breaking Pro's price at 1440 (ROADMAP); the free-plan article's lowercase bullet (ROADMAP). From the claims walk's
-     ledger and the milestone's pass.
+   - `crumbs-14` is running (the hub row's stick loop, the screen popup's back label, the admin sign-in's asked page,
+     a refused sign-out, the pricing teaser, a lowercase bullet).
    - After their rounds: the disposable wiring (after `disposable-mode` r2's picks, Will's Measure a phone, and
      `settings-wiring`'s merge, since it rewrites the guest path; with the lane's idea of the premiere on the wall, the
      reel's screen counting down to the develop time and playing the roll as an event of its own) and the door family's wiring (if the doorway wins, its reveal: walking through the
