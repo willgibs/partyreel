@@ -63,8 +63,6 @@ only where those leave a gap; a stale `.next/dev/lock` may be deleted; continue 
 - `crumbs-14` (`../partyreel-wt/crumbs-14`, 3135, agent `a0de18f02690ad5a8`): mid-work, no relays.
 - `lab-revamp` stage two (`../partyreel-wt/lab-revamp`, 3133, agent `a6b4519e3d363d7dd`): mid-work; its notes
   `../partyreel-wt/_scratch/lab-revamp/stage-two.md`.
-- Build 22's red-team (agent `a90806c230d378b26`): if its report never arrived, respawn it from
-  `../partyreel-wt/_scratch/redteam-22/brief.md`, skipping what its `ledger.txt` already shows done.
 - `schema-pass` is not running: it handed off blocked (the classifier refused its migration file). On Will's yes,
   respawn it into `../partyreel-wt/schema-pass` (3132) with his words quoted, from its manifest on `origin/lp/schema-pass`.
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
@@ -126,8 +124,10 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, dis
 4. **Build 22 is live** (`54cd706c`; alias-ensure green, pruned, the desk served, the context layer read on the served
    desk): his sitting on `locked-door` r2 and `disposable-mode` r2 (4 and 8 asks), each
    with its context now (where, what brings someone there, why it matters, each option's gain and cost, the
-   recommendation's reason, each board's opening), and `crumbs-13`'s sign-out. Its red-team runs (agent `a90806c230d378b26`,
-   `../partyreel-wt/_scratch/redteam-22/brief.md`): the four sign-out walks and the desk's context headless. Build 22's
+   recommendation's reason, each board's opening), and `crumbs-13`'s sign-out. Red-teamed live (`../partyreel-wt/_scratch/redteam-22/ledger.txt`): every journey PASS, the admin portal's
+   own session kept through a main-alias sign-out (its AAL2 half and the admin bar's reverse wait on Will's authenticator
+   code, a two-minute follow-up); two a11y nits to ROADMAP; at 375 a board's opening puts the question 1.4 screens down
+   (ROADMAP's fold line). Build 22's
    red-team also walks `crumbs-13`'s sign-out (its Handoff's four live walks: two browsers, the admin portal's session
    kept, Sign out everywhere, the guest header). Its red-team rides the claims walk: crumbs-12's hub row at
    1440, 768 and 375 resting and stuck, "restore it for 30 days", the reports lede, the headings at 700, /terms'
