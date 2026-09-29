@@ -13,16 +13,18 @@ import { SCREENS, type ScreenId } from "./knobs";
  * in the album a guest holds in one hand, so every guest frame is that phone
  * at 1:1 (the kit's `Frame`, a same-origin iframe, so a line wraps where it
  * will wrap and a `sm:` class answers the phone's width, not the lab's). The
- * host's Create and Settings are drawn at 1440 too, on the Screen knob.
+ * host's hub and Create are drawn at 1440 too, on the Screen knob, and the
+ * room's screen is a 16:9 wall.
  *
  * ★ NOTHING HERE REACHES A SESSION, A SERVER FUNCTION, THE CAMERA OR THE
  * NETWORK, AND NOTHING MOUNTS A RADIX PORTAL. A Dialog, Sheet or Popover
  * opened inside a portalled frame renders on the LAB PAGE's document, not the
  * phone being judged, so every floating surface here is QUOTED: the shipped
  * classes and postures, never the primitive. `fixed`, never `absolute`, for
- * anything pinned to the screen: the frame IS the viewport. The viewfinder is
- * a photograph standing in for the live camera (a lab frame asking for the
- * reader's camera would be a permission prompt on a design review).
+ * anything pinned to the screen: the frame IS the viewport. Every camera's
+ * live picture is a photograph standing in for the stream (a frame asking for
+ * the reader's camera would be a permission prompt on a design review; the
+ * dock's Measure is the one place the board asks, and only when pressed).
  *
  * ★ EVERY CAPTION IS READ OFF THE FRAME, NEVER ASSERTED: where the shutter
  * sits for a thumb, what the count says, how many steps Create takes, what an
@@ -79,8 +81,8 @@ export function Scene({
 
 /**
  * THE FRAMES OF ONE OPTION, read left to right as time runs. Phones stand in
- * a row (it wraps where the stage is narrower); laptops stack, since two 1440
- * frames side by side would each be a thumbnail.
+ * a row (it wraps where the stage is narrower); laptops and the room's screen
+ * stack, since two 1440 frames side by side would each be a thumbnail.
  */
 export function Story({
   screen = "375",
@@ -89,7 +91,7 @@ export function Story({
   screen?: ScreenId;
   children: ReactNode;
 }) {
-  if (screen === "1440")
+  if (screen !== "375")
     return <div className="flex flex-col gap-6">{children}</div>;
   return <div className="flex flex-wrap items-start gap-6">{children}</div>;
 }

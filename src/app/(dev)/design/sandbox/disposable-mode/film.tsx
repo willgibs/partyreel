@@ -5,31 +5,29 @@ import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 
 import { EVENT, type Still } from "./fixtures";
+import type { StockId } from "./knobs";
 
 /**
  * THE LOOKS A SHOT CAN WEAR, and the one photograph wearing one.
  *
- * `clean` is the photograph as the phone took it; `warm` is the one film look
- * (`look=film`); `cool` and `mono` are the other two of `look=stocks`. In the
- * proposal the camera BAKES the look into the file it saves (a canvas pass at
- * the shutter), so the album, the reel, Save and the zip all carry it; here
- * the board's sheet stands in for the bake (`disposable-mode.css`), which is
- * why one still can be read four ways side by side.
+ * ★ NEVER BAKED (settled from round one's `look=stocks` note). The original
+ * is stored as the camera took it; Warm, Cool and B&W are applied wherever a
+ * photograph is SHOWN (the viewfinder as she frames, the album, the reel,
+ * rendered on the device), so the host can switch the look, or turn it off,
+ * at any time and nothing is stored twice. `clean` is the original itself:
+ * what Download all hands over, and the phone's own camera app.
+ *
+ * Here the board's sheet stands in for that display pass
+ * (`disposable-mode.css`), which is why one still can be read four ways side
+ * by side.
  */
-export type LookId = "clean" | "warm" | "cool" | "mono";
-
-/** The board's `look` answer, as the look a frame wears. `stocks` draws the host's pick. */
-export const lookFor = (look: unknown): LookId =>
-  look === "clean" ? "clean" : look === "stocks" ? "mono" : "warm";
-
-/** Whether a look prints the date into the corner (every film look does). */
-export const stamps = (look: LookId) => look !== "clean";
+export type LookId = StockId | "clean";
 
 export const LOOK_NAME: Record<LookId, string> = {
-  clean: "the photograph as taken",
-  warm: "warm, grain and the date",
-  cool: "cool, grain and the date",
-  mono: "black and white, grain and the date",
+  clean: "the original",
+  warm: "Warm",
+  cool: "Cool",
+  mono: "B&W",
 };
 
 /* ── the date in the corner ─────────────────────────────────────────────── */
@@ -62,7 +60,7 @@ const RECT: Record<string, [number, number, number, number]> = {
   g: [2, 8, 6, 2],
 };
 
-function Digit({ ch }: { ch: string }) {
+export function Digit({ ch }: { ch: string }) {
   const lit = SEGMENTS[ch] ?? "";
   return (
     <svg viewBox="0 0 10 18" aria-hidden>
@@ -75,7 +73,7 @@ function Digit({ ch }: { ch: string }) {
           height={h}
           rx={0.9}
           fill="currentColor"
-          opacity={lit.includes(seg) ? 1 : 0}
+          opacity={lit.includes(seg) ? 1 : 0.07}
         />
       ))}
     </svg>
@@ -116,6 +114,7 @@ export function FilmStill({
   className,
   style,
   position,
+  stamp = true,
 }: {
   still: Still;
   look: LookId;
@@ -123,10 +122,12 @@ export function FilmStill({
   style?: CSSProperties;
   /** The photograph's `object-position`, where a crop must keep its subject. */
   position?: string;
+  /** The date in the corner (every look prints it; a thumbnail may drop it). */
+  stamp?: boolean;
 }) {
   return (
     <div
-      className={cn("dm-film", className)}
+      className={cn("dm-film relative", className)}
       data-look={look}
       data-dm-look={look}
       style={style}
@@ -138,7 +139,7 @@ export function FilmStill({
           <span aria-hidden className="dm-film-tint" />
           <span aria-hidden className="dm-film-vignette" />
           <span aria-hidden className="dm-film-grain" />
-          <DateStamp />
+          {stamp && <DateStamp />}
         </>
       )}
     </div>
