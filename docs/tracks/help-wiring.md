@@ -37,7 +37,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/db/mutations/article-feedback
   - src/lib/db/queries/article-feedback
   - src/lib/db/queries/jobs
-  - src/app/admin/jobs/catalog
+  - src/app/admin/jobs/
   - src/lib/admin/nav
   - src/lib/security/abuse-rate-limit.ts
 reads:                  # single-sources you depend on: never duplicate, never edit

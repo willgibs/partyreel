@@ -46,7 +46,8 @@ export type JobId =
   // Rolling 24h signals over work that has no schedule of its own.
   | "email_delivery"
   | "abuse_limiter"
-  | "unlock_limiter";
+  | "unlock_limiter"
+  | "help_feedback";
 
 /** Where the job actually executes. Decides what an operator can do about it from /admin. */
 export type JobHost =
@@ -334,6 +335,20 @@ export const JOBS: JobDef[] = [
     label: "Unlock limiter",
     description:
       "The password-unlock brute-force limiter. Also fail-open, so a silent outage here is an open brute-force window nobody would ever learn about.",
+    kind: "signal",
+    host: "app",
+    cron: null,
+    cadence: "Rolling 24 hours",
+    expectedEveryMs: 0,
+    flagKey: null,
+    canRunNow: false,
+  },
+  {
+    // help-center r1 `feedback=beacon`: the counts themselves are read at /admin/help-feedback.
+    id: "help_feedback",
+    label: "Help feedback",
+    description:
+      "Every Yes and No a reader leaves on a help article, counted at /admin/help-feedback. The reader sees the same thank-you whether the click was recorded or not, so a failing write is silent everywhere but here.",
     kind: "signal",
     host: "app",
     cron: null,

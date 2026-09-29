@@ -272,6 +272,18 @@ export function getAllSlugs(): string[] {
   return getAllArticles().map((article) => article.slug);
 }
 
+let publishedSlugs: ReadonlySet<string> | null = null;
+
+/**
+ * Does this slug name a published article? The feedback route's gate (`/api/help/feedback`), so a
+ * beacon row can only ever name a real article. Read once per server instance rather than per
+ * request: the articles ship with the deploy, so they cannot change under a running one.
+ */
+export function isHelpArticleSlug(slug: string): boolean {
+  publishedSlugs ??= new Set(getAllSlugs());
+  return publishedSlugs.has(slug);
+}
+
 // Articles grouped under each category, in category order. Categories with no article
 // are dropped so the index never renders an empty section (the Vitest test guarantees
 // every category has ≥1 article, so this is belt-and-suspenders).

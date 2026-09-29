@@ -34,7 +34,8 @@ export type AbuseKind =
   | "reel_clip_add"
   | "contact"
   | "careers"
-  | "email_change";
+  | "email_change"
+  | "help_feedback";
 
 /** The kinds keyed on a signed-in account rather than an IP (see the header's second ★). */
 export type AccountAbuseKind = Extract<AbuseKind, "email_change">;
@@ -168,6 +169,19 @@ export const ABUSE_LIMITS: Record<AbuseKind, Limit> = {
     breadthMax: Infinity,
     scopeWindowMin: 60,
     scopeMax: 6,
+  },
+  // The help center's "Did this answer your question?" beacon (POST /api/help/feedback, help-center r1
+  // `feedback=beacon`), scope = (IP, ARTICLE). One reader clicks once an article, so the natural rate is
+  // one; what sets the backstop is the venue again: a host who sends the whole party to "why an event
+  // asks for your email" puts a crowd behind one WiFi on one article, and ten in an hour from one address
+  // is still a crowd rather than a script. BREADTH is the stuffing guard: one address rating forty
+  // distinct articles in an hour is reading nothing. The harm ceiling is a skewed count only an operator
+  // sees, so the numbers lean generous; the gate fails CLOSED (the route's comment says why that is free).
+  help_feedback: {
+    breadthWindowMin: 60,
+    breadthMax: 40,
+    scopeWindowMin: 60,
+    scopeMax: 10,
   },
 };
 
