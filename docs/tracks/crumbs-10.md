@@ -17,6 +17,20 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/lifecycle/sweeps/passes.ts
   - src/lib/db/queries/social.ts
   - src/lib/db/mutations/social.ts
+  # Added at boot, where the brief's items live outside the cut's claims:
+  - src/components/app/report-review          # the album arm's cards and closed lines (item 1)
+  - src/lib/admin/reports                     # wayBackOf and the closed log's words (item 1)
+  - src/lib/db/queries/reports                # the lines' way back, decided server-side (item 1)
+  - src/app/api/stripe/checkout/route         # the renewal refusal's sentence is the route's (item 4)
+  - src/components/app/renew-checkout         # its note on what `not_eligible` covers (item 4)
+  - src/components/marketing/chrome/mobile-menu.test.tsx
+  - src/lib/db/queries/my-uploads             # which uploads sit on an album that reads private (item 6)
+  - src/components/app/media-grid.tsx         # GridMedia's `likeable` (item 6)
+  - src/components/likes/like-button          # no heart where a like would be refused (item 6)
+  - src/lib/db/mutations/media                # restore_media's `status`, carried (item 7)
+  - src/app/(app)/dashboard/[eventId]/actions # ...through the hub's restore (item 7)
+  - src/components/app/recently-deleted-grid.test.tsx
+  - src/components/ui/popup.test.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/admin-observability.md
   - docs/systems/host-app.md
@@ -58,7 +72,13 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Does every verdict that changed only the report reopen, or Dismiss alone?** A person's Mark actioned is also
+  one press with no confirm, so the same slip closes a harm report for good there. Recommended: one rule later (a
+  verdict that touched only the report reopens inside the window), in admin-triage round two's wiring, which redraws
+  the verbs with the host queue's Undo (its `look` frames carry it); built here: Dismiss alone, on both arms (the
+  album and item cards, and People), as briefed.
+- **A dismissal's window is 30 days from the verdict** (`RECENTLY_DELETED_WINDOW_DAYS`, the removal's own number:
+  `closed=window`'s "one lifecycle rule instead of two clocks"). Recommended as built.
 
 ## System-doc edits (in place, owned facts only)
 
