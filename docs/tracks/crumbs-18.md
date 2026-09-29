@@ -11,8 +11,12 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/app/share/event-share-provider.test.tsx
   - src/components/ui/popup-back.ts
   - src/components/app/media-grid.tsx
+  - src/components/marketing/help/step-screens/phone-document.test.tsx   # new: the pin for item 2
+  - src/components/ui/popup-back.test.tsx                                # new: the pin for item 4
+  - src/components/app/media-grid.test.tsx                               # new: the pin for item 5
+  - content/help/AUTHORING.md                                            # one line: rule 6 still taught "no per-photo reports"
+  - docs/systems/host-app.md                                             # the two places bullet (item 3)
 reads:                  # single-sources you depend on: never duplicate, never edit
-  - docs/systems/host-app.md
   - docs/systems/marketing-content.md
 ---
 
