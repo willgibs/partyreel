@@ -40,13 +40,12 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `crumbs-9` | eight small ROADMAP items: the untyped `article_feedback` seams, the help's ⌘K chip on a phone and `report-a-problem-as-a-guest`'s screens, the hero's headline fold at 470 to 767, two stale notes, the portal's Library specimens, a restore losing its custom link in silence | running, agent `ae2f802a7cf6d56e9` | Sonnet, :3134 | |
 
 Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcribed at `69afdbc5`: 21 answers on
 hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
 Wave B follows as seats free. Batch 6 (sixteen lanes) is merged whole; its records carry the rest.
 
-Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring, hero-wiring, triage-wiring, export-wiring, help-wiring, emails-wiring, demo-framing, crumbs-8.
+Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring, triage-r2, safety-wiring, hero-wiring, triage-wiring, export-wiring, help-wiring, emails-wiring, demo-framing, crumbs-8, crumbs-9.
 
 ## Next, in order
 
