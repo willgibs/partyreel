@@ -25,7 +25,6 @@ export const SURFACE_LABEL: Record<Surface, string> = {
 
 /** The boards standing in sandbox/, one row each below. */
 export type SandboxId =
-  | "hero-card"
   | "export-flow"
   | "admin-triage"
   | "emails"
@@ -55,27 +54,6 @@ export type Ruling = {
 };
 
 export const RULINGS: Ruling[] = [
-  {
-    id: "hero-card",
-    title: "The home hero's card",
-    surface: "marketing",
-    asks: "which version of his link card stands at the centre of the home hero, then, drawn in the one he picks, its own light and the hero's geometry on a tablet",
-    why: "He took the link in round one and asked for more ideas branching from it; the tablet's geometry moved here from loose-ends, since it sizes the hero round this card.",
-    lives: [
-      "docs/systems/marketing-content.md",
-      "src/components/marketing/sections/home/cinema-hero.tsx",
-      "src/components/marketing/sections/home/hero-stream.ts",
-      "src/components/marketing/system/demo-ticket.tsx",
-    ],
-    board: {
-      note: "Round two, drawn in the real first screen at 1440, 900 and 375: his link beside four branches (the guests on the photographs they added, the link as it lands in the group chat, the album spread lower along it, the address typed out in front), then the card's own light and the tablet's geometry in the card he picks",
-      variants: [
-        "The link card",
-        "The card's own light",
-        "The hero at a tablet",
-      ],
-    },
-  },
   {
     id: "export-flow",
     title: "Getting everything out",
@@ -397,7 +375,6 @@ export const RULINGS: Ruling[] = [
  * registry.test.ts holds this list and `BOARDS` to the same members.
  */
 export const DESK_ORDER: readonly SandboxId[] = [
-  "hero-card",
   "export-flow",
   "admin-triage",
   "help-center",
