@@ -235,6 +235,9 @@ export const PRESS_PAGE = defineExploration({
       id: "a-human",
       label: "Whether anyone is named",
       question: "Should anyone be named on the page?",
+      // Only while /press stays a page of its own: his `who-for` folded it into /about (2026-09-29), so this ask
+      // and `the-close` behind it are moot until the About round reshapes them.
+      after: { ask: "who-for", option: "one-page" },
       where: ["Marketing", "The press page", "The fact sheet's contact"],
       when: "A reporter on /press looks for who to write to; the fact sheet lists help@partyreel.com and no name.",
       context:

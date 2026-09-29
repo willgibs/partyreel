@@ -40,7 +40,6 @@ a lane").
 | --- | --- | --- | --- | --- |
 | `settings-wiring` | every event-settings pick: settings as four sentences, the doors end to end, the Guests room, the hub | running (agent `aefdc4b3cecd92f74`) | Opus, 3131 | |
 | `triage-r2-wiring` | admin-triage r2 wired; the hold rebuilt (Hold takes down by default; storage released at an operator's removal; an open report guards its item; the child-abuse instant hide) | running (agent `a432fe0336dc35587`) | Opus, 3134 | |
-| `lab-revamp` | a board as one self-registering folder, scoped lab checks, the trimmed API, the words renamed, the kit following (holds registry.ts and boards.ts; PROGRAM.md's lines come in its Handoff) | running (agent `a6b4519e3d363d7dd`) | Opus, 3133 | |
 | `schema-pass` | the data architecture audited; its migration BLOCKED: the permission classifier refused the lane's write of the file (no retry). The audit is its manifest at `origin/lp/schema-pass` (`66794756`): Q1 his permission to write and prove, Q2 the reel's three columns wait for milestone 31 (main reads them), Q3 default privileges closed for anon and authenticated, Q4 the monthly meter deny-all, Q5 three CHECKs | handed off blocked; resumed on his yes | Opus | `66794756` |
 | `crumbs-14` | the hub row's stick loop, the screen popup's back label, the admin sign-in's asked page, a refused sign-out, the pricing teaser's price, a lowercase bullet | running (agent `a0de18f02690ad5a8`) | Opus, 3135 | |
 
@@ -48,7 +47,7 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Wave A: `settings-wiring` (all nine event-settings picks, the doors end to end), `locked-door` r2 (the door
 family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records carry the rest.
 
-Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13.
+Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp stage one.
 
 ## Next, in order
 
@@ -63,12 +62,11 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, dis
    stop reshaping off trickle-down changes). Drafted specs wait in this session's scratchpad (`specs/<track>.json`); a
    new session writes them from these lines.
    - `triage-r2-wiring` is running (its manifest carries admin-triage r2 and the hold's rebuild, his words whole).
-   - `lab-revamp` is running (step 9), re-scoped on his word (2026-09-29, his biggest lab friction: questions that drop
-     him mid-screen): stage one first, handed off alone, the context layer (each ask's where, the state that brings
-     someone there, what is decided and why; each option's gain and cost; the recommendation's reason; a board's
-     opening with what is settled), the desk rendering it, a test refusing an open ask without it, and the two open
-     boards backfilled; build 22 carries it for his sitting. Then it is resumed for stage two, the plumbing (its work
-     waits off the handed-off branch); boards cut after stage two are authored in the new shape, the first as its proof.
+   - `lab-revamp` stage one merged at `a17725c3` (the context layer, gate 63 green; press-page's `a-human` made moot
+     behind `who-for`, so `the-close` waits too). Stage two, the plumbing, is re-cut into the next free seat and its
+     agent resumed (`a6b4519e3d363d7dd`; its notes `../partyreel-wt/_scratch/lab-revamp/stage-two.md`: `require.context`
+     works under `next dev` and Vitest, untried under `next build`); boards cut after it are authored in the new shape,
+     the first as its proof.
    - `event-ready` r1 (Opus), once `settings-wiring` merges: his event checklist and the settings' mini wizard (and
      whether Create shares it), taking ROADMAP's "what needs you" and "the hub's code as the event's live door" lines
      and the `day-of-checklist-for-hosts` article.
@@ -94,8 +92,9 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, dis
      `settings-wiring`'s merge, since it rewrites the guest path; with the lane's idea of the premiere on the wall, the
      reel's screen counting down to the develop time and playing the roll as an event of its own) and the door family's wiring (if the doorway wins, its reveal: walking through the
      opened door into the album, drawn first as motion options; ASSETS row 36 if the host's door wins).
-4. **Build 21 is live** (`a13a3bd0`): `locked-door` r2 and `disposable-mode` r2 (4 and 8 asks), with crumbs-12's
-   production changes; his sitting waits for build 22's context layer (step 3's `lab-revamp` stage one). Build 22's
+4. **Build 22** (this record's `[preview]`): his sitting on `locked-door` r2 and `disposable-mode` r2 (4 and 8 asks), each
+   with its context now (where, what brings someone there, why it matters, each option's gain and cost, the
+   recommendation's reason, each board's opening), and `crumbs-13`'s sign-out. Build 22's
    red-team also walks `crumbs-13`'s sign-out (its Handoff's four live walks: two browsers, the admin portal's session
    kept, Sign out everywhere, the guest header). Its red-team rides the claims walk: crumbs-12's hub row at
    1440, 768 and 375 resting and stuck, "restore it for 30 days", the reports lede, the headings at 700, /terms'

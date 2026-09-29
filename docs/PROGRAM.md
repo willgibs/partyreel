@@ -83,7 +83,9 @@ settled, his earlier picks and notes included. A term a board coins gets its pla
 should never have to click through the options to learn what he is being asked.
 
 - Author with `defineExploration` (`src/components/lab/exploration.ts`) and nothing else; the newest board built on
-  it is the worked example.
+  it is the worked example. Its context layer is an ask's `where` (a breadcrumb), `when` and `matters` beside `lands`,
+  each option's `gains` and `costs`, `because` in a line, and the board's `opening` (`about`, `settled`, `earlier`)
+  and `terms`; `registry.test.ts` refuses an open ask without them.
 - Shape a big goal progressively (`after` stages a question behind another answer); more rounds of narrower questions
   beat one wide one.
 - Options are real contenders for one decision: never force them apart, and two that land on the same answer are a
