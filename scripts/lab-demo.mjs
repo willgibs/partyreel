@@ -450,13 +450,21 @@ const PAGE_LIB = `
     stage() {
       return document.querySelector('main [data-lab-stage]');
     },
-    /** One option's frames, in the order the view draws them, each big enough to judge. */
+    /**
+     * One option's frames, in the order the view draws them, each big enough
+     * to judge and actually shown: frames stacked in one grid cell and toggled
+     * by visibility share a box, so a hidden one would be captured as the one
+     * over it and two different options would read as one picture.
+     */
     frames(id) {
       const v = this.view(id);
       if (!v) return [];
       return [...v.querySelectorAll('iframe')].filter((f) => {
         const r = f.getBoundingClientRect();
-        return r.width > 8 && r.height > 8;
+        const shown = f.checkVisibility
+          ? f.checkVisibility({ visibilityProperty: true, opacityProperty: true })
+          : true;
+        return shown && r.width > 8 && r.height > 8;
       });
     },
     /** Where the stage starts, how tall the step is, and how much it asks you to read. */
