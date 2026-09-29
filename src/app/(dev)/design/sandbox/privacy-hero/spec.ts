@@ -24,8 +24,9 @@ import { PHOTO } from "./knobs";
  * words, where the frames measure the subhead under 2:1 at its worst. The
  * variations keep every place they settle clear of the words by construction
  * (`veils.test.ts`) and pass behind them only under the scrim; every line of
- * words holds 7:1 or better over each variation's whole loop, at both widths
- * and on both photographs (the manifest's Handoff has the numbers).
+ * the lockup holds 7:1 or better over each variation's whole loop, and the
+ * header's nav 5.5:1, at both widths and on both photographs (the manifest's
+ * Handoff has the numbers).
  *
  * `veils.test.ts` holds every number these options state to `veils.ts`.
  */
@@ -73,7 +74,7 @@ export const PRIVACY_HERO = defineExploration({
       "The veil is the concept, your round three pick; this round asks which veil: the original as drawn, or one of three further.",
       "The header, the words and the buttons are the page's own, unchanged; only what sits behind them differs.",
       "The sealed cards are out; the sweep and the aperture are banked for other surfaces.",
-      "Each variation keeps every line of words at 7:1 or better over its whole loop, measured on the frames.",
+      "Each variation keeps the words at 7:1 or better and the nav at 5.5:1 over its whole loop, measured on the frames.",
     ],
     earlier: [
       "'This feels super bespoke to privacy, where it's only revealing what it wants to.'",
