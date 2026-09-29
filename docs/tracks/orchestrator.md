@@ -67,6 +67,9 @@ only where those leave a gap; a stale `.next/dev/lock` may be deleted; continue 
   `../partyreel-wt/_scratch/redteam-22/brief.md`, skipping what its `ledger.txt` already shows done.
 - `schema-pass` is not running: it handed off blocked (the classifier refused its migration file). On Will's yes,
   respawn it into `../partyreel-wt/schema-pass` (3132) with his words quoted, from its manifest on `origin/lp/schema-pass`.
+If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
+it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
+staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
 The old session's scratchpad (`/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/b01c012e-f59c-432b-9873-9f4226c036f2/scratchpad`,
 until a reboot) holds the batch's specs (`specs/<track>.json`) and gate logs; nothing there is needed that these lines
 and the manifests do not carry.
