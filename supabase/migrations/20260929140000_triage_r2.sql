@@ -867,30 +867,349 @@ comment on function public.report_queue_facts(uuid[], uuid[]) is
 insert into public.ops_flags (key, enabled) values ('report_proof_mail_enabled', false)
 on conflict (key) do nothing;
 
--- ── THE ROLLED-BACK CHECK (proved on the live schema 2026-09-29 inside `begin; <this file>; … rollback;`
--- in one execute_sql call, and re-run through the Supabase MCP after the apply: the steps below, each DO block
--- trapping its own failure into the `proof` table, then `select * from proof; rollback;`). It rides EXISTING
--- rows (the newest event with three live, unheld items and no report, hold or takedown in it) and writes only
--- inside the transaction: an item report and its close, an album report, a hold with and without Take it down
--- too, the host's Remove and Delete permanently of each, every storage figure at each step, the instant hide's
--- limits and its bar, and another host and anon refused. The full script is the lane's
--- (_scratch/triage-r2-wiring/proof.sql, carried in the handoff); its asserts, one line each:
---   1. kept_media_ids names an item under an open item report and every item under an open album report, and
---      lets them go when the reports close; a held item stays kept.
+-- ── THE ROLLED-BACK CHECK. Proved on the live schema 2026-09-29, before the apply, as ONE execute_sql call:
+-- `begin;` + this file + the block below (uncommented) + `select n, step, ok, detail from proof order by n;
+-- rollback;`, every step ok (setup, 1 through 9) and nothing left behind (no report_kind, no purge_asked_at, the
+-- old create_report, no switch row, profiles_set_updated_at enabled). After the apply, the same block runs alone
+-- the same way: `begin;` + the block + that select + `rollback;`. It rides EXISTING rows (the newest event with
+-- four live, unheld guest items and no report, hold or takedown in it) and writes only inside the transaction;
+-- each step traps its own failure into the `proof` table, so one call reports all nine:
+--   1. kept_media_ids names an item under an open item report and every item under an open album report, lets
+--      them go when the reports close, and keeps a held item.
 --   2. held_event_ids answers an event with an open report (item or album) and forgets it at the close.
---   3. purge_media_rows deletes none of the kept, and decrements the meter only for an unreleased row.
---   4. The host's Delete permanently on a reported removal: purged 1 (her whole selection), the row still
---      there and asked, gone from her RLS read, from her Deleted figure and from her meter; her restore_media
---      answers not_found; after the close, the sweep's candidate (asked) is due and purge_media_rows takes it
---      without a second decrement.
---   5. A hold with Take it down too (the operator's removal + the hold): off her meter at once, out of every
---      read; the operator's restore puts the bytes back.
---   6. The quiet hold: the host's Remove lands (her Deleted takes it), restore_media refuses it (legal_hold),
---      her Delete permanently asks it (gone for her), and defer_kept_due_media marks a held removal past its
---      window.
---   7. The instant hide: a confirmed child report hides an up item (status removed, removed_by_admin,
---      removed_at = hid_at), releases its bytes, and answers hid; an unconfirmed one, the host's own, a fourth
---      from one address and a sixth in one event answer hid false and hide nothing; a dismissed child report
---      bars its address; the close forgets the address and the proof token.
---   8. Another host's purge_media_now and restore_media reach nothing, anon executes none of the new functions,
---      and authenticated none but the two it held (purge_media_now, restore_media, restore_event).
+--   3+4. purge_media_rows deletes none of the kept and leaves the meter; the host's Delete permanently on a
+--      reported removal answers purged 1 (her whole selection), the row asked, gone from her RLS read, her
+--      Deleted figure and her meter, her restore not_found; after the close the purge takes it with no second
+--      decrement.
+--   5. A hold with Take it down too: off her meter and every read at once; the operator's restore puts it back.
+--   6. The quiet hold: her Hide and Remove land, restore_media refuses it (legal_hold, the discreet words), her
+--      Delete permanently asks it (gone for her, off her meter), defer_kept_due_media marks a held removal past
+--      its window, and no purge takes it.
+--   7. The instant hide: a confirmed child report hides an up item as an operator's removal at hid_at, releases
+--      its bytes and answers hid and the event; unconfirmed, the host's own, a fourth from one address and a
+--      sixth in one event hide nothing; a dismissed child report bars its address; the close forgets the
+--      address and the answer link and keeps the hash; a closed insert never keeps an address.
+--   8. Another host's purge_media_now and restore_media reach nothing; anon executes none of this file's
+--      functions and authenticated none but purge_media_now, restore_media and restore_event; purge_asked_at is
+--      ungranted; the policy carries it; the switch is off; the updated_at trigger is back on.
+--   9. report_queue_facts answers its shape.
+--
+-- create temp table proof (n serial, step text, ok boolean, detail text) on commit drop;
+-- create temp table fx (k text primary key, id uuid, bytes bigint, qr text) on commit drop;
+--
+-- -- ── setup: the newest event with four live, unheld guest items and no report, hold or takedown in it ──
+-- do $$
+-- declare
+--   v_event uuid; v_host uuid; v_qr text; v_other uuid; i int := 0; rec record;
+-- begin
+--   select e.id, e.host_id, e.qr_token into v_event, v_host, v_qr
+--     from public.events e
+--    where e.deleted_at is null
+--      and (select count(*) from public.media m
+--            where m.event_id = e.id and m.status <> 'removed' and m.legal_hold_at is null and m.guest_id is not null) >= 4
+--      and not exists (select 1 from public.media m where m.event_id = e.id and (m.legal_hold_at is not null or m.removed_by_admin))
+--      and not exists (select 1 from public.reports r where r.event_id = e.id)
+--    order by e.created_at desc limit 1;
+--   if v_event is null then raise exception 'SETUP: no event fits'; end if;
+--   insert into fx values ('event', v_event, null, v_qr), ('host', v_host, null, null);
+--   for rec in select m.id, m.file_size_bytes from public.media m
+--             where m.event_id = v_event and m.status <> 'removed' and m.legal_hold_at is null and m.guest_id is not null
+--             order by m.created_at desc, m.id desc limit 4 loop
+--     i := i + 1;
+--     insert into fx values (chr(64 + i), rec.id, rec.file_size_bytes, null);
+--   end loop;
+--   select p.id into v_other from public.profiles p where p.id <> v_host order by p.created_at limit 1;
+--   insert into fx values ('other', v_other, null, null);
+--   insert into proof (step, ok, detail) values ('setup', true, 'event ' || v_event || ', items A-D');
+-- end $$;
+--
+-- -- ── 1. kept_media_ids: an open item report keeps its item, an open album report its album, a hold its row ──
+-- do $$
+-- declare a uuid; b uuid; c uuid; d uuid; ev uuid; kept uuid[]; r1 uuid; r2 uuid;
+-- begin
+--   select id into a from fx where k = 'A'; select id into b from fx where k = 'B';
+--   select id into c from fx where k = 'C'; select id into d from fx where k = 'D';
+--   select id into ev from fx where k = 'event';
+--   insert into public.reports (event_id, media_id, reason) values (ev, a, 'proof: item') returning id into r1;
+--   kept := public.kept_media_ids(array[a, b, c, d]);
+--   if kept <> array[a] then raise exception 'item report keeps %', kept; end if;
+--   insert into public.reports (event_id, media_id, reason) values (ev, null, 'proof: album') returning id into r2;
+--   kept := public.kept_media_ids(array[a, b, c, d]);
+--   if cardinality(kept) <> 4 then raise exception 'album report keeps % of 4', cardinality(kept); end if;
+--   update public.reports set status = 'dismissed' where id in (r1, r2);
+--   kept := public.kept_media_ids(array[a, b, c, d]);
+--   if cardinality(kept) <> 0 then raise exception 'closed reports still keep %', kept; end if;
+--   update public.media set legal_hold_at = now(), legal_hold_reason = 'proof' where id = c;
+--   kept := public.kept_media_ids(array[a, b, c, d]);
+--   if kept <> array[c] then raise exception 'a hold keeps %', kept; end if;
+--   update public.media set legal_hold_at = null, legal_hold_reason = null where id = c;
+--   delete from public.reports where id in (r1, r2);
+--   insert into proof (step, ok, detail) values ('1 kept_media_ids', true, 'item, album, close, hold');
+-- exception when others then
+--   insert into proof (step, ok, detail) values ('1 kept_media_ids', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 2. held_event_ids: an open report keeps its event whole, until it closes ──
+-- do $$
+-- declare ev uuid; a uuid; r1 uuid; ids uuid[];
+-- begin
+--   select id into ev from fx where k = 'event'; select id into a from fx where k = 'A';
+--   ids := public.held_event_ids(array[ev]);
+--   if ev = any(ids) then raise exception 'a clean event reads held'; end if;
+--   insert into public.reports (event_id, media_id, reason) values (ev, a, 'proof') returning id into r1;
+--   ids := public.held_event_ids(array[ev]);
+--   if not (ev = any(ids)) then raise exception 'an event with an open item report reads purgeable'; end if;
+--   update public.reports set media_id = null where id = r1;
+--   ids := public.held_event_ids(array[ev]);
+--   if not (ev = any(ids)) then raise exception 'an event with an open album report reads purgeable'; end if;
+--   update public.reports set status = 'actioned' where id = r1;
+--   ids := public.held_event_ids(array[ev]);
+--   if ev = any(ids) then raise exception 'a closed report still keeps its event'; end if;
+--   delete from public.reports where id = r1;
+--   insert into proof (step, ok, detail) values ('2 held_event_ids', true, 'item, album, close');
+-- exception when others then
+--   insert into proof (step, ok, detail) values ('2 held_event_ids', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 3 + 4. The host's Delete permanently on a reported removal; purge_media_rows keeps it; after the close ──
+-- do $$
+-- declare ev uuid; host uuid; other uuid; a uuid; a_bytes bigint; r1 uuid; m0 bigint; m1 bigint; m2 bigint;
+--   s0 bigint; s1 bigint; s2 bigint; res jsonb; seen int; freed bigint;
+-- begin
+--   select id into ev from fx where k = 'event'; select id into host from fx where k = 'host';
+--   select id, bytes into a, a_bytes from fx where k = 'A';
+--   insert into public.reports (event_id, media_id, reason, kind) values (ev, a, 'proof', 'other') returning id into r1;
+--   -- The host removes A herself (a direct PATCH, as the curate group's Remove).
+--   perform set_config('request.jwt.claims', json_build_object('sub', host, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   update public.media set status = 'removed', removed_at = now() where id = a and status <> 'removed';
+--   select count(*) into seen from public.media where id = a and status = 'removed';
+--   if seen <> 1 then raise exception 'her Remove did not land'; end if;
+--   reset role;
+--   select storage_used_bytes into m0 from public.profiles where id = host;
+--   select s.standby_bytes into s0 from public.host_storage_summary(host) s;
+--   -- 3. purge_media_rows (the sweep's) refuses the reported row, and the meter holds.
+--   perform * from public.purge_media_rows(array[a]);
+--   select count(*) into seen from public.media where id = a;
+--   if seen <> 1 then raise exception 'purge_media_rows deleted a reported row'; end if;
+--   select storage_used_bytes into m1 from public.profiles where id = host;
+--   if m1 <> m0 then raise exception 'the meter moved on a refused purge: % -> %', m0, m1; end if;
+--   -- 4. Her Delete permanently: her whole selection answers purged, the row waits, asked.
+--   set local role authenticated;
+--   res := public.purge_media_now(array[a]);
+--   if (res->>'purged')::int <> 1 then raise exception 'purge_media_now answered %', res; end if;
+--   select count(*) into seen from public.media where id = a;
+--   if seen <> 0 then raise exception 'she still reads an asked row'; end if;
+--   res := public.restore_media(a);
+--   if res->>'reason' <> 'not_found' then raise exception 'her restore of an asked row answered %', res; end if;
+--   reset role;
+--   select count(*) into seen from public.media where id = a and purge_asked_at is not null and status = 'removed';
+--   if seen <> 1 then raise exception 'the reported row did not wait, asked'; end if;
+--   select storage_used_bytes into m2 from public.profiles where id = host;
+--   if m2 <> greatest(0, m0 - a_bytes) then raise exception 'meter % -> %, expected - %', m0, m2, a_bytes; end if;
+--   select s.standby_bytes into s1 from public.host_storage_summary(host) s;
+--   if s1 <> s0 - a_bytes then raise exception 'her Deleted figure % -> %, expected - %', s0, s1, a_bytes; end if;
+--   -- The report closes; the sweep's purge takes it, with no second decrement.
+--   update public.reports set status = 'dismissed' where id = r1;
+--   select coalesce(sum(p.freed_bytes), 0) into freed from public.purge_media_rows(array[a]) p;
+--   select count(*) into seen from public.media where id = a;
+--   if seen <> 0 then raise exception 'the closed report''s asked row was not purged'; end if;
+--   select storage_used_bytes into m1 from public.profiles where id = host;
+--   if m1 <> m2 or freed <> 0 then raise exception 'second decrement: meter % -> %, freed %', m2, m1, freed; end if;
+--   insert into proof (step, ok, detail) values ('3+4 reported removal', true,
+--     format('meter %s -> %s (A %s bytes); Deleted %s -> %s', m0, m2, a_bytes, s0, s1));
+-- exception when others then
+--   insert into proof (step, ok, detail) values ('3+4 reported removal', false, sqlerrm);
+-- end $$;
+-- reset role;
+--
+-- -- ── 5. Hold with Take it down too: off her meter at once, out of every read; the operator's restore puts it back ──
+-- do $$
+-- declare host uuid; b uuid; b_bytes bigint; m0 bigint; m1 bigint; m2 bigint; seen int; a0 bigint; a1 bigint;
+-- begin
+--   select id into host from fx where k = 'host'; select id, bytes into b, b_bytes from fx where k = 'B';
+--   select storage_used_bytes into m0 from public.profiles where id = host;
+--   select s.active_bytes into a0 from public.host_storage_summary(host) s;
+--   -- removalUpdate() then the hold, as holdFromReportAction writes them.
+--   update public.media set status = 'removed', removed_at = now(), removed_by_admin = true where id = b;
+--   update public.media set legal_hold_at = now(), legal_hold_reason = 'proof' where id = b;
+--   select storage_used_bytes into m1 from public.profiles where id = host;
+--   if m1 <> greatest(0, m0 - b_bytes) then raise exception 'takedown meter % -> %', m0, m1; end if;
+--   select s.active_bytes into a1 from public.host_storage_summary(host) s;
+--   if a1 <> a0 - b_bytes then raise exception 'active % -> %', a0, a1; end if;
+--   perform set_config('request.jwt.claims', json_build_object('sub', host, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   select count(*) into seen from public.media where id = b;
+--   if seen <> 0 then raise exception 'she reads a held takedown'; end if;
+--   reset role;
+--   -- restoreUpdate(): the operator brings it back after review, the hold standing.
+--   update public.media set status = 'approved', removed_at = null, removed_by_admin = false where id = b;
+--   select storage_used_bytes into m2 from public.profiles where id = host;
+--   if m2 <> m0 then raise exception 'restore meter % -> % (expected %)', m1, m2, m0; end if;
+--   update public.media set legal_hold_at = null, legal_hold_reason = null where id = b;
+--   insert into proof (step, ok, detail) values ('5 hold + take down', true, format('meter %s -> %s -> %s', m0, m1, m2));
+-- exception when others then
+--   insert into proof (step, ok, detail) values ('5 hold + take down', false, sqlerrm);
+-- end $$;
+-- reset role;
+--
+-- -- ── 6. The quiet hold: her Remove lands, her restore is refused, her Delete permanently asks, the sweep defers ──
+-- do $$
+-- declare host uuid; c uuid; c_bytes bigint; res jsonb; seen int; m0 bigint; m1 bigint; n int;
+-- begin
+--   select id into host from fx where k = 'host'; select id, bytes into c, c_bytes from fx where k = 'C';
+--   update public.media set legal_hold_at = now(), legal_hold_reason = 'proof: quiet' where id = c;
+--   perform set_config('request.jwt.claims', json_build_object('sub', host, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   update public.media set status = 'hidden' where id = c and status <> 'removed';
+--   select count(*) into seen from public.media where id = c and status = 'hidden';
+--   if seen <> 1 then raise exception 'her Hide on a quietly held item did not land'; end if;
+--   update public.media set status = 'removed', removed_at = now() where id = c and status <> 'removed';
+--   select count(*) into seen from public.media where id = c and status = 'removed';
+--   if seen <> 1 then raise exception 'her Remove on a quietly held item did not land'; end if;
+--   res := public.restore_media(c);
+--   if res->>'reason' <> 'legal_hold' then raise exception 'restore of a held removal answered %', res; end if;
+--   reset role;
+--   select storage_used_bytes into m0 from public.profiles where id = host;
+--   set local role authenticated;
+--   res := public.purge_media_now(array[c]);
+--   if (res->>'purged')::int <> 1 then raise exception 'purge_media_now on a held removal answered %', res; end if;
+--   select count(*) into seen from public.media where id = c;
+--   if seen <> 0 then raise exception 'she still reads a held row she deleted permanently'; end if;
+--   reset role;
+--   select storage_used_bytes into m1 from public.profiles where id = host;
+--   if m1 <> greatest(0, m0 - c_bytes) then raise exception 'meter % -> %', m0, m1; end if;
+--   -- Undo the ask (the meter comes back), age the removal past its window, and let the sweep's deferral find it.
+--   update public.media set purge_asked_at = null, removed_at = now() - interval '31 days' where id = c;
+--   n := public.defer_kept_due_media();
+--   select count(*) into seen from public.media where id = c and purge_asked_at is not null;
+--   if n < 1 or seen <> 1 then raise exception 'defer marked % (C asked: %)', n, seen; end if;
+--   perform * from public.purge_media_rows(array[c]);
+--   select count(*) into seen from public.media where id = c;
+--   if seen <> 1 then raise exception 'a held row was purged'; end if;
+--   insert into proof (step, ok, detail) values ('6 quiet hold', true, format('meter %s -> %s; deferred %s', m0, m1, n));
+-- exception when others then
+--   insert into proof (step, ok, detail) values ('6 quiet hold', false, sqlerrm);
+-- end $$;
+-- reset role;
+--
+-- -- ── 7. The instant hide, its limits, its bar, and the close that forgets ──
+-- do $$
+-- declare ev uuid; v_qr text; host uuid; b uuid; b_bytes bigint; d uuid; res jsonb; m0 bigint; m1 bigint;
+--   v_status text; v_admin boolean; v_removed timestamptz; v_hid timestamptz; rid uuid; stranger uuid := gen_random_uuid();
+--   i int; seen int;
+-- begin
+--   select fx.id, fx.qr into ev, v_qr from fx where fx.k = 'event'; select id into host from fx where k = 'host';
+--   select id, bytes into b, b_bytes from fx where k = 'B'; select id into d from fx where k = 'D';
+--   select storage_used_bytes into m0 from public.profiles where id = host;
+--   -- a. confirmed, child, an up item: hidden at once, as an operator's removal.
+--   res := public.create_report(v_qr, b, 'proof', 'child', stranger, 'Proof@Example.com', 'hash-a');
+--   if not (res->>'hid')::boolean then raise exception 'a confirmed child report did not hide: %', res; end if;
+--   if (res->>'event_id')::uuid is distinct from ev then raise exception 'the answer names event %', res->>'event_id'; end if;
+--   rid := (res->>'report_id')::uuid;
+--   select status::text, removed_by_admin, removed_at into v_status, v_admin, v_removed from public.media where id = b;
+--   select hid_at into v_hid from public.reports where id = rid;
+--   if v_status <> 'removed' or not v_admin or v_removed <> v_hid then
+--     raise exception 'the hide is not an operator''s removal at hid_at: % % % %', v_status, v_admin, v_removed, v_hid;
+--   end if;
+--   select storage_used_bytes into m1 from public.profiles where id = host;
+--   if m1 <> greatest(0, m0 - b_bytes) then raise exception 'hide meter % -> %', m0, m1; end if;
+--   select count(*) into seen from public.reports where id = rid and reporter_email = 'proof@example.com'
+--      and reporter_hash = 'hash-a' and reporter_signed_in and kind = 'child';
+--   if seen <> 1 then raise exception 'the reporter was not kept as filed'; end if;
+--   -- b. unconfirmed: filed, heads the queue, hides nothing.
+--   res := public.create_report(v_qr, d, null, 'child');
+--   if (res->>'hid')::boolean then raise exception 'an unconfirmed report hid'; end if;
+--   -- c. the event's own host: never.
+--   res := public.create_report(v_qr, d, null, 'child', host, 'host@example.com', 'hash-host');
+--   if (res->>'hid')::boolean then raise exception 'the host triggered an operator''s removal'; end if;
+--   -- d. a fourth from one address in 24 hours.
+--   for i in 1..3 loop
+--     insert into public.reports (event_id, reason, kind, reporter_hash, hid_at)
+--     values (ev, 'proof limit', 'child', 'hash-busy', now() - interval '1 hour');
+--   end loop;
+--   res := public.create_report(v_qr, d, null, 'child', stranger, 'busy@example.com', 'hash-busy');
+--   if (res->>'hid')::boolean then raise exception 'a fourth hide from one address passed'; end if;
+--   -- e. a sixth in one event in 24 hours (b's hide and d's three make four; one more makes five).
+--   insert into public.reports (event_id, reason, kind, reporter_hash, hid_at)
+--   values (ev, 'proof limit', 'child', 'hash-other', now() - interval '1 hour');
+--   res := public.create_report(v_qr, d, null, 'child', stranger, 'fresh@example.com', 'hash-fresh');
+--   if (res->>'hid')::boolean then raise exception 'a sixth hide in one event passed'; end if;
+--   delete from public.reports where reason = 'proof limit';
+--   -- f. the bar: an address a dismissed child-abuse report stands against.
+--   insert into public.reports (event_id, reason, kind, reporter_hash, status)
+--   values (ev, 'proof bar', 'child', 'hash-barred', 'dismissed');
+--   res := public.create_report(v_qr, d, null, 'child', stranger, 'barred@example.com', 'hash-barred');
+--   if (res->>'hid')::boolean then raise exception 'a barred address hid'; end if;
+--   -- ...and with the limits and the bar clear, d does hide.
+--   res := public.create_report(v_qr, d, null, 'child', stranger, 'clear@example.com', 'hash-clear');
+--   if not (res->>'hid')::boolean then raise exception 'a clear address did not hide d: %', res; end if;
+--   -- g. the close forgets the address and the answer link, and keeps the hash.
+--   update public.reports set proof_token_hash = 'token-proof' where id = rid;
+--   update public.reports set status = 'dismissed' where id = rid;
+--   select count(*) into seen from public.reports where id = rid and reporter_email is null
+--      and proof_token_hash is null and reporter_hash = 'hash-a';
+--   if seen <> 1 then raise exception 'the close did not forget the reporter'; end if;
+--   -- h. a closed insert never keeps one either.
+--   insert into public.reports (event_id, reason, status, reporter_email) values (ev, 'proof', 'actioned', 'x@example.com')
+--   returning id into rid;
+--   select count(*) into seen from public.reports where id = rid and reporter_email is null;
+--   if seen <> 1 then raise exception 'a closed insert kept an address'; end if;
+--   insert into proof (step, ok, detail) values ('7 instant hide', true, format('meter %s -> %s', m0, m1));
+-- exception when others then
+--   insert into proof (step, ok, detail) values ('7 instant hide', false, sqlerrm);
+-- end $$;
+--
+-- -- ── 8. Another host and the client roles reach nothing new ──
+-- do $$
+-- declare other uuid; c uuid; res jsonb; fns text[] := array[
+--   'public.kept_media_ids(uuid[])', 'public.defer_kept_due_media()', 'public.report_queue_facts(uuid[], uuid[])',
+--   'public.media_release_meter()', 'public.reports_forget_reporter()',
+--   'public.create_report(text, uuid, text, public.report_kind, uuid, text, text)',
+--   'public.purge_media_rows(uuid[])', 'public.held_event_ids(uuid[])', 'public.standby_hosts(uuid, integer)',
+--   'public.host_storage_summary(uuid)', 'public.guard_media_privileged_transitions()'];
+--   f text; bad text := '';
+-- begin
+--   select id into other from fx where k = 'other'; select id into c from fx where k = 'C';
+--   perform set_config('request.jwt.claims', json_build_object('sub', other, 'role', 'authenticated')::text, true);
+--   set local role authenticated;
+--   res := public.purge_media_now(array[c]);
+--   if (res->>'purged')::int <> 0 then raise exception 'another host purged: %', res; end if;
+--   res := public.restore_media(c);
+--   if res->>'reason' <> 'not_found' then raise exception 'another host restored: %', res; end if;
+--   reset role;
+--   foreach f in array fns loop
+--     if has_function_privilege('anon', f, 'execute') then bad := bad || ' anon:' || f; end if;
+--     if has_function_privilege('authenticated', f, 'execute') then bad := bad || ' auth:' || f; end if;
+--   end loop;
+--   foreach f in array array['public.purge_media_now(uuid[])', 'public.restore_media(uuid)', 'public.restore_event(uuid)'] loop
+--     if has_function_privilege('anon', f, 'execute') then bad := bad || ' anon:' || f; end if;
+--     if not has_function_privilege('authenticated', f, 'execute') then bad := bad || ' lost-auth:' || f; end if;
+--   end loop;
+--   if has_column_privilege('authenticated', 'public.media', 'purge_asked_at', 'select') then bad := bad || ' select:purge_asked_at'; end if;
+--   if has_column_privilege('authenticated', 'public.media', 'purge_asked_at', 'update') then bad := bad || ' update:purge_asked_at'; end if;
+--   if (select qual from pg_policies where schemaname = 'public' and tablename = 'media' and policyname = 'media_host_all')
+--      not like '%purge_asked_at IS NULL%' then bad := bad || ' policy'; end if;
+--   if (select enabled from public.ops_flags where key = 'report_proof_mail_enabled') then bad := bad || ' switch-on'; end if;
+--   if (select count(*) from pg_trigger where tgname = 'profiles_set_updated_at' and tgenabled = 'O') <> 1 then
+--     bad := bad || ' updated_at-trigger-left-off'; end if;
+--   if bad <> '' then raise exception 'grants: %', bad; end if;
+--   insert into proof (step, ok, detail) values ('8 another host, grants, policy, switch', true, 'none reached');
+-- exception when others then
+--   insert into proof (step, ok, detail) values ('8 another host, grants, policy, switch', false, sqlerrm);
+-- end $$;
+-- reset role;
+--
+-- -- ── 9. report_queue_facts answers its shape ──
+-- do $$
+-- declare ev uuid; d uuid; j jsonb;
+-- begin
+--   select id into ev from fx where k = 'event'; select id into d from fx where k = 'D';
+--   j := public.report_queue_facts(array[d], array[ev]);
+--   if (j->'items'->(d::text)->>'more') is null or (j->'events'->(ev::text)->>'uploads') is null then
+--     raise exception 'facts shape: %', j;
+--   end if;
+--   insert into proof (step, ok, detail) values ('9 report_queue_facts', true, j::text);
+-- exception when others then
+--   insert into proof (step, ok, detail) values ('9 report_queue_facts', false, sqlerrm);
+-- end $$;

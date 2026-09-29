@@ -574,26 +574,22 @@ export function urgentReportEmail(opts: {
       p(
         opts.hidden
           ? "A reporter who confirmed their email reported an item as child abuse, so it was hidden from every viewer at once. "
-          : "A reporter who did not confirm an email reported an item as child abuse, so it is still up. ",
+          : "Someone reported child abuse in this album, and nothing was hidden: the report came without a confirmed email, named the whole album, or met a limit. ",
         strong(
           opts.hidden
             ? "Review it now: if the report is false, Dismiss puts the item back."
-            : "Review it now: it stays up until you act.",
+            : "Review it now: what it names stays up until you act.",
         ),
       ),
-      {
-        kind: "fields",
-        rows: [
-          { label: "Album", value: opts.eventName },
-          { label: "Reports", value: opts.reportsUrl },
-        ],
-      },
+      { kind: "fields", rows: [{ label: "Album", value: opts.eventName }] },
       p(
         "The runbook: look only to confirm it, never to study it, and never forward or screenshot it.",
       ),
     ],
+    // The portal's link rides the foot, the one place an operator mail carries a link (it has no button).
     foot: {
       line: "Partyreel operations alert (child-safety reports, trust-safety-forensics.md). Sent at most once per album per ten minutes.",
+      link: { href: opts.reportsUrl, label: "Open Reports" },
     },
   });
 }
