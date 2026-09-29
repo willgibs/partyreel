@@ -362,10 +362,12 @@ function DropdownMenuShortcut({
 /**
  * TWO LEVELS READ SIMPLER, so a menu opens one submenu and stops there: the
  * second panel is a branch off the list in front of the reader, and a third is
- * a path they have to keep track of. A branch that wants a third level reads
- * better flattened into a group of its own under its name (a
- * `DropdownMenuGroup` under a `DropdownMenuLabel`). This is guidance, not a
- * fence: `Sub` nests as deep as Radix allows, and the call site decides.
+ * a path they have to keep track of (in a menu at the right edge, the account
+ * menu's place, it also doubles back over its own parent, on a phone and at a
+ * laptop's width alike). A branch that wants a third level reads better
+ * flattened into a group of its own under its name (a `DropdownMenuGroup`
+ * under a `DropdownMenuLabel`). This is guidance, not a fence: `Sub` nests as
+ * deep as Radix allows, and the call site decides.
  */
 function DropdownMenuSub({
   ...props
