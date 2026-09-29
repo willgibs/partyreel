@@ -41,8 +41,8 @@ camera first), every ask with its context (his lab friction, fixed at the source
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 21: the two rounds for his desk
   and `crumbs-12` (the hub row in his order, every heading at 700, "30 days"); build 20 was red-teamed live, every
   journey PASS.
-- **The shared database** runs seven migrations applied 2026-09-29 (the block, the free shift, the operator removal purge,
-  the help's feedback, the pass reminders switch, likes on private albums, the slug family), which partyreel.com's milestone-30 build now
+- **The shared database** runs nine migrations applied 2026-09-29 (the block, the free shift, the operator removal purge,
+  the help's feedback, the pass reminders switch, likes on private albums, the slug family, the doors, the triage rebuild), which partyreel.com's milestone-30 build now
   matches; no Free account holds more than 100 MB.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in

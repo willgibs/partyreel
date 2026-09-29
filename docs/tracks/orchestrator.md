@@ -80,16 +80,16 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, dis
 1. **Build 20 was red-teamed live** (`18491027`; every journey PASS, the ledger `../partyreel-wt/_scratch/redteam-20/ledger.txt`):
    its two minors went to `crumbs-12` ("30 days", merged) and `crumbs-13` (the home's double preload), and its
    observation (the global sign-out) is `crumbs-13`'s on his word.
-2. **`settings-wiring` merged at `7c0fbcb1`** (gate 64 green, pushed). Its migration
-   `supabase/migrations/20260929120000_event_doors.sql` (145 KB; the code runs on either side of it, reading a missing
-   schema as today's three doors) is NOT YET APPLIED as of this line: apply it by its own APPLY PROTOCOL header through
-   a helper (drift check against the live bodies it lists, the rolled-back check at its foot, apply verbatim, the
-   recorded md5 against `md5 -q`, advisors 0029 from 29 to 33), then regenerate `src/lib/db/types.ts`. Then build 23
-   and its red-team on the lane's eleven walks (`git show 7c0fbcb1^2:docs/tracks/settings-wiring.md`, Handoff), and
-   his thirteen calls to relay (its Questions). `list_migrations` says whether a cut-off landed before or after the apply.
-   **`triage-r2-wiring` merged at `1b29be3a`** (gate 65 green, pushed); its `20260929140000_triage_r2.sql` (89 KB) applies
-   second, by its own header, after `event_doors`. One helper applies both in order (spawned 2026-09-29 ~13:00Z);
-   then types, then build 23 with both lanes' walks (`git show 1b29be3a^2:docs/tracks/triage-r2-wiring.md`).
+2. **`settings-wiring` (`7c0fbcb1`) and `triage-r2-wiring` (`1b29be3a`) are merged, both migrations applied** (2026-09-29,
+   by a helper, each by its own header): `event_doors` recorded `20260929131041` (md5 `60e364d2`; the drift check clean, 26
+   bodies after, `get_event_by_qr_token` without PUBLIC; the proof 12/12 rolled back; advisors 0029 at 33, 0028 at 4,
+   no-policy at 17) and `triage_r2` recorded `20260929131921` (md5 `94b7d521`; 12 bodies, `create_report` at seven
+   arguments; the proof 10/10 rolled back; advisors unchanged; `report_proof_mail_enabled` false). Types regenerated
+   (the gate's typecheck and 6,829 tests green). Build 23 (this record's `[preview]`) carries both for his look and a
+   red-team on both lanes' walks (their Handoffs: `git show 7c0fbcb1^2:docs/tracks/settings-wiring.md`,
+   `git show 1b29be3a^2:docs/tracks/triage-r2-wiring.md`); both lanes' Questions are his to relay (13 and more). Follow-ups:
+   the two lanes' typed seams for a missing schema can go now (a crumbs lane); milestone 31 carries `kept_media_ids` to
+   the production purge (milestone 30's cron never asks it; no open report names a removed item today).
 3. **Integrate each lane as it hands off**, each migration by protocol, one at a time: drift check, apply verbatim, the
    rolled-back refusals, advisors, types. `negative.sh` runs once before the first (the kit changed with
    merge-lane.sh's id-less sweep). `settings-wiring` owns every guest-path function replacement this batch; no other
