@@ -87,6 +87,14 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, dis
      and three variations; the sealed cards out).
    - `schema-pass` is running (cut before `settings-wiring`'s merge, clear of every function and column the two SQL
      lanes change; what it finds there waits in its Handoff for after their merges).
+   - `crumbs-14` (Opus), into the next free seat: the hub's cards row loops at its stick threshold (medium: a jump into
+     the band where the row meets the bar, as `masonry.tsx`'s `returnTo()` does when the viewer closes, flips the row
+     between the grid and the pills for ever at 375, since scroll anchoring compensates the row's condensation, the
+     IntersectionObserver un-sticks it and anchoring compensates back; the fades go stale meanwhile); the claims review's
+     back label truncating at 375 (`popup.tsx`'s screen header grid); `/admin/reports` signed out returning to `/admin`
+     after the sign-in; a device Sign out that ignores a refused GoTrue call (ROADMAP); the home's pricing teaser
+     breaking Pro's price at 1440 (ROADMAP); the free-plan article's lowercase bullet (ROADMAP). From the claims walk's
+     ledger and the milestone's pass.
    - After their rounds: the disposable wiring (after `disposable-mode` r2's picks, Will's Measure a phone, and
      `settings-wiring`'s merge, since it rewrites the guest path; with the lane's idea of the premiere on the wall, the
      reel's screen counting down to the develop time and playing the roll as an event of its own) and the door family's wiring (if the doorway wins, its reveal: walking through the
@@ -97,12 +105,14 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, dis
    kept, Sign out everywhere, the guest header). Its red-team rides the claims walk: crumbs-12's hub row at
    1440, 768 and 375 resting and stuck, "restore it for 30 days", the reports lede, the headings at 700, /terms'
    Termination.
-5. **The claims walk** (his full permission, 2026-09-29), once the milestone's Chrome pass reports: three rows
-   staged 10:01Z with `pending_email = 'partyr33l@gmail.com'` (`ea7863de` Theo R. at Reel lane probe, to Claim;
-   `ab7cc94d` Rt Legacy Named at Gallery width, Not mine's dialog then Cancel; `d61ebe2e` Will Test at the password
-   Alias red-team, left waiting); each was a name-only row (`pending_email`, `pending_email_at`, `email`, `user_id`,
-   `verified_at` all null; the names as given), and the Orchestrator restores all three after the walk (a claim
-   writes `email`, `user_id`, `verified_at` and nulls the name). Its brief: `../partyreel-wt/_scratch/claims-walk/brief.md`.
+5. **The claims walk, half walked** (2026-09-29, `../partyreel-wt/_scratch/claims-walk/ledger.txt`): the banner, the
+   review's layout at both widths, the cards' previews, Not mine's confirm and Go back, the password album presigning
+   nothing, and no waiting address shown to the host all PASS; the permission classifier refused the Claim itself
+   ("Modify Shared Resources"), so the claim, the double-tap guard, the closing toast and the Guests room under her name
+   wait for Will's own press (Waiting on Will). The three staged rows stay staged until then (`ea7863de`, `ab7cc94d`,
+   `d61ebe2e`: each was a name-only row, `pending_email`, `pending_email_at`, `email`, `user_id`, `verified_at` null),
+   and the Orchestrator restores them after his press (a claim writes `email`, `user_id`, `verified_at` and nulls the
+   name). Build 21's production changes all PASS (the hub row, the headings at 700, "30 days", /terms).
 6. **`settings-wiring`'s build** gets a red-team of its own (every door, both ways through each swap, the Guests room,
    the pages).
 7. **The demo event**, after `demo-framing` r2 (his full permission, 2026-09-29; the r1 board merged at `51db72fc`):
@@ -129,7 +139,9 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, dis
 
 - **His desk: zero** after build 19's sitting. Two asks wait on the rounds that replace their boards: demo-framing's
   `names` (behind `story=?`) and press-page's `a-human` (the About round).
-- **The morning of 2026-09-30, on his phone** (his word): `disposable-mode` r2's Measure a phone on the alias (the
+- **The morning of 2026-09-30, on his phone** (his word): the claims review's Claim, which the classifier refused the
+  red-team (as partyr33l through the chooser on the alias: the dashboard's banner, Review, a quick double tap on Claim at
+  Reel lane probe; then say so, and the Orchestrator reads the result and restores the rows); `disposable-mode` r2's Measure a phone on the alias (the
   board's dock: Open the camera, Take a frame, the camera app's photo, on his iPhone and an Android if he has one; paste
   the line back: the full-size promise rides on it); Q1 (on a phone the code card fills the screen, but Back
   leaves the album; should Back close it like the other full-screen popups?); the 2-minute real-upload check on the
