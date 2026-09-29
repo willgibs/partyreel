@@ -146,10 +146,28 @@ it rather than fork it.
   R2 objects straight back, so no byte touches Vercel. The browser form-POSTs the token at the top level: no gesture
   needed after the awaited mint, and no navigation (a cross-origin iframe download is a tightening browser
   restriction).
+- ★ **The page goes blind at that POST, so the walk asks the Worker first** (`components/app/export/export-walk.ts`):
+  `POST /check` (the token as `text/plain`, CORS `*`, no credential) answers `{ items, found, missing }` by `head` or
+  a folder's `list`, never a byte read. An empty zip is refused in one line and never sent, a short one is counted
+  with a Try again narrowed to exactly its missing ids (`ids`, intersected server-side), and a token the Worker would
+  refuse is said in the toast instead of replacing the page. A check that cannot answer (an older Worker, R2 down)
+  never stops the zip. One toast carries it all, with the x that aborts whatever is in flight; a mint gets two quiet
+  re-attempts first.
+- ★ **Past one zip's ceilings (2,000 items or 20 GB) an album comes home in parts**, oldest first: each mint
+  (`part`, `after`) takes the next part from a position cursor, never a page index, so nothing is skipped or taken
+  twice while the album moves, and each part is its own tap (a browser holds back a second download a page starts
+  alone; a token lives two minutes). A request without `part` keeps the old 413, so a stale tab never takes part 1 for
+  the album.
+- ★ **Yours is the server's** (`lib/export/yours.server.ts`): a guest's own uploads by her account and this
+  browser's ticket cookie (the route's read identity), never an id list from the request, intersected with what she
+  can see; the summary carries its counts, and the closed door is asked first on every path (Yours, a retry, a part).
+- ★ **One Worker deployment serves partyreel.com's app too**: every path but `/check` answers as milestone 29's did
+  (`workers/export/src/compat.test.ts` replays that app's requests against the vendored Worker), the token stays v1,
+  and the entry module exports its handler alone (workerd refuses to start on any other named export).
 - **A STORE-method zip, streamed, from a proven library (`client-zip`).** Media is already compressed, so deflate would
   burn Worker CPU for nothing; streaming ZIP64 fails silently in specific extractors (offsets, data descriptors, CRC),
   so a hand-rolled encoder is out; streaming keeps zero temp storage (the storage-billed margin) and needs no job table.
   A token is not single-use: a 2-minute TTL, where a replay only re-downloads what was already authorized, is the
   accepted bound.
-- Caps (about 2,000 items or 20 GB an export), the per-export `export_log` and the `export_enabled` kill switch show
-  on `/admin/exports`.
+- The per-export `export_log` (one row a part) and the `export_enabled` kill switch show on `/admin/exports`; a check
+  that finds objects gone and a stream that skips one are logged by the Worker (`export-check`, `export-stream`).

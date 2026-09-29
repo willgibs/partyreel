@@ -123,6 +123,27 @@ export type Database = {
         }
         Relationships: []
       }
+      article_feedback: {
+        Row: {
+          created_at: string
+          helpful: boolean
+          id: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          helpful: boolean
+          id?: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          helpful?: boolean
+          id?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       contact_submissions: {
         Row: {
           created_at: string
@@ -789,6 +810,7 @@ export type Database = {
           notify_album_shared: boolean
           notify_new_follower: boolean
           notify_new_uploads_digest: boolean
+          notify_pass_renewal: boolean
           updated_at: string
           user_id: string
         }
@@ -798,6 +820,7 @@ export type Database = {
           notify_album_shared?: boolean
           notify_new_follower?: boolean
           notify_new_uploads_digest?: boolean
+          notify_pass_renewal?: boolean
           updated_at?: string
           user_id: string
         }
@@ -807,6 +830,7 @@ export type Database = {
           notify_album_shared?: boolean
           notify_new_follower?: boolean
           notify_new_uploads_digest?: boolean
+          notify_pass_renewal?: boolean
           updated_at?: string
           user_id?: string
         }
@@ -1294,6 +1318,7 @@ export type Database = {
         }
         Returns: number
       }
+      article_feedback_summary: { Args: never; Returns: Json }
       block_from_event: {
         Args: {
           p_event_id?: string

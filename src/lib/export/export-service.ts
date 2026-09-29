@@ -20,9 +20,11 @@ import type { Database } from "@/lib/db/types";
 import { assertExportEnv } from "@/lib/env";
 import {
   buildExportManifest,
+  type ExportCursor,
   type ExportMediaRow,
   type ExportSummary,
   type ExportTypeFilter,
+  type ExportWalk,
   summarizeMedia,
 } from "@/lib/export/build-manifest";
 import {
@@ -31,6 +33,7 @@ import {
   type ExportScope,
   signExportToken,
 } from "@/lib/export/export-token";
+import { EMPTY_EXPORT_MESSAGE, WALK_COPY } from "@/lib/export/walk";
 import { captureWarning } from "@/lib/observability/sentry";
 import {
   abuseHashes,
@@ -54,10 +57,25 @@ type MintInput = {
   types: ExportTypeFilter;
   includeHidden: boolean;
   ip: string;
+  /** The part a walk asks for (`cap=split`); absent, the old one-zip-or-refused contract. */
+  walk?: ExportWalk;
+  /** A word the zip's name carries after the event's (`yours`). */
+  zipLabel?: string;
 };
 
 export type MintOutcome =
-  | { ok: true; token: string; workerUrl: string }
+  | {
+      ok: true;
+      token: string;
+      workerUrl: string;
+      /** This part's number, how many the walk takes as of this mint, and where the next begins. */
+      part: number;
+      parts: number;
+      next: ExportCursor | null;
+      /** What this zip holds: the count the Worker's check is read against. */
+      itemCount: number;
+      totalBytes: number;
+    }
   | {
       ok: false;
       reason: "paused" | "rate_limited" | "empty" | "over_cap" | "unconfigured";
@@ -181,6 +199,8 @@ export async function mintExport(input: MintInput): Promise<MintOutcome> {
     eventName: input.eventName,
     types: input.types,
     includeHidden: input.includeHidden,
+    walk: input.walk,
+    zipLabel: input.zipLabel,
   });
   if (!manifest.ok) {
     await recordExport(admin, {
@@ -219,7 +239,25 @@ export async function mintExport(input: MintInput): Promise<MintOutcome> {
     await recordAbuseEvent("export", ipHash, scopeHash).catch(() => {});
   }
 
-  return { ok: true, token, workerUrl: signing.EXPORT_WORKER_URL };
+  return {
+    ok: true,
+    token,
+    workerUrl: signing.EXPORT_WORKER_URL,
+    part: manifest.part,
+    parts: manifest.parts,
+    next: manifest.next,
+    itemCount: manifest.itemCount,
+    totalBytes: manifest.totalBytes,
+  };
+}
+
+/**
+ * The Worker's check (`workers/export/src/check.ts`), beside its stream: the app asks it what the
+ * zip would hold before the browser takes the file. Derived here so the Worker's address has one
+ * home, the server's `EXPORT_WORKER_URL`.
+ */
+export function exportCheckUrl(workerUrl: string): string {
+  return new URL("/check", workerUrl).href;
 }
 
 /** Map a mint outcome to its HTTP response (shared by both routes). User-facing copy = no em-dashes. */
@@ -229,16 +267,18 @@ export function mintResponse(result: MintOutcome): NextResponse {
       ok: true,
       token: result.token,
       workerUrl: result.workerUrl,
+      checkUrl: exportCheckUrl(result.workerUrl),
+      part: result.part,
+      parts: result.parts,
+      next: result.next,
+      items: result.itemCount,
+      bytes: result.totalBytes,
     });
   }
   switch (result.reason) {
     case "paused":
       return NextResponse.json(
-        {
-          ok: false,
-          code: "paused",
-          message: "Downloads are paused right now. Please try again later.",
-        },
+        { ok: false, code: "paused", message: WALK_COPY.paused },
         { status: 503 },
       );
     case "rate_limited":
@@ -256,11 +296,7 @@ export function mintResponse(result: MintOutcome): NextResponse {
       );
     case "empty":
       return NextResponse.json(
-        {
-          ok: false,
-          code: "empty",
-          message: "There's nothing to download with those filters.",
-        },
+        { ok: false, code: "empty", message: EMPTY_EXPORT_MESSAGE },
         { status: 400 },
       );
     case "over_cap":

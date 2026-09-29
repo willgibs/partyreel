@@ -84,7 +84,7 @@ export async function submitContactForm(
   // double-submit idempotent.
   try {
     const to = serverEnv.CONTACT_NOTIFY_EMAIL ?? SUPPORT_EMAIL;
-    const { subject, html } = contactFormEmail({
+    const { subject, html, text } = contactFormEmail({
       name: data.name,
       email: data.email,
       subject: data.subject,
@@ -97,6 +97,7 @@ export async function submitContactForm(
       to,
       subject,
       html,
+      text,
       replyTo: data.email,
     });
   } catch (err) {

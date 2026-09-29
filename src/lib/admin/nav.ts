@@ -9,6 +9,7 @@ import {
   LifeBuoy,
   Megaphone,
   ShieldCheck,
+  ThumbsUp,
   Users,
   Wallet,
   type LucideIcon,
@@ -48,6 +49,14 @@ export const NAV: NavItem[] = [
     href: "/admin/metrics",
     label: "Metrics",
     icon: BarChart3,
+    group: "Watching",
+  },
+  // The help center's feedback beacon (help-center r1 `feedback=beacon`): a reading, never an inbox,
+  // since nothing in it waits on an operator; the articles that lose their reader are found here.
+  {
+    href: "/admin/help-feedback",
+    label: "Help feedback",
+    icon: ThumbsUp,
     group: "Watching",
   },
   {

@@ -165,3 +165,107 @@ describe("the host export reads the whole album", () => {
     expect(other.body).toEqual({ ok: false, code: "bad_request" });
   });
 });
+
+/**
+ * THE WALK, OVER THE HOST'S WHOLE ALBUM (`export-flow` r1, `cap=split`). A client that sends `part`
+ * takes a 2,300-photo album in two parts, oldest first, every item in exactly one; the response says
+ * where the Worker's check lives and what the part holds, so the client can read the check against it.
+ */
+describe("the host's walk", () => {
+  it("takes 2,300 photographs as 2,000 then 300, every one once, with plain part names", async () => {
+    useAlbum(album(2300));
+    const first = await post({ step: "mint", part: 1 });
+    expect(first.status).toBe(200);
+    expect(first.body).toMatchObject({
+      ok: true,
+      part: 1,
+      parts: 2,
+      items: 2000,
+      bytes: 2_000_000,
+      workerUrl: "https://export.example",
+      checkUrl: "https://export.example/check",
+    });
+    const one = verifyExportToken(SECRET, first.body.token, Date.now());
+    if (!one.ok) throw new Error(one.reason);
+    expect(one.payload.zipName).toBe("garden-party-part-1-of-2.zip");
+
+    const second = await post({
+      step: "mint",
+      part: 2,
+      after: first.body.next,
+    });
+    expect(second.body).toMatchObject({
+      part: 2,
+      parts: 2,
+      items: 300,
+      next: null,
+    });
+    const two = verifyExportToken(SECRET, second.body.token, Date.now());
+    if (!two.ok) throw new Error(two.reason);
+    expect(two.payload.zipName).toBe("garden-party-part-2-of-2.zip");
+
+    const keys = [...one.payload.items, ...two.payload.items].map((i) => i.key);
+    expect(new Set(keys).size).toBe(2300);
+    // Oldest first: the album's first photograph opens part 1, its last closes part 2.
+    expect(keys[0]).toContain(uuid(0));
+    expect(keys.at(-1)).toContain(uuid(2299));
+    expect(
+      fake.tables.export_log.slice(-2).map((r) => [r.outcome, r.item_count]),
+    ).toEqual([
+      ["minted", 2000],
+      ["minted", 300],
+    ]);
+  });
+
+  it("signs the same v1 payload it always did, so partyreel.com's Worker streams a part too", async () => {
+    useAlbum(album(2300));
+    const { body } = await post({ step: "mint", part: 1 });
+    const verified = verifyExportToken(SECRET, body.token, Date.now());
+    if (!verified.ok) throw new Error(verified.reason);
+    // Exactly milestone 29's keys, in its order: nothing a walk adds rides in the token.
+    expect(Object.keys(verified.payload)).toEqual([
+      "v",
+      "jti",
+      "scope",
+      "eventId",
+      "zipName",
+      "items",
+      "exp",
+    ]);
+    expect(verified.payload.v).toBe(1);
+  });
+
+  it("a selection past 20 GB is walked by its bytes", async () => {
+    const rows = album(30);
+    useAlbum(rows.map((r) => ({ ...r, file_size_bytes: 1.5 * 1024 ** 3 })));
+    const ids = rows.slice(0, 30).map((r) => String(r.id));
+    const { body } = await post({
+      step: "mint",
+      ids,
+      include_hidden: true,
+      part: 1,
+    });
+    // 30 live items at 1.5 GB: 13 fit under 20 GB (the 40 in the bin were never selectable).
+    expect(body).toMatchObject({ part: 1, parts: 3, items: 13 });
+  });
+
+  it("an empty zip is refused in the one line", async () => {
+    useAlbum(album(0));
+    const { status, body } = await post({ step: "mint", part: 1 });
+    expect(status).toBe(400);
+    expect(body).toEqual({
+      ok: false,
+      code: "empty",
+      message: "Nothing left to download.",
+    });
+  });
+
+  it("refuses a position with no part to put it in, before reading anything", async () => {
+    const { status } = await post({
+      step: "mint",
+      after: `1727130818122_${uuid(3)}`,
+    });
+    expect(status).toBe(400);
+    expect(fake.requests).toHaveLength(0);
+  });
+});

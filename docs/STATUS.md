@@ -18,9 +18,11 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 - **Milestone 29 is live** (`ab30a7f8`, 2026-09-26). Batches 4 to 7 ride `launch-prep` toward milestone 30.
 - **Batch 6 landed whole** (sixteen lanes, builds 13 to 15, red-teamed live).
 - **Will's sitting on build 15** is transcribed (2026-09-28: 21 answers, then emails' ten). Wave A drew three boards
-  (event-settings, locked-door, disposable-mode) and built the per-event block; wave B has wired the guest voice and
-  pricing (his free/pro shift: Free at 100 MB with the password, custom link and 60 s clips) and drawn admin-triage
-  r2. The hero, the export flow, triage's round one and the help are being wired; the emails' wrapper is queued.
+  (event-settings, locked-door, disposable-mode) and built the per-event block; wave B wired, whole, the guest voice,
+  pricing (his free/pro shift: Free at 100 MB with the password, custom link and 60 s clips), the hero's card, the
+  export flow (the Worker deployed), triage's round one, the help and the emails' wrapper, and drew admin-triage r2.
+  Build 17's red-team fixes (`crumbs-8`), eight small cleanups (`crumbs-9`) and the demo's framing board
+  (`demo-framing`, his note: not "Mia & Theo") run now; build 18 carries them all.
 
 ## The desk
 
@@ -43,7 +45,7 @@ His aim is zero before his other to-dos.
   (`=app`).
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 17 (`1407daf6`): the per-event
   block and the guest list always on, the free/pro shift, the guest voice, admin-triage r2 on the desk, loading clean
-  headless; its live red-team is running.
+  headless; red-teamed live 2026-09-29, every journey PASS, its findings in `crumbs-8`.
 - **The shared database** runs the block and Free at 100 MB since 2026-09-29 (`event_blocks`, `free_shift`), under
   partyreel.com too, whose milestone-29 pages still say 2 GB until milestone 30; no Free account holds more.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
