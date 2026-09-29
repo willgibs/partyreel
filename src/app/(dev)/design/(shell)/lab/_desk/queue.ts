@@ -83,7 +83,7 @@ export type BoardRow = {
   items: ItemState[];
   /** The cards with no verdict this round: what the items step asks for. */
   openItems: ItemState[];
-  /** The notes aimed at THIS board: its ledger's own, and the window's on it. */
+  /** The notes aimed at THIS board: its ledger's own, and the current sitting's filed on it. */
   notes: Note[];
   /** The ledger's own note texts in the board's OPEN round, under the round
    *  guard: what "Copy so far" must not send a second time. */
@@ -201,10 +201,11 @@ export function deskRows(
       // land in this very sitting, which only the browser knows; a MOOT one is
       // gone for the round.
       open: asks.filter((a) => a.answer === null && !a.moot),
-      // `status.notes` mixes the window's GLOBAL notes into every board, which
-      // would print the same four lines fourteen times; the desk prints those
-      // once, in their own section. What belongs on a row is the board's own:
-      // its ledger's notes for this round, and the window notes aimed at it.
+      // ★ A BOARD'S NOTES ARE ITS OWN (Will, 2026-09-29). Its ledger's notes
+      // for this round, and the current sitting's notes filed on THIS board:
+      // what he said on no board is not a board's to answer, so it never rides
+      // a row (the desk prints it once, in its own section, while its sitting
+      // is the latest). The filter keeps that true whatever `notesOf` returns.
       notes: [
         ...(status.round?.notes ?? []),
         ...notesOf(b.id).filter((n) => n.on === b.id),
