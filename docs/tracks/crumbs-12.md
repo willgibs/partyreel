@@ -35,6 +35,10 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/marketing/sections/reel/screen-section.tsx
   - src/app/(dev)/design/(shell)/library/foundations/page.tsx
   - src/app/(dev)/design/(shell)/library/foundations/type-ladder.tsx
+  # The Orchestrator's addition (build 20's red-team): "30days" in two places
+  - src/components/shared/media-lightbox-parts/actions.tsx  # the host's Remove confirm
+  - src/app/admin/reports/page.tsx                          # the reports lede
+  - src/lib/jsx-text-space-policy.test.ts                   # the SWC trap's test
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/design-system.md
   - docs/systems/host-app.md
