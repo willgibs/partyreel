@@ -17,6 +17,7 @@ import {
   returnToReview,
   setMediaStatus,
   setMediaStatusBulk,
+  type RestoredStatus,
   type ReviewVerdictStatus,
   type SettableMediaStatus,
 } from "@/lib/db/mutations/media";
@@ -224,10 +225,20 @@ export async function removeMediaBulkAction(
 // ownership + capacity gates (they call the SECURITY DEFINER RPCs). Area "media" — these are
 // media/event-recovery ops (no "dashboard" Sentry area exists).
 
+/**
+ * A restore's own result: where the item landed (`restore_media` answers the status it held before
+ * its removal), so the bin says what the restore did, never "back in the album" for an item that came
+ * back hidden. Its own type for the reason `RestoreEventResult` below has one: the shared ActionResult
+ * stays `{ ok: true }` for the actions with nothing to carry.
+ */
+export type RestoreMediaResult =
+  | { ok: true; status?: RestoredStatus }
+  | Extract<ActionResult, { ok: false }>;
+
 export async function restoreMediaAction(
   eventId: string,
   mediaId: string,
-): Promise<ActionResult> {
+): Promise<RestoreMediaResult> {
   const result = await restoreMedia(mediaId);
   if (!result.ok) {
     if (result.code === "unknown") {
@@ -239,7 +250,7 @@ export async function restoreMediaAction(
     }
     return result;
   }
-  return { ok: true };
+  return { ok: true, status: result.data.status };
 }
 
 /**

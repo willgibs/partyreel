@@ -13,8 +13,10 @@ import {
   AddNoteLink,
   ClosedLine,
   ClosedLog,
+  ClosedUndo,
   NoteField,
   ReasonLine,
+  toastDismissed,
   toastResult,
   useVerdictNote,
 } from "@/components/app/report-review";
@@ -26,7 +28,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { REPORT_WORDS, type ReportWord } from "@/lib/admin/reports";
+import {
+  REOPEN_LINE,
+  REPORT_WORDS,
+  type ReportWord,
+} from "@/lib/admin/reports";
 import type { ReviewProfileReport } from "@/lib/db/queries/reports";
 import { formatAdminTimestamp } from "@/lib/format/admin-time";
 
@@ -48,7 +54,9 @@ import { formatAdminTimestamp } from "@/lib/format/admin-time";
  *
  * ★ BOTH VERBS ARE ONE PRESS. Mark actioned removes nothing (a person is
  * actioned out of band, so marking one only closes the report), so it never
- * opens the confirm; its note is where the operator says what was done.
+ * opens the confirm; its note is where the operator says what was done. A
+ * dismissal has its way back, as on the album arm: the toast's Undo, then the
+ * closed line's, inside the window.
  */
 function PersonReportCard({ report }: { report: ReviewProfileReport }) {
   const [isPending, startTransition] = useTransition();
@@ -59,11 +67,7 @@ function PersonReportCard({ report }: { report: ReviewProfileReport }) {
     startTransition(async () => {
       if (next === "dismissed") {
         const result = await dismissReportAction(report.id, note.text);
-        toastResult(
-          result,
-          "Report dismissed.",
-          "Couldn't dismiss the report.",
-        );
+        toastDismissed(result, report.id);
       } else if (next === "actioned") {
         // No item: actioning a PERSON marks the report handled. The account
         // itself is dealt with out of band, exactly as an album-level report is.
@@ -150,7 +154,7 @@ export function PersonReportList({
         </div>
       ) : null}
       {closed.length > 0 ? (
-        <ClosedLog>
+        <ClosedLog lede={REOPEN_LINE}>
           {closed.map((report) => (
             <ClosedLine
               key={report.id}
@@ -170,6 +174,11 @@ export function PersonReportList({
                   : (report.profile?.displayName ?? "A deleted account")
               }
               resolvedAt={report.resolved_at}
+              end={
+                report.wayBack === "reopen" ? (
+                  <ClosedUndo reportId={report.id} way="reopen" />
+                ) : null
+              }
             />
           ))}
         </ClosedLog>

@@ -135,6 +135,25 @@ describe("the page", () => {
     expect(replaced).toEqual([]);
   });
 
+  it("★ tells an account with no pass that there is none to renew, See plans first", async () => {
+    // Build 19's red-team: an account that never held a pass read "Yours has ended".
+    const NONE =
+      "This account has no Event Pass to renew. Start one from the pricing page.";
+    replies = [
+      {
+        status: 403,
+        body: { ok: false, code: "not_eligible", message: NONE },
+      },
+    ];
+    render(<RenewCheckout />);
+    expect(await screen.findByText(NONE)).toBeInTheDocument();
+    expect(screen.queryByText(/ended/)).toBeNull();
+    expect(screen.getAllByRole("link").map((a) => a.textContent)).toEqual([
+      "See plans",
+      "Open your plan",
+    ]);
+  });
+
   it("sends an account on Pro to its plan first", async () => {
     replies = [
       {

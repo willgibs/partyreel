@@ -15,6 +15,7 @@ import {
   REPORT_WORDS,
   type ReportFilter,
 } from "@/lib/admin/reports";
+import { serverNow } from "@/lib/admin/pending";
 import { ShowMoreLine } from "@/lib/admin/show-more";
 import { requireAdmin } from "@/lib/auth/admin-context";
 import { listProfileReports, listReports } from "@/lib/db/queries/reports";
@@ -55,10 +56,12 @@ export default async function AdminReportsPage({
   // the line under an arm says how deep it reads and offers one page more, and
   // one depth serves both arms, so the queue deepens as one.
   const show = parseShow(showRaw);
-  // Two arms of one queue (20260919130000): albums and items, and people.
+  // Two arms of one queue (20260919130000): albums and items, and people. Every closed line's
+  // window is measured from the page's one clock read.
+  const now = serverNow();
   const [albumQueue, personQueue] = await Promise.all([
-    listReports(filter, show),
-    listProfileReports(filter, show),
+    listReports(filter, show, now),
+    listProfileReports(filter, show, now),
   ]);
   const reports = albumQueue.reports;
   const personReports = personQueue.reports;
@@ -75,8 +78,10 @@ export default async function AdminReportsPage({
           Reports of harm from guests and hosts. Remove takes an item out of the
           album and the host&apos;s Deleted at once, and its closed line&apos;s
           Undo brings it back for {RECENTLY_DELETED_WINDOW_DAYS} days, then the
-          purge deletes it unless it is held. A reported person is actioned out
-          of band, so Mark actioned only closes the report.
+          purge deletes it unless it is held. A dismissal&apos;s Undo reopens
+          its report for the same {RECENTLY_DELETED_WINDOW_DAYS} days. A
+          reported person is actioned out of band, so Mark actioned only closes
+          the report.
         </p>
       </div>
 

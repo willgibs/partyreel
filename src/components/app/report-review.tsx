@@ -9,11 +9,13 @@ import {
   dismissReportAction,
   holdFromReportAction,
   holdScopeAction,
+  reopenReportAction,
   undoReportAction,
 } from "@/app/admin/reports/actions";
 import { DestructiveSheet } from "@/components/admin/destructive-sheet";
 import { StatusPicker } from "@/components/admin/triage-status-control";
 import { MediaTile } from "@/components/app/media-grid";
+import { showUndoToast } from "@/components/shared/undo-toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +34,7 @@ import {
   type HoldScope,
   NO_NOTE,
   NO_REASON,
+  REOPENED_MESSAGE,
   REPORT_NOTE_MAX,
   REPORT_STATUS_META,
   REPORT_WORDS,
@@ -50,10 +53,12 @@ import { operatorRemovalTouches } from "@/lib/moderation/operator-actions";
  *  - An OPEN report is a card: its album, the shared status picker in Reports' own words
  *    (`idiom=shape`), when and what was reported, the frame, the reason or a muted "No reason
  *    provided." in place (`reason=marked`), Hold for forensics on an item (`escalate=door`), and the
- *    verbs: Dismiss at one press with Add a note beside it, Remove (or Action, for an album) through
- *    the portal's one confirm with an optional note (`verdict=note`).
+ *    verbs: Dismiss at one press with Add a note beside it, and its Undo on the toast (build 19's
+ *    red-team), Remove (or Action, for an album) through the portal's one confirm with an optional
+ *    note (`verdict=note`).
  *  - A CLOSED report is one line (`closed=window`): the verdict, its note, the album and when, and
- *    an Undo while the removal it made still waits out its window, or Held.
+ *    an Undo while the removal it made still waits out its window or a dismissal is inside its 30
+ *    days, or Held.
  *
  * ★ NOTHING HERE DECIDES WHAT A VERDICT TOUCHES. The actions read the report's own item and its
  * state; the words below only describe it, from the same read (`standing`, `held`, `wayBack`).
@@ -167,6 +172,87 @@ export function toastResult(
   toast.error(failedTitle, { description: result.message });
 }
 
+/** The portal's one verdict toast with an Undo: a later dismissal's replaces it, Undo and all. */
+const DISMISS_TOAST_ID = "admin-report-dismissed";
+
+/**
+ * EVERY DISMISS'S TOAST, both arms (build 19's red-team: Dismiss is one press with no confirm, so a
+ * slip closed a harm report for good). A dismissal that landed says so with the product's Undo
+ * (`showUndoToast`), which reopens the report; one that failed says why, as every verdict does.
+ *
+ * The page is the server's: the report leaves the queue and comes back with the page's own refresh
+ * (each action revalidates it), so there is nothing to put back on screen first, and a reopen that
+ * lands says so, as the closed line's Undo does.
+ */
+export function toastDismissed(
+  result: { ok: true } | { ok: false; message: string },
+  reportId: string,
+) {
+  if (!result.ok) {
+    toast.error("Couldn't dismiss the report.", {
+      description: result.message,
+    });
+    return;
+  }
+  showUndoToast({
+    id: DISMISS_TOAST_ID,
+    message: "Report dismissed.",
+    tone: "success",
+    onUndo: () => {},
+    undo: () => reopenReportAction(reportId),
+    onUndoFailed: () => {},
+    onUndone: () => toast.success(REOPENED_MESSAGE),
+  });
+}
+
+/**
+ * A closed line's Undo (`closed=window`): a removal's restores its item and reopens the report, a
+ * dismissal's reopens it. The server decides which a line may offer (`wayBack`) and re-checks it in
+ * the write; this only says which and presses it.
+ */
+export function ClosedUndo({
+  reportId,
+  way,
+}: {
+  reportId: string;
+  way: "undo" | "reopen";
+}) {
+  const [pending, startTransition] = useTransition();
+  const restores = way === "undo";
+
+  function press() {
+    startTransition(async () => {
+      const result = restores
+        ? await undoReportAction(reportId)
+        : await reopenReportAction(reportId);
+      toastResult(
+        result,
+        restores ? "Restored, and the report is open again." : REOPENED_MESSAGE,
+        "Couldn't undo that.",
+      );
+    });
+  }
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      className="shrink-0"
+      disabled={pending}
+      onClick={press}
+      aria-label={
+        restores
+          ? "Undo: restore the item and reopen the report"
+          : "Undo: reopen the report"
+      }
+    >
+      <Undo2 />
+      <span className="hidden sm:inline">Undo</span>
+    </Button>
+  );
+}
+
 /** The closed log: one line a report, under a small label, with what its Undo does. */
 export function ClosedLog({
   lede,
@@ -268,7 +354,7 @@ function OpenReportCard({ report }: { report: ReviewReport }) {
   function dismiss() {
     startTransition(async () => {
       const result = await dismissReportAction(report.id, note.text);
-      toastResult(result, "Report dismissed.", "Couldn't dismiss the report.");
+      toastDismissed(result, report.id);
     });
   }
 
@@ -485,19 +571,7 @@ function verdictSheet(
 /* ── A closed album or item report ───────────────────────────────────────── */
 
 function ClosedReportLine({ report }: { report: ReviewReport }) {
-  const [pending, startTransition] = useTransition();
   const item = report.media;
-
-  function undo() {
-    startTransition(async () => {
-      const result = await undoReportAction(report.id);
-      toastResult(
-        result,
-        "Restored, and the report is open again.",
-        "Couldn't undo that.",
-      );
-    });
-  }
 
   return (
     <ClosedLine
@@ -518,19 +592,8 @@ function ClosedReportLine({ report }: { report: ReviewReport }) {
       where={report.event?.name ?? "Unknown event"}
       resolvedAt={report.resolved_at}
       end={
-        report.wayBack === "undo" ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="shrink-0"
-            disabled={pending}
-            onClick={undo}
-            aria-label="Undo: restore the item and reopen the report"
-          >
-            <Undo2 />
-            <span className="hidden sm:inline">Undo</span>
-          </Button>
+        report.wayBack === "undo" || report.wayBack === "reopen" ? (
+          <ClosedUndo reportId={report.id} way={report.wayBack} />
         ) : report.wayBack === "held" ? (
           <span
             className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground"

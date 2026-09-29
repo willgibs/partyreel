@@ -44,6 +44,9 @@ const {
   oldestOpenReportAt,
 } = await import("@/lib/db/queries/reports");
 
+/** The page's one clock read (`serverNow()`), the instant every closed line's window is measured from. */
+const NOW = Date.parse("2026-09-29T12:00:00.000Z");
+
 const uuid = (prefix: string, i: number) =>
   `${prefix}0000000-0000-4000-8000-${String(i).padStart(12, "0")}`;
 const at = (secondsAgo: number) =>
@@ -96,7 +99,7 @@ beforeEach(() => {
 describe("listReports: the album arm", () => {
   it("★ reads exactly its depth, newest first, and knows there is more", async () => {
     fake = world(albumReports());
-    const { reports, more } = await listReports("open", 50);
+    const { reports, more } = await listReports("open", 50, NOW);
 
     expect(reports).toHaveLength(50);
     expect(more).toBe(true);
@@ -113,7 +116,7 @@ describe("listReports: the album arm", () => {
 
   it("★ any depth is exact past 1,000, and every lookup chunk stays under the URL limit", async () => {
     fake = world(albumReports());
-    const { reports, more } = await listReports("all", 2000);
+    const { reports, more } = await listReports("all", 2000, NOW);
 
     expect(reports).toHaveLength(2000);
     expect(more).toBe(true);
@@ -134,14 +137,14 @@ describe("listReports: the album arm", () => {
 
   it("offers no more when the queue holds exactly its depth", async () => {
     fake = world(albumReports(50));
-    const { reports, more } = await listReports("all", 50);
+    const { reports, more } = await listReports("all", 50, NOW);
     expect(reports).toHaveLength(50);
     expect(more).toBe(false);
   });
 
   it("an empty queue reads no lookups at all", async () => {
     fake = world([]);
-    await expect(listReports("open", 50)).resolves.toEqual({
+    await expect(listReports("open", 50, NOW)).resolves.toEqual({
       reports: [],
       more: false,
     });
@@ -163,7 +166,7 @@ describe("listProfileReports: the people arm", () => {
     }));
     fake = world(people);
 
-    const { reports, more } = await listProfileReports("open", 1200);
+    const { reports, more } = await listProfileReports("open", 1200, NOW);
 
     expect(reports).toHaveLength(1200);
     expect(more).toBe(true);
@@ -278,6 +281,12 @@ describe("the verdict's record and the item's standing", () => {
           report(5, { status: "dismissed", resolved_at: T_JS }),
           // An album report: no item at all.
           report(6, { media_id: null }),
+          // Dismissed forty days before the page read: past its window.
+          report(7, {
+            status: "dismissed",
+            resolved_at: "2026-08-20T09:00:00.000000+00:00",
+            media_id: uuid("m", 1),
+          }),
         ],
       },
     });
@@ -285,7 +294,7 @@ describe("the verdict's record and the item's standing", () => {
 
   it("★ decides each closed line's way back from the item's own row", async () => {
     fake = verdictWorld();
-    const { reports } = await listReports("all", 50);
+    const { reports } = await listReports("all", 50, NOW);
     const byId = new Map(reports.map((r) => [r.id, r]));
     // The verdict's own removal, still waiting out its window: Undo.
     expect(byId.get(uuid("r", 2))?.wayBack).toBe("undo");
@@ -293,15 +302,17 @@ describe("the verdict's record and the item's standing", () => {
     expect(byId.get(uuid("r", 3))?.wayBack).toBeNull();
     // Held: never Undo.
     expect(byId.get(uuid("r", 4))?.wayBack).toBe("held");
-    // Dismissed, and open, and an album: nothing.
-    expect(byId.get(uuid("r", 5))?.wayBack).toBeNull();
+    // Dismissed the day before the read: it reopens (build 19's red-team).
+    expect(byId.get(uuid("r", 5))?.wayBack).toBe("reopen");
+    // ...and not forty days on; open, and an open album report, have nothing.
+    expect(byId.get(uuid("r", 7))?.wayBack).toBeNull();
     expect(byId.get(uuid("r", 1))?.wayBack).toBeNull();
     expect(byId.get(uuid("r", 6))?.wayBack).toBeNull();
   });
 
   it("carries the note, the item's standing and its hold, and never a timestamp of the item", async () => {
     fake = verdictWorld();
-    const { reports } = await listReports("all", 50);
+    const { reports } = await listReports("all", 50, NOW);
     const byId = new Map(reports.map((r) => [r.id, r]));
     expect(byId.get(uuid("r", 2))?.resolution_note).toBe(
       "Card number legible in the frame.",
@@ -328,17 +339,20 @@ describe("the verdict's record and the item's standing", () => {
 
   it("★ a filter reads only its own word, and All reads every one", async () => {
     fake = verdictWorld();
-    const open = await listReports("open", 50);
+    const open = await listReports("open", 50, NOW);
     expect(open.reports.map((r) => r.status)).toEqual(["open", "open"]);
-    const dismissed = await listReports("dismissed", 50);
-    expect(dismissed.reports.map((r) => r.id)).toEqual([uuid("r", 5)]);
-    const actioned = await listReports("actioned", 50);
+    const dismissed = await listReports("dismissed", 50, NOW);
+    expect(dismissed.reports.map((r) => r.id)).toEqual([
+      uuid("r", 5),
+      uuid("r", 7),
+    ]);
+    const actioned = await listReports("actioned", 50, NOW);
     expect(new Set(actioned.reports.map((r) => r.status))).toEqual(
       new Set(["actioned"]),
     );
     expect(actioned.reports).toHaveLength(3);
-    const all = await listReports("all", 50);
-    expect(all.reports).toHaveLength(6);
+    const all = await listReports("all", 50, NOW);
+    expect(all.reports).toHaveLength(7);
   });
 
   it("the People arm carries its note and reads its filter the same way", async () => {
@@ -367,18 +381,48 @@ describe("the verdict's record and the item's standing", () => {
             media_id: null,
             profile_id: uuid("p", 1),
           },
+          {
+            id: uuid("q", 3),
+            reason: null,
+            created_at: at(3),
+            status: "dismissed",
+            resolved_at: T,
+            resolution_note: null,
+            event_id: null,
+            media_id: null,
+            profile_id: uuid("p", 1),
+          },
+          {
+            id: uuid("q", 4),
+            reason: null,
+            created_at: at(4),
+            status: "dismissed",
+            resolved_at: "2026-08-20T09:00:00.000000+00:00",
+            resolution_note: null,
+            event_id: null,
+            media_id: null,
+            profile_id: uuid("p", 1),
+          },
         ],
         profiles: [
           { id: uuid("p", 1), display_name: "Jordan Pike", slug: "jordanpike" },
         ],
       },
     });
-    const actioned = await listProfileReports("actioned", 50);
+    const actioned = await listProfileReports("actioned", 50, NOW);
     expect(actioned.reports).toHaveLength(1);
     expect(actioned.reports[0].resolution_note).toBe(
       "Bio cleared out of band.",
     );
-    const open = await listProfileReports("open", 50);
+    // Mark actioned removed nothing and is no dismissal: it has no way back here.
+    expect(actioned.reports[0].wayBack).toBeNull();
+    const open = await listProfileReports("open", 50, NOW);
     expect(open.reports.map((r) => r.id)).toEqual([uuid("q", 2)]);
+    // A dismissal reopens inside its 30 days, and not past them.
+    const dismissed = await listProfileReports("dismissed", 50, NOW);
+    expect(dismissed.reports.map((r) => [r.id, r.wayBack])).toEqual([
+      [uuid("q", 3), "reopen"],
+      [uuid("q", 4), null],
+    ]);
   });
 });

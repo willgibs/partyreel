@@ -415,6 +415,14 @@ function PopupHeader({
  * THE BODY: the one part that scrolls, so the head and the foot stay where a
  * thumb left them, and the part the keyboard hook scrolls a focused field into
  * view inside.
+ *
+ * ★ IT KEEPS ITS CHILDREN WHOLE (`*:shrink-0`). A caller that lays the body out
+ * as a flex column (the share sheet, the claims review) makes every child a
+ * flex item that shrinks to fit the scroller, and a child that clips (a Card is
+ * `overflow: hidden`) has no content floor to stop it: build 17's Event
+ * Settings crushed its last three cards to their padding that way. Here no
+ * child can shrink, so the body scrolls instead, whatever layout a caller
+ * picks; in block flow the rule does nothing.
  */
 function PopupBody({ className, ...props }: React.ComponentProps<"div">) {
   const shape = usePopupShape()
@@ -422,7 +430,7 @@ function PopupBody({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="popup-body"
       className={cn(
-        "min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4",
+        "min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4 *:shrink-0",
         shape === "screen" && "pt-4",
         className
       )}

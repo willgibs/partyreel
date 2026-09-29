@@ -93,6 +93,12 @@ export function MarketingNavMobile({
         side="top"
         showCloseButton={false}
         {...portal}
+        // ★ NO DESCRIPTION, SAID OUT LOUD (build 19's red-team): a menu's rows are its whole
+        // content, so it has nothing to describe, and Radix's own way to say so is this explicit
+        // undefined. Without it the panel pointed `aria-describedby` at a Description that never
+        // rendered and Radix warned "Missing `Description`" on every open. The house's other
+        // menus say it the same way (`responsive-menu.tsx`, the command palette).
+        aria-describedby={undefined}
         // bottom-0 (rather than a height) is deliberate: the primitive already
         // ships `data-[side=top]:h-auto`, which outranks a plain h-* utility,
         // and fixed + inset is the honest way to fill a phone viewport anyway.

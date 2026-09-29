@@ -18,8 +18,8 @@
  * (`resolution_note`) comes back with it, and the reported item's standing (up, removed by someone
  * else, or an operator's removal) and whether it is held, because the confirm, the hold's door and
  * the closed line's Undo (`closed=window`) each say something different about each. The item's
- * timestamps stay here: the line's way back is decided on the server (`wayBackOf`) and only its
- * answer goes to the browser.
+ * timestamps stay here: the line's way back is decided on the server (`wayBackOf`, measured at the
+ * page's one clock read) and only its answer goes to the browser, a dismissal's reopen included.
  */
 import "server-only";
 
@@ -27,6 +27,7 @@ import { readNewest } from "@/lib/admin/list-depth";
 import {
   type ReportFilter,
   type ReportStatus,
+  type WayBack,
   wayBackOf,
 } from "@/lib/admin/reports";
 import { mustQuery } from "@/lib/db/must-query";
@@ -60,7 +61,7 @@ export type ReviewReport = {
     held: boolean;
   } | null;
   /** A closed report's way back (`closed=window`), decided here from the item's own row. */
-  wayBack: "undo" | "held" | null;
+  wayBack: WayBack;
 };
 
 /** A page's cursor on a newest-first queue: the last report's raw timestamp string and its id. */
@@ -82,10 +83,14 @@ type MediaRow = {
   legal_hold_at: string | null;
 };
 
-/** The newest `show` album reports, and whether the queue holds more. */
+/**
+ * The newest `show` album reports, and whether the queue holds more. `nowMs` is the page's one clock
+ * read (`serverNow()`), the instant every closed line's window is measured from.
+ */
 export async function listReports(
   filter: ReportFilter,
   show: number,
+  nowMs: number,
 ): Promise<{ reports: ReviewReport[]; more: boolean }> {
   const admin = createAdminClient();
   const only = statusFilter(filter);
@@ -179,19 +184,23 @@ export async function listReports(
         resolution_note: r.resolution_note ?? null,
         event: r.event_id ? (eventById.get(r.event_id) ?? null) : null,
         media: r.media_id ? (mediaById.get(r.media_id) ?? null) : null,
-        wayBack: wayBackOf({
-          status: r.status,
-          resolvedAt: r.resolved_at,
-          item: row
-            ? {
-                status: row.status,
-                removedByAdmin: Boolean(row.removed_by_admin),
-                removedAt: row.removed_at ?? null,
-                held:
-                  row.legal_hold_at !== null && row.legal_hold_at !== undefined,
-              }
-            : null,
-        }),
+        wayBack: wayBackOf(
+          {
+            status: r.status,
+            resolvedAt: r.resolved_at,
+            item: row
+              ? {
+                  status: row.status,
+                  removedByAdmin: Boolean(row.removed_by_admin),
+                  removedAt: row.removed_at ?? null,
+                  held:
+                    row.legal_hold_at !== null &&
+                    row.legal_hold_at !== undefined,
+                }
+              : null,
+          },
+          nowMs,
+        ),
       };
     }),
     more,
@@ -252,13 +261,18 @@ export type ReviewProfileReport = {
     displayName: string | null;
     slug: string | null;
   } | null;
+  /**
+   * A closed report's way back: a person's verdicts remove nothing, so a dismissal inside the window
+   * reopens (`closed=window`) and nothing else has one.
+   */
+  wayBack: "reopen" | null;
 };
 
 /**
  * Reported PEOPLE, for the person section of /admin/reports: the newest `show`, and whether there
  * are more. The operator gets the name, the handle (which the page turns into a link to the live
  * profile) and the reason: everything needed to look and decide, and nothing about the reporter,
- * who is not stored.
+ * who is not stored. `nowMs` is the page's one clock read, as `listReports` takes it.
  *
  * Same service-role read as listReports over the same deny-all table, and the
  * same batched `.in()` lookup rather than an embed (reports now carries two
@@ -270,6 +284,7 @@ export type ReviewProfileReport = {
 export async function listProfileReports(
   filter: ReportFilter,
   show: number,
+  nowMs: number,
 ): Promise<{ reports: ReviewProfileReport[]; more: boolean }> {
   const admin = createAdminClient();
   const only = statusFilter(filter);
@@ -328,6 +343,13 @@ export async function listProfileReports(
       resolved_at: r.resolved_at,
       resolution_note: r.resolution_note ?? null,
       profile: byId.get(r.profile_id) ?? null,
+      wayBack:
+        wayBackOf(
+          { status: r.status, resolvedAt: r.resolved_at, item: null },
+          nowMs,
+        ) === "reopen"
+          ? "reopen"
+          : null,
     })),
     more,
   };

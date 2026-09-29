@@ -41,6 +41,7 @@ const {
   hideBulk,
   purgeMediaNow,
   removeMediaBulk,
+  restoreMedia,
   returnToReview,
   setMediaStatusBulk,
 } = await import("./media");
@@ -259,5 +260,38 @@ describe("the bin's Delete forever", () => {
     const result = await purgeMediaNow("ev-1", ids(10));
     expect(result).toMatchObject({ ok: false, code: "unknown" });
     expect(deleted).toHaveLength(0);
+  });
+});
+
+/**
+ * A RESTORE SAYS WHERE IT LANDED THE ITEM (a ROADMAP carry-over from `crumbs-8`): `restore_media`
+ * returns an item to the status it held before its removal and answers it, and the bin's toast words
+ * what it did from this, so a hidden item is never announced as "back in the album".
+ */
+describe("restoreMedia", () => {
+  function answering(answer: unknown) {
+    fake = createFakePostgrest({
+      user: { id: "host-1" },
+      rpc: { restore_media: () => answer },
+    });
+  }
+
+  it("carries the status the item landed on", async () => {
+    for (const status of ["approved", "hidden", "pending"] as const) {
+      answering({ ok: true, status });
+      await expect(restoreMedia(uuid(1))).resolves.toEqual({
+        ok: true,
+        data: { id: uuid(1), status },
+      });
+    }
+  });
+
+  it("carries no status it does not recognise, rather than a guess", async () => {
+    for (const answer of [{ ok: true }, { ok: true, status: "removed" }]) {
+      answering(answer);
+      const result = await restoreMedia(uuid(1));
+      expect(result).toMatchObject({ ok: true });
+      expect(result.ok && result.data.status).toBeUndefined();
+    }
   });
 });

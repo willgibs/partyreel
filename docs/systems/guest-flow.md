@@ -242,7 +242,9 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   the plain download elsewhere; a tap whose activation lapses
   leaves a one-tap Ready. The guest album and the host gallery pass `shareUrl`; the personal Uploads and the recovery
   bin omit it.
-- Each tile (desktop hover-reveal) + the lightbox carry a **like** button; a signed-out tap
+- Each tile (desktop hover-reveal) + the lightbox carry a **like** button, except an item marked `likeable: false`:
+  the profile's Uploads marks an upload to an album that reads private to her (read as she sees it,
+  `getEventByQrToken`, so a block counts), where `like_media` refuses all but the host. A signed-out tap
   opens the create-account dialog (a `LikesProvider` wraps the gallery, replaying after sign-in). The hearts are
   seeded through `my_liked_media_ids` with the window's ids in the POST BODY (never a URL, which a whole album
   outgrows): the ids the rows mount and the viewer asks for, asking only the ones not yet answered as the window

@@ -457,6 +457,8 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
   opens at; the own shapes are `ui/responsive-menu.tsx` (a menu at the button, rows at the thumb with Cancel beneath, a
   row is the act), the code card (`app/share/code-card.tsx`) and the look (`social/guest-peek.tsx`). A bare
   `SheetContent` or `DialogContent` is a surface the board left alone, named with why in `popup-kinds.test.ts`.
+  ★ `PopupBody` is the one part that scrolls and keeps its children whole (`*:shrink-0`): a caller's flex column
+  would otherwise shrink a clipping Card to its padding instead of scrolling, as build 17's Event Settings did.
   ★ Every shape stands on the keyboard (the Dialog learned the Sheet's rule; a centred shape's `top` is
   `var(--vv-top) + var(--vv-h) / 2`, exactly `top-1/2` with nothing written). ★ A screen or a cover in a hand is a place
   the phone's Back closes (`ui/popup-back.ts`: one same-URL history entry, its marker a field on the state Next merges,

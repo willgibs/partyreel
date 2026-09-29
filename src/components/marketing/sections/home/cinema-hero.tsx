@@ -78,7 +78,11 @@ import {
  * gated by nothing (marketing-h1-policy.test.ts). The frames lit at rest and
  * the card's four prints load eager, because they are what a reduced-motion
  * reader sees on the first paint; the frames born behind the card load lazy.
- * Nothing is preloaded: a preload would fight the headline for the first paint.
+ * Nothing asks for a preload of its own (no `preload`, no `priority`), but an
+ * eager image IS one: React's server render preloads every eager image it
+ * draws, one link per srcset and sizes, so the eager set is kept to what the
+ * first paint shows, and the card's prints share the band's copies rather than
+ * adding four of their own (`printSizes`, build 19's red-team).
  */
 
 const SampleReelOverlay = lazy(

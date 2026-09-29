@@ -57,7 +57,6 @@ import {
   NOTIFICATION_PREF_COLUMNS,
   resolveNotificationPrefs,
   type NotificationPrefs,
-  type NotificationPrefsRow,
 } from "@/lib/social/notification-prefs";
 import { captureError } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -307,10 +306,7 @@ export async function getNotificationPrefs(): Promise<NotificationPrefs> {
     if (isSocialSchemaMissing(error)) return resolveNotificationPrefs(null);
     throw error;
   }
-  // `as unknown`: the generated types learn notify_pass_renewal when its migration is applied.
-  return resolveNotificationPrefs(
-    data as unknown as NotificationPrefsRow | null,
-  );
+  return resolveNotificationPrefs(data);
 }
 
 /**

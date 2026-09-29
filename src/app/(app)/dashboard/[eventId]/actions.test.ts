@@ -11,6 +11,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const calls: { fn: string; ids: unknown }[] = [];
 const ok = { ok: true as const, data: { count: 0, purged: 0, id: "" } };
+/** What `restoreMedia` answers: where `restore_media` landed the item. */
+let restored: { ok: true; data: { id: string; status?: string } } = {
+  ok: true,
+  data: { id: "", status: "approved" },
+};
 
 const revalidated: string[] = [];
 let signedIn = true;
@@ -35,7 +40,7 @@ vi.mock("@/lib/db/mutations/media", () => {
     removeMedia: async () => ok,
     removeMediaBulk: spy("removeMediaBulk"),
     restoreEvent: async () => ok,
-    restoreMedia: async () => ok,
+    restoreMedia: async () => restored,
     returnToReview: async (_eventId: string, ids: unknown, from: string) => {
       calls.push({ fn: `returnToReview:${from}`, ids });
       return ok;
@@ -247,5 +252,23 @@ describe("refreshHubReelAction", () => {
     getEvent.mockResolvedValue(null);
     expect(await actions.refreshHubReelAction(EVENT)).toEqual({ ok: false });
     expect(readHubReel).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * A RESTORE CARRIES WHERE IT LANDED THE ITEM to the bin, which words its toast from it (a ROADMAP
+ * carry-over from `crumbs-8`: a hidden item was announced as "back in the album").
+ */
+describe("the restore's answer", () => {
+  it("carries restore_media's status through, and none when it answered none", async () => {
+    restored = { ok: true, data: { id: uuid(1), status: "hidden" } };
+    await expect(actions.restoreMediaAction("ev-1", uuid(1))).resolves.toEqual({
+      ok: true,
+      status: "hidden",
+    });
+    restored = { ok: true, data: { id: uuid(1) } };
+    await expect(
+      actions.restoreMediaAction("ev-1", uuid(1)),
+    ).resolves.toMatchObject({ ok: true, status: undefined });
   });
 });

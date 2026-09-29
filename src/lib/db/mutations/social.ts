@@ -182,18 +182,16 @@ export async function setNotificationPrefs(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  // Built on the row's own shape (notification-prefs.ts), then handed over as the table's: the
-  // generated types learn notify_pass_renewal only when its migration is applied, and the two agree
-  // once they do, when the cast below says nothing. Only the live switches map; the three columns
+  // Built on the row's own shape (notification-prefs.ts), which the table's generated type now
+  // carries too, so it is handed over as it is. Only the live switches map; the three columns
   // nothing reads are never written either.
-  const fields: Partial<NotificationPrefsRow> = {};
+  const patch: Partial<NotificationPrefsRow> = {};
   if (prefs.notifyPassRenewal !== undefined)
-    fields.notify_pass_renewal = prefs.notifyPassRenewal;
+    patch.notify_pass_renewal = prefs.notifyPassRenewal;
   if (prefs.marketingOptIn !== undefined)
-    fields.marketing_opt_in = prefs.marketingOptIn;
-  if (Object.keys(fields).length === 0)
+    patch.marketing_opt_in = prefs.marketingOptIn;
+  if (Object.keys(patch).length === 0)
     return { ok: true, data: { id: user.id } };
-  const patch = fields as TablesUpdate<"notification_prefs">;
 
   const db = supabase;
   const failed = {
