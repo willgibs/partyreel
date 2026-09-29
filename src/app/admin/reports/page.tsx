@@ -74,14 +74,21 @@ export default async function AdminReportsPage({
     <div className="space-y-6">
       <div>
         <PageHeading>Review reports</PageHeading>
+        {/* ★ THE WINDOW AND ITS WORD ARE ONE STRING, BOTH TIMES: Next's SWC
+            drops the leading space of a JSX text that runs over several lines
+            and holds an entity, so `{N} days, then ... dismissal&apos;s` read
+            "30days" on every build (build 20's red-team), and prettier folds a
+            `{" "}` back into the text. The second held no entity and read
+            right; it takes the same form so an apostrophe added later cannot
+            break it (jsx-text-space-policy). */}
         <p className="text-sm text-pretty text-muted-foreground">
           Reports of harm from guests and hosts. Remove takes an item out of the
           album and the host&apos;s Deleted at once, and its closed line&apos;s
-          Undo brings it back for {RECENTLY_DELETED_WINDOW_DAYS} days, then the
-          purge deletes it unless it is held. A dismissal&apos;s Undo reopens
-          its report for the same {RECENTLY_DELETED_WINDOW_DAYS} days. A
-          reported person is actioned out of band, so Mark actioned only closes
-          the report.
+          Undo brings it back for {`${RECENTLY_DELETED_WINDOW_DAYS} days`}, then
+          the purge deletes it unless it is held. A dismissal&apos;s Undo
+          reopens its report for the same{" "}
+          {`${RECENTLY_DELETED_WINDOW_DAYS} days`}. A reported person is
+          actioned out of band, so Mark actioned only closes the report.
         </p>
       </div>
 
