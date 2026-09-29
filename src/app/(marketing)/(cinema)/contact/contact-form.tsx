@@ -7,6 +7,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type CSSProperties,
   type ReactNode,
 } from "react";
@@ -126,6 +127,21 @@ function TopicHint({ hint }: { hint: ContactHint }) {
 /** The form's exit before the receipt: exits are faster than entrances. */
 const FORM_EXIT_MS = 150;
 
+/**
+ * Whether this render is past hydration: the server and the hydrating client both
+ * answer false, so the first paint matches. The submit button waits for it (the
+ * house's `useHydrated`, kept per file): until React has attached the form's
+ * handler a press or an Enter is the browser's own GET, which would carry the name,
+ * the address and the message into the URL, the history and a server log.
+ */
+function useHydrated(): boolean {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
+
 export function ContactForm({
   helpSubjects,
 }: {
@@ -157,6 +173,7 @@ export function ContactForm({
     },
   });
   const { isSubmitting } = form.formState;
+  const hydrated = useHydrated();
 
   // The fastest-path hint for the picked topic: deflection INSIDE the form
   // (never a wall in front of the message field). `useWatch` rather than
@@ -450,7 +467,7 @@ export function ContactForm({
                 <Button
                   type="submit"
                   size="cta"
-                  disabled={isSubmitting}
+                  disabled={!hydrated || isSubmitting}
                   className="transition-transform active:scale-[0.98]"
                 >
                   {isSubmitting ? "Sending…" : "Send message"}

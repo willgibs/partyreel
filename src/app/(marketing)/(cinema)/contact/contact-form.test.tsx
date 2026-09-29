@@ -1,5 +1,6 @@
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { renderToString } from "react-dom/server";
 import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -143,6 +144,24 @@ describe("the help handoff (?about=<slug>)", () => {
       ).toBeInTheDocument();
     },
   );
+});
+
+describe("before the form is hydrated", () => {
+  // The server's markup is what a browser holds until React attaches the submit
+  // handler: a press or an Enter then is the browser's own GET, which would put
+  // the name, the address and the message in the URL. So the button waits.
+  it("renders the send button disabled, so no early press or Enter can submit", () => {
+    const html = renderToString(<ContactForm />);
+    const button = /<button[^>]*type="submit"[^>]*>/.exec(html)?.[0] ?? "";
+    expect(button, "no submit button in the server markup").not.toBe("");
+    // The attribute, not the Button's own `disabled:` variant classes.
+    expect(button).toMatch(/\sdisabled(=""|\s|>)/);
+  });
+
+  it("enables it once the form is live", () => {
+    render(<ContactForm />);
+    expect(screen.getByRole("button", { name: "Send message" })).toBeEnabled();
+  });
 });
 
 describe("sending a note", () => {
