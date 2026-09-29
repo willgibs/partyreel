@@ -161,7 +161,9 @@ the shared file or the blog's (each file's header says whose it is).
   `<TeaserCount />`, `<OverCapGraceDays />`, `<TierName tier="pro" />`.
   Extend this family for new numbers. `<RecoveryDays />` and `<UnlockHours />`
   carry their unit ("30 days", "12 hours"), and `<InactivityMonths />` and
-  `<EventPassTerm />` render a phrase ("about 6 months", "about a year").
+  `<EventPassTerm />` render a phrase ("about 6 months", "about a year"), as
+  `<MaxEvents />` does ("one event"), which takes `capitalized` where it opens
+  a sentence, a bullet or a table cell (`spec-shared.test.ts` holds it there).
   `<ReelSeconds />` is a clip's length cap; the live reel itself has none.
 - `<AlbumShowcase label="..." caption="...">` for a decorative album moment:
   eight manifest photographs in a browser frame, never a screenshot of

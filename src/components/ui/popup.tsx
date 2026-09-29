@@ -364,7 +364,7 @@ function PopupHeader({
         variant="ghost"
         size="sm"
         data-popup-up={up ? "" : undefined}
-        className="max-w-full justify-self-start gap-0.5 px-1.5 text-muted-foreground"
+        className="max-w-[40vw] justify-self-start gap-0.5 px-1.5 text-muted-foreground"
         onClick={up?.onUp}
       >
         <ChevronLeftIcon className="size-5" />
@@ -377,7 +377,15 @@ function PopupHeader({
         data-bar=""
         className={cn("shrink-0 border-b", className)}
       >
-        <div className="grid h-13 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-2">
+        {/* ★ THE BACK LABEL IS RESERVED BEFORE THE TITLE GROWS (crumbs-14).
+            With both sides at `minmax(0,1fr)` the centred title took its
+            whole width first and the two sides split what was left, so
+            "Dashboard" beside "Photos waiting for you" showed as "Dashbo…"
+            at 375. The back's side now starts at the label's own width, up
+            to 40vw so a long event name still leaves the title its room,
+            and the title stays centred wherever both fit, moving over by
+            the difference where they do not. */}
+        <div className="grid h-13 grid-cols-[minmax(auto,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-2">
           {up ? (
             arrow
           ) : (

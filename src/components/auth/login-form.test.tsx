@@ -5,6 +5,10 @@
  * two things a hostile value would want: navigate to it after an in-page sign-in (the email code,
  * a password), and hand it to Google and the email's link inside the callback URL. `AccountDoor`
  * is stubbed to expose the props it was given and the verify it would fire.
+ *
+ * ★ On the admin host the callback stays bare, so the portal's page rides a cookie the callback
+ * reads (crumbs-14); every write to `document.cookie` is recorded here, since a cookie scoped to
+ * the callback's path is one the page itself can never read back.
  */
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -46,10 +50,25 @@ function signIn(next: string | null) {
   return { redirect, pushed: push.mock.calls.at(-1)?.[0] as string };
 }
 
+const cookieWrites: string[] = [];
+
 beforeEach(() => {
   push.mockReset();
   host.admin = false;
+  cookieWrites.length = 0;
+  Object.defineProperty(document, "cookie", {
+    configurable: true,
+    get: () => "",
+    set: (line: string) => {
+      cookieWrites.push(line);
+    },
+  });
 });
+
+const KEPT = (page: string) =>
+  `pr_admin_return=${page}; Max-Age=600; Path=/auth/callback; SameSite=Lax`;
+const CLEARED =
+  "pr_admin_return=; Max-Age=0; Path=/auth/callback; SameSite=Lax";
 
 describe("LoginForm", () => {
   it("lands an in-page sign-in on the page, and hands the page to the callback", () => {
@@ -86,5 +105,39 @@ describe("LoginForm", () => {
     const { redirect, pushed } = signIn(next);
     expect(pushed).toBe("/dashboard");
     expect(redirect.search).toBe("");
+  });
+});
+
+describe("LoginForm on the admin host (crumbs-14)", () => {
+  it("★ carries the portal's page: a cookie for the bare callback, and an in-page landing on it", () => {
+    host.admin = true;
+    const { redirect, pushed } = signIn("/admin/reports");
+    expect(redirect.pathname).toBe("/auth/callback");
+    expect(redirect.search, "the callback stays bare").toBe("");
+    expect(cookieWrites).toEqual([KEPT("/admin/reports")]);
+    expect(pushed).toBe("/admin/reports");
+  });
+
+  it.each([
+    ["no page", null],
+    ["an app page (never the apex from the admin host)", "/account/renew"],
+    ["a hostile value", "//evil.example"],
+    ["a download, never a page", "/admin/forensics/export"],
+  ])(
+    "clears what an earlier visit left for %s, and lands in the portal",
+    (_, next) => {
+      host.admin = true;
+      const { redirect, pushed } = signIn(next);
+      expect(redirect.search).toBe("");
+      expect(cookieWrites).toEqual([CLEARED]);
+      expect(pushed).toBe("/admin");
+    },
+  );
+
+  it("off the admin host, never writes the cookie and never lands in the portal", () => {
+    const { redirect, pushed } = signIn("/admin/reports");
+    expect(cookieWrites).toEqual([]);
+    expect(redirect.search).toBe("");
+    expect(pushed).toBe("/dashboard");
   });
 });

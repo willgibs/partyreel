@@ -1,11 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 import { AccountDoor } from "@/components/auth/account-door";
 import { isAdminHost } from "@/lib/auth/admin-host";
 import type { DoorFailureKind } from "@/lib/auth/door-failure";
 import {
+  adminReturnCookie,
   signInLanding,
   signInReturn,
   withReturn,
@@ -22,9 +24,10 @@ import { env } from "@/lib/env";
 //
 // ★ ON THE ADMIN SUBDOMAIN THE CALLBACK IS ALWAYS BARE. Its allow-list entry is
 // EXACT (GoTrue answers `…/auth/callback?next=%2Fadmin` there with the Site URL),
-// so a query would land the operator's Google sign-in on the apex; and the portal
-// is the only page that host serves, which is where the callback lands it by
-// default anyway. It also MUST use the live origin (NOT the
+// so a query would land the operator's Google sign-in on the apex; the page the
+// portal's gate sent her from rides a cookie instead (the form's effect below,
+// `adminReturnCookie`), and with none the callback lands her in the portal. It
+// also MUST use the live origin (NOT the
 // configured apex NEXT_PUBLIC_SITE_URL) so the session cookie lands on
 // admin.<domain> and the admin session stays host-isolated. Everywhere else,
 // prefer the configured site origin and fall back to the live origin so local dev
@@ -63,20 +66,34 @@ export function LoginForm({
   next?: string | null;
 }) {
   const router = useRouter();
-  const returnTo = signInReturn(next);
+  // The app's pages alone ride a callback URL: the admin host's is always bare.
+  const appReturn = signInReturn(next);
+
+  // On the admin host, the page rides the cookie the callback reads instead, and
+  // a /login with none (or one off the portal's pages) clears what an earlier
+  // visit left, so a later sign-in lands in the portal, not on a stale page.
+  useEffect(() => {
+    if (!isAdminHost(window.location.host)) return;
+    document.cookie = adminReturnCookie(
+      next,
+      window.location.protocol === "https:",
+    );
+  }, [next]);
 
   return (
     <AccountDoor
       wear="login"
       methods={{ code: true, google: true, password: true }}
-      emailRedirectTo={callbackUrl(returnTo)}
+      emailRedirectTo={callbackUrl(appReturn)}
       intent={intent}
       initialFailure={failure}
       // `/login` is the one door that may remember this device's last address:
       // a laptop at a desk, not a phone going round a party.
       remember
       onVerified={() => {
-        router.push(signInLanding(returnTo, isAdminHost(window.location.host)));
+        // Checked again for the host it lands on: the portal's pages on the
+        // admin host, the app's everywhere else.
+        router.push(signInLanding(next, isAdminHost(window.location.host)));
         router.refresh();
       }}
     />

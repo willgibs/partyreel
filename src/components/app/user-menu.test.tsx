@@ -8,7 +8,8 @@
  *
  * AND A MENU'S SIGN OUT IS THIS DEVICE'S. People keep one account open on a desk and a phone for
  * different jobs, so the menu's Sign out posts the device sign-out (`signOutAction`, its `local`
- * scope pinned in actions.test.ts), and ending every device is /account's, never a menu row.
+ * scope pinned in actions.test.ts), and ending every device is /account's, never a menu row. A
+ * refused one is said (`signOutHere`), never left for /login as if it had worked.
  */
 import {
   cleanup,
@@ -17,10 +18,14 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const actions = vi.hoisted(() => ({
-  signOutAction: vi.fn(async () => {}),
+  // The device sign-out leaves for /login, or comes back refused (crumbs-14).
+  signOutAction: vi.fn(
+    async (): Promise<{ ok: false; message: string } | undefined> => undefined,
+  ),
   signOutEverywhereAction: vi.fn(async () => ({ ok: false, message: "" })),
 }));
 
@@ -75,6 +80,23 @@ describe("the host's account menu", () => {
     fireEvent.click(rows[0]);
     await waitFor(() => expect(actions.signOutAction).toHaveBeenCalledTimes(1));
     expect(actions.signOutEverywhereAction).not.toHaveBeenCalled();
+  });
+
+  it("★ says a refused sign-out rather than acting as if it had worked (crumbs-14)", async () => {
+    actions.signOutAction.mockResolvedValueOnce({
+      ok: false,
+      message: "Couldn't sign out. Check your connection and try again.",
+    });
+    render(
+      <UserMenu email="host@example.com" displayName="Maya" avatarUrl={null} />,
+    );
+    openMenu();
+    fireEvent.click(await screen.findByRole("menuitem", { name: /sign out/i }));
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        "Couldn't sign out. Check your connection and try again.",
+      ),
+    );
   });
 });
 

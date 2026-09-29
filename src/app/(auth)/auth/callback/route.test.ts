@@ -11,6 +11,9 @@
  *   ★ THE PAGE A GATE SENT A HOST FROM LANDS (crumbs-11): `next` is followed only when it is on the
  *     return allow-list (lib/auth/return-path.ts), and a failed link carries it back to /login so
  *     the new code still lands there. Anything else is the host-aware default, never carried.
+ *   ★ ON THE ADMIN HOST THE PAGE RIDES A COOKIE (crumbs-14): its callback is always bare, so the
+ *     login form leaves the portal's page in `pr_admin_return`, read here, checked against the
+ *     portal's pages and cleared whatever it held; the admin host never follows an app page.
  *   A dead code is an expired link.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -52,6 +55,25 @@ function get(query: string) {
       headers: { host: "partyreel.com" },
     }),
   );
+}
+
+/** The admin host's callback, carrying the browser's cookies (the page its login form left). */
+function getAdmin(query: string, cookie?: string) {
+  return GET(
+    new Request(`https://admin.partyreel.com/auth/callback${query}`, {
+      headers: {
+        host: "admin.partyreel.com",
+        ...(cookie ? { cookie } : {}),
+      },
+    }),
+  );
+}
+
+/** The `pr_admin_return` line a response sets, if any. */
+function adminReturnSet(res: Response): string | undefined {
+  return res.headers
+    .getSetCookie()
+    .find((line) => line.startsWith("pr_admin_return="));
 }
 
 function landing(res: Response): string {
@@ -175,12 +197,20 @@ describe("a mail's button, through a sign-in (crumbs-11)", () => {
     expect(state.adoptDoorName).not.toHaveBeenCalled();
   });
 
-  it("the page beats the admin host's default: it was asked for", async () => {
+  // Reshaped on purpose (crumbs-14): an app page asked on the admin host used to be followed there,
+  // to the admin deployment's 404. Each host returns to its own pages now; the portal's still beat
+  // the admin host's default, since they were asked for.
+  it("the portal's page beats the admin host's default, and an app page never lands there", async () => {
     state.exchange.mockResolvedValue(SIGNED_IN);
     state.adminHost = true;
     expect(landing(await get(`?next=/admin&code=abc`))).toBe("/admin");
-    expect(landing(await get(`?next=/account/renew&code=abc`))).toBe(
-      "/account/renew",
+    expect(landing(await get(`?next=/admin/reports&code=abc`))).toBe(
+      "/admin/reports",
+    );
+    expect(landing(await get(`?next=/account/renew&code=abc`))).toBe("/admin");
+    state.adminHost = false;
+    expect(landing(await get(`?next=/admin/reports&code=abc`))).toBe(
+      "/dashboard",
     );
   });
 
@@ -232,5 +262,72 @@ describe("a mail's button, through a sign-in (crumbs-11)", () => {
     expect(
       landing(await get(`?next=https://evil.com/account/renew&code=abc`)),
     ).toBe("/dashboard");
+  });
+});
+
+describe("the admin host's bare callback, and the page its cookie kept (crumbs-14)", () => {
+  beforeEach(() => {
+    state.adminHost = true;
+  });
+
+  it("★ lands Google's return on the page the portal's gate was asked for, and clears the cookie", async () => {
+    state.exchange.mockResolvedValue(SIGNED_IN);
+    const res = await getAdmin(`?code=abc`, "pr_admin_return=/admin/reports");
+    expect(landing(res)).toBe("/admin/reports");
+    expect(new URL(res.headers.get("location")!).host).toBe(
+      "admin.partyreel.com",
+    );
+    const cleared = adminReturnSet(res)!;
+    expect(cleared).toMatch(/^pr_admin_return=;/);
+    expect(cleared).toMatch(/Path=\/auth\/callback/);
+    expect(cleared).toMatch(/Max-Age=0/);
+  });
+
+  it("carries the kept page back to /login when the link had aged out", async () => {
+    state.exchange.mockResolvedValue(DEAD);
+    const res = await getAdmin(`?code=abc`, "pr_admin_return=/admin/reports");
+    expect(landing(res)).toBe(
+      "/login?error=expired_link&next=%2Fadmin%2Freports",
+    );
+    expect(adminReturnSet(res)).toMatch(/Max-Age=0/);
+  });
+
+  it.each([
+    ["an app page", "/account/renew"],
+    ["a protocol-relative host", "//evil.example"],
+    ["an absolute URL", "https://evil.example/admin/reports"],
+    ["a traversal", "/admin/../dashboard"],
+    ["a download, never a page", "/admin/forensics/export"],
+    ["an encoded escape", "%2F%2Fevil.example"],
+  ])("follows a kept %s nowhere, and still clears it", async (_, kept) => {
+    state.exchange.mockResolvedValue(SIGNED_IN);
+    const res = await getAdmin(`?code=abc`, `pr_admin_return=${kept}`);
+    expect(landing(res)).toBe("/admin");
+    expect(new URL(res.headers.get("location")!).host).toBe(
+      "admin.partyreel.com",
+    );
+    expect(adminReturnSet(res)).toMatch(/Max-Age=0/);
+  });
+
+  it("lands in the portal with no cookie, and sets none", async () => {
+    state.exchange.mockResolvedValue(SIGNED_IN);
+    const res = await getAdmin(`?code=abc`);
+    expect(landing(res)).toBe("/admin");
+    expect(adminReturnSet(res)).toBeUndefined();
+  });
+
+  it("is read on the admin host alone: the apex neither follows nor touches it", async () => {
+    state.adminHost = false;
+    state.exchange.mockResolvedValue(SIGNED_IN);
+    const res = await GET(
+      new Request(`https://partyreel.com/auth/callback?code=abc`, {
+        headers: {
+          host: "partyreel.com",
+          cookie: "pr_admin_return=/admin/reports",
+        },
+      }),
+    );
+    expect(landing(res)).toBe("/dashboard");
+    expect(adminReturnSet(res)).toBeUndefined();
   });
 });

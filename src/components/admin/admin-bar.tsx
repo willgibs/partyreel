@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogOut, Search, ShieldCheck } from "lucide-react";
 
-import { signOutAction } from "@/app/(auth)/actions";
+import { signOutHere } from "@/components/auth/sign-out";
 import { AdminNav } from "@/components/admin/admin-nav";
 import {
   OperatorAlerts,
@@ -180,7 +180,7 @@ export function AdminBar({
               <DropdownMenuSeparator />
               {/* Sign-out is the shared server action; on the subdomain it clears
                   the host-isolated admin cookies and redirects to /login. */}
-              <form action={signOutAction}>
+              <form action={signOutHere}>
                 <DropdownMenuItem asChild>
                   <button type="submit" className="w-full">
                     <LogOut />

@@ -4,9 +4,10 @@
  * session with it (build 20's red-team; auth-accounts.md, "Signing out").
  *
  * The account menu's Sign out ends this device alone. Sign out everywhere ends every session, this
- * one included, and answers a refusal instead of leaving for /login as if it had worked, because the
- * person pressing it is usually worried about a device they cannot see. Both put down every guest
- * ticket the browser sent (sign-out-hygiene.test.ts pins that order for the device sign-out).
+ * one included. Both answer a refusal instead of leaving for /login as if it had worked: a refused
+ * call leaves the session standing, and /login sends a signed-in host straight back to the
+ * dashboard (the device sign-out learned it in crumbs-14). Both put down every guest ticket the
+ * browser sent (sign-out-hygiene.test.ts pins that order for the device sign-out).
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -49,6 +50,22 @@ describe("Sign out (the account menu's, the admin bar's)", () => {
     await expect(signOutAction()).rejects.toThrow("NEXT_REDIRECT /login");
     expect(signOut).toHaveBeenCalledTimes(1);
     expect(signOut).toHaveBeenCalledWith({ scope: "local" });
+  });
+
+  it("★ answers a refusal instead of leaving as if it had worked (crumbs-14)", async () => {
+    // The network or the auth server's own: this session is still standing, and /login would have
+    // bounced the host straight back to the dashboard.
+    signOut.mockResolvedValue({ error: new Error("fetch failed") });
+    const result = await signOutAction();
+    expect(result).toMatchObject({ ok: false });
+    expect(result.message).toMatch(/\S/);
+    expect(signOut).toHaveBeenCalledWith({ scope: "local" });
+  });
+
+  it("still puts down the guest tickets when the call is refused", async () => {
+    signOut.mockResolvedValue({ error: new Error("fetch failed") });
+    await signOutAction();
+    expect(expired).toEqual([TICKET]);
   });
 });
 
