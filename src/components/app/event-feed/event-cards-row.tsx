@@ -315,9 +315,16 @@ function useStuckBand() {
     ro.observe(band);
     band.addEventListener("transitionend", holdRestingHeight);
     band.addEventListener("transitioncancel", holdRestingHeight);
+    // ★ STUCK IS THE FOOTPRINT'S TOP AT THE BAR, never how much of it shows.
+    // The root is the window under the bar (the margin cuts the bar's 57px off
+    // its top) grown by a screen below the fold, so the only part of the
+    // footprint it can miss is what has passed above the bar. Cut at the fold,
+    // a phone on its side read the resting row as stuck at the top of the page
+    // (its foot below the fold), and stuck and resting never crossed a
+    // threshold between them.
     const io = new IntersectionObserver(
       ([entry]) => setStuck(entry.intersectionRatio < 1),
-      { threshold: [1], rootMargin: "-57px 0px 0px 0px" },
+      { threshold: [1], rootMargin: "-57px 0px 100% 0px" },
     );
     io.observe(foot);
     return () => {

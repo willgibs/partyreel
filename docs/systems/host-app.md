@@ -200,10 +200,11 @@ beneath, newest first.
   function), so the hub, the Guests room and the album say one number. The row is sticky and condenses in place,
   because a remount would drop the QR pill's `view-transition-name` mid-morph. ★ It condenses inside a footprint that
   holds the resting row's height (`useStuckBand`): a condense that moved the album let scroll anchoring carry a jump
-  into the stick band (the viewer's close runs one) across the threshold and back for ever. ★ Share's place in the row
-  is a QR pill that exists only while the header's code is off screen, carrying the morph's name while it is the code
-  on screen. On a phone at rest the row is a 2x2 grid of two-line cards (`event-feed/room-card.ts`), so all four doors
-  show at 375.
+  into the stick band (the viewer's close runs one) across the threshold and back for ever; and stuck is its top at
+  the bar, the observer's root grown past the fold, so a short screen never reads the resting row as stuck. ★ Share's
+  place in the row is a QR pill that exists only while the header's code is off screen, carrying the morph's name
+  while it is the code on screen. On a phone at rest the row is a 2x2 grid of two-line cards
+  (`event-feed/room-card.ts`), so all four doors show at 375.
 - **Review and Guests are rooms (routes with a crumb); Settings and the share kit are places in the settings kind (a panel at a desk, the whole screen in a hand); the Highlight reel is a door.**
   ★ The crumb trail lands at hydration (a page cannot hand a prop up, and CSS cannot carry an event's name); the bar's
   fixed height keeps it from shifting anything.

@@ -237,9 +237,9 @@ describe("the row's edge fades (his `queue` note: conditional per scrollable sid
  * band's box changes), and SCROLL ANCHORING, the other half of the loop, which keeps the album below
  * the row still by moving the page by whatever the footprint gained or lost.
  */
-function stickPage({ footprintFollowsBand = false } = {}) {
+function stickPage({ footprintFollowsBand = false, viewport = 812 } = {}) {
   const REST_TOP = 241; // where the row rests in the page (the hub, measured at 375)
-  const VIEWPORT = 812;
+  const VIEWPORT = viewport;
   const BAND = { rest: 157, stuck: 57 }; // the 2x2 grid, and the pills stuck to the bar
   const ROW = { rest: 359, stuck: 496, shows: 359 }; // how far the row runs, and how much shows
   let scrollY = 0;
@@ -298,6 +298,7 @@ function stickPage({ footprintFollowsBand = false } = {}) {
   type Sight = {
     cb: IntersectionObserverCallback;
     rootTop: number;
+    rootBottom: number;
     target: HTMLElement | null;
   };
   const sights: Sight[] = [];
@@ -309,11 +310,19 @@ function stickPage({ footprintFollowsBand = false } = {}) {
         cb: IntersectionObserverCallback,
         options: IntersectionObserverInit = {},
       ) {
-        // The root's top edge is the rootMargin's inset: the bar the row sticks under.
-        const inset = /^-(\d+)px/.exec(options.rootMargin ?? "");
+        // The root is the viewport cut and grown by the rootMargin the row passes: its top is the
+        // bar the row sticks under, its bottom the fold or, grown, further down the page.
+        const [top = "0px", , bottom = top] = (
+          options.rootMargin ?? "0px"
+        ).split(/\s+/);
+        const edge = (margin: string) =>
+          margin.endsWith("%")
+            ? (parseFloat(margin) / 100) * VIEWPORT
+            : parseFloat(margin);
         this.sight = {
           cb,
-          rootTop: inset ? Number(inset[1]) : 0,
+          rootTop: -edge(top),
+          rootBottom: VIEWPORT + edge(bottom),
           target: null,
         };
         sights.push(this.sight);
@@ -340,10 +349,10 @@ function stickPage({ footprintFollowsBand = false } = {}) {
       : Math.max(bandHeight(), parseFloat(footprint().style.minHeight) || 0);
   // Sticky under the bar: the footprint rests in the page until the page scrolls it up to the bar.
   const ratio = () => {
-    const { rootTop } = rowSight();
+    const { rootTop, rootBottom } = rowSight();
     const top = Math.max(rootTop - 1, REST_TOP - scrollY);
     const height = footprintHeight();
-    const seen = Math.min(top + height, VIEWPORT) - Math.max(top, rootTop);
+    const seen = Math.min(top + height, rootBottom) - Math.max(top, rootTop);
     return Math.max(0, seen) / height;
   };
 
@@ -496,6 +505,21 @@ describe("the row's stick, jumped into (crumbs-14)", () => {
     expect(page.at()).toBe(to);
   });
 
+  it("reads the bar, never the fold: a phone on its side rests unstuck at the top", async () => {
+    // At 330 tall the resting row's foot is below the fold. Measured to the fold, a ratio under 1
+    // read that as stuck, and stuck and resting never crossed a threshold between them.
+    const page = stickPage({ viewport: 330 });
+    page.mount();
+    expect(await page.settle()).toBe(0);
+    expect(page.stuck(), "at the top of the page").toBe(false);
+    page.jump(page.band.from + 20);
+    expect(await page.settle()).toBe(1);
+    expect(page.stuck()).toBe(true);
+    page.jump(0);
+    expect(await page.settle()).toBe(1);
+    expect(page.stuck(), "back at the top").toBe(false);
+  });
+
   it("is a page that does loop when the footprint follows the band, as the old row's did", async () => {
     // The control: without it the tests above could pass on a page too tame to loop at all.
     const page = stickPage({ footprintFollowsBand: true });
@@ -625,4 +649,3 @@ describe("the settings sheet", () => {
     expect(/onOpenChange=\{onOpenChange\}/.test(sheet)).toBe(true);
   });
 });
-
