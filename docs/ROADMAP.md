@@ -17,6 +17,12 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Help: `report-a-problem-as-a-guest`'s three steps can take screens now that triage-wiring's article has merged (the report sheet opening, its reason box, its sent line), and its name leaves `STEPS_WITHOUT_SCREENS` (from `help-wiring`).
+- Help: the four email-code screens quote `AccountDoor`'s post-send code view as markup, since no prop reaches it; an exported code view would make them the real piece (from `help-wiring`).
+- Admin: `/admin/help-feedback` could take a last-30-days window beside all time once the counts grow (from `help-wiring`).
+- Help: the hero field's `⌘K` chip shows on a phone, which has no ⌘K; hide it on a coarse pointer (from `help-wiring`).
+- Marketing: /contact's chips under its search could take /help's drop-from-the-field treatment; the palette already drops there (from `help-wiring`).
+- Code hygiene: `types.ts` carries `article_feedback` and its summary now, so the three untyped seams go (`db/mutations/article-feedback.ts`, `db/queries/article-feedback.ts`, the one count in `db/queries/jobs.ts`) (from `help-wiring`).
 - Exports: a part's "saved" needs the Worker to report a finished stream (a signed call into `export_log`, or a status the walk polls); the walk says "downloading" meanwhile (from `export-wiring`).
 - Admin: `/admin/exports` counts mints only; a check that found objects gone and a stream's skips live in the Worker's logs (`export-check`, `export-stream`), and a report back into `export_log` would put them on the page (from `export-wiring`).
 - Exports: a walk lives in the page, so a reload mid-walk forgets it; its cursor in sessionStorage could offer the next part again (from `export-wiring`).
