@@ -72,13 +72,7 @@ function Tile({ still }: { still: AlbumStill }) {
       className="relative block size-full overflow-hidden bg-muted"
       style={{ borderRadius: "var(--radius-tile)" }}
     >
-      <Image
-        src={img.src}
-        alt=""
-        fill
-        sizes="(max-width: 480px) 60vw, 400px"
-        className="object-cover"
-      />
+      <Image src={img.src} alt="" fill unoptimized className="object-cover" />
       {still.video ? (
         <span
           className={cn(
@@ -159,14 +153,6 @@ export function AlbumPage({
                   {album.host.name}
                 </span>
               </span>
-              {album.date ? (
-                <>
-                  <span aria-hidden className="text-faint">
-                    ·
-                  </span>
-                  <span>{album.date}</span>
-                </>
-              ) : null}
             </p>
             <p data-df-stats className="mt-1 text-xs text-muted-foreground">
               {formatMediaCount(album.items)} from {formatCount(album.guests)}{" "}
@@ -227,7 +213,7 @@ export function AlbumPage({
                       src={marketingImage(still.photo).src}
                       alt=""
                       fill
-                      sizes="400px"
+                      unoptimized
                       className="object-cover"
                     />
                   ) : null}
