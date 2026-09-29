@@ -1,6 +1,6 @@
 ---
 track: schema-pass
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "932649e4"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -16,6 +16,8 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/db/queries/social.ts
   - src/lib/db/mutations/social.ts
   - src/components/admin/applicants-list.tsx
+  - src/app/(dev)/design/sandbox/gallery-fixtures.ts
+  - src/lib/db/queries/social.guest-identity.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/reel.md
   - docs/systems/billing-caps.md
@@ -74,63 +76,63 @@ working.
   those proofs?", and he answered "Yes, write and prove." The lane resumed on it.
 - **Q2. The reel's three dormant columns wait for milestone 31.** partyreel.com still reads them: `main`'s
   `MEDIA_HOST_COLUMNS` (`src/lib/db/queries/media.ts:40`) selects `highlight_score`, `clip_start_seconds` and
-  `clip_end_seconds`, so dropping them now would 400 every host album read on milestone-30. **Recommended:** part 2
-  is its own contract file, `20260929170000_schema_pass_contract.sql`, headed "apply only after milestone 31 ships",
-  on the `live_reel_drop`/`identity_contract` precedent. The list edit, `MediaRow`'s Omit and the forensics parity
-  guard's reshape (it pins the grant to `20260707150000`'s text, so it would replay the set instead) land in the
-  same commit.
+  `clip_end_seconds`, so dropping them now would fail every host album read on milestone-30 (42703, proved).
+  **Recommended:** part 2 is its own contract file, `20260929170000_schema_pass_contract.sql`, headed "apply only
+  after milestone 31 ships", on the `live_reel_drop`/`identity_contract` precedent, with the list edit, `MediaRow`'s
+  Omit and the forensics parity guard's reshape landing now. **Built as recommended** (the Orchestrator's call, under
+  Will's standing word that the data architecture is its to optimize); his to overrule.
 - **Q3. Close the MCP landmine at its source?** In `public`, the default privileges of role `postgres` hand anon and
-  authenticated every privilege on each new table, sequence and function. That is how every new function inherits
-  anon's EXECUTE: `pg_default_acl` holds `anon=X/postgres` and `anon=arwdDxtm/postgres`. Supabase's current "Securing
-  your API" guide advises revoking these defaults, and the platform is moving that way. **Recommended: yes**, for
-  anon and authenticated only, kept for the service role (its server reads depend on it). Postgres's own PUBLIC
-  EXECUTE on new functions stays, because a per-schema default cannot lift it and the global form would also strip
-  EXECUTE from functions of future extensions. So every grant block still revokes from public; a bare
-  `revoke … from public` becomes enough to shut anon out. Both sibling files grant every function and table they
-  create explicitly (checked), so neither changes under it.
+  authenticated every privilege on each new table, sequence and function (`pg_default_acl`: `anon=arwdDxtm`,
+  `anon=X`, `anon=rwU`). Supabase's "Securing your API" guide gives these revokes and the platform is moving its
+  default there. **Recommended: yes**, for anon and authenticated only; the service role keeps its defaults (every
+  server read of a new table uses them). Postgres's own PUBLIC EXECUTE on a new function stays: a per-schema default
+  cannot lift a global one (the guide's fourth statement, a per-schema `revoke execute on functions from public`, is a
+  no-op, proved rolled back), and the global form would reach every schema postgres writes. So every grant block
+  still revokes from public, and a bare `revoke … from public` now leaves anon and authenticated nothing. **Built as
+  recommended**; his to overrule.
 - **Q4. The monthly meter becomes deny-all.** `storage_ledger_host_select` and authenticated's SELECT on
-  `storage_ledger` are read by nothing: no `.from("storage_ledger")` in `src/` on either build, none by
-  authenticated in pg_stat_statements since 2026-05-28, and every function that reads it is definer.
-  **Recommended: drop both.** The accepted `rls_enabled_no_policy` set grows 17 → 18.
+  `storage_ledger` are read by nothing: no `.from("storage_ledger")` in `src/` on either build (the one script is the
+  service role), none by authenticated in pg_stat_statements since 2026-05-28, and every function that reads it is
+  definer. **Recommended: drop both**, the accepted `rls_enabled_no_policy` set growing 17 to 18. **Built as
+  recommended**; his to overrule.
 - **Q5. Should the database hold the app's bounds on what the host writes directly?** `events.name`, `description`
   and `qr_style` are host-writable over PostgREST with her own session, past `validation/event.ts`, and no CHECK
-  bounds them today (a megabyte name is one PATCH). **Recommended:** `events_name_len` (1 to 80),
-  `events_description_len` (at most 2,000) and `events_qr_style_len` (1 to 32, an envelope, never the preset list).
-  Each is the app's own number, and a parity test against the zod schema would ship with it; the 16 live rows fit
-  (longest name 37, longest description 34). `reel_style_id` has the same exposure, but its guard forbids any CHECK ("a new mood
-  needs no migration"); an envelope for it is a Deferred line for the reel's owner.
+  bounded them (a megabyte name was one PATCH). **Recommended:** `events_name_len` (1 to 80),
+  `events_description_len` (at most 2,000) and `events_qr_style_len` (1 to 32, an envelope, never the preset list),
+  each the app's own number under a parity guard read off the zod schema; the 20 live rows fit (longest name 37,
+  description 34, key 7). `reel_style_id` has the same exposure, but its guard forbids a CHECK ("a new mood needs no
+  migration"): an envelope for it is a Deferred line. **Built as recommended**; his to overrule.
 
 ## System-doc edits (in place, owned facts only)
 
-- none (the lane wrote no migration, so no fact changed; on resume: `database-security.md` gets the deny-all list
-  plus `storage_ledger`, the advisor counts, the anon and authenticated table posture and the landmine line refined;
-  `profiles-social.md` loses its two "until a contract migration drops it" clauses, lines 19 and 120-121, with the
-  file added to `owns`)
+- `docs/systems/database-security.md`: the advisor set (18 / 4 / 33: `0029` read 33 since the doors' four host acts,
+  now listed in the authenticated-only set); the RETURNS TABLE line (no function holds PUBLIC's EXECUTE);
+  `tier_limits` in the service-role-only set; `storage_ledger` in the deny-all list; the grants intro (a table from
+  before the pass took Supabase's default, one since starts with no client grant) and a new line on what each client
+  role holds; the media parity guard replaying the drops; the three events CHECKs under the value gates; the landmine
+  gotcha rewritten for the revoked defaults.
+- `docs/systems/profiles-social.md`: its two "until a contract migration drops it" clauses (the guest-list switch and
+  the three mail switches).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- Database: once `settings-wiring` merges, revoke the PUBLIC EXECUTE that `get_event_by_qr_token` (its recreate
-  restates it) and `get_upload_context` still hold; anon, authenticated and service_role each hold it by name (from
-  `schema-pass`).
-- Database: once `settings-wiring` merges, drop `storage_ledger.photo_count` and `video_count`. `create_media` and
-  `create_media_as_host` increment them and nothing reads them (from `schema-pass`).
-- Database: once both SQL lanes merge, retire `tier_type`'s dead `max` label (no row holds it; `toBillingTier` folds
-  it into pro). This recreates the enum, and `tier_limits` and `monthly_ingress_cap` take the new type (from
-  `schema-pass`).
-- Database: once both SQL lanes merge, replace media's three removal flags (`removed_by_uploader`, `_system`,
-  `_admin`: mutually exclusive in every live row, and true only on removed rows) with one removal actor, so an
-  impossible pair cannot be stored (from `schema-pass`).
-- Admin: nothing ever writes `job_applications.resume_url` (the careers form sends links), yet the applicants list
-  draws a Résumé link from it. Drop both once `triage-r2-wiring`, which owns `src/components/admin/`, merges (from
-  `schema-pass`).
+- Database: drop `storage_ledger.photo_count` and `video_count` in the next change that replaces `create_media` and
+  `create_media_as_host`, the only writers (they increment them); nothing reads them on either build or in any body
+  (from `schema-pass`).
+- Database: retire `tier_type`'s dead `max` label (no row holds it; `toBillingTier` folds it into pro). This recreates
+  the enum, and `tier_limits` and `monthly_ingress_cap` take the new type (from `schema-pass`).
+- Database: replace media's three removal flags (`removed_by_uploader`, `_system`, `_admin`: mutually exclusive in
+  every live row, and true only on removed rows) with one removal actor, so an impossible pair cannot be stored
+  (from `schema-pass`).
 - The reel: give `events.reel_style_id` an envelope (a length bound), since the host writes it straight through
   PostgREST. Its guard becomes "no membership CHECK, no enum", which keeps the new-mood-needs-no-migration reason
   (from `schema-pass`).
-- Media: a host's direct PostgREST write of `removed_at` (or an event's `deleted_at`) sets `purge_at`, so she can push
-  her own item's purge date past the 30 days (the standby budget still bounds the bytes). A client write could take
-  the database's clock instead. The media guard is `triage-r2-wiring`'s this batch (from `schema-pass`).
-- The reel bucket: the uploader's video window (the trim) would add columns of its own, because the dormant `clip_*`
-  leave at milestone 31 (refines the reel bucket's trim line; from `schema-pass`).
+- Media: a host's direct PostgREST write of `removed_at` (or an event's `deleted_at`) sets `purge_at` (`set_media_purge_at`
+  takes `coalesce(new.removed_at, now()) + 30 days`), so she can push her own item's purge date past the 30 days (the
+  standby budget still bounds the bytes). Take the database's clock for a client write; `triage-r2-wiring` has merged,
+  so the media guard is free (from `schema-pass`).
+- The reel bucket: the uploader's video window (the trim) adds columns of its own, because the dormant `clip_*` leave
+  with part 2 (refines the reel bucket's trim line; from `schema-pass`).
 - Forensics: `/admin/forensics`' 24-hour coverage counts `upload_forensics` by `created_at` with no index behind it.
   Add a BRIN on `created_at` once the table outgrows a scan (from `schema-pass`).
 - Ops: the Auth server's database connections are an absolute 10 (the performance advisor), so an instance resize
@@ -138,81 +140,104 @@ working.
 
 ## Handoff (replaces the chat report)
 
-- **The work commit: none. The lane is blocked on Q1.** The permission classifier refused the migration's write
-  before any file existed, and nothing depends on a write that did not happen. This manifest is the only commit, on
-  `ec0125fe` (launch-prep at boot). No sync: launch-prep has since gained only two record commits (`4d49b5d4`,
-  `f1bf741d`).
-- Gates: `track-manifests.test.ts` on this manifest (the only change). The full gate waits for the work: this tree
-  changes nothing it covers.
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = `docs/tracks/schema-pass.md`.
-- Advisors before (2026-09-29T11:18Z): security 17 `rls_enabled_no_policy`, 4 in 0028, 29 in 0029 (the accepted set,
-  unchanged). Performance: 5 unindexed FKs (`contact_submissions`/`job_applications` `handled_by`,
-  `newsletter_signups.event_id`, `reports.media_id`, `reports.resolved_by`), 2 tables with no primary key
-  (`action_attempts`, `unlock_attempts`), 7 unused indexes, and 1 Auth connection-strategy notice.
-- **The items: what part 1 (`20260929160000_schema_pass.sql`) was to do.** Each item was checked against `main`
-  (milestone-30) and `launch-prep` by `git grep` of `src/`, `workers/` and `scripts/`, against every live function
-  body, and against pg_stat_statements (reset 2026-05-28):
-  - Drop `events.show_guest_list`. No reader on either build: comments, loose fixtures and `as` casts only, and the
-    one body naming it (`get_public_profile`) names it in a comment. Its host insert and update grants go with it.
-  - Drop `notification_prefs.notify_album_shared`, `notify_new_uploads_digest` and `notify_new_follower`, one
-    statement each (the parity test reads each drop). Both builds select only `notify_pass_renewal, marketing_opt_in`.
-    The pg_stat_statements selects naming the three came from builds before `20260928160000`.
-  - Drop `newsletter_signups.opted_in_at`, `created_at`'s twin: nothing reads it, and its one writer,
-    `capture_guest_email`, inserts once with `on conflict do nothing`.
-  - Drop `events_host_active_idx`: 0 scans, and `events_host_id_idx` (13,574 scans) covers it.
-  - Drop `media_event_id_reel_eligible_idx`: no read filters on `reel_eligible`, since it is an output of
-    `album_changes_since` and `get_event_media_by_qr_token` only. Its scans are the stored reel's history, and
-    today's plans pick `media_active_bytes_idx` and `media_event_created_id_idx`. That is one index fewer to write on
-    every upload and status change.
-  - Drop `storage_ledger_host_id_idx`: the unique `(host_id, period)` leads with `host_id`.
-  - Drop `article_feedback_slug_idx`: 0 scans. The summary groups the whole table, and the planner prefers a
-    sequential scan plus a hash even with the index there (cost 31.2 against 39.4 with seqscan off).
-  - Drop `storage_ledger_host_select` and authenticated's SELECT on the ledger (Q4).
-  - Revoke every table privilege from anon (`revoke all on all tables in schema public from anon`). Anon held
-    SELECT, TRUNCATE, REFERENCES and TRIGGER on 15 tables and TRUNCATE, REFERENCES and TRIGGER on 4 more; RLS never
-    limits a TRUNCATE. Since 2026-05-28 its only table statements are 1-call red-team probes. The anon client
-    (`lib/supabase/anon.ts`) calls RPCs only, and every browser-client table read is gated on a session.
-  - Revoke TRUNCATE, REFERENCES and TRIGGER from authenticated on every table. No column grant carries these, so the
-    column-locked writes and media's column-scoped SELECT stand.
-  - Revoke authenticated's SELECT on the 10 deny-all tables plus the ledger. Every reader is the admin client (each
-    `.from()` checked), and `reports` is about to hold reporters' addresses (`triage-r2-wiring`).
-  - Revoke `tier_limits(tier_type)` from PUBLIC, anon and authenticated, keeping service_role. Its callers are
-    definer bodies and `monthly_ingress_cap`; no code calls it; anon's one call was a probe.
-  - Revoke the default privileges from anon and authenticated in `public` (Q3).
-  - Create `newsletter_signups_event_id_idx` (partial, `where event_id is not null`) for the event purge's
-    `on delete set null`.
-  - Add the three `events` CHECKs (Q5), each with a comment on its constraint.
-  - The rolled-back proof (to run on resume): anon refused every table and TRUNCATE; the four capability RPCs still
-    answer; the host reads and writes her own events, profile, prefs, likes, blocks and follows, and her media on
-    both milestone-30's list and the new one; another host still gets 0 rows; authenticated is refused each deny-all
-    table and the ledger, while `get_host_upload_context` still reads it; `tier_limits` is refused to the client
-    roles and answers the service role; each CHECK refuses one over its bound and takes the bound; and a probe table
-    and function created after the change give anon and authenticated nothing (one bare revoke from public clears
-    the function).
-- **The items: what part 2 (`20260929170000_schema_pass_contract.sql`, after milestone 31) was to do.** Drop the three
-  reel columns (Q2). Its proof: the new host list reads; milestone-30's list answers 42703, the reason it waits.
-- **Left, with why:**
-  - `sent_emails_sent_at_idx`: the admin's 24-hour and 30-day email counts range on `sent_at`.
-  - `profiles_deletion_requested_at_idx`: the deletion sweep's partial.
-  - `upload_forensics_device_idx` and `upload_forensics_event_idx`: cross-event correlation during an incident, their
-    stated purpose.
-  - `reports_profile_id_idx`: it covers its FK.
-  - The unindexed `handled_by` and `resolved_by` FKs: only an operator's account deletion walks them, and an index
-    would just trade the advisor's notice for an unused-index one.
-  - `reports.media_id`: `triage-r2-wiring` adds its index.
-  - No primary key on `action_attempts` and `unlock_attempts`: an append-only limiter log, where a surrogate key is
-    one more index on every guest action.
-  - `uuid-ossp`: nothing depends on it and it has no API surface, so dropping a platform default buys nothing.
-  - The `avatars` bucket: live, used by `lib/supabase/avatar-storage.ts`, with no `storage.objects` policy, so only
-    the service role writes and the public URL reads.
-  - Every function has a caller (code, trigger or body), every policy uses `(select auth.uid())`, and every definer
-    pins `search_path = ''`.
-  - The gallery doorbell fires on every media update and returns early unless the approved set changes. Narrowing it
-    to `update of status` would save microseconds, not worth touching media's triggers while `triage-r2-wiring`
-    rewrites them.
+- **The work commit: `fe593a35`**, on the sync `11df5f3b` (`git merge origin/launch-prep` at `2eb477a7`), pushed.
+  launch-prep has since moved to `46fb7c86` with records, the contact and loose-ends wirings and a new lane's cut,
+  none touching this lane's paths or reads (checked: `git diff --name-only 2eb477a7 origin/launch-prep` shares no
+  file with the lane, and no dropped name appears in it); a trial merge of `46fb7c86` (aborted, never committed) ran
+  the 23 migration-reading test files green (513 tests).
+- **Gates on `fe593a35`**, each on its own exit code: `pnpm typecheck` 0; `pnpm lint` 0 (no warning); `pnpm test` 0
+  (602 files, 7,008 tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3132` 0
+  (132 checks, 0 failing; its scope: the Library and the lab's shell). Logs in `../partyreel-wt/_scratch/schema-pass/`.
+- **Beyond the gate:** `tsc --noEmit` against a hand-simulated regeneration of `types.ts` after part 1 (the six
+  columns off) and after both parts (the reel's three off too) exits 0; before `gallery-fixtures.ts` let go of
+  `show_guest_list` it failed TS2352 after part 1's regeneration, which is why the fixture changed. After part 2's
+  regeneration the forensics guard fails by design, naming each reel column to take off `MediaRow`'s Omit (the
+  contract's step 4). Five mutations, each restored and md5-checked: a name bound of 81, `maintain` dropped from the
+  revoke, the contract keeping `highlight_score`, an Omit name the type lacks and an Omit missing a skipped column;
+  each is caught by the guard written for it (the contract's by two: the replayed parity and its own drop list).
+- Lane check: `git diff --name-only origin/launch-prep...HEAD` = the two migrations, `src/lib/db/queries/media.ts`,
+  `src/lib/db/migration-guards.test.ts`, `src/lib/forensics/migration-guards.test.ts`,
+  `src/lib/social/notification-prefs.test.ts`, `src/lib/social/notification-prefs.ts`, `src/lib/db/queries/social.ts`,
+  `src/lib/db/mutations/social.ts`, `src/components/admin/applicants-list.tsx`,
+  `src/app/(dev)/design/sandbox/gallery-fixtures.ts`, `src/lib/db/queries/social.guest-identity.test.ts`,
+  `docs/systems/database-security.md`, `docs/systems/profiles-social.md` and this file, every one under `owns`.
+  `gallery-fixtures.ts` and `social.guest-identity.test.ts` joined `owns` after their edit, when the simulated
+  regeneration showed the need; the formatter also rewrapped two drifted lines of the fixture.
+- **Advisors before (2026-09-29T18:15Z):** security 17 `rls_enabled_no_policy`, 4 in 0028, 33 in 0029. Performance: 4
+  unindexed FKs (`contact_submissions`/`job_applications` `handled_by`, `newsletter_signups.event_id`,
+  `reports.resolved_by`), 2 tables with no primary key, 9 unused indexes, the Auth connection notice. **Expected
+  after part 1** (the file's step 3): 18 / 4 / 33; unindexed FKs 3; unused loses `events_host_active_idx` and
+  `article_feedback_slug_idx` and gains `newsletter_signups_event_id_idx`. Part 2: no delta.
+- **Part 1, `20260929160000_schema_pass.sql`, proved whole on the live schema** (one `execute_sql`: `begin;` + a
+  snapshot + the file verbatim + eight blocks + `rollback;`; the blocks and these rows sit at the file's foot), every
+  step ok: the file moved exactly 6 columns, 4 indexes and 1 policy out and 3 CHECKs and 1 index in, changed no
+  function body and exactly two ACLs (`get_upload_context`, `tier_limits`), left 18 deny-all tables, no function
+  executable through PUBLIC and defaults naming only postgres and the service role; **anon** refused all 30 tables,
+  TRUNCATE on `reports` and `tier_limits`, holds no table or column privilege, and still gets
+  `get_event_by_qr_token`, `get_event_media_by_qr_token` (2 rows), `get_public_profile` and `get_upload_context`;
+  **the host** reads her event, profile, prefs, likes, blocks, follows, shown events, event blocks, invites, link
+  stats and announcements, reads her media on the new list and on milestone-30's (2 rows each), writes her event,
+  profile and prefs, gets `get_host_upload_context` (the ledger through its definer read), and is refused all 18
+  deny-all tables and `tier_limits`; no table grants authenticated TRUNCATE, REFERENCES, TRIGGER or MAINTAIN, and
+  `reports` holds nothing for either client role (build 23's red-team note, closed: it also held MAINTAIN);
+  **another host** reads 0 of the event and its media and writes 0; **the service role** runs `tier_limits`, reads
+  the ledger, reports and the applications (`select *`), and `capture_guest_email`'s opt-in lands a signup; **the
+  CHECKs** refuse a name of 81 and 0, a description of 2,001, a key of 33 and 0, each by its own constraint, and take
+  a name of 80, 40 emoji (80 UTF-16 units, the app's longest), a description of 2,000 and null, a key of 32; **new
+  objects**: a table gives anon and authenticated nothing and the service role its four, a function carries only
+  PUBLIC's EXECUTE and one bare revoke from public leaves anon and authenticated false, the service role true, and
+  the guide's per-schema revoke from public is a no-op; **the index** plans the FK's set-null. Run first with two
+  harness bugs (a `"char"` concatenation, `format` printing booleans as `f/t`), fixed, then held whole. After each
+  run a read-only check found the six columns, four indexes and policy standing, anon holding SELECT on `reports`,
+  the defaults naming anon, no probe and no signup: nothing persisted.
+- **Part 2, `20260929170000_schema_pass_contract.sql`, proved the same way:** the new host list reads 2 rows,
+  milestone-30's answers 42703 (the reason it waits), and the host's column-scoped SELECT is exactly the new list;
+  afterwards the three columns stood with their grants.
+- **The items, done in part 1** (each checked against `main` at milestone-30 and launch-prep by `git grep` of
+  `src/`, `workers/` and `scripts/`, every live function body, and pg_stat_statements since 2026-05-28):
+  - `alter table public.events drop column show_guest_list;` (his yes; comments, loose fixtures and a cast only;
+    `get_public_profile` names it in a comment), and the three `notification_prefs` switches, one statement each.
+  - `newsletter_signups.opted_in_at` (`capture_guest_email` names neither twin).
+  - **New since the audit:** `job_applications.resume_url` (never written; the inbox's Resume link leaves with it;
+    milestone-30's inbox reads `select("*")` and draws the link only when the value is there), the Deferred line
+    whose condition, `triage-r2-wiring`'s merge, has come.
+  - The four indexes. **Corrected since the audit:** `media_event_id_reel_eligible_idx` was last scanned today, not
+    only in the stored reel's history, yet the seven hottest media reads plan identically without it (a rolled-back
+    explain on the 1,165-item album), so it goes.
+  - `storage_ledger_host_select` and authenticated's SELECT on the ledger (Q4).
+  - `revoke all on all tables in schema public from anon` (15 tables with SELECT, 4 more without, all with TRUNCATE,
+    REFERENCES, TRIGGER and MAINTAIN).
+  - **Corrected since the audit:** `revoke truncate, references, trigger, maintain … from authenticated`. Postgres 17's
+    MAINTAIN rode Supabase's default on every table (`rDxtm`), which information_schema never lists.
+  - SELECT from authenticated on the 10 deny-all tables and the ledger (each `.from()` of them is the admin client on
+    both builds).
+  - `tier_limits` to the service role alone. **New since the audit:** `get_upload_context`'s PUBLIC EXECUTE (the
+    Deferred line; the doors had already done `get_event_by_qr_token`'s), so no function in public keeps PUBLIC's.
+  - The default privileges (Q3), `newsletter_signups_event_id_idx`, and the three events CHECKs (Q5).
+- **Part 2** drops `media.highlight_score`, `clip_start_seconds` and `clip_end_seconds` after milestone 31 (Q2); its
+  code landed now: `MEDIA_HOST_COLUMNS` without them, `MediaRow`'s Omit with them until the regeneration, and the
+  forensics guard replaying the grant across the set (drops included) with a two-way MediaRow check against the
+  generated row.
+- **Left, with why:** `sent_emails_sent_at_idx` (the admin's email counts range on `sent_at`);
+  `profiles_deletion_requested_at_idx` (the deletion sweep's partial); `upload_forensics_device_idx` and
+  `_event_idx` (cross-event correlation in an incident); `reports_profile_id_idx` (its FK), and the triage lane's
+  `reports_media_id_idx` and `reports_reporter_hash_idx` (unused only until reports use them); the unindexed
+  `handled_by` and `resolved_by` FKs (only an operator's account deletion walks them); no primary key on the two
+  limiter logs (append-only; a surrogate key is one more index on every guest action); `uuid-ossp` (no dependency, no
+  API surface); the `avatars` bucket (live, no `storage.objects` policy: the service role writes, the public URL
+  reads); all 65 definers pin `search_path = ''`, no policy calls a bare `auth.uid()`, no definer runs dynamic SQL;
+  the gallery doorbell's early return on every media update (microseconds, not worth a trigger change alone).
 - Assets requested from Will: none.
 - Board ideas: none.
-- Proposed migrations / Worker / Vercel / Stripe / env changes: the two files above, written on Q1's yes. The Auth
-  connection strategy is a Supabase dashboard setting (Deferred).
-- Calls his to overrule: Q2 to Q5, each built as recommended once Q1 is answered.
-- Look at first: Q1.
+- Proposed migrations / Worker / Vercel / Stripe / env changes: `20260929160000_schema_pass.sql` now, by its
+  protocol (drift, the rolled-back check, apply verbatim, advisors, types, then a live smoke of the anonymous
+  surfaces on partyreel.com and the alias); `20260929170000_schema_pass_contract.sql` only after milestone 31 ships.
+- **Records for the Orchestrator:** CLAUDE.md's ★ line on the MCP anon EXECUTE is outdated once part 1 applies (a
+  new function no longer names anon; a bare `revoke … from public` shuts it out, and an explicit anon revoke stays
+  harmless). ROADMAP lines that retire with part 1: "drop `events.show_guest_list`" and the billing follow-ons'
+  latent TRUNCATE, REFERENCES and TRIGGER line; the reel bucket's "drop the dormant `highlight_score` and `clip_*`"
+  retires with part 2, and its trim line takes the Deferred refinement above.
+- Calls his to overrule: Q2 to Q5 as built; the three additions to the audit (`resume_url`, `get_upload_context`'s
+  PUBLIC EXECUTE, MAINTAIN); keeping the service role's default privileges.
+- Look at first: part 1's apply (it changes what anon and authenticated can reach on the database partyreel.com
+  shares), then the live smoke.
