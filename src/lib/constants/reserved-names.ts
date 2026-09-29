@@ -14,8 +14,8 @@ import { BRAND_STEM } from "@/lib/constants/reserved-slugs";
  * Like reserved-slugs.ts this is POLICY, not a security boundary: enforced in the app layer
  * (displayNameSchema in lib/validation/profile.ts, which the account action, the guest join and
  * rename routes, the door's adopted name and the browser's own checks all read), not in SQL (the
- * identity migration's header says why: a name reaches the database only through a route or an
- * action that has already asked), and may grow. All entries MUST be lowercase.
+ * identity migration's header says why: the route or action that calls the RPC owns the check),
+ * and may grow. All entries MUST be lowercase.
  */
 export const RESERVED_NAMES: ReadonlySet<string> = new Set([
   "admin",

@@ -21,7 +21,7 @@ import type { ComponentProps } from "react";
  * one Enter reaches) submitting anyway. A `method="post"` form still leaves the page for a POST it
  * cannot answer, or for an endpoint kept only to answer 204. The attribute is one line, has no
  * state to get wrong, and answers for a form's submit button and its Enter alike (measured in
- * Chrome: no request reached the server).
+ * Chrome and Firefox: no request reached the server).
  *
  * A form that names its own native answer needs none of this and stays a plain `<form>`: an
  * `action` (a Server Function, whose form works before hydration by design) or `method="get"` (a
