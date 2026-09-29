@@ -227,7 +227,7 @@ export default async function DeskPage({
       <StatRow
         stats={[
           ["waiting on you", waiting],
-          ["items to rule", `${openItemsNow} of ${itemsNow}`],
+          ["cards awaiting a verdict", `${openItemsNow} of ${itemsNow}`],
           ["answered this round", answeredNow],
           ["asked for a clearer question", unclearNow],
           ["standing boards", rows.length],

@@ -37,7 +37,9 @@ export default async function KitPage({
   await requireDesignKey(searchParams);
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6">
+    // Two faces: a bare <code> falls to the preflight's mono stack, so the
+    // page's file names and fields read in the sans (design-system.md).
+    <div className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6 [&_code]:font-sans">
       <PageHeader
         title="The toolbox"
         description="How a board is built: one folder, holding its decisions as data and a preview per option, drawn with the few pieces the kit's front door gives it. Everything else in the kit is the machinery the board rides on."

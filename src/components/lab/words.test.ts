@@ -10,7 +10,7 @@ import { RETIRED } from "@/app/(dev)/design/_data/glossary";
  *
  * A pick is the best of what one round drew, a working version and never a
  * rule (CLAUDE.md, "Rising tides"), so the lab no longer says Will "ruled",
- * gave "a ruling" or "ratified" anything. The set is the glossary's: a
+ * gave "a ruling", has something "to rule" on or "ratified" anything. The set is the glossary's: a
  * decision is answered with a PICK; a catalog card or a Library entry gets a
  * VERDICT; an ANSWER is either, and the ledger records answers. This refuses
  * the old words wherever the lab, the kit or the docs say them, and the
@@ -21,7 +21,7 @@ import { RETIRED } from "@/app/(dev)/design/_data/glossary";
  * ledgers (Will's own words).
  */
 const ROOT = process.cwd();
-const OLD = /\b(?:un)?rul(?:ed|ing|ings)\b|\bratif/i;
+const OLD = /\b(?:un)?rul(?:ed|ing|ings)\b|\bto rule\b|\bratif/i;
 
 const SCANNED = [
   "src/app/(dev)/design",
