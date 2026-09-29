@@ -41,7 +41,6 @@ a lane").
 | --- | --- | --- | --- | --- |
 | `schema-pass` | the data architecture trimmed | merged at `57b17ace`; part 1 applied on Will's go-ahead (2026-09-29, his answer "Yes, apply part 1"; recorded `20260929210010`, the payload the file's md5; advisors 18/4/33; anon REST 42501; types regenerated at `c7a50adc`); a signed-in host walk on partyreel.com rides build 25's red-team as a follow-up; part 2 (`20260929170000`) after milestone 31 ships | Opus, 3132 | `54f414f9` |
 | `privacy-hero-r4` | privacy-hero r4, a board: the veil as drawn and three variations of it, the sealed cards out, the sweep and the aperture banked | running (agent `ac010b14ad42386af`; worktree `../partyreel-wt/privacy-hero-r4`) | Opus, 3133 | |
-| `crumbs-20` | five hardening items: no form sends its fields into the address before hydration, the brand family reaching display names, every 401 fallback and the renewal nudge's anchor surviving a sign-in, a confirm announced as one | running (agent `afcdac799225fed65`; worktree `../partyreel-wt/crumbs-20`) | Sonnet, 3135 | |
 | `crumbs-21` | four data-integrity items: a waiting newcomer's ticket settled when her door moves, the admin album covering the worst kind, what a report named outliving its photo's row, the host's like counts limited to what she sees (migrations, to apply by protocol) | running (agent `a34b45f3aca9068fc`; worktree `../partyreel-wt/crumbs-21`) | Opus, 3134 | |
 | `lab-focus` | on Will's note (2026-09-29, "a Jackson Pollock painting of text" above the options): the lab's question view rebuilt pictures first, the stage whole on the first screen at a desk and a phone, everything else one click away; a `lab:demo` reach gate | running (worktree `../partyreel-wt/lab-focus`) | Opus, 3131 | |
 
@@ -73,12 +72,12 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Batch 7 is merged whole; its records carry the rest.
 
 Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp
-stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration applied by protocol, 20260929204753), unfence, crumbs-18, demo-framing-r2, about-press, menu-depth, crumbs-19.
+stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration applied by protocol, 20260929204753), unfence, crumbs-18, demo-framing-r2, about-press, menu-depth, crumbs-19, crumbs-20.
 
 ## Next, in order
 
-1. **Integrate each lane as it hands off** (crumbs-20 handed off at `b0e68451`; then privacy-hero-r4, crumbs-21,
-   lab-focus), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
+1. **Integrate each lane as it hands off** (crumbs-21 handed off at `757c8524`, its migrations by protocol; then
+   privacy-hero-r4, lab-focus, crumbs-22), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
    advisors, types.
 2. **Build 26 is on the alias** (`d67e94ba`, 2026-09-29; its red-team running, agent `a60d7ff323978f40e`): crumbs-17, unfence, album-motion, the
    types after both migrations, crumbs-18, demo-framing r2, about-press r1 and menu-depth. Then its red-team (Opus, the
@@ -87,7 +86,8 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
    (the brief and its ledger: `../partyreel-wt/_scratch/redteam-26/`; from another session, respawn from the brief after
    the ledger's last line). Then milestone 31
    is proposed to Will (his yes); schema-pass's part 2 applies after it ships. Build 27's red-team walks crumbs-19's
-   steps (`git show 647858ef^2:docs/tracks/crumbs-19.md`, "Look at first") and each later lane's.
+   steps (`git show 647858ef^2:docs/tracks/crumbs-19.md`, "Look at first"), crumbs-20's five signed-in steps
+   (`git show e0a22b4d^2:docs/tracks/crumbs-20.md`) and each later lane's.
 3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note; `lab-focus`
    took the lab's phone fold with it). After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
    `git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary redirect, the llms summary kept, the kit's files
