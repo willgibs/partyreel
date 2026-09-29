@@ -17,6 +17,8 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Admin: `reports.media_id` is `on delete set null`, so once a reported photo is purged (a removal's window ending, an uploader's withdrawal) its report reads as an album report under All; what a report named should outlive the row (from `triage-r2`).
+- Guests: a way to ask the host to take a photo down, short of a report: the help article and admin-triage's `steer` both say "ask the host first", and nothing in the product lets a guest ask; a board (from `triage-r2`).
 - Host: a restore that came back without its custom link (`restore_event`'s `custom_slug_released`) could say so in its toast; `restoreEvent` in `db/mutations/media.ts` drops the flag today (from `pricing-wiring`).
 - Admin: an operator release for a squatted custom link, from a report on `/e/<slug>`, now that a free account can hold one (from `pricing-wiring`).
 - Billing follow-ons: measure one iPhone photo and one 10 s video uploaded at the camera's defaults on the alias (`media.file_size_bytes`); if the browser stores a JPEG or a recompressed video at 1.3x or more, retune `AVG_PHOTO_BYTES` / `VIDEO_BYTES_PER_MIN` to what we store (from `pricing-wiring`).
