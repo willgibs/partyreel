@@ -6,6 +6,25 @@ board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
   - src/lib/db/migration-guards.test.ts
   - src/app/admin/albums/
+  - supabase/migrations/20260929230000_door_password_ends_asks.sql
+  - supabase/migrations/20260929231000_report_keeps_its_item.sql
+  - supabase/migrations/20260929232000_like_counts_shown.sql
+  - src/lib/guest/use-upload-queue.ts
+  - src/lib/guest/use-upload-queue.test.tsx
+  - src/components/app/event-settings/door-page.tsx
+  - src/components/app/event-settings/door-page.test.tsx
+  - src/lib/db/queries/reports.ts
+  - src/lib/db/queries/reports.test.ts
+  - src/lib/admin/reports.ts
+  - src/lib/admin/reports.test.ts
+  - src/components/app/report-review.tsx
+  - src/components/app/report-review.test.tsx
+  - src/components/admin/report-queue.tsx
+  - src/components/admin/report-queue.test.tsx
+  - src/components/admin/moderation-grid.tsx
+  - src/components/admin/moderation-grid.test.tsx
+  - src/lib/r2/grid-items.ts
+  - src/lib/moderation/operator-actions.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/database-security.md
   - docs/systems/guest-flow.md
