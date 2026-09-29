@@ -3,7 +3,9 @@
  *
  * Each of these cost a round. They were discovered on one board, commented in
  * that board's file, and then rediscovered on the next board because nobody
- * reads a comment in a file they are not editing. The kit's whole reason to
+ * reads a comment in a file they are not editing. A trap leaves with the kit
+ * piece that answered it: the lab revamp (2026-09-29) retired the tools no
+ * board used, and seven traps with them (git keeps both). The kit's whole reason to
  * exist is that a board should not be able to step on any of them, so the
  * mechanism is in the kit and the reason is here, rendered as a Traps section on
  * `/design/lab/kit`.
@@ -53,24 +55,6 @@ export const TRAPS: readonly Trap[] = [
     instead:
       "Read the value in the component that renders the thing it drives, and key an element on the value that changes its identity, so the change is a re-render rather than a stale attribute.",
     file: "src/components/lab/board-page.tsx",
-  },
-  {
-    id: "breakpoints-in-a-stage",
-    tried: "Use a Tailwind breakpoint prefix inside a 375 stage.",
-    breaks:
-      "A stage is a div, and `zoom` scales layout but never media queries, so `sm:` reads the real browser viewport and fires inside the phone canvas on a desktop. The stage looks plausible and is showing the desktop layout.",
-    instead:
-      "Key off the `mode` prop, or compute a column count from it (Specimen's `cols`). For a layout that must be judged at its real breakpoints, use a Frame: an iframe has its own viewport.",
-    file: "src/components/lab/stage.tsx",
-  },
-  {
-    id: "stage-in-a-flex-row",
-    tried: "Put a Stage in a flex row beside its caption, or inside a Cell.",
-    breaks:
-      "Stage measures the box it is given to pick its zoom, so in a flex row it shrinks to its content width, measures about 100px and renders a 1440 canvas at seven percent. It looks like a deliberate thumbnail.",
-    instead:
-      "Stages and frames go in `Labeled` (full width, caption under); specimens go in `Cell`.",
-    file: "src/components/lab/specimen.tsx",
   },
   {
     id: "candidate-css-order",
@@ -134,8 +118,8 @@ export const TRAPS: readonly Trap[] = [
     breaks:
       "The specimen moves and the caption does not, and a reviewer has no way to tell which one is lying. It is the single most common way a board loses its authority.",
     instead:
-      "`useComputedTokens` reads the computed cascade off a real element. Not the tuner store: a lab page mounts CandidateStyle and not the panel, so a store-driven caption prints an override nothing on the page is wearing.",
-    file: "src/components/lab/measure.ts",
+      "`Measured` reads the number off the frame's own document (its observer, its timers and the webfont) and the caption prints what it read; `null` from the probe means not settled yet, never a guess.",
+    file: "src/components/lab/scene.tsx",
   },
   {
     id: "empty-derived-token",
@@ -143,34 +127,8 @@ export const TRAPS: readonly Trap[] = [
     breaks:
       "`@theme inline` substitutes each derived step into its utility at build time, so the variable is empty at runtime and the caption prints nothing or falls back to a literal.",
     instead:
-      "Probe with a hidden element wearing the utility and measure it. The only honest number for a baked value is the browser's.",
-    file: "src/components/lab/measure.ts",
-  },
-  {
-    id: "inline-beats-the-block",
-    tried: "Apply a candidate block that moves a token the tuner also owns.",
-    breaks:
-      "The tuner writes INLINE on <html>, and an inline declaration beats the `:root` block a candidate renders, so a standing knob silently masks the applied value and the site keeps wearing the knob.",
-    instead:
-      "Move the knobs with the block (`ApplyToSite`'s `onApply`), and clear any control whose range cannot express the value rather than leaving a phantom override that Reset never clears.",
-    file: "src/components/lab/apply.tsx",
-  },
-  {
-    id: "replay-by-listener",
-    tried: "Re-run a one-shot animation by toggling a class on animationend.",
-    breaks:
-      "It races the compositor and leaves the element in whichever state the last frame happened to be, so a replay sometimes does nothing and there is no way to tell that from a dead button.",
-    instead: "Remount: one incrementing key, `useReplay`.",
-    file: "src/components/lab/motion.ts",
-  },
-  {
-    id: "blanket-rest",
-    tried: "Implement Rest as `animation: none` on the board.",
-    breaks:
-      "It also freezes the marketing reveal grammar on the real sections a board renders, whose pre-animation state is opacity 0, so the board reads as broken rather than at rest.",
-    instead:
-      "Rest is an attribute on the board's root and the board's own sheet decides, narrowly, what it freezes.",
-    file: "src/components/lab/motion.ts",
+      "Probe with a hidden element wearing the utility inside the frame and measure it with `Measured`. The only honest number for a baked value is the browser's.",
+    file: "src/components/lab/scene.tsx",
   },
   {
     id: "state-in-the-initial-render",
@@ -180,23 +138,6 @@ export const TRAPS: readonly Trap[] = [
     instead:
       "Open on the declared defaults and adopt the URL on the first commit. Writes use `replaceState`, never push, and never touch a param the board does not own (`key` is the gate; dropping it 404s the next navigation).",
     file: "src/components/lab/board-state.tsx",
-  },
-  {
-    id: "measuring-the-board",
-    tried: "Take a frame-time sample with the whole board running.",
-    breaks:
-      "It measures the board, not the proposal, and a hidden tab throttles rAF on top of that, so the number is noise with three decimal places.",
-    instead:
-      "`CostMeter` solos its specimen through `data-lab-solo` while it runs, prints the static half that carries to a slower machine, and says so when a run was taken behind another window.",
-    file: "src/components/lab/cost-meter.ts",
-  },
-  {
-    id: "a-mark-around-the-specimen",
-    tried: "Outline the recommended cell to say 'this one'.",
-    breaks:
-      "On any board judging edges, surfaces or corners the outline is one more cue, and the eye reads the marked card as the one with the extra edge.",
-    instead: "The mark is in the LABEL: `Cell`'s `proposed` dot.",
-    file: "src/components/lab/specimen.tsx",
   },
   {
     id: "a-button-in-the-success-hold",

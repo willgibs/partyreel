@@ -337,6 +337,7 @@ function PopupHeader({
   title,
   description,
   back,
+  up,
   className,
   titleClassName,
   children,
@@ -345,29 +346,51 @@ function PopupHeader({
   description?: React.ReactNode
   /** Where the back arrow returns to, in words: a hand's `screen` only. */
   back?: string
+  /**
+   * A LEVEL IN (event-settings r1, `opens=page`): the head of a page one level down a place, whose
+   * back arrow goes UP a level rather than closing the popup. In a hand it is the bar's own back
+   * arrow, naming where it returns; at a desk a small back row above the title, the close staying in
+   * its corner, as the board drew it.
+   */
+  up?: { label: string; onUp: () => void }
   className?: string
   titleClassName?: string
   children?: React.ReactNode
 }) {
   const shape = usePopupShape()
   if (shape === "screen") {
+    const arrow = (
+      <Button
+        variant="ghost"
+        size="sm"
+        data-popup-up={up ? "" : undefined}
+        className="max-w-[40vw] justify-self-start gap-0.5 px-1.5 text-muted-foreground"
+        onClick={up?.onUp}
+      >
+        <ChevronLeftIcon className="size-5" />
+        <span className="truncate">{up?.label ?? back ?? "Back"}</span>
+      </Button>
+    )
     return (
       <div
         data-slot="popup-header"
         data-bar=""
         className={cn("shrink-0 border-b", className)}
       >
-        <div className="grid h-13 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-2">
-          <PopupPrimitive.Close asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="max-w-full justify-self-start gap-0.5 px-1.5 text-muted-foreground"
-            >
-              <ChevronLeftIcon className="size-5" />
-              <span className="truncate">{back ?? "Back"}</span>
-            </Button>
-          </PopupPrimitive.Close>
+        {/* ★ THE BACK LABEL IS RESERVED BEFORE THE TITLE GROWS (crumbs-14).
+            With both sides at `minmax(0,1fr)` the centred title took its
+            whole width first and the two sides split what was left, so
+            "Dashboard" beside "Photos waiting for you" showed as "Dashbo…"
+            at 375. The back's side now starts at the label's own width, up
+            to 40vw so a long event name still leaves the title its room,
+            and the title stays centred wherever both fit, moving over by
+            the difference where they do not. */}
+        <div className="grid h-13 grid-cols-[minmax(auto,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-2">
+          {up ? (
+            arrow
+          ) : (
+            <PopupPrimitive.Close asChild>{arrow}</PopupPrimitive.Close>
+          )}
           <PopupPrimitive.Title
             className={cn(
               "max-w-[55vw] truncate text-center font-heading text-base text-foreground",
@@ -392,6 +415,18 @@ function PopupHeader({
       data-slot="popup-header"
       className={cn("flex shrink-0 flex-col gap-1 p-4 pr-12", className)}
     >
+      {up ? (
+        <Button
+          variant="ghost"
+          size="sm"
+          data-popup-up=""
+          className="-mt-1 mb-1 -ml-2 gap-0.5 self-start px-1.5 text-muted-foreground"
+          onClick={up.onUp}
+        >
+          <ChevronLeftIcon className="size-4" />
+          {up.label}
+        </Button>
+      ) : null}
       <PopupPrimitive.Title
         className={cn(
           // The ladder's `card-title` step, the Dialog's and the Sheet's own,

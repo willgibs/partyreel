@@ -74,6 +74,11 @@
  *      host's policy hides it while the flag stays ungranted; her Delete permanently cannot end its
  *      window; her Deleted and her restored event count only what her Deleted shows; and an event
  *      holding one inside its window is kept by every event-level purge.
+ *  18. The doors (event-settings r1, migration 20260929120000): a gated album stored private with its
+ *      gate, the gate ungranted and the Videos switch granted; admission on the ticket; the invite
+ *      list's keys, RLS and cap; the standing and every read the service role's alone; the host's four
+ *      acts re-checking the host; and every guest path (the join, the upload, the rename, likes, both
+ *      claims, the ask) meeting the door in the private album's words.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -381,11 +386,12 @@ describe("the identity reshape — create_guest mints an identity", () => {
 
   it("stamps verified_at from the confirmed session, never from a client value", () => {
     const body = collapse(latestDefinition("create_guest").body);
-    // The column list grew by the guest identity round's two columns (20260922120000); what this
-    // pins is that `email` and `verified_at` are still written from the SERVER-read auth.users row
-    // and in that order, never from a client value.
+    // The column list grew by the guest identity round's two columns (20260922120000), and by the
+    // doors' `admission` (20260929120000: whether the door let this ticket through), appended last;
+    // what this pins is that `email` and `verified_at` are still written from the SERVER-read
+    // auth.users row and in that order, never from a client value.
     expect(body).toContain(
-      "insert into public.guests (event_id, user_id, email, session_token, display_name, verified_at, pending_email, pending_email_at)",
+      "insert into public.guests (event_id, user_id, email, session_token, display_name, verified_at, pending_email, pending_email_at, admission)",
     );
     expect(body).toContain("v_name, v_confirmed");
     // v_confirmed comes from auth.users under definer privilege — the whole point.
@@ -540,8 +546,10 @@ describe("QA #40 — get_event_by_qr_token's redaction survives a drop + create"
   });
 
   it("re-asserts the anon EXECUTE grant its drop took away (0028)", () => {
+    // ★ Reshaped by the doors (20260929120000), which narrowed the ACL to the roles that call it
+    // (ROADMAP's security line): anon and authenticated ride one grant with service_role now.
     expect(latestDefinition("get_event_by_qr_token").file).toContain(
-      "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated;",
+      "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated, service_role;",
     );
   });
 });
@@ -626,8 +634,9 @@ describe("the door round, wave 0 — Require an upload to view", () => {
     expect(body).toContain(
       "e.require_verified_email, e.require_upload_to_view,",
     );
+    // ★ Reshaped by the doors (20260929120000): the client roles ride one grant with service_role.
     expect(file).toContain(
-      "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated;",
+      "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated, service_role;",
     );
   });
 
@@ -1459,17 +1468,22 @@ describe("the row cap: the SQL shapes the 1,000-row fixes read", () => {
     // read of held rows). The expired reason: "the events that hold anything" meant a legal hold alone.
     // An operator's removal still inside its window keeps its event too (20260928140000), so a deleted
     // account cannot take the evidence before the runbook preserves it.
+    // ★ AND AGAIN (triage-r2-wiring, 2026-09-29; scar kept: ONE uuid[] per candidate set). An open report, an
+    // item's or the album's, keeps its event whole too (Will: "an open report protects its item from every
+    // permanent delete ... an event's deletion, an account's"), and the report cascades with its event row.
     it("held_event_ids answers ONE uuid[] of the events that hold anything the purge must keep", () => {
       expect(shape("held_event_ids")).toContain(
-        "create function public.held_event_ids(p_event_ids uuid[]) returns uuid[] language sql stable security invoker set search_path = '' as $$ select coalesce(array_agg(h.event_id order by h.event_id), '{}'::uuid[]) from ( select distinct m.event_id from public.media m where m.event_id = any(p_event_ids) and ( m.legal_hold_at is not null or (m.status = 'removed' and m.removed_by_admin and m.purge_at > now()) ) ) h; $$;",
+        "create function public.held_event_ids(p_event_ids uuid[]) returns uuid[] language sql stable security invoker set search_path = '' as $$ select coalesce(array_agg(h.event_id order by h.event_id), '{}'::uuid[]) from ( select m.event_id from public.media m where m.event_id = any(p_event_ids) and ( m.legal_hold_at is not null or (m.status = 'removed' and m.removed_by_admin and m.purge_at > now()) ) union select r.event_id from public.reports r where r.event_id = any(p_event_ids) and r.status = 'open' ) h; $$;",
       );
     });
 
     // ★ RESHAPED ON PURPOSE (triage-wiring, 2026-09-28; scar kept: exactly the budget's bin). The bin
     // now leaves out an operator's removal too: never the host's, and never evicted inside its window.
-    it("★ standby_hosts counts exactly the budget's bin: no system removal, no guest's own withdrawal, no operator's removal, no hold", () => {
+    // ★ AND AGAIN (triage-r2-wiring, 2026-09-29): nor a row she asked to delete permanently while a keeper holds
+    // it (`purge_asked_at`), which left her Deleted at her press.
+    it("★ standby_hosts counts exactly the budget's bin: no system removal, no guest's own withdrawal, no operator's removal, no asked row, no hold", () => {
       expect(shape("standby_hosts")).toContain(
-        "where m.legal_hold_at is null and ( (m.status = 'removed' and not m.removed_by_system and not m.removed_by_uploader and not m.removed_by_admin) or (m.status <> 'removed' and e.deleted_at is not null) )",
+        "where m.legal_hold_at is null and ( (m.status = 'removed' and not m.removed_by_system and not m.removed_by_uploader and not m.removed_by_admin and m.purge_asked_at is null) or (m.status <> 'removed' and e.deleted_at is not null) )",
       );
     });
 
@@ -1729,10 +1743,18 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
       );
     });
 
-    it("get_event_by_qr_token restates today's whole ACL: the client roles, PUBLIC and service_role", () => {
+    it("get_event_by_qr_token restates its ACL: the client roles and service_role, PUBLIC revoked by name", () => {
+      // ★ Reshaped by the doors (20260929120000). This read "the client roles, PUBLIC and
+      // service_role": the recreates carried PUBLIC's EXECUTE along, which ROADMAP's security line
+      // named; a fresh CREATE starts from the default privileges, so PUBLIC is revoked by name and
+      // only the roles that call it are granted.
       const file = grants("get_event_by_qr_token");
+      expect(file).toContain("revoke all on function public.get_event_by_qr_token(text) from public;");
       expect(file).toContain(
-        "grant execute on function public.get_event_by_qr_token(text) to public, service_role;",
+        "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated, service_role;",
+      );
+      expect(file).not.toContain(
+        "grant execute on function public.get_event_by_qr_token(text) to public",
       );
     });
   });
@@ -1902,19 +1924,22 @@ describe("the host's reel defaults (20260925100000)", () => {
     });
 
     it("returns the hold after the reel's two settings, as a SECURITY DEFINER read with an empty search_path", () => {
+      // ★ Reshaped by the doors (20260929120000), which append the guest picker's flag
+      // (`accepts_video`) after the hold: the hold still follows the reel's two settings, and nothing
+      // but that one flag comes after it.
       const body = code("get_event_by_qr_token");
       expect(body).toContain(
-        "show_reel boolean, reel_style_id text, reel_hold_sec numeric) language sql stable security definer set search_path to ''",
+        "show_reel boolean, reel_style_id text, reel_hold_sec numeric, accepts_video boolean) language sql stable security definer set search_path to ''",
       );
       expect(body).toContain(
-        "e.show_reel, e.reel_style_id, e.reel_hold_sec from public.events e",
+        "e.show_reel, e.reel_style_id, e.reel_hold_sec, (e.allow_videos and coalesce(p.tier <> 'free', false)) from public.events e",
       );
       expect(body).toContain(
         "order by (e.qr_token = p_qr_token) desc limit 1;",
       );
     });
 
-    it("drops the old signature first and restates the whole ACL (the client roles, PUBLIC and service_role)", () => {
+    it("drops the old signature first and restates the ACL (the client roles and service_role, PUBLIC revoked)", () => {
       // ★ The drop-before-create is this file's (reshaped with the carry above); the ACL is restated
       // by whichever file wins, the in-place replace too.
       const dropped = sql.indexOf(
@@ -1925,11 +1950,10 @@ describe("the host's reel defaults (20260925100000)", () => {
         sql.indexOf("create function public.get_event_by_qr_token("),
       );
       const file = grants("get_event_by_qr_token");
+      // ★ Reshaped by the doors (20260929120000), which narrowed the ACL (the test above says why).
+      expect(file).toContain("revoke all on function public.get_event_by_qr_token(text) from public;");
       expect(file).toContain(
-        "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated;",
-      );
-      expect(file).toContain(
-        "grant execute on function public.get_event_by_qr_token(text) to public, service_role;",
+        "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated, service_role;",
       );
     });
   });
@@ -2373,7 +2397,12 @@ describe("the per-event block and the always-on guest list (20260928120000)", ()
   });
 
   describe("the host's two acts", () => {
-    it("block_from_event re-checks the host, previews before it writes, skips a hold and keeps what the restore reads", () => {
+    // ★ RESHAPED ON PURPOSE (triage-r2-wiring, 2026-09-29; scar kept: the host re-checked, the preview before any
+    // write, the removal the host's own). The block no longer skips a held row: under a quiet hold the photograph
+    // stayed in the album the block emptied, and the confirm counted one fewer than she could see, the tell
+    // Will's quiet hold forbids ("the host's own delete of a quietly held item looks like any delete"). The
+    // expired reason: "a hold is immutable to the host". let_back_in still skips one (restore refused).
+    it("block_from_event re-checks the host, previews before it writes, takes a quietly held row like any other and keeps what the restore reads", () => {
       const act = code("block_from_event");
       expect(act).toContain("security definer set search_path = ''");
       expect(act).toContain(
@@ -2383,10 +2412,11 @@ describe("the per-event block and the always-on guest list (20260928120000)", ()
       expect(
         act.indexOf("if p_preview then return jsonb_build_object("),
       ).toBeLessThan(act.indexOf("insert into public.event_blocks"));
-      // Their uploads leave for Deleted in the same step, as the host's own removal, a held row skipped.
+      // Their uploads leave for Deleted in the same step, as the host's own removal, a held row with them.
       expect(act).toContain(
-        "update public.media m set status = 'removed', removed_at = now() from public.guests g where g.id = m.guest_id and g.event_id = v_event.id and m.event_id = v_event.id and m.status <> 'removed' and m.legal_hold_at is null and public.event_block_names_row(v_user, v_email, v_row, g)",
+        "update public.media m set status = 'removed', removed_at = now() from public.guests g where g.id = m.guest_id and g.event_id = v_event.id and m.event_id = v_event.id and m.status <> 'removed' and public.event_block_names_row(v_user, v_email, v_row, g)",
       );
+      expect(act).not.toContain("legal_hold_at");
       expect(act).not.toContain("removed_by_uploader");
       expect(act).toContain("set removed_media_ids = v_removed");
       // The host is never their own guest.
@@ -2486,14 +2516,20 @@ describe("the per-event block and the always-on guest list (20260928120000)", ()
   });
 
   describe("her own feed and lists read as a private album's", () => {
-    it("get_my_uploads keeps an approved upload a standing block removed, never a hold or a takedown, and her delete withdraws it", () => {
+    // ★ RESHAPED ON PURPOSE (triage-r2-wiring, 2026-09-29; scar kept: never a takedown, and her delete withdraws
+    // it). A block now takes a quietly held upload like any other, so her own feed keeps it like any other and
+    // her delete withdraws it: a feed that dropped it would tell the uploader, who may be the one investigated.
+    // The expired reason: "never a hold".
+    it("get_my_uploads keeps an approved upload a standing block removed, never a takedown, a quietly held one like any other, and her delete withdraws it", () => {
       const feed = code("get_my_uploads");
       expect(feed).toContain(
-        "or (m.status = 'removed' and m.status_before_removed = 'approved' and not m.removed_by_uploader and not m.removed_by_admin and m.legal_hold_at is null and exists (select 1 from public.event_blocks b where b.event_id = m.event_id and m.id = any (b.removed_media_ids) and m.removed_at = b.created_at))",
+        "or (m.status = 'removed' and m.status_before_removed = 'approved' and not m.removed_by_uploader and not m.removed_by_admin and exists (select 1 from public.event_blocks b where b.event_id = m.event_id and m.id = any (b.removed_media_ids) and m.removed_at = b.created_at))",
       );
+      expect(feed).not.toContain("legal_hold_at");
       expect(code("remove_my_upload")).toContain(
-        "update public.media m set removed_by_uploader = true where m.id = p_media_id and m.status = 'removed' and not m.removed_by_uploader and m.legal_hold_at is null",
+        "update public.media m set removed_by_uploader = true where m.id = p_media_id and m.status = 'removed' and not m.removed_by_uploader and exists (select 1 from public.event_blocks b",
       );
+      expect(code("remove_my_upload")).not.toContain("legal_hold_at");
     });
 
     it("blocked_events_for keeps her card's place and her picker's tile for her own blocks, as SECURITY DEFINER for the service role", () => {
@@ -2539,16 +2575,27 @@ describe("a private album likes nothing but its host (20260929100000)", () => {
   const code = (name: string) =>
     collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
 
-  it("is like_media's winning definition", () => {
+  it("is carried by the doors (20260929120000), which win like_media now", () => {
+    // ★ Reshaped by the doors: they carry like_media with a gated album's guest arm, so the winner
+    // moved to their file; what this file set down (a private album likes nothing but its host) is
+    // pinned below in the winning body's own words.
     expect(latestDefinition("like_media").file).toBe(
-      readFileSync(join(MIGRATIONS_DIR, FILE), "utf8"),
+      readFileSync(
+        join(MIGRATIONS_DIR, "20260929120000_event_doors.sql"),
+        "utf8",
+      ),
     );
   });
 
-  it("★ the guest arm refuses a private album, keeps the block, and leaves the host's arm alone", () => {
+  it("★ the guest arm refuses Only me, keeps the block, and leaves the host's arm alone", () => {
+    // ★ Reshaped by the doors (20260929120000): a gated album is stored private with its gate, and a
+    // guest of it who is past its door likes there, as a password album's guest always could. Only me
+    // (private with no gate) is named by neither arm, so it still likes nothing but its host, and no
+    // clause may admit a private album by its visibility alone.
     expect(code("like_media")).toContain(
-      "e.host_id = v_uid or ( e.visibility <> 'private' and not public.event_block_holds_account(e.id, v_uid) and ( e.visibility = 'open' or exists (select 1 from public.guests g where g.event_id = e.id and g.user_id = v_uid) ) )",
+      "e.host_id = v_uid or ( not public.event_block_holds_account(e.id, v_uid) and ( e.visibility = 'open' or ((e.visibility = 'password' or e.gate is not null) and public.event_door_account_in(e.id, v_uid)) ) )",
     );
+    expect(code("like_media")).not.toMatch(/e\.visibility (=|<>) 'private'/);
   });
 
   it("answers every refusal with the one not_found, and inserts only past the check", () => {
@@ -2615,16 +2662,27 @@ describe("an operator's removal leaves the host's view (20260928140000)", () => 
     }
   });
 
-  it("★ her Delete permanently can never end a takedown's window, nor a hold's", () => {
+  // ★ RESHAPED ON PURPOSE (triage-r2-wiring, 2026-09-29; scar kept: never a takedown's window, and never a
+  // kept row's bytes). Her Delete permanently no longer skips a held row in silence (it came back in her
+  // Deleted, a tell): what a hold or an open report keeps is ASKED, gone from her view and her meter, and only
+  // the rest is purged. The expired reason: "refuses a held row".
+  it("★ her Delete permanently can never end a takedown's window, and only asks what a keeper holds", () => {
     const purge = code("purge_media_now");
     expect(purge).toContain(
-      "and e.host_id = (select auth.uid()) and m.status = 'removed' and not m.removed_by_admin and m.legal_hold_at is null;",
+      "and e.host_id = (select auth.uid()) and m.status = 'removed' and not m.removed_by_admin and m.purge_asked_at is null;",
+    );
+    expect(purge).toContain("v_kept := public.kept_media_ids(v_ids);");
+    expect(purge).toContain(
+      "update public.media set purge_asked_at = now() where id = any(v_kept) and purge_asked_at is null;",
+    );
+    expect(purge).toContain(
+      "select coalesce(array_agg(x), '{}'::uuid[]) into v_gone from unnest(v_ids) as x where not (x = any(v_kept));",
     );
   });
 
-  it("her restored event counts what her Deleted still shows of it, never a withdrawal, a takedown or a row past the window", () => {
+  it("her restored event counts what her Deleted still shows of it, never a withdrawal, a takedown, an asked row or a row past the window", () => {
     expect(code("restore_event")).toContain(
-      "select count(*) into v_still_removed from public.media where event_id = p_event_id and status = 'removed' and not removed_by_uploader and not removed_by_admin and removed_at >= now() - interval '30 days';",
+      "select count(*) into v_still_removed from public.media where event_id = p_event_id and status = 'removed' and not removed_by_uploader and not removed_by_admin and purge_asked_at is null and removed_at >= now() - interval '30 days';",
     );
   });
 
@@ -2632,5 +2690,271 @@ describe("an operator's removal leaves the host's view (20260928140000)", () => 
     expect(code("restore_media")).toContain(
       "if v_media.removed_by_admin then return jsonb_build_object('ok', false, 'reason', 'admin_removed');",
     );
+  });
+});
+
+describe("the doors: Public, Private with its gate, Only me (20260929120000)", () => {
+  // Will, event-settings r1 (2026-09-29): what the link opens is Public, Private (a gate: a password,
+  // the host lets each person in, an invite list, or only people already in) or Only me; a gate stops
+  // newcomers, and only Only me and a block shut out someone already in; a decline is a block; Videos is
+  // a switch. A gated album is stored private WITH its gate, so every reader that has not learned the
+  // gate answers it as a private album (the safe side). Each pin reads CODE (comments stripped), and each
+  // grant the defining file's executable SQL, so a comment can never stand in for a clause.
+  const FILE = "20260929120000_event_doors.sql";
+  const sql = collapse(
+    readFileSync(join(MIGRATIONS_DIR, FILE), "utf8").replace(/--[^\n]*/g, ""),
+  );
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+
+  describe("the door's columns", () => {
+    it("keeps the gate beside the password: meaningful only on a private album, and an address gate holds the email step on", () => {
+      expect(sql).toContain(
+        "create type public.event_gate as enum ('approve', 'invite', 'closed');",
+      );
+      expect(sql).toContain(
+        "add constraint events_gate_is_private check (gate is null or visibility = 'private')",
+      );
+      expect(sql).toContain(
+        "add constraint events_gate_needs_email check (gate is null or gate = 'closed' or require_verified_email)",
+      );
+    });
+
+    it("never grants the gate to a client role (set_event_door writes it), and grants the Videos switch by a bare additive grant", () => {
+      expect(sql).toContain(
+        "grant insert (allow_videos), update (allow_videos) on public.events to authenticated;",
+      );
+      for (const { file, sql: text } of executableMigrations()) {
+        for (const [statement] of text.matchAll(
+          /grant [^;]* on (?:table )?public\.events to [^;]*;/g,
+        )) {
+          expect(statement, file).not.toMatch(/\bgate\b/);
+        }
+      }
+      // ★ A table-level revoke cascades to every column grant on events (database-security.md).
+      expect(sql).not.toMatch(/revoke [^;]* on (?:table )?public\.events\b/);
+    });
+
+    it("puts admission on the ticket the door minted, every earlier row past it", () => {
+      expect(sql).toContain(
+        "create type public.guest_admission as enum ('in', 'waiting');",
+      );
+      expect(sql).toContain(
+        "alter table public.guests add column admission public.guest_admission not null default 'in', add column waiting_seen_at timestamptz;",
+      );
+      expect(sql).toContain(
+        "create index guests_waiting_idx on public.guests (event_id) where admission = 'waiting';",
+      );
+    });
+  });
+
+  describe("the invite list", () => {
+    it("keys on a normalised address with one foreign key, RLS on, SELECT alone to the host", () => {
+      const table = sql.slice(
+        sql.indexOf("create table public.event_invites ("),
+        sql.indexOf(");", sql.indexOf("create table public.event_invites (")),
+      );
+      expect(table.match(/\breferences\b/g)).toHaveLength(1);
+      expect(table).toContain("email = lower(btrim(email))");
+      expect(table).toContain("unique (event_id, email)");
+      expect(sql).toContain(
+        "alter table public.event_invites enable row level security;",
+      );
+      expect(sql).toContain(
+        "revoke all on table public.event_invites from public, anon, authenticated;",
+      );
+      expect(sql).toContain(
+        "grant select on table public.event_invites to authenticated;",
+      );
+      expect(sql).toContain(
+        "create policy event_invites_select_host on public.event_invites for select to authenticated using (exists (select 1 from public.events e where e.id = event_invites.event_id and e.host_id = (select auth.uid())));",
+      );
+      expect(sql).not.toMatch(
+        /grant [^;]*\b(insert|update|delete|all)\b[^;]* on (?:table )?public\.event_invites to [^;]*\b(anon|authenticated|public)\b/,
+      );
+    });
+
+    it("caps the list where the app does (INVITE_LIST_CAP) and bounds one call", () => {
+      const add = code("add_event_invites");
+      expect(add).toContain("c_cap constant integer := 500;");
+      expect(add).toContain("cardinality(p_emails) > 2000");
+      expect(add).toContain(
+        "where e.id = p_event_id and e.host_id = v_uid and e.deleted_at is null for no key update;",
+      );
+    });
+  });
+
+  describe("who is at the door, one read", () => {
+    it("the standing is SECURITY DEFINER for the service role alone, bounds its tickets and derives the door's word from the gate", () => {
+      const standing = code("event_door_standing");
+      expect(standing).toContain("security definer set search_path = ''");
+      expect(standing).toContain("if cardinality(v_tickets) > 8 then");
+      expect(standing).toContain(
+        "'door', case when v_event.visibility = 'private' and v_event.gate is not null then v_event.gate::text else v_event.visibility::text end,",
+      );
+      expect(standing).toContain("'in', v_was_in and not v_blocked,");
+    });
+
+    it("no client role runs a predicate, a read or the ask; the host's four acts are authenticated only", () => {
+      for (const signature of [
+        "public.event_door_account_in(uuid, uuid)",
+        "public.event_door_lists_account(uuid, uuid)",
+        "public.event_door_standing(uuid, uuid, text[])",
+        "public.event_door_check_in(uuid, uuid, text[])",
+        "public.event_door_counts(uuid)",
+        "public.event_door_queue(uuid)",
+        "public.event_invite_list(uuid)",
+        "public.host_door_waiting(uuid)",
+        "public.ask_to_join(text, uuid)",
+      ]) {
+        expect(sql).toContain(
+          `revoke all on function ${signature} from public, anon, authenticated;`,
+        );
+        expect(sql).toContain(
+          `grant execute on function ${signature} to service_role;`,
+        );
+      }
+      for (const signature of [
+        "public.set_event_door(uuid, text)",
+        "public.let_in_at_door(uuid, uuid)",
+        "public.add_event_invites(uuid, text[])",
+        "public.remove_event_invite(uuid, text)",
+      ]) {
+        expect(sql).toContain(
+          `revoke all on function ${signature} from public, anon, authenticated;`,
+        );
+        expect(sql).toContain(
+          `grant execute on function ${signature} to authenticated;`,
+        );
+      }
+      expect(sql).toContain(
+        "revoke all on function public.events_door_opened() from public, anon, authenticated;",
+      );
+      expect(sql).not.toMatch(
+        /grant execute on function public\.(event_door_\w+|event_invite_list|host_door_waiting|ask_to_join|set_event_door|let_in_at_door|add_event_invites|remove_event_invite|events_door_opened)\([^)]*\) to [^;]*\banon\b/,
+      );
+    });
+  });
+
+  describe("the host's acts", () => {
+    it("set_event_door re-checks the host, opens the password only onto one set, and holds the email on for an address gate", () => {
+      const door = code("set_event_door");
+      expect(door).toContain(
+        "where e.id = p_event_id and e.host_id = v_uid and e.deleted_at is null for no key update;",
+      );
+      expect(door).toContain(
+        "if p_door = 'password' and v_event.event_password_hash is null then return jsonb_build_object('ok', false, 'reason', 'no_password');",
+      );
+      expect(door).toContain(
+        "v_email := v_event.require_verified_email or p_door in ('approve', 'invite');",
+      );
+    });
+
+    it("let_in_at_door re-checks the host and never lets a block through", () => {
+      const letIn = code("let_in_at_door");
+      expect(letIn).toContain(
+        "where g.id = p_guest_id and g.event_id = p_event_id and e.host_id = v_uid and e.deleted_at is null;",
+      );
+      expect(letIn).toContain(
+        "if public.event_block_holds_row(v_guest) then return jsonb_build_object('ok', false, 'reason', 'blocked');",
+      );
+    });
+
+    it("set_event_password clears the gate beside its flip, and turning Public lets everyone waiting in", () => {
+      expect(code("set_event_password")).toContain(
+        "visibility = 'password', gate = null",
+      );
+      expect(code("events_door_opened")).toContain(
+        "if new.visibility = 'open' and old.visibility is distinct from 'open' then update public.guests set admission = 'in' where event_id = new.id and admission = 'waiting';",
+      );
+      expect(sql).toContain(
+        "create trigger events_door_opened after update of visibility on public.events for each row execute function public.events_door_opened();",
+      );
+    });
+  });
+
+  describe("every guest path meets the door", () => {
+    it("the join: Only me never mints, someone already in passes the password and every gate, and each gate turns a newcomer its own way", () => {
+      const join = code("create_guest");
+      expect(join).toContain(
+        "if v_event.visibility = 'private' and v_event.gate is null then raise exception 'This event is private.' using errcode = 'check_violation'; end if;",
+      );
+      expect(join).toContain(
+        "v_in := public.event_door_account_in(v_event.id, v_uid);",
+      );
+      expect(join).toContain(
+        "if v_event.visibility = 'password' and not coalesce(p_unlock_proven, false) and not v_in then",
+      );
+      expect(join).toContain(
+        "if v_event.gate is not null and not v_in then if v_event.gate = 'closed' then raise exception 'This event is private.' using errcode = 'check_violation'; elsif v_event.gate = 'approve' then v_admission := 'waiting'; elsif not public.event_door_lists_account(v_event.id, v_uid) then raise exception 'Ask the host to let you in.' using errcode = 'check_violation'; end if; end if;",
+      );
+      // The gate is asked after the verified-email refusal, so an address gate never mints a typed name.
+      expect(join.indexOf("if v_event.gate is not null and not v_in then")).toBeGreaterThan(
+        join.indexOf(
+          "if v_event.require_verified_email and (v_uid is null or v_confirmed is null) then",
+        ),
+      );
+      expect(join).toContain("'admission', v_admission");
+    });
+
+    it("the upload reads the door as its ticket sees it, the block last, and the switch in its advisory", () => {
+      const ctx = code("get_upload_context");
+      const door = ctx.indexOf(
+        "if v_guest.admission = 'waiting' then v_event.visibility := 'private'; elsif v_event.gate is not null or v_event.visibility = 'password' then v_event.visibility := 'open'; end if;",
+      );
+      expect(door).toBeGreaterThan(-1);
+      expect(door).toBeLessThan(
+        ctx.indexOf(
+          "if public.event_block_holds_row(v_guest) then v_event.visibility := 'private'; end if;",
+        ),
+      );
+      expect(ctx).toContain(
+        "'video_blocked', (p_type = 'video' and (v_profile.tier = 'free' or not v_event.allow_videos)),",
+      );
+      const media = code("create_media");
+      expect(media).toContain(
+        "if v_guest.admission = 'waiting' or (v_event.visibility = 'private' and v_event.gate is null) then raise exception 'This event is private.' using errcode = 'check_violation'; end if;",
+      );
+      expect(media).toContain(
+        "if p_type = 'video' and not v_event.allow_videos then raise exception 'Video uploads are available on paid plans.' using errcode = 'check_violation'; end if;",
+      );
+    });
+
+    it("the door's rename-first path refuses a waiting ticket and Only me in the private album's words", () => {
+      for (const name of ["set_guest_display_name", "set_guest_pending_email"]) {
+        expect(code(name), name).toContain(
+          "if v_guest.admission = 'waiting' or exists ( select 1 from public.events e where e.id = v_guest.event_id and e.visibility = 'private' and e.gate is null ) then raise exception 'This event is private.' using errcode = 'check_violation'; end if;",
+        );
+      }
+    });
+
+    it("both kinds of claim move only a row past the door", () => {
+      for (const name of [
+        "claim_anonymous_uploads",
+        "list_guest_rows_by_email",
+        "claim_guest_rows_by_email",
+        "disown_guest_rows_by_email",
+      ]) {
+        expect(code(name), name).toContain("g.admission = 'in'");
+      }
+    });
+
+    it("the ask mints a waiting row only at an invite list, for a confirmed account the event has not blocked", () => {
+      const ask = code("ask_to_join");
+      expect(ask).toContain(
+        "if v_confirmed is null then raise exception 'This event requires a verified email to upload.' using errcode = 'check_violation'; end if;",
+      );
+      expect(ask).toContain(
+        "if v_event.host_id = p_user_id or v_event.visibility <> 'private' or v_event.gate is distinct from 'invite' or public.event_block_holds_account(v_event.id, p_user_id) then raise exception 'This event is private.' using errcode = 'check_violation'; end if;",
+      );
+    });
+
+    it("the album's read carries the guest picker's flag and needs no gate clause: a gated album is stored private", () => {
+      const read = code("get_event_by_qr_token");
+      expect(read).toContain(
+        "(e.allow_videos and coalesce(p.tier <> 'free', false))",
+      );
+      expect(read).not.toContain("gate");
+    });
   });
 });

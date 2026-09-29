@@ -43,14 +43,15 @@ Google, and a password as a quiet second door; passkeys wait behind a flag. `get
   session the flow just made, and `verifyOtp({ type: 'email' })` needs no redirect. `email-sign-in.tsx` owns no
   navigation; each wear's `onVerified` decides what follows. A tapped link lands on `/auth/callback` and loses any
   in-page step, which is accepted.
-- **A sign-in lands on the page that asked for it.** The `(app)` and `(print)` gates send a signed-out request to
-  `/login?next=<its path>` (a layout cannot read its URL, so the proxy hands it over in `x-pr-path`), and `/login`, its
-  in-page code or password, Google and the email's link through `/auth/callback` all land there, a failed link
-  carrying it back to `/login`; so a mail's button (Renew Event Pass, Manage storage) lands where it points. ★ `next`
-  is followed only when it is one of `lib/auth/return-path.ts`'s exact shapes (the host app's pages, `/admin`, an
-  album or a profile page), never a query or a fragment: anything else, however it is encoded, reads as no `next` at
-  all (`return-path.test.ts` pins each refusal). `signInLanding` is the one landing rule the page, the form and the
-  callback share.
+- **A sign-in lands on the page that asked for it.** The `(app)` and `(print)` gates and the portal's `requireAdmin`
+  send a signed-out request to `/login?next=<its path>` (a layout cannot read its URL, so the proxy hands it over in
+  `x-pr-path`), and `/login`, its in-page code or password, Google and the email's link through `/auth/callback` all
+  land there, a failed link carrying it back to `/login`; so a mail's button (Renew Event Pass, Manage storage) or an
+  operator's deep link (`/admin/reports`) lands where it points. ★ `next` is followed only when it is one of
+  `lib/auth/return-path.ts`'s exact shapes for the host it lands on: the host app's pages, an album or a profile page
+  off the admin host, the portal's home, sections and row pages on it alone (each host 404s the other's), never a
+  query or a fragment: anything else, however it is encoded, reads as no `next` at all (`return-path.test.ts` pins
+  each refusal). `signInLanding` is the one landing rule the page, the form and the callback share.
 - **The password refusal is generic by design:** wrong password, no password and unknown address read the same (the
   `password_mismatch` line, with a code, a new password and Google as the ways out); `door-failure.test.ts` refuses
   a specific one. Every failure maps through `door-failure.ts`'s one table, and a surface's own recoveries are not
@@ -74,10 +75,11 @@ Google, and a password as a quiet second door; passkeys wait behind a flag. `get
   `local`, this session and its refresh token alone, since one account is kept open on a desk and a phone for
   different jobs: the menu's (`signOutAction`, which the admin bar posts too), the guest header's and the door's
   "Not you?". `/account`'s Sign out everywhere (`signOutEverywhereAction`) is `global`, this device included, behind a
-  confirm that says so, and never a menu row; it answers a refusal instead of landing on `/login` as if it had
-  worked. Deleting an account is `global` too, as the ban's belt: after the ban GoTrue answers it 403 `user_banned`
-  (auth-js still clears the cookies), and when the best-effort ban failed it is what ends the other devices. Each
-  scope is pinned beside its call site.
+  confirm that says so, and never a menu row. Both answer a refusal instead of landing on `/login` as if they had
+  worked (auth-js keeps the session when GoTrue refuses, and `/login` sends a signed-in host back to the dashboard):
+  the menu's and the admin bar's toast it through `signOutHere`. Deleting an account is `global` too, as the ban's
+  belt: after the ban GoTrue answers it 403 `user_banned` (auth-js still clears the cookies), and when the best-effort
+  ban failed it is what ends the other devices. Each scope is pinned beside its call site.
 - ★ **No scope reaches an access token already issued:** it stays valid by its signature until its own expiry.
   `getUser()` refuses a revoked session at once (a signature check such as `getClaims()` would not), so only a
   caller using the raw token against the database directly keeps what is left of it.
@@ -147,7 +149,8 @@ Dashboard state, held nowhere in the repo, that the code assumes:
 - The redirect allow-list holds `https://partyreel.com/auth/callback**` (a guest's link carries `?next=/e/[token]`
   back, a host's the page a gate sent them from) and the admin callbacks ([admin-observability.md](admin-observability.md)).
   ★ The admin callback's entry is EXACT: GoTrue answers `…/auth/callback?next=` there with the Site URL, so the admin
-  host's door always sends the bare callback (`login-form.tsx`), the portal being its landing anyway.
+  host's door always sends the bare callback (`login-form.tsx`), and the portal page the gate was asked for rides
+  `pr_admin_return` instead (ten minutes, `Path=/auth/callback`, re-checked and cleared by the callback).
 - Passkeys enabled with the RP id on the apex before `NEXT_PUBLIC_PASSKEYS=1` ships anywhere.
 - Rate limits (Authentication, Rate Limits): emails 100 an hour project-wide on the custom SMTP; code and link
   verifications, sign-ups and sign-ins, and token refreshes 150 per 5 minutes per IP; anonymous sign-ins 30 an hour

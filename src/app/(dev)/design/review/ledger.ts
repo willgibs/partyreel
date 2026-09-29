@@ -46,15 +46,15 @@ const Note = z.object({
 });
 
 /**
- * ONE RULING ON ONE CATALOG CARD (the revamp, 2026-09-16). An exploration is a
- * catalog of polished ideas ruled on one by one rather than a paper to read
+ * ONE VERDICT ON ONE CATALOG CARD (the revamp, 2026-09-16). An exploration is a
+ * catalog of polished ideas, each given a verdict, rather than a paper to read
  * (Will, 2026-09-16: tracks "should return design catalogs of ideas to ship in
  * the lab" that he can "kill, refine, or promote the best to the Library"), so
  * a round carries a verdict per ITEM beside its answers per ask.
  *
  * ★ THE ITEM IS A CANDIDATE ID, NEVER A NAME, for the reason an answer stores
- * an ask id: a board may rename a card between rounds and the ruling has to
- * survive it. `status.ts` joins on the id and reports a ruling whose candidate
+ * an ask id: a board may rename a card between rounds and the verdict has to
+ * survive it. `status.ts` joins on the id and reports a verdict whose candidate
  * the spec no longer declares as orphaned, exactly as it does for an answer.
  *
  * ★ AND THE VOCABULARY IS NOT PINNED HERE. The verdict is a string rather than
@@ -62,7 +62,7 @@ const Note = z.object({
  * name the line and column of a word outside it; a schema failure here would
  * blank the whole desk over one typo in one ledger.
  */
-const ItemRuling = z.object({
+const ItemAnswer = z.object({
   item: z.string().min(1),
   /** One of ITEM_VERDICTS: keep, refine or kill. */
   verdict: z.string().min(1),
@@ -78,7 +78,7 @@ const Round = z.object({
   notes: z.array(Note).default([]),
   // A round written before items existed reads with none held, which is what
   // keeps every ledger already on disk valid the moment this lands.
-  items: z.array(ItemRuling).default([]),
+  items: z.array(ItemAnswer).default([]),
 });
 
 export const LedgerSchema = z.object({
@@ -88,7 +88,7 @@ export const LedgerSchema = z.object({
 
 export type Answer = z.infer<typeof Answer>;
 export type Note = z.infer<typeof Note>;
-export type ItemRuling = z.infer<typeof ItemRuling>;
+export type ItemAnswer = z.infer<typeof ItemAnswer>;
 export type Round = z.infer<typeof Round>;
 export type Ledger = z.infer<typeof LedgerSchema>;
 
@@ -100,7 +100,7 @@ export type Ledger = z.infer<typeof LedgerSchema>;
  * the `redesign` and `retire` ones as the queue the Orchestrator cuts tracks
  * from.
  */
-const LibraryRuling = z.object({
+const LibraryAnswer = z.object({
   /** A catalog entry id, the last segment of its Library URL. */
   entry: z.string().min(1),
   /** One of LIBRARY_VERDICTS: keep, redesign or retire. */
@@ -111,10 +111,10 @@ const LibraryRuling = z.object({
 });
 
 export const LibraryLedgerSchema = z.object({
-  entries: z.array(LibraryRuling).default([]),
+  entries: z.array(LibraryAnswer).default([]),
 });
 
-export type LibraryRuling = z.infer<typeof LibraryRuling>;
+export type LibraryAnswer = z.infer<typeof LibraryAnswer>;
 export type LibraryLedger = z.infer<typeof LibraryLedgerSchema>;
 
 export const REVIEWS_DIR = "docs/reviews";
@@ -162,18 +162,18 @@ export function answersIn(round: Round | null): Map<string, Answer> {
   return new Map((round?.answers ?? []).map((a) => [a.ask, a]));
 }
 
-/** Every item ruling in the latest round, by candidate id. */
-export function itemsIn(round: Round | null): Map<string, ItemRuling> {
+/** Every card's verdict in the latest round, by candidate id. */
+export function itemsIn(round: Round | null): Map<string, ItemAnswer> {
   return new Map((round?.items ?? []).map((i) => [i.item, i]));
 }
 
 /**
- * The Library's rulings, or none when nobody has scrolled it yet. The file is
+ * The Library's verdicts, or none when nobody has scrolled it yet. The file is
  * read on its own path rather than through `readLedger`, which refuses an id
  * that is not a board: the two ledgers are two shapes and the reader should
  * never be able to hand one to the other's schema.
  */
-const readLibraryCached = cache((): LibraryRuling[] => {
+const readLibraryCached = cache((): LibraryAnswer[] => {
   const file = join(process.cwd(), REVIEWS_DIR, `${LIBRARY_LEDGER}.json`);
   if (!existsSync(file)) return [];
   const parsed = LibraryLedgerSchema.safeParse(
@@ -190,7 +190,7 @@ const readLibraryCached = cache((): LibraryRuling[] => {
   return parsed.data.entries;
 });
 
-export function libraryRulings(): LibraryRuling[] {
+export function libraryAnswers(): LibraryAnswer[] {
   return readLibraryCached();
 }
 

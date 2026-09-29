@@ -1,16 +1,12 @@
 /**
- * THE PER-EVENT BLOCK'S READS: the three questions the server asks for everyone else (is this ticket
- * blocked, which rows leave the guest list, which events hold this account), read defensively over
- * the typed seam, and the host's Blocked list, whose restorable count must be the number let_back_in
- * would move and nothing a hold could be read from.
+ * THE PER-EVENT BLOCK'S READS: the two questions the server asks for everyone else (which rows leave the
+ * guest list, which events hold this account), read defensively off their jsonb, and the host's Blocked
+ * list, whose restorable count must be the number let_back_in would move and nothing a hold could be read
+ * from. (Whether one browser's ticket is blocked is `event_door_standing`'s now.)
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
-const captureError = vi.fn();
-vi.mock("@/lib/observability/sentry", () => ({
-  captureError: (...args: unknown[]) => captureError(...args),
-}));
 vi.mock("@/lib/supabase/avatar-storage", () => ({
   getAvatarUrl: (id: string, marker: string | null) =>
     Promise.resolve(marker ? `https://cdn/avatars/${id}?v=${marker}` : null),
@@ -77,13 +73,8 @@ vi.mock("@/lib/supabase/request-auth", () => ({
   }),
 }));
 
-const {
-  getBlockedEventsFor,
-  getBlockedGuestIds,
-  getEventBlocks,
-  isBlockSchemaMissing,
-  isTicketBlocked,
-} = await import("@/lib/db/queries/event-blocks");
+const { getBlockedEventsFor, getBlockedGuestIds, getEventBlocks } =
+  await import("@/lib/db/queries/event-blocks");
 
 const EVENT = "event-1";
 const AT = "2026-09-28T15:00:00.123456+00:00";
@@ -97,79 +88,28 @@ beforeEach(() => {
   for (const k of Object.keys(rpcAnswers)) delete rpcAnswers[k];
   rpcCalls.length = 0;
   reads.length = 0;
-  captureError.mockReset();
   signedIn = true;
 });
 
-describe("the runtime seam: the migration not yet applied reads as nothing blocked, loudly", () => {
-  it("names exactly the missing-table and missing-function codes, and captures each", () => {
-    for (const code of ["42P01", "42883", "PGRST202", "PGRST205"]) {
-      expect(isBlockSchemaMissing({ code })).toBe(true);
-    }
-    expect(captureError).toHaveBeenCalledTimes(4);
-    for (const error of [
-      { code: "42501" },
-      { code: "P0001" },
-      null,
-      new Error("x"),
-    ]) {
-      expect(isBlockSchemaMissing(error)).toBe(false);
-    }
-    expect(captureError).toHaveBeenCalledTimes(4);
-  });
-
-  it("every question answers nothing blocked before the apply, and says so", async () => {
-    await expect(isTicketBlocked(EVENT, ["t"])).resolves.toBe(false);
-    await expect(getBlockedGuestIds(EVENT)).resolves.toEqual(new Set());
-    await expect(getBlockedEventsFor("u1")).resolves.toEqual(new Map());
-    tables["event_blocks:error"] = [{ code: "PGRST205", message: "no table" }];
-    await expect(getEventBlocks(EVENT, format)).resolves.toEqual([]);
-    expect(captureError).toHaveBeenCalledTimes(4);
-  });
-
-  it("★ any other failure throws: a broken read never impersonates 'nobody is blocked'", async () => {
-    const denied = { data: null, error: { code: "42501", message: "denied" } };
-    rpcAnswers.event_ticket_blocked = denied;
-    rpcAnswers.event_blocked_guest_ids = denied;
-    rpcAnswers.blocked_events_for = denied;
-    await expect(isTicketBlocked(EVENT, ["t"])).rejects.toMatchObject({
-      code: "42501",
+// ★ RESHAPED ON PURPOSE (crumbs-15, 2026-09-29; scar kept: a broken read never impersonates "nobody is blocked").
+// Three tests read "the runtime seam: the migration not yet applied reads as nothing blocked, loudly": the codes
+// a missing table or function carried, and every question answering nothing blocked (the fail-OPEN answer) before
+// the apply. The migration is applied and the seam went, so a missing object is a failure like any other, and
+// what the third of them pinned, that anything but the missing-schema codes threw, now holds for all of them.
+describe("★ any failure throws: a broken read never impersonates 'nobody is blocked'", () => {
+  for (const code of ["42501", "42P01", "42883", "PGRST202", "PGRST205"]) {
+    it(`code ${code}`, async () => {
+      const failed = { data: null, error: { code, message: "failed" } };
+      rpcAnswers.event_blocked_guest_ids = failed;
+      rpcAnswers.blocked_events_for = failed;
+      await expect(getBlockedGuestIds(EVENT)).rejects.toMatchObject({ code });
+      await expect(getBlockedEventsFor("u1")).rejects.toMatchObject({ code });
+      tables["event_blocks:error"] = [{ code, message: "failed" }];
+      await expect(getEventBlocks(EVENT, format)).rejects.toMatchObject({
+        code,
+      });
     });
-    await expect(getBlockedGuestIds(EVENT)).rejects.toMatchObject({
-      code: "42501",
-    });
-    await expect(getBlockedEventsFor("u1")).rejects.toMatchObject({
-      code: "42501",
-    });
-    tables["event_blocks:error"] = [{ code: "42501", message: "denied" }];
-    await expect(getEventBlocks(EVENT, format)).rejects.toMatchObject({
-      code: "42501",
-    });
-  });
-});
-
-describe("isTicketBlocked", () => {
-  it("asks nothing for no ticket, and each ticket once", async () => {
-    await expect(isTicketBlocked(EVENT, [])).resolves.toBe(false);
-    expect(rpcCalls).toEqual([]);
-    rpcAnswers.event_ticket_blocked = { data: true, error: null };
-    await expect(isTicketBlocked(EVENT, ["t1", "t1", "t2"])).resolves.toBe(
-      true,
-    );
-    expect(rpcCalls).toEqual([
-      [
-        "event_ticket_blocked",
-        { p_event_id: EVENT, p_session_tokens: ["t1", "t2"] },
-      ],
-    ]);
-  });
-
-  it("only a literal true is a block", async () => {
-    for (const data of [false, null, "true", 1, {}]) {
-      rpcAnswers.event_ticket_blocked = { data, error: null };
-      await expect(isTicketBlocked(EVENT, ["t"])).resolves.toBe(false);
-    }
-  });
+  }
 });
 
 describe("getBlockedGuestIds and getBlockedEventsFor read defensively", () => {

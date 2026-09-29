@@ -42,7 +42,7 @@ export const GETTING_IN = {
     },
     {
       title: "Every upload, a name",
-      body: "Require verified emails and guests confirm one once. Switch it off and guests choose a display name instead.",
+      body: "Ask for an email first and guests confirm one once. Switch it off and guests choose a display name instead.",
     },
     {
       title: "One link, forever",
@@ -107,8 +107,9 @@ export const WHO_CAN_OPEN = {
   subhead:
     "One setting decides who sees the album. A new event asks guests for an email first.",
   facts: [
-    // Every plan since the free/pro shift (2026-09-28): the password came down to Free.
-    "Password protection comes with every plan, Free included.",
+    // Every plan since the free/pro shift (2026-09-28): the password came down to Free, and the
+    // doors (2026-09-29) shipped every other gate there.
+    "Every gate, the password and the invite list included, comes with every plan.",
     "Album links are never listed by search engines.",
   ],
 };

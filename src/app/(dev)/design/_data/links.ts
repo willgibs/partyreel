@@ -1,5 +1,5 @@
 import { BIBLE } from "@/app/(dev)/design/rules/bible";
-import { SANDBOX } from "@/app/(dev)/design/touchpoints";
+import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
 
 /**
  * THE LAB'S LINK GRAMMAR.
@@ -26,7 +26,7 @@ import { SANDBOX } from "@/app/(dev)/design/touchpoints";
 export type LabRef =
   /** A bible principle's slug (rules/bible.ts BIBLE[].id). */
   | { kind: "rule"; id: string }
-  /** A standing board (touchpoints.ts SandboxId). */
+  /** A standing board: a folder under sandbox/ that the registry finds. */
   | { kind: "board"; id: string; anchor?: string }
   /** docs/specs/<slug>.md */
   | { kind: "proposal"; slug: string; anchor?: string }
@@ -46,7 +46,7 @@ export const DEFAULT_BRANCH = "launch-prep";
 
 const RULE_BY_N = new Map(BIBLE.map((r) => [r.n, r.id]));
 const RULE_N_BY_ID = new Map(BIBLE.map((r) => [r.id, r.n]));
-const SANDBOX_IDS = new Set<string>(SANDBOX.map((r) => r.id));
+const BOARD_IDS = new Set<string>(BOARDS.map((b) => b.id));
 
 /**
  * The kinds whose anchor is any string. Deliberately NOT a generic helper:
@@ -106,7 +106,7 @@ export function parseRef(input: string): LabRef {
     // The old and the new board URL share one shape; only a standing board is
     // a board ref, so /design/lab/kit and /design/lab/tools/* stay pages.
     const lab = text.match(/^\/design\/(?:c|lab)\/([a-z0-9-]+)(?:#(\S+))?$/);
-    if (lab && SANDBOX_IDS.has(lab[1]))
+    if (lab && BOARD_IDS.has(lab[1]))
       return anchored({ kind: "board", id: lab[1] }, lab[2]);
     return { kind: "page", href: text };
   }

@@ -46,6 +46,12 @@ export type CreateGuestResult =
          * the address itself never travels back out on a wire the host's own response rides.
          */
         emailAttached: boolean;
+        /**
+         * WHETHER THE DOOR LET THIS TICKET THROUGH (the doors, 2026-09-29): `waiting` is a newcomer
+         * at a door the host answers, held there until the host lets her in. An older payload without
+         * the key reads as `in`, which is what every mint before the doors was.
+         */
+        admission: GuestAdmission;
       };
     }
   | {
@@ -58,9 +64,16 @@ export type CreateGuestResult =
         | "email_invalid"
         | "unlock_required"
         | "unauthorized"
+        | "unlisted"
         | "unknown";
       message: string;
     };
+
+/** Whether a ticket is past the door (`guests.admission`, the doors' migration 20260929120000). */
+export type GuestAdmission = "in" | "waiting";
+
+const admissionOf = (value: unknown): GuestAdmission =>
+  value === "waiting" ? "waiting" : "in";
 
 export async function createGuest(input: {
   qrToken: string;
@@ -137,6 +150,12 @@ export async function createGuest(input: {
       if (m.includes("add your name")) {
         return { ok: false, code: "name_required", message: error.message };
       }
+      // "Ask the host to let you in." — an invite list that does not name this confirmed address
+      // (the doors, 2026-09-29: `unlisted=ask`). Named AHEAD of the fallback too, which would send
+      // someone who has already confirmed an email back to the email step.
+      if (m.includes("ask the host")) {
+        return { ok: false, code: "unlisted", message: error.message };
+      }
       // The remaining check_violation is the identity gate ("This event requires a verified email
       // to upload."), which is also the safest catch-all: a refusal we cannot name is far better
       // read as "prove an email" than as a generic failure.
@@ -153,6 +172,14 @@ export async function createGuest(input: {
     };
   }
 
+  return { ok: true, data: readMinted(data) };
+}
+
+/** A mint's payload (create_guest's and ask_to_join's are one shape), read defensively. */
+function readMinted(data: unknown): Extract<
+  CreateGuestResult,
+  { ok: true }
+>["data"] {
   const minted = data as unknown as {
     session_token: string;
     guest_id: string;
@@ -160,20 +187,66 @@ export async function createGuest(input: {
     display_name?: string | null;
     verified?: boolean;
     email_attached?: boolean;
+    admission?: unknown;
   };
   return {
-    ok: true,
-    data: {
-      session_token: minted.session_token,
-      guest_id: minted.guest_id,
-      event_id: minted.event_id,
-      display_name: minted.display_name ?? null,
-      verified: minted.verified === true,
-      // === true, never a truthy cast: an older payload without the key must read as "no address",
-      // which is the safe answer in both directions (it never claims one was kept).
-      emailAttached: minted.email_attached === true,
-    },
+    session_token: minted.session_token,
+    guest_id: minted.guest_id,
+    event_id: minted.event_id,
+    display_name: minted.display_name ?? null,
+    verified: minted.verified === true,
+    // === true, never a truthy cast: an older payload without the key must read as "no address",
+    // which is the safe answer in both directions (it never claims one was kept).
+    emailAttached: minted.email_attached === true,
+    admission: admissionOf(minted.admission),
   };
+}
+
+// ─── ask_to_join ─────────────────────────────────────────────────────────────
+
+/**
+ * ASK THE HOST TO LET ME IN (the doors, 2026-09-29, `unlisted=ask`): a confirmed newcomer the invite
+ * list does not name asks, which mints her a waiting ticket (a confirmed row, nameless like every
+ * confirmed mint). Someone the list names, or already in, is minted in instead, as her join would be.
+ * Service-role only, like create_guest: the route passes the `getUser()`-verified id, and the RPC reads
+ * the confirmation and the address from auth.users itself. A block, Only me and every door but an
+ * invite list answer as a private album does (403).
+ */
+export async function askToJoin(input: {
+  qrToken: string;
+  userId: string;
+}): Promise<CreateGuestResult> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("ask_to_join", {
+    p_qr_token: input.qrToken,
+    p_user_id: input.userId,
+  });
+  if (error) {
+    if (error.code === NO_DATA_FOUND) {
+      return {
+        ok: false,
+        code: "not_found",
+        message: "This event link is no longer valid.",
+      };
+    }
+    if (error.code === CHECK_VIOLATION) {
+      const m = error.message.toLowerCase();
+      if (m.includes("private")) {
+        return { ok: false, code: "unauthorized", message: "This event is private." };
+      }
+      return {
+        ok: false,
+        code: "verification_required",
+        message: "Confirm your email to ask the host.",
+      };
+    }
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't ask the host. Please try again.",
+    };
+  }
+  return { ok: true, data: readMinted(data) };
 }
 
 // ─── set_guest_display_name ──────────────────────────────────────────────────

@@ -32,7 +32,7 @@ import {
 } from "@/app/(dev)/design/(shell)/lab/_desk/session-step";
 import { holdId } from "@/app/(dev)/design/(shell)/lab/_desk/step-id";
 
-import type { BoardState, Control } from "./board-spec";
+import type { BoardState, Control, Term } from "./board-spec";
 import { ControlKnobs } from "./board-state";
 import { CatalogTiles } from "./catalog";
 import {
@@ -41,6 +41,8 @@ import {
   setLabPref,
   useLabPrefs,
 } from "./lab-prefs";
+import { BoardOpening, Crumbs, TermList } from "./opening";
+import { askTexts, openingTexts, termsIn } from "./terms";
 import { useDesignKey } from "./walk";
 
 /**
@@ -62,11 +64,14 @@ import { useDesignKey } from "./walk";
  * have to visit the board to be able to see a full preview, then go back to the
  * question to answer. We should ensure both the question/context/preview UI and
  * response/answer UI work well together." So the page is, top to bottom:
- *  - the HEAD: the question and its context, with "It decides" and "What to
- *    look at" beside them where there is room;
+ *  - the board's OPENING, open on the first step his sitting reaches on a
+ *    board and one line away on the rest (the context layer, 2026-09-29);
+ *  - the HEAD: where it happens, the state that brings someone there, the
+ *    question, what the previews draw and the words the board coins; beside
+ *    them, what it decides, why it matters and the recommendation's reason;
  *  - the STAGE HEAD, sticky: which option is on the stage (its number, its
- *    label, the board's recommendation or your pick, what it means), the knobs,
- *    the scale the stage is drawn at;
+ *    label, the board's recommendation or your pick), the knobs, the scale the
+ *    stage is drawn at; under it, the shown option's means, gain and cost;
  *  - the STAGE: every option mounted ONCE at its true size, never capped and
  *    never pinned, and it takes the pointer, so the wheel scrolls the page;
  *  - the DOCK, sticky at the bottom: the options by number, Pick, the note,
@@ -255,13 +260,13 @@ export function Step({
 
   /**
    * THE BOARD'S DECIDED ANSWERS, AS THE CONTROLS THAT DRAW THEM: the ledger's
-   * from an earlier sitting (`ruled`, resolved on the server), then this
+   * from an earlier sitting (`answered`, resolved on the server), then this
    * sitting's from the store, which are newer and win. An exploration's control
-   * IS its ask (`defineExploration`), so a ruled answer lands on the control of
+   * IS its ask (`defineExploration`), so an answer on record lands on the control of
    * the same id; an ask in this walk also lends its option's own patch.
    */
   const wearing = (s: AskStep): Record<string, string> => {
-    const out: Record<string, string> = { ...s.ruled };
+    const out: Record<string, string> = { ...s.answered };
     for (const t of steps) {
       if (t.kind !== "ask" || t.board !== s.board || t.round !== s.round)
         continue;
@@ -481,6 +486,21 @@ export function Step({
     step.kind === "ask" && !step.winner
       ? step.options.filter((o) => drawable(step, o, board))
       : [];
+  // ★ WHERE HIS SITTING ENTERS THE BOARD (the context layer, 2026-09-29): the
+  // first of the board's steps the walk reaches draws its opening open, and
+  // every later one keeps it one line away. The terms the open opening already
+  // glossed are not glossed again under the question.
+  const opening = step.kind === "ask" ? step.opening : undefined;
+  const enters =
+    opening !== undefined && walk.find((s) => s.board === step.board) === step;
+  const glossed =
+    enters && step.kind === "ask"
+      ? termsIn(openingTexts(opening), step.terms)
+      : [];
+  const terms =
+    step.kind === "ask"
+      ? termsIn(askTexts(step), step.terms).filter((t) => !glossed.includes(t))
+      : [];
 
   return (
     <div
@@ -498,7 +518,11 @@ export function Step({
         build={build}
       />
 
-      <Head step={step} />
+      {step.kind === "ask" && (
+        <BoardOpening opening={opening} terms={step.terms} folded={!enters} />
+      )}
+
+      <Head step={step} terms={terms} />
 
       {step.kind === "ask" ? (
         <AskBody
@@ -661,16 +685,43 @@ function Spine({
 /* ── the head ─────────────────────────────────────────────────────────────── */
 
 /**
- * THE QUESTION AND ITS CONTEXT, with what it decides and where to look beside
- * them where there is room (design.css, `.lab-step-head`), under them where
- * there is not. `look` is the author's own sentence naming what separates the
- * options; it was carried on the step type and once never rendered at all.
+ * THE QUESTION AND ITS CONTEXT, with what it decides beside them where there
+ * is room (design.css, `.lab-step-head`), under them where there is not.
+ *
+ * ★ CONTEXT COMES BEFORE THE OPTIONS (Will, 2026-09-29: "for some questions
+ * I'm just getting dropped off in the middle of nowhere with no resources to
+ * help"). The head reads, in order: where it happens (the breadcrumb), the
+ * state that brings someone there, the question, what the previews draw and
+ * the board's words it uses; beside them, what it decides, why that matters
+ * and the recommendation with its reason, so he knows which option the board
+ * favours, and why, before he presses any. `look` is the author's own sentence
+ * naming what separates the options.
  */
-function Head({ step }: { step: SessionStep }) {
-  const aside = step.kind === "ask" && Boolean(step.lands || step.look);
+function Head({
+  step,
+  terms = [],
+}: {
+  step: SessionStep;
+  terms?: readonly Term[];
+}) {
+  const ask = step.kind === "ask" ? step : null;
+  const recommended = ask?.options.find((o) => o.id === ask.recommended);
+  const aside = Boolean(
+    ask &&
+    (ask.lands || ask.matters || ask.look || (recommended && ask.because)),
+  );
   return (
     <header className="lab-step-head" data-aside={aside ? "" : undefined}>
       <div className="max-w-3xl min-w-0">
+        {ask && <Crumbs where={ask.where} className="mb-2" />}
+        {ask?.when && (
+          <p
+            data-lab-when=""
+            className="mb-2 text-sm leading-relaxed text-foreground"
+          >
+            {ask.when}
+          </p>
+        )}
         <h1 className="font-heading text-2xl leading-tight tracking-tight text-balance sm:text-3xl">
           {step.kind === "items" ? headingFor(step) : step.question}
         </h1>
@@ -688,22 +739,40 @@ function Head({ step }: { step: SessionStep }) {
           </p>
         )}
       </div>
-      {aside && step.kind === "ask" && (
+      {aside && ask && (
         <div className="flex min-w-0 flex-col gap-2 text-xs leading-relaxed text-muted-foreground">
-          {step.lands && (
+          {ask.lands && (
             <p>
               <span className="text-foreground">It decides: </span>
-              {step.lands}
+              {ask.lands}
             </p>
           )}
-          {step.look && (
+          {ask.matters && (
+            <p data-lab-matters="">
+              <span className="text-foreground">Why it matters: </span>
+              {ask.matters}
+            </p>
+          )}
+          {recommended && ask.because && (
+            <p data-lab-reason="">
+              <span className="text-foreground">The board says: </span>
+              <span className="font-medium text-foreground">
+                {recommended.label}
+              </span>
+              {`. ${ask.because}`}
+            </p>
+          )}
+          {ask.look && (
             <p>
               <span className="text-foreground">What to look at: </span>
-              {step.look}
+              {ask.look}
             </p>
           )}
         </div>
       )}
+      {/* The step's own words, glossed across the head's whole width, so a
+          list of four costs two lines rather than four under the question. */}
+      <TermList terms={terms} wide className="lg:col-span-2" />
     </header>
   );
 }
@@ -794,6 +863,8 @@ function AskBody({
               n={i + 1}
               label={option.label}
               means={option.means}
+              gains={option.gains}
+              costs={option.costs}
               recommended={option.id === step.recommended}
               chosen={choice === option.id}
               onPress={() => onPress(option)}
@@ -802,6 +873,59 @@ function AskBody({
         ))}
       </ul>
     </>
+  );
+}
+
+/**
+ * ★ AN OPTION'S TRADE, WITH ITS PREVIEW (the context layer, 2026-09-29). What
+ * the option is, what picking it gains and what it costs, a line each, so the
+ * difference between two tiles is read rather than spotted: "click through
+ * the options to see what's changing" was the trip this ends. Outside the
+ * view on purpose: `lab:demo` compares the views' pictures, and words that
+ * change with every press would hide a stage that does not.
+ */
+function OptionTrade({
+  option,
+  withMeans = true,
+  narrow = false,
+  className,
+}: {
+  option: SessionOption;
+  withMeans?: boolean;
+  /** In a phone-wide column: the gain over the cost, never side by side. */
+  narrow?: boolean;
+  className?: string;
+}) {
+  const means = withMeans ? option.means : undefined;
+  if (!means && !option.gains && !option.costs) return null;
+  return (
+    <div
+      data-lab-trade={option.id}
+      className={cn(
+        "flex max-w-4xl flex-col gap-1 text-xs leading-relaxed",
+        className,
+      )}
+    >
+      {means && <p className="text-muted-foreground">{means}</p>}
+      {(option.gains || option.costs) && (
+        <div
+          className={cn("grid gap-x-6 gap-y-1", !narrow && "sm:grid-cols-2")}
+        >
+          {option.gains && (
+            <p>
+              <span className="font-medium text-foreground">Gains: </span>
+              <span className="text-muted-foreground">{option.gains}</span>
+            </p>
+          )}
+          {option.costs && (
+            <p>
+              <span className="font-medium text-foreground">Costs: </span>
+              <span className="text-muted-foreground">{option.costs}</span>
+            </p>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -943,6 +1067,9 @@ function StageViews({
         fit={fit}
         sidebar={sidebar}
       />
+      {/* Flipped, the shown option's trade sits over the stage; side by side,
+          each option carries its own under its name. */}
+      {mode === "flip" && <OptionTrade option={live} />}
       <div
         ref={ref}
         data-lab-stage=""
@@ -1003,6 +1130,14 @@ function StageViews({
                   )}
                 </button>
               )}
+              {mode === "side" && (
+                <OptionTrade
+                  option={option}
+                  withMeans={false}
+                  narrow
+                  className="mb-2 px-0.5"
+                />
+              )}
               <div data-lab-specimen="" className="min-w-0">
                 {board.evidence(section, {
                   ...board.state,
@@ -1057,7 +1192,11 @@ function StageHead({
   const small = zoomed || scale.wide;
   return (
     <div data-lab-stage-head="" className="lab-stage-head">
-      <div className="min-w-0 flex-1">
+      {/* ★ THE NAME OF WHAT IS SHOWN KEEPS ITS ROOM (the 375 crush): a knob
+          strip beside it squeezed the label to nothing at a phone, so the one
+          line saying which option is on the stage said only its number. With
+          a floor, the strip wraps under the name instead. */}
+      <div className="min-w-48 flex-1">
         <p className="flex min-w-0 items-baseline gap-2 text-[13px] leading-snug font-medium">
           <span className="text-muted-foreground tabular-nums">{n}</span>
           <span data-lab-stage-label="" className="min-w-0 truncate">
@@ -1075,7 +1214,10 @@ function StageHead({
             </span>
           )}
         </p>
-        {live.means && (
+        {/* Flipped, the means is printed whole just under this bar with the
+            option's gain and cost (`OptionTrade`); side by side, the bar is
+            the one place it is said. */}
+        {mode === "side" && live.means && (
           <p className="truncate text-[11px] leading-snug text-muted-foreground">
             {live.means}
           </p>
@@ -1141,6 +1283,8 @@ function OptionCard({
   n,
   label,
   means,
+  gains,
+  costs,
   recommended,
   chosen,
   onPress,
@@ -1149,6 +1293,8 @@ function OptionCard({
   n?: number;
   label: string;
   means?: string;
+  gains?: string;
+  costs?: string;
   recommended?: boolean;
   chosen: boolean;
   onPress: () => void;
@@ -1193,6 +1339,18 @@ function OptionCard({
         {means && (
           <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">
             {means}
+          </span>
+        )}
+        {gains && (
+          <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">
+            <span className="font-medium text-foreground">Gains: </span>
+            {gains}
+          </span>
+        )}
+        {costs && (
+          <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">
+            <span className="font-medium text-foreground">Costs: </span>
+            {costs}
           </span>
         )}
       </span>
@@ -1448,7 +1606,15 @@ function Dock({
                 data-label={option.label}
                 data-shown={on ? "" : undefined}
                 aria-pressed={mine}
-                title={option.means}
+                // The recommendation's reason rides its chip too, so the one
+                // place the dock says "the board says" also says why.
+                title={
+                  option.id === step.recommended && step.because
+                    ? [option.means, `The board says: ${step.because}`]
+                        .filter(Boolean)
+                        .join(" ")
+                    : option.means
+                }
                 onClick={() => onPress(option)}
                 className={cn(
                   "inline-flex max-w-[16rem] min-w-0 shrink-0 items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-left text-[12px] transition-colors duration-150 motion-reduce:transition-none",

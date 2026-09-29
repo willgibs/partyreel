@@ -45,6 +45,7 @@ import {
   getBlockedEventsFor,
   getBlockedGuestIds,
 } from "@/lib/db/queries/event-blocks";
+import { readEventGates } from "@/lib/db/queries/event-doors";
 import { readCoverUrls } from "@/lib/db/queries/events";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
 import type { Database } from "@/lib/db/types";
@@ -58,40 +59,10 @@ import {
   resolveNotificationPrefs,
   type NotificationPrefs,
 } from "@/lib/social/notification-prefs";
-import { captureError } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
 import { createClient } from "@/lib/supabase/server";
-
-/**
- * The pre-apply RUNTIME seam (the typing seam's sibling): until the orchestrator
- * applies migration 20260708120000, the social tables/columns/RPC don't exist in
- * the live DB, so these reads fail with undefined-column/table (42703/42P01) or
- * PostgREST schema-cache misses (PGRST202 missing fn, PGRST204/205 missing
- * column/table). The UI surfaces treat that as "feature not provisioned yet" and
- * render their graceful empty/hidden state, so this branch builds AND runs green
- * pre-apply. Real errors (RLS, network, bugs) still throw. Delete the call sites'
- * catch branches only if you want post-apply failures to surface louder.
- */
-const MISSING_SCHEMA_CODES = new Set([
-  "42703",
-  "42P01",
-  "PGRST202",
-  "PGRST204",
-  "PGRST205",
-]);
-export function isSocialSchemaMissing(error: unknown): boolean {
-  const code = (error as { code?: string | null } | null)?.code ?? "";
-  const missing = MISSING_SCHEMA_CODES.has(code);
-  // The migration is APPLIED (2026-07-08), so this should never fire again: if it
-  // does, a refactor broke a real column/table/RPC. Surface it loudly instead of
-  // silently downgrading the product; the graceful return still protects the render.
-  if (missing) {
-    captureError("other", error, { seam: "social_schema_missing", code });
-  }
-  return missing;
-}
 
 /**
  * ★ EVERY LIST HERE IS READ WHOLE, EVERY ID LIST CHUNKED (the 1,000-row round, 2026-09-23; the rules
@@ -164,31 +135,25 @@ export async function getMyFollowing(): Promise<FollowEntry[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
-  let rows: { followee_id: string; created_at: string }[];
-  try {
-    ({ rows } = await readAllPages(
-      "social: following",
-      (after: NewestFirst, limit) => {
-        let q = supabase
-          .from("user_follows")
-          .select("followee_id, created_at")
-          .eq("follower_id", user.id)
-          .order("created_at", { ascending: false })
-          .order("followee_id", { ascending: false })
-          .limit(limit);
-        if (after) {
-          q = q.or(
-            `created_at.lt.${after.at},and(created_at.eq.${after.at},followee_id.lt.${after.id})`,
-          );
-        }
-        return q;
-      },
-      (row) => ({ at: row.created_at, id: row.followee_id }),
-    ));
-  } catch (error) {
-    if (isSocialSchemaMissing(error)) return []; // pre-apply
-    throw error;
-  }
+  const { rows } = await readAllPages(
+    "social: following",
+    (after: NewestFirst, limit) => {
+      let q = supabase
+        .from("user_follows")
+        .select("followee_id, created_at")
+        .eq("follower_id", user.id)
+        .order("created_at", { ascending: false })
+        .order("followee_id", { ascending: false })
+        .limit(limit);
+      if (after) {
+        q = q.or(
+          `created_at.lt.${after.at},and(created_at.eq.${after.at},followee_id.lt.${after.id})`,
+        );
+      }
+      return q;
+    },
+    (row) => ({ at: row.created_at, id: row.followee_id }),
+  );
 
   const cards = await getProfileCards(rows.map((r) => r.followee_id));
   return rows.flatMap((r) => {
@@ -215,12 +180,6 @@ export async function getMyFollowCounts(): Promise<{
       .select("followee_id", { count: "exact", head: true })
       .eq("followee_id", user.id),
   ]);
-  if (
-    isSocialSchemaMissing(following.error) ||
-    isSocialSchemaMissing(followers.error)
-  ) {
-    return { following: 0, followers: 0 }; // pre-apply
-  }
   if (following.error) throw following.error;
   if (followers.error) throw followers.error;
   return {
@@ -243,10 +202,7 @@ export async function isFollowing(profileId: string): Promise<boolean> {
     .select("followee_id", { count: "exact", head: true })
     .eq("follower_id", user.id)
     .eq("followee_id", profileId);
-  if (error) {
-    if (isSocialSchemaMissing(error)) return false; // pre-apply
-    throw error;
-  }
+  if (error) throw error;
   return (count ?? 0) > 0;
 }
 
@@ -255,31 +211,25 @@ export async function getMyBlocks(): Promise<BlockEntry[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
-  let rows: { blocked_id: string; created_at: string }[];
-  try {
-    ({ rows } = await readAllPages(
-      "social: blocks",
-      (after: NewestFirst, limit) => {
-        let q = supabase
-          .from("user_blocks")
-          .select("blocked_id, created_at")
-          .eq("blocker_id", user.id)
-          .order("created_at", { ascending: false })
-          .order("blocked_id", { ascending: false })
-          .limit(limit);
-        if (after) {
-          q = q.or(
-            `created_at.lt.${after.at},and(created_at.eq.${after.at},blocked_id.lt.${after.id})`,
-          );
-        }
-        return q;
-      },
-      (row) => ({ at: row.created_at, id: row.blocked_id }),
-    ));
-  } catch (error) {
-    if (isSocialSchemaMissing(error)) return []; // pre-apply
-    throw error;
-  }
+  const { rows } = await readAllPages(
+    "social: blocks",
+    (after: NewestFirst, limit) => {
+      let q = supabase
+        .from("user_blocks")
+        .select("blocked_id, created_at")
+        .eq("blocker_id", user.id)
+        .order("created_at", { ascending: false })
+        .order("blocked_id", { ascending: false })
+        .limit(limit);
+      if (after) {
+        q = q.or(
+          `created_at.lt.${after.at},and(created_at.eq.${after.at},blocked_id.lt.${after.id})`,
+        );
+      }
+      return q;
+    },
+    (row) => ({ at: row.created_at, id: row.blocked_id }),
+  );
 
   const cards = await getProfileCards(rows.map((r) => r.blocked_id));
   return rows.flatMap((r) => {
@@ -302,10 +252,7 @@ export async function getNotificationPrefs(): Promise<NotificationPrefs> {
     .select(NOTIFICATION_PREF_COLUMNS)
     .eq("user_id", user.id)
     .maybeSingle();
-  if (error) {
-    if (isSocialSchemaMissing(error)) return resolveNotificationPrefs(null);
-    throw error;
-  }
+  if (error) throw error;
   return resolveNotificationPrefs(data);
 }
 
@@ -320,26 +267,21 @@ export async function getMyShownEventIds(): Promise<string[]> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
-  try {
-    const { rows } = await readAllPages(
-      "social: my shown events",
-      (after: string | null, limit) => {
-        let q = supabase
-          .from("profile_shown_events")
-          .select("event_id")
-          .eq("user_id", user.id)
-          .order("event_id")
-          .limit(limit);
-        if (after) q = q.gt("event_id", after);
-        return q;
-      },
-      (row) => row.event_id,
-    );
-    return rows.map((r) => r.event_id);
-  } catch (error) {
-    if (isSocialSchemaMissing(error)) return []; // pre-apply
-    throw error;
-  }
+  const { rows } = await readAllPages(
+    "social: my shown events",
+    (after: string | null, limit) => {
+      let q = supabase
+        .from("profile_shown_events")
+        .select("event_id")
+        .eq("user_id", user.id)
+        .order("event_id")
+        .limit(limit);
+      if (after) q = q.gt("event_id", after);
+      return q;
+    },
+    (row) => row.event_id,
+  );
+  return rows.map((r) => r.event_id);
 }
 
 // ── The public profile (/u/[slug]) ───────────────────────────────────────────
@@ -381,8 +323,8 @@ export type PublicProfile = {
    * The empty page's count (migration 20260927100000, `identity-profile` `page=count`): the events
    * the owner added photos to that THIS viewer could see here if she chose them, and has not. It is
    * the attended arm's own rule with the owner's choice inverted, so a gated album this viewer has
-   * not passed stays out of it. A number only while the page shows nothing, null otherwise; absent
-   * before the migration is applied, which reads as no count.
+   * not passed stays out of it. A number only while the page shows nothing, null otherwise; an absent
+   * key reads as no count.
    */
   private_event_count?: number | null;
 };
@@ -402,10 +344,7 @@ const getPublicProfileCached = cache(
     const { data, error } = await supabase.rpc("get_public_profile", {
       p_slug: slug,
     });
-    if (error) {
-      if (isSocialSchemaMissing(error)) return null;
-      throw error;
-    }
+    if (error) throw error;
     return (data as PublicProfile | null) ?? null;
   },
 );
@@ -470,94 +409,89 @@ export async function getPublicProfileAttendedCoverUrls(
   if (ids.length === 0) return new Map();
 
   const admin = createAdminClient();
-  try {
-    // Gate 1: the album is still open (the guest list is always on, so the host keeps no key).
-    const open = await inChunks(
-      "social: attended covers, open events",
-      ids,
-      async (chunk) =>
-        (await mustQuery(
-          admin
-            .from("events")
-            .select("id")
-            .in("id", chunk)
-            .eq("visibility", "open")
-            .is("deleted_at", null),
-          "social: attended covers, open events",
-        )) ?? [],
-    );
-    const allowed = new Set(open.map((e) => e.id));
-    if (allowed.size === 0) return new Map();
+  // Gate 1: the album is still open (the guest list is always on, so the host keeps no key).
+  const open = await inChunks(
+    "social: attended covers, open events",
+    ids,
+    async (chunk) =>
+      (await mustQuery(
+        admin
+          .from("events")
+          .select("id")
+          .in("id", chunk)
+          .eq("visibility", "open")
+          .is("deleted_at", null),
+        "social: attended covers, open events",
+      )) ?? [],
+  );
+  const allowed = new Set(open.map((e) => e.id));
+  if (allowed.size === 0) return new Map();
 
-    // Gate 2: no block holds the owner there. A blocked person is on no list of that event, so her
-    // page shows no picture from it either.
-    const blocked = await getBlockedEventsFor(profileId);
-    for (const id of [...allowed]) if (blocked.has(id)) allowed.delete(id);
-    if (allowed.size === 0) return new Map();
+  // Gate 2: no block holds the owner there. A blocked person is on no list of that event, so her
+  // page shows no picture from it either.
+  const blocked = await getBlockedEventsFor(profileId);
+  for (const id of [...allowed]) if (blocked.has(id)) allowed.delete(id);
+  if (allowed.size === 0) return new Map();
 
-    // Gate 3: the guest's own CHOICE. Inverted by the guest identity round (2026-09-22): an event
-    // is published because its owner put a row in `profile_shown_events`, never because they failed
-    // to hide it, so the set that survives is the INTERSECTION and an empty answer is the correct
-    // default for someone who has chosen nothing. Scoped to THIS profile's rows, never the viewer's
-    // (the viewer may be anonymous; the choice belongs to the page's owner). Admin read:
-    // profile_shown_events RLS is owner-only.
-    const { rows: shown } = await readAllPages(
-      "social: attended covers, the owner's choices",
-      (after: string | null, limit) => {
-        let q = admin
-          .from("profile_shown_events")
-          .select("event_id")
-          .eq("user_id", profileId)
-          .order("event_id")
-          .limit(limit);
-        if (after) q = q.gt("event_id", after);
-        return q;
-      },
-      (row) => row.event_id,
-    );
-    const chosen = new Set(shown.map((row) => row.event_id));
-    for (const id of [...allowed]) if (!chosen.has(id)) allowed.delete(id);
-    if (allowed.size === 0) return new Map();
+  // Gate 3: the guest's own CHOICE. Inverted by the guest identity round (2026-09-22): an event
+  // is published because its owner put a row in `profile_shown_events`, never because they failed
+  // to hide it, so the set that survives is the INTERSECTION and an empty answer is the correct
+  // default for someone who has chosen nothing. Scoped to THIS profile's rows, never the viewer's
+  // (the viewer may be anonymous; the choice belongs to the page's owner). Admin read:
+  // profile_shown_events RLS is owner-only.
+  const { rows: shown } = await readAllPages(
+    "social: attended covers, the owner's choices",
+    (after: string | null, limit) => {
+      let q = admin
+        .from("profile_shown_events")
+        .select("event_id")
+        .eq("user_id", profileId)
+        .order("event_id")
+        .limit(limit);
+      if (after) q = q.gt("event_id", after);
+      return q;
+    },
+    (row) => row.event_id,
+  );
+  const chosen = new Set(shown.map((row) => row.event_id));
+  for (const id of [...allowed]) if (!chosen.has(id)) allowed.delete(id);
+  if (allowed.size === 0) return new Map();
 
-    // Gate 4: the owner is a guest there, as the public line requires: an APPROVED upload of theirs
-    // on a PROVED row (`verified_at`, never a bare user id). A choice survives the owner's last
-    // removal (profile_shown_events keeps it), and this gate is what hides the picture meanwhile.
-    // A chunk of events can hold more than 1,000 of the owner's uploads, so each chunk pages.
-    const attended = await inChunks(
-      "social: attended covers, the owner's uploads",
-      [...allowed],
-      async (chunk) =>
-        (
-          await readAllPages(
-            "social: attended covers, the owner's uploads",
-            (after: string | null, limit) => {
-              let q = admin
-                .from("media")
-                .select(
-                  "id, event_id, guests!media_guest_id_fkey!inner(user_id, verified_at)",
-                )
-                .in("event_id", chunk)
-                .eq("status", "approved")
-                .eq("guests.user_id", profileId)
-                .not("guests.verified_at", "is", null)
-                .order("id")
-                .limit(limit);
-              if (after) q = q.gt("id", after);
-              return q;
-            },
-            (row) => row.id,
-          )
-        ).rows,
-    );
-    const proved = new Set(attended.map((row) => row.event_id));
-    for (const id of [...allowed]) if (!proved.has(id)) allowed.delete(id);
-    if (allowed.size === 0) return new Map();
+  // Gate 4: the owner is a guest there, as the public line requires: an APPROVED upload of theirs
+  // on a PROVED row (`verified_at`, never a bare user id). A choice survives the owner's last
+  // removal (profile_shown_events keeps it), and this gate is what hides the picture meanwhile.
+  // A chunk of events can hold more than 1,000 of the owner's uploads, so each chunk pages.
+  const attended = await inChunks(
+    "social: attended covers, the owner's uploads",
+    [...allowed],
+    async (chunk) =>
+      (
+        await readAllPages(
+          "social: attended covers, the owner's uploads",
+          (after: string | null, limit) => {
+            let q = admin
+              .from("media")
+              .select(
+                "id, event_id, guests!media_guest_id_fkey!inner(user_id, verified_at)",
+              )
+              .in("event_id", chunk)
+              .eq("status", "approved")
+              .eq("guests.user_id", profileId)
+              .not("guests.verified_at", "is", null)
+              .order("id")
+              .limit(limit);
+            if (after) q = q.gt("id", after);
+            return q;
+          },
+          (row) => row.id,
+        )
+      ).rows,
+  );
+  const proved = new Set(attended.map((row) => row.event_id));
+  for (const id of [...allowed]) if (!proved.has(id)) allowed.delete(id);
+  if (allowed.size === 0) return new Map();
 
-    return adminCoverUrls([...allowed]);
-  } catch (error) {
-    if (isSocialSchemaMissing(error)) return new Map();
-    throw error;
-  }
+  return adminCoverUrls([...allowed]);
 }
 
 /**
@@ -592,10 +526,7 @@ export async function isBlockedEitherWay(
       `and(blocker_id.eq.${viewerId},blocked_id.eq.${profileId}),and(blocker_id.eq.${profileId},blocked_id.eq.${viewerId})`,
     )
     .limit(1);
-  if (error) {
-    if (isSocialSchemaMissing(error)) return false;
-    throw error;
-  }
+  if (error) throw error;
   return (data ?? []).length > 0;
 }
 
@@ -610,10 +541,7 @@ export async function hasBlocked(
     .eq("blocker_id", viewerId)
     .eq("blocked_id", profileId)
     .limit(1);
-  if (error) {
-    if (isSocialSchemaMissing(error)) return false;
-    throw error;
-  }
+  if (error) throw error;
   return (data ?? []).length > 0;
 }
 
@@ -627,11 +555,8 @@ export async function getMyProfileSlug(): Promise<string | null> {
     .select("slug")
     .eq("id", user.id)
     .maybeSingle();
-  if (error) {
-    if (isSocialSchemaMissing(error)) return null;
-    throw error;
-  }
-  return (data as { slug: string | null } | null)?.slug ?? null;
+  if (error) throw error;
+  return data?.slug ?? null;
 }
 
 // ── The events you added to (guest by upload) ───────────────────────────────
@@ -696,6 +621,11 @@ export type AttendedEventSetting = {
   shownOnProfile: boolean;
   /** The album's own door, which the picker's tile follows (`getMyAttendedEventPicks`). */
   visibility: Database["public"]["Enums"]["event_visibility"];
+  /**
+   * A private album's gate (`readEventGates`): a gated album is stored private and still opens for
+   * her. Null for Only me, and for an event that blocked me (it reads as the private album it shows).
+   */
+  gate: string | null;
   /** Server-side only: the masking helper takes it, and nothing hands it to a browser. */
   qrToken: string;
 };
@@ -732,64 +662,66 @@ export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
   if (!user) return [];
 
   const admin = createAdminClient();
-  try {
-    const [uploads, blocked] = await Promise.all([
-      myLiveUploads(user.id),
-      getBlockedEventsFor(user.id),
-    ]);
-    const eventIds = [
-      ...new Set([
-        ...uploads
-          .filter((u) => u.verified && u.status === "approved")
-          .map((u) => u.eventId),
-        // ★ A BLOCKED EVENT KEEPS ITS TILE, LOCKED (the per-event block, 20260928120000): a block moved
-        // her approved uploads to Deleted, where a private album's would still be live and its tile
-        // would stay, so the block keeps the tile it had and reads as private below.
-        ...[...blocked]
-          .filter(([, b]) => b.own && b.profileEligible)
-          .map(([id]) => id),
-      ]),
-    ];
-    if (eventIds.length === 0) return [];
+  const [uploads, blocked] = await Promise.all([
+    myLiveUploads(user.id),
+    getBlockedEventsFor(user.id),
+  ]);
+  const eventIds = [
+    ...new Set([
+      ...uploads
+        .filter((u) => u.verified && u.status === "approved")
+        .map((u) => u.eventId),
+      // ★ A BLOCKED EVENT KEEPS ITS TILE, LOCKED (the per-event block, 20260928120000): a block moved
+      // her approved uploads to Deleted, where a private album's would still be live and its tile
+      // would stay, so the block keeps the tile it had and reads as private below.
+      ...[...blocked]
+        .filter(([, b]) => b.own && b.profileEligible)
+        .map(([id]) => id),
+    ]),
+  ];
+  if (eventIds.length === 0) return [];
 
-    // At most 150 ids a request (`inChunks`), newest event first once the chunks are joined.
-    const [events, shownIds] = await Promise.all([
-      inChunks(
-        "social: attended events",
-        eventIds,
-        async (chunk) =>
-          (await mustQuery(
-            admin
-              .from("events")
-              .select(
-                "id, name, event_date, host_id, created_at, visibility, qr_token",
-              )
-              .in("id", chunk)
-              .neq("host_id", user.id)
-              .is("deleted_at", null),
-            "social: attended events",
-          )) ?? [],
-      ),
-      getMyShownEventIds(),
-    ]);
-    const shown = new Set(shownIds);
-    return events
-      .sort((a, b) =>
-        a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0,
-      )
-      .map((e) => ({
-        id: e.id,
-        name: e.name,
-        event_date: e.event_date,
-        shownOnProfile: shown.has(e.id),
-        // An event that blocked her reads as the private album it shows her.
-        visibility: blocked.has(e.id) ? ("private" as const) : e.visibility,
-        qrToken: e.qr_token,
-      }));
-  } catch (error) {
-    if (isSocialSchemaMissing(error)) return [];
-    throw error;
-  }
+  // At most 150 ids a request (`inChunks`), newest event first once the chunks are joined.
+  const [events, shownIds] = await Promise.all([
+    inChunks(
+      "social: attended events",
+      eventIds,
+      async (chunk) =>
+        (await mustQuery(
+          admin
+            .from("events")
+            .select(
+              "id, name, event_date, host_id, created_at, visibility, qr_token",
+            )
+            .in("id", chunk)
+            .neq("host_id", user.id)
+            .is("deleted_at", null),
+          "social: attended events",
+        )) ?? [],
+    ),
+    getMyShownEventIds(),
+  ]);
+  const shown = new Set(shownIds);
+  // A gated album is stored private; its gate says it still opens for her (`guestEventCardProps`).
+  const gates = await readEventGates(
+    events
+      .filter((e) => e.visibility === "private" && !blocked.has(e.id))
+      .map((e) => e.id),
+  );
+  return events
+    .sort((a, b) =>
+      a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0,
+    )
+    .map((e) => ({
+      id: e.id,
+      name: e.name,
+      event_date: e.event_date,
+      shownOnProfile: shown.has(e.id),
+      // An event that blocked her reads as the private album it shows her.
+      visibility: blocked.has(e.id) ? ("private" as const) : e.visibility,
+      gate: blocked.has(e.id) ? null : (gates.get(e.id) ?? null),
+      qrToken: e.qr_token,
+    }));
 }
 
 /**
@@ -819,6 +751,7 @@ export async function getMyAttendedEventPicks(): Promise<AttendedEventPick[]> {
         name: e.name,
         eventDate: e.event_date,
         visibility: e.visibility,
+        gate: e.gate,
         qrToken: e.qrToken,
         hostName: null,
         // The card's recency key; a pick keeps the list's own order, so it is never read.
@@ -843,8 +776,8 @@ export async function getMyAttendedEventPicks(): Promise<AttendedEventPick[]> {
  * its own latest live upload. A card leaves the moment its last live upload does, because this list
  * is read from the uploads themselves.
  *
- * Masked by the album's own rules (`guestEventCardProps`, lib/dashboard/guest-events.ts): a private
- * album blank and locked, a password album linked with no cover, and covers only for OPEN albums,
+ * Masked by the album's own rules (`guestEventCardProps`, lib/dashboard/guest-events.ts): an Only me
+ * album blank and locked, one behind a password or a gate linked with no cover, and covers only for OPEN albums,
  * through `adminCoverUrls` (the newest approved photograph, the same rule every other card uses).
  * Admin reads, scoped hard to the caller's own rows.
  */
@@ -853,87 +786,87 @@ export async function getMyGuestEventCards(): Promise<GuestEventCardData[]> {
   if (!user) return [];
 
   const admin = createAdminClient();
-  try {
-    const [uploads, blocked] = await Promise.all([
-      myLiveUploads(user.id),
-      getBlockedEventsFor(user.id),
-    ]);
-    const latest = new Map<string, string>();
-    for (const u of uploads) {
-      const seen = latest.get(u.eventId);
-      if (!seen || u.createdAt > seen) latest.set(u.eventId, u.createdAt);
-    }
-    // ★ A BLOCKED EVENT'S CARD STAYS, READING AS A PRIVATE ALBUM'S (the per-event block,
-    // 20260928120000; the locked-door board's finding): a private album keeps its card, its uploads
-    // still live, while a block moves hers to Deleted, so a card that vanished would tell her what the
-    // door hides. The block keeps the card's place, the newest upload it removed, for as long as it
-    // stands.
-    for (const [eventId, b] of blocked) {
-      if (!b.own || !b.lastUploadAt) continue;
-      const seen = latest.get(eventId);
-      if (!seen || b.lastUploadAt > seen) latest.set(eventId, b.lastUploadAt);
-    }
-    if (latest.size === 0) return [];
+  const [uploads, blocked] = await Promise.all([
+    myLiveUploads(user.id),
+    getBlockedEventsFor(user.id),
+  ]);
+  const latest = new Map<string, string>();
+  for (const u of uploads) {
+    const seen = latest.get(u.eventId);
+    if (!seen || u.createdAt > seen) latest.set(u.eventId, u.createdAt);
+  }
+  // ★ A BLOCKED EVENT'S CARD STAYS, READING AS A PRIVATE ALBUM'S (the per-event block,
+  // 20260928120000; the locked-door board's finding): a private album keeps its card, its uploads
+  // still live, while a block moves hers to Deleted, so a card that vanished would tell her what the
+  // door hides. The block keeps the card's place, the newest upload it removed, for as long as it
+  // stands.
+  for (const [eventId, b] of blocked) {
+    if (!b.own || !b.lastUploadAt) continue;
+    const seen = latest.get(eventId);
+    if (!seen || b.lastUploadAt > seen) latest.set(eventId, b.lastUploadAt);
+  }
+  if (latest.size === 0) return [];
 
-    // Every id list rides `inChunks` (at most 150 ids a request): a keen guest's events, and
-    // their hosts, grow without bound.
-    const events = await inChunks(
-      "social: guest cards, events",
-      [...latest.keys()],
+  // Every id list rides `inChunks` (at most 150 ids a request): a keen guest's events, and
+  // their hosts, grow without bound.
+  const events = await inChunks(
+    "social: guest cards, events",
+    [...latest.keys()],
+    async (chunk) =>
+      (await mustQuery(
+        admin
+          .from("events")
+          .select("id, name, event_date, visibility, qr_token, host_id")
+          .in("id", chunk)
+          .neq("host_id", user.id)
+          .is("deleted_at", null),
+        "social: guest cards, events",
+      )) ?? [],
+  );
+  if (events.length === 0) return [];
+
+  const [hosts, covers, gates] = await Promise.all([
+    inChunks(
+      "social: guest cards, hosts",
+      events.map((e) => e.host_id),
       async (chunk) =>
         (await mustQuery(
-          admin
-            .from("events")
-            .select("id, name, event_date, visibility, qr_token, host_id")
-            .in("id", chunk)
-            .neq("host_id", user.id)
-            .is("deleted_at", null),
-          "social: guest cards, events",
+          admin.from("profiles").select("id, display_name").in("id", chunk),
+          "social: guest cards, hosts",
         )) ?? [],
-    );
-    if (events.length === 0) return [];
+    ),
+    adminCoverUrls(
+      events
+        .filter((e) => e.visibility === "open" && !blocked.has(e.id))
+        .map((e) => e.id),
+    ),
+    // A gated album is stored private; its gate says it still opens for her (`guestEventCardProps`).
+    readEventGates(
+      events
+        .filter((e) => e.visibility === "private" && !blocked.has(e.id))
+        .map((e) => e.id),
+    ),
+  ]);
+  const hostNames = new Map(hosts.map((h) => [h.id, h.display_name] as const));
 
-    const [hosts, covers] = await Promise.all([
-      inChunks(
-        "social: guest cards, hosts",
-        events.map((e) => e.host_id),
-        async (chunk) =>
-          (await mustQuery(
-            admin.from("profiles").select("id, display_name").in("id", chunk),
-            "social: guest cards, hosts",
-          )) ?? [],
+  return sortGuestEventCards(
+    events.map((e) =>
+      guestEventCardProps(
+        {
+          eventId: e.id,
+          name: e.name,
+          eventDate: e.event_date,
+          // An event that blocked her reads as the private album it shows her, word for word.
+          visibility: blocked.has(e.id) ? "private" : e.visibility,
+          gate: blocked.has(e.id) ? null : (gates.get(e.id) ?? null),
+          qrToken: e.qr_token,
+          hostName: hostNames.get(e.host_id) ?? null,
+          lastUploadAt: latest.get(e.id) as string,
+        },
+        covers.get(e.id) ?? null,
       ),
-      adminCoverUrls(
-        events
-          .filter((e) => e.visibility === "open" && !blocked.has(e.id))
-          .map((e) => e.id),
-      ),
-    ]);
-    const hostNames = new Map(
-      hosts.map((h) => [h.id, h.display_name] as const),
-    );
-
-    return sortGuestEventCards(
-      events.map((e) =>
-        guestEventCardProps(
-          {
-            eventId: e.id,
-            name: e.name,
-            eventDate: e.event_date,
-            // An event that blocked her reads as the private album it shows her, word for word.
-            visibility: blocked.has(e.id) ? "private" : e.visibility,
-            qrToken: e.qr_token,
-            hostName: hostNames.get(e.host_id) ?? null,
-            lastUploadAt: latest.get(e.id) as string,
-          },
-          covers.get(e.id) ?? null,
-        ),
-      ),
-    );
-  } catch (error) {
-    if (isSocialSchemaMissing(error)) return [];
-    throw error;
-  }
+    ),
+  );
 }
 
 // ── Who is a guest here: the one count, and the list built on it ─────────────────────
@@ -1178,10 +1111,7 @@ export async function getEventSocialSettings(eventId: string): Promise<{
     .select("display_in_profile")
     .eq("id", eventId)
     .maybeSingle();
-  if (error) {
-    if (isSocialSchemaMissing(error)) return null;
-    throw error;
-  }
+  if (error) throw error;
   if (!data) return null;
   return { displayInProfile: data.display_in_profile };
 }

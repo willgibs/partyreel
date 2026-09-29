@@ -5,9 +5,13 @@ import {
   type BoardSpec,
   type BuilderVerdict,
   ITEM_VERDICTS,
+  type Opening,
+  optionCosts,
+  optionGains,
   optionId,
   optionLabel,
   optionMeans,
+  type Term,
 } from "@/components/lab/board-spec";
 
 import { withDesignKey } from "@/lib/design-gate/links";
@@ -32,16 +36,16 @@ import { holdId, itemHoldId, itemsStepId, stepId } from "./step-id";
  * ★ A STEP IS AN ASK OR A CATALOG (the revamp, 2026-09-16), and there is ONE
  * items step per board, never one per item. Twelve palettes as twelve steps
  * would be twelve screens of sticky card asking the same question, with the
- * catalog they are about scrolled off the page; one step says "rule on the
- * twelve below" and lets the cards themselves carry the controls, which is
+ * catalog they are about scrolled off the page; one step says "a verdict on
+ * each of the twelve below" and lets the cards themselves carry the controls, which is
  * what makes the catalog the evidence rather than a picture beside a form.
  * Its param is `<board>.items`, so no ask may be called `items`
  * (registry.test.ts refuses one).
  *
  * ★ THE CATALOG COMES FIRST IN ITS BOARD'S RUN. A catalog board's asks are
  * what is left open ONCE a card is picked (the palette's accent reach, its card
- * opacity, its third text step), so asking them before the cards have been
- * ruled on asks them in the wrong order.
+ * opacity, its third text step), so asking them before the cards have their
+ * verdicts asks them in the wrong order.
  *
  * ★ PURE AND ISOMORPHIC ON PURPOSE. Two SERVER pages build the steps and one
  * CLIENT component walks them, so nothing here may import React, the board's
@@ -56,6 +60,9 @@ export type SessionOption = {
   id: string;
   label: string;
   means?: string;
+  /** What picking it gains and what it costs, a line each, printed with its preview. */
+  gains?: string;
+  costs?: string;
   /**
    * The declared controls that DRAW this option on the ask's specimen, merged
    * over the ask's own state. An option with neither this nor a control mirror
@@ -87,14 +94,20 @@ type StepBase = {
    * here once and the client combines the two in `stepBlocked`. The value is
    * the option or verdict the ledger holds, or null when it holds none.
    */
-  afterRuled?: string | null;
+  afterAnswered?: string | null;
 };
 
 export type AskStep = StepBase & {
   kind: "ask";
   askId: string;
   question: string;
-  /** What the thing is and where it lives, for a reader who has not read the board. */
+  /** Where it happens, as a breadcrumb: the surface, then the screen and the moment. */
+  where?: readonly string[];
+  /** The combination of state that brings someone there. */
+  when?: string;
+  /** Why the answer matters, beside `lands` (what it decides). */
+  matters?: string;
+  /** What the previews draw, for a reader who has not read the board. */
   context?: string;
   /** Where to look and what to compare. */
   look?: string;
@@ -128,7 +141,16 @@ export type AskStep = StepBase & {
    * in the browser's store and win over these; only the server can read the
    * ledger, so it rides here. "Not clear to me" is not a decision and is left out.
    */
-  ruled?: Readonly<Record<string, string>>;
+  answered?: Readonly<Record<string, string>>;
+  /**
+   * ★ THE BOARD'S OPENING AND ITS TERMS RIDE EVERY STEP OF IT (the context
+   * layer, 2026-09-29). Which step is the one his sitting ENTERS the board on
+   * is the walk's to say (a staged step is skipped until its answer lands, and
+   * that answer is often in this very sitting), so each step carries the
+   * opening and the step draws it on the first one the walk reaches.
+   */
+  opening?: Opening;
+  terms?: readonly Term[];
 };
 
 /** One catalog card, as a step's list renders it. */
@@ -172,7 +194,7 @@ export const stepParam = (s: SessionStep): string =>
 
 /**
  * HOW MANY OF A STEP'S UNITS ARE ANSWERED, and how many there are: one for an
- * ask, one per card for a catalog. Shared by the card's "k of N ruled", the
+ * ask, one per card for a catalog. Shared by the card's "k of N answered", the
  * desk's progress and "carry on", so the three can never count differently.
  */
 export function stepHeld(
@@ -189,7 +211,7 @@ export function stepHeld(
   return { held: answer?.choice ? 1 : 0, of: 1 };
 }
 
-/** True once a step needs nothing more: an ask picked, or every card ruled. */
+/** True once a step needs nothing more: an ask picked, or every card given its verdict. */
 export function stepDone(step: SessionStep, store: ReviewStore): boolean {
   const { held, of } = stepHeld(step, store);
   return of > 0 && held === of;
@@ -207,8 +229,8 @@ export function stepDone(step: SessionStep, store: ReviewStore): boolean {
  * the review, dim on the desk); once the prerequisite goes the OTHER way the
  * step is MOOT and never comes back this round.
  *
- * ★ AND BOTH HALVES OF "DECIDED" COUNT. The prerequisite may have been ruled in
- * an earlier sitting (the ledger, resolved into `afterRuled` on the server) or
+ * ★ AND BOTH HALVES OF "DECIDED" COUNT. The prerequisite may have been answered
+ * in an earlier sitting (the ledger, resolved into `afterAnswered` on the server) or
  * answered a moment ago in this one (the store). The store wins where both
  * speak, because it is the newer answer and the one the reviewer can see.
  *
@@ -225,7 +247,7 @@ export function stepBlocked(
     "ask" in after
       ? store.answers[holdId(step.board, step.round, after.ask)]?.choice
       : store.items[itemHoldId(step.board, step.round, after.item)]?.verdict;
-  const decided = held || step.afterRuled || null;
+  const decided = held || step.afterAnswered || null;
   if (!decided || decided === UNCLEAR) return "staged";
   const wanted = "ask" in after ? after.option : after.verdict;
   if (wanted === undefined) return null;
@@ -245,32 +267,32 @@ const DESK_HREF = "/design/lab";
 /** A board's open work, in the order a session walks it: the catalog, then the asks. */
 export type BoardWork = {
   asks: readonly AskState[];
-  /** The catalog cards with no ruling yet; empty for a board with no catalog. */
+  /** The catalog cards with no verdict yet; empty for a board with no catalog. */
   items: readonly ItemState[];
   /**
    * WHAT THE LEDGER ALREADY HOLDS FOR THIS BOARD, by ask id and card id. The
    * open work is by definition what the ledger does NOT hold, so a staged
-   * step's prerequisite is never in `asks` or `items`: the ruling that unstages
-   * it has to ride along separately (`afterRuled`).
+   * step's prerequisite is never in `asks` or `items`: the answer that unstages
+   * it has to ride along separately (`afterAnswered`).
    */
-  ruled?: {
+  ledger?: {
     answers: Readonly<Record<string, string | null>>;
     items: Readonly<Record<string, string>>;
   };
 };
 
-const NOTHING_RULED: NonNullable<BoardWork["ruled"]> = {
+const EMPTY_LEDGER: NonNullable<BoardWork["ledger"]> = {
   answers: {},
   items: {},
 };
 
 /** What the ledger says about one step's prerequisite, or null when it says nothing. */
-function ruledFor(
+function ledgerFor(
   after: AskAfter | undefined,
-  ruled: BoardWork["ruled"],
+  ledger: BoardWork["ledger"],
 ): string | null | undefined {
   if (!after) return undefined;
-  const r = ruled ?? NOTHING_RULED;
+  const r = ledger ?? EMPTY_LEDGER;
   return ("ask" in after ? r.answers[after.ask] : r.items[after.item]) ?? null;
 }
 
@@ -289,7 +311,7 @@ export function toSteps(
     const items = toItemsStep(w.items, specOf, key);
     return [
       ...(items ? [items] : []),
-      ...w.asks.map((a) => toAskStep(a, specOf, key, w.ruled)),
+      ...w.asks.map((a) => toAskStep(a, specOf, key, w.ledger)),
     ];
   });
 }
@@ -320,11 +342,11 @@ function evidenceOf(
 
 /** The board's decided answers from the ledger, less the ask being asked. */
 function decidedIn(
-  ruled: BoardWork["ruled"],
+  ledger: BoardWork["ledger"],
   own: string,
 ): Readonly<Record<string, string>> | undefined {
   const out: Record<string, string> = {};
-  for (const [ask, choice] of Object.entries(ruled?.answers ?? {}))
+  for (const [ask, choice] of Object.entries(ledger?.answers ?? {}))
     if (ask !== own && choice) out[ask] = choice;
   return Object.keys(out).length > 0 ? out : undefined;
 }
@@ -337,7 +359,7 @@ function toAskStep(
   a: AskState,
   specOf: (board: string) => BoardSpec | undefined,
   key: string | null,
-  ruled?: BoardWork["ruled"],
+  ledger?: BoardWork["ledger"],
 ): AskStep {
   const { section, evidence, boardHref } = evidenceOf(
     a.board,
@@ -345,7 +367,8 @@ function toAskStep(
     specOf,
     key,
   );
-  const catalog = specOf(a.board)?.catalog;
+  const spec = specOf(a.board);
+  const catalog = spec?.catalog;
   const winner = catalog?.winner === a.ask.id;
   return {
     kind: "ask",
@@ -354,14 +377,21 @@ function toAskStep(
     round: a.round,
     askId: a.ask.id,
     question: a.ask.question,
+    where: a.ask.where,
+    when: a.ask.when,
+    matters: a.ask.matters,
     context: a.ask.context,
     look: a.ask.look,
     options: a.ask.options.map((o) => ({
       id: optionId(o),
       label: optionLabel(o),
       means: optionMeans(o),
+      gains: optionGains(o),
+      costs: optionCosts(o),
       state: optionState(o),
     })),
+    opening: spec?.opening,
+    terms: spec?.terms,
     recommended: a.ask.recommended,
     because: a.ask.because,
     overrule: a.ask.overrule,
@@ -373,8 +403,8 @@ function toAskStep(
     strip: a.ask.strip,
     tile: a.ask.tile,
     after: a.ask.after,
-    afterRuled: ruledFor(a.ask.after, ruled),
-    ruled: decidedIn(ruled, a.ask.id),
+    afterAnswered: ledgerFor(a.ask.after, ledger),
+    answered: decidedIn(ledger, a.ask.id),
     winner: winner || undefined,
     catalogSection: winner ? catalog?.section : undefined,
     stageSection: winner ? catalog?.stage : undefined,

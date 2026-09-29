@@ -45,7 +45,7 @@ export function ItemVerdictRow({
   round: number;
   /** The candidate id or the Library entry id: what the ledger stores. */
   id: string;
-  /** What is being ruled on, for the labels a screen reader reads. */
+  /** What the verdict is on, for the labels a screen reader reads. */
   name: string;
   vocabulary?: readonly string[];
   className?: string;

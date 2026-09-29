@@ -32,27 +32,38 @@ On a report, an operator sets a legal hold (`media.legal_hold_at`, `legal_hold_r
 copied server-side to the segregated `preservation/` prefix (outside `events/`; keys single-sourced in `r2/keys.ts`; a
 multipart ranged copy past CopyObject's 5 GB limit), with a JSON evidence snapshot of the media, forensic and event
 rows beside it. The one egress is the audit-logged export on `/admin/forensics`. Holds serve every abuse report, not
-only CSAM.
-- ★ **Held media is never hard-deleted, object OR row.** Every R2 delete runs R2-first, so each caller filters held
-  items BEFORE building its key list; the SQL guards in `purge_media_rows`, `purge_media_now` and `restore_media`
-  alone would save only the row after the object died. An expired event, or a deleted account's event, holding ANY
-  held media is skipped whole, because the FK cascade is all-or-nothing. `forensics/legal-hold.ts` enumerates every
-  hard-delete path and why each is safe, so a new path joins it.
-- ★ **Which events hold anything is ONE `held_event_ids` answer per candidate set, never a read of held rows:**
+only CSAM. A hold is for what police should see (Will, 2026-09-29), so Hold for forensics on a report takes it down
+too by default: every item it reaches becomes an operator's removal before any copy starts. Unticking Take it down
+too is the QUIET hold, for a preservation request about content that is not harmful to show, where removing it
+would tip someone off: nothing leaves the album.
+- ★ **Held media, and anything an open report names, is never hard-deleted, object OR row** (20260929140000: "an
+  open report protects its item from every permanent delete" until it closes). `kept_media_ids(uuid[])` is the one
+  home of the rule: held, or named by an open report (its item, or every item of the album an album report names).
+  Every R2 delete runs R2-first, so each caller asks it BEFORE building its key list (`reclaimMedia`, purgeMediaNow);
+  `purge_media_rows` asks it again, but alone it would save only the row after the object died. A permanent delete of
+  a kept row is DEFERRED, never refused (`media.purge_asked_at`): the row leaves the deleter's view and the host's
+  meter at once, and the removed_media sweep takes it the night its keeper lets go (`defer_kept_due_media` asks a
+  kept removal past its window the same way). An expired event, or a deleted account's event, holding ANY held media
+  or any open report is skipped whole, because the FK cascade is all-or-nothing. `forensics/legal-hold.ts`
+  enumerates every hard-delete path and why each is safe, so a new path joins it.
+- ★ **Which events hold anything (a hold, an operator's removal in its window, an open report) is ONE
+  `held_event_ids` answer per candidate set, never a read of held rows:**
   PostgREST cuts a row read at 1,000, and an event whose held rows fell past the cut would read as purgeable. The holds
   are asked again right before the event rows go, so a hold placed mid-sweep keeps its row and its event. The backup
   prune needs nothing: its dual check (primary object gone AND row gone) can never be met by a held item.
-- ★ **A hold is discreet, and a held row is immutable to the host, not merely invisible.** The hold columns are not
-  SELECT-granted to `authenticated`, so the owning host (who may BE the investigated uploader) cannot see one, and
-  `restore_media` refuses a held item with a reason the wrapper maps to the vague default copy. The host's
-  `update(status, removed_at)` grant would still let one PATCH move a held item back onto the live gallery, so the
-  `media_guard_privileged_transitions` trigger SKIPS (`return null`) any direct client write to a held row, and the
-  host's own DEFINER acts skip one the same way (the per-event block neither removes nor restores it). Skip, never
-  raise: an exception aborts a whole bulk statement, which would make "Approve all fails on this album" a hold oracle;
-  the skip yields PGRST116, the same "That item is no longer available." a missing row produces.
+- ★ **A hold is discreet: a quietly held row takes the host's own acts like any other** (Will, 2026-09-29: "the
+  host's own delete of a quietly held item looks like any delete"). The hold columns and `purge_asked_at` are not
+  SELECT-granted to `authenticated`, so the owning host (who may BE the investigated uploader) cannot see either.
+  Her Remove, Hide and Show land (the guard's hold branch is gone), her block takes it to Deleted and counts it,
+  her Delete permanently asks it (gone for her, off her meter, as any delete), and the purges skip it. Only a way
+  back stays shut, in terms any item can meet: `restore_media` answers a held item in the vague default copy a
+  missing row gets, and the block's let back in leaves one in Deleted (the list's count of what can come back leaves
+  it out, as it leaves out a withdrawal). Its uploader's own feed and delete read a held blocked upload as any other.
 - ★ **An operator's removal keeps the runbook's window to hold and preserve** (`removed_by_admin`, 20260928140000),
-  because the runbook removes first and holds second. It leaves the host's view at once (`media_host_all` hides it),
-  but its copy waits out its own `purge_at` (the removal + 30 days): `purge_media_now` refuses it, the standby budget
+  because the runbook removes first and holds second. It leaves the host's view and her storage at once
+  (`media_host_all` hides it; `media_release_meter` takes its bytes off her meter, and an operator's restore puts
+  them back, so a takedown and a hold read the same in every number she has), but its copy waits out its own
+  `purge_at` (the removal + 30 days): `purge_media_now` refuses it, the standby budget
   never counts or evicts it, and `held_event_ids` answers an event holding one inside its window as held, so expired
   events and account deletion keep that event whole. Then the removed_media sweep takes it, unless it is held.
 - **Preservation objects are deleted only by hand,** audited, on the REPORT Act's one-year clock. Releasing a hold
@@ -64,14 +75,17 @@ A draft until counsel signs it, a launch gate (ROADMAP). Trigger: a report (a gu
 NCMEC or law enforcement) plausibly involving child sexual abuse material. The one reviewer is Will; keep human
 viewing to a minimum: confirm plausibility, never study the content, never forward or screenshot it.
 
-1. **Remove it from live:** Remove on the report in `/admin/reports` (or Remove on the item in `/admin/albums` when no
-   report names it). It is an operator's removal: it leaves the album and the host's Deleted at once, whatever state
-   the item was in, and nothing the host can do restores or destroys it. Hard-delete nothing.
-2. **Hold and preserve, inside the removal's 30 days:** Hold for forensics on the report opens the portal's confirm
-   filled in (the report's reference as the reason) and, in one press, holds and preserves the item and the same
-   uploader's other items in the event (commingled content is part of the REPORT Act's preservation duty): each
-   leaves every purge, and its original and forensic record are copied to the preservation store. An item no report
-   names is held from `/admin/forensics` by its media id. Past the window the purge takes an unheld removal's copy.
+1. **Take it down and hold it, in one press:** Hold for forensics on the report in `/admin/reports` (a phone has it
+   too) with Take it down too left on. The reported item and the same uploader's other items in the event
+   (commingled content is part of the REPORT Act's preservation duty) become operator's removals at once, out of the
+   album and the host's Deleted whatever state each was in, then each is held (out of every purge) and its original
+   and forensic record copied to the preservation store. A child-abuse report from a confirmed address has already
+   hidden its item (the ops inbox and the rail say so at once); a false one's Dismiss puts it back. Hard-delete
+   nothing.
+2. **When it was removed first** (Remove on the report, or on the item in `/admin/albums` when no report names it),
+   hold it inside the removal's 30 days; an item no report names is held from `/admin/forensics` by its media id.
+   Past the window the purge takes an unheld removal's copy. An open report keeps its item from every purge until it
+   closes, so close the report only once the hold is placed.
 3. **File the CyberTipline report** at report.cybertip.org (as a registered ESP once registration lands; file
    regardless before it). Include the event id, the media ids, the upload time and the forensic record (the "Record"
    export: IP, user agent, client hints, geo, device UUID, the guest's email or account, typed name and any unproved
@@ -80,7 +94,9 @@ viewing to a minimum: confirm plausibility, never study the content, never forwa
    commingled content included). The preservation store and the deny-all rows meet the storage duty; calendar the
    expiry, then delete the preservation objects by hand (audited).
 5. **Never tip anyone off:** no notice to the uploader or host beyond the content leaving the gallery, which reads as
-   routine moderation. Answer law enforcement only against legal process; refer anything unusual to counsel.
+   routine moderation. When removing it would itself tip someone off (a preservation request about content that is
+   not harmful to show), untick Take it down too: the quiet hold leaves it up. Answer law enforcement only against
+   legal process; refer anything unusual to counsel.
 6. **Afterwards:** keep the hold until counsel or law enforcement releases it; an account action (a ban, an event
    takedown) is decided case by case with counsel. Everything is logged in `/admin/forensics`, whose audit trail is the
    evidence of compliance.

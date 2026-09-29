@@ -5,85 +5,52 @@ import { ShieldAlert, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
-  actionReportAction,
-  dismissReportAction,
-  holdFromReportAction,
-  holdScopeAction,
   reopenReportAction,
+  reopenReportsAction,
   undoReportAction,
+  type DismissResult,
 } from "@/app/admin/reports/actions";
-import { DestructiveSheet } from "@/components/admin/destructive-sheet";
-import { StatusPicker } from "@/components/admin/triage-status-control";
 import { MediaTile } from "@/components/app/media-grid";
 import { showUndoToast } from "@/components/shared/undo-toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  heldMessage,
-  holdReasonFor,
-  holdTouches,
-  type HoldScope,
+  HIDE_RESTORED_MESSAGE,
   NO_NOTE,
   NO_REASON,
   REOPENED_MESSAGE,
   REPORT_NOTE_MAX,
   REPORT_STATUS_META,
-  REPORT_WORDS,
-  type ReportWord,
   WAY_BACK_LINE,
 } from "@/lib/admin/reports";
 import type { ReviewReport } from "@/lib/db/queries/reports";
 import { formatAdminDate, formatAdminTimestamp } from "@/lib/format/admin-time";
-import { operatorRemovalTouches } from "@/lib/moderation/operator-actions";
 
 /**
- * THE OPERATOR'S REPORTS, AS ADMIN-TRIAGE ROUND ONE LEFT THEM (Will, 2026-09-28), in today's layout
- * (round two redraws the queue itself). The page (server) gates, reads and presigns; this client
- * layer wires the verdicts.
+ * THE REPORTS INBOX'S CLOSED LOG AND ITS SHARED PARTS (admin-triage r1's, Will 2026-09-28). Round two moved the
+ * open queue to the review grid (`components/admin/report-queue.tsx`, `look=grid`); what stays here is what both
+ * arms still share: the closed line with its way back (`closed=window`), the reason's muted line
+ * (`reason=marked`), the verdict's note (`verdict=note`) and the one dismissal toast with its Undo.
  *
- *  - An OPEN report is a card: its album, the shared status picker in Reports' own words
- *    (`idiom=shape`), when and what was reported, the frame, the reason or a muted "No reason
- *    provided." in place (`reason=marked`), Hold for forensics on an item (`escalate=door`), and the
- *    verbs: Dismiss at one press with Add a note beside it, and its Undo on the toast (build 19's
- *    red-team), Remove (or Action, for an album) through the portal's one confirm with an optional
- *    note (`verdict=note`).
- *  - A CLOSED report is one line (`closed=window`): the verdict, its note, the album and when, and
- *    an Undo while the removal it made still waits out its window or a dismissal is inside its 30
- *    days, or Held.
+ *  - A CLOSED report is one line (`closed=window`): the verdict, its note, the album and when, and an Undo while
+ *    the removal it made still waits out its window or a dismissal is inside its 30 days, or Held.
  *
- * ★ NOTHING HERE DECIDES WHAT A VERDICT TOUCHES. The actions read the report's own item and its
- * state; the words below only describe it, from the same read (`standing`, `held`, `wayBack`).
+ * ★ NOTHING HERE DECIDES WHAT A VERDICT TOUCHES. The actions read the report's own item and its state; the words
+ * below only describe it, from the same read (`wayBack`).
  */
 
+/** The album arm's closed reports, one line each (the open ones are the grid's). */
 export function ReportReviewList({ reports }: { reports: ReviewReport[] }) {
-  const open = reports.filter((r) => r.status === "open");
   const closed = reports.filter((r) => r.status !== "open");
+  if (closed.length === 0) return null;
   return (
-    <div className="space-y-6">
-      {open.length > 0 ? (
-        <div className="space-y-4">
-          {open.map((report) => (
-            <OpenReportCard key={report.id} report={report} />
-          ))}
-        </div>
-      ) : null}
-      {closed.length > 0 ? (
-        <ClosedLog lede={WAY_BACK_LINE}>
-          {closed.map((report) => (
-            <ClosedReportLine key={report.id} report={report} />
-          ))}
-        </ClosedLog>
-      ) : null}
-    </div>
+    <ClosedLog lede={WAY_BACK_LINE}>
+      {closed.map((report) => (
+        <ClosedReportLine key={report.id} report={report} />
+      ))}
+    </ClosedLog>
   );
 }
 
@@ -184,10 +151,7 @@ const DISMISS_TOAST_ID = "admin-report-dismissed";
  * (each action revalidates it), so there is nothing to put back on screen first, and a reopen that
  * lands says so, as the closed line's Undo does.
  */
-export function toastDismissed(
-  result: { ok: true } | { ok: false; message: string },
-  reportId: string,
-) {
+export function toastDismissed(result: DismissResult) {
   if (!result.ok) {
     toast.error("Couldn't dismiss the report.", {
       description: result.message,
@@ -196,10 +160,11 @@ export function toastDismissed(
   }
   showUndoToast({
     id: DISMISS_TOAST_ID,
-    message: "Report dismissed.",
+    message: result.restored ? HIDE_RESTORED_MESSAGE : "Report dismissed.",
     tone: "success",
     onUndo: () => {},
-    undo: () => reopenReportAction(reportId),
+    // Every report the verdict closed (a verdict answers its whole entry), reopened together.
+    undo: () => reopenReportsAction(result.reportIds),
     onUndoFailed: () => {},
     onUndone: () => toast.success(REOPENED_MESSAGE),
   });
@@ -337,235 +302,6 @@ export function ClosedLine({
       </div>
     </li>
   );
-}
-
-/* ── An open album or item report ────────────────────────────────────────── */
-
-function OpenReportCard({ report }: { report: ReviewReport }) {
-  const [pending, startTransition] = useTransition();
-  const [asking, setAsking] = useState<"verdict" | "hold" | null>(null);
-  const [scope, setScope] = useState<HoldScope | null>(null);
-  const note = useVerdictNote();
-  const noteId = `report-note-${report.id}`;
-  const item = report.media;
-  const kind = item?.type ?? "photo";
-  const eventName = report.event?.name ?? "this event";
-
-  function dismiss() {
-    startTransition(async () => {
-      const result = await dismissReportAction(report.id, note.text);
-      toastDismissed(result, report.id);
-    });
-  }
-
-  function openHold() {
-    startTransition(async () => {
-      const result = await holdScopeAction(report.id);
-      if (!result.ok) {
-        toast.error("Couldn't open the hold.", { description: result.message });
-        return;
-      }
-      setScope(result.scope);
-      setAsking("hold");
-    });
-  }
-
-  function pick(next: ReportWord) {
-    if (next === "dismissed") dismiss();
-    else if (next === "actioned") setAsking("verdict");
-  }
-
-  const verdict = verdictSheet(report, kind, eventName);
-
-  return (
-    <Card data-report-id={report.id}>
-      <CardHeader>
-        <div className="flex items-start justify-between gap-3">
-          <CardTitle className="min-w-0 break-words">{eventName}</CardTitle>
-          <StatusPicker
-            status={"open" as ReportWord}
-            words={REPORT_WORDS}
-            moves={["dismissed", "actioned"]}
-            // Every Actioned on this card opens the confirm, so the menu says a step follows.
-            moveLabel={(next) =>
-              next === "actioned" ? "Actioned…" : REPORT_STATUS_META[next].label
-            }
-            onPick={pick}
-            disabled={pending}
-          />
-        </div>
-        <p className="text-xs text-muted-foreground">
-          {formatAdminTimestamp(report.created_at)}
-          {item ? " · item reported" : " · album reported"}
-          {item?.standing === "removed" ? " · already out of the album" : ""}
-          {item?.standing === "operator" ? " · already taken down" : ""}
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {item ? (
-          <div className="aspect-square w-40 overflow-hidden rounded-lg bg-black/10">
-            <MediaTile item={item} />
-          </div>
-        ) : null}
-        <ReasonLine reason={report.reason} />
-        {item ? (
-          item.held ? (
-            <p className="flex items-center gap-1.5 text-caption text-muted-foreground">
-              <ShieldAlert className="size-3.5 shrink-0" aria-hidden />
-              Held for forensics. Only Forensics releases it.
-            </p>
-          ) : (
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={pending}
-                onClick={openHold}
-              >
-                <ShieldAlert />
-                Hold for forensics
-              </Button>
-              <span className="text-caption text-muted-foreground">
-                Sets the hold, preserves the evidence and keeps this report
-                open.
-              </span>
-            </div>
-          )
-        ) : null}
-        {note.open ? (
-          <NoteField id={noteId} value={note.text} onChange={note.setText} />
-        ) : null}
-      </CardContent>
-      <CardFooter className="flex-wrap items-center gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={pending}
-          onClick={dismiss}
-        >
-          Dismiss
-        </Button>
-        <Button
-          type="button"
-          variant="destructive"
-          size="sm"
-          disabled={pending}
-          onClick={() => setAsking("verdict")}
-        >
-          {verdict.button}
-        </Button>
-        {note.open ? null : <AddNoteLink onPress={note.show} />}
-      </CardFooter>
-
-      <DestructiveSheet
-        open={asking === "verdict"}
-        onOpenChange={(open) => setAsking(open ? "verdict" : null)}
-        title={verdict.title}
-        lede={verdict.lede}
-        verb={verdict.verb}
-        touches={verdict.touches}
-        severity="reversible"
-        note={{
-          label: "Note",
-          defaultValue: note.text,
-          placeholder: "Why, in one line",
-          hint: "Kept on the report with the verdict. Only this portal reads it.",
-          maxLength: REPORT_NOTE_MAX,
-        }}
-        successMessage={verdict.done}
-        onConfirm={(_typed, written) => actionReportAction(report.id, written)}
-      />
-      {scope ? (
-        <DestructiveSheet
-          open={asking === "hold"}
-          onOpenChange={(open) => setAsking(open ? "hold" : null)}
-          title={`Hold and preserve this ${scope.kind}?`}
-          lede="It stays out of every purge until the hold is released from Forensics, and this report stays open."
-          verb="Set hold and preserve"
-          touches={holdTouches(scope)}
-          severity="reversible"
-          note={{
-            label: "Reason, on the record",
-            required: true,
-            defaultValue: holdReasonFor(report.id),
-            placeholder: "e.g. report reference, CyberTipline filing",
-            hint: "Written on each hold and in the forensic audit log.",
-            maxLength: REPORT_NOTE_MAX,
-          }}
-          successMessage={heldMessage(1 + scope.others)}
-          onConfirm={(_typed, reason) =>
-            holdFromReportAction(report.id, reason)
-          }
-        />
-      ) : null}
-    </Card>
-  );
-}
-
-/**
- * What the verdict's confirm says, true of THIS item as it stands: still up (a removal), already out
- * of the album by someone else's hand (made the operator's), already an operator's removal (the
- * report only closes), or an album (the report only closes; the album is acted on from Albums).
- */
-function verdictSheet(
-  report: ReviewReport,
-  kind: "photo" | "video",
-  eventName: string,
-): {
-  button: string;
-  title: string;
-  lede: string;
-  verb: string;
-  touches: string[];
-  done: string;
-} {
-  const item = report.media;
-  if (!item) {
-    return {
-      button: "Action…",
-      title: "Action this report?",
-      lede: "The report closes as Actioned; nothing else changes.",
-      verb: "Action",
-      touches: [
-        "This report moves to Actioned",
-        "The album itself is unchanged: act on it from Albums",
-      ],
-      done: "Report actioned.",
-    };
-  }
-  if (item.standing === "operator") {
-    return {
-      button: "Action…",
-      title: "Close this report as Actioned?",
-      lede: `The ${kind} is already taken down; the report closes as Actioned.`,
-      verb: "Action",
-      touches: [
-        "This report moves to Actioned",
-        `The ${kind} stays down: restore it from Albums if it should come back`,
-      ],
-      done: "Report actioned.",
-    };
-  }
-  const live = item.standing === "live";
-  return {
-    button: "Remove…",
-    title: `Remove this ${kind}?`,
-    lede: live
-      ? "It leaves the album and the host's Deleted now, and the report closes as Actioned."
-      : "It is already out of the album; this takes it out of the host's Deleted too, and the report closes as Actioned.",
-    verb: "Remove",
-    touches: operatorRemovalTouches({
-      kind,
-      eventName,
-      from: live ? "album" : "deleted",
-      wayBack: live ? "undo" : "albums",
-    }),
-    done: live
-      ? `Removed, and the report is actioned.`
-      : "Taken from the host, and the report is actioned.",
-  };
 }
 
 /* ── A closed album or item report ───────────────────────────────────────── */

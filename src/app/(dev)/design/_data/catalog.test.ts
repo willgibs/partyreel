@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { BIBLE, BIBLE_GROUP_LABEL, BIBLE_GROUPS } from "../rules/bible";
 import { FAMILY_LABEL } from "../gallery/entry";
-import { SANDBOX } from "../touchpoints";
+import { BOARDS } from "../sandbox/registry";
 import {
   activeItem,
   areaOf,
@@ -112,8 +112,8 @@ describe("the nav", () => {
 
   it("lists every standing board, every family and every tool", () => {
     const hrefs = new Set(items.map((it) => it.href));
-    for (const r of SANDBOX)
-      expect(hrefs.has(`/design/lab/${r.id}`), r.id).toBe(true);
+    for (const b of BOARDS)
+      expect(hrefs.has(`/design/lab/${b.id}`), b.id).toBe(true);
     for (const family of Object.keys(FAMILY_LABEL))
       expect(hrefs.has(`/design/library/${family}`), family).toBe(true);
     for (const tool of [
@@ -146,7 +146,7 @@ describe("the nav", () => {
 
 describe("reserved segments", () => {
   it("never collide with a board id", () => {
-    for (const r of SANDBOX) expect(RESERVED.lab).not.toContain(r.id);
+    for (const b of BOARDS) expect(RESERVED.lab).not.toContain(b.id);
   });
   it("never collide with a catalog entry id", async () => {
     const { GALLERY } = await import("../gallery/registry");
@@ -175,11 +175,11 @@ describe("the helpers", () => {
     expect(family?.item.href).toBe("/design/library/marketing");
   });
 
-  // ★ NEVER A NAMED BOARD. The nav lists the STANDING boards (touchpoints'
-  // SANDBOX), so a ruled board has no item to light, and a named example went
+  // ★ NEVER A NAMED BOARD. The nav lists the STANDING boards (the registry's
+  // BOARDS), so a retired board has no item to light, and a named example went
   // red at every retirement (light, then rounding). The case takes whichever
   // board stands first, and skips when none does.
-  const standing = SANDBOX[0]?.id;
+  const standing = BOARDS[0]?.id;
   it.runIf(standing !== undefined)("light a standing board's item", () => {
     const board = activeItem(nav, `/design/lab/${standing}`);
     expect(board?.item.href).toBe(`/design/lab/${standing}`);
@@ -395,7 +395,7 @@ describe("the search index", () => {
     const boards = new Set(
       index.filter((e) => e.kind === "board").map((e) => e.id),
     );
-    for (const r of SANDBOX) expect(boards.has(r.id), r.id).toBe(true);
+    for (const b of BOARDS) expect(boards.has(b.id), b.id).toBe(true);
   });
 
   it("scores id exact over title prefix over word over keyword", () => {
@@ -436,11 +436,11 @@ describe("the search index", () => {
     expect(has("button", "component")).toBe(true);
   });
 
-  // ★ NEVER A NAMED BOARD. The index holds the STANDING boards (touchpoints'
-  // SANDBOX), so a ruled board is not findable, and a named example went red
+  // ★ NEVER A NAMED BOARD. The index holds the STANDING boards (the registry's
+  // BOARDS), so a retired board is not findable, and a named example went red
   // at every retirement (the palette, then rounding). The case takes whichever
   // board stands first, and skips when none does.
-  const standing = SANDBOX[0]?.id;
+  const standing = BOARDS[0]?.id;
   it.runIf(standing !== undefined)("finds a standing board by its id", () => {
     expect(has(standing ?? "", "board")).toBe(true);
   });

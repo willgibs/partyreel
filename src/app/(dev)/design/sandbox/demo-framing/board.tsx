@@ -2,9 +2,12 @@
 
 import type { ReactNode } from "react";
 
-import { ExplorationBoard } from "@/components/lab";
-import type { BoardState } from "@/components/lab/board-spec";
-import { optionId, optionLabel } from "@/components/lab/board-spec";
+import {
+  type BoardState,
+  ExplorationBoard,
+  optionId,
+  optionLabel,
+} from "@/components/lab";
 import type { PreviewsFor } from "@/components/lab/exploration";
 import { OBJECT_CODE_PATH } from "@/components/marketing/sections/home/hero-stream";
 import { SITE_URL } from "@/lib/constants/site";

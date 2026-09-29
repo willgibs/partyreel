@@ -11,7 +11,6 @@ import {
   unblockUser,
   unfollowUser,
 } from "@/lib/db/mutations/social";
-import { isSocialSchemaMissing } from "@/lib/db/queries/social";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { bioSchema, profileSlugSchema } from "@/lib/validation/profile";
@@ -121,10 +120,8 @@ export async function checkProfileSlugAction(
     .eq("slug", parsed.data)
     .neq("id", user.id)
     .limit(1);
-  if (error) {
-    // Pre-apply (no slug column) or a transient blip: don't block the input.
-    return { available: !isSocialSchemaMissing(error) };
-  }
+  // A transient failure: don't block the input (`setProfileSlug` stays authoritative on save).
+  if (error) return { available: true };
   return { available: (data ?? []).length === 0 };
 }
 

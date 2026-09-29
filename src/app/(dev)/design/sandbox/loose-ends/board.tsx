@@ -2,8 +2,7 @@
 
 import type { ReactNode } from "react";
 
-import { ExplorationBoard, Frame } from "@/components/lab";
-import type { BoardState } from "@/components/lab/board-spec";
+import { type BoardState, ExplorationBoard, Frame } from "@/components/lab";
 import type { PreviewsFor } from "@/components/lab/exploration";
 
 import { type CastId, ChartCastDemo } from "./chart-cast";

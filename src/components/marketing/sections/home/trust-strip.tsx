@@ -24,7 +24,9 @@ import { TextsReveal } from "../shared/texts-reveal";
  */
 const CLAIMS = [
   "No app required",
-  "Private by default",
+  // "Private by default" until the doors (2026-09-29) made Private a setting the host chooses,
+  // with Public the default; what was always true is that no album is ever listed or indexed.
+  "Unlisted by default",
   "Yours until you delete it",
   "No photo watermarks",
 ];

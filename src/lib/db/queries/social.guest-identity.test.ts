@@ -625,6 +625,111 @@ describe("the events you added to", () => {
   });
 
   /**
+   * ★ A GATE NEVER LOCKS HER CARD (the doors, event-settings r1). A gated album is stored private,
+   * with its gate; read without the gate, every Guest card went dark the moment its host chose "only
+   * people already in" after the party, while the album still opened for her. A card is for someone
+   * past the door, so it stays named and linked, never pictured; a block still locks it.
+   */
+  describe("★ a gated album's card and tile stay named and linked, never pictured", () => {
+    const GATED = {
+      id: "e-gated",
+      name: "After party",
+      event_date: null,
+      visibility: "private",
+      gate: "closed",
+      qr_token: "qg",
+      host_id: "h1",
+      created_at: "2026-09-20T08:00:00Z",
+    };
+    const ONLY_ME = {
+      id: "e-only-me",
+      name: "Secret party",
+      event_date: null,
+      visibility: "private",
+      gate: null,
+      qr_token: "qs",
+      host_id: "h1",
+      created_at: "2026-09-19T08:00:00Z",
+    };
+
+    beforeEach(() => {
+      answers.events = [GATED, ONLY_ME];
+      answers.profiles = [{ id: "h1", display_name: "Maya" }];
+      answers.media = [
+        {
+          event_id: "e-gated",
+          status: "approved",
+          created_at: "2026-09-20T10:00:00Z",
+          guests: { verified_at: "2026-09-20T09:00:00Z" },
+          original_key: "k-gated",
+        },
+        {
+          event_id: "e-only-me",
+          status: "approved",
+          created_at: "2026-09-19T10:00:00Z",
+          guests: { verified_at: "2026-09-19T09:00:00Z" },
+          original_key: "k-only-me",
+        },
+      ];
+      blocks.events = {};
+      vi.mocked(presignDownload).mockClear();
+    });
+
+    it("the Guest card opens its album; Only me's stays blank and locked", async () => {
+      const cards = await getMyGuestEventCards();
+      const gated = cards.find((c) => c.eventId === "e-gated");
+      const onlyMe = cards.find((c) => c.eventId === "e-only-me");
+      expect(gated).toMatchObject({
+        href: "/e/qg",
+        name: "After party",
+        byline: "Hosted by Maya",
+        coverUrl: null,
+        accessible: true,
+        passwordProtected: false,
+      });
+      expect(onlyMe).toMatchObject({
+        href: null,
+        name: "Private event",
+        accessible: false,
+      });
+      // The gate is read for the private albums alone, and no cover is presigned behind a door.
+      expect(selects.events).toContain("id, gate");
+      expect(presignDownload).not.toHaveBeenCalled();
+    });
+
+    it("the picker's tile is named and unlocked, with no cover", async () => {
+      answers.profile_shown_events = [];
+      const picks = await getMyAttendedEventPicks();
+      expect(picks.find((p) => p.id === "e-gated")).toEqual({
+        id: "e-gated",
+        name: "After party",
+        shownOnProfile: false,
+        coverUrl: null,
+        locked: false,
+      });
+      expect(picks.find((p) => p.id === "e-only-me")).toMatchObject({
+        locked: true,
+      });
+    });
+
+    it("a block still locks a gated album's card, in the private album's words", async () => {
+      blocks.events = {
+        "e-gated": {
+          own: true,
+          last_upload_at: "2026-09-21T10:00:00Z",
+          profile_eligible: true,
+        },
+      };
+      const cards = await getMyGuestEventCards();
+      expect(cards.find((c) => c.eventId === "e-gated")).toMatchObject({
+        href: null,
+        name: "Private event",
+        accessible: false,
+      });
+    });
+  });
+
+  /**
    * ★ THE BLOCK IS INVISIBLE ON HER OWN DASHBOARD (the Orchestrator's finding from the locked-door
    * board, beside the door's own pin in `album-viewer.server.test.ts`): a private album's card stays and
    * says so, its uploads still live, while a block moves hers to Deleted, so a card that vanished, or

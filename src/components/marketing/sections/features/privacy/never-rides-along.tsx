@@ -1,11 +1,14 @@
 import {
+  ChevronRight,
+  DoorOpen,
+  ImagePlus,
   ListChecks,
   MailCheck,
   MapPinOff,
   SearchX,
   type LucideIcon,
 } from "lucide-react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
@@ -13,10 +16,10 @@ import { SectionShell } from "@/components/marketing/system/section-shell";
 /**
  * The quiet-protections section: what an upload does NOT carry with it. Four
  * named claims (specifics over adjectives, the home-privacy register) beside a
- * settings-card mock quoting the real Guest uploads card
- * (components/app/event-settings/uploads-section.tsx): same row labels, same
- * helper copy, switches resting in their default-on state. Static on purpose;
- * the access switch above is this page's one moving part.
+ * mock of the real Settings' first two rows (event-settings r1: each row a
+ * sentence of where its group stands, `lib/events/guest-experience-summary.ts`),
+ * the words the app says with review on and the email step at its default.
+ * Static on purpose; the access switch above is this page's one moving part.
  */
 
 const CLAIMS: { icon: LucideIcon; title: string; body: string }[] = [
@@ -84,44 +87,57 @@ export function NeverRidesAlong() {
   );
 }
 
-/** The Guest uploads settings card, quoted (labels + helpers + default-on). */
+/**
+ * Settings' first two rows, quoted: each title over its sentence, the live words underlined as the app
+ * draws them, with review on and an email first at its default.
+ */
 function SettingsMock() {
   return (
     <div
       aria-hidden
-      className="rounded-2xl border bg-card p-5 ring-1 ring-foreground/5 select-none"
+      className="overflow-hidden rounded-2xl border bg-card ring-1 ring-foreground/5 select-none"
     >
-      <p className="text-sm font-medium">Guest uploads</p>
-      <p className="mt-0.5 text-xs text-muted-foreground">
-        Control whether and how guests contribute.
-      </p>
-      <div className="mt-4 flex flex-col gap-4">
-        <MockSwitchRow
-          label="Review uploads before they appear"
-          helper="Hold new photos until you approve or reject them, instead of showing them live."
-        />
-        <MockSwitchRow
-          label="Require verified emails"
-          helper="On (recommended): guests confirm their email to see the full gallery and add photos (a few previews show first). Off, guests choose a display name before adding photos, shown with a small unverified mark."
-        />
-      </div>
+      <MockRow Icon={DoorOpen} title="Who can get in">
+        <Word>Anyone with the link</Word>, after <Word>confirming an email</Word>.
+      </MockRow>
+      <div className="h-px bg-border" />
+      <MockRow Icon={ImagePlus} title="What guests can add">
+        <Word>Photos</Word>, <Word>held until you approve them</Word>.
+      </MockRow>
     </div>
   );
 }
 
-/** A resting-on switch row (static shape; the primary-filled pill + thumb). */
-function MockSwitchRow({ label, helper }: { label: string; helper: string }) {
+/** A live word, as the row draws it: underlined like a link's quieter cousin. */
+function Word({ children }: { children: string }) {
   return (
-    <div className="flex items-start justify-between gap-4">
-      <div className="space-y-0.5">
-        <p className="text-sm font-medium">{label}</p>
-        <p className="text-xs leading-relaxed text-muted-foreground">
-          {helper}
-        </p>
-      </div>
-      <span className="mt-0.5 inline-flex h-[18px] w-8 shrink-0 items-center rounded-full bg-primary">
-        <span className="mr-0.5 ml-auto size-4 rounded-full bg-background" />
+    <span className="font-medium text-foreground underline decoration-foreground/35 decoration-dotted decoration-2 underline-offset-[5px]">
+      {children}
+    </span>
+  );
+}
+
+function MockRow({
+  Icon,
+  title,
+  children,
+}: {
+  Icon: LucideIcon;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-3 px-4 py-3.5">
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+        <Icon className="size-4" />
       </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium">{title}</span>
+        <span className="block text-xs leading-relaxed text-pretty text-muted-foreground">
+          {children}
+        </span>
+      </span>
+      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
     </div>
   );
 }

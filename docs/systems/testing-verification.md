@@ -127,10 +127,11 @@ function of elapsed time can be frozen at a chosen moment and shot.
   `javascript_tool`.
 - **Lab boards:** `lab:smoke` weighs whole board pages, so a stage that ignores its tiles still passes; `lab:demo`
   (real Chrome over its DevTools protocol) presses every open step's options and fails a stage that does not move,
-  measuring the frame rather than its label. ★ A headless `--screenshot` cannot scroll (a fragment URL paints black; a
-  tall window stretches a 100vh hero), so `lab:demo`'s own scrolled capture is how subtle light is judged, and a
-  capture with no variance at all is reported UNPAINTED, to be judged by eye (headless Chrome does not always
-  rasterize a composited `backdrop-filter`).
+  measuring every frame of an option rather than its label (`--state <control>=<option>` presses it wearing a knob,
+  `--width 375` at a phone's width). ★ A headless `--screenshot` cannot scroll (a fragment URL paints black; a tall
+  window stretches a 100vh hero), so `lab:demo`'s own scrolled capture is how subtle light is judged, and a capture
+  with no variance at all is reported UNPAINTED, to be judged by eye (headless Chrome does not always rasterize a
+  composited `backdrop-filter`).
 
 ## The presign-roll soak
 

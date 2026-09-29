@@ -25,6 +25,15 @@
 import { MAX_UPLOAD_BYTES } from "@/lib/media/limits";
 import { formatBytes } from "@/lib/utils";
 
-export function uploadTermsLine(capBytes?: number | null): string {
-  return `Photos and videos, up to ${formatBytes(capBytes ?? MAX_UPLOAD_BYTES)} each.`;
+/**
+ * `acceptsVideo` is the album's own answer (`get_event_by_qr_token`'s `accepts_video`: the host's
+ * Videos switch on a plan that takes video), so an album kept to photos never invites a video it
+ * would refuse.
+ */
+export function uploadTermsLine(
+  capBytes?: number | null,
+  acceptsVideo = true,
+): string {
+  const kinds = acceptsVideo ? "Photos and videos" : "Photos";
+  return `${kinds}, up to ${formatBytes(capBytes ?? MAX_UPLOAD_BYTES)} each.`;
 }

@@ -4,11 +4,20 @@
  * has to SHOW its options. For each step it presses every option that carries a
  * picture and fails when the stage under the tiles does not visibly change.
  *
- *   pnpm lab:demo --base http://localhost:3131   # every open step, against YOUR dev server
- *   pnpm lab:demo --base ... --board floating-surfaces      # one board
+ *   pnpm lab:demo --base http://localhost:3131   # the open steps of the boards YOUR change reached
+ *   pnpm lab:demo --base ... --all               # every open step on the desk (or FULL=1)
+ *   pnpm lab:demo --base ... --board floating-surfaces      # named boards, comma-separated
+ *   pnpm lab:demo --base ... --since HEAD^1      # the boards a merge reached
  *   pnpm lab:demo --base ... --only floating-surfaces.radius
  *   pnpm lab:demo --base https://<alias>         # the key rides DESIGN_PREVIEW_KEY
  *   pnpm lab:demo --base ... --reach-limit 0.5   # a stricter travel budget
+ *   pnpm lab:demo --base ... --state screen=phone # every step pressed wearing a knob (repeatable)
+ *   pnpm lab:demo --base ... --width 375         # the sitting at a phone's width
+ *
+ * ★ IT PRESSES WHAT THE CHANGE REACHED (the lab revamp, 2026-09-29): the boards
+ * `scripts/lab-scope.mjs` finds in this tree's change (its own folder, its
+ * ledger, a production file its drawings import), the whole desk only on
+ * `--all` or `FULL=1`; the scope is its first lines.
  *
  * `--base` is required (or `LAB_BASE` in the environment): there is no default,
  * because the only sane-looking default is the Orchestrator's own :3000 and a
@@ -26,7 +35,7 @@
  * dependency, reduced motion emulated so a still stage compares as still.
  *
  * WHAT IT JUDGES. The steps are the desk's own "waiting" links (`?session=`), so
- * a ruled step is never pressed. A step passes when at least one pair of its
+ * an answered step is never pressed. A step passes when at least one pair of its
  * pictured options draws stages that differ by more than `--threshold` percent
  * of the stage's pixels (default 0.1: the frozen corner this was written for
  * moved 0.06 percent, its real menu's corners alone, and the fix moves it 0.9 to
@@ -45,8 +54,14 @@
  * UI of our lab is covered by the answer UI, and I cannot scroll it to see the
  * full heights or labels on which height is which"). The step is now the page
  * with a dock, and a 1440x900 pass holds it there. A step FAILS when:
- *  - OUT OF REACH: the stage starts lower than `--reach-limit` (0.6) of a
- *    900px screen, so the preview is not the first thing under the question;
+ *  - OUT OF REACH: the stage starts more than `--reach-limit` (0.6) of a
+ *    900px screen under the top of the question's head, so the preview is not
+ *    the first thing under the question. ★ MEASURED FROM THE QUESTION, NOT THE
+ *    PAGE (the context layer, 2026-09-29): the board's opening stands above
+ *    the question on the step his sitting enters a board on, and is read once
+ *    per board; what sits between the question and the preview (where it
+ *    happens, why it matters, the reason, the shown option's gain and cost) is
+ *    capped a line each, and this is the check that it stays that short;
  *  - CLIPPED: anything around an option's preview cuts it short, which is the
  *    window he could not scroll;
  *  - UNLABELLED: the stage head does not name the option it is showing, which
@@ -70,6 +85,20 @@
  * pressed once before anything is measured, so no capture is of a stage that is
  * still arriving.
  *
+ * ★ EVERY FRAME, NOT THE FIRST (the lab revamp, 2026-09-29, from claims-r3). An
+ * option drawn at 1440 and at 375 is two frames, and comparing only one read
+ * `identity-claims` r3's quiet and bell as the same picture: their difference
+ * lived in the other frame. Each frame of an option is captured on its own and
+ * compared with the same frame of every other option, and two options are the
+ * same picture only when every frame is. `--save-shots` keeps every frame, named
+ * by its title (`<board>.<ask>.<option>.<n>-<title>-<width>.png`).
+ *
+ * ★ AND IN MORE THAN ITS DEFAULT KNOBS (the lab revamp, from `lab:demo`'s own
+ * ROADMAP line). A step is drawn wearing the board's defaults, so a config's
+ * other states were never pressed; `--state <control>=<option>` (repeatable)
+ * rides every step's URL, which is how the board reads its state, and the whole
+ * pass runs wearing it. `--width 375` runs the sitting at a phone's width.
+ *
  * It presses the dock's options only, and never the one already shown (a
  * second press PICKS), never a Copy button (that writes the OS clipboard), and
  * it runs in its own throwaway Chrome profile, so it touches no reviewer's held
@@ -77,10 +106,18 @@
  */
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  mkdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { inflateSync } from "node:zlib";
+
+import { describeScope, scopeFromArgs } from "./lab-scope.mjs";
 
 const argv = process.argv.slice(2);
 const opt = (name, fallback) =>
@@ -114,8 +151,21 @@ const base = rawBase.replace(/\/+$/, "");
 // The key may ride the environment: pnpm echoes a script's argv into any log it is redirected to,
 // so `DESIGN_PREVIEW_KEY=... pnpm lab:demo` keeps it out of the log where `--key` would not.
 const key = opt("--key", process.env.DESIGN_PREVIEW_KEY ?? "");
-const onlyBoard = opt("--board", "");
 const onlyStep = opt("--only", "");
+/** `--state <control>=<option>`, repeatable: knobs every step is pressed wearing. */
+const STATES = argv.flatMap((a, i) =>
+  a === "--state" ? [argv[i + 1] ?? ""] : [],
+);
+for (const s of STATES)
+  if (!/^[a-z0-9-]+=[a-z0-9-]+$/.test(s)) {
+    console.error(
+      `lab:demo: --state takes <control>=<option>, and "${s}" is not one.`,
+    );
+    process.exit(2);
+  }
+// Which boards to press: the named ones, else the ones this change reached.
+const scope = scopeFromArgs(argv);
+for (const line of describeScope(scope)) console.log(line);
 const threshold = Number(opt("--threshold", 0.1));
 /**
  * THE SETTLE IS A FLOOR, AND THE READINESS CHECK RUNS PAST IT (lab-tides,
@@ -161,12 +211,14 @@ if (!existsSync(CHROME)) {
   process.exit(2);
 }
 
-const W = 1440;
+/** The window's width: a reviewer's desktop, or `--width 375` for the sitting on a phone. */
+const W = Number(opt("--width", 1440));
+const PHONE = W < 768;
 /**
  * The window the PICTURES are taken in: tall enough to hold a whole option
  * under the step's head without scrolling, because a capture that has to reach
  * beyond the window is a capture Chrome recomposites (see the clip's note in
- * `stageShot`). A step's head runs to about 700px, so this holds a 2,300px
+ * `frameShot`). A step's head runs to about 700px, so this holds a 2,300px
  * option whole.
  */
 const H = 3000;
@@ -175,7 +227,11 @@ const H = 3000;
  * The window above is tall on purpose (a whole step in one capture), so reach
  * and height are measured in pixels and divided by this.
  */
-const SCREEN = 900;
+const SCREEN = PHONE ? 812 : 900;
+if (STATES.length || PHONE)
+  console.log(
+    `WEARING ${[...STATES, `width=${W}`].join(" ")}: every step is pressed in this state`,
+  );
 /**
  * How far down a 900px screen the stage may start, as a share of it. Below this
  * the preview is not the first thing under the question, and a reviewer reads
@@ -394,15 +450,35 @@ const PAGE_LIB = `
     stage() {
       return document.querySelector('main [data-lab-stage]');
     },
+    /**
+     * One option's frames, in the order the view draws them, each big enough
+     * to judge and actually shown: frames stacked in one grid cell and toggled
+     * by visibility share a box, so a hidden one would be captured as the one
+     * over it and two different options would read as one picture.
+     */
+    frames(id) {
+      const v = this.view(id);
+      if (!v) return [];
+      return [...v.querySelectorAll('iframe')].filter((f) => {
+        const r = f.getBoundingClientRect();
+        const shown = f.checkVisibility
+          ? f.checkVisibility({ visibilityProperty: true, opacityProperty: true })
+          : true;
+        return shown && r.width > 8 && r.height > 8;
+      });
+    },
     /** Where the stage starts, how tall the step is, and how much it asks you to read. */
     geo() {
       const stage = this.stage();
+      const head = document.querySelector('main .lab-step-head');
       const words = (document.querySelector('main')?.innerText || '').trim().split(/\\s+/).length;
       // PIXELS, not screens: the caller divides by a nominal screen.
       return {
         height: document.documentElement.scrollHeight,
         words,
         top: stage ? Math.round(stage.getBoundingClientRect().top + scrollY) : null,
+        // The question's own head, which the reach is measured from.
+        head: head ? Math.round(head.getBoundingClientRect().top + scrollY) : 0,
         // What a step with no stage asks on instead: options in words, or a
         // catalog's own cards (a winner is pressed on the cards).
         kind: document.querySelector('main .lab-word-options') ? 'words' : 'cards',
@@ -465,8 +541,13 @@ const PAGE_LIB = `
   };
 `;
 
-async function stageShot(ws, id) {
-  const rect = await evaluate(
+/**
+ * Waits one option's view out: its frames loaded, their pictures decoded, the
+ * fonts in, the DOM still, and never sooner than the floor. Returns how many
+ * frames it holds.
+ */
+async function settleView(ws, id) {
+  return evaluate(
     ws,
     `(async () => {
       const s = window.__labDemo.view(${JSON.stringify(id)});
@@ -555,14 +636,27 @@ async function stageShot(ws, id) {
       // 4. And never sooner than the flat settle this replaced.
       if (Date.now() < floor) await nap(floor - Date.now());
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-      // The evidence is the frame when there is one: a label over it names
-      // the option and would move on a frozen stage too.
-      const box = () => {
-        const frames = [...s.querySelectorAll('iframe')]
-          .map((f) => f.getBoundingClientRect())
-          .filter((r) => r.width > 8 && r.height > 8)
-          .sort((a, b) => b.width * b.height - a.width * a.height);
-        return frames[0] ?? s.getBoundingClientRect();
+      return window.__labDemo.frames(${JSON.stringify(id)}).length;
+    })()`,
+  );
+}
+
+/**
+ * ONE FRAME OF ONE OPTION, captured: the view's `k`th frame (its own box, so
+ * the label over it never counts), or the whole view when it holds none.
+ */
+async function frameShot(ws, id, k) {
+  const rect = await evaluate(
+    ws,
+    `(async () => {
+      const s = window.__labDemo.view(${JSON.stringify(id)});
+      if (!s) return null;
+      const nap = (ms) => new Promise((r) => setTimeout(r, ms));
+      const pick = () => {
+        const f = window.__labDemo.frames(${JSON.stringify(id)})[${k}];
+        return f
+          ? { r: f.getBoundingClientRect(), title: (f.getAttribute('title') || '').split(', ')[0] }
+          : { r: s.getBoundingClientRect(), title: 'stage' };
       };
       // ★ THE BOX IS SCROLLED INTO THE WINDOW AND CLIPPED THERE (lab-tides,
       //   2026-09-19, on the finding glass filed 2026-09-18). Capturing
@@ -574,11 +668,11 @@ async function stageShot(ws, id) {
       //   4, 8, 13 and 21 px, measured). The window is taller than any stage
       //   this clips, so scrolling the box to the top and clipping inside the
       //   window captures what a reader sees, composited.
-      const first = box();
+      const first = pick().r;
       window.scrollTo(0, Math.max(0, first.top + scrollY - 4));
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
       await nap(120);
-      const r = box();
+      const { r, title } = pick();
       const top = Math.max(0, r.top);
       const room = innerHeight - top;
       // Inside the window: viewport coordinates, composited, which is what a
@@ -586,18 +680,19 @@ async function stageShot(ws, id) {
       // the box up): page coordinates and the old flag, because half a
       // picture would compare two options on a strip they share.
       return r.height <= room
-        ? { x: Math.max(0, r.left), y: top, width: r.width, height: r.height, beyond: false }
+        ? { x: Math.max(0, r.left), y: top, width: r.width, height: r.height, beyond: false, title }
         : {
             x: Math.max(0, r.left + scrollX),
             y: r.top + scrollY,
             width: r.width,
             height: Math.min(r.height, 2000),
             beyond: true,
+            title,
           };
     })()`,
   );
   if (!rect || rect.width < 8 || rect.height < 8) return null;
-  const { beyond, ...clip } = rect;
+  const { beyond, title, ...clip } = rect;
   const shot = await send(ws, "Page.captureScreenshot", {
     format: "png",
     // Only for a stage taller than the window, which no board draws today:
@@ -606,8 +701,28 @@ async function stageShot(ws, id) {
     captureBeyondViewport: beyond,
     clip: { ...clip, scale: 1 },
   });
-  return Buffer.from(shot.data, "base64");
+  return { title, png: Buffer.from(shot.data, "base64") };
 }
+
+/** Every frame of one option, in the order the view draws them. */
+async function stageShots(ws, id) {
+  const n = await settleView(ws, id);
+  if (n === null) return [];
+  const shots = [];
+  for (let k = 0; k < Math.max(1, n); k++) {
+    const shot = await frameShot(ws, id, k);
+    if (shot) shots.push(shot);
+  }
+  return shots;
+}
+
+/** A frame's title as a file name's part. */
+const slug = (t) =>
+  (t || "stage")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 40) || "stage";
 
 const MEDIA_STILL = [
   { name: "prefers-color-scheme", value: "dark" },
@@ -632,7 +747,7 @@ try {
     width: W,
     height: H,
     deviceScaleFactor: 1,
-    mobile: false,
+    mobile: PHONE,
   });
   await send(ws, "Emulation.setEmulatedMedia", { features: MEDIA_STILL });
 
@@ -648,9 +763,17 @@ try {
   // layout can be measured on any step the board still declares.
   const wanted = onlyStep
     ? [onlyStep]
-    : steps.filter((s) => !onlyBoard || s.startsWith(`${onlyBoard}.`));
+    : steps.filter(
+        (s) => scope.all || scope.boards.includes(s.slice(0, s.indexOf("."))),
+      );
   if (wanted.length === 0) {
-    console.log("lab:demo found no open step to press.");
+    // Said with the scope, so "none to press" is never read as "your board has
+    // no open steps" when the change simply reached no board.
+    console.log(
+      scope.all
+        ? "lab:demo found no open step on the desk to press."
+        : `lab:demo found no open step to press on ${scope.boards.length ? scope.boards.join(", ") : "any board this change reached"}.`,
+    );
   }
 
   for (const step of wanted) {
@@ -675,7 +798,7 @@ try {
     }
     try {
       const url = withKey(
-        `/design/lab/${boardId}?session=${encodeURIComponent(step)}`,
+        `/design/lab/${boardId}?session=${encodeURIComponent(step)}${STATES.map((s) => `&${s}`).join("")}`,
       );
 
       // ── THE LAYOUT, at a reviewer's screen: 1440x900 ─────────────────────
@@ -683,7 +806,7 @@ try {
         width: W,
         height: SCREEN,
         deviceScaleFactor: 1,
-        mobile: false,
+        mobile: PHONE,
       });
       await go(ws, url);
       await evaluate(ws, PAGE_LIB);
@@ -706,15 +829,18 @@ try {
           width: W,
           height: H,
           deviceScaleFactor: 1,
-          mobile: false,
+          mobile: PHONE,
         });
         continue;
       }
       const layout = [];
-      const outOfReach = geo.top > SCREEN * REACH_LIMIT;
+      // From the question's head, not the page's top: the board's opening sits
+      // above the question where a sitting enters the board (see the header).
+      const reach = geo.top - geo.head;
+      const outOfReach = reach > SCREEN * REACH_LIMIT;
       if (outOfReach)
         layout.push(
-          `OUT OF REACH: the stage starts ${(geo.top / SCREEN).toFixed(2)} of a screen down`,
+          `OUT OF REACH: the stage starts ${(reach / SCREEN).toFixed(2)} of a screen under the question`,
         );
       await evaluate(ws, "window.scrollTo(0, 0)");
       await sleep(150);
@@ -752,13 +878,13 @@ try {
         width: W,
         height: H,
         deviceScaleFactor: 1,
-        mobile: false,
+        mobile: PHONE,
       });
       await go(ws, url);
       await evaluate(ws, PAGE_LIB);
       // One capture before anything is measured, so the first is not of a
       // stage that is still mounting its frame or drawing its first reading.
-      await stageShot(ws, await evaluate(ws, "window.__labDemo.show(0)"));
+      await stageShots(ws, await evaluate(ws, "window.__labDemo.show(0)"));
       const shots = [];
       for (let i = 0; i < count; i++) {
         const id = await evaluate(ws, `window.__labDemo.show(${i})`);
@@ -766,15 +892,26 @@ try {
           ws,
           `(window.__labDemo.options()[${i}].getAttribute('data-label') || '').slice(0, 28)`,
         );
-        const png = await stageShot(ws, id);
-        if (!png) break;
+        const frames = await stageShots(ws, id);
+        if (frames.length === 0) break;
         shots.push({
           id,
           label,
-          hash: createHash("sha1").update(png).digest("hex"),
-          png,
+          frames: frames.map((f) => ({
+            ...f,
+            hash: createHash("sha1").update(f.png).digest("hex"),
+          })),
         });
-        if (SAVE_SHOTS) writeFileSync(join(SAVE_SHOTS, `${step}.${id}-${W}.png`), png);
+        if (SAVE_SHOTS)
+          frames.forEach((f, k) =>
+            writeFileSync(
+              join(
+                SAVE_SHOTS,
+                `${step}.${id}.${k + 1}-${slug(f.title)}-${W}.png`,
+              ),
+              f.png,
+            ),
+          );
       }
       if (shots.length < 2) {
         rows.push({
@@ -785,22 +922,26 @@ try {
         });
         continue;
       }
-      const decoded = shots.map((s) => decodePng(s.png));
+      const decoded = shots.map((s) => s.frames.map((f) => decodePng(f.png)));
       // Nothing to compare when nothing was painted: see `flatPicture`.
-      const unpainted = decoded.every(flatPicture);
+      const unpainted = decoded.every((frames) => frames.every(flatPicture));
       let max = 0;
       const same = [];
       for (let a = 0; a < shots.length; a++)
         for (let b = a + 1; b < shots.length; b++) {
-          const d =
-            shots[a].hash === shots[b].hash
-              ? 0
-              : differ(decoded[a], decoded[b]);
+          // Two options differ by their most different frame; a frame one
+          // draws and the other does not is a difference by itself.
+          const fa = shots[a].frames;
+          const fb = shots[b].frames;
+          let d = fa.length === fb.length ? 0 : 100;
+          for (let k = 0; k < Math.min(fa.length, fb.length); k++)
+            if (fa[k].hash !== fb[k].hash)
+              d = Math.max(d, differ(decoded[a][k], decoded[b][k]));
           max = Math.max(max, d);
           if (d < threshold) same.push(`${shots[a].label} = ${shots[b].label}`);
           if (verbose)
             console.log(
-              `  ${step}: ${shots[a].label} vs ${shots[b].label}: ${d.toFixed(3)}%`,
+              `  ${step}: ${shots[a].label} vs ${shots[b].label}: ${d.toFixed(3)}% over ${Math.max(fa.length, fb.length)} frame(s)`,
             );
         }
       let ok = max >= threshold;
@@ -816,7 +957,7 @@ try {
         const motions = [];
         for (let i = 0; i < count; i++) {
           const id = await evaluate(ws, `window.__labDemo.show(${i})`);
-          await stageShot(ws, id);
+          await settleView(ws, id);
           motions.push(
             await evaluate(
               ws,
@@ -855,7 +996,7 @@ try {
               : "FROZEN",
         note: unpainted
           ? `${shots.length} options, every capture one flat colour: this browser did not paint the stage (a composited layer), so judge it by eye`
-          : `${shots.length} options, ${how}${
+          : `${shots.length} options (${shots[0].frames.length} frame${shots[0].frames.length === 1 ? "" : "s"} each), ${how}${
               ok && same.length && max >= threshold
                 ? `; same picture: ${same.join(", ")}`
                 : ""

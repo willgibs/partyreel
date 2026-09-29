@@ -11,6 +11,7 @@ import { ControlKnobs, useBoardState } from "./board-state";
 import { CarriedCalls } from "./carried-calls";
 import { BoardDock } from "./dock";
 import { Notes } from "./notes";
+import { BoardOpening } from "./opening";
 import { Step } from "./step";
 import { Walk } from "./walk";
 
@@ -146,6 +147,10 @@ export function BoardPage({
         >
           <ControlKnobs controls={controls} state={state} setState={setState} />
         </BoardDock>
+
+        {/* What the board is about, what is settled and what he said before,
+            ahead of its answer: the whole board is a way in too. */}
+        <BoardOpening opening={spec.opening} terms={spec.terms} />
 
         <Answer spec={spec} />
 

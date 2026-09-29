@@ -37,6 +37,7 @@ import {
 import { mustQuery, QueryFailedError } from "@/lib/db/must-query";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
 import type { Database, Tables } from "@/lib/db/types";
+import { doorOf, type Door } from "@/lib/event/door/door";
 import { REEL_MINIMUM } from "@/lib/event/reel-progress";
 import {
   RECENTLY_DELETED_WINDOW_DAYS,
@@ -47,16 +48,24 @@ import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 export type { EventCardStats };
 
-/** A host event row with the bcrypt password hash dropped + `has_password` derived. */
+/**
+ * A host event row with the bcrypt password hash dropped + `has_password` derived, and `door`, the
+ * one reading of `visibility` beside `gate` (`lib/event/door/door.ts`): what the link opens.
+ */
 export type HostEvent = Omit<Tables<"events">, "event_password_hash"> & {
   has_password: boolean;
+  door: Door;
 };
 
 function toHostEvent(row: Tables<"events">): HostEvent {
   // `event_password_hash` is referenced (to derive the boolean) but excluded from
   // `rest`, so the returned object never carries the hash.
   const { event_password_hash, ...rest } = row;
-  return { ...rest, has_password: event_password_hash != null };
+  return {
+    ...rest,
+    has_password: event_password_hash != null,
+    door: doorOf(row.visibility, row.gate),
+  };
 }
 
 /** A page's cursor on a newest-first list: the last row's raw timestamp string and its id. */

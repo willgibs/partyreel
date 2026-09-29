@@ -171,6 +171,10 @@ export async function updateEvent(
     patch.reel_style_id = values.reel_style_id;
   if (values.reel_hold_sec !== undefined)
     patch.reel_hold_sec = values.reel_hold_sec;
+  // The Videos switch (migration 20260929120000): a bare granted-column write, which only ever
+  // narrows (the upload's gate reads the plan).
+  if (values.allow_videos !== undefined)
+    patch.allow_videos = values.allow_videos;
 
   const { data, error } = await supabase
     .from("events")

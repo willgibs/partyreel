@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { CANVAS } from "@/components/lab";
-import { optionMeans } from "@/components/lab/board-spec";
+import { CANVAS, optionMeans } from "@/components/lab";
 
 import {
   ACCESS,

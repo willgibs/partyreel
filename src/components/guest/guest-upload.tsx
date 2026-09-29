@@ -203,6 +203,7 @@ export function GuestUpload({
         onOpenChange={setAddOpen}
         hostName={hostName}
         onSend={onAddFiles}
+        acceptsVideo={event.accepts_video}
       />
       <UploadFailureSheet
         open={failuresOpen && failures.length > 0 && !suppressFailures}

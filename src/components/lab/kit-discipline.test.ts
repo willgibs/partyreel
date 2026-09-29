@@ -3,75 +3,72 @@ import { join, relative } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { BOARDS } from "@/app/(dev)/design/sandbox/registry";
+import * as FRONT_DOOR from "@/components/lab";
+import { BOARD_FOLDERS } from "@/app/(dev)/design/sandbox/registry";
 
 /**
- * THE MIGRATION'S RATCHET.
+ * A BOARD USES THE KIT THROUGH ITS FRONT DOOR, AND NEVER COPIES IT.
  *
  * Every board before the kit built its own `Part`, its own `Knob`, its own
- * paste, its own apply button and its own page frame, because there was nowhere
- * else to put them. That is why the same landmine was paid for three times (the
- * stage-in-a-flex-row, the listener identity, the candidate's source order) and
- * why two boards could look like two different products.
+ * paste and its own page frame, because there was nowhere else to put them,
+ * and the same landmine was paid for three times. The migration those boards
+ * went through is over (its exemption list emptied and is gone, the lab
+ * revamp, 2026-09-29), and what it left is two rules:
  *
- * ★ A MIGRATED BOARD MAY NOT RE-DECLARE A KIT PIECE. The moment a board on the
- * template writes its own `Part` again, it has a second header grammar, and a
- * reviewer walking two boards is reading two designs. The check is by
- * declaration NAME rather than by shape, because the failure is always a copy of
- * the piece under the piece's own name.
+ * ★ A BOARD REACHES THE KIT THROUGH TWO DOORS ONLY: `@/components/lab` for
+ * what its drawings draw with, and `@/components/lab/exploration` for its spec
+ * and any pure data beside it. Everything else under `src/components/lab/` is
+ * the machinery the board rides on, which a board reaching into would couple
+ * to (the lab revamp trimmed the front door to what boards use, so a piece a
+ * new board needs is added there, in the open, rather than imported around it).
  *
- * ★ AND THE EXEMPTION LIST ONLY SHRINKS. An unmigrated board is listed here by
- * id; the wave deletes its line when it migrates. A new board cannot be added to
- * the list, because a new board is written on the template.
+ * ★ A BOARD NEVER DECLARES WHAT THE FRONT DOOR GIVES IT, by name, because the
+ * failure is always a copy of the piece under the piece's own name: a board
+ * with its own `Fit` has a second zoom rule, and a reviewer walking two boards
+ * reads two designs.
  */
 const ROOT = process.cwd();
 const SANDBOX = "src/app/(dev)/design/sandbox";
+const DOORS = ["@/components/lab", "@/components/lab/exploration"];
 
-/** Pieces the kit owns. A migrated board imports them; it never declares them. */
-const OWNED = [
-  "Row",
-  "Part",
-  "Knob",
-  "PageFrame",
-  "ApplyToSite",
-  "CostMeter",
-  "Paste",
-  "CellLabel",
-  "Labeled",
-  "Cell",
-  "BoardIndex",
-  "RuleIndex",
-  "ItemVerdictRow",
-  "VerdictPill",
-  "CompareTwo",
-  "SpotCompare",
-  "GroundBox",
-  "Fit",
-  "Measured",
-];
-
-/**
- * The boards still on the legacy path, by id. Every one of them is a line the
- * migration wave deletes; nothing is ever added.
- */
-const LEGACY: readonly string[] = [];
+/** The front door's value exports: the pieces a board imports and never declares. */
+const OWNED = Object.keys(FRONT_DOOR);
 
 function filesIn(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
     const p = join(dir, name);
     if (statSync(p).isDirectory()) filesIn(p, out);
-    else if (/\.tsx?$/.test(name) && !/\.test\.tsx?$/.test(name)) out.push(p);
+    else if (/\.tsx?$/.test(name)) out.push(p);
   }
   return out;
 }
 
-describe("a migrated board", () => {
-  const migrated = BOARDS.map((b) => b.id);
-
-  it("declares nothing the kit owns", () => {
+describe("a board", () => {
+  it("reaches the kit through its two doors", () => {
     const offences: string[] = [];
-    for (const id of migrated) {
+    for (const id of BOARD_FOLDERS) {
       for (const file of filesIn(join(ROOT, SANDBOX, id))) {
+        const src = readFileSync(file, "utf8");
+        for (const [, path] of src.matchAll(
+          /from\s+"(@\/components\/lab[^"]*)"/g,
+        )) {
+          if (!DOORS.includes(path))
+            offences.push(`${relative(ROOT, file)} imports ${path}`);
+        }
+      }
+    }
+    expect(
+      offences,
+      "import it from @/components/lab (a spec's kit from @/components/lab/exploration); a piece a board needs is added to src/components/lab/index.ts",
+    ).toEqual([]);
+  });
+
+  it("declares nothing the front door gives it", () => {
+    expect(OWNED).toContain("ExplorationBoard");
+    const offences: string[] = [];
+    for (const id of BOARD_FOLDERS) {
+      for (const file of filesIn(join(ROOT, SANDBOX, id))) {
+        if (/\.test\.tsx?$/.test(file)) continue;
         const src = readFileSync(file, "utf8");
         for (const name of OWNED) {
           const declared = new RegExp(
@@ -86,38 +83,11 @@ describe("a migrated board", () => {
     expect(offences, "import it from @/components/lab instead").toEqual([]);
   });
 
-  it("imports the kit from its new home, never the shim", () => {
-    const offences: string[] = [];
-    for (const id of migrated) {
-      for (const file of filesIn(join(ROOT, SANDBOX, id))) {
-        if (readFileSync(file, "utf8").includes("@/components/dev/board")) {
-          offences.push(relative(ROOT, file));
-        }
-      }
-    }
-    expect(offences, "a migrated board uses @/components/lab").toEqual([]);
-  });
-
-  it("is two files at its root: a spec and a board", () => {
-    for (const id of migrated) {
+  it("has its spec and its board at the folder's root", () => {
+    for (const id of BOARD_FOLDERS) {
       const root = readdirSync(join(ROOT, SANDBOX, id));
       expect(root, `${id} has no spec.ts`).toContain("spec.ts");
       expect(root, `${id} has no board.tsx`).toContain("board.tsx");
     }
-  });
-
-  it("is never also on the legacy list", () => {
-    const both = migrated.filter((id) => LEGACY.includes(id));
-    expect(both, "a migrated board is still listed as legacy").toEqual([]);
-  });
-
-  it("leaves only boards that exist on the legacy list", () => {
-    const gone = LEGACY.filter(
-      (id) => !readdirSync(join(ROOT, SANDBOX)).includes(id),
-    );
-    expect(
-      gone,
-      "a legacy exemption outlived its board; delete the line",
-    ).toEqual([]);
   });
 });

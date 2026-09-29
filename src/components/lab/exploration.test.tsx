@@ -44,6 +44,9 @@ const board = (
   defineExploration({
     id: "fixture",
     title: "A fixture exploration",
+    surface: "guest",
+    desk: 10,
+    lives: ["docs/systems/guest-flow.md"],
     round: { n: 1, date: "2026-09-19", changed: "The first round." },
     asks: asks as unknown as Parameters<typeof defineExploration>[0]["asks"],
     carried,
@@ -67,16 +70,42 @@ describe("defineExploration's controls", () => {
     ]);
   });
 
-  it("never lets a config displace the derived control of the same id", () => {
-    const spec = board([
-      ask({
-        id: "screen",
-        configs: [{ ...SCREEN, label: "A second screen", default: "1440" }],
-      }),
-    ]);
-    const control = (spec.controls ?? []).find((c) => c.id === "screen")!;
-    // The derived one wins: it is the channel the step presses through.
-    expect(control.options.map((o) => o.id)).toEqual(["today", "new"]);
+  /**
+   * ★ A COLLISION IS REFUSED, NO LONGER RESOLVED (the lab revamp, 2026-09-29).
+   * This test used to pin that the derived control wins a shared id, which was
+   * true and was the bug: `disposable-mode` r2's `screen` decision swallowed
+   * its Screen knob and nothing said so. The derived control is still the
+   * channel the step presses through; a knob can no longer hide behind it.
+   */
+  it("refuses a knob that shares a decision's id", () => {
+    expect(() => board([ask({ id: "screen", configs: [SCREEN] })])).toThrow(
+      /the knob "screen" on "screen" has a decision's id/,
+    );
+    expect(() =>
+      board([ask({ id: "head", configs: [SCREEN] }), ask({ id: "screen" })]),
+    ).toThrow(/has a decision's id/);
+  });
+
+  it("refuses two decisions under one id", () => {
+    expect(() => board([ask({ id: "head" }), ask({ id: "head" })])).toThrow(
+      /two decisions are "head"/,
+    );
+  });
+
+  it("refuses two different knobs under one id, and keeps one shared knob", () => {
+    expect(() =>
+      board([
+        ask({ id: "head", configs: [SCREEN] }),
+        ask({ id: "foot", configs: [{ ...SCREEN, default: "1440" }] }),
+      ]),
+    ).toThrow(/two different knobs are "screen"/);
+    // The same knob handed to two decisions is one knob, not a collision.
+    expect(() =>
+      board([
+        ask({ id: "head", configs: [SCREEN] }),
+        ask({ id: "foot", configs: [{ ...SCREEN }] }),
+      ]),
+    ).not.toThrow();
   });
 
   /**

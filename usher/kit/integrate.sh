@@ -20,7 +20,7 @@ grep -E "^desk boards:|^typecheck" "$S/merge-$TRACK.log"; echo "MERGED $MSHA"
 LAST=$(ls "$S" 2>/dev/null | sed -nE 's/^gate([0-9]+)\.log$/\1/p' | sort -n | tail -1); N=$(( ${LAST:-0} + 1 ))
 zsh "$KIT/gate-lane.sh" "$N" "$BOARD" > "$S/gate$N.log" 2>&1
 grep -q "GATE$N DONE" "$S/gate$N.log" || { echo "GATE $N did not finish"; tail -5 "$S/gate$N.log"; echo "INTEGRATE DONE red"; exit 1; }
-grep -E "^SCOPE|^LAB|^HARNESS|^EXIT|^build: |Tests  |checks|steps|retrying" "$S/gate$N.log"
+grep -E "^SCOPE|^PREMISE|^LAB|^HARNESS|^EXIT|^build: |Tests  |checks|steps|retrying" "$S/gate$N.log"
 RED=$(grep -cE "^EXIT\[[^]]+\]=[1-9]" "$S/gate$N.log")
 echo "gate $N red steps: $RED$(grep -qE '^EXIT\[lab:demo [^]]+\]=[1-9]' "$S/gate$N.log" && echo " (a red lab:demo may be the harness: read $S/gate$N-demo.log per step before calling it)")"
 echo "INTEGRATE DONE $([ "$RED" = 0 ] && echo green || echo red) merged=$MSHA gate=$N"

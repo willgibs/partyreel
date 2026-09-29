@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveGalleryDecision } from "@/lib/events/gallery-access";
+import {
+  doorGalleryDecision,
+  resolveGalleryDecision,
+} from "@/lib/events/gallery-access";
 
 // Minimal event shapes (only the three fields the resolver reads). Keyed on the host's switches:
 // `require_verified_email` false is a name-only event, true is one that asks a guest to prove an
@@ -161,5 +164,29 @@ describe("resolveGalleryDecision", () => {
         canContribute: true,
       }),
     ).toEqual({ access: "full", gate: null });
+  });
+});
+
+describe("doorGalleryDecision: the door's own answer, where it holds the request", () => {
+  it("★ the held door, the ask and a gate's newcomer see nothing real, each with its own step", () => {
+    expect(doorGalleryDecision({ kind: "waiting" })).toEqual({
+      access: "none",
+      gate: "waiting",
+    });
+    expect(doorGalleryDecision({ kind: "ask", gate: "approve" })).toEqual({
+      access: "none",
+      gate: "ask",
+    });
+    // A newcomer confirms an email over the ghost river, where an open album would show its teaser.
+    expect(doorGalleryDecision({ kind: "newcomer", gate: "invite" })).toEqual({
+      access: "none",
+      gate: "account",
+    });
+  });
+
+  it("a door that lets the request through leaves the album's own gates to decide; a shut door is the page's", () => {
+    expect(doorGalleryDecision({ kind: "through", admitted: true })).toBeNull();
+    expect(doorGalleryDecision({ kind: "through", admitted: false })).toBeNull();
+    expect(doorGalleryDecision({ kind: "shut", previous: true })).toBeNull();
   });
 });

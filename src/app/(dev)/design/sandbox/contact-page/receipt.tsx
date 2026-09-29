@@ -59,9 +59,7 @@ export function ReceiptPreview({ shape }: { shape: ReceiptShape }) {
         <Stationery>
           <div className="flex min-h-72 flex-col items-start justify-center gap-3">
             <CheckMark />
-            <h3 className="font-heading text-subsection font-medium">
-              Message sent
-            </h3>
+            <h3 className="font-heading text-subsection">Message sent</h3>
             <p className="text-sm text-pretty text-muted-foreground">
               Thanks for reaching out. {REPLY_LINE}
             </p>

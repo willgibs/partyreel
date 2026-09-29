@@ -82,8 +82,10 @@ it costs; the recommendation gives its reason in a line; a board opens with what
 settled, his earlier picks and notes included. A term a board coins gets its plain meaning where it first appears. He
 should never have to click through the options to learn what he is being asked.
 
-- Author with `defineExploration` (`src/components/lab/exploration.ts`) and nothing else; the newest board built on
-  it is the worked example.
+- Author with `defineExploration` (`@/components/lab/exploration`, a spec's one import) and draw with the kit's front
+  door (`@/components/lab`); the newest board built on it is the worked example. Its context layer is an ask's `where`
+  (a breadcrumb), `when` and `matters` beside `lands`, each option's `gains` and `costs`, `because` in a line, and the
+  board's `opening` (`about`, `settled`, `earlier`) and `terms`; `registry.test.ts` refuses an open ask without them.
 - Shape a big goal progressively (`after` stages a question behind another answer); more rounds of narrower questions
   beat one wide one.
 - Options are real contenders for one decision: never force them apart, and two that land on the same answer are a
@@ -95,8 +97,9 @@ should never have to click through the options to learn what he is being asked.
 - **Answer a relative note against a reference**: a note like "a bit more calm" gets options graded against something
   he already likes, never a cap that makes every option calm by construction.
 - Placeholder copy is judged for its size and wrapping, not its words.
-- A new board registers its own lines in `registry.ts`, `boards.ts` and `touchpoints.ts` directly after the neighbour
-  its brief names, never at the head of a list (two boards on one spot mangle the merge).
+- A board is one folder, `sandbox/<id>/`, and nothing else names it:
+  `pnpm new-board <id> "<title>" --surface <s> --desk <n>` writes it (every owed line a `TODO` that `registry.test.ts`
+  refuses), the toolbox page (`/design/lab/kit`) teaches the rest, and retiring a board is deleting its folder.
 
 ### Fast, focused rounds
 

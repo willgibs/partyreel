@@ -33,7 +33,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "Is my album private?",
-    a: "Your album opens only to the link you share, and we keep share links out of search engines. You decide if and when to make it public.",
+    a: "Your album opens only to the people you share its link with, and we keep share links out of search engines. Make it Private and a gate comes first: a password, your yes at the door, or an invite list.",
   },
   {
     q: "How long do you keep my photos?",

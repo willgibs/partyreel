@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogOut, Search, ShieldCheck } from "lucide-react";
 
-import { signOutAction } from "@/app/(auth)/actions";
+import { signOutHere } from "@/components/auth/sign-out";
 import { AdminNav } from "@/components/admin/admin-nav";
 import {
   OperatorAlerts,
@@ -44,8 +44,7 @@ import { cn } from "@/lib/utils";
  * ★ THE DROPDOWN SURVIVES BELOW `lg`, and that is not a fallback. The rail is
  * 232px of permanent structure that a laptop can afford and a narrow window
  * cannot, so under `lg` the same twelve surfaces are reached the way they
- * always were. `admin-nav.tsx` is unchanged and the admin-triage board still
- * imports it.
+ * always were (`admin-nav.tsx`).
  */
 export function AdminBar({
   email,
@@ -181,7 +180,7 @@ export function AdminBar({
               <DropdownMenuSeparator />
               {/* Sign-out is the shared server action; on the subdomain it clears
                   the host-isolated admin cookies and redirects to /login. */}
-              <form action={signOutAction}>
+              <form action={signOutHere}>
                 <DropdownMenuItem asChild>
                   <button type="submit" className="w-full">
                     <LogOut />

@@ -567,31 +567,21 @@ export async function purgeMediaNow(
     };
   }
 
-  // LEGAL HOLD (trust-safety-forensics.md): held items are excluded HERE, before the R2-first delete — the
-  // purge_media_now RPC also refuses them, but that would only save the ROW after this wrapper
-  // had already destroyed the OBJECT. The lookup runs on the ADMIN client because SELECT on media
-  // is COLUMN-scoped and legal_hold_at is deliberately NOT granted to hosts (a hold must stay
-  // invisible to the investigated party; referencing it through the RLS client would error). The
-  // RLS read above already proved every id is the caller's own removed media, so this is a pure
-  // held-id subtraction, never an authz widening. (`.filter` because legal_hold_at isn't in the
-  // generated types until the orchestrator regenerates post-apply.) Chunked like the read above:
-  // a hold the check never asked about would be a held object deleted.
+  // WHAT THE PURGE MUST KEEP (trust-safety-forensics.md): a held item, or one an open report names (its
+  // item, or any item of its album), is excluded HERE, before the R2-first delete. The purge_media_now RPC
+  // asks the same `kept_media_ids` and DEFERS such a row (it leaves her view and her meter, its bytes wait for
+  // the review: admin-triage r2, 20260929140000), but that would only save the ROW after this wrapper had
+  // already destroyed the OBJECT. The lookup runs on the ADMIN client because the rule reads what a host may
+  // never read (the hold columns, the reports table). The RLS read above already proved every id is the
+  // caller's own removed media, so this is a pure kept-id subtraction, never an authz widening. Chunked like
+  // the read above: a keeper the check never asked about would be a kept object deleted.
   if (owned.length > 0) {
     const admin = createAdminClient();
-    let held: { id: string }[];
+    let kept: string[];
     try {
-      held = await inChunks(
-        "media: purge hold check",
+      kept = await readKeptForPurge(
+        admin,
         owned.map((r) => r.id),
-        async (chunk) =>
-          (await mustQuery(
-            admin
-              .from("media")
-              .select("id")
-              .in("id", chunk)
-              .filter("legal_hold_at", "not.is", null),
-            "media: purge hold check",
-          )) ?? [],
       );
     } catch {
       return {
@@ -600,8 +590,8 @@ export async function purgeMediaNow(
         message: "Couldn't delete those items. Please try again.",
       };
     }
-    const heldIds = new Set(held.map((r) => r.id));
-    owned = owned.filter((r) => !heldIds.has(r.id));
+    const keptIds = new Set(kept);
+    owned = owned.filter((r) => !keptIds.has(r.id));
   }
   if (owned.length > 0) {
     const keys: string[] = [];
@@ -619,7 +609,7 @@ export async function purgeMediaNow(
     }
   }
 
-  const { error } = await supabase.rpc("purge_media_now", {
+  const { data, error } = await supabase.rpc("purge_media_now", {
     p_media_ids: mediaIds,
   });
   if (error) {
@@ -629,5 +619,26 @@ export async function purgeMediaNow(
       message: "Couldn't delete those items. Please try again.",
     };
   }
-  return { ok: true, data: { purged: owned.length } };
+  // Her whole selection, the kept rows included: the RPC counts what left her view, deferred or deleted.
+  const purged = Number((data as { purged?: unknown } | null)?.purged ?? 0);
+  return { ok: true, data: { purged } };
+}
+
+/**
+ * The ids among `ids` the purge must keep, as `kept_media_ids` answers it (a hold, or an open report naming the
+ * item or its album). A failed read throws: a purge that cannot ask what to keep deletes nothing.
+ */
+async function readKeptForPurge(
+  admin: ReturnType<typeof createAdminClient>,
+  ids: readonly string[],
+): Promise<string[]> {
+  return inChunks(
+    "media: purge kept check",
+    ids,
+    async (chunk) =>
+      (await mustQuery(
+        admin.rpc("kept_media_ids", { p_media_ids: chunk }),
+        "media: purge kept check",
+      )) ?? [],
+  );
 }

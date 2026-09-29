@@ -147,7 +147,9 @@ export default async function LoginPage({
   // crumbs-11): kept only when it is on the return allow-list, and otherwise
   // dropped without a word, so a hostile value reads exactly like none.
   const { error, intent, next } = await searchParams;
-  const returnTo = signInReturn(next);
+  // Each host returns to its own pages: the portal's on the admin host, the app's elsewhere.
+  const onAdminHost = isAdminHost((await headers()).get("host"));
+  const returnTo = signInReturn(next, onAdminHost);
 
   // Already signed in? Skip the form and go where they were going — so a logged-in
   // visitor clicking "Log in" from marketing isn't forced through sign-in again
@@ -162,11 +164,7 @@ export default async function LoginPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user) {
-    redirect(
-      signInLanding(returnTo, isAdminHost((await headers()).get("host"))),
-    );
-  }
+  if (user) redirect(signInLanding(returnTo, onAdminHost));
 
   return (
     <div className="flex flex-1 flex-col lg:grid lg:grid-cols-2">

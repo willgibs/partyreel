@@ -1,5 +1,4 @@
-import type { Control } from "@/components/lab/board-spec";
-import { defineExploration } from "@/components/lab/exploration";
+import { type Control, defineExploration } from "@/components/lab/exploration";
 
 /**
  * FIVE ROADMAP LOOSE ENDS, EACH A DECISION (the loose-ends track, cut 2026-09-18).
@@ -35,6 +34,15 @@ import { defineExploration } from "@/components/lab/exploration";
 export const LOOSE_ENDS = defineExploration({
   id: "loose-ends",
   title: "Five loose ends",
+  surface: "shared",
+  desk: 60,
+  lives: [
+    "src/app/globals.css",
+    "src/components/marketing/faq-accordion.tsx",
+    "src/components/marketing/sections/features/album/getting-in-stage.tsx",
+    "src/components/marketing/sections/features/album/review-switch.tsx",
+    "src/components/marketing/sections/features/album/everywhere-stage.tsx",
+  ],
   round: {
     n: 1,
     date: "2026-09-28",

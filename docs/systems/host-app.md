@@ -2,7 +2,8 @@
 
 Open this before you:
 - change the dashboard (its bands, the events list, the Guest cards, the claims review);
-- change how an event is created or an event setting;
+- change how an event is created, an event setting or the door (who can get in, the Guests room's At the door and
+  Invited);
 - change the QR designer, a code's size or the print sheet;
 - touch the custom event link;
 - change the first-time welcome;
@@ -66,13 +67,14 @@ has no filter chips and no personal feeds (those are the profile's owner mode, [
 ## Events and the create flow
 
 An `events` row carries the one DB-generated link (`qr_token`) and the host's switches. The ones the schema does not
-explain: `require_verified_email` is the one identity switch; `max_upload_bytes` caps each GUEST upload (the host's own
-are exempt); `qr_style` is plain text, app-validated, so presets grow without a migration.
+explain: `require_verified_email` is the one identity switch (An email first); `gate` refines a `private` album into
+its gate (below); `allow_videos` is the Videos switch, binding guests only, as `max_upload_bytes` caps each GUEST upload
+(the host's own are exempt); `qr_style` is plain text, app-validated, so presets grow without a migration.
 
 - **The sole create path is the `/dashboard/new` wizard** (`create-event-wizard.tsx`): Name, Style, then the beat. It
   creates once, at commit (an abandoned wizard leaves no row), through the non-redirecting `createEventInWizard`, which
   returns the id and token so the beat can draw the real code. Only the name is required; everything else is edited in
-  Settings (`event-settings-form.tsx`, one form and one Save). `enforce_event_limit` guards `MAX_EVENTS` in SQL.
+  Settings (below). `enforce_event_limit` guards `MAX_EVENTS` in SQL.
 - ★ **The beat happens once in an event's life, by construction**: only pressing Create reaches it. It draws the real
   code in a plain mat, two doors out (print the table cards; share the link) and one into the event; the custom link
   belongs to the share sheet.
@@ -84,14 +86,14 @@ are exempt); `qr_style` is plain text, app-validated, so presets grow without a 
   Action refreshes its route, so after Create `atCap` is true, and a redirect would bounce the host before the beat while
   a live prop would swap the beat for the refusal (`create-flow.test.tsx` flips the flag). The general rule: a route
   whose post-action refresh must show a success state reads no eligibility live.
-- **Settings save only on Save changes**: verify a settings change by saving and checking the row.
-- **"Require verified emails" reads the column directly, with no inversion**, free on every tier and on by default (a
-  verified email is safer and captures a real address). Off is not anonymity: a guest types a display name and uploads
-  under it with an unverified mark. Turning it off confirms the consequence through `ConfirmSwitch`
+- **"An email first" reads `require_verified_email` directly, with no inversion**, free on every tier and on by default
+  (a verified email is safer and captures a real address). Off is not anonymity: a guest types a display name and
+  uploads under it with an unverified mark. Turning it off confirms the consequence through `ConfirmSwitch`
   (`ui/confirm-switch.tsx`), the one primitive for every consequential switch, which opens a tick late so radix's
-  dismissable layer does not catch the switch's own click. Enforcement is the gated gallery
-  ([guest-flow.md](guest-flow.md)); the live "what your guests will experience" line is `guestExperienceSummary()`.
-- **"Require an upload to view"** (off by default, free on every tier) holds the full album until one of the guest's own
+  dismissable layer does not catch the switch's own click. ★ Letting each person in and the invite list hold it on
+  (they match a confirmed address; `events_gate_needs_email`), and the switch says why. Enforcement is the gated
+  gallery ([guest-flow.md](guest-flow.md)).
+- **"A photo first"** (`require_upload_to_view`, off by default, free on every tier) holds the full album until one of the guest's own
   uploads completes, approved or held, and confirms on its ON edge (`confirmWhen`), the direction that asks something of
   guests. It fails open while the event is not accepting uploads or the album is at its cap, so a guest is never held at
   a step they cannot pass. ★ An upload keeps the door open whatever the host does to it and stops once the guest removes
@@ -106,7 +108,10 @@ are exempt); `qr_style` is plain text, app-validated, so presets grow without a 
   where the account holds a live upload (pending, approved or hidden) and is not the host, read from the uploads
   themselves (`getMyGuestEventCards`: the admin client, the account's own rows only), so a card leaves with its last
   live upload and nothing else puts another host's event on a dashboard. The album's rules mask it
-  (`lib/dashboard/guest-events.ts`: a private album blank and locked, a password album with no cover). ★ An event that
+  (`lib/dashboard/guest-events.ts`: Only me blank and locked; behind a password or a gate, named and linked with no
+  cover). ★ A gate never locks a card: a card is for someone past the door (a waiting guest cannot upload), so every
+  reader holding only the stored `visibility` asks the gate (`readEventGates`),
+  the picker's tiles and a claim's Open album too. ★ An event that
   blocked her keeps its card, masked as a private album's, while the block stands (`blocked_events_for`, placed at the
   newest upload the block removed): a block moves her uploads to Deleted, and a card that vanished would say what the
   door hides.
@@ -188,14 +193,18 @@ beneath, newest first.
   page paints at 1280 and jumps; the cards row's sticky band bleeds by exactly that gutter.
 - **The header is one object**: a scannable `StyledQr` in a button BESIDE the h1, never inside it (an h1 holding a
   control stops being the page's accessible name). ★ It carries no status chips: a paused event dims the code, and
-  visibility rides the Settings card. The link row shows the readable URL and copies the permanent one, confirmed in
+  the door rides the Settings card (`doorLabel`). The link row shows the readable URL and copies the permanent one, confirmed in
   place, never by a toast.
-- **The cards row** (Highlight reel, Guests, Review, Settings) is a group of links, never tabs, since nothing
-  switches a panel in place. ★ The Guests card and the header read THE ONE COUNT (`getEventGuests`, the album header's
-  own function), so the hub, the Guests room and the album say one number. The row is sticky and condenses in place,
-  because a remount would drop the QR pill's `view-transition-name` mid-morph. ★ Share's place in the row is a QR pill
-  that exists only while the header's code is off screen, carrying the morph's name while it is the code on screen. On
-  a phone at rest the row is a 2x2 grid of two-line cards (`event-feed/room-card.ts`), so all four doors show at 375.
+- **The cards row** (Highlight reel, Guests, Review, Settings) is a group of links, never tabs, since nothing switches
+  a panel in place. ★ The Guests card and the header read THE ONE COUNT (`getEventGuests`, the album header's own
+  function), so the hub, the Guests room and the album say one number. The row is sticky and condenses in place,
+  because a remount would drop the QR pill's `view-transition-name` mid-morph. ★ It condenses inside a footprint that
+  holds the resting row's height (`useStuckBand`): a condense that moved the album let scroll anchoring carry a jump
+  into the stick band (the viewer's close runs one) across the threshold and back for ever; and stuck is its top at
+  the bar, the observer's root grown past the fold, so a short screen never reads the resting row as stuck. ★ Share's
+  place in the row is a QR pill that exists only while the header's code is off screen, carrying the morph's name
+  while it is the code on screen. On a phone at rest the row is a 2x2 grid of two-line cards
+  (`event-feed/room-card.ts`), so all four doors show at 375.
 - **Review and Guests are rooms (routes with a crumb); Settings and the share kit are places in the settings kind (a panel at a desk, the whole screen in a hand); the Highlight reel is a door.**
   ★ The crumb trail lands at hydration (a page cannot hand a prop up, and CSS cannot carry an event's name); the bar's
   fixed height keeps it from shifting anything.
@@ -203,17 +212,27 @@ beneath, newest first.
   `useSearchParams` with no mirrored `useState`, so a `router.refresh()` after a settings action cannot close the
   panel). Opening pushes a history entry whose marker is a FIELD on the state Next merges: Next's patched `pushState`
   copies `__NA` onto the object it is handed and its `popstate` handler reloads without it, so replacing the state
-  wholesale turns Back into a full reload. Closing calls `history.back()` only when the marker is ours.
+  wholesale turns Back into a full reload. Closing calls `history.back()` only when the marker is ours. ★ The server's
+  `initialSheet` paints the first frame alone (a hydration gate): once hydrated the URL is the only answer, so a
+  place opened from a link (`/settings`, a sign-in's return, Checkout's `?room=`) closes like one opened from its
+  card. A settings page is `&setting=<page>` on the same entry, moved with `replaceState`, so its back arrow and
+  Back never stack entries.
 - **The code card is every share's first surface** (`share/code-card.tsx`: the code on white filling a phone, a 384
   card at a desk, Copy link, the device's own Share where it has one, and Everything into the kit,
   `share/event-share-sheet.tsx`, which holds the downloads, the designer and the custom link). Every door to it reads
   Invite: the header's code, the sticky row's pill, the launch list (`share/invite-button.tsx`) and the dashboard card's
   QR chip, which opens the card in place. ★ Never draw the code in a second sharing surface, or a fix lands in only one
   of them.
-- **Settings** imports the settings form whole (Details, Visibility, Guest uploads, one Save), with one unsaved-changes
-  guard behind the scrim, Escape and the close button, and `beforeunload` for a reload; then the instant-save cards, the
-  Highlight reel first, then Profile & guests, and the Danger zone last. `/settings` survives as a redirect: it is a
-  published URL.
+- **Settings is four sentences** (`event-settings/`): Who can get in, What guests can add, The highlight reel and The
+  event, each row one sentence (`settingsSentence`, the one home) whose underlined words are live controls
+  (`SettingWord`) and whose row opens its own page with a back arrow (`PopupHeader`'s `up`). Every control saves
+  itself (no form, no Save): `SettingsProvider` lays an optimistic overlay over the server row, a key dropped once the
+  row catches up, with a sequence per key so a late answer never undoes a newer choice; a text field saves when it is
+  left. ★ A setting with no effect right now stays in view as one quiet line under the switch that governs it
+  (`ui/dormant.tsx`, `inert` while asleep, no movement under reduced motion), and a change that affects people already
+  in says so in its own place before it happens (`ui/consequence-line.tsx`). The Videos switch is locked on Free (a
+  drawn switch inside one button: the plans), live on paid plans. `/settings` survives as a redirect: it is a published
+  URL.
 - **The QR mini-modal** (`share/event-code-modal.tsx`) takes no URL: a look at the code is a beat, not a destination. It
   grows out of the header's code on the native View Transitions API, name-scoped in `share/share.css`, and exactly one
   of the header, the pill and the modal carries the name at a time (a duplicate makes the browser skip the transition).
@@ -251,6 +270,30 @@ beneath, newest first.
   lands at the end; it resets each visit) and Filter (All, Deleted).
 - **SSR'd surfaces use native `title` only**, never a radix Tooltip (the hydration regression in
   [architecture.md](architecture.md)); rich client UI is safe inside its islands.
+
+## The door, the host's side
+
+Who can get in is one door of six (`lib/event/door/door.ts`; what a guest meets is [guest-flow.md](guest-flow.md)'s),
+set on its own settings page in the order a guest meets it: (1) Public, Private or Only me; (2) Private's gate: a
+password, you let each person in, your invite list, only people already in, each with its line and a small (i) for
+its purpose (`GATE_HELP`); (3) An email first; (4) A photo first. Every word lives in
+`lib/events/visibility-labels.ts` (`doorLabel` for the hub). The host keeps the words "Only me", so the profile's
+visitor-facing "Private" never collides.
+
+- ★ **`set_event_door` is the one writer of the pair** (`setEventDoorAction` re-verifies with `getUser()`). Under a
+  gate the page says how many are already in ("31 guests are already in"); choosing Only me with guests in, or Public
+  or Only people already in with newcomers waiting, says what happens first and waits for the confirm. Opening an album
+  to Public lets everyone waiting in (`events_door_opened`).
+- **The Guests room's At the door** heads it (`queue=room`): Let in (`let_in_at_door`) opens her door on every device,
+  and her held door opens by itself at its next check-in; ★ Decline is a block (the account where there is one, else
+  the row), with Undo on its toast and Let back in under Blocked, so a declined newcomer meets the one shut screen and
+  cannot keep re-asking. A waiting newcomer counts on the hub's Guests card, the pulse (its first step, opening
+  `#at-the-door`) and the bell (a row per event), and sends no mail.
+- **Invited** (`editor=both`): one field takes a typed address or a pasted list (`readAddresses`: the readable saved at
+  once and counted by the database, the unreadable kept as flagged chips), capped at `INVITE_LIST_CAP`; each address
+  reads Joined or Not yet, since it matches only once its guest confirms it, so removing one never puts out someone it
+  let in. The list stays editable while it is not the door. **Invite** is the room's main action while it is empty and
+  a quiet one after: the event's code card, sending nothing.
 
 ## Moderation and curation (host side)
 
@@ -323,7 +366,7 @@ beneath, newest first.
 - ★ **Block puts one person out of one event, with their uploads** (`block_from_event` on the host's own client, free
   on every plan). It is the quiet last line of every person's look (a name in the Guests room, the uploader's credit in
   the host's viewer and on Review's peek, `event-blocks/`), opening one confirm whose count is the act's own preview
-  and which offers Require verified emails, off, on a names-only album. It keys on the account, the confirmed address
+  and which offers An email first, off, on a names-only album. It keys on the account, the confirmed address
   or the guest row, never a device or an IP, so a typed name is held on the phone that used it. Their live uploads move
   to Deleted in the same step as the host's own removal (a held one stays, as every host write leaves it). The Guests
   room's foot lists the blocks (who, since when) with Let back in (`let_back_in`), whose restore is off unless the

@@ -5,23 +5,34 @@ import { describe, expect, it } from "vitest";
 
 import {
   anchorFor,
+  type Ask,
+  type BoardSpec,
   LIMITS,
+  optionCosts,
+  optionGains,
   optionId,
   optionLabel,
   optionMeans,
 } from "@/components/lab/board-spec";
 import { RESERVED_PARAMS } from "@/components/lab/board-state";
+import { askTexts, openingTexts, termsIn } from "@/components/lab/terms";
 
 import { ITEMS_STEP } from "@/app/(dev)/design/(shell)/lab/_desk/step-id";
 
-import { BOARDS, boardSpec } from "./registry";
-import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
+import {
+  BOARD_FOLDERS,
+  BOARDS,
+  boardSpec,
+  SPEC_EXPORTS,
+  SPECS,
+} from "./registry";
 
 // The catalog's entry ids, read the way lab:review reads them (gallery.test.ts
 // holds that reader to the TypeScript parse of the same files).
-const { readLibraryEntries } = (await import(
-  "../../../../../scripts/lab-review.mjs"
-)) as { readLibraryEntries: (root: string) => Set<string> | null };
+const { readLibraryEntries } =
+  (await import("../../../../../scripts/lab-review.mjs")) as {
+    readLibraryEntries: (root: string) => Set<string> | null;
+  };
 
 /**
  * THE BOARD REGISTRY'S CONTRACT.
@@ -310,7 +321,7 @@ describe("the board registry", () => {
       .sort();
     expect(
       BOARDS.map((b) => b.id).sort(),
-      "a spec.ts the registry does not import",
+      "a spec.ts the registry does not find, or a board with no folder",
     ).toEqual(onDisk);
   });
 
@@ -409,7 +420,7 @@ describe("the board registry", () => {
 
   /**
    * A CATALOG'S OWN CONTRACT (the revamp, 2026-09-16). Declaring `catalog` is a
-   * board saying "rule on these card by card", and four things have to line up
+   * board asking for "a verdict on each card", and four things have to line up
    * for that to work at all: the grid has a section to live in, the Pick button
    * sets a control whose options ARE the cards, and the two compare controls
    * exist and start on different cards (or A and B open identical and the first
@@ -621,17 +632,257 @@ describe("the asks, in plain words", () => {
 });
 
 /**
- * THE DESK'S ORDER NAMES EVERY STANDING BOARD ONCE AND NOTHING ELSE (Will,
- * 2026-09-19: the earlier influence first). `DESK_ORDER` in touchpoints.ts is
- * the order's one home; a board registered without a place there would sort to
- * the foot in silence, and a retired board left in the list would name nothing.
+ * ★ A BOARD IS ONE FOLDER (the lab revamp, 2026-09-29). What three shared
+ * lists held (touchpoints.ts's rows and `DESK_ORDER`, this registry's imports,
+ * boards.ts's map), each board now says in its own `sandbox/<id>/`: the
+ * registry finds its spec, the board route finds its board, and retiring it is
+ * deleting the folder. These hold what those lists' tests held, each with its
+ * reason, where a folder can break them.
+ */
+describe("a board is one folder", () => {
+  it("names itself by its folder", () => {
+    // The folder is how it is found and the id is what every ledger line and
+    // URL names, so the two can never disagree.
+    for (const folder of BOARD_FOLDERS)
+      expect(
+        BOARDS.filter((b) => b.id === folder).length,
+        `sandbox/${folder}/spec.ts does not define the board "${folder}" (one spec per folder, its id the folder's name)`,
+      ).toBe(1);
+  });
+
+  it("exports its spec and nothing else from spec.ts", () => {
+    // The registry takes the folder's one export as the board, so a second
+    // would be a board nobody meant, or a helper mistaken for one.
+    for (const [folder, names] of Object.entries(SPEC_EXPORTS))
+      expect(names, `sandbox/${folder}/spec.ts`).toHaveLength(1);
+  });
+
+  it("exports its board and nothing else from board.tsx", () => {
+    // The route draws a folder's one export; with two it cannot tell which is
+    // the board and answers 404.
+    for (const b of BOARDS) {
+      const file = join(ROOT, SANDBOX, b.id, "board.tsx");
+      const src = readFileSync(file, "utf8");
+      const exported = [
+        ...src.matchAll(
+          /^export\s+(?:default\s+)?(?:async\s+)?(?:function|const|class|let)\s+(\w+)|^export\s+default\s|^export\s*\{/gm,
+        ),
+      ];
+      expect(exported.length, `sandbox/${b.id}/board.tsx`).toBe(1);
+    }
+  });
+
+  it("carries nothing the scaffold left to write", () => {
+    // `pnpm new-board` writes every line a board owes as a TODO, so a folder
+    // is a board only once each is written; the failure is the list of what
+    // is left, in the scaffold's own words.
+    const left: string[] = [];
+    for (const folder of BOARD_FOLDERS)
+      for (const file of ["spec.ts", "board.tsx"]) {
+        const lines = readFileSync(
+          join(ROOT, SANDBOX, folder, file),
+          "utf8",
+        ).split("\n");
+        lines.forEach((line, i) => {
+          if (/\bTODO\b/.test(line))
+            left.push(`${folder}/${file}:${i + 1} ${line.trim()}`);
+        });
+      }
+    expect(left, "write what the scaffold left").toEqual([]);
+  });
+
+  it("carries its surface, its place on the desk and what it redraws", () => {
+    // What a touchpoints.ts row said, in the board's own spec: the sidebar
+    // groups by surface, the desk orders by place, and `lives` is where a
+    // wiring lane's owns start (and what flags a board's open asks when a merge
+    // changes it). `defineExploration` requires them; this holds the rest.
+    for (const spec of SPECS) {
+      expect(
+        spec.surface,
+        `${spec.id}/spec.ts declares no surface`,
+      ).toBeTruthy();
+      expect(
+        Number.isFinite(spec.desk),
+        `${spec.id}/spec.ts declares no desk place`,
+      ).toBe(true);
+      const lives = spec.lives ?? [];
+      expect(
+        lives.length,
+        `${spec.id}/spec.ts: lives is empty`,
+      ).toBeGreaterThan(0);
+      expect(new Set(lives).size, `${spec.id}: lives repeats a path`).toBe(
+        lives.length,
+      );
+    }
+  });
+});
+
+/**
+ * THE DESK'S ORDER IS BY LEVERAGE (Will, 2026-09-19: the earlier influence
+ * first), and its one home is each board's own `desk` place: a board whose
+ * answers change another's questions takes the smaller number. This holds that
+ * the desk, the paging and every walk read that order and no other.
  */
 describe("the desk's order", () => {
-  it("names every standing board exactly once", () => {
-    expect([...DESK_ORDER].sort()).toEqual(BOARDS.map((b) => b.id).sort());
-    expect(new Set(DESK_ORDER).size).toBe(DESK_ORDER.length);
+  it("is each board's own place, lower first, a tie in id order", () => {
+    const sorted = [...BOARDS].sort(
+      (a, b) => a.desk - b.desk || a.id.localeCompare(b.id),
+    );
+    expect(BOARDS.map((b) => b.id)).toEqual(sorted.map((b) => b.id));
   });
-  it("is the order BOARDS exports", () => {
-    expect(BOARDS.map((b) => b.id)).toEqual([...DESK_ORDER]);
+});
+
+/**
+ * ★ CONTEXT COMES BEFORE THE OPTIONS (Will, 2026-09-29, his biggest friction
+ * in the lab: "sometimes a question hits me with such a specific question and
+ * targeted terminology within a spot example without really introducing more
+ * of the context around what's happening (or more pros and cons of the
+ * different options) ... for some questions I'm just getting dropped off in
+ * the middle of nowhere with no resources to help"; docs/PROGRAM.md "A round
+ * returns DECISIONS").
+ *
+ * So an OPEN ask says where it happens (a breadcrumb), the state that brings
+ * someone there, what it decides and why that matters; each option what it
+ * gains and what it costs; the recommendation its reason; and a board with an
+ * open ask opens with what it is about, what is settled and, past round one,
+ * what he picked and said before. The caps keep each a line: the layer is the
+ * ground a question stands on, never a second argument.
+ *
+ * ★ OPEN MEANS HIS WALK CAN REACH IT, the desk's own reading (`_desk/queue.ts`,
+ * `stepBlocked`): an ask the ledger holds anything for in the board's current
+ * round is not asked again this round (a "not clear to me" waits for the round
+ * that rewrites it, and that round is written in this layer); one whose
+ * prerequisite went the other way is moot; and one staged behind a "not clear
+ * to me" waits with it. A staged ask whose prerequisite is simply unanswered
+ * is open: its answer can land in the very sitting that reaches it.
+ */
+function heldNow(b: BoardSpec): Map<string, string | null> {
+  try {
+    const led = JSON.parse(
+      readFileSync(join(ROOT, "docs/reviews", `${b.id}.json`), "utf8"),
+    ) as {
+      rounds?: {
+        n: number;
+        answers?: { ask: string; choice: string | null }[];
+      }[];
+    };
+    const round = led.rounds?.find((r) => r.n === b.round.n);
+    return new Map((round?.answers ?? []).map((a) => [a.ask, a.choice]));
+  } catch {
+    return new Map();
+  }
+}
+
+const openAsks = (b: BoardSpec): Ask[] => {
+  const held = heldNow(b);
+  return b.asks.filter((a) => {
+    if (held.has(a.id)) return false;
+    const after = a.after;
+    if (after && "ask" in after && held.has(after.ask)) {
+      const decided = held.get(after.ask);
+      if (decided === null) return false;
+      if (after.option !== undefined && decided !== after.option) return false;
+    }
+    return true;
+  });
+};
+
+/** One line, inside its cap, and not a paragraph wearing a line's length. */
+const aLine = (what: string, value: string | undefined, cap: number) => {
+  expect(value?.trim(), `${what} is missing`).toBeTruthy();
+  expect(value!, `${what} is more than a line`).not.toMatch(/\n/);
+  expect(
+    value!.length,
+    `${what} is ${value!.length} characters, over its ${cap}`,
+  ).toBeLessThanOrEqual(cap);
+};
+
+describe("an open ask carries its context", () => {
+  const open = BOARDS.map((b) => ({ b, asks: openAsks(b) })).filter(
+    (x) => x.asks.length > 0,
+  );
+
+  for (const { b, asks } of open) {
+    it(`${b.id} opens with what it is about, what is settled and what came before`, () => {
+      aLine(`${b.id}.opening.about`, b.opening?.about, LIMITS.openingAbout);
+      for (const line of [
+        ...(b.opening?.settled ?? []),
+        ...(b.opening?.earlier ?? []),
+      ])
+        aLine(
+          `${b.id}.opening line "${line.slice(0, 40)}"`,
+          line,
+          LIMITS.openingLine,
+        );
+      // A board past round one answers what he said: the picks and notes
+      // that shaped this round are part of the ground he stands on.
+      if (b.round.n > 1)
+        expect(
+          b.opening?.earlier?.length ?? 0,
+          `${b.id} is at round ${b.round.n}: its opening says what you picked and said before (opening.earlier)`,
+        ).toBeGreaterThan(0);
+    });
+
+    for (const a of asks) {
+      it(`${b.id}.${a.id} says where, when, what and why before its options`, () => {
+        const where = a.where ?? [];
+        expect(
+          where.length,
+          `${b.id}.${a.id}: where is a breadcrumb of two to four crumbs, the surface first`,
+        ).toBeGreaterThanOrEqual(2);
+        expect(where.length).toBeLessThanOrEqual(4);
+        for (const crumb of where)
+          aLine(`${b.id}.${a.id}.where "${crumb}"`, crumb, LIMITS.askWhere);
+        aLine(`${b.id}.${a.id}.when`, a.when, LIMITS.askWhen);
+        aLine(`${b.id}.${a.id}.lands`, a.lands, LIMITS.askLands);
+        aLine(`${b.id}.${a.id}.matters`, a.matters, LIMITS.askMatters);
+        aLine(`${b.id}.${a.id}.because`, a.because, LIMITS.askReason);
+        for (const o of a.options) {
+          const id = `${b.id}.${a.id}.${optionId(o)}`;
+          aLine(`${id}.gains`, optionGains(o), LIMITS.optionGains);
+          aLine(`${id}.costs`, optionCosts(o), LIMITS.optionCosts);
+        }
+      });
+    }
+  }
+
+  /**
+   * ★ A TERM THE BOARD COINS GETS ITS PLAIN MEANING WHERE IT APPEARS. The step
+   * glosses every declared term its own words use and the opening the ones it
+   * uses (`terms.ts`), so the rule a test can hold is that the list is real:
+   * every term has a plain meaning a line long, and every term is said
+   * somewhere on its board (a gloss for a word nobody uses is a word to read
+   * for nothing). Naming a coinage is the author's part.
+   */
+  it("gives every term a plain meaning, and declares none its board never says", () => {
+    for (const b of BOARDS) {
+      const texts = [
+        ...openingTexts(b.opening),
+        ...b.asks.flatMap((a) =>
+          askTexts({
+            ...a,
+            options: a.options.map((o) => ({
+              label: optionLabel(o),
+              means: optionMeans(o),
+              gains: optionGains(o),
+              costs: optionCosts(o),
+            })),
+          }),
+        ),
+      ];
+      const said = termsIn(texts, b.terms);
+      for (const t of b.terms ?? []) {
+        aLine(`${b.id} term "${t.term}"`, t.term, LIMITS.term);
+        aLine(`${b.id} term "${t.term}".means`, t.means, LIMITS.termMeans);
+        expect(
+          said.includes(t),
+          `${b.id}: "${t.term}" is declared but neither an ask nor the opening says it`,
+        ).toBe(true);
+      }
+      const names = (b.terms ?? []).map((t) => t.term.toLowerCase());
+      expect(new Set(names).size, `${b.id} declares a term twice`).toBe(
+        names.length,
+      );
+    }
   });
 });

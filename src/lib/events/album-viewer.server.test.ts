@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * WHO IS ASKING: the paged album's gate is the gallery poll's, resolved the same way, so a guest can
- * never see more through the new routes than through the old one.
+ * never see more through the new routes than through the old one. The door runs for real
+ * (`closed-door.server.ts`); only its SQL question (`event_door_standing`) is stood in for.
  */
 vi.mock("server-only", () => ({}));
 
@@ -36,14 +37,42 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
-// The ticket half of the closed door (the per-event block, 20260928120000): the real door runs, and
-// only the SQL question is stood in for.
-const isTicketBlocked = vi.fn();
-vi.mock("@/lib/db/queries/event-blocks", () => ({
-  isTicketBlocked: (...a: unknown[]) => isTicketBlocked(...a),
+// The door's SQL question (the doors, 20260929120000): the real door runs, and only the standing is
+// stood in for. By default it is a stranger at the album's own door.
+type Caller = { userId: string | null; tickets: string[] };
+const readDoorStanding = vi.fn();
+vi.mock("@/lib/db/queries/event-doors", () => ({
+  readDoorStanding: (...a: unknown[]) => readDoorStanding(...a),
+  readDoorEventDetails: async () => null,
 }));
 
+/**
+ * The door a stranger meets at the album the read served last: its stored visibility, which is what the SQL
+ * question answers for her (Only me and a gate are stored private, as the anon read reads them).
+ */
+async function servedDoor(): Promise<string> {
+  const last = getEventByQrToken.mock.results.at(-1)?.value;
+  const served = (await last) as { data?: { visibility?: string } } | undefined;
+  return served?.data?.visibility ?? "open";
+}
+
+function standing(over: Record<string, unknown>) {
+  return {
+    found: true,
+    door: "open",
+    host: false,
+    blocked: false,
+    wasIn: false,
+    in: false,
+    waiting: false,
+    listed: false,
+    confirmed: false,
+    ...over,
+  };
+}
+
 const { resolveAlbumViewer } = await import("@/lib/events/album-viewer.server");
+const { holdsDoorPass } = await import("@/lib/event/door/pass.server");
 
 const EVENT = { id: "evt-1", qr_token: "qr-1", visibility: "open" };
 const TOKEN = "a".repeat(64);
@@ -57,7 +86,9 @@ beforeEach(() => {
   resolveViewerDecision.mockResolvedValue({ access: "full", gate: null });
   isEventOwner.mockResolvedValue(false);
   isUnlocked.mockResolvedValue(false);
-  isTicketBlocked.mockResolvedValue(false);
+  readDoorStanding.mockImplementation(async () =>
+    standing({ door: await servedDoor() }),
+  );
 });
 
 describe("the event", () => {
@@ -151,22 +182,25 @@ describe("the viewer", () => {
   });
 });
 
-describe("the closed door (the per-event block): a ticket a block holds is gone, as a private album is", () => {
+describe("the shut door: a ticket a block holds is gone, as a private album is", () => {
   const COOKIE = "c".repeat(64);
+  const blockedWhenHolding = (ticket: string) =>
+    readDoorStanding.mockImplementation(async (_id: string, caller: Caller) =>
+      standing({
+        door: await servedDoor(),
+        blocked: caller.tickets.includes(ticket),
+      }),
+    );
 
   it("a body ticket the block holds is gone, and nothing is resolved", async () => {
-    isTicketBlocked.mockImplementation(
-      async (_event: string, tokens: string[]) => tokens.includes(TOKEN),
-    );
+    blockedWhenHolding(TOKEN);
     expect(await resolveAlbumViewer("qr-1", TOKEN)).toEqual({ kind: "gone" });
     expect(resolveViewerDecision).not.toHaveBeenCalled();
   });
 
   it("the cookie's ticket counts too, so a poll that sends no body token is still refused", async () => {
     cookieJar.set("pr_guest_evt-1", COOKIE);
-    isTicketBlocked.mockImplementation(
-      async (_event: string, tokens: string[]) => tokens.includes(COOKIE),
-    );
+    blockedWhenHolding(COOKIE);
     expect(await resolveAlbumViewer("qr-1", undefined)).toEqual({
       kind: "gone",
     });
@@ -175,7 +209,10 @@ describe("the closed door (the per-event block): a ticket a block holds is gone,
   it("asks with every ticket the request holds, the body's and the cookie's, for this event", async () => {
     cookieJar.set("pr_guest_evt-1", COOKIE);
     await resolveAlbumViewer("qr-1", TOKEN);
-    expect(isTicketBlocked).toHaveBeenCalledWith("evt-1", [TOKEN, COOKIE]);
+    expect(readDoorStanding).toHaveBeenCalledWith("evt-1", {
+      userId: null,
+      tickets: [TOKEN, COOKIE],
+    });
   });
 
   it("★ asks on a PRIVATE album too, so a block and a private album cost the same work", async () => {
@@ -184,11 +221,62 @@ describe("the closed door (the per-event block): a ticket a block holds is gone,
       data: { ...EVENT, visibility: "private" },
     });
     expect(await resolveAlbumViewer("qr-1", TOKEN)).toEqual({ kind: "gone" });
-    expect(isTicketBlocked).toHaveBeenCalledWith("evt-1", [TOKEN]);
+    expect(readDoorStanding).toHaveBeenCalledWith("evt-1", {
+      userId: null,
+      tickets: [TOKEN],
+    });
   });
 
-  it("asks nothing when the request holds no ticket at all", async () => {
+  it("asks nothing when a signed-out request holds no ticket at an open album", async () => {
     await resolveAlbumViewer("qr-1", "not-a-token");
-    expect(isTicketBlocked).not.toHaveBeenCalled();
+    expect(readDoorStanding).not.toHaveBeenCalled();
+  });
+});
+
+describe("the doors (event-settings r1): the door answers first", () => {
+  it("★ a door that holds her answers the album with nothing real, and nothing else is resolved", async () => {
+    user = { id: "u-1", email_confirmed_at: "2026-09-01T00:00:00Z" };
+    getEventByQrToken.mockResolvedValue({
+      ok: true,
+      data: { ...EVENT, visibility: "private", name: "" },
+    });
+    readDoorStanding.mockResolvedValue(
+      standing({ door: "approve", waiting: true, confirmed: true }),
+    );
+    const v = await resolveAlbumViewer("qr-1", TOKEN);
+    expect(v).toMatchObject({
+      kind: "viewer",
+      decision: { access: "none", gate: "waiting" },
+    });
+    expect(resolveViewerDecision).not.toHaveBeenCalled();
+    expect(v.kind === "viewer" && holdsDoorPass(v.event)).toBe(false);
+  });
+
+  it("★ someone already in passes the password without its cookie, and carries the pass", async () => {
+    getEventByQrToken.mockResolvedValue({
+      ok: true,
+      data: { ...EVENT, visibility: "password" },
+    });
+    readDoorStanding.mockResolvedValue(
+      standing({ door: "password", in: true, wasIn: true }),
+    );
+    const v = await resolveAlbumViewer("qr-1", TOKEN);
+    expect(isUnlocked).not.toHaveBeenCalled();
+    expect(resolveViewerDecision).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ isUnlocked: true }),
+    );
+    expect(v.kind === "viewer" && holdsDoorPass(v.event)).toBe(true);
+  });
+
+  it("a stranger at a password album still needs the cookie, and carries no pass", async () => {
+    getEventByQrToken.mockResolvedValue({
+      ok: true,
+      data: { ...EVENT, visibility: "password" },
+    });
+    readDoorStanding.mockResolvedValue(standing({ door: "password" }));
+    const v = await resolveAlbumViewer("qr-1", TOKEN);
+    expect(isUnlocked).toHaveBeenCalledWith("evt-1");
+    expect(v.kind === "viewer" && holdsDoorPass(v.event)).toBe(false);
   });
 });

@@ -25,6 +25,7 @@ import {
 import { updateDisplayNameAction } from "@/app/(app)/account/actions";
 import { initial } from "@/components/app/user-menu";
 import { DOOR_WEAR } from "@/components/auth/account-door";
+import { askCopy, AskStep } from "@/components/guest/door/ask-step";
 import { chooserCopy, DoorChooser } from "@/components/guest/door/chooser";
 import {
   DoorCheck,
@@ -33,6 +34,10 @@ import {
   type LitHue,
 } from "@/components/guest/door/lit";
 import { SigninStep, signinCopy } from "@/components/guest/door/signin-step";
+import {
+  waitingCopy,
+  WaitingStep,
+} from "@/components/guest/door/waiting-step";
 import { EntryShell, type DismissMode } from "@/components/guest/entry-shell";
 import { EntryStepTransition } from "@/components/guest/entry-step-transition";
 import {
@@ -62,6 +67,7 @@ import {
 import {
   computeDoor,
   doorBack,
+  stepOpensAlbum,
   type DoorPath,
   type EntryStep,
 } from "@/lib/guest/entry-steps";
@@ -129,6 +135,12 @@ export const EntryModal = forwardRef<
     /** The server's decision for this render (re-derived from every poll upstream). */
     access: GalleryAccess;
     gate: GalleryGate | null;
+    /**
+     * The gate a newcomer stands at when the door, not the album, is what she meets (the doors,
+     * event-settings r1): letting each person in, or an invite list. It words the email step and the
+     * ask; null everywhere else.
+     */
+    doorGate?: "approve" | "invite" | null;
     /** The server's answer to "has this viewer ever contributed to this event". */
     hasContributed: boolean;
     /** This visit's own completed upload (the client half, before any refresh lands). */
@@ -202,6 +214,8 @@ export const EntryModal = forwardRef<
     /* ── the upload step's half of the lifted queue (event-experience owns it) ── */
     queue: readonly QueueItem[];
     capBytes?: number | null;
+    /** Whether this album takes a video from a guest (the upload step's picker and line). */
+    acceptsVideo?: boolean;
     onSend: (files: File[]) => void;
     onRetry: (id: string) => void;
     onDismissFailures: (ids: string[]) => void;
@@ -232,6 +246,7 @@ export const EntryModal = forwardRef<
     eventName,
     access,
     gate,
+    doorGate = null,
     hasContributed,
     contributed,
     returning,
@@ -254,6 +269,7 @@ export const EntryModal = forwardRef<
     onNamed,
     queue,
     capBytes,
+    acceptsVideo = true,
     onSend,
     onRetry,
     onDismissFailures,
@@ -323,7 +339,9 @@ export const EntryModal = forwardRef<
     keepDue,
   });
   const current: EntryStep | null = steps[0] ?? null;
-  const isLastStep = steps.length === 1;
+  // ★ "YOU'RE IN" ONLY WHERE THE ALBUM IS BEHIND THE STEP: at a gate the host answers, confirming an
+  // email or asking leads to the held door, so the beat waits for the door itself to open.
+  const isLastStep = steps.length === 1 && stepOpensAlbum({ access, gate });
 
   /* WHICH NAME IS BEING ASKED FOR. A confirmed account with no profile name writes the PROFILE;
      everyone else (Continue as guest) joins under it. */
@@ -377,6 +395,9 @@ export const EntryModal = forwardRef<
   const handleUnlocked = useCallback(() => {
     if (isLastStep) onUnlocked();
   }, [isLastStep, onUnlocked]);
+  // A newcomer's email step at a gate the host answers or a list keeps, whose join decides the beat.
+  const atDoorEmail =
+    steps.length === 1 && access === "none" && gate === "account";
 
   const open =
     (hydrated && current !== null && (!autoOpen || beatReady)) ||
@@ -473,6 +494,13 @@ export const EntryModal = forwardRef<
 
     const joined = await joinEvent({ qrToken });
     const mintedToken = joined.ok ? joined.guest.sessionToken : null;
+    // ★ AT A DOOR'S EMAIL STEP THE JOIN DECIDES THE BEAT: an address the invite list names comes
+    // straight in ("You're in", then the album); where the host lets each guest in, the join is the
+    // ask, and the refresh lands on the held door with no beat (nor for an address the list does not
+    // name, whose refresh lands on the shut door's ask).
+    if (atDoorEmail && joined.ok && joined.guest.admission === "in") {
+      onUnlocked();
+    }
 
     let landedName: string | null = null;
     try {
@@ -526,7 +554,15 @@ export const EntryModal = forwardRef<
       }
     }
     router.refresh();
-  }, [handleUnlocked, onNamed, qrToken, router, typedName]);
+  }, [
+    atDoorEmail,
+    handleUnlocked,
+    onNamed,
+    onUnlocked,
+    qrToken,
+    router,
+    typedName,
+  ]);
 
   /* ────────────────────────────────────────────────────────────────────────
      THE KEEP, CONFIRMED: the claim is the whole keep (her uploads, and this event with them, become
@@ -670,6 +706,7 @@ export const EntryModal = forwardRef<
     nameMode,
     editMode,
     verification: gate === "account",
+    doorGate,
     mediaTotal,
     keepCount,
     uploadReason: uploadStepReason({
@@ -809,6 +846,8 @@ export const EntryModal = forwardRef<
               <IdentifyStep
                 qrToken={qrToken}
                 verification={gate === "account"}
+                door={access === "none" ? doorGate : null}
+                hostName={hostName}
                 mediaTotal={mediaTotal}
                 storedName={storedName}
                 onTypedName={setTypedName}
@@ -821,6 +860,43 @@ export const EntryModal = forwardRef<
               <SigninStep qrToken={qrToken} onVerified={handleEmailVerified} />
             </div>
           )}
+          {/* THE HELD DOOR (`waiting=held`): it checks in about every 30 s and opens by itself the
+              moment the host lets her in, with the beat; any other change to the door refreshes
+              onto whatever the server now says. */}
+          {displayKey === "waiting" && (
+            <div className="pt-7">
+              <WaitingStep
+                qrToken={qrToken}
+                sessionToken={sessionToken ?? null}
+                hostName={hostName}
+                onLetIn={() => {
+                  handleUnlocked();
+                  router.refresh();
+                }}
+                onMoved={() => router.refresh()}
+              />
+            </div>
+          )}
+          {displayKey === "ask" && (
+            <div className="pt-7">
+              <AskStep
+                qrToken={qrToken}
+                hostName={hostName}
+                onAsked={(guest) => {
+                  // The waiting ticket the ask minted, adopted the way the confirmation's own join
+                  // is; the refresh lands on the held door.
+                  onNamed?.({
+                    sessionToken: guest.sessionToken,
+                    displayName: "",
+                    source: "verified",
+                    emailAttached: false,
+                    email: null,
+                  });
+                  router.refresh();
+                }}
+              />
+            </div>
+          )}
           {displayKey === "upload" && (
             <div className="pt-7">
               <UploadStep
@@ -828,6 +904,7 @@ export const EntryModal = forwardRef<
                 requireUpload={requireUpload}
                 albumEmpty={albumEmpty}
                 capBytes={capBytes}
+                acceptsVideo={acceptsVideo}
                 queue={queue}
                 onSend={onSend}
                 onRetry={onRetry}
@@ -902,6 +979,8 @@ export function entrySheetCopy(input: {
   editMode?: NameDoorMode;
   /** A verification event (its `identify` sells the album with the host's reason). */
   verification: boolean;
+  /** The gate a newcomer stands at (the email step's and the ask's words). */
+  doorGate?: "approve" | "invite" | null;
   mediaTotal?: number;
   /** Her photographs that landed this visit (the keep's count). */
   keepCount?: number;
@@ -917,11 +996,20 @@ export function entrySheetCopy(input: {
     nameMode,
     editMode = "edit",
     verification,
+    doorGate = null,
     mediaTotal,
     keepCount = 0,
     uploadReason,
   } = input;
   if (holding) return { title: "You're in", description: "Opening the album." };
+  if (displayKey === "waiting") {
+    const copy = waitingCopy(hostName);
+    return { title: copy.title, description: copy.reason };
+  }
+  if (displayKey === "ask") {
+    const copy = askCopy(hostName);
+    return { title: copy.title, description: copy.reason };
+  }
   if (displayKey.startsWith("name-")) {
     const mode: GuestNameMode =
       displayKey === "name-edit" ? editMode : nameMode;
@@ -975,9 +1063,14 @@ export function entrySheetCopy(input: {
     const copy = signinCopy();
     return { title: copy.title, description: copy.reason };
   }
-  // `identify`: the verification door sells the album with the host's ruled reason, and a
-  // name-only event's Create account says what confirming keeps.
-  const copy = identifyCopy({ verification, mediaTotal });
+  // `identify`: the verification door sells the album with the host's ruled reason, a name-only
+  // event's Create account says what confirming keeps, and a gate's newcomer hears who lets her in.
+  const copy = identifyCopy({
+    verification,
+    mediaTotal,
+    door: doorGate,
+    hostName,
+  });
   return { title: copy.title, description: copy.reason };
 }
 

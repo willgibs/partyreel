@@ -45,7 +45,15 @@ import { defineExploration } from "@/components/lab/exploration";
  */
 export const ALBUM_MOTION = defineExploration({
   id: "album-motion",
-  title: "Album motion",
+  title: "The album's falling-in",
+  surface: "marketing",
+  desk: 50,
+  lives: [
+    "src/components/shared/album-stream/stream-engine.ts",
+    "src/components/shared/album-stream/album-stream.tsx",
+    "src/components/marketing/sections/features/album/arrivals-hero.tsx",
+    "src/components/marketing/sections/features/album/live-album-stage.tsx",
+  ],
   round: {
     n: 1,
     date: "2026-09-28",
