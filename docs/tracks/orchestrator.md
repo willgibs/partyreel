@@ -40,7 +40,6 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `settings-wiring` | every event-settings pick: settings as four sentences, the doors end to end, the Guests room, the hub | running (agent `aefdc4b3cecd92f74`) | Opus, 3131 | |
-| `locked-door` | r2, the door family (open, waiting, shut, the previous guest's line) | running (agent `a5d27bd296c7b917e`) | Opus, 3132 | |
 | `disposable-mode` | r2: the camera, the waiting room, the room's screen, Create's step, video | running (agent `a1dbe1bf5ccc5042e`) | Opus, 3133 | |
 | `triage-r2-wiring` | admin-triage r2 wired; the hold rebuilt (Hold takes down by default; storage released at an operator's removal; an open report guards its item; the child-abuse instant hide) | running (agent `a432fe0336dc35587`) | Opus, 3134 | |
 
@@ -48,7 +47,7 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Wave A: `settings-wiring` (all nine event-settings picks, the doors end to end), `locked-door` r2 (the door
 family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records carry the rest.
 
-Merged in batch 8 (their records carry the rest): crumbs-12.
+Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2.
 
 ## Next, in order
 
@@ -96,7 +95,8 @@ Merged in batch 8 (their records carry the rest): crumbs-12.
      home's golden photograph preloaded twice at 1440 on a pixel-ratio-1 screen (two `sizes`, so the 384 copy goes
      unused; build 20's red-team, `../partyreel-wt/_scratch/redteam-20/ledger.txt`).
    - After their rounds: the disposable wiring (after `disposable-mode` r2's picks and `settings-wiring`'s merge, since
-     it rewrites the guest path) and the door family's wiring.
+     it rewrites the guest path) and the door family's wiring (if the doorway wins, its reveal: walking through the
+     opened door into the album, drawn first as motion options; ASSETS row 36 if the host's door wins).
 4. **The claims walk** (his full permission, 2026-09-29), once the milestone's Chrome pass reports: three rows
    staged 10:01Z with `pending_email = 'partyr33l@gmail.com'` (`ea7863de` Theo R. at Reel lane probe, to Claim;
    `ab7cc94d` Rt Legacy Named at Gallery width, Not mine's dialog then Cancel; `d61ebe2e` Will Test at the password

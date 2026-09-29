@@ -381,6 +381,7 @@ The app:
   - Guest-list sort by upload count (a nudge to contribute).
   - The follow graph has no consumer worth the graph: the Following chip left the dashboard and no query reads your followers or the events of the hosts you follow; a followed-hosts feed is new work.
 - **Lab explorations no board asks yet** (each is a board when a seat frees; its brief rechecks the desk for overlap first):
+  - The host's own words on a Public album's welcome (the event's description, in her voice) (from `locked-door` r2).
   - The privacy hero's two runners-up, kept: the sweep (tiles clearing in one pass of light) as a generic hero's foundation, and the aperture (a blurred photograph breathing in a hairline ring), polished, as a minimalist CTA card's background.
   - Finding one photograph in a thousand (sort, date, person, kind), in the guest album and the host gallery.
   - What an album becomes weeks after the party, since events never end (a keepsake, an anniversary, a nudge to export), narrowed away from `export-flow`.
