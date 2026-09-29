@@ -237,11 +237,12 @@ describe("content policy", () => {
   });
 
   it('never promises "no account" (a host may require one)', () => {
-    // The account rule (`voice` r1 `absence=named`; see
-    // marketing-voice.ts's head comment). Require verified
-    // emails defaults ON for a new event, so a line promising "no app" AND "no
-    // account" together is false on most events; "No app required." is the
-    // shipped swap that survives ("no app" alone stays legal as a named benefit).
+    // A truth, not a voice preference: a host may require an account, and
+    // Require verified emails defaults ON for a new event, so a line promising
+    // "no app" AND "no account" together is false on most events. "No app
+    // required." is the shipped swap that survives (`voice` r1 `absence=named`;
+    // marketing-voice.ts's head comment), and "no app" alone stays legal as a
+    // named benefit.
     // Block comments are stripped before the scan: marketing-voice.ts,
     // trust-strip.tsx and ask-ai.ts each quote the retired literal verbatim
     // ("No app, no account.") in a JSDoc block to document the change, which is

@@ -22,21 +22,22 @@ import { useDesignKey } from "./walk";
  * THE CATALOG (the revamp, 2026-09-16): an exploration as a grid of polished
  * ideas, each given its verdict where it stands.
  *
- * ★ THE SHAPE IS WILL'S BRIEF, VERBATIM. Tracks "should return design catalogs
- * of ideas to ship in the lab" that he can "kill, refine, or promote the best
- * to the Library", in a "gallery view by default, notes per item"
- * (2026-09-16). The palette board's round six proved the card and this is that
- * card made general: the name, the builder's own call, the one line, the live
- * preview, the facts, the argument folded away, and the reviewer's row.
+ * ★ WHY A GRID OF CARDS. A round that returns many ideas is judged faster as a
+ * gallery than as a document: each idea stands whole where it can be killed,
+ * refined or promoted to the Library, with its note beside it (Will's ask for
+ * the catalog, 2026-09-16). The palette board's round six proved the card and
+ * this is that card made general: the name, the builder's own call, the one
+ * line, the live preview, the facts, the argument folded away, and the
+ * reviewer's row.
  *
- * ★ EVERY CONTROL ON A CARD IS A PAGE-WIDE SWITCH, which is the other half of
- * the point ("the GUI control should be fixed so that variants can be toggled
- * on different previews anywhere on the page"). Pick sets the board's declared
- * pick control, so every section below the catalog wears the card; A and B set
- * the two compare controls, so any two cards can be put side by side without
- * scrolling back to a dock. The card never holds its own selection: a catalog
- * where a card is a picture and the selection lives somewhere else is two
- * things to keep in your head instead of one.
+ * ★ EVERY CONTROL ON A CARD IS A PAGE-WIDE SWITCH, so a variant can be toggled
+ * on any preview anywhere on the page. Pick sets the board's declared pick
+ * control, so every section below the catalog wears the card; A and B set the
+ * two compare controls, so any two cards can be put side by side without
+ * scrolling back to a dock. The card drives the page's selection rather than
+ * keeping one of its own, and its controls sit on it rather than in a dock: a
+ * card that is only a picture, with its selection operated somewhere else, is
+ * two things to hold in your head instead of one.
  *
  * ★ AND A PICK IS CLEARABLE. Pressing the picked card returns the control to
  * its declared default when the control says `clearable` (Will, 2026-09-16: "I

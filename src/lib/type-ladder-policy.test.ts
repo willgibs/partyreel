@@ -7,9 +7,9 @@ import { describe, expect, it } from "vitest";
 import { cn, RADIUS_TOKENS, TYPE_STEPS } from "@/lib/utils";
 
 /**
- * THE TYPE STEPS AND RADIUS TOKENS STAY REACHABLE, AND THE HEADING FACE KEEPS
- * ITS ONE WEIGHT. Three silent failures, and none is about how a step looks
- * (the Library shows that):
+ * THE TYPE STEPS AND RADIUS TOKENS STAY REACHABLE, AND NO CLASS BESIDE THE
+ * HEADING FACE SILENTLY REPLACES ITS WEIGHT. Three silent failures, and none is
+ * about how a step looks (the Library shows that):
  *
  * 1. A STEP `cn()` HAS NEVER HEARD OF. tailwind-merge does not read our
  *    stylesheet, so an unknown `text-*` falls into its `text-color` group and
@@ -23,18 +23,18 @@ import { cn, RADIUS_TOKENS, TYPE_STEPS } from "@/lib/utils";
  *    class as a COLOR before a font size, so a step named like a colour token
  *    (`--text-card` beside `--color-card`) is a size no className can reach.
  *
- * 3. A WEIGHT BESIDE THE HEADING FACE. The `font-heading` utility carries the
- *    face's one weight (700, globals.css), and a stock `font-medium` or
- *    `font-semibold` beside it WINS, because Tailwind emits every custom
- *    `@utility` ahead of the stock ones: the class string names the heading
- *    face and the stylesheet's order paints a lighter one. It came back twice:
- *    the home's curation titles, fixed one by one, then two dozen at once, every
- *    card, sheet, dialog and popup title among them (Will, 2026-09-29: "I have
- *    no idea where the thin app heading weights ... came into play, but it
- *    looks very bad compared to our standard heavier weight"). shadcn's
- *    generator writes a weight onto every title it adds, so it will again. A
- *    heading that should weigh something else is a change to the utility,
- *    which moves every heading at once.
+ * 3. A WEIGHT BESIDE THE HEADING FACE WINS. A stock `font-medium` or
+ *    `font-semibold` beside `font-heading` beats the weight the utility
+ *    carries, because Tailwind emits every custom `@utility` ahead of the stock
+ *    ones: the class string names the heading face and the stylesheet's order
+ *    paints a lighter one. It came back twice: the home's curation titles, fixed
+ *    one by one, then two dozen at once, every card, sheet, dialog and popup
+ *    title among them, found when the thin app headings looked wrong beside the
+ *    heavier standard (2026-09-29). shadcn's generator writes a weight onto
+ *    every title it adds, so it will again. The weight itself is a preference,
+ *    not this test's: 700 today (globals.css), and a heading that should weigh
+ *    something else is a change to the utility, which moves every heading at
+ *    once.
  */
 const theme = readFileSync(join(process.cwd(), "src/app/theme.css"), "utf8");
 
@@ -187,7 +187,7 @@ describe("the heading face's one weight", () => {
     ).toBeGreaterThan(100);
   });
 
-  it("never sets a weight beside font-heading, which would beat its 700", () => {
+  it("never sets a weight beside font-heading, which would beat the utility's own", () => {
     const offenders = withFace.flatMap(({ file, line, strings }) => {
       const weights = strings
         .flatMap((s) => s.split(/\s+/))
