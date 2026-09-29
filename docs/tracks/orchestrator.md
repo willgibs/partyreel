@@ -40,7 +40,6 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `schema-pass` | the data architecture trimmed on Will's yes (asked "May the lane write its two migration files and run those proofs?", he answered "Yes, write and prove") | merged at `57b17ace` (gate 73); part 1 (`20260929160000`) reviewed by the Advisor (apply verbatim: nothing main reads is dropped or loses a grant) and drift-checked clean (6 columns, 4 indexes, 1 policy; 20 events inside the bounds), but the permission classifier refused its apply (2026-09-29 ~19:50Z): it waits on Will's explicit go-ahead, never a retry by another route; part 2 after milestone 31 | Opus, 3132 | `54f414f9` |
-| `album-motion-wiring` | album-motion r1: the hero's two symmetrical streams, each photograph drawn in and dissolving at the album's edge, then pushed into the album from the left as a real upload arrives; retires `sandbox/album-motion/` in-lane | running (agent `a59b9b5183feee95f`; worktree `../partyreel-wt/album-motion-wiring`) | Opus, 3131 | |
 | `crumbs-17` | build 23's red-team finds: BUG-2 (the invited guest left at the door, likely a function replaced by migration), BUG-3 (the host's Report on her own album), LOW-2, the uncovered dismissed worst kind, eleven nits; two dead seams from crumbs-15 | running (agent `a6c1aa7bbba36b7fe`; worktree `../partyreel-wt/crumbs-17`) | Opus, 3135 | |
 | `demo-framing-r2` | demo-framing r2, a board: the demo's slug in the host's voice or a typewriter of slugs, how the typewriter and the stream share the home hero (or the stream moves to the QR page), the hero's clickable touch in place of its eyebrow | running (agent `ac4d9d8416d49b653`; worktree `../partyreel-wt/demo-framing-r2`) | Opus, 3133 | |
 | `unfence` | every note of Will's to one board that hardened into a program-wide law (window-notes' audit, the Advisor's dispositions) turned back into guidance with its reason; the dropdown's third-level throw removed; bug-catching tests kept; the bible's lines proposed; PROGRAM.md's lines relayed | running (agent `a622927650684d585`; worktree `../partyreel-wt/unfence`) | Opus, 3132 | |
@@ -65,8 +64,8 @@ account, and the relays below, which live only in the agents:
   `ledger.txt`'s last line (the brief carries every rule and restore).
 - `schema-pass`: Will's yes quoted (its row), and `public.reports`' default anon and authenticated grants closed in
   part 1.
-- `album-motion-wiring`: `design-system.md`'s "light never goes on gallery arrivals" was one board's note (`light` r8,
-  one shimmer): guidance, not a law; its rewording is the record's after that lane merges.
+- `unfence`: `design-system.md`'s "light never goes … on gallery arrivals" clause is its too since album-motion merged:
+  guidance with album-motion's reason (a lamp at the album's head every beat reads as a pulse).
 
 If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
 it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
@@ -79,7 +78,7 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Batch 7 is merged whole; its records carry the rest.
 
 Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp
-stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16.
+stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring.
 
 ## Next, in order
 
@@ -92,7 +91,7 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
    dashboard grids), LOW-2 (the operator cannot tell a host's report from a guest's), NIT-1 to NIT-11 (the ledger),
    and the ROADMAP's two dead-seam lines from `crumbs-15`. The calls to overrule and his two decisions (the proof mail,
    the instant-hide bar's permanence) went to him in one file.
-2. **Integrate each lane as it hands off** (album-motion-wiring, crumbs-17, demo-framing-r2, unfence), each migration by
+2. **Integrate each lane as it hands off** (crumbs-17, demo-framing-r2, unfence, crumbs-18), each migration by
    protocol, one at a time: drift check, apply verbatim, the rolled-back refusals, advisors, types. The two wiring
    lanes' ledgers are gone with their boards;
    `../partyreel-wt/_scratch/triage-r2-wiring/` goes after crumbs-16's merge (it holds the relayed help article).
