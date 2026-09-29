@@ -86,8 +86,8 @@ reports through one heartbeat table, `job_runs` (deny-all, like the `ops_flags` 
 app can start them. Three kinds share one pure `jobHealth`, so the page, the bell and the cron's scan never hold
 three definitions of healthy:
 - **scheduled** (fires on a clock; its own rows; judged by its cadence and the missed-run rule);
-- **signal** (work with no schedule, such as a send or a limiter read; only its FAILURE rows, over a rolling 24
-  hours: anything failed is failed, nothing at all is "No activity", never green);
+- **signal** (work with no schedule, such as a send, a limiter read or the help center's feedback beacon; only its
+  FAILURE rows, over a rolling 24 hours: anything failed is failed, nothing at all is "No activity", never green);
 - **derived** (a reading only the Worker can take, riding another job's `counts`; its value, with the health of the
   run that carried it).
 
@@ -138,6 +138,15 @@ album or item report is anonymous, its `qr_token` the capability `create_report`
 report (`reports.profile_id`) needs a signed-in reporter, re-checked with `getUser()`. `reports` is deny-all and stores
 no reporter. Review is human (`/admin/reports`; no scanner or NSFW filter): actioning an item soft-removes it, while a
 reported person is actioned out of band, so marking one handled only closes the report.
+
+## Help feedback
+
+`/admin/help-feedback` (under Watching: a reading, never an inbox) is the one place the help center's "Did this answer
+your question?" is read: `article_feedback_summary` gives each article's Yes and No with its last click, newest first,
+and a row where No outnumbers Yes is tinted. Above it, the `help_feedback` signal: its own rows are the success half,
+and `/api/help/feedback` writes a failure row for every click it drops, whether the limiter could not answer or the
+insert failed, because the reader sees the same thank-you either way and nothing else would ever show it. A failed read
+says so in words, never "No feedback yet".
 
 ## Sentry
 

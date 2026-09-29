@@ -42,7 +42,9 @@ routes.
   `getUser()` and RLS are the boundary, and either wrong answer lands the visitor on `/login`.
 - **The Resources group** is the header panel and the footer column at once (Help, Blog, Press, Contact), held as a
   two-way mirror by a test. One idea has one page and two doors: the Resources panel's featured card is the primary door
-  to `/how-it-works`, the Features panel's footnote the second.
+  to `/how-it-works`, the Features panel's footnote the second. Each also carries a plain Search row (the panel's in the
+  Features footnote's grammar, the phone menu's in its Resources group), component-side because an action is not a route:
+  the help palette's doorbell (the help center's bullets below).
 - **The footer is the ink slab** (`.surface-ink`, never a nested `.dark` or `bg-gallery`), with three registers: the
   demo invitation (the demo's code on a pile of photographs that fans on hover, from `sm` up, since a phone cannot scan
   itself; phones get a link), the index and the legal bar. ★ `Start free` renders at every width in both branches of the `if (!DEMO_EVENT_URL)` return, because
@@ -216,10 +218,32 @@ with `help.ts` and `blog.ts` as thin wrappers.
 - **The authoring briefs are `content/help/AUTHORING.md` and `content/blog/AUTHORING.md`.** They name the fences by
   pointer only: the content-policy scan reads `.md` too, and a brief must obey itself.
 - **Help** is a ten-category lifecycle taxonomy (set up, invite, guests, album, share, reel, pay, account, trust, fix),
-  each category but troubleshooting linking up to its marketing feature. A new category lands with its first article,
-  its emblem, its strip label and grid column, and its `CATEGORY_TOPIC` row (a test requires an article per category).
-  At ten categories the index strip's cells need `sm:min-w-0`, or the desktop strip scrolls. Search ranks in the pure,
-  fs-free `help-search-rank.ts`.
+  each category but troubleshooting linking up to its marketing feature; a troubleshooting article ends on its own
+  frontmatter `rung` instead, "Working now?" and the calm, working version of the same act (every fix carries one, it
+  never lands on another fix: `help.test.ts`). A new category lands with its first article, its emblem, its strip label
+  and grid column, and its `CATEGORY_TOPIC` row (a test requires an article per category). At ten categories the index
+  strip's cells need `sm:min-w-0`, or the desktop strip scrolls. Search ranks in the pure, fs-free
+  `help-search-rank.ts`.
+- ★ **The help palette mounts in two places only, `help/layout.tsx` and `/contact`**, never sitewide and never in the
+  admin portal, which has its own on `ui/command-palette` (`help-palette-mounts.test.tsx`). Everything else reaches it
+  through `help-search-signal.ts`: a Search row rings a window event a mounted palette answers in place, and goes to
+  `/help?search` when nothing does, where the palette opens on arrival and the query leaves the address. A query, never
+  a hash: a client navigation to `#search` finds no element and scrolls the arriving page. The chrome cannot read the
+  provider's context (it sits above `help/layout.tsx`), which is why a bell and not a context.
+- **The hero's search drops from its own field**: no chips under it; pressing it at a desk with a pointer opens the
+  palette ON the field (`dropFrom`), its input where the field was and the Suggested questions (`HELP_QUICK_LINKS`)
+  beneath. Touch screens, ⌘K, the article's pill and an arrival keep the top placement: a keyboard rising over the page,
+  no field in view, or a hero still mid-entrance.
+- ★ **Every step of a how-to keeps the screen it describes**: `<Step screen="…">` (and a `<Callout>`'s) names an id in
+  `help/step-screens/registry.ts`, and a test fails a step without one. A phone screen is a 375px iframe document of its
+  own (the door's type is viewport-clamped and reads `sm:`, so drawn in the page it would wear the desk's sizes), built
+  as the reader nears it, the page's sheets cloned in and kept in step, inert, animations off; a desk screen is markup
+  laid out at 400px and `zoom`ed into the 200px slot on the server. Both are drawn from the product's own pieces, and
+  every word a picture quotes is held to the file it quotes (`step-screens.test.ts`).
+- **"Did this answer your question?" is a counted beacon**: one fire-and-forget post a click to `/api/help/feedback`
+  (JSON only, a published slug only, the `help_feedback` limiter failing closed, a bare status back), one
+  `article_feedback` row read only at `/admin/help-feedback`; the reader's thank-you or sorry never depends on it
+  ([admin-observability.md](admin-observability.md), [database-security.md](database-security.md)).
 - ★ **`[data-mkt] .mkt-line` forces `display: block`** and silently kills flex utilities on the same element (an
   unlayered marketing.css rule), so centre a constrained child with `mx-auto`, never a parent's `justify-center`.
 - **The blog stays distinct from /help**, since both open dark: /help opens on an instrument (a question, search, the
