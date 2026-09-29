@@ -75,8 +75,8 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
 3. **Build 17 is live and red-teamed** (`1407daf6`; every journey PASS, the block walked live on all three roads and
    restored through the UI; the ledger is `../partyreel-wt/_scratch/redteam-17/ledger.txt`). Its two majors (the share
    card shared across viewers by the edge; Event Settings' last three cards crushed) and three minors go to
-   `crumbs-8`. **Build 18** carries hero, triage-wiring, export, help, emails, `crumbs-8`, `crumbs-9` and `demo-framing`'s board;
-   its red-team walks the new hero, the export flow short of any download, the triage portal on staged reports
+   `crumbs-8`. **Build 18** (deployed 2026-09-29 for his desk: wave B whole and `demo-framing`'s board, 45 open asks).
+   **Build 19** adds `crumbs-8` and `crumbs-9`; its red-team walks the new hero, the export flow short of any download, the triage portal on staged reports
    (`triage-wiring`'s Handoff names the rows), the help, the two majors re-checked, and the standing scope. Drafted
    specs wait in this session's scratchpad (`specs/<track>.json`); a new session writes them from these lines.
 4. **His next paste** (build 16's 38 open asks; emails r1 is transcribed at `1b394476`) transcribed; the join doors
