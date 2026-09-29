@@ -38,7 +38,6 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `settings-wiring` | every event-settings pick: settings as four sentences, the doors end to end, the Guests room, the hub | running (agent `aefdc4b3cecd92f74`) | Opus, 3131 | |
 | `triage-r2-wiring` | admin-triage r2 wired; the hold rebuilt (Hold takes down by default; storage released at an operator's removal; an open report guards its item; the child-abuse instant hide) | running (agent `a432fe0336dc35587`) | Opus, 3134 | |
 | `schema-pass` | the data architecture audited; its migration BLOCKED: the permission classifier refused the lane's write of the file (no retry). The audit is its manifest at `origin/lp/schema-pass` (`66794756`): Q1 his permission to write and prove, Q2 the reel's three columns wait for milestone 31 (main reads them), Q3 default privileges closed for anon and authenticated, Q4 the monthly meter deny-all, Q5 three CHECKs | handed off blocked; resumed on his yes | Opus | `66794756` |
 | `crumbs-14` | the hub row's stick loop, the screen popup's back label, the admin sign-in's asked page, a refused sign-out, the pricing teaser's price, a lowercase bullet | running (agent `a0de18f02690ad5a8`) | Opus, 3135 | |
@@ -52,7 +51,7 @@ plus: "You are resuming a lane whose agent was cut off by a usage limit: read yo
 was asked to write it and push a WIP commit at the limit), `git log` and `git status` in your worktree, and your
 predecessor's transcript at `~/.claude/projects/-Users-gibby-local-ai-partyreel/b01c012e-f59c-432b-9873-9f4226c036f2/subagents/agent-<id>.jsonl`
 only where those leave a gap; a stale `.next/dev/lock` may be deleted; continue to your own handoff." The lanes:
-- `settings-wiring` (`../partyreel-wt/settings-wiring`, 3131, agent `aefdc4b3cecd92f74`): mid-work. The Orchestrator's
+- `settings-wiring` (`../partyreel-wt/settings-wiring`, 3131, agent `aefdc4b3cecd92f74`): merged (below); its relays were The Orchestrator's
   relays it took mid-lane, to re-send if its `## Where I am` lacks them: skip every legal draft (legal is rewritten once
   before launch); crumbs-12's notes (`EVENT_ROOMS` order, `edge-fade-scroller.tsx`, headings `font-heading` alone at
   700, the SWC space trap, `your-event-page-explained.mdx`'s old card order); `unlisted=ask` on the shut door's foot
@@ -76,14 +75,21 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Wave A: `settings-wiring` (all nine event-settings picks, the doors end to end), `locked-door` r2 (the door
 family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records carry the rest.
 
-Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp stage one.
+Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp stage one, settings-wiring.
 
 ## Next, in order
 
 1. **Build 20 was red-teamed live** (`18491027`; every journey PASS, the ledger `../partyreel-wt/_scratch/redteam-20/ledger.txt`):
    its two minors went to `crumbs-12` ("30 days", merged) and `crumbs-13` (the home's double preload), and its
    observation (the global sign-out) is `crumbs-13`'s on his word.
-2. **Integrate each lane as it hands off**, each migration by protocol, one at a time: drift check, apply verbatim, the
+2. **`settings-wiring` merged at `7c0fbcb1`** (gate 64 green, pushed). Its migration
+   `supabase/migrations/20260929120000_event_doors.sql` (145 KB; the code runs on either side of it, reading a missing
+   schema as today's three doors) is NOT YET APPLIED as of this line: apply it by its own APPLY PROTOCOL header through
+   a helper (drift check against the live bodies it lists, the rolled-back check at its foot, apply verbatim, the
+   recorded md5 against `md5 -q`, advisors 0029 from 29 to 33), then regenerate `src/lib/db/types.ts`. Then build 23
+   and its red-team on the lane's eleven walks (`git show 7c0fbcb1^2:docs/tracks/settings-wiring.md`, Handoff), and
+   his thirteen calls to relay (its Questions). `list_migrations` says whether a cut-off landed before or after the apply.
+3. **Integrate each lane as it hands off**, each migration by protocol, one at a time: drift check, apply verbatim, the
    rolled-back refusals, advisors, types. `negative.sh` runs once before the first (the kit changed with
    merge-lane.sh's id-less sweep). `settings-wiring` owns every guest-path function replacement this batch; no other
    lane replaces one. Large files go through a helper that transcribes, `cmp`s, applies and proves.
