@@ -42,6 +42,7 @@ a lane").
 | `crumbs-16` | build 23's HIGH bug at its root (a history call hands Next its own `__NA` state, so Settings rows never open their page and a page's back arrow never returns), the same shape swept and held by a policy test; triage-r2-wiring's relayed help article | running (agent `a5ddc145d2b108533`; worktree `../partyreel-wt/crumbs-16`) | Sonnet, 3133 | |
 | `schema-pass` | the data architecture audited, its migration refused by the classifier; resumed on Will's yes (2026-09-29): asked "May the lane write its two migration files and run those proofs?", he answered "Yes, write and prove"; told to close `public.reports`' default grants too (the red-team's note) | running (agent `ad2f22b2fb01a8a6e`; worktree `../partyreel-wt/schema-pass`) | Opus, 3132 | |
 | `desk-tune` | the door family board made true before his sitting: its "as today" drawn from the doors settings-wiring shipped, its asks re-read against them, every option its own picture at 375 | running (agent `a6f3e22f6d222b7e8`; worktree `../partyreel-wt/desk-tune`) | Opus, 3131 | |
+| `event-ready` | r1, a board: how a host knows her event is ready (an event checklist, the settings' mini wizard and whether Create shares it, a never-empty "what needs you", the hub's code as the live door); the first board authored in the one-folder shape | running (agent `a758ad3af55bfe3a7`; worktree `../partyreel-wt/event-ready`) | Opus, 3135 | |
 
 **Handoff across accounts.** The Orchestrator session is `157caa18-ec54-4aa9-a12a-04c86d5a667b` (the second account,
 seated 2026-09-29 12:23 EDT); the first account's `b01c012e` is retired and must not resume. Its agent ids live only
@@ -111,9 +112,6 @@ stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, c
      `main` for every dropped name, the protocol, then a live smoke of the anonymous surfaces on partyreel.com and the
      alias (a guest page by token, a public profile, help feedback, the newsletter), since prod shares the database. A
      second classifier refusal: stop and tell him.
-   - `event-ready` r1 (Opus): his event checklist and the settings' mini wizard (and whether Create shares it), taking
-     ROADMAP's "what needs you" and "the hub's code as the event's live door" lines and the
-     `day-of-checklist-for-hosts` article; the first board authored in the one-folder shape, and so the revamp's proof.
    - The next crumbs lane: NIT-1, the red-team's findings, and the ROADMAP's two dead-seam lines from `crumbs-15`
      (the account deletion's, and the untyped claims, notification-prefs and guest-events reads).
    - Marketing wirings, when no app lane is ready: `album-motion-wiring` (Opus: push, both streams kept, symmetrical,
