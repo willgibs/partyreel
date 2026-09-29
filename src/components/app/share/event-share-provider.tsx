@@ -74,9 +74,20 @@ import {
  * so the entry cannot be the only witness that the sheet is ours: closing then
  * took the bookmark path and left a dead entry behind. The provider remembers
  * what it pushed (`pushedRef`) and forgets it when the sheet closes, however it
- * closed. A RELOAD takes the marker too (measured: Next's first commit rewrites
- * the entry without it) and a new page remembers nothing, so a panel reloaded
- * onto closes like a bookmark's, in place; the same shape, not yet answered.
+ * closed. A RELOAD keeps the marker (Next's first commit preserves the state it
+ * finds: `preserveCustomHistoryState` in `create-initial-router-state.js`;
+ * measured, a pushed panel reloaded closed by going Back) but a new page
+ * remembers nothing, so a reload and a refresh in either order left neither
+ * witness, and the panel closed like a bookmark's, in place, leaving a duplicate
+ * entry (crumbs-18). So the entry keeps saying so: a page that finds the marker
+ * on the panel's entry remembers it, and an entry this page pushed that a
+ * refresh stripped is given it back, by an effect after each render, so the
+ * next reload finds it. A deep-linked entry never had one and is never given one.
+ *
+ * ★ ALREADY OPEN IS OPEN (crumbs-18). A double tap on a card reaches `openSheet` twice before the page
+ * has re-rendered, so what it asks is the address in the bar, never a render: the first tap's address is
+ * the answer. A second entry made the first close go Back to the panel still open. The panel is left as
+ * it is, on the page it is on.
  *
  * ★ ONE EDGE THIS DOES NOT CLOSE (measured under `next dev`, on an entry this
  * provider pushed): a `router.refresh()` followed by a write that applies a URL
@@ -90,6 +101,19 @@ import {
  */
 
 const HISTORY_MARKER = "prEventSheet";
+
+/** The sheet the address in the bar names: read off the bar, never a render (already open is open, below). */
+function sheetInBar(): string | null {
+  return new URL(window.location.href).searchParams.get(EVENT_SHEET_PARAM);
+}
+
+/** The address that opens `sheet` on its first level: a page an earlier visit left in the URL is not this one's. */
+function addressOf(sheet: EventSheet): string {
+  const url = new URL(window.location.href);
+  url.searchParams.set(EVENT_SHEET_PARAM, sheet);
+  url.searchParams.delete(SETTINGS_PAGE_PARAM);
+  return `${url.pathname}${url.search}`;
+}
 
 /** Whether the entry the window is on carries the sheet's marker. */
 function entryCarriesMarker(): boolean {
@@ -208,17 +232,25 @@ export function EventShareProvider({
     if (sheet === null) pushedRef.current = false;
   }, [sheet]);
 
+  /**
+   * THE ENTRY OF A PANEL WE PUSHED KEEPS ITS MARKER (crumbs-18; the header says what takes it). After every
+   * render with a sheet open: an entry that carries the marker is remembered (a reload, or a Forward onto the
+   * panel, finds one this page never pushed), and one this page pushed that no longer does is given it back
+   * (a router refresh wrote the entry again with its own state alone). Nothing is handed to Next but our
+   * own field and no address, so the router hears of nothing and nothing re-renders.
+   */
+  useEffect(() => {
+    if (sheet === null) return;
+    if (entryCarriesMarker()) pushedRef.current = true;
+    else if (pushedRef.current) {
+      window.history.replaceState({ [HISTORY_MARKER]: true }, "");
+    }
+  });
+
   const openSheet = useCallback((next: EventSheet) => {
-    const url = new URL(window.location.href);
-    url.searchParams.set(EVENT_SHEET_PARAM, next);
-    // A sheet opens on its first level: a page left in the URL by an earlier visit is not this one's.
-    url.searchParams.delete(SETTINGS_PAGE_PARAM);
+    if (sheetInBar() === next) return;
     // A fresh object with the marker as a FIELD, never the whole state: see the header comment.
-    window.history.pushState(
-      { [HISTORY_MARKER]: true },
-      "",
-      `${url.pathname}${url.search}`,
-    );
+    window.history.pushState({ [HISTORY_MARKER]: true }, "", addressOf(next));
     pushedRef.current = true;
   }, []);
 
