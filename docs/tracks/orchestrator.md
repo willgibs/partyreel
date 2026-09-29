@@ -62,21 +62,21 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
      over it). Large files go through a helper that transcribes, `cmp`s, applies and proves; the recorded md5 is the
      check.
 2. **Wave B into each free seat**, in this order (his answers are in the ledgers; each brief carries his notes).
+   - `crumbs-8` (Opus), at the next free seat: build 17's red-team findings (the card route's per-viewer answer behind
+     a public cache; `event-settings-sheet.tsx`'s flex column crushing its cards; `like_media`'s `not_found` for a
+     block where a private album's guest gets ok, a migration; the dark slider; the 1% floor, the restore toast, two
+     stale lines, /pricing's wrapping toggle) and the two site claims the always-on list made false (/features/guests,
+     the blog's FAQ).
    - After his `demo-framing` pick (his full permission, 2026-09-29): the demo event made or renamed to the story, its
      slug claimed so the card's printed address opens it, `hero-stream.ts`' `OBJECT_EVENT` to match, and ASSETS rows
      33 and 34 unparked.
-3. **Build 17 is live** (`1407daf6`, both migrations applied; pruned; the desk, admin-triage and event-settings boards
-   and the Library clean headless; 42 open asks). Its red-team is running (agent `a21c3c40aeb5e59ff`) (`../partyreel-wt/_scratch/redteam-17/`, from `redteam-15/brief.md`):
-   - the block, live: partyr33l blocked at a willg97 test event from one of the three roads meets the private door and
-     can neither upload, like nor claim; the Blocked foot; let back in without, then with, the restore;
-   - the free/pro shift: /pricing and the plan sheet (the toggle, the tag, each estimate's basis), and a Free account
-     setting a password and a custom link, then clearing both;
-   - the review room's host note and her uploads' words; the guest list always on; the settings card's "Profile";
-   - the standing scope.
-
-   **Build 18** carries export, hero, triage-wiring, help and emails; its red-team walks the export flow short of any
-   download. `emails-wiring`'s drafted spec is in this session's scratchpad (`specs/emails-wiring.json`); a new session
-   writes it from the lines above.
+3. **Build 17 is live and red-teamed** (`1407daf6`; every journey PASS, the block walked live on all three roads and
+   restored through the UI; the ledger is `../partyreel-wt/_scratch/redteam-17/ledger.txt`). Its two majors (the share
+   card shared across viewers by the edge; Event Settings' last three cards crushed) and three minors go to
+   `crumbs-8`. **Build 18** carries hero, triage-wiring, export, help, emails, `crumbs-8` and `demo-framing`'s board;
+   its red-team walks the new hero, the export flow short of any download, the triage portal on staged reports
+   (`triage-wiring`'s Handoff names the rows), the help, the two majors re-checked, and the standing scope. Drafted
+   specs wait in this session's scratchpad (`specs/<track>.json`); a new session writes them from these lines.
 4. **His next paste** (build 16's 38 open asks; emails r1 is transcribed at `1b394476`) transcribed; the join doors
    (`newcomer=same`, `unlisted=ask`) are built after `event-settings` picks how "who can join" is set.
 5. **Milestone 30** on his yes, once his legal wording is in (the private count; the guest list always on); after it,
