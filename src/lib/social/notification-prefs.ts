@@ -16,18 +16,14 @@
  *   - Anonymous-email guests never have a row (no account): they receive nothing
  *     beyond explicitly requested one-shots.
  *
- * ★ THREE COLUMNS NOTHING READS: notify_album_shared, notify_new_uploads_digest and
- * notify_new_follower were switches with no mail behind them, so they left Email preferences
- * (`emails` r1 `moments=identity`: a dead switch is ruled absent, never drawn) and left this file with
- * them. The columns stay until Will says yes to dropping them (destructive); nothing reads or writes
- * them meanwhile, so the drop needs no code change first (the reel-ready column's path: the app let
- * go, then the migration dropped it).
+ * A switch with no mail behind it is ruled absent, never drawn (`emails` r1 `moments=identity`): the
+ * app lets go of its column first, then a migration drops it.
  *
  * Rows are LAZY: an absent row means "all defaults", so these constants MUST
  * mirror the column defaults in the migrations. A Vitest parity test
  * (notification-prefs.test.ts) pins the two together by parsing the migrations'
- * SQL (the create, plus every column a later migration adds, less every column one drops or this
- * file lets go of): change one, change both.
+ * SQL (the create, plus every column a later migration adds, less every column one drops): change
+ * one, change both.
  *
  * Import-safe from client components (constants + pure logic, no secrets).
  */

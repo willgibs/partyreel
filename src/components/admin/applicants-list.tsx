@@ -10,7 +10,7 @@ import { formatAdminTimestamp } from "@/lib/format/admin-time";
 
 /**
  * THE APPLICANTS INBOX, on the same pane as Support (`density=hybrid`, Will
- * 2026-09-20). An application is prose with two attachments, so it is the other
+ * 2026-09-20). An application is prose with its links, so it is the other
  * half of the "a pane for prose" answer, and the two inboxes being one idiom is
  * the point admin-triage made about four inboxes speaking one language.
  */
@@ -89,16 +89,6 @@ export function ApplicantsList({
             >
               Reply from your inbox
             </a>
-            {open.resume_url ? (
-              <a
-                href={open.resume_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground underline underline-offset-4 hover:text-foreground"
-              >
-                Resume
-              </a>
-            ) : null}
             {open.links ? (
               <span className="text-caption text-muted-foreground">
                 Links: {open.links}

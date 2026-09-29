@@ -11,10 +11,10 @@
  * `add column` (20260928160000), so the create alone no longer names every preference. The scar
  * stays: a new column still has to appear on both sides.
  *
- * ★ AND LESS THE COLUMNS THE APP LET GO OF (`UNREAD`, emails-wiring): three switches had no mail
- * behind them, so the app stopped reading and writing their columns before any migration drops them
- * (the drop waits on Will's yes). Each stays named here until its drop lands, when this test says to
- * take it off the list.
+ * ★ Reshaped on purpose a third time (the schema pass, 20260929160000): three switches had no mail
+ * behind them, so emails-wiring let go of their columns and this test listed them as `UNREAD` until
+ * the drop Will said yes to. The drop landed, so the list went with it: the table is again exactly the
+ * mapped columns, and the scar stays in the replay above (a drop takes a column off the table).
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -72,16 +72,6 @@ function standingColumns(): Map<string, boolean> {
   return columns;
 }
 
-/**
- * Columns still in the table that no code reads or writes: switches for mail nothing sent, retired
- * from Email preferences in emails-wiring. Their drop is destructive and waits on Will's yes.
- */
-const UNREAD = [
-  "notify_album_shared",
-  "notify_new_uploads_digest",
-  "notify_new_follower",
-];
-
 /** camelCase TS field -> snake_case column, per the resolveNotificationPrefs mapping. */
 const COLUMN_FOR_FIELD: Record<
   keyof typeof NOTIFICATION_PREF_DEFAULTS,
@@ -107,19 +97,10 @@ describe("notification_prefs defaults parity (TS <-> migration SQL)", () => {
     expect(NOTIFICATION_PREF_DEFAULTS[field]).toBe(standing.get(column));
   });
 
-  it("the table has no boolean pref column the TS side doesn't know, bar the unread ones", () => {
-    const known = [...standing.keys()].filter((c) => !UNREAD.includes(c));
-    expect(known.sort()).toEqual(Object.values(COLUMN_FOR_FIELD).sort());
-  });
-
-  it("every unread column still stands (a drop takes it off UNREAD) and nothing selects it", () => {
-    for (const column of UNREAD) {
-      expect(
-        standing.has(column),
-        `${column} was dropped: take it off UNREAD`,
-      ).toBe(true);
-      expect(NOTIFICATION_PREF_COLUMNS).not.toContain(column);
-    }
+  it("the table has no boolean pref column the TS side doesn't know", () => {
+    expect([...standing.keys()].sort()).toEqual(
+      Object.values(COLUMN_FOR_FIELD).sort(),
+    );
   });
 
   it("the one select list is exactly the mapped columns", () => {
