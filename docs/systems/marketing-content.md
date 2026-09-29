@@ -122,8 +122,9 @@ routes.
   zero client JS), encoding `/demo`, never the event link; with no demo configured each object drops the piece carrying
   the code and the door proof loses its door. The proof's reel is the door's STILL twin, its film behind a press: the
   river is the section's one motion, and two moving cards cancel each other out. ★ **The prints are literal `bg-white`, never `bg-card`**: they stand on the
-  cinema ground, where the card token is near-black and a paper border would render as a gap. The FAQ is native
-  `<details>` with the page's own `FaqPageJsonLd`.
+  cinema ground, where the card token is near-black and a paper border would render as a gap. The FAQ is the one shared
+  accordion (`faq-accordion.tsx`: an `<h3>` around a `<button>`, since a heading inside a native `<summary>` drops out of
+  some screen readers) with the page's own `FaqPageJsonLd`.
 - **The frame library** (`marketing/frames/`): a `BrowserFrame` base and a vocabulary (album, gallery, reel, phone, QR),
   never one visual reused; `QrFrame`'s `liveQrUrl` renders a real scannable code when the demo is set.
 - **`/how-it-works`**: `constants/how-it-works.ts` is the one source of both step sets, read by the page, the home's
