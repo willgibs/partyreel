@@ -1,6 +1,6 @@
 ---
 track: locked-door
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "18491027"            # the launch-prep SHA the branch was cut from
 board: locked-door
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -47,25 +47,78 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Where does an address not on the invite list meet `unlisted=ask`?** Recommended and built: on the shut door
+  itself, under the one message every cause reads, as the door's foot for that reader alone: Ask Maya to let me in
+  (primary), Use a different email (secondary). Asking takes her to the waiting door; a declined ask meets the shut
+  door with no ask. The message never moves, so a block still reads as the other four. `settings-wiring` builds the
+  unlisted door now: if it puts the ask on its own step instead, the board's foot follows it (a carried call).
+- **What may each direction's shut door show of the album?** Built as each direction's own, measured under every
+  frame: the host's door names the album and shows the host's face (r1's `host` cost, which his answer took as the
+  direction); the doorway names the album and the host in words; the lit column names neither ("the host"). Picking a
+  direction picks its disclosure.
+- **Is each direction judged in its own shape?** Recommended and built: yes. `family` draws each direction at its best
+  (the host's door and the doorway one design throughout, the lit column and today the sheet that opens beside a page
+  that does not), and `shape` then draws the picked direction all three ways, so the two decisions never blur.
+- **The `pick` wait holds files on the phone before she is let in.** Built as a drawing only: nothing leaves the phone
+  until the host lets her in (the upload queue already waits on a ticket for somebody else's session), and a decline
+  sends nothing. Its proof is the wiring's.
+- **What are the staged asks drawn in before `family` is answered?** Built: the recommendation (the doorway), so
+  `family` declares no `today`. In today's door two of them have nothing to ask (today's shut door is already the
+  404's sibling, and today's welcome is the sheet in every shape), which `lab:demo` read as frozen; once `family` is
+  answered every step wears his answer. The reason sits in `spec.ts`'s header.
+- **What does the host's door show at a password gate?** Built: the host (her face and "Hosted by Maya", never the
+  date), where today's redacted page hides her. The door is hers, so her face is its plate; the `welcome` knob draws
+  it and the caption measures it. The doorway and the lit column keep today's redaction there.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- none (an exploration ships no production byte; `guest-flow.md` and `design-system.md` describe production)
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- none
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits.** Work: `c47159cd` (the board, its ten files under `sandbox/locked-door/`, and its `touchpoints.ts`
+  row), pushed to `origin/lp/locked-door`; this manifest is the next commit, alone. No sync: since the base
+  (`54bdec34`) launch-prep moved by record commits only (`git diff --name-only HEAD...origin/launch-prep` =
+  `docs/ROADMAP.md`, `docs/STATUS.md`, `docs/tracks/orchestrator.md`), none into a read.
+- **Gates on `c47159cd`, each on its own exit code:** `pnpm typecheck` 0; `pnpm lint` 0 (0 errors, 4 warnings, none
+  in a touched file: `review-session.tsx`, `contact-form.tsx`, `album-fill-grid.tsx`); `pnpm test` 0 (566 files, 6462
+  tests); `zsh scripts/build-lock.sh pnpm build` 0; `pnpm lab:smoke --base http://localhost:3132` 0 (161 checks; the
+  board reads 556 words of 1200); `pnpm lab:demo --board locked-door --base http://localhost:3132` 0 (4 steps, 0
+  failing; one expected same-picture pair, `shape` split and bespoke on the welcome frame, which differ in the wait).
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = `src/app/(dev)/design/sandbox/locked-door/*`
+  (owned) + this file + `src/app/(dev)/design/touchpoints.ts` (the board's own row, bumped in place: the brief's named
+  exception; nothing else in that file moved).
+- **The items:**
+  - `family` (4 options, 4 frames each at 375 with 1440 on the knob: a welcome at a Public album or a password gate,
+    the wait, the shut door, that door for someone who was in): today, the host's door (Maya's portrait in a halo of
+    the lamp's light, a glyph on its foot naming the state), the lit column (one centred emblem per state in a pool of
+    light, the sheet's lamp standing down), the doorway (fresh: a door on the page whose leaf is the state, the album
+    seen through it, the party's light under it when shut, an empty frame for the 404). Recommended: the doorway.
+  - `shape` (after `family`): one design, two as today, each its own, drawn in the held direction. Recommended: one.
+  - `wait` (after `shape`): still (as `settings-wiring` builds it), a wait to watch (the door breathes, its clock
+    ticks, "Maya has been told you're here"), a wait to spend (her picks held on her phone), each beside the moment
+    the door opens itself. Recommended: to spend.
+  - `lost` (after `family`): the 404 keeps the not-found family, or wears the shut door's design, beside the shut
+    door. Recommended: follows.
+  - Settled lines drawn in every option: `previous=private` (the `was` knob: Dom reads Priya's words, word for
+    word), `newcomer=same` (the `at` knob moves only the header and the foot), `unlisted=ask` on the shut door's foot,
+    `back-in` for a phone with nothing confirmed. Every caption is read off its frame: words, the headline's lines,
+    what of the album it shows, whose light it wears, the sheet's height, the foot.
+- **Assets requested from Will:** `a host portrait · 512×512 square JPEG, a real-looking host at her own party in
+  soft light · replaces the seeded initial on the host's plate (host.tsx's Plate, seed ld-maya)`. Optional: the board
+  reads without it, but the host's door is judged on a face.
+- **Board ideas:**
+  - If the doorway wins, its reveal: walking through the opened door into the album (the reveal curtain as the door),
+    drawn as motion options.
+  - The host's own words on a Public album's welcome (the event's description, in her voice), bible 7 pushed.
+  - Crumbs: the four standing lint warnings above (two unused imports, one unused variable, one skipped compile).
+- **Proposed migrations / Worker / Vercel / Stripe / env changes:** none.
+- **Calls his to overrule:** the unlisted ask on the shut door's foot; each direction's disclosure (the host's door
+  shows Maya's face, the doorway her name, the lit column nothing); each direction judged in its own shape; `family`
+  drawn in the recommendation until answered; the host's door showing the host at a password gate.
+- **Look at first:** `/design/lab/locked-door?session=locked-door.family` at 375: press 4 (the doorway), then flip
+  "The welcome at" to "A password gate" and "At the shut door" to "Lena, not on the list".
