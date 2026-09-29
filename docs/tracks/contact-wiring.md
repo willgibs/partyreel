@@ -4,8 +4,11 @@ status: open            # open -> handed-off; deleted in the merge commit that i
 cut: "a06f48d8"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
-  - src/app/(marketing)/(paper)/contact/
+  - src/app/(marketing)/(paper)/           # /contact was the group's only page: it moves out, so the group's layout and 404 retire with it
+  - src/app/(marketing)/(cinema)/contact/  # the page's new home: a dark hero needs the cinema group's nav (the chapter pick)
+  - src/app/(dev)/design/sandbox/contact-page/  # the retired board (the Orchestrator's relay: lab-revamp merged, so this lane removes the folder)
   - src/lib/constants/contact.ts
+  - src/lib/constants/contact.test.ts      # the constants' own test follows the hints' new shape
   - docs/systems/marketing-content.md
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/reviews/contact-page.json
@@ -20,7 +23,13 @@ reads:                  # single-sources you depend on: never duplicate, never e
 
 **His r1 answers** (`docs/reviews/contact-page.json`, 2026-09-29), wired now: `reach=routed` (the form leads; the address a fact beside it); `page=chapter` (the dark hero, then the desk's own form and facts opening the paper body; "We'll likely revisit the contact page design later", so build the pick well and invest no further); `topic=required` ("The extra friction may reduce meaningless messages. It also helps us sort into better pipelines in our admin workflows ... Another big win is potentially solving immediately with existing site resources"); `urgency=?` with his answer: "custom per topic instead of one generic 'try troubleshooting'": each topic's note and link under the picker become its own (billing to billing, a problem to its troubleshooting article), a timing line only where it is true; `receipt=card` ("The success state/transition could be much more polished. Design magic opportunity, or at least a small delight opportunity"): the on-page card with a small delight on its arrival (reduced motion honoured); `beside=directory` ("icons instead of numbers, make the email link white/heavier, for a start. The headings seem quite small and thin"): the directory promoted beside the form with icons, the email link heavier, the headings at production's one weight (crumbs-12 made every heading 700). The directory's Press tile: /press folds into /about (his press-page pick), so point it at /about, or drop it if About has no kit yet, and say which.
 
-**Not yours:** the `contact-page` board's folder belongs to `lab-revamp` (stage two, running): leave the board; the Orchestrator retires it at your merge. The AI help chat is banked for later (ROADMAP's support arc); build nothing of it.
+**The board retires here** (the Orchestrator's relay after `lab-revamp` stage two merged at `8cb5f21a`, when a board became one folder): `src/app/(dev)/design/sandbox/contact-page/` is `git rm -r`'d in a commit of its own, since its picks are what this lane builds; its ledger `docs/reviews/contact-page.json` stays in `reads` and the Orchestrator deletes it at the record. `loose-ends-wiring` changes one line of `docs/systems/marketing-content.md` (the FAQ fact) as a listed exception: expect that line to move at a sync.
+
+**Not yours:** the AI help chat is banked for later (ROADMAP's support arc); build nothing of it.
+
+## Where I am
+
+Restarted after the first agent hit a usage limit while booting (nothing of its work existed); `origin/launch-prep` fast-forwarded in at `38373a35`, deps and `.env.local` were already in the worktree. Order of work, each its own commit on `lp/contact-wiring`: (1) the board retired; (2) the route moved into `(cinema)` under a dark hero and one `PaperChapter`, `(paper)` retired; (3) the per-topic hints; (4) the directory beside the form; (5) the receipt; (6) the gate, the walks, the record. Done so far: the manifest's `owns` widened.
 
 **Paths:** your owns are a start. A path you need beyond them: add it to `owns` in your manifest before editing, or name a one-line exception.
 
