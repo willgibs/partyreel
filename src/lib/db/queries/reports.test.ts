@@ -39,9 +39,11 @@ vi.mock("@/lib/supabase/admin", () => ({
 
 const {
   countOpenReports,
+  countUrgentReports,
   listProfileReports,
   listReports,
   oldestOpenReportAt,
+  readProofAsk,
 } = await import("@/lib/db/queries/reports");
 
 /** The page's one clock read (`serverNow()`), the instant every closed line's window is measured from. */
@@ -205,6 +207,91 @@ describe("the queue's figures", () => {
   it("no open report reads null", async () => {
     fake = world([]);
     await expect(oldestOpenReportAt()).resolves.toBeNull();
+  });
+});
+
+/**
+ * THE TWO READS THE TRIAGE MIGRATION ADDED (20260929140000), now over the generated types: the portal's urgent
+ * count (open child-abuse reports, a head count) and what an answer link opens. A failed read throws, where a
+ * missing column used to read as "no urgent reports" or "a spent link" (crumbs-15: the seam went with the apply).
+ */
+describe("the urgent count and the answer link's ask", () => {
+  const report = (id: string, over: FakeRow = {}): FakeRow => ({
+    id,
+    status: "open",
+    kind: "other",
+    event_id: uuid("e", 1),
+    proof_token_hash: null,
+    proof_question: null,
+    proof_answered_at: null,
+    ...over,
+  });
+
+  it("counts only the open child-abuse reports", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        reports: [
+          report("r1", { kind: "child" }),
+          report("r2", { kind: "child" }),
+          report("r3", { kind: "child", status: "dismissed" }),
+          report("r4", { kind: "sexual" }),
+        ],
+      },
+    });
+    await expect(countUrgentReports()).resolves.toBe(2);
+  });
+
+  it("opens the operator's question on an open, unanswered report, with the album's name", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        events: [{ id: uuid("e", 1), name: "Priya & Sam's baby shower" }],
+        reports: [
+          report("r1", {
+            proof_token_hash: "hash-1",
+            proof_question: "Which photo of the toast?",
+          }),
+        ],
+      },
+    });
+    await expect(readProofAsk("hash-1")).resolves.toEqual({
+      question: "Which photo of the toast?",
+      eventName: "Priya & Sam's baby shower",
+    });
+  });
+
+  it("reads a used, a closed, a question-less and an unknown link all the same: nothing", async () => {
+    fake = createFakePostgrest({
+      tables: {
+        reports: [
+          report("r1", {
+            proof_token_hash: "answered",
+            proof_question: "Which?",
+            proof_answered_at: "2026-09-29T10:00:00.000Z",
+          }),
+          report("r2", {
+            proof_token_hash: "closed",
+            proof_question: "Which?",
+            status: "dismissed",
+          }),
+          report("r3", { proof_token_hash: "no-question" }),
+        ],
+      },
+    });
+    for (const hash of ["answered", "closed", "no-question", "unknown"]) {
+      await expect(readProofAsk(hash)).resolves.toBeNull();
+    }
+  });
+
+  it("★ a failed read throws, and never reads as a spent link or as no urgent report", async () => {
+    fake = createFakePostgrest({ tables: {} });
+    const from = fake.from.bind(fake);
+    fake.from = (table: string) => from(table === "reports" ? "gone" : table);
+    await expect(readProofAsk("hash-1")).rejects.toThrow(
+      "report answer: the ask",
+    );
+    await expect(countUrgentReports()).rejects.toThrow(
+      "admin reports: urgent count",
+    );
   });
 });
 

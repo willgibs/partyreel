@@ -110,8 +110,8 @@ its gate (below); `allow_videos` is the Videos switch, binding guests only, as `
   live upload and nothing else puts another host's event on a dashboard. The album's rules mask it
   (`lib/dashboard/guest-events.ts`: Only me blank and locked; behind a password or a gate, named and linked with no
   cover). ★ A gate never locks a card: a card is for someone past the door (a waiting guest cannot upload), so every
-  reader holding only the stored `visibility` asks the gate (`readEventGates`, which reads Only me before the doors'
-  migration), the picker's tiles and a claim's Open album too. ★ An event that
+  reader holding only the stored `visibility` asks the gate (`readEventGates`),
+  the picker's tiles and a claim's Open album too. ★ An event that
   blocked her keeps its card, masked as a private album's, while the block stands (`blocked_events_for`, placed at the
   newest upload the block removed): a block moves her uploads to Deleted, and a card that vanished would say what the
   door hides.

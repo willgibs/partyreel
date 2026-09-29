@@ -2,15 +2,11 @@
  * THE PER-EVENT BLOCK'S TWO ACTS, THE WIRING: both run on the host's own client after `getUser()`
  * (the RPCs re-check the host on `auth.uid()`, verified against the database by the migration's
  * rolled-back checks, not here), a refusal comes back in the host's words, and an answer is read
- * defensively over the typed seam.
+ * defensively off its jsonb.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
-vi.mock("@/lib/db/queries/event-blocks", () => ({
-  isBlockSchemaMissing: (error: { code?: string } | null) =>
-    ["42P01", "42883", "PGRST202", "PGRST205"].includes(error?.code ?? ""),
-}));
 
 let user: { id: string } | null = { id: "host-1" };
 const rpc = vi.fn();
@@ -189,23 +185,23 @@ describe("what comes back", () => {
     });
   });
 
-  it("a database error is unknown and carries its cause; the unapplied migration says so in words", async () => {
-    const boom = { code: "XX000", message: "boom" };
-    rpc.mockResolvedValue({ data: null, error: boom });
-    await expect(letBackIn("b-1", { restore: false })).resolves.toMatchObject({
-      ok: false,
-      code: "unknown",
-      cause: boom,
-    });
-    rpc.mockResolvedValue({
-      data: null,
-      error: { code: "PGRST202", message: "no fn" },
-    });
-    const missing = await letBackIn("b-1", { restore: false });
-    expect(missing).toEqual({
-      ok: false,
-      code: "unknown",
-      message: "Blocking isn't ready yet. Please try again in a little while.",
-    });
+  // ★ RESHAPED ON PURPOSE (crumbs-15, 2026-09-29; scar kept: a failed act is a failure the Server Function can
+  // report, never a success and never a silent one). It read "a database error is unknown and carries its cause;
+  // the unapplied migration says so in words": a missing function answered "Blocking isn't ready yet" with NO
+  // cause, which the seam had already captured. The migration is applied and the seam went, so a missing
+  // function is an unknown failure like any other, carrying its cause for the action to capture.
+  it("a database error, a missing function included, is unknown and carries its cause", async () => {
+    for (const error of [
+      { code: "XX000", message: "boom" },
+      { code: "PGRST202", message: "no fn" },
+    ]) {
+      rpc.mockResolvedValue({ data: null, error });
+      await expect(letBackIn("b-1", { restore: false })).resolves.toEqual({
+        ok: false,
+        code: "unknown",
+        message: "That didn't go through. Please try again.",
+        cause: error,
+      });
+    }
   });
 });

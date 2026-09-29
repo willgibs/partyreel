@@ -3,17 +3,12 @@
  * its preview, and let_back_in, with its restore. Both are SECURITY DEFINER RPCs that re-check the
  * caller is the event's host on `auth.uid()`, so they run on the HOST'S OWN client after `getUser()`
  * (the house rule: every write re-verifies), never the admin client: a host can only ever act on an
- * event they own, whatever a client sends.
- *
- * ★ THE TYPED SEAM: the two functions are new, so they are called by name through an untyped client
- * until `types.ts` regenerates, and every answer is read defensively (queries/event-blocks.ts says
- * why). A call before the migration is applied answers "not ready" in words, never a crash.
+ * event they own, whatever a client sends. Every answer is a jsonb, read defensively.
  */
 import "server-only";
 
-import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
+import type { PostgrestError } from "@supabase/supabase-js";
 
-import { isBlockSchemaMissing } from "@/lib/db/queries/event-blocks";
 import {
   blockTargetParams,
   type BlockPreview,
@@ -62,9 +57,14 @@ function refusal(reason: unknown): BlockFailure {
   }
 }
 
+/**
+ * One of the host's acts: `call` runs the RPC on the host's own client, once `getUser()` has proved there
+ * is one, and its jsonb answer comes back as `{ ok: true, ... }` or the refusal in the host's words.
+ */
 async function hostRpc(
-  fn: string,
-  args: Record<string, unknown>,
+  call: (
+    supabase: Awaited<ReturnType<typeof createClient>>,
+  ) => PromiseLike<{ data: unknown; error: PostgrestError | null }>,
 ): Promise<{ ok: true; data: Record<string, unknown> } | BlockFailure> {
   const supabase = await createClient();
   const {
@@ -72,21 +72,8 @@ async function hostRpc(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  const { data, error } = (await (supabase as unknown as SupabaseClient).rpc(
-    fn,
-    args,
-  )) as { data: unknown; error: PostgrestError | null };
-  if (error) {
-    if (isBlockSchemaMissing(error)) {
-      return {
-        ok: false,
-        code: "unknown",
-        message:
-          "Blocking isn't ready yet. Please try again in a little while.",
-      };
-    }
-    return { ...refusal("unknown"), cause: error };
-  }
+  const { data, error } = await call(supabase);
+  if (error) return { ...refusal("unknown"), cause: error };
   const answer = (data ?? {}) as Record<string, unknown>;
   if (answer.ok !== true) return refusal(answer.reason);
   return { ok: true, data: answer };
@@ -99,10 +86,12 @@ const count = (v: unknown) =>
 export async function previewBlock(
   target: BlockTarget,
 ): Promise<{ ok: true; data: BlockPreview } | BlockFailure> {
-  const result = await hostRpc("block_from_event", {
-    ...blockTargetParams(target),
-    p_preview: true,
-  });
+  const result = await hostRpc((supabase) =>
+    supabase.rpc("block_from_event", {
+      ...blockTargetParams(target),
+      p_preview: true,
+    }),
+  );
   if (!result.ok) return result;
   const d = result.data;
   return {
@@ -134,10 +123,12 @@ export async function blockFromEvent(
     }
   | BlockFailure
 > {
-  const result = await hostRpc("block_from_event", {
-    ...blockTargetParams(target),
-    p_require_verified_email: options.requireVerifiedEmail,
-  });
+  const result = await hostRpc((supabase) =>
+    supabase.rpc("block_from_event", {
+      ...blockTargetParams(target),
+      p_require_verified_email: options.requireVerifiedEmail,
+    }),
+  );
   if (!result.ok) return result;
   const d = result.data;
   return {
@@ -162,10 +153,12 @@ export async function letBackIn(
     }
   | BlockFailure
 > {
-  const result = await hostRpc("let_back_in", {
-    p_block_id: blockId,
-    p_restore: options.restore,
-  });
+  const result = await hostRpc((supabase) =>
+    supabase.rpc("let_back_in", {
+      p_block_id: blockId,
+      p_restore: options.restore,
+    }),
+  );
   if (!result.ok) return result;
   const d = result.data;
   return {

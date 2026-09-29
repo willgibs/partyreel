@@ -39,8 +39,8 @@ import {
   wayBackOf,
 } from "@/lib/admin/reports";
 import { mustCount, mustQuery } from "@/lib/db/must-query";
-import { inChunks, type PageResult } from "@/lib/db/read-all";
-import { seamFrom, seamRpc } from "@/lib/db/triage-seam";
+import { inChunks } from "@/lib/db/read-all";
+import type { Tables } from "@/lib/db/types";
 import {
   resolveUploaderIdentity,
   type UploaderRow,
@@ -240,7 +240,8 @@ function standingOf(
  */
 export async function countUrgentReports(): Promise<number> {
   return mustCount(
-    seamFrom(createAdminClient(), "reports")
+    createAdminClient()
+      .from("reports")
       .select("id", { count: "exact", head: true })
       .eq("status", "open")
       .eq("kind", INSTANT_HIDE_KIND),
@@ -264,9 +265,6 @@ export async function readProofMailEnabled(): Promise<boolean> {
   return row?.enabled ?? false;
 }
 
-/** Postgres' undefined_column: a column the migration adds, read before it is applied. */
-const UNDEFINED_COLUMN = "42703";
-
 /**
  * WHAT AN ANSWER LINK OPENS (`/report/<token>`): the operator's question on the report the token names, while
  * that report is open and unanswered, and the album's name. Null for anything else (a used, closed or unknown
@@ -276,20 +274,14 @@ export async function readProofAsk(tokenHash: string): Promise<{
   question: string;
   eventName: string | null;
 } | null> {
-  const admin = createAdminClient();
-  const { data, error } = await seamFrom(admin, "reports")
-    .select("id, status, event_id, proof_question, proof_answered_at")
-    .eq("proof_token_hash", tokenHash)
-    .maybeSingle();
-  // Before 20260929140000 the column is missing (42703) and no link can exist yet: the page reads as a spent link.
-  if (error?.code === UNDEFINED_COLUMN) return null;
-  if (error) throw new Error(`report answer: the ask: ${error.message}`);
-  const row = data as {
-    status: string;
-    event_id: string | null;
-    proof_question: string | null;
-    proof_answered_at: string | null;
-  } | null;
+  const row = await mustQuery(
+    createAdminClient()
+      .from("reports")
+      .select("id, status, event_id, proof_question, proof_answered_at")
+      .eq("proof_token_hash", tokenHash)
+      .maybeSingle(),
+    "report answer: the ask",
+  );
   if (!row || row.status !== "open" || row.proof_answered_at) return null;
   if (!row.proof_question) return null;
   const eventName = row.event_id ? await readEventName(row.event_id) : null;
@@ -518,21 +510,23 @@ export type ReviewEntry = {
   } | null;
 };
 
-type OpenRow = {
-  id: string;
-  reason: string | null;
-  created_at: string;
-  event_id: string | null;
-  media_id: string | null;
-  kind: string | null;
-  reporter_signed_in: boolean | null;
-  reporter_email: string | null;
-  hid_at: string | null;
-  proof_asked_at: string | null;
-  proof_question: string | null;
-  proof_answered_at: string | null;
-  proof_answer: string | null;
-};
+/** The columns the open queue reads off a report, as the generated row types them. */
+type OpenRow = Pick<
+  Tables<"reports">,
+  | "id"
+  | "reason"
+  | "created_at"
+  | "event_id"
+  | "media_id"
+  | "kind"
+  | "reporter_signed_in"
+  | "reporter_email"
+  | "hid_at"
+  | "proof_asked_at"
+  | "proof_question"
+  | "proof_answered_at"
+  | "proof_answer"
+>;
 
 type QueueMediaRow = MediaRow & {
   event_id: string;
@@ -563,7 +557,8 @@ export async function listOpenEntries(
     "admin reports: open queue",
     show,
     (after: NewestFirst, limit) => {
-      let q = seamFrom(admin, "reports")
+      let q = admin
+        .from("reports")
         .select(OPEN_COLUMNS)
         .eq("status", "open")
         .not("event_id", "is", null)
@@ -575,7 +570,7 @@ export async function listOpenEntries(
           `created_at.lt.${after.at},and(created_at.eq.${after.at},id.lt.${after.id})`,
         );
       }
-      return q as unknown as PromiseLike<PageResult<OpenRow>>;
+      return q;
     },
     (row) => ({ at: row.created_at, id: row.id }),
   );
@@ -588,7 +583,7 @@ export async function listOpenEntries(
     ...new Set(rows.flatMap((r) => (r.media_id ? [r.media_id] : []))),
   ];
 
-  const [events, media, facts] = await Promise.all([
+  const [events, media, factsAnswer] = await Promise.all([
     inChunks(
       "admin reports: queue events",
       eventIds,
@@ -613,13 +608,15 @@ export async function listOpenEntries(
         )) ?? []) as unknown as QueueMediaRow[],
     ),
     mustQuery(
-      seamRpc<QueueFacts>(admin, "report_queue_facts", {
+      admin.rpc("report_queue_facts", {
         p_media_ids: mediaIds,
         p_event_ids: eventIds,
       }),
       "admin reports: queue facts",
     ),
   ]);
+  // The function answers one jsonb, shaped by the migration (`report_queue_facts`).
+  const facts = factsAnswer as QueueFacts | null;
 
   const hostIds = [...new Set(events.map((e) => e.host_id))];
   const hosts = await inChunks(

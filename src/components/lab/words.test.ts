@@ -43,16 +43,6 @@ const GLOSSARY = "src/app/(dev)/design/_data/glossary.ts";
  */
 const NOT_YET: readonly { file: string; says: string; why: string }[] = [
   {
-    file: "docs/reviews/README.md",
-    says: "ruling draft",
-    why: "the ledger doc is the Orchestrator's; its line is in the Handoff",
-  },
-  {
-    file: "docs/ROADMAP.md",
-    says: "Will's ruling first",
-    why: "the ROADMAP is the Orchestrator's; its line is in the Handoff",
-  },
-  {
     file: "docs/ROADMAP.md",
     says: "numbered rulings",
     why: "the line quotes production comments; it retires with the housekeeping it describes",

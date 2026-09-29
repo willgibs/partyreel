@@ -16,6 +16,13 @@
  * unlock cookie still opens it without an owner check; an open album is unchanged. And the same page's
  * "Download all" (`/api/export/guest`, over the real `getApprovedMediaForUnlock`) counts the host's
  * own album and nobody else's.
+ *
+ * ★ RESHAPED ON PURPOSE (crumbs-15, 2026-09-29; scar kept: the album's OWN reads decide, by the owner check and
+ * the unlock cookie). The door's SQL question (`event_door_standing`) was left unregistered here, and the
+ * runtime seam read a missing function as "today's three doors", a stranger at the album's own door. The
+ * migration is applied and the seam went, so a missing function is an error; the world registers the question
+ * and answers it as that same stranger for everyone (`album-viewer.server.test.ts` does the same by default),
+ * so what these tests pin is still the album's own reads, which the door's pass sits beside.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -310,6 +317,23 @@ beforeEach(() => {
     },
   });
   db.admin = createFakePostgrest({
+    rpc: {
+      // A stranger at the album's own door, whoever asks: its stored visibility, and nothing else about her.
+      event_door_standing: (args) => ({
+        found: true,
+        door:
+          ([...events.values()] as GuestEvent[]).find(
+            (e) => e.id === args.p_event_id,
+          )?.visibility ?? "private",
+        host: false,
+        blocked: false,
+        was_in: false,
+        in: false,
+        waiting: false,
+        listed: false,
+        confirmed: true,
+      }),
+    },
     tables: {
       events: [
         {

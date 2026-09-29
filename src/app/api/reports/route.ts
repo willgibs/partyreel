@@ -186,11 +186,6 @@ export async function POST(request: Request) {
       { status },
     );
   }
-  if (result.schemaMissing) {
-    // The migration is not live yet: the report was filed, without its kind or reporter. Loud, because after
-    // the apply this never fires.
-    captureWarning("security", "reports_schema_missing", { kind: reportKind });
-  }
 
   if (reportKeys) {
     await recordAbuseEvent(

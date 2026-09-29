@@ -38,8 +38,8 @@ the note is required): the ask stays open on the desk, flagged as waiting on a c
 and the board rewrites it before he is asked again.
 A new round is opened by the Orchestrator when it spawns it. `_window.json` holds notes whose `on`
 is a board id or `null` for the whole window. The desk derives "Waiting on Will" as every ask on a
-standing board with no answer in its latest round; a board whose asks are all answered shows its
-ruling draft. When a board leaves the lab (its picks built) its ledger is deleted with it.
+standing board with no answer in its latest round; a board whose asks are all answered shows what
+its answers decide. When a board leaves the lab (its picks built) its ledger is deleted with it.
 
 ## The message grammar
 
@@ -65,7 +65,7 @@ lands as `<board> r<n>: <ask>=none "what to try instead"` and the grammar never 
 `review <board> r<n>: <ask>=? "what was unclear"` records "not clear to me" (the note is required).
 An option is its id (one token); the board's spec carries the label and the meaning a reviewer reads.
 
-`item:<id>=keep|refine|kill` rules on ONE card of a board's catalog, where
+`item:<id>=keep|refine|kill` gives ONE card of a board's catalog its verdict, where
 `<id>` is a candidate id from the board's spec. The `item:` prefix keeps the two namespaces apart: an
 ask id and a candidate id are both one token and a board may use the same word for both. A board that
 declares no `catalog` has no items, and a verdict on one is refused. One verdict per item per round;

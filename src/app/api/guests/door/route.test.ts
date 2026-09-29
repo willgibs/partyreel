@@ -112,9 +112,14 @@ describe("the check-in's one word", () => {
     expect((await answer()).body.standing).toBe("moved");
   });
 
-  it("no doors' schema yet: `moved`, onto today's doors", async () => {
-    checkInAtDoor.mockResolvedValue(null);
-    expect((await answer()).body.standing).toBe("moved");
+  // ★ RESHAPED ON PURPOSE (crumbs-15, 2026-09-29; scar kept: the check-in never invents a word). It read "no
+  // doors' schema yet: `moved`, onto today's doors", where a database without the doors answered `moved` so the
+  // page refreshed onto the three doors it had. The migration is applied and that answer went with it: a check-in
+  // that cannot be read is an error (the client reads a 500 as still waiting and asks again in 30 s), never `in`
+  // and never a refresh onto a page the standing did not choose.
+  it("★ a check-in that cannot be read answers no word at all", async () => {
+    checkInAtDoor.mockRejectedValue(new Error("db down"));
+    await expect(post({ qr_token: TOKEN })).rejects.toThrow("db down");
   });
 });
 
