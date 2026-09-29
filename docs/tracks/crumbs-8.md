@@ -1,6 +1,6 @@
 ---
 track: crumbs-8
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "8dc0d0d9"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -88,25 +88,115 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **The Privacy Policy and the Terms still call the guest list the host's to show**, six sentences:
+  `legal-privacy.tsx:305` ("Hosts can turn on a guest list for an event. When it is on ...") and `:311`, `legal-terms.tsx:123`,
+  `:414` ("Guest lists are the host's call."), `:419` and `:425`. Since `room=always` they understate who sees a guest's name.
+  Legal text, so this lane left them. Recommended: a small legal-copy lane before milestone 30 says the list is always on for
+  everyone who can open the album and a guest the host blocks leaves it (the help's own words,
+  `content/help/reporting-and-safety.mdx`).
+- **The private album's card is `/e/<token>/card?private`**: generic by its address, whatever the event, on the one card route.
+  The token is the one the visitor arrived on, so a slug stays a slug. Built. The alternative is one token-free URL for every
+  closed door; it needs a new top-level route, because a static sibling of `/e/[token]` would shadow a custom slug. Recommended: keep.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/guest-flow.md`: the closed door's list (the card left it; the page's metadata names the private album's card)
+  and "The link's image" (one answer per address, whoever asks: the event's own visibility read with no caller, `?private`).
+- `docs/systems/database-security.md`: a new ★ under the anon capability reads (a response the edge shares asks with no
+  caller, `createAnonClient`; one that must differ per viewer is `private, no-store`), and "A like is only as visible as its
+  media" (on a private album only its host's like).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Host: her Uploads feed (`my-uploads-gallery.tsx`, mode `keep`) shows a heart on a private album's photo that now always
+  refuses ("Couldn't save that like."), as it already did on a blocked account's; hide the heart where the event reads private.
+- Host: the Deleted view's Restore says "Restored. It's back in the album." (`recently-deleted-grid.tsx:95`) for an item
+  `restore_media` returns hidden (it answers `status`); say what it did, as Let back in now does.
+- Design system: `PopupBody` could keep its children whole itself (`*:shrink-0`), so no flex-column body can crush a clipping
+  Card again; `event-share-sheet.tsx:123` and `claims-review.tsx:269` are flex columns today, safe only because no child clips.
+- Marketing: `llms.ts:114` says "Albums can be open, link-only, or password locked", naming no private album and calling an
+  open one link-only.
+- Legal: the guest-list sentences above, if the question is not answered before milestone 30.
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed on `lp/crumbs-8`:** work `9697006e`; sync `beaed970` (merge of `f6bacfda`: help-wiring and
+  emails-wiring merged, crumbs-9 cut; `database-security.md`, one of this lane's reads, auto-merged with both sides' lines);
+  owns grew in `3beb0b75` and `c17f815f`; this handoff is the head. launch-prep then moved to `3c37607e` (demo-framing's board
+  and records only, disjoint from this lane's paths and reads; `git merge-tree` clean), so no second sync.
+- **Gates on the synced tree `beaed970`, each on its own exit code:** `pnpm typecheck` 0; `pnpm lint` 0 (0 errors; the 4
+  warnings are in `review-session.tsx`, `contact-form.tsx` and `album-fill-grid.tsx`, none touched here); `pnpm test` 0 (556
+  files, 6,297 tests); `zsh scripts/build-lock.sh pnpm build` 0 (`/e/[token]/card` stays `ƒ`); `pnpm lab:smoke --base
+  http://localhost:3131` 0 (193 checks, 0 failing). No board, so no `lab:demo`. Logs:
+  `/Users/gibby/local/ai/partyreel-wt/_scratch/crumbs-8/{typecheck,lint,test,build,lab-smoke}-sync.log`.
+- **Lane check:** `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file + the two System-doc edits
+  above. No exceptions.
+- **1. The share card, one answer per address** (`card/route.tsx`, `page.tsx`, `lib/guest/event-card.ts`,
+  `db/queries/event-card.ts`, `lib/supabase/anon.ts`):
+  - The card reads the event with no caller and drops the closed door: named for an open or password event, generic for a
+    private or unknown one, `?private` generic without a read; still `public, max-age=3600`.
+  - Every closed door's metadata names `?private`.
+  - Pinned: `card/card.test.tsx` covers headers, two viewers' identical bytes, nothing reading the request, and which card each
+    viewer's metadata names (a blocked ticket, a blocked account and a private album deep-equal). `event-card.test.ts` and
+    `anon.test.ts` cover the read. 7 of card.test's 10 fail on the old code.
+  - Under `next start` (the synced build): two viewers, one bare and one with a ticket-shaped `pr_guest_` cookie and an `sb-`
+    auth cookie, got the same bytes (sha256 `d92a823b...`, 40,991 B) and `public, max-age=3600`. `?private` and an unknown
+    event got the same generic card (`9ca9090f...`). The open page names `/e/<qr>/card`.
+  - A closed page's og:image was NOT exercised end to end: no private event exists, and making a disposable one private was
+    refused by the permission layer. So `?private` in a real private page's HTML is the alias red-team's to read once.
+- **2. Event Settings:** the body is block flow (`space-y-6`), the form's own layout; pinned by `event-settings-sheet.test.tsx`
+  (never a shrinking flex column, the Danger zone last). Measured on a local harness (the real sheet over the Scale probe row,
+  since deleted):
+  - At 1440 (panel) the reel, Profile and Danger zone cards are 578 / 157 / 146 px.
+  - At 375 (screen) they are 617 / 157 / 146 px.
+  - Scrolled to its foot, Delete event is in the viewport and hit-tested at both widths.
+  - The old `flex flex-col gap-6` reproduces 32 / 32 / 32.
+  - Shots: `_scratch/crumbs-8/shots/settings-*.png`.
+- **Same shape elsewhere:** `event-share-sheet.tsx:123` and `claims-review.tsx:269` are flex-column popup bodies. In both, no
+  child clips. The share sheet was measured at 375x600 and 1440x700: it overflows and scrolls, and every child keeps its
+  content height. The claims review was read statically: no child sets overflow. Both are left as they are (Deferred).
+- **3. `like_media`:** `supabase/migrations/20260929100000_like_private.sql` refuses every guest of a private album with the
+  block's `not_found`; the host still likes, and like_many follows. Pinned in `migration-guards.test.ts` ("a private album
+  likes nothing but its host").
+  - The rolled-back proof held on live (2026-09-29, the Scale probe): grants; the open album; the private album (G, B and O
+    answer one identical `not_found`, like_many refuses G, the host likes); the password album.
+  - The control run on the live body is the tell itself: G `{"ok": true}`, B `not_found`.
+  - Afterwards live read unchanged: like_media md5 `9b448cf6...`, same ACL, 0 blocks, 1,145 approved, 6 likes, no probe rows.
+- **4. (the admin confirms' "Not in the album")** left, as briefed.
+- **5. The Pro slider's track** paints with the local `--background`; pinned in `plan-cards-contract.test.tsx`.
+  - partyreel.com in a dark system theme shows no track (`shots/prod/slider-mid-1440-dark.png`).
+  - This build shows the fill and the track in dark and light (`shots/slider-mid-1440-{dark,light}.png`).
+- **Nits:**
+  - The fit bar says "under 1% full" under one percent (`fitBarLine`, `pro-price-list.test.tsx`).
+  - Let back in says "1 upload is back where it was." / "N uploads are back where they were." (`event-blocks.ts` and its two
+    tests).
+  - The Account page line now reads "which is everyone with a photo in the album".
+  - The share sheet's comment names the server's `isSettingLocked` rather than a Pro gate.
+  - /pricing's toggle reads Monthly | Yearly with `yearlySavingTag()` beside it, which Yearly names by `aria-describedby`. At
+    375, Yearly is 32 px tall, down from 52 on partyreel.com, the group 40 px, no horizontal scroll (`shots/pricing-375-*.png`).
+- **The two site claims:**
+  - /features/guests: the copy (its block line), the card (no switch; "Shown on the album", `shots/guests-*.png`) and the
+    page's own FAQ, which said the same.
+  - The corporate post's FAQ, now with `updated`.
+  - `content/blog/AUTHORING.md`'s guest-list line, plus its Privacy and Plans lines the free/pro shift had made false
+    (password "(paid)", custom links as Pro's, "short" and "longer" clips).
+  - `llms.ts`'s "The host controls whether a guest list is shown".
+  - All rendered checked on the dev server, JSON-LD included. ROADMAP's "Marketing: /features/guests still calls the guest
+    list a host switch ..." line is done.
+- **Assets requested from Will:** none.
+- **Board ideas:** the guest-list card lost its one live control; a board could draw what governs the list now (a guest
+  who added a photo is on it; the host's Block takes them off) on the card, where the switch taught by being flipped.
+- **Proposed migrations:** `20260929100000_like_private.sql`, for the Orchestrator to apply per its header: drift
+  `9b448cf60af2e4e115921b5ee2bbd627`, after `3ec0ef855484b21d68b9bfcafc4ecf76`, advisors no delta, no types to regenerate. The
+  code does not depend on it, so apply and push in either order. No Worker, Vercel, Stripe or env change.
+- **Calls his to overrule:**
+  - A private album refuses every guest's like (the brief's recommendation).
+  - "back where it was" as the restore's words.
+  - The card's `?private` address.
+  - The card reads through a new identity-free client (`createAnonClient`) rather than the service role, so it holds anon's
+    grants and nothing more.
+  - The card footer "Shown on the album" and the block line on /features/guests.
+  - The `updated` date on the corporate post.
+- **Look at first:**
+  - `src/app/(guest)/e/[token]/card/card.test.tsx` and the alias red-team's read of a private page's og:image.
+  - The legal-copy question above.
