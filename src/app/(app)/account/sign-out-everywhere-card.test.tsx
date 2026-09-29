@@ -8,7 +8,14 @@
  * as the menu's Sign out does it; a refusal comes back as a toast with the confirm still open for
  * another try, never as a silent return to the page.
  */
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const state = vi.hoisted(() => ({
@@ -39,7 +46,7 @@ beforeEach(() => {
 
 function openConfirm() {
   fireEvent.click(screen.getByRole("button", { name: /sign out everywhere/i }));
-  return screen.getByRole("dialog");
+  return screen.getByRole("alertdialog");
 }
 
 describe("SignOutEverywhereCard", () => {
@@ -50,11 +57,63 @@ describe("SignOutEverywhereCard", () => {
     expect(state.signOutEverywhereAction).not.toHaveBeenCalled();
   });
 
+  // ★ crumbs-20 (build 22's red-team): the confirm's corner × stayed enabled while "Signing out…" showed,
+  // a control that does nothing (the popup holds until the page leaves for /login).
+  it("★ holds its corner × while the press is out, beside the two buttons that already wait", async () => {
+    // The press stays out until the test lets it go, as the page leaving for /login ends it: a promise
+    // nobody settles would hold React's one shared async action open for every test after this one.
+    let leave!: () => void;
+    state.signOutEverywhereAction.mockReturnValue(
+      new Promise<void>((resolve) => {
+        leave = resolve;
+      }),
+    );
+    render(<SignOutEverywhereCard />);
+    const dialog = openConfirm();
+    expect(within(dialog).getByRole("button", { name: "Close" })).toBeEnabled();
+    const press = [...dialog.querySelectorAll("button")].find((b) =>
+      /sign out everywhere/i.test(b.textContent ?? ""),
+    );
+    fireEvent.click(press!);
+    await waitFor(() =>
+      expect(
+        within(dialog).getByRole("button", { name: "Signing out…" }),
+      ).toBeDisabled(),
+    );
+    expect(
+      within(dialog).getByRole("button", { name: "Stay signed in" }),
+    ).toBeDisabled();
+    expect(within(dialog).queryByRole("button", { name: "Close" })).toBeNull();
+    await act(async () => leave());
+  });
+
+  it("returns its corner × with the buttons, when a refusal comes back", async () => {
+    state.signOutEverywhereAction.mockResolvedValue({
+      ok: false,
+      message: "Couldn't sign out everywhere. Try again.",
+    });
+    render(<SignOutEverywhereCard />);
+    const dialog = openConfirm();
+    const press = [...dialog.querySelectorAll("button")].find((b) =>
+      /sign out everywhere/i.test(b.textContent ?? ""),
+    );
+    fireEvent.click(press!);
+    await waitFor(() => expect(state.toastError).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(
+        within(dialog).getByRole("button", { name: "Close" }),
+      ).toBeEnabled(),
+    );
+    expect(
+      within(dialog).getByRole("button", { name: "Stay signed in" }),
+    ).toBeEnabled();
+  });
+
   it("the safe answer closes the confirm with nothing sent", async () => {
     render(<SignOutEverywhereCard />);
     openConfirm();
     fireEvent.click(screen.getByRole("button", { name: /stay signed in/i }));
-    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
     expect(state.signOutEverywhereAction).not.toHaveBeenCalled();
   });
 
@@ -89,6 +148,6 @@ describe("SignOutEverywhereCard", () => {
         "Couldn't sign out everywhere. Check your connection and try again.",
       ),
     );
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByRole("alertdialog")).toBeInTheDocument();
   });
 });

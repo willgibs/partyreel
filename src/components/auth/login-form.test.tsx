@@ -56,6 +56,8 @@ beforeEach(() => {
   push.mockReset();
   host.admin = false;
   cookieWrites.length = 0;
+  // The address a visitor arrived at carries no fragment unless a test sets one.
+  window.history.replaceState(null, "", "/login");
   Object.defineProperty(document, "cookie", {
     configurable: true,
     get: () => "",
@@ -139,5 +141,67 @@ describe("LoginForm on the admin host (crumbs-14)", () => {
     expect(cookieWrites).toEqual([]);
     expect(redirect.search).toBe("");
     expect(pushed).toBe("/dashboard");
+  });
+});
+
+/**
+ * ★ THE MAIL'S ANCHOR SURVIVES THE SIGN-IN (crumbs-20). The renewal nudge's foot link is
+ * `/account#event-pass-reminders`: the gate's redirect drops the path's query but the browser keeps
+ * the fragment, so it reaches `/login` as `location.hash`, the one place it can be read. It rides
+ * the in-page landing and the callback's `next` only when the pair is one the return allow-list
+ * names (`returnWithAnchor`); any other fragment costs the visitor the scroll and nothing else.
+ */
+describe("LoginForm and a mail's anchor (crumbs-20)", () => {
+  it("carries the anchor through an in-page sign-in and into the callback's next", () => {
+    window.location.hash = "#event-pass-reminders";
+    const { redirect, pushed } = signIn("/account");
+    expect(pushed).toBe("/account#event-pass-reminders");
+    expect(redirect.pathname).toBe("/auth/callback");
+    expect(redirect.searchParams.get("next")).toBe(
+      "/account#event-pass-reminders",
+    );
+  });
+
+  it.each([
+    "#plan",
+    "#access_token=abc",
+    "#event-pass-reminders-2",
+    "#event-pass-reminders?x=1",
+  ])("lands the page alone when the fragment is %s, not the mail's", (hash) => {
+    window.location.hash = hash;
+    const { redirect, pushed } = signIn("/account");
+    expect(pushed).toBe("/account");
+    expect(redirect.searchParams.get("next")).toBe("/account");
+  });
+
+  it("carries the anchor to no page it does not belong to", () => {
+    window.location.hash = "#event-pass-reminders";
+    const { redirect, pushed } = signIn("/dashboard");
+    expect(pushed).toBe("/dashboard");
+    expect(redirect.searchParams.get("next")).toBe("/dashboard");
+  });
+
+  it("with no page at all, still lands on the dashboard through a bare callback", () => {
+    window.location.hash = "#event-pass-reminders";
+    const { redirect, pushed } = signIn(null);
+    expect(pushed).toBe("/dashboard");
+    expect(redirect.search).toBe("");
+  });
+
+  it("takes a next that already carries it (a failed link's bounce), and never doubles it", () => {
+    window.location.hash = "#event-pass-reminders";
+    const { redirect, pushed } = signIn("/account#event-pass-reminders");
+    expect(pushed).toBe("/account#event-pass-reminders");
+    expect(redirect.searchParams.get("next")).toBe(
+      "/account#event-pass-reminders",
+    );
+  });
+
+  it("is the app's alone: the admin host's callback stays bare and its landing stays the portal's", () => {
+    host.admin = true;
+    window.location.hash = "#event-pass-reminders";
+    const { redirect, pushed } = signIn("/admin/reports");
+    expect(redirect.search).toBe("");
+    expect(pushed).toBe("/admin/reports");
   });
 });

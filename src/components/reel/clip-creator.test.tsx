@@ -520,7 +520,7 @@ describe("the finish", () => {
     renderCreator({ addClipToAlbum: add, moderated: true });
     await makeIt();
     fireEvent.click(screen.getByRole("button", { name: "Add to event" }));
-    const dialog = screen.getByRole("dialog", {
+    const dialog = screen.getByRole("alertdialog", {
       name: "Add your clip to Maya & Jay?",
     });
     expect(dialog).toHaveTextContent(
@@ -549,7 +549,7 @@ describe("the finish", () => {
     await act(async () => {});
     await makeIt();
     fireEvent.click(screen.getByRole("button", { name: "Add to event" }));
-    const dialog = screen.getByRole("dialog", {
+    const dialog = screen.getByRole("alertdialog", {
       name: "Add your clip to Maya & Jay?",
     });
     expect(dialog).toHaveTextContent(

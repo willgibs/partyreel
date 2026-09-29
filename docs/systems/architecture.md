@@ -66,6 +66,12 @@ from the same mismatch by re-rendering: a regression can pass every local check 
 - **Tooltips live in the viewer only.** Radix `Tooltip`s on the SSR'd gallery tile actions left the host gallery
   unhydrated in production. The viewer is client-only (`ssr: false`), so rich client UI (tooltips, nested `asChild`)
   is safe there; SSR'd tiles keep the native `title`.
+- ★ **A press before hydration is the browser's own submit.** A client `<form onSubmit>` with no method or action
+  submits as a GET to the current address until React attaches, carrying every named field into the URL, the history
+  and a server log. Every such form is a `ClientForm` (`ui/client-form.tsx`, `method="dialog"`: outside a `<dialog>`
+  the native submit is a no-op, Enter included), and `client-form-policy.test.ts` refuses a `<form>` that names no
+  native answer (an `action`, `method="get"`). Walk it by holding the page's script requests at the network (CDP
+  `Fetch` on `Script`), pressing, and reading the address before releasing them.
 - **A soft refresh (`router.refresh()`) re-renders without remounting,** so a mount-only effect on a ref never attaches
   to a node that first appears through a refresh (a password unlock turning access on, say): a sentinel whose node can
   appear after mount takes a callback ref.

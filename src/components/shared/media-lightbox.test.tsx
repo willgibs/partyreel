@@ -566,7 +566,7 @@ describe("MediaLightbox: host curate actions (3c.2)", () => {
     expect(onRemove).not.toHaveBeenCalled();
     expect(screen.getByText("Remove this item?")).toBeInTheDocument();
     // Confirming inside the dialog fires it with the current item.
-    const dialog = screen.getByRole("dialog");
+    const dialog = screen.getByRole("alertdialog");
     fireEvent.click(within(dialog).getByRole("button", { name: "Remove" }));
     expect(onRemove).toHaveBeenCalledWith(items[0]);
   });
@@ -592,7 +592,7 @@ describe("MediaLightbox: the recovery bin's Restore and Delete permanently", () 
     mount([binned], 0, { onRestore, onPurge: vi.fn() });
     fireEvent.click(screen.getByRole("button", { name: "Restore" }));
     expect(onRestore).toHaveBeenCalledWith(binned);
-    expect(screen.queryByRole("dialog", { name: /delete/i })).toBeNull();
+    expect(screen.queryByRole("alertdialog", { name: /delete/i })).toBeNull();
   });
 
   it("deletes for good only behind its confirm, which names the window it skips", () => {
@@ -600,7 +600,7 @@ describe("MediaLightbox: the recovery bin's Restore and Delete permanently", () 
     mount([binned], 0, { onRestore: vi.fn(), onPurge });
     fireEvent.click(screen.getByRole("button", { name: "Delete permanently" }));
     expect(onPurge).not.toHaveBeenCalled();
-    const dialog = screen.getByRole("dialog", {
+    const dialog = screen.getByRole("alertdialog", {
       name: "Delete permanently?",
     });
     expect(dialog.textContent).toContain(
@@ -733,7 +733,9 @@ describe("the uploader's own delete says what it does", () => {
       </TooltipProvider>,
     );
     fireEvent.click(screen.getByRole("button", { name: /^delete$/i }));
-    const dialog = screen.getByRole("dialog", { name: /delete this upload/i });
+    const dialog = screen.getByRole("alertdialog", {
+      name: /delete this upload/i,
+    });
     return { dialog, onDeleteCurrent };
   }
 

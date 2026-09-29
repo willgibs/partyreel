@@ -50,8 +50,16 @@ Google, and a password as a quiet second door; passkeys wait behind a flag. `get
   operator's deep link (`/admin/reports`) lands where it points. ★ `next` is followed only when it is one of
   `lib/auth/return-path.ts`'s exact shapes for the host it lands on: the host app's pages, an album or a profile page
   off the admin host, the portal's home, sections and row pages on it alone (each host 404s the other's), never a
-  query or a fragment: anything else, however it is encoded, reads as no `next` at all (`return-path.test.ts` pins
-  each refusal). `signInLanding` is the one landing rule the page, the form and the callback share.
+  query, and a fragment only as one of the mail's named anchors (`ANCHORED_RETURNS`, today the renewal nudge's
+  `/account#event-pass-reminders`, named once beside the mail in `lib/email/links.ts`): anything else, however it is
+  encoded, reads as no `next` at all (`return-path.test.ts` pins each refusal). `signInLanding` is the one landing
+  rule the page, the form and the callback share.
+- ★ **A fragment rides `location.hash`, never a server.** The gate's 307 drops it from `next` and the browser keeps
+  it, so `/login`'s form reads it (`useSyncExternalStore`, `""` on the server so hydration matches) and asks
+  `returnWithAnchor`, which adds it to the in-page landing and the callback's `next` only when the pair is on the
+  list; any other fragment drops and the page stands. ★ **A client-side 401 fallback** (the checkout, the billing
+  portal, a plan switch, the storage list, the renewal page) sends `loginPath(window.location.pathname)`, never a
+  bare `/login` (`bare-login-policy.test.ts` refuses the literal), so a session that lapsed under a page comes back to it.
 - **The password refusal is generic by design:** wrong password, no password and unknown address read the same (the
   `password_mismatch` line, with a code, a new password and Google as the ways out); `door-failure.test.ts` refuses
   a specific one. Every failure maps through `door-failure.ts`'s one table, and a surface's own recoveries are not
@@ -164,6 +172,12 @@ Dashboard state, held nowhere in the repo, that the code assumes:
   from the Google name or the newest claimable guest row's typed name). The one typed-name write is
   `updateDisplayNameAction` (`displayNameSchema`, then `containsProfanity`, tuned so real names pass, then the admin
   client); the claim copies an already-filtered name onto a nameless profile only.
+- ★ **The name rule has one home, `isReservedName` (`reserved-names.ts`), which `displayNameSchema` asks,** so every door
+  reads it: the account action, the door's adopted name, the guest join and rename routes (`parseGuestDisplayName`) and
+  the browser's own `checkDisplayName`. A reserved word whole, or the brand alone or beside a staff word ("Partyreel
+  Support"), read by words through separators, accents, full-width letters and look-alike digits; a name that merely
+  contains a word ("Adminah", "Sam Partyreel") stays legal. SQL cannot check a name, so `reserved-names.test.ts` names
+  every writer of `display_name` with the gate it asks first.
 - **A guest's typed name survives the magic link.** The door passes it as `signInWithOtp` data under `DOOR_NAME_KEY`
   (`door-name-key.ts`; GoTrue writes it only when that call creates the account), and `/auth/callback` runs
   `adoptDoorName()` after the exchange when `next` is an album: a nameless profile only, `displayNameSchema` then

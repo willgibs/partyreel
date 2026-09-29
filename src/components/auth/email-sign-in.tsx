@@ -12,6 +12,7 @@ import {
   type DoorActionHandlers,
 } from "@/components/auth/failure-paths";
 import { Button } from "@/components/ui/button";
+import { ClientForm } from "@/components/ui/client-form";
 import { floatingKeyboardFoot } from "@/components/ui/floating-layer";
 import {
   Form,
@@ -459,7 +460,7 @@ export function EmailSignIn({
 
   return (
     <Form {...form}>
-      <form
+      <ClientForm
         noValidate
         onSubmit={(e) => {
           e.preventDefault();
@@ -526,7 +527,7 @@ export function EmailSignIn({
             {form.formState.isSubmitting ? "Sending…" : "Email me a code"}
           </Button>
         </div>
-      </form>
+      </ClientForm>
     </Form>
   );
 }

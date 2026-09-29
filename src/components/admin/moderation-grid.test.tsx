@@ -147,7 +147,7 @@ describe("the operator's Remove", () => {
   it("lists what the removal reaches, never what is already so", async () => {
     mount();
     fireEvent.click(screen.getAllByRole("button", { name: "Remove" })[0]);
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole("alertdialog");
     const lines = [
       ...dialog.querySelectorAll("[data-slot='destructive-touches'] li"),
     ].map((li) => li.textContent);

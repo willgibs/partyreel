@@ -56,11 +56,12 @@ export function useReviewKeys({
         target === document.documentElement;
       const peek = root.querySelector("[data-review-peek]");
       const inPeek = !!(peek && target && peek.contains(target));
-      // Another layer is up (a dialog, a menu): its keys are its own.
+      // Another layer is up (a dialog, a confirm, a menu): its keys are its own. A confirm is an
+      // `alertdialog` (ui/popup.tsx), which is not a `dialog` to a selector.
       if (
         !inPeek &&
         document.querySelector(
-          '[role="dialog"]:not([data-review-peek]), [role="menu"], [role="listbox"]',
+          '[role="dialog"]:not([data-review-peek]), [role="alertdialog"], [role="menu"], [role="listbox"]',
         )
       ) {
         return;

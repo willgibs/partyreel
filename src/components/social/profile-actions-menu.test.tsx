@@ -55,7 +55,9 @@ describe("ProfileActionsMenu", () => {
   it("explains the block before doing it (the confirm is its own step)", () => {
     open(false);
     fireEvent.click(screen.getByRole("menuitem", { name: /^block$/i }));
-    expect(screen.getByRole("dialog")).toHaveTextContent(/won.t be notified/i);
+    expect(screen.getByRole("alertdialog")).toHaveTextContent(
+      /won.t be notified/i,
+    );
   });
 
   it("takes a reason for a report, and reporting is not blocking", () => {

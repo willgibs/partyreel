@@ -265,6 +265,65 @@ describe("a mail's button, through a sign-in (crumbs-11)", () => {
   });
 });
 
+/**
+ * ★ A MAIL'S ANCHOR, THROUGH A SIGN-IN (crumbs-20). The renewal nudge's foot link is
+ * `/account#event-pass-reminders`; `/login` hands Google and the email's link the pair as `next`, and
+ * the allow-list takes that one fragment, exactly, on exactly its page. The callback's own redirect
+ * keeps it (a Location carries a fragment), so the browser lands on the row; any other fragment is
+ * the default, never a copy of the page without it.
+ */
+describe("a mail's anchor, through a sign-in (crumbs-20)", () => {
+  const ANCHORED = "/account#event-pass-reminders";
+  /** The whole Location, fragment included: `landing` reads the path and query only. */
+  const to = (res: Response) => res.headers.get("location");
+
+  it("★ lands the pair whole, so the browser scrolls to the row the mail named", async () => {
+    state.exchange.mockResolvedValue(SIGNED_IN);
+    const res = await get(`?next=${encodeURIComponent(ANCHORED)}&code=abc`);
+    expect(to(res)).toBe(`https://partyreel.com${ANCHORED}`);
+    expect(state.adoptDoorName).not.toHaveBeenCalled();
+  });
+
+  it("carries the pair back to /login when the link had aged out, so a new code still lands on the row", async () => {
+    state.exchange.mockResolvedValue(DEAD);
+    expect(
+      to(await get(`?next=${encodeURIComponent(ANCHORED)}&code=abc`)),
+    ).toBe(
+      "https://partyreel.com/login?error=expired_link&next=%2Faccount%23event-pass-reminders",
+    );
+    expect(
+      to(
+        await get(`?next=${encodeURIComponent(ANCHORED)}&error=access_denied`),
+      ),
+    ).toBe(
+      "https://partyreel.com/login?error=google_failed&next=%2Faccount%23event-pass-reminders",
+    );
+  });
+
+  it.each([
+    "/account#plan",
+    "/dashboard#event-pass-reminders",
+    "/account/renew#event-pass-reminders",
+    "/account#event-pass-reminders#x",
+    "/account#event-pass-reminders?x=1",
+    "/account%23event-pass-reminders",
+  ])(
+    "follows %s nowhere: the default lands, never a copy without the fragment",
+    async (next) => {
+      state.exchange.mockResolvedValue(SIGNED_IN);
+      const res = await get(`?next=${encodeURIComponent(next)}&code=abc`);
+      expect(to(res)).toBe("https://partyreel.com/dashboard");
+    },
+  );
+
+  it("is the app's alone: the admin host lands in the portal", async () => {
+    state.exchange.mockResolvedValue(SIGNED_IN);
+    state.adminHost = true;
+    const res = await get(`?next=${encodeURIComponent(ANCHORED)}&code=abc`);
+    expect(landing(res)).toBe("/admin");
+  });
+});
+
 describe("the admin host's bare callback, and the page its cookie kept (crumbs-14)", () => {
   beforeEach(() => {
     state.adminHost = true;

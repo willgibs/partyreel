@@ -98,6 +98,58 @@ describe("a kind reaches the shape its row names", () => {
   })
 })
 
+describe("a kind is announced as what it is (crumbs-20)", () => {
+  // ★ A confirm stops the person to ask one thing and waits: that is an ALERT dialog, which a screen
+  // reader announces as an alert and reads with its question. It was `role="dialog"` for every kind. The role is one more column of the kind's row, so a later answer on
+  // a kind is still one line.
+  it("a confirm is an alertdialog, at a desk and in a hand", () => {
+    for (const width of [1024, 375]) {
+      setViewportWidth(width)
+      const { unmount } = mount("confirm")
+      const confirm = screen.getByRole("alertdialog", { name: "Report this event" })
+      expect(confirm.getAttribute("data-kind"), `at ${width}`).toBe("confirm")
+      expect(screen.queryByRole("dialog"), `at ${width}`).toBeNull()
+      unmount()
+    }
+  })
+
+  it("every other kind stays the Dialog's own `dialog`, and never loses its role", () => {
+    setViewportWidth(1024)
+    for (const kind of Object.keys(POPUP_KINDS) as PopupKind[]) {
+      if (kind === "confirm") continue
+      const { unmount } = mount(kind)
+      const panel = document.querySelector<HTMLElement>('[data-slot="popup-content"]')
+      expect(panel?.getAttribute("role"), kind).toBe("dialog")
+      unmount()
+    }
+  })
+
+  it("keeps its question announced with its name: the header's description is the alert's text", () => {
+    render(
+      <Popup defaultOpen>
+        <PopupContent kind="confirm">
+          <PopupHeader title="Block Maya?" description="She won't be notified." />
+        </PopupContent>
+      </Popup>,
+    )
+    expect(screen.getByRole("alertdialog", { name: "Block Maya?" })).toHaveAccessibleDescription(
+      "She won't be notified.",
+    )
+  })
+
+  it("lets a call site's own role win", () => {
+    render(
+      <Popup defaultOpen>
+        <PopupContent kind="confirm" role="dialog" aria-describedby={undefined}>
+          <PopupHeader title="Report this event" />
+        </PopupContent>
+      </Popup>,
+    )
+    expect(screen.getByRole("dialog", { name: "Report this event" })).toBeInTheDocument()
+    expect(screen.queryByRole("alertdialog")).toBeNull()
+  })
+})
+
 describe("a screen in a hand is a place", () => {
   it("heads itself with a back arrow that says where Back returns, and no corner close", () => {
     setViewportWidth(375)
@@ -198,9 +250,9 @@ describe("where focus goes back to when it closes", () => {
     const opener = screen.getByRole("button", { name: "More options" })
     act(() => opener.focus())
     fireEvent.click(opener)
-    const dialog = screen.getByRole("dialog", { name: "Block Maya?" })
+    const dialog = screen.getByRole("alertdialog", { name: "Block Maya?" })
     fireEvent.keyDown(dialog, { key: "Escape" })
-    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull())
     expect(opener).toHaveFocus()
   })
 
@@ -243,10 +295,10 @@ describe("where focus goes back to when it closes", () => {
     const field = screen.getByLabelText("Event name")
     act(() => field.focus())
     fireEvent.keyDown(field, { key: "Escape" })
-    const confirm = await screen.findByRole("dialog", { name: "Discard changes?" })
+    const confirm = await screen.findByRole("alertdialog", { name: "Discard changes?" })
     fireEvent.click(within(confirm).getByRole("button", { name: "Keep editing" }))
     await waitFor(() =>
-      expect(screen.queryByRole("dialog", { name: "Discard changes?" })).toBeNull()
+      expect(screen.queryByRole("alertdialog", { name: "Discard changes?" })).toBeNull()
     )
     expect(field).toHaveFocus()
     expect(screen.getByRole("dialog", { name: "Settings" })).toBeInTheDocument()
@@ -279,10 +331,10 @@ describe("where focus goes back to when it closes", () => {
     const trigger = within(viewer).getByRole("button", { name: "Delete permanently" })
     act(() => trigger.focus())
     fireEvent.click(trigger)
-    const confirm = await screen.findByRole("dialog", { name: "Delete permanently?" })
+    const confirm = await screen.findByRole("alertdialog", { name: "Delete permanently?" })
     fireEvent.keyDown(confirm, { key: "Escape" })
     await waitFor(() =>
-      expect(screen.queryByRole("dialog", { name: "Delete permanently?" })).toBeNull()
+      expect(screen.queryByRole("alertdialog", { name: "Delete permanently?" })).toBeNull()
     )
     expect(trigger).toHaveFocus()
     expect(viewer).toBeInTheDocument()

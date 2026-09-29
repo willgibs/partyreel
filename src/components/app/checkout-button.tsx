@@ -8,6 +8,7 @@ import {
   announceChangePlanError,
   requestChangePlan,
 } from "@/components/app/pricing/change-plan-request";
+import { loginPath } from "@/lib/auth/return-path";
 import {
   parseStorageRefusal,
   type StorageRefusal,
@@ -79,7 +80,7 @@ export function CheckoutButton({
           body: JSON.stringify({ planId, renewal, next }),
         });
         if (res.status === 401) {
-          router.push("/login");
+          router.push(loginPath(window.location.pathname));
           return;
         }
         const data = await res.json();
@@ -112,7 +113,7 @@ export function CheckoutButton({
             return;
           }
           if (outcome.kind === "signin") {
-            router.push("/login");
+            router.push(loginPath(window.location.pathname));
             return;
           }
           if (outcome.kind === "refused") {

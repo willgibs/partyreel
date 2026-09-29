@@ -17,9 +17,16 @@
  * shape loses to none of them, because not one of them allows `:`, `/` doubled, `\`, `%`, `.`,
  * whitespace or a control character. Each refusal is pinned in return-path.test.ts.
  *
- * ★ A PATH, NEVER A QUERY OR A FRAGMENT. A query opens a mode, a modal or a marker on the page
- * (`?reset=1`, `?welcome=pro`, `?email_change=`); none is worth carrying through a sign-in and
- * each is one more thing a link could be made to say. So no shape takes one.
+ * ★ A PATH, NEVER A QUERY. A query opens a mode, a modal or a marker on the page (`?reset=1`,
+ * `?welcome=pro`, `?email_change=`); none is worth carrying through a sign-in and each is one more
+ * thing a link could be made to say. So no shape takes one.
+ *
+ * ★ A FRAGMENT ONLY AS ONE OF THE PRODUCT'S OWN ANCHORS (crumbs-20). A fragment never reaches a
+ * server, so no gate can carry one: the browser keeps it across the gate's redirect, `/login` reads
+ * it off `location.hash` and asks `returnWithAnchor`, and what may ride back is a `page#section`
+ * PAIR a mail links into (`ANCHORED_RETURNS`, each one exact string, named where the mail names it:
+ * `lib/email/links.ts`). Any other fragment, or a listed one on another page, reads as no fragment at
+ * all: the page stands and the anchor is dropped, never a cleaned-up copy of what arrived.
  *
  * ★ EACH HOST RETURNS TO ITS OWN PAGES (crumbs-14). The portal's pages are a return on the admin
  * host alone and the app's everywhere else, so a sign-in on the admin host never lands on an apex
@@ -29,6 +36,8 @@
  * Pure strings, no env and no `server-only`, like the checkout's: the /login form, the proxy, the
  * callback route and the checkout's own module all import it, and so can any unit test.
  */
+
+import { PASS_REMINDERS_PATH } from "@/lib/email/links";
 
 /** The query parameter that carries the path through `/login` and `/auth/callback`. */
 export const NEXT_PARAM = "next";
@@ -65,6 +74,20 @@ const UUID =
 /** An album's token (32 hex) or custom link, or a handle: the `[a-z0-9-]` a slug is, in any case. */
 const NAME = "[A-Za-z0-9-]{3,64}";
 
+/** A string as the one pattern that matches it whole, its punctuation taken literally. */
+function exactly(value: string): RegExp {
+  return new RegExp(`^${value.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")}$`);
+}
+
+/**
+ * The `page#section` pairs a mail links into: the one place a fragment is welcome through a sign-in
+ * (it is a section of a page the person already asked for, and each pair is named once, beside the
+ * mail that sends it). Today: the renewal nudge's unsubscribe, the Email preferences row on the
+ * account page. Adding one means the mail and the page's own `id` already agree, and nothing else
+ * on the page reads the fragment as an instruction.
+ */
+const ANCHORED_RETURNS: readonly string[] = [PASS_REMINDERS_PATH];
+
 /**
  * Every page a sign-in may return to off the admin host, anchored end to end. Adding one means
  * asking what it can be made to mean; a page not here simply lands on the host's home.
@@ -82,6 +105,8 @@ const APP_RETURNS: readonly RegExp[] = [
   // guest's sign-in) comes back to through the callback.
   new RegExp(`^/e/${NAME}$`),
   new RegExp(`^/u/${NAME}$`),
+  // The mail's anchors: a page and one section of it, each pair exact (see ANCHORED_RETURNS).
+  ...ANCHORED_RETURNS.map(exactly),
 ];
 
 /**
@@ -126,6 +151,24 @@ export function signInReturn(
   return matchesPathShape(value, onAdminHost ? PORTAL_RETURNS : APP_RETURNS)
     ? value
     : null;
+}
+
+/**
+ * The return WITH the fragment the visitor arrived on, when the pair is one of the mail's anchors
+ * (`/account` + `#event-pass-reminders`); the return alone otherwise, and null when there is none.
+ * `/login` calls it with `location.hash`, the only place the fragment can be read: the gate's
+ * redirect keeps it in the browser and no server ever sees it. Never a transformed copy: the pair
+ * either matches an anchored shape whole or the fragment is dropped, so a hostile hash costs the
+ * visitor the scroll and nothing else.
+ */
+export function returnWithAnchor(
+  next: unknown,
+  hash: unknown,
+  onAdminHost = false,
+): string | null {
+  const page = signInReturn(next, onAdminHost);
+  if (page === null || typeof hash !== "string" || hash === "") return page;
+  return signInReturn(`${page}${hash}`, onAdminHost) ?? page;
 }
 
 /**

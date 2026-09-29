@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { publishAnnouncementAction } from "@/app/admin/announcements/actions";
 import { Button } from "@/components/ui/button";
+import { ClientForm } from "@/components/ui/client-form";
 import {
   Form,
   FormControl,
@@ -47,7 +48,7 @@ export function AnnouncementCompose() {
 
   return (
     <Form {...form}>
-      <form
+      <ClientForm
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col gap-4"
       >
@@ -120,7 +121,7 @@ export function AnnouncementCompose() {
         <Button type="submit" disabled={isPending} className="self-start">
           {isPending ? "Publishing…" : "Publish announcement"}
         </Button>
-      </form>
+      </ClientForm>
     </Form>
   );
 }

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { verifyCurrentPasswordAction } from "@/app/(app)/account/actions";
 import { PasswordStrengthMeter } from "@/components/shared/password-strength-meter";
 import { Button } from "@/components/ui/button";
+import { ClientForm } from "@/components/ui/client-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -102,7 +103,7 @@ export function AccountSecurityForm({
     saving || !password || !confirm || (mode === "change" && !current);
 
   return (
-    <form
+    <ClientForm
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit();
@@ -168,6 +169,6 @@ export function AccountSecurityForm({
             ? "Change password"
             : "Set password"}
       </Button>
-    </form>
+    </ClientForm>
   );
 }

@@ -6,6 +6,7 @@ import { Check } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { ClientForm } from "@/components/ui/client-form";
 import { Input } from "@/components/ui/input";
 import {
   InputOTP,
@@ -147,7 +148,7 @@ export function EmailSection({
 
   if (state.step === "editing") {
     return (
-      <form
+      <ClientForm
         noValidate
         onSubmit={(e) => {
           e.preventDefault();
@@ -199,7 +200,7 @@ export function EmailSection({
         >
           Cancel
         </button>
-      </form>
+      </ClientForm>
     );
   }
 

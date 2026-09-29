@@ -280,8 +280,14 @@ function useQueueKeys(
       // The keys are a desk's: below 640 px there is nothing to sweep and no key to press.
       if (!root || !window.matchMedia("(min-width: 640px)").matches) return;
       const { q: s, dismiss: drop } = latest.current;
-      // Another layer is up (the peek, a confirm, a menu): its keys are its own, Escape included.
-      if (document.querySelector('[role="dialog"], [role="menu"]')) return;
+      // Another layer is up (the peek, a confirm, a menu): its keys are its own, Escape included. A confirm
+      // is an `alertdialog` (ui/popup.tsx), which is not a `dialog` to a selector.
+      if (
+        document.querySelector(
+          '[role="dialog"], [role="alertdialog"], [role="menu"]',
+        )
+      )
+        return;
       const target = e.target instanceof Element ? e.target : null;
       if (target?.closest("input, textarea, select, [contenteditable='true']"))
         return;

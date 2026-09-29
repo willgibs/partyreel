@@ -353,6 +353,28 @@ describe("the goal strip", () => {
     expect(toast).toHaveBeenCalledWith("You're storing 104 GB.");
   });
 
+  // ★ crumbs-20 (one of the ROADMAP's six bare `/login`s): a session that lapsed while the list was open
+  // sends her to sign in and back to the page she was on, not to the dashboard.
+  it("sends her to sign in, carrying this page, when the switch finds her signed out", async () => {
+    vi.stubGlobal("location", { ...window.location, pathname: "/dashboard" });
+    try {
+      const source = fakeSource({
+        switchPlan: vi.fn(async () => ({ kind: "signin" as const })),
+      });
+      const dialog = open(source, goal);
+      await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));
+      await userEvent.click(checkboxFor(dialog, BIG));
+      await userEvent.click(checkboxFor(dialog, MID));
+      const strip = dialog.querySelector("[data-storage-goal]") as HTMLElement;
+      await userEvent.click(within(strip).getByRole("button"));
+      await waitFor(() =>
+        expect(push).toHaveBeenCalledWith("/login?next=%2Fdashboard"),
+      );
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("offers no switch while her subscription cannot change here", async () => {
     const dialog = open(fakeSource(), { ...goal, canSwitch: false });
     await waitFor(() => expect(rowIds(dialog)).toHaveLength(3));

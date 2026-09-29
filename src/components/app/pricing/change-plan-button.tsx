@@ -9,6 +9,7 @@ import {
   requestChangePlan,
 } from "@/components/app/pricing/change-plan-request";
 import { Button } from "@/components/ui/button";
+import { loginPath } from "@/lib/auth/return-path";
 import type { StorageRefusal } from "@/lib/billing/storage-guard";
 import type { ProPlanId } from "@/lib/validation/checkout";
 
@@ -48,7 +49,7 @@ export function ChangePlanButton({
           window.location.href = outcome.url;
           return;
         case "signin":
-          router.push("/login");
+          router.push(loginPath(window.location.pathname));
           return;
         case "refused":
           if (onRefused) onRefused(outcome.refusal);

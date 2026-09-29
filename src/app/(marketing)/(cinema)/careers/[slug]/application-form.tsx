@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { ClientForm } from "@/components/ui/client-form";
 import {
   Form,
   FormControl,
@@ -117,7 +118,7 @@ export function ApplicationForm({
   return (
     <div className="rounded-sm border bg-card p-6 sm:p-7">
       <Form {...form}>
-        <form
+        <ClientForm
           onSubmit={form.handleSubmit(onSubmit)}
           className="flex flex-col gap-4"
         >
@@ -222,7 +223,7 @@ export function ApplicationForm({
               No resume required.
             </span>
           </div>
-        </form>
+        </ClientForm>
       </Form>
     </div>
   );
