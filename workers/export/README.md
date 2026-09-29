@@ -10,8 +10,9 @@ It is **not** part of the Next app or the Vercel build — deploy it separately 
 ## How it fits
 
 ```
-browser ── form POST t=<token> ──▶ partyreel-export Worker ── R2.get(key) ──▶ stream zip ──▶ browser
-                                         ▲
+browser ── POST /check (the token as text/plain) ──▶ partyreel-export ── R2.head / R2.list ──▶ JSON counts
+browser ── form POST t=<token> ─────────────────────▶ partyreel-export ── R2.get(key) ──▶ stream zip ──▶ browser
+                                                          ▲
             app mints + signs the token (authorizes once, at mint) — the Worker never authorizes
 ```
 
@@ -19,6 +20,19 @@ The Worker trusts the **signature**, not the claims: a valid HMAC means the app 
 this object set. The token carries `{ v, jti, scope, eventId, zipName, items:[{key,name}], exp }`; the format
 is shared with `src/lib/export/export-token.ts` (the app signs with node:crypto, this Worker verifies with
 Web Crypto — `src/export-token.ts` is the twin). `EXPORT_SIGNING_SECRET` must be IDENTICAL on both sides.
+
+**The check** (`POST /check`, `src/check.ts`): the app asks, in a `fetch` it can read, what the zip would hold
+before the browser takes the file (a top-level form POST the page can never read back): `{ ok, items, found,
+missing: [mediaId] }`, readable from any origin (no credential rides it, and it names only the token's own
+objects). An empty answer is refused in one line and no file is sent; a short one is counted; a refusal (`403`
+forbidden, `503` paused) is said in the app's toast rather than replacing the page. It reads no bytes: a small
+folder by `head`, a big one from its listing. A client that leaves stops it (`enable_request_signal`).
+
+**One deployment, two apps.** partyreel.com (milestone 29's app) posts here too, so every path but `/check`
+answers exactly as milestone 29's Worker did: `src/compat.test.ts` replays that app's requests at the vendored
+`src/milestone-29/` Worker and at this one and holds every answer equal (status, headers, zip bytes). An app
+that reaches a Worker from before `/check` gets a quick bare `400` (a `text/plain` body is no form) and goes
+ahead with the zip.
 
 ## Setup (one-time)
 
@@ -44,6 +58,10 @@ Confirm `client-zip` runs on `workerd` and emits extractor-valid archives:
 # with a freshly minted token for a small album (mint via the app, or sign one with the shared secret):
 curl -s -X POST "$EXPORT_WORKER_URL" --data-urlencode "t=$TOKEN" -o /tmp/album.zip
 unzip -t /tmp/album.zip   # must report "No errors detected"
+
+# the check, as the app asks it (the same token, the whole text/plain body):
+curl -s -X POST "$EXPORT_WORKER_URL/check" -H 'Content-Type: text/plain' --data "$TOKEN"
+# → {"ok":true,"items":N,"found":N,"missing":[]}
 ```
 
 ## Knobs (`wrangler.jsonc`)
@@ -51,11 +69,15 @@ unzip -t /tmp/album.zip   # must report "No errors detected"
 - `EXPORT_MODE` var — redeploy-layer kill-switch (`"on"` default; `"off"` + redeploy hard-halts). The app's
   `export_enabled` DB flag is the no-redeploy layer (flip it from `/admin`).
 - `limits.cpu_ms: 300000` — store-zip CPU is CRC32 over the bytes (I/O wait isn't billed); the app caps each
-  export (<=2000 items / ~20 GB) so the worst case stays well under the 5-min ceiling.
+  zip (<=2000 items / ~20 GB; a bigger album comes in parts, one zip each) so the worst case stays well under the
+  5-min ceiling.
+- `compatibility_flags: ["enable_request_signal"]` — `request.signal` fires when a client leaves, so a cancelled
+  check stops reading. The stream's answers are unchanged by it.
 
 ## Operability
 
 `observability.enabled` is on → request logs + errors land in the Cloudflare dashboard. The Worker can't reach
 the DB (no binding), so EXPORT observability for the admin portal lives app-side: every export ATTEMPT is
 written to `export_log` at mint and surfaced at `/admin` (recent exports + the kill-switch). A raced-deleted
-object is skipped (logged) rather than failing the whole stream.
+object is skipped (logged: `export-stream`) rather than failing the whole stream, and a check that finds objects
+gone is logged too (`export-check`), so a hollow or short zip is never silent in the dashboard.

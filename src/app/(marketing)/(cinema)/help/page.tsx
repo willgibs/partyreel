@@ -19,7 +19,6 @@ import {
   getArticlesByCategory,
   getHelpFacts,
   getStartHereArticles,
-  HELP_QUICK_LINKS,
 } from "@/lib/content/help";
 import { cn } from "@/lib/utils";
 
@@ -76,9 +75,16 @@ export default function HelpIndexPage() {
         subhead="Guides for hosts and guests: setup, sharing, privacy, plans, and the highlight reel."
         className="pt-16 pb-0 text-center sm:pt-20"
       >
-        {/* THE STAGE: the search field, the quick links, the guest lane and the
-            emblem strip, on the same blur-rise as the lockup (their seats
-            continue the lockup's clock, --i 3 to 6). */}
+        {/* THE STAGE: the search field, the guest lane and the emblem strip, on
+            the same blur-rise as the lockup (their seats continue the lockup's
+            clock, --i 3 to 5).
+
+            ★ NO CHIPS UNDER THE FIELD (help-center r1 `hub=strip`, Will: "To
+            clean up the hero (lots going on currently), let's remove the preset
+            questions below the input. Instead, when the input is selected, those
+            can drop down as quick options"). The four questions
+            (HELP_QUICK_LINKS) are the palette's Suggested list, which drops from
+            the field itself when it is pressed (help-palette.tsx, `dropFrom`). */}
         <TextsReveal className="mt-6 flex w-full flex-col items-center gap-6">
           <div
             className="surface-paper mkt-line mt-1 w-full"
@@ -86,26 +92,14 @@ export default function HelpIndexPage() {
           >
             <HelpSearchTrigger variant="hero" className="mx-auto" />
           </div>
-          <div
-            className="mkt-line max-w-3xl text-center"
-            style={{ "--i": 4 } as CSSProperties}
-          >
-            {HELP_QUICK_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="mx-1 mb-2 inline-flex rounded-full border px-3.5 py-1.5 text-working text-muted-foreground transition-colors duration-150 hover:border-foreground/40 hover:text-foreground"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-          {/* The guest fast lane: most people who land here from a phone just
-                scanned a QR code and are not hosts. One muted line, one link,
-                in the quick-link register (never a new component). */}
+          {/* The guest fast lane (`who-first=host`, Will: "Our entire platform
+                is paid for by hosts, not guests ... Guests are smart enough to
+                find the content they're looking for"): the heading and the
+                search speak to the host, and a guest who just scanned a code
+                gets this one quiet line. */}
           <p
             className="mkt-line text-sm text-muted-foreground"
-            style={{ "--i": 5 } as CSSProperties}
+            style={{ "--i": 4 } as CSSProperties}
           >
             Just scanned a QR code?{" "}
             <LearnMoreLink href="#guest-experience" className="text-foreground">
@@ -125,7 +119,7 @@ export default function HelpIndexPage() {
           <nav
             aria-label="Browse by category"
             className="surface-paper mkt-line relative z-10 mx-auto mt-6 -mb-10 w-full max-w-3xl"
-            style={{ "--i": 6 } as CSSProperties}
+            style={{ "--i": 5 } as CSSProperties}
           >
             <div className="[scrollbar-width:none] overflow-x-auto rounded-2xl border bg-card shadow-lift ring-1 ring-foreground/5 [&::-webkit-scrollbar]:hidden">
               {/* Ten cells since the account category (2026-09-01). The 84px

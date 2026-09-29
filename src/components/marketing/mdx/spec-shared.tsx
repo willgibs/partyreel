@@ -14,6 +14,7 @@ import Image from "next/image";
 import { BrowserFrame } from "@/components/marketing/frames";
 import { Check, Checklist } from "@/components/marketing/help/checklist";
 import { MatrixMark } from "@/components/marketing/matrix-mark";
+import { StepScreen } from "@/components/marketing/help/step-screens/step-screen";
 import { HeadingAnchor } from "@/components/marketing/reading/heading-anchor";
 import { HEADING_SCROLL_MT } from "@/components/marketing/reading/heading-contract";
 import { Kbd } from "@/components/shared/kbd";
@@ -313,14 +314,27 @@ export function Callout({
   type = "info",
   title,
   children,
+  screen,
 }: {
   type?: CalloutType;
   title?: string;
   children: ReactNode;
+  /**
+   * The screen the callout describes, beside it the way a step keeps one (help-center r1
+   * `article=screen`): the guest how-to's keep is its closing callout, and the door's last screen
+   * all the same. A registry id (`help/step-screens/registry.ts`).
+   */
+  screen?: string;
 }) {
   const { Icon, box, icon } = CALLOUT[type];
-  return (
-    <div className={cn("my-6 flex gap-3.5 rounded-xl border p-4", box)}>
+  const callout = (
+    <div
+      className={cn(
+        "flex gap-3.5 rounded-xl border p-4",
+        screen ? "min-w-0 flex-1" : "my-6",
+        box,
+      )}
+    >
       <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border bg-card">
         <Icon className={cn("size-4", icon)} aria-hidden />
       </span>
@@ -328,6 +342,16 @@ export function Callout({
       <div className="text-sm [&>:first-child]:mt-0 [&>:last-child]:mb-0">
         {title && <p className="font-medium text-foreground">{title}</p>}
         {children}
+      </div>
+    </div>
+  );
+  if (!screen) return callout;
+  return (
+    // Beside it at a desk, under it in a hand; the callout reads exactly as it does alone.
+    <div className="my-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-5">
+      {callout}
+      <div className="not-prose" data-print-hide>
+        <StepScreen id={screen} />
       </div>
     </div>
   );
@@ -427,9 +451,32 @@ function H3({ children }: { children?: ReactNode }) {
 // ── Steps — numbered procedures with a tabular numeral rail ─────────────────────
 // Numerals stay on the UI (sans) face with tabular-nums for alignment; no mono
 // anywhere. Steps injects the index so authors never hand-number.
-type StepProps = { index?: number; title: string; children?: ReactNode };
+//
+// ★ A STEP KEEPS THE SCREEN IT DESCRIBES (help-center r1 `article=screen`, Will's
+// pick: "Each step keeps a small illustration of the surface it describes, next
+// to the sentence"). `screen` names one from `help/step-screens/registry.ts`: it
+// sits beside the sentence at a desk and under it in a hand, at the one 200px
+// width every screen is drawn at. A step without one renders exactly as before.
+type StepProps = {
+  index?: number;
+  title: string;
+  children?: ReactNode;
+  screen?: string;
+};
 
-export function Step({ index = 1, title, children }: StepProps) {
+export function Step({ index = 1, title, children, screen }: StepProps) {
+  const words = (
+    <div
+      className={cn("min-w-0 text-sm leading-6", screen ? "flex-1" : "pt-0.5")}
+    >
+      <p className="font-medium text-foreground">{title}</p>
+      {children && (
+        <div className="mt-1 text-muted-foreground [&>:first-child]:mt-0 [&>:last-child]:mb-0">
+          {children}
+        </div>
+      )}
+    </div>
+  );
   return (
     <li className="group relative flex gap-4 pb-7 last:pb-0">
       {/* The connector: from below this numeral to the next one; none after the last. */}
@@ -440,14 +487,16 @@ export function Step({ index = 1, title, children }: StepProps) {
       <span className="z-10 flex size-7 shrink-0 items-center justify-center rounded-full border bg-card text-[11px] text-muted-foreground tabular-nums">
         {String(index).padStart(2, "0")}
       </span>
-      <div className="min-w-0 pt-0.5 text-sm leading-6">
-        <p className="font-medium text-foreground">{title}</p>
-        {children && (
-          <div className="mt-1 text-muted-foreground [&>:first-child]:mt-0 [&>:last-child]:mb-0">
-            {children}
+      {screen ? (
+        <div className="flex min-w-0 flex-1 flex-col gap-3 pt-0.5 sm:flex-row sm:items-start sm:gap-5">
+          {words}
+          <div data-print-hide>
+            <StepScreen id={screen} />
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        words
+      )}
     </li>
   );
 }

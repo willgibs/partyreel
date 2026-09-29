@@ -327,8 +327,26 @@ export default async function HelpArticlePage({
                 {/* The ladder points UP too (the de-silo ruling): each category
                 maps to one marketing rung. A GUEST article ends on the host
                 rung instead: the reader just used the product as a guest, and
-                "hosting your own" is the growth loop stated once, quietly. */}
-                {audience === "guest" ? (
+                "hosting your own" is the growth loop stated once, quietly.
+
+                ★ TROUBLESHOOTING'S RUNG IS ITS OWN (help-center r1
+                `dead-end=rung`): no marketing page answers a failure, so a fix
+                article ends on the calm, working version of the same act, in
+                the same slot and the same voice, from its frontmatter. */}
+                {article.frontmatter.rung ? (
+                  <p
+                    className="mt-10 text-sm text-muted-foreground"
+                    data-print-hide
+                  >
+                    Working now?{" "}
+                    <LearnMoreLink
+                      href={article.frontmatter.rung.href}
+                      className="text-foreground"
+                    >
+                      {article.frontmatter.rung.label}
+                    </LearnMoreLink>
+                  </p>
+                ) : audience === "guest" ? (
                   <p
                     className="mt-10 text-sm text-muted-foreground"
                     data-print-hide

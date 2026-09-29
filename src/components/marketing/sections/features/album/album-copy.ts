@@ -1,5 +1,4 @@
 import { planById } from "@/lib/constants/tiers";
-import { MAX_EXPORT_ITEMS } from "@/lib/export/build-manifest";
 import { INACTIVE_DAYS, WARN_BEFORE_DAYS } from "@/lib/lifecycle/inactivity";
 import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-cap";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
@@ -125,7 +124,8 @@ export const TAKE_HOME = {
     },
     {
       title: "Take all of it",
-      body: `One zip of the originals: everything, photos, or videos. Up to ${MAX_EXPORT_ITEMS.toLocaleString("en-US")} items.`,
+      // However big: past one zip's ceilings it comes home in parts (export-flow `cap=split`).
+      body: "A zip of the originals: everything, photos, or videos, however big the album.",
     },
     {
       // The reel plays live at the album's head and is never a file; what a

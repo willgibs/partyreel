@@ -237,8 +237,8 @@ beneath, newest first.
   item but the bin, light, each status in its flags) and mints links for the 96 newest (`FIRST_WINDOW`,
   `readHostLinksBody`, with each item's like count); the windowed rows ask for the rest by id. Every number is counted
   in the version's snapshot (approved plus hidden, and pending), never a list's length. The album's writes never
-  revalidate the hub: each asks the store to catch up. The `live` slice is Download all's, whose manifest refuses past
-  2,000 items with a 413.
+  revalidate the hub: each asks the store to catch up. The `live` slice is Download all's, which takes an album past
+  one zip's 2,000 items in parts ([uploads-and-r2.md](uploads-and-r2.md)).
 - ★ **The View menu** (`shared/view-menu.tsx`) holds Tile size (the rows' three density steps: the slider, a pinch,
   ctrl and the wheel, in the per-device `pr_tile_size` cookie painted by the hub, never localStorage, which would
   repaint after hydration), Sort (Newest or Oldest first: the manifest reversed and laid from its start, so an arrival

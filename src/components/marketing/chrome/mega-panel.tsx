@@ -1,9 +1,11 @@
 "use client";
 
+import { Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { HelpSearchLink } from "@/components/marketing/help/help-search-link";
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
 import { DemoDoor } from "@/components/marketing/system/demo-modal/demo-door";
 import { DemoFrame } from "@/components/marketing/system/demo-ticket";
@@ -109,6 +111,22 @@ export function MegaPanel({ group }: { group: NavGroup }) {
               New here? See how it works
               <LearnChevron />
             </Link>
+          </NavigationMenuLink>
+        )}
+        {/* THE PLAIN SEARCH ROW (help-center r1 `search=visible`), in the
+            Features footnote's own grammar so the two panels share one: the
+            help palette, rung in place on a page that mounts it and opened at
+            /help from anywhere else (help-search-signal.ts). The panel closes
+            under it like any link (NavigationMenuLink's select). */}
+        {group.label === "Resources" && (
+          <NavigationMenuLink
+            asChild
+            className="mt-1 flex-row items-center gap-1.5 border-t px-3 pt-2.5 pb-1.5 text-xs text-muted-foreground transition-colors duration-[var(--mkt-dropdown-ink-ms,60ms)] hover:text-foreground"
+          >
+            <HelpSearchLink data-help-search-row="panel">
+              <Search aria-hidden className="size-3.5" />
+              Search
+            </HelpSearchLink>
           </NavigationMenuLink>
         )}
       </div>

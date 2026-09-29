@@ -1,6 +1,6 @@
 /**
  * THE STORAGE METER AND THE STORAGE GUARD READ ONE AGGREGATE (`public.host_storage_summary`, 20260923140000, its
- * Deleted figure narrowed by 20260923160000).
+ * Deleted figure narrowed by 20260923160000 and made exactly the host's Deleted by 20260928140000).
  *
  * The meter's two numbers, and the storage guard's one (a plan change is refused off `activeBytes`, so an
  * undercount SELLS a plan the host does not fit), come from one SQL SUM each, whatever the album's size. What is
@@ -8,14 +8,17 @@
  * nothing for a signed-out caller, and throws rather than reporting an empty account; the admin's account view reads
  * the same function and counts its items without reading rows; the function's ACTIVE filter is `host_active_bytes`'
  * (the one definition every upload function enforces), read off both migrations, so the meter can never show a host
- * a number the cap does not enforce; and its DELETED filter is only what the host can restore, so a guest's own
- * withdrawal (Will, 2026-09-23: "I want it gone everywhere, not still visible to the host as well") counts in
- * neither number.
+ * a number the cap does not enforce; and its DELETED filter is exactly what her two Deleted lists show: never a
+ * guest's own withdrawal (Will, 2026-09-23: "I want it gone everywhere, not still visible to the host as well"),
+ * never an operator's removal (Will, 2026-09-28: "it should be fully purged from the event, not moved to deleted"),
+ * and nothing past the 30-day window, where a held item would be the one byte count telling her a hold exists.
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/env", () => ({ serverEnv: { STRIPE_SECRET_KEY: "sk_test_x" } }));
@@ -244,27 +247,6 @@ describe("host_storage_summary's filters, read off the migrations", () => {
     return new Set(text.split(/\s+and\s+/).map((part) => part.trim()));
   }
 
-  /**
-   * The TOP-LEVEL `and` conjuncts of a filter, parentheses respected:
-   * `not (a and b) and not (c and d)` → [`not (a and b)`, `not (c and d)`].
-   */
-  function topLevelConjuncts(text: string): string[] {
-    const parts: string[] = [];
-    let depth = 0;
-    let start = 0;
-    for (let i = 0; i < text.length; i++) {
-      if (text[i] === "(") depth++;
-      else if (text[i] === ")") depth--;
-      else if (depth === 0 && text.startsWith(" and ", i)) {
-        parts.push(text.slice(start, i).trim());
-        start = i + " and ".length;
-        i = start - 1;
-      }
-    }
-    parts.push(text.slice(start).trim());
-    return parts;
-  }
-
   /** The aggregate's two SUM filters, active first and standby second. */
   function summaryFilters(): string[] {
     return [
@@ -312,27 +294,63 @@ describe("host_storage_summary's filters, read off the migrations", () => {
     );
   });
 
-  it("★ standby is what the host can restore: the negation of the active filter, less a guest's own withdrawal", () => {
-    const [activeFilter, standbyFilter] = summaryFilters();
-    const standby = topLevelConjuncts(standbyFilter);
-    // Exactly two conditions: not active (a host's removal, a deleted event's media) and not withdrawn.
-    expect(standby).toHaveLength(2);
-    const notActive = standby.find((part) => !part.includes("removed_by_uploader"));
-    const negated = notActive?.match(/^not \((.+)\)$/)?.[1];
-    if (!negated) {
-      throw new Error(`Cannot read standby's "not active" arm in ${summary.file}.`);
+  /** The window both Deleted lists read (RECENTLY_DELETED_WINDOW_DAYS), as the SQL spells it. */
+  const inWindow = (column: string) =>
+    `${column} >= now() - interval '${RECENTLY_DELETED_WINDOW_DAYS} days'`;
+
+  /** `(a) or (b)` → [a, b]: the TOP-LEVEL `or` arms, parentheses respected, each arm's own parentheses dropped. */
+  function topLevelArms(text: string): string[] {
+    const arms: string[] = [];
+    let depth = 0;
+    let start = 0;
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === "(") depth++;
+      else if (text[i] === ")") depth--;
+      else if (depth === 0 && text.startsWith(" or ", i)) {
+        arms.push(text.slice(start, i).trim());
+        start = i + " or ".length;
+        i = start - 1;
+      }
     }
-    expect(conjuncts(negated)).toEqual(conjuncts(activeFilter));
-    // ...and a withdrawal counts in NEITHER number: it fails active (it is removed) and this arm keeps it out
-    // of standby, whatever the event's state.
-    expect(standby).toContain(`not (${WITHDRAWN})`);
+    arms.push(text.slice(start).trim());
+    return arms.map((arm) => arm.replace(/^\((.+)\)$/, "$1"));
+  }
+
+  // ★ RESHAPED ON PURPOSE (triage-wiring, 2026-09-28; scar kept: a withdrawal counts in neither number). The
+  // expired reason: "standby is the negation of the active filter, less a guest's own withdrawal". An operator's
+  // removal left the host's Deleted (Will's `notice=deleted` note), and a held item outlives the window its list
+  // shows, so "everything not active" counted bytes her Deleted never shows: the figure is now her two lists,
+  // arm for arm.
+  it("★ standby is exactly her two Deleted lists: a removal that is neither a withdrawal nor an operator's, and a deleted event's live media, each inside the window", () => {
+    const [activeFilter, standbyFilter] = summaryFilters();
+    const arms = topLevelArms(standbyFilter).map((arm) => conjuncts(arm));
+    expect(arms).toHaveLength(2);
+    // The media bin (listRecentlyDeletedMedia, RLS supplying the operator's arm there).
+    expect(arms[0]).toEqual(
+      new Set([
+        "m.status = 'removed'",
+        "not m.removed_by_uploader",
+        "not m.removed_by_admin",
+        inWindow("m.removed_at"),
+      ]),
+    );
+    // The events bin (listRecentlyDeletedEvents): a deleted event's media that is not itself removed.
+    expect(arms[1]).toEqual(
+      new Set(["m.status <> 'removed'", inWindow("e.deleted_at")]),
+    );
+    // No row is in both numbers: every standby arm is removed or in a deleted event, the two things active refuses.
+    expect(conjuncts(activeFilter)).toEqual(
+      new Set(["e.deleted_at is null", "m.status <> 'removed'"]),
+    );
   });
 
-  it("leaves out exactly the row the host's restore refuses on the uploader's behalf", () => {
-    // restore_media's ownership read carries the uploader's marker, so the bytes the figure drops are the
-    // bytes no Restore could ever bring back: the Deleted figure and the Deleted list agree.
+  it("leaves out exactly the rows the host's restore refuses: a guest's withdrawal and an operator's removal", () => {
+    // restore_media's ownership read carries the uploader's marker and it refuses an operator's removal, so the
+    // bytes the figure drops are the bytes no Restore could ever bring back: the Deleted figure and the Deleted
+    // list agree.
     const restore = newestBody("restore_media");
     expect(restore.body).toContain("and m.removed_by_uploader = false");
+    expect(restore.body).toContain("if v_media.removed_by_admin then");
     // The same words get_upload_gate uses for "the guest removed it themselves".
     expect(newestBody("get_upload_gate").body).toContain(`not (${WITHDRAWN})`);
   });

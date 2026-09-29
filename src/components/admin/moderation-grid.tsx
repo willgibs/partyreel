@@ -20,16 +20,21 @@ import { DestructiveSheet } from "@/components/admin/destructive-sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
-import { type ModerationGridItem } from "@/lib/moderation/operator-actions";
+import {
+  type ModerationGridItem,
+  operatorRemovalTouches,
+} from "@/lib/moderation/operator-actions";
 
 // The operator moderation grid (admin Albums browser). Reuses the shared MediaTile +
 // MediaLightbox; the per-tile controls are SIBLINGS of the open-lightbox button (the
 // HostMediaGrid pattern), so tapping a control never opens the lightbox. Active items get a
 // Remove (behind the portal's one destructive sheet, `destructive=sheet` 2026-09-20 — it's
-// destructive-ish: pulled from public view now, hard-deleted after a 7-day grace; the dialog it
-// replaces asked nothing and closed on the same click that fired the action, so its own
-// `disabled={isPending}` never engaged); removed items get a Restore (safe + reversible, so no
-// confirm). The TILE is untouched here: the glass lane rewrites every tile's marks.
+// destructive-ish: pulled from the album and the host's Deleted now, hard-deleted when its
+// 30-day window ends unless held; the dialog it replaces asked nothing and closed on the same
+// click that fired the action, so its own `disabled={isPending}` never engaged); removed items
+// get a Restore (safe + reversible, so no confirm). What the confirm lists is the one home both
+// operator removals share (`operatorRemovalTouches`), so this and a report's Remove cannot drift.
+// The TILE is untouched here: the glass lane rewrites every tile's marks.
 // `mode="feed"` shows the album/host caption (linking to the drill-in); `mode="album"` omits it.
 
 function ModerationTile({
@@ -98,7 +103,9 @@ function ModerationTile({
             onClick={() =>
               run(
                 () => restoreMediaAction(item.id),
-                "Restored. It is approved and back in the album.",
+                // Not "approved": the restore lands the item on the status it held before the
+                // removal (a hidden photo comes back hidden), so the toast says only that.
+                "Restored to where it was before the removal.",
                 "Couldn't restore that item.",
               )
             }
@@ -121,16 +128,17 @@ function ModerationTile({
             <DestructiveSheet
               open={asking}
               onOpenChange={setAsking}
-              title="Remove this item?"
-              lede="It leaves the guest album now, and you can restore it until the grace ends."
+              title={`Remove this ${item.type}?`}
+              lede={`It leaves the album and the host's Deleted now; you can restore it here for ${RECENTLY_DELETED_WINDOW_DAYS} days.`}
               verb="Remove"
-              touches={[
-                `1 ${item.type} in ${item.eventName}`,
-                `Restorable for ${RECENTLY_DELETED_WINDOW_DAYS} days, then the purge deletes the bytes`,
-                "At an event that reviews uploads, her uploads list already says Not in the album",
-              ]}
+              touches={operatorRemovalTouches({
+                kind: item.type,
+                eventName: item.eventName,
+                from: "album",
+                wayBack: "here",
+              })}
               severity="reversible"
-              successMessage="Removed. It is pulled from the album."
+              successMessage="Removed. It is out of the album and the host's Deleted."
               onConfirm={() => removeMediaByOperatorAction(item.id)}
             />
           </>

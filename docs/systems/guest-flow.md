@@ -862,8 +862,10 @@ had" holds only when this device holds a guest ticket a claim would move.
   surfaces own, so a prop cannot reach it), counting the guest's own ids plus any held file still waiting. When
   that removal lands, the page refreshes onto the server's answer at once rather than holding the album until the
   guest's next act (the stricter-drift rule is for a host's switch, not the guest's own choice).
-- **And WHICH tiles are a guest's own:** the same server-read set feeds only the **Yours filter**
-  ([`yours-filter.ts`](../../src/lib/guest/yours-filter.ts), pure); a guest's own tiles wear no mark, so the ONE View
+- **And WHICH tiles are a guest's own:** the same server-read set feeds the **Yours filter** alone
+  ([`yours-filter.ts`](../../src/lib/guest/yours-filter.ts), pure), while the Download menu's Yours row is read by
+  `/api/export/guest` itself, from the account and this browser's ticket cookie ([uploads-and-r2.md](uploads-and-r2.md));
+  a guest's own tiles wear no mark, so the ONE View
   menu ([`view-menu.tsx`](../../src/components/shared/view-menu.tsx), the host gallery's own object) beside "Download
   all" in [`live-gallery.tsx`](../../src/components/guest/live-gallery.tsx) is the filter's one door: a Showing group
   (Everyone's / Yours (n)) only while the guest owns something. Yours narrows the album under a "Showing yours · Show

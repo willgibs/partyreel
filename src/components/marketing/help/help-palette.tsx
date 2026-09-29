@@ -16,6 +16,10 @@ import {
 import { Dialog as DialogPrimitive } from "radix-ui";
 
 import { portalSkinProps } from "@/components/marketing/chrome/portal-skin";
+import {
+  onHelpSearchRequest,
+  takeHelpSearchArrival,
+} from "@/components/marketing/help/help-search-signal";
 import { MissingFrameStrip } from "@/components/marketing/marketing-not-found";
 import { Kbd } from "@/components/shared/kbd";
 import { floatingRow } from "@/components/ui/floating-layer";
@@ -44,7 +48,12 @@ import { cn } from "@/lib/utils";
 type QuickLink = { label: string; href: string };
 type CategoryChip = { slug: string; title: string };
 
-type PaletteContextValue = { open: () => void };
+type PaletteContextValue = {
+  /** Open the palette; from `anchor` when it is the page's search field (see `dropFrom`). */
+  open: (anchor?: HTMLElement | null) => void;
+  /** The page's hero field, so an arrival from a Search row drops from it too. */
+  heroRef: React.RefObject<HTMLButtonElement | null>;
+};
 
 const PaletteContext = createContext<PaletteContextValue | null>(null);
 
@@ -71,6 +80,50 @@ function useIsMac(): boolean {
     () => /Mac|iPhone|iPad/.test(navigator.platform),
     () => true,
   );
+}
+
+/**
+ * ★ THE QUICK QUESTIONS DROP FROM THE FIELD (help-center r1 `hub=strip`, Will: "remove the preset
+ * questions below the input. Instead, when the input is selected, those can drop down as quick
+ * options"). The chips under the hero's search are gone; pressing the field opens the palette ON the
+ * field, its input where the field was and the Suggested questions dropping beneath, rather than
+ * jumping to a sheet near the top of the screen.
+ *
+ * At a desk only, and only while the field is on screen: `(pointer: fine)` is the reader with a
+ * mouse or a trackpad, and every touch screen keeps the top placement, because its keyboard rises
+ * over the lower half of the page and a list dropped from mid-screen would open under it. ⌘K, the
+ * article's compact pill and a Search row far down the page open at the top as ever: there is no
+ * field in view to drop from.
+ */
+const DROP_QUERY = "(min-width: 40rem) and (pointer: fine)";
+/** The panel's own parts, so the list below the field gets exactly the room left. */
+const INPUT_H = 56;
+const FOOTER_H = 41;
+const EDGE = 16;
+/** Four Suggested rows and their label stand in at least this much. */
+const MIN_LIST = 240;
+/** The list's own cap, `min(26rem, 55vh)`, as the class below also says. */
+const LIST_CAP_PX = 416;
+
+type Drop = { top: number; left: number; width: number; listMax: number };
+
+function dropFrom(el: HTMLElement | null | undefined): Drop | null {
+  if (!el || typeof window === "undefined") return null;
+  if (!window.matchMedia(DROP_QUERY).matches) return null;
+  const rect = el.getBoundingClientRect();
+  const vh = window.innerHeight;
+  if (rect.width === 0 || rect.bottom <= 0 || rect.top >= vh) return null;
+  const chrome = INPUT_H + FOOTER_H + EDGE;
+  // A short window leaves less than a list's worth under the field: the panel rises until it fits.
+  let top = Math.max(EDGE, rect.top);
+  if (vh - top - chrome < MIN_LIST)
+    top = Math.max(EDGE, vh - chrome - MIN_LIST);
+  return {
+    top,
+    left: rect.left,
+    width: rect.width,
+    listMax: Math.min(LIST_CAP_PX, vh * 0.55, vh - top - chrome),
+  };
 }
 
 type PaletteOption = {
@@ -110,6 +163,9 @@ export function HelpPaletteProvider({
   // Escape still returns focus to the trigger like a well-behaved dialog.
   const navigatingRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const heroRef = useRef<HTMLButtonElement>(null);
+  // Where the panel drops from this time (null: the top placement).
+  const [drop, setDrop] = useState<Drop | null>(null);
 
   const hasQuery = tokenizeQuery(query).length > 0;
   const results = useMemo(
@@ -171,11 +227,30 @@ export function HelpPaletteProvider({
     setActiveIndex(0);
   }, []);
 
-  const openPalette = useCallback(() => {
+  const openPalette = useCallback((anchor?: HTMLElement | null) => {
+    setDrop(dropFrom(anchor));
     setIsOpen(true);
     setQuery("");
     setActiveIndex(0);
   }, []);
+
+  // The doorbell (help-search-signal.ts): a Search row in the header or the footer asks the palette
+  // on this page to open, dropping from the hero field when it is in view. And a reader who arrived
+  // at /help?search from a row on another page gets the palette at once, at the top placement: the
+  // hero is still rising into place then (its entrance), so a panel dropped from the field would
+  // land where the field is not yet.
+  useEffect(
+    () => onHelpSearchRequest(() => openPalette(heroRef.current)),
+    [openPalette],
+  );
+  useEffect(() => {
+    // Read on the next frame, as a callback: the arrival is an outside signal (the address, the
+    // row's mark), and a remount under Strict Mode cancels the first read before it consumes one.
+    const frame = requestAnimationFrame(() => {
+      if (takeHelpSearchArrival()) openPalette();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [openPalette]);
 
   const handleOpenChange = useCallback(
     (next: boolean) => {
@@ -196,6 +271,8 @@ export function HelpPaletteProvider({
         !event.defaultPrevented
       ) {
         event.preventDefault();
+        // The keyboard has no field to drop from: ⌘K opens at the top placement.
+        setDrop(null);
         setIsOpen((open) => {
           if (open) {
             setQuery("");
@@ -265,7 +342,7 @@ export function HelpPaletteProvider({
   const firstPageIndex = results.length;
 
   return (
-    <PaletteContext.Provider value={{ open: openPalette }}>
+    <PaletteContext.Provider value={{ open: openPalette, heroRef }}>
       {children}
       <DialogPrimitive.Root open={isOpen} onOpenChange={handleOpenChange}>
         <DialogPrimitive.Portal>
@@ -288,7 +365,20 @@ export function HelpPaletteProvider({
             className={cn(
               skin.className,
               "fixed top-[12vh] left-1/2 z-50 w-[min(40rem,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-float border bg-popover text-popover-foreground shadow-layer ring-1 ring-foreground/10 duration-200 ease-emphasis outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-open:slide-in-from-top-2 data-closed:animate-out data-closed:duration-150 data-closed:fade-out-0 data-closed:zoom-out-95",
+              // Dropped from the field: it grows DOWN from where the field was.
+              drop && "origin-top",
             )}
+            data-drop={drop ? "" : undefined}
+            style={
+              drop
+                ? {
+                    top: drop.top,
+                    left: drop.left,
+                    width: drop.width,
+                    translate: "none",
+                  }
+                : undefined
+            }
           >
             <DialogPrimitive.Title className="sr-only">
               Search the help center
@@ -347,6 +437,7 @@ export function HelpPaletteProvider({
               role="listbox"
               aria-label="Search results"
               className="max-h-[min(26rem,55vh)] overflow-y-auto p-1"
+              style={drop ? { maxHeight: drop.listMax } : undefined}
             >
               {!hasQuery && (
                 <p className="px-3 pt-2 pb-1.5 text-label font-medium text-muted-foreground uppercase">
@@ -502,7 +593,7 @@ export function HelpSearchTrigger({
   variant?: "hero" | "compact";
   className?: string;
 }) {
-  const { open } = useHelpPalette();
+  const { open, heroRef } = useHelpPalette();
   const isMac = useIsMac();
   const shortcut = isMac ? "⌘K" : "Ctrl K";
 
@@ -510,7 +601,7 @@ export function HelpSearchTrigger({
     return (
       <button
         type="button"
-        onClick={open}
+        onClick={() => open()}
         className={cn(
           "inline-flex h-9 items-center gap-2 rounded-full border bg-card px-3.5 text-sm text-muted-foreground transition-colors duration-150 hover:border-foreground/25 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none",
           className,
@@ -525,8 +616,10 @@ export function HelpSearchTrigger({
 
   return (
     <button
+      ref={heroRef}
       type="button"
-      onClick={open}
+      onClick={(event) => open(event.currentTarget)}
+      data-help-search-hero=""
       className={cn(
         // The page's primary instrument, edged by its border and its ring. It
         // carried the float shadow until the light ruling (2026-09-17): a

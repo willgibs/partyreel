@@ -1,5 +1,7 @@
+import { Search } from "lucide-react";
 import Link from "next/link";
 
+import { HelpSearchLink } from "@/components/marketing/help/help-search-link";
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
 import { DemoDoor } from "@/components/marketing/system/demo-modal/demo-door";
 import { Reveal } from "@/components/marketing/system/reveal";
@@ -322,6 +324,22 @@ function FooterNavColumn({ column }: { column: FooterColumn }) {
         {column.links.map((link) => (
           <FooterLink key={link.href} link={link} />
         ))}
+        {/* THE PLAIN SEARCH ROW (help-center r1 `search=visible`): the help
+            palette, in place where a page mounts it and at /help from anywhere
+            else. Component-side on purpose, like the hiring badge below:
+            marketing-nav.ts holds routes, and the Resources pin mirrors the
+            header's rows by href, which an action is not. */}
+        {column.title === "Resources" && (
+          <li>
+            <HelpSearchLink
+              data-help-search-row="footer"
+              className={cn(FOOTER_LINK, "flex items-center gap-1.5")}
+            >
+              <Search aria-hidden className="size-4" />
+              Search
+            </HelpSearchLink>
+          </li>
+        )}
       </ul>
       {column.tail && (
         <ul className="mt-6 flex flex-col gap-y-3 border-t pt-6">

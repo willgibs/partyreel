@@ -2,17 +2,34 @@
 
 import { useCallback } from "react";
 
-import { toast } from "sonner";
-
+import {
+  createExportWalker,
+  type ExportScope,
+  type MintBody,
+} from "@/components/app/export/export-walk";
+import { exportToasts } from "@/components/app/export/export-toast";
 import type { ExportSummary } from "@/lib/export/build-manifest";
+import {
+  downloadPlaceFor,
+  RETRY_PAUSE_MS,
+  SUMMARY_TRIES_MS,
+} from "@/lib/export/walk";
+import { detectPlatform } from "@/lib/media/share-save";
 
-// The client side of "Download all": fetch the modal's count/size SUMMARY, and MINT-then-trigger the
-// actual download. The download itself never streams through the app — the mint route returns a signed
-// token + the Worker URL, and we form-POST the token to the Worker (into a hidden iframe so an error
-// response doesn't navigate the page away); the Worker streams the zip and the browser's native download
-// dialog takes over. Mirrors the per-item Save's "bytes go straight from the edge to the browser".
+// The client side of "Download all": fetch the menu's count/size SUMMARY, and start a download (the
+// walk: mint, the Worker's check, then the file; `export-walk.ts`). The download itself never streams
+// through the app — the mint route returns a signed token + the Worker URL, and we form-POST the
+// token to the Worker at the top level; the Worker streams the zip and the browser's native download
+// takes over. Mirrors the per-item Save's "bytes go straight from the edge to the browser".
 
-export type ExportScope = "host" | "guest";
+export type { ExportScope };
+
+/** What the menu is drawn from: the album's buckets, and (for a guest) her own, when she has any. */
+export type ExportMenuSummary = {
+  summary: ExportSummary;
+  /** Yours (`export-flow` r1, `means=mine`): null when nothing here is hers. */
+  yours: ExportSummary | null;
+};
 
 /**
  * POST the (possibly large) token to the Worker to start the zip download.
@@ -22,8 +39,8 @@ export type ExportScope = "host" | "guest";
  * navigate the page away (standard attachment behavior). We deliberately do NOT use a hidden iframe:
  * Chrome BLOCKS downloads initiated through a cross-origin iframe, so the file silently never saves
  * (verified live, 2026-06-22). A same-frame navigation needs no user gesture (so it survives the awaited
- * mint) and is never download-blocked. The happy path is always a 200 attachment (the token is freshly
- * minted + valid; the mint refuses to issue one when downloads are paused), so the page never unloads.
+ * mint) and is never download-blocked. The walk posts only after the Worker's own check has said it
+ * will stream this token (or could not be asked), so a refusal never replaces the page.
  */
 function postToWorker(workerUrl: string, token: string) {
   const form = document.createElement("form");
@@ -40,57 +57,73 @@ function postToWorker(workerUrl: string, token: string) {
   form.remove();
 }
 
-type MintBody = Record<string, unknown>;
+let walks = 0;
+
+/** One engine for the page: a walk outlives the menu that started it, so it lives out here. */
+const walker = createExportWalker({
+  fetch: (input, init) => fetch(input, init),
+  post: postToWorker,
+  toast: exportToasts,
+  place: () =>
+    typeof navigator === "undefined"
+      ? "desk"
+      : downloadPlaceFor(detectPlatform(navigator)),
+  sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+  newId: () => `export-${++walks}`,
+});
+
+/** One summary try, with its own ceiling: a menu that hangs is a menu that says it could not add up. */
+async function summaryTry(
+  scope: ExportScope,
+  body: MintBody,
+  ceilingMs: number,
+): Promise<ExportMenuSummary | "retry" | null> {
+  const request = new AbortController();
+  const timer = setTimeout(() => request.abort(), ceilingMs);
+  try {
+    const res = await fetch(`/api/export/${scope}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ step: "summary", ...body }),
+      signal: request.signal,
+    });
+    const data = (await res.json().catch(() => null)) as {
+      ok?: boolean;
+      summary?: ExportSummary;
+      yours?: ExportSummary | null;
+    } | null;
+    if (res.ok && data?.ok && data.summary) {
+      return { summary: data.summary, yours: data.yours ?? null };
+    }
+    return res.status >= 500 ? "retry" : null;
+  } catch {
+    return "retry";
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 export function useExportDownload() {
   const fetchSummary = useCallback(
-    async (scope: ExportScope, body: MintBody): Promise<ExportSummary | null> => {
-      try {
-        const res = await fetch(`/api/export/${scope}`, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ step: "summary", ...body }),
-        });
-        const data = (await res.json().catch(() => null)) as {
-          ok?: boolean;
-          summary?: ExportSummary;
-        } | null;
-        if (!res.ok || !data?.ok || !data.summary) return null;
-        return data.summary;
-      } catch {
-        return null;
+    async (
+      scope: ExportScope,
+      body: MintBody,
+    ): Promise<ExportMenuSummary | null> => {
+      // The same quiet re-attempt a mint gets (`stuck=retry`), shorter: the menu is open and waiting.
+      for (let i = 0; i < SUMMARY_TRIES_MS.length; i++) {
+        if (i > 0)
+          await new Promise((r) => setTimeout(r, RETRY_PAUSE_MS[i - 1]));
+        const got = await summaryTry(scope, body, SUMMARY_TRIES_MS[i]);
+        if (got !== "retry") return got;
       }
+      return null;
     },
     [],
   );
 
   const startDownload = useCallback(
-    async (scope: ExportScope, body: MintBody): Promise<boolean> => {
-      const id = toast.loading("Preparing your download…");
-      try {
-        const res = await fetch(`/api/export/${scope}`, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ step: "mint", ...body }),
-        });
-        const data = (await res.json().catch(() => null)) as {
-          ok?: boolean;
-          token?: string;
-          workerUrl?: string;
-          message?: string;
-        } | null;
-        if (!res.ok || !data?.ok || !data.token || !data.workerUrl) {
-          toast.error(data?.message ?? "Couldn't start that download.", { id });
-          return false;
-        }
-        postToWorker(data.workerUrl, data.token);
-        toast.success("Your download is starting.", { id });
-        return true;
-      } catch {
-        toast.error("Couldn't start that download.", { id });
-        return false;
-      }
-    },
+    (scope: ExportScope, body: MintBody): Promise<boolean> =>
+      walker.start(scope, body),
     [],
   );
 

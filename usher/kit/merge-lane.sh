@@ -46,6 +46,23 @@ for f in files:
         else: out.append(lines[i]); i+=1
     open(f,'w').write('\n'.join(out)); print(f,"hunks resolved:",n)
 PY
+python3 - <<'PY'
+# Two lanes retiring ADJACENT RULINGS rows leave the rows' shared structural lines (`lives: [`, `board: {`, `],`):
+# the resolver above keeps a base line both sides kept by membership, and those lines recur in every row. An element
+# with no `id:` is that skeleton, never a board (2026-09-29, pricing-wiring's and export-wiring's merges): drop it.
+f="src/app/(dev)/design/touchpoints.ts"; lines=open(f).read().split("\n"); out=[]; i=0; dropped=0; inside=False
+while i<len(lines):
+    l=lines[i]
+    if l.startswith("export const RULINGS"): inside=True
+    if inside and l=="];": inside=False
+    if inside and l=="  {":
+        j=i+1
+        while j<len(lines) and lines[j] not in ("  },","  }"): j+=1
+        if not any(b.startswith('    id: "') for b in lines[i:j+1]): dropped+=1; i=j+1; continue
+    out.append(l); i+=1
+if dropped: open(f,"w").write("\n".join(out))
+print(f,"id-less rows dropped:",dropped)
+PY
 grep -l '^<<<<<<<' "src/app/(dev)/design/sandbox/registry.ts" "src/app/(dev)/design/(shell)/lab/boards.ts" "src/app/(dev)/design/touchpoints.ts" 2>/dev/null && { echo "MARKERS LEFT"; exit 1; }
 git add -- "src/app/(dev)/design/sandbox/registry.ts" "src/app/(dev)/design/(shell)/lab/boards.ts" "src/app/(dev)/design/touchpoints.ts"
 git rm -qf "docs/tracks/$TRACK.md"

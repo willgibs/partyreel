@@ -313,6 +313,20 @@ describe("the list", () => {
       document.querySelector('[data-upload-tracker-row="waiting"] img'),
     ).toBeNull();
     expect(live.current.ensureLinks).toHaveBeenCalledWith(["m3"]);
+    // help-center r1 `from-product=contextual`: the refused row, and only it, links to the
+    // section that says what "Not approved" means, in a new tab so her list stays put.
+    const why = document.querySelectorAll("[data-upload-tracker-why]");
+    expect(why).toHaveLength(1);
+    expect(why[0].closest("[data-upload-tracker-row]")).toHaveAttribute(
+      "data-upload-tracker-row",
+      "refused",
+    );
+    expect(why[0]).toHaveAttribute(
+      "href",
+      "/help/a-photo-is-missing-from-the-album#the-host-turned-it-down-hid-or-removed-it",
+    );
+    expect(why[0]).toHaveAttribute("target", "_blank");
+    expect(why[0]).toHaveAccessibleName(/why\? what not approved means/i);
   });
 
   it("a signed-in guest's account speaks for its rows: no ticket needed to ask", async () => {

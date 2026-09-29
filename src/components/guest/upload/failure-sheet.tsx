@@ -38,6 +38,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { UPLOAD_FAILED_HELP_HREF } from "@/lib/content/help-links";
 import { formatCount } from "@/lib/format/count";
 
 /** One file that did not go: the queue's id, its file, and the server's words. */
@@ -99,7 +100,11 @@ export function UploadFailureList({
       <ul data-upload-failures className="flex flex-col gap-3">
         {failures.map((f) => (
           <li key={f.id} className="flex items-center gap-3">
-            <PickPreview file={f.file} url={urls.get(f.id)} className="size-11" />
+            <PickPreview
+              file={f.file}
+              url={urls.get(f.id)}
+              className="size-11"
+            />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-reading font-medium">
                 {f.file.name}
@@ -124,6 +129,20 @@ export function UploadFailureList({
           </li>
         ))}
       </ul>
+      {/* THE LINK AT THE MOMENT OF TROUBLE (help-center r1 `from-product=contextual`): the one
+          article that answers "why did this not go", read in a NEW TAB, because the files she
+          could retry live in this page's memory and leaving it would lose them. */}
+      <p className="text-reading text-muted-foreground">
+        Still not going?{" "}
+        <a
+          href={UPLOAD_FAILED_HELP_HREF}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-foreground underline decoration-border underline-offset-4 transition-colors duration-150 hover:decoration-foreground"
+        >
+          What stops an upload
+        </a>
+      </p>
     </div>
   );
 }
@@ -169,8 +188,7 @@ export function UploadFailureSheet({
   if (open && failures.length > 0 && failures !== latched.failures) {
     setLatched({ failures, sent });
   }
-  const shown =
-    open && failures.length > 0 ? { failures, sent } : latched;
+  const shown = open && failures.length > 0 ? { failures, sent } : latched;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>

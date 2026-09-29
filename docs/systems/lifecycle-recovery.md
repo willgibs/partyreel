@@ -47,10 +47,11 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
 - **The standby budget caps what a host keeps in Deleted:** at most the effective cap in deleted-but-stored bytes,
   evicted oldest-first, so size is the anti-abuse bound, not the clock. A move to a smaller cap shrinks Deleted too
   and purges its oldest items early; the plan sheet says so before such a switch. The sweep finds its hosts through
-  `standby_hosts()`, whose bytes are exactly the bin: the host's removals less the system's and less a guest's own
-  withdrawal, plus a soft-deleted event's live media, never a held row. Only a host over budget has its bin read,
-  and read whole, so eviction is oldest-first across all of it. The meter's Deleted figure also counts
-  system-removed and held rows, so it can read higher than the budget's sum, never lower.
+  `standby_hosts()`, whose bytes are exactly the bin: the host's removals less the system's, a guest's own
+  withdrawal and an operator's removal, plus a soft-deleted event's live media, never a held row. Only a host over
+  budget has its bin read, and read whole, so eviction is oldest-first across all of it. The meter's Deleted figure
+  (`host_storage_summary`) is exactly what her two Deleted lists show, inside the window: system removals and a held
+  row count while they are listed and never after, since a figure outliving its list would tell her a hold exists.
 - ★ **A guest's own delete is final, for the host too.** Deleting an upload to someone else's event sets
   `media.removed_by_uploader = true`: `listRecentlyDeletedMedia`'s own `removed_by_uploader = false` predicate keeps it
   out of the host's bin (RLS does NOT filter it, so dropping that line shows the host a Restore the RPC always
@@ -70,12 +71,17 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
 - **A restore is capacity-gated against the BASE cap,** never the 10% headroom (`insufficient_space` with
   `needed_bytes`), so the size list's Undo (one `restore_media` per item) can put back only part of a removal on a
   full plan; the rest stays in Deleted and the toast says so. `restore_event` re-checks the event slot and restores all or nothing; media removed on their own
-  stay in the bin, and the RPC reports how many (`media_still_removed`). `purge_media_now` deletes the R2 objects
-  first in its wrapper, then the rows.
+  stay in the bin, and the RPC reports how many her Deleted still shows (`media_still_removed`). `purge_media_now`
+  deletes the R2 objects first in its wrapper, then the rows.
 - ★ **A restore returns an item to the status it HELD,** not to `approved`: `media_derive_removal_provenance` stamps
-  `status_before_removed` on every removal path, so a hidden item comes back hidden and a pending one pending. **An
-  operator takedown is not host-reversible:** both admin paths set `removed_by_admin`, and `restore_media` refuses it
-  (`admin_removed`) with the same discreet copy as a legal hold.
+  `status_before_removed` on every removal path, so a hidden item comes back hidden and a pending one pending.
+- ★ **An operator's removal leaves the host's view entirely** (Will, admin-triage r1: "fully purged from the event, not
+  moved to deleted"). Both admin paths set `removed_by_admin` (a report's Remove also marks an item someone else had
+  already removed, keeping its `removed_at`), and `media_host_all` hides the row from every host read (her album, her
+  Deleted and its links, the bell's nudge, every count), so she never meets a Restore to fail and nothing tells a
+  takedown from a guest's own delete. `restore_media` refuses it (`admin_removed`, a hold's discreet copy),
+  `purge_media_now` refuses it, it counts in neither storage figure nor the standby budget, and it purges on its own
+  `purge_at` (the operator's Undo and the runbook's window, [trust-safety-forensics.md](trust-safety-forensics.md)).
 - The product's filters say "Deleted" (the dashboard's events list and the album's View menu), the delete
   confirmation and the marketing say "Trash", and the identifiers say "recently deleted" (`listRecentlyDeleted*`).
 

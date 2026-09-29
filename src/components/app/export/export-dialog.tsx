@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { Slot } from "radix-ui";
 
-import { Image as ImageIcon, Layers, Video } from "lucide-react";
+import { Image as ImageIcon, Layers, UserRound, Video } from "lucide-react";
 
 import {
   ResponsiveMenu,
@@ -17,28 +17,37 @@ import {
   MAX_EXPORT_BYTES,
   MAX_EXPORT_ITEMS,
 } from "@/lib/export/build-manifest";
+import { type DownloadPlace, downloadPlaceFor } from "@/lib/export/walk";
 import { formatCount } from "@/lib/format/count";
+import { detectPlatform } from "@/lib/media/share-save";
 import { formatBytes } from "@/lib/utils";
 
-import { type ExportScope, useExportDownload } from "./use-export-download";
+import {
+  type ExportMenuSummary,
+  type ExportScope,
+  useExportDownload,
+} from "./use-export-download";
 
 /**
- * "DOWNLOAD", AS A QUICK CHOICE (`popups` r1, `choices=menu`, Will
- * 2026-09-27): at a desk a menu under the Download that asked, like any menu;
- * in a hand the three bundles rise to the thumb as the phone's own chooser
- * does, Cancel beneath (`ui/responsive-menu.tsx`).
+ * "DOWNLOAD", AS A QUICK CHOICE (`popups` r1, `choices=menu`, Will 2026-09-27): at a desk a menu under
+ * the Download that asked, like any menu; in a hand the rows rise to the thumb as the phone's own
+ * chooser does, Cancel beneath (`ui/responsive-menu.tsx`).
  *
- * ★ A ROW IS THE ACT. Everything, Photos or Videos starts that bundle at once:
- * the menu closes, and the download's own toast says it is being prepared and
- * when it starts (`use-export-download.ts`). Each row carries what it would
- * take home, the count and the size, from the summary endpoint the menu asks
- * as it opens; a bundle over the export limit is a row that cannot be pressed,
- * and the note under the rows says why. The host's Include hidden items flips
- * in place and changes what every row is worth.
+ * ★ A ROW IS THE ACT. Everything, Photos or Videos starts that bundle at once: the menu closes, and the
+ * download's own toast carries it from there (`export-walk.ts`). Each row carries what it would take
+ * home, the count and the size, from the summary endpoint the menu asks as it opens. The host's
+ * Include hidden items flips in place and changes what every row is worth.
  *
- * ★ `export-flow`'s `object` ask ("Should Download open a sheet of bundles, or
- * simply start?") is this answer's to settle: its `menu` option, reached by the
- * kind. The Handoff names it for the desk.
+ * `export-flow` r1's answers, in the menu:
+ *  - `means=mine`: a guest who has added something here gets YOURS at the top, the set View's Yours
+ *    already names, counted and filtered by the server (her account and this browser's ticket,
+ *    never an id list from here). Will: it "does support getting any pictures/videos you took live
+ *    in-app".
+ *  - `cap=split`: a row past one zip's 2,000 items or 20 GB is live like any other, and says so in
+ *    no label ("Nobody in my family would understand 'in 2 zips'"). The walk says the parts once
+ *    it starts, in plain words; the note under the rows mentions them only when a row needs them.
+ *  - `phone` (built as the board's zip): on a phone the note says where the file goes, Files or
+ *    Downloads, and on an iPhone where a single photograph's way into Photos is.
  */
 
 type Bucket = { count: number; bytes: number };
@@ -71,11 +80,49 @@ function totalFor(
   };
 }
 
+/** Past one zip's ceilings: this row will come home in parts. */
+const inParts = (b: Bucket) =>
+  b.count > MAX_EXPORT_ITEMS || b.bytes > MAX_EXPORT_BYTES;
+
+const hintFor = (b: Bucket) =>
+  `${formatCount(b.count)} · ${formatBytes(b.bytes)}`;
+
 const CHIPS: { key: ExportTypeFilter; label: string; Icon: typeof Layers }[] = [
   { key: "all", label: "Everything", Icon: Layers },
   { key: "photo", label: "Photos", Icon: ImageIcon },
   { key: "video", label: "Videos", Icon: Video },
 ];
+
+/**
+ * THE LINE UNDER THE ROWS: the act's terms. Where a file goes (a desk knows; a phone is told), then
+ * the parts when a row needs them, then, on an iPhone, the way a single photograph reaches Photos.
+ */
+export function downloadMenuNote({
+  loading,
+  failed,
+  place,
+  anyInParts,
+}: {
+  loading: boolean;
+  failed: boolean;
+  place: DownloadPlace;
+  anyInParts: boolean;
+}): string {
+  if (loading) return "Adding it up";
+  if (failed) return "Couldn't add it up. Close and try again.";
+  const where =
+    place === "files"
+      ? "Each saves to your Files app"
+      : place === "downloads"
+        ? "Each saves to your Downloads"
+        : "Each downloads as one file";
+  const parts = anyInParts ? ", a big album in parts" : "";
+  const photos =
+    place === "files"
+      ? " To keep a photo in Photos, open it and tap Save."
+      : "";
+  return `${where}${parts}.${photos}`;
+}
 
 export function ExportDialog({
   scope,
@@ -94,9 +141,10 @@ export function ExportDialog({
   const { fetchSummary, startDownload } = useExportDownload();
   const triggerRef = useRef<HTMLElement>(null);
   const [open, setOpen] = useState(false);
-  const [summary, setSummary] = useState<ExportSummary | null>(null);
+  const [menu, setMenu] = useState<ExportMenuSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [includeHidden, setIncludeHidden] = useState(false);
+  const [place, setPlace] = useState<DownloadPlace>("desk");
 
   // Reset + fetch the breakdown when the menu opens (in the open EVENT, not an effect —
   // synchronous setState in an effect cascades renders). A request id guards against a stale summary
@@ -106,45 +154,50 @@ export function ExportDialog({
     setOpen(next);
     if (!next) return;
     setIncludeHidden(false);
-    setSummary(null);
+    setMenu(null);
     setLoading(true);
+    // Read on the tap, in the browser: the note names this device's own place for a file.
+    setPlace(downloadPlaceFor(detectPlatform(navigator)));
     const id = ++reqId.current;
     const body =
       scope === "host" ? { event_id: albumKey } : { qr_token: albumKey };
-    void fetchSummary(scope, body).then((s) => {
+    void fetchSummary(scope, body).then((got) => {
       if (reqId.current !== id) return;
-      setSummary(s);
+      setMenu(got);
       setLoading(false);
     });
   }
 
+  const summary = menu?.summary ?? null;
   const hasHidden =
-    !!summary &&
-    summary.hidden.photo.count + summary.hidden.video.count > 0;
+    !!summary && summary.hidden.photo.count + summary.hidden.video.count > 0;
   const showHiddenToggle = isHost && hasHidden;
 
-  const rows = CHIPS.map((chip) => {
-    const total = totalFor(summary, chip.key, includeHidden);
-    return {
-      ...chip,
-      total,
-      over: total.count > MAX_EXPORT_ITEMS || total.bytes > MAX_EXPORT_BYTES,
-    };
+  // YOURS leads, for a guest with something of hers here; the server says whether she has.
+  const yours =
+    scope === "guest" && menu?.yours
+      ? totalFor(menu.yours, "all", false)
+      : null;
+  const rows = CHIPS.map((chip) => ({
+    ...chip,
+    total: totalFor(summary, chip.key, includeHidden),
+  }));
+  const anyInParts =
+    rows.some((row) => inParts(row.total)) || (!!yours && inParts(yours));
+  const note = downloadMenuNote({
+    loading,
+    failed: !loading && !summary,
+    place,
+    anyInParts,
   });
-  const anyOver = rows.some((row) => row.over);
-  const note = loading
-    ? "Adding it up"
-    : !summary
-      ? "Couldn't add it up. Close and try again."
-      : anyOver
-        ? "Too large to download all at once. Pick photos or videos to split it up."
-        : "Each downloads as one file.";
 
-  function download(types: ExportTypeFilter) {
+  function download(types: ExportTypeFilter, set: "album" | "yours" = "album") {
     const mintBody =
       scope === "host"
         ? { event_id: albumKey, types, include_hidden: includeHidden }
-        : { qr_token: albumKey, types };
+        : set === "yours"
+          ? { qr_token: albumKey, types: "all", set: "yours" }
+          : { qr_token: albumKey, types };
     // The menu has already closed (the row is the act); the toast carries the wait.
     void startDownload(scope, mintBody);
   }
@@ -167,16 +220,21 @@ export function ExportDialog({
         showTitle
         align="end"
       >
-        {rows.map(({ key, label, Icon, total, over }) => (
+        {yours && yours.count > 0 ? (
+          <ResponsiveMenuItem
+            icon={<UserRound />}
+            hint={hintFor(yours)}
+            onSelect={() => download("all", "yours")}
+          >
+            Yours
+          </ResponsiveMenuItem>
+        ) : null}
+        {rows.map(({ key, label, Icon, total }) => (
           <ResponsiveMenuItem
             key={key}
             icon={<Icon />}
-            hint={
-              summary
-                ? `${formatCount(total.count)} · ${formatBytes(total.bytes)}`
-                : "·"
-            }
-            disabled={!summary || total.count === 0 || over}
+            hint={summary ? hintFor(total) : "·"}
+            disabled={!summary || total.count === 0}
             onSelect={() => download(key)}
           >
             {label}

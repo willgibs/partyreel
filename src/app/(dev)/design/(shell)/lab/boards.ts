@@ -1,10 +1,7 @@
 import type { ComponentType } from "react";
 
-import { HeroCardBoard } from "@/app/(dev)/design/sandbox/hero-card/board";
-import { ExportFlowBoard } from "@/app/(dev)/design/sandbox/export-flow/board";
 import { AdminTriageBoard } from "@/app/(dev)/design/sandbox/admin-triage/board";
 import { LockedDoorBoard } from "@/app/(dev)/design/sandbox/locked-door/board";
-import { HelpCenterBoard } from "@/app/(dev)/design/sandbox/help-center/board";
 import { EventSettingsBoard } from "@/app/(dev)/design/sandbox/event-settings/board";
 
 import { PressPageBoard } from "@/app/(dev)/design/sandbox/press-page/board";
@@ -31,12 +28,8 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
-  "hero-card": { Component: HeroCardBoard },
-
-  "export-flow": { Component: ExportFlowBoard },
   "admin-triage": { Component: AdminTriageBoard },
   "locked-door": { Component: LockedDoorBoard },
-  "help-center": { Component: HelpCenterBoard },
   "event-settings": { Component: EventSettingsBoard },
 
   "press-page": { Component: PressPageBoard },
