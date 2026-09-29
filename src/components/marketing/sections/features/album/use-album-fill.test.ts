@@ -104,6 +104,45 @@ describe("the filling album's derivation", () => {
     expect(deriveAlbumFill(Number.POSITIVE_INFINITY, opts)).toEqual(still);
   });
 
+  it("names the newest landed tile, the resting album's last seed before any lands", () => {
+    // The everywhere pair hints "open me" on this tile: it must exist from the
+    // first frame, and an uploading tile (not landed yet) must never take it.
+    const rest = deriveAlbumFill(0, hero);
+    expect(rest.newest).toBe(`seed:${HERO_FIXTURES[HERO_SEED_COUNT - 1].id}`);
+    expect(deriveAlbumFill(1, hero).newest).toBe(rest.newest);
+
+    const first = HERO_FIXTURES[HERO_SEED_COUNT];
+    const landed = deriveAlbumFill(2, hero);
+    expect(landed.newest).toBe(`${first.id}#0`);
+    // It is a tile that is really on screen: the head of its own column.
+    expect(landed.columns[first.col][0].key).toBe(landed.newest);
+    const next = HERO_FIXTURES[HERO_SEED_COUNT + 1];
+    expect(deriveAlbumFill(4, hero).newest).toBe(`${next.id}#1`);
+  });
+
+  it("keeps the newest on screen in a bounded loop and in a looping fill's still", () => {
+    const opts = {
+      fixtures: EVERYWHERE_FIXTURES,
+      seedCount: EVERYWHERE_SEED_COUNT,
+      loop: true,
+      upload: false,
+      maxPerColumn: 4,
+    };
+    for (const tick of [0, 1, 2, 7, 18, 40, 41, 99]) {
+      const v = deriveAlbumFill(tick, opts);
+      const keys = v.columns.flat().map((t) => t.key);
+      expect(keys, `tick ${tick}`).toContain(v.newest);
+      // Newest first: it heads whichever column it sits in.
+      const col = v.columns.find((c) => c.some((t) => t.key === v.newest))!;
+      expect(col[0].key, `tick ${tick}`).toBe(v.newest);
+    }
+    const still = stillAlbumFill(opts);
+    expect(still.columns.flat().map((t) => t.key)).toContain(still.newest);
+    expect(deriveAlbumFill(Number.POSITIVE_INFINITY, opts).newest).toBe(
+      still.newest,
+    );
+  });
+
   it("never clamps a running loop at its pass end", () => {
     const opts = {
       fixtures: EVERYWHERE_FIXTURES,

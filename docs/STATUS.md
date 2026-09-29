@@ -23,13 +23,14 @@ Nothing is protected: every page, the host app and the guest pages are open to b
   every event-settings pick (settings rebuilt as four sentences, the doors Public, Private and Only me with approval,
   closing and an invite list, the Guests room's invites) and draws two rounds, the door family and the disposable
   camera; `crumbs-12` fixes the hub row and the thin headings. App work leads (his note); the marketing and admin picks
-  wait in their ledgers.
+  wait in their ledgers. The lab is one self-registering folder per board (lab-revamp stage two).
 
 ## The desk
 
 Build 22's desk: `locked-door` r2 (four asks: the door family's direction first) and `disposable-mode` r2 (eight: the
-camera first), every ask with its context (his lab friction, fixed at the source). Two older asks wait on the rounds that replace their boards (demo-framing's `names`, press-page's
-`a-human`).
+camera first), every ask with its context; both are re-read against build 23 before his sitting, since settings-wiring
+changed the door they describe. Two older asks wait on the rounds that replace their boards (demo-framing's `names`,
+press-page's `a-human`).
 
 ## Live state
 
@@ -38,16 +39,16 @@ camera first), every ask with its context (his lab friction, fixed at the source
   door redirects; the signed-in pass PASS (the renew return, the hub past 1,000, the list always on, the look's
   Block, Settings whole, the reel, the owner's password album, the slug refusal). `admin.partyreel.com` is served by `partyreel-admin`
   (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 21: the two rounds for his desk
-  and `crumbs-12` (the hub row in his order, every heading at 700, "30 days"); build 20 was red-teamed live, every
-  journey PASS.
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 23 (`6c64d5c8`): the doors and
+  settings rebuilt and the reports queue and hold rebuilt, both migrations applied. Its live red-team runs; one HIGH
+  bug so far (Settings' pages never open inside the panel), in `crumbs-16`. Build 22 was red-teamed live, every PASS.
 - **The shared database** runs nine migrations applied 2026-09-29 (the block, the free shift, the operator removal purge,
   the help's feedback, the pass reminders switch, likes on private albums, the slug family, the doors, the triage rebuild), which partyreel.com's milestone-30 build now
   matches; no Free account holds more than 100 MB.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** about 6,000 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
+- **Tests:** about 6,950 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
 - **Jobs:** the daily purge cron (Vercel Hobby fires it at 04:48 UTC; its first run on milestone 28's sweeps was green:
   every sweep ok, none stopped early, the orphan scan read 1,368 objects and deleted none, the standby budget's one host
   willg97 with the withdrawals out), the media-backup Worker and the daily DB-backup Action are live; the deletion-aware
@@ -70,5 +71,6 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- The hold's redesign and the child-abuse report's instant hide are decided (`triage-r2-wiring`); Q1, the real-upload check and the iPhone check are his in the
-  morning on his phone (`tracks/orchestrator.md`). The claims walk is the Orchestrator's to stage (his word).
+- Q1, Measure a phone, the real-upload check and the iPhone check are his in the morning on his phone; the admin
+  portal's code when the red-team parks; with its result, the two lanes' calls and the proof mail's yes
+  (`tracks/orchestrator.md`). The schema pass has his yes (2026-09-29).

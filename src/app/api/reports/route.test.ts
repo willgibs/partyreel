@@ -21,7 +21,6 @@ const state = vi.hoisted(() => ({
   createProfileReport: vi.fn(),
   alerts: [] as unknown[],
   afterCallbacks: [] as (() => unknown)[],
-  warnings: [] as string[],
   gateAllowed: true,
 }));
 
@@ -47,8 +46,7 @@ vi.mock("@/lib/db/queries/reports", () => ({
   readEventName: async () => "Priya & Sam's baby shower",
 }));
 vi.mock("@/lib/observability/sentry", () => ({
-  captureWarning: (_area: string, message: string) =>
-    state.warnings.push(message),
+  captureWarning: () => {},
   captureError: () => {},
 }));
 vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
@@ -96,13 +94,11 @@ beforeEach(() => {
   state.user = null;
   state.alerts.length = 0;
   state.afterCallbacks.length = 0;
-  state.warnings.length = 0;
   state.gateAllowed = true;
   state.createReport.mockReset();
   state.createReport.mockResolvedValue({
     ok: true,
     data: { report_id: "r1", hid: false, event_id: "e1" },
-    schemaMissing: false,
   });
   state.createProfileReport.mockReset();
 });
@@ -186,7 +182,6 @@ describe("a report that cannot wait", () => {
     state.createReport.mockResolvedValue({
       ok: true,
       data: { report_id: "r7", hid: true, event_id: "e1" },
-      schemaMissing: false,
     });
     const res = await POST(
       post({ qr_token: "tok", kind: "child", media_id: MEDIA }),
@@ -240,16 +235,17 @@ describe("what the route answers", () => {
     ).toBe(400);
   });
 
-  it("says loudly when the migration is not live yet, and still files", async () => {
+  // ★ RESHAPED ON PURPOSE (crumbs-15, 2026-09-29; scar kept: a report is filed and answered 200 whatever the alert
+  // could name). It read "says loudly when the migration is not live yet, and still files": the seam that answered
+  // a report with no event, and its captured warning, went with the applied migration. What stays is the route's
+  // own guard: a child-abuse report whose answer names no event has no album to alert about.
+  it("answers 200 and alerts no one when the answer names no album", async () => {
     state.createReport.mockResolvedValue({
       ok: true,
       data: { report_id: "r1", hid: false, event_id: null },
-      schemaMissing: true,
     });
     const res = await POST(post({ qr_token: "tok", kind: "child" }));
     expect(res.status).toBe(200);
-    expect(state.warnings).toContain("reports_schema_missing");
-    // Through the seam the answer names no event, so there is nothing to alert about yet.
     expect(state.afterCallbacks).toHaveLength(0);
   });
 

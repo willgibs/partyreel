@@ -1,20 +1,15 @@
-"use client";
-
-import { ChevronDown } from "lucide-react";
-import { useId, useState } from "react";
-
+import { FaqAccordion } from "@/components/marketing/faq-accordion";
 import type { FaqItem } from "@/components/marketing/faq-data";
 import { cn } from "@/lib/utils";
 
 /**
- * The home FAQ accordion on the ratified chapter-2 clocks (.mkt-acc: the
- * grid-rows 0fr/1fr height animation + the scaleY chevron flip; padding lives
- * INSIDE .mkt-acc-panel-inner per the recipe's never-fully-closes warning).
- * A11y stays native: real <button aria-expanded aria-controls> in an <h3>,
- * labelled role="region" panels, keyboard for free. This replaces the old
- * zero-JS <details> pattern ON THE HOME only, because <details> hides closed
- * content from layout so the 0fr track cannot animate it; the shared
- * FaqAccordion (details) still serves the events pages.
+ * THE HOME AND PRICING FAQ: the shared accordion (`marketing/faq-accordion.tsx`,
+ * the one FAQ look since `loose-ends` r1) with no top gap of its own. Its two
+ * callers hold the gap themselves (the home passes `mt-10`, pricing's Reveal
+ * carries it), and the shared list's own `mt-10` would stack on a Reveal's.
+ * The name stays because pricing-page.test.ts pins `<HomeFaqAccordion
+ * items={PRICING_FAQ_ITEMS} />`, and a wrapper this thin is not worth a test
+ * edit in another lane's file.
  */
 export function HomeFaqAccordion({
   items,
@@ -23,58 +18,5 @@ export function HomeFaqAccordion({
   items: FaqItem[];
   className?: string;
 }) {
-  const [open, setOpen] = useState<number | null>(null);
-  const baseId = useId();
-
-  return (
-    <div className={cn("divide-y rounded-xl border bg-card/40", className)}>
-      {items.map((item, i) => {
-        const isOpen = open === i;
-        const buttonId = `${baseId}-q-${i}`;
-        const panelId = `${baseId}-a-${i}`;
-        return (
-          <div
-            key={item.q}
-            className="mkt-acc px-5"
-            data-open={isOpen ? "true" : "false"}
-          >
-            {/* A question is the title of its row in one bordered card, so
-                the h3 wears the card step (it inherited 16px Inter before, the
-                one heading on the page off the ladder). The button inherits
-                the face, the size, the leading, the tracking and the weight
-                from it (the preflight sets font: inherit): the `font-semibold`
-                it carried held every question at 600 under a 700 heading. */}
-            <h3 className="font-heading text-card-title">
-              <button
-                id={buttonId}
-                type="button"
-                aria-expanded={isOpen}
-                aria-controls={panelId}
-                onClick={() => setOpen(isOpen ? null : i)}
-                className="flex w-full cursor-pointer items-center justify-between gap-4 py-4 text-left"
-              >
-                {item.q}
-                <span
-                  className="mkt-acc-chevron text-muted-foreground"
-                  aria-hidden
-                >
-                  <ChevronDown className="size-4" />
-                </span>
-              </button>
-            </h3>
-            <div
-              id={panelId}
-              role="region"
-              aria-labelledby={buttonId}
-              className="mkt-acc-panel"
-            >
-              <div className="mkt-acc-panel-inner">
-                <p className="pb-4 text-sm text-muted-foreground">{item.a}</p>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
+  return <FaqAccordion items={items} className={cn("mt-0", className)} />;
 }

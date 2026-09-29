@@ -14,6 +14,11 @@
  *     without ever putting the set in one URL;
  *   - every cover is the small preview when there is one.
  * What each read returns, row by row, is `social.guest-identity.test.ts`' business; this is the size.
+ *
+ * ★ RESHAPED ON PURPOSE (crumbs-15, 2026-09-29; scar kept: the size of every read). These worlds left the block
+ * functions (`event_blocked_guest_ids`, `blocked_events_for`) unregistered, and the runtime seam read a missing
+ * function as "nobody is blocked". The migration is applied and the seam went, so a missing function is an
+ * error like any other; each world now registers the function's honest answer, which is still nobody blocked.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -170,6 +175,7 @@ describe("getEventGuests: the one count, past the row cap", () => {
   it("★ reads 2,500 approved uploads and 2,500 guest rows, and counts every proved person", async () => {
     const EVENT = uuid("e", 1);
     fake = createFakePostgrest({
+      rpc: { event_blocked_guest_ids: () => [] },
       tables: {
         events: [{ id: EVENT, host_id: "host-1", deleted_at: null }],
         media: Array.from({ length: 2500 }, (_, i) => ({
@@ -231,6 +237,7 @@ describe("the events you added to, past the row cap", () => {
       },
     });
     db.functions.event_covers = covers(db);
+    db.functions.blocked_events_for = () => ({});
     return db;
   }
 

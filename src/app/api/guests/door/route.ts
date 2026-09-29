@@ -58,13 +58,6 @@ export async function POST(request: Request) {
     bodyTokens: [session_token],
   });
   const standing = await checkInAtDoor(found.data.id, caller);
-  // No held door without the doors' schema: whatever the server says now is today's.
-  if (!standing) {
-    return NextResponse.json(
-      { ok: true, standing: "moved" },
-      { headers: NO_STORE },
-    );
-  }
 
   const decision = decideDoor(standing);
   const answer =

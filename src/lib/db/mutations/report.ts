@@ -10,14 +10,8 @@
  * route can hand it a reporter. A report of kind `child` naming an item, from a confirmed address, hides the
  * item at once as an operator's removal (the RPC's instant hide, with its limits); every other report still
  * INSERTS ONLY and never touches media.status (anon reports are spammable; auto-hide would be a griefing DoS).
- *
- * ★ THE SEAM, UNTIL THE APPLY: before the migration lands the RPC has its old three parameters, and a call
- * naming the new ones is PGRST202. The report is then filed the old way (kind and reporter dropped, never a
- * hide) and the answer says so (`schemaMissing`), so the route can capture it: after the apply it never fires.
  */
 import "server-only";
-
-import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { ReportKind } from "@/lib/reports/kinds";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -25,7 +19,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // Postgres SQLSTATEs the RPC raises (stable; match the code, not the message).
 const NO_DATA_FOUND = "P0002"; // bad/expired qr_token → event not found
 const CHECK_VIOLATION = "23514"; // media_id doesn't belong to this event
-const FUNCTION_NOT_FOUND = "PGRST202"; // the migration's signature is not live yet
 
 /** Who filed it, as the route read it from the session. */
 export type ReportReporter = {
@@ -43,28 +36,15 @@ export type CreateReportResult =
         report_id: string;
         /** The instant hide took the item down at once. */
         hid: boolean;
-        /** The reported event (null through the seam, whose answer never carried it). */
+        /** The reported event, as the RPC answers it (read defensively: null only if the answer lacks it). */
         event_id: string | null;
       };
-      /** Filed through the pre-migration signature (the seam above). */
-      schemaMissing: boolean;
     }
   | {
       ok: false;
       code: "not_found" | "invalid_media" | "unknown";
       message: string;
     };
-
-type RpcAnswer = {
-  data: unknown;
-  error: { code?: string; message: string } | null;
-};
-
-/** A client that can name the migration's parameters before `types.ts` knows them. */
-async function rpc(fn: string, args: Record<string, unknown>) {
-  const client = createAdminClient() as unknown as SupabaseClient;
-  return (await client.rpc(fn, args)) as RpcAnswer;
-}
 
 function mapError(error: { code?: string }): CreateReportResult {
   if (error.code === NO_DATA_FOUND) {
@@ -114,32 +94,26 @@ export async function createReport(input: {
 }): Promise<CreateReportResult> {
   // Server-mediated (H3): create_report is service-role-only. The qr_token in the body stays the capability
   // the RPC validates; the /api/reports route adds the per-IP rate limit (H3b).
-  const base = {
+  const reporter = input.reporter ?? null;
+  // The address rides only beside its keyed hash (the instant hide's limits count by the hash), else neither.
+  const address =
+    reporter?.confirmedEmail && reporter.addressHash
+      ? { email: reporter.confirmedEmail, hash: reporter.addressHash }
+      : null;
+  // The generated Args type makes every defaulted parameter OPTIONAL rather than nullable, so an absent one
+  // is OMITTED (`undefined` never reaches the wire) instead of sent as null.
+  const { data, error } = await createAdminClient().rpc("create_report", {
     p_qr_token: input.qrToken,
     p_media_id: input.mediaId ?? undefined,
     p_reason: input.reason ?? undefined,
-  };
-  const reporter = input.reporter ?? null;
-  const confirmed = Boolean(reporter?.confirmedEmail && reporter.addressHash);
-  const { data, error } = await rpc("create_report", {
-    ...base,
     p_kind: input.kind ?? "other",
     p_reporter_user_id: reporter?.userId ?? undefined,
-    p_reporter_email: confirmed ? reporter!.confirmedEmail : undefined,
-    p_reporter_hash: confirmed ? reporter!.addressHash : undefined,
+    p_reporter_email: address?.email,
+    p_reporter_hash: address?.hash,
   });
 
-  if (error?.code === FUNCTION_NOT_FOUND) {
-    const old = await rpc("create_report", base);
-    if (old.error) return mapError(old.error);
-    return {
-      ok: true,
-      data: { ...readAnswer(old.data), hid: false },
-      schemaMissing: true,
-    };
-  }
   if (error) return mapError(error);
-  return { ok: true, data: readAnswer(data), schemaMissing: false };
+  return { ok: true, data: readAnswer(data) };
 }
 
 /**
@@ -151,8 +125,7 @@ export async function answerProof(input: {
   tokenHash: string;
   answer: string;
 }): Promise<{ ok: true } | { ok: false; code: "gone" | "unknown" }> {
-  const client = createAdminClient() as unknown as SupabaseClient;
-  const { data, error } = await client
+  const { data, error } = await createAdminClient()
     .from("reports")
     .update({
       proof_answer: input.answer,
@@ -163,9 +136,6 @@ export async function answerProof(input: {
     .eq("status", "open")
     .is("proof_answered_at", null)
     .select("id");
-  // Before the migration the columns are missing (42703) and no link can exist yet: it reads as a spent link.
-  if (error) {
-    return { ok: false, code: error.code === "42703" ? "gone" : "unknown" };
-  }
+  if (error) return { ok: false, code: "unknown" };
   return (data ?? []).length > 0 ? { ok: true } : { ok: false, code: "gone" };
 }

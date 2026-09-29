@@ -25,7 +25,6 @@ import "server-only";
 
 import { mustCount, mustQuery } from "@/lib/db/must-query";
 import { MAX_ROWS, readAllPages, type AllPages } from "@/lib/db/read-all";
-import { seamRpc } from "@/lib/db/triage-seam";
 import {
   addReclaimed,
   emptyReclaimed,
@@ -116,7 +115,7 @@ export async function countDueRemovedMedia(
 /** Mark asked every removal past its window that something keeps; how many it marked. */
 async function deferKeptDueMedia(admin: AdminClient): Promise<number> {
   const marked = await mustQuery(
-    seamRpc<number>(admin, "defer_kept_due_media", {}),
+    admin.rpc("defer_kept_due_media"),
     "cron/purge: defer_kept_due_media",
   );
   return Number(marked ?? 0);

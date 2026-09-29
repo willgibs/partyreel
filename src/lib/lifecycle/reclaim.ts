@@ -28,7 +28,6 @@ import "server-only";
 
 import { mustQuery } from "@/lib/db/must-query";
 import { inChunks, MAX_ROWS } from "@/lib/db/read-all";
-import { seamRpc } from "@/lib/db/triage-seam";
 import { deleteR2Objects } from "@/lib/r2/delete";
 import type { createAdminClient } from "@/lib/supabase/admin";
 
@@ -107,7 +106,7 @@ export async function readKeptMediaIds(
     ids,
     async (chunk) =>
       (await mustQuery(
-        seamRpc<string[]>(admin, "kept_media_ids", { p_media_ids: chunk }),
+        admin.rpc("kept_media_ids", { p_media_ids: chunk }),
         "cron/purge: kept_media_ids",
       )) ?? [],
     { size: MAX_ROWS },

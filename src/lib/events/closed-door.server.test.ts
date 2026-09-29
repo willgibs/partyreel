@@ -170,7 +170,7 @@ describe("when the door asks: the same read for every door that could shut or ho
       tickets: [],
     });
     expect(readDoorStanding).toHaveBeenCalledOnce();
-    expect(readDoorStanding).toHaveBeenCalledWith(EVENT_ID, "private", {
+    expect(readDoorStanding).toHaveBeenCalledWith(EVENT_ID, {
       userId: null,
       tickets: [],
     });
@@ -183,7 +183,7 @@ describe("when the door asks: the same read for every door that could shut or ho
       userId: null,
       tickets: [TICKET],
     });
-    expect(readDoorStanding).toHaveBeenCalledWith(EVENT_ID, "open", {
+    expect(readDoorStanding).toHaveBeenCalledWith(EVENT_ID, {
       userId: null,
       tickets: [TICKET],
     });
@@ -319,7 +319,7 @@ describe("the page's door", () => {
     cookie = TICKET;
     const door = await pageDoor("some-token");
     expect(getEventByQrToken).toHaveBeenCalledWith("some-token");
-    expect(readDoorStanding).toHaveBeenCalledWith(EVENT_ID, "open", {
+    expect(readDoorStanding).toHaveBeenCalledWith(EVENT_ID, {
       userId: "user-1",
       tickets: [TICKET],
     });

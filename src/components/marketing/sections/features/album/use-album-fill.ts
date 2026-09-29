@@ -50,6 +50,13 @@ export type AlbumFillView = {
   /** useFlip's orderKey: the mounted tile count. */
   layoutKey: string;
   done: boolean;
+  /**
+   * The key of the newest LANDED tile: the last arrival, or before any has
+   * landed the last seed (the resting album's newest), so a surface that
+   * hints "open me" on the newest tile has one to mark from its first frame.
+   * `null` only for a fill with nothing in it.
+   */
+  newest: string | null;
 };
 
 export type AlbumFillOptions = {
@@ -158,12 +165,22 @@ export function deriveAlbumFill(
   seeds.forEach((f) => names.add(f.by));
   for (let i = 0; i < landed; i++) names.add(arrival(i).by);
 
+  // The newest landed tile: an uploading one has not landed, so it never wears
+  // the hint (its strip is the only thing it should show).
+  const newest =
+    landed > 0
+      ? tileFor(landed - 1, "landed").key
+      : seeds.length > 0
+        ? `seed:${seeds[seeds.length - 1].id}`
+        : null;
+
   return {
     columns: bounded,
     photos: seeds.length + landed,
     guests: names.size,
     layoutKey: String(seeds.length + landed + (pending !== null ? 1 : 0)),
     done: !loop && t >= end,
+    newest,
   };
 }
 

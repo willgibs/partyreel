@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Play } from "lucide-react";
+import { Check, Maximize2, Play } from "lucide-react";
 import Image from "next/image";
 import type { CSSProperties } from "react";
 
@@ -34,7 +34,60 @@ import type { AlbumFillView, AlbumTile } from "./use-album-fill";
  * The frame is a fixed-height clip, so the page never reflows: tiles pushed
  * past the foot are clipped, not shrunk. `--fill-scale` lets a narrow viewport
  * scale every authored height at once.
+ *
+ * ★ `peek` MAKES THE TILES OPENABLE, and it is the Everywhere stage's alone (the
+ * hero's grid passes none and stays plain): a press on any tile hands the caller
+ * what it needs to show that photograph larger, and the newest landed tile wears
+ * a quiet corner mark saying so (`loose-ends` r1, `everywhere-pill=corner`, with
+ * his easter egg). Pointer-only on purpose: both grids sit in an `aria-hidden`
+ * stage, so a tile is never a tab stop (a focusable inside aria-hidden is worse
+ * than none), and the mark is drawn, not announced.
  */
+
+/** What a press on a tile hands its caller. */
+export type PeekRequest = {
+  /** The marketing image id (marketingImage throws on a typo). */
+  id: string;
+  /** The uploader's display name. */
+  by: string;
+  /** The pressed tile's box on screen, for a layer that opens FROM it. */
+  from: DOMRect;
+  /** The tile's own loaded image URL (already in the browser's cache), so the
+   *  larger picture has something sharp-ish under it while it loads. */
+  poster: string | null;
+};
+
+function peekRequest(tile: AlbumTile, el: HTMLElement): PeekRequest {
+  return {
+    id: tile.fixture.id,
+    by: tile.fixture.by,
+    from: el.getBoundingClientRect(),
+    poster: el.querySelector("img")?.currentSrc || null,
+  };
+}
+
+/**
+ * THE QUIET CORNER MARK: a small expand glyph on the newest tile, promising a
+ * larger look. It is ALWAYS MOUNTED on an openable tile and only fades with
+ * `data-on`, so a tile that stops being the newest lets its mark go over 300ms
+ * while the column slides it down, rather than the glyph vanishing mid-slide.
+ * A tile that mounts newest arrives WITH it (the tile's own entrance carries
+ * it), so nothing here animates in. No backdrop blur: nothing inside a moving
+ * tile may carry one (see the header). It steps down with the stage's own
+ * scale (`sm`, where --fill-scale moves from 0.62 to 0.8), so on a phone's
+ * 50px tiles it stays a hint rather than a badge.
+ */
+function PeekMark({ on }: { on: boolean }) {
+  return (
+    <span
+      aria-hidden
+      data-on={on ? "true" : "false"}
+      className="pointer-events-none absolute top-1.5 left-1.5 flex size-4 items-center justify-center rounded-full bg-black/55 text-white opacity-0 transition-opacity duration-300 ease-emphasis data-[on=true]:opacity-100 motion-reduce:transition-none sm:size-5"
+    >
+      <Maximize2 className="size-2 sm:size-2.5" strokeWidth={2.5} />
+    </span>
+  );
+}
 
 function CheckBadge() {
   const on = useEnteredFrame(false);
@@ -74,12 +127,17 @@ function AlbumTileView({
   reduced,
   sizes,
   stripMs,
+  peek,
+  marked,
 }: {
   tile: AlbumTile;
   register: (key: string) => (el: HTMLElement | null) => void;
   reduced: boolean;
   sizes: string;
   stripMs: number;
+  peek?: (request: PeekRequest) => void;
+  /** Wears the corner mark (only ever the newest tile, and only with `peek`). */
+  marked: boolean;
 }) {
   const m = marketingImage(tile.fixture.id);
   const instant = tile.status === "seed" || reduced;
@@ -95,7 +153,10 @@ function AlbumTileView({
       <div
         data-mkt-fly
         data-on={on ? "true" : undefined}
-        className="relative size-full overflow-hidden rounded-tile bg-black/10"
+        className={cn(
+          "relative size-full overflow-hidden rounded-tile bg-black/10",
+          peek && "cursor-pointer",
+        )}
         style={
           {
             "--i": 0,
@@ -104,12 +165,18 @@ function AlbumTileView({
             "--fly-scale": "0.96",
           } as CSSProperties
         }
+        onClick={
+          peek ? (e) => peek(peekRequest(tile, e.currentTarget)) : undefined
+        }
       >
         <Image
           src={m.src}
           alt=""
           fill
           sizes={sizes}
+          // A press that drifts a pixel would start the browser's own image
+          // drag and swallow the click.
+          draggable={peek ? false : undefined}
           className={cn(
             "object-cover",
             tile.status === "uploading" && "opacity-70",
@@ -125,6 +192,7 @@ function AlbumTileView({
         )}
         {tile.status === "uploading" && <ProgressStrip ms={stripMs} />}
         {tile.check && <CheckBadge />}
+        {peek && <PeekMark on={marked} />}
       </div>
     </div>
   );
@@ -139,6 +207,7 @@ export function AlbumFillGrid({
   showCount = true,
   reduced,
   stripMs = 360,
+  peek,
   className,
 }: {
   view: AlbumFillView;
@@ -150,6 +219,8 @@ export function AlbumFillGrid({
   showCount?: boolean;
   reduced: boolean;
   stripMs?: number;
+  /** Makes every tile openable and marks the newest one (see the header). */
+  peek?: (request: PeekRequest) => void;
   className?: string;
 }) {
   const register = useFlip(view.layoutKey);
@@ -196,6 +267,8 @@ export function AlbumFillGrid({
                   reduced={reduced}
                   sizes={sizes}
                   stripMs={stripMs}
+                  peek={peek}
+                  marked={tile.key === view.newest}
                 />
               ))}
             </div>

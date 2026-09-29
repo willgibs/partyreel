@@ -1,91 +1,20 @@
 /**
  * THE PER-EVENT BLOCK'S READS (event-safety r1, migration 20260928120000): the host's Blocked list, and
- * the three questions the server asks for everyone else (is this browser's ticket blocked, whom does
- * this event's guest list leave out, which events hold this account). The rule itself lives in SQL,
- * once (`event_block_names_row` and `event_block_names_account`); nothing here re-derives it.
- *
- * ★ THE TYPED SEAM, UNTIL THE TYPES REGENERATE. `src/lib/db/types.ts` is generated from the live
- * schema, which gains `event_blocks` and these functions only when the Orchestrator applies the
- * migration; so the new objects are reached through `untyped()` and every answer is read defensively,
- * which compiles on either side of the regeneration. ★ AND THE RUNTIME SEAM, UNTIL THE APPLY: a missing
- * table or function (the codes below) reads as "nothing blocked", LOUDLY (captured, `blocks_schema_
- * missing`), so this lane's build runs against a database that does not have them yet, and a
- * post-apply regression still surfaces.
+ * the two questions the server asks for everyone else (whom does this event's guest list leave out,
+ * which events hold this account); whether one browser's ticket is blocked is `event_door_standing`'s
+ * (`queries/event-doors.ts`). The rule itself lives in SQL, once (`event_block_names_row` and
+ * `event_block_names_account`); nothing here re-derives it. ★ A read that fails THROWS: a broken read
+ * never impersonates "nobody is blocked".
  */
 import "server-only";
-
-import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 
 import { seedFor } from "@/lib/avatar/seed";
 import { mustQuery } from "@/lib/db/must-query";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
 import type { BlockedPerson } from "@/lib/events/event-blocks";
-import { captureError } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvatarUrl } from "@/lib/supabase/avatar-storage";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
-
-/** The schema the migration adds, not yet in the generated types: its absence is the seam. */
-const MISSING_SCHEMA_CODES = new Set([
-  "42P01", // undefined table
-  "42883", // undefined function
-  "PGRST202", // function not in the schema cache
-  "PGRST205", // table not in the schema cache
-]);
-
-/** Is this the migration not applied yet? Loud when it fires: after the apply it never should. */
-export function isBlockSchemaMissing(error: unknown): boolean {
-  const code = (error as { code?: string | null } | null)?.code ?? "";
-  const missing = MISSING_SCHEMA_CODES.has(code);
-  if (missing) {
-    captureError("security", error, { seam: "blocks_schema_missing", code });
-  }
-  return missing;
-}
-
-type AnyClient = SupabaseClient;
-
-/** A client that can name the migration's objects before `types.ts` knows them. */
-function untyped(client: unknown): AnyClient {
-  return client as AnyClient;
-}
-
-type RpcAnswer = { data: unknown; error: PostgrestError | null };
-
-async function rpc(
-  client: unknown,
-  fn: string,
-  args: Record<string, unknown>,
-): Promise<RpcAnswer> {
-  const c = untyped(client);
-  return (await c.rpc(fn, args)) as RpcAnswer;
-}
-
-/**
- * ★ THE ONE-BROWSER HOLD: does any ticket this browser holds (the `pr_guest_<eventId>` cookie, a
- * write's body token) name a row a block holds at this event? The closed door asks it for every
- * request that carries a ticket, before the private branch, whether or not the album is private
- * (`lib/events/closed-door.server.ts`). Tokens are shape-guarded by the caller; none asks nothing.
- */
-export async function isTicketBlocked(
-  eventId: string,
-  tokens: readonly string[],
-): Promise<boolean> {
-  if (tokens.length === 0) return false;
-  const { data, error } = await rpc(
-    createAdminClient(),
-    "event_ticket_blocked",
-    {
-      p_event_id: eventId,
-      p_session_tokens: [...new Set(tokens)],
-    },
-  );
-  if (error) {
-    if (isBlockSchemaMissing(error)) return false;
-    throw error;
-  }
-  return data === true;
-}
 
 /**
  * The guest rows a block holds at this event, which the ONE count (`getEventGuests`) leaves out: a
@@ -95,15 +24,11 @@ export async function isTicketBlocked(
 export async function getBlockedGuestIds(
   eventId: string,
 ): Promise<ReadonlySet<string>> {
-  const { data, error } = await rpc(
-    createAdminClient(),
+  const { data, error } = await createAdminClient().rpc(
     "event_blocked_guest_ids",
     { p_event_id: eventId },
   );
-  if (error) {
-    if (isBlockSchemaMissing(error)) return new Set();
-    throw error;
-  }
+  if (error) throw error;
   return new Set(
     Array.isArray(data)
       ? data.filter((id): id is string => typeof id === "string")
@@ -130,13 +55,10 @@ export type BlockedEventForAccount = {
 export async function getBlockedEventsFor(
   userId: string,
 ): Promise<ReadonlyMap<string, BlockedEventForAccount>> {
-  const { data, error } = await rpc(createAdminClient(), "blocked_events_for", {
+  const { data, error } = await createAdminClient().rpc("blocked_events_for", {
     p_user_id: userId,
   });
-  if (error) {
-    if (isBlockSchemaMissing(error)) return new Map();
-    throw error;
-  }
+  if (error) throw error;
   const out = new Map<string, BlockedEventForAccount>();
   if (data && typeof data === "object" && !Array.isArray(data)) {
     for (const [eventId, value] of Object.entries(
@@ -153,17 +75,6 @@ export async function getBlockedEventsFor(
   }
   return out;
 }
-
-/** A block row as the host reads it through RLS (the host's own events only). */
-type BlockRow = {
-  id: string;
-  user_id: string | null;
-  email: string | null;
-  guest_id: string | null;
-  display_name: string | null;
-  removed_media_ids: string[] | null;
-  created_at: string;
-};
 
 /** Two timestamptz strings from one database, compared as the instant they name. */
 function sameInstant(a: string | null, b: string | null): boolean {
@@ -194,32 +105,23 @@ export async function getEventBlocks(
   const { supabase, user } = await getRequestAuth();
   if (!user) return [];
 
-  let rows: BlockRow[];
-  try {
-    const read = await readAllPages(
-      "event blocks: the host's list",
-      (after: string | null, limit) => {
-        let q = untyped(supabase)
-          .from("event_blocks")
-          .select(
-            "id, user_id, email, guest_id, display_name, removed_media_ids, created_at",
-          )
-          .eq("event_id", eventId)
-          .order("id", { ascending: true })
-          .limit(limit);
-        if (after) q = q.gt("id", after);
-        return q as unknown as PromiseLike<{
-          data: BlockRow[] | null;
-          error: PostgrestError | null;
-        }>;
-      },
-      (row) => row.id,
-    );
-    rows = read.rows;
-  } catch (error) {
-    if (isBlockSchemaMissing(error)) return [];
-    throw error;
-  }
+  // The block rows as the host reads them through RLS (the host's own events only).
+  const { rows } = await readAllPages(
+    "event blocks: the host's list",
+    (after: string | null, limit) => {
+      let q = supabase
+        .from("event_blocks")
+        .select(
+          "id, user_id, email, guest_id, display_name, removed_media_ids, created_at",
+        )
+        .eq("event_id", eventId)
+        .order("id", { ascending: true })
+        .limit(limit);
+      if (after) q = q.gt("id", after);
+      return q;
+    },
+    (row) => row.id,
+  );
   if (rows.length === 0) return [];
   // The newest block first: the one the host just made is the one they came to see.
   rows.sort((a, b) => b.created_at.localeCompare(a.created_at));

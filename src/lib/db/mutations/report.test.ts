@@ -3,8 +3,6 @@
  *
  *  - `createReport` hands `create_report` the form's kind and the ROUTE's reporter, an address only beside its
  *    keyed hash (the instant hide's limits count by the hash, so an address without one is never sent);
- *  - ★ the seam until the apply: a database without the new signature files the report the old way, never
- *    hiding anything, and says so;
  *  - `answerProof` lands the reporter's words on an open, unanswered report its link's hash names, and the link
  *    dies with them: a second use, a closed report and an unknown link are all `gone`.
  */
@@ -63,7 +61,6 @@ describe("createReport", () => {
     expect(result).toEqual({
       ok: true,
       data: { report_id: "r1", hid: true, event_id: "e1" },
-      schemaMissing: false,
     });
     expect(calls[0]).toMatchObject({
       p_qr_token: "tok",
@@ -131,19 +128,21 @@ describe("createReport", () => {
     });
   });
 
-  it("★ through the seam, files the old way: no kind, no reporter, never a hide, and says so", async () => {
+  // ★ RESHAPED ON PURPOSE (crumbs-15, 2026-09-29; scar kept: a report is never filed with less than the form sent).
+  // It read "through the seam, files the old way": on PGRST202 (the new signature not live yet) the report was
+  // filed again through the old three names, kind and reporter dropped and never a hide, and said so. The
+  // migration is applied, so that fallback went; a call the database cannot take is now a failed report the route
+  // answers with a 500, never a quieter one filed in its place.
+  it("★ fails a report the database cannot take, once, and never files it with less than the form sent", async () => {
     const calls: Record<string, unknown>[] = [];
     fake = createFakePostgrest({
       rpc: {
-        // The pre-migration function takes three names; PostgREST resolves by names, so the new call misses.
         create_report: (args) => {
           calls.push(args);
-          if (args.p_kind !== undefined)
-            throw new FakeRpcError(
-              "PGRST202",
-              "Could not find the function public.create_report",
-            );
-          return { report_id: "r9", hid: true };
+          throw new FakeRpcError(
+            "PGRST202",
+            "Could not find the function public.create_report",
+          );
         },
       },
     });
@@ -157,16 +156,8 @@ describe("createReport", () => {
         addressHash: "h1",
       },
     });
-    expect(result).toEqual({
-      ok: true,
-      data: { report_id: "r9", hid: false, event_id: null },
-      schemaMissing: true,
-    });
-    expect(Object.keys(calls[1]).sort()).toEqual([
-      "p_media_id",
-      "p_qr_token",
-      "p_reason",
-    ]);
+    expect(result).toMatchObject({ ok: false, code: "unknown" });
+    expect(calls).toHaveLength(1);
   });
 });
 
@@ -218,28 +209,34 @@ describe("answerProof", () => {
     expect(row().proof_answer).toBeNull();
   });
 
-  it("reads a database without the migration's columns as a spent link, never a failure", async () => {
-    fake = createFakePostgrest({ tables: { reports: [] } });
-    const from = fake.from.bind(fake);
-    fake.from = (table: string) => {
-      const t = from(table);
-      t.update = () =>
-        ({
-          eq: () => ({
+  // ★ RESHAPED ON PURPOSE (crumbs-15, 2026-09-29; scar kept: a failed write never reads as a spent link). It read
+  // "a database without the migration's columns reads as a spent link", the 42703 seam that went with the applied
+  // migration. What stays is the distinction the answer route makes on it: a write that FAILED is `unknown` (the
+  // route retries with a 500 and tells her to try again), never `gone` (a 404 that says her link was used).
+  it("★ answers a failed write as unknown, never as a spent link", async () => {
+    for (const code of ["57014", "42703"]) {
+      fake = createFakePostgrest({ tables: { reports: [] } });
+      const from = fake.from.bind(fake);
+      fake.from = (table: string) => {
+        const t = from(table);
+        t.update = () =>
+          ({
             eq: () => ({
-              is: () => ({
-                select: async () => ({
-                  data: null,
-                  error: { code: "42703", message: "column does not exist" },
+              eq: () => ({
+                is: () => ({
+                  select: async () => ({
+                    data: null,
+                    error: { code, message: "the write failed" },
+                  }),
                 }),
               }),
             }),
-          }),
-        }) as never;
-      return t;
-    };
-    await expect(
-      answerProof({ tokenHash: "hash-1", answer: "Here." }),
-    ).resolves.toEqual({ ok: false, code: "gone" });
+          }) as never;
+        return t;
+      };
+      await expect(
+        answerProof({ tokenHash: "hash-1", answer: "Here." }),
+      ).resolves.toEqual({ ok: false, code: "unknown" });
+    }
   });
 });

@@ -546,8 +546,8 @@ what the effect needs. Which one is usually roadmap knowledge: ask.
 
 ## The /design lab
 
-The lab (`src/app/(dev)/design/`) renders on the real tokens; a board lives in `sandbox/` with its own sheet and
-scenes, which leave with it.
+The lab (`src/app/(dev)/design/`) renders on the real tokens; a board is one folder in `sandbox/` (its spec, its
+board, its own sheet and scenes), found by the registry and the board route and retired by deleting it.
 
 - ★ **A page-level gate cannot close the lab, because the shell layout has already rendered the nav** (every component,
   board and track by name), and a layout cannot read `searchParams`: a keyless request would answer 200 with the nav in
