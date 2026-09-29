@@ -14,16 +14,21 @@ import { cn } from "@/lib/utils";
  * DECISION 5: THE LIVE | REVIEW PHOTOGRAPH, a copy of review-switch.tsx with
  * ONE change: `UPLOAD` (the single image that travels through all three
  * plates) is a prop instead of a module constant, which production has no
- * room for. Everything else — the segmented control, the travelling
- * `Traveller`, the three plates, the toast — is unchanged.
+ * room for. Everything else (the segmented control, the travelling
+ * `Traveller`, the three plates, the guest's pill) is production's.
  *
- * ★ THE QUEUE PLATE'S FRAME, REDRAWN (the overtaken audit's reshape,
- * 2026-09-21). The real tile a waiting photograph wears now exists
- * (`WaitingTile`, `guest/upload/stack-tile.tsx`, guest-upload r1): dimmed,
- * a glassy clock badge, "Waiting for the host". At this plate's 56px this
- * plainly has no room for the caption, but the dim and the badge are cheap
- * and make the mini queue box a miniature of the real tile rather than a
- * bespoke placeholder invented before it existed.
+ * ★ PRODUCTION AS IT IS, SO `today` IS TODAY (the marketing refresh,
+ * 2026-09-28). The 09-21 reshape dimmed the queue's tile and pinned a clock
+ * badge on it in every option, `today` included, calling it a miniature of
+ * the real waiting tile; production's switch draws neither, and it is right
+ * not to. `WaitingTile` (`guest/upload/stack-tile.tsx`) is what the GUEST'S
+ * own device shows while a host decides, and the switch already carries that
+ * as the phone plate's "Waiting for the host" pill (`held=tile`). The middle
+ * plate is the HOST'S queue, and the host's review grid shows a pending
+ * photograph plainly (`review-grid.tsx`: the uniform grid, previews on). So
+ * every option is the queue as a host sees it, and the only thing that
+ * differs between them is the photograph. The copy also drops production's
+ * unused `dim` prop, which nothing passes.
  */
 
 type Mode = "live" | "review";
@@ -35,15 +40,15 @@ const SEGMENTS: { mode: Mode; label: string; Icon: typeof Radio }[] = [
 
 const ALBUM = ["wedding-golden", "party-balloons", "reception-table"];
 
+/** The travelling photograph: keyed by its destination so a mode change
+ *  remounts it and it flies in from the phone's side, settling small. */
 function Traveller({
   photo,
   check,
-  dim,
   className,
 }: {
   photo: string;
   check?: boolean;
-  dim?: boolean;
   className?: string;
 }) {
   const on = useEnteredFrame();
@@ -53,7 +58,6 @@ function Traveller({
       data-on={on ? "true" : undefined}
       className={cn(
         "relative block overflow-hidden rounded-tile bg-muted",
-        dim && "opacity-40",
         className,
       )}
       style={
@@ -157,18 +161,15 @@ export function ReviewPhoto({ photo }: { photo: string }) {
                   </span>
                 </span>
               </span>
+              {/* The guest's own waiting line, production's `held=tile`: the
+                  one place the real WaitingTile's grammar belongs here. */}
               <span
                 data-mkt-toast
                 data-on={mode === "review" ? "true" : undefined}
                 className="mx-auto mt-2 flex w-fit max-w-full items-center gap-1.5 rounded-full border bg-popover/95 px-2 py-1 text-[10px] leading-none font-medium"
               >
-                <Check
-                  className="size-3 shrink-0 text-success"
-                  strokeWidth={3}
-                />
-                <span className="truncate">
-                  Sent, waiting for host approval
-                </span>
+                <Clock className="size-3 shrink-0" />
+                <span className="truncate">Waiting for the host</span>
               </span>
             </Plate>
 
@@ -183,7 +184,7 @@ export function ReviewPhoto({ photo }: { photo: string }) {
               ) : (
                 <span className="flex min-h-[7rem] flex-col items-center gap-2.5 rounded-lg bg-card px-3">
                   <span className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-semibold tracking-wide text-warning uppercase">
+                    <span className="text-label font-semibold text-warning uppercase">
                       Review
                     </span>
                     <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-warning/15 px-1 text-[10px] font-semibold text-warning tabular-nums">
@@ -195,36 +196,25 @@ export function ReviewPhoto({ photo }: { photo: string }) {
                       aria-hidden
                       className="absolute inset-0 rounded-tile border border-dashed border-border/70 bg-card"
                     />
+                    {/* The host's queue, as the host's review grid draws a
+                        pending photograph: plainly, no dim and no badge. */}
                     {!approved && (
-                      <>
-                        <Traveller
-                          key="queue"
-                          photo={photo}
-                          dim
-                          className="absolute inset-0"
-                        />
-                        {/* The real waiting tile's own mark, at this size
-                            (guest-upload r1, stack-tile.tsx's WaitingTile):
-                            dimmed, a small clock badge, no room here for its
-                            caption too. */}
-                        <span
-                          aria-hidden
-                          className="absolute top-1 left-1 flex size-3.5 items-center justify-center rounded-full bg-black/55"
-                        >
-                          <Clock className="size-2 text-white" />
-                        </span>
-                      </>
+                      <Traveller
+                        key="queue"
+                        photo={photo}
+                        className="absolute inset-0"
+                      />
                     )}
                   </span>
                   <span className="flex flex-wrap items-center justify-center gap-1.5">
-                    <span className="inline-flex h-7 items-center gap-1 rounded-lg border bg-background px-2 text-[11px] font-medium text-muted-foreground">
+                    <span className="inline-flex h-7 items-center gap-1 rounded-lg border bg-background px-2 text-caption font-medium text-muted-foreground">
                       <ListChecks className="size-3" /> Select
                     </span>
                     <button
                       type="button"
                       onClick={() => setApproved(true)}
                       disabled={approved}
-                      className="inline-flex h-7 cursor-pointer items-center gap-1 rounded-lg bg-primary px-2 text-[11px] font-medium text-primary-foreground transition-transform duration-150 active:scale-[0.97] disabled:cursor-default disabled:opacity-50 motion-reduce:active:scale-100"
+                      className="inline-flex h-7 cursor-pointer items-center gap-1 rounded-lg bg-primary px-2 text-caption font-medium text-primary-foreground transition-transform duration-150 active:scale-[0.97] disabled:cursor-default disabled:opacity-50 motion-reduce:active:scale-100"
                     >
                       <Check className="size-3" /> Approve all
                     </button>
@@ -282,7 +272,7 @@ export function ReviewPhoto({ photo }: { photo: string }) {
 function Plate({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="relative flex min-w-0 flex-col gap-2.5 px-1 py-1">
-      <span className="text-center text-[11px] font-medium text-muted-foreground">
+      <span className="text-center text-caption font-medium text-muted-foreground">
         {label}
       </span>
       {children}

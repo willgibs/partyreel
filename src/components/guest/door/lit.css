@@ -1,0 +1,553 @@
+/* THE DOOR, LIT (`identity-door` r2, Will's `look=lit`; r3's `icons=lit` and
+   `beat=lit`), carried to every held sheet the door shows and to the change,
+   confirm and like sheets that open over the album.
+
+   The pieces: the LAMP, the album's own sampled light on the sheet's free edge
+   (the top of a phone's sheet, the left of a desk's panel, the top of her
+   menu's card); the COUNT, the album's live number ticking as photos land; the
+   POOLS and GLYPHS, the same light carried off the edge into the words; and the
+   BLOOM, the beat's check and the unlock's button in that light. Motion lives
+   behind `no-preference` and every animated element's resting style IS the
+   still frame it settles on, so reduced motion shows the lamp holding still,
+   the count landing without a tick and the check already drawn.
+
+   ★ THE REGISTER IS THE GROUND'S, THE HUE THE ALBUM'S (sampled-palette.ts,
+   SPILL_REGISTER): a lighter, calmer paper light on white so the wash reads as
+   light rather than stain, the atmosphere register on dark. `--lit-h1..3` (and
+   a pool's `--pool-h`, a glyph's `--glyph-h`) come from `useDoorHues` on each
+   piece's own element.
+
+   ★ THE LAMP SITS AT z-index -1. Every surface that wears one (the Sheet's
+   panel, her menu's card) is a stacking context, so a negative layer paints
+   above the paper's own background and below every word and control on it,
+   whatever the steps inside position themselves as. */
+
+@layer components {
+  .door-lamp {
+    --lit-l: 0.88;
+    --lit-c: 0.09;
+    position: absolute;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+    opacity: 0.95;
+  }
+  .dark .door-lamp {
+    --lit-l: 0.72;
+    --lit-c: 0.15;
+    opacity: 0.72;
+  }
+
+  /* The free edge: a phone's sheet rises from the bottom, so its free edge is
+     its top; the mask spends the light before it reaches the words.
+     ★ NEVER TALLER THAN ITS SURFACE. The sheet is its own scroller, and an
+     absolute box that reaches past a short step's foot (the "You're in" beat
+     under a bloomed lamp) would hand the sheet a stray scroll; a percentage
+     max-height resolves against the sheet's own box, so the light stops where
+     the paper does. */
+  .door-lamp-free,
+  .door-lamp-card {
+    inset: 0 0 auto 0;
+    max-height: 100%;
+  }
+  .door-lamp-free {
+    height: 190px;
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      rgb(0 0 0 / 0.45) 42%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      rgb(0 0 0 / 0.45) 42%,
+      transparent 100%
+    );
+  }
+  .door-lamp-free.door-lamp-bloom {
+    height: 330px;
+  }
+  .door-lamp-card {
+    height: 96px;
+    -webkit-mask-image: linear-gradient(to bottom, #000, transparent);
+    mask-image: linear-gradient(to bottom, #000, transparent);
+  }
+
+  .door-lamp-blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(30px);
+  }
+  .door-lamp-b1 {
+    background: oklch(var(--lit-l) var(--lit-c) var(--lit-h1));
+  }
+  .door-lamp-b2 {
+    background: oklch(var(--lit-l) var(--lit-c) var(--lit-h2));
+  }
+  .door-lamp-b3 {
+    background: oklch(var(--lit-l) var(--lit-c) var(--lit-h3));
+  }
+  .door-lamp-free .door-lamp-b1,
+  .door-lamp-card .door-lamp-b1 {
+    left: -12%;
+    top: -64px;
+    width: 58%;
+    height: 150px;
+  }
+  .door-lamp-free .door-lamp-b2,
+  .door-lamp-card .door-lamp-b2 {
+    left: 24%;
+    top: -80px;
+    width: 54%;
+    height: 150px;
+  }
+  .door-lamp-free .door-lamp-b3,
+  .door-lamp-card .door-lamp-b3 {
+    right: -14%;
+    top: -60px;
+    width: 56%;
+    height: 150px;
+  }
+  .door-lamp-edge {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1.5px;
+    background: linear-gradient(
+      90deg,
+      oklch(var(--lit-l) calc(var(--lit-c) * 1.4) var(--lit-h1)),
+      oklch(var(--lit-l) calc(var(--lit-c) * 1.4) var(--lit-h2)),
+      oklch(var(--lit-l) calc(var(--lit-c) * 1.4) var(--lit-h3))
+    );
+  }
+
+  /* At a desk the sheet is a panel from the right edge, so its free edge is
+     its LEFT one: the same light, turned a quarter. 40rem is the Sheet's own
+     breakpoint (`ui/sheet.tsx`'s DESK), so the lamp turns exactly when the
+     panel does. */
+  @media (width >= 40rem) {
+    .door-lamp-free {
+      inset: 0 auto 0 0;
+      width: 230px;
+      height: auto;
+      -webkit-mask-image: linear-gradient(
+        to right,
+        #000 0%,
+        rgb(0 0 0 / 0.4) 45%,
+        transparent 100%
+      );
+      mask-image: linear-gradient(
+        to right,
+        #000 0%,
+        rgb(0 0 0 / 0.4) 45%,
+        transparent 100%
+      );
+    }
+    .door-lamp-free.door-lamp-bloom {
+      width: 330px;
+      height: auto;
+    }
+    .door-lamp-free .door-lamp-b1 {
+      left: -90px;
+      top: 6%;
+      width: 220px;
+      height: 36%;
+    }
+    .door-lamp-free .door-lamp-b2 {
+      left: -110px;
+      top: 34%;
+      width: 230px;
+      height: 34%;
+    }
+    .door-lamp-free .door-lamp-b3 {
+      left: -90px;
+      top: 62%;
+      width: 220px;
+      height: 36%;
+    }
+    .door-lamp-free .door-lamp-edge {
+      inset: 0 auto 0 0;
+      width: 1.5px;
+      height: auto;
+      background: linear-gradient(
+        180deg,
+        oklch(var(--lit-l) calc(var(--lit-c) * 1.4) var(--lit-h1)),
+        oklch(var(--lit-l) calc(var(--lit-c) * 1.4) var(--lit-h2)),
+        oklch(var(--lit-l) calc(var(--lit-c) * 1.4) var(--lit-h3))
+      );
+    }
+  }
+
+  /* ★ IN DARK, THE LIGHT IS SPENT IN THE MARGIN (measured, not judged). The
+     atmosphere register is mid-luminance, so the percent masks above left the
+     words at a resting sheet's free edge inside the light: a muted eyebrow read
+     2.3:1 and the first line under it 3.1:1 on a phone, and a line's first
+     letters about 3:1 at a desk (the paper register clears 5:1 in light, so light
+     keeps the wash). Here the resting lamp spends itself inside the sheet's own
+     24px padding, which is what "the mask spends the light before it reaches the
+     words" asks: every word clears 4.5:1 (eyebrow 5.0, first line 5.5) and the
+     light stays at the edge as a rim of the album's colour. The bloom keeps its
+     wash, because "You're in" and its line stand below it (5.9:1). */
+  .dark .door-lamp-free[data-door-lamp="base"] {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0px,
+      rgb(0 0 0 / 0.6) 11px,
+      rgb(0 0 0 / 0.24) 22px,
+      rgb(0 0 0 / 0.08) 42px,
+      transparent 90px
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 0px,
+      rgb(0 0 0 / 0.6) 11px,
+      rgb(0 0 0 / 0.24) 22px,
+      rgb(0 0 0 / 0.08) 42px,
+      transparent 90px
+    );
+  }
+  @media (width >= 40rem) {
+    .dark .door-lamp-free[data-door-lamp="base"] {
+      -webkit-mask-image: linear-gradient(
+        to right,
+        #000 0px,
+        rgb(0 0 0 / 0.62) 11px,
+        rgb(0 0 0 / 0.3) 21px,
+        rgb(0 0 0 / 0.1) 40px,
+        transparent 90px
+      );
+      mask-image: linear-gradient(
+        to right,
+        #000 0px,
+        rgb(0 0 0 / 0.62) 11px,
+        rgb(0 0 0 / 0.3) 21px,
+        rgb(0 0 0 / 0.1) 40px,
+        transparent 90px
+      );
+    }
+  }
+
+  /* STRONGER ON THE CODE SCREEN: the code is the one moment the door waits on
+     her inbox, so the light leans in. Read off the code's own entry
+     (`data-otp-entry`, email-sign-in.tsx) rather than threaded as a prop: the
+     code lives three components deep inside the account door, and every sheet
+     that can show it wears the same rule. */
+  [data-door-lit]:has([data-otp-entry]) .door-lamp-free .door-lamp-blob {
+    filter: blur(26px) saturate(1.25);
+  }
+  /* BLOOMING ON "YOU'RE IN". */
+  .door-lamp-bloom .door-lamp-blob {
+    filter: blur(34px) saturate(1.3);
+    transform: scale(1.25);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /* The drift, on the lamps' own clock (`--spill-cadence`). */
+    .door-lamp-b1 {
+      animation: door-drift-a calc(var(--spill-cadence, 8s) * 1.5) ease-in-out
+        infinite alternate;
+    }
+    .door-lamp-b2 {
+      animation: door-drift-b calc(var(--spill-cadence, 8s) * 1.5) ease-in-out
+        infinite alternate;
+    }
+    .door-lamp-b3 {
+      animation: door-drift-a calc(var(--spill-cadence, 8s) * 1.5)
+        ease-in-out -4s infinite alternate-reverse;
+    }
+    /* `backwards`, so the lamp comes up from nothing and then rests on its own
+       register's opacity rather than the keyframe's full one. */
+    .door-lamp {
+      animation: door-lamp-in 700ms ease-out backwards;
+    }
+    /* A sample landing, or the album's newest changing, shifts the light
+       rather than cutting it. */
+    .door-lamp-blob,
+    .door-lamp-edge {
+      transition: background 900ms ease-out;
+    }
+  }
+  @keyframes door-drift-a {
+    from {
+      translate: -14px 0;
+    }
+    to {
+      translate: 18px 8px;
+    }
+  }
+  @keyframes door-drift-b {
+    from {
+      translate: 16px 4px;
+    }
+    to {
+      translate: -18px -6px;
+    }
+  }
+  @keyframes door-lamp-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  /* THE COUNT, TICKING AS PHOTOS LAND: the number that was slides up and out,
+     the one that is rises in. Both share one grid cell, so the sentence around
+     them never reflows mid-tick; `clip-path` rather than `overflow: hidden`
+     does the clipping, because an inline box with overflow set takes its
+     baseline from its bottom edge and would lift the number off the words'
+     line. Still, only the settled number shows (the leaving one rests at 0). */
+  .door-count {
+    display: inline-grid;
+    clip-path: inset(0 -2px);
+  }
+  .door-count > * {
+    grid-area: 1 / 1;
+  }
+  .door-count-out {
+    opacity: 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .door-count-in {
+      animation: door-count-in 420ms var(--ease-emphasis, ease-out) both;
+    }
+    .door-count-out {
+      animation: door-count-out 420ms var(--ease-emphasis, ease-out) both;
+    }
+  }
+  @keyframes door-count-in {
+    from {
+      opacity: 0;
+      transform: translateY(70%);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes door-count-out {
+    from {
+      opacity: 1;
+      transform: none;
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-70%);
+    }
+  }
+
+  /* ══ THE POOLS: a promise's glyph on the album's light (`icons=lit`) ════════
+     The lamp's own register, one hue a pool, so a row of them reads as the
+     edge's light falling on the words: a pale wash with a brighter heart on
+     paper, a deep glow in the dark room. The glyph on it stays ink, so its
+     contrast is the ink's, never the hue's (the board's measured pool). */
+  .door-pool {
+    --pool-l: 0.91;
+    --pool-c: 0.07;
+    background:
+      radial-gradient(
+        circle at 50% 30%,
+        oklch(0.98 calc(var(--pool-c) * 0.6) var(--pool-h)) 0%,
+        transparent 70%
+      ),
+      oklch(var(--pool-l) var(--pool-c) var(--pool-h));
+    box-shadow:
+      inset 0 0 0 1px oklch(0.84 calc(var(--pool-c) * 1.4) var(--pool-h) / 0.55),
+      0 4px 14px -6px oklch(0.7 0.12 var(--pool-h) / 0.55);
+  }
+  .dark .door-pool {
+    --pool-l: 0.36;
+    --pool-c: 0.07;
+    background:
+      radial-gradient(
+        circle at 50% 30%,
+        oklch(0.62 0.12 var(--pool-h) / 0.55) 0%,
+        transparent 72%
+      ),
+      oklch(var(--pool-l) var(--pool-c) var(--pool-h));
+    box-shadow:
+      inset 0 0 0 1px oklch(0.72 0.12 var(--pool-h) / 0.35),
+      0 0 18px -4px oklch(0.72 0.15 var(--pool-h) / 0.55);
+  }
+  /* A sample landing shifts a pool's light as it shifts the lamp's. */
+  @media (prefers-reduced-motion: no-preference) {
+    .door-pool,
+    .door-glyph {
+      transition:
+        background 900ms ease-out,
+        box-shadow 900ms ease-out,
+        color 900ms ease-out;
+    }
+  }
+
+  /* A GLYPH INSIDE A LINE takes the lamp's colour (the Lock beside Almost in,
+     the email row's envelope), dark enough on paper and light enough in the dark
+     room to hold a graphic's 3:1 against the sheet. */
+  .door-glyph {
+    color: oklch(0.56 0.13 var(--glyph-h));
+  }
+  .dark .door-glyph {
+    color: oklch(0.82 0.11 var(--glyph-h));
+  }
+
+  /* ══ THE BLOOM: a beat in the album's light (`beat=lit`) ══════════════════════
+     The success green swapped for the lamp's three hues in one round, the check
+     in ink on paper and white in the dark room (3:1 as a graphic in both). */
+  .door-bloom {
+    color: oklch(0.2 0.02 286);
+    background: conic-gradient(
+      from 210deg,
+      oklch(0.86 0.1 var(--lit-h1)),
+      oklch(0.86 0.1 var(--lit-h2)),
+      oklch(0.86 0.1 var(--lit-h3)),
+      oklch(0.86 0.1 var(--lit-h1))
+    );
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.5),
+      0 0 26px -2px oklch(0.8 0.12 var(--lit-h2) / 0.7);
+  }
+  .door-bloom::before {
+    content: "";
+    position: absolute;
+    inset: 18%;
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 0.55);
+    filter: blur(6px);
+  }
+  .dark .door-bloom {
+    color: #fff;
+    background: conic-gradient(
+      from 210deg,
+      oklch(0.62 0.15 var(--lit-h1)),
+      oklch(0.62 0.15 var(--lit-h2)),
+      oklch(0.62 0.15 var(--lit-h3)),
+      oklch(0.62 0.15 var(--lit-h1))
+    );
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.18),
+      0 0 30px -2px oklch(0.72 0.15 var(--lit-h2) / 0.75);
+  }
+  .dark .door-bloom::before {
+    background: rgb(255 255 255 / 0.16);
+  }
+  /* The keep's mark is a third the size, so its glow is too: a 26px glow on a
+     36px disc reads as a smudge, and at the column's edge the step's clip would
+     cut it with a line. */
+  .door-bloom[data-door-check="sent"] {
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.5),
+      0 0 14px -3px oklch(0.8 0.12 var(--lit-h2) / 0.7);
+  }
+  .dark .door-bloom[data-door-check="sent"] {
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.18),
+      0 0 16px -3px oklch(0.72 0.15 var(--lit-h2) / 0.75);
+  }
+
+  /* THE UNLOCK FILLS WITH THE SAME LIGHT: the password's gate stays planted and
+     its button becomes the beat. The light is a layer under the words (z -1 in
+     the button's own stacking context, so above its primary ground) that fades
+     in over the primary (a gradient cannot transition), so the button fills
+     rather than cuts. In the dark room the words are white on a deeper light
+     than the mark's, holding text's 4.5:1 (measured). */
+  .door-bloom-button {
+    isolation: isolate;
+  }
+  /* The words take the light's ink on the button's content (the Button's own
+     text colour is a utility, which a component rule cannot outrank). */
+  .door-bloom-button > * {
+    color: oklch(0.2 0.02 286);
+  }
+  .door-bloom-button::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(
+      100deg,
+      oklch(0.86 0.1 var(--lit-h1)),
+      oklch(0.86 0.1 var(--lit-h2)) 55%,
+      oklch(0.86 0.1 var(--lit-h3))
+    );
+    box-shadow: 0 0 24px -6px oklch(0.8 0.12 var(--lit-h2) / 0.8);
+  }
+  .dark .door-bloom-button > * {
+    color: #fff;
+  }
+  .dark .door-bloom-button::before {
+    background: linear-gradient(
+      100deg,
+      oklch(0.54 0.15 var(--lit-h1)),
+      oklch(0.54 0.15 var(--lit-h2)) 55%,
+      oklch(0.54 0.15 var(--lit-h3))
+    );
+  }
+  /* The morph's own entrance is the reveal below and the check's draw, so the
+     gate button's older pop (`globals.css`'s `[data-unlock-success]`, a scale
+     from 0.9) stands down inside the lit button rather than stacking on them. */
+  .door-bloom-button [data-unlock-success] {
+    transition: none;
+  }
+
+  /* ══ THE SUCCESS CHECK (his note: transitions.dev's `success-check`) ═════════
+     Fade, turn upright from 80deg, sharpen out of a 10px blur and settle with a
+     bob, all on the recipe's 500ms, while the stroke draws 80ms behind. The
+     recipe's smooth-out is the house's `--ease-emphasis` (its near-twin), and its
+     bob rides the house bounce (marketing's `--mkt-ease-pop`, whose token lives on
+     `[data-mkt]` and so is not in reach of a guest page). The stroke is 19.7
+     units long, drawn from a 20-unit dash (the recipe's calibration). Each
+     keyframe names only its start, and `backwards` holds it through the delay,
+     so the resting style (drawn, upright, sharp) is the still frame. */
+  .door-check path,
+  .door-check-stroke path {
+    stroke-dasharray: 20;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .door-check {
+      --door-check-y: 40px;
+      animation:
+        door-fade-in 500ms var(--ease-emphasis) backwards,
+        door-check-turn 500ms var(--ease-emphasis) backwards,
+        door-check-focus 500ms var(--ease-emphasis) backwards,
+        door-check-bob 500ms cubic-bezier(0.34, 1.45, 0.64, 1) backwards;
+    }
+    /* The keep's mark is a third the size, so its bob is too. */
+    .door-check[data-door-check="sent"] {
+      --door-check-y: 14px;
+    }
+    .door-check path,
+    .door-check-stroke path {
+      animation: door-check-draw 500ms var(--ease-emphasis) 80ms backwards;
+    }
+    .door-check-stroke {
+      animation: door-fade-in 300ms var(--ease-emphasis) backwards;
+    }
+    .door-bloom-button::before {
+      animation: door-fade-in 320ms var(--ease-emphasis) backwards;
+    }
+  }
+  @keyframes door-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes door-check-turn {
+    from {
+      rotate: 80deg;
+    }
+  }
+  @keyframes door-check-focus {
+    from {
+      filter: blur(10px);
+    }
+  }
+  @keyframes door-check-bob {
+    from {
+      translate: 0 var(--door-check-y);
+    }
+  }
+  @keyframes door-check-draw {
+    from {
+      stroke-dashoffset: 20;
+    }
+  }
+}

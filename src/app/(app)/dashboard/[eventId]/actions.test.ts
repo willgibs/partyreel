@@ -11,6 +11,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const calls: { fn: string; ids: unknown }[] = [];
 const ok = { ok: true as const, data: { count: 0, purged: 0, id: "" } };
+/** What `restoreMedia` answers: where `restore_media` landed the item. */
+let restored: { ok: true; data: { id: string; status?: string } } = {
+  ok: true,
+  data: { id: "", status: "approved" },
+};
 
 const revalidated: string[] = [];
 let signedIn = true;
@@ -35,7 +40,11 @@ vi.mock("@/lib/db/mutations/media", () => {
     removeMedia: async () => ok,
     removeMediaBulk: spy("removeMediaBulk"),
     restoreEvent: async () => ok,
-    restoreMedia: async () => ok,
+    restoreMedia: async () => restored,
+    returnToReview: async (_eventId: string, ids: unknown, from: string) => {
+      calls.push({ fn: `returnToReview:${from}`, ids });
+      return ok;
+    },
     setMediaStatus: async () => ok,
     setMediaStatusBulk: spy("setMediaStatusBulk"),
   };
@@ -77,6 +86,8 @@ const actions = await import("./actions");
 const uuid = (i: number) =>
   `00000000-0000-4000-8000-${String(i).padStart(12, "0")}`;
 const ids = (n: number) => Array.from({ length: n }, (_, i) => uuid(i));
+/** Undo's action reads the event, so it is handed a real id (the other verbs take any). */
+const EVENT_ID = "e0000000-0000-4000-8000-000000000001";
 
 /** Each bulk verb, as the client calls it. */
 const VERBS = {
@@ -90,6 +101,8 @@ const VERBS = {
     actions.removeMediaBulkAction("ev-1", list as string[]),
   purgeMediaNowAction: (list: unknown) =>
     actions.purgeMediaNowAction("ev-1", list as string[]),
+  returnToReviewAction: (list: unknown) =>
+    actions.returnToReviewAction(EVENT_ID, list as string[], "approved"),
 };
 
 beforeEach(() => {
@@ -100,6 +113,7 @@ beforeEach(() => {
   getEvent.mockResolvedValue({
     id: "e0000000-0000-4000-8000-000000000001",
     show_reel: true,
+    moderation_mode: "hold_for_approval",
   });
   readHubReel.mockResolvedValue({
     state: "live",
@@ -136,8 +150,10 @@ describe.each(Object.entries(VERBS))("%s", (_name, run) => {
 /**
  * THE ALBUM'S OWN WRITES NO LONGER RE-RENDER THE HUB (album-host-wiring). A revalidation from a
  * Server Function re-renders the calling page in the same round trip, and the hub is the page whose
- * album is a client store now: its caller catches the store up instead. Review's two bulk verbs still
- * revalidate, because that room renders its queue on the server.
+ * album is a client store now: its caller catches the store up instead. ★ Review's verbs joined them
+ * (curation-wiring): they used to revalidate because that room rendered its queue on the server,
+ * which re-ran the room's whole page on every verdict (a page per key press, with the keyboard).
+ * The room is a store over the host's album now, so its approve, reject and Undo revalidate nothing.
  */
 describe("which writes revalidate the hub", () => {
   it("the album's hide, show, remove, restore and delete-forever do not", async () => {
@@ -150,10 +166,64 @@ describe("which writes revalidate the hub", () => {
     expect(revalidated).toEqual([]);
   });
 
-  it("Review's approve and hide still do", async () => {
+  it("nor do Review's approve, reject and Undo", async () => {
     await actions.approveBulkAction("ev-1", ids(2));
     await actions.hideBulkAction("ev-1", ids(2));
-    expect(revalidated).toEqual(["/dashboard/ev-1", "/dashboard/ev-1"]);
+    await actions.returnToReviewAction(EVENT_ID, ids(2), "hidden");
+    expect(revalidated).toEqual([]);
+  });
+});
+
+/**
+ * UNDO ON A VERDICT'S TOAST (host-curation `undo=undo`) puts what the verdict decided back in the
+ * queue: only from the two states a verdict lands in, and never into an event that stopped reviewing
+ * (a live event holds no pending media), both refused in words before any write.
+ */
+describe("returnToReviewAction", () => {
+  it("returns an approve's or a reject's items, naming the state they left", async () => {
+    expect(
+      await actions.returnToReviewAction(EVENT_ID, ids(2), "approved"),
+    ).toEqual({ ok: true });
+    expect(
+      await actions.returnToReviewAction(EVENT_ID, ids(1), "hidden"),
+    ).toEqual({ ok: true });
+    expect(calls.map((c) => c.fn)).toEqual([
+      "returnToReview:approved",
+      "returnToReview:hidden",
+    ]);
+  });
+
+  it("refuses any other state, a removed one included", async () => {
+    for (const from of ["removed", "pending", "", "APPROVED"]) {
+      expect(
+        await actions.returnToReviewAction(EVENT_ID, ids(1), from),
+      ).toMatchObject({ ok: false, code: "validation" });
+    }
+    expect(calls).toHaveLength(0);
+  });
+
+  it("refuses an event that no longer reviews, is not the caller's, or is no id at all, before any write", async () => {
+    getEvent.mockResolvedValue({ id: EVENT_ID, moderation_mode: "live" });
+    expect(
+      await actions.returnToReviewAction(EVENT_ID, ids(1), "approved"),
+    ).toEqual({
+      ok: false,
+      code: "validation",
+      message:
+        "Review is off for this event, so there's no queue to put them back in.",
+    });
+    getEvent.mockResolvedValue(null);
+    expect(
+      await actions.returnToReviewAction(EVENT_ID, ids(1), "approved"),
+    ).toMatchObject({ ok: false, code: "validation" });
+    getEvent.mockResolvedValue({
+      id: EVENT_ID,
+      moderation_mode: "hold_for_approval",
+    });
+    expect(
+      await actions.returnToReviewAction("not-an-id", ids(1), "approved"),
+    ).toMatchObject({ ok: false, code: "validation" });
+    expect(calls).toHaveLength(0);
   });
 });
 
@@ -182,5 +252,23 @@ describe("refreshHubReelAction", () => {
     getEvent.mockResolvedValue(null);
     expect(await actions.refreshHubReelAction(EVENT)).toEqual({ ok: false });
     expect(readHubReel).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * A RESTORE CARRIES WHERE IT LANDED THE ITEM to the bin, which words its toast from it (a ROADMAP
+ * carry-over from `crumbs-8`: a hidden item was announced as "back in the album").
+ */
+describe("the restore's answer", () => {
+  it("carries restore_media's status through, and none when it answered none", async () => {
+    restored = { ok: true, data: { id: uuid(1), status: "hidden" } };
+    await expect(actions.restoreMediaAction("ev-1", uuid(1))).resolves.toEqual({
+      ok: true,
+      status: "hidden",
+    });
+    restored = { ok: true, data: { id: uuid(1) } };
+    await expect(
+      actions.restoreMediaAction("ev-1", uuid(1)),
+    ).resolves.toMatchObject({ ok: true, status: undefined });
   });
 });

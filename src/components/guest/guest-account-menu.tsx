@@ -1,6 +1,12 @@
 "use client";
 
-import { LayoutDashboard, LogOut, Settings, SlidersHorizontal } from "lucide-react";
+import {
+  LayoutDashboard,
+  LifeBuoy,
+  LogOut,
+  Settings,
+  SlidersHorizontal,
+} from "lucide-react";
 import Link from "next/link";
 
 import { ThemeSubmenu, initial } from "@/components/app/user-menu";
@@ -13,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { HELP_CENTER_HREF } from "@/lib/content/help-links";
 
 // The account menu shown in the guest event-page header for a LOGGED-IN visitor — the auth-aware
 // swap of the "Start for free" CTA (see guest-header.tsx). It deliberately differs from the host
@@ -97,6 +104,14 @@ export function GuestAccountMenu({
         <DropdownMenuSeparator />
         {/* Global light/dark/system theme picker (shared with the host menu). */}
         <ThemeSubmenu />
+        {/* The standing door into help (help-center r1: "globally accessible for general
+            questions as well"), the host menu's Help center row in its new tab, so the event
+            page stays where it is. */}
+        <DropdownMenuItem asChild>
+          <a href={HELP_CENTER_HREF} target="_blank" rel="noopener noreferrer">
+            <LifeBuoy /> Help center
+          </a>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         {/* Client-side sign out — NOT the host menu's server action (which redirects to /login).
             preventDefault keeps radix from closing the menu out from under the async handler. */}

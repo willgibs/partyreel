@@ -1,4 +1,4 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -7,18 +7,26 @@ import {
   pendingOfferKey,
 } from "@/lib/guest/album-return";
 import type { ClaimResult } from "@/lib/guest/claim-uploads";
+import {
+  lastClaimPlayedMoment,
+  onConfirmBeat,
+  type ConfirmBeat,
+} from "@/lib/guest/confirm-beat";
 
 /**
  * THE RETURN. Every confirm door on an album writes the album's marker when it opens; the album
  * hears every claim made on it and plays the follow moment when a door was opened here AND the
  * claim moved this album's own uploads, with no upload needed this visit (a Google or magic-link
- * return is exactly that). The toast is for other events' uploads alone. What is pinned is that
- * rule, never a card's look.
+ * return is exactly that).
+ *
+ * ★ ONE BEAT (`guest-capture` r1): the moment carries the other events itself (`elsewhere`), so
+ * this hook toasts nothing; a door that awaited a claim reads whether it played the moment
+ * (`lastClaimPlayedMoment`) and reports its own beat; the one claim nobody awaits, the mount's own
+ * (a full-reload return), is reported here. What is pinned is that rule, never a card's look.
  */
-const { listeners, claim, toastSuccess } = vi.hoisted(() => ({
+const { listeners, claim } = vi.hoisted(() => ({
   listeners: new Set<(r: ClaimResult) => void>(),
-  claim: vi.fn(async () => null),
-  toastSuccess: vi.fn(),
+  claim: vi.fn(async (): Promise<ClaimResult | null> => null),
 }));
 vi.mock("@/lib/guest/claim-uploads", () => ({
   CLAIMED_TOAST: "We added your uploads to your account.",
@@ -28,7 +36,6 @@ vi.mock("@/lib/guest/claim-uploads", () => ({
     return () => listeners.delete(listener);
   },
 }));
-vi.mock("sonner", () => ({ toast: { success: (m: string) => toastSuccess(m) } }));
 
 const { useConfirmReturn } = await import("@/lib/guest/use-confirm-return");
 
@@ -38,10 +45,17 @@ function hear(result: ClaimResult) {
   });
 }
 
+const beats: ConfirmBeat[] = [];
+let stopBeats: () => void = () => {};
+
 beforeEach(() => {
   vi.clearAllMocks();
+  claim.mockImplementation(async () => null);
   listeners.clear();
   localStorage.clear();
+  beats.length = 0;
+  stopBeats();
+  stopBeats = onConfirmBeat((beat) => beats.push(beat));
 });
 
 describe("useConfirmReturn", () => {
@@ -53,46 +67,68 @@ describe("useConfirmReturn", () => {
     expect(currentAlbum()).toBeNull();
   });
 
-  it("★ a door opened here, then a claim that moved this album's uploads: the moment plays, once", () => {
+  it("★ a door opened here, then a claim that moved this album's uploads: the moment plays, once, with the other events in it", () => {
     markPendingOffer("album-1");
     const { result } = renderHook(() => useConfirmReturn("album-1", true));
-    expect(result.current).toBe(false);
-    hear({ album: "album-1", here: 1, elsewhere: 0 });
-    expect(result.current).toBe(true);
+    expect(result.current).toEqual({ moment: false, elsewhere: 0 });
+    hear({ album: "album-1", here: 1, elsewhere: 2 });
+    expect(result.current).toEqual({ moment: true, elsewhere: 2 });
+    expect(lastClaimPlayedMoment("album-1")).toBe(true);
     expect(localStorage.getItem(pendingOfferKey("album-1"))).toBeNull();
-    expect(toastSuccess).not.toHaveBeenCalled();
+    // The card says it; nothing else does.
+    expect(beats).toEqual([]);
   });
 
-  it("no door opened here (a sign-in from somewhere else): no moment", () => {
+  it("no door opened here (a sign-in from somewhere else): no moment, and the claim says so", () => {
     const { result } = renderHook(() => useConfirmReturn("album-1", true));
     hear({ album: "album-1", here: 1, elsewhere: 0 });
-    expect(result.current).toBe(false);
+    expect(result.current.moment).toBe(false);
+    expect(lastClaimPlayedMoment("album-1")).toBe(false);
   });
 
   it("a claim that moved nothing here plays nothing, and spends the marker all the same", () => {
     markPendingOffer("album-1");
     const { result } = renderHook(() => useConfirmReturn("album-1", true));
     hear({ album: "album-1", here: 0, elsewhere: 0 });
-    expect(result.current).toBe(false);
+    expect(result.current.moment).toBe(false);
     expect(localStorage.getItem(pendingOfferKey("album-1"))).toBeNull();
   });
 
-  it("says the toast only when the claim reached other events too", () => {
+  it("a door's claim is the door's to report: the hook itself says nothing about it", () => {
     renderHook(() => useConfirmReturn("album-1", true));
-    hear({ album: "album-1", here: 1, elsewhere: 0 });
-    expect(toastSuccess).not.toHaveBeenCalled();
     hear({ album: "album-1", here: 0, elsewhere: 2 });
-    expect(toastSuccess).toHaveBeenCalledWith(
-      "We added your uploads to your account.",
+    expect(beats).toEqual([]);
+  });
+
+  it("the mount's own claim (a full-reload return) reports what it carried elsewhere, once", async () => {
+    claim.mockImplementation(async () => {
+      const result = { album: "album-1", here: 0, elsewhere: 3 };
+      for (const listener of listeners) listener(result);
+      return result;
+    });
+    renderHook(() => useConfirmReturn("album-1", true));
+    await waitFor(() =>
+      expect(beats).toEqual([{ album: "album-1", name: null, elsewhere: 3 }]),
     );
+  });
+
+  it("the mount's own claim that plays the moment reports nothing: the card says it", async () => {
+    markPendingOffer("album-1");
+    claim.mockImplementation(async () => {
+      const result = { album: "album-1", here: 2, elsewhere: 3 };
+      for (const listener of listeners) listener(result);
+      return result;
+    });
+    const { result } = renderHook(() => useConfirmReturn("album-1", true));
+    await waitFor(() => expect(result.current.moment).toBe(true));
+    expect(beats).toEqual([]);
   });
 
   it("ignores a claim made for another album", () => {
     markPendingOffer("album-1");
     const { result } = renderHook(() => useConfirmReturn("album-1", true));
     hear({ album: "album-2", here: 3, elsewhere: 3 });
-    expect(result.current).toBe(false);
-    expect(toastSuccess).not.toHaveBeenCalled();
+    expect(result.current.moment).toBe(false);
     expect(localStorage.getItem(pendingOfferKey("album-1"))).toBe("1");
   });
 

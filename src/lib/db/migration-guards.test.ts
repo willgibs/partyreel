@@ -65,6 +65,15 @@
  *      the deferred stamps at commit, every event of a transaction bumped in event-id order (the
  *      lock-order rule, database-security.md); the note before the stamp by name; the reader's one
  *      snapshot and its clamp.
+ *  16. The per-event block and the always-on guest list (event-safety r1, migration 20260928120000): the
+ *      table's keys, RLS and grants; the one rule (four predicates no client role can run); the host's
+ *      two acts re-checking the host, skipping a hold and keeping what the restore reads; the mask on
+ *      every guest path, in the private album's own words; the four claims leaving a block alone; her
+ *      own feed and lists kept as a private album's; and no SQL reading the retired switch.
+ *  17. An operator's removal leaves the host's view (admin-triage r1, migration 20260928140000): the
+ *      host's policy hides it while the flag stays ungranted; her Delete permanently cannot end its
+ *      window; her Deleted and her restored event count only what her Deleted shows; and an event
+ *      holding one inside its window is kept by every event-level purge.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -487,12 +496,16 @@ describe("QA #40 — get_event_by_qr_token's redaction survives a drop + create"
   // Pinned latest-wins here because the reshape DROPPED and recreated this function; a guard
   // pinned to 20260729180000 (escalation-guards.test.ts) can no longer see the winning body.
   it("redacts metadata for a non-owner of a gated event, and the name only for private", () => {
+    // ★ Reshaped by the per-event block (20260928120000): the redaction reads `v.visibility`, the
+    // event AS THIS CALLER SEES IT (private to an account the event blocked), where it read the row's
+    // own `e.visibility`. The rule it pins is unchanged: a non-owner of a gated album gets no
+    // metadata, and no name when it is private. The mask itself is pinned with the block's guards.
     const body = collapse(latestDefinition("get_event_by_qr_token").body);
     expect(body).toContain(
-      "(e.visibility <> 'open' and e.host_id is distinct from (select auth.uid())) as hide_meta",
+      "(v.visibility <> 'open' and e.host_id is distinct from (select auth.uid())) as hide_meta",
     );
     expect(body).toContain(
-      "(e.visibility = 'private' and e.host_id is distinct from (select auth.uid())) as hide_name",
+      "(v.visibility = 'private' and e.host_id is distinct from (select auth.uid())) as hide_name",
     );
     expect(body).toContain("case when r.hide_name then null else e.name end");
     for (const field of [
@@ -1361,14 +1374,50 @@ describe("the row cap: the SQL shapes the 1,000-row fixes read", () => {
       );
     });
 
-    it("replaces the no-argument signature in the same file (PostgREST forbids overloads)", () => {
-      const file = grants("list_guest_rows_by_email");
-      const drop = file.indexOf(
-        "drop function public.list_guest_rows_by_email();",
+    it("never leaves an overload standing: each file drops the signature it replaces before it creates (PostgREST forbids overloads)", () => {
+      // Replayed statement by statement across the set rather than pinned to the file that first
+      // did it: the row cap replaced the no-argument signature (20260924020000), and the claims
+      // review's previews replaced the three-argument one with itself (20260927200000), because a
+      // RETURNS TABLE cannot change in place. A bare create over a standing signature fails to
+      // apply; one beside a different signature leaves an overload PostgREST cannot choose between.
+      const statement =
+        /\b(create (?:or replace )?function|drop function(?: if exists)?) public\.list_guest_rows_by_email ?\(([^)]*)\)/g;
+      const typesOf = (list: string, named: boolean) =>
+        list
+          .split(",")
+          .map((p) => p.trim())
+          .filter(Boolean)
+          .map((p) => (named ? p.split(" ")[1] : p))
+          .join(", ");
+      const live = new Set<string>();
+      for (const { file, sql } of executableMigrations()) {
+        for (const [, verb, list] of sql.matchAll(statement)) {
+          if (verb.startsWith("drop")) {
+            live.delete(typesOf(list, false));
+            continue;
+          }
+          const types = typesOf(list, true);
+          const replaces = verb.includes("or replace") && live.has(types);
+          expect(
+            replaces ? [] : [...live],
+            `${file} creates (${types}) beside a standing signature`,
+          ).toEqual([]);
+          live.add(types);
+        }
+      }
+      expect([...live]).toEqual(["timestamptz, uuid, integer"]);
+    });
+
+    it("★ previews a row's own photographs only where its album shows them to anyone: open, approved, live, four at most", () => {
+      // The claims review's cards (identity-claims r1, `pass=cards`): the keys of the row's OWN
+      // media, never the album's, and nothing from a password or private album (the guest album's
+      // `visibility = 'open'` gate) or from an upload the album shows nobody yet (held or hidden).
+      const body = code("list_guest_rows_by_email");
+      expect(body).toContain(
+        "case when e.visibility = 'open' then coalesce(p.keys, '{}'::text[]) end",
       );
-      expect(drop).toBeGreaterThan(-1);
-      expect(drop).toBeLessThan(
-        file.indexOf("create function public.list_guest_rows_by_email("),
+      expect(body).toContain(
+        "where y.guest_id = g.id and e.visibility = 'open' and y.status = 'approved' and y.removed_at is null and y.preview_key is not null order by y.created_at desc, y.id desc limit 4",
       );
     });
   });
@@ -1402,20 +1451,30 @@ describe("the row cap: the SQL shapes the 1,000-row fixes read", () => {
   });
 
   describe("the sweeps: the legal-hold partition and the standby budget's hosts", () => {
-    it("held_event_ids answers ONE uuid[] of the events that hold anything", () => {
-      expect(code("held_event_ids")).toContain(
-        "create function public.held_event_ids(p_event_ids uuid[]) returns uuid[] language sql stable security invoker set search_path = '' as $$ select coalesce(array_agg(h.event_id order by h.event_id), '{}'::uuid[]) from ( select distinct m.event_id from public.media m where m.event_id = any(p_event_ids) and m.legal_hold_at is not null ) h; $$;",
+    // The shape is pinned whether a later migration replaces the function or not (20260928140000 did).
+    const shape = (name: string) =>
+      code(name).replace("create or replace function", "create function");
+
+    // ★ RESHAPED ON PURPOSE (triage-wiring, 2026-09-28; scar kept: ONE uuid[] per candidate set, never a
+    // read of held rows). The expired reason: "the events that hold anything" meant a legal hold alone.
+    // An operator's removal still inside its window keeps its event too (20260928140000), so a deleted
+    // account cannot take the evidence before the runbook preserves it.
+    it("held_event_ids answers ONE uuid[] of the events that hold anything the purge must keep", () => {
+      expect(shape("held_event_ids")).toContain(
+        "create function public.held_event_ids(p_event_ids uuid[]) returns uuid[] language sql stable security invoker set search_path = '' as $$ select coalesce(array_agg(h.event_id order by h.event_id), '{}'::uuid[]) from ( select distinct m.event_id from public.media m where m.event_id = any(p_event_ids) and ( m.legal_hold_at is not null or (m.status = 'removed' and m.removed_by_admin and m.purge_at > now()) ) ) h; $$;",
       );
     });
 
-    it("★ standby_hosts counts exactly the budget's bin: no system removal, no guest's own withdrawal, no hold", () => {
-      expect(code("standby_hosts")).toContain(
-        "where m.legal_hold_at is null and ( (m.status = 'removed' and not m.removed_by_system and not m.removed_by_uploader) or (m.status <> 'removed' and e.deleted_at is not null) )",
+    // ★ RESHAPED ON PURPOSE (triage-wiring, 2026-09-28; scar kept: exactly the budget's bin). The bin
+    // now leaves out an operator's removal too: never the host's, and never evicted inside its window.
+    it("★ standby_hosts counts exactly the budget's bin: no system removal, no guest's own withdrawal, no operator's removal, no hold", () => {
+      expect(shape("standby_hosts")).toContain(
+        "where m.legal_hold_at is null and ( (m.status = 'removed' and not m.removed_by_system and not m.removed_by_uploader and not m.removed_by_admin) or (m.status <> 'removed' and e.deleted_at is not null) )",
       );
     });
 
     it("standby_hosts pages on host id and lists only hosts with bytes", () => {
-      const body = code("standby_hosts");
+      const body = shape("standby_hosts");
       expect(body).toContain(
         "create function public.standby_hosts(p_after uuid default null, p_limit integer default null) returns table (host_id uuid, standby_bytes bigint) language sql stable security invoker set search_path = ''",
       );
@@ -1585,9 +1644,13 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
 
       it(`${name}: every earlier parameter by name, then p_reel_eligible defaulting to true`, () => {
         // PostgREST resolves by argument names, so the deployed calls (without the new one) still
-        // land here, and the default makes what they upload play in the live reel.
-        expect(code(name)).toContain(
-          `create function public.${name}( ${shape.params} ) returns jsonb language plpgsql security definer set search_path`,
+        // land here, and the default makes what they upload play in the live reel. ★ Reshaped by
+        // the per-event block (20260928120000), which replaces create_media IN PLACE (`create or
+        // replace`, the signature untouched): the pin holds the signature, whichever form wins.
+        expect(code(name)).toMatch(
+          new RegExp(
+            `create (or replace )?function public\\.${name}\\( ${shape.params.replace(/[()[\].]/g, "\\$&")} \\) returns jsonb language plpgsql security definer set search_path`,
+          ),
         );
       });
 
@@ -1604,14 +1667,17 @@ describe("the live reel: the expand (20260924100000) and the drop (2026092411000
       });
 
       it(`${name}: replaces its one signature in the same file and stays service-role only`, () => {
-        const file = grants(name);
-        const dropped = file.indexOf(
+        // ★ Reshaped by the per-event block (20260928120000): the drop-before-create is the EXPAND's
+        // own fact, so it reads the expand's file; a later in-place replace (create_media's, there)
+        // drops nothing. The grants still read the winning file, which must restate them.
+        const dropped = expand.indexOf(
           `drop function public.${name}(${shape.before});`,
         );
         expect(dropped).toBeGreaterThan(-1);
         expect(dropped).toBeLessThan(
-          file.indexOf(`create function public.${name}(`),
+          expand.indexOf(`create function public.${name}(`),
         );
+        const file = grants(name);
         expect(file).toContain(
           `revoke execute on function public.${name}(${after}) from public, anon, authenticated;`,
         );
@@ -1827,10 +1893,12 @@ describe("the host's reel defaults (20260925100000)", () => {
           "e.show_reel, e.reel_style_id from",
           "e.show_reel, e.reel_style_id, e.reel_hold_sec from",
         );
-      expect(code("get_event_by_qr_token")).toBe(carried);
-      expect(latestDefinition("get_event_by_qr_token").file).toContain(
-        "reel_hold_sec",
-      );
+      // ★ Reshaped by the per-event block (20260928120000), which masks the event's visibility for a
+      // blocked caller: the carry is THIS file's fact, so it reads this file's own definition; what
+      // must survive later replacements (the hold last, QA #40, `limit 1`) is pinned below and with
+      // the block's guards.
+      expect(definitionIn(FILE, "get_event_by_qr_token")).toBe(carried);
+      expect(sql).toContain("reel_hold_sec");
     });
 
     it("returns the hold after the reel's two settings, as a SECURITY DEFINER read with an empty search_path", () => {
@@ -1847,14 +1915,16 @@ describe("the host's reel defaults (20260925100000)", () => {
     });
 
     it("drops the old signature first and restates the whole ACL (the client roles, PUBLIC and service_role)", () => {
-      const file = grants("get_event_by_qr_token");
-      const dropped = file.indexOf(
+      // ★ The drop-before-create is this file's (reshaped with the carry above); the ACL is restated
+      // by whichever file wins, the in-place replace too.
+      const dropped = sql.indexOf(
         "drop function public.get_event_by_qr_token(text);",
       );
       expect(dropped).toBeGreaterThan(-1);
       expect(dropped).toBeLessThan(
-        file.indexOf("create function public.get_event_by_qr_token("),
+        sql.indexOf("create function public.get_event_by_qr_token("),
       );
+      const file = grants("get_event_by_qr_token");
       expect(file).toContain(
         "grant execute on function public.get_event_by_qr_token(text) to anon, authenticated;",
       );
@@ -2187,5 +2257,380 @@ describe("the paged album's version and change log (20260926100000)", () => {
         "(extract(epoch from m.created_at) * 1000000)::bigint",
       );
     });
+  });
+});
+
+describe("the per-event block and the always-on guest list (20260928120000)", () => {
+  // Will, event-safety r1 (2026-09-28): a block is "Out, uploads removed", per event, the host's to make
+  // and undo; the person meets the private album's door ("Sneaky block") on every path, re-checked per
+  // request; it keys on the account, a confirmed address or the guest row, never a device or an IP. And
+  // `room=always`: the guest list is always on. Each pin reads CODE (comments stripped), and each grant
+  // the defining file's executable SQL, so a comment can never stand in for a clause.
+  const FILE = "20260928120000_event_blocks.sql";
+  const sql = collapse(
+    readFileSync(join(MIGRATIONS_DIR, FILE), "utf8").replace(/--[^\n]*/g, ""),
+  );
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+  const grants = (name: string) =>
+    collapse(latestDefinition(name).file.replace(/--[^\n]*/g, ""));
+
+  describe("public.event_blocks: the keys, RLS on, the host's own events only", () => {
+    it("keys on the account, a confirmed address or the row, with no foreign key but the event's", () => {
+      const table = sql.slice(
+        sql.indexOf("create table public.event_blocks ("),
+        sql.indexOf(");", sql.indexOf("create table public.event_blocks (")),
+      );
+      // One FK: a second (profiles, guests) would be a new PostgREST embed path (PGRST201).
+      expect(table.match(/\breferences\b/g)).toHaveLength(1);
+      expect(table).toContain(
+        "event_id uuid not null references public.events (id) on delete cascade",
+      );
+      expect(table).toContain(
+        "check (user_id is not null or email is not null or guest_id is not null)",
+      );
+      // The address is only ever a confirmed one, stored normalised.
+      expect(table).toContain("email = lower(btrim(email))");
+      expect(table).not.toMatch(/\b(ip|device)/);
+    });
+
+    it("enables RLS, grants SELECT alone to authenticated behind the host's policy, and nothing to anon", () => {
+      expect(sql).toContain(
+        "alter table public.event_blocks enable row level security;",
+      );
+      expect(sql).toContain(
+        "revoke all on table public.event_blocks from public, anon, authenticated;",
+      );
+      expect(sql).toContain(
+        "grant select on table public.event_blocks to authenticated;",
+      );
+      expect(sql).toContain(
+        "create policy event_blocks_select_host on public.event_blocks for select to authenticated using (exists (select 1 from public.events e where e.id = event_blocks.event_id and e.host_id = (select auth.uid())));",
+      );
+      expect(sql).not.toMatch(
+        /grant [^;]*\b(insert|update|delete|all)\b[^;]* on (?:table )?public\.event_blocks to [^;]*\b(anon|authenticated|public)\b/,
+      );
+    });
+  });
+
+  describe("the rule, once", () => {
+    it("names a row by its id, its account, or the address a PROVED row proved, never a pending one", () => {
+      const names = code("event_block_names_row");
+      expect(names).toContain("p_guest.id = p_guest_id");
+      expect(names).toContain(
+        "(p_guest.user_id is not null and p_guest.user_id = p_user_id)",
+      );
+      expect(names).toContain(
+        "(p_guest.verified_at is not null and p_email is not null and lower(btrim(p_guest.email)) = p_email)",
+      );
+      expect(names).not.toContain("pending_email");
+      expect(code("event_block_holds_row")).toContain(
+        "where b.event_id = p_guest.event_id and public.event_block_names_row(b.user_id, b.email, b.guest_id, p_guest)",
+      );
+    });
+
+    it("names an account by its id, or its address while auth.users says it is confirmed", () => {
+      expect(code("event_block_names_account")).toContain(
+        "where u.id = p_account and u.email_confirmed_at is not null",
+      );
+      expect(code("event_block_holds_account")).toContain(
+        "public.event_block_names_account(b.user_id, b.email, p_user_id)",
+      );
+    });
+
+    it("no client role runs any predicate or any server read; the host's two acts are authenticated only", () => {
+      for (const signature of [
+        "public.event_block_names_row(uuid, text, uuid, public.guests)",
+        "public.event_block_holds_row(public.guests)",
+        "public.event_block_names_account(uuid, text, uuid)",
+        "public.event_block_holds_account(uuid, uuid)",
+        "public.event_ticket_blocked(uuid, text[])",
+        "public.event_blocked_guest_ids(uuid)",
+        "public.blocked_events_for(uuid)",
+      ]) {
+        expect(sql).toContain(
+          `revoke all on function ${signature} from public, anon, authenticated;`,
+        );
+        expect(sql).toContain(
+          `grant execute on function ${signature} to service_role;`,
+        );
+      }
+      for (const signature of [
+        "public.block_from_event(uuid, uuid, uuid, uuid, boolean, boolean)",
+        "public.let_back_in(uuid, boolean)",
+      ]) {
+        expect(sql).toContain(
+          `revoke all on function ${signature} from public, anon, authenticated;`,
+        );
+        expect(sql).toContain(
+          `grant execute on function ${signature} to authenticated;`,
+        );
+      }
+      expect(sql).not.toMatch(
+        /grant execute on function public\.(event_block_\w+|event_ticket_blocked|event_blocked_guest_ids|blocked_events_for|block_from_event|let_back_in)\([^)]*\) to [^;]*\banon\b/,
+      );
+    });
+  });
+
+  describe("the host's two acts", () => {
+    it("block_from_event re-checks the host, previews before it writes, skips a hold and keeps what the restore reads", () => {
+      const act = code("block_from_event");
+      expect(act).toContain("security definer set search_path = ''");
+      expect(act).toContain(
+        "where e.id = v_event_id and e.host_id = v_uid and e.deleted_at is null",
+      );
+      // The preview returns before anything is written.
+      expect(
+        act.indexOf("if p_preview then return jsonb_build_object("),
+      ).toBeLessThan(act.indexOf("insert into public.event_blocks"));
+      // Their uploads leave for Deleted in the same step, as the host's own removal, a held row skipped.
+      expect(act).toContain(
+        "update public.media m set status = 'removed', removed_at = now() from public.guests g where g.id = m.guest_id and g.event_id = v_event.id and m.event_id = v_event.id and m.status <> 'removed' and m.legal_hold_at is null and public.event_block_names_row(v_user, v_email, v_row, g)",
+      );
+      expect(act).not.toContain("removed_by_uploader");
+      expect(act).toContain("set removed_media_ids = v_removed");
+      // The host is never their own guest.
+      expect(act).toContain("if v_user = v_event.host_id then");
+    });
+
+    it("let_back_in re-checks the host and restores only this block's standing removal, within the cap", () => {
+      const lift = code("let_back_in");
+      expect(lift).toContain(
+        "where b.id = p_block_id and e.host_id = v_uid and e.deleted_at is null",
+      );
+      // QA #17: the one capacity lock, the host's profiles row, first.
+      expect(lift).toContain(
+        "from public.profiles where id = v_event.host_id for update;",
+      );
+      for (const clause of [
+        "m.id = any (v_block.removed_media_ids)",
+        "m.removed_at = v_block.created_at",
+        "not m.removed_by_uploader",
+        "not m.removed_by_admin",
+        "m.legal_hold_at is null",
+      ]) {
+        expect(lift, clause).toContain(clause);
+      }
+      expect(lift).toContain(
+        "delete from public.event_blocks where id = v_block.id;",
+      );
+    });
+  });
+
+  describe("every guest path meets the private album's door", () => {
+    it("get_event_by_qr_token reads the event as private to a blocked account, never to its host", () => {
+      expect(code("get_event_by_qr_token")).toContain(
+        "select case when e.host_id is distinct from (select auth.uid()) and public.event_block_holds_account(e.id, (select auth.uid())) then 'private'::public.event_visibility else e.visibility end as visibility ) v",
+      );
+      expect(code("get_event_by_qr_token")).toContain(
+        "e.moderation_mode, v.visibility,",
+      );
+    });
+
+    it("get_upload_context masks a blocked ticket's event as private, a local copy only", () => {
+      expect(code("get_upload_context")).toContain(
+        "if public.event_block_holds_row(v_guest) then v_event.visibility := 'private'; end if;",
+      );
+    });
+
+    it("the join, the upload and the door's rename-first path refuse in the private album's own words", () => {
+      expect(code("create_guest")).toContain(
+        "if public.event_block_holds_account(v_event.id, v_uid) then raise exception 'This event is private.' using errcode = 'check_violation'; end if;",
+      );
+      for (const name of [
+        "create_media",
+        "set_guest_display_name",
+        "set_guest_pending_email",
+      ]) {
+        expect(code(name), name).toContain(
+          "if public.event_block_holds_row(v_guest) then raise exception 'This event is private.' using errcode = 'check_violation'; end if;",
+        );
+      }
+      // And the app maps those words to the private album's 403, ahead of every other refusal.
+      const mutation = collapse(
+        readFileSync(join(ROOT, "src/lib/db/mutations/guest.ts"), "utf8"),
+      );
+      expect(mutation).toContain('if (m.includes("event is private"))');
+    });
+
+    it("like_media refuses a blocked account (not_found, a private album's answer)", () => {
+      expect(code("like_media")).toContain(
+        "not public.event_block_holds_account(e.id, v_uid)",
+      );
+    });
+
+    it("both kinds of claim leave a block alone: never a row it holds, never an event that blocked the caller", () => {
+      for (const name of [
+        "claim_anonymous_uploads",
+        "list_guest_rows_by_email",
+        "claim_guest_rows_by_email",
+        "disown_guest_rows_by_email",
+      ]) {
+        const body = code(name);
+        expect(body, name).toContain("not public.event_block_holds_row(g)");
+        expect(body, name).toMatch(
+          /not public\.event_block_holds_account\((g\.event_id|e\.id), v_uid\)/,
+        );
+      }
+    });
+
+    it("the profile hides a line when its owner or its viewer is blocked there, and a host's card reads private", () => {
+      const profile = code("get_public_profile");
+      expect(profile).toContain(
+        "'visibility', case when e.host_id is distinct from (select auth.uid()) and public.event_block_holds_account(e.id, (select auth.uid())) then 'private'::public.event_visibility else e.visibility end,",
+      );
+      expect(
+        profile.split("and not public.event_block_holds_account(e.id, p.id)"),
+      ).toHaveLength(3);
+    });
+  });
+
+  describe("her own feed and lists read as a private album's", () => {
+    it("get_my_uploads keeps an approved upload a standing block removed, never a hold or a takedown, and her delete withdraws it", () => {
+      const feed = code("get_my_uploads");
+      expect(feed).toContain(
+        "or (m.status = 'removed' and m.status_before_removed = 'approved' and not m.removed_by_uploader and not m.removed_by_admin and m.legal_hold_at is null and exists (select 1 from public.event_blocks b where b.event_id = m.event_id and m.id = any (b.removed_media_ids) and m.removed_at = b.created_at))",
+      );
+      expect(code("remove_my_upload")).toContain(
+        "update public.media m set removed_by_uploader = true where m.id = p_media_id and m.status = 'removed' and not m.removed_by_uploader and m.legal_hold_at is null",
+      );
+    });
+
+    it("blocked_events_for keeps her card's place and her picker's tile for her own blocks, as SECURITY DEFINER for the service role", () => {
+      const lists = code("blocked_events_for");
+      expect(lists).toContain("security definer set search_path = ''");
+      expect(lists).toContain(
+        "max(b.last_upload_at) filter (where b.user_id = p_user_id) as last_upload_at",
+      );
+      expect(lists).toContain("and e.host_id is distinct from p_user_id");
+      expect(grants("blocked_events_for")).toContain(
+        "grant execute on function public.blocked_events_for(uuid) to service_role;",
+      );
+    });
+  });
+
+  it("no winning function body reads the retired guest-list switch", () => {
+    // The guest list is always on (Will, `room=always`). The column stays until a contract migration
+    // drops it (a destructive change, not this lane's), unread by every function.
+    const names = new Set<string>();
+    for (const file of readdirSync(MIGRATIONS_DIR).filter((f) =>
+      f.endsWith(".sql"),
+    )) {
+      const text = readFileSync(join(MIGRATIONS_DIR, file), "utf8");
+      for (const m of text.matchAll(
+        /create (?:or replace )?function public\.([a-z0-9_]+)\(/g,
+      )) {
+        names.add(m[1]);
+      }
+    }
+    const readers = [...names].filter((name) =>
+      code(name).includes("show_guest_list"),
+    );
+    expect(readers).toEqual([]);
+  });
+});
+
+describe("a private album likes nothing but its host (20260929100000)", () => {
+  // Build 17's red-team: like_media told a block from a private album. A private album's guest with a
+  // row got ok where a blocked account got not_found, so a photo id she already knew revealed the
+  // block. The private album's answer is now the block's: every guest of it gets the same not_found,
+  // and its host still likes. Each pin reads CODE (comments stripped), the grants the winning file's.
+  const FILE = "20260929100000_like_private.sql";
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+
+  it("is like_media's winning definition", () => {
+    expect(latestDefinition("like_media").file).toBe(
+      readFileSync(join(MIGRATIONS_DIR, FILE), "utf8"),
+    );
+  });
+
+  it("★ the guest arm refuses a private album, keeps the block, and leaves the host's arm alone", () => {
+    expect(code("like_media")).toContain(
+      "e.host_id = v_uid or ( e.visibility <> 'private' and not public.event_block_holds_account(e.id, v_uid) and ( e.visibility = 'open' or exists (select 1 from public.guests g where g.event_id = e.id and g.user_id = v_uid) ) )",
+    );
+  });
+
+  it("answers every refusal with the one not_found, and inserts only past the check", () => {
+    expect(code("like_media")).toContain(
+      ") then return jsonb_build_object('ok', false, 'reason', 'not_found'); end if; insert into public.media_likes (media_id, user_id) values (p_media_id, v_uid) on conflict (media_id, user_id) do nothing;",
+    );
+  });
+
+  it("stays authenticated only: the file's grants, and never anon or PUBLIC anywhere", () => {
+    const file = collapse(
+      readFileSync(join(MIGRATIONS_DIR, FILE), "utf8").replace(/--[^\n]*/g, ""),
+    );
+    expect(file).toContain(
+      "revoke all on function public.like_media(uuid) from public, anon; grant execute on function public.like_media(uuid) to authenticated;",
+    );
+    for (const { file: name, sql } of executableMigrations()) {
+      expect(sql, name).not.toMatch(
+        /grant execute on function public\.like_media\(uuid\) to [^;]*\b(anon|public)\b/,
+      );
+    }
+  });
+});
+
+describe("an operator's removal leaves the host's view (20260928140000)", () => {
+  // Will, admin-triage r1 (2026-09-28), `notice=deleted` as his note refines it: "in the case of a report
+  // leading to media removal, it should be fully purged from the event, not moved to deleted". The copy
+  // waits out its own window for the operator's Undo and the runbook's hold, so each fact below is
+  // what keeps it out of the host's reach until then. Each pin reads CODE (comments stripped).
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+
+  /** The host's media policy as the live DB holds it: the last CREATE or ALTER of it, replayed in order. */
+  function hostMediaPolicy(): string {
+    let latest = "";
+    for (const { sql } of executableMigrations()) {
+      for (const [statement] of sql.matchAll(
+        /(?:create|alter) policy media_host_all on public\.media[^;]*;/g,
+      )) {
+        latest = statement;
+      }
+    }
+    expect(latest, "media_host_all defined nowhere").not.toBe("");
+    return latest;
+  }
+
+  it("★ the host's own-media policy leaves out an operator's removal, for every command", () => {
+    const policy = hostMediaPolicy();
+    expect(policy).toContain(
+      "and not (media.status = 'removed' and media.removed_by_admin)",
+    );
+    // Still the host's own events, by the cached auth.uid() the advisor wants.
+    expect(policy).toContain(
+      "exists ( select 1 from public.events e where e.id = media.event_id and e.host_id = (select auth.uid()) )",
+    );
+  });
+
+  it("★ and the flag it tests is never granted to a client role: she cannot read it, only lose the row", () => {
+    for (const { file, sql } of executableMigrations()) {
+      for (const [statement] of sql.matchAll(
+        /grant (?:select|update|insert)[^;]* on (?:table )?public\.media to [^;]*;/g,
+      )) {
+        expect(statement, file).not.toContain("removed_by_admin");
+      }
+    }
+  });
+
+  it("★ her Delete permanently can never end a takedown's window, nor a hold's", () => {
+    const purge = code("purge_media_now");
+    expect(purge).toContain(
+      "and e.host_id = (select auth.uid()) and m.status = 'removed' and not m.removed_by_admin and m.legal_hold_at is null;",
+    );
+  });
+
+  it("her restored event counts what her Deleted still shows of it, never a withdrawal, a takedown or a row past the window", () => {
+    expect(code("restore_event")).toContain(
+      "select count(*) into v_still_removed from public.media where event_id = p_event_id and status = 'removed' and not removed_by_uploader and not removed_by_admin and removed_at >= now() - interval '30 days';",
+    );
+  });
+
+  it("her Restore still refuses a takedown, in a hold's discreet words", () => {
+    expect(code("restore_media")).toContain(
+      "if v_media.removed_by_admin then return jsonb_build_object('ok', false, 'reason', 'admin_removed');",
+    );
   });
 });

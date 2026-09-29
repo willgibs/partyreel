@@ -129,9 +129,16 @@ export async function POST(request: Request) {
     // QA #35's price gate, ledger-edition: the discounted renewal price extends a pass that is
     // still running. With nothing active there is nothing to chain onto — a lapsed holder buys a
     // fresh pass at the standard price.
+    //
+    // ★ THE SENTENCE IS TRUE OF THIS ACCOUNT (build 19's red-team): "Yours has ended" was told to an
+    // account that never held a pass, since a mail's /account/renew opens for anyone signed in. With
+    // no pass row left at all (never bought, or folded into Pro's credit) there is nothing that
+    // ended; the ledger's unconsumed rows, expired ones included, are what "yours" can mean.
     return refuse(
       "not_eligible",
-      "Renewal applies to an Event Pass that is still active. Yours has ended, so start a new Event Pass from the pricing page.",
+      passes.length === 0
+        ? "This account has no Event Pass to renew. Start one from the pricing page."
+        : "Renewal applies to an Event Pass that is still active. Yours has ended, so start a new Event Pass from the pricing page.",
       403,
     );
   }

@@ -1,14 +1,24 @@
 "use client";
 
 /**
- * WHAT THE TAP OPENS: a sheet of our own, which keeps the focus on the two ways
- * to add and carries one custom design across every operating system.
+ * WHAT THE TAP OPENS: a choice of our own, which keeps the focus on the two
+ * ways to add and carries one custom design across every operating system.
  *
  * Every Add in the guest page — the row under the event's name, the dock, the
- * empty album's own CTA — opens THIS, on the one responsive Sheet: a side panel
- * at a desk, a bottom sheet in a hand. Two rows name the two acts the phone's
+ * empty album's own CTA — opens THIS. Two rows name the two acts the phone's
  * own chooser never distinguishes, and at a party the one that matters most has
  * not been taken yet.
+ *
+ * ★ IT IS A QUICK CHOICE, SO IT OPENS AS ONE (`popups` r1, `choices=menu`, Will
+ * 2026-09-27): at a desk a menu under the Add she pressed, like any menu; in a
+ * hand the two rows rise to her thumb as the phone's own chooser does, Cancel
+ * beneath (`ui/responsive-menu.tsx`). A row is the act: Take a photo opens the
+ * camera, there is no Next.
+ *
+ * ★ HER PICKS ARE REVIEWED IN A CONFIRMATION, since the menu that asked is gone
+ * by the time the picker hands them back: "Send these 3?" is the app asking
+ * before it acts, a centred dialog sized to list them (`confirm`, `md`). Taking
+ * the last one out goes back to the two rows, as it always has.
  *
  * ★ THE `.click()` IS SYNCHRONOUS WITH THE TAP, AND THAT IS NOT A STYLE CHOICE.
  * Safari only opens a file picker inside the gesture that asked for it, so ONE
@@ -17,9 +27,14 @@
  * why both inputs are mounted here and clicked directly rather than, say, minted
  * on demand or reached through a promise.
  *
- * ★ AND BOTH INPUTS LIVE INSIDE `SheetContent`. The sheet is a Radix dialog: it
- * `aria-hidden`s the rest of the page and traps focus, so an input parked
- * outside the content is inert while the sheet is open. Inside, it is ordinary.
+ * ★ AND BOTH INPUTS LIVE IN THE PAGE, NEVER IN THE MENU. A menu's content
+ * unmounts the moment a row closes it, and an input that unmounts before the
+ * picker hands its files back never fires `change`: the picks would vanish. So
+ * the inputs sit beside the menu, in the page, where they outlive it; a Radix
+ * layer's `aria-hidden` and focus trap are no bar to a programmatic `.click()`
+ * (the one thing the rows do to them), which is what the old home inside the
+ * sheet's content was guarding against. The `.click()` itself still runs
+ * inside the row's own tap.
  *
  * ★ TWO INPUTS, BECAUSE `capture` CANNOT BE BOTH. With `capture` the input opens
  * the camera directly; without it, the chooser. The camera row therefore takes a
@@ -28,9 +43,7 @@
  * accepted, which is a third decision in front of a guest who has already made
  * two. The album row takes both kinds, many at a time.
  *
- * ★ NO FIELD IS EVER TYPED IN HERE, so this sheet never touches the keyboard
- * machinery at all — the one guest surface with a text field (Report) rides
- * the responsive Sheet's own keyboard-safe phone half instead.
+ * ★ NO FIELD IS EVER TYPED IN HERE, so no keyboard rises into it.
  */
 import { useRef, useState } from "react";
 import { Camera, Images } from "lucide-react";
@@ -39,12 +52,16 @@ import { ReviewStep, type Pick } from "@/components/guest/upload/review-step";
 import { uploadTermsLine } from "@/components/guest/upload/upload-terms";
 import { Button } from "@/components/ui/button";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Popup,
+  PopupBody,
+  PopupContent,
+  PopupHeader,
+} from "@/components/ui/popup";
+import {
+  ResponsiveMenu,
+  ResponsiveMenuItem,
+  ResponsiveMenuNote,
+} from "@/components/ui/responsive-menu";
 import { formatCount } from "@/lib/format/count";
 
 /**
@@ -69,7 +86,10 @@ export function uploadIntentHeading(pickCount: number): {
     return { title: "Add photos", description: "", reviewing: false };
   }
   return {
-    title: pickCount === 1 ? "Send this one?" : `Send these ${formatCount(pickCount)}?`,
+    title:
+      pickCount === 1
+        ? "Send this one?"
+        : `Send these ${formatCount(pickCount)}?`,
     description: "Tap the cross on anything you did not mean to pick.",
     reviewing: true,
   };
@@ -166,6 +186,15 @@ export function UploadIntentBody({
   );
 }
 
+/** Whatever the picker handed back, as picks (each its own identity: a File is not a key). */
+function takePicks(input: HTMLInputElement): Pick[] {
+  const files = Array.from(input.files ?? []);
+  // Reset so re-picking the same file fires change again (a guest who removed
+  // a pick and wants it back after all).
+  input.value = "";
+  return files.map((file) => ({ id: crypto.randomUUID(), file }));
+}
+
 export function UploadIntentSheet({
   open,
   onOpenChange,
@@ -173,67 +202,125 @@ export function UploadIntentSheet({
   onSend,
   capBytes,
 }: {
+  /** The two rows: the choice itself. */
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** The host's display name, so the sheet says whose album this joins. */
+  /** The host's display name, so the choice says whose album this joins. */
   hostName: string;
   /** The kept picks, once the guest has reviewed them. */
   onSend: (files: File[]) => void;
   /** The host's own per-event cap once the RPC returns it (upload-terms.ts). */
   capBytes?: number | null;
 }) {
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const albumRef = useRef<HTMLInputElement>(null);
   const [picks, setPicks] = useState<Pick[]>([]);
+  const [reviewing, setReviewing] = useState(false);
   const heading = uploadIntentHeading(picks.length);
 
+  const took = (input: HTMLInputElement) => {
+    const next = takePicks(input);
+    if (next.length === 0) return;
+    setPicks(next);
+    setReviewing(true);
+  };
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        responsive
-        className="overflow-y-auto"
-        onAnimationEnd={(e) => {
-          /**
-           * The picks die with the sheet, but only once it has ACTUALLY
-           * closed — never in the same tick as the call that closes it.
-           * Clearing `picks` on Send would flip `reviewing` back to false
-           * while the sheet is still visibly playing its exit: the still-open
-           * panel would repaint the two intent rows underneath itself for the
-           * rest of the close. A stale review from ten minutes ago reopening
-           * under "Add photos" would be its own small horror, so this still
-           * runs on every genuine close (Send, the X, Escape, the backdrop) —
-           * just on the CONTENT's own `animate-out` finishing rather than on
-           * the tap that started it.
-           *
-           * `e.target === e.currentTarget` skips a bubbled animation from a
-           * child (there are none today, but the review grid is exactly the
-           * kind of place one gets added later); `!open` skips the ENTRANCE
-           * animation's own end, which would otherwise wipe a pick mid-review
-           * the moment the sheet finished opening.
-           */
-          if (e.target === e.currentTarget && !open) setPicks([]);
+    <>
+      {/* The two inputs, in the page where they outlive the menu (see the head
+          comment), mounted always so a row's tap never waits on a render
+          before it can click one. */}
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        hidden
+        onChange={(e) => took(e.currentTarget)}
+      />
+      <input
+        ref={albumRef}
+        type="file"
+        accept="image/*,video/*"
+        multiple
+        hidden
+        onChange={(e) => took(e.currentTarget)}
+      />
+
+      <ResponsiveMenu
+        open={open}
+        onOpenChange={onOpenChange}
+        anchor="pressed"
+        title={`Everything you add joins ${hostName}’s album.`}
+        className="w-80"
+      >
+        <ResponsiveMenuItem
+          icon={<Camera />}
+          onSelect={() => cameraRef.current?.click()}
+        >
+          Take a photo
+        </ResponsiveMenuItem>
+        <ResponsiveMenuItem
+          icon={<Images />}
+          onSelect={() => albumRef.current?.click()}
+        >
+          Choose from your album
+        </ResponsiveMenuItem>
+        {/* The facts of the act, quietly, under the two doors into it. */}
+        <ResponsiveMenuNote data-upload-terms>
+          {uploadTermsLine(capBytes)}
+        </ResponsiveMenuNote>
+      </ResponsiveMenu>
+
+      <Popup
+        open={reviewing}
+        onOpenChange={(next) => {
+          if (!next) setReviewing(false);
         }}
       >
-        <SheetHeader>
-          <SheetTitle>{heading.title}</SheetTitle>
-          <SheetDescription>
-            {heading.reviewing
-              ? heading.description
-              : `Everything you add joins ${hostName}'s album.`}
-          </SheetDescription>
-        </SheetHeader>
-
-        {/* The body carries its own padding (SheetHeader owns the top): a panel
-            runs to its own edges, where a dialog box does not. */}
-        <UploadIntentBody
-          className="px-4 pb-6"
-          picks={picks}
-          onPicks={setPicks}
-          capBytes={capBytes}
-          onSend={(files) => {
-            onOpenChange(false);
-            onSend(files);
+        <PopupContent
+          kind="confirm"
+          size="md"
+          onAnimationEnd={(e) => {
+            /**
+             * The picks die with the review, but only once it has ACTUALLY
+             * closed: clearing them in the same tick as the close would empty
+             * the grid (and turn the title back to "Add photos") while the
+             * dialog is still visibly playing its exit. `e.target ===
+             * e.currentTarget` skips a bubbled animation from a child;
+             * `!reviewing` skips the entrance's own end.
+             */
+            if (e.target === e.currentTarget && !reviewing) setPicks([]);
           }}
-        />
-      </SheetContent>
-    </Sheet>
+        >
+          <PopupHeader
+            title={heading.title}
+            description={heading.description}
+          />
+          <PopupBody>
+            <ReviewStep
+              picks={picks}
+              capBytes={capBytes}
+              onRemove={(id) => {
+                const kept = picks.filter((p) => p.id !== id);
+                // ★ REMOVING THE LAST ONE GOES BACK, IT DOES NOT SEND NOTHING:
+                // the review closes (its last pick stays drawn through the
+                // exit, then goes with it) and the two rows are asked again.
+                if (kept.length === 0) {
+                  setReviewing(false);
+                  onOpenChange(true);
+                  return;
+                }
+                setPicks(kept);
+              }}
+              onSend={() => {
+                setReviewing(false);
+                onSend(picks.map((p) => p.file));
+              }}
+            />
+          </PopupBody>
+        </PopupContent>
+      </Popup>
+    </>
   );
 }

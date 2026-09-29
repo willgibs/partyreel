@@ -1,24 +1,13 @@
 import type { ComponentType } from "react";
 
-import { IdentityDoorBoard } from "@/app/(dev)/design/sandbox/identity-door/board";
-import { IdentityClaimsBoard } from "@/app/(dev)/design/sandbox/identity-claims/board";
-import { IdentityProfileBoard } from "@/app/(dev)/design/sandbox/identity-profile/board";
-import { GuestCaptureBoard } from "@/app/(dev)/design/sandbox/guest-capture/board";
-import { VoiceGuestBoard } from "@/app/(dev)/design/sandbox/voice-guest/board";
-import { SiteChromeBoard } from "@/app/(dev)/design/sandbox/site-chrome/board";
-import { ProfilePageBoard } from "@/app/(dev)/design/sandbox/profile-page/board";
-import { ExportFlowBoard } from "@/app/(dev)/design/sandbox/export-flow/board";
 import { AdminTriageBoard } from "@/app/(dev)/design/sandbox/admin-triage/board";
-import { ReelStoryBoard } from "@/app/(dev)/design/sandbox/reel-story/board";
-import { MediaViewerBoard } from "@/app/(dev)/design/sandbox/media-viewer/board";
-import { EmailsBoard } from "@/app/(dev)/design/sandbox/emails/board";
-import { HelpCenterBoard } from "@/app/(dev)/design/sandbox/help-center/board";
-import { HostCurationBoard } from "@/app/(dev)/design/sandbox/host-curation/board";
-import { HostStorageBoard } from "@/app/(dev)/design/sandbox/host-storage/board";
-import { EventSafetyBoard } from "@/app/(dev)/design/sandbox/event-safety/board";
+import { LockedDoorBoard } from "@/app/(dev)/design/sandbox/locked-door/board";
+import { EventSettingsBoard } from "@/app/(dev)/design/sandbox/event-settings/board";
 
 import { PressPageBoard } from "@/app/(dev)/design/sandbox/press-page/board";
 import { ContactPageBoard } from "@/app/(dev)/design/sandbox/contact-page/board";
+import { DisposableModeBoard } from "@/app/(dev)/design/sandbox/disposable-mode/board";
+import { DemoFramingBoard } from "@/app/(dev)/design/sandbox/demo-framing/board";
 import { AlbumMotionBoard } from "@/app/(dev)/design/sandbox/album-motion/board";
 import { LooseEndsBoard } from "@/app/(dev)/design/sandbox/loose-ends/board";
 import { PrivacyHeroBoard } from "@/app/(dev)/design/sandbox/privacy-hero/board";
@@ -40,27 +29,14 @@ import type { SandboxId } from "@/app/(dev)/design/touchpoints";
 export type BoardEntry = { Component: ComponentType; legacy?: true };
 
 export const BOARD_COMPONENTS: Record<SandboxId, BoardEntry> = {
-  "identity-door": { Component: IdentityDoorBoard },
-  "identity-claims": { Component: IdentityClaimsBoard },
-
-  "identity-profile": { Component: IdentityProfileBoard },
-  "guest-capture": { Component: GuestCaptureBoard },
-  "voice-guest": { Component: VoiceGuestBoard },
-
-  "site-chrome": { Component: SiteChromeBoard },
-  "profile-page": { Component: ProfilePageBoard },
-  "export-flow": { Component: ExportFlowBoard },
   "admin-triage": { Component: AdminTriageBoard },
-  "reel-story": { Component: ReelStoryBoard },
-  "media-viewer": { Component: MediaViewerBoard },
-  emails: { Component: EmailsBoard },
-  "help-center": { Component: HelpCenterBoard },
-  "host-curation": { Component: HostCurationBoard },
-  "host-storage": { Component: HostStorageBoard },
-  "event-safety": { Component: EventSafetyBoard },
+  "locked-door": { Component: LockedDoorBoard },
+  "event-settings": { Component: EventSettingsBoard },
 
   "press-page": { Component: PressPageBoard },
   "contact-page": { Component: ContactPageBoard },
+  "disposable-mode": { Component: DisposableModeBoard },
+  "demo-framing": { Component: DemoFramingBoard },
   "album-motion": { Component: AlbumMotionBoard },
   "loose-ends": { Component: LooseEndsBoard },
   "privacy-hero": { Component: PrivacyHeroBoard },

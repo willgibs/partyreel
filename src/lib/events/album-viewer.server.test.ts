@@ -36,6 +36,13 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
+// The ticket half of the closed door (the per-event block, 20260928120000): the real door runs, and
+// only the SQL question is stood in for.
+const isTicketBlocked = vi.fn();
+vi.mock("@/lib/db/queries/event-blocks", () => ({
+  isTicketBlocked: (...a: unknown[]) => isTicketBlocked(...a),
+}));
+
 const { resolveAlbumViewer } = await import("@/lib/events/album-viewer.server");
 
 const EVENT = { id: "evt-1", qr_token: "qr-1", visibility: "open" };
@@ -50,6 +57,7 @@ beforeEach(() => {
   resolveViewerDecision.mockResolvedValue({ access: "full", gate: null });
   isEventOwner.mockResolvedValue(false);
   isUnlocked.mockResolvedValue(false);
+  isTicketBlocked.mockResolvedValue(false);
 });
 
 describe("the event", () => {
@@ -140,5 +148,47 @@ describe("the viewer", () => {
       expect.anything(),
       expect.objectContaining({ sessionToken: TOKEN }),
     );
+  });
+});
+
+describe("the closed door (the per-event block): a ticket a block holds is gone, as a private album is", () => {
+  const COOKIE = "c".repeat(64);
+
+  it("a body ticket the block holds is gone, and nothing is resolved", async () => {
+    isTicketBlocked.mockImplementation(
+      async (_event: string, tokens: string[]) => tokens.includes(TOKEN),
+    );
+    expect(await resolveAlbumViewer("qr-1", TOKEN)).toEqual({ kind: "gone" });
+    expect(resolveViewerDecision).not.toHaveBeenCalled();
+  });
+
+  it("the cookie's ticket counts too, so a poll that sends no body token is still refused", async () => {
+    cookieJar.set("pr_guest_evt-1", COOKIE);
+    isTicketBlocked.mockImplementation(
+      async (_event: string, tokens: string[]) => tokens.includes(COOKIE),
+    );
+    expect(await resolveAlbumViewer("qr-1", undefined)).toEqual({
+      kind: "gone",
+    });
+  });
+
+  it("asks with every ticket the request holds, the body's and the cookie's, for this event", async () => {
+    cookieJar.set("pr_guest_evt-1", COOKIE);
+    await resolveAlbumViewer("qr-1", TOKEN);
+    expect(isTicketBlocked).toHaveBeenCalledWith("evt-1", [TOKEN, COOKIE]);
+  });
+
+  it("★ asks on a PRIVATE album too, so a block and a private album cost the same work", async () => {
+    getEventByQrToken.mockResolvedValue({
+      ok: true,
+      data: { ...EVENT, visibility: "private" },
+    });
+    expect(await resolveAlbumViewer("qr-1", TOKEN)).toEqual({ kind: "gone" });
+    expect(isTicketBlocked).toHaveBeenCalledWith("evt-1", [TOKEN]);
+  });
+
+  it("asks nothing when the request holds no ticket at all", async () => {
+    await resolveAlbumViewer("qr-1", "not-a-token");
+    expect(isTicketBlocked).not.toHaveBeenCalled();
   });
 });

@@ -18,7 +18,7 @@ import type { GridMedia } from "@/components/app/media-grid";
 import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
 import { MasonryColumns } from "@/components/shared/masonry";
 import { PurgeConfirmContent } from "@/components/shared/media-lightbox-parts/purge-confirm";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Popup, PopupTrigger } from "@/components/ui/popup";
 import { createLinkStore, type LinkStore } from "@/lib/album/links";
 import { DEFAULT_TIER, toBillingTier } from "@/lib/constants/tiers";
 import {
@@ -59,6 +59,28 @@ export type BinActions = {
 };
 
 /**
+ * WHAT A RESTORE DID, in the words of where the item landed (a ROADMAP carry-over from `crumbs-8`).
+ * `restore_media` returns an item to the status it held before it was removed, so one that was hidden
+ * comes back hidden and one waiting in Review comes back to Review: "back in the album" said of those
+ * was a promise the album did not keep. An answer with no status says what is always true, as Let
+ * back in does ("back where it was").
+ */
+export function restoredWords(
+  status: "approved" | "hidden" | "pending" | undefined,
+): string {
+  switch (status) {
+    case "approved":
+      return "Restored. It's back in the album.";
+    case "hidden":
+      return "Restored. It's back, still hidden from everyone.";
+    case "pending":
+      return "Restored. It's back in Review.";
+    default:
+      return "Restored. It's back where it was.";
+  }
+}
+
+/**
  * THE ONE HOME FOR THE BIN'S WRITES AND THEIR WORDS, shared by the tile pane and the viewer. An
  * item that leaves the bin (restored, or deleted for good) leaves the list at once (`onGone`); a
  * restore the plan has no room for offers the room sheet (`onOutOfRoom`); a write that never
@@ -92,7 +114,7 @@ export function useBinActions(
       return;
     }
     if (result.ok) {
-      toast.success("Restored. It's back in the album.");
+      toast.success(restoredWords(result.status));
       onGone?.(item.id);
       onRestored?.();
       return;
@@ -162,11 +184,11 @@ function BinTileOverlay({
       {/* The bin's two verbs, in the one pane the grid draws. Restore is
           capacity-gated in the RPC (safe + reversible, no confirm); Delete
           permanently skips the 30-day window, so it stays behind a confirm
-          (the viewer's own, `PurgeConfirmContent`). The Dialog lives HERE
+          (the viewer's own, `PurgeConfirmContent`). The Popup lives HERE
           rather than in the row because the row is a declared action set and
           a trigger is a component. */}
       <div className="absolute top-1.5 right-1.5 z-10 hidden md:block">
-        <Dialog>
+        <Popup>
           <div
             data-reveal-chip
             style={{ "--reveal-max": "4rem" } as CSSProperties}
@@ -185,7 +207,7 @@ function BinTileOverlay({
             >
               <Undo2 className="size-4" />
             </button>
-            <DialogTrigger asChild>
+            <PopupTrigger asChild>
               <button
                 type="button"
                 disabled={isPending}
@@ -195,10 +217,10 @@ function BinTileOverlay({
               >
                 <Trash2 className="size-4" />
               </button>
-            </DialogTrigger>
+            </PopupTrigger>
           </div>
           <PurgeConfirmContent disabled={isPending} onConfirm={onPurge} />
-        </Dialog>
+        </Popup>
       </div>
     </>
   );

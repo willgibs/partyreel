@@ -97,3 +97,32 @@ describe("no field takes focus when the door opens", () => {
     expect(panel()).toHaveFocus();
   });
 });
+
+/**
+ * THE DOOR IS LIT (`identity-door` r2, `look=lit`): the shell, not any step, stands the whole door
+ * in the album's light, so every step (the ones the board never drew included) wears it.
+ */
+describe("the lit door", () => {
+  it("wears the lamp on every sheet it opens, resting unless it blooms", () => {
+    render(shell());
+    const sheet = document.querySelector("[data-entry-sheet]");
+    expect(sheet).toHaveAttribute("data-door-lit");
+    const lamp = sheet?.querySelector("[data-door-lamp]");
+    expect(lamp).toHaveAttribute("data-door-lamp", "base");
+  });
+
+  it('the lamp blooms when the door says so ("You\'re in")', () => {
+    render(shell({ lamp: "bloom" }));
+    expect(document.querySelector("[data-door-lamp]")).toHaveAttribute(
+      "data-door-lamp",
+      "bloom",
+    );
+  });
+
+  it("stands behind the lit scrim", () => {
+    render(shell());
+    expect(
+      document.querySelector('[data-slot="sheet-overlay"]')?.className,
+    ).toMatch(/backdrop-blur-\[28px\]/);
+  });
+});

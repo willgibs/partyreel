@@ -286,13 +286,10 @@ export const TERMS_SECTIONS: LegalSection[] = [
           Each plan is a total storage cap, with a small buffer above it so an
           upload in progress is not cut off at the line. When an account reaches
           its cap, new uploads pause until space is freed or the plan grows;
-          existing media is untouched. Video uploads and clips above the free
-          length are available on paid plans only. Per-file size limits are
-          shown in the uploader, and hosts may set a lower limit for their
-          event. Some event settings (a password, a custom link) are available
-          on paid plans only; if your plan lapses you keep any such setting you
-          already made but cannot create a new one. The current numbers live on
-          the {PRICING_PAGE} and in{" "}
+          existing media is untouched. Video uploads, and clips without the free
+          plan&rsquo;s mark, are available on paid plans only. Per-file size
+          limits are shown in the uploader, and hosts may set a lower limit for
+          their event. The current numbers live on the {PRICING_PAGE} and in{" "}
           <LegalLink href="/help/storage-plans-and-limits">
             storage, plans and limits
           </LegalLink>
@@ -406,7 +403,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
       "A free event's clips carry a small mark. The reel, photos and albums never do.",
     blocks: [
       p(
-        "Every event's album plays as a highlight reel for everyone the host lets into the album, composed on each viewer's own device from the album as it stands and never stored as a file. Anyone with access to the album may make a clip from the reel on their own device: a file that is theirs to save or share under the licenses in the Your content section, which we do not store unless they add it to the event's album, where it is content like any other upload. Clips made at an event on the free tier carry a small partyreel.com mark and a shorter maximum length; on a paid plan they carry no mark and may run longer. Photos, videos, the album and the reel itself are never watermarked, on any plan. A guest who deletes an upload should expect it to leave the album and the reel immediately; a clip someone made before then is a file on their own device, which we cannot recall.",
+        "Every event's album plays as a highlight reel for everyone the host lets into the album, composed on each viewer's own device from the album as it stands and never stored as a file. Anyone with access to the album may make a clip from the reel on their own device: a file that is theirs to save or share under the licenses in the Your content section, which we do not store unless they add it to the event's album, where it is content like any other upload. Clips made at an event on the free tier carry a small partyreel.com mark; on a paid plan they carry no mark. Photos, videos, the album and the reel itself are never watermarked, on any plan. A guest who deletes an upload should expect it to leave the album and the reel immediately; a clip someone made before then is a file on their own device, which we cannot recall.",
       ),
     ],
   },

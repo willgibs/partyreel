@@ -42,22 +42,16 @@ import { uploadFile } from "@/lib/upload/uploader";
 import { GuestUpload, type GuestUploadHandle } from "./guest-upload";
 
 vi.mock("@/lib/upload/uploader", () => ({ uploadFile: vi.fn() }));
-// Out of scope for these pins (own state machine + supabase); doneCount>0
-// gating is pinned via the stub's presence.
-vi.mock("@/components/guest/save-account-prompt", () => ({
-  SaveAccountPrompt: ({ count }: { count?: number }) => (
-    <div data-testid="save-account-prompt" data-count={count} />
-  ),
-}));
 // The claim prompt OWNS the post-upload slot: it resolves the viewer and
 // decides which single card stands, which is its own contract
-// (claim-handle-prompt.test.tsx) and its own supabase call. Stubbed to render
-// the card it was handed, so what stays pinned HERE is the thing this file is
-// about: the slot mounts on doneCount > 0, or on a confirmation's return
-// (`moment`), and never in the demo.
+// (claim-handle-prompt.test.tsx) and its own supabase call. Stubbed to a marker
+// carrying the count it was handed, so what stays pinned HERE is the thing this
+// file is about: the slot mounts on doneCount > 0, or on a confirmation's return
+// (`moment`), and never in the demo. (A signed-out guest's ask to keep is the
+// door's last screen now, `entry-modal.test.tsx`, never a card in this slot.)
 vi.mock("@/components/guest/claim-handle-prompt", () => ({
-  ClaimHandlePrompt: ({ savePrompt }: { savePrompt: React.ReactNode }) => (
-    <>{savePrompt}</>
+  ClaimHandlePrompt: ({ doneCount }: { doneCount: number }) => (
+    <div data-testid="post-upload-slot" data-count={doneCount} />
   ),
 }));
 
@@ -136,7 +130,6 @@ function Harness({
       ref={handleRef}
       event={rest.event ?? EVENT}
       qrToken="qr-token-1"
-      sessionToken={sessionToken}
       queue={items}
       onAddFiles={addFiles}
       onRetry={retry}
@@ -268,7 +261,7 @@ describe("GuestUpload: queue", () => {
     expect(snapshots.length).toBe(before);
   });
 
-  it("approved outcome: reports onUploaded and mounts the growth prompt", async () => {
+  it("approved outcome: reports onUploaded and mounts the post-upload slot", async () => {
     mockUploadFile.mockResolvedValue({
       ok: true,
       status: "approved",
@@ -280,7 +273,7 @@ describe("GuestUpload: queue", () => {
     addFiles([file]);
 
     // An approved upload's feedback IS the gallery tile (the landing sweep); the
-    // contract here is the payload + the growth prompt.
+    // contract here is the payload + the post-upload slot.
     await waitFor(() =>
       expect(onUploaded).toHaveBeenCalledWith({
         mediaId: "med-1",
@@ -292,11 +285,14 @@ describe("GuestUpload: queue", () => {
         status: "approved",
       }),
     );
-    // doneCount > 0 mounts the save-account growth prompt (non-demo).
-    await screen.findByTestId("save-account-prompt");
+    // doneCount > 0 mounts the post-upload slot (non-demo).
+    await screen.findByTestId("post-upload-slot");
   });
 
-  it("a HELD outcome says nothing here: the waiting TILE is the whole answer", async () => {
+  // ★ RESHAPED (voice-wiring): the answer this names moved from the album's waiting tile to her
+  // uploads (voice-guest r2, `held=uploads`). The scar kept: no toast, and the queue item carries
+  // the outcome and the media id her tracker reads.
+  it("a HELD outcome says nothing here: her uploads' badge and list are the whole answer", async () => {
     mockUploadFile.mockResolvedValue({
       ok: true,
       status: "pending",
@@ -306,10 +302,9 @@ describe("GuestUpload: queue", () => {
     const { addFiles, snapshots } = mountWithQueue({ event: HOLD_EVENT });
     addFiles([makeFile()]);
 
-    // The waiting tile answers, never a "Sent, waiting for host approval"
-    // toast. What the album needs instead is on the queue item: the outcome AND
-    // the media id, which is the only way its tile can tell it has been
-    // approved later.
+    // Her tracker answers, never a toast. What it needs is on the queue item:
+    // the outcome AND the media id, which is the only way her uploads can tell
+    // it has been let in later.
     await waitFor(() =>
       expect(snapshots.at(-1)?.[0]).toMatchObject({
         status: "done",
@@ -454,7 +449,7 @@ describe("GuestUpload: who a queue uploads as", () => {
     // The run ENDED here rather than walking into a third refusal.
     expect(mockUploadFile).toHaveBeenCalledTimes(2);
     // One sheet, both remaining files on it, one true sentence.
-    const sheet = await screen.findByText("2 files did not go");
+    const sheet = await screen.findByText("2 of 3 didn't upload");
     expect(sheet).toBeInTheDocument();
     expect(
       screen.getAllByText("This event now needs a confirmed email."),
@@ -483,7 +478,7 @@ describe("GuestUpload: the refresh waits for the failure sheet", () => {
     });
     addFiles([makeFile()]);
 
-    await screen.findByText("1 file did not go");
+    await screen.findByText("1 of 1 didn't upload");
     expect(onVerificationRequired).not.toHaveBeenCalled();
   });
 
@@ -500,12 +495,12 @@ describe("GuestUpload: the refresh waits for the failure sheet", () => {
     });
     addFiles([makeFile()]);
 
-    await screen.findByText("1 file did not go");
+    await screen.findByText("1 of 1 didn't upload");
     fireEvent.click(screen.getByRole("button", { name: "Not now" }));
     expect(onVerificationRequired).toHaveBeenCalledTimes(1);
   });
 
-  it("Retry (Try again) also closes the sheet and fires the deferred refresh — the gate, never a dead stall", async () => {
+  it("Retry also closes the sheet and fires the deferred refresh — the gate, never a dead stall", async () => {
     mockUploadFile.mockResolvedValue({
       ok: false,
       code: "verification_required",
@@ -518,8 +513,8 @@ describe("GuestUpload: the refresh waits for the failure sheet", () => {
     });
     addFiles([makeFile()]);
 
-    await screen.findByText("1 file did not go");
-    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    await screen.findByText("1 of 1 didn't upload");
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
     expect(onVerificationRequired).toHaveBeenCalledTimes(1);
   });
 
@@ -546,7 +541,7 @@ describe("GuestUpload: the refresh waits for the failure sheet", () => {
     expect(onVerificationRequired).toHaveBeenCalledWith(
       "Confirm your email to join this event.",
     );
-    expect(screen.queryByText(/did not go/)).toBeNull();
+    expect(screen.queryByText(/didn't upload/)).toBeNull();
     expect(mockUploadFile).not.toHaveBeenCalled();
   });
 });
@@ -570,8 +565,8 @@ describe("GuestUpload: demo mode", () => {
     );
     expect(global.fetch).not.toHaveBeenCalled();
     expect(mockUploadFile).not.toHaveBeenCalled();
-    // The growth prompt never shows in demo.
-    expect(screen.queryByTestId("save-account-prompt")).not.toBeInTheDocument();
+    // The post-upload slot never shows in the demo.
+    expect(screen.queryByTestId("post-upload-slot")).not.toBeInTheDocument();
   });
 });
 
@@ -599,9 +594,11 @@ describe("GuestUpload: moderation copy", () => {
 describe("GuestUpload: the add sheet is the only door in", () => {
   it("openAdd opens the sheet, and nothing is queued until Send", () => {
     const { handleRef, snapshots } = mountWithQueue();
-    // Closed, the sheet is not in the document at all — which is also why both
-    // inputs live inside it rather than on the page.
-    expect(document.querySelector('input[type="file"]')).toBeNull();
+    // Closed, the choice is not in the document at all; its two inputs are, in
+    // the page, because they must outlive the menu a row closes (`popups` r1,
+    // `choices=menu`: the inputs once lived inside the sheet, a reason expired).
+    expect(document.querySelector('[data-slot^="responsive-menu"]')).toBeNull();
+    expect(document.querySelectorAll('input[type="file"]')).toHaveLength(2);
 
     act(() => handleRef.current!.openAdd());
     const album = document.querySelector(
@@ -633,7 +630,7 @@ describe("GuestUpload: a run that ends badly opens the failure sheet", () => {
     addFiles([makeFile("a.jpg"), makeFile("b.jpg")]);
 
     await waitFor(() =>
-      expect(screen.getByText("1 file did not go")).toBeInTheDocument(),
+      expect(screen.getByText("1 of 2 didn't upload")).toBeInTheDocument(),
     );
     expect(screen.getByText("That upload failed.")).toBeInTheDocument();
     expect(screen.getByText("a.jpg")).toBeInTheDocument();
@@ -653,7 +650,7 @@ describe("GuestUpload: a run that ends badly opens the failure sheet", () => {
 
     await waitFor(() => expect(mockUploadFile).toHaveBeenCalled());
     await new Promise((r) => setTimeout(r, 30));
-    expect(screen.queryByText(/did not go/)).toBeNull();
+    expect(screen.queryByText(/didn't upload/)).toBeNull();
   });
 
   it("its Retry re-queues the file", async () => {
@@ -669,9 +666,9 @@ describe("GuestUpload: a run that ends badly opens the failure sheet", () => {
     addFiles([makeFile()]);
 
     await waitFor(() =>
-      expect(screen.getByText("1 file did not go")).toBeInTheDocument(),
+      expect(screen.getByText("1 of 1 didn't upload")).toBeInTheDocument(),
     );
-    fireEvent.click(screen.getByRole("button", { name: /Try again/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Retry/ }));
     await waitFor(() =>
       expect(snapshots.at(-1)?.[0]).toMatchObject({ status: "done" }),
     );
@@ -698,20 +695,20 @@ describe("GuestUpload: dismissing a failure retires it for good", () => {
     addFiles([makeFile("notes.txt")]);
 
     await waitFor(() =>
-      expect(screen.getByText("1 file did not go")).toBeInTheDocument(),
+      expect(screen.getByText("1 of 1 didn't upload")).toBeInTheDocument(),
     );
     fireEvent.click(screen.getByRole("button", { name: "Not now" }));
-    expect(screen.queryByText("1 file did not go")).not.toBeInTheDocument();
+    expect(screen.queryByText("1 of 1 didn't upload")).not.toBeInTheDocument();
 
     // A second, unrelated run - clean end to end - must judge itself only by
     // what is STILL in the queue, not by the failure dismissed a moment ago.
     addFiles([makeFile("clean.jpg")]);
     await waitFor(() => expect(mockUploadFile).toHaveBeenCalledTimes(2));
     await new Promise((r) => setTimeout(r, 30));
-    expect(screen.queryByText(/did not go/)).toBeNull();
+    expect(screen.queryByText(/didn't upload/)).toBeNull();
   });
 
-  it("Retry all still re-queues every listed file (the close behind it never eats them)", async () => {
+  it("Retry both still re-queues every listed file (the close behind it never eats them)", async () => {
     mockUploadFile
       .mockResolvedValueOnce({ ok: false, message: "Nope A." })
       .mockResolvedValueOnce({ ok: false, message: "Nope B." })
@@ -731,12 +728,12 @@ describe("GuestUpload: dismissing a failure retires it for good", () => {
     addFiles([makeFile("a.jpg"), makeFile("b.jpg")]);
 
     await waitFor(() =>
-      expect(screen.getByText("2 files did not go")).toBeInTheDocument(),
+      expect(screen.getByText("2 of 2 didn't upload")).toBeInTheDocument(),
     );
-    // Retry all closes the sheet on top of the very ids it just re-queued -
+    // Retry both closes the sheet on top of the very ids it just re-queued -
     // the `dismiss` that retires a dismissed failure must not treat a retried
     // id as an abandoned one.
-    fireEvent.click(screen.getByRole("button", { name: /Retry all/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Retry both/ }));
 
     await waitFor(() => {
       const last = snapshots.at(-1)!;
@@ -744,7 +741,7 @@ describe("GuestUpload: dismissing a failure retires it for good", () => {
       expect(last.every((it) => it.status === "done")).toBe(true);
     });
     expect(mockUploadFile).toHaveBeenCalledTimes(4);
-    expect(screen.queryByText(/did not go/)).toBeNull();
+    expect(screen.queryByText(/didn't upload/)).toBeNull();
   });
 });
 
@@ -899,19 +896,17 @@ describe("GuestUpload: the lifted queue contract", () => {
 describe("GuestUpload: the slot on a confirmation's return", () => {
   it("stands with nothing uploaded this visit when the album says the moment is due", async () => {
     mount({ moment: true });
-    expect(
-      await screen.findByTestId("save-account-prompt"),
-    ).toBeInTheDocument();
+    expect(await screen.findByTestId("post-upload-slot")).toBeInTheDocument();
   });
 
   it("stays empty without it until something is uploaded", () => {
     mount();
-    expect(screen.queryByTestId("save-account-prompt")).toBeNull();
+    expect(screen.queryByTestId("post-upload-slot")).toBeNull();
   });
 
   it("never stands in the demo, moment or not", () => {
     mount({ moment: true, isDemo: true, sessionToken: null });
-    expect(screen.queryByTestId("save-account-prompt")).toBeNull();
+    expect(screen.queryByTestId("post-upload-slot")).toBeNull();
   });
 });
 
@@ -958,16 +953,16 @@ describe("GuestUpload: the post-upload card counts what is still in the album", 
     fireEvent.click(screen.getByRole("button", { name: "Send 2" }));
     await waitFor(() =>
       expect(
-        screen.getByTestId("save-account-prompt").getAttribute("data-count"),
+        screen.getByTestId("post-upload-slot").getAttribute("data-count"),
       ).toBe("2"),
     );
 
     rerender(harness(new Set(["med-1"])));
     expect(
-      screen.getByTestId("save-account-prompt").getAttribute("data-count"),
+      screen.getByTestId("post-upload-slot").getAttribute("data-count"),
     ).toBe("1");
 
     rerender(harness(new Set(["med-1", "med-2"])));
-    expect(screen.queryByTestId("save-account-prompt")).toBeNull();
+    expect(screen.queryByTestId("post-upload-slot")).toBeNull();
   });
 });

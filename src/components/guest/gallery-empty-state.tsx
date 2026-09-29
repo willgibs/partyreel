@@ -89,7 +89,7 @@ export function GalleryEmptyState({
         </p>
         {onAddFirst && (
           <Button size="lg" onClick={onAddFirst}>
-            Be the first to add a photo
+            Add the first photo
           </Button>
         )}
       </div>

@@ -366,7 +366,7 @@ export async function readSweepCursor(
 export type JobSignals = Partial<Record<JobId, JobSignal>>;
 
 /**
- * The 24h windows for the three signal jobs, as SIX head-counts in parallel.
+ * The 24h windows for the four signal jobs, as EIGHT head-counts in parallel.
  *
  * A QUERY, not a stored daily aggregate, and the cost is why: every one of these is a bounded
  * count over a table that is either tiny by construction (`action_attempts` and `unlock_attempts`
@@ -402,6 +402,8 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
     abuseFailures,
     unlockAttempts,
     unlockFailures,
+    feedbackRecorded,
+    feedbackFailures,
   ] = await Promise.all([
     mustCount(
       db
@@ -427,11 +429,21 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
       "admin/jobs: 24h unlock-limiter records",
     ),
     failuresOf("unlock_limiter"),
+    // The beacon's success half is its own rows (`article_feedback_created_idx` carries the range).
+    mustCount(
+      db
+        .from("article_feedback")
+        .select("*", { count: "exact", head: true })
+        .gt("created_at", sinceIso),
+      "admin/jobs: 24h help feedback recorded",
+    ),
+    failuresOf("help_feedback"),
   ]);
 
   return {
     email_delivery: { ok24h: emailsSent, failed24h: emailFailures },
     abuse_limiter: { ok24h: abuseAttempts, failed24h: abuseFailures },
     unlock_limiter: { ok24h: unlockAttempts, failed24h: unlockFailures },
+    help_feedback: { ok24h: feedbackRecorded, failed24h: feedbackFailures },
   };
 }

@@ -3,7 +3,7 @@ title: Join an event and add your photos
 description: "Scan the host's QR code (or open their link), tap Add photos, and pick from your camera roll. It works in any phone browser, with nothing to install. Uploads go one at a time at full quality."
 category: guest-experience
 order: 1
-updated: "2026-09-23"
+updated: "2026-09-28"
 keywords:
   - join event
   - scan QR
@@ -20,22 +20,25 @@ There's nothing to install and no form to fill in. Point your camera at the code
 ## Joining
 
 <Steps>
-<Step title="Scan the code, or tap the link">
+<Step title="Scan the code, or tap the link" screen="door-scan">
 Your phone's normal camera app reads the QR code and offers a link; tap it. If the host sent you a link instead, just open it. Any modern phone browser works, on iPhone or Android.
 </Step>
-<Step title="Read the welcome">
+<Step title="Read the welcome" screen="door-welcome">
 The event's name, who's hosting, and how many photos are already inside. Tap <UiLabel>Continue</UiLabel>.
 </Step>
-<Step title="Enter the password, if the event has one">
+<Step title="Enter the password, if the event has one" screen="door-password">
 Some events add a password from the invitation. It comes before everything else.
 </Step>
-<Step title="Say what to call you">
-<UiLabel>What should we call you?</UiLabel> Your name goes on the photos you add, so the host knows who to thank. Nobody has to prove a name. If the host isn't asking everyone to confirm an email, you'll also see an optional email field: skip it, or add it so you can come back to this album anytime, with every photo you add. Nothing is sent to it up front, and only you can see it until you confirm it later.
+<Step title="Choose how to join, if you're new here" screen="door-chooser">
+<UiLabel>How do you want to join?</UiLabel> Tap <UiLabel>Continue as guest</UiLabel> for just your name, the fastest way in. <UiLabel>Create account</UiLabel> or <UiLabel>Log in</UiLabel> instead if you want your photos to follow you to your own dashboard too.
 </Step>
-<Step title="Confirm your email, if the host asks">
+<Step title="Say what to call you" screen="door-name">
+<UiLabel>What should we call you?</UiLabel> Your name goes on the photos you add, so the host knows who to thank. You can change it anytime. If the host isn't asking everyone to confirm an email, you'll also see an optional email field: skip it, or add it so you can come back to this album anytime, with every photo you add. Nothing is sent to it up front, and only you can see it until you confirm it later.
+</Step>
+<Step title="Confirm your email, if the host asks" screen="door-code">
 Some hosts want a confirmed address before the album opens. A one-time code by email is the whole sign-in. See [why an event asks for your email](/help/why-an-event-asks-for-your-email).
 </Step>
-<Step title="Add your first photo">
+<Step title="Add your first photo" screen="door-photo">
 The last screen asks for one, right there, so you are not hunting for a button once you are in. On most events you can tap <UiLabel>Skip for now</UiLabel> instead; on an event whose host asked everyone to add a photo before the album opens, the photo is the way in.
 </Step>
 </Steps>
@@ -48,18 +51,18 @@ Once you're in, <UiLabel>Add photos</UiLabel> is on every screen. It opens the s
 
 Each one appears at the top of the gallery as it goes, with a thin progress bar. They upload one at a time: venue wifi is fickle, and one file at a time finishes where a burst of twenty stalls. A green check marks each one as it lands. You can keep adding as the event goes on, and you can come back days later with more.
 
-If the host reviews uploads first, you'll see a note saying so. Each photo you send waits at the top of the album, dimmed under <UiLabel>Waiting for the host</UiLabel>, until they approve it; only you see it there.
+If the host reviews uploads first, you'll see a note saying so, and what you send goes to them before it goes in the album. The round button beside <UiLabel>Add photos</UiLabel> counts how many of yours are waiting, and it opens <UiLabel>Your uploads</UiLabel>, where each one says <UiLabel>Waiting for approval</UiLabel>, <UiLabel>In the album</UiLabel>, or <UiLabel>Not approved</UiLabel>. Only you see that list. A photo the host approves appears in the album for everyone.
 
 ## If one doesn't finish
 
-One failure never stops the others. Once the rest are done, a sheet lists anything that didn't go, one line per file with the reason and <UiLabel>Retry</UiLabel>, and <UiLabel>Retry all</UiLabel> under them. There's no cancel button for a file in flight. If you picked the wrong one, let it finish, then delete it yourself; see [find your uploads, and the events you added to](/help/find-your-uploads-and-events). The usual causes are in [an upload won't finish](/help/an-upload-wont-finish).
+One failure never stops the others. Once the rest are done, a sheet opens with one button that retries everything at once, and under it, one line per file with the reason and its own <UiLabel>Retry</UiLabel>. There's no cancel button for a file in flight. If you picked the wrong one, let it finish, then delete it yourself; see [find your uploads, and the events you added to](/help/find-your-uploads-and-events). The usual causes are in [an upload won't finish](/help/an-upload-wont-finish).
 
 ## What happens to your photos
 
 They upload at full quality, exactly as they are on your phone. Location data is stripped from most formats before anything leaves your phone; see [photo metadata and location data](/help/photo-metadata-and-location). What you can send, and how big, is in [what you can upload](/help/what-you-can-upload). Browsing, saving single photos, and the reel are in [browse the album](/help/browse-the-album).
 
-<Callout type="tip" title="Your photos keep the event">
+<Callout type="tip" title="Your photos keep the event" screen="door-keep">
 
-Every event you add a photo to stays on a dashboard you can come back to, once your email is confirmed. The card under your first upload offers it: <UiLabel>Confirm your email</UiLabel>. It's free.
+Every event you add a photo to stays on a dashboard you can come back to, once your email is confirmed. The moment your first photo lands, the door reopens with the offer, <UiLabel>Keep this event</UiLabel>, and <UiLabel>Confirm your email</UiLabel> under it. It's free.
 
 </Callout>

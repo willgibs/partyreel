@@ -6,7 +6,9 @@ import { describe, expect, it } from "vitest"
 import {
   floatingCrossSlide,
   floatingEdgeEntranceResponsive,
+  floatingPopupShapes,
 } from "./floating-layer"
+import { POPUP_KINDS, isDialogShape } from "./popup-kinds"
 
 /**
  * THE FLOATING LAYER'S TWO MECHANISMS THAT FAIL QUIETLY. Neither pins how a
@@ -17,7 +19,9 @@ import {
  *   is scoped to its own side, so it can never fight one of the four fixed
  *   sides in a specificity race;
  * - the cross-slide's direction and blur ride `motion-safe`, so reduced motion
- *   gets the plain fade by the class simply not existing.
+ *   gets the plain fade by the class simply not existing;
+ * - every popup shape is scoped to its own `data-shape`, and every dialog shape
+ *   the one table names has rules to stand on (`popups` r1).
  */
 const ROOT = process.cwd()
 
@@ -63,6 +67,36 @@ describe("the floating layer's mechanisms", () => {
         floatingCrossSlide,
         `${utility} rides unprefixed: reduced motion would have to out-specificity it rather than it simply being absent`,
       ).toContain(`motion-safe:${utility}`)
+    }
+  })
+})
+
+describe("the popup's shapes", () => {
+  it("scopes every shape's rule to a shape of its own", () => {
+    // One element wears any shape the table picks, so a rule that is not
+    // scoped to its shape would stand under every other shape too.
+    const loose = floatingPopupShapes
+      .split(" ")
+      .filter((c) => !/^data-\[shape=[a-z]+\]:/.test(c))
+    expect(
+      loose,
+      "a popup-shape utility that is not scoped to its own data-shape",
+    ).toEqual([])
+  })
+
+  it("draws every dialog shape the table names", () => {
+    // A row that names a shape with no rules would open a popup with no
+    // position at all: at the viewport's corner, the size of its words.
+    const drawn = new Set(
+      [...floatingPopupShapes.matchAll(/data-\[shape=([a-z]+)\]:/g)].map(
+        (m) => m[1],
+      ),
+    )
+    for (const [kind, row] of Object.entries(POPUP_KINDS)) {
+      for (const shape of [row.desk, row.hand]) {
+        if (!isDialogShape(shape)) continue
+        expect(drawn.has(shape), `${kind}'s ${shape} has no rules`).toBe(true)
+      }
     }
   })
 })

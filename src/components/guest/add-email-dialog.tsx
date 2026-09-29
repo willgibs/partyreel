@@ -3,6 +3,9 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { DoorHeading } from "@/components/guest/door/heading";
+import { DOOR_SCRIM, DoorLamp } from "@/components/guest/door/lit";
+import { DOOR_SHEET } from "@/components/guest/entry-shell";
 import { Button } from "@/components/ui/button";
 import { floatingKeyboardFoot } from "@/components/ui/floating-layer";
 import { Input } from "@/components/ui/input";
@@ -11,7 +14,6 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
 import {
@@ -54,7 +56,12 @@ export const REMOVE_CONSEQUENCE =
  * (door-flow), whose phone half stands on the keyboard while the field is
  * focused. The door's steps are HELD and ordered, and a guest who reaches this
  * has already been through them; reopening the itinerary to add one optional
- * field would be re-gating an album they are already inside.
+ * field would be re-gating an album they are already inside. It wears the
+ * door's light all the same (`identity-door` r2, `look=lit`: the lit scrim and
+ * the album's lamp), because it is the door's email, met again from her menu,
+ * and the door's heading and padding (`DOOR_SHEET`, `door/heading.tsx`): its
+ * title on the page step every door step heads with, never a Sheet's card
+ * title, so one guest meets one size of heading.
  *
  * ★ TWO ACTS. `add`: the address, and "Confirm it now instead" for the guest who
  * would rather be done. `change`: a new address replaces the pending one (the
@@ -97,6 +104,12 @@ export function AddEmailDialog({
   const [saving, startSave] = useTransition();
   const [removing, startRemove] = useTransition();
   const changing = mode === "change";
+  const title = changing ? "Change your email" : "Add your email";
+  // Adding repeats the door's own helper line, word for word: one promise, made in one place,
+  // whichever surface a guest meets it on.
+  const reason = changing
+    ? "The new address replaces the one you added. Nothing is sent to it until you confirm it."
+    : "Come back to this album anytime, with every photo you add.";
 
   function close() {
     onOpenChange(false);
@@ -188,21 +201,19 @@ export function AddEmailDialog({
         else close();
       }}
     >
-      <SheetContent responsive className="overflow-y-auto overscroll-contain">
-        <SheetHeader>
-          <SheetTitle>
-            {changing ? "Change your email" : "Add your email"}
-          </SheetTitle>
-          {/* Adding repeats the door's own helper line, word for word: one
-              promise, made in one place, whichever surface a guest meets it on. */}
-          <SheetDescription>
-            {changing
-              ? "The new address replaces the one you added. Nothing is sent to it until you confirm it."
-              : "Come back to this album anytime, with every photo you add."}
-          </SheetDescription>
-        </SheetHeader>
+      <SheetContent
+        responsive
+        className={DOOR_SHEET}
+        overlayClassName={DOOR_SCRIM}
+        data-door-lit=""
+      >
+        <DoorLamp edge="free" />
+        {/* The dialog's name and description, drawn for the eye below in the door's heading. */}
+        <SheetTitle className="sr-only">{title}</SheetTitle>
+        <SheetDescription className="sr-only">{reason}</SheetDescription>
+        <DoorHeading title={title} reason={reason} hidden className="mb-4" />
         <form
-          className="flex flex-col gap-4 px-4"
+          className="flex flex-col gap-4"
           /* The same reason the door's own form carries it: a native
              `type="email"` field would let the BROWSER refuse this form with
              its own bubble before `onSubmit` ever ran, replacing our sentence
@@ -259,7 +270,7 @@ export function AddEmailDialog({
             </Button>
           </div>
         </form>
-        <div className="flex flex-col items-center gap-1.5 px-4 pb-6 text-center">
+        <div className="flex flex-col items-center gap-1.5 pt-4 text-center">
           {changing ? (
             PENDING_EMAIL_REMOVABLE && (
               <>

@@ -3,6 +3,12 @@ import { after, NextResponse } from "next/server";
 import { adoptDoorName } from "@/app/(auth)/adopt-door-name";
 import { isAdminHost } from "@/lib/auth/admin-host";
 import { doorFailureKind } from "@/lib/auth/door-failure";
+import {
+  NEXT_PARAM,
+  signInLanding,
+  signInReturn,
+  withReturn,
+} from "@/lib/auth/return-path";
 import { syncBillingEmail } from "@/lib/stripe/customer-email";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,7 +19,9 @@ import { createClient } from "@/lib/supabase/server";
 // Host-aware: redirect back to the SAME host the user authenticated on (so an
 // admin-subdomain login keeps its host-isolated session) and pick a default
 // landing per host — the admin subdomain lands in the portal (/admin), everything
-// else on /dashboard. A valid same-origin `next` still wins.
+// else on /dashboard. A `next` still wins, but only one on the return allow-list
+// (lib/auth/return-path.ts: the pages a gate or a guest's door sends back to);
+// anything else, however it is dressed, is the default, and never followed.
 //
 // ★ WHEN IT FAILS IT NAMES THE KIND (`failure=paths`, Will 2026-09-20). It used
 // to bounce back with one flag, `?error=auth_callback`, and the page turned that
@@ -41,15 +49,12 @@ export async function GET(request: Request) {
     );
   }
 
-  // Guard against open redirects: only same-origin absolute paths (reject "//host"
-  // and full URLs); otherwise the host-aware default.
-  const requested = url.searchParams.get("next");
-  const next =
-    requested && requested.startsWith("/") && !requested.startsWith("//")
-      ? requested
-      : isAdminHost(host)
-        ? "/admin"
-        : "/dashboard";
+  // ★ NEVER AN OPEN REDIRECT: `next` is followed only when it is one of the
+  // allow-listed pages (no scheme, no `//`, no backslash, no encoded escape, no
+  // query can pass it); a refused one is the host-aware default, and it is never
+  // carried anywhere, so a hostile value reads exactly like none.
+  const next = signInReturn(url.searchParams.get(NEXT_PARAM));
+  const landing = signInLanding(next, isAdminHost(host));
 
   if (code) {
     const supabase = await createClient();
@@ -58,12 +63,15 @@ export async function GET(request: Request) {
       // A guest's tapped link loses the name typed at the door (the in-page step
       // is gone), so the door carries it in the new account's metadata and it is
       // adopted here, before the album can ask for it again. Never throws.
-      if (next.startsWith("/e/")) await adoptDoorName();
-      return NextResponse.redirect(`${base}${next}`);
+      if (landing.startsWith("/e/")) await adoptDoorName();
+      return NextResponse.redirect(`${base}${landing}`);
     }
     // An exchange that fails on a present code is an aged-out or already-spent
-    // link, which is the one thing a host can act on: send a new code.
-    return NextResponse.redirect(`${base}/login?error=expired_link`);
+    // link, which is the one thing a host can act on: send a new code. The page it
+    // was going to rides along, so the new code still lands there.
+    return NextResponse.redirect(
+      `${base}${withReturn("/login?error=expired_link", next)}`,
+    );
   }
 
   // No code at all: either the provider refused (Supabase puts its own reason in
@@ -73,7 +81,9 @@ export async function GET(request: Request) {
     doorFailureKind(url.searchParams.get("error_code")) ??
     doorFailureKind(url.searchParams.get("error")) ??
     "expired_link";
-  return NextResponse.redirect(`${base}/login?error=${kind}`);
+  return NextResponse.redirect(
+    `${base}${withReturn(`/login?error=${kind}`, next)}`,
+  );
 }
 
 /**

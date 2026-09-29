@@ -14,8 +14,11 @@ import {
   removeMediaBulk,
   restoreEvent,
   restoreMedia,
+  returnToReview,
   setMediaStatus,
   setMediaStatusBulk,
+  type RestoredStatus,
+  type ReviewVerdictStatus,
   type SettableMediaStatus,
 } from "@/lib/db/mutations/media";
 import { readHostManifestPage } from "@/lib/db/queries/album-host";
@@ -70,8 +73,11 @@ function refuseSelection(mediaIds: unknown): ActionResult | null {
  * "updates the UI immediately"), and the hub is a page of a dozen reads plus the album's manifest and
  * links: one hide used to re-run all of it. The hub's album is the page's store now, and each write's
  * caller asks it to catch up (`afterWrite`, one delta by id); the counts it shows ride the same poll.
- * The Review room's two bulk verbs below still revalidate: that room renders its queue on the server.
- * The same reason `clip-hidden-action.ts` gives for its own writes.
+ * The same reason `clip-hidden-action.ts` gives for its own writes. ★ And Review's three verbs
+ * (approve, reject, and Undo's return) do not either (curation-wiring): a revalidating action
+ * refreshes whatever route called it, so every verdict re-ran the Review room's page, re-reading
+ * and re-presigning the whole queue, once per key press with the keyboard. The room is a store over
+ * the host's album now (`review-room.tsx`), moved by its own acts and the host's poll.
  */
 export async function setMediaStatusAction(
   eventId: string,
@@ -96,10 +102,12 @@ export async function removeMediaAction(
   return { ok: true };
 }
 
-// Bulk approve / hide SELECTED pending items from the review surface (S3·3b·D).
-// Mirror purgeMediaNowAction's array shape: the wrapper is scoped to pending +
-// RLS-gated to the host's event; revalidate on success. The Review room's
-// Approve all reaches past MAX_BULK_ITEMS by batching (`inBulkBatches`).
+// Bulk approve / reject SELECTED pending items from the Review room. Mirror
+// purgeMediaNowAction's array shape: the wrapper is scoped to pending +
+// RLS-gated to the host's event. The room's Approve all reaches past
+// MAX_BULK_ITEMS by batching (`inBulkBatches`). Rejecting is `hideBulk`: a
+// refused upload lands hidden, the same row state a Hide in the album leaves
+// (host-curation `verb=reject` changed the word, never the state).
 export async function approveBulkAction(
   eventId: string,
   mediaIds: string[],
@@ -109,8 +117,6 @@ export async function approveBulkAction(
 
   const result = await approveBulk(eventId, mediaIds);
   if (!result.ok) return result;
-
-  revalidatePath(`/dashboard/${eventId}`);
   return { ok: true };
 }
 
@@ -123,8 +129,58 @@ export async function hideBulkAction(
 
   const result = await hideBulk(eventId, mediaIds);
   if (!result.ok) return result;
+  return { ok: true };
+}
 
-  revalidatePath(`/dashboard/${eventId}`);
+const REVIEW_VERDICTS: readonly ReviewVerdictStatus[] = ["approved", "hidden"];
+
+/**
+ * UNDO ON A REVIEW VERDICT'S TOAST (host-curation `undo=undo`): the items an approve (`approved`)
+ * or a reject (`hidden`) just decided go back into the queue. `from` is a raw client string, so it
+ * is allow-listed here like every status; the ids are refused past the cap like every bulk verb.
+ *
+ * ★ NEVER INTO A LIVE EVENT: a live event holds no pending media (turning review off approves the
+ * queue, and an upload lands pending only while the event reviews), so an Undo that outlived review
+ * being switched off is refused in words before any write. The event is read through RLS
+ * (`getEvent`), which is also the ownership check: another host's event, or a deleted one, reads as
+ * gone. The check and the write are two requests, so a switch saved in another tab in the moment
+ * between them could still leave one waiting; it would sit in Review until review is back on.
+ */
+export async function returnToReviewAction(
+  eventId: string,
+  mediaIds: string[],
+  from: string,
+): Promise<ActionResult> {
+  if (!(REVIEW_VERDICTS as readonly string[]).includes(from)) {
+    return { ok: false, code: "validation", message: "Unsupported status." };
+  }
+  const refused = refuseSelection(mediaIds);
+  if (refused) return refused;
+
+  const parsedEvent = z.uuid().safeParse(eventId);
+  const event = parsedEvent.success ? await getEvent(parsedEvent.data) : null;
+  if (!event) {
+    return {
+      ok: false,
+      code: "validation",
+      message: "That event is no longer available.",
+    };
+  }
+  if (event.moderation_mode !== "hold_for_approval") {
+    return {
+      ok: false,
+      code: "validation",
+      message:
+        "Review is off for this event, so there's no queue to put them back in.",
+    };
+  }
+
+  const result = await returnToReview(
+    eventId,
+    mediaIds,
+    from as ReviewVerdictStatus,
+  );
+  if (!result.ok) return result;
   return { ok: true };
 }
 
@@ -169,10 +225,20 @@ export async function removeMediaBulkAction(
 // ownership + capacity gates (they call the SECURITY DEFINER RPCs). Area "media" — these are
 // media/event-recovery ops (no "dashboard" Sentry area exists).
 
+/**
+ * A restore's own result: where the item landed (`restore_media` answers the status it held before
+ * its removal), so the bin says what the restore did, never "back in the album" for an item that came
+ * back hidden. Its own type for the reason `RestoreEventResult` below has one: the shared ActionResult
+ * stays `{ ok: true }` for the actions with nothing to carry.
+ */
+export type RestoreMediaResult =
+  | { ok: true; status?: RestoredStatus }
+  | Extract<ActionResult, { ok: false }>;
+
 export async function restoreMediaAction(
   eventId: string,
   mediaId: string,
-): Promise<ActionResult> {
+): Promise<RestoreMediaResult> {
   const result = await restoreMedia(mediaId);
   if (!result.ok) {
     if (result.code === "unknown") {
@@ -184,7 +250,7 @@ export async function restoreMediaAction(
     }
     return result;
   }
-  return { ok: true };
+  return { ok: true, status: result.data.status };
 }
 
 /**
@@ -193,16 +259,22 @@ export async function restoreMediaAction(
  * `media_still_removed`, and a host who restores an event with 12 of its photos still
  * binned is told "Event restored." That count reached this action and stopped here.
  *
+ * `customSlugReleased` carries further, into the toast (`RestoreEventButton`): a soft-deleted
+ * event's custom slug is freed at once (host-app.md), so another event may have claimed it
+ * while this one sat in Deleted, and the RPC comes back on the permanent link rather than
+ * failing the restore. Silent, that is a link that quietly stopped working; the host has to
+ * hear it from the one surface that knows, at the moment it happens.
+ *
  * So this action has its OWN result type. The shared ActionResult stays `{ ok: true }`
  * deliberately: it is the contract of a dozen form actions, and widening it to carry one
  * action's payload would make every caller handle data it will never have. The failure arm
  * is EXTRACTED from ActionResult rather than restated, so the codes and the friendly
  * messages keep exactly one home (the same shape RestoreResult uses in db/mutations/media).
  *
- * Consumers narrow on `ok` as before, so nothing breaks by ignoring the count.
+ * Consumers narrow on `ok` as before, so nothing breaks by ignoring either field.
  */
 export type RestoreEventResult =
-  | { ok: true; mediaStillRemoved: number }
+  | { ok: true; mediaStillRemoved: number; customSlugReleased: boolean }
   | Extract<ActionResult, { ok: false }>;
 
 export async function restoreEventAction(
@@ -222,7 +294,11 @@ export async function restoreEventAction(
   // Restoring re-adds the event to BOTH the active dashboard list and its detail page.
   revalidatePath(`/dashboard/${eventId}`);
   revalidatePath("/dashboard");
-  return { ok: true, mediaStillRemoved: result.data.mediaStillRemoved };
+  return {
+    ok: true,
+    mediaStillRemoved: result.data.mediaStillRemoved,
+    customSlugReleased: result.data.customSlugReleased,
+  };
 }
 
 export async function purgeMediaNowAction(

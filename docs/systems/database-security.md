@@ -13,7 +13,7 @@ DEFINER RPCs validate inside; `anon` never touches a table. A feature's own RPC 
 
 ## The RPC inventory and the advisor set
 
-`get_advisors` (security) after every schema change reads 16 `rls_enabled_no_policy`, 4 in lint `0028` and 27 in
+`get_advisors` (security) after every schema change reads 17 `rls_enabled_no_policy`, 4 in lint `0028` and 29 in
 `0029`.
 Leaked Password Protection is on, so its WARN never shows. A function in the wrong list means a grant slipped.
 
@@ -26,7 +26,13 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
     an unlocked viewer's fields come back through a self-guarded admin re-read inside `getEventByQrToken`. Its
     switches and the reel's defaults (`accepting_uploads`, `require_verified_email`, `require_upload_to_view`,
     `show_reel`, `reel_style_id`, `reel_hold_sec`) come back unredacted, as presentation settings. A leak is fixed
-    in the payload, never by revoking the grant. `get_public_profile`'s attended arm applies the album's own gates ([profiles-social.md](profiles-social.md)).
+    in the payload, never by revoking the grant. ★ To an account or confirmed address the event blocked, it reads the
+    event as `private`, so every caller's private branch serves the block ([guest-flow.md](guest-flow.md)). `get_public_profile`'s attended arm applies the album's own gates ([profiles-social.md](profiles-social.md)).
+  - ★ **A response the edge shares asks with NO caller.** A public `Cache-Control` hands the first viewer's answer
+    to every next one, and these reads answer a session personally (the block above), so a shared response reads
+    through `createAnonClient` (`lib/supabase/anon.ts`: the publishable key, no session, no cookie), never the
+    request client; the share card drew a blocked viewer's answer behind a public cache once
+    ([guest-flow.md](guest-flow.md)). A response that must differ per viewer is `private, no-store`.
   - ★ **A RETURNS TABLE is the allow-list, and changing one is DROP + CREATE, which drops the grants:** re-grant
     `anon` and `authenticated` explicitly. `get_event_by_qr_token` also keeps the PUBLIC EXECUTE its recreates
     inherited.
@@ -49,25 +55,34 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   `check_slug_available`, `has_password` / `verify_current_password` / `mark_password_set`, `get_my_uploads` /
   `remove_my_upload`, `claim_anonymous_uploads`, `list_guest_rows_by_email` / `claim_guest_rows_by_email` /
   `disown_guest_rows_by_email`, `restore_media` / `restore_event` / `purge_media_now`, `like_media` /
-  `get_my_likes` / `get_event_like_counts` and `follow_user` / `block_user`.
+  `get_my_likes` / `get_event_like_counts`, `follow_user` / `block_user`, and the per-event block's two host acts,
+  `block_from_event` / `let_back_in`.
   - `claim_anonymous_uploads` stays browser-callable because nothing in it is spoofable: the held `session_token`s
     authorize it and `user_id is null` guards against theft.
   - ★ **The claim by address never takes an address.** The three `*_guest_rows_by_email` functions key on the
     caller's own CONFIRMED address, read from `auth.users` under definer privilege, so nothing can answer "is this
-    address a Partyreel guest?", and an unconfirmed caller gets an empty set even for their own address.
-  - **A like is only as visible as its media.** `like_media` accepts media the caller can see, and `like_many`
-    (authenticated, SECURITY INVOKER, at most 2,000 ids a call) sends each id through it, so `like_media` stays the
-    only insert; `get_my_likes` re-applies that predicate, so a like on media that has since closed never presigns.
+    address a Partyreel guest?", and an unconfirmed caller gets an empty set even for their own address. Its answer is
+    the allow-list: names, counts, the event's door and up to four of the row's own approved preview keys from an open
+    album, never the album's link (a claim's follow-up read gives that, for an event the caller is now a guest of).
+  - **A like is only as visible as its media.** `like_media` accepts media the caller can see, and on a private album
+    only its host's like (every guest of one gets the not_found a blocked account gets, so a known photo id tells
+    neither apart); `like_many` (authenticated, SECURITY INVOKER, at most 2,000 ids a call) sends each id through it,
+    so `like_media` stays the only insert; `get_my_likes` re-applies that predicate, so a like on media that has since
+    closed never presigns.
     The counts are host-only through two paths, `get_event_like_counts` and `media_like_counts`, so no count reaches
     a guest.
 - **SECURITY INVOKER is the default for a new read** (in neither list): a grant that reached the wrong role reads
   only that role's own rows, where a DEFINER body would read everyone's. The dashboard cards' `event_stills` (up to
   12 previewed, approved photos an event, one jsonb) is this shape, authenticated-only: another host's event is
   simply absent, and it may name only media columns the host's SELECT grant holds.
-- **Service-role only, never in either list:** the server-mediated set above, `action_rate`, `purge_media_rows`,
+- **Service-role only, never in either list:** the server-mediated set above, `action_rate`, `article_feedback_summary`
+  (an INVOKER read, one jsonb, behind the admin seam), `purge_media_rows`,
   `record_link_hit`, `host_active_bytes`, `host_storage_summary`, `monthly_ingress_cap`, the paged album's reader
   `album_changes_since` (an INVOKER read the Next routes call after their own capability check), `media_like_counts`
-  (an INVOKER read the host's links route and the hub page call after their `getEvent` check), and the trigger
+  (an INVOKER read the host's links route and the hub page call after their `getEvent` check), the per-event block's
+  reads (`event_ticket_blocked` and `event_blocked_guest_ids`, INVOKER; `blocked_events_for`, DEFINER because it
+  reads `auth.users`, which the service role cannot) and its four predicates (INVOKER, run inside the guest paths'
+  DEFINER bodies), and the trigger
   functions, whose EXECUTE is revoked from the client roles and which still fire (EXECUTE is checked when a trigger
   is created, never when it fires).
 - ★ **Every SECURITY DEFINER function pins `set search_path = ''` and fully qualifies every name** (`public.events`,
@@ -78,7 +93,9 @@ Leaked Password Protection is on, so its WARN never shows. A function in the wro
   `job_applications`, `event_passes`, `job_runs`, `export_log` (an HMAC of the IP, never the IP), `ops_flags` (the
   kill switches), `upload_forensics` and `forensic_audit_log` (raw IP by design; the deny-all is the containment:
   [trust-safety-forensics.md](trust-safety-forensics.md)), `album_state` and `album_changes` (the paged album's
-  versions and change log: service_role SELECT only, written by the deferred triggers alone).
+  versions and change log: service_role SELECT only, written by the deferred triggers alone), `article_feedback` (the
+  help center's feedback beacon: a slug, Yes or No and a time, no identity of any kind, with every client grant revoked,
+  reads included, so `anon` has no table access at all).
 
 ## Grants
 
@@ -99,11 +116,16 @@ under Gotchas).
   service role only; `reel_eligible` is readable and written once, by `create_media*`. **SELECT is column-scoped
   too:** the hold columns and the provenance are not granted, so a host cannot detect a legal hold, an
   `authenticated` `select("*")` on media ERRORS, host reads enumerate `MEDIA_HOST_COLUMNS` (a parity test pins it
-  to the grant), and a new column stays invisible to hosts until it joins both.
+  to the grant), and a new column stays invisible to hosts until it joins both. ★ `media_host_all`'s USING also
+  leaves out an operator's removal (`status = 'removed' and removed_by_admin`): a policy may test a column its role
+  cannot SELECT, so the host loses the row on every read and write without ever reading the flag
+  ([lifecycle-recovery.md](lifecycle-recovery.md)).
 - **`guests`:** no client role reads or writes it; every reader is the service role or a definer function, because
   it holds `session_token` (the plaintext upload capability) and both addresses. The token also rides the
   `pr_guest_<eventId>` cookie ([guest-flow.md](guest-flow.md)), ★ as a READ capability only: every write route takes it from the body
   (`session-cookie.test.ts`), so the cookie adds no CSRF surface.
+- **`event_blocks`:** the host SELECTs its own events' rows (RLS) and nothing else: no client role writes it (the
+  two acts do) and `anon` reads nothing.
 - **`media_likes`:** owner RLS on select and delete; `like_media` is the only write (a raw insert would let a user
   like, then presign through `get_my_likes`, media they cannot see).
 - ★ **TWO EMAIL COLUMNS, AND ONLY `verified_at` IS PROOF.** `guests.email` is only ever a confirmed address of the
@@ -122,8 +144,8 @@ under Gotchas).
   `restore_event`); the undelete re-fires the event limit. Prefer this shape to a revoke whenever a column's
   legitimate writers are RPCs. A held row is skipped, never refused ([trust-safety-forensics.md](trust-safety-forensics.md)).
 - **Value gates are CHECKs and triggers:** `events_password_requires_hash` (no `password` visibility without a hash)
-  and `enforce_event_limit` (the tier's `MAX_EVENTS`, or `event_slots` when set; raises 23514). The paid gates on the
-  event password and custom slug live inside their setter RPCs.
+  and `enforce_event_limit` (the tier's `MAX_EVENTS`, or `event_slots` when set; raises 23514). A paid gate on an
+  event setting lives inside its setter RPC, mirroring `GATED_EVENT_SETTINGS` (none today: [billing-caps.md](billing-caps.md)).
 - ★ **Every capacity decision locks the host's `profiles` row `for update` first.** The cap, ingress and event-slot
   checks are check-then-act over aggregates no row lock can hold, so two concurrent uploads, restores or creates
   would each read N-1 and both admit. `create_media`, `create_media_as_host`, `restore_media`, `restore_event` and
@@ -175,7 +197,9 @@ under Gotchas).
 - ★ **The public forms (`/contact`, `/careers`) are the one limiter that fails CLOSED:** nothing stands behind them,
   so failing open would open a pipe to the monthly email quota the breaker alerts also send on. Their scope is the
   bare IP; the check runs after the honeypot (a caught bot must not spend a shared office's budget) and before the
-  insert and the send, and the swallowed error is captured where it is swallowed.
+  insert and the send, and the swallowed error is captured where it is swallowed. The help center's feedback beacon
+  (`help_feedback`, scope the IP and the article, breadth across articles) fails closed for the same reason, at no real
+  cost: its limiter and its insert share one database.
 - **The account kinds (`email_change`) key on the signed-in user's id** (HMAC'd, in its own domain), have no breadth,
   and fail CLOSED like the public forms: the limiter is the only bound on the `email_exists` oracle.
 - Volumetric DoS is the Vercel edge firewall's job, not the app's; the guest OTP door is throttled only by Supabase

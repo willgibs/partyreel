@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { HostSelectionProvider } from "@/components/app/host-selection-provider";
+import { HostCreditLookProvider } from "@/components/app/event-blocks/credit-look";
 import { ReviewRoom } from "@/components/app/event-feed/review-room";
 import { SetCrumbs } from "@/components/shared/crumbs";
 import { PageHeading } from "@/components/shared/page-heading";
@@ -9,7 +9,10 @@ import { getEvent } from "@/lib/db/queries/events";
 import { getUploaderIdentities } from "@/lib/db/queries/guest-events-admin";
 import { getEventLikeCounts } from "@/lib/db/queries/likes";
 import { listEventMedia } from "@/lib/db/queries/media";
+import { planHubManifest, seedFrom } from "@/lib/event/host-album.server";
+import { readHostLinksBody } from "@/lib/event/host-links.server";
 import { toHostGalleryItems } from "@/lib/event/gallery-items";
+import { getRequestAuth } from "@/lib/supabase/request-auth";
 
 // Presigned URLs are per-request + short-lived, so this route must never be
 // statically cached (the same reason as the hub).
@@ -35,8 +38,12 @@ export async function generateMetadata({
  * album underneath was never part of it. The card on the hub carries the count
  * and ticks it down when they come back.
  *
- * `ReviewSection` and `use-review-triage` are imported unchanged: the state
- * machine that ran the inline queue is the state machine that runs the room.
+ * ★ THE ROOM IS LIVE (host-curation `arrivals=prompt`). The page seeds the
+ * host's album store exactly as the hub does (`planHubManifest`: the version,
+ * the counts and the manifest's first page, read in one snapshot), with no
+ * links, since the room draws its own queue; the store moves it from there on
+ * the host's poll and doorbell, and an upload that lands while the host is here
+ * waits behind the room's line. Nothing re-renders this page to show one.
  */
 export default async function EventReviewPage({ params }: PageProps) {
   const { eventId } = await params;
@@ -45,12 +52,17 @@ export default async function EventReviewPage({ params }: PageProps) {
 
   // The queue ALONE, read whole: the `pending` slice pages to its last item, so
   // the room presigns what it shows and nothing else, and reaches the queue's
-  // oldest upload however large the album around it grows.
-  const [pending, uploaderIdentities, likeCounts] = await Promise.all([
-    listEventMedia(event.id, "pending"),
-    getUploaderIdentities(event.id),
-    getEventLikeCounts(event.id),
-  ]);
+  // oldest upload however large the album around it grows. Beside it, the
+  // host's manifest for the live signal (the hub's own first sync).
+  const { supabase } = await getRequestAuth();
+  const [pending, uploaderIdentities, likeCounts, plan, noLinks] =
+    await Promise.all([
+      listEventMedia(event.id, "pending"),
+      getUploaderIdentities(event.id),
+      getEventLikeCounts(event.id),
+      planHubManifest(supabase, event.id),
+      readHostLinksBody(supabase, event, []),
+    ]);
   const pendingItems = await toHostGalleryItems({
     media: pending,
     eventName: event.name,
@@ -68,13 +80,19 @@ export default async function EventReviewPage({ params }: PageProps) {
         ]}
       />
       <PageHeading>Review</PageHeading>
-      <HostSelectionProvider>
+      {/* The uploader's name on the peek opens their look, with its quiet Block (event-safety
+          `entry=all`, the uploader in Review). */}
+      <HostCreditLookProvider>
         <ReviewRoom
           eventId={event.id}
           moderationOn={event.moderation_mode === "hold_for_approval"}
           pendingItems={pendingItems}
+          album={{
+            seed: seedFrom(event.id, plan, noLinks),
+            qrToken: event.qr_token,
+          }}
         />
-      </HostSelectionProvider>
+      </HostCreditLookProvider>
     </div>
   );
 }

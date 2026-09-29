@@ -1,0 +1,76 @@
+{
+  "board": "event-settings",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-29",
+      "answers": [
+        {
+          "ask": "structure",
+          "choice": "summary",
+          "note": "This feels much more organized/focused/targeted, so everything isn't thrown at a new host at once. More learn-as-you-explore. Option 4 did have a super neat idea though - would be curious if we could work that into this selection somehow, to effectively be used as some sort of natural language overview/config of their current settings. Hadn't seen that before, thought it was really neat.",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        },
+        {
+          "ask": "opens",
+          "choice": "page",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        },
+        {
+          "ask": "idle",
+          "choice": "greyed",
+          "note": "However, this selection's design is far from perfect. I don't want the no current effect settings to fully disappear because they do an amazing job at hinting at unused features that may not be known. Otherwise, every host will have to toggle every filter combo to learn those options in settings - really annoying UX. However, I don't love this selected option's disabled design simply going grey. I feel like there could be a more \"magical\" transition that keeps unused features visible, nested clearly to show what controls what, but not always showing the full state of all configs when some have no effect, instead having a neat way to kind of toggle in and out of those so they're more subtle when unused. Sorry, this was a bit of a ramble - bubble up in chat if you feel I didn't convey the idea well.",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        },
+        {
+          "ask": "lock",
+          "choice": "switch",
+          "note": "This makes videos a more visible option than the quiet line. We want free hosts to *know* they're missing out on videos so they upgrade, not hide that loss. However, this should have a disabled state so it's more clear they can't use it on free.",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        },
+        {
+          "ask": "join",
+          "choice": "steps",
+          "note": "I love stepping this, so they can visualize the guest path and more easily understand how each setting applies versus a more generic board of options/toggles that have a less clear flow. Would it feel even more intuitive if we switched the 'what the link opens' options to 'public' (anyone type acceptance), 'private' (password, approval, invites, etc), and 'me' (host only, reframes private as gated). Each gate should have a clear tooltip or explainer on its own purpose, so a host *never* has to guess here. Help center could be integrated subtlety (not article links everywhere). Almost feels like a mini wizard within settings to always ensure it's ready to go - wonder if we could extend this concept. Could also be helpful to create an event checklist for hosts so they know everything is ready (think this was WIP).",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        },
+        {
+          "ask": "waiting",
+          "choice": "held",
+          "note": "This could definitely be redesigned to be a more engaging waiting experience.",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        },
+        {
+          "ask": "queue",
+          "choice": "room",
+          "note": "Side note to tackle this now: the highlight reel card should be the first in the host events features row/grid. Then Guests, then Review, then Settings. I also made a note at one point about having overlay shadows on the dies of this row so it felt scrollable - those shadows were meant to be conditional when the row ran offscreen, not exist in the default desktop view when wide enough that scrolling isn't needed. If we still have a layout where that row can run offscreen (mobile does 2x2 grid instead, which is better), then the overlay shadows would be conditional per scrollable side, so if you're at the first/last that shadow disappears, showing you're at the end with nothing more hidden.",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        },
+        {
+          "ask": "inside",
+          "choice": "count",
+          "note": "This clearly shows the host that despite closing, there are still X amount of guests in the album. Maybe we even change to \"X guests are already in.\" Would really help with clarity if a host thought they were closing it to everyone instead, they'd see this and look for the 'me' instead. We should flag that swap too, where switching to 'me' with guests already in closes them out completely, roughly vice versa of this warning.",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        },
+        {
+          "ask": "editor",
+          "choice": "both",
+          "note": "Could this be more easily managed under 'Guests' with a pointer from here, so this settings page can't potentially become a 200 person invite list? Could have more focused UI, otherwise gets very busy here. Would also be quicker to access, versus going layers into settings to add invites. Lastly, the guests page could use invite as a feature (maybe main action from empty state, or as an action somewhere once guests start joining) which is not exclusive to invite-only event gates, simply helping the host invite guests as part of sharing? Would ideally work with their native contacts to make it super easy. Sorry, this is a ramble and kind of opening up a can of worms the way I'm messily describing it - to rehash without deleting all of this, invites feel too crowded to be managed here, maybe that could be managed somewhere else with an extra option to invite without making the event exclusively invites? Would like to hear your best ideas instead of force mine messily here.",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

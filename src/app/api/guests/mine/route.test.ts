@@ -11,6 +11,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const listSessionMediaIds = vi.fn();
+const listOwnUploadStatuses = vi.fn();
+const getUser = vi.fn();
 const getEventByQrToken = vi.fn();
 const recordAbuseEvent = vi.fn().mockResolvedValue(undefined);
 const checkAbuseRate = vi
@@ -19,6 +21,11 @@ const checkAbuseRate = vi
 
 vi.mock("@/lib/db/mutations/guest-media", () => ({
   listSessionMediaIds: (...args: unknown[]) => listSessionMediaIds(...args),
+  listOwnUploadStatuses: (...args: unknown[]) => listOwnUploadStatuses(...args),
+}));
+// Her tracker's ask reads the account from the server's own `getUser()`.
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: async () => ({ auth: { getUser } }),
 }));
 vi.mock("@/lib/db/queries/guest-events", () => ({
   getEventByQrToken: (...args: unknown[]) => getEventByQrToken(...args),
@@ -29,6 +36,19 @@ vi.mock("@/lib/security/abuse-rate-limit-store", () => ({
   recordAbuseEvent: (...args: unknown[]) => recordAbuseEvent(...args),
 }));
 vi.mock("@/lib/observability/sentry", () => ({ captureWarning: vi.fn() }));
+
+// ★ THE CLOSED DOOR (the per-event block, 20260928120000): a private album, or a ticket a block holds.
+// Its own rule is closed-door.server.test.ts's; here a held ticket stands in for one, so the route's
+// answer to it can be read against its answer to a private album, word for word.
+const ticketBlocked = vi.fn();
+vi.mock("@/lib/events/closed-door.server", () => ({
+  isClosedDoor: async (
+    event: { visibility?: string },
+    tickets: unknown[] = [],
+  ) =>
+    event.visibility === "private" ||
+    (await ticketBlocked(event, tickets)) === true,
+}));
 
 const { POST } = await import("@/app/api/guests/mine/route");
 
@@ -60,6 +80,8 @@ beforeEach(() => {
     data: { id: "event-1", visibility: "open" },
   });
   listSessionMediaIds.mockResolvedValue([]);
+  listOwnUploadStatuses.mockResolvedValue([]);
+  getUser.mockResolvedValue({ data: { user: null } });
 });
 
 describe("the list is the server's, for the token that was posted", () => {
@@ -142,5 +164,127 @@ describe("the limiter", () => {
     checkAbuseRate.mockRejectedValue(new Error("counters down"));
     listSessionMediaIds.mockResolvedValue(["m1"]);
     expect(await ids({ qr_token: TOKEN, session_token: MINE })).toEqual(["m1"]);
+  });
+});
+
+/**
+ * HER TRACKER'S ASK (`statuses: true`, `guest-capture` r1 `tracker=button`): where each of her
+ * uploads here stands. The same capability rules as the ids: the token in the body, every "no" an
+ * empty list, never cached, the limiter checked and not recorded; and an ACCOUNT speaks for its own
+ * rows through the server's `getUser()`, never through anything the body says.
+ */
+describe("statuses: her own uploads, with where each stands", () => {
+  async function items(body: unknown): Promise<unknown> {
+    const res = await post(body);
+    const parsed = (await res.json()) as { items?: unknown };
+    return parsed.items;
+  }
+
+  it("answers the server's read for THIS event and THIS token", async () => {
+    listOwnUploadStatuses.mockResolvedValue([
+      { id: "m2", status: "pending" },
+      { id: "m1", status: "approved" },
+    ]);
+    expect(
+      await items({ qr_token: TOKEN, session_token: MINE, statuses: true }),
+    ).toEqual([
+      { id: "m2", status: "pending" },
+      { id: "m1", status: "approved" },
+    ]);
+    expect(listOwnUploadStatuses).toHaveBeenCalledWith({
+      eventId: "event-1",
+      sessionToken: MINE,
+      userId: null,
+    });
+  });
+
+  it("a signed-in viewer's account speaks for its rows, from getUser() and nowhere else", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
+    await items({ qr_token: TOKEN, statuses: true, user_id: "someone-else" });
+    expect(listOwnUploadStatuses).toHaveBeenCalledWith({
+      eventId: "event-1",
+      sessionToken: null,
+      userId: "user-1",
+    });
+  });
+
+  it("tells a refusal (`host-curation`'s `told=line`, TRACKER_TELLS_REFUSAL)", async () => {
+    listOwnUploadStatuses.mockResolvedValue([{ id: "m3", status: "refused" }]);
+    expect(
+      await items({ qr_token: TOKEN, session_token: MINE, statuses: true }),
+    ).toEqual([{ id: "m3", status: "refused" }]);
+  });
+
+  it("a private or unknown event answers an empty list and reads nothing", async () => {
+    getEventByQrToken.mockResolvedValue({
+      ok: true,
+      data: { id: "event-1", visibility: "private" },
+    });
+    expect(
+      await items({ qr_token: TOKEN, session_token: MINE, statuses: true }),
+    ).toEqual([]);
+    getEventByQrToken.mockResolvedValue({ ok: false });
+    expect(
+      await items({ qr_token: TOKEN, session_token: MINE, statuses: true }),
+    ).toEqual([]);
+    expect(listOwnUploadStatuses).not.toHaveBeenCalled();
+  });
+
+  it("is never cached, and the limiter still guards it (checked, never recorded)", async () => {
+    const res = await post({
+      qr_token: TOKEN,
+      session_token: MINE,
+      statuses: true,
+    });
+    expect(res.headers.get("Cache-Control")).toContain("no-store");
+    expect(recordAbuseEvent).not.toHaveBeenCalled();
+
+    checkAbuseRate.mockResolvedValue({ allowed: false, retryAfterSec: 30 });
+    const tripped = await post({ qr_token: TOKEN, statuses: true });
+    expect(tripped.status).toBe(429);
+    expect(listOwnUploadStatuses).toHaveBeenCalledTimes(1);
+  });
+
+  it("the ids answer is untouched by the new ask: a body without `statuses` still needs its token", async () => {
+    expect((await post({ qr_token: TOKEN })).status).toBe(400);
+    expect(
+      (await post({ qr_token: TOKEN, session_token: MINE, statuses: false }))
+        .status,
+    ).toBe(200);
+    expect(listOwnUploadStatuses).not.toHaveBeenCalled();
+  });
+});
+
+describe("the closed door: a ticket a block holds meets the private album's answer", () => {
+  it("answers both arms exactly as a private album's, asks with the body's ticket, and reads nothing", async () => {
+    const asked = [
+      { qr_token: TOKEN, session_token: MINE },
+      { qr_token: TOKEN, session_token: MINE, statuses: true },
+    ];
+    getEventByQrToken.mockResolvedValue({
+      ok: true,
+      data: { id: "event-1", visibility: "private" },
+    });
+    const shut = await Promise.all(
+      asked.map(async (body) => (await post(body)).json()),
+    );
+
+    getEventByQrToken.mockResolvedValue({
+      ok: true,
+      data: { id: "event-1", visibility: "open" },
+    });
+    ticketBlocked.mockResolvedValue(true);
+    const held = await Promise.all(
+      asked.map(async (body) => (await post(body)).json()),
+    );
+    expect(ticketBlocked).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "event-1" }),
+      [MINE],
+    );
+    ticketBlocked.mockReset();
+
+    expect(held).toEqual(shut);
+    expect(listSessionMediaIds).not.toHaveBeenCalled();
+    expect(listOwnUploadStatuses).not.toHaveBeenCalled();
   });
 });

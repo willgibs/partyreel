@@ -1,6 +1,6 @@
 /**
  * THE GUEST'S OWN MENU, AS HE AMENDED IT (`identity-door` r1 `menu=card`): her name over one
- * status word, a card that sells saving the event, then Change name and Log in. What is pinned is
+ * status word, a card that offers to keep the event, then Change name and Log in. What is pinned is
  * the rule set, never the look: "Unverified" said exactly once; the card's one act per state; a
  * pending address changed (it overwrites) or removed (`null` through the same route, the device
  * flag cleared) behind `PENDING_EMAIL_REMOVABLE`; no sign-out row. The doors' own claim-and-refresh
@@ -67,9 +67,10 @@ afterEach(async () => {
 });
 
 describe("name only", () => {
-  it("says 'Unverified' exactly once, then sells saving the event", async () => {
+  // voice-guest r2 `keep=warm`: the card wears the keep's own title, the ask's standing home.
+  it("says 'Unverified' exactly once, then offers to keep the event", async () => {
     open();
-    await screen.findByText("Save this event for later");
+    await screen.findByText("Keep this event");
     expect(screen.getAllByText(/unverified/i)).toHaveLength(1);
     expect(screen.queryByText(/anyone can type a name/i)).toBeNull();
     expect(
@@ -88,6 +89,19 @@ describe("name only", () => {
     expect(
       screen.queryByRole("menuitem", { name: /sign (in|out)/i }),
     ).toBeNull();
+  });
+
+  // help-center r1: "include the help center entry in the menu too ... globally accessible for
+  // general questions as well". Under Log in, in a new tab, so the album stays where it is.
+  it("then a standing Help center row, opening the help center in a new tab", async () => {
+    open();
+    const help = await screen.findByRole("menuitem", { name: /help center/i });
+    expect(help).toHaveAttribute("href", "/help");
+    expect(help).toHaveAttribute("target", "_blank");
+    const items = screen
+      .getAllByRole("menuitem")
+      .map((item) => item.textContent?.trim());
+    expect(items.indexOf("Help center")).toBe(items.indexOf("Log in") + 1);
   });
 });
 

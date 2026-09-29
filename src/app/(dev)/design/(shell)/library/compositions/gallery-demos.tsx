@@ -18,9 +18,11 @@ import {
   FilterChipsDemo,
   QrPresetPickerDemo,
   ReviewSectionDemo,
+  StorageListDemo,
   AdminHealthBandDemo,
   AdminQueueDemo,
   AdminRailDemo,
+  AdminReportCardDemo,
 } from "./composition-demos";
 
 /**
@@ -88,6 +90,24 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
         label: "What is waiting, worst first",
         hint: "a failed purge outranks a press enquiry, and the tint reaches only the rows worth finding by scrolling",
         node: <AdminQueueDemo />,
+      },
+    ],
+  },
+  {
+    id: "admin-report-cards",
+    badge: "new",
+    family: "compositions",
+    section: "The operations portal",
+    file: "src/components/admin/destructive-sheet.tsx",
+    test: "src/components/admin/destructive-sheet.test.tsx",
+    title: "The sheet, and Reports' own card",
+    for: "the sheet's note (`components`' own entry covers the panel alone): one line the confirm can carry into the record, optional on a verdict or required on a hold, in the one card that opens both",
+    lede: "Reports' open card, redrawn from its own exported pieces over writes that answer after a round trip and change nothing, so a reviewer here can never touch anyone's report. Remove… opens the confirm with its note OPTIONAL; Hold for forensics opens the second, whose note is REQUIRED, the confirm waiting for a line the way a permanent act waits for a typed identifier.",
+    specimens: [
+      {
+        label: "An open report, its closed neighbour, and both confirms",
+        hint: "Remove…'s note is optional · Hold for forensics' is required",
+        node: <AdminReportCardDemo />,
       },
     ],
   },
@@ -197,6 +217,24 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
             isEventPass={false}
           />
         ),
+      },
+    ],
+  },
+  {
+    id: "storage-list",
+    family: "compositions",
+    section: "Dashboard chrome",
+    file: "src/components/app/storage/storage-list.tsx",
+    test: "src/components/app/storage/storage-list.test.tsx",
+    title: "StorageList",
+    badge: "new",
+    for: "what is using space: every item a host stores, largest first, with All or one event, the bulk bar's Download and Remove with Undo, and the strip that finishes a smaller plan's switch",
+    lede: "Opened from the storage meter's popover, and from a Pro price too small for what she stores (tap its Too small, then See what's using space), where the goal strip counts down to that size and its button finishes the switch. Its reads and writes are inert here: they answer after a round trip's pause and change nothing, and the switch stops at a note.",
+    specimens: [
+      {
+        label: "Two doors",
+        hint: "the meter's popover · a refused price in the plan",
+        node: <StorageListDemo />,
       },
     ],
   },
@@ -368,11 +406,11 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
     section: "Review surface",
     file: "src/components/app/event-feed/review-section.tsx",
     title: "ReviewSection",
-    lede: "The pending review, now inline in the event feed (the pop-up takeover is retired): the dense triage grid and its select mode, Select or Approve all, then the bulk bar. A reliable auth-free hydration probe for the review island; the bulk actions themselves need auth, so they no-op here.",
+    lede: "The Review room whole: the uniform queue, Select or Approve all, the bulk bar's Reject and Approve, the peek a tap opens with its verdict, the keys once a tile has focus, and each verdict's toast with its Undo. Its writes are inert here (they answer and change nothing); A guest sends one plays an upload arriving, which waits behind the line.",
     specimens: [
       {
-        label: "Review section",
-        hint: "inline triage · Select / Approve all",
+        label: "Review room",
+        hint: "triage · the peek's verdict · the keys · Undo · the line",
         node: <ReviewSectionDemo />,
       },
     ],

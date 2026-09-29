@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { createGuest } from "@/lib/db/mutations/guest";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
+import { isClosedToThisBrowser } from "@/lib/events/closed-door.server";
 import { mayUploadPastLock } from "@/lib/events/upload-lock";
 import { captureWarning } from "@/lib/observability/sentry";
 import {
@@ -93,6 +94,10 @@ export async function POST(request: Request) {
   // included; a 403 leaks nothing the page didn't already show any link-holder). `password`
   // requires the unlock cookie or ownership (mayUploadPastLock — the owner reads the album
   // without unlocking, so they upload without it too). The RPC re-refuses both as the belt.
+  // ★ A BLOCK MINTS NOTHING EITHER, in the private album's words: an account or address the event
+  // blocked reads it as private already (and create_guest refuses it), and a browser that still
+  // holds a ticket a block holds (this event's cookie) is refused here, before any new row, which is
+  // how a block on a typed name holds on the phone that used it (`closed-door.server.ts`).
   const eventResult = await getEventByQrToken(qr_token);
   if (!eventResult.ok) {
     return NextResponse.json(
@@ -105,7 +110,7 @@ export async function POST(request: Request) {
     );
   }
   const event = eventResult.data;
-  if (event.visibility === "private") {
+  if (await isClosedToThisBrowser(event)) {
     return NextResponse.json(
       { ok: false, code: "unauthorized", message: "This event is private." },
       { status: 403 },

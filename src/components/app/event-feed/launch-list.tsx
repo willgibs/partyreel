@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { CalendarDays, MessageSquareText, Printer, QrCode } from "lucide-react";
+import { CalendarDays, MessageSquareText, Printer } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+import { InviteButton } from "@/components/app/share/invite-button";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -25,7 +26,9 @@ import { Button } from "@/components/ui/button";
  * already in the page's header and in the card chip, so a fourth door to it is
  * a fourth door to something two screens' worth of chrome already offers — it
  * earns its place only when the list has room, which is exactly when a host has
- * finished the setup and has nothing left to do but hand the code out.
+ * finished the setup and has nothing left to do but hand the code out. It
+ * reads Invite and opens the code card, like every share (`popups` r1,
+ * `share=card`); the kit is one tap behind the card.
  *
  * A server component: three links and a heading have no state, and rendering it
  * on the server keeps `EventUploads` (a client island) from needing to know the
@@ -137,11 +140,7 @@ export function LaunchList({
       </ol>
       {items.length < SHARE_DOOR_BELOW && (
         <div className="flex justify-center pt-3">
-          <Button size="sm" asChild>
-            <Link href={`/dashboard/${eventId}?room=share`}>
-              <QrCode /> Share the code
-            </Link>
-          </Button>
+          <InviteButton location="launch-list" />
         </div>
       )}
       <p className="pt-3 text-center text-sm text-muted-foreground">

@@ -110,10 +110,24 @@ export function checkPlanChange(
 }
 
 /**
+ * "Pro 500 GB, monthly": a price's name says its billing too. A plan's own `name`
+ * carries only its size, and a Pro host chooses among six prices, two to a size, so
+ * any sentence that sends her to one names which (storage-r2's note: "or choose
+ * Pro 500 GB" told a host on Pro 500 GB monthly to choose what she had, when it
+ * meant the yearly price). A plan with no cadence (Free, the pass) is its name.
+ */
+export function planWithBilling(plan: Plan): string {
+  if (plan.billing !== "subscription") return plan.name;
+  return `${plan.name}, ${plan.interval === "year" ? "yearly" : "monthly"}`;
+}
+
+/**
  * "You're storing 140 GB. Pro 100 GB holds 100 GB, so remove 40 GB first, or
- * choose Pro 500 GB." (the brief's own words for the plain face). The size named
- * is the SMALLEST that fits, never a bigger one, and when nothing fits the
- * sentence stops at what to remove rather than inventing a plan.
+ * choose Pro 500 GB, monthly." (the brief's own words for the plain face). The
+ * size that cannot hold is named by its size alone (neither of its prices holds
+ * it); the size offered instead is the SMALLEST that fits, named with its
+ * billing, never a bigger one, and when nothing fits the sentence stops at what
+ * to remove rather than inventing a plan.
  */
 export function refusalSentence(
   storedBytes: number,
@@ -121,7 +135,35 @@ export function refusalSentence(
   fit: Plan | null,
 ): string {
   const head = `You're storing ${formatBytesUp(storedBytes)}. ${target.name} holds ${formatBytes(target.storageBytes)}, so remove ${formatBytesUp(storedBytes - target.storageBytes)} first`;
-  return fit ? `${head}, or choose ${fit.name}.` : `${head}.`;
+  return fit ? `${head}, or choose ${planWithBilling(fit)}.` : `${head}.`;
+}
+
+/**
+ * THE PRO PRICE LIST'S FIT LINE: why some of her sizes say Too small, read at the
+ * billing the list shows (hers by default, monthly while it is not known: the list's
+ * Monthly / Yearly toggle passes what it shows, so the line never names a price the
+ * cards are not showing). It names the largest size that cannot hold what she stores
+ * (the cheapest move a removal buys) and the smallest that can; when that smallest is
+ * her own plan it offers nothing, since she is on it already, and the line ends at
+ * what to remove. Null when every size holds it.
+ */
+export function proFitLine(
+  storedBytes: number,
+  current: Plan | null,
+  interval: "month" | "year" = current?.interval ?? "month",
+): string | null {
+  const sizes = plansForTier("pro", interval).sort(
+    (a, b) => a.storageBytes - b.storageBytes,
+  );
+  const tooSmall = sizes.filter((plan) => !planHolds(plan, storedBytes));
+  const largestTooSmall = tooSmall[tooSmall.length - 1];
+  if (!largestTooSmall) return null;
+  const fit = sizes.find((plan) => planHolds(plan, storedBytes)) ?? null;
+  return refusalSentence(
+    storedBytes,
+    largestTooSmall,
+    fit && fit.id !== current?.id ? fit : null,
+  );
 }
 
 /**
@@ -131,6 +173,15 @@ export function refusalSentence(
  * storing 100.02 GB against a 100 GB cap would read "storing 100 GB" beside a
  * refusal. Rounding up keeps both numbers sufficient. The epsilon stops float noise
  * on an exact value (140 GB) from ticking it up to 140.1.
+ *
+ * ★ ONE NUMBER, ONE ROUNDING (storage-r2's note: one account's 110.83 GB read
+ * 110.8 GB on the meter, then 110.9 GB in the refusal). What she stores prints
+ * through this everywhere it appears (the meter, the Plan card, the plan's
+ * refusal, the size list's All), and so does what she must free (the gap, the
+ * strip's count). A file's size, an event's total or a selection's is not an
+ * instruction and prints to the nearest tenth (`formatBytes`), as a file browser
+ * prints it: rounded up, a file 0.01 GB past 9.4 GB would read 9.5 GB. A plan's
+ * size is exact either way.
  */
 export function formatBytesUp(bytes: number): string {
   if (bytes <= 0) return "0 B";

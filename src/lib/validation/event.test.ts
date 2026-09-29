@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  BRAND_NAME_MESSAGE,
+  RESERVED_WORD_MESSAGE,
+} from "@/lib/constants/reserved-slugs";
 import { HOLD_STEPS_SEC, REEL_MOOD_IDS } from "@/lib/reel/defaults";
 import {
   createEventSchema,
@@ -56,6 +60,38 @@ describe("eventSlugSchema", () => {
     expect(parse("admin").success).toBe(false);
     expect(parse("pricing").success).toBe(false);
     expect(parse("dashboard").success).toBe(false);
+  });
+
+  // ★ The family (crumbs-11): the name as a part, through a hyphen or a look-alike digit, with the
+  // sentence set_event_slug raises word for word (tiers-sql.test.ts holds the SQL to it).
+  it("rejects the brand's family with its own sentence", () => {
+    for (const slug of [
+      "partyreel",
+      "partyreel-support",
+      "Official-Partyreel",
+      "party-reel",
+      "p4rtyr33l",
+    ]) {
+      const result = parse(slug);
+      expect(result.success, slug).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues[0]?.message).toBe(BRAND_NAME_MESSAGE);
+      }
+    }
+  });
+
+  it("keeps the whole words' sentence for a whole word", () => {
+    const result = parse("support");
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe(RESERVED_WORD_MESSAGE);
+    }
+  });
+
+  it("accepts what the family leaves alone", () => {
+    for (const slug of ["sams-party", "party-relay", "reel-party-2026"]) {
+      expect(parse(slug).success, slug).toBe(true);
+    }
   });
 });
 

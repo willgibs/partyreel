@@ -10,11 +10,11 @@ import { QrDesignerDialog } from "@/components/app/qr-designer-dialog";
 import type { StyledQrHandle } from "@/components/app/styled-qr";
 import { Button } from "@/components/ui/button";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Popup,
+  PopupBody,
+  PopupContent,
+  PopupHeader,
+} from "@/components/ui/popup";
 import { resolveQrPreset } from "@/lib/constants/qr-presets";
 import { trackAttrs } from "@/lib/analytics/events";
 
@@ -50,12 +50,21 @@ import "./share.css";
  * night before, which is when paper is actually wanted. It opens in a new tab so
  * the album is still behind it when the print dialog closes.
  *
- * ★ THE PRO GATE ON THE SLUG IS UNTOUCHED. `EventSlugControl` decides what a
- * Free host sees from `locked`, which the server computes from the tier; moving
- * the control to a new surface must not become a second opinion about who may
- * claim a link. It is imported whole, props unchanged.
+ * ★ WHO MAY CLAIM A LINK IS THE SERVER'S ANSWER, NEVER THIS SHEET'S. A custom
+ * link is on every plan now (the free/pro shift), and `EventSlugControl` still
+ * reads `locked` from the server's `isSettingLocked` (tiers.ts, the one home of
+ * a gated setting), so a gate that ever returns returns there, and this surface
+ * never holds a second opinion. It is imported whole, props unchanged.
  *
  * ★ EVERYTHING HERE ENCODES THE PERMANENT LINK. A printed code outlives a slug.
+ *
+ * ★ IT IS THE KIT NOW, ONE TAP BEHIND THE CODE CARD (`popups` r1, `share=card`
+ * with the carried call `kit`: "One tap behind it, as Everything is today, in
+ * whatever settings gets: it holds a field, the readable link, so it is a
+ * place"). So its kind is `settings`, on purpose: a panel beside the album at a
+ * desk, the whole screen under a back arrow in a hand, and wherever Will moves
+ * settings next, the kit follows in the same line. The card is every share's
+ * first surface (`code-card.tsx`); this is Everything.
  */
 export function EventShareSheet({
   open,
@@ -104,20 +113,14 @@ export function EventShareSheet({
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        responsive
-        className="overflow-y-auto"
-        aria-describedby={undefined}
-      >
-        <SheetHeader>
-          {/* ONE LINE. "Share <name>" plus a sentence explaining what a QR code
-              is spent two lines of a phone's screen on words nobody standing at
-              a door reads; the code below says the rest by being a code. */}
-          <SheetTitle className="truncate">Share {eventName}</SheetTitle>
-        </SheetHeader>
+    <Popup open={open} onOpenChange={onOpenChange}>
+      <PopupContent kind="settings" routed aria-describedby={undefined}>
+        {/* ONE LINE. "Share <name>" plus a sentence explaining what a QR code
+            is spent two lines of a phone's screen on words nobody standing at
+            a door reads; the code below says the rest by being a code. */}
+        <PopupHeader title={`Share ${eventName}`} titleClassName="truncate" />
 
-        <div className="flex flex-col gap-5 px-4 pb-6">
+        <PopupBody className="flex flex-col gap-5 pb-6">
           <EventQr
             ref={qrRef}
             joinUrl={joinUrl}
@@ -203,8 +206,8 @@ export function EventShareSheet({
               />
             </section>
           )}
-        </div>
-      </SheetContent>
-    </Sheet>
+        </PopupBody>
+      </PopupContent>
+    </Popup>
   );
 }

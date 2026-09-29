@@ -19,10 +19,10 @@
  *     media) is the only way to free a slot.
  *   • The MONTHLY INGRESS meter counts bytes UPLOADED per month and NEVER refunds on
  *     delete — storage caps alone don't stop delete→re-upload egress burn. It reads
- *     `storage_ledger.cumulative_bytes`, which never decrements. Free is a flat
- *     20 GB (`MONTHLY_INGRESS_BYTES`); paid tiers derive INGRESS_CAP_MULTIPLIER x the
- *     effective storage cap (`monthlyIngressCap`), so the abuse bound scales with
- *     what the host pays for (billing-caps.md).
+ *     `storage_ledger.cumulative_bytes`, which never decrements. Every tier derives it:
+ *     INGRESS_CAP_MULTIPLIER x the effective storage cap (`monthlyIngressCap`), Free
+ *     included (its 100 MB allows 300 MB a month), so the abuse bound scales with the
+ *     room a host has (billing-caps.md).
  *
  * Keep these numbers in lockstep with the Postgres `public.tier_limits()` fn (DB
  * enforcement) — a Vitest parity test guards the pairing. The universal per-file
@@ -52,6 +52,7 @@ export function toBillingTier(value: string): Tier {
   return "free";
 }
 
+export const MEGABYTE = 1024 ** 2;
 export const GIGABYTE = 1024 ** 3;
 export const TERABYTE = 1024 ** 4;
 
@@ -87,11 +88,17 @@ export type Plan = {
 };
 
 export const PLANS: Plan[] = [
+  // ★ FREE IS THE WHOLE EXPERIENCE, SIZED FOR A SMALL GATHERING (Will, 2026-09-28): "the free
+  // plan feels very close to the same pro experience, minus a few core blockers". The password,
+  // the custom link and full-length clips are on every plan now, and the room is 100 MB (about
+  // thirty photos at an iPhone's defaults), so what paid adds is a short list a host can read at
+  // a glance: video, more storage, unlimited events, clips with no mark. Starting this low is
+  // the reversible direction: raising a marketed limit later is a gift, lowering one is not.
   {
     id: "free",
     tier: "free",
     name: "Free",
-    storageBytes: 2 * GIGABYTE,
+    storageBytes: 100 * MEGABYTE,
     priceLabel: "$0",
     billing: "free",
   },
@@ -192,32 +199,35 @@ export const MAX_EVENTS: Record<Tier, number | null> = {
 
 /**
  * Monthly uploaded-bytes (ingress) STATIC cap — anti-abuse, unmarketed, never refunds.
- * Free is a flat 20 GB; null = DERIVED for paid tiers (INGRESS_CAP_MULTIPLIER x the
- * effective storage cap — use monthlyIngressCap, never this record directly, for a
- * paid tier's bound). MUST mirror tier_limits().monthly_ingress_bytes.
+ * null = DERIVED (INGRESS_CAP_MULTIPLIER x the effective storage cap — read a host's bound
+ * through monthlyIngressCap, never this record directly). No tier carries a static meter
+ * today: Free's flat 20 GB went with its 2 GB cap, and Free now follows the paid rule (the
+ * free/pro shift: 3 x 100 MB), so one lever moves the bound whenever the room moves. The
+ * record stays so a tier can take a static bound back without changing tier_limits()'s
+ * columns. MUST mirror tier_limits().monthly_ingress_bytes.
  */
 export const MONTHLY_INGRESS_BYTES: Record<Tier, number | null> = {
-  free: 20 * GIGABYTE, // generous; only catches extreme churn
+  free: null, // derived: 3x 100 MB = 300 MB
   pro: null, // derived: 3x the purchased storage cap (300 GB / 1.5 TB / 6 TB)
   event_pass: null, // derived: 3x 75 GB = 225 GB
 };
 
 /**
- * Paid-tier monthly ingress = this multiple of the EFFECTIVE storage cap (billing-caps.md).
- * Why a multiplier, not static bytes: the abuse bound scales with what the host pays
- * for, stays unmarketed, and 3x leaves a full extra refill cycle of legitimate
- * headroom (too-low blocks a paying customer; too-high is only mild abuse headroom).
+ * Monthly ingress = this multiple of the EFFECTIVE storage cap, on every tier (billing-caps.md).
+ * Why a multiplier, not static bytes: the abuse bound scales with the room a host has,
+ * stays unmarketed, and 3x leaves a full extra refill cycle of legitimate headroom
+ * (too-low blocks a real host; too-high is only mild abuse headroom).
  * MUST mirror tier_limits().ingress_cap_multiplier.
  */
 export const INGRESS_CAP_MULTIPLIER = 3;
 
 /**
- * The monthly ingress cap for a host: Free = the static meter; paid = the multiplier
- * times the effective storage cap (the host's actual storage_cap_bytes — Pro has
- * three cap sizes — falling back to the tier default). A paid profile with no cap on
- * record yet (the Stripe webhook writes it) returns null = unmetered: fail OPEN,
- * never block a paying host on missing data. Mirrors the SQL monthly_ingress_cap()
- * fn the upload RPCs enforce with.
+ * The monthly ingress cap for a host: a tier's static meter when it has one (none does
+ * today), else the multiplier times the effective storage cap (the host's actual
+ * storage_cap_bytes — Pro has three cap sizes — falling back to the tier default). A paid
+ * profile with no cap on record yet (the Stripe webhook writes it) returns null =
+ * unmetered: fail OPEN, never block a paying host on missing data. Mirrors the SQL
+ * monthly_ingress_cap() fn the upload RPCs enforce with.
  */
 export function monthlyIngressCap(
   tier: Tier,
@@ -236,7 +246,7 @@ export function monthlyIngressCap(
  * tier_limits().default_storage_cap_bytes.
  */
 export const DEFAULT_STORAGE_CAP_BYTES: Record<Tier, number | null> = {
-  free: 2 * GIGABYTE,
+  free: 100 * MEGABYTE,
   pro: null,
   event_pass: 75 * GIGABYTE,
 };
@@ -287,25 +297,35 @@ export function annualPlanFor(id: PlanId): Plan | null {
 }
 
 /**
- * Host event-settings gated to paid tiers (locked + an upgrade hint on Free):
- * `password` (password-protected albums) and `custom_slug` (a custom /e/[slug] link).
- * Add more here as they become tier-gated. ("Locked" = `tier === "free"`, so paid tiers —
- * pro + event_pass — all have them.) Note: locked only blocks CREATE/CHANGE; a downgraded host
- * keeps the existing artifact and can still REMOVE it (see EventPasswordControl / clear_event_slug).
+ * The host event settings a paid gate CAN hold: `password` (password-protected albums) and
+ * `custom_slug` (a custom /e/[slug] link). Each keeps its locked branch, the lock chip and an
+ * upgrade hint on Free, whenever it sits in GATED_EVENT_SETTINGS below.
+ */
+export type GatedEventSetting = "password" | "custom_slug";
+
+/**
+ * The settings gated TODAY: none (the free/pro shift, Will 2026-09-28). The password and the
+ * custom link came down to Free, so Pro is defined by what a host feels (video, more storage,
+ * unlimited events, clips with no mark) rather than by a lock on a setting. The lock machinery
+ * stays for video (`videosAllowedForTier`, the `video` lock chip), and a setting added back
+ * here is locked again at every call site at once, with its SQL setter's refusal restored in
+ * the same change (`tiers-sql.test.ts` holds the two halves together). Locked only ever
+ * blocks CREATE/CHANGE: a downgraded host keeps the artifact and can still REMOVE it
+ * (EventPasswordControl / clear_event_slug).
  *
  * NOTE: the door's safety switches are FREE on every tier and never belong here: Require verified
  * emails (`require_verified_email`, on by default: a confirmed address is a guest the host can
  * identify, and one who can keep what they add) and Require an upload to view
  * (`require_upload_to_view`). Safety behind a paywall is the trade this list refuses.
  */
-export const GATED_EVENT_SETTINGS = ["password", "custom_slug"] as const;
-export type GatedEventSetting = (typeof GATED_EVENT_SETTINGS)[number];
+export const GATED_EVENT_SETTINGS: readonly GatedEventSetting[] = [];
 
+/** Locked = on Free AND gated today; paid tiers (pro + event_pass) never are. */
 export function isSettingLocked(
-  _setting: GatedEventSetting,
+  setting: GatedEventSetting,
   tier: Tier,
 ): boolean {
-  return tier === "free";
+  return tier === "free" && GATED_EVENT_SETTINGS.includes(setting);
 }
 
 /**
@@ -323,21 +343,23 @@ export function videosAllowedForTier(tier: Tier): boolean {
 }
 
 /**
- * Max highlight-reel length in seconds (billing-caps.md): Free 30, paid 60. Length carries
- * no render cost (client-side encode) — this is a product lever, marketed on
- * /pricing, so a number can only safely move UP later (grandfathering makes marketed
- * numbers sticky). MUST mirror tier_limits().max_reel_seconds.
+ * Max clip length in seconds (billing-caps.md): 60 on every tier since the free/pro shift
+ * (Free was 30). Will put "reel clip time" among "the less important stuff", so what paid
+ * still changes about a clip is its mark, not its length. Length carries no render cost
+ * (client-side encode) — this is a product lever, marketed on /pricing, so a number can only
+ * safely move UP later (grandfathering makes marketed numbers sticky). Kept per tier so the
+ * lever survives. MUST mirror tier_limits().max_reel_seconds.
  */
 export const MAX_REEL_SECONDS: Record<Tier, number> = {
-  free: 30,
+  free: 60,
   pro: 60,
   event_pass: 60,
 };
 
 /**
  * Clamp a requested reel length to the tier cap. Auto (null/0/negative) fills UP TO
- * the cap; an explicit request clamps DOWN to it (a downgraded host's stored 60
- * renders as 30). Always returns a positive number of seconds. The composer preview
+ * the cap; an explicit request clamps DOWN to it (a stored length past a tier's cap
+ * renders at the cap). Always returns a positive number of seconds. The composer preview
  * and the render/mint path both pass their length through this, and the reel-config
  * RPC applies the same clamp in SQL — the server never trusts the stored or client
  * value.
@@ -387,12 +409,39 @@ export function formatLimit(
   return value === null ? unlimited : value.toLocaleString();
 }
 
-// ≈ figures for the pricing page — illustrative, derived from the GB cap so the
-// copy can't drift from the enforced number. ~4 MB/photo, ~150 MB/min 1080p video.
-// Exported (2026-09) so the blog's spec components can cite the rule of thumb itself
-// (<PhotoAverageSize />, <VideoMinuteSize />) instead of an author typing "4 MB".
-export const AVG_PHOTO_BYTES = 4 * 1024 ** 2;
-export const VIDEO_BYTES_PER_MIN = 150 * 1024 ** 2;
+/**
+ * ★ THE ESTIMATES ASSUME AN IPHONE AT ITS DEFAULTS, AND EVERY ONE SAYS SO (host-storage r2,
+ * Will: "iPhone is probably our most commonly expected upload device and camera, most users
+ * probably haven't changed default settings on those either. Would likely be most fair
+ * 'average'"). A photos-or-minutes figure with no camera behind it is a random claim: a
+ * guest's megapixels or frame rate moves it several times over.
+ *
+ *  - A PHOTO: the default capture is a 24 MP High Efficiency (HEIF) photo (Settings > Camera >
+ *    Formats > Photo Mode, where the Main camera defaults to 24 MP; Apple's "About Apple
+ *    ProRAW", support.apple.com/en-us/119916: "standard HEIF offers up to 24 MP"). Apple prints
+ *    no size for it but brackets it: a 48 MP HEIF Max is about 5 MB (Settings > Camera >
+ *    Formats > Pro Default), and a 12 MP HEIF about a tenth of a 12 MP ProRAW's 25 MB (the same
+ *    page: "ProRAW files are 10 to 12 times larger than HEIF or JPEG files"). 3.5 MB sits
+ *    between the two, toward the larger, so no estimate promises more photos than a host gets.
+ *  - A MINUTE OF VIDEO: Settings > Camera > Record Video defaults to 1080p HD at 30 fps in High
+ *    Efficiency (HEVC), which that screen lists at about 65 MB a minute.
+ *
+ * Both are BINARY megabytes, the site's own (`formatBytes`), so they print as Apple's figures
+ * ("3.5 MB", "65 MB"); Apple's MB is decimal, so the constants run about 5% heavy, which errs
+ * toward fewer photos and minutes, never more. Exported so the blog's spec components cite the
+ * rule itself (<PhotoAverageSize />, <VideoMinuteSize />) instead of an author typing a number.
+ */
+export const AVG_PHOTO_BYTES = 3.5 * MEGABYTE;
+export const VIDEO_BYTES_PER_MIN = 65 * MEGABYTE;
+
+/** The camera every estimate assumes, as the words that follow it ("29 photos at ..."). */
+export const ESTIMATE_BASIS = "at an iPhone's default camera settings";
+
+/**
+ * The basis with its working, for a surface that has the room to show it (under /pricing's
+ * plans, the calculator, a table's caption): the two defaults and what each weighs.
+ */
+export const ESTIMATE_BASIS_NOTE = `Estimates are ${ESTIMATE_BASIS}: about ${AVG_PHOTO_BYTES / MEGABYTE} MB a photo (24 MP) and ${VIDEO_BYTES_PER_MIN / MEGABYTE} MB a minute of video (1080p at 30 fps).`;
 
 /** "≈ X photos or Y min of video" for a byte cap, for friendly capacity copy. */
 export function friendlyCapacity(bytes: number): {
@@ -406,24 +455,30 @@ export function friendlyCapacity(bytes: number): {
 }
 
 /**
- * The capacity estimate as a sentence fragment ("19,200 photos or 9 hours of video").
- * One formatter for every surface that says it (the blog's <CapacityEstimate />, /pricing's
- * `capacityPhrase`), so two pages never describe one cap in two ways.
- * `video: false` renders photos only, which is what the Free tier gets (photos-only).
+ * The capacity estimate as a sentence fragment ("21,943 photos or 20 hours of video at an
+ * iPhone's default camera settings"). One formatter for every surface that says it (the
+ * blog's <CapacityEstimate />, /pricing's `capacityPhrase`, the plan sheet), so two pages
+ * never describe one cap in two ways. `video: false` renders photos only, which is what the
+ * Free tier gets (photos-only).
+ *
+ * ★ THE BASIS RIDES ALONG BY DEFAULT: an estimate that loses its camera is the random claim
+ * the round retired. `basis: false` is only for a surface that says it once already, beside
+ * the figures (a list of plan cards over one note, a table under its caption).
+ *
  * Locale is pinned: this renders on the server and in tests, and a machine-dependent
  * thousands separator would make llms.txt / snapshot output drift by host.
  */
 export function formatCapacity(
   bytes: number,
-  { video = true }: { video?: boolean } = {},
+  { video = true, basis = true }: { video?: boolean; basis?: boolean } = {},
 ): string {
   const { photos, videoMinutes } = friendlyCapacity(bytes);
   const photosText = `${photos.toLocaleString("en-US")} photos`;
-  if (!video) return photosText;
   // Hours from two hours up (the /pricing threshold the site shipped with); minutes below.
   const videoText =
     videoMinutes >= 120
       ? `${Math.round(videoMinutes / 60).toLocaleString("en-US")} hours of video`
       : `${videoMinutes.toLocaleString("en-US")} minutes of video`;
-  return `${photosText} or ${videoText}`;
+  const estimate = video ? `${photosText} or ${videoText}` : photosText;
+  return basis ? `${estimate} ${ESTIMATE_BASIS}` : estimate;
 }

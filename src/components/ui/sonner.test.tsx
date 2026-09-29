@@ -1,7 +1,20 @@
 import { act } from "react";
 
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Popup,
+  PopupBody,
+  PopupContent,
+  PopupHeader,
+} from "@/components/ui/popup";
+import { setViewportWidth } from "../../../vitest.setup";
 
 // vitest.setup.ts stubs the whole "sonner" package for every OTHER component
 // test (`Toaster` renders null, `toast` is a bag of vi.fn()s) so a tree that
@@ -155,5 +168,120 @@ describe("Toaster", () => {
       vi.advanceTimersByTime(1300);
     });
     expect(screen.queryByTestId("t-override")).not.toBeInTheDocument();
+  });
+});
+
+/**
+ * A TOAST OVER AN OPEN MODAL (build 14's red-team: the storage list's Undo
+ * closed the list at a desk and went through to the chip under it in a hand,
+ * and nothing was undone). Two halves, each its own pin: the band takes
+ * presses though a modal has turned them off on the body, and a press on a
+ * toast is inside every open layer, so it never reads as the outside press
+ * that closes one. Both ride the real Radix layers the product's modals are.
+ */
+describe("a toast over an open modal", () => {
+  afterEach(() => {
+    setViewportWidth(1024);
+  });
+
+  /** Radix listens for an outside press from a zero-delay timer after it opens. */
+  function settle() {
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+  }
+
+  function toastWithUndo(onUndo: () => void) {
+    act(() => {
+      toast.success("Removed 2 videos to Deleted", {
+        testId: "t-undo",
+        action: { label: "Undo", onClick: onUndo },
+      });
+    });
+    flush();
+    return screen.getByRole("button", { name: "Undo" });
+  }
+
+  function list(onOpenChange: (open: boolean) => void) {
+    return (
+      <>
+        <Popup open onOpenChange={onOpenChange}>
+          <PopupContent kind="list" aria-describedby={undefined}>
+            <PopupHeader title="What's using space" back="Dashboard" />
+            <PopupBody>
+              <button type="button">Remove to Deleted</button>
+            </PopupBody>
+          </PopupContent>
+        </Popup>
+        <Toaster />
+      </>
+    );
+  }
+
+  it("takes presses while the modal has turned them off on the body", () => {
+    render(list(() => {}));
+    settle();
+    toastWithUndo(() => {});
+    expect(document.body.style.pointerEvents).toBe("none");
+    expect(
+      document.querySelector<HTMLElement>("[data-sonner-toaster]")?.style
+        .pointerEvents,
+    ).toBe("auto");
+  });
+
+  it.each([
+    ["at a desk, its side panel", 1024],
+    ["in a hand, its own screen", 375],
+  ])(
+    "is inside the list %s: its Undo acts and the list stays open",
+    (_where, width) => {
+      setViewportWidth(width);
+      const onOpenChange = vi.fn();
+      const onUndo = vi.fn();
+      render(list(onOpenChange));
+      settle();
+      const undo = toastWithUndo(onUndo);
+
+      fireEvent.pointerDown(undo);
+      fireEvent.click(undo);
+      expect(onUndo).toHaveBeenCalledTimes(1);
+      expect(onOpenChange).not.toHaveBeenCalled();
+      expect(
+        screen.getByRole("dialog", { name: "What's using space" }),
+      ).toBeInTheDocument();
+
+      // The control: a press on the scrim is still the outside press that closes it.
+      fireEvent.pointerDown(
+        document.querySelector('[data-slot="popup-overlay"]')!,
+      );
+      expect(onOpenChange).toHaveBeenCalledWith(false);
+    },
+  );
+
+  it("is inside the Dialog under every popup too", () => {
+    const onOpenChange = vi.fn();
+    const onUndo = vi.fn();
+    render(
+      <>
+        <Dialog open onOpenChange={onOpenChange}>
+          <DialogContent aria-describedby={undefined}>
+            <DialogTitle>Welcome to Pro</DialogTitle>
+          </DialogContent>
+        </Dialog>
+        <Toaster />
+      </>,
+    );
+    settle();
+    const undo = toastWithUndo(onUndo);
+
+    fireEvent.pointerDown(undo);
+    fireEvent.click(undo);
+    expect(onUndo).toHaveBeenCalledTimes(1);
+    expect(onOpenChange).not.toHaveBeenCalled();
+
+    fireEvent.pointerDown(
+      document.querySelector('[data-slot="dialog-overlay"]')!,
+    );
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 });

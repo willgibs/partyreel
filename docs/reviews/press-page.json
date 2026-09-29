@@ -1,0 +1,42 @@
+{
+  "board": "press-page",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-29",
+      "answers": [
+        {
+          "ask": "who-for",
+          "choice": "folded-into-about",
+          "note": "I agree that press probably doesn't deserve its own page right now. Let's find a clean way to fold that press kit into about and remove the press page after. If we can't work it in, maybe we remove the press kit for now too. Either way, the future partners page deserves its own focus, not to share with Press.",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        },
+        {
+          "ask": "the-sheet",
+          "choice": "usage-note",
+          "note": "My last selection about folding press into about will likely impact this selection. It's fine if these plates don't work neatly into our About page, and we have to remove it completely. Wanted to at least try to see what a press + about infusion looks like.",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        },
+        {
+          "ask": "the-words",
+          "choice": null,
+          "note": "I think we just get rid of this altogether for now. Will likely be reaching out to a lot of potential partners to connect directly, offering free event passes to upcoming wedding couples, maybe running some paid ads on socials, have the llms.txt always available and current, plenty of blog and other seo - so ultimately not sure if we currently need this, won't be reaching out to any press directly.",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        },
+        {
+          "ask": "the-facts",
+          "choice": null,
+          "note": "Is this helpful to infuse into the About page, or do we get rid of it as well?",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

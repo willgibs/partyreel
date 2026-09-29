@@ -46,9 +46,15 @@ only CSAM.
   SELECT-granted to `authenticated`, so the owning host (who may BE the investigated uploader) cannot see one, and
   `restore_media` refuses a held item with a reason the wrapper maps to the vague default copy. The host's
   `update(status, removed_at)` grant would still let one PATCH move a held item back onto the live gallery, so the
-  `media_guard_privileged_transitions` trigger SKIPS (`return null`) any direct client write to a held row. Skip, never
+  `media_guard_privileged_transitions` trigger SKIPS (`return null`) any direct client write to a held row, and the
+  host's own DEFINER acts skip one the same way (the per-event block neither removes nor restores it). Skip, never
   raise: an exception aborts a whole bulk statement, which would make "Approve all fails on this album" a hold oracle;
   the skip yields PGRST116, the same "That item is no longer available." a missing row produces.
+- ★ **An operator's removal keeps the runbook's window to hold and preserve** (`removed_by_admin`, 20260928140000),
+  because the runbook removes first and holds second. It leaves the host's view at once (`media_host_all` hides it),
+  but its copy waits out its own `purge_at` (the removal + 30 days): `purge_media_now` refuses it, the standby budget
+  never counts or evicts it, and `held_event_ids` answers an event holding one inside its window as held, so expired
+  events and account deletion keep that event whole. Then the removed_media sweep takes it, unless it is held.
 - **Preservation objects are deleted only by hand,** audited, on the REPORT Act's one-year clock. Releasing a hold
   does not touch them, and no sweep lists the `preservation/` prefix.
 
@@ -58,12 +64,14 @@ A draft until counsel signs it, a launch gate (ROADMAP). Trigger: a report (a gu
 NCMEC or law enforcement) plausibly involving child sexual abuse material. The one reviewer is Will; keep human
 viewing to a minimum: confirm plausibility, never study the content, never forward or screenshot it.
 
-1. **Remove it from live:** `/admin/albums`, the event, remove the item (a soft remove; the guest and host galleries
-   drop it at once). Hard-delete nothing.
-2. **Hold and preserve:** `/admin/forensics`, the media id and a reason (the report's reference), "Set hold and
-   preserve": it leaves every purge and copies the original and its forensic record to the preservation store.
-   Preserve the context too: repeat for the same uploader's other items in the event (commingled content is part of
-   the REPORT Act's preservation duty).
+1. **Remove it from live:** Remove on the report in `/admin/reports` (or Remove on the item in `/admin/albums` when no
+   report names it). It is an operator's removal: it leaves the album and the host's Deleted at once, whatever state
+   the item was in, and nothing the host can do restores or destroys it. Hard-delete nothing.
+2. **Hold and preserve, inside the removal's 30 days:** Hold for forensics on the report opens the portal's confirm
+   filled in (the report's reference as the reason) and, in one press, holds and preserves the item and the same
+   uploader's other items in the event (commingled content is part of the REPORT Act's preservation duty): each
+   leaves every purge, and its original and forensic record are copied to the preservation store. An item no report
+   names is held from `/admin/forensics` by its media id. Past the window the purge takes an unheld removal's copy.
 3. **File the CyberTipline report** at report.cybertip.org (as a registered ESP once registration lands; file
    regardless before it). Include the event id, the media ids, the upload time and the forensic record (the "Record"
    export: IP, user agent, client hints, geo, device UUID, the guest's email or account, typed name and any unproved

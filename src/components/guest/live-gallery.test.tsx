@@ -17,6 +17,7 @@ import type {
   ManifestEntry,
 } from "@/lib/events/album-wire";
 import type { GalleryItem } from "@/lib/events/gallery-reel";
+import type { QueueItem } from "@/lib/guest/use-upload-queue";
 import type { RowStep } from "@/lib/shared/album-rows";
 import { setViewportWidth } from "../../../vitest.setup";
 
@@ -270,10 +271,10 @@ async function poll() {
 
 type RowsProps = {
   items: GridMedia[];
+  pending?: { queueId: string; status: string }[];
   step: RowStep;
   canDelete?: (item: GridMedia) => boolean;
   onDeleteItem?: (id: string) => void;
-  mineIds?: ReadonlySet<string>;
   onWindowChange?: (ids: readonly string[]) => void;
 };
 const lastRows = () => rowsSpy.mock.calls.at(-1)![0] as RowsProps;
@@ -595,7 +596,7 @@ const { removeMyUploadGuestAction } =
 const aFile = () => new File(["x"], "x.jpg", { type: "image/jpeg" });
 
 describe("LiveGallery: a visit's own adds and removals, on either identity", () => {
-  it("a signed-in guest's new photograph is theirs the moment it lands (Trash and mark)", async () => {
+  it("a signed-in guest's new photograph is theirs the moment it lands (Trash and the Yours filter)", async () => {
     const ref = createRef<LiveGalleryHandle>();
     await mount({ ref, isAuthed: true, canDeleteIds: [] });
     await act(async () => {
@@ -607,11 +608,16 @@ describe("LiveGallery: a visit's own adds and removals, on either identity", () 
         status: "approved",
       });
     });
-    const props = lastRows();
     expect(shownIds()[0]).toBe("m9");
+    const props = lastRows();
     expect(props.canDelete?.({ id: "m9" } as GridMedia)).toBe(true);
-    expect(props.mineIds?.has("m9")).toBe(true);
     expect(props.canDelete?.({ id: "m2" } as GridMedia)).toBe(false);
+
+    // No mark rides the tile any more (`mine=none`): View's Showing, not a tap
+    // on the tile, is how she finds it.
+    openViewMenu();
+    fireEvent.click(screen.getByRole("menuitemradio", { name: "Yours (1)" }));
+    expect(shownIds()).toEqual(["m9"]);
   });
 
   it("passes each removed id up, takes it off at once, and a removal leaves the count on a signed-in guest too", async () => {
@@ -651,6 +657,55 @@ describe("LiveGallery: a visit's own adds and removals, on either identity", () 
     });
     expect(shownIds()).toEqual(["m1", "m2"]);
     expect(global.fetch).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ★ THE ALBUM'S HEAD DRAWS ONLY WHAT IS IN THE AIR (voice-guest r2, Will's `held=uploads`): a held
+ * photograph shows only in her uploads, the badge beside Add counting it, and the album shows only
+ * what is in it. A file still sending keeps its stack; one that failed is the failure sheet's.
+ */
+describe("LiveGallery: what this device draws at the album's head", () => {
+  const queued = (
+    id: string,
+    status: QueueItem["status"],
+    extra: Partial<QueueItem> = {},
+  ): QueueItem => ({
+    id,
+    file: aFile(),
+    kind: "photo",
+    status,
+    progress: status === "uploading" ? 40 : 0,
+    ...extra,
+  });
+
+  it("★ a held photograph takes no head slot; the files still sending keep their stack", async () => {
+    await mount({
+      pendingUploads: [
+        queued("q1", "done", { mediaStatus: "pending", mediaId: "h1" }),
+        queued("q2", "uploading"),
+        queued("q3", "queued"),
+        queued("q4", "error", { error: "Too big" }),
+      ],
+    });
+    expect(lastRows().pending?.map((p) => [p.queueId, p.status])).toEqual([
+      ["q2", "uploading"],
+      ["q3", "queued"],
+    ]);
+  });
+
+  it("an album of only her held photographs is the album's empty state, never a grid of hers", async () => {
+    rowsSpy.mockClear();
+    await mount(
+      {
+        pendingUploads: [
+          queued("q1", "done", { mediaStatus: "pending", mediaId: "h1" }),
+        ],
+      },
+      fullSeed({ entries: [] }),
+    );
+    expect(rowsSpy).not.toHaveBeenCalled();
+    expect(screen.getByText("The album starts with you")).toBeInTheDocument();
   });
 });
 

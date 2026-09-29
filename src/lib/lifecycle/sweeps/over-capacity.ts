@@ -28,6 +28,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import {
   capWithWriteHeadroom,
   effectiveStorageCap,
+  PLANS,
   toBillingTier,
 } from "@/lib/constants/tiers";
 import { QueryFailedError } from "@/lib/db/must-query";
@@ -63,12 +64,20 @@ import { getSiteUrl } from "@/lib/site-url";
 import { formatBytes } from "@/lib/utils";
 
 /**
- * The candidate floor. `storage_used_bytes` is at least the active bytes, and the smallest cap is
- * Free's 2 GB, so an account at or under 2 GB used cannot be over any cap. An account in grace is
- * over its cap, so it is over 2 GB used until its removed media purges (by then its grace is
- * cleared): the floor covers the in-grace rows too.
+ * The candidate floor: the SMALLEST cap any plan grants (Free's 100 MB today), read from
+ * `tiers.ts`. `storage_used_bytes` is at least the active bytes, so an account at or under the
+ * smallest cap cannot be over any cap. An account in grace is over its cap, so it is over the
+ * floor until its removed media purges (by then its grace is cleared): the floor covers the
+ * in-grace rows too.
+ *
+ * ★ DERIVED, NEVER TYPED (the free/pro shift). It was a literal 2 GB, Free's old cap, and the day
+ * Free became 100 MB that literal would have skipped every downgraded account storing between the
+ * two: no grace, no emails, no reduce, a free host keeping up to 2 GB for good. A downgrade now
+ * lands far over Free's cap, so this is the line the grace path starts at.
  */
-export const FREE_CAP_BYTES = 2 * 1024 ** 3;
+export const CANDIDATE_FLOOR_BYTES = Math.min(
+  ...PLANS.map((plan) => plan.storageBytes),
+);
 
 export type OverCapacityTally = {
   candidates: number;
@@ -100,7 +109,7 @@ export async function readOverCapCandidates(
       let query = admin
         .from("profiles")
         .select("id, email, tier, storage_cap_bytes, storage_grace_until")
-        .gt("storage_used_bytes", FREE_CAP_BYTES)
+        .gt("storage_used_bytes", CANDIDATE_FLOOR_BYTES)
         .order("id", { ascending: true })
         .limit(limit);
       if (after) query = query.gt("id", after);
@@ -211,7 +220,7 @@ export async function sweepOverCapacity(
         if (error) throw new QueryFailedError("cron/purge: open grace", error);
         graceOpened += 1;
         if (p.email) {
-          const { subject, html } = overCapGraceStartEmail({
+          const { subject, html, text } = overCapGraceStartEmail({
             capLabel: formatBytes(cap),
             deadline: emailDate(graceUntil),
             dashboardUrl,
@@ -223,6 +232,7 @@ export async function sweepOverCapacity(
             to: p.email,
             subject,
             html,
+            text,
           });
         }
         return;
@@ -254,7 +264,7 @@ export async function sweepOverCapacity(
         await clearGrace(p.id);
         reduced += 1;
         if (p.email) {
-          const { subject, html } = overCapReducedEmail({
+          const { subject, html, text } = overCapReducedEmail({
             recoverableUntil: emailDate(
               new Date(
                 now.getTime() + RECENTLY_DELETED_WINDOW_DAYS * 86_400_000,
@@ -269,6 +279,7 @@ export async function sweepOverCapacity(
             to: p.email,
             subject,
             html,
+            text,
           });
         }
       } else if (
@@ -276,7 +287,7 @@ export async function sweepOverCapacity(
         graceUntil.getTime() - OVER_CAP_REMINDER_DAYS * 86_400_000
       ) {
         if (p.email) {
-          const { subject, html } = overCapReminderEmail({
+          const { subject, html, text } = overCapReminderEmail({
             deadline: emailDate(graceUntil),
             dashboardUrl,
           });
@@ -287,6 +298,7 @@ export async function sweepOverCapacity(
             to: p.email,
             subject,
             html,
+            text,
           });
           if (sent) reminded += 1;
         }

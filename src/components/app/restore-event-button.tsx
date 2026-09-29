@@ -30,7 +30,14 @@ export function RestoreEventButton({
     startTransition(async () => {
       const result = await restoreEventAction(eventId);
       if (result.ok) {
-        toast.success("Event restored.");
+        // A soft-deleted event's custom link is freed at once, so another event may have
+        // claimed it while this one waited in Deleted; the restore still succeeds, on the
+        // permanent link, and this is the one place the host can be told her old link moved.
+        toast.success("Event restored.", {
+          description: result.customSlugReleased
+            ? "Its custom link went to another event while it was deleted, so it came back on its permanent link instead."
+            : undefined,
+        });
         return;
       }
       if (

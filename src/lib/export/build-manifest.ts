@@ -1,24 +1,23 @@
 /**
- * PURE builders for the "Download all" zip export — the summary breakdown (drives the config
- * modal's live count/size) and the signed-manifest item list (what the Worker zips). Env-free /
- * DB-free, so it's Vitest-loadable; the export routes do the (authz'd) row fetching and feed
- * normalized rows in here.
+ * PURE builders for the "Download all" zip export — the summary breakdown (drives the menu's live
+ * count/size) and the signed-manifest item list (what the Worker zips). Env-free / DB-free, so it's
+ * Vitest-loadable; the export routes do the (authz'd) row fetching and feed normalized rows in here.
  *
- * `file_size_bytes` is the AUTHORITATIVE per-object size the cap + the summary use — the route
+ * `file_size_bytes` is the AUTHORITATIVE per-object size the ceilings + the summary use — the route
  * sources it from `listEventMedia` (host) or an admin read of the access-resolved ids (guest),
- * never from the client. The cap bounds the Worker's worst-case CPU (CRC32 over the bytes) and
- * guards against an accidental huge download.
+ * never from the client. The ceilings bound the Worker's worst-case CPU (CRC32 over the bytes) for
+ * ONE zip; an album past them comes home in parts (`export-flow` r1, `cap=split`), never refused.
  */
 import type { ExportItem } from "@/lib/export/export-token";
 import { buildDownloadFilename } from "@/lib/media/download-filename";
 import type { MediaKind } from "@/lib/media/limits";
 import { slugify } from "@/lib/slug";
 
-/** v1 caps — keep the Worker well under its 300s CPU ceiling + block accidental megabundles. */
+/** One zip's ceilings — keep the Worker well under its 300s CPU ceiling. A bigger album is parts. */
 export const MAX_EXPORT_ITEMS = 2000;
 export const MAX_EXPORT_BYTES = 20 * 1024 * 1024 * 1024; // ~20 GB
 
-/** The media-type filter the modal chips drive. */
+/** The media-type filter the menu's rows drive. */
 export type ExportTypeFilter = "all" | "photo" | "video";
 
 /** Status as it matters to the export: `approved` is the default ("shown") set; everything else
@@ -27,17 +26,20 @@ type ExportStatus = "approved" | "hidden" | "pending" | "removed";
 
 /** The minimal authoritative row the builders need (mapped from MediaRow / the guest admin read). */
 export type ExportMediaRow = {
+  id: string;
   type: MediaKind;
   original_key: string;
   file_size_bytes: number;
   status: ExportStatus;
+  /** The row's own timestamp, as Postgres returned it: the export's order (oldest first). */
+  created_at: string;
 };
 
 type Bucket = { count: number; bytes: number };
 
 /**
  * Per-(visibility-bucket × type) totals. `shown` = approved (what guests see / the host default);
- * `hidden` = the host-only delta added by "Include hidden" (hidden + pending). The modal renders
+ * `hidden` = the host-only delta added by "Include hidden" (hidden + pending). The menu renders
  * these and computes any (type × include-hidden) combination client-side, instantly, with no extra
  * round-trip. Guest summaries always have a zeroed `hidden`.
  */
@@ -65,6 +67,74 @@ export function summarizeMedia(rows: ExportMediaRow[]): ExportSummary {
   return s;
 }
 
+/* ── the walk: an album past one zip's ceilings, as parts (`cap=split`) ─── */
+
+/**
+ * WHERE A WALK'S LAST PART ENDED: the export's own order key of that part's last item, its time in
+ * milliseconds and its id (`1727130818122_<uuid>`). The client carries it from one part's mint to
+ * the next and never reads it.
+ *
+ * ★ A POSITION, NOT A PAGE NUMBER, and that is what keeps a walk whole while the album moves under
+ * it. Part 2 is "everything after where part 1 ended", so an item deleted from part 1 after it
+ * downloaded shifts nothing later (a page index would slide the next part's first item into the
+ * part already taken, and it would be in no zip at all), and an arrival lands in the last part,
+ * because the order is oldest first. It widens nothing: it only ever narrows the rows the route
+ * already authorized.
+ */
+export type ExportCursor = string;
+
+export const EXPORT_CURSOR_RE = /^\d{1,16}_[0-9a-f-]{36}$/i;
+
+/** Which part of a walk a mint asks for: its number (from 1), and where the last one ended. */
+export type ExportWalk = { part: number; after: ExportCursor | null };
+
+type Ordered = { ms: number; id: string; row: ExportMediaRow };
+
+/** Milliseconds, then the id: a total order (the id is unique), whatever Postgres's precision. */
+function ordered(rows: ExportMediaRow[]): Ordered[] {
+  return rows
+    .map((row) => {
+      const ms = Date.parse(row.created_at);
+      return { ms: Number.isFinite(ms) ? ms : 0, id: row.id, row };
+    })
+    .sort((a, b) => a.ms - b.ms || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+}
+
+const cursorOf = (o: Ordered): ExportCursor => `${o.ms}_${o.id}`;
+
+function afterCursor(o: Ordered, cursor: ExportCursor): boolean {
+  const cut = cursor.indexOf("_");
+  const ms = Number(cursor.slice(0, cut));
+  const id = cursor.slice(cut + 1);
+  return o.ms > ms || (o.ms === ms && o.id > id);
+}
+
+/**
+ * One zip's worth after another, in order: a part closes when the next item would pass either
+ * ceiling. A part always takes at least one item, so a single file past 20 GB (the upload ceiling
+ * is 10 GB, so never today) would be a part of its own rather than a walk that cannot move.
+ */
+function splitIntoParts(items: Ordered[]): Ordered[][] {
+  const parts: Ordered[][] = [];
+  let part: Ordered[] = [];
+  let bytes = 0;
+  for (const o of items) {
+    const size = o.row.file_size_bytes;
+    if (
+      part.length > 0 &&
+      (part.length >= MAX_EXPORT_ITEMS || bytes + size > MAX_EXPORT_BYTES)
+    ) {
+      parts.push(part);
+      part = [];
+      bytes = 0;
+    }
+    part.push(o);
+    bytes += size;
+  }
+  if (part.length > 0) parts.push(part);
+  return parts;
+}
+
 export type ExportManifestResult =
   | {
       ok: true;
@@ -72,45 +142,90 @@ export type ExportManifestResult =
       zipName: string;
       totalBytes: number;
       itemCount: number;
+      /** This part's number, and how many the walk takes as of this mint (1 of 1 for one zip). */
+      part: number;
+      parts: number;
+      /** Where the next part begins, or null when this part is the last. */
+      next: ExportCursor | null;
     }
   | { ok: false; reason: "empty" | "over_cap" };
 
+/** `garden-party.zip`, `garden-party-yours.zip`, `garden-party-part-2-of-3.zip`: plain words. */
+function zipNameFor(
+  eventName: string,
+  label: string | undefined,
+  part: number,
+  parts: number,
+): string {
+  const base = slugify(eventName) || "partyreel";
+  const named = label ? `${base}-${label}` : base;
+  return parts > 1 ? `${named}-part-${part}-of-${parts}.zip` : `${named}.zip`;
+}
+
 /**
- * Apply the modal's filters to the authoritative rows and produce the signed-manifest item list
+ * Apply the menu's filters to the authoritative rows and produce the signed-manifest item list
  * (key + friendly in-zip name). `includeHidden` (host only) expands `approved` → all-non-removed;
- * the guest always passes false (and its rows are approved anyway). Rejects an empty selection and
- * anything over the cap (the modal surfaces both gracefully).
+ * the guest always passes false (and its rows are approved anyway). An empty selection is refused.
+ *
+ * ★ TWO ANSWERS PAST ONE ZIP'S CEILINGS, BY WHO IS ASKING. A walk (`walk` given: every current
+ * client) gets its part, oldest first, with how many parts there are and where the next begins.
+ * A request without one (a tab still running the app from before the walk) keeps the old refusal,
+ * `over_cap`: silently handing it the first 2,000 would let it believe it had everything.
  */
 export function buildExportManifest(params: {
   rows: ExportMediaRow[];
   eventName: string;
   types: ExportTypeFilter;
   includeHidden: boolean;
+  /** The part a walk asks for; absent, the whole selection as one zip or the refusal. */
+  walk?: ExportWalk;
+  /** A word the zip's name carries after the event's (`yours`). */
+  zipLabel?: string;
 }): ExportManifestResult {
-  const { rows, eventName, types, includeHidden } = params;
+  const { rows, eventName, types, includeHidden, walk, zipLabel } = params;
 
-  const items: ExportItem[] = [];
-  let totalBytes = 0;
-  for (const r of rows) {
-    if (r.status === "removed") continue;
-    if (!includeHidden && r.status !== "approved") continue;
-    if (types !== "all" && r.type !== types) continue;
-    items.push({
-      key: r.original_key,
-      name: buildDownloadFilename({
-        eventName,
-        key: r.original_key,
-        type: r.type,
-      }),
-    });
-    totalBytes += r.file_size_bytes;
+  const chosen = ordered(
+    rows.filter(
+      (r) =>
+        r.status !== "removed" &&
+        (includeHidden || r.status === "approved") &&
+        (types === "all" || r.type === types),
+    ),
+  );
+  const after = walk?.after ?? null;
+  const remaining = after
+    ? chosen.filter((o) => afterCursor(o, after))
+    : chosen;
+  if (remaining.length === 0) return { ok: false, reason: "empty" };
+
+  if (!walk) {
+    // The old contract, exactly: the whole selection within both ceilings, or refused.
+    const bytes = remaining.reduce((sum, o) => sum + o.row.file_size_bytes, 0);
+    if (remaining.length > MAX_EXPORT_ITEMS || bytes > MAX_EXPORT_BYTES) {
+      return { ok: false, reason: "over_cap" };
+    }
   }
 
-  if (items.length === 0) return { ok: false, reason: "empty" };
-  if (items.length > MAX_EXPORT_ITEMS || totalBytes > MAX_EXPORT_BYTES) {
-    return { ok: false, reason: "over_cap" };
-  }
-
-  const zipName = `${slugify(eventName) || "partyreel"}.zip`;
-  return { ok: true, items, zipName, totalBytes, itemCount: items.length };
+  const parts = walk ? splitIntoParts(remaining) : [remaining];
+  const part = walk?.part ?? 1;
+  const [these] = parts;
+  const total = part - 1 + parts.length;
+  const items: ExportItem[] = these.map(({ row }) => ({
+    key: row.original_key,
+    name: buildDownloadFilename({
+      eventName,
+      key: row.original_key,
+      type: row.type,
+    }),
+  }));
+  return {
+    ok: true,
+    items,
+    zipName: zipNameFor(eventName, zipLabel, part, total),
+    totalBytes: these.reduce((sum, o) => sum + o.row.file_size_bytes, 0),
+    itemCount: items.length,
+    part,
+    parts: total,
+    next: parts.length > 1 ? cursorOf(these[these.length - 1]) : null,
+  };
 }

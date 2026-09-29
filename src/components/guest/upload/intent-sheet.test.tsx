@@ -4,9 +4,19 @@ import { describe, expect, it, vi } from "vitest";
 import { UploadIntentSheet } from "@/components/guest/upload/intent-sheet";
 
 /**
- * THE ADD SHEET AND ITS REVIEW STEP. A sheet of our own carries one design across
- * every operating system, and its review step lets a guest preview the photos and
- * catch an accidental selection before anything uploads.
+ * THE ADD CHOICE AND ITS REVIEW STEP. A choice of our own carries one design
+ * across every operating system, and its review step lets a guest preview the
+ * photos and catch an accidental selection before anything uploads.
+ *
+ * ★ RESHAPED ON PURPOSE BY `popups` r1 (`choices=menu`, 2026-09-27): the two
+ * rows are a menu now (under the Add she pressed at a desk, at the thumb in a
+ * hand) and the review is a confirmation of its own, so the scars moved with
+ * them. Kept: capture on one input only, multiple on the other only, nothing
+ * sent before Send or after a removal, two picks with one name kept apart, the
+ * terms line on both steps, and no flash of the two rows under a closing
+ * review. Dropped, with its expired reason: "the inputs live inside the sheet's
+ * content" (a menu's content unmounts when its row closes it, so the inputs
+ * moved to the page, where they outlive it; `intent-sheet.tsx` says why).
  *
  * FUNCTION ONLY, and every rule below is one whose breakage is INVISIBLE in a
  * screenshot:
@@ -50,16 +60,21 @@ function open(onSend = vi.fn()) {
 }
 
 describe("two inputs, and only one of them is the camera", () => {
-  it("mounts both inside the sheet", () => {
+  it("mounts both where they outlive the menu, and each row clicks its own", () => {
     open();
     const { camera, album } = inputs();
     expect(camera).not.toBeNull();
     expect(album).not.toBeNull();
-    // Inside the sheet's own content, never parked on the page: a Radix dialog
-    // aria-hidden's everything outside it, so an input out there is inert.
-    const content = document.querySelector('[data-slot="sheet-content"]')!;
-    expect(content.contains(camera!)).toBe(true);
-    expect(content.contains(album!)).toBe(true);
+    // Never inside the menu: its content unmounts when a row closes it, and an
+    // input gone before the picker answers never fires `change`.
+    const menu = document.querySelector('[data-slot^="responsive-menu"]')!;
+    expect(menu).not.toBeNull();
+    expect(menu.contains(camera!)).toBe(false);
+    expect(menu.contains(album!)).toBe(false);
+
+    const cameraClick = vi.spyOn(camera!, "click");
+    fireEvent.click(screen.getByRole("menuitem", { name: /take a photo/i }));
+    expect(cameraClick).toHaveBeenCalledTimes(1);
   });
 
   it("takes a photograph on the camera row: capture, no multiple", () => {
@@ -109,11 +124,20 @@ describe("the review step stands between the picker and the album", () => {
   });
 
   it("goes back to the two rows when the last pick is removed", () => {
-    open();
+    const onOpenChange = vi.fn();
+    render(
+      <UploadIntentSheet
+        open={false}
+        onOpenChange={onOpenChange}
+        hostName="Maya"
+        onSend={vi.fn()}
+      />,
+    );
     fireEvent.change(inputs().album!, { target: { files: [file("a.jpg")] } });
     fireEvent.click(screen.getByRole("button", { name: /Remove a\.jpg/ }));
-    // Not "Send 0": there is nothing to review, so the sheet is what it was.
+    // Not "Send 0": there is nothing to review, so the choice is asked again.
     expect(screen.queryByRole("button", { name: /^Send/ })).toBeNull();
+    expect(onOpenChange).toHaveBeenLastCalledWith(true);
     expect(inputs().album).not.toBeNull();
   });
 
@@ -133,29 +157,31 @@ describe("the review step stands between the picker and the album", () => {
 
 describe("the terms line", () => {
   it("stands on the pick step and again under Send", () => {
-    open();
+    const props = { hostName: "Maya", onOpenChange: () => {}, onSend: vi.fn() };
+    const { rerender } = render(<UploadIntentSheet open {...props} />);
     expect(document.querySelectorAll("[data-upload-terms]")).toHaveLength(1);
+    // A row's tap closes the menu as it opens the picker; the review follows.
+    rerender(<UploadIntentSheet open={false} {...props} />);
     fireEvent.change(inputs().album!, { target: { files: [file("a.jpg")] } });
     expect(document.querySelectorAll("[data-upload-terms]")).toHaveLength(1);
   });
 });
 
 /**
- * THE SHEET NEVER FLASHES THE TWO ROWS ON ITS OWN WAY OUT. Clearing the picks in
- * the same tick as the close call would have the still-open (closing) sheet
- * repaint "Take a photo / Choose from your album" underneath itself for the rest
- * of its own exit. The clear waits for the CONTENT's own animationend, which
- * jsdom never fires on its own - so a render straight after Send, with `open`
- * still true (exactly the moment the sheet is mid-exit in the real browser), is
- * the whole test: the review step must still be what is on screen.
+ * THE REVIEW NEVER FLASHES THE TWO ROWS ON ITS WAY OUT. The rows were once the
+ * same sheet's other step, so clearing the picks with the close repainted them
+ * under a closing sheet; now they are a separate menu that Send never reopens,
+ * and the picks clear only on the review's own animationend. So after Send the
+ * rows stay shut (the menu was closed by the row that picked) and the files
+ * went, once.
  */
-describe("the review step survives its own sheet closing", () => {
-  it("after Send, with open still true, the review step is still what renders", () => {
+describe("the review closes without the two rows", () => {
+  it("after Send, the files go and the rows are not asked again", () => {
     const onOpenChange = vi.fn();
     const onSend = vi.fn();
     render(
       <UploadIntentSheet
-        open
+        open={false}
         onOpenChange={onOpenChange}
         hostName="Maya"
         onSend={onSend}
@@ -167,12 +193,11 @@ describe("the review step survives its own sheet closing", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Send 1" }));
 
-    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(onSend).toHaveBeenCalledTimes(1);
     expect(onSend).toHaveBeenCalledWith([kept]);
-    // The two intent rows must NOT be back - that is the flash the deferred clear kills.
+    expect(onOpenChange).not.toHaveBeenCalledWith(true);
     expect(
-      screen.queryByRole("button", { name: "Take a photo" }),
+      screen.queryByRole("menuitem", { name: "Take a photo" }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Send 1" })).toBeInTheDocument();
   });
 });

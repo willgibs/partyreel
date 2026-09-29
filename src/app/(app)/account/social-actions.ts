@@ -20,7 +20,14 @@ import { containsProfanity } from "@/lib/validation/profanity";
 // The /account social surface's actions (profiles + social slice, profiles-social.md).
 // Same shape as account/actions.ts' ActionResult, kept local so the two files
 // stay independently readable.
-export type SocialActionResult = { ok: true } | { ok: false; message: string };
+export type SocialActionResult =
+  | { ok: true }
+  | {
+      ok: false;
+      message: string;
+      /** The handle was taken between the live check and the write (the unique index's 23505). */
+      taken?: true;
+    };
 
 function fromMutation(result: {
   ok: boolean;
@@ -40,6 +47,11 @@ export async function setProfileSlugAction(
 ): Promise<SocialActionResult> {
   const result = await setProfileSlug(slug);
   if (result.ok) revalidatePath("/account");
+  // The one refusal a field can show on its own (the handle field marks it taken without asking
+  // again); `limit_reached` is the mutation's code for the unique index's 23505.
+  if (!result.ok && result.code === "limit_reached") {
+    return { ok: false, message: result.message, taken: true };
+  }
   return fromMutation(result);
 }
 

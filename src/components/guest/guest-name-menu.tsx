@@ -2,14 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogIn, Pencil } from "lucide-react";
+import { LifeBuoy, LogIn, Pencil } from "lucide-react";
 
 import { ConfirmEmailDialog } from "@/components/auth/confirm-email-dialog";
 import {
   AddEmailDialog,
   PENDING_EMAIL_REMOVABLE,
 } from "@/components/guest/add-email-dialog";
+import { DoorLamp } from "@/components/guest/door/lit";
+import { KEEP_TITLE } from "@/components/guest/save-account-prompt";
 import { UNVERIFIED_LABEL } from "@/components/shared/unverified-mark";
+import { HELP_CENTER_HREF } from "@/lib/content/help-links";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -33,7 +36,7 @@ import { requestNameDoor } from "@/lib/guest/name-door";
  * had just become, and give them no way to change a name they had mistyped in a
  * dark room.
  *
- * ★ HER NAME, THEN THE CARD, THEN TWO ROWS (Will, `identity-door` r1 `menu=card`: "add the name +
+ * ★ HER NAME, THEN THE CARD, THEN THE ROWS (Will, `identity-door` r1 `menu=card`: "add the name +
  * 'Unverified' stack above the 'add your email' card in the menu, and change the 'You're
  * Unverified' copy in the card to 'Save this event for later' to feel more beneficial. This keeps
  * their name in the menu, keeps one instance of unverified, but shifts adding their email to a
@@ -41,14 +44,18 @@ import { requestNameDoor } from "@/lib/guest/name-door";
  *   - The label: her name over "Unverified" (the mark's own word, read from it, so the two cannot
  *     drift), or over "Email not confirmed" once an address was added. "Unverified" appears
  *     exactly once in this menu.
- *   - The card: "Save this event for later", and the one act that does it. Name only: "Add your
- *     email" (`add-email-dialog.tsx`, the second chance at the door's optional field). An
- *     address added: "Confirm your email" straight into the code door (which opens EMPTY,
- *     because the address was never kept, and says so), with a quiet "Change or remove it".
+ *   - The card: the benefit, in the keep's own title ("Keep this event", `KEEP_TITLE`,
+ *     `voice-guest` r2's `keep=warm`: the door's last screen asks it, and this card is the ask's
+ *     standing home, so the two say one thing), and the one act that does it. Name only: "Add your email" (`add-email-dialog.tsx`, the second
+ *     chance at the door's optional field). An address added: "Confirm your email" straight into
+ *     the code door (which opens EMPTY, because the address was never kept, and says so), with a
+ *     quiet "Change or remove it".
  *   - "Change name" reopens the door in edit mode through `lib/guest/name-door.ts`, because this
  *     header is a SIBLING island of the page that owns the modal.
  *   - "Log in", the chooser's word, for somebody who already has an account and wants tonight's
  *     photographs in it.
+ *   - "Help center" (help-center r1: "globally accessible for general questions as well"), under
+ *     Log in as the board drew it, opening in a new tab.
  *
  * ★ THIS IS THE ONE SURFACE THAT KNOWS ABOUT THE UNCONFIRMED ADDRESS. Publicly
  * every unconfirmed guest is handled the same, so the mark says "Unverified"
@@ -134,10 +141,16 @@ export function GuestNameMenu({
             </span>
           </DropdownMenuLabel>
           {/* THE CARD: the benefit, then the one act that buys it. Its actions are menu items,
-              so arrow keys and typeahead reach them like every other row. */}
-          <div data-menu-card className="m-1 rounded-md bg-muted/60 p-3">
+              so arrow keys and typeahead reach them like every other row. Its top edge is lit by
+              the album (`identity-door` r2, `look=lit`): `isolate` makes the card the stacking
+              context the lamp sits inside, above its ground and under its words. */}
+          <div
+            data-menu-card
+            className="relative isolate m-1 overflow-hidden rounded-md bg-muted/60 p-3"
+          >
+            <DoorLamp edge="card" />
             <p className="text-reading text-pretty text-foreground">
-              Save this event for later
+              {KEEP_TITLE}
             </p>
             {emailAttached || !hasRow ? (
               <DropdownMenuItem
@@ -169,6 +182,19 @@ export function GuestNameMenu({
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => openDoor("signin")}>
             <LogIn /> Log in
+          </DropdownMenuItem>
+          {/* THE STANDING DOOR INTO HELP (help-center r1, Will: "Let's also include the help
+              center entry in the menu too. That way it's globally accessible for general
+              questions as well, not only when encountering trouble"). A new tab, the host
+              menu's own habit: the album, and anything still uploading, stay where they are. */}
+          <DropdownMenuItem asChild>
+            <a
+              href={HELP_CENTER_HREF}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <LifeBuoy /> Help center
+            </a>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

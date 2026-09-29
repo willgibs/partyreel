@@ -58,6 +58,25 @@ vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => asSupabase(db.fake as FakePostgrest),
 }));
 
+// The event as the album resolves it for this caller (`get_event_by_qr_token`, read off the fake's own
+// row), and the closed door over it (the per-event block, 20260928120000): its own rule is
+// closed-door.server.test.ts's; here a held ticket stands in for one.
+vi.mock("@/lib/db/queries/guest-events", () => ({
+  getEventByQrToken: async (qr: string) => {
+    const row = db.fake?.tables.events.find(
+      (e) => e.qr_token === qr && e.deleted_at === null,
+    );
+    return row
+      ? { ok: true, data: { id: row.id, visibility: row.visibility } }
+      : { ok: false, code: "not_found" };
+  },
+}));
+const ticketBlocked = vi.hoisted(() => ({ held: false }));
+vi.mock("@/lib/events/closed-door.server", () => ({
+  isClosedToThisBrowser: async (event: { visibility?: string }) =>
+    event.visibility === "private" || ticketBlocked.held,
+}));
+
 const { POST } = await import("@/app/api/guests/unlock/route");
 const { isUnlocked } = await import("@/lib/events/unlock-cookie");
 
@@ -118,6 +137,7 @@ function keepCookie(response: Response) {
 
 beforeEach(() => {
   duringCheck = null;
+  ticketBlocked.held = false;
   jar.clear();
   captureError.mockClear();
   limiter.recordUnlockFailure.mockClear();
@@ -230,5 +250,27 @@ describe("POST /api/guests/unlock", () => {
       .digest("hex");
     jar.set(`pr_unlock_${EVENT}`, `${EVENT}.${exp}.${mac}`);
     expect(await isUnlocked(EVENT)).toBe(false);
+  });
+});
+
+describe("the closed door: a viewer the event blocked unlocks nothing", () => {
+  it("answers even the RIGHT password with the generic 401 a private album's link gets, counted, never checked", async () => {
+    let checked = false;
+    duringCheck = () => {
+      checked = true;
+    };
+    ticketBlocked.held = true;
+    const response = await unlockRequest("first-word");
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({
+      ok: false,
+      code: "wrong_password",
+    });
+    expect(response.headers.get("set-cookie")).toBeNull();
+    expect(checked).toBe(false);
+    expect(limiter.recordUnlockFailure).toHaveBeenCalledWith(
+      "token-hash",
+      "ip-hash",
+    );
   });
 });

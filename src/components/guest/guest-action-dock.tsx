@@ -45,6 +45,7 @@ export function GuestActionDock({
   uploadingCount,
   onAdd,
   invite,
+  tracker,
 }: {
   /** The row is still on screen: the dock waits, inert, off the bottom edge. */
   hidden: boolean;
@@ -57,11 +58,18 @@ export function GuestActionDock({
    */
   onAdd?: () => void;
   /**
-   * Invite, as a slot. The trigger owns a Sheet of its own (`GuestShare`), and
-   * a dock that imported it would be a chrome component that knows what a QR
-   * code is; this way the bar is exactly its own layout and its own entrance.
+   * Invite, as a slot. The trigger owns a code card of its own (`GuestShare`,
+   * the `share=card` popup kind), and a dock that imported it would be a
+   * chrome component that knows what a QR code is; this way the bar is
+   * exactly its own layout and its own entrance.
    */
   invite?: ReactNode;
+  /**
+   * Her tracker's round button (`guest-capture` r1, `tracker=button`), riding beside Add as it
+   * does in the row, so the dock still carries what the row carries. A slot like Invite, and it
+   * draws nothing where she has nothing to track.
+   */
+  tracker?: ReactNode;
 }) {
   // Nothing to dock is nothing to draw, scrim included.
   if (!onAdd && !invite) return null;
@@ -124,6 +132,7 @@ export function GuestActionDock({
             )}
           </Button>
         )}
+        {tracker}
       </div>
     </div>
   );

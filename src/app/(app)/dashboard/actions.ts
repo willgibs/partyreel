@@ -183,12 +183,12 @@ export async function clearEventSlugAction(
   return { ok: true };
 }
 
-// The profiles-social.md event keys (profile display + the named guest list), persisted
-// per-toggle from the settings card (instant switches, not the RHF save flow —
-// each key is its own deliberate act, like the password/slug commits).
+// The profiles-social.md event key (show on my profile), persisted per-toggle from the settings
+// card (an instant switch, not the RHF save flow: its own deliberate act, like the password/slug
+// commits). The guest list is always on, so it has no key here.
 export async function updateEventSocialSettingsAction(
   eventId: string,
-  patch: { displayInProfile?: boolean; showGuestList?: boolean },
+  patch: { displayInProfile?: boolean },
 ): Promise<ActionResult> {
   const result = await setEventSocialSettings(eventId, patch);
   if (!result.ok) return result;

@@ -19,6 +19,11 @@ const updateDisplayName = vi.fn().mockResolvedValue({ ok: true });
 vi.mock("@/app/(app)/account/actions", () => ({
   updateDisplayNameAction: (name: string) => updateDisplayName(name),
 }));
+// The server's count of other events waiting under her email (the dashboard banner's list).
+const countWaiting = vi.fn<(qrToken: unknown) => Promise<number>>();
+vi.mock("@/lib/guest/confirm-beat-action", () => ({
+  countWaitingEventsAction: (qrToken: unknown) => countWaiting(qrToken),
+}));
 
 const mockCreateClient = vi.mocked(createClient);
 
@@ -62,12 +67,7 @@ function mount(
   props: Partial<React.ComponentProps<typeof ClaimHandlePrompt>> = {},
 ) {
   return render(
-    <ClaimHandlePrompt
-      doneCount={doneCount}
-      qrToken="tok-1"
-      savePrompt={<div data-testid="save-account-prompt" />}
-      {...props}
-    />,
+    <ClaimHandlePrompt doneCount={doneCount} qrToken="tok-1" {...props} />,
   );
 }
 
@@ -77,45 +77,46 @@ function mount(
  * The pinned function is the SEQUENCE, because the whole point of offering the
  * claim after the upload is that it arrives without getting in the way: one
  * card stands at a time, chosen by what the person actually needs next. Signed
- * out means there is no account to hang a page on, so the save prompt goes
- * first; signed in without a handle is the one state this card is for; somebody
- * who already has a page is offered nothing at all. Copy and layout are
- * precedent.
+ * out, the slot is empty: the ask to keep what she added is the door's own last
+ * screen now (`guest-capture` r1), never a card under the album; signed in
+ * without a handle is the one state this card is for; somebody who already has
+ * a page is offered nothing at all. Copy and layout are precedent.
  */
 beforeEach(() => {
   vi.clearAllMocks();
+  countWaiting.mockResolvedValue(0);
   localStorage.clear();
 });
 
 describe("ClaimHandlePrompt", () => {
-  it("signed out: the save-account prompt stands, and no handle is mentioned", async () => {
+  it("signed out: nothing at all (the keep is the door's last screen, never a card here)", async () => {
     stub({ signedIn: false, slug: null });
-    mount();
-    await screen.findByTestId("save-account-prompt");
-    expect(screen.queryByRole("link", { name: /claim/i })).toBeNull();
+    const { container } = mount();
+    await waitFor(() => expect(mockCreateClient).toHaveBeenCalled());
+    await waitFor(() => expect(container).toBeEmptyDOMElement());
+    expect(screen.queryByText(/keep (this|these) photo/i)).toBeNull();
   });
 
-  it("signed in without a handle: the claim offer, with a door to the account", async () => {
+  it("signed in without a handle: the claim offer, with a door to the page's own setup", async () => {
     stub({ signedIn: true, slug: null });
     mount();
     const door = await screen.findByRole("link", { name: /claim/i });
-    expect(door).toHaveAttribute("href", "/account#public-profile");
-    expect(screen.queryByTestId("save-account-prompt")).toBeNull();
+    expect(door).toHaveAttribute("href", "/account/profile");
   });
 
   it("signed in with a handle: nothing at all", async () => {
     stub({ signedIn: true, slug: "maya" });
     const { container } = mount();
-    await waitFor(() =>
-      expect(mockCreateClient).toHaveBeenCalledTimes(1),
-    );
+    await waitFor(() => expect(mockCreateClient).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(container).toBeEmptyDOMElement());
   });
 
   it("counts the photographs that landed", async () => {
     stub({ signedIn: true, slug: null });
     mount(1);
-    expect(await screen.findByText(/your photo is on this album/i)).toBeVisible();
+    expect(
+      await screen.findByText(/your photo is on this album/i),
+    ).toBeVisible();
   });
 });
 
@@ -158,20 +159,13 @@ describe("ClaimHandlePrompt: the moment after confirming", () => {
   it("the moment arrives AFTER an in-page confirmation, and the card re-resolves for it", async () => {
     stub({ signedIn: false, slug: null });
     const view = mount(3, { host: HOST });
-    await screen.findByTestId("save-account-prompt");
+    await waitFor(() => expect(mockCreateClient).toHaveBeenCalled());
     // The confirmation lands: a session exists now, and the album hands the word down.
     stub({ signedIn: true, slug: null });
     view.rerender(
-      <ClaimHandlePrompt
-        doneCount={3}
-        qrToken="tok-1"
-        savePrompt={<div data-testid="save-account-prompt" />}
-        host={HOST}
-        moment
-      />,
+      <ClaimHandlePrompt doneCount={3} qrToken="tok-1" host={HOST} moment />,
     );
     expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
-    expect(screen.queryByTestId("save-account-prompt")).toBeNull();
   });
 
   it("is never hidden behind the handle card's dismissal", async () => {
@@ -186,7 +180,11 @@ describe("ClaimHandlePrompt: the moment after confirming", () => {
     mount(2, { moment: true });
     expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
     expect(screen.queryByRole("button", { name: "Follow" })).toBeNull();
-    expect(screen.getByRole("link", { name: /claim/i })).toBeInTheDocument();
+    // The row points at the page's own setup (profile-setup's PROFILE_SETUP_PATH).
+    expect(screen.getByRole("link", { name: /claim/i })).toHaveAttribute(
+      "href",
+      "/account/profile",
+    );
   });
 
   it("a profile that already has a handle gets no second line", async () => {
@@ -207,5 +205,121 @@ describe("ClaimHandlePrompt: the moment after confirming", () => {
     mount(2, { host: HOST, moment: true });
     await screen.findAllByText(/your photos are safe/i);
     expect(updateDisplayName).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * THE ONE BEAT (`guest-capture` r1: `follow=card` within any multi-claim handling, `name=told`).
+ * The moment card says everything a confirmation has to say: the other events once, and the name
+ * her photographs now carry, whenever she typed one here, whichever name won.
+ */
+describe("ClaimHandlePrompt: the moment is the confirmation's one beat", () => {
+  it("tells the name she is on as when she typed one here, the account's own name winning", async () => {
+    localStorage.setItem("pr_guest_name_tok-1", "Priya");
+    stub({ signedIn: true, slug: null, displayName: "Priya Shah" });
+    mount(2, { host: HOST, moment: true });
+    expect(await screen.findByText(/You're on as Priya Shah\./)).toBeVisible();
+    expect(screen.getByRole("button", { name: "Change" })).toBeInTheDocument();
+  });
+
+  it("tells the typed name once it became the account's name", async () => {
+    localStorage.setItem("pr_guest_name_tok-1", "Priya");
+    stub({ signedIn: true, slug: null, displayName: null });
+    mount(2, { host: HOST, moment: true });
+    expect(await screen.findByText(/You're on as Priya\./)).toBeVisible();
+  });
+
+  it("tells no name when none was typed on this album", async () => {
+    stub({ signedIn: true, slug: null, displayName: "Priya Shah" });
+    mount(2, { host: HOST, moment: true });
+    await screen.findByText(/your photos are safe/i);
+    expect(screen.queryByText(/You're on as/)).toBeNull();
+  });
+
+  it("says the other events once, inside the card", async () => {
+    stub({ signedIn: true, slug: null });
+    mount(2, { host: HOST, moment: true, elsewhere: 2 });
+    expect(
+      await screen.findByText(
+        /Your uploads from other events are in your account too\./,
+      ),
+    ).toBeVisible();
+  });
+});
+
+/**
+ * THE EVENTS WAITING UNDER HER EMAIL (`identity-claims` r3, Will's `pointer=line`: "Simply
+ * acknowledging the existence of other events and allowing that to be handled back on the
+ * dashboard later is enough. Don't want too many complications around this, especially prior to
+ * upload"). The moment asks the server for the count (the dashboard banner's own list, never this
+ * album) and says it in its one line; nothing else in the slot ever asks.
+ */
+describe("ClaimHandlePrompt: the events waiting under her email", () => {
+  it("the moment asks the server for them, for this album, and says them in its one line", async () => {
+    countWaiting.mockResolvedValue(3);
+    stub({ signedIn: true, slug: null });
+    const { container } = mount(2, { host: HOST, moment: true });
+    expect(
+      await screen.findByText(
+        "3 more events have photos waiting on your dashboard, whenever you like.",
+      ),
+    ).toBeVisible();
+    expect(countWaiting).toHaveBeenCalledWith("tok-1");
+    // Drawn once, whole: the card never stood without its line.
+    expect(
+      container.querySelectorAll("[data-follow-moment-others]"),
+    ).toHaveLength(1);
+  });
+
+  it("both at once: her uploads elsewhere and the waiting events are one line", async () => {
+    countWaiting.mockResolvedValue(2);
+    stub({ signedIn: true, slug: null });
+    const { container } = mount(2, { host: HOST, moment: true, elsewhere: 1 });
+    expect(
+      await screen.findByText(
+        "Your uploads from other events are in your account too, and 2 more events have photos waiting on your dashboard, whenever you like.",
+      ),
+    ).toBeVisible();
+    expect(container.textContent?.match(/other events/g)).toHaveLength(1);
+  });
+
+  it("★ confirmed before her first upload here: no moment, so her first photo's card asks nothing", async () => {
+    // A confirmation from her name menu or the door before any upload claims nothing of this album,
+    // so the album never hands the slot `moment` (use-confirm-return's own pin: a claim that moved
+    // nothing here plays nothing). When her first photo lands she is already signed in, and the
+    // slot stands its ordinary rung; the waiting events stay with her dashboard's banner.
+    countWaiting.mockResolvedValue(4);
+    stub({ signedIn: true, slug: null });
+    const { container } = mount(1, { host: HOST });
+    expect(
+      await screen.findByText(/your photo is on this album/i),
+    ).toBeVisible();
+    expect(countWaiting).not.toHaveBeenCalled();
+    expect(container.textContent).not.toMatch(/dashboard|more events/);
+  });
+
+  it("signed out, the slot asks nothing either", async () => {
+    stub({ signedIn: false, slug: null });
+    const { container } = mount(2, { host: HOST, moment: true });
+    await waitFor(() => expect(mockCreateClient).toHaveBeenCalled());
+    await waitFor(() => expect(container).toBeEmptyDOMElement());
+    expect(countWaiting).not.toHaveBeenCalled();
+  });
+
+  it("a count that cannot be read is not said, and the moment still plays", async () => {
+    countWaiting.mockRejectedValue(new Error("offline"));
+    stub({ signedIn: true, slug: null });
+    const { container } = mount(2, { host: HOST, moment: true });
+    expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
+    expect(container.querySelector("[data-follow-moment-others]")).toBeNull();
+    expect(screen.getByRole("button", { name: "Follow" })).toBeInTheDocument();
+  });
+
+  it("nothing waiting says nothing", async () => {
+    stub({ signedIn: true, slug: null });
+    const { container } = mount(2, { host: HOST, moment: true });
+    expect(await screen.findByText(/your photos are safe/i)).toBeVisible();
+    expect(countWaiting).toHaveBeenCalledTimes(1);
+    expect(container.querySelector("[data-follow-moment-others]")).toBeNull();
   });
 });

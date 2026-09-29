@@ -227,7 +227,7 @@ describe("the surface", () => {
       ],
     });
     expect(
-      screen.queryByRole("button", { name: "Try again" }),
+      screen.queryByRole("button", { name: "Retry" }),
     ).not.toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Choose other photos" }),

@@ -22,8 +22,9 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
 - **`create_media` enforces two bounds.** ACTIVE bytes (`host_active_bytes()`: non-removed media in non-deleted
   events) against the cap plus a 10% write headroom (`capWithWriteHeadroom` mirrors it, so the over-cap sweep engages
   at the same line), and a monthly INGRESS meter (`storage_ledger.cumulative_bytes`) against
-  `monthly_ingress_cap()`: static for Free, a multiple of the effective cap for paid tiers, so the abuse bound scales
-  with the plan. The ingress bound is a backstop, never marketed (`content-policy.test.ts` fails content that names
+  `monthly_ingress_cap()`: a multiple of the effective cap on every tier, Free included (the static
+  `monthly_ingress_bytes` column stays, null everywhere, for a tier that takes one back), so the abuse bound scales
+  with the room. The ingress bound is a backstop, never marketed (`content-policy.test.ts` fails content that names
   it). `host_active_bytes()` is the one SQL definition every cap check reads.
 - **Three counters, deliberately different; never reconcile them.** The cap reads active bytes, so a delete frees
   room at once; the monthly ledger never decrements (it is also the delete-and-re-upload churn defense);
@@ -39,6 +40,11 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   the tier is not loaded yet, and the check would silently pass everything. The upload contexts return an advisory
   `video_blocked` the presign routes fail fast on, worded around the EVENT for a guest so the host's plan never
   leaks.
+- **The paid gates on event settings live in their setter RPCs and mirror `GATED_EVENT_SETTINGS`,** which is empty:
+  `set_event_password` and `set_event_slug` name no tier, and `tiers-sql.test.ts` fails a gate added to one half only
+  (an app lock over an open RPC is walked around; an RPC refusal under an open control is a broken button). With
+  custom links on Free, `set_event_slug` also refuses `RESERVED_SLUGS` in SQL, parity-tested, because a host can call
+  it past the server action.
 - The `tier_type` enum carries an unused `max`: coerce a database tier with `toBillingTier()` (`max` becomes
   `pro`, anything unknown `free`) before indexing `tiers.ts`. Dropping an enum value is not worth its risk.
 - A Free profile's null `storage_cap_bytes` falls back to the `tier_limits()` default.
@@ -61,8 +67,10 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   room, so it is never refused; cancelling is as normal. The check compares ACTIVE bytes (`getHostStorageSummary`,
   never re-derived) with the target plan's PLAIN cap from `tiers.ts`, never the 10% headroom (a courtesy at upload,
   not room to buy into), and it ignores the current tier, so a Free host in the over-cap grace meets the same line.
-  A refusal (409 `over_new_cap`) names the smallest size that fits, rounding the stored figure and the gap UP so doing
-  exactly what it says is enough. A Pro Checkout session closes 31 minutes out (Stripe's floor is 30 by its own
+  A refusal (409 `over_new_cap`) names the smallest size that fits WITH its billing (a size has two prices), rounding
+  the stored figure and the gap UP so doing exactly what it says is enough; what a host stores prints that one way on
+  every surface that shows it (the meter, the Plan card, the size list), while a file's or an event's size prints to
+  the nearest tenth. A Pro Checkout session closes 31 minutes out (Stripe's floor is 30 by its own
   clock), so the check it passed stays true. The backstops stay: the webhook does no usage check, and the 45-day
   over-cap grace catches what the check cannot see (a cancellation, a pass running out, a dashboard change, growth
   between the check and Stripe's confirm).
@@ -146,6 +154,19 @@ client-import-safe (no env, no Price IDs: those map in the server-only `stripe/p
   `/dashboard`, `/dashboard/<uuid>` with an optional `room=share|settings`, and `/account`; anything else returns to
   `/dashboard`, so no client value leaves the origin, and Stripe validates none of it. The list is also the set of
   pages that mount `WelcomeToPro`, so a new shape mounts the modal in the same change.
+- **A Pro host's plan is her three sizes under one Monthly / Yearly toggle** (`pro-price-list.tsx`): it opens on her
+  billing, the tag beside Yearly is computed from the price labels (`cadence.ts`, the smallest whole-month saving
+  across sizes), each card draws how full her active bytes would make it, and the fit line reads at the billing on
+  show. `carry` still holds for a host choosing a first plan: one Pro size at one cadence beside Free.
+- ★ **An estimate always carries its camera.** `formatCapacity` appends `ESTIMATE_BASIS` ("at an iPhone's default
+  camera settings") by default; `basis: false` is only for a surface that says it once beside the figures (the sheet's
+  cards over one `ESTIMATE_BASIS_NOTE`, a table under its caption).
+- **A size too small for what she stores is a door, not a dead end** (`components/app/storage/`): its card flips in
+  place to the numbers, and "See what's using space" opens the size list (her active items largest first, read under
+  RLS) with a goal strip that finishes that switch. The strip only ever calls change-plan, which checks again, and its
+  button removes what is only selected first ("Remove and switch"), because the check counts active bytes and a
+  selection has freed nothing yet; it counts from what she stored before this visit's removals, so a removal is never
+  counted twice, and a refused switch re-bases it on the refusal's fresher figure.
 
 ## Verifying billing
 

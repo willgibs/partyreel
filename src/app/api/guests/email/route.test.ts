@@ -59,6 +59,19 @@ vi.mock("@/lib/guest/session-owner.server", () => ({
   checkSessionOwner: (...args: unknown[]) => checkSessionOwner(...args),
 }));
 
+// ★ THE CLOSED DOOR (the per-event block, 20260928120000): a private album, or a ticket a block holds.
+// Its own rule is closed-door.server.test.ts's; here a held ticket stands in for one, so the route's
+// answer to it can be read against its answer to a private album, word for word.
+const ticketBlocked = vi.fn();
+vi.mock("@/lib/events/closed-door.server", () => ({
+  isClosedDoor: async (
+    event: { visibility?: string },
+    tickets: unknown[] = [],
+  ) =>
+    event.visibility === "private" ||
+    (await ticketBlocked(event, tickets)) === true,
+}));
+
 const { POST } = await import("@/app/api/guests/email/route");
 
 const TOKEN = "qr-token-1234";
@@ -444,5 +457,33 @@ describe("the session cookie", () => {
     );
     expect(source).not.toContain("readGuestSessionCookie");
     expect(source).toContain("guestSessionCookieIfChanged");
+  });
+});
+
+describe("the closed door: a ticket a block holds meets the private album's refusal", () => {
+  it("answers it exactly as it answers a private album, asks with the body's ticket, and writes nothing", async () => {
+    getEventByQrToken.mockResolvedValue({
+      ok: true,
+      data: { id: "event-1", visibility: "private" },
+    });
+    const body = { qr_token: TOKEN, session_token: SESSION, email: ADDRESS };
+    const shut = await post(body);
+    const shutBody = await shut.json();
+
+    getEventByQrToken.mockResolvedValue({
+      ok: true,
+      data: { id: "event-1", visibility: "open" },
+    });
+    ticketBlocked.mockResolvedValue(true);
+    const held = await post(body);
+    expect(ticketBlocked).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: "event-1" }),
+      [SESSION],
+    );
+    ticketBlocked.mockReset();
+
+    expect(held.status).toBe(shut.status);
+    expect(await held.json()).toEqual(shutBody);
+    expect(setGuestPendingEmail).not.toHaveBeenCalled();
   });
 });

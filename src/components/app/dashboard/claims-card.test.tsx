@@ -1,288 +1,181 @@
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { toast } from "sonner";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { finishClaimsAction } from "@/app/(app)/dashboard/claims-actions";
-import type { ClaimableEventRow } from "@/lib/db/queries/claims";
+import type { ClaimableEvent } from "@/lib/db/queries/claims";
 import { formatEventDate } from "@/lib/utils";
 
-import { ClaimsCard } from "./claims-card";
-
-vi.mock("@/app/(app)/dashboard/claims-actions", () => ({
-  finishClaimsAction: vi.fn(),
-}));
+import {
+  ClaimCard,
+  confirmDeleteTitle,
+  lockWords,
+  namesLabel,
+  SETTLE_MS,
+  whoLine,
+} from "./claims-card";
 
 /**
- * THE TICKET'S CONTRACT (the guest identity round, 2026-09-22): one decision
- * per EVENT (never per guest row — the query layer already grouped those),
- * "Claim all" as a no-confirmation shortcut that sends `null`, and "Finish"
- * that asks ONLY when something would be left unclaimed — an explicit "Not
- * mine" and a row nobody touched are the same outcome, because either way
- * nothing was affirmatively claimed.
+ * ONE WAITING EVENT ON TOP OF THE CLAIMS REVIEW (`identity-claims` r1, `pass=cards`). Pinned: what
+ * the card says (the album's date only where the album shows one, every typed name, a grouped count),
+ * a gated album's lock where its photographs would be, and the answers' two holds: an arriving card
+ * answers nothing for a beat, and a card whose answer is being written answers nothing more.
  */
 
-const rowA: ClaimableEventRow = {
-  eventId: "e-a",
-  eventName: "Maya & Theo's Wedding",
-  eventDate: "2026-10-01",
+const TOMS: ClaimableEvent = {
+  eventId: "e-toms",
+  eventName: "Tom's Leaving Do",
+  eventDate: "2026-08-29",
   names: ["Priya"],
-  uploadCount: 3,
-  lastUploadAt: "2026-10-02T10:00:00Z",
+  uploadCount: 4,
+  lastUploadAt: "2026-08-29T22:40:00Z",
+  gate: null,
+  previews: ["https://r2.test/a", "https://r2.test/b"],
 };
 
-const rowB: ClaimableEventRow = {
-  eventId: "e-b",
-  eventName: "Summer BBQ",
-  eventDate: null,
-  names: [],
-  uploadCount: 1,
-  lastUploadAt: null,
-};
-
-function rowButton(eventName: string, label: "Claim" | "Not mine") {
-  const li = screen.getByText(eventName).closest("li");
-  if (!li) throw new Error(`row not found: ${eventName}`);
-  return within(li as HTMLElement).getByRole("button", { name: label });
+function renderCard(
+  over: Partial<ClaimableEvent> = {},
+  props: Partial<Parameters<typeof ClaimCard>[0]> = {},
+) {
+  const onClaim = vi.fn();
+  const onNotMine = vi.fn();
+  render(
+    <ClaimCard
+      row={{ ...TOMS, ...over }}
+      arriving={false}
+      pending={null}
+      onClaim={onClaim}
+      onNotMine={onNotMine}
+      {...props}
+    />,
+  );
+  return { onClaim, onNotMine };
 }
 
-beforeEach(() => {
-  vi.mocked(finishClaimsAction).mockReset();
-});
-
-describe("an empty ticket", () => {
-  it("renders nothing", () => {
-    const { container } = render(<ClaimsCard rows={[]} />);
-    expect(container).toBeEmptyDOMElement();
-  });
-});
-
-describe("a grouped row", () => {
-  it("shows the event, its date, every typed name and its photo count", () => {
-    render(<ClaimsCard rows={[rowA]} />);
-    expect(screen.getByText(rowA.eventName)).toBeInTheDocument();
-    const meta = screen.getByText(/Added as Priya/);
-    expect(meta.textContent).toContain(formatEventDate("2026-10-01"));
-    expect(meta.textContent).toContain("3 photos");
+describe("what the card says", () => {
+  it("names the event, its date, who it was added as and how many", () => {
+    renderCard();
+    expect(screen.getByText("Tom's Leaving Do")).toBeInTheDocument();
+    expect(screen.getByText(formatEventDate("2026-08-29"))).toBeInTheDocument();
+    expect(screen.getByText("Added as Priya · 4 photos")).toBeInTheDocument();
   });
 
-  it("withholds a gated date and an untyped name rather than inventing either", () => {
-    render(<ClaimsCard rows={[rowB]} />);
-    expect(screen.queryByText(/Added as/)).not.toBeInTheDocument();
-    expect(screen.getByText(/1 photo\b/)).toBeInTheDocument();
-  });
-});
-
-/**
- * EVERY COUNT ON THE TICKET, GROUPED (the 1,000-row round's follow-on): a guest with more than
- * 999 uploads under their email read "1249 photos" on the row, in the confirmation and in the
- * toast. All three go through `formatCount`.
- */
-describe("a count past 999", () => {
-  const big: ClaimableEventRow = { ...rowA, uploadCount: 1249 };
-
-  it("is grouped on the row", () => {
-    render(<ClaimsCard rows={[big]} />);
-    expect(screen.getByText(/Added as Priya/).textContent).toContain(
-      "1,249 photos",
-    );
-  });
-
-  it("is grouped in the confirmation", () => {
-    render(<ClaimsCard rows={[big]} />);
-    fireEvent.click(screen.getByRole("button", { name: "Finish" }));
+  it("shows her own previews, one tile each", () => {
+    renderCard();
+    const card = screen.getByRole("article", { name: "Tom's Leaving Do" });
     expect(
-      within(screen.getByRole("dialog")).getByText(
-        "Permanently delete the 1,249 photos and videos added under your email at this event?",
-      ),
+      [...card.querySelectorAll("img")].map((img) => img.getAttribute("src")),
+    ).toEqual(["https://r2.test/a", "https://r2.test/b"]);
+  });
+
+  it("★ a password album shows a lock and the count, never a photograph or a date", () => {
+    renderCard({ gate: "password", eventDate: null, previews: [] });
+    expect(
+      screen.getByText("4 photos stay behind the host’s password"),
+    ).toBeInTheDocument();
+    expect(document.querySelector("img")).toBeNull();
+  });
+
+  it("a private album says so in the same place", () => {
+    renderCard({ gate: "private", uploadCount: 1, previews: [] });
+    expect(
+      screen.getByText("1 photo stays in an album the host made private"),
     ).toBeInTheDocument();
   });
 
-  it("is grouped in the toast", async () => {
-    vi.mocked(finishClaimsAction).mockResolvedValue({
-      ok: true,
-      claimedEvents: 1,
-    });
-    render(<ClaimsCard rows={[big]} />);
-    fireEvent.click(screen.getByRole("button", { name: "Claim all" }));
-    await waitFor(() =>
-      expect(toast.success).toHaveBeenCalledWith(
-        "Added 1,249 photos to your account.",
-      ),
+  it("an open album with nothing to show yet draws no empty row", () => {
+    renderCard({ previews: [] });
+    expect(document.querySelector("img")).toBeNull();
+    expect(screen.queryByText(/stay/)).not.toBeInTheDocument();
+  });
+
+  it("groups a count past 999 and names every typed name", () => {
+    expect(
+      whoLine({ ...TOMS, uploadCount: 1249, names: ["Priya", "P.", "Pri"] }),
+    ).toBe("Added as Priya, P., and Pri · 1,249\u00a0photos");
+    expect(namesLabel([])).toBeNull();
+    expect(whoLine({ ...TOMS, names: [], uploadCount: 1 })).toBe(
+      "1\u00a0photo",
+    );
+    expect(lockWords({ ...TOMS, gate: "password", uploadCount: 1249 })).toBe(
+      "1,249\u00a0photos stay behind the host’s password",
     );
   });
 });
 
-describe("Claim all", () => {
-  it("sends null, claims every row and skips the confirmation entirely", async () => {
-    vi.mocked(finishClaimsAction).mockResolvedValue({
-      ok: true,
-      claimedEvents: 2,
+describe("the answers", () => {
+  it("a card the review opens on answers at once", () => {
+    const { onClaim, onNotMine } = renderCard();
+    fireEvent.click(screen.getByRole("button", { name: "Claim" }));
+    fireEvent.click(screen.getByRole("button", { name: "Not mine" }));
+    expect(onClaim).toHaveBeenCalledTimes(1);
+    expect(onNotMine).toHaveBeenCalledTimes(1);
+  });
+
+  describe("★ an arriving card holds its answers for a beat", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
     });
-    render(<ClaimsCard rows={[rowA, rowB]} />);
+    afterEach(() => {
+      vi.useRealTimers();
+    });
 
-    fireEvent.click(screen.getByRole("button", { name: "Claim all" }));
+    it("drops a tap that lands as it slides in, then answers", () => {
+      const { onClaim } = renderCard({}, { arriving: true });
+      const claim = screen.getByRole("button", { name: "Claim" });
+      expect(claim).toHaveAttribute("aria-disabled", "true");
+      fireEvent.click(claim);
+      expect(onClaim).not.toHaveBeenCalled();
+      act(() => {
+        vi.advanceTimersByTime(SETTLE_MS);
+      });
+      expect(claim).not.toHaveAttribute("aria-disabled");
+      fireEvent.click(claim);
+      expect(onClaim).toHaveBeenCalledTimes(1);
+    });
+  });
 
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    await waitFor(() =>
-      expect(finishClaimsAction).toHaveBeenCalledWith({
-        claimIds: null,
-        disownIds: [],
-      }),
-    );
-    await waitFor(() =>
-      expect(toast.success).toHaveBeenCalledWith(
-        "Added 4 photos to your account.",
-      ),
+  it("answers nothing while its own answer is being written", () => {
+    const { onClaim, onNotMine } = renderCard({}, { pending: "claim" });
+    fireEvent.click(screen.getByRole("button", { name: "Claim" }));
+    fireEvent.click(screen.getByRole("button", { name: "Not mine" }));
+    expect(onClaim).not.toHaveBeenCalled();
+    expect(onNotMine).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Claim" })).toHaveAttribute(
+      "aria-busy",
+      "true",
     );
   });
 });
 
-describe("Finish", () => {
-  it("asks nothing once every row has been explicitly claimed", async () => {
-    vi.mocked(finishClaimsAction).mockResolvedValue({
-      ok: true,
-      claimedEvents: 2,
-    });
-    render(<ClaimsCard rows={[rowA, rowB]} />);
-
-    fireEvent.click(rowButton(rowA.eventName, "Claim"));
-    fireEvent.click(rowButton(rowB.eventName, "Claim"));
-    fireEvent.click(screen.getByRole("button", { name: "Finish" }));
-
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    await waitFor(() =>
-      expect(finishClaimsAction).toHaveBeenCalledWith({
-        claimIds: [rowA.eventId, rowB.eventId],
-        disownIds: [],
-      }),
-    );
-  });
-
-  it("confirms and names an event nobody touched before releasing it", async () => {
-    vi.mocked(finishClaimsAction).mockResolvedValue({
-      ok: true,
-      claimedEvents: 1,
-    });
-    render(<ClaimsCard rows={[rowA, rowB]} />);
-
-    fireEvent.click(rowButton(rowA.eventName, "Claim"));
-    // rowB is left untouched entirely — still counts as "unclaimed".
-    fireEvent.click(screen.getByRole("button", { name: "Finish" }));
-
-    const dialog = screen.getByRole("dialog");
-    expect(within(dialog).getByText(/Permanently delete/)).toBeInTheDocument();
-    expect(within(dialog).getByText(rowB.eventName)).toBeInTheDocument();
-
-    fireEvent.click(
-      within(dialog).getByRole("button", { name: "Delete and finish" }),
-    );
-
-    await waitFor(() =>
-      expect(finishClaimsAction).toHaveBeenCalledWith({
-        claimIds: [rowA.eventId],
-        disownIds: [rowB.eventId],
-      }),
-    );
-  });
-
-  it("writes an explicit Not mine the same as an untouched row", async () => {
-    vi.mocked(finishClaimsAction).mockResolvedValue({
-      ok: true,
-      claimedEvents: 1,
-    });
-    render(<ClaimsCard rows={[rowA, rowB]} />);
-
-    fireEvent.click(rowButton(rowA.eventName, "Claim"));
-    fireEvent.click(rowButton(rowB.eventName, "Not mine"));
-    fireEvent.click(screen.getByRole("button", { name: "Finish" }));
-
-    const dialog = screen.getByRole("dialog");
-    fireEvent.click(
-      within(dialog).getByRole("button", { name: "Delete and finish" }),
-    );
-
-    await waitFor(() =>
-      expect(finishClaimsAction).toHaveBeenCalledWith({
-        claimIds: [rowA.eventId],
-        disownIds: [rowB.eventId],
-      }),
-    );
-  });
-
-  /**
-   * The confirm-delete title's pluralisation, pinned the moment it was
-   * written (a count-bearing sentence gets its pin immediately): one upload
-   * is "photo or video" (never "photo", which would lie when the one upload
-   * is a video) and several are "photos and videos"; one event is "this
-   * event" and several name the count. `uploadCount` totals across the
-   * leftover ROWS, so a 1-photo/2-event case uses a second row with nothing
-   * uploaded under it yet.
-   */
+/**
+ * The confirm-delete title's pluralisation, pinned the moment it was written (a count-bearing
+ * sentence gets its pin immediately): one upload is "photo or video" (never "photo", which would lie
+ * when the one upload is a video) and several are "photos and videos"; one event is "this event"
+ * and several name the count; every count grouped. The review asks per card, so it always says
+ * "this event"; the several-event forms stay pinned for any caller that lists more.
+ */
+describe("the confirm-delete title", () => {
   it.each([
-    {
-      rows: [{ ...rowA, uploadCount: 1 }],
-      title:
-        "Permanently delete the 1 photo or video added under your email at this event?",
-    },
-    {
-      rows: [
-        { ...rowA, uploadCount: 1 },
-        { ...rowB, uploadCount: 0 },
-      ],
-      title:
-        "Permanently delete the 1 photo or video added under your email at these 2 events?",
-    },
-    {
-      rows: [{ ...rowA, uploadCount: 2 }],
-      title:
-        "Permanently delete the 2 photos and videos added under your email at this event?",
-    },
-    {
-      rows: [
-        { ...rowA, uploadCount: 1 },
-        { ...rowB, uploadCount: 1 },
-      ],
-      title:
-        "Permanently delete the 2 photos and videos added under your email at these 2 events?",
-    },
-  ])("reads correctly for $title", ({ rows, title }) => {
-    render(<ClaimsCard rows={rows} />);
-
-    // Nobody claims anything, so every row is left over at Finish.
-    fireEvent.click(screen.getByRole("button", { name: "Finish" }));
-
-    const dialog = screen.getByRole("dialog");
-    expect(within(dialog).getByText(title)).toBeInTheDocument();
-  });
-
-  it("Go back cancels without writing anything", () => {
-    render(<ClaimsCard rows={[rowA, rowB]} />);
-
-    fireEvent.click(rowButton(rowA.eventName, "Claim"));
-    fireEvent.click(screen.getByRole("button", { name: "Finish" }));
-    fireEvent.click(screen.getByRole("button", { name: "Go back" }));
-
-    expect(finishClaimsAction).not.toHaveBeenCalled();
-    expect(screen.getByText(rowA.eventName)).toBeInTheDocument();
-  });
-
-  it("keeps the ticket and the picks standing when the server call fails", async () => {
-    vi.mocked(finishClaimsAction).mockResolvedValue({
-      ok: false,
-      message: "Try again.",
-    });
-    render(<ClaimsCard rows={[rowA]} />);
-
-    fireEvent.click(rowButton(rowA.eventName, "Claim"));
-    fireEvent.click(screen.getByRole("button", { name: "Finish" }));
-
-    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Try again."));
-    expect(screen.getByText(rowA.eventName)).toBeInTheDocument();
+    [
+      1,
+      1,
+      "Permanently delete the 1 photo or video added under your email at this event?",
+    ],
+    [
+      1,
+      2,
+      "Permanently delete the 1 photo or video added under your email at these 2 events?",
+    ],
+    [
+      2,
+      1,
+      "Permanently delete the 2 photos and videos added under your email at this event?",
+    ],
+    [
+      1249,
+      1,
+      "Permanently delete the 1,249 photos and videos added under your email at this event?",
+    ],
+  ])("%i photos at %i events", (photos, events, title) => {
+    expect(confirmDeleteTitle(photos, events)).toBe(title);
   });
 });

@@ -1,0 +1,28 @@
+{
+  "board": "locked-door",
+  "rounds": [
+    {
+      "n": 1,
+      "opened": "2026-09-29",
+      "answers": [
+        {
+          "ask": "lock",
+          "choice": "host",
+          "note": "This is not a direct selection. I'd like to see more polished/creative explorations off of this and option 2 (today's lit), as well as maybe one fresh one. Today's closed screen falls short, but I'm still not in love with our door design either. Curious if we can unlock something perfect for everything, whether shared or bespoke to each screen.",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        },
+        {
+          "ask": "previous",
+          "choice": "private",
+          "note": "I like this - if I knew I was previously a guest at an event and hit a screen that felt like I was blocked as a newcomer, I'd get frustrated and try to find the \"right\" way in. Differentiating these lets me know that it was changed to private, which I why I can no longer access. Now I understand and won't think I'm locked out of an event I should have access to.",
+          "by": "Will",
+          "at": "2026-09-29T08:49:43Z"
+        }
+      ],
+      "notes": [],
+      "items": [],
+      "calls": []
+    }
+  ]
+}

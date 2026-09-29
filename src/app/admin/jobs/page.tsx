@@ -96,6 +96,7 @@ const SIGNAL_LABEL: Partial<Record<JobId, { ok: string; failed: string }>> = {
   email_delivery: { ok: "sent", failed: "failed or refused" },
   abuse_limiter: { ok: "actions recorded", failed: "limiter errors" },
   unlock_limiter: { ok: "failed unlocks recorded", failed: "limiter errors" },
+  help_feedback: { ok: "clicks recorded", failed: "clicks dropped" },
 };
 
 /** What a `derived` reading counts, and the remedy to say when it is not zero. */

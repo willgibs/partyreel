@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Lock } from "lucide-react";
 
 import { DOOR_NAME_KEY } from "@/app/(auth)/door-name-key";
 import { AccountDoor, DOOR_WEAR } from "@/components/auth/account-door";
 import type { DoorVerified } from "@/components/auth/email-sign-in";
+import { AlmostIn } from "@/components/guest/door/heading";
+import { LiveCount } from "@/components/guest/door/lit";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatMediaCount } from "@/lib/format/count";
@@ -73,25 +74,30 @@ export function IdentifyStep({
       : `/auth/callback?next=/e/${qrToken}`;
 
   return (
-    <div
-      data-identify-step={verification ? "gate" : "create"}
-      className="flex flex-col gap-4"
-    >
-      {/* Rendered for the EYE and hidden from the a11y tree: the shell already announces these two
-          sentences as the sheet's accessible name and description (`entrySheetCopy`). */}
-      <div aria-hidden>
-        {verification && (
-          <p className="mb-1.5 flex items-center gap-1.5 text-label font-medium text-muted-foreground uppercase">
-            <Lock className="size-3" />
-            {DOOR_WEAR.gate.heading}
-          </p>
-        )}
-        <p className="font-heading text-page text-balance">{copy.title}</p>
-        <p className="mt-2 text-base leading-relaxed text-muted-foreground">
-          {copy.reason}
-        </p>
-      </div>
+    <div data-identify-step={verification ? "gate" : "create"}>
       <AccountDoor
+        // The door draws the heading, so the code screen can head itself "Check your email" in its
+        // place (`code=mail`), the gate's "Almost in" kept above it. The shell already announces
+        // the title and the reason as the sheet's name (`entrySheetCopy`), so the door hides them.
+        head={{
+          eyebrow: verification ? (
+            <AlmostIn>{DOOR_WEAR.gate.heading}</AlmostIn>
+          ) : undefined,
+          title:
+            verification && mediaTotal && mediaTotal > 0 ? (
+              // The gate's title counts what waits, ticking as photos land (`identity-door` r2's
+              // lit count); the same words `identifyCopy` hands the shell, the number its own node.
+              <>
+                <LiveCount value={mediaTotal} />
+                {mediaTotal === 1
+                  ? " photo or video is waiting"
+                  : " photos & videos are waiting"}
+              </>
+            ) : (
+              copy.title
+            ),
+          reason: copy.reason,
+        }}
         wear={verification ? "gate" : "keep"}
         methods={{ code: true }}
         emailRedirectTo={emailRedirectTo}

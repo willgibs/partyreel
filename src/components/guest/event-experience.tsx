@@ -12,9 +12,11 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ImageUp, Laptop, Lock, Smartphone } from "lucide-react";
+import { toast } from "sonner";
 
 import { initial } from "@/components/app/user-menu";
 import { ClaimHandlePrompt } from "@/components/guest/claim-handle-prompt";
+import { AlbumLightSampler } from "@/components/guest/door/album-light";
 import type { EntryModalHandle } from "@/components/guest/entry-modal";
 import type { FollowMomentHost } from "@/components/guest/follow-moment-card";
 import { GuestActionDock } from "@/components/guest/guest-action-dock";
@@ -35,6 +37,11 @@ import {
 } from "@/components/guest/live-gallery";
 import { LiveReel, LiveReelTile } from "@/components/guest/reel/live-reel";
 import { ReportDialog } from "@/components/guest/report-dialog";
+import {
+  createUploadTrackerStore,
+  UploadTracker,
+  UploadTrackerButton,
+} from "@/components/guest/upload-tracker";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
@@ -52,9 +59,21 @@ import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
 import { formatCount, formatMediaCount } from "@/lib/format/count";
 import { useInViewSentinel } from "@/lib/shared/use-in-view-sentinel";
 import { DEFAULT_ROW_STEP, type RowStep } from "@/lib/shared/album-rows";
+import {
+  confirmBeatToast,
+  mergeConfirmBeats,
+  onConfirmBeat,
+  type ConfirmBeat,
+} from "@/lib/guest/confirm-beat";
+import {
+  openToldNameChange,
+  ToldNameForm,
+} from "@/lib/guest/confirm-beat-name";
 import { closesOnLastRemoval as lastRemovalCloses } from "@/lib/guest/delete-consequence";
 import { contributionAnswered } from "@/lib/guest/entry-steps";
+import { useKeepAskPutDown } from "@/lib/guest/keep-ask";
 import { onNameDoorRequest } from "@/lib/guest/name-door";
+import { settleConfirmedName } from "@/lib/guest/settle-name";
 import { useConfirmReturn } from "@/lib/guest/use-confirm-return";
 import { useLiveQueue, useUploadQueue } from "@/lib/guest/use-upload-queue";
 import {
@@ -168,8 +187,8 @@ export function EventExperience({
   hostSeed?: string | null;
   /** Viewer is the event host -> the entry modal is suppressed (the owner bypasses the gate). */
   isOwner: boolean;
-  /** The server-composed named Guests section (profiles-social.md) — non-null ONLY when the
-   *  host enabled show_guest_list AND access is full (the page owns that gate). */
+  /** The server-composed named Guests section (profiles-social.md) — non-null ONLY when access is
+   *  full and somebody is on the list (the page owns that gate; the list itself is always on). */
   guestListSlot?: React.ReactNode;
   /** The media ids in this album this SIGNED-IN viewer uploaded — resolved in the
    *  page RSC, never asserted by the browser. Empty for an anonymous guest, whose
@@ -214,18 +233,20 @@ export function EventExperience({
      magic-link confirmation comes back here signed in) and hears every claim
      made on it, whichever door started it; `moment` is true once a confirm door
      opened here AND a claim moved this album's own uploads, and the post-upload
-     slot then plays the follow moment with no upload needed this visit. Never in
-     the demo, never for the host. (lib/guest/use-confirm-return.ts owns the
+     slot then plays the follow moment with no upload needed this visit, saying
+     the other events once, in one line: `elsewhere` from here, and the events
+     waiting under her email, which the slot reads for the moment alone. Never
+     in the demo, never for the host. (lib/guest/use-confirm-return.ts owns the
      rule.) */
-  const moment = useConfirmReturn(qrToken, !isDemo && !isOwner);
+  const { moment, elsewhere } = useConfirmReturn(qrToken, !isDemo && !isOwner);
   const [sessionToken, setSessionToken] = useStoredSession(qrToken);
   // The name this device typed at this event. Beside the session, never
   // instead of it: the token is the capability, this is the label.
   const [storedName] = useStoredName(qrToken);
   /* ★ THE ADDRESS TYPED AT THE DOOR, FOR THIS VISIT AND NO LONGER. It lives in
-     React state on purpose: its ONE job is to prefill the offer card's door, so
-     a guest who has just typed it under their name does not type it again three
-     taps later. Writing it to localStorage would hand it to the next person on a
+     React state on purpose: its ONE job is to prefill the keep's account door
+     (the door's last screen), so a guest who has just typed it under their name
+     does not type it again three taps later. Writing it to localStorage would hand it to the next person on a
      shared phone, which is precisely what `lib/auth/remembered-email.ts` is
      `/login`-only to prevent; a reload loses it and the door simply asks, which
      is the right cost. */
@@ -359,11 +380,11 @@ export function EventExperience({
     ? gate !== "upload"
     : false;
 
-  // WHAT THE ALBUM'S HEAD STILL OWES THIS DEVICE: everything in flight, AND
-  // anything a hold-for-approval event finished but is keeping back, as a
-  // waiting tile (a completed upload that vanished would read as a failure).
-  // A held item stays here until the poll shows the host approved it, and its
-  // object URL stays alive with it.
+  // WHAT THIS DEVICE HAS SENT THAT THE ALBUM DOES NOT SHOW YET: everything in
+  // flight (the head's stack), AND anything a hold-for-approval event finished
+  // but is keeping back, which draws nowhere in the album (`held=uploads`) but
+  // keeps its object URL alive for her uploads' picture of it, and counts
+  // toward her own-delete consequence, until the host decides.
   const inFlightUploads = queue.filter(
     (it) => it.status !== "done" || it.mediaStatus === "pending",
   );
@@ -477,7 +498,20 @@ export function EventExperience({
   );
   // At 0 items the PHOTOGRAPHIC-PROMISE empty state owns the primary Add
   // (its centered CTA), so the header drops its Add to avoid two primaries.
-  const galleryEmpty = mediaCount === 0;
+  // ★ BUT ONLY WHILE NOTHING OF HERS IS ON THE WAY: a guest whose own files
+  // are in flight sees them at the album's head (the album draws its grid for
+  // them), and one whose files are held for the host has the album's empty
+  // state with no CTA of its own (the album shows only what is in it), so in
+  // both the row's Add is the only Add there is (the empty state's CTA is
+  // passed only while `galleryEmpty`). At a moderated event whose album is
+  // still empty, that is every guest who has sent anything, and exactly the
+  // guest her tracker sits beside Add for, its badge counting what waits.
+  const galleryEmpty = mediaCount === 0 && inFlightUploads.length === 0;
+  // Her tracker (`guest-capture` r1, `tracker=button`): the two facts its button needs, kept
+  // outside the page's state so a sync re-renders the tracker and never this shell.
+  const [trackerStore] = useState(createUploadTrackerStore);
+  const [trackerOpen, setTrackerOpen] = useState(false);
+  const openTracker = useCallback(() => setTrackerOpen(true), []);
   /* ★ THE STORED REEL'S CARD AND OVERLAY DO NOT RENDER. The reel is live: the Highlight reel tile
      sits in its own slot above the album and opens the full-screen view (reel/live-reel.tsx), both
      reading the album's own live payload. The stored reel's two components stay on disk until the
@@ -553,6 +587,84 @@ export function EventExperience({
   // chunk and a hydrating page cannot know yet: a `?reel` waits a beat for the owner rather than
   // opening under a welcome that is about to arrive for a guest.
   const [welcomePending, setWelcomePending] = useState(true);
+
+  /* ────────────────────────────────────────────────────────────────────────
+     THE KEEP: THE DOOR'S LAST SCREEN (`guest-capture` r1, `moment=first` and `shape=sheet-step`).
+
+     The ask to keep what she added arrives the instant her first file lands, as the door's last
+     screen, whichever Add sent it (the door's own upload step, or the album's once she is inside):
+     the door simply has one more step, and opens for it. It is due for a guest with no account
+     here (a session of any kind means there is nothing to keep that confirming would add), never
+     in the demo or for the host, once something of hers landed this visit and is still in the
+     album, until she puts it down (Maybe later, remembered for this event on this device) or
+     confirms (the refresh then says who she is; `keepAnswered` stops the ask before it lands).
+
+     ★ THE ALBUM'S OFFER CARD IS GONE WITH IT (`claim-handle-prompt.tsx`'s own note says what the
+     slot keeps): every first landing now meets the ask in the door, and a guest who answered or put
+     it down there is not asked again under the album. Her menu's card stays the ask's standing home.
+     ──────────────────────────────────────────────────────────────────────── */
+  const keepPutDown = useKeepAskPutDown(qrToken);
+  const [keepAnswered, setKeepAnswered] = useState(false);
+  const landedCount = queue.filter(
+    (it) => it.status === "done" && !(it.mediaId && removedIds.has(it.mediaId)),
+  ).length;
+  const keepDue =
+    !isDemo &&
+    !isOwner &&
+    !isAuthed &&
+    !keepPutDown &&
+    !keepAnswered &&
+    landedCount > 0;
+  const onKeepAnswered = useCallback(() => setKeepAnswered(true), []);
+
+  /* ────────────────────────────────────────────────────────────────────────
+     ONE BEAT PER CONFIRMATION (`confirm-beat.ts`). A confirmation that plays the follow moment says
+     everything in its card; any other reports its beat here (the name her photos now carry, the
+     other events), and the page says it ONCE, as one toast, and only once the door has closed, so
+     it never lands on a sheet she is still answering. The name's Change is the toast's action: a
+     small name form (`confirm-beat-name.tsx`, `popups` r1's `forms=dialog`), mounted below.
+     ──────────────────────────────────────────────────────────────────────── */
+  const pendingBeatRef = useRef<ConfirmBeat | null>(null);
+  const welcomePendingRef = useRef(welcomePending);
+  const sayPendingBeat = useCallback(() => {
+    const beat = pendingBeatRef.current;
+    pendingBeatRef.current = null;
+    if (!beat) return;
+    void (async () => {
+      // A door on another island could not settle the name (`confirm-beat.ts` says why): the
+      // page does, here, before it speaks, so the name told is the one her photos now carry.
+      const name = beat.settle
+        ? (beat.name ?? (await settleConfirmedName(beat.album)))
+        : beat.name;
+      const words = confirmBeatToast({ name, elsewhere: beat.elsewhere });
+      if (!words) return;
+      toast.success(words.title, {
+        description: words.description,
+        action: name
+          ? {
+              label: "Change",
+              onClick: () => openToldNameChange(name),
+            }
+          : undefined,
+      });
+    })();
+  }, []);
+  useEffect(() => {
+    welcomePendingRef.current = welcomePending;
+    if (!welcomePending) sayPendingBeat();
+  }, [welcomePending, sayPendingBeat]);
+  useEffect(
+    () =>
+      onConfirmBeat((beat) => {
+        if (beat.album !== qrToken) return;
+        pendingBeatRef.current = mergeConfirmBeats(
+          pendingBeatRef.current,
+          beat,
+        );
+        if (!welcomePendingRef.current) sayPendingBeat();
+      }),
+    [qrToken, sayPendingBeat],
+  );
 
   // Upload bridge: completions route to LiveGallery's imperative handle. The
   // gallery streams in async, so anything finishing before it mounts (rare —
@@ -691,6 +803,17 @@ export function EventExperience({
     handleUploadedRef.current = handleUploaded;
   }, [handleUploaded]);
 
+  /* The told name, changed in the follow moment's own line (`name=told`'s Change): this device's
+     credits say the new name at once (the rename patch, as the album menu's Change name does), and
+     the refresh trues up everything server-baked (the Guests list, the header's account). */
+  const handleAccountRenamed = useCallback(
+    (displayName: string) => {
+      galleryRef.current?.renameMine(displayName);
+      router.refresh();
+    },
+    [router],
+  );
+
   // The demo's OWN share link carries its pairing id (a plain event never
   // does: shareUrl === joinUrl). GuestShare takes whatever string it is
   // handed and never re-derives it, so this is the entire integration.
@@ -779,6 +902,13 @@ export function EventExperience({
             onRetry={retry}
             onDismissFailures={dismiss}
             onUploadStepActive={onUploadStepActive}
+            keepDue={keepDue}
+            keepCount={landedCount}
+            keepHeld={event.moderation_mode === "hold_for_approval"}
+            // The address typed under her name a few minutes ago, so the keep's account door
+            // opens on it instead of asking twice.
+            hintEmail={attachedEmail}
+            onKeepAnswered={onKeepAnswered}
             // The header's own live number, so a door opened over the teaser
             // never says a different size than the line beside it.
             mediaTotal={mediaCount}
@@ -966,10 +1096,10 @@ export function EventExperience({
               above an album it is a random button, a growth lever asking a
               stranger to keep an album they have not seen yet, one tap from the
               event's own name. The offer waits until a guest has actually put
-              something in the album, where the after-upload card makes it
-              (guest-upload.tsx -> ClaimHandlePrompt -> the save card), in the
-              door's own voice. Invite takes the width: a 2-col grid with one
-              button in it is a row with a hole in it.
+              something in the album, where the door's own last screen makes it
+              (the keep, above), in the door's own voice. Invite takes the
+              width: a 2-col grid with one button in it is a row with a hole in
+              it.
 
               ★ THE DEMO FILLS THE SAME HOLE DIFFERENTLY, with its Start your
               own button: a real guest has nothing to put there, but a demo
@@ -983,33 +1113,51 @@ export function EventExperience({
               data-reveal
               style={{ "--reveal-i": revealBase + 3 } as React.CSSProperties}
             >
+              {/* Her tracker's round button rides beside Add (`guest-capture` r1,
+                  `tracker=button`); where the row has no Add (uploads closed), beside
+                  Invite. It draws nothing until she has something sent at a moderated
+                  event. */}
               {canUpload && !galleryEmpty && (
-                <Button
-                  type="button"
-                  size="lg"
-                  className="w-full"
-                  onClick={openAdd}
-                >
-                  <ImageUp /> Add photos
-                </Button>
-              )}
-              <div
-                className={cn(
-                  "mt-2 grid gap-2",
-                  isDemo ? "grid-cols-2" : "grid-cols-1",
-                )}
-              >
-                {isDemo && (
-                  <Button size="sm" className="h-9 w-full" asChild>
-                    <Link href="/">Start your own</Link>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    size="lg"
+                    className="min-w-0 flex-1"
+                    onClick={openAdd}
+                  >
+                    <ImageUp /> Add photos
                   </Button>
+                  <UploadTrackerButton
+                    store={trackerStore}
+                    onOpen={openTracker}
+                  />
+                </div>
+              )}
+              <div className="mt-2 flex items-center gap-2">
+                <div
+                  className={cn(
+                    "grid min-w-0 flex-1 gap-2",
+                    isDemo ? "grid-cols-2" : "grid-cols-1",
+                  )}
+                >
+                  {isDemo && (
+                    <Button size="sm" className="h-9 w-full" asChild>
+                      <Link href="/">Start your own</Link>
+                    </Button>
+                  )}
+                  <GuestShare
+                    joinUrl={shareUrl}
+                    qrStyle={event.qr_style}
+                    eventName={event.name}
+                    triggerClassName="h-9 w-full"
+                  />
+                </div>
+                {!(canUpload && !galleryEmpty) && (
+                  <UploadTrackerButton
+                    store={trackerStore}
+                    onOpen={openTracker}
+                  />
                 )}
-                <GuestShare
-                  joinUrl={shareUrl}
-                  qrStyle={event.qr_style}
-                  eventName={event.name}
-                  triggerClassName="h-9 w-full"
-                />
               </div>
             </div>
 
@@ -1026,21 +1174,20 @@ export function EventExperience({
                     ref={uploadRef}
                     event={event}
                     qrToken={qrToken}
-                    sessionToken={sessionToken}
                     queue={queue}
                     onAddFiles={addFiles}
                     onRetry={retry}
                     onDismiss={dismiss}
-                    // The door's own step is showing this run's failures; one run never gets two
-                    // surfaces (see the one queue's note above).
-                    suppressFailures={uploadStepActive}
+                    // The door's own step is showing this run's failures, or its keep stands in
+                    // front of the album: one run never gets two surfaces, and the failure sheet
+                    // waits for the keep to be answered (see the one queue's note above).
+                    suppressFailures={uploadStepActive || keepDue}
                     onFailuresClosed={flushPendingVerification}
                     isDemo={isDemo}
                     host={hostCard}
-                    // The address typed at the door a few minutes ago, so the
-                    // offer card's door opens on it instead of asking twice.
-                    hintEmail={attachedEmail}
                     moment={moment}
+                    elsewhere={elsewhere}
+                    onAccountRenamed={handleAccountRenamed}
                     removedIds={removedIds}
                   />
                 </div>
@@ -1061,7 +1208,8 @@ export function EventExperience({
                           qrToken={qrToken}
                           host={hostCard}
                           moment
-                          savePrompt={null}
+                          elsewhere={elsewhere}
+                          onAccountRenamed={handleAccountRenamed}
                         />
                       </div>
                     )}
@@ -1112,6 +1260,24 @@ export function EventExperience({
               onOwnRemoved={handleOwnRemoved}
               onGuestCountChange={setGuestCount}
             >
+              {/* The door's light takes its colour from here, the album's three newest (it draws
+                  nothing; `door/album-light.tsx`). */}
+              <AlbumLightSampler />
+              {/* Her tracker's list, inside the one live source it reads (its button sits in the
+                  row and the dock, above this provider, reading `trackerStore`). */}
+              <UploadTracker
+                store={trackerStore}
+                queue={queue}
+                qrToken={qrToken}
+                sessionToken={sessionToken}
+                isAuthed={isAuthed}
+                moderated={event.moderation_mode === "hold_for_approval"}
+                isDemo={isDemo}
+                isOwner={isOwner}
+                removedIds={removedIds}
+                open={trackerOpen}
+                onOpenChange={setTrackerOpen}
+              />
               <LiveReel
                 eventId={event.id}
                 eventName={event.name}
@@ -1148,7 +1314,7 @@ export function EventExperience({
                     access={access}
                     isDemo={isDemo}
                     onOpenGate={() => entryRef.current?.openToGate()}
-                    onAddFirst={canUpload ? openAdd : undefined}
+                    onAddFirst={canUpload && galleryEmpty ? openAdd : undefined}
                     joinUrl={joinUrl}
                     initialRowStep={rowStep}
                     firstPaintWidth={firstPaintWidth}
@@ -1183,6 +1349,9 @@ export function EventExperience({
                 triggerClassName="h-9 flex-1 sm:flex-none"
               />
             }
+            tracker={
+              <UploadTrackerButton store={trackerStore} onOpen={openTracker} />
+            }
           />
 
           {/* Discreet anonymous report path (the report capability is the qr_token).
@@ -1196,6 +1365,12 @@ export function EventExperience({
               <ReportDialog qrToken={qrToken} />
             </footer>
           )}
+          <ToldNameForm
+            onRenamed={(renamed) => {
+              galleryRef.current?.renameMine(renamed);
+              router.refresh();
+            }}
+          />
           {/* The demo's closing card at the foot, in the slot a real event gives
               the report footer (hidden here — nothing to report in a demo) and,
               once uploads are ever closed, the reel. Below the whole album on

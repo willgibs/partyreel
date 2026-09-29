@@ -3,17 +3,19 @@
 import { CheckoutButton } from "@/components/app/checkout-button";
 import { ManageBillingButton } from "@/components/app/manage-billing-button";
 import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
+import { StorageList } from "@/components/app/storage/storage-list";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { formatBytesUp } from "@/lib/billing/storage-guard";
 import {
   DEFAULT_TIER,
-  friendlyCapacity,
+  formatCapacity,
   toBillingTier,
+  videosAllowedForTier,
 } from "@/lib/constants/tiers";
-import { formatCount } from "@/lib/format/count";
 import { cn, formatBytes } from "@/lib/utils";
 
 /**
@@ -57,10 +59,18 @@ export function StorageMeter({
   // Amber only when it MATTERS (near the cap, or over the recovery budget); else
   // quiet neutral telemetry.
   const warning = overBudget || storagePct >= 85;
-  const usedLabel = formatBytes(storageUsed);
+  // ★ THE STORAGE FLOW'S ONE ROUNDING (`formatBytesUp`): what she stores reads
+  // here exactly as the plan's refusal and the size list will read it, so
+  // 110.83 GB is 110.9 GB on every screen between this bar and a switch. A cap
+  // is a plan's size, exact either way.
+  const usedLabel = formatBytesUp(storageUsed);
   const capLabel = storageCap ? formatBytes(storageCap) : null;
-  const capacity = storageCap ? friendlyCapacity(storageCap) : null;
   const billingTier = toBillingTier(tier ?? DEFAULT_TIER);
+  // The shared estimate, with its camera (host-storage r2), and with video only where the plan
+  // takes it: "or 2 min of video" on a photos-only Free plan was a promise it cannot keep.
+  const capacity = storageCap
+    ? formatCapacity(storageCap, { video: videosAllowedForTier(billingTier) })
+    : null;
 
   return (
     <Popover>
@@ -68,7 +78,7 @@ export function StorageMeter({
         <button
           type="button"
           aria-label={`Storage: ${usedLabel}${capLabel ? ` of ${capLabel}` : ""} used. View details.`}
-          className="flex w-full items-center gap-3 rounded-lg px-1.5 py-1 text-left outline-none transition-[transform,background-color] duration-150 ease-emphasis hover:bg-muted/40 active:scale-[0.995] focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="flex w-full items-center gap-3 rounded-lg px-1.5 py-1 text-left transition-[transform,background-color] duration-150 ease-emphasis outline-none hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-[0.995]"
         >
           <span className="shrink-0 text-xs font-medium text-muted-foreground">
             Storage
@@ -99,12 +109,25 @@ export function StorageMeter({
               Event Pass · expires {passExpiry}
             </p>
           )}
+          {/* THE SIZE LIST'S DOOR (host-storage r1): everything she stores,
+              largest first, to see what is filling the plan and remove it
+              from one place (`popups`' `lists=panel`: a side panel at a desk,
+              its own screen in a hand whose Back returns to the dashboard). */}
+          {storageUsed > 0 ? (
+            <StorageList back="Dashboard">
+              <button
+                type="button"
+                data-storage-door=""
+                className="mt-1 block text-left text-xs font-medium text-foreground underline underline-offset-4"
+              >
+                See what&rsquo;s using space
+              </button>
+            </StorageList>
+          ) : null}
         </div>
         {capacity && (
           <p className="text-xs text-muted-foreground">
-            Your {planName} plan holds about{" "}
-            {formatCount(capacity.photos)} photos or{" "}
-            {formatCount(capacity.videoMinutes)} min of video.{" "}
+            Your {planName} plan holds about {capacity}.{" "}
             {/* "Need more?" used to LEAVE the app for a static, tier-blind
                 page. It opens the sheet on `room` now (`first=trigger`), which
                 is the one door here that already knows how full the host is.

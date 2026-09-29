@@ -111,8 +111,12 @@ function TwoDoors() {
               Hosting at your venue, running it for your clients. What Partyreel
               offers a business, not a guest.
             </p>
+            {/* True at the base (constants/contact.ts): a partner has no
+                promise of its own yet, but already has a door, the same
+                "Press & partnerships" topic a reporter picks on /contact. */}
             <p className="mt-1 text-xs text-faint">
-              New: no partner promise or partner contact exists to show here yet.
+              New: no partner promise exists to show here yet; both doors reach
+              the one Press &amp; partnerships topic on /contact.
             </p>
             <Button asChild size="sm" variant="outline" className="mt-2 w-fit">
               <Link href="/contact">Contact partners</Link>

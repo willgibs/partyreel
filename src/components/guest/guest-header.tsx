@@ -37,9 +37,7 @@ type MenuData = {
 // menu the moment they tapped a name. With both props omitted this is the same header minus the
 // things that need an event: the ownership check (/api/me/menu already treats the param as
 // optional) and the name menu. The sign-out still puts down every guest ticket on the device, since
-// it was never about the page it happens on. It is not yet the answer for guest navigation as a
-// whole: a guest who starts tapping names can end up far from the event they scanned, and the way
-// BACK to it is an open question.
+// it was never about the page it happens on.
 //
 // WHY a client island (not a server getUser() in the page RSC): the page is hit by anonymous
 // event crowds, often behind ONE venue-NAT IP with auth rate limits, so the page deliberately

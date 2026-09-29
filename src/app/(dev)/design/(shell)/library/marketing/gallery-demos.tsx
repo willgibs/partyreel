@@ -26,11 +26,16 @@ import {
 import { InlineReelPlayer } from "@/components/marketing/sections/shared/inline-reel-player";
 import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
 import { LearnMoreLink } from "@/components/marketing/sections/shared/learn-more-link";
+import { ReelPlayScreen } from "@/components/marketing/sections/shared/reel-player";
 import { Caption } from "@/components/marketing/system/caption";
 import { CardGrid } from "@/components/marketing/system/card-grid";
 import { Conveyor } from "@/components/marketing/system/conveyor";
 import { CtaBand } from "@/components/marketing/system/cta-band";
 import { DemoCtaLink } from "@/components/marketing/system/demo-cta-link";
+import {
+  DemoDoor,
+  LiveDot,
+} from "@/components/marketing/system/demo-modal/demo-door";
 import { DemoTicket } from "@/components/marketing/system/demo-ticket";
 import { Eyebrow } from "@/components/marketing/system/eyebrow";
 import { MediaSplit } from "@/components/marketing/system/media-split";
@@ -42,6 +47,7 @@ import { SectionLight } from "@/components/marketing/system/section-light";
 import { SectionShell } from "@/components/marketing/system/section-shell";
 import { TiltCard } from "@/components/marketing/system/tilt-card";
 import { marketingImage } from "@/lib/constants/marketing-media";
+import { DEMO_EVENT_URL } from "@/lib/demo";
 
 import type { GalleryEntry } from "@/app/(dev)/design/gallery/entry";
 import {
@@ -534,7 +540,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     family: "marketing",
     section: "Heroes",
     file: "src/components/marketing/sections/home/cinema-hero.tsx",
-    lede: "The home's own first screen, and the one hero that is not a PageHero: the album streams out of the real demo code and the type sits where the band is measured never to reach.",
+    lede: "The home's own first screen, and the one hero that is not a PageHero: the album streams out from behind the link card (the code, the custom address and the guests on the photographs they added) and the type sits where the band is measured never to reach, under a Try our demo event eyebrow that is a demo door.",
     specimens: [
       {
         // The REAL section at its real height, which is the only honest way to
@@ -544,7 +550,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
         // It is fluid by construction, so the frame's own width is what the
         // band measures itself against.
         label: "The home hero",
-        hint: "the real section · the band runs, the code is the live demo's, the loop pauses off screen",
+        hint: "the real section · the band runs, the card and the eyebrow each open the demo modal, a tablet wears its own geometry from 768, the loop pauses off screen",
         bleed: true,
         node: <CinemaHero />,
       },
@@ -818,7 +824,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     for: "the poster-first reel surface: no video bytes until someone asks to play",
     family: "marketing",
     section: "Media",
-    lede: "The one playback surface: the reel teaser's inline sample and the hero's overlay both render this, so the transport contract lives once and no video bytes load without intent.",
+    lede: "The one playback surface: the contained player every Watch opens and the careers reel both render this, so the transport contract lives once and no video bytes load without intent.",
     specimens: [
       {
         label: "InlineReelPlayer",
@@ -999,15 +1005,39 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   {
     id: "sample-reel-overlay.lazy",
     file: "src/components/marketing/sections/shared/sample-reel-overlay.lazy.tsx",
-    for: "the watch-a-sample-reel overlay, lazy so the home page never carries it",
+    for: "the contained reel player: a landscape film in a panel over the dimmed page, a caption and Start free, lazy so no page carries it until someone presses Watch",
+    badge: "updated",
     family: "marketing",
     section: "Beats",
     title: "SampleReelOverlay",
+    lede: "Every Watch on the site opens this one player (the home hero's button, the home teaser's play mark, the event pages' reel card), each naming its own film. Escape, the scrim or the close control return focus to the button that opened it.",
     specimens: [
       {
         label: "SampleReelOverlay",
-        hint: "lazy default export · Escape closes",
+        hint: "lazy default export · Escape closes · Tab stays inside",
         node: <OverlayDemo />,
+      },
+    ],
+  },
+  {
+    id: "reel-player",
+    file: "src/components/marketing/sections/shared/reel-player.tsx",
+    for: "a teaser screen: a muted loop with a play mark that opens the contained player, and the hook any section opens it with",
+    badge: "new",
+    family: "marketing",
+    section: "Beats",
+    title: "ReelPlayScreen",
+    lede: "The loop is decoration (paused offscreen, in a hidden tab and under reduced motion); the one control is the button laid over it. useReelPlayer portals the player to the nearest [data-mkt], never into a section whose entrance holds a transform.",
+    specimens: [
+      {
+        label: "ReelPlayScreen",
+        hint: `reelId=${LIBRARY_REEL_ID} · press the play mark`,
+        bleed: true,
+        node: (
+          <div className="mx-auto max-w-xl">
+            <ReelPlayScreen reelId={LIBRARY_REEL_ID} source="library" />
+          </div>
+        ),
       },
     ],
   },
@@ -1059,11 +1089,11 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   {
     id: "cta-band",
     file: "src/components/marketing/system/cta-band.tsx",
-    for: "the closing conversion band, with the credit line that ends a page",
+    for: "the closing conversion band, its foot the demo link or, in a band without one, the credit line",
     badge: "updated",
     family: "marketing",
     section: "Conversion",
-    lede: "The one conversion band, composed from SectionShell so its heading scale and its entrance stay with every other section.",
+    lede: "The one conversion band, composed from SectionShell so its heading scale and its entrance stay with every other section. The demo link stands a beat below the buttons, in the credit's place.",
     variants: [
       {
         prop: "reveal",
@@ -1075,14 +1105,26 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     ],
     specimens: [
       {
-        label: "With the demo link and the credit",
-        hint: "demoLink · credit",
+        label: "With the demo link",
+        hint: "demoLink · at the foot, in the credit's place",
         bleed: true,
         node: (
           <CtaBand
-            heading="Your next event ends with a reel."
+            heading="Your next event starts here."
             subhead="A sample band: the primary defaults to the marketing CTA."
             demoLink
+            className="py-12"
+          />
+        ),
+      },
+      {
+        label: "With the credit",
+        hint: "credit · a band with no demo line",
+        bleed: true,
+        node: (
+          <CtaBand
+            heading="Your next event starts here."
+            subhead="A sample band: the primary defaults to the marketing CTA."
             credit
             className="py-12"
           />
@@ -1093,7 +1135,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   {
     id: "demo-ticket",
     file: "src/components/marketing/system/demo-ticket.tsx",
-    for: "DemoFrame, the one object every demo door wears (a photograph in a plain mat, the code tucked into its corner), presentational for the hero, footer, line and nav mounts that own their own door; DemoTicket is its complete, self-contained door for the Library's specimen and the site-chrome board",
+    for: "DemoFrame, the nav panel's pane (a photograph in a plain mat, the code tucked into its corner), presentational for the mount that owns its door; DemoTicket is its complete, self-contained door for the Library's specimen",
     badge: "updated",
     family: "marketing",
     section: "Conversion",
@@ -1104,7 +1146,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
         source: "prop",
         fallback: "row",
         options: ["row", "column"],
-        note: "The two shapes sit on different grounds and cannot share a palette: row is the hero's dark glass, column the opaque nav panel's card.",
+        note: "Two sizes of one frame: row the larger, which the home hero wore until the link card replaced it, column the nav panel's pane.",
       },
     ],
     specimens: [
@@ -1127,14 +1169,44 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   {
     id: "demo-cta-link",
     file: "src/components/marketing/system/demo-cta-link.tsx",
-    for: "the recurring live-demo link, gated on a configured demo event so it is never dead",
+    for: "the recurring live-demo link: the live dot inside the words, a demo door, gated on a configured demo event so it is never dead",
+    badge: "updated",
     family: "marketing",
     section: "Conversion",
     specimens: [
       {
         label: "DemoCtaLink",
-        hint: "source=library · null without a demo",
+        hint: "source=library · the modal at a desk, a new tab on a phone · null without a demo",
         node: <DemoCtaLink source="library" />,
+      },
+    ],
+  },
+  {
+    id: "demo-door",
+    file: "src/components/marketing/system/demo-modal/demo-door.tsx",
+    for: "a door to the demo: a real link that opens the demo modal at a desk (the code to scan with a phone, the short link, the demo one press away) and the demo in a new tab on a phone; every demo pointer renders through it",
+    test: "src/components/marketing/system/demo-modal/demo-door.test.tsx",
+    badge: "new",
+    family: "marketing",
+    section: "Conversion",
+    lede: "Presentation stays the caller's: the hero's eyebrow, DemoCtaLink, the footer's pile, the nav pane and the event pages' button each keep their own look, name and analytics source, and take the door's behaviour. The modal is a popup of the share kind, the code card's family, and always paper so the code stands on white.",
+    specimens: [
+      {
+        label: "DemoDoor",
+        hint: "href · source · press it at a desk for the modal",
+        node: (
+          <DemoDoor
+            href={DEMO_EVENT_URL ?? "/demo"}
+            source="library"
+            className="mkt-learn inline-flex items-center gap-2 text-label font-medium text-muted-foreground uppercase hover:text-foreground"
+          >
+            <LiveDot />
+            <span className="inline-flex items-center gap-1">
+              Try our demo event
+              <LearnChevron />
+            </span>
+          </DemoDoor>
+        ),
       },
     ],
   },
@@ -1145,6 +1217,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     file: "src/components/marketing/sections/features/shared/feature-door.tsx",
     for: "a feature's door card: the photograph IS the card, plus the chip that surface draws",
     test: "src/components/marketing/sections/features/shared/feature-door.test.ts",
+    badge: "updated",
     family: "marketing",
     section: "Feature pieces",
     lede: "The shared furniture of the six feature pages (the album is the model). A door's labels and lines are read off src/lib/constants/feature-pages.ts, so its copy can never drift from the nav.",
@@ -1197,6 +1270,18 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
         node: (
           <div className="max-w-[14rem]">
             <FeatureDoor slug="qr" aspect="portrait" />
+          </div>
+        ),
+      },
+      {
+        // The one door outside the registry, and the one whose chip is not a
+        // state: the reel view's resting bar, with no length, because the
+        // live reel has none.
+        label: "The reel door",
+        hint: "slug=reel · aspect=portrait",
+        node: (
+          <div className="max-w-[14rem]">
+            <FeatureDoor slug="reel" aspect="portrait" />
           </div>
         ),
       },

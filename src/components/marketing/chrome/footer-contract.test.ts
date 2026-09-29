@@ -122,4 +122,26 @@ describe("the ink-slab footer contract", () => {
     expect(primitive).toContain("useAmbientPause");
     expect(primitive).toContain('data-paused={paused ? "true" : "false"}');
   });
+
+  it("keeps the demo pile standing where marketing.css never loads", () => {
+    // ★ THE ROOT 404 RENDERS THIS FOOTER OUTSIDE (marketing). The pile's fan
+    // rides the .mkt-stack recipe, which never loads there: positioned by the
+    // recipe alone, the cards fell back to inline spans and the 900px stills
+    // gave the 404 a horizontal scrollbar, and without a rest pose of its own
+    // the pile collapses under the plate. So the box, the size and the rest
+    // pose ride the component. The rest pose must stay a LAYERED utility:
+    // written inline it outranks the unlayered recipe's :hover rule and the
+    // fan stops working on every page.
+    const demo = stripComments(
+      read("src/components/marketing/chrome/footer-demo.tsx"),
+    );
+    expect(demo).toContain("absolute top-0 left-0");
+    expect(demo).toMatch(/width: 96,\s*height: 96/);
+    expect(demo).toContain(
+      "translate-x-(--cx) translate-y-(--cy) rotate-(--rot)",
+    );
+    expect(demo, "an inline rest pose outranks the fan").not.toMatch(
+      /\b(?:translate|rotate):\s/,
+    );
+  });
 });

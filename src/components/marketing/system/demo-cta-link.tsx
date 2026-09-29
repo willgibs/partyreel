@@ -1,8 +1,9 @@
-import { DemoFrame } from "@/components/marketing/system/demo-ticket";
-import { trackAttrs } from "@/lib/analytics/events";
+import { LearnChevron } from "@/components/marketing/sections/shared/learn-chevron";
 import { DEMO_CTA_LABEL } from "@/lib/constants/marketing-voice";
 import { DEMO_EVENT_URL } from "@/lib/demo";
 import { cn } from "@/lib/utils";
+
+import { DemoDoor, LiveDot } from "./demo-modal/demo-door";
 
 /**
  * The recurring live-demo CTA (Track B system layer): renders the single-sourced
@@ -12,12 +13,15 @@ import { cn } from "@/lib/utils";
  * `source` labels the demo_open analytics event; distinctive placements (the
  * CtaBand) pass their own, the long tail ships as "inline".
  *
- * ★ NOW CARRIES THE FRAME (`door=frame`, round two, 2026-09-20/21,
- * "the closing sitting's second batch"): the object
- * every demo door shares, at its smallest size, beside the words rather than
- * replacing them — this is the one door that is a sentence first. One `<a>`
- * still, so the thumbnail and the words remain a single click target and a
- * single accessible name, never two adjacent links doing the same thing.
+ * ★ THE LIVE DOT RIDES INSIDE THE ONE LINK, in all nineteen places (fourteen
+ * closing bands and five page heroes): `reel-story` r3 `beside=live`, "feels a
+ * bit more subtle but still cool". The frame that stood here for a round read
+ * "really silly" beside the words (r2), so the mark is the smallest new thing,
+ * and it is part of the link: one tap target, one accessible name (the words).
+ *
+ * ★ IT IS A DEMO DOOR (`demo-modal/`): at a desk a press opens the demo modal
+ * (the code to scan, the demo one press away); on a phone it opens the demo in
+ * a new tab.
  */
 export function DemoCtaLink({
   className,
@@ -28,36 +32,19 @@ export function DemoCtaLink({
 }) {
   if (!DEMO_EVENT_URL) return null;
   return (
-    <a
+    <DemoDoor
       href={DEMO_EVENT_URL}
-      {...trackAttrs("demo_open", { source })}
+      source={source}
       className={cn(
-        "group mkt-learn inline-flex items-center gap-2.5 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground",
+        "mkt-learn inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground",
         className,
       )}
     >
-      <DemoFrame
-        value={DEMO_EVENT_URL}
-        size="line"
-        className="transition-transform duration-150 group-hover:-translate-y-0.5"
-      />
+      <LiveDot />
       <span className="inline-flex items-center gap-1">
         {DEMO_CTA_LABEL}
-        <span className="mkt-learn-chevron inline-flex" aria-hidden>
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          >
-            <path className="mkt-learn-arm mkt-learn-arm-top" d="M6 4L10 8" />
-            <path className="mkt-learn-arm mkt-learn-arm-bot" d="M10 8L6 12" />
-          </svg>
-        </span>
+        <LearnChevron />
       </span>
-    </a>
+    </DemoDoor>
   );
 }

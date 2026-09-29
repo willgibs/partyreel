@@ -1,7 +1,6 @@
 import type { FaqItem } from "@/components/marketing/faq-data";
 import {
   EVENT_PASS_RENEWAL_PRICE_LABEL,
-  MAX_REEL_SECONDS,
   planById,
 } from "@/lib/constants/tiers";
 import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-cap";
@@ -39,7 +38,9 @@ const pass = planById("event_pass");
 export const PRICING_FAQ_ITEMS: FaqItem[] = [
   {
     q: "Can I run one big event without a subscription?",
-    a: `Yes, that is exactly what the Event Pass is: ${pass.priceLabel.replace(" one-time", "")} once for ${formatBytes(pass.storageBytes)}, video, ${MAX_REEL_SECONDS.event_pass}-second clips and every paid control, covering its event for about a year. Keep it live longer for ${EVENT_PASS_RENEWAL_PRICE_LABEL} a year.`,
+    // What a pass adds over Free since the free/pro shift: the password, the custom link and
+    // full-length clips are on every plan, so "every paid control" would oversell it.
+    a: `Yes, that is exactly what the Event Pass is: ${pass.priceLabel.replace(" one-time", "")} once for ${formatBytes(pass.storageBytes)}, video, and clips with no watermark, covering its event for about a year. Keep it live longer for ${EVENT_PASS_RENEWAL_PRICE_LABEL} a year.`,
   },
   {
     q: "What happens when I move from an Event Pass to Pro?",

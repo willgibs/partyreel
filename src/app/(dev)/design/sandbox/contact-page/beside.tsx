@@ -8,7 +8,7 @@ import {
 } from "@/app/(marketing)/(paper)/contact/contact-form";
 import { SUPPORT_EMAIL } from "@/lib/constants/site";
 
-import { stopLinks } from "./pieces";
+import { stopLinks, stopSubmits } from "./pieces";
 
 /**
  * DECISION 6: BESIDE THE FORM. What stands next to it, drawn beside the
@@ -41,6 +41,7 @@ export function BesidePreview({ shape }: { shape: BesideShape }) {
   return (
     <div
       onClickCapture={stopLinks}
+      onSubmitCapture={stopSubmits}
       className="mx-auto max-w-5xl bg-background p-6 text-foreground"
     >
       <div className="grid gap-10 lg:grid-cols-[1fr_1.6fr]">

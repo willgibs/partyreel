@@ -18,7 +18,8 @@ vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({ rpc: () => Promise.resolve(answer) }),
 }));
 
-const { createGuest } = await import("@/lib/db/mutations/guest");
+const { createGuest, createMedia, setGuestDisplayName, setGuestPendingEmail } =
+  await import("@/lib/db/mutations/guest");
 
 const JOIN = {
   qrToken: "q".repeat(32),
@@ -80,5 +81,44 @@ describe("createGuest: each refusal by its own words", () => {
       ok: false,
       code: "not_found",
     });
+  });
+});
+
+/**
+ * ★ THE SNEAKY BLOCK'S REFUSAL (migration 20260928120000): a ticket a block holds is refused by the
+ * three writes in the private album's own words, and each maps it to the private album's own answer
+ * (`unauthorized`, "This event is private."), ahead of every other refusal, so a guest can never
+ * tell a block from a private album by what a write says.
+ */
+describe("a blocked ticket's write reads as a private album's", () => {
+  const PRIVATE = {
+    ok: false,
+    code: "unauthorized",
+    message: "This event is private.",
+  };
+
+  it("the name, the email and the upload each answer it as the private album does", async () => {
+    refused("This event is private.");
+    expect(
+      await setGuestDisplayName({
+        sessionToken: "t".repeat(64),
+        displayName: "Sam",
+      }),
+    ).toEqual(PRIVATE);
+    expect(
+      await setGuestPendingEmail({
+        sessionToken: "t".repeat(64),
+        email: "sam@example.com",
+      }),
+    ).toEqual(PRIVATE);
+    expect(
+      await createMedia({
+        sessionToken: "t".repeat(64),
+        mediaId: "m",
+        type: "photo",
+        originalKey: "k",
+        fileSizeBytes: 1,
+      }),
+    ).toEqual(PRIVATE);
   });
 });

@@ -31,6 +31,7 @@ import { z } from "zod";
 
 import { removeMyUploadBySession } from "@/lib/db/mutations/guest-media";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
+import { isClosedDoor } from "@/lib/events/closed-door.server";
 import { captureWarning } from "@/lib/observability/sentry";
 import {
   abuseHashes,
@@ -90,12 +91,15 @@ export async function POST(request: Request) {
   }
 
   // The write inherits the page's read gate: a private event reveals nothing
-  // and accepts nothing (the RPC would refuse anyway — this is the belt).
+  // and accepts nothing (the RPC would refuse anyway — this is the belt). A
+  // ticket a block holds meets the same refusal (the closed door,
+  // `closed-door.server.ts`, asked with the body's ticket alone: a write route
+  // never reads the cookie).
   const event = await getEventByQrToken(qr_token);
   if (!event.ok) {
     return NextResponse.json({ ok: false, code: "not_found" }, { status: 404 });
   }
-  if (event.data.visibility === "private") {
+  if (await isClosedDoor(event.data, [session_token])) {
     return NextResponse.json(
       { ok: false, code: "unauthorized" },
       { status: 403 },

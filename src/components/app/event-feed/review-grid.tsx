@@ -5,14 +5,14 @@ import {
   type SelectableMediaGridProps,
 } from "./selectable-media-grid";
 
-// The inline pending-review grid = the shared SelectableMediaGrid with previews ON (the host peeks a
-// photo/video before approving; a tap toggles only in select mode, so scrolling the "All" feed never
-// selects by accident). The Gallery album bulk-select renders the same grid with previews OFF. Kept as a
-// thin named wrapper so the Review surface (review-section.tsx) is untouched.
+// The Review queue's grid = the shared SelectableMediaGrid with previews ON (the host peeks a
+// photo/video before judging it; a tap toggles only in select mode, so scrolling the queue never
+// selects by accident), on the UNIFORM layout (host-curation `queue=uniform`, Will: "This expected
+// uniformity helps more with scanning across lots of media"; the album's own shapes are for
+// experiencing it, and uniform tiles standardize the selection targets). The peek, its verdict
+// and the keys' hint pass straight through.
 export function ReviewGrid(
   props: Omit<SelectableMediaGridProps, "enablePreview" | "layout">,
 ) {
-  // Review = a UNIFORM grid (standardized selection hit-targets, Will 2026-06-22). The Gallery album
-  // select keeps the masonry "wow" (it calls SelectableMediaGrid directly without layout).
   return <SelectableMediaGrid {...props} enablePreview layout="uniform" />;
 }

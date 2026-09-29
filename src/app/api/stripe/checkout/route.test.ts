@@ -43,8 +43,10 @@ vi.mock("@/lib/supabase/admin", () => ({
   }),
 }));
 
+/** The ledger's unconsumed pass rows (`getLivePasses`), expired ones included. */
+let livePasses: Record<string, unknown>[] = [];
 vi.mock("@/lib/db/queries/event-passes", () => ({
-  getLivePasses: async () => [],
+  getLivePasses: async () => livePasses,
 }));
 
 let activeBytes = 0;
@@ -88,6 +90,7 @@ async function checkout(body: Record<string, unknown>) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  livePasses = [];
   user = { id: "host-1", email: "host@example.com" };
   profile = { stripe_customer_id: null, tier: "free", tier_expires_at: null };
   activeBytes = 1 * GIGABYTE;
@@ -174,6 +177,50 @@ describe("an active Pro host", () => {
       expect(status).toBe(409);
       expect(json.code).toBe("already_subscribed");
     }
+    expect(createSession).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * THE RENEWAL'S REFUSAL IS TRUE OF THE ACCOUNT (build 19's red-team): /account/renew opens for anyone
+ * signed in, and an account that never held a pass was told "Yours has ended". Both refusals keep
+ * `not_eligible`, the code the renew page answers with See plans first, and neither reaches Stripe.
+ */
+describe("a renewal with no pass running", () => {
+  it("★ tells an account with no pass that there is none to renew", async () => {
+    const { status, json } = await checkout({
+      planId: "event_pass",
+      renewal: true,
+    });
+    expect(status).toBe(403);
+    expect(json).toMatchObject({
+      ok: false,
+      code: "not_eligible",
+      message:
+        "This account has no Event Pass to renew. Start one from the pricing page.",
+    });
+    expect(json.message).not.toMatch(/ended/);
+    expect(createCustomer).not.toHaveBeenCalled();
+    expect(createSession).not.toHaveBeenCalled();
+  });
+
+  it("tells a holder whose pass has run out that it ended", async () => {
+    livePasses = [
+      {
+        id: "pass-1",
+        start_at: "2025-06-01T00:00:00.000Z",
+        expires_at: "2026-06-01T00:00:00.000Z",
+        price_cents: 2400,
+        consumed_at: null,
+      },
+    ];
+    const { status, json } = await checkout({
+      planId: "event_pass",
+      renewal: true,
+    });
+    expect(status).toBe(403);
+    expect(json).toMatchObject({ ok: false, code: "not_eligible" });
+    expect(json.message).toMatch(/Yours has ended/);
     expect(createSession).not.toHaveBeenCalled();
   });
 });

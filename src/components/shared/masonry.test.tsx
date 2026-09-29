@@ -114,6 +114,21 @@ describe("a tile carries MARKS, and a phone carries nothing else", () => {
       0,
     );
   });
+
+  // THE MARK THAT LEFT (`mine=none`, Will 2026-09-27, media-viewer r3): a guest's
+  // own tiles rode a glass dot, then a ring, then nothing — View's Showing
+  // (Everyone's / Yours, `buildGuestViewGroups` in live-gallery.tsx) is the one
+  // door to them now. The grid carries no id set and no tap for it any more, so
+  // this stays a plain regression guard rather than a feature's contract.
+  it("never wears a mine mark: no id set, no tap, nothing to render it with", () => {
+    const { container } = render(<MasonryColumns items={items} />);
+    expect(container.querySelectorAll('[data-tile-mark="mine"]')).toHaveLength(
+      0,
+    );
+    expect(
+      container.querySelectorAll("[data-media-tile][data-mine]"),
+    ).toHaveLength(0);
+  });
 });
 
 describe("the desk's hover set is ONE pane, declared per surface", () => {
@@ -200,111 +215,6 @@ describe("renderOverlay stays the per-surface chrome slot", () => {
     expect(head.contains(screen.getByTestId("pending"))).toBe(true);
     expect(box.querySelector("[data-media-tile]")!.previousElementSibling).toBe(
       head,
-    );
-  });
-});
-
-/**
- * THE FOURTH MARK (`theirs=mark`, Will 2026-09-20: "A subtle mark rides the ten
- * tiles that are theirs... a tap on the mark is the same filter as the chip").
- * Held here because it is the one mark a surface can make TAPPABLE, and a mark
- * that is sometimes a control has to be honest about which it is.
- */
-describe("the yours mark rides only a viewer's own tiles", () => {
-  const marks = () => document.querySelectorAll('[data-tile-mark="mine"]');
-
-  it("marks exactly the ids the surface names, and no tile without them", () => {
-    const { container, rerender } = render(
-      <MasonryColumns items={items} mineIds={new Set(["a"])} />,
-    );
-    expect(marks()).toHaveLength(1);
-    const tiles = container.querySelectorAll("[data-media-tile]");
-    expect(tiles[0].hasAttribute("data-mine")).toBe(true);
-    expect(tiles[1].hasAttribute("data-mine")).toBe(false);
-
-    // Omitted = the grid every other surface draws: no mark, no attribute.
-    rerender(<MasonryColumns items={items} />);
-    expect(marks()).toHaveLength(0);
-    expect(
-      container.querySelectorAll("[data-media-tile][data-mine]"),
-    ).toHaveLength(0);
-  });
-
-  it("is a MARKER with no tap, and a button only where a filter exists", () => {
-    const { rerender } = render(
-      <MasonryColumns items={items} mineIds={new Set(["a"])} />,
-    );
-    // Two open-the-lightbox buttons and not a third: a surface that cannot
-    // filter must not hand a keyboard a control that does nothing.
-    expect(screen.getAllByRole("button")).toHaveLength(2);
-
-    rerender(
-      <MasonryColumns
-        items={items}
-        mineIds={new Set(["a"])}
-        onSelectMine={() => {}}
-      />,
-    );
-    expect(
-      screen.getByRole("button", { name: /Show only your photos/ }),
-    ).toBeInTheDocument();
-  });
-
-  it("fires the filter without opening the lightbox underneath it", () => {
-    const onSelectMine = vi.fn();
-    const { container } = render(
-      <MasonryColumns
-        items={items}
-        mineIds={new Set(["a"])}
-        onSelectMine={onSelectMine}
-      />,
-    );
-    const mark = container.querySelector('[data-tile-mark="mine"]')!;
-    // A sibling of the open button, never a child of it, and it stops the
-    // click — both halves are what make the tap land on the mark.
-    const open = screen.getByLabelText("View photo");
-    expect(open.contains(mark)).toBe(false);
-    expect(open.parentElement).toBe(mark.parentElement);
-    fireEvent.click(mark);
-    expect(onSelectMine).toHaveBeenCalledTimes(1);
-  });
-
-  it("carries the filter's state, so the mark is never a one-way door", () => {
-    const { rerender } = render(
-      <MasonryColumns
-        items={items}
-        mineIds={new Set(["a"])}
-        onSelectMine={() => {}}
-      />,
-    );
-    expect(
-      screen.getByRole("button", { name: /Show only your photos/ }),
-    ).toHaveAttribute("aria-pressed", "false");
-
-    rerender(
-      <MasonryColumns
-        items={items}
-        mineIds={new Set(["a"])}
-        onSelectMine={() => {}}
-        mineSelected
-      />,
-    );
-    expect(
-      screen.getByRole("button", { name: /Show the whole album/ }),
-    ).toHaveAttribute("aria-pressed", "true");
-  });
-
-  it("leaves the other three marks exactly as they were", () => {
-    const { container } = render(
-      <MasonryColumns items={withCount} mineIds={new Set(["a", "b"])} />,
-    );
-    const tiles = container.querySelectorAll("[data-media-tile]");
-    // The play mark still belongs to the video alone...
-    expect(tiles[0].querySelector("svg.lucide-play")).toBeNull();
-    expect(tiles[1].querySelector("svg.lucide-play")).not.toBeNull();
-    // ...and the like mark still to the tile with a count on it.
-    expect(container.querySelectorAll('[data-tile-mark="like"]')).toHaveLength(
-      1,
     );
   });
 });
@@ -820,7 +730,6 @@ describe('layout="rows": the justified album on the one grid', () => {
       <MasonryColumns
         items={album}
         layout="rows"
-        mineIds={new Set(["r1"])}
         arrivedIds={new Set(["r0"])}
         landedIds={new Set(["r1"])}
       />,
@@ -831,7 +740,6 @@ describe('layout="rows": the justified album on the one grid', () => {
       )!;
     expect(tile("r3").querySelector("svg.lucide-play")).not.toBeNull();
     expect(tile("r2").querySelector('[data-tile-mark="like"]')).not.toBeNull();
-    expect(tile("r1").querySelector('[data-tile-mark="mine"]')).not.toBeNull();
     expect(tile("r0").hasAttribute("data-arrived")).toBe(true);
     expect(tile("r1").hasAttribute("data-landed")).toBe(true);
     expect(tile("r4").hasAttribute("data-lit")).toBe(true);

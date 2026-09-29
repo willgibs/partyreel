@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
+import { TRACKER_WORDS } from "@/lib/guest/upload-tracker";
 import {
+  adoptionUpdate,
   ALBUM_FILTERS,
+  operatorRemovalTouches,
   parseAlbumFilter,
   removalUpdate,
   restoreUpdate,
@@ -34,6 +37,72 @@ describe("operator moderation payloads", () => {
   it("marks a takedown as operator-made, and releases it on restore", () => {
     expect(removalUpdate().removed_by_admin).toBe(true);
     expect(restoreUpdate().removed_by_admin).toBe(false);
+  });
+
+  // admin-triage r1 (`notice=deleted`): a report's Remove on an item someone else already removed used
+  // to skip it, so the host could still restore a reported item. The flag alone makes it the
+  // operator's, and nothing else moves: its removal time, and so its purge date, stay put.
+  it("makes an existing removal the operator's without touching its clock", () => {
+    expect(adoptionUpdate()).toEqual({ removed_by_admin: true });
+  });
+});
+
+// What the confirm lists for an operator's removal is one home for both paths (Albums' Remove and a
+// report's Remove). Every line is true of the moment AFTER the press: build 15's red-team read "her
+// uploads list already says Not in the album" on an item still up, in words her list no longer uses.
+describe("operatorRemovalTouches: what an operator's removal reaches", () => {
+  const touches = (
+    from: "album" | "deleted",
+    wayBack: "undo" | "albums" | "here",
+  ) =>
+    operatorRemovalTouches({
+      kind: "photo",
+      eventName: "Hannah and Theo",
+      from,
+      wayBack,
+    });
+
+  it("quotes the guest's own list in its own words, and never says it already has", () => {
+    for (const from of ["album", "deleted"] as const) {
+      const lines = touches(from, "undo");
+      expect(lines.join(" ")).not.toMatch(/already says|Not in the album/);
+      expect(lines).toContain(
+        `At an event that reviews uploads, the guest who sent it sees “${TRACKER_WORDS.refused}” in her uploads list`,
+      );
+    }
+    expect(TRACKER_WORDS.refused).toBe("Not approved");
+  });
+
+  it("tells the host nothing, and takes it from her Deleted too", () => {
+    expect(touches("album", "here")[1]).toBe(
+      "Gone from the host's album and her Deleted at once; she is sent nothing",
+    );
+    expect(touches("deleted", "albums")[1]).toBe(
+      "Out of the host's Deleted at once, so she can no longer restore it; she is sent nothing",
+    );
+  });
+
+  it("says where the operator takes it back, for the one 30-day window, and never past a hold", () => {
+    expect(touches("album", "undo")[3]).toBe(
+      "Undo on the closed report for 30 days, then the purge deletes it unless it is held",
+    );
+    expect(touches("deleted", "albums")[3]).toBe(
+      "Restorable from Albums until its 30 days run out, then the purge deletes it unless it is held",
+    );
+    expect(touches("album", "here")[3]).toBe(
+      "Restorable here for 30 days, then the purge deletes it unless it is held",
+    );
+  });
+
+  it("names what and where first", () => {
+    expect(
+      operatorRemovalTouches({
+        kind: "video",
+        eventName: "Priya and Dev",
+        from: "album",
+        wayBack: "here",
+      })[0],
+    ).toBe("1 video in Priya and Dev");
   });
 });
 

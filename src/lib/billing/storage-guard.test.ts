@@ -14,6 +14,8 @@ import {
   fittingProPlans,
   formatBytesUp,
   parseStorageRefusal,
+  planWithBilling,
+  proFitLine,
   refusalSentence,
   replacesCap,
 } from "./storage-guard";
@@ -148,6 +150,61 @@ describe("the numbers are sufficient instructions", () => {
     const sentence = refusalSentence(140 * GIGABYTE, pro100, pro500);
     expect(sentence).toContain(pro100.name);
     expect(sentence).toContain(pro500.name);
+  });
+
+  it("names which price it offers, since a size has two", () => {
+    // storage-r2's note: "or choose Pro 500 GB" sent a host already on Pro 500 GB
+    // monthly to what she had, when it meant the yearly price.
+    const yearly = planById("pro_500_yr");
+    expect(refusalSentence(140 * GIGABYTE, pro100, yearly)).toContain(
+      planWithBilling(yearly),
+    );
+    expect(planWithBilling(yearly)).not.toBe(planWithBilling(pro500));
+    // A plan with no cadence is its name.
+    expect(planWithBilling(pass)).toBe(pass.name);
+  });
+});
+
+describe("the Pro price list's fit line", () => {
+  // Priya's account on the host-storage board: 110.83 GB across four events.
+  const stored = 110.83 * GIGABYTE;
+
+  it("offers nothing when the size that fits is her own plan", () => {
+    // On Pro 500 GB monthly, the line names what to remove for Pro 100 GB and
+    // never sends her to the plan she is on.
+    const line = proFitLine(stored, pro500);
+    expect(line).toContain(pro100.name);
+    expect(line).toContain("10.9 GB");
+    expect(line).not.toMatch(/choose/i);
+  });
+
+  it("reads at her billing, and names the billing of what it offers", () => {
+    const line = proFitLine(stored, planById("pro_2tb_yr"));
+    expect(line).toContain(planWithBilling(planById("pro_500_yr")));
+    expect(line).not.toContain(planWithBilling(pro500));
+  });
+
+  it("says nothing when every size holds what she stores", () => {
+    expect(proFitLine(40 * GIGABYTE, pro500)).toBeNull();
+  });
+
+  it("reads at the billing the list shows, so a yearly view offers a yearly price", () => {
+    // host-storage r2 (`prices=sizes` under one Monthly / Yearly toggle): on Pro 500 GB
+    // monthly, the yearly view's way out is her own size, yearly, a real switch.
+    const line = proFitLine(stored, pro500, "year");
+    expect(line).toContain(planWithBilling(planById("pro_500_yr")));
+    expect(line).not.toContain(planWithBilling(pro500));
+  });
+});
+
+describe("one number, one rounding", () => {
+  it("prints what she stores one way, in the refusal as everywhere else", () => {
+    // 110.83 GB read 110.8 GB on the meter (nearest) and 110.9 GB in the refusal
+    // (up). The meter, the Plan card, the refusal and the list's All print what
+    // she stores through formatBytesUp now, and the refusal carries that figure.
+    const stored = 110.83 * GIGABYTE;
+    expect(formatBytesUp(stored)).toBe("110.9 GB");
+    expect(refusalSentence(stored, pro100, null)).toContain("110.9 GB");
   });
 });
 

@@ -9,7 +9,11 @@ import { Logo } from "@/components/shared/logo";
 import { Card, CardContent } from "@/components/ui/card";
 import { isAdminHost } from "@/lib/auth/admin-host";
 import { doorFailureKind } from "@/lib/auth/door-failure";
-import { marketingImage, type MarketingImage } from "@/lib/constants/marketing-media";
+import { signInLanding, signInReturn } from "@/lib/auth/return-path";
+import {
+  marketingImage,
+  type MarketingImage,
+} from "@/lib/constants/marketing-media";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
@@ -128,14 +132,30 @@ function PhotoWall({
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; intent?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    intent?: string;
+    next?: string | string[];
+  }>;
 }) {
-  // Already signed in? Skip the form and go into the app — so a logged-in visitor
-  // clicking "Log in" from marketing isn't forced through sign-in again (their
-  // session is still valid; it just wasn't being checked here). getUser() (never
-  // getSession) re-validates the JWT. Host-aware target mirrors the auth callback:
-  // admin subdomain → /admin, everything else → /dashboard. This is the ONLY thing
-  // that redirects authenticated users away from /login; an anonymous visitor falls
+  // Next 16: searchParams is a Promise. The callback route bounces a failed
+  // exchange back here with a FAILURE KIND (`?error=expired_link`); the legacy
+  // `auth_callback` spelling still arrives from links already in mailboxes and
+  // resolves to the same kind. `?intent=create` is the marketing "Start free"
+  // door, and it is what lets the door say "you already had an account".
+  // `?next=` is the page a gate sent a signed-out visitor from (a mail's button,
+  // crumbs-11): kept only when it is on the return allow-list, and otherwise
+  // dropped without a word, so a hostile value reads exactly like none.
+  const { error, intent, next } = await searchParams;
+  const returnTo = signInReturn(next);
+
+  // Already signed in? Skip the form and go where they were going — so a logged-in
+  // visitor clicking "Log in" from marketing isn't forced through sign-in again
+  // (their session is still valid; it just wasn't being checked here). getUser()
+  // (never getSession) re-validates the JWT. The landing is the one rule the form
+  // and the callback share (signInLanding): the return, else the portal on the
+  // admin subdomain and /dashboard everywhere else. This is the ONLY thing that
+  // redirects authenticated users away from /login; an anonymous visitor falls
   // straight through to the form below, so there's no loop (and /login stays in
   // (auth), outside the (app) gate, on purpose).
   const supabase = await createClient();
@@ -143,16 +163,10 @@ export default async function LoginPage({
     data: { user },
   } = await supabase.auth.getUser();
   if (user) {
-    const host = (await headers()).get("host");
-    redirect(isAdminHost(host) ? "/admin" : "/dashboard");
+    redirect(
+      signInLanding(returnTo, isAdminHost((await headers()).get("host"))),
+    );
   }
-
-  // Next 16: searchParams is a Promise. The callback route bounces a failed
-  // exchange back here with a FAILURE KIND (`?error=expired_link`); the legacy
-  // `auth_callback` spelling still arrives from links already in mailboxes and
-  // resolves to the same kind. `?intent=create` is the marketing "Start free"
-  // door, and it is what lets the door say "you already had an account".
-  const { error, intent } = await searchParams;
 
   return (
     <div className="flex flex-1 flex-col lg:grid lg:grid-cols-2">
@@ -169,6 +183,7 @@ export default async function LoginPage({
               <LoginForm
                 intent={intent === "create" ? "create" : "signin"}
                 failure={doorFailureKind(error)}
+                next={returnTo}
               />
             </CardContent>
           </Card>

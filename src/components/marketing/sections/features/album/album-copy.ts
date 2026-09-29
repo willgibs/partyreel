@@ -1,5 +1,4 @@
 import { planById } from "@/lib/constants/tiers";
-import { MAX_EXPORT_ITEMS } from "@/lib/export/build-manifest";
 import { INACTIVE_DAYS, WARN_BEFORE_DAYS } from "@/lib/lifecycle/inactivity";
 import { OVER_CAP_GRACE_DAYS } from "@/lib/lifecycle/over-cap";
 import { RECENTLY_DELETED_WINDOW_DAYS } from "@/lib/lifecycle/recently-deleted";
@@ -62,8 +61,9 @@ export const YOUR_CALL = {
     "Guests only ever see approved photos. Whether that means the moment they land, or after you say so, is one switch.",
   hints: {
     live: "Uploads appear the moment they land. Hide any with a tap.",
+    // Her uploads' own words for a held photograph (pinned by mock-parity).
     review:
-      "Every upload waits for you. Guests see: Sent, waiting for host approval",
+      "Every upload waits for you. The guest who sent it sees Waiting for approval.",
   },
   settings: [
     {
@@ -107,7 +107,8 @@ export const WHO_CAN_OPEN = {
   subhead:
     "One setting decides who sees the album. A new event asks guests for an email first.",
   facts: [
-    "Password protection comes with Pro and Event Pass.",
+    // Every plan since the free/pro shift (2026-09-28): the password came down to Free.
+    "Password protection comes with every plan, Free included.",
     "Album links are never listed by search engines.",
   ],
 };
@@ -123,7 +124,8 @@ export const TAKE_HOME = {
     },
     {
       title: "Take all of it",
-      body: `One zip of the originals: everything, photos, or videos. Up to ${MAX_EXPORT_ITEMS.toLocaleString("en-US")} items.`,
+      // However big: past one zip's ceilings it comes home in parts (export-flow `cap=split`).
+      body: "A zip of the originals: everything, photos, or videos, however big the album.",
     },
     {
       // The reel plays live at the album's head and is never a file; what a

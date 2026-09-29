@@ -70,7 +70,7 @@ integrated as it stands.
 3. Commit the manifests alone; push; add the lane's In-flight row to `orchestrator.md` (its agent id, model and port).
 4. Spawn with the Agent tool: `spawn-prompt.txt` filled (`{track}`, `{port}`, and `{scratch}` the absolute path of
    `../partyreel-wt/_scratch`, never `$S`: a session's scratchpad dies with it, captures included), one port each from 3131 to
-   3139, at most eight lanes at once (`memory_pressure` first), their production builds taking turns through
+   3139, at most four lanes at once (`memory_pressure` first; eight ran Will's Mac out of memory, 2026-09-28), their production builds taking turns through
    `scripts/build-lock.sh`. The model is your call on every spawn: Opus for
    big, ambiguous, multi-file work, Sonnet for fast, direct UI work.
 
@@ -138,10 +138,10 @@ The admin portal's alias is `partyreel-admin-git-launch-prep-partyreel.vercel.ap
 ## Milestone (on Will's yes)
 
 `launch-prep` holds at most about two rounds of unmerged work. A milestone: the full gate on `launch-prep`
-(`rm -rf .next/dev`, then `FULL=1 zsh usher/kit/gate-lane.sh <N> none`, since a merge at the tip would scope itself);
-`git checkout main && git merge --no-ff launch-prep` (never squash; subject
-`milestone-<n>: prod = <the three to five things>`); an annotated tag `milestone-<n>`; push `main`, then the tag;
-production READY at the merge SHA, then a verification pass on partyreel.com (what previews cannot prove);
+(`rm -rf .next/dev`, then `FULL=1 zsh usher/kit/gate-lane.sh <N> none`, since a merge at the tip would scope itself;
+its last line is `GATE<N> DONE … red steps: <n>`); `git checkout main && git merge --no-ff launch-prep` (never squash;
+subject `milestone-<n>: prod = <the three to five things>`); an annotated tag `milestone-<n>`; push `main`, then the
+tag; production READY at the merge SHA, then a verification pass on partyreel.com (what previews cannot prove);
 `git checkout launch-prep && git merge --ff-only main`; STATUS and the pickup rewritten. `main` moves only this way or
 by a true hotfix: fixed on `main`, verified, back-merged to `launch-prep` the same session.
 

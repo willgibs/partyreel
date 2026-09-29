@@ -98,7 +98,9 @@ is near it; **beam** marks the object that is the live subject. Ink tends to tak
 
 - **Spill** has a named source (an object, or the place it lights, as the footer's seam does), a direction, the colour
   of the lit thing (sampled media, or the lamp set where there is none; never a house or state colour, or the glow
-  becomes a second palette) and a falloff that draws no edge, sits behind content and keeps an always-on base.
+  becomes a second palette) and a falloff that draws no edge, sits behind content and keeps an always-on base. ★ Spill in dark stays off
+  the words: under a muted word the atmosphere register reads about 2:1, so a lamp behind copy spends itself in the
+  padding in dark (the door's, `door/lit.css`, measured).
 - **Beam** marks the live subject (uploading, publishing, live), one per view, and ends when the state ends. The Get
   Pro card, lit at rest, is the one exception.
 - **Scarcity is a distance**: roughly a viewport of unlit page between lamps.
@@ -317,7 +319,7 @@ harness (nodes, animations, a fling's frames, renders per like, tick and poll, a
 a production build; `?surface=host` is the hub's album there (its store, select mode, bin and View menu) over one fake
 server answering the poll, the writes and the bin's routes as the real ones do.
 
-- **A tile shows state, not controls**: at most an active like, a play mark, a like count and the guest's `MineMark`;
+- **A tile shows state, not controls**: at most an active like, a play mark and a like count;
   on a phone that is the whole tile, and every action lives in the viewer. At a desk the surface's `tileActions` ride
   one glass pane (the host's verbs: [host-app.md](host-app.md)), `display:none` until the tile is hovered or the
   keyboard is inside it (`data-kbd-focus`, written by the grid, since `:has(:focus-visible)` does not reliably
@@ -446,8 +448,26 @@ Transition is its one sanctioned hole ([host-app.md](host-app.md)).
 
 - **The product has ONE responsive `Sheet`** (`ui/sheet.tsx`, opted into with `responsive`): a side panel at a desk, a
   bottom sheet in a hand. It emits `data-side="responsive"`, so none of the fixed-side rules can race it, and its
-  posture pair lives in `floating-layer.ts`; the share, settings and pricing sheets, the guest's door and overlays and
-  the admin's destructive sheets all wear it.
+  posture pair lives in `floating-layer.ts`; the guest's door and its held sheets and the upload failure sheet wear it;
+  every other popup opens through its kind.
+- **Every popup names its kind** (`ui/popup-kinds.ts`, the one table: list, confirm, form, choice, share, plan,
+  settings, peek, each with a desk shape and a hand shape), so a later answer on a kind is one row. `PopupContent`
+  (`ui/popup.tsx`) wears the Dialog's and the Sheet's shapes from `floatingPopupShapes` (a desk's dialog, wide and
+  panel; a hand's dialog, screen, cover and sheet), each scoped to the `data-shape` the element sets for the width it
+  opens at; the own shapes are `ui/responsive-menu.tsx` (a menu at the button, rows at the thumb with Cancel beneath, a
+  row is the act), the code card (`app/share/code-card.tsx`) and the look (`social/guest-peek.tsx`). A bare
+  `SheetContent` or `DialogContent` is a surface the board left alone, named with why in `popup-kinds.test.ts`.
+  ★ `PopupBody` is the one part that scrolls and keeps its children whole (`*:shrink-0`): a caller's flex column
+  would otherwise shrink a clipping Card to its padding instead of scrolling, as build 17's Event Settings did.
+  ★ Every shape stands on the keyboard (the Dialog learned the Sheet's rule; a centred shape's `top` is
+  `var(--vv-top) + var(--vv-h) / 2`, exactly `top-1/2` with nothing written). ★ A screen or a cover in a hand is a place
+  the phone's Back closes (`ui/popup-back.ts`: one same-URL history entry, its marker a field on the state Next merges,
+  taken back one tick late so StrictMode's double effect cannot close it), unless its page already routes it
+  (`routed`, `?room=`). ★ In a hand focus lands on the popup itself; at a desk the row's `deskFocus` says; a popup with
+  no trigger of its own gives focus back to the control that opened it: inside the layer still open behind it when it
+  was stacked over one (a confirm over the viewer or Settings), else on the page; only a menu or a listbox, which close
+  as the next popup opens, is never a return target. ★ Size a dialog with `size`, never a width
+  class: the shape's scoped rule outranks a plain utility.
 - ★ **Its phone half is keyboard-safe** (`src/lib/use-keyboard-inset.ts`): `visualViewport` sets `--kb-inset` and
   `--vv-h`, the sheet stands on the keyboard with its ceiling at the visible height, `data-keyboard` reads `open` (or
   `tight` under 200px, a landscape phone's thin band), and `floatingKeyboardFoot` with `data-sheet-primary` keeps the
@@ -470,12 +490,20 @@ Its 5rem offset cannot read `--mkt-header-h`, which is scoped to `[data-mkt]`, a
 - **An error waits for a press**, since a failure that vanishes unread repeats itself. ★ Sonner has no per-type
   duration, so `ui/sonner.tsx` patches `toast.error` once at load (`duration: Infinity`, a close button), guarded by a
   `Symbol.for` flag against Fast Refresh wrapping it twice.
+- ★ **A toast is pressable over an open modal, and a press on one is inside every layer.** An open Radix modal (every
+  popup, the Dialog, the Sheet, the viewer, a menu) sets `pointer-events: none` on the body and reads any press outside
+  it as its cue to close, so a toast's Undo under the storage list closed the list at a desk and went through to the
+  chip beneath in a hand. The band takes pointer events back itself and is a Radix `DismissableLayer.Branch`
+  (`radix-ui/internal`, the mechanism Radix's own Toast wears), in `ui/sonner.tsx` alone; `sonner.test.tsx` pins both
+  halves. A keyboard still cannot reach a toast while a modal holds focus (its trap pulls sonner's alt+T back).
 - **Colour is state**: success green (a destructive action that succeeded is a success), warning amber (a Hide), error
   red for failure only. ★ The colours target sonner's `[data-sonner-toast][data-type]` with `!important`, because sonner
   injects a runtime `--normal-bg` rule that beats a class; verify a toast's computed background, not that the rule
   loaded.
-- The only helpers are `showErrorToast` and `showActionError` (`lib/errors/toast.ts`). `vitest.setup.ts` mocks sonner
-  globally; `vi.unmock("sonner")` is the escape.
+- The only helpers are `showErrorToast` and `showActionError` (`lib/errors/toast.ts`), and the one Undo,
+  `showUndoToast` (`shared/undo-toast.ts`): an act that already landed, named on its surface's one toast, whose Undo
+  puts the items back first and then reverses on the server. `vitest.setup.ts` mocks sonner globally for the component
+  project (a unit test mocks it itself); `vi.unmock("sonner")` is the escape.
 
 ## The arrival choreography ("Calm + 700ms")
 
@@ -483,7 +511,9 @@ The guest's arrival is a sanctioned exception to the 300ms ceiling, because it h
 marketing's reveal are the others): the entry sheet enters on the Sheet's edge clock (300ms) after a 700ms beat,
 while everything repeated stays fast. Its attributes (`data-arrive`, the step handoffs, `data-unlock-success`,
 `data-reveal` behind `[data-reveal-curtain]`) are `@starting-style` with reduced-motion fades; the timings live in
-`use-arrival-beat.ts` and `use-success-hold.ts`.
+`use-arrival-beat.ts` and `use-success-hold.ts`. The door's beats take transitions.dev's recipes at their 500ms, the
+same sanctioned exception: the text reveal (`[data-door-line]`, `door.css`) and the success check (`door/lit.css`, its
+bob on the house bounce written inline, since `--mkt-ease-pop` lives on `[data-mkt]`).
 
 ## Errors: the taxonomy and the boundaries
 

@@ -6,6 +6,7 @@ import { UserMenu } from "@/components/app/user-menu";
 import { AppDesignIsland } from "@/components/dev/app-design-island";
 import { AppShell } from "@/components/shared/app-shell";
 import { ClaimUploadsOnAuth } from "@/components/shared/claim-uploads-on-auth";
+import { loginPathForRequest } from "@/lib/auth/login-redirect";
 import { seedFor } from "@/lib/avatar/seed";
 import { DEFAULT_TIER, TIER_NAMES, toBillingTier } from "@/lib/constants/tiers";
 import { touchHostActive } from "@/lib/db/mutations/profile";
@@ -27,6 +28,12 @@ import { getRequestAuth } from "@/lib/supabase/request-auth";
 // WHY login/callback aren't in this group: they live in (auth). If /login sat
 // under this gate, an anonymous visitor redirected to /login would re-trigger
 // the gate → infinite loop.
+//
+// ★ THE REDIRECT CARRIES THE PAGE (crumbs-11): a signed-out host pressing a
+// mail's button (Renew Event Pass → /account/renew) goes to
+// /login?next=/account/renew and lands back there after either sign-in, not on
+// the dashboard. Only an allow-listed page rides along (lib/auth/return-path.ts);
+// anything else is the bare /login it always was.
 export default async function AppLayout({
   children,
 }: {
@@ -38,7 +45,7 @@ export default async function AppLayout({
   const { user } = await getRequestAuth();
 
   if (!user) {
-    redirect("/login");
+    redirect(await loginPathForRequest());
   }
 
   // Bump the host's activity clock for free-tier inactivity removal — after the response,

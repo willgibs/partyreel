@@ -41,15 +41,24 @@ import { defineExploration } from "@/components/lab/exploration";
  * actually do with the marks it just downloaded; `the-sheet` now draws that
  * one narrow, genuinely press-relevant line as its own option rather than
  * leaving the whole question silently closed.
+ *
+ * ★ THE MARKETING REFRESH (2026-09-28) CORRECTS ONE CLAUSE BEFORE IT IS ASKED.
+ * `who-for` said /contact had "a Press topic but no Partnerships one"; its
+ * topic has read "Press & partnerships" since the contact round (08-28,
+ * `constants/contact.ts`). That matters to `two-doors` exactly: a partner
+ * already has a door, the same one a reporter uses, so "its own contact"
+ * means splitting that topic (and the DB CHECK that mirrors it), which
+ * `lands` now names. The two-doors drawing's partner card said the same
+ * false thing and is corrected with it; nothing else on the board moved.
  */
 export const PRESS_PAGE = defineExploration({
   id: "press-page",
   title: "What Partyreel hands the world",
   round: {
     n: 1,
-    date: "2026-09-21",
+    date: "2026-09-28",
     changed:
-      "The overtaken audit's reshape touches two of seven: the-sheet's brand-in-use now holds the app's own printed stock too (first-event r1, real objects at real mm); the-arc names pricing-page's own re-cut order (r2) as this one's precedent. The other five stand unbadged.",
+      "who-for's context corrected before it is asked: /contact's one topic has read \"Press & partnerships\" since 08-28, not a Press topic without a Partnerships one, so two doors would split a door that already serves both. The other six stand as drawn.",
   },
   context:
     "Will's stacking steer (2026-09-19): /press is unprotected, open to relitigate from the ground up. Seven decisions on PageHero, PressSection, PressSheet and the copy buttons. Not in this round: any production byte, the kit's build script, or the killed sitewide media kit.",
@@ -60,7 +69,7 @@ export const PRESS_PAGE = defineExploration({
       label: "Who the page is for",
       question: "Who should /press be built for?",
       context:
-        "One page serves a reporter, a partner and a curious guest alike today: one masthead, one kit, one line. The ROADMAP notes /press \"grows into the partnerships kit\"; /contact already has a Press topic but no Partnerships one.",
+        "One page serves a reporter, a partner and a curious guest alike today: one masthead, one kit, one line. The ROADMAP notes /press \"grows into the partnerships kit\"; /contact already serves both through one topic, \"Press & partnerships\".",
       options: [
         {
           id: "one-page",
@@ -86,7 +95,8 @@ export const PRESS_PAGE = defineExploration({
         "A partnerships promise does not exist yet to put behind its own door, and About's mission story is a different reader's page; one sharp page beats forking one thin page in two.",
       overrule:
         "If partnerships is close enough to commit real copy and its own contact this round, the two doors.",
-      lands: "The /press route itself: one page, a new /partners door, or a retired route.",
+      lands:
+        "The /press route itself: one page, a new /partners door (its own contact splitting /contact's one topic), or a retired route.",
     },
 
     /* ── 2. What the asset sheet shows ──────────────────────────────────── */

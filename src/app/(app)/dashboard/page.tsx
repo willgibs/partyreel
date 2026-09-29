@@ -4,17 +4,29 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { CalendarPlus } from "lucide-react";
 
+import {
+  isPageInviteDismissed,
+  PAGE_INVITE_COOKIE,
+  pageChoicesHref,
+  shouldInviteToPage,
+} from "@/app/(app)/account/profile/invite";
+import {
+  claimEventAction,
+  disownEventAction,
+} from "@/app/(app)/dashboard/claims-actions";
 import { MarkWelcomedOnMount } from "@/app/(app)/welcome/mark-welcomed";
-import { ClaimsCard } from "@/components/app/dashboard/claims-card";
+import { ClaimsReview } from "@/components/app/dashboard/claims-review";
 import { EventsSection } from "@/components/app/dashboard/events-section";
 import { JustArrived } from "@/components/app/dashboard/just-arrived";
 import { NextStepBand } from "@/components/app/dashboard/next-step-band";
+import { PageInviteCard } from "@/components/app/dashboard/page-invite-card";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
 import { PricingSheet } from "@/components/app/pricing/pricing-sheet";
 import { WELCOME_VALUE } from "@/components/app/pricing/return-path";
 import { WelcomeToPro } from "@/components/app/pricing/welcome-to-pro";
 import { Button } from "@/components/ui/button";
 import { trackAttrs } from "@/lib/analytics/events";
+import { seedFor } from "@/lib/avatar/seed";
 import {
   DEFAULT_TIER,
   MAX_EVENTS,
@@ -49,8 +61,12 @@ import {
 import { getLiveReelServerFacts } from "@/lib/db/queries/guest-events-admin";
 import { getPulse } from "@/lib/db/queries/pulse";
 import { getProfile } from "@/lib/db/queries/profile";
-import { getMyGuestEventCards } from "@/lib/db/queries/social";
+import {
+  getMyAttendedEvents,
+  getMyGuestEventCards,
+} from "@/lib/db/queries/social";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
+import { captureError } from "@/lib/observability/sentry";
 import { formatDateInZone } from "@/lib/format/date-in-zone";
 import { binCountdownLabel } from "@/lib/lifecycle/recently-deleted";
 import { overStandbyBudget } from "@/lib/lifecycle/recently-deleted";
@@ -176,10 +192,11 @@ export default async function DashboardPage({
   const eventIds = events.map((e) => e.id);
   // The hosted cards' covers and the stills they dissolve through in turn, the
   // binned cards' covers, per-event stats, how far each event's live reel is,
-  // the pulse's own strips, and the claim ticket's rows: fetched HERE, after the
-  // nameless-profile redirect above, so a profile that is about to bounce to
-  // /welcome never pays for a query it will not render. Keys never reach the
-  // browser — everything is presigned server-side. In parallel.
+  // the pulse's own strips, and the claims review's events with their
+  // previews: fetched HERE, after the nameless-profile redirect above, so a
+  // profile that is about to bounce to /welcome never pays for a query it will
+  // not render. Keys never reach the browser — everything is presigned
+  // server-side. In parallel.
   const [
     cardStills,
     binCovers,
@@ -194,7 +211,7 @@ export default async function DashboardPage({
     getEventCardStats(eventIds),
     getReelProgress(eventIds),
     getPulse(eventIds, now, startOfToday),
-    getMyClaimableGuestRows(),
+    getMyClaimableGuestRows({ previews: true }),
     // reel-teardown: the platform lever (`ops_flags.live_reel_enabled`) is ONE global fact, not a
     // per-event one — the function takes an eventId only because the guest-facing read it mirrors
     // also derives that event's host tier (unused here), so any of the host's own events answers
@@ -203,6 +220,36 @@ export default async function DashboardPage({
       ? getLiveReelServerFacts(eventIds[0])
       : Promise.resolve({ liveReelEnabled: true, tier: null }),
   ]);
+
+  // THE PAGE SETUP'S INVITATION (`identity-profile` r1, `prompt=claim`), decided here from server
+  // facts alone (account/profile/invite.ts). The read of what her page could show runs only when
+  // it could still change the answer: an account with a page, a claim waiting or a Not now pays
+  // nothing for it.
+  const hasHandle = Boolean(profile?.slug);
+  const inviteDismissed = profile
+    ? isPageInviteDismissed(
+        jar.get(PAGE_INVITE_COOKIE)?.value,
+        seedFor(profile.id),
+      )
+    : true;
+  const showableEvents =
+    !hasHandle && claimableRows.length === 0 && !inviteDismissed
+      ? await getMyAttendedEvents().then(
+          (attended) => attended.length,
+          (error: unknown) => {
+            // An invitation is never worth the page: a failed read withholds it (the quiet
+            // direction) and says so where failures are read.
+            captureError("account", error, { seam: "page_invite" });
+            return 0;
+          },
+        )
+      : 0;
+  const invitePage = shouldInviteToPage({
+    hasHandle,
+    claimsWaiting: claimableRows.length,
+    showableEvents,
+    dismissed: inviteDismissed,
+  });
 
   const tier = toBillingTier(profile?.tier ?? DEFAULT_TIER);
   // Stacked Event Passes (billing-caps.md): event_slots is the webhook-derived concurrent-pass
@@ -465,11 +512,28 @@ export default async function DashboardPage({
         </p>
       )}
 
-      {/* THE CLAIM TICKET — above the events feed, rendered only when
-          claimable rows exist (ClaimsCard returns null otherwise); sits
-          above the create-first teaser too, since EventsSection decides
-          that swap on its own `rows` prop independently of this one. */}
-      <ClaimsCard rows={claimableRows} />
+      {/* THE CLAIMS REVIEW'S BANNER — one slim line above the events feed
+          (`ticket=banner`), rendered only while events wait or its review is
+          open (ClaimsReview returns null otherwise), and ALWAYS mounted, so a
+          refresh behind an open review never unmounts it; above the
+          create-first teaser too, since EventsSection decides that swap on
+          its own `rows` prop independently of this one. Its closing toast
+          points at the page (`after=profile`), the setup before one exists
+          and its choices after, unless the invitation below is about to take
+          the banner's place (one pointer a beat). */}
+      <ClaimsReview
+        rows={claimableRows}
+        pageHref={pageChoicesHref(hasHandle)}
+        invitesOnceSorted={!hasHandle && !inviteDismissed}
+        claim={claimEventAction}
+        disown={disownEventAction}
+      />
+
+      {/* THE PAGE SETUP'S INVITATION, in the banner's own place: it waits
+          for no claim to be pending, so it arrives the moment the last
+          decision lands and the page refreshes behind the review
+          (`prompt=claim`). */}
+      {invitePage && <PageInviteCard />}
 
       {/* BAND 3 — your events, cover cards or rows, the choice remembered. */}
       <EventsSection

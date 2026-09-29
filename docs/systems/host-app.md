@@ -1,7 +1,7 @@
 # Host app: dashboard, events, QR and print, the event page, moderation
 
 Open this before you:
-- change the dashboard (its bands, the events list, the Guest cards, the claim ticket);
+- change the dashboard (its bands, the events list, the Guest cards, the claims review);
 - change how an event is created or an event setting;
 - change the QR designer, a code's size or the print sheet;
 - touch the custom event link;
@@ -45,13 +45,23 @@ has no filter chips and no personal feeds (those are the profile's owner mode, [
   (`viewer-day.ts`); "N today", "an event dated tomorrow", the Event Pass expiry and the grace deadline
   (`format/date-in-zone.ts`) all read it. The zone is used only to render and is never stored or logged, so no privacy
   text changes for it.
-- **The claim ticket** appears when `getMyClaimableGuestRows()` finds rows typed under the account's own CONFIRMED email
-  at a names-mode door before that email was proved: per event, Claim or Not mine, then Finish, which removes whatever
-  is unclaimed under a named confirmation (`claims-actions.ts` → `claim_guest_rows_by_email`,
-  `disown_guest_rows_by_email`), since that is the guest saying those uploads were not theirs. An unclaimed name leaves
-  the guest list and the Guests room with its uploads, and the empty guest row survives for the device that minted it.
-  A nameless profile meets the name gate first ([auth-accounts.md](auth-accounts.md)), prefilled from the newest
-  claimable row's typed name.
+- **The claims review** appears when `getMyClaimableGuestRows()` finds rows typed under the account's own CONFIRMED
+  email at a names-mode door before that email was proved: one banner line above the events with Review, which opens
+  the list kind (`claims-review.tsx`: a side panel at a desk, its own screen in a hand) and goes through them one event
+  at a time (`claims-card.tsx`), each with up to four of its own approved photographs from an open album, presigned on
+  the server (a password or private album shows a lock and the count). Every decision is written as it is made, one
+  event a call (`claims-actions.ts`): Claim through `claim_guest_rows_by_email`, Not mine through
+  `disown_guest_rows_by_email` once its confirm dialog at the card says Delete, since that is the guest saying those
+  uploads were not theirs; an event she never reaches waits, and the banner counts it. ★ An answer names its card, a
+  card waits for its write, and an arriving card holds its answers 250 ms, so a double tap never claims the next event
+  (`claims-batch.ts`). ★ The album link never rides the list (a Not mine is an event she was never at): a claimed row's
+  Open album and quieter Follow come from the claim's own follow-up read (`getClaimedEventNext`), for an event she is
+  now a guest of. The writes never revalidate; the review refreshes the page behind itself as each lands and keeps its
+  own account of her decisions. A disowned name leaves the guest list and the Guests room with its uploads, and the
+  empty guest row survives for the device that minted it. A nameless profile meets the name gate first
+  ([auth-accounts.md](auth-accounts.md)), prefilled from the newest claimable row's typed name. One toast as the review
+  closes counts what that opening added, its second line pointing at the page unless the page setup's invitation is
+  about to take the banner's place ([profiles-social.md](profiles-social.md)): one pointer a beat.
 
 ## Events and the create flow
 
@@ -62,7 +72,7 @@ are exempt); `qr_style` is plain text, app-validated, so presets grow without a 
 - **The sole create path is the `/dashboard/new` wizard** (`create-event-wizard.tsx`): Name, Style, then the beat. It
   creates once, at commit (an abandoned wizard leaves no row), through the non-redirecting `createEventInWizard`, which
   returns the id and token so the beat can draw the real code. Only the name is required; everything else is edited in
-  the settings sheet (`event-settings-form.tsx`, one form and one Save). `enforce_event_limit` guards `MAX_EVENTS` in SQL.
+  Settings (`event-settings-form.tsx`, one form and one Save). `enforce_event_limit` guards `MAX_EVENTS` in SQL.
 - ★ **The beat happens once in an event's life, by construction**: only pressing Create reaches it. It draws the real
   code in a plain mat, two doors out (print the table cards; share the link) and one into the event; the custom link
   belongs to the share sheet.
@@ -96,13 +106,16 @@ are exempt); `qr_style` is plain text, app-validated, so presets grow without a 
   where the account holds a live upload (pending, approved or hidden) and is not the host, read from the uploads
   themselves (`getMyGuestEventCards`: the admin client, the account's own rows only), so a card leaves with its last
   live upload and nothing else puts another host's event on a dashboard. The album's rules mask it
-  (`lib/dashboard/guest-events.ts`: a private album blank and locked, a password album with no cover).
+  (`lib/dashboard/guest-events.ts`: a private album blank and locked, a password album with no cover). ★ An event that
+  blocked her keeps its card, masked as a private album's, while the block stands (`blocked_events_for`, placed at the
+  newest upload the block removed): a block moves her uploads to Deleted, and a card that vanished would say what the
+  door hides.
 
 ## QR codes and print
 
 - **`qr-code-styling` is imported dynamically inside a `useEffect`** (`app/styled-qr.tsx`): it touches `window` on
   construction and would crash the SSR pass. The presets live in `constants/qr-presets.ts` (unknown values resolve to
-  `classic`); `StyledQr` draws every code a host sees on a screen, and the designer lives in the share sheet.
+  `classic`); `StyledQr` draws every code a host sees on a screen, and the designer is the kit's Customize, a menu whose style is the act (`qr-designer-dialog.tsx`).
 - **Every preset keeps dark data modules on white**; colour only tints the corner finder patterns, and those tints (the
   legacy coral among them) are deliberate exceptions to the token palette, because existing events keep their rendering
   and scanners find corners by shape. Prove a new preset by scanning it on the launch-prep alias.
@@ -127,18 +140,26 @@ are exempt); `qr_style` is plain text, app-validated, so presets grow without a 
 
 ## The custom event link
 
-A Pro or Event Pass host may alias the one event link as `/e/<slug>`; the permanent `/e/<qr_token>` and the code never
+Any host, on any plan, may alias the one event link as `/e/<slug>`; the permanent `/e/<qr_token>` and the code never
 change, and the slug is NOT a second capability.
 
 - **`events.custom_slug`** is unique case-insensitively among non-deleted events (a partial index) and written only by
-  `set_event_slug` and `clear_event_slug` (authenticated-only SECURITY DEFINER, tier-gated like the password).
+  `set_event_slug` and `clear_event_slug` (authenticated-only SECURITY DEFINER; `set_event_slug` refuses the reserved
+  words itself, since a free account can hold a slug and the RPC is callable past the action).
   `get_event_by_qr_token` resolves a token or a slug (the token wins) and returns the canonical token. The control lives
   in the share sheet (`event-slug-control.tsx`: debounced, race-guarded availability through `check_slug_available`,
-  a warning before a change or removal); a downgrade keeps the slug resolving and removable, not changeable.
+  a warning before a change or removal).
+- ★ **The brand is refused as a part, not only as a word:** any slug containing `partyreel`, read with its hyphens
+  dropped and a look-alike digit as its letter (`party-reel`, `p4rtyr33l`), in `eventSlugSchema` and in
+  `set_event_slug` by one fold (`reserved-slugs.ts`; `tiers-sql.test.ts` holds the two halves together); the `/u/`
+  handle refuses it too. A dropped or doubled letter is left alone (folding it refuses `party-relay`). A link held
+  before a rule grew keeps working (no resolver re-validates; the demo's `partyreel-demo` is one), and the controls
+  read a held value as current, never as refused.
 - **Slugs are mutable, with deliberately no redirects**: a change frees the old string at once and the old link 404s,
   because an alias that outlived its event would be a worse promise than a dead one; a soft-deleted event frees its slug
-  too. A 32-hex slug is refused, so nothing shadows the token namespace. The URL is `/e/<slug>`, never `/<slug>`,
-  reusing the one route with its `noindex` and OG.
+  too, for good: `restore_event` brings it back only while it is still free, else restores on the permanent link
+  (`custom_slug_released`) rather than failing on the unique index. A 32-hex slug is refused, so nothing shadows the
+  token namespace. The URL is `/e/<slug>`, never `/<slug>`, reusing the one route with its `noindex` and OG.
 - **Surfaces show a claimed slug through `preferredEventUrl`** (`events/share-urls.ts`); what they copy and encode is
   still the permanent link.
 
@@ -175,17 +196,20 @@ beneath, newest first.
   because a remount would drop the QR pill's `view-transition-name` mid-morph. ★ Share's place in the row is a QR pill
   that exists only while the header's code is off screen, carrying the morph's name while it is the code on screen. On
   a phone at rest the row is a 2x2 grid of two-line cards (`event-feed/room-card.ts`), so all four doors show at 375.
-- **Review and Guests are rooms (routes with a crumb); Settings and Share are sheets; the Highlight reel is a door.**
+- **Review and Guests are rooms (routes with a crumb); Settings and the share kit are places in the settings kind (a panel at a desk, the whole screen in a hand); the Highlight reel is a door.**
   ★ The crumb trail lands at hydration (a page cannot hand a prop up, and CSS cannot carry an event's name); the bar's
   fixed height keeps it from shifting anything.
-- ★ **The two sheets ride `?room=`, and it IS the state** (`share/event-share-provider.tsx`, read from
+- ★ **The two places ride `?room=`, and it IS the state** (`share/event-share-provider.tsx`, read from
   `useSearchParams` with no mirrored `useState`, so a `router.refresh()` after a settings action cannot close the
   panel). Opening pushes a history entry whose marker is a FIELD on the state Next merges: Next's patched `pushState`
   copies `__NA` onto the object it is handed and its `popstate` handler reloads without it, so replacing the state
   wholesale turns Back into a full reload. Closing calls `history.back()` only when the marker is ours.
-- **Share is the one sharing surface** (`share/event-share-sheet.tsx`: the code, Copy link, Share, Open and Print, the
-  downloads, the designer, the custom link). ★ Never draw the code in a second sharing surface, or a fix lands in only
-  one of them. The dashboard card's QR chip is a plain link to `?room=share`.
+- **The code card is every share's first surface** (`share/code-card.tsx`: the code on white filling a phone, a 384
+  card at a desk, Copy link, the device's own Share where it has one, and Everything into the kit,
+  `share/event-share-sheet.tsx`, which holds the downloads, the designer and the custom link). Every door to it reads
+  Invite: the header's code, the sticky row's pill, the launch list (`share/invite-button.tsx`) and the dashboard card's
+  QR chip, which opens the card in place. ★ Never draw the code in a second sharing surface, or a fix lands in only one
+  of them.
 - **Settings** imports the settings form whole (Details, Visibility, Guest uploads, one Save), with one unsaved-changes
   guard behind the scrim, Escape and the close button, and `beforeunload` for a reload; then the instant-save cards, the
   Highlight reel first, then Profile & guests, and the Danger zone last. `/settings` survives as a redirect: it is a
@@ -219,8 +243,8 @@ beneath, newest first.
   item but the bin, light, each status in its flags) and mints links for the 96 newest (`FIRST_WINDOW`,
   `readHostLinksBody`, with each item's like count); the windowed rows ask for the rest by id. Every number is counted
   in the version's snapshot (approved plus hidden, and pending), never a list's length. The album's writes never
-  revalidate the hub: each asks the store to catch up. The `live` slice is Download all's, whose manifest refuses past
-  2,000 items with a 413.
+  revalidate the hub: each asks the store to catch up. The `live` slice is Download all's, which takes an album past
+  one zip's 2,000 items in parts ([uploads-and-r2.md](uploads-and-r2.md)).
 - ★ **The View menu** (`shared/view-menu.tsx`) holds Tile size (the rows' three density steps: the slider, a pinch,
   ctrl and the wheel, in the per-device `pr_tile_size` cookie painted by the hub, never localStorage, which would
   repaint after hydration), Sort (Newest or Oldest first: the manifest reversed and laid from its start, so an arrival
@@ -234,19 +258,45 @@ beneath, newest first.
 `moderation_mode`.
 
 - **The Review room** reads and presigns the `pending` slice alone, whole; its states (pending, caught up, moderation
-  off with a one-tap "Turn on review", the all-caught-up beat) live in `use-review-triage.ts`. Its grid is the shared
-  `SelectableMediaGrid` on the uniform layout, because uniform tiles standardize the selection targets.
+  off with a one-tap "Turn on review", the all-caught-up beat) live in `use-review-triage.ts`, its pure rules in
+  `review-queue.ts`. Its grid is the shared `SelectableMediaGrid` on the uniform layout, because uniform tiles
+  standardize the selection targets and scan fast. Over the queue, while there is one, sits its one line of advice,
+  "Anything you approve can still be hidden later." (`REVIEW_NOTE`, Will's host note: so a host is lenient toward
+  approve-and-hide over reject), a sentence and never a hint row.
+- **The refusing verb is Reject at the door, Hide in the album**: a rejected upload lands `hidden` (dimmed in the host's
+  album, where Show approves it), the same row a Hide leaves; only the word differs. A tap opens the peek, which carries
+  the verdict (Reject, Approve) under the photograph at every width and moves on to the next upload once one is
+  decided. ★ **The keys** (`review-keys.ts`): arrows move a focused tile, Enter approves, Backspace or Delete rejects,
+  Space peeks; no hint row, only the verdict buttons' tooltips (and a screen reader's line) say so. They act only on a
+  tile, in the peek, or (the room's page alone) with nothing focused, never on another control, and never give a verdict
+  on a selection. In the peek a focused button keeps only its own Enter and Space, and a verdict pressed there hands
+  focus back to the look (`review-section.tsx`), since a browser focuses the button a pointer presses.
 - **The bulk controls live once, in the room's header, in both modes** (`review-actions.tsx`), which never goes empty,
-  or a host mid-selection loses Hide, Approve and Cancel. Approve all needs no confirm: it sends the queue's own ids
-  through `approveBulkAction` in consecutive batches of 2,000, so a host approves exactly what they saw, at any size.
+  or a host mid-selection loses Reject, Approve and Cancel. Approve all needs no confirm: it sends the queue's own ids
+  through `approveBulkAction` in consecutive batches of 2,000, so a host approves exactly what they saw, at any size. A
+  verdict never waits on another: only an upload whose own verdict is in the air refuses a second press.
+- ★ **Every verdict's toast carries Undo** (`shared/undo-toast.ts`, the product's one Undo; one toast per surface, a later
+  act's replacing it). Undo puts the uploads back in place, then `returnToReviewAction` returns them to `pending` from
+  the state that verdict left (`returnToReview`, scoped to it), refused once the event stopped reviewing. Review's verbs
+  revalidate nothing: a revalidating action refreshes the route that called it, which re-ran the room's page per key.
+- ★ **The room is live, on the hub's own signal**: the page seeds `HostAlbumProvider` as the hub does (the manifest, no
+  links) and `review-live.ts` reads the queue off it, so an arrival reaches the room when it reaches the hub's Review
+  card. It never joins the grid on its own: a glass pill floating over the grid's head counts it ("3 new"), taking no
+  room so no tile moves as it appears, and a tap folds it in at the head.
+  An upload decided elsewhere or taken back leaves the grid; one the room acted on does not while that write (or its
+  Undo) is unread, its own write being its truth against a poll read before it landed. ★ **Only until the album has
+  answered the catch-up the room asks for once the write lands** (`OwnWrites`, `review-queue.ts`; a refused write at
+  once): from then on the album speaks for it again, so an upload decided here that returns to waiting from elsewhere
+  (a second tab's Undo) is an arrival the line counts, and one put back here that is decided elsewhere leaves.
 - **Turning moderation off with a queue** confirms with the count, and on save `approveAllPending` runs: the modal is the
   host's consent, the server the invariant (live mode never holds pending media).
-- **Clearing the last pending item plays the beat**, during which the just-approved photographs are preloaded: their
-  stable presigned URLs recur byte-identical in the album, so it paints from cache.
+- **Clearing the last pending item plays the beat** (unless uploads wait behind the line), during which the
+  just-approved photographs are preloaded: their stable presigned URLs recur byte-identical in the album, so it paints
+  from cache.
 - **Tiles render through the shared `MediaTile`, never `next/image`**, whose optimizer 400s on short-lived presigned R2
   URLs.
 - **The review pair `approveBulk` and `hideBulk` are scoped to `status='pending'`**, so a crafted call cannot flip
-  other media. **Remove is soft** (`status='removed'` and `removed_at`): it frees storage at once, and the cron reclaims
+  other media; Undo's `returnToReview` is scoped to the state its verdict left. **Remove is soft** (`status='removed'` and `removed_at`): it frees storage at once, and the cron reclaims
   after the recovery window ([lifecycle-recovery.md](lifecycle-recovery.md)).
 - **The host's tile verbs are a fixed three: like, download, hide/show** (one slot whose glyph swaps in place; the pane
   is [design-system.md](design-system.md)'s album tile). Delete is deliberately not a tile verb: a fan on a dense grid is
@@ -270,6 +320,15 @@ beneath, newest first.
   `MAX_BULK_ITEMS` (`lib/event/bulk-selection.ts`).
 - **Host upload**: Add photos opens a dropzone (`host-upload.tsx`) straight into the album; its pipeline is
   [uploads-and-r2.md](uploads-and-r2.md)'s.
+- ★ **Block puts one person out of one event, with their uploads** (`block_from_event` on the host's own client, free
+  on every plan). It is the quiet last line of every person's look (a name in the Guests room, the uploader's credit in
+  the host's viewer and on Review's peek, `event-blocks/`), opening one confirm whose count is the act's own preview
+  and which offers Require verified emails, off, on a names-only album. It keys on the account, the confirmed address
+  or the guest row, never a device or an IP, so a typed name is held on the phone that used it. Their live uploads move
+  to Deleted in the same step as the host's own removal (a held one stays, as every host write leaves it). The Guests
+  room's foot lists the blocks (who, since when) with Let back in (`let_back_in`), whose restore is off unless the
+  host turns it on and brings back only what this block removed and still waits in Deleted, to the status each had,
+  newest first within the cap. What the person meets is [guest-flow.md](guest-flow.md)'s.
 
 ## The highlight reel, the host's side
 

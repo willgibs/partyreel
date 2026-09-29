@@ -11,8 +11,8 @@
  * (marks, and on the desk one declared set of verbs) is `album-tile.tsx`'s.
  *
  * ★ ONE CLICK AND ONE LONG-PRESS, ON THE GRID (the album-window lane). A tile
- * holds no handler: the open button, the hover verbs and the yours mark carry
- * `data-` attributes, and this grid answers them from one delegated click and
+ * holds no handler: the open button and the hover verbs carry `data-`
+ * attributes, and this grid answers them from one delegated click and
  * one long-press, reading the latest callbacks from a ref. So a render of the
  * grid hands every tile the same props it had, and the memoized tile skips it:
  * a like, a progress tick and a quiet poll re-render no tile at all.
@@ -93,12 +93,7 @@ export {
   CornerPlayBadge,
   type TileAction,
 } from "@/components/shared/album-tile";
-// The rows' box, for a board that draws its own tile (the media-viewer board).
-export {
-  AlbumRows,
-  type AlbumHandle,
-  type RowTileBox,
-} from "@/components/shared/album-window";
+export { type AlbumHandle } from "@/components/shared/album-window";
 
 /**
  * THE ALBUM'S COLUMN RULE — the one place a gallery's columns are decided
@@ -439,18 +434,6 @@ export function MasonryColumns<T extends GridMedia>(props: {
   landedIds?: ReadonlySet<string>;
   canDelete?: (item: GridMedia) => boolean;
   prefix?: ReactNode;
-  /**
-   * THIS VIEWER'S OWN PHOTOGRAPHS (`theirs=mark`, Will 2026-09-20): the tiles
-   * that wear the fourth mark, and `data-mine` on the tile box so a surface can
-   * style or count them without re-deriving the set. Omitted everywhere except
-   * a guest album — a host looking at their own event would be marking all of
-   * it, which says nothing.
-   */
-  mineIds?: ReadonlySet<string>;
-  /** The mark's tap. Omitted = a marker with no control in it. */
-  onSelectMine?: () => void;
-  /** The Yours filter is already on: the mark carries the state and clears it. */
-  mineSelected?: boolean;
   stagger?: boolean;
   clampAspect?: boolean;
   /** "masonry" = explicit, height-balanced columns (the Gallery "wow"). "uniform" = a fixed-aspect
@@ -559,9 +542,6 @@ export function MasonryColumns<T extends GridMedia>(props: {
     landedIds,
     canDelete,
     prefix,
-    mineIds,
-    onSelectMine,
-    mineSelected,
     photoAddress = true,
   } = props;
   const items = useSameList(props.items) as T[];
@@ -828,10 +808,6 @@ export function MasonryColumns<T extends GridMedia>(props: {
       if (action && !action.disabled) action.onSelect?.();
       return;
     }
-    if (target.closest('[data-tile-mark="mine"]')) {
-      now.onSelectMine?.();
-      return;
-    }
     if (!target.closest("[data-tile-open]")) return;
     // Suppress the click the browser synthesizes after a long-press (else the
     // hold that entered select mode would also open the lightbox).
@@ -886,12 +862,6 @@ export function MasonryColumns<T extends GridMedia>(props: {
     seedIndex: stagger ? (seedIndex.get(item.id) ?? 0) : undefined,
     arrived: arrivedIds?.has(item.id),
     landed: landedIds?.has(item.id),
-    mine: mineIds?.has(item.id)
-      ? onSelectMine
-        ? "control"
-        : "marker"
-      : undefined,
-    mineSelected,
     dimmed: dimItem?.(item),
     hideLikeMark,
     actions: tileActions?.(item),

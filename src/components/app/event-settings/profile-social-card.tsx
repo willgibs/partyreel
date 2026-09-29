@@ -2,7 +2,7 @@
 
 import { useOptimistic, useTransition } from "react";
 import Link from "next/link";
-import { Users } from "lucide-react";
+import { UserRound } from "lucide-react";
 import { toast } from "sonner";
 
 import { updateEventSocialSettingsAction } from "@/app/(app)/dashboard/actions";
@@ -17,71 +17,50 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
 /**
- * The profiles-social.md event keys, as their own settings card OUTSIDE the RHF form:
- * each toggle persists INSTANTLY on flip (these are deliberate one-key acts,
- * like the password/slug commits — a "Save changes" buffer would blur what the
- * host just consented to). Optimistic + reverted with a toast on failure.
+ * The profiles-social.md event key, as its own settings card OUTSIDE the RHF form:
+ * the toggle persists INSTANTLY on flip (a deliberate one-key act, like the
+ * password/slug commits: a "Save changes" buffer would blur what the host just
+ * consented to). Optimistic, and reverted with a toast on failure.
  *
- * The guest-list copy is deliberately LOUD (the ruling): flipping it on names
- * EVERY guest who added photos on the album, with no per-guest opt-in — a
- * verified name and an unverified one alike (the identity reshape,
- * 2026-09-21: anonymity left the product, so there is no uploader this list
- * still hides). The switch label carries that sentence permanently — not a
- * one-time confirm the host forgets — so the consequence stays visible every
- * time they visit.
+ * ★ THE GUEST LIST HAS NO SWITCH (Will, event-safety `room=always`, 2026-09-28:
+ * "I honestly can't think of many (if any) cases where a host would want everyone
+ * uploading into a shared album together, but keeping the guest uploaders
+ * secret. I think we should just make the guest list always on ... we only want
+ * to add configs where the potential friction offers real benefit/value. This
+ * doesn't seem to."). Every guest who added photos is named on the album, so the
+ * card that held that switch keeps only the host's own profile.
  */
 export function ProfileSocialCard({
   eventId,
   displayInProfile,
-  showGuestList,
   hostHasSlug,
 }: {
   eventId: string;
   displayInProfile: boolean;
-  showGuestList: boolean;
   /** The host claimed /u/<slug> — without one the profile toggle still stores,
    *  but we say where the profile lives (guides to /account). */
   hostHasSlug: boolean;
 }) {
   const [, startTransition] = useTransition();
   const [optimistic, setOptimistic] = useOptimistic(
-    { displayInProfile, showGuestList },
-    (
-      state,
-      patch: Partial<{ displayInProfile: boolean; showGuestList: boolean }>,
-    ) => ({
-      ...state,
-      ...patch,
-    }),
+    displayInProfile,
+    (_state, next: boolean) => next,
   );
 
-  function persist(patch: {
-    displayInProfile?: boolean;
-    showGuestList?: boolean;
-  }) {
+  function persist(next: boolean) {
     startTransition(async () => {
-      setOptimistic(patch);
-      const result = await updateEventSocialSettingsAction(eventId, patch);
+      setOptimistic(next);
+      const result = await updateEventSocialSettingsAction(eventId, {
+        displayInProfile: next,
+      });
       if (!result.ok) {
-        // Revert by writing the inverse of what we tried.
-        const revert: typeof patch = {};
-        if (patch.displayInProfile !== undefined)
-          revert.displayInProfile = !patch.displayInProfile;
-        if (patch.showGuestList !== undefined)
-          revert.showGuestList = !patch.showGuestList;
-        setOptimistic(revert);
+        setOptimistic(!next);
         toast.error("Couldn't save that setting.", {
           description: result.message,
         });
         return;
       }
-      if (patch.showGuestList === true) {
-        toast.success("Guest list is on.", {
-          description: "Everyone who added photos is now named on the album.",
-        });
-      } else {
-        toast.success("Setting saved.");
-      }
+      toast.success("Setting saved.");
     });
   }
 
@@ -90,15 +69,15 @@ export function ProfileSocialCard({
       <CardHeader>
         <CardTitle>
           <span className="flex items-center gap-2">
-            <Users className="size-4 text-muted-foreground" aria-hidden />
-            Profile & guests
+            <UserRound className="size-4 text-muted-foreground" aria-hidden />
+            Profile
           </span>
         </CardTitle>
         <CardDescription>
           How this event shows up beyond its own link.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-5">
+      <CardContent>
         <div className="flex items-start justify-between gap-4">
           <Label
             htmlFor="display-in-profile"
@@ -125,31 +104,8 @@ export function ProfileSocialCard({
           </Label>
           <Switch
             id="display-in-profile"
-            checked={optimistic.displayInProfile}
-            onCheckedChange={(checked) =>
-              persist({ displayInProfile: checked })
-            }
-          />
-        </div>
-
-        <div className="flex items-start justify-between gap-4 border-t border-border/60 pt-5">
-          <Label
-            htmlFor="show-guest-list"
-            className="min-w-0 flex-1 cursor-pointer flex-col items-start gap-1 font-normal"
-          >
-            <span className="text-sm font-medium text-foreground">
-              Show the guest list on the album
-            </span>
-            <span className="text-xs leading-relaxed text-muted-foreground">
-              When this is on, every guest who added photos is listed by name
-              on the album, for anyone who can open it. A name with no
-              verified email behind it wears a small mark.
-            </span>
-          </Label>
-          <Switch
-            id="show-guest-list"
-            checked={optimistic.showGuestList}
-            onCheckedChange={(checked) => persist({ showGuestList: checked })}
+            checked={optimistic}
+            onCheckedChange={(checked) => persist(checked)}
           />
         </div>
       </CardContent>

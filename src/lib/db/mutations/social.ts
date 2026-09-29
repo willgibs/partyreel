@@ -21,7 +21,11 @@ import "server-only";
 import type { TablesUpdate } from "@/lib/db/types";
 
 import type { MutationResult } from "@/lib/db/mutations/events";
-import type { NotificationPrefs } from "@/lib/social/notification-prefs";
+import { inChunks } from "@/lib/db/read-all";
+import type {
+  NotificationPrefs,
+  NotificationPrefsRow,
+} from "@/lib/social/notification-prefs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { profileSlugSchema } from "@/lib/validation/profile";
@@ -178,13 +182,12 @@ export async function setNotificationPrefs(
   } = await supabase.auth.getUser();
   if (!user) return UNAUTHORIZED;
 
-  const patch: TablesUpdate<"notification_prefs"> = {};
-  if (prefs.notifyAlbumShared !== undefined)
-    patch.notify_album_shared = prefs.notifyAlbumShared;
-  if (prefs.notifyNewUploadsDigest !== undefined)
-    patch.notify_new_uploads_digest = prefs.notifyNewUploadsDigest;
-  if (prefs.notifyNewFollower !== undefined)
-    patch.notify_new_follower = prefs.notifyNewFollower;
+  // Built on the row's own shape (notification-prefs.ts), which the table's generated type now
+  // carries too, so it is handed over as it is. Only the live switches map; the three columns
+  // nothing reads are never written either.
+  const patch: Partial<NotificationPrefsRow> = {};
+  if (prefs.notifyPassRenewal !== undefined)
+    patch.notify_pass_renewal = prefs.notifyPassRenewal;
   if (prefs.marketingOptIn !== undefined)
     patch.marketing_opt_in = prefs.marketingOptIn;
   if (Object.keys(patch).length === 0)
@@ -286,17 +289,86 @@ export async function hideEventFromProfile(
 }
 
 /**
- * The two profiles-social.md event keys, host-set from the event settings card:
- * display_in_profile (publish this event on MY public profile) and
- * show_guest_list (name every signed-in uploader on the album). Plain RLS
- * update: the migration added both columns to the events column-scoped
- * authenticated grant, and events RLS row-locks to the host. `.select("id")`
- * verifies a row actually changed (a foreign/deleted event updates 0 rows and
- * must not report success).
+ * THE SETUP'S ONE-TIME CHOICE, APPLIED ONCE (`identity-profile` r1, `default=off` with Will's note:
+ * "a one-time selection ... to select and show all/hide all initially, then direct handling of
+ * events under profile from there"). The wizard's Finish hands over what to publish and what to take
+ * back, already narrowed to the caller's own attended events by the action; this writes both through
+ * the same owner-RLS rows `showEventOnProfile` and `hideEventFromProfile` write one at a time.
+ *
+ * Idempotent in both directions: a choice already made is `on conflict do nothing` (PostgREST's
+ * ignore-duplicates upsert, which needs only the INSERT the table grants), and a release of a row
+ * that is not there deletes nothing. Every id list is chunked (`inChunks`): the delete's ids ride the
+ * URL, and a keen guest's events grow without bound. Publishing runs AFTER releasing, so a failure
+ * halfway leaves the page showing less than she chose, never more.
+ */
+export async function applyShownEvents(choice: {
+  show: string[];
+  hide: string[];
+}): Promise<MutationResult<{ shown: number; hidden: number }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return UNAUTHORIZED;
+
+  const failed = {
+    ok: false as const,
+    code: "unknown" as const,
+    message: "Couldn't save what shows on your page. Please try again.",
+  };
+  try {
+    if (choice.hide.length > 0) {
+      await inChunks(
+        "social: release shown events",
+        choice.hide,
+        async (chunk) => {
+          const { error } = await supabase
+            .from("profile_shown_events")
+            .delete()
+            .eq("user_id", user.id)
+            .in("event_id", chunk);
+          if (error) throw error;
+          return [];
+        },
+      );
+    }
+    if (choice.show.length > 0) {
+      await inChunks(
+        "social: choose shown events",
+        choice.show,
+        async (chunk) => {
+          const { error } = await supabase.from("profile_shown_events").upsert(
+            chunk.map((eventId) => ({ user_id: user.id, event_id: eventId })),
+            { onConflict: "user_id,event_id", ignoreDuplicates: true },
+          );
+          if (error) throw error;
+          return [];
+        },
+      );
+    }
+  } catch {
+    return failed;
+  }
+  return {
+    ok: true,
+    data: { shown: choice.show.length, hidden: choice.hide.length },
+  };
+}
+
+/**
+ * The profiles-social.md event key, host-set from the event settings card:
+ * display_in_profile (publish this event on MY public profile). Plain RLS update:
+ * the column is in the events column-scoped authenticated grant, and events RLS
+ * row-locks to the host. `.select("id")` verifies a row actually changed (a
+ * foreign/deleted event updates 0 rows and must not report success).
+ *
+ * ★ THE GUEST LIST HAS NO KEY: it is always on (Will, event-safety `room=always`,
+ * 2026-09-28), so nothing writes `show_guest_list` any more (its column and grant
+ * wait for a contract migration to drop them).
  */
 export async function setEventSocialSettings(
   eventId: string,
-  patch: { displayInProfile?: boolean; showGuestList?: boolean },
+  patch: { displayInProfile?: boolean },
 ): Promise<MutationResult<{ id: string }>> {
   const supabase = await createClient();
   const {
@@ -307,8 +379,6 @@ export async function setEventSocialSettings(
   const update: TablesUpdate<"events"> = {};
   if (patch.displayInProfile !== undefined)
     update.display_in_profile = patch.displayInProfile;
-  if (patch.showGuestList !== undefined)
-    update.show_guest_list = patch.showGuestList;
   if (Object.keys(update).length === 0)
     return { ok: true, data: { id: eventId } };
 

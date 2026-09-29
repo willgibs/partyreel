@@ -184,6 +184,7 @@ export function BoardDock({
           {page?.prev && (
             <Link
               href={withDesignKey(page.prev.href, key)}
+              prefetch={false}
               className={pill}
               title={page.prev.label}
             >
@@ -193,13 +194,18 @@ export function BoardDock({
           {page?.next && (
             <Link
               href={withDesignKey(page.next.href, key)}
+              prefetch={false}
               className={pill}
               title={page.next.label}
             >
               Next
             </Link>
           )}
-          <Link href={withDesignKey("/design/lab", key)} className={pill}>
+          <Link
+            href={withDesignKey("/design/lab", key)}
+            prefetch={false}
+            className={pill}
+          >
             Desk
           </Link>
         </div>

@@ -50,11 +50,16 @@ const ENTRIES: ParityEntry[] = [
     literal: "Max size per upload",
   },
   {
+    // voice-guest r1 `failed=exact`: the heading is now built from a template
+    // (`${failed} of ${sent} didn't upload`), so the pin is the static tail
+    // rather than a full sentence — an apostrophe-free literal on purpose: the
+    // app's plain string carries a straight `'`, the JSX mock a curly
+    // `&rsquo;`, and a literal spanning the apostrophe would never match both.
     label: "album cap refusal sheet heading",
     marketingFile:
       "src/components/marketing/sections/features/album/how-much-fits.tsx",
     appFile: "src/components/guest/upload/failure-sheet.tsx",
-    literal: "1 file did not go",
+    literal: "upload",
   },
   {
     label: "album accounts-required teaser button",
@@ -102,12 +107,22 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/guest/entry-modal.tsx",
     literal: "Continue",
   },
+  // voice-guest r2 (`held=uploads`, `status=approval`): the album's waiting tile retired, and a held
+  // photograph shows only in her uploads, so the phone plate quotes her uploads' row and the
+  // switch's hint names it in the same words.
   {
-    label: "album review switch guest waiting tile",
+    label: "album review switch guest's uploads row",
     marketingFile:
       "src/components/marketing/sections/features/album/review-switch.tsx",
-    appFile: "src/components/guest/upload/stack-tile.tsx",
-    literal: "Waiting for the host",
+    appFile: "src/lib/guest/upload-tracker.ts",
+    literal: "Waiting for approval",
+  },
+  {
+    label: "album your-call review hint",
+    marketingFile:
+      "src/components/marketing/sections/features/album/album-copy.ts",
+    appFile: "src/lib/guest/upload-tracker.ts",
+    literal: "Waiting for approval",
   },
   {
     label: "album review switch bulk-approve button",
@@ -136,6 +151,16 @@ const ENTRIES: ParityEntry[] = [
       "src/components/marketing/sections/features/album/visibility-frames.tsx",
     appFile: "src/components/guest/password-gate.tsx",
     literal: "Almost in",
+  },
+  {
+    // voice-guest r1 `ask=warm`. Apostrophe-free on purpose (see the cap-refusal
+    // entry above): the app's reason is a plain string ("you're"), the privacy
+    // page's preview card JSX text ("you&rsquo;re").
+    label: "privacy page access switch password reason",
+    marketingFile:
+      "src/components/marketing/sections/features/privacy/access-switch.tsx",
+    appFile: "src/components/guest/password-gate.tsx",
+    literal: "One password and you",
   },
   {
     label: "album take-home dialog title",
@@ -173,6 +198,22 @@ const ENTRIES: ParityEntry[] = [
     appFile: "src/components/app/event-feed/review-section.tsx",
     literal: "All caught up",
   },
+  // The refusing verb at the door (host-curation `verb=reject`) and the review switch's line that
+  // names both verdicts, quoted by the curation page (curation-wiring).
+  {
+    label: "curation demo reject button",
+    marketingFile:
+      "src/components/marketing/sections/features/curation/review-queue-demo.tsx",
+    appFile: "src/components/app/event-feed/review-actions.tsx",
+    literal: "Reject",
+  },
+  {
+    label: "curation modes, the review switch's line",
+    marketingFile:
+      "src/components/marketing/sections/features/curation/review-modes.tsx",
+    appFile: "src/components/app/event-settings/uploads-section.tsx",
+    literal: "Hold new photos until you approve or reject them, instead of",
+  },
   // Zip export demo (/features/sharing) <-> the real download dialog.
   {
     label: "zip demo dialog title",
@@ -203,13 +244,9 @@ const ENTRIES: ParityEntry[] = [
     literal: "Videos",
   },
   // QR page (/features/qr) <-> the host's real QR designer + download menu.
-  {
-    label: "qr page save button",
-    marketingFile:
-      "src/components/marketing/sections/features/qr/preset-switcher.tsx",
-    appFile: "src/components/app/qr-designer-dialog.tsx",
-    literal: "Save QR style",
-  },
+  // (No "Save QR style" pair: the designer is a menu whose row is the act,
+  // `popups` r1's `choices=menu`, so the app has no Save to quote and the mock
+  // dropped its own; the swatches' words are the shared QR_PRESETS.)
   {
     label: "qr page svg download option",
     marketingFile:

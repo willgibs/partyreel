@@ -14,6 +14,7 @@ import Image from "next/image";
 import { BrowserFrame } from "@/components/marketing/frames";
 import { Check, Checklist } from "@/components/marketing/help/checklist";
 import { MatrixMark } from "@/components/marketing/matrix-mark";
+import { StepScreen } from "@/components/marketing/help/step-screens/step-screen";
 import { HeadingAnchor } from "@/components/marketing/reading/heading-anchor";
 import { HEADING_SCROLL_MT } from "@/components/marketing/reading/heading-contract";
 import { Kbd } from "@/components/shared/kbd";
@@ -22,6 +23,7 @@ import { marketingImage } from "@/lib/constants/marketing-media";
 import { slugify } from "@/lib/content/help";
 import {
   AVG_PHOTO_BYTES,
+  ESTIMATE_BASIS,
   EVENT_PASS_RENEWAL_PRICE_LABEL,
   MAX_EVENTS,
   MAX_REEL_SECONDS,
@@ -106,16 +108,31 @@ export const PlanPrice = ({ id }: { id: PlanId }) => (
 export const EventPassRenewalPrice = () => (
   <>{EVENT_PASS_RENEWAL_PRICE_LABEL}</>
 );
-/** The rule-of-thumb sizes behind every capacity estimate ("about 4 MB a photo"). */
+/** The rule-of-thumb sizes behind every capacity estimate ("about 3.5 MB a photo"): an iPhone's
+ *  24 MP default photo and a minute of its default 1080p video (tiers.ts carries Apple's sources). */
 export const PhotoAverageSize = () => <>{formatBytes(AVG_PHOTO_BYTES)}</>;
 export const VideoMinuteSize = () => <>{formatBytes(VIDEO_BYTES_PER_MIN)}</>;
-/** "19,200 photos or 9 hours of video" for a plan; photos only where the tier has no video
- *  (so `plan="free"` renders the photo count alone, with no second component to reach for). */
-export const CapacityEstimate = ({ plan }: { plan: PlanId }) => {
+/** "at an iPhone's default camera settings": the camera every estimate assumes, for prose that
+ *  states it once before several figures (host-storage r2: an estimate always says its basis). */
+export const EstimateBasis = () => <>{ESTIMATE_BASIS}</>;
+/** "21,943 photos or 20 hours of video at an iPhone's default camera settings" for a plan; photos
+ *  only where the tier has no video (so `plan="free"` renders the photo count alone). The basis
+ *  rides along; `basis="off"` only where the sentence or the table's caption already says it
+ *  (<EstimateBasis />), so no estimate ever reaches a reader without its camera. */
+export const CapacityEstimate = ({
+  plan,
+  basis,
+}: {
+  plan: PlanId;
+  basis?: "off";
+}) => {
   const p = planById(plan);
   return (
     <>
-      {formatCapacity(p.storageBytes, { video: videosAllowedForTier(p.tier) })}
+      {formatCapacity(p.storageBytes, {
+        video: videosAllowedForTier(p.tier),
+        basis: basis !== "off",
+      })}
     </>
   );
 };
@@ -297,14 +314,27 @@ export function Callout({
   type = "info",
   title,
   children,
+  screen,
 }: {
   type?: CalloutType;
   title?: string;
   children: ReactNode;
+  /**
+   * The screen the callout describes, beside it the way a step keeps one (help-center r1
+   * `article=screen`): the guest how-to's keep is its closing callout, and the door's last screen
+   * all the same. A registry id (`help/step-screens/registry.ts`).
+   */
+  screen?: string;
 }) {
   const { Icon, box, icon } = CALLOUT[type];
-  return (
-    <div className={cn("my-6 flex gap-3.5 rounded-xl border p-4", box)}>
+  const callout = (
+    <div
+      className={cn(
+        "flex gap-3.5 rounded-xl border p-4",
+        screen ? "min-w-0 flex-1" : "my-6",
+        box,
+      )}
+    >
       <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border bg-card">
         <Icon className={cn("size-4", icon)} aria-hidden />
       </span>
@@ -312,6 +342,16 @@ export function Callout({
       <div className="text-sm [&>:first-child]:mt-0 [&>:last-child]:mb-0">
         {title && <p className="font-medium text-foreground">{title}</p>}
         {children}
+      </div>
+    </div>
+  );
+  if (!screen) return callout;
+  return (
+    // Beside it at a desk, under it in a hand; the callout reads exactly as it does alone.
+    <div className="my-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-5">
+      {callout}
+      <div className="not-prose" data-print-hide>
+        <StepScreen id={screen} />
       </div>
     </div>
   );
@@ -411,9 +451,32 @@ function H3({ children }: { children?: ReactNode }) {
 // ── Steps — numbered procedures with a tabular numeral rail ─────────────────────
 // Numerals stay on the UI (sans) face with tabular-nums for alignment; no mono
 // anywhere. Steps injects the index so authors never hand-number.
-type StepProps = { index?: number; title: string; children?: ReactNode };
+//
+// ★ A STEP KEEPS THE SCREEN IT DESCRIBES (help-center r1 `article=screen`, Will's
+// pick: "Each step keeps a small illustration of the surface it describes, next
+// to the sentence"). `screen` names one from `help/step-screens/registry.ts`: it
+// sits beside the sentence at a desk and under it in a hand, at the one 200px
+// width every screen is drawn at. A step without one renders exactly as before.
+type StepProps = {
+  index?: number;
+  title: string;
+  children?: ReactNode;
+  screen?: string;
+};
 
-export function Step({ index = 1, title, children }: StepProps) {
+export function Step({ index = 1, title, children, screen }: StepProps) {
+  const words = (
+    <div
+      className={cn("min-w-0 text-sm leading-6", screen ? "flex-1" : "pt-0.5")}
+    >
+      <p className="font-medium text-foreground">{title}</p>
+      {children && (
+        <div className="mt-1 text-muted-foreground [&>:first-child]:mt-0 [&>:last-child]:mb-0">
+          {children}
+        </div>
+      )}
+    </div>
+  );
   return (
     <li className="group relative flex gap-4 pb-7 last:pb-0">
       {/* The connector: from below this numeral to the next one; none after the last. */}
@@ -424,14 +487,16 @@ export function Step({ index = 1, title, children }: StepProps) {
       <span className="z-10 flex size-7 shrink-0 items-center justify-center rounded-full border bg-card text-[11px] text-muted-foreground tabular-nums">
         {String(index).padStart(2, "0")}
       </span>
-      <div className="min-w-0 pt-0.5 text-sm leading-6">
-        <p className="font-medium text-foreground">{title}</p>
-        {children && (
-          <div className="mt-1 text-muted-foreground [&>:first-child]:mt-0 [&>:last-child]:mb-0">
-            {children}
+      {screen ? (
+        <div className="flex min-w-0 flex-1 flex-col gap-3 pt-0.5 sm:flex-row sm:items-start sm:gap-5">
+          {words}
+          <div data-print-hide>
+            <StepScreen id={screen} />
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        words
+      )}
     </li>
   );
 }
@@ -512,6 +577,7 @@ export const sharedComponents = {
   EventPassRenewalPrice,
   PhotoAverageSize,
   VideoMinuteSize,
+  EstimateBasis,
   CapacityEstimate,
   Yes,
   No,

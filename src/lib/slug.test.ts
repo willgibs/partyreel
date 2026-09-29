@@ -43,6 +43,12 @@ describe("suggestSlug", () => {
   it("returns null for a reserved word", () => {
     expect(suggestSlug("Admin")).toBeNull();
   });
+
+  it("returns null for a name in the brand's family, so it never suggests a refusal", () => {
+    expect(suggestSlug("Our Party Reel")).toBeNull();
+    expect(suggestSlug("Partyreel launch night")).toBeNull();
+    expect(suggestSlug("Sam's party")).toBe("sams-party");
+  });
 });
 
 describe("evaluateSlugInput", () => {
@@ -62,7 +68,22 @@ describe("evaluateSlugInput", () => {
   });
 
   it("current when equal to the saved slug (normalized, case-insensitive)", () => {
-    expect(evaluateSlugInput("Summer-Bash", "summer-bash").kind).toBe("current");
+    expect(evaluateSlugInput("Summer-Bash", "summer-bash").kind).toBe(
+      "current",
+    );
+  });
+
+  // ★ A link held before the family grew (the demo's own `partyreel-demo`) still resolves, and
+  // Change opens the field on it: it reads as current, never as a refusal of the link they have.
+  it("current for a held slug the rules now refuse, and the rules for any other value", () => {
+    expect(evaluateSlugInput(" Partyreel-Demo ", "partyreel-demo")).toEqual({
+      kind: "current",
+      normalized: "partyreel-demo",
+    });
+    expect(evaluateSlugInput("partyreel-demo-2", "partyreel-demo").kind).toBe(
+      "invalid",
+    );
+    expect(evaluateSlugInput("partyreel-demo", null).kind).toBe("invalid");
   });
 
   it("check (with the normalized value) for a valid, changed slug", () => {

@@ -29,3 +29,7 @@ src/components/ui
 # Compose on top of these in your own files, same rule as the shadcn primitives above.
 src/components/vendor
 
+
+# The Library's specimen code is the collector's own output (`gallery-demos.tsx` → specimens.test.ts); prettier's
+# re-flow of it is a thousand lines of churn for any lane that touches a specimen.
+src/app/(dev)/design/gallery/specimens.generated.json

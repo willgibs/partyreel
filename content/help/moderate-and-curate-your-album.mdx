@@ -1,13 +1,14 @@
 ---
 title: Curate what shows up in your album
-description: "Three tools, all reversible: Review holds uploads until you approve them, Hide takes a photo off the album but keeps it, and Remove sends it to Deleted for 30 days. Nothing is ever lost by accident."
+description: "Three tools, all reversible: Review holds uploads until you approve or reject them, Hide takes a photo off the album but keeps it, and Remove sends it to Deleted for 30 days."
 category: event-album
 order: 0
-updated: "2026-09-25"
+updated: "2026-09-28"
 keywords:
   - curate
   - moderate
   - approve
+  - reject
   - hide
   - remove
   - review
@@ -21,7 +22,7 @@ You're the editor of your album. Guests supply the photos; you decide what the r
 
 | Tool | What it does | Undo |
 | --- | --- | --- |
-| **Review** | New uploads wait for your approval before appearing. | Approve them any time. |
+| **Review** | New uploads wait until you approve or reject them. | <UiLabel>Undo</UiLabel> on the toast, or <UiLabel>Show</UiLabel> on a rejected one. |
 | **Hide** | Takes a photo off the album for guests; you still see it, dimmed. | <UiLabel>Show</UiLabel> puts it back. |
 | **Remove** | Takes it off the album and sends it to Deleted. | <UiLabel>Restore</UiLabel> within <RecoveryDays />. |
 
@@ -35,7 +36,7 @@ Each has its own guide: [review uploads before they appear](/help/review-uploads
 - **On a phone**, tiles show the heart and <UiLabel>Save</UiLabel>; open the photo to hide it.
 - **In the photo viewer**, the host row adds <UiLabel>Hide</UiLabel> and <UiLabel>Remove</UiLabel>. Whatever you hide or remove leaves the highlight reel too; there's nothing separate to curate there.
 - **In Select mode**, act on many at once: <UiLabel>Select</UiLabel> in the gallery header, or press and hold a tile. See [select many photos at once](/help/bulk-select-and-batch-actions).
-- **In the Review section**, when uploads are waiting: <UiLabel>Approve all</UiLabel> in one tap, or <UiLabel>Select</UiLabel> to sort.
+- **In Review**, when uploads are waiting: <UiLabel>Approve all</UiLabel> in one tap, open one to <UiLabel>Reject</UiLabel> or <UiLabel>Approve</UiLabel> it, or <UiLabel>Select</UiLabel> to sort.
 
 ## A sensible routine
 
@@ -43,7 +44,7 @@ For most events: leave review off, let the album fill live, and hide the odd blu
 
 ## What guests see meanwhile
 
-Only approved, unhidden photos. There's no "removed" placeholder, no dimmed tile, no sign anything was curated. Your own view keeps hidden photos in place, dimmed to 30 percent opacity, so you can find them again. For a bad moment, the playbook is in [reporting content and keeping your event safe](/help/reporting-and-safety).
+Only approved, unhidden photos. There's no "removed" placeholder, no dimmed tile, no sign anything was curated. Your own view keeps hidden photos in place, dimmed to 30 percent opacity, so you can find them again. The one exception is a guest's own list: at an event that reviews uploads, the guest who sent a photo you rejected, hid or removed sees it marked <UiLabel>Not approved</UiLabel> in their own uploads, with no reason, and nobody else sees it. For a bad moment, the playbook is in [reporting content and keeping your event safe](/help/reporting-and-safety).
 
 <Callout type="tip" title="Remove lives in the photo viewer">
 

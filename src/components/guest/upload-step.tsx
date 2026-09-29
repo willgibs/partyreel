@@ -18,7 +18,7 @@
  * the guest would be walked back to the step they just left. The decision that comes back from the
  * refresh is the only thing that can open the album, and `canContribute` is what opens it.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   UploadIntentBody,
@@ -30,6 +30,7 @@ import {
   type UploadFailure,
 } from "@/components/guest/upload/failure-sheet";
 import type { Pick } from "@/components/guest/upload/review-step";
+import { DoorHeading } from "@/components/guest/door/heading";
 import { Button } from "@/components/ui/button";
 import { SESSION_OTHER_ACCOUNT } from "@/lib/guest/session-owner";
 import type { QueueItem } from "@/lib/guest/use-upload-queue";
@@ -47,7 +48,12 @@ import type { QueueItem } from "@/lib/guest/use-upload-queue";
  *   retry     transport, R2, a bad key, a failed completion: the same file may well go next time.
  *   choose    the file itself is the problem, so only a different file can help.
  */
-export type RefusalClass = "refresh" | "session" | "verify" | "retry" | "choose";
+export type RefusalClass =
+  | "refresh"
+  | "session"
+  | "verify"
+  | "retry"
+  | "choose";
 
 export function classifyRefusal(code: string | undefined): RefusalClass {
   switch (code) {
@@ -134,6 +140,34 @@ export function UploadStep({
   );
   const verdict = classifyRun(failures);
   const showFailures = !sending && failures.length > 0;
+
+  /**
+   * THE RUN'S OWN "SENT" (voice-guest r1 `failed=exact`'s "the whole run in its count"): the
+   * failure heading reads "N of SENT didn't upload", and `queue` can hold more than one run's
+   * worth of settled files (nothing here ever prunes a `done` item). `runBaseline` is `queue`'s
+   * length from the render just BEFORE this run's files were appended — captured the first time
+   * `sending` goes true, one render lagged so the new files are not already counted in it — so
+   * `sent = queue.length - runBaseline` is exactly this run's own total, never a prior run's
+   * carried-over successes.
+   *
+   * ★ STARTS AT 0, NOT `queue.length`: a mount that never observed its run START (an already-
+   * failed `queue` handed straight in, as a remount after `key={access}` can do, and as this
+   * file's own pins do) must count everything already there as THIS run, or `sent` reads short.
+   * 0 is exactly that: nothing subtracted until a LATER run's start is actually witnessed.
+   *
+   * ★ STATE, NOT A REF: `sent` reads it during render, and a ref's `.current` may only be read
+   * inside an effect or a handler (React Compiler's own rule) — a render-time read would not
+   * necessarily see a change, and would not re-render when it did.
+   */
+  const [runBaseline, setRunBaseline] = useState(0);
+  const prevQueueLen = useRef(queue.length);
+  const wasSending = useRef(false);
+  useEffect(() => {
+    if (sending && !wasSending.current) setRunBaseline(prevQueueLen.current);
+    wasSending.current = sending;
+    prevQueueLen.current = queue.length;
+  }, [sending, queue.length]);
+  const sent = queue.length - runBaseline;
   // The fail-open: nothing this guest can do about any of it.
   const stuck = showFailures && verdict === "refresh";
 
@@ -146,11 +180,8 @@ export function UploadStep({
   if (sending) {
     return (
       <div data-upload-step="sending" className="flex flex-col gap-4 pt-1">
-        <div aria-hidden>
-          <p className="font-heading text-page text-balance">
-            Sending your photos
-          </p>
-        </div>
+        {/* The step's own views change in place, so their headings reveal (the text reveal). */}
+        <DoorHeading title="Sending your photos" hidden />
         <ul className="flex flex-col gap-3">
           {queue
             .filter((it) => it.status !== "error")
@@ -182,22 +213,23 @@ export function UploadStep({
   if (showFailures) {
     return (
       <div data-upload-step="failed" className="flex flex-col gap-4 pt-1">
-        <div aria-hidden>
-          <p className="font-heading text-page text-balance">
-            {stuck
+        <DoorHeading
+          hidden
+          title={
+            stuck
               ? // The server's own sentence is the heading here: "This album is full right now"
                 // says more than a count of files ever could.
                 (failures[0]?.error ?? "That did not go")
-              : uploadFailureHeading(failures.length)}
-          </p>
-          {!stuck && (
-            <p className="mt-2 text-base leading-relaxed text-muted-foreground">
-              {verdict === "choose"
+              : uploadFailureHeading(failures.length, sent)
+          }
+          reason={
+            stuck
+              ? undefined
+              : verdict === "choose"
                 ? uploadStepChooseAgain(requireUpload)
-                : "Give it one more go."}
-            </p>
-          )}
-        </div>
+                : "Give it one more go."
+          }
+        />
         {/* THE FAILURE VIEW NEVER CARRIES THE SOFT SKIP. A guest here has tried; the way out is
             the server's, or another photograph. */}
         {stuck ? (
@@ -236,17 +268,20 @@ export function UploadStep({
     <div data-upload-step="pick" className="flex flex-col gap-4 pt-1">
       {/* The shell carries these as its sr-only name and description, so the eye reads them here
           and a screen reader does not hear them twice (the name step's own division). */}
-      <div aria-hidden>
-        {/* The step's own heading, not the album sheet's: "Add photos" is a BUTTON's words on a
-            surface a guest opened; this is the door asking, so it asks for theirs. The review
-            heading ("Send this one?") is shared, because that question is the same question. */}
-        <p className="font-heading text-page text-balance">
-          {heading.reviewing ? heading.title : "Add your photos"}
-        </p>
-        <p className="mt-2 text-base leading-relaxed text-muted-foreground">
-          {heading.reviewing ? heading.description : uploadStepReason({ isDemo, requireUpload, albumEmpty })}
-        </p>
-      </div>
+      {/* The step's own heading, not the album sheet's: "Add photos" is a BUTTON's words on a
+          surface a guest opened; this is the door asking, so it asks for theirs. The review
+          heading ("Send this one?") is shared, because that question is the same question. Keyed
+          by which it is, so the review's question reveals in place when a pick comes back. */}
+      <DoorHeading
+        key={heading.reviewing ? "review" : "pick"}
+        hidden
+        title={heading.reviewing ? heading.title : "Add your photos"}
+        reason={
+          heading.reviewing
+            ? heading.description
+            : uploadStepReason({ isDemo, requireUpload, albumEmpty })
+        }
+      />
       <UploadIntentBody
         picks={picks}
         onPicks={setPicks}

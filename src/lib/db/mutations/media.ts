@@ -219,6 +219,55 @@ export function hideBulk(eventId: string, mediaIds: string[]) {
   return bulkSetFromPending(eventId, mediaIds, "hidden");
 }
 
+/** The two states a review verdict lands in (approve, reject), so the two an Undo takes back. */
+export type ReviewVerdictStatus = "approved" | "hidden";
+
+/**
+ * UNDO FOR A REVIEW VERDICT (host-curation `undo=undo`): what an approve or a reject just decided
+ * goes back into the queue, `pending` again. The mirror of `bulkSetFromPending`, scoped the same
+ * narrow way: only rows still in the state the verdict put them in (`from`), so a crafted call
+ * moves nothing a host could not already move (RLS scopes it to their own events, where they may
+ * hide or show anything anyway), and a removed row never matches (nor could it leave the bin: the
+ * guard trigger refuses that). Whether the event still reviews is the action's check, before this.
+ */
+export async function returnToReview(
+  eventId: string,
+  mediaIds: string[],
+  from: ReviewVerdictStatus,
+): Promise<MutationResult<{ count: number }>> {
+  if (mediaIds.length === 0) return { ok: true, data: { count: 0 } };
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return UNAUTHORIZED;
+
+  try {
+    const rows = await inChunks(
+      "media: undo a review verdict",
+      mediaIds,
+      async (chunk) =>
+        (await mustQuery(
+          supabase
+            .from("media")
+            .update({ status: "pending" })
+            .eq("event_id", eventId)
+            .in("id", chunk)
+            .eq("status", from)
+            .select("id"),
+          "media: undo a review verdict",
+        )) ?? [],
+    );
+    return { ok: true, data: { count: rows.length } };
+  } catch {
+    return {
+      ok: false,
+      code: "unknown",
+      message: "Couldn't put those back in Review. Please try again.",
+    };
+  }
+}
+
 /**
  * The GALLERY album bulk-select counterparts of setMediaStatus / removeMedia: the same
  * RLS-scoped, column-locked writes, batched with `.in('id', …)`. These act on the LIVE
@@ -336,7 +385,15 @@ type RestoreReason =
   | "admin_removed";
 
 type RestoreResult =
-  | { ok: true; media_still_removed?: number; status?: string }
+  | {
+      ok: true;
+      media_still_removed?: number;
+      status?: string;
+      /** Set only on an event restore whose old custom link was claimed by another
+       *  event while this one sat in Deleted: it comes back on the permanent link
+       *  instead (see restoreEvent below). */
+      custom_slug_released?: boolean;
+    }
   | {
       ok: false;
       reason: RestoreReason;
@@ -385,10 +442,26 @@ function mapRestoreRefusal(
   }
 }
 
-/** Restore a soft-removed media item (capacity-gated in the RPC; pure status flip). */
+/**
+ * Where a restore landed an item: `restore_media` returns it to the status it held before its removal
+ * (QA #24: a hidden item comes back hidden, a pending one to Review), and answers that status.
+ */
+export type RestoredStatus = "approved" | "hidden" | "pending";
+
+function restoredStatusOf(raw: unknown): RestoredStatus | undefined {
+  return raw === "approved" || raw === "hidden" || raw === "pending"
+    ? raw
+    : undefined;
+}
+
+/**
+ * Restore a soft-removed media item (capacity-gated in the RPC; pure status flip). The answer carries
+ * where it landed, so a caller says what the restore did rather than "back in the album" for an item
+ * that came back hidden; `status` is absent only if the RPC ever answers without one.
+ */
 export async function restoreMedia(
   mediaId: string,
-): Promise<MutationResult<{ id: string }>> {
+): Promise<MutationResult<{ id: string; status?: RestoredStatus }>> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -407,14 +480,24 @@ export async function restoreMedia(
   }
   const result = data as unknown as RestoreResult;
   if (!result.ok) return mapRestoreRefusal(result);
-  return { ok: true, data: { id: mediaId } };
+  return {
+    ok: true,
+    data: { id: mediaId, status: restoredStatusOf(result.status) },
+  };
 }
 
 /** Restore a soft-deleted event (slot- + capacity-gated in the RPC). Independently-removed
- * media stay in the bin; the success data carries how many (for the Phase-4 prompt). */
-export async function restoreEvent(
-  eventId: string,
-): Promise<MutationResult<{ id: string; mediaStillRemoved: number }>> {
+ * media stay in the bin; the success data carries how many (for the Phase-4 prompt), and
+ * whether the old custom link was lost to another event while this one sat in Deleted
+ * (`custom_slug_released`: `restore_event` frees the slug for good rather than failing the
+ * restore, so the toast is the only place the host learns her old link now points elsewhere). */
+export async function restoreEvent(eventId: string): Promise<
+  MutationResult<{
+    id: string;
+    mediaStillRemoved: number;
+    customSlugReleased: boolean;
+  }>
+> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -435,7 +518,11 @@ export async function restoreEvent(
   if (!result.ok) return mapRestoreRefusal(result);
   return {
     ok: true,
-    data: { id: eventId, mediaStillRemoved: result.media_still_removed ?? 0 },
+    data: {
+      id: eventId,
+      mediaStillRemoved: result.media_still_removed ?? 0,
+      customSlugReleased: result.custom_slug_released ?? false,
+    },
   };
 }
 

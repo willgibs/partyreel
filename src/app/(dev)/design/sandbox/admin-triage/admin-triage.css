@@ -1,41 +1,27 @@
-/* THE BOARD'S OWN SHEET: the portal's proposed state palette and the two bits
-   of chrome geometry Tailwind would need an arbitrary value for.
+/* THE BOARD'S OWN SHEET: the rail's one state dot, the chrome's geometry, and
+   the four queue shapes' grids, which Tailwind would spell as arbitrary values.
 
-   ★ THESE FOUR HUES ARE THE `admin` BOARD'S, COPIED, NOT INVENTED. That board
-   is asking Will whether the portal gets state colour at all (its `colour`
-   decision, `badges` recommended), and this one wears the recommendation as
-   settled so it can ask about reports instead of asking the same question
-   twice. The values are identical to `sandbox/admin/admin.css` on purpose: two
-   boards answering to one ruling must not drift a hue apart before the ruling
-   even lands. They are COPIED rather than imported because a board leaves
-   sandbox/ with its directory when its ruling lands, and a stylesheet shared
-   across two boards would take this one with it.
+   ★ THE SCOPE IS THIS BOARD'S OWN CLASS (`.tri-scope`), so nothing here can
+   reach production or another board's frame. The one hue left is the rail's
+   dot beside Reports: every state on a report wears the shipped `Badge` tones
+   (`colour=rows`, `lib/admin/tone.ts`), which is what the portal ships.
 
-   ★ AND THE SCOPE IS THIS BOARD'S OWN CLASS. `.ops-scope` belongs to the admin
-   board; `.tri-scope` is this one's, so the two can never fight over a token if
-   they are ever open in the same document. Nothing in production can reach
-   either. If the semantic set wins, the wiring round promotes ONE copy into the
-   theme under the admin's own scope and both files leave with their boards. */
+   ★ LAYOUT BY SIZE IS A PROP, NEVER A MEDIA QUERY OR A `sm:`. A frame is a
+   real viewport, but every shape here takes its size from the board and draws
+   the class for it, so a 375 phone and a 1440 laptop are two explicit layouts
+   rather than one layout guessing (round one's capture pass found `sm:` and
+   `lg:` utilities unapplied inside a frame). */
 
 .tri-scope {
-  --tri-ok: oklch(0.52 0.13 150);
-  --tri-warn: oklch(0.56 0.12 68);
   --tri-fail: oklch(0.55 0.21 27);
-  --tri-info: oklch(0.52 0.15 255);
 }
 
 .dark .tri-scope,
 .tri-scope.dark {
-  --tri-ok: oklch(0.75 0.15 150);
-  --tri-warn: oklch(0.8 0.13 78);
   --tri-fail: oklch(0.7 0.19 22);
-  --tri-info: oklch(0.72 0.14 255);
 }
 
-/* A chip carries one state: the hue as its ink, a wash of the same hue as its
-   ground, and a hairline of it so the pill still has an edge on a dark card.
-   `--tri` is set per chip at the call site, which keeps one rule for four
-   states rather than four near-identical classes. */
+/* A chip carries one state: the hue as its ink, a wash of it as its ground. */
 .tri-chip {
   display: inline-flex;
   align-items: center;
@@ -51,7 +37,7 @@
   white-space: nowrap;
 }
 
-/* The same signal at a tenth the size, for a rail row or a dense cell. */
+/* The same signal at a tenth the size, for a rail row. */
 .tri-dot {
   display: inline-block;
   width: 0.4375rem;
@@ -61,9 +47,7 @@
   flex: none;
 }
 
-/* The rail's own width and the devtool bar's height, both the admin board's
-   recommended answers, named once so the header's left edge lines up with the
-   content's and never drifts from it by a pixel. */
+/* The rail's width and the devtool bar's height, as `AdminShell` ships them. */
 .tri-rail {
   width: 232px;
   flex: none;
@@ -73,55 +57,85 @@
   height: 44px;
 }
 
-/* ★ NO LEADING EDGE ON AN OPEN REPORT, and the capture pass is why. A
-   `box-shadow` here REPLACES the card's own `ring-1`, so every card on the
-   board lost its border to buy a red stripe, and the stripe then sat in every
-   comparison as a second variable. The status chip already says Open. Left as
-   a note rather than a rule, because the next board to reach for an accent
-   edge on a shadcn Card will hit the same thing. */
-
-/* ★ THE ROW SHAPE'S TWO SIZES, AS A MEDIA QUERY RATHER THAN A `sm:` UTILITY.
-   Responsive variants do not reach a board's frame: `sm:w-[200px]` and
-   `lg:inline` both came back unapplied in the capture pass (the split row
-   measured 1112 px wide at 1440 instead of 200, and a column that said
-   `hidden lg:inline` never appeared), while plain arbitrary values like
-   `w-[560px]` render fine. A board's own sheet is adopted into the frame's
-   realm, so a media query written here behaves exactly as it will in
-   production. Left as a note for the next board that needs one. */
-.tri-row-shot {
-  aspect-ratio: 3 / 2;
-  width: 100%;
+/* ── `rows`: the sheet ─────────────────────────────────────────────────────
+   Six columns: the tick, the 4:5 frame, the report (the widest, since the
+   words decide most of a sweep), who sent it, the album, and what is true of
+   it now. Fractions, so a long reason takes room from nothing but itself. */
+.tri-sheet-row {
+  display: grid;
+  grid-template-columns: 1.25rem 2.5rem minmax(0, 2.1fr) minmax(0, 1fr) minmax(
+      0,
+      1fr
+    ) 9.5rem;
+  align-items: start;
+  column-gap: 1rem;
 }
 
-.tri-row {
+/* ── `pane`: the list beside the report ────────────────────────────────────
+   `InboxPane`'s two columns, with a real height, so the list scrolls inside
+   the card and the report in focus never leaves the screen. */
+.tri-pane {
+  display: grid;
+  grid-template-columns: 380px minmax(0, 1fr);
+  height: 640px;
+}
+
+/* ── `grid` and `albums`: tiles ────────────────────────────────────────────
+   The review grid's auto-fill, on a floor small enough that a laptop's column
+   holds six: the host queue's own rule is 220 px, which would give a report's
+   two lines of words four tiles a row beside the rail. */
+.tri-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 1.25rem 0.75rem;
+}
+
+.tri-grid-phone {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem 0.5rem;
+}
+
+/* The lanes judged one at a time, side by side: a lane of one report takes
+   one column, a lane of several two (FrontCards). */
+.tri-fronts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+}
+
+/* Two albums a row at a laptop, each wrapping its own tiles. */
+.tri-albums {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-items: start;
+}
+
+/* ── The peek ──────────────────────────────────────────────────────────────
+   The host queue's `peek=verdict`, drawn open. FIXED, because the frame IS
+   the viewport; the ground is its own element under the photograph
+   (GLASS_BEHIND's rule). */
+.tri-peek {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  padding: 3.75rem 2rem 2rem;
 }
 
-/* The album a closed report belongs to: a column of its own once there is room
-   for one, and gone when there is not. */
-.tri-log-album {
-  display: none;
+.tri-peek-ground {
+  position: absolute;
+  inset: 0;
 }
 
-@media (min-width: 640px) {
-  .tri-row-shot {
-    aspect-ratio: 1 / 1;
-    width: 200px;
-    flex: none;
-  }
-  .tri-row {
-    flex-direction: row;
-    gap: 1.25rem;
-  }
-  .tri-log-album {
-    display: inline;
-  }
-}
-
-/* The one measured number this board draws over a picture: the frame's real
-   edge in CSS pixels, read off the laid-out document (board.tsx). */
-.tri-measure {
-  font-variant-numeric: tabular-nums;
+/* ── The guest's Report, on her phone (`harm`, `proof`) ────────────────────
+   The album behind the dialog, dimmed as the popup's overlay dims it. */
+.tri-album-behind {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  filter: saturate(0.9);
 }

@@ -17,28 +17,27 @@ import { defineExploration } from "@/components/lab/exploration";
  * production byte; the email path, the rate limiter and the honeypot stay as
  * they are unless an option says what it changes.
  *
- * ★ THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21) TOUCHES FOUR OF SIX, TEXT
- * ONLY. `page`, `topic`, `urgency` and `receipt` each gained a precedent a
- * later decision shipped since 19 Sep (named in their own context/because
- * lines below); every option and every recommendation across all six asks
- * is unchanged. `reach` and `beside` stand as drawn: no badge named them.
+ * ★ THE OVERTAKEN AUDIT'S RESHAPE (2026-09-21) TOUCHED FOUR OF SIX, TEXT
+ * ONLY: `page`, `topic` and `urgency` still cite in their own lines the
+ * precedent a later decision shipped since 19 Sep.
  *
- * ★ THE REFRESH (2026-09-24) DRAWS THE FOURTH RECEIPT OPTION THE FIRST ROUND
- * ONLY NAMED. `receipt`'s own overrule already flagged a modal as the
- * shipped precedent for a confirmation "worth feeling" (`welcome-to-pro.tsx`)
- * and left it undrawn; it is drawn now, quoted as plain markup rather than
- * mounted through `Dialog` itself (a radix portal that would cover the whole
- * board rather than sit inside its own tile, `profile-page`'s landmine). The
- * other five asks stand as drawn.
+ * ★ "AS TODAY" IS READ FROM THE FILES (2026-09-28). `page`'s `desk` had
+ * drawn the light hero over a generic column since round one, where the real
+ * page opens on the stationery form and its facts; it now draws that form
+ * chapter, the same one `chapter` puts under the dark hero. `receipt` has no
+ * modal (a dialog is the interruption Will's notes ask a confirmation not to
+ * be, and no popup kind fits a receipt), and `topic`'s `optional` no longer
+ * says the press and careers doors pre-pick a topic: only a help article's
+ * link does. The other three stand as drawn.
  */
 export const CONTACT_PAGE = defineExploration({
   id: "contact-page",
   title: "Reaching a person",
   round: {
     n: 1,
-    date: "2026-09-21",
+    date: "2026-09-28",
     changed:
-      "The overtaken audit's reshape touches four of six: page cites pricing-page's own paper-hero precedent; topic cites first-event's style=step; urgency's premise is confirmed by the shipped failure sheet; receipt names the app's own modal precedent. reach and beside stand unbadged.",
+      "Redrawn on production: page's desk is the page as it ships (the light hero over the form and its facts), so it differs from chapter in the hero alone; receipt drops the modal, since a dialog interrupts the page; topic's optional stops claiming press and careers pre-pick a topic.",
   },
   context:
     "Will (2026-09-19, stack the lab): /contact is unprotected like the rest, a board that keeps nothing deleted at no cost. Six decisions on the real desk, drawn on a host mid-event, a planner weighing a plan, and a reporter on background.",
@@ -139,7 +138,7 @@ export const CONTACT_PAGE = defineExploration({
           id: "optional",
           label: "Optional, skippable",
           means:
-            "The picker stays but nothing forces it; the help, press and careers doors still pre-pick it silently.",
+            "The picker stays but nothing forces it; a help article's Contact us link still pre-picks it silently.",
         },
       ],
       recommended: "required",
@@ -195,7 +194,7 @@ export const CONTACT_PAGE = defineExploration({
       label: "The receipt",
       question: "What should the sender hold after they send a note?",
       context:
-        "Today: the card swaps for a drawn check; the sender gets no receipt of any kind. The app's bar has moved since: a confirmation worth feeling now opens a modal, not a box up top (app-pricing r1's welcome-to-Pro).",
+        "Today: the card swaps for a drawn check and a toast says thanks once more; nothing reaches her inbox and nothing names the note. Drawn on the planner, just after her question about a 300-guest weekend.",
       options: [
         {
           id: "card",
@@ -215,20 +214,14 @@ export const CONTACT_PAGE = defineExploration({
           means:
             "The success card adds a short code to quote if they follow up, with no status page behind it yet.",
         },
-        {
-          id: "modal",
-          label: "A modal, like the app's own welcome",
-          means:
-            "The form dims behind a centered dialog: the same check and reply line, no confetti or upgrade copy, closed with one Done rather than left as the page.",
-        },
       ],
       recommended: "card",
       because:
-        "A second email is a send to an address nobody verified, a real abuse surface (spoofed sends, inbox bombing); the reference line gets most reassurance for one string; and a plain card already matches a note's own weight without borrowing a celebration's mechanism for something that is not one.",
+        "A second email is a send to an address nobody verified, a real abuse surface (spoofed sends, inbox bombing); the reference line gets most reassurance for one string; and a plain card already says it where she is, at a note's own weight, without interrupting the page.",
       overrule:
-        "If a note ever deserves the app's own weight of acknowledgement, the modal draws that honestly; short of that, interrupting the page over-dresses a note.",
+        "If follow-ups start arriving with nothing to match them to the first note, the reference line earns its one string.",
       lands:
-        "Whether sendOnce gains a second recipient, whether contact_submissions.id reaches a visitor, and whether success ever leaves the page for a dialog.",
+        "Whether sendOnce gains a second recipient, and whether contact_submissions.id ever reaches a visitor.",
       after: { ask: "reach" },
     },
 

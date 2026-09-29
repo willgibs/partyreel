@@ -21,7 +21,9 @@ import { DestructiveSheet } from "./destructive-sheet";
 
 const touches = ["18 events, binned now", "1 subscription, cancelled first"];
 
-function sheet(props: Partial<React.ComponentProps<typeof DestructiveSheet>> = {}) {
+function sheet(
+  props: Partial<React.ComponentProps<typeof DestructiveSheet>> = {},
+) {
   const onConfirm = vi.fn(async () => ({ ok: true as const }));
   render(
     <DestructiveSheet
@@ -100,7 +102,9 @@ describe("the confirmation itself", () => {
     await user.type(screen.getByRole("textbox"), "grace@whitlockevents.co");
     await user.click(confirmButton());
     expect(onConfirm).toHaveBeenCalledTimes(1);
-    expect(onConfirm).toHaveBeenCalledWith("grace@whitlockevents.co");
+    // The second argument is the confirm's note (admin-triage r1): this act
+    // carries none, so it is handed "".
+    expect(onConfirm).toHaveBeenCalledWith("grace@whitlockevents.co", "");
   });
 
   it("runs once on a reversible act too", async () => {
@@ -117,5 +121,101 @@ describe("the confirmation itself", () => {
     await user.click(screen.getByRole("button", { name: /cancel/i }));
     expect(onConfirm).not.toHaveBeenCalled();
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+});
+
+/**
+ * ONE NOTE, TYPED INTO THE CONFIRM (admin-triage r1, `verdict=note` and
+ * `escalate=door`, Will 2026-09-28): a report's Remove leaves an optional line
+ * on the record, and a hold from a report states its reason there, filled in.
+ */
+describe("a confirm can carry one note", () => {
+  it("an optional note asks for nothing, and hands over what was written, trimmed", async () => {
+    const user = userEvent.setup();
+    const { onConfirm } = sheet({
+      verb: "Remove",
+      note: { label: "Note", placeholder: "Why, in one line" },
+    });
+    expect(screen.getByText("(optional)")).toBeInTheDocument();
+    const field = screen.getByRole("textbox", { name: /note/i });
+    expect(confirmButton(/remove/i)).toBeEnabled();
+
+    await user.type(field, "  Child in frame; her parent asked.  ");
+    await user.click(confirmButton(/remove/i));
+    expect(onConfirm).toHaveBeenCalledWith(
+      "",
+      "Child in frame; her parent asked.",
+    );
+  });
+
+  it("an empty optional note is handed over as nothing at all", async () => {
+    const user = userEvent.setup();
+    const { onConfirm } = sheet({ verb: "Remove", note: { label: "Note" } });
+    await user.click(confirmButton(/remove/i));
+    expect(onConfirm).toHaveBeenCalledWith("", "");
+  });
+
+  it("a required note holds the verb until a line is written", async () => {
+    const user = userEvent.setup();
+    const { onConfirm } = sheet({
+      verb: "Set hold and preserve",
+      note: { label: "Reason, on the record", required: true },
+    });
+    const verb = confirmButton(/set hold and preserve/i);
+    expect(screen.getByText("(required)")).toBeInTheDocument();
+    expect(verb).toBeDisabled();
+
+    // Spaces are not a reason.
+    await user.type(screen.getByRole("textbox"), "   ");
+    expect(verb).toBeDisabled();
+    await user.type(screen.getByRole("textbox"), "report 8d2f0b14");
+    expect(verb).toBeEnabled();
+    await user.click(verb);
+    expect(onConfirm).toHaveBeenCalledWith("", "report 8d2f0b14");
+  });
+
+  it("a filled-in note starts from its value, and the operator's edit is what is handed over", async () => {
+    const user = userEvent.setup();
+    const { onConfirm } = sheet({
+      verb: "Set hold and preserve",
+      note: {
+        label: "Reason, on the record",
+        required: true,
+        defaultValue: "Report 8d2f0b14",
+      },
+    });
+    const field = screen.getByRole("textbox");
+    expect(field).toHaveValue("Report 8d2f0b14");
+    expect(confirmButton(/set hold and preserve/i)).toBeEnabled();
+
+    await user.type(field, ", CyberTipline filing");
+    await user.click(confirmButton(/set hold and preserve/i));
+    expect(onConfirm).toHaveBeenCalledWith(
+      "",
+      "Report 8d2f0b14, CyberTipline filing",
+    );
+  });
+
+  it("a permanent act with a note still waits for its identifier, and hands over both", async () => {
+    const user = userEvent.setup();
+    const { onConfirm } = sheet({
+      severity: "permanent",
+      confirmText: "grace@whitlockevents.co",
+      note: { label: "Note" },
+    });
+    await user.type(
+      screen.getByRole("textbox", { name: /note/i }),
+      "Asked twice.",
+    );
+    expect(confirmButton()).toBeDisabled();
+    await user.type(
+      screen.getByRole("textbox", { name: /type/i }),
+      "grace@whitlockevents.co",
+    );
+    await user.click(confirmButton());
+    expect(onConfirm).toHaveBeenCalledWith(
+      "grace@whitlockevents.co",
+      "Asked twice.",
+    );
   });
 });

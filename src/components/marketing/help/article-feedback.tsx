@@ -1,16 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
 /**
- * The honest feedback row (R6): "Yes" is a thank-you moment (nothing is
- * recorded anywhere, so nothing pretends to be); "No" routes to the real
- * useful action — contact, prefilled with this article via ?about= (the C3
- * handoff). The drawn check is the 10-success-check recipe, the contact-form
- * precedent.
+ * "Did this answer your question?" (R6), now a counted beacon (help-center r1 `feedback=beacon`,
+ * Will: "One insert per click, visible only in admin; the reader sees the same thank-you or sorry").
+ * "Yes" is still a thank-you moment and "No" still routes to the useful action, contact prefilled
+ * with this article via ?about= (the C3 handoff); what changed is that the answer is no longer
+ * thrown away. The drawn check is the 10-success-check recipe, the contact-form precedent.
+ *
+ * ★ THE READER NEVER WAITS ON THE COUNT. The post is fire-and-forget (`keepalive`, so a click
+ * followed by a tap on "Up next" still lands) and its answer is never read: a refused, limited or
+ * failed beacon changes nothing on screen, which is what "the same thank-you or sorry" means. The
+ * route answers with no body anyway (`/api/help/feedback`), and a failure is counted where an
+ * operator looks (the `help_feedback` signal), not where a reader does.
+ *
+ * ★ ONE CLICK, ONE POST. The row leaves the screen on the first click, and the ref holds the line
+ * against a double-click landing twice before React re-renders.
  */
 export function ArticleFeedback({
   slug,
@@ -21,6 +30,14 @@ export function ArticleFeedback({
   next?: { slug: string; title: string } | null;
 }) {
   const [state, setState] = useState<"idle" | "yes" | "no">("idle");
+  const sent = useRef(false);
+
+  const answer = (helpful: boolean) => {
+    if (sent.current) return;
+    sent.current = true;
+    setState(helpful ? "yes" : "no");
+    sendFeedbackBeacon(slug, helpful);
+  };
 
   return (
     <div className="mt-14 border-t pt-6">
@@ -30,10 +47,10 @@ export function ArticleFeedback({
             Did this answer your question?
           </p>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setState("yes")}>
+            <Button variant="outline" size="sm" onClick={() => answer(true)}>
               Yes
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setState("no")}>
+            <Button variant="outline" size="sm" onClick={() => answer(false)}>
               No
             </Button>
           </div>
@@ -89,4 +106,18 @@ export function ArticleFeedback({
       )}
     </div>
   );
+}
+
+/** The beacon itself: one post, never awaited, never read (see the header). */
+export function sendFeedbackBeacon(slug: string, helpful: boolean): void {
+  try {
+    void fetch("/api/help/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, helpful }),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    // A browser that refuses the request outright costs one count, never the reader's thank-you.
+  }
 }

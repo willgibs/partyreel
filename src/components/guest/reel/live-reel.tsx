@@ -446,10 +446,12 @@ function preloadCreatorDoor() {
 /* ── the approval toast ──────────────────────────────────────────────────────── */
 
 /**
- * THE APPROVAL TOAST: "The host added your uploads", with a "Watch reel" action for a guest deep in
- * the album who wants to see it now. It carries no number, because not every upload may have been
- * approved and a live count would need updating in place; it simply appears once, when at least
- * one of this guest's uploads will be in the reel on a moderated event.
+ * THE APPROVAL TOAST: "One of yours is in the album", with a "Watch reel" action for a guest deep in
+ * the album who wants to see it now. It carries no number and claims only the one (crumbs-6, told
+ * true beside `told=line`): it fires on the FIRST of this guest's held uploads to be approved, and
+ * a plural "your uploads" would be a live lie the moment another of the same pick is left out; it
+ * simply appears once, when at least one of this guest's uploads will be in the reel on a
+ * moderated event.
  *
  * ★ ONCE PER VISIT, on a moderated event, the moment the first of this device's HELD uploads shows up
  * approved in the album (its media id reaches the live list) and would play (not a clip). Never
@@ -494,7 +496,11 @@ function ApprovalToast({
     if (!approved) return;
     spentRef.current = true;
     if (!available || viewOpen) return;
-    toast("The host added your uploads", {
+    // crumbs-6, told true beside `told=line`: this fires on the FIRST of her held uploads the
+    // host approves, before the rest of the same pick are decided — "The host added your
+    // uploads" (plural, all of them) can be a live lie when another is left out. "One of yours"
+    // claims only what just happened, true no matter what the rest become.
+    toast("One of yours is in the album", {
       action: { label: "Watch reel", onClick: onWatch },
     });
   }, [queue, live.serverItems, available, viewOpen, onWatch]);

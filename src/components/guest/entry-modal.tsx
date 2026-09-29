@@ -8,21 +8,30 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  type CSSProperties,
+  type ReactNode,
 } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Camera,
-  Check,
   ChevronLeft,
   ImageUp,
   Images,
   QrCode,
+  type LucideIcon,
 } from "lucide-react";
 
 import { updateDisplayNameAction } from "@/app/(app)/account/actions";
 import { initial } from "@/components/app/user-menu";
+import { DOOR_WEAR } from "@/components/auth/account-door";
 import { chooserCopy, DoorChooser } from "@/components/guest/door/chooser";
+import {
+  DoorCheck,
+  DoorPool,
+  LiveCount,
+  type LitHue,
+} from "@/components/guest/door/lit";
 import { SigninStep, signinCopy } from "@/components/guest/door/signin-step";
 import { EntryShell, type DismissMode } from "@/components/guest/entry-shell";
 import { EntryStepTransition } from "@/components/guest/entry-step-transition";
@@ -33,13 +42,23 @@ import {
 } from "@/components/guest/guest-name-step";
 import { identifyCopy, IdentifyStep } from "@/components/guest/identify-step";
 import { PasswordGate } from "@/components/guest/password-gate";
+import {
+  captureKeepNewsletter,
+  KeepConfirm,
+  keepCopy,
+  KeepOffer,
+} from "@/components/guest/save-account-prompt";
 import { UploadStep, uploadStepReason } from "@/components/guest/upload-step";
 import { LegalConsentLine } from "@/components/shared/legal-consent-line";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import type { GalleryAccess, GalleryGate } from "@/lib/events/gallery-access";
-import { formatCount } from "@/lib/format/count";
+import { markPendingOffer } from "@/lib/guest/album-return";
 import { claimAnonymousUploads } from "@/lib/guest/claim-uploads";
+import {
+  lastClaimPlayedMoment,
+  reportConfirmBeat,
+} from "@/lib/guest/confirm-beat";
 import {
   computeDoor,
   doorBack,
@@ -47,6 +66,8 @@ import {
   type EntryStep,
 } from "@/lib/guest/entry-steps";
 import { joinEvent } from "@/lib/guest/join";
+import { putDownKeepAsk } from "@/lib/guest/keep-ask";
+import type { NameDoorMode } from "@/lib/guest/name-door";
 import { ARRIVAL_BEAT_MS, useArrivalBeat } from "@/lib/guest/use-arrival-beat";
 import { setLastName, setStoredName } from "@/lib/guest/use-stored-name";
 import { useSuccessHold } from "@/lib/guest/use-success-hold";
@@ -64,9 +85,11 @@ export type EntryModalHandle = {
   /**
    * THE EDIT DOOR, and only that. The join/profile modes are steps of the itinerary; "Change
    * name" in the album's menu is the one name door raised imperatively, and the one surface in this
-   * whole sheet that a guest may close.
+   * whole sheet that a guest may close. `account` is the same door for a CONFIRMED account (the told
+   * name's Change, `confirm-beat.ts`): it writes the profile's name, since a confirmed row carries
+   * none of its own.
    */
-  openToName: (mode: "edit") => void;
+  openToName: (mode: NameDoorMode, name?: string | null) => void;
 };
 
 /**
@@ -188,6 +211,20 @@ export const EntryModal = forwardRef<
      * once instead of waiting for a sheet that is not there (see event-experience's own note).
      */
     onUploadStepActive?: (active: boolean) => void;
+    /* ── the keep, the door's last screen (`guest-capture` r1; the page decides when it is due) ── */
+    /** The ask to keep what she added is due (`computeDoor`'s rule 7). */
+    keepDue?: boolean;
+    /** Her photographs that landed this visit, which the ask counts (live). */
+    keepCount?: number;
+    /** The event holds uploads for the host, so what she sent is waiting rather than in. */
+    keepHeld?: boolean;
+    /**
+     * The address typed under her name this visit, in memory only (the page's state), so the keep's
+     * account door opens on it rather than asking twice.
+     */
+    hintEmail?: string | null;
+    /** The keep was confirmed here: the page stops asking before the refresh lands. */
+    onKeepAnswered?: () => void;
   }
 >(function EntryModal(
   {
@@ -221,6 +258,11 @@ export const EntryModal = forwardRef<
     onRetry,
     onDismissFailures,
     onUploadStepActive,
+    keepDue = false,
+    keepCount = 0,
+    keepHeld = false,
+    hintEmail = null,
+    onKeepAnswered,
   },
   ref,
 ) {
@@ -229,8 +271,13 @@ export const EntryModal = forwardRef<
   // itself is told which visitor this is.
   const [seen, markSeen] = useWelcomeSeen(qrToken, isDemo);
   // THE EDIT DOOR's own open state: a SECOND door through the same shell rather than a step, and
-  // the only free surface here (see the handle's comment).
-  const [editOpen, setEditOpen] = useState(false);
+  // the only free surface here (see the handle's comment). Its value is the door's mode: a guest's
+  // row (`edit`) or a confirmed account's profile (`account`).
+  const [editOpen, setEditOpen] = useState<NameDoorMode | null>(null);
+  const [editPrefill, setEditPrefill] = useState<string | null>(null);
+  // THE KEEP'S SECOND VIEW: Confirm your email opens the account door in this same sheet. Modal
+  // state for this pass alone; the chevron goes back to the offer.
+  const [keepConfirming, setKeepConfirming] = useState(false);
   /* ★ THE WAY IN, picked at the chooser. Modal state for this visit alone: going back to the
      chooser clears it and nothing persists it (entry-steps.ts's own note on `DoorPath`). */
   const [path, setPath] = useState<DoorPath | null>(null);
@@ -273,6 +320,7 @@ export const EntryModal = forwardRef<
     returning,
     isOwner,
     isDemo,
+    keepDue,
   });
   const current: EntryStep | null = steps[0] ?? null;
   const isLastStep = steps.length === 1;
@@ -334,7 +382,7 @@ export const EntryModal = forwardRef<
     (hydrated && current !== null && (!autoOpen || beatReady)) ||
     holding ||
     // The edit door, ORed in: it opens over an album with no step pending at all.
-    (hydrated && editOpen);
+    (hydrated && editOpen !== null);
 
   /* THE BACK AFFORDANCE (`doorBack`, entry-steps.ts): the welcome and the name are transient
      client VIEWS over the derived machine (markSeen and the steps untouched); the chooser is a
@@ -348,6 +396,9 @@ export const EntryModal = forwardRef<
   if (current !== prevStep) {
     setPrevStep(current);
     setBackView(null);
+    // The keep's confirm view belongs to the keep: leaving the step (a dismissal, an answer)
+    // leaves it too, so a later keep opens on its offer.
+    setKeepConfirming(false);
     setDirection(goingBack ? "back" : "fwd");
     if (goingBack) setGoingBack(false);
   }
@@ -375,9 +426,12 @@ export const EntryModal = forwardRef<
       // ★ NEVER IN THE DEMO, as a belt under the caller's own guard: nothing a
       // demo visitor adds is persisted, so there is no row to name and a form
       // between the tap and the picture would be the one lie the demo tells.
-      openToName: () => {
+      openToName: (mode, name) => {
         if (holding || isDemo) return;
-        setEditOpen(true);
+        // The name being changed, when the caller knows it better than this device's stored one
+        // (the told name is the ACCOUNT's, which may not be what was typed here).
+        setEditPrefill(name?.trim() || null);
+        setEditOpen(mode);
       },
     }),
     [holding, isDemo],
@@ -402,6 +456,11 @@ export const EntryModal = forwardRef<
      as Priya even if they typed "P" at the door a minute ago: one person, one name, and the
      identify step says so under the name field before they confirm.
 
+     ★ AND THEN SHE IS TOLD (`guest-capture` r1, Will's `name=told`): the name her photographs now
+     carry, whenever she typed one at this door, whichever name won. Told once, with whatever the
+     claim carried from other events, by the page when the door has closed (`confirm-beat.ts`),
+     never as a second or third toast in the same beat.
+
      The whole sequence runs UNDER the hold, so a guest sees one beat rather than four flickers.
      ──────────────────────────────────────────────────────────────────────── */
   const handleEmailVerified = useCallback(async () => {
@@ -410,7 +469,7 @@ export const EntryModal = forwardRef<
       document.activeElement.blur();
     }
     handleUnlocked();
-    await claimAnonymousUploads({ silent: true });
+    const claimed = await claimAnonymousUploads({ silent: true });
 
     const joined = await joinEvent({ qrToken });
     const mintedToken = joined.ok ? joined.guest.sessionToken : null;
@@ -457,8 +516,47 @@ export const EntryModal = forwardRef<
       emailAttached: false,
       email: null,
     });
+    // The beat, unless the claim played the follow moment (a confirm door opened here earlier left
+    // its marker), whose card says all of it. Log in types no name, so it tells none.
+    if (!lastClaimPlayedMoment(qrToken)) {
+      const told = typedName ? landedName : null;
+      const elsewhere = claimed?.elsewhere ?? 0;
+      if (told || elsewhere > 0) {
+        reportConfirmBeat({ album: qrToken, name: told, elsewhere });
+      }
+    }
     router.refresh();
   }, [handleUnlocked, onNamed, qrToken, router, typedName]);
+
+  /* ────────────────────────────────────────────────────────────────────────
+     THE KEEP, CONFIRMED: the claim is the whole keep (her uploads, and this event with them, become
+     the account's), so it is AWAITED before anything redraws, then the newsletter she switched on
+     here, then the page stops asking and refreshes onto her confirmed self. The door wrote the
+     album's return marker when the confirm opened, so the claim plays the follow moment on the
+     album: its card says what she keeps, the other events, the host to follow and the name she is
+     now on as. Only a claim that somehow played no moment reports a beat of its own.
+     ──────────────────────────────────────────────────────────────────────── */
+  const handleKeepVerified = useCallback(
+    async ({ newsletter }: { newsletter: boolean }) => {
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+      const claimed = await claimAnonymousUploads({ silent: true });
+      if (newsletter) await captureKeepNewsletter(sessionToken ?? null);
+      if (!lastClaimPlayedMoment(qrToken)) {
+        // The page settles the name her photos now carry and says it once (`confirm-beat.ts`).
+        reportConfirmBeat({
+          album: qrToken,
+          name: null,
+          elsewhere: claimed?.elsewhere ?? 0,
+          settle: true,
+        });
+      }
+      onKeepAnswered?.();
+      router.refresh();
+    },
+    [onKeepAnswered, qrToken, router, sessionToken],
+  );
 
   // THE HELD VIEW + EXIT LATCH: while a PASSWORD hold plays, the gate stays
   // PLANTED and its own button morphs green (an in-place success - no step
@@ -470,7 +568,7 @@ export const EntryModal = forwardRef<
     ? heldStep === "password"
       ? "password"
       : "success"
-    : editOpen
+    : editOpen !== null
       ? "name-edit"
       : reviewing
         ? backView === "name"
@@ -478,22 +576,29 @@ export const EntryModal = forwardRef<
           : "welcome-review"
         : current === "name"
           ? `name-${nameMode}`
-          : (current ?? "none");
+          : current === "keep"
+            ? keepConfirming
+              ? "keep-confirm"
+              : "keep"
+            : (current ?? "none");
   const [lastKey, setLastKey] = useState(stepKey);
   if (open && stepKey !== lastKey) setLastKey(stepKey);
   const displayKey = open ? stepKey : lastKey;
+  // The edit door's mode, latched the same way, so a door that is leaving keeps the mode it opened in.
+  const [editMode, setEditMode] = useState<NameDoorMode>("edit");
+  if (editOpen !== null && editOpen !== editMode) setEditMode(editOpen);
 
   /* ★ THE DISMISSABILITY TABLE IS ONE ROW. "No exit": every step of the door is HELD, so there
      is no X, and Escape and the backdrop do nothing. The one free surface is the album
      menu's "Change name", which sits over an album the guest already reached and posts nothing when
      it closes. A closed/exiting shell is held too, so affordances cannot pop in mid-exit. */
   const dismissMode: DismissMode =
-    open && editOpen && !holding ? "free" : "held";
+    open && editOpen !== null && !holding ? "free" : "held";
 
   // Fired by the shell ONLY for a user dismissal of a "free" surface, which is the edit door alone.
   function handleDismiss() {
     if (holding) return; // defense in depth; the hold is never dismissable
-    setEditOpen(false);
+    setEditOpen(null);
   }
 
   function continueFromWelcome() {
@@ -502,6 +607,12 @@ export const EntryModal = forwardRef<
 
   function goBack() {
     letGo();
+    if (displayKey === "keep-confirm") {
+      // The keep's own second view: back to the offer, whose face carries Maybe later.
+      setDirection("back");
+      setKeepConfirming(false);
+      return;
+    }
     if (back === "chooser") {
       // A real change of input: the pick clears, and the chooser arrives from the left.
       setGoingBack(true);
@@ -517,13 +628,15 @@ export const EntryModal = forwardRef<
   const nameStepNode = (
     <GuestNameStep
       qrToken={qrToken}
-      mode={displayKey === "name-edit" ? "edit" : nameMode}
+      mode={displayKey === "name-edit" ? editMode : nameMode}
       hostName={hostName}
-      storedName={storedName}
+      storedName={
+        displayKey === "name-edit" && editPrefill ? editPrefill : storedName
+      }
       sessionToken={sessionToken}
       onNamed={(result) => {
         if (displayKey === "name-edit") {
-          setEditOpen(false);
+          setEditOpen(null);
           onNamed?.({ ...result, source: "edit" });
           return;
         }
@@ -537,7 +650,7 @@ export const EntryModal = forwardRef<
         // The host turned Require verified emails ON while this guest stood at the door. The name
         // is worth nothing now, so the page's own refresh re-gates to `identify`, which is the
         // honest surface for what just changed.
-        setEditOpen(false);
+        setEditOpen(null);
         router.refresh();
       }}
     />
@@ -555,14 +668,20 @@ export const EntryModal = forwardRef<
     eventName,
     hostName,
     nameMode,
+    editMode,
     verification: gate === "account",
     mediaTotal,
+    keepCount,
     uploadReason: uploadStepReason({
       isDemo,
       requireUpload,
       albumEmpty,
     }),
   });
+  // The keep's confirm view has a way back to its offer; every other step's is the machine's.
+  const showBack =
+    displayKey === "keep-confirm" ||
+    (Boolean(back) && !reviewing && !holding && editOpen === null);
 
   return (
     <EntryShell
@@ -578,8 +697,19 @@ export const EntryModal = forwardRef<
       // gallery, gallery-access, the RPCs): renaming a live route buys a guest
       // nothing and risks the one flow with no account behind it.
       description={sheetCopy.description}
+      // The lamp blooms on "You're in" (the success beat, and the password's in-place morph), and
+      // rests while a stalled beat offers its retry. ★ The keep rests too, though the board draws
+      // its "Sent" blooming: its words stand at the sheet's top, where a bloom's wash reads 2:1 in
+      // dark (`lit.css`); "You're in" stands below it. The keep's own lit check is its beat.
+      lamp={holding && !stalled ? "bloom" : "base"}
     >
-      <EntryStepTransition stepKey={displayKey} direction={direction}>
+      {/* ★ "YOU'RE IN" ARRIVES IN PLACE (`beat=lit`): its check blooms and its words reveal where
+          the step stood, and the step it replaces fades there, rather than one more slide from
+          the right (the text reveal and the side-by-side move never stack: door.css). */}
+      <EntryStepTransition
+        stepKey={displayKey}
+        direction={displayKey === "success" ? "place" : direction}
+      >
         <div className="relative pt-1">
           {displayKey === "success" && (
             <SuccessStep
@@ -605,15 +735,17 @@ export const EntryModal = forwardRef<
           {/* The chevron back to the step behind this one (the guest can always re-read what
               this is) - hidden while the success beat plays, and on the edit door, which has a
               real X of its own. */}
-          {back && !reviewing && !holding && !editOpen && (
+          {showBack && (
             <button
               type="button"
               aria-label={
-                back === "name"
-                  ? "Back to your name"
-                  : back === "chooser"
-                    ? "Back to how you join"
-                    : "Back to the welcome"
+                displayKey === "keep-confirm"
+                  ? "Back to keeping your photos"
+                  : back === "name"
+                    ? "Back to your name"
+                    : back === "chooser"
+                      ? "Back to how you join"
+                      : "Back to the welcome"
               }
               onClick={goBack}
               className="absolute top-0 left-0 z-10 flex size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -717,6 +849,36 @@ export const EntryModal = forwardRef<
               />
             </div>
           )}
+          {/* THE KEEP, the door's last screen: no chevron on its offer (what it follows is done),
+              and the account door in this same sheet behind its Confirm. */}
+          {displayKey === "keep" && (
+            <KeepOffer
+              count={keepCount}
+              held={keepHeld}
+              hostName={hostName}
+              eventName={eventName}
+              onConfirm={() => {
+                // BEFORE the account door shows: Google and a magic link leave the page, and the
+                // marker is what plays the follow moment when they come back.
+                markPendingOffer(qrToken);
+                setDirection("fwd");
+                setKeepConfirming(true);
+              }}
+              onLater={() => {
+                // Put down for this event on this device; the door closes onto the album.
+                putDownKeepAsk(qrToken);
+              }}
+            />
+          )}
+          {displayKey === "keep-confirm" && (
+            <div className="pt-7">
+              <KeepConfirm
+                qrToken={qrToken}
+                hintEmail={hintEmail}
+                onVerified={handleKeepVerified}
+              />
+            </div>
+          )}
         </div>
       </EntryStepTransition>
     </EntryShell>
@@ -736,9 +898,13 @@ export function entrySheetCopy(input: {
   eventName: string;
   hostName?: string | null;
   nameMode: GuestNameMode;
+  /** The edit door's mode (a guest's row, or a confirmed account's profile). */
+  editMode?: NameDoorMode;
   /** A verification event (its `identify` sells the album with the host's reason). */
   verification: boolean;
   mediaTotal?: number;
+  /** Her photographs that landed this visit (the keep's count). */
+  keepCount?: number;
   uploadReason: string;
 }): { title: string; description: string } {
   const {
@@ -749,18 +915,31 @@ export function entrySheetCopy(input: {
     eventName,
     hostName,
     nameMode,
+    editMode = "edit",
     verification,
     mediaTotal,
+    keepCount = 0,
     uploadReason,
   } = input;
   if (holding) return { title: "You're in", description: "Opening the album." };
   if (displayKey.startsWith("name-")) {
-    const mode: GuestNameMode = displayKey === "name-edit" ? "edit" : nameMode;
+    const mode: GuestNameMode =
+      displayKey === "name-edit" ? editMode : nameMode;
     const copy = guestNameCopy(mode, hostName);
     return { title: copy.title, description: copy.reason };
   }
   if (displayKey === "upload") {
     return { title: "Add your photos", description: uploadReason };
+  }
+  if (displayKey === "keep") {
+    const copy = keepCopy(keepCount, eventName);
+    return { title: copy.title, description: copy.reason };
+  }
+  if (displayKey === "keep-confirm") {
+    return {
+      title: DOOR_WEAR.keep.heading,
+      description: DOOR_WEAR.keep.reason,
+    };
   }
   if (displayKey === "welcome" && !reviewing && isDemo) {
     return {
@@ -779,9 +958,13 @@ export function entrySheetCopy(input: {
     };
   }
   if (displayKey === "password") {
+    // The gate's own heading, word for word (voice-guest r1 `ask=warm`, `password-gate.tsx`): a
+    // screen reader hears one door, never an older line beside the one on screen. A pin holds the
+    // two as one (`entry-modal.test.tsx`).
     return {
       title: `${eventName} is private`,
-      description: "Enter the event password to view it.",
+      description:
+        "This album is just for the guests. One password and you're in.",
     };
   }
   if (displayKey === "chooser") {
@@ -798,12 +981,29 @@ export function entrySheetCopy(input: {
   return { title: copy.title, description: copy.reason };
 }
 
-// THE SUCCESS BEAT: the held "You're in" view that masks the
-// refresh roundtrip. A --success green check (the system's sanctioned feedback
-// color), "You're in", and "Opening the album" once it runs slow. If the
-// refresh hangs past the watchdog, a Retry (the unlock cookie is already set,
-// so it always recovers). On the full path this exits into the reveal; on a
-// password->account hop it hands forward to the account step.
+/**
+ * A line of a step that arrives in place, in the text reveal's stagger (`door.css`'s
+ * `[data-door-line]`): its place in the stagger, and a base delay for a group that waits on
+ * something (the beat's words wait for its check).
+ */
+function lineStyle(i: number, baseMs = 0): CSSProperties {
+  return {
+    "--door-line-i": i,
+    ...(baseMs ? { "--door-line-base": `${baseMs}ms` } : {}),
+  } as CSSProperties;
+}
+
+// THE SUCCESS BEAT: the held "You're in" view that masks the refresh roundtrip. The check in the
+// album's light (`identity-door` r3, Will's `beat=lit`, overruling `hers`: the success green
+// swapped for the lamp's hues), "You're in", and "Opening the album" once it runs slow. If the
+// refresh hangs past the watchdog, a Retry (the unlock cookie is already set, so it always
+// recovers). On the full path this exits into the reveal; on a password->account hop it hands
+// forward to the account step.
+//
+// ★ IT ARRIVES AS A DELIGHT (his note: transitions.dev's success-check plus texts-reveal). The check
+// blooms (a fade, a turn upright, a blur sharpening and a bob, its stroke drawing), and the words
+// reveal just behind it, the headline first. The view arrives IN PLACE (the step transition's
+// `place`), so no slide stacks on either. Reduced motion shows the end state.
 function SuccessStep({
   slow,
   stalled,
@@ -815,13 +1015,24 @@ function SuccessStep({
 }) {
   if (stalled) {
     return (
-      <div className="flex flex-col items-center gap-4 py-6 text-center">
+      <div
+        data-door-beat="stalled"
+        className="flex flex-col items-center gap-4 py-6 text-center"
+      >
         {/* The sheet's title slot keeps the event name's step on every screen
             of the flow (the welcome, the gate, this stall and the arrival). */}
-        <p className="font-heading text-page text-balance">
+        <p
+          data-door-line
+          style={lineStyle(0)}
+          className="font-heading text-page text-balance"
+        >
           That took longer than it should
         </p>
-        <p className="max-w-xs text-base leading-relaxed text-muted-foreground">
+        <p
+          data-door-line
+          style={lineStyle(1)}
+          className="max-w-xs text-base leading-relaxed text-muted-foreground"
+        >
           You&rsquo;re unlocked, the album just didn&rsquo;t open. Give it one
           more tap.
         </p>
@@ -832,13 +1043,27 @@ function SuccessStep({
     );
   }
   return (
-    <div className="flex flex-col items-center gap-4 py-8 text-center">
-      <div className="flex size-14 items-center justify-center rounded-full bg-success text-success-foreground">
-        <Check className="size-7" />
-      </div>
+    <div
+      data-door-beat="in"
+      className="flex flex-col items-center gap-4 py-8 text-center"
+    >
+      <DoorCheck size="mark" />
       <div>
-        <p className="font-heading text-page">You&rsquo;re in</p>
-        <p className="mt-1 text-base text-muted-foreground">
+        <p
+          data-door-line
+          style={lineStyle(0, 140)}
+          className="font-heading text-page"
+        >
+          You&rsquo;re in
+        </p>
+        {/* Keyed by what it says: a slow refresh's "Opening the album" arrives with the same
+            reveal, in place, rather than swapping under her eyes. */}
+        <p
+          key={slow ? "slow" : "welcome"}
+          data-door-line
+          style={slow ? lineStyle(0) : lineStyle(1, 140)}
+          className="mt-1 text-base text-muted-foreground"
+        >
           {slow ? "Opening the album" : "Welcome to the party"}
         </p>
       </div>
@@ -846,9 +1071,42 @@ function SuccessStep({
   );
 }
 
+/**
+ * A promise of the welcome (and the demo's): its glyph on a pool of the album's light
+ * (`identity-door` r3, Will's `icons=lit`: "each row leads with a round of the lamp's own sampled
+ * hue"), then the line. The rows take the lamp's hues in turn, and reveal in the welcome's stagger.
+ */
+function PromiseRow({
+  icon: Icon,
+  hue,
+  line,
+  children,
+}: {
+  icon: LucideIcon;
+  hue: LitHue;
+  /** Its place in the welcome's reveal. */
+  line: number;
+  children: ReactNode;
+}) {
+  return (
+    <p
+      data-door-promise
+      data-door-line
+      style={lineStyle(line)}
+      className="flex items-center gap-3.5 text-base leading-relaxed"
+    >
+      <DoorPool hue={hue}>
+        <Icon strokeWidth={1.75} />
+      </DoorPool>
+      <span>{children}</span>
+    </p>
+  );
+}
+
 // THE INVITATION: the warm front door. An eyebrow over the event name as the
-// Instrument Serif hero, the host's byline, the count as social proof, then two
-// reading rows in the host's event voice (minimal Partyreel branding).
+// heading face's hero, the host's byline, the count as social proof, then two
+// reading rows in the host's event voice (minimal Partyreel branding), each on a
+// pool of the album's light.
 //
 // ★ ONE PRIMARY, AND IT IS ALWAYS "CONTINUE". No second exit ("View the album" when nothing
 // follows, or a ghost "Just browsing" that dismisses to the teaser): there is always something
@@ -863,7 +1121,10 @@ function SuccessStep({
 // only ever moves forward again, so it only ever says so. There is no `continueLabel` prop: one
 // button, one word, whichever step is behind it.
 //
-// The whole block staggers in on mount.
+// ★ ITS WORDS SHARPEN AS THE SHEET LANDS (the text reveal): the first step of the door arrives
+// on the sheet's own edge entrance, so its lines rise into focus one after another, the event's
+// name first after its eyebrow. A revisit through the chevron slides in from the left instead, and
+// its words ride the slide (door.css).
 function WelcomeStep({
   eventName,
   hostName,
@@ -884,6 +1145,7 @@ function WelcomeStep({
   const host = hostName?.trim();
   const hasByline = Boolean(host || eventDate);
   const count = mediaTotal ?? 0;
+  const byline = hasByline ? 1 : 0;
 
   return (
     // data-welcome-step: the "tall" presence (~55svh) applies ONLY
@@ -891,51 +1153,76 @@ function WelcomeStep({
     // height already. The CTA block's mt-auto pins it to the sheet's foot when
     // the minimum height engages.
     <div data-welcome-step className="flex flex-col gap-5">
+      {/* ★ THE LIT HERO (`identity-door` r2, Will's `look=lit`): the event's name large, then the
+          host's face beside "Hosted by" over the date, the words today's. The name is the
+          hero step in a hand and the section step at a desk, where the sheet is a 448px panel
+          rather than the window the ladder's clamp measures (the board drew exactly that pair). */}
       <div className="flex flex-col">
-        <p className="text-label font-medium text-muted-foreground uppercase">
+        <p
+          data-door-line
+          style={lineStyle(0)}
+          className="text-label font-medium text-muted-foreground uppercase"
+        >
           You&rsquo;re invited to
         </p>
-        <p className="mt-1.5 font-heading text-page text-balance">
+        <p
+          data-door-lit-name
+          data-door-line
+          style={lineStyle(1)}
+          className="mt-1.5 font-heading text-hero text-balance sm:text-section"
+        >
           {eventName}
         </p>
         {hasByline && (
-          <p className="mt-2 flex items-center gap-1.5 text-working text-muted-foreground">
+          <div
+            data-door-line
+            style={lineStyle(2)}
+            className="mt-3 flex items-center gap-2.5"
+          >
             {host && (
-              <>
-                {/* Every host wears their seeded colour here, photo or not: a
-                    raw <img> would skip entirely without an avatar, and the
-                    fallback initial means this byline is never bare. */}
-                <Avatar seed={hostSeed ?? undefined} size="sm">
-                  <AvatarImage src={hostAvatarUrl ?? undefined} alt="" />
-                  <AvatarFallback>{initial(null, host)}</AvatarFallback>
-                </Avatar>
-                <span>
+              // Every host wears their seeded colour here, photo or not: a raw <img> would skip
+              // entirely without an avatar, and the fallback initial means the face is never bare.
+              <Avatar seed={hostSeed ?? undefined} size="lg">
+                <AvatarImage
+                  src={hostAvatarUrl ?? undefined}
+                  alt=""
+                  className="object-cover"
+                />
+                <AvatarFallback>{initial(null, host)}</AvatarFallback>
+              </Avatar>
+            )}
+            <p className="text-working leading-snug text-muted-foreground">
+              {host && (
+                <>
                   Hosted by{" "}
                   <span className="font-medium text-foreground">{host}</span>
-                </span>
-              </>
-            )}
-            {host && eventDate && (
-              <span aria-hidden className="text-faint">
-                ·
-              </span>
-            )}
-            {eventDate && <span>{formatEventDate(eventDate)}</span>}
-          </p>
+                </>
+              )}
+              {host && eventDate && <br />}
+              {eventDate && formatEventDate(eventDate)}
+            </p>
+          </div>
         )}
       </div>
 
-      <div className="flex flex-col gap-3.5">
-        <p className="flex items-start gap-3 text-base leading-relaxed">
-          <Camera className="mt-0.5 size-4.5 shrink-0 text-muted-foreground" />
+      <div className="flex flex-col gap-4">
+        <PromiseRow icon={Camera} hue={1} line={2 + byline}>
           Add your photos and videos in seconds. No app required.
-        </p>
-        <p className="flex items-start gap-3 text-base leading-relaxed">
-          <Images className="mt-0.5 size-4.5 shrink-0 text-muted-foreground" />
-          {count > 0
-            ? `Everyone's shots land in one album. ${formatCount(count)} ${count === 1 ? "is" : "are"} already inside.`
-            : "Everyone's shots land in one album, yours included."}
-        </p>
+        </PromiseRow>
+        <PromiseRow icon={Images} hue={2} line={3 + byline}>
+          {/* The count ticks as photos land behind the door (`LiveCount`, the page's live number).
+              Its words are separate strings beside the number, never one template, so the tick
+              has a node of its own to move. */}
+          {count > 0 ? (
+            <>
+              {"Everyone's shots land in one album. "}
+              <LiveCount value={count} />
+              {count === 1 ? " is already inside." : " are already inside."}
+            </>
+          ) : (
+            "Everyone's shots land in one album, yours included."
+          )}
+        </PromiseRow>
       </div>
 
       <div className="mt-auto flex flex-col gap-1">
@@ -954,7 +1241,9 @@ function WelcomeStep({
 // THE DEMO'S OWN ARRIVAL.
 // It is the SAME "welcome" step every guest gets (entry-steps.ts), wearing
 // different words, so its DESIGN stays exactly WelcomeStep's (a redesign
-// redraws both together). Three things a visitor here needs and the ordinary
+// redraws both together: `identity-door` r3 drew it in lit, the event's name at
+// the welcome's hero size inside its own sentence, its promises on the same
+// pools). Three things a visitor here needs and the ordinary
 // welcome's copy does not give them: what this is (a real album, standing in
 // for theirs), where they are standing (in a guest's shoes, at somebody's
 // party), and the one thing to try. The two reading rows deliberately MIRROR WelcomeStep's own two
@@ -976,27 +1265,40 @@ function RoleStep({
   return (
     <div data-welcome-step className="flex flex-col gap-5">
       <div className="flex flex-col">
-        <p className="text-label font-medium text-muted-foreground uppercase">
+        <p
+          data-door-line
+          style={lineStyle(0)}
+          className="text-label font-medium text-muted-foreground uppercase"
+        >
           A live demo
         </p>
-        <p className="mt-1.5 font-heading text-page text-balance">
-          You&rsquo;re a guest at {eventName}
+        <p
+          data-door-line
+          style={lineStyle(1)}
+          className="mt-1.5 font-heading text-balance"
+        >
+          <span className="block text-page">You&rsquo;re a guest at</span>
+          <span data-door-lit-name className="block text-hero sm:text-section">
+            {eventName}
+          </span>
         </p>
-        <p className="mt-2 text-working text-muted-foreground">
+        <p
+          data-door-line
+          style={lineStyle(2)}
+          className="mt-2 text-working text-muted-foreground"
+        >
           This is a real album, exactly as {host ? `${host}’s` : "the host’s"}{" "}
           guests see it.
         </p>
       </div>
 
-      <div className="flex flex-col gap-3.5">
-        <p className="flex items-start gap-3 text-base leading-relaxed">
-          <ImageUp className="mt-0.5 size-4.5 shrink-0 text-muted-foreground" />
+      <div className="flex flex-col gap-4">
+        <PromiseRow icon={ImageUp} hue={1} line={3}>
           Add a photo the way a guest would. Nothing you add is saved.
-        </p>
-        <p className="flex items-start gap-3 text-base leading-relaxed">
-          <QrCode className="mt-0.5 size-4.5 shrink-0 text-muted-foreground" />
+        </PromiseRow>
+        <PromiseRow icon={QrCode} hue={2} line={4}>
           One code did all of this. Yours takes about a minute.
-        </p>
+        </PromiseRow>
       </div>
 
       {/* ★ NO "LOOK AROUND" HERE: it is the DEMO's own skip on the upload step, where looking

@@ -1,7 +1,7 @@
 /**
  * Social reads (profiles-social.md data layer): the public profile, owner-private
  * follow/block lists + counts, notification prefs, the guest-side shown-event
- * opt-in set, the host-keyed event guest list, and the ONE count of an event's guests.
+ * opt-in set, the event's always-on guest list, and the ONE count of an event's guests.
  *
  * ★ A PERSON IS A GUEST OF AN EVENT ONLY THROUGH AN UPLOAD OF THEIRS (guest by upload, Will
  * 2026-09-22). Every "who is a guest here" read in this module goes through `getEventGuests` (an
@@ -14,9 +14,11 @@
  *     shape). Every "my" read is scoped by the caller's own auth.uid() row set;
  *     there is NO path to anyone else's graph.
  *   - Blocks are private to the blocker; the blocked side can never read them.
- *   - The event guest list renders ONLY when the HOST enabled show_guest_list
- *     (the profiles-social.md host key); a nameless upload never appears, and a named guest who
- *     proved no email is listed as a plain name with the mark, never as a profile card.
+ *   - The event guest list is ALWAYS ON (Will, event-safety `room=always`, 2026-09-28: "Always on
+ *     for everyone"): every guest with an approved upload is on it, except a person the host
+ *     blocked there (the per-event block, migration 20260928120000); a nameless upload never
+ *     appears, and a named guest who proved no email is listed as a plain name with the mark,
+ *     never as a profile card. `events.show_guest_list` is read by nothing.
  *   - ★ NO ADDRESS EVER LEAVES THIS MODULE (the guest identity round, 2026-09-22). `guests` reads
  *     here name their columns, and `pending_email` is never one of them: the unproved address a
  *     guest types at the door is inert, and the host sees the unverified mark, never it. A
@@ -39,6 +41,10 @@ import {
   type GuestEventCardData,
 } from "@/lib/dashboard/guest-events";
 import { mustQuery } from "@/lib/db/must-query";
+import {
+  getBlockedEventsFor,
+  getBlockedGuestIds,
+} from "@/lib/db/queries/event-blocks";
 import { readCoverUrls } from "@/lib/db/queries/events";
 import { inChunks, readAllPages } from "@/lib/db/read-all";
 import type { Database } from "@/lib/db/types";
@@ -48,9 +54,9 @@ import {
   type GuestRowFacts,
 } from "@/lib/events/event-guests";
 import {
+  NOTIFICATION_PREF_COLUMNS,
   resolveNotificationPrefs,
   type NotificationPrefs,
-  type NotificationPrefsRow,
 } from "@/lib/social/notification-prefs";
 import { captureError } from "@/lib/observability/sentry";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -113,7 +119,7 @@ export type BlockEntry = SocialProfileCard & { blockedAt: string };
  * profiles RLS is deliberately own-row (`profiles_select_own`), and these card
  * fields (name/slug/avatar marker) are public by existence per profiles-social.md, so
  * reading them server-side for ids the caller ALREADY holds (their own
- * RLS-scoped follow/block rows, or a show_guest_list-gated uploader set) leaks
+ * RLS-scoped follow/block rows, or an album's own gated uploader set) leaks
  * nothing new. Never pass ids that did not come from such a scoped read.
  * Explicit id-list join (not a PostgREST embed): user_follows/user_blocks carry
  * TWO profiles FKs, so a bare embed would be PGRST201-ambiguous anyway.
@@ -284,8 +290,8 @@ export async function getMyBlocks(): Promise<BlockEntry[]> {
 
 /**
  * My effective notification prefs. Rows are LAZY (absent = all defaults), so
- * this always resolves through resolveNotificationPrefs; R5 send paths must
- * consult this, never the raw row.
+ * this always resolves through resolveNotificationPrefs, the same path a send
+ * takes (the renewal sweep reads the same columns for the same answer).
  */
 export async function getNotificationPrefs(): Promise<NotificationPrefs> {
   const { supabase, user } = await getRequestAuth();
@@ -293,16 +299,14 @@ export async function getNotificationPrefs(): Promise<NotificationPrefs> {
 
   const { data, error } = await supabase
     .from("notification_prefs")
-    .select(
-      "notify_album_shared, notify_new_uploads_digest, notify_new_follower, marketing_opt_in",
-    )
+    .select(NOTIFICATION_PREF_COLUMNS)
     .eq("user_id", user.id)
     .maybeSingle();
   if (error) {
     if (isSocialSchemaMissing(error)) return resolveNotificationPrefs(null);
     throw error;
   }
-  return resolveNotificationPrefs(data as NotificationPrefsRow | null);
+  return resolveNotificationPrefs(data);
 }
 
 /**
@@ -373,6 +377,14 @@ export type PublicProfile = {
   created_at: string;
   hosted_events: PublicProfileHostedEvent[];
   attended_events: PublicProfileAttendedEvent[];
+  /**
+   * The empty page's count (migration 20260927100000, `identity-profile` `page=count`): the events
+   * the owner added photos to that THIS viewer could see here if she chose them, and has not. It is
+   * the attended arm's own rule with the owner's choice inverted, so a gated album this viewer has
+   * not passed stays out of it. A number only while the page shows nothing, null otherwise; absent
+   * before the migration is applied, which reads as no count.
+   */
+  private_event_count?: number | null;
 };
 
 /**
@@ -380,9 +392,9 @@ export type PublicProfile = {
  * the 4th member of the accepted anon-read set). null = no such handle; we
  * never distinguish "no user" from "user without a slug" (don't leak existence).
  * Composition lives IN the RPC per the ADR: hosted events the host displays +
- * attended events (show_guest_list on, an approved upload, the guest VERIFIED)
- * intersected with the owner's own profile_shown_events opt-in — so a profile
- * publishes nothing at all until its owner chooses (the guest identity round).
+ * attended events (an open album, an approved upload, the guest VERIFIED, no block
+ * either way) intersected with the owner's own profile_shown_events opt-in — so a
+ * profile publishes nothing at all until its owner chooses (the guest identity round).
  */
 const getPublicProfileCached = cache(
   async (slug: string): Promise<PublicProfile | null> => {
@@ -431,11 +443,11 @@ export async function getPublicProfileCoverUrls(
  * 'also at' section, maybe we could just have host/guest UI on each event card
  * to denote within a single group".
  *
- * ★ IT RE-PROVES THE OWNER'S FOUR GATES BEFORE IT PRESIGNS, and that is the
- * whole function. get_public_profile already applied them (the host's
- * show_guest_list key, visibility = 'open', the guest's own profile_shown_events,
- * and an APPROVED upload of the owner's on a PROVED row: guest by upload,
- * 2026-09-22, where a person is a guest only through an upload) and a caller that
+ * ★ IT RE-PROVES THE OWNER'S GATES BEFORE IT PRESIGNS, and that is the
+ * whole function. get_public_profile already applied them (visibility = 'open', the
+ * guest's own profile_shown_events, an APPROVED upload of the owner's on a PROVED
+ * row: guest by upload, 2026-09-22, where a person is a guest only through an
+ * upload; and no block holding the owner there, 20260928120000) and a caller that
  * passed its payload straight through would be correct today — but this turns an
  * event id into a PHOTOGRAPH from someone else's album, so it proves the scope
  * itself rather than inheriting it from whoever called. A presign is the wrong
@@ -459,7 +471,7 @@ export async function getPublicProfileAttendedCoverUrls(
 
   const admin = createAdminClient();
   try {
-    // Gates 1 and 2: the host's key is still on and the album is still open.
+    // Gate 1: the album is still open (the guest list is always on, so the host keeps no key).
     const open = await inChunks(
       "social: attended covers, open events",
       ids,
@@ -469,13 +481,18 @@ export async function getPublicProfileAttendedCoverUrls(
             .from("events")
             .select("id")
             .in("id", chunk)
-            .eq("show_guest_list", true)
             .eq("visibility", "open")
             .is("deleted_at", null),
           "social: attended covers, open events",
         )) ?? [],
     );
     const allowed = new Set(open.map((e) => e.id));
+    if (allowed.size === 0) return new Map();
+
+    // Gate 2: no block holds the owner there. A blocked person is on no list of that event, so her
+    // page shows no picture from it either.
+    const blocked = await getBlockedEventsFor(profileId);
+    for (const id of [...allowed]) if (blocked.has(id)) allowed.delete(id);
     if (allowed.size === 0) return new Map();
 
     // Gate 3: the guest's own CHOICE. Inverted by the guest identity round (2026-09-22): an event
@@ -677,17 +694,38 @@ export type AttendedEventSetting = {
   event_date: string | null;
   /** In my profile_shown_events set: I have chosen to publish this one. Default FALSE. */
   shownOnProfile: boolean;
+  /** The album's own door, which the picker's tile follows (`getMyAttendedEventPicks`). */
+  visibility: Database["public"]["Enums"]["event_visibility"];
+  /** Server-side only: the masking helper takes it, and nothing hands it to a browser. */
+  qrToken: string;
+};
+
+/**
+ * One tile of the picker (`identity-profile` r1, `attended=picker`: "tap an event's own cover to
+ * show it"), the ONE way a person chooses what her page shows, in Account and in the setup wizard.
+ * Only what the tile draws crosses to the client: no token, no host, no link.
+ */
+export type AttendedEventPick = {
+  id: string;
+  /** "Private event" while its host keeps the album private, as her dashboard's card says. */
+  name: string;
+  shownOnProfile: boolean;
+  /** The album's newest approved photograph, presigned, and only while the album is open. */
+  coverUrl: string | null;
+  /** The host made the album private: the tile wears a lock and no name, never a cover. */
+  locked: boolean;
 };
 
 /**
  * The events I ADDED PHOTOS TO that my profile could show, for the per-event "show this on my
  * profile" switches: an APPROVED upload on a PROVED row (`verified_at`), at an event I do not host.
  * That is exactly what the RPC's attended arm requires of the page's owner, MINUS the host-side
- * gates (show_guest_list, visibility, the album's viewer gates), deliberately: the choice is MY key
- * and must stay settable whatever the host does, so flipping show_guest_list on later never
- * surprises a guest who chose to publish, or one who never did. A switch for an event whose line
- * could never show (a typed name, nothing approved) would be a switch that does nothing, so it is
- * not offered. Admin read (see `myLiveUploads`), scoped hard to the caller's own rows.
+ * gates (visibility, the album's viewer gates), deliberately: the choice is MY key and must stay
+ * settable whatever the host does, so a host opening a private album later never surprises a guest
+ * who chose to publish, or one who never did. A switch for an event whose line could never show (a
+ * typed name, nothing approved) would be a switch that does nothing, so it is not offered. An event
+ * that blocked me keeps the tile it had, locked, as a private album's does (below). Admin read (see
+ * `myLiveUploads`), scoped hard to the caller's own rows.
  */
 export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
   const { user } = await getRequestAuth();
@@ -695,13 +733,22 @@ export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
 
   const admin = createAdminClient();
   try {
-    const uploads = await myLiveUploads(user.id);
+    const [uploads, blocked] = await Promise.all([
+      myLiveUploads(user.id),
+      getBlockedEventsFor(user.id),
+    ]);
     const eventIds = [
-      ...new Set(
-        uploads
+      ...new Set([
+        ...uploads
           .filter((u) => u.verified && u.status === "approved")
           .map((u) => u.eventId),
-      ),
+        // ★ A BLOCKED EVENT KEEPS ITS TILE, LOCKED (the per-event block, 20260928120000): a block moved
+        // her approved uploads to Deleted, where a private album's would still be live and its tile
+        // would stay, so the block keeps the tile it had and reads as private below.
+        ...[...blocked]
+          .filter(([, b]) => b.own && b.profileEligible)
+          .map(([id]) => id),
+      ]),
     ];
     if (eventIds.length === 0) return [];
 
@@ -714,7 +761,9 @@ export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
           (await mustQuery(
             admin
               .from("events")
-              .select("id, name, event_date, host_id, created_at")
+              .select(
+                "id, name, event_date, host_id, created_at, visibility, qr_token",
+              )
               .in("id", chunk)
               .neq("host_id", user.id)
               .is("deleted_at", null),
@@ -733,11 +782,58 @@ export async function getMyAttendedEvents(): Promise<AttendedEventSetting[]> {
         name: e.name,
         event_date: e.event_date,
         shownOnProfile: shown.has(e.id),
+        // An event that blocked her reads as the private album it shows her.
+        visibility: blocked.has(e.id) ? ("private" as const) : e.visibility,
+        qrToken: e.qr_token,
       }));
   } catch (error) {
     if (isSocialSchemaMissing(error)) return [];
     throw error;
   }
+}
+
+/**
+ * The events I added photos to, as the picker's tiles: `getMyAttendedEvents`, each masked by its
+ * album's own rules and given its cover.
+ *
+ * ★ THE MASKING IS THE DASHBOARD'S GUEST CARD'S, BY CONSTRUCTION (`guestEventCardProps`, the one home
+ * of "a card is a window onto somebody else's album and must never show more than the album
+ * would"): an open album shows its newest approved photograph, a password album its name and no
+ * cover, a private album neither. The same person sees one event the same way on her dashboard and
+ * in her picker. A private album's tile still toggles: the choice is hers whatever the host does,
+ * and a choice she can see is one she can take back.
+ *
+ * Covers come through `adminCoverUrls` for the open albums only, the ids this function's own
+ * scoped read produced (the caller's approved uploads on a proved row), so nothing new is read.
+ */
+export async function getMyAttendedEventPicks(): Promise<AttendedEventPick[]> {
+  const events = await getMyAttendedEvents();
+  if (events.length === 0) return [];
+  const covers = await adminCoverUrls(
+    events.filter((e) => e.visibility === "open").map((e) => e.id),
+  );
+  return events.map((e) => {
+    const card = guestEventCardProps(
+      {
+        eventId: e.id,
+        name: e.name,
+        eventDate: e.event_date,
+        visibility: e.visibility,
+        qrToken: e.qrToken,
+        hostName: null,
+        // The card's recency key; a pick keeps the list's own order, so it is never read.
+        lastUploadAt: "",
+      },
+      covers.get(e.id) ?? null,
+    );
+    return {
+      id: e.id,
+      name: card.name,
+      shownOnProfile: e.shownOnProfile,
+      coverUrl: card.coverUrl,
+      locked: !card.accessible,
+    };
+  });
 }
 
 /**
@@ -758,11 +854,24 @@ export async function getMyGuestEventCards(): Promise<GuestEventCardData[]> {
 
   const admin = createAdminClient();
   try {
-    const uploads = await myLiveUploads(user.id);
+    const [uploads, blocked] = await Promise.all([
+      myLiveUploads(user.id),
+      getBlockedEventsFor(user.id),
+    ]);
     const latest = new Map<string, string>();
     for (const u of uploads) {
       const seen = latest.get(u.eventId);
       if (!seen || u.createdAt > seen) latest.set(u.eventId, u.createdAt);
+    }
+    // ★ A BLOCKED EVENT'S CARD STAYS, READING AS A PRIVATE ALBUM'S (the per-event block,
+    // 20260928120000; the locked-door board's finding): a private album keeps its card, its uploads
+    // still live, while a block moves hers to Deleted, so a card that vanished would tell her what the
+    // door hides. The block keeps the card's place, the newest upload it removed, for as long as it
+    // stands.
+    for (const [eventId, b] of blocked) {
+      if (!b.own || !b.lastUploadAt) continue;
+      const seen = latest.get(eventId);
+      if (!seen || b.lastUploadAt > seen) latest.set(eventId, b.lastUploadAt);
     }
     if (latest.size === 0) return [];
 
@@ -795,7 +904,9 @@ export async function getMyGuestEventCards(): Promise<GuestEventCardData[]> {
           )) ?? [],
       ),
       adminCoverUrls(
-        events.filter((e) => e.visibility === "open").map((e) => e.id),
+        events
+          .filter((e) => e.visibility === "open" && !blocked.has(e.id))
+          .map((e) => e.id),
       ),
     ]);
     const hostNames = new Map(
@@ -809,7 +920,8 @@ export async function getMyGuestEventCards(): Promise<GuestEventCardData[]> {
             eventId: e.id,
             name: e.name,
             eventDate: e.event_date,
-            visibility: e.visibility,
+            // An event that blocked her reads as the private album it shows her, word for word.
+            visibility: blocked.has(e.id) ? "private" : e.visibility,
             qrToken: e.qr_token,
             hostName: hostNames.get(e.host_id) ?? null,
             lastUploadAt: latest.get(e.id) as string,
@@ -841,6 +953,11 @@ export async function getMyGuestEventCards(): Promise<GuestEventCardData[]> {
  * Admin client: `guests` has no client grant and `media` is host-scoped RLS; every caller runs this
  * AFTER its own access gate (the hub's ownership, the album's resolved access), and only numbers or
  * names the album already shows ever leave it. An event that is missing or deleted has no guests.
+ *
+ * ★ A BLOCKED PERSON IS NOBODY'S GUEST HERE (the per-event block, 20260928120000): the rows a block
+ * holds leave before the rows become people, so they are on no list and in no count, even while the
+ * host has one of their photographs restored. SQL answers which rows (`event_blocked_guest_ids`, the
+ * rule's one home), so this never re-derives it and never reads an address.
  */
 export const getEventGuests = cache(async function getEventGuests(
   eventId: string,
@@ -848,7 +965,7 @@ export const getEventGuests = cache(async function getEventGuests(
   // cache(): request-scoped, because the album page asks twice in one render (its header's count
   // and its guest list), and the answer cannot change between them.
   const admin = createAdminClient();
-  const [eventRes, approved, guestRows] = await Promise.all([
+  const [eventRes, approved, guestRows, blockedRows] = await Promise.all([
     admin
       .from("events")
       .select("host_id")
@@ -888,8 +1005,11 @@ export const getEventGuests = cache(async function getEventGuests(
       },
       (row) => row.id,
     ),
+    getBlockedGuestIds(eventId),
   ]);
-  const rows: GuestRowFacts[] = guestRows.rows;
+  const rows: GuestRowFacts[] = guestRows.rows.filter(
+    (row) => !blockedRows.has(row.id),
+  );
   if (eventRes.error) throw eventRes.error;
   if (!eventRes.data) return { verifiedUserIds: [], unverifiedRows: [] };
 
@@ -932,43 +1052,32 @@ export type GuestListItem = GuestListEntry | UnverifiedGuestListEntry;
  * every `withAvatarUrls` caller keeps the narrow type it already has; the guest album and the
  * Guests room opt in, and split the union before hydration (lib/social/cards.ts).
  *
- * Returns null when the host has NOT enabled show_guest_list, so callers can't accidentally render
- * a list the host key doesn't authorize; [] means "on, but no named guests yet".
+ * ★ ALWAYS ON (Will, event-safety `room=always`, 2026-09-28: "make the guest list always on, so a
+ * host doesn't have to turn it on or learn special handling ... Always on for everyone"): there is no
+ * host key to read, so [] means only "nobody has added a photo yet". `events.show_guest_list` stays
+ * in the schema, unread, until a contract migration drops it.
  *
  * WHY the admin client: this is server-side composition for BOTH surfaces (the host event page
  * after getUser() ownership, and the guest /e/ page after the qr_token capability + password gate).
- * Neither anon nor authenticated has (or should get) table reads across guests/profiles, and the
- * show_guest_list re-check HERE is the authorization: the host key gates the data, not the caller's
- * row access. Callers MUST have already passed their surface's access gate; never call this with an
- * unvalidated event id. No block filtering: the guest list is an event surface keyed by the host,
- * not a social graph surface (blocks shape follows only, profiles-social.md).
+ * Neither anon nor authenticated has (or should get) table reads across guests/profiles. Callers MUST
+ * have already passed their surface's access gate (the album's full access, the host's ownership);
+ * never call this with an unvalidated event id. A person the host blocked from the event is not on
+ * it (getEventGuests leaves them out); the profile-level blocks between users shape follows only
+ * (profiles-social.md), never this list.
  */
 export async function getEventGuestList(
   eventId: string,
-): Promise<GuestListEntry[] | null>;
+): Promise<GuestListEntry[]>;
 export async function getEventGuestList(
   eventId: string,
   options: { includeUnverified: true },
-): Promise<GuestListItem[] | null>;
+): Promise<GuestListItem[]>;
 export async function getEventGuestList(
   eventId: string,
   options?: { includeUnverified?: boolean },
-): Promise<GuestListItem[] | null> {
+): Promise<GuestListItem[]> {
   const includeUnverified = options?.includeUnverified ?? false;
-  const admin = createAdminClient();
-
-  const { data: event, error: eventError } = await admin
-    .from("events")
-    .select("show_guest_list")
-    .eq("id", eventId)
-    .is("deleted_at", null)
-    .maybeSingle();
-  if (eventError && isSocialSchemaMissing(eventError)) return null; // pre-apply
-  if (eventError) throw eventError;
-  if (!event || !(event as { show_guest_list: boolean }).show_guest_list) {
-    return null;
-  }
-
+  // A missing or deleted event has no guests (getEventGuests reads the event first).
   const guests = await getEventGuests(eventId);
 
   // Explicit id-list hydration of the PEOPLE (never a PostgREST embed: the PGRST201 landmine),
@@ -1055,19 +1164,18 @@ export async function getHostCard(eventId: string): Promise<HostCard | null> {
   };
 }
 
-/** The host's own view of the two social keys, for the event settings card.
- *  null = the social schema isn't provisioned yet (pre-apply) OR the event
- *  isn't the caller's — either way the card hides. RLS scopes the row. */
+/** The host's own view of the event's one social key, for the event settings card (the guest list
+ *  is always on, so it has none of its own). null = the event isn't the caller's, and the card
+ *  hides. RLS scopes the row. */
 export async function getEventSocialSettings(eventId: string): Promise<{
   displayInProfile: boolean;
-  showGuestList: boolean;
 } | null> {
   const { supabase, user } = await getRequestAuth();
   if (!user) return null;
 
   const { data, error } = await supabase
     .from("events")
-    .select("display_in_profile, show_guest_list")
+    .select("display_in_profile")
     .eq("id", eventId)
     .maybeSingle();
   if (error) {
@@ -1075,12 +1183,5 @@ export async function getEventSocialSettings(eventId: string): Promise<{
     throw error;
   }
   if (!data) return null;
-  const row = data as {
-    display_in_profile: boolean;
-    show_guest_list: boolean;
-  };
-  return {
-    displayInProfile: row.display_in_profile,
-    showGuestList: row.show_guest_list,
-  };
+  return { displayInProfile: data.display_in_profile };
 }

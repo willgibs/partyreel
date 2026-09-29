@@ -1,25 +1,14 @@
 import type { BoardSpec } from "@/components/lab/board-spec";
 import { DESK_ORDER } from "@/app/(dev)/design/touchpoints";
 
-import { IDENTITY_DOOR } from "./identity-door/spec";
-import { IDENTITY_CLAIMS } from "./identity-claims/spec";
-import { IDENTITY_PROFILE } from "./identity-profile/spec";
-import { GUEST_CAPTURE } from "./guest-capture/spec";
-import { VOICE_GUEST } from "./voice-guest/spec";
-import { SITE_CHROME } from "./site-chrome/spec";
-import { PROFILE_PAGE } from "./profile-page/spec";
-import { EXPORT_FLOW } from "./export-flow/spec";
 import { ADMIN_TRIAGE } from "./admin-triage/spec";
-import { REEL_STORY } from "./reel-story/spec";
-import { MEDIA_VIEWER } from "./media-viewer/spec";
-import { EMAILS } from "./emails/spec";
-import { HELP_CENTER } from "./help-center/spec";
-import { HOST_CURATION } from "./host-curation/spec";
-import { HOST_STORAGE } from "./host-storage/spec";
-import { EVENT_SAFETY } from "./event-safety/spec";
+import { LOCKED_DOOR } from "./locked-door/spec";
+import { EVENT_SETTINGS } from "./event-settings/spec";
 
 import { PRESS_PAGE } from "./press-page/spec";
 import { CONTACT_PAGE } from "./contact-page/spec";
+import { DISPOSABLE_MODE } from "./disposable-mode/spec";
+import { DEMO_FRAMING } from "./demo-framing/spec";
 import { ALBUM_MOTION } from "./album-motion/spec";
 
 import { LOOSE_ENDS } from "./loose-ends/spec";
@@ -52,28 +41,15 @@ import { PRIVACY_HERO } from "./privacy-hero/spec";
  * missing from `DESK_ORDER` sorts to the foot until the Orchestrator places it.
  */
 const REGISTERED: readonly BoardSpec[] = [
-  IDENTITY_DOOR,
-  IDENTITY_CLAIMS,
-
-  IDENTITY_PROFILE,
-  GUEST_CAPTURE,
-  VOICE_GUEST,
-
-  MEDIA_VIEWER,
-  HOST_CURATION,
-  HOST_STORAGE,
-  EVENT_SAFETY,
-  EXPORT_FLOW,
   ADMIN_TRIAGE,
-  REEL_STORY,
-  HELP_CENTER,
-  EMAILS,
-  SITE_CHROME,
-  PROFILE_PAGE,
+  EVENT_SETTINGS,
+  LOCKED_DOOR,
   PRIVACY_HERO,
   ALBUM_MOTION,
   LOOSE_ENDS,
   CONTACT_PAGE,
+  DISPOSABLE_MODE,
+  DEMO_FRAMING,
   PRESS_PAGE,
 ];
 

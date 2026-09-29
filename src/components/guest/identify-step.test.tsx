@@ -91,7 +91,7 @@ describe("one screen, one code request", () => {
     fireEvent.change(nameField(), { target: { value: "  Priya " } });
     fireEvent.change(emailField(), { target: { value: "priya@example.com" } });
     send();
-    await screen.findByText("Enter your code");
+    await screen.findByText("Check your email");
     expect(auth.signInWithOtp).toHaveBeenCalledTimes(1);
     expect(auth.signInWithOtp).toHaveBeenCalledWith({
       email: "priya@example.com",
@@ -211,11 +211,58 @@ describe("'the account you already had' speaks only when it guards something", (
   });
 });
 
+/* ★ "CHECK YOUR EMAIL" HEADS THE CODE SCREEN (`identity-door` r3, Will's `code=mail`): the step's
+   own heading gives way while the code is out (the gate keeps its "Almost in"), the sentence says
+   where the code went and describes the code field, the link line no longer says "to sign in", and
+   "Use a different email" brings the step's own heading back. */
+describe("the code screen heads itself 'Check your email'", () => {
+  async function toCode(verification: boolean) {
+    mount({ verification, mediaTotal: 4 });
+    fireEvent.change(nameField(), { target: { value: "Priya" } });
+    fireEvent.change(emailField(), { target: { value: "priya@example.com" } });
+    send();
+    return screen.findByText("Check your email");
+  }
+
+  it("on the gate: the eyebrow stays, the step's title and reason give way", async () => {
+    await toCode(true);
+    expect(screen.getByText("Almost in")).toBeInTheDocument();
+    expect(screen.queryByText(/are waiting/)).toBeNull();
+    expect(
+      screen.queryByText(
+        "The host has asked guests to confirm an email for safety. One tap and you're in.",
+      ),
+    ).toBeNull();
+    expect(screen.getByLabelText("Your code")).toHaveAccessibleDescription(
+      "We sent a 6-digit code to priya@example.com.",
+    );
+  });
+
+  it("on Create account: no eyebrow, and the link line says the link, never 'to sign in'", async () => {
+    await toCode(false);
+    expect(screen.queryByText("Almost in")).toBeNull();
+    expect(screen.queryByText("Create your account")).toBeNull();
+    expect(
+      screen.getByText("Or tap the link in the same email."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/to sign in/)).toBeNull();
+  });
+
+  it("'Use a different email' brings the step's own heading back", async () => {
+    await toCode(false);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Use a different email" }),
+    );
+    expect(await screen.findByText("Create your account")).toBeInTheDocument();
+    expect(screen.queryByText("Check your email")).toBeNull();
+  });
+});
+
 describe("identifyCopy: the door's title says the true count, worded like the album's own", () => {
   it("reads a lone item as 'photo or video', never a lying 'photo' (build 9 and 10's red-teams)", () => {
-    expect(
-      identifyCopy({ verification: true, mediaTotal: 1 }),
-    ).toMatchObject({ title: "1 photo or video is waiting" });
+    expect(identifyCopy({ verification: true, mediaTotal: 1 })).toMatchObject({
+      title: "1 photo or video is waiting",
+    });
   });
 
   it("reads several as 'photos & videos', grouped, and agrees the plural", () => {
@@ -225,9 +272,9 @@ describe("identifyCopy: the door's title says the true count, worded like the al
   });
 
   it("falls back with nothing to count", () => {
-    expect(
-      identifyCopy({ verification: true, mediaTotal: 0 }),
-    ).toMatchObject({ title: "See all the photos" });
+    expect(identifyCopy({ verification: true, mediaTotal: 0 })).toMatchObject({
+      title: "See all the photos",
+    });
     expect(identifyCopy({ verification: true })).toMatchObject({
       title: "See all the photos",
     });

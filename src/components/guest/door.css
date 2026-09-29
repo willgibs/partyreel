@@ -30,7 +30,10 @@
      left, overriding the rise above (the first layer of a mount carries no
      data-dir and keeps the rise). The outgoing step leaves a static clone that
      fades the OPPOSITE way: an INVERTED @starting-style, mounted visible and
-     transitioning to hidden. Reduced motion simply never shows the clone. */
+     transitioning to hidden. Reduced motion simply never shows the clone.
+     ★ ONE HANDOFF IS NOT A MOVE: "You're in" arrives IN PLACE (`place`), its own
+     check and words being the whole entrance (`beat=lit`), and the step it
+     replaces fades where it stood rather than sliding away. */
   @media (prefers-reduced-motion: no-preference) {
     @starting-style {
       [data-entry-step][data-dir="fwd"] {
@@ -40,6 +43,10 @@
       [data-entry-step][data-dir="back"] {
         opacity: 0;
         transform: translateX(-16px);
+      }
+      [data-entry-step][data-dir="place"] {
+        opacity: 1;
+        transform: none;
       }
     }
     [data-entry-exit] {
@@ -64,6 +71,61 @@
   @media (prefers-reduced-motion: reduce) {
     [data-entry-exit] {
       display: none;
+    }
+  }
+  /* ★ THE CLONE IS PIXELS, AND PIXELS NEVER REPLAY. Inserting the leaving step's
+     copy is a fresh render of everything in it, so without this every entrance
+     inside it (a heading's reveal, the beat's check, the count's tick, the
+     code's rise) would play again, in reverse company, while the clone fades.
+     Important because those entrances live in higher layers (`lit.css`). */
+  [data-entry-exit] * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* THE TEXT REVEAL (`identity-door` r3, Will's `beat=lit` note: "Some motion
+     (like transitions.dev's success-check plus texts-reveal) could make this
+     feel like a delight. The text pop in could be used across the flow, unless
+     that conflicts with a transition like our page side-by-side"). A heading's
+     lines (`[data-door-line]`, drawn by `door/heading.tsx` and the welcome's
+     hero) rise 12px out of a 3px blur, 40ms apart so the eye lands on the
+     headline first, on the recipe's 500ms: the door is met once per event, the
+     rare moment bible 5 lets delight, and it is the arrival choreography's
+     sanctioned exception to the 300ms ceiling. `--door-line-base` holds a
+     group back (the beat's words wait for its check); `--door-line-rise` is
+     shorter inside a button.
+
+     WHERE IT RUNS: wherever words arrive IN PLACE, with nothing else moving
+     them: the door's first step (the sheet's own edge entrance carries the
+     panel, and its words sharpen as it lands), "You're in" (an in-place
+     arrival, above), the unlock button's words, the code screen's "Check your
+     email", the upload step's own views, and a line that changes under a beat
+     ("Opening the album").
+     WHERE IT STANDS DOWN: on a step that arrives by the side-by-side move. Its
+     words ride their step in from the side; a rise under a slide reads as a
+     diagonal, the conflict he named. The step container marks a layer
+     `data-settled` once its move has landed, so words that change later inside
+     that same step (the code screen, a failure) reveal again. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-door-line] {
+      transition:
+        opacity 500ms var(--ease-emphasis),
+        translate 500ms var(--ease-emphasis),
+        filter 500ms var(--ease-emphasis);
+      transition-delay: calc(
+        var(--door-line-base, 0ms) + var(--door-line-i, 0) * 40ms
+      );
+    }
+    @starting-style {
+      [data-door-line] {
+        opacity: 0;
+        translate: 0 var(--door-line-rise, 12px);
+        filter: blur(3px);
+      }
+    }
+    [data-entry-step][data-dir="fwd"]:not([data-settled]) [data-door-line],
+    [data-entry-step][data-dir="back"]:not([data-settled]) [data-door-line] {
+      transition: none;
     }
   }
 

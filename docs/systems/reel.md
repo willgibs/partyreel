@@ -22,8 +22,8 @@ what a clip costs ([billing-caps.md](billing-caps.md)), the admin portal's switc
   moments, a look, a layout and a length, and their device renders it to save or share as a file that is never stored.
   On a paid event Add to event puts it in the album as an ordinary video, metered and moderated like any upload, which
   the reel never plays.
-- **The levers are the clip's, never the reel's.** A free event's clips carry a small mark and run up to
-  `MAX_REEL_SECONDS.free`; paid events' run to the paid cap with no mark. The live reel and the screen carry no mark
+- **The levers are the clip's, never the reel's.** A free event's clips carry a small mark and paid events' none; all
+  run up to `MAX_REEL_SECONDS` (60 s on every tier, kept per tier so the lever survives). The live reel and the screen carry no mark
   and no cap on any plan, and making a clip is free on every plan at full quality.
 - **Curated randomness, never a timeline**: a look is a kit the seed samples deterministically, so the player and the
   encoder draw the same frames by construction. No music and no beat-sync (music is too personal to guess, and people
@@ -136,7 +136,8 @@ The reel stores nothing, so the server says only WHETHER a viewer's album has on
   reel returns.
 - ★ **Nothing about review ever shows on a reel or a screen**: a room watching never sees the host's queue.
 - **The approval toast** (moderated events only): once per visit, when the first of this device's held uploads shows up
-  approved while the reel is showing, "The host added your uploads" with "Watch reel". No numbers; never for a clip. The
+  approved while the reel is showing, "One of yours is in the album" with "Watch reel" — singular and true on that
+  first approval alone, since another of the same pick can still be left out. No numbers; never for a clip. The
   queue lives in memory, so it plays only within the visit that made the upload.
 
 ## The host's side

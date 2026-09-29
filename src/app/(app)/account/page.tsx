@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { AccountAvatarForm } from "@/components/app/account-avatar-form";
 import { AccountDeleteCard } from "@/components/app/account-delete-card";
 import { parseEmailChangeHint } from "./email-change";
+import { PROFILE_SETUP_PATH } from "./profile/invite";
 import { EmailSection } from "./email-section";
 import { getAccountEmailState } from "./email-state";
 import { PasskeysCard } from "./passkeys-card";
@@ -40,9 +41,10 @@ import {
   TIER_NAMES,
   planById,
   effectiveStorageCap,
+  formatCapacity,
   formatLimit,
-  friendlyCapacity,
   toBillingTier,
+  videosAllowedForTier,
   withinLimit,
 } from "@/lib/constants/tiers";
 import {
@@ -51,6 +53,7 @@ import {
 } from "@/lib/db/mutations/account";
 import { hasPassword } from "@/lib/db/queries/account";
 import { getProfile } from "@/lib/db/queries/profile";
+import { formatBytesUp } from "@/lib/billing/storage-guard";
 import { getHostStorageSummary } from "@/lib/db/queries/storage";
 import {
   resolveViewerZone,
@@ -61,7 +64,7 @@ import { formatDateInZone } from "@/lib/format/date-in-zone";
 import { formatCount } from "@/lib/format/count";
 import { formatBytes } from "@/lib/utils";
 import {
-  getMyAttendedEvents,
+  getMyAttendedEventPicks,
   getMyBlocks,
   getMyFollowCounts,
   getMyFollowing,
@@ -140,7 +143,6 @@ export default async function AccountPage({
     passwordSet,
     { reset, welcome, email_change },
     slug,
-    attendedEvents,
     following,
     followCounts,
     blocks,
@@ -158,7 +160,6 @@ export default async function AccountPage({
     // The social reads all no-op gracefully pre-apply (see queries/social.ts'
     // runtime seam), so this page renders fine before the migration lands.
     getMyProfileSlug(),
-    getMyAttendedEvents(),
     getMyFollowing(),
     getMyFollowCounts(),
     getMyBlocks(),
@@ -188,9 +189,12 @@ export default async function AccountPage({
   // one colour per person everywhere, never the raw id itself
   // (src/lib/avatar/seed.ts).
   const seed = seedFor(profile.id);
-  const [followingItems, blockItems] = await Promise.all([
+  // The picker's covers are presigned only for a page that exists: before a handle, the card is
+  // the setup's door and draws no picker at all.
+  const [followingItems, blockItems, attendedEvents] = await Promise.all([
     withAvatarUrls(following),
     withAvatarUrls(blocks),
+    slug ? getMyAttendedEventPicks() : Promise.resolve([]),
   ]);
   const tier = toBillingTier(profile.tier ?? DEFAULT_TIER);
   const bio = profile.bio ?? null;
@@ -212,7 +216,10 @@ export default async function AccountPage({
   // enforce_event_limit does in SQL.
   const planMaxEvents = profile.event_slots ?? MAX_EVENTS[tier];
   const planAtCap = !withinLimit(liveEventCount, planMaxEvents);
-  const planCapacity = planCap ? friendlyCapacity(planCap) : null;
+  // The shared estimate, with its camera (host-storage r2), and video only where the plan takes it.
+  const planCapacity = planCap
+    ? formatCapacity(planCap, { video: videosAllowedForTier(tier) })
+    : null;
   const passExpiry =
     tier === "event_pass" && profile.tier_expires_at
       ? formatDateInZone(profile.tier_expires_at, viewerZone)
@@ -251,9 +258,11 @@ export default async function AccountPage({
         <CardHeader>
           <CardTitle>Plan</CardTitle>
           <CardDescription>
+            {/* What she stores prints through the storage flow's one rounding
+                (`formatBytesUp`), as the meter and the plan's refusal print it. */}
             {planCap
-              ? `${planName} · ${formatBytes(planUsed)} of ${formatBytes(planCap)} used`
-              : `${planName} · ${formatBytes(planUsed)} used`}
+              ? `${planName} · ${formatBytesUp(planUsed)} of ${formatBytes(planCap)} used`
+              : `${planName} · ${formatBytesUp(planUsed)} used`}
             {passExpiry ? ` · expires ${passExpiry}` : ""}
           </CardDescription>
         </CardHeader>
@@ -278,8 +287,8 @@ export default async function AccountPage({
               </dt>
               <dd className="text-sm">
                 {planCapacity
-                  ? `About ${formatCount(planCapacity.photos)} photos or ${formatCount(planCapacity.videoMinutes)} min of video`
-                  : `${formatBytes(planUsed)} used`}
+                  ? `About ${planCapacity}`
+                  : `${formatBytesUp(planUsed)} used`}
               </dd>
             </div>
           </dl>
@@ -369,9 +378,10 @@ export default async function AccountPage({
         </CardContent>
       </Card>
 
-      {/* The id is the after-upload prompt's door: a guest who just added
-          photographs to somebody's wedding arrives here wanting one box, not a
-          five-card page to scroll (Will, `claim=after`, 2026-09-19). */}
+      {/* The id is every door's landing: the after-upload prompt, the user menu's "Your profile"
+          and event settings all point here. Before a page exists this card IS the setup's door
+          (`setup=wizard`: the first setup is a guided wizard, and Account holds the quick, direct
+          edits that follow), so each of those doors reaches the wizard through it. */}
       <Card id="public-profile" className="scroll-mt-6">
         <CardHeader>
           <CardTitle>Public profile</CardTitle>
@@ -381,24 +391,39 @@ export default async function AccountPage({
             you.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <ProfileSlugControl siteUrl={siteUrl} slug={slug} />
-          {/* The bio lives beside the handle rather than in the Profile card
-              above: it exists at exactly one address, and only once a handle
-              does. */}
-          <ProfileBioForm bio={bio} />
-          <div className="space-y-2 border-t border-border/60 pt-5">
-            <p className="text-xs font-medium text-muted-foreground">
-              Events you added photos to
+        {slug ? (
+          <CardContent className="space-y-6">
+            <ProfileSlugControl siteUrl={siteUrl} slug={slug} />
+            {/* The bio lives beside the handle rather than in the Profile card
+                above: it exists at exactly one address, and only once a handle
+                does. */}
+            <ProfileBioForm bio={bio} />
+            <div className="space-y-3 border-t border-border/60 pt-5">
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">
+                  Events you added photos to
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Tap a cover to show it on your page; each one is private until
+                  you do. Hiding one never takes you off that event&rsquo;s own
+                  guest list, which is everyone with a photo in the album.
+                </p>
+              </div>
+              <AttendedEventsVisibility events={attendedEvents} />
+            </div>
+          </CardContent>
+        ) : (
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              You don&rsquo;t have a page yet. Setting one up takes three steps:
+              your address, how you show up, and which events show. Nothing is
+              public until you finish.
             </p>
-            <p className="text-xs text-muted-foreground">
-              Events you added photos to are private until you turn one on here.
-              Turning one off never removes you from that event&rsquo;s own
-              guest list (the host controls that).
-            </p>
-            <AttendedEventsVisibility events={attendedEvents} />
-          </div>
-        </CardContent>
+            <Button asChild size="sm">
+              <Link href={PROFILE_SETUP_PATH}>Set up your page</Link>
+            </Button>
+          </CardContent>
+        )}
       </Card>
 
       <Card>

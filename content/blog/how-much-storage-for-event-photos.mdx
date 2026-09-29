@@ -2,6 +2,7 @@
 title: How much storage do wedding and party photos need?
 description: How much storage a wedding, a party or a conference produces, and which plan holds it, in numbers you can check.
 date: "2026-07-10"
+updated: "2026-09-28"
 cover: party-balloons
 tags:
   - product
@@ -12,19 +13,19 @@ faq:
   - q: Do photos get shrunk to save space?
     a: No. Originals are stored exactly as they were taken. The small images the gallery loads for speed are extra, not a replacement.
   - q: Does the estimate change if guests shoot in high resolution?
-    a: A little. The rule of thumb is an average, and newer phones lean larger, so size with headroom rather than to the line.
+    a: Yes. The rule of thumb is an iPhone at its default camera settings, and a guest shooting 48 MP photos or 4K video fills space several times faster, so size with headroom rather than to the line.
 ---
 
-Almost everyone overestimates this. A phone photo is around <PhotoAverageSize />, so a whole wedding's worth of guest photos is smaller than the video of one speech. If you know those two figures you can size any event on the back of an envelope, and you will usually find the answer is "less than you thought, until video shows up."
+Almost everyone overestimates this. A photo at an iPhone's default settings is about <PhotoAverageSize />, so a whole wedding's worth of guest photos is smaller than the video of one speech. If you know those two figures you can size any event on the back of an envelope, and you will usually find the answer is "less than you thought, until video shows up."
 
 ## The rule of thumb
 
-Two numbers do all the work here:
+Two numbers do all the work here, both from an iPhone at its default camera settings, which is what most guests carry and few of them ever change:
 
-- A photo from a modern phone: about <PhotoAverageSize />.
-- A minute of 1080p video: about <VideoMinuteSize />.
+- A photo (24 MP, the default): about <PhotoAverageSize />.
+- A minute of video (1080p at 30 fps, the default): about <VideoMinuteSize />.
 
-That ratio is the whole story. One minute of video weighs roughly what a few dozen photos weigh. Everything below is those two numbers with different guest counts poured into them.
+That ratio is the whole story. One minute of video weighs nearly what twenty photos weigh. Everything below is those two numbers with different guest counts poured into them.
 
 Your plan is a total stored size, not an item count, which is why the math works this simply. A thousand small photos and one long video come out of the same pool. The help center has the mechanics: [storage, plans and limits](/help/storage-plans-and-limits).
 
@@ -34,21 +35,23 @@ Three sketches, from events you would expect to look very different:
 
 **A wedding with sixty guests.** Not everyone uploads, and the ones who do upload in bursts: getting ready, the ceremony from the aisle seat, the first dance from four angles, the sparkler exit. Call it a few hundred photos in total, plus whatever the couple adds themselves afterwards. In bytes that is small. A wedding only gets big when guests start filming the toasts, because a handful of speeches can outweigh every photo taken all day. Setting one up from scratch? Start at the [wedding photo QR guide](/blog/qr-code-for-wedding-photos).
 
-**A kid's birthday party.** An afternoon, a dozen parents, most of them shooting bursts of the same cake moment. Roughly a hundred photos and a few short videos of the candles. This is the smallest realistic event and it fits anywhere.
+**A kid's birthday party.** An afternoon, a dozen parents, most of them shooting bursts of the same cake moment. Roughly a hundred photos and a few short videos of the candles. This is the smallest realistic event, and it fits in any paid plan many times over.
 
 **A two-day conference.** More people, but a much lower rate per person: badge photos, the keynote stage, the booth, the dinner. Sessions produce fewer pictures than parties do, because people are sitting still and listening. The volume comes from the length of the program, not the size of the room, and sizing a whole program of events is its own question: [corporate event photo sharing](/blog/corporate-event-photo-sharing-pricing).
 
 ## Which plan holds it
 
+Every figure in this table is <EstimateBasis />.
+
 | Plan | Storage | Roughly holds |
 | --- | --- | --- |
-| Free | <PlanStorage id="free" /> | <CapacityEstimate plan="free" />, photos only |
-| Event Pass | <PlanStorage id="event_pass" /> | <CapacityEstimate plan="event_pass" /> |
-| Pro, entry | <PlanStorage id="pro_100" /> | <CapacityEstimate plan="pro_100" /> |
-| Pro, mid | <PlanStorage id="pro_500" /> | <CapacityEstimate plan="pro_500" /> |
-| Pro, top | <PlanStorage id="pro_2tb" /> | <CapacityEstimate plan="pro_2tb" /> |
+| Free | <PlanStorage id="free" /> | <CapacityEstimate plan="free" basis="off" />, photos only |
+| Event Pass | <PlanStorage id="event_pass" /> | <CapacityEstimate plan="event_pass" basis="off" /> |
+| Pro, entry | <PlanStorage id="pro_100" /> | <CapacityEstimate plan="pro_100" basis="off" /> |
+| Pro, mid | <PlanStorage id="pro_500" /> | <CapacityEstimate plan="pro_500" basis="off" /> |
+| Pro, top | <PlanStorage id="pro_2tb" /> | <CapacityEstimate plan="pro_2tb" basis="off" /> |
 
-Read those "roughly holds" figures as the photo-only ceiling and then subtract for video at the ratio above. Against the three sketches, the free tier comfortably covers the birthday party and the photo half of a small wedding. It holds <EventLimit tier="free" /> event and takes photos only, which is the honest catch and the reason most weddings end up on an Event Pass instead: one event, one payment, video included. The full grid is on the [pricing page](/pricing).
+Read those "roughly holds" figures as the photo-only ceiling and then subtract for video at the ratio above. Against the three sketches, the free tier is a taste rather than a plan: it runs the whole flow on a small gathering, and the birthday party's hundred photos already outgrow it. It holds <EventLimit tier="free" /> event and takes photos only, which is why most weddings, and most parties with a cake worth filming, end up on an Event Pass: one event, one payment, video included. The full grid is on the [pricing page](/pricing).
 
 ## When video changes the math
 

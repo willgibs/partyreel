@@ -41,6 +41,8 @@ const {
   hideBulk,
   purgeMediaNow,
   removeMediaBulk,
+  restoreMedia,
+  returnToReview,
   setMediaStatusBulk,
 } = await import("./media");
 
@@ -118,6 +120,52 @@ describe("the review queue's bulk approve and hide", () => {
     delete fake.tables.media;
     const result = await approveBulk("ev-1", ids(300));
     expect(result).toMatchObject({ ok: false, code: "unknown" });
+  });
+});
+
+/**
+ * UNDO ON A VERDICT (host-curation `undo=undo`) is the review pair run backwards: what an approve or
+ * a reject decided goes back to `pending`, only from the state that verdict left it in, so a crafted
+ * call cannot pull the rest of the album into the queue, and a removed row never leaves the bin.
+ */
+describe("the review queue's Undo", () => {
+  it("returns a 2,500-item approve whole, in chunks under the URL limit", async () => {
+    useAlbum(ids(2500).map((_, i) => row(i, { status: "approved" })));
+    const result = await returnToReview("ev-1", ids(2500), "approved");
+    expect(result).toEqual({ ok: true, data: { count: 2500 } });
+    expectChunked(chunksOf(2500));
+    expect(fake.tables.media.every((m) => m.status === "pending")).toBe(true);
+  });
+
+  it("moves only what is still in the verdict's state, in the caller's own event", async () => {
+    useAlbum([
+      row(0, { status: "hidden" }),
+      row(1, { status: "approved" }),
+      row(2, { status: "removed" }),
+      row(3, { status: "hidden", event_id: "ev-2" }),
+    ]);
+    const result = await returnToReview("ev-1", ids(4), "hidden");
+    expect(result).toEqual({ ok: true, data: { count: 1 } });
+    expect(fake.tables.media.map((m) => m.status)).toEqual([
+      "pending",
+      "approved",
+      "removed",
+      "hidden",
+    ]);
+  });
+
+  it("reports a failed chunk as a failure, and writes nothing for an empty list", async () => {
+    useAlbum([row(0, { status: "approved" })]);
+    expect(await returnToReview("ev-1", [], "approved")).toEqual({
+      ok: true,
+      data: { count: 0 },
+    });
+    expect(fake.requests).toHaveLength(0);
+    delete fake.tables.media;
+    expect(await returnToReview("ev-1", ids(1), "approved")).toMatchObject({
+      ok: false,
+      code: "unknown",
+    });
   });
 });
 
@@ -212,5 +260,38 @@ describe("the bin's Delete forever", () => {
     const result = await purgeMediaNow("ev-1", ids(10));
     expect(result).toMatchObject({ ok: false, code: "unknown" });
     expect(deleted).toHaveLength(0);
+  });
+});
+
+/**
+ * A RESTORE SAYS WHERE IT LANDED THE ITEM (a ROADMAP carry-over from `crumbs-8`): `restore_media`
+ * returns an item to the status it held before its removal and answers it, and the bin's toast words
+ * what it did from this, so a hidden item is never announced as "back in the album".
+ */
+describe("restoreMedia", () => {
+  function answering(answer: unknown) {
+    fake = createFakePostgrest({
+      user: { id: "host-1" },
+      rpc: { restore_media: () => answer },
+    });
+  }
+
+  it("carries the status the item landed on", async () => {
+    for (const status of ["approved", "hidden", "pending"] as const) {
+      answering({ ok: true, status });
+      await expect(restoreMedia(uuid(1))).resolves.toEqual({
+        ok: true,
+        data: { id: uuid(1), status },
+      });
+    }
+  });
+
+  it("carries no status it does not recognise, rather than a guess", async () => {
+    for (const answer of [{ ok: true }, { ok: true, status: "removed" }]) {
+      answering(answer);
+      const result = await restoreMedia(uuid(1));
+      expect(result).toMatchObject({ ok: true });
+      expect(result.ok && result.data.status).toBeUndefined();
+    }
   });
 });

@@ -47,10 +47,11 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
 - **The standby budget caps what a host keeps in Deleted:** at most the effective cap in deleted-but-stored bytes,
   evicted oldest-first, so size is the anti-abuse bound, not the clock. A move to a smaller cap shrinks Deleted too
   and purges its oldest items early; the plan sheet says so before such a switch. The sweep finds its hosts through
-  `standby_hosts()`, whose bytes are exactly the bin: the host's removals less the system's and less a guest's own
-  withdrawal, plus a soft-deleted event's live media, never a held row. Only a host over budget has its bin read,
-  and read whole, so eviction is oldest-first across all of it. The meter's Deleted figure also counts
-  system-removed and held rows, so it can read higher than the budget's sum, never lower.
+  `standby_hosts()`, whose bytes are exactly the bin: the host's removals less the system's, a guest's own
+  withdrawal and an operator's removal, plus a soft-deleted event's live media, never a held row. Only a host over
+  budget has its bin read, and read whole, so eviction is oldest-first across all of it. The meter's Deleted figure
+  (`host_storage_summary`) is exactly what her two Deleted lists show, inside the window: system removals and a held
+  row count while they are listed and never after, since a figure outliving its list would tell her a hold exists.
 - ★ **A guest's own delete is final, for the host too.** Deleting an upload to someone else's event sets
   `media.removed_by_uploader = true`: `listRecentlyDeletedMedia`'s own `removed_by_uploader = false` predicate keeps it
   out of the host's bin (RLS does NOT filter it, so dropping that line shows the host a Restore the RPC always
@@ -68,13 +69,21 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
   a direct PATCH that un-removes media or un-deletes an event is refused by a BEFORE trigger, so every restore
   inherits their guards ([database-security.md](database-security.md)). Each returns `{ ok, reason, … }` (an expected refusal does not raise).
 - **A restore is capacity-gated against the BASE cap,** never the 10% headroom (`insufficient_space` with
-  `needed_bytes`). `restore_event` re-checks the event slot and restores all or nothing; media removed on their own
-  stay in the bin, and the RPC reports how many (`media_still_removed`). `purge_media_now` deletes the R2 objects
-  first in its wrapper, then the rows.
+  `needed_bytes`), so the size list's Undo (one `restore_media` per item) can put back only part of a removal on a
+  full plan; the rest stays in Deleted and the toast says so. `restore_event` re-checks the event slot and restores all or nothing; media removed on their own
+  stay in the bin, and the RPC reports how many her Deleted still shows (`media_still_removed`). `purge_media_now`
+  deletes the R2 objects first in its wrapper, then the rows.
 - ★ **A restore returns an item to the status it HELD,** not to `approved`: `media_derive_removal_provenance` stamps
-  `status_before_removed` on every removal path, so a hidden item comes back hidden and a pending one pending. **An
-  operator takedown is not host-reversible:** both admin paths set `removed_by_admin`, and `restore_media` refuses it
-  (`admin_removed`) with the same discreet copy as a legal hold.
+  `status_before_removed` on every removal path, so a hidden item comes back hidden and a pending one pending.
+  `restore_media` answers that `status`, and the bin's toast says it (`restoredWords`), never "back in the album"
+  for an item that came back hidden.
+- ★ **An operator's removal leaves the host's view entirely** (Will, admin-triage r1: "fully purged from the event, not
+  moved to deleted"). Both admin paths set `removed_by_admin` (a report's Remove also marks an item someone else had
+  already removed, keeping its `removed_at`), and `media_host_all` hides the row from every host read (her album, her
+  Deleted and its links, the bell's nudge, every count), so she never meets a Restore to fail and nothing tells a
+  takedown from a guest's own delete. `restore_media` refuses it (`admin_removed`, a hold's discreet copy),
+  `purge_media_now` refuses it, it counts in neither storage figure nor the standby budget, and it purges on its own
+  `purge_at` (the operator's Undo and the runbook's window, [trust-safety-forensics.md](trust-safety-forensics.md)).
 - The product's filters say "Deleted" (the dashboard's events list and the album's View menu), the delete
   confirmation and the marketing say "Trash", and the identifiers say "recently deleted" (`listRecentlyDeleted*`).
 
@@ -85,8 +94,13 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
   ([billing-caps.md](billing-caps.md)); a Free host is blocked before it can get there. Over, it sets `storage_grace_until`
   (`OVER_CAP_GRACE_DAYS`, 45) and emails; near the deadline, a reminder; past it, the host's active set is reduced
   largest-first (marked `removed_by_system`, recoverable for the window) with an email; back under, the grace clears.
-- **Renewal:** an Event Pass holder is nudged 14 days before expiry (`RENEWAL_NUDGE_DAYS`, shared with the bell);
-  `expired_passes` recomputes every holder from the ledger ([billing-caps.md](billing-caps.md)).
+  ★ Its candidates are every profile past the SMALLEST cap any plan grants, read from `tiers.ts` (Free's 100 MB),
+  never a typed floor: a literal left at an old Free cap skips every lapsed host storing between the two, for good.
+- **Renewal:** an Event Pass holder is nudged 14 days before expiry (`RENEWAL_NUDGE_DAYS`, shared with the bell),
+  unless they turned Event Pass reminders off (`notification_prefs.notify_pass_renewal`, read through
+  `resolveNotificationPrefs` before any send; a failed read stops the sweep rather than guess); its button opens
+  `/account/renew`, which posts the Plan card's own renewal to the checkout route. `expired_passes` recomputes every
+  holder from the ledger ([billing-caps.md](billing-caps.md)).
 - **Free-tier inactivity** (Pro and Event Pass are exempt): an event idle for six months is warned about two weeks out,
   then soft-deleted into the recoverable window. The clock is the newest of `profiles.last_active_at`, the event's own
   dates and its newest media, so a used or still-collecting event never trips it; `touchHostActive` bumps
@@ -96,10 +110,17 @@ bodies live in `lib/lifecycle/sweeps/` and `account-deletion.ts`, each tested on
 
 ## Sending email
 
-- **`sendOnce({ kind, dedupeKey, to, subject, html })` is the one send path.** It claims a `sent_emails` row (unique on
-  `(kind, dedupe_key)`) BEFORE sending, so the daily cron can call it every run and Resend is hit at most once per
-  state, which keeps inside the free tier's 3,000 a month; a failed send releases the claim, so it retries next run
-  and never double-sends. Templates are `email/templates.ts`.
+- **`sendOnce({ kind, dedupeKey, to, subject, html, text })` is the one send path.** It claims a `sent_emails` row
+  (unique on `(kind, dedupe_key)`) BEFORE sending, so the daily cron can call it every run and Resend is hit at most
+  once per state, which keeps inside the free tier's 3,000 a month; a failed send releases the claim, so it retries
+  next run and never double-sends.
+- **Every mail is one shell** (`composeMail` in `email/templates.ts`): the HTML and its plain-text twin render from the
+  same parts, and `text` is required, since Resend would otherwise write its own from the table layout. The shell
+  declares light only on a white card, heads it with the wordmark as a hosted PNG on its own white plate (a forced
+  invert never touches an image; `scripts/build-email-wordmark.mjs` rebuilds it, and a new mark ships as a new file),
+  and ends on a divider and one line: a host mail's "You're receiving this because...", an operator alert's own. No
+  mail carries a postal address (all ten are account or service mail); the renewal nudge alone carries an
+  unsubscribe, to its switch. Every operator subject starts `[Partyreel]`.
 - ★ **Every fallible call sits above the claim** (`assertResendEnv()`, `getResend()`): only a Resend send error
   releases the row, so a throw between the claim and the send burns that `(kind, dedupe_key)` for good, one
   permanently unsendable warning per host, fixable only by a manual DELETE.

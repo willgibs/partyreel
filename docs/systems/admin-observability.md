@@ -60,7 +60,11 @@ never a design variable.
   it; `nav.test.ts` fails on a page the nav cannot reach.
 - **State colour comes from one map,** `lib/admin/tone.ts`, so a chip and the row under it cannot disagree.
 - **Every destructive act opens `destructive-sheet.tsx`,** which lists what the act touches; only a permanent act
-  with something to identify asks you to type, and the server re-checks what was typed against the row.
+  with something to identify asks you to type, and the server re-checks what was typed against the row. A confirm
+  can carry one `note` (optional, or required as a hold's reason is), typed into it rather than a form beside it.
+- **Every inbox speaks through one filter bar and one status picker** (`TriageFilter`, `StatusPicker`), each given
+  its inbox's own words (`InboxWords`): Reports says Open, Dismissed and Actioned and lands on Open; Support and
+  Applicants say New, In progress and Closed and land on All.
 - ★ **The command palette jumps and never acts:** its actions scroll to the card where the switch and its sheet live,
   because a palette that fired a kill switch would be the portal's cheapest click on its most expensive act.
 - ★ **Every pending number is one read per request.** A layout cannot hand anything to a page, so
@@ -86,8 +90,8 @@ reports through one heartbeat table, `job_runs` (deny-all, like the `ops_flags` 
 app can start them. Three kinds share one pure `jobHealth`, so the page, the bell and the cron's scan never hold
 three definitions of healthy:
 - **scheduled** (fires on a clock; its own rows; judged by its cadence and the missed-run rule);
-- **signal** (work with no schedule, such as a send or a limiter read; only its FAILURE rows, over a rolling 24
-  hours: anything failed is failed, nothing at all is "No activity", never green);
+- **signal** (work with no schedule, such as a send, a limiter read or the help center's feedback beacon; only its
+  FAILURE rows, over a rolling 24 hours: anything failed is failed, nothing at all is "No activity", never green);
 - **derived** (a reading only the Worker can take, riding another job's `counts`; its value, with the health of the
   run that carried it).
 
@@ -136,8 +140,34 @@ three definitions of healthy:
 `/api/reports` takes two arms, both insert-only and rate-limited: a report never hides content or blocks anyone. An
 album or item report is anonymous, its `qr_token` the capability `create_report` validates inside the RPC; a person
 report (`reports.profile_id`) needs a signed-in reporter, re-checked with `getUser()`. `reports` is deny-all and stores
-no reporter. Review is human (`/admin/reports`; no scanner or NSFW filter): actioning an item soft-removes it, while a
-reported person is actioned out of band, so marking one handled only closes the report.
+no reporter. Review is human (`/admin/reports`; no scanner or NSFW filter), and its rules are one pure module,
+`lib/admin/reports.ts` (admin-triage r1):
+- ★ **A verdict reads its own report.** The item a Remove takes down is the report's `media_id`, read by the action,
+  never an id the browser sends; a verdict lands only on an OPEN report, so a second tab is told "already decided",
+  and it writes `resolution_note` (optional, capped as a reason is). Dismiss and Mark actioned are one press;
+  Remove and an album's Action open the confirm.
+- **Actioning an item makes it an operator's removal whatever its state** (an item the host or a guest had already
+  removed is marked the operator's, keeping its `removed_at`), and one instant stamps the removal and the verdict. A
+  reported person is actioned out of band, so Mark actioned only closes the report.
+- **A closed report is one line with its way back** (`wayBackOf`, measured at the page's one clock read). A removal's
+  Undo lives exactly as long as the removal ITS verdict made (the removal's `removed_at` equal to the verdict's
+  `resolved_at`, still an operator's, not held): it reopens the report first, then restores the item where it was; a
+  held item reads Held and has no Undo. ★ A dismissal reopens, from its toast's Undo or its line, inside 30 days of
+  the verdict (`reopenReportAction`, whose write itself requires `dismissed` and the window's floor), a hold being no
+  bar since reopening restores nothing; Mark actioned and an album's Action have no way back.
+- **Hold for forensics on an item report** reads what it reaches first (the item and the same uploader's other items
+  in the event: its guest row, or every row the same account holds there; no guest row means the host's own
+  uploads), then preserves each through `preserveMedia`, the reported item alone first, the rest four at a time
+  inside the page's `maxDuration` (a partial run says how far it got; pressing again is safe). The report stays open.
+
+## Help feedback
+
+`/admin/help-feedback` (under Watching: a reading, never an inbox) is the one place the help center's "Did this answer
+your question?" is read: `article_feedback_summary` gives each article's Yes and No with its last click, newest first,
+and a row where No outnumbers Yes is tinted. Above it, the `help_feedback` signal: its own rows are the success half,
+and `/api/help/feedback` writes a failure row for every click it drops, whether the limiter could not answer or the
+insert failed, because the reader sees the same thank-you either way and nothing else would ever show it. A failed read
+says so in words, never "No feedback yet".
 
 ## Sentry
 

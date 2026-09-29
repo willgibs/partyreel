@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
+import { yearlySavingTag } from "@/components/app/pricing/cadence";
 import {
   annualPlanFor,
   friendlyCapacity,
@@ -114,8 +115,7 @@ describe("the Pro card's size control", () => {
 
     // DOM order, so the look is free to change and the reading order is not.
     expect(
-      cadence.compareDocumentPosition(range) &
-        Node.DOCUMENT_POSITION_FOLLOWING,
+      cadence.compareDocumentPosition(range) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
 
     const yearly = within(cadence).getAllByRole("button")[1];
@@ -128,5 +128,32 @@ describe("the Pro card's size control", () => {
         name: new RegExp(annual!.priceLabel.replace(/[$/]/g, "\\$&")),
       }),
     ).toBeTruthy();
+  });
+
+  it("sets the yearly saving BESIDE the control, computed from the prices, and names it on Yearly", () => {
+    // Inside the segment, the saving outgrew half a phone and wrapped the button to two lines at
+    // 375 (build 17's red-team); the plan sheet already sets it beside (`cadence-toggle.tsx`).
+    render(<PlanPair />);
+    const cadence = screen.getByRole("group", { name: /billing cadence/i });
+    const tag = document.querySelector<HTMLElement>("[data-saving-tag]");
+    expect(tag?.textContent).toBe(yearlySavingTag());
+    expect(cadence.contains(tag)).toBe(false);
+    const yearly = within(cadence).getAllByRole("button")[1];
+    expect(yearly).toHaveAccessibleDescription(yearlySavingTag()!);
+  });
+});
+
+describe("the size slider's track", () => {
+  it("is drawn in the colour its thumb wears, so it shows wherever the thumb does", () => {
+    // `var(--color-background)` is the theme alias computed once at :root: near-black in a dark
+    // system theme, while the ink card sits in a paper chapter, so the track vanished (build 17's
+    // red-team). The local `--background` is the thumb's own colour (`bg-background`).
+    render(<PlanPair />);
+    const track = slider().className;
+    expect(track).toContain(
+      "[&::-webkit-slider-runnable-track]:bg-[linear-gradient(to_right,var(--background)_var(--fill)",
+    );
+    expect(track).toContain("[&::-webkit-slider-thumb]:bg-background");
+    expect(track).not.toContain("--color-background");
   });
 });

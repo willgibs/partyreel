@@ -7,7 +7,6 @@ import { Sparkles } from "lucide-react";
 
 import { ClaimHandlePrompt } from "@/components/guest/claim-handle-prompt";
 import type { FollowMomentHost } from "@/components/guest/follow-moment-card";
-import { SaveAccountPrompt } from "@/components/guest/save-account-prompt";
 import { UploadFailureSheet } from "@/components/guest/upload/failure-sheet";
 import { UploadIntentSheet } from "@/components/guest/upload/intent-sheet";
 import { Button } from "@/components/ui/button";
@@ -33,8 +32,8 @@ export type GuestUploadHandle = {
  * The upload ENGINE, and the two SHEETS the act speaks through.
  *
  * The queue machine lives in `useUploadQueue`; the visible upload UI lives in
- * the GALLERY (the stack at the album's head, a waiting tile on a held event).
- * This owns both ends of the act:
+ * the GALLERY (the stack at the album's head) and, on a held event, in her
+ * uploads (the tracker's badge and list). This owns both ends of the act:
  *
  * ★ THE FRONT: one tap opens `UploadIntentSheet` — take a photo, or choose
  * from your album — and the picker returns INTO that sheet as a review step, so
@@ -45,8 +44,8 @@ export type GuestUploadHandle = {
  * ★ THE BACK: nothing interrupts while the files go, and when the RUN ENDS with
  * anything refused, `UploadFailureSheet` opens itself once with a line and a
  * Retry per file. No upload toasts: an error toast has usually gone by the time
- * it is read, and the waiting TILE says what a "Sent, waiting for host
- * approval" toast would, better.
+ * it is read, and on a held event the badge beside Add says what a "Sent,
+ * waiting for approval" toast would, where she already is.
  *
  * Joining is just-in-time and SILENT (account-required events are gated at
  * the PAGE level; a signed-in uploader sets a display name first).
@@ -56,7 +55,6 @@ export function GuestUpload({
   ref,
   event,
   qrToken,
-  sessionToken,
   queue,
   onAddFiles,
   onRetry,
@@ -65,14 +63,14 @@ export function GuestUpload({
   onFailuresClosed,
   isDemo,
   host,
-  hintEmail,
   moment = false,
+  elsewhere = 0,
+  onAccountRenamed,
   removedIds,
 }: {
   ref?: Ref<GuestUploadHandle>;
   event: GuestEvent;
   qrToken: string;
-  sessionToken: string | null;
   /**
    * ★ THE QUEUE IS THE PAGE'S. Created here, it would exist only at full access, inside the
    * album: the door's third step asks for the first photograph BEFORE either, and the run it
@@ -83,7 +81,8 @@ export function GuestUpload({
   onAddFiles: (files: File[]) => void;
   onRetry: (id: string) => void;
   onDismiss: (ids: string[]) => void;
-  /** The door's own step is showing this run's failures; one run never gets two surfaces. */
+  /** The door is showing this run's failures, or its keep stands in front of the album; one run
+   *  never gets two surfaces, so the failure sheet waits. */
   suppressFailures?: boolean;
   /** The failure sheet closed: the page flushes any deferred re-gate (its own note explains). */
   onFailuresClosed?: () => void;
@@ -92,19 +91,16 @@ export function GuestUpload({
   /** The event's host as a public card, for the capture flow's follow moment. */
   host?: FollowMomentHost | null;
   /**
-   * The address this guest typed at the door THIS VISIT (the optional field),
-   * passed straight through to the offer card's door so it opens prefilled.
-   * Held in the page's state, never in storage, and null on every later visit:
-   * the door asks again rather than a shared phone remembering.
-   */
-  hintEmail?: string | null;
-  /**
    * A confirmation from this album just claimed its uploads (the page's
    * `useConfirmReturn`): the slot stands up the follow moment even when
    * nothing was uploaded this visit, which is exactly a Google or magic-link
    * return.
    */
   moment?: boolean;
+  /** The same claim's rows at other events, which the moment says once. */
+  elsewhere?: number;
+  /** The told name was changed in the moment's own line (the page trues up the credits). */
+  onAccountRenamed?: (displayName: string) => void;
   /**
    * The media ids this visit's own removals took back out of the album (the
    * page keeps them). A finished upload that was removed again is not "on this
@@ -132,10 +128,31 @@ export function GuestUpload({
   const [failuresOpen, setFailuresOpen] = useState(false);
   const wasRunning = useRef(false);
   const failures = items.filter((it) => it.status === "error");
+  /**
+   * ★ crumbs-6, one line into a lane it does not own, why: the exact register's failure heading
+   * ("N of SENT didn't upload", `failure-sheet.tsx`'s `uploadFailureHeading`) needs the whole
+   * run's count, and only the queue's own owner ever sees a run's start — `upload-step.tsx` tracks
+   * the identical baseline for the door's OWN inline failure view, but that instance's ref dies
+   * the moment the door closes, and a run can still be going when it does (`suppressFailures`
+   * above is proof two surfaces watch one queue). `runBaseline` is `items.length` from the render
+   * just BEFORE this run's files were appended (one render lagged, via `prevItemsLen`, so the new
+   * files are never counted in their own baseline), so `sent = items.length - runBaseline` is
+   * exactly this run's own total.
+   *
+   * ★ STARTS AT 0, NOT `items.length`: a mount that never witnessed its run start (this slot can
+   * remount under `key={access}`, mid-run, with `items` handed straight in) must count everything
+   * already there as THIS run, or `sent` reads short. 0 is exactly that.
+   *
+   * ★ STATE, NOT A REF: `sentThisRun` below reads it during render, and a ref's `.current` may
+   * only be read inside an effect or a handler (React Compiler's own rule).
+   */
+  const [runBaseline, setRunBaseline] = useState(0);
+  const prevItemsLen = useRef(items.length);
   useEffect(() => {
     const running = items.some(
       (it) => it.status === "queued" || it.status === "uploading",
     );
+    if (running && !wasRunning.current) setRunBaseline(prevItemsLen.current);
     if (
       wasRunning.current &&
       !running &&
@@ -144,7 +161,9 @@ export function GuestUpload({
       setFailuresOpen(true);
     }
     wasRunning.current = running;
+    prevItemsLen.current = items.length;
   }, [items]);
+  const sentThisRun = items.length - runBaseline;
   /**
    * "Not now" AND every other way the sheet closes (backdrop, Escape, the X)
    * all funnel through this one `onOpenChange` — Retry-all closes through it
@@ -193,40 +212,35 @@ export function GuestUpload({
           file: it.file,
           error: it.error,
         }))}
+        sent={sentThisRun}
         hostName={hostName}
         onRetry={onRetry}
       />
 
       {holdForApproval && (
-        // The one place the rule can be read BEFORE a first upload. The
-        // waiting tile says what happened to YOURS; this says what happens on
-        // this event at all.
+        // The one place the rule can be read BEFORE a first upload. Her
+        // uploads say what happened to YOURS; this says what happens on this
+        // event at all.
         <p className="rounded-md bg-muted px-3 py-2 text-center text-reading text-muted-foreground">
           The host reviews uploads before they appear in the album.
         </p>
       )}
 
-      {/* The post-upload slot, one card at a time (the capture flow's cards
-          included). ClaimHandlePrompt resolves the viewer and decides: signed
-          out gets the offer card counting what just landed, a guest who has just
-          CONFIRMED gets the follow moment, signed in without a handle gets the
-          claim line, and somebody who already has a page gets none of them.
-          Shown once a guest has contributed this visit, or the moment a
-          confirmation from this album claimed their uploads; never in the demo. */}
+      {/* The post-upload slot, one card at a time. ClaimHandlePrompt resolves
+          the viewer and decides: a guest who has just CONFIRMED gets the follow
+          moment, signed in without a handle gets the claim line, and everyone
+          else gets nothing (a signed-out guest's ask to keep is the door's own
+          last screen now, `guest-capture` r1). Shown once a guest has
+          contributed this visit, or the moment a confirmation from this album
+          claimed their uploads; never in the demo. */}
       {(doneCount > 0 || moment) && !isDemo && (
         <ClaimHandlePrompt
           doneCount={doneCount}
           qrToken={qrToken}
           host={host}
           moment={moment}
-          savePrompt={
-            <SaveAccountPrompt
-              qrToken={qrToken}
-              sessionToken={sessionToken ?? ""}
-              count={doneCount}
-              hintEmail={hintEmail}
-            />
-          }
+          elsewhere={elsewhere}
+          onAccountRenamed={onAccountRenamed}
         />
       )}
     </div>

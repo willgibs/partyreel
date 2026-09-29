@@ -1,19 +1,12 @@
 import type { CSSProperties } from "react";
 
-import { Conveyor } from "@/components/marketing/system/conveyor";
-import { Caption } from "@/components/marketing/system/caption";
 import { Reveal } from "@/components/marketing/system/reveal";
 import { SectionShell } from "@/components/marketing/system/section-shell";
-import { MARKETING_REELS } from "@/lib/constants/marketing-media";
 import { SECTION_HEADERS } from "@/lib/constants/marketing-voice";
-import {
-  resolveStyleEntry,
-  STYLE_CATALOG,
-} from "@/lib/reel/engine/style-registry";
 
-import { InlineReelPlayer } from "../shared/inline-reel-player";
-import { ReelScreenLamp } from "./reel-screen-lamp";
 import { LearnMoreLink } from "../shared/learn-more-link";
+import { ReelPlayScreen } from "../shared/reel-player";
+import { ReelScreenLamp } from "./reel-screen-lamp";
 
 /**
  * THE PAYOFF CHAPTER OPENS HERE -- treatment A, "lights down".
@@ -22,10 +15,9 @@ import { LearnMoreLink } from "../shared/learn-more-link";
  * carries the chapter's opening weight (design-system.md, "Chapters"): the
  * page's own comment says "lights down for the reel". The device here is a
  * room going dark and a screen coming up. Much more air above, the heading a
- * tier up, and the player presented as the subject, throwing its own poster's
+ * tier up, and the screen presented as the subject, throwing its own poster's
  * colours down onto the floor beneath it (reel-screen-lamp.tsx), where the
- * style chips sit in the pool as a quiet caption strip rather than a control
- * row above.
+ * pointer to /reel sits in the pool.
  *
  * Bespoke on purpose. The pacing principle says a chapter's first section
  * should feel bolder than a body section but must NOT share a template with
@@ -33,30 +25,36 @@ import { LearnMoreLink } from "../shared/learn-more-link";
  * vocabulary ones: the heading a tier up (SectionShell scale="lg") and the
  * hard film-cut entrance.
  *
- * STYLE_CATALOG is the engine's PURE metadata module (style-registry), the one
- * sanctioned engine import on marketing surfaces; no engine runtime rides
- * these chunks.
+ * ★ THE SCREEN IS A TEASER, AND ITS PLAY MARK OPENS THE FILM (`reel-story` r1
+ * `teaser=poster`, r2 `play=modal`). A short muted loop plays on its own; the
+ * press opens the section's film in the contained player over the dimmed page
+ * (`../shared/reel-player.tsx`), with a caption and Start free, and closing it
+ * returns here. The film is this section's own, made to sell the reel, never
+ * the demo album's reel (his note on `play`: "an exciting intro/feature/reel
+ * video made for its own purpose in a section will always beat using a generic
+ * reel from a fake demo").
+ *
+ * ★ NO STYLE STRIP. The live reel plays moods a viewer switches for
+ * themselves, so this section sells the reel, never "pick a style"; the
+ * pointer goes to /reel, where the switcher shows the looks live.
  */
 
-const INLINE_REEL_ID = "hero-candidate-02";
+/**
+ * The section's film: its first seconds loop muted on the screen and the whole
+ * film plays in the player. `hero-candidate-02` is a stand-in render (stock
+ * stills, not an event), kept until the film made for this section lands
+ * (docs/ASSETS.md).
+ */
+const TEASER_REEL_ID = "hero-candidate-02";
 
+/**
+ * The subhead, in the site's ruled shape (marketing-voice.ts, `SITE_SUBHEAD`):
+ * the reader's opportunity, what the album does in one clause, then the payoff.
+ */
 const SUBHEAD =
-  "Pick a style and the reel renders on your phone, free, in seconds. Every guest can take the reel home.";
-
-function formatDuration(seconds: number): string {
-  const whole = Math.round(seconds);
-  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
-}
+  "Every guest catches a moment you missed. The album plays them all back as one highlight reel while everyone is still there.";
 
 export function ReelTeaser() {
-  const reel = MARKETING_REELS.find((r) => r.id === INLINE_REEL_ID);
-  if (!reel) throw new Error(`Unknown marketing reel id: ${INLINE_REEL_ID}`);
-  const styleLabel = resolveStyleEntry(reel.recipe.styleId).label;
-  // Doubled inside the copy so one conveyor copy outruns wide viewports (the
-  // 14 chips alone are narrower than a large screen; a short copy shows a gap
-  // at the -50% wrap).
-  const chips = [...STYLE_CATALOG, ...STYLE_CATALOG];
-
   return (
     <SectionShell
       eyebrow="The reel"
@@ -71,9 +69,9 @@ export function ReelTeaser() {
          /reel, so the section gives back part of its bottom padding. */
       className="pt-32 pb-10 sm:pt-44 sm:pb-12"
     >
-      {/* ONE CHOREOGRAPHY (R4): chips, player, caption and pointer used to pop
-          in flat under a revealed header. They now continue the header's
-          cascade (slots 0-2) under ONE observer at a tightened 70ms step. */}
+      {/* ONE CHOREOGRAPHY (R4): the screen and the pointer continue the
+          header's cascade (slots 0-2) under ONE observer at a tightened 70ms
+          step. */}
       <Reveal style={{ "--mkt-stagger-ms": "70ms" } as CSSProperties}>
         <div
           data-mkt-reveal
@@ -81,58 +79,20 @@ export function ReelTeaser() {
           style={{ "--i": 3 } as CSSProperties}
         >
           {/* The screen, throwing its poster's light onto the floor below it.
-              The lamp wraps the player as a sibling of it, never inside it:
-              the player is overflow-hidden, and a lamp inside a clipping
+              The lamp wraps the screen as a sibling of it, never inside it:
+              the screen is overflow-hidden, and a lamp inside a clipping
               ancestor is the hard-edged rectangle that got a round reverted. */}
           <ReelScreenLamp>
-            <InlineReelPlayer reelId={INLINE_REEL_ID} />
+            <ReelPlayScreen reelId={TEASER_REEL_ID} source="home-teaser" />
           </ReelScreenLamp>
-          <Caption className="mt-4 text-center tabular-nums">
-            A real render · {styleLabel} ·{" "}
-            {formatDuration(reel.durationSeconds)}
-          </Caption>
-        </div>
-
-        {/* THE STYLE STRIP, PULLED BACK BENEATH THE SCREEN (treatment A): the same
-            chip row that used to sit above the player as a control strip now
-            reads as a caption under it, so the screen is the subject and the
-            fourteen names are what it can become.
-            EDGE FADES + THE PLAYING CHIP (R4/A8): the row hard-clipped mid-word
-            at both gutters, which read as a broken container rather than a
-            conveyor, and nothing tied the names to the reel underneath. The
-            mask ramps the row out at both edges (alpha machinery, the
-            sanctioned #000 literal), and the ONE filled chip is the style this
-            render actually used — the same fact the caption states in words. */}
-        <div data-mkt-reveal style={{ "--i": 4 } as CSSProperties}>
-          <Conveyor
-            className="mt-10 [mask-image:linear-gradient(to_right,transparent_0,#000_84px,#000_calc(100%_-_84px),transparent_100%)] opacity-80"
-            copyClassName="gap-2 pr-2"
-          >
-            {chips.map((style, i) => (
-              <span
-                key={`${style.id}-${i}`}
-                className={
-                  style.id === reel.recipe.styleId
-                    ? "rounded-full border border-foreground/30 bg-foreground/10 px-3 py-1 text-xs font-medium whitespace-nowrap text-foreground"
-                    : "rounded-full border px-3 py-1 text-xs font-medium whitespace-nowrap text-muted-foreground"
-                }
-              >
-                {style.label}
-              </span>
-            ))}
-          </Conveyor>
         </div>
 
         <div
           data-mkt-reveal
           className="mt-10 text-center"
-          style={{ "--i": 5 } as CSSProperties}
+          style={{ "--i": 4 } as CSSProperties}
         >
-          {/* Deep-links into the flagship's catalog section (repointed from the
-              /features interim at the lp/mkt-reel integration). */}
-          <LearnMoreLink href="/reel#styles">
-            See all {STYLE_CATALOG.length} styles
-          </LearnMoreLink>
+          <LearnMoreLink href="/reel">See how the reel works</LearnMoreLink>
         </div>
       </Reveal>
     </SectionShell>
