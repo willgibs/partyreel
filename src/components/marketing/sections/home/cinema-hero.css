@@ -13,17 +13,18 @@
    `src/app/keyframe-uniqueness.test.ts`, which today scans only src/app and the
    lab and would not see it.
 
-   ── THE TWO GEOMETRIES ──────────────────────────────────────────────────────
+   ── THE THREE GEOMETRIES ────────────────────────────────────────────────────
 
-   The hero carries one set of numbers below Tailwind's `lg` and another at or
-   above it, and `cinema-hero.tsx` renders BOTH, suffixed `-base` and `-lg`,
-   as custom properties. This sheet is what chooses between them.
+   The hero carries one set of numbers below Tailwind's `md`, one from `md` to
+   `lg` (a tablet's), and one at or above `lg`, and `cinema-hero.tsx` renders
+   ALL THREE, suffixed `-base`, `-tablet` and `-lg`, as custom properties. This
+   sheet is what chooses between them.
 
    ★ THE SUFFIXES ARE NOT DECORATION. An inline style beats any selector, so a
    media query could never override a property the component had already written
-   under the plain name: the component declares only the suffixed pairs, and the
-   plain names are resolved HERE, where a media query can win. Break that and
-   the hero silently wears the phone's geometry on a desktop.
+   under the plain name: the component declares only the suffixed triples, and
+   the plain names are resolved HERE, where a media query can win. Break that
+   and the hero silently wears the phone's geometry on a desktop.
 
    ── THE REST STATE / ENTRANCE SPLIT, and why it is inverted from the usual ──
 
@@ -36,21 +37,21 @@
    composition standing still, with nothing to undo.
 
    The state inside `no-preference` is the branch-out's FIRST FRAME, every frame
-   collapsed at the code. It has to live in CSS rather than in an effect,
+   collapsed behind the card. It has to live in CSS rather than in an effect,
    because an effect runs after the server's paint: the band would paint
-   deployed, then snap back to the code, then branch out again. Put the
+   deployed, then snap back behind the card, then branch out again. Put the
    pre-burst frame in the same query the animation itself is allowed in and the
    burst is one beat.
 
    THE GAP THAT LEFT, AND HOW IT IS CLOSED. One reader falls between the two
    states: motion allowed, scripting off, so the pre-burst rule applies and
    nothing ever runs the loop that would undo it. The hero renders a <noscript>
-   companion (NOSCRIPT_RULE in cinema-hero.tsx) carrying the two rules that put
-   the rest state back. A <noscript> body is parsed as markup only when
-   scripting is off, so the rules exist for exactly that reader, arrive later in
-   the document than this sheet and therefore win, and cost a scripted reader
+   companion (NOSCRIPT_RULE in cinema-hero.tsx) carrying the rules that put the
+   rest state back. A <noscript> body is parsed as markup only when scripting
+   is off, so the rules exist for exactly that reader, arrive later in the
+   document than this sheet and therefore win, and cost a scripted reader
    nothing but the bytes. Nothing in the composition that carries meaning was
-   ever gated: the h1, the code, the sentence and the two actions are plain
+   ever gated: the h1, the card, the sentence and the two actions are plain
    markup. */
 
 .hhs-hero {
@@ -59,18 +60,19 @@
   --hhs-below: var(--hhs-below-base);
   --hhs-min-h: var(--hhs-min-h-base);
   --hhs-low: var(--hhs-low-base);
+  --hhs-lift: var(--hhs-lift-base);
   --hhs-fade: var(--hhs-fade-base);
   --hhs-persp: var(--hhs-persp-base);
-  --hhs-qr: var(--hhs-qr-base);
   --hhs-h1-max: var(--hhs-h1-max-base);
   --hhs-low-max: var(--hhs-low-max-base);
+  --hhs-k: var(--hhs-k-base);
 
-  /* ★ THE AXIS IS THE ONE NUMBER THE WHOLE COMPOSITION HANGS FROM: the code's
-     centre, the band's centre line, the corridor's vanishing point and the
+  /* ★ THE AXIS IS THE ONE NUMBER THE WHOLE COMPOSITION HANGS FROM: the band's
+     centre line, the corridor's vanishing point, the card's floor and the
      block's top all take their vertical from it. It wants to sit at a fraction
      of the hero, but a short window would push the block off the fold and a
-     very tall one would strand the code under the header, so it is clamped
-     between "the code clears the site header" and "the block still fits". */
+     very tall one would strand the card under the header, so it is clamped
+     between "the card clears the site header" and "the block still fits". */
   --hhs-axis: clamp(
     var(--hhs-axis-min),
     var(--hhs-axis-pct),
@@ -81,10 +83,26 @@
      so the hero's own -mt puts its top edge at the viewport's own top and
      100svh ends at the fold: the section below it starts there, and the
      header's band is the hero's first 64px. The floor is what the composition
-     needs (hero-stream.ts derives it from the code's clearance, the measured
+     needs (hero-stream.ts derives it from the card's clearance, the measured
      clear line and the block); past it the hero grows and its last pixels
      scroll, which is the honest failure. */
   min-height: max(100svh, var(--hhs-min-h));
+}
+
+@media (min-width: 768px) {
+  .hhs-hero {
+    --hhs-axis-pct: var(--hhs-axis-pct-tablet);
+    --hhs-axis-min: var(--hhs-axis-min-tablet);
+    --hhs-below: var(--hhs-below-tablet);
+    --hhs-min-h: var(--hhs-min-h-tablet);
+    --hhs-low: var(--hhs-low-tablet);
+    --hhs-lift: var(--hhs-lift-tablet);
+    --hhs-fade: var(--hhs-fade-tablet);
+    --hhs-persp: var(--hhs-persp-tablet);
+    --hhs-h1-max: var(--hhs-h1-max-tablet);
+    --hhs-low-max: var(--hhs-low-max-tablet);
+    --hhs-k: var(--hhs-k-tablet);
+  }
 }
 
 @media (min-width: 1024px) {
@@ -94,20 +112,38 @@
     --hhs-below: var(--hhs-below-lg);
     --hhs-min-h: var(--hhs-min-h-lg);
     --hhs-low: var(--hhs-low-lg);
+    --hhs-lift: var(--hhs-lift-lg);
     --hhs-fade: var(--hhs-fade-lg);
     --hhs-persp: var(--hhs-persp-lg);
-    --hhs-qr: var(--hhs-qr-lg);
     --hhs-h1-max: var(--hhs-h1-max-lg);
     --hhs-low-max: var(--hhs-low-max-lg);
+    --hhs-k: var(--hhs-k-lg);
   }
 }
 
-/* The code is drawn once at the larger edge and sized here, so the markup
-   carries one QR path rather than one per breakpoint. crispEdges on the svg
-   keeps the modules sharp at either size, which is what a scanner needs. */
-.hhs-qr svg {
-  width: var(--hhs-qr);
-  height: var(--hhs-qr);
+/* ★ WHERE THE CARD STANDS: IN THE MIDDLE OF ITS AIR, OR ON ITS FLOOR. Its point
+   is the midpoint between the header's foot and the block's top, so its air is
+   even over it and under it, and the axis passes through its lower half, so the
+   band still leaves from behind it. But the axis rides a third of the hero and
+   the midpoint about half of it, so on a tall screen (a tablet held upright)
+   the midpoint lifts the card clear of the axis and the band would be born in
+   the open under it: the card stands at the lower of the two, the floor being
+   the axis less `--hhs-lift` (half the card, less the inset a frame needs to be
+   solid before it shows; hero-stream.ts `Built.lift`). The card's lamp stands
+   on the same point. */
+.hhs-object {
+  top: max(
+    calc((var(--mkt-header-h, 4rem) + var(--hhs-axis) + var(--hhs-low)) / 2),
+    calc(var(--hhs-axis) - var(--hhs-lift))
+  );
+}
+
+/* The card's code is drawn once and sized here, so the markup carries one QR
+   path at any size; `--hhs-code` is the card's own composed length.
+   crispEdges on the svg keeps the modules sharp at every size. */
+.hhs-code svg {
+  width: var(--hhs-code);
+  height: var(--hhs-code);
 }
 
 /* The band dissolves into the frame rather than being guillotined by the
@@ -137,7 +173,8 @@
 }
 
 /* The one perspective parent. perspective-origin defaults to its centre, which
-   IS the code, so the stream's vanishing point and the object agree for free. */
+   IS the axis under the card, so the stream's vanishing point and the object
+   agree for free. */
 .hhs-corridor {
   position: absolute;
   inset: 0;
@@ -172,6 +209,18 @@
   box-shadow: 0 18px 46px -16px rgb(0 0 0 / 0.66);
 }
 
+@media (min-width: 768px) {
+  .hhs-card {
+    width: var(--hhs-w-tablet);
+    height: var(--hhs-h-tablet);
+    margin-left: calc(var(--hhs-w-tablet) / -2);
+    margin-top: calc(var(--hhs-h-tablet) / -2);
+    z-index: var(--hhs-z-tablet);
+    transform: var(--hhs-rest-tablet);
+    opacity: var(--hhs-rest-o-tablet);
+  }
+}
+
 @media (min-width: 1024px) {
   .hhs-card {
     width: var(--hhs-w-lg);
@@ -184,8 +233,8 @@
   }
 }
 
-/* The branch-out's first frame: every photograph inside the code, at no size.
-   LAST, so it wins over both geometries above (equal specificity, source order
+/* The branch-out's first frame: every photograph behind the card, at no size.
+   LAST, so it wins over every geometry above (equal specificity, source order
    decides), and the loop takes over from here on the very next frame. */
 @media (prefers-reduced-motion: no-preference) {
   .hhs-card {

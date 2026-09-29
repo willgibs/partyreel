@@ -326,20 +326,24 @@ The demo is one real curated event, switched on by one public env var and needin
 - **`lib/demo.ts` is the single source** (`DEMO_EVENT_URL`, `isDemoToken`). Set, every demo door links the real event
   and the `/features/qr` code scans; unset, no demo link exists anywhere and each door stands down.
 - **`/demo` (`app/demo/route.ts`) is a 307**, never a cached 308, because the demo row can be re-seeded or retired.
-- **The demo's doors are objects built for their places**: `DemoFrame` (`system/demo-ticket.tsx`, a photograph in a
-  mat with the code in its corner) is the home hero's plate and the Features panel's pane, its code a symbol and a tap
-  target rather than a scan; the footer's invitation is the code on its photo pile (`chrome/footer-demo.tsx`), scannable
-  because its copy promises a scan; `DemoCtaLink` is the live dot and the words, beside the button in five heroes and at
-  a closing band's foot in the credit's place (the credit stands only where a band has no demo line); the home hero's
-  "Try our demo event" eyebrow is the block's first line, inside its measured height (`hero-stream.ts` `blockH`).
+- **The demo's doors are objects built for their places**: the home hero's is the link card
+  (`sections/home/cinema-hero-card.tsx`: the code and a custom address on white paper, the domain in the faint step so
+  the slug leads, four prints standing out of it, each wearing the guest who added it), its code the short `/demo` door
+  and a symbol rather than a scan, since the modal a desk's press opens carries the one that scans; `DemoFrame`
+  (`system/demo-ticket.tsx`, a photograph in a mat with the code in its corner) is the Features panel's pane, its code a
+  symbol and a tap target too; the footer's invitation is the code on its photo pile (`chrome/footer-demo.tsx`),
+  scannable because its copy promises a scan; `DemoCtaLink` is the live dot and the words, beside the button in five
+  heroes and at a closing band's foot in the credit's place (the credit stands only where a band has no demo line); the
+  home hero's "Try our demo event" eyebrow is the block's first line, inside its measured height (`hero-stream.ts`
+  `blockH`).
 - **Every pointer to the demo is a demo door** (`system/demo-modal/`): a real `target="_blank"` link, so a phone, a
   tablet (a coarse pointer), a modified press and a reader without script open the demo in a new tab, and a plain press
   at a desk (640 and up, a fine pointer: the Sheet's own split) opens the one demo modal: the `/demo` code on paper, the
   short link in words, and the demo a button away. ★ The modal belongs to the page, not the door: a door only asks
   (`store.ts`) and one host draws it (`host.tsx`, its own root on `<body>` on the first press), because a door can leave
   while the modal is up (the nav's pane closes with its panel the moment focus enters the modal), and focus returns to
-  the opener or the fallback it named. The hero's object, the event objects, `/how-it-works`' proof and the footer's
-  phone link are still plain links.
+  the opener or the fallback it named. The event objects, `/how-it-works`' proof and the footer's phone link are still
+  plain links.
 - The guest-side demo mode is [guest-flow.md](guest-flow.md)'s; the in-app QR designer and the welcome are
   [host-app.md](host-app.md)'s; the marketing analytics and the OG-driven growth are
   [notifications-analytics-growth.md](notifications-analytics-growth.md)'s.

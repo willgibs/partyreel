@@ -540,7 +540,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
     family: "marketing",
     section: "Heroes",
     file: "src/components/marketing/sections/home/cinema-hero.tsx",
-    lede: "The home's own first screen, and the one hero that is not a PageHero: the album streams out of the real demo code and the type sits where the band is measured never to reach, under a Try our demo event eyebrow that is a demo door.",
+    lede: "The home's own first screen, and the one hero that is not a PageHero: the album streams out from behind the link card (the code, the custom address and the guests on the photographs they added) and the type sits where the band is measured never to reach, under a Try our demo event eyebrow that is a demo door.",
     specimens: [
       {
         // The REAL section at its real height, which is the only honest way to
@@ -550,7 +550,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
         // It is fluid by construction, so the frame's own width is what the
         // band measures itself against.
         label: "The home hero",
-        hint: "the real section · the band runs, the code is the live demo's, the eyebrow opens the demo modal, the loop pauses off screen",
+        hint: "the real section · the band runs, the card and the eyebrow each open the demo modal, a tablet wears its own geometry from 768, the loop pauses off screen",
         bleed: true,
         node: <CinemaHero />,
       },
@@ -1135,7 +1135,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
   {
     id: "demo-ticket",
     file: "src/components/marketing/system/demo-ticket.tsx",
-    for: "DemoFrame, the home hero's plate and the nav panel's pane (a photograph in a plain mat, the code tucked into its corner), presentational for the mounts that own their own door; DemoTicket is its complete, self-contained door for the Library's specimen and the site-chrome board",
+    for: "DemoFrame, the nav panel's pane (a photograph in a plain mat, the code tucked into its corner), presentational for the mount that owns its door; DemoTicket is its complete, self-contained door for the Library's specimen",
     badge: "updated",
     family: "marketing",
     section: "Conversion",
@@ -1146,7 +1146,7 @@ export const MARKETING_ENTRIES: GalleryEntry[] = [
         source: "prop",
         fallback: "row",
         options: ["row", "column"],
-        note: "The two shapes sit on different grounds and cannot share a palette: row is the hero's dark glass, column the opaque nav panel's card.",
+        note: "Two sizes of one frame: row the larger, which the home hero wore until the link card replaced it, column the nav panel's pane.",
       },
     ],
     specimens: [
