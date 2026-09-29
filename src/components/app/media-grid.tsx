@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { PlayBadge } from "@/components/shared/play-badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -110,6 +110,12 @@ function sameObject(a: string, b: string): boolean {
   return a.split("?")[0] === b.split("?")[0];
 }
 
+/**
+ * Where a tile's photograph is. `pending`: on its way, the shimmer holds its place. `fade`: it landed after
+ * its <img> mounted, and faded in. `instant`: it was complete when its <img> mounted, so it is simply there.
+ */
+type Landing = "pending" | "fade" | "instant";
+
 export function MediaTile({
   item,
   playBadge = "center",
@@ -126,10 +132,10 @@ export function MediaTile({
   eager?: boolean;
 }) {
   // Fade a photo in on load so presigned images don't pop in jarringly (opacity-only -> reduced-motion
-  // safe). The `complete` check covers a cached image that finished loading before React attached onLoad,
-  // so it can never get stuck invisible at opacity-0.
-  const imgRef = useRef<HTMLImageElement>(null);
-  const [loaded, setLoaded] = useState(false);
+  // safe). A photograph that is already complete when its <img> mounts is shown at once instead, with no
+  // fade to run (see `imgRef`), so it can never get stuck invisible at opacity-0 either.
+  const [landing, setLanding] = useState<Landing>("pending");
+  const loaded = landing !== "pending";
   // The small preview self-heals: if it 404s / fails (missing, expired, an old preview-less row whose key
   // somehow errored), flip to the full-res original (photo) or the <video> poster (video). Guarded so a
   // failing ORIGINAL can't loop.
@@ -154,11 +160,23 @@ export function MediaTile({
   const wanted = tileSrc(item, previewFailed);
   if (!sameObject(wanted, src)) {
     setSrc(wanted);
-    setLoaded(false);
+    setLanding("pending");
   }
 
-  useEffect(() => {
-    if (imgRef.current?.complete) setLoaded(true);
+  /*
+   * ★ A PHOTOGRAPH ALREADY COMPLETE WHEN ITS <img> MOUNTS SHOWS AT ONCE, NEVER FADES (crumbs-18). A photograph
+   * the browser already holds (a stage decoded it before its row opened, a cached one, one that finished
+   * before hydration) answers `complete` the moment its element exists. That is read here, in the commit's
+   * own layout phase, so the state it sets lands before the first paint; it used to be read in a passive
+   * effect, after it, which painted the tile transparent for a frame and then ran the 300ms fade over a
+   * photograph with every byte in hand (a pushed arrival wiped in over it, against `arrival=push`:
+   * "Nothing fades"). `data-instant` switches the transition off in that same commit, so a forced layout
+   * between the two renders cannot start it either. A callback ref, not a mount effect: an <img> that
+   * arrives after its tile (the paged album mints links per window) is read the same way.
+   */
+  const imgRef = useCallback((img: HTMLImageElement | null) => {
+    if (img?.complete)
+      setLanding((now) => (now === "pending" ? "instant" : now));
   }, []);
 
   const onTileImgError = () => {
@@ -167,7 +185,7 @@ export function MediaTile({
     const fresh = tileSrc(now, previewFailed);
     if (fresh !== src) {
       setSrc(fresh);
-      setLoaded(false);
+      setLanding("pending");
       return;
     }
     // The preview itself is broken: the original.
@@ -175,7 +193,7 @@ export function MediaTile({
       setPreviewFailed(true);
       if (now.url !== src) {
         setSrc(now.url);
-        setLoaded(false);
+        setLanding("pending");
       }
     }
   };
@@ -216,7 +234,7 @@ export function MediaTile({
     fetchPriority: eager ? ("high" as const) : ("auto" as const),
     // Decode off the main thread: a fling mounts dozens of photographs a second.
     decoding: "async" as const,
-    onLoad: () => setLoaded(true),
+    onLoad: () => setLanding((now) => (now === "pending" ? "fade" : now)),
     onError: onTileImgError,
   };
 
@@ -230,8 +248,9 @@ export function MediaTile({
         <img
           {...imgProps}
           alt=""
+          data-instant={landing === "instant" ? "" : undefined}
           className={cn(
-            "relative size-full object-cover transition-opacity duration-300 ease-out",
+            "relative size-full object-cover transition-opacity duration-300 ease-out data-instant:transition-none",
             loaded ? "opacity-100" : "opacity-0",
           )}
         />
@@ -250,8 +269,9 @@ export function MediaTile({
           <img
             {...imgProps}
             alt=""
+            data-instant={landing === "instant" ? "" : undefined}
             className={cn(
-              "relative size-full bg-black object-cover transition-opacity duration-300 ease-out",
+              "relative size-full bg-black object-cover transition-opacity duration-300 ease-out data-instant:transition-none",
               loaded ? "opacity-100" : "opacity-0",
             )}
           />
