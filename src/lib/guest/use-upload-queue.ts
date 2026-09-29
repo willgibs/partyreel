@@ -24,8 +24,8 @@ import { dropGuestTicket } from "@/lib/guest/use-stored-session";
 import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
 
 /**
- * The two refusal codes this queue reads by name. Everything else is a file's
- * own problem and belongs to the failure sheet; these two are the SESSION's.
+ * The three refusal codes this queue reads by name. Everything else is a file's
+ * own problem and belongs to the failure sheet; these three are the SESSION's.
  *
  *   `verification_required`: the host turned Require verified emails on under a
  *   name-only ticket, which invalidates every file still waiting behind it.
@@ -35,8 +35,15 @@ import { uploadFile, type UploadOutcome } from "@/lib/upload/uploader";
  *   viewer joins as themselves, and the file is NOT failed: it waits and goes up
  *   on the new ticket, so no photograph is lost and none is credited to the
  *   ticket's owner.
+ *
+ *   `invalid_session` (`DEAD_TICKET`): the ticket this device kept names no row
+ *   any more. A waiting ticket's door became a password (its ask ended with the
+ *   door, migration 20260929230000), so the phone that asked holds a token the
+ *   server no longer knows. It goes down the same way and the viewer joins afresh
+ *   past the door as it stands now (after the unlock, `create_guest` mints her in).
  */
 const VERIFICATION_REQUIRED = "verification_required";
+const DEAD_TICKET = "invalid_session";
 
 export type QueueItemStatus = "queued" | "uploading" | "done" | "error";
 
@@ -446,8 +453,18 @@ export function useUploadQueue({
            joins as the viewer the server says this is. So nothing is lost and
            nothing is credited to the ticket's owner, and a guest who is signed
            in never learns it happened.
+
+           ★ A DEAD TICKET IS PUT DOWN THE SAME WAY (`invalid_session`): a token
+           whose row is gone (an ask the door's move to a password ended) can
+           never work again, and "refresh and rejoin" could not help, since a
+           refresh keeps the stored token. The silent join is still once per
+           chain, so a join that minted another dead ticket (it cannot) would
+           end at the door, never in a loop.
            ────────────────────────────────────────────────────────────────── */
-        if (outcome.code === SESSION_OTHER_ACCOUNT) {
+        if (
+          outcome.code === SESSION_OTHER_ACCOUNT ||
+          outcome.code === DEAD_TICKET
+        ) {
           sessionRef.current = null;
           onSession(null);
           patch(next.id, { status: "queued", progress: 0 });

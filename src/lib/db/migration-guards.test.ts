@@ -243,6 +243,58 @@ function guestsRowSecurity(): string | null {
   return state;
 }
 
+/** The text between the paren opened at `open` and the one that closes it (quotes respected). */
+function balancedInside(sql: string, open: number): string {
+  let depth = 0;
+  let quoted = false;
+  for (let i = open; i < sql.length; i++) {
+    const ch = sql[i];
+    if (ch === "'") quoted = !quoted;
+    if (quoted) continue;
+    if (ch === "(") depth++;
+    if (ch === ")" && --depth === 0) return sql.slice(open + 1, i);
+  }
+  throw new Error("unbalanced parentheses");
+}
+
+/** A boolean expression's top-level `and` conjuncts, trimmed (parentheses and quotes respected). */
+function topLevelConjuncts(expr: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let quoted = false;
+  let from = 0;
+  for (let i = 0; i < expr.length; i++) {
+    const ch = expr[i];
+    if (ch === "'") quoted = !quoted;
+    if (quoted) continue;
+    if (ch === "(") depth++;
+    else if (ch === ")") depth--;
+    else if (depth === 0 && expr.startsWith(" and ", i)) {
+      parts.push(expr.slice(from, i).trim());
+      from = i + " and ".length;
+    }
+  }
+  parts.push(expr.slice(from).trim());
+  return parts.filter(Boolean);
+}
+
+/**
+ * `media_host_all`'s USING as the live DB holds it (the last `create` or `alter` of the policy across the
+ * set's executable SQL), split into its top-level conjuncts: the rows a host's own policy lets her meet.
+ */
+function mediaHostAllUsingConjuncts(): string[] {
+  let using: string | null = null;
+  const statement =
+    /\b(?:create|alter) policy media_host_all on public\.media\b[^;]*?\busing \(/g;
+  for (const { sql } of executableMigrations()) {
+    for (const match of sql.matchAll(statement)) {
+      using = balancedInside(sql, match.index + match[0].length - 1);
+    }
+  }
+  expect(using, "media_host_all has no USING").not.toBeNull();
+  return topLevelConjuncts(using!.trim());
+}
+
 describe("QA #17 — the cap row locks survive body replacement", () => {
   it("create_media locks the host's profiles row before the cap reads", () => {
     expect(latestDefinition("create_media").body).toContain(
@@ -1276,8 +1328,10 @@ describe("the row cap: the SQL shapes the 1,000-row fixes read", () => {
 
   describe("get_event_like_counts: liked media only, for the host alone", () => {
     it("keeps p_event_id and adds the cursor and the page size", () => {
+      // Reshaped by crumbs-21: 20260929232000 carries this body in place (`create or replace`, the
+      // signature unchanged), so the pin reads the shape PostgREST resolves by, never the verb.
       expect(code("get_event_like_counts")).toContain(
-        "create function public.get_event_like_counts( p_event_id uuid, p_after uuid default null, p_limit integer default null ) returns table (media_id uuid, like_count integer) language sql stable security definer set search_path = ''",
+        "function public.get_event_like_counts( p_event_id uuid, p_after uuid default null, p_limit integer default null ) returns table (media_id uuid, like_count integer) language sql stable security definer set search_path = ''",
       );
     });
 
@@ -1302,16 +1356,39 @@ describe("the row cap: the SQL shapes the 1,000-row fixes read", () => {
     });
 
     it("replaces the old signature and stays authenticated-only", () => {
-      const file = grants("get_event_like_counts");
-      expect(file).toContain(
+      // Reshaped by crumbs-21: the one-argument signature's drop is the row cap's (PostgREST forbids
+      // overloads, so it must stay gone), read across the set; the grants are the winning file's,
+      // which restates them.
+      expect(collapse(allMigrations().replace(/--[^\n]*/g, ""))).toContain(
         "drop function public.get_event_like_counts(uuid);",
       );
+      const file = grants("get_event_like_counts");
       expect(file).toContain(
         "revoke all on function public.get_event_like_counts(uuid, uuid, integer) from public, anon, authenticated;",
       );
       expect(file).toContain(
         "grant execute on function public.get_event_like_counts(uuid, uuid, integer) to authenticated;",
       );
+    });
+
+    it("★ counts only what her surfaces show: never a takedown, an asked row or a withdrawal (crumbs-21)", () => {
+      expect(code("get_event_like_counts")).toContain(
+        "and not (m.status = 'removed' and m.removed_by_admin) and m.purge_asked_at is null and not (m.status = 'removed' and m.removed_by_uploader)",
+      );
+    });
+
+    it("★ holds every conjunct of media_host_all's latest USING, so what her policy hides is never counted", () => {
+      // The policy is the one home of "the rows that leave the host's view"; the count is a DEFINER
+      // read (it counts every liker), so it cannot inherit the policy and restates it. A conjunct the
+      // policy gains fails here until the count follows.
+      const conjuncts = mediaHostAllUsingConjuncts().filter(
+        (c) => !c.startsWith("exists"),
+      );
+      expect(conjuncts.length).toBeGreaterThanOrEqual(2);
+      const body = code("get_event_like_counts");
+      for (const conjunct of conjuncts) {
+        expect(body).toContain(conjunct.replaceAll("media.", "m."));
+      }
     });
   });
 
@@ -3260,5 +3337,93 @@ describe("the list lets in who waits (20260929220000)", () => {
         `grant execute on function ${signature} to authenticated;`,
       );
     }
+  });
+});
+
+describe("a password ends every ask at the door (20260929230000)", () => {
+  // crumbs-17's find: a newcomer waiting at letting each person in, or at the invite list, whose door then
+  // became a password kept her waiting ticket, so once she unlocked every upload path refused it as a
+  // private album's, and the host's At the door, pulse and bell kept counting her. A password lets in
+  // whoever proves it and nobody waits on the host there, so the moment an album takes one, every ask ends.
+  const FILE = "20260929230000_door_password_ends_asks.sql";
+  const sql = collapse(
+    readFileSync(join(MIGRATIONS_DIR, FILE), "utf8").replace(/--[^\n]*/g, ""),
+  );
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+  const ENDS =
+    "delete from public.guests g where g.event_id = new.id and g.admission = 'waiting' and not exists (select 1 from public.media m where m.guest_id = g.id);";
+
+  it("★ ends each waiting ticket the moment the door becomes a password, never a row an upload names", () => {
+    const fn = code("events_door_to_password");
+    expect(fn).toContain(
+      "create function public.events_door_to_password() returns trigger language plpgsql security definer set search_path = ''",
+    );
+    expect(fn).toContain(
+      `if new.visibility = 'password' and old.visibility is distinct from 'password' then ${ENDS} end if; return null;`,
+    );
+  });
+
+  it("fires on every path to a password, beside the door opening's trigger", () => {
+    let standing = false;
+    for (const { sql: text } of executableMigrations()) {
+      for (const [, verb] of text.matchAll(
+        /\b(create|drop) trigger (?:if exists )?events_door_to_password\b/g,
+      ))
+        standing = verb === "create";
+    }
+    expect(standing).toBe(true);
+    expect(sql).toContain(
+      "create trigger events_door_to_password after update of visibility on public.events for each row execute function public.events_door_to_password();",
+    );
+  });
+
+  it("no client role runs it (a trigger still fires)", () => {
+    expect(sql).toContain(
+      "revoke all on function public.events_door_to_password() from public, anon, authenticated;",
+    );
+    for (const { file, sql: text } of executableMigrations()) {
+      expect(text, file).not.toMatch(
+        /grant execute on function public\.events_door_to_password\(\) to/,
+      );
+    }
+  });
+
+  it("settles once the asks already stranded at a password, by the same rule", () => {
+    expect(sql).toContain(
+      "delete from public.guests g using public.events e where e.id = g.event_id and e.visibility = 'password' and g.admission = 'waiting' and not exists (select 1 from public.media m where m.guest_id = g.id);",
+    );
+  });
+
+  it("★ a guest row is only ever deleted as an ask ending: a waiting ticket, never one an upload names", () => {
+    // The guest list and the forensic trail are history (disown_guest_rows_by_email keeps the row), and a
+    // block keys a confirmed person on her account and address, never on a waiting row: so the one delete
+    // of a guest row there is keeps to waiting tickets, and a row with an upload stays whatever else moves.
+    let deletes = 0;
+    for (const { file, sql: text } of executableMigrations()) {
+      for (const match of text.matchAll(
+        /delete from public\.guests\b[^;]*;/g,
+      )) {
+        deletes += 1;
+        expect(match[0], file).toContain("g.admission = 'waiting'");
+        expect(match[0], file).toContain(
+          "not exists (select 1 from public.media m where m.guest_id = g.id)",
+        );
+      }
+    }
+    expect(deletes).toBe(2);
+  });
+
+  it("leaves every door act as it stood: the closed door and Only me keep their asks", () => {
+    // Nothing in the file replaces an act; the asks end in the trigger alone, and only at a password.
+    expect(sql).not.toContain(
+      "create or replace function public.set_event_door(",
+    );
+    expect(sql).not.toContain(
+      "create or replace function public.set_event_password(",
+    );
+    expect(code("events_door_to_password")).not.toMatch(
+      /'closed'|'private'|'approve'|'invite'/,
+    );
   });
 });
