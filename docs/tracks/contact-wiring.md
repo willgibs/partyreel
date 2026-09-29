@@ -1,6 +1,6 @@
 ---
 track: contact-wiring
-status: open            # open -> handed-off; deleted in the merge commit that integrates it
+status: handed-off      # open -> handed-off; deleted in the merge commit that integrates it
 cut: "a06f48d8"            # the launch-prep SHA the branch was cut from
 board: none
 owns:                   # path PREFIXES (dirs end in /); everything else is forbidden; no globs
@@ -27,31 +27,45 @@ reads:                  # single-sources you depend on: never duplicate, never e
 
 **Not yours:** the AI help chat is banked for later (ROADMAP's support arc); build nothing of it.
 
-## Where I am
-
-Restarted after the first agent hit a usage limit while booting (nothing of its work existed); `origin/launch-prep` fast-forwarded in at `38373a35`. Commits on `lp/contact-wiring`, each with typecheck, lint and the whole test suite green: the board retired (`c46eac80`); the route moved into `(cinema)` under a dark hero and one `PaperChapter`, `(paper)` retired (`3d0afc5c`); each topic names its own answers (`6c7b630e`); the directory beside the form with icons and the heavier address (`0dbe5e1c`); the receipt (`8a6a6b06`). Next, in order: the walks (1440, 768, 375, the palette on the new ground, keyboard, hostile input), `pnpm build` and `pnpm lab:smoke --base http://localhost:3135`, `docs/systems/marketing-content.md` refined in place, the Questions and Handoff below, then `status: handed-off`.
-
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each is built on its recommended answer and listed under "Calls his to overrule".
+
+- **The Press door.** The directory's Press tile is dropped, not repointed: /press folds into /about and About carries no kit yet, so a tile would link a page that is going away or one with nothing to take. Recommended (built): dropped; `about-press` adds a Press row to `CONTACT_DIRECTORY` (`src/lib/constants/contact.ts`) pointing at /about only if the kit lands there, and retargets or drops the `press` topic's hint the same day (`contact.test.ts` fails on a dead /press, naming the hint).
+- **A timing line per topic.** None is built: the only true timing for a note is `REPLY_LINE`, and a per-topic promise ("read first", "within two days") would invent a service level the promise-neutralization doctrine keeps out of published copy. Recommended (built): none until support has a real one (ROADMAP's support-automation arc), then one line per topic in `contact.ts` with `contact.test.ts`'s timing guard lifted for it.
+- **How many links a hint carries.** His words were "a note and a link"; "a problem to its troubleshooting article" cannot be one article, so a topic carries one to four (the break topic four: uploads, a missing photo, sign-in, QR; press one). Recommended (built): keep; trim to one each if a single link is the intent.
+- **A first-name greeting on the receipt** ("On its way, Sam."). Recommended (built): yes, guarded (a title, an initial, a digit or an emoji as the first word falls back to "On its way."); overrule if a first name ever reads wrong.
+- **Where the directory sits on a phone.** After the form (heading, form, directory, address), since the form leads (`reach=routed`); above it would put the way out before the fields but push the form a screen down. Recommended (built): after.
 
 ## System-doc edits (in place, owned facts only)
 
-- none yet
+- `docs/systems/marketing-content.md` (`c02abd14`): the utility-page rhythm bullet (/contact joined it; no paper group remains), the `/contact` bullet (the chapter, the topics single-sourced with their own answers and the test that holds them, the Press tile's absence, the own-key `?about=` allowlist), a new bullet for the receipt (why no receipt email, `motion-safe:starting:`, the held frame, the focus hand-offs, a rejected send), the Public forms honeypot line (a filled honeypot walks the success path with no side effect), and the 404 section (six boundaries; the `(cinema)` one is the marketing group's).
 
 ## Deferred (ROADMAP one-liners, bucket named)
 
-- none yet
+- Marketing: when `about-press` folds /press into /about, `CONTACT_TOPICS.press.hint` in `constants/contact.ts` links /press ("Open the press kit"): retarget it or drop it, and add the directory's Press row only if About carries the kit; `contact.test.ts` fails on a dead page.
+- Marketing: the careers application form still ends on a toast and a bare drawn check (`careers/[slug]/application-form.tsx`); `contact-receipt.tsx` takes plain data and could serve both, which is also ROADMAP's "two parallel copies of one contract". ROADMAP's "Contact: a sent note gets the card and a toast saying the same thanks" is resolved here (the toast is gone).
+- Forms: every client `<form onSubmit>` on react-hook-form (the careers application, the sign-in email step `components/auth/email-sign-in.tsx`, the admin announcement composer) has no method or action, so pressed before hydration it submits as the browser's own GET, carrying its fields into the URL, the history and a server log; /contact's send button now waits for hydration (`useHydrated`, `b61c9b09`), and one shared hook in one home (each file keeps its own copy today) would sweep the rest.
+- Growth: a hint's links and the receipt's onward link fire no `track` event, so how much a topic's answers deflect is unmeasured.
+- Marketing: ROADMAP's "/contact's chips under its search could take /help's drop-from-the-field treatment" still stands (the search band is unchanged).
 
 ## Handoff (replaces the chat report)
 
-- The work commit and the sync commit, pushed (or: launch-prep had not moved); the head is in the chat line
-- Every claim names its artifact (a commit, a log line, a path), so the Orchestrator checks rather than believes.
-- Gates on the synced tree, each on its own exit code, and the sha they ran on
-- Lane check: `git diff --name-only origin/launch-prep...HEAD` = owned paths + this file (exceptions and why)
-- The items, one line each
-- Assets requested from Will: none, or one per line: `what · spec (size, grade, count, format) · replaces <stand-in id>`
-- Board ideas: an improvement you saw beyond your lane, one line each (the Orchestrator may open a board for it)
-- Proposed migrations / Worker / Vercel / Stripe / env changes: none
-- Calls his to overrule, one line each
-- Look at first: ...
+- **Commits, pushed to `origin/lp/contact-wiring`** (no rebase, no amend): the board retired `c46eac80`; the route into `(cinema)` under a dark hero and one `PaperChapter`, `(paper)` retired `3d0afc5c`; each topic's own answers `6c7b630e`; the directory beside the form `0dbe5e1c`; the receipt `8a6a6b06`; the system doc `c02abd14`; the **sync commit** `2cf7a27f` (`origin/launch-prep` had moved with crumbs-15's seams, desk-tune's cut and records: nothing under this lane's files or reads but one lab paragraph of design-system.md, so no conflict); the hydration guard `b61c9b09`; this manifest is the head, named in the chat line.
+- **Gates on the synced tree, each on its own exit code, at `b61c9b09`**: `pnpm typecheck` 0; `pnpm lint` 0 (no warning); `pnpm test` 0 (606 files, 7038 tests); `zsh scripts/build-lock.sh pnpm build` 0 (`○ /contact` prerendered static); `pnpm lab:smoke --base http://localhost:3135` 0 (134 checks, 0 failing, scope "boards: press-page (it imports src/lib/constants/contact.ts)", which imports only `REPLY_LINE`, unchanged). No board, so no `lab:demo`. Logs: `/Users/gibby/local/ai/partyreel-wt/_scratch/contact-wiring/{typecheck,lint,test,build,lab-smoke}.log`.
+- **Lane check** (`git diff --name-only origin/launch-prep...HEAD`): every path is under `owns` or is this file, except four one-line exceptions in other lanes' files, each because the group they name is gone: `src/components/marketing/help/help-palette-mounts.test.tsx` (the pinned mount path moved with the page; its scar, that the palette mounts under /help and on /contact only, stands), and three comments that described `(paper)` as a live group: `src/app/(marketing)/layout.tsx`, `src/app/(marketing)/error.tsx`, `src/components/marketing/marketing-not-found.tsx`. `contact.test.ts` was reshaped for the hint's new shape with every old assertion kept (migration parity, aligned unique labels, each hint a real route).
+- **The items**:
+  - The board retired: `sandbox/contact-page/` deleted in its own commit; the ledger `docs/reviews/contact-page.json` untouched for the Orchestrator's record.
+  - `page=chapter`: /contact left `(paper)` for `(cinema)/contact/`, a dark hero (the utility trio's `blur` entrance, not the board's `cut`, so /help, /contact and /careers arrive alike) over one `PaperChapter` holding the desk, the search band and the close; `(paper)`'s layout and 404 deleted; the browser chrome and the nav follow the cinema group.
+  - `reach=routed`, `topic=required`: unchanged (the form leads; the zod enum and the migration CHECK untouched).
+  - `urgency`: each topic names its own answers (`CONTACT_TOPICS[].hint` is `{ text, links[1..4] }`), no timing of its own; announced through one persistent status region; links stacked in a hand.
+  - `beside=directory`: Help center and Careers in the rail under the intro with icon tiles and `font-heading` headings (measured 700, Urbanist), the address a definition row under them with its link full ink at semibold on the reading step; the form leads on a phone; Press dropped and the reason under Questions.
+  - `receipt=card`: the form leaves in 150ms, the check draws, the stamp is postmarked with today's date, the sender's words come back (topic, subject or the note's opening, "Reply to <address>"), one onward link from their topic, no second toast; focus to the heading and back to the first field on Send another.
+  - Found and fixed on the way: `?about=constructor` (or `__proto__`, `toString`) prefilled "Help: undefined" (an inherited key answered the lookup; `contact-form.test.tsx` fails on the old one); a Server Function that rejects left the button springing back with no word (now a failed send with the words kept); a send pressed before hydration put the note in the URL (the button now waits).
+- **Verified, local (dev server 3135, my own Browser tab)**: no horizontal overflow at 1440, 1024, 768 and 375 (`scrollWidth` = `clientWidth`); the layout at each; the topic hint for billing, break and the help handoff, at 1440 and 375; the palette opens with Ctrl+K on the new ground as the light panel; the receipt end to end through a filled honeypot (answered ok before the rate gate, no row, no mail), including Send another; its mechanism read off the live document (`document.getAnimations()` frozen at mount lists the postmark's opacity, scale and rotate at 200ms for 260ms, the three text beats at 60, 140 and 220ms for 300ms, the check's five keyframes and the card's `min-height`), and the served stylesheet puts every `starting:` rule inside `@media (prefers-reduced-motion: no-preference)`; hostile input (an `<img onerror>` and a `<script>` in the name and subject render as text, the long address wraps inside the slip at both widths, four inherited `?about=` names prefill nothing); the offline send (fetch rejected) shows the error toast and keeps every word; the console shows no hydration or React error (the `Select is changing from uncontrolled to controlled` warning is the handoff's pre-pick and pre-existing).
+- **Not run, and why**: a real row and email round trip (the action is unchanged, and the email path is allow-list gated: the alias walk below); keyboard focus rings and hover states (a hidden Browser pane paints neither: the human's look); reduced motion as a live setting (the pane cannot emulate it: held by the compiled CSS and the class mechanism); the rate gate's 429 path (unchanged, 8 an hour). A lane's branch is deployed nowhere, so the live red-team rides the alias build: send one real note as a signed-out visitor (the row in `/admin/support`, the notify email, the receipt), open a help article's "didn't answer it" link and land on /contact with the topic and subject picked, pick each topic and follow one link of each, the header and the hero at 375 and 1440, the palette.
+- **Assets requested from Will**: none (the postmark is drawn; the stamp is the existing `party-balloons` entry).
+- **Board ideas**: (1) as-you-type answers: /contact already ships the help search index for the palette, so the subject and message could rank the help articles live beside a topic's fixed links, no model and no new service, the deflection his r1 note wants before the help chat exists; (2) the Library carrying the receipt (`ContactReceipt` takes plain data) as a `Surfaces` entry, so its motion can be judged without sending.
+- **Proposed migrations / Worker / Vercel / Stripe / env changes**: none.
+- **Calls his to overrule**: the five under Questions; the hero's `blur` entrance over the board's `cut`; the `(paper)` route group retired; every line of copy is a working version (each hint's note and link labels, "Looking for something else?", "On its way", "While you wait", the receipt's slip).
+- **Look at first**: `/contact` at 1440 and 375: the dark hero into the paper desk; pick "Something broke" and "Plans & billing" and read their answers; the directory and the address beside the form; then the receipt with no side effect: on the dev server set the hidden `website` field (a filled honeypot is answered ok and stores and sends nothing) and press Send, and watch the form leave, the check draw, the stamp take its postmark and the words come back; press Send another with the keyboard; and turn on reduced motion (the card is complete at once).
