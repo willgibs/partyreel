@@ -17,6 +17,12 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Host: a restore that came back without its custom link (`restore_event`'s `custom_slug_released`) could say so in its toast; `restoreEvent` in `db/mutations/media.ts` drops the flag today (from `pricing-wiring`).
+- Admin: an operator release for a squatted custom link, from a report on `/e/<slug>`, now that a free account can hold one (from `pricing-wiring`).
+- Billing follow-ons: measure one iPhone photo and one 10 s video uploaded at the camera's defaults on the alias (`media.file_size_bytes`); if the browser stores a JPEG or a recompressed video at 1.3x or more, retune `AVG_PHOTO_BYTES` / `VIDEO_BYTES_PER_MIN` to what we store (from `pricing-wiring`).
+- Marketing: /pricing's table, /reel's clip table and pro-vs-event-pass each carry a clip-length row that reads 60 s on every plan now; it could fold into the mark's row (from `pricing-wiring`).
+- Marketing: /pricing's own cadence toggle types "Yearly, 2 months free" inside its half and wraps at 375, where the plan sheet sets the tag beside the control; and the Free card now lists six lines to Pro's five, so the pair's balance wants a look (from `pricing-wiring`).
+- Code hygiene: `components/lab/scene.tsx`'s header still lists `host-storage` among the boards drawing a Scene, and the Library's `composition-demos.tsx` calls its fixture "the host-storage board's videographer" (from `pricing-wiring`).
 - Guests: a returning guest whose only uploads wait on an empty held album meets the empty state's "Add the first photo" with her badge beside Invite, since the row's Add returns only for this visit's files (`galleryEmpty`); counting her waiting rows would move the Add a beat after they load, so it wants a layout that does not jump (from `voice-wiring`).
 - Guests: her uploads draw a plain placeholder for an earlier visit's held photo (nothing outside the album is presigned for a guest); a thumbnail presigned for its uploader's own ticket alone would let her see which one waits (from `voice-wiring`).
 - Host: a "See it as a guest" row in settings could open the album as a guest meets it, with the door's steps; every door setting is about what a guest meets, and today a host can only guess (from `event-settings`).
@@ -33,7 +39,6 @@ below hold the rest by surface.
 - Host: a keyboard cannot reach a toast while a modal holds focus (Radix's trap pulls sonner's alt+T back into the modal), so the size list's Undo is pointer-only while it is open; a keyboard way to it may want a design, not only a focus rule (from `crumbs-7`).
 - Host: the Review room says "Review" twice at its top (the page's heading and the section's amber label over the grid) (from `crumbs-7`).
 - Utils: `formatBytes` prints "41.0 GB" for a value that rounds to a whole number (it tests the value before rounding; `formatBytesUp` tests after); the size list's event chips and rows show it (from `storage-wiring`).
-- The lab and the kit: `host-storage`'s plan quote (`sandbox/host-storage/plan-sheet.tsx`, its TITLE) and its `head-stays` carried call still say "You are on Pro already"; production leads with her plan now (from `storage-wiring`).
 - Billing follow-ons: the size list's per-event totals walk every active item's size (one keyset walk per 150 events); a `host_event_storage()` aggregate would answer one row per event once an account outgrows about 30,000 items (from `storage-wiring`).
 - Library: the StorageMeter entry's own specimen opens the size list over the real Server Functions (a signed-out Library reads "Couldn't load"); the StorageList entry is the inert one (from `storage-wiring`).
 - Host: the over-cap grace banner says "largest files first" with no door; it could open the size list with a goal of her own cap, and the meter's list could carry that goal whenever she is over it (from `storage-wiring`).

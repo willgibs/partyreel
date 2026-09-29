@@ -41,7 +41,6 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `safety-wiring` | event-safety's answers: the per-event block (a migration to apply), soft in every look, the private door, the Guests room's Blocked list, Let back in with a restore toggle; the guest list always on; event-safety retires | running, agent `a976ee6de796172b4` | Opus, :3134 | |
-| `pricing-wiring` | host-storage `prices=sizes` on a monthly/yearly toggle with a yearly tag, iPhone-default estimates, his free/pro shift (Free 100 MB, 300 MB meter; password, custom link with a squatting guard, 60 s reels to Free); `tier_limits()` migration to apply; host-storage retires | running, agent `ad560f85ada04d064` | Opus, :3132 | |
 | `triage-r2` | admin-triage r2: a fast, batch-first reports queue with each report's whole context, asking a reporter for proof, `phone` reworded | running, agent `aa87a69da46b9875a` | Opus, :3131 | |
 | `hero-wiring` | hero-card r2: the `guests` card as the hero's object (`partyreel.com/` quieter so the slug leads), the bloom light, the composed tablet table; ASSETS rows 33 and 34 from its Handoff; hero-card retires | running, agent `aa32a485242b5c773` | Opus, :3133 | |
 
@@ -49,26 +48,17 @@ Batch 7 (cut `35601390`, 2026-09-28) answers Will's sitting on build 15 (transcr
 hero-card, voice-guest, host-storage, event-safety, export-flow). Wave A, four lanes: three new boards and the block.
 Wave B follows as seats free. Batch 6 (sixteen lanes) is merged whole; its records carry the rest.
 
-Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring.
+Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, event-settings, voice-wiring, pricing-wiring.
 
 ## Next, in order
 
-1. **Integrate each running lane as it hands off** (rows above; wave A's three boards are merged).
-   - `safety-wiring`'s migration by protocol: drift check, apply verbatim, the rolled-back refusals, advisors, types.
-   - At its record, delete `docs/reviews/event-safety.json`.
-   - `pricing-wiring`'s and every later migration the same way, one at a time.
-2. **Wave B into each free seat**, in this order (his answers are in the ledgers; each brief carries his notes). `pricing-wiring`
-   is already running; its scope, for the record:
-     - host-storage `prices=sizes` with a monthly/yearly toggle and a discount tag on yearly, each card only its size;
-     - estimates from iPhone's default photo and video settings, said as such (`tiers.ts`' constants feed /pricing, the
-       plan sheet and the blog);
-     - his free/pro shift: Free 2 GB to 100 MB and its monthly upload meter 3× the cap (300 MB); Free gains the
-       password, the custom link (guard slug squatting) and 60 s reels; Pro keeps videos, storage, unlimited events and
-       no reel watermark; Event Pass keeps its reason;
-     - `tier_limits()` alone in its migration; every "2 GB" swept; `PRICING.md` and `billing-caps.md` refined; the
-       over-cap grace path checked at 100 MB.
-
-     Retires host-storage.
+1. **Integrate each running lane as it hands off** (rows above), each migration by protocol, one at a time: drift
+   check, apply verbatim, the rolled-back refusals, advisors, types.
+   - `safety-wiring` merged at `c656a24c`; its `event_blocks` apply (a helper agent, `acba0e34b5c4836b3`, runs the
+     protocol) and its record (the regenerated types, `docs/reviews/event-safety.json` deleted) follow.
+   - `pricing-wiring` merged at `9e257530` (a hand-merged `touchpoints.ts` skeleton); its `free_shift` applies after
+     `event_blocks` (drift checked: the four live bodies match their newest files; types unchanged).
+2. **Wave B into each free seat**, in this order (his answers are in the ledgers; each brief carries his notes).
    - `export-wiring` (Opus), cut once `safety-wiring` merges (it holds `src/app/api/export/guest/` and
      `event-experience.tsx` for the block):
      - `means=mine`: the Yours row, filtered on the server;
@@ -145,8 +135,13 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
 - **His desk, first** (his aim: zero open questions before the to-dos below, which stay stacked until then): build
   16's 38 open asks (privacy-hero, album-motion, loose-ends, contact-page, press-page; new: event-settings,
   locked-door, disposable-mode); admin-triage r2 follows.
-- **His legal wording for the guest list, always on** (with the private count's, before milestone 30): `safety-wiring`
-  drafts it under its Questions.
+- **His legal wording, before milestone 30** (the lanes propose; Terms and Privacy are his):
+  - the guest list always on and the host's block: `safety-wiring`'s drafts (Terms :123, :417, :422, :428; Privacy
+    :165, :305, :311) are its manifest's Questions at `5d8c57c9` (`git show 5d8c57c9:docs/tracks/safety-wiring.md`);
+    the real call is that a block keeps a confirmed address after its account is deleted, so a sign-up with it stays out;
+  - the Terms' plan paragraph (1.8) and clips paragraph, which `pricing-wiring` edited to match his shift (the one
+    legal edit a lane has made), his to reword;
+  - the private count's clause (below); `triage-wiring` will add the reports clause.
 - **A yes on dropping `events.show_guest_list`** and, after `emails-wiring`, the three `notification_prefs` columns for
   mail nothing sends (destructive), once no build reads them.
 - **The claims review's live walk**: it needs claimable rows staged for a test account (`update public.guests set
@@ -165,8 +160,7 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
   lists the visitor can already see."
 - **A 2-minute real-upload check on the alias**: a first photo, landscape, as a signed-out guest at a held-uploads
   event (the keep; her uploads' "Waiting for approval" and the tracker's badge, with no held tile at the album's head),
-  then Confirm your email (the one beat, the told name's Change).
+  then Confirm your email (the one beat, the told name's Change). Its stored size (`media.file_size_bytes`) also
+  checks the photo estimate (3.5 MB).
 - **A 10-second iPhone check on partyreel.com**: one tap on Save opens the system sheet, and a shared photo arrives as
-  a photograph.
-- **A copy call**: the setup's "Showing on your page" over an event whose host keeps the guest list off (ROADMAP's
-  picker line). It retires once `safety-wiring` makes the guest list always on.
+  a photograph; and Settings > Camera > Record Video's size for 1080p at 30 fps (the estimate uses 65 MB a minute).

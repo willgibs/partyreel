@@ -59,11 +59,11 @@ Pro's case and the Stripe setup are in [`PRICING.md`](PRICING.md).
 - **A monthly upload meter, unmarketed**, against fill, delete, re-upload bandwidth burn: generous, never refunded on
   delete, and seen only as a monthly upload limit when an upload is refused.
 - **No watermark on any uploaded photo or video, on the album, or on the live reel, on any plan.** The one mark is on a
-  free event's clips, beside their shorter length: the free levers are never quality.
+  free event's clips: the free levers are never quality.
 - **Plans**: Free is one event, photos only, the whole album; the first-event experience must still shine, since it
-  sells the upgrade. The Event Pass is one-time and per event, with video and every paid control for a year,
+  sells the upgrade. The Event Pass is one-time and per event, with video and clips with no mark for a year,
   renewable, and passes stack. Pro is a subscription (monthly or yearly) with a storage selector and unlimited events,
-  its prices set by Stripe Price IDs. The upgrade triggers are video, a password lock or custom link, outgrowing the
+  its prices set by Stripe Price IDs. The upgrade triggers are video, outgrowing Free's
   storage, and a second event. Universal per-file limits live in `src/lib/media/limits.ts`.
 
 ## Data retention and lifecycle
