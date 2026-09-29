@@ -144,7 +144,10 @@ export function ReviewSession({
   const syncUrl = (value: string) => {
     const url = new URL(window.location.href);
     url.searchParams.set("session", value);
-    window.history.replaceState(window.history.state, "", url.toString());
+    // ★ NULL, NEVER `window.history.state` (crumbs-16; `board-state.tsx` has the measurements): the
+    // entry's own state carries Next's `__NA`, which makes Next apply no URL, so the shell's
+    // `useSearchParams` (`CopyLink`, the sticky links) kept the step the reader left.
+    window.history.replaceState(null, "", url.toString());
   };
 
   const goTo = (next: number) => {

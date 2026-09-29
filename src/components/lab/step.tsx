@@ -253,7 +253,10 @@ export function Step({
     setChosen(target.to);
     const url = new URL(window.location.href);
     url.searchParams.set("session", stepParam(steps[target.to]));
-    window.history.replaceState(window.history.state, "", url.toString());
+    // ★ NULL, NEVER `window.history.state` (crumbs-16; `board-state.tsx` has the measurements): the
+    // entry's own state carries Next's `__NA`, which makes Next apply no URL, so `CopyLink` (Next's
+    // `useSearchParams`) named the step the reader left and a refresh put it back on the bar.
+    window.history.replaceState(null, "", url.toString());
   };
 
   /* ── the world a step is drawn in ─────────────────────────────────────── */
@@ -1443,9 +1446,15 @@ function ItemsBody({ step, board }: { step: ItemsStep; board?: StepBoard }) {
 
   useEffect(() => {
     if (!one || !card) return;
-    const url = new URL(window.location.href);
-    url.searchParams.set(CARD_PARAM, card.id);
-    window.history.replaceState(window.history.state, "", url.toString());
+    const id = card.id;
+    // Null and a microtask late, for the reasons on `useBoardState`'s write (`board-state.tsx`): this
+    // runs on the first commit too, before Next has patched `replaceState`, and Next has to hear the
+    // card or `CopyLink` names another.
+    queueMicrotask(() => {
+      const url = new URL(window.location.href);
+      url.searchParams.set(CARD_PARAM, id);
+      window.history.replaceState(null, "", url.toString());
+    });
   }, [one, card]);
 
   if (!board || !step.section) {

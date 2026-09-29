@@ -210,13 +210,17 @@ beneath, newest first.
   fixed height keeps it from shifting anything.
 - ★ **The two places ride `?room=`, and it IS the state** (`share/event-share-provider.tsx`, read from
   `useSearchParams` with no mirrored `useState`, so a `router.refresh()` after a settings action cannot close the
-  panel). Opening pushes a history entry whose marker is a FIELD on the state Next merges: Next's patched `pushState`
-  copies `__NA` onto the object it is handed and its `popstate` handler reloads without it, so replacing the state
-  wholesale turns Back into a full reload. Closing calls `history.back()` only when the marker is ours. ★ The server's
-  `initialSheet` paints the first frame alone (a hydration gate): once hydrated the URL is the only answer, so a
-  place opened from a link (`/settings`, a sign-in's return, Checkout's `?room=`) closes like one opened from its
-  card. A settings page is `&setting=<page>` on the same entry, moved with `replaceState`, so its back arrow and
-  Back never stack entries.
+  panel). ★ Every native history call hands Next a FRESH object (the marker as a field) or `null`, never
+  `window.history.state`: Next's patched `pushState` and `replaceState` copy their own `__NA` and tree onto a fresh
+  object and apply the URL, but take one that already carries `__NA` for their own bookkeeping and apply nothing, so
+  `useSearchParams` never moves and the next router commit writes the stale address back over the bar
+  (`history-state-policy.test.ts` refuses the shape; a write from a mount effect waits a microtask, because it would
+  meet the browser's own function before Next patches it: `lab/board-state.tsx` says why). Opening pushes an entry
+  carrying the marker; closing calls `history.back()` only when the marker is ours, or this page pushed the entry
+  (`router.refresh()` rewrites an entry without the marker). ★ The server's `initialSheet` paints the first frame
+  alone (a hydration gate): once hydrated the URL is the only answer, so a place opened from a link (`/settings`, a
+  sign-in's return, Checkout's `?room=`) closes like one opened from its card. A settings page is `&setting=<page>` on
+  the same entry, moved with `replaceState`, so its back arrow and Back never stack entries.
 - **The code card is every share's first surface** (`share/code-card.tsx`: the code on white filling a phone, a 384
   card at a desk, Copy link, the device's own Share where it has one, and Everything into the kit,
   `share/event-share-sheet.tsx`, which holds the downloads, the designer and the custom link). Every door to it reads

@@ -1,6 +1,6 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   EMPTY_REVIEW,
@@ -17,6 +17,12 @@ import {
   holdId,
   itemHoldId,
 } from "@/app/(dev)/design/(shell)/lab/_desk/step-id";
+
+import {
+  installNextHistory,
+  NextRouterStandIn,
+  type NextHistory,
+} from "@/lib/test-utils/next-history";
 
 import type { BoardState } from "./board-spec";
 import { Step, type StepBoard } from "./step";
@@ -733,6 +739,77 @@ describe("a step on a catalog", () => {
     expect(screen.getByRole("button", { name: /^Next$/ })).toHaveClass(
       "bg-foreground",
     );
+  });
+});
+
+/**
+ * ★ A WALK WITHIN A BOARD WRITES THE STEP TO THE ADDRESS, AND NEXT HEARS IT (crumbs-16).
+ *
+ * The step moves with `history.replaceState` (a step costs no server round trip). It used to hand
+ * that call the entry's own state, which carries Next's `__NA`: Next takes such a call for its own
+ * and applies no URL, so the shell's `useSearchParams` (`CopyLink`, the sticky links) kept the step
+ * the reader had left, and a `router.refresh()` wrote it back over the bar (measured on the real
+ * desk: walk two steps, refresh, and the bar returned to the first). The stand-in is Next's patch
+ * (`@/lib/test-utils/next-history`), which the router inside the test tree installs AFTER what it
+ * holds has run its mount effects, as Next's does.
+ */
+describe("a walk within a board tells Next where it is", () => {
+  let next: NextHistory;
+  beforeEach(() => {
+    next = installNextHistory();
+  });
+  afterEach(() => {
+    next.uninstall();
+    window.history.replaceState(null, "", "/");
+  });
+
+  const session = () =>
+    new URLSearchParams(window.location.search).get("session");
+
+  it("★ Next moves to the step with the bar, so a refresh keeps it, and the gate key rides along", async () => {
+    next.land("/design/lab/light?key=k&session=light.depth");
+    render(
+      <NextRouterStandIn>
+        <Step
+          boardId="light"
+          steps={QUEUE}
+          param="light.depth"
+          board={fakeBoard()}
+        />
+      </NextRouterStandIn>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: /^Next$/ }));
+    expect(session()).toBe("light.register");
+    expect(next.href).toBe("/design/lab/light?key=k&session=light.register");
+    act(() => next.refresh());
+    expect(session()).toBe("light.register");
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("★ a card walked to is on the bar and in Next's copy, even the first (a first-commit write meets the patch)", async () => {
+    next.land("/design/lab/light?key=k&session=light.items");
+    render(
+      <NextRouterStandIn>
+        <Step
+          boardId="light"
+          steps={[CARDS]}
+          param="light.items"
+          board={fakeBoard()}
+        />
+      </NextRouterStandIn>,
+    );
+    await act(async () => {});
+    const card = (search: string) => new URLSearchParams(search).get("card");
+    expect(card(window.location.search)).toBe("ember");
+    expect(card(new URL(next.href, "http://x").search)).toBe("ember");
+    // The first commit's write must not have emptied the entry Next needs to go Back through.
+    expect(window.history.state).toMatchObject({ __NA: true });
+    await userEvent.click(screen.getByRole("button", { name: /Next card/ }));
+    await act(async () => {});
+    expect(card(window.location.search)).toBe("ladder");
+    expect(card(new URL(next.href, "http://x").search)).toBe("ladder");
+    act(() => next.refresh());
+    expect(card(window.location.search)).toBe("ladder");
   });
 });
 

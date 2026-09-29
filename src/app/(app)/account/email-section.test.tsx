@@ -10,11 +10,28 @@
  *     completes, says so and refreshes the page;
  *   - a refused code shows its line on that side and clears that field, and the other side keeps
  *     its state;
- *   - a refused request says why under the field; Not now parks the change one tap away.
+ *   - a refused request says why under the field; Not now parks the change one tap away;
+ *   - the tapped link's `?email_change=` hint leaves the address once read, and Next's own copy of the
+ *     address loses it too (crumbs-16), so the `router.refresh()` a finished change makes cannot put it
+ *     back on the bar.
  */
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
+import {
+  installNextHistory,
+  NextRouterStandIn,
+  type NextHistory,
+} from "@/lib/test-utils/next-history";
 
 const state = vi.hoisted(() => ({
   request: vi.fn(),
@@ -204,5 +221,56 @@ describe("EmailSection", () => {
     expect(
       screen.getByText(/One of the two addresses is confirmed/),
     ).toBeTruthy();
+  });
+});
+
+/**
+ * ★ THE HINT LEAVES THE ADDRESS, AND NEXT'S COPY OF IT LEAVES TOO (crumbs-16). The effect used to hand
+ * `replaceState` the entry's own state, which carries Next's `__NA`: Next takes such a call for its own
+ * and applies no URL, so its copy kept `?email_change=`, and the `router.refresh()` that follows a
+ * finished change fetched that stale address and wrote the parameter back over the bar (measured on the
+ * real component under `next dev`). The effect also runs on the page's FIRST commit, before Next has
+ * patched `replaceState` (a child's effect runs before its parent's), where a fresh state replaces the
+ * entry's `__NA` and tree and Next never hears the address: the stand-in's router installs its patch
+ * after what it holds has run its mount effects, as Next's does, so this pins the write's order too.
+ */
+describe("the tapped link's hint", () => {
+  let next: NextHistory;
+  beforeEach(() => {
+    next = installNextHistory();
+    state.refresh.mockImplementation(() => next.refresh());
+  });
+  afterEach(() => {
+    next.uninstall();
+    window.history.replaceState(null, "", "/");
+  });
+
+  const landed = (hint: "half" | null) => {
+    render(
+      <NextRouterStandIn>
+        <EmailSection email={OLD} pending={null} hint={hint} />
+      </NextRouterStandIn>,
+    );
+  };
+
+  it("★ leaves the bar and Next's copy alike, keeps the rest, and stays gone through a router refresh", async () => {
+    next.land("/account?email_change=half&keep=1");
+    landed("half");
+    await act(async () => {});
+    expect(window.location.search).toBe("?keep=1");
+    expect(next.href).toBe("/account?keep=1");
+    // The first commit's write did not empty the entry Next needs to go Back through.
+    expect(window.history.state).toMatchObject({ __NA: true });
+    act(() => next.refresh());
+    expect(window.location.search).toBe("?keep=1");
+  });
+
+  it("writes nothing when the link brought no hint", async () => {
+    next.land("/account?keep=1");
+    const replace = vi.spyOn(window.history, "replaceState");
+    landed(null);
+    await act(async () => {});
+    expect(replace).not.toHaveBeenCalled();
+    expect(window.location.search).toBe("?keep=1");
   });
 });
