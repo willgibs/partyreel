@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 
 import { updateDisplayNameAction } from "@/app/(app)/account/actions";
 import { Button } from "@/components/ui/button";
+import { ClientForm } from "@/components/ui/client-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -42,7 +43,7 @@ export function SetNameStep({
   }
 
   return (
-    <form
+    <ClientForm
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit();
@@ -76,6 +77,6 @@ export function SetNameStep({
       >
         {saving ? "Saving…" : submitLabel}
       </Button>
-    </form>
+    </ClientForm>
   );
 }

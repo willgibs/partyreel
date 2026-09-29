@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { DestructiveSheet } from "@/components/admin/destructive-sheet";
 import { Button } from "@/components/ui/button";
+import { ClientForm } from "@/components/ui/client-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -33,7 +34,7 @@ export function PreserveForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-3">
+    <ClientForm onSubmit={onSubmit} className="space-y-3">
       <div className="space-y-1.5">
         <Label htmlFor="forensics-media-id">Media id</Label>
         <Input
@@ -60,7 +61,7 @@ export function PreserveForm() {
       <Button type="submit" disabled={pending}>
         {pending ? "Preserving…" : "Set hold and preserve"}
       </Button>
-    </form>
+    </ClientForm>
   );
 }
 

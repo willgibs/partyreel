@@ -16,9 +16,33 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/lib/auth/return-path.ts
   - src/app/(auth)/login/page.tsx
   - src/app/(app)/account/sign-out-everywhere-card.tsx
+  # ── added: item 1, the forms sweep (every client form outside the lab, onto one guard in one home)
+  - src/components/ui/client-form.tsx                         # the guard: `method="dialog"`, one home
+  - src/components/ui/client-form.test.tsx
+  - src/lib/client-form-policy.test.ts                        # refuses a `<form>` that names no native answer
+  - src/app/(app)/account/email-section.tsx
+  - src/app/admin/forensics/forensics-controls.tsx
+  - src/components/app/account-security-form.tsx
+  - src/components/auth/password-sign-in.tsx
+  - src/components/guest/follow-moment-card.tsx
+  - src/components/shared/set-name-step.tsx
+  - src/components/social/profile-bio-form.tsx
+  - src/app/(marketing)/(cinema)/contact/contact-form.tsx     # one line: its `useHydrated` comment named the leak the form now answers
+  - src/components/guest/password-gate.tsx
+  - src/components/guest/add-email-dialog.tsx
+  - src/components/app/display-name-form.tsx
+  - src/components/social/profile-setup-wizard.tsx
+  - src/components/guest/guest-name-step.tsx
+  - src/components/guest/report-answer-form.tsx
+  - src/lib/guest/confirm-beat-name.tsx
+  # ── added: item 2, the brand in display names (the schema every door reads, and its tests)
+  - src/lib/constants/reserved-names.test.ts
+  - src/lib/validation/profile.ts                             # `displayNameSchema` asks `isReservedName`
+  - src/lib/validation/profile.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/host-app.md
   - docs/systems/marketing-content.md
+  - src/lib/constants/reserved-slugs.ts                       # `BRAND_STEM`, the brand's one home
 ---
 
 # lp/crumbs-20
