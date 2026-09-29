@@ -7,6 +7,7 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/ui/dropdown-menu.tsx
   - src/components/ui/dropdown-menu.test.tsx
   - src/app/(dev)/design/(shell)/library/components/gallery-demos.tsx
+  - src/app/(dev)/design/gallery/specimens.generated.json   # the collector's copy of that file's JSX; specimens.test.ts refuses it stale
   - docs/systems/design-system.md
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/host-app.md
@@ -33,7 +34,10 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+- **Answered: the authority for this edit.** Asked whether to remove the dropdown menu's render-time throw on a third
+  submenu level and keep its guidance as a comment, Will answered "Remove it (Recommended)" (2026-09-29). The lane
+  removes the throw and what only fed it, keeps the guidance as a comment on `DropdownMenuSub`, and changes nothing
+  else about the menu.
 
 ## System-doc edits (in place, owned facts only)
 
