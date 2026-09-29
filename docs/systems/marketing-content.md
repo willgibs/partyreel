@@ -11,7 +11,9 @@ Open this before you:
 
 The public `(marketing)` route group serves the site, the help center and the blog on the shared domain. It is the
 app's design system turned up: the same tokens and faces, louder only through type, layout and motion
-([design-system.md](design-system.md), whose "Chapters" paces every core page). One `SITE_URL` and brand constant set
+([design-system.md](design-system.md), whose "Chapters" paces every core page). Its motion is calm and fluid but never
+still: a loop moves often enough that a visitor scrolling past never misses a step, which is what makes them stop and
+watch; and a punchy line beside a strong visual beats a paragraph. One `SITE_URL` and brand constant set
 (`src/lib/constants/site.ts`) feeds the sitemap, robots and the root `metadataBase`; `BRAND_HEX` is a literal hex
 because satori reads no CSS token.
 

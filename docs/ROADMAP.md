@@ -17,6 +17,7 @@ overhaul finds its whole task list here when it runs. Picking a task up follows 
 New lines land at the head of this list (`usher/kit/record.py`); the cross-cutting ones stay here, and the groups
 below hold the rest by surface.
 
+- Marketing: `/features/album`'s getting-in section (the phone's three screens) goes wider than its tight two columns on a desk, a line where a paragraph stands, and three new visuals, with the marketing revamp (`loose-ends` r1; its 3.2 s pace stays).
 - Marketing (performance): every page preloads the root 404's `trail.css` (a root `not-found.tsx`'s CSS is preloaded on every route: `/`, `/pricing`, `/help`, `/login`, `/about`), one "preloaded but not used" warning a load site-wide; fold the trail's rules into the global sheet or load the 404's `Trail` lazily (from `crumbs-10`).
 - Marketing (performance): the home's `full-quality` section (`PhotoSection`, `photo-section.tsx:357`, `priority`, deprecated in Next 16 for `preload`) preloads a `w=1920` photograph for a section far below the fold (from `crumbs-10`).
 - Code hygiene: `pnpm lint`'s four standing warnings: unused `useEffect`/`useState` in `album-fill-grid.tsx`, an unused `step` in `lab/_desk/review-session.tsx`, `contact-form.tsx`'s React Compiler skip on `form.watch` (from `crumbs-10`).
@@ -48,9 +49,7 @@ below hold the rest by surface.
 - Guests: her uploads draw a plain placeholder for an earlier visit's held photo (nothing outside the album is presigned for a guest); a thumbnail presigned for its uploader's own ticket alone would let her see which one waits (from `voice-wiring`).
 - Host: a "See it as a guest" row in settings could open the album as a guest meets it, with the door's steps; every door setting is about what a guest meets, and today a host can only guess (from `event-settings`).
 - Host: the settings kind's head in a hand says the event's name twice (the back arrow and the line under the bar); popups could drop the line wherever the back arrow names it (from `event-settings`).
-- Host: the hub's Settings card says "Public"; once the join ladder ships it could say the rung ("Anyone with the link"), the one place a host sees the door from the hub (from `event-settings`).
 - Marketing: a disposable-camera page, and the site's link that opens Create with the camera already on (`pick=line`'s door), once the camera ships (from `disposable-mode`).
-- Reel: what the room's screen shows while a roll develops (the count ticking, then the roll's premiere at the reveal), asked once `disposable-mode`'s `reveal` is answered (from `disposable-mode`).
 - Guests: the password gate titles a password album "{name} is private" (`password-gate.tsx`), the word the private lock owns; whichever words `locked-door`'s `lock` takes, the gate may want its own (from `locked-door`).
 - Guests: a door held over nothing (the ghost river under `DOOR_SCRIM`) reads as a flat grey slab in light mode, here and on the password door; a lighter scrim where nothing real stands behind would lift both (from `locked-door`).
 - Guests: a locked door could open by itself the moment the host lets her in (the album's doorbell or a slow poll), at the cost of a listener on every locked page, a blocked one's included (from `locked-door`).
@@ -92,7 +91,6 @@ below hold the rest by surface.
 - The lab: a portalled `Frame` copies the lab's `<html>` theme class once per load (`frame.tsx`'s `themeClass` never re-subscribes), so the lab's theme toggle leaves every open frame in the old theme until a reload (from `claims-r3`).
 - Marketing: the event pages' table and tent cards (`sections/events/event-object.tsx`) print a code and "Scan to add your photos" but no address; the custom address under the code would carry the one-link idea onto the objects that stand in for the product there (from `hero-card`).
 - Shared: `AvatarGroup` (`ui/avatar.tsx`) overlaps a fixed 8 px at every size, hiding a third of a 24 px face and its initial; an overlap that is a share of the face (`hero-card`'s `Faces`) fixes it wherever a face row reads it (from `hero-card`).
-- Shared: direct invites: a host invites guests from Partyreel itself (an email or a text sent on the host's behalf, with its spam and deliverability rules); Will floated it on `popups`' share answer and chose later (2026-09-27), a board when a seat is free.
 - Guests: her tracker draws a picture only for what is in the album; her earlier held or refused items show a placeholder, since a guest is never presigned media outside the album (`grid-items.ts`), so drawing them needs an own-media presign rule (from `guest-door`).
 - Guests: a refusal reaches her tracker at its next read (mount or opening), since the album's sync moves only in and out of approved; a live refusal needs its own signal (from `guest-door`).
 - Guest door: a full-reload confirm return that moves nothing of this album plays no moment, so it says the other events but not the told name (the typed name reaches the account through `adoptDoorName` with no beat to carry it) (from `guest-door`).
@@ -209,7 +207,7 @@ Marketing:
 - Marketing glass: the header's `GlassLayer`, the overlays and the set-pieces over photographs, onto the app's glass material (the banked Glass exploration across marketing and app); until then the nav labels sit at `text-muted-foreground` under the transparent bar and are hard to read over a bright cinema hero.
 - `ScreenLamp` casts a full-bleed seam under the sharing and guests heroes where a screen's light is a pool; compose each its own light.
 - Brand: the day the v1 icon lands (ASSETS row 19), one pass: `Logo`'s `markOnly` branch (a placeholder tile with no production caller), `src/app/icon.svg`, `favicon.ico`, `apple-icon.png` and `manifest.ts`, the reel watermark's badge and wordmark in `src/lib/reel/engine/canvas2d.ts` (its REAL-LOGO seam; the wordmark path can ride a `Path2D`), and the press kit (`scripts/build-press-kit.mjs` rebuilds the committed zip: the marks and the app icon, which show the retired Aperture glyph today, plus the wordmark in white and in ink, which the kit has never carried).
-- A partners page and program for planners, with `/press` growing into the partnerships kit; until then planners read the site as hosts.
+- A partners page with its own focus (planners and venues; Will reaches partners directly, with free Event Passes for upcoming couples), never shared with press, which folds into `/about`; until then planners read the site as hosts.
 - Post-launch event types: `/events/birthdays`, `/events/memorials`.
 - `/pricing` opens on paper but the cinema layout pins `themeColor: #040405`, so a phone's browser chrome is dark over a white first screen; the answer is group-level (the layout forbids a per-page `viewport`).
 - `sections/pricing/shared-band.tsx` has no importer (the pricing test already refuses it rendered): delete it.
@@ -325,6 +323,7 @@ The app:
   - A durable per-item feed and real-time push.
 - **Admin deployment:** its own Sentry project (it shares `partyreel`'s DSN).
 - **Admin / operations portal** ([`systems/admin-observability.md`](systems/admin-observability.md)):
+  - Its look, one exploration once the app work settles: a dashboard with the F1 film's own UI as Will's reference (never a generic F1 look): minimalist, dense without crowding, alive with motion graphics, and real colour in the charts in both modes (`--chart-1..5` feed only admin, so `loose-ends`' two chart asks fold in here).
   - The portal at a phone, for an operator glancing at health away from a desk.
   - An operator-action audit log: what was done, by whom, with an Undo where one exists (`admin_actions` is a proposal).
   - Per-announcement edit and read receipts.
@@ -349,8 +348,10 @@ The app:
   - Newsletters and updates from "Will @ Partyreel" (his `sender` note). Some filters read an "@" in a display name as a spoofed address; "Will at Partyreel" says the same.
     - Marketing is the one kind of mail that needs a postal address (a PO box or a virtual mailbox), a working unsubscribe and consent.
     - The first send carries the unsubscribe, since a signed-out subscriber has no removal path (an account holder has `/account`'s switch), and a one-click `List-Unsubscribe` header (RFC 8058); the renewal nudge's unsubscribe opens the signed-in switch until then.
+  - The invite mail: guests invited by Partyreel itself (an email or a text on the host's behalf), beside the share-sheet Invite that sends nothing; its spam and deliverability rules come first.
+  - The develop mail: a disposable roll's reveal calls its guests back ("your roll developed"), the return moment Will named in `disposable-mode` r1.
   - A direct test for `sendOnce`'s claim-then-send dedupe (a mocked Resend, or a rolled-back Supabase-MCP check).
-- **The support-automation arc:** AI-default first responses keyed on `contact_submissions.topic`, and auto-routing rules in `/admin/support`; published language keeps committing to outcomes only (the promise-neutralization doctrine, [`systems/marketing-content.md`](systems/marketing-content.md)).
+- **The support-automation arc:** a help chat before launch (bottom-right, answering from the help center and the site on a cheap AI Gateway model, rate-limited under a spend cap, its cost to Will before any spend; Libraries.dev's agent-interaction effects, access asked at the cut); AI-default first responses keyed on `contact_submissions.topic`, and auto-routing rules in `/admin/support` (a topic is a pipeline); published language keeps committing to outcomes only (the promise-neutralization doctrine, [`systems/marketing-content.md`](systems/marketing-content.md)).
 - **The AI-SEO content arc:**
   - `.md` mirrors of key pages (the llms spec's optional convention).
   - The `/u/[slug]` sitemap and robots decision (a profile publishes nothing until its owner chooses; a slug feed).
@@ -367,7 +368,6 @@ The app:
   - Card presets (minimal ink and photo-backed), and stock cover images per common event type plus generic sets (hosts rarely have a cover before the event).
   - Toggles for the link, the date and the cover; phone and story formats beside printable ones; several file types; drag-and-drop placement as the stretch goal.
   - The share sheet grows sections for posters and an invite when they exist.
-- **Event safety**: the closed doors are left (the per-event block shipped): approve newcomers, close to newcomers and an invite list, all free on every plan. `event-settings` draws how who can join is set, and the join doors are wired after his review with event-safety's `newcomer=same` and `unlisted=ask`, keyed on the account (every device) or one row (one browser), never a device id or an IP.
 - **The reel:** the stretch shipped in milestone 29 (guest, host, clip, teardown, sweep, the stored reel's drop); what is left is `reel-marketing` after his `reel-story` r2. Ideas at zero storage, since a reel is a recipe:
   - A host featuring one clip on the album, and a shareable clip link.
   - Host pins that open each loop.
@@ -380,6 +380,7 @@ The app:
   - Guest-list sort by upload count (a nudge to contribute).
   - The follow graph has no consumer worth the graph: the Following chip left the dashboard and no query reads your followers or the events of the hosts you follow; a followed-hosts feed is new work.
 - **Lab explorations no board asks yet** (each is a board when a seat frees; its brief rechecks the desk for overlap first):
+  - The privacy hero's two runners-up, kept: the sweep (tiles clearing in one pass of light) as a generic hero's foundation, and the aperture (a blurred photograph breathing in a hairline ring), polished, as a minimalist CTA card's background.
   - Finding one photograph in a thousand (sort, date, person, kind), in the guest album and the host gallery.
   - What an album becomes weeks after the party, since events never end (a keepsake, an anniversary, a nudge to export), narrowed away from `export-flow`.
   - What a host learns about their own event (views, contributors, the photograph everyone liked).

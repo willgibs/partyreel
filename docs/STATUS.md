@@ -4,7 +4,7 @@
 > [`systems/`](systems); what might be next is [`ROADMAP.md`](ROADMAP.md); what runs this minute is
 > [`tracks/orchestrator.md`](tracks/orchestrator.md); what shipped is `git log`.
 
-**Updated:** 2026-09-28
+**Updated:** 2026-09-29
 
 ## The era
 
@@ -13,27 +13,22 @@ and the launch switches unspent ([`ROADMAP.md`](ROADMAP.md) → Launch checkpoin
 catalog in the lab, Will's verdicts on the desk, then the wiring; partyreel.com changes only at tagged milestone merges.
 Nothing is protected: every page, the host app and the guest pages are open to be reconceived from the ground up.
 
-## The current round: batch 7, the desk to zero
+## The current round: batch 8, from the desk at zero
 
-- **Milestone 29 is live** (`ab30a7f8`, 2026-09-26). Batches 4 to 7 ride `launch-prep` toward milestone 30.
-- **Batch 6 landed whole** (sixteen lanes, builds 13 to 15, red-teamed live).
-- **Will's sitting on build 15** is transcribed (2026-09-28: 21 answers, then emails' ten). Wave A drew three boards
-  (event-settings, locked-door, disposable-mode) and built the per-event block; wave B wired, whole, the guest voice,
-  pricing (his free/pro shift: Free at 100 MB with the password, custom link and 60 s clips), the hero's card, the
-  export flow (the Worker deployed), triage's round one, the help and the emails' wrapper, and drew admin-triage r2.
-  Build 17's red-team fixes (`crumbs-8`), eight small cleanups (`crumbs-9`) and the demo's framing board
-  (`demo-framing`, his note: not "Mia & Theo") run now; build 18 carries them all.
+- **Milestone 29 is live** (`ab30a7f8`, 2026-09-26). Batches 4 to 8 ride `launch-prep` toward milestone 30, which
+  waits on Will's legal wording.
+- **Batch 7 landed whole** (builds 16 to 19, red-teamed live): the block, the free/pro shift, the guest voice, the
+  hero's card, the export flow, triage's round one, the help and the emails' wrapper, and their follow-ups.
+- **Will's sitting on build 19** is transcribed (2026-09-29: 41 answers on ten boards, the desk whole). Wave A wires
+  every event-settings pick (settings rebuilt as four sentences, the doors Public, Private and Only me with approval,
+  closing and an invite list, the Guests room's invites) and draws two rounds, the door family and the disposable
+  camera; `crumbs-12` fixes the hub row and the thin headings. App work leads (his note); the marketing and admin picks
+  wait in their ledgers.
 
 ## The desk
 
-Build 18's desk: 45 open asks. His `emails` r1 is transcribed (all ten): the wrapper on today's mail is queued as
-`emails-wiring`, and every new mail is banked for one email exploration once the features settle.
-- **From build 15** (21): `privacy-hero`, `album-motion`, `loose-ends`, `contact-page`, `press-page`.
-- **From build 16** (17): `event-settings` (nine, its structure first), `locked-door` (two), `disposable-mode` (six).
-- **From build 17** (4): `admin-triage` r2 (`look` first).
-- **New** (3): `demo-framing` (the demo's party, its name, which event the card opens).
-
-His aim is zero before his other to-dos.
+Zero open asks after build 19's sitting. Two wait on the rounds that replace their boards (demo-framing's `names`,
+press-page's `a-human`). The next desk is build 21's: `locked-door` r2 and `disposable-mode` r2.
 
 ## Live state
 
@@ -44,9 +39,8 @@ His aim is zero before his other to-dos.
   console error, the lab and `/admin/reels` 404, the admin door redirects, no runtime error.
   `admin.partyreel.com` is served by `partyreel-admin` (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel`
   (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 19 (`fd196846`, clean headless):
-  wave B whole, build 17's red-team fixes (`crumbs-8`), eight cleanups (`crumbs-9`), the `demo-framing` board; red-teamed
-  live, all seven journeys PASS, no major (its minors in `crumbs-10`).
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 20 (the batch-8 record): build
+  19's red-team fixes (`crumbs-10`) and the slug family with the sign-in return path (`crumbs-11`); its red-team runs.
 - **The shared database** runs six migrations applied 2026-09-29 (the block, the free shift, the operator removal purge,
   the help's feedback, the pass reminders switch, likes on private albums), under partyreel.com too, whose
   milestone-29 pages still say 2 GB until milestone 30; no Free account holds more.
@@ -76,5 +70,6 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **His desk to zero**, then the stacked to-dos (`tracks/orchestrator.md`): the claims review's live walk, Q1, the
-  private count's legal clause, a real-upload check, the iPhone Save check and one copy call.
+- **His stacked to-dos**, now due with the desk at zero, in leverage order (`tracks/orchestrator.md`): the legal wording
+  (it gates milestone 30), the destructive-drop yes, the hold doctrine, the claims walk, Q1, the real-upload check and
+  the iPhone check.
