@@ -6,7 +6,6 @@ import { EXPORT_FLOW } from "./export-flow/spec";
 import { ADMIN_TRIAGE } from "./admin-triage/spec";
 import { EMAILS } from "./emails/spec";
 import { LOCKED_DOOR } from "./locked-door/spec";
-import { HELP_CENTER } from "./help-center/spec";
 import { EVENT_SETTINGS } from "./event-settings/spec";
 
 import { PRESS_PAGE } from "./press-page/spec";
@@ -48,7 +47,6 @@ const REGISTERED: readonly BoardSpec[] = [
 
   EXPORT_FLOW,
   ADMIN_TRIAGE,
-  HELP_CENTER,
   EVENT_SETTINGS,
   EMAILS,
   LOCKED_DOOR,
