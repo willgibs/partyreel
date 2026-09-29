@@ -107,15 +107,16 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, dis
 7. **The demo event**, after `demo-framing` r2 (his full permission, 2026-09-29; the r1 board merged at `51db72fc`):
    the demo renamed (or made) to its pick, its slug claimed so the card's printed address opens it (today
    `mia-and-theo`, held by no event, left as is on his word), one home for the slug in `lib/demo.ts` that the card
-   prints and the seed sets, `OBJECT_EVENT` and `OBJECT_PRINTS` to match, a demo host account if `host` stands
+   prints, the seed sets and every demo door opens (today all five doors and `/demo` open the token's address, since
+   demo mode matches on the raw token), `OBJECT_EVENT` and `OBJECT_PRINTS` to match, a demo host account if `host` stands
    (`partyreel-demo` stays refused to anyone else by the brand family, `crumbs-11`), and ASSETS rows 5, 33 and 34
    unparked with the party's subjects.
-8. **Milestone 30 is live** (`7846a4c9`, tag `milestone-30`, 2026-09-29; gate `GATEm30` green on `77a4bd44`; both
-   projects READY; launch-prep fast-forwarded to it): the headless pass is clean (sixteen public pages and both sign-in
-   pages with no exception, `/pricing` at 100 MB and no "2 GB", the lab and `/admin/reels` 404, the admin door
-   redirects). The Chrome pass (agent `aacad476e5cdfa021`, `../partyreel-wt/_scratch/prod-m30/brief.md`) runs, then
-   the claims walk (step 5). After it, `kit/`'s screens re-captured from partyreel.com (the home's hero, close,
-   teaser and eyebrow, the demo's doors, the pricing page).
+8. **Milestone 30 is live and verified** (`7846a4c9`, tag `milestone-30`, 2026-09-29): the headless pass clean, the signed-in
+   pass PASS (`../partyreel-wt/_scratch/prod-m30/ledger.txt`), `kit/`'s three screens retaken from it. Its findings: a
+   sheet opened from a link cannot be closed (relayed to `settings-wiring`, with the custom link's unannounced error);
+   the demo door opens the token's address, never `/e/partyreel-demo` (the demo item, step 7); Google's chooser names
+   `ddafaemglzmuekbtjwzn.supabase.co` (ROADMAP's launch checkpoint, his call); the free-plan article's lowercase bullet
+   (ROADMAP). At milestone 31, `kit/README.md`'s type table follows `crumbs-12` (every heading 700).
 9. **The lab revamp**: a board as one self-registering folder, its metadata in its spec, lab checks scoped to the
    lane's own boards, the authoring API trimmed, a fresh agent proving it (the first board cut after it); with
    library-lean's board ideas (a `Surfaces` family of live frames per route with guest entries, the Library's sidebar

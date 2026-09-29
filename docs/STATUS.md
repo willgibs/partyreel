@@ -35,7 +35,8 @@ camera first). Two older asks wait on the rounds that replace their boards (demo
 
 - **Prod:** partyreel.com is `main` at tag `milestone-30` (`7846a4c9`, 2026-09-29), both projects READY: sixteen
   public pages and both sign-in pages with no exception, `/pricing` at 100 MB, the lab and `/admin/reels` 404, the admin
-  door redirects; the signed-in pass runs. `admin.partyreel.com` is served by `partyreel-admin`
+  door redirects; the signed-in pass PASS (the renew return, the hub past 1,000, the list always on, the look's
+  Block, Settings whole, the reel, the owner's password album, the slug refusal). `admin.partyreel.com` is served by `partyreel-admin`
   (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
 - **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 21: the two rounds for his desk
   and `crumbs-12` (the hub row in his order, every heading at 700, "30 days"); build 20 was red-teamed live, every
