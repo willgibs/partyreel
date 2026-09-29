@@ -597,3 +597,79 @@ describe("a phone's two acts (`phone=stop`, and his note)", () => {
     expect(within(card).queryByRole("button")).toBeNull();
   });
 });
+
+describe("a reopened report whose item is gone is that item's (crumbs-21, migration 20260929231000)", () => {
+  // A dismissal reopened after the purge took its item: the report still names the item and its kind, so
+  // the queue never draws it as its album's, and its verdict only closes (nothing is left to take down).
+  const gone = (type: "photo" | "video" | null) =>
+    entry(1, { media: null, uploader: null, deleted: { id: "m1", type } }, [
+      report(1, { kind: "violence" }),
+    ]);
+
+  it("★ says the video was deleted where the picture would be, and wears Deleted", () => {
+    render(<ReportQueue proofOn={false} entries={[gone("video")]} />);
+    const still = document.querySelector(
+      "[data-report-deleted]",
+    ) as HTMLElement;
+    expect(still.dataset.reportDeleted).toBe("video");
+    expect(
+      within(still).getByText("The video was deleted."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Hannah and Theo", {
+        selector: "[data-report-deleted] *",
+      }),
+    ).toBeNull();
+    expect(screen.getAllByText("Deleted").length).toBeGreaterThan(0);
+    expect(document.querySelector("img, video")).toBeNull();
+  });
+
+  it("★ its verdict closes the report and says nothing of the album", async () => {
+    const user = userEvent.setup();
+    render(<ReportQueue proofOn={false} entries={[gone("photo")]} />);
+    const open = screen.queryAllByRole("button", {
+      name: "Open this report whole",
+    });
+    await user.click(
+      open[0] ??
+        screen.getAllByRole("button", { name: /^Open the report on/ })[0],
+    );
+    const peek = await screen.findByRole("dialog");
+    expect(within(peek).getByText(/^A photo, /)).toBeInTheDocument();
+    const verbs = peek.querySelector("[data-report-verbs]") as HTMLElement;
+    // Nothing to hold or take down: its item is gone.
+    expect(
+      within(verbs).queryByRole("button", { name: "Hold for forensics…" }),
+    ).toBeNull();
+    await user.click(within(verbs).getByRole("button", { name: "Action…" }));
+    // The confirm is found by its words whatever its role (a dialog today; crumbs-20 announces every
+    // confirm as an alertdialog): what this pins is what it says.
+    const confirm = [
+      ...screen.queryAllByRole("dialog"),
+      ...screen.queryAllByRole("alertdialog"),
+    ].find((d) => within(d).queryByText("Close this report as Actioned?"))!;
+    expect(confirm).toBeDefined();
+    expect(
+      within(confirm).getByText(
+        "The photo is already deleted; the report closes as Actioned.",
+      ),
+    ).toBeInTheDocument();
+    const touches = within(confirm)
+      .getAllByRole("listitem")
+      .map((li) => li.textContent);
+    expect(touches).toEqual(["-This report moves to Actioned"]);
+  });
+
+  it("a phone says a desk closes it, in the item's own words", () => {
+    render(<ReportQueue proofOn={false} entries={[gone(null)]} />);
+    const card = document.querySelector(
+      "[data-report-phone-front]",
+    ) as HTMLElement;
+    expect(
+      within(card).getByText(
+        "The item is already deleted, so this one waits for a desk to close it.",
+      ),
+    ).toBeInTheDocument();
+    expect(within(card).queryByRole("button")).toBeNull();
+  });
+});

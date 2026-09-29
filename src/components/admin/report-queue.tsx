@@ -15,12 +15,14 @@ import {
   BadgeCheck,
   Check,
   EyeOff,
+  ImageOff,
   Images,
   MailQuestion,
   Reply,
   ShieldAlert,
   Upload,
   UserRound,
+  VideoOff,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -52,6 +54,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import {
   askableProof,
+  deletedItemLine,
+  deletedItemNoun,
   heldMessage,
   HIDE_RESTORED_MESSAGE,
   holdReasonFor,
@@ -60,6 +64,7 @@ import {
   LANE_WORDS,
   NO_REASON,
   PHONE_DESK_ONLY,
+  phoneDeletedLine,
   PHONE_HOLD,
   PHONE_LINE,
   PHONE_TAKE_DOWN,
@@ -356,10 +361,20 @@ function useQueueKeys(
 
 /* ── The facts, one set of parts ──────────────────────────────────────────── */
 
+/** The peek's first words: the album, or the item's kind (a deleted item's as its report kept it). */
+function peekSubject(entry: ReviewEntry): string {
+  if (entry.subject === "album") return "The whole album";
+  const type = entry.media?.type ?? entry.deleted?.type ?? null;
+  if (type === "video") return "A video";
+  if (type === "photo" || entry.media) return "A photo";
+  return "An item";
+}
+
 /** What the thing reported is right now, as a chip; nothing while it is up. */
 function nowWords(entry: ReviewEntry): string | null {
   const m = entry.media;
-  if (!m) return null;
+  // A report whose item is gone still names it (crumbs-21): the chip says what became of it.
+  if (!m) return entry.deleted ? "Deleted" : null;
   if (m.held) return "Held";
   if (m.hidden) return "Hidden right away";
   if (m.standing === "operator") return "Taken down";
@@ -567,6 +582,22 @@ function Still({
               </Button>
             </>
           ) : null}
+        </span>
+      ) : entry.deleted ? (
+        // ★ A REPORT WHOSE ITEM IS GONE IS STILL THAT ITEM'S (crumbs-21, migration 20260929231000): a
+        // dismissal reopened after the purge took the row names the item it always named, never its album.
+        <span
+          data-report-deleted={entry.deleted.type ?? "item"}
+          className="flex size-full flex-col justify-end gap-0.5 p-2"
+        >
+          {entry.deleted.type === "video" ? (
+            <VideoOff className="size-3.5 text-muted-foreground" aria-hidden />
+          ) : (
+            <ImageOff className="size-3.5 text-muted-foreground" aria-hidden />
+          )}
+          <span className="line-clamp-2 text-caption font-medium">
+            {deletedItemLine(entry.deleted.type)}
+          </span>
         </span>
       ) : (
         <span className="flex size-full flex-col justify-end gap-0.5 p-2">
@@ -837,6 +868,18 @@ export function verdictSheet(entry: ReviewEntry): {
     reports === 1
       ? "This report moves to Actioned"
       : `All ${formatCount(reports)} reports on it move to Actioned`;
+  if (!item && entry.deleted) {
+    // Its item is gone (crumbs-21): nothing is left to take down, so the verdict only closes.
+    const noun = deletedItemNoun(entry.deleted.type);
+    return {
+      button: "Action…",
+      title: "Close this report as Actioned?",
+      lede: `The ${noun} is already deleted; the report closes as Actioned.`,
+      verb: "Action",
+      touches: [closes],
+      done: "Report actioned.",
+    };
+  }
   if (!item) {
     return {
       button: "Action…",
@@ -1089,7 +1132,9 @@ function PhoneActs({ entry }: { entry: ReviewEntry }) {
   if (entry.subject !== "item" || !entry.media) {
     return (
       <p data-report-phone-acts className="text-caption text-muted-foreground">
-        {PHONE_DESK_ONLY[entry.subject === "person" ? "person" : "album"]}
+        {entry.subject === "item" && entry.deleted
+          ? phoneDeletedLine(entry.deleted.type)
+          : PHONE_DESK_ONLY[entry.subject === "person" ? "person" : "album"]}
       </p>
     );
   }
@@ -1226,13 +1271,7 @@ function Peek({
           <>
             <PopupHeader
               title={entry.event?.name ?? "A report"}
-              description={`${
-                entry.subject === "album"
-                  ? "The whole album"
-                  : entry.media?.type === "video"
-                    ? "A video"
-                    : "A photo"
-              }, ${formatAdminTimestamp(entry.newestAt)}`}
+              description={`${peekSubject(entry)}, ${formatAdminTimestamp(entry.newestAt)}`}
               back="Reports"
             />
             <PopupBody className="space-y-4">

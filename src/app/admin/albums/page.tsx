@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth/admin-context";
 import { listRecentMedia } from "@/lib/db/queries/moderation";
+import { readCoveredItems } from "@/lib/db/queries/reports";
 import {
   ALBUM_FILTER_META,
   ALBUM_FILTERS,
@@ -34,7 +35,10 @@ export default async function AdminAlbumsPage({
   const { status } = await searchParams;
   const filter = parseAlbumFilter(status);
   const media = await listRecentMedia(filter);
-  const items = await toModerationFeedItems(media);
+  // ★ The worst kinds arrive covered here as in Reports (build 23's NIT-7): one rule, one home, and a
+  // covered item is never signed.
+  const covered = await readCoveredItems({ mediaIds: media.map((m) => m.id) });
+  const items = await toModerationFeedItems(media, covered);
 
   return (
     <div className="space-y-6">

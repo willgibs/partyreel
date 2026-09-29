@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth/admin-context";
 import { getAlbumForModeration } from "@/lib/db/queries/moderation";
+import { readCoveredItems } from "@/lib/db/queries/reports";
 import { formatAdminTimestamp } from "@/lib/format/admin-time";
 import { formatCount } from "@/lib/format/count";
 import { toModerationFeedItems } from "@/lib/r2/grid-items";
@@ -51,11 +52,16 @@ export default async function AdminAlbumDetailPage({
   if (ctx.aal !== "aal2") return null;
 
   const { eventId } = await params;
-  const album = await getAlbumForModeration(eventId);
+  // ★ The worst kinds arrive covered here as in Reports (build 23's NIT-7): every item of the album any
+  // report names as one, read by the rule's one home, and a covered item is never signed.
+  const [album, covered] = await Promise.all([
+    getAlbumForModeration(eventId),
+    readCoveredItems({ eventId }),
+  ]);
   if (!album) notFound();
 
   const { event, hostLabel, counts } = album;
-  const items = await toModerationFeedItems(album.media);
+  const items = await toModerationFeedItems(album.media, covered);
 
   return (
     <div className="space-y-6">
@@ -104,9 +110,8 @@ export default async function AdminAlbumDetailPage({
           </Row>
           <Row label="Media">
             {formatCount(counts.approved)} approved,{" "}
-            {formatCount(counts.pending)} pending,{" "}
-            {formatCount(counts.hidden)} hidden,{" "}
-            {formatCount(counts.removed)} removed
+            {formatCount(counts.pending)} pending, {formatCount(counts.hidden)}{" "}
+            hidden, {formatCount(counts.removed)} removed
           </Row>
           <Row label="Created">
             <span>{formatAdminTimestamp(event.created_at)}</span>

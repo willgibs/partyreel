@@ -423,6 +423,27 @@ export const PHONE_DESK_ONLY: Record<Exclude<EntrySubject, "item">, string> = {
   person: "A person is actioned out of band, so this one waits for a desk.",
 };
 
+/* ── What a report named, once its item is gone (crumbs-21, migration 20260929231000) ─────────── */
+
+/**
+ * The noun for an item a report still names after its row was purged: its kind, or "item" while the kind
+ * cannot be read yet (the migration unapplied). A report about a deleted item is that item's, never its
+ * album's, so every surface says which it was.
+ */
+export function deletedItemNoun(type: "photo" | "video" | null): string {
+  return type ?? "item";
+}
+
+/** The line a report about a deleted item wears where its picture would be: "The photo was deleted." */
+export function deletedItemLine(type: "photo" | "video" | null): string {
+  return `The ${deletedItemNoun(type)} was deleted.`;
+}
+
+/** A phone's words under a report whose item is gone: nothing is left to take down, so a desk closes it. */
+export function phoneDeletedLine(type: "photo" | "video" | null): string {
+  return `The ${deletedItemNoun(type)} is already deleted, so this one waits for a desk to close it.`;
+}
+
 /* ── The instant hide's way back ──────────────────────────────────────────────────────────────── */
 
 /**
