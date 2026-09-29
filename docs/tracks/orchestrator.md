@@ -39,7 +39,6 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `schema-pass` | the data architecture audited; its migration BLOCKED: the permission classifier refused the lane's write of the file (no retry). The audit is its manifest at `origin/lp/schema-pass` (`66794756`): Q1 his permission to write and prove, Q2 the reel's three columns wait for milestone 31 (main reads them), Q3 default privileges closed for anon and authenticated, Q4 the monthly meter deny-all, Q5 three CHECKs | handed off blocked; resumed on his yes | Opus | `66794756` |
-| `crumbs-14` | the hub row's stick loop, the screen popup's back label, the admin sign-in's asked page, a refused sign-out, the pricing teaser's price, a lowercase bullet | running (agent `a0de18f02690ad5a8`) | Opus, 3135 | |
 | `lab-revamp` | stage two, the plumbing: a board as one self-registering folder, scoped lab checks, the trimmed API, the words renamed, the kit following (holds registry.ts and boards.ts; PROGRAM.md's lines come in its Handoff) | running, resumed (agent `a6b4519e3d363d7dd`) | Opus, 3133 | |
 | `crumbs-15` | the dead missing-schema seams of the doors and the triage rebuild, no behaviour changed | running (agent `a7a881960265d2c2a`; worktree `../partyreel-wt/crumbs-15`) | Sonnet, 3131 | |
 | `loose-ends-wiring` | loose-ends r1: the FAQ heading, the rings, the corner mark and its easter-egg lightbox (the board's folder is lab-revamp's: retire it at the merge) | running (agent `af847f8233bb3aa19`; worktree `../partyreel-wt/loose-ends-wiring`) | Sonnet, 3134 | |
@@ -59,7 +58,6 @@ only where those leave a gap; a stale `.next/dev/lock` may be deleted; continue 
   ("Ask Maya to let me in", then "Use a different email"); a sheet opened from a link cannot be closed
   (`event-share-provider.tsx:113-115`) and the custom link's error is unannounced; revoke PUBLIC EXECUTE when replacing
   `get_event_by_qr_token`.
-- `crumbs-14` (`../partyreel-wt/crumbs-14`, 3135, agent `a0de18f02690ad5a8`): mid-work, no relays.
 - `crumbs-15` (`../partyreel-wt/crumbs-15`, 3131, agent `a7a881960265d2c2a`) and `loose-ends-wiring` (`../partyreel-wt/loose-ends-wiring`,
   3134, agent `af847f8233bb3aa19`): cut late, no relays; respawn the same way.
 - Build 23's red-team (agent `ab63a0b9ec16c1fe1`): if its report never arrived, respawn it from
@@ -79,7 +77,7 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Wave A: `settings-wiring` (all nine event-settings picks, the doors end to end), `locked-door` r2 (the door
 family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records carry the rest.
 
-Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp stage one, settings-wiring, triage-r2-wiring.
+Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp stage one, settings-wiring, triage-r2-wiring, crumbs-14.
 
 ## Next, in order
 
@@ -129,8 +127,6 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, dis
      and three variations; the sealed cards out).
    - `schema-pass` is running (cut before `settings-wiring`'s merge, clear of every function and column the two SQL
      lanes change; what it finds there waits in its Handoff for after their merges).
-   - `crumbs-14` is running (the hub row's stick loop, the screen popup's back label, the admin sign-in's asked page,
-     a refused sign-out, the pricing teaser, a lowercase bullet).
    - After their rounds: the disposable wiring (after `disposable-mode` r2's picks, Will's Measure a phone, and
      `settings-wiring`'s merge, since it rewrites the guest path; with the lane's idea of the premiere on the wall, the
      reel's screen counting down to the develop time and playing the roll as an event of its own) and the door family's wiring (if the doorway wins, its reveal: walking through the
