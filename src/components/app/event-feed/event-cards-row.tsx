@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ListChecks,
   QrCode,
@@ -20,6 +20,7 @@ import {
   useHubCounts,
 } from "@/components/app/event-feed/host-album";
 
+import { EdgeFadeScroller } from "./edge-fade-scroller";
 import { ReelCard, useLiveReel, type ReelCardData } from "./reel-card";
 import {
   reviewCardFace,
@@ -72,7 +73,9 @@ export type RoomCard = {
  *
  * ★ THE GRADIENTS ARE CONDITIONAL, which is his `phone=same` note ("with a
  * conditional gradient over either side"): each edge fades only while there is
- * actually something past it, so a row of four that fits at 1440 shows none.
+ * actually something past it, so a row of four that fits at 1440 shows none
+ * (`edge-fade-scroller.tsx`, where the flags are written and why they once
+ * showed at every width).
  */
 export function EventCardsRow({
   eventId,
@@ -127,7 +130,7 @@ export function EventCardsRow({
       // `sm`: app-shell.tsx), so its stuck backdrop meets both window edges.
       className="sticky top-14 z-30 -mx-3 px-3 py-2 transition-[box-shadow,border-color,background-color] duration-200 data-[stuck]:border-b data-[stuck]:border-border data-[stuck]:bg-background/85 data-[stuck]:backdrop-blur sm:-mx-5 sm:px-5"
     >
-      <Scroller>
+      <EdgeFadeScroller>
         <div
           role="group"
           aria-label="This event"
@@ -191,16 +194,17 @@ export function EventCardsRow({
                 />
                 {/* ★ TWO ELEMENTS, NOT ONE WITH A TERNARY, AND THE REASON IS
                     THE LADDER. At rest the label is a CARD TITLE and wears the
-                    step for one; stuck, the card is a compact control and the
-                    label is a control label, which is a different ROLE and so
-                    is allowed a stock size. Writing both in one className would
-                    leave `font-heading` sitting beside `text-xs` on the same
-                    element, which is a heading off the ladder whichever branch
-                    is live — and type-ladder-policy is right to refuse it. */}
+                    step for one, at the heading face's own weight; stuck, the
+                    card is a compact control and the label is a control label
+                    (Inter 500 at a stock size), which is a different ROLE.
+                    Writing both in one className would leave `font-heading`
+                    beside `text-xs` and `font-medium`, a heading off the ladder
+                    at a lighter weight whichever branch is live, and
+                    type-ladder-policy refuses a weight beside the face. */}
                 {stuck ? (
                   <span className="text-xs font-medium">{room.label}</span>
                 ) : (
-                  <span className="font-heading text-card-title font-medium">
+                  <span className="font-heading text-card-title">
                     {room.label}
                   </span>
                 )}
@@ -261,56 +265,7 @@ export function EventCardsRow({
             </button>
           )}
         </div>
-      </Scroller>
-    </div>
-  );
-}
-
-/**
- * A sideways scroller whose edge fades appear only when there IS an edge. Both
- * observers are cheap and passive: one scroll listener and one ResizeObserver,
- * writing two data attributes rather than re-rendering on every frame.
- */
-function Scroller({ children }: { children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  const measure = useCallback(() => {
-    const el = ref.current;
-    if (!el) return;
-    const max = el.scrollWidth - el.clientWidth;
-    // 1px of slack: a fractional scrollWidth is normal at fractional zooms and
-    // would otherwise leave a permanent right-hand fade on a row that fits.
-    el.dataset.overflowLeft = el.scrollLeft > 1 ? "" : undefined;
-    el.dataset.overflowRight = el.scrollLeft < max - 1 ? "" : undefined;
-  }, []);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    measure();
-    el.addEventListener("scroll", measure, { passive: true });
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    for (const child of Array.from(el.children)) ro.observe(child);
-    return () => {
-      el.removeEventListener("scroll", measure);
-      ro.disconnect();
-    };
-  }, [measure]);
-
-  return (
-    <div
-      ref={ref}
-      className={cn(
-        "-mx-1 [scrollbar-width:none] overflow-x-auto px-1 [&::-webkit-scrollbar]:hidden",
-        // The fades are masks rather than overlaid gradients so they work on
-        // any background the row is stuck over, light or dark.
-        "[mask-image:none] data-[overflow-left]:[mask-image:linear-gradient(to_right,transparent,black_2rem)]",
-        "data-[overflow-right]:[mask-image:linear-gradient(to_left,transparent,black_2rem)]",
-        "data-[overflow-left]:data-[overflow-right]:[mask-image:linear-gradient(to_right,transparent,black_2rem,black_calc(100%-2rem),transparent)]",
-      )}
-    >
-      {children}
+      </EdgeFadeScroller>
     </div>
   );
 }

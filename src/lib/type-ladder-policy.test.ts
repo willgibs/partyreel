@@ -1,13 +1,15 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readdirSync, readFileSync } from "node:fs";
+import { join, relative } from "node:path";
 
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 import { cn, RADIUS_TOKENS, TYPE_STEPS } from "@/lib/utils";
 
 /**
- * THE TYPE STEPS AND RADIUS TOKENS STAY REACHABLE. Two silent failures, and
- * neither is about how a step looks (the Library shows that):
+ * THE TYPE STEPS AND RADIUS TOKENS STAY REACHABLE, AND THE HEADING FACE KEEPS
+ * ITS ONE WEIGHT. Three silent failures, and none is about how a step looks
+ * (the Library shows that):
  *
  * 1. A STEP `cn()` HAS NEVER HEARD OF. tailwind-merge does not read our
  *    stylesheet, so an unknown `text-*` falls into its `text-color` group and
@@ -20,6 +22,19 @@ import { cn, RADIUS_TOKENS, TYPE_STEPS } from "@/lib/utils";
  * 2. A NAME THE COLOR NAMESPACE ALREADY OWNS. Tailwind v4 resolves a `text-*`
  *    class as a COLOR before a font size, so a step named like a colour token
  *    (`--text-card` beside `--color-card`) is a size no className can reach.
+ *
+ * 3. A WEIGHT BESIDE THE HEADING FACE. The `font-heading` utility carries the
+ *    face's one weight (700, globals.css), and a stock `font-medium` or
+ *    `font-semibold` beside it WINS, because Tailwind emits every custom
+ *    `@utility` ahead of the stock ones: the class string names the heading
+ *    face and the stylesheet's order paints a lighter one. It came back twice:
+ *    the home's curation titles, fixed one by one, then two dozen at once, every
+ *    card, sheet, dialog and popup title among them (Will, 2026-09-29: "I have
+ *    no idea where the thin app heading weights ... came into play, but it
+ *    looks very bad compared to our standard heavier weight"). shadcn's
+ *    generator writes a weight onto every title it adds, so it will again. A
+ *    heading that should weigh something else is a change to the utility,
+ *    which moves every heading at once.
  */
 const theme = readFileSync(join(process.cwd(), "src/app/theme.css"), "utf8");
 
@@ -34,7 +49,10 @@ const declared = [...theme.matchAll(/^\s*--text-([a-z0-9-]+):\s/gm)]
 
 describe("the type steps and radius tokens", () => {
   it("are the same list theme.css and cn() are working from", () => {
-    expect(declared.length, "no --text-* step found in theme.css").toBeGreaterThan(0);
+    expect(
+      declared.length,
+      "no --text-* step found in theme.css",
+    ).toBeGreaterThan(0);
     expect([...TYPE_STEPS].sort()).toEqual([...declared].sort());
   });
 
@@ -59,5 +77,128 @@ describe("the type steps and radius tokens", () => {
     );
     const clashes = declared.filter((step) => colors.has(step));
     expect(clashes, clashes.join(", ")).toEqual([]);
+  });
+});
+
+/* ── 3. The heading face's one weight ───────────────────────────────────── */
+
+const SRC = join(process.cwd(), "src");
+
+/**
+ * Not scanned: tests, vendored source, and the lab's boards and tools, which
+ * are drawn explorations and instruments that retire with their rounds (a
+ * board quotes production's classes at the moment it was drawn). The Library
+ * IS scanned: the brand kit draws the product's type, one weight included.
+ */
+const SKIP =
+  /\.test\.tsx?$|^components\/vendor\/|^app\/\(dev\)\/design\/sandbox\/|^app\/\(dev\)\/design\/\(shell\)\/lab\//;
+
+function sources(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) return sources(full);
+    return /\.tsx?$/.test(entry.name) && !SKIP.test(relative(SRC, full))
+      ? [full]
+      : [];
+  });
+}
+
+/** A class token's utility, variants and `!` stripped: `sm:!font-medium` is `font-medium`. */
+const utility = (token: string) => token.split(":").at(-1)!.replace(/^!/, "");
+const HEADING = "font-heading";
+const WEIGHT =
+  /^font-(?:thin|extralight|light|normal|medium|semibold|bold|extrabold|black|\[\d+\])$/;
+
+/**
+ * Every CLASS EXPRESSION in a file, as the string literals inside it: a JSX
+ * `className`, a `cn()`/`cva()`/`clsx()` call outside one, and any lone string
+ * literal (a class constant). Parsed rather than grepped, so a weight in a
+ * branch of the same `cn()` counts (`variant === "quiet" && "font-normal"` was
+ * one) and a comment naming the offence does not.
+ */
+function classExpressions(file: string): { line: number; strings: string[] }[] {
+  const source = ts.createSourceFile(
+    file,
+    readFileSync(file, "utf8"),
+    ts.ScriptTarget.Latest,
+    true,
+    file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
+  );
+  const literals = (node: ts.Node, into: string[] = []): string[] => {
+    if (ts.isStringLiteralLike(node)) into.push(node.text);
+    else if (ts.isTemplateExpression(node)) {
+      into.push(
+        node.head.text,
+        ...node.templateSpans.map((s) => s.literal.text),
+      );
+    }
+    ts.forEachChild(node, (child) => {
+      literals(child, into);
+    });
+    return into;
+  };
+  const found: { line: number; strings: string[] }[] = [];
+  const at = (node: ts.Node) =>
+    source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;
+  // A class expression is read whole and not entered again, so no literal is counted twice.
+  const visit = (node: ts.Node): void => {
+    if (
+      ts.isJsxAttribute(node) &&
+      node.name.getText(source) === "className" &&
+      node.initializer
+    ) {
+      found.push({ line: at(node), strings: literals(node.initializer) });
+      return;
+    }
+    if (
+      ts.isCallExpression(node) &&
+      /^(?:cn|cva|clsx)$/.test(node.expression.getText(source))
+    ) {
+      found.push({ line: at(node), strings: literals(node) });
+      return;
+    }
+    if (ts.isStringLiteralLike(node)) {
+      found.push({ line: at(node), strings: [node.text] });
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(source);
+  return found;
+}
+
+describe("the heading face's one weight", () => {
+  const files = sources(SRC);
+  const withFace = files.flatMap((file) =>
+    readFileSync(file, "utf8").includes(HEADING)
+      ? classExpressions(file)
+          .filter(({ strings }) =>
+            strings.some((s) => s.split(/\s+/).map(utility).includes(HEADING)),
+          )
+          .map((expr) => ({ ...expr, file: `src/${relative(SRC, file)}` }))
+      : [],
+  );
+
+  it("found the heading face at all", () => {
+    // A scan that finds no heading is a broken scan, not a clean site.
+    expect(files.length, "the walk found no source").toBeGreaterThan(500);
+    expect(
+      withFace.length,
+      "no class expression names font-heading",
+    ).toBeGreaterThan(100);
+  });
+
+  it("never sets a weight beside font-heading, which would beat its 700", () => {
+    const offenders = withFace.flatMap(({ file, line, strings }) => {
+      const weights = strings
+        .flatMap((s) => s.split(/\s+/))
+        .filter((token) => WEIGHT.test(utility(token)));
+      return weights.length ? [`${file}:${line} ${weights.join(" ")}`] : [];
+    });
+    expect(
+      offenders,
+      `A weight class beside font-heading replaces the face's one weight. Delete it; ` +
+        `a heading that should weigh something else is the utility's to change:\n` +
+        offenders.join("\n"),
+    ).toEqual([]);
   });
 });

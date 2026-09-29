@@ -242,7 +242,8 @@ export function LiveReelView({
   const [prevHostStyle, setPrevHostStyle] = useState(hostStyle);
   if (hostStyle !== prevHostStyle) {
     setPrevHostStyle(hostStyle);
-    if (readStyleId(qrToken) === null) setStyleId(resolveLiveStyleId(hostStyle));
+    if (readStyleId(qrToken) === null)
+      setStyleId(resolveLiveStyleId(hostStyle));
   }
   const [prevHostHold, setPrevHostHold] = useState(hostHold);
   if (hostHold !== prevHostHold) {
@@ -1220,7 +1221,7 @@ function CornerCode({
       <div className="max-w-[12rem] text-right sm:max-w-[16rem]">
         <p
           className={cn(
-            "font-heading font-semibold text-white",
+            "font-heading text-white",
             // A wall is read across a room: the page step there, a card title in the hand. (The
             // section step would break "Scan to add yours" over two lines at a laptop's width.)
             screen ? "text-page" : "text-card-title",

@@ -210,9 +210,11 @@ button).
   emblem's glyph), which a viewport clamp would size by the wrong box; an Inter label inside a heading tag, kept for the
   outline (the feed's section header, the dashboard's section labels, the admin bands), never "fixed" onto a step; and
   `app/global-error.tsx`, which replaces the whole document, stylesheet included, so its h1 is sized inline.
-- **Weight rides on the step**: `PageHeading` is the one source of every app and admin `<h1>` at 700 (a
-  `font-semibold` would drop it to 600, and a stock size passed in takes it off the ladder); `CardTitle` is 600, labels
-  and eyebrows Inter 500.
+- **One heading weight, 700, and its one home is the `font-heading` utility**: no weight class sits beside it, since
+  Tailwind emits the custom utility ahead of the stock weights and `font-heading font-medium` paints 500
+  (type-ladder-policy refuses it), so a heading that should weigh otherwise is the utility's change. `PageHeading` is
+  the one source of every app and admin `<h1>` (a stock size passed in takes it off the ladder); labels and eyebrows
+  are Inter 500.
 - **Marketing heroes compose `PageHero`** (eyebrow, h1, subhead, actions; `scale` picks the step, `children` is the
   stage, `backdrop` sits behind; the heading always an `<h1>`, as `SectionShell`'s `as` is for sections). Its entrances
   are named registers (`rise`, `cut`, `blur`), and the h1 never moves in any: an h1 resting at `opacity: 0` is an LCP
