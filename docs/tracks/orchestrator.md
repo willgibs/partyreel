@@ -40,9 +40,7 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `schema-pass` | the data architecture trimmed | merged at `57b17ace`; part 1 applied on Will's go-ahead (2026-09-29, his answer "Yes, apply part 1"; recorded `20260929210010`, the payload the file's md5; advisors 18/4/33; anon REST 42501; types regenerated at `c7a50adc`); a signed-in host walk on partyreel.com rides build 25's red-team as a follow-up; part 2 (`20260929170000`) after milestone 31 ships | Opus, 3132 | `54f414f9` |
-| `demo-framing-r2` | demo-framing r2, a board: the demo's slug in the host's voice or a typewriter of slugs, how the typewriter and the stream share the home hero (or the stream moves to the QR page), the hero's clickable touch in place of its eyebrow | handed off; integrating (agent `ac4d9d8416d49b653`) | Opus, 3133 | `5c32f5c8` |
-| `about-press` | about-press r1, a board: the press kit folded into /about (with or without its four facts, as a usage note or none) or dropped; the press-page board retired in-lane | handed off; integrating after demo-framing-r2 (agent `ac39cec52094cc601`) | Opus, 3135 | `87b4bb6f` |
-| `menu-depth` | on Will's word ("Remove it"), the dropdown's render-time throw on a third submenu level removed, its guidance kept as a comment and the sub-menu's portal test kept | running (agent `a5c372b3de31ef79b`; worktree `../partyreel-wt/menu-depth`) | Sonnet, 3132 | |
+| `menu-depth` | on Will's word ("Remove it"), the dropdown's render-time throw on a third submenu level removed, its guidance kept as a comment and the sub-menu's portal test kept | handed off; integrating (agent `a5c372b3de31ef79b`) | Sonnet, 3132 | `df5f9605` |
 | `crumbs-19` | build 25's red-team finds (the app bar's trail on a route that sets none, the guest report article's screens drawing the photo's own Report) and crumbs-18's three follow-ups (the hub's sheet closed once on a double close, the reel's entry through a refresh, the text-distance test retired) | running (agent `a74fa1c6a2ff11799`; worktree `../partyreel-wt/crumbs-19`) | Sonnet, 3131 | |
 | `privacy-hero-r4` | privacy-hero r4, a board: the veil as drawn and three variations of it, the sealed cards out, the sweep and the aperture banked | running (agent `ac010b14ad42386af`; worktree `../partyreel-wt/privacy-hero-r4`) | Opus, 3133 | |
 
@@ -74,73 +72,46 @@ Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcr
 boards). Batch 7 is merged whole; its records carry the rest.
 
 Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp
-stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration applied by protocol, 20260929204753), unfence, crumbs-18.
+stage one, settings-wiring, triage-r2-wiring, crumbs-14, lab-revamp stage two, crumbs-15, loose-ends-wiring, contact-wiring, desk-tune, event-ready r1, window-notes, crumbs-16, album-motion-wiring, crumbs-17 (its migration applied by protocol, 20260929204753), unfence, crumbs-18, demo-framing-r2, about-press.
 
 ## Next, in order
 
-1. **Build 23 was red-teamed live** (2026-09-29, `../partyreel-wt/_scratch/redteam-23/ledger.txt`; the cleanup read back
-   by SQL: no open report, its four events deleted, nothing held): settings 9 of 11 PASS (W5 not driven, a password;
-   W8 is BUG-1, `crumbs-16`), triage 7 of 7 (T4's purge and T6's after-yes half not drivable). Its finds are
-   `crumbs-17`'s (running): BUG-2 MEDIUM (listing a waiting newcomer's
-   address never admits her waiting row: she stays at the door, the pulse and the bell count her, Decline would block
-   a joined guest), BUG-3 LOW (the host's own album through `/e/` offers Report; `viewerIsHost` reaches only the
-   dashboard grids), LOW-2 (the operator cannot tell a host's report from a guest's), NIT-1 to NIT-11 (the ledger),
-   and the ROADMAP's two dead-seam lines from `crumbs-15`. The calls to overrule and his two decisions (the proof mail,
-   the instant-hide bar's permanence) went to him in one file.
-2. **Integrate each lane as it hands off** (demo-framing-r2, crumbs-18, about-press, menu-depth), each migration by
-   protocol, one at a time: drift check, apply verbatim, the rolled-back refusals, advisors, types. The two wiring
-   lanes' ledgers are gone with their boards;
-   `../partyreel-wt/_scratch/triage-r2-wiring/` goes after crumbs-16's merge (it holds the relayed help article).
-3. **The PREMISE re-read is done:** `disposable-mode`'s eight hold on build 23 (he may sit on it now); `locked-door`'s
-   "as today" is production's doors since `desk-tune` (merged at `643c46e9`), so its four reach him with build 24. His
-   paste from either desk transcribes with the new `lab:review` (the words renamed, the grammar kept; `--dry` first).
-4. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note):
-   - `schema-pass` (running): it re-verifies every item
-     against the schema as it stands (event_doors and triage_r2 applied since its audit), then writes and proves part
-     1; part 2 waits for milestone 31; Q2 to Q5 as recommended (the data architecture is mine). Applying part 1: grep
-     `main` for every dropped name, the protocol, then a live smoke of the anonymous surfaces on partyreel.com and the
-     alias (a guest page by token, a public profile, help feedback, the newsletter), since prod shares the database. A
-     second classifier refusal: stop and tell him.
-   - `demo-framing` r2 next (Opus; its spec is drafted from the round's lines below).
-   - Marketing rounds: `demo-framing` r2 (a slug in the host's voice, `my-party` or `our-wedding`, against a
-     typewriter of slugs; the typewriter sharing the stage with the stream, or leading while the QR and stream move to
-     the QR page's hero; a clickable touch in place of the "Try our demo event" eyebrow; an album spanning every kind of
-     party; every printed slug reserved; `names` reshaped); `about-press` r1 (the press kit folded into /about, drawn
-     with and without a four-fact strip and with no kit; the boilerplate dropped; then /press redirects to /about, the
-     nav, footer, sitemap and llms files kept current; press-page's `a-human` reshaped); `privacy-hero` r4 (the veil
-     and three variations; the sealed cards out).
-   - After their rounds: the disposable wiring (after `disposable-mode` r2's picks and Will's Measure a phone; with the
-     lane's idea of the premiere on the wall, the reel's screen counting down to the develop time and playing the roll
-     as an event of its own) and the door family's wiring (if the doorway wins, its reveal: walking through the opened
-     door into the album, drawn first as motion options; ASSETS row 36 if the host's door wins).
-5. **Build 25 was red-teamed live** (`c038e4eb`, `../partyreel-wt/_scratch/redteam-25/ledger.txt`): 23 of 23 PASS,
-   Settings whole (BUG-1 fixed), the doors and triage as build 23, the contact note end to end, the egg and the FAQ, the
-   desk clean. Its finds are `crumbs-19`'s (running): BUG-A LOW (`SetCrumbs` never clears on unmount, so the
-   app bar keeps a left event's crumb on `/dashboard` and `/account`, a deleted event's included), NIT-a (the guest
-   report article's step screens draw the album's form while its text leads with a photo's own Report), NIT-b (answered by
-   `crumbs-18`'s "can be hidden"). The signed-in walk on partyreel.com after schema-pass
-   part 1 passed 5 of 5 (the Orchestrator, on Will's explicit yes in chat after the classifier refused the agent twice;
-   every restore read back by SQL; the ledger's last lines). Build 26 carries crumbs-17, unfence, album-motion, the types after both migrations, crumbs-18
-   (merged at `cdc979a6`; its seven red-team walks in its merge's Handoff) and menu-depth when it lands, then its red-team; then milestone 31 is proposed to Will (his yes); schema-pass's part
-   2 applies after it ships.
-6. **The demo event**, after `demo-framing` r2 (his full permission, 2026-09-29; the r1 board merged at `51db72fc`):
-   the demo renamed (or made) to its pick, its slug claimed so the card's printed address opens it (today
-   `mia-and-theo`, held by no event, left as is on his word), one home for the slug in `lib/demo.ts` that the card
-   prints, the seed sets and every demo door opens (today all five doors and `/demo` open the token's address, since
-   demo mode matches on the raw token), `OBJECT_EVENT` and `OBJECT_PRINTS` to match, a demo host account if `host` stands
-   (`partyreel-demo` stays refused to anyone else by the brand family, `crumbs-11`), and ASSETS rows 5, 33 and 34
-   unparked with the party's subjects.
-7. **At milestone 31**: `kit/README.md`'s type table follows `crumbs-12` (every heading 700); Google's chooser names
+1. **Integrate each lane as it hands off** (menu-depth first, at `df5f9605`; then crumbs-19, privacy-hero-r4, crumbs-20,
+   crumbs-21), each migration by protocol, one at a time: drift check, apply verbatim, the rolled-back refusals,
+   advisors, types.
+2. **Build 26** (`[preview]`, `alias-ensure.mjs`, prune) once menu-depth lands: crumbs-17, unfence, album-motion, the
+   types after both migrations, crumbs-18, demo-framing r2, about-press r1 and menu-depth. Then its red-team (Opus, the
+   build 25 brief's shape): crumbs-17's listed walks, crumbs-18's seven (`git show cdc979a6^2:docs/tracks/crumbs-18.md`),
+   the account menu's Theme at 375 and at a desk (menu-depth), and the desk with its two new boards. Then milestone 31
+   is proposed to Will (his yes); schema-pass's part 2 applies after it ships.
+3. **Seats as they free** (at most four lanes; `memory_pressure` before each; app work first, Will's note): the lab's
+   phone fold (ROADMAP's line: at 375 every standing board's step starts its stage past a screen, found by three lanes).
+   After his desk picks: the demo event (below); about-press's wiring (its three wiring calls,
+   `git show 3ded6ba9^2:docs/tracks/about-press.md`: /press a temporary redirect, the llms summary kept, the kit's files
+   if none wins); the disposable wiring (after `disposable-mode` r2's picks and his Measure a phone; with the lane's
+   idea of the premiere on the wall, the reel's screen counting down to the develop time and playing the roll as an
+   event of its own); the door family's wiring (if the doorway wins, its reveal: walking through the opened door into
+   the album, drawn first as motion options; ASSETS row 36 if the host's door wins).
+4. **The demo event**, after his `demo-framing` r2 picks (his full permission, 2026-09-29): the demo renamed (or made)
+   to its pick, its address claimed so the card's printed address opens it (today `mia-and-theo`, held by no event,
+   left as is on his word), one home for the slug in `lib/demo.ts` that the card prints, the seed sets and every demo
+   door opens (today all five doors and `/demo` open the token's address, since demo mode matches on the raw token),
+   `OBJECT_EVENT` and `OBJECT_PRINTS` to match, the typed addresses reserved to the demo, a demo host account for the
+   persona (`partyreel-demo` stays refused to anyone else by the brand family, `crumbs-11`), and ASSETS rows 5, 33 and
+   34 unparked with the party's subjects (the board's Handoff names the counts).
+5. **At milestone 31**: `kit/README.md`'s type table follows `crumbs-12` (every heading 700); Google's chooser names
    `ddafaemglzmuekbtjwzn.supabase.co` (ROADMAP's launch checkpoint, his call).
 
 ## Waiting on Will
 
-- **His desk:** `disposable-mode` r2 (eight asks) and `locked-door` r2 (four, redrawn from production) on build 24;
-  `event-ready` r1 (five, merged at `5a027e53`; its three settled calls, ready never stored nor shown to a guest among
-  them, are his to overrule) reaches him with build 25. Two older asks wait on the rounds that replace their boards: demo-framing's `names` (behind `story=?`) and
-  press-page's `a-human` (the About round).
-- **His answer on the calls file** (28 calls to overrule, numbered; sent 2026-09-29): A, the proof mail (recommended
-  off until the emails round) and B, the instant-hide bar's permanence (recommended permanent until launch).
+- **His desk:** `disposable-mode` r2 (eight asks), `locked-door` r2 (four, redrawn from production) and `event-ready` r1
+  (five; its three settled calls, ready never stored nor shown to a guest among them, his to overrule) on build 25;
+  `demo-framing` r2 (three: the demo's address in a host's words, how it shares the stage with the stream, the hero's
+  touch; `names` retired into `slug`) and `about-press` r1 (two: the press kit on /about, its four facts; press-page's
+  `a-human` retired as the carried call `named`) reach him with build 26.
+- **His answer on the calls file** (34 calls to overrule, numbered; 33 and 34, crumbs-18's and menu-depth's, added
+  2026-09-29): A, the proof mail (recommended off until the emails round) and B, the instant-hide bar's permanence
+  (recommended permanent until launch).
 - **The morning of 2026-09-30, on his phone** (his word): `disposable-mode` r2's Measure a phone on the alias (the
   board's dock: Open the camera, Take a frame, the camera app's photo, on his iPhone and an Android if he has one; paste
   the line back: the full-size promise rides on it); Q1 (on a phone the code card fills the screen, but Back

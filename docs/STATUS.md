@@ -27,9 +27,10 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 ## The desk
 
-Build 22's desk: `locked-door` r2 (four asks: the door family's direction first) and `disposable-mode` r2 (eight: the
-camera first) and `event-ready` r1 (five), every ask with its context, served on build 25. Two older asks wait on the rounds that replace their boards (demo-framing's `names`,
-press-page's `a-human`).
+Build 25's desk: `locked-door` r2 (four asks: the door family's direction first), `disposable-mode` r2 (eight: the camera
+first) and `event-ready` r1 (five), every ask with its context. Build 26 adds `demo-framing` r2 (three: the demo's
+address in a host's own words, its stage beside the stream, the hero's touch) and `about-press` r1 (two: the press kit
+on /about and its facts); the two older asks retired into them as carried calls.
 
 ## Live state
 
@@ -38,18 +39,18 @@ press-page's `a-human`).
   door redirects; the signed-in pass PASS (the renew return, the hub past 1,000, the list always on, the look's
   Block, Settings whole, the reel, the owner's password album, the slug refusal). `admin.partyreel.com` is served by `partyreel-admin`
   (`NEXT_PUBLIC_SURFACE=admin`) and the apex by `partyreel` (`=app`).
-- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 25 (`c038e4eb`): build 23's doors,
-  settings, reports and hold, plus the lab as one folder a board, the contact page, the FAQ look and the Everywhere
-  egg, the door family board redrawn from production, the event-ready board, Settings' pages fixed (BUG-1) and the
-  guest's report article; its red-team runs. Build 23 was red-teamed live: settings 9 of 11 (BUG-1 in
-  `crumbs-16`), triage 7 of 7; its other finds are `crumbs-17`'s.
-- **The shared database** runs nine migrations applied 2026-09-29 (the block, the free shift, the operator removal purge,
-  the help's feedback, the pass reminders switch, likes on private albums, the slug family, the doors, the triage rebuild), which partyreel.com's milestone-30 build now
-  matches; no Free account holds more than 100 MB.
+- **The alias** (`https://partyreel-git-launch-prep-partyreel.vercel.app`) serves build 25 (`c038e4eb`), red-teamed live
+  23 of 23 (Settings whole, the doors, triage, the contact note, the FAQ and the egg, the desk); its finds are
+  `crumbs-19`'s. Build 26 follows menu-depth's merge.
+- **The shared database** runs eleven migrations applied 2026-09-29 (the block, the free shift, the operator removal
+  purge, the help's feedback, the pass reminders switch, likes on private albums, the slug family, the doors, the triage
+  rebuild, the invite list's admit, and schema-pass part 1: six unused columns and their indexes dropped, `anon`'s table
+  access and the client roles' default grants closed, three length checks). partyreel.com's milestone-30 build was
+  walked signed in after part 1, 5 of 5; part 2 (the contract) applies after milestone 31 ships.
 - **Data:** every event, media item and account is test data, free to change, reset or delete (Will, 2026-09-25);
   signups stay off until launch, so nothing real arrives. The accounts and fixtures are in
   [`systems/testing-verification.md`](systems/testing-verification.md).
-- **Tests:** about 6,950 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
+- **Tests:** about 7,250 green. The gate is local: typecheck, lint, test, build, `lab:smoke`, `lab:demo`.
 - **Jobs:** the daily purge cron (Vercel Hobby fires it at 04:48 UTC; its first run on milestone 28's sweeps was green:
   every sweep ok, none stopped early, the orphan scan read 1,368 objects and deleted none, the standby budget's one host
   willg97 with the withdrawals out), the media-backup Worker and the daily DB-backup Action are live; the deletion-aware
@@ -72,6 +73,5 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- Q1, Measure a phone, the real-upload check and the iPhone check are his in the morning on his phone; the admin
-  portal's code when the red-team parks; with its result, the two lanes' calls and the proof mail's yes
-  (`tracks/orchestrator.md`). The schema pass has his yes (2026-09-29).
+- His desk (above); Q1, Measure a phone, the real-upload check and the iPhone check in the morning on his phone; the
+  calls file's 34 calls and its two decisions, the proof mail and the instant-hide bar (`tracks/orchestrator.md`).
