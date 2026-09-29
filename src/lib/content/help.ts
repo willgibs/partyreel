@@ -144,7 +144,8 @@ export const HELP_CATEGORIES = [
     title: "Troubleshooting",
     blurb: "When something won't scan, send, or upload.",
     icon: Wrench,
-    // No marketing rung for failure modes; the contact band is its "up" path.
+    // No marketing rung for failure modes: each fix article ends on its own `rung` instead (the
+    // frontmatter's), back to the calm, working version of the same act (`dead-end=rung`).
     feature: null,
   },
 ] as const satisfies readonly {
@@ -200,6 +201,16 @@ export const helpFrontmatterSchema = z.object({
   plans: z.array(z.enum(["free", "pro", "event_pass"])).default([]),
   /** The one action under the short answer ("Open your dashboard"). */
   action: z
+    .object({ label: z.string().min(1), href: z.string().min(1) })
+    .optional(),
+  /**
+   * TROUBLESHOOTING'S OWN RUNG (help-center r1 `dead-end=rung`): where a fix article ends, "Working
+   * now?" and a link back to the calm, working version of the same act, in the place every other
+   * category's "bigger picture" pointer takes. Every troubleshooting article carries one and no
+   * other article does (help.test.ts), and it always lands on a published article outside
+   * troubleshooting: the calm version of an act is never another fix.
+   */
+  rung: z
     .object({ label: z.string().min(1), href: z.string().min(1) })
     .optional(),
 });
