@@ -41,6 +41,7 @@ a lane").
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
 | `emails-wiring` | emails r1 on the ten mails that already send: one shell, the wordmark, light only, tagged operator subjects, the foot with no address and the renewal nudge's unsubscribe (a migration), a plain-text twin; the three dead switches leave; nothing new sends; emails retires | running, agent `adc42bfa207564886` | Opus, :3133 | |
+| `demo-framing` | a new board, round one: the story the demo tells (`story`, `names`, `demo`) on the home hero's link card and the album it opens; registered after `disposable-mode` | running, agent `ad22c252b4ce52c45` | Opus, :3132 | |
 | `export-wiring` | export-flow's six: the Yours row filtered on the server, the toast that stays with a subtle cancel, the one-line empty refusal, parts in plain words, a phone's Download all to Files; the Worker backward compatible (I deploy it after the merge); export-flow retires | running, agent `aa10025fff8b6ba0e` | Opus, :3131 | |
 | `triage-wiring` | admin-triage r1's six: the marked reason, the verdict's note, the window, the escalation door, the shape idiom, a reported removal purged from the host's view (a migration; legal hold and preservation kept); the reports clause drafted | running, agent `a347eb3bf09ed556f` | Opus, :3132 | |
 | `help-wiring` | help-center's seven: host first, the strip with quick questions in the focused search, illustrated steps, contextual links and a Help row in the menus, the feedback beacon (a migration) with its admin view, the rung, Search in the header and footer; help-center retires | running, agent `a6ca95d7a7aab7b4b` | Opus, :3134 | |
@@ -61,11 +62,6 @@ Merged in batch 7 (their records carry the rest): locked-door, disposable-mode, 
      over it). Large files go through a helper that transcribes, `cmp`s, applies and proves; the recorded md5 is the
      check.
 2. **Wave B into each free seat**, in this order (his answers are in the ledgers; each brief carries his notes).
-   - `demo-framing` (Opus), a new board at the next free seat (spec in the scratchpad's `specs/`): the story the demo
-     tells, on the home hero's link card and the album it opens. His note (2026-09-29): "I don't love our working title
-     of 'Mia & Theo', it feels kind of weird for a demo name ... let's land on the best framing of it." Its asks:
-     `story` (what party), `names` (who it names, if anyone), `demo` (one demo renamed and re-seeded, a dedicated
-     hero event, or the card as an illustration). Registered after `disposable-mode`.
    - After his `demo-framing` pick (his full permission, 2026-09-29): the demo event made or renamed to the story, its
      slug claimed so the card's printed address opens it, `hero-stream.ts`' `OBJECT_EVENT` to match, and ASSETS rows
      33 and 34 unparked.
