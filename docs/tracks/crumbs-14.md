@@ -16,9 +16,20 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/components/marketing/sections/home/pricing-teaser.tsx
   - src/components/marketing/sections/home/price-pop.tsx
   - src/components/marketing/mdx/spec-shared.tsx
+  # added in flight (2026-09-29): the paths the admin sign-in's page and the refused sign-out reach
+  - src/lib/auth/admin-context.test.ts
+  - src/app/(auth)/login/page.tsx
+  - src/app/(auth)/auth/callback/route.ts
+  - src/app/(auth)/auth/callback/route.test.ts
+  - src/components/auth/login-form.tsx
+  - src/components/auth/login-form.test.tsx
+  - src/components/auth/sign-out-form.tsx
+  - src/components/auth/sign-out-form.test.tsx
+  - src/components/app/user-menu.tsx
+  - src/components/app/user-menu.test.tsx
+  - docs/systems/auth-accounts.md
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/host-app.md
-  - docs/systems/auth-accounts.md
   - docs/systems/design-system.md
 ---
 
