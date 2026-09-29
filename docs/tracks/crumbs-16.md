@@ -15,6 +15,9 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(dev)/design/(shell)/lab/_desk/review-session.tsx
   - src/lib/history-state-policy.test.ts
   - content/help/report-a-problem-as-a-guest.mdx
+  # added at boot (2026-09-29): the one stand-in every history test reads, so the drift guard has one home
+  - src/lib/test-utils/next-history.ts
+  - src/lib/test-utils/next-history.test.ts
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/host-app.md
   - docs/systems/testing-verification.md
@@ -48,7 +51,23 @@ working.
 
 ## Questions (a recommended answer each; the Orchestrator relays them)
 
-- none yet
+Each recommended answer is BUILT and his to overrule; none is a one-way door.
+
+- **No call in the sweep stays an exception: the lab's four writes tell Next too.** The brief left room for a
+  reasoned exception; measured under `next dev` on the real lab (`/design/lab`), none holds. `useLabState()` is Next's
+  `useSearchParams`, and it feeds `CopyLink` and every sticky link, so a `session` or card the writes never told Next
+  about left Copy link naming the last URL Next had seen; and `router.refresh()` fetched and rewrote the bar to that
+  stale URL. `replaceState(null, ...)` costs no server round trip (no `_rsc` request) and leaves `__NA` and the tree
+  on the entry (Back through it did not reload), so `board-state.tsx`'s lab-tides comment ("`replaceState(null)`
+  throws Next's bookkeeping away") was wrong under Next's patch. The policy test's allow-list stays empty. The
+  overrule: keep the lab's writes router-silent, one allow-list entry each with its why, and `CopyLink` reading the
+  address at the click.
+- **The relayed article says "we may write to the address you confirmed"; nothing writes to a reporter today.** Ask for
+  proof's mail waits behind `ops_flags.report_proof_mail_enabled`, seeded OFF (his yes flips it). Built: the sentence
+  stays in the form's own words ("We'll write only if we need more from you", `report-dialog.tsx`), so the article
+  never says more than the shipped form does. The overrule: drop the sentence until the switch is on.
+- **A video's form is titled "Report this video".** The relay says "photo" throughout; built: the article says the form
+  is titled for what is reported (a photo, or the event from the page's foot), which holds for a video too.
 
 ## System-doc edits (in place, owned facts only)
 
