@@ -63,7 +63,7 @@ family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records
      (his note is the board's `hold` option), each one press, the hold's reason the report's reference; the per-photo
      report gap; a reporter's confirmed address kept only until the report closes; Ask for proof is a new mail, built
      behind a switch left off for his yes (his emails rule); no guest-path function replaced; retires admin-triage.
-   - The lab revamp (step 7), once `locked-door` r2 and `disposable-mode` r2 merge; a board cut meanwhile is converted at
+   - The lab revamp (step 8), once `locked-door` r2 and `disposable-mode` r2 merge; a board cut meanwhile is converted at
      its sync, since lab work never delays a board.
    - `event-ready` r1 (Opus), once `settings-wiring` merges: his event checklist and the settings' mini wizard (and
      whether Create shares it), taking ROADMAP's "what needs you" and "the hub's code as the event's live door" lines
@@ -82,19 +82,30 @@ family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records
      with and without a four-fact strip and with no kit; the boilerplate dropped; then /press redirects to /about, the
      nav, footer, sitemap and llms files kept current; press-page's `a-human` reshaped); `privacy-hero` r4 (the veil
      and three variations; the sealed cards out).
+   - `schema-pass` (Opus), once `settings-wiring` merges (it owns the guest path this batch): the whole data
+     architecture audited (tables, columns, functions, grants, indexes, RLS), the dead dropped (the reel's dormant
+     `media.highlight_score` and `clip_*`, the latent TRUNCATE, REFERENCES and TRIGGER grants, `get_event_by_qr_token`'s
+     PUBLIC EXECUTE) and what can be better simplified, reported as a list. His standing permission (2026-09-29): the
+     data architecture is the Orchestrator's, anything useless dropped, timed so partyreel.com's live build never
+     reads a dropped thing.
    - After their rounds: the disposable wiring (after `disposable-mode` r2's picks and `settings-wiring`'s merge, since
      it rewrites the guest path) and the door family's wiring.
-4. **Build 21** once `locked-door` r2 and `disposable-mode` r2 land, with the wiring merged by then; `settings-wiring`'s
+4. **The claims walk**, once build 20's red-team reports (his full permission, 2026-09-29): the Orchestrator stages
+   claimable rows for partyr33l itself (the query in Waiting on Will's old line, in git at `bbd3df6c`), spawns a
+   claims-walk red-team, and restores every staged row after.
+5. **Build 21** once `locked-door` r2 and `disposable-mode` r2 land, with the wiring merged by then; `settings-wiring`'s
    build gets a red-team of its own (every door, both ways through each swap, the Guests room, the pages).
-5. **The demo event**, after `demo-framing` r2 (his full permission, 2026-09-29; the r1 board merged at `51db72fc`):
+6. **The demo event**, after `demo-framing` r2 (his full permission, 2026-09-29; the r1 board merged at `51db72fc`):
    the demo renamed (or made) to its pick, its slug claimed so the card's printed address opens it (today
    `mia-and-theo`, held by no event, left as is on his word), one home for the slug in `lib/demo.ts` that the card
    prints and the seed sets, `OBJECT_EVENT` and `OBJECT_PRINTS` to match, a demo host account if `host` stands
    (`partyreel-demo` stays refused to anyone else by the brand family, `crumbs-11`), and ASSETS rows 5, 33 and 34
    unparked with the party's subjects.
-6. **Milestone 30** on his yes, once his legal wording is in; after it, `kit/`'s screens re-captured from partyreel.com
+7. **Milestone 30** on his yes, once his legal wording is in (presented whole in chat, 2026-09-29; applied on his
+   approval); the moment partyreel.com is READY on it, drop `events.show_guest_list` and the three `notification_prefs`
+   columns for mail nothing sends (his yes, 2026-09-29; the milestone-29 build reads them until then); after it, `kit/`'s screens re-captured from partyreel.com
    (the home's hero, close, teaser and eyebrow, the demo's doors, the pricing page).
-7. **The lab revamp**: a board as one self-registering folder, its metadata in its spec, lab checks scoped to the
+8. **The lab revamp**: a board as one self-registering folder, its metadata in its spec, lab checks scoped to the
    lane's own boards, the authoring API trimmed, a fresh agent proving it (the first board cut after it); with
    library-lean's board ideas (a `Surfaces` family of live frames per route with guest entries, the Library's sidebar
    open by default, a plain-text view of Library pages, a retire-or-reuse call on `anonymous-info.tsx` and
@@ -105,43 +116,26 @@ family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records
 
 - **His desk: zero** after build 19's sitting. Two asks wait on the rounds that replace their boards: demo-framing's
   `names` (behind `story=?`) and press-page's `a-human` (the About round).
-- **His stacked to-dos, in leverage order** (sent 2026-09-29, once the desk reached zero):
-  1. **His legal wording**, which gates milestone 30 (launch-prep carries batches 4 to 8; the runbook's aim is about
-     two). The lanes propose; Terms and Privacy are his:
-     - the guest list always on and the host's block: `safety-wiring`'s drafts (Terms :123, :417, :422, :428; Privacy
-       :165, :305, :311) are its manifest's Questions at `5d8c57c9` (`git show 5d8c57c9:docs/tracks/safety-wiring.md`);
-       the real call is that a block keeps a confirmed address after its account is deleted, so a sign-up with it stays
-       out;
-     - the Terms' plan paragraph (1.8) and clips paragraph, which `pricing-wiring` edited to match his shift (the one
-       legal edit a lane has made), his to reword;
-     - the reports clause: `triage-wiring`'s drafts (the Terms' summary and moderation lines, the Privacy Policy's
-       summary and reports lines: "a report removes nothing by itself, and we act only where a breach is clear") are its
-       manifest's Questions at `c6bd5f5f`;
-     - the private count: the Terms ("Profiles and social features", `src/lib/constants/legal-terms.tsx:422`) and the
-       Privacy Policy (`legal-privacy.tsx:311`) promise nothing you attend appears on a profile until you choose it, and
-       an empty page now says "2 private events". The lane's wording, his to change: "A profile with nothing on it may
-       say how many events it keeps private, counting only events whose guest lists the visitor can already see."
-  2. **A yes on dropping `events.show_guest_list`** and the three `notification_prefs` columns for mail nothing sends
-     (destructive): launch-prep reads none of them; partyreel.com's build selects them until milestone 30 ships.
-  3. **The hold doctrine** (`triage-wiring`'s three, recommended and NOT built, since holds are his): a host's soft
-     remove passing through a hold (her Deleted takes it; restore still refused, every purge still skips it), so a held
-     item no longer stays up beside the rest leaving, a tell; the host's read of `profiles.storage_used_bytes` taken
-     away (it shows a hold's bytes staying); `purge_media_now` skipping an item an open report names, as it skips a
-     hold. Each yes is a small lane with a migration.
-  4. **The claims review's live walk**: it needs claimable rows staged for a test account (`update public.guests set
-     pending_email = '<address>', pending_email_at = now() where id in (...)` on name-only rows with live uploads), a
-     write the permission classifier refused the red-team; Will stages them (or walks it himself as partyr33l), and the
-     restore puts `pending_email`, `email`, `user_id`, `verified_at` and `display_name` back (a claim writes `email` and
-     nulls the name). The pointer's row rides it: with claimable rows at two or more other events, one photo uploaded
-     signed out at a names-mode album, then Confirm your email through the chooser, the moment card says "N more events
-     have photos waiting on your dashboard, whenever you like." with nothing to press, and the banner counts the same.
-  5. **Q1**: on a phone the code card fills the screen, but Back leaves the album (a look, not a place, by design);
-     should Back close it like the other full-screen popups?
-  6. **A 2-minute real-upload check on the alias**: a first photo, landscape, as a signed-out guest at a held-uploads
-     event (the keep; her uploads' "Waiting for approval" and the tracker's badge, with no held tile at the album's
-     head), then Confirm your email (the one beat, the told name's Change). Its stored size (`media.file_size_bytes`)
-     also checks the photo estimate (3.5 MB).
-  7. **A 10-second iPhone check on partyreel.com**: one tap on Save opens the system sheet, and a shared photo arrives
-     as a photograph; and Settings > Camera > Record Video's size for 1080p at 30 fps (the estimate uses 65 MB a minute).
+- **His legal wording**, presented whole in chat (2026-09-29), now and proposed: the guest list always on (Terms :123,
+  :414, :425; Privacy :305), the host's block (Terms :425; Privacy :165, :311; the real call: a block keeps a
+  confirmed address after its account is deleted), the plans and clips paragraphs `pricing-wiring` edited, the reports
+  clause (Terms :433, :436; Privacy :675, :680, with the Orchestrator's addition for `proof=confirm`: a reporter's
+  confirmed address kept only until the report closes, "never told who filed one" in place of "anonymous"), and the
+  private count (Terms :419; Privacy :311). The drafts' sources: `git show 5d8c57c9:docs/tracks/safety-wiring.md`,
+  `git show c6bd5f5f:docs/tracks/triage-wiring.md`, `git show a2076912 -- src/lib/constants/legal-terms.tsx`. On his
+  approval the Orchestrator applies them (the one writer of the legal files for this) and prepares milestone 30. The
+  door's new words (Public, Private, Only me) bring a small set of their own with `settings-wiring`, for milestone 31.
+- **The hold doctrine**, explained in chat (2026-09-29), a yes or no on each of `triage-wiring`'s three (all
+  recommended): a host's delete of a held item looks like any delete (her Deleted takes it; restore still refused,
+  every purge still skips it), so a held photo no longer stays up beside the rest leaving; the host's read of
+  `profiles.storage_used_bytes` taken away (no host screen reads it; it shows a hold's bytes staying); `purge_media_now`
+  skipping an item an open report names, as it skips a hold. Each yes is a small lane with a migration.
+- **The morning of 2026-09-30, on his phone** (his word): Q1 (on a phone the code card fills the screen, but Back
+  leaves the album; should Back close it like the other full-screen popups?); the 2-minute real-upload check on the
+  alias (a first photo, landscape, as a signed-out guest at a held-uploads event: the keep, her uploads' "Waiting for
+  approval" and the tracker's badge, no held tile at the album's head; then Confirm your email, the one beat, the told
+  name's Change; its `media.file_size_bytes` checks the 3.5 MB estimate); the 10-second iPhone check on partyreel.com
+  (one tap on Save opens the system sheet and a shared photo arrives as a photograph; Settings > Camera > Record
+  Video's size for 1080p at 30 fps, against the 65 MB a minute estimate).
 - **Asks that come due later**: the proof mail's yes (when `triage-r2-wiring` lands), Libraries.dev access for a lane
   (when the help chat is cut), and any F1 frames he loves (when the admin look is cut).
