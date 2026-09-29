@@ -110,7 +110,7 @@ export const ABOUT_PRESS = defineExploration({
       where: ["Marketing", "About", "After the six convictions"],
       when: "A writer lands from /press's redirect, or reads About to its end, and wants the logo for a story.",
       matters:
-        "It decides whether About stays one story or also hands out the brand's files, and what /press lands on.",
+        "About earned its place with one story; a kit asks it to serve a second reader too, and /press's visitors land here.",
       lands:
         "What About adds after its convictions, where /press lands, and whether public/press/ and its zip stay.",
       context:
@@ -159,7 +159,7 @@ export const ABOUT_PRESS = defineExploration({
       today: "none",
       recommended: "band",
       because:
-        "It keeps the whole kit one press from /press's redirect at a fraction of a chapter, and About's story still leads.",
+        "It keeps the whole kit one press from /press's redirect at about a third of a chapter's height, and About's story still leads.",
       overrule:
         "If any download block reads as off-mission on About, no kit: the files wait for the v1 mark.",
     },
