@@ -7,14 +7,10 @@
  * `return=minimal`: the route that calls this has no row, id or count to leak even by mistake, and
  * the reader's thank-you or sorry never depends on the database.
  *
- * ★ THE TYPED SEAM: the table is new, so it is named through an untyped client until `types.ts`
- * regenerates with it (the Orchestrator applies the migration and drops the cast). Degrades like
- * every other bookkeeping write: an error comes back as a value, and the route reports it (Sentry
- * never enters `src/lib/db/*`).
+ * Degrades like every other bookkeeping write: an error comes back as a value, and the route
+ * reports it (Sentry never enters `src/lib/db/*`).
  */
 import "server-only";
-
-import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -27,12 +23,10 @@ export async function recordArticleFeedback(input: {
   helpful: boolean;
 }): Promise<ArticleFeedbackWrite> {
   try {
-    const client = createAdminClient() as unknown as SupabaseClient;
-    const { error } = (await client
+    const client = createAdminClient();
+    const { error } = await client
       .from("article_feedback")
-      .insert({ slug: input.slug, helpful: input.helpful })) as {
-      error: PostgrestError | null;
-    };
+      .insert({ slug: input.slug, helpful: input.helpful });
     if (error)
       return { ok: false, code: error.code ?? null, message: error.message };
     return { ok: true };

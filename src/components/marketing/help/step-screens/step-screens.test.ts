@@ -154,6 +154,22 @@ const QUOTES: { file: string; words: string[] }[] = [
     file: "src/components/guest/upload-step.tsx",
     words: ["Skip for now"],
   },
+  {
+    // The report dialog, quoted rather than mounted (phone `report-open`, `report-reason`,
+    // `report-sent`): its own open state and its toast are not reachable through a prop.
+    file: "src/components/guest/report-dialog.tsx",
+    words: [
+      "Report this event",
+      "Tell us what&rsquo;s wrong and our team will review it. Reports",
+      "anonymous.",
+      "Reason",
+      "(optional)",
+      "What's the problem here?",
+      "Cancel",
+      "Submit report",
+      "Thanks. Your report has been sent for review.",
+    ],
+  },
 ];
 
 describe("a picture's quoted words are the product's", () => {
@@ -196,6 +212,12 @@ describe("a picture's quoted words are the product's", () => {
       "You&rsquo;re invited to",
       "Add your photos and videos in seconds. No app required.",
       "Skip for now",
+      "Report this event",
+      "Tell us what&rsquo;s wrong and our team will review it. Reports",
+      "anonymous.",
+      "What's the problem here?",
+      "Submit report",
+      "Thanks. Your report has been sent for review.",
     ]) {
       expect(door.includes(word), `door-screens.tsx: ${word}`).toBe(true);
     }

@@ -636,7 +636,8 @@ export function HelpSearchTrigger({
       <span className="flex-1 truncate text-reading text-muted-foreground">
         Search the help center...
       </span>
-      <Kbd>{shortcut}</Kbd>
+      {/* A coarse pointer has no ⌘K to hint: the chip only earns its place at a keyboard. */}
+      <Kbd className="pointer-coarse:hidden">{shortcut}</Kbd>
     </button>
   );
 }

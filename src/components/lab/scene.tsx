@@ -8,7 +8,8 @@ import { useLabPrefs } from "./lab-prefs";
  * THE TWO PIECES UNDER EVERY BOARD'S OWN `Scene`, LIFTED HERE BECAUSE THEY
  * NEVER VARIED (the rulings round's ROADMAP line, widened by the Orchestrator's
  * maps): `Fit` was copied byte-for-byte into twelve board files (`guest-capture`,
- * `host-curation`, `host-storage`, `identity-claims`, `identity-door`,
+ * `host-curation`, `host-storage` (its picker is `/pricing`'s size configurator
+ * now, since retired), `identity-claims`, `identity-door`,
  * `identity-profile`, `profile-page`, `reel-cut`, `reel-front`, `reel-host`,
  * `voice-guest`, `reel-screen/wall.tsx`), and `Measured` matched `guest-capture`'s
  * in most of the rest, with small variants elsewhere and `voice-guest` carrying a

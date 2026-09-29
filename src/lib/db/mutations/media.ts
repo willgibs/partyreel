@@ -385,7 +385,15 @@ type RestoreReason =
   | "admin_removed";
 
 type RestoreResult =
-  | { ok: true; media_still_removed?: number; status?: string }
+  | {
+      ok: true;
+      media_still_removed?: number;
+      status?: string;
+      /** Set only on an event restore whose old custom link was claimed by another
+       *  event while this one sat in Deleted: it comes back on the permanent link
+       *  instead (see restoreEvent below). */
+      custom_slug_released?: boolean;
+    }
   | {
       ok: false;
       reason: RestoreReason;
@@ -460,10 +468,17 @@ export async function restoreMedia(
 }
 
 /** Restore a soft-deleted event (slot- + capacity-gated in the RPC). Independently-removed
- * media stay in the bin; the success data carries how many (for the Phase-4 prompt). */
-export async function restoreEvent(
-  eventId: string,
-): Promise<MutationResult<{ id: string; mediaStillRemoved: number }>> {
+ * media stay in the bin; the success data carries how many (for the Phase-4 prompt), and
+ * whether the old custom link was lost to another event while this one sat in Deleted
+ * (`custom_slug_released`: `restore_event` frees the slug for good rather than failing the
+ * restore, so the toast is the only place the host learns her old link now points elsewhere). */
+export async function restoreEvent(eventId: string): Promise<
+  MutationResult<{
+    id: string;
+    mediaStillRemoved: number;
+    customSlugReleased: boolean;
+  }>
+> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -484,7 +499,11 @@ export async function restoreEvent(
   if (!result.ok) return mapRestoreRefusal(result);
   return {
     ok: true,
-    data: { id: eventId, mediaStillRemoved: result.media_still_removed ?? 0 },
+    data: {
+      id: eventId,
+      mediaStillRemoved: result.media_still_removed ?? 0,
+      customSlugReleased: result.custom_slug_released ?? false,
+    },
   };
 }
 

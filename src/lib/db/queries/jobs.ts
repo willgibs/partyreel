@@ -22,8 +22,6 @@
  */
 import "server-only";
 
-import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
-
 import {
   JOBS,
   SIGNAL_WINDOW_MS,
@@ -397,11 +395,6 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
       `admin/jobs: 24h failures (${job})`,
     );
 
-  // ★ THE TYPED SEAM (the feedback beacon's migration 20260928150000): `article_feedback` is named
-  // through an untyped client until `types.ts` regenerates with it. The count is still `mustCount`:
-  // a table that cannot be read makes the console say so, never "No activity".
-  const untypedDb = db as unknown as SupabaseClient;
-
   const [
     emailsSent,
     emailFailures,
@@ -438,13 +431,10 @@ export async function getJobSignals(nowMs = Date.now()): Promise<JobSignals> {
     failuresOf("unlock_limiter"),
     // The beacon's success half is its own rows (`article_feedback_created_idx` carries the range).
     mustCount(
-      untypedDb
+      db
         .from("article_feedback")
         .select("*", { count: "exact", head: true })
-        .gt("created_at", sinceIso) as PromiseLike<{
-        count: number | null;
-        error: PostgrestError | null;
-      }>,
+        .gt("created_at", sinceIso),
       "admin/jobs: 24h help feedback recorded",
     ),
     failuresOf("help_feedback"),

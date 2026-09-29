@@ -6,14 +6,10 @@
  *
  * ★ A HEALTH READ, SO IT THROWS (`mustQuery`): a failed read must never draw "No feedback yet",
  * which is the calm-empty-page lie the admin console exists to refuse. The page catches and says so.
- *
- * ★ THE TYPED SEAM: the function is new, so it is called through an untyped client until `types.ts`
- * regenerates with it; the answer is read defensively, row by row, so a changed shape drops a row
- * rather than drawing a wrong number.
+ * The answer is still read defensively, row by row, so a changed shape drops a row rather than
+ * drawing a wrong number.
  */
 import "server-only";
-
-import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 
 import { mustQuery } from "@/lib/db/must-query";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -58,12 +54,9 @@ export function parseArticleFeedbackSummary(
 export async function getArticleFeedbackSummary(): Promise<
   ArticleFeedbackSummaryRow[]
 > {
-  const client = createAdminClient() as unknown as SupabaseClient;
+  const client = createAdminClient();
   const data = await mustQuery(
-    client.rpc("article_feedback_summary") as PromiseLike<{
-      data: unknown;
-      error: PostgrestError | null;
-    }>,
+    client.rpc("article_feedback_summary"),
     "admin/help-feedback: article_feedback_summary",
   );
   return parseArticleFeedbackSummary(data);

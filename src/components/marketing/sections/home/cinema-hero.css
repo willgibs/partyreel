@@ -89,6 +89,25 @@
   min-height: max(100svh, var(--hhs-min-h));
 }
 
+/* ★ THE HEADLINE OUTGROWS ITS MEASURE BEFORE THE TABLET GEOMETRY TAKES OVER. `--text-hero`
+   (theme.css) is a fluid clamp, so its rendered size keeps climbing across the whole `base`
+   range, not just at the 375 reference `h1Max` (343px) was measured at: past about 480 wide the
+   same headline no longer holds two lines inside that measure, and `hero-stream.ts`'s `blockH`
+   (361, measured at two lines) under-reserves room for the third, pushing the actions past the
+   fold on a short window between roughly 470 and 767 (measured live: 767 by 700 overshoot 20px).
+   Nothing else about `base`'s composition is designed at a wider column (`blockW` and `low` stay
+   the 375 reference's, where the SENTENCE still sets the width, per `hero-stream.ts`'s `Geo`
+   comment), so only the h1's own cap widens, just enough (measured at 767, the tallest font the
+   range ever reaches) to keep "The whole event, in one album." breaking into two throughout. This
+   is scoped to the plain `--hhs-h1-max`, never `--hhs-h1-max-base` (the component's own inline
+   suffix), so `hero-stream.ts`'s solved numbers — and the tablet geometry's composed `h1Max`,
+   which reads `GEO_BASE.h1Max` — are untouched. */
+@media (min-width: 470px) {
+  .hhs-hero {
+    --hhs-h1-max: 480px;
+  }
+}
+
 @media (min-width: 768px) {
   .hhs-hero {
     --hhs-axis-pct: var(--hhs-axis-pct-tablet);

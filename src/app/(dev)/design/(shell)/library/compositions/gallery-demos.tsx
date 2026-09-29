@@ -22,6 +22,7 @@ import {
   AdminHealthBandDemo,
   AdminQueueDemo,
   AdminRailDemo,
+  AdminReportCardDemo,
 } from "./composition-demos";
 
 /**
@@ -89,6 +90,24 @@ export const COMPOSITION_ENTRIES: GalleryEntry[] = [
         label: "What is waiting, worst first",
         hint: "a failed purge outranks a press enquiry, and the tint reaches only the rows worth finding by scrolling",
         node: <AdminQueueDemo />,
+      },
+    ],
+  },
+  {
+    id: "admin-report-cards",
+    badge: "new",
+    family: "compositions",
+    section: "The operations portal",
+    file: "src/components/admin/destructive-sheet.tsx",
+    test: "src/components/admin/destructive-sheet.test.tsx",
+    title: "The sheet, and Reports' own card",
+    for: "the sheet's note (`components`' own entry covers the panel alone): one line the confirm can carry into the record, optional on a verdict or required on a hold, in the one card that opens both",
+    lede: "Reports' open card, redrawn from its own exported pieces over writes that answer after a round trip and change nothing, so a reviewer here can never touch anyone's report. Remove… opens the confirm with its note OPTIONAL; Hold for forensics opens the second, whose note is REQUIRED, the confirm waiting for a line the way a permanent act waits for a typed identifier.",
+    specimens: [
+      {
+        label: "An open report, its closed neighbour, and both confirms",
+        hint: "Remove…'s note is optional · Hold for forensics' is required",
+        node: <AdminReportCardDemo />,
       },
     ],
   },

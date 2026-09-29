@@ -248,16 +248,22 @@ export async function restoreMediaAction(
  * `media_still_removed`, and a host who restores an event with 12 of its photos still
  * binned is told "Event restored." That count reached this action and stopped here.
  *
+ * `customSlugReleased` carries further, into the toast (`RestoreEventButton`): a soft-deleted
+ * event's custom slug is freed at once (host-app.md), so another event may have claimed it
+ * while this one sat in Deleted, and the RPC comes back on the permanent link rather than
+ * failing the restore. Silent, that is a link that quietly stopped working; the host has to
+ * hear it from the one surface that knows, at the moment it happens.
+ *
  * So this action has its OWN result type. The shared ActionResult stays `{ ok: true }`
  * deliberately: it is the contract of a dozen form actions, and widening it to carry one
  * action's payload would make every caller handle data it will never have. The failure arm
  * is EXTRACTED from ActionResult rather than restated, so the codes and the friendly
  * messages keep exactly one home (the same shape RestoreResult uses in db/mutations/media).
  *
- * Consumers narrow on `ok` as before, so nothing breaks by ignoring the count.
+ * Consumers narrow on `ok` as before, so nothing breaks by ignoring either field.
  */
 export type RestoreEventResult =
-  | { ok: true; mediaStillRemoved: number }
+  | { ok: true; mediaStillRemoved: number; customSlugReleased: boolean }
   | Extract<ActionResult, { ok: false }>;
 
 export async function restoreEventAction(
@@ -277,7 +283,11 @@ export async function restoreEventAction(
   // Restoring re-adds the event to BOTH the active dashboard list and its detail page.
   revalidatePath(`/dashboard/${eventId}`);
   revalidatePath("/dashboard");
-  return { ok: true, mediaStillRemoved: result.data.mediaStillRemoved };
+  return {
+    ok: true,
+    mediaStillRemoved: result.data.mediaStillRemoved,
+    customSlugReleased: result.data.customSlugReleased,
+  };
 }
 
 export async function purgeMediaNowAction(
