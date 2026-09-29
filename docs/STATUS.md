@@ -15,8 +15,8 @@ Nothing is protected: every page, the host app and the guest pages are open to b
 
 ## The current round: batch 8, from the desk at zero
 
-- **Milestone 29 is live** (`ab30a7f8`, 2026-09-26). Batches 4 to 8 ride `launch-prep` toward milestone 30, which
-  waits on Will's legal wording.
+- **Milestone 29 is live** (`ab30a7f8`, 2026-09-26). Batches 4 to 8 ride `launch-prep` toward milestone 30, on his
+  yes once build 20's red-team is clean. The legal text is rewritten once, right before launch (his word).
 - **Batch 7 landed whole** (builds 16 to 19, red-teamed live): the block, the free/pro shift, the guest voice, the
   hero's card, the export flow, triage's round one, the help and the emails' wrapper, and their follow-ups.
 - **Will's sitting on build 19** is transcribed (2026-09-29: 41 answers on ten boards, the desk whole). Wave A wires
@@ -70,6 +70,5 @@ and Action secrets; the prune crons and `PRUNE_API_SECRET`.
 
 ## Waiting on Will
 
-- **His stacked to-dos**, now due with the desk at zero, in leverage order (`tracks/orchestrator.md`): the legal wording
-  (it gates milestone 30), the destructive-drop yes, the hold doctrine, the claims walk, Q1, the real-upload check and
-  the iPhone check.
+- **Milestone 30's yes**, then the hold doctrine's three; Q1, the real-upload check and the iPhone check are his in the
+  morning on his phone (`tracks/orchestrator.md`). The claims walk is the Orchestrator's to stage (his word).
