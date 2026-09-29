@@ -17,10 +17,15 @@
  * that visibly did nothing. Adding a shape means mounting the modal there in
  * the same change.
  *
- * Client-safe and import-safe from a route handler: pure strings, no env, no
- * Stripe, no `server-only` neighbours (the checkout route imports it and so
- * does the button that POSTs to the route).
+ * The matcher behind it is the sign-in return's (`lib/auth/return-path.ts`, the
+ * same refusals pinned twice); this list stays here because it is a fact about
+ * these pages, not about paths.
+ *
+ * Client-safe and import-safe from a route handler: pure strings, no Stripe, no
+ * `server-only` neighbours (the checkout route imports it and so does the button
+ * that POSTs to the route).
  */
+import { matchesPathShape } from "@/lib/auth/return-path";
 
 /** The marker the returning page reads to know a purchase just completed. */
 export const WELCOME_PARAM = "welcome";
@@ -42,16 +47,9 @@ const RETURN_SHAPES: readonly RegExp[] = [
   /^\/account$/,
 ];
 
-/** Anything a legal path never holds: a control character is a splice attempt. */
-const CONTROL_CHARS = /[\x00-\x1f\x7f]/;
-
 /** True only for a path this module will hand to Stripe unchanged. */
 export function isAllowedReturnPath(value: unknown): value is string {
-  if (typeof value !== "string") return false;
-  // Checked before the shapes so a multiline value can never satisfy a pattern
-  // that some later edit leaves unanchored by accident.
-  if (CONTROL_CHARS.test(value)) return false;
-  return RETURN_SHAPES.some((shape) => shape.test(value));
+  return matchesPathShape(value, RETURN_SHAPES);
 }
 
 /**

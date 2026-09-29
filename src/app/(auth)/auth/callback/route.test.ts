@@ -8,7 +8,10 @@
  *     lands on the page with no word (the row reads the truth, and a hand-made code earns nothing).
  *   ★ A guest's link (`next=/e/...`) adopts the name typed at the door after the exchange; no other
  *     landing does, and a failed exchange adopts nothing.
- *   The sign-in landings are unchanged: an open redirect is refused, a dead code is an expired link.
+ *   ★ THE PAGE A GATE SENT A HOST FROM LANDS (crumbs-11): `next` is followed only when it is on the
+ *     return allow-list (lib/auth/return-path.ts), and a failed link carries it back to /login so
+ *     the new code still lands there. Anything else is the host-aware default, never carried.
+ *   A dead code is an expired link.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -135,10 +138,12 @@ describe("a sign-in link", () => {
     expect(state.adoptDoorName).not.toHaveBeenCalled();
   });
 
-  it("adopts nothing when the exchange fails, which is an expired link", async () => {
+  // Reshaped on purpose (crumbs-11): the expired link now keeps where it was going, so the new code
+  // lands there too; it used to drop it and land every retry on the dashboard.
+  it("adopts nothing when the exchange fails, which is an expired link that keeps its page", async () => {
     state.exchange.mockResolvedValue(DEAD);
     const res = await get(`?next=/e/qr-token&code=abc`);
-    expect(landing(res)).toBe("/login?error=expired_link");
+    expect(landing(res)).toBe("/login?error=expired_link&next=%2Fe%2Fqr-token");
     expect(state.adoptDoorName).not.toHaveBeenCalled();
   });
 
@@ -157,5 +162,75 @@ describe("a sign-in link", () => {
       "/login?error=google_failed",
     );
     expect(landing(await get(``))).toBe("/login?error=expired_link");
+  });
+});
+
+describe("a mail's button, through a sign-in (crumbs-11)", () => {
+  it("lands a host's Google or email link on the page the gate sent them from", async () => {
+    state.exchange.mockResolvedValue(SIGNED_IN);
+    expect(landing(await get(`?next=%2Faccount%2Frenew&code=abc`))).toBe(
+      "/account/renew",
+    );
+    expect(landing(await get(`?next=/dashboard&code=abc`))).toBe("/dashboard");
+    expect(state.adoptDoorName).not.toHaveBeenCalled();
+  });
+
+  it("the page beats the admin host's default: it was asked for", async () => {
+    state.exchange.mockResolvedValue(SIGNED_IN);
+    state.adminHost = true;
+    expect(landing(await get(`?next=/admin&code=abc`))).toBe("/admin");
+    expect(landing(await get(`?next=/account/renew&code=abc`))).toBe(
+      "/account/renew",
+    );
+  });
+
+  it("carries the page back to /login when the provider refused, so a retry still lands", async () => {
+    expect(landing(await get(`?next=/account/renew&error=access_denied`))).toBe(
+      "/login?error=google_failed&next=%2Faccount%2Frenew",
+    );
+  });
+
+  // Each refusal is followed nowhere and carried nowhere: the landing is the default, and the
+  // failure's /login carries no `next` at all.
+  const hostile = [
+    "https://evil.com",
+    "//evil.com",
+    "/\\evil.com",
+    "%2F%2Fevil.com",
+    "/%2F%2Fevil.com",
+    "/%5Cevil.com",
+    "/dashboard%2F..%2Fadmin",
+    "/dashboard/../admin",
+    "javascript:alert(1)",
+    "/account/renew?next=https://evil.com",
+    "/account%0d%0aLocation:%20https://evil.com",
+    "/account\r\nLocation: https://evil.com",
+    "/api/stripe/checkout",
+  ];
+
+  it.each(hostile)("follows %s nowhere", async (next) => {
+    state.exchange.mockResolvedValue(SIGNED_IN);
+    const ok = await get(`?next=${encodeURIComponent(next)}&code=abc`);
+    expect(landing(ok)).toBe("/dashboard");
+    expect(new URL(ok.headers.get("location")!).host).toBe("partyreel.com");
+
+    state.exchange.mockResolvedValue(DEAD);
+    expect(
+      landing(await get(`?next=${encodeURIComponent(next)}&code=abc`)),
+    ).toBe("/login?error=expired_link");
+    expect(
+      landing(
+        await get(`?next=${encodeURIComponent(next)}&error=access_denied`),
+      ),
+    ).toBe("/login?error=google_failed");
+  });
+
+  it("follows a raw (unencoded) hostile value nowhere either", async () => {
+    state.exchange.mockResolvedValue(SIGNED_IN);
+    expect(landing(await get(`?next=//evil.com&code=abc`))).toBe("/dashboard");
+    expect(landing(await get(`?next=/\\evil.com&code=abc`))).toBe("/dashboard");
+    expect(
+      landing(await get(`?next=https://evil.com/account/renew&code=abc`)),
+    ).toBe("/dashboard");
   });
 });

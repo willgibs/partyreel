@@ -6,7 +6,8 @@
  *
  * Two gates and a session refresh, in that order: which SURFACE this deployment
  * serves (the admin split), the design lab's key, then the Supabase session
- * cookie on every matched request.
+ * cookie on every matched request, with the request's path handed to the
+ * layouts' sign-in gates on the way.
  *
  * It is NOT an auth gate: route protection lives in the (app) layout via
  * getUser(), and each Server Function must re-verify authz itself. Treating the
@@ -17,6 +18,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { isAdminHost } from "@/lib/auth/admin-host";
+import { REQUEST_PATH_HEADER, RETURN_PATH_MAX } from "@/lib/auth/return-path";
 import { designGateOpen } from "@/lib/design-gate/server";
 import { updateSession } from "@/lib/supabase/middleware";
 import { decideBySurface, SURFACE_404_PATH, surface } from "@/lib/surface";
@@ -91,6 +93,18 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin";
     return NextResponse.redirect(url);
+  }
+  // THE PATH, FOR THE GATES (crumbs-11). A layout cannot read its own URL, and
+  // the (app) and (print) gates send a signed-out visitor to /login carrying the
+  // page they asked for (lib/auth/login-redirect.ts). Written on every request,
+  // so a client's own copy never survives, and left off for a path longer than
+  // any page that may be returned to rather than copying a long URL into a
+  // header. The gate re-checks it against the allow-list: a reachability hint
+  // for one redirect, never an authorization.
+  if (pathname.length <= RETURN_PATH_MAX) {
+    request.headers.set(REQUEST_PATH_HEADER, pathname);
+  } else {
+    request.headers.delete(REQUEST_PATH_HEADER);
   }
   return updateSession(request);
 }

@@ -1,7 +1,12 @@
 import { z } from "zod";
 
 import { RESERVED_NAMES } from "@/lib/constants/reserved-names";
-import { RESERVED_SLUGS } from "@/lib/constants/reserved-slugs";
+import {
+  BRAND_NAME_MESSAGE,
+  isBrandSlug,
+  RESERVED_SLUGS,
+  RESERVED_WORD_MESSAGE,
+} from "@/lib/constants/reserved-slugs";
 
 export const DISPLAY_NAME_MAX_LENGTH = 60;
 
@@ -41,11 +46,11 @@ export const PROFILE_SLUG_MAX_LENGTH = 30;
 // validated, mirroring eventSlugSchema. Two reserved lists apply: RESERVED_SLUGS
 // (route/brand words like "admin", "api") because /u/ is another public URL
 // namespace, and RESERVED_NAMES (impersonation words like "support") because a
-// handle reads as an identity. Both are policy, not security boundaries. No
+// handle reads as an identity; and the brand's whole FAMILY (`partyreel-support`,
+// `party-reel`, `partyr33l`: reserved-slugs.ts) for the reason the event link refuses it.
+// This schema is the boundary for all three: the service role is the handle's only writer. No
 // 32-hex qr_token-shape refine here (unlike eventSlugSchema): the 30-char max
-// already makes a 32-hex collision impossible. Pro-gating is APP-side (setProfileSlug), never
-// in this schema or the DB: the DB stores a slug for any tier so a later
-// downgrade/grandfathering change never strands a stored handle.
+// already makes a 32-hex collision impossible.
 export const profileSlugSchema = z
   .string()
   .trim()
@@ -64,8 +69,9 @@ export const profileSlugSchema = z
   )
   .refine(
     (s) => !RESERVED_SLUGS.has(s) && !RESERVED_NAMES.has(s),
-    "That word is reserved. Try another.",
-  );
+    RESERVED_WORD_MESSAGE,
+  )
+  .refine((s) => !isBrandSlug(s), BRAND_NAME_MESSAGE);
 
 export type ProfileSlugInput = z.infer<typeof profileSlugSchema>;
 

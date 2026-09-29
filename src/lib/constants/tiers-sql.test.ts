@@ -9,8 +9,9 @@
  *      setter RPC refuses a Free host in SQL. An app lock over an open RPC is a lock anyone can
  *      walk around, and an RPC refusal under an open control is a broken button, so each setter
  *      refuses Free exactly when its setting is on the list (empty since the shift).
- *   2. THE RESERVED WORDS. set_event_slug refuses exactly RESERVED_SLUGS: with custom links on
- *      Free, the RPC (callable past the server action) is the boundary a throwaway account meets.
+ *   2. THE RESERVED WORDS. set_event_slug refuses exactly RESERVED_SLUGS, and the brand's whole
+ *      family by the same fold as isBrandSlug: with custom links on Free, the RPC (callable past
+ *      the server action) is the boundary a throwaway account meets.
  *   3. A SLUG FREED AT DELETION STAYS FREED. restore_event brings an event back without a custom
  *      link another event took while it sat in Deleted, instead of failing on the unique index.
  *
@@ -22,7 +23,14 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { RESERVED_SLUGS } from "@/lib/constants/reserved-slugs";
+import {
+  BRAND_FOLD,
+  BRAND_NAME_MESSAGE,
+  BRAND_STEM,
+  isBrandSlug,
+  RESERVED_SLUGS,
+  RESERVED_WORD_MESSAGE,
+} from "@/lib/constants/reserved-slugs";
 import {
   GATED_EVENT_SETTINGS,
   type GatedEventSetting,
@@ -103,7 +111,55 @@ describe("set_event_slug refuses exactly the reserved words", () => {
     expect(new Set(words).size, "a word listed twice").toBe(words.length);
     expect([...words].sort()).toEqual([...RESERVED_SLUGS].sort());
     // …and refuses with the zod schema's own sentence, so both doors say one thing.
-    expect(body).toContain("That word is reserved. Try another.");
+    expect(body).toContain(RESERVED_WORD_MESSAGE);
+  });
+
+  // ★ THE BRAND'S FAMILY (crumbs-11). The SQL states the rule as one clause; this reads its three
+  // literals back and holds them to the TypeScript, then runs that clause's own semantics (Postgres
+  // `translate` + `position`, re-implemented here from the literals it READ, not from the TS) over
+  // the cases, so a literal edited on one side alone fails with the side named.
+  it("refuses the brand's whole family by the fold isBrandSlug uses", () => {
+    const { file, body } = newestBody("set_event_slug");
+    const clause = body.match(
+      /if\s+position\(\s*'([a-z]+)'\s+in\s+translate\(\s*v_slug\s*,\s*'([^']*)'\s*,\s*'([^']*)'\s*\)\s*\)\s*>\s*0\s+then\s+raise\s+exception\s+'([^']*)'\s+using\s+errcode\s*=\s*'check_violation'/i,
+    );
+    expect(
+      clause,
+      `${file}: set_event_slug has no brand-family clause`,
+    ).not.toBeNull();
+    const [, stem, from, to, message] = clause!;
+    expect(stem, `${file}: the stem`).toBe(BRAND_STEM);
+    expect({ from, to }, `${file}: the fold`).toEqual(BRAND_FOLD);
+    expect(message, `${file}: the sentence`).toBe(BRAND_NAME_MESSAGE);
+
+    // The SQL's own reading of a slug, from the literals above.
+    const sqlRefuses = (slug: string) =>
+      [...slug.toLowerCase()]
+        .map((ch) => {
+          const at = from.indexOf(ch);
+          return at < 0 ? ch : (to[at] ?? "");
+        })
+        .join("")
+        .includes(stem);
+    for (const slug of [
+      "partyreel",
+      "partyreel-support",
+      "official-partyreel",
+      "party-reel",
+      "p4rtyr33l",
+      "partyree1",
+      "par7yreel",
+      "partyrel-night",
+      "party-relay",
+      "partyreal-2026",
+      "reel-party",
+    ]) {
+      expect(sqlRefuses(slug), slug).toBe(isBrandSlug(slug));
+    }
+    // And it runs BEFORE the uniqueness check, so a refused slug never answers "taken".
+    expect(body.indexOf(BRAND_NAME_MESSAGE)).toBeLessThan(
+      body.indexOf("That custom link is already taken."),
+    );
   });
 });
 
