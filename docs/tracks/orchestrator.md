@@ -55,6 +55,8 @@ his batch is in; merges and migrations go on (neither touches the served build o
 
 1. **Integrate each running lane as it hands off** (rows above), each migration by protocol, one at a time: drift
    check, apply verbatim, the rolled-back refusals, advisors, types.
+   - Applied 2026-09-29: `slug_family` (`20260929060131`, md5 `02544c04`; set_event_slug `1b1e914e`, ACL unchanged,
+     the held `partyreel-demo` and `partyr33l` untouched and resolving, the proof 6/6, advisors unchanged).
    - Applied 2026-09-29: `like_private` (`20260929032343`, md5 `fd4f0cbc`; like_media's body as its header says, ACL
      unchanged, the rolled-back proof 5/5, advisors unchanged, no types).
    - Applied 2026-09-29: `pass_renewal_pref` (`20260929025049`, md5 `a2b8a3c8`; the column on by default, authenticated's
@@ -73,8 +75,8 @@ his batch is in; merges and migrations go on (neither touches the served build o
    - After his `demo-framing` pick (his full permission, 2026-09-29; the board merged at `51db72fc`): the demo event
      renamed (or made) to the story, its slug claimed so the card's printed address opens it (today `mia-and-theo`,
      held by no event, left as is on his word), one home for the slug in `lib/demo.ts` that the card prints and the
-     seed sets, `OBJECT_EVENT` and `OBJECT_PRINTS` to match, a demo host account if `host` stands, `partyreel-demo`
-     reserved with the `partyreel` family (ROADMAP's Security line, a `set_event_slug` migration), and ASSETS rows 5,
+     seed sets, `OBJECT_EVENT` and `OBJECT_PRINTS` to match, a demo host account if `host` stands (`partyreel-demo` stays
+     refused to anyone else by the brand family, `crumbs-11`), and ASSETS rows 5,
      33 and 34 unparked with the party's subjects (the board lists them per party).
 3. **Build 17 is live and red-teamed** (`1407daf6`; every journey PASS, the block walked live on all three roads and
    restored through the UI; the ledger is `../partyreel-wt/_scratch/redteam-17/ledger.txt`). Its two majors (the share
