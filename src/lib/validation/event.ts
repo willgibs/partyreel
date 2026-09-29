@@ -130,6 +130,14 @@ const reelFields = {
     .nullable(),
 };
 
+// The host's Videos switch (event-settings r1, Will `lock=switch`: "so a host can keep an album to
+// photos"), update-only like the reel's: a new event takes its column default (on), and the switch
+// only ever narrows. ★ IT GRANTS NOTHING: a Free album still takes no video whatever it holds, since
+// the upload's own gate reads the plan (`create_media`), never this column alone.
+const videoFields = {
+  allow_videos: z.boolean(),
+};
+
 /**
  * AN UPDATE: exactly the keys a caller sent, and nothing else. `updateEvent` patches every
  * defined key, so a default here would be a WRITE (the header's defect): a one-field save
@@ -137,7 +145,7 @@ const reelFields = {
  * that one field.
  */
 export const updateEventSchema = z
-  .object({ ...eventFields, ...reelFields })
+  .object({ ...eventFields, ...reelFields, ...videoFields })
   .partial();
 
 /**

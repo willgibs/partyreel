@@ -42,7 +42,11 @@ import { NextResponse } from "next/server";
 
 import { setGuestDisplayName } from "@/lib/db/mutations/guest";
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
-import { isClosedDoor } from "@/lib/events/closed-door.server";
+import {
+  doorCallerFor,
+  isThrough,
+  resolveGuestDoor,
+} from "@/lib/events/closed-door.server";
 import {
   applyGuestCookies,
   guestSessionCookieIfChanged,
@@ -121,10 +125,18 @@ export async function POST(request: Request) {
       { status: 404 },
     );
   }
-  // A ticket a block holds meets the private album's refusal, word for word (the closed door,
-  // `closed-door.server.ts`, asked with the body's ticket alone: a write route never reads the
-  // cookie; set_guest_display_name refuses the blocked ticket too).
-  if (await isClosedDoor(eventResult.data, [session_token])) {
+  // A door that does not let this ticket through (a block, a door that shut, a ticket still waiting
+  // on the host) meets the private album's refusal, word for word (`closed-door.server.ts`, asked with
+  // the body's ticket beside the account: a write route never reads the cookie; set_guest_display_name
+  // refuses the same tickets as the belt).
+  const door = await resolveGuestDoor(
+    eventResult.data,
+    await doorCallerFor(eventResult.data.id, {
+      bodyTokens: [session_token],
+      cookie: false,
+    }),
+  );
+  if (!isThrough(door)) {
     return NextResponse.json(
       { ok: false, code: "unauthorized", message: "This event is private." },
       { status: 403 },

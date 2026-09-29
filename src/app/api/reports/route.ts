@@ -1,8 +1,11 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 
 import { createReport } from "@/lib/db/mutations/report";
 import { createProfileReport } from "@/lib/db/mutations/social";
+import { readEventName } from "@/lib/db/queries/reports";
 import { captureWarning } from "@/lib/observability/sentry";
+import { INSTANT_HIDE_KIND } from "@/lib/reports/kinds";
+import { alertUrgentReport, readReporter } from "@/lib/reports/reporter.server";
 import {
   abuseHashes,
   checkAbuseRate,
@@ -13,14 +16,19 @@ import { createClient } from "@/lib/supabase/server";
 import { reportSchema } from "@/lib/validation/report";
 
 // POST a public report against an event (or a specific item), or against a
-// PERSON. Album arm: anonymous, and the qr_token in the body is the capability
-// (database-security.md) that create_report validates inside the RPC. Person arm
+// PERSON. Album arm: the qr_token in the body is the capability
+// (database-security.md) that create_report validates inside the RPC; a signed-in
+// reporter is read here with getUser() and never taken from the body. Person arm
 // (Will, `block=report`, 2026-09-19): SIGNED IN, re-verified here with
 // getUser() because a public profile presents no capability of its own and an
 // anonymous person-report endpoint is a harassment primitive.
 //
-// INSERT-ONLY on both arms — reporting never hides content and never blocks
-// anyone (anti-griefing); an operator reviews via /admin/reports.
+// ★ THE REPORT ITSELF IS NEVER GATED (admin-triage r2, his word in chat): anyone, signed in or not, files one,
+// and a child-abuse report heads the queue. What the reporter's session adds is only what it proves: a
+// CONFIRMED address, kept on the report until it closes (so an operator can ask for proof), and, on a
+// child-abuse report of an item, the instant hide (create_report's, with its limits). Every other report is
+// INSERT-ONLY and never hides content (anti-griefing); an operator reviews via /admin/reports, and a
+// child-abuse report tells the operator at once (alertUrgentReport, after the response).
 export async function POST(request: Request) {
   let body: unknown;
   try {
@@ -40,7 +48,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { qr_token, media_id, profile_id, reason } = parsed.data;
+  const { qr_token, media_id, profile_id, reason, kind } = parsed.data;
 
   // The person arm runs BEFORE the limiter's scope is built, because its scope
   // is the profile rather than an event link. Signed-in only: the menu that
@@ -111,10 +119,10 @@ export async function POST(request: Request) {
         personKeys.scopeHash,
       ).catch(() => {});
     }
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, hid: false });
   }
 
-  // The album arm, unchanged. The schema's refine guarantees a token here.
+  // The album arm. The schema's refine guarantees a token here.
   if (!qr_token) {
     return NextResponse.json(
       { ok: false, code: "bad_request", message: "Invalid report." },
@@ -150,10 +158,20 @@ export async function POST(request: Request) {
     reportKeys = null;
   }
 
+  // Who is reporting, as the session says (nobody, signed in, or confirmed): never the body's word.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const reporter = readReporter(user);
+
+  const reportKind = kind ?? "other";
   const result = await createReport({
     qrToken: qr_token,
     mediaId: media_id ?? null,
     reason: reason || null,
+    kind: reportKind,
+    reporter,
   });
 
   if (!result.ok) {
@@ -168,6 +186,11 @@ export async function POST(request: Request) {
       { status },
     );
   }
+  if (result.schemaMissing) {
+    // The migration is not live yet: the report was filed, without its kind or reporter. Loud, because after
+    // the apply this never fires.
+    captureWarning("security", "reports_schema_missing", { kind: reportKind });
+  }
 
   if (reportKeys) {
     await recordAbuseEvent(
@@ -176,5 +199,19 @@ export async function POST(request: Request) {
       reportKeys.scopeHash,
     ).catch(() => {});
   }
-  return NextResponse.json({ ok: true });
+
+  const { report_id, hid, event_id } = result.data;
+  if (reportKind === INSTANT_HIDE_KIND && event_id) {
+    // After the response: the reporter's toast never waits on the operator's inbox.
+    after(async () => {
+      const eventName = await readEventName(event_id).catch(() => null);
+      await alertUrgentReport({
+        reportId: report_id,
+        eventId: event_id,
+        eventName: eventName ?? "an album",
+        hidden: hid,
+      });
+    });
+  }
+  return NextResponse.json({ ok: true, hid });
 }

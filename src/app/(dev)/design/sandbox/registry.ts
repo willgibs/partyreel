@@ -64,53 +64,6 @@ const isSpec = (v: unknown): v is BoardSpec =>
   typeof (v as BoardSpec).id === "string" &&
   Array.isArray((v as BoardSpec).asks);
 
-/**
- * ★ TWO BOARDS PREDATE THEIR DESK FACTS, AND THIS LIST ONLY SHRINKS.
- * `admin-triage` and `event-settings` belong to wiring lanes (triage-r2-wiring,
- * settings-wiring) that retire them at their merges, so their specs stay as
- * they were cut and their facts ride here until then (their rows were
- * touchpoints.ts's). `merge-lane.sh` deletes an entry whose folder its merge
- * removed, and registry.test.ts refuses an entry for a folder that is gone or
- * for a spec that carries its own facts. When the last one goes, delete this
- * and make `surface`, `desk` and `lives` required in `ExplorationInput`.
- */
-export const PREDATES: Readonly<Record<string, DeskFacts>> = {
-  "admin-triage": {
-    surface: "admin",
-    desk: 10,
-    lives: [
-      "docs/systems/admin-observability.md",
-      "docs/systems/trust-safety-forensics.md",
-      "src/app/admin/reports/page.tsx",
-      "src/app/admin/reports/person-report-list.tsx",
-      "src/components/app/report-review.tsx",
-      "src/components/admin/destructive-sheet.tsx",
-      "src/components/guest/report-dialog.tsx",
-      "src/app/api/reports/route.ts",
-      "src/lib/validation/report.ts",
-      "src/lib/db/queries/reports.ts",
-      "src/lib/email/templates.ts",
-      "content/help/report-a-problem-as-a-guest.mdx",
-    ],
-  },
-  "event-settings": {
-    surface: "host",
-    desk: 20,
-    lives: [
-      "docs/systems/host-app.md",
-      "src/components/app/event-settings/event-settings-sheet.tsx",
-      "src/components/app/event-settings-form.tsx",
-      "src/components/app/event-settings/visibility-section.tsx",
-      "src/components/app/event-settings/uploads-section.tsx",
-      "src/components/app/event-settings/highlight-reel-card.tsx",
-      "src/components/app/event-settings/profile-social-card.tsx",
-      "src/components/app/event-settings/danger-zone-section.tsx",
-      "src/components/app/visibility-selector.tsx",
-      "src/components/app/pricing/lock-chip.tsx",
-    ],
-  },
-};
-
 /** A board as the desk reads it: its spec with every desk fact present. */
 export type StandingBoard = BoardSpec & {
   surface: Surface;
@@ -120,19 +73,18 @@ export type StandingBoard = BoardSpec & {
 };
 
 /**
- * A spec with its facts: its own, else the ones it predates (PREDATES). A spec
- * with neither still stands (at the foot, on the Shared shelf, redrawing
- * nothing), because one board's missing line must not take the desk down;
- * registry.test.ts is what refuses it.
+ * A spec with its facts. `defineExploration` requires them, so a spec without
+ * one is a type error; one that reaches here anyway still stands (at the foot,
+ * on the Shared shelf, redrawing nothing), because one board's missing line
+ * must not take the desk down, and registry.test.ts is what refuses it.
  */
 function standing(spec: BoardSpec): StandingBoard {
-  const facts = PREDATES[spec.id];
   return {
     ...spec,
-    surface: spec.surface ?? facts?.surface ?? "shared",
-    desk: spec.desk ?? facts?.desk ?? Number.MAX_SAFE_INTEGER,
-    lives: spec.lives ?? facts?.lives ?? [],
-    tracks: spec.tracks ?? facts?.tracks,
+    surface: spec.surface ?? "shared",
+    desk: spec.desk ?? Number.MAX_SAFE_INTEGER,
+    lives: spec.lives ?? [],
+    tracks: spec.tracks,
   };
 }
 
@@ -149,7 +101,7 @@ export const SPEC_EXPORTS: Readonly<Record<string, readonly string[]>> =
     MODULES.map(([folder, mod]) => [folder, Object.keys(mod)]),
   );
 
-/** Every spec as its folder wrote it, before PREDATES fills a gap (the tests read these). */
+/** Every spec as its folder wrote it, before `standing` fills a gap (the tests read these). */
 export const SPECS: readonly BoardSpec[] = MODULES.flatMap(([, mod]) =>
   Object.values(mod).filter(isSpec),
 );

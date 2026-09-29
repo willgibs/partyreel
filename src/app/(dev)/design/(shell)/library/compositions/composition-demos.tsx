@@ -1,25 +1,46 @@
 "use client";
 
 import { useState } from "react";
-import { ShieldAlert, Undo2 } from "lucide-react";
+import { Undo2 } from "lucide-react";
 
+import {
+  AtTheDoor,
+  type DoorActs,
+  type DoorPerson,
+} from "@/app/(app)/dashboard/[eventId]/guests/at-the-door";
+import {
+  InvitedSection,
+  type InviteActs,
+  type InvitedPerson,
+} from "@/app/(app)/dashboard/[eventId]/guests/invited-section";
 import { AdminRail } from "@/components/admin/admin-rail";
-import { DestructiveSheet } from "@/components/admin/destructive-sheet";
+import {
+  ReportQueue,
+  type ReportQueueWrites,
+} from "@/components/admin/report-queue";
+// A type only (erased at build), so the server-only query module never reaches this page.
+import type { ReviewEntry } from "@/lib/db/queries/reports";
 import { HealthBand } from "@/components/admin/health-band";
 import { QueueList } from "@/components/admin/queue-list";
-import { StatusPicker } from "@/components/admin/triage-status-control";
-import {
-  AddNoteLink,
-  ClosedLine,
-  ClosedLog,
-  NoteField,
-  ReasonLine,
-  useVerdictNote,
-} from "@/components/app/report-review";
+import { ClosedLine, ClosedLog } from "@/components/app/report-review";
 import { FilterChips } from "@/components/app/dashboard/filter-chips";
 import { StorageMeter } from "@/components/app/dashboard/storage-meter";
 import { MediaTile } from "@/components/app/media-grid";
 import { ReviewRoom } from "@/components/app/event-feed/review-room";
+import { DoorPage } from "@/components/app/event-settings/door-page";
+import type { SettingsPage } from "@/components/app/event-settings/settings-pages";
+import { SettingsRows } from "@/components/app/event-settings/settings-rows";
+import {
+  SettingsProvider,
+  type SettingsWrites,
+} from "@/components/app/event-settings/settings-state";
+import {
+  hostEvent,
+  NO_COUNTS,
+} from "@/components/app/event-settings/testing/host-event";
+import { AddsPage } from "@/components/app/event-settings/adds-page";
+import { EventPage } from "@/components/app/event-settings/event-page";
+import { ReelPage } from "@/components/app/event-settings/reel-page";
 import type { ReviewWrites } from "@/components/app/event-feed/use-review-triage";
 import { ProPriceList } from "@/components/app/pricing/pro-price-list";
 import { QrPresetPicker } from "@/components/app/qr-preset-picker";
@@ -29,33 +50,15 @@ import {
   type StorageSource,
 } from "@/components/app/storage/storage-source";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import type { PlanFacts } from "@/lib/billing/plan-facts";
-import {
-  heldMessage,
-  holdReasonFor,
-  holdTouches,
-  type HoldScope,
-  REPORT_NOTE_MAX,
-  REPORT_WORDS,
-  type ReportWord,
-  WAY_BACK_LINE,
-} from "@/lib/admin/reports";
+import { type HoldScope, WAY_BACK_LINE } from "@/lib/admin/reports";
 import type { QrStyleKey } from "@/lib/constants/qr-presets";
 import { GIGABYTE, planById } from "@/lib/constants/tiers";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import type { StorageItem } from "@/lib/db/queries/storage-list";
 import { buildOperatorQueue } from "@/lib/admin/queue";
 import type { FilterValue } from "@/lib/dashboard/filters";
-import { formatAdminTimestamp } from "@/lib/format/admin-time";
 import type { JobHealthReport } from "@/lib/jobs/health-summary";
-import { operatorRemovalTouches } from "@/lib/moderation/operator-actions";
 
 import { SAMPLE, SAMPLE_MEDIA } from "@/app/(dev)/design/reference/sample-data";
 
@@ -408,98 +411,168 @@ export function AdminQueueDemo() {
 }
 
 /**
- * THE SHEET, AND REPORTS' OWN CARD (admin-triage r1, `verdict=note`): `report-review.tsx`'s
- * `OpenReportCard` hard-wires the real Server Actions (`dismissReportAction`, `actionReportAction`,
- * `holdFromReportAction`), so it is redrawn here from its own exported pieces (`ReasonLine`,
- * `NoteField`, `AddNoteLink`, `ClosedLog`, `ClosedLine`, `useVerdictNote`) and `StatusPicker`, over
- * writes that answer after a round trip and change nothing — Review and Storage's own convention,
- * so a reviewer here can never touch anyone's report. Remove… opens `DestructiveSheet` with its
- * note OPTIONAL (a verdict's own reason, left blank or filled); Hold for forensics opens the second,
- * whose note is REQUIRED (the confirm waits for a line, as an unmatched typed identifier does).
+ * REPORTS' OWN QUEUE, THE REAL ONE (admin-triage r2, `look=grid`): `ReportQueue` over a Saturday night of reports
+ * and writes that answer after a round trip and change nothing (`ReportQueueWrites`, Review and Storage's own
+ * convention), so a reviewer here can never touch anyone's report. Harm in front (the worst covered until View
+ * once), the sweep's ticks and its one Dismiss, the report whole on Space or a press with every verb (Remove…'s
+ * note optional, Hold for forensics' reason required, Take it down too ON), Ask for proof with its thread, and at
+ * 375 a phone's two acts. The closed log sits under it, as on the page.
  */
-const REPORT_TOUCHES = operatorRemovalTouches({
-  kind: "photo",
-  eventName: "Priya & Sam's baby shower",
-  from: "album",
-  wayBack: "undo",
-});
+const QUEUE_ANSWER = <T,>(value: T) =>
+  new Promise<T>((resolve) => setTimeout(() => resolve(value), ROUND_TRIP_MS));
+
+const QUEUE_WRITES: ReportQueueWrites = {
+  dismiss: async (id) =>
+    QUEUE_ANSWER({ ok: true as const, reportIds: [id], restored: false }),
+  dismissMany: async (ids) =>
+    QUEUE_ANSWER({ ok: true as const, reportIds: ids, restored: false }),
+  reopenMany: async () => QUEUE_ANSWER({ ok: true as const }),
+  action: async () => QUEUE_ANSWER({ ok: true as const }),
+  askProof: async () => QUEUE_ANSWER({ ok: true as const }),
+  takeDown: async () =>
+    QUEUE_ANSWER({ ok: true as const, at: "2026-09-27T22:50:00.000Z" }),
+  undoTakeDown: async () => QUEUE_ANSWER({ ok: true as const }),
+  holdScope: async () =>
+    QUEUE_ANSWER({ ok: true as const, scope: REPORT_HOLD_SCOPE }),
+  hold: async () => QUEUE_ANSWER({ ok: true as const }),
+};
+
 const REPORT_HOLD_SCOPE: HoldScope = {
   kind: "photo",
   eventName: "Priya & Sam's baby shower",
   others: 2,
   uploader: "guest",
 };
-const REPORT_DEMO_ID = "8f21e3a0-9b44-4c1a-9e77-2d6f0c9a4b21";
+
+const QUEUE_EVENT = {
+  id: "e-shower",
+  name: "Priya & Sam's baby shower",
+  host: "priya.n@outlook.com",
+  uploads: 176,
+  guests: 52,
+};
+
+function queueEntry(
+  n: number,
+  kind: ReviewEntry["kind"],
+  reports: ReviewEntry["reports"],
+  over: Partial<ReviewEntry> = {},
+): ReviewEntry {
+  const m = SAMPLE_MEDIA[n % SAMPLE_MEDIA.length];
+  return {
+    key: `item:${m.id}-${n}`,
+    reportId: reports[0].id,
+    subject: "item",
+    lane: kind === "other" ? "sweep" : "front",
+    kind,
+    newestAt: reports[0].createdAt,
+    reports,
+    event: QUEUE_EVENT,
+    media: {
+      id: `${m.id}-${n}`,
+      type: m.type,
+      url: m.url,
+      previewUrl: m.previewUrl ?? null,
+      standing: "live",
+      held: false,
+      hidden: false,
+    },
+    uploader: {
+      name: "Arjun",
+      verified: false,
+      isHost: false,
+      more: 6,
+      otherReports: 2,
+      held: 0,
+    },
+    ...over,
+  };
+}
+
+const queueReport = (
+  n: number,
+  over: Partial<ReviewEntry["reports"][number]> = {},
+): ReviewEntry["reports"][number] => ({
+  id: `8f21e3a0-9b44-4c1a-9e77-${String(n).padStart(12, "0")}`,
+  reason: null,
+  createdAt: `2026-09-27T2${n % 4}:1${n % 6}:00.000Z`,
+  kind: "other",
+  signedIn: false,
+  canAsk: false,
+  hidAt: null,
+  proof: null,
+  ...over,
+});
+
+const QUEUE_ENTRIES: ReviewEntry[] = [
+  queueEntry(
+    0,
+    "child",
+    [
+      queueReport(1, {
+        kind: "child",
+        signedIn: true,
+        canAsk: true,
+        hidAt: "2026-09-27T22:12:00.000Z",
+        reason: "A child in this one should not be here like this.",
+      }),
+    ],
+    {
+      media: {
+        id: "c0",
+        type: "photo",
+        url: SAMPLE_MEDIA[0].url,
+        previewUrl: SAMPLE_MEDIA[0].previewUrl ?? null,
+        standing: "operator",
+        held: false,
+        hidden: true,
+      },
+    },
+  ),
+  queueEntry(1, "private", [
+    queueReport(2, {
+      kind: "private",
+      signedIn: true,
+      canAsk: true,
+      reason:
+        "My driving licence is on the table in this one and you can read my address on it.",
+    }),
+  ]),
+  queueEntry(2, "consent", [
+    queueReport(3, {
+      kind: "consent",
+      signedIn: true,
+      canAsk: true,
+      reason:
+        "The third photo from the top is of my child, and nobody asked us before posting it.",
+      proof: {
+        askedAt: "2026-09-27T22:52:00.000Z",
+        question:
+          "Which photo is it, and is there anything that shows she's yours?",
+        answeredAt: "2026-09-27T23:06:00.000Z",
+        answer:
+          "The one of the toast; the bride is my sister-in-law and can confirm.",
+      },
+    }),
+  ]),
+  queueEntry(3, "other", [queueReport(4, { reason: "wrong event" })]),
+  queueEntry(4, "other", [queueReport(5, { reason: "blurry" })]),
+  queueEntry(5, "other", [
+    queueReport(6, { reason: "please delete this one", signedIn: true }),
+    queueReport(7, { reason: "I look awful in this one, can you delete it" }),
+  ]),
+  queueEntry(6, "other", [queueReport(8)], {
+    key: "album:e-shower",
+    subject: "album",
+    media: null,
+    uploader: null,
+  }),
+];
 
 export function AdminReportCardDemo() {
-  const [asking, setAsking] = useState<"verdict" | "hold" | null>(null);
-  const note = useVerdictNote();
-  const item = SAMPLE_MEDIA[0];
-
   return (
-    <div className="w-full max-w-md space-y-4">
-      <Card data-report-id={REPORT_DEMO_ID}>
-        <CardHeader>
-          <div className="flex items-start justify-between gap-3">
-            <CardTitle className="min-w-0 break-words">
-              Priya &amp; Sam&rsquo;s baby shower
-            </CardTitle>
-            <StatusPicker
-              status={"open" as ReportWord}
-              words={REPORT_WORDS}
-              moves={["dismissed", "actioned"]}
-              moveLabel={(next) =>
-                next === "actioned" ? "Actioned…" : "Dismissed"
-              }
-              onPick={() => {}}
-            />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {formatAdminTimestamp("2026-09-27T21:14:00.000Z")} · item reported
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="aspect-square w-40 overflow-hidden rounded-lg bg-black/10">
-            <MediaTile item={item} />
-          </div>
-          <ReasonLine reason="The third photo from the top is of my child, and nobody asked us before posting it." />
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setAsking("hold")}
-            >
-              <ShieldAlert />
-              Hold for forensics
-            </Button>
-            <span className="text-caption text-muted-foreground">
-              Sets the hold, preserves the evidence and keeps this report open.
-            </span>
-          </div>
-          {note.open ? (
-            <NoteField
-              id={`${REPORT_DEMO_ID}-note`}
-              value={note.text}
-              onChange={note.setText}
-            />
-          ) : null}
-        </CardContent>
-        <CardFooter className="flex-wrap items-center gap-2">
-          <Button type="button" variant="outline" size="sm">
-            Dismiss
-          </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            onClick={() => setAsking("verdict")}
-          >
-            Remove…
-          </Button>
-          {note.open ? null : <AddNoteLink onPress={note.show} />}
-        </CardFooter>
-      </Card>
+    <div className="w-full space-y-4">
+      <ReportQueue entries={QUEUE_ENTRIES} proofOn writes={QUEUE_WRITES} />
 
       <ClosedLog lede={WAY_BACK_LINE}>
         <ClosedLine
@@ -526,43 +599,188 @@ export function AdminReportCardDemo() {
           }
         />
       </ClosedLog>
+    </div>
+  );
+}
 
-      <DestructiveSheet
-        open={asking === "verdict"}
-        onOpenChange={(open) => setAsking(open ? "verdict" : null)}
-        title="Remove this photo?"
-        lede="It leaves the album and the host's Deleted now, and the report closes as Actioned."
-        verb="Remove"
-        touches={REPORT_TOUCHES}
-        severity="reversible"
-        note={{
-          label: "Note",
-          defaultValue: note.text,
-          placeholder: "Why, in one line",
-          hint: "Kept on the report with the verdict. Only this portal reads it.",
-          maxLength: REPORT_NOTE_MAX,
-        }}
-        successMessage="Removed, and the report is actioned."
-        onConfirm={answered}
+/* ── SETTINGS (event-settings r1), on one wedding, its writes inert ─────────────────────────────── */
+
+/** A round trip that changes nothing, then the answer each write gives when it lands. */
+const settle = <T,>(value: T) =>
+  new Promise<T>((resolve) => setTimeout(() => resolve(value), 350));
+
+const SETTINGS_WRITES: SettingsWrites = {
+  updateEvent: async () => settle({ ok: true as const }),
+  setDoor: async (_id, door) =>
+    settle({
+      ok: true as const,
+      emailHeld: door === "approve" || door === "invite",
+      admitted: door === "open" ? 2 : 0,
+    }),
+  setReel: async (input) =>
+    settle({
+      ok: true as const,
+      defaults: {
+        showReel: input.showReel ?? true,
+        styleId: input.styleId ?? null,
+        holdSec: input.holdSec ?? null,
+      },
+    }),
+  setProfile: async () => settle({ ok: true as const }),
+};
+
+const WEDDING = hostEvent({
+  name: "Maya & Jay's Wedding",
+  event_date: "2026-10-10",
+  description: "Add everything from the ceremony too.",
+});
+
+/**
+ * Settings at rest and one level in, drawn inline (never in the popup, which would cover the page):
+ * the four rows, and whichever page a row opens, with the back row up.
+ */
+export function SettingsDemo({ tier = "pro" }: { tier?: "free" | "pro" }) {
+  const [page, setPage] = useState<SettingsPage | null>(null);
+  return (
+    <SettingsProvider
+      event={WEDDING}
+      tier={tier}
+      // A Public album holds nobody at its door (turning Public lets everyone waiting in).
+      counts={{ ...NO_COUNTS, in: 31, invited: 24 }}
+      pendingCount={3}
+      social={{ displayInProfile: false, hostHasSlug: true }}
+      reelSample={null}
+      writes={SETTINGS_WRITES}
+    >
+      <div className="max-w-md space-y-4 rounded-xl bg-popover p-4 text-popover-foreground shadow-layer">
+        {page ? (
+          <button
+            type="button"
+            onClick={() => setPage(null)}
+            className="text-sm text-muted-foreground underline underline-offset-4"
+          >
+            Back to Settings
+          </button>
+        ) : (
+          <p className="font-heading text-card-title">Settings</p>
+        )}
+        {page === "door" ? (
+          <DoorPage guestsHref="#guests" />
+        ) : page === "adds" ? (
+          <AddsPage />
+        ) : page === "reel" ? (
+          <ReelPage />
+        ) : page === "event" ? (
+          <EventPage />
+        ) : (
+          <SettingsRows onOpenPage={setPage} />
+        )}
+      </div>
+    </SettingsProvider>
+  );
+}
+
+/** The door's page on its own, a Private album letting each person in, two waiting. */
+export function DoorPageDemo() {
+  return (
+    <SettingsProvider
+      event={hostEvent({ ...WEDDING, visibility: "private", door: "approve" })}
+      tier="pro"
+      counts={{ ...NO_COUNTS, in: 31, waiting: 2, invited: 24 }}
+      pendingCount={0}
+      social={null}
+      reelSample={null}
+      writes={SETTINGS_WRITES}
+    >
+      <div className="max-w-md rounded-xl bg-popover p-4 text-popover-foreground shadow-layer">
+        <DoorPage guestsHref="#guests" />
+      </div>
+    </SettingsProvider>
+  );
+}
+
+/* ── THE GUESTS ROOM'S DOOR (event-settings r1), on the same wedding, its acts inert ──────────── */
+
+const DOOR_ACTS: DoorActs = {
+  letIn: async () => settle({ ok: true as const, admitted: 1 }),
+  decline: async () => settle({ ok: true as const, blockId: "demo-block" }),
+  letBackIn: async () => settle({ ok: true as const, restored: 0, noRoom: 0 }),
+};
+
+const INVITE_ACTS: InviteActs = {
+  add: async (input) => {
+    const emails = (input as { emails?: string[] }).emails ?? [];
+    return settle({
+      ok: true as const,
+      result: {
+        added: emails.length,
+        already: 0,
+        invalid: 0,
+        overCap: 0,
+        total: INVITED.length + emails.length,
+      },
+    });
+  },
+  remove: async () => settle({ ok: true as const }),
+};
+
+const WAITING: DoorPerson[] = [
+  {
+    guestId: "demo-door-1",
+    userId: "demo-user-1",
+    name: "Priya Shah",
+    email: "priya@example.com",
+    asked: "5 minutes ago",
+    seed: "priya",
+  },
+  {
+    guestId: "demo-door-2",
+    userId: "demo-user-2",
+    name: null,
+    email: "tom.okafor@example.com",
+    asked: "just now",
+    seed: "tom",
+  },
+  {
+    guestId: "demo-door-3",
+    userId: "demo-user-3",
+    name: "Ines Moreau",
+    email: "ines@example.com",
+    asked: "yesterday",
+    seed: "ines",
+  },
+];
+
+const INVITED: InvitedPerson[] = [
+  { email: "aunt.rosa@example.com", joined: true },
+  { email: "sam.lee@example.com", joined: true },
+  { email: "jules@example.com", joined: false },
+  { email: "the.chens@example.com", joined: false },
+];
+
+/** At the door, three waiting: Let in and Decline answer after a round trip and change nothing. */
+export function AtTheDoorDemo() {
+  return (
+    <div className="max-w-2xl">
+      <AtTheDoor
+        eventId="demo-event"
+        people={WAITING}
+        total={WAITING.length}
+        acts={DOOR_ACTS}
       />
-      <DestructiveSheet
-        open={asking === "hold"}
-        onOpenChange={(open) => setAsking(open ? "hold" : null)}
-        title="Hold and preserve this photo?"
-        lede="It stays out of every purge until the hold is released from Forensics, and this report stays open."
-        verb="Set hold and preserve"
-        touches={holdTouches(REPORT_HOLD_SCOPE)}
-        severity="reversible"
-        note={{
-          label: "Reason, on the record",
-          required: true,
-          defaultValue: holdReasonFor(REPORT_DEMO_ID),
-          placeholder: "e.g. report reference, CyberTipline filing",
-          hint: "Written on each hold and in the forensic audit log.",
-          maxLength: REPORT_NOTE_MAX,
-        }}
-        successMessage={heldMessage(1 + REPORT_HOLD_SCOPE.others)}
-        onConfirm={answered}
+    </div>
+  );
+}
+
+/** Invited, the invite list being the door: type or paste addresses; the saves answer and change nothing. */
+export function InvitedDemo() {
+  return (
+    <div className="max-w-2xl">
+      <InvitedSection
+        eventId="demo-event"
+        invited={INVITED}
+        listIsTheDoor
+        acts={INVITE_ACTS}
       />
     </div>
   );

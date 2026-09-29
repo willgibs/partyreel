@@ -23,7 +23,6 @@ import {
   BOARD_FOLDERS,
   BOARDS,
   boardSpec,
-  PREDATES,
   SPEC_EXPORTS,
   SPECS,
 } from "./registry";
@@ -696,9 +695,8 @@ describe("a board is one folder", () => {
     // What a touchpoints.ts row said, in the board's own spec: the sidebar
     // groups by surface, the desk orders by place, and `lives` is where a
     // wiring lane's owns start (and what flags a board's open asks when a merge
-    // changes it). The boards PREDATES names are the only exception.
+    // changes it). `defineExploration` requires them; this holds the rest.
     for (const spec of SPECS) {
-      if (spec.id in PREDATES) continue;
       expect(
         spec.surface,
         `${spec.id}/spec.ts declares no surface`,
@@ -715,23 +713,6 @@ describe("a board is one folder", () => {
       expect(new Set(lives).size, `${spec.id}: lives repeats a path`).toBe(
         lives.length,
       );
-    }
-  });
-
-  it("lets a board predate its facts only while its folder stands and its spec says nothing", () => {
-    // PREDATES is a debt for two specs other lanes own, and it only shrinks:
-    // an entry outliving its folder, or doubling what its spec now says, is
-    // stale and must go (merge-lane.sh drops the first kind by itself).
-    for (const id of Object.keys(PREDATES)) {
-      expect(
-        BOARD_FOLDERS,
-        `PREDATES names "${id}", which has no folder: delete its entry`,
-      ).toContain(id);
-      const spec = SPECS.find((s) => s.id === id);
-      expect(
-        spec?.surface ?? spec?.desk ?? spec?.lives,
-        `${id}/spec.ts carries its own facts now: delete its PREDATES entry`,
-      ).toBeUndefined();
     }
   });
 });

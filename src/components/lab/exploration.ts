@@ -162,13 +162,11 @@ export type ExplorationInput = {
   /**
    * ★ WHERE THE BOARD STANDS, IN ITS OWN SPEC (`DeskFacts`: the surface it
    * redraws, its place on the desk, the paths it redraws). No shared list holds
-   * a board any more: the registry finds its folder. Optional in the type only
-   * because two specs cut before this predate it; `registry.test.ts` refuses
-   * any other board without them.
+   * a board any more: the registry finds its folder, so these are required.
    */
-  readonly surface?: DeskFacts["surface"];
-  readonly desk?: DeskFacts["desk"];
-  readonly lives?: DeskFacts["lives"];
+  readonly surface: DeskFacts["surface"];
+  readonly desk: DeskFacts["desk"];
+  readonly lives: DeskFacts["lives"];
   readonly tracks?: DeskFacts["tracks"];
   readonly round: {
     readonly n: number;

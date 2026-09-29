@@ -38,24 +38,60 @@ a lane").
 
 | lane | what | state | model, port | at its handoff |
 | --- | --- | --- | --- | --- |
-| `settings-wiring` | every event-settings pick: settings as four sentences, the doors end to end, the Guests room, the hub | running (agent `aefdc4b3cecd92f74`) | Opus, 3131 | |
-| `triage-r2-wiring` | admin-triage r2 wired; the hold rebuilt (Hold takes down by default; storage released at an operator's removal; an open report guards its item; the child-abuse instant hide) | running (agent `a432fe0336dc35587`) | Opus, 3134 | |
 | `schema-pass` | the data architecture audited; its migration BLOCKED: the permission classifier refused the lane's write of the file (no retry). The audit is its manifest at `origin/lp/schema-pass` (`66794756`): Q1 his permission to write and prove, Q2 the reel's three columns wait for milestone 31 (main reads them), Q3 default privileges closed for anon and authenticated, Q4 the monthly meter deny-all, Q5 three CHECKs | handed off blocked; resumed on his yes | Opus | `66794756` |
 | `crumbs-14` | the hub row's stick loop, the screen popup's back label, the admin sign-in's asked page, a refused sign-out, the pricing teaser's price, a lowercase bullet | running (agent `a0de18f02690ad5a8`) | Opus, 3135 | |
 | `lab-revamp` | stage two, the plumbing: a board as one self-registering folder, scoped lab checks, the trimmed API, the words renamed, the kit following (holds registry.ts and boards.ts; PROGRAM.md's lines come in its Handoff) | running, resumed (agent `a6b4519e3d363d7dd`) | Opus, 3133 | |
+
+**Handoff across accounts (written 2026-09-29, the old account at ~97% of its weekly limit).** The old Orchestrator
+session is `b01c012e-f59c-432b-9873-9f4226c036f2`; its agent ids above are unreachable from a new session, so each
+running lane is respawned on its worktree per the runbook's "Resume a lane" (`usher/kit/README.md`): kill by port any
+dev server left on 3131 to 3135 first, then give the fresh agent `spawn-prompt.txt` filled (same track, same port)
+plus: "You are resuming a lane whose agent was cut off by a usage limit: read your manifest's `## Where I am` (each lane
+was asked to write it and push a WIP commit at the limit), `git log` and `git status` in your worktree, and your
+predecessor's transcript at `~/.claude/projects/-Users-gibby-local-ai-partyreel/b01c012e-f59c-432b-9873-9f4226c036f2/subagents/agent-<id>.jsonl`
+only where those leave a gap; a stale `.next/dev/lock` may be deleted; continue to your own handoff." The lanes:
+- `settings-wiring` (`../partyreel-wt/settings-wiring`, 3131, agent `aefdc4b3cecd92f74`): merged (below); its relays were The Orchestrator's
+  relays it took mid-lane, to re-send if its `## Where I am` lacks them: skip every legal draft (legal is rewritten once
+  before launch); crumbs-12's notes (`EVENT_ROOMS` order, `edge-fade-scroller.tsx`, headings `font-heading` alone at
+  700, the SWC space trap, `your-event-page-explained.mdx`'s old card order); `unlisted=ask` on the shut door's foot
+  ("Ask Maya to let me in", then "Use a different email"); a sheet opened from a link cannot be closed
+  (`event-share-provider.tsx:113-115`) and the custom link's error is unannounced; revoke PUBLIC EXECUTE when replacing
+  `get_event_by_qr_token`.
+- `crumbs-14` (`../partyreel-wt/crumbs-14`, 3135, agent `a0de18f02690ad5a8`): mid-work, no relays.
+- `lab-revamp` stage two (`../partyreel-wt/lab-revamp`, 3133, agent `a6b4519e3d363d7dd`): mid-work; its notes
+  `../partyreel-wt/_scratch/lab-revamp/stage-two.md`.
+- `schema-pass` is not running: it handed off blocked (the classifier refused its migration file). On Will's yes,
+  respawn it into `../partyreel-wt/schema-pass` (3132) with his words quoted, from its manifest on `origin/lp/schema-pass`.
+If the cut-off lands mid-integration: a local `launch-prep` ahead of `origin` holds a merge made after this note (push
+it, then record it from its merge message and its lane's Handoff, `git show <merge>^2:docs/tracks/<track>.md`); a
+staged, uncommitted merge is finished by `usher/kit/merge-lane.sh`'s own steps or reset with `git merge --abort`.
+The old session's scratchpad (`/private/tmp/claude-501/-Users-gibby-local-ai-partyreel/b01c012e-f59c-432b-9873-9f4226c036f2/scratchpad`,
+until a reboot) holds the batch's specs (`specs/<track>.json`) and gate logs; nothing there is needed that these lines
+and the manifests do not carry.
 
 Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcribed at `31de6aa0`: 41 answers on ten
 boards). Wave A: `settings-wiring` (all nine event-settings picks, the doors end to end), `locked-door` r2 (the door
 family), `disposable-mode` r2, `crumbs-12`. Batch 7 is merged whole; its records carry the rest.
 
-Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp stage one.
+Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, disposable-mode r2, crumbs-13, lab-revamp stage one, settings-wiring, triage-r2-wiring.
 
 ## Next, in order
 
 1. **Build 20 was red-teamed live** (`18491027`; every journey PASS, the ledger `../partyreel-wt/_scratch/redteam-20/ledger.txt`):
    its two minors went to `crumbs-12` ("30 days", merged) and `crumbs-13` (the home's double preload), and its
    observation (the global sign-out) is `crumbs-13`'s on his word.
-2. **Integrate each lane as it hands off**, each migration by protocol, one at a time: drift check, apply verbatim, the
+2. **`settings-wiring` (`7c0fbcb1`) and `triage-r2-wiring` (`1b29be3a`) are merged, both migrations applied** (2026-09-29,
+   by a helper, each by its own header): `event_doors` recorded `20260929131041` (md5 `60e364d2`; the drift check clean, 26
+   bodies after, `get_event_by_qr_token` without PUBLIC; the proof 12/12 rolled back; advisors 0029 at 33, 0028 at 4,
+   no-policy at 17) and `triage_r2` recorded `20260929131921` (md5 `94b7d521`; 12 bodies, `create_report` at seven
+   arguments; the proof 10/10 rolled back; advisors unchanged; `report_proof_mail_enabled` false). Types regenerated
+   (the gate's typecheck and 6,829 tests green). Build 23 is live (`6c64d5c8`, alias-ensure green, pruned); its red-team
+   runs (agent `ab63a0b9ec16c1fe1`, `../partyreel-wt/_scratch/redteam-23/brief.md`, a ledger line per step: a respawn
+   picks up after its last line) on both lanes' walks (their Handoffs: `git show 7c0fbcb1^2:docs/tracks/settings-wiring.md`,
+   `git show 1b29be3a^2:docs/tracks/triage-r2-wiring.md`); both lanes' Questions are his to relay (13 and more). Follow-ups:
+   the two lanes' typed seams for a missing schema can go now (a crumbs lane); milestone 31 carries `kept_media_ids` to
+   the production purge (milestone 30's cron never asks it; no open report names a removed item today).
+3. **Integrate each lane as it hands off**, each migration by protocol, one at a time: drift check, apply verbatim, the
    rolled-back refusals, advisors, types. `negative.sh` runs once before the first (the kit changed with
    merge-lane.sh's id-less sweep). `settings-wiring` owns every guest-path function replacement this batch; no other
    lane replaces one. Large files go through a helper that transcribes, `cmp`s, applies and proves.
@@ -93,9 +129,13 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, dis
      `settings-wiring`'s merge, since it rewrites the guest path; with the lane's idea of the premiere on the wall, the
      reel's screen counting down to the develop time and playing the roll as an event of its own) and the door family's wiring (if the doorway wins, its reveal: walking through the
      opened door into the album, drawn first as motion options; ASSETS row 36 if the host's door wins).
-4. **Build 22** (this record's `[preview]`): his sitting on `locked-door` r2 and `disposable-mode` r2 (4 and 8 asks), each
+4. **Build 22 is live** (`54cd706c`; alias-ensure green, pruned, the desk served, the context layer read on the served
+   desk): his sitting on `locked-door` r2 and `disposable-mode` r2 (4 and 8 asks), each
    with its context now (where, what brings someone there, why it matters, each option's gain and cost, the
-   recommendation's reason, each board's opening), and `crumbs-13`'s sign-out. Build 22's
+   recommendation's reason, each board's opening), and `crumbs-13`'s sign-out. Red-teamed live (`../partyreel-wt/_scratch/redteam-22/ledger.txt`): every journey PASS, the admin portal's
+   own session kept through a main-alias sign-out (its AAL2 half and the admin bar's reverse wait on Will's authenticator
+   code, a two-minute follow-up); two a11y nits to ROADMAP; at 375 a board's opening puts the question 1.4 screens down
+   (ROADMAP's fold line). Build 22's
    red-team also walks `crumbs-13`'s sign-out (its Handoff's four live walks: two browsers, the admin portal's session
    kept, Sign out everywhere, the guest header). Its red-team rides the claims walk: crumbs-12's hub row at
    1440, 768 and 375 resting and stuck, "restore it for 30 days", the reports lede, the headings at 700, /terms'

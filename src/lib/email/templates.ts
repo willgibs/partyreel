@@ -547,6 +547,82 @@ export function pruneBreakerEmail(opts: {
   });
 }
 
+/**
+ * A REPORT THAT CANNOT WAIT FOR THE MORNING (admin-triage r2, his word in chat): a child-abuse report, whether
+ * its confirmed reporter's instant hide took the item down or it arrived unconfirmed and is still up. It goes to
+ * the ops inbox at once, beside the portal's own count, so a false hide lasts minutes and a real one is acted on.
+ * ★ IT CARRIES NOTHING OF THE REPORT'S CONTENT OR ITS REPORTER: no photo, no reason, no address, only the album's
+ * name, what happened to the item and where to act, because an inbox is a place the runbook's "never forward"
+ * cannot reach. No button (an operator alert's shape); the portal is the one place it is judged. Sent at most once
+ * per event per ten minutes through sendOnce, so a burst is one mail and the queue says the rest.
+ */
+export function urgentReportEmail(opts: {
+  eventName: string;
+  /** The instant hide took the item down pending review. */
+  hidden: boolean;
+  /** The portal's Reports, on the admin host. */
+  reportsUrl: string;
+}): Mail {
+  return composeMail({
+    subject: opts.hidden
+      ? `${OPERATOR_TAG} Child-abuse report: an item was hidden pending review`
+      : `${OPERATOR_TAG} Child-abuse report: waiting in front of the queue`,
+    heading: opts.hidden
+      ? "A child-abuse report hid an item"
+      : "A child-abuse report is waiting",
+    blocks: [
+      p(
+        opts.hidden
+          ? "A reporter who confirmed their email reported an item as child abuse, so it was hidden from every viewer at once. "
+          : "Someone reported child abuse in this album, and nothing was hidden: the report came without a confirmed email, named the whole album, or met a limit. ",
+        strong(
+          opts.hidden
+            ? "Review it now: if the report is false, Dismiss puts the item back."
+            : "Review it now: what it names stays up until you act.",
+        ),
+      ),
+      { kind: "fields", rows: [{ label: "Album", value: opts.eventName }] },
+      p(
+        "The runbook: look only to confirm it, never to study it, and never forward or screenshot it.",
+      ),
+    ],
+    // The portal's link rides the foot, the one place an operator mail carries a link (it has no button).
+    foot: {
+      line: "Partyreel operations alert (child-safety reports, trust-safety-forensics.md). Sent at most once per album per ten minutes.",
+      link: { href: opts.reportsUrl, label: "Open Reports" },
+    },
+  });
+}
+
+/**
+ * ASK FOR PROOF (admin-triage r2, `proof=confirm`): the one mail an operator sends a reporter by hand, to the
+ * address she confirmed on the form, which the report keeps only until it closes. The question is the operator's
+ * own words; the button opens the page where her answer is added to the report itself (`/report/<token>`), so
+ * the claim and its proof are read in one place. ★ BEHIND A SWITCH LEFT OFF (`ops_flags.report_proof_mail_enabled`,
+ * seeded false): his rule holds every new product mail for the email exploration, so the ask and its record are
+ * built whole and this mail waits on his yes. Never for a child-abuse report (the action refuses it).
+ */
+export function reportProofAskEmail(opts: {
+  eventName: string;
+  question: string;
+  answerUrl: string;
+}): Mail {
+  return composeMail({
+    subject: `About your report on ${opts.eventName}`,
+    heading: "We need a little more to act on your report",
+    blocks: [
+      p(
+        `You reported something in ${opts.eventName}. Before anything comes down, the person reviewing it asks:`,
+      ),
+      { kind: "message", label: "Their question", text: opts.question },
+    ],
+    cta: { href: opts.answerUrl, label: "Add to your report" },
+    foot: {
+      line: "You're receiving this because you confirmed this address with a report. It's deleted when the report closes, and the host is never told who reported.",
+    },
+  });
+}
+
 /** A /careers application. Reply-To = the applicant. */
 export function applicationReceivedEmail(opts: {
   role: string;

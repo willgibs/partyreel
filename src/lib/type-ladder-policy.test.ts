@@ -6,8 +6,6 @@ import { describe, expect, it } from "vitest";
 
 import { cn, RADIUS_TOKENS, TYPE_STEPS } from "@/lib/utils";
 
-import { PREDATES } from "@/app/(dev)/design/sandbox/registry";
-
 /**
  * THE TYPE STEPS AND RADIUS TOKENS STAY REACHABLE, AND THE HEADING FACE KEEPS
  * ITS ONE WEIGHT. Three silent failures, and none is about how a step looks
@@ -91,22 +89,15 @@ const SRC = join(process.cwd(), "src");
  * 2026-09-29, taking in crumbs-12's finding): a board draws production's type
  * for Will to judge, so a lighter weight beside the heading face on a board is
  * the same lie it is on a page, and three boards and the keyboard bench were
- * telling it. The one exception is the boards that predate the folder shape
- * (`PREDATES`), which belong to running wiring lanes and leave with them.
+ * telling it.
  */
 const SKIP = /\.test\.tsx?$|^components\/vendor\//;
-const PREDATED = Object.keys(PREDATES).map(
-  (id) => `app/(dev)/design/sandbox/${id}/`,
-);
 
 function sources(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const full = join(dir, entry.name);
     if (entry.isDirectory()) return sources(full);
-    const rel = relative(SRC, full);
-    return /\.tsx?$/.test(entry.name) &&
-      !SKIP.test(rel) &&
-      !PREDATED.some((p) => rel.startsWith(p))
+    return /\.tsx?$/.test(entry.name) && !SKIP.test(relative(SRC, full))
       ? [full]
       : [];
   });

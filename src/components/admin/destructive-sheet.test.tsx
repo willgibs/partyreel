@@ -104,7 +104,12 @@ describe("the confirmation itself", () => {
     expect(onConfirm).toHaveBeenCalledTimes(1);
     // The second argument is the confirm's note (admin-triage r1): this act
     // carries none, so it is handed "".
-    expect(onConfirm).toHaveBeenCalledWith("grace@whitlockevents.co", "");
+    // ...and the third its option's state (admin-triage r2): it carries none, so false.
+    expect(onConfirm).toHaveBeenCalledWith(
+      "grace@whitlockevents.co",
+      "",
+      false,
+    );
   });
 
   it("runs once on a reversible act too", async () => {
@@ -145,6 +150,7 @@ describe("a confirm can carry one note", () => {
     expect(onConfirm).toHaveBeenCalledWith(
       "",
       "Child in frame; her parent asked.",
+      false,
     );
   });
 
@@ -152,7 +158,7 @@ describe("a confirm can carry one note", () => {
     const user = userEvent.setup();
     const { onConfirm } = sheet({ verb: "Remove", note: { label: "Note" } });
     await user.click(confirmButton(/remove/i));
-    expect(onConfirm).toHaveBeenCalledWith("", "");
+    expect(onConfirm).toHaveBeenCalledWith("", "", false);
   });
 
   it("a required note holds the verb until a line is written", async () => {
@@ -171,7 +177,7 @@ describe("a confirm can carry one note", () => {
     await user.type(screen.getByRole("textbox"), "report 8d2f0b14");
     expect(verb).toBeEnabled();
     await user.click(verb);
-    expect(onConfirm).toHaveBeenCalledWith("", "report 8d2f0b14");
+    expect(onConfirm).toHaveBeenCalledWith("", "report 8d2f0b14", false);
   });
 
   it("a filled-in note starts from its value, and the operator's edit is what is handed over", async () => {
@@ -193,6 +199,7 @@ describe("a confirm can carry one note", () => {
     expect(onConfirm).toHaveBeenCalledWith(
       "",
       "Report 8d2f0b14, CyberTipline filing",
+      false,
     );
   });
 
@@ -216,6 +223,35 @@ describe("a confirm can carry one note", () => {
     expect(onConfirm).toHaveBeenCalledWith(
       "grace@whitlockevents.co",
       "Asked twice.",
+      false,
     );
+  });
+});
+
+/**
+ * ONE OPTION, A SWITCH IN THE CONFIRM (admin-triage r2, the hold rebuilt on Will's word, 2026-09-29): a hold's
+ * "Take it down too", ON by default. Its state changes what the confirm says it touches, what the toast says,
+ * and what the act is handed.
+ */
+describe("a confirm can carry one option", () => {
+  it("starts where it is told, says what each state touches, and hands its state to the act", async () => {
+    const user = userEvent.setup();
+    const { onConfirm } = sheet({
+      verb: "Set hold and preserve",
+      option: { label: "Take it down too", defaultChecked: true },
+      touches: (on: boolean) => [on ? "It leaves the album" : "Nothing leaves"],
+      successMessage: (on: boolean) => (on ? "Held, taken down." : "Held."),
+    });
+    const toggle = screen.getByRole("switch", { name: /take it down too/i });
+    expect(toggle).toBeChecked();
+    expect(screen.getByText("It leaves the album")).toBeInTheDocument();
+
+    await user.click(toggle);
+    expect(toggle).not.toBeChecked();
+    expect(screen.getByText("Nothing leaves")).toBeInTheDocument();
+    expect(screen.queryByText("It leaves the album")).toBeNull();
+
+    await user.click(confirmButton(/set hold and preserve/i));
+    expect(onConfirm).toHaveBeenCalledWith("", "", false);
   });
 });

@@ -129,12 +129,15 @@ describe("media SELECT column-scoping (finding: hold columns host-readable)", ()
   // future "add the new column to the list" reflex has to grant it in SQL first.
   // ...and the same for the QA Q3 provenance columns (removed_by_admin records an OPERATOR
   // takedown, which carries the trust-safety-forensics.md discretion posture; status_before_removed is machinery).
+  // ...and `purge_asked_at` (20260929140000), a permanent delete a hold or an open report defers: a host who
+  // could read it would learn that something keeps her row.
   it("keeps MEDIA_HOST_COLUMNS free of the ungranted-by-design columns", () => {
     const cols = tsSelectColumns();
     for (const c of [
       "removed_by_system",
       "removed_by_admin",
       "status_before_removed",
+      "purge_asked_at",
     ]) {
       expect(cols).not.toContain(c);
     }
@@ -154,6 +157,7 @@ describe("media SELECT column-scoping (finding: hold columns host-readable)", ()
       "removed_by_system",
       "removed_by_admin",
       "status_before_removed",
+      "purge_asked_at",
     ]) {
       expect(omitted).toContain(`"${c}"`);
     }

@@ -4,7 +4,12 @@ import { Globe, KeyRound, Lock, MailCheck } from "lucide-react";
 import Image from "next/image";
 import type { ReactNode } from "react";
 
-import { VISIBILITY_HINTS } from "@/lib/events/visibility-labels";
+import {
+  DOOR_STEP_LABELS,
+  DOOR_STEP_LINES,
+  GATE_LINES,
+  doorLabel,
+} from "@/lib/events/visibility-labels";
 import { marketingImage } from "@/lib/constants/marketing-media";
 import { TEASER_LIMIT } from "@/lib/events/gallery-access";
 import { cn } from "@/lib/utils";
@@ -14,14 +19,15 @@ import { cn } from "@/lib/utils";
  * own 3px rebate (the press sheet's idiom: `bg-border` behind cells set at
  * `--gap-gallery`, so every division is a hairline), each cell the SAME
  * nine-tile album (nine = TEASER_LIMIT, product-true) with its state drawn
- * over it: Public bright; accounts required bright with the real "See all"
- * chip; Password ghosted under the gate card; Private ghosted under the lock,
- * with NO name and NO count (the real page is an early return). The plate is
- * a light table: pointing at one cell steps the others back.
+ * over it: Public bright; an email first bright with the real "See all" chip;
+ * Private with a password ghosted under the gate card; Only me ghosted under
+ * the one closed screen, with NO name and NO count (the real page is an early
+ * return). The plate is a light table: pointing at one cell steps the others
+ * back.
  *
- * The three visibility hints are IMPORTED from the app's selector; the
- * fourth is authored to the same length band. A client component because the
- * hints live in a client module.
+ * The door's words are IMPORTED from the app's one words module (the door's
+ * steps and its gates, event-settings r1); the email cell's hint is authored
+ * to the same length band.
  */
 
 const EVENT_NAME = "Maya & Jay's Wedding";
@@ -113,13 +119,17 @@ export function VisibilityFrames() {
       data-mkt-isolate
       className="grid gap-[var(--gap-gallery)] overflow-hidden rounded-2xl border bg-border p-[var(--gap-gallery)] sm:grid-cols-2 lg:grid-cols-4"
     >
-      <Cell icon={Globe} title="Public" hint={VISIBILITY_HINTS.open}>
+      <Cell
+        icon={Globe}
+        title={DOOR_STEP_LABELS.public}
+        hint={DOOR_STEP_LINES.public}
+      >
         <Album />
       </Cell>
 
       <Cell
         icon={MailCheck}
-        title="Accounts required"
+        title="An email first"
         hint={`On by default. ${TEASER_LIMIT} show, the rest after an email code.`}
       >
         <Album />
@@ -130,7 +140,11 @@ export function VisibilityFrames() {
         </Over>
       </Cell>
 
-      <Cell icon={KeyRound} title="Password" hint={VISIBILITY_HINTS.password}>
+      <Cell
+        icon={KeyRound}
+        title={doorLabel("password")}
+        hint={GATE_LINES.password}
+      >
         <Album ghost />
         <Over>
           <div className="w-full max-w-[10.5rem] rounded-xl border bg-card/95 p-3 text-center shadow-layer">
@@ -151,14 +165,18 @@ export function VisibilityFrames() {
         </Over>
       </Cell>
 
-      <Cell icon={Lock} title="Private" hint={VISIBILITY_HINTS.private}>
+      <Cell
+        icon={Lock}
+        title={DOOR_STEP_LABELS.only_me}
+        hint={DOOR_STEP_LINES.only_me}
+      >
         <Album ghost />
         <Over>
           <div className="flex flex-col items-center gap-1.5 rounded-xl border bg-card/95 px-4 py-3 text-center shadow-layer">
             <span className="flex size-7 items-center justify-center rounded-full border text-muted-foreground">
               <Lock className="size-3.5" />
             </span>
-            <p className="font-heading text-xs">This event is private</p>
+            <p className="font-heading text-xs">This album is closed</p>
           </div>
         </Over>
       </Cell>

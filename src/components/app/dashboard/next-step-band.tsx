@@ -7,10 +7,11 @@ import {
   CheckCircle2,
   ChevronDown,
   Clapperboard,
+  DoorOpen,
+  HardDrive,
   ListChecks,
   PauseCircle,
   Printer,
-  HardDrive,
 } from "lucide-react";
 
 import {
@@ -50,6 +51,8 @@ import { cn } from "@/lib/utils";
  */
 
 const ICONS: Record<NextStepKind, typeof ListChecks> = {
+  // People waiting at the door (the doors, event-settings r1): the door they stand at.
+  door: DoorOpen,
   review: ListChecks,
   paused: PauseCircle,
   reel: Clapperboard,

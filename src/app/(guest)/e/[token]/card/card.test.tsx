@@ -10,19 +10,28 @@
  *     whatever the event, and nothing about the request (its cookies, its session, its ticket) is
  *     ever read, so two viewers get the same bytes and the same headers;
  *   - THE PAGE'S METADATA names the event's own card only where the door is open, and the private
- *     album's card behind every closed door, a block and a private album alike, in the same bytes.
+ *     album's card behind every closed door, a block and a private album alike, in the same bytes;
+ *     a gated album (the doors, 20260929120000) names its name, as a password album does, over the
+ *     private album's card, since the card route reads a gated album as private.
  */
 import { renderToStaticMarkup } from "react-dom/server";
 import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GuestEvent } from "@/lib/db/queries/guest-events";
+import type { DoorDecision } from "@/lib/event/door/decide";
 
-const { getEventCardName, getEventByQrToken, pageIsClosed, requestIdentity } =
+type PageDoor = {
+  decision: DoorDecision;
+  standing: Record<string, unknown>;
+  event: GuestEvent;
+};
+
+const { getEventCardName, getEventByQrToken, pageDoor, requestIdentity } =
   vi.hoisted(() => ({
     getEventCardName: vi.fn<(token: string) => Promise<string | null>>(),
     getEventByQrToken: vi.fn(),
-    pageIsClosed: vi.fn<(id: string, visibility: string) => Promise<boolean>>(),
+    pageDoor: vi.fn<(token: string) => Promise<PageDoor | null>>(),
     // Anything that reads who is asking. The card must never call it.
     requestIdentity: vi.fn(() => {
       throw new Error("the card read the request's identity");
@@ -55,7 +64,7 @@ vi.mock("@/lib/db/queries/event-card", () => ({ getEventCardName }));
 
 // The page's own reads, stubbed: generateMetadata is asked, never the page it renders.
 vi.mock("@/lib/db/queries/guest-events", () => ({ getEventByQrToken }));
-vi.mock("@/lib/events/closed-door.server", () => ({ pageIsClosed }));
+vi.mock("@/lib/events/closed-door.server", () => ({ pageDoor }));
 vi.mock("@/lib/db/queries/guest-events-admin", () => ({
   getGalleryStats: vi.fn(),
   getHostAvatarSeed: vi.fn(),
@@ -69,6 +78,7 @@ vi.mock("@/components/guest/guest-header", () => ({ GuestHeader: () => null }));
 vi.mock("@/components/shared/not-found-screen", () => ({
   NotFoundScreen: () => null,
 }));
+vi.mock("@/components/guest/door/shut-door", () => ({ ShutDoor: () => null }));
 vi.mock("@/components/social/guest-list", () => ({
   GuestList: () => null,
   GUEST_LIST_FACES_THRESHOLD: 12,
@@ -142,8 +152,19 @@ function guestEvent(over: Partial<GuestEvent> = {}): GuestEvent {
     show_reel: true,
     reel_style_id: null,
     reel_hold_sec: null,
+    accepts_video: true,
     ...over,
   };
+}
+
+/** A door the link opens: through, as a stranger. */
+function openDoor(event: GuestEvent): PageDoor {
+  return { decision: { kind: "through", admitted: false }, standing: {}, event };
+}
+
+/** The shut door, over whatever the album's own read returned. */
+function shutDoor(event: GuestEvent, previous = false): PageDoor {
+  return { decision: { kind: "shut", previous }, standing: {}, event };
 }
 
 async function metadataFor(token: string, searchParams = {}) {
@@ -206,40 +227,36 @@ describe("the card route: one answer per address", () => {
     getEventCardName.mockResolvedValue(NAME);
     const first = await card(`https://partyreel.test/e/${QR}/card`);
     // Whatever the second viewer carries (a block, a ticket, a session) never reaches the card: a
-    // closed door that answered here would throw from the stubbed identity readers above.
-    pageIsClosed.mockResolvedValue(true);
+    // door that answered here would throw from the stubbed identity readers above.
+    pageDoor.mockResolvedValue(shutDoor(guestEvent()));
     const second = await card(`https://partyreel.test/e/${QR}/card`);
     expect(second).toEqual(first);
     expect(requestIdentity).not.toHaveBeenCalled();
-    expect(pageIsClosed).not.toHaveBeenCalled();
+    expect(pageDoor).not.toHaveBeenCalled();
     expect(getEventByQrToken).not.toHaveBeenCalled();
   });
 });
 
 describe("the page's metadata: which card each viewer's page names", () => {
   it("an open door names the event's own card", async () => {
-    getEventByQrToken.mockResolvedValue({ ok: true, data: guestEvent() });
-    pageIsClosed.mockResolvedValue(false);
+    pageDoor.mockResolvedValue(openDoor(guestEvent()));
     const meta = await metadataFor(QR);
     expect(imageUrls(meta)).toEqual([`/e/${QR}/card`, `/e/${QR}/card`]);
   });
 
   it("a password album's door names the event's own card too (its name is link-shared)", async () => {
-    getEventByQrToken.mockResolvedValue({
-      ok: true,
-      data: guestEvent({ visibility: "password", has_password: true }),
-    });
-    pageIsClosed.mockResolvedValue(false);
+    pageDoor.mockResolvedValue(
+      openDoor(guestEvent({ visibility: "password", has_password: true })),
+    );
     expect(imageUrls(await metadataFor(QR))).toEqual([
       `/e/${QR}/card`,
       `/e/${QR}/card`,
     ]);
   });
 
-  it("★ a viewer the closed door masks is named the private album's card, never the event's", async () => {
-    // A blocked ticket: the event reads open, the door is closed to this browser.
-    getEventByQrToken.mockResolvedValue({ ok: true, data: guestEvent() });
-    pageIsClosed.mockResolvedValue(true);
+  it("★ a viewer the door shuts out is named the private album's card, never the event's", async () => {
+    // A blocked ticket: the event reads open, the door is shut to this browser.
+    pageDoor.mockResolvedValue(shutDoor(guestEvent()));
     const meta = await metadataFor(QR);
     expect(imageUrls(meta)).toEqual([
       `/e/${QR}/card?private`,
@@ -249,33 +266,51 @@ describe("the page's metadata: which card each viewer's page names", () => {
     expect(JSON.stringify(meta)).not.toContain("Maya");
   });
 
-  it("★ a block and a private album name the same card in the same bytes", async () => {
+  it("★ a block, a private album and a guest who was in name the same card in the same bytes", async () => {
     // The blocked ticket, on an open album.
-    getEventByQrToken.mockResolvedValue({ ok: true, data: guestEvent() });
-    pageIsClosed.mockResolvedValue(true);
+    pageDoor.mockResolvedValue(shutDoor(guestEvent()));
     const blockedTicket = await metadataFor(QR);
     // A blocked account: the database reads the event as private (and nameless) to her.
-    getEventByQrToken.mockResolvedValue({
-      ok: true,
-      data: guestEvent({ visibility: "private", name: "" }),
-    });
+    pageDoor.mockResolvedValue(
+      shutDoor(guestEvent({ visibility: "private", name: "" })),
+    );
     const blockedAccount = await metadataFor(QR);
+    // Someone who was in, after the host made it Only me: the page adds its line, the tab does not.
+    pageDoor.mockResolvedValue(
+      shutDoor(guestEvent({ visibility: "private", name: "" }), true),
+    );
+    const previousGuest = await metadataFor(QR);
     // A private album, to anyone.
-    getEventByQrToken.mockResolvedValue({
-      ok: true,
-      data: guestEvent({ visibility: "private" }),
-    });
+    pageDoor.mockResolvedValue(
+      shutDoor(guestEvent({ visibility: "private" })),
+    );
     const privateAlbum = await metadataFor(QR);
     expect(blockedTicket).toEqual(privateAlbum);
     expect(blockedAccount).toEqual(privateAlbum);
+    expect(previousGuest).toEqual(privateAlbum);
+  });
+
+  it("★ a gated album names its name, as a password album does, over the private album's card", async () => {
+    // A newcomer at a door the host answers: the door re-read the name the anon read redacted.
+    pageDoor.mockResolvedValue({
+      decision: { kind: "newcomer", gate: "approve" },
+      standing: {},
+      event: guestEvent({ visibility: "private", door: "approve" }),
+    });
+    const meta = await metadataFor(QR);
+    expect(meta.title).toBe(NAME);
+    expect(imageUrls(meta)).toEqual([
+      `/e/${QR}/card?private`,
+      `/e/${QR}/card?private`,
+    ]);
+    // No invitation to add photos: the door stands first.
+    expect(JSON.stringify(meta)).not.toContain("Add yours");
   });
 
   it("a closed door keeps the address the visitor arrived on (a slug is never swapped for the token)", async () => {
-    getEventByQrToken.mockResolvedValue({
-      ok: true,
-      data: guestEvent({ visibility: "private", custom_slug: "mayas-30th" }),
-    });
-    pageIsClosed.mockResolvedValue(true);
+    pageDoor.mockResolvedValue(
+      shutDoor(guestEvent({ visibility: "private", custom_slug: "mayas-30th" })),
+    );
     const meta = await metadataFor("mayas-30th");
     expect(imageUrls(meta)).toEqual([
       "/e/mayas-30th/card?private",
@@ -285,7 +320,7 @@ describe("the page's metadata: which card each viewer's page names", () => {
   });
 
   it("an unknown link names the private album's card", async () => {
-    getEventByQrToken.mockResolvedValue({ ok: false, code: "not_found" });
+    pageDoor.mockResolvedValue(null);
     const meta = await metadataFor("nothing-here");
     expect(meta.title).toBe("Join event");
     expect(imageUrls(meta)).toEqual([

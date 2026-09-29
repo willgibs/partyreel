@@ -15,7 +15,11 @@
 import { NextResponse } from "next/server";
 
 import { getEventByQrToken } from "@/lib/db/queries/guest-events";
-import { isClosedToThisBrowser } from "@/lib/events/closed-door.server";
+import {
+  doorCallerFor,
+  isShut,
+  resolveGuestDoor,
+} from "@/lib/events/closed-door.server";
 import {
   readUnlockStateByToken,
   signUnlock,
@@ -101,12 +105,16 @@ export async function POST(request: Request) {
     );
   }
 
-  // ★ A VIEWER THIS EVENT BLOCKED UNLOCKS NOTHING, and hears what a private album's link hears: to
-  // them the album IS private (the closed door, `closed-door.server.ts`), and a private album has no
-  // password to prove, so the answer is the same generic refusal, counted the same way, and the
-  // password is never checked.
-  const door = await getEventByQrToken(qr_token);
-  const closed = door.ok && (await isClosedToThisBrowser(door.data));
+  // ★ A VIEWER THE DOOR SHUTS OUT UNLOCKS NOTHING, and hears what a private album's link hears: to
+  // them the album IS private (a block and a decline alike, `closed-door.server.ts`), and a private
+  // album has no password to prove, so the answer is the same generic refusal, counted the same way,
+  // and the password is never checked.
+  const found = await getEventByQrToken(qr_token);
+  const closed =
+    found.ok &&
+    isShut(
+      await resolveGuestDoor(found.data, await doorCallerFor(found.data.id)),
+    );
 
   // Service-role admin client: verify_event_password is now revoked from anon/authenticated, so this
   // route is the ONLY caller -> every guess is forced through the rate limiter above (H2).

@@ -103,7 +103,7 @@ Read the Handoff, the lane check and the captures, never the whole diff.
    overlap: rebuild the file from both sides, then `sandbox/registry.test.ts` and `(shell)/lab/_desk/queue.test.ts`
    and `git commit -F $S/msg-<track>.txt`. (A lane cut before the lab revamp that still edits the retired
    `touchpoints.ts` or `(shell)/lab/boards.ts` is resolved by `merge-lane.sh` itself: those stay deleted and
-   `registry.ts` keeps ours, its `PREDATES` entry dropped once the lane deleted the board's folder.) The gate follows:
+   `registry.ts` keeps ours.) The gate follows:
    `zsh usher/kit/gate-lane.sh <N> <board> > $S/gate<N>.log`, read by its `SCOPE` and `EXIT[...]` lines.
 6. **The record**, its edits and its commit under one `set -e`: each listed system-doc edit read by eye, fact against
    code; `python3 usher/kit/record.py $S/record-<track>.json` for the In-flight row and the lane's Deferred lines into
@@ -169,8 +169,7 @@ by a true hotfix: fixed on `main`, verified, back-merged to `launch-prep` the sa
 ## The scripts
 
 - `integrate.sh <track> <sha> <board|none> <msgfile>`: `merge-lane.sh` (the `--no-ff` merge, the manifest deleted,
-  a pre-revamp lane's retired lists resolved and `PREDATES` swept by `predates-sweep.py`, the specimen code
-  regenerated, the registry tests and, when the merge adds code to the lane's head or on `FULL=1`, the integration's
+  a pre-revamp lane's retired lists resolved, the specimen code regenerated, the registry tests and, when the merge adds code to the lane's head or on `FULL=1`, the integration's
   one typecheck before the commit), then `gate-lane.sh <N> <board>`, one chain gated on exits; ends
   `INTEGRATE DONE green|red`.
 - `gate-lane.sh <N> <board>`: the gate on the merge at HEAD, on :3130 (never a lane's port), each step on its own exit
@@ -182,7 +181,6 @@ by a true hotfix: fixed on `main`, verified, back-merged to `launch-prep` the sa
   lines saying which. A HEAD with one parent, or `FULL=1`, takes everything.
 - `scope.sh code|lab|boards`: which of the paths on stdin need more than `pnpm test`, which the lab renders (its header
   holds the classes), and which boards they reach (`all` when it cannot tell); a path it does not know widens the gate.
-- `predates-sweep.py`: drops a `PREDATES` entry (`sandbox/registry.ts`) whose board folder is gone.
 - `record.py`: the In-flight row and ROADMAP lines (its docstring); it refuses a changelog and a STATUS row.
 - `cut-lane.py`: a manifest from a spec. `spawn-prompt.txt`: the spawn prompt.
 - `negative.sh`: every refusal fed its known-bad input, after any kit change and before a day's first integration

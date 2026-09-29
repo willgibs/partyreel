@@ -38,7 +38,7 @@ const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "Do guests have to verify their email?",
-    a: "Only if you turn on Require verified emails, which is the default. Off, guests type a display name instead, and their photos carry a small unverified mark until they confirm one.",
+    a: "Only if the album asks for an email first, which is the default. Off, guests type a display name instead, and their photos carry a small unverified mark until they confirm one.",
   },
 ];
 

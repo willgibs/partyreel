@@ -38,6 +38,7 @@ import {
   videosAllowedForTier,
 } from "@/lib/constants/tiers";
 import { getLinkStats } from "@/lib/db/queries/analytics";
+import { getDoorCounts } from "@/lib/db/queries/event-doors";
 import { getEvent } from "@/lib/db/queries/events";
 import { getLiveReelServerFacts } from "@/lib/db/queries/guest-events-admin";
 import { getProfile } from "@/lib/db/queries/profile";
@@ -67,7 +68,7 @@ import {
 import { getSiteUrl } from "@/lib/site-url";
 import { getRequestAuth } from "@/lib/supabase/request-auth";
 import { formatEventDate } from "@/lib/utils";
-import { VISIBILITY_LABELS } from "@/lib/events/visibility-labels";
+import { doorLabel } from "@/lib/events/visibility-labels";
 
 // Presigned gallery URLs (the first window's) are per-request + short-lived, so
 // this page must never be statically cached.
@@ -162,6 +163,9 @@ export default async function EventDetailPage({
   // the bin's `removed` is in neither. (The Reel card's pips are a threshold, not a
   // number: `readHubReel` reads them off the manifest's flags.)
   const { supabase } = await getRequestAuth();
+  // ★ THE DOOR'S NUMBERS (the doors, 20260929120000): who is in, who waits, the list, read on the
+  // service role only now that `getEvent` has proved the host (RLS). They feed the Guests card's
+  // waiting count and Settings' door page ("31 guests are already in").
   const [
     plan,
     linkStats,
@@ -170,6 +174,7 @@ export default async function EventDetailPage({
     myProfileSlug,
     jar,
     liveReelFacts,
+    doorCounts,
   ] = await Promise.all([
     planHubManifest(supabase, event.id),
     getLinkStats(event.id),
@@ -178,6 +183,7 @@ export default async function EventDetailPage({
     getMyProfileSlug(),
     cookies(),
     getLiveReelServerFacts(event.id),
+    getDoorCounts(event.id),
   ]);
   // The first window's links and the Reel card, in parallel: both read off the
   // manifest, neither off the other. The card reads the whole album's flags (its
@@ -220,7 +226,7 @@ export default async function EventDetailPage({
   // ★ Visibility left the header's chip row for the Settings card's value line
   // (the header's two chips are gone: "accepting uploads" became the code's own
   // state). The word for `visibility = 'open'` is "Public", never "Open" (Will,
-  // 2026-09-02), and it comes from the one server-safe record.
+  // 2026-09-02), and the door's words come from the one server-safe record.
   // The launch list's outstanding items (`empty=list`), derived from the event's
   // own nulls by the same pure function the list renders from — so the section
   // header's count and the list can never disagree.
@@ -240,11 +246,24 @@ export default async function EventDetailPage({
       id: "guests" as const,
       // The guest list is always on (Will, event-safety `room=always`), so the
       // room behind this card always lists them, and the card says how many.
-      value: `${formatCount(guestsCount)} ${guestsCount === 1 ? "guest" : "guests"}`,
+      // ★ AND WHO WAITS AT THE DOOR (event-settings r1, `queue=room`): while a
+      // newcomer waits for the host, the card says so in the needs-action colour,
+      // as Review's does for held uploads, since letting her in is done there.
+      ...(doorCounts.waiting > 0
+        ? {
+            value: `${formatCount(doorCounts.waiting)} waiting`,
+            amber: true,
+            count: doorCounts.waiting,
+          }
+        : {
+            value: `${formatCount(guestsCount)} ${guestsCount === 1 ? "guest" : "guests"}`,
+          }),
     },
     {
       id: "settings" as const,
-      value: VISIBILITY_LABELS[event.visibility],
+      // The door, in the one function that words it everywhere (Public, Private
+      // and its gate, Only me).
+      value: doorLabel(event.door),
     },
   ];
 
@@ -390,6 +409,7 @@ export default async function EventDetailPage({
         <EventSheets
           event={event}
           tier={tier}
+          counts={doorCounts}
           pendingCount={pendingCount}
           social={
             socialSettings

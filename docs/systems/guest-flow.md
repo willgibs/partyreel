@@ -1,7 +1,7 @@
 # Guest flow — the `/e/[token]` event page
 
 > ROLE: what a guest (or a signed-in visitor) experiences on the one event link, and how joining/uploading is gated.
-> BELONGS HERE: the `/e/[token]` page, WHO A GUEST IS (the definition every surface counts by), the 3-state visibility machine, capability tokens, the password gate + unlock cookie, the door (its steps, the `require_verified_email` switch with its name-only door, Require an upload to view), silent join, the confirm doors and the return after one, the auth-aware header island, the live gallery (the one live source, doorbell + conditional poll), the link card, demo mode. · NOT HERE: the highlight reel and the clip (the tile, the view that is also the wall, the approval toast, the creator's seam → [reel.md](reel.md)), the upload pipeline + R2 + lightbox mechanics (→ [uploads-and-r2.md](uploads-and-r2.md)), the dashboard's Guest cards and the host's counts (→ [host-app.md](host-app.md)), host-side event config (→ [host-app.md](host-app.md)), why a rule was chosen and what shipped when (→ git).
+> BELONGS HERE: the `/e/[token]` page, WHO A GUEST IS (the definition every surface counts by), the door (six of them, `visibility` + `gate`, one decision a request: the shut, held and ask doors), capability tokens, the password gate + unlock cookie, the door's steps (the `require_verified_email` switch, An email first, with its name-only door; A photo first), silent join, the confirm doors and the return after one, the auth-aware header island, the live gallery (the one live source, doorbell + conditional poll), the link card, demo mode. · NOT HERE: the highlight reel and the clip (the tile, the view that is also the wall, the approval toast, the creator's seam → [reel.md](reel.md)), the upload pipeline + R2 + lightbox mechanics (→ [uploads-and-r2.md](uploads-and-r2.md)), the dashboard's Guest cards and the host's counts (→ [host-app.md](host-app.md)), host-side event config (→ [host-app.md](host-app.md)), why a rule was chosen and what shipped when (→ git).
 > GROWS BY: integrate-in-place.
 
 ## What it does
@@ -174,7 +174,7 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
     ids, so a dismissed failure never resurrects on a later run's end; `dismiss` re-checks each id's LIVE
     status, so it never eats ids `Retry all` just re-queued in the same close. While the door's upload step
     shows, it owns the run's failures (`suppressFailures`).
-  - ★ **THE FLIP, MID-RUN.** A host can turn Require verified emails ON mid-run; the routes then answer 403
+  - ★ **THE FLIP, MID-RUN.** A host can turn An email first ON mid-run; the routes then answer 403
     `verification_required`, carried up as `UploadOutcome.code` (one of the TWO codes the queue reads by name,
     both the session's). It spends the SESSION, not one file: a CONFIRMED viewer re-joins silently ONCE (their
     uid mints a verified row and the run continues on it: the queue reads its ticket per FILE, never once per
@@ -255,18 +255,50 @@ door's one heading scale (`door/heading.tsx`: the page step, from the left) and 
   make an event link installable to a home screen (standalone, paper/ink theme); static + global, leaks
   nothing event-specific.
 
-## State follows `visibility`: a 3-state enum, NOT a boolean
+## State follows the door: `visibility` + `gate`, one decision a request
 
-- **`private`** = the master lock → a locked screen (no name / gallery / upload): the not-found family
-  wearing a lock, one link home, under the real `GuestHeader`; `generateMetadata` hides the name.
-  ★ **A person the host blocked meets it word for word** (Will's "Sneaky block"): an account or confirmed address a
-  block holds reads the event as `private` from `get_event_by_qr_token` itself, and a ticket (the cookie, a body
-  token) is asked by the one closed door, `lib/events/closed-door.server.ts`, whenever a request carries one, on a
-  private album too, so a block and a private album answer the same with the same work: the page and its metadata
-  (which names the private album's card, below), the join, the unlock, the export, the album's read and every guest
-  write (which asks with its body ticket alone), and the write RPCs refuse a held ticket in the private album's words.
-  Her own dashboard and picker read the event as private too ([host-app.md](host-app.md)), so nothing she can reach
-  says blocked.
+An album keeps one of six doors ([`door.ts`](../../src/lib/event/door/door.ts)): `open` (Public), `password`,
+`approve` (the host lets each person in), `invite` (the invite list), `closed` (only people already in) and `private`
+(Only me). ★ **A gated album is stored `private` with its `gate`**, so a reader that has not learned the gate answers it
+as Only me, the safe side; `doorOf` is the one reading of the pair and fails closed. Per request the server asks
+`event_door_standing` (the account, every device; the tickets this request holds, one browser each; never a device id
+or an IP) and `decideDoor` ([`decide.ts`](../../src/lib/event/door/decide.ts)) answers one decision, which the page,
+its metadata and every guest route act on through
+[`closed-door.server.ts`](../../src/lib/events/closed-door.server.ts) (`pageDoor`, `resolveGuestDoor`,
+`doorCallerFor`; the write routes pass `cookie: false` and ask with their body ticket alone):
+
+- ★ **One rule for everyone already in: a gate stops newcomers; only Only me and a block shut out someone already
+  in.** `through {admitted}` passes the password without it and reads a gated album, through the door's PASS
+  (`pass.server.ts`, a WeakSet-issued object, only when `through && admitted`, never a shape a caller builds), which
+  the self-guarded admin reads ask beside the unlock cookie and the host. A password newcomer gets no pass.
+- **`shut`** = the one closed screen for every newcomer turned away ([`shut-door.tsx`](../../src/components/guest/door/shut-door.tsx),
+  "This album is closed"; event-safety `newcomer=same`): Only me, a closed gate, a decline, a block. Someone who was
+  in reads "This album is private" (locked-door `previous=private`). It is the not-found family wearing a lock, one
+  link home, under the real `GuestHeader`; `generateMetadata` hides the name. ★ **A person the host blocked meets it
+  word for word** (Will's "Sneaky block"): an account or confirmed address a block holds reads the event as
+  `private` from `get_event_by_qr_token` itself, and a ticket is asked by the one closed door whenever a request
+  carries one, so a block, a closed door and an Only me album answer the same with the same work: the page and its
+  metadata, the join, the unlock, the export, the album's read and every guest write, and the write RPCs refuse a
+  held ticket in the private album's words. Her own dashboard and picker read the event as private too
+  ([host-app.md](host-app.md)), so nothing she can reach says blocked.
+- **`ask {invite}`**, an address the invite list does not name: the shut door with her own foot (`unlisted=ask`,
+  placed there by locked-door r2): "Ask Maya to let me in" (`UnlistedAsk`, `POST /api/guests/ask`, then the held
+  door) or "Use a different email" (`switch-email.ts`: every ticket on the device put down, then signed out). A
+  declined ask meets the shut door with no ask. **`ask {approve}`**, a confirmed newcomer: "Maya lets each guest in",
+  Ask to join (`ask-step.tsx`, the same route). The ask route re-reads `getUser()` (a confirmed address or 422), rides
+  the join limiter, and answers a shut door 403 in the private album's words.
+- **`waiting`**, the held door ([`waiting-step.tsx`](../../src/components/guest/door/waiting-step.tsx), `waiting=held`):
+  the host will let her in, with nothing of the album behind it; it checks in every 30 s and on the tab's return
+  (`POST /api/guests/door`: `waiting` | `in` | `moved`, `private, no-store`; a missing schema or event answers
+  `moved`), which stamps her rows for the banked let-in mail, and opens onto the album by itself on `in`.
+- **`newcomer {gate}`**, no confirmed email yet at approve or invite: the door's own steps (the welcome, the email)
+  with no teaser; the welcome counts what is inside, as a password album's does. Confirming asks at approve and lets
+  in an address the list names.
+- ★ **The upload reads the door as its ticket sees it**: `get_upload_context` answers `visibility` `open` for a
+  ticket past a gated album's door and `private` for a waiting, declined or blocked one, so the presign and complete
+  routes' `private` refusal covers every shut ticket with no new branch. `accepts_video` (the host's Videos switch
+  and the plan) is the album's own answer on `get_event_by_qr_token`: the picker's kinds, the terms line and the
+  reel's clip Add follow it, and `video_blocked` refuses what gets past.
 - **`password`** → access `none`: the **ghosted RIVER backdrop** (`GhostRiver`, the empty album's own
   picture at its own depth: one absence, one picture) + the real "N photos & videos inside" count tease
   (name shown: it's link-shared, not the secret) under the door's password step, until a signed unlock
@@ -395,7 +427,7 @@ BEAT the sheet rises) → **the threshold** (the steps) → **the reveal** (the 
 rises as the sheet exits).
 
 ★ **THE DOOR IS AN ITINERARY, AND IT HAS NO EXIT.** One held sheet carries the welcome, the password when
-the event has one, the NAME, the EMAIL (held until confirmed) when the host requires verified emails, and
+the event has one, the NAME, the EMAIL (held until confirmed) when the album asks for an email first, and
 the first UPLOAD asked, and then the album. The album sits blurred behind it the whole way (the capped
 teaser wherever a server gate holds): it is the reward the door's asks pay for, so there is no "just
 browsing" way past it. `computeDoor` ([`entry-steps.ts`](../../src/lib/guest/entry-steps.ts), pure and
@@ -535,7 +567,7 @@ through flags in the sheet. No step counter to desync.
   list and names panel (`GuestList`'s host-only `emails`, read by `getConfirmedGuestAddresses` in
   [`guest-addresses.ts`](../../src/lib/db/queries/guest-addresses.ts), which proves the host itself and reads
   `guests.email` on `verified_at` rows only; the room is its one importer and the album never passes `emails`, both
-  pinned). The address IS the safety feature Require verified emails promises: anyone can confirm any inbox, so a
+  pinned). The address IS the safety feature An email first promises: anyone can confirm any inbox, so a
   bare "verified" badge would imply far more safety than it gives, and the host must see WHICH address was proved
   (a guest confirmed on `fakeemail@domain.com` looks exactly like that). A guest never sees another guest's
   address: exposing them would turn a safety feature into a privacy leak, and the host alone takes on vetting
@@ -546,15 +578,15 @@ through flags in the sheet. No step counter to desync.
   intended sharing model: whoever holds the link acts within whatever the configs allow, and a password
   handed round a party is as shared as the party. So a surface may never leak one (no token in an OG tag,
   a log line, a referrer or an analytics row), and the defenses that matter are the ones that survive a
-  leaked link: the config gates (a password, Require verified emails, Require an upload to view, private,
+  leaked link: the config gates (the door's password, gates and Only me, An email first, A photo first,
   uploads closed), the per-request re-checks, and the host's own switches, which shut a leaked link's door
   without moving it. The link itself never rotates: the `qr_token` is printed on every QR, so it is
   permanent by design (a custom slug is a mutable alias to it, never a replacement).
-- **The anon media RPCs gate on `visibility = 'open'`, NOT `<> 'private'`.** A password event's media must
+- **The anon media RPCs gate on `visibility = 'open'`, NOT `<> 'private'`.** A password or gated album's media must
   NEVER stream through `get_event_media_by_qr_token` / the anon path; it is served ONLY via the server
   admin-reads (`getApprovedMediaForUnlock` and the paged album's reads, `album-guest.ts`), each self-guarded by
-  the unlock cookie or the host (`isRequestOwner`): after `/api/guests/unlock` verifies the password, or for the
-  host, who never meets that door. The bcrypt hash never reaches a browser: guest RPCs expose `has_password` only, and the server reads it only to derive (`has_password`, the cookie's version).
+  the unlock cookie, the door's pass or the host (`isRequestOwner`): after `/api/guests/unlock` verifies the
+  password, for someone the door let through, or for the host, who never meets a door. The bcrypt hash never reaches a browser: guest RPCs expose `has_password` only, and the server reads it only to derive (`has_password`, the cookie's version).
 - **The unlock cookie is a signed HMAC of `{eid, exp}` and the event's password version** (`UNLOCK_COOKIE_SECRET`, 12 h;
   the version is a sha256 of the stored bcrypt hash, read server-side once per request, never in the cookie), so any
   `set_event_password` (a fresh salt, even for the same word) or `clear_event_password` signs everyone out; the unlock
@@ -594,7 +626,7 @@ through flags in the sheet. No step counter to desync.
   `checkSessionOwner` ([`session-owner.server.ts`](../../src/lib/guest/session-owner.server.ts): the row's
   `user_id`, service-role and never returned, against `getUser()`, which only a claimed row pays) and refuse
   anyone else with 403 `session_other_account`, under the lock and closed uploads and ABOVE the identity gate (a
-  confirmed row's own `verified_at` is what let a stale ticket upload past Require verified emails). A confirmed
+  confirmed row's own `verified_at` is what let a stale ticket upload past An email first). A confirmed
   row whose account was deleted (`user_id` nulled by the FK, `verified_at` kept) writes for nobody. A name-only
   row stays the device's ticket. The client's side is "The upload act".
 
@@ -624,7 +656,7 @@ asked, credits nobody.
 
 One gap is accepted. On a names-mode event anyone can type any name and any unproven address. An unconfirmed
 address is inert (never shown to the host, never attributed, never mailed), so a false one borrows nobody's
-identity; a host facing a risky crowd turns on a password, Require verified emails or moderation, and an
+identity; a host facing a risky crowd picks a gate, An email first or moderation, and an
 address's owner disowns what was not theirs in the claims review.
 
 The address is ONE optional field under the name, in `join` mode only: "Email (optional)", the benefit line

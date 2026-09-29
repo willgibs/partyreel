@@ -20,16 +20,14 @@ echo "stale by $(git rev-list --count "lp/$TRACK..HEAD") commits"
 git -c merge.conflictStyle=diff3 merge --no-ff --no-commit "lp/$TRACK" >/dev/null 2>&1 || true
 # ★ NO SHARED REGISTRY FILE IS LEFT TO RESOLVE (the lab revamp, 2026-09-29): a board is its folder under sandbox/, so two
 # lanes' boards never touch one file and a retirement is a folder deletion git merges by itself. What remains is a lane
-# cut BEFORE the revamp that edited the retired lists: touchpoints.ts and (shell)/lab/boards.ts stay deleted, registry.ts
-# is launch-prep's, and a PREDATES entry whose folder the merge removed goes with it (registry.test.ts refuses a stale
-# one). Transitional: settings-wiring and triage-r2-wiring were the last lanes cut before it; once both are merged this
-# block has nothing to do and can go.
+# cut BEFORE the revamp that edited the retired lists: touchpoints.ts and (shell)/lab/boards.ts stay deleted, and
+# registry.ts is launch-prep's (a board is its folder; a lane retiring one deletes it). Transitional: once no lane cut
+# before the lab revamp's merge is open, this block has nothing to do and can go.
 for f in "src/app/(dev)/design/touchpoints.ts" "src/app/(dev)/design/(shell)/lab/boards.ts"; do
   if git ls-files -u -- "$f" | grep -q .; then git rm -qf -- "$f"; echo "$f: retired by the lab revamp; the lane's edit is dropped"; fi
 done
 REG="src/app/(dev)/design/sandbox/registry.ts"
 if git ls-files -u -- "$REG" | grep -q .; then git checkout -q --ours -- "$REG"; echo "$REG: launch-prep's; the lane edited the old list"; fi
-python3 "$KIT/predates-sweep.py" "$REG"
 grep -l '^<<<<<<<' "$REG" 2>/dev/null && { echo "MARKERS LEFT"; exit 1; }
 [ -f "$REG" ] && git add -- "$REG"
 git rm -qf "docs/tracks/$TRACK.md"

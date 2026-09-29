@@ -44,6 +44,9 @@ const board = (
   defineExploration({
     id: "fixture",
     title: "A fixture exploration",
+    surface: "guest",
+    desk: 10,
+    lives: ["docs/systems/guest-flow.md"],
     round: { n: 1, date: "2026-09-19", changed: "The first round." },
     asks: asks as unknown as Parameters<typeof defineExploration>[0]["asks"],
     carried,

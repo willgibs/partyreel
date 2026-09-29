@@ -4,7 +4,7 @@ import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import * as FRONT_DOOR from "@/components/lab";
-import { BOARD_FOLDERS, PREDATES } from "@/app/(dev)/design/sandbox/registry";
+import { BOARD_FOLDERS } from "@/app/(dev)/design/sandbox/registry";
 
 /**
  * A BOARD USES THE KIT THROUGH ITS FRONT DOOR, AND NEVER COPIES IT.
@@ -26,9 +26,6 @@ import { BOARD_FOLDERS, PREDATES } from "@/app/(dev)/design/sandbox/registry";
  * failure is always a copy of the piece under the piece's own name: a board
  * with its own `Fit` has a second zoom rule, and a reviewer walking two boards
  * reads two designs.
- *
- * The two boards that predate the folder shape (`PREDATES`) are exempt from
- * the first rule until their wiring lanes retire them.
  */
 const ROOT = process.cwd();
 const SANDBOX = "src/app/(dev)/design/sandbox";
@@ -49,7 +46,7 @@ function filesIn(dir: string, out: string[] = []): string[] {
 describe("a board", () => {
   it("reaches the kit through its two doors", () => {
     const offences: string[] = [];
-    for (const id of BOARD_FOLDERS.filter((b) => !(b in PREDATES))) {
+    for (const id of BOARD_FOLDERS) {
       for (const file of filesIn(join(ROOT, SANDBOX, id))) {
         const src = readFileSync(file, "utf8");
         for (const [, path] of src.matchAll(

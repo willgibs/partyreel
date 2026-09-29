@@ -38,17 +38,13 @@ grep -q "STATUS 80 of 80 lines$" "$T/cap80.out" && grep -q "STATUS 81 of 80 line
 # 9. the lab's scope never narrows on doubt (the lab revamp): scope.sh's boards class answers `all` for a path it does not
 #    know and nothing for a test, and lab-scope.mjs answers the whole lab when git cannot read the revision
 [ "$(printf '%s\n' newdir/a | zsh "$KIT/scope.sh" boards)" = all ] && [ -z "$(printf '%s\n' src/lib/a.test.ts | zsh "$KIT/scope.sh" boards)" ] && node scripts/lab-scope.mjs --since no-such-revision-anywhere 2>/dev/null | head -1 | grep -q "^SCOPE all:" && ok "the lab's scope widens on an unknown path and a revision git cannot read" || bad "the lab's scope narrowed on doubt"
-# 10. predates-sweep.py drops the PREDATES entry of a board whose folder is gone and keeps one whose folder stands
-mkdir -p "$T/sandbox/admin-triage"; touch "$T/sandbox/admin-triage/spec.ts"; cp "src/app/(dev)/design/sandbox/registry.ts" "$T/sandbox/registry.ts"
-if grep -q '"event-settings": {' "$T/sandbox/registry.ts"; then python3 "$KIT/predates-sweep.py" "$T/sandbox/registry.ts" "$T/sandbox" > "$T/sweep.out" 2>&1; ! grep -q '"event-settings": {' "$T/sandbox/registry.ts" && grep -q '"admin-triage": {' "$T/sandbox/registry.ts" && ok "predates-sweep.py drops a retired board's facts and keeps a standing board's" || bad "predates-sweep.py kept a retired board or dropped a standing one"
-else ok "predates-sweep.py has no PREDATES to sweep (both boards retired)"; fi
-# 11. the lab's checks refuse to guess a server: lab:smoke and lab:demo exit 2 without --base (or LAB_BASE)
+# 10. the lab's checks refuse to guess a server: lab:smoke and lab:demo exit 2 without --base (or LAB_BASE)
 env -u LAB_BASE node scripts/lab-smoke.mjs > "$T/smoke.out" 2>&1; R1=$?; env -u LAB_BASE node scripts/lab-demo.mjs > "$T/demo.out" 2>&1; R2=$?
 [ $R1 = 2 ] && [ $R2 = 2 ] && grep -q "needs the server" "$T/smoke.out" && grep -q "needs the server" "$T/demo.out" && ok "lab:smoke and lab:demo refuse to run without a server named" || bad "a lab check ran without --base"
-# 12. cut-lane.py refuses a board lane that owns a shared list (a board is its folder), and writes nothing
+# 11. cut-lane.py refuses a board lane that owns a shared list (a board is its folder), and writes nothing
 mkdir -p "$T/cut/docs/tracks"; printf '%s' '{"track":"t","board":"b","owns":["src/app/(dev)/design/sandbox/registry.ts"],"goal":"g","brief":"b"}' > "$T/cut/s.json"
 (cd "$T/cut" && python3 "$KIT/cut-lane.py" deadbeef s.json > "$T/cut.out" 2>&1); [ $? != 0 ] && grep -q "never a shared list" "$T/cut.out" && [ ! -f "$T/cut/docs/tracks/t.md" ] && ok "cut-lane.py refuses a board lane owning a shared list" || bad "cut-lane.py cut a board lane onto a shared list"
-# 13. new-board.mjs refuses a board that exists, a surface that does not and a missing desk place, and writes nothing (a
+# 12. new-board.mjs refuses a board that exists, a surface that does not and a missing desk place, and writes nothing (a
 #     board is one folder, and the scaffold never overwrites one)
 BEFORE="$(git status --short)"; node scripts/new-board.mjs locked-door "x" --surface guest --desk 90 > "$T/nb1.out" 2>&1; N1=$?
 node scripts/new-board.mjs zz-negative "x" --surface nowhere --desk 90 > "$T/nb2.out" 2>&1; N2=$?; node scripts/new-board.mjs zz-negative "x" --surface guest > "$T/nb3.out" 2>&1; N3=$?

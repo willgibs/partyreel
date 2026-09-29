@@ -18,8 +18,12 @@ import {
   type FakePostgrest,
   type FakeRow,
 } from "@/lib/db/testing/fake-postgrest";
+import { withArrayRpc } from "@/lib/lifecycle/testing/cron-fake";
 
 let fake: FakePostgrest;
+/** Functions answered with a uuid[] (as PostgREST answers one), for the admin client alone. */
+let arrayRpc: Record<string, (args: Record<string, unknown>) => unknown[]> =
+  {};
 const deleted: string[][] = [];
 
 vi.mock("server-only", () => ({}));
@@ -27,7 +31,7 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => asSupabase(fake),
 }));
 vi.mock("@/lib/supabase/admin", () => ({
-  createAdminClient: () => asSupabase(fake),
+  createAdminClient: () => asSupabase(withArrayRpc(fake, arrayRpc)),
 }));
 vi.mock("@/lib/r2/delete", () => ({
   deleteR2Objects: async (keys: string[]) => {
@@ -202,19 +206,22 @@ describe("the album's bulk Hide, Show and Delete", () => {
 });
 
 describe("the bin's Delete forever", () => {
-  it("frees every object of a 2,500-item selection, held ones kept, before the rows go", async () => {
+  // ★ RESHAPED ON PURPOSE (triage-r2-wiring, 2026-09-29; scar kept: a kept item's OBJECT survives the
+  // R2-first delete). What the purge must keep is one answer now, `kept_media_ids` (a hold, or an open report
+  // naming the item or its album), asked in chunks before a single object goes; the RPC defers those rows
+  // (asked: gone from her view and her meter), so the answer counts her whole removed selection, as the RPC
+  // does. The expired reason: "held ones kept" read the hold columns off the table.
+  it("frees every object of a 2,500-item selection, what a keeper holds kept, before the rows go", async () => {
     const purgeCalls: unknown[] = [];
+    const keptCalls: string[][] = [];
+    // Three items are under legal hold and one is named by an open report: their objects must survive.
+    const kept = new Set([uuid(7), uuid(1200), uuid(2499), uuid(42)]);
     useAlbum(
       [
         ...ids(2500).map((_, i) =>
           row(i, {
             status: "removed",
             removed_at: "2026-09-20T12:00:00.000000+00:00",
-            // Three items are under legal hold: their objects must survive this delete.
-            legal_hold_at:
-              i === 7 || i === 1200 || i === 2499
-                ? "2026-09-21T12:00:00.000000+00:00"
-                : null,
           }),
         ),
         // A live item among the selection is not the bin's to delete.
@@ -223,14 +230,29 @@ describe("the bin's Delete forever", () => {
       {
         purge_media_now: (args) => {
           purgeCalls.push(args);
-          return { ok: true };
+          return { ok: true, purged: 2500 };
         },
       },
     );
 
-    const result = await purgeMediaNow("ev-1", ids(2501));
+    arrayRpc = {
+      kept_media_ids: (args) => {
+        const chunk = args.p_media_ids as string[];
+        keptCalls.push(chunk);
+        return chunk.filter((id) => kept.has(id));
+      },
+    };
 
-    expect(result).toEqual({ ok: true, data: { purged: 2497 } });
+    const result = await purgeMediaNow("ev-1", ids(2501));
+    arrayRpc = {};
+
+    expect(result).toEqual({ ok: true, data: { purged: 2500 } });
+    // The keeper was asked of every removed item, in chunks.
+    expect(keptCalls.flat().sort()).toEqual(
+      ids(2500)
+        .map((_, i) => uuid(i))
+        .sort(),
+    );
     // The selection read and the hold check both chunked, and none failed.
     expect(
       fake.requests.filter((r) => r.target === "table").every((r) => !r.failed),
@@ -239,13 +261,29 @@ describe("the bin's Delete forever", () => {
       URL_LIMIT,
     );
     const keys = deleted.flat();
-    const held = new Set([uuid(7), uuid(1200), uuid(2499)]);
     const expected = fake.tables.media
-      .filter((m) => m.status === "removed" && !held.has(String(m.id)))
+      .filter((m) => m.status === "removed" && !kept.has(String(m.id)))
       .flatMap((m) => [m.original_key, m.preview_key].filter(Boolean));
     expect(keys.sort()).toEqual((expected as string[]).sort());
     // The RPC re-validates every id itself, in the POST body, where length is no problem.
     expect(purgeCalls).toEqual([{ p_media_ids: ids(2501) }]);
+  });
+
+  it("keeps the held ones on a database without kept_media_ids yet (the seam, until the apply)", async () => {
+    useAlbum(
+      ids(10).map((_, i) =>
+        row(i, {
+          status: "removed",
+          legal_hold_at: i === 3 ? "2026-09-21T12:00:00.000000+00:00" : null,
+        }),
+      ),
+      { purge_media_now: () => ({ ok: true, purged: 10 }) },
+    );
+    const result = await purgeMediaNow("ev-1", ids(10));
+    expect(result).toEqual({ ok: true, data: { purged: 10 } });
+    const keys = deleted.flat();
+    expect(keys.some((k) => k.includes(uuid(3)))).toBe(false);
+    expect(keys.some((k) => k.includes(uuid(4)))).toBe(true);
   });
 
   it("fails before any object is deleted when the hold check cannot be read", async () => {

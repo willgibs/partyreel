@@ -37,8 +37,9 @@ const CLAIMS: { title: string; body: string }[] = [
   },
   {
     title: "Three ways to share",
-    // Every plan since the free/pro shift (2026-09-28): the password came down to Free.
-    body: "Open, password-protected, or fully private, on every plan. A locked event shows only its name and a count.",
+    // Every plan since the free/pro shift (2026-09-28): the password came down to Free, and the
+    // doors (2026-09-29) shipped every other gate there.
+    body: "Public, Private behind a gate you pick, or Only me, on every plan. A gate shows a newcomer at most the name and a count.",
   },
   {
     title: "A verified email to upload",

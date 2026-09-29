@@ -14,8 +14,7 @@ import { join } from "node:path";
 import { readBoards } from "./batch-reader.mjs";
 const ROOT = process.cwd();
 
-// Every standing board in desk order, its facts off its own spec (a board is its folder since the lab revamp; the two
-// boards that predate it read theirs from the registry's PREDATES).
+// Every standing board in desk order, its facts off its own spec (a board is its folder since the lab revamp).
 const boards = readBoards();
 const rows = new Map(boards.map((b) => [b.board, b]));
 const deskOrder = boards.map((b) => b.board);

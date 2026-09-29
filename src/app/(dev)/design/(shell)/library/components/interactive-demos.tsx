@@ -10,6 +10,9 @@ import { DestructiveSheet } from "@/components/admin/destructive-sheet";
 import { GalleryEmptyState } from "@/components/guest/gallery-empty-state";
 import { Button } from "@/components/ui/button";
 import { ConfirmSwitch } from "@/components/ui/confirm-switch";
+import { ConsequenceLine } from "@/components/ui/consequence-line";
+import { Dormant } from "@/components/ui/dormant";
+import { Switch } from "@/components/ui/switch";
 import {
   CommandPalette,
   CommandPaletteContent,
@@ -96,23 +99,22 @@ export function OtpDemo() {
   );
 }
 
-/** ConfirmSwitch: on the real edge it asks on (uploads-section.tsx's own
- *  "Require verified emails", the identity reshape's switch; turning it OFF is the consequential
- *  direction). Uncontrolled state, so pressing it here really opens the
- *  dialog and really flips the switch on Confirm. */
+/** ConfirmSwitch: on the real edge it asks on (the door page's own "An email first", step 3 of
+ *  Who can get in; turning it OFF is the consequential direction). Uncontrolled state, so pressing it
+ *  here really opens the dialog and really flips the switch on Confirm. */
 export function ConfirmSwitchDemo() {
   const [checked, setChecked] = useState(true);
   return (
     <ConfirmSwitch
       checked={checked}
       onCheckedChange={setChecked}
-      label="Require verified emails"
-      description="On (recommended): guests confirm their email once before they see the full album or add photos, so every upload has a verified email behind it. Off: guests type a display name, with nothing to prove who they are."
+      label="An email first"
+      description="Every photo then has a confirmed address behind it."
       confirmWhen={(next) => !next}
-      dialogTitle="Stop requiring verified emails?"
+      dialogTitle="Stop asking for an email first?"
       dialogDescription="Guests will add photos under a name they type, with no email behind it. You can turn this back on anytime."
       confirmLabel="Use names only"
-      cancelLabel="Keep verified emails"
+      cancelLabel="Keep asking for an email"
     />
   );
 }
@@ -238,10 +240,7 @@ export function CommandPaletteDemo() {
           <CommandPaletteList label="Surfaces">
             <CommandPaletteGroup heading="Surfaces">
               {["Support", "Applicants", "Jobs"].map((name) => (
-                <CommandPaletteItem
-                  key={name}
-                  onSelect={() => setChose(name)}
-                >
+                <CommandPaletteItem key={name} onSelect={() => setChose(name)}>
                   <span className="flex-1">{name}</span>
                 </CommandPaletteItem>
               ))}
@@ -273,7 +272,11 @@ export function DestructiveSheetDemo() {
       <Button variant="outline" size="sm" onClick={() => setReversible(true)}>
         Pause the purge sweep
       </Button>
-      <Button variant="destructive" size="sm" onClick={() => setPermanent(true)}>
+      <Button
+        variant="destructive"
+        size="sm"
+        onClick={() => setPermanent(true)}
+      >
         Delete an account
       </Button>
       <DestructiveSheet
@@ -308,6 +311,61 @@ export function DestructiveSheetDemo() {
         successMessage="Nothing happened: this is the library."
         onConfirm={async () => ({ ok: true })}
       />
+    </div>
+  );
+}
+
+/** Dormant: the reel's look and hold under its switch, asleep until it turns on (event-settings r1). */
+export function DormantDemo() {
+  const [on, setOn] = useState(false);
+  return (
+    <div className="max-w-sm space-y-3 rounded-lg bg-card p-4 text-card-foreground ring-1 ring-foreground/10">
+      <div className="flex items-center justify-between gap-4">
+        <Label htmlFor="library-dormant">Show the reel</Label>
+        <Switch id="library-dormant" checked={on} onCheckedChange={setOn} />
+      </div>
+      <Dormant
+        awake={on}
+        summary="Its look and its hold. Turn the reel on to choose them."
+      >
+        <div className="space-y-1.5 pt-1">
+          <p className="text-sm font-medium">Look</p>
+          <div className="grid grid-cols-4 gap-2">
+            {["Cinematic", "Golden", "Noir", "Float"].map((look) => (
+              <Button key={look} type="button" size="sm" variant="outline">
+                {look}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </Dormant>
+    </div>
+  );
+}
+
+/** The consequence line: Only me, with guests inside, says so before it acts (event-settings r1). */
+export function ConsequenceLineDemo() {
+  const [asked, setAsked] = useState(true);
+  if (!asked) {
+    return (
+      <Button type="button" variant="outline" onClick={() => setAsked(true)}>
+        Choose Only me again
+      </Button>
+    );
+  }
+  return (
+    <div className="max-w-sm">
+      <ConsequenceLine
+        confirmLabel="Close it to everyone"
+        onConfirm={() => {
+          toast.success("Only you can open it now.");
+          setAsked(false);
+        }}
+        onCancel={() => setAsked(false)}
+      >
+        31 guests are already in. Only me closes them out completely, until you
+        open it again.
+      </ConsequenceLine>
     </div>
   );
 }

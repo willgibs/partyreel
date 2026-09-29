@@ -37,12 +37,15 @@ export function ReviewStep({
   onRemove,
   onSend,
   capBytes,
+  acceptsVideo = true,
 }: {
   picks: readonly Pick[];
   onRemove: (id: string) => void;
   onSend: () => void;
   /** The host's own per-event cap once the RPC returns it (upload-terms.ts). */
   capBytes?: number | null;
+  /** Whether this album takes a video from a guest (the terms line names only what it takes). */
+  acceptsVideo?: boolean;
 }) {
   // The sheet's own blob ledger: one owner, minting and revoking in one effect
   // (see use-pick-urls.ts for the StrictMode failure that shape exists to kill).
@@ -93,7 +96,7 @@ export function ReviewStep({
           data-upload-terms
           className="text-center text-reading text-muted-foreground"
         >
-          {uploadTermsLine(capBytes)}
+          {uploadTermsLine(capBytes, acceptsVideo)}
         </p>
       </div>
     </div>
