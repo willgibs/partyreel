@@ -70,6 +70,10 @@
  *      two acts re-checking the host, skipping a hold and keeping what the restore reads; the mask on
  *      every guest path, in the private album's own words; the four claims leaving a block alone; her
  *      own feed and lists kept as a private album's; and no SQL reading the retired switch.
+ *  17. An operator's removal leaves the host's view (admin-triage r1, migration 20260928140000): the
+ *      host's policy hides it while the flag stays ungranted; her Delete permanently cannot end its
+ *      window; her Deleted and her restored event count only what her Deleted shows; and an event
+ *      holding one inside its window is kept by every event-level purge.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -1447,20 +1451,30 @@ describe("the row cap: the SQL shapes the 1,000-row fixes read", () => {
   });
 
   describe("the sweeps: the legal-hold partition and the standby budget's hosts", () => {
-    it("held_event_ids answers ONE uuid[] of the events that hold anything", () => {
-      expect(code("held_event_ids")).toContain(
-        "create function public.held_event_ids(p_event_ids uuid[]) returns uuid[] language sql stable security invoker set search_path = '' as $$ select coalesce(array_agg(h.event_id order by h.event_id), '{}'::uuid[]) from ( select distinct m.event_id from public.media m where m.event_id = any(p_event_ids) and m.legal_hold_at is not null ) h; $$;",
+    // The shape is pinned whether a later migration replaces the function or not (20260928140000 did).
+    const shape = (name: string) =>
+      code(name).replace("create or replace function", "create function");
+
+    // ★ RESHAPED ON PURPOSE (triage-wiring, 2026-09-28; scar kept: ONE uuid[] per candidate set, never a
+    // read of held rows). The expired reason: "the events that hold anything" meant a legal hold alone.
+    // An operator's removal still inside its window keeps its event too (20260928140000), so a deleted
+    // account cannot take the evidence before the runbook preserves it.
+    it("held_event_ids answers ONE uuid[] of the events that hold anything the purge must keep", () => {
+      expect(shape("held_event_ids")).toContain(
+        "create function public.held_event_ids(p_event_ids uuid[]) returns uuid[] language sql stable security invoker set search_path = '' as $$ select coalesce(array_agg(h.event_id order by h.event_id), '{}'::uuid[]) from ( select distinct m.event_id from public.media m where m.event_id = any(p_event_ids) and ( m.legal_hold_at is not null or (m.status = 'removed' and m.removed_by_admin and m.purge_at > now()) ) ) h; $$;",
       );
     });
 
-    it("★ standby_hosts counts exactly the budget's bin: no system removal, no guest's own withdrawal, no hold", () => {
-      expect(code("standby_hosts")).toContain(
-        "where m.legal_hold_at is null and ( (m.status = 'removed' and not m.removed_by_system and not m.removed_by_uploader) or (m.status <> 'removed' and e.deleted_at is not null) )",
+    // ★ RESHAPED ON PURPOSE (triage-wiring, 2026-09-28; scar kept: exactly the budget's bin). The bin
+    // now leaves out an operator's removal too: never the host's, and never evicted inside its window.
+    it("★ standby_hosts counts exactly the budget's bin: no system removal, no guest's own withdrawal, no operator's removal, no hold", () => {
+      expect(shape("standby_hosts")).toContain(
+        "where m.legal_hold_at is null and ( (m.status = 'removed' and not m.removed_by_system and not m.removed_by_uploader and not m.removed_by_admin) or (m.status <> 'removed' and e.deleted_at is not null) )",
       );
     });
 
     it("standby_hosts pages on host id and lists only hosts with bytes", () => {
-      const body = code("standby_hosts");
+      const body = shape("standby_hosts");
       expect(body).toContain(
         "create function public.standby_hosts(p_after uuid default null, p_limit integer default null) returns table (host_id uuid, standby_bytes bigint) language sql stable security invoker set search_path = ''",
       );
@@ -2513,5 +2527,68 @@ describe("the per-event block and the always-on guest list (20260928120000)", ()
       code(name).includes("show_guest_list"),
     );
     expect(readers).toEqual([]);
+  });
+});
+
+describe("an operator's removal leaves the host's view (20260928140000)", () => {
+  // Will, admin-triage r1 (2026-09-28), `notice=deleted` as his note refines it: "in the case of a report
+  // leading to media removal, it should be fully purged from the event, not moved to deleted". The copy
+  // waits out its own window for the operator's Undo and the runbook's hold, so each fact below is
+  // what keeps it out of the host's reach until then. Each pin reads CODE (comments stripped).
+  const code = (name: string) =>
+    collapse(latestDefinition(name).body.replace(/--[^\n]*/g, ""));
+
+  /** The host's media policy as the live DB holds it: the last CREATE or ALTER of it, replayed in order. */
+  function hostMediaPolicy(): string {
+    let latest = "";
+    for (const { sql } of executableMigrations()) {
+      for (const [statement] of sql.matchAll(
+        /(?:create|alter) policy media_host_all on public\.media[^;]*;/g,
+      )) {
+        latest = statement;
+      }
+    }
+    expect(latest, "media_host_all defined nowhere").not.toBe("");
+    return latest;
+  }
+
+  it("★ the host's own-media policy leaves out an operator's removal, for every command", () => {
+    const policy = hostMediaPolicy();
+    expect(policy).toContain(
+      "and not (media.status = 'removed' and media.removed_by_admin)",
+    );
+    // Still the host's own events, by the cached auth.uid() the advisor wants.
+    expect(policy).toContain(
+      "exists ( select 1 from public.events e where e.id = media.event_id and e.host_id = (select auth.uid()) )",
+    );
+  });
+
+  it("★ and the flag it tests is never granted to a client role: she cannot read it, only lose the row", () => {
+    for (const { file, sql } of executableMigrations()) {
+      for (const [statement] of sql.matchAll(
+        /grant (?:select|update|insert)[^;]* on (?:table )?public\.media to [^;]*;/g,
+      )) {
+        expect(statement, file).not.toContain("removed_by_admin");
+      }
+    }
+  });
+
+  it("★ her Delete permanently can never end a takedown's window, nor a hold's", () => {
+    const purge = code("purge_media_now");
+    expect(purge).toContain(
+      "and e.host_id = (select auth.uid()) and m.status = 'removed' and not m.removed_by_admin and m.legal_hold_at is null;",
+    );
+  });
+
+  it("her restored event counts what her Deleted still shows of it, never a withdrawal, a takedown or a row past the window", () => {
+    expect(code("restore_event")).toContain(
+      "select count(*) into v_still_removed from public.media where event_id = p_event_id and status = 'removed' and not removed_by_uploader and not removed_by_admin and removed_at >= now() - interval '30 days';",
+    );
+  });
+
+  it("her Restore still refuses a takedown, in a hold's discreet words", () => {
+    expect(code("restore_media")).toContain(
+      "if v_media.removed_by_admin then return jsonb_build_object('ok', false, 'reason', 'admin_removed');",
+    );
   });
 });

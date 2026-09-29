@@ -26,6 +26,14 @@
  *     src/lib/r2/prune-guard.ts — no Worker change needed.)
  *   - over-capacity auto-reduce → intentionally NOT excluded: it only soft-removes (status =
  *     'removed'); the hard delete it feeds is the removed_media sweep, which excludes holds.
+ *
+ * ★ AN OPERATOR'S REMOVAL (`removed_by_admin`) KEEPS ITS WINDOW THE SAME WAY (20260928140000),
+ * because the runbook removes first and holds second: until its `purge_at` it is the operator's
+ * time to hold and preserve. purgeMediaNow never takes one (the host's RLS read never lists it and
+ * the RPC's subset refuses it), the standby eviction never takes one (its bin read and
+ * `standby_hosts` leave it out), the removed_media sweep takes it only once its `purge_at` passes,
+ * and `held_event_ids` answers an event holding one inside its window as held, so expired events
+ * and account deletion keep that event whole until the window ends.
  */
 
 export type LegalHoldRow = { legal_hold_at: string | null };

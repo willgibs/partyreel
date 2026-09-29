@@ -106,7 +106,10 @@ under Gotchas).
   service role only; `reel_eligible` is readable and written once, by `create_media*`. **SELECT is column-scoped
   too:** the hold columns and the provenance are not granted, so a host cannot detect a legal hold, an
   `authenticated` `select("*")` on media ERRORS, host reads enumerate `MEDIA_HOST_COLUMNS` (a parity test pins it
-  to the grant), and a new column stays invisible to hosts until it joins both.
+  to the grant), and a new column stays invisible to hosts until it joins both. ★ `media_host_all`'s USING also
+  leaves out an operator's removal (`status = 'removed' and removed_by_admin`): a policy may test a column its role
+  cannot SELECT, so the host loses the row on every read and write without ever reading the flag
+  ([lifecycle-recovery.md](lifecycle-recovery.md)).
 - **`guests`:** no client role reads or writes it; every reader is the service role or a definer function, because
   it holds `session_token` (the plaintext upload capability) and both addresses. The token also rides the
   `pr_guest_<eventId>` cookie ([guest-flow.md](guest-flow.md)), ★ as a READ capability only: every write route takes it from the body

@@ -6,10 +6,12 @@
  * purged) and after over-capacity (whose auto-reduce is system-removed and never counts here).
  *
  * WHAT COUNTS (the bin, its two disjoint arms): a host's REMOVED media, less what the system removed
- * (`removed_by_system`: over-capacity's auto-reduce, which purges on its own `purge_at`) and less a
+ * (`removed_by_system`: over-capacity's auto-reduce, which purges on its own `purge_at`), less a
  * guest's own withdrawal (`removed_by_uploader`: delete-final, Will 2026-09-23: the withdrawal is
  * final, not the host's, never counts in the host's budget and is never evicted by it; it purges on
- * its own 30-day `purge_at` through the removed_media sweep), plus the live media of a soft-deleted
+ * its own 30-day `purge_at` through the removed_media sweep) and less an operator's removal
+ * (`removed_by_admin`: never the host's, and evicting one early would end the runbook's window to hold
+ * and preserve before its `purge_at`, admin-triage r1), plus the live media of a soft-deleted
  * event. Never a held row: a hold is our doing, not the host's hoarding, and the delete is R2-first.
  *
  * WHOLE (the 1,000-row round, 2026-09-23; H12):
@@ -124,6 +126,7 @@ export async function readStandbyBin(
           .eq("status", "removed")
           .eq("removed_by_system", false)
           .eq("removed_by_uploader", false)
+          .eq("removed_by_admin", false)
           .filter("legal_hold_at", "is", null)
           .order("id", { ascending: true })
           .limit(limit);

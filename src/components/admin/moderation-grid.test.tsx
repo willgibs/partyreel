@@ -136,3 +136,26 @@ describe("the admin's album grid opens the one viewer", () => {
     expect(capsule.querySelector('[aria-label="Save"]')).not.toBeNull();
   });
 });
+
+/**
+ * THE REMOVE SAYS WHAT IS TRUE AFTER THE PRESS (admin-triage r1): the host loses it from her album
+ * and her Deleted at once and is told nothing, the guest's own list says it in its own words, and it
+ * comes back from here for the one 30-day window. Build 15's red-team read "her uploads list
+ * already says Not in the album" on an item still up.
+ */
+describe("the operator's Remove", () => {
+  it("lists what the removal reaches, never what is already so", async () => {
+    mount();
+    fireEvent.click(screen.getAllByRole("button", { name: "Remove" })[0]);
+    const dialog = await screen.findByRole("dialog");
+    const lines = [
+      ...dialog.querySelectorAll("[data-slot='destructive-touches'] li"),
+    ].map((li) => li.textContent);
+    expect(lines).toEqual([
+      "-1 photo in Maya & Jay",
+      "-Gone from the host's album and her Deleted at once; she is sent nothing",
+      "-At an event that reviews uploads, the guest who sent it sees “Not approved” in her uploads list",
+      "-Restorable here for 30 days, then the purge deletes it unless it is held",
+    ]);
+  });
+});
