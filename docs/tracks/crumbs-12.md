@@ -11,6 +11,30 @@ owns:                   # path PREFIXES (dirs end in /); everything else is forb
   - src/app/(marketing)/marketing.css
   - src/app/globals.css
   - src/lib/type-ladder-policy.test.ts
+  # Added at boot, where the brief's items live outside the cut's claims:
+  - src/components/app/event-feed/edge-fade-scroller.tsx   # the row's scroller, its own module so a test can mount it (item 2)
+  - src/components/marketing/help/step-screens/desk-screens.tsx   # the help's picture of the row follows the order (item 1)
+  - src/components/app/event-feed/reel-card.tsx            # the heading weight's sources (item 3) from here down
+  - src/components/ui/card.tsx
+  - src/components/ui/dialog.tsx
+  - src/components/ui/sheet.tsx
+  - src/components/ui/popup.tsx
+  - src/components/shared/empty-state.tsx
+  - src/app/(marketing)/(paper)/contact/contact-form.tsx
+  - src/app/(marketing)/(cinema)/careers/[slug]/application-form.tsx
+  - src/components/admin/applicants-list.tsx
+  - src/components/admin/support-list.tsx
+  - src/components/guest/reel/live-reel-view.tsx
+  - src/components/guest/save-account-prompt.tsx
+  - src/components/social/guest-peek.tsx
+  - src/components/marketing/help/step-screens/door-screens.tsx
+  - src/components/marketing/sections/home/faq-accordion.tsx
+  - src/components/marketing/sections/home/pricing-teaser.tsx
+  - src/components/marketing/sections/pricing/configurator.tsx
+  - src/components/marketing/sections/reel/clip-section.tsx
+  - src/components/marketing/sections/reel/screen-section.tsx
+  - src/app/(dev)/design/(shell)/library/foundations/page.tsx
+  - src/app/(dev)/design/(shell)/library/foundations/type-ladder.tsx
 reads:                  # single-sources you depend on: never duplicate, never edit
   - docs/systems/design-system.md
   - docs/systems/host-app.md
