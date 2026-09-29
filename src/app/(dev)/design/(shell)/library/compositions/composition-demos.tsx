@@ -3,6 +3,16 @@
 import { useState } from "react";
 import { ShieldAlert, Undo2 } from "lucide-react";
 
+import {
+  AtTheDoor,
+  type DoorActs,
+  type DoorPerson,
+} from "@/app/(app)/dashboard/[eventId]/guests/at-the-door";
+import {
+  InvitedSection,
+  type InviteActs,
+  type InvitedPerson,
+} from "@/app/(app)/dashboard/[eventId]/guests/invited-section";
 import { AdminRail } from "@/components/admin/admin-rail";
 import { DestructiveSheet } from "@/components/admin/destructive-sheet";
 import { HealthBand } from "@/components/admin/health-band";
@@ -27,7 +37,10 @@ import {
   SettingsProvider,
   type SettingsWrites,
 } from "@/components/app/event-settings/settings-state";
-import { hostEvent, NO_COUNTS } from "@/components/app/event-settings/testing/host-event";
+import {
+  hostEvent,
+  NO_COUNTS,
+} from "@/components/app/event-settings/testing/host-event";
 import { AddsPage } from "@/components/app/event-settings/adds-page";
 import { EventPage } from "@/components/app/event-settings/event-page";
 import { ReelPage } from "@/components/app/event-settings/reel-page";
@@ -672,5 +685,92 @@ export function DoorPageDemo() {
         <DoorPage guestsHref="#guests" />
       </div>
     </SettingsProvider>
+  );
+}
+
+/* ── THE GUESTS ROOM'S DOOR (event-settings r1), on the same wedding, its acts inert ──────────── */
+
+const DOOR_ACTS: DoorActs = {
+  letIn: async () => settle({ ok: true as const, admitted: 1 }),
+  decline: async () => settle({ ok: true as const, blockId: "demo-block" }),
+  letBackIn: async () => settle({ ok: true as const, restored: 0, noRoom: 0 }),
+};
+
+const INVITE_ACTS: InviteActs = {
+  add: async (input) => {
+    const emails = (input as { emails?: string[] }).emails ?? [];
+    return settle({
+      ok: true as const,
+      result: {
+        added: emails.length,
+        already: 0,
+        invalid: 0,
+        overCap: 0,
+        total: INVITED.length + emails.length,
+      },
+    });
+  },
+  remove: async () => settle({ ok: true as const }),
+};
+
+const WAITING: DoorPerson[] = [
+  {
+    guestId: "demo-door-1",
+    userId: "demo-user-1",
+    name: "Priya Shah",
+    email: "priya@example.com",
+    asked: "5 minutes ago",
+    seed: "priya",
+  },
+  {
+    guestId: "demo-door-2",
+    userId: "demo-user-2",
+    name: null,
+    email: "tom.okafor@example.com",
+    asked: "just now",
+    seed: "tom",
+  },
+  {
+    guestId: "demo-door-3",
+    userId: "demo-user-3",
+    name: "Ines Moreau",
+    email: "ines@example.com",
+    asked: "yesterday",
+    seed: "ines",
+  },
+];
+
+const INVITED: InvitedPerson[] = [
+  { email: "aunt.rosa@example.com", joined: true },
+  { email: "sam.lee@example.com", joined: true },
+  { email: "jules@example.com", joined: false },
+  { email: "the.chens@example.com", joined: false },
+];
+
+/** At the door, three waiting: Let in and Decline answer after a round trip and change nothing. */
+export function AtTheDoorDemo() {
+  return (
+    <div className="max-w-2xl">
+      <AtTheDoor
+        eventId="demo-event"
+        people={WAITING}
+        total={WAITING.length}
+        acts={DOOR_ACTS}
+      />
+    </div>
+  );
+}
+
+/** Invited, the invite list being the door: type or paste addresses; the saves answer and change nothing. */
+export function InvitedDemo() {
+  return (
+    <div className="max-w-2xl">
+      <InvitedSection
+        eventId="demo-event"
+        invited={INVITED}
+        listIsTheDoor
+        acts={INVITE_ACTS}
+      />
+    </div>
   );
 }

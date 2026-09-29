@@ -217,6 +217,10 @@
       "<SettingsDemo tier=\"free\" />",
       "<DoorPageDemo />"
     ],
+    "guests-door": [
+      "<AtTheDoorDemo />",
+      "<InvitedDemo />"
+    ],
     "glow": [
       "<div className=\"dark\">\n  <div className=\"h-16 bg-muted\" />\n  <div className=\"surface-ink relative isolate bg-background\">\n    <Glow\n      shape=\"seam\"\n      vars={{\n        \"--glw-h\": \"210px\",\n        \"--glw-dur\": \"var(--spill-cadence)\",\n      }}\n    />\n    <div data-glw-seamline aria-hidden />\n    <div className=\"relative px-8 py-16 text-sm text-muted-foreground\">\n      The ink slab, lit from the cut above it.\n    </div>\n  </div>\n</div>",
       "<div className=\"dark flex justify-center bg-background p-10\">\n  <div className=\"relative isolate\" style={{ width: 168 }}>\n    <div\n      aria-hidden\n      className=\"pointer-events-none absolute -inset-16\"\n    >\n      <Glow\n        shape=\"throw\"\n        vars={{\n          \"--glw-from-x\": \"50%\",\n          \"--glw-from-y\": \"72%\",\n          \"--glw-reach\": \"72%\",\n          \"--glw-strength\": \"0.5\",\n          \"--glw-base\": \"0.5\",\n          \"--glw-blur\": \"22px\",\n          \"--glw-dur\": \"var(--spill-cadence)\",\n        }}\n      />\n    </div>\n    <div className=\"relative rounded-2xl bg-white p-5\">\n      <div className=\"aspect-square rounded-xl bg-gallery\" />\n    </div>\n  </div>\n</div>",
