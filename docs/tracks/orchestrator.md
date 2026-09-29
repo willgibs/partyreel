@@ -40,6 +40,7 @@ a lane").
 | `settings-wiring` | every event-settings pick: settings as four sentences, the doors end to end, the Guests room, the hub | running (agent `aefdc4b3cecd92f74`) | Opus, 3131 | |
 | `triage-r2-wiring` | admin-triage r2 wired; the hold rebuilt (Hold takes down by default; storage released at an operator's removal; an open report guards its item; the child-abuse instant hide) | running (agent `a432fe0336dc35587`) | Opus, 3134 | |
 | `crumbs-13` | device sign-out with Sign out everywhere in settings, the home's double preload, three lint warnings | running (agent `acefdcef3899da571`) | Opus, 3132 | |
+| `lab-revamp` | a board as one self-registering folder, scoped lab checks, the trimmed API, the words renamed, the kit following (holds registry.ts and boards.ts; PROGRAM.md's lines come in its Handoff) | running (agent `a6b4519e3d363d7dd`) | Opus, 3133 | |
 
 Batch 8 (2026-09-29) answers Will's sitting on build 19, the desk whole (transcribed at `31de6aa0`: 41 answers on ten
 boards). Wave A: `settings-wiring` (all nine event-settings picks, the doors end to end), `locked-door` r2 (the door
@@ -60,8 +61,7 @@ Merged in batch 8 (their records carry the rest): crumbs-12, locked-door r2, dis
    stop reshaping off trickle-down changes). Drafted specs wait in this session's scratchpad (`specs/<track>.json`); a
    new session writes them from these lines.
    - `triage-r2-wiring` is running (its manifest carries admin-triage r2 and the hold's rebuild, his words whole).
-   - The lab revamp (step 9), once `locked-door` r2 and `disposable-mode` r2 merge; a board cut meanwhile is converted at
-     its sync, since lab work never delays a board.
+   - `lab-revamp` is running (step 9); boards cut after its merge are authored in the new shape, the first as its proof.
    - `event-ready` r1 (Opus), once `settings-wiring` merges: his event checklist and the settings' mini wizard (and
      whether Create shares it), taking ROADMAP's "what needs you" and "the hub's code as the event's live door" lines
      and the `day-of-checklist-for-hosts` article.
